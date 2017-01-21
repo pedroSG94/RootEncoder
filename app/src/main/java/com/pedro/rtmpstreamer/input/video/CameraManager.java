@@ -51,7 +51,6 @@ public class CameraManager implements Camera.PreviewCallback {
             try {
                 camera = Camera.open();
                 Camera.Parameters parameters = camera.getParameters();
-
                 parameters.setPreviewSize(width, height);
                 parameters.setPreviewFormat(imageFormat);
                 int[] range = adaptFpsRange(fps, parameters.getSupportedPreviewFpsRange());
@@ -163,11 +162,25 @@ public class CameraManager implements Camera.PreviewCallback {
         return formats;
     }
 
+    /**
+     * call if after start()
+     */
     public List<Camera.Size> getPreviewSize() {
         List<Camera.Size> previewSizes = camera.getParameters().getSupportedPreviewSizes();
         for (Camera.Size size : previewSizes) {
             Log.i(TAG, size.width + "X" + size.height);
         }
         return previewSizes;
+    }
+
+    public void setEffect(EffectManager effect){
+        try {
+            Camera.Parameters parameters = camera.getParameters();
+            parameters.setColorEffect(effect.getEffect());
+            camera.setParameters(parameters);
+            camera.reconnect();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 }

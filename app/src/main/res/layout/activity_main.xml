@@ -20,4 +20,30 @@
         android:layout_height="wrap_content"
         android:id="@+id/button"
         />
+
+    <Button
+        android:text="Sepia"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/sepia"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentEnd="true" />
+
+    <Button
+        android:text="Negative"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/negative"
+        android:layout_alignParentBottom="true"
+        android:layout_toStartOf="@+id/sepia" />
+
+    <Button
+        android:text="Clear"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_toStartOf="@+id/negative"
+        android:id="@+id/clear" />
+
+
 </RelativeLayout>

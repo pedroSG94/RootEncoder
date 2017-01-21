@@ -14,6 +14,7 @@ import com.pedro.rtmpstreamer.encoder.audio.GetAccData;
 import com.pedro.rtmpstreamer.input.audio.GetMicrophoneData;
 import com.pedro.rtmpstreamer.input.audio.MicrophoneManager;
 import com.pedro.rtmpstreamer.input.video.CameraManager;
+import com.pedro.rtmpstreamer.input.video.EffectManager;
 import com.pedro.rtmpstreamer.input.video.GetCameraData;
 import com.pedro.rtmpstreamer.encoder.video.GetH264Data;
 import com.pedro.rtmpstreamer.encoder.video.VideoEncoder;
@@ -44,6 +45,13 @@ public class MainActivity extends AppCompatActivity implements GetAccData, GetCa
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         setContentView(R.layout.activity_main);
+
+        Button clear = (Button) findViewById(R.id.clear);
+        clear.setOnClickListener(this);
+        Button negative = (Button) findViewById(R.id.negative);
+        negative.setOnClickListener(this);
+        Button sepia = (Button) findViewById(R.id.sepia);
+        sepia.setOnClickListener(this);
 
         SurfaceView surfaceView = (SurfaceView) findViewById(R.id.surfaceView);
         button = (Button) findViewById(R.id.button);
@@ -91,12 +99,27 @@ public class MainActivity extends AppCompatActivity implements GetAccData, GetCa
 
     @Override
     public void onClick(View v) {
-        if (!streaming) {
-            start();
-            button.setText("Stop stream");
-        } else {
-            stop();
-            button.setText("Start stream");
+        switch (v.getId()) {
+            case R.id.button:
+                if (!streaming) {
+                    start();
+                    button.setText("Stop stream");
+                } else {
+                    stop();
+                    button.setText("Start stream");
+                }
+                break;
+            case R.id.clear:
+                cameraManager.setEffect(EffectManager.CLEAR);
+                break;
+            case R.id.negative:
+                cameraManager.setEffect(EffectManager.NEGATIVE);
+                break;
+            case R.id.sepia:
+                cameraManager.setEffect(EffectManager.SEPIA);
+                break;
+            default:
+                break;
         }
     }
 
