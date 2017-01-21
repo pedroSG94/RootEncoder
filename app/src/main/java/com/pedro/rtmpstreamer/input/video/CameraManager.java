@@ -18,17 +18,19 @@ import javax.microedition.khronos.egl.EGLSurface;
 
 /**
  * Created by pedro on 20/01/17.
+ * This class need use same resolution and fps that VideoEncoder
  */
 
 public class CameraManager implements Camera.PreviewCallback {
 
     private String TAG = "CameraManager";
-
     private Camera camera = null;
     private SurfaceView surfaceView;
     private GetCameraData getCameraData;
     private boolean running = false;
     private int imageFormat = ImageFormat.YV12;
+
+    //default parameters for camera
     private int width = 640;
     private int height = 480;
     private int fps = 24;

@@ -17,10 +17,12 @@ public class MicrophoneManager {
     private AudioRecord audioRecord;
     private GetMicrophoneData getMicrophoneData;
     private byte[] pcmBuffer = new byte[4096];
+    private boolean running = false;
+
+    //default parameters for microphone
     private int sampleRate = 44100; //hz
     private int audioFormat = AudioFormat.ENCODING_PCM_16BIT;
     private int channel = AudioFormat.CHANNEL_IN_STEREO;
-    private boolean running = false;
 
     public MicrophoneManager(GetMicrophoneData getMicrophoneData) {
         this.getMicrophoneData = getMicrophoneData;

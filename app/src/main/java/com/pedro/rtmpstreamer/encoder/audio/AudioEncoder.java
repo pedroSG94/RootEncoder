@@ -18,14 +18,17 @@ import java.nio.ByteBuffer;
 public class AudioEncoder implements GetMicrophoneData {
 
     private String TAG = "AudioEncoder";
-
     private MediaCodec audioEncoder;
     private GetAccData getAccData;
-    private String codec = "audio/mp4a-latm";
-    private int bitRate = 128 * 1024;  //in kbps
     private MediaCodec.BufferInfo audioInfo = new MediaCodec.BufferInfo();
     private long mPresentTimeUs;
     private boolean running;
+
+    //default parameters for encoder
+    private String codec = "audio/mp4a-latm";
+    private int bitRate = 128 * 1024;  //in kbps
+    private int sampleRate = 44100; //in hz
+    private int channel = AudioFormat.CHANNEL_IN_STEREO;
 
     public AudioEncoder(GetAccData getAccData) {
         this.getAccData = getAccData;
@@ -35,6 +38,8 @@ public class AudioEncoder implements GetMicrophoneData {
      * Prepare encoder with custom parameters
      */
     public void prepareAudioEncoder(int sampleRate, int channel) {
+        this.sampleRate = sampleRate;
+        this.channel = channel;
         try {
             audioEncoder = MediaCodec.createEncoderByType(codec);
         } catch (IOException e) {
@@ -52,7 +57,7 @@ public class AudioEncoder implements GetMicrophoneData {
      * Prepare encoder with default parameters
      */
     public void prepareAudioEncoder() {
-        prepareAudioEncoder(44100, AudioFormat.CHANNEL_IN_STEREO);
+        prepareAudioEncoder(sampleRate, channel);
     }
 
 
@@ -87,12 +92,9 @@ public class AudioEncoder implements GetMicrophoneData {
     }
 
     private void getDataFromEncoder(byte[] data, int size) {
-        ByteBuffer[] inBuffers = audioEncoder.getInputBuffers();
-        ByteBuffer[] outBuffers = audioEncoder.getOutputBuffers();
-
         int inBufferIndex = audioEncoder.dequeueInputBuffer(-1);
         if (inBufferIndex >= 0) {
-            ByteBuffer bb = inBuffers[inBufferIndex];
+            ByteBuffer bb = audioEncoder.getInputBuffer(inBufferIndex);
             bb.clear();
             bb.put(data, 0, size);
             long pts = System.nanoTime() / 1000 - mPresentTimeUs;
@@ -103,7 +105,7 @@ public class AudioEncoder implements GetMicrophoneData {
             int outBufferIndex = audioEncoder.dequeueOutputBuffer(audioInfo, 0);
             if (outBufferIndex >= 0) {
                 //This ByteBuffer is ACC
-                ByteBuffer bb = outBuffers[outBufferIndex];
+                ByteBuffer bb = audioEncoder.getOutputBuffer(outBufferIndex);
                 getAccData.getAccData(bb, audioInfo);
                 audioEncoder.releaseOutputBuffer(outBufferIndex, false);
             } else {

@@ -13,6 +13,7 @@ import java.nio.ByteBuffer;
 
 /**
  * Created by pedro on 19/01/17.
+ * This class need use same resolution and fps that CameraManager
  */
 
 public class VideoEncoder implements GetCameraData {
@@ -24,6 +25,14 @@ public class VideoEncoder implements GetCameraData {
     private long mPresentTimeUs;
     private boolean running;
 
+    //default parameters for encoder
+    private String codec = "video/avc";
+    private int width = 640;
+    private int height = 480;
+    private int fps = 24;
+    private int bitRate = 120 * 1000; //in kbps
+    private FormatVideoEncoder formatVideoEncoder = FormatVideoEncoder.YUV420;
+
     public VideoEncoder(GetH264Data getH264Data) {
         this.getH264Data = getH264Data;
     }
@@ -33,9 +42,19 @@ public class VideoEncoder implements GetCameraData {
      * Prepare encoder with custom parameters
      */
     public boolean prepareVideoEncoder(int width, int height, int fps, int bitRate, FormatVideoEncoder formatVideoEncoder) {
+        this.width = width;
+        this.height = height;
+        this.fps = fps;
+        this.bitRate = bitRate;
+        this.formatVideoEncoder = formatVideoEncoder;
         MediaCodecInfo encoder = chooseVideoEncoder(null);
         try {
-            videoEncoder = MediaCodec.createByCodecName(encoder.getName());
+            if (encoder != null) {
+                videoEncoder = MediaCodec.createByCodecName(encoder.getName());
+            } else {
+                Log.e(TAG, "valid encoder not found");
+                return false;
+            }
         } catch (IOException e) {
             Log.e(TAG, "create videoEncoder failed.");
             e.printStackTrace();
@@ -43,7 +62,7 @@ public class VideoEncoder implements GetCameraData {
         }
 
         // Note: landscape to portrait, 90 degree rotation, so we need to switch width and height in configuration
-        MediaFormat videoFormat = MediaFormat.createVideoFormat("video/avc", width, height);
+        MediaFormat videoFormat = MediaFormat.createVideoFormat(codec, width, height);
         videoFormat.setInteger(MediaFormat.KEY_COLOR_FORMAT, formatVideoEncoder.getFormatCodec());
         videoFormat.setInteger(MediaFormat.KEY_MAX_INPUT_SIZE, 0);
         videoFormat.setInteger(MediaFormat.KEY_BIT_RATE, bitRate);
@@ -57,9 +76,9 @@ public class VideoEncoder implements GetCameraData {
     /**
      * Prepare encoder with default parameters
      */
-    public boolean prepareVideoEncoder(){
+    public boolean prepareVideoEncoder() {
         Log.i(TAG, "preparing videoEncoder with 640X480 resolution, 24fps, 1200kbps bitrate, YUV420 format");
-        return prepareVideoEncoder(640, 480, 24, 1200 * 1000, FormatVideoEncoder.YUV420);
+        return prepareVideoEncoder(width, height, fps, bitRate, formatVideoEncoder);
     }
 
     public boolean isRunning() {
@@ -87,18 +106,18 @@ public class VideoEncoder implements GetCameraData {
         getDataFromEncoder(i420);
     }
 
-    /**call it to encoder YUV 420, 422, 444*/
+    /**
+     * call it to encoder YUV 420, 422, 444
+     * remember create encoder with correct color format before
+     */
     public void inputYuv4XX(byte[] buffer) {
         getDataFromEncoder(buffer);
     }
 
     private void getDataFromEncoder(byte[] buffer) {
-        ByteBuffer[] inBuffers = videoEncoder.getInputBuffers();
-        ByteBuffer[] outBuffers = videoEncoder.getOutputBuffers();
-
         int inBufferIndex = videoEncoder.dequeueInputBuffer(-1);
         if (inBufferIndex >= 0) {
-            ByteBuffer bb = inBuffers[inBufferIndex];
+            ByteBuffer bb = videoEncoder.getInputBuffer(inBufferIndex);
             bb.clear();
             bb.put(buffer, 0, buffer.length);
             long pts = System.nanoTime() / 1000 - mPresentTimeUs;
@@ -109,7 +128,7 @@ public class VideoEncoder implements GetCameraData {
             int outBufferIndex = videoEncoder.dequeueOutputBuffer(videoInfo, 0);
             if (outBufferIndex >= 0) {
                 //This ByteBuffer is H264
-                ByteBuffer bb = outBuffers[outBufferIndex];
+                ByteBuffer bb = videoEncoder.getOutputBuffer(outBufferIndex);
                 getH264Data.getH264Data(bb, videoInfo);
                 videoEncoder.releaseOutputBuffer(outBufferIndex, false);
             } else {
@@ -119,33 +138,35 @@ public class VideoEncoder implements GetCameraData {
 
     }
 
-    // choose the video encoder by name.
+    /**
+     * choose the video encoder by name.
+     */
     private MediaCodecInfo chooseVideoEncoder(String name) {
-        int nbCodecs = MediaCodecList.getCodecCount();
-        for (int i = 0; i < nbCodecs; i++) {
-            MediaCodecInfo mci = MediaCodecList.getCodecInfoAt(i);
+        MediaCodecList mediaCodecList = new MediaCodecList(MediaCodecList.ALL_CODECS);
+        MediaCodecInfo[] mediaCodecInfos = mediaCodecList.getCodecInfos();
+        for (MediaCodecInfo mci : mediaCodecInfos) {
             if (!mci.isEncoder()) {
                 continue;
             }
-
             String[] types = mci.getSupportedTypes();
-            for (int j = 0; j < types.length; j++) {
-                if (types[j].equalsIgnoreCase("video/avc")) {
-                    Log.i(TAG, String.format("vencoder %s types: %s", mci.getName(), types[j]));
+            for (String type : types) {
+                if (type.equalsIgnoreCase("video/avc")) {
+                    Log.i(TAG, String.format("vencoder %s types: %s", mci.getName(), type));
                     if (name == null) {
                         return mci;
                     }
-
                     if (mci.getName().contains(name)) {
                         return mci;
                     }
                 }
             }
         }
-
         return null;
     }
 
+    /**
+     * swap YV12 from camera to I420(YUV)
+     */
     private byte[] swapYV12toI420(byte[] yv12bytes, int width, int height) {
         byte[] i420bytes = new byte[yv12bytes.length];
         System.arraycopy(yv12bytes, 0, i420bytes, 0, width * height);
