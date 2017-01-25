@@ -3,7 +3,6 @@ package com.pedro.rtmpstreamer.input.video;
 import android.graphics.ImageFormat;
 import android.hardware.Camera;
 import android.opengl.GLES20;
-import android.provider.ContactsContract;
 import android.util.Log;
 import android.view.Surface;
 import android.view.SurfaceView;
@@ -30,11 +29,11 @@ public class CameraManager implements Camera.PreviewCallback {
     private SurfaceView surfaceView;
     private GetCameraData getCameraData;
     private boolean running = false;
-    private int imageFormat = ImageFormat.YV12;
+    private int imageFormat = ImageFormat.NV21;
 
     //default parameters for camera
-    private int width = 640;
-    private int height = 480;
+    private int width = 1920;
+    private int height = 1080;
     private int fps = 24;
     private int orientation = 0;
 
@@ -44,11 +43,19 @@ public class CameraManager implements Camera.PreviewCallback {
         this.getCameraData = getCameraData;
     }
 
-    public void start(int width, int height, int fps, int orientation) {
+    public void prepareCamera(int width, int height, int fps, int orientation, int imageFormat) {
         this.width = width;
         this.height = height;
         this.fps = fps;
         this.orientation = orientation;
+        this.imageFormat = imageFormat;
+    }
+
+    public void prepareCamera() {
+        prepareCamera(width, height, fps, orientation, imageFormat);
+    }
+
+    public void start() {
         if (camera == null) {
             try {
                 camera = Camera.open();
@@ -68,10 +75,6 @@ public class CameraManager implements Camera.PreviewCallback {
                 e.printStackTrace();
             }
         }
-    }
-
-    public void start() {
-        start(width, height, fps, orientation);
     }
 
     public void stop() {

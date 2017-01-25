@@ -1,6 +1,5 @@
 package com.pedro.rtmpstreamer.encoder.audio;
 
-import android.media.AudioFormat;
 import android.media.MediaCodec;
 import android.media.MediaFormat;
 import android.util.Log;
@@ -25,10 +24,10 @@ public class AudioEncoder implements GetMicrophoneData {
     private boolean running;
 
     //default parameters for encoder
-    private String codec = "audio/mp4a-latm";
+    private String mime = "audio/mp4a-latm";
     private int bitRate = 128 * 1024;  //in kbps
     private int sampleRate = 44100; //in hz
-    private int channel = AudioFormat.CHANNEL_IN_STEREO;
+    private boolean isStereo = true;
 
     public AudioEncoder(GetAccData getAccData) {
         this.getAccData = getAccData;
@@ -37,16 +36,15 @@ public class AudioEncoder implements GetMicrophoneData {
     /**
      * Prepare encoder with custom parameters
      */
-    public void prepareAudioEncoder(int sampleRate, int channel) {
+    public void prepareAudioEncoder(int bitRate, int sampleRate, boolean isStereo) {
         this.sampleRate = sampleRate;
-        this.channel = channel;
         try {
-            audioEncoder = MediaCodec.createEncoderByType(codec);
+            audioEncoder = MediaCodec.createEncoderByType(mime);
         } catch (IOException e) {
             e.printStackTrace();
         }
-        int a = channel == AudioFormat.CHANNEL_IN_STEREO ? 2 : 1;
-        MediaFormat audioFormat = MediaFormat.createAudioFormat(codec, sampleRate, a);
+        int a = (isStereo) ? 2 : 1;
+        MediaFormat audioFormat = MediaFormat.createAudioFormat(mime, sampleRate, a);
         audioFormat.setInteger(MediaFormat.KEY_BIT_RATE, bitRate);
         audioFormat.setInteger(MediaFormat.KEY_MAX_INPUT_SIZE, 0);
         audioEncoder.configure(audioFormat, null, null, MediaCodec.CONFIGURE_FLAG_ENCODE);
@@ -57,7 +55,7 @@ public class AudioEncoder implements GetMicrophoneData {
      * Prepare encoder with default parameters
      */
     public void prepareAudioEncoder() {
-        prepareAudioEncoder(sampleRate, channel);
+        prepareAudioEncoder(bitRate, sampleRate, isStereo);
     }
 
 

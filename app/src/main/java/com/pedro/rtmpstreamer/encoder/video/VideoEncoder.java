@@ -28,11 +28,11 @@ public class VideoEncoder implements GetCameraData {
 
     //default parameters for encoder
     private String codec = "video/avc";
-    private int width = 640;
-    private int height = 480;
+    private int width = 1920;
+    private int height = 1080;
     private int fps = 24;
-    private int bitRate = 1200 * 1000; //in kbps
-    private FormatVideoEncoder formatVideoEncoder = FormatVideoEncoder.YUV420;
+    private int bitRate = 3000 * 1000; //in kbps
+    private FormatVideoEncoder formatVideoEncoder = FormatVideoEncoder.YUV420FLEXIBLE;
 
     public VideoEncoder(GetH264Data getH264Data) {
         this.getH264Data = getH264Data;
@@ -80,6 +80,14 @@ public class VideoEncoder implements GetCameraData {
     public boolean prepareVideoEncoder() {
         Log.i(TAG, "preparing videoEncoder with 640X480 resolution, 24fps, 1200kbps bitrate, YUV420 format");
         return prepareVideoEncoder(width, height, fps, bitRate, formatVideoEncoder);
+    }
+
+    public int getWidth() {
+        return width;
+    }
+
+    public int getHeight() {
+        return height;
     }
 
     public boolean isRunning() {
