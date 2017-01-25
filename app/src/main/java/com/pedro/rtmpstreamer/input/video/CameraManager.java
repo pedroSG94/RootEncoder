@@ -3,6 +3,7 @@ package com.pedro.rtmpstreamer.input.video;
 import android.graphics.ImageFormat;
 import android.hardware.Camera;
 import android.opengl.GLES20;
+import android.provider.ContactsContract;
 import android.util.Log;
 import android.view.Surface;
 import android.view.SurfaceView;
@@ -19,6 +20,7 @@ import javax.microedition.khronos.egl.EGLSurface;
 /**
  * Created by pedro on 20/01/17.
  * This class need use same resolution and fps that VideoEncoder
+ * Tested with YV12 and NV21
  */
 
 public class CameraManager implements Camera.PreviewCallback {
@@ -146,7 +148,11 @@ public class CameraManager implements Camera.PreviewCallback {
 
     @Override
     public void onPreviewFrame(byte[] data, Camera camera) {
-        getCameraData.inputYv12Data(data, width, height);
+        if (imageFormat == ImageFormat.YV12) {
+            getCameraData.inputYv12Data(data, width, height);
+        } else if (imageFormat == ImageFormat.NV21) {
+            getCameraData.inputNv21Data(data, width, height);
+        }
     }
 
     /**
@@ -173,7 +179,7 @@ public class CameraManager implements Camera.PreviewCallback {
         return previewSizes;
     }
 
-    public void setEffect(EffectManager effect){
+    public void setEffect(EffectManager effect) {
         try {
             Camera.Parameters parameters = camera.getParameters();
             parameters.setColorEffect(effect.getEffect());

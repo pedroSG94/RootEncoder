@@ -7,4 +7,6 @@ package com.pedro.rtmpstreamer.input.video;
 public interface GetCameraData {
 
     void inputYv12Data(byte[] buffer, int width, int height);
+
+    void inputNv21Data(byte[] buffer, int width, int height);
 }

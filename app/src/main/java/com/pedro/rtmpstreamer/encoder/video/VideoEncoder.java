@@ -7,6 +7,7 @@ import android.media.MediaFormat;
 import android.util.Log;
 
 import com.pedro.rtmpstreamer.input.video.GetCameraData;
+import com.pedro.rtmpstreamer.utils.YUVUtil;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -30,7 +31,7 @@ public class VideoEncoder implements GetCameraData {
     private int width = 640;
     private int height = 480;
     private int fps = 24;
-    private int bitRate = 120 * 1000; //in kbps
+    private int bitRate = 1200 * 1000; //in kbps
     private FormatVideoEncoder formatVideoEncoder = FormatVideoEncoder.YUV420;
 
     public VideoEncoder(GetH264Data getH264Data) {
@@ -102,7 +103,13 @@ public class VideoEncoder implements GetCameraData {
 
     @Override
     public void inputYv12Data(byte[] buffer, int width, int height) {
-        byte[] i420 = swapYV12toI420(buffer, width, height);
+        byte[] i420 = YUVUtil.YV12toYUV420Planar(buffer, width, height);
+        getDataFromEncoder(i420);
+    }
+
+    @Override
+    public void inputNv21Data(byte[] buffer, int width, int height) {
+        byte[] i420 = YUVUtil.NV21toYUV420Planar(buffer, width, height);
         getDataFromEncoder(i420);
     }
 
@@ -162,19 +169,5 @@ public class VideoEncoder implements GetCameraData {
             }
         }
         return null;
-    }
-
-    /**
-     * swap YV12 from camera to I420(YUV)
-     */
-    private byte[] swapYV12toI420(byte[] yv12bytes, int width, int height) {
-        byte[] i420bytes = new byte[yv12bytes.length];
-        System.arraycopy(yv12bytes, 0, i420bytes, 0, width * height);
-        System.arraycopy(yv12bytes, width * height + (width / 2 * height / 2),
-                i420bytes, width * height, width * height + (width / 2 * height / 2) - width * height);
-        System.arraycopy(yv12bytes, width * height + (width / 2 * height / 2) - (width / 2 * height / 2),
-                i420bytes, width * height + (width / 2 * height / 2),
-                width * height + 2 * (width / 2 * height / 2) - (width * height + (width / 2 * height / 2)));
-        return i420bytes;
     }
 }

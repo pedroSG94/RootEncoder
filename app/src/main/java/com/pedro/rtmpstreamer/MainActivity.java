@@ -21,7 +21,6 @@ import com.pedro.rtmpstreamer.encoder.video.VideoEncoder;
 
 import net.ossrs.rtmp.SrsCreator;
 import net.ossrs.rtmp.SrsFlvMuxer;
-import net.ossrs.rtmp.SrsMp4Muxer;
 
 import java.nio.ByteBuffer;
 
@@ -30,7 +29,6 @@ public class MainActivity extends AppCompatActivity implements GetAccData, GetCa
     private AudioEncoder audioEncoder;
     private SrsCreator srsCreator;
     private SrsFlvMuxer srsFlvMuxer;
-    private SrsMp4Muxer srsMp4Muxer;
 
     private CameraManager cameraManager;
     private MicrophoneManager microphoneManager;
@@ -57,10 +55,9 @@ public class MainActivity extends AppCompatActivity implements GetAccData, GetCa
         button = (Button) findViewById(R.id.button);
         button.setOnClickListener(this);
 
-        //create rtmp senders
+        //create rtmp sender
         srsCreator = new SrsCreator();
         srsFlvMuxer = srsCreator.getSrsFlvMuxer();
-        srsMp4Muxer = srsCreator.getSrsMp4Muxer();
         //create media input data
         cameraManager = new CameraManager(surfaceView, this);
         microphoneManager = new MicrophoneManager(this);
@@ -73,7 +70,6 @@ public class MainActivity extends AppCompatActivity implements GetAccData, GetCa
     @Override
     public void getAccData(ByteBuffer accBuffer, MediaCodec.BufferInfo info) {
         //send data in rtmp packet
-        srsMp4Muxer.writeSampleData(101, accBuffer.duplicate(), info);
         srsFlvMuxer.writeSampleData(101, accBuffer, info);
     }
 
@@ -83,11 +79,16 @@ public class MainActivity extends AppCompatActivity implements GetAccData, GetCa
         videoEncoder.inputYv12Data(buffer, width, height);
     }
 
+    @Override
+    public void inputNv21Data(byte[] buffer, int width, int height) {
+        //encode data
+        videoEncoder.inputNv21Data(buffer, width, height);
+    }
+
 
     @Override
     public void getH264Data(ByteBuffer h264Buffer, MediaCodec.BufferInfo info) {
         //send data in rtmp packet
-        srsMp4Muxer.writeSampleData(100, h264Buffer.duplicate(), info);
         srsFlvMuxer.writeSampleData(100, h264Buffer, info);
     }
 
@@ -124,7 +125,7 @@ public class MainActivity extends AppCompatActivity implements GetAccData, GetCa
     }
 
     public void start() {
-        //init rtmp senders
+        //init rtmp sender
         srsFlvMuxer.start(url);
         srsFlvMuxer.setVideoResolution(640, 480);
 
@@ -142,9 +143,8 @@ public class MainActivity extends AppCompatActivity implements GetAccData, GetCa
     }
 
     public void stop() {
-        //stop rtmp senders
+        //stop rtmp sender
         srsFlvMuxer.stop();
-        srsMp4Muxer.stop();
 
         //stop media input, need stop it before stop encoders
         cameraManager.stop();

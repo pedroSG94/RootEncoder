@@ -81,43 +81,8 @@ public class SrsCreator {
         }
     }));
 
-    private SrsMp4Muxer srsMp4Muxer = new SrsMp4Muxer(new SrsRecordHandler(new SrsRecordHandler.SrsRecordListener() {
-        @Override
-        public void onRecordPause() {
-
-        }
-
-        @Override
-        public void onRecordResume() {
-
-        }
-
-        @Override
-        public void onRecordStarted(String msg) {
-
-        }
-
-        @Override
-        public void onRecordFinished(String msg) {
-
-        }
-
-        @Override
-        public void onRecordIllegalArgumentException(IllegalArgumentException e) {
-            Log.e(TAG, e.getMessage());
-        }
-
-        @Override
-        public void onRecordIOException(IOException e) {
-            Log.e(TAG, e.getMessage());
-        }
-    }));
-
     public SrsFlvMuxer getSrsFlvMuxer() {
         return srsFlvMuxer;
     }
 
-    public SrsMp4Muxer getSrsMp4Muxer() {
-        return srsMp4Muxer;
-    }
 }
