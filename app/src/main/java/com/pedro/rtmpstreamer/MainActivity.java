@@ -95,7 +95,7 @@ public class MainActivity extends AppCompatActivity implements Button.OnClickLis
     }
 
     @Override
-    public void onConnectionSucces() {
+    public void onConnectionSuccess() {
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
@@ -115,6 +115,5 @@ public class MainActivity extends AppCompatActivity implements Button.OnClickLis
                 button.setText("Start stream");
             }
         });
-
     }
 }

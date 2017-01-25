@@ -162,7 +162,7 @@ public class SrsFlvMuxer {
                     connectChecker.onConnectionFailed();
                     return;
                 }
-                connectChecker.onConnectionSucces();
+                connectChecker.onConnectionSuccess();
                 while (!Thread.interrupted()) {
                     while (!mFlvTagCache.isEmpty()) {
                         SrsFlvFrame frame = mFlvTagCache.poll();

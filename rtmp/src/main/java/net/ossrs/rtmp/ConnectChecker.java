@@ -6,7 +6,7 @@ package net.ossrs.rtmp;
 
 public interface ConnectChecker {
 
-    void onConnectionSucces();
+    void onConnectionSuccess();
 
     void onConnectionFailed();
 }

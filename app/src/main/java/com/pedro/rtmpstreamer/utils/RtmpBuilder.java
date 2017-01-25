@@ -50,41 +50,42 @@ public class RtmpBuilder implements GetAccData, GetCameraData, GetH264Data, GetM
         streaming = false;
     }
 
-    public void prepareVideo(int width, int height, int fps, int bitrate){
+    public void prepareVideo(int width, int height, int fps, int bitrate) {
         this.width = width;
         this.height = height;
         cameraManager.prepareCamera(width, height, fps, 0, ImageFormat.NV21);
         videoEncoder.prepareVideoEncoder(width, height, fps, bitrate, FormatVideoEncoder.YUV420PLANAR);
     }
 
-    public void prepareAudio(int bitrate, int sampleRate, boolean isStereo){
+    public void prepareAudio(int bitrate, int sampleRate, boolean isStereo) {
         microphoneManager.createMicrophone(sampleRate, isStereo);
         audioEncoder.prepareAudioEncoder(bitrate, sampleRate, isStereo);
     }
 
-    public void prepareVideo(){
+    public void prepareVideo() {
         cameraManager.prepareCamera();
         videoEncoder.prepareVideoEncoder();
         width = videoEncoder.getWidth();
         height = videoEncoder.getHeight();
     }
 
-    public void prepareAudio(){
+    public void prepareAudio() {
         microphoneManager.createMicrophone();
         audioEncoder.prepareAudioEncoder();
     }
 
-    public void startStream(String url){
+    public void startStream(String url) {
         srsFlvMuxer.start(url, connectChecker);
         srsFlvMuxer.setVideoResolution(width, height);
         videoEncoder.start();
         audioEncoder.start();
         cameraManager.start();
         microphoneManager.start();
+        cameraManager.enableLantern();
         streaming = true;
     }
 
-    public void stopStream(){
+    public void stopStream() {
         srsFlvMuxer.stop();
         cameraManager.stop();
         microphoneManager.stop();
@@ -93,11 +94,23 @@ public class RtmpBuilder implements GetAccData, GetCameraData, GetH264Data, GetM
         streaming = false;
     }
 
+    public void enableDisableLantern() {
+        if (cameraManager.isLanternEnable()) {
+            cameraManager.disableLantern();
+        } else {
+            cameraManager.enableLantern();
+        }
+    }
+
+    public void switchCamera(){
+        cameraManager.switchCamera();
+    }
+
     public boolean isStreaming() {
         return streaming;
     }
 
-    public void setEffect(EffectManager effect){
+    public void setEffect(EffectManager effect) {
         cameraManager.setEffect(effect);
     }
 

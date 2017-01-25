@@ -29,17 +29,20 @@ public class CameraManager implements Camera.PreviewCallback {
     private SurfaceView surfaceView;
     private GetCameraData getCameraData;
     private boolean running = false;
-    private int imageFormat = ImageFormat.NV21;
+    private boolean lanternEnable = false;
+    int cameraSelect;
 
     //default parameters for camera
     private int width = 1280;
     private int height = 720;
     private int fps = 24;
     private int orientation = 0;
+    private int imageFormat = ImageFormat.NV21;
 
     public CameraManager(SurfaceView surfaceView, GetCameraData getCameraData) {
         this.surfaceView = surfaceView;
         this.getCameraData = getCameraData;
+        cameraSelect = selectCamera();
     }
 
     public void prepareCamera(int width, int height, int fps, int orientation, int imageFormat) {
@@ -57,7 +60,7 @@ public class CameraManager implements Camera.PreviewCallback {
     public void start() {
         if (camera == null) {
             try {
-                camera = Camera.open();
+                camera = Camera.open(cameraSelect);
                 Camera.Parameters parameters = camera.getParameters();
                 parameters.setPreviewSize(width, height);
                 parameters.setPreviewFormat(imageFormat);
@@ -74,6 +77,20 @@ public class CameraManager implements Camera.PreviewCallback {
                 e.printStackTrace();
             }
         }
+    }
+
+    private int selectCamera() {
+        int number = Camera.getNumberOfCameras();
+        for (int i = 0; i < number; i++) {
+            Camera.CameraInfo info = new Camera.CameraInfo();
+            Camera.getCameraInfo(i, info);
+            if (info.facing == Camera.CameraInfo.CAMERA_FACING_BACK) {
+                return i;
+            } else {
+                cameraSelect = i;
+            }
+        }
+        return cameraSelect;
     }
 
     public void stop() {
@@ -186,11 +203,49 @@ public class CameraManager implements Camera.PreviewCallback {
         parameters.setColorEffect(effect.getEffect());
         try {
             camera.setParameters(parameters);
-            camera.reconnect();
-        } catch (IOException e) {
-            e.printStackTrace();
         } catch (RuntimeException e) {
             Log.e(TAG, "Unsupported effect");
+            e.printStackTrace();
+        }
+    }
+
+    public void switchCamera() {
+        disableLantern();
+        int number = Camera.getNumberOfCameras();
+        for (int i = 0; i < number; i++) {
+            if (cameraSelect != i) {
+                cameraSelect = i;
+                stop();
+                start();
+                return;
+            }
+        }
+    }
+
+    public boolean isLanternEnable() {
+        return lanternEnable;
+    }
+
+    public void enableLantern() {
+        Camera.Parameters parameters = camera.getParameters();
+        parameters.setFlashMode(Camera.Parameters.FLASH_MODE_TORCH);
+        try {
+            camera.setParameters(parameters);
+            lanternEnable = true;
+        } catch (RuntimeException e) {
+            Log.e(TAG, "lantern unsupported");
+            e.printStackTrace();
+        }
+    }
+
+    public void disableLantern() {
+        Camera.Parameters parameters = camera.getParameters();
+        parameters.setFlashMode(Camera.Parameters.FLASH_MODE_AUTO);
+        try {
+            camera.setParameters(parameters);
+            lanternEnable = false;
+        } catch (RuntimeException e) {
+            Log.e(TAG, "lantern unsupported");
             e.printStackTrace();
         }
     }
