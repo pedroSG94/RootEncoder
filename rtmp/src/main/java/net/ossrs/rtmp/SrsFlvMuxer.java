@@ -154,14 +154,15 @@ public class SrsFlvMuxer {
     /**
      * start to the remote SRS for remux.
      */
-    public void start(final String rtmpUrl) {
+    public void start(final String rtmpUrl, final ConnectChecker connectChecker) {
         worker = new Thread(new Runnable() {
             @Override
             public void run() {
                 if (!connect(rtmpUrl)) {
+                    connectChecker.onConnectionFailed();
                     return;
                 }
-
+                connectChecker.onConnectionSucces();
                 while (!Thread.interrupted()) {
                     while (!mFlvTagCache.isEmpty()) {
                         SrsFlvFrame frame = mFlvTagCache.poll();
@@ -346,7 +347,7 @@ public class SrsFlvMuxer {
 
     /**
      * the aac profile, for ADTS(HLS/TS)
-     * @see https://github.com/simple-rtmp-server/srs/issues/310
+     * @see "https://github.com/simple-rtmp-server/srs/issues/310
      */
     private class SrsAacProfile
     {

@@ -1,8 +1,10 @@
 package com.pedro.rtmpstreamer.utils;
 
+import android.content.Context;
 import android.graphics.ImageFormat;
 import android.media.MediaCodec;
 import android.view.SurfaceView;
+import android.widget.Toast;
 
 import com.pedro.rtmpstreamer.encoder.audio.AudioEncoder;
 import com.pedro.rtmpstreamer.encoder.audio.GetAccData;
@@ -15,6 +17,7 @@ import com.pedro.rtmpstreamer.input.video.CameraManager;
 import com.pedro.rtmpstreamer.input.video.EffectManager;
 import com.pedro.rtmpstreamer.input.video.GetCameraData;
 
+import net.ossrs.rtmp.ConnectChecker;
 import net.ossrs.rtmp.SrsCreator;
 import net.ossrs.rtmp.SrsFlvMuxer;
 
@@ -34,8 +37,10 @@ public class RtmpBuilder implements GetAccData, GetCameraData, GetH264Data, GetM
     private AudioEncoder audioEncoder;
     private SrsFlvMuxer srsFlvMuxer;
     private boolean streaming;
+    private ConnectChecker connectChecker;
 
-    public RtmpBuilder(SurfaceView surfaceView) {
+    public RtmpBuilder(SurfaceView surfaceView, ConnectChecker connectChecker) {
+        this.connectChecker = connectChecker;
         cameraManager = new CameraManager(surfaceView, this);
         videoEncoder = new VideoEncoder(this);
         microphoneManager = new MicrophoneManager(this);
@@ -70,7 +75,7 @@ public class RtmpBuilder implements GetAccData, GetCameraData, GetH264Data, GetM
     }
 
     public void startStream(String url){
-        srsFlvMuxer.start(url);
+        srsFlvMuxer.start(url, connectChecker);
         srsFlvMuxer.setVideoResolution(width, height);
         videoEncoder.start();
         audioEncoder.start();

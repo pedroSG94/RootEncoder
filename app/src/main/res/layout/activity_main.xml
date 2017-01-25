@@ -27,7 +27,7 @@
         android:layout_height="wrap_content"
         android:id="@+id/sepia"
         android:layout_alignParentBottom="true"
-        android:layout_alignParentEnd="true" />
+        android:layout_alignParentRight="true" />
 
     <Button
         android:text="Negative"
@@ -35,14 +35,14 @@
         android:layout_height="wrap_content"
         android:id="@+id/negative"
         android:layout_alignParentBottom="true"
-        android:layout_toStartOf="@+id/sepia" />
+        android:layout_toLeftOf="@+id/sepia" />
 
     <Button
         android:text="Clear"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
-        android:layout_toStartOf="@+id/negative"
+        android:layout_toLeftOf="@+id/negative"
         android:id="@+id/clear" />
 
 

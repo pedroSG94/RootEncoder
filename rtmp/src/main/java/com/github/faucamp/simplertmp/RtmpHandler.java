@@ -139,7 +139,7 @@ public class RtmpHandler extends Handler {
     }
 
     public interface RtmpListener {
-        
+
         void onRtmpConnecting(String msg);
 
         void onRtmpConnected(String msg);

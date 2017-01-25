@@ -1,6 +1,8 @@
 package net.ossrs.rtmp;
 
+import android.content.Context;
 import android.util.Log;
+import android.widget.Toast;
 
 import com.github.faucamp.simplertmp.RtmpHandler;
 
@@ -27,12 +29,12 @@ public class SrsCreator {
 
         @Override
         public void onRtmpVideoStreaming() {
-
+            Log.i(TAG, "video");
         }
 
         @Override
         public void onRtmpAudioStreaming() {
-
+            Log.i(TAG, "audio");
         }
 
         @Override
@@ -47,17 +49,17 @@ public class SrsCreator {
 
         @Override
         public void onRtmpVideoFpsChanged(double fps) {
-
+            Log.i(TAG, "fps changed " + fps);
         }
 
         @Override
         public void onRtmpVideoBitrateChanged(double bitrate) {
-
+            Log.i(TAG, "video bitrate changed " + bitrate);
         }
 
         @Override
         public void onRtmpAudioBitrateChanged(double bitrate) {
-
+            Log.i(TAG, "audio bitrate changed" + bitrate);
         }
 
         @Override

@@ -8,7 +8,7 @@ import android.hardware.Camera;
 
 public enum EffectManager {
 
-    NEGATIVE, AQUA, SEPIA, BLACKBOARD, MONO, WHITEBOARD, POSTERIZE, SOLARIZE, CLEAR;
+    NEGATIVE, AQUA, SEPIA, BLACKBOARD, GREYSCALE, WHITEBOARD, POSTERIZE, SOLARIZE, CLEAR;
 
     public String getEffect() {
         switch (this) {
@@ -20,7 +20,7 @@ public enum EffectManager {
                 return Camera.Parameters.EFFECT_SEPIA;
             case BLACKBOARD:
                 return Camera.Parameters.EFFECT_BLACKBOARD;
-            case MONO:
+            case GREYSCALE:
                 return Camera.Parameters.EFFECT_MONO;
             case WHITEBOARD:
                 return Camera.Parameters.EFFECT_WHITEBOARD;

@@ -7,16 +7,20 @@ import android.view.SurfaceView;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.Button;
+import android.widget.Toast;
 
 import com.pedro.rtmpstreamer.input.video.EffectManager;
 import com.pedro.rtmpstreamer.utils.RtmpBuilder;
 
+import net.ossrs.rtmp.ConnectChecker;
 
-public class MainActivity extends AppCompatActivity implements Button.OnClickListener {
+
+public class MainActivity extends AppCompatActivity implements Button.OnClickListener, ConnectChecker {
 
     private Button button;
     private String url = "rtmp://yourendpoint";
     private RtmpBuilder rtmpBuilder;
+    private Button clear, negative, sepia;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -25,18 +29,18 @@ public class MainActivity extends AppCompatActivity implements Button.OnClickLis
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         setContentView(R.layout.activity_main);
 
-        Button clear = (Button) findViewById(R.id.clear);
+        clear = (Button) findViewById(R.id.clear);
         clear.setOnClickListener(this);
-        Button negative = (Button) findViewById(R.id.negative);
+        negative = (Button) findViewById(R.id.negative);
         negative.setOnClickListener(this);
-        Button sepia = (Button) findViewById(R.id.sepia);
+        sepia = (Button) findViewById(R.id.sepia);
         sepia.setOnClickListener(this);
-
+        disableEffect();
         SurfaceView surfaceView = (SurfaceView) findViewById(R.id.surfaceView);
         button = (Button) findViewById(R.id.button);
         button.setOnClickListener(this);
 
-        rtmpBuilder = new RtmpBuilder(surfaceView);
+        rtmpBuilder = new RtmpBuilder(surfaceView, this);
     }
 
     @Override
@@ -47,9 +51,11 @@ public class MainActivity extends AppCompatActivity implements Button.OnClickLis
                     rtmpBuilder.prepareAudio();
                     rtmpBuilder.prepareVideo();
                     rtmpBuilder.startStream(url);
+                    enableEffect();
                     button.setText("Stop stream");
                 } else {
                     rtmpBuilder.stopStream();
+                    disableEffect();
                     button.setText("Start stream");
                 }
                 break;
@@ -68,11 +74,47 @@ public class MainActivity extends AppCompatActivity implements Button.OnClickLis
     }
 
 
+    private void enableEffect() {
+        clear.setEnabled(true);
+        negative.setEnabled(true);
+        sepia.setEnabled(true);
+    }
+
+    private void disableEffect() {
+        clear.setEnabled(false);
+        negative.setEnabled(false);
+        sepia.setEnabled(false);
+    }
+
     @Override
     protected void onDestroy() {
         super.onDestroy();
         if (rtmpBuilder.isStreaming()) {
             rtmpBuilder.stopStream();
         }
+    }
+
+    @Override
+    public void onConnectionSucces() {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                Toast.makeText(MainActivity.this, "Connection success", Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    @Override
+    public void onConnectionFailed() {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                Toast.makeText(MainActivity.this, "Connection failed", Toast.LENGTH_SHORT).show();
+                rtmpBuilder.stopStream();
+                disableEffect();
+                button.setText("Start stream");
+            }
+        });
+
     }
 }

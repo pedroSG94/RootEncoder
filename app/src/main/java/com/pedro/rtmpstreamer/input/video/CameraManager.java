@@ -182,12 +182,15 @@ public class CameraManager implements Camera.PreviewCallback {
     }
 
     public void setEffect(EffectManager effect) {
+        Camera.Parameters parameters = camera.getParameters();
+        parameters.setColorEffect(effect.getEffect());
         try {
-            Camera.Parameters parameters = camera.getParameters();
-            parameters.setColorEffect(effect.getEffect());
             camera.setParameters(parameters);
             camera.reconnect();
         } catch (IOException e) {
+            e.printStackTrace();
+        } catch (RuntimeException e) {
+            Log.e(TAG, "Unsupported effect");
             e.printStackTrace();
         }
     }
