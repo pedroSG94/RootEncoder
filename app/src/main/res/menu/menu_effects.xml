@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/clear"
+        android:title="Clear" />
+    <item
+        android:id="@+id/grey_scale"
+        android:title="Grey scale" />
+    <item
+        android:id="@+id/sepia"
+        android:title="Sepia" />
+    <item
+        android:id="@+id/negative"
+        android:title="Negative" />
+    <item
+        android:id="@+id/aqua"
+        android:title="Aqua" />
+    <item
+        android:id="@+id/posterize"
+        android:title="Posterize" />
+    <item
+        android:id="@+id/solarize"
+        android:title="Solarize" />
+    <item
+        android:id="@+id/whiteboard"
+        android:title="Whiteboard" />
+    <item
+        android:id="@+id/blackboard"
+        android:title="blackboard" />
+</menu>

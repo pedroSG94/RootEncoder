@@ -3,6 +3,9 @@ package com.pedro.rtmpstreamer;
 import android.content.pm.ActivityInfo;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.SurfaceView;
 import android.view.View;
 import android.view.WindowManager;
@@ -14,13 +17,12 @@ import com.pedro.rtmpstreamer.utils.RtmpBuilder;
 
 import net.ossrs.rtmp.ConnectChecker;
 
-
 public class MainActivity extends AppCompatActivity implements Button.OnClickListener, ConnectChecker {
 
     private Button button;
     private String url = "rtmp://yourendpoint";
     private RtmpBuilder rtmpBuilder;
-    private Button clear, negative, sepia;
+    private Button switchCamera, lantern;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -29,18 +31,57 @@ public class MainActivity extends AppCompatActivity implements Button.OnClickLis
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         setContentView(R.layout.activity_main);
 
-        clear = (Button) findViewById(R.id.clear);
-        clear.setOnClickListener(this);
-        negative = (Button) findViewById(R.id.negative);
-        negative.setOnClickListener(this);
-        sepia = (Button) findViewById(R.id.sepia);
-        sepia.setOnClickListener(this);
-        disableEffect();
+        switchCamera = (Button) findViewById(R.id.switch_camera);
+        switchCamera.setOnClickListener(this);
+        lantern = (Button) findViewById(R.id.lantern);
+        lantern.setOnClickListener(this);
+        disableControls();
         SurfaceView surfaceView = (SurfaceView) findViewById(R.id.surfaceView);
         button = (Button) findViewById(R.id.button);
         button.setOnClickListener(this);
 
         rtmpBuilder = new RtmpBuilder(surfaceView, this);
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.menu_effects, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.clear:
+                rtmpBuilder.setEffect(EffectManager.CLEAR);
+                return true;
+            case R.id.grey_scale:
+                rtmpBuilder.setEffect(EffectManager.GREYSCALE);
+                return true;
+            case R.id.sepia:
+                rtmpBuilder.setEffect(EffectManager.SEPIA);
+                return true;
+            case R.id.negative:
+                rtmpBuilder.setEffect(EffectManager.NEGATIVE);
+                return true;
+            case R.id.aqua:
+                rtmpBuilder.setEffect(EffectManager.AQUA);
+                return true;
+            case R.id.posterize:
+                rtmpBuilder.setEffect(EffectManager.POSTERIZE);
+                return true;
+            case R.id.solarize:
+                rtmpBuilder.setEffect(EffectManager.SOLARIZE);
+                return true;
+            case R.id.whiteboard:
+                rtmpBuilder.setEffect(EffectManager.WHITEBOARD);
+                return true;
+            case R.id.blackboard:
+                rtmpBuilder.setEffect(EffectManager.BLACKBOARD);
+                return true;
+            default:
+                return false;
+        }
     }
 
     @Override
@@ -51,22 +92,19 @@ public class MainActivity extends AppCompatActivity implements Button.OnClickLis
                     rtmpBuilder.prepareAudio();
                     rtmpBuilder.prepareVideo();
                     rtmpBuilder.startStream(url);
-                    enableEffect();
+                    enableControls();
                     button.setText("Stop stream");
                 } else {
                     rtmpBuilder.stopStream();
-                    disableEffect();
+                    disableControls();
                     button.setText("Start stream");
                 }
                 break;
-            case R.id.clear:
-                rtmpBuilder.setEffect(EffectManager.CLEAR);
+            case R.id.switch_camera:
+                rtmpBuilder.switchCamera();
                 break;
-            case R.id.negative:
-                rtmpBuilder.setEffect(EffectManager.NEGATIVE);
-                break;
-            case R.id.sepia:
-                rtmpBuilder.setEffect(EffectManager.SEPIA);
+            case R.id.lantern:
+                rtmpBuilder.enableDisableLantern();
                 break;
             default:
                 break;
@@ -74,16 +112,14 @@ public class MainActivity extends AppCompatActivity implements Button.OnClickLis
     }
 
 
-    private void enableEffect() {
-        clear.setEnabled(true);
-        negative.setEnabled(true);
-        sepia.setEnabled(true);
+    private void enableControls() {
+        switchCamera.setEnabled(true);
+        lantern.setEnabled(true);
     }
 
-    private void disableEffect() {
-        clear.setEnabled(false);
-        negative.setEnabled(false);
-        sepia.setEnabled(false);
+    private void disableControls() {
+        switchCamera.setEnabled(false);
+        lantern.setEnabled(false);
     }
 
     @Override
@@ -111,7 +147,7 @@ public class MainActivity extends AppCompatActivity implements Button.OnClickLis
             public void run() {
                 Toast.makeText(MainActivity.this, "Connection failed", Toast.LENGTH_SHORT).show();
                 rtmpBuilder.stopStream();
-                disableEffect();
+                disableControls();
                 button.setText("Start stream");
             }
         });

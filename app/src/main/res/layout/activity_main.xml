@@ -22,28 +22,20 @@
         />
 
     <Button
-        android:text="Sepia"
+        android:text="Lantern"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:id="@+id/sepia"
+        android:id="@+id/lantern"
         android:layout_alignParentBottom="true"
         android:layout_alignParentRight="true" />
 
     <Button
-        android:text="Negative"
+        android:text="Switch camera"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:id="@+id/negative"
+        android:id="@+id/switch_camera"
         android:layout_alignParentBottom="true"
-        android:layout_toLeftOf="@+id/sepia" />
-
-    <Button
-        android:text="Clear"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
-        android:layout_toLeftOf="@+id/negative"
-        android:id="@+id/clear" />
+        android:layout_toLeftOf="@+id/lantern" />
 
 
 </RelativeLayout>

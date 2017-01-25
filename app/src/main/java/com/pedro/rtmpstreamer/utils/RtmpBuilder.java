@@ -81,7 +81,6 @@ public class RtmpBuilder implements GetAccData, GetCameraData, GetH264Data, GetM
         audioEncoder.start();
         cameraManager.start();
         microphoneManager.start();
-        cameraManager.enableLantern();
         streaming = true;
     }
 
