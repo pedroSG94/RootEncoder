@@ -32,11 +32,10 @@ public class CameraManager implements Camera.PreviewCallback {
     private int imageFormat = ImageFormat.NV21;
 
     //default parameters for camera
-    private int width = 1920;
-    private int height = 1080;
+    private int width = 1280;
+    private int height = 720;
     private int fps = 24;
     private int orientation = 0;
-
 
     public CameraManager(SurfaceView surfaceView, GetCameraData getCameraData) {
         this.surfaceView = surfaceView;

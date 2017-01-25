@@ -4,6 +4,8 @@ import android.media.MediaCodec;
 import android.media.MediaCodecInfo;
 import android.media.MediaCodecList;
 import android.media.MediaFormat;
+import android.os.Build;
+import android.support.annotation.RequiresApi;
 import android.util.Log;
 
 import com.pedro.rtmpstreamer.input.video.GetCameraData;
@@ -28,11 +30,11 @@ public class VideoEncoder implements GetCameraData {
 
     //default parameters for encoder
     private String codec = "video/avc";
-    private int width = 1920;
-    private int height = 1080;
+    private int width = 1280;
+    private int height = 720;
     private int fps = 24;
     private int bitRate = 3000 * 1000; //in kbps
-    private FormatVideoEncoder formatVideoEncoder = FormatVideoEncoder.YUV420FLEXIBLE;
+    private FormatVideoEncoder formatVideoEncoder = FormatVideoEncoder.YUV420SEMIPLANAR;
 
     public VideoEncoder(GetH264Data getH264Data) {
         this.getH264Data = getH264Data;
@@ -48,7 +50,12 @@ public class VideoEncoder implements GetCameraData {
         this.fps = fps;
         this.bitRate = bitRate;
         this.formatVideoEncoder = formatVideoEncoder;
-        MediaCodecInfo encoder = chooseVideoEncoder(null);
+        MediaCodecInfo encoder;
+        if (Build.VERSION.SDK_INT >= 21) {
+            encoder = chooseVideoEncoderAPI21(codec);
+        } else {
+            encoder = chooseVideoEncoder(codec);
+        }
         try {
             if (encoder != null) {
                 videoEncoder = MediaCodec.createByCodecName(encoder.getName());
@@ -78,7 +85,8 @@ public class VideoEncoder implements GetCameraData {
      * Prepare encoder with default parameters
      */
     public boolean prepareVideoEncoder() {
-        Log.i(TAG, "preparing videoEncoder with 640X480 resolution, 24fps, 1200kbps bitrate, YUV420 format");
+        Log.i(TAG, "preparing videoEncoder with " + width + "X" + height + " resolution, " + fps + " fps, "
+                + bitRate + "kbps bitrate, " + formatVideoEncoder.name() + " format");
         return prepareVideoEncoder(width, height, fps, bitRate, formatVideoEncoder);
     }
 
@@ -111,14 +119,22 @@ public class VideoEncoder implements GetCameraData {
 
     @Override
     public void inputYv12Data(byte[] buffer, int width, int height) {
-        byte[] i420 = YUVUtil.YV12toYUV420Planar(buffer, width, height);
-        getDataFromEncoder(i420);
+        byte[] i420 = YUVUtil.YV12toYUV420SemiPlanar(buffer, width, height);
+        if (Build.VERSION.SDK_INT >= 21) {
+            getDataFromEncoderAPI21(i420);
+        } else {
+            getDataFromEncoder(i420);
+        }
     }
 
     @Override
     public void inputNv21Data(byte[] buffer, int width, int height) {
-        byte[] i420 = YUVUtil.NV21toYUV420Planar(buffer, width, height);
-        getDataFromEncoder(i420);
+        byte[] i420 = YUVUtil.NV21toYUV420SemiPlanar(buffer, width, height);
+        if (Build.VERSION.SDK_INT >= 21) {
+            getDataFromEncoderAPI21(i420);
+        } else {
+            getDataFromEncoder(i420);
+        }
     }
 
     /**
@@ -126,14 +142,17 @@ public class VideoEncoder implements GetCameraData {
      * remember create encoder with correct color format before
      */
     public void inputYuv4XX(byte[] buffer) {
-        getDataFromEncoder(buffer);
+        if (Build.VERSION.SDK_INT >= 21) {
+            getDataFromEncoderAPI21(buffer);
+        } else {
+            getDataFromEncoder(buffer);
+        }
     }
 
-    private void getDataFromEncoder(byte[] buffer) {
+    private void getDataFromEncoderAPI21(byte[] buffer) {
         int inBufferIndex = videoEncoder.dequeueInputBuffer(-1);
         if (inBufferIndex >= 0) {
             ByteBuffer bb = videoEncoder.getInputBuffer(inBufferIndex);
-            bb.clear();
             bb.put(buffer, 0, buffer.length);
             long pts = System.nanoTime() / 1000 - mPresentTimeUs;
             videoEncoder.queueInputBuffer(inBufferIndex, 0, buffer.length, pts, 0);
@@ -153,10 +172,37 @@ public class VideoEncoder implements GetCameraData {
 
     }
 
+    private void getDataFromEncoder(byte[] buffer) {
+        ByteBuffer[] inputBuffers = videoEncoder.getInputBuffers();
+        ByteBuffer[] outputBuffers = videoEncoder.getOutputBuffers();
+
+        int inBufferIndex = videoEncoder.dequeueInputBuffer(-1);
+        if (inBufferIndex >= 0) {
+            ByteBuffer bb = inputBuffers[inBufferIndex];
+            bb.clear();
+            bb.put(buffer, 0, buffer.length);
+            long pts = System.nanoTime() / 1000 - mPresentTimeUs;
+            videoEncoder.queueInputBuffer(inBufferIndex, 0, buffer.length, pts, 0);
+        }
+
+        for (; ; ) {
+            int outBufferIndex = videoEncoder.dequeueOutputBuffer(videoInfo, 0);
+            if (outBufferIndex >= 0) {
+                //This ByteBuffer is H264
+                ByteBuffer bb = outputBuffers[outBufferIndex];
+                getH264Data.getH264Data(bb, videoInfo);
+                videoEncoder.releaseOutputBuffer(outBufferIndex, false);
+            } else {
+                break;
+            }
+        }
+    }
+
     /**
-     * choose the video encoder by name.
+     * choose the video encoder by mime. API 21+
      */
-    private MediaCodecInfo chooseVideoEncoder(String name) {
+    @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
+    private MediaCodecInfo chooseVideoEncoderAPI21(String mime) {
         MediaCodecList mediaCodecList = new MediaCodecList(MediaCodecList.ALL_CODECS);
         MediaCodecInfo[] mediaCodecInfos = mediaCodecList.getCodecInfos();
         for (MediaCodecInfo mci : mediaCodecInfos) {
@@ -165,14 +211,30 @@ public class VideoEncoder implements GetCameraData {
             }
             String[] types = mci.getSupportedTypes();
             for (String type : types) {
-                if (type.equalsIgnoreCase("video/avc")) {
+                if (type.equalsIgnoreCase(mime)) {
                     Log.i(TAG, String.format("vencoder %s types: %s", mci.getName(), type));
-                    if (name == null) {
-                        return mci;
-                    }
-                    if (mci.getName().contains(name)) {
-                        return mci;
-                    }
+                    return mci;
+                }
+            }
+        }
+        return null;
+    }
+
+    /**
+     * choose the video encoder by mime. API < 21
+     */
+    private MediaCodecInfo chooseVideoEncoder(String mime) {
+        int count = MediaCodecList.getCodecCount();
+        for (int i = 0; i < count; i++) {
+            MediaCodecInfo mci = MediaCodecList.getCodecInfoAt(i);
+            if (!mci.isEncoder()) {
+                continue;
+            }
+            String[] types = mci.getSupportedTypes();
+            for (String type : types) {
+                if (type.equalsIgnoreCase(mime)) {
+                    Log.i(TAG, String.format("vencoder %s types: %s", mci.getName(), type));
+                    return mci;
                 }
             }
         }

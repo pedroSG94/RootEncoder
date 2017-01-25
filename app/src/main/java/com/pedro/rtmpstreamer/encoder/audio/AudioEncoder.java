@@ -1,7 +1,9 @@
 package com.pedro.rtmpstreamer.encoder.audio;
 
+import android.media.AudioFormat;
 import android.media.MediaCodec;
 import android.media.MediaFormat;
+import android.os.Build;
 import android.util.Log;
 
 import com.pedro.rtmpstreamer.input.audio.GetMicrophoneData;
@@ -86,14 +88,17 @@ public class AudioEncoder implements GetMicrophoneData {
      */
     @Override
     public void inputPcmData(byte[] buffer, int size) {
-        getDataFromEncoder(buffer, size);
+        if (Build.VERSION.SDK_INT >= 21) {
+            getDataFromEncoderAPI21(buffer, size);
+        } else {
+            getDataFromEncoder(buffer, size);
+        }
     }
 
-    private void getDataFromEncoder(byte[] data, int size) {
+    private void getDataFromEncoderAPI21(byte[] data, int size) {
         int inBufferIndex = audioEncoder.dequeueInputBuffer(-1);
         if (inBufferIndex >= 0) {
             ByteBuffer bb = audioEncoder.getInputBuffer(inBufferIndex);
-            bb.clear();
             bb.put(data, 0, size);
             long pts = System.nanoTime() / 1000 - mPresentTimeUs;
             audioEncoder.queueInputBuffer(inBufferIndex, 0, size, pts, 0);
@@ -104,6 +109,32 @@ public class AudioEncoder implements GetMicrophoneData {
             if (outBufferIndex >= 0) {
                 //This ByteBuffer is ACC
                 ByteBuffer bb = audioEncoder.getOutputBuffer(outBufferIndex);
+                getAccData.getAccData(bb, audioInfo);
+                audioEncoder.releaseOutputBuffer(outBufferIndex, false);
+            } else {
+                break;
+            }
+        }
+    }
+
+    private void getDataFromEncoder(byte[] data, int size) {
+        ByteBuffer[] inputBuffers = audioEncoder.getInputBuffers();
+        ByteBuffer[] outputBuffers = audioEncoder.getOutputBuffers();
+
+        int inBufferIndex = audioEncoder.dequeueInputBuffer(-1);
+        if (inBufferIndex >= 0) {
+            ByteBuffer bb = inputBuffers[inBufferIndex];
+            bb.clear();
+            bb.put(data, 0, size);
+            long pts = System.nanoTime() / 1000 - mPresentTimeUs;
+            audioEncoder.queueInputBuffer(inBufferIndex, 0, size, pts, 0);
+        }
+
+        for (; ; ) {
+            int outBufferIndex = audioEncoder.dequeueOutputBuffer(audioInfo, 0);
+            if (outBufferIndex >= 0) {
+                //This ByteBuffer is ACC
+                ByteBuffer bb = outputBuffers[outBufferIndex];
                 getAccData.getAccData(bb, audioInfo);
                 audioEncoder.releaseOutputBuffer(outBufferIndex, false);
             } else {

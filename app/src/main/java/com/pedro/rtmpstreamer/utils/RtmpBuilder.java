@@ -72,10 +72,10 @@ public class RtmpBuilder implements GetAccData, GetCameraData, GetH264Data, GetM
     public void startStream(String url){
         srsFlvMuxer.start(url);
         srsFlvMuxer.setVideoResolution(width, height);
-        cameraManager.start();
-        microphoneManager.start();
         videoEncoder.start();
         audioEncoder.start();
+        cameraManager.start();
+        microphoneManager.start();
         streaming = true;
     }
 
