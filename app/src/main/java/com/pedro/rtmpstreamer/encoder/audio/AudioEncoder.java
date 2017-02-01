@@ -1,6 +1,5 @@
 package com.pedro.rtmpstreamer.encoder.audio;
 
-import android.media.AudioFormat;
 import android.media.MediaCodec;
 import android.media.MediaFormat;
 import android.os.Build;

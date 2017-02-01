@@ -1,10 +1,8 @@
 package com.pedro.rtmpstreamer.utils;
 
-import android.content.Context;
 import android.graphics.ImageFormat;
 import android.media.MediaCodec;
 import android.view.SurfaceView;
-import android.widget.Toast;
 
 import com.pedro.rtmpstreamer.encoder.audio.AudioEncoder;
 import com.pedro.rtmpstreamer.encoder.audio.GetAccData;
@@ -50,11 +48,11 @@ public class RtmpBuilder implements GetAccData, GetCameraData, GetH264Data, GetM
         streaming = false;
     }
 
-    public void prepareVideo(int width, int height, int fps, int bitrate) {
+    public void prepareVideo(int width, int height, int fps, int bitrate, int rotation) {
         this.width = width;
         this.height = height;
-        cameraManager.prepareCamera(width, height, fps, 0, ImageFormat.NV21);
-        videoEncoder.prepareVideoEncoder(width, height, fps, bitrate, FormatVideoEncoder.YUV420PLANAR);
+        cameraManager.prepareCamera(width, height, fps, rotation, ImageFormat.NV21);
+        videoEncoder.prepareVideoEncoder(width, height, fps, bitrate, rotation, FormatVideoEncoder.YUV420PLANAR);
     }
 
     public void prepareAudio(int bitrate, int sampleRate, boolean isStereo) {

@@ -18,7 +18,7 @@ import javax.microedition.khronos.egl.EGLSurface;
 
 /**
  * Created by pedro on 20/01/17.
- * This class need use same resolution and fps that VideoEncoder
+ * This class need use same resolution, fps and rotation that VideoEncoder
  * Tested with YV12 and NV21
  */
 
@@ -36,7 +36,7 @@ public class CameraManager implements Camera.PreviewCallback {
     private int width = 1280;
     private int height = 720;
     private int fps = 24;
-    private int orientation = 0;
+    private int orientation = 90;
     private int imageFormat = ImageFormat.NV21;
 
     public CameraManager(SurfaceView surfaceView, GetCameraData getCameraData) {
