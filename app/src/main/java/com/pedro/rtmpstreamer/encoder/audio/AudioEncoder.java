@@ -3,6 +3,7 @@ package com.pedro.rtmpstreamer.encoder.audio;
 import android.media.MediaCodec;
 import android.media.MediaFormat;
 import android.os.Build;
+import android.support.annotation.RequiresApi;
 import android.util.Log;
 
 import com.pedro.rtmpstreamer.input.audio.GetMicrophoneData;
@@ -94,6 +95,7 @@ public class AudioEncoder implements GetMicrophoneData {
         }
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     private void getDataFromEncoderAPI21(byte[] data, int size) {
         int inBufferIndex = audioEncoder.dequeueInputBuffer(-1);
         if (inBufferIndex >= 0) {

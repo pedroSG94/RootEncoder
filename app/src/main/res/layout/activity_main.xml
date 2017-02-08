@@ -18,7 +18,17 @@
         android:text="Start stream"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:id="@+id/button"
+        android:id="@+id/b_start_stop"
+        />
+
+    <EditText
+        android:id="@+id/et_rtmp_url"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/b_start_stop"
+        android:layout_alignParentRight="true"
+        android:text="rtmp://yourendpoint"
+        android:textColor="#FFFFFFFF"
         />
 
     <Button

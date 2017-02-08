@@ -87,17 +87,6 @@ public class VideoEncoder implements GetCameraData {
    * Prepare encoder with default parameters
    */
   public boolean prepareVideoEncoder() {
-    Log.i(TAG, "preparing videoEncoder with "
-        + width
-        + "X"
-        + height
-        + " resolution, "
-        + fps
-        + " fps, "
-        + bitRate
-        + "kbps bitrate, "
-        + formatVideoEncoder.name()
-        + " format");
     return prepareVideoEncoder(width, height, fps, bitRate, rotation, formatVideoEncoder);
   }
 
@@ -160,6 +149,7 @@ public class VideoEncoder implements GetCameraData {
     }
   }
 
+  @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
   private void getDataFromEncoderAPI21(byte[] buffer) {
     int inBufferIndex = videoEncoder.dequeueInputBuffer(-1);
     if (inBufferIndex >= 0) {

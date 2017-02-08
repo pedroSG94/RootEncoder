@@ -16,7 +16,6 @@ import java.util.concurrent.atomic.AtomicInteger;
  * Created by winlin on 5/2/15.
  * Updated by leoma on 4/1/16.
  * to POST the h.264/avc annexb frame over RTMP.
- * @see android.media.MediaMuxer https://developer.android.com/reference/android/media/MediaMuxer.html
  *
  * Usage:
  *      muxer = new SrsRtmp("rtmp://ossrs.net/live/yasea");
@@ -109,7 +108,7 @@ public class SrsFlvMuxer {
         }
     }
 
-    private void disconnect() {
+    private void disconnect(ConnectChecker connectChecker) {
         try {
             publisher.close();
         } catch (IllegalStateException e) {
@@ -118,6 +117,7 @@ public class SrsFlvMuxer {
         connected = false;
         mVideoSequenceHeader = null;
         mAudioSequenceHeader = null;
+        connectChecker.onDisconnect();
         Log.i(TAG, "worker: disconnect ok.");
     }
 
@@ -199,8 +199,9 @@ public class SrsFlvMuxer {
 
     /**
      * stop the muxer, disconnect RTMP connection.
+     * @param connectChecker
      */
-    public void stop() {
+    public void stop(final ConnectChecker connectChecker) {
         mFlvTagCache.clear();
         if (worker != null) {
             worker.interrupt();
@@ -219,7 +220,7 @@ public class SrsFlvMuxer {
         new Thread(new Runnable() {
             @Override
             public void run() {
-                disconnect();
+                disconnect(connectChecker);
             }
         }).start();
     }

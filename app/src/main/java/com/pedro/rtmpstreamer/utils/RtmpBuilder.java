@@ -83,7 +83,7 @@ public class RtmpBuilder implements GetAccData, GetCameraData, GetH264Data, GetM
     }
 
     public void stopStream() {
-        srsFlvMuxer.stop();
+        srsFlvMuxer.stop(connectChecker);
         cameraManager.stop();
         microphoneManager.stop();
         videoEncoder.stop();
@@ -92,15 +92,19 @@ public class RtmpBuilder implements GetAccData, GetCameraData, GetH264Data, GetM
     }
 
     public void enableDisableLantern() {
-        if (cameraManager.isLanternEnable()) {
-            cameraManager.disableLantern();
-        } else {
-            cameraManager.enableLantern();
+        if (isStreaming()) {
+            if (cameraManager.isLanternEnable()) {
+                cameraManager.disableLantern();
+            } else {
+                cameraManager.enableLantern();
+            }
         }
     }
 
-    public void switchCamera(){
-        cameraManager.switchCamera();
+    public void switchCamera() {
+        if (isStreaming()) {
+            cameraManager.switchCamera();
+        }
     }
 
     public boolean isStreaming() {
@@ -108,7 +112,9 @@ public class RtmpBuilder implements GetAccData, GetCameraData, GetH264Data, GetM
     }
 
     public void setEffect(EffectManager effect) {
-        cameraManager.setEffect(effect);
+        if (isStreaming()) {
+            cameraManager.setEffect(effect);
+        }
     }
 
     @Override

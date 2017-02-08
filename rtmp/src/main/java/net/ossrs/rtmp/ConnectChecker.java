@@ -9,4 +9,6 @@ public interface ConnectChecker {
     void onConnectionSuccess();
 
     void onConnectionFailed();
+
+    void onDisconnect();
 }
