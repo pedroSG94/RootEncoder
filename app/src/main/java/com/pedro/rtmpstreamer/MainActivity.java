@@ -11,8 +11,7 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 
-import com.pedro.rtmpstreamer.input.video.EffectManager;
-import com.pedro.rtmpstreamer.utils.RtmpBuilder;
+import com.pedro.encoder.input.video.EffectManager;
 
 import net.ossrs.rtmp.ConnectChecker;
 
