@@ -6,6 +6,7 @@
       <module fileurl="file://$PROJECT_DIR$/encoder/encoder.iml" filepath="$PROJECT_DIR$/encoder/encoder.iml" />
       <module fileurl="file://$PROJECT_DIR$/rtmp/rtmp.iml" filepath="$PROJECT_DIR$/rtmp/rtmp.iml" />
       <module fileurl="file://$PROJECT_DIR$/rtmp-streamer-java.iml" filepath="$PROJECT_DIR$/rtmp-streamer-java.iml" />
+      <module fileurl="file://$PROJECT_DIR$/rtsp/rtsp.iml" filepath="$PROJECT_DIR$/rtsp/rtsp.iml" />
     </modules>
   </component>
 </project>

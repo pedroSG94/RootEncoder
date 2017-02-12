@@ -11,6 +11,7 @@
             <option value="$PROJECT_DIR$/app" />
             <option value="$PROJECT_DIR$/encoder" />
             <option value="$PROJECT_DIR$/rtmp" />
+            <option value="$PROJECT_DIR$/rtsp" />
           </set>
         </option>
         <option name="resolveModulePerSourceSet" value="false" />
