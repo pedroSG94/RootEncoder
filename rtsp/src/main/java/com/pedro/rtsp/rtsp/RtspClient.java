@@ -1,10 +1,21 @@
 package com.pedro.rtsp.rtsp;
 
+import android.util.Log;
+
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
+import java.net.Socket;
+
 /**
  * Created by pedro on 10/02/17.
  */
 
 public class RtspClient {
+
+    private final String TAG = "RtspClient";
 
     private String host = "127.0.0.1";
     private int port = 1935;
@@ -16,27 +27,56 @@ public class RtspClient {
     private int mCSeq = 0;
     private String authorization = null;
 
+    //sockets objects
+    private Socket connectionSocket;
+    private BufferedReader reader;
+    private BufferedWriter writer;
+
     //get on sendAnnounce()
     private String sessionId;
 
     //TODO socket para conectarse
     //TODO usar respuesta del servidor
     public RtspClient() {
-    }
-
-    public RtspClient(String authorization) {
-        this.authorization = authorization;
+        try {
+            connectionSocket = new Socket(host, port);
+            reader = new BufferedReader(new InputStreamReader(connectionSocket.getInputStream()));
+            writer = new BufferedWriter(new OutputStreamWriter(connectionSocket.getOutputStream()));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     public void connect() {
-        sendAnnounce();
-        sendSetup(trackVideo, isUDP);
-        sendSetup(trackAudio, isUDP);
-        sendRecord();
+        try {
+            writer.write(sendAnnounce());
+            writer.flush();
+            //read
+            getResponse();
+            writer.write(sendSetup(trackVideo, isUDP));
+            writer.flush();
+            //read
+            getResponse();
+            writer.write(sendSetup(trackAudio, isUDP));
+            writer.flush();
+            //read
+            getResponse();
+            writer.write(sendRecord());
+            writer.flush();
+            //read
+            getResponse();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     public void disconnect() {
-        sendTearDown();
+        try {
+            writer.write(sendTearDown());
+            connectionSocket.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     private String sendAnnounce() {
@@ -88,6 +128,21 @@ public class RtspClient {
                 // For some reason you may have to remove last "\r\n" in the next line to make the RTSP client work with your wowza server :/
                 (authorization != null ? "Authorization: " + authorization + "\r\n" : "") + "\r\n";
         return header;
+    }
+
+    private String getResponse() {
+        try {
+            String response = "";
+            String line;
+            while ((line = reader.readLine()) != null) {
+                response += line;
+            }
+            Log.i(TAG, response);
+            return response;
+        } catch (IOException e) {
+            e.printStackTrace();
+            return null;
+        }
     }
 }
 
