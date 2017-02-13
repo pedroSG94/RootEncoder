@@ -12,6 +12,7 @@ import android.widget.EditText;
 import android.widget.Toast;
 
 import com.pedro.encoder.input.video.EffectManager;
+import com.pedro.rtsp.rtsp.RtspClient;
 
 import net.ossrs.rtmp.ConnectChecker;
 
@@ -85,18 +86,25 @@ public class MainActivity extends AppCompatActivity implements Button.OnClickLis
     public void onClick(View v) {
         switch (v.getId()) {
             case R.id.b_start_stop:
-                if (!rtmpBuilder.isStreaming()) {
-                    rtmpBuilder.prepareAudio();
-                    rtmpBuilder.prepareVideo();
-                    url = etUrl.getText().toString();
-                    rtmpBuilder.startStream(url);
-                    enableControls();
-                    bStartStop.setText("Stop stream");
-                } else {
-                    rtmpBuilder.stopStream();
-                    disableControls();
-                    bStartStop.setText("Start stream");
-                }
+                new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+                        RtspClient rtspClient = new RtspClient();
+                        rtspClient.connect();
+                    }
+                }).start();
+//                if (!rtmpBuilder.isStreaming()) {
+//                    rtmpBuilder.prepareAudio();
+//                    rtmpBuilder.prepareVideo();
+//                    url = etUrl.getText().toString();
+//                    rtmpBuilder.startStream(url);
+//                    enableControls();
+//                    bStartStop.setText("Stop stream");
+//                } else {
+//                    rtmpBuilder.stopStream();
+//                    disableControls();
+//                    bStartStop.setText("Start stream");
+//                }
                 break;
             case R.id.switch_camera:
                 rtmpBuilder.switchCamera();
