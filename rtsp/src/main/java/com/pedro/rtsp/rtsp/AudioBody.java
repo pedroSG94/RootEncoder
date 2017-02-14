@@ -27,15 +27,21 @@ public class AudioBody {
     };
 
     private static int sampleRate = AUDIO_SAMPLING_RATES[4];
-    private static int channel = 1; //stereo = 2, mono = 1
+    private static int channel = 2; //stereo = 2, mono = 1
 
     public static String createAudioBody(int trackAudio) {
-        String audio = "";
-        int config = (2 & 0x1F) << 11 | (4 & 0x0F) << 7 | (channel & 0x0F) << 3;
-        audio += "m=audio " + (5000 + 2 * trackAudio) + " RTP/AVP 96\r\n" +
+        int sampleRateNum = -1;
+        for(int i = 0; i < AUDIO_SAMPLING_RATES.length; i++){
+            if(AUDIO_SAMPLING_RATES[i] == sampleRateNum){
+                sampleRateNum = i;
+                break;
+            }
+        }
+        int config = (2 & 0x1F) << 11 | (sampleRateNum & 0x0F) << 7 | (channel & 0x0F) << 3;
+        return "m=audio " + (5000 + 2 * trackAudio) + " RTP/AVP 96\r\n" +
                 "a=rtpmap:96 mpeg4-generic/" + sampleRate + "\r\n" +
-                "a=fmtp:96 streamtype=5; profile-level-id=15; mode=AAC-hbr; config=" + Integer.toHexString(config) + "; SizeLength=13; IndexLength=3; IndexDeltaLength=3;\r\n"
+                "a=fmtp:96 streamtype=5; profile-level-id=15; mode=AAC-hbr; config=" +
+                Integer.toHexString(config) + "; SizeLength=13; IndexLength=3; IndexDeltaLength=3;\r\n"
         + "a=control:trackID=" + 0 + "\r\n";
-        return audio;
     }
 }

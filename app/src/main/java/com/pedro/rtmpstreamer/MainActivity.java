@@ -22,6 +22,7 @@ public class MainActivity extends AppCompatActivity implements Button.OnClickLis
     private RtmpBuilder rtmpBuilder;
     private Button bStartStop, switchCamera, lantern;
     private EditText etUrl;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -82,17 +83,18 @@ public class MainActivity extends AppCompatActivity implements Button.OnClickLis
         }
     }
 
+    RtspClient rtspClient = new RtspClient();
+    boolean a = false;
+
     @Override
     public void onClick(View v) {
         switch (v.getId()) {
             case R.id.b_start_stop:
-                new Thread(new Runnable() {
-                    @Override
-                    public void run() {
-                        RtspClient rtspClient = new RtspClient();
-                        rtspClient.connect();
-                    }
-                }).start();
+                if (!a) {
+                    rtspClient.connect();
+                } else {
+                    rtspClient.disconnect();
+                }
 //                if (!rtmpBuilder.isStreaming()) {
 //                    rtmpBuilder.prepareAudio();
 //                    rtmpBuilder.prepareVideo();
