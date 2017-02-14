@@ -32,7 +32,7 @@ public class VideoEncoder implements GetCameraData {
   private String codec = "video/avc";
   private int width = 1280;
   private int height = 720;
-  private int fps = 24;
+  private int fps = 60;
   private int bitRate = 3000 * 1000; //in kbps
   private int rotation = 90;
   private FormatVideoEncoder formatVideoEncoder = FormatVideoEncoder.YUV420SEMIPLANAR;
@@ -161,7 +161,11 @@ public class VideoEncoder implements GetCameraData {
 
     for (; ; ) {
       int outBufferIndex = videoEncoder.dequeueOutputBuffer(videoInfo, 0);
-      if (outBufferIndex >= 0) {
+      if (outBufferIndex == MediaCodec.INFO_OUTPUT_FORMAT_CHANGED) {
+        MediaFormat mediaFormat = videoEncoder.getOutputFormat();
+        getH264Data.onSPSandPPS(mediaFormat.getByteBuffer("csd-0"),
+            mediaFormat.getByteBuffer("csd-1"));
+      } else if (outBufferIndex >= 0) {
         //This ByteBuffer is H264
         ByteBuffer bb = videoEncoder.getOutputBuffer(outBufferIndex);
         getH264Data.getH264Data(bb, videoInfo);

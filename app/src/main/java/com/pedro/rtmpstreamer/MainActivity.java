@@ -20,6 +20,7 @@ public class MainActivity extends AppCompatActivity implements Button.OnClickLis
 
     private String url = "rtmp://yourendpoint";
     private RtmpBuilder rtmpBuilder;
+    private RtspBuilder rtspBuilder;
     private Button bStartStop, switchCamera, lantern;
     private EditText etUrl;
 
@@ -31,6 +32,7 @@ public class MainActivity extends AppCompatActivity implements Button.OnClickLis
 
         SurfaceView surfaceView = (SurfaceView) findViewById(R.id.surfaceView);
         rtmpBuilder = new RtmpBuilder(surfaceView, this);
+        rtspBuilder = new RtspBuilder(surfaceView, this);
 
         etUrl = (EditText) findViewById(R.id.et_rtmp_url);
         switchCamera = (Button) findViewById(R.id.switch_camera);
@@ -83,7 +85,6 @@ public class MainActivity extends AppCompatActivity implements Button.OnClickLis
         }
     }
 
-    RtspClient rtspClient = new RtspClient();
     boolean a = false;
 
     @Override
@@ -91,22 +92,25 @@ public class MainActivity extends AppCompatActivity implements Button.OnClickLis
         switch (v.getId()) {
             case R.id.b_start_stop:
                 if (!a) {
-                    rtspClient.connect();
+                    rtspBuilder.prepareVideo();
+                    rtspBuilder.prepareAudio();
+                    rtspBuilder.startStream("127.0.0.1");
+                    a = true;
                 } else {
-                    rtspClient.disconnect();
+                    rtspBuilder.stopStream();
                 }
-//                if (!rtmpBuilder.isStreaming()) {
-//                    rtmpBuilder.prepareAudio();
-//                    rtmpBuilder.prepareVideo();
-//                    url = etUrl.getText().toString();
-//                    rtmpBuilder.startStream(url);
-//                    enableControls();
-//                    bStartStop.setText("Stop stream");
-//                } else {
-//                    rtmpBuilder.stopStream();
-//                    disableControls();
-//                    bStartStop.setText("Start stream");
-//                }
+                //if (!rtmpBuilder.isStreaming()) {
+                //    rtmpBuilder.prepareAudio();
+                //    rtmpBuilder.prepareVideo();
+                //    url = etUrl.getText().toString();
+                //    rtmpBuilder.startStream(url);
+                //    enableControls();
+                //    bStartStop.setText("Stop stream");
+                //} else {
+                //    rtmpBuilder.stopStream();
+                //    disableControls();
+                //    bStartStop.setText("Start stream");
+                //}
                 break;
             case R.id.switch_camera:
                 rtmpBuilder.switchCamera();
