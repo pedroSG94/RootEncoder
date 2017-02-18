@@ -10,10 +10,7 @@ import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
-
 import com.pedro.encoder.input.video.EffectManager;
-import com.pedro.rtsp.rtsp.RtspClient;
-
 import net.ossrs.rtmp.ConnectChecker;
 
 public class MainActivity extends AppCompatActivity implements Button.OnClickListener, ConnectChecker {
