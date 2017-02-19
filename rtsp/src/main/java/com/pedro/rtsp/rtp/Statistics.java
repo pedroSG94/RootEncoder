@@ -15,7 +15,7 @@ public class Statistics {
   private long start = 0;
   private long duration = 0;
   private long period = 6000000000L;
-  private boolean initoffset = false;
+  private boolean initOffset = false;
 
   public Statistics(int count, long period) {
     this.count = count;
@@ -28,10 +28,10 @@ public class Statistics {
     if (elapsed > period) {
       elapsed = 0;
       long now = System.nanoTime();
-      if (!initoffset || (now - start < 0)) {
+      if (!initOffset || (now - start < 0)) {
         start = now;
         duration = 0;
-        initoffset = true;
+        initOffset = true;
       }
       value -= (now - start) - duration;
       //Log.d(TAG, "sum1: "+duration/1000000+" sum2: "+(now-start)/1000000+" drift: "+((now-start)-duration)/1000000+" v: "+value/1000000);

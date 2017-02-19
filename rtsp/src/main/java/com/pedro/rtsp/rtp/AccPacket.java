@@ -43,7 +43,7 @@ public class AccPacket extends BasePacket {
     socket.setClockFrequency(sampleRate);
   }
 
-  public void createAndSendPacket(final ByteBuffer byteBuffer, final BufferInfo bufferInfo) {
+  public void createAndSendPacket(ByteBuffer byteBuffer, BufferInfo bufferInfo) {
     try {
       buffer = socket.requestBuffer();
       int length =

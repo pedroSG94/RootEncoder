@@ -38,7 +38,6 @@ public abstract class BasePacket {
 	protected final static int MAXPACKETSIZE = RtpConstants.MTU - 28;
 
 	protected RtpSocket socket = null;
-	protected InputStream is = null;
 	protected byte[] buffer;
 	
 	protected long ts = 0;

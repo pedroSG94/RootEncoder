@@ -3,6 +3,7 @@ package com.pedro.rtmpstreamer;
 import android.graphics.ImageFormat;
 import android.media.MediaCodec;
 import android.util.Base64;
+import android.util.Log;
 import android.view.SurfaceView;
 
 import com.pedro.encoder.audio.AudioEncoder;
@@ -16,6 +17,7 @@ import com.pedro.encoder.video.FormatVideoEncoder;
 import com.pedro.encoder.video.GetH264Data;
 import com.pedro.encoder.video.VideoEncoder;
 
+import com.pedro.rtsp.rtp.H264Packet;
 import com.pedro.rtsp.rtsp.RtspClient;
 import com.pedro.rtsp.rtp.AccPacket;
 
@@ -27,8 +29,6 @@ import java.nio.ByteBuffer;
 
 public class RtspBuilder implements GetAccData, GetCameraData, GetH264Data, GetMicrophoneData {
 
-  private int width;
-  private int height;
   private CameraManager cameraManager;
   private VideoEncoder videoEncoder;
   private MicrophoneManager microphoneManager;
@@ -37,10 +37,12 @@ public class RtspBuilder implements GetAccData, GetCameraData, GetH264Data, GetM
 
   private RtspClient rtspClient;
   private AccPacket accPacket;
+  private H264Packet h264Packet;
 
   public RtspBuilder(SurfaceView surfaceView) {
     rtspClient = new RtspClient();
     accPacket = new AccPacket();
+    h264Packet = new H264Packet();
 
     cameraManager = new CameraManager(surfaceView, this);
     videoEncoder = new VideoEncoder(this);
@@ -50,8 +52,6 @@ public class RtspBuilder implements GetAccData, GetCameraData, GetH264Data, GetM
   }
 
   public void prepareVideo(int width, int height, int fps, int bitrate, int rotation) {
-    this.width = width;
-    this.height = height;
     cameraManager.prepareCamera(width, height, fps, rotation, ImageFormat.NV21);
     videoEncoder.prepareVideoEncoder(width, height, fps, bitrate, rotation,
         FormatVideoEncoder.YUV420PLANAR);
@@ -67,8 +67,6 @@ public class RtspBuilder implements GetAccData, GetCameraData, GetH264Data, GetM
   public void prepareVideo() {
     cameraManager.prepareCamera();
     videoEncoder.prepareVideoEncoder();
-    width = videoEncoder.getWidth();
-    height = videoEncoder.getHeight();
   }
 
   public void prepareAudio() {
@@ -139,6 +137,8 @@ public class RtspBuilder implements GetAccData, GetCameraData, GetH264Data, GetM
     pps.position(4);
     pps.get(mPPS, 0, mPPS.length);
 
+    h264Packet.setStreamParameters(mPPS, mSPS);
+
     String sSPS = Base64.encodeToString(mSPS, 0, mSPS.length, Base64.NO_WRAP);
     String sPPS = Base64.encodeToString(mPPS, 0, mPPS.length, Base64.NO_WRAP);
     rtspClient.setSPSandPPS(sSPS, sPPS);
@@ -147,7 +147,9 @@ public class RtspBuilder implements GetAccData, GetCameraData, GetH264Data, GetM
 
   @Override
   public void getH264Data(ByteBuffer h264Buffer, MediaCodec.BufferInfo info) {
-    //TODO H264Packet
+    h264Packet.setDestination(rtspClient.getHost(), rtspClient.getVideoPorts()[0],
+        rtspClient.getVideoPorts()[1]);
+    h264Packet.createAndSendPacket(h264Buffer, info);
   }
 
   @Override

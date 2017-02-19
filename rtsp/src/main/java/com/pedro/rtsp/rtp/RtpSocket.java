@@ -227,7 +227,6 @@ public class RtpSocket implements Runnable {
     Statistics stats = new Statistics(50, 3000);
     try {
       // Caches mCacheSize milliseconds of the stream in the FIFO.
-      Log.e("Pedro", "hi sender " + mCacheSize);
       Thread.sleep(mCacheSize);
       long delta = 0;
       while (mBufferCommitted.tryAcquire(4, TimeUnit.SECONDS)) {

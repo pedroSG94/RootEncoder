@@ -82,6 +82,7 @@ public class MainActivity extends AppCompatActivity implements Button.OnClickLis
         }
     }
 
+
     @Override
     public void onClick(View v) {
         switch (v.getId()) {
@@ -89,6 +90,7 @@ public class MainActivity extends AppCompatActivity implements Button.OnClickLis
                 if (!rtspBuilder.isStreaming()) {
                     rtspBuilder.prepareVideo();
                     rtspBuilder.prepareAudio();
+                    url = etUrl.getText().toString();
                     rtspBuilder.startStream(url);
                 } else {
                     rtspBuilder.stopStream();

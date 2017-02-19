@@ -233,6 +233,7 @@ public class RtspClient {
             if (isAudio) {
               audioPorts[i] = Integer.parseInt(s[i]);
             } else {
+              Log.e("Ports", s[i]);
               videoPorts[i] = Integer.parseInt(s[i]);
             }
           }
