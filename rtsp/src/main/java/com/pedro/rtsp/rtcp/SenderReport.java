@@ -5,9 +5,7 @@ import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.InetAddress;
 import java.net.MulticastSocket;
-
 import android.os.SystemClock;
-import java.util.Random;
 
 /**
  * Created by pedro on 19/02/17.

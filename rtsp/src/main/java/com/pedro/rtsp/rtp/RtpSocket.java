@@ -1,26 +1,5 @@
-/*
- * Copyright (C) 2011-2014 GUIGUI Simon, fyhertz@gmail.com
- * 
- * This file is part of libstreaming (https://github.com/fyhertz/libstreaming)
- * 
- * Spydroid is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 3 of the License, or
- * (at your option) any later version.
- * 
- * This source code is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- * 
- * You should have received a copy of the GNU General Public License
- * along with this source code; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- */
-
 package com.pedro.rtsp.rtp;
 
-import android.os.SystemClock;
 import android.util.Log;
 import com.pedro.rtsp.constants.RtpConstants;
 import com.pedro.rtsp.rtcp.SenderReport;
@@ -42,7 +21,7 @@ import java.util.concurrent.TimeUnit;
  */
 public class RtpSocket implements Runnable {
 
-  public static final String TAG = "RtpSocket";
+  private final String TAG = "RtpSocket";
 
   private MulticastSocket mSocket;
   private DatagramPacket[] mPackets;
@@ -50,7 +29,6 @@ public class RtpSocket implements Runnable {
   private long[] mTimestamps;
 
   private SenderReport mReport;
-
   private Semaphore mBufferRequested, mBufferCommitted;
   private Thread mThread;
 
@@ -61,22 +39,18 @@ public class RtpSocket implements Runnable {
   private int mBufferCount, mBufferIn, mBufferOut;
   private int mCount = 0;
 
-  private AverageBitrate mAverageBitrate;
-
   /**
    * This RTP socket implements a buffering mechanism relying on a FIFO of buffers and a Thread.
    */
   public RtpSocket() {
     mCacheSize = 0;
-    mBufferCount = 300; // TODO: readjust that when the FIFO is full
+    mBufferCount = 300;
     mBuffers = new byte[mBufferCount][];
     mPackets = new DatagramPacket[mBufferCount];
     mReport = new SenderReport();
-    mAverageBitrate = new AverageBitrate();
     resetFifo();
 
     for (int i = 0; i < mBufferCount; i++) {
-
       mBuffers[i] = new byte[RtpConstants.MTU];
       mPackets[i] = new DatagramPacket(mBuffers[i], 1);
 
@@ -95,9 +69,7 @@ public class RtpSocket implements Runnable {
 			/* Byte 2,3        ->  Sequence Number                   */
 			/* Byte 4,5,6,7    ->  Timestamp                         */
 			/* Byte 8,9,10,11  ->  Sync Source Identifier            */
-
     }
-
     try {
       mSocket = new MulticastSocket();
     } catch (IOException e) {
@@ -113,7 +85,6 @@ public class RtpSocket implements Runnable {
     mBufferRequested = new Semaphore(mBufferCount);
     mBufferCommitted = new Semaphore(0);
     mReport.reset();
-    mAverageBitrate.reset();
   }
 
   /** Closes the underlying socket. */
@@ -173,28 +144,12 @@ public class RtpSocket implements Runnable {
     return mBuffers[mBufferIn];
   }
 
-  /** Puts the buffer back into the FIFO without sending the packet. */
-  public void commitBuffer() throws IOException {
-
-    if (mThread == null) {
-      mThread = new Thread(this);
-      mThread.start();
-    }
-
-    if (++mBufferIn >= mBufferCount) mBufferIn = 0;
-    mBufferCommitted.release();
-  }
-
   /** Sends the RTP packet over the network. */
   public void commitBuffer(int length) throws IOException {
     updateSequence();
     mPackets[mBufferIn].setLength(length);
-
-    mAverageBitrate.push(length);
-
     if (++mBufferIn >= mBufferCount) mBufferIn = 0;
     mBufferCommitted.release();
-
     if (mThread == null) {
       mThread = new Thread(this);
       mThread.start();
@@ -243,7 +198,6 @@ public class RtpSocket implements Runnable {
           }
           delta += mTimestamps[mBufferOut] - mOldTimestamp;
           if (delta > 500000000 || delta < 0) {
-            //Log.d(TAG,"permits: "+mBufferCommitted.availablePermits());
             delta = 0;
           }
         }
@@ -268,53 +222,6 @@ public class RtpSocket implements Runnable {
     for (end--; end >= begin; end--) {
       buffer[end] = (byte) (n % 256);
       n >>= 8;
-    }
-  }
-
-  /**
-   * Computes an average bit rate.
-   **/
-  protected static class AverageBitrate {
-
-    private final static long RESOLUTION = 200;
-
-    private long mOldNow, mNow, mDelta;
-    private long[] mElapsed, mSum;
-    private int mCount, mIndex, mTotal;
-    private int mSize;
-
-    public AverageBitrate() {
-      mSize = 5000 / ((int) RESOLUTION);
-      reset();
-    }
-
-    public void reset() {
-      mSum = new long[mSize];
-      mElapsed = new long[mSize];
-      mNow = SystemClock.elapsedRealtime();
-      mOldNow = mNow;
-      mCount = 0;
-      mDelta = 0;
-      mTotal = 0;
-      mIndex = 0;
-    }
-
-    public void push(int length) {
-      mNow = SystemClock.elapsedRealtime();
-      if (mCount > 0) {
-        mDelta += mNow - mOldNow;
-        mTotal += length;
-        if (mDelta > RESOLUTION) {
-          mSum[mIndex] = mTotal;
-          mTotal = 0;
-          mElapsed[mIndex] = mDelta;
-          mDelta = 0;
-          mIndex++;
-          if (mIndex >= mSize) mIndex = 0;
-        }
-      }
-      mOldNow = mNow;
-      mCount++;
     }
   }
 }
