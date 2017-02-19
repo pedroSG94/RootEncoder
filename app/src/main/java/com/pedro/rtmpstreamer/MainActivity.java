@@ -16,8 +16,7 @@ import net.ossrs.rtmp.ConnectChecker;
 public class MainActivity extends AppCompatActivity implements Button.OnClickListener, ConnectChecker {
 
     private String url = "rtmp://yourendpoint";
-    private RtmpBuilder rtmpBuilder;
-    private RtspBuilder rtspBuilder;
+    private FlexibleBuilder flexibleBuilder;
     private Button bStartStop, switchCamera, lantern;
     private EditText etUrl;
 
@@ -28,8 +27,7 @@ public class MainActivity extends AppCompatActivity implements Button.OnClickLis
         setContentView(R.layout.activity_main);
 
         SurfaceView surfaceView = (SurfaceView) findViewById(R.id.surfaceView);
-        rtmpBuilder = new RtmpBuilder(surfaceView, this);
-        rtspBuilder = new RtspBuilder(surfaceView);
+        flexibleBuilder = new FlexibleBuilder(surfaceView, this);
 
         etUrl = (EditText) findViewById(R.id.et_rtmp_url);
         switchCamera = (Button) findViewById(R.id.switch_camera);
@@ -51,31 +49,31 @@ public class MainActivity extends AppCompatActivity implements Button.OnClickLis
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.clear:
-                rtmpBuilder.setEffect(EffectManager.CLEAR);
+                flexibleBuilder.setEffect(EffectManager.CLEAR);
                 return true;
             case R.id.grey_scale:
-                rtmpBuilder.setEffect(EffectManager.GREYSCALE);
+                flexibleBuilder.setEffect(EffectManager.GREYSCALE);
                 return true;
             case R.id.sepia:
-                rtmpBuilder.setEffect(EffectManager.SEPIA);
+                flexibleBuilder.setEffect(EffectManager.SEPIA);
                 return true;
             case R.id.negative:
-                rtmpBuilder.setEffect(EffectManager.NEGATIVE);
+                flexibleBuilder.setEffect(EffectManager.NEGATIVE);
                 return true;
             case R.id.aqua:
-                rtmpBuilder.setEffect(EffectManager.AQUA);
+                flexibleBuilder.setEffect(EffectManager.AQUA);
                 return true;
             case R.id.posterize:
-                rtmpBuilder.setEffect(EffectManager.POSTERIZE);
+                flexibleBuilder.setEffect(EffectManager.POSTERIZE);
                 return true;
             case R.id.solarize:
-                rtmpBuilder.setEffect(EffectManager.SOLARIZE);
+                flexibleBuilder.setEffect(EffectManager.SOLARIZE);
                 return true;
             case R.id.whiteboard:
-                rtmpBuilder.setEffect(EffectManager.WHITEBOARD);
+                flexibleBuilder.setEffect(EffectManager.WHITEBOARD);
                 return true;
             case R.id.blackboard:
-                rtmpBuilder.setEffect(EffectManager.BLACKBOARD);
+                flexibleBuilder.setEffect(EffectManager.BLACKBOARD);
                 return true;
             default:
                 return false;
@@ -87,32 +85,24 @@ public class MainActivity extends AppCompatActivity implements Button.OnClickLis
     public void onClick(View v) {
         switch (v.getId()) {
             case R.id.b_start_stop:
-                if (!rtspBuilder.isStreaming()) {
-                    rtspBuilder.prepareVideo();
-                    rtspBuilder.prepareAudio();
+                if (!flexibleBuilder.isStreaming()) {
+                    flexibleBuilder.prepareAudio();
+                    flexibleBuilder.prepareVideo();
                     url = etUrl.getText().toString();
-                    rtspBuilder.startStream(url);
+                    flexibleBuilder.startStream(url);
+                    enableControls();
+                    bStartStop.setText("Stop stream");
                 } else {
-                    rtspBuilder.stopStream();
+                    flexibleBuilder.stopStream();
+                    disableControls();
+                    bStartStop.setText("Start stream");
                 }
-                //if (!rtmpBuilder.isStreaming()) {
-                //    rtmpBuilder.prepareAudio();
-                //    rtmpBuilder.prepareVideo();
-                //    url = etUrl.getText().toString();
-                //    rtmpBuilder.startStream(url);
-                //    enableControls();
-                //    bStartStop.setText("Stop stream");
-                //} else {
-                //    rtmpBuilder.stopStream();
-                //    disableControls();
-                //    bStartStop.setText("Start stream");
-                //}
                 break;
             case R.id.switch_camera:
-                rtmpBuilder.switchCamera();
+                flexibleBuilder.switchCamera();
                 break;
             case R.id.lantern:
-                rtmpBuilder.enableDisableLantern();
+                flexibleBuilder.enableDisableLantern();
                 break;
             default:
                 break;
@@ -133,8 +123,8 @@ public class MainActivity extends AppCompatActivity implements Button.OnClickLis
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        if (rtmpBuilder.isStreaming()) {
-            rtmpBuilder.stopStream();
+        if (flexibleBuilder.isStreaming()) {
+            flexibleBuilder.stopStream();
         }
     }
 
@@ -154,7 +144,7 @@ public class MainActivity extends AppCompatActivity implements Button.OnClickLis
             @Override
             public void run() {
                 Toast.makeText(MainActivity.this, "Connection failed", Toast.LENGTH_SHORT).show();
-                rtmpBuilder.stopStream();
+                flexibleBuilder.stopStream();
                 disableControls();
                 bStartStop.setText("Start stream");
             }
