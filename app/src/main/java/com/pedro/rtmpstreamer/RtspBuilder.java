@@ -15,26 +15,18 @@ import com.pedro.encoder.input.video.GetCameraData;
 import com.pedro.encoder.video.FormatVideoEncoder;
 import com.pedro.encoder.video.GetH264Data;
 import com.pedro.encoder.video.VideoEncoder;
-import com.pedro.rtsp.rtp.PacketCreated;
-import com.pedro.rtsp.rtp.RtpAccPacket;
-import com.pedro.rtsp.rtp.RtpH264Packet;
-import com.pedro.rtsp.rtp.RtpUDP;
 
-import com.pedro.rtsp.rtp.SenderReport;
 import com.pedro.rtsp.rtsp.RtspClient;
-import java.net.InetAddress;
-import java.net.UnknownHostException;
-import net.ossrs.rtmp.ConnectChecker;
+import com.pedro.rtsp.rtp.AccPacket;
 
-import java.io.IOException;
 import java.nio.ByteBuffer;
 
 /**
  * Created by pedro on 10/02/17.
  */
 
-public class RtspBuilder
-    implements GetAccData, GetCameraData, GetH264Data, GetMicrophoneData, PacketCreated {
+public class RtspBuilder implements GetAccData, GetCameraData, GetH264Data, GetMicrophoneData {
+
   private int width;
   private int height;
   private CameraManager cameraManager;
@@ -43,18 +35,13 @@ public class RtspBuilder
   private AudioEncoder audioEncoder;
   private boolean streaming;
 
-  private RtpAccPacket rtpAccPacket;
-  private RtpH264Packet rtpH264Packet;
-  private RtpUDP rtpUDP;
-  private SenderReport reportVideo;
-  private SenderReport reportAudio;
-
   private RtspClient rtspClient;
+  private AccPacket accPacket;
 
-  public RtspBuilder(SurfaceView surfaceView, ConnectChecker connectChecker) {
-    reportAudio = new SenderReport();
-    reportVideo = new SenderReport();
+  public RtspBuilder(SurfaceView surfaceView) {
     rtspClient = new RtspClient();
+    accPacket = new AccPacket();
+
     cameraManager = new CameraManager(surfaceView, this);
     videoEncoder = new VideoEncoder(this);
     microphoneManager = new MicrophoneManager(this);
@@ -73,6 +60,8 @@ public class RtspBuilder
   public void prepareAudio(int bitrate, int sampleRate, boolean isStereo) {
     microphoneManager.createMicrophone(sampleRate, isStereo);
     audioEncoder.prepareAudioEncoder(bitrate, sampleRate, isStereo);
+    rtspClient.setSampleRate(sampleRate);
+    accPacket.setSampleRate(sampleRate);
   }
 
   public void prepareVideo() {
@@ -80,18 +69,17 @@ public class RtspBuilder
     videoEncoder.prepareVideoEncoder();
     width = videoEncoder.getWidth();
     height = videoEncoder.getHeight();
-    rtpH264Packet = new RtpH264Packet(this);
   }
 
   public void prepareAudio() {
     microphoneManager.createMicrophone();
     audioEncoder.prepareAudioEncoder();
-    rtpAccPacket = new RtpAccPacket(44100, this);
+    rtspClient.setSampleRate(microphoneManager.getSampleRate());
+    accPacket.setSampleRate(microphoneManager.getSampleRate());
   }
 
   public void startStream(String url) {
-    //TODO connect to server rtsp
-    rtpUDP = new RtpUDP(url, true);
+    rtspClient.setUrl(url);
     videoEncoder.start();
     audioEncoder.start();
     cameraManager.start();
@@ -100,14 +88,13 @@ public class RtspBuilder
   }
 
   public void stopStream() {
-    //TODO disconnect to server rtsp
     rtspClient.disconnect();
-    rtpUDP.close();
     cameraManager.stop();
     microphoneManager.stop();
     videoEncoder.stop();
     audioEncoder.stop();
     streaming = false;
+    accPacket.close();
   }
 
   public void enableDisableLantern() {
@@ -138,11 +125,9 @@ public class RtspBuilder
 
   @Override
   public void getAccData(ByteBuffer accBuffer, MediaCodec.BufferInfo info) {
-    try {
-      rtpAccPacket.createPacket(accBuffer, accBuffer.remaining(), info.presentationTimeUs);
-    } catch (IOException e) {
-      e.printStackTrace();
-    }
+    accPacket.setDestination(rtspClient.getHost(), rtspClient.getAudioPorts()[0],
+        rtspClient.getAudioPorts()[1]);
+    accPacket.createAndSendPacket(accBuffer, info);
   }
 
   @Override
@@ -162,11 +147,7 @@ public class RtspBuilder
 
   @Override
   public void getH264Data(ByteBuffer h264Buffer, MediaCodec.BufferInfo info) {
-    try {
-      rtpH264Packet.createPacket(h264Buffer, h264Buffer.remaining(), info.presentationTimeUs);
-    } catch (IOException e) {
-      e.printStackTrace();
-    }
+    //TODO H264Packet
   }
 
   @Override
@@ -182,25 +163,5 @@ public class RtspBuilder
   @Override
   public void inputNv21Data(byte[] buffer, int width, int height) {
     videoEncoder.inputNv21Data(buffer, width, height);
-  }
-
-  //6984-6985
-  @Override
-  public void onAccPacketCreated(ByteBuffer buffer) {
-    //TODO send over udp to server
-    byte[] bytes = new byte[buffer.remaining()];
-    buffer.get(bytes);
-    reportAudio.update(bytes.length, System.currentTimeMillis(), rtspClient.getAudioPorts()[1]);
-    rtpUDP.sendPacket(bytes, 0, bytes.length, rtspClient.getAudioPorts()[0]);
-  }
-
-  //7042-7043
-  @Override
-  public void onH264PacketCreated(ByteBuffer buffer) {
-    //TODO send over udp to server
-    byte[] bytes = new byte[buffer.remaining()];
-    buffer.get(bytes);
-    reportVideo.update(bytes.length, System.currentTimeMillis(), rtspClient.getVideoPorts()[1]);
-    rtpUDP.sendPacket(bytes, 0, bytes.length, rtspClient.getVideoPorts()[0]);
   }
 }

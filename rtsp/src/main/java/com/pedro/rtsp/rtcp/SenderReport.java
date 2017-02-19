@@ -1,4 +1,4 @@
-package com.pedro.rtsp.rtp;
+package com.pedro.rtsp.rtcp;
 
 import android.util.Log;
 import java.io.IOException;
@@ -10,10 +10,13 @@ import android.os.SystemClock;
 import java.util.Random;
 
 /**
+ * Created by pedro on 19/02/17.
+ *
  * Implementation of Sender Report RTCP packets.
  */
 public class SenderReport {
 
+  private final String TAG = "SenderReport";
   private static final int MTU = 1500;
   private static final int PACKET_LENGTH = 28;
 
@@ -21,12 +24,10 @@ public class SenderReport {
   private DatagramPacket upack;
 
   private byte[] mBuffer = new byte[MTU];
-  private int mSSRC, mPort = -1;
   private int mOctetCount = 0, mPacketCount = 0;
   private long interval, delta, now, oldnow;
 
   public SenderReport() {
-    setSSRC(new Random().nextInt());
     /*							     Version(2)  Padding(0)					 					*/
     /*									 ^		  ^			PT = 0	    						*/
 		/*									 |		  |				^								*/
@@ -66,22 +67,10 @@ public class SenderReport {
   }
 
   /**
-   * Sets the temporal interval between two RTCP Sender Reports.
-   * Default interval is set to 3 seconds.
-   * Set 0 to disable RTCP.
-   *
-   * @param interval The interval in milliseconds
-   */
-  public void setInterval(long interval) {
-    this.interval = interval;
-  }
-
-  /**
    * Updates the number of packets sent, and the total amount of data sent.
    *
    * @param length The length of the packet
    * @param rtpts The RTP timestamp.
-   * @throws IOException
    **/
   public void update(int length, long rtpts, int port){
     mPacketCount += 1;
@@ -102,7 +91,6 @@ public class SenderReport {
   }
 
   public void setSSRC(int ssrc) {
-    this.mSSRC = ssrc;
     setLong(ssrc, 4, 8);
     mPacketCount = 0;
     mOctetCount = 0;
@@ -111,21 +99,8 @@ public class SenderReport {
   }
 
   public void setDestination(InetAddress dest, int dport) {
-    mPort = dport;
     upack.setPort(dport);
     upack.setAddress(dest);
-  }
-
-  public int getPort() {
-    return mPort;
-  }
-
-  public int getLocalPort() {
-    return usock.getLocalPort();
-  }
-
-  public int getSSRC() {
-    return mSSRC;
   }
 
   /**
@@ -163,7 +138,7 @@ public class SenderReport {
         setLong(rtpts, 16, 20);
         upack.setLength(PACKET_LENGTH);
         upack.setPort(port);
-        Log.i("Pedro", "send packet from senderreport Port" + upack.getPort());
+        Log.i(TAG, "send report, " + upack.getPort() + " Port");
         try {
           usock.send(upack);
         } catch (IOException e) {

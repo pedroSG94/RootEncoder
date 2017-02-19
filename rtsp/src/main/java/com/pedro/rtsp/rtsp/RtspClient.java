@@ -1,6 +1,5 @@
 package com.pedro.rtsp.rtsp;
 
-import android.os.Handler;
 import android.util.Log;
 
 import java.io.BufferedReader;
@@ -19,9 +18,11 @@ public class RtspClient {
   private final String TAG = "RtspClient";
   private final long mTimestamp;
 
-  private String host = "127.0.0.1";
-  private int port = 1935;
-  private String path = "/live/pedro123";
+  private String host;
+  private int port;
+  private String path;
+
+  private int sampleRate;
 
   private int trackVideo = 1;
   private int trackAudio = 0;
@@ -43,6 +44,32 @@ public class RtspClient {
     long uptime = System.currentTimeMillis();
     mTimestamp = (uptime / 1000) << 32 & (((uptime - ((uptime / 1000) * 1000)) >> 32)
         / 1000); // NTP timestamp
+  }
+
+  public void setUrl(String url){
+    String[] data = url.split("/");
+    host = data[2].split(":")[0];
+    port = Integer.parseInt(data[2].split(":")[1]);
+    path = "";
+    for(int i = 3; i < data.length; i++){
+      path += "/" + data[i];
+    }
+  }
+
+  public void setSampleRate(int sampleRate) {
+    this.sampleRate = sampleRate;
+  }
+
+  public String getHost() {
+    return host;
+  }
+
+  public int getPort() {
+    return port;
+  }
+
+  public String getPath() {
+    return path;
   }
 
   public void setSPSandPPS(String sps, String pps) {
@@ -145,7 +172,7 @@ public class RtspClient {
         // thread=0 0 means the session is permanent (we don'thread know when it will stop)
         "thread=0 0\r\n" +
         "a=recvonly\r\n" +
-        AudioBody.createAudioBody(trackAudio) +
+        AudioBody.createAudioBody(trackAudio, sampleRate) +
         VideoBody.createVideoBody(trackVideo, sps, pps);
   }
 

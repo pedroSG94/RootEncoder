@@ -29,7 +29,7 @@ public class MainActivity extends AppCompatActivity implements Button.OnClickLis
 
         SurfaceView surfaceView = (SurfaceView) findViewById(R.id.surfaceView);
         rtmpBuilder = new RtmpBuilder(surfaceView, this);
-        rtspBuilder = new RtspBuilder(surfaceView, this);
+        rtspBuilder = new RtspBuilder(surfaceView);
 
         etUrl = (EditText) findViewById(R.id.et_rtmp_url);
         switchCamera = (Button) findViewById(R.id.switch_camera);
@@ -82,17 +82,14 @@ public class MainActivity extends AppCompatActivity implements Button.OnClickLis
         }
     }
 
-    boolean a = false;
-
     @Override
     public void onClick(View v) {
         switch (v.getId()) {
             case R.id.b_start_stop:
-                if (!a) {
+                if (!rtspBuilder.isStreaming()) {
                     rtspBuilder.prepareVideo();
                     rtspBuilder.prepareAudio();
-                    rtspBuilder.startStream("127.0.0.1");
-                    a = true;
+                    rtspBuilder.startStream(url);
                 } else {
                     rtspBuilder.stopStream();
                 }
