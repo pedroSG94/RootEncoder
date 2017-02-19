@@ -57,21 +57,6 @@ public interface RtmpPublisher {
     AtomicInteger getVideoFrameCacheNumber();
 
     /**
-     * obtain the IP address of the peer if any
-     */
-    String getServerIpAddr();
-
-    /**
-     * obtain the PID of the peer if any
-     */
-    int getServerPid();
-
-    /**
-     * obtain the ID of the peer if any
-     */
-    int getServerId();
-
-    /**
      * set video resolution
      *
      * @param width video width

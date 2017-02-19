@@ -137,8 +137,6 @@ public class RtspBuilder implements GetAccData, GetCameraData, GetH264Data, GetM
     pps.position(4);
     pps.get(mPPS, 0, mPPS.length);
 
-    h264Packet.setStreamParameters(mPPS, mSPS);
-
     String sSPS = Base64.encodeToString(mSPS, 0, mSPS.length, Base64.NO_WRAP);
     String sPPS = Base64.encodeToString(mPPS, 0, mPPS.length, Base64.NO_WRAP);
     rtspClient.setSPSandPPS(sSPS, sPPS);

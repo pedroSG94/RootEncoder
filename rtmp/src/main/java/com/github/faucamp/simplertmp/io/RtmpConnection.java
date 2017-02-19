@@ -18,7 +18,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import android.util.Log;
 
-import com.github.faucamp.simplertmp.RtmpHandler;
 import com.github.faucamp.simplertmp.RtmpPublisher;
 import com.github.faucamp.simplertmp.amf.AmfMap;
 import com.github.faucamp.simplertmp.amf.AmfNull;
@@ -46,7 +45,6 @@ public class RtmpConnection implements RtmpPublisher {
     private static final String TAG = "RtmpConnection";
     private static final Pattern rtmpUrlPattern = Pattern.compile("^rtmp://([^/:]+)(:(\\d+))*/([^/]+)(/(.*))*$");
 
-    private RtmpHandler mHandler;
     private int port;
     private String host;
     private String appName;
@@ -56,7 +54,6 @@ public class RtmpConnection implements RtmpPublisher {
     private String tcUrl;
     private String pageUrl;
     private Socket socket;
-    private String srsServerInfo = "";
     private String socketExceptionCause = "";
     private RtmpSessionInfo rtmpSessionInfo;
     private RtmpDecoder rtmpDecoder;
@@ -70,20 +67,12 @@ public class RtmpConnection implements RtmpPublisher {
     private AtomicInteger videoFrameCacheNumber = new AtomicInteger(0);
     private int currentStreamId = 0;
     private int transactionIdCounter = 0;
-    private AmfString serverIpAddr;
-    private AmfNumber serverPid;
-    private AmfNumber serverId;
     private int videoWidth;
     private int videoHeight;
     private int videoFrameCount;
-    private int videoDataLength;
     private int audioFrameCount;
-    private int audioDataLength;
-    private long videoLastTimeMillis;
-    private long audioLastTimeMillis;
 
-    public RtmpConnection(RtmpHandler handler) {
-        mHandler = handler;
+    public RtmpConnection() {
     }
 
     private void handshake(InputStream in, OutputStream out) throws IOException {
@@ -110,8 +99,6 @@ public class RtmpConnection implements RtmpPublisher {
             appName = matcher.group(4);
             streamName = matcher.group(6);
         } else {
-            mHandler.notifyRtmpIllegalArgumentException(new IllegalArgumentException(
-                "Invalid RTMP URL. Must be in format: rtmp://host[:port]/application[/streamName]"));
             return false;
         }
 
@@ -130,7 +117,6 @@ public class RtmpConnection implements RtmpPublisher {
             Log.d(TAG, "connect(): handshake done");
         } catch (IOException e) {
             e.printStackTrace();
-            mHandler.notifyRtmpIOException(e);
             return false;
         }
 
@@ -154,7 +140,6 @@ public class RtmpConnection implements RtmpPublisher {
 
     private boolean rtmpConnect() {
         if (connected) {
-            mHandler.notifyRtmpIllegalStateException(new IllegalStateException("Already connected to RTMP server"));
             return false;
         }
 
@@ -179,7 +164,6 @@ public class RtmpConnection implements RtmpPublisher {
         args.setProperty("objectEncoding", 0);
         invoke.addData(args);
         sendRtmpPacket(invoke);
-        mHandler.notifyRtmpConnecting("Connecting");
 
         synchronized (connectingLock) {
             try {
@@ -197,7 +181,6 @@ public class RtmpConnection implements RtmpPublisher {
     @Override
     public boolean publish(String type) {
         if (type == null) {
-            mHandler.notifyRtmpIllegalArgumentException(new IllegalArgumentException("No publish type specified"));
             return false;
         }
         publishType = type;
@@ -206,11 +189,9 @@ public class RtmpConnection implements RtmpPublisher {
 
     private boolean createStream() {
         if (!connected) {
-            mHandler.notifyRtmpIllegalStateException(new IllegalStateException("Not connected to RTMP server"));
             return false;
         }
         if (currentStreamId != 0) {
-            mHandler.notifyRtmpIllegalStateException(new IllegalStateException("Current stream object has existed"));
             return false;
         }
 
@@ -246,7 +227,6 @@ public class RtmpConnection implements RtmpPublisher {
             }
         }
         if (publishPermitted) {
-            mHandler.notifyRtmpConnected("Connected" + srsServerInfo);
         } else {
             shutdown();
         }
@@ -255,11 +235,9 @@ public class RtmpConnection implements RtmpPublisher {
 
     private void fmlePublish() {
         if (!connected) {
-            mHandler.notifyRtmpIllegalStateException(new IllegalStateException("Not connected to RTMP server"));
             return;
         }
         if (currentStreamId == 0) {
-            mHandler.notifyRtmpIllegalStateException(new IllegalStateException("No current stream object exists"));
             return;
         }
 
@@ -276,11 +254,9 @@ public class RtmpConnection implements RtmpPublisher {
 
     private void onMetaData() {
         if (!connected) {
-            mHandler.notifyRtmpIllegalStateException(new IllegalStateException("Not connected to RTMP server"));
             return;
         }
         if (currentStreamId == 0) {
-            mHandler.notifyRtmpIllegalStateException(new IllegalStateException("No current stream object exists"));
             return;
         }
 
@@ -313,15 +289,12 @@ public class RtmpConnection implements RtmpPublisher {
 
     private void closeStream() {
         if (!connected) {
-            mHandler.notifyRtmpIllegalStateException(new IllegalStateException("Not connected to RTMP server"));
             return;
         }
         if (currentStreamId == 0) {
-            mHandler.notifyRtmpIllegalStateException(new IllegalStateException("No current stream object exists"));
             return;
         }
         if (!publishPermitted) {
-            mHandler.notifyRtmpIllegalStateException(new IllegalStateException("Not get _result(Netstream.Publish.Start)"));
             return;
         }
         Log.d(TAG, "closeStream(): setting current stream ID to 0");
@@ -330,7 +303,6 @@ public class RtmpConnection implements RtmpPublisher {
         closeStream.getHeader().setMessageStreamId(currentStreamId);
         closeStream.addData(new AmfNull());
         sendRtmpPacket(closeStream);
-        mHandler.notifyRtmpStopped();
     }
 
     private void shutdown() {
@@ -362,8 +334,6 @@ public class RtmpConnection implements RtmpPublisher {
             } catch (IOException ex) {
                 Log.e(TAG, "shutdown(): failed to close socket", ex);
             }
-
-            mHandler.notifyRtmpDisconnected();
         }
 
         reset();
@@ -382,9 +352,6 @@ public class RtmpConnection implements RtmpPublisher {
         transactionIdCounter = 0;
         videoFrameCacheNumber.set(0);
         socketExceptionCause = "";
-        serverIpAddr = null;
-        serverPid = null;
-        serverId = null;
         socket = null;
         rtmpSessionInfo = null;
         rtmpDecoder = null;
@@ -393,19 +360,15 @@ public class RtmpConnection implements RtmpPublisher {
     @Override
     public void publishAudioData(byte[] data, int size, int dts) {
         if (data == null || data.length == 0 || dts < 0) {
-            mHandler.notifyRtmpIllegalArgumentException(new IllegalArgumentException("Invalid Audio Data"));
             return;
         }
         if (!connected) {
-            mHandler.notifyRtmpIllegalStateException(new IllegalStateException("Not connected to RTMP server"));
             return;
         }
         if (currentStreamId == 0) {
-            mHandler.notifyRtmpIllegalStateException(new IllegalStateException("No current stream object exists"));
             return;
         }
         if (!publishPermitted) {
-            mHandler.notifyRtmpIllegalStateException(new IllegalStateException("Not get _result(Netstream.Publish.Start)"));
             return;
         }
         Audio audio = new Audio();
@@ -414,25 +377,20 @@ public class RtmpConnection implements RtmpPublisher {
         audio.getHeader().setMessageStreamId(currentStreamId);
         sendRtmpPacket(audio);
         calcAudioBitrate(audio.getHeader().getPacketLength());
-        mHandler.notifyRtmpAudioStreaming();
     }
 
     @Override
     public void publishVideoData(byte[] data, int size, int dts) {
         if (data == null || data.length == 0 || dts < 0) {
-            mHandler.notifyRtmpIllegalArgumentException(new IllegalArgumentException("Invalid Video Data"));
             return;
         }
         if (!connected) {
-            mHandler.notifyRtmpIllegalStateException(new IllegalStateException("Not connected to RTMP server"));
             return;
         }
         if (currentStreamId == 0) {
-            mHandler.notifyRtmpIllegalStateException(new IllegalStateException("No current stream object exists"));
             return;
         }
         if (!publishPermitted) {
-            mHandler.notifyRtmpIllegalStateException(new IllegalStateException("Not get _result(Netstream.Publish.Start)"));
             return;
         }
         Video video = new Video();
@@ -442,36 +400,24 @@ public class RtmpConnection implements RtmpPublisher {
         sendRtmpPacket(video);
         videoFrameCacheNumber.decrementAndGet();
         calcVideoFpsAndBitrate(video.getHeader().getPacketLength());
-        mHandler.notifyRtmpVideoStreaming();
     }
 
     private void calcVideoFpsAndBitrate(int length) {
-        videoDataLength += length;
         if (videoFrameCount == 0) {
-            videoLastTimeMillis = System.nanoTime() / 1000000;
             videoFrameCount++;
         } else {
             if (++videoFrameCount >= 48) {
-                long diffTimeMillis = System.nanoTime() / 1000000 - videoLastTimeMillis;
-                mHandler.notifyRtmpVideoFpsChanged((double) videoFrameCount * 1000 / diffTimeMillis);
-                mHandler.notifyRtmpVideoBitrateChanged((double) videoDataLength * 8 * 1000 / diffTimeMillis);
                 videoFrameCount = 0;
-                videoDataLength = 0;
             }
         }
     }
 
     private void calcAudioBitrate(int length) {
-        audioDataLength += length;
         if (audioFrameCount == 0) {
-            audioLastTimeMillis = System.nanoTime() / 1000000;
             audioFrameCount++;
         } else {
             if (++audioFrameCount >= 48) {
-                long diffTimeMillis = System.nanoTime() / 1000000 - audioLastTimeMillis;
-                mHandler.notifyRtmpAudioBitrateChanged((double) audioDataLength * 8 * 1000 / diffTimeMillis);
                 audioFrameCount = 0;
-                audioDataLength = 0;
             }
         }
     }
@@ -495,11 +441,9 @@ public class RtmpConnection implements RtmpPublisher {
             if (!socketExceptionCause.contentEquals(se.getMessage())) {
                 socketExceptionCause = se.getMessage();
                 Log.e(TAG, "Caught SocketException during write loop, shutting down: " + se.getMessage());
-                mHandler.notifyRtmpSocketException(se);
             }
         } catch (IOException ioe) {
             Log.e(TAG, "Caught IOException during write loop, shutting down: " + ioe.getMessage());
-            mHandler.notifyRtmpIOException(ioe);
         }
     }
 
@@ -520,7 +464,6 @@ public class RtmpConnection implements RtmpPublisher {
                             switch (user.getType()) {
                                 case STREAM_BEGIN:
                                     if (currentStreamId != user.getFirstEventData()) {
-                                        mHandler.notifyRtmpIllegalStateException(new IllegalStateException("Current stream ID error!"));
                                     }
                                     break;
                                 case PING_REQUEST:
@@ -565,10 +508,8 @@ public class RtmpConnection implements RtmpPublisher {
                 Thread.currentThread().interrupt();
             } catch (SocketException se) {
                 Log.e(TAG, "Caught SocketException while reading/decoding packet, shutting down: " + se.getMessage());
-                mHandler.notifyRtmpSocketException(se);
             } catch (IOException ioe) {
                 Log.e(TAG, "Caught exception while reading/decoding packet, shutting down: " + ioe.getMessage());
-                mHandler.notifyRtmpIOException(ioe);
             }
         }
     }
@@ -583,7 +524,6 @@ public class RtmpConnection implements RtmpPublisher {
             Log.d(TAG, "handleRxInvoke: Got result for invoked method: " + method);
             if ("connect".equals(method)) {
                 // Capture server ip/pid/id information if any
-                srsServerInfo = onSrsServerInfo(invoke);
                 // We can now send createStream commands
                 connected = true;
                 synchronized (connectingLock) {
@@ -623,40 +563,9 @@ public class RtmpConnection implements RtmpPublisher {
         }
     }
 
-    private String onSrsServerInfo(Command invoke) {
-        // SRS server special information
-        AmfObject objData = (AmfObject) invoke.getData().get(1);
-        if ((objData).getProperty("data") instanceof AmfObject) {
-            objData = ((AmfObject) objData.getProperty("data"));
-            serverIpAddr = (AmfString) objData.getProperty("srs_server_ip");
-            serverPid = (AmfNumber) objData.getProperty("srs_pid");
-            serverId = (AmfNumber) objData.getProperty("srs_id");
-        }
-        String info = "";
-        info += serverIpAddr == null ? "" : " ip: " + serverIpAddr.getValue();
-        info += serverPid == null ? "" : " pid: " + (int) serverPid.getValue();
-        info += serverId == null ? "" : " id: " + (int) serverId.getValue();
-        return info;
-    }
-
     @Override
     public AtomicInteger getVideoFrameCacheNumber() {
         return videoFrameCacheNumber;
-    }
-
-    @Override
-    public final String getServerIpAddr() {
-        return serverIpAddr == null ? null : serverIpAddr.getValue();
-    }
-
-    @Override
-    public final int getServerPid() {
-        return serverPid == null ? 0 : (int) serverPid.getValue();
-    }
-
-    @Override
-    public final int getServerId() {
-        return serverId == null ? 0 : (int) serverId.getValue();
     }
 
     @Override

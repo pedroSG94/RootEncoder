@@ -5,7 +5,6 @@ import android.media.MediaFormat;
 import android.util.Log;
 
 import com.github.faucamp.simplertmp.DefaultRtmpPublisher;
-import com.github.faucamp.simplertmp.RtmpHandler;
 
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
@@ -49,7 +48,6 @@ public class SrsFlvMuxer {
 
     private volatile boolean connected = false;
     private DefaultRtmpPublisher publisher;
-    private RtmpHandler mHandler;
 
     private Thread worker;
     private final Object txFrameLock = new Object();
@@ -68,11 +66,9 @@ public class SrsFlvMuxer {
 
     /**
      * constructor.
-     * @param handler the rtmp event handler.
      */
-    public SrsFlvMuxer(RtmpHandler handler) {
-        mHandler = handler;
-        publisher = new DefaultRtmpPublisher(handler);
+    public SrsFlvMuxer() {
+        publisher = new DefaultRtmpPublisher();
     }
 
     /**
@@ -692,8 +688,6 @@ public class SrsFlvMuxer {
                 SrsAnnexbSearch tbbsc = utils.avc_startswith_annexb(bb, bi);
                 if (!tbbsc.match || tbbsc.nb_start_code < 3) {
                     Log.e(TAG, "annexb not match.");
-                    mHandler.notifyRtmpIllegalArgumentException(new IllegalArgumentException(
-                        String.format("annexb not match for %dB, pos=%d", bi.size, bb.position())));
                 }
 
                 // the start codes.

@@ -17,7 +17,6 @@ import com.pedro.encoder.video.GetH264Data;
 import com.pedro.encoder.video.VideoEncoder;
 import java.nio.ByteBuffer;
 import net.ossrs.rtmp.ConnectChecker;
-import net.ossrs.rtmp.SrsCreator;
 import net.ossrs.rtmp.SrsFlvMuxer;
 
 /**
@@ -42,8 +41,7 @@ public class RtmpBuilder implements GetAccData, GetCameraData, GetH264Data, GetM
     videoEncoder = new VideoEncoder(this);
     microphoneManager = new MicrophoneManager(this);
     audioEncoder = new AudioEncoder(this);
-    SrsCreator srsCreator = new SrsCreator();
-    srsFlvMuxer = srsCreator.getSrsFlvMuxer();
+    srsFlvMuxer = new SrsFlvMuxer();
     streaming = false;
   }
 
@@ -124,17 +122,7 @@ public class RtmpBuilder implements GetAccData, GetCameraData, GetH264Data, GetM
 
   @Override
   public void onSPSandPPS(ByteBuffer sps, ByteBuffer pps) {
-    byte[] mSPS = new byte[sps.capacity() - 4];
-    sps.position(4);
-    sps.get(mSPS, 0, mSPS.length);
-    byte[] mPPS = new byte[pps.capacity() - 4];
-    pps.position(4);
-    pps.get(mPPS, 0, mPPS.length);
-
-    String sPPS = Base64.encodeToString(mPPS, 0, mPPS.length, Base64.NO_WRAP);
-    String sSPS = Base64.encodeToString(mSPS, 0, mSPS.length, Base64.NO_WRAP);
-
-    Log.e("Pedro", "pps = " + sPPS + "    " + "sps = " + sSPS);
+    //used on rtsp
   }
 
   @Override

@@ -17,7 +17,6 @@ public class FlexibleBuilder {
   private RtspBuilder rtspBuilder;
   private RtmpBuilder rtmpBuilder;
 
-
   public FlexibleBuilder(SurfaceView surfaceView, ConnectChecker connectChecker) {
     rtmpBuilder = new RtmpBuilder(surfaceView, connectChecker);
     rtspBuilder = new RtspBuilder(surfaceView);
@@ -45,47 +44,50 @@ public class FlexibleBuilder {
 
   public void startStream(String url) {
     this.url = url;
-    if(url.startsWith("rtmp")){
+    if (url.startsWith("rtmp")) {
       rtmpBuilder.startStream(url);
-    } else if(url.startsWith("rtsp")){
+    } else if (url.startsWith("rtsp")) {
       rtspBuilder.startStream(url);
-    } else{
+    } else {
       Log.e(TAG, "malformed endPoint");
     }
   }
 
   public void stopStream() {
-    if(url.startsWith("rtmp")){
+    if (url == null) return;
+    if (url.startsWith("rtmp")) {
       rtmpBuilder.stopStream();
-    } else if(url.startsWith("rtsp")){
+    } else if (url.startsWith("rtsp")) {
       rtspBuilder.stopStream();
-    } else{
+    } else {
       Log.e(TAG, "malformed endPoint");
     }
   }
 
   public void enableDisableLantern() {
-    if(url.startsWith("rtmp")){
+    if (url == null) return;
+    if (url.startsWith("rtmp")) {
       rtmpBuilder.enableDisableLantern();
-    } else if(url.startsWith("rtsp")){
+    } else if (url.startsWith("rtsp")) {
       rtspBuilder.enableDisableLantern();
-    } else{
+    } else {
       Log.e(TAG, "malformed endPoint");
     }
   }
 
   public void switchCamera() {
-    if(url.startsWith("rtmp")){
+    if (url == null) return;
+    if (url.startsWith("rtmp")) {
       rtmpBuilder.switchCamera();
-    } else if(url.startsWith("rtsp")){
+    } else if (url.startsWith("rtsp")) {
       rtspBuilder.switchCamera();
-    } else{
+    } else {
       Log.e(TAG, "malformed endPoint");
     }
   }
 
   public boolean isStreaming() {
-    if(url == null){
+    if (url == null) {
       return false;
     } else {
       if (url.startsWith("rtmp")) {
@@ -100,11 +102,12 @@ public class FlexibleBuilder {
   }
 
   public void setEffect(EffectManager effect) {
-    if(url.startsWith("rtmp")){
+    if (url == null) return;
+    if (url.startsWith("rtmp")) {
       rtmpBuilder.setEffect(effect);
-    } else if(url.startsWith("rtsp")){
+    } else if (url.startsWith("rtsp")) {
       rtspBuilder.setEffect(effect);
-    } else{
+    } else {
       Log.e(TAG, "malformed endPoint");
     }
   }

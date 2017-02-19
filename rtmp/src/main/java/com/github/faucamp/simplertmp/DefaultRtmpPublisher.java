@@ -13,8 +13,8 @@ public class DefaultRtmpPublisher implements RtmpPublisher {
 
     private RtmpConnection rtmpConnection;
 
-    public DefaultRtmpPublisher(RtmpHandler handler) {
-        rtmpConnection = new RtmpConnection(handler);
+    public DefaultRtmpPublisher() {
+        rtmpConnection = new RtmpConnection();
     }
 
     @Override
@@ -45,21 +45,6 @@ public class DefaultRtmpPublisher implements RtmpPublisher {
     @Override
     public AtomicInteger getVideoFrameCacheNumber() {
         return rtmpConnection.getVideoFrameCacheNumber();
-    }
-
-    @Override
-    public final String getServerIpAddr() {
-        return rtmpConnection.getServerIpAddr();
-    }
-
-    @Override
-    public final int getServerPid() {
-        return rtmpConnection.getServerPid();
-    }
-
-    @Override
-    public final int getServerId() {
-        return rtmpConnection.getServerId();
     }
 
     @Override

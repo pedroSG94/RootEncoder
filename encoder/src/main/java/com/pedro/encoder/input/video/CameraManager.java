@@ -30,16 +30,15 @@ public class CameraManager implements Camera.PreviewCallback {
     private GetCameraData getCameraData;
     private boolean running = false;
     private boolean lanternEnable = false;
-    int cameraSelect;
+    private int cameraSelect;
 
     //default parameters for camera
     private int width = 1280;
     private int height = 720;
-    private int fps = 60;
+    private int fps = 30;
     private int orientation = 90;
     private int imageFormat = ImageFormat.NV21;
 
-    //pps = aM4NiA==    sps = Z0KAHtoHgUZA
     public CameraManager(SurfaceView surfaceView, GetCameraData getCameraData) {
         this.surfaceView = surfaceView;
         this.getCameraData = getCameraData;

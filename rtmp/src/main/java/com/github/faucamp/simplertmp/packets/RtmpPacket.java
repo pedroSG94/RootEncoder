@@ -1,7 +1,5 @@
 package com.github.faucamp.simplertmp.packets;
 
-import android.content.res.Configuration;
-
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;

@@ -2,6 +2,7 @@ package com.pedro.rtsp.rtp;
 
 /**
  * Created by pedro on 19/02/17.
+ *
  * Computes the proper rate at which packets are sent.
  */
 
