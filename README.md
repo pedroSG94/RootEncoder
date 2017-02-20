@@ -6,7 +6,9 @@ Library for stream in rtmp and rtsp all code in java.
 
 This library use encoder type buffer to buffer.
 
-Tested on Samsung s7 and Wowza server.
+
+Tested on Samsung S7 and Wowza server.
+
 
 # Permissions
 
@@ -17,3 +19,11 @@ Tested on Samsung s7 and Wowza server.
 <uses-permission android:name="android.permission.CAMERA" />
 <uses-permission android:name="android.permission.FLASHLIGHT"/>
 ```
+
+# Protocol data send
+
+
+RTMP -> TCP (never lost packet but more latency)
+
+
+RTSP -> UDP (low latency but could lost packets)

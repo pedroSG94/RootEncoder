@@ -21,6 +21,7 @@ import com.pedro.rtsp.rtp.H264Packet;
 import com.pedro.rtsp.rtsp.RtspClient;
 import com.pedro.rtsp.rtp.AccPacket;
 
+import com.pedro.rtsp.utils.ConnectCheckerRtsp;
 import java.nio.ByteBuffer;
 
 /**
@@ -39,8 +40,8 @@ public class RtspBuilder implements GetAccData, GetCameraData, GetH264Data, GetM
   private AccPacket accPacket;
   private H264Packet h264Packet;
 
-  public RtspBuilder(SurfaceView surfaceView) {
-    rtspClient = new RtspClient();
+  public RtspBuilder(SurfaceView surfaceView, ConnectCheckerRtsp connectCheckerRtsp) {
+    rtspClient = new RtspClient(connectCheckerRtsp);
     accPacket = new AccPacket();
     h264Packet = new H264Packet();
 
@@ -77,12 +78,12 @@ public class RtspBuilder implements GetAccData, GetCameraData, GetH264Data, GetM
   }
 
   public void startStream(String url) {
-    rtspClient.setUrl(url);
     videoEncoder.start();
     audioEncoder.start();
     cameraManager.start();
     microphoneManager.start();
     streaming = true;
+    rtspClient.setUrl(url);
   }
 
   public void stopStream() {

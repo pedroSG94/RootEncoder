@@ -2,6 +2,7 @@ package com.pedro.rtsp.rtsp;
 
 import android.util.Log;
 
+import com.pedro.rtsp.utils.ConnectCheckerRtsp;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.IOException;
@@ -30,6 +31,7 @@ public class RtspClient {
   private int mCSeq = 0;
   private String authorization = null;
   private String sessionId;
+  private ConnectCheckerRtsp connectCheckerRtsp;
 
   //sockets objects
   private Socket connectionSocket;
@@ -39,20 +41,33 @@ public class RtspClient {
   private String sps, pps;
   private int[] audioPorts = new int[] { 5000, 5001 };
   private int[] videoPorts = new int[] { 5002, 5003 };
+  private boolean streaming = false;
 
-  public RtspClient() {
+  public RtspClient(ConnectCheckerRtsp connectCheckerRtsp) {
+    this.connectCheckerRtsp = connectCheckerRtsp;
     long uptime = System.currentTimeMillis();
     mTimestamp = (uptime / 1000) << 32 & (((uptime - ((uptime / 1000) * 1000)) >> 32)
         / 1000); // NTP timestamp
   }
 
-  public void setUrl(String url){
-    String[] data = url.split("/");
-    host = data[2].split(":")[0];
-    port = Integer.parseInt(data[2].split(":")[1]);
-    path = "";
-    for(int i = 3; i < data.length; i++){
-      path += "/" + data[i];
+  public boolean isStreaming() {
+    return streaming;
+  }
+
+  public void setUrl(String url) {
+    try {
+      String[] data = url.split("/");
+      host = data[2].split(":")[0];
+      port = Integer.parseInt(data[2].split(":")[1]);
+      path = "";
+      for (int i = 3; i < data.length; i++) {
+        path += "/" + data[i];
+      }
+    } catch (ArrayIndexOutOfBoundsException e){
+      Log.e(TAG, "Error parse endPoint");
+      e.printStackTrace();
+      connectCheckerRtsp.onConnectionFailedRtsp();
+      streaming = false;
     }
   }
 
@@ -78,68 +93,79 @@ public class RtspClient {
   }
 
   public void connect() {
-    thread = new Thread(new Runnable() {
-      @Override
-      public void run() {
-        try {
-          connectionSocket = new Socket(host, port);
-          reader = new BufferedReader(new InputStreamReader(connectionSocket.getInputStream()));
-          writer = new BufferedWriter(new OutputStreamWriter(connectionSocket.getOutputStream()));
+    if(!streaming) {
+      thread = new Thread(new Runnable() {
+        @Override
+        public void run() {
+          try {
+            connectionSocket = new Socket(host, port);
+            reader = new BufferedReader(new InputStreamReader(connectionSocket.getInputStream()));
+            writer = new BufferedWriter(new OutputStreamWriter(connectionSocket.getOutputStream()));
 
-          writer.write(sendAnnounce());
-          writer.flush();
-          getResponse(false);
-          writer.write(sendSetup(trackAudio, isUDP));
-          writer.flush();
-          getResponse(true);
-          writer.write(sendSetup(trackVideo, isUDP));
-          writer.flush();
-          getResponse(false);
-          writer.write(sendRecord());
-          writer.flush();
-          getResponse(false);
-          new Thread(mConnectionMonitor).start();
-        } catch (IOException e) {
-          e.printStackTrace();
+            writer.write(sendAnnounce());
+            writer.flush();
+            getResponse(false);
+            writer.write(sendSetup(trackAudio, isUDP));
+            writer.flush();
+            getResponse(true);
+            writer.write(sendSetup(trackVideo, isUDP));
+            writer.flush();
+            getResponse(false);
+            writer.write(sendRecord());
+            writer.flush();
+            getResponse(false);
+
+            streaming = true;
+            connectCheckerRtsp.onConnectionSuccessRtsp();
+            new Thread(connectionMonitor).start();
+          } catch (IOException e) {
+            e.printStackTrace();
+            connectCheckerRtsp.onConnectionFailedRtsp();
+            streaming = false;
+          }
         }
-      }
-    });
-    thread.start();
+      });
+      thread.start();
+    }
   }
 
-  private Runnable mConnectionMonitor = new Runnable() {
+  private Runnable connectionMonitor = new Runnable() {
     @Override
     public void run() {
-      try {
-        // We poll the RTSP server with OPTION requests
-        writer.write(sendOptions());
-        writer.flush();
-        getResponse(false);
+      if(streaming) {
         try {
+          // We poll the RTSP server with OPTION requests
+          writer.write(sendOptions());
+          writer.flush();
+          getResponse(false);
           Thread.sleep(6000);
-          new Thread(mConnectionMonitor).start();
-        } catch (InterruptedException e) {
+          new Thread(connectionMonitor).start();
+        } catch (IOException | InterruptedException e) {
           e.printStackTrace();
+          connectCheckerRtsp.onConnectionFailedRtsp();
+          streaming = false;
         }
-      } catch (IOException e) {
-        e.printStackTrace();
       }
     }
   };
 
   public void disconnect() {
-    thread = new Thread(new Runnable() {
-      @Override
-      public void run() {
-        try {
-          writer.write(sendTearDown());
-          connectionSocket.close();
-        } catch (IOException e) {
-          e.printStackTrace();
+    if(streaming) {
+      thread = new Thread(new Runnable() {
+        @Override
+        public void run() {
+          try {
+            writer.write(sendTearDown());
+            connectionSocket.close();
+          } catch (IOException e) {
+            e.printStackTrace();
+          }
+          connectCheckerRtsp.onDisconnectRtsp();
+          streaming = false;
         }
-      }
-    });
-    thread.start();
+      });
+      thread.start();
+    }
   }
 
   private String sendAnnounce() {

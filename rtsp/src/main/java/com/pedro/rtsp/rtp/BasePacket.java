@@ -1,6 +1,6 @@
 package com.pedro.rtsp.rtp;
 
-import com.pedro.rtsp.constants.RtpConstants;
+import com.pedro.rtsp.utils.RtpConstants;
 import java.io.IOException;
 import java.util.Random;
 

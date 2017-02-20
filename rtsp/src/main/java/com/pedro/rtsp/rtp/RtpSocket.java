@@ -1,7 +1,7 @@
 package com.pedro.rtsp.rtp;
 
 import android.util.Log;
-import com.pedro.rtsp.constants.RtpConstants;
+import com.pedro.rtsp.utils.RtpConstants;
 import com.pedro.rtsp.rtcp.SenderReport;
 import java.io.IOException;
 import java.net.DatagramPacket;

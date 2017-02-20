@@ -104,7 +104,7 @@ public class SrsFlvMuxer {
         }
     }
 
-    private void disconnect(ConnectChecker connectChecker) {
+    private void disconnect(ConnectCheckerRtmp connectChecker) {
         try {
             publisher.close();
         } catch (IllegalStateException e) {
@@ -113,7 +113,7 @@ public class SrsFlvMuxer {
         connected = false;
         mVideoSequenceHeader = null;
         mAudioSequenceHeader = null;
-        connectChecker.onDisconnect();
+        connectChecker.onDisconnectRtmp();
         Log.i(TAG, "worker: disconnect ok.");
     }
 
@@ -150,15 +150,15 @@ public class SrsFlvMuxer {
     /**
      * start to the remote SRS for remux.
      */
-    public void start(final String rtmpUrl, final ConnectChecker connectChecker) {
+    public void start(final String rtmpUrl, final ConnectCheckerRtmp connectChecker) {
         worker = new Thread(new Runnable() {
             @Override
             public void run() {
                 if (!connect(rtmpUrl)) {
-                    connectChecker.onConnectionFailed();
+                    connectChecker.onConnectionFailedRtmp();
                     return;
                 }
-                connectChecker.onConnectionSuccess();
+                connectChecker.onConnectionSuccessRtmp();
                 while (!Thread.interrupted()) {
                     while (!mFlvTagCache.isEmpty()) {
                         SrsFlvFrame frame = mFlvTagCache.poll();
@@ -197,7 +197,7 @@ public class SrsFlvMuxer {
      * stop the muxer, disconnect RTMP connection.
      * @param connectChecker
      */
-    public void stop(final ConnectChecker connectChecker) {
+    public void stop(final ConnectCheckerRtmp connectChecker) {
         mFlvTagCache.clear();
         if (worker != null) {
             worker.interrupt();

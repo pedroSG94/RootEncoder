@@ -11,9 +11,11 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 import com.pedro.encoder.input.video.EffectManager;
-import net.ossrs.rtmp.ConnectChecker;
+import com.pedro.rtsp.utils.ConnectCheckerRtsp;
+import net.ossrs.rtmp.ConnectCheckerRtmp;
 
-public class MainActivity extends AppCompatActivity implements Button.OnClickListener, ConnectChecker {
+public class MainActivity extends AppCompatActivity implements Button.OnClickListener,
+    ConnectCheckerRtmp, ConnectCheckerRtsp {
 
     private String url = "rtmp://yourendpoint";
     private FlexibleBuilder flexibleBuilder;
@@ -27,7 +29,7 @@ public class MainActivity extends AppCompatActivity implements Button.OnClickLis
         setContentView(R.layout.activity_main);
 
         SurfaceView surfaceView = (SurfaceView) findViewById(R.id.surfaceView);
-        flexibleBuilder = new FlexibleBuilder(surfaceView, this);
+        flexibleBuilder = new FlexibleBuilder(surfaceView, this, this);
 
         etUrl = (EditText) findViewById(R.id.et_rtmp_url);
         switchCamera = (Button) findViewById(R.id.switch_camera);
@@ -86,16 +88,16 @@ public class MainActivity extends AppCompatActivity implements Button.OnClickLis
         switch (v.getId()) {
             case R.id.b_start_stop:
                 if (!flexibleBuilder.isStreaming()) {
+                    bStartStop.setText("Stop stream");
                     flexibleBuilder.prepareAudio();
                     flexibleBuilder.prepareVideo();
                     url = etUrl.getText().toString();
                     flexibleBuilder.startStream(url);
                     enableControls();
-                    bStartStop.setText("Stop stream");
                 } else {
+                    bStartStop.setText("Start stream");
                     flexibleBuilder.stopStream();
                     disableControls();
-                    bStartStop.setText("Start stream");
                 }
                 break;
             case R.id.switch_camera:
@@ -129,7 +131,7 @@ public class MainActivity extends AppCompatActivity implements Button.OnClickLis
     }
 
     @Override
-    public void onConnectionSuccess() {
+    public void onConnectionSuccessRtmp() {
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
@@ -139,7 +141,7 @@ public class MainActivity extends AppCompatActivity implements Button.OnClickLis
     }
 
     @Override
-    public void onConnectionFailed() {
+    public void onConnectionFailedRtmp() {
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
@@ -152,7 +154,40 @@ public class MainActivity extends AppCompatActivity implements Button.OnClickLis
     }
 
     @Override
-    public void onDisconnect() {
+    public void onDisconnectRtmp() {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                Toast.makeText(MainActivity.this, "Disconnected", Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    @Override
+    public void onConnectionSuccessRtsp() {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                Toast.makeText(MainActivity.this, "Connection success", Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    @Override
+    public void onConnectionFailedRtsp() {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                Toast.makeText(MainActivity.this, "Connection failed", Toast.LENGTH_SHORT).show();
+                flexibleBuilder.stopStream();
+                disableControls();
+                bStartStop.setText("Start stream");
+            }
+        });
+    }
+
+    @Override
+    public void onDisconnectRtsp() {
         runOnUiThread(new Runnable() {
             @Override
             public void run() {

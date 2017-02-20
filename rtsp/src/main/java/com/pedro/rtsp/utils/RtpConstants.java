@@ -1,4 +1,4 @@
-package com.pedro.rtsp.constants;
+package com.pedro.rtsp.utils;
 
 /**
  * Created by pedro on 19/02/17.

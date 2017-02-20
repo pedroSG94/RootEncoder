@@ -33,7 +33,7 @@ public class VideoEncoder implements GetCameraData {
   private int width = 1280;
   private int height = 720;
   private int fps = 30;
-  private int bitRate = 3000 * 1000; //in kbps
+  private int bitRate = 900 * 1000; //in kbps
   private int rotation = 90;
   private FormatVideoEncoder formatVideoEncoder = FormatVideoEncoder.YUV420SEMIPLANAR;
 

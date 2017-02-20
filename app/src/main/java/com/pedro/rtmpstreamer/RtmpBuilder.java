@@ -2,8 +2,6 @@ package com.pedro.rtmpstreamer;
 
 import android.graphics.ImageFormat;
 import android.media.MediaCodec;
-import android.util.Base64;
-import android.util.Log;
 import android.view.SurfaceView;
 import com.pedro.encoder.audio.AudioEncoder;
 import com.pedro.encoder.audio.GetAccData;
@@ -16,7 +14,7 @@ import com.pedro.encoder.video.FormatVideoEncoder;
 import com.pedro.encoder.video.GetH264Data;
 import com.pedro.encoder.video.VideoEncoder;
 import java.nio.ByteBuffer;
-import net.ossrs.rtmp.ConnectChecker;
+import net.ossrs.rtmp.ConnectCheckerRtmp;
 import net.ossrs.rtmp.SrsFlvMuxer;
 
 /**
@@ -33,9 +31,9 @@ public class RtmpBuilder implements GetAccData, GetCameraData, GetH264Data, GetM
   private AudioEncoder audioEncoder;
   private SrsFlvMuxer srsFlvMuxer;
   private boolean streaming;
-  private ConnectChecker connectChecker;
+  private ConnectCheckerRtmp connectChecker;
 
-  public RtmpBuilder(SurfaceView surfaceView, ConnectChecker connectChecker) {
+  public RtmpBuilder(SurfaceView surfaceView, ConnectCheckerRtmp connectChecker) {
     this.connectChecker = connectChecker;
     cameraManager = new CameraManager(surfaceView, this);
     videoEncoder = new VideoEncoder(this);
