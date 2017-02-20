@@ -38,6 +38,7 @@ public class CameraManager implements Camera.PreviewCallback {
     private int fps = 30;
     private int orientation = 90;
     private int imageFormat = ImageFormat.NV21;
+    private FpsController fpsControler;
 
     public CameraManager(SurfaceView surfaceView, GetCameraData getCameraData) {
         this.surfaceView = surfaceView;
@@ -72,6 +73,7 @@ public class CameraManager implements Camera.PreviewCallback {
                 camera.setPreviewCallback(this);
                 camera.startPreview();
                 running = true;
+                fpsControler = new FpsController(fps, camera);
                 Log.i(TAG, width + "X" + height);
             } catch (IOException e) {
                 e.printStackTrace();
@@ -167,10 +169,12 @@ public class CameraManager implements Camera.PreviewCallback {
 
     @Override
     public void onPreviewFrame(byte[] data, Camera camera) {
-        if (imageFormat == ImageFormat.YV12) {
-            getCameraData.inputYv12Data(data, width, height);
-        } else if (imageFormat == ImageFormat.NV21) {
-            getCameraData.inputNv21Data(data, width, height);
+        if(fpsControler.fpsIsValid()) {
+            if (imageFormat == ImageFormat.YV12) {
+                getCameraData.inputYv12Data(data, width, height);
+            } else if (imageFormat == ImageFormat.NV21) {
+                getCameraData.inputNv21Data(data, width, height);
+            }
         }
     }
 
