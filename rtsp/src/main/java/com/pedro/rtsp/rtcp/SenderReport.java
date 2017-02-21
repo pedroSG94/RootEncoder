@@ -18,12 +18,12 @@ public class SenderReport {
   private static final int MTU = 1500;
   private static final int PACKET_LENGTH = 28;
 
-  private MulticastSocket usock;
-  private DatagramPacket upack;
+  private MulticastSocket socket;
+  private DatagramPacket datagramPacket;
 
   private byte[] mBuffer = new byte[MTU];
   private int mOctetCount = 0, mPacketCount = 0;
-  private long interval, delta, now, oldnow;
+  private long interval, delta, now, old;
 
   public SenderReport() {
     /*							     Version(2)  Padding(0)					 					*/
@@ -49,19 +49,19 @@ public class SenderReport {
 		/* Byte 24,25,26,27  ->  octet count			         */
 
     try {
-      usock = new MulticastSocket();
+      socket = new MulticastSocket();
     } catch (IOException e) {
       // Very unlikely to happen. Means that all UDP ports are already being used
       throw new RuntimeException(e.getMessage());
     }
-    upack = new DatagramPacket(mBuffer, 1);
+    datagramPacket = new DatagramPacket(mBuffer, 1);
 
     // By default we sent one report every 3 second
     interval = 3000;
   }
 
   public void close() {
-    usock.close();
+    socket.close();
   }
 
   /**
@@ -77,8 +77,8 @@ public class SenderReport {
     setLong(mOctetCount, 24, 28);
 
     now = SystemClock.elapsedRealtime();
-    delta += oldnow != 0 ? now - oldnow : 0;
-    oldnow = now;
+    delta += old != 0 ? now - old : 0;
+    old = now;
     if (interval > 0) {
       if (delta >= interval) {
         // We send a Sender Report
@@ -97,8 +97,8 @@ public class SenderReport {
   }
 
   public void setDestination(InetAddress dest, int dport) {
-    upack.setPort(dport);
-    upack.setAddress(dest);
+    datagramPacket.setPort(dport);
+    datagramPacket.setAddress(dest);
   }
 
   /**
@@ -109,7 +109,7 @@ public class SenderReport {
     mOctetCount = 0;
     setLong(mPacketCount, 20, 24);
     setLong(mOctetCount, 24, 28);
-    delta = now = oldnow = 0;
+    delta = now = old = 0;
   }
 
   private void setLong(long n, int begin, int end) {
@@ -134,11 +134,11 @@ public class SenderReport {
         setLong(hb, 8, 12);
         setLong(lb, 12, 16);
         setLong(rtpts, 16, 20);
-        upack.setLength(PACKET_LENGTH);
-        upack.setPort(port);
-        Log.i(TAG, "send report, " + upack.getPort() + " Port");
+        datagramPacket.setLength(PACKET_LENGTH);
+        datagramPacket.setPort(port);
+        Log.i(TAG, "send report, " + datagramPacket.getPort() + " Port");
         try {
-          usock.send(upack);
+          socket.send(datagramPacket);
         } catch (IOException e) {
           e.printStackTrace();
         }

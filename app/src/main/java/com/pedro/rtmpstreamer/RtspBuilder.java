@@ -42,8 +42,8 @@ public class RtspBuilder implements GetAccData, GetCameraData, GetH264Data, GetM
 
   public RtspBuilder(SurfaceView surfaceView, ConnectCheckerRtsp connectCheckerRtsp) {
     rtspClient = new RtspClient(connectCheckerRtsp);
-    accPacket = new AccPacket();
-    h264Packet = new H264Packet();
+    accPacket = new AccPacket(rtspClient);
+    h264Packet = new H264Packet(rtspClient);
 
     cameraManager = new CameraManager(surfaceView, this);
     videoEncoder = new VideoEncoder(this);
@@ -94,6 +94,7 @@ public class RtspBuilder implements GetAccData, GetCameraData, GetH264Data, GetM
     audioEncoder.stop();
     streaming = false;
     accPacket.close();
+    h264Packet.close();
   }
 
   public void enableDisableLantern() {
@@ -124,8 +125,6 @@ public class RtspBuilder implements GetAccData, GetCameraData, GetH264Data, GetM
 
   @Override
   public void getAccData(ByteBuffer accBuffer, MediaCodec.BufferInfo info) {
-    accPacket.setDestination(rtspClient.getHost(), rtspClient.getAudioPorts()[0],
-        rtspClient.getAudioPorts()[1]);
     accPacket.createAndSendPacket(accBuffer, info);
   }
 
@@ -146,8 +145,6 @@ public class RtspBuilder implements GetAccData, GetCameraData, GetH264Data, GetM
 
   @Override
   public void getH264Data(ByteBuffer h264Buffer, MediaCodec.BufferInfo info) {
-    h264Packet.setDestination(rtspClient.getHost(), rtspClient.getVideoPorts()[0],
-        rtspClient.getVideoPorts()[1]);
     h264Packet.createAndSendPacket(h264Buffer, info);
   }
 
@@ -164,5 +161,10 @@ public class RtspBuilder implements GetAccData, GetCameraData, GetH264Data, GetM
   @Override
   public void inputNv21Data(byte[] buffer, int width, int height) {
     videoEncoder.inputNv21Data(buffer, width, height);
+  }
+
+  public void updateDestination() {
+    accPacket.updateDestinationAudio();
+    h264Packet.updateDestinationVideo();
   }
 }

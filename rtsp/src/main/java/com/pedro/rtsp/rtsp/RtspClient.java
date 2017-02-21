@@ -25,8 +25,8 @@ public class RtspClient {
 
   private int sampleRate;
 
-  private int trackVideo = 1;
-  private int trackAudio = 0;
+  private final int trackVideo = 1;
+  private final int trackAudio = 0;
   private boolean isUDP = true;
   private int mCSeq = 0;
   private String authorization = null;
@@ -63,7 +63,7 @@ public class RtspClient {
       for (int i = 3; i < data.length; i++) {
         path += "/" + data[i];
       }
-    } catch (ArrayIndexOutOfBoundsException e){
+    } catch (ArrayIndexOutOfBoundsException e) {
       Log.e(TAG, "Error parse endPoint");
       e.printStackTrace();
       connectCheckerRtsp.onConnectionFailedRtsp();
@@ -93,7 +93,7 @@ public class RtspClient {
   }
 
   public void connect() {
-    if(!streaming) {
+    if (!streaming) {
       thread = new Thread(new Runnable() {
         @Override
         public void run() {
@@ -132,7 +132,7 @@ public class RtspClient {
   private Runnable connectionMonitor = new Runnable() {
     @Override
     public void run() {
-      if(streaming) {
+      if (streaming) {
         try {
           // We poll the RTSP server with OPTION requests
           writer.write(sendOptions());
@@ -150,7 +150,7 @@ public class RtspClient {
   };
 
   public void disconnect() {
-    if(streaming) {
+    if (streaming) {
       thread = new Thread(new Runnable() {
         @Override
         public void run() {
@@ -198,8 +198,8 @@ public class RtspClient {
         // thread=0 0 means the session is permanent (we don'thread know when it will stop)
         "thread=0 0\r\n" +
         "a=recvonly\r\n" +
-        AudioBody.createAudioBody(trackAudio, sampleRate) +
-        VideoBody.createVideoBody(trackVideo, sps, pps);
+        Body.createAudioBody(trackAudio, sampleRate) +
+        Body.createVideoBody(trackVideo, sps, pps);
   }
 
   private String sendSetup(int track, boolean isUDP) {

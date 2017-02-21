@@ -5,6 +5,8 @@ package com.pedro.rtsp.utils;
  */
 
 public class RtpConstants {
+  public static final int clockVideoFrequency = 90000;
   public static final int RTP_HEADER_LENGTH = 12;
   public static final int MTU = 1300;
+  public static final int playLoadType = 96;
 }

@@ -1,6 +1,8 @@
 package com.pedro.rtsp.rtp;
 
 import android.media.MediaCodec;
+import com.pedro.rtsp.rtsp.RtspClient;
+import com.pedro.rtsp.utils.RtpConstants;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 
@@ -12,35 +14,40 @@ import java.nio.ByteBuffer;
  */
 public class H264Packet extends BasePacket {
 
-  public final static String TAG = "H264Packet";
+  private final String TAG = "H264Packet";
 
-  byte[] header = new byte[5];
+  //contain header from ByteBuffer (first 5 bytes)
+  private byte[] header = new byte[5];
 
-  public H264Packet() {
-    super();
-    socket.setCacheSize(0);
-    socket.setClockFrequency(90000);
+  public H264Packet(RtspClient rtspClient) {
+    super(rtspClient);
+    socket.setClockFrequency(RtpConstants.clockVideoFrequency);
+  }
+
+  public void updateDestinationVideo() {
+    socket.setDestination(rtspClient.getHost(), rtspClient.getVideoPorts()[0],
+        rtspClient.getVideoPorts()[1]);
   }
 
   public void createAndSendPacket(ByteBuffer byteBuffer, MediaCodec.BufferInfo bufferInfo) {
-    // We read a NAL units from the input stream and we send them
+    // We read a NAL units from ByteBuffer and we send them
     try {
-      // NAL units are preceeded with 0x00000001
+      // NAL units are preceded with 0x00000001
       byteBuffer.get(header, 0, 5);
       ts = bufferInfo.presentationTimeUs * 1000L;
       int naluLength = bufferInfo.size - byteBuffer.position() + 1;
 
       // Small NAL unit => Single NAL unit
-      if (naluLength <= MAXPACKETSIZE - rtphl - 2) {
+      if (naluLength <= maxPacketSize - RtpConstants.RTP_HEADER_LENGTH - 2) {
         buffer = socket.requestBuffer();
-        buffer[rtphl] = header[4];
+        buffer[RtpConstants.RTP_HEADER_LENGTH] = header[4];
         int cont = naluLength - 1;
         int length = cont < bufferInfo.size - byteBuffer.position() ? cont
             : bufferInfo.size - byteBuffer.position();
-        byteBuffer.get(buffer, rtphl + 1, length);
+        byteBuffer.get(buffer, RtpConstants.RTP_HEADER_LENGTH + 1, length);
         socket.updateTimestamp(ts);
         socket.markNextPacket();
-        send(naluLength + rtphl);
+        socket.commitBuffer(naluLength + RtpConstants.RTP_HEADER_LENGTH);
       }
       // Large NAL unit => Split nal unit
       else {
@@ -54,14 +61,16 @@ public class H264Packet extends BasePacket {
         int sum = 1;
         while (sum < naluLength) {
           buffer = socket.requestBuffer();
-          buffer[rtphl] = header[0];
-          buffer[rtphl + 1] = header[1];
+          buffer[RtpConstants.RTP_HEADER_LENGTH] = header[0];
+          buffer[RtpConstants.RTP_HEADER_LENGTH + 1] = header[1];
           socket.updateTimestamp(ts);
-          int cont = naluLength - sum > MAXPACKETSIZE - rtphl - 2 ? MAXPACKETSIZE - rtphl - 2
-              : naluLength - sum;
+          int cont = naluLength - sum > maxPacketSize - RtpConstants.RTP_HEADER_LENGTH - 2 ?
+              maxPacketSize
+                  - RtpConstants.RTP_HEADER_LENGTH
+                  - 2 : naluLength - sum;
           int length = cont < bufferInfo.size - byteBuffer.position() ? cont
               : bufferInfo.size - byteBuffer.position();
-          byteBuffer.get(buffer, rtphl + 2, length);
+          byteBuffer.get(buffer, RtpConstants.RTP_HEADER_LENGTH + 2, length);
           if (length < 0) {
             return;
           }
@@ -69,10 +78,10 @@ public class H264Packet extends BasePacket {
           // Last packet before next NAL
           if (sum >= naluLength) {
             // End bit on
-            buffer[rtphl + 1] += 0x40;
+            buffer[RtpConstants.RTP_HEADER_LENGTH + 1] += 0x40;
             socket.markNextPacket();
           }
-          send(length + rtphl + 2);
+          socket.commitBuffer(length + RtpConstants.RTP_HEADER_LENGTH + 2);
           // Switch start bit
           header[1] = (byte) (header[1] & 0x7F);
         }

@@ -102,6 +102,13 @@ public class FlexibleBuilder {
     }
   }
 
+  //only for rtsp
+  public void updateDestination(){
+    if(url == null) return;
+    if(url.startsWith("rtsp")){
+      rtspBuilder.updateDestination();
+    }
+  }
   public void setEffect(EffectManager effect) {
     if (url == null) return;
     if (url.startsWith("rtmp")) {

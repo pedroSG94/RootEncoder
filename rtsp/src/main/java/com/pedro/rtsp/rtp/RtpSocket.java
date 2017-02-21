@@ -62,9 +62,7 @@ public class RtpSocket implements Runnable {
 			/*									 | ||  -----------------------> Source Identifier(0)	*/
 			/*									 | ||  |												*/
       mBuffers[i][0] = (byte) Integer.parseInt("10000000", 2);
-
-			/* Payload Type */
-      mBuffers[i][1] = (byte) 96;
+      mBuffers[i][1] = (byte) RtpConstants.playLoadType;
 
 			/* Byte 2,3        ->  Sequence Number                   */
 			/* Byte 4,5,6,7    ->  Timestamp                         */
