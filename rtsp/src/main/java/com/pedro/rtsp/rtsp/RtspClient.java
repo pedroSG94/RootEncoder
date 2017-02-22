@@ -2,6 +2,7 @@ package com.pedro.rtsp.rtsp;
 
 import android.util.Log;
 
+import com.pedro.rtsp.utils.AuthUtil;
 import com.pedro.rtsp.utils.ConnectCheckerRtsp;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -9,6 +10,8 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.net.Socket;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Created by pedro on 10/02/17.
@@ -17,12 +20,11 @@ import java.net.Socket;
 public class RtspClient {
 
   private final String TAG = "RtspClient";
-  private final long mTimestamp;
 
+  private final long mTimestamp;
   private String host;
   private int port;
   private String path;
-
   private int sampleRate;
 
   private final int trackVideo = 1;
@@ -30,6 +32,8 @@ public class RtspClient {
   private boolean isUDP = true;
   private int mCSeq = 0;
   private String authorization = null;
+  private String user;
+  private String password;
   private String sessionId;
   private ConnectCheckerRtsp connectCheckerRtsp;
 
@@ -48,6 +52,11 @@ public class RtspClient {
     long uptime = System.currentTimeMillis();
     mTimestamp = (uptime / 1000) << 32 & (((uptime - ((uptime / 1000) * 1000)) >> 32)
         / 1000); // NTP timestamp
+  }
+
+  public void setAuthorization(String user, String password) {
+    this.user = user;
+    this.password = password;
   }
 
   public boolean isStreaming() {
@@ -101,13 +110,32 @@ public class RtspClient {
             connectionSocket = new Socket(host, port);
             reader = new BufferedReader(new InputStreamReader(connectionSocket.getInputStream()));
             writer = new BufferedWriter(new OutputStreamWriter(connectionSocket.getOutputStream()));
-
             writer.write(sendAnnounce());
             writer.flush();
-            getResponse(false);
+            //check if you need credential for stream, if you need try connect with credential
+            String response = getResponse(false);
+            int status = getResponseStatus(response);
+            if(status == 403){
+              connectCheckerRtsp.onConnectionFailedRtsp();
+              Log.e(TAG, "Response 403, access denied");
+              return;
+            } else if (status == 401) {
+              if (user == null || password == null) {
+                connectCheckerRtsp.onAuthErrorRtsp();
+                return;
+              } else {
+                writer.write(sendAnnounceWithAuth(response));
+                writer.flush();
+                if (getResponseStatus(getResponse(false)) == 401) {
+                  connectCheckerRtsp.onAuthErrorRtsp();
+                  return;
+                } else {
+                  connectCheckerRtsp.onAuthSuccessRtsp();
+                }
+              }
+            }
             writer.write(sendSetup(trackAudio, isUDP));
             writer.flush();
-            getResponse(true);
             writer.write(sendSetup(trackVideo, isUDP));
             writer.flush();
             getResponse(false);
@@ -274,6 +302,40 @@ public class RtspClient {
       e.printStackTrace();
       return null;
     }
+  }
+
+  private String sendAnnounceWithAuth(String authResponse) {
+    authorization = createAuth(authResponse);
+    Log.e("Auth", authorization);
+    String body = createBody();
+    String request = "ANNOUNCE rtsp://" + host + ":" + port + path + " RTSP/1.0\r\n" +
+        "CSeq: " + (++mCSeq) + "\r\n" +
+        "Content-Length: " + body.length() + "\r\n" +
+        "Authorization: " + authorization + "\r\n" +
+        "Content-Type: application/sdp\r\n\r\n" +
+        body;
+    return request;
+  }
+
+  private String createAuth(String authResponse) {
+    Pattern authPattern =
+        Pattern.compile("realm=\"(.+)\",\\s+nonce=\"(\\w+)\"", Pattern.CASE_INSENSITIVE);
+    Matcher matcher = authPattern.matcher(authResponse);
+    matcher.find();
+    String realm = matcher.group(1);
+    String nonce = matcher.group(2);
+    String hash1 = AuthUtil.getMd5Hash(user + ":" + realm + ":" + password);
+    String hash2 = AuthUtil.getMd5Hash("ANNOUNCE:rtsp://" + host + ":" + port + path);
+    String hash3 = AuthUtil.getMd5Hash(hash1 + ":" + nonce + ":" + hash2);
+    return "Digest username=\"" + user + "\",realm=\"" + realm + "\",nonce=\"" + nonce
+        + "\",uri=\"rtsp://" + host + ":" + port + path + "\",response=\"" + hash3 + "\"";
+  }
+
+  private int getResponseStatus(String response) {
+    Matcher matcher =
+        Pattern.compile("RTSP/\\d.\\d (\\d+) (\\w+)", Pattern.CASE_INSENSITIVE).matcher(response);
+    matcher.find();
+    return Integer.parseInt(matcher.group(1));
   }
 
   public int[] getAudioPorts() {

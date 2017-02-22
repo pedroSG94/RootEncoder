@@ -52,6 +52,10 @@ public class RtspBuilder implements GetAccData, GetCameraData, GetH264Data, GetM
     streaming = false;
   }
 
+  public void setAuthorization(String user, String password){
+    rtspClient.setAuthorization(user, password);
+  }
+
   public void prepareVideo(int width, int height, int fps, int bitrate, int rotation) {
     cameraManager.prepareCamera(width, height, fps, rotation, ImageFormat.NV21);
     videoEncoder.prepareVideoEncoder(width, height, fps, bitrate, rotation,

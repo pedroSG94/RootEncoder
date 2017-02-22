@@ -11,4 +11,8 @@ public interface ConnectCheckerRtsp {
   void onConnectionFailedRtsp();
 
   void onDisconnectRtsp();
+
+  void onAuthErrorRtsp();
+
+  void onAuthSuccessRtsp();
 }

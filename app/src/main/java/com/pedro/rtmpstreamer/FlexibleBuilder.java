@@ -23,6 +23,13 @@ public class FlexibleBuilder {
     rtspBuilder = new RtspBuilder(surfaceView, connectCheckerRtsp);
   }
 
+  /**
+   * only supported for rtsp atm
+   */
+  public void setAuthorization(String user, String password){
+    rtspBuilder.setAuthorization(user, password);
+  }
+
   public void prepareVideo(int width, int height, int fps, int bitrate, int rotation) {
     rtmpBuilder.prepareVideo(width, height, fps, bitrate, rotation);
     rtspBuilder.prepareVideo(width, height, fps, bitrate, rotation);

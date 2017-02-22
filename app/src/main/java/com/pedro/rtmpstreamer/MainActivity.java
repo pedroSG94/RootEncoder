@@ -194,4 +194,24 @@ public class MainActivity extends AppCompatActivity
       }
     });
   }
+
+  @Override
+  public void onAuthErrorRtsp() {
+    runOnUiThread(new Runnable() {
+      @Override
+      public void run() {
+        Toast.makeText(MainActivity.this, "Auth error", Toast.LENGTH_SHORT).show();
+      }
+    });
+  }
+
+  @Override
+  public void onAuthSuccessRtsp() {
+    runOnUiThread(new Runnable() {
+      @Override
+      public void run() {
+        Toast.makeText(MainActivity.this, "Auth success", Toast.LENGTH_SHORT).show();
+      }
+    });
+  }
 }

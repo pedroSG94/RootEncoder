@@ -70,7 +70,6 @@ public class VideoEncoder implements GetCameraData {
       return false;
     }
 
-    // Note: landscape to portrait, 90 degree rotation, so we need to switch width and height in configuration
     MediaFormat videoFormat = MediaFormat.createVideoFormat(codec, width, height);
     videoFormat.setInteger(MediaFormat.KEY_COLOR_FORMAT, formatVideoEncoder.getFormatCodec());
     videoFormat.setInteger(MediaFormat.KEY_MAX_INPUT_SIZE, 0);
