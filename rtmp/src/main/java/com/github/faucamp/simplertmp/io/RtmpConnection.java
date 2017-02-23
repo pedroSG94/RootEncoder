@@ -516,7 +516,6 @@ public class RtmpConnection implements RtmpPublisher {
 
     private void handleRxInvoke(Command invoke) throws IOException {
         String commandName = invoke.getCommandName();
-
         if (commandName.equals("_result")) {
             // This is the result of one of the methods invoked by us
             String method = rtmpSessionInfo.takeInvokedCommand(invoke.getTransactionId());
@@ -525,6 +524,7 @@ public class RtmpConnection implements RtmpPublisher {
             if ("connect".equals(method)) {
                 // Capture server ip/pid/id information if any
                 // We can now send createStream commands
+
                 connected = true;
                 synchronized (connectingLock) {
                     connectingLock.notifyAll();

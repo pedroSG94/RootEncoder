@@ -115,7 +115,7 @@ public class RtmpBuilder implements GetAccData, GetCameraData, GetH264Data, GetM
 
   @Override
   public void getAccData(ByteBuffer accBuffer, MediaCodec.BufferInfo info) {
-    srsFlvMuxer.writeSampleData(101, accBuffer, info);
+    srsFlvMuxer.sendAudio(accBuffer, info);
   }
 
   @Override
@@ -125,7 +125,7 @@ public class RtmpBuilder implements GetAccData, GetCameraData, GetH264Data, GetM
 
   @Override
   public void getH264Data(ByteBuffer h264Buffer, MediaCodec.BufferInfo info) {
-    srsFlvMuxer.writeSampleData(100, h264Buffer, info);
+    srsFlvMuxer.sendVideo(h264Buffer, info);
   }
 
   @Override

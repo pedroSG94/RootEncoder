@@ -45,7 +45,7 @@ public class RtspClient {
   private String sps, pps;
   private int[] audioPorts = new int[] { 5000, 5001 };
   private int[] videoPorts = new int[] { 5002, 5003 };
-  private boolean streaming = false;
+  private volatile boolean streaming = false;
 
   public RtspClient(ConnectCheckerRtsp connectCheckerRtsp) {
     this.connectCheckerRtsp = connectCheckerRtsp;
@@ -136,6 +136,7 @@ public class RtspClient {
             }
             writer.write(sendSetup(trackAudio, isUDP));
             writer.flush();
+            getResponse(true);
             writer.write(sendSetup(trackVideo, isUDP));
             writer.flush();
             getResponse(false);

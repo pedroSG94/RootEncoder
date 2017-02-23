@@ -118,6 +118,10 @@ public final class SrsAllocator {
         allocatedCount -= allocations.length;
     }
 
+    public int getIndividualAllocationSize() {
+        return individualAllocationSize;
+    }
+
     public synchronized int getTotalBytesAllocated() {
         return allocatedCount * individualAllocationSize;
     }
