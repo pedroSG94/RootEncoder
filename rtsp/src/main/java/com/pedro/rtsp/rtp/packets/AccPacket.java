@@ -1,6 +1,9 @@
-package com.pedro.rtsp.rtp;
+package com.pedro.rtsp.rtp.packets;
 
 import android.media.MediaCodec.BufferInfo;
+import com.pedro.rtsp.rtp.sockets.RtpSocketTcp;
+import com.pedro.rtsp.rtp.sockets.RtpSocketUdp;
+import com.pedro.rtsp.rtsp.Protocol;
 import com.pedro.rtsp.rtsp.RtspClient;
 import com.pedro.rtsp.utils.RtpConstants;
 import java.io.IOException;
@@ -16,12 +19,17 @@ public class AccPacket extends BasePacket {
 
   private final String TAG = "AccPacket";
 
-  public AccPacket(RtspClient rtspClient) {
-    super(rtspClient);
+  public AccPacket(RtspClient rtspClient, Protocol protocol) {
+    super(rtspClient, protocol);
   }
 
-  public void updateDestinationAudio(){
-    socket.setDestination(rtspClient.getHost(), rtspClient.getAudioPorts()[0], rtspClient.getAudioPorts()[1]);
+  public void updateDestinationAudio() {
+    if (socket instanceof RtpSocketUdp) {
+      ((RtpSocketUdp) socket).setDestination(rtspClient.getHost(), rtspClient.getAudioPorts()[0],
+          rtspClient.getAudioPorts()[1]);
+    } else {
+      ((RtpSocketTcp) socket).setOutputStream(rtspClient.getOutputStream(), (byte)0);
+    }
   }
 
   public void setSampleRate(int sampleRate) {
@@ -31,11 +39,9 @@ public class AccPacket extends BasePacket {
   public void createAndSendPacket(ByteBuffer byteBuffer, BufferInfo bufferInfo) {
     try {
       buffer = socket.requestBuffer();
-      int length =
-          maxPacketSize - (RtpConstants.RTP_HEADER_LENGTH + 4) < bufferInfo.size - byteBuffer.position() ? maxPacketSize
-              - (
-              RtpConstants.RTP_HEADER_LENGTH
-                  + 4) : bufferInfo.size - byteBuffer.position();
+      int length = maxPacketSize - (RtpConstants.RTP_HEADER_LENGTH + 4)
+          < bufferInfo.size - byteBuffer.position() ? maxPacketSize
+          - (RtpConstants.RTP_HEADER_LENGTH + 4) : bufferInfo.size - byteBuffer.position();
       byteBuffer.get(buffer, RtpConstants.RTP_HEADER_LENGTH + 4, length);
 
       ts = bufferInfo.presentationTimeUs * 1000;
@@ -56,7 +62,11 @@ public class AccPacket extends BasePacket {
       buffer[RtpConstants.RTP_HEADER_LENGTH + 3] &= 0xF8;
       buffer[RtpConstants.RTP_HEADER_LENGTH + 3] |= 0x00;
 
-      socket.commitBuffer(RtpConstants.RTP_HEADER_LENGTH + length + 4);
+      if (socket instanceof RtpSocketUdp) {
+        ((RtpSocketUdp) socket).commitBuffer(RtpConstants.RTP_HEADER_LENGTH + length + 4);
+      } else {
+        ((RtpSocketTcp) socket).commitBuffer(RtpConstants.RTP_HEADER_LENGTH + length + 4);
+      }
     } catch (IOException | InterruptedException | ArrayIndexOutOfBoundsException e) {
       e.printStackTrace();
     }

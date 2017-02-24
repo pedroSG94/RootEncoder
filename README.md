@@ -23,7 +23,7 @@ Tested on Samsung S7 and Wowza server.
 # Protocol data send
 
 
-RTMP -> TCP (never lost packet but more latency)
+RTMP -> TCP
 
 
-RTSP -> UDP (low latency but could lost packets)
+RTSP -> UDP/TCP

@@ -1,6 +1,10 @@
-package com.pedro.rtsp.rtp;
+package com.pedro.rtsp.rtp.packets;
 
 import android.media.MediaCodec;
+import com.pedro.rtsp.rtp.packets.BasePacket;
+import com.pedro.rtsp.rtp.sockets.RtpSocketTcp;
+import com.pedro.rtsp.rtp.sockets.RtpSocketUdp;
+import com.pedro.rtsp.rtsp.Protocol;
 import com.pedro.rtsp.rtsp.RtspClient;
 import com.pedro.rtsp.utils.RtpConstants;
 import java.io.IOException;
@@ -19,14 +23,18 @@ public class H264Packet extends BasePacket {
   //contain header from ByteBuffer (first 5 bytes)
   private byte[] header = new byte[5];
 
-  public H264Packet(RtspClient rtspClient) {
-    super(rtspClient);
+  public H264Packet(RtspClient rtspClient, Protocol protocol) {
+    super(rtspClient, protocol);
     socket.setClockFrequency(RtpConstants.clockVideoFrequency);
   }
 
   public void updateDestinationVideo() {
-    socket.setDestination(rtspClient.getHost(), rtspClient.getVideoPorts()[0],
-        rtspClient.getVideoPorts()[1]);
+    if (socket instanceof RtpSocketUdp) {
+      ((RtpSocketUdp) socket).setDestination(rtspClient.getHost(), rtspClient.getVideoPorts()[0],
+          rtspClient.getVideoPorts()[1]);
+    } else {
+      ((RtpSocketTcp) socket).setOutputStream(rtspClient.getOutputStream(), (byte) 2);
+    }
   }
 
   public void createAndSendPacket(ByteBuffer byteBuffer, MediaCodec.BufferInfo bufferInfo) {
@@ -47,7 +55,11 @@ public class H264Packet extends BasePacket {
         byteBuffer.get(buffer, RtpConstants.RTP_HEADER_LENGTH + 1, length);
         socket.updateTimestamp(ts);
         socket.markNextPacket();
-        socket.commitBuffer(naluLength + RtpConstants.RTP_HEADER_LENGTH);
+        if (socket instanceof RtpSocketUdp) {
+          ((RtpSocketUdp) socket).commitBuffer(naluLength + RtpConstants.RTP_HEADER_LENGTH);
+        } else{
+          ((RtpSocketTcp) socket).commitBuffer(naluLength + RtpConstants.RTP_HEADER_LENGTH);
+        }
       }
       // Large NAL unit => Split nal unit
       else {
@@ -81,7 +93,11 @@ public class H264Packet extends BasePacket {
             buffer[RtpConstants.RTP_HEADER_LENGTH + 1] += 0x40;
             socket.markNextPacket();
           }
-          socket.commitBuffer(length + RtpConstants.RTP_HEADER_LENGTH + 2);
+          if (socket instanceof RtpSocketUdp) {
+            ((RtpSocketUdp) socket).commitBuffer(length + RtpConstants.RTP_HEADER_LENGTH + 2);
+          } else{
+            ((RtpSocketTcp) socket).commitBuffer(length + RtpConstants.RTP_HEADER_LENGTH + 2);
+          }
           // Switch start bit
           header[1] = (byte) (header[1] & 0x7F);
         }

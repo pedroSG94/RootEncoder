@@ -8,6 +8,7 @@ import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.net.Socket;
 import java.util.regex.Matcher;
@@ -29,7 +30,7 @@ public class RtspClient {
 
   private final int trackVideo = 1;
   private final int trackAudio = 0;
-  private boolean isUDP = true;
+  private Protocol protocol = Protocol.UDP;
   private int mCSeq = 0;
   private String authorization = null;
   private String user;
@@ -43,11 +44,16 @@ public class RtspClient {
   private BufferedWriter writer;
   private Thread thread;
   private String sps, pps;
+  //for udp
   private int[] audioPorts = new int[] { 5000, 5001 };
   private int[] videoPorts = new int[] { 5002, 5003 };
+  //for tcp
+  private OutputStream outputStream;
+
   private volatile boolean streaming = false;
 
-  public RtspClient(ConnectCheckerRtsp connectCheckerRtsp) {
+  public RtspClient(ConnectCheckerRtsp connectCheckerRtsp, Protocol protocol) {
+    this.protocol = protocol;
     this.connectCheckerRtsp = connectCheckerRtsp;
     long uptime = System.currentTimeMillis();
     mTimestamp = (uptime / 1000) << 32 & (((uptime - ((uptime / 1000) * 1000)) >> 32)
@@ -80,6 +86,10 @@ public class RtspClient {
     }
   }
 
+  public OutputStream getOutputStream() {
+    return outputStream;
+  }
+
   public void setSampleRate(int sampleRate) {
     this.sampleRate = sampleRate;
   }
@@ -109,7 +119,8 @@ public class RtspClient {
           try {
             connectionSocket = new Socket(host, port);
             reader = new BufferedReader(new InputStreamReader(connectionSocket.getInputStream()));
-            writer = new BufferedWriter(new OutputStreamWriter(connectionSocket.getOutputStream()));
+            outputStream = connectionSocket.getOutputStream();
+            writer = new BufferedWriter(new OutputStreamWriter(outputStream));
             writer.write(sendAnnounce());
             writer.flush();
             //check if you need credential for stream, if you need try connect with credential
@@ -134,10 +145,10 @@ public class RtspClient {
                 }
               }
             }
-            writer.write(sendSetup(trackAudio, isUDP));
+            writer.write(sendSetup(trackAudio, protocol));
             writer.flush();
             getResponse(true);
-            writer.write(sendSetup(trackVideo, isUDP));
+            writer.write(sendSetup(trackVideo, protocol));
             writer.flush();
             getResponse(false);
             writer.write(sendRecord());
@@ -231,8 +242,8 @@ public class RtspClient {
         Body.createVideoBody(trackVideo, sps, pps);
   }
 
-  private String sendSetup(int track, boolean isUDP) {
-    String params = (isUDP) ? ("UDP;unicast;client_port="
+  private String sendSetup(int track, Protocol protocol) {
+    String params = (protocol == Protocol.UDP) ? ("UDP;unicast;client_port="
         + (5000 + 2 * track)
         + "-"
         + (5000 + 2 * track + 1)
