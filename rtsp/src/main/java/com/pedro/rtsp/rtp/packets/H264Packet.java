@@ -55,11 +55,7 @@ public class H264Packet extends BasePacket {
         byteBuffer.get(buffer, RtpConstants.RTP_HEADER_LENGTH + 1, length);
         socket.updateTimestamp(ts);
         socket.markNextPacket();
-        if (socket instanceof RtpSocketUdp) {
-          ((RtpSocketUdp) socket).commitBuffer(naluLength + RtpConstants.RTP_HEADER_LENGTH);
-        } else{
-          ((RtpSocketTcp) socket).commitBuffer(naluLength + RtpConstants.RTP_HEADER_LENGTH);
-        }
+        socket.commitBuffer(naluLength + RtpConstants.RTP_HEADER_LENGTH);
       }
       // Large NAL unit => Split nal unit
       else {
@@ -93,11 +89,7 @@ public class H264Packet extends BasePacket {
             buffer[RtpConstants.RTP_HEADER_LENGTH + 1] += 0x40;
             socket.markNextPacket();
           }
-          if (socket instanceof RtpSocketUdp) {
-            ((RtpSocketUdp) socket).commitBuffer(length + RtpConstants.RTP_HEADER_LENGTH + 2);
-          } else{
-            ((RtpSocketTcp) socket).commitBuffer(length + RtpConstants.RTP_HEADER_LENGTH + 2);
-          }
+          socket.commitBuffer(length + RtpConstants.RTP_HEADER_LENGTH + 2);
           // Switch start bit
           header[1] = (byte) (header[1] & 0x7F);
         }

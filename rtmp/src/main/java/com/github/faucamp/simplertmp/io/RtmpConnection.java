@@ -34,11 +34,13 @@ import com.github.faucamp.simplertmp.packets.Video;
 import com.github.faucamp.simplertmp.packets.UserControl;
 import com.github.faucamp.simplertmp.packets.RtmpPacket;
 import com.github.faucamp.simplertmp.packets.WindowAckSize;
+import javax.net.ssl.SSLSocket;
+import net.ossrs.rtmp.CreateSSLSocket;
 
 /**
  * Main RTMP connection implementation class
- * 
- * @author francois, leoma
+ *
+ * @author francois, leoma, pedro
  */
 public class RtmpConnection implements RtmpPublisher {
 
@@ -72,7 +74,16 @@ public class RtmpConnection implements RtmpPublisher {
     private int videoFrameCount;
     private int audioFrameCount;
 
+    //for secure transport
+    private InputStream inputStreamJks = null;
+    private String passPhraseJks = null;
+
     public RtmpConnection() {
+    }
+
+    public void setJksData(InputStream inputStreamJks, String passPhraseJks){
+        this.inputStreamJks = inputStreamJks;
+        this.passPhraseJks = passPhraseJks;
     }
 
     private void handshake(InputStream in, OutputStream out) throws IOException {
@@ -106,10 +117,13 @@ public class RtmpConnection implements RtmpPublisher {
         Log.d(TAG, "connect() called. Host: " + host + ", port: " + port + ", appName: " + appName + ", publishPath: " + streamName);
         rtmpSessionInfo = new RtmpSessionInfo();
         rtmpDecoder = new RtmpDecoder(rtmpSessionInfo);
-        socket = new Socket();
-        SocketAddress socketAddress = new InetSocketAddress(host, port);
         try {
-            socket.connect(socketAddress, 3000);
+            if (inputStreamJks == null | passPhraseJks == null) {
+                socket = new Socket(host, port);
+            } else {
+                socket = CreateSSLSocket.createSSlSocket(
+                    CreateSSLSocket.createKeyStore(inputStreamJks, passPhraseJks), host, port);
+            }
             inputStream = new BufferedInputStream(socket.getInputStream());
             outputStream = new BufferedOutputStream(socket.getOutputStream());
             Log.d(TAG, "connect(): socket connection established, doing handhake...");

@@ -4,9 +4,11 @@ import android.util.Log;
 
 import com.pedro.rtsp.utils.AuthUtil;
 import com.pedro.rtsp.utils.ConnectCheckerRtsp;
+import com.pedro.rtsp.utils.CreateSSLSocket;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
@@ -49,8 +51,10 @@ public class RtspClient {
   private int[] videoPorts = new int[] { 5002, 5003 };
   //for tcp
   private OutputStream outputStream;
-
   private volatile boolean streaming = false;
+  //for secure transport
+  private InputStream inputStreamJks = null;
+  private String passPhraseJks = null;
 
   public RtspClient(ConnectCheckerRtsp connectCheckerRtsp, Protocol protocol) {
     this.protocol = protocol;
@@ -63,6 +67,11 @@ public class RtspClient {
   public void setAuthorization(String user, String password) {
     this.user = user;
     this.password = password;
+  }
+
+  public void setJksData(InputStream inputStreamJks, String passPhraseJks){
+    this.inputStreamJks = inputStreamJks;
+    this.passPhraseJks = passPhraseJks;
   }
 
   public boolean isStreaming() {
@@ -117,7 +126,12 @@ public class RtspClient {
         @Override
         public void run() {
           try {
-            connectionSocket = new Socket(host, port);
+            if (inputStreamJks == null | passPhraseJks == null) {
+              connectionSocket = new Socket(host, port);
+            } else {
+              connectionSocket = CreateSSLSocket.createSSlSocket(
+                  CreateSSLSocket.createKeyStore(inputStreamJks, passPhraseJks), host, port);
+            }
             reader = new BufferedReader(new InputStreamReader(connectionSocket.getInputStream()));
             outputStream = connectionSocket.getOutputStream();
             writer = new BufferedWriter(new OutputStreamWriter(outputStream));
@@ -126,7 +140,7 @@ public class RtspClient {
             //check if you need credential for stream, if you need try connect with credential
             String response = getResponse(false);
             int status = getResponseStatus(response);
-            if(status == 403){
+            if (status == 403) {
               connectCheckerRtsp.onConnectionFailedRtsp();
               Log.e(TAG, "Response 403, access denied");
               return;
@@ -243,11 +257,10 @@ public class RtspClient {
   }
 
   private String sendSetup(int track, Protocol protocol) {
-    String params = (protocol == Protocol.UDP) ? ("UDP;unicast;client_port="
-        + (5000 + 2 * track)
-        + "-"
-        + (5000 + 2 * track + 1)
-        + ";mode=receive") : ("TCP;interleaved=" + 2 * track + "-" + (2 * track + 1));
+    String params =
+        (protocol == Protocol.UDP) ? ("UDP;unicast;client_port=" + (5000 + 2 * track) + "-" + (5000
+            + 2 * track
+            + 1) + ";mode=receive") : ("TCP;interleaved=" + 2 * track + "-" + (2 * track + 1));
     return "SETUP rtsp://" + host + ":" + port + path + "/trackID=" + track + " RTSP/1.0\r\n" +
         "Transport: RTP/AVP/" + params + "\r\n" +
         addHeaders(authorization);
@@ -339,8 +352,20 @@ public class RtspClient {
     String hash1 = AuthUtil.getMd5Hash(user + ":" + realm + ":" + password);
     String hash2 = AuthUtil.getMd5Hash("ANNOUNCE:rtsp://" + host + ":" + port + path);
     String hash3 = AuthUtil.getMd5Hash(hash1 + ":" + nonce + ":" + hash2);
-    return "Digest username=\"" + user + "\",realm=\"" + realm + "\",nonce=\"" + nonce
-        + "\",uri=\"rtsp://" + host + ":" + port + path + "\",response=\"" + hash3 + "\"";
+    return "Digest username=\""
+        + user
+        + "\",realm=\""
+        + realm
+        + "\",nonce=\""
+        + nonce
+        + "\",uri=\"rtsp://"
+        + host
+        + ":"
+        + port
+        + path
+        + "\",response=\""
+        + hash3
+        + "\"";
   }
 
   private int getResponseStatus(String response) {

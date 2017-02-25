@@ -40,10 +40,10 @@ public class RtspBuilder implements GetAccData, GetCameraData, GetH264Data, GetM
   private AccPacket accPacket;
   private H264Packet h264Packet;
 
-  public RtspBuilder(SurfaceView surfaceView, ConnectCheckerRtsp connectCheckerRtsp) {
-    rtspClient = new RtspClient(connectCheckerRtsp, Protocol.TCP);
-    accPacket = new AccPacket(rtspClient, Protocol.TCP);
-    h264Packet = new H264Packet(rtspClient, Protocol.TCP);
+  public RtspBuilder(SurfaceView surfaceView, Protocol protocol, ConnectCheckerRtsp connectCheckerRtsp) {
+    rtspClient = new RtspClient(connectCheckerRtsp, protocol);
+    accPacket = new AccPacket(rtspClient, protocol);
+    h264Packet = new H264Packet(rtspClient, protocol);
 
     cameraManager = new CameraManager(surfaceView, this);
     videoEncoder = new VideoEncoder(this);

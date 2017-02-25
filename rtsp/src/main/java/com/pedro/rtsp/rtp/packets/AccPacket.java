@@ -28,7 +28,7 @@ public class AccPacket extends BasePacket {
       ((RtpSocketUdp) socket).setDestination(rtspClient.getHost(), rtspClient.getAudioPorts()[0],
           rtspClient.getAudioPorts()[1]);
     } else {
-      ((RtpSocketTcp) socket).setOutputStream(rtspClient.getOutputStream(), (byte)0);
+      ((RtpSocketTcp) socket).setOutputStream(rtspClient.getOutputStream(), (byte) 0);
     }
   }
 
@@ -62,11 +62,8 @@ public class AccPacket extends BasePacket {
       buffer[RtpConstants.RTP_HEADER_LENGTH + 3] &= 0xF8;
       buffer[RtpConstants.RTP_HEADER_LENGTH + 3] |= 0x00;
 
-      if (socket instanceof RtpSocketUdp) {
-        ((RtpSocketUdp) socket).commitBuffer(RtpConstants.RTP_HEADER_LENGTH + length + 4);
-      } else {
-        ((RtpSocketTcp) socket).commitBuffer(RtpConstants.RTP_HEADER_LENGTH + length + 4);
-      }
+      socket.commitBuffer(RtpConstants.RTP_HEADER_LENGTH + length + 4);
+
     } catch (IOException | InterruptedException | ArrayIndexOutOfBoundsException e) {
       e.printStackTrace();
     }

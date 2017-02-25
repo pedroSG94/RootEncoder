@@ -3,6 +3,7 @@ package com.pedro.rtmpstreamer;
 import android.util.Log;
 import android.view.SurfaceView;
 import com.pedro.encoder.input.video.EffectManager;
+import com.pedro.rtsp.rtsp.Protocol;
 import com.pedro.rtsp.utils.ConnectCheckerRtsp;
 import net.ossrs.rtmp.ConnectCheckerRtmp;
 
@@ -20,7 +21,7 @@ public class FlexibleBuilder {
 
   public FlexibleBuilder(SurfaceView surfaceView, ConnectCheckerRtmp connectChecker, ConnectCheckerRtsp connectCheckerRtsp) {
     rtmpBuilder = new RtmpBuilder(surfaceView, connectChecker);
-    rtspBuilder = new RtspBuilder(surfaceView, connectCheckerRtsp);
+    rtspBuilder = new RtspBuilder(surfaceView, Protocol.TCP, connectCheckerRtsp);
   }
 
   /**

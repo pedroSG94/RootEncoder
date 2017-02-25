@@ -6,6 +6,7 @@ import android.util.Log;
 
 import com.github.faucamp.simplertmp.DefaultRtmpPublisher;
 
+import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -14,6 +15,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 /**
  * Created by winlin on 5/2/15.
  * Updated by leoma on 4/1/16.
+ * modified by pedro
  * to POST the h.264/avc annexb frame over RTMP.
  *
  * Usage:
@@ -67,6 +69,10 @@ public class SrsFlvMuxer {
    */
   public SrsFlvMuxer() {
     publisher = new DefaultRtmpPublisher();
+  }
+
+  public void setJksData(InputStream inputStreamJks, String passPhraseJks){
+    publisher.setJksData(inputStreamJks, passPhraseJks);
   }
 
   /**

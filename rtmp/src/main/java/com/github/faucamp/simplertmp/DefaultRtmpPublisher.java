@@ -1,5 +1,6 @@
 package com.github.faucamp.simplertmp;
 
+import java.io.InputStream;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import com.github.faucamp.simplertmp.io.RtmpConnection;
@@ -7,7 +8,7 @@ import com.github.faucamp.simplertmp.io.RtmpConnection;
 /**
  * Srs implementation of an RTMP publisher
  * 
- * @author francois, leoma
+ * @author francois, leoma, pedro
  */
 public class DefaultRtmpPublisher implements RtmpPublisher {
 
@@ -15,6 +16,10 @@ public class DefaultRtmpPublisher implements RtmpPublisher {
 
     public DefaultRtmpPublisher() {
         rtmpConnection = new RtmpConnection();
+    }
+
+    public void setJksData(InputStream inputStreamJks, String passPhraseJks){
+        rtmpConnection.setJksData(inputStreamJks, passPhraseJks);
     }
 
     @Override

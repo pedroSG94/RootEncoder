@@ -42,7 +42,7 @@ public class RtmpBuilder implements GetAccData, GetCameraData, GetH264Data, GetM
     srsFlvMuxer = new SrsFlvMuxer();
     streaming = false;
   }
-
+  
   public void prepareVideo(int width, int height, int fps, int bitrate, int rotation) {
     this.width = width;
     this.height = height;
