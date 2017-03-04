@@ -19,12 +19,18 @@ import javax.microedition.khronos.egl.EGLSurface;
 /**
  * Created by pedro on 20/01/17.
  * This class need use same resolution, fps and rotation that VideoEncoder
- * Tested with YV12 and NV21
+ * Tested with YV12 and NV21.
+ *
+ * Advantage = you can control fps of the stream.
+ * Disadvantages = you cant use all resolutions, only resolution that your camera support.
+ *
+ * If you want use all resolutions. You can use libYuv for resize images in OnPreviewFrame:
+ * https://chromium.googlesource.com/libyuv/libyuv/
  */
 
-public class CameraManager implements Camera.PreviewCallback {
+public class Camera1ApiManager implements Camera.PreviewCallback {
 
-    private String TAG = "CameraManager";
+    private String TAG = "Camera1ApiManager";
     private Camera camera = null;
     private SurfaceView surfaceView;
     private GetCameraData getCameraData;
@@ -40,7 +46,7 @@ public class CameraManager implements Camera.PreviewCallback {
     private int imageFormat = ImageFormat.NV21;
     private FpsController fpsController;
 
-    public CameraManager(SurfaceView surfaceView, GetCameraData getCameraData) {
+    public Camera1ApiManager(SurfaceView surfaceView, GetCameraData getCameraData) {
         this.surfaceView = surfaceView;
         this.getCameraData = getCameraData;
         cameraSelect = selectCamera();

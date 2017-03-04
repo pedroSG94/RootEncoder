@@ -7,7 +7,7 @@ import com.pedro.encoder.audio.AudioEncoder;
 import com.pedro.encoder.audio.GetAccData;
 import com.pedro.encoder.input.audio.GetMicrophoneData;
 import com.pedro.encoder.input.audio.MicrophoneManager;
-import com.pedro.encoder.input.video.CameraManager;
+import com.pedro.encoder.input.video.Camera1ApiManager;
 import com.pedro.encoder.input.video.EffectManager;
 import com.pedro.encoder.input.video.GetCameraData;
 import com.pedro.encoder.video.FormatVideoEncoder;
@@ -25,7 +25,7 @@ public class RtmpBuilder implements GetAccData, GetCameraData, GetH264Data, GetM
 
   private int width;
   private int height;
-  private CameraManager cameraManager;
+  private Camera1ApiManager cameraManager;
   private VideoEncoder videoEncoder;
   private MicrophoneManager microphoneManager;
   private AudioEncoder audioEncoder;
@@ -35,7 +35,7 @@ public class RtmpBuilder implements GetAccData, GetCameraData, GetH264Data, GetM
 
   public RtmpBuilder(SurfaceView surfaceView, ConnectCheckerRtmp connectChecker) {
     this.connectChecker = connectChecker;
-    cameraManager = new CameraManager(surfaceView, this);
+    cameraManager = new Camera1ApiManager(surfaceView, this);
     videoEncoder = new VideoEncoder(this);
     microphoneManager = new MicrophoneManager(this);
     audioEncoder = new AudioEncoder(this);

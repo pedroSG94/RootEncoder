@@ -8,6 +8,7 @@ import android.os.Build;
 import android.support.annotation.RequiresApi;
 import android.util.Log;
 
+import android.view.Surface;
 import com.pedro.encoder.input.video.GetCameraData;
 import com.pedro.encoder.utils.YUVUtil;
 
@@ -16,7 +17,7 @@ import java.nio.ByteBuffer;
 
 /**
  * Created by pedro on 19/01/17.
- * This class need use same resolution, fps and rotation that CameraManager
+ * This class need use same resolution, fps and rotation that Camera1ApiManager
  */
 
 public class VideoEncoder implements GetCameraData {
@@ -27,6 +28,9 @@ public class VideoEncoder implements GetCameraData {
   private MediaCodec.BufferInfo videoInfo = new MediaCodec.BufferInfo();
   private long mPresentTimeUs;
   private boolean running;
+  //for surface to buffer encoder
+  private Thread threadEncoderSurface;
+  private Surface inputSurface;
 
   //default parameters for encoder
   private String codec = "video/avc";
@@ -79,6 +83,10 @@ public class VideoEncoder implements GetCameraData {
     videoFormat.setInteger("rotation-degrees", rotation);
     videoEncoder.configure(videoFormat, null, null, MediaCodec.CONFIGURE_FLAG_ENCODE);
     running = false;
+    if (formatVideoEncoder == FormatVideoEncoder.SURFACE
+        && Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
+      inputSurface = videoEncoder.createInputSurface();
+    }
     return true;
   }
 
@@ -87,6 +95,14 @@ public class VideoEncoder implements GetCameraData {
    */
   public boolean prepareVideoEncoder() {
     return prepareVideoEncoder(width, height, fps, bitRate, rotation, formatVideoEncoder);
+  }
+
+  public Surface getInputSurface() {
+    return inputSurface;
+  }
+
+  public void setInputSurface(Surface inputSurface) {
+    this.inputSurface = inputSurface;
   }
 
   public int getWidth() {
@@ -104,11 +120,23 @@ public class VideoEncoder implements GetCameraData {
   public void start() {
     mPresentTimeUs = System.nanoTime() / 1000;
     videoEncoder.start();
+    if (formatVideoEncoder == FormatVideoEncoder.SURFACE
+        && Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
+      if (Build.VERSION.SDK_INT >= 21) {
+        getDataFromSurfaceAPI21();
+      } else {
+        getDataFromSurface();
+      }
+    }
     running = true;
   }
 
   public void stop() {
     running = false;
+    if(threadEncoderSurface != null) {
+      threadEncoderSurface.interrupt();
+      threadEncoderSurface = null;
+    }
     if (videoEncoder != null) {
       videoEncoder.stop();
       videoEncoder.release();
@@ -118,21 +146,25 @@ public class VideoEncoder implements GetCameraData {
 
   @Override
   public void inputYv12Data(byte[] buffer, int width, int height) {
-    byte[] i420 = YUVUtil.YV12toYUV420SemiPlanar(buffer, width, height);
-    if (Build.VERSION.SDK_INT >= 21) {
-      getDataFromEncoderAPI21(i420);
-    } else {
-      getDataFromEncoder(i420);
+    if (formatVideoEncoder != FormatVideoEncoder.SURFACE) {
+      byte[] i420 = YUVUtil.YV12toYUV420SemiPlanar(buffer, width, height);
+      if (Build.VERSION.SDK_INT >= 21) {
+        getDataFromEncoderAPI21(i420);
+      } else {
+        getDataFromEncoder(i420);
+      }
     }
   }
 
   @Override
   public void inputNv21Data(byte[] buffer, int width, int height) {
-    byte[] i420 = YUVUtil.NV21toYUV420SemiPlanar(buffer, width, height);
-    if (Build.VERSION.SDK_INT >= 21) {
-      getDataFromEncoderAPI21(i420);
-    } else {
-      getDataFromEncoder(i420);
+    if (formatVideoEncoder != FormatVideoEncoder.SURFACE) {
+      byte[] i420 = YUVUtil.NV21toYUV420SemiPlanar(buffer, width, height);
+      if (Build.VERSION.SDK_INT >= 21) {
+        getDataFromEncoderAPI21(i420);
+      } else {
+        getDataFromEncoder(i420);
+      }
     }
   }
 
@@ -141,11 +173,63 @@ public class VideoEncoder implements GetCameraData {
    * remember create encoder with correct color format before
    */
   public void inputYuv4XX(byte[] buffer) {
-    if (Build.VERSION.SDK_INT >= 21) {
-      getDataFromEncoderAPI21(buffer);
-    } else {
-      getDataFromEncoder(buffer);
+    if (formatVideoEncoder == FormatVideoEncoder.SURFACE) {
+      if (Build.VERSION.SDK_INT >= 21) {
+        getDataFromEncoderAPI21(buffer);
+      } else {
+        getDataFromEncoder(buffer);
+      }
     }
+  }
+
+  @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
+  private void getDataFromSurfaceAPI21() {
+    threadEncoderSurface = new Thread(new Runnable() {
+      @Override
+      public void run() {
+        while (!Thread.interrupted()) {
+          for (; ; ) {
+            int outBufferIndex = videoEncoder.dequeueOutputBuffer(videoInfo, 0);
+            if (outBufferIndex == MediaCodec.INFO_OUTPUT_FORMAT_CHANGED) {
+              MediaFormat mediaFormat = videoEncoder.getOutputFormat();
+              getH264Data.onSPSandPPS(mediaFormat.getByteBuffer("csd-0"),
+                  mediaFormat.getByteBuffer("csd-1"));
+            } else if (outBufferIndex >= 0) {
+              //This ByteBuffer is H264
+              ByteBuffer bb = videoEncoder.getOutputBuffer(outBufferIndex);
+              getH264Data.getH264Data(bb, videoInfo);
+              videoEncoder.releaseOutputBuffer(outBufferIndex, false);
+            } else {
+              break;
+            }
+          }
+        }
+      }
+    });
+    threadEncoderSurface.start();
+  }
+
+  private void getDataFromSurface() {
+    threadEncoderSurface = new Thread(new Runnable() {
+      @Override
+      public void run() {
+        while (!Thread.interrupted()) {
+          ByteBuffer[] outputBuffers = videoEncoder.getOutputBuffers();
+          for (; ; ) {
+            int outBufferIndex = videoEncoder.dequeueOutputBuffer(videoInfo, 0);
+            if (outBufferIndex >= 0) {
+              //This ByteBuffer is H264
+              ByteBuffer bb = outputBuffers[outBufferIndex];
+              getH264Data.getH264Data(bb, videoInfo);
+              videoEncoder.releaseOutputBuffer(outBufferIndex, false);
+            } else {
+              break;
+            }
+          }
+        }
+      }
+    });
+    threadEncoderSurface.start();
   }
 
   @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
