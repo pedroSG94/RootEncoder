@@ -69,7 +69,7 @@ public class RtspClient {
     this.password = password;
   }
 
-  public void setJksData(InputStream inputStreamJks, String passPhraseJks){
+  public void setJksData(InputStream inputStreamJks, String passPhraseJks) {
     this.inputStreamJks = inputStreamJks;
     this.passPhraseJks = passPhraseJks;
   }
@@ -79,19 +79,23 @@ public class RtspClient {
   }
 
   public void setUrl(String url) {
-    try {
-      String[] data = url.split("/");
-      host = data[2].split(":")[0];
-      port = Integer.parseInt(data[2].split(":")[1]);
-      path = "";
-      for (int i = 3; i < data.length; i++) {
-        path += "/" + data[i];
+    if (url.startsWith("rtsp://")) {
+      try {
+        String[] data = url.split("/");
+        host = data[2].split(":")[0];
+        port = Integer.parseInt(data[2].split(":")[1]);
+        path = "";
+        for (int i = 3; i < data.length; i++) {
+          path += "/" + data[i];
+        }
+      } catch (ArrayIndexOutOfBoundsException e) {
+        Log.e(TAG, "Error parse endPoint");
+        e.printStackTrace();
+        connectCheckerRtsp.onConnectionFailedRtsp();
+        streaming = false;
       }
-    } catch (ArrayIndexOutOfBoundsException e) {
-      Log.e(TAG, "Error parse endPoint");
-      e.printStackTrace();
+    } else {
       connectCheckerRtsp.onConnectionFailedRtsp();
-      streaming = false;
     }
   }
 

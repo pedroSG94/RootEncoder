@@ -1,10 +1,8 @@
-package com.pedro.rtmpstreamer;
+package com.pedro.rtmpstreamer.builders;
 
 import android.graphics.ImageFormat;
 import android.media.MediaCodec;
-import android.util.Base64;
 import android.view.SurfaceView;
-
 import com.pedro.encoder.audio.AudioEncoder;
 import com.pedro.encoder.audio.GetAccData;
 import com.pedro.encoder.input.audio.GetMicrophoneData;
@@ -15,48 +13,39 @@ import com.pedro.encoder.input.video.GetCameraData;
 import com.pedro.encoder.video.FormatVideoEncoder;
 import com.pedro.encoder.video.GetH264Data;
 import com.pedro.encoder.video.VideoEncoder;
-
-import com.pedro.rtsp.rtp.packets.H264Packet;
-import com.pedro.rtsp.rtsp.Protocol;
-import com.pedro.rtsp.rtsp.RtspClient;
-import com.pedro.rtsp.rtp.packets.AccPacket;
-
-import com.pedro.rtsp.utils.ConnectCheckerRtsp;
 import java.nio.ByteBuffer;
+import net.ossrs.rtmp.ConnectCheckerRtmp;
+import net.ossrs.rtmp.SrsFlvMuxer;
 
 /**
- * Created by pedro on 10/02/17.
+ * Created by pedro on 25/01/17.
  */
 
-public class RtspBuilder implements GetAccData, GetCameraData, GetH264Data, GetMicrophoneData {
+public class RtmpBuilder implements GetAccData, GetCameraData, GetH264Data, GetMicrophoneData {
 
+  private int width;
+  private int height;
   private Camera1ApiManager cameraManager;
   private VideoEncoder videoEncoder;
   private MicrophoneManager microphoneManager;
   private AudioEncoder audioEncoder;
+  private SrsFlvMuxer srsFlvMuxer;
   private boolean streaming;
+  private ConnectCheckerRtmp connectChecker;
 
-  private RtspClient rtspClient;
-  private AccPacket accPacket;
-  private H264Packet h264Packet;
-
-  public RtspBuilder(SurfaceView surfaceView, Protocol protocol, ConnectCheckerRtsp connectCheckerRtsp) {
-    rtspClient = new RtspClient(connectCheckerRtsp, protocol);
-    accPacket = new AccPacket(rtspClient, protocol);
-    h264Packet = new H264Packet(rtspClient, protocol);
-
+  public RtmpBuilder(SurfaceView surfaceView, ConnectCheckerRtmp connectChecker) {
+    this.connectChecker = connectChecker;
     cameraManager = new Camera1ApiManager(surfaceView, this);
     videoEncoder = new VideoEncoder(this);
     microphoneManager = new MicrophoneManager(this);
     audioEncoder = new AudioEncoder(this);
+    srsFlvMuxer = new SrsFlvMuxer();
     streaming = false;
   }
 
-  public void setAuthorization(String user, String password){
-    rtspClient.setAuthorization(user, password);
-  }
-
   public void prepareVideo(int width, int height, int fps, int bitrate, int rotation) {
+    this.width = width;
+    this.height = height;
     cameraManager.prepareCamera(width, height, fps, rotation, ImageFormat.NV21);
     videoEncoder.prepareVideoEncoder(width, height, fps, bitrate, rotation,
         FormatVideoEncoder.YUV420PLANAR);
@@ -65,50 +54,37 @@ public class RtspBuilder implements GetAccData, GetCameraData, GetH264Data, GetM
   public void prepareAudio(int bitrate, int sampleRate, boolean isStereo) {
     microphoneManager.createMicrophone(sampleRate, isStereo);
     audioEncoder.prepareAudioEncoder(bitrate, sampleRate, isStereo);
-    rtspClient.setSampleRate(sampleRate);
-    accPacket.setSampleRate(sampleRate);
   }
 
   public void prepareVideo() {
     cameraManager.prepareCamera();
     videoEncoder.prepareVideoEncoder();
+    width = videoEncoder.getWidth();
+    height = videoEncoder.getHeight();
   }
 
   public void prepareAudio() {
     microphoneManager.createMicrophone();
     audioEncoder.prepareAudioEncoder();
-    rtspClient.setSampleRate(microphoneManager.getSampleRate());
-    accPacket.setSampleRate(microphoneManager.getSampleRate());
   }
 
   public void startStream(String url) {
+    srsFlvMuxer.start(url, connectChecker);
+    srsFlvMuxer.setVideoResolution(width, height);
     videoEncoder.start();
     audioEncoder.start();
     cameraManager.start();
     microphoneManager.start();
     streaming = true;
-    rtspClient.setUrl(url);
   }
 
   public void stopStream() {
-    rtspClient.disconnect();
+    srsFlvMuxer.stop(connectChecker);
     cameraManager.stop();
     microphoneManager.stop();
     videoEncoder.stop();
     audioEncoder.stop();
     streaming = false;
-    accPacket.close();
-    h264Packet.close();
-  }
-
-  public void enableDisableLantern() {
-    if (isStreaming()) {
-      if (cameraManager.isLanternEnable()) {
-        cameraManager.disableLantern();
-      } else {
-        cameraManager.enableLantern();
-      }
-    }
   }
 
   public void switchCamera() {
@@ -129,27 +105,17 @@ public class RtspBuilder implements GetAccData, GetCameraData, GetH264Data, GetM
 
   @Override
   public void getAccData(ByteBuffer accBuffer, MediaCodec.BufferInfo info) {
-    accPacket.createAndSendPacket(accBuffer, info);
+    srsFlvMuxer.sendAudio(accBuffer, info);
   }
 
   @Override
   public void onSPSandPPS(ByteBuffer sps, ByteBuffer pps) {
-    byte[] mSPS = new byte[sps.capacity() - 4];
-    sps.position(4);
-    sps.get(mSPS, 0, mSPS.length);
-    byte[] mPPS = new byte[pps.capacity() - 4];
-    pps.position(4);
-    pps.get(mPPS, 0, mPPS.length);
-
-    String sSPS = Base64.encodeToString(mSPS, 0, mSPS.length, Base64.NO_WRAP);
-    String sPPS = Base64.encodeToString(mPPS, 0, mPPS.length, Base64.NO_WRAP);
-    rtspClient.setSPSandPPS(sSPS, sPPS);
-    rtspClient.connect();
+    //used on rtsp
   }
 
   @Override
   public void getH264Data(ByteBuffer h264Buffer, MediaCodec.BufferInfo info) {
-    h264Packet.createAndSendPacket(h264Buffer, info);
+    srsFlvMuxer.sendVideo(h264Buffer, info);
   }
 
   @Override
@@ -165,10 +131,5 @@ public class RtspBuilder implements GetAccData, GetCameraData, GetH264Data, GetM
   @Override
   public void inputNv21Data(byte[] buffer, int width, int height) {
     videoEncoder.inputNv21Data(buffer, width, height);
-  }
-
-  public void updateDestination() {
-    accPacket.updateDestinationAudio();
-    h264Packet.updateDestinationVideo();
   }
 }

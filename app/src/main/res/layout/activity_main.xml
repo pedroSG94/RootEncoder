@@ -5,47 +5,38 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="horizontal"
-    android:gravity="center"
-    tools:context="com.pedro.rtmpstreamer.MainActivity">
+    android:background="@color/colorPrimaryDark"
+    tools:context="com.pedro.rtmpstreamer.ui.MainActivity">
 
-    <SurfaceView
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:id="@+id/surfaceView"
-        />
-
-    <Button
-        android:text="Start stream"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:id="@+id/b_start_stop"
-        />
-
-    <EditText
-        android:id="@+id/et_rtmp_url"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_below="@id/b_start_stop"
-        android:layout_alignParentRight="true"
-        android:text="rtmp://yourendpoint"
+    <TextView
+        android:text="@string/tv_select"
+        android:textSize="22sp"
         android:textColor="#FFFFFFFF"
+        android:layout_margin="20dp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerHorizontal="true"
+        android:layout_marginBottom="20sp"
+        android:id="@+id/tv_select"
         />
 
     <Button
-        android:text="Lantern"
+        android:text="@string/rtmp_streamer"
+        android:layout_margin="20dp"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:id="@+id/lantern"
-        android:layout_alignParentBottom="true"
-        android:layout_alignParentRight="true" />
+        android:layout_below="@+id/tv_select"
+        android:id="@+id/b_rtmp"
+        />
 
     <Button
-        android:text="Switch camera"
+        android:text="@string/rtsp_streamer"
+        android:layout_margin="20dp"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:id="@+id/switch_camera"
-        android:layout_alignParentBottom="true"
-        android:layout_toLeftOf="@+id/lantern" />
-
+        android:layout_below="@+id/tv_select"
+        android:layout_alignParentRight="true"
+        android:id="@+id/b_rtsp"
+        />
 
 </RelativeLayout>

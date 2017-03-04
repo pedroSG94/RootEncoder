@@ -1,3 +1,11 @@
 <resources>
-    <string name="app_name">Rtmp-Rtsp streamer</string>
+  <string name="app_name">Rtmp-Rtsp Streamer</string>
+  <string name="rtsp_streamer">Rtsp Streamer</string>
+  <string name="rtmp_streamer">Rtmp Streamer</string>
+  <string name="tv_select">Select your streamer</string>
+  <string name="hint_rtsp">rtsp://yourendpoint</string>
+  <string name="hint_rtmp">rtmp://yourendpoint</string>
+  <string name="start_button">Start stream</string>
+  <string name="stop_button">Stop stream</string>
+  <string name="switch_camera_button">Switch camera</string>
 </resources>

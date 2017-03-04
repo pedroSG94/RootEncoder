@@ -1,21 +1,21 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.pedro.rtmpstreamer">
+    package="com.pedro.rtmpstreamer"
+    >
 
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
     <uses-permission android:name="android.permission.CAMERA" />
-    <uses-permission android:name="android.permission.FLASHLIGHT"/>
 
     <application
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
-        android:label="@string/app_name"
         android:supportsRtl="true"
         android:theme="@style/AppTheme"
         >
         <activity
-            android:name="com.pedro.rtmpstreamer.MainActivity"
+            android:name=".ui.MainActivity"
+            android:label="@string/app_name"
             android:screenOrientation="portrait"
             >
             <intent-filter>
@@ -24,6 +24,16 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <activity
+            android:name=".ui.RtmpActivity"
+            android:screenOrientation="portrait"
+            android:label="@string/rtmp_streamer"
+            />
+        <activity
+            android:name=".ui.RtspActivity"
+            android:screenOrientation="portrait"
+            android:label="@string/rtsp_streamer"
+            />
     </application>
 
 </manifest>

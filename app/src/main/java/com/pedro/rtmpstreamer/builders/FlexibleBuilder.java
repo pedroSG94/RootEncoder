@@ -1,4 +1,4 @@
-package com.pedro.rtmpstreamer;
+package com.pedro.rtmpstreamer.builders;
 
 import android.util.Log;
 import android.view.SurfaceView;
@@ -19,7 +19,8 @@ public class FlexibleBuilder {
   private RtspBuilder rtspBuilder;
   private RtmpBuilder rtmpBuilder;
 
-  public FlexibleBuilder(SurfaceView surfaceView, ConnectCheckerRtmp connectChecker, ConnectCheckerRtsp connectCheckerRtsp) {
+  public FlexibleBuilder(SurfaceView surfaceView, ConnectCheckerRtmp connectChecker,
+      ConnectCheckerRtsp connectCheckerRtsp) {
     rtmpBuilder = new RtmpBuilder(surfaceView, connectChecker);
     rtspBuilder = new RtspBuilder(surfaceView, Protocol.TCP, connectCheckerRtsp);
   }
@@ -27,7 +28,7 @@ public class FlexibleBuilder {
   /**
    * only supported for rtsp atm
    */
-  public void setAuthorization(String user, String password){
+  public void setAuthorization(String user, String password) {
     rtspBuilder.setAuthorization(user, password);
   }
 
@@ -73,17 +74,6 @@ public class FlexibleBuilder {
     }
   }
 
-  public void enableDisableLantern() {
-    if (url == null) return;
-    if (url.startsWith("rtmp")) {
-      rtmpBuilder.enableDisableLantern();
-    } else if (url.startsWith("rtsp")) {
-      rtspBuilder.enableDisableLantern();
-    } else {
-      Log.e(TAG, "malformed endPoint");
-    }
-  }
-
   public void switchCamera() {
     if (url == null) return;
     if (url.startsWith("rtmp")) {
@@ -111,12 +101,13 @@ public class FlexibleBuilder {
   }
 
   //only for rtsp
-  public void updateDestination(){
-    if(url == null) return;
-    if(url.startsWith("rtsp")){
+  public void updateDestination() {
+    if (url == null) return;
+    if (url.startsWith("rtsp")) {
       rtspBuilder.updateDestination();
     }
   }
+
   public void setEffect(EffectManager effect) {
     if (url == null) return;
     if (url.startsWith("rtmp")) {
