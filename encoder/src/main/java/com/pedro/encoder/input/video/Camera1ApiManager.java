@@ -185,32 +185,42 @@ public class Camera1ApiManager implements Camera.PreviewCallback {
    * Example: 842094169 -> YV12, 17 -> NV21
    */
   public List<Integer> getCameraPreviewImageFormatSupported() {
-    List<Integer> formats = camera.getParameters().getSupportedPreviewFormats();
-    for (Integer i : formats) {
-      Log.i(TAG, "camera format supported: " + i);
+    if(camera != null) {
+      List<Integer> formats = camera.getParameters().getSupportedPreviewFormats();
+      for (Integer i : formats) {
+        Log.i(TAG, "camera format supported: " + i);
+      }
+      return formats;
+    } else{
+      return null;
     }
-    return formats;
   }
 
   /**
    * call if after start()
    */
   public List<Camera.Size> getPreviewSize() {
-    List<Camera.Size> previewSizes = camera.getParameters().getSupportedPreviewSizes();
-    for (Camera.Size size : previewSizes) {
-      Log.i(TAG, size.width + "X" + size.height);
+    if(camera != null) {
+      List<Camera.Size> previewSizes = camera.getParameters().getSupportedPreviewSizes();
+      for (Camera.Size size : previewSizes) {
+        Log.i(TAG, size.width + "X" + size.height);
+      }
+      return previewSizes;
+    } else{
+      return null;
     }
-    return previewSizes;
   }
 
   public void setEffect(EffectManager effect) {
-    Camera.Parameters parameters = camera.getParameters();
-    parameters.setColorEffect(effect.getEffect());
-    try {
-      camera.setParameters(parameters);
-    } catch (RuntimeException e) {
-      Log.e(TAG, "Unsupported effect");
-      e.printStackTrace();
+    if(camera != null) {
+      Camera.Parameters parameters = camera.getParameters();
+      parameters.setColorEffect(effect.getEffect());
+      try {
+        camera.setParameters(parameters);
+      } catch (RuntimeException e) {
+        Log.e(TAG, "Unsupported effect");
+        e.printStackTrace();
+      }
     }
   }
 
