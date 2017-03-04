@@ -35,7 +35,7 @@ RTMP:
 
 ```java
 //create builder
-RtmpBuilder rtmpBuilder = new RtmpBuilder(surfaceView, this);
+RtmpBuilder rtmpBuilder = new RtmpBuilder(surfaceView, connectCheckerRtmp);
 //start stream
 rtmpBuilder.prepareAudio();
 rtmpBuilder.prepareVideo();
@@ -51,9 +51,9 @@ RTSP:
 
 ```java
 //create builder
-RtspBuilder rtmpBuilder = new RtspBuilder(surfaceView, this);
+RtspBuilder rtspBuilder = new RtspBuilder(surfaceView, connectCheckerRtsp);
 //start stream
-rtspBuilder.prepareAudio();
+rtspBuilder.prpareAudio();
 rtspBuilder.prepareVideo();
 rtspBuilder.startStream("rtsp://yourEndPoint");
 //stop stream
