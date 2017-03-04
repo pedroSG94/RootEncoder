@@ -17,7 +17,6 @@ Tested on Samsung S7 and Wowza server.
 <uses-permission android:name="android.permission.INTERNET" />
 <uses-permission android:name="android.permission.RECORD_AUDIO" />
 <uses-permission android:name="android.permission.CAMERA" />
-<uses-permission android:name="android.permission.FLASHLIGHT"/>
 ```
 
 # Protocol data send
@@ -27,3 +26,43 @@ RTMP -> TCP
 
 
 RTSP -> UDP/TCP
+
+# Use example
+
+
+RTMP:
+
+
+```java
+//create builder
+RtmpBuilder rtmpBuilder = new RtmpBuilder(surfaceView, this);
+//start stream
+rtmpBuilder.prepareAudio();
+rtmpBuilder.prepareVideo();
+rtmpBuilder.startStream("rtmp://yourEndPoint");
+//stop stream
+rtmpBuilder.stopStream();
+
+```
+
+
+RTSP:
+
+
+```java
+//create builder
+RtspBuilder rtmpBuilder = new RtspBuilder(surfaceView, this);
+//start stream
+rtspBuilder.prepareAudio();
+rtspBuilder.prepareVideo();
+rtspBuilder.startStream("rtsp://yourEndPoint");
+//stop stream
+rtspBuilder.stopStream();
+
+//update port destination getted in connection
+@Override
+public void onConnectionSuccessRtsp() { 
+   rtspBuilder.updateDestination();
+}
+
+```
