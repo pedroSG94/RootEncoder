@@ -133,17 +133,28 @@ public class RtmpActivity extends AppCompatActivity
       case R.id.b_start_stop:
         if (!rtmpBuilder.isStreaming()) {
           bStartStop.setText(getResources().getString(R.string.stop_button));
-          rtmpBuilder.prepareAudio(Integer.parseInt(etAudioBitrate.getText().toString()) * 1024,
-              Integer.parseInt(etSampleRate.getText().toString()),
-              rgChannel.getCheckedRadioButtonId() == R.id.rb_stereo);
           String resolution =
               rtmpBuilder.getResolutions().get(spResolution.getSelectedItemPosition());
           int width = Integer.parseInt(resolution.split("X")[0]);
           int height = Integer.parseInt(resolution.split("X")[1]);
-          rtmpBuilder.prepareVideo(width, height, Integer.parseInt(etFps.getText().toString()),
+
+          if (rtmpBuilder.prepareVideo(width, height, Integer.parseInt(etFps.getText().toString()),
               Integer.parseInt(etVideoBitrate.getText().toString()) * 1024,
-              orientations[spOrientation.getSelectedItemPosition()]);
-          rtmpBuilder.startStream(etUrl.getText().toString());
+              orientations[spOrientation.getSelectedItemPosition()]) && rtmpBuilder.prepareAudio(
+              Integer.parseInt(etAudioBitrate.getText().toString()) * 1024,
+              Integer.parseInt(etSampleRate.getText().toString()),
+              rgChannel.getCheckedRadioButtonId() == R.id.rb_stereo)) {
+            rtmpBuilder.startStream(etUrl.getText().toString());
+          } else {
+            //If you see this all time when you start stream,
+            //it is because your encoder device dont support the configuration
+            //in video encoder maybe color format.
+            //If you have more encoder go to VideoEncoder or AudioEncoder class,
+            //change encoder and try
+            Toast.makeText(this, "Error preparing stream, This device cant do it",
+                Toast.LENGTH_SHORT).show();
+            bStartStop.setText(getResources().getString(R.string.start_button));
+          }
         } else {
           bStartStop.setText(getResources().getString(R.string.start_button));
           rtmpBuilder.stopStream();

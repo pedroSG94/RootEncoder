@@ -143,17 +143,28 @@ public class RtspActivity extends AppCompatActivity
           } else {
             rtspBuilder = new RtspBuilder(surfaceView, Protocol.UDP, this);
           }
-          rtspBuilder.prepareAudio(Integer.parseInt(etAudioBitrate.getText().toString()) * 1024,
-              Integer.parseInt(etSampleRate.getText().toString()),
-              rgChannel.getCheckedRadioButtonId() == R.id.rb_stereo);
           String resolution =
               rtspBuilder.getResolutions().get(spResolution.getSelectedItemPosition());
           int width = Integer.parseInt(resolution.split("X")[0]);
           int height = Integer.parseInt(resolution.split("X")[1]);
-          rtspBuilder.prepareVideo(width, height, Integer.parseInt(etFps.getText().toString()),
+
+          if (rtspBuilder.prepareAudio(Integer.parseInt(etAudioBitrate.getText().toString()) * 1024,
+              Integer.parseInt(etSampleRate.getText().toString()),
+              rgChannel.getCheckedRadioButtonId() == R.id.rb_stereo) && rtspBuilder.prepareVideo(
+              width, height, Integer.parseInt(etFps.getText().toString()),
               Integer.parseInt(etVideoBitrate.getText().toString()) * 1024,
-              orientations[spOrientation.getSelectedItemPosition()]);
-          rtspBuilder.startStream(etUrl.getText().toString());
+              orientations[spOrientation.getSelectedItemPosition()])) {
+            rtspBuilder.startStream(etUrl.getText().toString());
+          } else {
+            //If you see this all time when you start stream,
+            //it is because your encoder device dont support the configuration
+            //in video encoder maybe color format.
+            //If you have more encoder go to VideoEncoder or AudioEncoder class,
+            //change encoder and try
+            Toast.makeText(this, "Error preparing stream, This device cant do it",
+                Toast.LENGTH_SHORT).show();
+            bStartStop.setText(getResources().getString(R.string.start_button));
+          }
         } else {
           bStartStop.setText(getResources().getString(R.string.start_button));
           rtspBuilder.stopStream();

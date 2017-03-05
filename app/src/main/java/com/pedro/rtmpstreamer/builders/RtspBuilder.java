@@ -60,29 +60,29 @@ public class RtspBuilder implements GetAccData, GetCameraData, GetH264Data, GetM
     rtspClient.setAuthorization(user, password);
   }
 
-  public void prepareVideo(int width, int height, int fps, int bitrate, int rotation) {
+  public boolean prepareVideo(int width, int height, int fps, int bitrate, int rotation) {
     cameraManager.prepareCamera(width, height, fps, rotation, ImageFormat.NV21);
-    videoEncoder.prepareVideoEncoder(width, height, fps, bitrate, rotation,
+    return videoEncoder.prepareVideoEncoder(width, height, fps, bitrate, rotation,
         FormatVideoEncoder.YUV420SEMIPLANAR);
   }
 
-  public void prepareAudio(int bitrate, int sampleRate, boolean isStereo) {
-    microphoneManager.createMicrophone(sampleRate, isStereo);
-    audioEncoder.prepareAudioEncoder(bitrate, sampleRate, isStereo);
+  public boolean prepareAudio(int bitrate, int sampleRate, boolean isStereo) {
     rtspClient.setSampleRate(sampleRate);
     accPacket.setSampleRate(sampleRate);
+    microphoneManager.createMicrophone(sampleRate, isStereo);
+    return audioEncoder.prepareAudioEncoder(bitrate, sampleRate, isStereo);
   }
 
-  public void prepareVideo() {
+  public boolean prepareVideo() {
     cameraManager.prepareCamera();
-    videoEncoder.prepareVideoEncoder();
+    return videoEncoder.prepareVideoEncoder();
   }
 
-  public void prepareAudio() {
+  public boolean prepareAudio() {
     microphoneManager.createMicrophone();
-    audioEncoder.prepareAudioEncoder();
     rtspClient.setSampleRate(microphoneManager.getSampleRate());
     accPacket.setSampleRate(microphoneManager.getSampleRate());
+    return audioEncoder.prepareAudioEncoder();
   }
 
   public void startStream(String url) {

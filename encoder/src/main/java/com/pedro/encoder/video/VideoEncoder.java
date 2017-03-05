@@ -68,11 +68,7 @@ public class VideoEncoder implements GetCameraData {
         Log.e(TAG, "valid encoder not found");
         return false;
       }
-    } catch (IOException e) {
-      Log.e(TAG, "create videoEncoder failed.");
-      e.printStackTrace();
-      return false;
-    }
+
 
     MediaFormat videoFormat = MediaFormat.createVideoFormat(codec, width, height);
     videoFormat.setInteger(MediaFormat.KEY_COLOR_FORMAT, formatVideoEncoder.getFormatCodec());
@@ -88,6 +84,14 @@ public class VideoEncoder implements GetCameraData {
       inputSurface = videoEncoder.createInputSurface();
     }
     return true;
+    } catch (IOException e) {
+      Log.e(TAG, "create videoEncoder failed.");
+      e.printStackTrace();
+      return false;
+    } catch (IllegalStateException e){
+      e.printStackTrace();
+      return false;
+    }
   }
 
   /**

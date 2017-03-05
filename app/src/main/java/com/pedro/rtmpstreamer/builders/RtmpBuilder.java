@@ -46,29 +46,29 @@ public class RtmpBuilder implements GetAccData, GetCameraData, GetH264Data, GetM
     streaming = false;
   }
 
-  public void prepareVideo(int width, int height, int fps, int bitrate, int rotation) {
+  public boolean prepareVideo(int width, int height, int fps, int bitrate, int rotation) {
     this.width = width;
     this.height = height;
     cameraManager.prepareCamera(width, height, fps, rotation, ImageFormat.NV21);
-    videoEncoder.prepareVideoEncoder(width, height, fps, bitrate, rotation,
+    return videoEncoder.prepareVideoEncoder(width, height, fps, bitrate, rotation,
         FormatVideoEncoder.YUV420SEMIPLANAR);
   }
 
-  public void prepareAudio(int bitrate, int sampleRate, boolean isStereo) {
+  public boolean prepareAudio(int bitrate, int sampleRate, boolean isStereo) {
     microphoneManager.createMicrophone(sampleRate, isStereo);
-    audioEncoder.prepareAudioEncoder(bitrate, sampleRate, isStereo);
+    return audioEncoder.prepareAudioEncoder(bitrate, sampleRate, isStereo);
   }
 
-  public void prepareVideo() {
+  public boolean prepareVideo() {
     cameraManager.prepareCamera();
-    videoEncoder.prepareVideoEncoder();
     width = videoEncoder.getWidth();
     height = videoEncoder.getHeight();
+    return videoEncoder.prepareVideoEncoder();
   }
 
-  public void prepareAudio() {
+  public boolean prepareAudio() {
     microphoneManager.createMicrophone();
-    audioEncoder.prepareAudioEncoder();
+    return audioEncoder.prepareAudioEncoder();
   }
 
   public void startStream(String url) {
