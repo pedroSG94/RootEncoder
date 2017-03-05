@@ -217,7 +217,11 @@ public class VideoEncoder implements GetCameraData {
           ByteBuffer[] outputBuffers = videoEncoder.getOutputBuffers();
           for (; ; ) {
             int outBufferIndex = videoEncoder.dequeueOutputBuffer(videoInfo, 0);
-            if (outBufferIndex >= 0) {
+            if (outBufferIndex == MediaCodec.INFO_OUTPUT_FORMAT_CHANGED) {
+              MediaFormat mediaFormat = videoEncoder.getOutputFormat();
+              getH264Data.onSPSandPPS(mediaFormat.getByteBuffer("csd-0"),
+                  mediaFormat.getByteBuffer("csd-1"));
+            } else if (outBufferIndex >= 0) {
               //This ByteBuffer is H264
               ByteBuffer bb = outputBuffers[outBufferIndex];
               getH264Data.getH264Data(bb, videoInfo);
@@ -274,7 +278,11 @@ public class VideoEncoder implements GetCameraData {
 
     for (; ; ) {
       int outBufferIndex = videoEncoder.dequeueOutputBuffer(videoInfo, 0);
-      if (outBufferIndex >= 0) {
+      if (outBufferIndex == MediaCodec.INFO_OUTPUT_FORMAT_CHANGED) {
+        MediaFormat mediaFormat = videoEncoder.getOutputFormat();
+        getH264Data.onSPSandPPS(mediaFormat.getByteBuffer("csd-0"),
+            mediaFormat.getByteBuffer("csd-1"));
+      } else if (outBufferIndex >= 0) {
         //This ByteBuffer is H264
         ByteBuffer bb = outputBuffers[outBufferIndex];
         getH264Data.getH264Data(bb, videoInfo);
