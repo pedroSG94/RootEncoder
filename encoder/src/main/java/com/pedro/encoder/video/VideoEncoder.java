@@ -50,7 +50,6 @@ public class VideoEncoder implements GetCameraData {
    */
   public boolean prepareVideoEncoder(int width, int height, int fps, int bitRate, int rotation,
       FormatVideoEncoder formatVideoEncoder) {
-    Log.e("mierda", width + "X" + height + ", FPS " + fps + ", bitrate " + bitRate);
     this.width = width;
     this.height = height;
     this.fps = fps;
