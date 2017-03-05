@@ -87,7 +87,7 @@ public class RtspActivity extends AppCompatActivity
     etAudioBitrate =
         (EditText) navigationView.getMenu().findItem(R.id.et_audio_bitrate).getActionView();
     etSampleRate = (EditText) navigationView.getMenu().findItem(R.id.et_samplerate).getActionView();
-    etVideoBitrate.setText("1500");
+    etVideoBitrate.setText("2500");
     etFps.setText("30");
     etAudioBitrate.setText("128");
     etSampleRate.setText("44100");
@@ -142,7 +142,7 @@ public class RtspActivity extends AppCompatActivity
           bStartStop.setText(getResources().getString(R.string.stop_button));
           if (rbTcp.isChecked()) {
             rtspBuilder = new RtspBuilder(surfaceView, Protocol.TCP, this);
-          } else{
+          } else {
             rtspBuilder = new RtspBuilder(surfaceView, Protocol.UDP, this);
           }
           rtspBuilder.prepareAudio(Integer.parseInt(etAudioBitrate.getText().toString()) * 1024,
@@ -152,9 +152,8 @@ public class RtspActivity extends AppCompatActivity
               rtspBuilder.getResolutions().get(spResolution.getSelectedItemPosition());
           int width = Integer.parseInt(resolution.split("X")[0]);
           int height = Integer.parseInt(resolution.split("X")[1]);
-          rtspBuilder.prepareVideo(width, height,
+          rtspBuilder.prepareVideo(width, height, Integer.parseInt(etFps.getText().toString()),
               Integer.parseInt(etVideoBitrate.getText().toString()) * 1024,
-              Integer.parseInt(etFps.getText().toString()),
               orientations[spOrientation.getSelectedItemPosition()]);
           rtspBuilder.startStream(etUrl.getText().toString());
         } else {

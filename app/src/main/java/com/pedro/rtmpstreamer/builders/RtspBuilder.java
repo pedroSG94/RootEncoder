@@ -63,7 +63,7 @@ public class RtspBuilder implements GetAccData, GetCameraData, GetH264Data, GetM
   public void prepareVideo(int width, int height, int fps, int bitrate, int rotation) {
     cameraManager.prepareCamera(width, height, fps, rotation, ImageFormat.NV21);
     videoEncoder.prepareVideoEncoder(width, height, fps, bitrate, rotation,
-        FormatVideoEncoder.YUV420PLANAR);
+        FormatVideoEncoder.YUV420SEMIPLANAR);
   }
 
   public void prepareAudio(int bitrate, int sampleRate, boolean isStereo) {

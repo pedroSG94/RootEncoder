@@ -82,7 +82,7 @@ public class RtmpActivity extends AppCompatActivity
     etAudioBitrate =
         (EditText) navigationView.getMenu().findItem(R.id.et_audio_bitrate).getActionView();
     etSampleRate = (EditText) navigationView.getMenu().findItem(R.id.et_samplerate).getActionView();
-    etVideoBitrate.setText("1500");
+    etVideoBitrate.setText("2500");
     etFps.setText("30");
     etAudioBitrate.setText("128");
     etSampleRate.setText("44100");
@@ -142,8 +142,8 @@ public class RtmpActivity extends AppCompatActivity
               rtmpBuilder.getResolutions().get(spResolution.getSelectedItemPosition());
           int width = Integer.parseInt(resolution.split("X")[0]);
           int height = Integer.parseInt(resolution.split("X")[1]);
-          rtmpBuilder.prepareVideo(width, height, Integer.parseInt(etVideoBitrate.getText().toString()) * 1024,
-              Integer.parseInt(etFps.getText().toString()),
+          rtmpBuilder.prepareVideo(width, height, Integer.parseInt(etFps.getText().toString()),
+              Integer.parseInt(etVideoBitrate.getText().toString()) * 1024,
               orientations[spOrientation.getSelectedItemPosition()]);
           rtmpBuilder.startStream(etUrl.getText().toString());
         } else {
