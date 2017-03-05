@@ -1,6 +1,7 @@
 package com.pedro.rtmpstreamer.builders;
 
 import android.graphics.ImageFormat;
+import android.hardware.Camera;
 import android.media.MediaCodec;
 import android.view.SurfaceView;
 import com.pedro.encoder.audio.AudioEncoder;
@@ -14,6 +15,8 @@ import com.pedro.encoder.video.FormatVideoEncoder;
 import com.pedro.encoder.video.GetH264Data;
 import com.pedro.encoder.video.VideoEncoder;
 import java.nio.ByteBuffer;
+import java.util.ArrayList;
+import java.util.List;
 import net.ossrs.rtmp.ConnectCheckerRtmp;
 import net.ossrs.rtmp.SrsFlvMuxer;
 
@@ -85,6 +88,15 @@ public class RtmpBuilder implements GetAccData, GetCameraData, GetH264Data, GetM
     videoEncoder.stop();
     audioEncoder.stop();
     streaming = false;
+  }
+
+  public List<String> getResolutions(){
+    List<Camera.Size> list = cameraManager.getPreviewSize();
+    List<String> resolutions = new ArrayList<>();
+    for(Camera.Size size : list){
+      resolutions.add(size.width + "X" + size.height);
+    }
+    return resolutions;
   }
 
   public void switchCamera() {

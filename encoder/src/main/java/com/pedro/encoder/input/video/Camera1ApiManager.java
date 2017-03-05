@@ -207,7 +207,14 @@ public class Camera1ApiManager implements Camera.PreviewCallback {
       }
       return previewSizes;
     } else{
-      return null;
+      camera = Camera.open(cameraSelect);
+      List<Camera.Size> previewSizes = camera.getParameters().getSupportedPreviewSizes();
+      camera.release();
+      camera = null;
+      for (Camera.Size size : previewSizes) {
+        Log.i(TAG, size.width + "X" + size.height);
+      }
+      return previewSizes;
     }
   }
 

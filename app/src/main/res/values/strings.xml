@@ -2,10 +2,37 @@
   <string name="app_name">Rtmp-Rtsp Streamer</string>
   <string name="rtsp_streamer">Rtsp Streamer</string>
   <string name="rtmp_streamer">Rtmp Streamer</string>
+
   <string name="tv_select">Select your streamer</string>
   <string name="hint_rtsp">rtsp://yourendpoint</string>
   <string name="hint_rtmp">rtmp://yourendpoint</string>
   <string name="start_button">Start stream</string>
   <string name="stop_button">Stop stream</string>
   <string name="switch_camera_button">Switch camera</string>
+
+  <!--effects-->
+  <string name="clear">Clear</string>
+  <string name="grey_scale">Grey scale</string>
+  <string name="negative">Negative</string>
+  <string name="sepia">Sepia</string>
+  <string name="aqua">Aqua</string>
+  <string name="posterize">Posterize</string>
+  <string name="solarize">Solarize</string>
+  <string name="white_board">WhiteBoard</string>
+  <string name="black_board">BlackBoard</string>
+  <!--drawer-->
+  <string name="drawer_title">Options</string>
+  <string name="protocols">Protocols</string>
+  <string name="tcp">TCP</string>
+  <string name="udp">UDP</string>
+  <string name="video">Video</string>
+  <string name="audio">Audio</string>
+  <string name="resolution">Resolution</string>
+  <string name="bitrate">Bitrate</string>
+  <string name="fps">FPS</string>
+  <string name="orientation">Orientation</string>
+  <string name="samplerate">SampleRate</string>
+  <string name="channel">Channel</string>
+  <string name="stereo">Stereo</string>
+  <string name="mono">Mono</string>
 </resources>

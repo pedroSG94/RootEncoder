@@ -51,7 +51,7 @@ RTSP:
 
 ```java
 //create builder
-RtspBuilder rtspBuilder = new RtspBuilder(surfaceView, connectCheckerRtsp);
+RtspBuilder rtspBuilder = new RtspBuilder(surfaceView, protocol, connectCheckerRtsp);
 //start stream
 rtspBuilder.prpareAudio();
 rtspBuilder.prepareVideo();

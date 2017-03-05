@@ -1,6 +1,7 @@
 package com.pedro.rtmpstreamer.builders;
 
 import android.graphics.ImageFormat;
+import android.hardware.Camera;
 import android.media.MediaCodec;
 import android.util.Base64;
 import android.view.SurfaceView;
@@ -23,6 +24,8 @@ import com.pedro.rtsp.rtp.packets.AccPacket;
 
 import com.pedro.rtsp.utils.ConnectCheckerRtsp;
 import java.nio.ByteBuffer;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Created by pedro on 10/02/17.
@@ -100,6 +103,15 @@ public class RtspBuilder implements GetAccData, GetCameraData, GetH264Data, GetM
     streaming = false;
     accPacket.close();
     h264Packet.close();
+  }
+
+  public List<String> getResolutions(){
+    List<Camera.Size> list = cameraManager.getPreviewSize();
+    List<String> resolutions = new ArrayList<>();
+    for(Camera.Size size : list){
+      resolutions.add(size.width + "X" + size.height);
+    }
+    return resolutions;
   }
 
   public void switchCamera() {
