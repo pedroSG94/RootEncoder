@@ -6,7 +6,6 @@ import android.support.design.widget.NavigationView;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
 import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -69,13 +68,10 @@ public class RtspActivity extends AppCompatActivity
     actionBarDrawerToggle = new ActionBarDrawerToggle(this, drawerLayout, R.string.rtsp_streamer,
         R.string.rtsp_streamer) {
 
-      /** Called when a drawer has settled in a completely open state. */
       public void onDrawerOpened(View drawerView) {
-        Log.e("asd", "asd opened");
         actionBarDrawerToggle.syncState();
       }
 
-      /** Called when a drawer has settled in a completely closed state. */
       public void onDrawerClosed(View view) {
         actionBarDrawerToggle.syncState();
       }
