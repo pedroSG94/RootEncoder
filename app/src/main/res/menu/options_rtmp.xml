@@ -20,12 +20,12 @@
           />
       <item
           android:title="@string/bitrate"
-          app:actionLayout="@layout/edit_text_int"
+          app:actionLayout="@xml/edit_text_int"
           android:id="@+id/et_video_bitrate"
           />
       <item
           android:title="@string/fps"
-          app:actionLayout="@layout/edit_text_int"
+          app:actionLayout="@xml/edit_text_int"
           android:id="@+id/et_fps"
           />
       <item
@@ -39,17 +39,17 @@
     <menu>
       <item
           android:title="@string/bitrate"
-          app:actionLayout="@layout/edit_text_int"
+          app:actionLayout="@xml/edit_text_int"
           android:id="@+id/et_audio_bitrate"
           />
       <item
           android:title="@string/samplerate"
-          app:actionLayout="@layout/edit_text_int"
+          app:actionLayout="@xml/edit_text_int"
           android:id="@+id/et_samplerate"
           />
       <item
           android:title="@string/channel"
-          app:actionLayout="@layout/radio_group_audio"
+          app:actionLayout="@xml/radio_group_audio"
           android:id="@+id/channel"
           />
     </menu>

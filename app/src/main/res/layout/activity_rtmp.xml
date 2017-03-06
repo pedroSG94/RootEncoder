@@ -57,7 +57,7 @@
       android:layout_gravity="start"
       android:paddingBottom="30dp"
       android:fitsSystemWindows="true"
-      app:headerLayout="@layout/options_header"
+      app:headerLayout="@xml/options_header"
       app:menu="@menu/options_rtmp"
       android:id="@+id/nv_rtmp"
       >

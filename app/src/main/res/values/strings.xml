@@ -1,7 +1,7 @@
 <resources>
-  <string name="app_name">Rtmp-Rtsp Streamer</string>
-  <string name="rtsp_streamer">Rtsp Streamer</string>
-  <string name="rtmp_streamer">Rtmp Streamer</string>
+  <string name="app_name">RTMP-RTSP Streamer</string>
+  <string name="rtsp_streamer">RTSP Streamer</string>
+  <string name="rtmp_streamer">RTMP Streamer</string>
 
   <string name="tv_select">Select your streamer</string>
   <string name="hint_rtsp">rtsp://yourendpoint</string>
@@ -17,12 +17,9 @@
   <string name="sepia">Sepia</string>
   <string name="aqua">Aqua</string>
   <string name="posterize">Posterize</string>
-  <string name="solarize">Solarize</string>
-  <string name="white_board">WhiteBoard</string>
-  <string name="black_board">BlackBoard</string>
   <!--drawer-->
   <string name="drawer_title">Options</string>
-  <string name="protocols">Protocols</string>
+  <string name="protocols">Protocol</string>
   <string name="tcp">TCP</string>
   <string name="udp">UDP</string>
   <string name="video">Video</string>

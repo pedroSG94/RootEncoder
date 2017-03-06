@@ -1,9 +1,6 @@
 <resources>
-
-  <!-- Base application theme. -->
   <style name="AppTheme"
       parent="Theme.AppCompat.Light.DarkActionBar">
-    <!-- Customize your theme here. -->
     <item name="colorPrimary">@color/colorPrimary</item>
     <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
     <item name="colorAccent">@color/colorAccent</item>
@@ -14,7 +11,6 @@
   <style name="menuButtonStyle" parent="android:style/Widget.Holo.Light.ActionButton.Overflow">
     <item name="android:src">@drawable/icon_menu</item>
     <item name="android:background">?android:attr/actionBarItemBackground</item>
-    <item name="android:contentDescription">"Lala"</item>
   </style>
 
   <style name="buttonStyle" parent="android:style/Widget.Button">
@@ -23,16 +19,4 @@
     <item name="android:textColor">@color/white</item>
     <item name="android:textStyle">bold</item>
   </style>
-
-  <style name="AppTheme.NoActionBar">
-    <item name="windowActionBar">false</item>
-    <item name="windowNoTitle">true</item>
-  </style>
-
-  <style name="AppTheme.AppBarOverlay"
-      parent="ThemeOverlay.AppCompat.Dark.ActionBar" />
-
-  <style name="AppTheme.PopupOverlay"
-      parent="ThemeOverlay.AppCompat.Light" />
-
 </resources>
