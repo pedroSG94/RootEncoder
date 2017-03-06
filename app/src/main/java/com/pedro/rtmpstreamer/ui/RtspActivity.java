@@ -1,8 +1,13 @@
 package com.pedro.rtmpstreamer.ui;
 
-import android.support.design.widget.NavigationView;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.annotation.Nullable;
+import android.support.design.widget.NavigationView;
+import android.support.v4.widget.DrawerLayout;
+import android.support.v7.app.ActionBarDrawerToggle;
+import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
+import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.SurfaceView;
@@ -31,7 +36,9 @@ public class RtspActivity extends AppCompatActivity
   private Button bStartStop;
   private EditText etUrl;
   //options menu
+  private DrawerLayout drawerLayout;
   private NavigationView navigationView;
+  private ActionBarDrawerToggle actionBarDrawerToggle;
   private RadioGroup rgChannel;
   private RadioButton rbTcp, rbUdp;
   private Spinner spResolution, spOrientation;
@@ -42,6 +49,8 @@ public class RtspActivity extends AppCompatActivity
     super.onCreate(savedInstanceState);
     getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
     setContentView(R.layout.activity_rtsp);
+    getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+    getSupportActionBar().setHomeButtonEnabled(true);
 
     surfaceView = (SurfaceView) findViewById(R.id.surfaceView);
     rtspBuilder = new RtspBuilder(surfaceView, Protocol.TCP, this);
@@ -55,7 +64,23 @@ public class RtspActivity extends AppCompatActivity
   }
 
   private void prepareOptionsMenuViews() {
+    drawerLayout = (DrawerLayout) findViewById(R.id.activity_rtsp);
     navigationView = (NavigationView) findViewById(R.id.nv_rtsp);
+    actionBarDrawerToggle = new ActionBarDrawerToggle(this, drawerLayout, R.string.rtsp_streamer,
+        R.string.rtsp_streamer) {
+
+      /** Called when a drawer has settled in a completely open state. */
+      public void onDrawerOpened(View drawerView) {
+        Log.e("asd", "asd opened");
+        actionBarDrawerToggle.syncState();
+      }
+
+      /** Called when a drawer has settled in a completely closed state. */
+      public void onDrawerClosed(View view) {
+        actionBarDrawerToggle.syncState();
+      }
+    };
+    drawerLayout.setDrawerListener(actionBarDrawerToggle);
     //radiobuttons
     rbTcp = (RadioButton) navigationView.getMenu().findItem(R.id.rb_tcp).getActionView();
     rbUdp = (RadioButton) navigationView.getMenu().findItem(R.id.rb_udp).getActionView();
@@ -92,6 +117,12 @@ public class RtspActivity extends AppCompatActivity
   }
 
   @Override
+  protected void onPostCreate(@Nullable Bundle savedInstanceState) {
+    super.onPostCreate(savedInstanceState);
+    actionBarDrawerToggle.syncState();
+  }
+
+  @Override
   public boolean onCreateOptionsMenu(Menu menu) {
     getMenuInflater().inflate(R.menu.menu_effects, menu);
     return true;
@@ -100,6 +131,13 @@ public class RtspActivity extends AppCompatActivity
   @Override
   public boolean onOptionsItemSelected(MenuItem item) {
     switch (item.getItemId()) {
+      case android.R.id.home:
+        if (!drawerLayout.isDrawerOpen(Gravity.START)) {
+          drawerLayout.openDrawer(Gravity.START);
+        } else {
+          drawerLayout.closeDrawer(Gravity.START);
+        }
+        return true;
       case R.id.clear:
         rtspBuilder.setEffect(EffectManager.CLEAR);
         return true;
