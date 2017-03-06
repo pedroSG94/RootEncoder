@@ -5,7 +5,6 @@ import android.hardware.Camera;
 import android.media.MediaCodec;
 import android.util.Base64;
 import android.view.SurfaceView;
-
 import com.pedro.encoder.audio.AudioEncoder;
 import com.pedro.encoder.audio.GetAccData;
 import com.pedro.encoder.input.audio.GetMicrophoneData;
@@ -16,12 +15,10 @@ import com.pedro.encoder.input.video.GetCameraData;
 import com.pedro.encoder.video.FormatVideoEncoder;
 import com.pedro.encoder.video.GetH264Data;
 import com.pedro.encoder.video.VideoEncoder;
-
+import com.pedro.rtsp.rtp.packets.AccPacket;
 import com.pedro.rtsp.rtp.packets.H264Packet;
 import com.pedro.rtsp.rtsp.Protocol;
 import com.pedro.rtsp.rtsp.RtspClient;
-import com.pedro.rtsp.rtp.packets.AccPacket;
-
 import com.pedro.rtsp.utils.ConnectCheckerRtsp;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;

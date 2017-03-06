@@ -77,7 +77,7 @@ public class RtmpActivity extends AppCompatActivity
         actionBarDrawerToggle.syncState();
       }
     };
-    drawerLayout.setDrawerListener(actionBarDrawerToggle);
+    drawerLayout.addDrawerListener(actionBarDrawerToggle);
     //radiobuttons
     RadioButton rbTcp =
         (RadioButton) navigationView.getMenu().findItem(R.id.rb_tcp).getActionView();
@@ -150,15 +150,6 @@ public class RtmpActivity extends AppCompatActivity
         return true;
       case R.id.posterize:
         rtmpBuilder.setEffect(EffectManager.POSTERIZE);
-        return true;
-      case R.id.solarize:
-        rtmpBuilder.setEffect(EffectManager.SOLARIZE);
-        return true;
-      case R.id.whiteboard:
-        rtmpBuilder.setEffect(EffectManager.WHITEBOARD);
-        return true;
-      case R.id.blackboard:
-        rtmpBuilder.setEffect(EffectManager.BLACKBOARD);
         return true;
       default:
         return false;

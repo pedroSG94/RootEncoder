@@ -52,7 +52,7 @@ public class AudioEncoder implements GetMicrophoneData {
     } catch (IOException e) {
       e.printStackTrace();
       return false;
-    } catch (IllegalStateException e){
+    } catch (IllegalStateException e) {
       e.printStackTrace();
       return false;
     }
@@ -91,7 +91,7 @@ public class AudioEncoder implements GetMicrophoneData {
    * @param size Min PCM buffer size
    */
   @Override
-  public void inputPcmData(byte[] buffer, int size) {
+  public void inputPcmData(final byte[] buffer, final int size) {
     if (Build.VERSION.SDK_INT >= 21) {
       getDataFromEncoderAPI21(buffer, size);
     } else {

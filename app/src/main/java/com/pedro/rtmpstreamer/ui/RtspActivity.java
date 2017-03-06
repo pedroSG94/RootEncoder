@@ -80,7 +80,7 @@ public class RtspActivity extends AppCompatActivity
         actionBarDrawerToggle.syncState();
       }
     };
-    drawerLayout.setDrawerListener(actionBarDrawerToggle);
+    drawerLayout.addDrawerListener(actionBarDrawerToggle);
     //radiobuttons
     rbTcp = (RadioButton) navigationView.getMenu().findItem(R.id.rb_tcp).getActionView();
     rbUdp = (RadioButton) navigationView.getMenu().findItem(R.id.rb_udp).getActionView();
@@ -155,15 +155,6 @@ public class RtspActivity extends AppCompatActivity
         return true;
       case R.id.posterize:
         rtspBuilder.setEffect(EffectManager.POSTERIZE);
-        return true;
-      case R.id.solarize:
-        rtspBuilder.setEffect(EffectManager.SOLARIZE);
-        return true;
-      case R.id.whiteboard:
-        rtspBuilder.setEffect(EffectManager.WHITEBOARD);
-        return true;
-      case R.id.blackboard:
-        rtspBuilder.setEffect(EffectManager.BLACKBOARD);
         return true;
       default:
         return false;

@@ -24,12 +24,12 @@ public class VideoEncoder implements GetCameraData {
 
   private String TAG = "VideoEncoder";
   private MediaCodec videoEncoder;
+  private Thread thread;
   private GetH264Data getH264Data;
   private MediaCodec.BufferInfo videoInfo = new MediaCodec.BufferInfo();
   private long mPresentTimeUs;
   private boolean running;
   //for surface to buffer encoder
-  private Thread threadEncoderSurface;
   private Surface inputSurface;
 
   //default parameters for encoder
@@ -69,26 +69,25 @@ public class VideoEncoder implements GetCameraData {
         return false;
       }
 
-
-    MediaFormat videoFormat = MediaFormat.createVideoFormat(codec, width, height);
-    videoFormat.setInteger(MediaFormat.KEY_COLOR_FORMAT, formatVideoEncoder.getFormatCodec());
-    videoFormat.setInteger(MediaFormat.KEY_MAX_INPUT_SIZE, 0);
-    videoFormat.setInteger(MediaFormat.KEY_BIT_RATE, bitRate);
-    videoFormat.setInteger(MediaFormat.KEY_FRAME_RATE, fps);
-    videoFormat.setInteger(MediaFormat.KEY_I_FRAME_INTERVAL, 2);
-    videoFormat.setInteger("rotation-degrees", rotation);
-    videoEncoder.configure(videoFormat, null, null, MediaCodec.CONFIGURE_FLAG_ENCODE);
-    running = false;
-    if (formatVideoEncoder == FormatVideoEncoder.SURFACE
-        && Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
-      inputSurface = videoEncoder.createInputSurface();
-    }
-    return true;
+      MediaFormat videoFormat = MediaFormat.createVideoFormat(codec, width, height);
+      videoFormat.setInteger(MediaFormat.KEY_COLOR_FORMAT, formatVideoEncoder.getFormatCodec());
+      videoFormat.setInteger(MediaFormat.KEY_MAX_INPUT_SIZE, 0);
+      videoFormat.setInteger(MediaFormat.KEY_BIT_RATE, bitRate);
+      videoFormat.setInteger(MediaFormat.KEY_FRAME_RATE, fps);
+      videoFormat.setInteger(MediaFormat.KEY_I_FRAME_INTERVAL, 2);
+      videoFormat.setInteger("rotation-degrees", rotation);
+      videoEncoder.configure(videoFormat, null, null, MediaCodec.CONFIGURE_FLAG_ENCODE);
+      running = false;
+      if (formatVideoEncoder == FormatVideoEncoder.SURFACE
+          && Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
+        inputSurface = videoEncoder.createInputSurface();
+      }
+      return true;
     } catch (IOException e) {
       Log.e(TAG, "create videoEncoder failed.");
       e.printStackTrace();
       return false;
-    } catch (IllegalStateException e){
+    } catch (IllegalStateException e) {
       e.printStackTrace();
       return false;
     }
@@ -137,9 +136,9 @@ public class VideoEncoder implements GetCameraData {
 
   public void stop() {
     running = false;
-    if(threadEncoderSurface != null) {
-      threadEncoderSurface.interrupt();
-      threadEncoderSurface = null;
+    if (thread != null) {
+      thread.interrupt();
+      thread = null;
     }
     if (videoEncoder != null) {
       videoEncoder.stop();
@@ -149,46 +148,65 @@ public class VideoEncoder implements GetCameraData {
   }
 
   @Override
-  public void inputYv12Data(byte[] buffer, int width, int height) {
-    if (formatVideoEncoder != FormatVideoEncoder.SURFACE) {
-      byte[] i420 = YUVUtil.YV12toYUV420SemiPlanar(buffer, width, height);
-      if (Build.VERSION.SDK_INT >= 21) {
-        getDataFromEncoderAPI21(i420);
-      } else {
-        getDataFromEncoder(i420);
+  public void inputYv12Data(final byte[] buffer, final int width, final int height) {
+    thread = new Thread(new Runnable() {
+      @Override
+      public void run() {
+        if (formatVideoEncoder != FormatVideoEncoder.SURFACE) {
+          byte[] i420 = YUVUtil.YV12toYUV420SemiPlanar(buffer, width, height);
+          if (Build.VERSION.SDK_INT >= 21) {
+            getDataFromEncoderAPI21(i420);
+          } else {
+            getDataFromEncoder(i420);
+          }
+        }
       }
-    }
+    });
+    thread.start();
   }
 
   @Override
-  public void inputNv21Data(byte[] buffer, int width, int height) {
-    if (formatVideoEncoder != FormatVideoEncoder.SURFACE) {
-      byte[] i420 = YUVUtil.NV21toYUV420SemiPlanar(buffer, width, height);
-      if (Build.VERSION.SDK_INT >= 21) {
-        getDataFromEncoderAPI21(i420);
-      } else {
-        getDataFromEncoder(i420);
+  public void inputNv21Data(final byte[] buffer, final int width, final int height) {
+    thread = new Thread(new Runnable() {
+      @Override
+      public void run() {
+        if (formatVideoEncoder != FormatVideoEncoder.SURFACE) {
+          byte[] i420 = YUVUtil.NV21toYUV420SemiPlanar(buffer, width, height);
+          if (Build.VERSION.SDK_INT >= 21) {
+            getDataFromEncoderAPI21(i420);
+          } else {
+            getDataFromEncoder(i420);
+          }
+        }
       }
-    }
+    });
+    thread.start();
   }
 
   /**
    * call it to encoder YUV 420, 422, 444
    * remember create encoder with correct color format before
    */
-  public void inputYuv4XX(byte[] buffer) {
-    if (formatVideoEncoder == FormatVideoEncoder.SURFACE) {
-      if (Build.VERSION.SDK_INT >= 21) {
-        getDataFromEncoderAPI21(buffer);
-      } else {
-        getDataFromEncoder(buffer);
+
+  public void inputYuv4XX(final byte[] buffer) {
+    thread = new Thread(new Runnable() {
+      @Override
+      public void run() {
+        if (formatVideoEncoder == FormatVideoEncoder.SURFACE) {
+          if (Build.VERSION.SDK_INT >= 21) {
+            getDataFromEncoderAPI21(buffer);
+          } else {
+            getDataFromEncoder(buffer);
+          }
+        }
       }
-    }
+    });
+    thread.start();
   }
 
   @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
   private void getDataFromSurfaceAPI21() {
-    threadEncoderSurface = new Thread(new Runnable() {
+    thread = new Thread(new Runnable() {
       @Override
       public void run() {
         while (!Thread.interrupted()) {
@@ -210,11 +228,11 @@ public class VideoEncoder implements GetCameraData {
         }
       }
     });
-    threadEncoderSurface.start();
+    thread.start();
   }
 
   private void getDataFromSurface() {
-    threadEncoderSurface = new Thread(new Runnable() {
+    thread = new Thread(new Runnable() {
       @Override
       public void run() {
         while (!Thread.interrupted()) {
@@ -237,7 +255,7 @@ public class VideoEncoder implements GetCameraData {
         }
       }
     });
-    threadEncoderSurface.start();
+    thread.start();
   }
 
   @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)

@@ -18,13 +18,4 @@
     <item
         android:id="@+id/posterize"
         android:title="@string/posterize" />
-    <item
-        android:id="@+id/solarize"
-        android:title="@string/solarize" />
-    <item
-        android:id="@+id/whiteboard"
-        android:title="@string/white_board" />
-    <item
-        android:id="@+id/blackboard"
-        android:title="@string/black_board" />
 </menu>
