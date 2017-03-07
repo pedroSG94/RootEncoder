@@ -51,7 +51,7 @@ public class RtmpBuilder implements GetAccData, GetCameraData, GetH264Data, GetM
     this.height = height;
     cameraManager.prepareCamera(width, height, fps, rotation, ImageFormat.NV21);
     return videoEncoder.prepareVideoEncoder(width, height, fps, bitrate, rotation,
-        FormatVideoEncoder.YUV420SEMIPLANAR);
+        FormatVideoEncoder.YUV420Dynamical);
   }
 
   public boolean prepareAudio(int bitrate, int sampleRate, boolean isStereo) {

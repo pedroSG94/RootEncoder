@@ -40,7 +40,7 @@ RtmpBuilder rtmpBuilder = new RtmpBuilder(surfaceView, connectCheckerRtmp);
 if (rtmpBuilder.prepareAudio() && rtmpBuilder.prepareVideo()) {
   rtmpBuilder.startStream("rtmp://yourEndPoint");
 } else {
- /**This device cant init encoders, this could be for 2 reasons: The encoder selected doesnt support some configuration setted like a colorformat (if you see log you can know if this is the reason) and you need select other encoder, or your device hasnt a H264 or ACC encoder (in this case you can see log error valid encoder not found)*/
+ /**This device cant init encoders, this could be for 2 reasons: The encoder selected doesnt support any configuration setted or your device hasnt a H264 or ACC encoder (in this case you can see log error valid encoder not found)*/
 }
 //stop stream
 rtmpBuilder.stopStream();
@@ -58,7 +58,7 @@ RtspBuilder rtspBuilder = new RtspBuilder(surfaceView, protocol, connectCheckerR
 if (rtspBuilder.prepareAudio() && rtspBuilder.prepareVideo()) {
   rtspBuilder.startStream("rtsp://yourEndPoint");
 } else {
- /**This device cant init encoders, this could be for 2 reasons: The encoder selected doesnt support some configuration setted like a colorformat (if you see log you can know if this is the reason) and you need select other encoder, or your device hasnt a H264 or ACC encoder (in this case you can see log error valid encoder not found)*/
+ /**This device cant init encoders, this could be for 2 reasons: The encoder selected doesnt support any configuration setted or your device hasnt a H264 or ACC encoder (in this case you can see log error valid encoder not found)*/
 }
 //stop stream
 rtspBuilder.stopStream();
