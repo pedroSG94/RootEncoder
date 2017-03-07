@@ -25,13 +25,23 @@
       </intent-filter>
     </activity>
     <activity
-        android:name=".ui.RtmpActivity"
+        android:name=".ui.customexample.RtmpActivity"
         android:label="@string/rtmp_streamer"
         android:screenOrientation="portrait"
         />
     <activity
-        android:name=".ui.RtspActivity"
+        android:name=".ui.customexample.RtspActivity"
         android:label="@string/rtsp_streamer"
+        android:screenOrientation="portrait"
+        />
+    <activity
+        android:name=".ui.defaultexample.ExampleRtspActivity"
+        android:label="@string/default_rtsp"
+        android:screenOrientation="portrait"
+        />
+    <activity
+        android:name=".ui.defaultexample.ExampleRtmpActivity"
+        android:label="@string/default_rtmp"
         android:screenOrientation="portrait"
         />
   </application>

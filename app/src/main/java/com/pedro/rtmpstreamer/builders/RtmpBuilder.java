@@ -49,7 +49,7 @@ public class RtmpBuilder implements GetAccData, GetCameraData, GetH264Data, GetM
   public boolean prepareVideo(int width, int height, int fps, int bitrate, int rotation) {
     this.width = width;
     this.height = height;
-    cameraManager.prepareCamera(width, height, fps, rotation, ImageFormat.NV21);
+    cameraManager.prepareCamera(width, height, fps, ImageFormat.NV21);
     return videoEncoder.prepareVideoEncoder(width, height, fps, bitrate, rotation,
         FormatVideoEncoder.YUV420Dynamical);
   }

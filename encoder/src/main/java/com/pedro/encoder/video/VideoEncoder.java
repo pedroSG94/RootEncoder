@@ -38,8 +38,8 @@ public class VideoEncoder implements GetCameraData {
   private int height = 720;
   private int fps = 30;
   private int bitRate = 1500 * 1000; //in kbps
-  private int rotation = 90;
-  private FormatVideoEncoder formatVideoEncoder = FormatVideoEncoder.YUV420SEMIPLANAR;
+  private int rotation = 0;
+  private FormatVideoEncoder formatVideoEncoder = FormatVideoEncoder.YUV420Dynamical;
 
   public VideoEncoder(GetH264Data getH264Data) {
     this.getH264Data = getH264Data;

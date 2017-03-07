@@ -12,6 +12,10 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.Toast;
 import com.pedro.rtmpstreamer.R;
+import com.pedro.rtmpstreamer.ui.customexample.RtmpActivity;
+import com.pedro.rtmpstreamer.ui.customexample.RtspActivity;
+import com.pedro.rtmpstreamer.ui.defaultexample.ExampleRtmpActivity;
+import com.pedro.rtmpstreamer.ui.defaultexample.ExampleRtspActivity;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
 
@@ -28,6 +32,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     Button bRtsp = (Button) findViewById(R.id.b_rtsp);
     bRtmp.setOnClickListener(this);
     bRtsp.setOnClickListener(this);
+    Button bDefaultRtmp = (Button) findViewById(R.id.b_default_rtmp);
+    Button bDefaultRtsp = (Button) findViewById(R.id.b_default_rtsp);
+    bDefaultRtmp.setOnClickListener(this);
+    bDefaultRtsp.setOnClickListener(this);
     if (!hasPermissions(this, PERMISSIONS)) {
       ActivityCompat.requestPermissions(this, PERMISSIONS, 1);
     }
@@ -47,6 +55,22 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
       case R.id.b_rtsp:
         if (hasPermissions(this, PERMISSIONS)) {
           startActivity(new Intent(this, RtspActivity.class));
+        } else {
+          Toast.makeText(this, "You need permissions before", Toast.LENGTH_SHORT).show();
+          ActivityCompat.requestPermissions(this, PERMISSIONS, 1);
+        }
+        break;
+      case R.id.b_default_rtmp:
+        if (hasPermissions(this, PERMISSIONS)) {
+          startActivity(new Intent(this, ExampleRtmpActivity.class));
+        } else {
+          Toast.makeText(this, "You need permissions before", Toast.LENGTH_SHORT).show();
+          ActivityCompat.requestPermissions(this, PERMISSIONS, 1);
+        }
+        break;
+      case R.id.b_default_rtsp:
+        if (hasPermissions(this, PERMISSIONS)) {
+          startActivity(new Intent(this, ExampleRtspActivity.class));
         } else {
           Toast.makeText(this, "You need permissions before", Toast.LENGTH_SHORT).show();
           ActivityCompat.requestPermissions(this, PERMISSIONS, 1);

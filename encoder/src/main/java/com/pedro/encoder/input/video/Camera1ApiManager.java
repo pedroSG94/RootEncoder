@@ -42,26 +42,28 @@ public class Camera1ApiManager implements Camera.PreviewCallback {
   private int width = 1280;
   private int height = 720;
   private int fps = 30;
-  private int orientation = 90;
+  private int orientation = 0;
   private int imageFormat = ImageFormat.NV21;
   private FpsController fpsController;
 
   public Camera1ApiManager(SurfaceView surfaceView, GetCameraData getCameraData) {
     this.surfaceView = surfaceView;
     this.getCameraData = getCameraData;
+    if(surfaceView.getContext().getResources().getConfiguration().orientation == 1){
+      orientation = 90;
+    }
     cameraSelect = selectCamera();
   }
 
-  public void prepareCamera(int width, int height, int fps, int orientation, int imageFormat) {
+  public void prepareCamera(int width, int height, int fps, int imageFormat) {
     this.width = width;
     this.height = height;
     this.fps = fps;
-    this.orientation = orientation;
     this.imageFormat = imageFormat;
   }
 
   public void prepareCamera() {
-    prepareCamera(width, height, fps, orientation, imageFormat);
+    prepareCamera(width, height, fps, imageFormat);
   }
 
   public void start() {

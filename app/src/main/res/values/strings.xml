@@ -1,7 +1,10 @@
 <resources>
   <string name="app_name">RTMP-RTSP Streamer</string>
-  <string name="rtsp_streamer">RTSP Streamer</string>
-  <string name="rtmp_streamer">RTMP Streamer</string>
+  <string name="rtsp_streamer">Custom RTSP Streamer</string>
+  <string name="rtmp_streamer">Custom RTMP Streamer</string>
+
+  <string name="default_rtmp">Default RTMP Streamer</string>
+  <string name="default_rtsp">Default RTSP Streamer</string>
 
   <string name="tv_select">Select your streamer</string>
   <string name="hint_rtsp">rtsp://yourendpoint</string>

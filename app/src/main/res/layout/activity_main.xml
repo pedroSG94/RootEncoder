@@ -1,8 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:gravity="center"
     tools:context="com.pedro.rtmpstreamer.ui.MainActivity"
     android:id="@+id/activity_main"
     >
@@ -14,8 +16,6 @@
         android:layout_margin="20dp"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_centerHorizontal="true"
-        android:layout_marginBottom="20sp"
         android:id="@+id/tv_select"
         />
 
@@ -24,7 +24,6 @@
         android:layout_margin="20dp"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_below="@+id/tv_select"
         android:id="@+id/b_rtmp"
         />
 
@@ -33,9 +32,23 @@
         android:layout_margin="20dp"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_below="@+id/tv_select"
-        android:layout_alignParentRight="true"
         android:id="@+id/b_rtsp"
         />
 
-</RelativeLayout>
+    <Button
+        android:text="@string/default_rtmp"
+        android:layout_margin="20dp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/b_default_rtmp"
+        />
+
+    <Button
+        android:text="@string/default_rtsp"
+        android:layout_margin="20dp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/b_default_rtsp"
+        />
+
+</LinearLayout>

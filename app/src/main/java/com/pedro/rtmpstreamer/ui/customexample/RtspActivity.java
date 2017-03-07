@@ -1,4 +1,4 @@
-package com.pedro.rtmpstreamer.ui;
+package com.pedro.rtmpstreamer.ui.customexample;
 
 import android.os.Bundle;
 import android.support.annotation.Nullable;
@@ -93,7 +93,7 @@ public class RtspActivity extends AppCompatActivity
         new ArrayAdapter<>(this, R.layout.support_simple_spinner_dropdown_item);
     orientationAdapter.addAll(orientations);
     spOrientation.setAdapter(orientationAdapter);
-    spOrientation.setSelection(1);
+    spOrientation.setSelection(0);
 
     ArrayAdapter<String> resolutionAdapter =
         new ArrayAdapter<>(this, R.layout.support_simple_spinner_dropdown_item);
