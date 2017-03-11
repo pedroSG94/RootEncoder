@@ -3,6 +3,7 @@ package com.pedro.rtmpstreamer.builders;
 import android.graphics.ImageFormat;
 import android.hardware.Camera;
 import android.media.MediaCodec;
+import android.os.Build;
 import android.util.Base64;
 import android.view.SurfaceView;
 import com.pedro.encoder.audio.AudioEncoder;
@@ -102,10 +103,10 @@ public class RtspBuilder implements GetAccData, GetCameraData, GetH264Data, GetM
     h264Packet.close();
   }
 
-  public List<String> getResolutions(){
+  public List<String> getResolutions() {
     List<Camera.Size> list = cameraManager.getPreviewSize();
     List<String> resolutions = new ArrayList<>();
-    for(Camera.Size size : list){
+    for (Camera.Size size : list) {
       resolutions.add(size.width + "X" + size.height);
     }
     return resolutions;
@@ -114,6 +115,13 @@ public class RtspBuilder implements GetAccData, GetCameraData, GetH264Data, GetM
   public void switchCamera() {
     if (isStreaming()) {
       cameraManager.switchCamera();
+    }
+  }
+
+  /**need min API 19*/
+  public void setVideoBitrateOnFly(int bitrate) {
+    if (Build.VERSION.SDK_INT >= 19) {
+      videoEncoder.setVideoBitrateOnFly(bitrate);
     }
   }
 

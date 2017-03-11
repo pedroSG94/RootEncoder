@@ -3,6 +3,7 @@ package com.pedro.rtmpstreamer.builders;
 import android.graphics.ImageFormat;
 import android.hardware.Camera;
 import android.media.MediaCodec;
+import android.os.Build;
 import android.view.SurfaceView;
 import com.pedro.encoder.audio.AudioEncoder;
 import com.pedro.encoder.audio.GetAccData;
@@ -102,6 +103,13 @@ public class RtmpBuilder implements GetAccData, GetCameraData, GetH264Data, GetM
   public void switchCamera() {
     if (isStreaming()) {
       cameraManager.switchCamera();
+    }
+  }
+
+  /**need min API 19*/
+  public void setVideoBitrateOnFly(int bitrate){
+    if(Build.VERSION.SDK_INT >= 19) {
+      videoEncoder.setVideoBitrateOnFly(bitrate);
     }
   }
 

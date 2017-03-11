@@ -14,8 +14,8 @@ import com.pedro.rtsp.utils.ConnectCheckerRtsp;
 
 /**
  * This class is only for a simple example of library use with default stream values
- * Video = 1280x720 resolution, 30fps, 1500 * 1024 bitrate, 0 rotation. See VideoEncoder class for more info
- * Audio = stereo, 128 * 1024 bitrate, 44100 sampleRate. See AudioEncoder class for more info
+ * video = 1280x720 resolution, 30fps, 1500 * 1024 bitrate, 0 rotation
+ * audio = stereo, 128 * 1024 bitrate, 44100 sampleRate
  */
 public class ExampleRtspActivity extends AppCompatActivity
     implements ConnectCheckerRtsp, View.OnClickListener {

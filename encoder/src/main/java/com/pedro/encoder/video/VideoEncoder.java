@@ -5,6 +5,7 @@ import android.media.MediaCodecInfo;
 import android.media.MediaCodecList;
 import android.media.MediaFormat;
 import android.os.Build;
+import android.os.Bundle;
 import android.support.annotation.RequiresApi;
 import android.util.Log;
 
@@ -14,6 +15,8 @@ import com.pedro.encoder.utils.YUVUtil;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
+
+import static android.media.MediaCodec.PARAMETER_KEY_VIDEO_BITRATE;
 
 /**
  * Created by pedro on 19/01/17.
@@ -119,6 +122,19 @@ public class VideoEncoder implements GetCameraData {
    */
   public boolean prepareVideoEncoder() {
     return prepareVideoEncoder(width, height, fps, bitRate, rotation, formatVideoEncoder);
+  }
+
+  @RequiresApi(api = Build.VERSION_CODES.KITKAT)
+  public void setVideoBitrateOnFly(int bitrate) {
+    this.bitRate = bitrate;
+    Bundle bundle = new Bundle();
+    bundle.putInt(PARAMETER_KEY_VIDEO_BITRATE, bitrate);
+    try {
+      videoEncoder.setParameters(bundle);
+    } catch (IllegalStateException e){
+      Log.e(TAG, "encoder need be running");
+      e.printStackTrace();
+    }
   }
 
   public Surface getInputSurface() {
