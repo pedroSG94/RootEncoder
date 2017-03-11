@@ -74,6 +74,7 @@ public class RtspActivity extends AppCompatActivity
 
       public void onDrawerClosed(View view) {
         actionBarDrawerToggle.syncState();
+        rtspBuilder.setVideoBitrateOnFly(Integer.parseInt(etVideoBitrate.getText().toString()) * 1024);
       }
     };
     drawerLayout.addDrawerListener(actionBarDrawerToggle);

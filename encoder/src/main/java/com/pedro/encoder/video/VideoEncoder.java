@@ -31,7 +31,7 @@ public class VideoEncoder implements GetCameraData {
   private GetH264Data getH264Data;
   private MediaCodec.BufferInfo videoInfo = new MediaCodec.BufferInfo();
   private long mPresentTimeUs;
-  private boolean running;
+  private boolean running = false;
   //for surface to buffer encoder
   private Surface inputSurface;
 
@@ -126,14 +126,16 @@ public class VideoEncoder implements GetCameraData {
 
   @RequiresApi(api = Build.VERSION_CODES.KITKAT)
   public void setVideoBitrateOnFly(int bitrate) {
-    this.bitRate = bitrate;
-    Bundle bundle = new Bundle();
-    bundle.putInt(PARAMETER_KEY_VIDEO_BITRATE, bitrate);
-    try {
-      videoEncoder.setParameters(bundle);
-    } catch (IllegalStateException e){
-      Log.e(TAG, "encoder need be running");
-      e.printStackTrace();
+    if(isRunning()) {
+      this.bitRate = bitrate;
+      Bundle bundle = new Bundle();
+      bundle.putInt(PARAMETER_KEY_VIDEO_BITRATE, bitrate);
+      try {
+        videoEncoder.setParameters(bundle);
+      } catch (IllegalStateException e) {
+        Log.e(TAG, "encoder need be running");
+        e.printStackTrace();
+      }
     }
   }
 

@@ -23,7 +23,7 @@
           android:id="@+id/sp_resolution"
           />
       <item
-          android:title="@string/bitrate"
+          android:title="@string/video_bitrate"
           app:actionLayout="@xml/edit_text_int"
           android:id="@+id/et_video_bitrate"
           />
@@ -42,7 +42,7 @@
   <item android:title="@string/audio">
     <menu>
       <item
-          android:title="@string/bitrate"
+          android:title="@string/audio_bitrate"
           app:actionLayout="@xml/edit_text_int"
           android:id="@+id/et_audio_bitrate"
           />

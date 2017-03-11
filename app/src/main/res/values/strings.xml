@@ -28,7 +28,8 @@
   <string name="video">Video</string>
   <string name="audio">Audio</string>
   <string name="resolution">Resolution</string>
-  <string name="bitrate">Bitrate</string>
+  <string name="video_bitrate">Bitrate (on fly)</string>
+  <string name="audio_bitrate">Bitrate</string>
   <string name="fps">FPS</string>
   <string name="orientation">Orientation</string>
   <string name="samplerate">SampleRate</string>
