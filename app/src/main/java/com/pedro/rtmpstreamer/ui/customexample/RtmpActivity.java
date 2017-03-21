@@ -116,7 +116,7 @@ public class RtmpActivity extends AppCompatActivity
 
   @Override
   public boolean onCreateOptionsMenu(Menu menu) {
-    getMenuInflater().inflate(R.menu.menu_effects, menu);
+    getMenuInflater().inflate(R.menu.menu, menu);
     return true;
   }
 
@@ -147,6 +147,24 @@ public class RtmpActivity extends AppCompatActivity
         return true;
       case R.id.posterize:
         rtmpBuilder.setEffect(EffectManager.POSTERIZE);
+        return true;
+      case R.id.microphone:
+        if(!rtmpBuilder.isAudioMuted()) {
+          item.setIcon(getResources().getDrawable(R.drawable.icon_microphone_off));
+          rtmpBuilder.disableAudio();
+        } else {
+          item.setIcon(getResources().getDrawable(R.drawable.icon_microphone));
+          rtmpBuilder.enableAudio();
+        }
+        return true;
+      case R.id.camera:
+        if(rtmpBuilder.isVideoEnabled()) {
+          item.setIcon(getResources().getDrawable(R.drawable.icon_camera_off));
+          rtmpBuilder.disableVideo();
+        } else {
+          item.setIcon(getResources().getDrawable(R.drawable.icon_camera));
+          rtmpBuilder.enableVideo();
+        }
         return true;
       default:
         return false;

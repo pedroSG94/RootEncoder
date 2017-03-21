@@ -90,6 +90,10 @@ public class MicrophoneManager {
     public void unMute(){
         muted = false;
     }
+
+    public boolean isMuted(){
+        return muted;
+    }
     /**
      * @return Object with size and PCM buffer data
      */

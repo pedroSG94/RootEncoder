@@ -109,6 +109,14 @@ public class RtmpBuilder implements GetAccData, GetCameraData, GetH264Data, GetM
     microphoneManager.unMute();
   }
 
+  public boolean isAudioMuted() {
+    return microphoneManager.isMuted();
+  }
+
+  public boolean isVideoEnabled() {
+    return videoEnabled;
+  }
+
   public void disableVideo() {
     videoEnabled = false;
   }

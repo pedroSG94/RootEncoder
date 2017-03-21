@@ -1,10 +1,10 @@
 <resources>
   <string name="app_name">RTMP-RTSP Streamer</string>
-  <string name="rtsp_streamer">Custom RTSP Streamer</string>
-  <string name="rtmp_streamer">Custom RTMP Streamer</string>
+  <string name="rtsp_streamer">Custom RTSP</string>
+  <string name="rtmp_streamer">Custom RTMP</string>
 
-  <string name="default_rtmp">Default RTMP Streamer</string>
-  <string name="default_rtsp">Default RTSP Streamer</string>
+  <string name="default_rtmp">Default RTMP</string>
+  <string name="default_rtsp">Default RTSP</string>
 
   <string name="tv_select">Select your streamer</string>
   <string name="hint_rtsp">rtsp://yourendpoint</string>
@@ -13,7 +13,9 @@
   <string name="stop_button">Stop stream</string>
   <string name="switch_camera_button">Switch camera</string>
 
-  <!--effects-->
+  <!--menu-->
+  <string name="microphone">Microphone</string>
+  <string name="filters">Filters</string>
   <string name="clear">Clear</string>
   <string name="grey_scale">Grey scale</string>
   <string name="negative">Negative</string>
@@ -36,4 +38,5 @@
   <string name="channel">Channel</string>
   <string name="stereo">Stereo</string>
   <string name="mono">Mono</string>
+  <string name="camera">Camera</string>
 </resources>

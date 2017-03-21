@@ -121,7 +121,7 @@ public class RtspActivity extends AppCompatActivity
 
   @Override
   public boolean onCreateOptionsMenu(Menu menu) {
-    getMenuInflater().inflate(R.menu.menu_effects, menu);
+    getMenuInflater().inflate(R.menu.menu, menu);
     return true;
   }
 
@@ -152,6 +152,24 @@ public class RtspActivity extends AppCompatActivity
         return true;
       case R.id.posterize:
         rtspBuilder.setEffect(EffectManager.POSTERIZE);
+        return true;
+      case R.id.microphone:
+        if(!rtspBuilder.isAudioMuted()) {
+          item.setIcon(getResources().getDrawable(R.drawable.icon_microphone_off));
+          rtspBuilder.disableAudio();
+        } else {
+          item.setIcon(getResources().getDrawable(R.drawable.icon_microphone));
+          rtspBuilder.enableAudio();
+        }
+        return true;
+      case R.id.camera:
+        if(rtspBuilder.isVideoEnabled()) {
+          item.setIcon(getResources().getDrawable(R.drawable.icon_camera_off));
+          rtspBuilder.disableVideo();
+        } else {
+          item.setIcon(getResources().getDrawable(R.drawable.icon_camera));
+          rtspBuilder.enableVideo();
+        }
         return true;
       default:
         return false;

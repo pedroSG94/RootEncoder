@@ -129,6 +129,14 @@ public class RtspBuilder implements GetAccData, GetCameraData, GetH264Data, GetM
     videoEnabled = true;
   }
 
+  public boolean isAudioMuted() {
+    return microphoneManager.isMuted();
+  }
+
+  public boolean isVideoEnabled() {
+    return videoEnabled;
+  }
+
   public void switchCamera() {
     if (isStreaming()) {
       cameraManager.switchCamera();
