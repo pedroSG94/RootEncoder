@@ -36,6 +36,7 @@ public class RtmpBuilder implements GetAccData, GetCameraData, GetH264Data, GetM
   private SrsFlvMuxer srsFlvMuxer;
   private boolean streaming;
   private ConnectCheckerRtmp connectChecker;
+  private boolean videoEnabled = true;
 
   public RtmpBuilder(SurfaceView surfaceView, ConnectCheckerRtmp connectChecker) {
     this.connectChecker = connectChecker;
@@ -91,13 +92,29 @@ public class RtmpBuilder implements GetAccData, GetCameraData, GetH264Data, GetM
     streaming = false;
   }
 
-  public List<String> getResolutions(){
+  public List<String> getResolutions() {
     List<Camera.Size> list = cameraManager.getPreviewSize();
     List<String> resolutions = new ArrayList<>();
-    for(Camera.Size size : list){
+    for (Camera.Size size : list) {
       resolutions.add(size.width + "X" + size.height);
     }
     return resolutions;
+  }
+
+  public void disableAudio() {
+    microphoneManager.mute();
+  }
+
+  public void enableAudio() {
+    microphoneManager.unMute();
+  }
+
+  public void disableVideo() {
+    videoEnabled = false;
+  }
+
+  public void enableVideo() {
+    videoEnabled = true;
   }
 
   public void switchCamera() {
@@ -106,9 +123,9 @@ public class RtmpBuilder implements GetAccData, GetCameraData, GetH264Data, GetM
     }
   }
 
-  /**need min API 19*/
-  public void setVideoBitrateOnFly(int bitrate){
-    if(Build.VERSION.SDK_INT >= 19) {
+  /** need min API 19 */
+  public void setVideoBitrateOnFly(int bitrate) {
+    if (Build.VERSION.SDK_INT >= 19) {
       videoEncoder.setVideoBitrateOnFly(bitrate);
     }
   }
@@ -145,11 +162,15 @@ public class RtmpBuilder implements GetAccData, GetCameraData, GetH264Data, GetM
 
   @Override
   public void inputYv12Data(byte[] buffer, int width, int height) {
-    videoEncoder.inputYv12Data(buffer, width, height);
+    if (videoEnabled) {
+      videoEncoder.inputYv12Data(buffer, width, height);
+    }
   }
 
   @Override
   public void inputNv21Data(byte[] buffer, int width, int height) {
-    videoEncoder.inputNv21Data(buffer, width, height);
+    if (videoEnabled) {
+      videoEncoder.inputNv21Data(buffer, width, height);
+    }
   }
 }

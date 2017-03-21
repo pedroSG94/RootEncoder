@@ -23,6 +23,6 @@ dependencies {
   compile project(':encoder')
   compile project(':rtmp')
   compile project(':rtsp')
-  compile 'com.android.support:appcompat-v7:25.1.1'
-  compile 'com.android.support:design:25.1.1'
+  compile 'com.android.support:appcompat-v7:25.3.0'
+  compile 'com.android.support:design:25.3.0'
 }

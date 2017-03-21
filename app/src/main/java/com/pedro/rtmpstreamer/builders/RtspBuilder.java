@@ -40,6 +40,7 @@ public class RtspBuilder implements GetAccData, GetCameraData, GetH264Data, GetM
   private RtspClient rtspClient;
   private AccPacket accPacket;
   private H264Packet h264Packet;
+  private boolean videoEnabled = true;
 
   public RtspBuilder(SurfaceView surfaceView, Protocol protocol,
       ConnectCheckerRtsp connectCheckerRtsp) {
@@ -112,13 +113,29 @@ public class RtspBuilder implements GetAccData, GetCameraData, GetH264Data, GetM
     return resolutions;
   }
 
+  public void disableAudio() {
+    microphoneManager.mute();
+  }
+
+  public void enableAudio() {
+    microphoneManager.unMute();
+  }
+
+  public void disableVideo() {
+    videoEnabled = false;
+  }
+
+  public void enableVideo() {
+    videoEnabled = true;
+  }
+
   public void switchCamera() {
     if (isStreaming()) {
       cameraManager.switchCamera();
     }
   }
 
-  /**need min API 19*/
+  /** need min API 19 */
   public void setVideoBitrateOnFly(int bitrate) {
     if (Build.VERSION.SDK_INT >= 19) {
       videoEncoder.setVideoBitrateOnFly(bitrate);
@@ -167,12 +184,16 @@ public class RtspBuilder implements GetAccData, GetCameraData, GetH264Data, GetM
 
   @Override
   public void inputYv12Data(byte[] buffer, int width, int height) {
-    videoEncoder.inputYv12Data(buffer, width, height);
+    if (videoEnabled) {
+      videoEncoder.inputYv12Data(buffer, width, height);
+    }
   }
 
   @Override
   public void inputNv21Data(byte[] buffer, int width, int height) {
-    videoEncoder.inputNv21Data(buffer, width, height);
+    if (videoEnabled) {
+      videoEncoder.inputNv21Data(buffer, width, height);
+    }
   }
 
   public void updateDestination() {

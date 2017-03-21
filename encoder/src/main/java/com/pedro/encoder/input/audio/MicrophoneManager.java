@@ -17,12 +17,14 @@ public class MicrophoneManager {
     private AudioRecord audioRecord;
     private GetMicrophoneData getMicrophoneData;
     private byte[] pcmBuffer = new byte[4096];
+    private byte[] pcmBufferMuted = new byte[11];
     private boolean running = false;
 
     //default parameters for microphone
     private int sampleRate = 44100; //hz
     private int audioFormat = AudioFormat.ENCODING_PCM_16BIT;
     private int channel = AudioFormat.CHANNEL_IN_STEREO;
+    private boolean muted = false;
 
     public MicrophoneManager(GetMicrophoneData getMicrophoneData) {
         this.getMicrophoneData = getMicrophoneData;
@@ -81,11 +83,23 @@ public class MicrophoneManager {
         }
     }
 
+    public void mute(){
+        muted = true;
+    }
+
+    public void unMute(){
+        muted = false;
+    }
     /**
      * @return Object with size and PCM buffer data
      */
     private DataTaken read() {
-        int size = audioRecord.read(pcmBuffer, 0, pcmBuffer.length);
+        int size;
+        if(muted){
+            size = audioRecord.read(pcmBufferMuted, 0, pcmBufferMuted.length);
+        } else {
+            size = audioRecord.read(pcmBuffer, 0, pcmBuffer.length);
+        }
         if (size <= 0) {
             return null;
         }
