@@ -1,5 +1,8 @@
 package com.pedro.encoder.video;
 
+import android.graphics.Bitmap;
+import android.graphics.Canvas;
+import android.graphics.Color;
 import android.media.MediaCodec;
 import android.media.MediaCodecInfo;
 import android.media.MediaCodecList;
@@ -41,9 +44,12 @@ public class VideoEncoder implements GetCameraData {
   private int width = 1280;
   private int height = 720;
   private int fps = 30;
-  private int bitRate = 1500 * 1000; //in kbps
+  private int bitRate = 1500 * 1024; //in kbps
   private int rotation = 0;
   private FormatVideoEncoder formatVideoEncoder = FormatVideoEncoder.YUV420Dynamical;
+  //for disable video
+  private boolean sendBlackImage = false;
+  private byte[] blackImage;
 
   public VideoEncoder(GetH264Data getH264Data) {
     this.getH264Data = getH264Data;
@@ -94,6 +100,7 @@ public class VideoEncoder implements GetCameraData {
           && Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
         inputSurface = videoEncoder.createInputSurface();
       }
+      prepareBlackImage();
       return true;
     } catch (IOException e) {
       Log.e(TAG, "create videoEncoder failed.");
@@ -127,7 +134,7 @@ public class VideoEncoder implements GetCameraData {
 
   @RequiresApi(api = Build.VERSION_CODES.KITKAT)
   public void setVideoBitrateOnFly(int bitrate) {
-    if(isRunning()) {
+    if (isRunning()) {
       this.bitRate = bitrate;
       Bundle bundle = new Bundle();
       bundle.putInt(PARAMETER_KEY_VIDEO_BITRATE, bitrate);
@@ -193,7 +200,9 @@ public class VideoEncoder implements GetCameraData {
       @Override
       public void run() {
         if (formatVideoEncoder != FormatVideoEncoder.SURFACE) {
-          byte[] i420 = YUVUtil.YV12toYUV420byColor(buffer, width, height, formatVideoEncoder);
+          //if you are disable video send a black bitmap else send camera data
+          byte[] i420 = (sendBlackImage) ? blackImage
+              : YUVUtil.YV12toYUV420byColor(buffer, width, height, formatVideoEncoder);
           if (Build.VERSION.SDK_INT >= 21) {
             getDataFromEncoderAPI21(i420);
           } else {
@@ -211,7 +220,9 @@ public class VideoEncoder implements GetCameraData {
       @Override
       public void run() {
         if (formatVideoEncoder != FormatVideoEncoder.SURFACE) {
-          byte[] i420 = YUVUtil.NV21toYUV420byColor(buffer, width, height, formatVideoEncoder);
+          //if you are disable video send a black bitmap else send camera data
+          byte[] i420 = (sendBlackImage) ? blackImage
+              : YUVUtil.NV21toYUV420byColor(buffer, width, height, formatVideoEncoder);
           if (Build.VERSION.SDK_INT >= 21) {
             getDataFromEncoderAPI21(i420);
           } else {
@@ -313,7 +324,8 @@ public class VideoEncoder implements GetCameraData {
         int outBufferIndex = videoEncoder.dequeueOutputBuffer(videoInfo, 0);
         if (outBufferIndex == MediaCodec.INFO_OUTPUT_FORMAT_CHANGED) {
           MediaFormat mediaFormat = videoEncoder.getOutputFormat();
-          getH264Data.onSPSandPPS(mediaFormat.getByteBuffer("csd-0"), mediaFormat.getByteBuffer("csd-1"));
+          getH264Data.onSPSandPPS(mediaFormat.getByteBuffer("csd-0"),
+              mediaFormat.getByteBuffer("csd-1"));
         } else if (outBufferIndex >= 0) {
           //This ByteBuffer is H264
           ByteBuffer bb = videoEncoder.getOutputBuffer(outBufferIndex);
@@ -344,7 +356,8 @@ public class VideoEncoder implements GetCameraData {
         int outBufferIndex = videoEncoder.dequeueOutputBuffer(videoInfo, 0);
         if (outBufferIndex == MediaCodec.INFO_OUTPUT_FORMAT_CHANGED) {
           MediaFormat mediaFormat = videoEncoder.getOutputFormat();
-          getH264Data.onSPSandPPS(mediaFormat.getByteBuffer("csd-0"), mediaFormat.getByteBuffer("csd-1"));
+          getH264Data.onSPSandPPS(mediaFormat.getByteBuffer("csd-0"),
+              mediaFormat.getByteBuffer("csd-1"));
         } else if (outBufferIndex >= 0) {
           //This ByteBuffer is H264
           ByteBuffer bb = outputBuffers[outBufferIndex];
@@ -416,5 +429,39 @@ public class VideoEncoder implements GetCameraData {
       }
     }
     return null;
+  }
+
+  private void prepareBlackImage() {
+    Bitmap b = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
+    Canvas canvas = new Canvas(b);
+    canvas.drawColor(Color.BLACK);
+    int x = b.getWidth();
+    int y = b.getHeight();
+    int[] data = new int[x * y];
+    b.getPixels(data, 0, x, 0, 0, x, y);
+    blackImage = YUVUtil.ARGBtoYUV420SemiPlanar(data, width, height);
+  }
+
+  public void startSendBlackImage() {
+    sendBlackImage = true;
+    if (Build.VERSION.SDK_INT >= 19) {
+      if (isRunning()) {
+        Bundle bundle = new Bundle();
+        bundle.putInt(PARAMETER_KEY_VIDEO_BITRATE, 100 * 1024);
+        try {
+          videoEncoder.setParameters(bundle);
+        } catch (IllegalStateException e) {
+          Log.e(TAG, "encoder need be running");
+          e.printStackTrace();
+        }
+      }
+    }
+  }
+
+  public void stopSendBlackImage() {
+    sendBlackImage = false;
+    if (Build.VERSION.SDK_INT >= 19) {
+      setVideoBitrateOnFly(bitRate);
+    }
   }
 }

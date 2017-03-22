@@ -118,10 +118,12 @@ public class RtmpBuilder implements GetAccData, GetCameraData, GetH264Data, GetM
   }
 
   public void disableVideo() {
+    videoEncoder.startSendBlackImage();
     videoEnabled = false;
   }
 
   public void enableVideo() {
+    videoEncoder.stopSendBlackImage();
     videoEnabled = true;
   }
 
@@ -170,15 +172,11 @@ public class RtmpBuilder implements GetAccData, GetCameraData, GetH264Data, GetM
 
   @Override
   public void inputYv12Data(byte[] buffer, int width, int height) {
-    if (videoEnabled) {
-      videoEncoder.inputYv12Data(buffer, width, height);
-    }
+    videoEncoder.inputYv12Data(buffer, width, height);
   }
 
   @Override
   public void inputNv21Data(byte[] buffer, int width, int height) {
-    if (videoEnabled) {
-      videoEncoder.inputNv21Data(buffer, width, height);
-    }
+    videoEncoder.inputNv21Data(buffer, width, height);
   }
 }

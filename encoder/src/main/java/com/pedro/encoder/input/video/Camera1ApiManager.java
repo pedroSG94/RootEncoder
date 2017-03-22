@@ -1,5 +1,8 @@
 package com.pedro.encoder.input.video;
 
+import android.graphics.Bitmap;
+import android.graphics.Canvas;
+import android.graphics.Color;
 import android.graphics.ImageFormat;
 import android.hardware.Camera;
 import android.opengl.GLES20;
@@ -7,6 +10,7 @@ import android.util.Log;
 import android.view.Surface;
 import android.view.SurfaceView;
 
+import com.pedro.encoder.utils.YUVUtil;
 import java.io.IOException;
 import java.util.List;
 
