@@ -39,4 +39,7 @@
   <string name="stereo">Stereo</string>
   <string name="mono">Mono</string>
   <string name="camera">Camera</string>
+  <string name="wowza_auth">Wowza Auth</string>
+  <string name="wowza_user">User</string>
+  <string name="wowza_password">Password</string>
 </resources>

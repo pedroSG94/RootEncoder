@@ -41,7 +41,8 @@ public class RtspActivity extends AppCompatActivity
   private RadioGroup rgChannel;
   private RadioButton rbTcp, rbUdp;
   private Spinner spResolution, spOrientation;
-  private EditText etVideoBitrate, etFps, etAudioBitrate, etSampleRate;
+  private EditText etVideoBitrate, etFps, etAudioBitrate, etSampleRate, etWowzaUser,
+      etWowzaPassword;
 
   @Override
   protected void onCreate(Bundle savedInstanceState) {
@@ -74,7 +75,8 @@ public class RtspActivity extends AppCompatActivity
 
       public void onDrawerClosed(View view) {
         actionBarDrawerToggle.syncState();
-        rtspBuilder.setVideoBitrateOnFly(Integer.parseInt(etVideoBitrate.getText().toString()) * 1024);
+        rtspBuilder.setVideoBitrateOnFly(
+            Integer.parseInt(etVideoBitrate.getText().toString()) * 1024);
       }
     };
     drawerLayout.addDrawerListener(actionBarDrawerToggle);
@@ -111,6 +113,9 @@ public class RtspActivity extends AppCompatActivity
     etFps.setText("30");
     etAudioBitrate.setText("128");
     etSampleRate.setText("44100");
+    etWowzaUser = (EditText) navigationView.getMenu().findItem(R.id.et_wowza_user).getActionView();
+    etWowzaPassword =
+        (EditText) navigationView.getMenu().findItem(R.id.et_wowza_password).getActionView();
   }
 
   @Override
@@ -154,7 +159,7 @@ public class RtspActivity extends AppCompatActivity
         rtspBuilder.setEffect(EffectManager.POSTERIZE);
         return true;
       case R.id.microphone:
-        if(!rtspBuilder.isAudioMuted()) {
+        if (!rtspBuilder.isAudioMuted()) {
           item.setIcon(getResources().getDrawable(R.drawable.icon_microphone_off));
           rtspBuilder.disableAudio();
         } else {
@@ -163,7 +168,7 @@ public class RtspActivity extends AppCompatActivity
         }
         return true;
       case R.id.camera:
-        if(rtspBuilder.isVideoEnabled()) {
+        if (rtspBuilder.isVideoEnabled()) {
           item.setIcon(getResources().getDrawable(R.drawable.icon_camera_off));
           rtspBuilder.disableVideo();
         } else {
@@ -189,6 +194,11 @@ public class RtspActivity extends AppCompatActivity
           }
           String resolution =
               rtspBuilder.getResolutions().get(spResolution.getSelectedItemPosition());
+          String user = etWowzaUser.getText().toString();
+          String password = etWowzaPassword.getText().toString();
+          if (!user.isEmpty() && !password.isEmpty()) {
+            rtspBuilder.setAuthorization(user, password);
+          }
           int width = Integer.parseInt(resolution.split("X")[0]);
           int height = Integer.parseInt(resolution.split("X")[1]);
 
@@ -282,6 +292,8 @@ public class RtspActivity extends AppCompatActivity
     runOnUiThread(new Runnable() {
       @Override
       public void run() {
+        bStartStop.setText(getResources().getString(R.string.start_button));
+        rtspBuilder.stopStream();
         Toast.makeText(RtspActivity.this, "Auth error", Toast.LENGTH_SHORT).show();
       }
     });
