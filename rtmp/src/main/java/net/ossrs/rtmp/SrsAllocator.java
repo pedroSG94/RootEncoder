@@ -2,7 +2,9 @@ package net.ossrs.rtmp;
 
 import java.util.Arrays;
 
-public final class SrsAllocator {
+public class SrsAllocator {
+
+    private final Object lock = new Object();
 
     public class Allocation {
 
@@ -89,16 +91,18 @@ public final class SrsAllocator {
         singleAllocationReleaseHolder = new Allocation[1];
     }
 
-    public synchronized Allocation allocate() {
-        allocatedCount++;
-        Allocation allocation;
-        if (availableCount > 0) {
-            allocation = availableAllocations[--availableCount];
-            availableAllocations[availableCount] = null;
-        } else {
-            allocation = new Allocation(individualAllocationSize);
+    public Allocation allocate() {
+        synchronized (lock) {
+            allocatedCount++;
+            Allocation allocation;
+            if (availableCount > 0) {
+                allocation = availableAllocations[--availableCount];
+                availableAllocations[availableCount] = null;
+            } else {
+                allocation = new Allocation(individualAllocationSize);
+            }
+            return allocation;
         }
-        return allocation;
     }
 
     public synchronized void release(Allocation allocation) {
