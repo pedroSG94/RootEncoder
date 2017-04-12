@@ -19,6 +19,7 @@ import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.Spinner;
 import android.widget.Toast;
+import com.pedro.encoder.input.video.CameraOpenException;
 import com.pedro.encoder.input.video.EffectManager;
 import com.pedro.rtmpstreamer.R;
 import com.pedro.rtmpstreamer.builders.RtmpBuilder;
@@ -205,7 +206,12 @@ public class RtmpActivity extends AppCompatActivity
         }
         break;
       case R.id.switch_camera:
-        rtmpBuilder.switchCamera();
+        try {
+          rtmpBuilder.switchCamera();
+        } catch (CameraOpenException e){
+          Toast.makeText(this, e.getMessage(), Toast.LENGTH_SHORT).show();
+          rtmpBuilder.switchCamera();
+        }
         break;
       default:
         break;

@@ -70,6 +70,9 @@ public class Camera1ApiManager implements Camera.PreviewCallback {
     if (camera == null) {
       try {
         camera = Camera.open(cameraSelect);
+        if(!checkCanOpen()){
+          throw new CameraOpenException("This camera resolution cant be opened");
+        }
         Camera.Parameters parameters = camera.getParameters();
         parameters.setPreviewSize(width, height);
         parameters.setPreviewFormat(imageFormat);
@@ -233,7 +236,7 @@ public class Camera1ApiManager implements Camera.PreviewCallback {
     }
   }
 
-  public void switchCamera() {
+  public void switchCamera() throws CameraOpenException{
     if (camera != null) {
       int number = Camera.getNumberOfCameras();
       for (int i = 0; i < number; i++) {
@@ -245,6 +248,15 @@ public class Camera1ApiManager implements Camera.PreviewCallback {
         }
       }
     }
+  }
+
+  private boolean checkCanOpen(){
+    for(Camera.Size size : getPreviewSize()){
+      if(size.width == width && size.height == height){
+        return true;
+      }
+    }
+    return false;
   }
 
   public boolean isLanternEnable() {

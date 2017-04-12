@@ -11,6 +11,7 @@ import com.pedro.encoder.audio.GetAccData;
 import com.pedro.encoder.input.audio.GetMicrophoneData;
 import com.pedro.encoder.input.audio.MicrophoneManager;
 import com.pedro.encoder.input.video.Camera1ApiManager;
+import com.pedro.encoder.input.video.CameraOpenException;
 import com.pedro.encoder.input.video.EffectManager;
 import com.pedro.encoder.input.video.GetCameraData;
 import com.pedro.encoder.video.FormatVideoEncoder;
@@ -139,7 +140,7 @@ public class RtspBuilder implements GetAccData, GetCameraData, GetH264Data, GetM
     return videoEnabled;
   }
 
-  public void switchCamera() {
+  public void switchCamera() throws CameraOpenException{
     if (isStreaming()) {
       cameraManager.switchCamera();
     }
