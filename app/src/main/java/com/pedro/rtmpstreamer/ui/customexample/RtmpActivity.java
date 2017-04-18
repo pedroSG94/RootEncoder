@@ -23,6 +23,7 @@ import com.pedro.encoder.input.video.CameraOpenException;
 import com.pedro.encoder.input.video.EffectManager;
 import com.pedro.rtmpstreamer.R;
 import com.pedro.rtmpstreamer.builders.RtmpBuilder;
+import com.pedro.rtmpstreamer.ui.defaultexample.ExampleRtmpActivity;
 import net.ossrs.rtmp.ConnectCheckerRtmp;
 
 public class RtmpActivity extends AppCompatActivity
@@ -255,6 +256,26 @@ public class RtmpActivity extends AppCompatActivity
       @Override
       public void run() {
         Toast.makeText(RtmpActivity.this, "Disconnected", Toast.LENGTH_SHORT).show();
+      }
+    });
+  }
+
+  @Override
+  public void onAuthErrorRtmp() {
+    runOnUiThread(new Runnable() {
+      @Override
+      public void run() {
+        Toast.makeText(RtmpActivity.this, "Auth error", Toast.LENGTH_SHORT).show();
+      }
+    });
+  }
+
+  @Override
+  public void onAuthSuccessRtmp() {
+    runOnUiThread(new Runnable() {
+      @Override
+      public void run() {
+        Toast.makeText(RtmpActivity.this, "Auth success", Toast.LENGTH_SHORT).show();
       }
     });
   }

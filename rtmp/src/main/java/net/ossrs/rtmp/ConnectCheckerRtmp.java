@@ -11,4 +11,8 @@ public interface ConnectCheckerRtmp {
     void onConnectionFailedRtmp();
 
     void onDisconnectRtmp();
+
+    void onAuthErrorRtmp();
+
+    void onAuthSuccessRtmp();
 }

@@ -61,16 +61,20 @@ public class SrsFlvMuxer {
   private SrsAllocator mVideoAllocator = new SrsAllocator(128 * 1024);
   private SrsAllocator mAudioAllocator = new SrsAllocator(4 * 1024);
   private ConcurrentLinkedQueue<SrsFlvFrame> mFlvTagCache = new ConcurrentLinkedQueue<>();
-
+  private ConnectCheckerRtmp connectCheckerRtmp;
   private static final String TAG = "SrsFlvMuxer";
 
   /**
    * constructor.
    */
-  public SrsFlvMuxer() {
-    publisher = new DefaultRtmpPublisher();
+  public SrsFlvMuxer(ConnectCheckerRtmp connectCheckerRtmp) {
+    this.connectCheckerRtmp = connectCheckerRtmp;
+    publisher = new DefaultRtmpPublisher(connectCheckerRtmp);
   }
 
+  public void setAuthorization(String user, String password) {
+    publisher.setAuthorization(user, password);
+  }
   public void setJksData(InputStream inputStreamJks, String passPhraseJks){
     publisher.setJksData(inputStreamJks, passPhraseJks);
   }
@@ -141,15 +145,15 @@ public class SrsFlvMuxer {
   /**
    * start to the remote SRS for remux.
    */
-  public void start(final String rtmpUrl, final ConnectCheckerRtmp connectChecker) {
+  public void start(final String rtmpUrl) {
     worker = new Thread(new Runnable() {
       @Override
       public void run() {
         if (!connect(rtmpUrl)) {
-          connectChecker.onConnectionFailedRtmp();
+          connectCheckerRtmp.onConnectionFailedRtmp();
           return;
         }
-        connectChecker.onConnectionSuccessRtmp();
+        connectCheckerRtmp.onConnectionSuccessRtmp();
         while (!Thread.interrupted()) {
           while (!mFlvTagCache.isEmpty()) {
             SrsFlvFrame frame = mFlvTagCache.poll();
@@ -187,7 +191,7 @@ public class SrsFlvMuxer {
   /**
    * stop the muxer, disconnect RTMP connection.
    */
-  public void stop(final ConnectCheckerRtmp connectChecker) {
+  public void stop() {
     mFlvTagCache.clear();
     if (worker != null) {
       worker.interrupt();
@@ -206,7 +210,7 @@ public class SrsFlvMuxer {
     new Thread(new Runnable() {
       @Override
       public void run() {
-        disconnect(connectChecker);
+        disconnect(connectCheckerRtmp);
       }
     }).start();
   }

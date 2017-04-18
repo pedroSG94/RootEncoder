@@ -69,11 +69,32 @@ public class ExampleRtmpActivity extends AppCompatActivity
   }
 
   @Override
+  public void onAuthErrorRtmp() {
+    runOnUiThread(new Runnable() {
+      @Override
+      public void run() {
+        Toast.makeText(ExampleRtmpActivity.this, "Auth error", Toast.LENGTH_SHORT).show();
+      }
+    });
+  }
+
+  @Override
+  public void onAuthSuccessRtmp() {
+    runOnUiThread(new Runnable() {
+      @Override
+      public void run() {
+        Toast.makeText(ExampleRtmpActivity.this, "Auth success", Toast.LENGTH_SHORT).show();
+      }
+    });
+  }
+
+  @Override
   public void onClick(View view) {
     if (!rtmpBuilder.isStreaming()) {
       if (rtmpBuilder.prepareAudio() && rtmpBuilder.prepareVideo()) {
         button.setText(getResources().getString(R.string.stop_button));
-        rtmpBuilder.startStream(etUrl.getText().toString());
+        //rtmpBuilder.startStream(etUrl.getText().toString());
+        rtmpBuilder.startStream("rtmp://rtmp-api.facebook.com:80/rtmp/1892213090993296?ds=1&s_l=1&a=ATj36DtGn3Xbe_9O");
       } else {
         Toast.makeText(this, "Error preparing stream, This device cant do it", Toast.LENGTH_SHORT)
             .show();

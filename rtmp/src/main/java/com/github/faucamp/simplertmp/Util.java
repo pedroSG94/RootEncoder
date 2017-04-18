@@ -1,12 +1,14 @@
 package com.github.faucamp.simplertmp;
 
+import android.util.Base64;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.security.MessageDigest;
 
 /**
  * Misc utility method
- * @author francois
+ * @author francois, pedro
  */
 public class Util {
 
@@ -134,5 +136,52 @@ public class Util {
                     (byte) ((l >> 16) & 0xff),
                     (byte) ((l >> 8) & 0xff),
                     (byte) (l & 0xff)});
+    }
+
+    public static String getSalt(String description) {
+        String salt = null;
+        String data[] = description.split("&");
+        for (String s : data) {
+            if (s.contains("salt=")) {
+                salt = s.substring(5);
+                break;
+            }
+        }
+        return salt;
+    }
+
+    public static String getChallenge(String description) {
+        String challenge = null;
+        String data[] = description.split("&");
+        for (String s : data) {
+            if (s.contains("challenge=")) {
+                challenge = s.substring(10);
+                break;
+            }
+        }
+        return challenge;
+    }
+
+    public static String getOpaque(String description) {
+        String opaque = null;
+        String data[] = description.split("&");
+        for (String s : data) {
+            if (s.contains("opaque=")) {
+                opaque = s.substring(7);
+                break;
+            }
+        }
+        return opaque;
+    }
+
+    public static String stringToMD5BASE64(String s) {
+        try {
+            MessageDigest md = MessageDigest.getInstance("MD5");
+            md.update(s.getBytes("UTF-8"), 0, s.length());
+            byte[] md5hash = md.digest();
+            return Base64.encodeToString(md5hash, Base64.NO_WRAP);
+        } catch (Exception e) {
+            return null;
+        }
     }
 }

@@ -45,8 +45,12 @@ public class RtmpBuilder implements GetAccData, GetCameraData, GetH264Data, GetM
     videoEncoder = new VideoEncoder(this);
     microphoneManager = new MicrophoneManager(this);
     audioEncoder = new AudioEncoder(this);
-    srsFlvMuxer = new SrsFlvMuxer();
+    srsFlvMuxer = new SrsFlvMuxer(connectChecker);
     streaming = false;
+  }
+
+  public void setAuthorization(String user, String password) {
+    srsFlvMuxer.setAuthorization(user, password);
   }
 
   public boolean prepareVideo(int width, int height, int fps, int bitrate, int rotation) {
@@ -75,7 +79,7 @@ public class RtmpBuilder implements GetAccData, GetCameraData, GetH264Data, GetM
   }
 
   public void startStream(String url) {
-    srsFlvMuxer.start(url, connectChecker);
+    srsFlvMuxer.start(url);
     srsFlvMuxer.setVideoResolution(width, height);
     videoEncoder.start();
     audioEncoder.start();
@@ -85,7 +89,7 @@ public class RtmpBuilder implements GetAccData, GetCameraData, GetH264Data, GetM
   }
 
   public void stopStream() {
-    srsFlvMuxer.stop(connectChecker);
+    srsFlvMuxer.stop();
     cameraManager.stop();
     microphoneManager.stop();
     videoEncoder.stop();

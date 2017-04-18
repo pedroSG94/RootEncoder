@@ -4,6 +4,7 @@ import java.io.InputStream;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import com.github.faucamp.simplertmp.io.RtmpConnection;
+import net.ossrs.rtmp.ConnectCheckerRtmp;
 
 /**
  * Srs implementation of an RTMP publisher
@@ -14,8 +15,8 @@ public class DefaultRtmpPublisher implements RtmpPublisher {
 
     private RtmpConnection rtmpConnection;
 
-    public DefaultRtmpPublisher() {
-        rtmpConnection = new RtmpConnection();
+    public DefaultRtmpPublisher(ConnectCheckerRtmp connectCheckerRtmp) {
+        rtmpConnection = new RtmpConnection(connectCheckerRtmp);
     }
 
     public void setJksData(InputStream inputStreamJks, String passPhraseJks){
@@ -57,4 +58,8 @@ public class DefaultRtmpPublisher implements RtmpPublisher {
         rtmpConnection.setVideoResolution(width, height);
     }
 
+    @Override
+    public void setAuthorization(String user, String password) {
+        rtmpConnection.setAuthorization(user, password);
+    }
 }
