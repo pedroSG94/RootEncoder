@@ -54,4 +54,18 @@
           />
     </menu>
   </item>
+  <item android:title="@string/wowza_auth">
+    <menu>
+      <item
+          android:title="@string/wowza_user"
+          app:actionLayout="@xml/edit_text_auth"
+          android:id="@+id/et_wowza_user"
+          />
+      <item
+          android:title="@string/wowza_password"
+          app:actionLayout="@xml/edit_text_auth"
+          android:id="@+id/et_wowza_password"
+          />
+    </menu>
+  </item>
 </menu>

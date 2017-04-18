@@ -451,6 +451,11 @@ public class RtmpConnection implements RtmpPublisher {
     socketExceptionCause = "";
     socket = null;
     rtmpSessionInfo = null;
+    user = null;
+    password = null;
+    salt = null;
+    challenge = null;
+    opaque = null;
   }
 
   @Override
