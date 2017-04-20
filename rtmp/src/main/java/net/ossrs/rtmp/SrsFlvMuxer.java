@@ -1,11 +1,8 @@
 package net.ossrs.rtmp;
 
 import android.media.MediaCodec;
-import android.media.MediaFormat;
 import android.util.Log;
-
 import com.github.faucamp.simplertmp.DefaultRtmpPublisher;
-
 import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
@@ -47,7 +44,8 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 public class SrsFlvMuxer {
 
-
+  private static final int VIDEO_ALLOC_SIZE = 128 * 1024;
+  private static final int AUDIO_ALLOC_SIZE = 4 * 1024;
   private volatile boolean connected = false;
   private DefaultRtmpPublisher publisher;
 
@@ -58,11 +56,12 @@ public class SrsFlvMuxer {
   private boolean needToFindKeyFrame = true;
   private SrsFlvFrame mVideoSequenceHeader;
   private SrsFlvFrame mAudioSequenceHeader;
-  private SrsAllocator mVideoAllocator = new SrsAllocator(128 * 1024);
-  private SrsAllocator mAudioAllocator = new SrsAllocator(4 * 1024);
+  private SrsAllocator mVideoAllocator = new SrsAllocator(VIDEO_ALLOC_SIZE);
+  private SrsAllocator mAudioAllocator = new SrsAllocator(AUDIO_ALLOC_SIZE);
   private ConcurrentLinkedQueue<SrsFlvFrame> mFlvTagCache = new ConcurrentLinkedQueue<>();
   private ConnectCheckerRtmp connectCheckerRtmp;
   private static final String TAG = "SrsFlvMuxer";
+  private int asample_rate = 44100;
 
   /**
    * constructor.
@@ -72,10 +71,20 @@ public class SrsFlvMuxer {
     publisher = new DefaultRtmpPublisher(connectCheckerRtmp);
   }
 
+  public void setAsample_rate(int asample_rate) {
+    this.asample_rate = asample_rate;
+  }
+
+  public void setIsStereo(boolean isStereo) {
+    int channel = (isStereo) ? 2 : 1;
+    flv.setAchannel(channel);
+  }
+
   public void setAuthorization(String user, String password) {
     publisher.setAuthorization(user, password);
   }
-  public void setJksData(InputStream inputStreamJks, String passPhraseJks){
+
+  public void setJksData(InputStream inputStreamJks, String passPhraseJks) {
     publisher.setJksData(inputStreamJks, passPhraseJks);
   }
 
@@ -257,7 +266,15 @@ public class SrsFlvMuxer {
     public final static int Video = 9;
   }
 
-  ;
+  private class SrsCodecAudioSampleRate {
+    // set to the max value to reserved, for array map.
+    public final static int Reserved = 4;
+
+    public final static int R5512 = 0;
+    public final static int R11025 = 1;
+    public final static int R22050 = 2;
+    public final static int R44100 = 3;
+  }
 
   // E.4.3.1 VIDEODATA
   // CodecID UB [4]
@@ -386,15 +403,15 @@ public class SrsFlvMuxer {
     private SrsFlvFrameBytes pps_hdr = new SrsFlvFrameBytes();
     private SrsFlvFrameBytes pps_bb = new SrsFlvFrameBytes();
 
-    public boolean is_sps(SrsFlvFrameBytes frame) {
+    public boolean isSps(SrsFlvFrameBytes frame) {
       return frame.size >= 1 && (frame.data.get(0) & 0x1f) == SrsAvcNaluType.SPS;
     }
 
-    public boolean is_pps(SrsFlvFrameBytes frame) {
+    public boolean isPps(SrsFlvFrameBytes frame) {
       return frame.size >= 1 && (frame.data.get(0) & 0x1f) == SrsAvcNaluType.PPS;
     }
 
-    public SrsFlvFrameBytes mux_nalu_header(SrsFlvFrameBytes frame) {
+    public SrsFlvFrameBytes muxNaluHeader(SrsFlvFrameBytes frame) {
       if (nalu_header.data == null) {
         nalu_header.data = ByteBuffer.allocate(4);
         nalu_header.size = 4;
@@ -415,7 +432,7 @@ public class SrsFlvMuxer {
       return nalu_header;
     }
 
-    public void mux_sequence_header(ByteBuffer sps, ByteBuffer pps, int dts, int pts,
+    public void muxSequenceHeader(ByteBuffer sps, ByteBuffer pps, int dts, int pts,
         ArrayList<SrsFlvFrameBytes> frames) {
       // 5bytes sps/pps header:
       //      configurationVersion, AVCProfileIndication, profile_compatibility,
@@ -503,14 +520,18 @@ public class SrsFlvMuxer {
       frames.add(pps_bb);
     }
 
-    public SrsAllocator.Allocation mux_avc2flv(ArrayList<SrsFlvFrameBytes> frames, int frame_type,
+    public SrsAllocator.Allocation muxFlvTag(ArrayList<SrsFlvFrameBytes> frames, int frame_type,
         int avc_packet_type, int dts, int pts) {
       // for h264 in RTMP video payload, there is 5bytes header:
       //      1bytes, FrameType | CodecID
       //      1bytes, AVCPacketType
       //      3bytes, CompositionTime, the cts.
       // @see: E.4.3 Video Tags, video_file_format_spec_v10_1.pdf, page 78
-      SrsAllocator.Allocation allocation = mVideoAllocator.allocate();
+      int size = 5;
+      for (int i = 0; i < frames.size(); i++) {
+        size += frames.get(i).size;
+      }
+      SrsAllocator.Allocation allocation = mVideoAllocator.allocate(size);
 
       // @see: E.4.3 Video Tags, video_file_format_spec_v10_1.pdf, page 78
       // Frame Type, Type of video frame.
@@ -540,7 +561,7 @@ public class SrsFlvMuxer {
       return allocation;
     }
 
-    public SrsFlvFrameBytes annexb_demux(ByteBuffer bb, MediaCodec.BufferInfo bi) {
+    public SrsFlvFrameBytes demuxAnnexb(ByteBuffer bb, MediaCodec.BufferInfo bi) {
       SrsFlvFrameBytes tbb = new SrsFlvFrameBytes();
 
       while (bb.position() < bi.size) {
@@ -589,9 +610,14 @@ public class SrsFlvMuxer {
     private boolean h264_pps_changed;
     private boolean h264_sps_pps_sent;
     private boolean aac_specific_config_got;
+    private int achannel = 2;
 
     public SrsFlv() {
       reset();
+    }
+
+    public void setAchannel(int achannel) {
+      this.achannel = achannel;
     }
 
     public void reset() {
@@ -605,7 +631,7 @@ public class SrsFlvMuxer {
       int pts = (int) (bi.presentationTimeUs / 1000);
       int dts = pts;
 
-      audio_tag = mAudioAllocator.allocate();
+      audio_tag = mAudioAllocator.allocate(bi.size + 2);
       byte aac_packet_type = 1; // 1 = AAC raw
       if (!aac_specific_config_got) {
         // @see aac-mp4a-format-ISO_IEC_14496-3+2001.pdf
@@ -616,7 +642,12 @@ public class SrsFlvMuxer {
         // 3bits left.
 
         // samplingFrequencyIndex; 4 bslbf
-        byte samplingFrequencyIndex = 0x04;
+        byte samplingFrequencyIndex = 0x04; //44100
+        if (asample_rate == SrsCodecAudioSampleRate.R22050) {
+          samplingFrequencyIndex = 0x07;  //2250
+        } else if (asample_rate == SrsCodecAudioSampleRate.R11025) {
+          samplingFrequencyIndex = 0x0a;  //11025
+        }
         ch |= (samplingFrequencyIndex >> 1) & 0x07;
         audio_tag.put(ch, 2);
 
@@ -625,7 +656,9 @@ public class SrsFlvMuxer {
 
         // channelConfiguration; 4 bslbf
         byte channelConfiguration = 1;
-
+        if (achannel == 2) {
+          channelConfiguration = 2;
+        }
         ch |= (channelConfiguration << 3) & 0x78;
         // 3bits left.
 
@@ -639,7 +672,7 @@ public class SrsFlvMuxer {
         aac_specific_config_got = true;
         aac_packet_type = 0; // 0 = AAC sequence header
 
-        write_adts_header(audio_tag.array(), 4);
+        writeAdtsHeader(audio_tag.array(), 4);
         audio_tag.appendOffset(7);
       } else {
         bb.get(audio_tag.array(), 2, bi.size);
@@ -648,9 +681,16 @@ public class SrsFlvMuxer {
 
       byte sound_format = 10; // AAC
       byte sound_type = 0; // 0 = Mono sound
-
+      if (achannel == 2) {
+        sound_type = 1; // 1 = Stereo sound
+      }
       byte sound_size = 1; // 1 = 16-bit samples
       byte sound_rate = 3; // 44100, 22050, 11025
+      if (asample_rate == 22050) {
+        sound_rate = 2;
+      } else if (asample_rate == 11025) {
+        sound_rate = 1;
+      }
 
       // for audio frame, there is 1 or 2 bytes header:
       //      1bytes, SoundFormat|SoundRate|SoundSize|SoundType
@@ -663,10 +703,10 @@ public class SrsFlvMuxer {
       audio_tag.put(audio_header, 0);
       audio_tag.put(aac_packet_type, 1);
 
-      rtmp_write_packet(SrsCodecFlvTag.Audio, dts, 0, aac_packet_type, audio_tag);
+      writeRtmpPacket(SrsCodecFlvTag.Audio, dts, 0, aac_packet_type, audio_tag);
     }
 
-    private void write_adts_header(byte[] frame, int offset) {
+    private void writeAdtsHeader(byte[] frame, int offset) {
       // adts sync word 0xfff (12-bit)
       frame[offset] = (byte) 0xff;
       frame[offset + 1] = (byte) 0xf0;
@@ -705,11 +745,12 @@ public class SrsFlvMuxer {
     public void writeVideoSample(final ByteBuffer bb, MediaCodec.BufferInfo bi) {
       int pts = (int) (bi.presentationTimeUs / 1000);
       int dts = pts;
-      int frame_type = SrsCodecVideoAVCFrame.InterFrame;
+
+      int type = SrsCodecVideoAVCFrame.InterFrame;
 
       // send each frame.
       while (bb.position() < bi.size) {
-        SrsFlvFrameBytes frame = avc.annexb_demux(bb, bi);
+        SrsFlvFrameBytes frame = avc.demuxAnnexb(bb, bi);
 
         // 5bits, 7.3.1 NAL unit syntax,
         // H.264-AVC-ISO_IEC_14496-10.pdf, page 44.
@@ -722,7 +763,7 @@ public class SrsFlvMuxer {
 
         // for IDR frame, the frame is keyframe.
         if (nal_unit_type == SrsAvcNaluType.IDR) {
-          frame_type = SrsCodecVideoAVCFrame.KeyFrame;
+          type = SrsCodecVideoAVCFrame.KeyFrame;
         }
 
         // ignore the nalu type aud(9)
@@ -731,7 +772,7 @@ public class SrsFlvMuxer {
         }
 
         // for sps
-        if (avc.is_sps(frame)) {
+        if (avc.isSps(frame)) {
           if (!frame.data.equals(h264_sps)) {
             byte[] sps = new byte[frame.size];
             frame.data.get(sps);
@@ -742,7 +783,7 @@ public class SrsFlvMuxer {
         }
 
         // for pps
-        if (avc.is_pps(frame)) {
+        if (avc.isPps(frame)) {
           if (!frame.data.equals(h264_pps)) {
             byte[] pps = new byte[frame.size];
             frame.data.get(pps);
@@ -752,22 +793,17 @@ public class SrsFlvMuxer {
           continue;
         }
 
-        // ibp frame.
-        SrsFlvFrameBytes nalu_header = avc.mux_nalu_header(frame);
-        ipbs.add(nalu_header);
+        // IPB frame.
+        ipbs.add(avc.muxNaluHeader(frame));
         ipbs.add(frame);
-
-        // Drop the es frames with huge size which are mostly generated at encoder stop
-        // since the encoder may work unsteadily at that moment.
-        if (nalu_header.size + frame.size <= mVideoAllocator.getIndividualAllocationSize()) {
-          write_h264_sps_pps(dts, pts);
-          write_h264_ipb_frame(ipbs, frame_type, dts, pts);
-        }
-        ipbs.clear();
       }
+
+      writeH264SpsPps(dts, pts);
+      writeH264IpbFrame(ipbs, type, dts, pts);
+      ipbs.clear();
     }
 
-    private void write_h264_sps_pps(int dts, int pts) {
+    private void writeH264SpsPps(int dts, int pts) {
       // when sps or pps changed, update the sequence header,
       // for the pps maybe not changed while sps changed.
       // so, we must check when each video ts message frame parsed.
@@ -782,15 +818,15 @@ public class SrsFlvMuxer {
 
       // h264 raw to h264 packet.
       ArrayList<SrsFlvFrameBytes> frames = new ArrayList<>();
-      avc.mux_sequence_header(h264_sps, h264_pps, dts, pts, frames);
+      avc.muxSequenceHeader(h264_sps, h264_pps, dts, pts, frames);
 
       // h264 packet to flv packet.
       int frame_type = SrsCodecVideoAVCFrame.KeyFrame;
       int avc_packet_type = SrsCodecVideoAVCType.SequenceHeader;
-      video_tag = avc.mux_avc2flv(frames, frame_type, avc_packet_type, dts, pts);
+      video_tag = avc.muxFlvTag(frames, frame_type, avc_packet_type, dts, pts);
 
       // the timestamp in rtmp message header is dts.
-      rtmp_write_packet(SrsCodecFlvTag.Video, dts, frame_type, avc_packet_type, video_tag);
+      writeRtmpPacket(SrsCodecFlvTag.Video, dts, frame_type, avc_packet_type, video_tag);
 
       // reset sps and pps.
       h264_sps_changed = false;
@@ -800,7 +836,7 @@ public class SrsFlvMuxer {
           h264_pps.array().length));
     }
 
-    private void write_h264_ipb_frame(ArrayList<SrsFlvFrameBytes> frames, int frame_type, int dts,
+    private void writeH264IpbFrame(ArrayList<SrsFlvFrameBytes> frames, int frame_type, int dts,
         int pts) {
       // when sps or pps not sent, ignore the packet.
       // @see https://github.com/simple-rtmp-server/srs/issues/203
@@ -809,13 +845,13 @@ public class SrsFlvMuxer {
       }
 
       int avc_packet_type = SrsCodecVideoAVCType.NALU;
-      video_tag = avc.mux_avc2flv(frames, frame_type, avc_packet_type, dts, pts);
+      video_tag = avc.muxFlvTag(frames, frame_type, avc_packet_type, dts, pts);
 
       // the timestamp in rtmp message header is dts.
-      rtmp_write_packet(SrsCodecFlvTag.Video, dts, frame_type, avc_packet_type, video_tag);
+      writeRtmpPacket(SrsCodecFlvTag.Video, dts, frame_type, avc_packet_type, video_tag);
     }
 
-    private void rtmp_write_packet(int type, int dts, int frame_type, int avc_aac_type,
+    private void writeRtmpPacket(int type, int dts, int frame_type, int avc_aac_type,
         SrsAllocator.Allocation tag) {
       SrsFlvFrame frame = new SrsFlvFrame();
       frame.flvTag = tag;

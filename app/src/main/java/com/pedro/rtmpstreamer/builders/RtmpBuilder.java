@@ -63,6 +63,8 @@ public class RtmpBuilder implements GetAccData, GetCameraData, GetH264Data, GetM
 
   public boolean prepareAudio(int bitrate, int sampleRate, boolean isStereo) {
     microphoneManager.createMicrophone(sampleRate, isStereo);
+    srsFlvMuxer.setIsStereo(isStereo);
+    srsFlvMuxer.setAsample_rate(sampleRate);
     return audioEncoder.prepareAudioEncoder(bitrate, sampleRate, isStereo);
   }
 
