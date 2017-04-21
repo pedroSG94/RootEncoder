@@ -164,7 +164,7 @@ public class SrsFlvMuxer {
         }
         connectCheckerRtmp.onConnectionSuccessRtmp();
         while (!Thread.interrupted()) {
-          while (!mFlvTagCache.isEmpty()) {
+          if (!mFlvTagCache.isEmpty()) {
             SrsFlvFrame frame = mFlvTagCache.poll();
             if (frame.is_sequenceHeader()) {
               if (frame.is_video()) {
@@ -183,14 +183,14 @@ public class SrsFlvMuxer {
             }
           }
           // Waiting for next frame
-          synchronized (txFrameLock) {
-            try {
-              // isEmpty() may take some time, so we set timeout to detect next frame
-              txFrameLock.wait(500);
-            } catch (InterruptedException ie) {
-              worker.interrupt();
-            }
-          }
+          //synchronized (txFrameLock) {
+          //  try {
+          //    // isEmpty() may take some time, so we set timeout to detect next frame
+          //    txFrameLock.wait(500);
+          //  } catch (InterruptedException ie) {
+          //    worker.interrupt();
+          //  }
+          //}
         }
       }
     });

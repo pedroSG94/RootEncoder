@@ -229,6 +229,7 @@ public class VideoEncoder implements GetCameraData {
       videoEncoder.release();
       videoEncoder = null;
     }
+    queue.clear();
   }
 
   @Override

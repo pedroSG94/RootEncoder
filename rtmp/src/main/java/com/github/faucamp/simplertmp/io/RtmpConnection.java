@@ -609,7 +609,7 @@ public class RtmpConnection implements RtmpPublisher {
         try {
           String description = ((AmfString) ((AmfObject) invoke.getData().get(1)).getProperty(
               "description")).getValue();
-          Log.e("Pedro", description);
+          Log.i(TAG, description);
           if (description.contains("reason=authfailed")) {
             connectCheckerRtmp.onAuthErrorRtmp();
             connected = false;
@@ -678,7 +678,7 @@ public class RtmpConnection implements RtmpPublisher {
         // This is the result of one of the methods invoked by us
         String method = rtmpSessionInfo.takeInvokedCommand(invoke.getTransactionId());
 
-        Log.e(TAG, "handleRxInvoke: Got result for invoked method: " + method);
+        Log.i(TAG, "handleRxInvoke: Got result for invoked method: " + method);
         if ("connect".equals(method)) {
           if(onAuth){
             connectCheckerRtmp.onAuthSuccessRtmp();
