@@ -18,7 +18,7 @@ import javax.microedition.khronos.egl.EGLSurface;
 
 /**
  * Created by pedro on 20/01/17.
- * This class need use same resolution, fps and rotation that VideoEncoder
+ * This class need use same resolution, fps and imageFormat that VideoEncoder
  * Tested with YV12 and NV21.
  *
  * Advantage = you can control fps of the stream.
@@ -176,9 +176,9 @@ public class Camera1ApiManager implements Camera.PreviewCallback {
   public void onPreviewFrame(byte[] data, Camera camera) {
     if (fpsController.fpsIsValid()) {
       if (imageFormat == ImageFormat.YV12) {
-        getCameraData.inputYv12Data(data, width, height);
+        getCameraData.inputYv12Data(data);
       } else if (imageFormat == ImageFormat.NV21) {
-        getCameraData.inputNv21Data(data, width, height);
+        getCameraData.inputNv21Data(data);
       }
     }
   }

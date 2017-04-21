@@ -3,6 +3,7 @@ package com.pedro.encoder.video;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
+import android.graphics.ImageFormat;
 import android.media.MediaCodec;
 import android.media.MediaCodecInfo;
 import android.media.MediaCodecList;
@@ -18,12 +19,11 @@ import com.pedro.encoder.utils.YUVUtil;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
-
-import static android.media.MediaCodec.PARAMETER_KEY_VIDEO_BITRATE;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 /**
  * Created by pedro on 19/01/17.
- * This class need use same resolution, fps and rotation that Camera1ApiManager
+ * This class need use same resolution, fps and imageFormat that Camera1ApiManager
  */
 
 public class VideoEncoder implements GetCameraData {
@@ -35,9 +35,11 @@ public class VideoEncoder implements GetCameraData {
   private MediaCodec.BufferInfo videoInfo = new MediaCodec.BufferInfo();
   private long mPresentTimeUs;
   private boolean running = false;
-  //for surface to buffer encoder
+  //surface to buffer encoder
   private Surface inputSurface;
-  private final Object lock = new Object();
+  //buffer to buffer
+  private ConcurrentLinkedQueue<byte[]> queue = new ConcurrentLinkedQueue<>();
+  private int imageFormat = ImageFormat.NV21;
 
   //default parameters for encoder
   private String codec = "video/avc";
@@ -137,7 +139,7 @@ public class VideoEncoder implements GetCameraData {
     if (isRunning()) {
       this.bitRate = bitrate;
       Bundle bundle = new Bundle();
-      bundle.putInt(PARAMETER_KEY_VIDEO_BITRATE, bitrate);
+      bundle.putInt(MediaCodec.PARAMETER_KEY_VIDEO_BITRATE, bitrate);
       try {
         videoEncoder.setParameters(bundle);
       } catch (IllegalStateException e) {
@@ -155,6 +157,10 @@ public class VideoEncoder implements GetCameraData {
     this.inputSurface = inputSurface;
   }
 
+  public void setImageFormat(int imageFormat) {
+    this.imageFormat = imageFormat;
+  }
+
   public int getWidth() {
     return width;
   }
@@ -170,6 +176,8 @@ public class VideoEncoder implements GetCameraData {
   public void start() {
     mPresentTimeUs = System.nanoTime() / 1000;
     videoEncoder.start();
+
+    //surface to buffer
     if (formatVideoEncoder == FormatVideoEncoder.SURFACE
         && Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
       if (Build.VERSION.SDK_INT >= 21) {
@@ -177,6 +185,35 @@ public class VideoEncoder implements GetCameraData {
       } else {
         getDataFromSurface();
       }
+      //buffer to buffer
+    } else {
+      thread = new Thread(new Runnable() {
+        @Override
+        public void run() {
+          while (!Thread.interrupted()) {
+            if (!queue.isEmpty()) {
+              byte[] i420;
+              if(imageFormat == ImageFormat.NV21) {
+                i420 = (sendBlackImage) ? blackImage
+                    : YUVUtil.NV21toYUV420byColor(queue.poll(), width, height, formatVideoEncoder);
+              } else if (imageFormat == ImageFormat.YV12){
+                i420 = (sendBlackImage) ? blackImage
+                    : YUVUtil.YV12toYUV420byColor(queue.poll(), width, height, formatVideoEncoder);
+              } else {
+                stop();
+                Log.e(TAG, "Unsupported imageFormat");
+                break;
+              }
+              if (Build.VERSION.SDK_INT >= 21) {
+                getDataFromEncoderAPI21(i420);
+              } else {
+                getDataFromEncoder(i420);
+              }
+            }
+          }
+        }
+      });
+      thread.start();
     }
     running = true;
   }
@@ -195,64 +232,17 @@ public class VideoEncoder implements GetCameraData {
   }
 
   @Override
-  public void inputYv12Data(final byte[] buffer, final int width, final int height) {
-    thread = new Thread(new Runnable() {
-      @Override
-      public void run() {
-        if (formatVideoEncoder != FormatVideoEncoder.SURFACE) {
-          //if you are disable video send a black bitmap else send camera data
-          byte[] i420 = (sendBlackImage) ? blackImage
-              : YUVUtil.YV12toYUV420byColor(buffer, width, height, formatVideoEncoder);
-          if (Build.VERSION.SDK_INT >= 21) {
-            getDataFromEncoderAPI21(i420);
-          } else {
-            getDataFromEncoder(i420);
-          }
-        }
-      }
-    });
-    thread.start();
+  public void inputYv12Data(byte[] buffer) {
+    if(running) {
+      queue.add(buffer);
+    }
   }
 
   @Override
-  public void inputNv21Data(final byte[] buffer, final int width, final int height) {
-    thread = new Thread(new Runnable() {
-      @Override
-      public void run() {
-        if (formatVideoEncoder != FormatVideoEncoder.SURFACE) {
-          //if you are disable video send a black bitmap else send camera data
-          byte[] i420 = (sendBlackImage) ? blackImage
-              : YUVUtil.NV21toYUV420byColor(buffer, width, height, formatVideoEncoder);
-          if (Build.VERSION.SDK_INT >= 21) {
-            getDataFromEncoderAPI21(i420);
-          } else {
-            getDataFromEncoder(i420);
-          }
-        }
-      }
-    });
-    thread.start();
-  }
-
-  /**
-   * call it to encoder YUV 420, 422, 444
-   * remember create encoder with correct color format before
-   */
-
-  public void inputYuv4XX(final byte[] buffer) {
-    thread = new Thread(new Runnable() {
-      @Override
-      public void run() {
-        if (formatVideoEncoder == FormatVideoEncoder.SURFACE) {
-          if (Build.VERSION.SDK_INT >= 21) {
-            getDataFromEncoderAPI21(buffer);
-          } else {
-            getDataFromEncoder(buffer);
-          }
-        }
-      }
-    });
-    thread.start();
+  public void inputNv21Data(byte[] buffer) {
+    if(running) {
+      queue.add(buffer);
+    }
   }
 
   @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
@@ -311,61 +301,57 @@ public class VideoEncoder implements GetCameraData {
 
   @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
   private void getDataFromEncoderAPI21(byte[] buffer) {
-    synchronized (lock) {
-      int inBufferIndex = videoEncoder.dequeueInputBuffer(-1);
-      if (inBufferIndex >= 0) {
-        ByteBuffer bb = videoEncoder.getInputBuffer(inBufferIndex);
-        bb.put(buffer, 0, buffer.length);
-        long pts = System.nanoTime() / 1000 - mPresentTimeUs;
-        videoEncoder.queueInputBuffer(inBufferIndex, 0, buffer.length, pts, 0);
-      }
+    int inBufferIndex = videoEncoder.dequeueInputBuffer(-1);
+    if (inBufferIndex >= 0) {
+      ByteBuffer bb = videoEncoder.getInputBuffer(inBufferIndex);
+      bb.put(buffer, 0, buffer.length);
+      long pts = System.nanoTime() / 1000 - mPresentTimeUs;
+      videoEncoder.queueInputBuffer(inBufferIndex, 0, buffer.length, pts, 0);
+    }
 
-      for (; ; ) {
-        int outBufferIndex = videoEncoder.dequeueOutputBuffer(videoInfo, 0);
-        if (outBufferIndex == MediaCodec.INFO_OUTPUT_FORMAT_CHANGED) {
-          MediaFormat mediaFormat = videoEncoder.getOutputFormat();
-          getH264Data.onSPSandPPS(mediaFormat.getByteBuffer("csd-0"),
-              mediaFormat.getByteBuffer("csd-1"));
-        } else if (outBufferIndex >= 0) {
-          //This ByteBuffer is H264
-          ByteBuffer bb = videoEncoder.getOutputBuffer(outBufferIndex);
-          getH264Data.getH264Data(bb, videoInfo);
-          videoEncoder.releaseOutputBuffer(outBufferIndex, false);
-        } else {
-          break;
-        }
+    for (; ; ) {
+      int outBufferIndex = videoEncoder.dequeueOutputBuffer(videoInfo, 0);
+      if (outBufferIndex == MediaCodec.INFO_OUTPUT_FORMAT_CHANGED) {
+        MediaFormat mediaFormat = videoEncoder.getOutputFormat();
+        getH264Data.onSPSandPPS(mediaFormat.getByteBuffer("csd-0"),
+            mediaFormat.getByteBuffer("csd-1"));
+      } else if (outBufferIndex >= 0) {
+        //This ByteBuffer is H264
+        ByteBuffer bb = videoEncoder.getOutputBuffer(outBufferIndex);
+        getH264Data.getH264Data(bb, videoInfo);
+        videoEncoder.releaseOutputBuffer(outBufferIndex, false);
+      } else {
+        break;
       }
     }
   }
 
   private void getDataFromEncoder(byte[] buffer) {
-    synchronized (lock) {
-      ByteBuffer[] inputBuffers = videoEncoder.getInputBuffers();
-      ByteBuffer[] outputBuffers = videoEncoder.getOutputBuffers();
+    ByteBuffer[] inputBuffers = videoEncoder.getInputBuffers();
+    ByteBuffer[] outputBuffers = videoEncoder.getOutputBuffers();
 
-      int inBufferIndex = videoEncoder.dequeueInputBuffer(-1);
-      if (inBufferIndex >= 0) {
-        ByteBuffer bb = inputBuffers[inBufferIndex];
-        bb.clear();
-        bb.put(buffer, 0, buffer.length);
-        long pts = System.nanoTime() / 1000 - mPresentTimeUs;
-        videoEncoder.queueInputBuffer(inBufferIndex, 0, buffer.length, pts, 0);
-      }
+    int inBufferIndex = videoEncoder.dequeueInputBuffer(-1);
+    if (inBufferIndex >= 0) {
+      ByteBuffer bb = inputBuffers[inBufferIndex];
+      bb.clear();
+      bb.put(buffer, 0, buffer.length);
+      long pts = System.nanoTime() / 1000 - mPresentTimeUs;
+      videoEncoder.queueInputBuffer(inBufferIndex, 0, buffer.length, pts, 0);
+    }
 
-      for (; ; ) {
-        int outBufferIndex = videoEncoder.dequeueOutputBuffer(videoInfo, 0);
-        if (outBufferIndex == MediaCodec.INFO_OUTPUT_FORMAT_CHANGED) {
-          MediaFormat mediaFormat = videoEncoder.getOutputFormat();
-          getH264Data.onSPSandPPS(mediaFormat.getByteBuffer("csd-0"),
-              mediaFormat.getByteBuffer("csd-1"));
-        } else if (outBufferIndex >= 0) {
-          //This ByteBuffer is H264
-          ByteBuffer bb = outputBuffers[outBufferIndex];
-          getH264Data.getH264Data(bb, videoInfo);
-          videoEncoder.releaseOutputBuffer(outBufferIndex, false);
-        } else {
-          break;
-        }
+    for (; ; ) {
+      int outBufferIndex = videoEncoder.dequeueOutputBuffer(videoInfo, 0);
+      if (outBufferIndex == MediaCodec.INFO_OUTPUT_FORMAT_CHANGED) {
+        MediaFormat mediaFormat = videoEncoder.getOutputFormat();
+        getH264Data.onSPSandPPS(mediaFormat.getByteBuffer("csd-0"),
+            mediaFormat.getByteBuffer("csd-1"));
+      } else if (outBufferIndex >= 0) {
+        //This ByteBuffer is H264
+        ByteBuffer bb = outputBuffers[outBufferIndex];
+        getH264Data.getH264Data(bb, videoInfo);
+        videoEncoder.releaseOutputBuffer(outBufferIndex, false);
+      } else {
+        break;
       }
     }
   }
@@ -447,7 +433,7 @@ public class VideoEncoder implements GetCameraData {
     if (Build.VERSION.SDK_INT >= 19) {
       if (isRunning()) {
         Bundle bundle = new Bundle();
-        bundle.putInt(PARAMETER_KEY_VIDEO_BITRATE, 100 * 1024);
+        bundle.putInt(MediaCodec.PARAMETER_KEY_VIDEO_BITRATE, 100 * 1024);
         try {
           videoEncoder.setParameters(bundle);
         } catch (IllegalStateException e) {

@@ -36,11 +36,9 @@ public class RtmpBuilder implements GetAccData, GetCameraData, GetH264Data, GetM
   private AudioEncoder audioEncoder;
   private SrsFlvMuxer srsFlvMuxer;
   private boolean streaming;
-  private ConnectCheckerRtmp connectChecker;
   private boolean videoEnabled = true;
 
   public RtmpBuilder(SurfaceView surfaceView, ConnectCheckerRtmp connectChecker) {
-    this.connectChecker = connectChecker;
     cameraManager = new Camera1ApiManager(surfaceView, this);
     videoEncoder = new VideoEncoder(this);
     microphoneManager = new MicrophoneManager(this);
@@ -56,7 +54,9 @@ public class RtmpBuilder implements GetAccData, GetCameraData, GetH264Data, GetM
   public boolean prepareVideo(int width, int height, int fps, int bitrate, int rotation) {
     this.width = width;
     this.height = height;
-    cameraManager.prepareCamera(width, height, fps, ImageFormat.NV21);
+    int imageFormat = ImageFormat.NV21; //supported nv21 and yv12
+    cameraManager.prepareCamera(width, height, fps, imageFormat);
+    videoEncoder.setImageFormat(imageFormat);
     return videoEncoder.prepareVideoEncoder(width, height, fps, bitrate, rotation,
         FormatVideoEncoder.YUV420Dynamical);
   }
@@ -178,12 +178,12 @@ public class RtmpBuilder implements GetAccData, GetCameraData, GetH264Data, GetM
   }
 
   @Override
-  public void inputYv12Data(byte[] buffer, int width, int height) {
-    videoEncoder.inputYv12Data(buffer, width, height);
+  public void inputYv12Data(byte[] buffer) {
+    videoEncoder.inputYv12Data(buffer);
   }
 
   @Override
-  public void inputNv21Data(byte[] buffer, int width, int height) {
-    videoEncoder.inputNv21Data(buffer, width, height);
+  public void inputNv21Data(byte[] buffer) {
+    videoEncoder.inputNv21Data(buffer);
   }
 }

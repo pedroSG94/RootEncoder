@@ -61,7 +61,9 @@ public class RtspBuilder implements GetAccData, GetCameraData, GetH264Data, GetM
   }
 
   public boolean prepareVideo(int width, int height, int fps, int bitrate, int rotation) {
-    cameraManager.prepareCamera(width, height, fps, ImageFormat.NV21);
+    int imageFormat = ImageFormat.NV21; //supported nv21 and yv12
+    cameraManager.prepareCamera(width, height, fps, imageFormat);
+    videoEncoder.setImageFormat(imageFormat);
     return videoEncoder.prepareVideoEncoder(width, height, fps, bitrate, rotation,
         FormatVideoEncoder.YUV420Dynamical);
   }
@@ -194,13 +196,13 @@ public class RtspBuilder implements GetAccData, GetCameraData, GetH264Data, GetM
   }
 
   @Override
-  public void inputYv12Data(byte[] buffer, int width, int height) {
-    videoEncoder.inputYv12Data(buffer, width, height);
+  public void inputYv12Data(byte[] buffer) {
+    videoEncoder.inputYv12Data(buffer);
   }
 
   @Override
-  public void inputNv21Data(byte[] buffer, int width, int height) {
-    videoEncoder.inputNv21Data(buffer, width, height);
+  public void inputNv21Data(byte[] buffer) {
+    videoEncoder.inputNv21Data(buffer);
   }
 
   public void updateDestination() {

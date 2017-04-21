@@ -6,7 +6,7 @@ package com.pedro.encoder.input.video;
 
 public interface GetCameraData {
 
-    void inputYv12Data(byte[] buffer, int width, int height);
+    void inputYv12Data(byte[] buffer);
 
-    void inputNv21Data(byte[] buffer, int width, int height);
+    void inputNv21Data(byte[] buffer);
 }
