@@ -5,6 +5,7 @@ import android.hardware.Camera;
 import android.opengl.GLES20;
 import android.util.Log;
 import android.view.Surface;
+import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 
 import java.io.IOException;
@@ -112,7 +113,7 @@ public class Camera1ApiManager implements Camera.PreviewCallback {
       camera.stopPreview();
       camera.release();
       camera = null;
-      clearSurface(surfaceView.getHolder().getSurface());
+      clearSurface(surfaceView.getHolder());
       running = false;
     }
   }
@@ -120,7 +121,7 @@ public class Camera1ApiManager implements Camera.PreviewCallback {
   /**
    * clear data from surface using opengl
    */
-  private void clearSurface(Surface texture) {
+  private void clearSurface(SurfaceHolder texture) {
     EGL10 egl = (EGL10) EGLContext.getEGL();
     EGLDisplay display = egl.eglGetDisplay(EGL10.EGL_DEFAULT_DISPLAY);
     egl.eglInitialize(display, null);

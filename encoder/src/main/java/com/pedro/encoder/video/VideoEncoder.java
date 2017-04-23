@@ -13,6 +13,7 @@ import android.os.Bundle;
 import android.support.annotation.RequiresApi;
 import android.util.Log;
 
+import android.util.Pair;
 import android.view.Surface;
 import com.pedro.encoder.input.video.GetCameraData;
 import com.pedro.encoder.utils.YUVUtil;
@@ -35,6 +36,8 @@ public class VideoEncoder implements GetCameraData {
   private MediaCodec.BufferInfo videoInfo = new MediaCodec.BufferInfo();
   private long mPresentTimeUs;
   private boolean running = false;
+  private boolean spsPpsSetted = false;
+
   //surface to buffer encoder
   private Surface inputSurface;
   //buffer to buffer
@@ -174,6 +177,7 @@ public class VideoEncoder implements GetCameraData {
   }
 
   public void start() {
+    spsPpsSetted = false;
     mPresentTimeUs = System.nanoTime() / 1000;
     videoEncoder.start();
 
@@ -193,10 +197,10 @@ public class VideoEncoder implements GetCameraData {
           while (!Thread.interrupted()) {
             if (!queue.isEmpty()) {
               byte[] i420;
-              if(imageFormat == ImageFormat.NV21) {
+              if (imageFormat == ImageFormat.NV21) {
                 i420 = (sendBlackImage) ? blackImage
                     : YUVUtil.NV21toYUV420byColor(queue.poll(), width, height, formatVideoEncoder);
-              } else if (imageFormat == ImageFormat.YV12){
+              } else if (imageFormat == ImageFormat.YV12) {
                 i420 = (sendBlackImage) ? blackImage
                     : YUVUtil.YV12toYUV420byColor(queue.poll(), width, height, formatVideoEncoder);
               } else {
@@ -230,18 +234,19 @@ public class VideoEncoder implements GetCameraData {
       videoEncoder = null;
     }
     queue.clear();
+    spsPpsSetted = false;
   }
 
   @Override
   public void inputYv12Data(byte[] buffer) {
-    if(running) {
+    if (running) {
       queue.add(buffer);
     }
   }
 
   @Override
   public void inputNv21Data(byte[] buffer) {
-    if(running) {
+    if (running) {
       queue.add(buffer);
     }
   }
@@ -258,11 +263,24 @@ public class VideoEncoder implements GetCameraData {
               MediaFormat mediaFormat = videoEncoder.getOutputFormat();
               getH264Data.onSPSandPPS(mediaFormat.getByteBuffer("csd-0"),
                   mediaFormat.getByteBuffer("csd-1"));
+              spsPpsSetted = true;
             } else if (outBufferIndex >= 0) {
-              //This ByteBuffer is H264
-              ByteBuffer bb = videoEncoder.getOutputBuffer(outBufferIndex);
-              getH264Data.getH264Data(bb, videoInfo);
-              videoEncoder.releaseOutputBuffer(outBufferIndex, false);
+              if ((videoInfo.flags & MediaCodec.BUFFER_FLAG_CODEC_CONFIG) != 0) {
+                if (!spsPpsSetted) {
+                  Pair<ByteBuffer, ByteBuffer> buffers =
+                      decodeSpsPpsFromBuffer(videoEncoder.getOutputBuffer(outBufferIndex),
+                          videoInfo.size);
+                  if (buffers != null) {
+                    getH264Data.onSPSandPPS(buffers.first, buffers.second);
+                    spsPpsSetted = true;
+                  }
+                }
+              } else {
+                //This ByteBuffer is H264
+                ByteBuffer bb = videoEncoder.getOutputBuffer(outBufferIndex);
+                getH264Data.getH264Data(bb, videoInfo);
+                videoEncoder.releaseOutputBuffer(outBufferIndex, false);
+              }
             } else {
               break;
             }
@@ -285,11 +303,23 @@ public class VideoEncoder implements GetCameraData {
               MediaFormat mediaFormat = videoEncoder.getOutputFormat();
               getH264Data.onSPSandPPS(mediaFormat.getByteBuffer("csd-0"),
                   mediaFormat.getByteBuffer("csd-1"));
+              spsPpsSetted = true;
             } else if (outBufferIndex >= 0) {
-              //This ByteBuffer is H264
-              ByteBuffer bb = outputBuffers[outBufferIndex];
-              getH264Data.getH264Data(bb, videoInfo);
-              videoEncoder.releaseOutputBuffer(outBufferIndex, false);
+              if ((videoInfo.flags & MediaCodec.BUFFER_FLAG_CODEC_CONFIG) != 0) {
+                if (!spsPpsSetted) {
+                  Pair<ByteBuffer, ByteBuffer> buffers =
+                      decodeSpsPpsFromBuffer(outputBuffers[outBufferIndex], videoInfo.size);
+                  if (buffers != null) {
+                    getH264Data.onSPSandPPS(buffers.first, buffers.second);
+                    spsPpsSetted = true;
+                  }
+                }
+              } else {
+                //This ByteBuffer is H264
+                ByteBuffer bb = outputBuffers[outBufferIndex];
+                getH264Data.getH264Data(bb, videoInfo);
+                videoEncoder.releaseOutputBuffer(outBufferIndex, false);
+              }
             } else {
               break;
             }
@@ -309,18 +339,30 @@ public class VideoEncoder implements GetCameraData {
       long pts = System.nanoTime() / 1000 - mPresentTimeUs;
       videoEncoder.queueInputBuffer(inBufferIndex, 0, buffer.length, pts, 0);
     }
-
     for (; ; ) {
       int outBufferIndex = videoEncoder.dequeueOutputBuffer(videoInfo, 0);
       if (outBufferIndex == MediaCodec.INFO_OUTPUT_FORMAT_CHANGED) {
         MediaFormat mediaFormat = videoEncoder.getOutputFormat();
         getH264Data.onSPSandPPS(mediaFormat.getByteBuffer("csd-0"),
             mediaFormat.getByteBuffer("csd-1"));
+        spsPpsSetted = true;
       } else if (outBufferIndex >= 0) {
-        //This ByteBuffer is H264
-        ByteBuffer bb = videoEncoder.getOutputBuffer(outBufferIndex);
-        getH264Data.getH264Data(bb, videoInfo);
-        videoEncoder.releaseOutputBuffer(outBufferIndex, false);
+        if ((videoInfo.flags & MediaCodec.BUFFER_FLAG_CODEC_CONFIG) != 0) {
+          if (!spsPpsSetted) {
+            Pair<ByteBuffer, ByteBuffer> buffers =
+                decodeSpsPpsFromBuffer(videoEncoder.getOutputBuffer(outBufferIndex),
+                    videoInfo.size);
+            if (buffers != null) {
+              getH264Data.onSPSandPPS(buffers.first, buffers.second);
+              spsPpsSetted = true;
+            }
+          }
+        } else {
+          //This ByteBuffer is H264
+          ByteBuffer bb = videoEncoder.getOutputBuffer(outBufferIndex);
+          getH264Data.getH264Data(bb, videoInfo);
+          videoEncoder.releaseOutputBuffer(outBufferIndex, false);
+        }
       } else {
         break;
       }
@@ -346,11 +388,23 @@ public class VideoEncoder implements GetCameraData {
         MediaFormat mediaFormat = videoEncoder.getOutputFormat();
         getH264Data.onSPSandPPS(mediaFormat.getByteBuffer("csd-0"),
             mediaFormat.getByteBuffer("csd-1"));
+        spsPpsSetted = true;
       } else if (outBufferIndex >= 0) {
-        //This ByteBuffer is H264
-        ByteBuffer bb = outputBuffers[outBufferIndex];
-        getH264Data.getH264Data(bb, videoInfo);
-        videoEncoder.releaseOutputBuffer(outBufferIndex, false);
+        if ((videoInfo.flags & MediaCodec.BUFFER_FLAG_CODEC_CONFIG) != 0) {
+          if (!spsPpsSetted) {
+            Pair<ByteBuffer, ByteBuffer> buffers =
+                decodeSpsPpsFromBuffer(outputBuffers[outBufferIndex], videoInfo.size);
+            if (buffers != null) {
+              getH264Data.onSPSandPPS(buffers.first, buffers.second);
+              spsPpsSetted = true;
+            }
+          }
+        } else {
+          //This ByteBuffer is H264
+          ByteBuffer bb = outputBuffers[outBufferIndex];
+          getH264Data.getH264Data(bb, videoInfo);
+          videoEncoder.releaseOutputBuffer(outBufferIndex, false);
+        }
       } else {
         break;
       }
@@ -450,5 +504,38 @@ public class VideoEncoder implements GetCameraData {
     if (Build.VERSION.SDK_INT >= 19) {
       setVideoBitrateOnFly(bitRate);
     }
+  }
+
+  /**
+   * decode sps and pps if the encoder never call to MediaCodec.INFO_OUTPUT_FORMAT_CHANGED
+   */
+  private Pair<ByteBuffer, ByteBuffer> decodeSpsPpsFromBuffer(ByteBuffer outputBuffer, int length) {
+    byte[] mSPS = null, mPPS = null;
+    byte[] csd = new byte[length];
+    outputBuffer.get(csd, 0, length);
+    int i = 0;
+    int spsIndex = -1;
+    int ppsIndex = -1;
+    while (i < length - 4) {
+      if (csd[i] == 0 && csd[i + 1] == 0 && csd[i + 2] == 0 && csd[i + 3] == 1) {
+        if (spsIndex == -1) {
+          spsIndex = i;
+        } else {
+          ppsIndex = i;
+          break;
+        }
+      }
+      i++;
+    }
+    if (spsIndex != -1 && ppsIndex != -1) {
+      mSPS = new byte[ppsIndex];
+      System.arraycopy(csd, spsIndex, mSPS, 0, ppsIndex);
+      mPPS = new byte[length - ppsIndex];
+      System.arraycopy(csd, ppsIndex, mPPS, 0, length - ppsIndex);
+    }
+    if (mSPS != null && mPPS != null) {
+      return new Pair<>(ByteBuffer.wrap(mSPS), ByteBuffer.wrap(mPPS));
+    }
+    return null;
   }
 }
