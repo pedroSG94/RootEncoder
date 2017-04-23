@@ -1,16 +1,11 @@
-# rtmp-rtsp-stream-client-java
+#rtmp-rtsp-stream-client-java
 
+[![Android Arsenal](https://img.shields.io/badge/Android%20Arsenal-rtmp%20rtsp%20stream%20client%20java-green.svg?style=true)](https://android-arsenal.com/details/1/5333)
 
 Library for stream in rtmp and rtsp all code in java.
 
-
-This library use encoder type buffer to buffer.
-
-
-Tested on Samsung S7 and Wowza server.
-
-
-# Permissions
+Permissions:
+----
 
 
 ```xml
@@ -19,19 +14,24 @@ Tested on Samsung S7 and Wowza server.
 <uses-permission android:name="android.permission.CAMERA" />
 ```
 
-# Protocol data send
+Features:
+----
+
+- [x] Encoder type buffer to buffer.
+- [x] Android min API 16.
+- [x] RTMP/RTSP auth wowza.
+- [x] Disable/Enable video and audio.
+- [x] Switch camera while streaming.
+- [x] Change video bitrate while streaming (API 19+).
+- [x] H264 and ACC hard encoding.
+- [x] RTSP TCP/UDP
 
 
-RTMP -> TCP
-
-
-RTSP -> UDP/TCP
-
-# Use example
-
+Use example:
+----
 
 RTMP:
-
+----
 
 ```java
 //create builder
@@ -47,9 +47,8 @@ rtmpBuilder.stopStream();
 
 ```
 
-
 RTSP:
-
+----
 
 ```java
 //create builder
