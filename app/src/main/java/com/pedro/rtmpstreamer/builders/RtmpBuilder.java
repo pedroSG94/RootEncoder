@@ -164,6 +164,7 @@ public class RtmpBuilder implements GetAccData, GetCameraData, GetH264Data, GetM
 
   @Override
   public void onSPSandPPS(ByteBuffer sps, ByteBuffer pps) {
+    srsFlvMuxer.setSpsPPs(sps, pps);
     //used on rtsp
   }
 

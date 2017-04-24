@@ -71,6 +71,10 @@ public class SrsFlvMuxer {
     publisher = new DefaultRtmpPublisher(connectCheckerRtmp);
   }
 
+  public void setSpsPPs(ByteBuffer sps, ByteBuffer pps){
+    flv.setSpsPPs(sps, pps);
+  }
+
   public void setAsample_rate(int asample_rate) {
     this.asample_rate = asample_rate;
   }
@@ -168,6 +172,7 @@ public class SrsFlvMuxer {
             SrsFlvFrame frame = mFlvTagCache.poll();
             if (frame.is_sequenceHeader()) {
               if (frame.is_video()) {
+                Log.e("Pedro", "asdasd");
                 mVideoSequenceHeader = frame;
                 sendFlvTag(mVideoSequenceHeader);
               } else if (frame.is_audio()) {
@@ -183,14 +188,14 @@ public class SrsFlvMuxer {
             }
           }
           // Waiting for next frame
-          //synchronized (txFrameLock) {
-          //  try {
-          //    // isEmpty() may take some time, so we set timeout to detect next frame
-          //    txFrameLock.wait(500);
-          //  } catch (InterruptedException ie) {
-          //    worker.interrupt();
-          //  }
-          //}
+          synchronized (txFrameLock) {
+            try {
+              // isEmpty() may take some time, so we set timeout to detect next frame
+              txFrameLock.wait(500);
+            } catch (InterruptedException ie) {
+              worker.interrupt();
+            }
+          }
         }
       }
     });
@@ -772,26 +777,26 @@ public class SrsFlvMuxer {
         }
 
         // for sps
-        if (avc.isSps(frame)) {
-          if (!frame.data.equals(h264_sps)) {
-            byte[] sps = new byte[frame.size];
-            frame.data.get(sps);
-            h264_sps_changed = true;
-            h264_sps = ByteBuffer.wrap(sps);
-          }
-          continue;
-        }
-
-        // for pps
-        if (avc.isPps(frame)) {
-          if (!frame.data.equals(h264_pps)) {
-            byte[] pps = new byte[frame.size];
-            frame.data.get(pps);
-            h264_pps_changed = true;
-            h264_pps = ByteBuffer.wrap(pps);
-          }
-          continue;
-        }
+        //if (avc.isSps(frame)) {
+        //  if (!frame.data.equals(h264_sps)) {
+        //    byte[] sps = new byte[frame.size];
+        //    frame.data.get(sps);
+        //    h264_sps_changed = true;
+        //    h264_sps = ByteBuffer.wrap(sps);
+        //  }
+        //  continue;
+        //}
+        //
+        //// for pps
+        //if (avc.isPps(frame)) {
+        //  if (!frame.data.equals(h264_pps)) {
+        //    byte[] pps = new byte[frame.size];
+        //    frame.data.get(pps);
+        //    h264_pps_changed = true;
+        //    h264_pps = ByteBuffer.wrap(pps);
+        //  }
+        //  continue;
+        //}
 
         // IPB frame.
         ipbs.add(avc.muxNaluHeader(frame));
@@ -801,6 +806,13 @@ public class SrsFlvMuxer {
       writeH264SpsPps(dts, pts);
       writeH264IpbFrame(ipbs, type, dts, pts);
       ipbs.clear();
+    }
+
+    public void setSpsPPs(ByteBuffer sps, ByteBuffer pps){
+      h264_sps_changed = true;
+      h264_sps = sps;
+      h264_pps_changed = true;
+      h264_pps = pps;
     }
 
     private void writeH264SpsPps(int dts, int pts) {
