@@ -3,9 +3,14 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
+      <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
+      <module fileurl="file://$PROJECT_DIR$/encoder/encoder.iml" filepath="$PROJECT_DIR$/encoder/encoder.iml" />
       <module fileurl="file://$PROJECT_DIR$/encoder/encoder.iml" filepath="$PROJECT_DIR$/encoder/encoder.iml" />
       <module fileurl="file://$PROJECT_DIR$/rtmp/rtmp.iml" filepath="$PROJECT_DIR$/rtmp/rtmp.iml" />
+      <module fileurl="file://$PROJECT_DIR$/rtmp/rtmp.iml" filepath="$PROJECT_DIR$/rtmp/rtmp.iml" />
       <module fileurl="file://$PROJECT_DIR$/rtmp-rtsp-stream-client-java.iml" filepath="$PROJECT_DIR$/rtmp-rtsp-stream-client-java.iml" />
+      <module fileurl="file://$PROJECT_DIR$/rtmp-rtsp-stream-client-java.iml" filepath="$PROJECT_DIR$/rtmp-rtsp-stream-client-java.iml" />
+      <module fileurl="file://$PROJECT_DIR$/rtsp/rtsp.iml" filepath="$PROJECT_DIR$/rtsp/rtsp.iml" />
       <module fileurl="file://$PROJECT_DIR$/rtsp/rtsp.iml" filepath="$PROJECT_DIR$/rtsp/rtsp.iml" />
     </modules>
   </component>

@@ -12,12 +12,10 @@ import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.RequiresApi;
 import android.util.Log;
-
 import android.util.Pair;
 import android.view.Surface;
 import com.pedro.encoder.input.video.GetCameraData;
 import com.pedro.encoder.utils.YUVUtil;
-
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -196,6 +194,7 @@ public class VideoEncoder implements GetCameraData {
         public void run() {
           while (!Thread.interrupted()) {
             if (!queue.isEmpty()) {
+              Log.i(TAG, "queue size = " + queue.size());
               byte[] i420;
               if (imageFormat == ImageFormat.NV21) {
                 i420 = (sendBlackImage) ? blackImage
@@ -215,6 +214,7 @@ public class VideoEncoder implements GetCameraData {
               }
             }
           }
+
         }
       });
       thread.start();
@@ -239,15 +239,17 @@ public class VideoEncoder implements GetCameraData {
 
   @Override
   public void inputYv12Data(byte[] buffer) {
-    if (running) {
+    if (running && thread.isAlive()) {
       queue.add(buffer);
+      Log.i(TAG, "send data yv12");
     }
   }
 
   @Override
   public void inputNv21Data(byte[] buffer) {
-    if (running) {
+    if (running && thread.isAlive()) {
       queue.add(buffer);
+      Log.i(TAG, "send data nv21");
     }
   }
 
