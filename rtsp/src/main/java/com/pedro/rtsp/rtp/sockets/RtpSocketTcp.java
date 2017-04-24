@@ -36,7 +36,7 @@ public class RtpSocketTcp extends BaseRtpSocket implements Runnable {
     if (outputStream != null) {
       mOutputStream = outputStream;
       mTcpHeader[1] = channelIdentifier;
-      senderReportTcp.setOutputStream(outputStream, (byte) (channelIdentifier+1));
+      senderReportTcp.setOutputStream(outputStream, (byte) (channelIdentifier + 1));
     }
   }
 
@@ -68,24 +68,22 @@ public class RtpSocketTcp extends BaseRtpSocket implements Runnable {
         mBufferRequested.release();
       }
     } catch (Exception e) {
-      e.printStackTrace();
+      Log.e(TAG, "tcp send error: ", e);
     }
     mThread = null;
     resetFifo();
     senderReportTcp.reset();
   }
 
-  private void sendTCP() {
+  private void sendTCP() throws Exception {
     synchronized (mOutputStream) {
       int len = lengths[mBufferOut];
-      Log.d(TAG, "sent " + len);
       mTcpHeader[2] = (byte) (len >> 8);
       mTcpHeader[3] = (byte) (len & 0xFF);
-      try {
-        mOutputStream.write(mTcpHeader);
-        mOutputStream.write(mBuffers[mBufferOut], 0, len);
-      } catch (Exception e) {
-      }
+      mOutputStream.write(mTcpHeader);
+      mOutputStream.write(mBuffers[mBufferOut], 0, len);
+      mOutputStream.flush();
+      Log.d(TAG, "send " + len);
     }
   }
 }

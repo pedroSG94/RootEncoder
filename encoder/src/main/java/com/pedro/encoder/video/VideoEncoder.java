@@ -179,7 +179,6 @@ public class VideoEncoder implements GetCameraData {
     spsPpsSetted = false;
     mPresentTimeUs = System.nanoTime() / 1000;
     videoEncoder.start();
-
     //surface to buffer
     if (formatVideoEncoder == FormatVideoEncoder.SURFACE
         && Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
@@ -193,17 +192,18 @@ public class VideoEncoder implements GetCameraData {
       thread = new Thread(new Runnable() {
         @Override
         public void run() {
-          android.os.Process.setThreadPriority(Process.THREAD_PRIORITY_AUDIO);
-          while (running && !Thread.interrupted()) {
+          android.os.Process.setThreadPriority(Process.THREAD_PRIORITY_MORE_FAVORABLE);
+          while (!Thread.interrupted()) {
             if (!queue.isEmpty()) {
-              Log.i(TAG, "queue size = " + queue.size());
               byte[] i420;
               if (imageFormat == ImageFormat.NV21) {
+                byte[] b  = queue.poll();
                 i420 = (sendBlackImage) ? blackImage
-                    : YUVUtil.NV21toYUV420byColor(queue.poll(), width, height, formatVideoEncoder);
+                    : YUVUtil.NV21toYUV420byColor(b, width, height, formatVideoEncoder);
               } else if (imageFormat == ImageFormat.YV12) {
+                byte[] b  = queue.poll();
                 i420 = (sendBlackImage) ? blackImage
-                    : YUVUtil.YV12toYUV420byColor(queue.poll(), width, height, formatVideoEncoder);
+                    : YUVUtil.YV12toYUV420byColor(b, width, height, formatVideoEncoder);
               } else {
                 stop();
                 Log.e(TAG, "Unsupported imageFormat");
@@ -214,9 +214,14 @@ public class VideoEncoder implements GetCameraData {
               } else {
                 getDataFromEncoder(i420);
               }
+            } else {
+              try {
+                Thread.sleep(20);
+              } catch (InterruptedException e) {
+                e.printStackTrace();
+              }
             }
           }
-
         }
       });
       thread.start();

@@ -61,7 +61,7 @@ public class RtspBuilder implements GetAccData, GetCameraData, GetH264Data, GetM
   }
 
   public boolean prepareVideo(int width, int height, int fps, int bitrate, int rotation) {
-    int imageFormat = ImageFormat.NV21; //supported nv21 and yv12
+    int imageFormat = ImageFormat.YV12; //supported nv21 and yv12
     cameraManager.prepareCamera(width, height, fps, imageFormat);
     videoEncoder.setImageFormat(imageFormat);
     return videoEncoder.prepareVideoEncoder(width, height, fps, bitrate, rotation,

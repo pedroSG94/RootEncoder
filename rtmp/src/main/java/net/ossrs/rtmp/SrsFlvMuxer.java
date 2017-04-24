@@ -172,7 +172,6 @@ public class SrsFlvMuxer {
             SrsFlvFrame frame = mFlvTagCache.poll();
             if (frame.is_sequenceHeader()) {
               if (frame.is_video()) {
-                Log.e("Pedro", "asdasd");
                 mVideoSequenceHeader = frame;
                 sendFlvTag(mVideoSequenceHeader);
               } else if (frame.is_audio()) {
@@ -186,16 +185,22 @@ public class SrsFlvMuxer {
                 sendFlvTag(frame);
               }
             }
-          }
-          // Waiting for next frame
-          synchronized (txFrameLock) {
+          } else {
             try {
-              // isEmpty() may take some time, so we set timeout to detect next frame
-              txFrameLock.wait(500);
-            } catch (InterruptedException ie) {
-              worker.interrupt();
+              Thread.sleep(20);
+            } catch (InterruptedException e) {
+              e.printStackTrace();
             }
           }
+          // Waiting for next frame
+          //synchronized (txFrameLock) {
+          //  try {
+          //     isEmpty() may take some time, so we set timeout to detect next frame
+              //txFrameLock.wait(500);
+            //} catch (InterruptedException ie) {
+            //  worker.interrupt();
+            //}
+          //}
         }
       }
     });

@@ -34,7 +34,7 @@ public class ExampleRtspActivity extends AppCompatActivity
     button = (Button) findViewById(R.id.b_start_stop);
     button.setOnClickListener(this);
     etUrl = (EditText) findViewById(R.id.et_rtsp_url);
-    rtspBuilder = new RtspBuilder(surfaceView, Protocol.TCP, this);
+    rtspBuilder = new RtspBuilder(surfaceView, Protocol.UDP, this);
   }
 
   @Override
