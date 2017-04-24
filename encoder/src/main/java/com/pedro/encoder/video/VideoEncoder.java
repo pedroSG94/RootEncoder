@@ -10,6 +10,7 @@ import android.media.MediaCodecList;
 import android.media.MediaFormat;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Process;
 import android.support.annotation.RequiresApi;
 import android.util.Log;
 import android.util.Pair;
@@ -192,7 +193,8 @@ public class VideoEncoder implements GetCameraData {
       thread = new Thread(new Runnable() {
         @Override
         public void run() {
-          while (!Thread.interrupted()) {
+          android.os.Process.setThreadPriority(Process.THREAD_PRIORITY_AUDIO);
+          while (running && !Thread.interrupted()) {
             if (!queue.isEmpty()) {
               Log.i(TAG, "queue size = " + queue.size());
               byte[] i420;
@@ -239,7 +241,7 @@ public class VideoEncoder implements GetCameraData {
 
   @Override
   public void inputYv12Data(byte[] buffer) {
-    if (running && thread.isAlive()) {
+    if (running) {
       queue.add(buffer);
       Log.i(TAG, "send data yv12");
     }
@@ -247,7 +249,7 @@ public class VideoEncoder implements GetCameraData {
 
   @Override
   public void inputNv21Data(byte[] buffer) {
-    if (running && thread.isAlive()) {
+    if (running) {
       queue.add(buffer);
       Log.i(TAG, "send data nv21");
     }
