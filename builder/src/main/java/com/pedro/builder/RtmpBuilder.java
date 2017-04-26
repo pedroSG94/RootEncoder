@@ -1,4 +1,4 @@
-package com.pedro.rtmpstreamer.builders;
+package com.pedro.builder;
 
 import android.graphics.ImageFormat;
 import android.hardware.Camera;

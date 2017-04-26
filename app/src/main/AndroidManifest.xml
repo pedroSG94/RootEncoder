@@ -14,7 +14,7 @@
       android:theme="@style/AppTheme"
       >
     <activity
-        android:name=".ui.MainActivity"
+        android:name=".MainActivity"
         android:label="@string/app_name"
         android:screenOrientation="portrait"
         >
@@ -25,22 +25,22 @@
       </intent-filter>
     </activity>
     <activity
-        android:name=".ui.customexample.RtmpActivity"
+        android:name=".customexample.RtmpActivity"
         android:label="@string/rtmp_streamer"
         android:screenOrientation="portrait"
         />
     <activity
-        android:name=".ui.customexample.RtspActivity"
+        android:name=".customexample.RtspActivity"
         android:label="@string/rtsp_streamer"
         android:screenOrientation="portrait"
         />
     <activity
-        android:name=".ui.defaultexample.ExampleRtspActivity"
+        android:name=".defaultexample.ExampleRtspActivity"
         android:label="@string/default_rtsp"
         android:screenOrientation="portrait"
         />
     <activity
-        android:name=".ui.defaultexample.ExampleRtmpActivity"
+        android:name=".defaultexample.ExampleRtmpActivity"
         android:label="@string/default_rtmp"
         android:screenOrientation="portrait"
         />

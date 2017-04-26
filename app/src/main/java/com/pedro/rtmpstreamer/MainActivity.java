@@ -1,4 +1,4 @@
-package com.pedro.rtmpstreamer.ui;
+package com.pedro.rtmpstreamer;
 
 import android.Manifest;
 import android.content.Context;
@@ -12,10 +12,10 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.Toast;
 import com.pedro.rtmpstreamer.R;
-import com.pedro.rtmpstreamer.ui.customexample.RtmpActivity;
-import com.pedro.rtmpstreamer.ui.customexample.RtspActivity;
-import com.pedro.rtmpstreamer.ui.defaultexample.ExampleRtmpActivity;
-import com.pedro.rtmpstreamer.ui.defaultexample.ExampleRtspActivity;
+import com.pedro.rtmpstreamer.customexample.RtmpActivity;
+import com.pedro.rtmpstreamer.customexample.RtspActivity;
+import com.pedro.rtmpstreamer.defaultexample.ExampleRtmpActivity;
+import com.pedro.rtmpstreamer.defaultexample.ExampleRtspActivity;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
 

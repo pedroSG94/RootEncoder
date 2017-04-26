@@ -1,17 +1,14 @@
-apply plugin: 'com.android.application'
-apply plugin: 'com.github.dcendents.android-maven'
-group='com.github.pedroSG94'
+apply plugin: 'com.android.library'
 
 android {
   compileSdkVersion 25
   buildToolsVersion "25.0.2"
 
   defaultConfig {
-    applicationId "com.pedro.rtmpstreamer"
     minSdkVersion 16
     targetSdkVersion 25
     versionCode 1
-    versionName "1.0"
+    versionName "1.0.0"
   }
   buildTypes {
     release {
@@ -22,7 +19,7 @@ android {
 }
 
 dependencies {
-  compile project(':builder')
-  compile 'com.android.support:appcompat-v7:25.3.1'
-  compile 'com.android.support:design:25.3.1'
+  compile project(':encoder')
+  compile project(':rtmp')
+  compile project(':rtsp')
 }

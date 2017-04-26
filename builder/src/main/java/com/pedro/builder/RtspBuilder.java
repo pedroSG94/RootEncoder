@@ -1,4 +1,4 @@
-package com.pedro.rtmpstreamer.builders;
+package com.pedro.builder;
 
 import android.graphics.ImageFormat;
 import android.hardware.Camera;
@@ -17,8 +17,6 @@ import com.pedro.encoder.input.video.GetCameraData;
 import com.pedro.encoder.video.FormatVideoEncoder;
 import com.pedro.encoder.video.GetH264Data;
 import com.pedro.encoder.video.VideoEncoder;
-import com.pedro.rtsp.rtp.packets.AccPacket;
-import com.pedro.rtsp.rtp.packets.H264Packet;
 import com.pedro.rtsp.rtsp.Protocol;
 import com.pedro.rtsp.rtsp.RtspClient;
 import com.pedro.rtsp.utils.ConnectCheckerRtsp;

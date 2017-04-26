@@ -1,4 +1,4 @@
-package com.pedro.rtmpstreamer.ui.customexample;
+package com.pedro.rtmpstreamer.customexample;
 
 import android.os.Bundle;
 import android.support.annotation.Nullable;
@@ -19,19 +19,20 @@ import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.Spinner;
 import android.widget.Toast;
+import com.pedro.builder.RtspBuilder;
 import com.pedro.encoder.input.video.CameraOpenException;
 import com.pedro.encoder.input.video.EffectManager;
 import com.pedro.rtmpstreamer.R;
-import com.pedro.rtmpstreamer.builders.RtmpBuilder;
-import com.pedro.rtmpstreamer.ui.defaultexample.ExampleRtmpActivity;
-import net.ossrs.rtmp.ConnectCheckerRtmp;
+import com.pedro.rtsp.rtsp.Protocol;
+import com.pedro.rtsp.utils.ConnectCheckerRtsp;
 
-public class RtmpActivity extends AppCompatActivity
-    implements Button.OnClickListener, ConnectCheckerRtmp {
+public class RtspActivity extends AppCompatActivity
+    implements Button.OnClickListener, ConnectCheckerRtsp {
 
   private Integer[] orientations = new Integer[] { 0, 90, 180, 270 };
 
-  private RtmpBuilder rtmpBuilder;
+  private RtspBuilder rtspBuilder;
+  private SurfaceView surfaceView;
   private Button bStartStop;
   private EditText etUrl;
   //options menu
@@ -39,6 +40,7 @@ public class RtmpActivity extends AppCompatActivity
   private NavigationView navigationView;
   private ActionBarDrawerToggle actionBarDrawerToggle;
   private RadioGroup rgChannel;
+  private RadioButton rbTcp, rbUdp;
   private Spinner spResolution, spOrientation;
   private EditText etVideoBitrate, etFps, etAudioBitrate, etSampleRate, etWowzaUser,
       etWowzaPassword;
@@ -47,15 +49,15 @@ public class RtmpActivity extends AppCompatActivity
   protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
     getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
-    setContentView(R.layout.activity_rtmp);
+    setContentView(R.layout.activity_rtsp);
     getSupportActionBar().setDisplayHomeAsUpEnabled(true);
     getSupportActionBar().setHomeButtonEnabled(true);
 
-    SurfaceView surfaceView = (SurfaceView) findViewById(R.id.surfaceView);
-    rtmpBuilder = new RtmpBuilder(surfaceView, this);
+    surfaceView = (SurfaceView) findViewById(R.id.surfaceView);
+    rtspBuilder = new RtspBuilder(surfaceView, Protocol.TCP, this);
     prepareOptionsMenuViews();
 
-    etUrl = (EditText) findViewById(R.id.et_rtmp_url);
+    etUrl = (EditText) findViewById(R.id.et_rtsp_url);
     bStartStop = (Button) findViewById(R.id.b_start_stop);
     Button switchCamera = (Button) findViewById(R.id.switch_camera);
     bStartStop.setOnClickListener(this);
@@ -63,8 +65,8 @@ public class RtmpActivity extends AppCompatActivity
   }
 
   private void prepareOptionsMenuViews() {
-    drawerLayout = (DrawerLayout) findViewById(R.id.activity_rtmp);
-    navigationView = (NavigationView) findViewById(R.id.nv_rtmp);
+    drawerLayout = (DrawerLayout) findViewById(R.id.activity_rtsp);
+    navigationView = (NavigationView) findViewById(R.id.nv_rtsp);
     actionBarDrawerToggle = new ActionBarDrawerToggle(this, drawerLayout, R.string.rtsp_streamer,
         R.string.rtsp_streamer) {
 
@@ -74,15 +76,18 @@ public class RtmpActivity extends AppCompatActivity
 
       public void onDrawerClosed(View view) {
         actionBarDrawerToggle.syncState();
-        rtmpBuilder.setVideoBitrateOnFly(Integer.parseInt(etVideoBitrate.getText().toString()) * 1024);
+        rtspBuilder.setVideoBitrateOnFly(
+            Integer.parseInt(etVideoBitrate.getText().toString()) * 1024);
       }
     };
     drawerLayout.addDrawerListener(actionBarDrawerToggle);
     //radiobuttons
-    RadioButton rbTcp =
-        (RadioButton) navigationView.getMenu().findItem(R.id.rb_tcp).getActionView();
+    rbTcp = (RadioButton) navigationView.getMenu().findItem(R.id.rb_tcp).getActionView();
+    rbUdp = (RadioButton) navigationView.getMenu().findItem(R.id.rb_udp).getActionView();
     rgChannel = (RadioGroup) navigationView.getMenu().findItem(R.id.channel).getActionView();
-    rbTcp.setChecked(true);
+    rbUdp.setChecked(true);
+    rbTcp.setOnClickListener(this);
+    rbUdp.setOnClickListener(this);
     //spinners
     spResolution = (Spinner) navigationView.getMenu().findItem(R.id.sp_resolution).getActionView();
     spOrientation =
@@ -96,7 +101,7 @@ public class RtmpActivity extends AppCompatActivity
 
     ArrayAdapter<String> resolutionAdapter =
         new ArrayAdapter<>(this, R.layout.support_simple_spinner_dropdown_item);
-    resolutionAdapter.addAll(rtmpBuilder.getResolutions());
+    resolutionAdapter.addAll(rtspBuilder.getResolutions());
     spResolution.setAdapter(resolutionAdapter);
     //edittexts
     etVideoBitrate =
@@ -137,39 +142,39 @@ public class RtmpActivity extends AppCompatActivity
         }
         return true;
       case R.id.clear:
-        rtmpBuilder.setEffect(EffectManager.CLEAR);
+        rtspBuilder.setEffect(EffectManager.CLEAR);
         return true;
       case R.id.grey_scale:
-        rtmpBuilder.setEffect(EffectManager.GREYSCALE);
+        rtspBuilder.setEffect(EffectManager.GREYSCALE);
         return true;
       case R.id.sepia:
-        rtmpBuilder.setEffect(EffectManager.SEPIA);
+        rtspBuilder.setEffect(EffectManager.SEPIA);
         return true;
       case R.id.negative:
-        rtmpBuilder.setEffect(EffectManager.NEGATIVE);
+        rtspBuilder.setEffect(EffectManager.NEGATIVE);
         return true;
       case R.id.aqua:
-        rtmpBuilder.setEffect(EffectManager.AQUA);
+        rtspBuilder.setEffect(EffectManager.AQUA);
         return true;
       case R.id.posterize:
-        rtmpBuilder.setEffect(EffectManager.POSTERIZE);
+        rtspBuilder.setEffect(EffectManager.POSTERIZE);
         return true;
       case R.id.microphone:
-        if(!rtmpBuilder.isAudioMuted()) {
+        if (!rtspBuilder.isAudioMuted()) {
           item.setIcon(getResources().getDrawable(R.drawable.icon_microphone_off));
-          rtmpBuilder.disableAudio();
+          rtspBuilder.disableAudio();
         } else {
           item.setIcon(getResources().getDrawable(R.drawable.icon_microphone));
-          rtmpBuilder.enableAudio();
+          rtspBuilder.enableAudio();
         }
         return true;
       case R.id.camera:
-        if(rtmpBuilder.isVideoEnabled()) {
+        if (rtspBuilder.isVideoEnabled()) {
           item.setIcon(getResources().getDrawable(R.drawable.icon_camera_off));
-          rtmpBuilder.disableVideo();
+          rtspBuilder.disableVideo();
         } else {
           item.setIcon(getResources().getDrawable(R.drawable.icon_camera));
-          rtmpBuilder.enableVideo();
+          rtspBuilder.enableVideo();
         }
         return true;
       default:
@@ -181,25 +186,30 @@ public class RtmpActivity extends AppCompatActivity
   public void onClick(View v) {
     switch (v.getId()) {
       case R.id.b_start_stop:
-        if (!rtmpBuilder.isStreaming()) {
+        if (!rtspBuilder.isStreaming()) {
           bStartStop.setText(getResources().getString(R.string.stop_button));
+          if (rbTcp.isChecked()) {
+            rtspBuilder = new RtspBuilder(surfaceView, Protocol.TCP, this);
+          } else {
+            rtspBuilder = new RtspBuilder(surfaceView, Protocol.UDP, this);
+          }
           String resolution =
-              rtmpBuilder.getResolutions().get(spResolution.getSelectedItemPosition());
+              rtspBuilder.getResolutions().get(spResolution.getSelectedItemPosition());
           String user = etWowzaUser.getText().toString();
           String password = etWowzaPassword.getText().toString();
           if (!user.isEmpty() && !password.isEmpty()) {
-            rtmpBuilder.setAuthorization(user, password);
+            rtspBuilder.setAuthorization(user, password);
           }
           int width = Integer.parseInt(resolution.split("X")[0]);
           int height = Integer.parseInt(resolution.split("X")[1]);
 
-          if (rtmpBuilder.prepareVideo(width, height, Integer.parseInt(etFps.getText().toString()),
-              Integer.parseInt(etVideoBitrate.getText().toString()) * 1024,
-              orientations[spOrientation.getSelectedItemPosition()]) && rtmpBuilder.prepareAudio(
-              Integer.parseInt(etAudioBitrate.getText().toString()) * 1024,
+          if (rtspBuilder.prepareAudio(Integer.parseInt(etAudioBitrate.getText().toString()) * 1024,
               Integer.parseInt(etSampleRate.getText().toString()),
-              rgChannel.getCheckedRadioButtonId() == R.id.rb_stereo)) {
-            rtmpBuilder.startStream(etUrl.getText().toString());
+              rgChannel.getCheckedRadioButtonId() == R.id.rb_stereo) && rtspBuilder.prepareVideo(
+              width, height, Integer.parseInt(etFps.getText().toString()),
+              Integer.parseInt(etVideoBitrate.getText().toString()) * 1024,
+              orientations[spOrientation.getSelectedItemPosition()])) {
+            rtspBuilder.startStream(etUrl.getText().toString());
           } else {
             //If you see this all time when you start stream,
             //it is because your encoder device dont support the configuration
@@ -212,15 +222,28 @@ public class RtmpActivity extends AppCompatActivity
           }
         } else {
           bStartStop.setText(getResources().getString(R.string.start_button));
-          rtmpBuilder.stopStream();
+          rtspBuilder.stopStream();
         }
         break;
       case R.id.switch_camera:
         try {
-          rtmpBuilder.switchCamera();
+          rtspBuilder.switchCamera();
         } catch (CameraOpenException e){
           Toast.makeText(this, e.getMessage(), Toast.LENGTH_SHORT).show();
-          rtmpBuilder.switchCamera();
+          rtspBuilder.switchCamera();
+        }
+        break;
+      //options menu
+      case R.id.rb_tcp:
+        if (rbUdp.isChecked()) {
+          rbUdp.setChecked(false);
+          rbTcp.setChecked(true);
+        }
+        break;
+      case R.id.rb_udp:
+        if (rbTcp.isChecked()) {
+          rbTcp.setChecked(false);
+          rbUdp.setChecked(true);
         }
         break;
       default:
@@ -231,60 +254,62 @@ public class RtmpActivity extends AppCompatActivity
   @Override
   protected void onPause() {
     super.onPause();
-    if (rtmpBuilder.isStreaming()) {
-      rtmpBuilder.stopStream();
+    if (rtspBuilder.isStreaming()) {
+      rtspBuilder.stopStream();
       bStartStop.setText(getResources().getString(R.string.start_button));
     }
   }
 
   @Override
-  public void onConnectionSuccessRtmp() {
+  public void onConnectionSuccessRtsp() {
     runOnUiThread(new Runnable() {
       @Override
       public void run() {
-        Toast.makeText(RtmpActivity.this, "Connection success", Toast.LENGTH_SHORT).show();
+        Toast.makeText(RtspActivity.this, "Connection success", Toast.LENGTH_SHORT).show();
       }
     });
   }
 
   @Override
-  public void onConnectionFailedRtmp() {
+  public void onConnectionFailedRtsp() {
     runOnUiThread(new Runnable() {
       @Override
       public void run() {
-        Toast.makeText(RtmpActivity.this, "Connection failed", Toast.LENGTH_SHORT).show();
-        rtmpBuilder.stopStream();
+        Toast.makeText(RtspActivity.this, "Connection failed", Toast.LENGTH_SHORT).show();
+        rtspBuilder.stopStream();
         bStartStop.setText(getResources().getString(R.string.start_button));
       }
     });
   }
 
   @Override
-  public void onDisconnectRtmp() {
+  public void onDisconnectRtsp() {
     runOnUiThread(new Runnable() {
       @Override
       public void run() {
-        Toast.makeText(RtmpActivity.this, "Disconnected", Toast.LENGTH_SHORT).show();
+        Toast.makeText(RtspActivity.this, "Disconnected", Toast.LENGTH_SHORT).show();
       }
     });
   }
 
   @Override
-  public void onAuthErrorRtmp() {
+  public void onAuthErrorRtsp() {
     runOnUiThread(new Runnable() {
       @Override
       public void run() {
-        Toast.makeText(RtmpActivity.this, "Auth error", Toast.LENGTH_SHORT).show();
+        bStartStop.setText(getResources().getString(R.string.start_button));
+        rtspBuilder.stopStream();
+        Toast.makeText(RtspActivity.this, "Auth error", Toast.LENGTH_SHORT).show();
       }
     });
   }
 
   @Override
-  public void onAuthSuccessRtmp() {
+  public void onAuthSuccessRtsp() {
     runOnUiThread(new Runnable() {
       @Override
       public void run() {
-        Toast.makeText(RtmpActivity.this, "Auth success", Toast.LENGTH_SHORT).show();
+        Toast.makeText(RtspActivity.this, "Auth success", Toast.LENGTH_SHORT).show();
       }
     });
   }
