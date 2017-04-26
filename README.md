@@ -14,6 +14,23 @@ Permissions:
 <uses-permission android:name="android.permission.CAMERA" />
 ```
 
+Compile
+----
+
+To use this library in your project with gradle add this to your build.gradle:
+
+```gradle
+allprojects {
+  repositories {
+    maven { url 'https://jitpack.io' }
+  }
+}
+dependencies {
+  compile 'com.github.pedroSG94.rtmp-rtsp-stream-client-java:builder:v1.0.1'
+}
+
+```
+
 Features:
 ----
 
@@ -61,20 +78,5 @@ if (rtspBuilder.prepareAudio() && rtspBuilder.prepareVideo()) {
 }
 //stop stream
 rtspBuilder.stopStream();
-
-```
-
-# Compile
-----
-
-```gradle
-allprojects {
-  repositories {
-    maven { url 'https://jitpack.io' }
-  }
-}
-dependencies {
-  compile 'com.github.pedroSG94.rtmp-rtsp-stream-client-java:builder:v1.0.1'
-}
 
 ```
