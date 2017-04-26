@@ -63,3 +63,18 @@ if (rtspBuilder.prepareAudio() && rtspBuilder.prepareVideo()) {
 rtspBuilder.stopStream();
 
 ```
+
+# Compile
+----
+
+```gradle
+allprojects {
+  repositories {
+    maven { url 'https://jitpack.io' }
+  }
+}
+dependencies {
+  compile 'com.github.pedroSG94.rtmp-rtsp-stream-client-java:builder:v1.0.1'
+}
+
+```
