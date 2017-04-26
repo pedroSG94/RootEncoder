@@ -374,7 +374,7 @@ public class RtspClient {
             if (isAudio) {
               audioPorts[i] = Integer.parseInt(s[i]);
             } else {
-              Log.e("Ports", s[i]);
+              Log.i("Ports", s[i]);
               videoPorts[i] = Integer.parseInt(s[i]);
             }
           }
@@ -393,7 +393,7 @@ public class RtspClient {
 
   private String sendAnnounceWithAuth(String authResponse) {
     authorization = createAuth(authResponse);
-    Log.e("Auth", authorization);
+    Log.i("Auth", authorization);
     String body = createBody();
     String request = "ANNOUNCE rtsp://"
         + host

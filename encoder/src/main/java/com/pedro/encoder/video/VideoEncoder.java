@@ -42,6 +42,7 @@ public class VideoEncoder implements GetCameraData {
   //buffer to buffer
   private ConcurrentLinkedQueue<byte[]> queue = new ConcurrentLinkedQueue<>();
   private int imageFormat = ImageFormat.NV21;
+  private final Object lockFrame = new Object();
 
   //default parameters for encoder
   private String codec = "video/avc";
@@ -194,14 +195,14 @@ public class VideoEncoder implements GetCameraData {
         public void run() {
           android.os.Process.setThreadPriority(Process.THREAD_PRIORITY_MORE_FAVORABLE);
           while (!Thread.interrupted()) {
-            if (!queue.isEmpty()) {
+            while (!queue.isEmpty()) {
               byte[] i420;
+              byte[] b = queue.poll();
+              if(b == null) continue;
               if (imageFormat == ImageFormat.NV21) {
-                byte[] b  = queue.poll();
                 i420 = (sendBlackImage) ? blackImage
                     : YUVUtil.NV21toYUV420byColor(b, width, height, formatVideoEncoder);
               } else if (imageFormat == ImageFormat.YV12) {
-                byte[] b  = queue.poll();
                 i420 = (sendBlackImage) ? blackImage
                     : YUVUtil.YV12toYUV420byColor(b, width, height, formatVideoEncoder);
               } else {
@@ -214,12 +215,11 @@ public class VideoEncoder implements GetCameraData {
               } else {
                 getDataFromEncoder(i420);
               }
-            } else {
+            }
+            synchronized (lockFrame){
               try {
-                Thread.sleep(20);
-              } catch (InterruptedException e) {
-                e.printStackTrace();
-              }
+                lockFrame.wait(500);
+              } catch (InterruptedException ignored) {}
             }
           }
         }
@@ -231,6 +231,7 @@ public class VideoEncoder implements GetCameraData {
 
   public void stop() {
     running = false;
+    queue.clear();
     if (thread != null) {
       thread.interrupt();
       thread = null;
@@ -240,7 +241,6 @@ public class VideoEncoder implements GetCameraData {
       videoEncoder.release();
       videoEncoder = null;
     }
-    queue.clear();
     spsPpsSetted = false;
   }
 
@@ -248,6 +248,9 @@ public class VideoEncoder implements GetCameraData {
   public void inputYv12Data(byte[] buffer) {
     if (running) {
       queue.add(buffer);
+      synchronized (lockFrame){
+        lockFrame.notifyAll();
+      }
       Log.i(TAG, "send data yv12");
     }
   }
@@ -256,6 +259,9 @@ public class VideoEncoder implements GetCameraData {
   public void inputNv21Data(byte[] buffer) {
     if (running) {
       queue.add(buffer);
+      synchronized (lockFrame){
+        lockFrame.notifyAll();
+      }
       Log.i(TAG, "send data nv21");
     }
   }
