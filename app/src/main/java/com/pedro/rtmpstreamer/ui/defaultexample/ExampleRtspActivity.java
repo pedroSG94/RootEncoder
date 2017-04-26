@@ -43,7 +43,6 @@ public class ExampleRtspActivity extends AppCompatActivity
       @Override
       public void run() {
         Toast.makeText(ExampleRtspActivity.this, "Connection success", Toast.LENGTH_SHORT).show();
-        rtspBuilder.updateDestination();  //only for rtsp
       }
     });
   }

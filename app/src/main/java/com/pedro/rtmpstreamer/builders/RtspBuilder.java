@@ -39,15 +39,11 @@ public class RtspBuilder implements GetAccData, GetCameraData, GetH264Data, GetM
   private boolean streaming;
 
   private RtspClient rtspClient;
-  private AccPacket accPacket;
-  private H264Packet h264Packet;
   private boolean videoEnabled = true;
 
   public RtspBuilder(SurfaceView surfaceView, Protocol protocol,
       ConnectCheckerRtsp connectCheckerRtsp) {
     rtspClient = new RtspClient(connectCheckerRtsp, protocol);
-    accPacket = new AccPacket(rtspClient, protocol);
-    h264Packet = new H264Packet(rtspClient, protocol);
 
     cameraManager = new Camera1ApiManager(surfaceView, this);
     videoEncoder = new VideoEncoder(this);
@@ -61,7 +57,7 @@ public class RtspBuilder implements GetAccData, GetCameraData, GetH264Data, GetM
   }
 
   public boolean prepareVideo(int width, int height, int fps, int bitrate, int rotation) {
-    int imageFormat = ImageFormat.YV12; //supported nv21 and yv12
+    int imageFormat = ImageFormat.NV21; //supported nv21 and yv12
     cameraManager.prepareCamera(width, height, fps, imageFormat);
     videoEncoder.setImageFormat(imageFormat);
     return videoEncoder.prepareVideoEncoder(width, height, fps, bitrate, rotation,
@@ -70,7 +66,6 @@ public class RtspBuilder implements GetAccData, GetCameraData, GetH264Data, GetM
 
   public boolean prepareAudio(int bitrate, int sampleRate, boolean isStereo) {
     rtspClient.setSampleRate(sampleRate);
-    accPacket.setSampleRate(sampleRate);
     microphoneManager.createMicrophone(sampleRate, isStereo);
     return audioEncoder.prepareAudioEncoder(bitrate, sampleRate, isStereo);
   }
@@ -83,7 +78,6 @@ public class RtspBuilder implements GetAccData, GetCameraData, GetH264Data, GetM
   public boolean prepareAudio() {
     microphoneManager.createMicrophone();
     rtspClient.setSampleRate(microphoneManager.getSampleRate());
-    accPacket.setSampleRate(microphoneManager.getSampleRate());
     return audioEncoder.prepareAudioEncoder();
   }
 
@@ -103,8 +97,6 @@ public class RtspBuilder implements GetAccData, GetCameraData, GetH264Data, GetM
     videoEncoder.stop();
     audioEncoder.stop();
     streaming = false;
-    accPacket.close();
-    h264Packet.close();
   }
 
   public List<String> getResolutions() {
@@ -167,7 +159,7 @@ public class RtspBuilder implements GetAccData, GetCameraData, GetH264Data, GetM
 
   @Override
   public void getAccData(ByteBuffer accBuffer, MediaCodec.BufferInfo info) {
-    accPacket.createAndSendPacket(accBuffer, info);
+    rtspClient.sendAudio(accBuffer, info);
   }
 
   @Override
@@ -187,7 +179,7 @@ public class RtspBuilder implements GetAccData, GetCameraData, GetH264Data, GetM
 
   @Override
   public void getH264Data(ByteBuffer h264Buffer, MediaCodec.BufferInfo info) {
-    h264Packet.createAndSendPacket(h264Buffer, info);
+    rtspClient.sendVideo(h264Buffer, info);
   }
 
   @Override
@@ -205,8 +197,4 @@ public class RtspBuilder implements GetAccData, GetCameraData, GetH264Data, GetM
     videoEncoder.inputNv21Data(buffer);
   }
 
-  public void updateDestination() {
-    accPacket.updateDestinationAudio();
-    h264Packet.updateDestinationVideo();
-  }
 }

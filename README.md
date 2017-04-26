@@ -62,10 +62,4 @@ if (rtspBuilder.prepareAudio() && rtspBuilder.prepareVideo()) {
 //stop stream
 rtspBuilder.stopStream();
 
-//update port destination getted in connection
-@Override
-public void onConnectionSuccessRtsp() { 
-   rtspBuilder.updateDestination();
-}
-
 ```

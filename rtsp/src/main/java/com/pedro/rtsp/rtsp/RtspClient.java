@@ -1,7 +1,10 @@
 package com.pedro.rtsp.rtsp;
 
+import android.media.MediaCodec;
 import android.util.Log;
 
+import com.pedro.rtsp.rtp.packets.AccPacket;
+import com.pedro.rtsp.rtp.packets.H264Packet;
 import com.pedro.rtsp.utils.AuthUtil;
 import com.pedro.rtsp.utils.ConnectCheckerRtsp;
 import com.pedro.rtsp.utils.CreateSSLSocket;
@@ -13,6 +16,7 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.net.Socket;
+import java.nio.ByteBuffer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -55,6 +59,9 @@ public class RtspClient {
   //for secure transport
   private InputStream inputStreamJks = null;
   private String passPhraseJks = null;
+  //packets
+  private H264Packet h264Packet;
+  private AccPacket accPacket;
 
   public RtspClient(ConnectCheckerRtsp connectCheckerRtsp, Protocol protocol) {
     this.protocol = protocol;
@@ -126,6 +133,9 @@ public class RtspClient {
 
   public void connect() {
     if (!streaming) {
+      h264Packet = new H264Packet(this, protocol);
+      accPacket = new AccPacket(this, protocol);
+      accPacket.setSampleRate(sampleRate);
       thread = new Thread(new Runnable() {
         @Override
         public void run() {
@@ -173,6 +183,8 @@ public class RtspClient {
             writer.flush();
             getResponse(false);
 
+            h264Packet.updateDestinationVideo();
+            accPacket.updateDestinationAudio();
             streaming = true;
             connectCheckerRtsp.onConnectionSuccessRtsp();
             new Thread(connectionMonitor).start();
@@ -223,6 +235,10 @@ public class RtspClient {
         }
       });
       thread.start();
+      if (h264Packet != null && accPacket != null) {
+        h264Packet.close();
+        accPacket.close();
+      }
     }
   }
 
@@ -230,34 +246,64 @@ public class RtspClient {
     String body = createBody();
     String request;
     if (authorization == null) {
-      request = "ANNOUNCE rtsp://" + host + ":" + port + path + " RTSP/1.0\r\n" +
-          "CSeq: " + (++mCSeq) + "\r\n" +
-          "Content-Length: " + body.length() + "\r\n" +
-          "Content-Type: application/sdp\r\n\r\n" +
-          body;
+      request = "ANNOUNCE rtsp://"
+          + host
+          + ":"
+          + port
+          + path
+          + " RTSP/1.0\r\n"
+          + "CSeq: "
+          + (++mCSeq)
+          + "\r\n"
+          + "Content-Length: "
+          + body.length()
+          + "\r\n"
+          + "Content-Type: application/sdp\r\n\r\n"
+          + body;
     } else {
-      request = "ANNOUNCE rtsp://" + host + ":" + port + path + " RTSP/1.0\r\n" +
-          "CSeq: " + (++mCSeq) + "\r\n" +
-          "Content-Length: " + body.length() + "\r\n" +
-          "Authorization: " + authorization + "\r\n" +
-          "Content-Type: application/sdp\r\n\r\n" +
-          body;
+      request = "ANNOUNCE rtsp://"
+          + host
+          + ":"
+          + port
+          + path
+          + " RTSP/1.0\r\n"
+          + "CSeq: "
+          + (++mCSeq)
+          + "\r\n"
+          + "Content-Length: "
+          + body.length()
+          + "\r\n"
+          + "Authorization: "
+          + authorization
+          + "\r\n"
+          + "Content-Type: application/sdp\r\n\r\n"
+          + body;
     }
     return request;
   }
 
   private String createBody() {
-    return "v=0\r\n" +
+    return "v=0\r\n"
+        +
         // TODO: Add IPV6 support
-        "o=- " + mTimestamp + " " + mTimestamp + " IN IP4 " + "127.0.0.1" + "\r\n" +
-        "s=Unnamed\r\n" +
-        "i=N/A\r\n" +
-        "c=IN IP4 " + host + "\r\n" +
+        "o=- "
+        + mTimestamp
+        + " "
+        + mTimestamp
+        + " IN IP4 "
+        + "127.0.0.1"
+        + "\r\n"
+        + "s=Unnamed\r\n"
+        + "i=N/A\r\n"
+        + "c=IN IP4 "
+        + host
+        + "\r\n"
+        +
         // thread=0 0 means the session is permanent (we don'thread know when it will stop)
-        "thread=0 0\r\n" +
-        "a=recvonly\r\n" +
-        Body.createAudioBody(trackAudio, sampleRate) +
-        Body.createVideoBody(trackVideo, sps, pps);
+        "thread=0 0\r\n"
+        + "a=recvonly\r\n"
+        + Body.createAudioBody(trackAudio, sampleRate)
+        + Body.createVideoBody(trackVideo, sps, pps);
   }
 
   private String sendSetup(int track, Protocol protocol) {
@@ -265,35 +311,47 @@ public class RtspClient {
         (protocol == Protocol.UDP) ? ("UDP;unicast;client_port=" + (5000 + 2 * track) + "-" + (5000
             + 2 * track
             + 1) + ";mode=receive") : ("TCP;interleaved=" + 2 * track + "-" + (2 * track + 1));
-    return "SETUP rtsp://" + host + ":" + port + path + "/trackID=" + track + " RTSP/1.0\r\n" +
-        "Transport: RTP/AVP/" + params + "\r\n" +
-        addHeaders(authorization);
+    return "SETUP rtsp://"
+        + host
+        + ":"
+        + port
+        + path
+        + "/trackID="
+        + track
+        + " RTSP/1.0\r\n"
+        + "Transport: RTP/AVP/"
+        + params
+        + "\r\n"
+        + addHeaders(authorization);
   }
 
   private String sendOptions() {
-    return "OPTIONS rtsp://" + host + ":" + port + path + " RTSP/1.0\r\n" +
-        addHeaders(authorization);
+    return "OPTIONS rtsp://" + host + ":" + port + path + " RTSP/1.0\r\n" + addHeaders(
+        authorization);
   }
 
   private String sendRecord() {
-    return "RECORD rtsp://" + host + ":" + port + path + " RTSP/1.0\r\n" +
-        "Range: npt=0.000-\r\n" +
-        addHeaders(authorization);
+    return "RECORD rtsp://"
+        + host
+        + ":"
+        + port
+        + path
+        + " RTSP/1.0\r\n"
+        + "Range: npt=0.000-\r\n"
+        + addHeaders(authorization);
   }
 
   private String sendTearDown() {
-    return "TEARDOWN rtsp://" + host + ":" + port + path + " RTSP/1.0\r\n" +
-        addHeaders(authorization);
+    return "TEARDOWN rtsp://" + host + ":" + port + path + " RTSP/1.0\r\n" + addHeaders(
+        authorization);
   }
 
   private String addHeaders(String authorization) {
     return "CSeq: "
         + (++mCSeq)
         + "\r\n"
-        +
-        "Content-Length: 0\r\n"
-        +
-        "Session: "
+        + "Content-Length: 0\r\n"
+        + "Session: "
         + sessionId
         + "\r\n"
         +
@@ -337,12 +395,23 @@ public class RtspClient {
     authorization = createAuth(authResponse);
     Log.e("Auth", authorization);
     String body = createBody();
-    String request = "ANNOUNCE rtsp://" + host + ":" + port + path + " RTSP/1.0\r\n" +
-        "CSeq: " + (++mCSeq) + "\r\n" +
-        "Content-Length: " + body.length() + "\r\n" +
-        "Authorization: " + authorization + "\r\n" +
-        "Content-Type: application/sdp\r\n\r\n" +
-        body;
+    String request = "ANNOUNCE rtsp://"
+        + host
+        + ":"
+        + port
+        + path
+        + " RTSP/1.0\r\n"
+        + "CSeq: "
+        + (++mCSeq)
+        + "\r\n"
+        + "Content-Length: "
+        + body.length()
+        + "\r\n"
+        + "Authorization: "
+        + authorization
+        + "\r\n"
+        + "Content-Type: application/sdp\r\n\r\n"
+        + body;
     return request;
   }
 
@@ -385,6 +454,14 @@ public class RtspClient {
 
   public int[] getVideoPorts() {
     return videoPorts;
+  }
+
+  public void sendVideo(ByteBuffer h264Buffer, MediaCodec.BufferInfo info) {
+    h264Packet.createAndSendPacket(h264Buffer, info);
+  }
+
+  public void sendAudio(ByteBuffer accBuffer, MediaCodec.BufferInfo info) {
+    accPacket.createAndSendPacket(accBuffer, info);
   }
 }
 
