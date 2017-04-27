@@ -457,11 +457,15 @@ public class RtspClient {
   }
 
   public void sendVideo(ByteBuffer h264Buffer, MediaCodec.BufferInfo info) {
-    h264Packet.createAndSendPacket(h264Buffer, info);
+    if(isStreaming()) {
+      h264Packet.createAndSendPacket(h264Buffer, info);
+    }
   }
 
   public void sendAudio(ByteBuffer accBuffer, MediaCodec.BufferInfo info) {
-    accPacket.createAndSendPacket(accBuffer, info);
+    if(isStreaming()) {
+      accPacket.createAndSendPacket(accBuffer, info);
+    }
   }
 }
 
