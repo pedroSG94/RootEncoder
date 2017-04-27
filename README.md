@@ -26,7 +26,7 @@ allprojects {
   }
 }
 dependencies {
-  compile 'com.github.pedroSG94.rtmp-rtsp-stream-client-java:builder:v1.0.1'
+  compile 'com.github.pedroSG94.rtmp-rtsp-stream-client-java:builder:v1.0.2'
 }
 
 ```
