@@ -19,7 +19,8 @@ import com.pedro.encoder.input.video.GetCameraData;
 import com.pedro.encoder.utils.YUVUtil;
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
 
 /**
  * Created by pedro on 19/01/17.
@@ -40,9 +41,8 @@ public class VideoEncoder implements GetCameraData {
   //surface to buffer encoder
   private Surface inputSurface;
   //buffer to buffer
-  private ConcurrentLinkedQueue<byte[]> queue = new ConcurrentLinkedQueue<>();
+  private BlockingQueue<byte[]> queue = new LinkedBlockingQueue<>(20);
   private int imageFormat = ImageFormat.NV21;
-  private final Object lockFrame = new Object();
 
   //default parameters for encoder
   private String codec = "video/avc";
@@ -195,10 +195,10 @@ public class VideoEncoder implements GetCameraData {
         public void run() {
           android.os.Process.setThreadPriority(Process.THREAD_PRIORITY_MORE_FAVORABLE);
           while (!Thread.interrupted()) {
-            while (!queue.isEmpty()) {
+            try {
+              byte[] b = queue.take();
               byte[] i420;
-              byte[] b = queue.poll();
-              if(b == null) continue;
+              if (b == null) continue;
               if (imageFormat == ImageFormat.NV21) {
                 i420 = (sendBlackImage) ? blackImage
                     : YUVUtil.NV21toYUV420byColor(b, width, height, formatVideoEncoder);
@@ -215,11 +215,8 @@ public class VideoEncoder implements GetCameraData {
               } else {
                 getDataFromEncoder(i420);
               }
-            }
-            synchronized (lockFrame){
-              try {
-                lockFrame.wait(500);
-              } catch (InterruptedException ignored) {}
+            } catch (InterruptedException e) {
+              thread.interrupt();
             }
           }
         }
@@ -234,6 +231,11 @@ public class VideoEncoder implements GetCameraData {
     queue.clear();
     if (thread != null) {
       thread.interrupt();
+      try {
+        thread.join();
+      } catch (InterruptedException e) {
+        thread.interrupt();
+      }
       thread = null;
     }
     if (videoEncoder != null) {
@@ -247,22 +249,24 @@ public class VideoEncoder implements GetCameraData {
   @Override
   public void inputYv12Data(byte[] buffer) {
     if (running) {
-      queue.add(buffer);
-      synchronized (lockFrame){
-        lockFrame.notifyAll();
+      try {
+        queue.add(buffer);
+        Log.i(TAG, "send data yv12");
+      } catch (IllegalStateException e) {
+        Log.e(TAG, "frame discarded, cant add more frames: ", e);
       }
-      Log.i(TAG, "send data yv12");
     }
   }
 
   @Override
   public void inputNv21Data(byte[] buffer) {
     if (running) {
-      queue.add(buffer);
-      synchronized (lockFrame){
-        lockFrame.notifyAll();
+      try {
+        queue.add(buffer);
+        Log.i(TAG, "send data nv21");
+      } catch (IllegalStateException e) {
+        Log.e(TAG, "frame discarded, cant add more frames: ", e);
       }
-      Log.i(TAG, "send data nv21");
     }
   }
 

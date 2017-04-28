@@ -91,9 +91,9 @@ public class RtmpBuilder implements GetAccData, GetCameraData, GetH264Data, GetM
   }
 
   public void stopStream() {
-    srsFlvMuxer.stop();
     cameraManager.stop();
     microphoneManager.stop();
+    srsFlvMuxer.stop();
     videoEncoder.stop();
     audioEncoder.stop();
     streaming = false;
@@ -165,7 +165,6 @@ public class RtmpBuilder implements GetAccData, GetCameraData, GetH264Data, GetM
   @Override
   public void onSPSandPPS(ByteBuffer sps, ByteBuffer pps) {
     srsFlvMuxer.setSpsPPs(sps, pps);
-    //used on rtsp
   }
 
   @Override

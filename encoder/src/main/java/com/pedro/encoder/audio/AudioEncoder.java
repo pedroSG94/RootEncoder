@@ -73,12 +73,12 @@ public class AudioEncoder implements GetMicrophoneData {
   }
 
   public void stop() {
+    running = false;
     if (audioEncoder != null) {
       audioEncoder.stop();
       audioEncoder.release();
       audioEncoder = null;
     }
-    running = false;
     Log.i(TAG, "AudioEncoder stopped");
   }
 
