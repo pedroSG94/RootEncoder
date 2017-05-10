@@ -1,9 +1,7 @@
 package com.github.faucamp.simplertmp;
 
-import java.io.InputStream;
-import java.util.concurrent.atomic.AtomicInteger;
-
 import com.github.faucamp.simplertmp.io.RtmpConnection;
+import java.io.InputStream;
 import net.ossrs.rtmp.ConnectCheckerRtmp;
 
 /**
@@ -46,11 +44,6 @@ public class DefaultRtmpPublisher implements RtmpPublisher {
     @Override
     public void publishAudioData(byte[] data, int size, int dts) {
         rtmpConnection.publishAudioData(data, size, dts);
-    }
-
-    @Override
-    public AtomicInteger getVideoFrameCacheNumber() {
-        return rtmpConnection.getVideoFrameCacheNumber();
     }
 
     @Override

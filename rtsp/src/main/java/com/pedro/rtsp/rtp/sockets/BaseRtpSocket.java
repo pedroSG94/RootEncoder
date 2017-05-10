@@ -37,7 +37,7 @@ public abstract class BaseRtpSocket implements Runnable {
       /*									 |		  |				^								*/
       /*									 | --------				|								*/
       /*									 | |---------------------								*/
-			/*									 | ||  -----------------------> Source Identifier(0)	*/
+      /*									 | ||  -----------------------> Source Identifier(0)	*/
 			/*									 | ||  |												*/
       mBuffers[i][0] = (byte) Integer.parseInt("10000000", 2);
       mBuffers[i][1] = (byte) RtpConstants.playLoadType;
@@ -89,6 +89,15 @@ public abstract class BaseRtpSocket implements Runnable {
   public void updateTimestamp(long timestamp) {
     mTimestamps[mBufferIn] = timestamp;
     setLong(mBuffers[mBufferIn], (timestamp / 100L) * (mClock / 1000L) / 10000L, 4, 8);
+  }
+
+  public void commitBuffer() throws IOException {
+    if (mThread == null) {
+      mThread = new Thread(this);
+      mThread.start();
+    }
+    if (++mBufferIn >= mBufferCount) mBufferIn = 0;
+    mBufferCommitted.release();
   }
 
   public abstract void commitBuffer(int length) throws IOException;

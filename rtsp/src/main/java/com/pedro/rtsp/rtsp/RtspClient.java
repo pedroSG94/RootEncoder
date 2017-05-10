@@ -1,8 +1,8 @@
 package com.pedro.rtsp.rtsp;
 
 import android.media.MediaCodec;
+import android.util.Base64;
 import android.util.Log;
-
 import com.pedro.rtsp.rtp.packets.AccPacket;
 import com.pedro.rtsp.rtp.packets.H264Packet;
 import com.pedro.rtsp.utils.AuthUtil;
@@ -32,7 +32,8 @@ public class RtspClient {
   private String host;
   private int port;
   private String path;
-  private int sampleRate;
+  private int sampleRate = 16000;
+  private boolean isStereo = true;
 
   private final int trackVideo = 1;
   private final int trackAudio = 0;
@@ -49,7 +50,7 @@ public class RtspClient {
   private BufferedReader reader;
   private BufferedWriter writer;
   private Thread thread;
-  private String sps, pps;
+  private byte[] sps, pps;
   //for udp
   private int[] audioPorts = new int[] { 5000, 5001 };
   private int[] videoPorts = new int[] { 5002, 5003 };
@@ -126,14 +127,19 @@ public class RtspClient {
     return path;
   }
 
-  public void setSPSandPPS(String sps, String pps) {
+  public void setSPSandPPS(byte[] sps, byte[] pps) {
     this.sps = sps;
     this.pps = pps;
+  }
+
+  public void setIsStereo(boolean isStereo){
+    this.isStereo = isStereo;
   }
 
   public void connect() {
     if (!streaming) {
       h264Packet = new H264Packet(this, protocol);
+      h264Packet.setSPSandPPS(sps, pps);
       accPacket = new AccPacket(this, protocol);
       accPacket.setSampleRate(sampleRate);
       thread = new Thread(new Runnable() {
@@ -283,6 +289,8 @@ public class RtspClient {
   }
 
   private String createBody() {
+    String sSPS = Base64.encodeToString(sps, 0, sps.length, Base64.NO_WRAP);
+    String sPPS = Base64.encodeToString(pps, 0, pps.length, Base64.NO_WRAP);
     return "v=0\r\n"
         +
         // TODO: Add IPV6 support
@@ -302,8 +310,8 @@ public class RtspClient {
         // thread=0 0 means the session is permanent (we don'thread know when it will stop)
         "thread=0 0\r\n"
         + "a=recvonly\r\n"
-        + Body.createAudioBody(trackAudio, sampleRate)
-        + Body.createVideoBody(trackVideo, sps, pps);
+        + Body.createAudioBody(trackAudio, sampleRate, isStereo)
+        + Body.createVideoBody(trackVideo, sSPS, sPPS);
   }
 
   private String sendSetup(int track, Protocol protocol) {
@@ -457,13 +465,13 @@ public class RtspClient {
   }
 
   public void sendVideo(ByteBuffer h264Buffer, MediaCodec.BufferInfo info) {
-    if(isStreaming()) {
+    if (isStreaming()) {
       h264Packet.createAndSendPacket(h264Buffer, info);
     }
   }
 
   public void sendAudio(ByteBuffer accBuffer, MediaCodec.BufferInfo info) {
-    if(isStreaming()) {
+    if (isStreaming()) {
       accPacket.createAndSendPacket(accBuffer, info);
     }
   }

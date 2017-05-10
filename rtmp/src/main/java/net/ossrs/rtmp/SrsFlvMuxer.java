@@ -8,7 +8,6 @@ import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Created by winlin on 5/2/15.
@@ -90,13 +89,6 @@ public class SrsFlvMuxer {
 
   public void setJksData(InputStream inputStreamJks, String passPhraseJks) {
     publisher.setJksData(inputStreamJks, passPhraseJks);
-  }
-
-  /**
-   * get cached video frame number in publisher
-   */
-  public AtomicInteger getVideoFrameCacheNumber() {
-    return publisher == null ? null : publisher.getVideoFrameCacheNumber();
   }
 
   /**
@@ -399,14 +391,6 @@ public class SrsFlvMuxer {
     private SrsFlvFrameBytes pps_hdr = new SrsFlvFrameBytes();
     private SrsFlvFrameBytes pps_bb = new SrsFlvFrameBytes();
 
-    public boolean isSps(SrsFlvFrameBytes frame) {
-      return frame.size >= 1 && (frame.data.get(0) & 0x1f) == SrsAvcNaluType.SPS;
-    }
-
-    public boolean isPps(SrsFlvFrameBytes frame) {
-      return frame.size >= 1 && (frame.data.get(0) & 0x1f) == SrsAvcNaluType.PPS;
-    }
-
     public SrsFlvFrameBytes muxNaluHeader(SrsFlvFrameBytes frame) {
       if (nalu_header.data == null) {
         nalu_header.data = ByteBuffer.allocate(4);
@@ -428,7 +412,7 @@ public class SrsFlvMuxer {
       return nalu_header;
     }
 
-    public void muxSequenceHeader(ByteBuffer sps, ByteBuffer pps, int dts, int pts,
+    public void muxSequenceHeader(ByteBuffer sps, ByteBuffer pps,
         ArrayList<SrsFlvFrameBytes> frames) {
       // 5bytes sps/pps header:
       //      configurationVersion, AVCProfileIndication, profile_compatibility,
@@ -640,7 +624,7 @@ public class SrsFlvMuxer {
         // samplingFrequencyIndex; 4 bslbf
         byte samplingFrequencyIndex = 0x04; //44100
         if (asample_rate == SrsCodecAudioSampleRate.R22050) {
-          samplingFrequencyIndex = 0x07;  //2250
+          samplingFrequencyIndex = 0x07;  //22050
         } else if (asample_rate == SrsCodecAudioSampleRate.R11025) {
           samplingFrequencyIndex = 0x0a;  //11025
         }
@@ -706,7 +690,7 @@ public class SrsFlvMuxer {
       // adts sync word 0xfff (12-bit)
       frame[offset] = (byte) 0xff;
       frame[offset + 1] = (byte) 0xf0;
-      // versioin 0 for MPEG-4, 1 for MPEG-2 (1-bit)
+      // version 0 for MPEG-4, 1 for MPEG-2 (1-bit)
       frame[offset + 1] |= 0 << 3;
       // layer 0 (2-bit)
       frame[offset + 1] |= 0 << 1;
@@ -751,7 +735,7 @@ public class SrsFlvMuxer {
         // 5bits, 7.3.1 NAL unit syntax,
         // H.264-AVC-ISO_IEC_14496-10.pdf, page 44.
         // 7: SPS, 8: PPS, 5: I Frame, 1: P Frame
-        int nal_unit_type = (int) (frame.data.get(0) & 0x1f);
+        int nal_unit_type = frame.data.get(0) & 0x1f;
         if (nal_unit_type == SrsAvcNaluType.SPS || nal_unit_type == SrsAvcNaluType.PPS) {
           Log.i(TAG, String.format("annexb demux %dB, pts=%d, frame=%dB, nalu=%d", bi.size, pts,
               frame.size, nal_unit_type));
@@ -766,28 +750,6 @@ public class SrsFlvMuxer {
         if (nal_unit_type == SrsAvcNaluType.AccessUnitDelimiter) {
           continue;
         }
-
-        // for sps
-        //if (avc.isSps(frame)) {
-        //  if (!frame.data.equals(h264_sps)) {
-        //    byte[] sps = new byte[frame.size];
-        //    frame.data.get(sps);
-        //    h264_sps_changed = true;
-        //    h264_sps = ByteBuffer.wrap(sps);
-        //  }
-        //  continue;
-        //}
-        //
-        //// for pps
-        //if (avc.isPps(frame)) {
-        //  if (!frame.data.equals(h264_pps)) {
-        //    byte[] pps = new byte[frame.size];
-        //    frame.data.get(pps);
-        //    h264_pps_changed = true;
-        //    h264_pps = ByteBuffer.wrap(pps);
-        //  }
-        //  continue;
-        //}
 
         // IPB frame.
         ipbs.add(avc.muxNaluHeader(frame));
@@ -807,9 +769,9 @@ public class SrsFlvMuxer {
     }
 
     private void writeH264SpsPps(int dts, int pts) {
-      // when sps or pps changed, update the sequence header,
-      // for the pps maybe not changed while sps changed.
-      // so, we must check when each video ts message frame parsed.
+      /* when sps or pps changed, update the sequence header,
+      for the pps maybe not changed while sps changed.
+      so, we must check when each video ts message frame parsed.*/
       if (h264_sps_pps_sent && !h264_sps_changed && !h264_pps_changed) {
         return;
       }
@@ -821,7 +783,7 @@ public class SrsFlvMuxer {
 
       // h264 raw to h264 packet.
       ArrayList<SrsFlvFrameBytes> frames = new ArrayList<>();
-      avc.muxSequenceHeader(h264_sps, h264_pps, dts, pts, frames);
+      avc.muxSequenceHeader(h264_sps, h264_pps, frames);
 
       // h264 packet to flv packet.
       int frame_type = SrsCodecVideoAVCFrame.KeyFrame;
@@ -880,10 +842,7 @@ public class SrsFlvMuxer {
     private void flvFrameCacheAdd(SrsFlvFrame frame) {
       try {
         mFlvTagCache.add(frame);
-        if (frame.is_video()) {
-          getVideoFrameCacheNumber().incrementAndGet();
-        }
-      } catch (IllegalStateException e){
+      } catch (IllegalStateException e) {
         Log.e(TAG, "frame discarded, cant add more frame: ", e);
       }
     }

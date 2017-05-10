@@ -19,6 +19,8 @@ public class AccPacket extends BasePacket {
 
   private final String TAG = "AccPacket";
 
+  private long oldTs;
+
   public AccPacket(RtspClient rtspClient, Protocol protocol) {
     super(rtspClient, protocol);
   }
@@ -42,28 +44,35 @@ public class AccPacket extends BasePacket {
       int length = maxPacketSize - (RtpConstants.RTP_HEADER_LENGTH + 4)
           < bufferInfo.size - byteBuffer.position() ? maxPacketSize
           - (RtpConstants.RTP_HEADER_LENGTH + 4) : bufferInfo.size - byteBuffer.position();
-      byteBuffer.get(buffer, RtpConstants.RTP_HEADER_LENGTH + 4, length);
+      if (length > 0) {
+        byteBuffer.get(buffer, RtpConstants.RTP_HEADER_LENGTH + 4, length);
+        oldTs = ts;
+        ts = bufferInfo.presentationTimeUs * 1000;
+        if (oldTs > ts) {
+          socket.commitBuffer();
+          return;
+        }
+        socket.markNextPacket();
+        socket.updateTimestamp(ts);
 
-      ts = bufferInfo.presentationTimeUs * 1000;
-      socket.markNextPacket();
-      socket.updateTimestamp(ts);
+        // AU-headers-length field: contains the size in bits of a AU-header
+        // 13+3 = 16 bits -> 13bits for AU-size and 3bits for AU-Index / AU-Index-delta
+        // 13 bits will be enough because ADTS uses 13 bits for frame length
+        buffer[RtpConstants.RTP_HEADER_LENGTH] = 0;
+        buffer[RtpConstants.RTP_HEADER_LENGTH + 1] = 0x10;
 
-      // AU-headers-length field: contains the size in bits of a AU-header
-      // 13+3 = 16 bits -> 13bits for AU-size and 3bits for AU-Index / AU-Index-delta
-      // 13 bits will be enough because ADTS uses 13 bits for frame length
-      buffer[RtpConstants.RTP_HEADER_LENGTH] = 0;
-      buffer[RtpConstants.RTP_HEADER_LENGTH + 1] = 0x10;
+        // AU-size
+        buffer[RtpConstants.RTP_HEADER_LENGTH + 2] = (byte) (length >> 5);
+        buffer[RtpConstants.RTP_HEADER_LENGTH + 3] = (byte) (length << 3);
 
-      // AU-size
-      buffer[RtpConstants.RTP_HEADER_LENGTH + 2] = (byte) (length >> 5);
-      buffer[RtpConstants.RTP_HEADER_LENGTH + 3] = (byte) (length << 3);
+        // AU-Index
+        buffer[RtpConstants.RTP_HEADER_LENGTH + 3] &= 0xF8;
+        buffer[RtpConstants.RTP_HEADER_LENGTH + 3] |= 0x00;
 
-      // AU-Index
-      buffer[RtpConstants.RTP_HEADER_LENGTH + 3] &= 0xF8;
-      buffer[RtpConstants.RTP_HEADER_LENGTH + 3] |= 0x00;
-
-      socket.commitBuffer(RtpConstants.RTP_HEADER_LENGTH + length + 4);
-
+        socket.commitBuffer(RtpConstants.RTP_HEADER_LENGTH + length + 4);
+      } else {
+        socket.commitBuffer();
+      }
     } catch (IOException | InterruptedException | ArrayIndexOutOfBoundsException e) {
       e.printStackTrace();
     }

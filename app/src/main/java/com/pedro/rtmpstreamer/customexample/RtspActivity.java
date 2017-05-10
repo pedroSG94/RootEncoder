@@ -113,7 +113,7 @@ public class RtspActivity extends AppCompatActivity
     etVideoBitrate.setText("2500");
     etFps.setText("30");
     etAudioBitrate.setText("128");
-    etSampleRate.setText("44100");
+    etSampleRate.setText("16000");
     etWowzaUser = (EditText) navigationView.getMenu().findItem(R.id.et_wowza_user).getActionView();
     etWowzaPassword =
         (EditText) navigationView.getMenu().findItem(R.id.et_wowza_password).getActionView();

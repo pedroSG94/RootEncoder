@@ -4,13 +4,10 @@ import android.graphics.ImageFormat;
 import android.hardware.Camera;
 import android.opengl.GLES20;
 import android.util.Log;
-import android.view.Surface;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
-
 import java.io.IOException;
 import java.util.List;
-
 import javax.microedition.khronos.egl.EGL10;
 import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.egl.EGLContext;
@@ -50,7 +47,7 @@ public class Camera1ApiManager implements Camera.PreviewCallback {
   public Camera1ApiManager(SurfaceView surfaceView, GetCameraData getCameraData) {
     this.surfaceView = surfaceView;
     this.getCameraData = getCameraData;
-    if(surfaceView.getContext().getResources().getConfiguration().orientation == 1){
+    if (surfaceView.getContext().getResources().getConfiguration().orientation == 1) {
       orientation = 90;
     }
     cameraSelect = selectCamera();
@@ -71,7 +68,7 @@ public class Camera1ApiManager implements Camera.PreviewCallback {
     if (camera == null) {
       try {
         camera = Camera.open(cameraSelect);
-        if(!checkCanOpen()){
+        if (!checkCanOpen()) {
           throw new CameraOpenException("This camera resolution cant be opened");
         }
         Camera.Parameters parameters = camera.getParameters();
@@ -191,13 +188,13 @@ public class Camera1ApiManager implements Camera.PreviewCallback {
    * Example: 842094169 -> YV12, 17 -> NV21
    */
   public List<Integer> getCameraPreviewImageFormatSupported() {
-    if(camera != null) {
+    if (camera != null) {
       List<Integer> formats = camera.getParameters().getSupportedPreviewFormats();
       for (Integer i : formats) {
         Log.i(TAG, "camera format supported: " + i);
       }
       return formats;
-    } else{
+    } else {
       return null;
     }
   }
@@ -206,13 +203,13 @@ public class Camera1ApiManager implements Camera.PreviewCallback {
    * call if after start()
    */
   public List<Camera.Size> getPreviewSize() {
-    if(camera != null) {
+    if (camera != null) {
       List<Camera.Size> previewSizes = camera.getParameters().getSupportedPreviewSizes();
       for (Camera.Size size : previewSizes) {
         Log.i(TAG, size.width + "X" + size.height);
       }
       return previewSizes;
-    } else{
+    } else {
       camera = Camera.open(cameraSelect);
       List<Camera.Size> previewSizes = camera.getParameters().getSupportedPreviewSizes();
       camera.release();
@@ -225,7 +222,7 @@ public class Camera1ApiManager implements Camera.PreviewCallback {
   }
 
   public void setEffect(EffectManager effect) {
-    if(camera != null) {
+    if (camera != null) {
       Camera.Parameters parameters = camera.getParameters();
       parameters.setColorEffect(effect.getEffect());
       try {
@@ -237,7 +234,7 @@ public class Camera1ApiManager implements Camera.PreviewCallback {
     }
   }
 
-  public void switchCamera() throws CameraOpenException{
+  public void switchCamera() throws CameraOpenException {
     if (camera != null) {
       int number = Camera.getNumberOfCameras();
       for (int i = 0; i < number; i++) {
@@ -251,9 +248,9 @@ public class Camera1ApiManager implements Camera.PreviewCallback {
     }
   }
 
-  private boolean checkCanOpen(){
-    for(Camera.Size size : getPreviewSize()){
-      if(size.width == width && size.height == height){
+  private boolean checkCanOpen() {
+    for (Camera.Size size : getPreviewSize()) {
+      if (size.width == width && size.height == height) {
         return true;
       }
     }

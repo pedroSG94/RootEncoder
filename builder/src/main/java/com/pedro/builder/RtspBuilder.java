@@ -4,7 +4,6 @@ import android.graphics.ImageFormat;
 import android.hardware.Camera;
 import android.media.MediaCodec;
 import android.os.Build;
-import android.util.Base64;
 import android.view.SurfaceView;
 import com.pedro.encoder.audio.AudioEncoder;
 import com.pedro.encoder.audio.GetAccData;
@@ -64,6 +63,7 @@ public class RtspBuilder implements GetAccData, GetCameraData, GetH264Data, GetM
 
   public boolean prepareAudio(int bitrate, int sampleRate, boolean isStereo) {
     rtspClient.setSampleRate(sampleRate);
+    rtspClient.setIsStereo(isStereo);
     microphoneManager.createMicrophone(sampleRate, isStereo);
     return audioEncoder.prepareAudioEncoder(bitrate, sampleRate, isStereo);
   }
@@ -73,7 +73,10 @@ public class RtspBuilder implements GetAccData, GetCameraData, GetH264Data, GetM
     return videoEncoder.prepareVideoEncoder();
   }
 
+  //set 16000hz sample rate because 44100 produce desynchronization audio in rtsp
   public boolean prepareAudio() {
+    microphoneManager.setSampleRate(16000);
+    audioEncoder.setSampleRate(16000);
     microphoneManager.createMicrophone();
     rtspClient.setSampleRate(microphoneManager.getSampleRate());
     return audioEncoder.prepareAudioEncoder();
@@ -168,10 +171,7 @@ public class RtspBuilder implements GetAccData, GetCameraData, GetH264Data, GetM
     byte[] mPPS = new byte[pps.capacity() - 4];
     pps.position(4);
     pps.get(mPPS, 0, mPPS.length);
-
-    String sSPS = Base64.encodeToString(mSPS, 0, mSPS.length, Base64.NO_WRAP);
-    String sPPS = Base64.encodeToString(mPPS, 0, mPPS.length, Base64.NO_WRAP);
-    rtspClient.setSPSandPPS(sSPS, sPPS);
+    rtspClient.setSPSandPPS(mPPS, mSPS);
     rtspClient.connect();
   }
 

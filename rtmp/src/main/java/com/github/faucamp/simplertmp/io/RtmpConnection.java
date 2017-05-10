@@ -1,42 +1,36 @@
 package com.github.faucamp.simplertmp.io;
 
-import com.github.faucamp.simplertmp.Util;
-import java.io.BufferedInputStream;
-import java.io.BufferedOutputStream;
-import java.io.EOFException;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.net.InetSocketAddress;
-import java.net.Socket;
-import java.net.SocketAddress;
-import java.net.SocketException;
-import java.util.Random;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-import java.util.concurrent.atomic.AtomicInteger;
-
 import android.util.Log;
-
 import com.github.faucamp.simplertmp.RtmpPublisher;
+import com.github.faucamp.simplertmp.Util;
 import com.github.faucamp.simplertmp.amf.AmfMap;
 import com.github.faucamp.simplertmp.amf.AmfNull;
 import com.github.faucamp.simplertmp.amf.AmfNumber;
 import com.github.faucamp.simplertmp.amf.AmfObject;
 import com.github.faucamp.simplertmp.amf.AmfString;
 import com.github.faucamp.simplertmp.packets.Abort;
+import com.github.faucamp.simplertmp.packets.Audio;
+import com.github.faucamp.simplertmp.packets.Command;
 import com.github.faucamp.simplertmp.packets.Data;
 import com.github.faucamp.simplertmp.packets.Handshake;
-import com.github.faucamp.simplertmp.packets.Command;
-import com.github.faucamp.simplertmp.packets.Audio;
-import com.github.faucamp.simplertmp.packets.SetPeerBandwidth;
-import com.github.faucamp.simplertmp.packets.Video;
-import com.github.faucamp.simplertmp.packets.UserControl;
 import com.github.faucamp.simplertmp.packets.RtmpPacket;
+import com.github.faucamp.simplertmp.packets.SetPeerBandwidth;
+import com.github.faucamp.simplertmp.packets.UserControl;
+import com.github.faucamp.simplertmp.packets.Video;
 import com.github.faucamp.simplertmp.packets.WindowAckSize;
-import javax.net.ssl.SSLSocket;
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
+import java.io.EOFException;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.net.Socket;
+import java.net.SocketException;
+import java.util.Random;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import net.ossrs.rtmp.ConnectCheckerRtmp;
 import net.ossrs.rtmp.CreateSSLSocket;
 
@@ -70,7 +64,6 @@ public class RtmpConnection implements RtmpPublisher {
   private volatile boolean publishPermitted = false;
   private final Object connectingLock = new Object();
   private final Object publishLock = new Object();
-  private AtomicInteger videoFrameCacheNumber = new AtomicInteger(0);
   private int currentStreamId = 0;
   private int transactionIdCounter = 0;
   private int videoWidth;
@@ -447,7 +440,6 @@ public class RtmpConnection implements RtmpPublisher {
     publishType = null;
     currentStreamId = 0;
     transactionIdCounter = 0;
-    videoFrameCacheNumber.set(0);
     socketExceptionCause = "";
     socket = null;
     rtmpSessionInfo = null;
@@ -498,7 +490,6 @@ public class RtmpConnection implements RtmpPublisher {
     video.getHeader().setAbsoluteTimestamp(dts);
     video.getHeader().setMessageStreamId(currentStreamId);
     sendRtmpPacket(video);
-    videoFrameCacheNumber.decrementAndGet();
   }
 
   private void sendRtmpPacket(RtmpPacket rtmpPacket) {
@@ -730,10 +721,10 @@ public class RtmpConnection implements RtmpPublisher {
     }
   }
 
-  @Override
-  public AtomicInteger getVideoFrameCacheNumber() {
-    return videoFrameCacheNumber;
-  }
+  //@Override
+  //public AtomicInteger getVideoFrameCacheNumber() {
+  //  return videoFrameCacheNumber;
+  //}
 
   @Override
   public void setVideoResolution(int width, int height) {
