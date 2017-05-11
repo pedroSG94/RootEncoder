@@ -61,10 +61,11 @@ public class RtspBuilder implements GetAccData, GetCameraData, GetH264Data, GetM
         FormatVideoEncoder.YUV420Dynamical);
   }
 
-  public boolean prepareAudio(int bitrate, int sampleRate, boolean isStereo) {
+  public boolean prepareAudio(int bitrate, int sampleRate, boolean isStereo, boolean echoCanceler,
+      boolean noiseSuppressor) {
     rtspClient.setSampleRate(sampleRate);
     rtspClient.setIsStereo(isStereo);
-    microphoneManager.createMicrophone(sampleRate, isStereo);
+    microphoneManager.createMicrophone(sampleRate, isStereo, echoCanceler, noiseSuppressor);
     return audioEncoder.prepareAudioEncoder(bitrate, sampleRate, isStereo);
   }
 

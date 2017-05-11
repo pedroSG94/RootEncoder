@@ -52,6 +52,16 @@
           app:actionLayout="@xml/radio_group_audio"
           android:id="@+id/channel"
           />
+      <item
+          android:title="@string/echo_canceler"
+          app:actionViewClass="android.widget.CheckBox"
+          android:id="@+id/cb_echo_canceler"
+        />
+      <item
+          android:title="@string/noise_suppressor"
+          app:actionViewClass="android.widget.CheckBox"
+          android:id="@+id/cb_noise_suppressor"
+          />
     </menu>
   </item>
   <item android:title="@string/wowza_auth">

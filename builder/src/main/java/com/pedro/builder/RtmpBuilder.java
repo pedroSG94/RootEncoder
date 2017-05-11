@@ -61,8 +61,9 @@ public class RtmpBuilder implements GetAccData, GetCameraData, GetH264Data, GetM
         FormatVideoEncoder.YUV420Dynamical);
   }
 
-  public boolean prepareAudio(int bitrate, int sampleRate, boolean isStereo) {
-    microphoneManager.createMicrophone(sampleRate, isStereo);
+  public boolean prepareAudio(int bitrate, int sampleRate, boolean isStereo, boolean echoCanceler,
+      boolean noiseSuppressor) {
+    microphoneManager.createMicrophone(sampleRate, isStereo, echoCanceler, noiseSuppressor);
     srsFlvMuxer.setIsStereo(isStereo);
     srsFlvMuxer.setAsample_rate(sampleRate);
     return audioEncoder.prepareAudioEncoder(bitrate, sampleRate, isStereo);

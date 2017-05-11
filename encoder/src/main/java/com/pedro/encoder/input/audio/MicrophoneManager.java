@@ -3,8 +3,6 @@ package com.pedro.encoder.input.audio;
 import android.media.AudioFormat;
 import android.media.AudioRecord;
 import android.media.MediaRecorder;
-import android.media.audiofx.AcousticEchoCanceler;
-import android.media.audiofx.AutomaticGainControl;
 import android.util.Log;
 import com.pedro.encoder.audio.DataTaken;
 
@@ -27,9 +25,7 @@ public class MicrophoneManager {
   private int audioFormat = AudioFormat.ENCODING_PCM_16BIT;
   private int channel = AudioFormat.CHANNEL_IN_STEREO;
   private boolean muted = false;
-  //echo canceler
-  private AcousticEchoCanceler acousticEchoCanceler;
-  private AutomaticGainControl automaticGainControl;
+  private AudioPostProcessEffect audioPostProcessEffect;
 
   public MicrophoneManager(GetMicrophoneData getMicrophoneData) {
     this.getMicrophoneData = getMicrophoneData;
@@ -39,48 +35,27 @@ public class MicrophoneManager {
    * Create audio record
    */
   public void createMicrophone() {
-    createMicrophone(sampleRate, true);
-    Log.i(TAG, "Microphone created, 44100hz, Stereo");
+    createMicrophone(sampleRate, true, false, false);
+    Log.i(TAG, "Microphone created, " + sampleRate + "hz, Stereo");
   }
 
   /**
    * Create audio record with params
    */
-  public void createMicrophone(int sampleRate, boolean isStereo) {
+  public void createMicrophone(int sampleRate, boolean isStereo, boolean echoCanceler,
+      boolean noiseSuppressor) {
     this.sampleRate = sampleRate;
     if (!isStereo) channel = AudioFormat.CHANNEL_IN_MONO;
     audioRecord =
         new AudioRecord(MediaRecorder.AudioSource.DEFAULT, sampleRate, channel, audioFormat,
             getPcmBufferSize() * 4);
-    enableAudioEchoCanceler(audioRecord.getAudioSessionId());
+    audioPostProcessEffect = new AudioPostProcessEffect(audioRecord.getAudioSessionId());
+    if (echoCanceler) audioPostProcessEffect.enableEchoCanceler();
+    if (noiseSuppressor) audioPostProcessEffect.enableNoiseSuppressor();
     String chl = (isStereo) ? "Stereo" : "Mono";
     Log.i(TAG, "Microphone created, " + sampleRate + "hz, " + chl);
   }
 
-  private void enableAudioEchoCanceler(int id) {
-    if (AcousticEchoCanceler.isAvailable() && acousticEchoCanceler == null) {
-      acousticEchoCanceler = AcousticEchoCanceler.create(id);
-      acousticEchoCanceler.setEnabled(true);
-    }
-    if (AutomaticGainControl.isAvailable() && automaticGainControl == null) {
-      automaticGainControl = AutomaticGainControl.create(id);
-      automaticGainControl.setEnabled(true);
-    }
-  }
-
-  private void disableAudioEchoCanceler(){
-    if(acousticEchoCanceler != null){
-      acousticEchoCanceler.setEnabled(false);
-      acousticEchoCanceler.release();
-      acousticEchoCanceler = null;
-    }
-
-    if(automaticGainControl != null){
-      automaticGainControl.setEnabled(false);
-      automaticGainControl.release();
-      automaticGainControl = null;
-    }
-  }
   /**
    * Start record and get data
    */
@@ -152,7 +127,8 @@ public class MicrophoneManager {
       audioRecord.release();
       audioRecord = null;
     }
-    disableAudioEchoCanceler();
+    audioPostProcessEffect.releaseEchoCanceler();
+    audioPostProcessEffect.releaseNoiseSuppressor();
     Log.i(TAG, "Microphone stopped");
   }
 

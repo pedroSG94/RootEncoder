@@ -4,21 +4,22 @@
     >
   <item android:title="@string/protocols">
     <menu>
-        <item
-            android:title="@string/tcp"
-            app:actionViewClass="android.widget.RadioButton"
-            android:id="@+id/rb_tcp"
-            />
-        <item
-            android:title="@string/udp"
-            app:actionViewClass="android.widget.RadioButton"
-            android:id="@+id/rb_udp"
-            />
+      <item
+          android:title="@string/tcp"
+          app:actionViewClass="android.widget.RadioButton"
+          android:id="@+id/rb_tcp"
+          />
+      <item
+          android:title="@string/udp"
+          app:actionViewClass="android.widget.RadioButton"
+          android:id="@+id/rb_udp"
+          />
     </menu>
   </item>
   <item android:title="@string/video">
     <menu>
-      <item android:title="@string/resolution"
+      <item
+          android:title="@string/resolution"
           app:actionViewClass="android.widget.Spinner"
           android:id="@+id/sp_resolution"
           />
@@ -51,11 +52,21 @@
           app:actionLayout="@xml/edit_text_int"
           android:id="@+id/et_samplerate"
           />
-        <item
-            android:title="@string/channel"
-            app:actionLayout="@xml/radio_group_audio"
-            android:id="@+id/channel"
-            />
+      <item
+          android:title="@string/channel"
+          app:actionLayout="@xml/radio_group_audio"
+          android:id="@+id/channel"
+          />
+      <item
+          android:title="@string/echo_canceler"
+          app:actionViewClass="android.widget.CheckBox"
+          android:id="@+id/cb_echo_canceler"
+          />
+      <item
+          android:title="@string/noise_suppressor"
+          app:actionViewClass="android.widget.CheckBox"
+          android:id="@+id/cb_noise_suppressor"
+          />
     </menu>
   </item>
   <item android:title="@string/wowza_auth">

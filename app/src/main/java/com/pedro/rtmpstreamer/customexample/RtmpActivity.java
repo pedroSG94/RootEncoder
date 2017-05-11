@@ -14,6 +14,7 @@ import android.view.View;
 import android.view.WindowManager;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
@@ -39,6 +40,7 @@ public class RtmpActivity extends AppCompatActivity
   private ActionBarDrawerToggle actionBarDrawerToggle;
   private RadioGroup rgChannel;
   private Spinner spResolution, spOrientation;
+  private CheckBox cbEchoCanceler, cbNoiseSuppressor;
   private EditText etVideoBitrate, etFps, etAudioBitrate, etSampleRate, etWowzaUser,
       etWowzaPassword;
 
@@ -73,10 +75,16 @@ public class RtmpActivity extends AppCompatActivity
 
       public void onDrawerClosed(View view) {
         actionBarDrawerToggle.syncState();
-        rtmpBuilder.setVideoBitrateOnFly(Integer.parseInt(etVideoBitrate.getText().toString()) * 1024);
+        rtmpBuilder.setVideoBitrateOnFly(
+            Integer.parseInt(etVideoBitrate.getText().toString()) * 1024);
       }
     };
     drawerLayout.addDrawerListener(actionBarDrawerToggle);
+    //checkboxs
+    cbEchoCanceler =
+        (CheckBox) navigationView.getMenu().findItem(R.id.cb_echo_canceler).getActionView();
+    cbNoiseSuppressor =
+        (CheckBox) navigationView.getMenu().findItem(R.id.cb_noise_suppressor).getActionView();
     //radiobuttons
     RadioButton rbTcp =
         (RadioButton) navigationView.getMenu().findItem(R.id.rb_tcp).getActionView();
@@ -154,7 +162,7 @@ public class RtmpActivity extends AppCompatActivity
         rtmpBuilder.setEffect(EffectManager.POSTERIZE);
         return true;
       case R.id.microphone:
-        if(!rtmpBuilder.isAudioMuted()) {
+        if (!rtmpBuilder.isAudioMuted()) {
           item.setIcon(getResources().getDrawable(R.drawable.icon_microphone_off));
           rtmpBuilder.disableAudio();
         } else {
@@ -163,7 +171,7 @@ public class RtmpActivity extends AppCompatActivity
         }
         return true;
       case R.id.camera:
-        if(rtmpBuilder.isVideoEnabled()) {
+        if (rtmpBuilder.isVideoEnabled()) {
           item.setIcon(getResources().getDrawable(R.drawable.icon_camera_off));
           rtmpBuilder.disableVideo();
         } else {
@@ -197,7 +205,8 @@ public class RtmpActivity extends AppCompatActivity
               orientations[spOrientation.getSelectedItemPosition()]) && rtmpBuilder.prepareAudio(
               Integer.parseInt(etAudioBitrate.getText().toString()) * 1024,
               Integer.parseInt(etSampleRate.getText().toString()),
-              rgChannel.getCheckedRadioButtonId() == R.id.rb_stereo)) {
+              rgChannel.getCheckedRadioButtonId() == R.id.rb_stereo, cbEchoCanceler.isChecked(),
+              cbNoiseSuppressor.isChecked())) {
             rtmpBuilder.startStream(etUrl.getText().toString());
           } else {
             //If you see this all time when you start stream,
@@ -217,7 +226,7 @@ public class RtmpActivity extends AppCompatActivity
       case R.id.switch_camera:
         try {
           rtmpBuilder.switchCamera();
-        } catch (CameraOpenException e){
+        } catch (CameraOpenException e) {
           Toast.makeText(this, e.getMessage(), Toast.LENGTH_SHORT).show();
           rtmpBuilder.switchCamera();
         }
