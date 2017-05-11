@@ -24,7 +24,9 @@ import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.net.InetSocketAddress;
 import java.net.Socket;
+import java.net.SocketAddress;
 import java.net.SocketException;
 import java.util.Random;
 import java.util.logging.Level;
@@ -129,7 +131,9 @@ public class RtmpConnection implements RtmpPublisher {
     rtmpDecoder = new RtmpDecoder(rtmpSessionInfo);
     try {
       if (inputStreamJks == null | passPhraseJks == null) {
-        socket = new Socket(host, port);
+        socket = new Socket();
+        SocketAddress socketAddress = new InetSocketAddress(host, port);
+        socket.connect(socketAddress, 3000);
       } else {
         socket = CreateSSLSocket.createSSlSocket(
             CreateSSLSocket.createKeyStore(inputStreamJks, passPhraseJks), host, port);

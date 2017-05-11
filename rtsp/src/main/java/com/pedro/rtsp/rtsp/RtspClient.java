@@ -15,7 +15,9 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
+import java.net.InetSocketAddress;
 import java.net.Socket;
+import java.net.SocketAddress;
 import java.nio.ByteBuffer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -132,7 +134,7 @@ public class RtspClient {
     this.pps = pps;
   }
 
-  public void setIsStereo(boolean isStereo){
+  public void setIsStereo(boolean isStereo) {
     this.isStereo = isStereo;
   }
 
@@ -147,7 +149,9 @@ public class RtspClient {
         public void run() {
           try {
             if (inputStreamJks == null | passPhraseJks == null) {
-              connectionSocket = new Socket(host, port);
+              connectionSocket = new Socket();
+              SocketAddress socketAddress = new InetSocketAddress(host, port);
+              connectionSocket.connect(socketAddress, 3000);
             } else {
               connectionSocket = CreateSSLSocket.createSSlSocket(
                   CreateSSLSocket.createKeyStore(inputStreamJks, passPhraseJks), host, port);
@@ -194,7 +198,7 @@ public class RtspClient {
             streaming = true;
             connectCheckerRtsp.onConnectionSuccessRtsp();
             new Thread(connectionMonitor).start();
-          } catch (IOException e) {
+          } catch (IOException | NullPointerException e) {
             e.printStackTrace();
             connectCheckerRtsp.onConnectionFailedRtsp();
             streaming = false;
@@ -394,7 +398,6 @@ public class RtspClient {
       Log.i(TAG, response);
       return response;
     } catch (IOException e) {
-      e.printStackTrace();
       return null;
     }
   }
