@@ -76,6 +76,19 @@ public class Camera1ApiManager implements Camera.PreviewCallback {
         parameters.setPreviewFormat(imageFormat);
         int[] range = adaptFpsRange(fps, parameters.getSupportedPreviewFpsRange());
         parameters.setPreviewFpsRange(range[0], range[1]);
+
+        List<String> supportedFocusModes = parameters.getSupportedFocusModes();
+        if (supportedFocusModes != null && !supportedFocusModes.isEmpty()) {
+          if (supportedFocusModes.contains(Camera.Parameters.FOCUS_MODE_CONTINUOUS_PICTURE)) {
+            parameters.setFocusMode(Camera.Parameters.FOCUS_MODE_CONTINUOUS_PICTURE);
+          } else if (supportedFocusModes.contains(Camera.Parameters.FOCUS_MODE_AUTO)) {
+            parameters.setFocusMode(Camera.Parameters.FOCUS_MODE_AUTO);
+            camera.autoFocus(null);
+          } else {
+            parameters.setFocusMode(supportedFocusModes.get(0));
+          }
+        }
+
         camera.setParameters(parameters);
         camera.setDisplayOrientation(orientation);
         camera.setPreviewDisplay(surfaceView.getHolder());
