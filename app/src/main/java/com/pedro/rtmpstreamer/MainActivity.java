@@ -27,6 +27,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
   protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
     setContentView(R.layout.activity_main);
+    overridePendingTransition(R.transition.slide_in, R.transition.slide_out);
 
     Button bRtmp = (Button) findViewById(R.id.b_rtmp);
     Button bRtsp = (Button) findViewById(R.id.b_rtsp);
