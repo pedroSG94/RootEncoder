@@ -37,6 +37,7 @@ public class VideoEncoder implements GetCameraData {
   private long mPresentTimeUs;
   private boolean running = false;
   private boolean spsPpsSetted = false;
+  private boolean hardwareRotation = false;
 
   //surface to buffer encoder
   private Surface inputSurface;
@@ -50,7 +51,7 @@ public class VideoEncoder implements GetCameraData {
   private int height = 720;
   private int fps = 30;
   private int bitRate = 1500 * 1024; //in kbps
-  private int rotation = 0;
+  private int rotation = 90;
   private FormatVideoEncoder formatVideoEncoder = FormatVideoEncoder.YUV420Dynamical;
   //for disable video
   private boolean sendBlackImage = false;
@@ -64,11 +65,13 @@ public class VideoEncoder implements GetCameraData {
    * Prepare encoder with custom parameters
    */
   public boolean prepareVideoEncoder(int width, int height, int fps, int bitRate, int rotation,
-      FormatVideoEncoder formatVideoEncoder) {
+      boolean hardwareRotation, FormatVideoEncoder formatVideoEncoder) {
     this.width = width;
     this.height = height;
     this.fps = fps;
     this.bitRate = bitRate;
+    this.rotation = rotation;
+    this.hardwareRotation = hardwareRotation;
     this.formatVideoEncoder = formatVideoEncoder;
     MediaCodecInfo encoder;
     if (Build.VERSION.SDK_INT >= 21) {
@@ -91,14 +94,23 @@ public class VideoEncoder implements GetCameraData {
         return false;
       }
 
-      MediaFormat videoFormat = MediaFormat.createVideoFormat(codec, width, height);
+      MediaFormat videoFormat;
+      //if you dont use mediacodec rotation you need swap width and height in rotation 90 or 270
+      // for correct encoding resolution
+      if (!hardwareRotation && (rotation == 90 || rotation == 270)) {
+        videoFormat = MediaFormat.createVideoFormat(codec, height, width);
+      } else {
+        videoFormat = MediaFormat.createVideoFormat(codec, width, height);
+      }
       videoFormat.setInteger(MediaFormat.KEY_COLOR_FORMAT,
           this.formatVideoEncoder.getFormatCodec());
       videoFormat.setInteger(MediaFormat.KEY_MAX_INPUT_SIZE, 0);
       videoFormat.setInteger(MediaFormat.KEY_BIT_RATE, bitRate);
       videoFormat.setInteger(MediaFormat.KEY_FRAME_RATE, fps);
       videoFormat.setInteger(MediaFormat.KEY_I_FRAME_INTERVAL, 2);
-      videoFormat.setInteger("rotation-degrees", rotation);
+      if (hardwareRotation) {
+        videoFormat.setInteger("rotation-degrees", rotation);
+      }
       videoEncoder.configure(videoFormat, null, null, MediaCodec.CONFIGURE_FLAG_ENCODE);
       running = false;
       if (formatVideoEncoder == FormatVideoEncoder.SURFACE
@@ -134,7 +146,7 @@ public class VideoEncoder implements GetCameraData {
    * Prepare encoder with default parameters
    */
   public boolean prepareVideoEncoder() {
-    return prepareVideoEncoder(width, height, fps, bitRate, rotation, formatVideoEncoder);
+    return prepareVideoEncoder(width, height, fps, bitRate, rotation, false, formatVideoEncoder);
   }
 
   @RequiresApi(api = Build.VERSION_CODES.KITKAT)
@@ -151,7 +163,7 @@ public class VideoEncoder implements GetCameraData {
       }
     }
   }
-
+  
   public Surface getInputSurface() {
     return inputSurface;
   }
@@ -200,6 +212,14 @@ public class VideoEncoder implements GetCameraData {
               byte[] i420;
               if (b == null) continue;
               if (imageFormat == ImageFormat.NV21) {
+                if (!hardwareRotation) {
+                  if (rotation == 0 || rotation == 90 || rotation == 180 || rotation == 270) {
+                    b = YUVUtil.rotateNV21(b, width, height, rotation);
+                  } else {
+                    throw new RuntimeException(
+                        "rotation value unsupported, select value 0, 90, 180 or 270");
+                  }
+                }
                 i420 = (sendBlackImage) ? blackImage
                     : YUVUtil.NV21toYUV420byColor(b, width, height, formatVideoEncoder);
               } else if (imageFormat == ImageFormat.YV12) {

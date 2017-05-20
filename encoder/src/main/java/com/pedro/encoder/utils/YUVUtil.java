@@ -150,7 +150,6 @@ public class YUVUtil {
       FormatVideoEncoder formatVideoEncoder) {
     switch (formatVideoEncoder) {
       case YUV420PLANAR:
-        Log.e("pedro", "rotation");
         return NV21toYUV420Planar(input, width, height);
       case YUV420PACKEDPLANAR:
         return NV21toYUV420PackedPlanar(input, width, height);
@@ -164,7 +163,22 @@ public class YUVUtil {
     }
   }
 
-  public static byte[] rotateYUV420Degree90(byte[] data, int imageWidth, int imageHeight) {
+  public static byte[] rotateNV21(byte[] data, int width, int height, int rotation) {
+    switch (rotation){
+      case 0:
+        return data;
+      case 90:
+        return rotateNV21Degree90(data, width, height);
+      case 180:
+        return rotateNV21Degree180(data, width, height);
+      case 270:
+        return rotateNV21Degree270(data, width, height);
+      default:
+        return null;
+    }
+  }
+
+  private static byte[] rotateNV21Degree90(byte[] data, int imageWidth, int imageHeight) {
     byte[] yuv = new byte[imageWidth * imageHeight * 3 / 2];
     // Rotate the Y luma
     int i = 0;
@@ -187,7 +201,7 @@ public class YUVUtil {
     return yuv;
   }
 
-  private static byte[] rotateYUV420Degree180(byte[] data, int imageWidth, int imageHeight) {
+  private static byte[] rotateNV21Degree180(byte[] data, int imageWidth, int imageHeight) {
     byte[] yuv = new byte[imageWidth * imageHeight * 3 / 2];
     int count = 0;
     for (int i = imageWidth * imageHeight - 1; i >= 0; i--) {
@@ -201,7 +215,7 @@ public class YUVUtil {
     return yuv;
   }
 
-  public static byte[] rotateYUV420Degree270(byte[] data, int imageWidth, int imageHeight) {
+  private static byte[] rotateNV21Degree270(byte[] data, int imageWidth, int imageHeight) {
     byte[] yuv = new byte[imageWidth * imageHeight * 3 / 2];
     int nWidth = 0, nHeight = 0;
     int wh = 0;
@@ -229,7 +243,7 @@ public class YUVUtil {
         nPos += imageWidth;
       }
     }
-    return rotateYUV420Degree180(yuv, imageWidth, imageHeight);
+    return rotateNV21Degree180(yuv, imageWidth, imageHeight);
   }
 
   public static byte[] NV21toYUV420PackedPlanar(byte[] input, int width, int height) {
@@ -390,7 +404,7 @@ public class YUVUtil {
     return dst_yuv;
   }
 
-  public static byte[] rotateNV21(byte[] input, int width, int height, int rotation) {
+  public static byte[] rotatePixelsNV21(byte[] input, int width, int height, int rotation) {
     byte[] output = new byte[input.length];
 
     boolean swap = (rotation == 90 || rotation == 270);

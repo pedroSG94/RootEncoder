@@ -43,7 +43,7 @@ public class RtspActivity extends AppCompatActivity
   private RadioGroup rgChannel;
   private RadioButton rbTcp, rbUdp;
   private Spinner spResolution, spOrientation;
-  private CheckBox cbEchoCanceler, cbNoiseSuppressor;
+  private CheckBox cbEchoCanceler, cbNoiseSuppressor, cbHardwareRotation;
   private EditText etVideoBitrate, etFps, etAudioBitrate, etSampleRate, etWowzaUser,
       etWowzaPassword;
 
@@ -88,6 +88,8 @@ public class RtspActivity extends AppCompatActivity
         (CheckBox) navigationView.getMenu().findItem(R.id.cb_echo_canceler).getActionView();
     cbNoiseSuppressor =
         (CheckBox) navigationView.getMenu().findItem(R.id.cb_noise_suppressor).getActionView();
+    cbHardwareRotation =
+        (CheckBox) navigationView.getMenu().findItem(R.id.cb_hardware_rotation).getActionView();
     //radiobuttons
     rbTcp = (RadioButton) navigationView.getMenu().findItem(R.id.rb_tcp).getActionView();
     rbUdp = (RadioButton) navigationView.getMenu().findItem(R.id.rb_udp).getActionView();
@@ -216,6 +218,7 @@ public class RtspActivity extends AppCompatActivity
               cbNoiseSuppressor.isChecked()) && rtspBuilder.prepareVideo(width, height,
               Integer.parseInt(etFps.getText().toString()),
               Integer.parseInt(etVideoBitrate.getText().toString()) * 1024,
+              cbHardwareRotation.isChecked(),
               orientations[spOrientation.getSelectedItemPosition()])) {
             rtspBuilder.startStream(etUrl.getText().toString());
           } else {

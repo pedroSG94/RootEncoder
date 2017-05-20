@@ -38,6 +38,11 @@
           app:actionViewClass="android.widget.Spinner"
           android:id="@+id/sp_orientation"
           />
+      <item
+          android:title="@string/hardware_rotation"
+          app:actionViewClass="android.widget.CheckBox"
+          android:id="@+id/cb_hardware_rotation"
+          />
     </menu>
   </item>
   <item android:title="@string/audio">

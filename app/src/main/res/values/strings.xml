@@ -34,6 +34,7 @@
   <string name="audio_bitrate">Bitrate</string>
   <string name="fps">FPS</string>
   <string name="orientation">Orientation</string>
+  <string name="hardware_rotation">Hardware rotation</string>
   <string name="samplerate">SampleRate</string>
   <string name="channel">Channel</string>
   <string name="stereo">Stereo</string>

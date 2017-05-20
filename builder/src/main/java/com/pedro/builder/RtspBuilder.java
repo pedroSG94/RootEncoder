@@ -53,12 +53,12 @@ public class RtspBuilder implements GetAccData, GetCameraData, GetH264Data, GetM
     rtspClient.setAuthorization(user, password);
   }
 
-  public boolean prepareVideo(int width, int height, int fps, int bitrate, int rotation) {
+  public boolean prepareVideo(int width, int height, int fps, int bitrate, boolean hardwareRotation, int rotation) {
     int imageFormat = ImageFormat.NV21; //supported nv21 and yv12
     cameraManager.prepareCamera(width, height, fps, imageFormat);
     videoEncoder.setImageFormat(imageFormat);
     return videoEncoder.prepareVideoEncoder(width, height, fps, bitrate, rotation,
-        FormatVideoEncoder.YUV420Dynamical);
+        hardwareRotation, FormatVideoEncoder.YUV420Dynamical);
   }
 
   public boolean prepareAudio(int bitrate, int sampleRate, boolean isStereo, boolean echoCanceler,

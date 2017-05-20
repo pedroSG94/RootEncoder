@@ -40,7 +40,7 @@ public class RtmpActivity extends AppCompatActivity
   private ActionBarDrawerToggle actionBarDrawerToggle;
   private RadioGroup rgChannel;
   private Spinner spResolution, spOrientation;
-  private CheckBox cbEchoCanceler, cbNoiseSuppressor;
+  private CheckBox cbEchoCanceler, cbNoiseSuppressor, cbHardwareRotation;
   private EditText etVideoBitrate, etFps, etAudioBitrate, etSampleRate, etWowzaUser,
       etWowzaPassword;
 
@@ -85,6 +85,8 @@ public class RtmpActivity extends AppCompatActivity
         (CheckBox) navigationView.getMenu().findItem(R.id.cb_echo_canceler).getActionView();
     cbNoiseSuppressor =
         (CheckBox) navigationView.getMenu().findItem(R.id.cb_noise_suppressor).getActionView();
+    cbHardwareRotation =
+        (CheckBox) navigationView.getMenu().findItem(R.id.cb_hardware_rotation).getActionView();
     //radiobuttons
     RadioButton rbTcp =
         (RadioButton) navigationView.getMenu().findItem(R.id.rb_tcp).getActionView();
@@ -202,7 +204,8 @@ public class RtmpActivity extends AppCompatActivity
 
           if (rtmpBuilder.prepareVideo(width, height, Integer.parseInt(etFps.getText().toString()),
               Integer.parseInt(etVideoBitrate.getText().toString()) * 1024,
-              orientations[spOrientation.getSelectedItemPosition()]) && rtmpBuilder.prepareAudio(
+              cbHardwareRotation.isChecked(), orientations[spOrientation.getSelectedItemPosition()])
+              && rtmpBuilder.prepareAudio(
               Integer.parseInt(etAudioBitrate.getText().toString()) * 1024,
               Integer.parseInt(etSampleRate.getText().toString()),
               rgChannel.getCheckedRadioButtonId() == R.id.rb_stereo, cbEchoCanceler.isChecked(),
