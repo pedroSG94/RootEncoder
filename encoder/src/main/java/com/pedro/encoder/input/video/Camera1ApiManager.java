@@ -1,13 +1,11 @@
 package com.pedro.encoder.input.video;
 
 import android.graphics.ImageFormat;
-import android.graphics.YuvImage;
 import android.hardware.Camera;
 import android.opengl.GLES20;
 import android.util.Log;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
-import com.pedro.encoder.utils.YUVUtil;
 import java.io.IOException;
 import java.util.List;
 import javax.microedition.khronos.egl.EGL10;

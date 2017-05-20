@@ -163,7 +163,7 @@ public class VideoEncoder implements GetCameraData {
       }
     }
   }
-  
+
   public Surface getInputSurface() {
     return inputSurface;
   }

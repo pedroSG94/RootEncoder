@@ -26,7 +26,7 @@ allprojects {
   }
 }
 dependencies {
-  compile 'com.github.pedroSG94.rtmp-rtsp-stream-client-java:builder:1.0.4'
+  compile 'com.github.pedroSG94.rtmp-rtsp-stream-client-java:builder:1.0.5'
 }
 
 ```
@@ -38,6 +38,8 @@ Features:
 - [x] Android min API 16.
 - [x] RTMP/RTSP auth wowza.
 - [x] Disable/Enable video and audio.
+- [x] Audio noise suppressor.
+- [x] Audio echo cancellation.
 - [x] Switch camera while streaming.
 - [x] Change video bitrate while streaming (API 19+).
 - [x] H264 and ACC hard encoding.
