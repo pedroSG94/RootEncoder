@@ -37,8 +37,8 @@ public class Camera1ApiManager implements Camera.PreviewCallback {
   private int cameraSelect;
 
   //default parameters for camera
-  private int width = 1280;
-  private int height = 720;
+  private int width = 640;
+  private int height = 480;
   private int fps = 30;
   private int orientation = 0;
   private int imageFormat = ImageFormat.NV21;

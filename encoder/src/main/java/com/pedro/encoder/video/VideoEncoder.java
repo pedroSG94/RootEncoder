@@ -47,10 +47,10 @@ public class VideoEncoder implements GetCameraData {
 
   //default parameters for encoder
   private String codec = "video/avc";
-  private int width = 1280;
-  private int height = 720;
+  private int width = 640;
+  private int height = 480;
   private int fps = 30;
-  private int bitRate = 1500 * 1024; //in kbps
+  private int bitRate = 1200 * 1024; //in kbps
   private int rotation = 90;
   private FormatVideoEncoder formatVideoEncoder = FormatVideoEncoder.YUV420Dynamical;
   //for disable video
