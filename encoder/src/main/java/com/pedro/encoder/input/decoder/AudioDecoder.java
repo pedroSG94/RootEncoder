@@ -43,7 +43,7 @@ public class AudioDecoder {
       sampleRate = audioFormat.getInteger(MediaFormat.KEY_SAMPLE_RATE);
       isStereo = (audioFormat.getInteger(MediaFormat.KEY_CHANNEL_COUNT) == 2);
       audioDecoder = MediaCodec.createDecoderByType(audioFormat.getString(MediaFormat.KEY_MIME));
-      audioDecoder.configure(audioFormat, null, null, MediaCodec.CONFIGURE_FLAG_ENCODE);
+      audioDecoder.configure(audioFormat, null, null, 0);
       decoding = false;
       return true;
     } catch (IOException e) {
@@ -53,8 +53,8 @@ public class AudioDecoder {
   }
 
   public void start() {
-    decoding = true;
     audioDecoder.start();
+    decoding = true;
     thread = new Thread(new Runnable() {
       @Override
       public void run() {
@@ -92,14 +92,22 @@ public class AudioDecoder {
 
   @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
   private void decodeAudioAPI21() {
+    int cont = 0;
     while (decoding) {
+      Log.e(TAG, "times " + cont++);
       int inBufferIndex = audioDecoder.dequeueInputBuffer(-1);
       if (inBufferIndex >= 0) {
         ByteBuffer bb = audioDecoder.getInputBuffer(inBufferIndex);
-        audioExtractor.readSampleData(bb, inBufferIndex);
-        long pts = audioExtractor.getSampleTime();
-        audioDecoder.queueInputBuffer(inBufferIndex, 0, bb.remaining(), pts, 0);
-        audioExtractor.advance();
+        int chunkSize = audioExtractor.readSampleData(bb, inBufferIndex);
+        if (chunkSize < 0) {
+          // End of stream -- send empty frame with EOS flag set.
+          audioDecoder.queueInputBuffer(inBufferIndex, 0, 0, 0L,
+              MediaCodec.BUFFER_FLAG_END_OF_STREAM);
+        } else {
+          long pts = audioExtractor.getSampleTime();
+          audioDecoder.queueInputBuffer(inBufferIndex, 0, bb.remaining(), pts, 0);
+          audioExtractor.advance();
+        }
       }
       for (; ; ) {
         int outBufferIndex = audioDecoder.dequeueOutputBuffer(audioInfo, 0);
@@ -128,10 +136,16 @@ public class AudioDecoder {
       if (inBufferIndex >= 0) {
         ByteBuffer bb = inputBuffers[inBufferIndex];
         bb.clear();
-        audioExtractor.readSampleData(bb, inBufferIndex);
-        long pts = audioExtractor.getSampleTime();
-        audioDecoder.queueInputBuffer(inBufferIndex, 0, bb.remaining(), pts, 0);
-        audioExtractor.advance();
+        int chunkSize = audioExtractor.readSampleData(bb, inBufferIndex);
+        if (chunkSize < 0) {
+          // End of stream -- send empty frame with EOS flag set.
+          audioDecoder.queueInputBuffer(inBufferIndex, 0, 0, 0L,
+              MediaCodec.BUFFER_FLAG_END_OF_STREAM);
+        } else {
+          long pts = audioExtractor.getSampleTime();
+          audioDecoder.queueInputBuffer(inBufferIndex, 0, bb.remaining(), pts, 0);
+          audioExtractor.advance();
+        }
       }
 
       for (; ; ) {

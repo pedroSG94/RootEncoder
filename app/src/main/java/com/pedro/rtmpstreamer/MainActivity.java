@@ -20,7 +20,8 @@ import com.pedro.rtmpstreamer.defaultexample.ExampleRtspActivity;
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
 
   private final String[] PERMISSIONS = {
-      Manifest.permission.RECORD_AUDIO, Manifest.permission.CAMERA
+      Manifest.permission.RECORD_AUDIO, Manifest.permission.CAMERA,
+      Manifest.permission.WRITE_EXTERNAL_STORAGE
   };
 
   @Override

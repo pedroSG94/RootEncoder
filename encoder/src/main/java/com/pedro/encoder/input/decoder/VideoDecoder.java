@@ -43,7 +43,7 @@ public class VideoDecoder {
       MediaFormat videoFormat = videoExtractor.getTrackFormat(selectTrack(videoExtractor));
       videoFormat.setInteger(MediaFormat.KEY_BIT_RATE, bitRate);
       videoDecoder = MediaCodec.createDecoderByType(videoFormat.getString(MediaFormat.KEY_MIME));
-      videoDecoder.configure(videoFormat, null, null, MediaCodec.CONFIGURE_FLAG_ENCODE);
+      videoDecoder.configure(videoFormat, null, null, 0);
       decoding = false;
       return true;
     } catch (IOException e) {
@@ -94,14 +94,22 @@ public class VideoDecoder {
 
   @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
   private void decodeVideoAPI21() {
+    int cont = 0;
     while (decoding) {
+      Log.e(TAG, "times " + cont++);
       int inBufferIndex = videoDecoder.dequeueInputBuffer(-1);
       if (inBufferIndex >= 0) {
         ByteBuffer bb = videoDecoder.getInputBuffer(inBufferIndex);
-        videoExtractor.readSampleData(bb, inBufferIndex);
-        long pts = videoExtractor.getSampleTime();
-        videoDecoder.queueInputBuffer(inBufferIndex, 0, bb.remaining(), pts, 0);
-        videoExtractor.advance();
+        int chunkSize = videoExtractor.readSampleData(bb, inBufferIndex);
+        if (chunkSize < 0) {
+          // End of stream -- send empty frame with EOS flag set.
+          videoDecoder.queueInputBuffer(inBufferIndex, 0, 0, 0L,
+              MediaCodec.BUFFER_FLAG_END_OF_STREAM);
+        } else {
+          long pts = videoExtractor.getSampleTime();
+          videoDecoder.queueInputBuffer(inBufferIndex, 0, bb.remaining(), pts, 0);
+          videoExtractor.advance();
+        }
       }
       for (; ; ) {
         int outBufferIndex = videoDecoder.dequeueOutputBuffer(videoInfo, 0);
@@ -145,10 +153,16 @@ public class VideoDecoder {
       if (inBufferIndex >= 0) {
         ByteBuffer bb = inputBuffers[inBufferIndex];
         bb.clear();
-        videoExtractor.readSampleData(bb, inBufferIndex);
-        long pts = videoExtractor.getSampleTime();
-        videoDecoder.queueInputBuffer(inBufferIndex, 0, bb.remaining(), pts, 0);
-        videoExtractor.advance();
+        int chunkSize = videoExtractor.readSampleData(bb, inBufferIndex);
+        if (chunkSize < 0) {
+          // End of stream -- send empty frame with EOS flag set.
+          videoDecoder.queueInputBuffer(inBufferIndex, 0, 0, 0L,
+              MediaCodec.BUFFER_FLAG_END_OF_STREAM);
+        } else {
+          long pts = videoExtractor.getSampleTime();
+          videoDecoder.queueInputBuffer(inBufferIndex, 0, bb.remaining(), pts, 0);
+          videoExtractor.advance();
+        }
       }
 
       for (; ; ) {

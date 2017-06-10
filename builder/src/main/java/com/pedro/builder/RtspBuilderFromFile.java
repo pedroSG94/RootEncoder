@@ -8,13 +8,14 @@ import com.pedro.encoder.video.GetH264Data;
 import com.pedro.rtsp.rtsp.Protocol;
 import com.pedro.rtsp.rtsp.RtspClient;
 import com.pedro.rtsp.utils.ConnectCheckerRtsp;
+import java.io.FileNotFoundException;
 import java.nio.ByteBuffer;
 
 /**
  * Created by pedro on 10/06/17.
  */
 
-public class RtspBuilderFromFile implements GetAccData, GetH264Data{
+public class RtspBuilderFromFile implements GetAccData, GetH264Data {
 
   private boolean streaming;
   private VideoDecoder videoDecoder;
@@ -26,6 +27,15 @@ public class RtspBuilderFromFile implements GetAccData, GetH264Data{
     videoDecoder = new VideoDecoder(this);
     audioDecoder = new AudioDecoder(this);
     streaming = false;
+  }
+
+  public void setFile(String path) {
+    try {
+      audioDecoder.setFilePath(path);
+      videoDecoder.setFilePath(path);
+    } catch (FileNotFoundException e) {
+      e.printStackTrace();
+    }
   }
 
   public void setAuthorization(String user, String password) {
@@ -45,11 +55,15 @@ public class RtspBuilderFromFile implements GetAccData, GetH264Data{
 
   public void startStream(String url) {
     rtspClient.setUrl(url);
+    audioDecoder.start();
+    videoDecoder.start();
     streaming = true;
   }
 
   public void stopStream() {
     rtspClient.disconnect();
+    audioDecoder.stop();
+    videoDecoder.stop();
     streaming = false;
   }
 
