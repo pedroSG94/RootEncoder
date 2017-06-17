@@ -3,6 +3,7 @@ package com.pedro.rtmpstreamer.defaultexample;
 import android.os.Environment;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.SurfaceView;
 import android.view.View;
 import android.view.WindowManager;
@@ -11,9 +12,12 @@ import android.widget.EditText;
 import android.widget.Toast;
 import com.pedro.builder.RtspBuilder;
 import com.pedro.builder.RtspBuilderFromFile;
+import com.pedro.encoder.input.decoder.MoviePlayer;
 import com.pedro.rtmpstreamer.R;
 import com.pedro.rtsp.rtsp.Protocol;
 import com.pedro.rtsp.utils.ConnectCheckerRtsp;
+import java.io.File;
+import java.io.IOException;
 
 /**
  * This class is only for a simple example of library use with default stream values
@@ -21,18 +25,19 @@ import com.pedro.rtsp.utils.ConnectCheckerRtsp;
  * audio = stereo, 128 * 1024 bitrate, 44100 sampleRate
  */
 public class ExampleRtspActivity extends AppCompatActivity
-    implements ConnectCheckerRtsp, View.OnClickListener {
+    implements ConnectCheckerRtsp, View.OnClickListener, MoviePlayer.FrameCallback {
 
   private RtspBuilder rtspBuilder;
   private Button button;
   private EditText etUrl;
+  private SurfaceView surfaceView;
 
   @Override
   protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
     getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
     setContentView(R.layout.activity_example_rtsp);
-    SurfaceView surfaceView = (SurfaceView) findViewById(R.id.surfaceView);
+    surfaceView = (SurfaceView) findViewById(R.id.surfaceView);
     button = (Button) findViewById(R.id.b_start_stop);
     button.setOnClickListener(this);
     etUrl = (EditText) findViewById(R.id.et_rtsp_url);
@@ -105,10 +110,35 @@ public class ExampleRtspActivity extends AppCompatActivity
     //  button.setText(getResources().getString(R.string.start_button));
     //  rtspBuilder.stopStream();
     //}
-    RtspBuilderFromFile rtspBuilderFromFile = new RtspBuilderFromFile(Protocol.UDP, this);
-    rtspBuilderFromFile.setFile(Environment.getExternalStorageDirectory() + "/test.mp4");
-    rtspBuilderFromFile.prepareAudio();
-    rtspBuilderFromFile.prepareVideo();
-    rtspBuilderFromFile.startStream("");
+
+    //RtspBuilderFromFile rtspBuilderFromFile = new RtspBuilderFromFile(Protocol.UDP, this);
+    //rtspBuilderFromFile.setFile(Environment.getExternalStorageDirectory() + "/test.mp4");
+    //rtspBuilderFromFile.prepareAudio();
+    //rtspBuilderFromFile.prepareVideo();
+    //rtspBuilderFromFile.startStream("");
+
+    try {
+      MoviePlayer moviePlayer = new MoviePlayer(
+          new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/video.mp4"),
+          surfaceView.getHolder().getSurface(), this);
+      moviePlayer.play();
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
+  }
+
+  @Override
+  public void preRender(long presentationTimeUsec) {
+    Log.e("Pedro", "preRender: " + presentationTimeUsec);
+  }
+
+  @Override
+  public void postRender() {
+    Log.e("Pedro", "postRender");
+  }
+
+  @Override
+  public void loopReset() {
+    Log.e("Pedro", "loopReset");
   }
 }
