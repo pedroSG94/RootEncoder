@@ -3,7 +3,6 @@ package com.pedro.rtmpstreamer.defaultexample;
 import android.os.Environment;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.SurfaceView;
 import android.view.View;
 import android.view.WindowManager;
@@ -12,9 +11,6 @@ import android.widget.EditText;
 import android.widget.Toast;
 import com.pedro.builder.DecodersTest;
 import com.pedro.builder.RtspBuilder;
-import com.pedro.encoder.input.audio.GetMicrophoneData;
-import com.pedro.encoder.input.decoder.AudioDecoder;
-import com.pedro.encoder.input.decoder.MoviePlayer;
 import com.pedro.rtmpstreamer.R;
 import com.pedro.rtsp.rtsp.Protocol;
 import com.pedro.rtsp.utils.ConnectCheckerRtsp;
@@ -25,7 +21,7 @@ import com.pedro.rtsp.utils.ConnectCheckerRtsp;
  * audio = stereo, 128 * 1024 bitrate, 44100 sampleRate
  */
 public class ExampleRtspActivity extends AppCompatActivity
-    implements ConnectCheckerRtsp, View.OnClickListener, MoviePlayer.FrameCallback {
+    implements ConnectCheckerRtsp, View.OnClickListener {
 
   private RtspBuilder rtspBuilder;
   private Button button;
@@ -111,23 +107,9 @@ public class ExampleRtspActivity extends AppCompatActivity
     //  rtspBuilder.stopStream();
     //}
 
+    String filePath = Environment.getExternalStorageDirectory().getAbsolutePath() + "/hola.mp4";
     DecodersTest decodersTest = new DecodersTest();
-    decodersTest.audioDecoderTest(
-        Environment.getExternalStorageDirectory().getAbsolutePath() + "/hola.mp4");
-  }
-
-  @Override
-  public void preRender(long presentationTimeUsec) {
-    Log.e("Pedro", "preRender: " + presentationTimeUsec);
-  }
-
-  @Override
-  public void postRender() {
-    Log.e("Pedro", "postRender");
-  }
-
-  @Override
-  public void loopReset() {
-    Log.e("Pedro", "loopReset");
+    decodersTest.audioDecoderTest(filePath);
+    decodersTest.videoDecoderTest(surfaceView.getHolder().getSurface(), filePath);
   }
 }

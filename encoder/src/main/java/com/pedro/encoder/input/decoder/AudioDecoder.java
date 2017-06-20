@@ -1,8 +1,5 @@
 package com.pedro.encoder.input.decoder;
 
-import android.media.AudioFormat;
-import android.media.AudioManager;
-import android.media.AudioTrack;
 import com.pedro.encoder.input.audio.GetMicrophoneData;
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -126,7 +123,7 @@ public class AudioDecoder {
           default:
             ByteBuffer outBuffer = outputBuffers[outIndex];
             //This buffer is PCM data
-            final byte[] pcmBuffer = new byte[audioInfo.size];
+            byte[] pcmBuffer = new byte[audioInfo.size];
             outBuffer.get(pcmBuffer);
             getMicrophoneData.inputPcmData(pcmBuffer, audioInfo.size);
             outBuffer.clear();
