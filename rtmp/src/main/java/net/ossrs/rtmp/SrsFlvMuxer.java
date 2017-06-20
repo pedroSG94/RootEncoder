@@ -534,6 +534,7 @@ public class SrsFlvMuxer {
       // h.264 raw data.
       for (int i = 0; i < frames.size(); i++) {
         SrsFlvFrameBytes frame = frames.get(i);
+        frame.data.rewind();
         frame.data.get(allocation.array(), allocation.size(), frame.size);
         allocation.appendOffset(frame.size);
       }
