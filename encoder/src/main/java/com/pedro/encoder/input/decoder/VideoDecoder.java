@@ -1,6 +1,5 @@
 package com.pedro.encoder.input.decoder;
 
-import android.view.Surface;
 import com.pedro.encoder.input.video.GetCameraData;
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -30,7 +29,7 @@ public class VideoDecoder {
     this.getCameraData = getCameraData;
   }
 
-  public boolean prepareVideo(Surface surface, String filePath) {
+  public boolean prepareVideo(String filePath) {
     try {
       eosReceived = false;
       videoExtractor = new MediaExtractor();
@@ -53,7 +52,7 @@ public class VideoDecoder {
       width = format.getInteger(MediaFormat.KEY_WIDTH);
       height = format.getInteger(MediaFormat.KEY_HEIGHT);
       videoDecoder = MediaCodec.createDecoderByType(mime);
-      videoDecoder.configure(format, surface, null, 0);
+      videoDecoder.configure(format, null, null, 0);
       return true;
     } catch (IOException e) {
       Log.e(TAG, "Prepare decoder error:", e);

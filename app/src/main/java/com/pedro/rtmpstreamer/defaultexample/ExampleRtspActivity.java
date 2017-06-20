@@ -109,7 +109,7 @@ public class ExampleRtspActivity extends AppCompatActivity
 
     String filePath = Environment.getExternalStorageDirectory().getAbsolutePath() + "/hola.mp4";
     DecodersTest decodersTest = new DecodersTest();
+    decodersTest.videoDecoderTest(filePath);
     decodersTest.audioDecoderTest(filePath);
-    decodersTest.videoDecoderTest(surfaceView.getHolder().getSurface(), filePath);
   }
 }

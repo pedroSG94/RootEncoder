@@ -4,7 +4,6 @@ import android.media.AudioFormat;
 import android.media.AudioManager;
 import android.media.AudioTrack;
 import android.util.Log;
-import android.view.Surface;
 import com.pedro.encoder.input.audio.GetMicrophoneData;
 import com.pedro.encoder.input.decoder.AudioDecoder;
 import com.pedro.encoder.input.decoder.VideoDecoder;
@@ -33,9 +32,9 @@ public class DecodersTest implements GetMicrophoneData, GetCameraData {
     audioDecoderThread.start();
   }
 
-  public void videoDecoderTest(Surface surface, String filePath) {
+  public void videoDecoderTest(String filePath) {
     VideoDecoder videoDecoder = new VideoDecoder(this);
-    videoDecoder.prepareVideo(surface, filePath);
+    videoDecoder.prepareVideo(filePath);
     videoDecoder.start();
   }
 
