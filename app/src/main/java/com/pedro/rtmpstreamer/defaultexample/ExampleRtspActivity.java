@@ -10,14 +10,14 @@ import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
+import com.pedro.builder.DecodersTest;
 import com.pedro.builder.RtspBuilder;
-import com.pedro.builder.RtspBuilderFromFile;
+import com.pedro.encoder.input.audio.GetMicrophoneData;
+import com.pedro.encoder.input.decoder.AudioDecoder;
 import com.pedro.encoder.input.decoder.MoviePlayer;
 import com.pedro.rtmpstreamer.R;
 import com.pedro.rtsp.rtsp.Protocol;
 import com.pedro.rtsp.utils.ConnectCheckerRtsp;
-import java.io.File;
-import java.io.IOException;
 
 /**
  * This class is only for a simple example of library use with default stream values
@@ -111,20 +111,9 @@ public class ExampleRtspActivity extends AppCompatActivity
     //  rtspBuilder.stopStream();
     //}
 
-    //RtspBuilderFromFile rtspBuilderFromFile = new RtspBuilderFromFile(Protocol.UDP, this);
-    //rtspBuilderFromFile.setFile(Environment.getExternalStorageDirectory() + "/test.mp4");
-    //rtspBuilderFromFile.prepareAudio();
-    //rtspBuilderFromFile.prepareVideo();
-    //rtspBuilderFromFile.startStream("");
-
-    try {
-      MoviePlayer moviePlayer = new MoviePlayer(
-          new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/video.mp4"),
-          surfaceView.getHolder().getSurface(), this);
-      moviePlayer.play();
-    } catch (IOException e) {
-      e.printStackTrace();
-    }
+    DecodersTest decodersTest = new DecodersTest();
+    decodersTest.audioDecoderTest(
+        Environment.getExternalStorageDirectory().getAbsolutePath() + "/hola.mp4");
   }
 
   @Override

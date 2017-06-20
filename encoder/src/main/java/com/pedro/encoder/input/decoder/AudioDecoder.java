@@ -1,75 +1,81 @@
 package com.pedro.encoder.input.decoder;
 
-import android.media.MediaCodec;
-import android.media.MediaExtractor;
-import android.media.MediaFormat;
-import android.os.Build;
-import android.support.annotation.RequiresApi;
-import android.util.Log;
-import com.pedro.encoder.audio.GetAccData;
-import java.io.File;
-import java.io.FileNotFoundException;
+import android.media.AudioFormat;
+import android.media.AudioManager;
+import android.media.AudioTrack;
+import com.pedro.encoder.input.audio.GetMicrophoneData;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 
-/**
- * Created by pedro on 9/06/17.
- * Get ACC data from a mp4 file
- */
+import android.media.MediaCodec;
+import android.media.MediaExtractor;
+import android.media.MediaFormat;
+import android.util.Log;
 
+/**
+ * Created by pedro on 20/06/17.
+ */
 public class AudioDecoder {
 
   private final String TAG = "AudioDecoder";
 
   private MediaExtractor audioExtractor;
   private MediaCodec audioDecoder;
-  private final GetAccData getAccData;
   private MediaCodec.BufferInfo audioInfo = new MediaCodec.BufferInfo();
+  private boolean eosReceived;
   private Thread thread;
-  private String filePath;
-  private boolean decoding = false;
+  private GetMicrophoneData getMicrophoneData;
   private int sampleRate;
-  private boolean isStereo;
 
-  public AudioDecoder(GetAccData getAccData) {
-    this.getAccData = getAccData;
+  public AudioDecoder(GetMicrophoneData getMicrophoneData) {
+    this.getMicrophoneData = getMicrophoneData;
   }
 
-  public boolean prepareAudio() {
+  public boolean prepareAudio(String filePath) {
     try {
+      eosReceived = false;
       audioExtractor = new MediaExtractor();
-      audioExtractor.setDataSource(filePath);
-      MediaFormat audioFormat = audioExtractor.getTrackFormat(selectTrack(audioExtractor));
-      sampleRate = audioFormat.getInteger(MediaFormat.KEY_SAMPLE_RATE);
-      isStereo = (audioFormat.getInteger(MediaFormat.KEY_CHANNEL_COUNT) == 2);
-      audioDecoder = MediaCodec.createDecoderByType(audioFormat.getString(MediaFormat.KEY_MIME));
-      audioDecoder.configure(audioFormat, null, null, 0);
-      decoding = false;
+      try {
+        audioExtractor.setDataSource(filePath);
+      } catch (IOException e) {
+        e.printStackTrace();
+      }
+
+      MediaFormat format = null;
+      String mime = "audio/mp4a-latm";
+      for (int i = 0; i < audioExtractor.getTrackCount(); i++) {
+        format = audioExtractor.getTrackFormat(i);
+        mime = format.getString(MediaFormat.KEY_MIME);
+        if (mime.startsWith("audio/")) {
+          audioExtractor.selectTrack(i);
+          break;
+        }
+      }
+      //need set sampleRate / 2 for correct speed???. :S
+      sampleRate = format.getInteger(MediaFormat.KEY_SAMPLE_RATE) / 2;
+      format.setInteger(MediaFormat.KEY_SAMPLE_RATE, sampleRate);
+      audioDecoder = MediaCodec.createDecoderByType(mime);
+      audioDecoder.configure(format, null, null, 0);
       return true;
     } catch (IOException e) {
-      Log.e(TAG, "Error preparing audio: ", e);
+      Log.e(TAG, "Prepare decoder error:", e);
       return false;
     }
   }
 
   public void start() {
     audioDecoder.start();
-    decoding = true;
     thread = new Thread(new Runnable() {
       @Override
       public void run() {
-        if (Build.VERSION.SDK_INT >= 21) {
-          decodeAudioAPI21();
-        } else {
-          decodeAudio();
-        }
+        decodeAudio();
       }
     });
     thread.start();
   }
 
   public void stop() {
-    decoding = false;
+    eosReceived = true;
     if (thread != null) {
       thread.interrupt();
       try {
@@ -79,133 +85,66 @@ public class AudioDecoder {
       }
       thread = null;
     }
-    if (audioExtractor != null) {
-      audioExtractor.release();
-      audioExtractor = null;
-    }
     if (audioDecoder != null) {
       audioDecoder.stop();
       audioDecoder.release();
       audioDecoder = null;
     }
-  }
-
-  @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
-  private void decodeAudioAPI21() {
-    int cont = 0;
-    while (decoding) {
-      Log.e(TAG, "times " + cont++);
-      int inBufferIndex = audioDecoder.dequeueInputBuffer(-1);
-      if (inBufferIndex >= 0) {
-        ByteBuffer bb = audioDecoder.getInputBuffer(inBufferIndex);
-        int chunkSize = audioExtractor.readSampleData(bb, inBufferIndex);
-        if (chunkSize < 0) {
-          // End of stream -- send empty frame with EOS flag set.
-          audioDecoder.queueInputBuffer(inBufferIndex, 0, 0, 0L,
-              MediaCodec.BUFFER_FLAG_END_OF_STREAM);
-        } else {
-          long pts = audioExtractor.getSampleTime();
-          audioDecoder.queueInputBuffer(inBufferIndex, 0, bb.remaining(), pts, 0);
-          audioExtractor.advance();
-        }
-      }
-      for (; ; ) {
-        int outBufferIndex = audioDecoder.dequeueOutputBuffer(audioInfo, 0);
-        if (outBufferIndex >= 0) {
-          if ((audioInfo.flags & MediaCodec.BUFFER_FLAG_END_OF_STREAM) != 0) {
-            decoding = false;
-          }
-          if ((audioInfo.flags & MediaCodec.BUFFER_FLAG_CODEC_CONFIG) != 0) {
-            //This ByteBuffer is ACC
-            ByteBuffer bb = audioDecoder.getOutputBuffer(outBufferIndex);
-            getAccData.getAccData(bb, audioInfo);
-            audioDecoder.releaseOutputBuffer(outBufferIndex, false);
-          }
-        } else {
-          break;
-        }
-      }
+    if (audioExtractor != null) {
+      audioExtractor.release();
+      audioExtractor = null;
     }
   }
 
   private void decodeAudio() {
     ByteBuffer[] inputBuffers = audioDecoder.getInputBuffers();
     ByteBuffer[] outputBuffers = audioDecoder.getOutputBuffers();
-    while (decoding) {
-      int inBufferIndex = audioDecoder.dequeueInputBuffer(-1);
-      if (inBufferIndex >= 0) {
-        ByteBuffer bb = inputBuffers[inBufferIndex];
-        bb.clear();
-        int chunkSize = audioExtractor.readSampleData(bb, inBufferIndex);
-        if (chunkSize < 0) {
-          // End of stream -- send empty frame with EOS flag set.
-          audioDecoder.queueInputBuffer(inBufferIndex, 0, 0, 0L,
-              MediaCodec.BUFFER_FLAG_END_OF_STREAM);
+
+    while (!eosReceived) {
+      int inIndex = audioDecoder.dequeueInputBuffer(-1);
+      if (inIndex >= 0) {
+        ByteBuffer buffer = inputBuffers[inIndex];
+        int sampleSize = audioExtractor.readSampleData(buffer, 0);
+        if (sampleSize < 0) {
+          Log.i(TAG, "InputBuffer BUFFER_FLAG_END_OF_STREAM");
+          audioDecoder.queueInputBuffer(inIndex, 0, 0, 0, MediaCodec.BUFFER_FLAG_END_OF_STREAM);
         } else {
-          long pts = audioExtractor.getSampleTime();
-          audioDecoder.queueInputBuffer(inBufferIndex, 0, bb.remaining(), pts, 0);
+          audioDecoder.queueInputBuffer(inIndex, 0, sampleSize, audioExtractor.getSampleTime(), 0);
           audioExtractor.advance();
         }
-      }
 
-      for (; ; ) {
-        int outBufferIndex = audioDecoder.dequeueOutputBuffer(audioInfo, 0);
-        if (outBufferIndex >= 0) {
-          if ((audioInfo.flags & MediaCodec.BUFFER_FLAG_END_OF_STREAM) != 0) {
-            decoding = false;
-          }
-          if ((audioInfo.flags & MediaCodec.BUFFER_FLAG_CODEC_CONFIG) != 0) {
-            //This ByteBuffer is ACC
-            ByteBuffer bb = outputBuffers[outBufferIndex];
-            getAccData.getAccData(bb, audioInfo);
-            audioDecoder.releaseOutputBuffer(outBufferIndex, false);
-          }
-        } else {
+        int outIndex = audioDecoder.dequeueOutputBuffer(audioInfo, 0);
+        switch (outIndex) {
+          case MediaCodec.INFO_OUTPUT_BUFFERS_CHANGED:
+            Log.i(TAG, "INFO_OUTPUT_BUFFERS_CHANGED");
+            outputBuffers = audioDecoder.getOutputBuffers();
+            break;
+          case MediaCodec.INFO_OUTPUT_FORMAT_CHANGED:
+            break;
+          case MediaCodec.INFO_TRY_AGAIN_LATER:
+            break;
+          default:
+            ByteBuffer outBuffer = outputBuffers[outIndex];
+            //This buffer is PCM data
+            final byte[] pcmBuffer = new byte[audioInfo.size];
+            outBuffer.get(pcmBuffer);
+            getMicrophoneData.inputPcmData(pcmBuffer, audioInfo.size);
+            outBuffer.clear();
+            audioDecoder.releaseOutputBuffer(outIndex, false);
+            break;
+        }
+
+        // All decoded frames have been rendered, we can stop playing now
+        if ((audioInfo.flags & MediaCodec.BUFFER_FLAG_END_OF_STREAM) != 0) {
+          Log.i(TAG, "OutputBuffer BUFFER_FLAG_END_OF_STREAM");
+          stop();
           break;
         }
       }
     }
   }
 
-  /**
-   * @return the track index, or -1 if no audio track is found.
-   */
-  private int selectTrack(MediaExtractor extractor) {
-    // Select the first video track we find, ignore the rest.
-    int numTracks = extractor.getTrackCount();
-    for (int i = 0; i < numTracks; i++) {
-      MediaFormat format = extractor.getTrackFormat(i);
-      String mime = format.getString(MediaFormat.KEY_MIME);
-      if (mime.startsWith("audio/")) {
-        Log.d(TAG, "Extractor selected track " + i + " (" + mime + "): " + format);
-        return i;
-      }
-    }
-    return -1;
-  }
-
-  public void setFilePath(String filePath) throws FileNotFoundException {
-    File file = new File(filePath);
-    if (file.canRead()) {
-      this.filePath = file.getAbsolutePath();
-    } else {
-      throw new FileNotFoundException("The file can't be read or not exists");
-    }
-  }
-
-  public void setFilePath(File file) throws FileNotFoundException {
-    if (file.canRead()) {
-      this.filePath = file.getAbsolutePath();
-    } else {
-      throw new FileNotFoundException("The file can't be read or not exists");
-    }
-  }
-
   public int getSampleRate() {
     return sampleRate;
-  }
-
-  public boolean isStereo() {
-    return isStereo;
   }
 }
