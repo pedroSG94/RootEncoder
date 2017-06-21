@@ -13,6 +13,7 @@
   <string name="start_button">Start stream</string>
   <string name="stop_button">Stop stream</string>
   <string name="switch_camera_button">Switch camera</string>
+  <string name="select_file">Select file</string>
 
   <!--menu-->
   <string name="microphone">Microphone</string>

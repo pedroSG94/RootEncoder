@@ -1,13 +1,14 @@
 package com.pedro.rtmpstreamer.filestreamexample;
 
+import android.content.Intent;
 import android.os.Build;
-import android.os.Environment;
 import android.support.annotation.RequiresApi;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.TextView;
 import android.widget.Toast;
 import com.pedro.builder.RtspBuilderFromFile;
 import com.pedro.rtmpstreamer.R;
@@ -19,16 +20,21 @@ public class RtspFromFileActivity extends AppCompatActivity
     implements ConnectCheckerRtsp, View.OnClickListener {
 
   private RtspBuilderFromFile rtspBuilderFromFile;
-  private Button button;
+  private Button button, bSelectFile;
   private EditText etUrl;
+  private TextView tvFile;
+  private String filePath = "";
 
   @Override
   protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
     setContentView(R.layout.activity_rtsp_from_file);
     button = (Button) findViewById(R.id.b_start_stop);
+    bSelectFile = (Button) findViewById(R.id.b_select_file);
     button.setOnClickListener(this);
+    bSelectFile.setOnClickListener(this);
     etUrl = (EditText) findViewById(R.id.et_rtsp_url);
+    tvFile = (TextView) findViewById(R.id.tv_file);
     rtspBuilderFromFile = new RtspBuilderFromFile(Protocol.UDP, this);
   }
 
@@ -85,19 +91,39 @@ public class RtspFromFileActivity extends AppCompatActivity
   }
 
   @Override
+  protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+    super.onActivityResult(requestCode, resultCode, data);
+    if(requestCode == 5) {
+      filePath = PathUtils.getPath(this, data.getData());
+      Toast.makeText(this, filePath, Toast.LENGTH_SHORT).show();
+      tvFile.setText(filePath);
+    }
+  }
+
+  @Override
   public void onClick(View view) {
-    String filePath = Environment.getExternalStorageDirectory().getAbsolutePath() + "/hola.mp4";
-    if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
-      if (!rtspBuilderFromFile.isStreaming()) {
-        if (rtspBuilderFromFile.prepareVideo(filePath, 1200 * 1024)
-            && rtspBuilderFromFile.prepareAudio(filePath)) {
-          button.setText(getResources().getString(R.string.stop_button));
-          rtspBuilderFromFile.startStream(etUrl.getText().toString());
+    switch (view.getId()){
+      case R.id.b_start_stop:
+        if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
+          if (!rtspBuilderFromFile.isStreaming()) {
+            if (rtspBuilderFromFile.prepareVideo(filePath, 1200 * 1024)
+                && rtspBuilderFromFile.prepareAudio(filePath)) {
+              button.setText(getResources().getString(R.string.stop_button));
+              rtspBuilderFromFile.startStream(etUrl.getText().toString());
+            }
+          } else {
+            button.setText(getResources().getString(R.string.start_button));
+            rtspBuilderFromFile.stopStream();
+          }
         }
-      } else {
-        button.setText(getResources().getString(R.string.start_button));
-        rtspBuilderFromFile.stopStream();
-      }
+        break;
+      case R.id.b_select_file:
+        Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
+        intent.setType("video/mp4");
+        startActivityForResult(intent, 5);
+        break;
+      default:
+        break;
     }
   }
 }
