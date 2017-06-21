@@ -1,5 +1,6 @@
 package com.pedro.encoder.input.decoder;
 
+import android.view.Surface;
 import com.pedro.encoder.input.video.GetCameraData;
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -21,38 +22,40 @@ public class VideoDecoder {
   private MediaCodec.BufferInfo videoInfo = new MediaCodec.BufferInfo();
   private boolean eosReceived;
   private Thread thread;
-  private GetCameraData getCameraData;
+  private MediaFormat videoFormat;
+  private String mime;
   private int width;
   private int height;
+  private int fps;
 
-  public VideoDecoder(GetCameraData getCameraData) {
-    this.getCameraData = getCameraData;
+  public VideoDecoder() {
   }
 
-  public boolean prepareVideo(String filePath) {
+  public void initExtractor(String filePath) {
+    eosReceived = false;
+    videoExtractor = new MediaExtractor();
     try {
-      eosReceived = false;
-      videoExtractor = new MediaExtractor();
-      try {
-        videoExtractor.setDataSource(filePath);
-      } catch (IOException e) {
-        e.printStackTrace();
+      videoExtractor.setDataSource(filePath);
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
+    for (int i = 0; i < videoExtractor.getTrackCount(); i++) {
+      videoFormat = videoExtractor.getTrackFormat(i);
+      mime = videoFormat.getString(MediaFormat.KEY_MIME);
+      if (mime.startsWith("video/")) {
+        videoExtractor.selectTrack(i);
+        break;
       }
+    }
+    width = videoFormat.getInteger(MediaFormat.KEY_WIDTH);
+    height = videoFormat.getInteger(MediaFormat.KEY_HEIGHT);
+    fps = videoFormat.getInteger(MediaFormat.KEY_FRAME_RATE);
+  }
 
-      MediaFormat format = null;
-      String mime = "video/avc";
-      for (int i = 0; i < videoExtractor.getTrackCount(); i++) {
-        format = videoExtractor.getTrackFormat(i);
-        mime = format.getString(MediaFormat.KEY_MIME);
-        if (mime.startsWith("video/")) {
-          videoExtractor.selectTrack(i);
-          break;
-        }
-      }
-      width = format.getInteger(MediaFormat.KEY_WIDTH);
-      height = format.getInteger(MediaFormat.KEY_HEIGHT);
+  public boolean prepareVideo(Surface surface) {
+    try {
       videoDecoder = MediaCodec.createDecoderByType(mime);
-      videoDecoder.configure(format, null, null, 0);
+      videoDecoder.configure(videoFormat, surface, null, 0);
       return true;
     } catch (IOException e) {
       Log.e(TAG, "Prepare decoder error:", e);
@@ -95,9 +98,7 @@ public class VideoDecoder {
 
   private void decodeVideo() {
     ByteBuffer[] inputBuffers = videoDecoder.getInputBuffers();
-    ByteBuffer[] outputBuffers = videoDecoder.getOutputBuffers();
     long startMs = System.currentTimeMillis();
-
     while (!eosReceived) {
       int inIndex = videoDecoder.dequeueInputBuffer(-1);
       if (inIndex >= 0) {
@@ -112,34 +113,19 @@ public class VideoDecoder {
         }
 
         int outIndex = videoDecoder.dequeueOutputBuffer(videoInfo, 0);
-        switch (outIndex) {
-          case MediaCodec.INFO_OUTPUT_BUFFERS_CHANGED:
-            Log.i(TAG, "INFO_OUTPUT_BUFFERS_CHANGED");
-            outputBuffers = videoDecoder.getOutputBuffers();
-            break;
-          case MediaCodec.INFO_OUTPUT_FORMAT_CHANGED:
-            break;
-          case MediaCodec.INFO_TRY_AGAIN_LATER:
-            break;
-          default:
-            ByteBuffer outBuffer = outputBuffers[outIndex];
-            //needed for fix decode speed
-            while (videoInfo.presentationTimeUs / 1000 > System.currentTimeMillis() - startMs) {
-              try {
-                Thread.sleep(10);
-              } catch (InterruptedException e) {
-                e.printStackTrace();
-                break;
-              }
+        if (outIndex >= 0) {
+          //needed for fix decode speed
+          while (videoInfo.presentationTimeUs / 1000 > System.currentTimeMillis() - startMs) {
+            try {
+              Thread.sleep(10);
+            } catch (InterruptedException e) {
+              thread.interrupt();
+              break;
             }
-            byte[] yuvBuffer = new byte[videoInfo.size];
-            outBuffer.get(yuvBuffer);
-            getCameraData.inputNv21Data(yuvBuffer);
-            outBuffer.clear();
-            videoDecoder.releaseOutputBuffer(outIndex, false);
-            break;
+          }
+          //true because I want draw in the surface
+          videoDecoder.releaseOutputBuffer(outIndex, true);
         }
-
         // All decoded frames have been rendered, we can stop playing now
         if ((videoInfo.flags & MediaCodec.BUFFER_FLAG_END_OF_STREAM) != 0) {
           Log.i(TAG, "OutputBuffer BUFFER_FLAG_END_OF_STREAM");
@@ -156,5 +142,9 @@ public class VideoDecoder {
 
   public int getHeight() {
     return height;
+  }
+
+  public int getFps() {
+    return fps;
   }
 }

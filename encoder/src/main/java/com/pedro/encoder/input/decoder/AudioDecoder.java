@@ -22,37 +22,41 @@ public class AudioDecoder {
   private boolean eosReceived;
   private Thread thread;
   private GetMicrophoneData getMicrophoneData;
+  private MediaFormat audioFormat;
+  private String mime;
   private int sampleRate;
+  private boolean isStereo;
+  private int bitRate;
 
   public AudioDecoder(GetMicrophoneData getMicrophoneData) {
     this.getMicrophoneData = getMicrophoneData;
   }
 
-  public boolean prepareAudio(String filePath) {
+  public void initExtractor(String filePath) {
+    eosReceived = false;
+    audioExtractor = new MediaExtractor();
     try {
-      eosReceived = false;
-      audioExtractor = new MediaExtractor();
-      try {
-        audioExtractor.setDataSource(filePath);
-      } catch (IOException e) {
-        e.printStackTrace();
+      audioExtractor.setDataSource(filePath);
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
+    for (int i = 0; i < audioExtractor.getTrackCount(); i++) {
+      audioFormat = audioExtractor.getTrackFormat(i);
+      mime = audioFormat.getString(MediaFormat.KEY_MIME);
+      if (mime.startsWith("audio/")) {
+        audioExtractor.selectTrack(i);
+        break;
       }
+    }
+    isStereo = (audioFormat.getInteger(MediaFormat.KEY_CHANNEL_COUNT) == 2);
+    bitRate = audioFormat.getInteger(MediaFormat.KEY_BIT_RATE);
+    sampleRate = audioFormat.getInteger(MediaFormat.KEY_SAMPLE_RATE);
+  }
 
-      MediaFormat format = null;
-      String mime = "audio/mp4a-latm";
-      for (int i = 0; i < audioExtractor.getTrackCount(); i++) {
-        format = audioExtractor.getTrackFormat(i);
-        mime = format.getString(MediaFormat.KEY_MIME);
-        if (mime.startsWith("audio/")) {
-          audioExtractor.selectTrack(i);
-          break;
-        }
-      }
-      //need set sampleRate / 2 for correct speed???. :S
-      sampleRate = format.getInteger(MediaFormat.KEY_SAMPLE_RATE) / 2;
-      format.setInteger(MediaFormat.KEY_SAMPLE_RATE, sampleRate);
+  public boolean prepareAudio() {
+    try {
       audioDecoder = MediaCodec.createDecoderByType(mime);
-      audioDecoder.configure(format, null, null, 0);
+      audioDecoder.configure(audioFormat, null, null, 0);
       return true;
     } catch (IOException e) {
       Log.e(TAG, "Prepare decoder error:", e);
@@ -143,5 +147,13 @@ public class AudioDecoder {
 
   public int getSampleRate() {
     return sampleRate;
+  }
+
+  public boolean isStereo() {
+    return isStereo;
+  }
+
+  public int getBitRate() {
+    return bitRate;
   }
 }

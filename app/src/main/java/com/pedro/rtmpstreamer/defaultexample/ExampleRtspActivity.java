@@ -1,6 +1,5 @@
 package com.pedro.rtmpstreamer.defaultexample;
 
-import android.os.Environment;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.SurfaceView;
@@ -9,7 +8,6 @@ import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
-import com.pedro.builder.DecodersTest;
 import com.pedro.builder.RtspBuilder;
 import com.pedro.rtmpstreamer.R;
 import com.pedro.rtsp.rtsp.Protocol;
@@ -26,14 +24,13 @@ public class ExampleRtspActivity extends AppCompatActivity
   private RtspBuilder rtspBuilder;
   private Button button;
   private EditText etUrl;
-  private SurfaceView surfaceView;
 
   @Override
   protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
     getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
     setContentView(R.layout.activity_example_rtsp);
-    surfaceView = (SurfaceView) findViewById(R.id.surfaceView);
+    SurfaceView surfaceView = (SurfaceView) findViewById(R.id.surfaceView);
     button = (Button) findViewById(R.id.b_start_stop);
     button.setOnClickListener(this);
     etUrl = (EditText) findViewById(R.id.et_rtsp_url);
@@ -94,22 +91,17 @@ public class ExampleRtspActivity extends AppCompatActivity
 
   @Override
   public void onClick(View view) {
-    //if (!rtspBuilder.isStreaming()) {
-    //  if (rtspBuilder.prepareAudio() && rtspBuilder.prepareVideo()) {
-    //    button.setText(getResources().getString(R.string.stop_button));
-    //    rtspBuilder.startStream(etUrl.getText().toString());
-    //  } else {
-    //    Toast.makeText(this, "Error preparing stream, This device cant do it", Toast.LENGTH_SHORT)
-    //        .show();
-    //  }
-    //} else {
-    //  button.setText(getResources().getString(R.string.start_button));
-    //  rtspBuilder.stopStream();
-    //}
-
-    String filePath = Environment.getExternalStorageDirectory().getAbsolutePath() + "/hola.mp4";
-    DecodersTest decodersTest = new DecodersTest();
-    decodersTest.videoDecoderTest(filePath);
-    decodersTest.audioDecoderTest(filePath);
+    if (!rtspBuilder.isStreaming()) {
+      if (rtspBuilder.prepareAudio() && rtspBuilder.prepareVideo()) {
+        button.setText(getResources().getString(R.string.stop_button));
+        rtspBuilder.startStream(etUrl.getText().toString());
+      } else {
+        Toast.makeText(this, "Error preparing stream, This device cant do it", Toast.LENGTH_SHORT)
+            .show();
+      }
+    } else {
+      button.setText(getResources().getString(R.string.start_button));
+      rtspBuilder.stopStream();
+    }
   }
 }
