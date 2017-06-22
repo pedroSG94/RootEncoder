@@ -46,7 +46,7 @@ public class VideoEncoder implements GetCameraData {
   private int imageFormat = ImageFormat.NV21;
 
   //default parameters for encoder
-  private String codec = "video/avc";
+  private String mime = "video/avc";
   private int width = 640;
   private int height = 480;
   private int fps = 30;
@@ -75,9 +75,9 @@ public class VideoEncoder implements GetCameraData {
     this.formatVideoEncoder = formatVideoEncoder;
     MediaCodecInfo encoder;
     if (Build.VERSION.SDK_INT >= 21) {
-      encoder = chooseVideoEncoderAPI21(codec);
+      encoder = chooseVideoEncoderAPI21(mime);
     } else {
-      encoder = chooseVideoEncoder(codec);
+      encoder = chooseVideoEncoder(mime);
     }
     try {
       if (encoder != null) {
@@ -98,9 +98,9 @@ public class VideoEncoder implements GetCameraData {
       //if you dont use mediacodec rotation you need swap width and height in rotation 90 or 270
       // for correct encoding resolution
       if (!hardwareRotation && (rotation == 90 || rotation == 270)) {
-        videoFormat = MediaFormat.createVideoFormat(codec, height, width);
+        videoFormat = MediaFormat.createVideoFormat(mime, height, width);
       } else {
-        videoFormat = MediaFormat.createVideoFormat(codec, width, height);
+        videoFormat = MediaFormat.createVideoFormat(mime, width, height);
       }
       videoFormat.setInteger(MediaFormat.KEY_COLOR_FORMAT,
           this.formatVideoEncoder.getFormatCodec());
@@ -130,7 +130,7 @@ public class VideoEncoder implements GetCameraData {
   }
 
   private FormatVideoEncoder chooseColorDynamically(MediaCodecInfo mediaCodecInfo) {
-    for (int color : mediaCodecInfo.getCapabilitiesForType(codec).colorFormats) {
+    for (int color : mediaCodecInfo.getCapabilitiesForType(mime).colorFormats) {
       if (color == FormatVideoEncoder.YUV420PLANAR.getFormatCodec()) {
         return FormatVideoEncoder.YUV420PLANAR;
       } else if (color == FormatVideoEncoder.YUV420SEMIPLANAR.getFormatCodec()) {

@@ -3,6 +3,7 @@
     package="com.pedro.rtmpstreamer"
     >
 
+  <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
   <uses-permission android:name="android.permission.INTERNET" />
   <uses-permission android:name="android.permission.RECORD_AUDIO" />
   <uses-permission android:name="android.permission.CAMERA" />
@@ -44,6 +45,7 @@
         android:label="@string/default_rtmp"
         android:screenOrientation="portrait"
         />
+    <activity android:name=".filestreamexample.RtspFromFileActivity"></activity>
   </application>
 
 </manifest>

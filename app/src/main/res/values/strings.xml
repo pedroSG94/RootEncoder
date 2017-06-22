@@ -1,10 +1,11 @@
 <resources>
   <string name="app_name">RTMP-RTSP Streamer</string>
+
   <string name="rtsp_streamer">Custom RTSP</string>
   <string name="rtmp_streamer">Custom RTMP</string>
-
   <string name="default_rtmp">Default RTMP</string>
   <string name="default_rtsp">Default RTSP</string>
+  <string name="from_file_rtsp">From file RTSP</string>
 
   <string name="tv_select">Select your streamer</string>
   <string name="hint_rtsp">rtsp://yourendpoint</string>
@@ -12,6 +13,7 @@
   <string name="start_button">Start stream</string>
   <string name="stop_button">Stop stream</string>
   <string name="switch_camera_button">Switch camera</string>
+  <string name="select_file">Select file</string>
 
   <!--menu-->
   <string name="microphone">Microphone</string>
