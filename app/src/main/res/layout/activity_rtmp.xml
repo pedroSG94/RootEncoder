@@ -20,8 +20,8 @@
 
     <EditText
         android:hint="@string/hint_rtmp"
-        android:textColor="@color/colorPrimaryDark"
-        android:textColorHint="@color/colorPrimaryDark"
+        android:textColor="@color/appColor"
+        android:textColorHint="@color/appColor"
         android:inputType="textUri"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"

@@ -2,9 +2,9 @@ package com.pedro.rtmpstreamer.filestreamexample;
 
 import android.content.Intent;
 import android.os.Build;
+import android.os.Bundle;
 import android.support.annotation.RequiresApi;
 import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -14,6 +14,7 @@ import com.pedro.builder.RtspBuilderFromFile;
 import com.pedro.rtmpstreamer.R;
 import com.pedro.rtsp.rtsp.Protocol;
 import com.pedro.rtsp.utils.ConnectCheckerRtsp;
+import java.io.IOException;
 
 @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
 public class RtspFromFileActivity extends AppCompatActivity
@@ -93,7 +94,7 @@ public class RtspFromFileActivity extends AppCompatActivity
   @Override
   protected void onActivityResult(int requestCode, int resultCode, Intent data) {
     super.onActivityResult(requestCode, resultCode, data);
-    if(requestCode == 5) {
+    if (requestCode == 5 && data != null) {
       filePath = PathUtils.getPath(this, data.getData());
       Toast.makeText(this, filePath, Toast.LENGTH_SHORT).show();
       tvFile.setText(filePath);
@@ -102,14 +103,19 @@ public class RtspFromFileActivity extends AppCompatActivity
 
   @Override
   public void onClick(View view) {
-    switch (view.getId()){
+    switch (view.getId()) {
       case R.id.b_start_stop:
         if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
           if (!rtspBuilderFromFile.isStreaming()) {
-            if (rtspBuilderFromFile.prepareVideo(filePath, 1200 * 1024)
-                && rtspBuilderFromFile.prepareAudio(filePath)) {
-              button.setText(getResources().getString(R.string.stop_button));
-              rtspBuilderFromFile.startStream(etUrl.getText().toString());
+            try {
+              if (rtspBuilderFromFile.prepareVideo(filePath, 1200 * 1024)
+                  && rtspBuilderFromFile.prepareAudio(filePath)) {
+                button.setText(getResources().getString(R.string.stop_button));
+                rtspBuilderFromFile.startStream(etUrl.getText().toString());
+              }
+            } catch (IOException e) {
+              //normally this error is for file not found or read permissions
+              Toast.makeText(this, "Error: file not found", Toast.LENGTH_SHORT).show();
             }
           } else {
             button.setText(getResources().getString(R.string.start_button));

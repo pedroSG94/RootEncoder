@@ -14,8 +14,8 @@
 
   <EditText
       android:hint="@string/hint_rtsp"
-      android:textColor="@color/colorPrimaryDark"
-      android:textColorHint="@color/colorPrimaryDark"
+      android:textColor="@color/appColor"
+      android:textColorHint="@color/appColor"
       android:inputType="textUri"
       android:layout_width="match_parent"
       android:layout_height="wrap_content"
@@ -30,7 +30,7 @@
       android:id="@+id/tv_file"
       android:layout_above="@+id/b_start_stop"
       android:layout_centerHorizontal="true"
-      android:textColor="@color/colorPrimaryDark"
+      android:textColor="@color/appColor"
       android:layout_margin="20dp"
       />
   <Button

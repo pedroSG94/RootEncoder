@@ -32,14 +32,10 @@ public class AudioDecoder {
     this.getMicrophoneData = getMicrophoneData;
   }
 
-  public void initExtractor(String filePath) {
+  public void initExtractor(String filePath) throws IOException {
     eosReceived = false;
     audioExtractor = new MediaExtractor();
-    try {
-      audioExtractor.setDataSource(filePath);
-    } catch (IOException e) {
-      e.printStackTrace();
-    }
+    audioExtractor.setDataSource(filePath);
     for (int i = 0; i < audioExtractor.getTrackCount(); i++) {
       audioFormat = audioExtractor.getTrackFormat(i);
       mime = audioFormat.getString(MediaFormat.KEY_MIME);

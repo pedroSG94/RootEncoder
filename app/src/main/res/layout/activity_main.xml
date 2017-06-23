@@ -12,7 +12,7 @@
     <TextView
         android:text="@string/tv_select"
         android:textSize="22sp"
-        android:textColor="@color/colorPrimary"
+        android:textColor="@color/appColor"
         android:layout_margin="20dp"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"

@@ -15,6 +15,7 @@ import com.pedro.encoder.video.VideoEncoder;
 import com.pedro.rtsp.rtsp.Protocol;
 import com.pedro.rtsp.rtsp.RtspClient;
 import com.pedro.rtsp.utils.ConnectCheckerRtsp;
+import java.io.IOException;
 import java.nio.ByteBuffer;
 
 /**
@@ -47,7 +48,7 @@ public class RtspBuilderFromFile
     rtspClient.setAuthorization(user, password);
   }
 
-  public boolean prepareAudio(String filePath) {
+  public boolean prepareAudio(String filePath) throws IOException {
     audioDecoder.initExtractor(filePath);
     rtspClient.setSampleRate(audioDecoder.getSampleRate());
     rtspClient.setIsStereo(audioDecoder.isStereo());
@@ -56,7 +57,7 @@ public class RtspBuilderFromFile
         audioDecoder.isStereo());
   }
 
-  public boolean prepareVideo(String filePath, int bitRate) {
+  public boolean prepareVideo(String filePath, int bitRate) throws IOException {
     videoDecoder.initExtractor(filePath);
     boolean result =
         videoEncoder.prepareVideoEncoder(videoDecoder.getWidth(), videoDecoder.getHeight(),

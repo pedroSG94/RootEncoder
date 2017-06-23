@@ -7,6 +7,7 @@ import android.view.Surface;
 import com.pedro.encoder.input.audio.GetMicrophoneData;
 import com.pedro.encoder.input.decoder.AudioDecoder;
 import com.pedro.encoder.input.decoder.VideoDecoder;
+import java.io.IOException;
 
 /**
  * Created by pedro on 20/06/17.
@@ -18,7 +19,7 @@ public class DecodersTest implements GetMicrophoneData {
 
   private AudioTrack audioTrack;
 
-  public void audioDecoderTest(String filePath) {
+  public void audioDecoderTest(String filePath) throws IOException {
     AudioDecoder audioDecoderThread = new AudioDecoder(this);
     audioDecoderThread.initExtractor(filePath);
     audioDecoderThread.prepareAudio();
@@ -32,7 +33,7 @@ public class DecodersTest implements GetMicrophoneData {
     audioDecoderThread.start();
   }
 
-  public void videoDecoderTest(Surface surface, String filePath) {
+  public void videoDecoderTest(Surface surface, String filePath) throws IOException {
     VideoDecoder videoDecoder = new VideoDecoder();
     videoDecoder.initExtractor(filePath);
     videoDecoder.prepareVideo(surface);

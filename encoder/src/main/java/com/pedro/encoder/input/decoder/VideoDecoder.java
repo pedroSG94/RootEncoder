@@ -1,14 +1,12 @@
 package com.pedro.encoder.input.decoder;
 
-import android.view.Surface;
-import com.pedro.encoder.input.video.GetCameraData;
-import java.io.IOException;
-import java.nio.ByteBuffer;
-
 import android.media.MediaCodec;
 import android.media.MediaExtractor;
 import android.media.MediaFormat;
 import android.util.Log;
+import android.view.Surface;
+import java.io.IOException;
+import java.nio.ByteBuffer;
 
 /**
  * Created by pedro on 20/06/17.
@@ -31,14 +29,10 @@ public class VideoDecoder {
   public VideoDecoder() {
   }
 
-  public void initExtractor(String filePath) {
+  public boolean initExtractor(String filePath) throws IOException {
     eosReceived = false;
     videoExtractor = new MediaExtractor();
-    try {
-      videoExtractor.setDataSource(filePath);
-    } catch (IOException e) {
-      e.printStackTrace();
-    }
+    videoExtractor.setDataSource(filePath);
     for (int i = 0; i < videoExtractor.getTrackCount(); i++) {
       videoFormat = videoExtractor.getTrackFormat(i);
       mime = videoFormat.getString(MediaFormat.KEY_MIME);
@@ -50,6 +44,7 @@ public class VideoDecoder {
     width = videoFormat.getInteger(MediaFormat.KEY_WIDTH);
     height = videoFormat.getInteger(MediaFormat.KEY_HEIGHT);
     fps = videoFormat.getInteger(MediaFormat.KEY_FRAME_RATE);
+    return true;
   }
 
   public boolean prepareVideo(Surface surface) {

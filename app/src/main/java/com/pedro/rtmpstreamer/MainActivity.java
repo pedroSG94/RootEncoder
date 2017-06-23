@@ -5,13 +5,12 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Build;
+import android.os.Bundle;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
 import android.widget.Toast;
-import com.pedro.rtmpstreamer.R;
 import com.pedro.rtmpstreamer.customexample.RtmpActivity;
 import com.pedro.rtmpstreamer.customexample.RtspActivity;
 import com.pedro.rtmpstreamer.defaultexample.ExampleRtmpActivity;
@@ -22,7 +21,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
   private final String[] PERMISSIONS = {
       Manifest.permission.RECORD_AUDIO, Manifest.permission.CAMERA,
-      Manifest.permission.WRITE_EXTERNAL_STORAGE
+      Manifest.permission.READ_EXTERNAL_STORAGE
   };
 
   @Override
