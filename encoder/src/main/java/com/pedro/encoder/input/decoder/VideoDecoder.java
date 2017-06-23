@@ -29,7 +29,7 @@ public class VideoDecoder {
   public VideoDecoder() {
   }
 
-  public boolean initExtractor(String filePath) throws IOException {
+  public void initExtractor(String filePath) throws IOException {
     eosReceived = false;
     videoExtractor = new MediaExtractor();
     videoExtractor.setDataSource(filePath);
@@ -44,7 +44,6 @@ public class VideoDecoder {
     width = videoFormat.getInteger(MediaFormat.KEY_WIDTH);
     height = videoFormat.getInteger(MediaFormat.KEY_HEIGHT);
     fps = videoFormat.getInteger(MediaFormat.KEY_FRAME_RATE);
-    return true;
   }
 
   public boolean prepareVideo(Surface surface) {
