@@ -89,22 +89,14 @@ public class RtspClient {
   }
 
   public void setUrl(String url) {
-    if (url.startsWith("rtsp://")) {
-      try {
-        String[] data = url.split("/");
-        host = data[2].split(":")[0];
-        port = Integer.parseInt(data[2].split(":")[1]);
-        path = "";
-        for (int i = 3; i < data.length; i++) {
-          path += "/" + data[i];
-        }
-      } catch (ArrayIndexOutOfBoundsException e) {
-        Log.e(TAG, "Error parse endPoint");
-        e.printStackTrace();
-        connectCheckerRtsp.onConnectionFailedRtsp();
-        streaming = false;
-      }
+    Pattern rtspPattern = Pattern.compile("^rtsp://([^/:]+)(:(\\d+))*/([^/]+)(/(.*))*$");
+    Matcher matcher = rtspPattern.matcher(url);
+    if (matcher.find()) {
+      host = matcher.group(1);
+      port = Integer.parseInt((matcher.group(3) != null) ? matcher.group(3) : "1935");
+      path = "/" + matcher.group(4) + "/" + matcher.group(6);
     } else {
+      streaming = false;
       connectCheckerRtsp.onConnectionFailedRtsp();
     }
   }
