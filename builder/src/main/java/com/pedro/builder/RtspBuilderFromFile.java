@@ -67,10 +67,10 @@ public class RtspBuilderFromFile
   }
 
   public void startStream(String url) {
-    videoEncoder.start();
     audioEncoder.start();
-    videoDecoder.start();
+    videoEncoder.start();
     audioDecoder.start();
+    videoDecoder.start();
     rtspClient.setUrl(url);
     streaming = true;
   }
@@ -82,6 +82,19 @@ public class RtspBuilderFromFile
     videoEncoder.stop();
     audioEncoder.stop();
     streaming = false;
+  }
+
+  public void setLoopMode(boolean loopMode) {
+    audioDecoder.setLoopMode(loopMode);
+    videoDecoder.setLoopMode(loopMode);
+  }
+
+  public void disableAudio() {
+    audioDecoder.mute();
+  }
+
+  public void enableAudio() {
+    audioDecoder.unMute();
   }
 
   public void disableVideo() {

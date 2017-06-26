@@ -19,7 +19,7 @@ public class AudioDecoder {
   private MediaExtractor audioExtractor;
   private MediaCodec audioDecoder;
   private MediaCodec.BufferInfo audioInfo = new MediaCodec.BufferInfo();
-  private boolean eosReceived;
+  private boolean decoding;
   private Thread thread;
   private GetMicrophoneData getMicrophoneData;
   private MediaFormat audioFormat;
@@ -27,13 +27,17 @@ public class AudioDecoder {
   private int sampleRate;
   private boolean isStereo;
   private int bitRate;
+  private byte[] pcmBuffer = new byte[4096];
+  private byte[] pcmBufferMuted = new byte[11];
+  private boolean loopMode = false;
+  private boolean muted = false;
 
   public AudioDecoder(GetMicrophoneData getMicrophoneData) {
     this.getMicrophoneData = getMicrophoneData;
   }
 
   public void initExtractor(String filePath) throws IOException {
-    eosReceived = false;
+    decoding = false;
     audioExtractor = new MediaExtractor();
     audioExtractor.setDataSource(filePath);
     for (int i = 0; i < audioExtractor.getTrackCount(); i++) {
@@ -61,10 +65,12 @@ public class AudioDecoder {
   }
 
   public void start() {
+    decoding = true;
     audioDecoder.start();
     thread = new Thread(new Runnable() {
       @Override
       public void run() {
+        android.os.Process.setThreadPriority(android.os.Process.THREAD_PRIORITY_AUDIO);
         decodeAudio();
       }
     });
@@ -72,7 +78,7 @@ public class AudioDecoder {
   }
 
   public void stop() {
-    eosReceived = true;
+    decoding = false;
     if (thread != null) {
       thread.interrupt();
       try {
@@ -97,13 +103,12 @@ public class AudioDecoder {
     ByteBuffer[] inputBuffers = audioDecoder.getInputBuffers();
     ByteBuffer[] outputBuffers = audioDecoder.getOutputBuffers();
 
-    while (!eosReceived) {
+    while (decoding) {
       int inIndex = audioDecoder.dequeueInputBuffer(-1);
       if (inIndex >= 0) {
         ByteBuffer buffer = inputBuffers[inIndex];
         int sampleSize = audioExtractor.readSampleData(buffer, 0);
         if (sampleSize < 0) {
-          Log.i(TAG, "InputBuffer BUFFER_FLAG_END_OF_STREAM");
           audioDecoder.queueInputBuffer(inIndex, 0, 0, 0, MediaCodec.BUFFER_FLAG_END_OF_STREAM);
         } else {
           audioDecoder.queueInputBuffer(inIndex, 0, sampleSize, audioExtractor.getSampleTime(), 0);
@@ -113,7 +118,6 @@ public class AudioDecoder {
         int outIndex = audioDecoder.dequeueOutputBuffer(audioInfo, 0);
         switch (outIndex) {
           case MediaCodec.INFO_OUTPUT_BUFFERS_CHANGED:
-            Log.i(TAG, "INFO_OUTPUT_BUFFERS_CHANGED");
             outputBuffers = audioDecoder.getOutputBuffers();
             break;
           case MediaCodec.INFO_OUTPUT_FORMAT_CHANGED:
@@ -123,22 +127,43 @@ public class AudioDecoder {
           default:
             ByteBuffer outBuffer = outputBuffers[outIndex];
             //This buffer is PCM data
-            byte[] pcmBuffer = new byte[audioInfo.size];
-            outBuffer.get(pcmBuffer);
-            getMicrophoneData.inputPcmData(pcmBuffer, audioInfo.size);
-            outBuffer.clear();
+            if (muted) {
+              outBuffer.get(pcmBufferMuted, 0, pcmBufferMuted.length);
+              getMicrophoneData.inputPcmData(pcmBufferMuted, pcmBufferMuted.length);
+            } else {
+              outBuffer.get(pcmBuffer, 0, pcmBuffer.length);
+              getMicrophoneData.inputPcmData(pcmBuffer, pcmBuffer.length);
+            }
             audioDecoder.releaseOutputBuffer(outIndex, false);
             break;
         }
 
         // All decoded frames have been rendered, we can stop playing now
         if ((audioInfo.flags & MediaCodec.BUFFER_FLAG_END_OF_STREAM) != 0) {
-          Log.i(TAG, "OutputBuffer BUFFER_FLAG_END_OF_STREAM");
-          stop();
-          break;
+          if (loopMode) {
+            audioExtractor.seekTo(0, MediaExtractor.SEEK_TO_CLOSEST_SYNC);
+          } else {
+            stop();
+          }
         }
       }
     }
+  }
+
+  public void setLoopMode(boolean loopMode) {
+    this.loopMode = loopMode;
+  }
+
+  public void mute() {
+    muted = true;
+  }
+
+  public void unMute() {
+    muted = false;
+  }
+
+  public boolean isMuted() {
+    return muted;
   }
 
   public int getSampleRate() {
