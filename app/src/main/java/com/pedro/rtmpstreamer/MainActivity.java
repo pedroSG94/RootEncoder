@@ -15,6 +15,7 @@ import com.pedro.rtmpstreamer.customexample.RtmpActivity;
 import com.pedro.rtmpstreamer.customexample.RtspActivity;
 import com.pedro.rtmpstreamer.defaultexample.ExampleRtmpActivity;
 import com.pedro.rtmpstreamer.defaultexample.ExampleRtspActivity;
+import com.pedro.rtmpstreamer.filestreamexample.RtmpFromFileActivity;
 import com.pedro.rtmpstreamer.filestreamexample.RtspFromFileActivity;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
@@ -40,6 +41,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     bDefaultRtsp.setOnClickListener(this);
     Button bFromFileRtsp = (Button) findViewById(R.id.b_from_file_rtsp);
     bFromFileRtsp.setOnClickListener(this);
+    Button bFromFileRtmp = (Button) findViewById(R.id.b_from_file_rtmp);
+    bFromFileRtmp.setOnClickListener(this);
     if (!hasPermissions(this, PERMISSIONS)) {
       ActivityCompat.requestPermissions(this, PERMISSIONS, 1);
     }
@@ -75,6 +78,19 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
       case R.id.b_default_rtsp:
         if (hasPermissions(this, PERMISSIONS)) {
           startActivity(new Intent(this, ExampleRtspActivity.class));
+        } else {
+          Toast.makeText(this, "You need permissions before", Toast.LENGTH_SHORT).show();
+          ActivityCompat.requestPermissions(this, PERMISSIONS, 1);
+        }
+        break;
+      case R.id.b_from_file_rtmp:
+        if (hasPermissions(this, PERMISSIONS)) {
+          if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
+            startActivity(new Intent(this, RtmpFromFileActivity.class));
+          } else {
+            Toast.makeText(this, "You need min Android JellyBean MR2(API 18)", Toast.LENGTH_SHORT)
+                .show();
+          }
         } else {
           Toast.makeText(this, "You need permissions before", Toast.LENGTH_SHORT).show();
           ActivityCompat.requestPermissions(this, PERMISSIONS, 1);

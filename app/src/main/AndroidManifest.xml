@@ -45,7 +45,8 @@
         android:label="@string/default_rtmp"
         android:screenOrientation="portrait"
         />
-    <activity android:name=".filestreamexample.RtspFromFileActivity"></activity>
+    <activity android:name=".filestreamexample.RtspFromFileActivity" />
+    <activity android:name=".filestreamexample.RtmpFromFileActivity"></activity>
   </application>
 
 </manifest>
