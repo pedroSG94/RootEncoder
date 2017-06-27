@@ -49,7 +49,9 @@ public class RtspBuilderFromFile
   }
 
   public boolean prepareAudio(String filePath) throws IOException {
-    audioDecoder.initExtractor(filePath);
+    if (!audioDecoder.initExtractor(filePath)) {
+      return false;
+    }
     rtspClient.setSampleRate(audioDecoder.getSampleRate());
     rtspClient.setIsStereo(audioDecoder.isStereo());
     audioDecoder.prepareAudio();
@@ -58,7 +60,9 @@ public class RtspBuilderFromFile
   }
 
   public boolean prepareVideo(String filePath, int bitRate) throws IOException {
-    videoDecoder.initExtractor(filePath);
+    if (!videoDecoder.initExtractor(filePath)) {
+      return false;
+    }
     boolean result =
         videoEncoder.prepareVideoEncoder(videoDecoder.getWidth(), videoDecoder.getHeight(),
             videoDecoder.getFps(), bitRate, 0, true, FormatVideoEncoder.SURFACE);

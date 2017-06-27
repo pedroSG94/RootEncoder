@@ -51,7 +51,9 @@ public class RtmpBuilderFromFile
   }
 
   public boolean prepareAudio(String filePath) throws IOException {
-    audioDecoder.initExtractor(filePath);
+    if (!audioDecoder.initExtractor(filePath)) {
+      return false;
+    }
     srsFlvMuxer.setAsample_rate(audioDecoder.getSampleRate());
     srsFlvMuxer.setIsStereo(audioDecoder.isStereo());
     audioDecoder.prepareAudio();
@@ -60,7 +62,9 @@ public class RtmpBuilderFromFile
   }
 
   public boolean prepareVideo(String filePath, int bitRate) throws IOException {
-    videoDecoder.initExtractor(filePath);
+    if (!videoDecoder.initExtractor(filePath)) {
+      return false;
+    }
     boolean result =
         videoEncoder.prepareVideoEncoder(videoDecoder.getWidth(), videoDecoder.getHeight(),
             videoDecoder.getFps(), bitRate, 0, true, FormatVideoEncoder.SURFACE);

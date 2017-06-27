@@ -22,7 +22,7 @@ public class VideoDecoder {
   private boolean decoding;
   private Thread thread;
   private MediaFormat videoFormat;
-  private String mime;
+  private String mime = "video/avc";
   private int width;
   private int height;
   private int fps;
@@ -31,21 +31,27 @@ public class VideoDecoder {
   public VideoDecoder() {
   }
 
-  public void initExtractor(String filePath) throws IOException {
+  public boolean initExtractor(String filePath) throws IOException {
     decoding = false;
     videoExtractor = new MediaExtractor();
     videoExtractor.setDataSource(filePath);
     for (int i = 0; i < videoExtractor.getTrackCount(); i++) {
       videoFormat = videoExtractor.getTrackFormat(i);
-      mime = videoFormat.getString(MediaFormat.KEY_MIME);
-      if (mime.startsWith("video/")) {
+      if (mime.equals(videoFormat.getString(MediaFormat.KEY_MIME))) {
         videoExtractor.selectTrack(i);
         break;
+      } else {
+        videoFormat = null;
       }
     }
-    width = videoFormat.getInteger(MediaFormat.KEY_WIDTH);
-    height = videoFormat.getInteger(MediaFormat.KEY_HEIGHT);
-    fps = videoFormat.getInteger(MediaFormat.KEY_FRAME_RATE);
+    if (videoFormat != null) {
+      width = videoFormat.getInteger(MediaFormat.KEY_WIDTH);
+      height = videoFormat.getInteger(MediaFormat.KEY_HEIGHT);
+      fps = videoFormat.getInteger(MediaFormat.KEY_FRAME_RATE);
+      return true;
+    } else {
+      return false;
+    }
   }
 
   public boolean prepareVideo(Surface surface) {

@@ -112,9 +112,17 @@ public class RtspFromFileActivity extends AppCompatActivity
                   && rtspBuilderFromFile.prepareAudio(filePath)) {
                 button.setText(getResources().getString(R.string.stop_button));
                 rtspBuilderFromFile.startStream(etUrl.getText().toString());
+              } else {
+                button.setText(getResources().getString(R.string.start_button));
+                rtspBuilderFromFile.stopStream();
+                /*This error could be 2 things.
+                 Your device cant decode or encode this file or
+                 the file is not supported for the library.
+                The file need has h264 video codec and acc audio codec*/
+                Toast.makeText(this, "Error: unsupported file", Toast.LENGTH_SHORT).show();
               }
             } catch (IOException e) {
-              //normally this error is for file not found or read permissions
+              //Normally this error is for file not found or read permissions
               Toast.makeText(this, "Error: file not found", Toast.LENGTH_SHORT).show();
             }
           } else {
