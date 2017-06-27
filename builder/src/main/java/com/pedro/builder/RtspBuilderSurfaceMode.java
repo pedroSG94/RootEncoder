@@ -1,7 +1,6 @@
 package com.pedro.builder;
 
 import android.graphics.ImageFormat;
-import android.hardware.Camera;
 import android.media.MediaCodec;
 import android.os.Build;
 import android.support.annotation.RequiresApi;
@@ -20,8 +19,6 @@ import com.pedro.rtsp.rtsp.Protocol;
 import com.pedro.rtsp.rtsp.RtspClient;
 import com.pedro.rtsp.utils.ConnectCheckerRtsp;
 import java.nio.ByteBuffer;
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * Created by pedro on 4/06/17.
@@ -104,15 +101,6 @@ public class RtspBuilderSurfaceMode implements GetAccData, GetCameraData, GetH26
     audioEncoder.stop();
     streaming = false;
   }
-
-  //public List<String> getResolutions() {
-  //  List<Camera.Size> list = cameraManager.getPreviewSize();
-  //  List<String> resolutions = new ArrayList<>();
-  //  for (Camera.Size size : list) {
-  //    resolutions.add(size.width + "X" + size.height);
-  //  }
-  //  return resolutions;
-  //}
 
   public void disableAudio() {
     microphoneManager.mute();

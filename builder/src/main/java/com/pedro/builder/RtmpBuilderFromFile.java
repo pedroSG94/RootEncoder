@@ -51,33 +51,50 @@ public class RtmpBuilderFromFile
   }
 
   public boolean prepareAudio(String filePath) throws IOException {
-    if (!audioDecoder.initExtractor(filePath)) {
-      return false;
-    }
+    if (!audioDecoder.initExtractor(filePath)) return false;
     srsFlvMuxer.setAsample_rate(audioDecoder.getSampleRate());
     srsFlvMuxer.setIsStereo(audioDecoder.isStereo());
     audioDecoder.prepareAudio();
-    return audioEncoder.prepareAudioEncoder(audioDecoder.getBitRate(), audioDecoder.getSampleRate(),
+    return audioEncoder.prepareAudioEncoder(128 * 1024, audioDecoder.getSampleRate(),
         audioDecoder.isStereo());
   }
 
   public boolean prepareVideo(String filePath, int bitRate) throws IOException {
-    if (!videoDecoder.initExtractor(filePath)) {
-      return false;
-    }
+    if (!videoDecoder.initExtractor(filePath)) return false;
     boolean result =
-        videoEncoder.prepareVideoEncoder(videoDecoder.getWidth(), videoDecoder.getHeight(),
-            videoDecoder.getFps(), bitRate, 0, true, FormatVideoEncoder.SURFACE);
+        videoEncoder.prepareVideoEncoder(videoDecoder.getWidth(), videoDecoder.getHeight(), 30,
+            bitRate, 0, true, FormatVideoEncoder.SURFACE);
+    videoDecoder.prepareVideo(videoEncoder.getInputSurface());
+    return result;
+  }
+
+  public boolean prepareAudio(String filePath, boolean isStereo, int sampleRate)
+      throws IOException {
+    if (!audioDecoder.initExtractor(filePath, isStereo, sampleRate)) return false;
+    srsFlvMuxer.setAsample_rate(sampleRate);
+    srsFlvMuxer.setIsStereo(isStereo);
+    audioDecoder.prepareAudio();
+    return audioEncoder.prepareAudioEncoder(128 * 1024, audioDecoder.getSampleRate(),
+        audioDecoder.isStereo());
+  }
+
+  public boolean prepareVideo(String filePath, int bitRate, int width, int height)
+      throws IOException {
+    if (!videoDecoder.initExtractor(filePath, width, height)) return false;
+    boolean result =
+        videoEncoder.prepareVideoEncoder(videoDecoder.getWidth(), videoDecoder.getHeight(), 30,
+            bitRate, 0, true, FormatVideoEncoder.SURFACE);
     videoDecoder.prepareVideo(videoEncoder.getInputSurface());
     return result;
   }
 
   public void startStream(String url) {
+    srsFlvMuxer.start(url);
+    srsFlvMuxer.setVideoResolution(videoDecoder.getWidth(), videoDecoder.getHeight());
     audioEncoder.start();
     videoEncoder.start();
     audioDecoder.start();
     videoDecoder.start();
-    srsFlvMuxer.start(url);
     streaming = true;
   }
 

@@ -25,7 +25,6 @@ public class VideoDecoder {
   private String mime = "video/avc";
   private int width;
   private int height;
-  private int fps;
   private boolean loopMode = false;
 
   public VideoDecoder() {
@@ -47,11 +46,28 @@ public class VideoDecoder {
     if (videoFormat != null) {
       width = videoFormat.getInteger(MediaFormat.KEY_WIDTH);
       height = videoFormat.getInteger(MediaFormat.KEY_HEIGHT);
-      fps = videoFormat.getInteger(MediaFormat.KEY_FRAME_RATE);
       return true;
     } else {
       return false;
     }
+  }
+
+  public boolean initExtractor(String filePath, int width, int height) throws IOException {
+    decoding = false;
+    videoExtractor = new MediaExtractor();
+    videoExtractor.setDataSource(filePath);
+    for (int i = 0; i < videoExtractor.getTrackCount(); i++) {
+      videoFormat = videoExtractor.getTrackFormat(i);
+      if (mime.equals(videoFormat.getString(MediaFormat.KEY_MIME))) {
+        videoExtractor.selectTrack(i);
+        break;
+      } else {
+        videoFormat = null;
+      }
+    }
+    this.width = width;
+    this.height = height;
+    return videoFormat != null;
   }
 
   public boolean prepareVideo(Surface surface) {
@@ -151,9 +167,5 @@ public class VideoDecoder {
 
   public int getHeight() {
     return height;
-  }
-
-  public int getFps() {
-    return fps;
   }
 }

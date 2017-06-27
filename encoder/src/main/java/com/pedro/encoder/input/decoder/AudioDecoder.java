@@ -26,7 +26,6 @@ public class AudioDecoder {
   private String mime = "audio/mp4a-latm";
   private int sampleRate;
   private boolean isStereo;
-  private int bitRate;
   private byte[] pcmBuffer = new byte[4096];
   private byte[] pcmBufferMuted = new byte[11];
   private boolean loopMode = false;
@@ -51,12 +50,30 @@ public class AudioDecoder {
     }
     if (audioFormat != null) {
       isStereo = (audioFormat.getInteger(MediaFormat.KEY_CHANNEL_COUNT) == 2);
-      bitRate = audioFormat.getInteger(MediaFormat.KEY_BIT_RATE);
       sampleRate = audioFormat.getInteger(MediaFormat.KEY_SAMPLE_RATE);
       return true;
     } else {
       return false;
     }
+  }
+
+  public boolean initExtractor(String filePath, boolean isStereo, int sampleRate)
+      throws IOException {
+    decoding = false;
+    audioExtractor = new MediaExtractor();
+    audioExtractor.setDataSource(filePath);
+    for (int i = 0; i < audioExtractor.getTrackCount(); i++) {
+      audioFormat = audioExtractor.getTrackFormat(i);
+      if (mime.equals(audioFormat.getString(MediaFormat.KEY_MIME))) {
+        audioExtractor.selectTrack(i);
+        break;
+      } else {
+        audioFormat = null;
+      }
+    }
+    this.isStereo = isStereo;
+    this.sampleRate = sampleRate;
+    return audioFormat != null;
   }
 
   public boolean prepareAudio() {
@@ -178,9 +195,5 @@ public class AudioDecoder {
 
   public boolean isStereo() {
     return isStereo;
-  }
-
-  public int getBitRate() {
-    return bitRate;
   }
 }

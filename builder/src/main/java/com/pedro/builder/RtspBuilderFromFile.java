@@ -55,7 +55,7 @@ public class RtspBuilderFromFile
     rtspClient.setSampleRate(audioDecoder.getSampleRate());
     rtspClient.setIsStereo(audioDecoder.isStereo());
     audioDecoder.prepareAudio();
-    return audioEncoder.prepareAudioEncoder(audioDecoder.getBitRate(), audioDecoder.getSampleRate(),
+    return audioEncoder.prepareAudioEncoder(128 * 1024, audioDecoder.getSampleRate(),
         audioDecoder.isStereo());
   }
 
@@ -64,18 +64,38 @@ public class RtspBuilderFromFile
       return false;
     }
     boolean result =
-        videoEncoder.prepareVideoEncoder(videoDecoder.getWidth(), videoDecoder.getHeight(),
-            videoDecoder.getFps(), bitRate, 0, true, FormatVideoEncoder.SURFACE);
+        videoEncoder.prepareVideoEncoder(videoDecoder.getWidth(), videoDecoder.getHeight(), 30,
+            bitRate, 0, true, FormatVideoEncoder.SURFACE);
+    videoDecoder.prepareVideo(videoEncoder.getInputSurface());
+    return result;
+  }
+
+  public boolean prepareAudio(String filePath, boolean isStereo, int sampleRate)
+      throws IOException {
+    if (!audioDecoder.initExtractor(filePath, isStereo, sampleRate)) return false;
+    rtspClient.setSampleRate(sampleRate);
+    rtspClient.setIsStereo(isStereo);
+    audioDecoder.prepareAudio();
+    return audioEncoder.prepareAudioEncoder(128 * 1024, audioDecoder.getSampleRate(),
+        audioDecoder.isStereo());
+  }
+
+  public boolean prepareVideo(String filePath, int bitRate, int width, int height)
+      throws IOException {
+    if (!videoDecoder.initExtractor(filePath, width, height)) return false;
+    boolean result =
+        videoEncoder.prepareVideoEncoder(videoDecoder.getWidth(), videoDecoder.getHeight(), 30,
+            bitRate, 0, true, FormatVideoEncoder.SURFACE);
     videoDecoder.prepareVideo(videoEncoder.getInputSurface());
     return result;
   }
 
   public void startStream(String url) {
+    rtspClient.setUrl(url);
     audioEncoder.start();
     videoEncoder.start();
     audioDecoder.start();
     videoDecoder.start();
-    rtspClient.setUrl(url);
     streaming = true;
   }
 
