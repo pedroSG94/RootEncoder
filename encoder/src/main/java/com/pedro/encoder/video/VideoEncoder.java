@@ -273,6 +273,7 @@ public class VideoEncoder implements GetCameraData {
         queue.add(buffer);
         Log.i(TAG, "send data yv12");
       } catch (IllegalStateException e) {
+        queue.clear();
         Log.e(TAG, "frame discarded, cant add more frames: ", e);
       }
     }
@@ -285,6 +286,7 @@ public class VideoEncoder implements GetCameraData {
         queue.add(buffer);
         Log.i(TAG, "send data nv21");
       } catch (IllegalStateException e) {
+        queue.clear();
         Log.e(TAG, "frame discarded, cant add more frames: ", e);
       }
     }
