@@ -1,6 +1,7 @@
 package net.ossrs.rtmp;
 
 import android.media.MediaCodec;
+import android.os.Process;
 import android.util.Log;
 import com.github.faucamp.simplertmp.DefaultRtmpPublisher;
 import java.io.InputStream;
@@ -154,6 +155,7 @@ public class SrsFlvMuxer {
     worker = new Thread(new Runnable() {
       @Override
       public void run() {
+        android.os.Process.setThreadPriority(Process.THREAD_PRIORITY_MORE_FAVORABLE);
         if (!connect(rtmpUrl)) {
           connectCheckerRtmp.onConnectionFailedRtmp();
           return;
@@ -844,6 +846,7 @@ public class SrsFlvMuxer {
       try {
         mFlvTagCache.add(frame);
       } catch (IllegalStateException e) {
+        mFlvTagCache.clear();
         Log.e(TAG, "frame discarded, cant add more frame: ", e);
       }
     }
