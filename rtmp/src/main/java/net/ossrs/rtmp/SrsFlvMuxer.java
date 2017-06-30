@@ -20,7 +20,7 @@ import java.util.concurrent.LinkedBlockingQueue;
  * muxer = new SrsRtmp("rtmp://ossrs.net/live/yasea");
  * muxer.start();
  *
- * MediaFormat aformat = MediaFormat.createAudioFormat(MediaFormat.MIMETYPE_AUDIO_AAC, asample_rate,
+ * MediaFormat aformat = MediaFormat.createAudioFormat(MediaFormat.MIMETYPE_AUDIO_AAC, sampleRate,
  * achannel);
  * // setup the aformat for audio.
  * atrack = muxer.addTrack(aformat);
@@ -61,7 +61,7 @@ public class SrsFlvMuxer {
   private BlockingQueue<SrsFlvFrame> mFlvTagCache = new LinkedBlockingQueue<>(40);
   private ConnectCheckerRtmp connectCheckerRtmp;
   private static final String TAG = "SrsFlvMuxer";
-  private int asample_rate = 44100;
+  private int sampleRate = 44100;
 
   /**
    * constructor.
@@ -75,8 +75,8 @@ public class SrsFlvMuxer {
     flv.setSpsPPs(sps, pps);
   }
 
-  public void setAsample_rate(int asample_rate) {
-    this.asample_rate = asample_rate;
+  public void setSampleRate(int sampleRate) {
+    this.sampleRate = sampleRate;
   }
 
   public void setIsStereo(boolean isStereo) {
@@ -587,11 +587,8 @@ public class SrsFlvMuxer {
     private ArrayList<SrsFlvFrameBytes> ipbs = new ArrayList<>();
     private SrsAllocator.Allocation audio_tag;
     private SrsAllocator.Allocation video_tag;
-    private ByteBuffer h264_sps;
-    private boolean h264_sps_changed;
-    private ByteBuffer h264_pps;
-    private boolean h264_pps_changed;
-    private boolean h264_sps_pps_sent;
+    private ByteBuffer Sps;
+    private ByteBuffer Pps;
     private boolean aac_specific_config_got;
     private int achannel = 2;
 
@@ -604,9 +601,8 @@ public class SrsFlvMuxer {
     }
 
     public void reset() {
-      h264_sps_changed = false;
-      h264_pps_changed = false;
-      h264_sps_pps_sent = false;
+      Sps = null;
+      Pps = null;
       aac_specific_config_got = false;
     }
 
@@ -626,9 +622,9 @@ public class SrsFlvMuxer {
 
         // samplingFrequencyIndex; 4 bslbf
         byte samplingFrequencyIndex = 0x04; //44100
-        if (asample_rate == SrsCodecAudioSampleRate.R22050) {
+        if (sampleRate == SrsCodecAudioSampleRate.R22050) {
           samplingFrequencyIndex = 0x07;  //22050
-        } else if (asample_rate == SrsCodecAudioSampleRate.R11025) {
+        } else if (sampleRate == SrsCodecAudioSampleRate.R11025) {
           samplingFrequencyIndex = 0x0a;  //11025
         }
         ch |= (samplingFrequencyIndex >> 1) & 0x07;
@@ -669,9 +665,9 @@ public class SrsFlvMuxer {
       }
       byte sound_size = 1; // 1 = 16-bit samples
       byte sound_rate = 3; // 44100, 22050, 11025
-      if (asample_rate == 22050) {
+      if (sampleRate == 22050) {
         sound_rate = 2;
-      } else if (asample_rate == 11025) {
+      } else if (sampleRate == 11025) {
         sound_rate = 1;
       }
 
@@ -765,28 +761,20 @@ public class SrsFlvMuxer {
     }
 
     public void setSpsPPs(ByteBuffer sps, ByteBuffer pps) {
-      h264_sps_changed = true;
-      h264_sps = sps;
-      h264_pps_changed = true;
-      h264_pps = pps;
+      Sps = sps;
+      Pps = pps;
     }
 
     private void writeH264SpsPps(int dts, int pts) {
-      /* when sps or pps changed, update the sequence header,
-      for the pps maybe not changed while sps changed.
-      so, we must check when each video ts message frame parsed.*/
-      if (h264_sps_pps_sent && !h264_sps_changed && !h264_pps_changed) {
-        return;
-      }
-
       // when not got sps/pps, wait.
-      if (h264_pps == null || h264_sps == null) {
+      if (Pps == null || Sps == null) {
+        Log.i(TAG, "waiting for sps and pps, video packet ignored in writeH264SpsPps");
         return;
       }
 
       // h264 raw to h264 packet.
       ArrayList<SrsFlvFrameBytes> frames = new ArrayList<>();
-      avc.muxSequenceHeader(h264_sps, h264_pps, frames);
+      avc.muxSequenceHeader(Sps, Pps, frames);
 
       // h264 packet to flv packet.
       int frame_type = SrsCodecVideoAVCFrame.KeyFrame;
@@ -795,26 +783,20 @@ public class SrsFlvMuxer {
 
       // the timestamp in rtmp message header is dts.
       writeRtmpPacket(SrsCodecFlvTag.Video, dts, frame_type, avc_packet_type, video_tag);
-
-      // reset sps and pps.
-      h264_sps_changed = false;
-      h264_pps_changed = false;
-      h264_sps_pps_sent = true;
-      Log.i(TAG, String.format("flv: h264 sps/pps sent, sps=%dB, pps=%dB", h264_sps.array().length,
-          h264_pps.array().length));
+      Log.i(TAG, String.format("flv: h264 sps/pps sent, sps=%dB, pps=%dB", Sps.array().length,
+          Pps.array().length));
     }
 
     private void writeH264IpbFrame(ArrayList<SrsFlvFrameBytes> frames, int frame_type, int dts,
         int pts) {
       // when sps or pps not sent, ignore the packet.
       // @see https://github.com/simple-rtmp-server/srs/issues/203
-      if (!h264_sps_pps_sent) {
+      if (Pps == null || Sps == null) {
+        Log.i(TAG, "waiting for sps and pps, video packet ignored in writeH264IpbFrame");
         return;
       }
-
       int avc_packet_type = SrsCodecVideoAVCType.NALU;
       video_tag = avc.muxFlvTag(frames, frame_type, avc_packet_type, dts, pts);
-
       // the timestamp in rtmp message header is dts.
       writeRtmpPacket(SrsCodecFlvTag.Video, dts, frame_type, avc_packet_type, video_tag);
     }

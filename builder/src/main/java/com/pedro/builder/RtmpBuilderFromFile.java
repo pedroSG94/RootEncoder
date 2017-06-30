@@ -52,7 +52,7 @@ public class RtmpBuilderFromFile
 
   public boolean prepareAudio(String filePath) throws IOException {
     if (!audioDecoder.initExtractor(filePath)) return false;
-    srsFlvMuxer.setAsample_rate(audioDecoder.getSampleRate());
+    srsFlvMuxer.setSampleRate(audioDecoder.getSampleRate());
     srsFlvMuxer.setIsStereo(audioDecoder.isStereo());
     audioDecoder.prepareAudio();
     return audioEncoder.prepareAudioEncoder(128 * 1024, audioDecoder.getSampleRate(),
@@ -71,7 +71,7 @@ public class RtmpBuilderFromFile
   public boolean prepareAudio(String filePath, boolean isStereo, int sampleRate)
       throws IOException {
     if (!audioDecoder.initExtractor(filePath, isStereo, sampleRate)) return false;
-    srsFlvMuxer.setAsample_rate(sampleRate);
+    srsFlvMuxer.setSampleRate(sampleRate);
     srsFlvMuxer.setIsStereo(isStereo);
     audioDecoder.prepareAudio();
     return audioEncoder.prepareAudioEncoder(128 * 1024, audioDecoder.getSampleRate(),

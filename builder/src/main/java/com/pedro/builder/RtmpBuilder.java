@@ -65,7 +65,7 @@ public class RtmpBuilder implements GetAccData, GetCameraData, GetH264Data, GetM
       boolean noiseSuppressor) {
     microphoneManager.createMicrophone(sampleRate, isStereo, echoCanceler, noiseSuppressor);
     srsFlvMuxer.setIsStereo(isStereo);
-    srsFlvMuxer.setAsample_rate(sampleRate);
+    srsFlvMuxer.setSampleRate(sampleRate);
     return audioEncoder.prepareAudioEncoder(bitrate, sampleRate, isStereo);
   }
 
