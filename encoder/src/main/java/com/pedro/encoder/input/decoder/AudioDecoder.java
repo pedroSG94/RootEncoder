@@ -49,8 +49,17 @@ public class AudioDecoder {
       }
     }
     if (audioFormat != null) {
-      isStereo = (audioFormat.getInteger(MediaFormat.KEY_CHANNEL_COUNT) == 2);
-      sampleRate = audioFormat.getInteger(MediaFormat.KEY_SAMPLE_RATE);
+      try {
+        isStereo = (audioFormat.getInteger(MediaFormat.KEY_CHANNEL_COUNT) == 2);
+        sampleRate = audioFormat.getInteger(MediaFormat.KEY_SAMPLE_RATE);
+      } catch (NullPointerException e) {
+        /*Some devices can't extract data from the file with MediaExtractor (Android bug?).
+         In this case you can set it manually or get it with other way.
+         At the moment, I don't know other way for audio because MediaPlayer has the same problem
+         for audio so set defaults parameters*/
+        isStereo = true;
+        sampleRate = 44100;
+      }
       return true;
     } else {
       return false;
@@ -79,6 +88,8 @@ public class AudioDecoder {
   public boolean prepareAudio() {
     try {
       audioDecoder = MediaCodec.createDecoderByType(mime);
+      audioFormat.setInteger(MediaFormat.KEY_SAMPLE_RATE, sampleRate);
+      audioFormat.setInteger(MediaFormat.KEY_CHANNEL_COUNT, isStereo ? 2 : 1);
       audioDecoder.configure(audioFormat, null, null, 0);
       return true;
     } catch (IOException e) {

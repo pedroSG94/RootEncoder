@@ -3,6 +3,7 @@ package com.pedro.encoder.input.decoder;
 import android.media.MediaCodec;
 import android.media.MediaExtractor;
 import android.media.MediaFormat;
+import android.media.MediaPlayer;
 import android.os.Process;
 import android.util.Log;
 import android.view.Surface;
@@ -44,8 +45,19 @@ public class VideoDecoder {
       }
     }
     if (videoFormat != null) {
-      width = videoFormat.getInteger(MediaFormat.KEY_WIDTH);
-      height = videoFormat.getInteger(MediaFormat.KEY_HEIGHT);
+      try {
+        width = videoFormat.getInteger(MediaFormat.KEY_WIDTH);
+        height = videoFormat.getInteger(MediaFormat.KEY_HEIGHT);
+      } catch (NullPointerException e) {
+        /*Some devices can't extract data from the file with MediaExtractor (Android bug?).
+         In this case you can set it manually or get it with other way.*/
+        MediaPlayer mediaPlayer = new MediaPlayer();
+        mediaPlayer.setDataSource(filePath);
+        mediaPlayer.prepare();
+        width = mediaPlayer.getVideoWidth();
+        height = mediaPlayer.getVideoHeight();
+        mediaPlayer.release();
+      }
       return true;
     } else {
       return false;
@@ -73,6 +85,8 @@ public class VideoDecoder {
   public boolean prepareVideo(Surface surface) {
     try {
       videoDecoder = MediaCodec.createDecoderByType(mime);
+      videoFormat.setInteger(MediaFormat.KEY_WIDTH, width);
+      videoFormat.setInteger(MediaFormat.KEY_HEIGHT, height);
       videoDecoder.configure(videoFormat, surface, null, 0);
       return true;
     } catch (IOException e) {
