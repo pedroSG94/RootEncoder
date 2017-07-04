@@ -62,6 +62,7 @@ public class SrsFlvMuxer {
   private ConnectCheckerRtmp connectCheckerRtmp;
   private static final String TAG = "SrsFlvMuxer";
   private int sampleRate = 44100;
+  private boolean isPpsSpsSend = false;
 
   /**
    * constructor.
@@ -393,6 +394,14 @@ public class SrsFlvMuxer {
     private SrsFlvFrameBytes pps_hdr = new SrsFlvFrameBytes();
     private SrsFlvFrameBytes pps_bb = new SrsFlvFrameBytes();
 
+    public boolean isSps(SrsFlvFrameBytes frame) {
+      return frame.size >= 1 && (frame.data.get(0) & 0x1f) == SrsAvcNaluType.SPS;
+    }
+
+    public boolean isPps(SrsFlvFrameBytes frame) {
+      return frame.size >= 1 && (frame.data.get(0) & 0x1f) == SrsAvcNaluType.PPS;
+    }
+
     public SrsFlvFrameBytes muxNaluHeader(SrsFlvFrameBytes frame) {
       if (nalu_header.data == null) {
         nalu_header.data = ByteBuffer.allocate(4);
@@ -603,6 +612,7 @@ public class SrsFlvMuxer {
     public void reset() {
       Sps = null;
       Pps = null;
+      isPpsSpsSend = false;
       aac_specific_config_got = false;
     }
 
@@ -734,10 +744,10 @@ public class SrsFlvMuxer {
         // 5bits, 7.3.1 NAL unit syntax,
         // H.264-AVC-ISO_IEC_14496-10.pdf, page 44.
         // 7: SPS, 8: PPS, 5: I Frame, 1: P Frame
-        int nal_unit_type = frame.data.get(0) & 0x1f;
+        int nal_unit_type = (int)(frame.data.get(0) & 0x1f);
         if (nal_unit_type == SrsAvcNaluType.SPS || nal_unit_type == SrsAvcNaluType.PPS) {
-          Log.i(TAG, String.format("annexb demux %dB, pts=%d, frame=%dB, nalu=%d", bi.size, pts,
-              frame.size, nal_unit_type));
+          Log.i(TAG, String.format("annexb demux %dB, pts=%d, frame=%dB, nalu=%d",
+              bi.size, pts, frame.size, nal_unit_type));
         }
 
         // for IDR frame, the frame is keyframe.
@@ -747,6 +757,28 @@ public class SrsFlvMuxer {
 
         // ignore the nalu type aud(9)
         if (nal_unit_type == SrsAvcNaluType.AccessUnitDelimiter) {
+          continue;
+        }
+
+        // for sps
+        if (avc.isSps(frame)) {
+          if (!frame.data.equals(Sps)) {
+            byte[] sps = new byte[frame.size];
+            frame.data.get(sps);
+            isPpsSpsSend = false;
+            Sps = ByteBuffer.wrap(sps);
+          }
+          continue;
+        }
+
+        // for pps
+        if (avc.isPps(frame)) {
+          if (!frame.data.equals(Pps)) {
+            byte[] pps = new byte[frame.size];
+            frame.data.get(pps);
+            isPpsSpsSend = false;
+            Pps = ByteBuffer.wrap(pps);
+          }
           continue;
         }
 
@@ -767,8 +799,7 @@ public class SrsFlvMuxer {
 
     private void writeH264SpsPps(int dts, int pts) {
       // when not got sps/pps, wait.
-      if (Pps == null || Sps == null) {
-        Log.i(TAG, "waiting for sps and pps, video packet ignored in writeH264SpsPps");
+      if (Pps == null || Sps == null || isPpsSpsSend) {
         return;
       }
 
@@ -781,6 +812,7 @@ public class SrsFlvMuxer {
       int avc_packet_type = SrsCodecVideoAVCType.SequenceHeader;
       video_tag = avc.muxFlvTag(frames, frame_type, avc_packet_type, dts, pts);
 
+      isPpsSpsSend = true;
       // the timestamp in rtmp message header is dts.
       writeRtmpPacket(SrsCodecFlvTag.Video, dts, frame_type, avc_packet_type, video_tag);
       Log.i(TAG, String.format("flv: h264 sps/pps sent, sps=%dB, pps=%dB", Sps.array().length,
@@ -792,13 +824,11 @@ public class SrsFlvMuxer {
       // when sps or pps not sent, ignore the packet.
       // @see https://github.com/simple-rtmp-server/srs/issues/203
       if (Pps == null || Sps == null) {
-        Log.i(TAG, "waiting for sps and pps, video packet ignored in writeH264IpbFrame");
         return;
       }
-      int avc_packet_type = SrsCodecVideoAVCType.NALU;
-      video_tag = avc.muxFlvTag(frames, frame_type, avc_packet_type, dts, pts);
+      video_tag = avc.muxFlvTag(frames, frame_type, SrsCodecVideoAVCType.NALU, dts, pts);
       // the timestamp in rtmp message header is dts.
-      writeRtmpPacket(SrsCodecFlvTag.Video, dts, frame_type, avc_packet_type, video_tag);
+      writeRtmpPacket(SrsCodecFlvTag.Video, dts, frame_type, SrsCodecVideoAVCType.NALU, video_tag);
     }
 
     private void writeRtmpPacket(int type, int dts, int frame_type, int avc_aac_type,
