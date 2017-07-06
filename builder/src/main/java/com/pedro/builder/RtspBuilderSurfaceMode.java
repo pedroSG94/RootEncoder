@@ -24,7 +24,7 @@ import java.nio.ByteBuffer;
  * Created by pedro on 4/06/17.
  * This builder is under test, rotation only work with hardware because use encoding surface mode.
  */
-@RequiresApi(api = Build.VERSION_CODES.M)
+@RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
 public class RtspBuilderSurfaceMode implements GetAccData, GetCameraData, GetH264Data, GetMicrophoneData {
 
   private Camera2ApiManager cameraManager;

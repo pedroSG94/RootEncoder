@@ -27,7 +27,7 @@ import net.ossrs.rtmp.SrsFlvMuxer;
  * This builder is under test, rotation only work with hardware because use encoding surface mode.
  * This maybe don't work for synchronizations problems and you will lose audio or video channel in the stream
  */
-@RequiresApi(api = Build.VERSION_CODES.M)
+@RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
 public class RtmpBuilderSurfaceMode
     implements GetAccData, GetCameraData, GetH264Data, GetMicrophoneData {
 
