@@ -16,6 +16,7 @@ public class AudioDecoder {
 
   private final String TAG = "AudioDecoder";
 
+  private final AudioDecoderInterface audioDecoderInterface;
   private MediaExtractor audioExtractor;
   private MediaCodec audioDecoder;
   private MediaCodec.BufferInfo audioInfo = new MediaCodec.BufferInfo();
@@ -31,20 +32,21 @@ public class AudioDecoder {
   private boolean loopMode = false;
   private boolean muted = false;
 
-  public AudioDecoder(GetMicrophoneData getMicrophoneData) {
+  public AudioDecoder(GetMicrophoneData getMicrophoneData,
+      AudioDecoderInterface audioDecoderInterface) {
     this.getMicrophoneData = getMicrophoneData;
+    this.audioDecoderInterface = audioDecoderInterface;
   }
 
   public boolean initExtractor(String filePath) throws IOException {
     decoding = false;
     audioExtractor = new MediaExtractor();
     audioExtractor.setDataSource(filePath);
-    for (int i = 0; i < audioExtractor.getTrackCount(); i++) {
+    for (int i = 0; i < audioExtractor.getTrackCount() && !mime.startsWith("audio/"); i++) {
       audioFormat = audioExtractor.getTrackFormat(i);
       mime = audioFormat.getString(MediaFormat.KEY_MIME);
       if (mime.startsWith("audio/")) {
         audioExtractor.selectTrack(i);
-        break;
       } else {
         audioFormat = null;
       }
@@ -152,7 +154,7 @@ public class AudioDecoder {
             audioExtractor.seekTo(0, MediaExtractor.SEEK_TO_CLOSEST_SYNC);
             audioDecoder.flush();
           } else {
-            stop();
+            audioDecoderInterface.onAudioDecoderFinished();
           }
         }
       }

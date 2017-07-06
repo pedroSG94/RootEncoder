@@ -11,6 +11,7 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 import com.pedro.builder.RtspBuilderFromFile;
+import com.pedro.encoder.input.decoder.VideoDecoderInterface;
 import com.pedro.rtmpstreamer.R;
 import com.pedro.rtsp.rtsp.Protocol;
 import com.pedro.rtsp.utils.ConnectCheckerRtsp;
@@ -18,7 +19,7 @@ import java.io.IOException;
 
 @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
 public class RtspFromFileActivity extends AppCompatActivity
-    implements ConnectCheckerRtsp, View.OnClickListener {
+    implements ConnectCheckerRtsp, View.OnClickListener, VideoDecoderInterface {
 
   private RtspBuilderFromFile rtspBuilderFromFile;
   private Button button, bSelectFile;
@@ -36,7 +37,7 @@ public class RtspFromFileActivity extends AppCompatActivity
     bSelectFile.setOnClickListener(this);
     etUrl = (EditText) findViewById(R.id.et_rtsp_url);
     tvFile = (TextView) findViewById(R.id.tv_file);
-    rtspBuilderFromFile = new RtspBuilderFromFile(Protocol.UDP, this);
+    rtspBuilderFromFile = new RtspBuilderFromFile(Protocol.UDP, this, this);
   }
 
   @Override
@@ -138,5 +139,20 @@ public class RtspFromFileActivity extends AppCompatActivity
       default:
         break;
     }
+  }
+
+  @Override
+  public void onVideoDecoderFinished() {
+    runOnUiThread(new Runnable() {
+      @Override
+      public void run() {
+        if (rtspBuilderFromFile.isStreaming()) {
+          button.setText(getResources().getString(R.string.start_button));
+          Toast.makeText(RtspFromFileActivity.this, "Video stream finished", Toast.LENGTH_SHORT)
+              .show();
+          rtspBuilderFromFile.stopStream();
+        }
+      }
+    });
   }
 }

@@ -11,13 +11,14 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 import com.pedro.builder.RtmpBuilderFromFile;
+import com.pedro.encoder.input.decoder.VideoDecoderInterface;
 import com.pedro.rtmpstreamer.R;
 import java.io.IOException;
 import net.ossrs.rtmp.ConnectCheckerRtmp;
 
 @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
 public class RtmpFromFileActivity extends AppCompatActivity
-    implements ConnectCheckerRtmp, View.OnClickListener {
+    implements ConnectCheckerRtmp, View.OnClickListener, VideoDecoderInterface {
 
   private RtmpBuilderFromFile rtmpBuilderFromFile;
   private Button button, bSelectFile;
@@ -35,7 +36,7 @@ public class RtmpFromFileActivity extends AppCompatActivity
     bSelectFile.setOnClickListener(this);
     etUrl = (EditText) findViewById(R.id.et_rtsp_url);
     tvFile = (TextView) findViewById(R.id.tv_file);
-    rtmpBuilderFromFile = new RtmpBuilderFromFile(this);
+    rtmpBuilderFromFile = new RtmpBuilderFromFile(this, this);
   }
 
   @Override
@@ -137,6 +138,21 @@ public class RtmpFromFileActivity extends AppCompatActivity
       default:
         break;
     }
+  }
+
+  @Override
+  public void onVideoDecoderFinished() {
+    runOnUiThread(new Runnable() {
+      @Override
+      public void run() {
+        if (rtmpBuilderFromFile.isStreaming()) {
+          button.setText(getResources().getString(R.string.start_button));
+          Toast.makeText(RtmpFromFileActivity.this, "Video stream finished", Toast.LENGTH_SHORT)
+              .show();
+          rtmpBuilderFromFile.stopStream();
+        }
+      }
+    });
   }
 }
 

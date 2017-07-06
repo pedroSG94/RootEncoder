@@ -7,11 +7,8 @@ package com.pedro.builder;
 import android.media.MediaCodec;
 import android.os.Build;
 import android.support.annotation.RequiresApi;
-import com.pedro.encoder.audio.AudioEncoder;
-import com.pedro.encoder.audio.GetAccData;
-import com.pedro.encoder.input.audio.GetMicrophoneData;
-import com.pedro.encoder.input.decoder.AudioDecoder;
 import com.pedro.encoder.input.decoder.VideoDecoder;
+import com.pedro.encoder.input.decoder.VideoDecoderInterface;
 import com.pedro.encoder.input.video.GetCameraData;
 import com.pedro.encoder.video.FormatVideoEncoder;
 import com.pedro.encoder.video.GetH264Data;
@@ -24,39 +21,27 @@ import net.ossrs.rtmp.SrsFlvMuxer;
 /**
  * Created by pedro on 26/06/17.
  * This builder is under test, rotation only work with hardware because use encoding surface mode.
+ * Only video is working, audio will be added when it work
  */
 @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
-public class RtmpBuilderFromFile
-    implements GetAccData, GetCameraData, GetH264Data, GetMicrophoneData {
+public class RtmpBuilderFromFile implements GetCameraData, GetH264Data {
 
-  private AudioDecoder audioDecoder;
   private VideoDecoder videoDecoder;
   private VideoEncoder videoEncoder;
-  private AudioEncoder audioEncoder;
   private boolean streaming;
   private SrsFlvMuxer srsFlvMuxer;
   private boolean videoEnabled = true;
 
-  public RtmpBuilderFromFile(ConnectCheckerRtmp connectCheckerRtmp) {
+  public RtmpBuilderFromFile(ConnectCheckerRtmp connectCheckerRtmp,
+      VideoDecoderInterface videoDecoderInterface) {
     srsFlvMuxer = new SrsFlvMuxer(connectCheckerRtmp);
     videoEncoder = new VideoEncoder(this);
-    audioEncoder = new AudioEncoder(this);
-    audioDecoder = new AudioDecoder(this);
-    videoDecoder = new VideoDecoder();
+    videoDecoder = new VideoDecoder(videoDecoderInterface);
     streaming = false;
   }
 
   public void setAuthorization(String user, String password) {
     srsFlvMuxer.setAuthorization(user, password);
-  }
-
-  public boolean prepareAudio(String filePath) throws IOException {
-    if (!audioDecoder.initExtractor(filePath)) return false;
-    srsFlvMuxer.setSampleRate(audioDecoder.getSampleRate());
-    srsFlvMuxer.setIsStereo(audioDecoder.isStereo());
-    audioDecoder.prepareAudio();
-    return audioEncoder.prepareAudioEncoder(128 * 1024, audioDecoder.getSampleRate(),
-        audioDecoder.isStereo());
   }
 
   public boolean prepareVideo(String filePath, int bitRate) throws IOException {
@@ -71,9 +56,7 @@ public class RtmpBuilderFromFile
   public void startStream(String url) {
     srsFlvMuxer.start(url);
     srsFlvMuxer.setVideoResolution(videoDecoder.getWidth(), videoDecoder.getHeight());
-    //audioEncoder.start();
     videoEncoder.start();
-    //audioDecoder.start();
     videoDecoder.start();
     streaming = true;
   }
@@ -81,24 +64,13 @@ public class RtmpBuilderFromFile
   public void stopStream() {
     srsFlvMuxer.stop();
     videoDecoder.stop();
-    //audioDecoder.stop();
     videoEncoder.stop();
-    //audioEncoder.stop();
     streaming = false;
   }
 
   public void setLoopMode(boolean loopMode) {
-    //audioDecoder.setLoopMode(loopMode);
     videoDecoder.setLoopMode(loopMode);
   }
-
-  //public void disableAudio() {
-  //  audioDecoder.mute();
-  //}
-
-  //public void enableAudio() {
-  //  audioDecoder.unMute();
-  //}
 
   public void disableVideo() {
     videoEncoder.startSendBlackImage();
@@ -126,11 +98,6 @@ public class RtmpBuilderFromFile
   }
 
   @Override
-  public void getAccData(ByteBuffer accBuffer, MediaCodec.BufferInfo info) {
-    srsFlvMuxer.sendAudio(accBuffer, info);
-  }
-
-  @Override
   public void onSPSandPPS(ByteBuffer sps, ByteBuffer pps) {
     srsFlvMuxer.setSpsPPs(sps, pps);
   }
@@ -138,11 +105,6 @@ public class RtmpBuilderFromFile
   @Override
   public void getH264Data(ByteBuffer h264Buffer, MediaCodec.BufferInfo info) {
     srsFlvMuxer.sendVideo(h264Buffer, info);
-  }
-
-  @Override
-  public void inputPcmData(byte[] buffer, int size) {
-    audioEncoder.inputPcmData(buffer, size);
   }
 
   @Override

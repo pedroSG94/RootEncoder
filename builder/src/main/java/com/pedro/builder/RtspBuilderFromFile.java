@@ -3,11 +3,8 @@ package com.pedro.builder;
 import android.media.MediaCodec;
 import android.os.Build;
 import android.support.annotation.RequiresApi;
-import com.pedro.encoder.audio.AudioEncoder;
-import com.pedro.encoder.audio.GetAccData;
-import com.pedro.encoder.input.audio.GetMicrophoneData;
-import com.pedro.encoder.input.decoder.AudioDecoder;
 import com.pedro.encoder.input.decoder.VideoDecoder;
+import com.pedro.encoder.input.decoder.VideoDecoderInterface;
 import com.pedro.encoder.input.video.GetCameraData;
 import com.pedro.encoder.video.FormatVideoEncoder;
 import com.pedro.encoder.video.GetH264Data;
@@ -21,43 +18,28 @@ import java.nio.ByteBuffer;
 /**
  * Created by pedro on 4/06/17.
  * This builder is under test, rotation only work with hardware because use encoding surface mode.
+ * Only video is working, audio will be added when it work
  */
 @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
-public class RtspBuilderFromFile
-    implements GetAccData, GetCameraData, GetH264Data, GetMicrophoneData {
+public class RtspBuilderFromFile implements GetCameraData, GetH264Data {
 
   private VideoDecoder videoDecoder;
   private VideoEncoder videoEncoder;
-
-  private AudioDecoder audioDecoder;
-  private AudioEncoder audioEncoder;
   private boolean streaming;
 
   private RtspClient rtspClient;
   private boolean videoEnabled = true;
 
-  public RtspBuilderFromFile(Protocol protocol, ConnectCheckerRtsp connectCheckerRtsp) {
+  public RtspBuilderFromFile(Protocol protocol, ConnectCheckerRtsp connectCheckerRtsp,
+      VideoDecoderInterface videoDecoderInterface) {
     rtspClient = new RtspClient(connectCheckerRtsp, protocol);
     videoEncoder = new VideoEncoder(this);
-    audioEncoder = new AudioEncoder(this);
-    audioDecoder = new AudioDecoder(this);
-    videoDecoder = new VideoDecoder();
+    videoDecoder = new VideoDecoder(videoDecoderInterface);
     streaming = false;
   }
 
   public void setAuthorization(String user, String password) {
     rtspClient.setAuthorization(user, password);
-  }
-
-  public boolean prepareAudio(String filePath) throws IOException {
-    if (!audioDecoder.initExtractor(filePath)) {
-      return false;
-    }
-    rtspClient.setSampleRate(audioDecoder.getSampleRate());
-    rtspClient.setIsStereo(audioDecoder.isStereo());
-    audioDecoder.prepareAudio();
-    return audioEncoder.prepareAudioEncoder(128 * 1024, audioDecoder.getSampleRate(),
-        audioDecoder.isStereo());
   }
 
   public boolean prepareVideo(String filePath, int bitRate) throws IOException {
@@ -73,9 +55,7 @@ public class RtspBuilderFromFile
 
   public void startStream(String url) {
     rtspClient.setUrl(url);
-    //audioEncoder.start();
     videoEncoder.start();
-    //audioDecoder.start();
     videoDecoder.start();
     streaming = true;
   }
@@ -83,9 +63,7 @@ public class RtspBuilderFromFile
   public void stopStream() {
     rtspClient.disconnect();
     videoDecoder.stop();
-    //audioDecoder.stop();
     videoEncoder.stop();
-    //audioEncoder.stop();
     streaming = false;
   }
 
@@ -128,11 +106,6 @@ public class RtspBuilderFromFile
   }
 
   @Override
-  public void getAccData(ByteBuffer accBuffer, MediaCodec.BufferInfo info) {
-    rtspClient.sendAudio(accBuffer, info);
-  }
-
-  @Override
   public void onSPSandPPS(ByteBuffer sps, ByteBuffer pps) {
     byte[] mSPS = new byte[sps.capacity() - 4];
     sps.position(4);
@@ -147,11 +120,6 @@ public class RtspBuilderFromFile
   @Override
   public void getH264Data(ByteBuffer h264Buffer, MediaCodec.BufferInfo info) {
     rtspClient.sendVideo(h264Buffer, info);
-  }
-
-  @Override
-  public void inputPcmData(byte[] buffer, int size) {
-    audioEncoder.inputPcmData(buffer, size);
   }
 
   @Override
