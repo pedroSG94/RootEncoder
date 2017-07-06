@@ -108,8 +108,7 @@ public class RtspFromFileActivity extends AppCompatActivity
         if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
           if (!rtspBuilderFromFile.isStreaming()) {
             try {
-              if (rtspBuilderFromFile.prepareVideo(filePath, 1200 * 1024)
-                  && rtspBuilderFromFile.prepareAudio(filePath)) {
+              if (rtspBuilderFromFile.prepareVideo(filePath, 1200 * 1024)) {
                 button.setText(getResources().getString(R.string.stop_button));
                 rtspBuilderFromFile.startStream(etUrl.getText().toString());
               } else {

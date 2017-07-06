@@ -1,50 +1,52 @@
 package com.pedro.builder;
 
 import android.graphics.ImageFormat;
-import android.hardware.Camera;
 import android.media.MediaCodec;
 import android.os.Build;
-import android.util.Log;
+import android.support.annotation.RequiresApi;
 import android.view.SurfaceView;
 import com.pedro.encoder.audio.AudioEncoder;
 import com.pedro.encoder.audio.GetAccData;
 import com.pedro.encoder.input.audio.GetMicrophoneData;
 import com.pedro.encoder.input.audio.MicrophoneManager;
-import com.pedro.encoder.input.video.Camera1ApiManager;
+import com.pedro.encoder.input.video.Camera2ApiManager;
 import com.pedro.encoder.input.video.CameraOpenException;
-import com.pedro.encoder.input.video.EffectManager;
 import com.pedro.encoder.input.video.GetCameraData;
 import com.pedro.encoder.video.FormatVideoEncoder;
 import com.pedro.encoder.video.GetH264Data;
 import com.pedro.encoder.video.VideoEncoder;
+import com.pedro.rtsp.rtsp.Protocol;
+import com.pedro.rtsp.rtsp.RtspClient;
+import com.pedro.rtsp.utils.ConnectCheckerRtsp;
 import java.nio.ByteBuffer;
-import java.util.ArrayList;
-import java.util.List;
 import net.ossrs.rtmp.ConnectCheckerRtmp;
 import net.ossrs.rtmp.SrsFlvMuxer;
 
 /**
- * Created by pedro on 25/01/17.
+ * Created by pedro on 6/07/17.
+ * This builder is under test, rotation only work with hardware because use encoding surface mode.
+ * This maybe don't work for synchronizations problems and you will lose audio or video channel in the stream
  */
+@RequiresApi(api = Build.VERSION_CODES.M)
+public class RtmpBuilderSurfaceMode
+    implements GetAccData, GetCameraData, GetH264Data, GetMicrophoneData {
 
-public class RtmpBuilder implements GetAccData, GetCameraData, GetH264Data, GetMicrophoneData {
-
-  private int width;
-  private int height;
-  private Camera1ApiManager cameraManager;
+  private Camera2ApiManager cameraManager;
   private VideoEncoder videoEncoder;
   private MicrophoneManager microphoneManager;
   private AudioEncoder audioEncoder;
-  private SrsFlvMuxer srsFlvMuxer;
   private boolean streaming;
+  private SurfaceView surfaceView;
+
+  private SrsFlvMuxer srsFlvMuxer;
   private boolean videoEnabled = true;
 
-  public RtmpBuilder(SurfaceView surfaceView, ConnectCheckerRtmp connectChecker) {
-    cameraManager = new Camera1ApiManager(surfaceView, this);
+  public RtmpBuilderSurfaceMode(SurfaceView surfaceView, ConnectCheckerRtmp connectCheckerRtmp) {
+    this.surfaceView = surfaceView;
+    srsFlvMuxer = new SrsFlvMuxer(connectCheckerRtmp);
     videoEncoder = new VideoEncoder(this);
     microphoneManager = new MicrophoneManager(this);
     audioEncoder = new AudioEncoder(this);
-    srsFlvMuxer = new SrsFlvMuxer(connectChecker);
     streaming = false;
   }
 
@@ -52,63 +54,58 @@ public class RtmpBuilder implements GetAccData, GetCameraData, GetH264Data, GetM
     srsFlvMuxer.setAuthorization(user, password);
   }
 
-  public boolean prepareVideo(int width, int height, int fps, int bitrate, boolean hardwareRotation,
-      int rotation) {
-    this.width = width;
-    this.height = height;
+  public boolean prepareVideo(int width, int height, int fps, int bitrate, int rotation) {
     int imageFormat = ImageFormat.NV21; //supported nv21 and yv12
-    cameraManager.prepareCamera(width, height, fps, imageFormat);
     videoEncoder.setImageFormat(imageFormat);
-    return videoEncoder.prepareVideoEncoder(width, height, fps, bitrate, rotation, hardwareRotation,
-        FormatVideoEncoder.YUV420Dynamical);
+    boolean result = videoEncoder.prepareVideoEncoder(width, height, fps, bitrate, rotation, true,
+        FormatVideoEncoder.SURFACE);
+    cameraManager = new Camera2ApiManager(surfaceView, videoEncoder.getInputSurface(),
+        surfaceView.getContext());
+    return result;
   }
 
   public boolean prepareAudio(int bitrate, int sampleRate, boolean isStereo, boolean echoCanceler,
       boolean noiseSuppressor) {
-    microphoneManager.createMicrophone(sampleRate, isStereo, echoCanceler, noiseSuppressor);
-    srsFlvMuxer.setIsStereo(isStereo);
     srsFlvMuxer.setSampleRate(sampleRate);
+    srsFlvMuxer.setIsStereo(isStereo);
+    microphoneManager.createMicrophone(sampleRate, isStereo, echoCanceler, noiseSuppressor);
     return audioEncoder.prepareAudioEncoder(bitrate, sampleRate, isStereo);
   }
 
   public boolean prepareVideo() {
-    cameraManager.prepareCamera();
-    width = videoEncoder.getWidth();
-    height = videoEncoder.getHeight();
-    return videoEncoder.prepareVideoEncoder();
+    boolean result = videoEncoder.prepareVideoEncoder(640, 480, 30, 1200 * 1024, 90, true,
+        FormatVideoEncoder.SURFACE);
+    cameraManager = new Camera2ApiManager(surfaceView, videoEncoder.getInputSurface(),
+        surfaceView.getContext());
+    return result;
   }
 
+  //set 16000hz sample rate because 44100 produce desynchronization audio in rtsp
   public boolean prepareAudio() {
+    microphoneManager.setSampleRate(16000);
+    audioEncoder.setSampleRate(16000);
     microphoneManager.createMicrophone();
+    srsFlvMuxer.setSampleRate(microphoneManager.getSampleRate());
     return audioEncoder.prepareAudioEncoder();
   }
 
   public void startStream(String url) {
     srsFlvMuxer.start(url);
-    srsFlvMuxer.setVideoResolution(width, height);
+    srsFlvMuxer.setVideoResolution(videoEncoder.getWidth(), videoEncoder.getHeight());
     videoEncoder.start();
     audioEncoder.start();
-    cameraManager.start();
+    cameraManager.openCameraBack();
     microphoneManager.start();
     streaming = true;
   }
 
   public void stopStream() {
-    cameraManager.stop();
-    microphoneManager.stop();
     srsFlvMuxer.stop();
+    cameraManager.closeCamera();
+    microphoneManager.stop();
     videoEncoder.stop();
     audioEncoder.stop();
     streaming = false;
-  }
-
-  public List<String> getResolutions() {
-    List<Camera.Size> list = cameraManager.getPreviewSize();
-    List<String> resolutions = new ArrayList<>();
-    for (Camera.Size size : list) {
-      resolutions.add(size.width + "X" + size.height);
-    }
-    return resolutions;
   }
 
   public void disableAudio() {
@@ -119,14 +116,6 @@ public class RtmpBuilder implements GetAccData, GetCameraData, GetH264Data, GetM
     microphoneManager.unMute();
   }
 
-  public boolean isAudioMuted() {
-    return microphoneManager.isMuted();
-  }
-
-  public boolean isVideoEnabled() {
-    return videoEnabled;
-  }
-
   public void disableVideo() {
     videoEncoder.startSendBlackImage();
     videoEnabled = false;
@@ -135,6 +124,14 @@ public class RtmpBuilder implements GetAccData, GetCameraData, GetH264Data, GetM
   public void enableVideo() {
     videoEncoder.stopSendBlackImage();
     videoEnabled = true;
+  }
+
+  public boolean isAudioMuted() {
+    return microphoneManager.isMuted();
+  }
+
+  public boolean isVideoEnabled() {
+    return videoEnabled;
   }
 
   public void switchCamera() throws CameraOpenException {
@@ -154,11 +151,11 @@ public class RtmpBuilder implements GetAccData, GetCameraData, GetH264Data, GetM
     return streaming;
   }
 
-  public void setEffect(EffectManager effect) {
-    if (isStreaming()) {
-      cameraManager.setEffect(effect);
-    }
-  }
+  //public void setEffect(EffectManager effect) {
+  //  if (isStreaming()) {
+  //    cameraManager.setEffect(effect);
+  //  }
+  //}
 
   @Override
   public void getAccData(ByteBuffer accBuffer, MediaCodec.BufferInfo info) {
@@ -190,3 +187,4 @@ public class RtmpBuilder implements GetAccData, GetCameraData, GetH264Data, GetM
     videoEncoder.inputNv21Data(buffer);
   }
 }
+

@@ -23,7 +23,7 @@ public class VideoDecoder {
   private boolean decoding;
   private Thread thread;
   private MediaFormat videoFormat;
-  private String mime = "video/avc";
+  private String mime = "";
   private int width;
   private int height;
   private boolean loopMode = false;
@@ -37,56 +37,29 @@ public class VideoDecoder {
     videoExtractor.setDataSource(filePath);
     for (int i = 0; i < videoExtractor.getTrackCount(); i++) {
       videoFormat = videoExtractor.getTrackFormat(i);
-      if (mime.equals(videoFormat.getString(MediaFormat.KEY_MIME))) {
+      mime = videoFormat.getString(MediaFormat.KEY_MIME);
+      if (mime.startsWith("video/")) {
         videoExtractor.selectTrack(i);
         break;
       } else {
         videoFormat = null;
       }
     }
-    if (videoFormat != null) {
-      try {
-        width = videoFormat.getInteger(MediaFormat.KEY_WIDTH);
-        height = videoFormat.getInteger(MediaFormat.KEY_HEIGHT);
-      } catch (NullPointerException e) {
-        /*Some devices can't extract data from the file with MediaExtractor (Android bug?).
-         In this case you can set it manually or get it with other way.*/
-        MediaPlayer mediaPlayer = new MediaPlayer();
-        mediaPlayer.setDataSource(filePath);
-        mediaPlayer.prepare();
-        width = mediaPlayer.getVideoWidth();
-        height = mediaPlayer.getVideoHeight();
-        mediaPlayer.release();
-      }
+    if (videoFormat != null && mime.equals("video/avc")) {
+      width = videoFormat.getInteger(MediaFormat.KEY_WIDTH);
+      height = videoFormat.getInteger(MediaFormat.KEY_HEIGHT);
       return true;
+      //video decoder not supported
     } else {
+      mime = "";
+      videoFormat = null;
       return false;
     }
-  }
-
-  public boolean initExtractor(String filePath, int width, int height) throws IOException {
-    decoding = false;
-    videoExtractor = new MediaExtractor();
-    videoExtractor.setDataSource(filePath);
-    for (int i = 0; i < videoExtractor.getTrackCount(); i++) {
-      videoFormat = videoExtractor.getTrackFormat(i);
-      if (mime.equals(videoFormat.getString(MediaFormat.KEY_MIME))) {
-        videoExtractor.selectTrack(i);
-        break;
-      } else {
-        videoFormat = null;
-      }
-    }
-    this.width = width;
-    this.height = height;
-    return videoFormat != null;
   }
 
   public boolean prepareVideo(Surface surface) {
     try {
       videoDecoder = MediaCodec.createDecoderByType(mime);
-      videoFormat.setInteger(MediaFormat.KEY_WIDTH, width);
-      videoFormat.setInteger(MediaFormat.KEY_HEIGHT, height);
       videoDecoder.configure(videoFormat, surface, null, 0);
       return true;
     } catch (IOException e) {
@@ -163,6 +136,7 @@ public class VideoDecoder {
         if ((videoInfo.flags & MediaCodec.BUFFER_FLAG_END_OF_STREAM) != 0) {
           if (loopMode) {
             videoExtractor.seekTo(0, MediaExtractor.SEEK_TO_CLOSEST_SYNC);
+            videoDecoder.flush();
           } else {
             stop();
           }

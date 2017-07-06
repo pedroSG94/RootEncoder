@@ -107,8 +107,7 @@ public class RtmpFromFileActivity extends AppCompatActivity
         if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
           if (!rtmpBuilderFromFile.isStreaming()) {
             try {
-              if (rtmpBuilderFromFile.prepareVideo(filePath, 1200 * 1024)
-                  && rtmpBuilderFromFile.prepareAudio(filePath)) {
+              if (rtmpBuilderFromFile.prepareVideo(filePath, 1200 * 1024)) {
                 button.setText(getResources().getString(R.string.stop_button));
                 rtmpBuilderFromFile.startStream(etUrl.getText().toString());
               } else {

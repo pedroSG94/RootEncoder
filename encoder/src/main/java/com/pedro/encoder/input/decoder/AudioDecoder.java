@@ -23,7 +23,7 @@ public class AudioDecoder {
   private Thread thread;
   private GetMicrophoneData getMicrophoneData;
   private MediaFormat audioFormat;
-  private String mime = "audio/mp4a-latm";
+  private String mime = "";
   private int sampleRate;
   private boolean isStereo;
   private byte[] pcmBuffer = new byte[4096];
@@ -41,55 +41,29 @@ public class AudioDecoder {
     audioExtractor.setDataSource(filePath);
     for (int i = 0; i < audioExtractor.getTrackCount(); i++) {
       audioFormat = audioExtractor.getTrackFormat(i);
-      if (mime.equals(audioFormat.getString(MediaFormat.KEY_MIME))) {
+      mime = audioFormat.getString(MediaFormat.KEY_MIME);
+      if (mime.startsWith("audio/")) {
         audioExtractor.selectTrack(i);
         break;
       } else {
         audioFormat = null;
       }
     }
-    if (audioFormat != null) {
-      try {
-        isStereo = (audioFormat.getInteger(MediaFormat.KEY_CHANNEL_COUNT) == 2);
-        sampleRate = audioFormat.getInteger(MediaFormat.KEY_SAMPLE_RATE);
-      } catch (NullPointerException e) {
-        /*Some devices can't extract data from the file with MediaExtractor (Android bug?).
-         In this case you can set it manually or get it with other way.
-         At the moment, I don't know other way for audio because MediaPlayer has the same problem
-         for audio so set defaults parameters*/
-        isStereo = true;
-        sampleRate = 44100;
-      }
+    if (audioFormat != null && mime.equals("audio/mp4a-latm")) {
+      isStereo = (audioFormat.getInteger(MediaFormat.KEY_CHANNEL_COUNT) == 2);
+      sampleRate = audioFormat.getInteger(MediaFormat.KEY_SAMPLE_RATE);
       return true;
+      //audio decoder not supported
     } else {
+      mime = "";
+      audioFormat = null;
       return false;
     }
-  }
-
-  public boolean initExtractor(String filePath, boolean isStereo, int sampleRate)
-      throws IOException {
-    decoding = false;
-    audioExtractor = new MediaExtractor();
-    audioExtractor.setDataSource(filePath);
-    for (int i = 0; i < audioExtractor.getTrackCount(); i++) {
-      audioFormat = audioExtractor.getTrackFormat(i);
-      if (mime.equals(audioFormat.getString(MediaFormat.KEY_MIME))) {
-        audioExtractor.selectTrack(i);
-        break;
-      } else {
-        audioFormat = null;
-      }
-    }
-    this.isStereo = isStereo;
-    this.sampleRate = sampleRate;
-    return audioFormat != null;
   }
 
   public boolean prepareAudio() {
     try {
       audioDecoder = MediaCodec.createDecoderByType(mime);
-      audioFormat.setInteger(MediaFormat.KEY_SAMPLE_RATE, sampleRate);
-      audioFormat.setInteger(MediaFormat.KEY_CHANNEL_COUNT, isStereo ? 2 : 1);
       audioDecoder.configure(audioFormat, null, null, 0);
       return true;
     } catch (IOException e) {
@@ -176,6 +150,7 @@ public class AudioDecoder {
         if ((audioInfo.flags & MediaCodec.BUFFER_FLAG_END_OF_STREAM) != 0) {
           if (loopMode) {
             audioExtractor.seekTo(0, MediaExtractor.SEEK_TO_CLOSEST_SYNC);
+            audioDecoder.flush();
           } else {
             stop();
           }

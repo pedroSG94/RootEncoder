@@ -68,32 +68,12 @@ public class RtmpBuilderFromFile
     return result;
   }
 
-  public boolean prepareAudio(String filePath, boolean isStereo, int sampleRate)
-      throws IOException {
-    if (!audioDecoder.initExtractor(filePath, isStereo, sampleRate)) return false;
-    srsFlvMuxer.setSampleRate(sampleRate);
-    srsFlvMuxer.setIsStereo(isStereo);
-    audioDecoder.prepareAudio();
-    return audioEncoder.prepareAudioEncoder(128 * 1024, audioDecoder.getSampleRate(),
-        audioDecoder.isStereo());
-  }
-
-  public boolean prepareVideo(String filePath, int bitRate, int width, int height)
-      throws IOException {
-    if (!videoDecoder.initExtractor(filePath, width, height)) return false;
-    boolean result =
-        videoEncoder.prepareVideoEncoder(videoDecoder.getWidth(), videoDecoder.getHeight(), 30,
-            bitRate, 0, true, FormatVideoEncoder.SURFACE);
-    videoDecoder.prepareVideo(videoEncoder.getInputSurface());
-    return result;
-  }
-
   public void startStream(String url) {
     srsFlvMuxer.start(url);
     srsFlvMuxer.setVideoResolution(videoDecoder.getWidth(), videoDecoder.getHeight());
-    audioEncoder.start();
+    //audioEncoder.start();
     videoEncoder.start();
-    audioDecoder.start();
+    //audioDecoder.start();
     videoDecoder.start();
     streaming = true;
   }
@@ -101,24 +81,24 @@ public class RtmpBuilderFromFile
   public void stopStream() {
     srsFlvMuxer.stop();
     videoDecoder.stop();
-    audioDecoder.stop();
+    //audioDecoder.stop();
     videoEncoder.stop();
-    audioEncoder.stop();
+    //audioEncoder.stop();
     streaming = false;
   }
 
   public void setLoopMode(boolean loopMode) {
-    audioDecoder.setLoopMode(loopMode);
+    //audioDecoder.setLoopMode(loopMode);
     videoDecoder.setLoopMode(loopMode);
   }
 
-  public void disableAudio() {
-    audioDecoder.mute();
-  }
+  //public void disableAudio() {
+  //  audioDecoder.mute();
+  //}
 
-  public void enableAudio() {
-    audioDecoder.unMute();
-  }
+  //public void enableAudio() {
+  //  audioDecoder.unMute();
+  //}
 
   public void disableVideo() {
     videoEncoder.startSendBlackImage();
