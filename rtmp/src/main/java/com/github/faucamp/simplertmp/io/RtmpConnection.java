@@ -518,6 +518,7 @@ public class RtmpConnection implements RtmpPublisher {
       // socket exception only issue one time.
       if (!socketExceptionCause.contentEquals(se.getMessage())) {
         socketExceptionCause = se.getMessage();
+        connectCheckerRtmp.onConnectionFailedRtmp();
         Log.e(TAG, "Caught SocketException during write loop, shutting down: " + se.getMessage());
       }
     } catch (IOException ioe) {
@@ -587,13 +588,10 @@ public class RtmpConnection implements RtmpPublisher {
         }
       } catch (EOFException eof) {
         Thread.currentThread().interrupt();
-      } catch (SocketException se) {
+      } catch (IOException e) {
         connectCheckerRtmp.onConnectionFailedRtmp();
         Log.e(TAG, "Caught SocketException while reading/decoding packet, shutting down: "
-            + se.getMessage());
-      } catch (IOException ioe) {
-        Log.e(TAG,
-            "Caught exception while reading/decoding packet, shutting down: " + ioe.getMessage());
+            + e.getMessage());
       }
     }
   }
