@@ -75,6 +75,8 @@ public class ExampleRtspActivity extends AppCompatActivity
       @Override
       public void run() {
         Toast.makeText(ExampleRtspActivity.this, "Auth error", Toast.LENGTH_SHORT).show();
+        rtspBuilder.stopStream();
+        button.setText(getResources().getString(R.string.start_button));
       }
     });
   }

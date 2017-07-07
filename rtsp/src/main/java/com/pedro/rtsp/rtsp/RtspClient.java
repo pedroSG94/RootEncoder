@@ -382,10 +382,9 @@ public class RtspClient {
           String[] s = line.split("server_port=")[1].split("-");
           for (int i = 0; i < s.length; i++) {
             if (isAudio) {
-              audioPorts[i] = Integer.parseInt(s[i]);
+              audioPorts[i] = Integer.parseInt(s[i].substring(0, 4));
             } else {
-              Log.i("Ports", s[i]);
-              videoPorts[i] = Integer.parseInt(s[i]);
+              videoPorts[i] = Integer.parseInt(s[i].substring(0, 4));
             }
           }
         }
