@@ -121,9 +121,15 @@ public class RtspClient {
     return path;
   }
 
-  public void setSPSandPPS(byte[] sps, byte[] pps) {
-    this.sps = sps;
-    this.pps = pps;
+  public void setSPSandPPS(ByteBuffer sps, ByteBuffer pps) {
+    byte[] mSPS = new byte[sps.capacity() - 4];
+    sps.position(4);
+    sps.get(mSPS, 0, mSPS.length);
+    byte[] mPPS = new byte[pps.capacity() - 4];
+    pps.position(4);
+    pps.get(mPPS, 0, mPPS.length);
+    this.sps = mSPS;
+    this.pps = mPPS;
   }
 
   public void setIsStereo(boolean isStereo) {

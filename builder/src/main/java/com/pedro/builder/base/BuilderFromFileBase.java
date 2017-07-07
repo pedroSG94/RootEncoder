@@ -1,51 +1,37 @@
-package com.pedro.builder;
+package com.pedro.builder.base;
 
 import android.media.MediaCodec;
 import android.os.Build;
-import android.support.annotation.RequiresApi;
 import com.pedro.encoder.input.decoder.VideoDecoder;
 import com.pedro.encoder.input.decoder.VideoDecoderInterface;
 import com.pedro.encoder.input.video.GetCameraData;
 import com.pedro.encoder.video.FormatVideoEncoder;
 import com.pedro.encoder.video.GetH264Data;
 import com.pedro.encoder.video.VideoEncoder;
-import com.pedro.rtsp.rtsp.Protocol;
-import com.pedro.rtsp.rtsp.RtspClient;
-import com.pedro.rtsp.utils.ConnectCheckerRtsp;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 
 /**
- * Created by pedro on 4/06/17.
- * This builder is under test, rotation only work with hardware because use encoding surface mode.
- * Only video is working, audio will be added when it work
+ * Created by pedro on 7/07/17.
  */
-@RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
-public class RtspBuilderFromFile implements GetCameraData, GetH264Data {
+
+public abstract class BuilderFromFileBase implements GetCameraData, GetH264Data {
 
   private VideoDecoder videoDecoder;
   private VideoEncoder videoEncoder;
   private boolean streaming;
-
-  private RtspClient rtspClient;
   private boolean videoEnabled = true;
 
-  public RtspBuilderFromFile(Protocol protocol, ConnectCheckerRtsp connectCheckerRtsp,
-      VideoDecoderInterface videoDecoderInterface) {
-    rtspClient = new RtspClient(connectCheckerRtsp, protocol);
+  public BuilderFromFileBase(VideoDecoderInterface videoDecoderInterface) {
     videoEncoder = new VideoEncoder(this);
     videoDecoder = new VideoDecoder(videoDecoderInterface);
     streaming = false;
   }
 
-  public void setAuthorization(String user, String password) {
-    rtspClient.setAuthorization(user, password);
-  }
+  public abstract void setAuthorization(String user, String password);
 
   public boolean prepareVideo(String filePath, int bitRate) throws IOException {
-    if (!videoDecoder.initExtractor(filePath)) {
-      return false;
-    }
+    if (!videoDecoder.initExtractor(filePath)) return false;
     boolean result =
         videoEncoder.prepareVideoEncoder(videoDecoder.getWidth(), videoDecoder.getHeight(), 30,
             bitRate, 0, true, FormatVideoEncoder.SURFACE);
@@ -53,32 +39,27 @@ public class RtspBuilderFromFile implements GetCameraData, GetH264Data {
     return result;
   }
 
+  protected abstract void startStreamRtp(String url);
+
   public void startStream(String url) {
-    rtspClient.setUrl(url);
+    startStreamRtp(url);
     videoEncoder.start();
     videoDecoder.start();
     streaming = true;
   }
 
+  protected abstract void stopStreamRtp();
+
   public void stopStream() {
-    rtspClient.disconnect();
+    stopStreamRtp();
     videoDecoder.stop();
     videoEncoder.stop();
     streaming = false;
   }
 
   public void setLoopMode(boolean loopMode) {
-    //audioDecoder.setLoopMode(loopMode);
     videoDecoder.setLoopMode(loopMode);
   }
-
-  //public void disableAudio() {
-  //  audioDecoder.mute();
-  //}
-
-  //public void enableAudio() {
-  //  audioDecoder.unMute();
-  //}
 
   public void disableVideo() {
     videoEncoder.startSendBlackImage();
@@ -105,21 +86,18 @@ public class RtspBuilderFromFile implements GetCameraData, GetH264Data {
     return streaming;
   }
 
+  protected abstract void onSPSandPPSRtp(ByteBuffer sps, ByteBuffer pps);
+
   @Override
   public void onSPSandPPS(ByteBuffer sps, ByteBuffer pps) {
-    byte[] mSPS = new byte[sps.capacity() - 4];
-    sps.position(4);
-    sps.get(mSPS, 0, mSPS.length);
-    byte[] mPPS = new byte[pps.capacity() - 4];
-    pps.position(4);
-    pps.get(mPPS, 0, mPPS.length);
-    rtspClient.setSPSandPPS(mPPS, mSPS);
-    rtspClient.connect();
+    onSPSandPPSRtp(sps, pps);
   }
+
+  protected abstract void getH264DataRtp(ByteBuffer h264Buffer, MediaCodec.BufferInfo info);
 
   @Override
   public void getH264Data(ByteBuffer h264Buffer, MediaCodec.BufferInfo info) {
-    rtspClient.sendVideo(h264Buffer, info);
+    getH264DataRtp(h264Buffer, info);
   }
 
   @Override
@@ -132,4 +110,3 @@ public class RtspBuilderFromFile implements GetCameraData, GetH264Data {
     videoEncoder.inputNv21Data(buffer);
   }
 }
-

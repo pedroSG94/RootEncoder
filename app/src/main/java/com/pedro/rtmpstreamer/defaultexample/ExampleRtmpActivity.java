@@ -8,7 +8,7 @@ import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
-import com.pedro.builder.RtmpBuilder;
+import com.pedro.builder.rtmp.RtmpBuilder;
 import com.pedro.rtmpstreamer.R;
 import net.ossrs.rtmp.ConnectCheckerRtmp;
 

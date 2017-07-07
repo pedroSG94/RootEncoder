@@ -10,7 +10,7 @@ import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
-import com.pedro.builder.RtmpBuilderSurfaceMode;
+import com.pedro.builder.rtmp.RtmpBuilderSurfaceMode;
 import com.pedro.rtmpstreamer.R;
 import net.ossrs.rtmp.ConnectCheckerRtmp;
 

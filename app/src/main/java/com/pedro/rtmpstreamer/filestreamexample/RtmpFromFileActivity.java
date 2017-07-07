@@ -10,7 +10,7 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
-import com.pedro.builder.RtmpBuilderFromFile;
+import com.pedro.builder.rtmp.RtmpBuilderFromFile;
 import com.pedro.encoder.input.decoder.VideoDecoderInterface;
 import com.pedro.rtmpstreamer.R;
 import java.io.IOException;

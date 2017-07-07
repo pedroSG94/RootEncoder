@@ -195,43 +195,40 @@ public class Camera1ApiManager implements Camera.PreviewCallback {
   }
 
   /**
-   * call it after start()
    * See: https://developer.android.com/reference/android/graphics/ImageFormat.html to know name of
    * constant values
    * Example: 842094169 -> YV12, 17 -> NV21
    */
   public List<Integer> getCameraPreviewImageFormatSupported() {
+    List<Integer> formats;
     if (camera != null) {
-      List<Integer> formats = camera.getParameters().getSupportedPreviewFormats();
+      formats = camera.getParameters().getSupportedPreviewFormats();
       for (Integer i : formats) {
         Log.i(TAG, "camera format supported: " + i);
       }
-      return formats;
-    } else {
-      return null;
-    }
-  }
-
-  /**
-   * call if after start()
-   */
-  public List<Camera.Size> getPreviewSize() {
-    if (camera != null) {
-      List<Camera.Size> previewSizes = camera.getParameters().getSupportedPreviewSizes();
-      for (Camera.Size size : previewSizes) {
-        Log.i(TAG, size.width + "X" + size.height);
-      }
-      return previewSizes;
     } else {
       camera = Camera.open(cameraSelect);
-      List<Camera.Size> previewSizes = camera.getParameters().getSupportedPreviewSizes();
+      formats = camera.getParameters().getSupportedPreviewFormats();
       camera.release();
       camera = null;
-      for (Camera.Size size : previewSizes) {
-        Log.i(TAG, size.width + "X" + size.height);
-      }
-      return previewSizes;
     }
+    return formats;
+  }
+
+  public List<Camera.Size> getPreviewSize() {
+    List<Camera.Size> previewSizes;
+    if (camera != null) {
+      previewSizes = camera.getParameters().getSupportedPreviewSizes();
+    } else {
+      camera = Camera.open(cameraSelect);
+      previewSizes = camera.getParameters().getSupportedPreviewSizes();
+      camera.release();
+      camera = null;
+    }
+    for (Camera.Size size : previewSizes) {
+      Log.i(TAG, size.width + "X" + size.height);
+    }
+    return previewSizes;
   }
 
   public void setEffect(EffectManager effect) {
@@ -241,8 +238,7 @@ public class Camera1ApiManager implements Camera.PreviewCallback {
       try {
         camera.setParameters(parameters);
       } catch (RuntimeException e) {
-        Log.e(TAG, "Unsupported effect");
-        e.printStackTrace();
+        Log.e(TAG, "Unsupported effect: ", e);
       }
     }
   }
@@ -278,14 +274,17 @@ public class Camera1ApiManager implements Camera.PreviewCallback {
    * @required: <uses-permission android:name="android.permission.FLASHLIGHT"/>
    */
   public void enableLantern() {
-    Camera.Parameters parameters = camera.getParameters();
-    parameters.setFlashMode(Camera.Parameters.FLASH_MODE_TORCH);
-    try {
-      camera.setParameters(parameters);
-      lanternEnable = true;
-    } catch (RuntimeException e) {
-      Log.e(TAG, "lantern unsupported");
-      e.printStackTrace();
+    if (camera != null) {
+      Camera.Parameters parameters = camera.getParameters();
+      List<String> supportedFlashModes = parameters.getSupportedFlashModes();
+      if (supportedFlashModes != null && !supportedFlashModes.isEmpty()) {
+        if (supportedFlashModes.contains(Camera.Parameters.FLASH_MODE_TORCH)) {
+          parameters.setFlashMode(Camera.Parameters.FLASH_MODE_TORCH);
+          camera.setParameters(parameters);
+        } else {
+          Log.e(TAG, "Lantern unsupported");
+        }
+      }
     }
   }
 
@@ -293,14 +292,11 @@ public class Camera1ApiManager implements Camera.PreviewCallback {
    * @required: <uses-permission android:name="android.permission.FLASHLIGHT"/>
    */
   public void disableLantern() {
-    Camera.Parameters parameters = camera.getParameters();
-    parameters.setFlashMode(Camera.Parameters.FLASH_MODE_AUTO);
-    try {
+    if (camera != null) {
+      Camera.Parameters parameters = camera.getParameters();
+      parameters.setFlashMode(Camera.Parameters.FLASH_MODE_OFF);
       camera.setParameters(parameters);
       lanternEnable = false;
-    } catch (RuntimeException e) {
-      Log.e(TAG, "lantern unsupported");
-      e.printStackTrace();
     }
   }
 }
