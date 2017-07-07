@@ -113,7 +113,7 @@ public class VideoDecoder {
         int sampleSize = videoExtractor.readSampleData(buffer, 0);
         if (sampleSize < 0) {
           videoDecoder.queueInputBuffer(inIndex, 0, 0, 0L, MediaCodec.BUFFER_FLAG_END_OF_STREAM);
-          Log.i(TAG, "end of file out");
+          Log.i(TAG, "end of file in");
         } else {
           videoDecoder.queueInputBuffer(inIndex, 0, sampleSize, videoExtractor.getSampleTime(), 0);
           videoExtractor.advance();

@@ -588,6 +588,7 @@ public class RtmpConnection implements RtmpPublisher {
       } catch (EOFException eof) {
         Thread.currentThread().interrupt();
       } catch (SocketException se) {
+        connectCheckerRtmp.onConnectionFailedRtmp();
         Log.e(TAG, "Caught SocketException while reading/decoding packet, shutting down: "
             + se.getMessage());
       } catch (IOException ioe) {
@@ -619,7 +620,7 @@ public class RtmpConnection implements RtmpPublisher {
             onAuth = true;
             try {
               shutdown(false);
-            } catch (Exception e){
+            } catch (Exception e) {
               e.printStackTrace();
             }
             rtmpSessionInfo = new RtmpSessionInfo();
@@ -675,7 +676,7 @@ public class RtmpConnection implements RtmpPublisher {
 
         Log.i(TAG, "handleRxInvoke: Got result for invoked method: " + method);
         if ("connect".equals(method)) {
-          if(onAuth){
+          if (onAuth) {
             connectCheckerRtmp.onAuthSuccessRtmp();
             onAuth = false;
           }
