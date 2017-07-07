@@ -45,13 +45,13 @@ import java.util.concurrent.LinkedBlockingQueue;
  */
 public class SrsFlvMuxer {
 
+  private static final String TAG = "SrsFlvMuxer";
+
   private static final int VIDEO_ALLOC_SIZE = 128 * 1024;
   private static final int AUDIO_ALLOC_SIZE = 4 * 1024;
   private volatile boolean connected = false;
   private DefaultRtmpPublisher publisher;
-
   private Thread worker;
-
   private SrsFlv flv = new SrsFlv();
   private boolean needToFindKeyFrame = true;
   private SrsFlvFrame mVideoSequenceHeader;
@@ -60,7 +60,6 @@ public class SrsFlvMuxer {
   private SrsAllocator mAudioAllocator = new SrsAllocator(AUDIO_ALLOC_SIZE);
   private BlockingQueue<SrsFlvFrame> mFlvTagCache = new LinkedBlockingQueue<>(40);
   private ConnectCheckerRtmp connectCheckerRtmp;
-  private static final String TAG = "SrsFlvMuxer";
   private int sampleRate = 44100;
   private boolean isPpsSpsSend = false;
 
@@ -859,7 +858,7 @@ public class SrsFlvMuxer {
         mFlvTagCache.add(frame);
       } catch (IllegalStateException e) {
         mFlvTagCache.clear();
-        Log.e(TAG, "frame discarded, cant add more frame: ", e);
+        Log.i(TAG, "frame discarded");
       }
     }
   }
