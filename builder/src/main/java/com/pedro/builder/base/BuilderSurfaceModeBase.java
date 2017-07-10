@@ -25,7 +25,7 @@ public abstract class BuilderSurfaceModeBase
     implements GetAccData, GetCameraData, GetH264Data, GetMicrophoneData {
 
   private Camera2ApiManager cameraManager;
-  private VideoEncoder videoEncoder;
+  protected VideoEncoder videoEncoder;
   protected MicrophoneManager microphoneManager;
   protected AudioEncoder audioEncoder;
   private boolean streaming;

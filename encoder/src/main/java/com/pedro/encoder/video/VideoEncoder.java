@@ -188,6 +188,10 @@ public class VideoEncoder implements GetCameraData {
     return running;
   }
 
+  public int getRotation() {
+    return rotation;
+  }
+
   public void start() {
     spsPpsSetted = false;
     mPresentTimeUs = System.nanoTime() / 1000;
@@ -314,12 +318,11 @@ public class VideoEncoder implements GetCameraData {
                     spsPpsSetted = true;
                   }
                 }
-              } else {
-                //This ByteBuffer is H264
-                ByteBuffer bb = videoEncoder.getOutputBuffer(outBufferIndex);
-                getH264Data.getH264Data(bb, videoInfo);
-                videoEncoder.releaseOutputBuffer(outBufferIndex, false);
               }
+              //This ByteBuffer is H264
+              ByteBuffer bb = videoEncoder.getOutputBuffer(outBufferIndex);
+              getH264Data.getH264Data(bb, videoInfo);
+              videoEncoder.releaseOutputBuffer(outBufferIndex, false);
             } else {
               break;
             }
@@ -353,12 +356,11 @@ public class VideoEncoder implements GetCameraData {
                     spsPpsSetted = true;
                   }
                 }
-              } else {
-                //This ByteBuffer is H264
-                ByteBuffer bb = outputBuffers[outBufferIndex];
-                getH264Data.getH264Data(bb, videoInfo);
-                videoEncoder.releaseOutputBuffer(outBufferIndex, false);
               }
+              //This ByteBuffer is H264
+              ByteBuffer bb = outputBuffers[outBufferIndex];
+              getH264Data.getH264Data(bb, videoInfo);
+              videoEncoder.releaseOutputBuffer(outBufferIndex, false);
             } else {
               break;
             }
@@ -396,12 +398,11 @@ public class VideoEncoder implements GetCameraData {
               spsPpsSetted = true;
             }
           }
-        } else {
-          //This ByteBuffer is H264
-          ByteBuffer bb = videoEncoder.getOutputBuffer(outBufferIndex);
-          getH264Data.getH264Data(bb, videoInfo);
-          videoEncoder.releaseOutputBuffer(outBufferIndex, false);
         }
+        //This ByteBuffer is H264
+        ByteBuffer bb = videoEncoder.getOutputBuffer(outBufferIndex);
+        getH264Data.getH264Data(bb, videoInfo);
+        videoEncoder.releaseOutputBuffer(outBufferIndex, false);
       } else {
         break;
       }
@@ -438,12 +439,11 @@ public class VideoEncoder implements GetCameraData {
               spsPpsSetted = true;
             }
           }
-        } else {
-          //This ByteBuffer is H264
-          ByteBuffer bb = outputBuffers[outBufferIndex];
-          getH264Data.getH264Data(bb, videoInfo);
-          videoEncoder.releaseOutputBuffer(outBufferIndex, false);
         }
+        //This ByteBuffer is H264
+        ByteBuffer bb = outputBuffers[outBufferIndex];
+        getH264Data.getH264Data(bb, videoInfo);
+        videoEncoder.releaseOutputBuffer(outBufferIndex, false);
       } else {
         break;
       }

@@ -18,7 +18,7 @@ import java.nio.ByteBuffer;
 public abstract class BuilderFromFileBase implements GetCameraData, GetH264Data {
 
   private VideoDecoder videoDecoder;
-  private VideoEncoder videoEncoder;
+  protected VideoEncoder videoEncoder;
   private boolean streaming;
   private boolean videoEnabled = true;
 

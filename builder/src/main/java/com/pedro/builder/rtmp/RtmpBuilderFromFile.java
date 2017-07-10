@@ -36,6 +36,11 @@ public class RtmpBuilderFromFile extends BuilderFromFileBase {
 
   @Override
   protected void startStreamRtp(String url) {
+    if(videoEncoder.getRotation() == 90 || videoEncoder.getRotation() == 270) {
+      srsFlvMuxer.setVideoResolution(videoEncoder.getHeight(), videoEncoder.getWidth());
+    } else {
+      srsFlvMuxer.setVideoResolution(videoEncoder.getWidth(), videoEncoder.getHeight());
+    }
     srsFlvMuxer.start(url);
   }
 

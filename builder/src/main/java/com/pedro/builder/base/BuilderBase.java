@@ -28,7 +28,7 @@ public abstract class BuilderBase
     implements GetAccData, GetCameraData, GetH264Data, GetMicrophoneData {
 
   private Camera1ApiManager cameraManager;
-  private VideoEncoder videoEncoder;
+  protected VideoEncoder videoEncoder;
   protected MicrophoneManager microphoneManager;
   protected AudioEncoder audioEncoder;
   private boolean streaming;
