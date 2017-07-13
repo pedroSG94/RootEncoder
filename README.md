@@ -8,18 +8,22 @@ If you need a player see this project:
 
 https://github.com/pedroSG94/vlc-example-streamplayer
 
-Permissions:
-----
+## Wiki (Becoming)
 
+https://github.com/pedroSG94/rtmp-rtsp-stream-client-java/wiki
+
+## Permissions:
 
 ```xml
 <uses-permission android:name="android.permission.INTERNET" />
+<!--BuilderBase or BuilderSurfaceModeBase-->
 <uses-permission android:name="android.permission.RECORD_AUDIO" />
 <uses-permission android:name="android.permission.CAMERA" />
+<!--BuilderFromFileBase-->
+<uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
 ```
 
-Compile
-----
+## Compile
 
 To use this library in your project with gradle add this to your build.gradle:
 
@@ -30,31 +34,36 @@ allprojects {
   }
 }
 dependencies {
-  compile 'com.github.pedroSG94.rtmp-rtsp-stream-client-java:builder:1.0.6'
+  compile 'com.github.pedroSG94.rtmp-rtsp-stream-client-java:builder:1.0.7'
 }
 
 ```
 
-Features:
-----
+## Features:
 
 - [x] Encoder type buffer to buffer.
 - [x] Android min API 16.
 - [x] RTMP/RTSP auth wowza.
-- [x] Disable/Enable video and audio.
 - [x] Audio noise suppressor.
 - [x] Audio echo cancellation.
+- [x] Disable/Enable video and audio while streaming.
 - [x] Switch camera while streaming.
 - [x] Change video bitrate while streaming (API 19+).
-- [x] H264 and ACC hard encoding.
+- [x] H264 and ACC hardware encoding.
 - [x] RTSP TCP/UDP
 
+### Under develop
 
-# Use example:
-----
+- [] Stream from MP4 file.
+- [] Stream with camera API2
 
-RTMP:
-----
+### Backlog
+
+- [] H265 support
+
+## Use example:
+
+### RTMP:
 
 ```java
 
@@ -87,8 +96,7 @@ rtmpBuilder.stopStream();
 
 ```
 
-RTSP:
-----
+### RTSP:
 
 ```java
 
