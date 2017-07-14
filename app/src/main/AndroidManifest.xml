@@ -47,8 +47,8 @@
         />
     <activity android:name=".filestreamexample.RtspFromFileActivity" />
     <activity android:name=".filestreamexample.RtmpFromFileActivity"/>
-    <activity android:name=".surfamoceexample.SurfaceModeRtspActivity"/>
-    <activity android:name=".surfamoceexample.SurfaceModeRtmpActivity"/>
+    <activity android:name=".surfacemodeexample.SurfaceModeRtspActivity"/>
+    <activity android:name=".surfacemodeexample.SurfaceModeRtmpActivity"/>
   </application>
 
 </manifest>

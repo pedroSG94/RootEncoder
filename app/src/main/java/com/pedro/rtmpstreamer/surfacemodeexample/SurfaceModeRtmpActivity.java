@@ -1,4 +1,4 @@
-package com.pedro.rtmpstreamer.surfamoceexample;
+package com.pedro.rtmpstreamer.surfacemodeexample;
 
 import android.os.Build;
 import android.os.Bundle;

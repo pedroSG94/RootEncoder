@@ -1,4 +1,4 @@
-package com.pedro.rtmpstreamer.surfamoceexample;
+package com.pedro.rtmpstreamer.surfacemodeexample;
 
 import android.os.Build;
 import android.os.Bundle;
@@ -35,7 +35,7 @@ public class SurfaceModeRtspActivity extends AppCompatActivity
     button = (Button) findViewById(R.id.b_start_stop);
     button.setOnClickListener(this);
     etUrl = (EditText) findViewById(R.id.et_rtsp_url);
-    rtspBuilderSurfaceMode = new RtspBuilderSurfaceMode(surfaceView, Protocol.UDP, this);
+    rtspBuilderSurfaceMode = new RtspBuilderSurfaceMode(surfaceView, Protocol.TCP, this);
   }
 
   @Override

@@ -1,5 +1,6 @@
 package com.pedro.builder.rtsp;
 
+import android.content.Context;
 import android.media.MediaCodec;
 import android.os.Build;
 import android.support.annotation.RequiresApi;
@@ -21,7 +22,12 @@ public class RtspBuilderSurfaceMode extends BuilderSurfaceModeBase {
 
   public RtspBuilderSurfaceMode(SurfaceView surfaceView, Protocol protocol,
       ConnectCheckerRtsp connectCheckerRtsp) {
-    super(surfaceView);
+    super(surfaceView, surfaceView.getContext());
+    rtspClient = new RtspClient(connectCheckerRtsp, protocol);
+  }
+
+  public RtspBuilderSurfaceMode(Context context, Protocol protocol, ConnectCheckerRtsp connectCheckerRtsp) {
+    super(null, context);
     rtspClient = new RtspClient(connectCheckerRtsp, protocol);
   }
 

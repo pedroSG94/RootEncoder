@@ -1,5 +1,6 @@
 package com.pedro.builder.rtmp;
 
+import android.content.Context;
 import android.media.MediaCodec;
 import android.os.Build;
 import android.support.annotation.RequiresApi;
@@ -21,7 +22,12 @@ public class RtmpBuilderSurfaceMode extends BuilderSurfaceModeBase {
   private SrsFlvMuxer srsFlvMuxer;
 
   public RtmpBuilderSurfaceMode(SurfaceView surfaceView, ConnectCheckerRtmp connectChecker) {
-    super(surfaceView);
+    super(surfaceView, surfaceView.getContext());
+    srsFlvMuxer = new SrsFlvMuxer(connectChecker);
+  }
+
+  public RtmpBuilderSurfaceMode(Context context, ConnectCheckerRtmp connectChecker) {
+    super(null, context);
     srsFlvMuxer = new SrsFlvMuxer(connectChecker);
   }
 

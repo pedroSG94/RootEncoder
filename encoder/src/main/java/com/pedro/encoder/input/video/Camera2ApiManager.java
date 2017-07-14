@@ -16,14 +16,18 @@ import android.support.annotation.RequiresApi;
 import android.util.Log;
 import android.view.Surface;
 import android.view.SurfaceView;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * Created by pedro on 4/03/17.
  *
  * Class for use surface to buffer encoder.
  * Advantage = you can use all resolutions.
- * Disadvantages = you cant control fps of the stream, because you cant know when the inputSurface was renderer.
+ * Disadvantages = you cant control fps of the stream, because you cant know when the inputSurface
+ * was renderer.
  *
  * Note: you can use opengl for surface to buffer encoder on devices 21 < API > 16:
  * https://github.com/google/grafika
@@ -46,27 +50,42 @@ public class Camera2ApiManager extends CameraDevice.StateCallback {
     cameraManager = (CameraManager) context.getSystemService(Context.CAMERA_SERVICE);
   }
 
+  public Camera2ApiManager(Surface surface, Context context) {
+    this.surface = surface;
+    cameraManager = (CameraManager) context.getSystemService(Context.CAMERA_SERVICE);
+  }
+
   private void startPreview(CameraDevice cameraDevice) {
     try {
-      cameraDevice.createCaptureSession(Arrays.asList(surfaceView.getHolder().getSurface(), surface),
-          new CameraCaptureSession.StateCallback() {
-            @Override
-            public void onConfigured(@NonNull CameraCaptureSession cameraCaptureSession) {
-              try {
-                cameraCaptureSession.setRepeatingBurst(
-                    Arrays.asList(drawPreview(surfaceView), drawInputSurface(surface)), null, cameraHandler);
-                Log.i(TAG, "camera configured");
-              } catch (CameraAccessException e) {
-                e.printStackTrace();
-              }
+      List<Surface> listSurfaces = new ArrayList<>();
+      if (surfaceView != null) {
+        listSurfaces.add(surfaceView.getHolder().getSurface());
+      }
+      listSurfaces.add(surface);
+      cameraDevice.createCaptureSession(listSurfaces, new CameraCaptureSession.StateCallback() {
+        @Override
+        public void onConfigured(@NonNull CameraCaptureSession cameraCaptureSession) {
+          try {
+            if (surfaceView != null) {
+              cameraCaptureSession.setRepeatingBurst(
+                  Arrays.asList(drawPreview(surfaceView), drawInputSurface(surface)), null,
+                  cameraHandler);
+            } else {
+              cameraCaptureSession.setRepeatingBurst(
+                  Collections.singletonList(drawInputSurface(surface)), null, cameraHandler);
             }
+            Log.i(TAG, "camera configured");
+          } catch (CameraAccessException e) {
+            e.printStackTrace();
+          }
+        }
 
-            @Override
-            public void onConfigureFailed(@NonNull CameraCaptureSession cameraCaptureSession) {
-              cameraCaptureSession.close();
-              Log.e(TAG, "configuration failed");
-            }
-          }, null);
+        @Override
+        public void onConfigureFailed(@NonNull CameraCaptureSession cameraCaptureSession) {
+          cameraCaptureSession.close();
+          Log.e(TAG, "configuration failed");
+        }
+      }, null);
     } catch (CameraAccessException e) {
       e.printStackTrace();
     }

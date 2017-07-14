@@ -1,5 +1,6 @@
 package com.pedro.builder.base;
 
+import android.content.Context;
 import android.graphics.ImageFormat;
 import android.media.MediaCodec;
 import android.os.Build;
@@ -24,6 +25,7 @@ import java.nio.ByteBuffer;
 public abstract class BuilderSurfaceModeBase
     implements GetAccData, GetCameraData, GetH264Data, GetMicrophoneData {
 
+  private final Context context;
   private Camera2ApiManager cameraManager;
   protected VideoEncoder videoEncoder;
   protected MicrophoneManager microphoneManager;
@@ -32,8 +34,9 @@ public abstract class BuilderSurfaceModeBase
   private SurfaceView surfaceView;
   private boolean videoEnabled = true;
 
-  public BuilderSurfaceModeBase(SurfaceView surfaceView) {
+  public BuilderSurfaceModeBase(SurfaceView surfaceView, Context context) {
     this.surfaceView = surfaceView;
+    this.context = context;
     videoEncoder = new VideoEncoder(this);
     microphoneManager = new MicrophoneManager(this);
     audioEncoder = new AudioEncoder(this);
@@ -50,7 +53,7 @@ public abstract class BuilderSurfaceModeBase
         videoEncoder.prepareVideoEncoder(width, height, fps, bitrate, rotation, hardwareRotation,
             FormatVideoEncoder.SURFACE);
     cameraManager = new Camera2ApiManager(surfaceView, videoEncoder.getInputSurface(),
-        surfaceView.getContext());
+        context);
     return result;
   }
 
@@ -67,7 +70,7 @@ public abstract class BuilderSurfaceModeBase
     boolean result = videoEncoder.prepareVideoEncoder(640, 480, 30, 1200 * 1024, 90, true,
         FormatVideoEncoder.SURFACE);
     cameraManager = new Camera2ApiManager(surfaceView, videoEncoder.getInputSurface(),
-        surfaceView.getContext());
+        context);
     return result;
   }
 
