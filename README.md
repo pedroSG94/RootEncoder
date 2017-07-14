@@ -54,12 +54,12 @@ dependencies {
 
 ### Under develop
 
-- [] Stream from MP4 file.
-- [] Stream with camera API2
+- Stream from MP4 file.
+- Stream with camera API2
 
 ### Backlog
 
-- [] H265 support
+- H265 support
 
 ## Use example:
 
