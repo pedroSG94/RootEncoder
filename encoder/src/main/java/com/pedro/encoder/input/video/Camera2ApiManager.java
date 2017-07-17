@@ -75,7 +75,7 @@ public class Camera2ApiManager extends CameraDevice.StateCallback {
                   Collections.singletonList(drawInputSurface(surface)), null, cameraHandler);
             }
             Log.i(TAG, "camera configured");
-          } catch (CameraAccessException e) {
+          } catch (CameraAccessException | NullPointerException e) {
             e.printStackTrace();
           }
         }

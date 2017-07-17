@@ -86,12 +86,12 @@ public abstract class BuilderSurfaceModeBase
   protected abstract void startStreamRtp(String url);
 
   public void startStream(String url) {
-    startStreamRtp(url);
     videoEncoder.start();
     audioEncoder.start();
     cameraManager.openCameraBack();
     microphoneManager.start();
     streaming = true;
+    startStreamRtp(url);
   }
 
   /**
