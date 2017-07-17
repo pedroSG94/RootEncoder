@@ -7,7 +7,6 @@ import android.os.Build;
 import android.support.annotation.RequiresApi;
 import android.util.Log;
 import com.pedro.encoder.input.audio.GetMicrophoneData;
-import com.pedro.encoder.input.audio.MicrophoneManager;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 
@@ -45,7 +44,7 @@ public class AudioEncoder implements GetMicrophoneData {
       int a = (isStereo) ? 2 : 1;
       MediaFormat audioFormat = MediaFormat.createAudioFormat(mime, sampleRate, a);
       audioFormat.setInteger(MediaFormat.KEY_BIT_RATE, bitRate);
-      audioFormat.setInteger(MediaFormat.KEY_MAX_INPUT_SIZE, MicrophoneManager.BUFFER_SIZE);
+      audioFormat.setInteger(MediaFormat.KEY_MAX_INPUT_SIZE, 0);
       audioFormat.setInteger(MediaFormat.KEY_AAC_PROFILE,
           MediaCodecInfo.CodecProfileLevel.AACObjectLC);
       audioEncoder.configure(audioFormat, null, null, MediaCodec.CONFIGURE_FLAG_ENCODE);

@@ -30,14 +30,15 @@ public class RtspFromFileActivity extends AppCompatActivity
   @Override
   protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
-    setContentView(R.layout.activity_rtsp_from_file);
+    setContentView(R.layout.activity_from_file);
     button = (Button) findViewById(R.id.b_start_stop);
     bSelectFile = (Button) findViewById(R.id.b_select_file);
     button.setOnClickListener(this);
     bSelectFile.setOnClickListener(this);
-    etUrl = (EditText) findViewById(R.id.et_rtsp_url);
+    etUrl = (EditText) findViewById(R.id.et_rtp_url);
+    etUrl.setHint(R.string.hint_rtsp);
     tvFile = (TextView) findViewById(R.id.tv_file);
-    rtspBuilderFromFile = new RtspBuilderFromFile(Protocol.UDP, this, this);
+    rtspBuilderFromFile = new RtspBuilderFromFile(Protocol.TCP, this, this);
   }
 
   @Override
@@ -57,7 +58,7 @@ public class RtspFromFileActivity extends AppCompatActivity
       public void run() {
         Toast.makeText(RtspFromFileActivity.this, "Connection failed", Toast.LENGTH_SHORT).show();
         rtspBuilderFromFile.stopStream();
-        button.setText(getResources().getString(R.string.start_button));
+        button.setText(R.string.start_button);
       }
     });
   }
@@ -110,10 +111,10 @@ public class RtspFromFileActivity extends AppCompatActivity
           if (!rtspBuilderFromFile.isStreaming()) {
             try {
               if (rtspBuilderFromFile.prepareVideo(filePath, 1200 * 1024)) {
-                button.setText(getResources().getString(R.string.stop_button));
+                button.setText(R.string.stop_button);
                 rtspBuilderFromFile.startStream(etUrl.getText().toString());
               } else {
-                button.setText(getResources().getString(R.string.start_button));
+                button.setText(R.string.start_button);
                 rtspBuilderFromFile.stopStream();
                 /*This error could be 2 things.
                  Your device cant decode or encode this file or
@@ -126,7 +127,7 @@ public class RtspFromFileActivity extends AppCompatActivity
               Toast.makeText(this, "Error: file not found", Toast.LENGTH_SHORT).show();
             }
           } else {
-            button.setText(getResources().getString(R.string.start_button));
+            button.setText(R.string.start_button);
             rtspBuilderFromFile.stopStream();
           }
         }
@@ -147,7 +148,7 @@ public class RtspFromFileActivity extends AppCompatActivity
       @Override
       public void run() {
         if (rtspBuilderFromFile.isStreaming()) {
-          button.setText(getResources().getString(R.string.start_button));
+          button.setText(R.string.start_button);
           Toast.makeText(RtspFromFileActivity.this, "Video stream finished", Toast.LENGTH_SHORT)
               .show();
           rtspBuilderFromFile.stopStream();

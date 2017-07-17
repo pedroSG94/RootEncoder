@@ -5,7 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:openDrawer="start"
-    android:id="@+id/activity_rtmp"
+    android:id="@+id/activity_custom"
     >
 
   <RelativeLayout
@@ -27,7 +27,7 @@
         android:layout_height="wrap_content"
         android:gravity="center"
         android:layout_margin="20dp"
-        android:id="@+id/et_rtmp_url"
+        android:id="@+id/et_rtp_url"
         />
 
     <Button
@@ -58,8 +58,7 @@
       android:paddingBottom="30dp"
       android:fitsSystemWindows="true"
       app:headerLayout="@xml/options_header"
-      app:menu="@menu/options_rtmp"
-      android:id="@+id/nv_rtmp"
+      android:id="@+id/nv_rtp"
       >
   </android.support.design.widget.NavigationView>
 </android.support.v4.widget.DrawerLayout>

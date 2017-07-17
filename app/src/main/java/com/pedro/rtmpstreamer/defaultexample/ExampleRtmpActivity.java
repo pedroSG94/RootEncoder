@@ -28,11 +28,12 @@ public class ExampleRtmpActivity extends AppCompatActivity
   protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
     getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
-    setContentView(R.layout.activity_example_rtmp);
+    setContentView(R.layout.activity_example);
     SurfaceView surfaceView = (SurfaceView) findViewById(R.id.surfaceView);
     button = (Button) findViewById(R.id.b_start_stop);
     button.setOnClickListener(this);
-    etUrl = (EditText) findViewById(R.id.et_rtmp_url);
+    etUrl = (EditText) findViewById(R.id.et_rtp_url);
+    etUrl.setHint(R.string.hint_rtmp);
     rtmpBuilder = new RtmpBuilder(surfaceView, this);
   }
 
@@ -53,7 +54,7 @@ public class ExampleRtmpActivity extends AppCompatActivity
       public void run() {
         Toast.makeText(ExampleRtmpActivity.this, "Connection failed", Toast.LENGTH_SHORT).show();
         rtmpBuilder.stopStream();
-        button.setText(getResources().getString(R.string.start_button));
+        button.setText(R.string.start_button);
       }
     });
   }
@@ -92,14 +93,14 @@ public class ExampleRtmpActivity extends AppCompatActivity
   public void onClick(View view) {
     if (!rtmpBuilder.isStreaming()) {
       if (rtmpBuilder.prepareAudio() && rtmpBuilder.prepareVideo()) {
-        button.setText(getResources().getString(R.string.stop_button));
+        button.setText(R.string.stop_button);
         rtmpBuilder.startStream(etUrl.getText().toString());
       } else {
         Toast.makeText(this, "Error preparing stream, This device cant do it", Toast.LENGTH_SHORT)
             .show();
       }
     } else {
-      button.setText(getResources().getString(R.string.start_button));
+      button.setText(R.string.start_button);
       rtmpBuilder.stopStream();
     }
   }

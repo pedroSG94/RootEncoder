@@ -48,7 +48,7 @@ public class RtmpActivity extends AppCompatActivity
   protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
     getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
-    setContentView(R.layout.activity_rtmp);
+    setContentView(R.layout.activity_custom);
     getSupportActionBar().setDisplayHomeAsUpEnabled(true);
     getSupportActionBar().setHomeButtonEnabled(true);
 
@@ -56,7 +56,7 @@ public class RtmpActivity extends AppCompatActivity
     rtmpBuilder = new RtmpBuilder(surfaceView, this);
     prepareOptionsMenuViews();
 
-    etUrl = (EditText) findViewById(R.id.et_rtmp_url);
+    etUrl = (EditText) findViewById(R.id.et_rtp_url);
     bStartStop = (Button) findViewById(R.id.b_start_stop);
     Button switchCamera = (Button) findViewById(R.id.switch_camera);
     bStartStop.setOnClickListener(this);
@@ -64,8 +64,9 @@ public class RtmpActivity extends AppCompatActivity
   }
 
   private void prepareOptionsMenuViews() {
-    drawerLayout = (DrawerLayout) findViewById(R.id.activity_rtmp);
-    navigationView = (NavigationView) findViewById(R.id.nv_rtmp);
+    drawerLayout = (DrawerLayout) findViewById(R.id.activity_custom);
+    navigationView = (NavigationView) findViewById(R.id.nv_rtp);
+    navigationView.inflateMenu(R.menu.options_rtmp);
     actionBarDrawerToggle = new ActionBarDrawerToggle(this, drawerLayout, R.string.rtsp_streamer,
         R.string.rtsp_streamer) {
 

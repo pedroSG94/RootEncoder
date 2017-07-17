@@ -29,12 +29,13 @@ public class RtmpFromFileActivity extends AppCompatActivity
   @Override
   protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
-    setContentView(R.layout.activity_rtmp_from_file);
+    setContentView(R.layout.activity_from_file);
     button = (Button) findViewById(R.id.b_start_stop);
     bSelectFile = (Button) findViewById(R.id.b_select_file);
     button.setOnClickListener(this);
     bSelectFile.setOnClickListener(this);
-    etUrl = (EditText) findViewById(R.id.et_rtsp_url);
+    etUrl = (EditText) findViewById(R.id.et_rtp_url);
+    etUrl.setHint(R.string.hint_rtmp);
     tvFile = (TextView) findViewById(R.id.tv_file);
     rtmpBuilderFromFile = new RtmpBuilderFromFile(this, this);
   }
@@ -56,7 +57,7 @@ public class RtmpFromFileActivity extends AppCompatActivity
       public void run() {
         Toast.makeText(RtmpFromFileActivity.this, "Connection failed", Toast.LENGTH_SHORT).show();
         rtmpBuilderFromFile.stopStream();
-        button.setText(getResources().getString(R.string.start_button));
+        button.setText(R.string.start_button);
       }
     });
   }
@@ -109,10 +110,10 @@ public class RtmpFromFileActivity extends AppCompatActivity
           if (!rtmpBuilderFromFile.isStreaming()) {
             try {
               if (rtmpBuilderFromFile.prepareVideo(filePath, 1200 * 1024)) {
-                button.setText(getResources().getString(R.string.stop_button));
+                button.setText(R.string.stop_button);
                 rtmpBuilderFromFile.startStream(etUrl.getText().toString());
               } else {
-                button.setText(getResources().getString(R.string.start_button));
+                button.setText(R.string.start_button);
                 rtmpBuilderFromFile.stopStream();
                 /*This error could be 2 things.
                  Your device cant decode or encode this file or
@@ -125,7 +126,7 @@ public class RtmpFromFileActivity extends AppCompatActivity
               Toast.makeText(this, "Error: file not found", Toast.LENGTH_SHORT).show();
             }
           } else {
-            button.setText(getResources().getString(R.string.start_button));
+            button.setText(R.string.start_button);
             rtmpBuilderFromFile.stopStream();
           }
         }
@@ -146,7 +147,7 @@ public class RtmpFromFileActivity extends AppCompatActivity
       @Override
       public void run() {
         if (rtmpBuilderFromFile.isStreaming()) {
-          button.setText(getResources().getString(R.string.start_button));
+          button.setText(R.string.start_button);
           Toast.makeText(RtmpFromFileActivity.this, "Video stream finished", Toast.LENGTH_SHORT)
               .show();
           rtmpBuilderFromFile.stopStream();

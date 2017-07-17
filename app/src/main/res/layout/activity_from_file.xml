@@ -21,7 +21,7 @@
       android:layout_height="wrap_content"
       android:gravity="center"
       android:layout_margin="20dp"
-      android:id="@+id/et_rtsp_url"
+      android:id="@+id/et_rtp_url"
       />
 
   <TextView

@@ -27,7 +27,7 @@ public class RtmpBuilderSurfaceMode extends BuilderSurfaceModeBase {
   }
 
   public RtmpBuilderSurfaceMode(Context context, ConnectCheckerRtmp connectChecker) {
-    super(null, context);
+    super(context);
     srsFlvMuxer = new SrsFlvMuxer(connectChecker);
   }
 

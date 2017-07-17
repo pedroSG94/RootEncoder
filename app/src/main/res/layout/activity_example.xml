@@ -13,7 +13,6 @@
       />
 
   <EditText
-      android:hint="@string/hint_rtmp"
       android:textColor="@color/appColor"
       android:textColorHint="@color/appColor"
       android:inputType="textUri"
@@ -21,7 +20,7 @@
       android:layout_height="wrap_content"
       android:gravity="center"
       android:layout_margin="20dp"
-      android:id="@+id/et_rtmp_url"
+      android:id="@+id/et_rtp_url"
       />
 
   <Button

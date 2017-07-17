@@ -27,7 +27,7 @@ public class RtspBuilderSurfaceMode extends BuilderSurfaceModeBase {
   }
 
   public RtspBuilderSurfaceMode(Context context, Protocol protocol, ConnectCheckerRtsp connectCheckerRtsp) {
-    super(null, context);
+    super(context);
     rtspClient = new RtspClient(connectCheckerRtsp, protocol);
   }
 

@@ -25,18 +25,27 @@ import java.nio.ByteBuffer;
 public abstract class BuilderSurfaceModeBase
     implements GetAccData, GetCameraData, GetH264Data, GetMicrophoneData {
 
-  private final Context context;
+  protected Context context;
   private Camera2ApiManager cameraManager;
   protected VideoEncoder videoEncoder;
   protected MicrophoneManager microphoneManager;
   protected AudioEncoder audioEncoder;
   private boolean streaming;
-  private SurfaceView surfaceView;
+  protected SurfaceView surfaceView;
   private boolean videoEnabled = true;
 
   public BuilderSurfaceModeBase(SurfaceView surfaceView, Context context) {
     this.surfaceView = surfaceView;
     this.context = context;
+    videoEncoder = new VideoEncoder(this);
+    microphoneManager = new MicrophoneManager(this);
+    audioEncoder = new AudioEncoder(this);
+    streaming = false;
+  }
+
+  public BuilderSurfaceModeBase(Context context) {
+    this.context = context;
+    this.surfaceView = null;
     videoEncoder = new VideoEncoder(this);
     microphoneManager = new MicrophoneManager(this);
     audioEncoder = new AudioEncoder(this);
@@ -52,8 +61,7 @@ public abstract class BuilderSurfaceModeBase
     boolean result =
         videoEncoder.prepareVideoEncoder(width, height, fps, bitrate, rotation, hardwareRotation,
             FormatVideoEncoder.SURFACE);
-    cameraManager = new Camera2ApiManager(surfaceView, videoEncoder.getInputSurface(),
-        context);
+    cameraManager = new Camera2ApiManager(surfaceView, videoEncoder.getInputSurface(), context);
     return result;
   }
 
@@ -69,8 +77,7 @@ public abstract class BuilderSurfaceModeBase
   public boolean prepareVideo() {
     boolean result = videoEncoder.prepareVideoEncoder(640, 480, 30, 1200 * 1024, 90, true,
         FormatVideoEncoder.SURFACE);
-    cameraManager = new Camera2ApiManager(surfaceView, videoEncoder.getInputSurface(),
-        context);
+    cameraManager = new Camera2ApiManager(surfaceView, videoEncoder.getInputSurface(), context);
     return result;
   }
 
@@ -85,6 +92,26 @@ public abstract class BuilderSurfaceModeBase
     cameraManager.openCameraBack();
     microphoneManager.start();
     streaming = true;
+  }
+
+  /**
+   * This method should be called before prepare methods.
+   *
+   * @param context where stream will be executed
+   */
+  public void setBackgroundMode(Context context) {
+    this.context = context;
+    surfaceView = null;
+  }
+
+  /**
+   * This method should be called before prepare methods.
+   *
+   * @param surfaceView where stream will be executed
+   */
+  public void setForegroundMode(SurfaceView surfaceView) {
+    this.surfaceView = surfaceView;
+    this.context = surfaceView.getContext();
   }
 
   protected abstract void stopStreamRtp();
