@@ -13,9 +13,9 @@ import com.pedro.rtmpstreamer.R;
 import net.ossrs.rtmp.ConnectCheckerRtmp;
 
 /**
- * This class is only for a simple example of library use with default stream values
- * Video = 1280x720 resolution, 30fps, 1500 * 1024 bitrate, 0 rotation. See VideoEncoder class for more info
- * Audio = stereo, 128 * 1024 bitrate, 44100 sampleRate. See AudioEncoder class for more info
+ * This class is only for a simple example of library use with default stream values.
+ * Video = 1280x720 resolution, 30fps, 1500 * 1024 bitrate, 0 rotation.
+ * Audio = stereo, 128 * 1024 bitrate, 44100 sampleRate.
  */
 public class ExampleRtmpActivity extends AppCompatActivity
     implements ConnectCheckerRtmp, View.OnClickListener {

@@ -8,8 +8,10 @@ import android.media.MediaCodec;
 import android.media.MediaCodecInfo;
 import android.media.MediaCodecList;
 import android.media.MediaFormat;
+import android.media.MediaMuxer;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Environment;
 import android.os.Process;
 import android.support.annotation.RequiresApi;
 import android.util.Log;
@@ -93,7 +95,6 @@ public class VideoEncoder implements GetCameraData {
         Log.e(TAG, "valid encoder not found");
         return false;
       }
-
       MediaFormat videoFormat;
       //if you dont use mediacodec rotation you need swap width and height in rotation 90 or 270
       // for correct encoding resolution
@@ -304,6 +305,7 @@ public class VideoEncoder implements GetCameraData {
             int outBufferIndex = videoEncoder.dequeueOutputBuffer(videoInfo, 0);
             if (outBufferIndex == MediaCodec.INFO_OUTPUT_FORMAT_CHANGED) {
               MediaFormat mediaFormat = videoEncoder.getOutputFormat();
+              getH264Data.onVideoFormat(mediaFormat);
               getH264Data.onSPSandPPS(mediaFormat.getByteBuffer("csd-0"),
                   mediaFormat.getByteBuffer("csd-1"));
               spsPpsSetted = true;
@@ -343,6 +345,7 @@ public class VideoEncoder implements GetCameraData {
             int outBufferIndex = videoEncoder.dequeueOutputBuffer(videoInfo, 0);
             if (outBufferIndex == MediaCodec.INFO_OUTPUT_FORMAT_CHANGED) {
               MediaFormat mediaFormat = videoEncoder.getOutputFormat();
+              getH264Data.onVideoFormat(mediaFormat);
               getH264Data.onSPSandPPS(mediaFormat.getByteBuffer("csd-0"),
                   mediaFormat.getByteBuffer("csd-1"));
               spsPpsSetted = true;
@@ -384,6 +387,7 @@ public class VideoEncoder implements GetCameraData {
       int outBufferIndex = videoEncoder.dequeueOutputBuffer(videoInfo, 0);
       if (outBufferIndex == MediaCodec.INFO_OUTPUT_FORMAT_CHANGED) {
         MediaFormat mediaFormat = videoEncoder.getOutputFormat();
+        getH264Data.onVideoFormat(mediaFormat);
         getH264Data.onSPSandPPS(mediaFormat.getByteBuffer("csd-0"),
             mediaFormat.getByteBuffer("csd-1"));
         spsPpsSetted = true;
@@ -426,6 +430,7 @@ public class VideoEncoder implements GetCameraData {
       int outBufferIndex = videoEncoder.dequeueOutputBuffer(videoInfo, 0);
       if (outBufferIndex == MediaCodec.INFO_OUTPUT_FORMAT_CHANGED) {
         MediaFormat mediaFormat = videoEncoder.getOutputFormat();
+        getH264Data.onVideoFormat(mediaFormat);
         getH264Data.onSPSandPPS(mediaFormat.getByteBuffer("csd-0"),
             mediaFormat.getByteBuffer("csd-1"));
         spsPpsSetted = true;

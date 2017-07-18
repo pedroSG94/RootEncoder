@@ -16,11 +16,9 @@ https://github.com/pedroSG94/rtmp-rtsp-stream-client-java/wiki
 
 ```xml
 <uses-permission android:name="android.permission.INTERNET" />
-<!--BuilderBase or BuilderSurfaceModeBase-->
 <uses-permission android:name="android.permission.RECORD_AUDIO" />
 <uses-permission android:name="android.permission.CAMERA" />
-<!--BuilderFromFileBase-->
-<uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+<uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
 ```
 
 ## Compile
@@ -49,6 +47,7 @@ dependencies {
 - [x] Disable/Enable video and audio while streaming.
 - [x] Switch camera while streaming.
 - [x] Change video bitrate while streaming (API 19+).
+- [X] Record MP4 file while streaming (API 18+).
 - [x] H264 and AAC hardware encoding.
 - [x] RTSP TCP/UDP
 

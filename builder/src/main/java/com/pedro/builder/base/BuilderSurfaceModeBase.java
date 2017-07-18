@@ -3,6 +3,8 @@ package com.pedro.builder.base;
 import android.content.Context;
 import android.graphics.ImageFormat;
 import android.media.MediaCodec;
+import android.media.MediaFormat;
+import android.media.MediaMuxer;
 import android.os.Build;
 import android.support.annotation.RequiresApi;
 import android.view.SurfaceView;
@@ -16,6 +18,7 @@ import com.pedro.encoder.input.video.GetCameraData;
 import com.pedro.encoder.video.FormatVideoEncoder;
 import com.pedro.encoder.video.GetH264Data;
 import com.pedro.encoder.video.VideoEncoder;
+import java.io.IOException;
 import java.nio.ByteBuffer;
 
 /**
@@ -33,6 +36,13 @@ public abstract class BuilderSurfaceModeBase
   private boolean streaming;
   protected SurfaceView surfaceView;
   private boolean videoEnabled = true;
+  //record
+  private MediaMuxer mediaMuxer;
+  private int videoTrack = -1;
+  private int audioTrack = -1;
+  private boolean recording = false;
+  private MediaFormat videoFormat;
+  private MediaFormat audioFormat;
 
   public BuilderSurfaceModeBase(SurfaceView surfaceView, Context context) {
     this.surfaceView = surfaceView;
@@ -83,6 +93,28 @@ public abstract class BuilderSurfaceModeBase
 
   public abstract boolean prepareAudio();
 
+  /*Need be called while stream*/
+  public void startRecord(String path) throws IOException {
+    if (streaming) {
+      mediaMuxer = new MediaMuxer(path, MediaMuxer.OutputFormat.MUXER_OUTPUT_MPEG_4);
+      videoTrack = mediaMuxer.addTrack(videoFormat);
+      audioTrack = mediaMuxer.addTrack(audioFormat);
+      mediaMuxer.start();
+      recording = true;
+    }
+  }
+
+  public void stopRecord() {
+    recording = false;
+    if (mediaMuxer != null) {
+      mediaMuxer.stop();
+      mediaMuxer.release();
+      mediaMuxer = null;
+    }
+    videoTrack = -1;
+    audioTrack = -1;
+  }
+
   protected abstract void startStreamRtp(String url);
 
   public void startStream(String url) {
@@ -92,26 +124,6 @@ public abstract class BuilderSurfaceModeBase
     microphoneManager.start();
     streaming = true;
     startStreamRtp(url);
-  }
-
-  /**
-   * This method should be called before prepare methods.
-   *
-   * @param context where stream will be executed
-   */
-  public void setBackgroundMode(Context context) {
-    this.context = context;
-    surfaceView = null;
-  }
-
-  /**
-   * This method should be called before prepare methods.
-   *
-   * @param surfaceView where stream will be executed
-   */
-  public void setForegroundMode(SurfaceView surfaceView) {
-    this.surfaceView = surfaceView;
-    this.context = surfaceView.getContext();
   }
 
   protected abstract void stopStreamRtp();
@@ -172,6 +184,9 @@ public abstract class BuilderSurfaceModeBase
 
   @Override
   public void getAacData(ByteBuffer aacBuffer, MediaCodec.BufferInfo info) {
+    if (recording) {
+      mediaMuxer.writeSampleData(audioTrack, aacBuffer, info);
+    }
     getAacDataRtp(aacBuffer, info);
   }
 
@@ -186,6 +201,9 @@ public abstract class BuilderSurfaceModeBase
 
   @Override
   public void getH264Data(ByteBuffer h264Buffer, MediaCodec.BufferInfo info) {
+    if (recording) {
+      mediaMuxer.writeSampleData(videoTrack, h264Buffer, info);
+    }
     getH264DataRtp(h264Buffer, info);
   }
 
@@ -202,5 +220,15 @@ public abstract class BuilderSurfaceModeBase
   @Override
   public void inputNv21Data(byte[] buffer) {
     videoEncoder.inputNv21Data(buffer);
+  }
+
+  @Override
+  public void onVideoFormat(MediaFormat mediaFormat) {
+    videoFormat = mediaFormat;
+  }
+
+  @Override
+  public void onAudioFormat(MediaFormat mediaFormat) {
+    audioFormat = mediaFormat;
   }
 }

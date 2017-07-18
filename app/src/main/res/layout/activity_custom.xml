@@ -35,9 +35,18 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
-        android:layout_alignParentLeft="true"
+        android:layout_centerInParent="true"
         android:layout_margin="20dp"
         android:id="@+id/b_start_stop"
+        />
+
+    <Button
+        android:text="@string/start_record"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_margin="20dp"
+        android:id="@+id/b_record"
         />
 
     <Button

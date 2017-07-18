@@ -112,7 +112,9 @@ public class AudioEncoder implements GetMicrophoneData {
 
     for (; ; ) {
       int outBufferIndex = audioEncoder.dequeueOutputBuffer(audioInfo, 0);
-      if (outBufferIndex >= 0) {
+      if (outBufferIndex == MediaCodec.INFO_OUTPUT_FORMAT_CHANGED) {
+        getAacData.onAudioFormat(audioEncoder.getOutputFormat());
+      } else if (outBufferIndex >= 0) {
         //This ByteBuffer is AAC
         ByteBuffer bb = audioEncoder.getOutputBuffer(outBufferIndex);
         getAacData.getAacData(bb, audioInfo);
@@ -138,7 +140,9 @@ public class AudioEncoder implements GetMicrophoneData {
 
     for (; ; ) {
       int outBufferIndex = audioEncoder.dequeueOutputBuffer(audioInfo, 0);
-      if (outBufferIndex >= 0) {
+      if (outBufferIndex == MediaCodec.INFO_OUTPUT_FORMAT_CHANGED) {
+        getAacData.onAudioFormat(audioEncoder.getOutputFormat());
+      } else if (outBufferIndex >= 0) {
         //This ByteBuffer is AAC
         ByteBuffer bb = outputBuffers[outBufferIndex];
         getAacData.getAacData(bb, audioInfo);

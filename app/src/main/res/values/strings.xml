@@ -50,4 +50,6 @@
   <string name="wowza_user">User</string>
   <string name="wowza_password">Password</string>
   <string name="noise_suppressor">Noise suppressor</string>
+  <string name="start_record">Start record</string>
+  <string name="stop_record">Stop record</string>
 </resources>

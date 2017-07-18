@@ -24,7 +24,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
   private final String[] PERMISSIONS = {
       Manifest.permission.RECORD_AUDIO, Manifest.permission.CAMERA,
-      Manifest.permission.READ_EXTERNAL_STORAGE
+      Manifest.permission.WRITE_EXTERNAL_STORAGE
   };
 
   @Override
