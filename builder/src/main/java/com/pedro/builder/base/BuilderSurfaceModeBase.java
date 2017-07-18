@@ -7,7 +7,7 @@ import android.os.Build;
 import android.support.annotation.RequiresApi;
 import android.view.SurfaceView;
 import com.pedro.encoder.audio.AudioEncoder;
-import com.pedro.encoder.audio.GetAccData;
+import com.pedro.encoder.audio.GetAacData;
 import com.pedro.encoder.input.audio.GetMicrophoneData;
 import com.pedro.encoder.input.audio.MicrophoneManager;
 import com.pedro.encoder.input.video.Camera2ApiManager;
@@ -23,7 +23,7 @@ import java.nio.ByteBuffer;
  */
 @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
 public abstract class BuilderSurfaceModeBase
-    implements GetAccData, GetCameraData, GetH264Data, GetMicrophoneData {
+    implements GetAacData, GetCameraData, GetH264Data, GetMicrophoneData {
 
   protected Context context;
   private Camera2ApiManager cameraManager;
@@ -168,11 +168,11 @@ public abstract class BuilderSurfaceModeBase
     return streaming;
   }
 
-  protected abstract void getAccDataRtp(ByteBuffer accBuffer, MediaCodec.BufferInfo info);
+  protected abstract void getAacDataRtp(ByteBuffer aacBuffer, MediaCodec.BufferInfo info);
 
   @Override
-  public void getAccData(ByteBuffer accBuffer, MediaCodec.BufferInfo info) {
-    getAccDataRtp(accBuffer, info);
+  public void getAacData(ByteBuffer aacBuffer, MediaCodec.BufferInfo info) {
+    getAacDataRtp(aacBuffer, info);
   }
 
   protected abstract void onSPSandPPSRtp(ByteBuffer sps, ByteBuffer pps);

@@ -62,8 +62,8 @@ public class RtspBuilderSurfaceMode extends BuilderSurfaceModeBase {
   }
 
   @Override
-  protected void getAccDataRtp(ByteBuffer accBuffer, MediaCodec.BufferInfo info) {
-    rtspClient.sendAudio(accBuffer, info);
+  protected void getAacDataRtp(ByteBuffer aacBuffer, MediaCodec.BufferInfo info) {
+    rtspClient.sendAudio(aacBuffer, info);
   }
 
   @Override

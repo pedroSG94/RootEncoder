@@ -19,7 +19,7 @@ public class AudioEncoder implements GetMicrophoneData {
 
   private String TAG = "AudioEncoder";
   private MediaCodec audioEncoder;
-  private GetAccData getAccData;
+  private GetAacData getAacData;
   private MediaCodec.BufferInfo audioInfo = new MediaCodec.BufferInfo();
   private long mPresentTimeUs;
   private boolean running;
@@ -30,8 +30,8 @@ public class AudioEncoder implements GetMicrophoneData {
   private int sampleRate = 44100; //in hz
   private boolean isStereo = true;
 
-  public AudioEncoder(GetAccData getAccData) {
-    this.getAccData = getAccData;
+  public AudioEncoder(GetAacData getAacData) {
+    this.getAacData = getAacData;
   }
 
   /**
@@ -113,9 +113,9 @@ public class AudioEncoder implements GetMicrophoneData {
     for (; ; ) {
       int outBufferIndex = audioEncoder.dequeueOutputBuffer(audioInfo, 0);
       if (outBufferIndex >= 0) {
-        //This ByteBuffer is ACC
+        //This ByteBuffer is AAC
         ByteBuffer bb = audioEncoder.getOutputBuffer(outBufferIndex);
-        getAccData.getAccData(bb, audioInfo);
+        getAacData.getAacData(bb, audioInfo);
         audioEncoder.releaseOutputBuffer(outBufferIndex, false);
       } else {
         break;
@@ -139,9 +139,9 @@ public class AudioEncoder implements GetMicrophoneData {
     for (; ; ) {
       int outBufferIndex = audioEncoder.dequeueOutputBuffer(audioInfo, 0);
       if (outBufferIndex >= 0) {
-        //This ByteBuffer is ACC
+        //This ByteBuffer is AAC
         ByteBuffer bb = outputBuffers[outBufferIndex];
-        getAccData.getAccData(bb, audioInfo);
+        getAacData.getAacData(bb, audioInfo);
         audioEncoder.releaseOutputBuffer(outBufferIndex, false);
       } else {
         break;

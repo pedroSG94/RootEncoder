@@ -8,7 +8,7 @@ import java.nio.ByteBuffer;
  * Created by pedro on 19/01/17.
  */
 
-public interface GetAccData {
+public interface GetAacData {
 
-    void getAccData(ByteBuffer accBuffer, MediaCodec.BufferInfo info);
+    void getAacData(ByteBuffer aacBuffer, MediaCodec.BufferInfo info);
 }

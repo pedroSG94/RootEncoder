@@ -53,8 +53,8 @@ public class RtmpBuilder extends BuilderBase {
   }
 
   @Override
-  protected void getAccDataRtp(ByteBuffer accBuffer, MediaCodec.BufferInfo info) {
-    srsFlvMuxer.sendAudio(accBuffer, info);
+  protected void getAacDataRtp(ByteBuffer aacBuffer, MediaCodec.BufferInfo info) {
+    srsFlvMuxer.sendAudio(aacBuffer, info);
   }
 
   @Override

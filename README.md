@@ -49,7 +49,7 @@ dependencies {
 - [x] Disable/Enable video and audio while streaming.
 - [x] Switch camera while streaming.
 - [x] Change video bitrate while streaming (API 19+).
-- [x] H264 and ACC hardware encoding.
+- [x] H264 and AAC hardware encoding.
 - [x] RTSP TCP/UDP
 
 ### Under develop
@@ -75,7 +75,7 @@ RtmpBuilder rtmpBuilder = new RtmpBuilder(surfaceView, connectCheckerRtmp);
 if (rtmpBuilder.prepareAudio() && rtmpBuilder.prepareVideo()) {
   rtmpBuilder.startStream("rtmp://yourEndPoint");
 } else {
- /**This device cant init encoders, this could be for 2 reasons: The encoder selected doesnt support any configuration setted or your device hasnt a H264 or ACC encoder (in this case you can see log error valid encoder not found)*/
+ /**This device cant init encoders, this could be for 2 reasons: The encoder selected doesnt support any configuration setted or your device hasnt a H264 or AAC encoder (in this case you can see log error valid encoder not found)*/
 }
 //stop stream
 rtmpBuilder.stopStream();
@@ -89,7 +89,7 @@ if (rtmpBuilder.prepareAudio(int bitrate, int sampleRate, boolean isStereo, bool
       boolean noiseSuppressor) && rtmpBuilder.prepareVideo(int width, int height, int fps, int bitrate, boolean hardwareRotation, int rotation)) {
   rtmpBuilder.startStream("rtmp://yourEndPoint");
 } else {
- /**This device cant init encoders, this could be for 2 reasons: The encoder selected doesnt support any configuration setted or your device hasnt a H264 or ACC encoder (in this case you can see log error valid encoder not found)*/
+ /**This device cant init encoders, this could be for 2 reasons: The encoder selected doesnt support any configuration setted or your device hasnt a H264 or AAC encoder (in this case you can see log error valid encoder not found)*/
 }
 //stop stream
 rtmpBuilder.stopStream();
@@ -108,7 +108,7 @@ RtspBuilder rtspBuilder = new RtspBuilder(surfaceView, protocol, connectCheckerR
 if (rtspBuilder.prepareAudio() && rtspBuilder.prepareVideo()) {
   rtspBuilder.startStream("rtsp://yourEndPoint");
 } else {
- /**This device cant init encoders, this could be for 2 reasons: The encoder selected doesnt support any configuration setted or your device hasnt a H264 or ACC encoder (in this case you can see log error valid encoder not found)*/
+ /**This device cant init encoders, this could be for 2 reasons: The encoder selected doesnt support any configuration setted or your device hasnt a H264 or AAC encoder (in this case you can see log error valid encoder not found)*/
 }
 //stop stream
 rtspBuilder.stopStream();
@@ -122,7 +122,7 @@ if (rtspBuilder.prepareAudio(int bitrate, int sampleRate, boolean isStereo, bool
       boolean noiseSuppressor) && rtspBuilder.prepareVideo(int width, int height, int fps, int bitrate, boolean hardwareRotation, int rotation)) {
   rtspBuilder.startStream("rtsp://yourEndPoint");
 } else {
- /**This device cant init encoders, this could be for 2 reasons: The encoder selected doesnt support any configuration setted or your device hasnt a H264 or ACC encoder (in this case you can see log error valid encoder not found)*/
+ /**This device cant init encoders, this could be for 2 reasons: The encoder selected doesnt support any configuration setted or your device hasnt a H264 or AAC encoder (in this case you can see log error valid encoder not found)*/
 }
 //stop stream
 rtspBuilder.stopStream();

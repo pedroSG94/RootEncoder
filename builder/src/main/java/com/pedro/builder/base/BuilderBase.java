@@ -6,7 +6,7 @@ import android.media.MediaCodec;
 import android.os.Build;
 import android.view.SurfaceView;
 import com.pedro.encoder.audio.AudioEncoder;
-import com.pedro.encoder.audio.GetAccData;
+import com.pedro.encoder.audio.GetAacData;
 import com.pedro.encoder.input.audio.GetMicrophoneData;
 import com.pedro.encoder.input.audio.MicrophoneManager;
 import com.pedro.encoder.input.video.Camera1ApiManager;
@@ -25,7 +25,7 @@ import java.util.List;
  */
 
 public abstract class BuilderBase
-    implements GetAccData, GetCameraData, GetH264Data, GetMicrophoneData {
+    implements GetAacData, GetCameraData, GetH264Data, GetMicrophoneData {
 
   private Camera1ApiManager cameraManager;
   protected VideoEncoder videoEncoder;
@@ -149,11 +149,11 @@ public abstract class BuilderBase
     }
   }
 
-  protected abstract void getAccDataRtp(ByteBuffer accBuffer, MediaCodec.BufferInfo info);
+  protected abstract void getAacDataRtp(ByteBuffer aacBuffer, MediaCodec.BufferInfo info);
 
   @Override
-  public void getAccData(ByteBuffer accBuffer, MediaCodec.BufferInfo info) {
-    getAccDataRtp(accBuffer, info);
+  public void getAacData(ByteBuffer aacBuffer, MediaCodec.BufferInfo info) {
+    getAacDataRtp(aacBuffer, info);
   }
 
   protected abstract void onSPSandPPSRtp(ByteBuffer sps, ByteBuffer pps);

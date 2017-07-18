@@ -3,7 +3,7 @@ package com.pedro.rtsp.rtsp;
 import android.media.MediaCodec;
 import android.util.Base64;
 import android.util.Log;
-import com.pedro.rtsp.rtp.packets.AccPacket;
+import com.pedro.rtsp.rtp.packets.AacPacket;
 import com.pedro.rtsp.rtp.packets.H264Packet;
 import com.pedro.rtsp.utils.AuthUtil;
 import com.pedro.rtsp.utils.ConnectCheckerRtsp;
@@ -64,7 +64,7 @@ public class RtspClient {
   private String passPhraseJks = null;
   //packets
   private H264Packet h264Packet;
-  private AccPacket accPacket;
+  private AacPacket aacPacket;
 
   public RtspClient(ConnectCheckerRtsp connectCheckerRtsp, Protocol protocol) {
     this.protocol = protocol;
@@ -140,8 +140,8 @@ public class RtspClient {
     if (!streaming) {
       h264Packet = new H264Packet(this, protocol);
       h264Packet.setSPSandPPS(sps, pps);
-      accPacket = new AccPacket(this, protocol);
-      accPacket.setSampleRate(sampleRate);
+      aacPacket = new AacPacket(this, protocol);
+      aacPacket.setSampleRate(sampleRate);
       thread = new Thread(new Runnable() {
         @Override
         public void run() {
@@ -192,7 +192,7 @@ public class RtspClient {
             getResponse(false);
 
             h264Packet.updateDestinationVideo();
-            accPacket.updateDestinationAudio();
+            aacPacket.updateDestinationAudio();
             streaming = true;
             connectCheckerRtsp.onConnectionSuccessRtsp();
             new Thread(connectionMonitor).start();
@@ -243,9 +243,9 @@ public class RtspClient {
         }
       });
       thread.start();
-      if (h264Packet != null && accPacket != null) {
+      if (h264Packet != null && aacPacket != null) {
         h264Packet.close();
-        accPacket.close();
+        aacPacket.close();
       }
     }
   }
@@ -470,9 +470,9 @@ public class RtspClient {
     }
   }
 
-  public void sendAudio(ByteBuffer accBuffer, MediaCodec.BufferInfo info) {
+  public void sendAudio(ByteBuffer aacBuffer, MediaCodec.BufferInfo info) {
     if (isStreaming()) {
-      accPacket.createAndSendPacket(accBuffer, info);
+      aacPacket.createAndSendPacket(aacBuffer, info);
     }
   }
 }

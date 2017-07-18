@@ -15,13 +15,13 @@ import java.nio.ByteBuffer;
  * RFC 3640.
  * Encapsulates AAC Access Units in RTP packets as specified in the RFC 3640.
  */
-public class AccPacket extends BasePacket {
+public class AacPacket extends BasePacket {
 
-  private final String TAG = "AccPacket";
+  private final String TAG = "AacPacket";
 
   private long oldTs;
 
-  public AccPacket(RtspClient rtspClient, Protocol protocol) {
+  public AacPacket(RtspClient rtspClient, Protocol protocol) {
     super(rtspClient, protocol);
   }
 
