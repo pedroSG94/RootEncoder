@@ -251,7 +251,9 @@ public class RtmpActivity extends AppCompatActivity
               bRecord.setText(R.string.stop_record);
               Toast.makeText(this, "Recording... ", Toast.LENGTH_SHORT).show();
             } catch (IOException e) {
-              e.printStackTrace();
+              rtmpBuilder.stopRecord();
+              bRecord.setText(R.string.start_record);
+              Toast.makeText(this, e.getMessage(), Toast.LENGTH_SHORT).show();
             }
           } else {
             rtmpBuilder.stopRecord();

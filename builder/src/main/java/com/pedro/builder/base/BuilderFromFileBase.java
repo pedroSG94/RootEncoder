@@ -55,6 +55,8 @@ public abstract class BuilderFromFileBase implements GetCameraData, GetH264Data 
       videoTrack = mediaMuxer.addTrack(videoFormat);
       mediaMuxer.start();
       recording = true;
+    } else {
+      throw new IOException("Need be called while stream");
     }
   }
 

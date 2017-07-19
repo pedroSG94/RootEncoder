@@ -261,7 +261,9 @@ public class RtspActivity extends AppCompatActivity
               bRecord.setText(R.string.stop_record);
               Toast.makeText(this, "Recording... ", Toast.LENGTH_SHORT).show();
             } catch (IOException e) {
-              e.printStackTrace();
+              rtspBuilder.stopRecord();
+              bRecord.setText(R.string.start_record);
+              Toast.makeText(this, e.getMessage(), Toast.LENGTH_SHORT).show();
             }
           } else {
             rtspBuilder.stopRecord();

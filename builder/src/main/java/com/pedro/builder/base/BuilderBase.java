@@ -89,6 +89,8 @@ public abstract class BuilderBase
       audioTrack = mediaMuxer.addTrack(audioFormat);
       mediaMuxer.start();
       recording = true;
+    } else {
+      throw new IOException("Need be called while stream");
     }
   }
 

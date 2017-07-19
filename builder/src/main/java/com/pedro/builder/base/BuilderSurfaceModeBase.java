@@ -101,6 +101,8 @@ public abstract class BuilderSurfaceModeBase
       audioTrack = mediaMuxer.addTrack(audioFormat);
       mediaMuxer.start();
       recording = true;
+    } else {
+      throw new IOException("Need be called while stream");
     }
   }
 
