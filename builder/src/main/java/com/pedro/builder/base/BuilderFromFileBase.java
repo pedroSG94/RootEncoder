@@ -3,9 +3,9 @@ package com.pedro.builder.base;
 import android.media.MediaCodec;
 import android.media.MediaFormat;
 import android.media.MediaMuxer;
+import android.media.MediaPlayer;
 import android.os.Build;
 import android.support.annotation.RequiresApi;
-import com.pedro.encoder.input.decoder.VideoDecoder;
 import com.pedro.encoder.input.decoder.VideoDecoderInterface;
 import com.pedro.encoder.input.video.GetCameraData;
 import com.pedro.encoder.video.FormatVideoEncoder;
@@ -21,7 +21,6 @@ import java.nio.ByteBuffer;
 @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
 public abstract class BuilderFromFileBase implements GetCameraData, GetH264Data {
 
-  private VideoDecoder videoDecoder;
   protected VideoEncoder videoEncoder;
   private boolean streaming;
   private boolean videoEnabled = true;
@@ -31,20 +30,36 @@ public abstract class BuilderFromFileBase implements GetCameraData, GetH264Data 
   private boolean recording = false;
   private MediaFormat videoFormat;
 
+  private VideoDecoderInterface videoDecoderInterface;
+  private MediaPlayer mediaPlayer;
+  //private VideoDecoder videoDecoder;
+
   public BuilderFromFileBase(VideoDecoderInterface videoDecoderInterface) {
+    this.videoDecoderInterface = videoDecoderInterface;
     videoEncoder = new VideoEncoder(this);
-    videoDecoder = new VideoDecoder(videoDecoderInterface);
+    //videoDecoder = new VideoDecoder(videoDecoderInterface);
     streaming = false;
   }
 
   public abstract void setAuthorization(String user, String password);
 
   public boolean prepareVideo(String filePath, int bitRate) throws IOException {
-    if (!videoDecoder.initExtractor(filePath)) return false;
+    mediaPlayer = new MediaPlayer();
+    mediaPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
+      @Override
+      public void onCompletion(MediaPlayer mediaPlayer) {
+        videoDecoderInterface.onVideoDecoderFinished();
+      }
+    });
+    mediaPlayer.setDataSource(filePath);
+    mediaPlayer.prepare();
+    mediaPlayer.setVolume(0, 0);
+    //if (!videoDecoder.initExtractor(filePath)) return false;
     boolean result =
-        videoEncoder.prepareVideoEncoder(videoDecoder.getWidth(), videoDecoder.getHeight(), 30,
-            bitRate, 0, true, FormatVideoEncoder.SURFACE);
-    videoDecoder.prepareVideo(videoEncoder.getInputSurface());
+        videoEncoder.prepareVideoEncoder(mediaPlayer.getVideoWidth(), mediaPlayer.getVideoHeight(),
+            30, bitRate, 0, true, FormatVideoEncoder.SURFACE);
+    mediaPlayer.setSurface(videoEncoder.getInputSurface());
+    //videoDecoder.prepareVideo(videoEncoder.getInputSurface());
     return result;
   }
 
@@ -75,7 +90,8 @@ public abstract class BuilderFromFileBase implements GetCameraData, GetH264Data 
   public void startStream(String url) {
     startStreamRtp(url);
     videoEncoder.start();
-    videoDecoder.start();
+    //videoDecoder.start();
+    mediaPlayer.start();
     streaming = true;
   }
 
@@ -83,13 +99,19 @@ public abstract class BuilderFromFileBase implements GetCameraData, GetH264Data 
 
   public void stopStream() {
     stopStreamRtp();
-    videoDecoder.stop();
+    if (mediaPlayer != null) {
+      mediaPlayer.stop();
+      mediaPlayer.release();
+      mediaPlayer = null;
+    }
+    //videoDecoder.stop();
     videoEncoder.stop();
     streaming = false;
   }
 
   public void setLoopMode(boolean loopMode) {
-    videoDecoder.setLoopMode(loopMode);
+    //videoDecoder.setLoopMode(loopMode);
+    mediaPlayer.setLooping(loopMode);
   }
 
   public void disableVideo() {
