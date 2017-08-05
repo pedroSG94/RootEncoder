@@ -281,6 +281,7 @@ public class Camera1ApiManager implements Camera.PreviewCallback {
         if (supportedFlashModes.contains(Camera.Parameters.FLASH_MODE_TORCH)) {
           parameters.setFlashMode(Camera.Parameters.FLASH_MODE_TORCH);
           camera.setParameters(parameters);
+          lanternEnable = true;
         } else {
           Log.e(TAG, "Lantern unsupported");
         }
