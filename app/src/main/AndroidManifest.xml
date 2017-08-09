@@ -46,9 +46,11 @@
         android:screenOrientation="portrait"
         />
     <activity android:name=".filestreamexample.RtspFromFileActivity" />
-    <activity android:name=".filestreamexample.RtmpFromFileActivity"/>
-    <activity android:name=".surfacemodeexample.SurfaceModeRtspActivity"/>
-    <activity android:name=".surfacemodeexample.SurfaceModeRtmpActivity"/>
+    <activity android:name=".filestreamexample.RtmpFromFileActivity" />
+    <activity android:name=".surfacemodeexample.SurfaceModeRtspActivity" />
+    <activity android:name=".surfacemodeexample.SurfaceModeRtmpActivity" />
+    <activity android:name=".displayexample.DisplayRtmpActivity"/>
+    <activity android:name=".displayexample.DisplayRtspActivity"/>
   </application>
 
 </manifest>
