@@ -1,7 +1,7 @@
 # rtmp-rtsp-stream-client-java
 
 [![Android Arsenal](https://img.shields.io/badge/Android%20Arsenal-rtmp%20rtsp%20stream%20client%20java-green.svg?style=true)](https://android-arsenal.com/details/1/5333)
-[![Release](https://jitpack.io/v/jitpack/maven-simple.svg)](https://jitpack.io/#pedroSG94/rtmp-rtsp-stream-client-java)
+[![Release](https://jitpack.io/v/pedroSG94/rtmp-rtsp-stream-client-java.svg)](https://jitpack.io/#pedroSG94/rtmp-rtsp-stream-client-java)
 
 Library for stream in rtmp and rtsp. All code in java.
 
