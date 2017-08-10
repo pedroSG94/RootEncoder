@@ -2,10 +2,16 @@ package com.pedro.encoder.input.video;
 
 import android.graphics.ImageFormat;
 import android.hardware.Camera;
+import android.media.MediaCodecInfo;
+import android.media.MediaCodecList;
 import android.opengl.GLES20;
+import android.os.Build;
+import android.support.annotation.RequiresApi;
 import android.util.Log;
+import android.util.Size;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
+import com.pedro.encoder.video.FormatVideoEncoder;
 import java.io.IOException;
 import java.util.List;
 import javax.microedition.khronos.egl.EGL10;
@@ -225,10 +231,43 @@ public class Camera1ApiManager implements Camera.PreviewCallback {
       camera.release();
       camera = null;
     }
-    for (Camera.Size size : previewSizes) {
-      Log.i(TAG, size.width + "X" + size.height);
+    //discard preview more high than encoder support
+    if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {
+      Size maxSize = getMaxEncoderSizeSupported();
+      if(maxSize != null) {
+        for (Camera.Size size : previewSizes) {
+          if (size.width > maxSize.getWidth() || size.height > maxSize.getHeight()){
+            Log.i(TAG, size.width + "X" + size.height + ", not supported for encoder");
+            previewSizes.remove(size);
+          }
+        }
+      }
     }
     return previewSizes;
+  }
+
+  /**
+   * @return max size that h264 device encoder can record. null if encoder not found
+   */
+  @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
+  private Size getMaxEncoderSizeSupported() {
+    String mime = "video/avc";
+    int count = MediaCodecList.getCodecCount();
+    for (int i = 0; i < count; i++) {
+      MediaCodecInfo mci = MediaCodecList.getCodecInfoAt(i);
+      if (!mci.isEncoder()) {
+        continue;
+      }
+      String[] types = mci.getSupportedTypes();
+      for (String type : types) {
+        if (type.equalsIgnoreCase(mime)) {
+          MediaCodecInfo.CodecCapabilities codecCapabilities = mci.getCapabilitiesForType(mime);
+          return new Size(codecCapabilities.getVideoCapabilities().getSupportedWidths().getUpper(),
+              codecCapabilities.getVideoCapabilities().getSupportedHeights().getUpper());
+        }
+      }
+    }
+    return null;
   }
 
   public void setEffect(EffectManager effect) {
