@@ -13,7 +13,7 @@
       android:text="@string/tv_select"
       android:textSize="22sp"
       android:textColor="@color/appColor"
-      android:layout_margin="10dp"
+      android:layout_margin="6dp"
       android:layout_width="wrap_content"
       android:layout_height="wrap_content"
       android:id="@+id/tv_select"
@@ -21,7 +21,7 @@
 
   <Button
       android:text="@string/rtmp_streamer"
-      android:layout_margin="10dp"
+      android:layout_margin="6dp"
       android:layout_width="wrap_content"
       android:layout_height="wrap_content"
       android:id="@+id/b_rtmp"
@@ -29,7 +29,7 @@
 
   <Button
       android:text="@string/rtsp_streamer"
-      android:layout_margin="10dp"
+      android:layout_margin="6dp"
       android:layout_width="wrap_content"
       android:layout_height="wrap_content"
       android:id="@+id/b_rtsp"
@@ -37,7 +37,7 @@
 
   <Button
       android:text="@string/default_rtmp"
-      android:layout_margin="10dp"
+      android:layout_margin="6dp"
       android:layout_width="wrap_content"
       android:layout_height="wrap_content"
       android:id="@+id/b_default_rtmp"
@@ -45,7 +45,7 @@
 
   <Button
       android:text="@string/default_rtsp"
-      android:layout_margin="10dp"
+      android:layout_margin="6dp"
       android:layout_width="wrap_content"
       android:layout_height="wrap_content"
       android:id="@+id/b_default_rtsp"
@@ -53,7 +53,7 @@
 
   <Button
       android:text="@string/from_file_rtmp"
-      android:layout_margin="10dp"
+      android:layout_margin="6dp"
       android:layout_width="wrap_content"
       android:layout_height="wrap_content"
       android:id="@+id/b_from_file_rtmp"
@@ -61,7 +61,7 @@
 
   <Button
       android:text="@string/from_file_rtsp"
-      android:layout_margin="10dp"
+      android:layout_margin="6dp"
       android:layout_width="wrap_content"
       android:layout_height="wrap_content"
       android:id="@+id/b_from_file_rtsp"
@@ -69,7 +69,7 @@
 
   <Button
       android:text="@string/surface_mode_rtmp"
-      android:layout_margin="10dp"
+      android:layout_margin="6dp"
       android:layout_width="wrap_content"
       android:layout_height="wrap_content"
       android:id="@+id/b_surface_mode_rtmp"
@@ -77,9 +77,25 @@
 
   <Button
       android:text="@string/surface_mode_rtsp"
-      android:layout_margin="10dp"
+      android:layout_margin="6dp"
       android:layout_width="wrap_content"
       android:layout_height="wrap_content"
       android:id="@+id/b_surface_mode_rtsp"
+      />
+
+  <Button
+      android:text="@string/display_rtmp"
+      android:layout_margin="6dp"
+      android:layout_width="wrap_content"
+      android:layout_height="wrap_content"
+      android:id="@+id/b_display_rtmp"
+      />
+
+  <Button
+      android:text="@string/display_rtsp"
+      android:layout_margin="6dp"
+      android:layout_width="wrap_content"
+      android:layout_height="wrap_content"
+      android:id="@+id/b_display_rtsp"
       />
 </LinearLayout>

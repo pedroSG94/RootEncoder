@@ -15,6 +15,8 @@ import com.pedro.rtmpstreamer.customexample.RtmpActivity;
 import com.pedro.rtmpstreamer.customexample.RtspActivity;
 import com.pedro.rtmpstreamer.defaultexample.ExampleRtmpActivity;
 import com.pedro.rtmpstreamer.defaultexample.ExampleRtspActivity;
+import com.pedro.rtmpstreamer.displayexample.DisplayRtmpActivity;
+import com.pedro.rtmpstreamer.displayexample.DisplayRtspActivity;
 import com.pedro.rtmpstreamer.filestreamexample.RtmpFromFileActivity;
 import com.pedro.rtmpstreamer.filestreamexample.RtspFromFileActivity;
 import com.pedro.rtmpstreamer.surfacemodeexample.SurfaceModeRtmpActivity;
@@ -49,6 +51,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     Button bSurfaceModeRtmp = (Button) findViewById(R.id.b_surface_mode_rtmp);
     bSurfaceModeRtsp.setOnClickListener(this);
     bSurfaceModeRtmp.setOnClickListener(this);
+    Button bDisplayRtsp = (Button) findViewById(R.id.b_display_rtsp);
+    Button bDisplayRtmp = (Button) findViewById(R.id.b_display_rtmp);
+    bDisplayRtsp.setOnClickListener(this);
+    bDisplayRtmp.setOnClickListener(this);
     if (!hasPermissions(this, PERMISSIONS)) {
       ActivityCompat.requestPermissions(this, PERMISSIONS, 1);
     }
@@ -132,6 +138,32 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         if (hasPermissions(this, PERMISSIONS)) {
           if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             startActivity(new Intent(this, SurfaceModeRtspActivity.class));
+          } else {
+            Toast.makeText(this, "You need min Android LOLLIPOP(API 21)", Toast.LENGTH_SHORT)
+                .show();
+          }
+        } else {
+          Toast.makeText(this, "You need permissions before", Toast.LENGTH_SHORT).show();
+          ActivityCompat.requestPermissions(this, PERMISSIONS, 1);
+        }
+        break;
+      case R.id.b_display_rtmp:
+        if (hasPermissions(this, PERMISSIONS)) {
+          if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            startActivity(new Intent(this, DisplayRtmpActivity.class));
+          } else {
+            Toast.makeText(this, "You need min Android LOLLIPOP(API 21)", Toast.LENGTH_SHORT)
+                .show();
+          }
+        } else {
+          Toast.makeText(this, "You need permissions before", Toast.LENGTH_SHORT).show();
+          ActivityCompat.requestPermissions(this, PERMISSIONS, 1);
+        }
+        break;
+      case R.id.b_display_rtsp:
+        if (hasPermissions(this, PERMISSIONS)) {
+          if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            startActivity(new Intent(this, DisplayRtspActivity.class));
           } else {
             Toast.makeText(this, "You need min Android LOLLIPOP(API 21)", Toast.LENGTH_SHORT)
                 .show();

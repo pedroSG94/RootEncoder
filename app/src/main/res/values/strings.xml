@@ -9,6 +9,8 @@
   <string name="from_file_rtmp">From file RTMP</string>
   <string name="surface_mode_rtsp">Surface mode RTSP</string>
   <string name="surface_mode_rtmp">Surface mode RTMP</string>
+  <string name="display_rtmp">Display RTMP</string>
+  <string name="display_rtsp">Display RTSP</string>
 
   <string name="tv_select">Select your streamer</string>
   <string name="hint_rtsp">rtsp://yourendpoint</string>
