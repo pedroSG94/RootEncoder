@@ -323,6 +323,7 @@ public class VideoEncoder implements GetCameraData {
               }
               //This ByteBuffer is H264
               ByteBuffer bb = videoEncoder.getOutputBuffer(outBufferIndex);
+              videoInfo.presentationTimeUs = System.nanoTime() / 1000 - mPresentTimeUs;
               getH264Data.getH264Data(bb, videoInfo);
               videoEncoder.releaseOutputBuffer(outBufferIndex, false);
             } else {
@@ -362,6 +363,7 @@ public class VideoEncoder implements GetCameraData {
               }
               //This ByteBuffer is H264
               ByteBuffer bb = outputBuffers[outBufferIndex];
+              videoInfo.presentationTimeUs = System.nanoTime() / 1000 - mPresentTimeUs;
               getH264Data.getH264Data(bb, videoInfo);
               videoEncoder.releaseOutputBuffer(outBufferIndex, false);
             } else {
