@@ -32,15 +32,16 @@ allprojects {
   }
 }
 dependencies {
-  compile 'com.github.pedroSG94.rtmp-rtsp-stream-client-java:builder:1.0.7'
+  compile 'com.github.pedroSG94.rtmp-rtsp-stream-client-java:builder:1.0.8'
 }
 
 ```
 
 ## Features:
 
-- [x] Encoder type buffer to buffer.
 - [x] Android min API 16.
+- [x] Encoder type buffer to buffer.
+- [x] Encoder type surface to buffer.
 - [x] RTMP/RTSP auth wowza.
 - [x] Audio noise suppressor.
 - [x] Audio echo cancellation.
@@ -49,12 +50,9 @@ dependencies {
 - [x] Change video bitrate while streaming (API 19+).
 - [X] Record MP4 file while streaming (API 18+).
 - [x] H264 and AAC hardware encoding.
-- [x] RTSP TCP/UDP
-
-### Under develop
-
-- Stream from MP4 file.
-- Stream with camera API2
+- [x] RTSP TCP/UDP.
+- [x] Stream from MP4 file (only video, no sound, API 18+).
+- [x] Stream device display(API 21+).
 
 ### Backlog
 
@@ -63,6 +61,9 @@ dependencies {
 ## Use example:
 
 ### RTMP:
+
+This code is a basic example. 
+I recommend you go to Activities in app module and see all examples.
 
 ```java
 
