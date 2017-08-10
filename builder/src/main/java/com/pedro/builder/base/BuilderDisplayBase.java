@@ -85,7 +85,7 @@ public abstract class BuilderDisplayBase
   }
 
   public boolean prepareVideo() {
-    return videoEncoder.prepareVideoEncoder(640, 480, 30, 1200 * 1024, 90, true,
+    return videoEncoder.prepareVideoEncoder(640, 480, 30, 1200 * 1024, 0, true,
         FormatVideoEncoder.SURFACE);
   }
 
