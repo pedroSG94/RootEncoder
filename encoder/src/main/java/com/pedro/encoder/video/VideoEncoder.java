@@ -506,7 +506,7 @@ public class VideoEncoder implements GetCameraData {
           for (int color : codecCapabilities.colorFormats) {
             Log.i(TAG, "Color supported: " + color);
             //check if encoder support any yuv420 color
-                        if (color == FormatVideoEncoder.YUV420PLANAR.getFormatCodec()
+            if (color == FormatVideoEncoder.YUV420PLANAR.getFormatCodec()
                 || color == FormatVideoEncoder.YUV420SEMIPLANAR.getFormatCodec()
                 || color == FormatVideoEncoder.YUV420PACKEDPLANAR.getFormatCodec()) {
               return mci;
