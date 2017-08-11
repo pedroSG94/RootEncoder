@@ -2,6 +2,7 @@ package com.pedro.encoder.input.video;
 
 import android.graphics.ImageFormat;
 import android.hardware.Camera;
+import android.media.CamcorderProfile;
 import android.media.MediaCodecInfo;
 import android.media.MediaCodecList;
 import android.opengl.GLES20;
@@ -13,6 +14,7 @@ import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import com.pedro.encoder.video.FormatVideoEncoder;
 import java.io.IOException;
+import java.util.Iterator;
 import java.util.List;
 import javax.microedition.khronos.egl.EGL10;
 import javax.microedition.khronos.egl.EGLConfig;
@@ -223,51 +225,42 @@ public class Camera1ApiManager implements Camera.PreviewCallback {
 
   public List<Camera.Size> getPreviewSize() {
     List<Camera.Size> previewSizes;
+    Camera.Size maxSize;
     if (camera != null) {
+      maxSize = getMaxEncoderSizeSupported();
       previewSizes = camera.getParameters().getSupportedPreviewSizes();
     } else {
       camera = Camera.open(cameraSelect);
+      maxSize = getMaxEncoderSizeSupported();
       previewSizes = camera.getParameters().getSupportedPreviewSizes();
       camera.release();
       camera = null;
     }
-    //discard preview more high than encoder support
-    if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {
-      Size maxSize = getMaxEncoderSizeSupported();
-      if(maxSize != null) {
-        for (Camera.Size size : previewSizes) {
-          if (size.width > maxSize.getWidth() || size.height > maxSize.getHeight()){
-            Log.i(TAG, size.width + "X" + size.height + ", not supported for encoder");
-            previewSizes.remove(size);
-          }
-        }
+    //discard preview more high than device can record
+    Iterator<Camera.Size> iterator = previewSizes.iterator();
+    while (iterator.hasNext()) {
+      Camera.Size size = iterator.next();
+      if (size.width > maxSize.width || size.height > maxSize.height) {
+        Log.i(TAG, size.width + "X" + size.height + ", not supported for encoder");
+        iterator.remove();
       }
     }
     return previewSizes;
   }
 
   /**
-   * @return max size that h264 device encoder can record. null if encoder not found
+   * @return max size that device can record.
    */
-  @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
-  private Size getMaxEncoderSizeSupported() {
-    String mime = "video/avc";
-    int count = MediaCodecList.getCodecCount();
-    for (int i = 0; i < count; i++) {
-      MediaCodecInfo mci = MediaCodecList.getCodecInfoAt(i);
-      if (!mci.isEncoder()) {
-        continue;
-      }
-      String[] types = mci.getSupportedTypes();
-      for (String type : types) {
-        if (type.equalsIgnoreCase(mime)) {
-          MediaCodecInfo.CodecCapabilities codecCapabilities = mci.getCapabilitiesForType(mime);
-          return new Size(codecCapabilities.getVideoCapabilities().getSupportedWidths().getUpper(),
-              codecCapabilities.getVideoCapabilities().getSupportedHeights().getUpper());
-        }
-      }
-    }
-    return null;
+  private Camera.Size getMaxEncoderSizeSupported() {
+    //if (CamcorderProfile.hasProfile(CamcorderProfile.QUALITY_2160P)) {
+    //  return camera.new Size(3840, 2160);
+    //} else if (CamcorderProfile.hasProfile(CamcorderProfile.QUALITY_1080P)) {
+    //  return camera.new Size(1920, 1080);
+    //} else if (CamcorderProfile.hasProfile(CamcorderProfile.QUALITY_720P)) {
+    //  return camera.new Size(1280, 720);
+    //} else {
+      return camera.new Size(640, 480);
+    //}
   }
 
   public void setEffect(EffectManager effect) {
