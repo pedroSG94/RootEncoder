@@ -252,15 +252,15 @@ public class Camera1ApiManager implements Camera.PreviewCallback {
    * @return max size that device can record.
    */
   private Camera.Size getMaxEncoderSizeSupported() {
-    //if (CamcorderProfile.hasProfile(CamcorderProfile.QUALITY_2160P)) {
-    //  return camera.new Size(3840, 2160);
-    //} else if (CamcorderProfile.hasProfile(CamcorderProfile.QUALITY_1080P)) {
-    //  return camera.new Size(1920, 1080);
-    //} else if (CamcorderProfile.hasProfile(CamcorderProfile.QUALITY_720P)) {
-    //  return camera.new Size(1280, 720);
-    //} else {
+    if (CamcorderProfile.hasProfile(CamcorderProfile.QUALITY_2160P)) {
+      return camera.new Size(3840, 2160);
+    } else if (CamcorderProfile.hasProfile(CamcorderProfile.QUALITY_1080P)) {
+      return camera.new Size(1920, 1080);
+    } else if (CamcorderProfile.hasProfile(CamcorderProfile.QUALITY_720P)) {
+      return camera.new Size(1280, 720);
+    } else {
       return camera.new Size(640, 480);
-    //}
+    }
   }
 
   public void setEffect(EffectManager effect) {
