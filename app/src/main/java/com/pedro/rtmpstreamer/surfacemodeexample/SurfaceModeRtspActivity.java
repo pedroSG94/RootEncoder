@@ -1,27 +1,28 @@
-package com.pedro.rtmpstreamer.defaultexample;
+package com.pedro.rtmpstreamer.surfacemodeexample;
 
-import android.support.v7.app.AppCompatActivity;
+import android.os.Build;
 import android.os.Bundle;
+import android.support.annotation.RequiresApi;
+import android.support.v7.app.AppCompatActivity;
 import android.view.SurfaceView;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
-import com.pedro.builder.rtsp.RtspBuilder;
+import com.pedro.builder.rtsp.RtspBuilderSurfaceMode;
 import com.pedro.rtmpstreamer.R;
 import com.pedro.rtsp.rtsp.Protocol;
 import com.pedro.rtsp.utils.ConnectCheckerRtsp;
 
 /**
- * This class is only for a simple example of library use with default stream values.
- * video = 1280x720 resolution, 30fps, 1500 * 1024 bitrate, 0 rotation.
- * audio = stereo, 128 * 1024 bitrate, 44100 sampleRate.
+ * Unstable activity. See builder header.
  */
-public class ExampleRtspActivity extends AppCompatActivity
+@RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
+public class SurfaceModeRtspActivity extends AppCompatActivity
     implements ConnectCheckerRtsp, View.OnClickListener {
 
-  private RtspBuilder rtspBuilder;
+  private RtspBuilderSurfaceMode rtspBuilderSurfaceMode;
   private Button button;
   private EditText etUrl;
 
@@ -35,7 +36,7 @@ public class ExampleRtspActivity extends AppCompatActivity
     button.setOnClickListener(this);
     etUrl = (EditText) findViewById(R.id.et_rtp_url);
     etUrl.setHint(R.string.hint_rtsp);
-    rtspBuilder = new RtspBuilder(surfaceView, Protocol.TCP, this);
+    rtspBuilderSurfaceMode = new RtspBuilderSurfaceMode(surfaceView, Protocol.TCP, this);
   }
 
   @Override
@@ -43,7 +44,7 @@ public class ExampleRtspActivity extends AppCompatActivity
     runOnUiThread(new Runnable() {
       @Override
       public void run() {
-        Toast.makeText(ExampleRtspActivity.this, "Connection success", Toast.LENGTH_SHORT).show();
+        Toast.makeText(SurfaceModeRtspActivity.this, "Connection success", Toast.LENGTH_SHORT).show();
       }
     });
   }
@@ -53,8 +54,8 @@ public class ExampleRtspActivity extends AppCompatActivity
     runOnUiThread(new Runnable() {
       @Override
       public void run() {
-        Toast.makeText(ExampleRtspActivity.this, "Connection failed", Toast.LENGTH_SHORT).show();
-        rtspBuilder.stopStream();
+        Toast.makeText(SurfaceModeRtspActivity.this, "Connection failed", Toast.LENGTH_SHORT).show();
+        rtspBuilderSurfaceMode.stopStream();
         button.setText(R.string.start_button);
       }
     });
@@ -65,7 +66,7 @@ public class ExampleRtspActivity extends AppCompatActivity
     runOnUiThread(new Runnable() {
       @Override
       public void run() {
-        Toast.makeText(ExampleRtspActivity.this, "Disconnected", Toast.LENGTH_SHORT).show();
+        Toast.makeText(SurfaceModeRtspActivity.this, "Disconnected", Toast.LENGTH_SHORT).show();
       }
     });
   }
@@ -75,9 +76,7 @@ public class ExampleRtspActivity extends AppCompatActivity
     runOnUiThread(new Runnable() {
       @Override
       public void run() {
-        Toast.makeText(ExampleRtspActivity.this, "Auth error", Toast.LENGTH_SHORT).show();
-        rtspBuilder.stopStream();
-        button.setText(R.string.start_button);
+        Toast.makeText(SurfaceModeRtspActivity.this, "Auth error", Toast.LENGTH_SHORT).show();
       }
     });
   }
@@ -87,24 +86,24 @@ public class ExampleRtspActivity extends AppCompatActivity
     runOnUiThread(new Runnable() {
       @Override
       public void run() {
-        Toast.makeText(ExampleRtspActivity.this, "Auth success", Toast.LENGTH_SHORT).show();
+        Toast.makeText(SurfaceModeRtspActivity.this, "Auth success", Toast.LENGTH_SHORT).show();
       }
     });
   }
 
   @Override
   public void onClick(View view) {
-    if (!rtspBuilder.isStreaming()) {
-      if (rtspBuilder.prepareAudio() && rtspBuilder.prepareVideo()) {
+    if (!rtspBuilderSurfaceMode.isStreaming()) {
+      if (rtspBuilderSurfaceMode.prepareAudio() && rtspBuilderSurfaceMode.prepareVideo()) {
         button.setText(R.string.stop_button);
-        rtspBuilder.startStream(etUrl.getText().toString());
+        rtspBuilderSurfaceMode.startStream(etUrl.getText().toString());
       } else {
         Toast.makeText(this, "Error preparing stream, This device cant do it", Toast.LENGTH_SHORT)
             .show();
       }
     } else {
       button.setText(R.string.start_button);
-      rtspBuilder.stopStream();
+      rtspBuilderSurfaceMode.stopStream();
     }
   }
 }

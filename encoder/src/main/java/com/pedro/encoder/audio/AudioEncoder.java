@@ -7,7 +7,6 @@ import android.os.Build;
 import android.support.annotation.RequiresApi;
 import android.util.Log;
 import com.pedro.encoder.input.audio.GetMicrophoneData;
-import com.pedro.encoder.input.audio.MicrophoneManager;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 
@@ -20,7 +19,7 @@ public class AudioEncoder implements GetMicrophoneData {
 
   private String TAG = "AudioEncoder";
   private MediaCodec audioEncoder;
-  private GetAccData getAccData;
+  private GetAacData getAacData;
   private MediaCodec.BufferInfo audioInfo = new MediaCodec.BufferInfo();
   private long mPresentTimeUs;
   private boolean running;
@@ -31,8 +30,8 @@ public class AudioEncoder implements GetMicrophoneData {
   private int sampleRate = 44100; //in hz
   private boolean isStereo = true;
 
-  public AudioEncoder(GetAccData getAccData) {
-    this.getAccData = getAccData;
+  public AudioEncoder(GetAacData getAacData) {
+    this.getAacData = getAacData;
   }
 
   /**
@@ -45,7 +44,7 @@ public class AudioEncoder implements GetMicrophoneData {
       int a = (isStereo) ? 2 : 1;
       MediaFormat audioFormat = MediaFormat.createAudioFormat(mime, sampleRate, a);
       audioFormat.setInteger(MediaFormat.KEY_BIT_RATE, bitRate);
-      audioFormat.setInteger(MediaFormat.KEY_MAX_INPUT_SIZE, MicrophoneManager.BUFFER_SIZE);
+      audioFormat.setInteger(MediaFormat.KEY_MAX_INPUT_SIZE, 0);
       audioFormat.setInteger(MediaFormat.KEY_AAC_PROFILE,
           MediaCodecInfo.CodecProfileLevel.AACObjectLC);
       audioEncoder.configure(audioFormat, null, null, MediaCodec.CONFIGURE_FLAG_ENCODE);
@@ -113,10 +112,12 @@ public class AudioEncoder implements GetMicrophoneData {
 
     for (; ; ) {
       int outBufferIndex = audioEncoder.dequeueOutputBuffer(audioInfo, 0);
-      if (outBufferIndex >= 0) {
-        //This ByteBuffer is ACC
+      if (outBufferIndex == MediaCodec.INFO_OUTPUT_FORMAT_CHANGED) {
+        getAacData.onAudioFormat(audioEncoder.getOutputFormat());
+      } else if (outBufferIndex >= 0) {
+        //This ByteBuffer is AAC
         ByteBuffer bb = audioEncoder.getOutputBuffer(outBufferIndex);
-        getAccData.getAccData(bb, audioInfo);
+        getAacData.getAacData(bb, audioInfo);
         audioEncoder.releaseOutputBuffer(outBufferIndex, false);
       } else {
         break;
@@ -139,10 +140,12 @@ public class AudioEncoder implements GetMicrophoneData {
 
     for (; ; ) {
       int outBufferIndex = audioEncoder.dequeueOutputBuffer(audioInfo, 0);
-      if (outBufferIndex >= 0) {
-        //This ByteBuffer is ACC
+      if (outBufferIndex == MediaCodec.INFO_OUTPUT_FORMAT_CHANGED) {
+        getAacData.onAudioFormat(audioEncoder.getOutputFormat());
+      } else if (outBufferIndex >= 0) {
+        //This ByteBuffer is AAC
         ByteBuffer bb = outputBuffers[outBufferIndex];
-        getAccData.getAccData(bb, audioInfo);
+        getAacData.getAacData(bb, audioInfo);
         audioEncoder.releaseOutputBuffer(outBufferIndex, false);
       } else {
         break;

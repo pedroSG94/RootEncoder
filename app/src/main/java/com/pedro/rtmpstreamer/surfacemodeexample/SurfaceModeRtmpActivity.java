@@ -1,26 +1,27 @@
-package com.pedro.rtmpstreamer.defaultexample;
+package com.pedro.rtmpstreamer.surfacemodeexample;
 
-import android.support.v7.app.AppCompatActivity;
+import android.os.Build;
 import android.os.Bundle;
+import android.support.annotation.RequiresApi;
+import android.support.v7.app.AppCompatActivity;
 import android.view.SurfaceView;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
-import com.pedro.builder.rtmp.RtmpBuilder;
+import com.pedro.builder.rtmp.RtmpBuilderSurfaceMode;
 import com.pedro.rtmpstreamer.R;
 import net.ossrs.rtmp.ConnectCheckerRtmp;
 
 /**
- * This class is only for a simple example of library use with default stream values.
- * Video = 1280x720 resolution, 30fps, 1500 * 1024 bitrate, 0 rotation.
- * Audio = stereo, 128 * 1024 bitrate, 44100 sampleRate.
+ * Unstable activity. See builder header.
  */
-public class ExampleRtmpActivity extends AppCompatActivity
+@RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
+public class SurfaceModeRtmpActivity extends AppCompatActivity
     implements ConnectCheckerRtmp, View.OnClickListener {
 
-  private RtmpBuilder rtmpBuilder;
+  private RtmpBuilderSurfaceMode rtmpBuilderSurfaceMode;
   private Button button;
   private EditText etUrl;
 
@@ -34,7 +35,7 @@ public class ExampleRtmpActivity extends AppCompatActivity
     button.setOnClickListener(this);
     etUrl = (EditText) findViewById(R.id.et_rtp_url);
     etUrl.setHint(R.string.hint_rtmp);
-    rtmpBuilder = new RtmpBuilder(surfaceView, this);
+    rtmpBuilderSurfaceMode = new RtmpBuilderSurfaceMode(surfaceView, this);
   }
 
   @Override
@@ -42,7 +43,7 @@ public class ExampleRtmpActivity extends AppCompatActivity
     runOnUiThread(new Runnable() {
       @Override
       public void run() {
-        Toast.makeText(ExampleRtmpActivity.this, "Connection success", Toast.LENGTH_SHORT).show();
+        Toast.makeText(SurfaceModeRtmpActivity.this, "Connection success", Toast.LENGTH_SHORT).show();
       }
     });
   }
@@ -52,8 +53,8 @@ public class ExampleRtmpActivity extends AppCompatActivity
     runOnUiThread(new Runnable() {
       @Override
       public void run() {
-        Toast.makeText(ExampleRtmpActivity.this, "Connection failed", Toast.LENGTH_SHORT).show();
-        rtmpBuilder.stopStream();
+        Toast.makeText(SurfaceModeRtmpActivity.this, "Connection failed", Toast.LENGTH_SHORT).show();
+        rtmpBuilderSurfaceMode.stopStream();
         button.setText(R.string.start_button);
       }
     });
@@ -64,7 +65,7 @@ public class ExampleRtmpActivity extends AppCompatActivity
     runOnUiThread(new Runnable() {
       @Override
       public void run() {
-        Toast.makeText(ExampleRtmpActivity.this, "Disconnected", Toast.LENGTH_SHORT).show();
+        Toast.makeText(SurfaceModeRtmpActivity.this, "Disconnected", Toast.LENGTH_SHORT).show();
       }
     });
   }
@@ -74,7 +75,7 @@ public class ExampleRtmpActivity extends AppCompatActivity
     runOnUiThread(new Runnable() {
       @Override
       public void run() {
-        Toast.makeText(ExampleRtmpActivity.this, "Auth error", Toast.LENGTH_SHORT).show();
+        Toast.makeText(SurfaceModeRtmpActivity.this, "Auth error", Toast.LENGTH_SHORT).show();
       }
     });
   }
@@ -84,24 +85,24 @@ public class ExampleRtmpActivity extends AppCompatActivity
     runOnUiThread(new Runnable() {
       @Override
       public void run() {
-        Toast.makeText(ExampleRtmpActivity.this, "Auth success", Toast.LENGTH_SHORT).show();
+        Toast.makeText(SurfaceModeRtmpActivity.this, "Auth success", Toast.LENGTH_SHORT).show();
       }
     });
   }
 
   @Override
   public void onClick(View view) {
-    if (!rtmpBuilder.isStreaming()) {
-      if (rtmpBuilder.prepareAudio() && rtmpBuilder.prepareVideo()) {
+    if (!rtmpBuilderSurfaceMode.isStreaming()) {
+      if (rtmpBuilderSurfaceMode.prepareAudio() && rtmpBuilderSurfaceMode.prepareVideo()) {
         button.setText(R.string.stop_button);
-        rtmpBuilder.startStream(etUrl.getText().toString());
+        rtmpBuilderSurfaceMode.startStream(etUrl.getText().toString());
       } else {
         Toast.makeText(this, "Error preparing stream, This device cant do it", Toast.LENGTH_SHORT)
             .show();
       }
     } else {
       button.setText(R.string.start_button);
-      rtmpBuilder.stopStream();
+      rtmpBuilderSurfaceMode.stopStream();
     }
   }
 }

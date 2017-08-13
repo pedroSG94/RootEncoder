@@ -6,6 +6,11 @@
   <string name="default_rtmp">Default RTMP</string>
   <string name="default_rtsp">Default RTSP</string>
   <string name="from_file_rtsp">From file RTSP</string>
+  <string name="from_file_rtmp">From file RTMP</string>
+  <string name="surface_mode_rtsp">Surface mode RTSP</string>
+  <string name="surface_mode_rtmp">Surface mode RTMP</string>
+  <string name="display_rtmp">Display RTMP</string>
+  <string name="display_rtsp">Display RTSP</string>
 
   <string name="tv_select">Select your streamer</string>
   <string name="hint_rtsp">rtsp://yourendpoint</string>
@@ -47,4 +52,6 @@
   <string name="wowza_user">User</string>
   <string name="wowza_password">Password</string>
   <string name="noise_suppressor">Noise suppressor</string>
+  <string name="start_record">Start record</string>
+  <string name="stop_record">Stop record</string>
 </resources>

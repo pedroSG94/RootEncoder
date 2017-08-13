@@ -518,6 +518,7 @@ public class RtmpConnection implements RtmpPublisher {
       // socket exception only issue one time.
       if (!socketExceptionCause.contentEquals(se.getMessage())) {
         socketExceptionCause = se.getMessage();
+        connectCheckerRtmp.onConnectionFailedRtmp();
         Log.e(TAG, "Caught SocketException during write loop, shutting down: " + se.getMessage());
       }
     } catch (IOException ioe) {
@@ -587,12 +588,10 @@ public class RtmpConnection implements RtmpPublisher {
         }
       } catch (EOFException eof) {
         Thread.currentThread().interrupt();
-      } catch (SocketException se) {
+      } catch (IOException e) {
+        connectCheckerRtmp.onConnectionFailedRtmp();
         Log.e(TAG, "Caught SocketException while reading/decoding packet, shutting down: "
-            + se.getMessage());
-      } catch (IOException ioe) {
-        Log.e(TAG,
-            "Caught exception while reading/decoding packet, shutting down: " + ioe.getMessage());
+            + e.getMessage());
       }
     }
   }
@@ -619,7 +618,7 @@ public class RtmpConnection implements RtmpPublisher {
             onAuth = true;
             try {
               shutdown(false);
-            } catch (Exception e){
+            } catch (Exception e) {
               e.printStackTrace();
             }
             rtmpSessionInfo = new RtmpSessionInfo();
@@ -675,7 +674,7 @@ public class RtmpConnection implements RtmpPublisher {
 
         Log.i(TAG, "handleRxInvoke: Got result for invoked method: " + method);
         if ("connect".equals(method)) {
-          if(onAuth){
+          if (onAuth) {
             connectCheckerRtmp.onAuthSuccessRtmp();
             onAuth = false;
           }

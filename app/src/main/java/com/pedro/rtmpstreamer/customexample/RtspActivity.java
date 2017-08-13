@@ -1,6 +1,8 @@
 package com.pedro.rtmpstreamer.customexample;
 
+import android.os.Build;
 import android.os.Bundle;
+import android.os.Environment;
 import android.support.annotation.Nullable;
 import android.support.design.widget.NavigationView;
 import android.support.v4.widget.DrawerLayout;
@@ -20,12 +22,16 @@ import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.Spinner;
 import android.widget.Toast;
-import com.pedro.builder.RtspBuilder;
+import com.pedro.builder.rtsp.RtspBuilder;
 import com.pedro.encoder.input.video.CameraOpenException;
 import com.pedro.encoder.input.video.EffectManager;
 import com.pedro.rtmpstreamer.R;
 import com.pedro.rtsp.rtsp.Protocol;
 import com.pedro.rtsp.utils.ConnectCheckerRtsp;
+import java.io.File;
+import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 public class RtspActivity extends AppCompatActivity
     implements Button.OnClickListener, ConnectCheckerRtsp {
@@ -34,8 +40,11 @@ public class RtspActivity extends AppCompatActivity
 
   private RtspBuilder rtspBuilder;
   private SurfaceView surfaceView;
-  private Button bStartStop;
+  private Button bStartStop, bRecord;
   private EditText etUrl;
+  private String currentDateAndTime = "";
+  private File folder = new File(Environment.getExternalStorageDirectory().getAbsolutePath()
+      + "/rtmp-rtsp-stream-client-java");
   //options menu
   private DrawerLayout drawerLayout;
   private NavigationView navigationView;
@@ -51,7 +60,7 @@ public class RtspActivity extends AppCompatActivity
   protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
     getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
-    setContentView(R.layout.activity_rtsp);
+    setContentView(R.layout.activity_custom);
     getSupportActionBar().setDisplayHomeAsUpEnabled(true);
     getSupportActionBar().setHomeButtonEnabled(true);
 
@@ -59,16 +68,19 @@ public class RtspActivity extends AppCompatActivity
     rtspBuilder = new RtspBuilder(surfaceView, Protocol.TCP, this);
     prepareOptionsMenuViews();
 
-    etUrl = (EditText) findViewById(R.id.et_rtsp_url);
+    etUrl = (EditText) findViewById(R.id.et_rtp_url);
     bStartStop = (Button) findViewById(R.id.b_start_stop);
-    Button switchCamera = (Button) findViewById(R.id.switch_camera);
     bStartStop.setOnClickListener(this);
+    bRecord = (Button) findViewById(R.id.b_record);
+    bRecord.setOnClickListener(this);
+    Button switchCamera = (Button) findViewById(R.id.switch_camera);
     switchCamera.setOnClickListener(this);
   }
 
   private void prepareOptionsMenuViews() {
-    drawerLayout = (DrawerLayout) findViewById(R.id.activity_rtsp);
-    navigationView = (NavigationView) findViewById(R.id.nv_rtsp);
+    drawerLayout = (DrawerLayout) findViewById(R.id.activity_custom);
+    navigationView = (NavigationView) findViewById(R.id.nv_rtp);
+    navigationView.inflateMenu(R.menu.options_rtsp);
     actionBarDrawerToggle = new ActionBarDrawerToggle(this, drawerLayout, R.string.rtsp_streamer,
         R.string.rtsp_streamer) {
 
@@ -236,6 +248,35 @@ public class RtspActivity extends AppCompatActivity
           rtspBuilder.stopStream();
         }
         break;
+      case R.id.b_record:
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
+          if (!rtspBuilder.isRecording()) {
+            try {
+              if (!folder.exists()) {
+                folder.mkdir();
+              }
+              SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd_HHmmss");
+              currentDateAndTime = sdf.format(new Date());
+              rtspBuilder.startRecord(folder.getAbsolutePath() + "/" + currentDateAndTime + ".mp4");
+              bRecord.setText(R.string.stop_record);
+              Toast.makeText(this, "Recording... ", Toast.LENGTH_SHORT).show();
+            } catch (IOException e) {
+              rtspBuilder.stopRecord();
+              bRecord.setText(R.string.start_record);
+              Toast.makeText(this, e.getMessage(), Toast.LENGTH_SHORT).show();
+            }
+          } else {
+            rtspBuilder.stopRecord();
+            bRecord.setText(R.string.start_record);
+            Toast.makeText(this,
+                "file " + currentDateAndTime + ".mp4 saved in " + folder.getAbsolutePath(),
+                Toast.LENGTH_SHORT).show();
+          }
+        } else {
+          Toast.makeText(this, "You need min JELLY_BEAN_MR2(API 18) for do it...",
+              Toast.LENGTH_SHORT).show();
+        }
+        break;
       case R.id.switch_camera:
         try {
           rtspBuilder.switchCamera();
@@ -269,6 +310,14 @@ public class RtspActivity extends AppCompatActivity
       rtspBuilder.stopStream();
       bStartStop.setText(getResources().getString(R.string.start_button));
     }
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2 && rtspBuilder.isRecording()) {
+      rtspBuilder.stopRecord();
+      bRecord.setText(R.string.start_record);
+      Toast.makeText(this,
+          "file " + currentDateAndTime + ".mp4 saved in " + folder.getAbsolutePath(),
+          Toast.LENGTH_SHORT).show();
+      currentDateAndTime = "";
+    }
   }
 
   @Override
@@ -289,6 +338,15 @@ public class RtspActivity extends AppCompatActivity
         Toast.makeText(RtspActivity.this, "Connection failed", Toast.LENGTH_SHORT).show();
         rtspBuilder.stopStream();
         bStartStop.setText(getResources().getString(R.string.start_button));
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2
+            && rtspBuilder.isRecording()) {
+          rtspBuilder.stopRecord();
+          bRecord.setText(R.string.start_record);
+          Toast.makeText(RtspActivity.this,
+              "file " + currentDateAndTime + ".mp4 saved in " + folder.getAbsolutePath(),
+              Toast.LENGTH_SHORT).show();
+          currentDateAndTime = "";
+        }
       }
     });
   }
@@ -299,6 +357,15 @@ public class RtspActivity extends AppCompatActivity
       @Override
       public void run() {
         Toast.makeText(RtspActivity.this, "Disconnected", Toast.LENGTH_SHORT).show();
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2
+            && rtspBuilder.isRecording()) {
+          rtspBuilder.stopRecord();
+          bRecord.setText(R.string.start_record);
+          Toast.makeText(RtspActivity.this,
+              "file " + currentDateAndTime + ".mp4 saved in " + folder.getAbsolutePath(),
+              Toast.LENGTH_SHORT).show();
+          currentDateAndTime = "";
+        }
       }
     });
   }
@@ -311,6 +378,15 @@ public class RtspActivity extends AppCompatActivity
         bStartStop.setText(getResources().getString(R.string.start_button));
         rtspBuilder.stopStream();
         Toast.makeText(RtspActivity.this, "Auth error", Toast.LENGTH_SHORT).show();
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2
+            && rtspBuilder.isRecording()) {
+          rtspBuilder.stopRecord();
+          bRecord.setText(R.string.start_record);
+          Toast.makeText(RtspActivity.this,
+              "file " + currentDateAndTime + ".mp4 saved in " + folder.getAbsolutePath(),
+              Toast.LENGTH_SHORT).show();
+          currentDateAndTime = "";
+        }
       }
     });
   }

@@ -8,8 +8,10 @@ import android.media.MediaCodec;
 import android.media.MediaCodecInfo;
 import android.media.MediaCodecList;
 import android.media.MediaFormat;
+import android.media.MediaMuxer;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Environment;
 import android.os.Process;
 import android.support.annotation.RequiresApi;
 import android.util.Log;
@@ -93,7 +95,6 @@ public class VideoEncoder implements GetCameraData {
         Log.e(TAG, "valid encoder not found");
         return false;
       }
-
       MediaFormat videoFormat;
       //if you dont use mediacodec rotation you need swap width and height in rotation 90 or 270
       // for correct encoding resolution
@@ -188,6 +189,10 @@ public class VideoEncoder implements GetCameraData {
     return running;
   }
 
+  public int getRotation() {
+    return rotation;
+  }
+
   public void start() {
     spsPpsSetted = false;
     mPresentTimeUs = System.nanoTime() / 1000;
@@ -271,9 +276,9 @@ public class VideoEncoder implements GetCameraData {
     if (running) {
       try {
         queue.add(buffer);
-        Log.i(TAG, "send data yv12");
       } catch (IllegalStateException e) {
-        Log.e(TAG, "frame discarded, cant add more frames: ", e);
+        queue.clear();
+        Log.i(TAG, "frame discarded");
       }
     }
   }
@@ -283,9 +288,9 @@ public class VideoEncoder implements GetCameraData {
     if (running) {
       try {
         queue.add(buffer);
-        Log.i(TAG, "send data nv21");
       } catch (IllegalStateException e) {
-        Log.e(TAG, "frame discarded, cant add more frames: ", e);
+        queue.clear();
+        Log.i(TAG, "frame discarded");
       }
     }
   }
@@ -300,6 +305,7 @@ public class VideoEncoder implements GetCameraData {
             int outBufferIndex = videoEncoder.dequeueOutputBuffer(videoInfo, 0);
             if (outBufferIndex == MediaCodec.INFO_OUTPUT_FORMAT_CHANGED) {
               MediaFormat mediaFormat = videoEncoder.getOutputFormat();
+              getH264Data.onVideoFormat(mediaFormat);
               getH264Data.onSPSandPPS(mediaFormat.getByteBuffer("csd-0"),
                   mediaFormat.getByteBuffer("csd-1"));
               spsPpsSetted = true;
@@ -314,12 +320,12 @@ public class VideoEncoder implements GetCameraData {
                     spsPpsSetted = true;
                   }
                 }
-              } else {
-                //This ByteBuffer is H264
-                ByteBuffer bb = videoEncoder.getOutputBuffer(outBufferIndex);
-                getH264Data.getH264Data(bb, videoInfo);
-                videoEncoder.releaseOutputBuffer(outBufferIndex, false);
               }
+              //This ByteBuffer is H264
+              ByteBuffer bb = videoEncoder.getOutputBuffer(outBufferIndex);
+              videoInfo.presentationTimeUs = System.nanoTime() / 1000 - mPresentTimeUs;
+              getH264Data.getH264Data(bb, videoInfo);
+              videoEncoder.releaseOutputBuffer(outBufferIndex, false);
             } else {
               break;
             }
@@ -340,6 +346,7 @@ public class VideoEncoder implements GetCameraData {
             int outBufferIndex = videoEncoder.dequeueOutputBuffer(videoInfo, 0);
             if (outBufferIndex == MediaCodec.INFO_OUTPUT_FORMAT_CHANGED) {
               MediaFormat mediaFormat = videoEncoder.getOutputFormat();
+              getH264Data.onVideoFormat(mediaFormat);
               getH264Data.onSPSandPPS(mediaFormat.getByteBuffer("csd-0"),
                   mediaFormat.getByteBuffer("csd-1"));
               spsPpsSetted = true;
@@ -353,12 +360,12 @@ public class VideoEncoder implements GetCameraData {
                     spsPpsSetted = true;
                   }
                 }
-              } else {
-                //This ByteBuffer is H264
-                ByteBuffer bb = outputBuffers[outBufferIndex];
-                getH264Data.getH264Data(bb, videoInfo);
-                videoEncoder.releaseOutputBuffer(outBufferIndex, false);
               }
+              //This ByteBuffer is H264
+              ByteBuffer bb = outputBuffers[outBufferIndex];
+              videoInfo.presentationTimeUs = System.nanoTime() / 1000 - mPresentTimeUs;
+              getH264Data.getH264Data(bb, videoInfo);
+              videoEncoder.releaseOutputBuffer(outBufferIndex, false);
             } else {
               break;
             }
@@ -382,6 +389,7 @@ public class VideoEncoder implements GetCameraData {
       int outBufferIndex = videoEncoder.dequeueOutputBuffer(videoInfo, 0);
       if (outBufferIndex == MediaCodec.INFO_OUTPUT_FORMAT_CHANGED) {
         MediaFormat mediaFormat = videoEncoder.getOutputFormat();
+        getH264Data.onVideoFormat(mediaFormat);
         getH264Data.onSPSandPPS(mediaFormat.getByteBuffer("csd-0"),
             mediaFormat.getByteBuffer("csd-1"));
         spsPpsSetted = true;
@@ -396,12 +404,11 @@ public class VideoEncoder implements GetCameraData {
               spsPpsSetted = true;
             }
           }
-        } else {
-          //This ByteBuffer is H264
-          ByteBuffer bb = videoEncoder.getOutputBuffer(outBufferIndex);
-          getH264Data.getH264Data(bb, videoInfo);
-          videoEncoder.releaseOutputBuffer(outBufferIndex, false);
         }
+        //This ByteBuffer is H264
+        ByteBuffer bb = videoEncoder.getOutputBuffer(outBufferIndex);
+        getH264Data.getH264Data(bb, videoInfo);
+        videoEncoder.releaseOutputBuffer(outBufferIndex, false);
       } else {
         break;
       }
@@ -425,6 +432,7 @@ public class VideoEncoder implements GetCameraData {
       int outBufferIndex = videoEncoder.dequeueOutputBuffer(videoInfo, 0);
       if (outBufferIndex == MediaCodec.INFO_OUTPUT_FORMAT_CHANGED) {
         MediaFormat mediaFormat = videoEncoder.getOutputFormat();
+        getH264Data.onVideoFormat(mediaFormat);
         getH264Data.onSPSandPPS(mediaFormat.getByteBuffer("csd-0"),
             mediaFormat.getByteBuffer("csd-1"));
         spsPpsSetted = true;
@@ -438,12 +446,11 @@ public class VideoEncoder implements GetCameraData {
               spsPpsSetted = true;
             }
           }
-        } else {
-          //This ByteBuffer is H264
-          ByteBuffer bb = outputBuffers[outBufferIndex];
-          getH264Data.getH264Data(bb, videoInfo);
-          videoEncoder.releaseOutputBuffer(outBufferIndex, false);
         }
+        //This ByteBuffer is H264
+        ByteBuffer bb = outputBuffers[outBufferIndex];
+        getH264Data.getH264Data(bb, videoInfo);
+        videoEncoder.releaseOutputBuffer(outBufferIndex, false);
       } else {
         break;
       }

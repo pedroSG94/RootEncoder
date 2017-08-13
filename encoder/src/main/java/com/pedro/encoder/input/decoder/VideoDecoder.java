@@ -1,14 +1,13 @@
 package com.pedro.encoder.input.decoder;
 
-import android.view.Surface;
-import com.pedro.encoder.input.video.GetCameraData;
-import java.io.IOException;
-import java.nio.ByteBuffer;
-
 import android.media.MediaCodec;
 import android.media.MediaExtractor;
 import android.media.MediaFormat;
+import android.os.Process;
 import android.util.Log;
+import android.view.Surface;
+import java.io.IOException;
+import java.nio.ByteBuffer;
 
 /**
  * Created by pedro on 20/06/17.
@@ -17,39 +16,45 @@ public class VideoDecoder {
 
   private final String TAG = "VideoDecoder";
 
+  private final VideoDecoderInterface videoDecoderInterface;
   private MediaExtractor videoExtractor;
   private MediaCodec videoDecoder;
   private MediaCodec.BufferInfo videoInfo = new MediaCodec.BufferInfo();
-  private boolean eosReceived;
+  private boolean decoding;
   private Thread thread;
   private MediaFormat videoFormat;
-  private String mime;
+  private String mime = "";
   private int width;
   private int height;
-  private int fps;
+  private boolean loopMode = false;
 
-  public VideoDecoder() {
+  public VideoDecoder(VideoDecoderInterface videoDecoderInterface) {
+    this.videoDecoderInterface = videoDecoderInterface;
   }
 
-  public void initExtractor(String filePath) {
-    eosReceived = false;
+  public boolean initExtractor(String filePath) throws IOException {
+    decoding = false;
     videoExtractor = new MediaExtractor();
-    try {
-      videoExtractor.setDataSource(filePath);
-    } catch (IOException e) {
-      e.printStackTrace();
-    }
-    for (int i = 0; i < videoExtractor.getTrackCount(); i++) {
+    videoExtractor.setDataSource(filePath);
+    for (int i = 0; i < videoExtractor.getTrackCount() && !mime.startsWith("video/"); i++) {
       videoFormat = videoExtractor.getTrackFormat(i);
       mime = videoFormat.getString(MediaFormat.KEY_MIME);
       if (mime.startsWith("video/")) {
         videoExtractor.selectTrack(i);
-        break;
+      } else {
+        videoFormat = null;
       }
     }
-    width = videoFormat.getInteger(MediaFormat.KEY_WIDTH);
-    height = videoFormat.getInteger(MediaFormat.KEY_HEIGHT);
-    fps = videoFormat.getInteger(MediaFormat.KEY_FRAME_RATE);
+    if (videoFormat != null && mime.equals("video/avc")) {
+      width = videoFormat.getInteger(MediaFormat.KEY_WIDTH);
+      height = videoFormat.getInteger(MediaFormat.KEY_HEIGHT);
+      return true;
+      //video decoder not supported
+    } else {
+      mime = "";
+      videoFormat = null;
+      return false;
+    }
   }
 
   public boolean prepareVideo(Surface surface) {
@@ -64,10 +69,12 @@ public class VideoDecoder {
   }
 
   public void start() {
+    decoding = true;
     videoDecoder.start();
     thread = new Thread(new Runnable() {
       @Override
       public void run() {
+        android.os.Process.setThreadPriority(Process.THREAD_PRIORITY_MORE_FAVORABLE);
         decodeVideo();
       }
     });
@@ -75,7 +82,7 @@ public class VideoDecoder {
   }
 
   public void stop() {
-    eosReceived = true;
+    decoding = false;
     if (thread != null) {
       thread.interrupt();
       try {
@@ -99,41 +106,47 @@ public class VideoDecoder {
   private void decodeVideo() {
     ByteBuffer[] inputBuffers = videoDecoder.getInputBuffers();
     long startMs = System.currentTimeMillis();
-    while (!eosReceived) {
-      int inIndex = videoDecoder.dequeueInputBuffer(-1);
+    while (decoding) {
+      int inIndex = videoDecoder.dequeueInputBuffer(10000);
       if (inIndex >= 0) {
         ByteBuffer buffer = inputBuffers[inIndex];
         int sampleSize = videoExtractor.readSampleData(buffer, 0);
         if (sampleSize < 0) {
-          Log.i(TAG, "InputBuffer BUFFER_FLAG_END_OF_STREAM");
-          videoDecoder.queueInputBuffer(inIndex, 0, 0, 0, MediaCodec.BUFFER_FLAG_END_OF_STREAM);
+          videoDecoder.queueInputBuffer(inIndex, 0, 0, 0L, MediaCodec.BUFFER_FLAG_END_OF_STREAM);
+          Log.i(TAG, "end of file in");
         } else {
           videoDecoder.queueInputBuffer(inIndex, 0, sampleSize, videoExtractor.getSampleTime(), 0);
           videoExtractor.advance();
         }
-
-        int outIndex = videoDecoder.dequeueOutputBuffer(videoInfo, 0);
-        if (outIndex >= 0) {
-          //needed for fix decode speed
-          while (videoInfo.presentationTimeUs / 1000 > System.currentTimeMillis() - startMs) {
-            try {
-              Thread.sleep(10);
-            } catch (InterruptedException e) {
-              thread.interrupt();
-              break;
-            }
+      }
+      int outIndex = videoDecoder.dequeueOutputBuffer(videoInfo, 10000);
+      if (outIndex >= 0) {
+        //needed for fix decode speed
+        while (videoInfo.presentationTimeUs / 1000 > System.currentTimeMillis() - startMs) {
+          try {
+            Thread.sleep(10);
+          } catch (InterruptedException e) {
+            thread.interrupt();
+            break;
           }
-          //true because I want draw in the surface
-          videoDecoder.releaseOutputBuffer(outIndex, true);
         }
-        // All decoded frames have been rendered, we can stop playing now
-        if ((videoInfo.flags & MediaCodec.BUFFER_FLAG_END_OF_STREAM) != 0) {
-          Log.i(TAG, "OutputBuffer BUFFER_FLAG_END_OF_STREAM");
-          stop();
-          break;
+        videoDecoder.releaseOutputBuffer(outIndex, videoInfo.size != 0);
+      }
+      if ((videoInfo.flags & MediaCodec.BUFFER_FLAG_END_OF_STREAM) != 0) {
+        Log.i(TAG, "end of file out");
+        if (loopMode) {
+          Log.i(TAG, "loop mode, restreaming file");
+          videoExtractor.seekTo(0, MediaExtractor.SEEK_TO_CLOSEST_SYNC);
+          videoDecoder.flush();
+        } else {
+          videoDecoderInterface.onVideoDecoderFinished();
         }
       }
     }
+  }
+
+  public void setLoopMode(boolean loopMode) {
+    this.loopMode = loopMode;
   }
 
   public int getWidth() {
@@ -142,9 +155,5 @@ public class VideoDecoder {
 
   public int getHeight() {
     return height;
-  }
-
-  public int getFps() {
-    return fps;
   }
 }

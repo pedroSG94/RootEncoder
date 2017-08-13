@@ -3,7 +3,7 @@ package com.pedro.rtsp.rtsp;
 import android.media.MediaCodec;
 import android.util.Base64;
 import android.util.Log;
-import com.pedro.rtsp.rtp.packets.AccPacket;
+import com.pedro.rtsp.rtp.packets.AacPacket;
 import com.pedro.rtsp.rtp.packets.H264Packet;
 import com.pedro.rtsp.utils.AuthUtil;
 import com.pedro.rtsp.utils.ConnectCheckerRtsp;
@@ -64,7 +64,7 @@ public class RtspClient {
   private String passPhraseJks = null;
   //packets
   private H264Packet h264Packet;
-  private AccPacket accPacket;
+  private AacPacket aacPacket;
 
   public RtspClient(ConnectCheckerRtsp connectCheckerRtsp, Protocol protocol) {
     this.protocol = protocol;
@@ -89,22 +89,14 @@ public class RtspClient {
   }
 
   public void setUrl(String url) {
-    if (url.startsWith("rtsp://")) {
-      try {
-        String[] data = url.split("/");
-        host = data[2].split(":")[0];
-        port = Integer.parseInt(data[2].split(":")[1]);
-        path = "";
-        for (int i = 3; i < data.length; i++) {
-          path += "/" + data[i];
-        }
-      } catch (ArrayIndexOutOfBoundsException e) {
-        Log.e(TAG, "Error parse endPoint");
-        e.printStackTrace();
-        connectCheckerRtsp.onConnectionFailedRtsp();
-        streaming = false;
-      }
+    Pattern rtspPattern = Pattern.compile("^rtsp://([^/:]+)(:(\\d+))*/([^/]+)(/(.*))*$");
+    Matcher matcher = rtspPattern.matcher(url);
+    if (matcher.find()) {
+      host = matcher.group(1);
+      port = Integer.parseInt((matcher.group(3) != null) ? matcher.group(3) : "1935");
+      path = "/" + matcher.group(4) + "/" + matcher.group(6);
     } else {
+      streaming = false;
       connectCheckerRtsp.onConnectionFailedRtsp();
     }
   }
@@ -129,9 +121,15 @@ public class RtspClient {
     return path;
   }
 
-  public void setSPSandPPS(byte[] sps, byte[] pps) {
-    this.sps = sps;
-    this.pps = pps;
+  public void setSPSandPPS(ByteBuffer sps, ByteBuffer pps) {
+    byte[] mSPS = new byte[sps.capacity() - 4];
+    sps.position(4);
+    sps.get(mSPS, 0, mSPS.length);
+    byte[] mPPS = new byte[pps.capacity() - 4];
+    pps.position(4);
+    pps.get(mPPS, 0, mPPS.length);
+    this.sps = mSPS;
+    this.pps = mPPS;
   }
 
   public void setIsStereo(boolean isStereo) {
@@ -142,8 +140,8 @@ public class RtspClient {
     if (!streaming) {
       h264Packet = new H264Packet(this, protocol);
       h264Packet.setSPSandPPS(sps, pps);
-      accPacket = new AccPacket(this, protocol);
-      accPacket.setSampleRate(sampleRate);
+      aacPacket = new AacPacket(this, protocol);
+      aacPacket.setSampleRate(sampleRate);
       thread = new Thread(new Runnable() {
         @Override
         public void run() {
@@ -194,7 +192,7 @@ public class RtspClient {
             getResponse(false);
 
             h264Packet.updateDestinationVideo();
-            accPacket.updateDestinationAudio();
+            aacPacket.updateDestinationAudio();
             streaming = true;
             connectCheckerRtsp.onConnectionSuccessRtsp();
             new Thread(connectionMonitor).start();
@@ -245,9 +243,9 @@ public class RtspClient {
         }
       });
       thread.start();
-      if (h264Packet != null && accPacket != null) {
+      if (h264Packet != null && aacPacket != null) {
         h264Packet.close();
-        accPacket.close();
+        aacPacket.close();
       }
     }
   }
@@ -384,10 +382,9 @@ public class RtspClient {
           String[] s = line.split("server_port=")[1].split("-");
           for (int i = 0; i < s.length; i++) {
             if (isAudio) {
-              audioPorts[i] = Integer.parseInt(s[i]);
+              audioPorts[i] = Integer.parseInt(s[i].substring(0, 4));
             } else {
-              Log.i("Ports", s[i]);
-              videoPorts[i] = Integer.parseInt(s[i]);
+              videoPorts[i] = Integer.parseInt(s[i].substring(0, 4));
             }
           }
         }
@@ -473,9 +470,9 @@ public class RtspClient {
     }
   }
 
-  public void sendAudio(ByteBuffer accBuffer, MediaCodec.BufferInfo info) {
+  public void sendAudio(ByteBuffer aacBuffer, MediaCodec.BufferInfo info) {
     if (isStreaming()) {
-      accPacket.createAndSendPacket(accBuffer, info);
+      aacPacket.createAndSendPacket(aacBuffer, info);
     }
   }
 }

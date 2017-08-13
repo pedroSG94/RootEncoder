@@ -5,7 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:openDrawer="start"
-    android:id="@+id/activity_rtmp"
+    android:id="@+id/activity_custom"
     >
 
   <RelativeLayout
@@ -20,14 +20,14 @@
 
     <EditText
         android:hint="@string/hint_rtmp"
-        android:textColor="@color/colorPrimaryDark"
-        android:textColorHint="@color/colorPrimaryDark"
+        android:textColor="@color/appColor"
+        android:textColorHint="@color/appColor"
         android:inputType="textUri"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:gravity="center"
         android:layout_margin="20dp"
-        android:id="@+id/et_rtmp_url"
+        android:id="@+id/et_rtp_url"
         />
 
     <Button
@@ -35,9 +35,18 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
-        android:layout_alignParentLeft="true"
+        android:layout_centerInParent="true"
         android:layout_margin="20dp"
         android:id="@+id/b_start_stop"
+        />
+
+    <Button
+        android:text="@string/start_record"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_margin="20dp"
+        android:id="@+id/b_record"
         />
 
     <Button
@@ -58,8 +67,7 @@
       android:paddingBottom="30dp"
       android:fitsSystemWindows="true"
       app:headerLayout="@xml/options_header"
-      app:menu="@menu/options_rtmp"
-      android:id="@+id/nv_rtmp"
+      android:id="@+id/nv_rtp"
       >
   </android.support.design.widget.NavigationView>
 </android.support.v4.widget.DrawerLayout>

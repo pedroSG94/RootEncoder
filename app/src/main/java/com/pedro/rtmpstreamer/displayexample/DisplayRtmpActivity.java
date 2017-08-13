@@ -1,40 +1,37 @@
-package com.pedro.rtmpstreamer.defaultexample;
+package com.pedro.rtmpstreamer.displayexample;
 
+import android.content.Intent;
+import android.os.Build;
+import android.support.annotation.RequiresApi;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.view.SurfaceView;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
-import com.pedro.builder.rtmp.RtmpBuilder;
+import com.pedro.builder.rtmp.RtmpBuilderDisplay;
 import com.pedro.rtmpstreamer.R;
 import net.ossrs.rtmp.ConnectCheckerRtmp;
 
-/**
- * This class is only for a simple example of library use with default stream values.
- * Video = 1280x720 resolution, 30fps, 1500 * 1024 bitrate, 0 rotation.
- * Audio = stereo, 128 * 1024 bitrate, 44100 sampleRate.
- */
-public class ExampleRtmpActivity extends AppCompatActivity
-    implements ConnectCheckerRtmp, View.OnClickListener {
+@RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
+public class DisplayRtmpActivity extends AppCompatActivity implements ConnectCheckerRtmp, View.OnClickListener {
 
-  private RtmpBuilder rtmpBuilder;
+  private RtmpBuilderDisplay rtmpBuilderDisplay;
   private Button button;
   private EditText etUrl;
+  private final int REQUEST_CODE = 1;
 
   @Override
   protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
     getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
     setContentView(R.layout.activity_example);
-    SurfaceView surfaceView = (SurfaceView) findViewById(R.id.surfaceView);
     button = (Button) findViewById(R.id.b_start_stop);
     button.setOnClickListener(this);
     etUrl = (EditText) findViewById(R.id.et_rtp_url);
     etUrl.setHint(R.string.hint_rtmp);
-    rtmpBuilder = new RtmpBuilder(surfaceView, this);
+    rtmpBuilderDisplay = new RtmpBuilderDisplay(this, this);
   }
 
   @Override
@@ -42,7 +39,7 @@ public class ExampleRtmpActivity extends AppCompatActivity
     runOnUiThread(new Runnable() {
       @Override
       public void run() {
-        Toast.makeText(ExampleRtmpActivity.this, "Connection success", Toast.LENGTH_SHORT).show();
+        Toast.makeText(DisplayRtmpActivity.this, "Connection success", Toast.LENGTH_SHORT).show();
       }
     });
   }
@@ -52,8 +49,8 @@ public class ExampleRtmpActivity extends AppCompatActivity
     runOnUiThread(new Runnable() {
       @Override
       public void run() {
-        Toast.makeText(ExampleRtmpActivity.this, "Connection failed", Toast.LENGTH_SHORT).show();
-        rtmpBuilder.stopStream();
+        Toast.makeText(DisplayRtmpActivity.this, "Connection failed", Toast.LENGTH_SHORT).show();
+        rtmpBuilderDisplay.stopStream();
         button.setText(R.string.start_button);
       }
     });
@@ -64,7 +61,7 @@ public class ExampleRtmpActivity extends AppCompatActivity
     runOnUiThread(new Runnable() {
       @Override
       public void run() {
-        Toast.makeText(ExampleRtmpActivity.this, "Disconnected", Toast.LENGTH_SHORT).show();
+        Toast.makeText(DisplayRtmpActivity.this, "Disconnected", Toast.LENGTH_SHORT).show();
       }
     });
   }
@@ -74,7 +71,7 @@ public class ExampleRtmpActivity extends AppCompatActivity
     runOnUiThread(new Runnable() {
       @Override
       public void run() {
-        Toast.makeText(ExampleRtmpActivity.this, "Auth error", Toast.LENGTH_SHORT).show();
+        Toast.makeText(DisplayRtmpActivity.this, "Auth error", Toast.LENGTH_SHORT).show();
       }
     });
   }
@@ -84,24 +81,33 @@ public class ExampleRtmpActivity extends AppCompatActivity
     runOnUiThread(new Runnable() {
       @Override
       public void run() {
-        Toast.makeText(ExampleRtmpActivity.this, "Auth success", Toast.LENGTH_SHORT).show();
+        Toast.makeText(DisplayRtmpActivity.this, "Auth success", Toast.LENGTH_SHORT).show();
       }
     });
   }
 
   @Override
-  public void onClick(View view) {
-    if (!rtmpBuilder.isStreaming()) {
-      if (rtmpBuilder.prepareAudio() && rtmpBuilder.prepareVideo()) {
-        button.setText(R.string.stop_button);
-        rtmpBuilder.startStream(etUrl.getText().toString());
+  protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+    if (requestCode == REQUEST_CODE) {
+      if (rtmpBuilderDisplay.prepareAudio() && rtmpBuilderDisplay.prepareVideo()) {
+        if (Build.VERSION.SDK_INT >= 21) {
+          rtmpBuilderDisplay.startStream(etUrl.getText().toString(), resultCode, data);
+        }
       } else {
         Toast.makeText(this, "Error preparing stream, This device cant do it", Toast.LENGTH_SHORT)
             .show();
       }
+    }
+  }
+
+  @Override
+  public void onClick(View view) {
+    if (!rtmpBuilderDisplay.isStreaming()) {
+      button.setText(R.string.stop_button);
+      startActivityForResult(rtmpBuilderDisplay.sendIntent(), REQUEST_CODE);
     } else {
       button.setText(R.string.start_button);
-      rtmpBuilder.stopStream();
+      rtmpBuilderDisplay.stopStream();
     }
   }
 }

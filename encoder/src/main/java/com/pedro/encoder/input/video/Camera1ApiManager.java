@@ -2,11 +2,19 @@ package com.pedro.encoder.input.video;
 
 import android.graphics.ImageFormat;
 import android.hardware.Camera;
+import android.media.CamcorderProfile;
+import android.media.MediaCodecInfo;
+import android.media.MediaCodecList;
 import android.opengl.GLES20;
+import android.os.Build;
+import android.support.annotation.RequiresApi;
 import android.util.Log;
+import android.util.Size;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
+import com.pedro.encoder.video.FormatVideoEncoder;
 import java.io.IOException;
+import java.util.Iterator;
 import java.util.List;
 import javax.microedition.khronos.egl.EGL10;
 import javax.microedition.khronos.egl.EGLConfig;
@@ -195,42 +203,63 @@ public class Camera1ApiManager implements Camera.PreviewCallback {
   }
 
   /**
-   * call it after start()
    * See: https://developer.android.com/reference/android/graphics/ImageFormat.html to know name of
    * constant values
    * Example: 842094169 -> YV12, 17 -> NV21
    */
   public List<Integer> getCameraPreviewImageFormatSupported() {
+    List<Integer> formats;
     if (camera != null) {
-      List<Integer> formats = camera.getParameters().getSupportedPreviewFormats();
+      formats = camera.getParameters().getSupportedPreviewFormats();
       for (Integer i : formats) {
         Log.i(TAG, "camera format supported: " + i);
       }
-      return formats;
     } else {
-      return null;
+      camera = Camera.open(cameraSelect);
+      formats = camera.getParameters().getSupportedPreviewFormats();
+      camera.release();
+      camera = null;
     }
+    return formats;
+  }
+
+  public List<Camera.Size> getPreviewSize() {
+    List<Camera.Size> previewSizes;
+    Camera.Size maxSize;
+    if (camera != null) {
+      maxSize = getMaxEncoderSizeSupported();
+      previewSizes = camera.getParameters().getSupportedPreviewSizes();
+    } else {
+      camera = Camera.open(cameraSelect);
+      maxSize = getMaxEncoderSizeSupported();
+      previewSizes = camera.getParameters().getSupportedPreviewSizes();
+      camera.release();
+      camera = null;
+    }
+    //discard preview more high than device can record
+    Iterator<Camera.Size> iterator = previewSizes.iterator();
+    while (iterator.hasNext()) {
+      Camera.Size size = iterator.next();
+      if (size.width > maxSize.width || size.height > maxSize.height) {
+        Log.i(TAG, size.width + "X" + size.height + ", not supported for encoder");
+        iterator.remove();
+      }
+    }
+    return previewSizes;
   }
 
   /**
-   * call if after start()
+   * @return max size that device can record.
    */
-  public List<Camera.Size> getPreviewSize() {
-    if (camera != null) {
-      List<Camera.Size> previewSizes = camera.getParameters().getSupportedPreviewSizes();
-      for (Camera.Size size : previewSizes) {
-        Log.i(TAG, size.width + "X" + size.height);
-      }
-      return previewSizes;
+  private Camera.Size getMaxEncoderSizeSupported() {
+    if (CamcorderProfile.hasProfile(CamcorderProfile.QUALITY_2160P)) {
+      return camera.new Size(3840, 2160);
+    } else if (CamcorderProfile.hasProfile(CamcorderProfile.QUALITY_1080P)) {
+      return camera.new Size(1920, 1080);
+    } else if (CamcorderProfile.hasProfile(CamcorderProfile.QUALITY_720P)) {
+      return camera.new Size(1280, 720);
     } else {
-      camera = Camera.open(cameraSelect);
-      List<Camera.Size> previewSizes = camera.getParameters().getSupportedPreviewSizes();
-      camera.release();
-      camera = null;
-      for (Camera.Size size : previewSizes) {
-        Log.i(TAG, size.width + "X" + size.height);
-      }
-      return previewSizes;
+      return camera.new Size(640, 480);
     }
   }
 
@@ -241,8 +270,7 @@ public class Camera1ApiManager implements Camera.PreviewCallback {
       try {
         camera.setParameters(parameters);
       } catch (RuntimeException e) {
-        Log.e(TAG, "Unsupported effect");
-        e.printStackTrace();
+        Log.e(TAG, "Unsupported effect: ", e);
       }
     }
   }
@@ -278,14 +306,18 @@ public class Camera1ApiManager implements Camera.PreviewCallback {
    * @required: <uses-permission android:name="android.permission.FLASHLIGHT"/>
    */
   public void enableLantern() {
-    Camera.Parameters parameters = camera.getParameters();
-    parameters.setFlashMode(Camera.Parameters.FLASH_MODE_TORCH);
-    try {
-      camera.setParameters(parameters);
-      lanternEnable = true;
-    } catch (RuntimeException e) {
-      Log.e(TAG, "lantern unsupported");
-      e.printStackTrace();
+    if (camera != null) {
+      Camera.Parameters parameters = camera.getParameters();
+      List<String> supportedFlashModes = parameters.getSupportedFlashModes();
+      if (supportedFlashModes != null && !supportedFlashModes.isEmpty()) {
+        if (supportedFlashModes.contains(Camera.Parameters.FLASH_MODE_TORCH)) {
+          parameters.setFlashMode(Camera.Parameters.FLASH_MODE_TORCH);
+          camera.setParameters(parameters);
+          lanternEnable = true;
+        } else {
+          Log.e(TAG, "Lantern unsupported");
+        }
+      }
     }
   }
 
@@ -293,14 +325,11 @@ public class Camera1ApiManager implements Camera.PreviewCallback {
    * @required: <uses-permission android:name="android.permission.FLASHLIGHT"/>
    */
   public void disableLantern() {
-    Camera.Parameters parameters = camera.getParameters();
-    parameters.setFlashMode(Camera.Parameters.FLASH_MODE_AUTO);
-    try {
+    if (camera != null) {
+      Camera.Parameters parameters = camera.getParameters();
+      parameters.setFlashMode(Camera.Parameters.FLASH_MODE_OFF);
       camera.setParameters(parameters);
       lanternEnable = false;
-    } catch (RuntimeException e) {
-      Log.e(TAG, "lantern unsupported");
-      e.printStackTrace();
     }
   }
 }
