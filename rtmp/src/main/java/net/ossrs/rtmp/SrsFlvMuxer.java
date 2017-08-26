@@ -257,13 +257,12 @@ public class SrsFlvMuxer {
   }
 
   private class SrsCodecAudioSampleRate {
-    // set to the max value to reserved, for array map.
-    public final static int Reserved = 4;
-
-    public final static int R5512 = 0;
-    public final static int R11025 = 1;
-    public final static int R22050 = 2;
-    public final static int R44100 = 3;
+    public final static int R5512 = 5512;
+    public final static int R11025 = 11025;
+    public final static int R22050 = 22050;
+    public final static int R44100 = 44100;
+    public final static int R32000 = 32000;
+    public final static int R16000 = 16000;
   }
 
   // E.4.3.1 VIDEODATA
@@ -293,42 +292,43 @@ public class SrsFlvMuxer {
    * H.264-AVC-ISO_IEC_14496-10-2012.pdf, page 83.
    */
   private class SrsAvcNaluType {
+    // Unspecified
+    public final static int Reserved = 0;
+
+    // Coded slice of a non-IDR picture slice_layer_without_partitioning_rbsp( )
+    public final static int NonIDR = 1;
+    // Coded slice data partition A slice_data_partition_a_layer_rbsp( )
+    public final static int DataPartitionA = 2;
+    // Coded slice data partition B slice_data_partition_b_layer_rbsp( )
+    public final static int DataPartitionB = 3;
+    // Coded slice data partition C slice_data_partition_c_layer_rbsp( )
+    public final static int DataPartitionC = 4;
     // Coded slice of an IDR picture slice_layer_without_partitioning_rbsp( )
     public final static int IDR = 5;
+    // Supplemental enhancement information (SEI) sei_rbsp( )
+    public final static int SEI = 6;
     // Sequence parameter set seq_parameter_set_rbsp( )
     public final static int SPS = 7;
     // Picture parameter set pic_parameter_set_rbsp( )
     public final static int PPS = 8;
     // Access unit delimiter access_unit_delimiter_rbsp( )
     public final static int AccessUnitDelimiter = 9;
-  }
-
-  /**
-   * utils functions.
-   */
-  public class SrsUtils {
-    private SrsAnnexbSearch as = new SrsAnnexbSearch();
-
-    public SrsAnnexbSearch avc_startswith_annexb(ByteBuffer bb, MediaCodec.BufferInfo bi) {
-      as.match = false;
-      as.nb_start_code = 0;
-
-      for (int i = bb.position(); i < bi.size - 3; i++) {
-        // not match.
-        if (bb.get(i) != 0x00 || bb.get(i + 1) != 0x00) {
-          break;
-        }
-
-        // match N[00] 00 00 01, where N>=0
-        if (bb.get(i + 2) == 0x01) {
-          as.match = true;
-          as.nb_start_code = i + 3 - bb.position();
-          break;
-        }
-      }
-
-      return as;
-    }
+    // End of sequence end_of_seq_rbsp( )
+    public final static int EOSequence = 10;
+    // End of stream end_of_stream_rbsp( )
+    public final static int EOStream = 11;
+    // Filler data filler_data_rbsp( )
+    public final static int FilterData = 12;
+    // Sequence parameter set extension seq_parameter_set_extension_rbsp( )
+    public final static int SPSExt = 13;
+    // Prefix NAL unit prefix_nal_unit_rbsp( )
+    public final static int PrefixNALU = 14;
+    // Subset sequence parameter set subset_seq_parameter_set_rbsp( )
+    public final static int SubsetSPS = 15;
+    // Coded slice of an auxiliary coded picture without partitioning slice_layer_without_partitioning_rbsp( )
+    public final static int LayerWithoutPartition = 19;
+    // Coded slice extension slice_layer_extension_rbsp( )
+    public final static int CodedSliceExt = 20;
   }
 
   /**
@@ -385,7 +385,7 @@ public class SrsFlvMuxer {
   private class SrsRawH264Stream {
     private final static String TAG = "SrsFlvMuxer";
 
-    private SrsUtils utils = new SrsUtils();
+    private SrsAnnexbSearch annexb = new SrsAnnexbSearch();
     private SrsFlvFrameBytes nalu_header = new SrsFlvFrameBytes();
     private SrsFlvFrameBytes seq_hdr = new SrsFlvFrameBytes();
     private SrsFlvFrameBytes sps_hdr = new SrsFlvFrameBytes();
@@ -552,37 +552,68 @@ public class SrsFlvMuxer {
       return allocation;
     }
 
-    public SrsFlvFrameBytes demuxAnnexb(ByteBuffer bb, MediaCodec.BufferInfo bi) {
-      SrsFlvFrameBytes tbb = new SrsFlvFrameBytes();
+    private SrsAnnexbSearch searchStartcode(ByteBuffer bb, MediaCodec.BufferInfo bi) {
+      annexb.match = false;
+      annexb.nb_start_code = 0;
+      if (bi.size - 4 > 0) {
+        if (bb.get(0) == 0x00 && bb.get(1) == 0x00 && bb.get(2) == 0x00 && bb.get(3) == 0x01) {
+          // match N[00] 00 00 00 01, where N>=0
+          annexb.match = true;
+          annexb.nb_start_code = 4;
+        } else if (bb.get(0) == 0x00 && bb.get(1) == 0x00 && bb.get(2) == 0x01) {
+          // match N[00] 00 00 01, where N>=0
+          annexb.match = true;
+          annexb.nb_start_code = 3;
+        }
+      }
+      return annexb;
+    }
 
-      while (bb.position() < bi.size) {
+    private SrsAnnexbSearch searchAnnexb(ByteBuffer bb, MediaCodec.BufferInfo bi) {
+      annexb.match = false;
+      annexb.nb_start_code = 0;
+      for (int i = bb.position(); i < bi.size - 4; i++) {
+        // not match.
+        if (bb.get(i) != 0x00 || bb.get(i + 1) != 0x00) {
+          continue;
+        }
+        // match N[00] 00 00 01, where N>=0
+        if (bb.get(i + 2) == 0x01) {
+          annexb.match = true;
+          annexb.nb_start_code = i + 3 - bb.position();
+          break;
+        }
+        // match N[00] 00 00 00 01, where N>=0
+        if (bb.get(i + 2) == 0x00 && bb.get(i + 3) == 0x01) {
+          annexb.match = true;
+          annexb.nb_start_code = i + 4 - bb.position();
+          break;
+        }
+      }
+      return annexb;
+    }
+
+    public SrsFlvFrameBytes demuxAnnexb(ByteBuffer bb, MediaCodec.BufferInfo bi,
+        boolean isOnlyChkHeader) {
+      SrsFlvFrameBytes tbb = new SrsFlvFrameBytes();
+      if (bb.position() < bi.size - 4) {
         // each frame must prefixed by annexb format.
         // about annexb, @see H.264-AVC-ISO_IEC_14496-10.pdf, page 211.
-        SrsAnnexbSearch tbbsc = utils.avc_startswith_annexb(bb, bi);
+        SrsAnnexbSearch tbbsc = isOnlyChkHeader ? searchStartcode(bb, bi) : searchAnnexb(bb, bi);
+        // tbbsc.nb_start_code always 4 , after 00 00 00 01
         if (!tbbsc.match || tbbsc.nb_start_code < 3) {
           Log.e(TAG, "annexb not match.");
-        }
-
-        // the start codes.
-        for (int i = 0; i < tbbsc.nb_start_code; i++) {
-          bb.get();
-        }
-
-        // find out the frame size.
-        tbb.data = bb.slice();
-        int pos = bb.position();
-        while (bb.position() < bi.size) {
-          SrsAnnexbSearch bsc = utils.avc_startswith_annexb(bb, bi);
-          if (bsc.match) {
-            break;
+        } else {
+          // the start codes.
+          for (int i = 0; i < tbbsc.nb_start_code; i++) {
+            bb.get();
           }
-          bb.get();
+
+          // find out the frame size.
+          tbb.data = bb.slice();
+          tbb.size = bi.size - bb.position();
         }
-
-        tbb.size = bb.position() - pos;
-        break;
       }
-
       return tbb;
     }
   }
@@ -632,9 +663,13 @@ public class SrsFlvMuxer {
         // samplingFrequencyIndex; 4 bslbf
         byte samplingFrequencyIndex = 0x04; //44100
         if (sampleRate == SrsCodecAudioSampleRate.R22050) {
-          samplingFrequencyIndex = 0x07;  //22050
+          samplingFrequencyIndex = 0x07;
         } else if (sampleRate == SrsCodecAudioSampleRate.R11025) {
-          samplingFrequencyIndex = 0x0a;  //11025
+          samplingFrequencyIndex = 0x0a;
+        } else if (sampleRate == SrsCodecAudioSampleRate.R32000) {
+          samplingFrequencyIndex = 0x05;
+        } else if (sampleRate == SrsCodecAudioSampleRate.R16000) {
+          samplingFrequencyIndex = 0x08;
         }
         ch |= (samplingFrequencyIndex >> 1) & 0x07;
         audio_tag.put(ch, 2);
@@ -731,62 +766,47 @@ public class SrsFlvMuxer {
     }
 
     public void writeVideoSample(final ByteBuffer bb, MediaCodec.BufferInfo bi) {
+      if (bi.size < 4) return;
+
       int pts = (int) (bi.presentationTimeUs / 1000);
       int dts = pts;
-
       int type = SrsCodecVideoAVCFrame.InterFrame;
-
-      // send each frame.
-      while (bb.position() < bi.size) {
-        SrsFlvFrameBytes frame = avc.demuxAnnexb(bb, bi);
-
-        // 5bits, 7.3.1 NAL unit syntax,
-        // H.264-AVC-ISO_IEC_14496-10.pdf, page 44.
-        // 7: SPS, 8: PPS, 5: I Frame, 1: P Frame
-        int nal_unit_type = (int)(frame.data.get(0) & 0x1f);
-        if (nal_unit_type == SrsAvcNaluType.SPS || nal_unit_type == SrsAvcNaluType.PPS) {
-          Log.i(TAG, String.format("annexb demux %dB, pts=%d, frame=%dB, nalu=%d",
-              bi.size, pts, frame.size, nal_unit_type));
+      SrsFlvFrameBytes frame = avc.demuxAnnexb(bb, bi, true);
+      int nal_unit_type = frame.data.get(0) & 0x1f;
+      if (nal_unit_type == SrsAvcNaluType.IDR) {
+        type = SrsCodecVideoAVCFrame.KeyFrame;
+      } else if (nal_unit_type == SrsAvcNaluType.SPS || nal_unit_type == SrsAvcNaluType.PPS) {
+        SrsFlvFrameBytes frame_pps = avc.demuxAnnexb(bb, bi, false);
+        frame.size = frame.size - frame_pps.size - 4;  // 4 ---> 00 00 00 01 pps
+        if (!frame.data.equals(Sps)) {
+          byte[] sps = new byte[frame.size];
+          frame.data.get(sps);
+          isPpsSpsSend = false;
+          Sps = ByteBuffer.wrap(sps);
         }
 
-        // for IDR frame, the frame is keyframe.
-        if (nal_unit_type == SrsAvcNaluType.IDR) {
-          type = SrsCodecVideoAVCFrame.KeyFrame;
-        }
-
-        // ignore the nalu type aud(9)
-        if (nal_unit_type == SrsAvcNaluType.AccessUnitDelimiter) {
-          continue;
-        }
-
-        // for sps
-        if (avc.isSps(frame)) {
-          if (!frame.data.equals(Sps)) {
-            byte[] sps = new byte[frame.size];
-            frame.data.get(sps);
-            isPpsSpsSend = false;
-            Sps = ByteBuffer.wrap(sps);
+        SrsFlvFrameBytes frame_sei = avc.demuxAnnexb(bb, bi, false);
+        if (frame_sei.size > 0) {
+          if (SrsAvcNaluType.SEI == (frame_sei.data.get(0) & 0x1f)) {
+            frame_pps.size = frame_pps.size - frame_sei.size - 3;// 3 ---> 00 00 01 SEI
           }
-          continue;
         }
 
-        // for pps
-        if (avc.isPps(frame)) {
-          if (!frame.data.equals(Pps)) {
-            byte[] pps = new byte[frame.size];
-            frame.data.get(pps);
-            isPpsSpsSend = false;
-            Pps = ByteBuffer.wrap(pps);
-          }
-          continue;
+        if (!frame_pps.data.equals(Pps)) {
+          byte[] pps = new byte[frame_pps.size];
+          frame_pps.data.get(pps);
+          isPpsSpsSend = false;
+          Pps = ByteBuffer.wrap(pps);
+          writeH264SpsPps(dts, pts);
         }
-
-        // IPB frame.
-        ipbs.add(avc.muxNaluHeader(frame));
-        ipbs.add(frame);
+        return;
+      } else if (nal_unit_type != SrsAvcNaluType.NonIDR) {
+        return;
       }
 
-      writeH264SpsPps(dts, pts);
+      ipbs.add(avc.muxNaluHeader(frame));
+      ipbs.add(frame);
+
       writeH264IpbFrame(ipbs, type, dts, pts);
       ipbs.clear();
     }
