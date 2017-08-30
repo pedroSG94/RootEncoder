@@ -84,11 +84,7 @@ public abstract class BuilderSurfaceModeBase
         boolean result =
                 videoEncoder.prepareVideoEncoder(width, height, fps, bitrate, rotation, hardwareRotation,
                         FormatVideoEncoder.SURFACE);
-        if (textureView != null) {
-            cameraManager = new Camera2ApiManager(textureView, videoEncoder.getInputSurface(), context);
-        } else if (surfaceView != null) {
-            cameraManager = new Camera2ApiManager(surfaceView, videoEncoder.getInputSurface(), context);
-        }
+        prepareCameraManager();
         return result;
     }
 
@@ -104,7 +100,7 @@ public abstract class BuilderSurfaceModeBase
     public boolean prepareVideo() {
         boolean result = videoEncoder.prepareVideoEncoder(640, 480, 30, 1200 * 1024, 90, true,
                 FormatVideoEncoder.SURFACE);
-        cameraManager = new Camera2ApiManager(textureView, videoEncoder.getInputSurface(), context);
+        prepareCameraManager();
         return result;
     }
 
@@ -199,6 +195,14 @@ public abstract class BuilderSurfaceModeBase
 
     public boolean isStreaming() {
         return streaming;
+    }
+
+    protected void prepareCameraManager() {
+        if (textureView != null) {
+            cameraManager = new Camera2ApiManager(textureView, videoEncoder.getInputSurface(), context);
+        } else if (surfaceView != null) {
+            cameraManager = new Camera2ApiManager(surfaceView, videoEncoder.getInputSurface(), context);
+        }
     }
 
     protected abstract void getAacDataRtp(ByteBuffer aacBuffer, MediaCodec.BufferInfo info);
