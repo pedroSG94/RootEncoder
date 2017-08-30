@@ -49,6 +49,8 @@
     <activity android:name=".filestreamexample.RtmpFromFileActivity" />
     <activity android:name=".surfacemodeexample.SurfaceModeRtspActivity" />
     <activity android:name=".surfacemodeexample.SurfaceModeRtmpActivity" />
+    <activity android:name=".texturemodeexample.TextureModeRtspActivity" />
+    <activity android:name=".texturemodeexample.TextureModeRtmpActivity" />
     <activity android:name=".displayexample.DisplayRtmpActivity"/>
     <activity android:name=".displayexample.DisplayRtspActivity"/>
   </application>

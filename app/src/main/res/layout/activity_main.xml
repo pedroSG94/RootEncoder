@@ -84,6 +84,22 @@
       />
 
   <Button
+      android:text="@string/texture_mode_rtmp"
+      android:layout_margin="6dp"
+      android:layout_width="wrap_content"
+      android:layout_height="wrap_content"
+      android:id="@+id/b_texture_mode_rtmp"
+      />
+
+  <Button
+      android:text="@string/texture_mode_rtsp"
+      android:layout_margin="6dp"
+      android:layout_width="wrap_content"
+      android:layout_height="wrap_content"
+      android:id="@+id/b_texture_mode_rtsp"
+      />
+
+  <Button
       android:text="@string/display_rtmp"
       android:layout_margin="6dp"
       android:layout_width="wrap_content"

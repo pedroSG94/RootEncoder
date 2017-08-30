@@ -1,6 +1,7 @@
 package com.pedro.encoder.input.video;
 
 import android.content.Context;
+import android.graphics.SurfaceTexture;
 import android.hardware.camera2.CameraAccessException;
 import android.hardware.camera2.CameraCaptureSession;
 import android.hardware.camera2.CameraCharacteristics;
@@ -16,6 +17,8 @@ import android.support.annotation.RequiresApi;
 import android.util.Log;
 import android.view.Surface;
 import android.view.SurfaceView;
+import android.view.TextureView;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -40,12 +43,19 @@ public class Camera2ApiManager extends CameraDevice.StateCallback {
 
   private CameraDevice cameraDevice;
   private SurfaceView surfaceView;
+  private TextureView textureView;
   private Surface surface; //input surface from videoEncoder
   private CameraManager cameraManager;
   private Handler cameraHandler;
 
   public Camera2ApiManager(SurfaceView surfaceView, Surface surface, Context context) {
     this.surfaceView = surfaceView;
+    this.surface = surface;
+    cameraManager = (CameraManager) context.getSystemService(Context.CAMERA_SERVICE);
+  }
+
+  public Camera2ApiManager(TextureView textureView, Surface surface, Context context) {
+    this.textureView = textureView;
     this.surface = surface;
     cameraManager = (CameraManager) context.getSystemService(Context.CAMERA_SERVICE);
   }
@@ -58,8 +68,9 @@ public class Camera2ApiManager extends CameraDevice.StateCallback {
   private void startPreview(CameraDevice cameraDevice) {
     try {
       List<Surface> listSurfaces = new ArrayList<>();
-      if (surfaceView != null) {
-        listSurfaces.add(surfaceView.getHolder().getSurface());
+      Surface previewSurface = addPreviewSurface();
+      if (previewSurface != null) {
+        listSurfaces.add(previewSurface);
       }
       listSurfaces.add(surface);
       cameraDevice.createCaptureSession(listSurfaces, new CameraCaptureSession.StateCallback() {
@@ -89,6 +100,17 @@ public class Camera2ApiManager extends CameraDevice.StateCallback {
     } catch (CameraAccessException e) {
       e.printStackTrace();
     }
+  }
+
+  private Surface addPreviewSurface() {
+    Surface surface = null;
+    if (surfaceView != null) {
+      surface = surfaceView.getHolder().getSurface();
+    } else if (textureView != null) {
+      final SurfaceTexture texture = textureView.getSurfaceTexture();
+      surface = new Surface(texture);
+    }
+    return surface;
   }
 
   private CaptureRequest drawPreview(SurfaceView surfaceView) {

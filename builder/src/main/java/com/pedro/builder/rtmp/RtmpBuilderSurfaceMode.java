@@ -5,10 +5,14 @@ import android.media.MediaCodec;
 import android.os.Build;
 import android.support.annotation.RequiresApi;
 import android.view.SurfaceView;
+import android.view.TextureView;
+
 import com.pedro.builder.base.BuilderSurfaceModeBase;
-import java.nio.ByteBuffer;
+
 import net.ossrs.rtmp.ConnectCheckerRtmp;
 import net.ossrs.rtmp.SrsFlvMuxer;
+
+import java.nio.ByteBuffer;
 
 /**
  * Created by pedro on 6/07/17.
@@ -23,6 +27,11 @@ public class RtmpBuilderSurfaceMode extends BuilderSurfaceModeBase {
 
   public RtmpBuilderSurfaceMode(SurfaceView surfaceView, ConnectCheckerRtmp connectChecker) {
     super(surfaceView, surfaceView.getContext());
+    srsFlvMuxer = new SrsFlvMuxer(connectChecker);
+  }
+
+  public RtmpBuilderSurfaceMode(TextureView textureView, ConnectCheckerRtmp connectChecker) {
+    super(textureView, textureView.getContext());
     srsFlvMuxer = new SrsFlvMuxer(connectChecker);
   }
 
