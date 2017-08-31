@@ -13,6 +13,7 @@ import android.widget.Toast;
 
 import com.pedro.builder.rtsp.RtspBuilderSurfaceMode;
 import com.pedro.rtmpstreamer.R;
+import com.pedro.rtmpstreamer.constants.Constants;
 import com.pedro.rtsp.rtsp.Protocol;
 import com.pedro.rtsp.utils.ConnectCheckerRtsp;
 
@@ -21,7 +22,7 @@ import com.pedro.rtsp.utils.ConnectCheckerRtsp;
  */
 @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
 public class TextureModeRtspActivity extends AppCompatActivity
-    implements ConnectCheckerRtsp, View.OnClickListener {
+   implements ConnectCheckerRtsp, View.OnClickListener {
 
   private RtspBuilderSurfaceMode rtspBuilderSurfaceMode;
   private Button button;
@@ -32,6 +33,7 @@ public class TextureModeRtspActivity extends AppCompatActivity
     super.onCreate(savedInstanceState);
     getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
     setContentView(R.layout.activity_texture_mode);
+    getSupportActionBar().setTitle(getIntent().getStringExtra(Constants.LABEL));
     TextureView textureView = (TextureView) findViewById(R.id.textureView);
     button = (Button) findViewById(R.id.b_start_stop);
     button.setOnClickListener(this);
@@ -46,7 +48,7 @@ public class TextureModeRtspActivity extends AppCompatActivity
       @Override
       public void run() {
         Toast.makeText(TextureModeRtspActivity.this, "Connection success", Toast.LENGTH_SHORT)
-            .show();
+           .show();
       }
     });
   }
@@ -57,7 +59,7 @@ public class TextureModeRtspActivity extends AppCompatActivity
       @Override
       public void run() {
         Toast.makeText(TextureModeRtspActivity.this, "Connection failed", Toast.LENGTH_SHORT)
-            .show();
+           .show();
         rtspBuilderSurfaceMode.stopStream();
         button.setText(R.string.start_button);
       }
@@ -102,7 +104,7 @@ public class TextureModeRtspActivity extends AppCompatActivity
         rtspBuilderSurfaceMode.startStream(etUrl.getText().toString());
       } else {
         Toast.makeText(this, "Error preparing stream, This device cant do it", Toast.LENGTH_SHORT)
-            .show();
+           .show();
       }
     } else {
       button.setText(R.string.start_button);

@@ -13,6 +13,7 @@ import android.widget.Toast;
 
 import com.pedro.builder.rtmp.RtmpBuilderSurfaceMode;
 import com.pedro.rtmpstreamer.R;
+import com.pedro.rtmpstreamer.constants.Constants;
 
 import net.ossrs.rtmp.ConnectCheckerRtmp;
 
@@ -21,7 +22,7 @@ import net.ossrs.rtmp.ConnectCheckerRtmp;
  */
 @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
 public class TextureModeRtmpActivity extends AppCompatActivity
-    implements ConnectCheckerRtmp, View.OnClickListener {
+   implements ConnectCheckerRtmp, View.OnClickListener {
 
   private RtmpBuilderSurfaceMode rtmpBuilderSurfaceMode;
   private Button button;
@@ -32,6 +33,7 @@ public class TextureModeRtmpActivity extends AppCompatActivity
     super.onCreate(savedInstanceState);
     getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
     setContentView(R.layout.activity_texture_mode);
+    getSupportActionBar().setTitle(getIntent().getStringExtra(Constants.LABEL));
     TextureView textureView = (TextureView) findViewById(R.id.textureView);
     button = (Button) findViewById(R.id.b_start_stop);
     button.setOnClickListener(this);
@@ -46,7 +48,7 @@ public class TextureModeRtmpActivity extends AppCompatActivity
       @Override
       public void run() {
         Toast.makeText(TextureModeRtmpActivity.this, "Connection success", Toast.LENGTH_SHORT)
-            .show();
+           .show();
       }
     });
   }
@@ -57,7 +59,7 @@ public class TextureModeRtmpActivity extends AppCompatActivity
       @Override
       public void run() {
         Toast.makeText(TextureModeRtmpActivity.this, "Connection failed", Toast.LENGTH_SHORT)
-            .show();
+           .show();
         rtmpBuilderSurfaceMode.stopStream();
         button.setText(R.string.start_button);
       }
@@ -102,7 +104,7 @@ public class TextureModeRtmpActivity extends AppCompatActivity
         rtmpBuilderSurfaceMode.startStream(etUrl.getText().toString());
       } else {
         Toast.makeText(this, "Error preparing stream, This device cant do it", Toast.LENGTH_SHORT)
-            .show();
+           .show();
       }
     } else {
       button.setText(R.string.start_button);

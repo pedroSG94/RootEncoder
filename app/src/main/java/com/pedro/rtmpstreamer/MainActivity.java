@@ -4,12 +4,21 @@ import android.Manifest;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.content.res.Resources;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.res.ResourcesCompat;
 import android.support.v7.app.AppCompatActivity;
+import android.util.TypedValue;
+import android.view.Gravity;
 import android.view.View;
-import android.widget.Button;
+import android.view.ViewGroup;
+import android.widget.AdapterView;
+import android.widget.BaseAdapter;
+import android.widget.GridView;
+import android.widget.LinearLayout;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.pedro.rtmpstreamer.customexample.RtmpActivity;
@@ -25,11 +34,23 @@ import com.pedro.rtmpstreamer.surfacemodeexample.SurfaceModeRtspActivity;
 import com.pedro.rtmpstreamer.texturemodeexample.TextureModeRtmpActivity;
 import com.pedro.rtmpstreamer.texturemodeexample.TextureModeRtspActivity;
 
-public class MainActivity extends AppCompatActivity implements View.OnClickListener {
+import java.util.ArrayList;
+import java.util.List;
+
+import static android.os.Build.VERSION_CODES.JELLY_BEAN;
+import static android.os.Build.VERSION_CODES.JELLY_BEAN_MR2;
+import static android.os.Build.VERSION_CODES.LOLLIPOP;
+import static android.widget.LinearLayout.LayoutParams.MATCH_PARENT;
+import static android.widget.LinearLayout.LayoutParams.WRAP_CONTENT;
+
+public class MainActivity extends AppCompatActivity implements AdapterView.OnItemClickListener {
+
+  private GridView list;
+  private List<ActivityLink> activities;
 
   private final String[] PERMISSIONS = {
-      Manifest.permission.RECORD_AUDIO, Manifest.permission.CAMERA,
-      Manifest.permission.WRITE_EXTERNAL_STORAGE
+     Manifest.permission.RECORD_AUDIO, Manifest.permission.CAMERA,
+     Manifest.permission.WRITE_EXTERNAL_STORAGE
   };
 
   @Override
@@ -38,190 +59,160 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     setContentView(R.layout.activity_main);
     overridePendingTransition(R.transition.slide_in, R.transition.slide_out);
 
-    Button bRtmp = (Button) findViewById(R.id.b_rtmp);
-    Button bRtsp = (Button) findViewById(R.id.b_rtsp);
-    bRtmp.setOnClickListener(this);
-    bRtsp.setOnClickListener(this);
-    Button bDefaultRtmp = (Button) findViewById(R.id.b_default_rtmp);
-    Button bDefaultRtsp = (Button) findViewById(R.id.b_default_rtsp);
-    bDefaultRtmp.setOnClickListener(this);
-    bDefaultRtsp.setOnClickListener(this);
-    Button bFromFileRtsp = (Button) findViewById(R.id.b_from_file_rtsp);
-    Button bFromFileRtmp = (Button) findViewById(R.id.b_from_file_rtmp);
-    bFromFileRtsp.setOnClickListener(this);
-    bFromFileRtmp.setOnClickListener(this);
-    Button bSurfaceModeRtsp = (Button) findViewById(R.id.b_surface_mode_rtsp);
-    Button bSurfaceModeRtmp = (Button) findViewById(R.id.b_surface_mode_rtmp);
-    bSurfaceModeRtsp.setOnClickListener(this);
-    bSurfaceModeRtmp.setOnClickListener(this);
-    Button bTextureModeRtsp = (Button) findViewById(R.id.b_texture_mode_rtsp);
-    Button bTextureModeRtmp = (Button) findViewById(R.id.b_texture_mode_rtmp);
-    bTextureModeRtsp.setOnClickListener(this);
-    bTextureModeRtmp.setOnClickListener(this);
-    Button bDisplayRtsp = (Button) findViewById(R.id.b_display_rtsp);
-    Button bDisplayRtmp = (Button) findViewById(R.id.b_display_rtmp);
-    bDisplayRtsp.setOnClickListener(this);
-    bDisplayRtmp.setOnClickListener(this);
+    list = (GridView) findViewById(android.R.id.list);
+    createList();
+    setListAdapter(activities);
+
     if (!hasPermissions(this, PERMISSIONS)) {
       ActivityCompat.requestPermissions(this, PERMISSIONS, 1);
     }
   }
 
+  private void createList() {
+    activities = new ArrayList<ActivityLink>();
+    activities.add(new ActivityLink(new Intent(this, RtmpActivity.class), "Default RTMP", JELLY_BEAN));
+    activities.add(new ActivityLink(new Intent(this, RtspActivity.class), "Default RTSP", JELLY_BEAN));
+    activities.add(new ActivityLink(new Intent(this, ExampleRtmpActivity.class), "Custom RTMP", JELLY_BEAN));
+    activities.add(new ActivityLink(new Intent(this, ExampleRtspActivity.class), "Custom RTSP", JELLY_BEAN));
+    activities.add(new ActivityLink(new Intent(this, RtmpFromFileActivity.class), "From file RTMP", JELLY_BEAN_MR2));
+    activities.add(new ActivityLink(new Intent(this, RtspFromFileActivity.class), "From file RTSP", JELLY_BEAN_MR2));
+    activities.add(new ActivityLink(new Intent(this, SurfaceModeRtmpActivity.class), "Surface mode RTMP", LOLLIPOP));
+    activities.add(new ActivityLink(new Intent(this, SurfaceModeRtspActivity.class), "Surface mode RTSP", LOLLIPOP));
+    activities.add(new ActivityLink(new Intent(this, TextureModeRtmpActivity.class), "Texture mode RTMP", LOLLIPOP));
+    activities.add(new ActivityLink(new Intent(this, TextureModeRtspActivity.class), "Texture mode RTSP", LOLLIPOP));
+    activities.add(new ActivityLink(new Intent(this, DisplayRtmpActivity.class), "Display RTMP", LOLLIPOP));
+    activities.add(new ActivityLink(new Intent(this, DisplayRtspActivity.class), "Display RTSP", LOLLIPOP));
+  }
+
+  private void setListAdapter(List<ActivityLink> activities) {
+    list.setAdapter(new ImageAdapter(activities));
+    list.setOnItemClickListener(this);
+  }
+
+
   @Override
-  public void onClick(View v) {
-    switch (v.getId()) {
-      case R.id.b_rtmp:
-        if (hasPermissions(this, PERMISSIONS)) {
-          startActivity(new Intent(this, RtmpActivity.class));
-        } else {
-          Toast.makeText(this, "You need permissions before", Toast.LENGTH_SHORT).show();
-          ActivityCompat.requestPermissions(this, PERMISSIONS, 1);
-        }
-        break;
-      case R.id.b_rtsp:
-        if (hasPermissions(this, PERMISSIONS)) {
-          startActivity(new Intent(this, RtspActivity.class));
-        } else {
-          Toast.makeText(this, "You need permissions before", Toast.LENGTH_SHORT).show();
-          ActivityCompat.requestPermissions(this, PERMISSIONS, 1);
-        }
-        break;
-      case R.id.b_default_rtmp:
-        if (hasPermissions(this, PERMISSIONS)) {
-          startActivity(new Intent(this, ExampleRtmpActivity.class));
-        } else {
-          Toast.makeText(this, "You need permissions before", Toast.LENGTH_SHORT).show();
-          ActivityCompat.requestPermissions(this, PERMISSIONS, 1);
-        }
-        break;
-      case R.id.b_default_rtsp:
-        if (hasPermissions(this, PERMISSIONS)) {
-          startActivity(new Intent(this, ExampleRtspActivity.class));
-        } else {
-          Toast.makeText(this, "You need permissions before", Toast.LENGTH_SHORT).show();
-          ActivityCompat.requestPermissions(this, PERMISSIONS, 1);
-        }
-        break;
-      case R.id.b_from_file_rtmp:
-        if (hasPermissions(this, PERMISSIONS)) {
-          if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
-            startActivity(new Intent(this, RtmpFromFileActivity.class));
-          } else {
-            Toast.makeText(this, "You need min Android JellyBean MR2(API 18)", Toast.LENGTH_SHORT)
-                .show();
-          }
-        } else {
-          Toast.makeText(this, "You need permissions before", Toast.LENGTH_SHORT).show();
-          ActivityCompat.requestPermissions(this, PERMISSIONS, 1);
-        }
-        break;
-      case R.id.b_from_file_rtsp:
-        if (hasPermissions(this, PERMISSIONS)) {
-          if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
-            startActivity(new Intent(this, RtspFromFileActivity.class));
-          } else {
-            Toast.makeText(this, "You need min Android JellyBean MR2(API 18)", Toast.LENGTH_SHORT)
-                .show();
-          }
-        } else {
-          Toast.makeText(this, "You need permissions before", Toast.LENGTH_SHORT).show();
-          ActivityCompat.requestPermissions(this, PERMISSIONS, 1);
-        }
-        break;
-      case R.id.b_surface_mode_rtmp:
-        if (hasPermissions(this, PERMISSIONS)) {
-          if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            startActivity(new Intent(this, SurfaceModeRtmpActivity.class));
-          } else {
-            Toast.makeText(this, "You need min Android LOLLIPOP(API 21)", Toast.LENGTH_SHORT)
-                .show();
-          }
-        } else {
-          Toast.makeText(this, "You need permissions before", Toast.LENGTH_SHORT).show();
-          ActivityCompat.requestPermissions(this, PERMISSIONS, 1);
-        }
-        break;
-      case R.id.b_surface_mode_rtsp:
-        if (hasPermissions(this, PERMISSIONS)) {
-          if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            startActivity(new Intent(this, SurfaceModeRtspActivity.class));
-          } else {
-            Toast.makeText(this, "You need min Android LOLLIPOP(API 21)", Toast.LENGTH_SHORT)
-                .show();
-          }
-        } else {
-          Toast.makeText(this, "You need permissions before", Toast.LENGTH_SHORT).show();
-          ActivityCompat.requestPermissions(this, PERMISSIONS, 1);
-        }
-        break;
-      case R.id.b_texture_mode_rtmp:
-        if (hasPermissions(this, PERMISSIONS)) {
-          if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            startActivity(new Intent(this, TextureModeRtmpActivity.class));
-          } else {
-            Toast.makeText(this, "You need min Android LOLLIPOP(API 21)", Toast.LENGTH_SHORT)
-                .show();
-          }
-        } else {
-          Toast.makeText(this, "You need permissions before", Toast.LENGTH_SHORT).show();
-          ActivityCompat.requestPermissions(this, PERMISSIONS, 1);
-        }
-        break;
-      case R.id.b_texture_mode_rtsp:
-        if (hasPermissions(this, PERMISSIONS)) {
-          if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            startActivity(new Intent(this, TextureModeRtspActivity.class));
-          } else {
-            Toast.makeText(this, "You need min Android LOLLIPOP(API 21)", Toast.LENGTH_SHORT)
-                .show();
-          }
-        } else {
-          Toast.makeText(this, "You need permissions before", Toast.LENGTH_SHORT).show();
-          ActivityCompat.requestPermissions(this, PERMISSIONS, 1);
-        }
-        break;
-      case R.id.b_display_rtmp:
-        if (hasPermissions(this, PERMISSIONS)) {
-          if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            startActivity(new Intent(this, DisplayRtmpActivity.class));
-          } else {
-            Toast.makeText(this, "You need min Android LOLLIPOP(API 21)", Toast.LENGTH_SHORT)
-                .show();
-          }
-        } else {
-          Toast.makeText(this, "You need permissions before", Toast.LENGTH_SHORT).show();
-          ActivityCompat.requestPermissions(this, PERMISSIONS, 1);
-        }
-        break;
-      case R.id.b_display_rtsp:
-        if (hasPermissions(this, PERMISSIONS)) {
-          if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            startActivity(new Intent(this, DisplayRtspActivity.class));
-          } else {
-            Toast.makeText(this, "You need min Android LOLLIPOP(API 21)", Toast.LENGTH_SHORT)
-                .show();
-          }
-        } else {
-          Toast.makeText(this, "You need permissions before", Toast.LENGTH_SHORT).show();
-          ActivityCompat.requestPermissions(this, PERMISSIONS, 1);
-        }
-        break;
-      default:
-        break;
+  public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
+    if (hasPermissions(this, PERMISSIONS)) {
+      ActivityLink link = activities.get(i);
+      int minSdk = link.getMinSdk();
+      if (Build.VERSION.SDK_INT >= minSdk) {
+        startActivity(link.getIntent());
+        finish();
+        overridePendingTransition(R.transition.slide_in, R.transition.slide_out);
+      } else {
+        showMinSdkError(minSdk);
+      }
+    } else {
+      showPermissionsErrorAndRequest();
     }
   }
 
-  public boolean hasPermissions(Context context, String... permissions) {
-    if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.M
-        && context != null
-        && permissions != null) {
+  private void showMinSdkError(int minSdk) {
+    String named;
+    switch (minSdk) {
+      case JELLY_BEAN_MR2:
+        named = "JELLY_BEAN_MR2";
+        break;
+      case LOLLIPOP:
+        named = "LOLLIPOP";
+        break;
+      default:
+        named = "JELLY_BEAN";
+        break;
+    }
+    StringBuilder sb = new StringBuilder("You need min Android ")
+       .append(named)
+       .append(" (API ")
+       .append(minSdk)
+       .append(" )");
+    Toast.makeText(this, sb.toString(), Toast.LENGTH_SHORT)
+       .show();
+  }
+
+  private void showPermissionsErrorAndRequest() {
+    Toast.makeText(this, "You need permissions before", Toast.LENGTH_SHORT).show();
+    ActivityCompat.requestPermissions(this, PERMISSIONS, 1);
+  }
+
+  private boolean hasPermissions(Context context, String... permissions) {
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M
+       && context != null
+       && permissions != null) {
       for (String permission : permissions) {
         if (ActivityCompat.checkSelfPermission(context, permission)
-            != PackageManager.PERMISSION_GRANTED) {
+           != PackageManager.PERMISSION_GRANTED) {
           return false;
         }
       }
     }
     return true;
+  }
+
+  public static class ActivityLink {
+    private final int minSdk;
+    private final String label;
+    private final Intent intent;
+
+    public ActivityLink(Intent intent, String label, int minSdk) {
+      this.intent = intent;
+      intent.putExtra("label", label);
+      this.label = label;
+      this.minSdk = minSdk;
+    }
+
+    public String getLabel() {
+      return label;
+    }
+
+    public Intent getIntent() {
+      return intent;
+    }
+
+    public int getMinSdk() {
+      return minSdk;
+    }
+  }
+
+  public static class ImageAdapter extends BaseAdapter {
+    private List<ActivityLink> links;
+
+    public ImageAdapter(List<ActivityLink> links) {
+      this.links = links;
+    }
+
+    public int getCount() {
+      return links.size();
+    }
+
+    public ActivityLink getItem(int position) {
+      return links.get(position);
+    }
+
+    public long getItemId(int position) {
+      return (long) position;
+    }
+
+    public View getView(int position, View convertView, ViewGroup parent) {
+      TextView button;
+      Resources resources = parent.getResources();
+      float fontSize = resources.getDimension(R.dimen.menu_font);
+      int padding = resources.getDimensionPixelSize(R.dimen.grid_2);
+      LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(MATCH_PARENT, WRAP_CONTENT);
+      if (convertView == null) {
+        button = new TextView(parent.getContext());
+        button.setTextSize(TypedValue.COMPLEX_UNIT_PX, fontSize);
+        button.setTextColor(ResourcesCompat.getColor(resources, R.color.white, null));
+        button.setBackgroundColor(ResourcesCompat.getColor(resources, R.color.appColor, null));
+        button.setLayoutParams(params);
+        button.setPadding(padding, padding, padding, padding);
+        button.setGravity(Gravity.CENTER);
+        convertView = button;
+      } else {
+        button = (TextView) convertView;
+      }
+      button.setText(links.get(position).getLabel());
+      return convertView;
+    }
+
   }
 }
