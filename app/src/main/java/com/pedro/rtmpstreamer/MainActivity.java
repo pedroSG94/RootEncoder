@@ -11,6 +11,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.Button;
 import android.widget.Toast;
+
 import com.pedro.rtmpstreamer.customexample.RtmpActivity;
 import com.pedro.rtmpstreamer.customexample.RtspActivity;
 import com.pedro.rtmpstreamer.defaultexample.ExampleRtmpActivity;
@@ -21,12 +22,14 @@ import com.pedro.rtmpstreamer.filestreamexample.RtmpFromFileActivity;
 import com.pedro.rtmpstreamer.filestreamexample.RtspFromFileActivity;
 import com.pedro.rtmpstreamer.surfacemodeexample.SurfaceModeRtmpActivity;
 import com.pedro.rtmpstreamer.surfacemodeexample.SurfaceModeRtspActivity;
+import com.pedro.rtmpstreamer.texturemodeexample.TextureModeRtmpActivity;
+import com.pedro.rtmpstreamer.texturemodeexample.TextureModeRtspActivity;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
 
   private final String[] PERMISSIONS = {
-      Manifest.permission.RECORD_AUDIO, Manifest.permission.CAMERA,
-      Manifest.permission.WRITE_EXTERNAL_STORAGE
+          Manifest.permission.RECORD_AUDIO, Manifest.permission.CAMERA,
+          Manifest.permission.WRITE_EXTERNAL_STORAGE
   };
 
   @Override
@@ -51,6 +54,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     Button bSurfaceModeRtmp = (Button) findViewById(R.id.b_surface_mode_rtmp);
     bSurfaceModeRtsp.setOnClickListener(this);
     bSurfaceModeRtmp.setOnClickListener(this);
+    Button bTextureModeRtsp = (Button) findViewById(R.id.b_texture_mode_rtsp);
+    Button bTextureModeRtmp = (Button) findViewById(R.id.b_texture_mode_rtmp);
+    bTextureModeRtsp.setOnClickListener(this);
+    bTextureModeRtmp.setOnClickListener(this);
     Button bDisplayRtsp = (Button) findViewById(R.id.b_display_rtsp);
     Button bDisplayRtmp = (Button) findViewById(R.id.b_display_rtmp);
     bDisplayRtsp.setOnClickListener(this);
@@ -101,7 +108,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             startActivity(new Intent(this, RtmpFromFileActivity.class));
           } else {
             Toast.makeText(this, "You need min Android JellyBean MR2(API 18)", Toast.LENGTH_SHORT)
-                .show();
+                    .show();
           }
         } else {
           Toast.makeText(this, "You need permissions before", Toast.LENGTH_SHORT).show();
@@ -114,7 +121,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             startActivity(new Intent(this, RtspFromFileActivity.class));
           } else {
             Toast.makeText(this, "You need min Android JellyBean MR2(API 18)", Toast.LENGTH_SHORT)
-                .show();
+                    .show();
           }
         } else {
           Toast.makeText(this, "You need permissions before", Toast.LENGTH_SHORT).show();
@@ -127,7 +134,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             startActivity(new Intent(this, SurfaceModeRtmpActivity.class));
           } else {
             Toast.makeText(this, "You need min Android LOLLIPOP(API 21)", Toast.LENGTH_SHORT)
-                .show();
+                    .show();
           }
         } else {
           Toast.makeText(this, "You need permissions before", Toast.LENGTH_SHORT).show();
@@ -140,7 +147,33 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             startActivity(new Intent(this, SurfaceModeRtspActivity.class));
           } else {
             Toast.makeText(this, "You need min Android LOLLIPOP(API 21)", Toast.LENGTH_SHORT)
-                .show();
+                    .show();
+          }
+        } else {
+          Toast.makeText(this, "You need permissions before", Toast.LENGTH_SHORT).show();
+          ActivityCompat.requestPermissions(this, PERMISSIONS, 1);
+        }
+        break;
+      case R.id.b_texture_mode_rtmp:
+        if (hasPermissions(this, PERMISSIONS)) {
+          if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            startActivity(new Intent(this, TextureModeRtmpActivity.class));
+          } else {
+            Toast.makeText(this, "You need min Android LOLLIPOP(API 21)", Toast.LENGTH_SHORT)
+                    .show();
+          }
+        } else {
+          Toast.makeText(this, "You need permissions before", Toast.LENGTH_SHORT).show();
+          ActivityCompat.requestPermissions(this, PERMISSIONS, 1);
+        }
+        break;
+      case R.id.b_texture_mode_rtsp:
+        if (hasPermissions(this, PERMISSIONS)) {
+          if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            startActivity(new Intent(this, TextureModeRtspActivity.class));
+          } else {
+            Toast.makeText(this, "You need min Android LOLLIPOP(API 21)", Toast.LENGTH_SHORT)
+                    .show();
           }
         } else {
           Toast.makeText(this, "You need permissions before", Toast.LENGTH_SHORT).show();
@@ -153,7 +186,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             startActivity(new Intent(this, DisplayRtmpActivity.class));
           } else {
             Toast.makeText(this, "You need min Android LOLLIPOP(API 21)", Toast.LENGTH_SHORT)
-                .show();
+                    .show();
           }
         } else {
           Toast.makeText(this, "You need permissions before", Toast.LENGTH_SHORT).show();
@@ -166,7 +199,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             startActivity(new Intent(this, DisplayRtspActivity.class));
           } else {
             Toast.makeText(this, "You need min Android LOLLIPOP(API 21)", Toast.LENGTH_SHORT)
-                .show();
+                    .show();
           }
         } else {
           Toast.makeText(this, "You need permissions before", Toast.LENGTH_SHORT).show();
@@ -180,11 +213,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
   public boolean hasPermissions(Context context, String... permissions) {
     if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.M
-        && context != null
-        && permissions != null) {
+            && context != null
+            && permissions != null) {
       for (String permission : permissions) {
         if (ActivityCompat.checkSelfPermission(context, permission)
-            != PackageManager.PERMISSION_GRANTED) {
+                != PackageManager.PERMISSION_GRANTED) {
           return false;
         }
       }
