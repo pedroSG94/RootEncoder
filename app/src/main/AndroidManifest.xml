@@ -45,14 +45,38 @@
         android:label="@string/default_rtmp"
         android:screenOrientation="portrait"
         />
-    <activity android:name=".filestreamexample.RtspFromFileActivity" />
-    <activity android:name=".filestreamexample.RtmpFromFileActivity" />
-    <activity android:name=".surfacemodeexample.SurfaceModeRtspActivity" />
-    <activity android:name=".surfacemodeexample.SurfaceModeRtmpActivity" />
-    <activity android:name=".texturemodeexample.TextureModeRtspActivity" />
-    <activity android:name=".texturemodeexample.TextureModeRtmpActivity" />
-    <activity android:name=".displayexample.DisplayRtmpActivity"/>
-    <activity android:name=".displayexample.DisplayRtspActivity"/>
+    <activity
+        android:name=".filestreamexample.RtspFromFileActivity"
+        android:screenOrientation="portrait"
+        />
+    <activity
+        android:name=".filestreamexample.RtmpFromFileActivity"
+        android:screenOrientation="portrait"
+        />
+    <activity
+        android:name=".surfacemodeexample.SurfaceModeRtspActivity"
+        android:screenOrientation="portrait"
+        />
+    <activity
+        android:name=".surfacemodeexample.SurfaceModeRtmpActivity"
+        android:screenOrientation="portrait"
+        />
+    <activity
+        android:name=".texturemodeexample.TextureModeRtspActivity"
+        android:screenOrientation="portrait"
+        />
+    <activity
+        android:name=".texturemodeexample.TextureModeRtmpActivity"
+        android:screenOrientation="portrait"
+        />
+    <activity
+        android:name=".displayexample.DisplayRtmpActivity"
+        android:screenOrientation="portrait"
+        />
+    <activity
+        android:name=".displayexample.DisplayRtspActivity"
+        android:screenOrientation="portrait"
+        />
   </application>
 
 </manifest>

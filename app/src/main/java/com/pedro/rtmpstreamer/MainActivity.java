@@ -28,8 +28,8 @@ import com.pedro.rtmpstreamer.texturemodeexample.TextureModeRtspActivity;
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
 
   private final String[] PERMISSIONS = {
-          Manifest.permission.RECORD_AUDIO, Manifest.permission.CAMERA,
-          Manifest.permission.WRITE_EXTERNAL_STORAGE
+      Manifest.permission.RECORD_AUDIO, Manifest.permission.CAMERA,
+      Manifest.permission.WRITE_EXTERNAL_STORAGE
   };
 
   @Override
@@ -108,7 +108,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             startActivity(new Intent(this, RtmpFromFileActivity.class));
           } else {
             Toast.makeText(this, "You need min Android JellyBean MR2(API 18)", Toast.LENGTH_SHORT)
-                    .show();
+                .show();
           }
         } else {
           Toast.makeText(this, "You need permissions before", Toast.LENGTH_SHORT).show();
@@ -121,7 +121,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             startActivity(new Intent(this, RtspFromFileActivity.class));
           } else {
             Toast.makeText(this, "You need min Android JellyBean MR2(API 18)", Toast.LENGTH_SHORT)
-                    .show();
+                .show();
           }
         } else {
           Toast.makeText(this, "You need permissions before", Toast.LENGTH_SHORT).show();
@@ -134,7 +134,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             startActivity(new Intent(this, SurfaceModeRtmpActivity.class));
           } else {
             Toast.makeText(this, "You need min Android LOLLIPOP(API 21)", Toast.LENGTH_SHORT)
-                    .show();
+                .show();
           }
         } else {
           Toast.makeText(this, "You need permissions before", Toast.LENGTH_SHORT).show();
@@ -147,7 +147,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             startActivity(new Intent(this, SurfaceModeRtspActivity.class));
           } else {
             Toast.makeText(this, "You need min Android LOLLIPOP(API 21)", Toast.LENGTH_SHORT)
-                    .show();
+                .show();
           }
         } else {
           Toast.makeText(this, "You need permissions before", Toast.LENGTH_SHORT).show();
@@ -160,7 +160,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             startActivity(new Intent(this, TextureModeRtmpActivity.class));
           } else {
             Toast.makeText(this, "You need min Android LOLLIPOP(API 21)", Toast.LENGTH_SHORT)
-                    .show();
+                .show();
           }
         } else {
           Toast.makeText(this, "You need permissions before", Toast.LENGTH_SHORT).show();
@@ -173,7 +173,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             startActivity(new Intent(this, TextureModeRtspActivity.class));
           } else {
             Toast.makeText(this, "You need min Android LOLLIPOP(API 21)", Toast.LENGTH_SHORT)
-                    .show();
+                .show();
           }
         } else {
           Toast.makeText(this, "You need permissions before", Toast.LENGTH_SHORT).show();
@@ -186,7 +186,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             startActivity(new Intent(this, DisplayRtmpActivity.class));
           } else {
             Toast.makeText(this, "You need min Android LOLLIPOP(API 21)", Toast.LENGTH_SHORT)
-                    .show();
+                .show();
           }
         } else {
           Toast.makeText(this, "You need permissions before", Toast.LENGTH_SHORT).show();
@@ -199,7 +199,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             startActivity(new Intent(this, DisplayRtspActivity.class));
           } else {
             Toast.makeText(this, "You need min Android LOLLIPOP(API 21)", Toast.LENGTH_SHORT)
-                    .show();
+                .show();
           }
         } else {
           Toast.makeText(this, "You need permissions before", Toast.LENGTH_SHORT).show();
@@ -213,11 +213,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
   public boolean hasPermissions(Context context, String... permissions) {
     if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.M
-            && context != null
-            && permissions != null) {
+        && context != null
+        && permissions != null) {
       for (String permission : permissions) {
         if (ActivityCompat.checkSelfPermission(context, permission)
-                != PackageManager.PERMISSION_GRANTED) {
+            != PackageManager.PERMISSION_GRANTED) {
           return false;
         }
       }
