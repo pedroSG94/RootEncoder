@@ -196,7 +196,8 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
       TextView button;
       Resources resources = parent.getResources();
       float fontSize = resources.getDimension(R.dimen.menu_font);
-      int padding = resources.getDimensionPixelSize(R.dimen.grid_2);
+      int padding_h = resources.getDimensionPixelSize(R.dimen.grid_2);
+      int padding_v = resources.getDimensionPixelSize(R.dimen.grid_5);
       LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(MATCH_PARENT, WRAP_CONTENT);
       if (convertView == null) {
         button = new TextView(parent.getContext());
@@ -204,7 +205,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         button.setTextColor(ResourcesCompat.getColor(resources, R.color.white, null));
         button.setBackgroundColor(ResourcesCompat.getColor(resources, R.color.appColor, null));
         button.setLayoutParams(params);
-        button.setPadding(padding, padding, padding, padding);
+        button.setPadding(padding_h, padding_v, padding_h, padding_v);
         button.setGravity(Gravity.CENTER);
         convertView = button;
       } else {
