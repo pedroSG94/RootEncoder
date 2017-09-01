@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.pedro.builder.view;
+package com.pedro.rtplibrary.view;
 
 import android.content.Context;
 import android.util.AttributeSet;

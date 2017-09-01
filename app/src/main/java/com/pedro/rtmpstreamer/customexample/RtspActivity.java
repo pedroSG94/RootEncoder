@@ -22,7 +22,7 @@ import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.Spinner;
 import android.widget.Toast;
-import com.pedro.builder.rtsp.RtspBuilder;
+import com.pedro.rtplibrary.rtsp.RtspCamera1;
 import com.pedro.encoder.input.video.CameraOpenException;
 import com.pedro.encoder.input.video.EffectManager;
 import com.pedro.rtmpstreamer.R;
@@ -38,7 +38,7 @@ public class RtspActivity extends AppCompatActivity
 
   private Integer[] orientations = new Integer[] { 0, 90, 180, 270 };
 
-  private RtspBuilder rtspBuilder;
+  private RtspCamera1 rtspBuilder;
   private SurfaceView surfaceView;
   private Button bStartStop, bRecord;
   private EditText etUrl;
@@ -65,7 +65,7 @@ public class RtspActivity extends AppCompatActivity
     getSupportActionBar().setHomeButtonEnabled(true);
 
     surfaceView = (SurfaceView) findViewById(R.id.surfaceView);
-    rtspBuilder = new RtspBuilder(surfaceView, Protocol.TCP, this);
+    rtspBuilder = new RtspCamera1(surfaceView, Protocol.TCP, this);
     prepareOptionsMenuViews();
 
     etUrl = (EditText) findViewById(R.id.et_rtp_url);
@@ -210,9 +210,9 @@ public class RtspActivity extends AppCompatActivity
         if (!rtspBuilder.isStreaming()) {
           bStartStop.setText(getResources().getString(R.string.stop_button));
           if (rbTcp.isChecked()) {
-            rtspBuilder = new RtspBuilder(surfaceView, Protocol.TCP, this);
+            rtspBuilder = new RtspCamera1(surfaceView, Protocol.TCP, this);
           } else {
-            rtspBuilder = new RtspBuilder(surfaceView, Protocol.UDP, this);
+            rtspBuilder = new RtspCamera1(surfaceView, Protocol.UDP, this);
           }
           String resolution =
               rtspBuilder.getResolutions().get(spResolution.getSelectedItemPosition());

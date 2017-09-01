@@ -1,4 +1,4 @@
-package com.pedro.builder.base;
+package com.pedro.rtplibrary.source;
 
 import android.content.Context;
 import android.graphics.ImageFormat;
@@ -28,7 +28,7 @@ import java.nio.ByteBuffer;
  * Created by pedro on 7/07/17.
  */
 @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
-public abstract class BuilderSurfaceModeBase
+public abstract class Camera2Source
     implements GetAacData, GetCameraData, GetH264Data, GetMicrophoneData {
 
   protected Context context;
@@ -48,7 +48,7 @@ public abstract class BuilderSurfaceModeBase
   private MediaFormat videoFormat;
   private MediaFormat audioFormat;
 
-  public BuilderSurfaceModeBase(SurfaceView surfaceView, Context context) {
+  public Camera2Source(SurfaceView surfaceView, Context context) {
     this.surfaceView = surfaceView;
     this.context = context;
     videoEncoder = new VideoEncoder(this);
@@ -57,7 +57,7 @@ public abstract class BuilderSurfaceModeBase
     streaming = false;
   }
 
-  public BuilderSurfaceModeBase(TextureView textureView, Context context) {
+  public Camera2Source(TextureView textureView, Context context) {
     this.textureView = textureView;
     this.context = context;
     videoEncoder = new VideoEncoder(this);
@@ -66,7 +66,7 @@ public abstract class BuilderSurfaceModeBase
     streaming = false;
   }
 
-  public BuilderSurfaceModeBase(Context context) {
+  public Camera2Source(Context context) {
     this.context = context;
     this.textureView = null;
     videoEncoder = new VideoEncoder(this);

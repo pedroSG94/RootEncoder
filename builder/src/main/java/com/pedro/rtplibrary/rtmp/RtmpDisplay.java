@@ -1,13 +1,12 @@
-package com.pedro.builder.rtmp;
+package com.pedro.rtplibrary.rtmp;
 
 import android.content.Context;
 import android.media.MediaCodec;
 import android.os.Build;
 import android.support.annotation.RequiresApi;
-import android.view.SurfaceView;
-import android.view.TextureView;
 
-import com.pedro.builder.base.BuilderSurfaceModeBase;
+import com.pedro.rtplibrary.source.Display;
+import com.pedro.rtplibrary.source.DisplaySource;
 
 import net.ossrs.rtmp.ConnectCheckerRtmp;
 import net.ossrs.rtmp.SrsFlvMuxer;
@@ -15,27 +14,14 @@ import net.ossrs.rtmp.SrsFlvMuxer;
 import java.nio.ByteBuffer;
 
 /**
- * Created by pedro on 6/07/17.
- * This builder is under test, rotation only work with hardware because use encoding surface mode.
- * This maybe don't work for synchronizations problems and you will lose audio or video channel in
- * the stream
+ * Created by pedro on 9/08/17.
  */
 @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
-public class RtmpBuilderSurfaceMode extends BuilderSurfaceModeBase {
+public class RtmpDisplay extends DisplaySource {
 
   private SrsFlvMuxer srsFlvMuxer;
 
-  public RtmpBuilderSurfaceMode(SurfaceView surfaceView, ConnectCheckerRtmp connectChecker) {
-    super(surfaceView, surfaceView.getContext());
-    srsFlvMuxer = new SrsFlvMuxer(connectChecker);
-  }
-
-  public RtmpBuilderSurfaceMode(TextureView textureView, ConnectCheckerRtmp connectChecker) {
-    super(textureView, textureView.getContext());
-    srsFlvMuxer = new SrsFlvMuxer(connectChecker);
-  }
-
-  public RtmpBuilderSurfaceMode(Context context, ConnectCheckerRtmp connectChecker) {
+  public RtmpDisplay(Context context, ConnectCheckerRtmp connectChecker) {
     super(context);
     srsFlvMuxer = new SrsFlvMuxer(connectChecker);
   }
@@ -87,4 +73,3 @@ public class RtmpBuilderSurfaceMode extends BuilderSurfaceModeBase {
     srsFlvMuxer.sendVideo(h264Buffer, info);
   }
 }
-

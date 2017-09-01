@@ -1,9 +1,9 @@
-package com.pedro.builder.rtsp;
+package com.pedro.rtplibrary.rtsp;
 
 import android.media.MediaCodec;
 import android.os.Build;
 import android.support.annotation.RequiresApi;
-import com.pedro.builder.base.BuilderFromFileBase;
+import com.pedro.rtplibrary.source.FromFileSource;
 import com.pedro.encoder.input.decoder.VideoDecoderInterface;
 import com.pedro.rtsp.rtsp.Protocol;
 import com.pedro.rtsp.rtsp.RtspClient;
@@ -16,12 +16,12 @@ import java.nio.ByteBuffer;
  * Only video is working, audio will be added when it work
  */
 @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
-public class RtspBuilderFromFile extends BuilderFromFileBase {
+public class RtspFromFile extends FromFileSource {
 
   private RtspClient rtspClient;
 
-  public RtspBuilderFromFile(Protocol protocol, ConnectCheckerRtsp connectCheckerRtsp,
-      VideoDecoderInterface videoDecoderInterface) {
+  public RtspFromFile(Protocol protocol, ConnectCheckerRtsp connectCheckerRtsp,
+                      VideoDecoderInterface videoDecoderInterface) {
     super(videoDecoderInterface);
     rtspClient = new RtspClient(connectCheckerRtsp, protocol);
   }

@@ -1,4 +1,4 @@
-package com.pedro.builder.base;
+package com.pedro.rtplibrary.source;
 
 import android.content.Context;
 import android.content.Intent;
@@ -15,8 +15,6 @@ import com.pedro.encoder.audio.AudioEncoder;
 import com.pedro.encoder.audio.GetAacData;
 import com.pedro.encoder.input.audio.GetMicrophoneData;
 import com.pedro.encoder.input.audio.MicrophoneManager;
-import com.pedro.encoder.input.video.Camera2ApiManager;
-import com.pedro.encoder.input.video.CameraOpenException;
 import com.pedro.encoder.input.video.GetCameraData;
 import com.pedro.encoder.video.FormatVideoEncoder;
 import com.pedro.encoder.video.GetH264Data;
@@ -30,7 +28,7 @@ import static android.content.Context.MEDIA_PROJECTION_SERVICE;
  * Created by pedro on 9/08/17.
  */
 @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
-public abstract class BuilderDisplayBase
+public abstract class DisplaySource
     implements GetAacData, GetCameraData, GetH264Data, GetMicrophoneData {
 
   protected Context context;
@@ -51,7 +49,7 @@ public abstract class BuilderDisplayBase
   private MediaFormat audioFormat;
   private int dpi = 320;
 
-  public BuilderDisplayBase(Context context) {
+  public DisplaySource(Context context) {
     this.context = context;
     mediaProjectionManager =
         ((MediaProjectionManager) context.getSystemService(MEDIA_PROJECTION_SERVICE));

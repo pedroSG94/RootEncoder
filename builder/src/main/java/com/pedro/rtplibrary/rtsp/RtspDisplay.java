@@ -1,10 +1,10 @@
-package com.pedro.builder.rtsp;
+package com.pedro.rtplibrary.rtsp;
 
 import android.content.Context;
 import android.media.MediaCodec;
 import android.os.Build;
 import android.support.annotation.RequiresApi;
-import com.pedro.builder.base.BuilderDisplayBase;
+import com.pedro.rtplibrary.source.DisplaySource;
 import com.pedro.rtsp.rtsp.Protocol;
 import com.pedro.rtsp.rtsp.RtspClient;
 import com.pedro.rtsp.utils.ConnectCheckerRtsp;
@@ -14,12 +14,12 @@ import java.nio.ByteBuffer;
  * Created by pedro on 9/08/17.
  */
 @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
-public class RtspBuilderDisplay extends BuilderDisplayBase {
+public class RtspDisplay extends DisplaySource {
 
   private RtspClient rtspClient;
 
-  public RtspBuilderDisplay(Context context, Protocol protocol,
-      ConnectCheckerRtsp connectCheckerRtsp) {
+  public RtspDisplay(Context context, Protocol protocol,
+                     ConnectCheckerRtsp connectCheckerRtsp) {
     super(context);
     rtspClient = new RtspClient(connectCheckerRtsp, protocol);
   }

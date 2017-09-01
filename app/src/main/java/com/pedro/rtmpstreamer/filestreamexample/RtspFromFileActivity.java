@@ -10,7 +10,7 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
-import com.pedro.builder.rtsp.RtspBuilderFromFile;
+import com.pedro.rtplibrary.rtsp.RtspFromFile;
 import com.pedro.encoder.input.decoder.VideoDecoderInterface;
 import com.pedro.rtmpstreamer.R;
 import com.pedro.rtsp.rtsp.Protocol;
@@ -21,7 +21,7 @@ import java.io.IOException;
 public class RtspFromFileActivity extends AppCompatActivity
     implements ConnectCheckerRtsp, View.OnClickListener, VideoDecoderInterface {
 
-  private RtspBuilderFromFile rtspBuilderFromFile;
+  private RtspFromFile rtspBuilderFromFile;
   private Button button, bSelectFile;
   private EditText etUrl;
   private TextView tvFile;
@@ -38,7 +38,7 @@ public class RtspFromFileActivity extends AppCompatActivity
     etUrl = (EditText) findViewById(R.id.et_rtp_url);
     etUrl.setHint(R.string.hint_rtsp);
     tvFile = (TextView) findViewById(R.id.tv_file);
-    rtspBuilderFromFile = new RtspBuilderFromFile(Protocol.TCP, this, this);
+    rtspBuilderFromFile = new RtspFromFile(Protocol.TCP, this, this);
   }
 
   @Override

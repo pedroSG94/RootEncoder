@@ -10,7 +10,7 @@ import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
-import com.pedro.builder.rtsp.RtspBuilderDisplay;
+import com.pedro.rtplibrary.rtsp.RtspDisplay;
 import com.pedro.rtmpstreamer.R;
 import com.pedro.rtsp.rtsp.Protocol;
 import com.pedro.rtsp.utils.ConnectCheckerRtsp;
@@ -18,7 +18,7 @@ import com.pedro.rtsp.utils.ConnectCheckerRtsp;
 @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
 public class DisplayRtspActivity extends AppCompatActivity implements ConnectCheckerRtsp, View.OnClickListener {
 
-  private RtspBuilderDisplay rtspBuilderDisplay;
+  private RtspDisplay rtspBuilderDisplay;
   private Button button;
   private EditText etUrl;
   private final int REQUEST_CODE = 1;
@@ -32,7 +32,7 @@ public class DisplayRtspActivity extends AppCompatActivity implements ConnectChe
     button.setOnClickListener(this);
     etUrl = (EditText) findViewById(R.id.et_rtp_url);
     etUrl.setHint(R.string.hint_rtsp);
-    rtspBuilderDisplay = new RtspBuilderDisplay(this, Protocol.TCP, this);
+    rtspBuilderDisplay = new RtspDisplay(this, Protocol.TCP, this);
   }
 
   @Override

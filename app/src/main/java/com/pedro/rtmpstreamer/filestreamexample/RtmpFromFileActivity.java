@@ -10,7 +10,7 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
-import com.pedro.builder.rtmp.RtmpBuilderFromFile;
+import com.pedro.rtplibrary.rtmp.RtmpFromFile;
 import com.pedro.encoder.input.decoder.VideoDecoderInterface;
 import com.pedro.rtmpstreamer.R;
 import java.io.IOException;
@@ -20,7 +20,7 @@ import net.ossrs.rtmp.ConnectCheckerRtmp;
 public class RtmpFromFileActivity extends AppCompatActivity
     implements ConnectCheckerRtmp, View.OnClickListener, VideoDecoderInterface {
 
-  private RtmpBuilderFromFile rtmpBuilderFromFile;
+  private RtmpFromFile rtmpBuilderFromFile;
   private Button button, bSelectFile;
   private EditText etUrl;
   private TextView tvFile;
@@ -37,7 +37,7 @@ public class RtmpFromFileActivity extends AppCompatActivity
     etUrl = (EditText) findViewById(R.id.et_rtp_url);
     etUrl.setHint(R.string.hint_rtmp);
     tvFile = (TextView) findViewById(R.id.tv_file);
-    rtmpBuilderFromFile = new RtmpBuilderFromFile(this, this);
+    rtmpBuilderFromFile = new RtmpFromFile(this, this);
   }
 
   @Override

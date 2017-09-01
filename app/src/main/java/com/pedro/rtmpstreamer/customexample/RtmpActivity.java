@@ -22,7 +22,7 @@ import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.Spinner;
 import android.widget.Toast;
-import com.pedro.builder.rtmp.RtmpBuilder;
+import com.pedro.rtplibrary.rtmp.RtmpCamera1;
 import com.pedro.encoder.input.video.CameraOpenException;
 import com.pedro.encoder.input.video.EffectManager;
 import com.pedro.rtmpstreamer.R;
@@ -37,7 +37,7 @@ public class RtmpActivity extends AppCompatActivity
 
   private Integer[] orientations = new Integer[] { 0, 90, 180, 270 };
 
-  private RtmpBuilder rtmpBuilder;
+  private RtmpCamera1 rtmpBuilder;
   private Button bStartStop, bRecord;
   private EditText etUrl;
   private String currentDateAndTime = "";
@@ -62,7 +62,7 @@ public class RtmpActivity extends AppCompatActivity
     getSupportActionBar().setHomeButtonEnabled(true);
 
     SurfaceView surfaceView = (SurfaceView) findViewById(R.id.surfaceView);
-    rtmpBuilder = new RtmpBuilder(surfaceView, this);
+    rtmpBuilder = new RtmpCamera1(surfaceView, this);
     prepareOptionsMenuViews();
 
     etUrl = (EditText) findViewById(R.id.et_rtp_url);

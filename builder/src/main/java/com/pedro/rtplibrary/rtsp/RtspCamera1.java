@@ -1,43 +1,24 @@
-package com.pedro.builder.rtsp;
+package com.pedro.rtplibrary.rtsp;
 
-import android.content.Context;
 import android.media.MediaCodec;
-import android.os.Build;
-import android.support.annotation.RequiresApi;
 import android.view.SurfaceView;
-import android.view.TextureView;
-
-import com.pedro.builder.base.BuilderSurfaceModeBase;
+import com.pedro.rtplibrary.source.Camera1Source;
 import com.pedro.rtsp.rtsp.Protocol;
 import com.pedro.rtsp.rtsp.RtspClient;
 import com.pedro.rtsp.utils.ConnectCheckerRtsp;
-
 import java.nio.ByteBuffer;
 
 /**
- * Created by pedro on 4/06/17.
- * This builder is under test, rotation only work with hardware because use encoding surface mode.
+ * Created by pedro on 10/02/17.
  */
-@RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
-public class RtspBuilderSurfaceMode extends BuilderSurfaceModeBase {
+
+public class RtspCamera1 extends Camera1Source {
 
   private RtspClient rtspClient;
 
-  public RtspBuilderSurfaceMode(SurfaceView surfaceView, Protocol protocol,
-      ConnectCheckerRtsp connectCheckerRtsp) {
-    super(surfaceView, surfaceView.getContext());
-    rtspClient = new RtspClient(connectCheckerRtsp, protocol);
-  }
-
-  public RtspBuilderSurfaceMode(TextureView textureView, Protocol protocol,
-      ConnectCheckerRtsp connectCheckerRtsp) {
-    super(textureView, textureView.getContext());
-    rtspClient = new RtspClient(connectCheckerRtsp, protocol);
-  }
-
-  public RtspBuilderSurfaceMode(Context context, Protocol protocol,
-      ConnectCheckerRtsp connectCheckerRtsp) {
-    super(context);
+  public RtspCamera1(SurfaceView surfaceView, Protocol protocol,
+                     ConnectCheckerRtsp connectCheckerRtsp) {
+    super(surfaceView);
     rtspClient = new RtspClient(connectCheckerRtsp, protocol);
   }
 
@@ -87,4 +68,3 @@ public class RtspBuilderSurfaceMode extends BuilderSurfaceModeBase {
     rtspClient.sendVideo(h264Buffer, info);
   }
 }
-

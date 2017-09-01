@@ -1,4 +1,4 @@
-package com.pedro.builder.rtmp;
+package com.pedro.rtplibrary.rtmp;
 
 /**
  * Created by pedro on 26/06/17.
@@ -7,11 +7,15 @@ package com.pedro.builder.rtmp;
 import android.media.MediaCodec;
 import android.os.Build;
 import android.support.annotation.RequiresApi;
-import com.pedro.builder.base.BuilderFromFileBase;
+
 import com.pedro.encoder.input.decoder.VideoDecoderInterface;
-import java.nio.ByteBuffer;
+import com.pedro.rtplibrary.source.FromFile;
+import com.pedro.rtplibrary.source.FromFileSource;
+
 import net.ossrs.rtmp.ConnectCheckerRtmp;
 import net.ossrs.rtmp.SrsFlvMuxer;
+
+import java.nio.ByteBuffer;
 
 /**
  * Created by pedro on 26/06/17.
@@ -19,12 +23,12 @@ import net.ossrs.rtmp.SrsFlvMuxer;
  * Only video is working, audio will be added when it work
  */
 @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
-public class RtmpBuilderFromFile extends BuilderFromFileBase {
+public class RtmpFromFile extends FromFileSource {
 
   private SrsFlvMuxer srsFlvMuxer;
 
-  public RtmpBuilderFromFile(ConnectCheckerRtmp connectChecker,
-      VideoDecoderInterface videoDecoderInterface) {
+  public RtmpFromFile(ConnectCheckerRtmp connectChecker,
+                      VideoDecoderInterface videoDecoderInterface) {
     super(videoDecoderInterface);
     srsFlvMuxer = new SrsFlvMuxer(connectChecker);
   }

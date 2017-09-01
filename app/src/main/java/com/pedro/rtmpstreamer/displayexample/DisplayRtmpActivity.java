@@ -10,14 +10,14 @@ import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
-import com.pedro.builder.rtmp.RtmpBuilderDisplay;
+import com.pedro.rtplibrary.rtmp.RtmpDisplay;
 import com.pedro.rtmpstreamer.R;
 import net.ossrs.rtmp.ConnectCheckerRtmp;
 
 @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
 public class DisplayRtmpActivity extends AppCompatActivity implements ConnectCheckerRtmp, View.OnClickListener {
 
-  private RtmpBuilderDisplay rtmpBuilderDisplay;
+  private RtmpDisplay rtmpBuilderDisplay;
   private Button button;
   private EditText etUrl;
   private final int REQUEST_CODE = 1;
@@ -31,7 +31,7 @@ public class DisplayRtmpActivity extends AppCompatActivity implements ConnectChe
     button.setOnClickListener(this);
     etUrl = (EditText) findViewById(R.id.et_rtp_url);
     etUrl.setHint(R.string.hint_rtmp);
-    rtmpBuilderDisplay = new RtmpBuilderDisplay(this, this);
+    rtmpBuilderDisplay = new RtmpDisplay(this, this);
   }
 
   @Override

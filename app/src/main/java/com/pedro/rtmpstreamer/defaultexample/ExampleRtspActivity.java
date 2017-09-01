@@ -8,7 +8,7 @@ import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
-import com.pedro.builder.rtsp.RtspBuilder;
+import com.pedro.rtplibrary.rtsp.RtspCamera1;
 import com.pedro.rtmpstreamer.R;
 import com.pedro.rtsp.rtsp.Protocol;
 import com.pedro.rtsp.utils.ConnectCheckerRtsp;
@@ -21,7 +21,7 @@ import com.pedro.rtsp.utils.ConnectCheckerRtsp;
 public class ExampleRtspActivity extends AppCompatActivity
     implements ConnectCheckerRtsp, View.OnClickListener {
 
-  private RtspBuilder rtspBuilder;
+  private RtspCamera1 rtspBuilder;
   private Button button;
   private EditText etUrl;
 
@@ -35,7 +35,7 @@ public class ExampleRtspActivity extends AppCompatActivity
     button.setOnClickListener(this);
     etUrl = (EditText) findViewById(R.id.et_rtp_url);
     etUrl.setHint(R.string.hint_rtsp);
-    rtspBuilder = new RtspBuilder(surfaceView, Protocol.TCP, this);
+    rtspBuilder = new RtspCamera1(surfaceView, Protocol.TCP, this);
   }
 
   @Override
