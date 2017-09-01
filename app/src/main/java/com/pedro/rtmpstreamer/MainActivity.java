@@ -70,18 +70,18 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
 
   private void createList() {
     activities = new ArrayList<ActivityLink>();
-    activities.add(new ActivityLink(new Intent(this, RtmpActivity.class), "Default RTMP", JELLY_BEAN));
-    activities.add(new ActivityLink(new Intent(this, RtspActivity.class), "Default RTSP", JELLY_BEAN));
-    activities.add(new ActivityLink(new Intent(this, ExampleRtmpActivity.class), "Custom RTMP", JELLY_BEAN));
-    activities.add(new ActivityLink(new Intent(this, ExampleRtspActivity.class), "Custom RTSP", JELLY_BEAN));
-    activities.add(new ActivityLink(new Intent(this, RtmpFromFileActivity.class), "From file RTMP", JELLY_BEAN_MR2));
-    activities.add(new ActivityLink(new Intent(this, RtspFromFileActivity.class), "From file RTSP", JELLY_BEAN_MR2));
-    activities.add(new ActivityLink(new Intent(this, SurfaceModeRtmpActivity.class), "Surface mode RTMP", LOLLIPOP));
-    activities.add(new ActivityLink(new Intent(this, SurfaceModeRtspActivity.class), "Surface mode RTSP", LOLLIPOP));
-    activities.add(new ActivityLink(new Intent(this, TextureModeRtmpActivity.class), "Texture mode RTMP", LOLLIPOP));
-    activities.add(new ActivityLink(new Intent(this, TextureModeRtspActivity.class), "Texture mode RTSP", LOLLIPOP));
-    activities.add(new ActivityLink(new Intent(this, DisplayRtmpActivity.class), "Display RTMP", LOLLIPOP));
-    activities.add(new ActivityLink(new Intent(this, DisplayRtspActivity.class), "Display RTSP", LOLLIPOP));
+    activities.add(new ActivityLink(new Intent(this, RtmpActivity.class), getString(R.string.default_rtmp), JELLY_BEAN));
+    activities.add(new ActivityLink(new Intent(this, RtspActivity.class), getString(R.string.default_rtsp), JELLY_BEAN));
+    activities.add(new ActivityLink(new Intent(this, ExampleRtmpActivity.class), getString(R.string.rtmp_streamer), JELLY_BEAN));
+    activities.add(new ActivityLink(new Intent(this, ExampleRtspActivity.class), getString(R.string.rtsp_streamer), JELLY_BEAN));
+    activities.add(new ActivityLink(new Intent(this, RtmpFromFileActivity.class), getString(R.string.from_file_rtmp), JELLY_BEAN_MR2));
+    activities.add(new ActivityLink(new Intent(this, RtspFromFileActivity.class), getString(R.string.from_file_rtsp), JELLY_BEAN_MR2));
+    activities.add(new ActivityLink(new Intent(this, SurfaceModeRtmpActivity.class), getString(R.string.surface_mode_rtmp), LOLLIPOP));
+    activities.add(new ActivityLink(new Intent(this, SurfaceModeRtspActivity.class), getString(R.string.surface_mode_rtsp), LOLLIPOP));
+    activities.add(new ActivityLink(new Intent(this, TextureModeRtmpActivity.class), getString(R.string.texture_mode_rtmp), LOLLIPOP));
+    activities.add(new ActivityLink(new Intent(this, TextureModeRtspActivity.class), getString(R.string.texture_mode_rtsp), LOLLIPOP));
+    activities.add(new ActivityLink(new Intent(this, DisplayRtmpActivity.class), getString(R.string.display_rtmp), LOLLIPOP));
+    activities.add(new ActivityLink(new Intent(this, DisplayRtspActivity.class), getString(R.string.display_rtsp), LOLLIPOP));
   }
 
   private void setListAdapter(List<ActivityLink> activities) {
