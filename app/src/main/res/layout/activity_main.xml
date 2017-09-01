@@ -27,12 +27,12 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_marginTop="@dimen/grid_5"
-        android:columnWidth="160dp"
+        android:columnWidth="40dp"
         android:gravity="center"
-        android:horizontalSpacing="@dimen/activity_horizontal_margin"
-        android:numColumns="auto_fit"
-        android:padding="@dimen/activity_horizontal_margin"
+        android:horizontalSpacing="@dimen/grid_2"
+        android:numColumns="2"
+        android:padding="@dimen/grid_2"
         android:stretchMode="columnWidth"
-        android:verticalSpacing="@dimen/activity_vertical_margin"
+        android:verticalSpacing="@dimen/grid_2"
         />
 </LinearLayout>
