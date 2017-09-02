@@ -10,15 +10,19 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
+
 import com.pedro.rtplibrary.rtmp.RtmpFromFile;
 import com.pedro.encoder.input.decoder.VideoDecoderInterface;
 import com.pedro.rtmpstreamer.R;
-import java.io.IOException;
+import com.pedro.rtmpstreamer.constants.Constants;
+
 import net.ossrs.rtmp.ConnectCheckerRtmp;
+
+import java.io.IOException;
 
 @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
 public class RtmpFromFileActivity extends AppCompatActivity
-    implements ConnectCheckerRtmp, View.OnClickListener, VideoDecoderInterface {
+   implements ConnectCheckerRtmp, View.OnClickListener, VideoDecoderInterface {
 
   private RtmpFromFile rtmpBuilderFromFile;
   private Button button, bSelectFile;
@@ -30,6 +34,7 @@ public class RtmpFromFileActivity extends AppCompatActivity
   protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
     setContentView(R.layout.activity_from_file);
+    getSupportActionBar().setTitle(getIntent().getStringExtra(Constants.LABEL));
     button = (Button) findViewById(R.id.b_start_stop);
     bSelectFile = (Button) findViewById(R.id.b_select_file);
     button.setOnClickListener(this);
@@ -149,7 +154,7 @@ public class RtmpFromFileActivity extends AppCompatActivity
         if (rtmpBuilderFromFile.isStreaming()) {
           button.setText(R.string.start_button);
           Toast.makeText(RtmpFromFileActivity.this, "Video stream finished", Toast.LENGTH_SHORT)
-              .show();
+             .show();
           rtmpBuilderFromFile.stopStream();
         }
       }

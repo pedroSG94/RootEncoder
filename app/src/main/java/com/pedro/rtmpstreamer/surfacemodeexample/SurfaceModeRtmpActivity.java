@@ -10,8 +10,11 @@ import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
+
 import com.pedro.rtplibrary.rtmp.RtmpCamera2;
 import com.pedro.rtmpstreamer.R;
+import com.pedro.rtmpstreamer.constants.Constants;
+
 import net.ossrs.rtmp.ConnectCheckerRtmp;
 
 /**
@@ -19,7 +22,7 @@ import net.ossrs.rtmp.ConnectCheckerRtmp;
  */
 @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
 public class SurfaceModeRtmpActivity extends AppCompatActivity
-    implements ConnectCheckerRtmp, View.OnClickListener {
+   implements ConnectCheckerRtmp, View.OnClickListener {
 
   private RtmpCamera2 rtmpBuilderSurfaceMode;
   private Button button;
@@ -30,6 +33,7 @@ public class SurfaceModeRtmpActivity extends AppCompatActivity
     super.onCreate(savedInstanceState);
     getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
     setContentView(R.layout.activity_example);
+    getSupportActionBar().setTitle(getIntent().getStringExtra(Constants.LABEL));
     SurfaceView surfaceView = (SurfaceView) findViewById(R.id.surfaceView);
     button = (Button) findViewById(R.id.b_start_stop);
     button.setOnClickListener(this);
@@ -98,7 +102,7 @@ public class SurfaceModeRtmpActivity extends AppCompatActivity
         rtmpBuilderSurfaceMode.startStream(etUrl.getText().toString());
       } else {
         Toast.makeText(this, "Error preparing stream, This device cant do it", Toast.LENGTH_SHORT)
-            .show();
+           .show();
       }
     } else {
       button.setText(R.string.start_button);

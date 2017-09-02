@@ -1,15 +1,18 @@
 package com.pedro.rtmpstreamer.defaultexample;
 
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
 import android.view.SurfaceView;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
+
 import com.pedro.rtplibrary.rtmp.RtmpCamera1;
 import com.pedro.rtmpstreamer.R;
+import com.pedro.rtmpstreamer.constants.Constants;
+
 import net.ossrs.rtmp.ConnectCheckerRtmp;
 
 /**
@@ -18,7 +21,7 @@ import net.ossrs.rtmp.ConnectCheckerRtmp;
  * Audio = stereo, 128 * 1024 bitrate, 44100 sampleRate.
  */
 public class ExampleRtmpActivity extends AppCompatActivity
-    implements ConnectCheckerRtmp, View.OnClickListener {
+   implements ConnectCheckerRtmp, View.OnClickListener {
 
   private RtmpCamera1 rtmpBuilder;
   private Button button;
@@ -29,6 +32,7 @@ public class ExampleRtmpActivity extends AppCompatActivity
     super.onCreate(savedInstanceState);
     getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
     setContentView(R.layout.activity_example);
+    getSupportActionBar().setTitle(getIntent().getStringExtra(Constants.LABEL));
     SurfaceView surfaceView = (SurfaceView) findViewById(R.id.surfaceView);
     button = (Button) findViewById(R.id.b_start_stop);
     button.setOnClickListener(this);
@@ -97,7 +101,7 @@ public class ExampleRtmpActivity extends AppCompatActivity
         rtmpBuilder.startStream(etUrl.getText().toString());
       } else {
         Toast.makeText(this, "Error preparing stream, This device cant do it", Toast.LENGTH_SHORT)
-            .show();
+           .show();
       }
     } else {
       button.setText(R.string.start_button);
