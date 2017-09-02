@@ -1,154 +1,38 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout
+    android:id="@+id/activity_main"
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
     android:gravity="center"
+    android:orientation="vertical"
     tools:context="com.pedro.rtmpstreamer.MainActivity"
-    android:id="@+id/activity_main"
     >
-  <TextView
-      android:text="@string/tv_select"
-      android:textSize="22sp"
-      android:textColor="@color/appColor"
-      android:layout_margin="6dp"
-      android:layout_width="wrap_content"
-      android:layout_height="wrap_content"
-      android:id="@+id/tv_select"
-      />
 
-  <LinearLayout
-      android:layout_width="wrap_content"
-      android:layout_height="wrap_content"
-      android:orientation="horizontal"
-      >
-    <Button
-        android:text="@string/default_rtmp"
-        android:layout_margin="6dp"
+    <TextView
+        android:id="@+id/tv_select"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:id="@+id/b_default_rtmp"
+        android:layout_marginTop="@dimen/grid_10"
+        android:layout_marginLeft="@dimen/grid_2"
+        android:layout_marginRight="@dimen/grid_2"
+        android:text="@string/tv_select"
+        android:textColor="@color/appColor"
+        android:textSize="22sp"
         />
 
-    <Button
-        android:text="@string/default_rtsp"
-        android:layout_margin="6dp"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:id="@+id/b_default_rtsp"
+    <GridView
+        android:id="@android:id/list"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_marginTop="@dimen/grid_5"
+        android:columnWidth="40dp"
+        android:gravity="center"
+        android:horizontalSpacing="@dimen/grid_2"
+        android:numColumns="2"
+        android:padding="@dimen/grid_2"
+        android:stretchMode="columnWidth"
+        android:verticalSpacing="@dimen/grid_2"
         />
-  </LinearLayout>
-
-  <LinearLayout
-      android:layout_width="wrap_content"
-      android:layout_height="wrap_content"
-      android:orientation="horizontal"
-      >
-    <Button
-        android:text="@string/rtmp_streamer"
-        android:layout_margin="6dp"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:id="@+id/b_rtmp"
-        />
-
-    <Button
-        android:text="@string/rtsp_streamer"
-        android:layout_margin="6dp"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:id="@+id/b_rtsp"
-        />
-  </LinearLayout>
-
-
-  <LinearLayout
-      android:layout_width="wrap_content"
-      android:layout_height="wrap_content"
-      android:orientation="horizontal"
-      >
-    <Button
-        android:text="@string/from_file_rtmp"
-        android:layout_margin="6dp"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:id="@+id/b_from_file_rtmp"
-        />
-
-    <Button
-        android:text="@string/from_file_rtsp"
-        android:layout_margin="6dp"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:id="@+id/b_from_file_rtsp"
-        />
-  </LinearLayout>
-
-  <LinearLayout
-      android:layout_width="wrap_content"
-      android:layout_height="wrap_content"
-      android:orientation="horizontal"
-      >
-    <Button
-        android:text="@string/surface_mode_rtmp"
-        android:layout_margin="6dp"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:id="@+id/b_surface_mode_rtmp"
-        />
-
-    <Button
-        android:text="@string/surface_mode_rtsp"
-        android:layout_margin="6dp"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:id="@+id/b_surface_mode_rtsp"
-        />
-  </LinearLayout>
-
-  <LinearLayout
-      android:layout_width="wrap_content"
-      android:layout_height="wrap_content"
-      android:orientation="horizontal"
-      >
-    <Button
-        android:text="@string/texture_mode_rtmp"
-        android:layout_margin="6dp"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:id="@+id/b_texture_mode_rtmp"
-        />
-
-    <Button
-        android:text="@string/texture_mode_rtsp"
-        android:layout_margin="6dp"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:id="@+id/b_texture_mode_rtsp"
-        />
-
-  </LinearLayout>
-
-  <LinearLayout
-      android:layout_width="wrap_content"
-      android:layout_height="wrap_content"
-      android:orientation="horizontal"
-      >
-    <Button
-        android:text="@string/display_rtmp"
-        android:layout_margin="6dp"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:id="@+id/b_display_rtmp"
-        />
-
-    <Button
-        android:text="@string/display_rtsp"
-        android:layout_margin="6dp"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:id="@+id/b_display_rtsp"
-        />
-  </LinearLayout>
 </LinearLayout>
