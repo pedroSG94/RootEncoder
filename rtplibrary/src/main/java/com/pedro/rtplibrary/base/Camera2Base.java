@@ -1,44 +1,44 @@
-package com.pedro.rtplibrary.source;
+package com.pedro.rtplibrary.base;
 
 import android.content.Context;
-import android.content.Intent;
 import android.graphics.ImageFormat;
 import android.media.MediaCodec;
 import android.media.MediaFormat;
 import android.media.MediaMuxer;
-import android.media.projection.MediaProjection;
-import android.media.projection.MediaProjectionManager;
 import android.os.Build;
 import android.support.annotation.RequiresApi;
 import android.view.SurfaceView;
+import android.view.TextureView;
+
 import com.pedro.encoder.audio.AudioEncoder;
 import com.pedro.encoder.audio.GetAacData;
 import com.pedro.encoder.input.audio.GetMicrophoneData;
 import com.pedro.encoder.input.audio.MicrophoneManager;
+import com.pedro.encoder.input.video.Camera2ApiManager;
+import com.pedro.encoder.input.video.CameraOpenException;
 import com.pedro.encoder.input.video.GetCameraData;
 import com.pedro.encoder.video.FormatVideoEncoder;
 import com.pedro.encoder.video.GetH264Data;
 import com.pedro.encoder.video.VideoEncoder;
+
 import java.io.IOException;
 import java.nio.ByteBuffer;
 
-import static android.content.Context.MEDIA_PROJECTION_SERVICE;
-
 /**
- * Created by pedro on 9/08/17.
+ * Created by pedro on 7/07/17.
  */
 @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
-public abstract class DisplaySource
+public abstract class Camera2Base
     implements GetAacData, GetCameraData, GetH264Data, GetMicrophoneData {
 
   protected Context context;
-  private MediaProjection mediaProjection;
-  private MediaProjectionManager mediaProjectionManager;
+  private Camera2ApiManager cameraManager;
   protected VideoEncoder videoEncoder;
   protected MicrophoneManager microphoneManager;
   protected AudioEncoder audioEncoder;
   private boolean streaming;
   protected SurfaceView surfaceView;
+  protected TextureView textureView;
   private boolean videoEnabled = true;
   //record
   private MediaMuxer mediaMuxer;
@@ -47,13 +47,28 @@ public abstract class DisplaySource
   private boolean recording = false;
   private MediaFormat videoFormat;
   private MediaFormat audioFormat;
-  private int dpi = 320;
 
-  public DisplaySource(Context context) {
+  public Camera2Base(SurfaceView surfaceView, Context context) {
+    this.surfaceView = surfaceView;
     this.context = context;
-    mediaProjectionManager =
-        ((MediaProjectionManager) context.getSystemService(MEDIA_PROJECTION_SERVICE));
-    this.surfaceView = null;
+    videoEncoder = new VideoEncoder(this);
+    microphoneManager = new MicrophoneManager(this);
+    audioEncoder = new AudioEncoder(this);
+    streaming = false;
+  }
+
+  public Camera2Base(TextureView textureView, Context context) {
+    this.textureView = textureView;
+    this.context = context;
+    videoEncoder = new VideoEncoder(this);
+    microphoneManager = new MicrophoneManager(this);
+    audioEncoder = new AudioEncoder(this);
+    streaming = false;
+  }
+
+  public Camera2Base(Context context) {
+    this.context = context;
+    this.textureView = null;
     videoEncoder = new VideoEncoder(this);
     microphoneManager = new MicrophoneManager(this);
     audioEncoder = new AudioEncoder(this);
@@ -63,13 +78,13 @@ public abstract class DisplaySource
   public abstract void setAuthorization(String user, String password);
 
   public boolean prepareVideo(int width, int height, int fps, int bitrate, boolean hardwareRotation,
-      int rotation, int dpi) {
-    this.dpi = dpi;
+      int rotation) {
     int imageFormat = ImageFormat.NV21; //supported nv21 and yv12
     videoEncoder.setImageFormat(imageFormat);
     boolean result =
         videoEncoder.prepareVideoEncoder(width, height, fps, bitrate, rotation, hardwareRotation,
             FormatVideoEncoder.SURFACE);
+    prepareCameraManager();
     return result;
   }
 
@@ -83,8 +98,10 @@ public abstract class DisplaySource
   }
 
   public boolean prepareVideo() {
-    return videoEncoder.prepareVideoEncoder(640, 480, 30, 1200 * 1024, 0, true,
+    boolean result = videoEncoder.prepareVideoEncoder(640, 480, 30, 1200 * 1024, 90, true,
         FormatVideoEncoder.SURFACE);
+    prepareCameraManager();
+    return result;
   }
 
   public abstract boolean prepareAudio();
@@ -115,16 +132,10 @@ public abstract class DisplaySource
 
   protected abstract void startStreamRtp(String url);
 
-  public Intent sendIntent() {
-    return mediaProjectionManager.createScreenCaptureIntent();
-  }
-
-  public void startStream(String url, int resultCode, Intent data) {
+  public void startStream(String url) {
     videoEncoder.start();
     audioEncoder.start();
-    mediaProjection = mediaProjectionManager.getMediaProjection(resultCode, data);
-    mediaProjection.createVirtualDisplay("Stream Display", videoEncoder.getWidth(),
-        videoEncoder.getHeight(), dpi, 0, videoEncoder.getInputSurface(), null, null);
+    cameraManager.openCameraBack();
     microphoneManager.start();
     streaming = true;
     startStreamRtp(url);
@@ -133,10 +144,8 @@ public abstract class DisplaySource
   protected abstract void stopStreamRtp();
 
   public void stopStream() {
+    cameraManager.closeCamera();
     microphoneManager.stop();
-    if (mediaProjection != null) {
-      mediaProjection.stop();
-    }
     stopStreamRtp();
     videoEncoder.stop();
     audioEncoder.stop();
@@ -169,7 +178,15 @@ public abstract class DisplaySource
     videoEnabled = true;
   }
 
-  /** need min API 19 */
+  public void switchCamera() throws CameraOpenException {
+    if (isStreaming()) {
+      cameraManager.switchCamera();
+    }
+  }
+
+  /**
+   * need min API 19
+   */
   public void setVideoBitrateOnFly(int bitrate) {
     if (Build.VERSION.SDK_INT >= 19) {
       videoEncoder.setVideoBitrateOnFly(bitrate);
@@ -178,6 +195,14 @@ public abstract class DisplaySource
 
   public boolean isStreaming() {
     return streaming;
+  }
+
+  protected void prepareCameraManager() {
+    if (textureView != null) {
+      cameraManager = new Camera2ApiManager(textureView, videoEncoder.getInputSurface(), context);
+    } else if (surfaceView != null) {
+      cameraManager = new Camera2ApiManager(surfaceView, videoEncoder.getInputSurface(), context);
+    }
   }
 
   protected abstract void getAacDataRtp(ByteBuffer aacBuffer, MediaCodec.BufferInfo info);
@@ -232,4 +257,3 @@ public abstract class DisplaySource
     audioFormat = mediaFormat;
   }
 }
-

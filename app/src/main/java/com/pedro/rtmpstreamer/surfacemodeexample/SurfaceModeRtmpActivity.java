@@ -22,9 +22,9 @@ import net.ossrs.rtmp.ConnectCheckerRtmp;
  */
 @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
 public class SurfaceModeRtmpActivity extends AppCompatActivity
-   implements ConnectCheckerRtmp, View.OnClickListener {
+    implements ConnectCheckerRtmp, View.OnClickListener {
 
-  private RtmpCamera2 rtmpBuilderSurfaceMode;
+  private RtmpCamera2 rtmpCamera2;
   private Button button;
   private EditText etUrl;
 
@@ -39,7 +39,7 @@ public class SurfaceModeRtmpActivity extends AppCompatActivity
     button.setOnClickListener(this);
     etUrl = (EditText) findViewById(R.id.et_rtp_url);
     etUrl.setHint(R.string.hint_rtmp);
-    rtmpBuilderSurfaceMode = new RtmpCamera2(surfaceView, this);
+    rtmpCamera2 = new RtmpCamera2(surfaceView, this);
   }
 
   @Override
@@ -47,7 +47,8 @@ public class SurfaceModeRtmpActivity extends AppCompatActivity
     runOnUiThread(new Runnable() {
       @Override
       public void run() {
-        Toast.makeText(SurfaceModeRtmpActivity.this, "Connection success", Toast.LENGTH_SHORT).show();
+        Toast.makeText(SurfaceModeRtmpActivity.this, "Connection success", Toast.LENGTH_SHORT)
+            .show();
       }
     });
   }
@@ -57,8 +58,9 @@ public class SurfaceModeRtmpActivity extends AppCompatActivity
     runOnUiThread(new Runnable() {
       @Override
       public void run() {
-        Toast.makeText(SurfaceModeRtmpActivity.this, "Connection failed", Toast.LENGTH_SHORT).show();
-        rtmpBuilderSurfaceMode.stopStream();
+        Toast.makeText(SurfaceModeRtmpActivity.this, "Connection failed", Toast.LENGTH_SHORT)
+            .show();
+        rtmpCamera2.stopStream();
         button.setText(R.string.start_button);
       }
     });
@@ -96,17 +98,17 @@ public class SurfaceModeRtmpActivity extends AppCompatActivity
 
   @Override
   public void onClick(View view) {
-    if (!rtmpBuilderSurfaceMode.isStreaming()) {
-      if (rtmpBuilderSurfaceMode.prepareAudio() && rtmpBuilderSurfaceMode.prepareVideo()) {
+    if (!rtmpCamera2.isStreaming()) {
+      if (rtmpCamera2.prepareAudio() && rtmpCamera2.prepareVideo()) {
         button.setText(R.string.stop_button);
-        rtmpBuilderSurfaceMode.startStream(etUrl.getText().toString());
+        rtmpCamera2.startStream(etUrl.getText().toString());
       } else {
         Toast.makeText(this, "Error preparing stream, This device cant do it", Toast.LENGTH_SHORT)
-           .show();
+            .show();
       }
     } else {
       button.setText(R.string.start_button);
-      rtmpBuilderSurfaceMode.stopStream();
+      rtmpCamera2.stopStream();
     }
   }
 }

@@ -15,8 +15,8 @@ import java.io.IOException;
  * Created by pedro on 20/06/17.
  * Debug purpose ignore this class. This use decoder for reproduce audio or render a surface
  */
-public class DecodersTest implements GetMicrophoneData, AudioDecoderInterface,
-    VideoDecoderInterface {
+public class DecodersTest
+    implements GetMicrophoneData, AudioDecoderInterface, VideoDecoderInterface {
 
   private final String TAG = "DecodersTest";
 

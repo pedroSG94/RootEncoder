@@ -33,7 +33,7 @@ allprojects {
   }
 }
 dependencies {
-  compile 'com.github.pedroSG94.rtmp-rtsp-stream-client-java:builder:1.1.0'
+  compile 'com.github.pedroSG94.rtmp-rtsp-stream-client-java:rtplibrary:1.1.1'
 }
 
 ```
@@ -71,29 +71,29 @@ I recommend you go to Activities in app module and see all examples.
 //default
 
 //create builder
-RtmpBuilder rtmpBuilder = new RtmpBuilder(surfaceView, connectCheckerRtmp);
+RtmpCamera1 rtmpCamera1 = new RtmpCamera1(surfaceView, connectCheckerRtmp);
 //start stream
-if (rtmpBuilder.prepareAudio() && rtmpBuilder.prepareVideo()) {
-  rtmpBuilder.startStream("rtmp://yourEndPoint");
+if (rtmpCamera1.prepareAudio() && rtmpCamera1.prepareVideo()) {
+  rtmpCamera1.startStream("rtmp://yourEndPoint");
 } else {
  /**This device cant init encoders, this could be for 2 reasons: The encoder selected doesnt support any configuration setted or your device hasnt a H264 or AAC encoder (in this case you can see log error valid encoder not found)*/
 }
 //stop stream
-rtmpBuilder.stopStream();
+rtmpCamera1.stopStream();
 
 //with params
 
 //create builder
-RtmpBuilder rtmpBuilder = new RtmpBuilder(surfaceView, connectCheckerRtmp);
+RtmpCamera1 rtmpCamera1 = new RtmpCamera1(surfaceView, connectCheckerRtmp);
 //start stream
-if (rtmpBuilder.prepareAudio(int bitrate, int sampleRate, boolean isStereo, boolean echoCanceler,
-      boolean noiseSuppressor) && rtmpBuilder.prepareVideo(int width, int height, int fps, int bitrate, boolean hardwareRotation, int rotation)) {
-  rtmpBuilder.startStream("rtmp://yourEndPoint");
+if (rtmpCamera1.prepareAudio(int bitrate, int sampleRate, boolean isStereo, boolean echoCanceler,
+      boolean noiseSuppressor) && rtmpCamera1.prepareVideo(int width, int height, int fps, int bitrate, boolean hardwareRotation, int rotation)) {
+  rtmpCamera1.startStream("rtmp://yourEndPoint");
 } else {
  /**This device cant init encoders, this could be for 2 reasons: The encoder selected doesnt support any configuration setted or your device hasnt a H264 or AAC encoder (in this case you can see log error valid encoder not found)*/
 }
 //stop stream
-rtmpBuilder.stopStream();
+rtmpCamera1.stopStream();
 
 ```
 
@@ -104,28 +104,28 @@ rtmpBuilder.stopStream();
 //default
 
 //create builder
-RtspBuilder rtspBuilder = new RtspBuilder(surfaceView, protocol, connectCheckerRtsp);
+RtspCamera1 rtspCamera1 = new RtspCamera1(surfaceView, protocol, connectCheckerRtsp);
 //start stream
-if (rtspBuilder.prepareAudio() && rtspBuilder.prepareVideo()) {
-  rtspBuilder.startStream("rtsp://yourEndPoint");
+if (rtspCamera1.prepareAudio() && rtspCamera1.prepareVideo()) {
+  rtspCamera1.startStream("rtsp://yourEndPoint");
 } else {
  /**This device cant init encoders, this could be for 2 reasons: The encoder selected doesnt support any configuration setted or your device hasnt a H264 or AAC encoder (in this case you can see log error valid encoder not found)*/
 }
 //stop stream
-rtspBuilder.stopStream();
+rtspCamera1.stopStream();
 
 //with params
 
 //create builder
-RtspBuilder rtspBuilder = new RtspBuilder(surfaceView, protocol, connectCheckerRtsp);
+RtspCamera1 rtspCamera1 = new RtspCamera1(surfaceView, protocol, connectCheckerRtsp);
 //start stream
-if (rtspBuilder.prepareAudio(int bitrate, int sampleRate, boolean isStereo, boolean echoCanceler,
-      boolean noiseSuppressor) && rtspBuilder.prepareVideo(int width, int height, int fps, int bitrate, boolean hardwareRotation, int rotation)) {
-  rtspBuilder.startStream("rtsp://yourEndPoint");
+if (rtspCamera1.prepareAudio(int bitrate, int sampleRate, boolean isStereo, boolean echoCanceler,
+      boolean noiseSuppressor) && rtspCamera1.prepareVideo(int width, int height, int fps, int bitrate, boolean hardwareRotation, int rotation)) {
+  rtspCamera1.startStream("rtsp://yourEndPoint");
 } else {
  /**This device cant init encoders, this could be for 2 reasons: The encoder selected doesnt support any configuration setted or your device hasnt a H264 or AAC encoder (in this case you can see log error valid encoder not found)*/
 }
 //stop stream
-rtspBuilder.stopStream();
+rtspCamera1.stopStream();
 
 ```

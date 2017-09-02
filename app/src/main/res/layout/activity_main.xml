@@ -1,8 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout
-    android:id="@+id/activity_main"
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/activity_main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:gravity="center"
@@ -10,29 +9,29 @@
     tools:context="com.pedro.rtmpstreamer.MainActivity"
     >
 
-    <TextView
-        android:id="@+id/tv_select"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="@dimen/grid_10"
-        android:layout_marginLeft="@dimen/grid_2"
-        android:layout_marginRight="@dimen/grid_2"
-        android:text="@string/tv_select"
-        android:textColor="@color/appColor"
-        android:textSize="22sp"
-        />
+  <TextView
+      android:id="@+id/tv_select"
+      android:layout_width="wrap_content"
+      android:layout_height="wrap_content"
+      android:layout_marginTop="@dimen/grid_10"
+      android:layout_marginLeft="@dimen/grid_2"
+      android:layout_marginRight="@dimen/grid_2"
+      android:text="@string/tv_select"
+      android:textColor="@color/appColor"
+      android:textSize="22sp"
+      />
 
-    <GridView
-        android:id="@android:id/list"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_marginTop="@dimen/grid_5"
-        android:columnWidth="40dp"
-        android:gravity="center"
-        android:horizontalSpacing="@dimen/grid_2"
-        android:numColumns="2"
-        android:padding="@dimen/grid_2"
-        android:stretchMode="columnWidth"
-        android:verticalSpacing="@dimen/grid_2"
-        />
+  <GridView
+      android:id="@android:id/list"
+      android:layout_width="match_parent"
+      android:layout_height="match_parent"
+      android:layout_marginTop="@dimen/grid_5"
+      android:columnWidth="40dp"
+      android:gravity="center"
+      android:horizontalSpacing="@dimen/grid_2"
+      android:numColumns="2"
+      android:padding="@dimen/grid_2"
+      android:stretchMode="columnWidth"
+      android:verticalSpacing="@dimen/grid_2"
+      />
 </LinearLayout>

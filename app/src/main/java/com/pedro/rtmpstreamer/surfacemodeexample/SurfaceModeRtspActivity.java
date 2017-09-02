@@ -22,9 +22,9 @@ import com.pedro.rtsp.utils.ConnectCheckerRtsp;
  */
 @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
 public class SurfaceModeRtspActivity extends AppCompatActivity
-   implements ConnectCheckerRtsp, View.OnClickListener {
+    implements ConnectCheckerRtsp, View.OnClickListener {
 
-  private RtspCamera2 rtspBuilderSurfaceMode;
+  private RtspCamera2 rtspCamera2;
   private Button button;
   private EditText etUrl;
 
@@ -39,7 +39,7 @@ public class SurfaceModeRtspActivity extends AppCompatActivity
     button.setOnClickListener(this);
     etUrl = (EditText) findViewById(R.id.et_rtp_url);
     etUrl.setHint(R.string.hint_rtsp);
-    rtspBuilderSurfaceMode = new RtspCamera2(surfaceView, Protocol.TCP, this);
+    rtspCamera2 = new RtspCamera2(surfaceView, Protocol.TCP, this);
   }
 
   @Override
@@ -47,7 +47,8 @@ public class SurfaceModeRtspActivity extends AppCompatActivity
     runOnUiThread(new Runnable() {
       @Override
       public void run() {
-        Toast.makeText(SurfaceModeRtspActivity.this, "Connection success", Toast.LENGTH_SHORT).show();
+        Toast.makeText(SurfaceModeRtspActivity.this, "Connection success", Toast.LENGTH_SHORT)
+            .show();
       }
     });
   }
@@ -57,8 +58,9 @@ public class SurfaceModeRtspActivity extends AppCompatActivity
     runOnUiThread(new Runnable() {
       @Override
       public void run() {
-        Toast.makeText(SurfaceModeRtspActivity.this, "Connection failed", Toast.LENGTH_SHORT).show();
-        rtspBuilderSurfaceMode.stopStream();
+        Toast.makeText(SurfaceModeRtspActivity.this, "Connection failed", Toast.LENGTH_SHORT)
+            .show();
+        rtspCamera2.stopStream();
         button.setText(R.string.start_button);
       }
     });
@@ -96,17 +98,17 @@ public class SurfaceModeRtspActivity extends AppCompatActivity
 
   @Override
   public void onClick(View view) {
-    if (!rtspBuilderSurfaceMode.isStreaming()) {
-      if (rtspBuilderSurfaceMode.prepareAudio() && rtspBuilderSurfaceMode.prepareVideo()) {
+    if (!rtspCamera2.isStreaming()) {
+      if (rtspCamera2.prepareAudio() && rtspCamera2.prepareVideo()) {
         button.setText(R.string.stop_button);
-        rtspBuilderSurfaceMode.startStream(etUrl.getText().toString());
+        rtspCamera2.startStream(etUrl.getText().toString());
       } else {
         Toast.makeText(this, "Error preparing stream, This device cant do it", Toast.LENGTH_SHORT)
-           .show();
+            .show();
       }
     } else {
       button.setText(R.string.start_button);
-      rtspBuilderSurfaceMode.stopStream();
+      rtspCamera2.stopStream();
     }
   }
 }

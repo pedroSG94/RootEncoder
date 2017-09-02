@@ -7,14 +7,13 @@ public class Constants {
   public static final int RTMP = 1;
   public static final int RTSP = 2;
 
-  @IntDef({RTMP, RTSP})
+  @IntDef({ RTMP, RTSP })
   public @interface Protocols {
   }
 
-
   public static final String LABEL = "label";
 
-  @StringDef({LABEL})
+  @StringDef({ LABEL })
   public @interface IntentExtras {
   }
 }

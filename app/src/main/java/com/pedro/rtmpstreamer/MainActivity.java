@@ -49,8 +49,8 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
   private List<ActivityLink> activities;
 
   private final String[] PERMISSIONS = {
-     Manifest.permission.RECORD_AUDIO, Manifest.permission.CAMERA,
-     Manifest.permission.WRITE_EXTERNAL_STORAGE
+      Manifest.permission.RECORD_AUDIO, Manifest.permission.CAMERA,
+      Manifest.permission.WRITE_EXTERNAL_STORAGE
   };
 
   @Override
@@ -70,25 +70,38 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
 
   private void createList() {
     activities = new ArrayList<ActivityLink>();
-    activities.add(new ActivityLink(new Intent(this, RtmpActivity.class), getString(R.string.default_rtmp), JELLY_BEAN));
-    activities.add(new ActivityLink(new Intent(this, RtspActivity.class), getString(R.string.default_rtsp), JELLY_BEAN));
-    activities.add(new ActivityLink(new Intent(this, ExampleRtmpActivity.class), getString(R.string.rtmp_streamer), JELLY_BEAN));
-    activities.add(new ActivityLink(new Intent(this, ExampleRtspActivity.class), getString(R.string.rtsp_streamer), JELLY_BEAN));
-    activities.add(new ActivityLink(new Intent(this, RtmpFromFileActivity.class), getString(R.string.from_file_rtmp), JELLY_BEAN_MR2));
-    activities.add(new ActivityLink(new Intent(this, RtspFromFileActivity.class), getString(R.string.from_file_rtsp), JELLY_BEAN_MR2));
-    activities.add(new ActivityLink(new Intent(this, SurfaceModeRtmpActivity.class), getString(R.string.surface_mode_rtmp), LOLLIPOP));
-    activities.add(new ActivityLink(new Intent(this, SurfaceModeRtspActivity.class), getString(R.string.surface_mode_rtsp), LOLLIPOP));
-    activities.add(new ActivityLink(new Intent(this, TextureModeRtmpActivity.class), getString(R.string.texture_mode_rtmp), LOLLIPOP));
-    activities.add(new ActivityLink(new Intent(this, TextureModeRtspActivity.class), getString(R.string.texture_mode_rtsp), LOLLIPOP));
-    activities.add(new ActivityLink(new Intent(this, DisplayRtmpActivity.class), getString(R.string.display_rtmp), LOLLIPOP));
-    activities.add(new ActivityLink(new Intent(this, DisplayRtspActivity.class), getString(R.string.display_rtsp), LOLLIPOP));
+    activities.add(
+        new ActivityLink(new Intent(this, RtmpActivity.class), getString(R.string.default_rtmp),
+            JELLY_BEAN));
+    activities.add(
+        new ActivityLink(new Intent(this, RtspActivity.class), getString(R.string.default_rtsp),
+            JELLY_BEAN));
+    activities.add(new ActivityLink(new Intent(this, ExampleRtmpActivity.class),
+        getString(R.string.rtmp_streamer), JELLY_BEAN));
+    activities.add(new ActivityLink(new Intent(this, ExampleRtspActivity.class),
+        getString(R.string.rtsp_streamer), JELLY_BEAN));
+    activities.add(new ActivityLink(new Intent(this, RtmpFromFileActivity.class),
+        getString(R.string.from_file_rtmp), JELLY_BEAN_MR2));
+    activities.add(new ActivityLink(new Intent(this, RtspFromFileActivity.class),
+        getString(R.string.from_file_rtsp), JELLY_BEAN_MR2));
+    activities.add(new ActivityLink(new Intent(this, SurfaceModeRtmpActivity.class),
+        getString(R.string.surface_mode_rtmp), LOLLIPOP));
+    activities.add(new ActivityLink(new Intent(this, SurfaceModeRtspActivity.class),
+        getString(R.string.surface_mode_rtsp), LOLLIPOP));
+    activities.add(new ActivityLink(new Intent(this, TextureModeRtmpActivity.class),
+        getString(R.string.texture_mode_rtmp), LOLLIPOP));
+    activities.add(new ActivityLink(new Intent(this, TextureModeRtspActivity.class),
+        getString(R.string.texture_mode_rtsp), LOLLIPOP));
+    activities.add(new ActivityLink(new Intent(this, DisplayRtmpActivity.class),
+        getString(R.string.display_rtmp), LOLLIPOP));
+    activities.add(new ActivityLink(new Intent(this, DisplayRtspActivity.class),
+        getString(R.string.display_rtsp), LOLLIPOP));
   }
 
   private void setListAdapter(List<ActivityLink> activities) {
     list.setAdapter(new ImageAdapter(activities));
     list.setOnItemClickListener(this);
   }
-
 
   @Override
   public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
@@ -120,13 +133,11 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         named = "JELLY_BEAN";
         break;
     }
-    StringBuilder sb = new StringBuilder("You need min Android ")
-       .append(named)
-       .append(" (API ")
-       .append(minSdk)
-       .append(" )");
-    Toast.makeText(this, sb.toString(), Toast.LENGTH_SHORT)
-       .show();
+    StringBuilder sb = new StringBuilder("You need min Android ").append(named)
+        .append(" (API ")
+        .append(minSdk)
+        .append(" )");
+    Toast.makeText(this, sb.toString(), Toast.LENGTH_SHORT).show();
   }
 
   private void showPermissionsErrorAndRequest() {
@@ -135,12 +146,10 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
   }
 
   private boolean hasPermissions(Context context, String... permissions) {
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M
-       && context != null
-       && permissions != null) {
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && context != null && permissions != null) {
       for (String permission : permissions) {
         if (ActivityCompat.checkSelfPermission(context, permission)
-           != PackageManager.PERMISSION_GRANTED) {
+            != PackageManager.PERMISSION_GRANTED) {
           return false;
         }
       }
@@ -214,6 +223,5 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
       button.setText(links.get(position).getLabel());
       return convertView;
     }
-
   }
 }

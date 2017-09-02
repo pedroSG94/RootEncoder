@@ -18,9 +18,10 @@ import com.pedro.rtsp.rtsp.Protocol;
 import com.pedro.rtsp.utils.ConnectCheckerRtsp;
 
 @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
-public class DisplayRtspActivity extends AppCompatActivity implements ConnectCheckerRtsp, View.OnClickListener {
+public class DisplayRtspActivity extends AppCompatActivity
+    implements ConnectCheckerRtsp, View.OnClickListener {
 
-  private RtspDisplay rtspBuilderDisplay;
+  private RtspDisplay rtspDisplay;
   private Button button;
   private EditText etUrl;
   private final int REQUEST_CODE = 1;
@@ -35,7 +36,7 @@ public class DisplayRtspActivity extends AppCompatActivity implements ConnectChe
     button.setOnClickListener(this);
     etUrl = (EditText) findViewById(R.id.et_rtp_url);
     etUrl.setHint(R.string.hint_rtsp);
-    rtspBuilderDisplay = new RtspDisplay(this, Protocol.TCP, this);
+    rtspDisplay = new RtspDisplay(this, Protocol.TCP, this);
   }
 
   @Override
@@ -54,7 +55,7 @@ public class DisplayRtspActivity extends AppCompatActivity implements ConnectChe
       @Override
       public void run() {
         Toast.makeText(DisplayRtspActivity.this, "Connection failed", Toast.LENGTH_SHORT).show();
-        rtspBuilderDisplay.stopStream();
+        rtspDisplay.stopStream();
         button.setText(R.string.start_button);
       }
     });
@@ -93,25 +94,25 @@ public class DisplayRtspActivity extends AppCompatActivity implements ConnectChe
   @Override
   protected void onActivityResult(int requestCode, int resultCode, Intent data) {
     if (requestCode == REQUEST_CODE) {
-      if (rtspBuilderDisplay.prepareAudio() && rtspBuilderDisplay.prepareVideo()) {
+      if (rtspDisplay.prepareAudio() && rtspDisplay.prepareVideo()) {
         if (Build.VERSION.SDK_INT >= 21) {
-          rtspBuilderDisplay.startStream(etUrl.getText().toString(), resultCode, data);
+          rtspDisplay.startStream(etUrl.getText().toString(), resultCode, data);
         }
       } else {
         Toast.makeText(this, "Error preparing stream, This device cant do it", Toast.LENGTH_SHORT)
-           .show();
+            .show();
       }
     }
   }
 
   @Override
   public void onClick(View view) {
-    if (!rtspBuilderDisplay.isStreaming()) {
+    if (!rtspDisplay.isStreaming()) {
       button.setText(R.string.stop_button);
-      startActivityForResult(rtspBuilderDisplay.sendIntent(), REQUEST_CODE);
+      startActivityForResult(rtspDisplay.sendIntent(), REQUEST_CODE);
     } else {
       button.setText(R.string.start_button);
-      rtspBuilderDisplay.stopStream();
+      rtspDisplay.stopStream();
     }
   }
 }

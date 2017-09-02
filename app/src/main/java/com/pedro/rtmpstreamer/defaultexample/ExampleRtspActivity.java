@@ -21,9 +21,9 @@ import com.pedro.rtsp.utils.ConnectCheckerRtsp;
  * audio = stereo, 128 * 1024 bitrate, 44100 sampleRate.
  */
 public class ExampleRtspActivity extends AppCompatActivity
-   implements ConnectCheckerRtsp, View.OnClickListener {
+    implements ConnectCheckerRtsp, View.OnClickListener {
 
-  private RtspCamera1 rtspBuilder;
+  private RtspCamera1 rtspCamera1;
   private Button button;
   private EditText etUrl;
 
@@ -38,7 +38,7 @@ public class ExampleRtspActivity extends AppCompatActivity
     button.setOnClickListener(this);
     etUrl = (EditText) findViewById(R.id.et_rtp_url);
     etUrl.setHint(R.string.hint_rtsp);
-    rtspBuilder = new RtspCamera1(surfaceView, Protocol.TCP, this);
+    rtspCamera1 = new RtspCamera1(surfaceView, Protocol.TCP, this);
   }
 
   @Override
@@ -57,7 +57,7 @@ public class ExampleRtspActivity extends AppCompatActivity
       @Override
       public void run() {
         Toast.makeText(ExampleRtspActivity.this, "Connection failed", Toast.LENGTH_SHORT).show();
-        rtspBuilder.stopStream();
+        rtspCamera1.stopStream();
         button.setText(R.string.start_button);
       }
     });
@@ -79,7 +79,7 @@ public class ExampleRtspActivity extends AppCompatActivity
       @Override
       public void run() {
         Toast.makeText(ExampleRtspActivity.this, "Auth error", Toast.LENGTH_SHORT).show();
-        rtspBuilder.stopStream();
+        rtspCamera1.stopStream();
         button.setText(R.string.start_button);
       }
     });
@@ -97,17 +97,17 @@ public class ExampleRtspActivity extends AppCompatActivity
 
   @Override
   public void onClick(View view) {
-    if (!rtspBuilder.isStreaming()) {
-      if (rtspBuilder.prepareAudio() && rtspBuilder.prepareVideo()) {
+    if (!rtspCamera1.isStreaming()) {
+      if (rtspCamera1.prepareAudio() && rtspCamera1.prepareVideo()) {
         button.setText(R.string.stop_button);
-        rtspBuilder.startStream(etUrl.getText().toString());
+        rtspCamera1.startStream(etUrl.getText().toString());
       } else {
         Toast.makeText(this, "Error preparing stream, This device cant do it", Toast.LENGTH_SHORT)
-           .show();
+            .show();
       }
     } else {
       button.setText(R.string.start_button);
-      rtspBuilder.stopStream();
+      rtspCamera1.stopStream();
     }
   }
 }

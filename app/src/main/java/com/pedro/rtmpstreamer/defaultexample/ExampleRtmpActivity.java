@@ -21,9 +21,9 @@ import net.ossrs.rtmp.ConnectCheckerRtmp;
  * Audio = stereo, 128 * 1024 bitrate, 44100 sampleRate.
  */
 public class ExampleRtmpActivity extends AppCompatActivity
-   implements ConnectCheckerRtmp, View.OnClickListener {
+    implements ConnectCheckerRtmp, View.OnClickListener {
 
-  private RtmpCamera1 rtmpBuilder;
+  private RtmpCamera1 rtmpCamera1;
   private Button button;
   private EditText etUrl;
 
@@ -38,7 +38,7 @@ public class ExampleRtmpActivity extends AppCompatActivity
     button.setOnClickListener(this);
     etUrl = (EditText) findViewById(R.id.et_rtp_url);
     etUrl.setHint(R.string.hint_rtmp);
-    rtmpBuilder = new RtmpCamera1(surfaceView, this);
+    rtmpCamera1 = new RtmpCamera1(surfaceView, this);
   }
 
   @Override
@@ -57,7 +57,7 @@ public class ExampleRtmpActivity extends AppCompatActivity
       @Override
       public void run() {
         Toast.makeText(ExampleRtmpActivity.this, "Connection failed", Toast.LENGTH_SHORT).show();
-        rtmpBuilder.stopStream();
+        rtmpCamera1.stopStream();
         button.setText(R.string.start_button);
       }
     });
@@ -95,17 +95,17 @@ public class ExampleRtmpActivity extends AppCompatActivity
 
   @Override
   public void onClick(View view) {
-    if (!rtmpBuilder.isStreaming()) {
-      if (rtmpBuilder.prepareAudio() && rtmpBuilder.prepareVideo()) {
+    if (!rtmpCamera1.isStreaming()) {
+      if (rtmpCamera1.prepareAudio() && rtmpCamera1.prepareVideo()) {
         button.setText(R.string.stop_button);
-        rtmpBuilder.startStream(etUrl.getText().toString());
+        rtmpCamera1.startStream(etUrl.getText().toString());
       } else {
         Toast.makeText(this, "Error preparing stream, This device cant do it", Toast.LENGTH_SHORT)
-           .show();
+            .show();
       }
     } else {
       button.setText(R.string.start_button);
-      rtmpBuilder.stopStream();
+      rtmpCamera1.stopStream();
     }
   }
 }

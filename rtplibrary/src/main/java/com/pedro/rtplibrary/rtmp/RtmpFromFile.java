@@ -1,12 +1,15 @@
 package com.pedro.rtplibrary.rtmp;
 
-import android.content.Context;
+/**
+ * Created by pedro on 26/06/17.
+ */
+
 import android.media.MediaCodec;
 import android.os.Build;
 import android.support.annotation.RequiresApi;
 
-import com.pedro.rtplibrary.source.Display;
-import com.pedro.rtplibrary.source.DisplaySource;
+import com.pedro.encoder.input.decoder.VideoDecoderInterface;
+import com.pedro.rtplibrary.base.FromFileBase;
 
 import net.ossrs.rtmp.ConnectCheckerRtmp;
 import net.ossrs.rtmp.SrsFlvMuxer;
@@ -14,33 +17,24 @@ import net.ossrs.rtmp.SrsFlvMuxer;
 import java.nio.ByteBuffer;
 
 /**
- * Created by pedro on 9/08/17.
+ * Created by pedro on 26/06/17.
+ * This builder is under test, rotation only work with hardware because use encoding surface mode.
+ * Only video is working, audio will be added when it work
  */
-@RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
-public class RtmpDisplay extends DisplaySource {
+@RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
+public class RtmpFromFile extends FromFileBase {
 
   private SrsFlvMuxer srsFlvMuxer;
 
-  public RtmpDisplay(Context context, ConnectCheckerRtmp connectChecker) {
-    super(context);
+  public RtmpFromFile(ConnectCheckerRtmp connectChecker,
+      VideoDecoderInterface videoDecoderInterface) {
+    super(videoDecoderInterface);
     srsFlvMuxer = new SrsFlvMuxer(connectChecker);
   }
 
   @Override
   public void setAuthorization(String user, String password) {
     srsFlvMuxer.setAuthorization(user, password);
-  }
-
-  @Override
-  protected void prepareAudioRtp(boolean isStereo, int sampleRate) {
-    srsFlvMuxer.setIsStereo(isStereo);
-    srsFlvMuxer.setSampleRate(sampleRate);
-  }
-
-  @Override
-  public boolean prepareAudio() {
-    microphoneManager.createMicrophone();
-    return audioEncoder.prepareAudioEncoder();
   }
 
   @Override
@@ -59,11 +53,6 @@ public class RtmpDisplay extends DisplaySource {
   }
 
   @Override
-  protected void getAacDataRtp(ByteBuffer aacBuffer, MediaCodec.BufferInfo info) {
-    srsFlvMuxer.sendAudio(aacBuffer, info);
-  }
-
-  @Override
   protected void onSPSandPPSRtp(ByteBuffer sps, ByteBuffer pps) {
     srsFlvMuxer.setSpsPPs(sps, pps);
   }
@@ -73,3 +62,5 @@ public class RtmpDisplay extends DisplaySource {
     srsFlvMuxer.sendVideo(h264Buffer, info);
   }
 }
+
+

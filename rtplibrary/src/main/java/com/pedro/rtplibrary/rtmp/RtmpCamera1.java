@@ -1,16 +1,9 @@
 package com.pedro.rtplibrary.rtmp;
 
-/**
- * Created by pedro on 26/06/17.
- */
-
 import android.media.MediaCodec;
-import android.os.Build;
-import android.support.annotation.RequiresApi;
+import android.view.SurfaceView;
 
-import com.pedro.encoder.input.decoder.VideoDecoderInterface;
-import com.pedro.rtplibrary.source.FromFile;
-import com.pedro.rtplibrary.source.FromFileSource;
+import com.pedro.rtplibrary.base.Camera1Base;
 
 import net.ossrs.rtmp.ConnectCheckerRtmp;
 import net.ossrs.rtmp.SrsFlvMuxer;
@@ -18,18 +11,15 @@ import net.ossrs.rtmp.SrsFlvMuxer;
 import java.nio.ByteBuffer;
 
 /**
- * Created by pedro on 26/06/17.
- * This builder is under test, rotation only work with hardware because use encoding surface mode.
- * Only video is working, audio will be added when it work
+ * Created by pedro on 25/01/17.
  */
-@RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
-public class RtmpFromFile extends FromFileSource {
+
+public class RtmpCamera1 extends Camera1Base {
 
   private SrsFlvMuxer srsFlvMuxer;
 
-  public RtmpFromFile(ConnectCheckerRtmp connectChecker,
-                      VideoDecoderInterface videoDecoderInterface) {
-    super(videoDecoderInterface);
+  public RtmpCamera1(SurfaceView surfaceView, ConnectCheckerRtmp connectChecker) {
+    super(surfaceView);
     srsFlvMuxer = new SrsFlvMuxer(connectChecker);
   }
 
@@ -39,8 +29,20 @@ public class RtmpFromFile extends FromFileSource {
   }
 
   @Override
+  protected void prepareAudioRtp(boolean isStereo, int sampleRate) {
+    srsFlvMuxer.setIsStereo(isStereo);
+    srsFlvMuxer.setSampleRate(sampleRate);
+  }
+
+  @Override
+  public boolean prepareAudio() {
+    microphoneManager.createMicrophone();
+    return audioEncoder.prepareAudioEncoder();
+  }
+
+  @Override
   protected void startStreamRtp(String url) {
-    if(videoEncoder.getRotation() == 90 || videoEncoder.getRotation() == 270) {
+    if (videoEncoder.getRotation() == 90 || videoEncoder.getRotation() == 270) {
       srsFlvMuxer.setVideoResolution(videoEncoder.getHeight(), videoEncoder.getWidth());
     } else {
       srsFlvMuxer.setVideoResolution(videoEncoder.getWidth(), videoEncoder.getHeight());
@@ -54,6 +56,11 @@ public class RtmpFromFile extends FromFileSource {
   }
 
   @Override
+  protected void getAacDataRtp(ByteBuffer aacBuffer, MediaCodec.BufferInfo info) {
+    srsFlvMuxer.sendAudio(aacBuffer, info);
+  }
+
+  @Override
   protected void onSPSandPPSRtp(ByteBuffer sps, ByteBuffer pps) {
     srsFlvMuxer.setSpsPPs(sps, pps);
   }
@@ -63,5 +70,3 @@ public class RtmpFromFile extends FromFileSource {
     srsFlvMuxer.sendVideo(h264Buffer, info);
   }
 }
-
-

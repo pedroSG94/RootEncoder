@@ -18,9 +18,10 @@ import com.pedro.rtmpstreamer.constants.Constants;
 import net.ossrs.rtmp.ConnectCheckerRtmp;
 
 @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
-public class DisplayRtmpActivity extends AppCompatActivity implements ConnectCheckerRtmp, View.OnClickListener {
+public class DisplayRtmpActivity extends AppCompatActivity
+    implements ConnectCheckerRtmp, View.OnClickListener {
 
-  private RtmpDisplay rtmpBuilderDisplay;
+  private RtmpDisplay rtmpDisplay;
   private Button button;
   private EditText etUrl;
   private final int REQUEST_CODE = 1;
@@ -35,7 +36,7 @@ public class DisplayRtmpActivity extends AppCompatActivity implements ConnectChe
     button.setOnClickListener(this);
     etUrl = (EditText) findViewById(R.id.et_rtp_url);
     etUrl.setHint(R.string.hint_rtmp);
-    rtmpBuilderDisplay = new RtmpDisplay(this, this);
+    rtmpDisplay = new RtmpDisplay(this, this);
   }
 
   @Override
@@ -54,7 +55,7 @@ public class DisplayRtmpActivity extends AppCompatActivity implements ConnectChe
       @Override
       public void run() {
         Toast.makeText(DisplayRtmpActivity.this, "Connection failed", Toast.LENGTH_SHORT).show();
-        rtmpBuilderDisplay.stopStream();
+        rtmpDisplay.stopStream();
         button.setText(R.string.start_button);
       }
     });
@@ -93,25 +94,25 @@ public class DisplayRtmpActivity extends AppCompatActivity implements ConnectChe
   @Override
   protected void onActivityResult(int requestCode, int resultCode, Intent data) {
     if (requestCode == REQUEST_CODE) {
-      if (rtmpBuilderDisplay.prepareAudio() && rtmpBuilderDisplay.prepareVideo()) {
+      if (rtmpDisplay.prepareAudio() && rtmpDisplay.prepareVideo()) {
         if (Build.VERSION.SDK_INT >= 21) {
-          rtmpBuilderDisplay.startStream(etUrl.getText().toString(), resultCode, data);
+          rtmpDisplay.startStream(etUrl.getText().toString(), resultCode, data);
         }
       } else {
         Toast.makeText(this, "Error preparing stream, This device cant do it", Toast.LENGTH_SHORT)
-           .show();
+            .show();
       }
     }
   }
 
   @Override
   public void onClick(View view) {
-    if (!rtmpBuilderDisplay.isStreaming()) {
+    if (!rtmpDisplay.isStreaming()) {
       button.setText(R.string.stop_button);
-      startActivityForResult(rtmpBuilderDisplay.sendIntent(), REQUEST_CODE);
+      startActivityForResult(rtmpDisplay.sendIntent(), REQUEST_CODE);
     } else {
       button.setText(R.string.start_button);
-      rtmpBuilderDisplay.stopStream();
+      rtmpDisplay.stopStream();
     }
   }
 }

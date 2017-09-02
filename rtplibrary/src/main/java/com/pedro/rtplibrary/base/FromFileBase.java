@@ -1,4 +1,4 @@
-package com.pedro.rtplibrary.source;
+package com.pedro.rtplibrary.base;
 
 import android.media.MediaCodec;
 import android.media.MediaFormat;
@@ -19,7 +19,7 @@ import java.nio.ByteBuffer;
  */
 
 @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
-public abstract class FromFileSource implements GetCameraData, GetH264Data {
+public abstract class FromFileBase implements GetCameraData, GetH264Data {
 
   protected VideoEncoder videoEncoder;
   private boolean streaming;
@@ -34,7 +34,7 @@ public abstract class FromFileSource implements GetCameraData, GetH264Data {
   private MediaPlayer mediaPlayer;
   //private VideoDecoder videoDecoder;
 
-  public FromFileSource(VideoDecoderInterface videoDecoderInterface) {
+  public FromFileBase(VideoDecoderInterface videoDecoderInterface) {
     this.videoDecoderInterface = videoDecoderInterface;
     videoEncoder = new VideoEncoder(this);
     //videoDecoder = new VideoDecoder(videoDecoderInterface);

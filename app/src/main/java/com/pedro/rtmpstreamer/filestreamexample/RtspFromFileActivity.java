@@ -24,7 +24,7 @@ import java.io.IOException;
 public class RtspFromFileActivity extends AppCompatActivity
     implements ConnectCheckerRtsp, View.OnClickListener, VideoDecoderInterface {
 
-  private RtspFromFile rtspBuilderFromFile;
+  private RtspFromFile rtspFromFile;
   private Button button, bSelectFile;
   private EditText etUrl;
   private TextView tvFile;
@@ -42,7 +42,7 @@ public class RtspFromFileActivity extends AppCompatActivity
     etUrl = (EditText) findViewById(R.id.et_rtp_url);
     etUrl.setHint(R.string.hint_rtsp);
     tvFile = (TextView) findViewById(R.id.tv_file);
-    rtspBuilderFromFile = new RtspFromFile(Protocol.TCP, this, this);
+    rtspFromFile = new RtspFromFile(Protocol.TCP, this, this);
   }
 
   @Override
@@ -61,7 +61,7 @@ public class RtspFromFileActivity extends AppCompatActivity
       @Override
       public void run() {
         Toast.makeText(RtspFromFileActivity.this, "Connection failed", Toast.LENGTH_SHORT).show();
-        rtspBuilderFromFile.stopStream();
+        rtspFromFile.stopStream();
         button.setText(R.string.start_button);
       }
     });
@@ -112,14 +112,14 @@ public class RtspFromFileActivity extends AppCompatActivity
     switch (view.getId()) {
       case R.id.b_start_stop:
         if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
-          if (!rtspBuilderFromFile.isStreaming()) {
+          if (!rtspFromFile.isStreaming()) {
             try {
-              if (rtspBuilderFromFile.prepareVideo(filePath, 1200 * 1024)) {
+              if (rtspFromFile.prepareVideo(filePath, 1200 * 1024)) {
                 button.setText(R.string.stop_button);
-                rtspBuilderFromFile.startStream(etUrl.getText().toString());
+                rtspFromFile.startStream(etUrl.getText().toString());
               } else {
                 button.setText(R.string.start_button);
-                rtspBuilderFromFile.stopStream();
+                rtspFromFile.stopStream();
                 /*This error could be 2 things.
                  Your device cant decode or encode this file or
                  the file is not supported for the library.
@@ -132,7 +132,7 @@ public class RtspFromFileActivity extends AppCompatActivity
             }
           } else {
             button.setText(R.string.start_button);
-            rtspBuilderFromFile.stopStream();
+            rtspFromFile.stopStream();
           }
         }
         break;
@@ -151,11 +151,11 @@ public class RtspFromFileActivity extends AppCompatActivity
     runOnUiThread(new Runnable() {
       @Override
       public void run() {
-        if (rtspBuilderFromFile.isStreaming()) {
+        if (rtspFromFile.isStreaming()) {
           button.setText(R.string.start_button);
           Toast.makeText(RtspFromFileActivity.this, "Video stream finished", Toast.LENGTH_SHORT)
               .show();
-          rtspBuilderFromFile.stopStream();
+          rtspFromFile.stopStream();
         }
       }
     });

@@ -1,10 +1,13 @@
-package com.pedro.rtplibrary.source;
+package com.pedro.rtplibrary.base;
 
+import android.content.Context;
+import android.content.Intent;
 import android.graphics.ImageFormat;
-import android.hardware.Camera;
 import android.media.MediaCodec;
 import android.media.MediaFormat;
 import android.media.MediaMuxer;
+import android.media.projection.MediaProjection;
+import android.media.projection.MediaProjectionManager;
 import android.os.Build;
 import android.support.annotation.RequiresApi;
 import android.view.SurfaceView;
@@ -12,30 +15,30 @@ import com.pedro.encoder.audio.AudioEncoder;
 import com.pedro.encoder.audio.GetAacData;
 import com.pedro.encoder.input.audio.GetMicrophoneData;
 import com.pedro.encoder.input.audio.MicrophoneManager;
-import com.pedro.encoder.input.video.Camera1ApiManager;
-import com.pedro.encoder.input.video.CameraOpenException;
-import com.pedro.encoder.input.video.EffectManager;
 import com.pedro.encoder.input.video.GetCameraData;
 import com.pedro.encoder.video.FormatVideoEncoder;
 import com.pedro.encoder.video.GetH264Data;
 import com.pedro.encoder.video.VideoEncoder;
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.util.ArrayList;
-import java.util.List;
+
+import static android.content.Context.MEDIA_PROJECTION_SERVICE;
 
 /**
- * Created by pedro on 7/07/17.
+ * Created by pedro on 9/08/17.
  */
-
-public abstract class Camera1Source
+@RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
+public abstract class DisplayBase
     implements GetAacData, GetCameraData, GetH264Data, GetMicrophoneData {
 
-  private Camera1ApiManager cameraManager;
+  protected Context context;
+  private MediaProjection mediaProjection;
+  private MediaProjectionManager mediaProjectionManager;
   protected VideoEncoder videoEncoder;
   protected MicrophoneManager microphoneManager;
   protected AudioEncoder audioEncoder;
   private boolean streaming;
+  protected SurfaceView surfaceView;
   private boolean videoEnabled = true;
   //record
   private MediaMuxer mediaMuxer;
@@ -44,9 +47,13 @@ public abstract class Camera1Source
   private boolean recording = false;
   private MediaFormat videoFormat;
   private MediaFormat audioFormat;
+  private int dpi = 320;
 
-  public Camera1Source(SurfaceView surfaceView) {
-    cameraManager = new Camera1ApiManager(surfaceView, this);
+  public DisplayBase(Context context) {
+    this.context = context;
+    mediaProjectionManager =
+        ((MediaProjectionManager) context.getSystemService(MEDIA_PROJECTION_SERVICE));
+    this.surfaceView = null;
     videoEncoder = new VideoEncoder(this);
     microphoneManager = new MicrophoneManager(this);
     audioEncoder = new AudioEncoder(this);
@@ -56,12 +63,14 @@ public abstract class Camera1Source
   public abstract void setAuthorization(String user, String password);
 
   public boolean prepareVideo(int width, int height, int fps, int bitrate, boolean hardwareRotation,
-      int rotation) {
+      int rotation, int dpi) {
+    this.dpi = dpi;
     int imageFormat = ImageFormat.NV21; //supported nv21 and yv12
-    cameraManager.prepareCamera(width, height, fps, imageFormat);
     videoEncoder.setImageFormat(imageFormat);
-    return videoEncoder.prepareVideoEncoder(width, height, fps, bitrate, rotation, hardwareRotation,
-        FormatVideoEncoder.YUV420Dynamical);
+    boolean result =
+        videoEncoder.prepareVideoEncoder(width, height, fps, bitrate, rotation, hardwareRotation,
+            FormatVideoEncoder.SURFACE);
+    return result;
   }
 
   protected abstract void prepareAudioRtp(boolean isStereo, int sampleRate);
@@ -74,14 +83,13 @@ public abstract class Camera1Source
   }
 
   public boolean prepareVideo() {
-    cameraManager.prepareCamera();
-    return videoEncoder.prepareVideoEncoder();
+    return videoEncoder.prepareVideoEncoder(640, 480, 30, 1200 * 1024, 0, true,
+        FormatVideoEncoder.SURFACE);
   }
 
   public abstract boolean prepareAudio();
 
   /*Need be called while stream*/
-  @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
   public void startRecord(String path) throws IOException {
     if (streaming) {
       mediaMuxer = new MediaMuxer(path, MediaMuxer.OutputFormat.MUXER_OUTPUT_MPEG_4);
@@ -94,7 +102,6 @@ public abstract class Camera1Source
     }
   }
 
-  @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
   public void stopRecord() {
     recording = false;
     if (mediaMuxer != null) {
@@ -108,33 +115,32 @@ public abstract class Camera1Source
 
   protected abstract void startStreamRtp(String url);
 
-  public void startStream(String url) {
-    startStreamRtp(url);
+  public Intent sendIntent() {
+    return mediaProjectionManager.createScreenCaptureIntent();
+  }
+
+  public void startStream(String url, int resultCode, Intent data) {
     videoEncoder.start();
     audioEncoder.start();
-    cameraManager.start();
+    mediaProjection = mediaProjectionManager.getMediaProjection(resultCode, data);
+    mediaProjection.createVirtualDisplay("Stream Display", videoEncoder.getWidth(),
+        videoEncoder.getHeight(), dpi, 0, videoEncoder.getInputSurface(), null, null);
     microphoneManager.start();
     streaming = true;
+    startStreamRtp(url);
   }
 
   protected abstract void stopStreamRtp();
 
   public void stopStream() {
-    cameraManager.stop();
     microphoneManager.stop();
+    if (mediaProjection != null) {
+      mediaProjection.stop();
+    }
     stopStreamRtp();
     videoEncoder.stop();
     audioEncoder.stop();
     streaming = false;
-  }
-
-  public List<String> getResolutions() {
-    List<Camera.Size> list = cameraManager.getPreviewSize();
-    List<String> resolutions = new ArrayList<>();
-    for (Camera.Size size : list) {
-      resolutions.add(size.width + "X" + size.height);
-    }
-    return resolutions;
   }
 
   public void disableAudio() {
@@ -163,12 +169,6 @@ public abstract class Camera1Source
     videoEnabled = true;
   }
 
-  public void switchCamera() throws CameraOpenException {
-    if (isStreaming()) {
-      cameraManager.switchCamera();
-    }
-  }
-
   /** need min API 19 */
   public void setVideoBitrateOnFly(int bitrate) {
     if (Build.VERSION.SDK_INT >= 19) {
@@ -180,21 +180,11 @@ public abstract class Camera1Source
     return streaming;
   }
 
-  public boolean isRecording() {
-    return recording;
-  }
-
-  public void setEffect(EffectManager effect) {
-    if (isStreaming()) {
-      cameraManager.setEffect(effect);
-    }
-  }
-
   protected abstract void getAacDataRtp(ByteBuffer aacBuffer, MediaCodec.BufferInfo info);
 
   @Override
   public void getAacData(ByteBuffer aacBuffer, MediaCodec.BufferInfo info) {
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2 && recording) {
+    if (recording) {
       mediaMuxer.writeSampleData(audioTrack, aacBuffer, info);
     }
     getAacDataRtp(aacBuffer, info);
@@ -211,7 +201,7 @@ public abstract class Camera1Source
 
   @Override
   public void getH264Data(ByteBuffer h264Buffer, MediaCodec.BufferInfo info) {
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2 && recording) {
+    if (recording) {
       mediaMuxer.writeSampleData(videoTrack, h264Buffer, info);
     }
     getH264DataRtp(h264Buffer, info);
@@ -242,3 +232,4 @@ public abstract class Camera1Source
     audioFormat = mediaFormat;
   }
 }
+

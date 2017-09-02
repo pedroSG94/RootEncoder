@@ -22,9 +22,9 @@ import java.io.IOException;
 
 @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
 public class RtmpFromFileActivity extends AppCompatActivity
-   implements ConnectCheckerRtmp, View.OnClickListener, VideoDecoderInterface {
+    implements ConnectCheckerRtmp, View.OnClickListener, VideoDecoderInterface {
 
-  private RtmpFromFile rtmpBuilderFromFile;
+  private RtmpFromFile rtmpFromFile;
   private Button button, bSelectFile;
   private EditText etUrl;
   private TextView tvFile;
@@ -42,7 +42,7 @@ public class RtmpFromFileActivity extends AppCompatActivity
     etUrl = (EditText) findViewById(R.id.et_rtp_url);
     etUrl.setHint(R.string.hint_rtmp);
     tvFile = (TextView) findViewById(R.id.tv_file);
-    rtmpBuilderFromFile = new RtmpFromFile(this, this);
+    rtmpFromFile = new RtmpFromFile(this, this);
   }
 
   @Override
@@ -61,7 +61,7 @@ public class RtmpFromFileActivity extends AppCompatActivity
       @Override
       public void run() {
         Toast.makeText(RtmpFromFileActivity.this, "Connection failed", Toast.LENGTH_SHORT).show();
-        rtmpBuilderFromFile.stopStream();
+        rtmpFromFile.stopStream();
         button.setText(R.string.start_button);
       }
     });
@@ -112,14 +112,14 @@ public class RtmpFromFileActivity extends AppCompatActivity
     switch (view.getId()) {
       case R.id.b_start_stop:
         if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
-          if (!rtmpBuilderFromFile.isStreaming()) {
+          if (!rtmpFromFile.isStreaming()) {
             try {
-              if (rtmpBuilderFromFile.prepareVideo(filePath, 1200 * 1024)) {
+              if (rtmpFromFile.prepareVideo(filePath, 1200 * 1024)) {
                 button.setText(R.string.stop_button);
-                rtmpBuilderFromFile.startStream(etUrl.getText().toString());
+                rtmpFromFile.startStream(etUrl.getText().toString());
               } else {
                 button.setText(R.string.start_button);
-                rtmpBuilderFromFile.stopStream();
+                rtmpFromFile.stopStream();
                 /*This error could be 2 things.
                  Your device cant decode or encode this file or
                  the file is not supported for the library.
@@ -132,7 +132,7 @@ public class RtmpFromFileActivity extends AppCompatActivity
             }
           } else {
             button.setText(R.string.start_button);
-            rtmpBuilderFromFile.stopStream();
+            rtmpFromFile.stopStream();
           }
         }
         break;
@@ -151,11 +151,11 @@ public class RtmpFromFileActivity extends AppCompatActivity
     runOnUiThread(new Runnable() {
       @Override
       public void run() {
-        if (rtmpBuilderFromFile.isStreaming()) {
+        if (rtmpFromFile.isStreaming()) {
           button.setText(R.string.start_button);
           Toast.makeText(RtmpFromFileActivity.this, "Video stream finished", Toast.LENGTH_SHORT)
-             .show();
-          rtmpBuilderFromFile.stopStream();
+              .show();
+          rtmpFromFile.stopStream();
         }
       }
     });
