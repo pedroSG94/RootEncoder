@@ -12,6 +12,7 @@ import android.util.Log;
 import android.util.Size;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
+import com.pedro.encoder.utils.YUVUtil;
 import com.pedro.encoder.video.FormatVideoEncoder;
 import java.io.IOException;
 import java.util.Iterator;
@@ -43,6 +44,7 @@ public class Camera1ApiManager implements Camera.PreviewCallback {
   private boolean running = false;
   private boolean lanternEnable = false;
   private int cameraSelect;
+  private boolean isFrontCamera = false;
 
   //default parameters for camera
   private int width = 640;
@@ -79,6 +81,10 @@ public class Camera1ApiManager implements Camera.PreviewCallback {
         if (!checkCanOpen()) {
           throw new CameraOpenException("This camera resolution cant be opened");
         }
+        Camera.CameraInfo info = new Camera.CameraInfo();
+        Camera.getCameraInfo(cameraSelect, info);
+        isFrontCamera = info.facing == Camera.CameraInfo.CAMERA_FACING_FRONT;
+
         Camera.Parameters parameters = camera.getParameters();
         parameters.setPreviewSize(width, height);
         parameters.setPreviewFormat(imageFormat);
@@ -197,6 +203,7 @@ public class Camera1ApiManager implements Camera.PreviewCallback {
       if (imageFormat == ImageFormat.YV12) {
         getCameraData.inputYv12Data(data);
       } else if (imageFormat == ImageFormat.NV21) {
+        if (isFrontCamera) data = YUVUtil.rotateNV21(data, width, height, 180);
         getCameraData.inputNv21Data(data);
       }
     }
@@ -288,6 +295,7 @@ public class Camera1ApiManager implements Camera.PreviewCallback {
       }
     }
   }
+
 
   private boolean checkCanOpen() {
     for (Camera.Size size : getPreviewSize()) {

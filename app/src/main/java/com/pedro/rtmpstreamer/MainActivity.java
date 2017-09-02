@@ -69,17 +69,17 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
   }
 
   private void createList() {
-    activities = new ArrayList<ActivityLink>();
+    activities = new ArrayList<>();
     activities.add(
-        new ActivityLink(new Intent(this, RtmpActivity.class), getString(R.string.default_rtmp),
+        new ActivityLink(new Intent(this, RtmpActivity.class), getString(R.string.rtmp_streamer),
             JELLY_BEAN));
     activities.add(
-        new ActivityLink(new Intent(this, RtspActivity.class), getString(R.string.default_rtsp),
+        new ActivityLink(new Intent(this, RtspActivity.class), getString(R.string.rtsp_streamer),
             JELLY_BEAN));
     activities.add(new ActivityLink(new Intent(this, ExampleRtmpActivity.class),
-        getString(R.string.rtmp_streamer), JELLY_BEAN));
+        getString(R.string.default_rtmp), JELLY_BEAN));
     activities.add(new ActivityLink(new Intent(this, ExampleRtspActivity.class),
-        getString(R.string.rtsp_streamer), JELLY_BEAN));
+        getString(R.string.default_rtsp), JELLY_BEAN));
     activities.add(new ActivityLink(new Intent(this, RtmpFromFileActivity.class),
         getString(R.string.from_file_rtmp), JELLY_BEAN_MR2));
     activities.add(new ActivityLink(new Intent(this, RtspFromFileActivity.class),
@@ -110,7 +110,6 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
       int minSdk = link.getMinSdk();
       if (Build.VERSION.SDK_INT >= minSdk) {
         startActivity(link.getIntent());
-        finish();
         overridePendingTransition(R.transition.slide_in, R.transition.slide_out);
       } else {
         showMinSdkError(minSdk);

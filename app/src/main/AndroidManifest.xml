@@ -47,34 +47,42 @@
         />
     <activity
         android:name=".filestreamexample.RtspFromFileActivity"
+        android:label="@string/from_file_rtsp"
         android:screenOrientation="portrait"
         />
     <activity
         android:name=".filestreamexample.RtmpFromFileActivity"
+        android:label="@string/from_file_rtmp"
         android:screenOrientation="portrait"
         />
     <activity
         android:name=".surfacemodeexample.SurfaceModeRtspActivity"
+        android:label="@string/surface_mode_rtsp"
         android:screenOrientation="portrait"
         />
     <activity
         android:name=".surfacemodeexample.SurfaceModeRtmpActivity"
+        android:label="@string/surface_mode_rtmp"
         android:screenOrientation="portrait"
         />
     <activity
         android:name=".texturemodeexample.TextureModeRtspActivity"
+        android:label="@string/texture_mode_rtsp"
         android:screenOrientation="portrait"
         />
     <activity
         android:name=".texturemodeexample.TextureModeRtmpActivity"
+        android:label="@string/texture_mode_rtmp"
         android:screenOrientation="portrait"
         />
     <activity
         android:name=".displayexample.DisplayRtmpActivity"
+        android:label="@string/display_rtmp"
         android:screenOrientation="portrait"
         />
     <activity
         android:name=".displayexample.DisplayRtspActivity"
+        android:label="@string/display_rtsp"
         android:screenOrientation="portrait"
         />
   </application>
