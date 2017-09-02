@@ -7,7 +7,7 @@
     tools:context=".defaultexample.ExampleRtmpActivity"
     >
 
-  <com.pedro.builder.view.AutoFitTextureView
+  <com.pedro.rtplibrary.view.AutoFitTextureView
       android:id="@+id/textureView"
       android:layout_width="match_parent"
       android:layout_height="match_parent"

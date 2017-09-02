@@ -11,7 +11,7 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 
-import com.pedro.builder.rtsp.RtspBuilderSurfaceMode;
+import com.pedro.rtplibrary.rtsp.RtspCamera2;
 import com.pedro.rtmpstreamer.R;
 import com.pedro.rtmpstreamer.constants.Constants;
 import com.pedro.rtsp.rtsp.Protocol;
@@ -24,7 +24,7 @@ import com.pedro.rtsp.utils.ConnectCheckerRtsp;
 public class SurfaceModeRtspActivity extends AppCompatActivity
    implements ConnectCheckerRtsp, View.OnClickListener {
 
-  private RtspBuilderSurfaceMode rtspBuilderSurfaceMode;
+  private RtspCamera2 rtspBuilderSurfaceMode;
   private Button button;
   private EditText etUrl;
 
@@ -39,7 +39,7 @@ public class SurfaceModeRtspActivity extends AppCompatActivity
     button.setOnClickListener(this);
     etUrl = (EditText) findViewById(R.id.et_rtp_url);
     etUrl.setHint(R.string.hint_rtsp);
-    rtspBuilderSurfaceMode = new RtspBuilderSurfaceMode(surfaceView, Protocol.TCP, this);
+    rtspBuilderSurfaceMode = new RtspCamera2(surfaceView, Protocol.TCP, this);
   }
 
   @Override

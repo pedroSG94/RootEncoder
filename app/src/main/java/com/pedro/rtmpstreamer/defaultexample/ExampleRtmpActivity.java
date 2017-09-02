@@ -9,7 +9,7 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 
-import com.pedro.builder.rtmp.RtmpBuilder;
+import com.pedro.rtplibrary.rtmp.RtmpCamera1;
 import com.pedro.rtmpstreamer.R;
 import com.pedro.rtmpstreamer.constants.Constants;
 
@@ -23,7 +23,7 @@ import net.ossrs.rtmp.ConnectCheckerRtmp;
 public class ExampleRtmpActivity extends AppCompatActivity
    implements ConnectCheckerRtmp, View.OnClickListener {
 
-  private RtmpBuilder rtmpBuilder;
+  private RtmpCamera1 rtmpBuilder;
   private Button button;
   private EditText etUrl;
 
@@ -38,7 +38,7 @@ public class ExampleRtmpActivity extends AppCompatActivity
     button.setOnClickListener(this);
     etUrl = (EditText) findViewById(R.id.et_rtp_url);
     etUrl.setHint(R.string.hint_rtmp);
-    rtmpBuilder = new RtmpBuilder(surfaceView, this);
+    rtmpBuilder = new RtmpCamera1(surfaceView, this);
   }
 
   @Override

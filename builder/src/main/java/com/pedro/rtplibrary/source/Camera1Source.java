@@ -1,4 +1,4 @@
-package com.pedro.builder.base;
+package com.pedro.rtplibrary.source;
 
 import android.graphics.ImageFormat;
 import android.hardware.Camera;
@@ -28,7 +28,7 @@ import java.util.List;
  * Created by pedro on 7/07/17.
  */
 
-public abstract class BuilderBase
+public abstract class Camera1Source
     implements GetAacData, GetCameraData, GetH264Data, GetMicrophoneData {
 
   private Camera1ApiManager cameraManager;
@@ -45,7 +45,7 @@ public abstract class BuilderBase
   private MediaFormat videoFormat;
   private MediaFormat audioFormat;
 
-  public BuilderBase(SurfaceView surfaceView) {
+  public Camera1Source(SurfaceView surfaceView) {
     cameraManager = new Camera1ApiManager(surfaceView, this);
     videoEncoder = new VideoEncoder(this);
     microphoneManager = new MicrophoneManager(this);

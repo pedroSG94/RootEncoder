@@ -11,7 +11,7 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 
-import com.pedro.builder.rtmp.RtmpBuilderSurfaceMode;
+import com.pedro.rtplibrary.rtmp.RtmpCamera2;
 import com.pedro.rtmpstreamer.R;
 import com.pedro.rtmpstreamer.constants.Constants;
 
@@ -24,7 +24,7 @@ import net.ossrs.rtmp.ConnectCheckerRtmp;
 public class TextureModeRtmpActivity extends AppCompatActivity
    implements ConnectCheckerRtmp, View.OnClickListener {
 
-  private RtmpBuilderSurfaceMode rtmpBuilderSurfaceMode;
+  private RtmpCamera2 rtmpBuilderSurfaceMode;
   private Button button;
   private EditText etUrl;
 
@@ -39,7 +39,7 @@ public class TextureModeRtmpActivity extends AppCompatActivity
     button.setOnClickListener(this);
     etUrl = (EditText) findViewById(R.id.et_rtp_url);
     etUrl.setHint(R.string.hint_rtmp);
-    rtmpBuilderSurfaceMode = new RtmpBuilderSurfaceMode(textureView, this);
+    rtmpBuilderSurfaceMode = new RtmpCamera2(textureView, this);
   }
 
   @Override

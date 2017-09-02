@@ -1,21 +1,24 @@
-package com.pedro.builder.rtmp;
+package com.pedro.rtplibrary.rtmp;
 
 import android.media.MediaCodec;
 import android.view.SurfaceView;
-import com.pedro.builder.base.BuilderBase;
-import java.nio.ByteBuffer;
+
+import com.pedro.rtplibrary.source.Camera1Source;
+
 import net.ossrs.rtmp.ConnectCheckerRtmp;
 import net.ossrs.rtmp.SrsFlvMuxer;
+
+import java.nio.ByteBuffer;
 
 /**
  * Created by pedro on 25/01/17.
  */
 
-public class RtmpBuilder extends BuilderBase {
+public class RtmpCamera1 extends Camera1Source {
 
   private SrsFlvMuxer srsFlvMuxer;
 
-  public RtmpBuilder(SurfaceView surfaceView, ConnectCheckerRtmp connectChecker) {
+  public RtmpCamera1(SurfaceView surfaceView, ConnectCheckerRtmp connectChecker) {
     super(surfaceView);
     srsFlvMuxer = new SrsFlvMuxer(connectChecker);
   }
