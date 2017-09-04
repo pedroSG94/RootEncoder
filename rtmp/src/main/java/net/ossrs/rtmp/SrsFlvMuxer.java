@@ -877,7 +877,6 @@ public class SrsFlvMuxer {
       try {
         mFlvTagCache.add(frame);
       } catch (IllegalStateException e) {
-        mFlvTagCache.clear();
         Log.i(TAG, "frame discarded");
       }
     }
