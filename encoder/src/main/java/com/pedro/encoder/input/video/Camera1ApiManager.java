@@ -3,17 +3,11 @@ package com.pedro.encoder.input.video;
 import android.graphics.ImageFormat;
 import android.hardware.Camera;
 import android.media.CamcorderProfile;
-import android.media.MediaCodecInfo;
-import android.media.MediaCodecList;
 import android.opengl.GLES20;
-import android.os.Build;
-import android.support.annotation.RequiresApi;
 import android.util.Log;
-import android.util.Size;
-import android.view.SurfaceHolder;
 import android.view.SurfaceView;
+import android.view.TextureView;
 import com.pedro.encoder.utils.YUVUtil;
-import com.pedro.encoder.video.FormatVideoEncoder;
 import java.io.IOException;
 import java.util.Iterator;
 import java.util.List;
@@ -40,6 +34,7 @@ public class Camera1ApiManager implements Camera.PreviewCallback {
   private String TAG = "Camera1ApiManager";
   private Camera camera = null;
   private SurfaceView surfaceView;
+  private TextureView textureView;
   private GetCameraData getCameraData;
   private boolean running = false;
   private boolean lanternEnable = false;
@@ -58,6 +53,15 @@ public class Camera1ApiManager implements Camera.PreviewCallback {
     this.surfaceView = surfaceView;
     this.getCameraData = getCameraData;
     if (surfaceView.getContext().getResources().getConfiguration().orientation == 1) {
+      orientation = 90;
+    }
+    cameraSelect = selectCamera();
+  }
+
+  public Camera1ApiManager(TextureView textureView, GetCameraData getCameraData) {
+    this.textureView = textureView;
+    this.getCameraData = getCameraData;
+    if (textureView.getContext().getResources().getConfiguration().orientation == 1) {
       orientation = 90;
     }
     cameraSelect = selectCamera();
@@ -105,7 +109,11 @@ public class Camera1ApiManager implements Camera.PreviewCallback {
 
         camera.setParameters(parameters);
         camera.setDisplayOrientation(orientation);
-        camera.setPreviewDisplay(surfaceView.getHolder());
+        if (surfaceView != null) {
+          camera.setPreviewDisplay(surfaceView.getHolder());
+        } else {
+          camera.setPreviewTexture(textureView.getSurfaceTexture());
+        }
         camera.setPreviewCallback(this);
         camera.startPreview();
         running = true;
@@ -137,7 +145,11 @@ public class Camera1ApiManager implements Camera.PreviewCallback {
       camera.stopPreview();
       camera.release();
       camera = null;
-      clearSurface(surfaceView.getHolder());
+      if (surfaceView != null) {
+        clearSurface(surfaceView.getHolder());
+      } else {
+        clearSurface(textureView.getSurfaceTexture());
+      }
       running = false;
     }
   }
@@ -145,7 +157,7 @@ public class Camera1ApiManager implements Camera.PreviewCallback {
   /**
    * clear data from surface using opengl
    */
-  private void clearSurface(SurfaceHolder texture) {
+  private void clearSurface(Object texture) {
     EGL10 egl = (EGL10) EGLContext.getEGL();
     EGLDisplay display = egl.eglGetDisplay(EGL10.EGL_DEFAULT_DISPLAY);
     egl.eglInitialize(display, null);
@@ -295,7 +307,6 @@ public class Camera1ApiManager implements Camera.PreviewCallback {
       }
     }
   }
-
 
   private boolean checkCanOpen() {
     for (Camera.Size size : getPreviewSize()) {

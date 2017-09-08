@@ -3,6 +3,7 @@ package com.pedro.rtplibrary.rtmp;
 import android.media.MediaCodec;
 import android.view.SurfaceView;
 
+import android.view.TextureView;
 import com.pedro.rtplibrary.base.Camera1Base;
 
 import net.ossrs.rtmp.ConnectCheckerRtmp;
@@ -20,6 +21,11 @@ public class RtmpCamera1 extends Camera1Base {
 
   public RtmpCamera1(SurfaceView surfaceView, ConnectCheckerRtmp connectChecker) {
     super(surfaceView);
+    srsFlvMuxer = new SrsFlvMuxer(connectChecker);
+  }
+
+  public RtmpCamera1(TextureView textureView, ConnectCheckerRtmp connectChecker) {
+    super(textureView);
     srsFlvMuxer = new SrsFlvMuxer(connectChecker);
   }
 

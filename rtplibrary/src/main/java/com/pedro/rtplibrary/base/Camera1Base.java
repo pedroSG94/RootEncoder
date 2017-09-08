@@ -8,6 +8,7 @@ import android.media.MediaMuxer;
 import android.os.Build;
 import android.support.annotation.RequiresApi;
 import android.view.SurfaceView;
+import android.view.TextureView;
 import com.pedro.encoder.audio.AudioEncoder;
 import com.pedro.encoder.audio.GetAacData;
 import com.pedro.encoder.input.audio.GetMicrophoneData;
@@ -47,6 +48,14 @@ public abstract class Camera1Base
 
   public Camera1Base(SurfaceView surfaceView) {
     cameraManager = new Camera1ApiManager(surfaceView, this);
+    videoEncoder = new VideoEncoder(this);
+    microphoneManager = new MicrophoneManager(this);
+    audioEncoder = new AudioEncoder(this);
+    streaming = false;
+  }
+
+  public Camera1Base(TextureView textureView) {
+    cameraManager = new Camera1ApiManager(textureView, this);
     videoEncoder = new VideoEncoder(this);
     microphoneManager = new MicrophoneManager(this);
     audioEncoder = new AudioEncoder(this);
