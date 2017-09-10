@@ -143,6 +143,7 @@ public abstract class Camera1Base
     if (openGlView != null && Build.VERSION.SDK_INT >= 18) {
       openGlView.startGLThread();
       openGlView.addMediaCodecSurface(videoEncoder.getInputSurface());
+      openGlView.setRotation(90);
       cameraManager =
           new Camera1ApiManager(openGlView.getSurfaceTexture(), openGlView.getContext());
       cameraManager.prepareCamera(videoEncoder.getWidth(), videoEncoder.getHeight(),

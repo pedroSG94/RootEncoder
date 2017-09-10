@@ -166,4 +166,9 @@ public class TextureManager {
       throw new RuntimeException("failed creating program");
     }
   }
+
+  public void setRotation(int rotation) {
+    Matrix.setIdentityM(mSTMatrix, 0);
+    Matrix.setRotateM(mSTMatrix, 0, rotation, 0, 0, 1.0f);
+  }
 }

@@ -36,7 +36,6 @@ public class OpenGlView extends SurfaceView
   private final Semaphore semaphore = new Semaphore(0);
   private final Object sync = new Object();
   private int ratioWidth, ratioHeight;
-  private int fullWidth, fullHeight;
 
   public OpenGlView(Context context, AttributeSet attrs) {
     super(context, attrs);
@@ -139,8 +138,6 @@ public class OpenGlView extends SurfaceView
 
   @Override
   public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
-    this.fullWidth = width;
-    this.fullHeight = height;
     Log.i(TAG, "size: " + width + "x" + height);
   }
 
@@ -168,6 +165,12 @@ public class OpenGlView extends SurfaceView
     ratioWidth = width;
     ratioHeight = height;
     requestLayout();
+  }
+
+  public void setRotation(int rotation) {
+    if (textureManager != null) {
+      textureManager.setRotation(rotation);
+    }
   }
 
   @Override
