@@ -1,6 +1,8 @@
 package com.pedro.encoder.input.video;
 
+import android.content.Context;
 import android.graphics.ImageFormat;
+import android.graphics.SurfaceTexture;
 import android.hardware.Camera;
 import android.media.CamcorderProfile;
 import android.opengl.GLES20;
@@ -31,10 +33,11 @@ import javax.microedition.khronos.egl.EGLSurface;
 
 public class Camera1ApiManager implements Camera.PreviewCallback {
 
-  private String TAG = "Camera1ApiManager";
+  private String TAG = "Camera1ApiManagerGl";
   private Camera camera = null;
   private SurfaceView surfaceView;
   private TextureView textureView;
+  private SurfaceTexture surfaceTexture;
   private GetCameraData getCameraData;
   private boolean running = false;
   private boolean lanternEnable = false;
@@ -62,6 +65,14 @@ public class Camera1ApiManager implements Camera.PreviewCallback {
     this.textureView = textureView;
     this.getCameraData = getCameraData;
     if (textureView.getContext().getResources().getConfiguration().orientation == 1) {
+      orientation = 90;
+    }
+    cameraSelect = selectCamera();
+  }
+
+  public Camera1ApiManager(SurfaceTexture surfaceTexture, Context context) {
+    this.surfaceTexture = surfaceTexture;
+    if (context.getResources().getConfiguration().orientation == 1) {
       orientation = 90;
     }
     cameraSelect = selectCamera();
@@ -111,10 +122,13 @@ public class Camera1ApiManager implements Camera.PreviewCallback {
         camera.setDisplayOrientation(orientation);
         if (surfaceView != null) {
           camera.setPreviewDisplay(surfaceView.getHolder());
-        } else {
+          camera.setPreviewCallback(this);
+        } else if (textureView != null){
           camera.setPreviewTexture(textureView.getSurfaceTexture());
+          camera.setPreviewCallback(this);
+        } else {
+          camera.setPreviewTexture(surfaceTexture);
         }
-        camera.setPreviewCallback(this);
         camera.startPreview();
         running = true;
         fpsController = new FpsController(fps, camera);

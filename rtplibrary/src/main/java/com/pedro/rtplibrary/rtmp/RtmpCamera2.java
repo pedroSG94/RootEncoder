@@ -9,6 +9,7 @@ import android.view.TextureView;
 
 import com.pedro.rtplibrary.base.Camera2Base;
 
+import com.pedro.rtplibrary.view.OpenGlView;
 import net.ossrs.rtmp.ConnectCheckerRtmp;
 import net.ossrs.rtmp.SrsFlvMuxer;
 
@@ -32,6 +33,11 @@ public class RtmpCamera2 extends Camera2Base {
 
   public RtmpCamera2(TextureView textureView, ConnectCheckerRtmp connectChecker) {
     super(textureView, textureView.getContext());
+    srsFlvMuxer = new SrsFlvMuxer(connectChecker);
+  }
+
+  public RtmpCamera2(OpenGlView openGlView, ConnectCheckerRtmp connectChecker) {
+    super(openGlView, openGlView.getContext());
     srsFlvMuxer = new SrsFlvMuxer(connectChecker);
   }
 

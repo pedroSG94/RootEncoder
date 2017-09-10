@@ -27,12 +27,12 @@ import java.util.List;
 /**
  * Created by pedro on 4/03/17.
  * <p>
- * Class for use surface to buffer encoder.
+ * Class for use surfaceEncoder to buffer encoder.
  * Advantage = you can use all resolutions.
  * Disadvantages = you cant control fps of the stream, because you cant know when the inputSurface
  * was renderer.
  * <p>
- * Note: you can use opengl for surface to buffer encoder on devices 21 < API > 16:
+ * Note: you can use opengl for surfaceEncoder to buffer encoder on devices 21 < API > 16:
  * https://github.com/google/grafika
  */
 
@@ -44,24 +44,29 @@ public class Camera2ApiManager extends CameraDevice.StateCallback {
   private CameraDevice cameraDevice;
   private SurfaceView surfaceView;
   private TextureView textureView;
-  private Surface surface; //input surface from videoEncoder
+  private Surface surfacePreview; //input surfacePreview from TextureManager
+  private Surface surfaceEncoder; //input surfaceEncoder from videoEncoder
   private CameraManager cameraManager;
   private Handler cameraHandler;
 
   public Camera2ApiManager(SurfaceView surfaceView, Surface surface, Context context) {
     this.surfaceView = surfaceView;
-    this.surface = surface;
+    this.surfaceEncoder = surface;
     cameraManager = (CameraManager) context.getSystemService(Context.CAMERA_SERVICE);
   }
 
   public Camera2ApiManager(TextureView textureView, Surface surface, Context context) {
     this.textureView = textureView;
-    this.surface = surface;
+    this.surfaceEncoder = surface;
     cameraManager = (CameraManager) context.getSystemService(Context.CAMERA_SERVICE);
   }
 
-  public Camera2ApiManager(Surface surface, Context context) {
-    this.surface = surface;
+  public Camera2ApiManager(Surface surface, Context context, boolean opengl) {
+    if (opengl) {
+      this.surfacePreview = surface;
+    } else {
+      this.surfaceEncoder = surface;
+    }
     cameraManager = (CameraManager) context.getSystemService(Context.CAMERA_SERVICE);
   }
 
@@ -72,18 +77,23 @@ public class Camera2ApiManager extends CameraDevice.StateCallback {
       if (previewSurface != null) {
         listSurfaces.add(previewSurface);
       }
-      listSurfaces.add(surface);
+      if (surfaceEncoder != null) {
+        listSurfaces.add(surfaceEncoder);
+      }
       cameraDevice.createCaptureSession(listSurfaces, new CameraCaptureSession.StateCallback() {
         @Override
         public void onConfigured(@NonNull CameraCaptureSession cameraCaptureSession) {
           try {
             if (surfaceView != null || textureView != null) {
               cameraCaptureSession.setRepeatingBurst(
-                  Arrays.asList(drawPreview(previewSurface), drawInputSurface(surface)), null,
-                  cameraHandler);
+                  Arrays.asList(drawPreview(previewSurface), drawInputSurface(surfaceEncoder)),
+                  null, cameraHandler);
+            } else if (surfacePreview != null) {
+              cameraCaptureSession.setRepeatingBurst(
+                  Collections.singletonList(drawPreview(previewSurface)), null, cameraHandler);
             } else {
               cameraCaptureSession.setRepeatingBurst(
-                  Collections.singletonList(drawInputSurface(surface)), null, cameraHandler);
+                  Collections.singletonList(drawInputSurface(surfaceEncoder)), null, cameraHandler);
             }
             Log.i(TAG, "camera configured");
           } catch (CameraAccessException | NullPointerException e) {
@@ -109,6 +119,8 @@ public class Camera2ApiManager extends CameraDevice.StateCallback {
     } else if (textureView != null) {
       final SurfaceTexture texture = textureView.getSurfaceTexture();
       surface = new Surface(texture);
+    } else if (surfacePreview != null){
+      surface = this.surfacePreview;
     }
     return surface;
   }

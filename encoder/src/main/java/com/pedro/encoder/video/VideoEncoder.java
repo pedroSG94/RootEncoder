@@ -26,7 +26,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 
 /**
  * Created by pedro on 19/01/17.
- * This class need use same resolution, fps and imageFormat that Camera1ApiManager
+ * This class need use same resolution, fps and imageFormat that Camera1ApiManagerGl
  */
 
 public class VideoEncoder implements GetCameraData {

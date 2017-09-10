@@ -21,6 +21,7 @@ import com.pedro.encoder.video.FormatVideoEncoder;
 import com.pedro.encoder.video.GetH264Data;
 import com.pedro.encoder.video.VideoEncoder;
 
+import com.pedro.rtplibrary.view.OpenGlView;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 
@@ -37,8 +38,9 @@ public abstract class Camera2Base
   protected MicrophoneManager microphoneManager;
   protected AudioEncoder audioEncoder;
   private boolean streaming;
-  protected SurfaceView surfaceView;
-  protected TextureView textureView;
+  private SurfaceView surfaceView;
+  private TextureView textureView;
+  private OpenGlView openGlView;
   private boolean videoEnabled = true;
   //record
   private MediaMuxer mediaMuxer;
@@ -59,6 +61,15 @@ public abstract class Camera2Base
 
   public Camera2Base(TextureView textureView, Context context) {
     this.textureView = textureView;
+    this.context = context;
+    videoEncoder = new VideoEncoder(this);
+    microphoneManager = new MicrophoneManager(this);
+    audioEncoder = new AudioEncoder(this);
+    streaming = false;
+  }
+
+  public Camera2Base(OpenGlView openGlView, Context context) {
+    this.openGlView = openGlView;
     this.context = context;
     videoEncoder = new VideoEncoder(this);
     microphoneManager = new MicrophoneManager(this);
@@ -133,6 +144,11 @@ public abstract class Camera2Base
   protected abstract void startStreamRtp(String url);
 
   public void startStream(String url) {
+    if (openGlView != null) {
+      openGlView.startGLThread();
+      openGlView.addMediaCodecSurface(videoEncoder.getInputSurface());
+      cameraManager = new Camera2ApiManager(openGlView.getSurface(), context, true);
+    }
     videoEncoder.start();
     audioEncoder.start();
     cameraManager.openCameraBack();
@@ -149,6 +165,10 @@ public abstract class Camera2Base
     stopStreamRtp();
     videoEncoder.stop();
     audioEncoder.stop();
+    if (openGlView != null) {
+      openGlView.stopGlThread();
+      openGlView.removeMediaCodecSurface();
+    }
     streaming = false;
   }
 
@@ -197,11 +217,14 @@ public abstract class Camera2Base
     return streaming;
   }
 
-  protected void prepareCameraManager() {
+  private void prepareCameraManager() {
     if (textureView != null) {
       cameraManager = new Camera2ApiManager(textureView, videoEncoder.getInputSurface(), context);
     } else if (surfaceView != null) {
       cameraManager = new Camera2ApiManager(surfaceView, videoEncoder.getInputSurface(), context);
+    } else if (openGlView != null) {
+    } else {
+      cameraManager = new Camera2ApiManager(videoEncoder.getInputSurface(), context, false);
     }
   }
 
