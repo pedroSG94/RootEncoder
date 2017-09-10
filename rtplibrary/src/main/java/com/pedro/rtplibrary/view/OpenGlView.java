@@ -95,7 +95,8 @@ public class OpenGlView extends SurfaceView
   public void run() {
     surfaceManager = new SurfaceManager(getHolder().getSurface());
     surfaceManager.makeCurrent();
-    textureManager.createTexture().setOnFrameAvailableListener(this);
+    textureManager.initGl();
+    textureManager.getSurfaceTexture().setOnFrameAvailableListener(this);
     semaphore.release();
     try {
       while (running) {

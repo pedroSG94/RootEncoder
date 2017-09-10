@@ -41,18 +41,15 @@ public class TextureManager {
 
   private FloatBuffer triangleVertices;
 
-  private String VERTEX_SHADER;
-  private String FRAGMENT_SHADER;
-
   private float[] mMVPMatrix = new float[16];
   private float[] mSTMatrix = new float[16];
 
-  private int program;
-  private int textureID = -12345;
-  private int uMVPMatrixHandle;
-  private int uSTMatrixHandle;
-  private int aPositionHandle;
-  private int aTextureHandle;
+  private int program = -1;
+  private int textureID = -1;
+  private int uMVPMatrixHandle = -1;
+  private int uSTMatrixHandle = -1;
+  private int aPositionHandle = -1;
+  private int aTextureHandle = -1;
 
   private SurfaceTexture surfaceTexture;
   private Surface surface;
@@ -119,39 +116,25 @@ public class TextureManager {
   /**
    * Initializes GL state.  Call this after the EGL surface has been created and made current.
    */
-  public SurfaceTexture createTexture() {
+  public void initGl() {
     GlUtil.checkGlError("create handlers start");
-    VERTEX_SHADER = GlUtil.getStringFromRaw(context, R.raw.simple_vertex);
-    FRAGMENT_SHADER = GlUtil.getStringFromRaw(context, R.raw.simple_fragment);
-    program = GlUtil.createProgram(VERTEX_SHADER, FRAGMENT_SHADER);
+    String vertexShader = GlUtil.getStringFromRaw(context, R.raw.simple_vertex);
+    String fragmentShader = GlUtil.getStringFromRaw(context, R.raw.simple_fragment);
+
+    program = GlUtil.createProgram(vertexShader, fragmentShader);
     aPositionHandle = GLES20.glGetAttribLocation(program, "aPosition");
     aTextureHandle = GLES20.glGetAttribLocation(program, "aTextureCoord");
     uMVPMatrixHandle = GLES20.glGetUniformLocation(program, "uMVPMatrix");
     uSTMatrixHandle = GLES20.glGetUniformLocation(program, "uSTMatrix");
     GlUtil.checkGlError("create handlers end");
-    int[] textures = new int[1];
-    GLES20.glGenTextures(1, textures, 0);
-
-    textureID = textures[0];
-    GLES20.glBindTexture(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, textureID);
-    GlUtil.checkGlError("glBindTexture textureID");
-
-    GLES20.glTexParameterf(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, GLES20.GL_TEXTURE_MIN_FILTER,
-        GLES20.GL_NEAREST);
-    GLES20.glTexParameterf(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, GLES20.GL_TEXTURE_MAG_FILTER,
-        GLES20.GL_LINEAR);
-    GLES20.glTexParameteri(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, GLES20.GL_TEXTURE_WRAP_S,
-        GLES20.GL_CLAMP_TO_EDGE);
-    GLES20.glTexParameteri(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, GLES20.GL_TEXTURE_WRAP_T,
-        GLES20.GL_CLAMP_TO_EDGE);
+    textureID = GlUtil.generateOpenGlTexture();
     GlUtil.checkGlError("glTexParameter");
-
     surfaceTexture = new SurfaceTexture(textureID);
     surface = new Surface(surfaceTexture);
-    return surfaceTexture;
   }
 
   public void release() {
     surfaceTexture = null;
+    surface = null;
   }
 }

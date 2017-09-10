@@ -3,6 +3,7 @@ package com.pedro.encoder.utils;
 import android.content.Context;
 import android.content.res.Resources;
 import android.opengl.EGL14;
+import android.opengl.GLES11Ext;
 import android.opengl.GLES20;
 import android.os.Build;
 import android.support.annotation.RequiresApi;
@@ -65,6 +66,25 @@ public class GlUtil {
       program = 0;
     }
     return program;
+  }
+
+  public static int generateOpenGlTexture() {
+    int[] textures = new int[1];
+    GLES20.glGenTextures(1, textures, 0);
+
+    int textureID = textures[0];
+    GLES20.glBindTexture(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, textureID);
+    GlUtil.checkGlError("glBindTexture textureID");
+
+    GLES20.glTexParameterf(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, GLES20.GL_TEXTURE_MIN_FILTER,
+        GLES20.GL_NEAREST);
+    GLES20.glTexParameterf(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, GLES20.GL_TEXTURE_MAG_FILTER,
+        GLES20.GL_LINEAR);
+    GLES20.glTexParameteri(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, GLES20.GL_TEXTURE_WRAP_S,
+        GLES20.GL_CLAMP_TO_EDGE);
+    GLES20.glTexParameteri(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, GLES20.GL_TEXTURE_WRAP_T,
+        GLES20.GL_CLAMP_TO_EDGE);
+    return textureID;
   }
 
   public static String getStringFromRaw(Context context, int id) {

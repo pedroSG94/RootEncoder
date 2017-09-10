@@ -5,5 +5,7 @@ varying vec2 vTextureCoord;
 uniform samplerExternalOES uSampler;
 
 void main() {
-  gl_FragColor = texture2D(uSampler, vTextureCoord);
+  vec4 pixel = texture2D(uSampler, vTextureCoord);
+  float grey = pixel.x + pixel.y + pixel.z / 3.0;
+  gl_FragColor = vec4(grey, grey, grey, 1.0);
 }
