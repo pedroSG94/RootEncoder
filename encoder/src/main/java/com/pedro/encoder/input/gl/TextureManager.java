@@ -33,8 +33,10 @@ public class TextureManager {
   //rotation matrix
   private final float[] triangleVerticesData = {
       // X, Y, Z, U, V
-      -1.0f, -1.0f, 0, 0.f, 0.f, 1.0f, -1.0f, 0, 1.f, 0.f, -1.0f, 1.0f, 0, 0.f, 1.f, 1.0f, 1.0f, 0,
-      1.f, 1.f,
+      -1.0f, -1.0f, 0, 0.f, 0.f,
+      1.0f, -1.0f, 0, 1.f, 0.f,
+      -1.0f, 1.0f, 0, 0.f, 1.f,
+      1.0f, 1.0f, 0, 1.f, 1.f,
   };
 
   private FloatBuffer triangleVertices;
@@ -151,24 +153,5 @@ public class TextureManager {
 
   public void release() {
     surfaceTexture = null;
-  }
-
-  /**
-   * Replaces the fragment shader.  Pass in null to reset to default.
-   */
-  public void changeFragmentShader(String fragmentShader) {
-    if (fragmentShader == null) {
-      fragmentShader = FRAGMENT_SHADER;
-    }
-    GLES20.glDeleteProgram(program);
-    program = GlUtil.createProgram(VERTEX_SHADER, fragmentShader);
-    if (program == 0) {
-      throw new RuntimeException("failed creating program");
-    }
-  }
-
-  public void setRotation(int rotation) {
-    Matrix.setIdentityM(mSTMatrix, 0);
-    Matrix.setRotateM(mSTMatrix, 0, rotation, 0, 0, 1.0f);
   }
 }

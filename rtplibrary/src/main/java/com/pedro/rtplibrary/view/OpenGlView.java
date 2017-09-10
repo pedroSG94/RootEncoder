@@ -167,12 +167,6 @@ public class OpenGlView extends SurfaceView
     requestLayout();
   }
 
-  public void setRotation(int rotation) {
-    if (textureManager != null) {
-      textureManager.setRotation(rotation);
-    }
-  }
-
   @Override
   protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
     super.onMeasure(widthMeasureSpec, heightMeasureSpec);
