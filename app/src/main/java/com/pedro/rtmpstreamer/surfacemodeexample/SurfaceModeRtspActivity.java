@@ -33,7 +33,6 @@ public class SurfaceModeRtspActivity extends AppCompatActivity
     super.onCreate(savedInstanceState);
     getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
     setContentView(R.layout.activity_example);
-    getSupportActionBar().setTitle(getIntent().getStringExtra(Constants.LABEL));
     SurfaceView surfaceView = (SurfaceView) findViewById(R.id.surfaceView);
     button = (Button) findViewById(R.id.b_start_stop);
     button.setOnClickListener(this);

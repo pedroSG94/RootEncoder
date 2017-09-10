@@ -193,6 +193,10 @@ public class VideoEncoder implements GetCameraData {
     return rotation;
   }
 
+  public int getFps() {
+    return fps;
+  }
+
   public void start() {
     spsPpsSetted = false;
     mPresentTimeUs = System.nanoTime() / 1000;

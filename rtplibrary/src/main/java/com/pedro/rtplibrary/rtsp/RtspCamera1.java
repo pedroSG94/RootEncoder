@@ -1,9 +1,12 @@
 package com.pedro.rtplibrary.rtsp;
 
 import android.media.MediaCodec;
+import android.os.Build;
+import android.support.annotation.RequiresApi;
 import android.view.SurfaceView;
 import android.view.TextureView;
 import com.pedro.rtplibrary.base.Camera1Base;
+import com.pedro.rtplibrary.view.OpenGlView;
 import com.pedro.rtsp.rtsp.Protocol;
 import com.pedro.rtsp.rtsp.RtspClient;
 import com.pedro.rtsp.utils.ConnectCheckerRtsp;
@@ -26,6 +29,13 @@ public class RtspCamera1 extends Camera1Base {
   public RtspCamera1(TextureView textureView, Protocol protocol,
       ConnectCheckerRtsp connectCheckerRtsp) {
     super(textureView);
+    rtspClient = new RtspClient(connectCheckerRtsp, protocol);
+  }
+
+  @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
+  public RtspCamera1(OpenGlView openGlView, Protocol protocol,
+      ConnectCheckerRtsp connectCheckerRtsp) {
+    super(openGlView);
     rtspClient = new RtspClient(connectCheckerRtsp, protocol);
   }
 

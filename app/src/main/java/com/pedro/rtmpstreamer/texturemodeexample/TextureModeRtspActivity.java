@@ -33,7 +33,6 @@ public class TextureModeRtspActivity extends AppCompatActivity
     super.onCreate(savedInstanceState);
     getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
     setContentView(R.layout.activity_texture_mode);
-    getSupportActionBar().setTitle(getIntent().getStringExtra(Constants.LABEL));
     TextureView textureView = (TextureView) findViewById(R.id.textureView);
     button = (Button) findViewById(R.id.b_start_stop);
     button.setOnClickListener(this);

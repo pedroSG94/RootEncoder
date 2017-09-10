@@ -14,12 +14,14 @@ import com.pedro.encoder.audio.GetAacData;
 import com.pedro.encoder.input.audio.GetMicrophoneData;
 import com.pedro.encoder.input.audio.MicrophoneManager;
 import com.pedro.encoder.input.video.Camera1ApiManager;
+import com.pedro.encoder.input.video.Camera2ApiManager;
 import com.pedro.encoder.input.video.CameraOpenException;
 import com.pedro.encoder.input.video.EffectManager;
 import com.pedro.encoder.input.video.GetCameraData;
 import com.pedro.encoder.video.FormatVideoEncoder;
 import com.pedro.encoder.video.GetH264Data;
 import com.pedro.encoder.video.VideoEncoder;
+import com.pedro.rtplibrary.view.OpenGlView;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
@@ -36,6 +38,7 @@ public abstract class Camera1Base
   protected VideoEncoder videoEncoder;
   protected MicrophoneManager microphoneManager;
   protected AudioEncoder audioEncoder;
+  private OpenGlView openGlView;
   private boolean streaming;
   private boolean videoEnabled = true;
   //record
@@ -62,15 +65,29 @@ public abstract class Camera1Base
     streaming = false;
   }
 
+  @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
+  public Camera1Base(OpenGlView openGlView) {
+    this.openGlView = openGlView;
+    videoEncoder = new VideoEncoder(this);
+    microphoneManager = new MicrophoneManager(this);
+    audioEncoder = new AudioEncoder(this);
+    streaming = false;
+  }
+
   public abstract void setAuthorization(String user, String password);
 
   public boolean prepareVideo(int width, int height, int fps, int bitrate, boolean hardwareRotation,
       int rotation) {
     int imageFormat = ImageFormat.NV21; //supported nv21 and yv12
-    cameraManager.prepareCamera(width, height, fps, imageFormat);
-    videoEncoder.setImageFormat(imageFormat);
-    return videoEncoder.prepareVideoEncoder(width, height, fps, bitrate, rotation, hardwareRotation,
-        FormatVideoEncoder.YUV420Dynamical);
+    if (openGlView == null) {
+      cameraManager.prepareCamera(width, height, fps, imageFormat);
+      videoEncoder.setImageFormat(imageFormat);
+      return videoEncoder.prepareVideoEncoder(width, height, fps, bitrate, rotation,
+          hardwareRotation, FormatVideoEncoder.YUV420Dynamical);
+    } else {
+      return videoEncoder.prepareVideoEncoder(width, height, fps, bitrate, rotation,
+          hardwareRotation, FormatVideoEncoder.SURFACE);
+    }
   }
 
   protected abstract void prepareAudioRtp(boolean isStereo, int sampleRate);
@@ -83,8 +100,13 @@ public abstract class Camera1Base
   }
 
   public boolean prepareVideo() {
-    cameraManager.prepareCamera();
-    return videoEncoder.prepareVideoEncoder();
+    if (openGlView == null) {
+      cameraManager.prepareCamera();
+      return videoEncoder.prepareVideoEncoder();
+    } else {
+      return videoEncoder.prepareVideoEncoder(640, 480, 30, 1200 * 1024, 0, true,
+          FormatVideoEncoder.SURFACE);
+    }
   }
 
   public abstract boolean prepareAudio();
@@ -118,6 +140,14 @@ public abstract class Camera1Base
   protected abstract void startStreamRtp(String url);
 
   public void startStream(String url) {
+    if (openGlView != null && Build.VERSION.SDK_INT >= 18) {
+      openGlView.startGLThread();
+      openGlView.addMediaCodecSurface(videoEncoder.getInputSurface());
+      cameraManager =
+          new Camera1ApiManager(openGlView.getSurfaceTexture(), openGlView.getContext());
+      cameraManager.prepareCamera(videoEncoder.getWidth(), videoEncoder.getHeight(),
+          videoEncoder.getFps(), ImageFormat.NV21);
+    }
     startStreamRtp(url);
     videoEncoder.start();
     audioEncoder.start();
@@ -134,6 +164,10 @@ public abstract class Camera1Base
     stopStreamRtp();
     videoEncoder.stop();
     audioEncoder.stop();
+    if (openGlView != null && Build.VERSION.SDK_INT >= 18) {
+      openGlView.stopGlThread();
+      openGlView.removeMediaCodecSurface();
+    }
     streaming = false;
   }
 

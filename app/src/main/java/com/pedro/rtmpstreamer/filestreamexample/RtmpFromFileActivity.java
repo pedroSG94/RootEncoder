@@ -34,7 +34,6 @@ public class RtmpFromFileActivity extends AppCompatActivity
   protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
     setContentView(R.layout.activity_from_file);
-    getSupportActionBar().setTitle(getIntent().getStringExtra(Constants.LABEL));
     button = (Button) findViewById(R.id.b_start_stop);
     bSelectFile = (Button) findViewById(R.id.b_select_file);
     button.setOnClickListener(this);

@@ -109,7 +109,7 @@ public abstract class Camera2Base
   }
 
   public boolean prepareVideo() {
-    boolean result = videoEncoder.prepareVideoEncoder(640, 480, 30, 1200 * 1024, 90, true,
+    boolean result = videoEncoder.prepareVideoEncoder(640, 480, 30, 1200 * 1024, 0, true,
         FormatVideoEncoder.SURFACE);
     prepareCameraManager();
     return result;

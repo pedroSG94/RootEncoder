@@ -161,8 +161,10 @@ public class Camera1ApiManager implements Camera.PreviewCallback {
       camera = null;
       if (surfaceView != null) {
         clearSurface(surfaceView.getHolder());
-      } else {
+      } else if (textureView != null){
         clearSurface(textureView.getSurfaceTexture());
+      } else  {
+        clearSurface(surfaceTexture);
       }
       running = false;
     }
