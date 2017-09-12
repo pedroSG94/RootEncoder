@@ -19,6 +19,7 @@ public class MicrophoneManager {
   private byte[] pcmBuffer = new byte[BUFFER_SIZE];
   private byte[] pcmBufferMuted = new byte[11];
   private boolean running = false;
+  private boolean created = false;
 
   //default parameters for microphone
   private int sampleRate = 44100; //hz
@@ -54,27 +55,32 @@ public class MicrophoneManager {
     if (noiseSuppressor) audioPostProcessEffect.enableNoiseSuppressor();
     String chl = (isStereo) ? "Stereo" : "Mono";
     Log.i(TAG, "Microphone created, " + sampleRate + "hz, " + chl);
+    created = true;
   }
 
   /**
    * Start record and get data
    */
   public void start() {
-    init();
-    new Thread(new Runnable() {
-      @Override
-      public void run() {
-        android.os.Process.setThreadPriority(android.os.Process.THREAD_PRIORITY_AUDIO);
-        while (running && !Thread.interrupted()) {
-          DataTaken dataTaken = read();
-          if (dataTaken != null) {
-            getMicrophoneData.inputPcmData(dataTaken.getPcmBuffer(), dataTaken.getSize());
-          } else {
-            running = false;
+    if (isCreated()) {
+      init();
+      new Thread(new Runnable() {
+        @Override
+        public void run() {
+          android.os.Process.setThreadPriority(android.os.Process.THREAD_PRIORITY_AUDIO);
+          while (running && !Thread.interrupted()) {
+            DataTaken dataTaken = read();
+            if (dataTaken != null) {
+              getMicrophoneData.inputPcmData(dataTaken.getPcmBuffer(), dataTaken.getSize());
+            } else {
+              running = false;
+            }
           }
         }
-      }
-    }).start();
+      }).start();
+    } else {
+      Log.e(TAG, "Microphone no created, MicrophoneManager not enabled");
+    }
   }
 
   private void init() {
@@ -121,14 +127,17 @@ public class MicrophoneManager {
    */
   public void stop() {
     running = false;
+    created = false;
     if (audioRecord != null) {
       audioRecord.setRecordPositionUpdateListener(null);
       audioRecord.stop();
       audioRecord.release();
       audioRecord = null;
     }
-    audioPostProcessEffect.releaseEchoCanceler();
-    audioPostProcessEffect.releaseNoiseSuppressor();
+    if (audioPostProcessEffect != null) {
+      audioPostProcessEffect.releaseEchoCanceler();
+      audioPostProcessEffect.releaseNoiseSuppressor();
+    }
     Log.i(TAG, "Microphone stopped");
   }
 
@@ -159,5 +168,9 @@ public class MicrophoneManager {
 
   public boolean isRunning() {
     return running;
+  }
+
+  public boolean isCreated() {
+    return created;
   }
 }

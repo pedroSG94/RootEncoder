@@ -67,10 +67,14 @@ public class AudioEncoder implements GetMicrophoneData {
   }
 
   public void start() {
-    mPresentTimeUs = System.nanoTime() / 1000;
-    audioEncoder.start();
-    running = true;
-    Log.i(TAG, "AudioEncoder started");
+    if (audioEncoder != null) {
+      mPresentTimeUs = System.nanoTime() / 1000;
+      audioEncoder.start();
+      running = true;
+      Log.i(TAG, "AudioEncoder started");
+    } else {
+      Log.e(TAG, "AudioEncoder need be prepared, AudioEncoder not enabled");
+    }
   }
 
   public void stop() {
