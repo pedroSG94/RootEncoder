@@ -34,7 +34,7 @@ import java.util.List;
 public abstract class Camera1Base
     implements GetAacData, GetCameraData, GetH264Data, GetMicrophoneData {
 
-  private Camera1ApiManager cameraManager;
+  protected Camera1ApiManager cameraManager;
   protected VideoEncoder videoEncoder;
   protected MicrophoneManager microphoneManager;
   protected AudioEncoder audioEncoder;

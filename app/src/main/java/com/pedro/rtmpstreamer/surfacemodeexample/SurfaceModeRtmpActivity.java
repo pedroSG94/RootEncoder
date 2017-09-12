@@ -13,7 +13,6 @@ import android.widget.Toast;
 
 import com.pedro.rtplibrary.rtmp.RtmpCamera2;
 import com.pedro.rtmpstreamer.R;
-import com.pedro.rtmpstreamer.constants.Constants;
 
 import net.ossrs.rtmp.ConnectCheckerRtmp;
 

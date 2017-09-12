@@ -48,26 +48,35 @@ public class Camera2ApiManager extends CameraDevice.StateCallback {
   private Surface surfaceEncoder; //input surfaceEncoder from videoEncoder
   private CameraManager cameraManager;
   private Handler cameraHandler;
+  private boolean prepared = false;
 
-  public Camera2ApiManager(SurfaceView surfaceView, Surface surface, Context context) {
+  public Camera2ApiManager(Context context) {
+    cameraManager = (CameraManager) context.getSystemService(Context.CAMERA_SERVICE);
+  }
+
+  public void prepareCamera(SurfaceView surfaceView, Surface surface) {
     this.surfaceView = surfaceView;
     this.surfaceEncoder = surface;
-    cameraManager = (CameraManager) context.getSystemService(Context.CAMERA_SERVICE);
+    prepared = true;
   }
 
-  public Camera2ApiManager(TextureView textureView, Surface surface, Context context) {
+  public void prepareCamera(TextureView textureView, Surface surface) {
     this.textureView = textureView;
     this.surfaceEncoder = surface;
-    cameraManager = (CameraManager) context.getSystemService(Context.CAMERA_SERVICE);
+    prepared = true;
   }
 
-  public Camera2ApiManager(Surface surface, Context context, boolean opengl) {
+  public void prepareCamera(Surface surface, boolean opengl) {
     if (opengl) {
       this.surfacePreview = surface;
     } else {
       this.surfaceEncoder = surface;
     }
-    cameraManager = (CameraManager) context.getSystemService(Context.CAMERA_SERVICE);
+    prepared = true;
+  }
+
+  public boolean isPrepared() {
+    return prepared;
   }
 
   private void startPreview(CameraDevice cameraDevice) {
@@ -119,7 +128,7 @@ public class Camera2ApiManager extends CameraDevice.StateCallback {
     } else if (textureView != null) {
       final SurfaceTexture texture = textureView.getSurfaceTexture();
       surface = new Surface(texture);
-    } else if (surfacePreview != null){
+    } else if (surfacePreview != null) {
       surface = this.surfacePreview;
     }
     return surface;
@@ -155,13 +164,17 @@ public class Camera2ApiManager extends CameraDevice.StateCallback {
   }
 
   public void openCameraId(Integer cameraId) {
-    HandlerThread cameraHandlerThread = new HandlerThread(TAG + " Id = " + cameraId);
-    cameraHandlerThread.start();
-    cameraHandler = new Handler(cameraHandlerThread.getLooper());
-    try {
-      cameraManager.openCamera(cameraId.toString(), this, cameraHandler);
-    } catch (CameraAccessException | SecurityException e) {
-      e.printStackTrace();
+    if (prepared) {
+      HandlerThread cameraHandlerThread = new HandlerThread(TAG + " Id = " + cameraId);
+      cameraHandlerThread.start();
+      cameraHandler = new Handler(cameraHandlerThread.getLooper());
+      try {
+        cameraManager.openCamera(cameraId.toString(), this, cameraHandler);
+      } catch (CameraAccessException | SecurityException e) {
+        e.printStackTrace();
+      }
+    } else {
+      Log.e(TAG, "Camera2ApiManager need be prepared, Camera2ApiManager not enabled");
     }
   }
 
@@ -204,7 +217,10 @@ public class Camera2ApiManager extends CameraDevice.StateCallback {
       cameraDevice.close();
       cameraDevice = null;
     }
-    cameraHandler.getLooper().quitSafely();
+    if (cameraHandler != null) {
+      cameraHandler.getLooper().quitSafely();
+    }
+    prepared = false;
   }
 
   @Override

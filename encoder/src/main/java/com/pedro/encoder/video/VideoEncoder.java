@@ -198,61 +198,64 @@ public class VideoEncoder implements GetCameraData {
   }
 
   public void start() {
-    spsPpsSetted = false;
-    mPresentTimeUs = System.nanoTime() / 1000;
-    videoEncoder.start();
-    //surface to buffer
-    if (formatVideoEncoder == FormatVideoEncoder.SURFACE
-        && Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
-      if (Build.VERSION.SDK_INT >= 21) {
-        getDataFromSurfaceAPI21();
+    if (videoEncoder != null) {
+      spsPpsSetted = false;
+      mPresentTimeUs = System.nanoTime() / 1000;
+      videoEncoder.start();
+      //surface to buffer
+      if (formatVideoEncoder == FormatVideoEncoder.SURFACE && Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
+        if (Build.VERSION.SDK_INT >= 21) {
+          getDataFromSurfaceAPI21();
+        } else {
+          getDataFromSurface();
+        }
+        //buffer to buffer
       } else {
-        getDataFromSurface();
-      }
-      //buffer to buffer
-    } else {
-      thread = new Thread(new Runnable() {
-        @Override
-        public void run() {
-          android.os.Process.setThreadPriority(Process.THREAD_PRIORITY_MORE_FAVORABLE);
-          while (!Thread.interrupted()) {
-            try {
-              byte[] b = queue.take();
-              byte[] i420;
-              if (b == null) continue;
-              if (imageFormat == ImageFormat.NV21) {
-                if (!hardwareRotation) {
-                  if (rotation == 0 || rotation == 90 || rotation == 180 || rotation == 270) {
-                    b = YUVUtil.rotateNV21(b, width, height, rotation);
-                  } else {
-                    throw new RuntimeException(
-                        "rotation value unsupported, select value 0, 90, 180 or 270");
+        thread = new Thread(new Runnable() {
+          @Override
+          public void run() {
+            android.os.Process.setThreadPriority(Process.THREAD_PRIORITY_MORE_FAVORABLE);
+            while (!Thread.interrupted()) {
+              try {
+                byte[] b = queue.take();
+                byte[] i420;
+                if (b == null) continue;
+                if (imageFormat == ImageFormat.NV21) {
+                  if (!hardwareRotation) {
+                    if (rotation == 0 || rotation == 90 || rotation == 180 || rotation == 270) {
+                      b = YUVUtil.rotateNV21(b, width, height, rotation);
+                    } else {
+                      throw new RuntimeException(
+                          "rotation value unsupported, select value 0, 90, 180 or 270");
+                    }
                   }
+                  i420 = (sendBlackImage) ? blackImage
+                      : YUVUtil.NV21toYUV420byColor(b, width, height, formatVideoEncoder);
+                } else if (imageFormat == ImageFormat.YV12) {
+                  i420 = (sendBlackImage) ? blackImage
+                      : YUVUtil.YV12toYUV420byColor(b, width, height, formatVideoEncoder);
+                } else {
+                  stop();
+                  Log.e(TAG, "Unsupported imageFormat");
+                  break;
                 }
-                i420 = (sendBlackImage) ? blackImage
-                    : YUVUtil.NV21toYUV420byColor(b, width, height, formatVideoEncoder);
-              } else if (imageFormat == ImageFormat.YV12) {
-                i420 = (sendBlackImage) ? blackImage
-                    : YUVUtil.YV12toYUV420byColor(b, width, height, formatVideoEncoder);
-              } else {
-                stop();
-                Log.e(TAG, "Unsupported imageFormat");
-                break;
+                if (Build.VERSION.SDK_INT >= 21) {
+                  getDataFromEncoderAPI21(i420);
+                } else {
+                  getDataFromEncoder(i420);
+                }
+              } catch (InterruptedException e) {
+                thread.interrupt();
               }
-              if (Build.VERSION.SDK_INT >= 21) {
-                getDataFromEncoderAPI21(i420);
-              } else {
-                getDataFromEncoder(i420);
-              }
-            } catch (InterruptedException e) {
-              thread.interrupt();
             }
           }
-        }
-      });
-      thread.start();
+        });
+        thread.start();
+      }
+      running = true;
+    } else {
+      Log.e(TAG, "VideoEncoder need be prepared, VideoEncoder not enabled");
     }
-    running = true;
   }
 
   public void stop() {

@@ -40,6 +40,7 @@ public class Camera1ApiManager implements Camera.PreviewCallback {
   private SurfaceTexture surfaceTexture;
   private GetCameraData getCameraData;
   private boolean running = false;
+  private boolean prepared = false;
   private boolean lanternEnable = false;
   private int cameraSelect;
   private boolean isFrontCamera = false;
@@ -83,6 +84,7 @@ public class Camera1ApiManager implements Camera.PreviewCallback {
     this.height = height;
     this.fps = fps;
     this.imageFormat = imageFormat;
+    prepared = true;
   }
 
   public void prepareCamera() {
@@ -90,7 +92,7 @@ public class Camera1ApiManager implements Camera.PreviewCallback {
   }
 
   public void start() {
-    if (camera == null) {
+    if (camera == null && prepared) {
       try {
         camera = Camera.open(cameraSelect);
         if (!checkCanOpen()) {
@@ -136,6 +138,8 @@ public class Camera1ApiManager implements Camera.PreviewCallback {
       } catch (IOException e) {
         e.printStackTrace();
       }
+    } else {
+      Log.e(TAG, "Camera1ApiManager need be prepared, Camera1ApiManager not enabled");
     }
   }
 
@@ -167,6 +171,7 @@ public class Camera1ApiManager implements Camera.PreviewCallback {
         clearSurface(surfaceTexture);
       }
       running = false;
+      prepared = false;
     }
   }
 
@@ -207,6 +212,10 @@ public class Camera1ApiManager implements Camera.PreviewCallback {
 
   public boolean isRunning() {
     return running;
+  }
+
+  public boolean isPrepared() {
+    return prepared;
   }
 
   private int[] adaptFpsRange(int expectedFps, List<int[]> fpsRanges) {

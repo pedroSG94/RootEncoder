@@ -33,7 +33,7 @@ public abstract class Camera2Base
     implements GetAacData, GetCameraData, GetH264Data, GetMicrophoneData {
 
   protected Context context;
-  private Camera2ApiManager cameraManager;
+  protected Camera2ApiManager cameraManager;
   protected VideoEncoder videoEncoder;
   protected MicrophoneManager microphoneManager;
   protected AudioEncoder audioEncoder;
@@ -41,7 +41,7 @@ public abstract class Camera2Base
   private SurfaceView surfaceView;
   private TextureView textureView;
   private OpenGlView openGlView;
-  private boolean videoEnabled = true;
+  private boolean videoEnabled = false;
   //record
   private MediaMuxer mediaMuxer;
   private int videoTrack = -1;
@@ -53,6 +53,7 @@ public abstract class Camera2Base
   public Camera2Base(SurfaceView surfaceView, Context context) {
     this.surfaceView = surfaceView;
     this.context = context;
+    cameraManager = new Camera2ApiManager(context);
     videoEncoder = new VideoEncoder(this);
     microphoneManager = new MicrophoneManager(this);
     audioEncoder = new AudioEncoder(this);
@@ -62,6 +63,7 @@ public abstract class Camera2Base
   public Camera2Base(TextureView textureView, Context context) {
     this.textureView = textureView;
     this.context = context;
+    cameraManager = new Camera2ApiManager(context);
     videoEncoder = new VideoEncoder(this);
     microphoneManager = new MicrophoneManager(this);
     audioEncoder = new AudioEncoder(this);
@@ -71,6 +73,7 @@ public abstract class Camera2Base
   public Camera2Base(OpenGlView openGlView, Context context) {
     this.openGlView = openGlView;
     this.context = context;
+    cameraManager = new Camera2ApiManager(context);
     videoEncoder = new VideoEncoder(this);
     microphoneManager = new MicrophoneManager(this);
     audioEncoder = new AudioEncoder(this);
@@ -80,6 +83,7 @@ public abstract class Camera2Base
   public Camera2Base(Context context) {
     this.context = context;
     this.textureView = null;
+    cameraManager = new Camera2ApiManager(context);
     videoEncoder = new VideoEncoder(this);
     microphoneManager = new MicrophoneManager(this);
     audioEncoder = new AudioEncoder(this);
@@ -144,10 +148,10 @@ public abstract class Camera2Base
   protected abstract void startStreamRtp(String url);
 
   public void startStream(String url) {
-    if (openGlView != null) {
+    if (openGlView != null && videoEnabled) {
       openGlView.startGLThread();
       openGlView.addMediaCodecSurface(videoEncoder.getInputSurface());
-      cameraManager = new Camera2ApiManager(openGlView.getSurface(), context, true);
+      cameraManager.prepareCamera(openGlView.getSurface(), true);
     }
     videoEncoder.start();
     audioEncoder.start();
@@ -219,13 +223,14 @@ public abstract class Camera2Base
 
   private void prepareCameraManager() {
     if (textureView != null) {
-      cameraManager = new Camera2ApiManager(textureView, videoEncoder.getInputSurface(), context);
+      cameraManager.prepareCamera(textureView, videoEncoder.getInputSurface());
     } else if (surfaceView != null) {
-      cameraManager = new Camera2ApiManager(surfaceView, videoEncoder.getInputSurface(), context);
+      cameraManager.prepareCamera(surfaceView, videoEncoder.getInputSurface());
     } else if (openGlView != null) {
     } else {
-      cameraManager = new Camera2ApiManager(videoEncoder.getInputSurface(), context, false);
+      cameraManager.prepareCamera(videoEncoder.getInputSurface(), false);
     }
+    videoEnabled = true;
   }
 
   protected abstract void getAacDataRtp(ByteBuffer aacBuffer, MediaCodec.BufferInfo info);
