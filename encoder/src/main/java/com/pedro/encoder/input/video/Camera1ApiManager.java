@@ -326,6 +326,7 @@ public class Camera1ApiManager implements Camera.PreviewCallback {
         if (cameraSelect != i) {
           cameraSelect = i;
           stop();
+          prepared = true;
           start();
           return;
         }

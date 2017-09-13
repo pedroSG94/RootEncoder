@@ -208,6 +208,7 @@ public class Camera2ApiManager extends CameraDevice.StateCallback {
     if (cameraDevice != null) {
       int cameraId = Integer.parseInt(cameraDevice.getId()) == 1 ? 0 : 1;
       closeCamera();
+      prepared = true;
       openCameraId(cameraId);
     }
   }

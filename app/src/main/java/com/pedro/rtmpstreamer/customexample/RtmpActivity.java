@@ -22,19 +22,15 @@ import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.Spinner;
 import android.widget.Toast;
-
-import com.pedro.rtplibrary.rtmp.RtmpCamera1;
 import com.pedro.encoder.input.video.CameraOpenException;
 import com.pedro.encoder.input.video.EffectManager;
 import com.pedro.rtmpstreamer.R;
-import com.pedro.rtmpstreamer.constants.Constants;
-
-import net.ossrs.rtmp.ConnectCheckerRtmp;
-
+import com.pedro.rtplibrary.rtmp.RtmpCamera1;
 import java.io.File;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import net.ossrs.rtmp.ConnectCheckerRtmp;
 
 public class RtmpActivity extends AppCompatActivity
     implements Button.OnClickListener, ConnectCheckerRtmp {
@@ -70,6 +66,7 @@ public class RtmpActivity extends AppCompatActivity
     prepareOptionsMenuViews();
 
     etUrl = (EditText) findViewById(R.id.et_rtp_url);
+    etUrl.setHint(R.string.hint_rtmp);
     bStartStop = (Button) findViewById(R.id.b_start_stop);
     bStartStop.setOnClickListener(this);
     bRecord = (Button) findViewById(R.id.b_record);

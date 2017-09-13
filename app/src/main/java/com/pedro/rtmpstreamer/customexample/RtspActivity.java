@@ -22,15 +22,12 @@ import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.Spinner;
 import android.widget.Toast;
-
-import com.pedro.rtplibrary.rtsp.RtspCamera1;
 import com.pedro.encoder.input.video.CameraOpenException;
 import com.pedro.encoder.input.video.EffectManager;
 import com.pedro.rtmpstreamer.R;
-import com.pedro.rtmpstreamer.constants.Constants;
+import com.pedro.rtplibrary.rtsp.RtspCamera1;
 import com.pedro.rtsp.rtsp.Protocol;
 import com.pedro.rtsp.utils.ConnectCheckerRtsp;
-
 import java.io.File;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
@@ -72,6 +69,7 @@ public class RtspActivity extends AppCompatActivity
     prepareOptionsMenuViews();
 
     etUrl = (EditText) findViewById(R.id.et_rtp_url);
+    etUrl.setHint(R.string.hint_rtsp);
     bStartStop = (Button) findViewById(R.id.b_start_stop);
     bStartStop.setOnClickListener(this);
     bRecord = (Button) findViewById(R.id.b_record);

@@ -19,7 +19,6 @@
         />
 
     <EditText
-        android:hint="@string/hint_rtmp"
         android:textColor="@color/appColor"
         android:textColorHint="@color/appColor"
         android:inputType="textUri"
