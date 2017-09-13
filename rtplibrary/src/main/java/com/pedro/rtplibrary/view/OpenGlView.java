@@ -105,6 +105,11 @@ public class OpenGlView extends SurfaceView
           if (frameAvailable) {
             frameAvailable = false;
 
+            surfaceManager.makeCurrent();
+            textureManager.updateFrame();
+            textureManager.drawFrame();
+            surfaceManager.swapBuffer();
+
             if (surfaceManagerEncoder != null) {
               surfaceManagerEncoder.makeCurrent();
               textureManager.drawFrame();
@@ -112,11 +117,6 @@ public class OpenGlView extends SurfaceView
               surfaceManagerEncoder.setPresentationTime(ts);
               surfaceManagerEncoder.swapBuffer();
             }
-
-            surfaceManager.makeCurrent();
-            textureManager.updateFrame();
-            textureManager.drawFrame();
-            surfaceManager.swapBuffer();
           } else {
             Log.e(TAG, "No frame received !");
           }

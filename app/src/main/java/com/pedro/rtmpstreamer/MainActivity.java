@@ -163,7 +163,6 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
 
     public ActivityLink(Intent intent, String label, int minSdk) {
       this.intent = intent;
-      intent.putExtra("label", label);
       this.label = label;
       this.minSdk = minSdk;
     }

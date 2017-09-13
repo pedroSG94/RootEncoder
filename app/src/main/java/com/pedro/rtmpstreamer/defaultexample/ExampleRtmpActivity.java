@@ -8,11 +8,8 @@ import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
-
-import com.pedro.rtplibrary.rtmp.RtmpCamera1;
 import com.pedro.rtmpstreamer.R;
-import com.pedro.rtmpstreamer.constants.Constants;
-
+import com.pedro.rtplibrary.rtmp.RtmpCamera1;
 import net.ossrs.rtmp.ConnectCheckerRtmp;
 
 /**
