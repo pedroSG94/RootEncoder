@@ -141,6 +141,7 @@ public abstract class Camera1Base
 
   public void startStream(String url) {
     if (openGlView != null && Build.VERSION.SDK_INT >= 18) {
+      openGlView.setEncoderSize(videoEncoder.getWidth(), videoEncoder.getHeight());
       openGlView.startGLThread();
       openGlView.addMediaCodecSurface(videoEncoder.getInputSurface());
       cameraManager =

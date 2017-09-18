@@ -35,7 +35,8 @@ public class OpenGlView extends SurfaceView
 
   private final Semaphore semaphore = new Semaphore(0);
   private final Object sync = new Object();
-  private int ratioWidth, ratioHeight;
+  private int previewWidth, previewHeight;
+  private int encoderWidth, encoderHeight;
 
   public OpenGlView(Context context, AttributeSet attrs) {
     super(context, attrs);
@@ -63,6 +64,11 @@ public class OpenGlView extends SurfaceView
         surfaceManagerEncoder = null;
       }
     }
+  }
+
+  public void setEncoderSize(int width, int height) {
+    this.encoderWidth = width;
+    this.encoderHeight = height;
   }
 
   public void startGLThread() {
@@ -107,12 +113,12 @@ public class OpenGlView extends SurfaceView
 
             surfaceManager.makeCurrent();
             textureManager.updateFrame();
-            textureManager.drawFrame();
+            textureManager.drawFrame(previewWidth, previewHeight);
             surfaceManager.swapBuffer();
 
             if (surfaceManagerEncoder != null) {
               surfaceManagerEncoder.makeCurrent();
-              textureManager.drawFrame();
+              textureManager.drawFrame(encoderWidth, encoderHeight);
               long ts = textureManager.getSurfaceTexture().getTimestamp();
               surfaceManagerEncoder.setPresentationTime(ts);
               surfaceManagerEncoder.swapBuffer();
@@ -140,6 +146,8 @@ public class OpenGlView extends SurfaceView
   @Override
   public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
     Log.i(TAG, "size: " + width + "x" + height);
+    this.previewWidth = width;
+    this.previewHeight = height;
   }
 
   @Override

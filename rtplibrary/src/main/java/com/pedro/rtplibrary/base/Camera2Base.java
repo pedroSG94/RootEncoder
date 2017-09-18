@@ -149,6 +149,7 @@ public abstract class Camera2Base
 
   public void startStream(String url) {
     if (openGlView != null && videoEnabled) {
+      openGlView.setEncoderSize(videoEncoder.getWidth(), videoEncoder.getHeight());
       openGlView.startGLThread();
       openGlView.addMediaCodecSurface(videoEncoder.getInputSurface());
       cameraManager.prepareCamera(openGlView.getSurface(), true);
