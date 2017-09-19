@@ -28,6 +28,7 @@ public abstract class FromFileBase implements GetCameraData, GetH264Data {
   private MediaMuxer mediaMuxer;
   private int videoTrack = -1;
   private boolean recording = false;
+  private boolean canRecord = false;
   private MediaFormat videoFormat;
 
   private VideoDecoderInterface videoDecoderInterface;
@@ -151,7 +152,10 @@ public abstract class FromFileBase implements GetCameraData, GetH264Data {
   @Override
   public void getH264Data(ByteBuffer h264Buffer, MediaCodec.BufferInfo info) {
     if (recording) {
-      mediaMuxer.writeSampleData(videoTrack, h264Buffer, info);
+      if (info.flags == MediaCodec.BUFFER_FLAG_KEY_FRAME) canRecord = true;
+      if (canRecord) {
+        mediaMuxer.writeSampleData(videoTrack, h264Buffer, info);
+      }
     }
     getH264DataRtp(h264Buffer, info);
   }

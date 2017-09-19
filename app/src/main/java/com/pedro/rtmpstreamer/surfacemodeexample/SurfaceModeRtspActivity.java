@@ -13,7 +13,6 @@ import android.widget.Toast;
 
 import com.pedro.rtplibrary.rtsp.RtspCamera2;
 import com.pedro.rtmpstreamer.R;
-import com.pedro.rtmpstreamer.constants.Constants;
 import com.pedro.rtsp.rtsp.Protocol;
 import com.pedro.rtsp.utils.ConnectCheckerRtsp;
 

@@ -87,7 +87,9 @@ public class RtspCamera2 extends Camera2Base {
 
   @Override
   protected void onSPSandPPSRtp(ByteBuffer sps, ByteBuffer pps) {
-    rtspClient.setSPSandPPS(sps, pps);
+    ByteBuffer newSps = sps.duplicate();
+    ByteBuffer newPps = pps.duplicate();
+    rtspClient.setSPSandPPS(newSps, newPps);
     rtspClient.connect();
   }
 

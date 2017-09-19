@@ -14,7 +14,6 @@ import com.pedro.encoder.audio.GetAacData;
 import com.pedro.encoder.input.audio.GetMicrophoneData;
 import com.pedro.encoder.input.audio.MicrophoneManager;
 import com.pedro.encoder.input.video.Camera1ApiManager;
-import com.pedro.encoder.input.video.Camera2ApiManager;
 import com.pedro.encoder.input.video.CameraOpenException;
 import com.pedro.encoder.input.video.EffectManager;
 import com.pedro.encoder.input.video.GetCameraData;
@@ -46,6 +45,7 @@ public abstract class Camera1Base
   private int videoTrack = -1;
   private int audioTrack = -1;
   private boolean recording = false;
+  private boolean canRecord = false;
   private MediaFormat videoFormat;
   private MediaFormat audioFormat;
 
@@ -116,8 +116,12 @@ public abstract class Camera1Base
   public void startRecord(String path) throws IOException {
     if (streaming) {
       mediaMuxer = new MediaMuxer(path, MediaMuxer.OutputFormat.MUXER_OUTPUT_MPEG_4);
-      videoTrack = mediaMuxer.addTrack(videoFormat);
-      audioTrack = mediaMuxer.addTrack(audioFormat);
+      if (videoFormat != null) {
+        videoTrack = mediaMuxer.addTrack(videoFormat);
+      }
+      if (audioFormat != null) {
+        audioTrack = mediaMuxer.addTrack(audioFormat);
+      }
       mediaMuxer.start();
       recording = true;
     } else {
@@ -128,6 +132,7 @@ public abstract class Camera1Base
   @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
   public void stopRecord() {
     recording = false;
+    canRecord = false;
     if (mediaMuxer != null) {
       mediaMuxer.stop();
       mediaMuxer.release();
@@ -238,7 +243,10 @@ public abstract class Camera1Base
 
   @Override
   public void getAacData(ByteBuffer aacBuffer, MediaCodec.BufferInfo info) {
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2 && recording) {
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2
+        && recording
+        && audioTrack != -1
+        && canRecord) {
       mediaMuxer.writeSampleData(audioTrack, aacBuffer, info);
     }
     getAacDataRtp(aacBuffer, info);
@@ -255,8 +263,13 @@ public abstract class Camera1Base
 
   @Override
   public void getH264Data(ByteBuffer h264Buffer, MediaCodec.BufferInfo info) {
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2 && recording) {
-      mediaMuxer.writeSampleData(videoTrack, h264Buffer, info);
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2
+        && recording
+        && videoTrack != -1) {
+      if (info.flags == MediaCodec.BUFFER_FLAG_KEY_FRAME) canRecord = true;
+      if (canRecord) {
+        mediaMuxer.writeSampleData(videoTrack, h264Buffer, info);
+      }
     }
     getH264DataRtp(h264Buffer, info);
   }

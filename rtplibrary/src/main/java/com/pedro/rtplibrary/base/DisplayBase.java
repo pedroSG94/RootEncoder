@@ -45,6 +45,7 @@ public abstract class DisplayBase
   private int videoTrack = -1;
   private int audioTrack = -1;
   private boolean recording = false;
+  private boolean canRecord = false;
   private MediaFormat videoFormat;
   private MediaFormat audioFormat;
   private int dpi = 320;
@@ -104,6 +105,7 @@ public abstract class DisplayBase
 
   public void stopRecord() {
     recording = false;
+    canRecord = false;
     if (mediaMuxer != null) {
       mediaMuxer.stop();
       mediaMuxer.release();
@@ -184,7 +186,7 @@ public abstract class DisplayBase
 
   @Override
   public void getAacData(ByteBuffer aacBuffer, MediaCodec.BufferInfo info) {
-    if (recording) {
+    if (recording && canRecord) {
       mediaMuxer.writeSampleData(audioTrack, aacBuffer, info);
     }
     getAacDataRtp(aacBuffer, info);
@@ -202,7 +204,10 @@ public abstract class DisplayBase
   @Override
   public void getH264Data(ByteBuffer h264Buffer, MediaCodec.BufferInfo info) {
     if (recording) {
-      mediaMuxer.writeSampleData(videoTrack, h264Buffer, info);
+      if (info.flags == MediaCodec.BUFFER_FLAG_KEY_FRAME) canRecord = true;
+      if (canRecord) {
+        mediaMuxer.writeSampleData(videoTrack, h264Buffer, info);
+      }
     }
     getH264DataRtp(h264Buffer, info);
   }

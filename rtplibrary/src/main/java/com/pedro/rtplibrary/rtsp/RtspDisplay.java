@@ -60,7 +60,9 @@ public class RtspDisplay extends DisplayBase {
 
   @Override
   protected void onSPSandPPSRtp(ByteBuffer sps, ByteBuffer pps) {
-    rtspClient.setSPSandPPS(sps, pps);
+    ByteBuffer newSps = sps.duplicate();
+    ByteBuffer newPps = pps.duplicate();
+    rtspClient.setSPSandPPS(newSps, newPps);
     rtspClient.connect();
   }
 
