@@ -8,9 +8,9 @@ import android.media.MediaMuxer;
 import android.os.Build;
 import android.support.annotation.RequiresApi;
 import android.util.Log;
+import android.view.Surface;
 import android.view.SurfaceView;
 import android.view.TextureView;
-
 import com.pedro.encoder.audio.AudioEncoder;
 import com.pedro.encoder.audio.GetAacData;
 import com.pedro.encoder.input.audio.GetMicrophoneData;
@@ -21,7 +21,6 @@ import com.pedro.encoder.input.video.GetCameraData;
 import com.pedro.encoder.video.FormatVideoEncoder;
 import com.pedro.encoder.video.GetH264Data;
 import com.pedro.encoder.video.VideoEncoder;
-
 import com.pedro.rtplibrary.view.OpenGlView;
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -49,6 +48,7 @@ public abstract class Camera2Base
   private int audioTrack = -1;
   private boolean recording = false;
   private boolean canRecord = false;
+  private boolean onPreview = false;
   private MediaFormat videoFormat;
   private MediaFormat audioFormat;
 
@@ -155,9 +155,37 @@ public abstract class Camera2Base
     audioTrack = -1;
   }
 
+  public void startPreview() {
+    if (!onPreview) {
+      if (surfaceView != null) {
+        cameraManager.prepareCamera(surfaceView.getHolder().getSurface(), false);
+      } else if (textureView != null) {
+        cameraManager.prepareCamera(new Surface(textureView.getSurfaceTexture()), false);
+      } else if (openGlView != null) {
+        openGlView.startGLThread();
+        cameraManager.prepareCamera(openGlView.getSurface(), true);
+      }
+      cameraManager.openCameraBack();
+      onPreview = true;
+    }
+  }
+
+  public void stopPreview() {
+    if (!isStreaming() && onPreview) {
+      if (openGlView != null) {
+        openGlView.stopGlThread();
+      }
+      cameraManager.closeCamera();
+    }
+  }
+
   protected abstract void startStreamRtp(String url);
 
   public void startStream(String url) {
+    if (onPreview) {
+      stopPreview();
+      prepareCameraManager();
+    }
     if (openGlView != null && videoEnabled) {
       openGlView.setEncoderSize(videoEncoder.getWidth(), videoEncoder.getHeight());
       openGlView.startGLThread();
@@ -166,9 +194,14 @@ public abstract class Camera2Base
     }
     videoEncoder.start();
     audioEncoder.start();
-    cameraManager.openCameraBack();
+    if (onPreview) {
+      cameraManager.openLastCamera();
+    } else {
+      cameraManager.openCameraBack();
+    }
     microphoneManager.start();
     streaming = true;
+    onPreview = true;
     startStreamRtp(url);
   }
 
@@ -185,6 +218,7 @@ public abstract class Camera2Base
       openGlView.removeMediaCodecSurface();
     }
     streaming = false;
+    onPreview = false;
   }
 
   public void disableAudio() {
@@ -214,7 +248,7 @@ public abstract class Camera2Base
   }
 
   public void switchCamera() throws CameraOpenException {
-    if (isStreaming()) {
+    if (isStreaming() || onPreview) {
       cameraManager.switchCamera();
     }
   }

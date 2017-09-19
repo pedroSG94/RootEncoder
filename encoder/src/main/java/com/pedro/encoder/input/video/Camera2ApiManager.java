@@ -49,6 +49,7 @@ public class Camera2ApiManager extends CameraDevice.StateCallback {
   private CameraManager cameraManager;
   private Handler cameraHandler;
   private boolean prepared = false;
+  private int cameraId = -1;
 
   public Camera2ApiManager(Context context) {
     cameraManager = (CameraManager) context.getSystemService(Context.CAMERA_SERVICE);
@@ -164,6 +165,7 @@ public class Camera2ApiManager extends CameraDevice.StateCallback {
   }
 
   public void openCameraId(Integer cameraId) {
+    this.cameraId = cameraId;
     if (prepared) {
       HandlerThread cameraHandlerThread = new HandlerThread(TAG + " Id = " + cameraId);
       cameraHandlerThread.start();
@@ -201,6 +203,14 @@ public class Camera2ApiManager extends CameraDevice.StateCallback {
       }
     } catch (CameraAccessException e) {
       e.printStackTrace();
+    }
+  }
+
+  public void openLastCamera() {
+    if (cameraId == -1) {
+      openCameraBack();
+    } else {
+      openCameraId(cameraId);
     }
   }
 
