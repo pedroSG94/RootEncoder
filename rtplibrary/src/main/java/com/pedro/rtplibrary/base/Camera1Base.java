@@ -46,6 +46,7 @@ public abstract class Camera1Base
   private int audioTrack = -1;
   private boolean recording = false;
   private boolean canRecord = false;
+  private boolean onPreview = false;
   private MediaFormat videoFormat;
   private MediaFormat audioFormat;
 
@@ -78,6 +79,7 @@ public abstract class Camera1Base
 
   public boolean prepareVideo(int width, int height, int fps, int bitrate, boolean hardwareRotation,
       int rotation) {
+    if (onPreview) stopPreview();
     int imageFormat = ImageFormat.NV21; //supported nv21 and yv12
     if (openGlView == null) {
       cameraManager.prepareCamera(width, height, fps, imageFormat);
@@ -100,6 +102,7 @@ public abstract class Camera1Base
   }
 
   public boolean prepareVideo() {
+    if (onPreview) stopPreview();
     if (openGlView == null) {
       cameraManager.prepareCamera();
       return videoEncoder.prepareVideoEncoder();
@@ -142,6 +145,29 @@ public abstract class Camera1Base
     audioTrack = -1;
   }
 
+  public void startPreview() {
+    if (!onPreview) {
+      if (openGlView != null && Build.VERSION.SDK_INT >= 18) {
+        openGlView.startGLThread();
+        cameraManager =
+            new Camera1ApiManager(openGlView.getSurfaceTexture(), openGlView.getContext());
+      }
+      cameraManager.prepareCamera();
+      cameraManager.start();
+      onPreview = true;
+    }
+  }
+
+  public void stopPreview() {
+    if (!isStreaming() && onPreview) {
+      if (openGlView != null && Build.VERSION.SDK_INT >= 18) {
+        openGlView.stopGlThread();
+      }
+      cameraManager.stop();
+    }
+    onPreview = false;
+  }
+
   protected abstract void startStreamRtp(String url);
 
   public void startStream(String url) {
@@ -160,6 +186,7 @@ public abstract class Camera1Base
     cameraManager.start();
     microphoneManager.start();
     streaming = true;
+    onPreview = true;
   }
 
   protected abstract void stopStreamRtp();
@@ -175,6 +202,7 @@ public abstract class Camera1Base
       openGlView.removeMediaCodecSurface();
     }
     streaming = false;
+    onPreview = false;
   }
 
   public List<String> getResolutions() {
@@ -213,7 +241,7 @@ public abstract class Camera1Base
   }
 
   public void switchCamera() throws CameraOpenException {
-    if (isStreaming()) {
+    if (isStreaming() || onPreview) {
       cameraManager.switchCamera();
     }
   }

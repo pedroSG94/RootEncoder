@@ -96,6 +96,7 @@ public abstract class Camera2Base
 
   public boolean prepareVideo(int width, int height, int fps, int bitrate, boolean hardwareRotation,
       int rotation) {
+    if (onPreview) stopPreview();
     int imageFormat = ImageFormat.NV21; //supported nv21 and yv12
     videoEncoder.setImageFormat(imageFormat);
     boolean result =
@@ -115,6 +116,7 @@ public abstract class Camera2Base
   }
 
   public boolean prepareVideo() {
+    if (onPreview) stopPreview();
     boolean result = videoEncoder.prepareVideoEncoder(640, 480, 30, 1200 * 1024, 0, true,
         FormatVideoEncoder.SURFACE);
     prepareCameraManager();
@@ -182,10 +184,6 @@ public abstract class Camera2Base
   protected abstract void startStreamRtp(String url);
 
   public void startStream(String url) {
-    if (onPreview) {
-      stopPreview();
-      prepareCameraManager();
-    }
     if (openGlView != null && videoEnabled) {
       openGlView.setEncoderSize(videoEncoder.getWidth(), videoEncoder.getHeight());
       openGlView.startGLThread();
