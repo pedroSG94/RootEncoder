@@ -1,5 +1,6 @@
 package com.pedro.rtmpstreamer.texturemodeexample;
 
+import android.graphics.SurfaceTexture;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.RequiresApi;
@@ -11,9 +12,9 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 
-import com.pedro.rtplibrary.rtmp.RtmpCamera2;
 import com.pedro.rtmpstreamer.R;
-import com.pedro.rtmpstreamer.constants.Constants;
+import com.pedro.rtplibrary.rtmp.RtmpCamera2;
+import com.pedro.rtplibrary.view.AutoFitTextureView;
 
 import net.ossrs.rtmp.ConnectCheckerRtmp;
 
@@ -25,20 +26,29 @@ public class TextureModeRtmpActivity extends AppCompatActivity
     implements ConnectCheckerRtmp, View.OnClickListener {
 
   private RtmpCamera2 rtmpCamera2;
+  private AutoFitTextureView textureView;
   private Button button;
   private EditText etUrl;
+
 
   @Override
   protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
     getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
     setContentView(R.layout.activity_texture_mode);
-    TextureView textureView = (TextureView) findViewById(R.id.textureView);
+    textureView = (AutoFitTextureView) findViewById(R.id.textureView);
     button = (Button) findViewById(R.id.b_start_stop);
     button.setOnClickListener(this);
     etUrl = (EditText) findViewById(R.id.et_rtp_url);
     etUrl.setHint(R.string.hint_rtmp);
     rtmpCamera2 = new RtmpCamera2(textureView, this);
+    textureView.setSurfaceTextureListener(surfaceTextureListener);
+  }
+
+  @Override
+  protected void onPause() {
+    super.onPause();
+    rtmpCamera2.stopPreview();
   }
 
   @Override
@@ -110,4 +120,32 @@ public class TextureModeRtmpActivity extends AppCompatActivity
       rtmpCamera2.stopStream();
     }
   }
+
+  /**
+   * [TextureView.SurfaceTextureListener] handles several lifecycle events on a
+   * [TextureView].
+   */
+  private TextureView.SurfaceTextureListener surfaceTextureListener = new TextureView.SurfaceTextureListener() {
+
+    @Override
+    public void onSurfaceTextureAvailable(SurfaceTexture surface, int width, int height) {
+      textureView.setAspectRatio(480, 640);
+      rtmpCamera2.startPreview();
+    }
+
+    @Override
+    public void onSurfaceTextureSizeChanged(SurfaceTexture surface, int width, int height) {
+
+    }
+
+    @Override
+    public boolean onSurfaceTextureDestroyed(SurfaceTexture surface) {
+      return false;
+    }
+
+    @Override
+    public void onSurfaceTextureUpdated(SurfaceTexture surface) {
+
+    }
+  };
 }
