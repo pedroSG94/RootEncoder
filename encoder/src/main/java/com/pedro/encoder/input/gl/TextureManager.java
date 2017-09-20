@@ -13,6 +13,7 @@ import android.support.annotation.RequiresApi;
 import android.view.Surface;
 import com.pedro.encoder.R;
 import com.pedro.encoder.utils.GlUtil;
+import com.pedro.encoder.utils.WatermarkUtil;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.FloatBuffer;
@@ -47,8 +48,8 @@ public class TextureManager {
   private float[] mMVPMatrix = new float[16];
   private float[] mSTMatrix = new float[16];
 
-  private int [] texturesID = new int[1];
-  private int [] texturesBitmapID = new int[1];
+  private int[] texturesID = new int[1];
+  private int[] texturesBitmapID = new int[1];
   private int program = -1;
   private int textureID = -1;
   private int textureBitmapID = -1;
@@ -147,7 +148,9 @@ public class TextureManager {
     //watermark texture
     GlUtil.createTextures(1, texturesBitmapID, 0);
     textureBitmapID = texturesBitmapID[0];
-    Bitmap bitmap = BitmapFactory.decodeResource(context.getResources(), R.drawable.icon);
+    WatermarkUtil watermarkUtil = new WatermarkUtil(640, 480);
+    Bitmap bitmap = watermarkUtil.createWatermarkBitmap(
+        BitmapFactory.decodeResource(context.getResources(), R.drawable.icon), 67, 50);
     GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, textureBitmapID);
     GLUtils.texImage2D(GLES20.GL_TEXTURE_2D, 0, bitmap, 0);
     bitmap.recycle();
