@@ -1,4 +1,4 @@
-package com.pedro.encoder.utils;
+package com.pedro.encoder.utils.gl.watermark;
 
 import android.graphics.Bitmap;
 import android.graphics.Canvas;

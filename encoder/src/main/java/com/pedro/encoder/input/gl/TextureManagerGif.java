@@ -2,7 +2,6 @@ package com.pedro.encoder.input.gl;
 
 import android.content.Context;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.graphics.SurfaceTexture;
 import android.opengl.GLES11Ext;
 import android.opengl.GLES20;
@@ -10,20 +9,23 @@ import android.opengl.GLUtils;
 import android.opengl.Matrix;
 import android.os.Build;
 import android.support.annotation.RequiresApi;
+import android.util.Log;
 import android.view.Surface;
 import com.pedro.encoder.R;
 import com.pedro.encoder.utils.GlUtil;
+import com.pedro.encoder.utils.gl.gif.GifDecoder;
 import com.pedro.encoder.utils.gl.watermark.WatermarkUtil;
+import java.io.IOException;
+import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.FloatBuffer;
 
 /**
- * Created by pedro on 9/09/17.
+ * Created by pedro on 21/09/17.
  */
-
 @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
-public class TextureManager {
+public class TextureManagerGif {
 
   public final static String TAG = "TextureManager";
 
@@ -37,10 +39,8 @@ public class TextureManager {
   //rotation matrix
   private final float[] triangleVerticesData = {
       // X, Y, Z, U, V
-      -1.0f, -1.0f, 0, 0.f, 0.f,
-      1.0f, -1.0f, 0, 1.f, 0.f,
-      -1.0f, 1.0f, 0, 0.f, 1.f,
-      1.0f, 1.0f, 0, 1.f, 1.f,
+      -1.0f, -1.0f, 0, 0.f, 0.f, 1.0f, -1.0f, 0, 1.f, 0.f, -1.0f, 1.0f, 0, 0.f, 1.f, 1.0f, 1.0f, 0,
+      1.f, 1.f,
   };
 
   private FloatBuffer triangleVertices;
@@ -49,10 +49,16 @@ public class TextureManager {
   private float[] mSTMatrix = new float[16];
 
   private int[] texturesID = new int[1];
-  private int[] texturesBitmapID = new int[1];
+  //gif necesary
+  private int[] texturesGifID;
+  private int[] gifDelayframes;
+  private int gifNumFrames;
+  private int currentframeGif = 0;
+  private long currentDelayFrame = 0;
+  private long startDelayFrame = 0;
+
   private int program = -1;
   private int textureID = -1;
-  private int textureBitmapID = -1;
   private int uMVPMatrixHandle = -1;
   private int uSTMatrixHandle = -1;
   private int aPositionHandle = -1;
@@ -62,7 +68,7 @@ public class TextureManager {
   private SurfaceTexture surfaceTexture;
   private Surface surface;
 
-  public TextureManager(Context context) {
+  public TextureManagerGif(Context context) {
     this.context = context;
     triangleVertices = ByteBuffer.allocateDirect(triangleVerticesData.length * FLOAT_SIZE_BYTES)
         .order(ByteOrder.nativeOrder())
@@ -121,12 +127,29 @@ public class TextureManager {
     // watermark
     GLES20.glUniform1i(waterMarkHandle, 2);
     GLES20.glActiveTexture(GLES20.GL_TEXTURE2);
-    GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, textureBitmapID);
+    System.currentTimeMillis();
+
+    updateGifFrame();
+    GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, texturesGifID[currentframeGif]);
     //draw
     GLES20.glDrawArrays(GLES20.GL_TRIANGLE_STRIP, 0, 4);
     GlUtil.checkGlError("glDrawArrays");
   }
 
+  private void updateGifFrame() {
+    if (startDelayFrame == 0) {
+      startDelayFrame = System.currentTimeMillis();
+    }
+    currentDelayFrame = System.currentTimeMillis() - startDelayFrame;
+    if (currentDelayFrame >= gifDelayframes[currentframeGif]) {
+      if (currentframeGif >= gifNumFrames - 1) {
+        currentframeGif = 0;
+      } else {
+        currentframeGif++;
+      }
+      startDelayFrame = 0;
+    }
+  }
   /**
    * Initializes GL state.  Call this after the EGL surface has been created and made current.
    */
@@ -145,15 +168,35 @@ public class TextureManager {
     //camera texture
     GlUtil.createExternalTextures(1, texturesID, 0);
     textureID = texturesID[0];
-    //watermark texture
-    GlUtil.createTextures(1, texturesBitmapID, 0);
-    textureBitmapID = texturesBitmapID[0];
-    WatermarkUtil watermarkUtil = new WatermarkUtil(480, 640);
-    Bitmap bitmap = watermarkUtil.createWatermarkBitmap(
-        BitmapFactory.decodeResource(context.getResources(), R.drawable.icon), 50, 50);
-    GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, textureBitmapID);
-    GLUtils.texImage2D(GLES20.GL_TEXTURE_2D, 0, bitmap, 0);
-    bitmap.recycle();
+
+    //gif textures
+    try {
+      GifDecoder gifDecoder = new GifDecoder();
+      InputStream is = context.getResources().openRawResource(R.raw.banana);
+
+      if (gifDecoder.read(is, is.available()) == 0) {
+        Log.i(TAG, "read gif ok");
+        gifNumFrames = gifDecoder.getFrameCount();
+        texturesGifID = new int[gifNumFrames];
+        gifDelayframes = new int[gifNumFrames];
+        GlUtil.createTextures(gifNumFrames, texturesGifID, 0);
+        WatermarkUtil watermarkUtil = new WatermarkUtil(480, 640);
+        for (int i = 0; i < gifNumFrames; i++) {
+          gifDecoder.advance();
+          Bitmap frame = gifDecoder.getNextFrame();
+          gifDelayframes[i] = gifDecoder.getNextDelay();
+          Bitmap bitmap = watermarkUtil.createWatermarkBitmap(frame, 50, 50);
+          GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, texturesGifID[i]);
+          GLUtils.texImage2D(GLES20.GL_TEXTURE_2D, 0, bitmap, 0);
+          bitmap.recycle();
+        }
+        Log.i(TAG, "finish load gif frames!!!");
+      } else {
+        Log.e(TAG, "read gif error");
+      }
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
 
     GlUtil.checkGlError("glTexParameter");
     surfaceTexture = new SurfaceTexture(textureID);
@@ -165,3 +208,4 @@ public class TextureManager {
     surface = null;
   }
 }
+
