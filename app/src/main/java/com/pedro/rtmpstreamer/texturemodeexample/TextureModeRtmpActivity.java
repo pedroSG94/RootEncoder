@@ -15,6 +15,7 @@ import com.pedro.rtplibrary.rtmp.RtmpCamera2;
 import com.pedro.rtmpstreamer.R;
 import com.pedro.rtmpstreamer.constants.Constants;
 
+import com.pedro.rtplibrary.view.AutoFitTextureView;
 import net.ossrs.rtmp.ConnectCheckerRtmp;
 
 /**
@@ -33,7 +34,7 @@ public class TextureModeRtmpActivity extends AppCompatActivity
     super.onCreate(savedInstanceState);
     getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
     setContentView(R.layout.activity_texture_mode);
-    TextureView textureView = (TextureView) findViewById(R.id.textureView);
+    TextureView textureView = (AutoFitTextureView) findViewById(R.id.textureView);
     button = (Button) findViewById(R.id.b_start_stop);
     button.setOnClickListener(this);
     etUrl = (EditText) findViewById(R.id.et_rtp_url);

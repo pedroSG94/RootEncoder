@@ -31,7 +31,7 @@ public class RtspClient {
   private final String TAG = "RtspClient";
 
   private final long mTimestamp;
-  private String host;
+  private String host = "";
   private int port;
   private String path;
   private int sampleRate = 16000;
