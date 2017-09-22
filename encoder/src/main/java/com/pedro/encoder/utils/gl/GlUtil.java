@@ -1,4 +1,4 @@
-package com.pedro.encoder.utils;
+package com.pedro.encoder.utils.gl;
 
 import android.content.Context;
 import android.content.res.Resources;

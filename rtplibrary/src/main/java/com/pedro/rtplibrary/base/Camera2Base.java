@@ -15,11 +15,12 @@ import com.pedro.encoder.audio.AudioEncoder;
 import com.pedro.encoder.audio.GetAacData;
 import com.pedro.encoder.input.audio.GetMicrophoneData;
 import com.pedro.encoder.input.audio.MicrophoneManager;
-import com.pedro.encoder.input.video.Camera1ApiManager;
 import com.pedro.encoder.input.video.Camera2ApiManager;
 import com.pedro.encoder.input.video.CameraOpenException;
 import com.pedro.encoder.input.video.GetCameraData;
-import com.pedro.encoder.utils.gl.gif.GifStreamObject;
+import com.pedro.encoder.utils.gl.TextStreamObject;
+import com.pedro.encoder.utils.gl.GifStreamObject;
+import com.pedro.encoder.utils.gl.ImageStreamObject;
 import com.pedro.encoder.video.FormatVideoEncoder;
 import com.pedro.encoder.video.GetH264Data;
 import com.pedro.encoder.video.VideoEncoder;
@@ -268,6 +269,26 @@ public abstract class Camera2Base
       startOpenGlRender();
     } else {
       throw new RuntimeException("You must use OpenGlView in the constructor to set a gif");
+    }
+  }
+
+  public void setImage(ImageStreamObject imageStreamObject) throws RuntimeException {
+    if (openGlView != null) {
+      stopOpenGlRender();
+      openGlView.setImage(imageStreamObject);
+      startOpenGlRender();
+    } else {
+      throw new RuntimeException("You must use OpenGlView in the constructor to set a image");
+    }
+  }
+
+  public void setText(TextStreamObject textStreamObject) throws RuntimeException {
+    if (openGlView != null) {
+      stopOpenGlRender();
+      openGlView.setText(textStreamObject);
+      startOpenGlRender();
+    } else {
+      throw new RuntimeException("You must use OpenGlView in the constructor to set a text");
     }
   }
 

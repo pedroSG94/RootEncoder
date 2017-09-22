@@ -17,13 +17,14 @@ import com.pedro.encoder.input.video.Camera1ApiManager;
 import com.pedro.encoder.input.video.CameraOpenException;
 import com.pedro.encoder.input.video.EffectManager;
 import com.pedro.encoder.input.video.GetCameraData;
-import com.pedro.encoder.utils.gl.gif.GifStreamObject;
+import com.pedro.encoder.utils.gl.TextStreamObject;
+import com.pedro.encoder.utils.gl.GifStreamObject;
+import com.pedro.encoder.utils.gl.ImageStreamObject;
 import com.pedro.encoder.video.FormatVideoEncoder;
 import com.pedro.encoder.video.GetH264Data;
 import com.pedro.encoder.video.VideoEncoder;
 import com.pedro.rtplibrary.view.OpenGlView;
 import java.io.IOException;
-import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
@@ -268,6 +269,28 @@ public abstract class Camera1Base
   }
 
   @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
+  public void setImage(ImageStreamObject imageStreamObject) throws RuntimeException {
+    if (openGlView != null) {
+      stopOpenGlRender();
+      openGlView.setImage(imageStreamObject);
+      startOpenGlRender();
+    } else {
+      throw new RuntimeException("You must use OpenGlView in the constructor to set a image");
+    }
+  }
+
+  @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
+  public void setText(TextStreamObject textStreamObject) throws RuntimeException {
+    if (openGlView != null) {
+      stopOpenGlRender();
+      openGlView.setText(textStreamObject);
+      startOpenGlRender();
+    } else {
+      throw new RuntimeException("You must use OpenGlView in the constructor to set a text");
+    }
+  }
+
+  @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
   private void stopOpenGlRender() {
     openGlView.stopGlThread();
     cameraManager.stop();
@@ -281,7 +304,6 @@ public abstract class Camera1Base
         videoEncoder.getFps(), ImageFormat.NV21);
     cameraManager.start();
   }
-
 
   /** need min API 19 */
   @RequiresApi(api = Build.VERSION_CODES.KITKAT)

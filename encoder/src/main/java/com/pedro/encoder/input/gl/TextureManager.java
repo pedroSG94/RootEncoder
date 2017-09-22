@@ -12,7 +12,7 @@ import android.os.Build;
 import android.support.annotation.RequiresApi;
 import android.view.Surface;
 import com.pedro.encoder.R;
-import com.pedro.encoder.utils.GlUtil;
+import com.pedro.encoder.utils.gl.GlUtil;
 import com.pedro.encoder.utils.gl.watermark.WatermarkUtil;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
@@ -49,15 +49,12 @@ public class TextureManager {
   private float[] mSTMatrix = new float[16];
 
   private int[] texturesID = new int[1];
-  private int[] texturesBitmapID = new int[1];
   private int program = -1;
   private int textureID = -1;
-  private int textureBitmapID = -1;
   private int uMVPMatrixHandle = -1;
   private int uSTMatrixHandle = -1;
   private int aPositionHandle = -1;
   private int aTextureHandle = -1;
-  private int waterMarkHandle = -1;
 
   private SurfaceTexture surfaceTexture;
   private Surface surface;
@@ -118,10 +115,6 @@ public class TextureManager {
     //camera
     GLES20.glActiveTexture(GLES20.GL_TEXTURE0);
     GLES20.glBindTexture(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, textureID);
-    // watermark
-    GLES20.glUniform1i(waterMarkHandle, 2);
-    GLES20.glActiveTexture(GLES20.GL_TEXTURE2);
-    GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, textureBitmapID);
     //draw
     GLES20.glDrawArrays(GLES20.GL_TRIANGLE_STRIP, 0, 4);
     GlUtil.checkGlError("glDrawArrays");
@@ -133,27 +126,17 @@ public class TextureManager {
   public void initGl() {
     GlUtil.checkGlError("create handlers start");
     String vertexShader = GlUtil.getStringFromRaw(context, R.raw.simple_vertex);
-    String fragmentShader = GlUtil.getStringFromRaw(context, R.raw.watermark_fragment);
+    String fragmentShader = GlUtil.getStringFromRaw(context, R.raw.simple_fragment);
 
     program = GlUtil.createProgram(vertexShader, fragmentShader);
     aPositionHandle = GLES20.glGetAttribLocation(program, "aPosition");
     aTextureHandle = GLES20.glGetAttribLocation(program, "aTextureCoord");
     uMVPMatrixHandle = GLES20.glGetUniformLocation(program, "uMVPMatrix");
     uSTMatrixHandle = GLES20.glGetUniformLocation(program, "uSTMatrix");
-    waterMarkHandle = GLES20.glGetUniformLocation(program, "watermark");
     GlUtil.checkGlError("create handlers end");
     //camera texture
     GlUtil.createExternalTextures(1, texturesID, 0);
     textureID = texturesID[0];
-    //watermark texture
-    GlUtil.createTextures(1, texturesBitmapID, 0);
-    textureBitmapID = texturesBitmapID[0];
-    WatermarkUtil watermarkUtil = new WatermarkUtil(480, 640);
-    Bitmap bitmap = watermarkUtil.createWatermarkBitmap(
-        BitmapFactory.decodeResource(context.getResources(), R.drawable.icon), 50, 50);
-    GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, textureBitmapID);
-    GLUtils.texImage2D(GLES20.GL_TEXTURE_2D, 0, bitmap, 0);
-    bitmap.recycle();
 
     GlUtil.checkGlError("glTexParameter");
     surfaceTexture = new SurfaceTexture(textureID);

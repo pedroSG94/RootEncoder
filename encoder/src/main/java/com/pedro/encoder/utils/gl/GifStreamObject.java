@@ -1,7 +1,8 @@
-package com.pedro.encoder.utils.gl.gif;
+package com.pedro.encoder.utils.gl;
 
 import android.graphics.Bitmap;
 import android.util.Log;
+import com.pedro.encoder.utils.gl.gif.GifDecoder;
 import com.pedro.encoder.utils.gl.watermark.WatermarkUtil;
 import java.io.IOException;
 import java.io.InputStream;
@@ -38,6 +39,8 @@ public class GifStreamObject {
         gifBitmaps[i] = gifDecoder.getNextFrame();
         gifDelayFrames[i] = gifDecoder.getNextDelay();
       }
+      resize(gifDecoder.getWidth(), gifDecoder.getHeight());
+      setPosition(0, 0);
       Log.i(TAG, "finish load gif frames!!!");
     } else {
       throw new RuntimeException("read gif error");
