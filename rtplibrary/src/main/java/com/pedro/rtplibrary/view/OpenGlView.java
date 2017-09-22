@@ -4,6 +4,7 @@ import android.content.Context;
 import android.graphics.SurfaceTexture;
 import android.graphics.SurfaceTexture.OnFrameAvailableListener;
 import android.os.Build;
+import android.os.Handler;
 import android.support.annotation.RequiresApi;
 import android.util.AttributeSet;
 import android.util.Log;
@@ -12,6 +13,9 @@ import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import com.pedro.encoder.input.gl.SurfaceManager;
 import com.pedro.encoder.input.gl.TextureManager;
+import com.pedro.encoder.input.gl.TextureManagerGif;
+import com.pedro.encoder.utils.gl.gif.GifStreamObject;
+import java.io.InputStream;
 import java.util.concurrent.Semaphore;
 
 /**
@@ -31,12 +35,13 @@ public class OpenGlView extends SurfaceView
   private SurfaceManager surfaceManager = null;
   private SurfaceManager surfaceManagerEncoder = null;
 
-  private TextureManager textureManager = null;
+  private TextureManagerGif textureManager = null;
 
   private final Semaphore semaphore = new Semaphore(0);
   private final Object sync = new Object();
   private int previewWidth, previewHeight;
   private int encoderWidth, encoderHeight;
+  private Surface surface;
 
   public OpenGlView(Context context, AttributeSet attrs) {
     super(context, attrs);
@@ -53,6 +58,7 @@ public class OpenGlView extends SurfaceView
 
   public void addMediaCodecSurface(Surface surface) {
     synchronized (sync) {
+      this.surface = surface;
       surfaceManagerEncoder = new SurfaceManager(surface, surfaceManager);
     }
   }
@@ -71,10 +77,14 @@ public class OpenGlView extends SurfaceView
     this.encoderHeight = height;
   }
 
+  public void setGif(GifStreamObject gifStreamObject) {
+    textureManager.setGif(gifStreamObject);
+  }
+
   public void startGLThread() {
     Log.i(TAG, "Thread started.");
     if (textureManager == null) {
-      textureManager = new TextureManager(getContext());
+      textureManager = new TextureManagerGif(getContext());
     }
     if (textureManager.getSurfaceTexture() == null) {
       thread = new Thread(OpenGlView.this);

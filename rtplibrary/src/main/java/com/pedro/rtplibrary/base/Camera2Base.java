@@ -15,9 +15,11 @@ import com.pedro.encoder.audio.AudioEncoder;
 import com.pedro.encoder.audio.GetAacData;
 import com.pedro.encoder.input.audio.GetMicrophoneData;
 import com.pedro.encoder.input.audio.MicrophoneManager;
+import com.pedro.encoder.input.video.Camera1ApiManager;
 import com.pedro.encoder.input.video.Camera2ApiManager;
 import com.pedro.encoder.input.video.CameraOpenException;
 import com.pedro.encoder.input.video.GetCameraData;
+import com.pedro.encoder.utils.gl.gif.GifStreamObject;
 import com.pedro.encoder.video.FormatVideoEncoder;
 import com.pedro.encoder.video.GetH264Data;
 import com.pedro.encoder.video.VideoEncoder;
@@ -219,6 +221,14 @@ public abstract class Camera2Base
     onPreview = false;
   }
 
+  public int getStreamWidth() {
+    return videoEncoder.getWidth();
+  }
+
+  public int getStreamHeight() {
+    return videoEncoder.getHeight();
+  }
+
   public void disableAudio() {
     microphoneManager.mute();
   }
@@ -249,6 +259,27 @@ public abstract class Camera2Base
     if (isStreaming() || onPreview) {
       cameraManager.switchCamera();
     }
+  }
+
+  public void setGif(GifStreamObject gifStreamObject) throws RuntimeException {
+    if (openGlView != null) {
+      stopOpenGlRender();
+      openGlView.setGif(gifStreamObject);
+      startOpenGlRender();
+    } else {
+      throw new RuntimeException("You must use OpenGlView in the constructor to set a gif");
+    }
+  }
+
+  private void stopOpenGlRender() {
+    openGlView.stopGlThread();
+    cameraManager.closeCamera();
+  }
+
+  private void startOpenGlRender() {
+    openGlView.startGLThread();
+    cameraManager.prepareCamera(openGlView.getSurface(), true);
+    cameraManager.openLastCamera();
   }
 
   /**

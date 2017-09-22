@@ -19,15 +19,15 @@ public class WatermarkUtil {
     this.streamHeight = streamHeight;
   }
 
-  public Bitmap createWatermarkBitmap(Bitmap watermark, int width, int height) {
+  public Bitmap createWatermarkBitmap(Bitmap watermark, int positionX, int positionY) {
     Bitmap background = createTransparentBitmap(streamWidth, streamHeight);
     Paint paint = new Paint(Paint.FILTER_BITMAP_FLAG);
     Canvas canvas = new Canvas(background);
-    canvas.drawBitmap(Bitmap.createScaledBitmap(watermark, width, height, false), new Matrix(), paint);
+    canvas.drawBitmap(watermark, positionX, positionY, paint);
     return background;
   }
 
-  private Bitmap createTransparentBitmap(int width, int height) {
+  public Bitmap createTransparentBitmap(int width, int height) {
     Bitmap bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
     int[] allPixels = new int[width * height];
     bitmap.getPixels(allPixels, 0, width, 0, 0, width, height);

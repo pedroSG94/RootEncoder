@@ -1,7 +1,6 @@
 package com.pedro.encoder.input.gl;
 
 import android.content.Context;
-import android.graphics.Bitmap;
 import android.graphics.SurfaceTexture;
 import android.opengl.GLES11Ext;
 import android.opengl.GLES20;
@@ -9,14 +8,10 @@ import android.opengl.GLUtils;
 import android.opengl.Matrix;
 import android.os.Build;
 import android.support.annotation.RequiresApi;
-import android.util.Log;
 import android.view.Surface;
 import com.pedro.encoder.R;
 import com.pedro.encoder.utils.GlUtil;
-import com.pedro.encoder.utils.gl.gif.GifDecoder;
-import com.pedro.encoder.utils.gl.watermark.WatermarkUtil;
-import java.io.IOException;
-import java.io.InputStream;
+import com.pedro.encoder.utils.gl.gif.GifStreamObject;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.FloatBuffer;
@@ -49,13 +44,6 @@ public class TextureManagerGif {
   private float[] mSTMatrix = new float[16];
 
   private int[] texturesID = new int[1];
-  //gif necesary
-  private int[] texturesGifID;
-  private int[] gifDelayframes;
-  private int gifNumFrames;
-  private int currentframeGif = 0;
-  private long currentDelayFrame = 0;
-  private long startDelayFrame = 0;
 
   private int program = -1;
   private int textureID = -1;
@@ -67,6 +55,9 @@ public class TextureManagerGif {
 
   private SurfaceTexture surfaceTexture;
   private Surface surface;
+  //gif necesary
+  private int[] gifTexturesId;
+  private GifStreamObject gifStreamObject;
 
   public TextureManagerGif(Context context) {
     this.context = context;
@@ -129,27 +120,14 @@ public class TextureManagerGif {
     GLES20.glActiveTexture(GLES20.GL_TEXTURE2);
     System.currentTimeMillis();
 
-    updateGifFrame();
-    GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, texturesGifID[currentframeGif]);
+    if (gifStreamObject != null) {
+      GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, gifTexturesId[gifStreamObject.updateGifFrame()]);
+    }
     //draw
     GLES20.glDrawArrays(GLES20.GL_TRIANGLE_STRIP, 0, 4);
     GlUtil.checkGlError("glDrawArrays");
   }
 
-  private void updateGifFrame() {
-    if (startDelayFrame == 0) {
-      startDelayFrame = System.currentTimeMillis();
-    }
-    currentDelayFrame = System.currentTimeMillis() - startDelayFrame;
-    if (currentDelayFrame >= gifDelayframes[currentframeGif]) {
-      if (currentframeGif >= gifNumFrames - 1) {
-        currentframeGif = 0;
-      } else {
-        currentframeGif++;
-      }
-      startDelayFrame = 0;
-    }
-  }
   /**
    * Initializes GL state.  Call this after the EGL surface has been created and made current.
    */
@@ -170,32 +148,8 @@ public class TextureManagerGif {
     textureID = texturesID[0];
 
     //gif textures
-    try {
-      GifDecoder gifDecoder = new GifDecoder();
-      InputStream is = context.getResources().openRawResource(R.raw.banana);
-
-      if (gifDecoder.read(is, is.available()) == 0) {
-        Log.i(TAG, "read gif ok");
-        gifNumFrames = gifDecoder.getFrameCount();
-        texturesGifID = new int[gifNumFrames];
-        gifDelayframes = new int[gifNumFrames];
-        GlUtil.createTextures(gifNumFrames, texturesGifID, 0);
-        WatermarkUtil watermarkUtil = new WatermarkUtil(480, 640);
-        for (int i = 0; i < gifNumFrames; i++) {
-          gifDecoder.advance();
-          Bitmap frame = gifDecoder.getNextFrame();
-          gifDelayframes[i] = gifDecoder.getNextDelay();
-          Bitmap bitmap = watermarkUtil.createWatermarkBitmap(frame, 50, 50);
-          GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, texturesGifID[i]);
-          GLUtils.texImage2D(GLES20.GL_TEXTURE_2D, 0, bitmap, 0);
-          bitmap.recycle();
-        }
-        Log.i(TAG, "finish load gif frames!!!");
-      } else {
-        Log.e(TAG, "read gif error");
-      }
-    } catch (IOException e) {
-      e.printStackTrace();
+    if (gifStreamObject != null) {
+      loadGif(gifStreamObject);
     }
 
     GlUtil.checkGlError("glTexParameter");
@@ -206,6 +160,20 @@ public class TextureManagerGif {
   public void release() {
     surfaceTexture = null;
     surface = null;
+    gifStreamObject = null;
+  }
+
+  public void setGif(GifStreamObject gifStreamObject) {
+    this.gifStreamObject = gifStreamObject;
+  }
+
+  private void loadGif(GifStreamObject gifStreamObject) {
+    gifTexturesId = new int[gifStreamObject.getNumFrames()];
+    GlUtil.createTextures(gifStreamObject.getNumFrames(), gifTexturesId, 0);
+    for (int i = 0; i < gifStreamObject.getNumFrames(); i++) {
+      GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, gifTexturesId[i]);
+      GLUtils.texImage2D(GLES20.GL_TEXTURE_2D, 0, gifStreamObject.getGifBitmaps()[i], 0);
+    }
+    gifStreamObject.recycle();
   }
 }
-

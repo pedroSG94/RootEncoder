@@ -50,7 +50,7 @@ import java.util.Arrays;
  * Implementation adapted from sample code published in Lyons. (2004). <em>Java for Programmers</em>,
  * republished under the MIT Open Source License
  */
-public class GifDecoder {
+class GifDecoder {
   private static final String TAG = GifDecoder.class.getSimpleName();
 
   /**
