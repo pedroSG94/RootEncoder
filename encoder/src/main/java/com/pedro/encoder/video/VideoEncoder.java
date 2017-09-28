@@ -245,7 +245,7 @@ public class VideoEncoder implements GetCameraData {
                   getDataFromEncoder(i420);
                 }
               } catch (InterruptedException e) {
-                thread.interrupt();
+                if (thread != null) thread.interrupt();
               }
             }
           }

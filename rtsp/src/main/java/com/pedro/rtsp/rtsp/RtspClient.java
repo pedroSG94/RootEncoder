@@ -31,7 +31,7 @@ public class RtspClient {
   private final String TAG = "RtspClient";
 
   private final long mTimestamp;
-  private String host;
+  private String host = "";
   private int port;
   private String path;
   private int sampleRate = 16000;
@@ -388,15 +388,23 @@ public class RtspClient {
       String line;
       while ((line = reader.readLine()) != null) {
         if (line.contains("Session")) {
+          Pattern rtspPattern = Pattern.compile("Session: (\\w+)");
+          Matcher matcher = rtspPattern.matcher(line);
+          if (matcher.find()) {
+            sessionId = matcher.group(1);
+          }
           sessionId = line.split(";")[0].split(":")[1].trim();
         }
         if (line.contains("server_port")) {
-          String[] s = line.split("server_port=")[1].split("-");
-          for (int i = 0; i < s.length; i++) {
+          Pattern rtspPattern = Pattern.compile("server_port=([0-9]+)-([0-9]+)");
+          Matcher matcher = rtspPattern.matcher(line);
+          if (matcher.find()) {
             if (isAudio) {
-              audioPorts[i] = Integer.parseInt(s[i].substring(0, 4));
+              audioPorts[0] = Integer.parseInt(matcher.group(1));
+              audioPorts[1] = Integer.parseInt(matcher.group(2));
             } else {
-              videoPorts[i] = Integer.parseInt(s[i].substring(0, 4));
+              videoPorts[0] = Integer.parseInt(matcher.group(1));
+              videoPorts[1] = Integer.parseInt(matcher.group(2));
             }
           }
         }

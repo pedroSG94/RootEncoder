@@ -10,7 +10,7 @@ import android.opengl.GLES20;
 import android.os.Build;
 import android.support.annotation.RequiresApi;
 import android.view.Surface;
-import com.pedro.encoder.utils.GlUtil;
+import com.pedro.encoder.utils.gl.GlUtil;
 
 /**
  * Created by pedro on 9/09/17.

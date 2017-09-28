@@ -17,6 +17,9 @@ import com.pedro.encoder.input.video.Camera1ApiManager;
 import com.pedro.encoder.input.video.CameraOpenException;
 import com.pedro.encoder.input.video.EffectManager;
 import com.pedro.encoder.input.video.GetCameraData;
+import com.pedro.encoder.utils.gl.TextStreamObject;
+import com.pedro.encoder.utils.gl.GifStreamObject;
+import com.pedro.encoder.utils.gl.ImageStreamObject;
 import com.pedro.encoder.video.FormatVideoEncoder;
 import com.pedro.encoder.video.GetH264Data;
 import com.pedro.encoder.video.VideoEncoder;
@@ -214,6 +217,14 @@ public abstract class Camera1Base
     return resolutions;
   }
 
+  public int getStreamWidth() {
+    return videoEncoder.getWidth();
+  }
+
+  public int getStreamHeight() {
+    return videoEncoder.getHeight();
+  }
+
   public void disableAudio() {
     microphoneManager.mute();
   }
@@ -246,11 +257,58 @@ public abstract class Camera1Base
     }
   }
 
-  /** need min API 19 */
-  public void setVideoBitrateOnFly(int bitrate) {
-    if (Build.VERSION.SDK_INT >= 19) {
-      videoEncoder.setVideoBitrateOnFly(bitrate);
+  @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
+  public void setGif(GifStreamObject gifStreamObject) throws RuntimeException {
+    if (openGlView != null) {
+      stopOpenGlRender();
+      openGlView.setGif(gifStreamObject);
+      startOpenGlRender();
+    } else {
+      throw new RuntimeException("You must use OpenGlView in the constructor to set a gif");
     }
+  }
+
+  @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
+  public void setImage(ImageStreamObject imageStreamObject) throws RuntimeException {
+    if (openGlView != null) {
+      stopOpenGlRender();
+      openGlView.setImage(imageStreamObject);
+      startOpenGlRender();
+    } else {
+      throw new RuntimeException("You must use OpenGlView in the constructor to set a image");
+    }
+  }
+
+  @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
+  public void setText(TextStreamObject textStreamObject) throws RuntimeException {
+    if (openGlView != null) {
+      stopOpenGlRender();
+      openGlView.setText(textStreamObject);
+      startOpenGlRender();
+    } else {
+      throw new RuntimeException("You must use OpenGlView in the constructor to set a text");
+    }
+  }
+
+  @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
+  private void stopOpenGlRender() {
+    openGlView.stopGlThread();
+    cameraManager.stop();
+  }
+
+  @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
+  private void startOpenGlRender() {
+    openGlView.startGLThread();
+    cameraManager = new Camera1ApiManager(openGlView.getSurfaceTexture(), openGlView.getContext());
+    cameraManager.prepareCamera(videoEncoder.getWidth(), videoEncoder.getHeight(),
+        videoEncoder.getFps(), ImageFormat.NV21);
+    cameraManager.start();
+  }
+
+  /** need min API 19 */
+  @RequiresApi(api = Build.VERSION_CODES.KITKAT)
+  public void setVideoBitrateOnFly(int bitrate) {
+    videoEncoder.setVideoBitrateOnFly(bitrate);
   }
 
   public boolean isStreaming() {

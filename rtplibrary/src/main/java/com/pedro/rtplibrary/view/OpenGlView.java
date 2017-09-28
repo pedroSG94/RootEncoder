@@ -11,7 +11,10 @@ import android.view.Surface;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import com.pedro.encoder.input.gl.SurfaceManager;
-import com.pedro.encoder.input.gl.TextureManager;
+import com.pedro.encoder.input.gl.TextureManagerWatermark;
+import com.pedro.encoder.utils.gl.TextStreamObject;
+import com.pedro.encoder.utils.gl.GifStreamObject;
+import com.pedro.encoder.utils.gl.ImageStreamObject;
 import java.util.concurrent.Semaphore;
 
 /**
@@ -31,12 +34,13 @@ public class OpenGlView extends SurfaceView
   private SurfaceManager surfaceManager = null;
   private SurfaceManager surfaceManagerEncoder = null;
 
-  private TextureManager textureManager = null;
+  private TextureManagerWatermark textureManager = null;
 
   private final Semaphore semaphore = new Semaphore(0);
   private final Object sync = new Object();
   private int previewWidth, previewHeight;
   private int encoderWidth, encoderHeight;
+  private Surface surface;
 
   public OpenGlView(Context context, AttributeSet attrs) {
     super(context, attrs);
@@ -53,6 +57,7 @@ public class OpenGlView extends SurfaceView
 
   public void addMediaCodecSurface(Surface surface) {
     synchronized (sync) {
+      this.surface = surface;
       surfaceManagerEncoder = new SurfaceManager(surface, surfaceManager);
     }
   }
@@ -71,10 +76,22 @@ public class OpenGlView extends SurfaceView
     this.encoderHeight = height;
   }
 
+  public void setGif(GifStreamObject gifStreamObject) {
+    textureManager.setGif(gifStreamObject);
+  }
+
+  public void setImage(ImageStreamObject imageStreamObject) {
+    textureManager.setImage(imageStreamObject);
+  }
+
+  public void setText(TextStreamObject textStreamObject) {
+    textureManager.setText(textStreamObject);
+  }
+
   public void startGLThread() {
     Log.i(TAG, "Thread started.");
     if (textureManager == null) {
-      textureManager = new TextureManager(getContext());
+      textureManager = new TextureManagerWatermark(getContext());
     }
     if (textureManager.getSurfaceTexture() == null) {
       thread = new Thread(OpenGlView.this);
