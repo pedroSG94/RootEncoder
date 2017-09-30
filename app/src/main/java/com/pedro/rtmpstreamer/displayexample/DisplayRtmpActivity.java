@@ -14,7 +14,6 @@ import android.widget.Toast;
 
 import com.pedro.rtplibrary.rtmp.RtmpDisplay;
 import com.pedro.rtmpstreamer.R;
-import com.pedro.rtmpstreamer.constants.Constants;
 
 import net.ossrs.rtmp.ConnectCheckerRtmp;
 

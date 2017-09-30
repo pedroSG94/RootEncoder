@@ -7,6 +7,7 @@ import android.media.MediaFormat;
 import android.media.MediaMuxer;
 import android.os.Build;
 import android.support.annotation.RequiresApi;
+import android.util.Log;
 import android.view.SurfaceView;
 import android.view.TextureView;
 import com.pedro.encoder.audio.AudioEncoder;
@@ -35,6 +36,8 @@ import java.util.List;
 
 public abstract class Camera1Base
     implements GetAacData, GetCameraData, GetH264Data, GetMicrophoneData {
+
+  private static final String TAG = "Camera1Base";
 
   protected Camera1ApiManager cameraManager;
   protected VideoEncoder videoEncoder;
@@ -149,7 +152,7 @@ public abstract class Camera1Base
   }
 
   public void startPreview() {
-    if (!onPreview) {
+    if (!isStreaming() && !onPreview) {
       if (openGlView != null && Build.VERSION.SDK_INT >= 18) {
         openGlView.startGLThread();
         cameraManager =
@@ -158,6 +161,8 @@ public abstract class Camera1Base
       cameraManager.prepareCamera();
       cameraManager.start();
       onPreview = true;
+    } else {
+      Log.e(TAG, "Streaming or preview started, ignored");
     }
   }
 
@@ -167,8 +172,10 @@ public abstract class Camera1Base
         openGlView.stopGlThread();
       }
       cameraManager.stop();
+      onPreview = false;
+    } else {
+      Log.e(TAG, "Streaming or preview stopped, ignored");
     }
-    onPreview = false;
   }
 
   protected abstract void startStreamRtp(String url);
@@ -195,7 +202,6 @@ public abstract class Camera1Base
   protected abstract void stopStreamRtp();
 
   public void stopStream() {
-    cameraManager.stop();
     microphoneManager.stop();
     stopStreamRtp();
     videoEncoder.stop();
@@ -205,7 +211,6 @@ public abstract class Camera1Base
       openGlView.removeMediaCodecSurface();
     }
     streaming = false;
-    onPreview = false;
   }
 
   public List<String> getResolutions() {

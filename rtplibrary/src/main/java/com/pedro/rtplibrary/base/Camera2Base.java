@@ -161,7 +161,7 @@ public abstract class Camera2Base
   }
 
   public void startPreview() {
-    if (!onPreview) {
+    if (!isStreaming() && !onPreview) {
       if (surfaceView != null) {
         cameraManager.prepareCamera(surfaceView.getHolder().getSurface(), false);
       } else if (textureView != null) {
@@ -180,7 +180,8 @@ public abstract class Camera2Base
       if (openGlView != null) {
         openGlView.stopGlThread();
       }
-      cameraManager.closeCamera();
+      cameraManager.closeCamera(false);
+      onPreview = false;
     }
   }
 
@@ -202,14 +203,13 @@ public abstract class Camera2Base
     }
     microphoneManager.start();
     streaming = true;
-    onPreview = true;
     startStreamRtp(url);
   }
 
   protected abstract void stopStreamRtp();
 
   public void stopStream() {
-    cameraManager.closeCamera();
+    cameraManager.closeCamera(true);
     microphoneManager.stop();
     stopStreamRtp();
     videoEncoder.stop();
@@ -219,7 +219,6 @@ public abstract class Camera2Base
       openGlView.removeMediaCodecSurface();
     }
     streaming = false;
-    onPreview = false;
   }
 
   public int getStreamWidth() {
@@ -294,7 +293,7 @@ public abstract class Camera2Base
 
   private void stopOpenGlRender() {
     openGlView.stopGlThread();
-    cameraManager.closeCamera();
+    cameraManager.closeCamera(false);
   }
 
   private void startOpenGlRender() {

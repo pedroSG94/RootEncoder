@@ -104,7 +104,8 @@ rtmpCamera1.stopStream();
 //default
 
 //create builder
-RtspCamera1 rtspCamera1 = new RtspCamera1(surfaceView, protocol, connectCheckerRtsp);
+//by default TCP protocol.
+RtspCamera1 rtspCamera1 = new RtspCamera1(surfaceView, connectCheckerRtsp);
 //start stream
 if (rtspCamera1.prepareAudio() && rtspCamera1.prepareVideo()) {
   rtspCamera1.startStream("rtsp://yourEndPoint");
@@ -117,7 +118,8 @@ rtspCamera1.stopStream();
 //with params
 
 //create builder
-RtspCamera1 rtspCamera1 = new RtspCamera1(surfaceView, protocol, connectCheckerRtsp);
+RtspCamera1 rtspCamera1 = new RtspCamera1(surfaceView, connectCheckerRtsp);
+rtspCamera1.setProtocol(protocol);
 //start stream
 if (rtspCamera1.prepareAudio(int bitrate, int sampleRate, boolean isStereo, boolean echoCanceler,
       boolean noiseSuppressor) && rtspCamera1.prepareVideo(int width, int height, int fps, int bitrate, boolean hardwareRotation, int rotation)) {

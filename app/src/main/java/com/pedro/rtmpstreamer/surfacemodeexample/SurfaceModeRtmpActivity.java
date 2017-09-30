@@ -59,6 +59,7 @@ public class SurfaceModeRtmpActivity extends AppCompatActivity
         Toast.makeText(SurfaceModeRtmpActivity.this, "Connection failed", Toast.LENGTH_SHORT)
             .show();
         rtmpCamera2.stopStream();
+        rtmpCamera2.stopPreview();
         button.setText(R.string.start_button);
       }
     });
@@ -107,6 +108,7 @@ public class SurfaceModeRtmpActivity extends AppCompatActivity
     } else {
       button.setText(R.string.start_button);
       rtmpCamera2.stopStream();
+      rtmpCamera2.stopPreview();
     }
   }
 }

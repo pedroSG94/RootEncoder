@@ -20,10 +20,14 @@ public class RtspFromFile extends FromFileBase {
 
   private RtspClient rtspClient;
 
-  public RtspFromFile(Protocol protocol, ConnectCheckerRtsp connectCheckerRtsp,
+  public RtspFromFile(ConnectCheckerRtsp connectCheckerRtsp,
       VideoDecoderInterface videoDecoderInterface) {
     super(videoDecoderInterface);
-    rtspClient = new RtspClient(connectCheckerRtsp, protocol);
+    rtspClient = new RtspClient(connectCheckerRtsp);
+  }
+
+  public void setProtocol(Protocol protocol) {
+    rtspClient.setProtocol(protocol);
   }
 
   @Override

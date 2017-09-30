@@ -11,6 +11,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.View;
 import android.view.WindowManager;
@@ -34,7 +35,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 
 public class RtspActivity extends AppCompatActivity
-    implements Button.OnClickListener, ConnectCheckerRtsp {
+    implements Button.OnClickListener, ConnectCheckerRtsp, SurfaceHolder.Callback {
 
   private Integer[] orientations = new Integer[] { 0, 90, 180, 270 };
 
@@ -65,7 +66,8 @@ public class RtspActivity extends AppCompatActivity
     getSupportActionBar().setHomeButtonEnabled(true);
 
     surfaceView = (SurfaceView) findViewById(R.id.surfaceView);
-    rtspCamera1 = new RtspCamera1(surfaceView, Protocol.TCP, this);
+    surfaceView.getHolder().addCallback(this);
+    rtspCamera1 = new RtspCamera1(surfaceView, this);
     prepareOptionsMenuViews();
 
     etUrl = (EditText) findViewById(R.id.et_rtp_url);
@@ -211,9 +213,9 @@ public class RtspActivity extends AppCompatActivity
         if (!rtspCamera1.isStreaming()) {
           bStartStop.setText(getResources().getString(R.string.stop_button));
           if (rbTcp.isChecked()) {
-            rtspCamera1 = new RtspCamera1(surfaceView, Protocol.TCP, this);
+            rtspCamera1.setProtocol(Protocol.TCP);
           } else {
-            rtspCamera1 = new RtspCamera1(surfaceView, Protocol.UDP, this);
+            rtspCamera1.setProtocol(Protocol.UDP);
           }
           String resolution =
               rtspCamera1.getResolutions().get(spResolution.getSelectedItemPosition());
@@ -400,5 +402,20 @@ public class RtspActivity extends AppCompatActivity
         Toast.makeText(RtspActivity.this, "Auth success", Toast.LENGTH_SHORT).show();
       }
     });
+  }
+
+  @Override
+  public void surfaceCreated(SurfaceHolder surfaceHolder) {
+    rtspCamera1.startPreview();
+  }
+
+  @Override
+  public void surfaceChanged(SurfaceHolder surfaceHolder, int i, int i1, int i2) {
+
+  }
+
+  @Override
+  public void surfaceDestroyed(SurfaceHolder surfaceHolder) {
+    rtspCamera1.stopPreview();
   }
 }

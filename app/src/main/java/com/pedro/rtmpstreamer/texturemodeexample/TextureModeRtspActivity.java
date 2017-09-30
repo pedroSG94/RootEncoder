@@ -15,7 +15,6 @@ import android.widget.Toast;
 import com.pedro.rtmpstreamer.R;
 import com.pedro.rtplibrary.rtsp.RtspCamera2;
 import com.pedro.rtplibrary.view.AutoFitTextureView;
-import com.pedro.rtsp.rtsp.Protocol;
 import com.pedro.rtsp.utils.ConnectCheckerRtsp;
 
 /**
@@ -40,7 +39,7 @@ public class TextureModeRtspActivity extends AppCompatActivity
     button.setOnClickListener(this);
     etUrl = (EditText) findViewById(R.id.et_rtp_url);
     etUrl.setHint(R.string.hint_rtsp);
-    rtspCamera2 = new RtspCamera2(textureView, Protocol.TCP, this);
+    rtspCamera2 = new RtspCamera2(textureView, this);
     textureView.setSurfaceTextureListener(surfaceTextureListener);
   }
 
@@ -140,6 +139,7 @@ public class TextureModeRtspActivity extends AppCompatActivity
 
         @Override
         public boolean onSurfaceTextureDestroyed(SurfaceTexture surface) {
+          rtspCamera2.stopPreview();
           return false;
         }
 

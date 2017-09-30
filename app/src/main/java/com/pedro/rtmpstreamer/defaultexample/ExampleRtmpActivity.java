@@ -54,6 +54,7 @@ public class ExampleRtmpActivity extends AppCompatActivity
       public void run() {
         Toast.makeText(ExampleRtmpActivity.this, "Connection failed", Toast.LENGTH_SHORT).show();
         rtmpCamera1.stopStream();
+        rtmpCamera1.stopPreview();
         button.setText(R.string.start_button);
       }
     });
@@ -102,6 +103,7 @@ public class ExampleRtmpActivity extends AppCompatActivity
     } else {
       button.setText(R.string.start_button);
       rtmpCamera1.stopStream();
+      rtmpCamera1.stopPreview();
     }
   }
 }

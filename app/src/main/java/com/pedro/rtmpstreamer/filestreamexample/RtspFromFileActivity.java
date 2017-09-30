@@ -14,8 +14,6 @@ import android.widget.Toast;
 import com.pedro.rtplibrary.rtsp.RtspFromFile;
 import com.pedro.encoder.input.decoder.VideoDecoderInterface;
 import com.pedro.rtmpstreamer.R;
-import com.pedro.rtmpstreamer.constants.Constants;
-import com.pedro.rtsp.rtsp.Protocol;
 import com.pedro.rtsp.utils.ConnectCheckerRtsp;
 
 import java.io.IOException;
@@ -41,7 +39,7 @@ public class RtspFromFileActivity extends AppCompatActivity
     etUrl = (EditText) findViewById(R.id.et_rtp_url);
     etUrl.setHint(R.string.hint_rtsp);
     tvFile = (TextView) findViewById(R.id.tv_file);
-    rtspFromFile = new RtspFromFile(Protocol.TCP, this, this);
+    rtspFromFile = new RtspFromFile(this, this);
   }
 
   @Override

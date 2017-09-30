@@ -18,9 +18,13 @@ public class RtspDisplay extends DisplayBase {
 
   private RtspClient rtspClient;
 
-  public RtspDisplay(Context context, Protocol protocol, ConnectCheckerRtsp connectCheckerRtsp) {
+  public RtspDisplay(Context context, ConnectCheckerRtsp connectCheckerRtsp) {
     super(context);
-    rtspClient = new RtspClient(connectCheckerRtsp, protocol);
+    rtspClient = new RtspClient(connectCheckerRtsp);
+  }
+
+  public void setProtocol(Protocol protocol) {
+    rtspClient.setProtocol(protocol);
   }
 
   @Override

@@ -14,7 +14,6 @@ import android.widget.Toast;
 
 import com.pedro.rtplibrary.rtsp.RtspDisplay;
 import com.pedro.rtmpstreamer.R;
-import com.pedro.rtsp.rtsp.Protocol;
 import com.pedro.rtsp.utils.ConnectCheckerRtsp;
 
 @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
@@ -35,7 +34,7 @@ public class DisplayRtspActivity extends AppCompatActivity
     button.setOnClickListener(this);
     etUrl = (EditText) findViewById(R.id.et_rtp_url);
     etUrl.setHint(R.string.hint_rtsp);
-    rtspDisplay = new RtspDisplay(this, Protocol.TCP, this);
+    rtspDisplay = new RtspDisplay(this, this);
   }
 
   @Override

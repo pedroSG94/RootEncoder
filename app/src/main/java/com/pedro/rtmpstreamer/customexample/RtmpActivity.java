@@ -11,6 +11,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.View;
 import android.view.WindowManager;
@@ -33,7 +34,7 @@ import java.util.Date;
 import net.ossrs.rtmp.ConnectCheckerRtmp;
 
 public class RtmpActivity extends AppCompatActivity
-    implements Button.OnClickListener, ConnectCheckerRtmp {
+    implements Button.OnClickListener, ConnectCheckerRtmp, SurfaceHolder.Callback {
 
   private Integer[] orientations = new Integer[] { 0, 90, 180, 270 };
 
@@ -62,6 +63,7 @@ public class RtmpActivity extends AppCompatActivity
     getSupportActionBar().setHomeButtonEnabled(true);
 
     SurfaceView surfaceView = (SurfaceView) findViewById(R.id.surfaceView);
+    surfaceView.getHolder().addCallback(this);
     rtmpCamera1 = new RtmpCamera1(surfaceView, this);
     prepareOptionsMenuViews();
 
@@ -367,5 +369,20 @@ public class RtmpActivity extends AppCompatActivity
         Toast.makeText(RtmpActivity.this, "Auth success", Toast.LENGTH_SHORT).show();
       }
     });
+  }
+
+  @Override
+  public void surfaceCreated(SurfaceHolder surfaceHolder) {
+    rtmpCamera1.startPreview();
+  }
+
+  @Override
+  public void surfaceChanged(SurfaceHolder surfaceHolder, int i, int i1, int i2) {
+
+  }
+
+  @Override
+  public void surfaceDestroyed(SurfaceHolder surfaceHolder) {
+    rtmpCamera1.stopPreview();
   }
 }

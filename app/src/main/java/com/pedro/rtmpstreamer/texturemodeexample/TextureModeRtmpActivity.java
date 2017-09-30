@@ -140,6 +140,7 @@ public class TextureModeRtmpActivity extends AppCompatActivity
 
         @Override
         public boolean onSurfaceTextureDestroyed(SurfaceTexture surface) {
+          rtmpCamera2.stopPreview();
           return false;
         }
 

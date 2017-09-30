@@ -39,7 +39,7 @@ public class RtspClient {
 
   private final int trackVideo = 1;
   private final int trackAudio = 0;
-  private Protocol protocol = Protocol.UDP;
+  private Protocol protocol = Protocol.TCP;
   private int mCSeq = 0;
   private String authorization = null;
   private String user;
@@ -69,12 +69,15 @@ public class RtspClient {
   private H264Packet h264Packet;
   private AacPacket aacPacket;
 
-  public RtspClient(ConnectCheckerRtsp connectCheckerRtsp, Protocol protocol) {
-    this.protocol = protocol;
+  public RtspClient(ConnectCheckerRtsp connectCheckerRtsp) {
     this.connectCheckerRtsp = connectCheckerRtsp;
     long uptime = System.currentTimeMillis();
     mTimestamp = (uptime / 1000) << 32 & (((uptime - ((uptime / 1000) * 1000)) >> 32)
         / 1000); // NTP timestamp
+  }
+
+  public void setProtocol(Protocol protocol) {
+    this.protocol = protocol;
   }
 
   public void setAuthorization(String user, String password) {

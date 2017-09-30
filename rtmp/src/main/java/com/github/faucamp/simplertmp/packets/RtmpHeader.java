@@ -34,14 +34,14 @@ public class RtmpHeader {
          * Set Chunk Size, is used to notify the peer a new maximum chunk size to use.
          */
         SET_CHUNK_SIZE(0x01),
-        /** 
+        /**
          * Protocol control message 2
          * Abort Message, is used to notify the peer if it is waiting for chunks
          * to complete a message, then to discard the partially received message
          * over a chunk stream and abort processing of that message.
          */
         ABORT(0x02),
-        /** 
+        /**
          * Protocol control message 3
          * The client or the server sends the acknowledgment to the peer after
          * receiving bytes equal to the window size. The window size is the
@@ -79,22 +79,22 @@ public class RtmpHeader {
         AUDIO(0x08),
         /**
          * RTMP video packet (0x09)
-         * The client or the server sends this message to send video data to the peer.         
+         * The client or the server sends this message to send video data to the peer.
          */
         VIDEO(0x09),
         /**
          * RTMP message type 0x0F
          * The client or the server sends this message to send Metadata or any
-         * user data to the peer. Metadata includes details about the data (audio, video etc.) 
+         * user data to the peer. Metadata includes details about the data (audio, video etc.)
          * like creation time, duration, theme and so on.
          * This is the AMF3-encoded version.
          */
         DATA_AMF3(0x0F),
         /**
-         * RTMP message type 0x10 
+         * RTMP message type 0x10
          * A shared object is a Flash object (a collection of name value pairs)
          * that are in synchronization across multiple clients, instances, and
-         * so on. 
+         * so on.
          * This is the AMF3 version: kMsgContainerEx=16 for AMF3.
          */
         SHARED_OBJECT_AMF3(0x10),
@@ -110,7 +110,7 @@ public class RtmpHeader {
         /**
          * RTMP message type 0x12
          * The client or the server sends this message to send Metadata or any
-         * user data to the peer. Metadata includes details about the data (audio, video etc.) 
+         * user data to the peer. Metadata includes details about the data (audio, video etc.)
          * like creation time, duration, theme and so on.
          * This is the AMF0-encoded version.
          */
@@ -125,11 +125,11 @@ public class RtmpHeader {
          */
         COMMAND_AMF0(0x14),
         /**
-         * RTMP message type 0x13 
+         * RTMP message type 0x13
          * A shared object is a Flash object (a collection of name value pairs)
          * that are in synchronization across multiple clients, instances, and
-         * so on. 
-         * This is the AMF0 version: kMsgContainer=19 for AMF0.         
+         * so on.
+         * This is the AMF0 version: kMsgContainer=19 for AMF0.
          */
         SHARED_OBJECT_AMF0(0x13),
         /**
@@ -178,7 +178,7 @@ public class RtmpHeader {
         private byte value;
         /** The full size (in bytes) of this RTMP header (including the basic header byte) */
         private static final Map<Byte, ChunkType> quickLookupMap = new HashMap<Byte, ChunkType>();
-        
+
         static {
             for (ChunkType messageTypId : ChunkType.values()) {
                 quickLookupMap.put(messageTypId.getValue(), messageTypId);
@@ -236,7 +236,7 @@ public class RtmpHeader {
         parseBasicHeader((byte) basicHeaderByte);
 
         switch (chunkType) {
-            case TYPE_0_FULL: { //  b00 = 12 byte header (full header) 
+            case TYPE_0_FULL: { //  b00 = 12 byte header (full header)
                 // Read bytes 1-3: Absolute timestamp
                 absoluteTimestamp = Util.readUnsignedInt24(in);
                 timestampDelta = 0;
@@ -286,7 +286,7 @@ public class RtmpHeader {
                 absoluteTimestamp = extendedTimestamp != 0 ? extendedTimestamp : prevHeader.absoluteTimestamp + timestampDelta;
                 break;
             }
-            case TYPE_3_RELATIVE_SINGLE_BYTE: { // b11 = 1 byte: basic header only 
+            case TYPE_3_RELATIVE_SINGLE_BYTE: { // b11 = 1 byte: basic header only
                 RtmpHeader prevHeader = rtmpSessionInfo.getChunkStreamInfo(chunkStreamId).prevHeaderRx();
                 // Read bytes 1-4: Extended timestamp
                 extendedTimestamp = prevHeader.timestampDelta >= 0xffffff ? Util.readUnsignedInt32(in) : 0;
@@ -308,7 +308,7 @@ public class RtmpHeader {
         switch (chunkType) {
             case TYPE_0_FULL: { //  b00 = 12 byte header (full header)
                 chunkStreamInfo.markDeltaTimestampTx();
-                Util.writeUnsignedInt24(out, absoluteTimestamp >= 0xffffff ? 0xffffff : absoluteTimestamp);
+                Util.writeUnsignedInt24(out, (absoluteTimestamp >= 0xffffff) ? 0xffffff : absoluteTimestamp);
                 Util.writeUnsignedInt24(out, packetLength);
                 out.write(messageType.getValue());
                 Util.writeUnsignedInt32LittleEndian(out, messageStreamId);
@@ -321,7 +321,7 @@ public class RtmpHeader {
             case TYPE_1_RELATIVE_LARGE: { // b01 = 8 bytes - like type 0. not including message ID (4 last bytes)
                 timestampDelta = (int) chunkStreamInfo.markDeltaTimestampTx();
                 absoluteTimestamp = chunkStreamInfo.getPrevHeaderTx().getAbsoluteTimestamp() + timestampDelta;
-                Util.writeUnsignedInt24(out, absoluteTimestamp >= 0xffffff ? 0xffffff : timestampDelta);
+                Util.writeUnsignedInt24(out, (absoluteTimestamp >= 0xffffff) ? 0xffffff : timestampDelta);
                 Util.writeUnsignedInt24(out, packetLength);
                 out.write(messageType.getValue());
                 if (absoluteTimestamp >= 0xffffff) {
@@ -341,10 +341,7 @@ public class RtmpHeader {
                 break;
             }
             case TYPE_3_RELATIVE_SINGLE_BYTE: { // b11 = 1 byte: basic header only
-                timestampDelta = (int) chunkStreamInfo.markDeltaTimestampTx();
-                absoluteTimestamp = chunkStreamInfo.getPrevHeaderTx().getAbsoluteTimestamp() + timestampDelta;
-                if (absoluteTimestamp >= 0xffffff) {
-                    extendedTimestamp = absoluteTimestamp;
+                if (extendedTimestamp > 0){
                     Util.writeUnsignedInt32(out, extendedTimestamp);
                 }
                 break;

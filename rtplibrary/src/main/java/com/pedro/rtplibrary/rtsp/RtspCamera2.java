@@ -24,27 +24,28 @@ public class RtspCamera2 extends Camera2Base {
 
   private RtspClient rtspClient;
 
-  public RtspCamera2(SurfaceView surfaceView, Protocol protocol,
-      ConnectCheckerRtsp connectCheckerRtsp) {
+  public RtspCamera2(SurfaceView surfaceView, ConnectCheckerRtsp connectCheckerRtsp) {
     super(surfaceView, surfaceView.getContext());
-    rtspClient = new RtspClient(connectCheckerRtsp, protocol);
+    rtspClient = new RtspClient(connectCheckerRtsp);
   }
 
-  public RtspCamera2(TextureView textureView, Protocol protocol,
-      ConnectCheckerRtsp connectCheckerRtsp) {
+  public RtspCamera2(TextureView textureView, ConnectCheckerRtsp connectCheckerRtsp) {
     super(textureView, textureView.getContext());
-    rtspClient = new RtspClient(connectCheckerRtsp, protocol);
+    rtspClient = new RtspClient(connectCheckerRtsp);
   }
 
-  public RtspCamera2(OpenGlView openGlView, Protocol protocol,
-      ConnectCheckerRtsp connectCheckerRtsp) {
+  public RtspCamera2(OpenGlView openGlView, ConnectCheckerRtsp connectCheckerRtsp) {
     super(openGlView, openGlView.getContext());
-    rtspClient = new RtspClient(connectCheckerRtsp, protocol);
+    rtspClient = new RtspClient(connectCheckerRtsp);
   }
 
-  public RtspCamera2(Context context, Protocol protocol, ConnectCheckerRtsp connectCheckerRtsp) {
+  public RtspCamera2(Context context, ConnectCheckerRtsp connectCheckerRtsp) {
     super(context);
-    rtspClient = new RtspClient(connectCheckerRtsp, protocol);
+    rtspClient = new RtspClient(connectCheckerRtsp);
+  }
+
+  public void setProtocol(Protocol protocol) {
+    rtspClient.setProtocol(protocol);
   }
 
   @Override

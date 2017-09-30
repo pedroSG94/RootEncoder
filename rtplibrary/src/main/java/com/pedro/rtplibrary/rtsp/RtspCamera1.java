@@ -20,23 +20,24 @@ public class RtspCamera1 extends Camera1Base {
 
   private RtspClient rtspClient;
 
-  public RtspCamera1(SurfaceView surfaceView, Protocol protocol,
-      ConnectCheckerRtsp connectCheckerRtsp) {
+  public RtspCamera1(SurfaceView surfaceView, ConnectCheckerRtsp connectCheckerRtsp) {
     super(surfaceView);
-    rtspClient = new RtspClient(connectCheckerRtsp, protocol);
+    rtspClient = new RtspClient(connectCheckerRtsp);
   }
 
-  public RtspCamera1(TextureView textureView, Protocol protocol,
-      ConnectCheckerRtsp connectCheckerRtsp) {
+  public RtspCamera1(TextureView textureView, ConnectCheckerRtsp connectCheckerRtsp) {
     super(textureView);
-    rtspClient = new RtspClient(connectCheckerRtsp, protocol);
+    rtspClient = new RtspClient(connectCheckerRtsp);
   }
 
   @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
-  public RtspCamera1(OpenGlView openGlView, Protocol protocol,
-      ConnectCheckerRtsp connectCheckerRtsp) {
+  public RtspCamera1(OpenGlView openGlView, ConnectCheckerRtsp connectCheckerRtsp) {
     super(openGlView);
-    rtspClient = new RtspClient(connectCheckerRtsp, protocol);
+    rtspClient = new RtspClient(connectCheckerRtsp);
+  }
+
+  public void setProtocol(Protocol protocol) {
+    rtspClient.setProtocol(protocol);
   }
 
   @Override

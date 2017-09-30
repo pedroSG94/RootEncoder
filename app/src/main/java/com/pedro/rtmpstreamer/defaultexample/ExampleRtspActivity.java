@@ -11,8 +11,6 @@ import android.widget.Toast;
 
 import com.pedro.rtplibrary.rtsp.RtspCamera1;
 import com.pedro.rtmpstreamer.R;
-import com.pedro.rtmpstreamer.constants.Constants;
-import com.pedro.rtsp.rtsp.Protocol;
 import com.pedro.rtsp.utils.ConnectCheckerRtsp;
 
 /**
@@ -37,7 +35,7 @@ public class ExampleRtspActivity extends AppCompatActivity
     button.setOnClickListener(this);
     etUrl = (EditText) findViewById(R.id.et_rtp_url);
     etUrl.setHint(R.string.hint_rtsp);
-    rtspCamera1 = new RtspCamera1(surfaceView, Protocol.TCP, this);
+    rtspCamera1 = new RtspCamera1(surfaceView, this);
   }
 
   @Override
@@ -57,6 +55,7 @@ public class ExampleRtspActivity extends AppCompatActivity
       public void run() {
         Toast.makeText(ExampleRtspActivity.this, "Connection failed", Toast.LENGTH_SHORT).show();
         rtspCamera1.stopStream();
+        rtspCamera1.stopPreview();
         button.setText(R.string.start_button);
       }
     });
@@ -107,6 +106,7 @@ public class ExampleRtspActivity extends AppCompatActivity
     } else {
       button.setText(R.string.start_button);
       rtspCamera1.stopStream();
+      rtspCamera1.stopPreview();
     }
   }
 }
