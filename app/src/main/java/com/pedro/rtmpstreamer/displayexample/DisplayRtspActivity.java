@@ -1,5 +1,6 @@
 package com.pedro.rtmpstreamer.displayexample;
 
+import android.app.Activity;
 import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
@@ -13,7 +14,6 @@ import android.widget.Toast;
 
 import com.pedro.rtplibrary.rtsp.RtspDisplay;
 import com.pedro.rtmpstreamer.R;
-import com.pedro.rtmpstreamer.constants.Constants;
 import com.pedro.rtsp.rtsp.Protocol;
 import com.pedro.rtsp.utils.ConnectCheckerRtsp;
 
@@ -24,7 +24,7 @@ public class DisplayRtspActivity extends AppCompatActivity
   private RtspDisplay rtspDisplay;
   private Button button;
   private EditText etUrl;
-  private final int REQUEST_CODE = 1;
+  private final int REQUEST_CODE = 179;
 
   @Override
   protected void onCreate(Bundle savedInstanceState) {
@@ -92,7 +92,7 @@ public class DisplayRtspActivity extends AppCompatActivity
 
   @Override
   protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-    if (requestCode == REQUEST_CODE) {
+    if (requestCode == REQUEST_CODE && resultCode == Activity.RESULT_OK) {
       if (rtspDisplay.prepareAudio() && rtspDisplay.prepareVideo()) {
         if (Build.VERSION.SDK_INT >= 21) {
           rtspDisplay.startStream(etUrl.getText().toString(), resultCode, data);
@@ -101,6 +101,8 @@ public class DisplayRtspActivity extends AppCompatActivity
         Toast.makeText(this, "Error preparing stream, This device cant do it", Toast.LENGTH_SHORT)
             .show();
       }
+    } else {
+      Toast.makeText(this, "No permissions available", Toast.LENGTH_SHORT).show();
     }
   }
 

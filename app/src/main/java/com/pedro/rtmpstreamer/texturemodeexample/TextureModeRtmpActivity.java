@@ -30,7 +30,6 @@ public class TextureModeRtmpActivity extends AppCompatActivity
   private Button button;
   private EditText etUrl;
 
-
   @Override
   protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
@@ -125,27 +124,28 @@ public class TextureModeRtmpActivity extends AppCompatActivity
    * [TextureView.SurfaceTextureListener] handles several lifecycle events on a
    * [TextureView].
    */
-  private TextureView.SurfaceTextureListener surfaceTextureListener = new TextureView.SurfaceTextureListener() {
+  private TextureView.SurfaceTextureListener surfaceTextureListener =
+      new TextureView.SurfaceTextureListener() {
 
-    @Override
-    public void onSurfaceTextureAvailable(SurfaceTexture surface, int width, int height) {
-      textureView.setAspectRatio(480, 640);
-      rtmpCamera2.startPreview();
-    }
+        @Override
+        public void onSurfaceTextureAvailable(SurfaceTexture surface, int width, int height) {
+          textureView.setAspectRatio(480, 640);
+          rtmpCamera2.startPreview();
+        }
 
-    @Override
-    public void onSurfaceTextureSizeChanged(SurfaceTexture surface, int width, int height) {
+        @Override
+        public void onSurfaceTextureSizeChanged(SurfaceTexture surface, int width, int height) {
 
-    }
+        }
 
-    @Override
-    public boolean onSurfaceTextureDestroyed(SurfaceTexture surface) {
-      return false;
-    }
+        @Override
+        public boolean onSurfaceTextureDestroyed(SurfaceTexture surface) {
+          return false;
+        }
 
-    @Override
-    public void onSurfaceTextureUpdated(SurfaceTexture surface) {
+        @Override
+        public void onSurfaceTextureUpdated(SurfaceTexture surface) {
 
-    }
-  };
+        }
+      };
 }

@@ -41,6 +41,7 @@ public class TextureModeRtspActivity extends AppCompatActivity
     etUrl = (EditText) findViewById(R.id.et_rtp_url);
     etUrl.setHint(R.string.hint_rtsp);
     rtspCamera2 = new RtspCamera2(textureView, Protocol.TCP, this);
+    textureView.setSurfaceTextureListener(surfaceTextureListener);
   }
 
   @Override
@@ -123,27 +124,28 @@ public class TextureModeRtspActivity extends AppCompatActivity
    * [TextureView.SurfaceTextureListener] handles several lifecycle events on a
    * [TextureView].
    */
-  private TextureView.SurfaceTextureListener surfaceTextureListener = new TextureView.SurfaceTextureListener() {
+  private TextureView.SurfaceTextureListener surfaceTextureListener =
+      new TextureView.SurfaceTextureListener() {
 
-    @Override
-    public void onSurfaceTextureAvailable(SurfaceTexture surface, int width, int height) {
-      textureView.setAspectRatio(480, 640);
-      rtspCamera2.startPreview();
-    }
+        @Override
+        public void onSurfaceTextureAvailable(SurfaceTexture surface, int width, int height) {
+          textureView.setAspectRatio(480, 640);
+          rtspCamera2.startPreview();
+        }
 
-    @Override
-    public void onSurfaceTextureSizeChanged(SurfaceTexture surface, int width, int height) {
+        @Override
+        public void onSurfaceTextureSizeChanged(SurfaceTexture surface, int width, int height) {
 
-    }
+        }
 
-    @Override
-    public boolean onSurfaceTextureDestroyed(SurfaceTexture surface) {
-      return false;
-    }
+        @Override
+        public boolean onSurfaceTextureDestroyed(SurfaceTexture surface) {
+          return false;
+        }
 
-    @Override
-    public void onSurfaceTextureUpdated(SurfaceTexture surface) {
+        @Override
+        public void onSurfaceTextureUpdated(SurfaceTexture surface) {
 
-    }
-  };
+        }
+      };
 }
