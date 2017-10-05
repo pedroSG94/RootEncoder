@@ -36,13 +36,20 @@ public class TextureModeRtmpActivity extends AppCompatActivity
     super.onCreate(savedInstanceState);
     getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
     setContentView(R.layout.activity_texture_mode);
-    textureView = (AutoFitTextureView) findViewById(R.id.textureView);
+    bindViews();
+  }
+
+  private void bindViews() {
     button = (Button) findViewById(R.id.b_start_stop);
     button.setOnClickListener(this);
     etUrl = (EditText) findViewById(R.id.et_rtp_url);
     etUrl.setHint(R.string.hint_rtmp);
-    rtmpCamera2 = new RtmpCamera2(textureView, this);
+    textureView = (AutoFitTextureView) findViewById(R.id.textureView);
     textureView.setSurfaceTextureListener(surfaceTextureListener);
+  }
+
+  protected void prepareRtpCamera() {
+    rtmpCamera2 = new RtmpCamera2(textureView, this);
   }
 
   @Override
@@ -130,6 +137,7 @@ public class TextureModeRtmpActivity extends AppCompatActivity
 
         @Override
         public void onSurfaceTextureAvailable(SurfaceTexture surface, int width, int height) {
+          prepareRtpCamera();
           textureView.setAspectRatio(480, 640);
           rtmpCamera2.startPreview();
           // optionally:

@@ -4,6 +4,7 @@ import android.content.Context;
 import android.media.MediaCodec;
 import android.os.Build;
 import android.support.annotation.RequiresApi;
+import android.view.Surface;
 import android.view.SurfaceView;
 import android.view.TextureView;
 
@@ -24,23 +25,32 @@ public class RtspCamera2 extends Camera2Base {
 
   private RtspClient rtspClient;
 
+  public RtspCamera2(Context context, ConnectCheckerRtsp connectCheckerRtsp) {
+    super(context);
+    initialize(connectCheckerRtsp);
+  }
+
+  public RtspCamera2(Context context, Surface surfacePreview, ConnectCheckerRtsp connectCheckerRtsp) {
+    super(surfacePreview, context);
+    initialize(connectCheckerRtsp);
+  }
+
   public RtspCamera2(SurfaceView surfaceView, ConnectCheckerRtsp connectCheckerRtsp) {
-    super(surfaceView, surfaceView.getContext());
-    rtspClient = new RtspClient(connectCheckerRtsp);
+    super(getSurfaceFactory(surfaceView), surfaceView.getContext());
+    initialize(connectCheckerRtsp);
   }
 
   public RtspCamera2(TextureView textureView, ConnectCheckerRtsp connectCheckerRtsp) {
-    super(textureView, textureView.getContext());
-    rtspClient = new RtspClient(connectCheckerRtsp);
+    super(getSurfaceFactory(textureView), textureView.getContext());
+    initialize(connectCheckerRtsp);
   }
 
   public RtspCamera2(OpenGlView openGlView, ConnectCheckerRtsp connectCheckerRtsp) {
     super(openGlView, openGlView.getContext());
-    rtspClient = new RtspClient(connectCheckerRtsp);
+    initialize(connectCheckerRtsp);
   }
 
-  public RtspCamera2(Context context, ConnectCheckerRtsp connectCheckerRtsp) {
-    super(context);
+  private void initialize(ConnectCheckerRtsp connectCheckerRtsp) {
     rtspClient = new RtspClient(connectCheckerRtsp);
   }
 

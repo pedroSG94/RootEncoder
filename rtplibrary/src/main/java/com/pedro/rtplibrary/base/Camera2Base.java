@@ -7,11 +7,13 @@ import android.media.MediaCodec;
 import android.media.MediaFormat;
 import android.media.MediaMuxer;
 import android.os.Build;
+import android.support.annotation.NonNull;
 import android.support.annotation.RequiresApi;
 import android.util.Log;
 import android.view.Surface;
 import android.view.SurfaceView;
 import android.view.TextureView;
+import android.view.View;
 
 import com.pedro.encoder.audio.AudioEncoder;
 import com.pedro.encoder.audio.GetAacData;
@@ -39,14 +41,14 @@ import java.nio.ByteBuffer;
 public abstract class Camera2Base
     implements GetAacData, GetCameraData, GetH264Data, GetMicrophoneData {
 
+  private String TAG = Camera2Base.class.getSimpleName();
   protected Context context;
   protected Camera2ApiManager cameraManager;
   protected VideoEncoder videoEncoder;
   protected MicrophoneManager microphoneManager;
   protected AudioEncoder audioEncoder;
   private boolean streaming;
-  private SurfaceView surfaceView;
-  private TextureView textureView;
+  private Surface surfacePreview;
   private OpenGlView openGlView;
   private boolean videoEnabled = false;
   //record
@@ -59,39 +61,39 @@ public abstract class Camera2Base
   private MediaFormat videoFormat;
   private MediaFormat audioFormat;
 
-  public Camera2Base(SurfaceView surfaceView, Context context) {
-    this.surfaceView = surfaceView;
-    this.context = context;
-    cameraManager = new Camera2ApiManager(context);
-    videoEncoder = new VideoEncoder(this);
-    microphoneManager = new MicrophoneManager(this);
-    audioEncoder = new AudioEncoder(this);
-    streaming = false;
+  @NonNull
+  public static Surface getSurfaceFactory(View view) {
+    Surface surface = null;
+    if (view instanceof TextureView) {
+      surface = new Surface(((TextureView) view).getSurfaceTexture());
+    } else if (view instanceof OpenGlView) {
+      // WARNING! before implementing, threading in OpenGL threading in Camera2Base needs resolving
+      surface = ((OpenGlView) view).getSurface();
+    } else if (view instanceof SurfaceView) {
+      surface = ((SurfaceView) view).getHolder().getSurface();
+    } else {
+      throw new IllegalArgumentException("[" + view.getClass().getSimpleName() + "] is not supported.");
+    }
+    return surface;
   }
 
-  public Camera2Base(TextureView textureView, Context context) {
-    this.textureView = textureView;
-    this.context = context;
-    cameraManager = new Camera2ApiManager(context);
-    videoEncoder = new VideoEncoder(this);
-    microphoneManager = new MicrophoneManager(this);
-    audioEncoder = new AudioEncoder(this);
-    streaming = false;
+  public Camera2Base(Surface surfacePreview, Context context) {
+    this.surfacePreview = surfacePreview;
+    initialize(context);
   }
 
   public Camera2Base(OpenGlView openGlView, Context context) {
     this.openGlView = openGlView;
-    this.context = context;
-    cameraManager = new Camera2ApiManager(context);
-    videoEncoder = new VideoEncoder(this);
-    microphoneManager = new MicrophoneManager(this);
-    audioEncoder = new AudioEncoder(this);
-    streaming = false;
+
+    initialize(context);
   }
 
   public Camera2Base(Context context) {
+    initialize(context);
+  }
+
+  private void initialize(Context context) {
     this.context = context;
-    this.textureView = null;
     cameraManager = new Camera2ApiManager(context);
     videoEncoder = new VideoEncoder(this);
     microphoneManager = new MicrophoneManager(this);
@@ -102,7 +104,7 @@ public abstract class Camera2Base
   public abstract void setAuthorization(String user, String password);
 
   public boolean prepareVideo(int width, int height, int fps, int bitrate, boolean hardwareRotation,
-      int rotation) {
+                              int rotation) {
     if (onPreview) {
       stopPreview();
       onPreview = true;
@@ -119,7 +121,7 @@ public abstract class Camera2Base
   protected abstract void prepareAudioRtp(boolean isStereo, int sampleRate);
 
   public boolean prepareAudio(int bitrate, int sampleRate, boolean isStereo, boolean echoCanceler,
-      boolean noiseSuppressor) {
+                              boolean noiseSuppressor) {
     microphoneManager.createMicrophone(sampleRate, isStereo, echoCanceler, noiseSuppressor);
     prepareAudioRtp(isStereo, sampleRate);
     return audioEncoder.prepareAudioEncoder(bitrate, sampleRate, isStereo);
@@ -144,12 +146,15 @@ public abstract class Camera2Base
       mediaMuxer = new MediaMuxer(path, MediaMuxer.OutputFormat.MUXER_OUTPUT_MPEG_4);
       if (videoFormat != null) {
         videoTrack = mediaMuxer.addTrack(videoFormat);
+        Log.e(TAG, "startRecord() video");
       }
       if (audioFormat != null) {
         audioTrack = mediaMuxer.addTrack(audioFormat);
+        Log.e(TAG, "startRecord() audio");
       }
       mediaMuxer.start();
       recording = true;
+      Log.e(TAG, "startRecord() started");
     } else {
       throw new IOException("Need be called while stream");
     }
@@ -176,10 +181,8 @@ public abstract class Camera2Base
    */
   public void startPreview(@Camera2Facing int cameraFacing) {
     if (!isStreaming() && !onPreview) {
-      if (surfaceView != null) {
-        cameraManager.prepareCamera(surfaceView.getHolder().getSurface(), false);
-      } else if (textureView != null) {
-        cameraManager.prepareCamera(new Surface(textureView.getSurfaceTexture()), false);
+      if (surfacePreview != null) {
+        cameraManager.prepareCamera(surfacePreview, false);
       } else if (openGlView != null) {
         openGlView.startGLThread();
         cameraManager.prepareCamera(openGlView.getSurface(), true);
@@ -337,11 +340,10 @@ public abstract class Camera2Base
   }
 
   private void prepareCameraManager() {
-    if (textureView != null) {
-      cameraManager.prepareCamera(textureView, videoEncoder.getInputSurface());
-    } else if (surfaceView != null) {
-      cameraManager.prepareCamera(surfaceView, videoEncoder.getInputSurface());
+    if (surfacePreview != null) {
+      cameraManager.prepareCamera(surfacePreview, videoEncoder.getInputSurface());
     } else if (openGlView != null) {
+      // do nothing
     } else {
       cameraManager.prepareCamera(videoEncoder.getInputSurface(), false);
     }
