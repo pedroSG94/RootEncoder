@@ -12,6 +12,7 @@ import android.hardware.camera2.CaptureRequest;
 import android.os.Build;
 import android.os.Handler;
 import android.os.HandlerThread;
+import android.support.annotation.IntDef;
 import android.support.annotation.NonNull;
 import android.support.annotation.RequiresApi;
 import android.util.Log;
@@ -23,6 +24,10 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+
+import static android.hardware.camera2.CameraCharacteristics.LENS_FACING;
+import static android.hardware.camera2.CameraMetadata.LENS_FACING_BACK;
+import static android.hardware.camera2.CameraMetadata.LENS_FACING_FRONT;
 
 /**
  * Created by pedro on 4/03/17.
@@ -52,6 +57,10 @@ public class Camera2ApiManager extends CameraDevice.StateCallback {
   private boolean prepared = false;
   private int cameraId = -1;
   private Surface preview;
+
+  @IntDef({LENS_FACING_BACK, LENS_FACING_FRONT /*, LENS_FACING_EXTERNAL*/})
+  public @interface CameraFacing {
+  }
 
   public Camera2ApiManager(Context context) {
     cameraManager = (CameraManager) context.getSystemService(Context.CAMERA_SERVICE);
@@ -164,7 +173,41 @@ public class Camera2ApiManager extends CameraDevice.StateCallback {
   }
 
   public void openCamera() {
-    openCameraId(0);
+    openCameraBack();
+  }
+
+  public void openCameraBack() {
+    openCameraFacing(LENS_FACING_BACK);
+  }
+
+  public void openCameraFront() {
+    openCameraFacing(LENS_FACING_FRONT);
+  }
+
+  public void openLastCamera() {
+    if (cameraId == -1) {
+      openCameraBack();
+    } else {
+      openCameraId(cameraId);
+    }
+  }
+
+  /**
+   * Select camera facing
+   *
+   * @param cameraFacing - CameraCharacteristics.LENS_FACING_FRONT, CameraCharacteristics.LENS_FACING_BACK, CameraCharacteristics.LENS_FACING_EXTERNAL
+   */
+  public void openCameraFacing(@CameraFacing int cameraFacing) {
+    try {
+      final CameraCharacteristics cameraCharacteristics = cameraManager.getCameraCharacteristics("0");
+      if (cameraCharacteristics.get(LENS_FACING) == cameraFacing) {
+        openCameraId(0);
+      } else {
+        openCameraId(1);
+      }
+    } catch (CameraAccessException e) {
+      e.printStackTrace();
+    }
   }
 
   public void openCameraId(Integer cameraId) {
@@ -180,40 +223,6 @@ public class Camera2ApiManager extends CameraDevice.StateCallback {
       }
     } else {
       Log.e(TAG, "Camera2ApiManager need be prepared, Camera2ApiManager not enabled");
-    }
-  }
-
-  public void openCameraFront() {
-    try {
-      if (cameraManager.getCameraCharacteristics("0").get(CameraCharacteristics.LENS_FACING)
-          == CameraCharacteristics.LENS_FACING_FRONT) {
-        openCameraId(0);
-      } else {
-        openCameraId(1);
-      }
-    } catch (CameraAccessException e) {
-      e.printStackTrace();
-    }
-  }
-
-  public void openCameraBack() {
-    try {
-      if (cameraManager.getCameraCharacteristics("0").get(CameraCharacteristics.LENS_FACING)
-          == CameraCharacteristics.LENS_FACING_BACK) {
-        openCameraId(0);
-      } else {
-        openCameraId(1);
-      }
-    } catch (CameraAccessException e) {
-      e.printStackTrace();
-    }
-  }
-
-  public void openLastCamera() {
-    if (cameraId == -1) {
-      openCameraBack();
-    } else {
-      openCameraId(cameraId);
     }
   }
 

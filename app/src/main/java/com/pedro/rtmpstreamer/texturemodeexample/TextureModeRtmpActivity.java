@@ -131,6 +131,10 @@ public class TextureModeRtmpActivity extends AppCompatActivity
         public void onSurfaceTextureAvailable(SurfaceTexture surface, int width, int height) {
           textureView.setAspectRatio(480, 640);
           rtmpCamera2.startPreview();
+          // optionally:
+          // rtmpCamera2.startPreview(CameraCharacteristics.LENS_FACING_BACK);
+          // or
+          // rtmpCamera2.startPreview(CameraCharacteristics.LENS_FACING_FRONT);
         }
 
         @Override

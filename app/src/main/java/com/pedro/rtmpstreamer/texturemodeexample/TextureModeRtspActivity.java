@@ -1,6 +1,7 @@
 package com.pedro.rtmpstreamer.texturemodeexample;
 
 import android.graphics.SurfaceTexture;
+import android.hardware.camera2.CameraCharacteristics;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.RequiresApi;
@@ -129,7 +130,11 @@ public class TextureModeRtspActivity extends AppCompatActivity
         @Override
         public void onSurfaceTextureAvailable(SurfaceTexture surface, int width, int height) {
           textureView.setAspectRatio(480, 640);
-          rtspCamera2.startPreview();
+          // rtspCamera2.startPreview();
+          // optionally:
+          // rtspCamera2.startPreview(CameraCharacteristics.LENS_FACING_BACK);
+          // or
+          rtspCamera2.startPreview(CameraCharacteristics.LENS_FACING_FRONT);
         }
 
         @Override

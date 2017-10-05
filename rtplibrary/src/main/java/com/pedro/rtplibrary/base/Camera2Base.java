@@ -11,22 +11,27 @@ import android.util.Log;
 import android.view.Surface;
 import android.view.SurfaceView;
 import android.view.TextureView;
+
 import com.pedro.encoder.audio.AudioEncoder;
 import com.pedro.encoder.audio.GetAacData;
 import com.pedro.encoder.input.audio.GetMicrophoneData;
 import com.pedro.encoder.input.audio.MicrophoneManager;
 import com.pedro.encoder.input.video.Camera2ApiManager;
+import com.pedro.encoder.input.video.Camera2ApiManager.CameraFacing;
 import com.pedro.encoder.input.video.CameraOpenException;
 import com.pedro.encoder.input.video.GetCameraData;
-import com.pedro.encoder.utils.gl.TextStreamObject;
 import com.pedro.encoder.utils.gl.GifStreamObject;
 import com.pedro.encoder.utils.gl.ImageStreamObject;
+import com.pedro.encoder.utils.gl.TextStreamObject;
 import com.pedro.encoder.video.FormatVideoEncoder;
 import com.pedro.encoder.video.GetH264Data;
 import com.pedro.encoder.video.VideoEncoder;
 import com.pedro.rtplibrary.view.OpenGlView;
+
 import java.io.IOException;
 import java.nio.ByteBuffer;
+
+import static android.hardware.camera2.CameraMetadata.LENS_FACING_BACK;
 
 /**
  * Created by pedro on 7/07/17.
@@ -98,7 +103,7 @@ public abstract class Camera2Base
   public abstract void setAuthorization(String user, String password);
 
   public boolean prepareVideo(int width, int height, int fps, int bitrate, boolean hardwareRotation,
-      int rotation) {
+                              int rotation) {
     if (onPreview) stopPreview();
     int imageFormat = ImageFormat.NV21; //supported nv21 and yv12
     videoEncoder.setImageFormat(imageFormat);
@@ -112,7 +117,7 @@ public abstract class Camera2Base
   protected abstract void prepareAudioRtp(boolean isStereo, int sampleRate);
 
   public boolean prepareAudio(int bitrate, int sampleRate, boolean isStereo, boolean echoCanceler,
-      boolean noiseSuppressor) {
+                              boolean noiseSuppressor) {
     microphoneManager.createMicrophone(sampleRate, isStereo, echoCanceler, noiseSuppressor);
     prepareAudioRtp(isStereo, sampleRate);
     return audioEncoder.prepareAudioEncoder(bitrate, sampleRate, isStereo);
@@ -160,7 +165,14 @@ public abstract class Camera2Base
     audioTrack = -1;
   }
 
-  public void startPreview() {
+  /**
+   * Select a camera for preview passing
+   * {@link android.hardware.camera2.CameraMetadata#LENS_FACING_BACK} or
+   * {@link android.hardware.camera2.CameraMetadata#LENS_FACING_FRONT}
+   *
+   * @param cameraFacing -
+   */
+  public void startPreview(@CameraFacing int cameraFacing) {
     if (!isStreaming() && !onPreview) {
       if (surfaceView != null) {
         cameraManager.prepareCamera(surfaceView.getHolder().getSurface(), false);
@@ -170,9 +182,16 @@ public abstract class Camera2Base
         openGlView.startGLThread();
         cameraManager.prepareCamera(openGlView.getSurface(), true);
       }
-      cameraManager.openCameraBack();
+      cameraManager.openCameraFacing(cameraFacing);
       onPreview = true;
     }
+  }
+
+  /**
+   * Default cam is back
+   */
+  public void startPreview() {
+    startPreview(LENS_FACING_BACK);
   }
 
   public void stopPreview() {
