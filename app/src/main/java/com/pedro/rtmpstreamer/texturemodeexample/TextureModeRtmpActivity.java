@@ -1,6 +1,7 @@
 package com.pedro.rtmpstreamer.texturemodeexample;
 
 import android.graphics.SurfaceTexture;
+import android.hardware.camera2.CameraCharacteristics;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.RequiresApi;

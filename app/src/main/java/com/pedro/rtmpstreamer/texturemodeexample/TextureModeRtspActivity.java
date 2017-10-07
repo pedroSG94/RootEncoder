@@ -130,11 +130,11 @@ public class TextureModeRtspActivity extends AppCompatActivity
         @Override
         public void onSurfaceTextureAvailable(SurfaceTexture surface, int width, int height) {
           textureView.setAspectRatio(480, 640);
-          // rtspCamera2.startPreview();
+          rtspCamera2.startPreview();
           // optionally:
           // rtspCamera2.startPreview(CameraCharacteristics.LENS_FACING_BACK);
           // or
-          rtspCamera2.startPreview(CameraCharacteristics.LENS_FACING_FRONT);
+          //rtspCamera2.startPreview(CameraCharacteristics.LENS_FACING_FRONT);
         }
 
         @Override

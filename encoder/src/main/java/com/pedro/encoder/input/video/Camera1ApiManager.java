@@ -59,7 +59,7 @@ public class Camera1ApiManager implements Camera.PreviewCallback {
     if (surfaceView.getContext().getResources().getConfiguration().orientation == 1) {
       orientation = 90;
     }
-    cameraSelect = selectCamera();
+    cameraSelect = selectCameraBack();
   }
 
   public Camera1ApiManager(TextureView textureView, GetCameraData getCameraData) {
@@ -68,7 +68,7 @@ public class Camera1ApiManager implements Camera.PreviewCallback {
     if (textureView.getContext().getResources().getConfiguration().orientation == 1) {
       orientation = 90;
     }
-    cameraSelect = selectCamera();
+    cameraSelect = selectCameraBack();
   }
 
   public Camera1ApiManager(SurfaceTexture surfaceTexture, Context context) {
@@ -76,7 +76,7 @@ public class Camera1ApiManager implements Camera.PreviewCallback {
     if (context.getResources().getConfiguration().orientation == 1) {
       orientation = 90;
     }
-    cameraSelect = selectCamera();
+    cameraSelect = selectCameraBack();
   }
 
   public void prepareCamera(int width, int height, int fps, int imageFormat) {
@@ -89,6 +89,12 @@ public class Camera1ApiManager implements Camera.PreviewCallback {
 
   public void prepareCamera() {
     prepareCamera(width, height, fps, imageFormat);
+  }
+
+  public void start(@Camera1Facing int cameraFacing) {
+    cameraSelect = (cameraFacing == Camera.CameraInfo.CAMERA_FACING_BACK) ? selectCameraBack()
+        : selectCameraFront();
+    start();
   }
 
   public void start() {
@@ -125,7 +131,7 @@ public class Camera1ApiManager implements Camera.PreviewCallback {
         if (surfaceView != null) {
           camera.setPreviewDisplay(surfaceView.getHolder());
           camera.setPreviewCallback(this);
-        } else if (textureView != null){
+        } else if (textureView != null) {
           camera.setPreviewTexture(textureView.getSurfaceTexture());
           camera.setPreviewCallback(this);
         } else {
@@ -143,12 +149,26 @@ public class Camera1ApiManager implements Camera.PreviewCallback {
     }
   }
 
-  private int selectCamera() {
+  private int selectCameraBack() {
     int number = Camera.getNumberOfCameras();
     for (int i = 0; i < number; i++) {
       Camera.CameraInfo info = new Camera.CameraInfo();
       Camera.getCameraInfo(i, info);
       if (info.facing == Camera.CameraInfo.CAMERA_FACING_BACK) {
+        return i;
+      } else {
+        cameraSelect = i;
+      }
+    }
+    return cameraSelect;
+  }
+
+  private int selectCameraFront() {
+    int number = Camera.getNumberOfCameras();
+    for (int i = 0; i < number; i++) {
+      Camera.CameraInfo info = new Camera.CameraInfo();
+      Camera.getCameraInfo(i, info);
+      if (info.facing == Camera.CameraInfo.CAMERA_FACING_FRONT) {
         return i;
       } else {
         cameraSelect = i;
@@ -165,9 +185,9 @@ public class Camera1ApiManager implements Camera.PreviewCallback {
       camera = null;
       if (surfaceView != null) {
         clearSurface(surfaceView.getHolder());
-      } else if (textureView != null){
+      } else if (textureView != null) {
         clearSurface(textureView.getSurfaceTexture());
-      } else  {
+      } else {
         clearSurface(surfaceTexture);
       }
       running = false;

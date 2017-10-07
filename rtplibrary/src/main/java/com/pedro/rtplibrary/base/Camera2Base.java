@@ -2,6 +2,7 @@ package com.pedro.rtplibrary.base;
 
 import android.content.Context;
 import android.graphics.ImageFormat;
+import android.hardware.camera2.CameraCharacteristics;
 import android.media.MediaCodec;
 import android.media.MediaFormat;
 import android.media.MediaMuxer;
@@ -17,7 +18,7 @@ import com.pedro.encoder.audio.GetAacData;
 import com.pedro.encoder.input.audio.GetMicrophoneData;
 import com.pedro.encoder.input.audio.MicrophoneManager;
 import com.pedro.encoder.input.video.Camera2ApiManager;
-import com.pedro.encoder.input.video.Camera2ApiManager.CameraFacing;
+import com.pedro.encoder.input.video.Camera2Facing;
 import com.pedro.encoder.input.video.CameraOpenException;
 import com.pedro.encoder.input.video.GetCameraData;
 import com.pedro.encoder.utils.gl.GifStreamObject;
@@ -30,8 +31,6 @@ import com.pedro.rtplibrary.view.OpenGlView;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
-
-import static android.hardware.camera2.CameraMetadata.LENS_FACING_BACK;
 
 /**
  * Created by pedro on 7/07/17.
@@ -103,8 +102,11 @@ public abstract class Camera2Base
   public abstract void setAuthorization(String user, String password);
 
   public boolean prepareVideo(int width, int height, int fps, int bitrate, boolean hardwareRotation,
-                              int rotation) {
-    if (onPreview) stopPreview();
+      int rotation) {
+    if (onPreview) {
+      stopPreview();
+      onPreview = true;
+    }
     int imageFormat = ImageFormat.NV21; //supported nv21 and yv12
     videoEncoder.setImageFormat(imageFormat);
     boolean result =
@@ -117,14 +119,17 @@ public abstract class Camera2Base
   protected abstract void prepareAudioRtp(boolean isStereo, int sampleRate);
 
   public boolean prepareAudio(int bitrate, int sampleRate, boolean isStereo, boolean echoCanceler,
-                              boolean noiseSuppressor) {
+      boolean noiseSuppressor) {
     microphoneManager.createMicrophone(sampleRate, isStereo, echoCanceler, noiseSuppressor);
     prepareAudioRtp(isStereo, sampleRate);
     return audioEncoder.prepareAudioEncoder(bitrate, sampleRate, isStereo);
   }
 
   public boolean prepareVideo() {
-    if (onPreview) stopPreview();
+    if (onPreview) {
+      stopPreview();
+      onPreview = true;
+    }
     boolean result = videoEncoder.prepareVideoEncoder(640, 480, 30, 1200 * 1024, 0, true,
         FormatVideoEncoder.SURFACE);
     prepareCameraManager();
@@ -172,7 +177,7 @@ public abstract class Camera2Base
    *
    * @param cameraFacing -
    */
-  public void startPreview(@CameraFacing int cameraFacing) {
+  public void startPreview(@Camera2Facing int cameraFacing) {
     if (!isStreaming() && !onPreview) {
       if (surfaceView != null) {
         cameraManager.prepareCamera(surfaceView.getHolder().getSurface(), false);
@@ -191,7 +196,7 @@ public abstract class Camera2Base
    * Default cam is back
    */
   public void startPreview() {
-    startPreview(LENS_FACING_BACK);
+    startPreview(CameraCharacteristics.LENS_FACING_BACK);
   }
 
   public void stopPreview() {

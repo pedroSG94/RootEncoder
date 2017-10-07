@@ -12,7 +12,6 @@ import android.hardware.camera2.CaptureRequest;
 import android.os.Build;
 import android.os.Handler;
 import android.os.HandlerThread;
-import android.support.annotation.IntDef;
 import android.support.annotation.NonNull;
 import android.support.annotation.RequiresApi;
 import android.util.Log;
@@ -57,10 +56,6 @@ public class Camera2ApiManager extends CameraDevice.StateCallback {
   private boolean prepared = false;
   private int cameraId = -1;
   private Surface preview;
-
-  @IntDef({LENS_FACING_BACK, LENS_FACING_FRONT /*, LENS_FACING_EXTERNAL*/})
-  public @interface CameraFacing {
-  }
 
   public Camera2ApiManager(Context context) {
     cameraManager = (CameraManager) context.getSystemService(Context.CAMERA_SERVICE);
@@ -108,8 +103,8 @@ public class Camera2ApiManager extends CameraDevice.StateCallback {
           try {
             if (surfaceView != null || textureView != null) {
               cameraCaptureSession.setRepeatingBurst(
-                  Arrays.asList(drawPreview(preview), drawInputSurface(surfaceEncoder)),
-                  null, cameraHandler);
+                  Arrays.asList(drawPreview(preview), drawInputSurface(surfaceEncoder)), null,
+                  cameraHandler);
             } else if (surfacePreview != null) {
               cameraCaptureSession.setRepeatingBurst(
                   Collections.singletonList(drawPreview(preview)), null, cameraHandler);
@@ -195,11 +190,13 @@ public class Camera2ApiManager extends CameraDevice.StateCallback {
   /**
    * Select camera facing
    *
-   * @param cameraFacing - CameraCharacteristics.LENS_FACING_FRONT, CameraCharacteristics.LENS_FACING_BACK, CameraCharacteristics.LENS_FACING_EXTERNAL
+   * @param cameraFacing - CameraCharacteristics.LENS_FACING_FRONT, CameraCharacteristics.LENS_FACING_BACK,
+   * CameraCharacteristics.LENS_FACING_EXTERNAL
    */
-  public void openCameraFacing(@CameraFacing int cameraFacing) {
+  public void openCameraFacing(@Camera2Facing int cameraFacing) {
     try {
-      final CameraCharacteristics cameraCharacteristics = cameraManager.getCameraCharacteristics("0");
+      final CameraCharacteristics cameraCharacteristics =
+          cameraManager.getCameraCharacteristics("0");
       if (cameraCharacteristics.get(LENS_FACING) == cameraFacing) {
         openCameraId(0);
       } else {
@@ -240,11 +237,11 @@ public class Camera2ApiManager extends CameraDevice.StateCallback {
       try {
         cameraCaptureSession.stopRepeating();
         if (surfaceView != null || textureView != null) {
-          cameraCaptureSession.setRepeatingBurst(
-              Arrays.asList(drawPreview(preview)), null, cameraHandler);
+          cameraCaptureSession.setRepeatingBurst(Collections.singletonList(drawPreview(preview)),
+              null, cameraHandler);
         } else if (surfacePreview != null) {
-          cameraCaptureSession.setRepeatingBurst(
-              Collections.singletonList(drawPreview(preview)), null, cameraHandler);
+          cameraCaptureSession.setRepeatingBurst(Collections.singletonList(drawPreview(preview)),
+              null, cameraHandler);
         }
       } catch (CameraAccessException e) {
         e.printStackTrace();
@@ -260,6 +257,7 @@ public class Camera2ApiManager extends CameraDevice.StateCallback {
       }
       if (cameraHandler != null) {
         cameraHandler.getLooper().quitSafely();
+        cameraHandler = null;
       }
       prepared = false;
     }
@@ -276,7 +274,6 @@ public class Camera2ApiManager extends CameraDevice.StateCallback {
   public void onDisconnected(@NonNull CameraDevice cameraDevice) {
     cameraDevice.close();
     Log.i(TAG, "camera disconnected");
-
   }
 
   @Override

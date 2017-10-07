@@ -15,6 +15,7 @@ import com.pedro.encoder.audio.GetAacData;
 import com.pedro.encoder.input.audio.GetMicrophoneData;
 import com.pedro.encoder.input.audio.MicrophoneManager;
 import com.pedro.encoder.input.video.Camera1ApiManager;
+import com.pedro.encoder.input.video.Camera1Facing;
 import com.pedro.encoder.input.video.CameraOpenException;
 import com.pedro.encoder.input.video.EffectManager;
 import com.pedro.encoder.input.video.GetCameraData;
@@ -85,7 +86,10 @@ public abstract class Camera1Base
 
   public boolean prepareVideo(int width, int height, int fps, int bitrate, boolean hardwareRotation,
       int rotation) {
-    if (onPreview) stopPreview();
+    if (onPreview) {
+      stopPreview();
+      onPreview = true;
+    }
     int imageFormat = ImageFormat.NV21; //supported nv21 and yv12
     if (openGlView == null) {
       cameraManager.prepareCamera(width, height, fps, imageFormat);
@@ -108,7 +112,10 @@ public abstract class Camera1Base
   }
 
   public boolean prepareVideo() {
-    if (onPreview) stopPreview();
+    if (onPreview) {
+      stopPreview();
+      onPreview = true;
+    }
     if (openGlView == null) {
       cameraManager.prepareCamera();
       return videoEncoder.prepareVideoEncoder();
@@ -151,7 +158,7 @@ public abstract class Camera1Base
     audioTrack = -1;
   }
 
-  public void startPreview() {
+  public void startPreview(@Camera1Facing int cameraFacing) {
     if (!isStreaming() && !onPreview) {
       if (openGlView != null && Build.VERSION.SDK_INT >= 18) {
         openGlView.startGLThread();
@@ -159,11 +166,15 @@ public abstract class Camera1Base
             new Camera1ApiManager(openGlView.getSurfaceTexture(), openGlView.getContext());
       }
       cameraManager.prepareCamera();
-      cameraManager.start();
+      cameraManager.start(cameraFacing);
       onPreview = true;
     } else {
       Log.e(TAG, "Streaming or preview started, ignored");
     }
+  }
+
+  public void startPreview() {
+    startPreview(Camera.CameraInfo.CAMERA_FACING_BACK);
   }
 
   public void stopPreview() {

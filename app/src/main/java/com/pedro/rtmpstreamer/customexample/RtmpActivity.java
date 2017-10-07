@@ -1,5 +1,6 @@
 package com.pedro.rtmpstreamer.customexample;
 
+import android.hardware.Camera;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
@@ -374,6 +375,10 @@ public class RtmpActivity extends AppCompatActivity
   @Override
   public void surfaceCreated(SurfaceHolder surfaceHolder) {
     rtmpCamera1.startPreview();
+    // optionally:
+    //rtmpCamera1.startPreview(Camera.CameraInfo.CAMERA_FACING_BACK);
+    //or
+    //rtmpCamera1.startPreview(Camera.CameraInfo.CAMERA_FACING_FRONT);
   }
 
   @Override

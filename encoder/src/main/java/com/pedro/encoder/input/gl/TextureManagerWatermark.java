@@ -126,7 +126,6 @@ public class TextureManagerWatermark {
     // watermark
     GLES20.glUniform1i(waterMarkHandle, 2);
     GLES20.glActiveTexture(GLES20.GL_TEXTURE2);
-    System.currentTimeMillis();
 
     if (gifStreamObject != null) {
       GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, gifTexturesId[gifStreamObject.updateGifFrame()]);

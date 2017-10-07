@@ -40,7 +40,6 @@ public class OpenGlView extends SurfaceView
   private final Object sync = new Object();
   private int previewWidth, previewHeight;
   private int encoderWidth, encoderHeight;
-  private Surface surface;
 
   public OpenGlView(Context context, AttributeSet attrs) {
     super(context, attrs);
@@ -57,7 +56,6 @@ public class OpenGlView extends SurfaceView
 
   public void addMediaCodecSurface(Surface surface) {
     synchronized (sync) {
-      this.surface = surface;
       surfaceManagerEncoder = new SurfaceManager(surface, surfaceManager);
     }
   }
