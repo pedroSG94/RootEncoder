@@ -24,7 +24,6 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-import static android.hardware.camera2.CameraCharacteristics.LENS_FACING;
 import static android.hardware.camera2.CameraMetadata.LENS_FACING_BACK;
 import static android.hardware.camera2.CameraMetadata.LENS_FACING_FRONT;
 
@@ -197,7 +196,7 @@ public class Camera2ApiManager extends CameraDevice.StateCallback {
     try {
       final CameraCharacteristics cameraCharacteristics =
           cameraManager.getCameraCharacteristics("0");
-      if (cameraCharacteristics.get(LENS_FACING) == cameraFacing) {
+      if (cameraCharacteristics.get(CameraCharacteristics.LENS_FACING) == cameraFacing) {
         openCameraId(0);
       } else {
         openCameraId(1);

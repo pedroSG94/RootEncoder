@@ -144,15 +144,12 @@ public abstract class Camera2Base
       mediaMuxer = new MediaMuxer(path, MediaMuxer.OutputFormat.MUXER_OUTPUT_MPEG_4);
       if (videoFormat != null) {
         videoTrack = mediaMuxer.addTrack(videoFormat);
-        Log.e("Pedro", "video");
       }
       if (audioFormat != null) {
         audioTrack = mediaMuxer.addTrack(audioFormat);
-        Log.e("Pedro", "audio");
       }
       mediaMuxer.start();
       recording = true;
-      Log.e("Pedro", "started");
     } else {
       throw new IOException("Need be called while stream");
     }
