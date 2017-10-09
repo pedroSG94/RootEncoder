@@ -35,13 +35,20 @@ public class TextureModeRtspActivity extends AppCompatActivity
     super.onCreate(savedInstanceState);
     getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
     setContentView(R.layout.activity_texture_mode);
-    textureView = (AutoFitTextureView) findViewById(R.id.textureView);
+    bindViews();
+  }
+
+  private void bindViews() {
     button = (Button) findViewById(R.id.b_start_stop);
     button.setOnClickListener(this);
     etUrl = (EditText) findViewById(R.id.et_rtp_url);
     etUrl.setHint(R.string.hint_rtsp);
-    rtspCamera2 = new RtspCamera2(textureView, this);
+    textureView = (AutoFitTextureView) findViewById(R.id.textureView);
     textureView.setSurfaceTextureListener(surfaceTextureListener);
+  }
+
+  protected void prepareRtpCamera() {
+    rtspCamera2 = new RtspCamera2(textureView, this);
   }
 
   @Override
@@ -129,6 +136,7 @@ public class TextureModeRtspActivity extends AppCompatActivity
 
         @Override
         public void onSurfaceTextureAvailable(SurfaceTexture surface, int width, int height) {
+          prepareRtpCamera();
           textureView.setAspectRatio(480, 640);
           rtspCamera2.startPreview();
           // optionally:

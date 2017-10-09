@@ -4,12 +4,13 @@ import android.content.Context;
 import android.media.MediaCodec;
 import android.os.Build;
 import android.support.annotation.RequiresApi;
+import android.view.Surface;
 import android.view.SurfaceView;
 import android.view.TextureView;
 
 import com.pedro.rtplibrary.base.Camera2Base;
-
 import com.pedro.rtplibrary.view.OpenGlView;
+
 import net.ossrs.rtmp.ConnectCheckerRtmp;
 import net.ossrs.rtmp.SrsFlvMuxer;
 
@@ -26,23 +27,34 @@ public class RtmpCamera2 extends Camera2Base {
 
   private SrsFlvMuxer srsFlvMuxer;
 
+
+
+  public RtmpCamera2(Context context, ConnectCheckerRtmp connectChecker) {
+    super(context);
+    initialize(connectChecker);
+  }
+
+  public RtmpCamera2(Context context, Surface surfacePreview, ConnectCheckerRtmp connectChecker) {
+    super(surfacePreview, context);
+    initialize(connectChecker);
+  }
+
   public RtmpCamera2(SurfaceView surfaceView, ConnectCheckerRtmp connectChecker) {
-    super(surfaceView, surfaceView.getContext());
-    srsFlvMuxer = new SrsFlvMuxer(connectChecker);
+    super(getSurfaceFactory(surfaceView), surfaceView.getContext());
+    initialize(connectChecker);
   }
 
   public RtmpCamera2(TextureView textureView, ConnectCheckerRtmp connectChecker) {
-    super(textureView, textureView.getContext());
-    srsFlvMuxer = new SrsFlvMuxer(connectChecker);
+    super(getSurfaceFactory(textureView), textureView.getContext());
+    initialize(connectChecker);
   }
 
   public RtmpCamera2(OpenGlView openGlView, ConnectCheckerRtmp connectChecker) {
     super(openGlView, openGlView.getContext());
-    srsFlvMuxer = new SrsFlvMuxer(connectChecker);
+    initialize(connectChecker);
   }
 
-  public RtmpCamera2(Context context, ConnectCheckerRtmp connectChecker) {
-    super(context);
+  private void initialize(ConnectCheckerRtmp connectChecker) {
     srsFlvMuxer = new SrsFlvMuxer(connectChecker);
   }
 

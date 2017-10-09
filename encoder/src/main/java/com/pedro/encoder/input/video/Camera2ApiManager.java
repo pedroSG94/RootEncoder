@@ -1,7 +1,6 @@
 package com.pedro.encoder.input.video;
 
 import android.content.Context;
-import android.graphics.SurfaceTexture;
 import android.hardware.camera2.CameraAccessException;
 import android.hardware.camera2.CameraCaptureSession;
 import android.hardware.camera2.CameraCharacteristics;
@@ -16,8 +15,6 @@ import android.support.annotation.NonNull;
 import android.support.annotation.RequiresApi;
 import android.util.Log;
 import android.view.Surface;
-import android.view.SurfaceView;
-import android.view.TextureView;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -45,8 +42,6 @@ public class Camera2ApiManager extends CameraDevice.StateCallback {
   private final String TAG = "Camera2ApiManager";
 
   private CameraDevice cameraDevice;
-  private SurfaceView surfaceView;
-  private TextureView textureView;
   private Surface surfacePreview; //input surfacePreview from TextureManager
   private Surface surfaceEncoder; //input surfaceEncoder from videoEncoder
   private CameraManager cameraManager;
@@ -54,20 +49,13 @@ public class Camera2ApiManager extends CameraDevice.StateCallback {
   private CameraCaptureSession cameraCaptureSession;
   private boolean prepared = false;
   private int cameraId = -1;
-  private Surface preview;
 
   public Camera2ApiManager(Context context) {
     cameraManager = (CameraManager) context.getSystemService(Context.CAMERA_SERVICE);
   }
 
-  public void prepareCamera(SurfaceView surfaceView, Surface surface) {
-    this.surfaceView = surfaceView;
-    this.surfaceEncoder = surface;
-    prepared = true;
-  }
-
-  public void prepareCamera(TextureView textureView, Surface surface) {
-    this.textureView = textureView;
+  public void prepareCamera(Surface surfacePreview, Surface surface) {
+    this.surfacePreview = surfacePreview;
     this.surfaceEncoder = surface;
     prepared = true;
   }
@@ -88,9 +76,8 @@ public class Camera2ApiManager extends CameraDevice.StateCallback {
   private void startPreview(CameraDevice cameraDevice) {
     try {
       List<Surface> listSurfaces = new ArrayList<>();
-      preview = addPreviewSurface();
-      if (preview != null) {
-        listSurfaces.add(preview);
+      if (surfacePreview != null) {
+        listSurfaces.add(surfacePreview);
       }
       if (surfaceEncoder != null) {
         listSurfaces.add(surfaceEncoder);
@@ -100,17 +87,16 @@ public class Camera2ApiManager extends CameraDevice.StateCallback {
         public void onConfigured(@NonNull CameraCaptureSession cameraCaptureSession) {
           Camera2ApiManager.this.cameraCaptureSession = cameraCaptureSession;
           try {
-            if (surfaceView != null || textureView != null) {
-              cameraCaptureSession.setRepeatingBurst(
-                  Arrays.asList(drawPreview(preview), drawInputSurface(surfaceEncoder)), null,
-                  cameraHandler);
-            } else if (surfacePreview != null) {
-              cameraCaptureSession.setRepeatingBurst(
-                  Collections.singletonList(drawPreview(preview)), null, cameraHandler);
-            } else {
-              cameraCaptureSession.setRepeatingBurst(
-                  Collections.singletonList(drawInputSurface(surfaceEncoder)), null, cameraHandler);
+            List<CaptureRequest> captureRequests = new ArrayList<>();
+            if (surfacePreview != null) {
+              captureRequests.add(drawPreview(surfacePreview));
             }
+            if (surfaceEncoder != null) {
+              captureRequests.add(drawInputSurface(surfaceEncoder));
+            }
+            cameraCaptureSession.setRepeatingBurst(
+                captureRequests,
+                null, cameraHandler);
             Log.i(TAG, "camera configured");
           } catch (CameraAccessException | NullPointerException e) {
             e.printStackTrace();
@@ -126,19 +112,6 @@ public class Camera2ApiManager extends CameraDevice.StateCallback {
     } catch (CameraAccessException e) {
       e.printStackTrace();
     }
-  }
-
-  private Surface addPreviewSurface() {
-    Surface surface = null;
-    if (surfaceView != null) {
-      surface = surfaceView.getHolder().getSurface();
-    } else if (textureView != null) {
-      final SurfaceTexture texture = textureView.getSurfaceTexture();
-      surface = new Surface(texture);
-    } else if (surfacePreview != null) {
-      surface = this.surfacePreview;
-    }
-    return surface;
   }
 
   private CaptureRequest drawPreview(Surface surface) {
@@ -235,12 +208,9 @@ public class Camera2ApiManager extends CameraDevice.StateCallback {
     if (reOpen) {
       try {
         cameraCaptureSession.stopRepeating();
-        if (surfaceView != null || textureView != null) {
-          cameraCaptureSession.setRepeatingBurst(Collections.singletonList(drawPreview(preview)),
-              null, cameraHandler);
-        } else if (surfacePreview != null) {
-          cameraCaptureSession.setRepeatingBurst(Collections.singletonList(drawPreview(preview)),
-              null, cameraHandler);
+        if (surfacePreview != null) {
+          cameraCaptureSession.setRepeatingBurst(
+              Collections.singletonList(drawPreview(surfacePreview)), null, cameraHandler);
         }
       } catch (CameraAccessException e) {
         e.printStackTrace();
