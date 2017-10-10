@@ -12,9 +12,9 @@ import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import com.pedro.encoder.input.gl.SurfaceManager;
 import com.pedro.encoder.input.gl.TextureManagerWatermark;
-import com.pedro.encoder.utils.gl.TextStreamObject;
 import com.pedro.encoder.utils.gl.GifStreamObject;
 import com.pedro.encoder.utils.gl.ImageStreamObject;
+import com.pedro.encoder.utils.gl.TextStreamObject;
 import java.util.concurrent.Semaphore;
 
 /**
@@ -40,6 +40,12 @@ public class OpenGlView extends SurfaceView
   private final Object sync = new Object();
   private int previewWidth, previewHeight;
   private int encoderWidth, encoderHeight;
+  private boolean loadStreamObject = false;
+
+  private TextStreamObject textStreamObject;
+  private ImageStreamObject imageStreamObject;
+  private GifStreamObject gifStreamObject;
+  private Surface surface;
 
   public OpenGlView(Context context, AttributeSet attrs) {
     super(context, attrs);
@@ -56,6 +62,7 @@ public class OpenGlView extends SurfaceView
 
   public void addMediaCodecSurface(Surface surface) {
     synchronized (sync) {
+      this.surface = surface;
       surfaceManagerEncoder = new SurfaceManager(surface, surfaceManager);
     }
   }
@@ -75,15 +82,24 @@ public class OpenGlView extends SurfaceView
   }
 
   public void setGif(GifStreamObject gifStreamObject) {
-    textureManager.setGif(gifStreamObject);
+    this.gifStreamObject = gifStreamObject;
+    this.imageStreamObject = null;
+    this.textStreamObject = null;
+    loadStreamObject = true;
   }
 
   public void setImage(ImageStreamObject imageStreamObject) {
-    textureManager.setImage(imageStreamObject);
+    this.imageStreamObject = imageStreamObject;
+    this.gifStreamObject = null;
+    this.textStreamObject = null;
+    loadStreamObject = true;
   }
 
   public void setText(TextStreamObject textStreamObject) {
-    textureManager.setText(textStreamObject);
+    this.textStreamObject = textStreamObject;
+    this.gifStreamObject = null;
+    this.imageStreamObject = null;
+    loadStreamObject = true;
   }
 
   public void startGLThread() {
@@ -125,12 +141,28 @@ public class OpenGlView extends SurfaceView
           sync.wait(2500);
           if (frameAvailable) {
             frameAvailable = false;
-
             surfaceManager.makeCurrent();
+            //need load a stream object
+            if (loadStreamObject) {
+              if (textStreamObject != null) {
+                textureManager.setText(textStreamObject);
+              } else if (imageStreamObject != null) {
+                textureManager.setImage(imageStreamObject);
+              } else if (gifStreamObject != null) {
+                textureManager.setGif(gifStreamObject);
+              }
+            }
             textureManager.updateFrame();
             textureManager.drawFrame(previewWidth, previewHeight);
             surfaceManager.swapBuffer();
-
+            //stream object loaded but you need reset surfaceManagerEncoder
+            if (loadStreamObject) {
+              surfaceManagerEncoder.release();
+              surfaceManagerEncoder = null;
+              addMediaCodecSurface(surface);
+              loadStreamObject = false;
+              continue;
+            }
             if (surfaceManagerEncoder != null) {
               surfaceManagerEncoder.makeCurrent();
               textureManager.drawFrame(encoderWidth, encoderHeight);

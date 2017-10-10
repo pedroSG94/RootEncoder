@@ -8,11 +8,9 @@ import android.media.MediaFormat;
 import android.media.MediaMuxer;
 import android.os.Build;
 import android.support.annotation.RequiresApi;
-import android.util.Log;
 import android.view.Surface;
 import android.view.SurfaceView;
 import android.view.TextureView;
-
 import com.pedro.encoder.audio.AudioEncoder;
 import com.pedro.encoder.audio.GetAacData;
 import com.pedro.encoder.input.audio.GetMicrophoneData;
@@ -28,7 +26,6 @@ import com.pedro.encoder.video.FormatVideoEncoder;
 import com.pedro.encoder.video.GetH264Data;
 import com.pedro.encoder.video.VideoEncoder;
 import com.pedro.rtplibrary.view.OpenGlView;
-
 import java.io.IOException;
 import java.nio.ByteBuffer;
 
@@ -284,9 +281,7 @@ public abstract class Camera2Base
 
   public void setGif(GifStreamObject gifStreamObject) throws RuntimeException {
     if (openGlView != null) {
-      stopOpenGlRender();
       openGlView.setGif(gifStreamObject);
-      startOpenGlRender();
     } else {
       throw new RuntimeException("You must use OpenGlView in the constructor to set a gif");
     }
@@ -294,9 +289,7 @@ public abstract class Camera2Base
 
   public void setImage(ImageStreamObject imageStreamObject) throws RuntimeException {
     if (openGlView != null) {
-      stopOpenGlRender();
       openGlView.setImage(imageStreamObject);
-      startOpenGlRender();
     } else {
       throw new RuntimeException("You must use OpenGlView in the constructor to set a image");
     }
@@ -304,9 +297,7 @@ public abstract class Camera2Base
 
   public void setText(TextStreamObject textStreamObject) throws RuntimeException {
     if (openGlView != null) {
-      stopOpenGlRender();
       openGlView.setText(textStreamObject);
-      startOpenGlRender();
     } else {
       throw new RuntimeException("You must use OpenGlView in the constructor to set a text");
     }

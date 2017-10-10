@@ -135,4 +135,20 @@ public class SurfaceManager {
     eglContext = EGL14.EGL_NO_CONTEXT;
     eglSurface = EGL14.EGL_NO_SURFACE;
   }
+
+  public EGLContext getEglContext() {
+    return eglContext;
+  }
+
+  public EGLContext getEglSharedContext() {
+    return eglSharedContext;
+  }
+
+  public EGLSurface getEglSurface() {
+    return eglSurface;
+  }
+
+  public EGLDisplay getEglDisplay() {
+    return eglDisplay;
+  }
 }

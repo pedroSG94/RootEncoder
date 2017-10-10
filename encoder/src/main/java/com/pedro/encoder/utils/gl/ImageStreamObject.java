@@ -9,7 +9,7 @@ import java.io.IOException;
  * Created by pedro on 23/09/17.
  */
 
-public class ImageStreamObject {
+public class ImageStreamObject extends StreamObjectBase {
 
   private static final String TAG = "ImageStreamObject";
 
@@ -30,24 +30,33 @@ public class ImageStreamObject {
     Log.i(TAG, "finish load image!!!");
   }
 
+  @Override
   public void resize(int width, int height) {
     imageBitmap = Bitmap.createScaledBitmap(imageBitmap, width, height, false);
   }
 
+  @Override
   public void setPosition(int positionX, int positionY) {
     WatermarkUtil watermarkUtil = new WatermarkUtil(streamWidth, streamHeight);
     imageBitmap = watermarkUtil.createWatermarkBitmap(imageBitmap, positionX, positionY);
   }
 
+  @Override
   public void recycle() {
     imageBitmap.recycle();
   }
 
+  @Override
   public int getNumFrames() {
     return numFrames;
   }
 
   public Bitmap getImageBitmap() {
     return imageBitmap;
+  }
+
+  @Override
+  public int updateFrame() {
+    return 0;
   }
 }

@@ -11,7 +11,7 @@ import java.io.IOException;
  * Created by pedro on 23/09/17.
  */
 
-public class TextStreamObject {
+public class TextStreamObject extends StreamObjectBase {
 
   private static final String TAG = "TextStreamObject";
 
@@ -32,15 +32,18 @@ public class TextStreamObject {
     Log.i(TAG, "finish load text!!!");
   }
 
+  @Override
   public void resize(int width, int height) {
     imageBitmap = Bitmap.createScaledBitmap(imageBitmap, width, height, false);
   }
 
+  @Override
   public void setPosition(int positionX, int positionY) {
     WatermarkUtil watermarkUtil = new WatermarkUtil(streamWidth, streamHeight);
     imageBitmap = watermarkUtil.createWatermarkBitmap(imageBitmap, positionX, positionY);
   }
 
+  @Override
   public void recycle() {
     imageBitmap.recycle();
   }
@@ -59,11 +62,17 @@ public class TextStreamObject {
     return image;
   }
 
+  @Override
   public int getNumFrames() {
     return numFrames;
   }
 
   public Bitmap getImageBitmap() {
     return imageBitmap;
+  }
+
+  @Override
+  public int updateFrame() {
+    return 0;
   }
 }

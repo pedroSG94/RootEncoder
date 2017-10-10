@@ -4,16 +4,16 @@ import android.content.Context;
 import android.graphics.SurfaceTexture;
 import android.opengl.GLES11Ext;
 import android.opengl.GLES20;
-import android.opengl.GLUtils;
 import android.opengl.Matrix;
 import android.os.Build;
 import android.support.annotation.RequiresApi;
 import android.view.Surface;
 import com.pedro.encoder.R;
-import com.pedro.encoder.utils.gl.TextStreamObject;
-import com.pedro.encoder.utils.gl.GlUtil;
 import com.pedro.encoder.utils.gl.GifStreamObject;
+import com.pedro.encoder.utils.gl.GlUtil;
 import com.pedro.encoder.utils.gl.ImageStreamObject;
+import com.pedro.encoder.utils.gl.StreamObjectBase;
+import com.pedro.encoder.utils.gl.TextStreamObject;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.FloatBuffer;
@@ -57,15 +57,10 @@ public class TextureManagerWatermark {
 
   private SurfaceTexture surfaceTexture;
   private Surface surface;
-  //gif
-  private int[] gifTexturesId;
-  private GifStreamObject gifStreamObject;
-  //image
-  private int[] imageTextureId = new int[1];
-  private ImageStreamObject imageStreamObject;
   //text
-  private int[] textTextureId = new int[1];
-  private TextStreamObject textStreamObject;
+  private int[] streamObjectTextureId = null;
+  private StreamObjectBase streamObjectBase = null;
+  private TextureLoader textureLoader = new TextureLoader();
 
   public TextureManagerWatermark(Context context) {
     this.context = context;
@@ -124,15 +119,12 @@ public class TextureManagerWatermark {
     GLES20.glActiveTexture(GLES20.GL_TEXTURE0);
     GLES20.glBindTexture(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, textureID);
     // watermark
-    GLES20.glUniform1i(waterMarkHandle, 2);
-    GLES20.glActiveTexture(GLES20.GL_TEXTURE2);
+    GLES20.glUniform1i(waterMarkHandle, 1);
+    GLES20.glActiveTexture(GLES20.GL_TEXTURE1);
 
-    if (gifStreamObject != null) {
-      GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, gifTexturesId[gifStreamObject.updateGifFrame()]);
-    } else if (imageStreamObject != null) {
-      GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, imageTextureId[0]);
-    } else if (textStreamObject != null) {
-      GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, textTextureId[0]);
+    if (streamObjectTextureId != null) {
+      GLES20.glBindTexture(GLES20.GL_TEXTURE_2D,
+          streamObjectTextureId[streamObjectBase.updateFrame()]);
     }
     //draw
     GLES20.glDrawArrays(GLES20.GL_TRIANGLE_STRIP, 0, 4);
@@ -158,15 +150,6 @@ public class TextureManagerWatermark {
     GlUtil.createExternalTextures(1, texturesID, 0);
     textureID = texturesID[0];
 
-    //watermark
-    if (gifStreamObject != null) {
-      loadGif(gifStreamObject);
-    } else if (imageStreamObject != null) {
-      loadImage(imageStreamObject);
-    } else if (textStreamObject != null) {
-      loadText(textStreamObject);
-    }
-
     GlUtil.checkGlError("glTexParameter");
     surfaceTexture = new SurfaceTexture(textureID);
     surface = new Surface(surfaceTexture);
@@ -175,50 +158,28 @@ public class TextureManagerWatermark {
   public void release() {
     surfaceTexture = null;
     surface = null;
-    imageStreamObject = null;
-    textStreamObject = null;
-    gifStreamObject = null;
+    streamObjectTextureId = null;
+    streamObjectBase = null;
   }
 
   public void setImage(ImageStreamObject imageStreamObject) {
-    this.imageStreamObject = imageStreamObject;
-    textStreamObject = null;
-    gifStreamObject = null;
-  }
-
-  private void loadImage(ImageStreamObject imageStreamObject) {
-    GlUtil.createTextures(imageStreamObject.getNumFrames(), imageTextureId, 0);
-    GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, imageTextureId[0]);
-    GLUtils.texImage2D(GLES20.GL_TEXTURE_2D, 0, imageStreamObject.getImageBitmap(), 0);
-    imageStreamObject.recycle();
+    streamObjectTextureId = null;
+    streamObjectBase = imageStreamObject;
+    textureLoader.setImageStreamObject(imageStreamObject);
+    streamObjectTextureId = textureLoader.load();
   }
 
   public void setText(TextStreamObject textStreamObject) {
-    this.textStreamObject = textStreamObject;
-    imageStreamObject = null;
-    gifStreamObject = null;
-  }
-
-  private void loadText(TextStreamObject textStreamObject) {
-    GlUtil.createTextures(textStreamObject.getNumFrames(), textTextureId, 0);
-    GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, textTextureId[0]);
-    GLUtils.texImage2D(GLES20.GL_TEXTURE_2D, 0, textStreamObject.getImageBitmap(), 0);
-    textStreamObject.recycle();
+    streamObjectTextureId = null;
+    streamObjectBase = textStreamObject;
+    textureLoader.setTextStreamObject(textStreamObject);
+    streamObjectTextureId = textureLoader.load();
   }
 
   public void setGif(GifStreamObject gifStreamObject) {
-    this.gifStreamObject = gifStreamObject;
-    textStreamObject = null;
-    imageStreamObject = null;
-  }
-
-  private void loadGif(GifStreamObject gifStreamObject) {
-    gifTexturesId = new int[gifStreamObject.getNumFrames()];
-    GlUtil.createTextures(gifStreamObject.getNumFrames(), gifTexturesId, 0);
-    for (int i = 0; i < gifStreamObject.getNumFrames(); i++) {
-      GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, gifTexturesId[i]);
-      GLUtils.texImage2D(GLES20.GL_TEXTURE_2D, 0, gifStreamObject.getGifBitmaps()[i], 0);
-    }
-    gifStreamObject.recycle();
+    streamObjectTextureId = null;
+    streamObjectBase = gifStreamObject;
+    textureLoader.setGifStreamObject(gifStreamObject);
+    streamObjectTextureId = textureLoader.load();
   }
 }

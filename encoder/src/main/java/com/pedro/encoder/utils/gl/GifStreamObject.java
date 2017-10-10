@@ -11,7 +11,7 @@ import java.io.InputStream;
  * Created by pedro on 22/09/17.
  */
 
-public class GifStreamObject {
+public class GifStreamObject extends StreamObjectBase {
 
   private static final String TAG = "GifStreamObject";
 
@@ -47,7 +47,43 @@ public class GifStreamObject {
     }
   }
 
-  public int updateGifFrame() {
+  @Override
+  public void resize(int width, int height) {
+    for (int i = 0; i < numFrames; i++) {
+      gifBitmaps[i] = Bitmap.createScaledBitmap(gifBitmaps[i], width, height, false);
+    }
+  }
+
+  @Override
+  public void setPosition(int positionX, int positionY) {
+    WatermarkUtil watermarkUtil = new WatermarkUtil(streamWidth, streamHeight);
+    for (int i = 0; i < numFrames; i++) {
+      gifBitmaps[i] = watermarkUtil.createWatermarkBitmap(gifBitmaps[i], positionX, positionY);
+    }
+  }
+
+  @Override
+  public void recycle() {
+    for (int i = 0; i < numFrames; i++) {
+      gifBitmaps[i].recycle();
+    }
+  }
+
+  @Override
+  public int getNumFrames() {
+    return numFrames;
+  }
+
+  public int[] getGifDelayFrames() {
+    return gifDelayFrames;
+  }
+
+  public Bitmap[] getGifBitmaps() {
+    return gifBitmaps;
+  }
+
+  @Override
+  public int updateFrame() {
     if (startDelayFrame == 0) {
       startDelayFrame = System.currentTimeMillis();
     }
@@ -60,36 +96,5 @@ public class GifStreamObject {
       startDelayFrame = 0;
     }
     return currentGifFrame;
-  }
-
-  public void resize(int width, int height) {
-    for (int i = 0; i < numFrames; i++) {
-      gifBitmaps[i] = Bitmap.createScaledBitmap(gifBitmaps[i], width, height, false);
-    }
-  }
-
-  public void setPosition(int positionX, int positionY) {
-    WatermarkUtil watermarkUtil = new WatermarkUtil(streamWidth, streamHeight);
-    for (int i = 0; i < numFrames; i++) {
-      gifBitmaps[i] = watermarkUtil.createWatermarkBitmap(gifBitmaps[i], positionX, positionY);
-    }
-  }
-
-  public void recycle() {
-    for (int i = 0; i < numFrames; i++) {
-      gifBitmaps[i].recycle();
-    }
-  }
-
-  public int getNumFrames() {
-    return numFrames;
-  }
-
-  public int[] getGifDelayFrames() {
-    return gifDelayFrames;
-  }
-
-  public Bitmap[] getGifBitmaps() {
-    return gifBitmaps;
   }
 }

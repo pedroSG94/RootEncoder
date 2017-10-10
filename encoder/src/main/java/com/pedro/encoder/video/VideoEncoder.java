@@ -8,10 +8,8 @@ import android.media.MediaCodec;
 import android.media.MediaCodecInfo;
 import android.media.MediaCodecList;
 import android.media.MediaFormat;
-import android.media.MediaMuxer;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.Environment;
 import android.os.Process;
 import android.support.annotation.RequiresApi;
 import android.util.Log;
@@ -203,7 +201,8 @@ public class VideoEncoder implements GetCameraData {
       mPresentTimeUs = System.nanoTime() / 1000;
       videoEncoder.start();
       //surface to buffer
-      if (formatVideoEncoder == FormatVideoEncoder.SURFACE && Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
+      if (formatVideoEncoder == FormatVideoEncoder.SURFACE
+          && Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
         if (Build.VERSION.SDK_INT >= 21) {
           getDataFromSurfaceAPI21();
         } else {

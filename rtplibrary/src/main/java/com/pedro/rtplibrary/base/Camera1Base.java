@@ -276,9 +276,7 @@ public abstract class Camera1Base
   @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
   public void setGif(GifStreamObject gifStreamObject) throws RuntimeException {
     if (openGlView != null) {
-      stopOpenGlRender();
       openGlView.setGif(gifStreamObject);
-      startOpenGlRender();
     } else {
       throw new RuntimeException("You must use OpenGlView in the constructor to set a gif");
     }
@@ -287,9 +285,7 @@ public abstract class Camera1Base
   @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
   public void setImage(ImageStreamObject imageStreamObject) throws RuntimeException {
     if (openGlView != null) {
-      stopOpenGlRender();
       openGlView.setImage(imageStreamObject);
-      startOpenGlRender();
     } else {
       throw new RuntimeException("You must use OpenGlView in the constructor to set a image");
     }
@@ -298,9 +294,7 @@ public abstract class Camera1Base
   @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
   public void setText(TextStreamObject textStreamObject) throws RuntimeException {
     if (openGlView != null) {
-      stopOpenGlRender();
       openGlView.setText(textStreamObject);
-      startOpenGlRender();
     } else {
       throw new RuntimeException("You must use OpenGlView in the constructor to set a text");
     }
