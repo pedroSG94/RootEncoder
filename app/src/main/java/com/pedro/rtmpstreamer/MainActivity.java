@@ -17,10 +17,8 @@ import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.BaseAdapter;
 import android.widget.GridView;
-import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
-
 import com.pedro.rtmpstreamer.customexample.RtmpActivity;
 import com.pedro.rtmpstreamer.customexample.RtspActivity;
 import com.pedro.rtmpstreamer.defaultexample.ExampleRtmpActivity;
@@ -33,15 +31,14 @@ import com.pedro.rtmpstreamer.surfacemodeexample.SurfaceModeRtmpActivity;
 import com.pedro.rtmpstreamer.surfacemodeexample.SurfaceModeRtspActivity;
 import com.pedro.rtmpstreamer.texturemodeexample.TextureModeRtmpActivity;
 import com.pedro.rtmpstreamer.texturemodeexample.TextureModeRtspActivity;
-
 import java.util.ArrayList;
 import java.util.List;
 
 import static android.os.Build.VERSION_CODES.JELLY_BEAN;
 import static android.os.Build.VERSION_CODES.JELLY_BEAN_MR2;
 import static android.os.Build.VERSION_CODES.LOLLIPOP;
-import static android.widget.LinearLayout.LayoutParams.MATCH_PARENT;
-import static android.widget.LinearLayout.LayoutParams.WRAP_CONTENT;
+import static android.view.ViewGroup.LayoutParams.MATCH_PARENT;
+import static android.view.ViewGroup.LayoutParams.WRAP_CONTENT;
 
 public class MainActivity extends AppCompatActivity implements AdapterView.OnItemClickListener {
 
@@ -59,7 +56,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
     setContentView(R.layout.activity_main);
     overridePendingTransition(R.transition.slide_in, R.transition.slide_out);
 
-    list = (GridView) findViewById(android.R.id.list);
+    list = (GridView) findViewById(R.id.list);
     createList();
     setListAdapter(activities);
 
@@ -180,7 +177,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
     }
   }
 
-  public static class ImageAdapter extends BaseAdapter {
+  public class ImageAdapter extends BaseAdapter {
     private List<ActivityLink> links;
 
     public ImageAdapter(List<ActivityLink> links) {
@@ -199,19 +196,19 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
       return (long) position;
     }
 
+    @Override
     public View getView(int position, View convertView, ViewGroup parent) {
       TextView button;
       Resources resources = parent.getResources();
       float fontSize = resources.getDimension(R.dimen.menu_font);
       int padding_h = resources.getDimensionPixelSize(R.dimen.grid_2);
       int padding_v = resources.getDimensionPixelSize(R.dimen.grid_5);
-      LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(MATCH_PARENT, WRAP_CONTENT);
       if (convertView == null) {
         button = new TextView(parent.getContext());
         button.setTextSize(TypedValue.COMPLEX_UNIT_PX, fontSize);
         button.setTextColor(ResourcesCompat.getColor(resources, R.color.white, null));
         button.setBackgroundColor(ResourcesCompat.getColor(resources, R.color.appColor, null));
-        button.setLayoutParams(params);
+        button.setLayoutParams(new GridView.LayoutParams(MATCH_PARENT, WRAP_CONTENT));
         button.setPadding(padding_h, padding_v, padding_h, padding_v);
         button.setGravity(Gravity.CENTER);
         convertView = button;
