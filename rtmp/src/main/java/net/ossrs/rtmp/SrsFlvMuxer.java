@@ -792,7 +792,7 @@ public class SrsFlvMuxer {
           }
         }
 
-        if (!frame_pps.data.equals(Pps)) {
+        if (frame_pps.size > 0 && !frame_pps.data.equals(Pps)) {
           byte[] pps = new byte[frame_pps.size];
           frame_pps.data.get(pps);
           isPpsSpsSend = false;
