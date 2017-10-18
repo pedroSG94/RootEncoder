@@ -168,7 +168,7 @@ public class RtspClient {
             writer.write(sendAnnounce());
             writer.flush();
             //check if you need credential for stream, if you need try connect with credential
-            String response = getResponse(false);
+            String response = getResponse(false, false);
             int status = getResponseStatus(response);
             if (status == 403) {
               connectCheckerRtsp.onConnectionFailedRtsp();
@@ -181,23 +181,28 @@ public class RtspClient {
               } else {
                 writer.write(sendAnnounceWithAuth(response));
                 writer.flush();
-                if (getResponseStatus(getResponse(false)) == 401) {
+                int statusAuth = getResponseStatus(getResponse(false, false));
+                if (statusAuth == 401) {
                   connectCheckerRtsp.onAuthErrorRtsp();
                   return;
-                } else {
+                } else if (statusAuth == 200){
                   connectCheckerRtsp.onAuthSuccessRtsp();
+                } else {
+                  connectCheckerRtsp.onConnectionFailedRtsp();
                 }
               }
+            } else if (status != 200) {
+              connectCheckerRtsp.onConnectionFailedRtsp();
             }
             writer.write(sendSetup(trackAudio, protocol));
             writer.flush();
-            getResponse(true);
+            getResponse(true, true);
             writer.write(sendSetup(trackVideo, protocol));
             writer.flush();
-            getResponse(false);
+            getResponse(false, true);
             writer.write(sendRecord());
             writer.flush();
-            getResponse(false);
+            getResponse(false, true);
 
             h264Packet.updateDestinationVideo();
             aacPacket.updateDestinationAudio();
@@ -223,7 +228,7 @@ public class RtspClient {
           // We poll the RTSP server with OPTION requests
           writer.write(sendOptions());
           writer.flush();
-          getResponse(false);
+          getResponse(false, true);
           Thread.sleep(6000);
           new Thread(connectionMonitor).start();
         } catch (IOException | InterruptedException e) {
@@ -260,9 +265,9 @@ public class RtspClient {
 
   private String sendAnnounce() {
     String body = createBody();
-    String request;
+    String announce;
     if (authorization == null) {
-      request = "ANNOUNCE rtsp://"
+      announce = "ANNOUNCE rtsp://"
           + host
           + ":"
           + port
@@ -277,7 +282,7 @@ public class RtspClient {
           + "Content-Type: application/sdp\r\n\r\n"
           + body;
     } else {
-      request = "ANNOUNCE rtsp://"
+      announce = "ANNOUNCE rtsp://"
           + host
           + ":"
           + port
@@ -295,7 +300,8 @@ public class RtspClient {
           + "Content-Type: application/sdp\r\n\r\n"
           + body;
     }
-    return request;
+    Log.i(TAG, announce);
+    return announce;
   }
 
   private String createBody() {
@@ -335,8 +341,8 @@ public class RtspClient {
     String params =
         (protocol == Protocol.UDP) ? ("UDP;unicast;client_port=" + (5000 + 2 * track) + "-" + (5000
             + 2 * track
-            + 1) + ";mode=receive") : ("TCP;interleaved=" + 2 * track + "-" + (2 * track + 1));
-    return "SETUP rtsp://"
+            + 1) + ";mode=record") : ("TCP;interleaved=" + 2 * track + "-" + (2 * track + 1) + ";mode=record");
+    String setup = "SETUP rtsp://"
         + host
         + ":"
         + port
@@ -348,15 +354,19 @@ public class RtspClient {
         + params
         + "\r\n"
         + addHeaders(authorization);
+    Log.i(TAG, setup);
+    return setup;
   }
 
   private String sendOptions() {
-    return "OPTIONS rtsp://" + host + ":" + port + path + " RTSP/1.0\r\n" + addHeaders(
+    String options = "OPTIONS rtsp://" + host + ":" + port + path + " RTSP/1.0\r\n" + addHeaders(
         authorization);
+    Log.i(TAG, options);
+    return options;
   }
 
   private String sendRecord() {
-    return "RECORD rtsp://"
+    String record = "RECORD rtsp://"
         + host
         + ":"
         + port
@@ -364,11 +374,15 @@ public class RtspClient {
         + " RTSP/1.0\r\n"
         + "Range: npt=0.000-\r\n"
         + addHeaders(authorization);
+    Log.i(TAG, record);
+    return record;
   }
 
   private String sendTearDown() {
-    return "TEARDOWN rtsp://" + host + ":" + port + path + " RTSP/1.0\r\n" + addHeaders(
+    String teardown = "TEARDOWN rtsp://" + host + ":" + port + path + " RTSP/1.0\r\n" + addHeaders(
         authorization);
+    Log.i(TAG, teardown);
+    return teardown;
   }
 
   private String addHeaders(String authorization) {
@@ -385,7 +399,7 @@ public class RtspClient {
         + "\r\n";
   }
 
-  private String getResponse(boolean isAudio) {
+  private String getResponse(boolean isAudio, boolean checkStatus) {
     try {
       String response = "";
       String line;
@@ -415,6 +429,9 @@ public class RtspClient {
         //end of response
         if (line.length() < 3) break;
       }
+      if (checkStatus && getResponseStatus(response) != 200){
+        connectCheckerRtsp.onConnectionFailedRtsp();
+      }
       Log.i(TAG, response);
       return response;
     } catch (IOException e) {
@@ -426,7 +443,7 @@ public class RtspClient {
     authorization = createAuth(authResponse);
     Log.i("Auth", authorization);
     String body = createBody();
-    String request = "ANNOUNCE rtsp://"
+    String announce = "ANNOUNCE rtsp://"
         + host
         + ":"
         + port
@@ -443,7 +460,8 @@ public class RtspClient {
         + "\r\n"
         + "Content-Type: application/sdp\r\n\r\n"
         + body;
-    return request;
+    Log.i(TAG, announce);
+    return announce;
   }
 
   private String createAuth(String authResponse) {
@@ -475,8 +493,8 @@ public class RtspClient {
   private int getResponseStatus(String response) {
     Matcher matcher =
         Pattern.compile("RTSP/\\d.\\d (\\d+) (\\w+)", Pattern.CASE_INSENSITIVE).matcher(response);
-    matcher.find();
-    return Integer.parseInt(matcher.group(1));
+    if (matcher.find()) return Integer.parseInt(matcher.group(1));
+    else return -1;
   }
 
   public int[] getAudioPorts() {

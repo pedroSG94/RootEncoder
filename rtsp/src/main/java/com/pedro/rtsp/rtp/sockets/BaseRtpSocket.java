@@ -40,7 +40,7 @@ public abstract class BaseRtpSocket implements Runnable {
       /*									 | ||  -----------------------> Source Identifier(0)	*/
 			/*									 | ||  |												*/
       mBuffers[i][0] = (byte) Integer.parseInt("10000000", 2);
-      mBuffers[i][1] = (byte) RtpConstants.playLoadType;
+      mBuffers[i][1] = (byte) RtpConstants.payloadType;
 
 			/* Byte 2,3        ->  Sequence Number                   */
 			/* Byte 4,5,6,7    ->  Timestamp                         */

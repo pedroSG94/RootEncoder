@@ -1,9 +1,8 @@
 package com.pedro.encoder.utils;
 
+import android.graphics.Bitmap;
 import android.media.MediaCodecInfo;
 import android.os.Environment;
-
-import android.util.Log;
 import com.pedro.encoder.video.FormatVideoEncoder;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -476,5 +475,13 @@ public class YUVUtil {
       }
     }
     return output;
+  }
+
+  public static byte[] bitmapToNV21(int inputWidth, int inputHeight, Bitmap bitmap) {
+    int [] argb = new int[inputWidth * inputHeight];
+    bitmap.getPixels(argb, 0, inputWidth, 0, 0, inputWidth, inputHeight);
+    byte [] yuv = ARGBtoYUV420SemiPlanar(argb, inputWidth, inputHeight);
+    bitmap.recycle();
+    return yuv;
   }
 }
