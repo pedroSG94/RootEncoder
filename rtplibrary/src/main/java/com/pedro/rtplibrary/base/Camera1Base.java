@@ -125,7 +125,10 @@ public abstract class Camera1Base
     }
   }
 
-  public abstract boolean prepareAudio();
+  public boolean prepareAudio() {
+    microphoneManager.createMicrophone();
+    return audioEncoder.prepareAudioEncoder();
+  }
 
   /*Need be called while stream*/
   @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)

@@ -58,12 +58,6 @@ public class RtmpCamera2 extends Camera2Base {
   }
 
   @Override
-  public boolean prepareAudio() {
-    microphoneManager.createMicrophone();
-    return audioEncoder.prepareAudioEncoder();
-  }
-
-  @Override
   protected void startStreamRtp(String url) {
     if (videoEncoder.getRotation() == 90 || videoEncoder.getRotation() == 270) {
       srsFlvMuxer.setVideoResolution(videoEncoder.getHeight(), videoEncoder.getWidth());

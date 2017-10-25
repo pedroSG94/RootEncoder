@@ -60,15 +60,6 @@ public class RtspCamera2 extends Camera2Base {
   }
 
   @Override
-  public boolean prepareAudio() {
-    microphoneManager.setSampleRate(16000);
-    audioEncoder.setSampleRate(16000);
-    microphoneManager.createMicrophone();
-    rtspClient.setSampleRate(microphoneManager.getSampleRate());
-    return audioEncoder.prepareAudioEncoder();
-  }
-
-  @Override
   protected void startStreamRtp(String url) {
     rtspClient.setUrl(url);
     if (!cameraManager.isPrepared()) {

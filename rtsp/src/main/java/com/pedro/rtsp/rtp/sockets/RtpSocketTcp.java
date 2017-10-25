@@ -58,12 +58,9 @@ public class RtpSocketTcp extends BaseRtpSocket implements Runnable {
   public void run() {
     try {
       while (mBufferCommitted.tryAcquire(4, TimeUnit.SECONDS)) {
-        senderReportTcp.update(lengths[mBufferOut],
-            (mTimestamps[mBufferOut] / 100L) * (mClock / 1000L) / 10000L);
-        if (mCount++ > 30) {
-          Log.i(TAG, "send packet, " + lengths[mBufferOut] + " Size");
-          sendTCP();
-        }
+        senderReportTcp.update(lengths[mBufferOut], mTimestamps[mBufferOut]);
+        Log.i(TAG, "send packet, " + lengths[mBufferOut] + " Size");
+        sendTCP();
         if (++mBufferOut >= mBufferCount) mBufferOut = 0;
         mBufferRequested.release();
       }

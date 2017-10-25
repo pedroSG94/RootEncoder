@@ -133,7 +133,10 @@ public abstract class Camera2Base
     return result;
   }
 
-  public abstract boolean prepareAudio();
+  public boolean prepareAudio() {
+    microphoneManager.createMicrophone();
+    return audioEncoder.prepareAudioEncoder();
+  }
 
   /*Need be called while stream*/
   public void startRecord(String path) throws IOException {

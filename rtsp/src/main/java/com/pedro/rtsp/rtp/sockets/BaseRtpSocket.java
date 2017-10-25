@@ -20,7 +20,6 @@ public abstract class BaseRtpSocket implements Runnable {
   protected long mClock = 0;
   protected int mSeq = 0;
   protected int mBufferCount, mBufferIn;
-  protected int mCount = 0;
 
   /**
    * This RTP socket implements a buffering mechanism relying on a FIFO of buffers and a Thread.
@@ -49,7 +48,6 @@ public abstract class BaseRtpSocket implements Runnable {
   }
 
   protected void resetFifo() {
-    mCount = 0;
     mBufferIn = 0;
     mBufferOut = 0;
     mTimestamps = new long[mBufferCount];
@@ -87,8 +85,9 @@ public abstract class BaseRtpSocket implements Runnable {
    * @param timestamp The new timestamp in ns.
    **/
   public void updateTimestamp(long timestamp) {
-    mTimestamps[mBufferIn] = timestamp;
-    setLong(mBuffers[mBufferIn], (timestamp / 100L) * (mClock / 1000L) / 10000L, 4, 8);
+    long ts = (timestamp / 100L) * (mClock / 1000L) / 10000L;
+    mTimestamps[mBufferIn] = ts;
+    setLong(mBuffers[mBufferIn], ts, 4, 8);
   }
 
   public void commitBuffer() throws IOException {

@@ -91,16 +91,13 @@ public class RtpSocketUdp extends BaseRtpSocket implements Runnable {
   public void run() {
     try {
       while (mBufferCommitted.tryAcquire(4, TimeUnit.SECONDS)) {
-        senderReportUdp.update(mPackets[mBufferOut].getLength(),
-            (mTimestamps[mBufferOut] / 100L) * (mClock / 1000L) / 10000L, mPort);
-        if (mCount++ > 30) {
-          Log.i(TAG, "send packet, "
-              + mPackets[mBufferOut].getLength()
-              + " Size, "
-              + mPackets[mBufferOut].getPort()
-              + " Port");
-          mSocket.send(mPackets[mBufferOut]);
-        }
+        senderReportUdp.update(mPackets[mBufferOut].getLength(), mTimestamps[mBufferOut], mPort);
+        Log.i(TAG, "send packet, "
+            + mPackets[mBufferOut].getLength()
+            + " Size, "
+            + mPackets[mBufferOut].getPort()
+            + " Port");
+        mSocket.send(mPackets[mBufferOut]);
         if (++mBufferOut >= mBufferCount) mBufferOut = 0;
         mBufferRequested.release();
       }

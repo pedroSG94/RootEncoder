@@ -34,7 +34,7 @@ public class RtspClient {
   private String host = "";
   private int port;
   private String path;
-  private int sampleRate = 16000;
+  private int sampleRate = 44100;
   private boolean isStereo = true;
 
   private final int trackVideo = 1;
@@ -260,6 +260,9 @@ public class RtspClient {
         h264Packet.close();
         aacPacket.close();
       }
+      mCSeq = 0;
+      sps = null;
+      pps = null;
     }
   }
 
@@ -330,8 +333,8 @@ public class RtspClient {
         + host
         + "\r\n"
         +
-        // thread=0 0 means the session is permanent (we don'thread know when it will stop)
-        "thread=0 0\r\n"
+        // means the session is permanent
+        "t=0 0\r\n"
         + "a=recvonly\r\n"
         + Body.createAudioBody(trackAudio, sampleRate, isStereo)
         + Body.createVideoBody(trackVideo, sSPS, sPPS);
