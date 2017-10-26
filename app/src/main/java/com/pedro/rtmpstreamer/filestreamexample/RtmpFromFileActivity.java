@@ -11,6 +11,7 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.pedro.rtmpstreamer.utils.PathUtils;
 import com.pedro.rtplibrary.rtmp.RtmpFromFile;
 import com.pedro.encoder.input.decoder.VideoDecoderInterface;
 import com.pedro.rtmpstreamer.R;
@@ -33,13 +34,13 @@ public class RtmpFromFileActivity extends AppCompatActivity
   protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
     setContentView(R.layout.activity_from_file);
-    button = (Button) findViewById(R.id.b_start_stop);
-    bSelectFile = (Button) findViewById(R.id.b_select_file);
+    button = findViewById(R.id.b_start_stop);
+    bSelectFile = findViewById(R.id.b_select_file);
     button.setOnClickListener(this);
     bSelectFile.setOnClickListener(this);
-    etUrl = (EditText) findViewById(R.id.et_rtp_url);
+    etUrl = findViewById(R.id.et_rtp_url);
     etUrl.setHint(R.string.hint_rtmp);
-    tvFile = (TextView) findViewById(R.id.tv_file);
+    tvFile = findViewById(R.id.tv_file);
     rtmpFromFile = new RtmpFromFile(this, this);
   }
 

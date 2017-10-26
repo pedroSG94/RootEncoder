@@ -19,9 +19,6 @@ import com.pedro.rtplibrary.view.AutoFitTextureView;
 
 import net.ossrs.rtmp.ConnectCheckerRtmp;
 
-/**
- * Unstable activity. See builder header.
- */
 @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
 public class TextureModeRtmpActivity extends AppCompatActivity
     implements ConnectCheckerRtmp, View.OnClickListener {
@@ -36,10 +33,10 @@ public class TextureModeRtmpActivity extends AppCompatActivity
     super.onCreate(savedInstanceState);
     getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
     setContentView(R.layout.activity_texture_mode);
-    textureView = (AutoFitTextureView) findViewById(R.id.textureView);
-    button = (Button) findViewById(R.id.b_start_stop);
+    textureView = findViewById(R.id.textureView);
+    button = findViewById(R.id.b_start_stop);
     button.setOnClickListener(this);
-    etUrl = (EditText) findViewById(R.id.et_rtp_url);
+    etUrl = findViewById(R.id.et_rtp_url);
     etUrl.setHint(R.string.hint_rtmp);
     rtmpCamera2 = new RtmpCamera2(textureView, this);
     textureView.setSurfaceTextureListener(surfaceTextureListener);

@@ -35,10 +35,10 @@ public class OpenGlRtmpActivity extends AppCompatActivity
     super.onCreate(savedInstanceState);
     getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
     setContentView(R.layout.activity_open_gl);
-    OpenGlView openGlView = (OpenGlView) findViewById(R.id.surfaceView);
-    button = (Button) findViewById(R.id.b_start_stop);
+    OpenGlView openGlView = findViewById(R.id.surfaceView);
+    button = findViewById(R.id.b_start_stop);
     button.setOnClickListener(this);
-    etUrl = (EditText) findViewById(R.id.et_rtp_url);
+    etUrl = findViewById(R.id.et_rtp_url);
     etUrl.setHint(R.string.hint_rtmp);
     rtmpCamera1 = new RtmpCamera1(openGlView, this);
   }

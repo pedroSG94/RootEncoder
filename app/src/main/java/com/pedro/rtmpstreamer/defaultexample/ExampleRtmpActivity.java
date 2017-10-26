@@ -12,11 +12,6 @@ import com.pedro.rtmpstreamer.R;
 import com.pedro.rtplibrary.rtmp.RtmpCamera1;
 import net.ossrs.rtmp.ConnectCheckerRtmp;
 
-/**
- * This class is only for a simple example of library use with default stream values.
- * Video = 1280x720 resolution, 30fps, 1500 * 1024 bitrate, 0 rotation.
- * Audio = stereo, 128 * 1024 bitrate, 44100 sampleRate.
- */
 public class ExampleRtmpActivity extends AppCompatActivity
     implements ConnectCheckerRtmp, View.OnClickListener {
 
@@ -29,10 +24,10 @@ public class ExampleRtmpActivity extends AppCompatActivity
     super.onCreate(savedInstanceState);
     getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
     setContentView(R.layout.activity_example);
-    SurfaceView surfaceView = (SurfaceView) findViewById(R.id.surfaceView);
-    button = (Button) findViewById(R.id.b_start_stop);
+    SurfaceView surfaceView = findViewById(R.id.surfaceView);
+    button = findViewById(R.id.b_start_stop);
     button.setOnClickListener(this);
-    etUrl = (EditText) findViewById(R.id.et_rtp_url);
+    etUrl = findViewById(R.id.et_rtp_url);
     etUrl.setHint(R.string.hint_rtmp);
     rtmpCamera1 = new RtmpCamera1(surfaceView, this);
   }

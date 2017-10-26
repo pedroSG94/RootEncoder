@@ -1,6 +1,5 @@
 package com.pedro.rtmpstreamer.customexample;
 
-import android.hardware.Camera;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
@@ -63,24 +62,24 @@ public class RtmpActivity extends AppCompatActivity
     getSupportActionBar().setDisplayHomeAsUpEnabled(true);
     getSupportActionBar().setHomeButtonEnabled(true);
 
-    SurfaceView surfaceView = (SurfaceView) findViewById(R.id.surfaceView);
+    SurfaceView surfaceView = findViewById(R.id.surfaceView);
     surfaceView.getHolder().addCallback(this);
     rtmpCamera1 = new RtmpCamera1(surfaceView, this);
     prepareOptionsMenuViews();
 
-    etUrl = (EditText) findViewById(R.id.et_rtp_url);
+    etUrl = findViewById(R.id.et_rtp_url);
     etUrl.setHint(R.string.hint_rtmp);
-    bStartStop = (Button) findViewById(R.id.b_start_stop);
+    bStartStop = findViewById(R.id.b_start_stop);
     bStartStop.setOnClickListener(this);
-    bRecord = (Button) findViewById(R.id.b_record);
+    bRecord = findViewById(R.id.b_record);
     bRecord.setOnClickListener(this);
-    Button switchCamera = (Button) findViewById(R.id.switch_camera);
+    Button switchCamera = findViewById(R.id.switch_camera);
     switchCamera.setOnClickListener(this);
   }
 
   private void prepareOptionsMenuViews() {
-    drawerLayout = (DrawerLayout) findViewById(R.id.activity_custom);
-    navigationView = (NavigationView) findViewById(R.id.nv_rtp);
+    drawerLayout = findViewById(R.id.activity_custom);
+    navigationView = findViewById(R.id.nv_rtp);
     navigationView.inflateMenu(R.menu.options_rtmp);
     actionBarDrawerToggle = new ActionBarDrawerToggle(this, drawerLayout, R.string.rtsp_streamer,
         R.string.rtsp_streamer) {

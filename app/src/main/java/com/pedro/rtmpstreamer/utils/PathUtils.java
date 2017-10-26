@@ -1,4 +1,4 @@
-package com.pedro.rtmpstreamer.filestreamexample;
+package com.pedro.rtmpstreamer.utils;
 
 import android.content.ContentUris;
 import android.content.Context;

@@ -4,20 +4,13 @@ import android.Manifest;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.content.res.Resources;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.v4.app.ActivityCompat;
-import android.support.v4.content.res.ResourcesCompat;
 import android.support.v7.app.AppCompatActivity;
-import android.util.TypedValue;
-import android.view.Gravity;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.AdapterView;
-import android.widget.BaseAdapter;
 import android.widget.GridView;
-import android.widget.TextView;
 import android.widget.Toast;
 import com.pedro.rtmpstreamer.customexample.RtmpActivity;
 import com.pedro.rtmpstreamer.customexample.RtspActivity;
@@ -33,14 +26,14 @@ import com.pedro.rtmpstreamer.surfacemodeexample.SurfaceModeRtmpActivity;
 import com.pedro.rtmpstreamer.surfacemodeexample.SurfaceModeRtspActivity;
 import com.pedro.rtmpstreamer.texturemodeexample.TextureModeRtmpActivity;
 import com.pedro.rtmpstreamer.texturemodeexample.TextureModeRtspActivity;
+import com.pedro.rtmpstreamer.utils.ActivityLink;
+import com.pedro.rtmpstreamer.utils.ImageAdapter;
 import java.util.ArrayList;
 import java.util.List;
 
 import static android.os.Build.VERSION_CODES.JELLY_BEAN;
 import static android.os.Build.VERSION_CODES.JELLY_BEAN_MR2;
 import static android.os.Build.VERSION_CODES.LOLLIPOP;
-import static android.view.ViewGroup.LayoutParams.MATCH_PARENT;
-import static android.view.ViewGroup.LayoutParams.WRAP_CONTENT;
 
 public class MainActivity extends AppCompatActivity implements AdapterView.OnItemClickListener {
 
@@ -58,7 +51,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
     setContentView(R.layout.activity_main);
     overridePendingTransition(R.transition.slide_in, R.transition.slide_out);
 
-    list = (GridView) findViewById(R.id.list);
+    list = findViewById(R.id.list);
     createList();
     setListAdapter(activities);
 
@@ -135,11 +128,8 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         named = "JELLY_BEAN";
         break;
     }
-    StringBuilder sb = new StringBuilder("You need min Android ").append(named)
-        .append(" (API ")
-        .append(minSdk)
-        .append(" )");
-    Toast.makeText(this, sb.toString(), Toast.LENGTH_SHORT).show();
+    Toast.makeText(this, "You need min Android " + named + " (API " + minSdk + " )",
+        Toast.LENGTH_SHORT).show();
   }
 
   private void showPermissionsErrorAndRequest() {
@@ -157,72 +147,5 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
       }
     }
     return true;
-  }
-
-  public static class ActivityLink {
-    private final int minSdk;
-    private final String label;
-    private final Intent intent;
-
-    public ActivityLink(Intent intent, String label, int minSdk) {
-      this.intent = intent;
-      this.label = label;
-      this.minSdk = minSdk;
-    }
-
-    public String getLabel() {
-      return label;
-    }
-
-    public Intent getIntent() {
-      return intent;
-    }
-
-    public int getMinSdk() {
-      return minSdk;
-    }
-  }
-
-  public class ImageAdapter extends BaseAdapter {
-    private List<ActivityLink> links;
-
-    public ImageAdapter(List<ActivityLink> links) {
-      this.links = links;
-    }
-
-    public int getCount() {
-      return links.size();
-    }
-
-    public ActivityLink getItem(int position) {
-      return links.get(position);
-    }
-
-    public long getItemId(int position) {
-      return (long) position;
-    }
-
-    @Override
-    public View getView(int position, View convertView, ViewGroup parent) {
-      TextView button;
-      Resources resources = parent.getResources();
-      float fontSize = resources.getDimension(R.dimen.menu_font);
-      int padding_h = resources.getDimensionPixelSize(R.dimen.grid_2);
-      int padding_v = resources.getDimensionPixelSize(R.dimen.grid_5);
-      if (convertView == null) {
-        button = new TextView(parent.getContext());
-        button.setTextSize(TypedValue.COMPLEX_UNIT_PX, fontSize);
-        button.setTextColor(ResourcesCompat.getColor(resources, R.color.white, null));
-        button.setBackgroundColor(ResourcesCompat.getColor(resources, R.color.appColor, null));
-        button.setLayoutParams(new GridView.LayoutParams(MATCH_PARENT, WRAP_CONTENT));
-        button.setPadding(padding_h, padding_v, padding_h, padding_v);
-        button.setGravity(Gravity.CENTER);
-        convertView = button;
-      } else {
-        button = (TextView) convertView;
-      }
-      button.setText(links.get(position).getLabel());
-      return convertView;
-    }
   }
 }

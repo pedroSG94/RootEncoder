@@ -1,9 +1,5 @@
 package com.pedro.rtmpstreamer.openglexample;
 
-/**
- * Created by pedro on 26/10/17.
- */
-
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.os.Build;
@@ -39,10 +35,10 @@ public class OpenGlRtspActivity extends AppCompatActivity
     super.onCreate(savedInstanceState);
     getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
     setContentView(R.layout.activity_open_gl);
-    OpenGlView openGlView = (OpenGlView) findViewById(R.id.surfaceView);
-    button = (Button) findViewById(R.id.b_start_stop);
+    OpenGlView openGlView = findViewById(R.id.surfaceView);
+    button = findViewById(R.id.b_start_stop);
     button.setOnClickListener(this);
-    etUrl = (EditText) findViewById(R.id.et_rtp_url);
+    etUrl = findViewById(R.id.et_rtp_url);
     etUrl.setHint(R.string.hint_rtsp);
     rtspCamera1 = new RtspCamera1(openGlView, this);
   }
