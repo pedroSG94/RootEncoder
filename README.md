@@ -58,6 +58,7 @@ dependencies {
 - [x] RTSP TCP/UDP.
 - [x] Stream from MP4 file (only video, no sound, API 18+).
 - [x] Stream device display(API 21+).
+- [X] Set Image, Gif or Text to stream on real time.
 
 ### Backlog
 
