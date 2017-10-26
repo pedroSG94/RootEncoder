@@ -27,6 +27,8 @@ import com.pedro.rtmpstreamer.displayexample.DisplayRtmpActivity;
 import com.pedro.rtmpstreamer.displayexample.DisplayRtspActivity;
 import com.pedro.rtmpstreamer.filestreamexample.RtmpFromFileActivity;
 import com.pedro.rtmpstreamer.filestreamexample.RtspFromFileActivity;
+import com.pedro.rtmpstreamer.openglexample.OpenGlRtmpActivity;
+import com.pedro.rtmpstreamer.openglexample.OpenGlRtspActivity;
 import com.pedro.rtmpstreamer.surfacemodeexample.SurfaceModeRtmpActivity;
 import com.pedro.rtmpstreamer.surfacemodeexample.SurfaceModeRtspActivity;
 import com.pedro.rtmpstreamer.texturemodeexample.TextureModeRtmpActivity;
@@ -93,6 +95,10 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         getString(R.string.display_rtmp), LOLLIPOP));
     activities.add(new ActivityLink(new Intent(this, DisplayRtspActivity.class),
         getString(R.string.display_rtsp), LOLLIPOP));
+    activities.add(new ActivityLink(new Intent(this, OpenGlRtmpActivity.class),
+        getString(R.string.opengl_rtmp), JELLY_BEAN_MR2));
+    activities.add(new ActivityLink(new Intent(this, OpenGlRtspActivity.class),
+        getString(R.string.opengl_rtsp), JELLY_BEAN_MR2));
   }
 
   private void setListAdapter(List<ActivityLink> activities) {

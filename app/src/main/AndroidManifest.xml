@@ -7,7 +7,7 @@
   <uses-permission android:name="android.permission.INTERNET"/>
   <uses-permission android:name="android.permission.RECORD_AUDIO"/>
   <uses-permission android:name="android.permission.CAMERA"/>
-  <!--some devices need it-->
+  <!-- some devices need it -->
   <uses-feature android:name="android.hardware.camera"/>
   <uses-feature android:name="android.hardware.camera2.full"/>
   <uses-feature android:name="android.hardware.camera2.autofocus"/>
@@ -24,8 +24,9 @@
         android:screenOrientation="portrait"
         >
       <intent-filter>
-      <action android:name="android.intent.action.MAIN" />
-      <category android:name="android.intent.category.LAUNCHER" />
+        <action android:name="android.intent.action.MAIN"/>
+
+        <category android:name="android.intent.category.LAUNCHER"/>
       </intent-filter>
     </activity>
     <activity
@@ -86,6 +87,16 @@
     <activity
         android:name=".displayexample.DisplayRtspActivity"
         android:label="@string/display_rtsp"
+        android:screenOrientation="portrait"
+        />
+    <activity
+        android:name=".openglexample.OpenGlRtmpActivity"
+        android:label="@string/opengl_rtmp"
+        android:screenOrientation="portrait"
+        />
+    <activity
+        android:name=".openglexample.OpenGlRtspActivity"
+        android:label="@string/opengl_rtsp"
         android:screenOrientation="portrait"
         />
   </application>

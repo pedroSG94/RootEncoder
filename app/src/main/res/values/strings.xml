@@ -13,6 +13,8 @@
   <string name="texture_mode_rtmp">Texture mode RTMP</string>
   <string name="display_rtmp">Display RTMP</string>
   <string name="display_rtsp">Display RTSP</string>
+  <string name="opengl_rtmp">OpenGl RTMP</string>
+  <string name="opengl_rtsp">OpenGl RTSP</string>
 
   <string name="tv_select">Select your streamer</string>
   <string name="hint_rtsp">rtsp://yourendpoint</string>
@@ -31,6 +33,10 @@
   <string name="sepia">Sepia</string>
   <string name="aqua">Aqua</string>
   <string name="posterize">Posterize</string>
+  <!--gl menu-->
+  <string name="gif">Gif</string>
+  <string name="image">Image</string>
+  <string name="text">Text</string>
   <!--drawer-->
   <string name="drawer_title">Options</string>
   <string name="protocols">Protocol</string>
