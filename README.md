@@ -37,7 +37,7 @@ allprojects {
   }
 }
 dependencies {
-  compile 'com.github.pedroSG94.rtmp-rtsp-stream-client-java:rtplibrary:1.1.6'
+  compile 'com.github.pedroSG94.rtmp-rtsp-stream-client-java:rtplibrary:1.1.7'
 }
 
 ```
