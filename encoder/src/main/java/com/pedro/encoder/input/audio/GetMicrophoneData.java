@@ -6,5 +6,5 @@ package com.pedro.encoder.input.audio;
 
 public interface GetMicrophoneData {
 
-    void inputPcmData(byte[] buffer, int size);
+    void inputPCMData(byte[] buffer, int size);
 }

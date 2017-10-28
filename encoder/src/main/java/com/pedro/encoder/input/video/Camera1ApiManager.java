@@ -33,7 +33,7 @@ import javax.microedition.khronos.egl.EGLSurface;
 
 public class Camera1ApiManager implements Camera.PreviewCallback {
 
-  private String TAG = "Camera1ApiManagerGl";
+  private String TAG = "Camera1ApiManager";
   private Camera camera = null;
   private SurfaceView surfaceView;
   private TextureView textureView;
@@ -257,12 +257,8 @@ public class Camera1ApiManager implements Camera.PreviewCallback {
   @Override
   public void onPreviewFrame(byte[] data, Camera camera) {
     if (fpsController.fpsIsValid()) {
-      if (imageFormat == ImageFormat.YV12) {
-        getCameraData.inputYv12Data(data);
-      } else if (imageFormat == ImageFormat.NV21) {
-        if (isFrontCamera) data = YUVUtil.rotateNV21(data, width, height, 180);
-        getCameraData.inputNv21Data(data);
-      }
+      if (isFrontCamera) data = YUVUtil.rotateNV21(data, width, height, 180);
+      getCameraData.inputYUVData(data);
     }
   }
 

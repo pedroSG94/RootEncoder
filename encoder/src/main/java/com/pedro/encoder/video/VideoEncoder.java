@@ -219,25 +219,24 @@ public class VideoEncoder implements GetCameraData {
                 byte[] b = queue.take();
                 byte[] i420;
                 if (b == null) continue;
-                if (imageFormat == ImageFormat.NV21) {
-                  if (!hardwareRotation) {
-                    if (rotation == 0 || rotation == 90 || rotation == 180 || rotation == 270) {
-                      b = YUVUtil.rotateNV21(b, width, height, rotation);
-                    } else {
-                      throw new RuntimeException(
-                          "rotation value unsupported, select value 0, 90, 180 or 270");
-                    }
-                  }
-                  i420 = (sendBlackImage) ? blackImage
-                      : YUVUtil.NV21toYUV420byColor(b, width, height, formatVideoEncoder);
-                } else if (imageFormat == ImageFormat.YV12) {
-                  i420 = (sendBlackImage) ? blackImage
-                      : YUVUtil.YV12toYUV420byColor(b, width, height, formatVideoEncoder);
-                } else {
+                if (imageFormat != ImageFormat.NV21 && imageFormat != ImageFormat.YV12) {
                   stop();
                   Log.e(TAG, "Unsupported imageFormat");
                   break;
+                  //convert YV12 to NV21
+                } else if (imageFormat == ImageFormat.YV12) {
+                  b = YUVUtil.YV12toYUV420PackedSemiPlanar(b, width, height);
                 }
+                if (!hardwareRotation) {
+                  if (rotation == 0 || rotation == 90 || rotation == 180 || rotation == 270) {
+                    b = YUVUtil.rotateNV21(b, width, height, rotation);
+                  } else {
+                    throw new RuntimeException(
+                        "rotation value unsupported, select value 0, 90, 180 or 270");
+                  }
+                }
+                i420 = (sendBlackImage) ? blackImage
+                    : YUVUtil.NV21toYUV420byColor(b, width, height, formatVideoEncoder);
                 if (Build.VERSION.SDK_INT >= 21) {
                   getDataFromEncoderAPI21(i420);
                 } else {
@@ -252,7 +251,9 @@ public class VideoEncoder implements GetCameraData {
         thread.start();
       }
       running = true;
-    } else {
+    } else
+
+    {
       Log.e(TAG, "VideoEncoder need be prepared, VideoEncoder not enabled");
     }
   }
@@ -278,19 +279,7 @@ public class VideoEncoder implements GetCameraData {
   }
 
   @Override
-  public void inputYv12Data(byte[] buffer) {
-    if (running) {
-      try {
-        queue.add(buffer);
-      } catch (IllegalStateException e) {
-        queue.clear();
-        Log.i(TAG, "frame discarded");
-      }
-    }
-  }
-
-  @Override
-  public void inputNv21Data(byte[] buffer) {
+  public void inputYUVData(byte[] buffer) {
     if (running) {
       try {
         queue.add(buffer);

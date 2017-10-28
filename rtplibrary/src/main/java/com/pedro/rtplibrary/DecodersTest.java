@@ -44,7 +44,7 @@ public class DecodersTest
   }
 
   @Override
-  public void inputPcmData(byte[] buffer, int size) {
+  public void inputPCMData(byte[] buffer, int size) {
     audioTrack.write(buffer, 0, size);
   }
 

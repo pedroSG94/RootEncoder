@@ -96,7 +96,7 @@ public class AudioEncoder implements GetMicrophoneData {
    * @param size Min PCM buffer size
    */
   @Override
-  public void inputPcmData(final byte[] buffer, final int size) {
+  public void inputPCMData(final byte[] buffer, final int size) {
     if (Build.VERSION.SDK_INT >= 21) {
       getDataFromEncoderAPI21(buffer, size);
     } else {

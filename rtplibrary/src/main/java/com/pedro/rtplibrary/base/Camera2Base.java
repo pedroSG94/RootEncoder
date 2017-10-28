@@ -373,18 +373,13 @@ public abstract class Camera2Base
   }
 
   @Override
-  public void inputPcmData(byte[] buffer, int size) {
-    audioEncoder.inputPcmData(buffer, size);
+  public void inputPCMData(byte[] buffer, int size) {
+    audioEncoder.inputPCMData(buffer, size);
   }
 
   @Override
-  public void inputYv12Data(byte[] buffer) {
-    videoEncoder.inputYv12Data(buffer);
-  }
-
-  @Override
-  public void inputNv21Data(byte[] buffer) {
-    videoEncoder.inputNv21Data(buffer);
+  public void inputYUVData(byte[] buffer) {
+    videoEncoder.inputYUVData(buffer);
   }
 
   @Override

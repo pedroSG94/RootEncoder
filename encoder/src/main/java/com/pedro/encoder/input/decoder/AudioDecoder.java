@@ -139,10 +139,10 @@ public class AudioDecoder {
             //This buffer is PCM data
             if (muted) {
               outBuffer.get(pcmBufferMuted, 0, pcmBufferMuted.length);
-              getMicrophoneData.inputPcmData(pcmBufferMuted, pcmBufferMuted.length);
+              getMicrophoneData.inputPCMData(pcmBufferMuted, pcmBufferMuted.length);
             } else {
               outBuffer.get(pcmBuffer, 0, pcmBuffer.length);
-              getMicrophoneData.inputPcmData(pcmBuffer, pcmBuffer.length);
+              getMicrophoneData.inputPCMData(pcmBuffer, pcmBuffer.length);
             }
             audioDecoder.releaseOutputBuffer(outIndex, false);
             break;

@@ -161,13 +161,8 @@ public abstract class FromFileBase implements GetCameraData, GetH264Data {
   }
 
   @Override
-  public void inputYv12Data(byte[] buffer) {
-    videoEncoder.inputYv12Data(buffer);
-  }
-
-  @Override
-  public void inputNv21Data(byte[] buffer) {
-    videoEncoder.inputNv21Data(buffer);
+  public void inputYUVData(byte[] buffer) {
+    videoEncoder.inputYUVData(buffer);
   }
 
   @Override
