@@ -306,15 +306,12 @@ public abstract class Camera2Base
     }
   }
 
-  private void stopOpenGlRender() {
-    openGlView.stopGlThread();
-    cameraManager.closeCamera(false);
-  }
-
-  private void startOpenGlRender() {
-    openGlView.startGLThread();
-    cameraManager.prepareCamera(openGlView.getSurface(), true);
-    cameraManager.openLastCamera();
+  public void clear() throws RuntimeException {
+    if (openGlView != null) {
+      openGlView.clear();
+    } else {
+      throw new RuntimeException("You must use OpenGlView in the constructor to set a text");
+    }
   }
 
   /**

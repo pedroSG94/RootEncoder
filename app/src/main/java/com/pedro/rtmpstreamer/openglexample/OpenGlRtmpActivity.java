@@ -62,6 +62,9 @@ public class OpenGlRtmpActivity extends AppCompatActivity
         case R.id.gif:
           setGifToStream();
           return true;
+        case R.id.clear:
+          rtmpCamera1.clear();
+          return true;
         default:
           return false;
       }

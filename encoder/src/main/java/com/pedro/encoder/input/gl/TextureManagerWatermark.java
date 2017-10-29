@@ -123,8 +123,14 @@ public class TextureManagerWatermark {
     GLES20.glActiveTexture(GLES20.GL_TEXTURE1);
 
     if (streamObjectTextureId != null) {
-      GLES20.glBindTexture(GLES20.GL_TEXTURE_2D,
-          streamObjectTextureId[streamObjectBase.updateFrame()]);
+      if (streamObjectTextureId[0] == -1) {
+        GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, streamObjectTextureId[0]);
+        streamObjectTextureId = null;
+        streamObjectBase = null;
+      } else {
+        GLES20.glBindTexture(GLES20.GL_TEXTURE_2D,
+            streamObjectTextureId[streamObjectBase.updateFrame()]);
+      }
     }
     //draw
     GLES20.glDrawArrays(GLES20.GL_TRIANGLE_STRIP, 0, 4);
@@ -181,5 +187,9 @@ public class TextureManagerWatermark {
     streamObjectBase = gifStreamObject;
     textureLoader.setGifStreamObject(gifStreamObject);
     streamObjectTextureId = textureLoader.load();
+  }
+
+  public void clear() {
+    streamObjectTextureId = new int[] { -1 };
   }
 }

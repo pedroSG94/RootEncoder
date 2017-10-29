@@ -102,6 +102,13 @@ public class OpenGlView extends SurfaceView
     loadStreamObject = true;
   }
 
+  public void clear() {
+    this.textStreamObject = null;
+    this.gifStreamObject = null;
+    this.imageStreamObject = null;
+    loadStreamObject = true;
+  }
+
   public void startGLThread() {
     Log.i(TAG, "Thread started.");
     if (textureManager == null) {
@@ -150,6 +157,8 @@ public class OpenGlView extends SurfaceView
                 textureManager.setImage(imageStreamObject);
               } else if (gifStreamObject != null) {
                 textureManager.setGif(gifStreamObject);
+              } else {
+                textureManager.clear();
               }
             }
             textureManager.updateFrame();

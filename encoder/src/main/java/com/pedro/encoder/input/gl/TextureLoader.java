@@ -68,4 +68,8 @@ public class TextureLoader {
     }
     return textureId;
   }
+
+  public void clear() {
+
+  }
 }

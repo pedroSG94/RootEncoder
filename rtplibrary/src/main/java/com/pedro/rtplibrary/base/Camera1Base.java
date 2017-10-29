@@ -304,18 +304,12 @@ public abstract class Camera1Base
   }
 
   @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
-  private void stopOpenGlRender() {
-    openGlView.stopGlThread();
-    cameraManager.stop();
-  }
-
-  @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
-  private void startOpenGlRender() {
-    openGlView.startGLThread();
-    cameraManager = new Camera1ApiManager(openGlView.getSurfaceTexture(), openGlView.getContext());
-    cameraManager.prepareCamera(videoEncoder.getWidth(), videoEncoder.getHeight(),
-        videoEncoder.getFps(), ImageFormat.NV21);
-    cameraManager.start();
+  public void clear() throws RuntimeException {
+    if (openGlView != null) {
+      openGlView.clear();
+    } else {
+      throw new RuntimeException("You must use OpenGlView in the constructor to set a text");
+    }
   }
 
   /** need min API 19 */

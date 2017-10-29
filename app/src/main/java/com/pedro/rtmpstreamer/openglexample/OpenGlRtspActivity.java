@@ -62,6 +62,9 @@ public class OpenGlRtspActivity extends AppCompatActivity
         case R.id.gif:
           setGifToStream();
           return true;
+        case R.id.clear:
+          rtspCamera1.clear();
+          return true;
         default:
           return false;
       }
