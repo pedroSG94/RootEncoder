@@ -56,6 +56,7 @@ public class RtspActivity extends AppCompatActivity
   private CheckBox cbEchoCanceler, cbNoiseSuppressor, cbHardwareRotation;
   private EditText etVideoBitrate, etFps, etAudioBitrate, etSampleRate, etWowzaUser,
       etWowzaPassword;
+  private String lastVideoBitrate;
 
   @Override
   protected void onCreate(Bundle savedInstanceState) {
@@ -89,12 +90,23 @@ public class RtspActivity extends AppCompatActivity
 
       public void onDrawerOpened(View drawerView) {
         actionBarDrawerToggle.syncState();
+        lastVideoBitrate = etVideoBitrate.getText().toString();
       }
 
       public void onDrawerClosed(View view) {
         actionBarDrawerToggle.syncState();
-        rtspCamera1.setVideoBitrateOnFly(
-            Integer.parseInt(etVideoBitrate.getText().toString()) * 1024);
+        if (!lastVideoBitrate.equals(etVideoBitrate.getText().toString())
+            && rtspCamera1.isStreaming()) {
+          if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+            int bitrate = Integer.parseInt(etVideoBitrate.getText().toString()) * 1024;
+            rtspCamera1.setVideoBitrateOnFly(bitrate);
+            Toast.makeText(RtspActivity.this, "New bitrate: " + bitrate, Toast.LENGTH_SHORT).
+                show();
+          } else {
+            Toast.makeText(RtspActivity.this, "Bitrate on fly ignored, Required min API 19",
+                Toast.LENGTH_SHORT).show();
+          }
+        }
       }
     };
     drawerLayout.addDrawerListener(actionBarDrawerToggle);
@@ -137,7 +149,7 @@ public class RtspActivity extends AppCompatActivity
     etVideoBitrate.setText("2500");
     etFps.setText("30");
     etAudioBitrate.setText("128");
-    etSampleRate.setText("16000");
+    etSampleRate.setText("44100");
     etWowzaUser = (EditText) navigationView.getMenu().findItem(R.id.et_wowza_user).getActionView();
     etWowzaPassword =
         (EditText) navigationView.getMenu().findItem(R.id.et_wowza_password).getActionView();

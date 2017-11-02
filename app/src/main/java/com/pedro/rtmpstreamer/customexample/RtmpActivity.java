@@ -53,6 +53,7 @@ public class RtmpActivity extends AppCompatActivity
   private CheckBox cbEchoCanceler, cbNoiseSuppressor, cbHardwareRotation;
   private EditText etVideoBitrate, etFps, etAudioBitrate, etSampleRate, etWowzaUser,
       etWowzaPassword;
+  private String lastVideoBitrate;
 
   @Override
   protected void onCreate(Bundle savedInstanceState) {
@@ -80,18 +81,30 @@ public class RtmpActivity extends AppCompatActivity
   private void prepareOptionsMenuViews() {
     drawerLayout = findViewById(R.id.activity_custom);
     navigationView = findViewById(R.id.nv_rtp);
+
     navigationView.inflateMenu(R.menu.options_rtmp);
     actionBarDrawerToggle = new ActionBarDrawerToggle(this, drawerLayout, R.string.rtsp_streamer,
         R.string.rtsp_streamer) {
 
       public void onDrawerOpened(View drawerView) {
         actionBarDrawerToggle.syncState();
+        lastVideoBitrate = etVideoBitrate.getText().toString();
       }
 
       public void onDrawerClosed(View view) {
         actionBarDrawerToggle.syncState();
-        rtmpCamera1.setVideoBitrateOnFly(
-            Integer.parseInt(etVideoBitrate.getText().toString()) * 1024);
+        if (!lastVideoBitrate.equals(etVideoBitrate.getText().toString())
+            && rtmpCamera1.isStreaming()) {
+          if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+            int bitrate = Integer.parseInt(etVideoBitrate.getText().toString()) * 1024;
+            rtmpCamera1.setVideoBitrateOnFly(bitrate);
+            Toast.makeText(RtmpActivity.this, "New bitrate: " + bitrate, Toast.LENGTH_SHORT).
+                show();
+          } else {
+            Toast.makeText(RtmpActivity.this, "Bitrate on fly ignored, Required min API 19",
+                Toast.LENGTH_SHORT).show();
+          }
+        }
       }
     };
     drawerLayout.addDrawerListener(actionBarDrawerToggle);
