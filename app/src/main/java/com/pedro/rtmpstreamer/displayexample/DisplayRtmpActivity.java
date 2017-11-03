@@ -94,9 +94,7 @@ public class DisplayRtmpActivity extends AppCompatActivity
   protected void onActivityResult(int requestCode, int resultCode, Intent data) {
     if (requestCode == REQUEST_CODE && resultCode == Activity.RESULT_OK) {
       if (rtmpDisplay.prepareAudio() && rtmpDisplay.prepareVideo()) {
-        if (Build.VERSION.SDK_INT >= 21) {
-          rtmpDisplay.startStream(etUrl.getText().toString(), resultCode, data);
-        }
+        rtmpDisplay.startStream(etUrl.getText().toString(), resultCode, data);
       } else {
         Toast.makeText(this, "Error preparing stream, This device cant do it", Toast.LENGTH_SHORT)
             .show();

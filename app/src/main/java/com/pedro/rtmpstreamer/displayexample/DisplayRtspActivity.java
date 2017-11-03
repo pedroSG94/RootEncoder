@@ -93,9 +93,7 @@ public class DisplayRtspActivity extends AppCompatActivity
   protected void onActivityResult(int requestCode, int resultCode, Intent data) {
     if (requestCode == REQUEST_CODE && resultCode == Activity.RESULT_OK) {
       if (rtspDisplay.prepareAudio() && rtspDisplay.prepareVideo()) {
-        if (Build.VERSION.SDK_INT >= 21) {
-          rtspDisplay.startStream(etUrl.getText().toString(), resultCode, data);
-        }
+        rtspDisplay.startStream(etUrl.getText().toString(), resultCode, data);
       } else {
         Toast.makeText(this, "Error preparing stream, This device cant do it", Toast.LENGTH_SHORT)
             .show();

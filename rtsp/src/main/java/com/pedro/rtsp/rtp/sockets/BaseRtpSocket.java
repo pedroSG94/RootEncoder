@@ -37,12 +37,12 @@ public abstract class BaseRtpSocket implements Runnable {
       /*									 | --------				|								*/
       /*									 | |---------------------								*/
       /*									 | ||  -----------------------> Source Identifier(0)	*/
-			/*									 | ||  |												*/
+      /*									 | ||  |												*/
       mBuffers[i][0] = (byte) Integer.parseInt("10000000", 2);
       mBuffers[i][1] = (byte) RtpConstants.payloadType;
 
 			/* Byte 2,3        ->  Sequence Number                   */
-			/* Byte 4,5,6,7    ->  Timestamp                         */
+      /* Byte 4,5,6,7    ->  Timestamp                         */
 			/* Byte 8,9,10,11  ->  Sync Source Identifier            */
     }
   }
@@ -85,7 +85,7 @@ public abstract class BaseRtpSocket implements Runnable {
    * @param timestamp The new timestamp in ns.
    **/
   public void updateTimestamp(long timestamp) {
-    long ts = (timestamp / 100L) * (mClock / 1000L) / 10000L;
+    long ts = timestamp * mClock / 1000000000L;
     mTimestamps[mBufferIn] = ts;
     setLong(mBuffers[mBufferIn], ts, 4, 8);
   }
