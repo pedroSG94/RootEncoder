@@ -127,6 +127,10 @@ public class RtspClient {
     return path;
   }
 
+  public ConnectCheckerRtsp getConnectCheckerRtsp() {
+    return connectCheckerRtsp;
+  }
+
   public void setSPSandPPS(ByteBuffer sps, ByteBuffer pps) {
     byte[] mSPS = new byte[sps.capacity() - 4];
     sps.position(4);
@@ -208,9 +212,8 @@ public class RtspClient {
             aacPacket.updateDestinationAudio();
             streaming = true;
             connectCheckerRtsp.onConnectionSuccessRtsp();
-            new Thread(connectionMonitor).start();
           } catch (IOException | NullPointerException e) {
-            e.printStackTrace();
+            Log.e(TAG, "connection error", e);
             connectCheckerRtsp.onConnectionFailedRtsp();
             streaming = false;
           }
@@ -219,26 +222,6 @@ public class RtspClient {
       thread.start();
     }
   }
-
-  private Runnable connectionMonitor = new Runnable() {
-    @Override
-    public void run() {
-      if (streaming) {
-        try {
-          // We poll the RTSP server with OPTION requests
-          writer.write(sendOptions());
-          writer.flush();
-          getResponse(false, true);
-          Thread.sleep(6000);
-          new Thread(connectionMonitor).start();
-        } catch (IOException | InterruptedException e) {
-          e.printStackTrace();
-          connectCheckerRtsp.onConnectionFailedRtsp();
-          streaming = false;
-        }
-      }
-    }
-  };
 
   public void disconnect() {
     if (streaming) {
@@ -249,7 +232,7 @@ public class RtspClient {
             writer.write(sendTearDown());
             connectionSocket.close();
           } catch (IOException e) {
-            e.printStackTrace();
+            Log.e(TAG, "disconnect error", e);
           }
           connectCheckerRtsp.onDisconnectRtsp();
           streaming = false;
@@ -438,6 +421,7 @@ public class RtspClient {
       Log.i(TAG, response);
       return response;
     } catch (IOException e) {
+      Log.e(TAG, "read error", e);
       return null;
     }
   }

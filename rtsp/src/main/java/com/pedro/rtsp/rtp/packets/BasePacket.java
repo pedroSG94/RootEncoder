@@ -27,9 +27,9 @@ public abstract class BasePacket {
     this.rtspClient = rtspClient;
     ts = new Random().nextInt();
     if (protocol == Protocol.UDP) {
-      socket = new RtpSocketUdp();
+      socket = new RtpSocketUdp(rtspClient.getConnectCheckerRtsp());
     } else {
-      socket = new RtpSocketTcp();
+      socket = new RtpSocketTcp(rtspClient.getConnectCheckerRtsp());
     }
     socket.setSSRC(new Random().nextInt());
     if (socket instanceof RtpSocketUdp) {

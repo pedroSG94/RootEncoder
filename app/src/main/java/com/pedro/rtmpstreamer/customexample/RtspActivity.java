@@ -121,7 +121,7 @@ public class RtspActivity extends AppCompatActivity
     rbTcp = (RadioButton) navigationView.getMenu().findItem(R.id.rb_tcp).getActionView();
     rbUdp = (RadioButton) navigationView.getMenu().findItem(R.id.rb_udp).getActionView();
     rgChannel = (RadioGroup) navigationView.getMenu().findItem(R.id.channel).getActionView();
-    rbUdp.setChecked(true);
+    rbTcp.setChecked(true);
     rbTcp.setOnClickListener(this);
     rbUdp.setOnClickListener(this);
     //spinners

@@ -2,6 +2,7 @@ package com.pedro.rtsp.rtp.sockets;
 
 import android.util.Log;
 import com.pedro.rtsp.rtcp.SenderReportUdp;
+import com.pedro.rtsp.utils.ConnectCheckerRtsp;
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.InetAddress;
@@ -19,12 +20,14 @@ public class RtpSocketUdp extends BaseRtpSocket implements Runnable {
   private MulticastSocket mSocket;
   private DatagramPacket[] mPackets;
   private int mPort = -1;
+  private ConnectCheckerRtsp connectCheckerRtsp;
 
   /**
    * This RTP socket implements a buffering mechanism relying on a FIFO of buffers and a Thread.
    */
-  public RtpSocketUdp() {
+  public RtpSocketUdp(ConnectCheckerRtsp connectCheckerRtsp) {
     super();
+    this.connectCheckerRtsp = connectCheckerRtsp;
     senderReportUdp = new SenderReportUdp();
     senderReportUdp.reset();
     mPackets = new DatagramPacket[mBufferCount];
@@ -92,17 +95,18 @@ public class RtpSocketUdp extends BaseRtpSocket implements Runnable {
     try {
       while (mBufferCommitted.tryAcquire(4, TimeUnit.SECONDS)) {
         senderReportUdp.update(mPackets[mBufferOut].getLength(), mTimestamps[mBufferOut], mPort);
+        mSocket.send(mPackets[mBufferOut]);
         Log.i(TAG, "send packet, "
             + mPackets[mBufferOut].getLength()
             + " Size, "
             + mPackets[mBufferOut].getPort()
             + " Port");
-        mSocket.send(mPackets[mBufferOut]);
         if (++mBufferOut >= mBufferCount) mBufferOut = 0;
         mBufferRequested.release();
       }
-    } catch (Exception e) {
-      e.printStackTrace();
+    } catch (IOException | InterruptedException e) {
+      Log.e(TAG, "UDP send error: ", e);
+      connectCheckerRtsp.onConnectionFailedRtsp();
     }
     mThread = null;
     resetFifo();

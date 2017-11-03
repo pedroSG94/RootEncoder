@@ -2,6 +2,7 @@ package com.pedro.rtsp.rtp.sockets;
 
 import android.util.Log;
 import com.pedro.rtsp.rtcp.SenderReportTcp;
+import com.pedro.rtsp.utils.ConnectCheckerRtsp;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.concurrent.TimeUnit;
@@ -15,9 +16,11 @@ public class RtpSocketTcp extends BaseRtpSocket implements Runnable {
   private byte mTcpHeader[];
   private int[] lengths;
   private OutputStream mOutputStream = null;
+  private ConnectCheckerRtsp connectCheckerRtsp;
 
-  public RtpSocketTcp() {
+  public RtpSocketTcp(ConnectCheckerRtsp connectCheckerRtsp) {
     super();
+    this.connectCheckerRtsp = connectCheckerRtsp;
     lengths = new int[mBufferCount];
     senderReportTcp = new SenderReportTcp();
     senderReportTcp.reset();
@@ -59,20 +62,21 @@ public class RtpSocketTcp extends BaseRtpSocket implements Runnable {
     try {
       while (mBufferCommitted.tryAcquire(4, TimeUnit.SECONDS)) {
         senderReportTcp.update(lengths[mBufferOut], mTimestamps[mBufferOut]);
-        Log.i(TAG, "send packet, " + lengths[mBufferOut] + " Size");
         sendTCP();
         if (++mBufferOut >= mBufferCount) mBufferOut = 0;
         mBufferRequested.release();
       }
-    } catch (Exception e) {
-      Log.e(TAG, "tcp send error: ", e);
+    } catch (IOException | InterruptedException e) {
+      Log.e(TAG, "TCP send error: ", e);
+      connectCheckerRtsp.onConnectionFailedRtsp();
     }
+
     mThread = null;
     resetFifo();
     senderReportTcp.reset();
   }
 
-  private void sendTCP() throws Exception {
+  private void sendTCP() throws IOException {
     synchronized (mOutputStream) {
       int len = lengths[mBufferOut];
       mTcpHeader[2] = (byte) (len >> 8);
@@ -80,7 +84,7 @@ public class RtpSocketTcp extends BaseRtpSocket implements Runnable {
       mOutputStream.write(mTcpHeader);
       mOutputStream.write(mBuffers[mBufferOut], 0, len);
       mOutputStream.flush();
-      Log.d(TAG, "send " + len);
+      Log.i(TAG, "send packet, " + len + " Size");
     }
   }
 }
