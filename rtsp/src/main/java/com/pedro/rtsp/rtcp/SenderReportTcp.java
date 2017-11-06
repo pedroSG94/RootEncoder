@@ -1,6 +1,8 @@
 package com.pedro.rtsp.rtcp;
 
-import android.os.SystemClock;
+import android.util.Log;
+import com.pedro.rtsp.utils.ConnectCheckerRtsp;
+import java.io.IOException;
 import java.io.OutputStream;
 
 /**
@@ -11,9 +13,11 @@ public class SenderReportTcp extends BaseSenderReport {
 
   private final byte[] mTcpHeader;
   private OutputStream mOutputStream = null;
+  private ConnectCheckerRtsp connectCheckerRtsp;
 
-  public SenderReportTcp() {
+  public SenderReportTcp(ConnectCheckerRtsp connectCheckerRtsp) {
     super();
+    this.connectCheckerRtsp = connectCheckerRtsp;
     mTcpHeader = new byte[] { '$', 0, 0, PACKET_LENGTH };
   }
 
@@ -24,21 +28,7 @@ public class SenderReportTcp extends BaseSenderReport {
    * @param rtpts The RTP timestamp.
    **/
   public void update(int length, long rtpts) {
-    mPacketCount += 1;
-    mOctetCount += length;
-    setLong(mPacketCount, 20, 24);
-    setLong(mOctetCount, 24, 28);
-
-    now = SystemClock.elapsedRealtime();
-    delta += old != 0 ? now - old : 0;
-    old = now;
-    if (interval > 0) {
-      if (delta >= interval) {
-        // We send a Sender Report
-        send(System.nanoTime(), rtpts);
-        delta = 0;
-      }
-    }
+    if (updateSend(length)) send(System.nanoTime(), rtpts);
   }
 
   /**
@@ -60,7 +50,10 @@ public class SenderReportTcp extends BaseSenderReport {
           try {
             mOutputStream.write(mTcpHeader);
             mOutputStream.write(mBuffer, 0, PACKET_LENGTH);
-          } catch (Exception e) {
+            Log.i(TAG, "send report");
+          } catch (IOException e) {
+            Log.e(TAG, "send TCP report error", e);
+            connectCheckerRtsp.onConnectionFailedRtsp();
           }
         }
       }

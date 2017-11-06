@@ -22,7 +22,7 @@ public class RtpSocketTcp extends BaseRtpSocket implements Runnable {
     super();
     this.connectCheckerRtsp = connectCheckerRtsp;
     lengths = new int[mBufferCount];
-    senderReportTcp = new SenderReportTcp();
+    senderReportTcp = new SenderReportTcp(connectCheckerRtsp);
     senderReportTcp.reset();
     mTcpHeader = new byte[] { '$', 0, 0, 0 };
   }

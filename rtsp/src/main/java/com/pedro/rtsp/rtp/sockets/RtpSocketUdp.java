@@ -28,7 +28,7 @@ public class RtpSocketUdp extends BaseRtpSocket implements Runnable {
   public RtpSocketUdp(ConnectCheckerRtsp connectCheckerRtsp) {
     super();
     this.connectCheckerRtsp = connectCheckerRtsp;
-    senderReportUdp = new SenderReportUdp();
+    senderReportUdp = new SenderReportUdp(connectCheckerRtsp);
     senderReportUdp.reset();
     mPackets = new DatagramPacket[mBufferCount];
     for (int i = 0; i < mBufferCount; i++) {

@@ -19,8 +19,8 @@ public abstract class BaseSenderReport {
     /*							     Version(2)  Padding(0)					 					*/
     /*									 ^		  ^			PT = 0	    						*/
     /*									 |		  |				^								*/
-		/*									 | --------			 	|								*/
-		/*									 | |---------------------								*/
+    /*									 | --------			 	|								*/
+    /*									 | |---------------------								*/
 		/*									 | ||													*/
 		/*									 | ||													*/
     mBuffer[0] = (byte) Integer.parseInt("10000000", 2);
@@ -48,6 +48,30 @@ public abstract class BaseSenderReport {
     mOctetCount = 0;
     setLong(mPacketCount, 20, 24);
     setLong(mOctetCount, 24, 28);
+  }
+
+  /**
+   * Updates the number of packets sent, and the total amount of data sent.
+   *
+   * @param length The length of the packet
+   */
+  protected boolean updateSend(int length) {
+    mPacketCount += 1;
+    mOctetCount += length;
+    setLong(mPacketCount, 20, 24);
+    setLong(mOctetCount, 24, 28);
+
+    now = System.currentTimeMillis();
+    delta += old != 0 ? now - old : 0;
+    old = now;
+    if (interval > 0) {
+      if (delta >= interval) {
+        // We send a Sender Report
+        delta = 0;
+        return true;
+      }
+    }
+    return false;
   }
 
   /**
