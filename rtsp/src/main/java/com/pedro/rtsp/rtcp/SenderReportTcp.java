@@ -41,11 +41,7 @@ public class SenderReportTcp extends BaseSenderReport {
     new Thread(new Runnable() {
       @Override
       public void run() {
-        long hb = ntpts / 1000000000;
-        long lb = ((ntpts - hb * 1000000000) * 4294967296L) / 1000000000;
-        setLong(hb, 8, 12);
-        setLong(lb, 12, 16);
-        setLong(rtpts, 16, 20);
+        setData(ntpts, rtpts);
         synchronized (mOutputStream) {
           try {
             mOutputStream.write(mTcpHeader);

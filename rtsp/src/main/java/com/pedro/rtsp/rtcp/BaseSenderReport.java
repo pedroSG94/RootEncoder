@@ -21,7 +21,7 @@ public abstract class BaseSenderReport {
     /*									 |		  |				^								*/
     /*									 | --------			 	|								*/
     /*									 | |---------------------								*/
-		/*									 | ||													*/
+    /*									 | ||													*/
 		/*									 | ||													*/
     mBuffer[0] = (byte) Integer.parseInt("10000000", 2);
 
@@ -90,5 +90,13 @@ public abstract class BaseSenderReport {
       mBuffer[end] = (byte) (n % 256);
       n >>= 8;
     }
+  }
+
+  protected void setData(long ntpts, long rtpts) {
+    long hb = ntpts / 1000000000;
+    long lb = ((ntpts - hb * 1000000000) * 4294967296L) / 1000000000;
+    setLong(hb, 8, 12);
+    setLong(lb, 12, 16);
+    setLong(rtpts, 16, 20);
   }
 }

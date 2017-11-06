@@ -30,7 +30,7 @@ public class RtspClient {
 
   private final String TAG = "RtspClient";
 
-  private final long mTimestamp;
+  private final long timestamp;
   private String host = "";
   private int port;
   private String path;
@@ -72,7 +72,7 @@ public class RtspClient {
   public RtspClient(ConnectCheckerRtsp connectCheckerRtsp) {
     this.connectCheckerRtsp = connectCheckerRtsp;
     long uptime = System.currentTimeMillis();
-    mTimestamp = (uptime / 1000) << 32 & (((uptime - ((uptime / 1000) * 1000)) >> 32)
+    timestamp = (uptime / 1000) << 32 & (((uptime - ((uptime / 1000) * 1000)) >> 32)
         / 1000); // NTP timestamp
   }
 
@@ -189,7 +189,7 @@ public class RtspClient {
                 if (statusAuth == 401) {
                   connectCheckerRtsp.onAuthErrorRtsp();
                   return;
-                } else if (statusAuth == 200){
+                } else if (statusAuth == 200) {
                   connectCheckerRtsp.onAuthSuccessRtsp();
                 } else {
                   connectCheckerRtsp.onConnectionFailedRtsp();
@@ -304,9 +304,9 @@ public class RtspClient {
         +
         // TODO: Add IPV6 support
         "o=- "
-        + mTimestamp
+        + timestamp
         + " "
-        + mTimestamp
+        + timestamp
         + " IN IP4 "
         + "127.0.0.1"
         + "\r\n"
@@ -327,7 +327,8 @@ public class RtspClient {
     String params =
         (protocol == Protocol.UDP) ? ("UDP;unicast;client_port=" + (5000 + 2 * track) + "-" + (5000
             + 2 * track
-            + 1) + ";mode=record") : ("TCP;interleaved=" + 2 * track + "-" + (2 * track + 1) + ";mode=record");
+            + 1) + ";mode=record")
+            : ("TCP;interleaved=" + 2 * track + "-" + (2 * track + 1) + ";mode=record");
     String setup = "SETUP rtsp://"
         + host
         + ":"
@@ -345,8 +346,8 @@ public class RtspClient {
   }
 
   private String sendOptions() {
-    String options = "OPTIONS rtsp://" + host + ":" + port + path + " RTSP/1.0\r\n" + addHeaders(
-        authorization);
+    String options =
+        "OPTIONS rtsp://" + host + ":" + port + path + " RTSP/1.0\r\n" + addHeaders(authorization);
     Log.i(TAG, options);
     return options;
   }
@@ -365,8 +366,8 @@ public class RtspClient {
   }
 
   private String sendTearDown() {
-    String teardown = "TEARDOWN rtsp://" + host + ":" + port + path + " RTSP/1.0\r\n" + addHeaders(
-        authorization);
+    String teardown =
+        "TEARDOWN rtsp://" + host + ":" + port + path + " RTSP/1.0\r\n" + addHeaders(authorization);
     Log.i(TAG, teardown);
     return teardown;
   }
@@ -415,7 +416,7 @@ public class RtspClient {
         //end of response
         if (line.length() < 3) break;
       }
-      if (checkStatus && getResponseStatus(response) != 200){
+      if (checkStatus && getResponseStatus(response) != 200) {
         connectCheckerRtsp.onConnectionFailedRtsp();
       }
       Log.i(TAG, response);
@@ -480,8 +481,11 @@ public class RtspClient {
   private int getResponseStatus(String response) {
     Matcher matcher =
         Pattern.compile("RTSP/\\d.\\d (\\d+) (\\w+)", Pattern.CASE_INSENSITIVE).matcher(response);
-    if (matcher.find()) return Integer.parseInt(matcher.group(1));
-    else return -1;
+    if (matcher.find()) {
+      return Integer.parseInt(matcher.group(1));
+    } else {
+      return -1;
+    }
   }
 
   public int[] getAudioPorts() {

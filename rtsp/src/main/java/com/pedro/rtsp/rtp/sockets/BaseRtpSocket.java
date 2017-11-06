@@ -12,25 +12,25 @@ public abstract class BaseRtpSocket implements Runnable {
 
   protected final String TAG = "RtpSocket";
 
-  protected byte[][] mBuffers;
-  protected long[] mTimestamps;
-  protected Semaphore mBufferRequested, mBufferCommitted;
-  protected Thread mThread;
-  protected int mBufferOut;
-  protected long mClock = 0;
-  protected int mSeq = 0;
-  protected int mBufferCount, mBufferIn;
+  protected byte[][] buffers;
+  protected long[] timestamps;
+  protected Semaphore bufferRequested, bufferCommitted;
+  protected Thread thread;
+  protected int bufferOut;
+  protected long clock = 0;
+  protected int seq = 0;
+  protected int bufferCount, bufferIn;
 
   /**
    * This RTP socket implements a buffering mechanism relying on a FIFO of buffers and a Thread.
    */
   public BaseRtpSocket() {
-    mBufferCount = 300;
-    mBuffers = new byte[mBufferCount][];
+    bufferCount = 300;
+    buffers = new byte[bufferCount][];
     resetFifo();
 
-    for (int i = 0; i < mBufferCount; i++) {
-      mBuffers[i] = new byte[RtpConstants.MTU];
+    for (int i = 0; i < bufferCount; i++) {
+      buffers[i] = new byte[RtpConstants.MTU];
       /*							     Version(2)  Padding(0)					 					*/
       /*									 ^		  ^			Extension(0)						*/
       /*									 |		  |				^								*/
@@ -38,29 +38,35 @@ public abstract class BaseRtpSocket implements Runnable {
       /*									 | |---------------------								*/
       /*									 | ||  -----------------------> Source Identifier(0)	*/
       /*									 | ||  |												*/
-      mBuffers[i][0] = (byte) Integer.parseInt("10000000", 2);
-      mBuffers[i][1] = (byte) RtpConstants.payloadType;
+      buffers[i][0] = (byte) Integer.parseInt("10000000", 2);
+      buffers[i][1] = (byte) RtpConstants.payloadType;
 
 			/* Byte 2,3        ->  Sequence Number                   */
       /* Byte 4,5,6,7    ->  Timestamp                         */
-			/* Byte 8,9,10,11  ->  Sync Source Identifier            */
+      /* Byte 8,9,10,11  ->  Sync Source Identifier            */
     }
   }
 
   protected void resetFifo() {
-    mBufferIn = 0;
-    mBufferOut = 0;
-    mTimestamps = new long[mBufferCount];
-    mBufferRequested = new Semaphore(mBufferCount);
-    mBufferCommitted = new Semaphore(0);
+    bufferIn = 0;
+    bufferOut = 0;
+    timestamps = new long[bufferCount];
+    bufferRequested = new Semaphore(bufferCount);
+    bufferCommitted = new Semaphore(0);
   }
 
   /** Sets the SSRC of the stream. */
   public abstract void setSSRC(int ssrc);
 
+  protected void setLongSSRC(int ssrc) {
+    for (int i = 0; i < bufferCount; i++) {
+      setLong(buffers[i], ssrc, 8, 12);
+    }
+  }
+
   /** Sets the clock frequency of the stream in Hz. */
   public void setClockFrequency(long clock) {
-    mClock = clock;
+    this.clock = clock;
   }
 
   /**
@@ -69,14 +75,9 @@ public abstract class BaseRtpSocket implements Runnable {
    * @throws InterruptedException
    **/
   public byte[] requestBuffer() throws InterruptedException {
-    mBufferRequested.acquire();
-    mBuffers[mBufferIn][1] &= 0x7F;
-    return mBuffers[mBufferIn];
-  }
-
-  /** Increments the sequence number. */
-  protected void updateSequence() {
-    setLong(mBuffers[mBufferIn], ++mSeq, 2, 4);
+    bufferRequested.acquire();
+    buffers[bufferIn][1] &= 0x7F;
+    return buffers[bufferIn];
   }
 
   /**
@@ -85,25 +86,38 @@ public abstract class BaseRtpSocket implements Runnable {
    * @param timestamp The new timestamp in ns.
    **/
   public void updateTimestamp(long timestamp) {
-    long ts = timestamp * mClock / 1000000000L;
-    mTimestamps[mBufferIn] = ts;
-    setLong(mBuffers[mBufferIn], ts, 4, 8);
+    long ts = timestamp * clock / 1000000000L;
+    timestamps[bufferIn] = ts;
+    setLong(buffers[bufferIn], ts, 4, 8);
   }
 
   public void commitBuffer() throws IOException {
-    if (mThread == null) {
-      mThread = new Thread(this);
-      mThread.start();
+    if (thread == null) {
+      thread = new Thread(this);
+      thread.start();
     }
-    if (++mBufferIn >= mBufferCount) mBufferIn = 0;
-    mBufferCommitted.release();
+    if (++bufferIn >= bufferCount) bufferIn = 0;
+    bufferCommitted.release();
   }
 
-  public abstract void commitBuffer(int length) throws IOException;
+  /** Sends the RTP packet over the network. */
+  public void commitBuffer(int length) throws IOException {
+    //Increments the sequence number.
+    setLong(buffers[bufferIn], ++seq, 2, 4);
+    implementCommitBuffer(length);
+    if (++bufferIn >= bufferCount) bufferIn = 0;
+    bufferCommitted.release();
+    if (thread == null) {
+      thread = new Thread(this);
+      thread.start();
+    }
+  }
+
+  protected abstract void implementCommitBuffer(int length);
 
   /** Sets the marker in the RTP packet. */
   public void markNextPacket() {
-    mBuffers[mBufferIn][1] |= 0x80;
+    buffers[bufferIn][1] |= 0x80;
   }
 
   protected void setLong(byte[] buffer, long n, int begin, int end) {
