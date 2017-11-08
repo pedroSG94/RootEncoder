@@ -54,7 +54,7 @@ public class Body {
         "a=rtpmap:" + RtpConstants.payloadType
         + " H264/" + RtpConstants.clockVideoFrequency + "\r\n" +
         "a=fmtp:" + RtpConstants.payloadType
-        + " packetization-mode=1;profile-level-id=" + "42c029" + ";sprop-parameter-sets=" + sps + "," + pps + ";\r\n"
+        + " packetization-mode=1;sprop-parameter-sets=" + sps + "," + pps + ";\r\n"
         + "a=control:trackID=" + trackVideo + "\r\n";
   }
 }
