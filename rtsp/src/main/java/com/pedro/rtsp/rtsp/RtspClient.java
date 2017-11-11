@@ -29,6 +29,10 @@ import java.util.regex.Pattern;
 public class RtspClient {
 
   private final String TAG = "RtspClient";
+  private static final Pattern rtspUrlPattern =
+      Pattern.compile("^rtsp://([^/:]+)(:(\\d+))*/([^/]+)(/(.*))*$");
+  private static final Pattern rtspsUrlPattern =
+      Pattern.compile("^rtsps://([^/:]+)(:(\\d+))*/([^/]+)(/(.*))*$");
 
   private final long timestamp;
   private String host = "";
@@ -63,8 +67,7 @@ public class RtspClient {
   private OutputStream outputStream;
   private volatile boolean streaming = false;
   //for secure transport
-  private InputStream inputStreamJks = null;
-  private String passPhraseJks = null;
+  private boolean tlsEnabled = false;
   //packets
   private H264Packet h264Packet;
   private AacPacket aacPacket;
@@ -85,26 +88,28 @@ public class RtspClient {
     this.password = password;
   }
 
-  public void setJksData(InputStream inputStreamJks, String passPhraseJks) {
-    this.inputStreamJks = inputStreamJks;
-    this.passPhraseJks = passPhraseJks;
-  }
-
   public boolean isStreaming() {
     return streaming;
   }
 
   public void setUrl(String url) {
-    Pattern rtspPattern = Pattern.compile("^rtsp://([^/:]+)(:(\\d+))*/([^/]+)(/(.*))*$");
-    Matcher matcher = rtspPattern.matcher(url);
-    if (matcher.find()) {
-      host = matcher.group(1);
-      port = Integer.parseInt((matcher.group(3) != null) ? matcher.group(3) : "1935");
-      path = "/" + matcher.group(4) + "/" + matcher.group(6);
+    Matcher rtspMatcher = rtspUrlPattern.matcher(url);
+    Matcher rtspsMatcher = rtspsUrlPattern.matcher(url);
+    Matcher matcher;
+    if (rtspMatcher.matches()) {
+      matcher = rtspMatcher;
+      tlsEnabled = false;
+    } else if (rtspsMatcher.matches()) {
+      matcher = rtspsMatcher;
+      tlsEnabled = true;
     } else {
       streaming = false;
       connectCheckerRtsp.onConnectionFailedRtsp();
+      return;
     }
+    host = matcher.group(1);
+    port = Integer.parseInt((matcher.group(3) != null) ? matcher.group(3) : "1935");
+    path = "/" + matcher.group(4) + "/" + matcher.group(6);
   }
 
   public OutputStream getOutputStream() {
@@ -158,13 +163,12 @@ public class RtspClient {
         @Override
         public void run() {
           try {
-            if (inputStreamJks == null | passPhraseJks == null) {
+            if (!tlsEnabled) {
               connectionSocket = new Socket();
               SocketAddress socketAddress = new InetSocketAddress(host, port);
               connectionSocket.connect(socketAddress, 3000);
             } else {
-              connectionSocket = CreateSSLSocket.createSSlSocket(
-                  CreateSSLSocket.createKeyStore(inputStreamJks, passPhraseJks), host, port);
+              connectionSocket = CreateSSLSocket.createSSlSocket(host, port);
             }
             reader = new BufferedReader(new InputStreamReader(connectionSocket.getInputStream()));
             outputStream = connectionSocket.getOutputStream();
