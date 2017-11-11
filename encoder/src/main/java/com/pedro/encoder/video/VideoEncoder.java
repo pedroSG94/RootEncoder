@@ -106,7 +106,7 @@ public class VideoEncoder implements GetCameraData {
       videoFormat.setInteger(MediaFormat.KEY_MAX_INPUT_SIZE, 0);
       videoFormat.setInteger(MediaFormat.KEY_BIT_RATE, bitRate);
       videoFormat.setInteger(MediaFormat.KEY_FRAME_RATE, fps);
-      videoFormat.setInteger(MediaFormat.KEY_I_FRAME_INTERVAL, 1);
+      videoFormat.setInteger(MediaFormat.KEY_I_FRAME_INTERVAL, 2);
       if (hardwareRotation) {
         videoFormat.setInteger("rotation-degrees", rotation);
       }
