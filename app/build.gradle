@@ -1,13 +1,13 @@
 apply plugin: 'com.android.application'
 
 android {
-  compileSdkVersion 27
+  compileSdkVersion 26
   buildToolsVersion "26.0.2"
 
   defaultConfig {
     applicationId "com.pedro.rtmpstreamer"
     minSdkVersion 16
-    targetSdkVersion 27
+    targetSdkVersion 26
     versionCode 1
     versionName "1.0"
   }
@@ -21,6 +21,6 @@ android {
 
 dependencies {
   compile project(':rtplibrary')
-  compile 'com.android.support:appcompat-v7:27.0.0'
-  compile 'com.android.support:design:27.0.0'
+  compile 'com.android.support:appcompat-v7:26.1.0'
+  compile 'com.android.support:design:26.1.0'
 }
