@@ -17,10 +17,6 @@ public class DefaultRtmpPublisher implements RtmpPublisher {
         rtmpConnection = new RtmpConnection(connectCheckerRtmp);
     }
 
-    public void setJksData(InputStream inputStreamJks, String passPhraseJks){
-        rtmpConnection.setJksData(inputStreamJks, passPhraseJks);
-    }
-
     @Override
     public boolean connect(String url) {
         return rtmpConnection.connect(url);

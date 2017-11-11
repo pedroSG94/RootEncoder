@@ -88,10 +88,6 @@ public class SrsFlvMuxer {
     publisher.setAuthorization(user, password);
   }
 
-  public void setJksData(InputStream inputStreamJks, String passPhraseJks) {
-    publisher.setJksData(inputStreamJks, passPhraseJks);
-  }
-
   /**
    * set video resolution for publisher
    *

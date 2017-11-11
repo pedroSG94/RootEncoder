@@ -22,48 +22,17 @@ public class CreateSSLSocket {
 
   /**
    *
-   * @param inputStream data of your .jks file
-   * @param passPhrase passphrase of your .jks
-   * @return
-   */
-  public static KeyStore createKeyStore(InputStream inputStream, String passPhrase) {
-    try {
-      KeyStore keyStore = KeyStore.getInstance(KeyStore.getDefaultType());
-      keyStore.load(inputStream, passPhrase.toCharArray());
-      return keyStore;
-    } catch (KeyStoreException | CertificateException | NoSuchAlgorithmException | IOException e) {
-      e.printStackTrace();
-    }
-    return null;
-  }
-
-  /**
-   *
-   * @param keyStore created with createKeyStore()
    * @param host variable from RtmpConnection
    * @param port variable from RtmpConnection
    * @return
    */
-  public static Socket createSSlSocket(KeyStore keyStore, String host, int port) {
+  public static Socket createSSlSocket(String host, int port) {
     try {
-      TrustManagerFactory trustManagerFactory =
-          TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
-      trustManagerFactory.init(keyStore);
-      KeyManagerFactory keyManagerFactory =
-          KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
-      SSLContext sslContext = SSLContext.getInstance("TLS");
-      sslContext.init(keyManagerFactory.getKeyManagers(), trustManagerFactory.getTrustManagers(),
-          null);
-      return sslContext.getSocketFactory().createSocket(host, port);
-    } catch (KeyStoreException e) {
+      TLSSocketFactory socketFactory = new TLSSocketFactory();
+      return socketFactory.createSocket(host, port);
+    } catch (NoSuchAlgorithmException | KeyManagementException | IOException e) {
       e.printStackTrace();
       return null;
-    } catch (NoSuchAlgorithmException | IOException e) {
-      e.printStackTrace();
-      return null;
-    } catch (KeyManagementException e) {
-      e.printStackTrace();
     }
-    return null;
   }
 }
