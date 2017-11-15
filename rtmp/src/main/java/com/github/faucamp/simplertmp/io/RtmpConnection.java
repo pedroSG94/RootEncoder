@@ -407,8 +407,8 @@ public class RtmpConnection implements RtmpPublisher {
         socket.shutdownInput();
         // It will raise SocketException in sendRtmpPacket
         socket.shutdownOutput();
-      } catch (IOException ioe) {
-        ioe.printStackTrace();
+      } catch (IOException | UnsupportedOperationException e) {
+        e.printStackTrace();
       }
 
       // shutdown rxPacketHandler
