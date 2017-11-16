@@ -41,10 +41,12 @@ public class OpenGlView extends SurfaceView
   private int previewWidth, previewHeight;
   private int encoderWidth, encoderHeight;
   private boolean loadStreamObject = false;
+  private boolean loadAlpha = false;
 
   private TextStreamObject textStreamObject;
   private ImageStreamObject imageStreamObject;
   private GifStreamObject gifStreamObject;
+  private float alpha;
   private Surface surface;
 
   public OpenGlView(Context context, AttributeSet attrs) {
@@ -109,6 +111,11 @@ public class OpenGlView extends SurfaceView
     loadStreamObject = true;
   }
 
+  public void setStreamObjectAlpha(float alpha) {
+    this.alpha = alpha;
+    loadAlpha = true;
+  }
+
   public void startGLThread() {
     Log.i(TAG, "Thread started.");
     if (textureManager == null) {
@@ -149,6 +156,11 @@ public class OpenGlView extends SurfaceView
           if (frameAvailable) {
             frameAvailable = false;
             surfaceManager.makeCurrent();
+            //set new alpha
+            if (loadAlpha) {
+              textureManager.setAlpha(alpha);
+              loadAlpha = false;
+            }
             //need load a stream object
             if (loadStreamObject) {
               if (textStreamObject != null) {

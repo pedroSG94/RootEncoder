@@ -63,7 +63,7 @@ public class OpenGlRtmpActivity extends AppCompatActivity
           setGifToStream();
           return true;
         case R.id.clear:
-          rtmpCamera1.clear();
+          rtmpCamera1.clearStreamObject();
           return true;
         default:
           return false;
@@ -78,7 +78,7 @@ public class OpenGlRtmpActivity extends AppCompatActivity
       TextStreamObject textStreamObject =
           new TextStreamObject(rtmpCamera1.getStreamWidth(), rtmpCamera1.getStreamHeight());
       textStreamObject.load("Hello world", 22, Color.RED);
-      rtmpCamera1.setText(textStreamObject);
+      rtmpCamera1.setTextStreamObject(textStreamObject);
     } catch (IOException e) {
       Toast.makeText(this, e.getMessage(), Toast.LENGTH_SHORT).show();
     }
@@ -89,7 +89,7 @@ public class OpenGlRtmpActivity extends AppCompatActivity
       ImageStreamObject imageStreamObject =
           new ImageStreamObject(rtmpCamera1.getStreamWidth(), rtmpCamera1.getStreamHeight());
       imageStreamObject.load(BitmapFactory.decodeResource(getResources(), R.mipmap.ic_launcher));
-      rtmpCamera1.setImage(imageStreamObject);
+      rtmpCamera1.setImageStreamObject(imageStreamObject);
     } catch (IOException e) {
       Toast.makeText(this, e.getMessage(), Toast.LENGTH_SHORT).show();
     }
@@ -100,7 +100,7 @@ public class OpenGlRtmpActivity extends AppCompatActivity
       GifStreamObject gifStreamObject =
           new GifStreamObject(rtmpCamera1.getStreamWidth(), rtmpCamera1.getStreamHeight());
       gifStreamObject.load(getResources().openRawResource(R.raw.banana));
-      rtmpCamera1.setGif(gifStreamObject);
+      rtmpCamera1.setGifStreamObject(gifStreamObject);
     } catch (IOException e) {
       Toast.makeText(this, e.getMessage(), Toast.LENGTH_SHORT).show();
     }

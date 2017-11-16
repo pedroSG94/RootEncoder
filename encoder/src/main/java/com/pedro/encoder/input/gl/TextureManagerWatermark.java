@@ -54,6 +54,7 @@ public class TextureManagerWatermark {
   private int aPositionHandle = -1;
   private int aTextureHandle = -1;
   private int waterMarkHandle = -1;
+  private int alphaHandle = -1;
 
   private SurfaceTexture surfaceTexture;
   private Surface surface;
@@ -61,6 +62,7 @@ public class TextureManagerWatermark {
   private int[] streamObjectTextureId = null;
   private StreamObjectBase streamObjectBase = null;
   private TextureLoader textureLoader = new TextureLoader();
+  private float alpha = 1.0f;
 
   public TextureManagerWatermark(Context context) {
     this.context = context;
@@ -115,6 +117,8 @@ public class TextureManagerWatermark {
     Matrix.setIdentityM(mMVPMatrix, 0);
     GLES20.glUniformMatrix4fv(uMVPMatrixHandle, 1, false, mMVPMatrix, 0);
     GLES20.glUniformMatrix4fv(uSTMatrixHandle, 1, false, mSTMatrix, 0);
+    //set parameters
+    GLES20.glUniform1f(alphaHandle, alpha);
     //camera
     GLES20.glActiveTexture(GLES20.GL_TEXTURE0);
     GLES20.glBindTexture(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, textureID);
@@ -151,6 +155,7 @@ public class TextureManagerWatermark {
     uMVPMatrixHandle = GLES20.glGetUniformLocation(program, "uMVPMatrix");
     uSTMatrixHandle = GLES20.glGetUniformLocation(program, "uSTMatrix");
     waterMarkHandle = GLES20.glGetUniformLocation(program, "watermark");
+    alphaHandle = GLES20.glGetUniformLocation(program, "alpha");
     GlUtil.checkGlError("create handlers end");
     //camera texture
     GlUtil.createExternalTextures(1, texturesID, 0);
@@ -191,5 +196,9 @@ public class TextureManagerWatermark {
 
   public void clear() {
     streamObjectTextureId = new int[] { -1 };
+  }
+
+  public void setAlpha(float alpha) {
+    this.alpha = alpha;
   }
 }

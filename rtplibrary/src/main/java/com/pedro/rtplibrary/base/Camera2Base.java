@@ -282,7 +282,7 @@ public abstract class Camera2Base
     }
   }
 
-  public void setGif(GifStreamObject gifStreamObject) throws RuntimeException {
+  public void setGifStreamObject(GifStreamObject gifStreamObject) throws RuntimeException {
     if (openGlView != null) {
       openGlView.setGif(gifStreamObject);
     } else {
@@ -290,7 +290,7 @@ public abstract class Camera2Base
     }
   }
 
-  public void setImage(ImageStreamObject imageStreamObject) throws RuntimeException {
+  public void setImageStreamObject(ImageStreamObject imageStreamObject) throws RuntimeException {
     if (openGlView != null) {
       openGlView.setImage(imageStreamObject);
     } else {
@@ -298,7 +298,7 @@ public abstract class Camera2Base
     }
   }
 
-  public void setText(TextStreamObject textStreamObject) throws RuntimeException {
+  public void setTextStreamObject(TextStreamObject textStreamObject) throws RuntimeException {
     if (openGlView != null) {
       openGlView.setText(textStreamObject);
     } else {
@@ -306,11 +306,24 @@ public abstract class Camera2Base
     }
   }
 
-  public void clear() throws RuntimeException {
+  public void clearStreamObject() throws RuntimeException {
     if (openGlView != null) {
       openGlView.clear();
     } else {
       throw new RuntimeException("You must use OpenGlView in the constructor to set a text");
+    }
+  }
+
+  /**
+   *
+   * @param alpha of the stream object on fly, 1.0f totally opaque and 0.0f totally transparent
+   * @throws RuntimeException
+   */
+  public void setAlphaStreamObject(float alpha) throws RuntimeException {
+    if (openGlView != null) {
+      openGlView.setStreamObjectAlpha(alpha);
+    } else {
+      throw new RuntimeException("You must use OpenGlView in the constructor to set an alpha");
     }
   }
 
