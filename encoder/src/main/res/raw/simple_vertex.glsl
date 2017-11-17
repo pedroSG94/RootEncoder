@@ -3,13 +3,13 @@ attribute vec4 aTextureCoord;
 
 uniform mat4 uMVPMatrix;
 uniform mat4 uSTMatrix;
-uniform float alpha;
+uniform float uAlpha;
 
 varying vec2 vTextureCoord;
-varying float _alpha;
+varying float vAlpha;
 
 void main() {
   gl_Position = uMVPMatrix * aPosition;
   vTextureCoord = (uSTMatrix * aTextureCoord).xy;
-  _alpha = alpha;
+  vAlpha = uAlpha;
 }

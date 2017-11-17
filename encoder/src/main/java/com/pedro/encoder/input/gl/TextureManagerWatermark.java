@@ -29,21 +29,23 @@ public class TextureManagerWatermark {
   private Context context;
 
   private static final int FLOAT_SIZE_BYTES = 4;
-  private static final int TRIANGLE_VERTICES_DATA_STRIDE_BYTES = 5 * FLOAT_SIZE_BYTES;
-  private static final int TRIANGLE_VERTICES_DATA_POS_OFFSET = 0;
-  private static final int TRIANGLE_VERTICES_DATA_UV_OFFSET = 3;
+  private static final int SQUARE_VERTEX_DATA_STRIDE_BYTES = 5 * FLOAT_SIZE_BYTES;
+  private static final int SQUARE_VERTEX_DATA_POS_OFFSET = 0;
+  private static final int SQUARE_VERTEX_DATA_UV_OFFSET = 3;
 
   //rotation matrix
-  private final float[] triangleVerticesData = {
+  private final float[] squareVertexData = {
       // X, Y, Z, U, V
-      -1.0f, -1.0f, 0, 0.f, 0.f, 1.0f, -1.0f, 0, 1.f, 0.f, -1.0f, 1.0f, 0, 0.f, 1.f, 1.0f, 1.0f, 0,
-      1.f, 1.f,
+      -1f, -1f, 0f, 0f, 0f, //bottom left
+      1f, -1f, 0f, 1f, 0f, //bottom right
+      -1f, 1f, 0f, 0f, 1f, //top left
+      1f, 1f, 0f, 1f, 1f, //top right
   };
 
-  private FloatBuffer triangleVertices;
+  private FloatBuffer squareVertex;
 
-  private float[] mMVPMatrix = new float[16];
-  private float[] mSTMatrix = new float[16];
+  private float[] MVPMatrix = new float[16];
+  private float[] STMatrix = new float[16];
 
   private int[] texturesID = new int[1];
 
@@ -53,8 +55,8 @@ public class TextureManagerWatermark {
   private int uSTMatrixHandle = -1;
   private int aPositionHandle = -1;
   private int aTextureHandle = -1;
-  private int waterMarkHandle = -1;
-  private int alphaHandle = -1;
+  private int sWaterMarkHandle = -1;
+  private int uAlphaHandle = -1;
 
   private SurfaceTexture surfaceTexture;
   private Surface surface;
@@ -66,11 +68,11 @@ public class TextureManagerWatermark {
 
   public TextureManagerWatermark(Context context) {
     this.context = context;
-    triangleVertices = ByteBuffer.allocateDirect(triangleVerticesData.length * FLOAT_SIZE_BYTES)
+    squareVertex = ByteBuffer.allocateDirect(squareVertexData.length * FLOAT_SIZE_BYTES)
         .order(ByteOrder.nativeOrder())
         .asFloatBuffer();
-    triangleVertices.put(triangleVerticesData).position(0);
-    Matrix.setIdentityM(mSTMatrix, 0);
+    squareVertex.put(squareVertexData).position(0);
+    Matrix.setIdentityM(STMatrix, 0);
   }
 
   public int getTextureId() {
@@ -91,39 +93,34 @@ public class TextureManagerWatermark {
 
   public void drawFrame(int width, int height) {
     GlUtil.checkGlError("onDrawFrame start");
-    surfaceTexture.getTransformMatrix(mSTMatrix);
+    surfaceTexture.getTransformMatrix(STMatrix);
 
     GLES20.glViewport(0, 0, width, height);
     GLES20.glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
     GLES20.glClear(GLES20.GL_DEPTH_BUFFER_BIT | GLES20.GL_COLOR_BUFFER_BIT);
 
     GLES20.glUseProgram(program);
-    GlUtil.checkGlError("glUseProgram");
 
-    triangleVertices.position(TRIANGLE_VERTICES_DATA_POS_OFFSET);
+    squareVertex.position(SQUARE_VERTEX_DATA_POS_OFFSET);
     GLES20.glVertexAttribPointer(aPositionHandle, 3, GLES20.GL_FLOAT, false,
-        TRIANGLE_VERTICES_DATA_STRIDE_BYTES, triangleVertices);
-    GlUtil.checkGlError("glVertexAttribPointer maPosition");
+        SQUARE_VERTEX_DATA_STRIDE_BYTES, squareVertex);
     GLES20.glEnableVertexAttribArray(aPositionHandle);
-    GlUtil.checkGlError("glEnableVertexAttribArray aPositionHandle");
 
-    triangleVertices.position(TRIANGLE_VERTICES_DATA_UV_OFFSET);
+    squareVertex.position(SQUARE_VERTEX_DATA_UV_OFFSET);
     GLES20.glVertexAttribPointer(aTextureHandle, 2, GLES20.GL_FLOAT, false,
-        TRIANGLE_VERTICES_DATA_STRIDE_BYTES, triangleVertices);
-    GlUtil.checkGlError("glVertexAttribPointer aTextureHandle");
+        SQUARE_VERTEX_DATA_STRIDE_BYTES, squareVertex);
     GLES20.glEnableVertexAttribArray(aTextureHandle);
-    GlUtil.checkGlError("glEnableVertexAttribArray aTextureHandle");
 
-    Matrix.setIdentityM(mMVPMatrix, 0);
-    GLES20.glUniformMatrix4fv(uMVPMatrixHandle, 1, false, mMVPMatrix, 0);
-    GLES20.glUniformMatrix4fv(uSTMatrixHandle, 1, false, mSTMatrix, 0);
+    Matrix.setIdentityM(MVPMatrix, 0);
+    GLES20.glUniformMatrix4fv(uMVPMatrixHandle, 1, false, MVPMatrix, 0);
+    GLES20.glUniformMatrix4fv(uSTMatrixHandle, 1, false, STMatrix, 0);
     //set parameters
-    GLES20.glUniform1f(alphaHandle, alpha);
+    GLES20.glUniform1f(uAlphaHandle, alpha);
     //camera
     GLES20.glActiveTexture(GLES20.GL_TEXTURE0);
     GLES20.glBindTexture(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, textureID);
     // watermark
-    GLES20.glUniform1i(waterMarkHandle, 1);
+    GLES20.glUniform1i(sWaterMarkHandle, 1);
     GLES20.glActiveTexture(GLES20.GL_TEXTURE1);
 
     if (streamObjectTextureId != null) {
@@ -138,14 +135,14 @@ public class TextureManagerWatermark {
     }
     //draw
     GLES20.glDrawArrays(GLES20.GL_TRIANGLE_STRIP, 0, 4);
-    GlUtil.checkGlError("glDrawArrays");
+    GlUtil.checkGlError("onDrawFrame end");
   }
 
   /**
    * Initializes GL state.  Call this after the EGL surface has been created and made current.
    */
   public void initGl() {
-    GlUtil.checkGlError("create handlers start");
+    GlUtil.checkGlError("initGl start");
     String vertexShader = GlUtil.getStringFromRaw(context, R.raw.simple_vertex);
     String fragmentShader = GlUtil.getStringFromRaw(context, R.raw.watermark_fragment);
 
@@ -154,16 +151,16 @@ public class TextureManagerWatermark {
     aTextureHandle = GLES20.glGetAttribLocation(program, "aTextureCoord");
     uMVPMatrixHandle = GLES20.glGetUniformLocation(program, "uMVPMatrix");
     uSTMatrixHandle = GLES20.glGetUniformLocation(program, "uSTMatrix");
-    waterMarkHandle = GLES20.glGetUniformLocation(program, "watermark");
-    alphaHandle = GLES20.glGetUniformLocation(program, "alpha");
-    GlUtil.checkGlError("create handlers end");
+    uAlphaHandle = GLES20.glGetUniformLocation(program, "uAlpha");
+    sWaterMarkHandle = GLES20.glGetUniformLocation(program, "sWatermark");
+
     //camera texture
     GlUtil.createExternalTextures(1, texturesID, 0);
     textureID = texturesID[0];
 
-    GlUtil.checkGlError("glTexParameter");
     surfaceTexture = new SurfaceTexture(textureID);
     surface = new Surface(surfaceTexture);
+    GlUtil.checkGlError("initGl end");
   }
 
   public void release() {
