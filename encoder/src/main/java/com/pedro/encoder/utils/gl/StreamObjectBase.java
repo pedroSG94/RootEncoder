@@ -10,8 +10,6 @@ public abstract class StreamObjectBase {
 
   public abstract void resize(int width, int height);
 
-  public abstract void setPosition(int positionX, int positionY);
-
   public abstract void recycle();
 
   public abstract int getNumFrames();

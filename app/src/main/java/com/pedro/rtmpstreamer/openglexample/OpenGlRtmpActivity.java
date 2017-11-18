@@ -4,6 +4,7 @@ import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.annotation.RequiresApi;
 import android.support.v7.app.AppCompatActivity;
 import android.view.Menu;
@@ -75,8 +76,7 @@ public class OpenGlRtmpActivity extends AppCompatActivity
 
   private void setTextToStream() {
     try {
-      TextStreamObject textStreamObject =
-          new TextStreamObject(rtmpCamera1.getStreamWidth(), rtmpCamera1.getStreamHeight());
+      TextStreamObject textStreamObject = new TextStreamObject();
       textStreamObject.load("Hello world", 22, Color.RED);
       rtmpCamera1.setTextStreamObject(textStreamObject);
     } catch (IOException e) {
@@ -86,8 +86,7 @@ public class OpenGlRtmpActivity extends AppCompatActivity
 
   private void setImageToStream() {
     try {
-      ImageStreamObject imageStreamObject =
-          new ImageStreamObject(rtmpCamera1.getStreamWidth(), rtmpCamera1.getStreamHeight());
+      ImageStreamObject imageStreamObject = new ImageStreamObject();
       imageStreamObject.load(BitmapFactory.decodeResource(getResources(), R.mipmap.ic_launcher));
       rtmpCamera1.setImageStreamObject(imageStreamObject);
     } catch (IOException e) {
@@ -97,8 +96,7 @@ public class OpenGlRtmpActivity extends AppCompatActivity
 
   private void setGifToStream() {
     try {
-      GifStreamObject gifStreamObject =
-          new GifStreamObject(rtmpCamera1.getStreamWidth(), rtmpCamera1.getStreamHeight());
+      GifStreamObject gifStreamObject = new GifStreamObject();
       gifStreamObject.load(getResources().openRawResource(R.raw.banana));
       rtmpCamera1.setGifStreamObject(gifStreamObject);
     } catch (IOException e) {

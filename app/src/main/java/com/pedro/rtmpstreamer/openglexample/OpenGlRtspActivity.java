@@ -75,8 +75,7 @@ public class OpenGlRtspActivity extends AppCompatActivity
 
   private void setTextToStream() {
     try {
-      TextStreamObject textStreamObject =
-          new TextStreamObject(rtspCamera1.getStreamWidth(), rtspCamera1.getStreamHeight());
+      TextStreamObject textStreamObject = new TextStreamObject();
       textStreamObject.load("Hello world", 22, Color.RED);
       rtspCamera1.setTextStreamObject(textStreamObject);
     } catch (IOException e) {
@@ -86,8 +85,7 @@ public class OpenGlRtspActivity extends AppCompatActivity
 
   private void setImageToStream() {
     try {
-      ImageStreamObject imageStreamObject =
-          new ImageStreamObject(rtspCamera1.getStreamWidth(), rtspCamera1.getStreamHeight());
+      ImageStreamObject imageStreamObject = new ImageStreamObject();
       imageStreamObject.load(BitmapFactory.decodeResource(getResources(), R.mipmap.ic_launcher));
       rtspCamera1.setImageStreamObject(imageStreamObject);
     } catch (IOException e) {
@@ -97,8 +95,7 @@ public class OpenGlRtspActivity extends AppCompatActivity
 
   private void setGifToStream() {
     try {
-      GifStreamObject gifStreamObject =
-          new GifStreamObject(rtspCamera1.getStreamWidth(), rtspCamera1.getStreamHeight());
+      GifStreamObject gifStreamObject = new GifStreamObject();
       gifStreamObject.load(getResources().openRawResource(R.raw.banana));
       rtspCamera1.setGifStreamObject(gifStreamObject);
     } catch (IOException e) {

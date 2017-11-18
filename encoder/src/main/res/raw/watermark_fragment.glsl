@@ -4,12 +4,13 @@ precision mediump float;
 uniform samplerExternalOES sCamera;
 uniform sampler2D sWatermark;
 
-varying vec2 vTextureCoord;
+varying vec2 vTextureCameraCoord;
+varying vec2 vTextureWatermarkCoord;
 varying float vAlpha;
 
 void main() {
-    vec4 cameraPixel = texture2D(sCamera, vTextureCoord);
-    vec4 watermarkPixel = texture2D(sWatermark, vec2(1.0 - vTextureCoord.y, vTextureCoord.x));
+    vec4 cameraPixel = texture2D(sCamera, vTextureCameraCoord);
+    vec4 watermarkPixel = texture2D(sWatermark, vTextureWatermarkCoord);
     if (watermarkPixel.rgb == vec3(0.0, 0.0, 0.0)) {
       gl_FragColor = cameraPixel;
     } else {

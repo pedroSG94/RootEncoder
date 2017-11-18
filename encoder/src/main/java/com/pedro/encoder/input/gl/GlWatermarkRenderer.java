@@ -14,6 +14,7 @@ import com.pedro.encoder.utils.gl.GlUtil;
 import com.pedro.encoder.utils.gl.ImageStreamObject;
 import com.pedro.encoder.utils.gl.StreamObjectBase;
 import com.pedro.encoder.utils.gl.TextStreamObject;
+import com.pedro.encoder.utils.gl.TranslateTo;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.FloatBuffer;
@@ -22,7 +23,7 @@ import java.nio.FloatBuffer;
  * Created by pedro on 21/09/17.
  */
 @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
-public class TextureManagerWatermark {
+public class GlWatermarkRenderer {
 
   public final static String TAG = "TextureManager";
 
@@ -43,6 +44,7 @@ public class TextureManagerWatermark {
   };
 
   private FloatBuffer squareVertex;
+  private FloatBuffer squareVertexWatermark;
 
   private float[] MVPMatrix = new float[16];
   private float[] STMatrix = new float[16];
@@ -54,24 +56,37 @@ public class TextureManagerWatermark {
   private int uMVPMatrixHandle = -1;
   private int uSTMatrixHandle = -1;
   private int aPositionHandle = -1;
-  private int aTextureHandle = -1;
+  private int aTextureCameraHandle = -1;
+  private int aTextureWatermarkHandle = -1;
   private int sWaterMarkHandle = -1;
   private int uAlphaHandle = -1;
 
   private SurfaceTexture surfaceTexture;
   private Surface surface;
-  //text
+
   private int[] streamObjectTextureId = null;
   private StreamObjectBase streamObjectBase = null;
   private TextureLoader textureLoader = new TextureLoader();
+  private Sprite sprite;
   private float alpha = 1.0f;
 
-  public TextureManagerWatermark(Context context) {
+  public GlWatermarkRenderer(Context context) {
     this.context = context;
     squareVertex = ByteBuffer.allocateDirect(squareVertexData.length * FLOAT_SIZE_BYTES)
         .order(ByteOrder.nativeOrder())
         .asFloatBuffer();
     squareVertex.put(squareVertexData).position(0);
+
+    sprite = new Sprite();
+    sprite.scale(5f);
+
+    float[] vertices = sprite.getTransformedVertices();
+    squareVertexWatermark = ByteBuffer.allocateDirect(vertices.length * FLOAT_SIZE_BYTES)
+        .order(ByteOrder.nativeOrder())
+        .asFloatBuffer();
+    squareVertexWatermark.put(vertices).position(0);
+
+    Matrix.setIdentityM(MVPMatrix, 0);
     Matrix.setIdentityM(STMatrix, 0);
   }
 
@@ -92,7 +107,7 @@ public class TextureManagerWatermark {
   }
 
   public void drawFrame(int width, int height) {
-    GlUtil.checkGlError("onDrawFrame start");
+    GlUtil.checkGlError("drawFrame start");
     surfaceTexture.getTransformMatrix(STMatrix);
 
     GLES20.glViewport(0, 0, width, height);
@@ -107,11 +122,15 @@ public class TextureManagerWatermark {
     GLES20.glEnableVertexAttribArray(aPositionHandle);
 
     squareVertex.position(SQUARE_VERTEX_DATA_UV_OFFSET);
-    GLES20.glVertexAttribPointer(aTextureHandle, 2, GLES20.GL_FLOAT, false,
+    GLES20.glVertexAttribPointer(aTextureCameraHandle, 2, GLES20.GL_FLOAT, false,
         SQUARE_VERTEX_DATA_STRIDE_BYTES, squareVertex);
-    GLES20.glEnableVertexAttribArray(aTextureHandle);
+    GLES20.glEnableVertexAttribArray(aTextureCameraHandle);
 
-    Matrix.setIdentityM(MVPMatrix, 0);
+    squareVertexWatermark.position(0);
+    GLES20.glVertexAttribPointer(aTextureWatermarkHandle, 2, GLES20.GL_FLOAT, false,
+        2 * FLOAT_SIZE_BYTES, squareVertexWatermark);
+    GLES20.glEnableVertexAttribArray(aTextureWatermarkHandle);
+
     GLES20.glUniformMatrix4fv(uMVPMatrixHandle, 1, false, MVPMatrix, 0);
     GLES20.glUniformMatrix4fv(uSTMatrixHandle, 1, false, STMatrix, 0);
     //set parameters
@@ -135,7 +154,7 @@ public class TextureManagerWatermark {
     }
     //draw
     GLES20.glDrawArrays(GLES20.GL_TRIANGLE_STRIP, 0, 4);
-    GlUtil.checkGlError("onDrawFrame end");
+    GlUtil.checkGlError("drawFrame end");
   }
 
   /**
@@ -143,12 +162,13 @@ public class TextureManagerWatermark {
    */
   public void initGl() {
     GlUtil.checkGlError("initGl start");
-    String vertexShader = GlUtil.getStringFromRaw(context, R.raw.simple_vertex);
+    String vertexShader = GlUtil.getStringFromRaw(context, R.raw.watermark_vertex);
     String fragmentShader = GlUtil.getStringFromRaw(context, R.raw.watermark_fragment);
 
     program = GlUtil.createProgram(vertexShader, fragmentShader);
     aPositionHandle = GLES20.glGetAttribLocation(program, "aPosition");
-    aTextureHandle = GLES20.glGetAttribLocation(program, "aTextureCoord");
+    aTextureCameraHandle = GLES20.glGetAttribLocation(program, "aTextureCameraCoord");
+    aTextureWatermarkHandle = GLES20.glGetAttribLocation(program, "aTextureWatermarkCoord");
     uMVPMatrixHandle = GLES20.glGetUniformLocation(program, "uMVPMatrix");
     uSTMatrixHandle = GLES20.glGetUniformLocation(program, "uSTMatrix");
     uAlphaHandle = GLES20.glGetUniformLocation(program, "uAlpha");
@@ -197,5 +217,20 @@ public class TextureManagerWatermark {
 
   public void setAlpha(float alpha) {
     this.alpha = alpha;
+  }
+
+  public void setScale(float scale) {
+    sprite.scale(scale);
+    squareVertexWatermark.put(sprite.getTransformedVertices()).position(0);
+  }
+
+  public void setPosition(float x, float y) {
+    sprite.translate(x, y);
+    squareVertexWatermark.put(sprite.getTransformedVertices()).position(0);
+  }
+
+  public void setPosition(TranslateTo positionTo) {
+    sprite.translate(positionTo);
+    squareVertexWatermark.put(sprite.getTransformedVertices()).position(0);
   }
 }

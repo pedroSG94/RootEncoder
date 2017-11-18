@@ -22,6 +22,7 @@ import com.pedro.encoder.input.video.GetCameraData;
 import com.pedro.encoder.utils.gl.GifStreamObject;
 import com.pedro.encoder.utils.gl.ImageStreamObject;
 import com.pedro.encoder.utils.gl.TextStreamObject;
+import com.pedro.encoder.utils.gl.TranslateTo;
 import com.pedro.encoder.video.FormatVideoEncoder;
 import com.pedro.encoder.video.GetH264Data;
 import com.pedro.encoder.video.VideoEncoder;
@@ -242,14 +243,6 @@ public abstract class Camera2Base
     streaming = false;
   }
 
-  public int getStreamWidth() {
-    return videoEncoder.getWidth();
-  }
-
-  public int getStreamHeight() {
-    return videoEncoder.getHeight();
-  }
-
   public void disableAudio() {
     microphoneManager.mute();
   }
@@ -315,7 +308,6 @@ public abstract class Camera2Base
   }
 
   /**
-   *
    * @param alpha of the stream object on fly, 1.0f totally opaque and 0.0f totally transparent
    * @throws RuntimeException
    */
@@ -327,6 +319,29 @@ public abstract class Camera2Base
     }
   }
 
+  public void setSizeStreamObject(float size) throws RuntimeException {
+    if (openGlView != null) {
+      openGlView.setStreamObjectSize(size);
+    } else {
+      throw new RuntimeException("You must use OpenGlView in the constructor to set an alpha");
+    }
+  }
+
+  public void setPositionStreamObject(float x, float y) throws RuntimeException {
+    if (openGlView != null) {
+      openGlView.setStreamObjectPosition(x, y);
+    } else {
+      throw new RuntimeException("You must use OpenGlView in the constructor to set an alpha");
+    }
+  }
+
+  public void setPositionStreamObject(TranslateTo translateTo) throws RuntimeException {
+    if (openGlView != null) {
+      openGlView.setStreamObjectPosition(translateTo);
+    } else {
+      throw new RuntimeException("You must use OpenGlView in the constructor to set an alpha");
+    }
+  }
   /**
    * need min API 19
    */

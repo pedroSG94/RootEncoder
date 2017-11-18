@@ -4,7 +4,6 @@ import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.util.Log;
-import com.pedro.encoder.utils.gl.watermark.WatermarkUtil;
 import java.io.IOException;
 
 /**
@@ -15,32 +14,22 @@ public class TextStreamObject extends StreamObjectBase {
 
   private static final String TAG = "TextStreamObject";
 
-  private int streamWidth, streamHeight;
   private int numFrames;
   private Bitmap imageBitmap;
 
-  public TextStreamObject(int streamWidth, int streamHeight) {
-    this.streamWidth = streamWidth;
-    this.streamHeight = streamHeight;
+  public TextStreamObject() {
   }
 
   public void load(String text, float textSize, int textColor) throws IOException {
     numFrames = 1;
     imageBitmap = textAsBitmap(text, textSize, textColor);
     resize(imageBitmap.getWidth(), imageBitmap.getHeight());
-    setPosition(0, 0);
     Log.i(TAG, "finish load text!!!");
   }
 
   @Override
   public void resize(int width, int height) {
     imageBitmap = Bitmap.createScaledBitmap(imageBitmap, width, height, false);
-  }
-
-  @Override
-  public void setPosition(int positionX, int positionY) {
-    WatermarkUtil watermarkUtil = new WatermarkUtil(streamWidth, streamHeight);
-    imageBitmap = watermarkUtil.createWatermarkBitmap(imageBitmap, positionX, positionY);
   }
 
   @Override
