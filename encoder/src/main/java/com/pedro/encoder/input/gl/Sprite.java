@@ -80,7 +80,10 @@ class Sprite {
   }
 
   public void scale(float delta) {
-    scale = delta;
+    //100 / 5 = 20
+
+    //scale = delta;
+    scale = 100 / delta;
   }
 
   public void rotate(float delta) {

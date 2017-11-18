@@ -318,30 +318,46 @@ public abstract class Camera1Base
     }
   }
 
+  /**
+   *
+   * @param size of the stream object in percent: 100 full screen to 1
+   * @throws RuntimeException
+   */
   @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
   public void setSizeStreamObject(float size) throws RuntimeException {
     if (openGlView != null) {
       openGlView.setStreamObjectSize(size);
     } else {
-      throw new RuntimeException("You must use OpenGlView in the constructor to set an alpha");
+      throw new RuntimeException("You must use OpenGlView in the constructor to set a size");
     }
   }
 
+  /**
+   *
+   * @param x
+   * @param y
+   * @throws RuntimeException
+   */
   @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
   public void setPositionStreamObject(float x, float y) throws RuntimeException {
     if (openGlView != null) {
       openGlView.setStreamObjectPosition(x, y);
     } else {
-      throw new RuntimeException("You must use OpenGlView in the constructor to set an alpha");
+      throw new RuntimeException("You must use OpenGlView in the constructor to set a position");
     }
   }
 
+  /**
+   *
+   * @param translateTo pre determinate positions
+   * @throws RuntimeException
+   */
   @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
   public void setPositionStreamObject(TranslateTo translateTo) throws RuntimeException {
     if (openGlView != null) {
       openGlView.setStreamObjectPosition(translateTo);
     } else {
-      throw new RuntimeException("You must use OpenGlView in the constructor to set an alpha");
+      throw new RuntimeException("You must use OpenGlView in the constructor to set a position");
     }
   }
 

@@ -6,9 +6,15 @@ package com.pedro.encoder.utils.gl;
 
 public abstract class StreamObjectBase {
 
+  public abstract int getWidth();
+
+  public abstract int getHeight();
+
   public abstract int updateFrame();
 
   public abstract void resize(int width, int height);
+
+  protected abstract void prepare();
 
   public abstract void recycle();
 

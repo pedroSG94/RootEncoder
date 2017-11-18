@@ -87,7 +87,7 @@ public class OpenGlRtmpActivity extends AppCompatActivity
   private void setImageToStream() {
     try {
       ImageStreamObject imageStreamObject = new ImageStreamObject();
-      imageStreamObject.load(BitmapFactory.decodeResource(getResources(), R.mipmap.ic_launcher));
+      imageStreamObject.load(BitmapFactory.decodeResource(getResources(), R.drawable.hola));
       rtmpCamera1.setImageStreamObject(imageStreamObject);
     } catch (IOException e) {
       Toast.makeText(this, e.getMessage(), Toast.LENGTH_SHORT).show();

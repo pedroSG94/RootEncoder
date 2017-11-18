@@ -18,16 +18,32 @@ public class ImageStreamObject extends StreamObjectBase {
   public ImageStreamObject() {
   }
 
+  @Override
+  public int getWidth() {
+    return imageBitmap.getWidth();
+  }
+
+  @Override
+  public int getHeight() {
+    return imageBitmap.getHeight();
+  }
+
   public void load(Bitmap imageBitmap) throws IOException {
     this.imageBitmap = imageBitmap;
     numFrames = 1;
     resize(imageBitmap.getWidth(), imageBitmap.getHeight());
+    prepare();
     Log.i(TAG, "finish load image!!!");
   }
 
   @Override
   public void resize(int width, int height) {
     imageBitmap = Bitmap.createScaledBitmap(imageBitmap, width, height, false);
+  }
+
+  @Override
+  protected void prepare() {
+    imageBitmap = new WatermarkUtil().createWatermarkBitmap(imageBitmap);
   }
 
   @Override

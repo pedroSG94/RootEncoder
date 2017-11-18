@@ -68,7 +68,7 @@ public class GlWatermarkRenderer {
   private StreamObjectBase streamObjectBase = null;
   private TextureLoader textureLoader = new TextureLoader();
   private Sprite sprite;
-  private float alpha = 1.0f;
+  private float alpha = 1f;
 
   public GlWatermarkRenderer(Context context) {
     this.context = context;
@@ -78,8 +78,8 @@ public class GlWatermarkRenderer {
     squareVertex.put(squareVertexData).position(0);
 
     sprite = new Sprite();
-    sprite.scale(5f);
-
+    sprite.scale(50f);
+    sprite.translate(TranslateTo.CENTER);
     float[] vertices = sprite.getTransformedVertices();
     squareVertexWatermark = ByteBuffer.allocateDirect(vertices.length * FLOAT_SIZE_BYTES)
         .order(ByteOrder.nativeOrder())

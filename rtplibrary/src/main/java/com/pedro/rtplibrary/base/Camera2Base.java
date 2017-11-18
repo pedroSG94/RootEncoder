@@ -319,29 +319,46 @@ public abstract class Camera2Base
     }
   }
 
+  /**
+   *
+   * @param size of the stream object in percent: 100 full screen to 1
+   * @throws RuntimeException
+   */
   public void setSizeStreamObject(float size) throws RuntimeException {
     if (openGlView != null) {
       openGlView.setStreamObjectSize(size);
     } else {
-      throw new RuntimeException("You must use OpenGlView in the constructor to set an alpha");
+      throw new RuntimeException("You must use OpenGlView in the constructor to set a size");
     }
   }
 
+  /**
+   *
+   * @param x
+   * @param y
+   * @throws RuntimeException
+   */
   public void setPositionStreamObject(float x, float y) throws RuntimeException {
     if (openGlView != null) {
       openGlView.setStreamObjectPosition(x, y);
     } else {
-      throw new RuntimeException("You must use OpenGlView in the constructor to set an alpha");
+      throw new RuntimeException("You must use OpenGlView in the constructor to set a position");
     }
   }
 
+  /**
+   *
+   * @param translateTo pre determinate positions
+   * @throws RuntimeException
+   */
   public void setPositionStreamObject(TranslateTo translateTo) throws RuntimeException {
     if (openGlView != null) {
       openGlView.setStreamObjectPosition(translateTo);
     } else {
-      throw new RuntimeException("You must use OpenGlView in the constructor to set an alpha");
+      throw new RuntimeException("You must use OpenGlView in the constructor to set a position");
     }
   }
+
   /**
    * need min API 19
    */
