@@ -133,8 +133,6 @@ public class GlWatermarkRenderer {
 
     GLES20.glUniformMatrix4fv(uMVPMatrixHandle, 1, false, MVPMatrix, 0);
     GLES20.glUniformMatrix4fv(uSTMatrixHandle, 1, false, STMatrix, 0);
-    //set parameters
-    GLES20.glUniform1f(uAlphaHandle, alpha);
     //camera
     GLES20.glActiveTexture(GLES20.GL_TEXTURE0);
     GLES20.glBindTexture(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, textureID);
@@ -151,6 +149,11 @@ public class GlWatermarkRenderer {
         GLES20.glBindTexture(GLES20.GL_TEXTURE_2D,
             streamObjectTextureId[streamObjectBase.updateFrame()]);
       }
+      //watermark enable, set actual alpha
+      GLES20.glUniform1f(uAlphaHandle, alpha);
+    } else {
+      //no watermark. Set watermark size transparent
+      GLES20.glUniform1f(uAlphaHandle, 0.0f);
     }
     //draw
     GLES20.glDrawArrays(GLES20.GL_TRIANGLE_STRIP, 0, 4);
@@ -217,6 +220,7 @@ public class GlWatermarkRenderer {
 
   public void clear() {
     streamObjectTextureId = new int[] { -1 };
+
   }
 
   public void setAlpha(float alpha) {

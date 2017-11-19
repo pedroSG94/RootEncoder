@@ -14,8 +14,6 @@ public abstract class StreamObjectBase {
 
   public abstract void resize(int width, int height);
 
-  protected abstract void prepare();
-
   public abstract void recycle();
 
   public abstract int getNumFrames();

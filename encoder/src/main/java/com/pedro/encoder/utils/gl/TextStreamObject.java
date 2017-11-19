@@ -33,19 +33,12 @@ public class TextStreamObject extends StreamObjectBase {
   public void load(String text, float textSize, int textColor) throws IOException {
     numFrames = 1;
     imageBitmap = textAsBitmap(text, textSize, textColor);
-    resize(imageBitmap.getWidth(), imageBitmap.getHeight());
-    prepare();
-    Log.i(TAG, "finish load text!!!");
+    Log.i(TAG, "finish load text");
   }
 
   @Override
   public void resize(int width, int height) {
     imageBitmap = Bitmap.createScaledBitmap(imageBitmap, width, height, false);
-  }
-
-  @Override
-  protected void prepare() {
-    imageBitmap = new WatermarkUtil().createWatermarkBitmap(imageBitmap);
   }
 
   @Override

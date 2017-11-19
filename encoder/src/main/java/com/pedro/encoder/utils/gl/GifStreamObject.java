@@ -45,9 +45,7 @@ public class GifStreamObject extends StreamObjectBase {
         gifBitmaps[i] = gifDecoder.getNextFrame();
         gifDelayFrames[i] = gifDecoder.getNextDelay();
       }
-      resize(gifDecoder.getWidth(), gifDecoder.getHeight());
-      prepare();
-      Log.i(TAG, "finish load gif frames!!!");
+      Log.i(TAG, "finish load gif frames");
     } else {
       throw new RuntimeException("read gif error");
     }
@@ -57,13 +55,6 @@ public class GifStreamObject extends StreamObjectBase {
   public void resize(int width, int height) {
     for (int i = 0; i < numFrames; i++) {
       gifBitmaps[i] = Bitmap.createScaledBitmap(gifBitmaps[i], width, height, false);
-    }
-  }
-
-  @Override
-  protected void prepare() {
-    for (int i = 0; i < numFrames; i++) {
-      gifBitmaps[i] = new WatermarkUtil().createWatermarkBitmap(gifBitmaps[i]);
     }
   }
 
