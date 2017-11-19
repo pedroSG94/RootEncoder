@@ -69,6 +69,8 @@ public class GlWatermarkRenderer {
   private TextureLoader textureLoader = new TextureLoader();
   private Sprite sprite;
   private float alpha = 1f;
+  private int encoderWidth;
+  private int encoderHeight;
 
   public GlWatermarkRenderer(Context context) {
     this.context = context;
@@ -78,8 +80,6 @@ public class GlWatermarkRenderer {
     squareVertex.put(squareVertexData).position(0);
 
     sprite = new Sprite();
-    sprite.scale(50f);
-    sprite.translate(TranslateTo.CENTER);
     float[] vertices = sprite.getTransformedVertices();
     squareVertexWatermark = ByteBuffer.allocateDirect(vertices.length * FLOAT_SIZE_BYTES)
         .order(ByteOrder.nativeOrder())
@@ -188,6 +188,7 @@ public class GlWatermarkRenderer {
     surface = null;
     streamObjectTextureId = null;
     streamObjectBase = null;
+    sprite.reset();
   }
 
   public void setImage(ImageStreamObject imageStreamObject) {
@@ -195,6 +196,7 @@ public class GlWatermarkRenderer {
     streamObjectBase = imageStreamObject;
     textureLoader.setImageStreamObject(imageStreamObject);
     streamObjectTextureId = textureLoader.load();
+    prepareDefaultSpriteValues();
   }
 
   public void setText(TextStreamObject textStreamObject) {
@@ -202,6 +204,7 @@ public class GlWatermarkRenderer {
     streamObjectBase = textStreamObject;
     textureLoader.setTextStreamObject(textStreamObject);
     streamObjectTextureId = textureLoader.load();
+    prepareDefaultSpriteValues();
   }
 
   public void setGif(GifStreamObject gifStreamObject) {
@@ -209,6 +212,7 @@ public class GlWatermarkRenderer {
     streamObjectBase = gifStreamObject;
     textureLoader.setGifStreamObject(gifStreamObject);
     streamObjectTextureId = textureLoader.load();
+    prepareDefaultSpriteValues();
   }
 
   public void clear() {
@@ -232,5 +236,16 @@ public class GlWatermarkRenderer {
   public void setPosition(TranslateTo positionTo) {
     sprite.translate(positionTo);
     squareVertexWatermark.put(sprite.getTransformedVertices()).position(0);
+  }
+
+  //set scale of the sprite depend of bitmap size
+  private void prepareDefaultSpriteValues() {
+    sprite.scale(streamObjectBase.getWidth() * 100 / encoderWidth);
+    squareVertexWatermark.put(sprite.getTransformedVertices()).position(0);
+  }
+
+  public void setStreamSize(int encoderWidth, int encoderHeight) {
+    this.encoderWidth = encoderWidth;
+    this.encoderHeight = encoderHeight;
   }
 }

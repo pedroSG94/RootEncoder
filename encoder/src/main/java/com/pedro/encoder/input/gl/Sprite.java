@@ -15,13 +15,7 @@ class Sprite {
   private PointF translation;
 
   public Sprite() {
-    base = new RectF(0f, 0f, 1f, 1f);
-    // Initial translation
-    translation = new PointF(0f, 0f);
-    // Initial size
-    scale = 5f; //this is 100 / 5 = 20% of the OpenGlView
-    // Initial angle
-    angle = 0f;
+    reset();
   }
 
   public void translate(float deltaX, float deltaY) {
@@ -79,15 +73,37 @@ class Sprite {
     }
   }
 
+  //scale and translate object to keep position
   public void scale(float delta) {
-    //100 / 5 = 20
-
-    //scale = delta;
+    float oldScale = scale;
     scale = 100 / delta;
+    translation.x = keepOldPosition(translation.x, oldScale, scale);
+    translation.y = keepOldPosition(translation.y, oldScale, scale);
+  }
+
+  private float keepOldPosition(float position, float oldScale, float newScale) {
+    float oldPercent = 100 / oldScale;
+    float newPercent = 100 / newScale;
+    position *= oldPercent / 100;
+    position *= newScale / oldScale;
+    position *= newPercent / 100;
+    position *= newPercent;
+    position -= position * newPercent / 100;
+    return position;
   }
 
   public void rotate(float delta) {
     angle = delta;
+  }
+
+  public void reset() {
+    base = new RectF(0f, 0f, 1f, 1f);
+    // Initial translation
+    translation = new PointF(0f, 0f);
+    // Initial size
+    scale = 5f; //this is 100 / 5 = 20% of the OpenGlView
+    // Initial angle
+    angle = 0f;
   }
 
   public float[] getTransformedVertices() {

@@ -73,6 +73,7 @@ public class OpenGlView extends SurfaceView
     synchronized (sync) {
       this.surface = surface;
       surfaceManagerEncoder = new SurfaceManager(surface, surfaceManager);
+      textureManager.setStreamSize(encoderWidth, encoderHeight);
     }
   }
 
@@ -175,7 +176,7 @@ public class OpenGlView extends SurfaceView
     try {
       while (running) {
         synchronized (sync) {
-          sync.wait(2500);
+          sync.wait(500);
           if (frameAvailable) {
             frameAvailable = false;
             surfaceManager.makeCurrent();
