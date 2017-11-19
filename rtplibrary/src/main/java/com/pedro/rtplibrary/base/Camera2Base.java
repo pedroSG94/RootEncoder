@@ -318,7 +318,7 @@ public abstract class Camera2Base
       throw new RuntimeException("You must use OpenGlView in the constructor to set an alpha");
     }
   }
-
+  
   /**
    *
    * @param size of the stream object in percent: 100 full screen to 1

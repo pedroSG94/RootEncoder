@@ -27,42 +27,42 @@ class Sprite {
     float percent = 100 / scale;
     switch (translation) {
       case CENTER:
-        this.translation.x -= scale / 2f;
+        this.translation.x = -scale / 2f;
         this.translation.x -= this.translation.x * percent / 100;
-        this.translation.y -= scale / 2f;
+        this.translation.y = -scale / 2f;
         this.translation.y -= this.translation.y * percent / 100;
         break;
       case BOTTOM:
         this.translation.x = 0f;
-        this.translation.y -= scale / 2f;
+        this.translation.y = -scale / 2f;
         this.translation.y -= this.translation.y * percent / 100;
         break;
       case TOP:
-        this.translation.x -= scale - 1;
-        this.translation.y -= scale / 2f;
+        this.translation.x = -scale + 1;
+        this.translation.y = -scale / 2f;
         this.translation.y -= this.translation.y * percent / 100;
         break;
       case LEFT:
-        this.translation.x -= scale / 2f;
+        this.translation.x = -scale / 2f;
         this.translation.x -= this.translation.x * percent / 100;
-        this.translation.y -= scale - 1;
+        this.translation.y = -scale + 1;
         break;
       case RIGHT:
-        this.translation.x -= scale / 2f;
+        this.translation.x = -scale / 2f;
         this.translation.x -= this.translation.x * percent / 100;
         this.translation.y = 0f;
         break;
       case TOP_LEFT:
-        this.translation.x -= scale - 1;
-        this.translation.y -= scale - 1;
+        this.translation.x = -scale + 1;
+        this.translation.y = -scale + 1;
         break;
       case TOP_RIGHT:
-        this.translation.x -= scale - 1;
+        this.translation.x = -scale + 1;
         this.translation.y = 0f;
         break;
       case BOTTOM_LEFT:
         this.translation.x = 0f;
-        this.translation.y -= scale - 1;
+        this.translation.y = -scale + 1;
         break;
       case BOTTOM_RIGHT:
         this.translation.x = 0f;

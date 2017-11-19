@@ -319,8 +319,8 @@ public abstract class Camera1Base
   }
 
   /**
-   *
    * @param size of the stream object in percent: 100 full screen to 1
+   *
    * @throws RuntimeException
    */
   @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
@@ -333,9 +333,6 @@ public abstract class Camera1Base
   }
 
   /**
-   *
-   * @param x
-   * @param y
    * @throws RuntimeException
    */
   @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
@@ -348,7 +345,6 @@ public abstract class Camera1Base
   }
 
   /**
-   *
    * @param translateTo pre determinate positions
    * @throws RuntimeException
    */
