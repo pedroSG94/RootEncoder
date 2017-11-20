@@ -10,9 +10,9 @@ import com.pedro.encoder.utils.gl.TranslateTo;
 
 class Sprite {
   private float angle;
-  private float scale;
   private RectF base;
   private PointF translation;
+  private PointF scale;
 
   public Sprite() {
     reset();
@@ -24,45 +24,45 @@ class Sprite {
   }
 
   public void translate(TranslateTo translation) {
-    float percent = 100 / scale;
+    PointF percent = new PointF(100 / scale.x, 100 / scale.y);
     switch (translation) {
       case CENTER:
-        this.translation.x = -scale / 2f;
-        this.translation.x -= this.translation.x * percent / 100;
-        this.translation.y = -scale / 2f;
-        this.translation.y -= this.translation.y * percent / 100;
+        this.translation.x = -scale.x / 2f;
+        this.translation.x -= this.translation.x * percent.x / 100;
+        this.translation.y = -scale.y / 2f;
+        this.translation.y -= this.translation.y * percent.y / 100;
         break;
       case BOTTOM:
         this.translation.x = 0f;
-        this.translation.y = -scale / 2f;
-        this.translation.y -= this.translation.y * percent / 100;
+        this.translation.y = -scale.y / 2f;
+        this.translation.y -= this.translation.y * percent.y / 100;
         break;
       case TOP:
-        this.translation.x = -scale + 1;
-        this.translation.y = -scale / 2f;
-        this.translation.y -= this.translation.y * percent / 100;
+        this.translation.x = -scale.x + 1;
+        this.translation.y = -scale.y / 2f;
+        this.translation.y -= this.translation.y * percent.y / 100;
         break;
       case LEFT:
-        this.translation.x = -scale / 2f;
-        this.translation.x -= this.translation.x * percent / 100;
-        this.translation.y = -scale + 1;
+        this.translation.x = -scale.x / 2f;
+        this.translation.x -= this.translation.x * percent.x / 100;
+        this.translation.y = -scale.y + 1;
         break;
       case RIGHT:
-        this.translation.x = -scale / 2f;
-        this.translation.x -= this.translation.x * percent / 100;
+        this.translation.x = -scale.x / 2f;
+        this.translation.x -= this.translation.x * percent.x / 100;
         this.translation.y = 0f;
         break;
       case TOP_LEFT:
-        this.translation.x = -scale + 1;
-        this.translation.y = -scale + 1;
+        this.translation.x = -scale.x + 1;
+        this.translation.y = -scale.y + 1;
         break;
       case TOP_RIGHT:
-        this.translation.x = -scale + 1;
+        this.translation.x = -scale.x + 1;
         this.translation.y = 0f;
         break;
       case BOTTOM_LEFT:
         this.translation.x = 0f;
-        this.translation.y = -scale + 1;
+        this.translation.y = -scale.y + 1;
         break;
       case BOTTOM_RIGHT:
         this.translation.x = 0f;
@@ -74,11 +74,11 @@ class Sprite {
   }
 
   //scale and translate object to keep position
-  public void scale(float delta) {
-    float oldScale = scale;
-    scale = 100 / delta;
-    translation.x = keepOldPosition(translation.x, oldScale, scale);
-    translation.y = keepOldPosition(translation.y, oldScale, scale);
+  public void scale(float deltaX, float deltaY) {
+    PointF oldScale = scale;
+    scale = new PointF(100 / deltaY, 100 / deltaX);
+    translation.x = keepOldPosition(translation.x, oldScale.x, scale.x);
+    translation.y = keepOldPosition(translation.y, oldScale.y, scale.y);
   }
 
   private float keepOldPosition(float position, float oldScale, float newScale) {
@@ -101,17 +101,17 @@ class Sprite {
     // Initial translation
     translation = new PointF(0f, 0f);
     // Initial size
-    scale = 5f; //this is 100 / 5 = 20% of the OpenGlView
+    scale = new PointF(5f, 5f); //this is 100 / 5 = 20% of the OpenGlView
     // Initial angle
     angle = 0f;
   }
 
   public float[] getTransformedVertices() {
     // Start with scaling
-    float x1 = base.left * scale;
-    float x2 = base.right * scale;
-    float y1 = base.bottom * scale;
-    float y2 = base.top * scale;
+    float x1 = base.left * scale.x;
+    float x2 = base.right * scale.x;
+    float y1 = base.bottom * scale.y;
+    float y2 = base.top * scale.y;
 
     // We now detach from our Rect because when rotating,
     // we need the seperate points, so we do so in opengl order

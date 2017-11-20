@@ -51,7 +51,7 @@ public class OpenGlView extends SurfaceView
   private ImageStreamObject imageStreamObject;
   private GifStreamObject gifStreamObject;
   private float alpha;
-  private float scale;
+  private float scaleX, scaleY;
   private float positionX, positionY;
   private TranslateTo positionTo;
   private Surface surface;
@@ -124,8 +124,9 @@ public class OpenGlView extends SurfaceView
     loadAlpha = true;
   }
 
-  public void setStreamObjectSize(float size) {
-    this.scale = size;
+  public void setStreamObjectSize(float sizeX, float sizeY) {
+    this.scaleX = sizeX;
+    this.scaleY = sizeY;
     loadScale = true;
   }
 
@@ -188,7 +189,7 @@ public class OpenGlView extends SurfaceView
             }
 
             if (loadScale) {
-              textureManager.setScale(scale);
+              textureManager.setScale(scaleX, scaleY);
               loadScale = false;
             }
 

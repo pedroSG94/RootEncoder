@@ -220,15 +220,15 @@ public class GlWatermarkRenderer {
 
   public void clear() {
     streamObjectTextureId = new int[] { -1 };
-
+    sprite.reset();
   }
 
   public void setAlpha(float alpha) {
     this.alpha = alpha;
   }
 
-  public void setScale(float scale) {
-    sprite.scale(scale);
+  public void setScale(float scaleX, float scaleY) {
+    sprite.scale(scaleX, scaleY);
     squareVertexWatermark.put(sprite.getTransformedVertices()).position(0);
   }
 
@@ -244,7 +244,8 @@ public class GlWatermarkRenderer {
 
   //set scale of the sprite depend of bitmap size
   private void prepareDefaultSpriteValues() {
-    sprite.scale(streamObjectBase.getWidth() * 100 / encoderWidth);
+    sprite.scale(streamObjectBase.getWidth() * 100 / encoderWidth,
+        streamObjectBase.getHeight() * 100 / encoderHeight);
     squareVertexWatermark.put(sprite.getTransformedVertices()).position(0);
   }
 

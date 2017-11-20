@@ -319,14 +319,14 @@ public abstract class Camera1Base
   }
 
   /**
-   * @param size of the stream object in percent: 100 full screen to 1
-   *
+   * @param sizeX of the stream object in percent: 100 full screen to 1
+   * @param sizeY of the stream object in percent: 100 full screen to 1
    * @throws RuntimeException
    */
   @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
-  public void setSizeStreamObject(float size) throws RuntimeException {
+  public void setSizeStreamObject(float sizeX, float sizeY) throws RuntimeException {
     if (openGlView != null) {
-      openGlView.setStreamObjectSize(size);
+      openGlView.setStreamObjectSize(sizeX, sizeY);
     } else {
       throw new RuntimeException("You must use OpenGlView in the constructor to set a size");
     }
