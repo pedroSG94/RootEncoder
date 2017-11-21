@@ -24,32 +24,31 @@ class Sprite {
   }
 
   public void translate(TranslateTo translation) {
-    PointF percent = new PointF(100 / scale.x, 100 / scale.y);
     switch (translation) {
       case CENTER:
         this.translation.x = -scale.x / 2f;
-        this.translation.x -= this.translation.x * percent.x / 100;
+        this.translation.x += 0.5f;
         this.translation.y = -scale.y / 2f;
-        this.translation.y -= this.translation.y * percent.y / 100;
+        this.translation.y += 0.5f;
         break;
       case BOTTOM:
         this.translation.x = 0f;
         this.translation.y = -scale.y / 2f;
-        this.translation.y -= this.translation.y * percent.y / 100;
+        this.translation.y += 0.5f;
         break;
       case TOP:
         this.translation.x = -scale.x + 1;
         this.translation.y = -scale.y / 2f;
-        this.translation.y -= this.translation.y * percent.y / 100;
+        this.translation.y += 0.5f;
         break;
       case LEFT:
         this.translation.x = -scale.x / 2f;
-        this.translation.x -= this.translation.x * percent.x / 100;
+        this.translation.x += 0.5f;
         this.translation.y = -scale.y + 1;
         break;
       case RIGHT:
         this.translation.x = -scale.x / 2f;
-        this.translation.x -= this.translation.x * percent.x / 100;
+        this.translation.x += 0.5f;
         this.translation.y = 0f;
         break;
       case TOP_LEFT:
@@ -82,13 +81,10 @@ class Sprite {
   }
 
   private float keepOldPosition(float position, float oldScale, float newScale) {
-    float oldPercent = 100 / oldScale;
-    float newPercent = 100 / newScale;
-    position *= oldPercent / 100;
-    position *= newScale / oldScale;
-    position *= newPercent / 100;
-    position *= newPercent;
-    position -= position * newPercent / 100;
+    float oldRange = oldScale - 1;
+    float percent = position * 100 / oldRange;
+    float newRange = newScale - 1;
+    position = newRange / (100 / percent);
     return position;
   }
 
