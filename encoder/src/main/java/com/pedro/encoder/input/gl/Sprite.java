@@ -19,8 +19,10 @@ class Sprite {
   }
 
   public void translate(float deltaX, float deltaY) {
-    translation.x = deltaX;
-    translation.y = deltaY;
+    float rangeX = scale.x - 1;
+    float rangeY = scale.y - 1;
+    translation.x = -rangeX / (100 / deltaY);
+    translation.y = -rangeY / (100 / deltaX);
   }
 
   public void translate(TranslateTo translation) {

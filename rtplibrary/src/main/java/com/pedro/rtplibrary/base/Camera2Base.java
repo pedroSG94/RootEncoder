@@ -334,9 +334,8 @@ public abstract class Camera2Base
   }
 
   /**
-   *
-   * @param x
-   * @param y
+   * @param x of the stream object in percent: 100 full screen left to 0 full right
+   * @param y of the stream object in percent: 100 full screen top to 0 full bottom
    * @throws RuntimeException
    */
   public void setPositionStreamObject(float x, float y) throws RuntimeException {

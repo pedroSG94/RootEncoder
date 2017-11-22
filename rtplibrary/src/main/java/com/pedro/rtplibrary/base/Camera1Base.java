@@ -333,6 +333,8 @@ public abstract class Camera1Base
   }
 
   /**
+   * @param x of the stream object in percent: 100 full screen left to 0 full right
+   * @param y of the stream object in percent: 100 full screen top to 0 full bottom
    * @throws RuntimeException
    */
   @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
