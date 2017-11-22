@@ -90,6 +90,16 @@ class Sprite {
     return position;
   }
 
+  //return scale in percent
+  public PointF getScale() {
+    return new PointF(100 / scale.y, 100 / scale.x);
+  }
+
+  //return position in percent
+  public PointF getTranslation() {
+    return new PointF(-(translation.x * 100 / (scale.x - 1)), -(translation.y * 100 / (scale.y - 1)));
+  }
+
   public void rotate(float delta) {
     angle = delta;
   }
@@ -99,7 +109,7 @@ class Sprite {
     // Initial translation
     translation = new PointF(0f, 0f);
     // Initial size
-    scale = new PointF(5f, 5f); //this is 100 / 5 = 20% of the OpenGlView
+    scale = new PointF(100f, 100f); //this is 100 / 100 = 1% of the OpenGlView
     // Initial angle
     angle = 0f;
   }

@@ -1,6 +1,7 @@
 package com.pedro.encoder.input.gl;
 
 import android.content.Context;
+import android.graphics.PointF;
 import android.graphics.SurfaceTexture;
 import android.opengl.GLES11Ext;
 import android.opengl.GLES20;
@@ -240,6 +241,14 @@ public class GlWatermarkRenderer {
   public void setPosition(TranslateTo positionTo) {
     sprite.translate(positionTo);
     squareVertexWatermark.put(sprite.getTransformedVertices()).position(0);
+  }
+
+  public PointF getScale() {
+    return sprite.getScale();
+  }
+
+  public PointF getPosition() {
+    return sprite.getTranslation();
   }
 
   //set scale of the sprite depend of bitmap size

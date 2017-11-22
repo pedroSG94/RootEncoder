@@ -1,6 +1,7 @@
 package com.pedro.rtplibrary.view;
 
 import android.content.Context;
+import android.graphics.PointF;
 import android.graphics.SurfaceTexture;
 import android.graphics.SurfaceTexture.OnFrameAvailableListener;
 import android.os.Build;
@@ -10,8 +11,8 @@ import android.util.Log;
 import android.view.Surface;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
-import com.pedro.encoder.input.gl.SurfaceManager;
 import com.pedro.encoder.input.gl.GlWatermarkRenderer;
+import com.pedro.encoder.input.gl.SurfaceManager;
 import com.pedro.encoder.utils.gl.GifStreamObject;
 import com.pedro.encoder.utils.gl.ImageStreamObject;
 import com.pedro.encoder.utils.gl.TextStreamObject;
@@ -141,6 +142,16 @@ public class OpenGlView extends SurfaceView
     loadPositionTo = true;
   }
 
+  public PointF getScale() {
+    if (textureManager != null) return textureManager.getScale();
+    else return new PointF(0f, 0f);
+  }
+
+  public PointF getPosition() {
+    if (textureManager != null) return textureManager.getPosition();
+    else return new PointF(0f, 0f);
+  }
+
   public void startGLThread() {
     Log.i(TAG, "Thread started.");
     if (textureManager == null) {
@@ -182,28 +193,6 @@ public class OpenGlView extends SurfaceView
             frameAvailable = false;
             surfaceManager.makeCurrent();
 
-            //set new alpha
-            if (loadAlpha) {
-              textureManager.setAlpha(alpha);
-              loadAlpha = false;
-            }
-
-            if (loadScale) {
-              textureManager.setScale(scaleX, scaleY);
-              loadScale = false;
-            }
-
-            if (loadPosition) {
-              textureManager.setPosition(positionX, positionY);
-              loadPosition = false;
-            }
-
-            if (loadPositionTo) {
-              textureManager.setPosition(positionTo);
-              loadPositionTo = false;
-            }
-
-
             //need load a stream object
             if (loadStreamObject) {
               if (textStreamObject != null) {
@@ -236,6 +225,26 @@ public class OpenGlView extends SurfaceView
             }
           } else {
             Log.e(TAG, "No frame received !");
+          }
+          //set new parameters
+          if (loadAlpha) {
+            textureManager.setAlpha(alpha);
+            loadAlpha = false;
+          }
+
+          if (loadScale) {
+            textureManager.setScale(scaleX, scaleY);
+            loadScale = false;
+          }
+
+          if (loadPosition) {
+            textureManager.setPosition(positionX, positionY);
+            loadPosition = false;
+          }
+
+          if (loadPositionTo) {
+            textureManager.setPosition(positionTo);
+            loadPositionTo = false;
           }
         }
       }

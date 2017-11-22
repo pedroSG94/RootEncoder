@@ -1,6 +1,7 @@
 package com.pedro.rtplibrary.base;
 
 import android.graphics.ImageFormat;
+import android.graphics.PointF;
 import android.hardware.Camera;
 import android.media.MediaCodec;
 import android.media.MediaFormat;
@@ -356,6 +357,32 @@ public abstract class Camera1Base
       openGlView.setStreamObjectPosition(translateTo);
     } else {
       throw new RuntimeException("You must use OpenGlView in the constructor to set a position");
+    }
+  }
+
+  /**
+   * @return scale in percent, 0 is stream not started
+   * @throws RuntimeException
+   */
+  @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
+  public PointF getSizeStreamObject() throws RuntimeException {
+    if (openGlView != null) {
+      return openGlView.getScale();
+    } else {
+      throw new RuntimeException("You must use OpenGlView in the constructor to get position");
+    }
+  }
+
+  /**
+   * @return position in percent, 0 is stream not started
+   * @throws RuntimeException
+   */
+  @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
+  public PointF getPositionStreamObject() throws RuntimeException {
+    if (openGlView != null) {
+      return openGlView.getPosition();
+    } else {
+      throw new RuntimeException("You must use OpenGlView in the constructor to get scale");
     }
   }
 
