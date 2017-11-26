@@ -8,7 +8,7 @@ public interface ConnectCheckerRtmp {
 
     void onConnectionSuccessRtmp();
 
-    void onConnectionFailedRtmp();
+    void onConnectionFailedRtmp(String reason);
 
     void onDisconnectRtmp();
 

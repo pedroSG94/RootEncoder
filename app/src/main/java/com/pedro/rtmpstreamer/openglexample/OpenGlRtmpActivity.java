@@ -114,11 +114,12 @@ public class OpenGlRtmpActivity extends AppCompatActivity
   }
 
   @Override
-  public void onConnectionFailedRtmp() {
+  public void onConnectionFailedRtmp(final String reason) {
     runOnUiThread(new Runnable() {
       @Override
       public void run() {
-        Toast.makeText(OpenGlRtmpActivity.this, "Connection failed", Toast.LENGTH_SHORT).show();
+        Toast.makeText(OpenGlRtmpActivity.this, "Connection failed. " + reason, Toast.LENGTH_SHORT)
+            .show();
         rtmpCamera1.stopStream();
         rtmpCamera1.stopPreview();
         button.setText(R.string.start_button);

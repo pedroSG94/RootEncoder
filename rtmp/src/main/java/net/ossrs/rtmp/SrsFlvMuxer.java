@@ -153,7 +153,6 @@ public class SrsFlvMuxer {
       public void run() {
         android.os.Process.setThreadPriority(Process.THREAD_PRIORITY_MORE_FAVORABLE);
         if (!connect(rtmpUrl)) {
-          connectCheckerRtmp.onConnectionFailedRtmp();
           return;
         }
         connectCheckerRtmp.onConnectionSuccessRtmp();

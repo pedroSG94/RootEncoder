@@ -60,12 +60,12 @@ public class TextureModeRtmpActivity extends AppCompatActivity
   }
 
   @Override
-  public void onConnectionFailedRtmp() {
+  public void onConnectionFailedRtmp(final String reason) {
     runOnUiThread(new Runnable() {
       @Override
       public void run() {
-        Toast.makeText(TextureModeRtmpActivity.this, "Connection failed", Toast.LENGTH_SHORT)
-            .show();
+        Toast.makeText(TextureModeRtmpActivity.this, "Connection failed. " + reason,
+            Toast.LENGTH_SHORT).show();
         rtmpCamera2.stopStream();
         button.setText(R.string.start_button);
       }

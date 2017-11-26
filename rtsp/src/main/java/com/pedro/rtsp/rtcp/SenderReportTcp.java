@@ -49,7 +49,7 @@ public class SenderReportTcp extends BaseSenderReport {
             Log.i(TAG, "send report");
           } catch (IOException e) {
             Log.e(TAG, "send TCP report error", e);
-            connectCheckerRtsp.onConnectionFailedRtsp();
+            connectCheckerRtsp.onConnectionFailedRtsp("Error send report, " + e.getMessage());
           }
         }
       }

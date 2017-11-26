@@ -104,7 +104,7 @@ public class RtspClient {
       tlsEnabled = true;
     } else {
       streaming = false;
-      connectCheckerRtsp.onConnectionFailedRtsp();
+      connectCheckerRtsp.onConnectionFailedRtsp("Endpoint malformed, should be: rtsp://ip:port/appname/streamname");
       return;
     }
     host = matcher.group(1);
@@ -179,7 +179,7 @@ public class RtspClient {
             String response = getResponse(false, false);
             int status = getResponseStatus(response);
             if (status == 403) {
-              connectCheckerRtsp.onConnectionFailedRtsp();
+              connectCheckerRtsp.onConnectionFailedRtsp("Error configure stream, access denied");
               Log.e(TAG, "Response 403, access denied");
               return;
             } else if (status == 401) {
@@ -196,11 +196,11 @@ public class RtspClient {
                 } else if (statusAuth == 200) {
                   connectCheckerRtsp.onAuthSuccessRtsp();
                 } else {
-                  connectCheckerRtsp.onConnectionFailedRtsp();
+                  connectCheckerRtsp.onConnectionFailedRtsp("Error configure stream, announce with auth failed");
                 }
               }
             } else if (status != 200) {
-              connectCheckerRtsp.onConnectionFailedRtsp();
+              connectCheckerRtsp.onConnectionFailedRtsp("Error configure stream, announce failed");
             }
             writer.write(sendSetup(trackAudio, protocol));
             writer.flush();
@@ -218,7 +218,7 @@ public class RtspClient {
             connectCheckerRtsp.onConnectionSuccessRtsp();
           } catch (IOException | NullPointerException e) {
             Log.e(TAG, "connection error", e);
-            connectCheckerRtsp.onConnectionFailedRtsp();
+            connectCheckerRtsp.onConnectionFailedRtsp("Error configure stream, " + e.getMessage());
             streaming = false;
           }
         }
@@ -421,7 +421,7 @@ public class RtspClient {
         if (line.length() < 3) break;
       }
       if (checkStatus && getResponseStatus(response) != 200) {
-        connectCheckerRtsp.onConnectionFailedRtsp();
+        connectCheckerRtsp.onConnectionFailedRtsp("Error configure stream, " + response);
       }
       Log.i(TAG, response);
       return response;

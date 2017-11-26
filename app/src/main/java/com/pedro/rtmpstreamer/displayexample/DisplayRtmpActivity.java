@@ -49,11 +49,12 @@ public class DisplayRtmpActivity extends AppCompatActivity
   }
 
   @Override
-  public void onConnectionFailedRtmp() {
+  public void onConnectionFailedRtmp(final String reason) {
     runOnUiThread(new Runnable() {
       @Override
       public void run() {
-        Toast.makeText(DisplayRtmpActivity.this, "Connection failed", Toast.LENGTH_SHORT).show();
+        Toast.makeText(DisplayRtmpActivity.this, "Connection failed. " + reason, Toast.LENGTH_SHORT)
+            .show();
         rtmpDisplay.stopStream();
         button.setText(R.string.start_button);
       }

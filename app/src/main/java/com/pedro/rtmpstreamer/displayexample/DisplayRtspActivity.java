@@ -48,11 +48,12 @@ public class DisplayRtspActivity extends AppCompatActivity
   }
 
   @Override
-  public void onConnectionFailedRtsp() {
+  public void onConnectionFailedRtsp(final String reason) {
     runOnUiThread(new Runnable() {
       @Override
       public void run() {
-        Toast.makeText(DisplayRtspActivity.this, "Connection failed", Toast.LENGTH_SHORT).show();
+        Toast.makeText(DisplayRtspActivity.this, "Connection failed. " + reason, Toast.LENGTH_SHORT)
+            .show();
         rtspDisplay.stopStream();
         button.setText(R.string.start_button);
       }

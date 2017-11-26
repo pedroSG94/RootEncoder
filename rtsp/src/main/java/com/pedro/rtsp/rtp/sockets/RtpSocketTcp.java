@@ -59,7 +59,7 @@ public class RtpSocketTcp extends BaseRtpSocket implements Runnable {
       }
     } catch (IOException | InterruptedException e) {
       Log.e(TAG, "TCP send error: ", e);
-      connectCheckerRtsp.onConnectionFailedRtsp();
+      connectCheckerRtsp.onConnectionFailedRtsp("Error send packet, " + e.getMessage());
     }
 
     thread = null;

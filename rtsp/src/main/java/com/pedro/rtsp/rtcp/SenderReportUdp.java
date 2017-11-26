@@ -67,7 +67,7 @@ public class SenderReportUdp extends BaseSenderReport {
           Log.i(TAG, "send report, " + datagramPacket.getPort() + " Port");
         } catch (IOException e) {
           Log.e(TAG, "send UDP report error", e);
-          connectCheckerRtsp.onConnectionFailedRtsp();
+          connectCheckerRtsp.onConnectionFailedRtsp("Error send report, " + e.getMessage());
         }
       }
     }).start();

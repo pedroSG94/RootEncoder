@@ -8,7 +8,7 @@ public interface ConnectCheckerRtsp {
 
   void onConnectionSuccessRtsp();
 
-  void onConnectionFailedRtsp();
+  void onConnectionFailedRtsp(String reason);
 
   void onDisconnectRtsp();
 

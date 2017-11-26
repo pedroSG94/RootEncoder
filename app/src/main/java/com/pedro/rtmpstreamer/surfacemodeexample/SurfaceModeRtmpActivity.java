@@ -49,12 +49,12 @@ public class SurfaceModeRtmpActivity extends AppCompatActivity
   }
 
   @Override
-  public void onConnectionFailedRtmp() {
+  public void onConnectionFailedRtmp(final String reason) {
     runOnUiThread(new Runnable() {
       @Override
       public void run() {
-        Toast.makeText(SurfaceModeRtmpActivity.this, "Connection failed", Toast.LENGTH_SHORT)
-            .show();
+        Toast.makeText(SurfaceModeRtmpActivity.this, "Connection failed. " + reason,
+            Toast.LENGTH_SHORT).show();
         rtmpCamera2.stopStream();
         rtmpCamera2.stopPreview();
         button.setText(R.string.start_button);

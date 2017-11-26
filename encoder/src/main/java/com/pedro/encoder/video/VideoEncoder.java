@@ -251,9 +251,7 @@ public class VideoEncoder implements GetCameraData {
         thread.start();
       }
       running = true;
-    } else
-
-    {
+    } else {
       Log.e(TAG, "VideoEncoder need be prepared, VideoEncoder not enabled");
     }
   }

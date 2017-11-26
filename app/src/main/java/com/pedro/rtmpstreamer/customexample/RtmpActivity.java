@@ -325,11 +325,12 @@ public class RtmpActivity extends AppCompatActivity
   }
 
   @Override
-  public void onConnectionFailedRtmp() {
+  public void onConnectionFailedRtmp(final String reason) {
     runOnUiThread(new Runnable() {
       @Override
       public void run() {
-        Toast.makeText(RtmpActivity.this, "Connection failed", Toast.LENGTH_SHORT).show();
+        Toast.makeText(RtmpActivity.this, "Connection failed. " + reason, Toast.LENGTH_SHORT)
+            .show();
         rtmpCamera1.stopStream();
         bStartStop.setText(getResources().getString(R.string.start_button));
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2

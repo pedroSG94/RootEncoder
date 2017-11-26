@@ -114,11 +114,12 @@ public class OpenGlRtspActivity extends AppCompatActivity
   }
 
   @Override
-  public void onConnectionFailedRtsp() {
+  public void onConnectionFailedRtsp(final String reason) {
     runOnUiThread(new Runnable() {
       @Override
       public void run() {
-        Toast.makeText(OpenGlRtspActivity.this, "Connection failed", Toast.LENGTH_SHORT).show();
+        Toast.makeText(OpenGlRtspActivity.this, "Connection failed. " + reason, Toast.LENGTH_SHORT)
+            .show();
         rtspCamera1.stopStream();
         rtspCamera1.stopPreview();
         button.setText(R.string.start_button);

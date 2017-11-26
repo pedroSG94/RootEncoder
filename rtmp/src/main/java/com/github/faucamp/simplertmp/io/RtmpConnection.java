@@ -110,6 +110,8 @@ public class RtmpConnection implements RtmpPublisher {
       matcher = rtmpsMatcher;
       tlsEnabled = true;
     } else {
+      connectCheckerRtmp.onConnectionFailedRtmp(
+          "Endpoint malformed, should be: rtmp://ip:port/appname/streamname");
       return false;
     }
 
@@ -147,7 +149,9 @@ public class RtmpConnection implements RtmpPublisher {
       handshake(inputStream, outputStream);
       Log.d(TAG, "connect(): handshake done");
     } catch (IOException e) {
-      e.printStackTrace();
+      Log.e(TAG, "Error", e);
+      Log.e(TAG, "Error" +  e.getMessage());
+      connectCheckerRtmp.onConnectionFailedRtmp("Error configure stream, " + e.getMessage());
       return false;
     }
 
@@ -170,6 +174,7 @@ public class RtmpConnection implements RtmpPublisher {
 
   private boolean rtmpConnect() {
     if (connected) {
+      connectCheckerRtmp.onConnectionFailedRtmp("Already connected");
       return false;
     }
 
@@ -207,6 +212,7 @@ public class RtmpConnection implements RtmpPublisher {
     }
     if (!connected) {
       shutdown(true);
+      connectCheckerRtmp.onConnectionFailedRtmp("Fail to connect, time out");
     }
     return connected;
   }
@@ -283,9 +289,13 @@ public class RtmpConnection implements RtmpPublisher {
 
   private boolean createStream() {
     if (!connected) {
+      connectCheckerRtmp.onConnectionFailedRtmp(
+          "Configure stream failed, no connected on create stream");
       return false;
     }
     if (currentStreamId != 0) {
+      connectCheckerRtmp.onConnectionFailedRtmp(
+          "Configure stream failed, StreamId= " + currentStreamId + " on create stream");
       return false;
     }
 
@@ -321,18 +331,21 @@ public class RtmpConnection implements RtmpPublisher {
         // do nothing
       }
     }
-    if (publishPermitted) {
-    } else {
+    if (!publishPermitted) {
       shutdown(true);
+      connectCheckerRtmp.onConnectionFailedRtmp("Error configure stream, publish permitted failed");
     }
     return publishPermitted;
   }
 
   private void fmlePublish() {
     if (!connected) {
+      connectCheckerRtmp.onConnectionFailedRtmp(
+          "Configure stream failed, no connected on fmlePublish");
       return;
     }
     if (currentStreamId == 0) {
+      connectCheckerRtmp.onConnectionFailedRtmp("Configure stream failed, id= 0 on fmlePublish");
       return;
     }
 
@@ -349,9 +362,12 @@ public class RtmpConnection implements RtmpPublisher {
 
   private void onMetaData() {
     if (!connected) {
+      connectCheckerRtmp.onConnectionFailedRtmp(
+          "Configure stream failed, no connected on metadata");
       return;
     }
     if (currentStreamId == 0) {
+      connectCheckerRtmp.onConnectionFailedRtmp("Configure stream failed, id= 0 on metadata");
       return;
     }
 
@@ -521,7 +537,7 @@ public class RtmpConnection implements RtmpPublisher {
       // socket exception only issue one time.
       if (!socketExceptionCause.contentEquals(se.getMessage())) {
         socketExceptionCause = se.getMessage();
-        connectCheckerRtmp.onConnectionFailedRtmp();
+        connectCheckerRtmp.onConnectionFailedRtmp("Error send packet: " + se.getMessage());
         Log.e(TAG, "Caught SocketException during write loop, shutting down: " + se.getMessage());
       }
     } catch (IOException ioe) {
@@ -592,7 +608,7 @@ public class RtmpConnection implements RtmpPublisher {
       } catch (EOFException eof) {
         Thread.currentThread().interrupt();
       } catch (IOException e) {
-        connectCheckerRtmp.onConnectionFailedRtmp();
+        connectCheckerRtmp.onConnectionFailedRtmp("Error reading packet: " + e.getMessage());
         Log.e(TAG, "Caught SocketException while reading/decoding packet, shutting down: "
             + e.getMessage());
       }
