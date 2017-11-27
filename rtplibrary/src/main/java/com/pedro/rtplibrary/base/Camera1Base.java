@@ -1,5 +1,6 @@
 package com.pedro.rtplibrary.base;
 
+import android.content.Context;
 import android.graphics.ImageFormat;
 import android.graphics.PointF;
 import android.hardware.Camera;
@@ -42,6 +43,7 @@ public abstract class Camera1Base
 
   private static final String TAG = "Camera1Base";
 
+  private Context context;
   protected Camera1ApiManager cameraManager;
   protected VideoEncoder videoEncoder;
   protected MicrophoneManager microphoneManager;
@@ -77,6 +79,7 @@ public abstract class Camera1Base
 
   @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
   public Camera1Base(OpenGlView openGlView) {
+    context = openGlView.getContext();
     this.openGlView = openGlView;
     videoEncoder = new VideoEncoder(this);
     microphoneManager = new MicrophoneManager(this);
@@ -122,7 +125,11 @@ public abstract class Camera1Base
       cameraManager.prepareCamera();
       return videoEncoder.prepareVideoEncoder();
     } else {
-      return videoEncoder.prepareVideoEncoder(640, 480, 30, 1200 * 1024, 0, true,
+      int orientation = 0;
+      if (context.getResources().getConfiguration().orientation == 1) {
+        orientation = 90;
+      }
+      return videoEncoder.prepareVideoEncoder(640, 480, 30, 1200 * 1024, orientation, false,
           FormatVideoEncoder.SURFACE);
     }
   }
@@ -198,7 +205,11 @@ public abstract class Camera1Base
 
   public void startStream(String url) {
     if (openGlView != null && Build.VERSION.SDK_INT >= 18) {
-      openGlView.setEncoderSize(videoEncoder.getWidth(), videoEncoder.getHeight());
+      if (videoEncoder.getRotation() == 90 || videoEncoder.getRotation() == 270) {
+        openGlView.setEncoderSize(videoEncoder.getHeight(), videoEncoder.getWidth());
+      } else {
+        openGlView.setEncoderSize(videoEncoder.getWidth(), videoEncoder.getHeight());
+      }
       openGlView.startGLThread();
       openGlView.addMediaCodecSurface(videoEncoder.getInputSurface());
       cameraManager =
