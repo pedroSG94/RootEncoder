@@ -21,6 +21,6 @@ android {
 
 dependencies {
   compile project(':rtplibrary')
-  compile 'com.android.support:appcompat-v7:27.0.0'
-  compile 'com.android.support:design:27.0.0'
+  compile 'com.android.support:appcompat-v7:27.0.1'
+  compile 'com.android.support:design:27.0.1'
 }

@@ -150,8 +150,7 @@ public class RtmpConnection implements RtmpPublisher {
       Log.d(TAG, "connect(): handshake done");
     } catch (IOException e) {
       Log.e(TAG, "Error", e);
-      Log.e(TAG, "Error" +  e.getMessage());
-      connectCheckerRtmp.onConnectionFailedRtmp("Error configure stream, " + e.getMessage());
+      connectCheckerRtmp.onConnectionFailedRtmp("Connect error, " + e.getMessage());
       return false;
     }
 
@@ -281,6 +280,7 @@ public class RtmpConnection implements RtmpPublisher {
   @Override
   public boolean publish(String type) {
     if (type == null) {
+      connectCheckerRtmp.onConnectionFailedRtmp("Null publish type");
       return false;
     }
     publishType = type;
@@ -288,14 +288,9 @@ public class RtmpConnection implements RtmpPublisher {
   }
 
   private boolean createStream() {
-    if (!connected) {
+    if (!connected || currentStreamId != 0) {
       connectCheckerRtmp.onConnectionFailedRtmp(
-          "Configure stream failed, no connected on create stream");
-      return false;
-    }
-    if (currentStreamId != 0) {
-      connectCheckerRtmp.onConnectionFailedRtmp(
-          "Configure stream failed, StreamId= " + currentStreamId + " on create stream");
+          "Create stream failed, connected= " + connected + ", StreamId= " + currentStreamId);
       return false;
     }
 
@@ -339,18 +334,12 @@ public class RtmpConnection implements RtmpPublisher {
   }
 
   private void fmlePublish() {
-    if (!connected) {
-      connectCheckerRtmp.onConnectionFailedRtmp(
-          "Configure stream failed, no connected on fmlePublish");
-      return;
-    }
-    if (currentStreamId == 0) {
-      connectCheckerRtmp.onConnectionFailedRtmp("Configure stream failed, id= 0 on fmlePublish");
+    if (!connected || currentStreamId == 0) {
+      Log.e(TAG, "fmlePublish failed");
       return;
     }
 
     Log.d(TAG, "fmlePublish(): Sending publish command...");
-    // transactionId == 0
     Command publish = new Command("publish", 0);
     publish.getHeader().setChunkStreamId(ChunkStreamInfo.RTMP_CID_OVER_STREAM);
     publish.getHeader().setMessageStreamId(currentStreamId);
@@ -361,13 +350,8 @@ public class RtmpConnection implements RtmpPublisher {
   }
 
   private void onMetaData() {
-    if (!connected) {
-      connectCheckerRtmp.onConnectionFailedRtmp(
-          "Configure stream failed, no connected on metadata");
-      return;
-    }
-    if (currentStreamId == 0) {
-      connectCheckerRtmp.onConnectionFailedRtmp("Configure stream failed, id= 0 on metadata");
+    if (!connected || currentStreamId == 0) {
+      Log.e(TAG, "onMetaData failed");
       return;
     }
 
@@ -399,13 +383,8 @@ public class RtmpConnection implements RtmpPublisher {
   }
 
   private void closeStream() {
-    if (!connected) {
-      return;
-    }
-    if (currentStreamId == 0) {
-      return;
-    }
-    if (!publishPermitted) {
+    if (!connected || currentStreamId == 0 || !publishPermitted) {
+      Log.e(TAG, "closeStream failed");
       return;
     }
     Log.d(TAG, "closeStream(): setting current stream ID to 0");
@@ -475,16 +454,12 @@ public class RtmpConnection implements RtmpPublisher {
 
   @Override
   public void publishAudioData(byte[] data, int size, int dts) {
-    if (data == null || data.length == 0 || dts < 0) {
-      return;
-    }
-    if (!connected) {
-      return;
-    }
-    if (currentStreamId == 0) {
-      return;
-    }
-    if (!publishPermitted) {
+    if (data == null
+        || data.length == 0
+        || dts < 0
+        || !connected
+        || currentStreamId == 0
+        || !publishPermitted) {
       return;
     }
     Audio audio = new Audio();
@@ -496,16 +471,12 @@ public class RtmpConnection implements RtmpPublisher {
 
   @Override
   public void publishVideoData(byte[] data, int size, int dts) {
-    if (data == null || data.length == 0 || dts < 0) {
-      return;
-    }
-    if (!connected) {
-      return;
-    }
-    if (currentStreamId == 0) {
-      return;
-    }
-    if (!publishPermitted) {
+    if (data == null
+        || data.length == 0
+        || dts < 0
+        || !connected
+        || currentStreamId == 0
+        || !publishPermitted) {
       return;
     }
     Video video = new Video();
@@ -741,11 +712,6 @@ public class RtmpConnection implements RtmpPublisher {
         break;
     }
   }
-
-  //@Override
-  //public AtomicInteger getVideoFrameCacheNumber() {
-  //  return videoFrameCacheNumber;
-  //}
 
   @Override
   public void setVideoResolution(int width, int height) {
