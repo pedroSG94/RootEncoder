@@ -170,7 +170,7 @@ public abstract class Camera1Base
     audioTrack = -1;
   }
 
-  public void startPreview(@Camera1Facing int cameraFacing) {
+  public void startPreview(@Camera1Facing int cameraFacing, int width, int height) {
     if (!isStreaming() && !onPreview) {
       if (openGlView != null && Build.VERSION.SDK_INT >= 18) {
         openGlView.startGLThread();
@@ -178,11 +178,20 @@ public abstract class Camera1Base
             new Camera1ApiManager(openGlView.getSurfaceTexture(), openGlView.getContext());
       }
       cameraManager.prepareCamera();
-      cameraManager.start(cameraFacing);
+      if (width == 0 || height == 0) cameraManager.start(cameraFacing);
+      else cameraManager.start(cameraFacing, width, height);
       onPreview = true;
     } else {
       Log.e(TAG, "Streaming or preview started, ignored");
     }
+  }
+
+  public void startPreview(@Camera1Facing int cameraFacing) {
+    startPreview(cameraFacing, 0, 0);
+  }
+
+  public void startPreview(int width, int height) {
+    startPreview(Camera.CameraInfo.CAMERA_FACING_BACK, width, height);
   }
 
   public void startPreview() {
@@ -199,6 +208,10 @@ public abstract class Camera1Base
     } else {
       Log.e(TAG, "Streaming or preview stopped, ignored");
     }
+  }
+
+  public void setPreviewOrientation(int orientation) {
+    cameraManager.setPreviewOrientation(orientation);
   }
 
   protected abstract void startStreamRtp(String url);

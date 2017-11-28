@@ -88,13 +88,19 @@ public class Camera1ApiManager implements Camera.PreviewCallback {
   }
 
   public void prepareCamera() {
-    prepareCamera(width, height, fps, imageFormat);
+    prepareCamera(640, 480, fps, imageFormat);
   }
 
-  public void start(@Camera1Facing int cameraFacing) {
+  public void start(@Camera1Facing int cameraFacing, int width, int height) {
+    this.width = width;
+    this.height = height;
     cameraSelect = (cameraFacing == Camera.CameraInfo.CAMERA_FACING_BACK) ? selectCameraBack()
         : selectCameraFront();
     start();
+  }
+
+  public void start(@Camera1Facing int cameraFacing) {
+    start(cameraFacing, width, height);
   }
 
   public void start() {
@@ -146,6 +152,15 @@ public class Camera1ApiManager implements Camera.PreviewCallback {
       }
     } else {
       Log.e(TAG, "Camera1ApiManager need be prepared, Camera1ApiManager not enabled");
+    }
+  }
+
+  public void setPreviewOrientation(int orientation) {
+    this.orientation = orientation;
+    if (camera != null && running) {
+      camera.stopPreview();
+      camera.setDisplayOrientation(orientation);
+      camera.startPreview();
     }
   }
 
