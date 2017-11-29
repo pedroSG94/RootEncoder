@@ -387,19 +387,18 @@ public class VideoEncoder implements GetCameraData {
             mediaFormat.getByteBuffer("csd-1"));
         spsPpsSetted = true;
       } else if (outBufferIndex >= 0) {
+        //This ByteBuffer is H264
+        ByteBuffer bb = videoEncoder.getOutputBuffer(outBufferIndex);
         if ((videoInfo.flags & MediaCodec.BUFFER_FLAG_CODEC_CONFIG) != 0) {
           if (!spsPpsSetted) {
             Pair<ByteBuffer, ByteBuffer> buffers =
-                decodeSpsPpsFromBuffer(videoEncoder.getOutputBuffer(outBufferIndex),
-                    videoInfo.size);
+                decodeSpsPpsFromBuffer(bb.duplicate(), videoInfo.size);
             if (buffers != null) {
               getH264Data.onSPSandPPS(buffers.first, buffers.second);
               spsPpsSetted = true;
             }
           }
         }
-        //This ByteBuffer is H264
-        ByteBuffer bb = videoEncoder.getOutputBuffer(outBufferIndex);
         getH264Data.getH264Data(bb, videoInfo);
         videoEncoder.releaseOutputBuffer(outBufferIndex, false);
       } else {
@@ -430,18 +429,18 @@ public class VideoEncoder implements GetCameraData {
             mediaFormat.getByteBuffer("csd-1"));
         spsPpsSetted = true;
       } else if (outBufferIndex >= 0) {
+        //This ByteBuffer is H264
+        ByteBuffer bb = outputBuffers[outBufferIndex];
         if ((videoInfo.flags & MediaCodec.BUFFER_FLAG_CODEC_CONFIG) != 0) {
           if (!spsPpsSetted) {
             Pair<ByteBuffer, ByteBuffer> buffers =
-                decodeSpsPpsFromBuffer(outputBuffers[outBufferIndex], videoInfo.size);
+                decodeSpsPpsFromBuffer(bb.duplicate(), videoInfo.size);
             if (buffers != null) {
               getH264Data.onSPSandPPS(buffers.first, buffers.second);
               spsPpsSetted = true;
             }
           }
         }
-        //This ByteBuffer is H264
-        ByteBuffer bb = outputBuffers[outBufferIndex];
         getH264Data.getH264Data(bb, videoInfo);
         videoEncoder.releaseOutputBuffer(outBufferIndex, false);
       } else {
