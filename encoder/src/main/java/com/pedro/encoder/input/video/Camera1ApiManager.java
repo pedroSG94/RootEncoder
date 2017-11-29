@@ -51,7 +51,6 @@ public class Camera1ApiManager implements Camera.PreviewCallback {
   private int fps = 30;
   private int orientation = 0;
   private int imageFormat = ImageFormat.NV21;
-  private FpsController fpsController;
   private Thread thread;
   private byte[] yuvBuffer;
 
@@ -110,6 +109,12 @@ public class Camera1ApiManager implements Camera.PreviewCallback {
       @Override
       public void run() {
         yuvBuffer = new byte[width * height * 3 / 2];
+        YUVUtil.preAllocateRotateBuffers(yuvBuffer.length);
+        if (imageFormat == ImageFormat.NV21) {
+          YUVUtil.preAllocateNv21Buffers(yuvBuffer.length);
+        } else {
+          YUVUtil.preAllocateYv12Buffers(yuvBuffer.length);
+        }
         if (camera == null && prepared) {
           try {
             camera = Camera.open(cameraSelect);
@@ -153,7 +158,6 @@ public class Camera1ApiManager implements Camera.PreviewCallback {
             }
             camera.startPreview();
             running = true;
-            fpsController = new FpsController(fps, camera);
             Log.i(TAG, width + "X" + height);
           } catch (IOException e) {
             e.printStackTrace();
@@ -288,10 +292,8 @@ public class Camera1ApiManager implements Camera.PreviewCallback {
 
   @Override
   public void onPreviewFrame(byte[] data, Camera camera) {
-    if (fpsController.fpsIsValid()) {
-      if (isFrontCamera) data = YUVUtil.rotateNV21(data, width, height, 180);
-      getCameraData.inputYUVData(data);
-    }
+    if (isFrontCamera) data = YUVUtil.rotateNV21(data, width, height, 180);
+    getCameraData.inputYUVData(data);
     camera.addCallbackBuffer(yuvBuffer);
   }
 
