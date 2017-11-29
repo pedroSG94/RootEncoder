@@ -52,6 +52,8 @@ public class Camera1ApiManager implements Camera.PreviewCallback {
   private int orientation = 0;
   private int imageFormat = ImageFormat.NV21;
   private FpsController fpsController;
+  private Thread thread;
+  private byte[] yuvBuffer;
 
   public Camera1ApiManager(SurfaceView surfaceView, GetCameraData getCameraData) {
     this.surfaceView = surfaceView;
@@ -104,63 +106,78 @@ public class Camera1ApiManager implements Camera.PreviewCallback {
   }
 
   public void start() {
-    if (camera == null && prepared) {
-      try {
-        camera = Camera.open(cameraSelect);
-        if (!checkCanOpen()) {
-          throw new CameraOpenException("This camera resolution cant be opened");
-        }
-        Camera.CameraInfo info = new Camera.CameraInfo();
-        Camera.getCameraInfo(cameraSelect, info);
-        isFrontCamera = info.facing == Camera.CameraInfo.CAMERA_FACING_FRONT;
+    thread = new Thread(new Runnable() {
+      @Override
+      public void run() {
+        yuvBuffer = new byte[width * height * 3 / 2];
+        if (camera == null && prepared) {
+          try {
+            camera = Camera.open(cameraSelect);
+            if (!checkCanOpen()) {
+              throw new CameraOpenException("This camera resolution cant be opened");
+            }
+            Camera.CameraInfo info = new Camera.CameraInfo();
+            Camera.getCameraInfo(cameraSelect, info);
+            isFrontCamera = info.facing == Camera.CameraInfo.CAMERA_FACING_FRONT;
 
-        Camera.Parameters parameters = camera.getParameters();
-        parameters.setPreviewSize(width, height);
-        parameters.setPreviewFormat(imageFormat);
-        int[] range = adaptFpsRange(fps, parameters.getSupportedPreviewFpsRange());
-        parameters.setPreviewFpsRange(range[0], range[1]);
+            Camera.Parameters parameters = camera.getParameters();
+            parameters.setPreviewSize(width, height);
+            parameters.setPreviewFormat(imageFormat);
+            int[] range = adaptFpsRange(fps, parameters.getSupportedPreviewFpsRange());
+            parameters.setPreviewFpsRange(range[0], range[1]);
 
-        List<String> supportedFocusModes = parameters.getSupportedFocusModes();
-        if (supportedFocusModes != null && !supportedFocusModes.isEmpty()) {
-          if (supportedFocusModes.contains(Camera.Parameters.FOCUS_MODE_CONTINUOUS_PICTURE)) {
-            parameters.setFocusMode(Camera.Parameters.FOCUS_MODE_CONTINUOUS_PICTURE);
-          } else if (supportedFocusModes.contains(Camera.Parameters.FOCUS_MODE_AUTO)) {
-            parameters.setFocusMode(Camera.Parameters.FOCUS_MODE_AUTO);
-            camera.autoFocus(null);
-          } else {
-            parameters.setFocusMode(supportedFocusModes.get(0));
+            List<String> supportedFocusModes = parameters.getSupportedFocusModes();
+            if (supportedFocusModes != null && !supportedFocusModes.isEmpty()) {
+              if (supportedFocusModes.contains(Camera.Parameters.FOCUS_MODE_CONTINUOUS_PICTURE)) {
+                parameters.setFocusMode(Camera.Parameters.FOCUS_MODE_CONTINUOUS_PICTURE);
+              } else if (supportedFocusModes.contains(Camera.Parameters.FOCUS_MODE_AUTO)) {
+                parameters.setFocusMode(Camera.Parameters.FOCUS_MODE_AUTO);
+                camera.autoFocus(null);
+              } else {
+                parameters.setFocusMode(supportedFocusModes.get(0));
+              }
+            }
+
+            camera.setParameters(parameters);
+            camera.setDisplayOrientation(orientation);
+            if (surfaceView != null) {
+              camera.setPreviewDisplay(surfaceView.getHolder());
+              camera.addCallbackBuffer(yuvBuffer);
+              camera.setPreviewCallbackWithBuffer(Camera1ApiManager.this);
+            } else if (textureView != null) {
+              camera.setPreviewTexture(textureView.getSurfaceTexture());
+              camera.addCallbackBuffer(yuvBuffer);
+              camera.setPreviewCallbackWithBuffer(Camera1ApiManager.this);
+            } else {
+              camera.setPreviewTexture(surfaceTexture);
+            }
+            camera.startPreview();
+            running = true;
+            fpsController = new FpsController(fps, camera);
+            Log.i(TAG, width + "X" + height);
+          } catch (IOException e) {
+            e.printStackTrace();
           }
-        }
-
-        camera.setParameters(parameters);
-        camera.setDisplayOrientation(orientation);
-        if (surfaceView != null) {
-          camera.setPreviewDisplay(surfaceView.getHolder());
-          camera.setPreviewCallback(this);
-        } else if (textureView != null) {
-          camera.setPreviewTexture(textureView.getSurfaceTexture());
-          camera.setPreviewCallback(this);
         } else {
-          camera.setPreviewTexture(surfaceTexture);
+          Log.e(TAG, "Camera1ApiManager need be prepared, Camera1ApiManager not enabled");
         }
-        camera.startPreview();
-        running = true;
-        fpsController = new FpsController(fps, camera);
-        Log.i(TAG, width + "X" + height);
-      } catch (IOException e) {
-        e.printStackTrace();
       }
-    } else {
-      Log.e(TAG, "Camera1ApiManager need be prepared, Camera1ApiManager not enabled");
-    }
+    });
+    thread.start();
   }
 
-  public void setPreviewOrientation(int orientation) {
+  public void setPreviewOrientation(final int orientation) {
     this.orientation = orientation;
     if (camera != null && running) {
-      camera.stopPreview();
-      camera.setDisplayOrientation(orientation);
-      camera.startPreview();
+      thread = new Thread(new Runnable() {
+        @Override
+        public void run() {
+          camera.stopPreview();
+          camera.setDisplayOrientation(orientation);
+          camera.startPreview();
+        }
+      });
+      thread.start();
     }
   }
 
@@ -275,6 +292,7 @@ public class Camera1ApiManager implements Camera.PreviewCallback {
       if (isFrontCamera) data = YUVUtil.rotateNV21(data, width, height, 180);
       getCameraData.inputYUVData(data);
     }
+    camera.addCallbackBuffer(yuvBuffer);
   }
 
   /**

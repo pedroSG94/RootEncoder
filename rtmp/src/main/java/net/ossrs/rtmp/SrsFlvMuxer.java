@@ -58,7 +58,7 @@ public class SrsFlvMuxer {
   private SrsFlvFrame mAudioSequenceHeader;
   private SrsAllocator mVideoAllocator = new SrsAllocator(VIDEO_ALLOC_SIZE);
   private SrsAllocator mAudioAllocator = new SrsAllocator(AUDIO_ALLOC_SIZE);
-  private BlockingQueue<SrsFlvFrame> mFlvTagCache = new LinkedBlockingQueue<>(40);
+  private BlockingQueue<SrsFlvFrame> mFlvTagCache = new LinkedBlockingQueue<>(60);
   private ConnectCheckerRtmp connectCheckerRtmp;
   private int sampleRate = 44100;
   private boolean isPpsSpsSend = false;

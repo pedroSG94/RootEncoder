@@ -41,7 +41,6 @@ public class VideoEncoder implements GetCameraData {
   //surface to buffer encoder
   private Surface inputSurface;
   //buffer to buffer
-  private BlockingQueue<byte[]> queue = new LinkedBlockingQueue<>(20);
   private int imageFormat = ImageFormat.NV21;
 
   //default parameters for encoder
@@ -209,43 +208,13 @@ public class VideoEncoder implements GetCameraData {
         }
         //buffer to buffer
       } else {
-        thread = new Thread(new Runnable() {
-          @Override
-          public void run() {
-            if (imageFormat != ImageFormat.NV21 && imageFormat != ImageFormat.YV12) {
-              stop();
-              Log.e(TAG, "Unsupported imageFormat");
-              return;
-            } else if (!(rotation == 0 || rotation == 90 || rotation == 180 || rotation == 270)) {
-              throw new RuntimeException(
-                  "rotation value unsupported, select value 0, 90, 180 or 270");
-            }
-            byte[] bytes;
-            while (!Thread.interrupted()) {
-              try {
-                bytes = queue.take();
-                if (bytes == null) continue;
-                //convert YV12 to NV21
-                if (imageFormat == ImageFormat.YV12) {
-                  bytes = YUVUtil.YV12toYUV420PackedSemiPlanar(bytes, width, height);
-                }
-                if (!hardwareRotation) {
-                  bytes = YUVUtil.rotateNV21(bytes, width, height, rotation);
-                }
-                bytes = (sendBlackImage) ? blackImage
-                    : YUVUtil.NV21toYUV420byColor(bytes, width, height, formatVideoEncoder);
-                if (Build.VERSION.SDK_INT >= 21) {
-                  getDataFromEncoderAPI21(bytes);
-                } else {
-                  getDataFromEncoder(bytes);
-                }
-              } catch (InterruptedException e) {
-                if (thread != null) thread.interrupt();
-              }
-            }
-          }
-        });
-        thread.start();
+        if (imageFormat != ImageFormat.NV21 && imageFormat != ImageFormat.YV12) {
+          stop();
+          Log.e(TAG, "Unsupported imageFormat");
+          return;
+        } else if (!(rotation == 0 || rotation == 90 || rotation == 180 || rotation == 270)) {
+          throw new RuntimeException("rotation value unsupported, select value 0, 90, 180 or 270");
+        }
       }
       running = true;
     } else {
@@ -255,7 +224,6 @@ public class VideoEncoder implements GetCameraData {
 
   public void stop() {
     running = false;
-    queue.clear();
     if (thread != null) {
       thread.interrupt();
       try {
@@ -276,11 +244,19 @@ public class VideoEncoder implements GetCameraData {
   @Override
   public void inputYUVData(byte[] buffer) {
     if (running) {
-      try {
-        queue.add(buffer);
-      } catch (IllegalStateException e) {
-        queue.clear();
-        Log.i(TAG, "frame discarded");
+      //convert YV12 to NV21
+      if (imageFormat == ImageFormat.YV12) {
+        buffer = YUVUtil.YV12toYUV420PackedSemiPlanar(buffer, width, height);
+      }
+      if (!hardwareRotation) {
+        buffer = YUVUtil.rotateNV21(buffer, width, height, rotation);
+      }
+      buffer = (sendBlackImage) ? blackImage
+          : YUVUtil.NV21toYUV420byColor(buffer, width, height, formatVideoEncoder);
+      if (Build.VERSION.SDK_INT >= 21) {
+        getDataFromEncoderAPI21(buffer);
+      } else {
+        getDataFromEncoder(buffer);
       }
     }
   }
