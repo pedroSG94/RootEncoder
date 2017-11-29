@@ -178,8 +178,11 @@ public abstract class Camera1Base
             new Camera1ApiManager(openGlView.getSurfaceTexture(), openGlView.getContext());
       }
       cameraManager.prepareCamera();
-      if (width == 0 || height == 0) cameraManager.start(cameraFacing);
-      else cameraManager.start(cameraFacing, width, height);
+      if (width == 0 || height == 0) {
+        cameraManager.start(cameraFacing);
+      } else {
+        cameraManager.start(cameraFacing, width, height);
+      }
       onPreview = true;
     } else {
       Log.e(TAG, "Streaming or preview started, ignored");
@@ -466,9 +469,9 @@ public abstract class Camera1Base
       }
     }
     fps++;
-    if (System.currentTimeMillis() - 1000 > time){
+    if (System.currentTimeMillis() - 1000 > time) {
       time = System.currentTimeMillis();
-      Log.e("Pedro", "FPS: " + fps);
+      Log.e("Pedro " + Thread.currentThread().getName(), "FPS: " + fps);
       fps = 0;
     }
     getH264DataRtp(h264Buffer, info);

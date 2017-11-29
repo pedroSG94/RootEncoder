@@ -6,6 +6,8 @@ import android.graphics.SurfaceTexture;
 import android.hardware.Camera;
 import android.media.CamcorderProfile;
 import android.opengl.GLES20;
+import android.os.Handler;
+import android.os.HandlerThread;
 import android.util.Log;
 import android.view.SurfaceView;
 import android.view.TextureView;
@@ -51,7 +53,8 @@ public class Camera1ApiManager implements Camera.PreviewCallback {
   private int fps = 30;
   private int orientation = 0;
   private int imageFormat = ImageFormat.NV21;
-  private Thread thread;
+  private HandlerThread handlerThread;
+  private Handler thread;
   private byte[] yuvBuffer;
 
   public Camera1ApiManager(SurfaceView surfaceView, GetCameraData getCameraData) {
@@ -105,7 +108,10 @@ public class Camera1ApiManager implements Camera.PreviewCallback {
   }
 
   public void start() {
-    thread = new Thread(new Runnable() {
+    handlerThread = new HandlerThread("cameraThread");
+    handlerThread.start();
+    thread = new Handler(handlerThread.getLooper());
+    thread.post(new Runnable() {
       @Override
       public void run() {
         yuvBuffer = new byte[width * height * 3 / 2];
@@ -167,21 +173,14 @@ public class Camera1ApiManager implements Camera.PreviewCallback {
         }
       }
     });
-    thread.start();
   }
 
   public void setPreviewOrientation(final int orientation) {
     this.orientation = orientation;
     if (camera != null && running) {
-      thread = new Thread(new Runnable() {
-        @Override
-        public void run() {
-          camera.stopPreview();
-          camera.setDisplayOrientation(orientation);
-          camera.startPreview();
-        }
-      });
-      thread.start();
+      camera.stopPreview();
+      camera.setDisplayOrientation(orientation);
+      camera.startPreview();
     }
   }
 
@@ -215,7 +214,8 @@ public class Camera1ApiManager implements Camera.PreviewCallback {
 
   public void stop() {
     if (camera != null) {
-      camera.setPreviewCallback(null);
+      prepared = false;
+      camera.setPreviewCallbackWithBuffer(null);
       camera.stopPreview();
       camera.release();
       camera = null;
@@ -227,7 +227,6 @@ public class Camera1ApiManager implements Camera.PreviewCallback {
         clearSurface(surfaceTexture);
       }
       running = false;
-      prepared = false;
     }
   }
 
@@ -292,6 +291,8 @@ public class Camera1ApiManager implements Camera.PreviewCallback {
 
   @Override
   public void onPreviewFrame(byte[] data, Camera camera) {
+    if (!prepared) return;
+    
     if (isFrontCamera) data = YUVUtil.rotateNV21(data, width, height, 180);
     getCameraData.inputYUVData(data);
     camera.addCallbackBuffer(yuvBuffer);
