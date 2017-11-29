@@ -6,6 +6,7 @@ import android.graphics.SurfaceTexture;
 import android.hardware.Camera;
 import android.media.CamcorderProfile;
 import android.opengl.GLES20;
+import android.os.Build;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.util.Log;
@@ -42,7 +43,7 @@ public class Camera1ApiManager implements Camera.PreviewCallback {
   private SurfaceTexture surfaceTexture;
   private GetCameraData getCameraData;
   private boolean running = false;
-  private boolean prepared = false;
+  private volatile boolean prepared = false;
   private boolean lanternEnable = false;
   private int cameraSelect;
   private boolean isFrontCamera = false;
@@ -56,6 +57,7 @@ public class Camera1ApiManager implements Camera.PreviewCallback {
   private HandlerThread handlerThread;
   private Handler thread;
   private byte[] yuvBuffer;
+  private final Object syncStop = new Object();
 
   public Camera1ApiManager(SurfaceView surfaceView, GetCameraData getCameraData) {
     this.surfaceView = surfaceView;
@@ -214,7 +216,14 @@ public class Camera1ApiManager implements Camera.PreviewCallback {
 
   public void stop() {
     if (camera != null) {
-      prepared = false;
+      if (handlerThread != null) {
+        handlerThread.quit();
+        handlerThread = null;
+      }
+      if (thread != null) {
+        thread.removeCallbacksAndMessages(null);
+        thread = null;
+      }
       camera.setPreviewCallbackWithBuffer(null);
       camera.stopPreview();
       camera.release();
@@ -227,6 +236,7 @@ public class Camera1ApiManager implements Camera.PreviewCallback {
         clearSurface(surfaceTexture);
       }
       running = false;
+      prepared = false;
     }
   }
 
@@ -291,8 +301,6 @@ public class Camera1ApiManager implements Camera.PreviewCallback {
 
   @Override
   public void onPreviewFrame(byte[] data, Camera camera) {
-    if (!prepared) return;
-
     if (isFrontCamera) data = YUVUtil.rotateNV21(data, width, height, 180);
     getCameraData.inputYUVData(data);
     camera.addCallbackBuffer(yuvBuffer);
