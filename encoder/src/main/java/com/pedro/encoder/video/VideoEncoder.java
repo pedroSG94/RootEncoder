@@ -296,9 +296,6 @@ public class VideoEncoder implements GetCameraData {
 
   public void stop() {
     synchronized (sync) {
-      queueRotate.clear();
-      queueColor.clear();
-      queueEncode.clear();
       running = false;
       if (thread != null) {
         thread.interrupt();
@@ -334,6 +331,9 @@ public class VideoEncoder implements GetCameraData {
         videoEncoder.release();
         videoEncoder = null;
       }
+      queueEncode.clear();
+      queueRotate.clear();
+      queueColor.clear();
       spsPpsSetted = false;
     }
   }

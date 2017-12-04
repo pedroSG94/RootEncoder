@@ -256,8 +256,17 @@ public abstract class Camera1Base
     streaming = false;
   }
 
-  public List<String> getResolutions() {
-    List<Camera.Size> list = cameraManager.getPreviewSize();
+  public List<String> getResolutionsBack() {
+    List<Camera.Size> list = cameraManager.getPreviewSizeBack();
+    List<String> resolutions = new ArrayList<>();
+    for (Camera.Size size : list) {
+      resolutions.add(size.width + "X" + size.height);
+    }
+    return resolutions;
+  }
+
+  public List<String> getResolutionsFront() {
+    List<Camera.Size> list = cameraManager.getPreviewSizeFront();
     List<String> resolutions = new ArrayList<>();
     for (Camera.Size size : list) {
       resolutions.add(size.width + "X" + size.height);

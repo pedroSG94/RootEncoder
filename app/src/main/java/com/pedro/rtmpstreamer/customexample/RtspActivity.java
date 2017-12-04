@@ -137,7 +137,7 @@ public class RtspActivity extends AppCompatActivity
 
     ArrayAdapter<String> resolutionAdapter =
         new ArrayAdapter<>(this, R.layout.support_simple_spinner_dropdown_item);
-    resolutionAdapter.addAll(rtspCamera1.getResolutions());
+    resolutionAdapter.addAll(rtspCamera1.getResolutionsBack());
     spResolution.setAdapter(resolutionAdapter);
     //edittexts
     etVideoBitrate =
@@ -230,7 +230,7 @@ public class RtspActivity extends AppCompatActivity
             rtspCamera1.setProtocol(Protocol.UDP);
           }
           String resolution =
-              rtspCamera1.getResolutions().get(spResolution.getSelectedItemPosition());
+              rtspCamera1.getResolutionsBack().get(spResolution.getSelectedItemPosition());
           String user = etWowzaUser.getText().toString();
           String password = etWowzaPassword.getText().toString();
           if (!user.isEmpty() && !password.isEmpty()) {
@@ -297,7 +297,6 @@ public class RtspActivity extends AppCompatActivity
           rtspCamera1.switchCamera();
         } catch (CameraOpenException e) {
           Toast.makeText(this, e.getMessage(), Toast.LENGTH_SHORT).show();
-          rtspCamera1.switchCamera();
         }
         break;
       //options menu
