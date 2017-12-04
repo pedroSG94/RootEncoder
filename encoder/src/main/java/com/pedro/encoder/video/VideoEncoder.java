@@ -18,6 +18,8 @@ import com.pedro.encoder.input.video.GetCameraData;
 import com.pedro.encoder.utils.YUVUtil;
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
 
 /**
  * Created by pedro on 19/01/17.
@@ -39,6 +41,7 @@ public class VideoEncoder implements GetCameraData {
   //surface to buffer encoder
   private Surface inputSurface;
   //buffer to buffer
+  private BlockingQueue<byte[]> queue = new LinkedBlockingQueue<>(30);
   private int imageFormat = ImageFormat.NV21;
   private final Object sync = new Object();
 
@@ -216,6 +219,24 @@ public class VideoEncoder implements GetCameraData {
             throw new RuntimeException(
                 "rotation value unsupported, select value 0, 90, 180 or 270");
           }
+          thread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+              while (!Thread.interrupted()) {
+                try {
+                  byte[] buffer = queue.take();
+                  if (Build.VERSION.SDK_INT >= 21) {
+                    getDataFromEncoderAPI21(buffer);
+                  } else {
+                    getDataFromEncoder(buffer);
+                  }
+                } catch (InterruptedException e) {
+                  if (thread != null) thread.interrupt();
+                }
+              }
+            }
+          });
+          thread.start();
         }
         running = true;
       } else {
@@ -226,6 +247,7 @@ public class VideoEncoder implements GetCameraData {
 
   public void stop() {
     synchronized (sync) {
+      queue.clear();
       running = false;
       if (thread != null) {
         thread.interrupt();
@@ -258,10 +280,10 @@ public class VideoEncoder implements GetCameraData {
         }
         buffer = (sendBlackImage) ? blackImage
             : YUVUtil.NV21toYUV420byColor(buffer, width, height, formatVideoEncoder);
-        if (Build.VERSION.SDK_INT >= 21) {
-          getDataFromEncoderAPI21(buffer);
-        } else {
-          getDataFromEncoder(buffer);
+        try {
+          queue.add(buffer);
+        } catch (IllegalStateException e) {
+          Log.i(TAG, "frame discarded");
         }
       }
     }
