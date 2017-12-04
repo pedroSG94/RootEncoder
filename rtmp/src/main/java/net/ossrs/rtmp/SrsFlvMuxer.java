@@ -4,7 +4,6 @@ import android.media.MediaCodec;
 import android.os.Process;
 import android.util.Log;
 import com.github.faucamp.simplertmp.DefaultRtmpPublisher;
-import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.concurrent.BlockingQueue;
@@ -58,7 +57,7 @@ public class SrsFlvMuxer {
   private SrsFlvFrame mAudioSequenceHeader;
   private SrsAllocator mVideoAllocator = new SrsAllocator(VIDEO_ALLOC_SIZE);
   private SrsAllocator mAudioAllocator = new SrsAllocator(AUDIO_ALLOC_SIZE);
-  private BlockingQueue<SrsFlvFrame> mFlvTagCache = new LinkedBlockingQueue<>(60);
+  private BlockingQueue<SrsFlvFrame> mFlvTagCache = new LinkedBlockingQueue<>(30);
   private ConnectCheckerRtmp connectCheckerRtmp;
   private int sampleRate = 44100;
   private boolean isPpsSpsSend = false;

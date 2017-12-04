@@ -6,7 +6,6 @@ import android.graphics.SurfaceTexture;
 import android.hardware.Camera;
 import android.media.CamcorderProfile;
 import android.opengl.GLES20;
-import android.os.Build;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.util.Log;
@@ -57,32 +56,34 @@ public class Camera1ApiManager implements Camera.PreviewCallback {
   private HandlerThread handlerThread;
   private Handler thread;
   private byte[] yuvBuffer;
-  private final Object syncStop = new Object();
+  private List<Camera.Size> previewSizeBack;
+  private List<Camera.Size> previewSizeFront;
 
   public Camera1ApiManager(SurfaceView surfaceView, GetCameraData getCameraData) {
     this.surfaceView = surfaceView;
     this.getCameraData = getCameraData;
-    if (surfaceView.getContext().getResources().getConfiguration().orientation == 1) {
-      orientation = 90;
-    }
-    cameraSelect = selectCameraBack();
+    init(surfaceView.getContext());
   }
 
   public Camera1ApiManager(TextureView textureView, GetCameraData getCameraData) {
     this.textureView = textureView;
     this.getCameraData = getCameraData;
-    if (textureView.getContext().getResources().getConfiguration().orientation == 1) {
-      orientation = 90;
-    }
-    cameraSelect = selectCameraBack();
+    init(textureView.getContext());
   }
 
   public Camera1ApiManager(SurfaceTexture surfaceTexture, Context context) {
     this.surfaceTexture = surfaceTexture;
+    init(context);
+  }
+
+  private void init(Context context) {
     if (context.getResources().getConfiguration().orientation == 1) {
       orientation = 90;
     }
+    cameraSelect = selectCameraFront();
+    previewSizeFront = getPreviewSize();
     cameraSelect = selectCameraBack();
+    previewSizeBack = getPreviewSize();
   }
 
   public void prepareCamera(int width, int height, int fps, int imageFormat) {
@@ -110,6 +111,9 @@ public class Camera1ApiManager implements Camera.PreviewCallback {
   }
 
   public void start() {
+    if (!checkCanOpen()) {
+      throw new CameraOpenException("This camera resolution cant be opened");
+    }
     handlerThread = new HandlerThread("cameraThread");
     handlerThread.start();
     thread = new Handler(handlerThread.getLooper());
@@ -126,9 +130,6 @@ public class Camera1ApiManager implements Camera.PreviewCallback {
         if (camera == null && prepared) {
           try {
             camera = Camera.open(cameraSelect);
-            if (!checkCanOpen()) {
-              throw new CameraOpenException("This camera resolution cant be opened");
-            }
             Camera.CameraInfo info = new Camera.CameraInfo();
             Camera.getCameraInfo(cameraSelect, info);
             isFrontCamera = info.facing == Camera.CameraInfo.CAMERA_FACING_FRONT;
@@ -327,7 +328,7 @@ public class Camera1ApiManager implements Camera.PreviewCallback {
     return formats;
   }
 
-  public List<Camera.Size> getPreviewSize() {
+  private List<Camera.Size> getPreviewSize() {
     List<Camera.Size> previewSizes;
     Camera.Size maxSize;
     if (camera != null) {
@@ -350,6 +351,14 @@ public class Camera1ApiManager implements Camera.PreviewCallback {
       }
     }
     return previewSizes;
+  }
+
+  public List<Camera.Size> getPreviewSizeBack() {
+    return previewSizeBack;
+  }
+
+  public List<Camera.Size> getPreviewSizeFront() {
+    return previewSizeFront;
   }
 
   /**
@@ -381,10 +390,15 @@ public class Camera1ApiManager implements Camera.PreviewCallback {
 
   public void switchCamera() throws CameraOpenException {
     if (camera != null) {
+      int oldCamera = cameraSelect;
       int number = Camera.getNumberOfCameras();
       for (int i = 0; i < number; i++) {
         if (cameraSelect != i) {
           cameraSelect = i;
+          if (!checkCanOpen()) {
+            cameraSelect = oldCamera;
+            throw new CameraOpenException("This camera resolution cant be opened");
+          }
           stop();
           prepared = true;
           start();
@@ -395,7 +409,13 @@ public class Camera1ApiManager implements Camera.PreviewCallback {
   }
 
   private boolean checkCanOpen() {
-    for (Camera.Size size : getPreviewSize()) {
+    List<Camera.Size> previews;
+    if (cameraSelect == selectCameraBack()) {
+      previews = previewSizeBack;
+    } else {
+      previews = previewSizeFront;
+    }
+    for (Camera.Size size : previews) {
       if (size.width == width && size.height == height) {
         return true;
       }

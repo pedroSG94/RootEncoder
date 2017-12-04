@@ -8,6 +8,7 @@ import android.support.design.widget.NavigationView;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -133,7 +134,7 @@ public class RtmpActivity extends AppCompatActivity
 
     ArrayAdapter<String> resolutionAdapter =
         new ArrayAdapter<>(this, R.layout.support_simple_spinner_dropdown_item);
-    resolutionAdapter.addAll(rtmpCamera1.getResolutions());
+    resolutionAdapter.addAll(rtmpCamera1.getResolutionsBack());
     spResolution.setAdapter(resolutionAdapter);
     //edittexts
     etVideoBitrate =
@@ -221,7 +222,7 @@ public class RtmpActivity extends AppCompatActivity
         if (!rtmpCamera1.isStreaming()) {
           bStartStop.setText(getResources().getString(R.string.stop_button));
           String resolution =
-              rtmpCamera1.getResolutions().get(spResolution.getSelectedItemPosition());
+              rtmpCamera1.getResolutionsBack().get(spResolution.getSelectedItemPosition());
           String user = etWowzaUser.getText().toString();
           String password = etWowzaPassword.getText().toString();
           if (!user.isEmpty() && !password.isEmpty()) {
@@ -287,9 +288,8 @@ public class RtmpActivity extends AppCompatActivity
       case R.id.switch_camera:
         try {
           rtmpCamera1.switchCamera();
-        } catch (CameraOpenException e) {
-          Toast.makeText(this, e.getMessage(), Toast.LENGTH_SHORT).show();
-          rtmpCamera1.switchCamera();
+        } catch (final CameraOpenException e) {
+          Toast.makeText(RtmpActivity.this, e.getMessage(), Toast.LENGTH_SHORT).show();
         }
         break;
       default:
