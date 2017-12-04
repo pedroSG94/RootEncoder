@@ -289,12 +289,7 @@ public class RtmpActivity extends AppCompatActivity
         try {
           rtmpCamera1.switchCamera();
         } catch (final CameraOpenException e) {
-          runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-              Toast.makeText(RtmpActivity.this, e.getMessage(), Toast.LENGTH_SHORT).show();
-            }
-          });
+          Toast.makeText(RtmpActivity.this, e.getMessage(), Toast.LENGTH_SHORT).show();
         }
         break;
       default:
