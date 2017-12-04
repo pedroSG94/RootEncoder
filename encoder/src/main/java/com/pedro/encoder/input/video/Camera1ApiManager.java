@@ -110,6 +110,9 @@ public class Camera1ApiManager implements Camera.PreviewCallback {
   }
 
   public void start() {
+    if (!checkCanOpen()) {
+      throw new CameraOpenException("This camera resolution cant be opened");
+    }
     handlerThread = new HandlerThread("cameraThread");
     handlerThread.start();
     thread = new Handler(handlerThread.getLooper());
@@ -126,9 +129,6 @@ public class Camera1ApiManager implements Camera.PreviewCallback {
         if (camera == null && prepared) {
           try {
             camera = Camera.open(cameraSelect);
-            if (!checkCanOpen()) {
-              throw new CameraOpenException("This camera resolution cant be opened");
-            }
             Camera.CameraInfo info = new Camera.CameraInfo();
             Camera.getCameraInfo(cameraSelect, info);
             isFrontCamera = info.facing == Camera.CameraInfo.CAMERA_FACING_FRONT;
