@@ -31,6 +31,8 @@ public class VideoEncoder implements GetCameraData {
   private String TAG = "VideoEncoder";
   private MediaCodec videoEncoder;
   private Thread thread;
+  private Thread threadRotate;
+  private Thread threadColor;
   private GetH264Data getH264Data;
   private MediaCodec.BufferInfo videoInfo = new MediaCodec.BufferInfo();
   private long mPresentTimeUs;
@@ -40,8 +42,10 @@ public class VideoEncoder implements GetCameraData {
 
   //surface to buffer encoder
   private Surface inputSurface;
-  //buffer to buffer
-  private BlockingQueue<byte[]> queue = new LinkedBlockingQueue<>(30);
+  //buffer to buffer, 3 queue to optimize frames on rotation
+  private BlockingQueue<byte[]> queueEncode = new LinkedBlockingQueue<>(30);
+  private BlockingQueue<byte[]> queueRotate = new LinkedBlockingQueue<>(30);
+  private BlockingQueue<byte[]> queueColor = new LinkedBlockingQueue<>(30);
   private int imageFormat = ImageFormat.NV21;
   private final Object sync = new Object();
 
@@ -224,7 +228,7 @@ public class VideoEncoder implements GetCameraData {
             public void run() {
               while (!Thread.interrupted()) {
                 try {
-                  byte[] buffer = queue.take();
+                  byte[] buffer = queueEncode.take();
                   if (Build.VERSION.SDK_INT >= 21) {
                     getDataFromEncoderAPI21(buffer);
                   } else {
@@ -236,7 +240,52 @@ public class VideoEncoder implements GetCameraData {
               }
             }
           });
+          threadRotate = new Thread(new Runnable() {
+            @Override
+            public void run() {
+              while (!Thread.interrupted()) {
+                try {
+                  byte[] buffer = queueRotate.take();
+                  //convert YV12 to NV21
+                  if (imageFormat == ImageFormat.YV12) {
+                    buffer = YUVUtil.YV12toYUV420PackedSemiPlanar(buffer, width, height);
+                  }
+                  if (!hardwareRotation) {
+                    buffer = YUVUtil.rotateNV21(buffer, width, height, rotation);
+                    try {
+                      queueColor.add(buffer);
+                    } catch (IllegalStateException e) {
+                      Log.i(TAG, "frame discarded");
+                    }
+                  }
+                } catch (InterruptedException e) {
+                  if (threadRotate != null) threadRotate.interrupt();
+                }
+              }
+            }
+          });
+          threadColor = new Thread(new Runnable() {
+            @Override
+            public void run() {
+              while (!Thread.interrupted()) {
+                try {
+                  byte[] buffer = queueColor.take();
+                  buffer = (sendBlackImage) ? blackImage
+                      : YUVUtil.NV21toYUV420byColor(buffer, width, height, formatVideoEncoder);
+                  try {
+                    queueEncode.add(buffer);
+                  } catch (IllegalStateException e) {
+                    Log.i(TAG, "frame discarded");
+                  }
+                } catch (InterruptedException e) {
+                  if (threadColor != null) threadColor.interrupt();
+                }
+              }
+            }
+          });
           thread.start();
+          threadRotate.start();
+          threadColor.start();
         }
         running = true;
       } else {
@@ -247,7 +296,9 @@ public class VideoEncoder implements GetCameraData {
 
   public void stop() {
     synchronized (sync) {
-      queue.clear();
+      queueRotate.clear();
+      queueColor.clear();
+      queueEncode.clear();
       running = false;
       if (thread != null) {
         thread.interrupt();
@@ -257,6 +308,26 @@ public class VideoEncoder implements GetCameraData {
           thread.interrupt();
         }
         thread = null;
+      }
+
+      if (threadRotate != null) {
+        threadRotate.interrupt();
+        try {
+          threadRotate.join();
+        } catch (InterruptedException e) {
+          threadRotate.interrupt();
+        }
+        threadRotate = null;
+      }
+
+      if (threadColor != null) {
+        threadColor.interrupt();
+        try {
+          threadColor.join();
+        } catch (InterruptedException e) {
+          threadColor.interrupt();
+        }
+        threadColor = null;
       }
       if (videoEncoder != null) {
         videoEncoder.stop();
@@ -271,17 +342,8 @@ public class VideoEncoder implements GetCameraData {
   public void inputYUVData(byte[] buffer) {
     synchronized (sync) {
       if (running) {
-        //convert YV12 to NV21
-        if (imageFormat == ImageFormat.YV12) {
-          buffer = YUVUtil.YV12toYUV420PackedSemiPlanar(buffer, width, height);
-        }
-        if (!hardwareRotation) {
-          buffer = YUVUtil.rotateNV21(buffer, width, height, rotation);
-        }
-        buffer = (sendBlackImage) ? blackImage
-            : YUVUtil.NV21toYUV420byColor(buffer, width, height, formatVideoEncoder);
         try {
-          queue.add(buffer);
+          queueRotate.add(buffer);
         } catch (IllegalStateException e) {
           Log.i(TAG, "frame discarded");
         }
