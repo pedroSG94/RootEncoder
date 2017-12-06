@@ -9,8 +9,8 @@ android {
   defaultConfig {
     minSdkVersion 16
     targetSdkVersion 27
-    versionCode 1
-    versionName "1.0.1"
+    versionCode 125
+    versionName "1.2.5"
   }
   buildTypes {
     release {
@@ -21,5 +21,5 @@ android {
 }
 
 dependencies {
-  compile 'com.android.support:support-annotations:27.0.1'
+  compile 'com.android.support:support-annotations:27.0.2'
 }
