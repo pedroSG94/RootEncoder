@@ -107,4 +107,13 @@ public class SurfaceModeRtspActivity extends AppCompatActivity
       rtspCamera2.stopPreview();
     }
   }
+
+  @Override
+  protected void onPause() {
+    super.onPause();
+    if (rtspCamera2.isStreaming()) {
+      rtspCamera2.stopStream();
+      rtspCamera2.stopPreview();
+    }
+  }
 }

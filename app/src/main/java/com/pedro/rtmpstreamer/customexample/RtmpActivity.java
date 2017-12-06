@@ -8,7 +8,6 @@ import android.support.design.widget.NavigationView;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
 import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -302,6 +301,7 @@ public class RtmpActivity extends AppCompatActivity
     super.onPause();
     if (rtmpCamera1.isStreaming()) {
       rtmpCamera1.stopStream();
+      rtmpCamera1.stopPreview();
       bStartStop.setText(getResources().getString(R.string.start_button));
     }
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2 && rtmpCamera1.isRecording()) {

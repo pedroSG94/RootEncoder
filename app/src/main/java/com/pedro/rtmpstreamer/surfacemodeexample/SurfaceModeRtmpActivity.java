@@ -108,4 +108,13 @@ public class SurfaceModeRtmpActivity extends AppCompatActivity
       rtmpCamera2.stopPreview();
     }
   }
+
+  @Override
+  protected void onPause() {
+    super.onPause();
+    if (rtmpCamera2.isStreaming()) {
+      rtmpCamera2.stopStream();
+      rtmpCamera2.stopPreview();
+    }
+  }
 }

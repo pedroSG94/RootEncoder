@@ -1,7 +1,6 @@
 package com.pedro.rtmpstreamer.texturemodeexample;
 
 import android.graphics.SurfaceTexture;
-import android.hardware.camera2.CameraCharacteristics;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.RequiresApi;
@@ -12,11 +11,9 @@ import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
-
 import com.pedro.rtmpstreamer.R;
 import com.pedro.rtplibrary.rtmp.RtmpCamera2;
 import com.pedro.rtplibrary.view.AutoFitTextureView;
-
 import net.ossrs.rtmp.ConnectCheckerRtmp;
 
 @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
@@ -40,12 +37,6 @@ public class TextureModeRtmpActivity extends AppCompatActivity
     etUrl.setHint(R.string.hint_rtmp);
     rtmpCamera2 = new RtmpCamera2(textureView, this);
     textureView.setSurfaceTextureListener(surfaceTextureListener);
-  }
-
-  @Override
-  protected void onPause() {
-    super.onPause();
-    rtmpCamera2.stopPreview();
   }
 
   @Override
@@ -115,6 +106,15 @@ public class TextureModeRtmpActivity extends AppCompatActivity
     } else {
       button.setText(R.string.start_button);
       rtmpCamera2.stopStream();
+    }
+  }
+
+  @Override
+  protected void onPause() {
+    super.onPause();
+    if (rtmpCamera2.isStreaming()) {
+      rtmpCamera2.stopStream();
+      rtmpCamera2.stopPreview();
     }
   }
 

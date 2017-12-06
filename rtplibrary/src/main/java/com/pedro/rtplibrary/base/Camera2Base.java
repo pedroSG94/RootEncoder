@@ -397,6 +397,14 @@ public abstract class Camera2Base
     return streaming;
   }
 
+  public boolean isRecording() {
+    return recording;
+  }
+
+  public boolean isOnPreview() {
+    return onPreview;
+  }
+
   private void prepareCameraManager() {
     if (textureView != null) {
       cameraManager.prepareCamera(textureView, videoEncoder.getInputSurface());

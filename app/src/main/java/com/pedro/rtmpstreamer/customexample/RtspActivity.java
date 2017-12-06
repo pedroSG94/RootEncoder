@@ -322,6 +322,7 @@ public class RtspActivity extends AppCompatActivity
     super.onPause();
     if (rtspCamera1.isStreaming()) {
       rtspCamera1.stopStream();
+      rtspCamera1.stopPreview();
       bStartStop.setText(getResources().getString(R.string.start_button));
     }
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2 && rtspCamera1.isRecording()) {

@@ -105,4 +105,13 @@ public class ExampleRtspActivity extends AppCompatActivity
       rtspCamera1.stopPreview();
     }
   }
+
+  @Override
+  protected void onPause() {
+    super.onPause();
+    if (rtspCamera1.isStreaming()) {
+      rtspCamera1.stopStream();
+      rtspCamera1.stopPreview();
+    }
+  }
 }

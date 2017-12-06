@@ -432,6 +432,10 @@ public abstract class Camera1Base
     return streaming;
   }
 
+  public boolean isOnPreview() {
+    return onPreview;
+  }
+
   public boolean isRecording() {
     return recording;
   }
