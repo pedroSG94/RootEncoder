@@ -146,7 +146,6 @@ public class Camera1ApiManager implements Camera.PreviewCallback {
                 parameters.setFocusMode(Camera.Parameters.FOCUS_MODE_CONTINUOUS_PICTURE);
               } else if (supportedFocusModes.contains(Camera.Parameters.FOCUS_MODE_AUTO)) {
                 parameters.setFocusMode(Camera.Parameters.FOCUS_MODE_AUTO);
-                camera.autoFocus(null);
               } else {
                 parameters.setFocusMode(supportedFocusModes.get(0));
               }
