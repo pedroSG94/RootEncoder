@@ -187,6 +187,10 @@ public class VideoEncoder implements GetCameraData {
     return height;
   }
 
+  public boolean isHardwareRotation() {
+    return hardwareRotation;
+  }
+
   public boolean isRunning() {
     return running;
   }

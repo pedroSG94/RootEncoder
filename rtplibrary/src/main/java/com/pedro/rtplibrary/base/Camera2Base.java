@@ -182,12 +182,13 @@ public abstract class Camera2Base
   public void startPreview(@Camera2Facing int cameraFacing) {
     if (!isStreaming() && !onPreview) {
       if (surfaceView != null) {
-        cameraManager.prepareCamera(surfaceView.getHolder().getSurface(), false);
+        cameraManager.prepareCamera(surfaceView.getHolder().getSurface());
       } else if (textureView != null) {
-        cameraManager.prepareCamera(new Surface(textureView.getSurfaceTexture()), false);
+        cameraManager.prepareCamera(new Surface(textureView.getSurfaceTexture()));
       } else if (openGlView != null) {
         openGlView.startGLThread();
-        cameraManager.prepareCamera(openGlView.getSurface(), true);
+        cameraManager.prepareCamera(openGlView.getSurfaceTexture(), videoEncoder.getWidth(),
+            videoEncoder.getHeight());
       }
       cameraManager.openCameraFacing(cameraFacing);
       onPreview = true;
@@ -222,7 +223,8 @@ public abstract class Camera2Base
       }
       openGlView.startGLThread();
       openGlView.addMediaCodecSurface(videoEncoder.getInputSurface());
-      cameraManager.prepareCamera(openGlView.getSurface(), true);
+      cameraManager.prepareCamera(openGlView.getSurfaceTexture(), videoEncoder.getWidth(),
+          videoEncoder.getHeight());
     }
     videoEncoder.start();
     audioEncoder.start();
@@ -417,7 +419,7 @@ public abstract class Camera2Base
       cameraManager.prepareCamera(surfaceView, videoEncoder.getInputSurface());
     } else if (openGlView != null) {
     } else {
-      cameraManager.prepareCamera(videoEncoder.getInputSurface(), false);
+      cameraManager.prepareCamera(videoEncoder.getInputSurface());
     }
     videoEnabled = true;
   }
