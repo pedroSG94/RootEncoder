@@ -1,5 +1,6 @@
 package com.pedro.rtmpstreamer.customexample;
 
+import android.hardware.Camera;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
@@ -32,7 +33,9 @@ import com.pedro.rtsp.utils.ConnectCheckerRtsp;
 import java.io.File;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 public class RtspActivity extends AppCompatActivity
     implements Button.OnClickListener, ConnectCheckerRtsp, SurfaceHolder.Callback {
@@ -137,7 +140,11 @@ public class RtspActivity extends AppCompatActivity
 
     ArrayAdapter<String> resolutionAdapter =
         new ArrayAdapter<>(this, R.layout.support_simple_spinner_dropdown_item);
-    resolutionAdapter.addAll(rtspCamera1.getResolutionsBack());
+    List<String> list = new ArrayList<>();
+    for (Camera.Size size : rtspCamera1.getResolutionsBack()) {
+      list.add(size.width + "X" + size.height);
+    }
+    resolutionAdapter.addAll(list);
     spResolution.setAdapter(resolutionAdapter);
     //edittexts
     etVideoBitrate =
@@ -229,16 +236,15 @@ public class RtspActivity extends AppCompatActivity
           } else {
             rtspCamera1.setProtocol(Protocol.UDP);
           }
-          String resolution =
+          Camera.Size resolution =
               rtspCamera1.getResolutionsBack().get(spResolution.getSelectedItemPosition());
           String user = etWowzaUser.getText().toString();
           String password = etWowzaPassword.getText().toString();
           if (!user.isEmpty() && !password.isEmpty()) {
             rtspCamera1.setAuthorization(user, password);
           }
-          int width = Integer.parseInt(resolution.split("X")[0]);
-          int height = Integer.parseInt(resolution.split("X")[1]);
-
+          int width = resolution.width;
+          int height = resolution.height;
           if (rtspCamera1.prepareAudio(Integer.parseInt(etAudioBitrate.getText().toString()) * 1024,
               Integer.parseInt(etSampleRate.getText().toString()),
               rgChannel.getCheckedRadioButtonId() == R.id.rb_stereo, cbEchoCanceler.isChecked(),

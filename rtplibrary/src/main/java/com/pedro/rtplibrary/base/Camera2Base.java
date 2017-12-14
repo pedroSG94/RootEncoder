@@ -9,6 +9,7 @@ import android.media.MediaFormat;
 import android.media.MediaMuxer;
 import android.os.Build;
 import android.support.annotation.RequiresApi;
+import android.util.Size;
 import android.view.Surface;
 import android.view.SurfaceView;
 import android.view.TextureView;
@@ -30,6 +31,8 @@ import com.pedro.encoder.video.VideoEncoder;
 import com.pedro.rtplibrary.view.OpenGlView;
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.util.Arrays;
+import java.util.List;
 
 /**
  * Created by pedro on 7/07/17.
@@ -251,6 +254,14 @@ public abstract class Camera2Base
       openGlView.removeMediaCodecSurface();
     }
     streaming = false;
+  }
+
+  public List<Size> getResolutionsBack() {
+    return Arrays.asList(cameraManager.getCameraResolutionsBack());
+  }
+
+  public List<Size> getResolutionsFront() {
+    return Arrays.asList(cameraManager.getCameraResolutionsFront());
   }
 
   public void disableAudio() {

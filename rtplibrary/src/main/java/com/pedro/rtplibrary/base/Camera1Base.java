@@ -21,9 +21,9 @@ import com.pedro.encoder.input.video.Camera1Facing;
 import com.pedro.encoder.input.video.CameraOpenException;
 import com.pedro.encoder.input.video.EffectManager;
 import com.pedro.encoder.input.video.GetCameraData;
-import com.pedro.encoder.utils.gl.TextStreamObject;
 import com.pedro.encoder.utils.gl.GifStreamObject;
 import com.pedro.encoder.utils.gl.ImageStreamObject;
+import com.pedro.encoder.utils.gl.TextStreamObject;
 import com.pedro.encoder.utils.gl.TranslateTo;
 import com.pedro.encoder.video.FormatVideoEncoder;
 import com.pedro.encoder.video.GetH264Data;
@@ -31,7 +31,6 @@ import com.pedro.encoder.video.VideoEncoder;
 import com.pedro.rtplibrary.view.OpenGlView;
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -256,22 +255,12 @@ public abstract class Camera1Base
     streaming = false;
   }
 
-  public List<String> getResolutionsBack() {
-    List<Camera.Size> list = cameraManager.getPreviewSizeBack();
-    List<String> resolutions = new ArrayList<>();
-    for (Camera.Size size : list) {
-      resolutions.add(size.width + "X" + size.height);
-    }
-    return resolutions;
+  public List<Camera.Size> getResolutionsBack() {
+    return cameraManager.getPreviewSizeBack();
   }
 
-  public List<String> getResolutionsFront() {
-    List<Camera.Size> list = cameraManager.getPreviewSizeFront();
-    List<String> resolutions = new ArrayList<>();
-    for (Camera.Size size : list) {
-      resolutions.add(size.width + "X" + size.height);
-    }
-    return resolutions;
+  public List<Camera.Size> getResolutionsFront() {
+    return cameraManager.getPreviewSizeFront();
   }
 
   public void disableAudio() {

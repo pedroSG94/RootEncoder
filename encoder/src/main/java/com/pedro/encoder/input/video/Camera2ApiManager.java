@@ -9,16 +9,17 @@ import android.hardware.camera2.CameraDevice;
 import android.hardware.camera2.CameraManager;
 import android.hardware.camera2.CameraMetadata;
 import android.hardware.camera2.CaptureRequest;
+import android.hardware.camera2.params.StreamConfigurationMap;
 import android.os.Build;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.support.annotation.NonNull;
 import android.support.annotation.RequiresApi;
 import android.util.Log;
+import android.util.Size;
 import android.view.Surface;
 import android.view.SurfaceView;
 import android.view.TextureView;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -179,6 +180,38 @@ public class Camera2ApiManager extends CameraDevice.StateCallback {
       openCameraBack();
     } else {
       openCameraId(cameraId);
+    }
+  }
+
+  public Size[] getCameraResolutionsBack() {
+    try {
+      CameraCharacteristics cameraCharacteristics = cameraManager.getCameraCharacteristics("0");
+      if (cameraCharacteristics.get(CameraCharacteristics.LENS_FACING)
+          != CameraCharacteristics.LENS_FACING_BACK) {
+        cameraCharacteristics = cameraManager.getCameraCharacteristics("1");
+      }
+      StreamConfigurationMap streamConfigurationMap =
+          cameraCharacteristics.get(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP);
+      return streamConfigurationMap.getOutputSizes(SurfaceTexture.class);
+    } catch (CameraAccessException e) {
+      Log.e(TAG, e.getMessage());
+      return new Size[0];
+    }
+  }
+
+  public Size[] getCameraResolutionsFront() {
+    try {
+      CameraCharacteristics cameraCharacteristics = cameraManager.getCameraCharacteristics("0");
+      if (cameraCharacteristics.get(CameraCharacteristics.LENS_FACING)
+          != CameraCharacteristics.LENS_FACING_FRONT) {
+        cameraCharacteristics = cameraManager.getCameraCharacteristics("1");
+      }
+      StreamConfigurationMap streamConfigurationMap =
+          cameraCharacteristics.get(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP);
+      return streamConfigurationMap.getOutputSizes(SurfaceTexture.class);
+    } catch (CameraAccessException e) {
+      Log.e(TAG, e.getMessage());
+      return new Size[0];
     }
   }
 

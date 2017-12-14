@@ -10,10 +10,8 @@ import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
-
-import com.pedro.rtplibrary.rtmp.RtmpCamera2;
 import com.pedro.rtmpstreamer.R;
-
+import com.pedro.rtplibrary.rtmp.RtmpCamera2;
 import net.ossrs.rtmp.ConnectCheckerRtmp;
 
 @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
