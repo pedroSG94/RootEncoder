@@ -129,8 +129,11 @@ public abstract class Camera2Base
       stopPreview();
       onPreview = true;
     }
-    boolean result = videoEncoder.prepareVideoEncoder(640, 480, 30, 1200 * 1024, 0, true,
-        FormatVideoEncoder.SURFACE);
+    boolean isHardwareRotation = true;
+    if (openGlView != null) isHardwareRotation = false;
+    boolean result =
+        videoEncoder.prepareVideoEncoder(640, 480, 30, 1200 * 1024, 90, isHardwareRotation,
+            FormatVideoEncoder.SURFACE);
     prepareCameraManager();
     return result;
   }
@@ -212,7 +215,11 @@ public abstract class Camera2Base
 
   public void startStream(String url) {
     if (openGlView != null && videoEnabled) {
-      openGlView.setEncoderSize(videoEncoder.getWidth(), videoEncoder.getHeight());
+      if (videoEncoder.getRotation() == 90 || videoEncoder.getRotation() == 270) {
+        openGlView.setEncoderSize(videoEncoder.getHeight(), videoEncoder.getWidth());
+      } else {
+        openGlView.setEncoderSize(videoEncoder.getWidth(), videoEncoder.getHeight());
+      }
       openGlView.startGLThread();
       openGlView.addMediaCodecSurface(videoEncoder.getInputSurface());
       cameraManager.prepareCamera(openGlView.getSurface(), true);
@@ -319,9 +326,8 @@ public abstract class Camera2Base
       throw new RuntimeException("You must use OpenGlView in the constructor to set an alpha");
     }
   }
-  
+
   /**
-   *
    * @param sizeX of the stream object in percent: 100 full screen to 1
    * @param sizeY of the stream object in percent: 100 full screen to 1
    * @throws RuntimeException
@@ -348,7 +354,6 @@ public abstract class Camera2Base
   }
 
   /**
-   *
    * @param translateTo pre determinate positions
    * @throws RuntimeException
    */
