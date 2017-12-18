@@ -38,6 +38,10 @@ public class RtmpCamera1 extends Camera1Base {
     srsFlvMuxer = new SrsFlvMuxer(connectChecker);
   }
 
+  public void setProfileIop(byte profileIop) {
+    srsFlvMuxer.setProfileIop(profileIop);
+  }
+
   @Override
   public void setAuthorization(String user, String password) {
     srsFlvMuxer.setAuthorization(user, password);
