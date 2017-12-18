@@ -62,6 +62,8 @@ public class SrsFlvMuxer {
   private int sampleRate = 44100;
   private boolean isPpsSpsSend = false;
   private byte profileIop = 0x00;
+  public static final byte PROFILE_IOP_BASELINE = 0x00;
+  public static final byte PROFILE_IOP_CONSTRAINED = 0xC0;
 
   /**
    * constructor.
