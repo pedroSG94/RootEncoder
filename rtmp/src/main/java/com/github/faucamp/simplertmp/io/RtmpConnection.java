@@ -644,13 +644,14 @@ public class RtmpConnection implements RtmpPublisher {
               connectingLock.notifyAll();
             }
           } else {
+            connectCheckerRtmp.onConnectionFailedRtmp(description);
             connected = false;
             synchronized (connectingLock) {
               connectingLock.notifyAll();
             }
           }
         } catch (Exception e) {
-          e.printStackTrace();
+          connectCheckerRtmp.onConnectionFailedRtmp(e.getMessage());
           connected = false;
           synchronized (connectingLock) {
             connectingLock.notifyAll();

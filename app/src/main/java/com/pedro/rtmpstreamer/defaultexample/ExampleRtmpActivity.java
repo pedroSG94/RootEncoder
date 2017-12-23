@@ -12,6 +12,11 @@ import com.pedro.rtmpstreamer.R;
 import com.pedro.rtplibrary.rtmp.RtmpCamera1;
 import net.ossrs.rtmp.ConnectCheckerRtmp;
 
+/**
+ * More documentation see:
+ * {@link com.pedro.rtplibrary.base.Camera1Base}
+ * {@link com.pedro.rtplibrary.rtmp.RtmpCamera1}
+ */
 public class ExampleRtmpActivity extends AppCompatActivity
     implements ConnectCheckerRtmp, View.OnClickListener {
 

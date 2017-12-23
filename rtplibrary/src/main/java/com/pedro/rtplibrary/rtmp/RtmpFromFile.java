@@ -1,9 +1,5 @@
 package com.pedro.rtplibrary.rtmp;
 
-/**
- * Created by pedro on 26/06/17.
- */
-
 import android.media.MediaCodec;
 import android.os.Build;
 import android.support.annotation.RequiresApi;
@@ -17,9 +13,10 @@ import net.ossrs.rtmp.SrsFlvMuxer;
 import java.nio.ByteBuffer;
 
 /**
+ * More documentation see:
+ * {@link com.pedro.rtplibrary.base.FromFileBase}
+ *
  * Created by pedro on 26/06/17.
- * This builder is under test, rotation only work with hardware because use encoding surface mode.
- * Only video is working, audio will be added when it work
  */
 @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
 public class RtmpFromFile extends FromFileBase {
@@ -32,6 +29,11 @@ public class RtmpFromFile extends FromFileBase {
     srsFlvMuxer = new SrsFlvMuxer(connectChecker);
   }
 
+  /**
+   * H264 profile.
+   *
+   * @param profileIop Could be ProfileIop.BASELINE or ProfileIop.CONSTRAINED
+   */
   public void setProfileIop(byte profileIop) {
     srsFlvMuxer.setProfileIop(profileIop);
   }

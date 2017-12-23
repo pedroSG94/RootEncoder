@@ -37,6 +37,11 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+/**
+ * More documentation see:
+ * {@link com.pedro.rtplibrary.base.Camera1Base}
+ * {@link com.pedro.rtplibrary.rtsp.RtspCamera1}
+ */
 public class RtspActivity extends AppCompatActivity
     implements Button.OnClickListener, ConnectCheckerRtsp, SurfaceHolder.Callback {
 

@@ -19,6 +19,11 @@ import com.pedro.rtsp.utils.ConnectCheckerRtsp;
 
 import java.io.IOException;
 
+/**
+ * More documentation see:
+ * {@link com.pedro.rtplibrary.base.FromFileBase}
+ * {@link com.pedro.rtplibrary.rtsp.RtspFromFile}
+ */
 @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
 public class RtspFromFileActivity extends AppCompatActivity
     implements ConnectCheckerRtsp, View.OnClickListener, VideoDecoderInterface {

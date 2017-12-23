@@ -13,6 +13,11 @@ import com.pedro.rtplibrary.rtsp.RtspCamera1;
 import com.pedro.rtmpstreamer.R;
 import com.pedro.rtsp.utils.ConnectCheckerRtsp;
 
+/**
+ * More documentation see:
+ * {@link com.pedro.rtplibrary.base.Camera1Base}
+ * {@link com.pedro.rtplibrary.rtsp.RtspCamera1}
+ */
 public class ExampleRtspActivity extends AppCompatActivity
     implements ConnectCheckerRtsp, View.OnClickListener {
 

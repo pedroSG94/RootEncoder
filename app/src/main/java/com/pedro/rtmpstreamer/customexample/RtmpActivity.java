@@ -36,6 +36,11 @@ import java.util.Date;
 import java.util.List;
 import net.ossrs.rtmp.ConnectCheckerRtmp;
 
+/**
+ * More documentation see:
+ * {@link com.pedro.rtplibrary.base.Camera1Base}
+ * {@link com.pedro.rtplibrary.rtmp.RtmpCamera1}
+ */
 public class RtmpActivity extends AppCompatActivity
     implements Button.OnClickListener, ConnectCheckerRtmp, SurfaceHolder.Callback {
 

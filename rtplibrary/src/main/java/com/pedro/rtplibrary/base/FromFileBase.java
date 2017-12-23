@@ -15,6 +15,12 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 
 /**
+ * Wrapper to stream a MP4 file with H264 video codec. Only Video is streamed, no Audio.
+ * Can be executed in background.
+ *
+ * API requirements:
+ * API 18+.
+ *
  * Created by pedro on 7/07/17.
  */
 
@@ -42,8 +48,21 @@ public abstract class FromFileBase implements GetCameraData, GetH264Data {
     streaming = false;
   }
 
+  /**
+   * Basic auth developed to work with Wowza. No tested with other server
+   *
+   * @param user auth.
+   * @param password auth.
+   */
   public abstract void setAuthorization(String user, String password);
 
+  /**
+   * @param filePath to video MP4 file.
+   * @param bitRate H264 in kb.
+   * @return true if success, false if you get a error (Normally because the encoder selected
+   * doesn't support any configuration seated or your device hasn't a H264 encoder).
+   * @throws IOException Normally file not found.
+   */
   public boolean prepareVideo(String filePath, int bitRate) throws IOException {
     mediaPlayer = new MediaPlayer();
     mediaPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
@@ -64,7 +83,12 @@ public abstract class FromFileBase implements GetCameraData, GetH264Data {
     return result;
   }
 
-  /*Need be called while stream*/
+  /**
+   * Start record a MP4 video. Need be called while stream.
+   *
+   * @param path where file will be saved.
+   * @throws IOException If you init it before start stream.
+   */
   public void startRecord(String path) throws IOException {
     if (streaming) {
       mediaMuxer = new MediaMuxer(path, MediaMuxer.OutputFormat.MUXER_OUTPUT_MPEG_4);
@@ -76,6 +100,9 @@ public abstract class FromFileBase implements GetCameraData, GetH264Data {
     }
   }
 
+  /**
+   * Stop record MP4 video started with @startRecord. If you don't call it file will be unreadable.
+   */
   public void stopRecord() {
     recording = false;
     if (mediaMuxer != null) {
@@ -88,6 +115,17 @@ public abstract class FromFileBase implements GetCameraData, GetH264Data {
 
   protected abstract void startStreamRtp(String url);
 
+  /**
+   * Need be called after @prepareVideo.
+   *
+   * @param url of the stream like:
+   * protocol://ip:port/application/streamName
+   *
+   * RTSP: rtsp://192.168.1.1:1935/live/pedroSG94
+   * RTSPS: rtsps://192.168.1.1:1935/live/pedroSG94
+   * RTMP: rtmp://192.168.1.1:1935/live/pedroSG94
+   * RTMPS: rtmps://192.168.1.1:1935/live/pedroSG94
+   */
   public void startStream(String url) {
     startStreamRtp(url);
     videoEncoder.start();
@@ -98,6 +136,9 @@ public abstract class FromFileBase implements GetCameraData, GetH264Data {
 
   protected abstract void stopStreamRtp();
 
+  /**
+   * Stop stream started with @startStream.
+   */
   public void stopStream() {
     stopStreamRtp();
     if (mediaPlayer != null) {
@@ -110,34 +151,69 @@ public abstract class FromFileBase implements GetCameraData, GetH264Data {
     streaming = false;
   }
 
+  /**
+   * If you want reproduce video in loop.
+   *
+   * @param loopMode true in loop, false stop stream when video finish.
+   */
   public void setLoopMode(boolean loopMode) {
     //videoDecoder.setLoopMode(loopMode);
     mediaPlayer.setLooping(loopMode);
   }
 
+  /**
+   * Disable send camera frames and send a black image with low bitrate(to reduce bandwith used)
+   * instance it.
+   */
   public void disableVideo() {
     videoEncoder.startSendBlackImage();
     videoEnabled = false;
   }
 
+  /**
+   * Enable send MP4 file frames.
+   */
   public void enableVideo() {
     videoEncoder.stopSendBlackImage();
     videoEnabled = true;
   }
 
+  /**
+   * Get video camera state
+   *
+   * @return true if disabled, false if enabled
+   */
   public boolean isVideoEnabled() {
     return videoEnabled;
   }
 
-  /** need min API 19 */
+  /**
+   * Se video bitrate of H264 in kb while stream.
+   *
+   * @param bitrate H264 in kb.
+   */
   public void setVideoBitrateOnFly(int bitrate) {
     if (Build.VERSION.SDK_INT >= 19) {
       videoEncoder.setVideoBitrateOnFly(bitrate);
     }
   }
 
+  /**
+   * Get stream state.
+   *
+   * @return true if streaming, false if not streaming.
+   */
   public boolean isStreaming() {
     return streaming;
+  }
+
+  /**
+   * Get record state.
+   *
+   * @return true if recording, false if not recoding.
+   */
+  public boolean isRecording() {
+    return recording;
   }
 
   protected abstract void onSPSandPPSRtp(ByteBuffer sps, ByteBuffer pps);

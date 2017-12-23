@@ -16,6 +16,11 @@ import com.pedro.rtplibrary.rtsp.RtspDisplay;
 import com.pedro.rtmpstreamer.R;
 import com.pedro.rtsp.utils.ConnectCheckerRtsp;
 
+/**
+ * More documentation see:
+ * {@link com.pedro.rtplibrary.base.DisplayBase}
+ * {@link com.pedro.rtplibrary.rtsp.RtspDisplay}
+ */
 @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
 public class DisplayRtspActivity extends AppCompatActivity
     implements ConnectCheckerRtsp, View.OnClickListener {

@@ -11,9 +11,10 @@ import com.pedro.rtsp.utils.ConnectCheckerRtsp;
 import java.nio.ByteBuffer;
 
 /**
+ * More documentation see:
+ * {@link com.pedro.rtplibrary.base.FromFileBase}
+ *
  * Created by pedro on 4/06/17.
- * This builder is under test, rotation only work with hardware because use encoding surface mode.
- * Only video is working, audio will be added when it work
  */
 @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
 public class RtspFromFile extends FromFileBase {
@@ -26,6 +27,11 @@ public class RtspFromFile extends FromFileBase {
     rtspClient = new RtspClient(connectCheckerRtsp);
   }
 
+  /**
+   * Internet protocol used.
+   *
+   * @param protocol Could be Protocol.TCP or Protocol.UDP.
+   */
   public void setProtocol(Protocol protocol) {
     rtspClient.setProtocol(protocol);
   }

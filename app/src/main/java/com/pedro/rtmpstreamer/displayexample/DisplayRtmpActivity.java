@@ -17,6 +17,11 @@ import com.pedro.rtmpstreamer.R;
 
 import net.ossrs.rtmp.ConnectCheckerRtmp;
 
+/**
+ * More documentation see:
+ * {@link com.pedro.rtplibrary.base.DisplayBase}
+ * {@link com.pedro.rtplibrary.rtmp.RtmpDisplay}
+ */
 @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
 public class DisplayRtmpActivity extends AppCompatActivity
     implements ConnectCheckerRtmp, View.OnClickListener {

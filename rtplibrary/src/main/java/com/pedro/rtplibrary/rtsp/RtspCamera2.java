@@ -16,8 +16,10 @@ import com.pedro.rtsp.utils.ConnectCheckerRtsp;
 import java.nio.ByteBuffer;
 
 /**
+ * More documentation see:
+ * {@link com.pedro.rtplibrary.base.Camera2Base}
+ *
  * Created by pedro on 4/06/17.
- * This builder is under test, rotation only work with hardware because use encoding surface mode.
  */
 @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
 public class RtspCamera2 extends Camera2Base {
@@ -44,6 +46,11 @@ public class RtspCamera2 extends Camera2Base {
     rtspClient = new RtspClient(connectCheckerRtsp);
   }
 
+  /**
+   * Internet protocol used.
+   *
+   * @param protocol Could be Protocol.TCP or Protocol.UDP.
+   */
   public void setProtocol(Protocol protocol) {
     rtspClient.setProtocol(protocol);
   }

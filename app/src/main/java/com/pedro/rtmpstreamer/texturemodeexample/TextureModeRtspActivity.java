@@ -16,6 +16,11 @@ import com.pedro.rtplibrary.rtsp.RtspCamera2;
 import com.pedro.rtplibrary.view.AutoFitTextureView;
 import com.pedro.rtsp.utils.ConnectCheckerRtsp;
 
+/**
+ * More documentation see:
+ * {@link com.pedro.rtplibrary.base.Camera2Base}
+ * {@link com.pedro.rtplibrary.rtsp.RtspCamera2}
+ */
 @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
 public class TextureModeRtspActivity extends AppCompatActivity
     implements ConnectCheckerRtsp, View.OnClickListener {

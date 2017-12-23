@@ -11,6 +11,9 @@ import com.pedro.rtsp.utils.ConnectCheckerRtsp;
 import java.nio.ByteBuffer;
 
 /**
+ * More documentation see:
+ * {@link com.pedro.rtplibrary.base.DisplayBase}
+ *
  * Created by pedro on 9/08/17.
  */
 @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
@@ -23,6 +26,11 @@ public class RtspDisplay extends DisplayBase {
     rtspClient = new RtspClient(connectCheckerRtsp);
   }
 
+  /**
+   * Internet protocol used.
+   *
+   * @param protocol Could be Protocol.TCP or Protocol.UDP.
+   */
   public void setProtocol(Protocol protocol) {
     rtspClient.setProtocol(protocol);
   }

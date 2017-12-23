@@ -16,6 +16,11 @@ import com.pedro.rtplibrary.rtmp.RtmpCamera2;
 import com.pedro.rtplibrary.view.AutoFitTextureView;
 import net.ossrs.rtmp.ConnectCheckerRtmp;
 
+/**
+ * More documentation see:
+ * {@link com.pedro.rtplibrary.base.Camera2Base}
+ * {@link com.pedro.rtplibrary.rtmp.RtmpCamera2}
+ */
 @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
 public class TextureModeRtmpActivity extends AppCompatActivity
     implements ConnectCheckerRtmp, View.OnClickListener {

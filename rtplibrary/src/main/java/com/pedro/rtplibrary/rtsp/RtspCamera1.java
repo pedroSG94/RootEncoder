@@ -13,6 +13,9 @@ import com.pedro.rtsp.utils.ConnectCheckerRtsp;
 import java.nio.ByteBuffer;
 
 /**
+ * More documentation see:
+ * {@link com.pedro.rtplibrary.base.Camera1Base}
+ *
  * Created by pedro on 10/02/17.
  */
 
@@ -36,6 +39,11 @@ public class RtspCamera1 extends Camera1Base {
     rtspClient = new RtspClient(connectCheckerRtsp);
   }
 
+  /**
+   * Internet protocol used.
+   *
+   * @param protocol Could be Protocol.TCP or Protocol.UDP.
+   */
   public void setProtocol(Protocol protocol) {
     rtspClient.setProtocol(protocol);
   }

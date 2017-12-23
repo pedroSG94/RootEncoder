@@ -20,6 +20,11 @@ import net.ossrs.rtmp.ConnectCheckerRtmp;
 
 import java.io.IOException;
 
+/**
+ * More documentation see:
+ * {@link com.pedro.rtplibrary.base.FromFileBase}
+ * {@link com.pedro.rtplibrary.rtmp.RtmpFromFile}
+ */
 @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
 public class RtmpFromFileActivity extends AppCompatActivity
     implements ConnectCheckerRtmp, View.OnClickListener, VideoDecoderInterface {

@@ -22,6 +22,11 @@ import com.pedro.rtplibrary.view.OpenGlView;
 import java.io.IOException;
 import net.ossrs.rtmp.ConnectCheckerRtmp;
 
+/**
+ * More documentation see:
+ * {@link com.pedro.rtplibrary.base.Camera1Base}
+ * {@link com.pedro.rtplibrary.rtmp.RtmpCamera1}
+ */
 @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
 public class OpenGlRtmpActivity extends AppCompatActivity
     implements ConnectCheckerRtmp, View.OnClickListener {
