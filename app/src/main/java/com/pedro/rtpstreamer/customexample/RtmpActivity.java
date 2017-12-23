@@ -1,4 +1,4 @@
-package com.pedro.rtmpstreamer.customexample;
+package com.pedro.rtpstreamer.customexample;
 
 import android.hardware.Camera;
 import android.os.Build;
@@ -26,7 +26,7 @@ import android.widget.Spinner;
 import android.widget.Toast;
 import com.pedro.encoder.input.video.CameraOpenException;
 import com.pedro.encoder.input.video.EffectManager;
-import com.pedro.rtmpstreamer.R;
+import com.pedro.rtpstreamer.R;
 import com.pedro.rtplibrary.rtmp.RtmpCamera1;
 import java.io.File;
 import java.io.IOException;

@@ -3,5 +3,6 @@
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:duration="@android:integer/config_longAnimTime"
     android:fromXDelta="0%p"
-    android:toXDelta="-100%p">
+    android:toXDelta="-100%p"
+    >
 </translate>

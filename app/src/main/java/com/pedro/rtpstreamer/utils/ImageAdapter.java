@@ -1,4 +1,4 @@
-package com.pedro.rtmpstreamer.utils;
+package com.pedro.rtpstreamer.utils;
 
 import android.content.res.Resources;
 import android.support.v4.content.res.ResourcesCompat;
@@ -9,7 +9,7 @@ import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.GridView;
 import android.widget.TextView;
-import com.pedro.rtmpstreamer.R;
+import com.pedro.rtpstreamer.R;
 import java.util.List;
 
 import static android.view.ViewGroup.LayoutParams.MATCH_PARENT;

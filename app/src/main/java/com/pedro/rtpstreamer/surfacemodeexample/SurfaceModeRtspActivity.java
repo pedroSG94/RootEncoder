@@ -1,4 +1,4 @@
-package com.pedro.rtmpstreamer.surfacemodeexample;
+package com.pedro.rtpstreamer.surfacemodeexample;
 
 import android.os.Build;
 import android.os.Bundle;
@@ -12,7 +12,7 @@ import android.widget.EditText;
 import android.widget.Toast;
 
 import com.pedro.rtplibrary.rtsp.RtspCamera2;
-import com.pedro.rtmpstreamer.R;
+import com.pedro.rtpstreamer.R;
 import com.pedro.rtsp.utils.ConnectCheckerRtsp;
 
 /**

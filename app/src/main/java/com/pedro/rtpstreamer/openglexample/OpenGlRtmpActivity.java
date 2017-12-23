@@ -1,4 +1,4 @@
-package com.pedro.rtmpstreamer.openglexample;
+package com.pedro.rtpstreamer.openglexample;
 
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
@@ -16,7 +16,7 @@ import android.widget.Toast;
 import com.pedro.encoder.utils.gl.GifStreamObject;
 import com.pedro.encoder.utils.gl.ImageStreamObject;
 import com.pedro.encoder.utils.gl.TextStreamObject;
-import com.pedro.rtmpstreamer.R;
+import com.pedro.rtpstreamer.R;
 import com.pedro.rtplibrary.rtmp.RtmpCamera1;
 import com.pedro.rtplibrary.view.OpenGlView;
 import java.io.IOException;

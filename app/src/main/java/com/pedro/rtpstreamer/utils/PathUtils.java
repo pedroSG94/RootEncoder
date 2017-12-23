@@ -1,4 +1,4 @@
-package com.pedro.rtmpstreamer.utils;
+package com.pedro.rtpstreamer.utils;
 
 import android.content.ContentUris;
 import android.content.Context;

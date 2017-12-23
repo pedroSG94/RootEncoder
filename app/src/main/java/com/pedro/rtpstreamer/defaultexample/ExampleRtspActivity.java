@@ -1,45 +1,41 @@
-package com.pedro.rtmpstreamer.displayexample;
+package com.pedro.rtpstreamer.defaultexample;
 
-import android.app.Activity;
-import android.content.Intent;
-import android.os.Build;
 import android.os.Bundle;
-import android.support.annotation.RequiresApi;
 import android.support.v7.app.AppCompatActivity;
+import android.view.SurfaceView;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 
-import com.pedro.rtplibrary.rtsp.RtspDisplay;
-import com.pedro.rtmpstreamer.R;
+import com.pedro.rtplibrary.rtsp.RtspCamera1;
+import com.pedro.rtpstreamer.R;
 import com.pedro.rtsp.utils.ConnectCheckerRtsp;
 
 /**
  * More documentation see:
- * {@link com.pedro.rtplibrary.base.DisplayBase}
- * {@link com.pedro.rtplibrary.rtsp.RtspDisplay}
+ * {@link com.pedro.rtplibrary.base.Camera1Base}
+ * {@link com.pedro.rtplibrary.rtsp.RtspCamera1}
  */
-@RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
-public class DisplayRtspActivity extends AppCompatActivity
+public class ExampleRtspActivity extends AppCompatActivity
     implements ConnectCheckerRtsp, View.OnClickListener {
 
-  private RtspDisplay rtspDisplay;
+  private RtspCamera1 rtspCamera1;
   private Button button;
   private EditText etUrl;
-  private final int REQUEST_CODE = 179;
 
   @Override
   protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
     getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
     setContentView(R.layout.activity_example);
+    SurfaceView surfaceView = findViewById(R.id.surfaceView);
     button = findViewById(R.id.b_start_stop);
     button.setOnClickListener(this);
     etUrl = findViewById(R.id.et_rtp_url);
     etUrl.setHint(R.string.hint_rtsp);
-    rtspDisplay = new RtspDisplay(this, this);
+    rtspCamera1 = new RtspCamera1(surfaceView, this);
   }
 
   @Override
@@ -47,7 +43,7 @@ public class DisplayRtspActivity extends AppCompatActivity
     runOnUiThread(new Runnable() {
       @Override
       public void run() {
-        Toast.makeText(DisplayRtspActivity.this, "Connection success", Toast.LENGTH_SHORT).show();
+        Toast.makeText(ExampleRtspActivity.this, "Connection success", Toast.LENGTH_SHORT).show();
       }
     });
   }
@@ -57,9 +53,10 @@ public class DisplayRtspActivity extends AppCompatActivity
     runOnUiThread(new Runnable() {
       @Override
       public void run() {
-        Toast.makeText(DisplayRtspActivity.this, "Connection failed. " + reason, Toast.LENGTH_SHORT)
+        Toast.makeText(ExampleRtspActivity.this, "Connection failed. " + reason, Toast.LENGTH_SHORT)
             .show();
-        rtspDisplay.stopStream();
+        rtspCamera1.stopStream();
+        rtspCamera1.stopPreview();
         button.setText(R.string.start_button);
       }
     });
@@ -70,7 +67,7 @@ public class DisplayRtspActivity extends AppCompatActivity
     runOnUiThread(new Runnable() {
       @Override
       public void run() {
-        Toast.makeText(DisplayRtspActivity.this, "Disconnected", Toast.LENGTH_SHORT).show();
+        Toast.makeText(ExampleRtspActivity.this, "Disconnected", Toast.LENGTH_SHORT).show();
       }
     });
   }
@@ -80,7 +77,9 @@ public class DisplayRtspActivity extends AppCompatActivity
     runOnUiThread(new Runnable() {
       @Override
       public void run() {
-        Toast.makeText(DisplayRtspActivity.this, "Auth error", Toast.LENGTH_SHORT).show();
+        Toast.makeText(ExampleRtspActivity.this, "Auth error", Toast.LENGTH_SHORT).show();
+        rtspCamera1.stopStream();
+        button.setText(R.string.start_button);
       }
     });
   }
@@ -90,33 +89,34 @@ public class DisplayRtspActivity extends AppCompatActivity
     runOnUiThread(new Runnable() {
       @Override
       public void run() {
-        Toast.makeText(DisplayRtspActivity.this, "Auth success", Toast.LENGTH_SHORT).show();
+        Toast.makeText(ExampleRtspActivity.this, "Auth success", Toast.LENGTH_SHORT).show();
       }
     });
   }
 
   @Override
-  protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-    if (requestCode == REQUEST_CODE && resultCode == Activity.RESULT_OK) {
-      if (rtspDisplay.prepareAudio() && rtspDisplay.prepareVideo()) {
-        rtspDisplay.startStream(etUrl.getText().toString(), resultCode, data);
+  public void onClick(View view) {
+    if (!rtspCamera1.isStreaming()) {
+      if (rtspCamera1.prepareAudio() && rtspCamera1.prepareVideo()) {
+        button.setText(R.string.stop_button);
+        rtspCamera1.startStream(etUrl.getText().toString());
       } else {
         Toast.makeText(this, "Error preparing stream, This device cant do it", Toast.LENGTH_SHORT)
             .show();
       }
     } else {
-      Toast.makeText(this, "No permissions available", Toast.LENGTH_SHORT).show();
+      button.setText(R.string.start_button);
+      rtspCamera1.stopStream();
+      rtspCamera1.stopPreview();
     }
   }
 
   @Override
-  public void onClick(View view) {
-    if (!rtspDisplay.isStreaming()) {
-      button.setText(R.string.stop_button);
-      startActivityForResult(rtspDisplay.sendIntent(), REQUEST_CODE);
-    } else {
-      button.setText(R.string.start_button);
-      rtspDisplay.stopStream();
+  protected void onPause() {
+    super.onPause();
+    if (rtspCamera1.isStreaming()) {
+      rtspCamera1.stopStream();
+      rtspCamera1.stopPreview();
     }
   }
 }

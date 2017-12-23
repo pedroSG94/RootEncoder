@@ -1,4 +1,4 @@
-package com.pedro.rtmpstreamer.texturemodeexample;
+package com.pedro.rtpstreamer.texturemodeexample;
 
 import android.graphics.SurfaceTexture;
 import android.os.Build;
@@ -11,21 +11,21 @@ import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
-import com.pedro.rtmpstreamer.R;
-import com.pedro.rtplibrary.rtsp.RtspCamera2;
+import com.pedro.rtpstreamer.R;
+import com.pedro.rtplibrary.rtmp.RtmpCamera2;
 import com.pedro.rtplibrary.view.AutoFitTextureView;
-import com.pedro.rtsp.utils.ConnectCheckerRtsp;
+import net.ossrs.rtmp.ConnectCheckerRtmp;
 
 /**
  * More documentation see:
  * {@link com.pedro.rtplibrary.base.Camera2Base}
- * {@link com.pedro.rtplibrary.rtsp.RtspCamera2}
+ * {@link com.pedro.rtplibrary.rtmp.RtmpCamera2}
  */
 @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
-public class TextureModeRtspActivity extends AppCompatActivity
-    implements ConnectCheckerRtsp, View.OnClickListener {
+public class TextureModeRtmpActivity extends AppCompatActivity
+    implements ConnectCheckerRtmp, View.OnClickListener {
 
-  private RtspCamera2 rtspCamera2;
+  private RtmpCamera2 rtmpCamera2;
   private AutoFitTextureView textureView;
   private Button button;
   private EditText etUrl;
@@ -39,87 +39,87 @@ public class TextureModeRtspActivity extends AppCompatActivity
     button = findViewById(R.id.b_start_stop);
     button.setOnClickListener(this);
     etUrl = findViewById(R.id.et_rtp_url);
-    etUrl.setHint(R.string.hint_rtsp);
-    rtspCamera2 = new RtspCamera2(textureView, this);
+    etUrl.setHint(R.string.hint_rtmp);
+    rtmpCamera2 = new RtmpCamera2(textureView, this);
     textureView.setSurfaceTextureListener(surfaceTextureListener);
   }
 
   @Override
-  public void onConnectionSuccessRtsp() {
+  public void onConnectionSuccessRtmp() {
     runOnUiThread(new Runnable() {
       @Override
       public void run() {
-        Toast.makeText(TextureModeRtspActivity.this, "Connection success", Toast.LENGTH_SHORT)
+        Toast.makeText(TextureModeRtmpActivity.this, "Connection success", Toast.LENGTH_SHORT)
             .show();
       }
     });
   }
 
   @Override
-  public void onConnectionFailedRtsp(final String reason) {
+  public void onConnectionFailedRtmp(final String reason) {
     runOnUiThread(new Runnable() {
       @Override
       public void run() {
-        Toast.makeText(TextureModeRtspActivity.this, "Connection failed. " + reason,
+        Toast.makeText(TextureModeRtmpActivity.this, "Connection failed. " + reason,
             Toast.LENGTH_SHORT).show();
-        rtspCamera2.stopStream();
+        rtmpCamera2.stopStream();
         button.setText(R.string.start_button);
       }
     });
   }
 
   @Override
-  public void onDisconnectRtsp() {
+  public void onDisconnectRtmp() {
     runOnUiThread(new Runnable() {
       @Override
       public void run() {
-        Toast.makeText(TextureModeRtspActivity.this, "Disconnected", Toast.LENGTH_SHORT).show();
+        Toast.makeText(TextureModeRtmpActivity.this, "Disconnected", Toast.LENGTH_SHORT).show();
       }
     });
   }
 
   @Override
-  public void onAuthErrorRtsp() {
+  public void onAuthErrorRtmp() {
     runOnUiThread(new Runnable() {
       @Override
       public void run() {
-        Toast.makeText(TextureModeRtspActivity.this, "Auth error", Toast.LENGTH_SHORT).show();
+        Toast.makeText(TextureModeRtmpActivity.this, "Auth error", Toast.LENGTH_SHORT).show();
       }
     });
   }
 
   @Override
-  public void onAuthSuccessRtsp() {
+  public void onAuthSuccessRtmp() {
     runOnUiThread(new Runnable() {
       @Override
       public void run() {
-        Toast.makeText(TextureModeRtspActivity.this, "Auth success", Toast.LENGTH_SHORT).show();
+        Toast.makeText(TextureModeRtmpActivity.this, "Auth success", Toast.LENGTH_SHORT).show();
       }
     });
   }
 
   @Override
   public void onClick(View view) {
-    if (!rtspCamera2.isStreaming()) {
-      if (rtspCamera2.prepareAudio() && rtspCamera2.prepareVideo()) {
+    if (!rtmpCamera2.isStreaming()) {
+      if (rtmpCamera2.prepareAudio() && rtmpCamera2.prepareVideo()) {
         button.setText(R.string.stop_button);
-        rtspCamera2.startStream(etUrl.getText().toString());
+        rtmpCamera2.startStream(etUrl.getText().toString());
       } else {
         Toast.makeText(this, "Error preparing stream, This device cant do it", Toast.LENGTH_SHORT)
             .show();
       }
     } else {
       button.setText(R.string.start_button);
-      rtspCamera2.stopStream();
+      rtmpCamera2.stopStream();
     }
   }
 
   @Override
   protected void onPause() {
     super.onPause();
-    if (rtspCamera2.isStreaming()) {
-      rtspCamera2.stopStream();
-      rtspCamera2.stopPreview();
+    if (rtmpCamera2.isStreaming()) {
+      rtmpCamera2.stopStream();
+      rtmpCamera2.stopPreview();
     }
   }
 
@@ -133,11 +133,11 @@ public class TextureModeRtspActivity extends AppCompatActivity
         @Override
         public void onSurfaceTextureAvailable(SurfaceTexture surface, int width, int height) {
           textureView.setAspectRatio(480, 640);
-          rtspCamera2.startPreview();
+          rtmpCamera2.startPreview();
           // optionally:
-          // rtspCamera2.startPreview(CameraCharacteristics.LENS_FACING_BACK);
+          // rtmpCamera2.startPreview(CameraCharacteristics.LENS_FACING_BACK);
           // or
-          //rtspCamera2.startPreview(CameraCharacteristics.LENS_FACING_FRONT);
+          // rtmpCamera2.startPreview(CameraCharacteristics.LENS_FACING_FRONT);
         }
 
         @Override
@@ -147,7 +147,7 @@ public class TextureModeRtspActivity extends AppCompatActivity
 
         @Override
         public boolean onSurfaceTextureDestroyed(SurfaceTexture surface) {
-          rtspCamera2.stopPreview();
+          rtmpCamera2.stopPreview();
           return false;
         }
 

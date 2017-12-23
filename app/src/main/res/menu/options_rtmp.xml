@@ -61,7 +61,7 @@
           android:title="@string/echo_canceler"
           app:actionViewClass="android.widget.CheckBox"
           android:id="@+id/cb_echo_canceler"
-        />
+          />
       <item
           android:title="@string/noise_suppressor"
           app:actionViewClass="android.widget.CheckBox"

@@ -1,4 +1,4 @@
-package com.pedro.rtmpstreamer.filestreamexample;
+package com.pedro.rtpstreamer.filestreamexample;
 
 import android.content.Intent;
 import android.os.Build;
@@ -11,10 +11,10 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.pedro.rtmpstreamer.utils.PathUtils;
+import com.pedro.rtpstreamer.utils.PathUtils;
 import com.pedro.rtplibrary.rtmp.RtmpFromFile;
 import com.pedro.encoder.input.decoder.VideoDecoderInterface;
-import com.pedro.rtmpstreamer.R;
+import com.pedro.rtpstreamer.R;
 
 import net.ossrs.rtmp.ConnectCheckerRtmp;
 
