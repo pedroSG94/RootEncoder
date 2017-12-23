@@ -11,7 +11,6 @@ import com.pedro.rtsp.utils.CreateSSLSocket;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
@@ -173,6 +172,9 @@ public class RtspClient {
             reader = new BufferedReader(new InputStreamReader(connectionSocket.getInputStream()));
             outputStream = connectionSocket.getOutputStream();
             writer = new BufferedWriter(new OutputStreamWriter(outputStream));
+            writer.write(sendOptions());
+            writer.flush();
+            getResponse(false, false);
             writer.write(sendAnnounce());
             writer.flush();
             //check if you need credential for stream, if you need try connect with credential
@@ -381,12 +383,9 @@ public class RtspClient {
         + (++mCSeq)
         + "\r\n"
         + "Content-Length: 0\r\n"
-        + "Session: "
-        + sessionId
-        + "\r\n"
-        +
+        + (sessionId != null ? "Session: " + sessionId + "\r\n" : "")
         // For some reason you may have to remove last "\r\n" in the next line to make the RTSP client work with your wowza server :/
-        (authorization != null ? "Authorization: " + authorization + "\r\n" : "")
+        + (authorization != null ? "Authorization: " + authorization + "\r\n" : "")
         + "\r\n";
   }
 
