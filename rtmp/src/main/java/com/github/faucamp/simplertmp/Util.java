@@ -163,7 +163,7 @@ public class Util {
     }
 
     public static String getOpaque(String description) {
-        String opaque = null;
+        String opaque = "";
         String data[] = description.split("&");
         for (String s : data) {
             if (s.contains("opaque=")) {

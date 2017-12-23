@@ -603,8 +603,7 @@ public class RtmpConnection implements RtmpPublisher {
           } else if (user != null
               && password != null
               && description.contains("challenge=")
-              && description.contains("salt=")
-              && description.contains("opaque=")) {
+              && description.contains("salt=")) {
             onAuth = true;
             try {
               shutdown(false);
@@ -620,7 +619,7 @@ public class RtmpConnection implements RtmpPublisher {
             }
             inputStream = new BufferedInputStream(socket.getInputStream());
             outputStream = new BufferedOutputStream(socket.getOutputStream());
-            Log.d(TAG, "connect(): socket connection established, doing handhake...");
+            Log.d(TAG, "connect(): socket connection established, doing handshake...");
             salt = Util.getSalt(description);
             challenge = Util.getChallenge(description);
             opaque = Util.getOpaque(description);
