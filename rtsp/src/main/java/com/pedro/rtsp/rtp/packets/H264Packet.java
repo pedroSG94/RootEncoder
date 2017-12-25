@@ -103,8 +103,11 @@ public class H264Packet extends BasePacket {
           header[1] = (byte) (header[1] & 0x7F);
         }
       }
-    } catch (IOException | InterruptedException | IndexOutOfBoundsException e) {
+    } catch (IOException | IndexOutOfBoundsException e) {
       e.printStackTrace();
+    } catch (InterruptedException e) {
+      e.printStackTrace();
+      getConnectCheckerRtsp().onConnectionFailedRtsp(e.getMessage());
     }
   }
 

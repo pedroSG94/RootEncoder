@@ -252,6 +252,7 @@ public class RtspClient {
       mCSeq = 0;
       sps = null;
       pps = null;
+      sessionId = null;
     }
   }
 

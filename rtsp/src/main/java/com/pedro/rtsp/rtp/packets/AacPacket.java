@@ -73,8 +73,11 @@ public class AacPacket extends BasePacket {
       } else {
         socket.commitBuffer();
       }
-    } catch (IOException | InterruptedException | ArrayIndexOutOfBoundsException e) {
+    } catch (IOException | ArrayIndexOutOfBoundsException e) {
       e.printStackTrace();
+    } catch (InterruptedException e) {
+      e.printStackTrace();
+      getConnectCheckerRtsp().onConnectionFailedRtsp(e.getMessage());
     }
   }
 }
