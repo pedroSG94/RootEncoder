@@ -302,7 +302,10 @@ public class Camera1ApiManager implements Camera.PreviewCallback {
 
   @Override
   public void onPreviewFrame(byte[] data, Camera camera) {
-    if (isFrontCamera) data = YUVUtil.rotateNV21(data, width, height, 180);
+    //Only if front camera and portrait or reverse portrait
+    if (isFrontCamera && (orientation == 90 || orientation == 270)) {
+      data = YUVUtil.rotateNV21(data, width, height, 180);
+    }
     getCameraData.inputYUVData(data);
     camera.addCallbackBuffer(yuvBuffer);
   }
