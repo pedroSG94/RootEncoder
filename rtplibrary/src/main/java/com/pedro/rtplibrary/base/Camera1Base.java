@@ -129,7 +129,6 @@ public abstract class Camera1Base
     int imageFormat = ImageFormat.NV21; //supported nv21 and yv12
     if (openGlView == null) {
       cameraManager.prepareCamera(width, height, fps, imageFormat);
-      videoEncoder.setImageFormat(imageFormat);
       return videoEncoder.prepareVideoEncoder(width, height, fps, bitrate, rotation,
           hardwareRotation, FormatVideoEncoder.YUV420Dynamical);
     } else {

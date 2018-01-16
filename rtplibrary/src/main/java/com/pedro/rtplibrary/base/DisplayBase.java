@@ -2,7 +2,6 @@ package com.pedro.rtplibrary.base;
 
 import android.content.Context;
 import android.content.Intent;
-import android.graphics.ImageFormat;
 import android.media.MediaCodec;
 import android.media.MediaFormat;
 import android.media.MediaMuxer;
@@ -92,8 +91,6 @@ public abstract class DisplayBase
    */
   public boolean prepareVideo(int width, int height, int fps, int bitrate, int rotation, int dpi) {
     this.dpi = dpi;
-    int imageFormat = ImageFormat.NV21; //supported nv21 and yv12
-    videoEncoder.setImageFormat(imageFormat);
     boolean result = videoEncoder.prepareVideoEncoder(width, height, fps, bitrate, rotation, true,
         FormatVideoEncoder.SURFACE);
     return result;

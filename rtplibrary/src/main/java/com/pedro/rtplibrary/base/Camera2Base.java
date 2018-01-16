@@ -1,7 +1,6 @@
 package com.pedro.rtplibrary.base;
 
 import android.content.Context;
-import android.graphics.ImageFormat;
 import android.graphics.PointF;
 import android.hardware.camera2.CameraCharacteristics;
 import android.media.MediaCodec;
@@ -138,8 +137,6 @@ public abstract class Camera2Base
       stopPreview();
       onPreview = true;
     }
-    int imageFormat = ImageFormat.NV21; //supported nv21 and yv12
-    videoEncoder.setImageFormat(imageFormat);
     boolean result =
         videoEncoder.prepareVideoEncoder(width, height, fps, bitrate, rotation, hardwareRotation,
             FormatVideoEncoder.SURFACE);

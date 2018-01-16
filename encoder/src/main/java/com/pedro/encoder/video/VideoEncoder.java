@@ -3,7 +3,6 @@ package com.pedro.encoder.video;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
-import android.graphics.ImageFormat;
 import android.media.MediaCodec;
 import android.media.MediaCodecInfo;
 import android.media.MediaCodecList;
@@ -46,7 +45,6 @@ public class VideoEncoder implements GetCameraData {
   private BlockingQueue<byte[]> queueEncode = new LinkedBlockingQueue<>(30);
   private BlockingQueue<byte[]> queueRotate = new LinkedBlockingQueue<>(30);
   private BlockingQueue<byte[]> queueColor = new LinkedBlockingQueue<>(30);
-  private int imageFormat = ImageFormat.NV21;
   private final Object sync = new Object();
 
   //default parameters for encoder
@@ -175,10 +173,6 @@ public class VideoEncoder implements GetCameraData {
     this.inputSurface = inputSurface;
   }
 
-  public void setImageFormat(int imageFormat) {
-    this.imageFormat = imageFormat;
-  }
-
   public int getWidth() {
     return width;
   }
@@ -219,11 +213,7 @@ public class VideoEncoder implements GetCameraData {
           }
           //buffer to buffer
         } else {
-          if (imageFormat != ImageFormat.NV21 && imageFormat != ImageFormat.YV12) {
-            stop();
-            Log.e(TAG, "Unsupported imageFormat");
-            return;
-          } else if (!(rotation == 0 || rotation == 90 || rotation == 180 || rotation == 270)) {
+          if (!(rotation == 0 || rotation == 90 || rotation == 180 || rotation == 270)) {
             throw new RuntimeException(
                 "rotation value unsupported, select value 0, 90, 180 or 270");
           }
@@ -250,10 +240,6 @@ public class VideoEncoder implements GetCameraData {
               while (!Thread.interrupted()) {
                 try {
                   byte[] buffer = queueRotate.take();
-                  //convert YV12 to NV21
-                  if (imageFormat == ImageFormat.YV12) {
-                    buffer = YUVUtil.YV12toYUV420PackedSemiPlanar(buffer, width, height);
-                  }
                   if (!hardwareRotation) {
                     buffer = YUVUtil.rotateNV21(buffer, width, height, rotation);
                     try {

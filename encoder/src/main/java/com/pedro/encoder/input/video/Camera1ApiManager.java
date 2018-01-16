@@ -122,9 +122,8 @@ public class Camera1ApiManager implements Camera.PreviewCallback {
       public void run() {
         yuvBuffer = new byte[width * height * 3 / 2];
         YUVUtil.preAllocateRotateBuffers(yuvBuffer.length);
-        if (imageFormat == ImageFormat.NV21) {
-          YUVUtil.preAllocateNv21Buffers(yuvBuffer.length);
-        } else {
+        YUVUtil.preAllocateNv21Buffers(yuvBuffer.length);
+        if (imageFormat == ImageFormat.YV12) {
           YUVUtil.preAllocateYv12Buffers(yuvBuffer.length);
         }
         if (camera == null && prepared) {
@@ -302,6 +301,10 @@ public class Camera1ApiManager implements Camera.PreviewCallback {
 
   @Override
   public void onPreviewFrame(byte[] data, Camera camera) {
+    //convert yv12 to nv21
+    if (imageFormat == ImageFormat.YV12) {
+      data = YUVUtil.YV12toNV21(data, width, height);
+    }
     //Only if front camera and portrait or reverse portrait
     if (isFrontCamera && (orientation == 90 || orientation == 270)) {
       data = YUVUtil.rotateNV21(data, width, height, 180);

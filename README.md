@@ -9,7 +9,7 @@ If you need a player see this project:
 
 https://github.com/pedroSG94/vlc-example-streamplayer
 
-## Wiki (Becoming)
+## Wiki
 
 https://github.com/pedroSG94/rtmp-rtsp-stream-client-java/wiki
 
@@ -37,7 +37,7 @@ allprojects {
   }
 }
 dependencies {
-  compile 'com.github.pedroSG94.rtmp-rtsp-stream-client-java:rtplibrary:1.2.9'
+  compile 'com.github.pedroSG94.rtmp-rtsp-stream-client-java:rtplibrary:1.3.0'
 }
 
 ```
