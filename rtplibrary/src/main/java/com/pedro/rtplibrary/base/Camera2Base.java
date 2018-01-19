@@ -181,8 +181,12 @@ public abstract class Camera2Base
     }
     boolean isHardwareRotation = true;
     if (openGlView != null) isHardwareRotation = false;
+    int orientation = 0;
+    if (context.getResources().getConfiguration().orientation == 1) {
+      orientation = 90;
+    }
     boolean result =
-        videoEncoder.prepareVideoEncoder(640, 480, 30, 1200 * 1024, 90, isHardwareRotation,
+        videoEncoder.prepareVideoEncoder(640, 480, 30, 1200 * 1024, orientation, isHardwareRotation,
             FormatVideoEncoder.SURFACE);
     prepareCameraManager();
     return result;
