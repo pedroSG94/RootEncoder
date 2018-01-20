@@ -152,10 +152,10 @@ public class OpenGlView extends SurfaceView
     else return new PointF(0f, 0f);
   }
 
-  public void startGLThread() {
+  public void startGLThread(boolean isCamera2Landscape) {
     Log.i(TAG, "Thread started.");
     if (textureManager == null) {
-      textureManager = new GlWatermarkRenderer(getContext());
+      textureManager = new GlWatermarkRenderer(getContext(), isCamera2Landscape);
     }
     if (textureManager.getSurfaceTexture() == null) {
       thread = new Thread(OpenGlView.this);

@@ -268,7 +268,7 @@ public class Camera2ApiManager extends CameraDevice.StateCallback {
           cameraCaptureSession.setRepeatingBurst(Collections.singletonList(drawPreview(preview)),
               null, cameraHandler);
         }
-      } catch (CameraAccessException e) {
+      } catch (Exception e) {
         e.printStackTrace();
       }
     } else {

@@ -44,6 +44,15 @@ public class GlWatermarkRenderer {
       1f, 1f, 0f, 1f, 1f, //top right
   };
 
+  //fix orientation in camera2 landscape
+  private final float[] squareVertexDataCamera2LandScape = {
+      // X, Y, Z, U, V
+      -1f, -1f, 0f, 0f, 1f, //bottom left
+      1f, -1f, 0f, 0f, 0f, //bottom right
+      -1f, 1f, 0f, 1f, 1f, //top left
+      1f, 1f, 0f, 1f, 0f, //top right
+  };
+
   private FloatBuffer squareVertex;
   private FloatBuffer squareVertexWatermark;
 
@@ -73,12 +82,16 @@ public class GlWatermarkRenderer {
   private int encoderWidth;
   private int encoderHeight;
 
-  public GlWatermarkRenderer(Context context) {
+  public GlWatermarkRenderer(Context context, boolean isCamera2Landscape) {
     this.context = context;
     squareVertex = ByteBuffer.allocateDirect(squareVertexData.length * FLOAT_SIZE_BYTES)
         .order(ByteOrder.nativeOrder())
         .asFloatBuffer();
-    squareVertex.put(squareVertexData).position(0);
+    if (isCamera2Landscape) {
+      squareVertex.put(squareVertexDataCamera2LandScape).position(0);
+    } else {
+      squareVertex.put(squareVertexData).position(0);
+    }
 
     sprite = new Sprite();
     float[] vertices = sprite.getTransformedVertices();
