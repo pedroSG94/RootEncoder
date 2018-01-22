@@ -21,7 +21,7 @@ android {
 }
 
 dependencies {
-  compile project(':encoder')
-  compile project(':rtmp')
-  compile project(':rtsp')
+  api project(':encoder')
+  api project(':rtmp')
+  api project(':rtsp')
 }
