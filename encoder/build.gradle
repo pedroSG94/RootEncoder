@@ -21,5 +21,5 @@ android {
 }
 
 dependencies {
-  compile 'com.android.support:support-annotations:27.0.2'
+  api 'com.android.support:support-annotations:27.0.2'
 }
