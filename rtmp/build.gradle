@@ -20,4 +20,7 @@ android {
   }
 }
 
-dependencies {}
+dependencies {
+  api 'com.android.support:support-core-utils:27.0.2'
+  api 'com.squareup.okio:okio:1.13.0'
+}

@@ -1,12 +1,15 @@
 package com.github.faucamp.simplertmp.amf;
 
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
+
+import okio.BufferedSink;
+import okio.BufferedSource;
+
+import static com.github.faucamp.simplertmp.amf.AmfDecoder.AMF_BOOLEAN;
 
 /**
  *
- * @author francois
+ * @author francois, yuhsuan.lin
  */
 public class AmfBoolean implements AmfData {
     
@@ -28,21 +31,16 @@ public class AmfBoolean implements AmfData {
     }
     
     @Override
-    public void writeTo(OutputStream out) throws IOException {
-        out.write(AmfType.BOOLEAN.getValue());
-        out.write(value ? 0x01 : 0x00);
+    public void writeTo(BufferedSink out) throws IOException {
+        out.write(new byte[]{AMF_BOOLEAN, (byte) (value ? 0x01 : 0x00)});
     }
-    
+
     @Override
-    public void readFrom(InputStream in) throws IOException {
-        value = (in.read() == 0x01) ? true : false;
-    }
-    
-    public static boolean readBooleanFrom(InputStream in) throws IOException {
+    public void readFrom(BufferedSource in) throws IOException {
         // Skip data type byte (we assume it's already read)
-        return (in.read() == 0x01) ? true : false;
+        value = in.readByte() == 0x01;
     }
-    
+
     @Override
     public int getSize() {
         return 2;

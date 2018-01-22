@@ -5,7 +5,7 @@ import com.github.faucamp.simplertmp.io.ChunkStreamInfo;
 /**
  * Audio data packet
  *  
- * @author francois
+ * @author francois, yuhsuan.lin
  */
 public class Audio extends ContentData {
 
@@ -14,7 +14,7 @@ public class Audio extends ContentData {
     }
 
     public Audio() {
-        super(new RtmpHeader(RtmpHeader.ChunkType.TYPE_0_FULL, ChunkStreamInfo.RTMP_CID_AUDIO, RtmpHeader.MessageType.AUDIO));
+        super(new RtmpHeader(RtmpHeader.CHUNK_FULL, ChunkStreamInfo.RTMP_CID_AUDIO, RtmpHeader.MESSAGE_AUDIO));
     }
 
     @Override

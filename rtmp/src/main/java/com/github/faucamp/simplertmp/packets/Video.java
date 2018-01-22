@@ -5,7 +5,7 @@ import com.github.faucamp.simplertmp.io.ChunkStreamInfo;
 /**
  * Video data packet
  *  
- * @author francois
+ * @author francois, yuhsuan.lin
  */
 public class Video extends ContentData {
 
@@ -14,7 +14,7 @@ public class Video extends ContentData {
     }
 
     public Video() {
-        super(new RtmpHeader(RtmpHeader.ChunkType.TYPE_0_FULL, ChunkStreamInfo.RTMP_CID_VIDEO, RtmpHeader.MessageType.VIDEO));
+        super(new RtmpHeader(RtmpHeader.CHUNK_FULL, ChunkStreamInfo.RTMP_CID_VIDEO, RtmpHeader.MESSAGE_VIDEO));
     }
 
     @Override

@@ -1,24 +1,29 @@
 package com.github.faucamp.simplertmp.amf;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.io.UnsupportedEncodingException;
-import java.lang.String;
-
-import android.util.Log;
-
 import com.github.faucamp.simplertmp.Util;
+
+import java.io.IOException;
+import java.nio.charset.Charset;
+
+import okio.Buffer;
+import okio.BufferedSink;
+import okio.BufferedSource;
+import okio.ByteString;
+
+import static com.github.faucamp.simplertmp.Util.intToUnsignedInt16;
+import static com.github.faucamp.simplertmp.amf.AmfDecoder.AMF_STRING;
+
 
 /**
  *
- * @author francois
+ * @author francois, yuhsuan.lin
  */
 public class AmfString implements AmfData {
 
     private static final String TAG = "AmfString";
-	
-    private String value;
+    public static final Charset ASCII = Charset.forName("ASCII");
+
+    private ByteString value;
     private boolean key;
     private int size = -1;
 
@@ -26,8 +31,8 @@ public class AmfString implements AmfData {
     }
 
     public AmfString(String value, boolean isKey) {
-        this.value = value;
-        this.key = isKey;
+        setValue(value);
+        setKey(isKey);
     }
 
     public AmfString(String value) {
@@ -35,15 +40,16 @@ public class AmfString implements AmfData {
     }
 
     public AmfString(boolean isKey) {
-        this.key = isKey;
+        setKey(isKey);
     }
 
     public String getValue() {
-        return value;
+        return value.string(ASCII);
     }
 
     public void setValue(String value) {
-        this.value = value;
+        // Strings are ASCII encoded
+        this.value = ByteString.encodeString(value, ASCII);
     }
 
     public boolean isKey() {
@@ -55,76 +61,75 @@ public class AmfString implements AmfData {
     }
 
     @Override
-    public void writeTo(OutputStream out) throws IOException {
-        // Strings are ASCII encoded
-        byte[] byteValue = this.value.getBytes("ASCII");
-        // Write the STRING data type definition (except if this String is used as a key)
-        if (!key) {
-            out.write(AmfType.STRING.getValue());
-        }
-        // Write 2 bytes indicating string length
-        Util.writeUnsignedInt16(out, byteValue.length);
-        // Write string
-        out.write(byteValue);
+    public void writeTo(BufferedSink out) throws IOException {
+        writeStringTo(out, value, key);
     }
 
     @Override
-    public void readFrom(InputStream in) throws IOException {
-        // Skip data type byte (we assume it's already read)        
-        int length = Util.readUnsignedInt16(in);
-        size = 3 + length; // 1 + 2 + length
-        // Read string value
-        byte[] byteValue = new byte[length];
-        Util.readBytesUntilFull(in, byteValue);
-        value = new String(byteValue, "ASCII");
+    public void readFrom(BufferedSource in) throws IOException {
+        // Skip data type byte (we assume it's already read)
+        value = readStringFrom(in, true);
+        size = 3 + value.size(); // 1 + 2 + length
     }
 
-    public static String readStringFrom(InputStream in, boolean isKey) throws IOException {
-        if (!isKey) {
-            // Read past the data type byte
-            in.read();
+    public static ByteString readStringFrom(BufferedSource in, boolean isKey) throws IOException {
+        return readStringFrom(in, isKey, null);
+    }
+
+    public static ByteString readStringFrom(BufferedSource in, boolean isKey, Buffer buffer) throws IOException {
+        if (buffer == null) {
+            buffer = new Buffer();
         }
-        int length = Util.readUnsignedInt16(in);
-        // Read string value
-        byte[] byteValue = new byte[length];
-        Util.readBytesUntilFull(in, byteValue);
-        return new String(byteValue, "ASCII");
+        if (!isKey) {
+            if (buffer.size() == 0) {
+                in.skip(1);
+            } else {
+                buffer.skip(1);
+            }
+        }
+
+        if (buffer.size() < Util.UNSIGNED_INT_16_SIZE) { // Util.readUnsignedInt16 needs 2 bytes
+            in.readFully(buffer, Util.UNSIGNED_INT_16_SIZE - buffer.size());
+        }
+        int length = Util.readUnsignedInt16(buffer);
+        if (buffer.size() < length) {
+            in.readFully(buffer, length - buffer.size());
+        }
+        return buffer.readByteString(length);
     }
 
-    public static void writeStringTo(OutputStream out, String string, boolean isKey) throws IOException {
+    public static void writeStringTo(BufferedSink out, String string, boolean isKey) throws IOException {
         // Strings are ASCII encoded
-        byte[] byteValue = string.getBytes("ASCII");
+        writeStringTo(out, ByteString.encodeString(string, ASCII), isKey);
+    }
+
+    public static void writeStringTo(BufferedSink out, ByteString string, boolean isKey) throws IOException {
+        Buffer buffer = new Buffer();
         // Write the STRING data type definition (except if this String is used as a key)
         if (!isKey) {
-            out.write(AmfType.STRING.getValue());
+            buffer.writeByte(AMF_STRING);
         }
-        // Write 2 bytes indicating string length
-        Util.writeUnsignedInt16(out, byteValue.length);
-        // Write string
-        out.write(byteValue);
+        out.writeAll(
+                // Write 2 bytes indicating string length
+                buffer.write(intToUnsignedInt16(string.size()))
+                        // Write string
+                        .write(string));
     }
 
     @Override
     public int getSize() {
         if (size == -1) {
-            try {
-                size = (isKey() ? 0 : 1) + 2 + value.getBytes("ASCII").length;
-            } catch (UnsupportedEncodingException ex) {
-                Log.e(TAG, "AmfString.getSize(): caught exception", ex);
-                throw new RuntimeException(ex);
-            }
+            size = (isKey() ? 0 : 1) + 2 + value.size();
         }
         return size;
     }
 
     /** @return the byte size of the resulting AMF string of the specified value */
     public static int sizeOf(String string, boolean isKey) {
-        try {
-            int size = (isKey ? 0 : 1) + 2 + string.getBytes("ASCII").length;
-            return size;
-        } catch (UnsupportedEncodingException ex) {
-            Log.e(TAG, "AmfString.SizeOf(): caught exception", ex);
-            throw new RuntimeException(ex);
-        }
+        return sizeOf(ByteString.encodeString(string, ASCII), isKey);
+    }
+
+    public static int sizeOf(ByteString string, boolean isKey) {
+        return (isKey ? 0 : 1) + 2 + string.size();
     }
 }

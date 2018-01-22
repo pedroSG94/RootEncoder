@@ -5,27 +5,30 @@
 package com.github.faucamp.simplertmp.amf;
 
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
+
+import okio.BufferedSink;
+import okio.BufferedSource;
+
+import static com.github.faucamp.simplertmp.amf.AmfDecoder.AMF_NULL;
 
 /**
  *
- * @author francois
+ * @author francois, yuhsuan.lin
  */
 public class AmfNull implements AmfData {
 
     @Override
-    public void writeTo(OutputStream out) throws IOException {
-        out.write(AmfType.NULL.getValue());
+    public void writeTo(BufferedSink out) throws IOException {
+        out.writeByte(AMF_NULL);
     }
 
     @Override
-    public void readFrom(InputStream in) throws IOException {
-        // Skip data type byte (we assume it's already read)    
+    public void readFrom(BufferedSource in) throws IOException {
+        // Skip data type byte (we assume it's already read)
     }
-    
-    public static void writeNullTo(OutputStream out) throws IOException {
-        out.write(AmfType.NULL.getValue());
+
+    public static void writeNullTo(BufferedSink out) throws IOException {
+        out.writeByte(AMF_NULL);
     }
 
     @Override

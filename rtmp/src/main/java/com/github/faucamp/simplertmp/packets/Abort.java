@@ -1,16 +1,17 @@
 package com.github.faucamp.simplertmp.packets;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-
-import com.github.faucamp.simplertmp.Util;
 import com.github.faucamp.simplertmp.io.ChunkStreamInfo;
+
+import java.io.IOException;
+
+import okio.Buffer;
+import okio.BufferedSink;
+import okio.BufferedSource;
 
 /**
  * A "Abort" RTMP control message, received on chunk stream ID 2 (control channel)
  * 
- * @author francois
+ * @author francois, yuhsuan.lin
  */
 public class Abort extends RtmpPacket {
 
@@ -21,7 +22,7 @@ public class Abort extends RtmpPacket {
     }
 
     public Abort(int chunkStreamId) {
-        super(new RtmpHeader(RtmpHeader.ChunkType.TYPE_1_RELATIVE_LARGE, ChunkStreamInfo.RTMP_CID_PROTOCOL_CONTROL, RtmpHeader.MessageType.SET_CHUNK_SIZE));
+        super(new RtmpHeader(RtmpHeader.CHUNK_RELATIVE_LARGE, ChunkStreamInfo.RTMP_CID_PROTOCOL_CONTROL, RtmpHeader.MESSAGE_SET_CHUNK_SIZE));
         this.chunkStreamId = chunkStreamId;
     }
 
@@ -36,13 +37,13 @@ public class Abort extends RtmpPacket {
     }
 
     @Override
-    public void readBody(InputStream in) throws IOException {
+    public void readBody(BufferedSource in) throws IOException {
         // Value is received in the 4 bytes of the body
-        chunkStreamId = Util.readUnsignedInt32(in);
+        chunkStreamId = in.readInt();
     }
 
     @Override
-    protected byte[] array() {
+    protected Buffer array() {
         return null;
     }
 
@@ -52,7 +53,7 @@ public class Abort extends RtmpPacket {
     }
 
     @Override
-    protected void writeBody(OutputStream out) throws IOException {
-        Util.writeUnsignedInt32(out, chunkStreamId);
+    protected void writeBody(BufferedSink out) throws IOException {
+        out.writeInt(chunkStreamId);
     }
 }

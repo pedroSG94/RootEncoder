@@ -1,18 +1,19 @@
 package com.github.faucamp.simplertmp.packets;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-
-import com.github.faucamp.simplertmp.Util;
 import com.github.faucamp.simplertmp.io.ChunkStreamInfo;
+
+import java.io.IOException;
+
+import okio.Buffer;
+import okio.BufferedSink;
+import okio.BufferedSource;
 
 /**
  * Window Acknowledgement Size
  * 
  * Also known as ServerBW ("Server bandwidth") in some RTMP implementations.
  * 
- * @author francois
+ * @author francois, yuhsuan.lin
  */
 public class WindowAckSize extends RtmpPacket {
 
@@ -23,7 +24,7 @@ public class WindowAckSize extends RtmpPacket {
     }
     
     public WindowAckSize(int acknowledgementWindowSize, ChunkStreamInfo channelInfo) {
-        super(new RtmpHeader(channelInfo.canReusePrevHeaderTx(RtmpHeader.MessageType.WINDOW_ACKNOWLEDGEMENT_SIZE) ? RtmpHeader.ChunkType.TYPE_2_RELATIVE_TIMESTAMP_ONLY : RtmpHeader.ChunkType.TYPE_0_FULL, ChunkStreamInfo.RTMP_CID_PROTOCOL_CONTROL, RtmpHeader.MessageType.WINDOW_ACKNOWLEDGEMENT_SIZE));
+        super(new RtmpHeader(channelInfo.canReusePrevHeaderTx(RtmpHeader.MESSAGE_WINDOW_ACKNOWLEDGEMENT_SIZE) ? RtmpHeader.CHUNK_RELATIVE_TIMESTAMP_ONLY : RtmpHeader.CHUNK_FULL, ChunkStreamInfo.RTMP_CID_PROTOCOL_CONTROL, RtmpHeader.MESSAGE_WINDOW_ACKNOWLEDGEMENT_SIZE));
         this.acknowledgementWindowSize = acknowledgementWindowSize;
     }
 
@@ -37,17 +38,17 @@ public class WindowAckSize extends RtmpPacket {
     }
 
     @Override
-    public void readBody(InputStream in) throws IOException {
-        acknowledgementWindowSize = Util.readUnsignedInt32(in);
+    public void readBody(BufferedSource in) throws IOException {
+        acknowledgementWindowSize = in.readInt();
     }
 
     @Override
-    protected void writeBody(OutputStream out) throws IOException {
-        Util.writeUnsignedInt32(out, acknowledgementWindowSize);
+    protected void writeBody(BufferedSink out) throws IOException {
+        out.writeInt(acknowledgementWindowSize);
     }
 
     @Override
-    protected byte[] array() {
+    protected Buffer array() {
         return null;
     }
 

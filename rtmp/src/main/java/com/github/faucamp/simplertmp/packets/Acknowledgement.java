@@ -1,11 +1,12 @@
 package com.github.faucamp.simplertmp.packets;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-
-import com.github.faucamp.simplertmp.Util;
 import com.github.faucamp.simplertmp.io.ChunkStreamInfo;
+
+import java.io.IOException;
+
+import okio.Buffer;
+import okio.BufferedSink;
+import okio.BufferedSource;
 
 /**
  * (Window) Acknowledgement
@@ -17,7 +18,7 @@ import com.github.faucamp.simplertmp.io.ChunkStreamInfo;
  * the client after application connects. This message specifies the
  * sequence number, which is the number of the bytes received so far.
  * 
- * @author francois
+ * @author francois, yuhsuan.lin
  */
 public class Acknowledgement extends RtmpPacket {
 
@@ -28,7 +29,7 @@ public class Acknowledgement extends RtmpPacket {
     }
 
     public Acknowledgement(int numBytesReadThusFar) {
-        super(new RtmpHeader(RtmpHeader.ChunkType.TYPE_0_FULL, ChunkStreamInfo.RTMP_CID_PROTOCOL_CONTROL, RtmpHeader.MessageType.ACKNOWLEDGEMENT));
+        super(new RtmpHeader(RtmpHeader.CHUNK_FULL, ChunkStreamInfo.RTMP_CID_PROTOCOL_CONTROL, RtmpHeader.MESSAGE_ACKNOWLEDGEMENT));
         this.sequenceNumber = numBytesReadThusFar;
     }
 
@@ -47,17 +48,17 @@ public class Acknowledgement extends RtmpPacket {
     }
 
     @Override
-    public void readBody(InputStream in) throws IOException {
-        sequenceNumber = Util.readUnsignedInt32(in);
+    public void readBody(BufferedSource in) throws IOException {
+        sequenceNumber = in.readInt();
     }
 
     @Override
-    protected void writeBody(OutputStream out) throws IOException {
-        Util.writeUnsignedInt32(out, sequenceNumber);
+    protected void writeBody(BufferedSink out) throws IOException {
+        out.writeInt(sequenceNumber);
     }
 
     @Override
-    protected byte[] array() {
+    protected Buffer array() {
         return null;
     }
 
