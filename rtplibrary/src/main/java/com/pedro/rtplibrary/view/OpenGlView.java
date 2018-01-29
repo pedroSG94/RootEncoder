@@ -11,8 +11,9 @@ import android.util.Log;
 import android.view.Surface;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
-import com.pedro.encoder.input.gl.GlWatermarkRenderer;
 import com.pedro.encoder.input.gl.SurfaceManager;
+import com.pedro.encoder.input.gl.render.ManagerRender;
+import com.pedro.encoder.input.gl.render.filters.BaseFilterRender;
 import com.pedro.encoder.utils.gl.GifStreamObject;
 import com.pedro.encoder.utils.gl.ImageStreamObject;
 import com.pedro.encoder.utils.gl.TextStreamObject;
@@ -36,7 +37,7 @@ public class OpenGlView extends SurfaceView
   private SurfaceManager surfaceManager = null;
   private SurfaceManager surfaceManagerEncoder = null;
 
-  private GlWatermarkRenderer textureManager = null;
+  private ManagerRender textureManager = null;
 
   private final Semaphore semaphore = new Semaphore(0);
   private final Object sync = new Object();
@@ -46,11 +47,13 @@ public class OpenGlView extends SurfaceView
   private boolean loadAlpha = false;
   private boolean loadScale = false;
   private boolean loadPosition = false;
-  private boolean loadPositionTo = false;
+  private boolean loadFilter = false;
 
+  private boolean loadPositionTo = false;
   private TextStreamObject textStreamObject;
   private ImageStreamObject imageStreamObject;
   private GifStreamObject gifStreamObject;
+  private BaseFilterRender baseFilterRender;
   private float alpha;
   private float scaleX, scaleY;
   private float positionX, positionY;
@@ -90,6 +93,11 @@ public class OpenGlView extends SurfaceView
   public void setEncoderSize(int width, int height) {
     this.encoderWidth = width;
     this.encoderHeight = height;
+  }
+
+  public void setFilter(BaseFilterRender baseFilterRender) {
+    loadFilter = true;
+    this.baseFilterRender = baseFilterRender;
   }
 
   public void setGif(GifStreamObject gifStreamObject) {
@@ -155,7 +163,7 @@ public class OpenGlView extends SurfaceView
   public void startGLThread(boolean isCamera2Landscape) {
     Log.i(TAG, "Thread started.");
     if (textureManager == null) {
-      textureManager = new GlWatermarkRenderer(getContext(), isCamera2Landscape);
+      textureManager = new ManagerRender(isCamera2Landscape);
     }
     if (textureManager.getSurfaceTexture() == null) {
       thread = new Thread(OpenGlView.this);
@@ -182,13 +190,13 @@ public class OpenGlView extends SurfaceView
   public void run() {
     surfaceManager = new SurfaceManager(getHolder().getSurface());
     surfaceManager.makeCurrent();
-    textureManager.initGl();
+    textureManager.initGl(previewWidth, previewHeight, getContext());
     textureManager.getSurfaceTexture().setOnFrameAvailableListener(this);
     semaphore.release();
     try {
       while (running) {
         synchronized (sync) {
-          sync.wait(500);
+          sync.wait(100);
           if (frameAvailable) {
             frameAvailable = false;
             surfaceManager.makeCurrent();
@@ -206,7 +214,8 @@ public class OpenGlView extends SurfaceView
               }
             }
             textureManager.updateFrame();
-            textureManager.drawFrame(previewWidth, previewHeight);
+            textureManager.drawOffScreen();
+            textureManager.drawScreen(previewWidth, previewHeight);
             surfaceManager.swapBuffer();
             //stream object loaded but you need reset surfaceManagerEncoder
             if (loadStreamObject) {
@@ -218,7 +227,7 @@ public class OpenGlView extends SurfaceView
             }
             if (surfaceManagerEncoder != null) {
               surfaceManagerEncoder.makeCurrent();
-              textureManager.drawFrame(encoderWidth, encoderHeight);
+              textureManager.drawScreen(encoderWidth, encoderHeight);
               long ts = textureManager.getSurfaceTexture().getTimestamp();
               surfaceManagerEncoder.setPresentationTime(ts);
               surfaceManagerEncoder.swapBuffer();
@@ -230,21 +239,18 @@ public class OpenGlView extends SurfaceView
           if (loadAlpha) {
             textureManager.setAlpha(alpha);
             loadAlpha = false;
-          }
-
-          if (loadScale) {
+          } else if (loadScale) {
             textureManager.setScale(scaleX, scaleY);
             loadScale = false;
-          }
-
-          if (loadPosition) {
+          } else if (loadPosition) {
             textureManager.setPosition(positionX, positionY);
             loadPosition = false;
-          }
-
-          if (loadPositionTo) {
+          } else if (loadPositionTo) {
             textureManager.setPosition(positionTo);
             loadPositionTo = false;
+          } else if (loadFilter) {
+            textureManager.setFilter(baseFilterRender);
+            loadFilter = false;
           }
         }
       }

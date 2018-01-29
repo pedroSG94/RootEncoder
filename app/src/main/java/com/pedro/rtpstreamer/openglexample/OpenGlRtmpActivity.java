@@ -4,6 +4,7 @@ import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.annotation.RequiresApi;
 import android.support.v7.app.AppCompatActivity;
 import android.view.Menu;
@@ -13,6 +14,7 @@ import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
+import com.pedro.encoder.input.gl.render.filters.NegativeFilterRender;
 import com.pedro.encoder.utils.gl.GifStreamObject;
 import com.pedro.encoder.utils.gl.ImageStreamObject;
 import com.pedro.encoder.utils.gl.TextStreamObject;
@@ -168,6 +170,12 @@ public class OpenGlRtmpActivity extends AppCompatActivity
       if (rtmpCamera1.prepareAudio() && rtmpCamera1.prepareVideo()) {
         button.setText(R.string.stop_button);
         rtmpCamera1.startStream(etUrl.getText().toString());
+        new Handler().postDelayed(new Runnable() {
+          @Override
+          public void run() {
+            rtmpCamera1.setFilter(new NegativeFilterRender());
+          }
+        }, 10000);
       } else {
         Toast.makeText(this, "Error preparing stream, This device cant do it", Toast.LENGTH_SHORT)
             .show();

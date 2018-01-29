@@ -16,6 +16,7 @@ import com.pedro.encoder.audio.AudioEncoder;
 import com.pedro.encoder.audio.GetAacData;
 import com.pedro.encoder.input.audio.GetMicrophoneData;
 import com.pedro.encoder.input.audio.MicrophoneManager;
+import com.pedro.encoder.input.gl.render.filters.BaseFilterRender;
 import com.pedro.encoder.input.video.Camera1ApiManager;
 import com.pedro.encoder.input.video.Camera1Facing;
 import com.pedro.encoder.input.video.CameraOpenException;
@@ -451,6 +452,15 @@ public abstract class Camera1Base
   public void switchCamera() throws CameraOpenException {
     if (isStreaming() || onPreview) {
       cameraManager.switchCamera();
+    }
+  }
+
+  @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
+  public void setFilter(BaseFilterRender baseFilterRender) {
+    if (openGlView != null) {
+      openGlView.setFilter(baseFilterRender);
+    } else {
+      throw new RuntimeException("You must use OpenGlView in the constructor to set a gif");
     }
   }
 

@@ -8,7 +8,7 @@ import com.pedro.encoder.utils.gl.TranslateTo;
  * Created by pedro on 17/11/17.
  */
 
-class Sprite {
+public class Sprite {
   private float angle;
   private RectF base;
   private PointF translation;
@@ -122,7 +122,7 @@ class Sprite {
     float y2 = base.top * scale.y;
 
     // We now detach from our Rect because when rotating,
-    // we need the seperate points, so we do so in opengl order
+    // we need the separate points, so we do so in opengl order
     PointF one = new PointF(x1, y1);
     PointF two = new PointF(x1, y2);
     PointF three = new PointF(x2, y1);

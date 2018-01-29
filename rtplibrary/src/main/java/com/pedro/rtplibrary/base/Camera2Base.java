@@ -16,6 +16,7 @@ import com.pedro.encoder.audio.AudioEncoder;
 import com.pedro.encoder.audio.GetAacData;
 import com.pedro.encoder.input.audio.GetMicrophoneData;
 import com.pedro.encoder.input.audio.MicrophoneManager;
+import com.pedro.encoder.input.gl.render.filters.BaseFilterRender;
 import com.pedro.encoder.input.video.Camera2ApiManager;
 import com.pedro.encoder.input.video.Camera2Facing;
 import com.pedro.encoder.input.video.CameraOpenException;
@@ -426,6 +427,13 @@ public abstract class Camera2Base
     }
   }
 
+  public void setFilter(BaseFilterRender baseFilterRender) {
+    if (openGlView != null) {
+      openGlView.setFilter(baseFilterRender);
+    } else {
+      throw new RuntimeException("You must use OpenGlView in the constructor to set a gif");
+    }
+  }
   /**
    * Set a gif to the stream.
    * By default with same resolution in px that the original file and in bottom-right position.
