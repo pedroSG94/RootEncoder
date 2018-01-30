@@ -45,6 +45,7 @@ public class ManagerRender {
     streamObjectRender.initGl(width, height, context);
     baseFilterRender.setTexId(streamObjectRender.getTexId());
     baseFilterRender.initGl(width, height, context);
+    baseFilterRender.initFBOLink();
     screenRender.setTexId(baseFilterRender.getTexId());
     screenRender.initGl(context);
   }

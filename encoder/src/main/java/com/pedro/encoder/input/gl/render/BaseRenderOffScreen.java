@@ -42,6 +42,10 @@ public abstract class BaseRenderOffScreen {
   }
 
   protected void initFBO(int width, int height) {
+    initFBO(width, height, fboId, rboId, texId);
+  }
+
+  protected void initFBO(int width, int height, int[] fboId, int[] rboId, int[] texId) {
     GlUtil.checkGlError("initFBO_S");
 
     GLES20.glGenFramebuffers(1, fboId, 0);

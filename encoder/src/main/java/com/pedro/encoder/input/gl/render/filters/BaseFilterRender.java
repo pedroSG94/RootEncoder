@@ -14,18 +14,25 @@ import com.pedro.encoder.utils.gl.GlUtil;
 @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
 public abstract class BaseFilterRender extends BaseRenderOffScreen {
 
-  protected int texId;
-
   private int width;
   private int height;
+
+  //static to share with all filters
+  protected static int previousTexId;
+  protected static final int[] fboId = new int[] { 0 };
+  private static final int[] rboId = new int[] { 0 };
+  private static final int[] texId = new int[] { 0 };
 
   public void initGl(int width, int height, Context context) {
     this.width = width;
     this.height = height;
     GlUtil.checkGlError("initGl start");
     initGlFilter(context);
-    initFBO(width, height);
     GlUtil.checkGlError("initGl end");
+  }
+
+  public void initFBOLink() {
+    initFBO(width, height, fboId, rboId, texId);
   }
 
   protected abstract void initGlFilter(Context context);
@@ -43,6 +50,11 @@ public abstract class BaseFilterRender extends BaseRenderOffScreen {
   protected abstract void drawFilter();
 
   public void setTexId(int texId) {
-    this.texId = texId;
+    this.previousTexId = texId;
+  }
+
+  @Override
+  public int getTexId() {
+    return texId[0];
   }
 }

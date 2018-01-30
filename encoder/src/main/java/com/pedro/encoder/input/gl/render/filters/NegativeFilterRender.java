@@ -74,7 +74,7 @@ public class NegativeFilterRender extends BaseFilterRender {
 
     GLES20.glUniform1i(uSamplerHandle, 4);
     GLES20.glActiveTexture(GLES20.GL_TEXTURE4);
-    GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, texId);
+    GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, previousTexId);
   }
 
   @Override
