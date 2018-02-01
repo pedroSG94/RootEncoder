@@ -11,11 +11,11 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 
 /**
- * Created by pedro on 31/01/18.
+ * Created by pedro on 1/02/18.
  */
 
 @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
-public class PixelatedFilterRender extends BaseFilterRender{
+public class SaturationFilterRender extends BaseFilterRender {
 
   //rotation matrix
   private final float[] squareVertexDataFilter = {
@@ -32,11 +32,17 @@ public class PixelatedFilterRender extends BaseFilterRender{
   private int uMVPMatrixHandle = -1;
   private int uSTMatrixHandle = -1;
   private int uSamplerHandle = -1;
-  private int uPixelatedHandle = -1;
+  private int uShiftHandle = -1;
+  private int uWeightsHandle = -1;
+  private int uExponentsHandle = -1;
+  private int uSaturationHandle = -1;
 
-  private float pixelated = 0f;
+  private float saturation = 1.0f;
+  private final float shift = 1.0f / 255.0f;
+  private final float weights[] = { 2f / 8f, 5f / 8f, 1f / 8f };
+  private float exponents[] = new float[3];
 
-  public PixelatedFilterRender() {
+  public SaturationFilterRender() {
     squareVertex = ByteBuffer.allocateDirect(squareVertexDataFilter.length * FLOAT_SIZE_BYTES)
         .order(ByteOrder.nativeOrder())
         .asFloatBuffer();
@@ -47,8 +53,8 @@ public class PixelatedFilterRender extends BaseFilterRender{
 
   @Override
   protected void initGlFilter(Context context) {
-    String vertexShader = GlUtil.getStringFromRaw(context, R.raw.pixelated_vertex);
-    String fragmentShader = GlUtil.getStringFromRaw(context, R.raw.pixelated_fragment);
+    String vertexShader = GlUtil.getStringFromRaw(context, R.raw.saturation_vertex);
+    String fragmentShader = GlUtil.getStringFromRaw(context, R.raw.saturation_fragment);
 
     program = GlUtil.createProgram(vertexShader, fragmentShader);
     aPositionHandle = GLES20.glGetAttribLocation(program, "aPosition");
@@ -56,7 +62,10 @@ public class PixelatedFilterRender extends BaseFilterRender{
     uMVPMatrixHandle = GLES20.glGetUniformLocation(program, "uMVPMatrix");
     uSTMatrixHandle = GLES20.glGetUniformLocation(program, "uSTMatrix");
     uSamplerHandle = GLES20.glGetUniformLocation(program, "uSampler");
-    uPixelatedHandle = GLES20.glGetUniformLocation(program, "uPixelated");
+    uShiftHandle = GLES20.glGetUniformLocation(program, "uShift");
+    uWeightsHandle = GLES20.glGetUniformLocation(program, "uWeights");
+    uExponentsHandle = GLES20.glGetUniformLocation(program, "uExponents");
+    uSaturationHandle = GLES20.glGetUniformLocation(program, "uSaturation");
   }
 
   @Override
@@ -75,7 +84,10 @@ public class PixelatedFilterRender extends BaseFilterRender{
 
     GLES20.glUniformMatrix4fv(uMVPMatrixHandle, 1, false, MVPMatrix, 0);
     GLES20.glUniformMatrix4fv(uSTMatrixHandle, 1, false, STMatrix, 0);
-    GLES20.glUniform1f(uPixelatedHandle, pixelated);
+    GLES20.glUniform1f(uShiftHandle, shift);
+    GLES20.glUniform3f(uWeightsHandle, weights[0], weights[1], weights[2]);
+    GLES20.glUniform3f(uExponentsHandle, exponents[0], exponents[1], exponents[2]);
+    GLES20.glUniform1f(uSaturationHandle, saturation);
 
     GLES20.glUniform1i(uSamplerHandle, 4);
     GLES20.glActiveTexture(GLES20.GL_TEXTURE4);
@@ -88,12 +100,17 @@ public class PixelatedFilterRender extends BaseFilterRender{
   }
 
   /**
-   *
-   * @param pixelated min value 0.0f, max value 1.0f
+   * @param saturation between -1.0f and 1.0f means no change, while -1.0f indicates full desaturation,
+   * i.e. grayscale.
    */
-  public void setPixelated(float pixelated) {
-    if (pixelated > 1.0f) this.pixelated = 1.0f;
-    else if (pixelated < 0.0f) this.pixelated = 0.0f;
-    else this.pixelated = pixelated;
+  public void setSaturation(float saturation) {
+    if (saturation > 0.0f) {
+      exponents[0] = (0.9f * saturation) + 1.0f;
+      exponents[1] = (2.1f * saturation) + 1.0f;
+      exponents[2] = (2.7f * saturation) + 1.0f;
+      this.saturation = saturation;
+    } else {
+      this.saturation = saturation + 1.0f;
+    }
   }
 }

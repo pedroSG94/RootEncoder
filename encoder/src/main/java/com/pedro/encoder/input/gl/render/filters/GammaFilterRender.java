@@ -11,11 +11,11 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 
 /**
- * Created by pedro on 31/01/18.
+ * Created by pedro on 2/02/18.
  */
 
 @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
-public class PixelatedFilterRender extends BaseFilterRender{
+public class GammaFilterRender extends BaseFilterRender{
 
   //rotation matrix
   private final float[] squareVertexDataFilter = {
@@ -32,11 +32,11 @@ public class PixelatedFilterRender extends BaseFilterRender{
   private int uMVPMatrixHandle = -1;
   private int uSTMatrixHandle = -1;
   private int uSamplerHandle = -1;
-  private int uPixelatedHandle = -1;
+  private int uGammaHandle = -1;
 
-  private float pixelated = 0f;
+  private float gamma = 1.0f;
 
-  public PixelatedFilterRender() {
+  public GammaFilterRender() {
     squareVertex = ByteBuffer.allocateDirect(squareVertexDataFilter.length * FLOAT_SIZE_BYTES)
         .order(ByteOrder.nativeOrder())
         .asFloatBuffer();
@@ -47,8 +47,8 @@ public class PixelatedFilterRender extends BaseFilterRender{
 
   @Override
   protected void initGlFilter(Context context) {
-    String vertexShader = GlUtil.getStringFromRaw(context, R.raw.pixelated_vertex);
-    String fragmentShader = GlUtil.getStringFromRaw(context, R.raw.pixelated_fragment);
+    String vertexShader = GlUtil.getStringFromRaw(context, R.raw.gamma_vertex);
+    String fragmentShader = GlUtil.getStringFromRaw(context, R.raw.gamma_fragment);
 
     program = GlUtil.createProgram(vertexShader, fragmentShader);
     aPositionHandle = GLES20.glGetAttribLocation(program, "aPosition");
@@ -56,7 +56,7 @@ public class PixelatedFilterRender extends BaseFilterRender{
     uMVPMatrixHandle = GLES20.glGetUniformLocation(program, "uMVPMatrix");
     uSTMatrixHandle = GLES20.glGetUniformLocation(program, "uSTMatrix");
     uSamplerHandle = GLES20.glGetUniformLocation(program, "uSampler");
-    uPixelatedHandle = GLES20.glGetUniformLocation(program, "uPixelated");
+    uGammaHandle = GLES20.glGetUniformLocation(program, "uGamma");
   }
 
   @Override
@@ -75,7 +75,7 @@ public class PixelatedFilterRender extends BaseFilterRender{
 
     GLES20.glUniformMatrix4fv(uMVPMatrixHandle, 1, false, MVPMatrix, 0);
     GLES20.glUniformMatrix4fv(uSTMatrixHandle, 1, false, STMatrix, 0);
-    GLES20.glUniform1f(uPixelatedHandle, pixelated);
+    GLES20.glUniform1f(uGammaHandle, gamma);
 
     GLES20.glUniform1i(uSamplerHandle, 4);
     GLES20.glActiveTexture(GLES20.GL_TEXTURE4);
@@ -89,11 +89,9 @@ public class PixelatedFilterRender extends BaseFilterRender{
 
   /**
    *
-   * @param pixelated min value 0.0f, max value 1.0f
+   * @param gamma Range should be between 0.0 - 2.0 with 1.0 being normal.
    */
-  public void setPixelated(float pixelated) {
-    if (pixelated > 1.0f) this.pixelated = 1.0f;
-    else if (pixelated < 0.0f) this.pixelated = 0.0f;
-    else this.pixelated = pixelated;
+  public void setGamma(float gamma) {
+    this.gamma = gamma;
   }
 }

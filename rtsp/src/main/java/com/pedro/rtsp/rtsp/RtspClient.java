@@ -103,7 +103,8 @@ public class RtspClient {
       tlsEnabled = true;
     } else {
       streaming = false;
-      connectCheckerRtsp.onConnectionFailedRtsp("Endpoint malformed, should be: rtsp://ip:port/appname/streamname");
+      connectCheckerRtsp.onConnectionFailedRtsp(
+          "Endpoint malformed, should be: rtsp://ip:port/appname/streamname");
       return;
     }
     host = matcher.group(1);
@@ -198,7 +199,8 @@ public class RtspClient {
                 } else if (statusAuth == 200) {
                   connectCheckerRtsp.onAuthSuccessRtsp();
                 } else {
-                  connectCheckerRtsp.onConnectionFailedRtsp("Error configure stream, announce with auth failed");
+                  connectCheckerRtsp.onConnectionFailedRtsp(
+                      "Error configure stream, announce with auth failed");
                 }
               }
             } else if (status != 200) {
@@ -384,7 +386,9 @@ public class RtspClient {
         + (++mCSeq)
         + "\r\n"
         + "Content-Length: 0\r\n"
-        + (sessionId != null ? "Session: " + sessionId + "\r\n" : "")
+        + (sessionId != null ? "Session: "
+        + sessionId
+        + "\r\n" : "")
         // For some reason you may have to remove last "\r\n" in the next line to make the RTSP client work with your wowza server :/
         + (authorization != null ? "Authorization: " + authorization + "\r\n" : "")
         + "\r\n";

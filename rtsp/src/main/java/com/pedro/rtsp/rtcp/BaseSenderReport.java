@@ -40,6 +40,7 @@ public abstract class BaseSenderReport {
 
     // By default we sent one report every 3 second
     interval = 3000;
+    delta = interval;
   }
 
   public void setSSRC(int ssrc) {
