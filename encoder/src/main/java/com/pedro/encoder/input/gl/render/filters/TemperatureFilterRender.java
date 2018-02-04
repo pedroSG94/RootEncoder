@@ -34,7 +34,7 @@ public class TemperatureFilterRender extends BaseFilterRender{
   private int uSamplerHandle = -1;
   private int uTemperatureHandle = -1;
 
-  private float temperature = 0f;
+  private float temperature = 0.8f;
 
   public TemperatureFilterRender() {
     squareVertex = ByteBuffer.allocateDirect(squareVertexDataFilter.length * FLOAT_SIZE_BYTES)

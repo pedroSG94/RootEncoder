@@ -34,7 +34,7 @@ public class BrightnessFilterRender extends BaseFilterRender{
   private int uSamplerHandle = -1;
   private int uBrightnessHandle = -1;
 
-  private float brightness = 0f;
+  private float brightness = 0.5f;
 
   public BrightnessFilterRender() {
     squareVertex = ByteBuffer.allocateDirect(squareVertexDataFilter.length * FLOAT_SIZE_BYTES)
@@ -89,7 +89,7 @@ public class BrightnessFilterRender extends BaseFilterRender{
 
   /**
    *
-   * @param brightness Range should be between 0.1- 2.0 with 1.0 being normal.
+   * @param brightness Range should be between 0.1 - 2.0 with 1.0 being normal.
    */
   public void setBrightness(float brightness) {
     this.brightness = brightness;

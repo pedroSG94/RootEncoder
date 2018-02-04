@@ -34,7 +34,7 @@ public class PixelatedFilterRender extends BaseFilterRender{
   private int uSamplerHandle = -1;
   private int uPixelatedHandle = -1;
 
-  private float pixelated = 0f;
+  private float pixelated = 0.01f;
 
   public PixelatedFilterRender() {
     squareVertex = ByteBuffer.allocateDirect(squareVertexDataFilter.length * FLOAT_SIZE_BYTES)

@@ -34,7 +34,7 @@ public class GammaFilterRender extends BaseFilterRender{
   private int uSamplerHandle = -1;
   private int uGammaHandle = -1;
 
-  private float gamma = 1.0f;
+  private float gamma = 0.5f;
 
   public GammaFilterRender() {
     squareVertex = ByteBuffer.allocateDirect(squareVertexDataFilter.length * FLOAT_SIZE_BYTES)

@@ -37,7 +37,7 @@ public class SaturationFilterRender extends BaseFilterRender {
   private int uExponentsHandle = -1;
   private int uSaturationHandle = -1;
 
-  private float saturation = 1.0f;
+  private float saturation = -0.5f;
   private final float shift = 1.0f / 255.0f;
   private final float weights[] = { 2f / 8f, 5f / 8f, 1f / 8f };
   private float exponents[] = new float[3];

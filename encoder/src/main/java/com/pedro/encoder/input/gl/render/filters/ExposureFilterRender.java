@@ -34,7 +34,7 @@ public class ExposureFilterRender extends BaseFilterRender{
   private int uSamplerHandle = -1;
   private int uExposureHandle = -1;
 
-  private float exposure = 0f;
+  private float exposure = 0.5f;
 
   public ExposureFilterRender() {
     squareVertex = ByteBuffer.allocateDirect(squareVertexDataFilter.length * FLOAT_SIZE_BYTES)

@@ -39,9 +39,10 @@ public class ColorFilterRender extends BaseFilterRender {
 
   private static final String HEX_PATTERN = "^#([A-Fa-f0-9]{6})$";
 
-  private float red;
-  private float green;
-  private float blue;
+  //by default tint with blue
+  private float red = 0f;
+  private float green = 0f;
+  private float blue = 1f;
 
   public ColorFilterRender() {
     squareVertex = ByteBuffer.allocateDirect(squareVertexDataFilter.length * FLOAT_SIZE_BYTES)

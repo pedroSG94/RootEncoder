@@ -36,7 +36,7 @@ public class SharpnessFilterRender extends BaseFilterRender{
   private int uStepSizeHandle = -1;
   private int uSharpnessHandle = -1;
 
-  private float sharpness = 0f;
+  private float sharpness = 0.5f;
 
   public SharpnessFilterRender() {
     squareVertex = ByteBuffer.allocateDirect(squareVertexDataFilter.length * FLOAT_SIZE_BYTES)

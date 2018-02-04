@@ -41,12 +41,13 @@ public class DuotoneFilterRender extends BaseFilterRender {
 
   private static final String HEX_PATTERN = "^#([A-Fa-f0-9]{6})$";
 
-  private float red;
-  private float green;
-  private float blue;
-  private float red2;
-  private float green2;
-  private float blue2;
+  //by default tint with green and blue
+  private float red = 0f;
+  private float green = 1f;
+  private float blue = 0f;
+  private float red2 = 0f;
+  private float green2 = 0f;
+  private float blue2 = 1f;
 
   public DuotoneFilterRender() {
     squareVertex = ByteBuffer.allocateDirect(squareVertexDataFilter.length * FLOAT_SIZE_BYTES)

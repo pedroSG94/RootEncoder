@@ -34,7 +34,7 @@ public class ContrastFilterRender extends BaseFilterRender{
   private int uSamplerHandle = -1;
   private int uContrastHandle = -1;
 
-  private float contrast = 0f;
+  private float contrast = 0.5f;
 
   public ContrastFilterRender() {
     squareVertex = ByteBuffer.allocateDirect(squareVertexDataFilter.length * FLOAT_SIZE_BYTES)
@@ -89,7 +89,7 @@ public class ContrastFilterRender extends BaseFilterRender{
 
   /**
    *
-   * @param contrast Range should be between 0.1- 2.0 with 1.0 being normal.
+   * @param contrast Range should be between 0.1 - 2.0 with 1.0 being normal.
    */
   public void setContrast(float contrast) {
     this.contrast = contrast;

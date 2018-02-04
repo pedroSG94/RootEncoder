@@ -13,6 +13,34 @@ import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
+import com.pedro.encoder.input.gl.render.filters.BasicDeformationFilterRender;
+import com.pedro.encoder.input.gl.render.filters.BlurFilterRender;
+import com.pedro.encoder.input.gl.render.filters.BrightnessFilterRender;
+import com.pedro.encoder.input.gl.render.filters.CartoonFilterRender;
+import com.pedro.encoder.input.gl.render.filters.ColorFilterRender;
+import com.pedro.encoder.input.gl.render.filters.ContrastFilterRender;
+import com.pedro.encoder.input.gl.render.filters.DuotoneFilterRender;
+import com.pedro.encoder.input.gl.render.filters.EarlyBirdFilterRender;
+import com.pedro.encoder.input.gl.render.filters.EdgeDetectionFilterRender;
+import com.pedro.encoder.input.gl.render.filters.ExposureFilterRender;
+import com.pedro.encoder.input.gl.render.filters.FireFilterRender;
+import com.pedro.encoder.input.gl.render.filters.GammaFilterRender;
+import com.pedro.encoder.input.gl.render.filters.GreyScaleFilterRender;
+import com.pedro.encoder.input.gl.render.filters.HalftoneLinesFilterRender;
+import com.pedro.encoder.input.gl.render.filters.Image70sFilterRender;
+import com.pedro.encoder.input.gl.render.filters.LamoishFilterRender;
+import com.pedro.encoder.input.gl.render.filters.MoneyFilterRender;
+import com.pedro.encoder.input.gl.render.filters.NegativeFilterRender;
+import com.pedro.encoder.input.gl.render.filters.NoFilterRender;
+import com.pedro.encoder.input.gl.render.filters.PixelatedFilterRender;
+import com.pedro.encoder.input.gl.render.filters.PolygonizationFilterRender;
+import com.pedro.encoder.input.gl.render.filters.RainbowFilterRender;
+import com.pedro.encoder.input.gl.render.filters.RippleFilterRender;
+import com.pedro.encoder.input.gl.render.filters.SaturationFilterRender;
+import com.pedro.encoder.input.gl.render.filters.SepiaFilterRender;
+import com.pedro.encoder.input.gl.render.filters.SharpnessFilterRender;
+import com.pedro.encoder.input.gl.render.filters.TemperatureFilterRender;
+import com.pedro.encoder.input.gl.render.filters.ZebraFilterRender;
 import com.pedro.encoder.utils.gl.GifStreamObject;
 import com.pedro.encoder.utils.gl.ImageStreamObject;
 import com.pedro.encoder.utils.gl.TextStreamObject;
@@ -58,6 +86,7 @@ public class OpenGlRtmpActivity extends AppCompatActivity
   public boolean onOptionsItemSelected(MenuItem item) {
     if (rtmpCamera1.isStreaming()) {
       switch (item.getItemId()) {
+        //stream object
         case R.id.text:
           setTextToStream();
           return true;
@@ -69,6 +98,95 @@ public class OpenGlRtmpActivity extends AppCompatActivity
           return true;
         case R.id.clear:
           rtmpCamera1.clearStreamObject();
+          return true;
+        //filters. NOTE: You can change filter values on fly without re set the filter.
+        // Example:
+        // ColorFilterRender color = new ColorFilterRender()
+        // rtmpCamera1.setFilter(color);
+        // color.setRGBColor(255, 0, 0); //red tint
+        case R.id.no_filter:
+          rtmpCamera1.setFilter(new NoFilterRender());
+          return true;
+        case R.id.basic_deformation:
+          rtmpCamera1.setFilter(new BasicDeformationFilterRender());
+          return true;
+        case R.id.blur:
+          rtmpCamera1.setFilter(new BlurFilterRender());
+          return true;
+        case R.id.brightness:
+          rtmpCamera1.setFilter(new BrightnessFilterRender());
+          return true;
+        case R.id.cartoon:
+          rtmpCamera1.setFilter(new CartoonFilterRender());
+          return true;
+        case R.id.color:
+          rtmpCamera1.setFilter(new ColorFilterRender());
+          return true;
+        case R.id.contrast:
+          rtmpCamera1.setFilter(new ContrastFilterRender());
+          return true;
+        case R.id.duotone:
+          rtmpCamera1.setFilter(new DuotoneFilterRender());
+          return true;
+        case R.id.early_bird:
+          rtmpCamera1.setFilter(new EarlyBirdFilterRender());
+          return true;
+        case R.id.edge_detection:
+          rtmpCamera1.setFilter(new EdgeDetectionFilterRender());
+          return true;
+        case R.id.exposure:
+          rtmpCamera1.setFilter(new ExposureFilterRender());
+          return true;
+        case R.id.fire:
+          rtmpCamera1.setFilter(new FireFilterRender());
+          return true;
+        case R.id.gamma:
+          rtmpCamera1.setFilter(new GammaFilterRender());
+          return true;
+        case R.id.grey_scale:
+          rtmpCamera1.setFilter(new GreyScaleFilterRender());
+          return true;
+        case R.id.halftone_lines:
+          rtmpCamera1.setFilter(new HalftoneLinesFilterRender());
+          return true;
+        case R.id.image_70s:
+          rtmpCamera1.setFilter(new Image70sFilterRender());
+          return true;
+        case R.id.lamoish:
+          rtmpCamera1.setFilter(new LamoishFilterRender());
+          return true;
+        case R.id.money:
+          rtmpCamera1.setFilter(new MoneyFilterRender());
+          return true;
+        case R.id.negative:
+          rtmpCamera1.setFilter(new NegativeFilterRender());
+          return true;
+        case R.id.pixelated:
+          rtmpCamera1.setFilter(new PixelatedFilterRender());
+          return true;
+        case R.id.polygonization:
+          rtmpCamera1.setFilter(new PolygonizationFilterRender());
+          return true;
+        case R.id.rainbow:
+          rtmpCamera1.setFilter(new RainbowFilterRender());
+          return true;
+        case R.id.ripple:
+          rtmpCamera1.setFilter(new RippleFilterRender());
+          return true;
+        case R.id.saturation:
+          rtmpCamera1.setFilter(new SaturationFilterRender());
+          return true;
+        case R.id.sepia:
+          rtmpCamera1.setFilter(new SepiaFilterRender());
+          return true;
+        case R.id.sharpness:
+          rtmpCamera1.setFilter(new SharpnessFilterRender());
+          return true;
+        case R.id.temperature:
+          rtmpCamera1.setFilter(new TemperatureFilterRender());
+          return true;
+        case R.id.zebra:
+          rtmpCamera1.setFilter(new ZebraFilterRender());
           return true;
         default:
           return false;
