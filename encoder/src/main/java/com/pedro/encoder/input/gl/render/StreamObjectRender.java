@@ -104,8 +104,6 @@ public class StreamObjectRender extends BaseRenderOffScreen {
 
     GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, fboId[0]);
     GLES20.glViewport(0, 0, width, height);
-    GLES20.glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-    GLES20.glClear(GLES20.GL_DEPTH_BUFFER_BIT | GLES20.GL_COLOR_BUFFER_BIT);
     GLES20.glUseProgram(program);
 
     squareVertex.position(SQUARE_VERTEX_DATA_POS_OFFSET);

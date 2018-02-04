@@ -13,6 +13,7 @@ import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
+import com.pedro.encoder.input.gl.render.filters.AndroidViewFilterRender;
 import com.pedro.encoder.input.gl.render.filters.BasicDeformationFilterRender;
 import com.pedro.encoder.input.gl.render.filters.BlurFilterRender;
 import com.pedro.encoder.input.gl.render.filters.BrightnessFilterRender;
@@ -106,6 +107,11 @@ public class OpenGlRtmpActivity extends AppCompatActivity
         // color.setRGBColor(255, 0, 0); //red tint
         case R.id.no_filter:
           rtmpCamera1.setFilter(new NoFilterRender());
+          return true;
+        case R.id.android_view:
+          AndroidViewFilterRender androidViewFilterRender = new AndroidViewFilterRender();
+          androidViewFilterRender.setView(button);
+          rtmpCamera1.setFilter(androidViewFilterRender);
           return true;
         case R.id.basic_deformation:
           rtmpCamera1.setFilter(new BasicDeformationFilterRender());

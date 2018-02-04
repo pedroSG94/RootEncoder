@@ -32,6 +32,10 @@
           android:title="@string/no_filter"
           />
       <item
+          android:id="@+id/android_view"
+          android:title="@string/android_view"
+          />
+      <item
           android:id="@+id/basic_deformation"
           android:title="@string/basic_deformation"
           />
