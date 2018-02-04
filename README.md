@@ -49,7 +49,7 @@ dependencies {
 - [x] Encoder type buffer to buffer.
 - [x] Encoder type surface to buffer.
 - [x] RTMP/RTSP auth wowza.
-- [x] Audio noise suppressor.
+- [x] Audio mode suppressor.
 - [x] Audio echo cancellation.
 - [x] Disable/Enable video and audio while streaming.
 - [x] Switch camera while streaming.

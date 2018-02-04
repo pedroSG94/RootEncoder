@@ -2,6 +2,7 @@ package com.pedro.encoder.input.gl.render.filters;
 
 import android.content.Context;
 import android.content.res.Resources;
+import android.graphics.Color;
 import android.opengl.GLES20;
 import android.opengl.Matrix;
 import android.os.Build;
@@ -152,5 +153,21 @@ public class DuotoneFilterRender extends BaseFilterRender {
     String color = resources.getString(colorResource);
     String color2 = resources.getString(colorResource2);
     setRGBColor("#" + color.substring(3), "#" + color2.substring(3));
+  }
+
+  /**
+   * @param colorResource int from color class with Color.parse or Color.NAME_COLOR (Ex:
+   * Color.BLUE)
+   * @param colorResource2 int from color class with Color.parse or Color.NAME_COLOR (Ex:
+   * Color.BLUE)
+   */
+  public void setColor(int colorResource, int colorResource2) {
+    red = Color.red(colorResource) / 255f;
+    green = Color.green(colorResource) / 255f;
+    blue = Color.blue(colorResource) / 255f;
+
+    red2 = Color.red(colorResource2) / 255f;
+    green2 = Color.green(colorResource2) / 255f;
+    blue2 = Color.blue(colorResource2) / 255f;
   }
 }

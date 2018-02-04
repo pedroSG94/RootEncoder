@@ -11,12 +11,11 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 
 /**
- * Created by pedro on 3/02/18.
+ * Created by pedro on 4/02/18.
  */
 
-
 @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
-public class SharpnessFilterRender extends BaseFilterRender{
+public class Image70sFilterRender extends BaseFilterRender{
 
   //rotation matrix
   private final float[] squareVertexDataFilter = {
@@ -33,12 +32,8 @@ public class SharpnessFilterRender extends BaseFilterRender{
   private int uMVPMatrixHandle = -1;
   private int uSTMatrixHandle = -1;
   private int uSamplerHandle = -1;
-  private int uStepSizeHandle = -1;
-  private int uSharpnessHandle = -1;
 
-  private float sharpness = 0f;
-
-  public SharpnessFilterRender() {
+  public Image70sFilterRender() {
     squareVertex = ByteBuffer.allocateDirect(squareVertexDataFilter.length * FLOAT_SIZE_BYTES)
         .order(ByteOrder.nativeOrder())
         .asFloatBuffer();
@@ -50,7 +45,7 @@ public class SharpnessFilterRender extends BaseFilterRender{
   @Override
   protected void initGlFilter(Context context) {
     String vertexShader = GlUtil.getStringFromRaw(context, R.raw.simple_vertex);
-    String fragmentShader = GlUtil.getStringFromRaw(context, R.raw.sharpness_fragment);
+    String fragmentShader = GlUtil.getStringFromRaw(context, R.raw.image70s_fragment);
 
     program = GlUtil.createProgram(vertexShader, fragmentShader);
     aPositionHandle = GLES20.glGetAttribLocation(program, "aPosition");
@@ -58,8 +53,6 @@ public class SharpnessFilterRender extends BaseFilterRender{
     uMVPMatrixHandle = GLES20.glGetUniformLocation(program, "uMVPMatrix");
     uSTMatrixHandle = GLES20.glGetUniformLocation(program, "uSTMatrix");
     uSamplerHandle = GLES20.glGetUniformLocation(program, "uSampler");
-    uStepSizeHandle = GLES20.glGetUniformLocation(program, "uStepSize");
-    uSharpnessHandle = GLES20.glGetUniformLocation(program, "uBrightness");
   }
 
   @Override
@@ -78,8 +71,6 @@ public class SharpnessFilterRender extends BaseFilterRender{
 
     GLES20.glUniformMatrix4fv(uMVPMatrixHandle, 1, false, MVPMatrix, 0);
     GLES20.glUniformMatrix4fv(uSTMatrixHandle, 1, false, STMatrix, 0);
-    GLES20.glUniform2f(uStepSizeHandle, 1f / getWidth(), 1f / getHeight());
-    GLES20.glUniform1f(uSharpnessHandle, sharpness);
 
     GLES20.glUniform1i(uSamplerHandle, 4);
     GLES20.glActiveTexture(GLES20.GL_TEXTURE4);
@@ -89,13 +80,5 @@ public class SharpnessFilterRender extends BaseFilterRender{
   @Override
   public void release() {
 
-  }
-
-  /**
-   *
-   * @param sharpness between 0 and 1. 0 means no change.
-   */
-  public void setSharpness(float sharpness) {
-    this.sharpness = sharpness;
   }
 }

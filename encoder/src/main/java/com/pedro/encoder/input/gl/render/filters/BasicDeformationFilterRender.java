@@ -87,5 +87,4 @@ public class BasicDeformationFilterRender extends BaseFilterRender{
   public void release() {
 
   }
-
 }
