@@ -57,4 +57,12 @@ public abstract class BaseFilterRender extends BaseRenderOffScreen {
   public int getTexId() {
     return texId[0];
   }
+
+  protected int getWidth() {
+    return width;
+  }
+
+  protected int getHeight() {
+    return height;
+  }
 }

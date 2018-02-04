@@ -47,7 +47,7 @@ public class GammaFilterRender extends BaseFilterRender{
 
   @Override
   protected void initGlFilter(Context context) {
-    String vertexShader = GlUtil.getStringFromRaw(context, R.raw.gamma_vertex);
+    String vertexShader = GlUtil.getStringFromRaw(context, R.raw.simple_vertex);
     String fragmentShader = GlUtil.getStringFromRaw(context, R.raw.gamma_fragment);
 
     program = GlUtil.createProgram(vertexShader, fragmentShader);

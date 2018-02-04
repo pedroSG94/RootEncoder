@@ -47,7 +47,7 @@ public class TemperatureFilterRender extends BaseFilterRender{
 
   @Override
   protected void initGlFilter(Context context) {
-    String vertexShader = GlUtil.getStringFromRaw(context, R.raw.temperature_vertex);
+    String vertexShader = GlUtil.getStringFromRaw(context, R.raw.simple_vertex);
     String fragmentShader = GlUtil.getStringFromRaw(context, R.raw.temperature_fragment);
 
     program = GlUtil.createProgram(vertexShader, fragmentShader);

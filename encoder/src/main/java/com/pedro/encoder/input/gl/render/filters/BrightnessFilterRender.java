@@ -47,7 +47,7 @@ public class BrightnessFilterRender extends BaseFilterRender{
 
   @Override
   protected void initGlFilter(Context context) {
-    String vertexShader = GlUtil.getStringFromRaw(context, R.raw.brightness_vertex);
+    String vertexShader = GlUtil.getStringFromRaw(context, R.raw.simple_vertex);
     String fragmentShader = GlUtil.getStringFromRaw(context, R.raw.brightness_fragment);
 
     program = GlUtil.createProgram(vertexShader, fragmentShader);
