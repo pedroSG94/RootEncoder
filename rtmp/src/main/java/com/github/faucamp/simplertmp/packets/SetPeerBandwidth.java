@@ -1,71 +1,74 @@
 package com.github.faucamp.simplertmp.packets;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.util.HashMap;
-import java.util.Map;
+import android.support.annotation.IntDef;
 
-import com.github.faucamp.simplertmp.Util;
 import com.github.faucamp.simplertmp.io.ChunkStreamInfo;
+
+import java.io.IOException;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+
+import okio.Buffer;
+import okio.BufferedSink;
+import okio.BufferedSource;
+import okio.ByteString;
+
+import static com.github.faucamp.simplertmp.packets.RtmpHeader.CHUNK_FULL;
+import static com.github.faucamp.simplertmp.packets.RtmpHeader.CHUNK_RELATIVE_TIMESTAMP_ONLY;
 
 /**
  * Set Peer Bandwidth
  * 
  * Also known as ClientrBW ("client bandwidth") in some RTMP implementations.
  * 
- * @author francois
+ * @author francois, yuhsuan.lin
  */
 public class SetPeerBandwidth extends RtmpPacket {
 
     /**
      * Bandwidth limiting type
      */
-    public static enum LimitType {
+    @IntDef({LIMIT_HARD,
+            LIMIT_SOFT,
+            LIMIT_DYNAMIC})
+    @Retention(RetentionPolicy.SOURCE)
+    public @interface LimitType {}
 
-        /** 
-         * In a hard (0) request, the peer must send the data in the provided bandwidth. 
-         */
-        HARD(0),
-        /** 
-         * In a soft (1) request, the bandwidth is at the discretion of the peer
-         * and the sender can limit the bandwidth.
-         */
-        SOFT(1),
-        /**
-         * In a dynamic (2) request, the bandwidth can be hard or soft.
-         */
-        DYNAMIC(2);
-        private int intValue;
-        private static final Map<Integer, LimitType> quickLookupMap = new HashMap<Integer, LimitType>();
-        
-        static {
-            for (LimitType type : LimitType.values()) {
-                quickLookupMap.put(type.getIntValue(), type);
-            }
-        }
-        
-        private LimitType(int intValue) {
-            this.intValue = intValue;
-        }
-        
-        public int getIntValue() {
-            return intValue;
-        }
-        
-        public static LimitType valueOf(int intValue) {
-            return quickLookupMap.get(intValue);
+    /**
+     * In a hard (0) request, the peer must send the data in the provided bandwidth.
+     */
+    public static final int LIMIT_HARD = 0;
+    /**
+     * In a soft (1) request, the bandwidth is at the discretion of the peer
+     * and the sender can limit the bandwidth.
+     */
+    public static final int LIMIT_SOFT = 1;
+    /**
+     * In a dynamic (2) request, the bandwidth can be hard or soft.
+     */
+    public static final int LIMIT_DYNAMIC = 2;
+
+    @LimitType
+    private static int valueOfLimitType(byte limitType) {
+        switch (limitType) {
+            case LIMIT_HARD:
+            case LIMIT_SOFT:
+            case LIMIT_DYNAMIC:
+                return limitType;
+            default:
+                throw new IllegalArgumentException("Unknown limit type byte: " + ByteString.of(limitType).hex());
         }
     }
+
     private int acknowledgementWindowSize;
-    private LimitType limitType;
+    @LimitType private int limitType;
     
     public SetPeerBandwidth(RtmpHeader header) {
         super(header);
     }
     
-    public SetPeerBandwidth(int acknowledgementWindowSize, LimitType limitType, ChunkStreamInfo channelInfo) {
-        super(new RtmpHeader(channelInfo.canReusePrevHeaderTx(RtmpHeader.MessageType.SET_PEER_BANDWIDTH) ? RtmpHeader.ChunkType.TYPE_2_RELATIVE_TIMESTAMP_ONLY : RtmpHeader.ChunkType.TYPE_0_FULL, ChunkStreamInfo.RTMP_CID_PROTOCOL_CONTROL, RtmpHeader.MessageType.WINDOW_ACKNOWLEDGEMENT_SIZE));
+    public SetPeerBandwidth(int acknowledgementWindowSize, @LimitType int limitType, ChunkStreamInfo channelInfo) {
+        super(new RtmpHeader(channelInfo.canReusePrevHeaderTx(RtmpHeader.MESSAGE_SET_PEER_BANDWIDTH) ? CHUNK_RELATIVE_TIMESTAMP_ONLY : CHUNK_FULL, ChunkStreamInfo.RTMP_CID_PROTOCOL_CONTROL, RtmpHeader.MESSAGE_WINDOW_ACKNOWLEDGEMENT_SIZE));
         this.acknowledgementWindowSize = acknowledgementWindowSize;
         this.limitType = limitType;
     }
@@ -77,29 +80,34 @@ public class SetPeerBandwidth extends RtmpPacket {
     public void setAcknowledgementWindowSize(int acknowledgementWindowSize) {
         this.acknowledgementWindowSize = acknowledgementWindowSize;
     }
-    
-    public LimitType getLimitType() {
+
+    @LimitType
+    public int getLimitType() {
         return limitType;
     }
     
-    public void setLimitType(LimitType limitType) {
+    public void setLimitType(@LimitType int limitType) {
         this.limitType = limitType;
     }
     
     @Override
-    public void readBody(InputStream in) throws IOException {
-        acknowledgementWindowSize = Util.readUnsignedInt32(in);
-        limitType = LimitType.valueOf(in.read());
-    }
-    
-    @Override
-    protected void writeBody(OutputStream out) throws IOException {
-        Util.writeUnsignedInt32(out, acknowledgementWindowSize);
-        out.write(limitType.getIntValue());
+    public void readBody(BufferedSource in) throws IOException {
+        Buffer buffer = new Buffer();
+        in.readFully(buffer, 5); // acknowledgementWindowSize 4 bytes + limitType 1 byte
+        acknowledgementWindowSize = buffer.readInt();
+        limitType = valueOfLimitType(buffer.readByte());
     }
 
     @Override
-    protected byte[] array() {
+    protected void writeBody(BufferedSink out) throws IOException {
+        Buffer buffer = new Buffer();
+        buffer.writeInt(acknowledgementWindowSize);
+        buffer.writeByte(limitType);
+        out.writeAll(buffer);
+    }
+
+    @Override
+    protected Buffer array() {
         return null;
     }
 

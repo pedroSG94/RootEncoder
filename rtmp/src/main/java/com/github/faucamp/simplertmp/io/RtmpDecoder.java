@@ -1,11 +1,7 @@
 package com.github.faucamp.simplertmp.io;
 
-import java.io.IOException;
-import java.io.InputStream;
-
-import android.util.Log;
-
 import com.github.faucamp.simplertmp.packets.Abort;
+import com.github.faucamp.simplertmp.packets.Acknowledgement;
 import com.github.faucamp.simplertmp.packets.Audio;
 import com.github.faucamp.simplertmp.packets.Command;
 import com.github.faucamp.simplertmp.packets.Data;
@@ -16,10 +12,25 @@ import com.github.faucamp.simplertmp.packets.SetPeerBandwidth;
 import com.github.faucamp.simplertmp.packets.UserControl;
 import com.github.faucamp.simplertmp.packets.Video;
 import com.github.faucamp.simplertmp.packets.WindowAckSize;
-import com.github.faucamp.simplertmp.packets.Acknowledgement;
+
+import java.io.IOException;
+
+import okio.Buffer;
+import okio.BufferedSource;
+
+import static com.github.faucamp.simplertmp.packets.RtmpHeader.MESSAGE_ABORT;
+import static com.github.faucamp.simplertmp.packets.RtmpHeader.MESSAGE_ACKNOWLEDGEMENT;
+import static com.github.faucamp.simplertmp.packets.RtmpHeader.MESSAGE_AUDIO;
+import static com.github.faucamp.simplertmp.packets.RtmpHeader.MESSAGE_COMMAND_AMF0;
+import static com.github.faucamp.simplertmp.packets.RtmpHeader.MESSAGE_DATA_AMF0;
+import static com.github.faucamp.simplertmp.packets.RtmpHeader.MESSAGE_SET_CHUNK_SIZE;
+import static com.github.faucamp.simplertmp.packets.RtmpHeader.MESSAGE_SET_PEER_BANDWIDTH;
+import static com.github.faucamp.simplertmp.packets.RtmpHeader.MESSAGE_USER_CONTROL;
+import static com.github.faucamp.simplertmp.packets.RtmpHeader.MESSAGE_VIDEO;
+import static com.github.faucamp.simplertmp.packets.RtmpHeader.MESSAGE_WINDOW_ACKNOWLEDGEMENT_SIZE;
 
 /**
- * @author francois
+ * @author francois, yuhsuan.lin
  */
 public class RtmpDecoder {
 
@@ -31,7 +42,7 @@ public class RtmpDecoder {
         this.rtmpSessionInfo = rtmpSessionInfo;
     }
 
-    public RtmpPacket readPacket(InputStream in) throws IOException {
+    public RtmpPacket readPacket(BufferedSource in) throws IOException {
 
         RtmpHeader header = RtmpHeader.readHeader(in, rtmpSessionInfo);
         // Log.d(TAG, "readPacket(): header.messageType: " + header.getMessageType());
@@ -53,43 +64,47 @@ public class RtmpDecoder {
 
         RtmpPacket rtmpPacket;
         switch (header.getMessageType()) {
-            case SET_CHUNK_SIZE:
+            case MESSAGE_SET_CHUNK_SIZE:
                 SetChunkSize setChunkSize = new SetChunkSize(header);
                 setChunkSize.readBody(in);
-                Log.d(TAG, "readPacket(): Setting chunk size to: " + setChunkSize.getChunkSize());
+                //Log.d(TAG, "readPacket(): Setting chunk size to: " + setChunkSize.getChunkSize());
                 rtmpSessionInfo.setRxChunkSize(setChunkSize.getChunkSize());
                 return null;
-            case ABORT:
+            case MESSAGE_ABORT:
                 rtmpPacket = new Abort(header);
                 break;
-            case USER_CONTROL_MESSAGE:
+            case MESSAGE_USER_CONTROL:
                 rtmpPacket = new UserControl(header);
                 break;
-            case WINDOW_ACKNOWLEDGEMENT_SIZE:
+            case MESSAGE_WINDOW_ACKNOWLEDGEMENT_SIZE:
                 rtmpPacket = new WindowAckSize(header);
                 break;
-            case SET_PEER_BANDWIDTH:
+            case MESSAGE_SET_PEER_BANDWIDTH:
                 rtmpPacket = new SetPeerBandwidth(header);
                 break;
-            case AUDIO:
+            case MESSAGE_AUDIO:
                 rtmpPacket = new Audio(header);
                 break;
-            case VIDEO:
+            case MESSAGE_VIDEO:
                 rtmpPacket = new Video(header);
                 break;
-            case COMMAND_AMF0:
+            case MESSAGE_COMMAND_AMF0:
                 rtmpPacket = new Command(header);
                 break;
-            case DATA_AMF0:
+            case MESSAGE_DATA_AMF0:
                 rtmpPacket = new Data(header);
                 break;
-            case ACKNOWLEDGEMENT:
+            case MESSAGE_ACKNOWLEDGEMENT:
                 rtmpPacket = new Acknowledgement(header);
                 break;
             default:
                 throw new IOException("No packet body implementation for message type: " + header.getMessageType());
-        }                
-        rtmpPacket.readBody(in);                        
+        }
+        Buffer buffer = new Buffer();
+        in.readFully(buffer, header.getPacketLength());
+        rtmpPacket.readBody(buffer);
         return rtmpPacket;
     }
+
+
 }

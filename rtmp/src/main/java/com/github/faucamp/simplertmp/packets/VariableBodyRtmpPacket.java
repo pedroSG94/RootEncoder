@@ -1,17 +1,18 @@
 package com.github.faucamp.simplertmp.packets;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.util.ArrayList;
-import java.util.List;
-
 import com.github.faucamp.simplertmp.amf.AmfBoolean;
 import com.github.faucamp.simplertmp.amf.AmfData;
 import com.github.faucamp.simplertmp.amf.AmfDecoder;
 import com.github.faucamp.simplertmp.amf.AmfNull;
 import com.github.faucamp.simplertmp.amf.AmfNumber;
 import com.github.faucamp.simplertmp.amf.AmfString;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+
+import okio.BufferedSink;
+import okio.BufferedSource;
 
 /**
  * RTMP packet with a "variable" body structure (i.e. the structure of the
@@ -20,7 +21,7 @@ import com.github.faucamp.simplertmp.amf.AmfString;
  * Examples of this type of packet are Command and Data; this abstract class
  * exists mostly for code re-use.
  * 
- * @author francois
+ * @author francois, yuhsuan.lin
  */
 public abstract class VariableBodyRtmpPacket extends RtmpPacket {
 
@@ -48,7 +49,7 @@ public abstract class VariableBodyRtmpPacket extends RtmpPacket {
 
     public void addData(AmfData dataItem) {
         if (data == null) {
-            this.data = new ArrayList<AmfData>();
+            this.data = new ArrayList<>();
         }
         if (dataItem == null) {
             dataItem = new AmfNull();
@@ -56,7 +57,7 @@ public abstract class VariableBodyRtmpPacket extends RtmpPacket {
         this.data.add(dataItem);
     }
 
-    protected void readVariableData(final InputStream in, int bytesAlreadyRead) throws IOException {
+    protected void readVariableData(final BufferedSource in, int bytesAlreadyRead) throws IOException {
         // ...now read in arguments (if any)
         do {
             AmfData dataItem = AmfDecoder.readFrom(in);
@@ -65,7 +66,7 @@ public abstract class VariableBodyRtmpPacket extends RtmpPacket {
         } while (bytesAlreadyRead < header.getPacketLength());
     }
 
-    protected void writeVariableData(final OutputStream out) throws IOException {
+    protected void writeVariableData(final BufferedSink out) throws IOException {
         if (data != null) {
             for (AmfData dataItem : data) {
                 dataItem.writeTo(out);

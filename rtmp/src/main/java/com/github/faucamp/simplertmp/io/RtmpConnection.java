@@ -1,6 +1,7 @@
 package com.github.faucamp.simplertmp.io;
 
 import android.util.Log;
+
 import com.github.faucamp.simplertmp.RtmpPublisher;
 import com.github.faucamp.simplertmp.Util;
 import com.github.faucamp.simplertmp.amf.AmfMap;
@@ -18,12 +19,12 @@ import com.github.faucamp.simplertmp.packets.SetPeerBandwidth;
 import com.github.faucamp.simplertmp.packets.UserControl;
 import com.github.faucamp.simplertmp.packets.Video;
 import com.github.faucamp.simplertmp.packets.WindowAckSize;
-import java.io.BufferedInputStream;
-import java.io.BufferedOutputStream;
+
+import net.ossrs.rtmp.ConnectCheckerRtmp;
+import net.ossrs.rtmp.CreateSSLSocket;
+
 import java.io.EOFException;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.SocketAddress;
@@ -33,8 +34,19 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import net.ossrs.rtmp.ConnectCheckerRtmp;
-import net.ossrs.rtmp.CreateSSLSocket;
+
+import okio.BufferedSink;
+import okio.BufferedSource;
+import okio.Okio;
+
+import static com.github.faucamp.simplertmp.packets.RtmpHeader.MESSAGE_ABORT;
+import static com.github.faucamp.simplertmp.packets.RtmpHeader.MESSAGE_COMMAND_AMF0;
+import static com.github.faucamp.simplertmp.packets.RtmpHeader.MESSAGE_SET_PEER_BANDWIDTH;
+import static com.github.faucamp.simplertmp.packets.RtmpHeader.MESSAGE_USER_CONTROL;
+import static com.github.faucamp.simplertmp.packets.RtmpHeader.MESSAGE_WINDOW_ACKNOWLEDGEMENT_SIZE;
+import static com.github.faucamp.simplertmp.packets.UserControl.CONTROL_PING_REQUEST;
+import static com.github.faucamp.simplertmp.packets.UserControl.CONTROL_STREAM_BEGIN;
+import static com.github.faucamp.simplertmp.packets.UserControl.CONTROL_STREAM_EOF;
 
 /**
  * Main RTMP connection implementation class
@@ -61,8 +73,8 @@ public class RtmpConnection implements RtmpPublisher {
   private String socketExceptionCause = "";
   private RtmpSessionInfo rtmpSessionInfo;
   private RtmpDecoder rtmpDecoder;
-  private BufferedInputStream inputStream;
-  private BufferedOutputStream outputStream;
+  private BufferedSource inputStream;
+  private BufferedSink outputStream;
   private Thread rxPacketHandler;
   private volatile boolean connected = false;
   private volatile boolean publishPermitted = false;
@@ -87,7 +99,7 @@ public class RtmpConnection implements RtmpPublisher {
     this.connectCheckerRtmp = connectCheckerRtmp;
   }
 
-  private void handshake(InputStream in, OutputStream out) throws IOException {
+  private static void handshake(BufferedSource in, BufferedSink out) throws IOException {
     Handshake handshake = new Handshake();
     handshake.writeC0(out);
     handshake.writeC1(out); // Write C1 without waiting for S0
@@ -143,8 +155,8 @@ public class RtmpConnection implements RtmpPublisher {
       } else {
         socket = CreateSSLSocket.createSSlSocket(host, port);
       }
-      inputStream = new BufferedInputStream(socket.getInputStream());
-      outputStream = new BufferedOutputStream(socket.getOutputStream());
+      inputStream = Okio.buffer(Okio.source(socket));
+      outputStream = Okio.buffer(Okio.sink(socket));
       Log.d(TAG, "connect(): socket connection established, doing handhake...");
       handshake(inputStream, outputStream);
       Log.d(TAG, "connect(): handshake done");
@@ -525,23 +537,23 @@ public class RtmpConnection implements RtmpPublisher {
         if (rtmpPacket != null) {
           //Log.d(TAG, "handleRxPacketLoop(): RTMP rx packet message type: " + rtmpPacket.getHeader().getMessageType());
           switch (rtmpPacket.getHeader().getMessageType()) {
-            case ABORT:
+            case MESSAGE_ABORT:
               rtmpSessionInfo.getChunkStreamInfo(((Abort) rtmpPacket).getChunkStreamId())
                   .clearStoredChunks();
               break;
-            case USER_CONTROL_MESSAGE:
+            case MESSAGE_USER_CONTROL:
               UserControl user = (UserControl) rtmpPacket;
               switch (user.getType()) {
-                case STREAM_BEGIN:
+                case CONTROL_STREAM_BEGIN:
                   break;
-                case PING_REQUEST:
+                case CONTROL_PING_REQUEST:
                   ChunkStreamInfo channelInfo =
                       rtmpSessionInfo.getChunkStreamInfo(ChunkStreamInfo.RTMP_CID_PROTOCOL_CONTROL);
                   Log.d(TAG, "handleRxPacketLoop(): Sending PONG reply..");
                   UserControl pong = new UserControl(user, channelInfo);
                   sendRtmpPacket(pong);
                   break;
-                case STREAM_EOF:
+                case CONTROL_STREAM_EOF:
                   Log.i(TAG, "handleRxPacketLoop(): Stream EOF reached, closing RTMP writer...");
                   break;
                 default:
@@ -549,13 +561,13 @@ public class RtmpConnection implements RtmpPublisher {
                   break;
               }
               break;
-            case WINDOW_ACKNOWLEDGEMENT_SIZE:
+            case MESSAGE_WINDOW_ACKNOWLEDGEMENT_SIZE:
               WindowAckSize windowAckSize = (WindowAckSize) rtmpPacket;
               int size = windowAckSize.getAcknowledgementWindowSize();
               Log.d(TAG, "handleRxPacketLoop(): Setting acknowledgement window size: " + size);
               rtmpSessionInfo.setAcknowledgmentWindowSize(size);
               break;
-            case SET_PEER_BANDWIDTH:
+            case MESSAGE_SET_PEER_BANDWIDTH:
               SetPeerBandwidth bw = (SetPeerBandwidth) rtmpPacket;
               rtmpSessionInfo.setAcknowledgmentWindowSize(bw.getAcknowledgementWindowSize());
               int acknowledgementWindowsize = rtmpSessionInfo.getAcknowledgementWindowSize();
@@ -567,7 +579,7 @@ public class RtmpConnection implements RtmpPublisher {
               // Set socket option
               socket.setSendBufferSize(acknowledgementWindowsize);
               break;
-            case COMMAND_AMF0:
+            case MESSAGE_COMMAND_AMF0:
               handleRxInvoke((Command) rtmpPacket);
               break;
             default:
@@ -617,8 +629,8 @@ public class RtmpConnection implements RtmpPublisher {
             } else {
               socket = CreateSSLSocket.createSSlSocket(host, port);
             }
-            inputStream = new BufferedInputStream(socket.getInputStream());
-            outputStream = new BufferedOutputStream(socket.getOutputStream());
+            inputStream = Okio.buffer(Okio.source(socket));
+            outputStream = Okio.buffer(Okio.sink(socket));
             Log.d(TAG, "connect(): socket connection established, doing handshake...");
             salt = Util.getSalt(description);
             challenge = Util.getChallenge(description);

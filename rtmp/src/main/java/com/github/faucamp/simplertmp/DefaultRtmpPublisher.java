@@ -1,7 +1,7 @@
 package com.github.faucamp.simplertmp;
 
 import com.github.faucamp.simplertmp.io.RtmpConnection;
-import java.io.InputStream;
+
 import net.ossrs.rtmp.ConnectCheckerRtmp;
 
 /**

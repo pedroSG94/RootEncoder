@@ -1,17 +1,17 @@
 package com.github.faucamp.simplertmp.amf;
 
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
-import com.github.faucamp.simplertmp.Util;
+import okio.BufferedSink;
+import okio.BufferedSource;
 
 /**
  * AMF Array
  * 
- * @author francois
+ * @author francois, yuhsuan.lin
  */
 public class AmfArray implements AmfData {
 
@@ -19,16 +19,16 @@ public class AmfArray implements AmfData {
     private int size = -1;
 
     @Override
-    public void writeTo(OutputStream out) throws IOException {
+    public void writeTo(BufferedSink out) throws IOException {
         throw new UnsupportedOperationException("Not supported yet.");
     }
 
     @Override
-    public void readFrom(InputStream in) throws IOException {
+    public void readFrom(BufferedSource in) throws IOException {
         // Skip data type byte (we assume it's already read)
-        int length = Util.readUnsignedInt32(in);
+        int length = in.readInt();
         size = 5; // 1 + 4
-        items = new ArrayList<AmfData>(length);
+        items = new ArrayList<>(length);
         for (int i = 0; i < length; i++) {
             AmfData dataItem = AmfDecoder.readFrom(in);
             size += dataItem.getSize();
@@ -56,7 +56,7 @@ public class AmfArray implements AmfData {
 
     public List<AmfData> getItems() {
         if (items == null) {
-            items = new ArrayList<AmfData>();
+            items = Collections.emptyList();
         }
         return items;
     }

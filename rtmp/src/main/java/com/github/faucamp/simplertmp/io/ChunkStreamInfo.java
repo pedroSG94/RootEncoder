@@ -1,17 +1,17 @@
 package com.github.faucamp.simplertmp.io;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-
-import com.github.faucamp.simplertmp.Util;
 import com.github.faucamp.simplertmp.packets.RtmpHeader;
+import com.github.faucamp.simplertmp.packets.RtmpHeader.MessageType;
+
+import java.io.IOException;
+
+import okio.Buffer;
+import okio.BufferedSource;
 
 /**
  * Chunk stream channel information
  * 
- * @author francois, leo
+ * @author francois, leo, yuhsuan.lin
  */
 public class ChunkStreamInfo {
 
@@ -21,11 +21,12 @@ public class ChunkStreamInfo {
     public static final byte RTMP_CID_OVER_STREAM = 0x05;
     public static final byte RTMP_CID_VIDEO = 0x06;
     public static final byte RTMP_CID_AUDIO = 0x07;
+
     private RtmpHeader prevHeaderRx;
     private RtmpHeader prevHeaderTx;
     private static long sessionBeginTimestamp;
     private long realLastTimestamp = System.nanoTime() / 1000000;  // Do not use wall time!
-    private ByteArrayOutputStream baos = new ByteArrayOutputStream(1024 * 128);
+    private Buffer buffer = new Buffer();
 
     /** @return the previous header that was received on this channel, or <code>null</code> if no previous header was received */
     public RtmpHeader prevHeaderRx() {
@@ -42,7 +43,7 @@ public class ChunkStreamInfo {
         return prevHeaderTx;
     }
 
-    public boolean canReusePrevHeaderTx(RtmpHeader.MessageType forMessageType) {
+    public boolean canReusePrevHeaderTx(@MessageType int forMessageType) {
         return (prevHeaderTx != null && prevHeaderTx.getMessageType() == forMessageType);
     }
 
@@ -69,23 +70,21 @@ public class ChunkStreamInfo {
         return diffTimestamp;
     }
 
-    /** @return <code>true</code> if all packet data has been stored, or <code>false</code> if not */
-    public boolean storePacketChunk(InputStream in, int chunkSize) throws IOException {
-        final int remainingBytes = prevHeaderRx.getPacketLength() - baos.size();
-        byte[] chunk = new byte[Math.min(remainingBytes, chunkSize)];
-        Util.readBytesUntilFull(in, chunk);
-        baos.write(chunk);
-        return (baos.size() == prevHeaderRx.getPacketLength());
+    public boolean storePacketChunk(BufferedSource in, long chunkSize) throws IOException {
+        final long remainingBytes = prevHeaderRx.getPacketLength() - buffer.size();
+        byte[] chunk = new byte[(int) Math.min(remainingBytes, chunkSize)];
+        in.readFully(chunk);
+        return buffer.write(chunk).size() == prevHeaderRx.getPacketLength();
     }
 
-    public ByteArrayInputStream getStoredPacketInputStream() {
-        ByteArrayInputStream bis = new ByteArrayInputStream(baos.toByteArray());
-        baos.reset();
-        return bis;
+    public BufferedSource getStoredPacketInputStream() {
+        Buffer newBuffer = buffer.clone();
+        buffer.clear();
+        return newBuffer;
     }
-    
+
     /** Clears all currently-stored packet chunks (used when an ABORT packet is received) */
     public void clearStoredChunks() {
-        baos.reset();
+        buffer.clear();
     }
 }

@@ -1,15 +1,16 @@
 package com.github.faucamp.simplertmp.packets;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-
 import com.github.faucamp.simplertmp.io.ChunkStreamInfo;
+
+import java.io.IOException;
+
+import okio.Buffer;
+import okio.BufferedSink;
+import okio.BufferedSource;
 
 /**
  *
- * @author francois, leo
+ * @author francois, leo, yuhsuan.lin
  */
 public abstract class RtmpPacket {
      
@@ -23,31 +24,30 @@ public abstract class RtmpPacket {
         return header;
     }
     
-    public abstract void readBody(InputStream in) throws IOException;    
-    
-    protected abstract void writeBody(OutputStream out) throws IOException;
+    public abstract void readBody(BufferedSource in) throws IOException;
 
-    protected abstract byte[] array();
+    protected abstract void writeBody(BufferedSink out) throws IOException;
+
+    protected abstract Buffer array();
 
     protected abstract int size();
 
-    public void writeTo(OutputStream out, final int chunkSize, final ChunkStreamInfo chunkStreamInfo) throws IOException {
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        writeBody(baos);
-        byte[] body = this instanceof ContentData ? array() : baos.toByteArray();
-        int length = this instanceof ContentData ? size() : body.length;
+    public void writeTo(BufferedSink out, final int chunkSize, final ChunkStreamInfo chunkStreamInfo) throws IOException {
+        Buffer body = new Buffer(), outBuffer = new Buffer();
+        writeBody(body);
+        body = this instanceof ContentData ? array() : body;
+        int length = this instanceof ContentData ? size() : (int) body.size();
         header.setPacketLength(length);
         // Write header for first chunk
-        header.writeTo(out, RtmpHeader.ChunkType.TYPE_0_FULL, chunkStreamInfo);
-        int pos = 0;
+        header.writeTo(outBuffer, RtmpHeader.CHUNK_FULL, chunkStreamInfo);
         while (length > chunkSize) {
             // Write packet for chunk
-            out.write(body, pos, chunkSize);
+            outBuffer.write(body, chunkSize);
             length -= chunkSize;
-            pos += chunkSize;
             // Write header for remain chunk
-            header.writeTo(out, RtmpHeader.ChunkType.TYPE_3_RELATIVE_SINGLE_BYTE, chunkStreamInfo);
+            header.writeTo(outBuffer, RtmpHeader.CHUNK_RELATIVE_SINGLE_BYTE, chunkStreamInfo);
         }
-        out.write(body, pos, length);
+        outBuffer.write(body, length);
+        out.writeAll(outBuffer);
     }
 }

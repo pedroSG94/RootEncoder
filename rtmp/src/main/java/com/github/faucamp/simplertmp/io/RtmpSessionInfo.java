@@ -1,14 +1,16 @@
 package com.github.faucamp.simplertmp.io;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
+import android.support.v4.util.SparseArrayCompat;
 
 import com.github.faucamp.simplertmp.packets.RtmpPacket;
 
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+
+
 /**
  *
- * @author francois
+ * @author francois, yuhsuan.lin
  */
 public class RtmpSessionInfo {
 
@@ -22,8 +24,8 @@ public class RtmpSessionInfo {
     /** Default chunk size is 128 bytes */
     private int rxChunkSize = 128;
     private int txChunkSize = 128;
-    private Map<Integer, ChunkStreamInfo> chunkChannels = new HashMap<Integer, ChunkStreamInfo>();
-    private Map<Integer, String> invokedMethods = new ConcurrentHashMap<Integer, String>();
+    private SparseArrayCompat<ChunkStreamInfo> chunkChannels = new SparseArrayCompat<>();
+    private Map<Integer, String> invokedMethods = new ConcurrentHashMap<>();
 
     public ChunkStreamInfo getChunkStreamInfo(int chunkStreamId) {
         ChunkStreamInfo chunkStreamInfo = chunkChannels.get(chunkStreamId);

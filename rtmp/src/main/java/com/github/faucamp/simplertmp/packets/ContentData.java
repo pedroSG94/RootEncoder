@@ -1,38 +1,38 @@
 package com.github.faucamp.simplertmp.packets;
 
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 
-import com.github.faucamp.simplertmp.Util;
+import okio.Buffer;
+import okio.BufferedSink;
+import okio.BufferedSource;
 
 /**
  * Content (audio/video) data packet base
  *  
- * @author francois
+ * @author francois, yuhsuan.lin
  */
 public abstract class ContentData extends RtmpPacket {
 
-    protected byte[] data;
+    protected Buffer data;
     protected int size;
 
     public ContentData(RtmpHeader header) {
         super(header);
     }
 
-    public byte[] getData() {
+    public Buffer getData() {
         return data;
     }
 
     public void setData(byte[] data, int size) {
-        this.data = data;
+        this.data = new Buffer().write(data);
         this.size = size;
     }
 
     @Override
-    public void readBody(InputStream in) throws IOException {
-        data = new byte[this.header.getPacketLength()];
-        Util.readBytesUntilFull(in, data);
+    public void readBody(BufferedSource in) throws IOException {
+        data = new Buffer();
+        in.readFully(data, header.getPacketLength());
     }
 
     /**
@@ -41,11 +41,11 @@ public abstract class ContentData extends RtmpPacket {
      * useful for dumping audio/video streams
      */
     @Override
-    public void writeBody(OutputStream out) throws IOException {
+    public void writeBody(BufferedSink out) throws IOException {
     }
 
     @Override
-    public byte[] array() {
+    public Buffer array() {
         return data;
     }
 
