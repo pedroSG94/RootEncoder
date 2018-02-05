@@ -20,7 +20,6 @@ import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.egl.EGLContext;
 import javax.microedition.khronos.egl.EGLDisplay;
 import javax.microedition.khronos.egl.EGLSurface;
-
 /**
  * Created by pedro on 20/01/17.
  * This class need use same resolution, fps and imageFormat that VideoEncoder
@@ -33,7 +32,7 @@ import javax.microedition.khronos.egl.EGLSurface;
  * https://chromium.googlesource.com/libyuv/libyuv/
  */
 
-public class Camera1ApiManager implements Camera.PreviewCallback {
+public class Camera1ApiManager implements Camera.PreviewCallback, Camera.FaceDetectionListener {
 
   private String TAG = "Camera1ApiManager";
   private Camera camera = null;
@@ -149,7 +148,6 @@ public class Camera1ApiManager implements Camera.PreviewCallback {
                 parameters.setFocusMode(supportedFocusModes.get(0));
               }
             }
-
             camera.setParameters(parameters);
             camera.setDisplayOrientation(orientation);
             if (surfaceView != null) {
@@ -462,5 +460,16 @@ public class Camera1ApiManager implements Camera.PreviewCallback {
       camera.setParameters(parameters);
       lanternEnable = false;
     }
+  }
+
+  public void enableFaceDetection() {
+    if (camera != null) {
+      camera.setFaceDetectionListener(this);
+    }
+  }
+
+  @Override
+  public void onFaceDetection(Camera.Face[] faces, Camera camera) {
+
   }
 }
