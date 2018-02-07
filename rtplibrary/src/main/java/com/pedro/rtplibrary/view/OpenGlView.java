@@ -196,7 +196,7 @@ public class OpenGlView extends SurfaceView
     try {
       while (running) {
         synchronized (sync) {
-          sync.wait(100);
+          sync.wait(10);
           if (frameAvailable) {
             frameAvailable = false;
             surfaceManager.makeCurrent();
@@ -232,8 +232,6 @@ public class OpenGlView extends SurfaceView
               surfaceManagerEncoder.setPresentationTime(ts);
               surfaceManagerEncoder.swapBuffer();
             }
-          } else {
-            Log.e(TAG, "No frame received !");
           }
           //set new parameters
           if (loadAlpha) {
