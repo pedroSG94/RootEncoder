@@ -15,6 +15,7 @@ import android.widget.EditText;
 import android.widget.Toast;
 import com.pedro.encoder.input.gl.render.filters.AndroidViewFilterRender;
 import com.pedro.encoder.input.gl.render.filters.BasicDeformationFilterRender;
+import com.pedro.encoder.input.gl.render.filters.BeautyFilterRender;
 import com.pedro.encoder.input.gl.render.filters.BlurFilterRender;
 import com.pedro.encoder.input.gl.render.filters.BrightnessFilterRender;
 import com.pedro.encoder.input.gl.render.filters.CartoonFilterRender;
@@ -115,6 +116,9 @@ public class OpenGlRtmpActivity extends AppCompatActivity
           return true;
         case R.id.basic_deformation:
           rtmpCamera1.setFilter(new BasicDeformationFilterRender());
+          return true;
+        case R.id.beauty:
+          rtmpCamera1.setFilter(new BeautyFilterRender());
           return true;
         case R.id.blur:
           rtmpCamera1.setFilter(new BlurFilterRender());
