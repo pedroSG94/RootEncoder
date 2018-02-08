@@ -85,6 +85,10 @@ public class Camera1ApiManager implements Camera.PreviewCallback, Camera.FaceDet
     previewSizeBack = getPreviewSize();
   }
 
+  public void setSurfaceTexture(SurfaceTexture surfaceTexture) {
+    this.surfaceTexture = surfaceTexture;
+  }
+
   public void prepareCamera(int width, int height, int fps, int imageFormat) {
     this.width = width;
     this.height = height;
@@ -219,11 +223,11 @@ public class Camera1ApiManager implements Camera.PreviewCallback, Camera.FaceDet
       camera.release();
       camera = null;
       if (surfaceView != null) {
-        clearSurface(surfaceView.getHolder());
+        //clearSurface(surfaceView.getHolder());
       } else if (textureView != null) {
-        clearSurface(textureView.getSurfaceTexture());
+        //clearSurface(textureView.getSurfaceTexture());
       } else {
-        clearSurface(surfaceTexture);
+        //clearSurface(surfaceTexture);
       }
     }
     if (handlerThread != null) {

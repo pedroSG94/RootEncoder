@@ -13,7 +13,6 @@ import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.SurfaceHolder;
-import android.view.SurfaceView;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.ArrayAdapter;
@@ -26,8 +25,9 @@ import android.widget.Spinner;
 import android.widget.Toast;
 import com.pedro.encoder.input.video.CameraOpenException;
 import com.pedro.encoder.input.video.EffectManager;
-import com.pedro.rtpstreamer.R;
 import com.pedro.rtplibrary.rtmp.RtmpCamera1;
+import com.pedro.rtplibrary.view.OpenGlView;
+import com.pedro.rtpstreamer.R;
 import java.io.File;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
@@ -71,7 +71,7 @@ public class RtmpActivity extends AppCompatActivity
     getSupportActionBar().setDisplayHomeAsUpEnabled(true);
     getSupportActionBar().setHomeButtonEnabled(true);
 
-    SurfaceView surfaceView = findViewById(R.id.surfaceView);
+    OpenGlView surfaceView = findViewById(R.id.surfaceView);
     surfaceView.getHolder().addCallback(this);
     rtmpCamera1 = new RtmpCamera1(surfaceView, this);
     prepareOptionsMenuViews();
@@ -398,16 +398,15 @@ public class RtmpActivity extends AppCompatActivity
 
   @Override
   public void surfaceCreated(SurfaceHolder surfaceHolder) {
+  }
+
+  @Override
+  public void surfaceChanged(SurfaceHolder surfaceHolder, int i, int i1, int i2) {
     rtmpCamera1.startPreview();
     // optionally:
     //rtmpCamera1.startPreview(Camera.CameraInfo.CAMERA_FACING_BACK);
     //or
     //rtmpCamera1.startPreview(Camera.CameraInfo.CAMERA_FACING_FRONT);
-  }
-
-  @Override
-  public void surfaceChanged(SurfaceHolder surfaceHolder, int i, int i1, int i2) {
-
   }
 
   @Override

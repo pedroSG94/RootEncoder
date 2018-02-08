@@ -90,6 +90,8 @@ public abstract class Camera1Base
   public Camera1Base(OpenGlView openGlView) {
     context = openGlView.getContext();
     this.openGlView = openGlView;
+    this.openGlView.init();
+    cameraManager = new Camera1ApiManager(openGlView.getSurfaceTexture(), openGlView.getContext());
     videoEncoder = new VideoEncoder(this);
     microphoneManager = new MicrophoneManager(this);
     audioEncoder = new AudioEncoder(this);
@@ -249,9 +251,9 @@ public abstract class Camera1Base
   public void startPreview(@Camera1Facing int cameraFacing, int width, int height) {
     if (!isStreaming() && !onPreview) {
       if (openGlView != null && Build.VERSION.SDK_INT >= 18) {
+        openGlView.setEncoderSize(width, height);
         openGlView.startGLThread(false);
-        cameraManager =
-            new Camera1ApiManager(openGlView.getSurfaceTexture(), openGlView.getContext());
+        cameraManager.setSurfaceTexture(openGlView.getSurfaceTexture());
       }
       cameraManager.prepareCamera();
       if (width == 0 || height == 0) {
@@ -346,8 +348,7 @@ public abstract class Camera1Base
       }
       openGlView.startGLThread(false);
       openGlView.addMediaCodecSurface(videoEncoder.getInputSurface());
-      cameraManager =
-          new Camera1ApiManager(openGlView.getSurfaceTexture(), openGlView.getContext());
+      cameraManager.setSurfaceTexture(openGlView.getSurfaceTexture());
       cameraManager.prepareCamera(videoEncoder.getWidth(), videoEncoder.getHeight(),
           videoEncoder.getFps(), ImageFormat.NV21);
     }
@@ -371,7 +372,6 @@ public abstract class Camera1Base
     videoEncoder.stop();
     audioEncoder.stop();
     if (openGlView != null && Build.VERSION.SDK_INT >= 18) {
-      openGlView.stopGlThread();
       openGlView.removeMediaCodecSurface();
     }
     streaming = false;

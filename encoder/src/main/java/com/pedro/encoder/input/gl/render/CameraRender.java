@@ -49,15 +49,7 @@ public class CameraRender extends BaseRenderOffScreen {
   private SurfaceTexture surfaceTexture;
   private Surface surface;
 
-  public CameraRender(boolean isCamera2Landscape) {
-    squareVertex = ByteBuffer.allocateDirect(squareVertexDataCamera.length * FLOAT_SIZE_BYTES)
-        .order(ByteOrder.nativeOrder())
-        .asFloatBuffer();
-    if (isCamera2Landscape) {
-      squareVertex.put(squareVertexDataCamera2LandScape).position(0);
-    } else {
-      squareVertex.put(squareVertexDataCamera).position(0);
-    }
+  public CameraRender() {
     Matrix.setIdentityM(MVPMatrix, 0);
     Matrix.setIdentityM(STMatrix, 0);
   }
@@ -78,7 +70,6 @@ public class CameraRender extends BaseRenderOffScreen {
 
     //camera texture
     GlUtil.createExternalTextures(1, textureID, 0);
-
     surfaceTexture = new SurfaceTexture(textureID[0]);
     surface = new Surface(surfaceTexture);
     initFBO(width, height);
@@ -134,5 +125,16 @@ public class CameraRender extends BaseRenderOffScreen {
 
   public Surface getSurface() {
     return surface;
+  }
+
+  public void isCamera2LandScape(boolean isCamera2Landscape) {
+    squareVertex = ByteBuffer.allocateDirect(squareVertexDataCamera.length * FLOAT_SIZE_BYTES)
+        .order(ByteOrder.nativeOrder())
+        .asFloatBuffer();
+    if (isCamera2Landscape) {
+      squareVertex.put(squareVertexDataCamera2LandScape).position(0);
+    } else {
+      squareVertex.put(squareVertexDataCamera).position(0);
+    }
   }
 }

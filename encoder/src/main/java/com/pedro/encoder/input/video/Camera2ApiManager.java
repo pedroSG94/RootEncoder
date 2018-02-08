@@ -58,8 +58,8 @@ public class Camera2ApiManager extends CameraDevice.StateCallback {
   private boolean prepared = false;
   private int cameraId = -1;
   private Surface preview;
-  private boolean faceDetectionSupported = false;
-  private Integer faceDetectionMode;
+  //private boolean faceDetectionSupported = false;
+  //private Integer faceDetectionMode;
 
   public Camera2ApiManager(Context context) {
     cameraManager = (CameraManager) context.getSystemService(Context.CAMERA_SERVICE);
@@ -109,25 +109,11 @@ public class Camera2ApiManager extends CameraDevice.StateCallback {
           try {
             if (surfaceView != null || textureView != null) {
               cameraCaptureSession.setRepeatingBurst(
-                  Arrays.asList(drawPreview(preview), drawInputSurface(surfaceEncoder)), new CameraCaptureSession.CaptureCallback() {
-                    @Override
-                    public void onCaptureCompleted(@NonNull CameraCaptureSession session,
-                        @NonNull CaptureRequest request, @NonNull TotalCaptureResult result) {
-                      Face face[] = result.get(CaptureResult.STATISTICS_FACES);
-                      Log.e("Pedro", "faces: " + face.length);
-                    }
-                  },
+                  Arrays.asList(drawPreview(preview), drawInputSurface(surfaceEncoder)), null,
                   cameraHandler);
             } else {
               cameraCaptureSession.setRepeatingBurst(
-                  Collections.singletonList(drawInputSurface(surfaceEncoder)), new CameraCaptureSession.CaptureCallback() {
-                    @Override
-                    public void onCaptureCompleted(@NonNull CameraCaptureSession session,
-                        @NonNull CaptureRequest request, @NonNull TotalCaptureResult result) {
-                      Face face[] = result.get(CaptureResult.STATISTICS_FACES);
-                      Log.e("Pedro", "faces: " + face.length);
-                    }
-                  }, cameraHandler);
+                  Collections.singletonList(drawInputSurface(surfaceEncoder)), null, cameraHandler);
             }
             Log.i(TAG, "camera configured");
           } catch (CameraAccessException | NullPointerException e) {
@@ -175,7 +161,7 @@ public class Camera2ApiManager extends CameraDevice.StateCallback {
       CaptureRequest.Builder builder =
           cameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_RECORD);
       builder.addTarget(surface);
-      setFaceDetect(builder, faceDetectionMode);
+      //setFaceDetect(builder, faceDetectionMode);
       return builder.build();
     } catch (CameraAccessException e) {
       Log.e(TAG, e.getMessage());
@@ -251,29 +237,38 @@ public class Camera2ApiManager extends CameraDevice.StateCallback {
         openCameraId(1);
       }
 
-      int[] FD = cameraCharacteristics.get(
-          CameraCharacteristics.STATISTICS_INFO_AVAILABLE_FACE_DETECT_MODES);
-      int maxFD = cameraCharacteristics.get(CameraCharacteristics.STATISTICS_INFO_MAX_FACE_COUNT);
-      if (FD.length > 0) {
-        List<Integer> fdList = new ArrayList<>();
-        for (int FaceD : FD) {
-          fdList.add(FaceD);
-        }
-        if (maxFD > 0) {
-          faceDetectionSupported = true;
-          faceDetectionMode = Collections.max(fdList);
-        }
-      }
+      //int[] FD = cameraCharacteristics.get(
+      //    CameraCharacteristics.STATISTICS_INFO_AVAILABLE_FACE_DETECT_MODES);
+      //int maxFD = cameraCharacteristics.get(CameraCharacteristics.STATISTICS_INFO_MAX_FACE_COUNT);
+      //if (FD.length > 0) {
+      //  List<Integer> fdList = new ArrayList<>();
+      //  for (int FaceD : FD) {
+      //    fdList.add(FaceD);
+      //  }
+      //  if (maxFD > 0) {
+      //    faceDetectionSupported = true;
+      //    faceDetectionMode = Collections.max(fdList);
+      //  }
+      //}
     } catch (CameraAccessException e) {
       e.printStackTrace();
     }
   }
 
-  private void setFaceDetect(CaptureRequest.Builder requestBuilder, int faceDetectMode) {
-    if (faceDetectionSupported) {
-      requestBuilder.set(CaptureRequest.STATISTICS_FACE_DETECT_MODE, faceDetectMode);
-    }
-  }
+  //private void setFaceDetect(CaptureRequest.Builder requestBuilder, int faceDetectMode) {
+  //  if (faceDetectionSupported) {
+  //    requestBuilder.set(CaptureRequest.STATISTICS_FACE_DETECT_MODE, faceDetectMode);
+  //  }
+  //}
+
+  //new CameraCaptureSession.CaptureCallback() {
+  //  @Override
+  //  public void onCaptureCompleted(@NonNull CameraCaptureSession session,
+  //      @NonNull CaptureRequest request, @NonNull TotalCaptureResult result) {
+  //    Face face[] = result.get(CaptureResult.STATISTICS_FACES);
+  //    Log.e("Pedro", "faces: " + face.length);
+  //  }
+  //}
 
   public void openCameraId(Integer cameraId) {
     this.cameraId = cameraId;

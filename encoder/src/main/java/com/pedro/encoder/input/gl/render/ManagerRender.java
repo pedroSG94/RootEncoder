@@ -29,17 +29,18 @@ public class ManagerRender {
   private int height;
   private Context context;
 
-  public ManagerRender(boolean isCamera2Landscape) {
-    cameraRender = new CameraRender(isCamera2Landscape);
+  public ManagerRender() {
+    cameraRender = new CameraRender();
     baseFilterRender = new NoFilterRender();
     streamObjectRender = new StreamObjectRender();
     screenRender = new ScreenRender();
   }
 
-  public void initGl(int width, int height, Context context) {
+  public void initGl(int width, int height, boolean isCamera2Landscape, Context context) {
     this.width = width;
     this.height = height;
     this.context = context;
+    cameraRender.isCamera2LandScape(isCamera2Landscape);
     cameraRender.initGl(width, height, context);
     streamObjectRender.setTexId(cameraRender.getTexId());
     streamObjectRender.initGl(width, height, context);

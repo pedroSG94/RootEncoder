@@ -92,6 +92,7 @@ public abstract class Camera2Base
   public Camera2Base(OpenGlView openGlView, Context context) {
     this.openGlView = openGlView;
     this.context = context;
+    openGlView.init();
     cameraManager = new Camera2ApiManager(context);
     videoEncoder = new VideoEncoder(this);
     microphoneManager = new MicrophoneManager(this);
@@ -343,7 +344,6 @@ public abstract class Camera2Base
     videoEncoder.stop();
     audioEncoder.stop();
     if (openGlView != null) {
-      openGlView.stopGlThread();
       openGlView.removeMediaCodecSurface();
     }
     streaming = false;

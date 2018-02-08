@@ -59,10 +59,15 @@ public class OpenGlView extends SurfaceView
   private float positionX, positionY;
   private TranslateTo positionTo;
   private Surface surface;
+  private boolean isCamera2Landscape = false;
 
   public OpenGlView(Context context, AttributeSet attrs) {
     super(context, attrs);
     getHolder().addCallback(this);
+  }
+
+  public void init() {
+    textureManager = new ManagerRender();
   }
 
   public SurfaceTexture getSurfaceTexture() {
@@ -77,7 +82,6 @@ public class OpenGlView extends SurfaceView
     synchronized (sync) {
       this.surface = surface;
       surfaceManagerEncoder = new SurfaceManager(surface, surfaceManager);
-      textureManager.setStreamSize(encoderWidth, encoderHeight);
     }
   }
 
@@ -151,26 +155,28 @@ public class OpenGlView extends SurfaceView
   }
 
   public PointF getScale() {
-    if (textureManager != null) return textureManager.getScale();
-    else return new PointF(0f, 0f);
+    if (textureManager != null) {
+      return textureManager.getScale();
+    } else {
+      return new PointF(0f, 0f);
+    }
   }
 
   public PointF getPosition() {
-    if (textureManager != null) return textureManager.getPosition();
-    else return new PointF(0f, 0f);
+    if (textureManager != null) {
+      return textureManager.getPosition();
+    } else {
+      return new PointF(0f, 0f);
+    }
   }
 
   public void startGLThread(boolean isCamera2Landscape) {
+    this.isCamera2Landscape = isCamera2Landscape;
     Log.i(TAG, "Thread started.");
-    if (textureManager == null) {
-      textureManager = new ManagerRender(isCamera2Landscape);
-    }
-    if (textureManager.getSurfaceTexture() == null) {
-      thread = new Thread(OpenGlView.this);
-      running = true;
-      thread.start();
-      semaphore.acquireUninterruptibly();
-    }
+    thread = new Thread(this);
+    running = true;
+    thread.start();
+    semaphore.acquireUninterruptibly();
   }
 
   public void stopGlThread() {
@@ -190,7 +196,8 @@ public class OpenGlView extends SurfaceView
   public void run() {
     surfaceManager = new SurfaceManager(getHolder().getSurface());
     surfaceManager.makeCurrent();
-    textureManager.initGl(previewWidth, previewHeight, getContext());
+    textureManager.setStreamSize(encoderWidth, encoderHeight);
+    textureManager.initGl(previewWidth, previewHeight, isCamera2Landscape, getContext());
     textureManager.getSurfaceTexture().setOnFrameAvailableListener(this);
     semaphore.release();
     try {
