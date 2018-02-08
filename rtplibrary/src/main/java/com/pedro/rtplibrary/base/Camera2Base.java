@@ -344,7 +344,9 @@ public abstract class Camera2Base
     videoEncoder.stop();
     audioEncoder.stop();
     if (openGlView != null) {
+      openGlView.stopGlThread();
       openGlView.removeMediaCodecSurface();
+      startPreview();
     }
     streaming = false;
   }
