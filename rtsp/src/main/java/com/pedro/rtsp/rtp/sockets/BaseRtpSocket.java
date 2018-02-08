@@ -1,7 +1,6 @@
 package com.pedro.rtsp.rtp.sockets;
 
 import com.pedro.rtsp.utils.RtpConstants;
-import java.io.IOException;
 import java.util.concurrent.Semaphore;
 
 /**
@@ -72,10 +71,12 @@ public abstract class BaseRtpSocket implements Runnable {
   /**
    * Returns an available buffer from the FIFO, it can then be modified.
    *
-   * @throws InterruptedException
    **/
-  public byte[] requestBuffer() throws InterruptedException {
-    bufferRequested.acquire();
+  public byte[] requestBuffer() {
+    try {
+      bufferRequested.acquire();
+    } catch (InterruptedException ignored) {
+    }
     buffers[bufferIn][1] &= 0x7F;
     return buffers[bufferIn];
   }
@@ -91,17 +92,8 @@ public abstract class BaseRtpSocket implements Runnable {
     setLong(buffers[bufferIn], ts, 4, 8);
   }
 
-  public void commitBuffer() throws IOException {
-    if (thread == null) {
-      thread = new Thread(this);
-      thread.start();
-    }
-    if (++bufferIn >= bufferCount) bufferIn = 0;
-    bufferCommitted.release();
-  }
-
   /** Sends the RTP packet over the network. */
-  public void commitBuffer(int length) throws IOException {
+  public void commitBuffer(int length) {
     //Increments the sequence number.
     setLong(buffers[bufferIn], ++seq, 2, 4);
     implementCommitBuffer(length);

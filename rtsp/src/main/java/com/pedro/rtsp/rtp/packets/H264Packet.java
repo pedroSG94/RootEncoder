@@ -6,7 +6,6 @@ import com.pedro.rtsp.rtp.sockets.RtpSocketUdp;
 import com.pedro.rtsp.rtsp.Protocol;
 import com.pedro.rtsp.rtsp.RtspClient;
 import com.pedro.rtsp.utils.RtpConstants;
-import java.io.IOException;
 import java.nio.ByteBuffer;
 
 /**
@@ -39,75 +38,68 @@ public class H264Packet extends BasePacket {
 
   public void createAndSendPacket(ByteBuffer byteBuffer, MediaCodec.BufferInfo bufferInfo) {
     // We read a NAL units from ByteBuffer and we send them
-    try {
-      // NAL units are preceded with 0x00000001
-      byteBuffer.get(header, 0, 5);
-      ts = bufferInfo.presentationTimeUs * 1000L;
-      int naluLength = bufferInfo.size - byteBuffer.position() + 1;
-      int type = header[4] & 0x1F;
+    // NAL units are preceded with 0x00000001
+    byteBuffer.get(header, 0, 5);
+    ts = bufferInfo.presentationTimeUs * 1000L;
+    int naluLength = bufferInfo.size - byteBuffer.position() + 1;
+    int type = header[4] & 0x1F;
 
-      if (type == 5) {
+    if (type == 5) {
+      buffer = socket.requestBuffer();
+      socket.markNextPacket();
+      socket.updateTimestamp(ts);
+      System.arraycopy(stapA, 0, buffer, RtpConstants.RTP_HEADER_LENGTH, stapA.length);
+      socket.commitBuffer(stapA.length + RtpConstants.RTP_HEADER_LENGTH);
+    }
+
+    // Small NAL unit => Single NAL unit
+    if (naluLength <= maxPacketSize - RtpConstants.RTP_HEADER_LENGTH - 2) {
+      buffer = socket.requestBuffer();
+      buffer[RtpConstants.RTP_HEADER_LENGTH] = header[4];
+      int cont = naluLength - 1;
+      int length = cont < bufferInfo.size - byteBuffer.position() ? cont
+          : bufferInfo.size - byteBuffer.position();
+      byteBuffer.get(buffer, RtpConstants.RTP_HEADER_LENGTH + 1, length);
+      socket.updateTimestamp(ts);
+      socket.markNextPacket();
+      socket.commitBuffer(naluLength + RtpConstants.RTP_HEADER_LENGTH);
+    }
+    // Large NAL unit => Split nal unit
+    else {
+      // Set FU-A header
+      header[1] = (byte) (header[4] & 0x1F);  // FU header type
+      header[1] += 0x80; // Start bit
+      // Set FU-A indicator
+      header[0] = (byte) ((header[4] & 0x60) & 0xFF); // FU indicator NRI
+      header[0] += 28;
+
+      int sum = 1;
+      while (sum < naluLength) {
         buffer = socket.requestBuffer();
-        socket.markNextPacket();
+        buffer[RtpConstants.RTP_HEADER_LENGTH] = header[0];
+        buffer[RtpConstants.RTP_HEADER_LENGTH + 1] = header[1];
         socket.updateTimestamp(ts);
-        System.arraycopy(stapA, 0, buffer, RtpConstants.RTP_HEADER_LENGTH, stapA.length);
-        socket.commitBuffer(stapA.length + RtpConstants.RTP_HEADER_LENGTH);
-      }
-
-      // Small NAL unit => Single NAL unit
-      if (naluLength <= maxPacketSize - RtpConstants.RTP_HEADER_LENGTH - 2) {
-        buffer = socket.requestBuffer();
-        buffer[RtpConstants.RTP_HEADER_LENGTH] = header[4];
-        int cont = naluLength - 1;
+        int cont = naluLength - sum > maxPacketSize - RtpConstants.RTP_HEADER_LENGTH - 2 ?
+            maxPacketSize
+                - RtpConstants.RTP_HEADER_LENGTH
+                - 2 : naluLength - sum;
         int length = cont < bufferInfo.size - byteBuffer.position() ? cont
             : bufferInfo.size - byteBuffer.position();
-        byteBuffer.get(buffer, RtpConstants.RTP_HEADER_LENGTH + 1, length);
-        socket.updateTimestamp(ts);
-        socket.markNextPacket();
-        socket.commitBuffer(naluLength + RtpConstants.RTP_HEADER_LENGTH);
-      }
-      // Large NAL unit => Split nal unit
-      else {
-        // Set FU-A header
-        header[1] = (byte) (header[4] & 0x1F);  // FU header type
-        header[1] += 0x80; // Start bit
-        // Set FU-A indicator
-        header[0] = (byte) ((header[4] & 0x60) & 0xFF); // FU indicator NRI
-        header[0] += 28;
-
-        int sum = 1;
-        while (sum < naluLength) {
-          buffer = socket.requestBuffer();
-          buffer[RtpConstants.RTP_HEADER_LENGTH] = header[0];
-          buffer[RtpConstants.RTP_HEADER_LENGTH + 1] = header[1];
-          socket.updateTimestamp(ts);
-          int cont = naluLength - sum > maxPacketSize - RtpConstants.RTP_HEADER_LENGTH - 2 ?
-              maxPacketSize
-                  - RtpConstants.RTP_HEADER_LENGTH
-                  - 2 : naluLength - sum;
-          int length = cont < bufferInfo.size - byteBuffer.position() ? cont
-              : bufferInfo.size - byteBuffer.position();
-          byteBuffer.get(buffer, RtpConstants.RTP_HEADER_LENGTH + 2, length);
-          if (length < 0) {
-            return;
-          }
-          sum += length;
-          // Last packet before next NAL
-          if (sum >= naluLength) {
-            // End bit on
-            buffer[RtpConstants.RTP_HEADER_LENGTH + 1] += 0x40;
-            socket.markNextPacket();
-          }
-          socket.commitBuffer(length + RtpConstants.RTP_HEADER_LENGTH + 2);
-          // Switch start bit
-          header[1] = (byte) (header[1] & 0x7F);
+        byteBuffer.get(buffer, RtpConstants.RTP_HEADER_LENGTH + 2, length);
+        if (length < 0) {
+          return;
         }
+        sum += length;
+        // Last packet before next NAL
+        if (sum >= naluLength) {
+          // End bit on
+          buffer[RtpConstants.RTP_HEADER_LENGTH + 1] += 0x40;
+          socket.markNextPacket();
+        }
+        socket.commitBuffer(length + RtpConstants.RTP_HEADER_LENGTH + 2);
+        // Switch start bit
+        header[1] = (byte) (header[1] & 0x7F);
       }
-    } catch (IOException | IndexOutOfBoundsException e) {
-      e.printStackTrace();
-    } catch (InterruptedException e) {
-      e.printStackTrace();
-      getConnectCheckerRtsp().onConnectionFailedRtsp(e.getMessage());
     }
   }
 

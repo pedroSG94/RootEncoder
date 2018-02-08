@@ -61,7 +61,6 @@ public class RtpSocketTcp extends BaseRtpSocket implements Runnable {
       Log.e(TAG, "TCP send error: ", e);
       connectCheckerRtsp.onConnectionFailedRtsp("Error send packet, " + e.getMessage());
     }
-
     thread = null;
     resetFifo();
     senderReportTcp.reset();

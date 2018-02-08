@@ -5,7 +5,6 @@ import com.pedro.rtsp.rtp.sockets.RtpSocketTcp;
 import com.pedro.rtsp.rtp.sockets.RtpSocketUdp;
 import com.pedro.rtsp.rtsp.Protocol;
 import com.pedro.rtsp.rtsp.RtspClient;
-import com.pedro.rtsp.utils.ConnectCheckerRtsp;
 import com.pedro.rtsp.utils.RtpConstants;
 import java.io.IOException;
 import java.util.Random;
@@ -46,9 +45,5 @@ public abstract class BasePacket {
     if (socket instanceof RtpSocketUdp) {
       ((RtpSocketUdp) socket).close();
     }
-  }
-
-  public ConnectCheckerRtsp getConnectCheckerRtsp() {
-    return rtspClient.getConnectCheckerRtsp();
   }
 }
