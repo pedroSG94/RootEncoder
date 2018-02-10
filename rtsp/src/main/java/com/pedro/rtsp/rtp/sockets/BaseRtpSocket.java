@@ -19,11 +19,13 @@ public abstract class BaseRtpSocket implements Runnable {
   protected long clock = 0;
   protected int seq = 0;
   protected int bufferCount, bufferIn;
+  protected boolean running;
 
   /**
    * This RTP socket implements a buffering mechanism relying on a FIFO of buffers and a Thread.
    */
   public BaseRtpSocket() {
+    running = true;
     bufferCount = 300;
     buffers = new byte[bufferCount][];
     resetFifo();
@@ -54,6 +56,13 @@ public abstract class BaseRtpSocket implements Runnable {
     bufferCommitted = new Semaphore(0);
   }
 
+  public void reset(boolean running) {
+    this.running = running;
+    bufferCommitted.drainPermits();
+    bufferRequested.drainPermits();
+    resetFifo();
+  }
+
   /** Sets the SSRC of the stream. */
   public abstract void setSSRC(int ssrc);
 
@@ -76,6 +85,12 @@ public abstract class BaseRtpSocket implements Runnable {
     try {
       bufferRequested.acquire();
     } catch (InterruptedException ignored) {
+      Thread.currentThread().interrupt();
+      try {
+        Thread.currentThread().join();
+      } catch (InterruptedException e) {
+        Thread.currentThread().interrupt();
+      }
     }
     buffers[bufferIn][1] &= 0x7F;
     return buffers[bufferIn];

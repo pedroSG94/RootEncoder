@@ -163,7 +163,7 @@ public class Camera2ApiManager extends CameraDevice.StateCallback {
       builder.addTarget(surface);
       //setFaceDetect(builder, faceDetectionMode);
       return builder.build();
-    } catch (CameraAccessException e) {
+    } catch (CameraAccessException | IllegalStateException e) {
       Log.e(TAG, e.getMessage());
       return null;
     }

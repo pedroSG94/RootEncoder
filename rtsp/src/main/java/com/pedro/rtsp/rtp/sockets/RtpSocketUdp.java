@@ -84,15 +84,17 @@ public class RtpSocketUdp extends BaseRtpSocket implements Runnable {
   public void run() {
     try {
       while (bufferCommitted.tryAcquire(4, TimeUnit.SECONDS)) {
-        senderReportUdp.update(packets[bufferOut].getLength(), timestamps[bufferOut], port);
-        mSocket.send(packets[bufferOut]);
-        Log.i(TAG, "send packet, "
-            + packets[bufferOut].getLength()
-            + " Size, "
-            + packets[bufferOut].getPort()
-            + " Port");
-        if (++bufferOut >= bufferCount) bufferOut = 0;
-        bufferRequested.release();
+        if (running) {
+          senderReportUdp.update(packets[bufferOut].getLength(), timestamps[bufferOut], port);
+          mSocket.send(packets[bufferOut]);
+          Log.i(TAG, "send packet, "
+              + packets[bufferOut].getLength()
+              + " Size, "
+              + packets[bufferOut].getPort()
+              + " Port");
+          if (++bufferOut >= bufferCount) bufferOut = 0;
+          bufferRequested.release();
+        }
       }
     } catch (IOException | InterruptedException e) {
       Log.e(TAG, "UDP send error: ", e);

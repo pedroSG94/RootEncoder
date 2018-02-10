@@ -42,6 +42,7 @@ public abstract class BasePacket {
   }
 
   public void close() {
+    socket.reset(false);
     if (socket instanceof RtpSocketUdp) {
       ((RtpSocketUdp) socket).close();
     }

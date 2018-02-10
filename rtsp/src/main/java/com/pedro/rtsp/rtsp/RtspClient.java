@@ -233,6 +233,11 @@ public class RtspClient {
 
   public void disconnect() {
     if (streaming) {
+      streaming = false;
+      if (h264Packet != null && aacPacket != null) {
+        h264Packet.close();
+        aacPacket.close();
+      }
       thread = new Thread(new Runnable() {
         @Override
         public void run() {
@@ -243,14 +248,9 @@ public class RtspClient {
             Log.e(TAG, "disconnect error", e);
           }
           connectCheckerRtsp.onDisconnectRtsp();
-          streaming = false;
         }
       });
       thread.start();
-      if (h264Packet != null && aacPacket != null) {
-        h264Packet.close();
-        aacPacket.close();
-      }
       mCSeq = 0;
       sps = null;
       pps = null;
