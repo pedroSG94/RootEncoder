@@ -232,12 +232,14 @@ public class OpenGlView extends SurfaceView
               loadStreamObject = false;
               continue;
             }
-            if (surfaceManagerEncoder != null) {
-              surfaceManagerEncoder.makeCurrent();
-              textureManager.drawScreen(encoderWidth, encoderHeight);
-              long ts = textureManager.getSurfaceTexture().getTimestamp();
-              surfaceManagerEncoder.setPresentationTime(ts);
-              surfaceManagerEncoder.swapBuffer();
+            synchronized (sync) {
+              if (surfaceManagerEncoder != null) {
+                surfaceManagerEncoder.makeCurrent();
+                textureManager.drawScreen(encoderWidth, encoderHeight);
+                long ts = textureManager.getSurfaceTexture().getTimestamp();
+                surfaceManagerEncoder.setPresentationTime(ts);
+                surfaceManagerEncoder.swapBuffer();
+              }
             }
           }
           //set new parameters

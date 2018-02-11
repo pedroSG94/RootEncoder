@@ -344,9 +344,7 @@ public abstract class Camera2Base
     videoEncoder.stop();
     audioEncoder.stop();
     if (openGlView != null) {
-      openGlView.stopGlThread();
       openGlView.removeMediaCodecSurface();
-      startPreview();
     }
     streaming = false;
   }
@@ -436,6 +434,7 @@ public abstract class Camera2Base
       throw new RuntimeException("You must use OpenGlView in the constructor to set a gif");
     }
   }
+
   /**
    * Set a gif to the stream.
    * By default with same resolution in px that the original file and in bottom-right position.
