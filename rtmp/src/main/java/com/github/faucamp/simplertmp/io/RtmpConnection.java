@@ -142,6 +142,7 @@ public class RtmpConnection implements RtmpPublisher {
         socket.connect(socketAddress, 3000);
       } else {
         socket = CreateSSLSocket.createSSlSocket(host, port);
+        if (socket == null) throw new IOException("Socket creation failed");
       }
       inputStream = new BufferedInputStream(socket.getInputStream());
       outputStream = new BufferedOutputStream(socket.getOutputStream());
