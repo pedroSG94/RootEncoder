@@ -169,6 +169,7 @@ public class RtspClient {
               connectionSocket.connect(socketAddress, 3000);
             } else {
               connectionSocket = CreateSSLSocket.createSSlSocket(host, port);
+              if (connectionSocket == null) throw new IOException("Socket creation failed");
             }
             reader = new BufferedReader(new InputStreamReader(connectionSocket.getInputStream()));
             outputStream = connectionSocket.getOutputStream();
