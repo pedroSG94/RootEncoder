@@ -22,6 +22,7 @@ import com.pedro.encoder.input.video.Camera1Facing;
 import com.pedro.encoder.input.video.CameraOpenException;
 import com.pedro.encoder.input.video.EffectManager;
 import com.pedro.encoder.input.video.GetCameraData;
+import com.pedro.encoder.utils.CodecUtil;
 import com.pedro.encoder.utils.gl.GifStreamObject;
 import com.pedro.encoder.utils.gl.ImageStreamObject;
 import com.pedro.encoder.utils.gl.TextStreamObject;
@@ -198,6 +199,16 @@ public abstract class Camera1Base
   public boolean prepareAudio() {
     microphoneManager.createMicrophone();
     return audioEncoder.prepareAudioEncoder();
+  }
+
+  /**
+   *
+   * @param forceVideo force type codec used. FIRST_COMPATIBLE_FOUND, SOFTWARE, HARDWARE
+   * @param forceAudio force type codec used. FIRST_COMPATIBLE_FOUND, SOFTWARE, HARDWARE
+   */
+  public void setForce(CodecUtil.Force forceVideo, CodecUtil.Force forceAudio) {
+    videoEncoder.setForce(forceVideo);
+    audioEncoder.setForce(forceAudio);
   }
 
   /**

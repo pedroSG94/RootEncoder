@@ -8,6 +8,7 @@ import android.os.Build;
 import android.support.annotation.RequiresApi;
 import com.pedro.encoder.input.decoder.VideoDecoderInterface;
 import com.pedro.encoder.input.video.GetCameraData;
+import com.pedro.encoder.utils.CodecUtil;
 import com.pedro.encoder.video.FormatVideoEncoder;
 import com.pedro.encoder.video.GetH264Data;
 import com.pedro.encoder.video.VideoEncoder;
@@ -81,6 +82,15 @@ public abstract class FromFileBase implements GetCameraData, GetH264Data {
     mediaPlayer.setSurface(videoEncoder.getInputSurface());
     //videoDecoder.prepareVideo(videoEncoder.getInputSurface());
     return result;
+  }
+
+  /**
+   *
+   * @param forceVideo force type codec used. FIRST_COMPATIBLE_FOUND, SOFTWARE, HARDWARE
+   */
+  public void setForce(CodecUtil.Force forceVideo) {
+    videoEncoder.setForce(forceVideo);
+    //audioEncoder.setForce(forceAudio);
   }
 
   /**

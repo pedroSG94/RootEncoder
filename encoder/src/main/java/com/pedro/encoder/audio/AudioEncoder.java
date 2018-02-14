@@ -7,8 +7,11 @@ import android.os.Build;
 import android.support.annotation.RequiresApi;
 import android.util.Log;
 import com.pedro.encoder.input.audio.GetMicrophoneData;
+import com.pedro.encoder.utils.CodecUtil;
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Created by pedro on 19/01/17.
@@ -25,7 +28,7 @@ public class AudioEncoder implements GetMicrophoneData {
   private boolean running;
 
   //default parameters for encoder
-  private String mime = "audio/mp4a-latm";
+  private CodecUtil.Force force = CodecUtil.Force.FIRST_COMPATIBLE_FOUND;
   private int bitRate = 128 * 1024;  //in kbps
   private int sampleRate = 44100; //in hz
   private boolean isStereo = true;
@@ -40,9 +43,27 @@ public class AudioEncoder implements GetMicrophoneData {
   public boolean prepareAudioEncoder(int bitRate, int sampleRate, boolean isStereo) {
     this.sampleRate = sampleRate;
     try {
-      audioEncoder = MediaCodec.createEncoderByType(mime);
+
+      List<MediaCodecInfo> encoders = new ArrayList<>();
+      if (force == CodecUtil.Force.HARDWARE) {
+        encoders = CodecUtil.getAllHardwareEncoders(CodecUtil.AAC_MIME);
+      } else if (force == CodecUtil.Force.SOFTWARE) {
+        encoders = CodecUtil.getAllSoftwareEncoders(CodecUtil.AAC_MIME);
+      }
+
+      if (force == CodecUtil.Force.FIRST_COMPATIBLE_FOUND) {
+        audioEncoder = MediaCodec.createEncoderByType(CodecUtil.AAC_MIME);
+      } else {
+        if (encoders.isEmpty()) {
+          Log.e(TAG, "Valid encoder not found");
+          return false;
+        } else {
+          audioEncoder = MediaCodec.createByCodecName(encoders.get(0).getName());
+        }
+      }
+
       int a = (isStereo) ? 2 : 1;
-      MediaFormat audioFormat = MediaFormat.createAudioFormat(mime, sampleRate, a);
+      MediaFormat audioFormat = MediaFormat.createAudioFormat(CodecUtil.AAC_MIME, sampleRate, a);
       audioFormat.setInteger(MediaFormat.KEY_BIT_RATE, bitRate);
       audioFormat.setInteger(MediaFormat.KEY_MAX_INPUT_SIZE, 0);
       audioFormat.setInteger(MediaFormat.KEY_AAC_PROFILE,
@@ -57,6 +78,10 @@ public class AudioEncoder implements GetMicrophoneData {
       e.printStackTrace();
       return false;
     }
+  }
+
+  public void setForce(CodecUtil.Force force) {
+    this.force = force;
   }
 
   /**

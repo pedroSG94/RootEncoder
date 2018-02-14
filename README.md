@@ -56,6 +56,7 @@ dependencies {
 - [x] Change video bitrate while streaming (API 19+).
 - [X] Record MP4 file while streaming (API 18+).
 - [x] H264 and AAC hardware encoding.
+- [x] Force H264 and AAC Codec hardware/software encoding (Not recommended).
 - [x] RTSP TCP/UDP.
 - [x] Stream from MP4 file (only video, no sound, API 18+).
 - [x] Stream device display(API 21+).

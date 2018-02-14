@@ -5,7 +5,6 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.media.MediaCodec;
 import android.media.MediaCodecInfo;
-import android.media.MediaCodecList;
 import android.media.MediaFormat;
 import android.os.Build;
 import android.os.Bundle;
@@ -14,9 +13,11 @@ import android.util.Log;
 import android.util.Pair;
 import android.view.Surface;
 import com.pedro.encoder.input.video.GetCameraData;
+import com.pedro.encoder.utils.CodecUtil;
 import com.pedro.encoder.utils.YUVUtil;
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.util.List;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
@@ -48,7 +49,7 @@ public class VideoEncoder implements GetCameraData {
   private final Object sync = new Object();
 
   //default parameters for encoder
-  private String mime = "video/avc";
+  private CodecUtil.Force force = CodecUtil.Force.FIRST_COMPATIBLE_FOUND;
   private int width = 640;
   private int height = 480;
   private int fps = 30;
@@ -75,12 +76,7 @@ public class VideoEncoder implements GetCameraData {
     this.rotation = rotation;
     this.hardwareRotation = hardwareRotation;
     this.formatVideoEncoder = formatVideoEncoder;
-    MediaCodecInfo encoder;
-    if (Build.VERSION.SDK_INT >= 21) {
-      encoder = chooseVideoEncoderAPI21(mime);
-    } else {
-      encoder = chooseVideoEncoder(mime);
-    }
+    MediaCodecInfo encoder = chooseVideoEncoder(CodecUtil.H264_MIME);
     try {
       if (encoder != null) {
         videoEncoder = MediaCodec.createByCodecName(encoder.getName());
@@ -92,16 +88,16 @@ public class VideoEncoder implements GetCameraData {
           }
         }
       } else {
-        Log.e(TAG, "valid encoder not found");
+        Log.e(TAG, "Valid encoder not found");
         return false;
       }
       MediaFormat videoFormat;
       //if you dont use mediacodec rotation you need swap width and height in rotation 90 or 270
       // for correct encoding resolution
       if (!hardwareRotation && (rotation == 90 || rotation == 270)) {
-        videoFormat = MediaFormat.createVideoFormat(mime, height, width);
+        videoFormat = MediaFormat.createVideoFormat(CodecUtil.H264_MIME, height, width);
       } else {
-        videoFormat = MediaFormat.createVideoFormat(mime, width, height);
+        videoFormat = MediaFormat.createVideoFormat(CodecUtil.H264_MIME, width, height);
       }
       videoFormat.setInteger(MediaFormat.KEY_COLOR_FORMAT,
           this.formatVideoEncoder.getFormatCodec());
@@ -131,7 +127,7 @@ public class VideoEncoder implements GetCameraData {
   }
 
   private FormatVideoEncoder chooseColorDynamically(MediaCodecInfo mediaCodecInfo) {
-    for (int color : mediaCodecInfo.getCapabilitiesForType(mime).colorFormats) {
+    for (int color : mediaCodecInfo.getCapabilitiesForType(CodecUtil.H264_MIME).colorFormats) {
       if (color == FormatVideoEncoder.YUV420PLANAR.getFormatCodec()) {
         return FormatVideoEncoder.YUV420PLANAR;
       } else if (color == FormatVideoEncoder.YUV420SEMIPLANAR.getFormatCodec()) {
@@ -163,6 +159,10 @@ public class VideoEncoder implements GetCameraData {
         e.printStackTrace();
       }
     }
+  }
+
+  public void setForce(CodecUtil.Force force) {
+    this.force = force;
   }
 
   public Surface getInputSurface() {
@@ -502,60 +502,27 @@ public class VideoEncoder implements GetCameraData {
   }
 
   /**
-   * choose the video encoder by mime. API 21+
-   */
-  @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
-  private MediaCodecInfo chooseVideoEncoderAPI21(String mime) {
-    MediaCodecList mediaCodecList = new MediaCodecList(MediaCodecList.ALL_CODECS);
-    MediaCodecInfo[] mediaCodecInfos = mediaCodecList.getCodecInfos();
-    for (MediaCodecInfo mci : mediaCodecInfos) {
-      if (!mci.isEncoder()) {
-        continue;
-      }
-      String[] types = mci.getSupportedTypes();
-      for (String type : types) {
-        if (type.equalsIgnoreCase(mime)) {
-          Log.i(TAG, String.format("videoEncoder %s type supported: %s", mci.getName(), type));
-          MediaCodecInfo.CodecCapabilities codecCapabilities = mci.getCapabilitiesForType(mime);
-          for (int color : codecCapabilities.colorFormats) {
-            Log.i(TAG, "Color supported: " + color);
-            //check if encoder support any yuv420 color
-            if (color == FormatVideoEncoder.YUV420PLANAR.getFormatCodec()
-                || color == FormatVideoEncoder.YUV420SEMIPLANAR.getFormatCodec()
-                || color == FormatVideoEncoder.YUV420PACKEDPLANAR.getFormatCodec()) {
-              return mci;
-            }
-          }
-        }
-      }
-    }
-    return null;
-  }
-
-  /**
-   * choose the video encoder by mime. API < 21
+   * choose the video encoder by mime.
    */
   private MediaCodecInfo chooseVideoEncoder(String mime) {
-    int count = MediaCodecList.getCodecCount();
-    for (int i = 0; i < count; i++) {
-      MediaCodecInfo mci = MediaCodecList.getCodecInfoAt(i);
-      if (!mci.isEncoder()) {
-        continue;
-      }
-      String[] types = mci.getSupportedTypes();
-      for (String type : types) {
-        if (type.equalsIgnoreCase(mime)) {
-          Log.i(TAG, String.format("videoEncoder %s type supported: %s", mci.getName(), type));
-          MediaCodecInfo.CodecCapabilities codecCapabilities = mci.getCapabilitiesForType(mime);
-          for (int color : codecCapabilities.colorFormats) {
-            Log.i(TAG, "Color supported: " + color);
-            //check if encoder support any yuv420 color
-            if (color == FormatVideoEncoder.YUV420PLANAR.getFormatCodec()
-                || color == FormatVideoEncoder.YUV420SEMIPLANAR.getFormatCodec()
-                || color == FormatVideoEncoder.YUV420PACKEDPLANAR.getFormatCodec()) {
-              return mci;
-            }
-          }
+    List<MediaCodecInfo> mediaCodecInfoList;
+    if (force == CodecUtil.Force.HARDWARE) {
+      mediaCodecInfoList = CodecUtil.getAllHardwareEncoders(mime);
+    } else if (force == CodecUtil.Force.SOFTWARE) {
+      mediaCodecInfoList = CodecUtil.getAllSoftwareEncoders(mime);
+    } else {
+      mediaCodecInfoList = CodecUtil.getAllEncoders(mime);
+    }
+    for (MediaCodecInfo mci : mediaCodecInfoList) {
+      Log.i(TAG, String.format("VideoEncoder %s", mci.getName()));
+      MediaCodecInfo.CodecCapabilities codecCapabilities = mci.getCapabilitiesForType(mime);
+      for (int color : codecCapabilities.colorFormats) {
+        Log.i(TAG, "Color supported: " + color);
+        //check if encoder support any yuv420 color
+        if (color == FormatVideoEncoder.YUV420PLANAR.getFormatCodec()
+            || color == FormatVideoEncoder.YUV420SEMIPLANAR.getFormatCodec()
+            || color == FormatVideoEncoder.YUV420PACKEDPLANAR.getFormatCodec()) {
+          return mci;
         }
       }
     }
