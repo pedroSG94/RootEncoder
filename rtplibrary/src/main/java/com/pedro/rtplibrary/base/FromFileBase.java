@@ -3,9 +3,14 @@ package com.pedro.rtplibrary.base;
 import android.media.MediaCodec;
 import android.media.MediaFormat;
 import android.media.MediaMuxer;
-import android.media.MediaPlayer;
 import android.os.Build;
 import android.support.annotation.RequiresApi;
+import com.pedro.encoder.audio.AudioEncoder;
+import com.pedro.encoder.audio.GetAacData;
+import com.pedro.encoder.input.audio.GetMicrophoneData;
+import com.pedro.encoder.input.decoder.AudioDecoder;
+import com.pedro.encoder.input.decoder.AudioDecoderInterface;
+import com.pedro.encoder.input.decoder.VideoDecoder;
 import com.pedro.encoder.input.decoder.VideoDecoderInterface;
 import com.pedro.encoder.input.video.GetCameraData;
 import com.pedro.encoder.utils.CodecUtil;
@@ -26,26 +31,31 @@ import java.nio.ByteBuffer;
  */
 
 @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
-public abstract class FromFileBase implements GetCameraData, GetH264Data {
+public abstract class FromFileBase
+    implements GetCameraData, GetH264Data, GetAacData, GetMicrophoneData {
 
   protected VideoEncoder videoEncoder;
+  protected AudioEncoder audioEncoder;
   private boolean streaming;
   private boolean videoEnabled = true;
   //record
   private MediaMuxer mediaMuxer;
   private int videoTrack = -1;
+  private int audioTrack = -1;
   private boolean recording = false;
   private boolean canRecord = false;
   private MediaFormat videoFormat;
+  private MediaFormat audioFormat;
 
-  private VideoDecoderInterface videoDecoderInterface;
-  private MediaPlayer mediaPlayer;
-  //private VideoDecoder videoDecoder;
+  private VideoDecoder videoDecoder;
+  private AudioDecoder audioDecoder;
 
-  public FromFileBase(VideoDecoderInterface videoDecoderInterface) {
-    this.videoDecoderInterface = videoDecoderInterface;
+  public FromFileBase(VideoDecoderInterface videoDecoderInterface,
+      AudioDecoderInterface audioDecoderInterface) {
     videoEncoder = new VideoEncoder(this);
-    //videoDecoder = new VideoDecoder(videoDecoderInterface);
+    videoDecoder = new VideoDecoder(videoDecoderInterface);
+    audioEncoder = new AudioEncoder(this);
+    audioDecoder = new AudioDecoder(this, audioDecoderInterface);
     streaming = false;
   }
 
@@ -65,32 +75,35 @@ public abstract class FromFileBase implements GetCameraData, GetH264Data {
    * @throws IOException Normally file not found.
    */
   public boolean prepareVideo(String filePath, int bitRate) throws IOException {
-    mediaPlayer = new MediaPlayer();
-    mediaPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
-      @Override
-      public void onCompletion(MediaPlayer mediaPlayer) {
-        videoDecoderInterface.onVideoDecoderFinished();
-      }
-    });
-    mediaPlayer.setDataSource(filePath);
-    mediaPlayer.prepare();
-    mediaPlayer.setVolume(0, 0);
-    //if (!videoDecoder.initExtractor(filePath)) return false;
+    if (!videoDecoder.initExtractor(filePath)) return false;
     boolean result =
-        videoEncoder.prepareVideoEncoder(mediaPlayer.getVideoWidth(), mediaPlayer.getVideoHeight(),
-            30, bitRate, 0, true, FormatVideoEncoder.SURFACE);
-    mediaPlayer.setSurface(videoEncoder.getInputSurface());
-    //videoDecoder.prepareVideo(videoEncoder.getInputSurface());
+        videoEncoder.prepareVideoEncoder(videoDecoder.getWidth(), videoDecoder.getHeight(), 30,
+            bitRate, 0, true, FormatVideoEncoder.SURFACE);
+    videoDecoder.prepareVideo(videoEncoder.getInputSurface());
     return result;
   }
 
   /**
-   *
+   * @param filePath to video MP4 file.
+   * @param bitRate AAC in kb.
+   * @return true if success, false if you get a error (Normally because the encoder selected
+   * doesn't support any configuration seated or your device hasn't a H264 encoder).
+   * @throws IOException Normally file not found.
+   */
+  public boolean prepareAudio(String filePath, int bitRate) throws IOException {
+    if (!audioDecoder.initExtractor(filePath)) return false;
+    boolean result =
+        audioEncoder.prepareAudioEncoder(bitRate, audioDecoder.getSampleRate(), audioDecoder.isStereo());
+    audioDecoder.prepareAudio();
+    return result;
+  }
+
+  /**
    * @param forceVideo force type codec used. FIRST_COMPATIBLE_FOUND, SOFTWARE, HARDWARE
    */
-  public void setForce(CodecUtil.Force forceVideo) {
+  public void setForce(CodecUtil.Force forceVideo, CodecUtil.Force forceAudio) {
     videoEncoder.setForce(forceVideo);
-    //audioEncoder.setForce(forceAudio);
+    audioEncoder.setForce(forceAudio);
   }
 
   /**
@@ -103,6 +116,7 @@ public abstract class FromFileBase implements GetCameraData, GetH264Data {
     if (streaming) {
       mediaMuxer = new MediaMuxer(path, MediaMuxer.OutputFormat.MUXER_OUTPUT_MPEG_4);
       videoTrack = mediaMuxer.addTrack(videoFormat);
+      audioTrack = mediaMuxer.addTrack(audioFormat);
       mediaMuxer.start();
       recording = true;
     } else {
@@ -121,6 +135,7 @@ public abstract class FromFileBase implements GetCameraData, GetH264Data {
       mediaMuxer = null;
     }
     videoTrack = -1;
+    audioTrack = -1;
   }
 
   protected abstract void startStreamRtp(String url);
@@ -139,8 +154,9 @@ public abstract class FromFileBase implements GetCameraData, GetH264Data {
   public void startStream(String url) {
     startStreamRtp(url);
     videoEncoder.start();
-    //videoDecoder.start();
-    mediaPlayer.start();
+    audioEncoder.start();
+    videoDecoder.start();
+    audioDecoder.start();
     streaming = true;
   }
 
@@ -151,13 +167,10 @@ public abstract class FromFileBase implements GetCameraData, GetH264Data {
    */
   public void stopStream() {
     stopStreamRtp();
-    if (mediaPlayer != null) {
-      mediaPlayer.stop();
-      mediaPlayer.release();
-      mediaPlayer = null;
-    }
-    //videoDecoder.stop();
+    videoDecoder.stop();
+    audioDecoder.stop();
     videoEncoder.stop();
+    audioEncoder.stop();
     streaming = false;
   }
 
@@ -167,8 +180,8 @@ public abstract class FromFileBase implements GetCameraData, GetH264Data {
    * @param loopMode true in loop, false stop stream when video finish.
    */
   public void setLoopMode(boolean loopMode) {
-    //videoDecoder.setLoopMode(loopMode);
-    mediaPlayer.setLooping(loopMode);
+    videoDecoder.setLoopMode(loopMode);
+    audioDecoder.setLoopMode(loopMode);
   }
 
   /**
@@ -254,5 +267,25 @@ public abstract class FromFileBase implements GetCameraData, GetH264Data {
   @Override
   public void onVideoFormat(MediaFormat mediaFormat) {
     videoFormat = mediaFormat;
+  }
+
+  protected abstract void getAacDataRtp(ByteBuffer aacBuffer, MediaCodec.BufferInfo info);
+
+  @Override
+  public void getAacData(ByteBuffer aacBuffer, MediaCodec.BufferInfo info) {
+    if (recording && canRecord) {
+      mediaMuxer.writeSampleData(audioTrack, aacBuffer, info);
+    }
+    getAacDataRtp(aacBuffer, info);
+  }
+
+  @Override
+  public void onAudioFormat(MediaFormat mediaFormat) {
+    audioFormat = mediaFormat;
+  }
+
+  @Override
+  public void inputPCMData(byte[] buffer, int size) {
+    audioEncoder.inputPCMData(buffer, size);
   }
 }

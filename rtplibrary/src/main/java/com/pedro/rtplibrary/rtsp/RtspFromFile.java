@@ -3,6 +3,7 @@ package com.pedro.rtplibrary.rtsp;
 import android.media.MediaCodec;
 import android.os.Build;
 import android.support.annotation.RequiresApi;
+import com.pedro.encoder.input.decoder.AudioDecoderInterface;
 import com.pedro.rtplibrary.base.FromFileBase;
 import com.pedro.encoder.input.decoder.VideoDecoderInterface;
 import com.pedro.rtsp.rtsp.Protocol;
@@ -22,8 +23,8 @@ public class RtspFromFile extends FromFileBase {
   private RtspClient rtspClient;
 
   public RtspFromFile(ConnectCheckerRtsp connectCheckerRtsp,
-      VideoDecoderInterface videoDecoderInterface) {
-    super(videoDecoderInterface);
+      VideoDecoderInterface videoDecoderInterface, AudioDecoderInterface audioDecoderInterface) {
+    super(videoDecoderInterface, audioDecoderInterface);
     rtspClient = new RtspClient(connectCheckerRtsp);
   }
 
@@ -62,6 +63,11 @@ public class RtspFromFile extends FromFileBase {
   @Override
   protected void getH264DataRtp(ByteBuffer h264Buffer, MediaCodec.BufferInfo info) {
     rtspClient.sendVideo(h264Buffer, info);
+  }
+
+  @Override
+  protected void getAacDataRtp(ByteBuffer aacBuffer, MediaCodec.BufferInfo info) {
+    rtspClient.sendAudio(aacBuffer, info);
   }
 }
 

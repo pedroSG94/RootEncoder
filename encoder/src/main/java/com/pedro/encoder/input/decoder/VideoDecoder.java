@@ -6,6 +6,7 @@ import android.media.MediaFormat;
 import android.os.Process;
 import android.util.Log;
 import android.view.Surface;
+import com.pedro.encoder.utils.CodecUtil;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 
@@ -59,7 +60,8 @@ public class VideoDecoder {
 
   public boolean prepareVideo(Surface surface) {
     try {
-      videoDecoder = MediaCodec.createDecoderByType(mime);
+      String decoder = CodecUtil.getAllHardwareDecoders(mime).get(0).getName();
+      videoDecoder = MediaCodec.createByCodecName(decoder);
       videoDecoder.configure(videoFormat, surface, null, 0);
       return true;
     } catch (IOException e) {

@@ -1,6 +1,7 @@
 package com.pedro.encoder.input.decoder;
 
 import com.pedro.encoder.input.audio.GetMicrophoneData;
+import com.pedro.encoder.utils.CodecUtil;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 
@@ -65,7 +66,8 @@ public class AudioDecoder {
 
   public boolean prepareAudio() {
     try {
-      audioDecoder = MediaCodec.createDecoderByType(mime);
+      String decoder = CodecUtil.getAllSoftwareDecoders(mime).get(0).getName();
+      audioDecoder = MediaCodec.createByCodecName(decoder);
       audioDecoder.configure(audioFormat, null, null, 0);
       return true;
     } catch (IOException e) {
@@ -112,7 +114,7 @@ public class AudioDecoder {
   private void decodeAudio() {
     ByteBuffer[] inputBuffers = audioDecoder.getInputBuffers();
     ByteBuffer[] outputBuffers = audioDecoder.getOutputBuffers();
-
+    long startMs = System.currentTimeMillis();
     while (decoding) {
       int inIndex = audioDecoder.dequeueInputBuffer(-1);
       if (inIndex >= 0) {
@@ -135,6 +137,14 @@ public class AudioDecoder {
           case MediaCodec.INFO_TRY_AGAIN_LATER:
             break;
           default:
+            while (audioInfo.presentationTimeUs / 1000 > System.currentTimeMillis() - startMs) {
+              try {
+                Thread.sleep(10);
+              } catch (InterruptedException e) {
+                thread.interrupt();
+                break;
+              }
+            }
             ByteBuffer outBuffer = outputBuffers[outIndex];
             //This buffer is PCM data
             if (muted) {

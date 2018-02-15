@@ -6,11 +6,13 @@ import android.os.Bundle;
 import android.support.annotation.RequiresApi;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
+import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.pedro.encoder.input.decoder.AudioDecoderInterface;
 import com.pedro.rtpstreamer.utils.PathUtils;
 import com.pedro.rtplibrary.rtsp.RtspFromFile;
 import com.pedro.encoder.input.decoder.VideoDecoderInterface;
@@ -26,7 +28,8 @@ import java.io.IOException;
  */
 @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
 public class RtspFromFileActivity extends AppCompatActivity
-    implements ConnectCheckerRtsp, View.OnClickListener, VideoDecoderInterface {
+    implements ConnectCheckerRtsp, View.OnClickListener, VideoDecoderInterface,
+    AudioDecoderInterface {
 
   private RtspFromFile rtspFromFile;
   private Button button, bSelectFile;
@@ -37,6 +40,7 @@ public class RtspFromFileActivity extends AppCompatActivity
   @Override
   protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
+    getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
     setContentView(R.layout.activity_from_file);
     button = findViewById(R.id.b_start_stop);
     bSelectFile = findViewById(R.id.b_select_file);
@@ -45,7 +49,7 @@ public class RtspFromFileActivity extends AppCompatActivity
     etUrl = findViewById(R.id.et_rtp_url);
     etUrl.setHint(R.string.hint_rtsp);
     tvFile = findViewById(R.id.tv_file);
-    rtspFromFile = new RtspFromFile(this, this);
+    rtspFromFile = new RtspFromFile(this, this, this);
   }
 
   @Override
@@ -118,7 +122,8 @@ public class RtspFromFileActivity extends AppCompatActivity
         if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
           if (!rtspFromFile.isStreaming()) {
             try {
-              if (rtspFromFile.prepareVideo(filePath, 1200 * 1024)) {
+              if (rtspFromFile.prepareVideo(filePath, 1200 * 1024) && rtspFromFile.prepareAudio(
+                  filePath, 64 * 1024)) {
                 button.setText(R.string.stop_button);
                 rtspFromFile.startStream(etUrl.getText().toString());
               } else {
@@ -163,5 +168,10 @@ public class RtspFromFileActivity extends AppCompatActivity
         }
       }
     });
+  }
+
+  @Override
+  public void onAudioDecoderFinished() {
+
   }
 }

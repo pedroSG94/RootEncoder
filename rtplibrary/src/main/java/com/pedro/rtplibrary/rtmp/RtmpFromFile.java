@@ -4,6 +4,7 @@ import android.media.MediaCodec;
 import android.os.Build;
 import android.support.annotation.RequiresApi;
 
+import com.pedro.encoder.input.decoder.AudioDecoderInterface;
 import com.pedro.encoder.input.decoder.VideoDecoderInterface;
 import com.pedro.rtplibrary.base.FromFileBase;
 
@@ -24,8 +25,8 @@ public class RtmpFromFile extends FromFileBase {
   private SrsFlvMuxer srsFlvMuxer;
 
   public RtmpFromFile(ConnectCheckerRtmp connectChecker,
-      VideoDecoderInterface videoDecoderInterface) {
-    super(videoDecoderInterface);
+      VideoDecoderInterface videoDecoderInterface, AudioDecoderInterface audioDecoderInterface) {
+    super(videoDecoderInterface, audioDecoderInterface);
     srsFlvMuxer = new SrsFlvMuxer(connectChecker);
   }
 
@@ -66,6 +67,11 @@ public class RtmpFromFile extends FromFileBase {
   @Override
   protected void getH264DataRtp(ByteBuffer h264Buffer, MediaCodec.BufferInfo info) {
     srsFlvMuxer.sendVideo(h264Buffer, info);
+  }
+
+  @Override
+  protected void getAacDataRtp(ByteBuffer aacBuffer, MediaCodec.BufferInfo info) {
+    srsFlvMuxer.sendAudio(aacBuffer, info);
   }
 }
 
