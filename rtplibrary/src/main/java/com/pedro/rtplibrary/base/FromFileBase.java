@@ -50,12 +50,15 @@ public abstract class FromFileBase
   private VideoDecoder videoDecoder;
   private AudioDecoder audioDecoder;
 
+  private VideoDecoderInterface videoDecoderInterface;
+  private AudioDecoderInterface audioDecoderInterface;
+
   public FromFileBase(VideoDecoderInterface videoDecoderInterface,
       AudioDecoderInterface audioDecoderInterface) {
+    this.videoDecoderInterface = videoDecoderInterface;
+    this.audioDecoderInterface = audioDecoderInterface;
     videoEncoder = new VideoEncoder(this);
-    videoDecoder = new VideoDecoder(videoDecoderInterface);
     audioEncoder = new AudioEncoder(this);
-    audioDecoder = new AudioDecoder(this, audioDecoderInterface);
     streaming = false;
   }
 
@@ -75,6 +78,7 @@ public abstract class FromFileBase
    * @throws IOException Normally file not found.
    */
   public boolean prepareVideo(String filePath, int bitRate) throws IOException {
+    videoDecoder = new VideoDecoder(videoDecoderInterface);
     if (!videoDecoder.initExtractor(filePath)) return false;
     boolean result =
         videoEncoder.prepareVideoEncoder(videoDecoder.getWidth(), videoDecoder.getHeight(), 30,
@@ -91,9 +95,10 @@ public abstract class FromFileBase
    * @throws IOException Normally file not found.
    */
   public boolean prepareAudio(String filePath, int bitRate) throws IOException {
+    audioDecoder = new AudioDecoder(this, audioDecoderInterface);
     if (!audioDecoder.initExtractor(filePath)) return false;
-    boolean result =
-        audioEncoder.prepareAudioEncoder(bitRate, audioDecoder.getSampleRate(), audioDecoder.isStereo());
+    boolean result = audioEncoder.prepareAudioEncoder(bitRate, audioDecoder.getSampleRate(),
+        audioDecoder.isStereo());
     audioDecoder.prepareAudio();
     return result;
   }

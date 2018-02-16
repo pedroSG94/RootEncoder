@@ -3,10 +3,8 @@ package com.pedro.encoder.input.decoder;
 import android.media.MediaCodec;
 import android.media.MediaExtractor;
 import android.media.MediaFormat;
-import android.os.Process;
 import android.util.Log;
 import android.view.Surface;
-import com.pedro.encoder.utils.CodecUtil;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 
@@ -46,7 +44,7 @@ public class VideoDecoder {
         videoFormat = null;
       }
     }
-    if (videoFormat != null && mime.equals("video/avc")) {
+    if (videoFormat != null) {
       width = videoFormat.getInteger(MediaFormat.KEY_WIDTH);
       height = videoFormat.getInteger(MediaFormat.KEY_HEIGHT);
       return true;
@@ -60,8 +58,7 @@ public class VideoDecoder {
 
   public boolean prepareVideo(Surface surface) {
     try {
-      String decoder = CodecUtil.getAllHardwareDecoders(mime).get(0).getName();
-      videoDecoder = MediaCodec.createByCodecName(decoder);
+      videoDecoder = MediaCodec.createDecoderByType(mime);
       videoDecoder.configure(videoFormat, surface, null, 0);
       return true;
     } catch (IOException e) {
@@ -76,7 +73,6 @@ public class VideoDecoder {
     thread = new Thread(new Runnable() {
       @Override
       public void run() {
-        android.os.Process.setThreadPriority(Process.THREAD_PRIORITY_MORE_FAVORABLE);
         decodeVideo();
       }
     });
@@ -114,8 +110,7 @@ public class VideoDecoder {
         ByteBuffer buffer = inputBuffers[inIndex];
         int sampleSize = videoExtractor.readSampleData(buffer, 0);
         if (sampleSize < 0) {
-          videoDecoder.queueInputBuffer(inIndex, 0, 0, 0L, MediaCodec.BUFFER_FLAG_END_OF_STREAM);
-          Log.i(TAG, "end of file in");
+          videoDecoder.queueInputBuffer(inIndex, 0, 0, 0, MediaCodec.BUFFER_FLAG_END_OF_STREAM);
         } else {
           videoDecoder.queueInputBuffer(inIndex, 0, sampleSize, videoExtractor.getSampleTime(), 0);
           videoExtractor.advance();
@@ -129,7 +124,7 @@ public class VideoDecoder {
             Thread.sleep(10);
           } catch (InterruptedException e) {
             thread.interrupt();
-            break;
+            return;
           }
         }
         videoDecoder.releaseOutputBuffer(outIndex, videoInfo.size != 0);

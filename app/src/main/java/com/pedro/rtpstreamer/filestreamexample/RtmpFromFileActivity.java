@@ -11,17 +11,13 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
-
 import com.pedro.encoder.input.decoder.AudioDecoderInterface;
-import com.pedro.encoder.utils.CodecUtil;
-import com.pedro.rtpstreamer.utils.PathUtils;
-import com.pedro.rtplibrary.rtmp.RtmpFromFile;
 import com.pedro.encoder.input.decoder.VideoDecoderInterface;
+import com.pedro.rtplibrary.rtmp.RtmpFromFile;
 import com.pedro.rtpstreamer.R;
-
-import net.ossrs.rtmp.ConnectCheckerRtmp;
-
+import com.pedro.rtpstreamer.utils.PathUtils;
 import java.io.IOException;
+import net.ossrs.rtmp.ConnectCheckerRtmp;
 
 /**
  * More documentation see:
@@ -37,7 +33,10 @@ public class RtmpFromFileActivity extends AppCompatActivity
   private Button button, bSelectFile;
   private EditText etUrl;
   private TextView tvFile;
-  private String filePath = "";
+
+  //default file to stream, audio from web normally use mime audio/mpeg-L1, audio/mpeg-L2, audio/x-ms-wma or audio/x-ima that should be unsupported
+  private String filePath =
+      "http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4";
 
   @Override
   protected void onCreate(Bundle savedInstanceState) {
@@ -52,7 +51,6 @@ public class RtmpFromFileActivity extends AppCompatActivity
     etUrl.setHint(R.string.hint_rtmp);
     tvFile = findViewById(R.id.tv_file);
     rtmpFromFile = new RtmpFromFile(this, this, this);
-    rtmpFromFile.setForce(CodecUtil.Force.HARDWARE, CodecUtil.Force.SOFTWARE);
   }
 
   @Override
@@ -122,30 +120,28 @@ public class RtmpFromFileActivity extends AppCompatActivity
   public void onClick(View view) {
     switch (view.getId()) {
       case R.id.b_start_stop:
-        if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
-          if (!rtmpFromFile.isStreaming()) {
-            try {
-              if (rtmpFromFile.prepareVideo(filePath, 1200 * 1024) && rtmpFromFile.prepareAudio(
-                  filePath, 64 * 1024)) {
-                button.setText(R.string.stop_button);
-                rtmpFromFile.startStream(etUrl.getText().toString());
-              } else {
-                button.setText(R.string.start_button);
-                rtmpFromFile.stopStream();
+        if (!rtmpFromFile.isStreaming()) {
+          try {
+            if (rtmpFromFile.prepareVideo(filePath, 1200 * 1024) && rtmpFromFile.prepareAudio(
+                filePath, 64 * 1024)) {
+              button.setText(R.string.stop_button);
+              rtmpFromFile.startStream(etUrl.getText().toString());
+            } else {
+              button.setText(R.string.start_button);
+              rtmpFromFile.stopStream();
                 /*This error could be 2 things.
                  Your device cant decode or encode this file or
                  the file is not supported for the library.
                 The file need has h264 video codec and acc audio codec*/
-                Toast.makeText(this, "Error: unsupported file", Toast.LENGTH_SHORT).show();
-              }
-            } catch (IOException e) {
-              //Normally this error is for file not found or read permissions
-              Toast.makeText(this, "Error: file not found", Toast.LENGTH_SHORT).show();
+              Toast.makeText(this, "Error: unsupported file", Toast.LENGTH_SHORT).show();
             }
-          } else {
-            button.setText(R.string.start_button);
-            rtmpFromFile.stopStream();
+          } catch (IOException e) {
+            //Normally this error is for file not found or read permissions
+            Toast.makeText(this, "Error: file not found", Toast.LENGTH_SHORT).show();
           }
+        } else {
+          button.setText(R.string.start_button);
+          rtmpFromFile.stopStream();
         }
         break;
       case R.id.b_select_file:
@@ -160,17 +156,7 @@ public class RtmpFromFileActivity extends AppCompatActivity
 
   @Override
   public void onVideoDecoderFinished() {
-    runOnUiThread(new Runnable() {
-      @Override
-      public void run() {
-        if (rtmpFromFile.isStreaming()) {
-          button.setText(R.string.start_button);
-          Toast.makeText(RtmpFromFileActivity.this, "Video stream finished", Toast.LENGTH_SHORT)
-              .show();
-          rtmpFromFile.stopStream();
-        }
-      }
-    });
+
   }
 
   @Override
