@@ -37,7 +37,7 @@ allprojects {
   }
 }
 dependencies {
-  compile 'com.github.pedroSG94.rtmp-rtsp-stream-client-java:rtplibrary:1.3.1'
+  compile 'com.github.pedroSG94.rtmp-rtsp-stream-client-java:rtplibrary:1.3.2'
 }
 
 ```
@@ -58,7 +58,7 @@ dependencies {
 - [x] H264 and AAC hardware encoding.
 - [x] Force H264 and AAC Codec hardware/software encoding (Not recommended).
 - [x] RTSP TCP/UDP.
-- [x] Stream from MP4 file (only video, no sound, API 18+).
+- [x] Stream from video files like mp4, webm, etc (Limited by device decoders). [More info](https://github.com/pedroSG94/rtmp-rtsp-stream-client-java/wiki/Stream-from-file)
 - [x] Stream device display(API 21+).
 - [X] Set Image, Gif or Text to stream on real time.
 - [X] RTMPS and RTSPS

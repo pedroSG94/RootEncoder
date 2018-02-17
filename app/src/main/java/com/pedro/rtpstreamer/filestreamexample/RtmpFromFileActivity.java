@@ -33,10 +33,7 @@ public class RtmpFromFileActivity extends AppCompatActivity
   private Button button, bSelectFile;
   private EditText etUrl;
   private TextView tvFile;
-
-  //default file to stream, audio from web normally use mime audio/mpeg-L1, audio/mpeg-L2, audio/x-ms-wma or audio/x-ima that should be unsupported
-  private String filePath =
-      "http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4";
+  private String filePath = "";
 
   @Override
   protected void onCreate(Bundle savedInstanceState) {
