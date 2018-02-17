@@ -20,7 +20,6 @@ import com.pedro.encoder.input.gl.render.filters.BaseFilterRender;
 import com.pedro.encoder.input.video.Camera2ApiManager;
 import com.pedro.encoder.input.video.Camera2Facing;
 import com.pedro.encoder.input.video.CameraOpenException;
-import com.pedro.encoder.input.video.GetCameraData;
 import com.pedro.encoder.utils.CodecUtil;
 import com.pedro.encoder.utils.gl.GifStreamObject;
 import com.pedro.encoder.utils.gl.ImageStreamObject;
@@ -48,7 +47,7 @@ import java.util.List;
  */
 @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
 public abstract class Camera2Base
-    implements GetAacData, GetCameraData, GetH264Data, GetMicrophoneData {
+    implements GetAacData, GetH264Data, GetMicrophoneData {
 
   protected Context context;
   protected Camera2ApiManager cameraManager;
@@ -673,11 +672,6 @@ public abstract class Camera2Base
   @Override
   public void inputPCMData(byte[] buffer, int size) {
     audioEncoder.inputPCMData(buffer, size);
-  }
-
-  @Override
-  public void inputYUVData(byte[] buffer) {
-    videoEncoder.inputYUVData(buffer);
   }
 
   @Override

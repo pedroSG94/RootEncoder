@@ -3,6 +3,7 @@ package com.pedro.encoder.video;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
+import android.graphics.ImageFormat;
 import android.media.MediaCodec;
 import android.media.MediaCodecInfo;
 import android.media.MediaFormat;
@@ -12,6 +13,7 @@ import android.support.annotation.RequiresApi;
 import android.util.Log;
 import android.util.Pair;
 import android.view.Surface;
+import com.pedro.encoder.input.video.Frame;
 import com.pedro.encoder.input.video.GetCameraData;
 import com.pedro.encoder.utils.CodecUtil;
 import com.pedro.encoder.utils.YUVUtil;
@@ -31,8 +33,6 @@ public class VideoEncoder implements GetCameraData {
   private String TAG = "VideoEncoder";
   private MediaCodec videoEncoder;
   private Thread thread;
-  private Thread threadRotate;
-  private Thread threadColor;
   private GetH264Data getH264Data;
   private MediaCodec.BufferInfo videoInfo = new MediaCodec.BufferInfo();
   private long mPresentTimeUs;
@@ -43,9 +43,7 @@ public class VideoEncoder implements GetCameraData {
   //surface to buffer encoder
   private Surface inputSurface;
   //buffer to buffer, 3 queue to optimize frames on rotation
-  private BlockingQueue<byte[]> queueEncode = new LinkedBlockingQueue<>(30);
-  private BlockingQueue<byte[]> queueRotate = new LinkedBlockingQueue<>(30);
-  private BlockingQueue<byte[]> queueColor = new LinkedBlockingQueue<>(30);
+  private BlockingQueue<Frame> queue = new LinkedBlockingQueue<>(80);
   private final Object sync = new Object();
 
   //default parameters for encoder
@@ -222,7 +220,18 @@ public class VideoEncoder implements GetCameraData {
             public void run() {
               while (!Thread.interrupted()) {
                 try {
-                  byte[] buffer = queueEncode.take();
+                  Frame frame = queue.take();
+                  byte[] buffer = frame.getBuffer();
+                  if (frame.getFormat() == ImageFormat.YV12) {
+                    buffer = YUVUtil.YV12toNV21(buffer, width, height);
+                  }
+                  if (!hardwareRotation) {
+                    int orientation = (frame.isFlip()) ? rotation + 180 : rotation;
+                    if (orientation >= 360) orientation -= 360;
+                    buffer = YUVUtil.rotateNV21(buffer, width, height, orientation);
+                  }
+                  buffer = (sendBlackImage) ? blackImage
+                      : YUVUtil.NV21toYUV420byColor(buffer, width, height, formatVideoEncoder);
                   if (Build.VERSION.SDK_INT >= 21) {
                     getDataFromEncoderAPI21(buffer);
                   } else {
@@ -234,48 +243,7 @@ public class VideoEncoder implements GetCameraData {
               }
             }
           });
-          threadRotate = new Thread(new Runnable() {
-            @Override
-            public void run() {
-              while (!Thread.interrupted()) {
-                try {
-                  byte[] buffer = queueRotate.take();
-                  if (!hardwareRotation) {
-                    buffer = YUVUtil.rotateNV21(buffer, width, height, rotation);
-                    try {
-                      queueColor.add(buffer);
-                    } catch (IllegalStateException e) {
-                      Log.i(TAG, "frame discarded");
-                    }
-                  }
-                } catch (InterruptedException e) {
-                  if (threadRotate != null) threadRotate.interrupt();
-                }
-              }
-            }
-          });
-          threadColor = new Thread(new Runnable() {
-            @Override
-            public void run() {
-              while (!Thread.interrupted()) {
-                try {
-                  byte[] buffer = queueColor.take();
-                  buffer = (sendBlackImage) ? blackImage
-                      : YUVUtil.NV21toYUV420byColor(buffer, width, height, formatVideoEncoder);
-                  try {
-                    queueEncode.add(buffer);
-                  } catch (IllegalStateException e) {
-                    Log.i(TAG, "frame discarded");
-                  }
-                } catch (InterruptedException e) {
-                  if (threadColor != null) threadColor.interrupt();
-                }
-              }
-            }
-          });
           thread.start();
-          threadRotate.start();
-          threadColor.start();
         }
         running = true;
       } else {
@@ -296,44 +264,22 @@ public class VideoEncoder implements GetCameraData {
         }
         thread = null;
       }
-
-      if (threadRotate != null) {
-        threadRotate.interrupt();
-        try {
-          threadRotate.join();
-        } catch (InterruptedException e) {
-          threadRotate.interrupt();
-        }
-        threadRotate = null;
-      }
-
-      if (threadColor != null) {
-        threadColor.interrupt();
-        try {
-          threadColor.join();
-        } catch (InterruptedException e) {
-          threadColor.interrupt();
-        }
-        threadColor = null;
-      }
       if (videoEncoder != null) {
         videoEncoder.stop();
         videoEncoder.release();
         videoEncoder = null;
       }
-      queueEncode.clear();
-      queueRotate.clear();
-      queueColor.clear();
+      queue.clear();
       spsPpsSetted = false;
     }
   }
 
   @Override
-  public void inputYUVData(byte[] buffer) {
+  public void inputYUVData(Frame frame) {
     synchronized (sync) {
       if (running) {
         try {
-          queueRotate.add(buffer);
+          queue.add(frame);
         } catch (IllegalStateException e) {
           Log.i(TAG, "frame discarded");
         }

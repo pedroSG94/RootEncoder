@@ -12,7 +12,6 @@ import com.pedro.encoder.input.decoder.AudioDecoder;
 import com.pedro.encoder.input.decoder.AudioDecoderInterface;
 import com.pedro.encoder.input.decoder.VideoDecoder;
 import com.pedro.encoder.input.decoder.VideoDecoderInterface;
-import com.pedro.encoder.input.video.GetCameraData;
 import com.pedro.encoder.utils.CodecUtil;
 import com.pedro.encoder.video.FormatVideoEncoder;
 import com.pedro.encoder.video.GetH264Data;
@@ -32,7 +31,7 @@ import java.nio.ByteBuffer;
 
 @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
 public abstract class FromFileBase
-    implements GetCameraData, GetH264Data, GetAacData, GetMicrophoneData {
+    implements GetH264Data, GetAacData, GetMicrophoneData {
 
   protected VideoEncoder videoEncoder;
   protected AudioEncoder audioEncoder;
@@ -257,11 +256,6 @@ public abstract class FromFileBase
       }
     }
     getH264DataRtp(h264Buffer, info);
-  }
-
-  @Override
-  public void inputYUVData(byte[] buffer) {
-    videoEncoder.inputYUVData(buffer);
   }
 
   @Override

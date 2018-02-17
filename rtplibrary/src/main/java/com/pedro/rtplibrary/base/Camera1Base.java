@@ -21,6 +21,7 @@ import com.pedro.encoder.input.video.Camera1ApiManager;
 import com.pedro.encoder.input.video.Camera1Facing;
 import com.pedro.encoder.input.video.CameraOpenException;
 import com.pedro.encoder.input.video.EffectManager;
+import com.pedro.encoder.input.video.Frame;
 import com.pedro.encoder.input.video.GetCameraData;
 import com.pedro.encoder.utils.CodecUtil;
 import com.pedro.encoder.utils.gl.GifStreamObject;
@@ -718,8 +719,8 @@ public abstract class Camera1Base
   }
 
   @Override
-  public void inputYUVData(byte[] buffer) {
-    videoEncoder.inputYUVData(buffer);
+  public void inputYUVData(Frame frame) {
+    videoEncoder.inputYUVData(frame);
   }
 
   @Override
