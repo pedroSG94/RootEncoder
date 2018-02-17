@@ -14,7 +14,6 @@ import com.pedro.encoder.audio.AudioEncoder;
 import com.pedro.encoder.audio.GetAacData;
 import com.pedro.encoder.input.audio.GetMicrophoneData;
 import com.pedro.encoder.input.audio.MicrophoneManager;
-import com.pedro.encoder.input.video.GetCameraData;
 import com.pedro.encoder.utils.CodecUtil;
 import com.pedro.encoder.video.FormatVideoEncoder;
 import com.pedro.encoder.video.GetH264Data;
@@ -35,7 +34,7 @@ import static android.content.Context.MEDIA_PROJECTION_SERVICE;
  */
 @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
 public abstract class DisplayBase
-    implements GetAacData, GetCameraData, GetH264Data, GetMicrophoneData {
+    implements GetAacData, GetH264Data, GetMicrophoneData {
 
   protected Context context;
   private MediaProjection mediaProjection;
@@ -347,11 +346,6 @@ public abstract class DisplayBase
   @Override
   public void inputPCMData(byte[] buffer, int size) {
     audioEncoder.inputPCMData(buffer, size);
-  }
-
-  @Override
-  public void inputYUVData(byte[] buffer) {
-    videoEncoder.inputYUVData(buffer);
   }
 
   @Override
