@@ -156,7 +156,17 @@ public class RtmpFromFileActivity extends AppCompatActivity
 
   @Override
   public void onVideoDecoderFinished() {
-
+    runOnUiThread(new Runnable() {
+      @Override
+      public void run() {
+        if (rtmpFromFile.isStreaming()) {
+          button.setText(R.string.start_button);
+          Toast.makeText(RtmpFromFileActivity.this, "Video stream finished", Toast.LENGTH_SHORT)
+              .show();
+          rtmpFromFile.stopStream();
+        }
+      }
+    });
   }
 
   @Override
