@@ -465,26 +465,35 @@ public class RtspClient {
     Pattern authPattern =
         Pattern.compile("realm=\"(.+)\",\\s+nonce=\"(\\w+)\"", Pattern.CASE_INSENSITIVE);
     Matcher matcher = authPattern.matcher(authResponse);
-    matcher.find();
-    String realm = matcher.group(1);
-    String nonce = matcher.group(2);
-    String hash1 = AuthUtil.getMd5Hash(user + ":" + realm + ":" + password);
-    String hash2 = AuthUtil.getMd5Hash("ANNOUNCE:rtsp://" + host + ":" + port + path);
-    String hash3 = AuthUtil.getMd5Hash(hash1 + ":" + nonce + ":" + hash2);
-    return "Digest username=\""
-        + user
-        + "\",realm=\""
-        + realm
-        + "\",nonce=\""
-        + nonce
-        + "\",uri=\"rtsp://"
-        + host
-        + ":"
-        + port
-        + path
-        + "\",response=\""
-        + hash3
-        + "\"";
+    //digest auth
+    if (matcher.find()) {
+      Log.i(TAG, "using digest auth");
+      String realm = matcher.group(1);
+      String nonce = matcher.group(2);
+      String hash1 = AuthUtil.getMd5Hash(user + ":" + realm + ":" + password);
+      String hash2 = AuthUtil.getMd5Hash("ANNOUNCE:rtsp://" + host + ":" + port + path);
+      String hash3 = AuthUtil.getMd5Hash(hash1 + ":" + nonce + ":" + hash2);
+      return "Digest username=\""
+          + user
+          + "\",realm=\""
+          + realm
+          + "\",nonce=\""
+          + nonce
+          + "\",uri=\"rtsp://"
+          + host
+          + ":"
+          + port
+          + path
+          + "\",response=\""
+          + hash3
+          + "\"";
+      //basic auth
+    } else {
+      Log.i(TAG, "using basic auth");
+      String data = user + ":" + password;
+      String base64Data = Base64.encodeToString(data.getBytes(), Base64.DEFAULT);
+      return "Basic " + base64Data;
+    }
   }
 
   private int getResponseStatus(String response) {
