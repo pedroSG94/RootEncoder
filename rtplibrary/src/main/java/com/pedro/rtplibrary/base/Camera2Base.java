@@ -28,7 +28,7 @@ import com.pedro.encoder.utils.gl.TranslateTo;
 import com.pedro.encoder.video.FormatVideoEncoder;
 import com.pedro.encoder.video.GetH264Data;
 import com.pedro.encoder.video.VideoEncoder;
-import com.pedro.rtplibrary.view.LightOpengGlView;
+import com.pedro.rtplibrary.view.LightOpenGlView;
 import com.pedro.rtplibrary.view.OpenGlView;
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -58,7 +58,7 @@ public abstract class Camera2Base implements GetAacData, GetH264Data, GetMicroph
   private SurfaceView surfaceView;
   private TextureView textureView;
   private OpenGlView openGlView;
-  private LightOpengGlView lightOpengGlView;
+  private LightOpenGlView lightOpengGlView;
   private boolean videoEnabled = false;
   //record
   private MediaMuxer mediaMuxer;
@@ -101,7 +101,7 @@ public abstract class Camera2Base implements GetAacData, GetH264Data, GetMicroph
     streaming = false;
   }
 
-  public Camera2Base(LightOpengGlView lightOpengGlView, Context context) {
+  public Camera2Base(LightOpenGlView lightOpengGlView, Context context) {
     this.lightOpengGlView = lightOpengGlView;
     this.context = context;
     lightOpengGlView.init();

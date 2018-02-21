@@ -19,7 +19,7 @@ import java.util.concurrent.Semaphore;
  */
 
 @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
-public class LightOpengGlView extends SurfaceView
+public class LightOpenGlView extends SurfaceView
     implements Runnable, SurfaceTexture.OnFrameAvailableListener, SurfaceHolder.Callback {
 
   public final static String TAG = "OpenGlView";
@@ -39,7 +39,7 @@ public class LightOpengGlView extends SurfaceView
   private int encoderWidth, encoderHeight;
   private boolean isCamera2Landscape = false;
 
-  public LightOpengGlView (Context context, AttributeSet attrs) {
+  public LightOpenGlView(Context context, AttributeSet attrs) {
     super(context, attrs);
     getHolder().addCallback(this);
   }

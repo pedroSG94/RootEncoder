@@ -31,7 +31,7 @@ import com.pedro.encoder.utils.gl.TranslateTo;
 import com.pedro.encoder.video.FormatVideoEncoder;
 import com.pedro.encoder.video.GetH264Data;
 import com.pedro.encoder.video.VideoEncoder;
-import com.pedro.rtplibrary.view.LightOpengGlView;
+import com.pedro.rtplibrary.view.LightOpenGlView;
 import com.pedro.rtplibrary.view.OpenGlView;
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -61,7 +61,7 @@ public abstract class Camera1Base
   protected MicrophoneManager microphoneManager;
   protected AudioEncoder audioEncoder;
   private OpenGlView openGlView;
-  private LightOpengGlView lightOpengGlView;
+  private LightOpenGlView lightOpengGlView;
   private boolean streaming;
   private boolean videoEnabled = true;
   //record
@@ -103,7 +103,7 @@ public abstract class Camera1Base
   }
 
   @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
-  public Camera1Base(LightOpengGlView lightOpengGlView) {
+  public Camera1Base(LightOpenGlView lightOpengGlView) {
     context = lightOpengGlView.getContext();
     this.lightOpengGlView = lightOpengGlView;
     this.lightOpengGlView.init();
