@@ -30,8 +30,7 @@ import java.nio.ByteBuffer;
  */
 
 @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
-public abstract class FromFileBase
-    implements GetH264Data, GetAacData, GetMicrophoneData {
+public abstract class FromFileBase implements GetH264Data, GetAacData, GetMicrophoneData {
 
   protected VideoEncoder videoEncoder;
   protected AudioEncoder audioEncoder;
@@ -81,7 +80,7 @@ public abstract class FromFileBase
     if (!videoDecoder.initExtractor(filePath)) return false;
     boolean result =
         videoEncoder.prepareVideoEncoder(videoDecoder.getWidth(), videoDecoder.getHeight(), 30,
-            bitRate, 0, true, FormatVideoEncoder.SURFACE);
+            bitRate, 0, true, 2, FormatVideoEncoder.SURFACE);
     videoDecoder.prepareVideo(videoEncoder.getInputSurface());
     return result;
   }

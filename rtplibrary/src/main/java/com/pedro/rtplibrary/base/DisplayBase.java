@@ -33,8 +33,7 @@ import static android.content.Context.MEDIA_PROJECTION_SERVICE;
  * Created by pedro on 9/08/17.
  */
 @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
-public abstract class DisplayBase
-    implements GetAacData, GetH264Data, GetMicrophoneData {
+public abstract class DisplayBase implements GetAacData, GetH264Data, GetMicrophoneData {
 
   protected Context context;
   private MediaProjection mediaProjection;
@@ -91,8 +90,9 @@ public abstract class DisplayBase
    */
   public boolean prepareVideo(int width, int height, int fps, int bitrate, int rotation, int dpi) {
     this.dpi = dpi;
-    boolean result = videoEncoder.prepareVideoEncoder(width, height, fps, bitrate, rotation, true,
-        FormatVideoEncoder.SURFACE);
+    boolean result =
+        videoEncoder.prepareVideoEncoder(width, height, fps, bitrate, rotation, true, 2,
+            FormatVideoEncoder.SURFACE);
     return result;
   }
 
@@ -127,7 +127,7 @@ public abstract class DisplayBase
    * doesn't support any configuration seated or your device hasn't a H264 encoder).
    */
   public boolean prepareVideo() {
-    return videoEncoder.prepareVideoEncoder(640, 480, 30, 1200 * 1024, 0, true,
+    return videoEncoder.prepareVideoEncoder(640, 480, 30, 1200 * 1024, 0, true,2,
         FormatVideoEncoder.SURFACE);
   }
 
@@ -144,7 +144,6 @@ public abstract class DisplayBase
   }
 
   /**
-   *
    * @param forceVideo force type codec used. FIRST_COMPATIBLE_FOUND, SOFTWARE, HARDWARE
    * @param forceAudio force type codec used. FIRST_COMPATIBLE_FOUND, SOFTWARE, HARDWARE
    */

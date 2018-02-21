@@ -31,6 +31,7 @@ import com.pedro.encoder.utils.gl.TranslateTo;
 import com.pedro.encoder.video.FormatVideoEncoder;
 import com.pedro.encoder.video.GetH264Data;
 import com.pedro.encoder.video.VideoEncoder;
+import com.pedro.rtplibrary.view.LightOpengGlView;
 import com.pedro.rtplibrary.view.OpenGlView;
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -60,6 +61,7 @@ public abstract class Camera1Base
   protected MicrophoneManager microphoneManager;
   protected AudioEncoder audioEncoder;
   private OpenGlView openGlView;
+  private LightOpengGlView lightOpengGlView;
   private boolean streaming;
   private boolean videoEnabled = true;
   //record
@@ -100,6 +102,19 @@ public abstract class Camera1Base
     streaming = false;
   }
 
+  @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
+  public Camera1Base(LightOpengGlView lightOpengGlView) {
+    context = lightOpengGlView.getContext();
+    this.lightOpengGlView = lightOpengGlView;
+    this.lightOpengGlView.init();
+    cameraManager =
+        new Camera1ApiManager(lightOpengGlView.getSurfaceTexture(), lightOpengGlView.getContext());
+    videoEncoder = new VideoEncoder(this);
+    microphoneManager = new MicrophoneManager(this);
+    audioEncoder = new AudioEncoder(this);
+    streaming = false;
+  }
+
   /**
    * Basic auth developed to work with Wowza. No tested with other server
    *
@@ -126,20 +141,28 @@ public abstract class Camera1Base
    * doesn't support any configuration seated or your device hasn't a H264 encoder).
    */
   public boolean prepareVideo(int width, int height, int fps, int bitrate, boolean hardwareRotation,
-      int rotation) {
+      int iFrameInterval, int rotation) {
     if (onPreview) {
       stopPreview();
       onPreview = true;
     }
     int imageFormat = ImageFormat.NV21; //supported nv21 and yv12
-    if (openGlView == null) {
+    if (openGlView == null && lightOpengGlView == null) {
       cameraManager.prepareCamera(width, height, fps, imageFormat);
       return videoEncoder.prepareVideoEncoder(width, height, fps, bitrate, rotation,
-          hardwareRotation, FormatVideoEncoder.YUV420Dynamical);
+          hardwareRotation, iFrameInterval, FormatVideoEncoder.YUV420Dynamical);
     } else {
       return videoEncoder.prepareVideoEncoder(width, height, fps, bitrate, rotation,
-          hardwareRotation, FormatVideoEncoder.SURFACE);
+          hardwareRotation, iFrameInterval, FormatVideoEncoder.SURFACE);
     }
+  }
+
+  /**
+   * backward compatibility reason
+   */
+  public boolean prepareVideo(int width, int height, int fps, int bitrate, boolean hardwareRotation,
+      int rotation) {
+    return prepareVideo(width, height, fps, bitrate, hardwareRotation, 2, rotation);
   }
 
   protected abstract void prepareAudioRtp(boolean isStereo, int sampleRate);
@@ -177,7 +200,7 @@ public abstract class Camera1Base
       stopPreview();
       onPreview = true;
     }
-    if (openGlView == null) {
+    if (openGlView == null && lightOpengGlView == null) {
       cameraManager.prepareCamera();
       return videoEncoder.prepareVideoEncoder();
     } else {
@@ -185,7 +208,7 @@ public abstract class Camera1Base
       if (context.getResources().getConfiguration().orientation == 1) {
         orientation = 90;
       }
-      return videoEncoder.prepareVideoEncoder(640, 480, 30, 1200 * 1024, orientation, false,
+      return videoEncoder.prepareVideoEncoder(640, 480, 30, 1200 * 1024, orientation, false, 2,
           FormatVideoEncoder.SURFACE);
     }
   }
@@ -203,7 +226,6 @@ public abstract class Camera1Base
   }
 
   /**
-   *
    * @param forceVideo force type codec used. FIRST_COMPATIBLE_FOUND, SOFTWARE, HARDWARE
    * @param forceAudio force type codec used. FIRST_COMPATIBLE_FOUND, SOFTWARE, HARDWARE
    */
@@ -266,6 +288,10 @@ public abstract class Camera1Base
         openGlView.setEncoderSize(width, height);
         openGlView.startGLThread(false);
         cameraManager.setSurfaceTexture(openGlView.getSurfaceTexture());
+      } else if (lightOpengGlView != null && Build.VERSION.SDK_INT >= 18) {
+        lightOpengGlView.setEncoderSize(width, height);
+        lightOpengGlView.startGLThread(false);
+        cameraManager.setSurfaceTexture(lightOpengGlView.getSurfaceTexture());
       }
       cameraManager.prepareCamera();
       if (width == 0 || height == 0) {
@@ -319,6 +345,8 @@ public abstract class Camera1Base
     if (!isStreaming() && onPreview) {
       if (openGlView != null && Build.VERSION.SDK_INT >= 18) {
         openGlView.stopGlThread();
+      } else if (lightOpengGlView != null && Build.VERSION.SDK_INT >= 18) {
+        lightOpengGlView.stopGlThread();
       }
       cameraManager.stop();
       onPreview = false;
@@ -363,6 +391,17 @@ public abstract class Camera1Base
       cameraManager.setSurfaceTexture(openGlView.getSurfaceTexture());
       cameraManager.prepareCamera(videoEncoder.getWidth(), videoEncoder.getHeight(),
           videoEncoder.getFps(), ImageFormat.NV21);
+    } else if (lightOpengGlView != null && Build.VERSION.SDK_INT >= 18) {
+      if (videoEncoder.getRotation() == 90 || videoEncoder.getRotation() == 270) {
+        lightOpengGlView.setEncoderSize(videoEncoder.getHeight(), videoEncoder.getWidth());
+      } else {
+        lightOpengGlView.setEncoderSize(videoEncoder.getWidth(), videoEncoder.getHeight());
+      }
+      lightOpengGlView.startGLThread(false);
+      lightOpengGlView.addMediaCodecSurface(videoEncoder.getInputSurface());
+      cameraManager.setSurfaceTexture(lightOpengGlView.getSurfaceTexture());
+      cameraManager.prepareCamera(videoEncoder.getWidth(), videoEncoder.getHeight(),
+          videoEncoder.getFps(), ImageFormat.NV21);
     }
     startStreamRtp(url);
     videoEncoder.start();
@@ -385,6 +424,8 @@ public abstract class Camera1Base
     audioEncoder.stop();
     if (openGlView != null && Build.VERSION.SDK_INT >= 18) {
       openGlView.removeMediaCodecSurface();
+    } else if (lightOpengGlView != null && Build.VERSION.SDK_INT >= 18) {
+      lightOpengGlView.removeMediaCodecSurface();
     }
     streaming = false;
   }

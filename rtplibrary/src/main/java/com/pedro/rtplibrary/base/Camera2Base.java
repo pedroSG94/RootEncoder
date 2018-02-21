@@ -28,6 +28,7 @@ import com.pedro.encoder.utils.gl.TranslateTo;
 import com.pedro.encoder.video.FormatVideoEncoder;
 import com.pedro.encoder.video.GetH264Data;
 import com.pedro.encoder.video.VideoEncoder;
+import com.pedro.rtplibrary.view.LightOpengGlView;
 import com.pedro.rtplibrary.view.OpenGlView;
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -46,8 +47,7 @@ import java.util.List;
  * Created by pedro on 7/07/17.
  */
 @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
-public abstract class Camera2Base
-    implements GetAacData, GetH264Data, GetMicrophoneData {
+public abstract class Camera2Base implements GetAacData, GetH264Data, GetMicrophoneData {
 
   protected Context context;
   protected Camera2ApiManager cameraManager;
@@ -58,6 +58,7 @@ public abstract class Camera2Base
   private SurfaceView surfaceView;
   private TextureView textureView;
   private OpenGlView openGlView;
+  private LightOpengGlView lightOpengGlView;
   private boolean videoEnabled = false;
   //record
   private MediaMuxer mediaMuxer;
@@ -100,6 +101,17 @@ public abstract class Camera2Base
     streaming = false;
   }
 
+  public Camera2Base(LightOpengGlView lightOpengGlView, Context context) {
+    this.lightOpengGlView = lightOpengGlView;
+    this.context = context;
+    lightOpengGlView.init();
+    cameraManager = new Camera2ApiManager(context);
+    videoEncoder = new VideoEncoder(this);
+    microphoneManager = new MicrophoneManager(this);
+    audioEncoder = new AudioEncoder(this);
+    streaming = false;
+  }
+
   public Camera2Base(Context context) {
     this.context = context;
     this.textureView = null;
@@ -134,16 +146,24 @@ public abstract class Camera2Base
    * doesn't support any configuration seated or your device hasn't a H264 encoder).
    */
   public boolean prepareVideo(int width, int height, int fps, int bitrate, boolean hardwareRotation,
-      int rotation) {
+      int iFrameInterval, int rotation) {
     if (onPreview) {
       stopPreview();
       onPreview = true;
     }
     boolean result =
         videoEncoder.prepareVideoEncoder(width, height, fps, bitrate, rotation, hardwareRotation,
-            FormatVideoEncoder.SURFACE);
+            iFrameInterval, FormatVideoEncoder.SURFACE);
     prepareCameraManager();
     return result;
+  }
+
+  /**
+   * backward compatibility reason
+   */
+  public boolean prepareVideo(int width, int height, int fps, int bitrate, boolean hardwareRotation,
+      int rotation) {
+    return prepareVideo(width, height, fps, bitrate, hardwareRotation, 2, rotation);
   }
 
   protected abstract void prepareAudioRtp(boolean isStereo, int sampleRate);
@@ -182,14 +202,14 @@ public abstract class Camera2Base
       onPreview = true;
     }
     boolean isHardwareRotation = true;
-    if (openGlView != null) isHardwareRotation = false;
+    if (openGlView != null || lightOpengGlView != null) isHardwareRotation = false;
     int orientation = 0;
     if (context.getResources().getConfiguration().orientation == 1) {
       orientation = 90;
     }
     boolean result =
         videoEncoder.prepareVideoEncoder(640, 480, 30, 1200 * 1024, orientation, isHardwareRotation,
-            FormatVideoEncoder.SURFACE);
+            2, FormatVideoEncoder.SURFACE);
     prepareCameraManager();
     return result;
   }
@@ -207,7 +227,6 @@ public abstract class Camera2Base
   }
 
   /**
-   *
    * @param forceVideo force type codec used. FIRST_COMPATIBLE_FOUND, SOFTWARE, HARDWARE
    * @param forceAudio force type codec used. FIRST_COMPATIBLE_FOUND, SOFTWARE, HARDWARE
    */
@@ -273,6 +292,12 @@ public abstract class Camera2Base
         openGlView.startGLThread(isCamera2Lanscape);
         cameraManager.prepareCamera(openGlView.getSurfaceTexture(), videoEncoder.getWidth(),
             videoEncoder.getHeight());
+      } else if (lightOpengGlView != null) {
+        boolean isCamera2Lanscape = true;
+        if (context.getResources().getConfiguration().orientation == 1) isCamera2Lanscape = false;
+        lightOpengGlView.startGLThread(isCamera2Lanscape);
+        cameraManager.prepareCamera(lightOpengGlView.getSurfaceTexture(), videoEncoder.getWidth(),
+            videoEncoder.getHeight());
       }
       cameraManager.openCameraFacing(cameraFacing);
       onPreview = true;
@@ -296,6 +321,8 @@ public abstract class Camera2Base
     if (!isStreaming() && onPreview) {
       if (openGlView != null) {
         openGlView.stopGlThread();
+      } else if (lightOpengGlView != null) {
+        lightOpengGlView.stopGlThread();
       }
       cameraManager.closeCamera(false);
       onPreview = false;
@@ -329,6 +356,17 @@ public abstract class Camera2Base
       openGlView.addMediaCodecSurface(videoEncoder.getInputSurface());
       cameraManager.prepareCamera(openGlView.getSurfaceTexture(), videoEncoder.getWidth(),
           videoEncoder.getHeight());
+    } else if (lightOpengGlView != null && videoEnabled) {
+      if (videoEncoder.getRotation() == 90 || videoEncoder.getRotation() == 270) {
+        lightOpengGlView.setEncoderSize(videoEncoder.getHeight(), videoEncoder.getWidth());
+        lightOpengGlView.startGLThread(false);
+      } else {
+        lightOpengGlView.setEncoderSize(videoEncoder.getWidth(), videoEncoder.getHeight());
+        lightOpengGlView.startGLThread(true);
+      }
+      lightOpengGlView.addMediaCodecSurface(videoEncoder.getInputSurface());
+      cameraManager.prepareCamera(lightOpengGlView.getSurfaceTexture(), videoEncoder.getWidth(),
+          videoEncoder.getHeight());
     }
     videoEncoder.start();
     audioEncoder.start();
@@ -355,6 +393,8 @@ public abstract class Camera2Base
     audioEncoder.stop();
     if (openGlView != null) {
       openGlView.removeMediaCodecSurface();
+    } else if (lightOpengGlView != null) {
+      lightOpengGlView.removeMediaCodecSurface();
     }
     streaming = false;
   }
@@ -632,7 +672,7 @@ public abstract class Camera2Base
       cameraManager.prepareCamera(textureView, videoEncoder.getInputSurface());
     } else if (surfaceView != null) {
       cameraManager.prepareCamera(surfaceView, videoEncoder.getInputSurface());
-    } else if (openGlView != null) {
+    } else if (openGlView != null || lightOpengGlView != null) {
     } else {
       cameraManager.prepareCamera(videoEncoder.getInputSurface());
     }

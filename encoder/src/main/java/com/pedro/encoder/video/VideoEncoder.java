@@ -53,6 +53,7 @@ public class VideoEncoder implements GetCameraData {
   private int fps = 30;
   private int bitRate = 1200 * 1024; //in kbps
   private int rotation = 90;
+  private int iFrameInterval = 2;
   private FormatVideoEncoder formatVideoEncoder = FormatVideoEncoder.YUV420Dynamical;
   //for disable video
   private boolean sendBlackImage = false;
@@ -66,7 +67,7 @@ public class VideoEncoder implements GetCameraData {
    * Prepare encoder with custom parameters
    */
   public boolean prepareVideoEncoder(int width, int height, int fps, int bitRate, int rotation,
-      boolean hardwareRotation, FormatVideoEncoder formatVideoEncoder) {
+      boolean hardwareRotation, int iFrameInterval, FormatVideoEncoder formatVideoEncoder) {
     this.width = width;
     this.height = height;
     this.fps = fps;
@@ -102,7 +103,7 @@ public class VideoEncoder implements GetCameraData {
       videoFormat.setInteger(MediaFormat.KEY_MAX_INPUT_SIZE, 0);
       videoFormat.setInteger(MediaFormat.KEY_BIT_RATE, bitRate);
       videoFormat.setInteger(MediaFormat.KEY_FRAME_RATE, fps);
-      videoFormat.setInteger(MediaFormat.KEY_I_FRAME_INTERVAL, 2);
+      videoFormat.setInteger(MediaFormat.KEY_I_FRAME_INTERVAL, iFrameInterval);
       if (hardwareRotation) {
         videoFormat.setInteger("rotation-degrees", rotation);
       }
@@ -141,7 +142,7 @@ public class VideoEncoder implements GetCameraData {
    * Prepare encoder with default parameters
    */
   public boolean prepareVideoEncoder() {
-    return prepareVideoEncoder(width, height, fps, bitRate, rotation, false, formatVideoEncoder);
+    return prepareVideoEncoder(width, height, fps, bitRate, rotation, false, iFrameInterval, formatVideoEncoder);
   }
 
   @RequiresApi(api = Build.VERSION_CODES.KITKAT)
