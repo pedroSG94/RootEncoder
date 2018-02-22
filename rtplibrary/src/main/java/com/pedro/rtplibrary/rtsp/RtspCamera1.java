@@ -6,6 +6,7 @@ import android.support.annotation.RequiresApi;
 import android.view.SurfaceView;
 import android.view.TextureView;
 import com.pedro.rtplibrary.base.Camera1Base;
+import com.pedro.rtplibrary.view.LightOpenGlView;
 import com.pedro.rtplibrary.view.OpenGlView;
 import com.pedro.rtsp.rtsp.Protocol;
 import com.pedro.rtsp.rtsp.RtspClient;
@@ -36,6 +37,12 @@ public class RtspCamera1 extends Camera1Base {
   @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
   public RtspCamera1(OpenGlView openGlView, ConnectCheckerRtsp connectCheckerRtsp) {
     super(openGlView);
+    rtspClient = new RtspClient(connectCheckerRtsp);
+  }
+
+  @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
+  public RtspCamera1(LightOpenGlView lightOpenGlView, ConnectCheckerRtsp connectCheckerRtsp) {
+    super(lightOpenGlView);
     rtspClient = new RtspClient(connectCheckerRtsp);
   }
 

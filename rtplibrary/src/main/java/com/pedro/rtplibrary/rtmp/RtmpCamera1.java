@@ -8,6 +8,7 @@ import android.view.SurfaceView;
 import android.view.TextureView;
 import com.pedro.rtplibrary.base.Camera1Base;
 
+import com.pedro.rtplibrary.view.LightOpenGlView;
 import com.pedro.rtplibrary.view.OpenGlView;
 import net.ossrs.rtmp.ConnectCheckerRtmp;
 import net.ossrs.rtmp.SrsFlvMuxer;
@@ -38,6 +39,12 @@ public class RtmpCamera1 extends Camera1Base {
   @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
   public RtmpCamera1(OpenGlView openGlView, ConnectCheckerRtmp connectChecker) {
     super(openGlView);
+    srsFlvMuxer = new SrsFlvMuxer(connectChecker);
+  }
+
+  @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
+  public RtmpCamera1(LightOpenGlView lightOpenGlView, ConnectCheckerRtmp connectChecker) {
+    super(lightOpenGlView);
     srsFlvMuxer = new SrsFlvMuxer(connectChecker);
   }
 
