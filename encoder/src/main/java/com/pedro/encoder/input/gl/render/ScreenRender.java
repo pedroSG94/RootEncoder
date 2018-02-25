@@ -31,6 +31,7 @@ public class ScreenRender {
 
   private float[] MVPMatrix = new float[16];
   private float[] STMatrix = new float[16];
+  private boolean AAEnabled = false;  //FXAA enable/disable
 
   private int texId;
 
@@ -40,6 +41,8 @@ public class ScreenRender {
   private int aPositionHandle = -1;
   private int aTextureHandle = -1;
   private int uSamplerHandle = -1;
+  private int uResolutionHandle = -1;
+  private int uAAEnabledHandle = -1;
 
   public ScreenRender() {
     squareVertex = ByteBuffer.allocateDirect(
@@ -54,7 +57,9 @@ public class ScreenRender {
   public void initGl(Context context) {
     GlUtil.checkGlError("initGl start");
     String vertexShader = GlUtil.getStringFromRaw(context, R.raw.simple_vertex);
-    String fragmentShader = GlUtil.getStringFromRaw(context, R.raw.simple_fragment);
+    //String fragmentShader = GlUtil.getStringFromRaw(context, R.raw.simple_fragment);
+    String fragmentShader = GlUtil.getStringFromRaw(context, R.raw.fxaa);
+    //String fragmentShader = GlUtil.getStringFromRaw(context, R.raw.fxaa_pc);
 
     program = GlUtil.createProgram(vertexShader, fragmentShader);
     aPositionHandle = GLES20.glGetAttribLocation(program, "aPosition");
@@ -62,6 +67,8 @@ public class ScreenRender {
     uMVPMatrixHandle = GLES20.glGetUniformLocation(program, "uMVPMatrix");
     uSTMatrixHandle = GLES20.glGetUniformLocation(program, "uSTMatrix");
     uSamplerHandle = GLES20.glGetUniformLocation(program, "uSampler");
+    uResolutionHandle = GLES20.glGetUniformLocation(program, "uResolution");
+    uAAEnabledHandle = GLES20.glGetUniformLocation(program, "uAAEnabled");
     GlUtil.checkGlError("initGl end");
   }
 
@@ -83,7 +90,8 @@ public class ScreenRender {
 
     GLES20.glUniformMatrix4fv(uMVPMatrixHandle, 1, false, MVPMatrix, 0);
     GLES20.glUniformMatrix4fv(uSTMatrixHandle, 1, false, STMatrix, 0);
-
+    GLES20.glUniform2f(uResolutionHandle, width, height);
+    GLES20.glUniform1f(uAAEnabledHandle, AAEnabled ? 1f : 0f);
     GLES20.glUniform1i(uSamplerHandle, 5);
     GLES20.glActiveTexture(GLES20.GL_TEXTURE5);
     GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, texId);
@@ -99,5 +107,13 @@ public class ScreenRender {
 
   public void setTexId(int texId) {
     this.texId = texId;
+  }
+
+  public void setAAEnabled(boolean AAEnabled) {
+    this.AAEnabled = AAEnabled;
+  }
+
+  public boolean isAAEnabled() {
+    return AAEnabled;
   }
 }

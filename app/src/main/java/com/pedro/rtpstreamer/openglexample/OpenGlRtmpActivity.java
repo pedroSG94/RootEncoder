@@ -88,6 +88,11 @@ public class OpenGlRtmpActivity extends AppCompatActivity
   public boolean onOptionsItemSelected(MenuItem item) {
     if (rtmpCamera1.isStreaming()) {
       switch (item.getItemId()) {
+        case R.id.e_d_fxaa:
+          rtmpCamera1.enableAA(!rtmpCamera1.isAAEnabled());
+          Toast.makeText(this, "FXAA " + (rtmpCamera1.isAAEnabled() ? " enabled" : "disabled"),
+              Toast.LENGTH_SHORT).show();
+          return true;
         //stream object
         case R.id.text:
           setTextToStream();

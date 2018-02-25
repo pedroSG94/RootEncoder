@@ -48,6 +48,7 @@ public class OpenGlView extends SurfaceView
   private boolean loadScale = false;
   private boolean loadPosition = false;
   private boolean loadFilter = false;
+  private boolean loadAA = false;
 
   private boolean loadPositionTo = false;
   private TextStreamObject textStreamObject;
@@ -57,6 +58,7 @@ public class OpenGlView extends SurfaceView
   private float alpha;
   private float scaleX, scaleY;
   private float positionX, positionY;
+  private boolean AAEnabled = false;
   private TranslateTo positionTo;
   private Surface surface;
   private boolean isCamera2Landscape = false;
@@ -152,6 +154,15 @@ public class OpenGlView extends SurfaceView
   public void setStreamObjectPosition(TranslateTo translateTo) {
     this.positionTo = translateTo;
     loadPositionTo = true;
+  }
+
+  public void enableAA(boolean AAEnabled) {
+    this.AAEnabled = AAEnabled;
+    loadAA = true;
+  }
+
+  public boolean isAAEnabled() {
+    return textureManager != null && textureManager.isAAEnabled();
   }
 
   public PointF getScale() {
@@ -258,6 +269,9 @@ public class OpenGlView extends SurfaceView
           } else if (loadFilter) {
             textureManager.setFilter(baseFilterRender);
             loadFilter = false;
+          } else if (loadAA) {
+            textureManager.enableAA(AAEnabled);
+            loadAA = false;
           }
         }
       }

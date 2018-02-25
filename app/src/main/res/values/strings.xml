@@ -34,6 +34,7 @@
   <string name="aqua">Aqua</string>
   <string name="posterize">Posterize</string>
   <!--gl menu-->
+  <string name="enable_disable_fxaa">enable/disable FXAA</string>
   <string name="stream_object">Stream object</string>
   <string name="gif">Gif</string>
   <string name="image">Image</string>

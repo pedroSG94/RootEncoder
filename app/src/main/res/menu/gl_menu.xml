@@ -2,6 +2,10 @@
 
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
   <item
+      android:id="@+id/e_d_fxaa"
+      android:title="@string/enable_disable_fxaa"
+    />
+  <item
       android:title="@string/stream_object"
       >
     <menu>

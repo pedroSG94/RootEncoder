@@ -602,6 +602,27 @@ public abstract class Camera2Base implements GetAacData, GetH264Data, GetMicroph
   }
 
   /**
+   * Enable FXAA. Disabled by default.
+   * @param AAEnabled true to enable false to disable
+   * @throws RuntimeException
+   */
+  public void enableAA(boolean AAEnabled) throws RuntimeException {
+    if (openGlView != null) {
+      openGlView.enableAA(AAEnabled);
+    } else {
+      throw new RuntimeException("You must use OpenGlView in the constructor to set a position");
+    }
+  }
+
+  public boolean isAAEnabled() throws RuntimeException {
+    if (openGlView != null) {
+      return openGlView.isAAEnabled();
+    } else {
+      throw new RuntimeException("You must use OpenGlView in the constructor to set a position");
+    }
+  }
+
+  /**
    * Get scale of the stream object in percent.
    *
    * @return scale in percent, 0 is stream not started

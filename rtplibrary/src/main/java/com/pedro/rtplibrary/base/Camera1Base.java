@@ -642,6 +642,29 @@ public abstract class Camera1Base
   }
 
   /**
+   * Enable FXAA. Disabled by default.
+   * @param AAEnabled true to enable false to disable
+   * @throws RuntimeException
+   */
+  @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
+  public void enableAA(boolean AAEnabled) throws RuntimeException {
+    if (openGlView != null) {
+      openGlView.enableAA(AAEnabled);
+    } else {
+      throw new RuntimeException("You must use OpenGlView in the constructor to set a position");
+    }
+  }
+
+  @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
+  public boolean isAAEnabled() throws RuntimeException {
+    if (openGlView != null) {
+      return openGlView.isAAEnabled();
+    } else {
+      throw new RuntimeException("You must use OpenGlView in the constructor to set a position");
+    }
+  }
+
+  /**
    * Get scale of the stream object in percent.
    *
    * @return scale in percent, 0 is stream not started

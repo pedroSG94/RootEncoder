@@ -68,6 +68,14 @@ public class ManagerRender {
     screenRender.release();
   }
 
+  public void enableAA(boolean AAEnabled) {
+    screenRender.setAAEnabled(AAEnabled);
+  }
+
+  public boolean isAAEnabled() {
+    return screenRender.isAAEnabled();
+  }
+
   public void updateFrame() {
     cameraRender.updateTexImage();
   }
