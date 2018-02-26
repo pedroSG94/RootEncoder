@@ -4,16 +4,13 @@ import android.media.MediaCodec;
 import android.os.Build;
 import android.support.annotation.RequiresApi;
 import android.view.SurfaceView;
-
 import android.view.TextureView;
 import com.pedro.rtplibrary.base.Camera1Base;
-
 import com.pedro.rtplibrary.view.LightOpenGlView;
 import com.pedro.rtplibrary.view.OpenGlView;
+import java.nio.ByteBuffer;
 import net.ossrs.rtmp.ConnectCheckerRtmp;
 import net.ossrs.rtmp.SrsFlvMuxer;
-
-import java.nio.ByteBuffer;
 
 /**
  * More documentation see:

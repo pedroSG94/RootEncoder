@@ -33,6 +33,7 @@ public class OpenGlView extends SurfaceView
   private Thread thread = null;
   private boolean frameAvailable = false;
   private boolean running = true;
+  private boolean initialized = false;
 
   private SurfaceManager surfaceManager = null;
   private SurfaceManager surfaceManagerEncoder = null;
@@ -62,6 +63,7 @@ public class OpenGlView extends SurfaceView
   private TranslateTo positionTo;
   private Surface surface;
   private boolean isCamera2Landscape = false;
+  private int waitTime = 10;
 
   public OpenGlView(Context context, AttributeSet attrs) {
     super(context, attrs);
@@ -69,7 +71,8 @@ public class OpenGlView extends SurfaceView
   }
 
   public void init() {
-    textureManager = new ManagerRender();
+    if (!initialized) textureManager = new ManagerRender();
+    initialized = true;
   }
 
   public SurfaceTexture getSurfaceTexture() {
@@ -165,6 +168,10 @@ public class OpenGlView extends SurfaceView
     return textureManager != null && textureManager.isAAEnabled();
   }
 
+  public void setWaitTime(int waitTime) {
+    this.waitTime = waitTime;
+  }
+
   public PointF getScale() {
     if (textureManager != null) {
       return textureManager.getScale();
@@ -214,7 +221,7 @@ public class OpenGlView extends SurfaceView
     try {
       while (running) {
         synchronized (sync) {
-          sync.wait(10);
+          sync.wait(waitTime);
           if (frameAvailable) {
             frameAvailable = false;
             surfaceManager.makeCurrent();
