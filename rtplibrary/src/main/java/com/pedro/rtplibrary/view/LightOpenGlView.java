@@ -26,7 +26,8 @@ public class LightOpenGlView extends SurfaceView
 
   private Thread thread = null;
   private boolean frameAvailable = false;
-  private boolean running = true;
+  private boolean running = false;
+  private boolean initialized = false;
 
   private SurfaceManager surfaceManager = null;
   private SurfaceManager surfaceManagerEncoder = null;
@@ -38,6 +39,7 @@ public class LightOpenGlView extends SurfaceView
   private int previewWidth, previewHeight;
   private int encoderWidth, encoderHeight;
   private boolean isCamera2Landscape = false;
+  private int waitTime = 200;
 
   public LightOpenGlView(Context context, AttributeSet attrs) {
     super(context, attrs);
@@ -45,7 +47,8 @@ public class LightOpenGlView extends SurfaceView
   }
 
   public void init() {
-    simpleCameraRender = new SimpleCameraRender();
+    if (!initialized) simpleCameraRender = new SimpleCameraRender();
+    initialized = true;
   }
 
   public SurfaceTexture getSurfaceTexture() {
@@ -69,6 +72,10 @@ public class LightOpenGlView extends SurfaceView
         surfaceManagerEncoder = null;
       }
     }
+  }
+
+  public void setWaitTime(int waitTime) {
+    this.waitTime = waitTime;
   }
 
   public void setEncoderSize(int width, int height) {
@@ -109,7 +116,7 @@ public class LightOpenGlView extends SurfaceView
     try {
       while (running) {
         synchronized (sync) {
-          sync.wait(200);
+          sync.wait(waitTime);
           if (frameAvailable) {
             frameAvailable = false;
             surfaceManager.makeCurrent();
