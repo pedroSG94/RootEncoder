@@ -9,6 +9,7 @@ import android.opengl.EGLSurface;
 import android.opengl.GLES20;
 import android.os.Build;
 import android.support.annotation.RequiresApi;
+import android.util.Log;
 import android.view.Surface;
 import com.pedro.encoder.utils.gl.GlUtil;
 
@@ -40,6 +41,15 @@ public class SurfaceManager {
   /**
    * Creates an EGL context and an EGL surface.
    */
+  public SurfaceManager(Surface surface, EGLContext eglContext) {
+    this.surface = surface;
+    eglSharedContext = eglContext;
+    eglSetup();
+  }
+
+  /**
+   * Creates an EGL context and an EGL surface.
+   */
   public SurfaceManager(Surface surface) {
     this.surface = surface;
     eglSetup();
@@ -47,7 +57,8 @@ public class SurfaceManager {
 
   public void makeCurrent() {
     if (!EGL14.eglMakeCurrent(eglDisplay, eglSurface, eglSurface, eglContext)) {
-      throw new RuntimeException("eglMakeCurrent failed");
+      Log.e("Error", "eglMakeCurrent failed");
+      //throw new RuntimeException("eglMakeCurrent failed");
     }
   }
 

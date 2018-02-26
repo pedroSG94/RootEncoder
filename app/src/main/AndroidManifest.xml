@@ -99,6 +99,8 @@
         android:label="@string/opengl_rtsp"
         android:screenOrientation="portrait"
         />
+    <activity android:name=".CubeTestRtmpActivity">
+    </activity>
   </application>
 
 </manifest>
