@@ -12,6 +12,7 @@ import android.opengl.Matrix;
 import android.os.Build;
 import android.support.annotation.RequiresApi;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.MotionEvent;
 import android.view.Surface;
 import com.pedro.encoder.input.gl.SurfaceManager;
@@ -20,6 +21,7 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.FloatBuffer;
 import java.nio.ShortBuffer;
+import javax.microedition.khronos.egl.EGL10;
 import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
 
@@ -36,7 +38,8 @@ public class CustomGlSurfaceView extends GLSurfaceView {
   private float mPreviousDeg;
   private int previewWidth, previewHeight;
   private SurfaceTexture surfaceTexture;
-  private SurfaceManager surfaceManager;  //class used to share frames with surface from VideoEncoder class and GlSurfaceView
+  private SurfaceManager surfaceManager;
+  //class used to share frames with surface from VideoEncoder class and GlSurfaceView
   private int encoderWidth, encoderHeight;
   private final Object sync = new Object();
   private EGLContext eglContext;
@@ -45,12 +48,38 @@ public class CustomGlSurfaceView extends GLSurfaceView {
   private EGLSurface savedEglReadSurface;
   private EGLContext savedEglContext;
 
+  private class MyConfigChooser implements GLSurfaceView.EGLConfigChooser {
+
+    @Override
+    public EGLConfig chooseConfig(EGL10 egl10,
+        javax.microedition.khronos.egl.EGLDisplay eglDisplay) {
+      int attribs[] = {
+          EGL14.EGL_RED_SIZE, 8, EGL14.EGL_GREEN_SIZE, 8, EGL14.EGL_BLUE_SIZE, 8,
+          EGL14.EGL_RENDERABLE_TYPE, EGL14.EGL_OPENGL_ES2_BIT,
+          /* AA https://stackoverflow.com/questions/27035893/antialiasing-in-opengl-es-2-0 */
+          //EGL14.EGL_SAMPLE_BUFFERS, 1 /* true */,
+          //EGL14.EGL_SAMPLES, 4, /* increase to more smooth limit of your GPU */
+          EGL14.EGL_NONE
+      };
+      EGLConfig[] configs = new EGLConfig[1];
+      int[] configCounts = new int[1];
+      egl10.eglChooseConfig(eglDisplay, attribs, configs, 1, configCounts);
+      if (configCounts[0] == 0) {
+        Log.e("GlConfig", "failed config");
+        return null;
+      } else {
+        return configs[0];
+      }
+    }
+  }
+
   public CustomGlSurfaceView(Context context) {
     this(context, null);
   }
 
   public CustomGlSurfaceView(Context context, AttributeSet attrs) {
     super(context, attrs);
+    setEGLConfigChooser(new MyConfigChooser());
     setEGLContextClientVersion(2);
     setRenderer(mRenderer = new CubeRenderer());
     setRenderMode(GLSurfaceView.RENDERMODE_CONTINUOUSLY);
@@ -197,13 +226,12 @@ public class CustomGlSurfaceView extends GLSurfaceView {
     public void onDrawFrame(GL10 arg0) {
       synchronized (sync) {
         drawFrame(previewWidth, previewHeight); //draw in preview
-
         //draw in encoder
         if (surfaceManager != null) {
           saveRenderState();
           surfaceManager.makeCurrent();
           drawFrame(encoderWidth, encoderHeight);
-          surfaceManager.setPresentationTime(CustomGlSurfaceView.this.getDrawingTime());
+          surfaceManager.setPresentationTime(getDrawingTime());
           surfaceManager.swapBuffer();
           restoreRenderState();
         }
@@ -226,6 +254,7 @@ public class CustomGlSurfaceView extends GLSurfaceView {
         throw new RuntimeException("eglMakeCurrent failed");
       }
     }
+
     private void drawFrame(int width, int height) {
       GLES20.glViewport(0, 0, width, height);
       Matrix.frustumM(m_fProjMatrix, 0, -(float) width / height, (float) width / height, -1, 1, 1,
@@ -344,10 +373,14 @@ public class CustomGlSurfaceView extends GLSurfaceView {
       GLES20.glTexImage2D(GLES20.GL_TEXTURE_CUBE_MAP_NEGATIVE_Z, 0, GLES20.GL_RGB, 1, 1, 0,
           GLES20.GL_RGB, GLES20.GL_UNSIGNED_BYTE, cubePixels);
       // Set the filtering mode
-      GLES20.glTexParameteri(GLES20.GL_TEXTURE_CUBE_MAP, GLES20.GL_TEXTURE_MIN_FILTER,
-          GLES20.GL_NEAREST);
-      GLES20.glTexParameteri(GLES20.GL_TEXTURE_CUBE_MAP, GLES20.GL_TEXTURE_MAG_FILTER,
-          GLES20.GL_NEAREST);
+      GLES20.glTexParameterf(GLES20.GL_TEXTURE_CUBE_MAP, GLES20.GL_TEXTURE_MIN_FILTER,
+          GLES20.GL_LINEAR);
+      GLES20.glTexParameterf(GLES20.GL_TEXTURE_CUBE_MAP, GLES20.GL_TEXTURE_MAG_FILTER,
+          GLES20.GL_LINEAR);
+      GLES20.glTexParameteri(GLES20.GL_TEXTURE_CUBE_MAP, GLES20.GL_TEXTURE_WRAP_S,
+          GLES20.GL_CLAMP_TO_EDGE);
+      GLES20.glTexParameteri(GLES20.GL_TEXTURE_CUBE_MAP, GLES20.GL_TEXTURE_WRAP_T,
+          GLES20.GL_CLAMP_TO_EDGE);
       return textureId[0];
     }
   }
