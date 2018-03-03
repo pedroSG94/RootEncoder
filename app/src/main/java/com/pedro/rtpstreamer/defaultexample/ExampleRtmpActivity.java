@@ -2,6 +2,7 @@ package com.pedro.rtpstreamer.defaultexample;
 
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.View;
 import android.view.WindowManager;
@@ -18,7 +19,7 @@ import net.ossrs.rtmp.ConnectCheckerRtmp;
  * {@link com.pedro.rtplibrary.rtmp.RtmpCamera1}
  */
 public class ExampleRtmpActivity extends AppCompatActivity
-    implements ConnectCheckerRtmp, View.OnClickListener {
+    implements ConnectCheckerRtmp, View.OnClickListener, SurfaceHolder.Callback {
 
   private RtmpCamera1 rtmpCamera1;
   private Button button;
@@ -35,6 +36,7 @@ public class ExampleRtmpActivity extends AppCompatActivity
     etUrl = findViewById(R.id.et_rtp_url);
     etUrl.setHint(R.string.hint_rtmp);
     rtmpCamera1 = new RtmpCamera1(surfaceView, this);
+    surfaceView.getHolder().addCallback(this);
   }
 
   @Override
@@ -109,11 +111,18 @@ public class ExampleRtmpActivity extends AppCompatActivity
   }
 
   @Override
-  protected void onPause() {
-    super.onPause();
-    if (rtmpCamera1.isStreaming()) {
-      rtmpCamera1.stopStream();
-      rtmpCamera1.stopPreview();
-    }
+  public void surfaceCreated(SurfaceHolder surfaceHolder) {
+
+  }
+
+  @Override
+  public void surfaceChanged(SurfaceHolder surfaceHolder, int i, int i1, int i2) {
+    rtmpCamera1.startPreview();
+  }
+
+  @Override
+  public void surfaceDestroyed(SurfaceHolder surfaceHolder) {
+    if (rtmpCamera1.isStreaming()) rtmpCamera1.stopStream();
+    rtmpCamera1.stopPreview();
   }
 }

@@ -6,7 +6,6 @@ import android.opengl.EGLContext;
 import android.opengl.EGLDisplay;
 import android.opengl.EGLExt;
 import android.opengl.EGLSurface;
-import android.opengl.GLES20;
 import android.os.Build;
 import android.support.annotation.RequiresApi;
 import android.util.Log;
@@ -120,7 +119,8 @@ public class SurfaceManager {
 
     // Configure context for OpenGL ES 2.0.
     int[] attrib_list = {
-        EGL14.EGL_CONTEXT_CLIENT_VERSION, 2, EGL14.EGL_NONE
+        EGL14.EGL_CONTEXT_CLIENT_VERSION, 2,
+        EGL14.EGL_NONE
     };
 
     if (eglSharedContext == null) {
@@ -137,9 +137,6 @@ public class SurfaceManager {
     };
     eglSurface = EGL14.eglCreateWindowSurface(eglDisplay, configs[0], surface, surfaceAttribs, 0);
     GlUtil.checkEglError("eglCreateWindowSurface");
-
-    GLES20.glDisable(GLES20.GL_DEPTH_TEST);
-    GLES20.glDisable(GLES20.GL_CULL_FACE);
   }
 
   /**

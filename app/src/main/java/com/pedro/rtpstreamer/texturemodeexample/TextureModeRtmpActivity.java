@@ -23,7 +23,7 @@ import net.ossrs.rtmp.ConnectCheckerRtmp;
  */
 @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
 public class TextureModeRtmpActivity extends AppCompatActivity
-    implements ConnectCheckerRtmp, View.OnClickListener {
+    implements ConnectCheckerRtmp, View.OnClickListener, TextureView.SurfaceTextureListener {
 
   private RtmpCamera2 rtmpCamera2;
   private AutoFitTextureView textureView;
@@ -41,7 +41,7 @@ public class TextureModeRtmpActivity extends AppCompatActivity
     etUrl = findViewById(R.id.et_rtp_url);
     etUrl.setHint(R.string.hint_rtmp);
     rtmpCamera2 = new RtmpCamera2(textureView, this);
-    textureView.setSurfaceTextureListener(surfaceTextureListener);
+    textureView.setSurfaceTextureListener(this);
   }
 
   @Override
@@ -115,45 +115,24 @@ public class TextureModeRtmpActivity extends AppCompatActivity
   }
 
   @Override
-  protected void onPause() {
-    super.onPause();
-    if (rtmpCamera2.isStreaming()) {
-      rtmpCamera2.stopStream();
-      rtmpCamera2.stopPreview();
-    }
+  public void onSurfaceTextureAvailable(SurfaceTexture surfaceTexture, int i, int i1) {
+    textureView.setAspectRatio(480, 640);
   }
 
-  /**
-   * [TextureView.SurfaceTextureListener] handles several lifecycle events on a
-   * [TextureView].
-   */
-  private TextureView.SurfaceTextureListener surfaceTextureListener =
-      new TextureView.SurfaceTextureListener() {
+  @Override
+  public void onSurfaceTextureSizeChanged(SurfaceTexture surfaceTexture, int i, int i1) {
+    rtmpCamera2.startPreview();
+  }
 
-        @Override
-        public void onSurfaceTextureAvailable(SurfaceTexture surface, int width, int height) {
-          textureView.setAspectRatio(480, 640);
-          rtmpCamera2.startPreview();
-          // optionally:
-          // rtmpCamera2.startPreview(CameraCharacteristics.LENS_FACING_BACK);
-          // or
-          // rtmpCamera2.startPreview(CameraCharacteristics.LENS_FACING_FRONT);
-        }
+  @Override
+  public boolean onSurfaceTextureDestroyed(SurfaceTexture surfaceTexture) {
+    if (rtmpCamera2.isStreaming()) rtmpCamera2.stopStream();
+    rtmpCamera2.stopPreview();
+    return true;
+  }
 
-        @Override
-        public void onSurfaceTextureSizeChanged(SurfaceTexture surface, int width, int height) {
+  @Override
+  public void onSurfaceTextureUpdated(SurfaceTexture surfaceTexture) {
 
-        }
-
-        @Override
-        public boolean onSurfaceTextureDestroyed(SurfaceTexture surface) {
-          rtmpCamera2.stopPreview();
-          return false;
-        }
-
-        @Override
-        public void onSurfaceTextureUpdated(SurfaceTexture surface) {
-
-        }
-      };
+  }
 }

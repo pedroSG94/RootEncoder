@@ -30,4 +30,14 @@
       android:layout_margin="20dp"
       android:id="@+id/b_start_stop"
       />
+
+  <Button
+      android:text="@string/switch_camera_button"
+      android:layout_width="wrap_content"
+      android:layout_height="wrap_content"
+      android:layout_alignParentBottom="true"
+      android:layout_alignParentRight="true"
+      android:layout_margin="20dp"
+      android:id="@+id/switch_camera"
+      />
 </RelativeLayout>

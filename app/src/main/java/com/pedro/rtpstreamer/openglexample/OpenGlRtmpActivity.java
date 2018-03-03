@@ -8,6 +8,7 @@ import android.support.annotation.RequiresApi;
 import android.support.v7.app.AppCompatActivity;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.SurfaceHolder;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.Button;
@@ -43,6 +44,7 @@ import com.pedro.encoder.input.gl.render.filters.SepiaFilterRender;
 import com.pedro.encoder.input.gl.render.filters.SharpnessFilterRender;
 import com.pedro.encoder.input.gl.render.filters.TemperatureFilterRender;
 import com.pedro.encoder.input.gl.render.filters.ZebraFilterRender;
+import com.pedro.encoder.input.video.CameraOpenException;
 import com.pedro.encoder.utils.gl.GifStreamObject;
 import com.pedro.encoder.utils.gl.ImageStreamObject;
 import com.pedro.encoder.utils.gl.TextStreamObject;
@@ -59,7 +61,7 @@ import net.ossrs.rtmp.ConnectCheckerRtmp;
  */
 @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
 public class OpenGlRtmpActivity extends AppCompatActivity
-    implements ConnectCheckerRtmp, View.OnClickListener {
+    implements ConnectCheckerRtmp, View.OnClickListener, SurfaceHolder.Callback {
 
   private RtmpCamera1 rtmpCamera1;
   private Button button;
@@ -73,9 +75,12 @@ public class OpenGlRtmpActivity extends AppCompatActivity
     OpenGlView openGlView = findViewById(R.id.surfaceView);
     button = findViewById(R.id.b_start_stop);
     button.setOnClickListener(this);
+    Button switchCamera = findViewById(R.id.switch_camera);
+    switchCamera.setOnClickListener(this);
     etUrl = findViewById(R.id.et_rtp_url);
     etUrl.setHint(R.string.hint_rtmp);
     rtmpCamera1 = new RtmpCamera1(openGlView, this);
+    openGlView.getHolder().addCallback(this);
   }
 
   @Override
@@ -89,9 +94,9 @@ public class OpenGlRtmpActivity extends AppCompatActivity
     if (rtmpCamera1.isStreaming()) {
       switch (item.getItemId()) {
         case R.id.e_d_fxaa:
-          rtmpCamera1.enableAA(!rtmpCamera1.isAAEnabled());
           Toast.makeText(this, "FXAA " + (rtmpCamera1.isAAEnabled() ? " enabled" : "disabled"),
               Toast.LENGTH_SHORT).show();
+          rtmpCamera1.enableAA(!rtmpCamera1.isAAEnabled());
           return true;
         //stream object
         case R.id.text:
@@ -259,7 +264,6 @@ public class OpenGlRtmpActivity extends AppCompatActivity
         Toast.makeText(OpenGlRtmpActivity.this, "Connection failed. " + reason, Toast.LENGTH_SHORT)
             .show();
         rtmpCamera1.stopStream();
-        rtmpCamera1.stopPreview();
         button.setText(R.string.start_button);
       }
     });
@@ -297,27 +301,46 @@ public class OpenGlRtmpActivity extends AppCompatActivity
 
   @Override
   public void onClick(View view) {
-    if (!rtmpCamera1.isStreaming()) {
-      if (rtmpCamera1.prepareAudio() && rtmpCamera1.prepareVideo()) {
-        button.setText(R.string.stop_button);
-        rtmpCamera1.startStream(etUrl.getText().toString());
-      } else {
-        Toast.makeText(this, "Error preparing stream, This device cant do it", Toast.LENGTH_SHORT)
-            .show();
-      }
-    } else {
-      button.setText(R.string.start_button);
-      rtmpCamera1.stopStream();
-      rtmpCamera1.stopPreview();
+    switch (view.getId()) {
+      case R.id.b_start_stop:
+        if (!rtmpCamera1.isStreaming()) {
+          if (rtmpCamera1.prepareAudio() && rtmpCamera1.prepareVideo()) {
+            button.setText(R.string.stop_button);
+            rtmpCamera1.startStream(etUrl.getText().toString());
+          } else {
+            Toast.makeText(this, "Error preparing stream, This device cant do it",
+                Toast.LENGTH_SHORT).show();
+          }
+        } else {
+          button.setText(R.string.start_button);
+          rtmpCamera1.stopStream();
+        }
+        break;
+      case R.id.switch_camera:
+        try {
+          rtmpCamera1.switchCamera();
+        } catch (CameraOpenException e) {
+          Toast.makeText(this, e.getMessage(), Toast.LENGTH_SHORT).show();
+        }
+        break;
+      default:
+        break;
     }
   }
 
   @Override
-  protected void onPause() {
-    super.onPause();
-    if (rtmpCamera1.isStreaming()) {
-      rtmpCamera1.stopStream();
-      rtmpCamera1.stopPreview();
-    }
+  public void surfaceCreated(SurfaceHolder surfaceHolder) {
+
+  }
+
+  @Override
+  public void surfaceChanged(SurfaceHolder surfaceHolder, int i, int i1, int i2) {
+    rtmpCamera1.startPreview();
+  }
+
+  @Override
+  public void surfaceDestroyed(SurfaceHolder surfaceHolder) {
+    if (rtmpCamera1.isStreaming()) rtmpCamera1.stopStream();
+    rtmpCamera1.stopPreview();
   }
 }

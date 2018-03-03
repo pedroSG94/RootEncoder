@@ -137,7 +137,7 @@ public class RtmpActivity extends AppCompatActivity
         new ArrayAdapter<>(this, R.layout.support_simple_spinner_dropdown_item);
     orientationAdapter.addAll(orientations);
     spOrientation.setAdapter(orientationAdapter);
-    spOrientation.setSelection(0);
+    spOrientation.setSelection(1);
 
     ArrayAdapter<String> resolutionAdapter =
         new ArrayAdapter<>(this, R.layout.support_simple_spinner_dropdown_item);
@@ -308,24 +308,6 @@ public class RtmpActivity extends AppCompatActivity
   }
 
   @Override
-  protected void onPause() {
-    super.onPause();
-    if (rtmpCamera1.isStreaming()) {
-      rtmpCamera1.stopStream();
-      rtmpCamera1.stopPreview();
-      bStartStop.setText(getResources().getString(R.string.start_button));
-    }
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2 && rtmpCamera1.isRecording()) {
-      rtmpCamera1.stopRecord();
-      bRecord.setText(R.string.start_record);
-      Toast.makeText(this,
-          "file " + currentDateAndTime + ".mp4 saved in " + folder.getAbsolutePath(),
-          Toast.LENGTH_SHORT).show();
-      currentDateAndTime = "";
-    }
-  }
-
-  @Override
   public void onConnectionSuccessRtmp() {
     runOnUiThread(new Runnable() {
       @Override
@@ -398,6 +380,7 @@ public class RtmpActivity extends AppCompatActivity
 
   @Override
   public void surfaceCreated(SurfaceHolder surfaceHolder) {
+    drawerLayout.openDrawer(Gravity.START);
   }
 
   @Override
@@ -411,6 +394,16 @@ public class RtmpActivity extends AppCompatActivity
 
   @Override
   public void surfaceDestroyed(SurfaceHolder surfaceHolder) {
+    if (rtmpCamera1.isStreaming()) rtmpCamera1.stopStream();
     rtmpCamera1.stopPreview();
+
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2 && rtmpCamera1.isRecording()) {
+      rtmpCamera1.stopRecord();
+      bRecord.setText(R.string.start_record);
+      Toast.makeText(this,
+          "file " + currentDateAndTime + ".mp4 saved in " + folder.getAbsolutePath(),
+          Toast.LENGTH_SHORT).show();
+      currentDateAndTime = "";
+    }
   }
 }

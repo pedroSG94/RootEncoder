@@ -25,19 +25,19 @@ public class CubeTestRtmpActivity extends AppCompatActivity
   private GlRtmp rtmpCamera1;
   private Button button;
   private EditText etUrl;
-  private CustomGlSurfaceView openGlView;
+  private CustomGlSurfaceView customGlSurfaceView;
 
   @Override
   protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
     getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
     setContentView(R.layout.activity_cube_test_rtmp);
-    openGlView = findViewById(R.id.surfaceView);
+    customGlSurfaceView = findViewById(R.id.surfaceView);
     button = findViewById(R.id.b_start_stop);
     button.setOnClickListener(this);
     etUrl = findViewById(R.id.et_rtp_url);
     etUrl.setHint(R.string.hint_rtmp);
-    rtmpCamera1 = new GlRtmp(openGlView, this);
+    rtmpCamera1 = new GlRtmp(customGlSurfaceView, this);
   }
 
   @Override
@@ -118,13 +118,13 @@ public class CubeTestRtmpActivity extends AppCompatActivity
   @Override
   protected void onResume() {
     super.onResume();
-    openGlView.onResume();
+    customGlSurfaceView.onResume();
   }
 
   @Override
   protected void onPause() {
     super.onPause();
-    openGlView.onPause();
+    customGlSurfaceView.onPause();
     if (rtmpCamera1.isStreaming()) {
       rtmpCamera1.stopStream();
     }

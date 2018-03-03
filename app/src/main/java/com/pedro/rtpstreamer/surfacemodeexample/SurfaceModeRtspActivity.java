@@ -4,6 +4,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.RequiresApi;
 import android.support.v7.app.AppCompatActivity;
+import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.View;
 import android.view.WindowManager;
@@ -22,7 +23,7 @@ import com.pedro.rtsp.utils.ConnectCheckerRtsp;
  */
 @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
 public class SurfaceModeRtspActivity extends AppCompatActivity
-    implements ConnectCheckerRtsp, View.OnClickListener {
+    implements ConnectCheckerRtsp, View.OnClickListener, SurfaceHolder.Callback {
 
   private RtspCamera2 rtspCamera2;
   private Button button;
@@ -39,6 +40,7 @@ public class SurfaceModeRtspActivity extends AppCompatActivity
     etUrl = findViewById(R.id.et_rtp_url);
     etUrl.setHint(R.string.hint_rtsp);
     rtspCamera2 = new RtspCamera2(surfaceView, this);
+    surfaceView.getHolder().addCallback(this);
   }
 
   @Override
@@ -114,11 +116,18 @@ public class SurfaceModeRtspActivity extends AppCompatActivity
   }
 
   @Override
-  protected void onPause() {
-    super.onPause();
-    if (rtspCamera2.isStreaming()) {
-      rtspCamera2.stopStream();
-      rtspCamera2.stopPreview();
-    }
+  public void surfaceCreated(SurfaceHolder surfaceHolder) {
+
+  }
+
+  @Override
+  public void surfaceChanged(SurfaceHolder surfaceHolder, int i, int i1, int i2) {
+    rtspCamera2.startPreview();
+  }
+
+  @Override
+  public void surfaceDestroyed(SurfaceHolder surfaceHolder) {
+    if (rtspCamera2.isStreaming()) rtspCamera2.stopStream();
+    rtspCamera2.stopPreview();
   }
 }
