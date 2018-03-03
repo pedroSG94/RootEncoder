@@ -49,8 +49,9 @@ import java.util.List;
  * Created by pedro on 7/07/17.
  */
 @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
-public abstract class Camera2Base implements GetAacData, GetH264Data, GetMicrophoneData,
-    SurfaceHolder.Callback, TextureView.SurfaceTextureListener {
+public abstract class Camera2Base
+    implements GetAacData, GetH264Data, GetMicrophoneData, SurfaceHolder.Callback,
+    TextureView.SurfaceTextureListener {
 
   protected Context context;
   protected Camera2ApiManager cameraManager;
@@ -317,10 +318,12 @@ public abstract class Camera2Base implements GetAacData, GetH264Data, GetMicroph
    */
   public void stopRecord() {
     recording = false;
-    canRecord = false;
     if (mediaMuxer != null) {
-      mediaMuxer.stop();
-      mediaMuxer.release();
+      if (canRecord) {
+        mediaMuxer.stop();
+        mediaMuxer.release();
+        canRecord = false;
+      }
       mediaMuxer = null;
     }
     videoTrack = -1;
@@ -671,6 +674,7 @@ public abstract class Camera2Base implements GetAacData, GetH264Data, GetMicroph
 
   /**
    * Enable FXAA. Disabled by default.
+   *
    * @param AAEnabled true to enable false to disable
    * @throws RuntimeException
    */

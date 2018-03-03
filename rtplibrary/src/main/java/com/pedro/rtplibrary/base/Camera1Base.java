@@ -332,10 +332,12 @@ public abstract class Camera1Base
   @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
   public void stopRecord() {
     recording = false;
-    canRecord = false;
     if (mediaMuxer != null) {
-      mediaMuxer.stop();
-      mediaMuxer.release();
+      if (canRecord) {
+        mediaMuxer.stop();
+        mediaMuxer.release();
+        canRecord = false;
+      }
       mediaMuxer = null;
     }
     videoTrack = -1;
