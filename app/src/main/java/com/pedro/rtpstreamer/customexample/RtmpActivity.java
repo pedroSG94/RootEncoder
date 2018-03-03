@@ -394,9 +394,6 @@ public class RtmpActivity extends AppCompatActivity
 
   @Override
   public void surfaceDestroyed(SurfaceHolder surfaceHolder) {
-    if (rtmpCamera1.isStreaming()) rtmpCamera1.stopStream();
-    rtmpCamera1.stopPreview();
-
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2 && rtmpCamera1.isRecording()) {
       rtmpCamera1.stopRecord();
       bRecord.setText(R.string.start_record);
@@ -405,5 +402,7 @@ public class RtmpActivity extends AppCompatActivity
           Toast.LENGTH_SHORT).show();
       currentDateAndTime = "";
     }
+    if (rtmpCamera1.isStreaming()) rtmpCamera1.stopStream();
+    rtmpCamera1.stopPreview();
   }
 }

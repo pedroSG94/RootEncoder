@@ -3,6 +3,7 @@ package com.pedro.rtpstreamer.texturemodeexample;
 import android.graphics.SurfaceTexture;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Environment;
 import android.support.annotation.RequiresApi;
 import android.support.v7.app.AppCompatActivity;
 import android.view.TextureView;
@@ -11,9 +12,14 @@ import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
+import com.pedro.encoder.input.video.CameraOpenException;
 import com.pedro.rtpstreamer.R;
 import com.pedro.rtplibrary.rtmp.RtmpCamera2;
 import com.pedro.rtplibrary.view.AutoFitTextureView;
+import java.io.File;
+import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import net.ossrs.rtmp.ConnectCheckerRtmp;
 
 /**
@@ -28,7 +34,12 @@ public class TextureModeRtmpActivity extends AppCompatActivity
   private RtmpCamera2 rtmpCamera2;
   private AutoFitTextureView textureView;
   private Button button;
+  private Button bRecord;
   private EditText etUrl;
+
+  private String currentDateAndTime = "";
+  private File folder = new File(Environment.getExternalStorageDirectory().getAbsolutePath()
+      + "/rtmp-rtsp-stream-client-java");
 
   @Override
   protected void onCreate(Bundle savedInstanceState) {
@@ -38,6 +49,10 @@ public class TextureModeRtmpActivity extends AppCompatActivity
     textureView = findViewById(R.id.textureView);
     button = findViewById(R.id.b_start_stop);
     button.setOnClickListener(this);
+    bRecord = findViewById(R.id.b_record);
+    bRecord.setOnClickListener(this);
+    Button switchCamera = findViewById(R.id.switch_camera);
+    switchCamera.setOnClickListener(this);
     etUrl = findViewById(R.id.et_rtp_url);
     etUrl.setHint(R.string.hint_rtmp);
     rtmpCamera2 = new RtmpCamera2(textureView, this);
@@ -100,17 +115,55 @@ public class TextureModeRtmpActivity extends AppCompatActivity
 
   @Override
   public void onClick(View view) {
-    if (!rtmpCamera2.isStreaming()) {
-      if (rtmpCamera2.prepareAudio() && rtmpCamera2.prepareVideo()) {
-        button.setText(R.string.stop_button);
-        rtmpCamera2.startStream(etUrl.getText().toString());
-      } else {
-        Toast.makeText(this, "Error preparing stream, This device cant do it", Toast.LENGTH_SHORT)
-            .show();
-      }
-    } else {
-      button.setText(R.string.start_button);
-      rtmpCamera2.stopStream();
+    switch (view.getId()) {
+      case R.id.b_start_stop:
+        if (!rtmpCamera2.isStreaming()) {
+          if (rtmpCamera2.prepareAudio() && rtmpCamera2.prepareVideo()) {
+            button.setText(R.string.stop_button);
+            rtmpCamera2.startStream(etUrl.getText().toString());
+          } else {
+            Toast.makeText(this, "Error preparing stream, This device cant do it",
+                Toast.LENGTH_SHORT).show();
+          }
+        } else {
+          button.setText(R.string.start_button);
+          rtmpCamera2.stopStream();
+        }
+        break;
+      case R.id.switch_camera:
+        try {
+          rtmpCamera2.switchCamera();
+        } catch (CameraOpenException e) {
+          Toast.makeText(this, e.getMessage(), Toast.LENGTH_SHORT).show();
+        }
+        break;
+      case R.id.b_record:
+        if (!rtmpCamera2.isRecording()) {
+          try {
+            if (!folder.exists()) {
+              folder.mkdir();
+            }
+            SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd_HHmmss");
+            currentDateAndTime = sdf.format(new Date());
+            rtmpCamera2.startRecord(folder.getAbsolutePath() + "/" + currentDateAndTime + ".mp4");
+            bRecord.setText(R.string.stop_record);
+            Toast.makeText(this, "Recording... ", Toast.LENGTH_SHORT).show();
+          } catch (IOException e) {
+            rtmpCamera2.stopRecord();
+            bRecord.setText(R.string.start_record);
+            Toast.makeText(this, e.getMessage(), Toast.LENGTH_SHORT).show();
+          }
+        } else {
+          rtmpCamera2.stopRecord();
+          bRecord.setText(R.string.start_record);
+          Toast.makeText(this,
+              "file " + currentDateAndTime + ".mp4 saved in " + folder.getAbsolutePath(),
+              Toast.LENGTH_SHORT).show();
+          currentDateAndTime = "";
+        }
+        break;
+      default:
+        break;
     }
   }
 
@@ -126,8 +179,17 @@ public class TextureModeRtmpActivity extends AppCompatActivity
 
   @Override
   public boolean onSurfaceTextureDestroyed(SurfaceTexture surfaceTexture) {
+    if (rtmpCamera2.isRecording()) {
+      rtmpCamera2.stopRecord();
+      bRecord.setText(R.string.start_record);
+      Toast.makeText(this,
+          "file " + currentDateAndTime + ".mp4 saved in " + folder.getAbsolutePath(),
+          Toast.LENGTH_SHORT).show();
+      currentDateAndTime = "";
+    }
     if (rtmpCamera2.isStreaming()) rtmpCamera2.stopStream();
     rtmpCamera2.stopPreview();
+
     return true;
   }
 

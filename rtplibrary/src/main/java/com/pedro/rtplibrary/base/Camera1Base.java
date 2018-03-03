@@ -313,28 +313,34 @@ public abstract class Camera1Base
   public void startRecord(String path) throws IOException {
     if (streaming) {
       mediaMuxer = new MediaMuxer(path, MediaMuxer.OutputFormat.MUXER_OUTPUT_MPEG_4);
-      if (videoFormat != null) {
-        videoTrack = mediaMuxer.addTrack(videoFormat);
-      }
-      if (audioFormat != null) {
-        audioTrack = mediaMuxer.addTrack(audioFormat);
-      }
-      mediaMuxer.start();
       recording = true;
     } else {
       throw new IOException("Need be called while stream");
     }
   }
 
+  @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
+  private void prepareRecord() {
+    if (videoFormat != null) {
+      videoTrack = mediaMuxer.addTrack(videoFormat);
+    }
+    if (audioFormat != null) {
+      audioTrack = mediaMuxer.addTrack(audioFormat);
+    }
+    mediaMuxer.start();
+  }
+
   /**
-   * Stop record MP4 video started with @startRecord. If you don't call it file will be unreadable.
+   * Stop record MP4 video started with @startRecord. If you don't call it, file will be unreadable.
    */
   @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
   public void stopRecord() {
     recording = false;
-    canRecord = false;
     if (mediaMuxer != null) {
-      mediaMuxer.stop();
+      if (canRecord) {
+        canRecord = false;
+        mediaMuxer.stop();
+      }
       mediaMuxer.release();
       mediaMuxer = null;
     }
@@ -845,7 +851,7 @@ public abstract class Camera1Base
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2
         && recording
         && videoTrack != -1) {
-      if (info.flags == MediaCodec.BUFFER_FLAG_KEY_FRAME) canRecord = true;
+      if (info.flags == MediaCodec.BUFFER_FLAG_KEY_FRAME) prepareRecord();
       if (canRecord) {
         mediaMuxer.writeSampleData(videoTrack, h264Buffer, info);
       }

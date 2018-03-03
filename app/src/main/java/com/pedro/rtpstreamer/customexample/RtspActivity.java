@@ -426,9 +426,6 @@ public class RtspActivity extends AppCompatActivity
 
   @Override
   public void surfaceDestroyed(SurfaceHolder surfaceHolder) {
-    if (rtspCamera1.isStreaming()) rtspCamera1.stopStream();
-    rtspCamera1.stopPreview();
-
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2 && rtspCamera1.isRecording()) {
       rtspCamera1.stopRecord();
       bRecord.setText(R.string.start_record);
@@ -437,5 +434,7 @@ public class RtspActivity extends AppCompatActivity
           Toast.LENGTH_SHORT).show();
       currentDateAndTime = "";
     }
+    if (rtspCamera1.isStreaming()) rtspCamera1.stopStream();
+    rtspCamera1.stopPreview();
   }
 }

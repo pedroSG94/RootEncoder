@@ -3,6 +3,7 @@
     android:id="@+id/activity_example_rtmp"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@color/black"
     >
 
   <com.pedro.rtplibrary.view.AutoFitTextureView
@@ -22,13 +23,36 @@
       android:textColorHint="@color/appColor"
       />
 
-  <Button
-      android:id="@+id/b_start_stop"
-      android:layout_width="wrap_content"
+  <LinearLayout
+      android:layout_width="match_parent"
       android:layout_height="wrap_content"
+      android:orientation="horizontal"
       android:layout_alignParentBottom="true"
-      android:layout_centerHorizontal="true"
       android:layout_margin="20dp"
-      android:text="@string/start_button"
-      />
+      android:gravity="center"
+      >
+
+    <Button
+        android:text="@string/start_record"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginRight="5dp"
+        android:id="@+id/b_record"
+        />
+
+    <Button
+        android:text="@string/start_button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginRight="5dp"
+        android:id="@+id/b_start_stop"
+        />
+
+    <Button
+        android:text="@string/switch_camera_button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/switch_camera"
+        />
+  </LinearLayout>
 </RelativeLayout>
