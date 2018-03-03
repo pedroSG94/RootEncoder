@@ -384,7 +384,10 @@ public class OpenGlRtmpActivity extends AppCompatActivity
           Toast.LENGTH_SHORT).show();
       currentDateAndTime = "";
     }
-    if (rtmpCamera1.isStreaming()) rtmpCamera1.stopStream();
+    if (rtmpCamera1.isStreaming()) {
+      rtmpCamera1.stopStream();
+      button.setText(getResources().getString(R.string.start_button));
+    }
     rtmpCamera1.stopPreview();
   }
 }

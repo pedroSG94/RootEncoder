@@ -402,7 +402,10 @@ public class RtmpActivity extends AppCompatActivity
           Toast.LENGTH_SHORT).show();
       currentDateAndTime = "";
     }
-    if (rtmpCamera1.isStreaming()) rtmpCamera1.stopStream();
+    if (rtmpCamera1.isStreaming()) {
+      rtmpCamera1.stopStream();
+      bStartStop.setText(getResources().getString(R.string.start_button));
+    }
     rtmpCamera1.stopPreview();
   }
 }

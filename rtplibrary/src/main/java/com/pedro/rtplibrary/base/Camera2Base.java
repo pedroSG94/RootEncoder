@@ -49,9 +49,8 @@ import java.util.List;
  * Created by pedro on 7/07/17.
  */
 @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
-public abstract class Camera2Base
-    implements GetAacData, GetH264Data, GetMicrophoneData, SurfaceHolder.Callback,
-    TextureView.SurfaceTextureListener {
+public abstract class Camera2Base implements GetAacData, GetH264Data, GetMicrophoneData,
+    SurfaceHolder.Callback, TextureView.SurfaceTextureListener {
 
   protected Context context;
   protected Camera2ApiManager cameraManager;
@@ -300,33 +299,27 @@ public abstract class Camera2Base
   public void startRecord(String path) throws IOException {
     if (streaming) {
       mediaMuxer = new MediaMuxer(path, MediaMuxer.OutputFormat.MUXER_OUTPUT_MPEG_4);
+      if (videoFormat != null) {
+        videoTrack = mediaMuxer.addTrack(videoFormat);
+      }
+      if (audioFormat != null) {
+        audioTrack = mediaMuxer.addTrack(audioFormat);
+      }
+      mediaMuxer.start();
       recording = true;
     } else {
       throw new IOException("Need be called while stream");
     }
   }
 
-  private void prepareRecord() {
-    if (videoFormat != null) {
-      videoTrack = mediaMuxer.addTrack(videoFormat);
-    }
-    if (audioFormat != null) {
-      audioTrack = mediaMuxer.addTrack(audioFormat);
-    }
-    mediaMuxer.start();
-    canRecord = true;
-  }
-
   /**
-   * Stop record MP4 video started with @startRecord. If you don't call it, file will be unreadable.
+   * Stop record MP4 video started with @startRecord. If you don't call it file will be unreadable.
    */
   public void stopRecord() {
     recording = false;
+    canRecord = false;
     if (mediaMuxer != null) {
-      if (canRecord) {
-        canRecord = false;
-        mediaMuxer.stop();
-      }
+      mediaMuxer.stop();
       mediaMuxer.release();
       mediaMuxer = null;
     }
@@ -678,7 +671,6 @@ public abstract class Camera2Base
 
   /**
    * Enable FXAA. Disabled by default.
-   *
    * @param AAEnabled true to enable false to disable
    * @throws RuntimeException
    */
@@ -798,7 +790,7 @@ public abstract class Camera2Base
   @Override
   public void getH264Data(ByteBuffer h264Buffer, MediaCodec.BufferInfo info) {
     if (recording && videoTrack != -1) {
-      if (info.flags == MediaCodec.BUFFER_FLAG_KEY_FRAME) prepareRecord();
+      if (info.flags == MediaCodec.BUFFER_FLAG_KEY_FRAME) canRecord = true;
       if (canRecord) {
         mediaMuxer.writeSampleData(videoTrack, h264Buffer, info);
       }

@@ -185,7 +185,10 @@ public class SurfaceModeRtmpActivity extends AppCompatActivity
           Toast.LENGTH_SHORT).show();
       currentDateAndTime = "";
     }
-    if (rtmpCamera2.isStreaming()) rtmpCamera2.stopStream();
+    if (rtmpCamera2.isStreaming()) {
+      rtmpCamera2.stopStream();
+      button.setText(getResources().getString(R.string.start_button));
+    }
     rtmpCamera2.stopPreview();
   }
 }

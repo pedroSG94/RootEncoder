@@ -189,7 +189,10 @@ public class ExampleRtspActivity extends AppCompatActivity
           Toast.LENGTH_SHORT).show();
       currentDateAndTime = "";
     }
-    if (rtspCamera1.isStreaming()) rtspCamera1.stopStream();
+    if (rtspCamera1.isStreaming()) {
+      rtspCamera1.stopStream();
+      button.setText(getResources().getString(R.string.start_button));
+    }
     rtspCamera1.stopPreview();
   }
 }

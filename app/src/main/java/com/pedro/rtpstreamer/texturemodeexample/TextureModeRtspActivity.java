@@ -187,7 +187,10 @@ public class TextureModeRtspActivity extends AppCompatActivity
           Toast.LENGTH_SHORT).show();
       currentDateAndTime = "";
     }
-    if (rtspCamera2.isStreaming()) rtspCamera2.stopStream();
+    if (rtspCamera2.isStreaming()) {
+      rtspCamera2.stopStream();
+      button.setText(getResources().getString(R.string.start_button));
+    }
     rtspCamera2.stopPreview();
     return true;
   }
