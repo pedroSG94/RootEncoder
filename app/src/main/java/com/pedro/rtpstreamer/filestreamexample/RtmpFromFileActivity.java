@@ -1,6 +1,8 @@
 package com.pedro.rtpstreamer.filestreamexample;
 
 import android.content.Intent;
+import android.graphics.Color;
+import android.graphics.PorterDuff;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.RequiresApi;
@@ -9,6 +11,7 @@ import android.view.View;
 import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 import com.pedro.encoder.input.decoder.AudioDecoderInterface;
@@ -31,6 +34,7 @@ public class RtmpFromFileActivity extends AppCompatActivity
 
   private RtmpFromFile rtmpFromFile;
   private Button button, bSelectFile;
+  private ProgressBar progressBar;
   private EditText etUrl;
   private TextView tvFile;
   private String filePath = "";
@@ -46,6 +50,8 @@ public class RtmpFromFileActivity extends AppCompatActivity
     bSelectFile.setOnClickListener(this);
     etUrl = findViewById(R.id.et_rtp_url);
     etUrl.setHint(R.string.hint_rtmp);
+    progressBar = findViewById(R.id.progressBar);
+    progressBar.getProgressDrawable().setColorFilter(Color.RED, PorterDuff.Mode.SRC_IN);
     tvFile = findViewById(R.id.tv_file);
     rtmpFromFile = new RtmpFromFile(this, this, this);
   }
@@ -123,6 +129,8 @@ public class RtmpFromFileActivity extends AppCompatActivity
                 filePath, 64 * 1024)) {
               button.setText(R.string.stop_button);
               rtmpFromFile.startStream(etUrl.getText().toString());
+              progressBar.setMax((int) rtmpFromFile.getVideoDuration());
+              updateProgress();
             } else {
               button.setText(R.string.start_button);
               rtmpFromFile.stopStream();
@@ -149,6 +157,27 @@ public class RtmpFromFileActivity extends AppCompatActivity
       default:
         break;
     }
+  }
+
+  private void updateProgress() {
+    new Thread(new Runnable() {
+      @Override
+      public void run() {
+        while (rtmpFromFile.isStreaming()) {
+          try {
+            Thread.sleep(1000);
+            runOnUiThread(new Runnable() {
+              @Override
+              public void run() {
+                progressBar.setProgress((int) rtmpFromFile.getVideoTime());
+              }
+            });
+          } catch (InterruptedException e) {
+            e.printStackTrace();
+          }
+        }
+      }
+    }).start();
   }
 
   @Override

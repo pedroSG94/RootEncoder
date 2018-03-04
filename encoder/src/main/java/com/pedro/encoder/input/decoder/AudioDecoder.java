@@ -15,7 +15,8 @@ public class AudioDecoder {
 
   private final String TAG = "AudioDecoder";
 
-  private final AudioDecoderInterface audioDecoderInterface;
+  private AudioDecoderInterface audioDecoderInterface;
+  private LoopFileInterface loopFileInterface;
   private MediaExtractor audioExtractor;
   private MediaCodec audioDecoder;
   private MediaCodec.BufferInfo audioInfo = new MediaCodec.BufferInfo();
@@ -28,13 +29,15 @@ public class AudioDecoder {
   private boolean isStereo;
   private byte[] pcmBuffer = new byte[4096];
   private byte[] pcmBufferMuted = new byte[11];
-  private boolean loopMode = false;
+  private static boolean loopMode = false;
   private boolean muted = false;
+  private long duration;
 
   public AudioDecoder(GetMicrophoneData getMicrophoneData,
-      AudioDecoderInterface audioDecoderInterface) {
+      AudioDecoderInterface audioDecoderInterface, LoopFileInterface loopFileInterface) {
     this.getMicrophoneData = getMicrophoneData;
     this.audioDecoderInterface = audioDecoderInterface;
+    this.loopFileInterface = loopFileInterface;
   }
 
   public boolean initExtractor(String filePath) throws IOException {
@@ -53,6 +56,7 @@ public class AudioDecoder {
     if (audioFormat != null) {
       isStereo = (audioFormat.getInteger(MediaFormat.KEY_CHANNEL_COUNT) == 2);
       sampleRate = audioFormat.getInteger(MediaFormat.KEY_SAMPLE_RATE);
+      duration = audioFormat.getLong(MediaFormat.KEY_DURATION);
       return true;
       //audio decoder not supported
     } else {
@@ -86,7 +90,6 @@ public class AudioDecoder {
   }
 
   public void stop() {
-    Log.e("Pedro", "stop");
     decoding = false;
     if (thread != null) {
       thread.interrupt();
@@ -159,14 +162,25 @@ public class AudioDecoder {
         if ((audioInfo.flags & MediaCodec.BUFFER_FLAG_END_OF_STREAM) != 0) {
           Log.i(TAG, "end of file out");
           if (loopMode) {
-            audioExtractor.seekTo(0, MediaExtractor.SEEK_TO_CLOSEST_SYNC);
-            audioDecoder.flush();
+            loopFileInterface.onReset(false);
           } else {
             audioDecoderInterface.onAudioDecoderFinished();
           }
         }
       }
     }
+  }
+
+  public double getTime() {
+    if (decoding) {
+      return audioExtractor.getSampleTime() / 10E5;
+    } else {
+      return 0;
+    }
+  }
+
+  public void moveTo(double time) {
+    audioExtractor.seekTo((long) (time * 10E5), MediaExtractor.SEEK_TO_CLOSEST_SYNC);
   }
 
   public void setLoopMode(boolean loopMode) {
@@ -191,5 +205,9 @@ public class AudioDecoder {
 
   public boolean isStereo() {
     return isStereo;
+  }
+
+  public double getDuration() {
+    return duration / 10E5;
   }
 }

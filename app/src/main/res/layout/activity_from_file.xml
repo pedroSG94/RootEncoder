@@ -51,4 +51,14 @@
       android:id="@+id/b_select_file"
       />
 
+  <ProgressBar
+      style="?android:attr/progressBarStyleHorizontal"
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content"
+      android:layout_above="@+id/b_select_file"
+      android:layout_centerHorizontal="true"
+      android:id="@+id/progressBar"
+      android:layout_margin="20dp"
+      />
+
 </RelativeLayout>

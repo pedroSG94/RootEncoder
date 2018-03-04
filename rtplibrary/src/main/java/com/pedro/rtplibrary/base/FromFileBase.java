@@ -5,11 +5,13 @@ import android.media.MediaFormat;
 import android.media.MediaMuxer;
 import android.os.Build;
 import android.support.annotation.RequiresApi;
+import android.util.Log;
 import com.pedro.encoder.audio.AudioEncoder;
 import com.pedro.encoder.audio.GetAacData;
 import com.pedro.encoder.input.audio.GetMicrophoneData;
 import com.pedro.encoder.input.decoder.AudioDecoder;
 import com.pedro.encoder.input.decoder.AudioDecoderInterface;
+import com.pedro.encoder.input.decoder.LoopFileInterface;
 import com.pedro.encoder.input.decoder.VideoDecoder;
 import com.pedro.encoder.input.decoder.VideoDecoderInterface;
 import com.pedro.encoder.utils.CodecUtil;
@@ -30,7 +32,10 @@ import java.nio.ByteBuffer;
  */
 
 @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
-public abstract class FromFileBase implements GetH264Data, GetAacData, GetMicrophoneData {
+public abstract class FromFileBase
+    implements GetH264Data, GetAacData, GetMicrophoneData, LoopFileInterface {
+
+  private static final String TAG = "FromFileBase";
 
   protected VideoEncoder videoEncoder;
   protected AudioEncoder audioEncoder;
@@ -50,6 +55,8 @@ public abstract class FromFileBase implements GetH264Data, GetAacData, GetMicrop
 
   private VideoDecoderInterface videoDecoderInterface;
   private AudioDecoderInterface audioDecoderInterface;
+
+  private String videoPath, audioPath;
 
   public FromFileBase(VideoDecoderInterface videoDecoderInterface,
       AudioDecoderInterface audioDecoderInterface) {
@@ -76,7 +83,8 @@ public abstract class FromFileBase implements GetH264Data, GetAacData, GetMicrop
    * @throws IOException Normally file not found.
    */
   public boolean prepareVideo(String filePath, int bitRate) throws IOException {
-    videoDecoder = new VideoDecoder(videoDecoderInterface);
+    videoPath = filePath;
+    videoDecoder = new VideoDecoder(videoDecoderInterface, this);
     if (!videoDecoder.initExtractor(filePath)) return false;
     boolean result =
         videoEncoder.prepareVideoEncoder(videoDecoder.getWidth(), videoDecoder.getHeight(), 30,
@@ -93,7 +101,8 @@ public abstract class FromFileBase implements GetH264Data, GetAacData, GetMicrop
    * @throws IOException Normally file not found.
    */
   public boolean prepareAudio(String filePath, int bitRate) throws IOException {
-    audioDecoder = new AudioDecoder(this, audioDecoderInterface);
+    audioPath = filePath;
+    audioDecoder = new AudioDecoder(this, audioDecoderInterface, this);
     if (!audioDecoder.initExtractor(filePath)) return false;
     boolean result = audioEncoder.prepareAudioEncoder(bitRate, audioDecoder.getSampleRate(),
         audioDecoder.isStereo());
@@ -243,6 +252,74 @@ public abstract class FromFileBase implements GetH264Data, GetAacData, GetMicrop
    */
   public boolean isRecording() {
     return recording;
+  }
+
+  /**
+   * @return return time in second. 0 if no streaming
+   */
+  public double getVideoTime() {
+    return videoDecoder.getTime();
+  }
+
+  /**
+   * @return return time in seconds. 0 if no streaming
+   */
+  public double getAudioTime() {
+    return videoDecoder.getTime();
+  }
+
+  /**
+   * @return return duration in seconds. 0 if no streaming
+   */
+  public double getVideoDuration() {
+    return videoDecoder.getDuration();
+  }
+
+  /**
+   * @return return duration in seconds. 0 if no streaming
+   */
+  public double getAudioDuration() {
+    return audioDecoder.getDuration();
+  }
+
+  /**
+   * Working but it is too slow. You need wait few seconds after call it to continue :(
+   *
+   * @param time second to move.
+   */
+  public void moveTo(double time) {
+    videoDecoder.moveTo(time);
+    audioDecoder.moveTo(time);
+  }
+
+  @Override
+  public void onReset(boolean isVideo) {
+    try {
+      if (isVideo) {
+        videoDecoder.stop();
+        videoDecoder = new VideoDecoder(videoDecoderInterface, this);
+        if (!videoDecoder.initExtractor(videoPath)) {
+          throw new IOException("fail to reset video file");
+        }
+        videoDecoder.prepareVideo(videoEncoder.getInputSurface());
+        videoDecoder.start();
+      } else {
+        audioDecoder.stop();
+        audioDecoder = new AudioDecoder(this, audioDecoderInterface, this);
+        if (!audioDecoder.initExtractor(audioPath)) {
+          throw new IOException("fail to reset audio file");
+        }
+        audioDecoder.prepareAudio();
+        audioDecoder.start();
+      }
+    } catch (IOException e) {
+      Log.e(TAG, "Error", e);
+      if (isVideo) {
+        videoDecoderInterface.onVideoDecoderFinished();
+      } else {
+        audioDecoderInterface.onAudioDecoderFinished();
+      }
+    }
   }
 
   protected abstract void onSPSandPPSRtp(ByteBuffer sps, ByteBuffer pps);

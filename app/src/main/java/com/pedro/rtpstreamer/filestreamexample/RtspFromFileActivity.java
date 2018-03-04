@@ -1,6 +1,8 @@
 package com.pedro.rtpstreamer.filestreamexample;
 
 import android.content.Intent;
+import android.graphics.Color;
+import android.graphics.PorterDuff;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.RequiresApi;
@@ -9,6 +11,7 @@ import android.view.View;
 import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -33,6 +36,7 @@ public class RtspFromFileActivity extends AppCompatActivity
 
   private RtspFromFile rtspFromFile;
   private Button button, bSelectFile;
+  private ProgressBar progressBar;
   private EditText etUrl;
   private TextView tvFile;
   private String filePath = "";
@@ -48,6 +52,8 @@ public class RtspFromFileActivity extends AppCompatActivity
     bSelectFile.setOnClickListener(this);
     etUrl = findViewById(R.id.et_rtp_url);
     etUrl.setHint(R.string.hint_rtsp);
+    progressBar = findViewById(R.id.progressBar);
+    progressBar.getProgressDrawable().setColorFilter(Color.RED, PorterDuff.Mode.SRC_IN);
     tvFile = findViewById(R.id.tv_file);
     rtspFromFile = new RtspFromFile(this, this, this);
   }
@@ -126,6 +132,8 @@ public class RtspFromFileActivity extends AppCompatActivity
                   filePath, 64 * 1024)) {
                 button.setText(R.string.stop_button);
                 rtspFromFile.startStream(etUrl.getText().toString());
+                progressBar.setMax((int) rtspFromFile.getVideoDuration());
+                updateProgress();
               } else {
                 button.setText(R.string.start_button);
                 rtspFromFile.stopStream();
@@ -153,6 +161,27 @@ public class RtspFromFileActivity extends AppCompatActivity
       default:
         break;
     }
+  }
+
+  private void updateProgress() {
+    new Thread(new Runnable() {
+      @Override
+      public void run() {
+        while (rtspFromFile.isStreaming()) {
+          try {
+            Thread.sleep(1000);
+            runOnUiThread(new Runnable() {
+              @Override
+              public void run() {
+                progressBar.setProgress((int) rtspFromFile.getVideoTime());
+              }
+            });
+          } catch (InterruptedException e) {
+            e.printStackTrace();
+          }
+        }
+      }
+    }).start();
   }
 
   @Override
