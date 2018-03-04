@@ -127,7 +127,7 @@ public abstract class DisplayBase implements GetAacData, GetH264Data, GetMicroph
    * doesn't support any configuration seated or your device hasn't a H264 encoder).
    */
   public boolean prepareVideo() {
-    return videoEncoder.prepareVideoEncoder(640, 480, 30, 1200 * 1024, 0, true,2,
+    return videoEncoder.prepareVideoEncoder(640, 480, 30, 1200 * 1024, 0, true, 2,
         FormatVideoEncoder.SURFACE);
   }
 
@@ -175,10 +175,12 @@ public abstract class DisplayBase implements GetAacData, GetH264Data, GetMicroph
    */
   public void stopRecord() {
     recording = false;
-    canRecord = false;
     if (mediaMuxer != null) {
-      mediaMuxer.stop();
-      mediaMuxer.release();
+      if (canRecord) {
+        mediaMuxer.stop();
+        mediaMuxer.release();
+        canRecord = false;
+      }
       mediaMuxer = null;
     }
     videoTrack = -1;

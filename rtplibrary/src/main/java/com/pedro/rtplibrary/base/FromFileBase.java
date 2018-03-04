@@ -133,8 +133,11 @@ public abstract class FromFileBase implements GetH264Data, GetAacData, GetMicrop
   public void stopRecord() {
     recording = false;
     if (mediaMuxer != null) {
-      mediaMuxer.stop();
-      mediaMuxer.release();
+      if (canRecord) {
+        mediaMuxer.stop();
+        mediaMuxer.release();
+        canRecord = false;
+      }
       mediaMuxer = null;
     }
     videoTrack = -1;
