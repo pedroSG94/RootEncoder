@@ -1,5 +1,6 @@
 package com.pedro.rtplibrary.rtmp;
 
+import android.content.Context;
 import android.media.MediaCodec;
 import android.os.Build;
 import android.support.annotation.RequiresApi;
@@ -27,6 +28,12 @@ public class RtmpFromFile extends FromFileBase {
   public RtmpFromFile(ConnectCheckerRtmp connectChecker,
       VideoDecoderInterface videoDecoderInterface, AudioDecoderInterface audioDecoderInterface) {
     super(videoDecoderInterface, audioDecoderInterface);
+    srsFlvMuxer = new SrsFlvMuxer(connectChecker);
+  }
+
+  public RtmpFromFile(Context context, ConnectCheckerRtmp connectChecker,
+      VideoDecoderInterface videoDecoderInterface, AudioDecoderInterface audioDecoderInterface) {
+    super(context, videoDecoderInterface, audioDecoderInterface);
     srsFlvMuxer = new SrsFlvMuxer(connectChecker);
   }
 

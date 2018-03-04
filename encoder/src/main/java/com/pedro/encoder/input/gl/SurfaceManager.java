@@ -54,10 +54,13 @@ public class SurfaceManager {
     eglSetup();
   }
 
+  public SurfaceManager() {
+    eglSetup();
+  }
+
   public void makeCurrent() {
     if (!EGL14.eglMakeCurrent(eglDisplay, eglSurface, eglSurface, eglContext)) {
       Log.e("Error", "eglMakeCurrent failed");
-      //throw new RuntimeException("eglMakeCurrent failed");
     }
   }
 
@@ -135,7 +138,11 @@ public class SurfaceManager {
     int[] surfaceAttribs = {
         EGL14.EGL_NONE
     };
-    eglSurface = EGL14.eglCreateWindowSurface(eglDisplay, configs[0], surface, surfaceAttribs, 0);
+    if (surface == null) {
+      eglSurface = EGL14.eglCreatePbufferSurface(eglDisplay, configs[0], surfaceAttribs, 0);
+    } else {
+      eglSurface = EGL14.eglCreateWindowSurface(eglDisplay, configs[0], surface, surfaceAttribs, 0);
+    }
     GlUtil.checkEglError("eglCreateWindowSurface");
   }
 
