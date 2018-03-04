@@ -58,7 +58,8 @@
       android:layout_above="@+id/b_select_file"
       android:layout_centerHorizontal="true"
       android:id="@+id/progressBar"
-      android:layout_margin="20dp"
+      android:layout_marginLeft="20dp"
+      android:layout_marginRight="20dp"
       />
 
 </RelativeLayout>
