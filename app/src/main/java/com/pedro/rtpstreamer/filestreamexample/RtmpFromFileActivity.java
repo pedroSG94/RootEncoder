@@ -33,7 +33,7 @@ public class RtmpFromFileActivity extends AppCompatActivity
     AudioDecoderInterface, SeekBar.OnSeekBarChangeListener {
 
   private RtmpFromFile rtmpFromFile;
-  private Button button, bSelectFile;
+  private Button button, bSelectFile, bReSync;
   private SeekBar seekBar;
   private EditText etUrl;
   private TextView tvFile;
@@ -49,6 +49,8 @@ public class RtmpFromFileActivity extends AppCompatActivity
     bSelectFile = findViewById(R.id.b_select_file);
     button.setOnClickListener(this);
     bSelectFile.setOnClickListener(this);
+    bReSync = findViewById(R.id.b_re_sync);
+    bReSync.setOnClickListener(this);
     etUrl = findViewById(R.id.et_rtp_url);
     etUrl.setHint(R.string.hint_rtmp);
     seekBar = findViewById(R.id.seek_bar);
@@ -155,6 +157,10 @@ public class RtmpFromFileActivity extends AppCompatActivity
         Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
         intent.setType("video/mp4");
         startActivityForResult(intent, 5);
+        break;
+      //sometimes async is produced when you move in file several times
+      case R.id.b_re_sync:
+        rtmpFromFile.reSyncFile();
         break;
       default:
         break;

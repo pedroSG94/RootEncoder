@@ -22,44 +22,58 @@
       android:id="@+id/et_rtp_url"
       />
 
-  <TextView
-      android:layout_width="wrap_content"
+  <LinearLayout
+      android:layout_width="match_parent"
       android:layout_height="wrap_content"
-      android:id="@+id/tv_file"
-      android:layout_above="@+id/b_start_stop"
-      android:layout_centerHorizontal="true"
-      android:textColor="@color/appColor"
-      android:layout_margin="20dp"
-      />
-  <Button
-      android:text="@string/start_button"
-      android:layout_width="wrap_content"
-      android:layout_height="wrap_content"
+      android:orientation="horizontal"
       android:layout_alignParentBottom="true"
-      android:layout_alignParentLeft="true"
       android:layout_margin="20dp"
-      android:id="@+id/b_start_stop"
-      />
+      android:gravity="center"
+      android:id="@+id/ll_buttons"
+      >
 
-  <Button
-      android:text="@string/select_file"
-      android:layout_width="wrap_content"
-      android:layout_height="wrap_content"
-      android:layout_alignParentBottom="true"
-      android:layout_alignParentRight="true"
-      android:layout_margin="20dp"
-      android:id="@+id/b_select_file"
-      />
+    <Button
+        android:text="@string/resync_file"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginRight="5dp"
+        android:id="@+id/b_re_sync"
+        />
+
+    <Button
+        android:text="@string/start_button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginRight="5dp"
+        android:id="@+id/b_start_stop"
+        />
+
+    <Button
+        android:text="@string/select_file"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/b_select_file"
+        />
+  </LinearLayout>
 
   <SeekBar
       style="?android:attr/progressBarStyleHorizontal"
       android:layout_width="match_parent"
       android:layout_height="wrap_content"
-      android:layout_above="@+id/b_select_file"
+      android:layout_above="@+id/ll_buttons"
       android:layout_centerHorizontal="true"
       android:id="@+id/seek_bar"
       android:layout_marginLeft="20dp"
       android:layout_marginRight="20dp"
       />
 
+  <TextView
+      android:layout_width="wrap_content"
+      android:layout_height="wrap_content"
+      android:id="@+id/tv_file"
+      android:layout_above="@+id/seek_bar"
+      android:layout_centerHorizontal="true"
+      android:textColor="@color/appColor"
+      android:layout_margin="10dp"
+      />
 </RelativeLayout>

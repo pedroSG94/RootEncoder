@@ -238,6 +238,10 @@ public abstract class FromFileBase
     audioDecoder.setLoopMode(loopMode);
   }
 
+  public void reSyncFile() {
+    if (isStreaming()) audioDecoder.moveTo(videoDecoder.getTime());
+  }
+
   public void setFilter(BaseFilterRender baseFilterRender) {
     synchronized (sync) {
       if (offScreenGlThread != null) {
