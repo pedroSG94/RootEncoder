@@ -51,13 +51,13 @@
       android:id="@+id/b_select_file"
       />
 
-  <ProgressBar
+  <SeekBar
       style="?android:attr/progressBarStyleHorizontal"
       android:layout_width="match_parent"
       android:layout_height="wrap_content"
       android:layout_above="@+id/b_select_file"
       android:layout_centerHorizontal="true"
-      android:id="@+id/progressBar"
+      android:id="@+id/seek_bar"
       android:layout_marginLeft="20dp"
       android:layout_marginRight="20dp"
       />

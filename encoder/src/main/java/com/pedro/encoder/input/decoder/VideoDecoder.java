@@ -28,6 +28,8 @@ public class VideoDecoder {
   private int height;
   private long duration;
   private static boolean loopMode = false;
+  private volatile long seekTime = 0;
+  private volatile long startMs = 0;
 
   public VideoDecoder(VideoDecoderInterface videoDecoderInterface,
       LoopFileInterface loopFileInterface) {
@@ -86,6 +88,7 @@ public class VideoDecoder {
 
   public void stop() {
     decoding = false;
+    seekTime = 0;
     if (thread != null) {
       thread.interrupt();
       try {
@@ -108,7 +111,7 @@ public class VideoDecoder {
 
   private void decodeVideo() {
     ByteBuffer[] inputBuffers = videoDecoder.getInputBuffers();
-    long startMs = System.currentTimeMillis();
+    startMs = System.currentTimeMillis();
     while (decoding) {
       int inIndex = videoDecoder.dequeueInputBuffer(10000);
       if (inIndex >= 0) {
@@ -123,8 +126,8 @@ public class VideoDecoder {
       }
       int outIndex = videoDecoder.dequeueOutputBuffer(videoInfo, 10000);
       if (outIndex >= 0) {
-        //needed for fix decode speed
-        while (videoInfo.presentationTimeUs / 1000 > System.currentTimeMillis() - startMs) {
+        while (videoExtractor.getSampleTime() / 1000
+            > System.currentTimeMillis() - startMs + seekTime) {
           try {
             Thread.sleep(10);
           } catch (InterruptedException e) {
@@ -135,6 +138,7 @@ public class VideoDecoder {
         videoDecoder.releaseOutputBuffer(outIndex, videoInfo.size != 0);
       }
       if ((videoInfo.flags & MediaCodec.BUFFER_FLAG_END_OF_STREAM) != 0) {
+        seekTime = 0;
         Log.i(TAG, "end of file out");
         if (loopMode) {
           loopFileInterface.onReset(true);
@@ -155,6 +159,8 @@ public class VideoDecoder {
 
   public void moveTo(double time) {
     videoExtractor.seekTo((long) (time * 10E5), MediaExtractor.SEEK_TO_CLOSEST_SYNC);
+    seekTime = videoExtractor.getSampleTime() / 1000;
+    startMs = System.currentTimeMillis();
   }
 
   public void setLoopMode(boolean loopMode) {

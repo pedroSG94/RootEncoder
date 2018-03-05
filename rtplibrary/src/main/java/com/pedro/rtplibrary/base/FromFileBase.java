@@ -257,7 +257,7 @@ public abstract class FromFileBase
    * By default with same resolution in px that the original file and in bottom-right position.
    *
    * @param gifStreamObject gif object that will be streamed.
-   * @throws RuntimeException If you don't use OpenGlvIew
+   * @throws RuntimeException If you don't use context
    */
   public void setGifStreamObject(GifStreamObject gifStreamObject) throws RuntimeException {
     synchronized (sync) {
@@ -299,7 +299,7 @@ public abstract class FromFileBase
    * By default with same resolution in px that the original file and in bottom-right position.
    *
    * @param textStreamObject text object that will be streamed.
-   * @throws RuntimeException If you don't use OpenGlvIew
+   * @throws RuntimeException If you don't use context
    */
   public void setTextStreamObject(TextStreamObject textStreamObject) throws RuntimeException {
     synchronized (sync) {
@@ -338,7 +338,7 @@ public abstract class FromFileBase
    * Set alpha to the stream object.
    *
    * @param alpha of the stream object on fly, 1.0f totally opaque and 0.0f totally transparent
-   * @throws RuntimeException If you don't use OpenGlvIew
+   * @throws RuntimeException If you don't use context
    */
   public void setAlphaStreamObject(float alpha) throws RuntimeException {
     synchronized (sync) {

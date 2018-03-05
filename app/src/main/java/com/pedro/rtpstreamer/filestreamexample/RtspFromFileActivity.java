@@ -11,17 +11,15 @@ import android.view.View;
 import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.ProgressBar;
+import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
-
 import com.pedro.encoder.input.decoder.AudioDecoderInterface;
-import com.pedro.rtpstreamer.utils.PathUtils;
-import com.pedro.rtplibrary.rtsp.RtspFromFile;
 import com.pedro.encoder.input.decoder.VideoDecoderInterface;
+import com.pedro.rtplibrary.rtsp.RtspFromFile;
 import com.pedro.rtpstreamer.R;
+import com.pedro.rtpstreamer.utils.PathUtils;
 import com.pedro.rtsp.utils.ConnectCheckerRtsp;
-
 import java.io.IOException;
 
 /**
@@ -32,14 +30,15 @@ import java.io.IOException;
 @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
 public class RtspFromFileActivity extends AppCompatActivity
     implements ConnectCheckerRtsp, View.OnClickListener, VideoDecoderInterface,
-    AudioDecoderInterface {
+    AudioDecoderInterface, SeekBar.OnSeekBarChangeListener {
 
   private RtspFromFile rtspFromFile;
   private Button button, bSelectFile;
-  private ProgressBar progressBar;
+  private SeekBar seekBar;
   private EditText etUrl;
   private TextView tvFile;
   private String filePath = "";
+  private boolean touching = false;
 
   @Override
   protected void onCreate(Bundle savedInstanceState) {
@@ -52,8 +51,9 @@ public class RtspFromFileActivity extends AppCompatActivity
     bSelectFile.setOnClickListener(this);
     etUrl = findViewById(R.id.et_rtp_url);
     etUrl.setHint(R.string.hint_rtsp);
-    progressBar = findViewById(R.id.progressBar);
-    progressBar.getProgressDrawable().setColorFilter(Color.RED, PorterDuff.Mode.SRC_IN);
+    seekBar = findViewById(R.id.seek_bar);
+    seekBar.getProgressDrawable().setColorFilter(Color.RED, PorterDuff.Mode.SRC_IN);
+    seekBar.setOnSeekBarChangeListener(this);
     tvFile = findViewById(R.id.tv_file);
     rtspFromFile = new RtspFromFile(this, this, this);
   }
@@ -132,7 +132,7 @@ public class RtspFromFileActivity extends AppCompatActivity
                   filePath, 64 * 1024)) {
                 button.setText(R.string.stop_button);
                 rtspFromFile.startStream(etUrl.getText().toString());
-                progressBar.setMax((int) rtspFromFile.getVideoDuration());
+                seekBar.setMax((int) rtspFromFile.getVideoDuration());
                 updateProgress();
               } else {
                 button.setText(R.string.start_button);
@@ -170,12 +170,14 @@ public class RtspFromFileActivity extends AppCompatActivity
         while (rtspFromFile.isStreaming()) {
           try {
             Thread.sleep(1000);
-            runOnUiThread(new Runnable() {
-              @Override
-              public void run() {
-                progressBar.setProgress((int) rtspFromFile.getVideoTime());
-              }
-            });
+            if (!touching) {
+              runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                  seekBar.setProgress((int) rtspFromFile.getVideoTime());
+                }
+              });
+            }
           } catch (InterruptedException e) {
             e.printStackTrace();
           }
@@ -202,5 +204,21 @@ public class RtspFromFileActivity extends AppCompatActivity
   @Override
   public void onAudioDecoderFinished() {
 
+  }
+
+  @Override
+  public void onProgressChanged(SeekBar seekBar, int i, boolean b) {
+
+  }
+
+  @Override
+  public void onStartTrackingTouch(SeekBar seekBar) {
+    touching = true;
+  }
+
+  @Override
+  public void onStopTrackingTouch(SeekBar seekBar) {
+    if (rtspFromFile.isStreaming()) rtspFromFile.moveTo(seekBar.getProgress());
+    touching = false;
   }
 }

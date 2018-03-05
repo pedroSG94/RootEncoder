@@ -32,6 +32,8 @@ public class AudioDecoder {
   private static boolean loopMode = false;
   private boolean muted = false;
   private long duration;
+  private volatile long seekTime = 0;
+  private volatile long startMs = 0;
 
   public AudioDecoder(GetMicrophoneData getMicrophoneData,
       AudioDecoderInterface audioDecoderInterface, LoopFileInterface loopFileInterface) {
@@ -91,6 +93,7 @@ public class AudioDecoder {
 
   public void stop() {
     decoding = false;
+    seekTime = 0;
     if (thread != null) {
       thread.interrupt();
       try {
@@ -114,7 +117,7 @@ public class AudioDecoder {
   private void decodeAudio() {
     ByteBuffer[] inputBuffers = audioDecoder.getInputBuffers();
     ByteBuffer[] outputBuffers = audioDecoder.getOutputBuffers();
-    long startMs = System.currentTimeMillis();
+    startMs = System.currentTimeMillis();
     while (decoding) {
       int inIndex = audioDecoder.dequeueInputBuffer(10000);
       if (inIndex >= 0) {
@@ -137,7 +140,9 @@ public class AudioDecoder {
           case MediaCodec.INFO_TRY_AGAIN_LATER:
             break;
           default:
-            while (audioInfo.presentationTimeUs / 1000 > System.currentTimeMillis() - startMs) {
+            //needed for fix decode speed
+            while (audioExtractor.getSampleTime() / 1000
+                > System.currentTimeMillis() - startMs + seekTime) {
               try {
                 Thread.sleep(10);
               } catch (InterruptedException e) {
@@ -160,6 +165,7 @@ public class AudioDecoder {
 
         // All decoded frames have been rendered, we can stop playing now
         if ((audioInfo.flags & MediaCodec.BUFFER_FLAG_END_OF_STREAM) != 0) {
+          seekTime = 0;
           Log.i(TAG, "end of file out");
           if (loopMode) {
             loopFileInterface.onReset(false);
@@ -181,6 +187,8 @@ public class AudioDecoder {
 
   public void moveTo(double time) {
     audioExtractor.seekTo((long) (time * 10E5), MediaExtractor.SEEK_TO_CLOSEST_SYNC);
+    seekTime = audioExtractor.getSampleTime() / 1000;
+    startMs = System.currentTimeMillis();
   }
 
   public void setLoopMode(boolean loopMode) {
