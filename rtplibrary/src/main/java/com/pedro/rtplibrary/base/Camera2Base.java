@@ -347,12 +347,14 @@ public abstract class Camera2Base
       } else if (openGlView != null) {
         boolean isCamera2Lanscape = true;
         if (context.getResources().getConfiguration().orientation == 1) isCamera2Lanscape = false;
+        openGlView.setEncoderSize(videoEncoder.getWidth(), videoEncoder.getHeight());
         openGlView.startGLThread(isCamera2Lanscape);
         cameraManager.prepareCamera(openGlView.getSurfaceTexture(), videoEncoder.getWidth(),
             videoEncoder.getHeight());
       } else if (lightOpenGlView != null) {
         boolean isCamera2Lanscape = true;
         if (context.getResources().getConfiguration().orientation == 1) isCamera2Lanscape = false;
+        openGlView.setEncoderSize(videoEncoder.getWidth(), videoEncoder.getHeight());
         lightOpenGlView.startGLThread(isCamera2Lanscape);
         cameraManager.prepareCamera(lightOpenGlView.getSurfaceTexture(), videoEncoder.getWidth(),
             videoEncoder.getHeight());
@@ -430,7 +432,9 @@ public abstract class Camera2Base
       }
       if (onChangeOrientation) rotate = context.getResources().getConfiguration().orientation != 1;
       openGlView.startGLThread(rotate);
-      openGlView.addMediaCodecSurface(videoEncoder.getInputSurface());
+      if (videoEncoder.getInputSurface() != null) {
+        openGlView.addMediaCodecSurface(videoEncoder.getInputSurface());
+      }
       cameraManager.prepareCamera(openGlView.getSurfaceTexture(), videoEncoder.getWidth(),
           videoEncoder.getHeight());
     } else if (lightOpenGlView != null && videoEnabled) {
@@ -445,7 +449,9 @@ public abstract class Camera2Base
       }
       if (onChangeOrientation) rotate = context.getResources().getConfiguration().orientation != 1;
       lightOpenGlView.startGLThread(rotate);
-      lightOpenGlView.addMediaCodecSurface(videoEncoder.getInputSurface());
+      if (videoEncoder.getInputSurface() != null) {
+        lightOpenGlView.addMediaCodecSurface(videoEncoder.getInputSurface());
+      }
       cameraManager.prepareCamera(lightOpenGlView.getSurfaceTexture(), videoEncoder.getWidth(),
           videoEncoder.getHeight());
     }
@@ -457,11 +463,11 @@ public abstract class Camera2Base
    * Stop stream started with @startStream.
    */
   public void stopStream() {
-    cameraManager.closeCamera(true);
     microphoneManager.stop();
     stopStreamRtp();
     videoEncoder.stop();
     audioEncoder.stop();
+    cameraManager.closeCamera(true);
     if (openGlView != null) {
       openGlView.removeMediaCodecSurface();
     } else if (lightOpenGlView != null) {
@@ -824,7 +830,7 @@ public abstract class Camera2Base
 
   @Override
   public void surfaceChanged(SurfaceHolder surfaceHolder, int i, int i1, int i2) {
-    if (isStreaming() && isOnChangeOrientation()) onChanged();
+    if (isOnChangeOrientation()) onChanged();
   }
 
   @Override
@@ -838,7 +844,7 @@ public abstract class Camera2Base
 
   @Override
   public void onSurfaceTextureSizeChanged(SurfaceTexture surfaceTexture, int i, int i1) {
-    if (isStreaming() && isOnChangeOrientation()) onChanged();
+    if (isOnChangeOrientation()) onChanged();
   }
 
   @Override

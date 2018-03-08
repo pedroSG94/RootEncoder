@@ -38,8 +38,12 @@ public class LightOpenGlView extends SurfaceView
   private final Object sync = new Object();
   private int previewWidth, previewHeight;
   private int encoderWidth, encoderHeight;
+  private int rotatedPreviewWidth, rotatedPreviewHeight;
+  private int rotatedEncoderWidth, rotatedEncoderHeight;
   private boolean isCamera2Landscape = false;
   private int waitTime = 200;
+  private static boolean rotate = false;
+  private OnStartResolution onRotateResolution;
 
   public LightOpenGlView(Context context, AttributeSet attrs) {
     super(context, attrs);
@@ -49,6 +53,10 @@ public class LightOpenGlView extends SurfaceView
   public void init() {
     if (!initialized) simpleCameraRender = new SimpleCameraRender();
     initialized = true;
+  }
+
+  public void rotated() {
+    rotate = !rotate;
   }
 
   public SurfaceTexture getSurfaceTexture() {
@@ -78,9 +86,35 @@ public class LightOpenGlView extends SurfaceView
     this.waitTime = waitTime;
   }
 
+  public void onChangeResolution(OnStartResolution onRotateResolution) {
+    this.onRotateResolution = onRotateResolution;
+  }
+
+  public void setPreviewResolution(int width, int height) {
+    previewWidth = width;
+    previewHeight = height;
+  }
+
+  public void setRotatedPreviewResolution(int width, int height) {
+    rotatedPreviewWidth = width;
+    rotatedPreviewHeight = height;
+  }
+
+  public void setEncoderResolution(int width, int height) {
+    encoderWidth = width;
+    encoderHeight = height;
+  }
+
+  public void setRotatedEncoderResolution(int width, int height) {
+    rotatedEncoderWidth = width;
+    rotatedEncoderHeight = height;
+  }
+
   public void setEncoderSize(int width, int height) {
     this.encoderWidth = width;
     this.encoderHeight = height;
+    this.rotatedEncoderWidth = width;
+    this.rotatedEncoderHeight = height;
   }
 
   public void startGLThread(boolean isCamera2Landscape) {
@@ -111,6 +145,7 @@ public class LightOpenGlView extends SurfaceView
     surfaceManager.makeCurrent();
     simpleCameraRender.isCamera2LandScape(isCamera2Landscape);
     simpleCameraRender.initGl(getContext());
+    if (onRotateResolution != null) onRotateResolution.onStartChangeResolution();
     simpleCameraRender.getSurfaceTexture().setOnFrameAvailableListener(this);
     semaphore.release();
     try {
@@ -122,13 +157,15 @@ public class LightOpenGlView extends SurfaceView
             surfaceManager.makeCurrent();
 
             simpleCameraRender.updateFrame();
-            simpleCameraRender.drawFrame(previewWidth, previewHeight);
+            if (rotate) simpleCameraRender.drawFrame(rotatedPreviewWidth, rotatedPreviewHeight);
+            else simpleCameraRender.drawFrame(previewWidth, previewHeight);
             surfaceManager.swapBuffer();
 
             synchronized (sync) {
               if (surfaceManagerEncoder != null) {
                 surfaceManagerEncoder.makeCurrent();
-                simpleCameraRender.drawFrame(encoderWidth, encoderHeight);
+                if (rotate) simpleCameraRender.drawFrame(rotatedEncoderWidth, rotatedEncoderHeight);
+                else simpleCameraRender.drawFrame(encoderWidth, encoderHeight);
                 long ts = simpleCameraRender.getSurfaceTexture().getTimestamp();
                 surfaceManagerEncoder.setPresentationTime(ts);
                 surfaceManagerEncoder.swapBuffer();
@@ -157,6 +194,8 @@ public class LightOpenGlView extends SurfaceView
     Log.i(TAG, "size: " + width + "x" + height);
     this.previewWidth = width;
     this.previewHeight = height;
+    this.rotatedPreviewWidth = width;
+    this.rotatedPreviewHeight = height;
   }
 
   @Override

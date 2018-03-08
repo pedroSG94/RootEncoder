@@ -44,6 +44,8 @@ public class OpenGlView extends SurfaceView
   private final Object sync = new Object();
   private int previewWidth, previewHeight;
   private int encoderWidth, encoderHeight;
+  private int rotatedPreviewWidth, rotatedPreviewHeight;
+  private int rotatedEncoderWidth, rotatedEncoderHeight;
   private boolean loadStreamObject = false;
   private boolean loadAlpha = false;
   private boolean loadScale = false;
@@ -64,6 +66,8 @@ public class OpenGlView extends SurfaceView
   private Surface surface;
   private boolean isCamera2Landscape = false;
   private int waitTime = 10;
+  private static boolean rotate = false;
+  private OnStartResolution onRotateResolution;
 
   public OpenGlView(Context context, AttributeSet attrs) {
     super(context, attrs);
@@ -99,9 +103,39 @@ public class OpenGlView extends SurfaceView
     }
   }
 
+  public void rotated() {
+    rotate = !rotate;
+  }
+
+  public void onChangeResolution(OnStartResolution onRotateResolution) {
+    this.onRotateResolution = onRotateResolution;
+  }
+
+  public void setPreviewResolution(int width, int height) {
+    previewWidth = width;
+    previewHeight = height;
+  }
+
+  public void setRotatedPreviewResolution(int width, int height) {
+    rotatedPreviewWidth = width;
+    rotatedPreviewHeight = height;
+  }
+
+  public void setEncoderResolution(int width, int height) {
+    encoderWidth = width;
+    encoderHeight = height;
+  }
+
+  public void setRotatedEncoderResolution(int width, int height) {
+    rotatedEncoderWidth = width;
+    rotatedEncoderHeight = height;
+  }
+
   public void setEncoderSize(int width, int height) {
     this.encoderWidth = width;
     this.encoderHeight = height;
+    this.rotatedEncoderWidth = width;
+    this.rotatedEncoderHeight = height;
   }
 
   public void setFilter(BaseFilterRender baseFilterRender) {
@@ -215,7 +249,8 @@ public class OpenGlView extends SurfaceView
     surfaceManager = new SurfaceManager(getHolder().getSurface());
     surfaceManager.makeCurrent();
     textureManager.setStreamSize(encoderWidth, encoderHeight);
-    textureManager.initGl(previewWidth, previewHeight, isCamera2Landscape, getContext());
+    textureManager.initGl(encoderWidth, encoderHeight, isCamera2Landscape, getContext());
+    if (onRotateResolution != null) onRotateResolution.onStartChangeResolution();
     textureManager.getSurfaceTexture().setOnFrameAvailableListener(this);
     semaphore.release();
     try {
@@ -240,7 +275,8 @@ public class OpenGlView extends SurfaceView
             }
             textureManager.updateFrame();
             textureManager.drawOffScreen();
-            textureManager.drawScreen(previewWidth, previewHeight);
+            if (rotate) textureManager.drawScreen(rotatedPreviewWidth, rotatedPreviewHeight);
+            else textureManager.drawScreen(previewWidth, previewHeight);
             surfaceManager.swapBuffer();
             //stream object loaded but you need reset surfaceManagerEncoder
             if (loadStreamObject) {
@@ -253,7 +289,8 @@ public class OpenGlView extends SurfaceView
             synchronized (sync) {
               if (surfaceManagerEncoder != null) {
                 surfaceManagerEncoder.makeCurrent();
-                textureManager.drawScreen(encoderWidth, encoderHeight);
+                if (rotate) textureManager.drawScreen(rotatedEncoderWidth, rotatedEncoderHeight);
+                else textureManager.drawScreen(encoderWidth, encoderHeight);
                 long ts = textureManager.getSurfaceTexture().getTimestamp();
                 surfaceManagerEncoder.setPresentationTime(ts);
                 surfaceManagerEncoder.swapBuffer();
@@ -302,6 +339,8 @@ public class OpenGlView extends SurfaceView
     Log.i(TAG, "size: " + width + "x" + height);
     this.previewWidth = width;
     this.previewHeight = height;
+    this.rotatedPreviewWidth = width;
+    this.rotatedPreviewHeight = height;
   }
 
   @Override

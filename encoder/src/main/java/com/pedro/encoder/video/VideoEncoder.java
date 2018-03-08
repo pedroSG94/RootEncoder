@@ -272,6 +272,7 @@ public class VideoEncoder implements GetCameraData {
       }
       queue.clear();
       spsPpsSetted = false;
+      inputSurface = null;
     }
   }
 

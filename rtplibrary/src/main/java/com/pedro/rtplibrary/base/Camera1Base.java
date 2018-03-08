@@ -356,11 +356,11 @@ public abstract class Camera1Base
   public void startPreview(@Camera1Facing int cameraFacing, int width, int height) {
     if (!isStreaming() && !onPreview) {
       if (openGlView != null && Build.VERSION.SDK_INT >= 18) {
-        openGlView.setEncoderSize(width, height);
+        openGlView.setEncoderSize(videoEncoder.getWidth(), videoEncoder.getHeight());
         openGlView.startGLThread(false);
         cameraManager.setSurfaceTexture(openGlView.getSurfaceTexture());
       } else if (lightOpenGlView != null && Build.VERSION.SDK_INT >= 18) {
-        lightOpenGlView.setEncoderSize(width, height);
+        lightOpenGlView.setEncoderSize(videoEncoder.getWidth(), videoEncoder.getHeight());
         lightOpenGlView.startGLThread(false);
         cameraManager.setSurfaceTexture(lightOpenGlView.getSurfaceTexture());
       }
@@ -470,7 +470,9 @@ public abstract class Camera1Base
         openGlView.setEncoderSize(videoEncoder.getWidth(), videoEncoder.getHeight());
       }
       openGlView.startGLThread(false);
-      openGlView.addMediaCodecSurface(videoEncoder.getInputSurface());
+      if (videoEncoder.getInputSurface() != null) {
+        openGlView.addMediaCodecSurface(videoEncoder.getInputSurface());
+      }
       cameraManager.setSurfaceTexture(openGlView.getSurfaceTexture());
       cameraManager.prepareCamera(videoEncoder.getWidth(), videoEncoder.getHeight(),
           videoEncoder.getFps(), ImageFormat.NV21);
@@ -482,7 +484,9 @@ public abstract class Camera1Base
         lightOpenGlView.setEncoderSize(videoEncoder.getWidth(), videoEncoder.getHeight());
       }
       lightOpenGlView.startGLThread(false);
-      lightOpenGlView.addMediaCodecSurface(videoEncoder.getInputSurface());
+      if (videoEncoder.getInputSurface() != null) {
+        lightOpenGlView.addMediaCodecSurface(videoEncoder.getInputSurface());
+      }
       cameraManager.setSurfaceTexture(lightOpenGlView.getSurfaceTexture());
       cameraManager.prepareCamera(videoEncoder.getWidth(), videoEncoder.getHeight(),
           videoEncoder.getFps(), ImageFormat.NV21);
@@ -882,7 +886,7 @@ public abstract class Camera1Base
 
   @Override
   public void surfaceChanged(SurfaceHolder surfaceHolder, int i, int i1, int i2) {
-    if (isStreaming() && isOnChangeOrientation()) onChanged();
+    if (isOnChangeOrientation()) onChanged();
   }
 
   @Override
@@ -896,7 +900,7 @@ public abstract class Camera1Base
 
   @Override
   public void onSurfaceTextureSizeChanged(SurfaceTexture surfaceTexture, int i, int i1) {
-    if (isStreaming() && isOnChangeOrientation()) onChanged();
+    if (isOnChangeOrientation()) onChanged();
   }
 
   @Override
