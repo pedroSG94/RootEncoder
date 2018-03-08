@@ -142,12 +142,14 @@ public abstract class Camera2Base
   }
 
   public void refreshView(OpenGlView openGlView) {
+    openGlView.rotated();
     openGlView.getHolder().addCallback(this);
     onChangeOrientation();
     this.openGlView = openGlView;
   }
 
   public void refreshView(LightOpenGlView lightOpenGlView) {
+    lightOpenGlView.rotated();
     lightOpenGlView.getHolder().addCallback(this);
     onChangeOrientation();
     this.lightOpenGlView = lightOpenGlView;
