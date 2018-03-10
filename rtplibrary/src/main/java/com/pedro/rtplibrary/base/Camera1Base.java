@@ -67,7 +67,7 @@ public abstract class Camera1Base
   private LightOpenGlView lightOpenGlView;
   private SurfaceView surfaceView;
   private TextureView textureView;
-  private boolean streaming;
+  private boolean streaming = false;
   private boolean videoEnabled = true;
   //record
   private MediaMuxer mediaMuxer;
@@ -87,7 +87,6 @@ public abstract class Camera1Base
     videoEncoder = new VideoEncoder(this);
     microphoneManager = new MicrophoneManager(this);
     audioEncoder = new AudioEncoder(this);
-    streaming = false;
   }
 
   public Camera1Base(TextureView textureView) {
@@ -97,7 +96,6 @@ public abstract class Camera1Base
     videoEncoder = new VideoEncoder(this);
     microphoneManager = new MicrophoneManager(this);
     audioEncoder = new AudioEncoder(this);
-    streaming = false;
   }
 
   @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
@@ -109,7 +107,6 @@ public abstract class Camera1Base
     videoEncoder = new VideoEncoder(this);
     microphoneManager = new MicrophoneManager(this);
     audioEncoder = new AudioEncoder(this);
-    streaming = false;
   }
 
   @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
@@ -122,7 +119,6 @@ public abstract class Camera1Base
     videoEncoder = new VideoEncoder(this);
     microphoneManager = new MicrophoneManager(this);
     audioEncoder = new AudioEncoder(this);
-    streaming = false;
   }
 
   public void refreshView(SurfaceView surfaceView) {
@@ -178,10 +174,7 @@ public abstract class Camera1Base
       cameraManager.prepareCamera(videoEncoder.getWidth(), videoEncoder.getHeight(),
           videoEncoder.getFps(), ImageFormat.NV21);
     }
-    int orientation = 0;
-    if (context.getResources().getConfiguration().orientation == 1) {
-      orientation = 90;
-    }
+    int orientation = (context.getResources().getConfiguration().orientation == 1) ? 90 : 0;
     cameraManager.setPreviewOrientation(orientation);
     cameraManager.start();
   }
@@ -275,10 +268,7 @@ public abstract class Camera1Base
       cameraManager.prepareCamera();
       return videoEncoder.prepareVideoEncoder();
     } else {
-      int orientation = 0;
-      if (context.getResources().getConfiguration().orientation == 1) {
-        orientation = 90;
-      }
+      int orientation = (context.getResources().getConfiguration().orientation == 1) ? 90 : 0;
       return videoEncoder.prepareVideoEncoder(640, 480, 30, 1200 * 1024, orientation, false, 2,
           FormatVideoEncoder.SURFACE);
     }

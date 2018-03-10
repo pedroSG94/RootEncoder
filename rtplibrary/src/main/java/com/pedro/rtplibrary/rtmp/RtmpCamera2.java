@@ -28,22 +28,22 @@ public class RtmpCamera2 extends Camera2Base {
   private SrsFlvMuxer srsFlvMuxer;
 
   public RtmpCamera2(SurfaceView surfaceView, ConnectCheckerRtmp connectChecker) {
-    super(surfaceView, surfaceView.getContext());
+    super(surfaceView);
     srsFlvMuxer = new SrsFlvMuxer(connectChecker);
   }
 
   public RtmpCamera2(TextureView textureView, ConnectCheckerRtmp connectChecker) {
-    super(textureView, textureView.getContext());
+    super(textureView);
     srsFlvMuxer = new SrsFlvMuxer(connectChecker);
   }
 
   public RtmpCamera2(OpenGlView openGlView, ConnectCheckerRtmp connectChecker) {
-    super(openGlView, openGlView.getContext());
+    super(openGlView);
     srsFlvMuxer = new SrsFlvMuxer(connectChecker);
   }
 
   public RtmpCamera2(LightOpenGlView lightOpenGlView, ConnectCheckerRtmp connectChecker) {
-    super(lightOpenGlView, lightOpenGlView.getContext());
+    super(lightOpenGlView);
     srsFlvMuxer = new SrsFlvMuxer(connectChecker);
   }
 

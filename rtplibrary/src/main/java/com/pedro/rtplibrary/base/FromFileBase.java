@@ -49,7 +49,7 @@ public abstract class FromFileBase
   protected VideoEncoder videoEncoder;
   protected AudioEncoder audioEncoder;
   private OffScreenGlThread offScreenGlThread;
-  private boolean streaming;
+  private boolean streaming = false;
   private boolean videoEnabled = true;
   //record
   private MediaMuxer mediaMuxer;
@@ -75,7 +75,6 @@ public abstract class FromFileBase
     this.audioDecoderInterface = audioDecoderInterface;
     videoEncoder = new VideoEncoder(this);
     audioEncoder = new AudioEncoder(this);
-    streaming = false;
   }
 
   /**
@@ -88,7 +87,6 @@ public abstract class FromFileBase
     this.audioDecoderInterface = audioDecoderInterface;
     videoEncoder = new VideoEncoder(this);
     audioEncoder = new AudioEncoder(this);
-    streaming = false;
   }
 
   /**

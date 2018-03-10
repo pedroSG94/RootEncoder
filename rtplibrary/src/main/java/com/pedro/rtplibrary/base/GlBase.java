@@ -30,7 +30,7 @@ public abstract class GlBase implements GetAacData, GetH264Data, GetMicrophoneDa
   protected MicrophoneManager microphoneManager;
   protected AudioEncoder audioEncoder;
   private CustomGlSurfaceView customGlSurfaceView;
-  private boolean streaming;
+  private boolean streaming = false;
   private boolean videoEnabled = false;
   //record
   private MediaMuxer mediaMuxer;
@@ -47,7 +47,6 @@ public abstract class GlBase implements GetAacData, GetH264Data, GetMicrophoneDa
     videoEncoder = new VideoEncoder(this);
     microphoneManager = new MicrophoneManager(this);
     audioEncoder = new AudioEncoder(this);
-    streaming = false;
   }
 
   /**
@@ -121,10 +120,7 @@ public abstract class GlBase implements GetAacData, GetH264Data, GetMicrophoneDa
    * doesn't support any configuration seated or your device hasn't a H264 encoder).
    */
   public boolean prepareVideo() {
-    int orientation = 0;
-    if (context.getResources().getConfiguration().orientation == 1) {
-      orientation = 90;
-    }
+    int orientation = (context.getResources().getConfiguration().orientation == 1) ? 90 : 0;
     boolean result =
         videoEncoder.prepareVideoEncoder(640, 480, 30, 1200 * 1024, orientation, false, 2,
             FormatVideoEncoder.SURFACE);

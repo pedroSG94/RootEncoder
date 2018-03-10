@@ -41,7 +41,7 @@ public abstract class DisplayBase implements GetAacData, GetH264Data, GetMicroph
   protected VideoEncoder videoEncoder;
   protected MicrophoneManager microphoneManager;
   protected AudioEncoder audioEncoder;
-  private boolean streaming;
+  private boolean streaming = false;
   protected SurfaceView surfaceView;
   private boolean videoEnabled = true;
   //record
@@ -62,7 +62,6 @@ public abstract class DisplayBase implements GetAacData, GetH264Data, GetMicroph
     videoEncoder = new VideoEncoder(this);
     microphoneManager = new MicrophoneManager(this);
     audioEncoder = new AudioEncoder(this);
-    streaming = false;
   }
 
   /**
@@ -90,10 +89,8 @@ public abstract class DisplayBase implements GetAacData, GetH264Data, GetMicroph
    */
   public boolean prepareVideo(int width, int height, int fps, int bitrate, int rotation, int dpi) {
     this.dpi = dpi;
-    boolean result =
-        videoEncoder.prepareVideoEncoder(width, height, fps, bitrate, rotation, true, 2,
-            FormatVideoEncoder.SURFACE);
-    return result;
+    return videoEncoder.prepareVideoEncoder(width, height, fps, bitrate, rotation, true, 2,
+        FormatVideoEncoder.SURFACE);
   }
 
   protected abstract void prepareAudioRtp(boolean isStereo, int sampleRate);

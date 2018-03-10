@@ -115,12 +115,8 @@ public class VideoEncoder implements GetCameraData {
       }
       prepareBlackImage();
       return true;
-    } catch (IOException e) {
-      Log.e(TAG, "create videoEncoder failed.");
-      e.printStackTrace();
-      return false;
-    } catch (IllegalStateException e) {
-      e.printStackTrace();
+    } catch (IOException | IllegalStateException e) {
+      Log.e(TAG, "create videoEncoder failed.", e);
       return false;
     }
   }

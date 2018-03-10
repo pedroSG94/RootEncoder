@@ -28,22 +28,22 @@ public class RtspCamera2 extends Camera2Base {
   private RtspClient rtspClient;
 
   public RtspCamera2(SurfaceView surfaceView, ConnectCheckerRtsp connectCheckerRtsp) {
-    super(surfaceView, surfaceView.getContext());
+    super(surfaceView);
     rtspClient = new RtspClient(connectCheckerRtsp);
   }
 
   public RtspCamera2(TextureView textureView, ConnectCheckerRtsp connectCheckerRtsp) {
-    super(textureView, textureView.getContext());
+    super(textureView);
     rtspClient = new RtspClient(connectCheckerRtsp);
   }
 
   public RtspCamera2(OpenGlView openGlView, ConnectCheckerRtsp connectCheckerRtsp) {
-    super(openGlView, openGlView.getContext());
+    super(openGlView);
     rtspClient = new RtspClient(connectCheckerRtsp);
   }
 
   public RtspCamera2(LightOpenGlView lightOpenGlView, ConnectCheckerRtsp connectCheckerRtsp) {
-    super(lightOpenGlView, lightOpenGlView.getContext());
+    super(lightOpenGlView);
     rtspClient = new RtspClient(connectCheckerRtsp);
   }
 

@@ -58,7 +58,7 @@ public abstract class Camera2Base
   protected VideoEncoder videoEncoder;
   protected MicrophoneManager microphoneManager;
   protected AudioEncoder audioEncoder;
-  private boolean streaming;
+  private boolean streaming = false;
   private SurfaceView surfaceView;
   private TextureView textureView;
   private OpenGlView openGlView;
@@ -74,57 +74,53 @@ public abstract class Camera2Base
   private MediaFormat videoFormat;
   private MediaFormat audioFormat;
   private boolean onChangeOrientation = false;
+  private boolean isBackground = false;
 
-  public Camera2Base(SurfaceView surfaceView, Context context) {
+  public Camera2Base(SurfaceView surfaceView) {
     this.surfaceView = surfaceView;
-    this.context = context;
+    this.context = surfaceView.getContext();
     cameraManager = new Camera2ApiManager(context);
     videoEncoder = new VideoEncoder(this);
     microphoneManager = new MicrophoneManager(this);
     audioEncoder = new AudioEncoder(this);
-    streaming = false;
   }
 
-  public Camera2Base(TextureView textureView, Context context) {
+  public Camera2Base(TextureView textureView) {
     this.textureView = textureView;
-    this.context = context;
+    this.context = textureView.getContext();
     cameraManager = new Camera2ApiManager(context);
     videoEncoder = new VideoEncoder(this);
     microphoneManager = new MicrophoneManager(this);
     audioEncoder = new AudioEncoder(this);
-    streaming = false;
   }
 
-  public Camera2Base(OpenGlView openGlView, Context context) {
+  public Camera2Base(OpenGlView openGlView) {
     this.openGlView = openGlView;
-    this.context = context;
+    this.context = openGlView.getContext();
     openGlView.init();
     cameraManager = new Camera2ApiManager(context);
     videoEncoder = new VideoEncoder(this);
     microphoneManager = new MicrophoneManager(this);
     audioEncoder = new AudioEncoder(this);
-    streaming = false;
   }
 
-  public Camera2Base(LightOpenGlView lightOpenGlView, Context context) {
+  public Camera2Base(LightOpenGlView lightOpenGlView) {
     this.lightOpenGlView = lightOpenGlView;
-    this.context = context;
+    this.context = lightOpenGlView.getContext();
     lightOpenGlView.init();
     cameraManager = new Camera2ApiManager(context);
     videoEncoder = new VideoEncoder(this);
     microphoneManager = new MicrophoneManager(this);
     audioEncoder = new AudioEncoder(this);
-    streaming = false;
   }
 
   public Camera2Base(Context context) {
     this.context = context;
-    this.textureView = null;
+    isBackground = true;
     cameraManager = new Camera2ApiManager(context);
     videoEncoder = new VideoEncoder(this);
     microphoneManager = new MicrophoneManager(this);
     audioEncoder = new AudioEncoder(this);
-    streaming = false;
   }
 
   public void refreshView(SurfaceView surfaceView) {
@@ -259,12 +255,8 @@ public abstract class Camera2Base
       stopPreview();
       onPreview = true;
     }
-    boolean isHardwareRotation = true;
-    if (openGlView != null || lightOpenGlView != null) isHardwareRotation = false;
-    int orientation = 0;
-    if (context.getResources().getConfiguration().orientation == 1) {
-      orientation = 90;
-    }
+    boolean isHardwareRotation = !(openGlView != null || lightOpenGlView != null);
+    int orientation = (context.getResources().getConfiguration().orientation == 1) ? 90 : 0;
     boolean result =
         videoEncoder.prepareVideoEncoder(640, 480, 30, 1200 * 1024, orientation, isHardwareRotation,
             2, FormatVideoEncoder.SURFACE);
@@ -347,15 +339,13 @@ public abstract class Camera2Base
       } else if (textureView != null) {
         cameraManager.prepareCamera(new Surface(textureView.getSurfaceTexture()));
       } else if (openGlView != null) {
-        boolean isCamera2Lanscape = true;
-        if (context.getResources().getConfiguration().orientation == 1) isCamera2Lanscape = false;
+        boolean isCamera2Lanscape = context.getResources().getConfiguration().orientation != 1;
         openGlView.setEncoderSize(videoEncoder.getWidth(), videoEncoder.getHeight());
         openGlView.startGLThread(isCamera2Lanscape);
         cameraManager.prepareCamera(openGlView.getSurfaceTexture(), videoEncoder.getWidth(),
             videoEncoder.getHeight());
       } else if (lightOpenGlView != null) {
-        boolean isCamera2Lanscape = true;
-        if (context.getResources().getConfiguration().orientation == 1) isCamera2Lanscape = false;
+        boolean isCamera2Lanscape = context.getResources().getConfiguration().orientation != 1;
         openGlView.setEncoderSize(videoEncoder.getWidth(), videoEncoder.getHeight());
         lightOpenGlView.startGLThread(isCamera2Lanscape);
         cameraManager.prepareCamera(lightOpenGlView.getSurfaceTexture(), videoEncoder.getWidth(),
@@ -465,11 +455,12 @@ public abstract class Camera2Base
    * Stop stream started with @startStream.
    */
   public void stopStream() {
+    cameraManager.closeCamera(!isBackground);
+    onPreview = !isBackground;
     microphoneManager.stop();
     stopStreamRtp();
     videoEncoder.stop();
     audioEncoder.stop();
-    cameraManager.closeCamera(true);
     if (openGlView != null) {
       openGlView.removeMediaCodecSurface();
     } else if (lightOpenGlView != null) {
