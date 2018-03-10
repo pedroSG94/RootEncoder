@@ -32,6 +32,7 @@ import com.pedro.encoder.video.GetH264Data;
 import com.pedro.encoder.video.VideoEncoder;
 import com.pedro.rtplibrary.view.LightOpenGlView;
 import com.pedro.rtplibrary.view.OpenGlView;
+import com.pedro.rtplibrary.view.OpenGlViewBase;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
@@ -62,7 +63,7 @@ public abstract class Camera2Base
   private SurfaceView surfaceView;
   private TextureView textureView;
   private OpenGlView openGlView;
-  private LightOpenGlView lightOpenGlView;
+  private OpenGlViewBase openGlViewBase;
   private boolean videoEnabled = false;
   //record
   private MediaMuxer mediaMuxer;
@@ -96,6 +97,7 @@ public abstract class Camera2Base
 
   public Camera2Base(OpenGlView openGlView) {
     this.openGlView = openGlView;
+    this.openGlViewBase = openGlView;
     this.context = openGlView.getContext();
     openGlView.init();
     cameraManager = new Camera2ApiManager(context);
@@ -105,7 +107,7 @@ public abstract class Camera2Base
   }
 
   public Camera2Base(LightOpenGlView lightOpenGlView) {
-    this.lightOpenGlView = lightOpenGlView;
+    this.openGlViewBase = lightOpenGlView;
     this.context = lightOpenGlView.getContext();
     lightOpenGlView.init();
     cameraManager = new Camera2ApiManager(context);
@@ -142,13 +144,14 @@ public abstract class Camera2Base
     openGlView.getHolder().addCallback(this);
     onChangeOrientation();
     this.openGlView = openGlView;
+    this.openGlViewBase = openGlView;
   }
 
   public void refreshView(LightOpenGlView lightOpenGlView) {
     lightOpenGlView.rotated();
     lightOpenGlView.getHolder().addCallback(this);
     onChangeOrientation();
-    this.lightOpenGlView = lightOpenGlView;
+    this.openGlViewBase = lightOpenGlView;
   }
 
   public boolean isOnChangeOrientation() {
@@ -160,12 +163,9 @@ public abstract class Camera2Base
   }
 
   private void onChangeOrientation() {
-    if (openGlView != null && Build.VERSION.SDK_INT >= 18) {
-      openGlView.removeMediaCodecSurface();
-      openGlView.stopGlThread();
-    } else if (lightOpenGlView != null && Build.VERSION.SDK_INT >= 18) {
-      lightOpenGlView.removeMediaCodecSurface();
-      lightOpenGlView.stopGlThread();
+    if (openGlViewBase != null && Build.VERSION.SDK_INT >= 18) {
+      openGlViewBase.removeMediaCodecSurface();
+      openGlViewBase.stopGlThread();
     }
     cameraManager.closeCamera(false);
   }
@@ -255,7 +255,7 @@ public abstract class Camera2Base
       stopPreview();
       onPreview = true;
     }
-    boolean isHardwareRotation = !(openGlView != null || lightOpenGlView != null);
+    boolean isHardwareRotation = openGlViewBase == null;
     int orientation = (context.getResources().getConfiguration().orientation == 1) ? 90 : 0;
     boolean result =
         videoEncoder.prepareVideoEncoder(640, 480, 30, 1200 * 1024, orientation, isHardwareRotation,
@@ -338,17 +338,11 @@ public abstract class Camera2Base
         cameraManager.prepareCamera(surfaceView.getHolder().getSurface());
       } else if (textureView != null) {
         cameraManager.prepareCamera(new Surface(textureView.getSurfaceTexture()));
-      } else if (openGlView != null) {
+      } else if (openGlViewBase != null) {
         boolean isCamera2Lanscape = context.getResources().getConfiguration().orientation != 1;
-        openGlView.setEncoderSize(videoEncoder.getWidth(), videoEncoder.getHeight());
-        openGlView.startGLThread(isCamera2Lanscape);
-        cameraManager.prepareCamera(openGlView.getSurfaceTexture(), videoEncoder.getWidth(),
-            videoEncoder.getHeight());
-      } else if (lightOpenGlView != null) {
-        boolean isCamera2Lanscape = context.getResources().getConfiguration().orientation != 1;
-        openGlView.setEncoderSize(videoEncoder.getWidth(), videoEncoder.getHeight());
-        lightOpenGlView.startGLThread(isCamera2Lanscape);
-        cameraManager.prepareCamera(lightOpenGlView.getSurfaceTexture(), videoEncoder.getWidth(),
+        openGlViewBase.setEncoderSize(videoEncoder.getWidth(), videoEncoder.getHeight());
+        openGlViewBase.startGLThread(isCamera2Lanscape);
+        cameraManager.prepareCamera(openGlViewBase.getSurfaceTexture(), videoEncoder.getWidth(),
             videoEncoder.getHeight());
       }
       cameraManager.openCameraFacing(cameraFacing);
@@ -371,10 +365,8 @@ public abstract class Camera2Base
    */
   public void stopPreview() {
     if (!isStreaming() && onPreview) {
-      if (openGlView != null) {
-        openGlView.stopGlThread();
-      } else if (lightOpenGlView != null) {
-        lightOpenGlView.stopGlThread();
+      if (openGlViewBase != null) {
+        openGlViewBase.stopGlThread();
       }
       cameraManager.closeCamera(false);
       onPreview = false;
@@ -412,39 +404,22 @@ public abstract class Camera2Base
   }
 
   private void prepareGlView(boolean onChangeOrientation) {
-    if (openGlView != null && videoEnabled) {
-      openGlView.init();
+    if (openGlViewBase != null && videoEnabled) {
+      openGlViewBase.init();
       boolean rotate;
       if (videoEncoder.getRotation() == 90 || videoEncoder.getRotation() == 270) {
-        openGlView.setEncoderSize(videoEncoder.getHeight(), videoEncoder.getWidth());
+        openGlViewBase.setEncoderSize(videoEncoder.getHeight(), videoEncoder.getWidth());
         rotate = false;
       } else {
-        openGlView.setEncoderSize(videoEncoder.getWidth(), videoEncoder.getHeight());
+        openGlViewBase.setEncoderSize(videoEncoder.getWidth(), videoEncoder.getHeight());
         rotate = true;
       }
       if (onChangeOrientation) rotate = context.getResources().getConfiguration().orientation != 1;
-      openGlView.startGLThread(rotate);
+      openGlViewBase.startGLThread(rotate);
       if (videoEncoder.getInputSurface() != null) {
-        openGlView.addMediaCodecSurface(videoEncoder.getInputSurface());
+        openGlViewBase.addMediaCodecSurface(videoEncoder.getInputSurface());
       }
-      cameraManager.prepareCamera(openGlView.getSurfaceTexture(), videoEncoder.getWidth(),
-          videoEncoder.getHeight());
-    } else if (lightOpenGlView != null && videoEnabled) {
-      lightOpenGlView.init();
-      boolean rotate;
-      if (videoEncoder.getRotation() == 90 || videoEncoder.getRotation() == 270) {
-        lightOpenGlView.setEncoderSize(videoEncoder.getHeight(), videoEncoder.getWidth());
-        rotate = false;
-      } else {
-        lightOpenGlView.setEncoderSize(videoEncoder.getWidth(), videoEncoder.getHeight());
-        rotate = true;
-      }
-      if (onChangeOrientation) rotate = context.getResources().getConfiguration().orientation != 1;
-      lightOpenGlView.startGLThread(rotate);
-      if (videoEncoder.getInputSurface() != null) {
-        lightOpenGlView.addMediaCodecSurface(videoEncoder.getInputSurface());
-      }
-      cameraManager.prepareCamera(lightOpenGlView.getSurfaceTexture(), videoEncoder.getWidth(),
+      cameraManager.prepareCamera(openGlViewBase.getSurfaceTexture(), videoEncoder.getWidth(),
           videoEncoder.getHeight());
     }
   }
@@ -461,10 +436,8 @@ public abstract class Camera2Base
     stopStreamRtp();
     videoEncoder.stop();
     audioEncoder.stop();
-    if (openGlView != null) {
-      openGlView.removeMediaCodecSurface();
-    } else if (lightOpenGlView != null) {
-      lightOpenGlView.removeMediaCodecSurface();
+    if (openGlViewBase != null) {
+      openGlViewBase.removeMediaCodecSurface();
     }
     streaming = false;
   }
@@ -764,7 +737,7 @@ public abstract class Camera2Base
       cameraManager.prepareCamera(textureView, videoEncoder.getInputSurface());
     } else if (surfaceView != null) {
       cameraManager.prepareCamera(surfaceView, videoEncoder.getInputSurface());
-    } else if (openGlView != null || lightOpenGlView != null) {
+    } else if (openGlView != null || openGlViewBase != null) {
     } else {
       cameraManager.prepareCamera(videoEncoder.getInputSurface());
     }

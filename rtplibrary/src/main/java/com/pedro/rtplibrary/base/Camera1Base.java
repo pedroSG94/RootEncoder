@@ -35,6 +35,7 @@ import com.pedro.encoder.video.GetH264Data;
 import com.pedro.encoder.video.VideoEncoder;
 import com.pedro.rtplibrary.view.LightOpenGlView;
 import com.pedro.rtplibrary.view.OpenGlView;
+import com.pedro.rtplibrary.view.OpenGlViewBase;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.List;
@@ -64,7 +65,7 @@ public abstract class Camera1Base
   protected MicrophoneManager microphoneManager;
   protected AudioEncoder audioEncoder;
   private OpenGlView openGlView;
-  private LightOpenGlView lightOpenGlView;
+  private OpenGlViewBase openGlViewBase;
   private SurfaceView surfaceView;
   private TextureView textureView;
   private boolean streaming = false;
@@ -102,6 +103,7 @@ public abstract class Camera1Base
   public Camera1Base(OpenGlView openGlView) {
     context = openGlView.getContext();
     this.openGlView = openGlView;
+    this.openGlViewBase = openGlView;
     this.openGlView.init();
     cameraManager = new Camera1ApiManager(openGlView.getSurfaceTexture(), openGlView.getContext());
     videoEncoder = new VideoEncoder(this);
@@ -112,8 +114,8 @@ public abstract class Camera1Base
   @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
   public Camera1Base(LightOpenGlView lightOpenGlView) {
     context = lightOpenGlView.getContext();
-    this.lightOpenGlView = lightOpenGlView;
-    this.lightOpenGlView.init();
+    this.openGlViewBase = lightOpenGlView;
+    this.openGlViewBase.init();
     cameraManager =
         new Camera1ApiManager(lightOpenGlView.getSurfaceTexture(), lightOpenGlView.getContext());
     videoEncoder = new VideoEncoder(this);
@@ -139,6 +141,7 @@ public abstract class Camera1Base
     openGlView.getHolder().addCallback(this);
     onChangeOrientation();
     this.openGlView = openGlView;
+    this.openGlViewBase = openGlView;
   }
 
   @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
@@ -146,7 +149,7 @@ public abstract class Camera1Base
     lightOpenGlView.rotated();
     lightOpenGlView.getHolder().addCallback(this);
     onChangeOrientation();
-    this.lightOpenGlView = lightOpenGlView;
+    this.openGlViewBase = lightOpenGlView;
   }
 
   public boolean isOnChangeOrientation() {
@@ -158,12 +161,9 @@ public abstract class Camera1Base
   }
 
   private void onChangeOrientation() {
-    if (openGlView != null && Build.VERSION.SDK_INT >= 18) {
-      openGlView.removeMediaCodecSurface();
-      openGlView.stopGlThread();
-    } else if (lightOpenGlView != null && Build.VERSION.SDK_INT >= 18) {
-      lightOpenGlView.removeMediaCodecSurface();
-      lightOpenGlView.stopGlThread();
+    if (openGlViewBase != null && Build.VERSION.SDK_INT >= 18) {
+      openGlViewBase.removeMediaCodecSurface();
+      openGlViewBase.stopGlThread();
     }
     cameraManager.stop();
   }
@@ -211,7 +211,7 @@ public abstract class Camera1Base
       onPreview = true;
     }
     int imageFormat = ImageFormat.NV21; //supported nv21 and yv12
-    if (openGlView == null && lightOpenGlView == null) {
+    if (openGlViewBase == null) {
       cameraManager.prepareCamera(width, height, fps, imageFormat);
       return videoEncoder.prepareVideoEncoder(width, height, fps, bitrate, rotation,
           hardwareRotation, iFrameInterval, FormatVideoEncoder.YUV420Dynamical);
@@ -264,7 +264,7 @@ public abstract class Camera1Base
       stopPreview();
       onPreview = true;
     }
-    if (openGlView == null && lightOpenGlView == null) {
+    if (openGlViewBase == null) {
       cameraManager.prepareCamera();
       return videoEncoder.prepareVideoEncoder();
     } else {
@@ -347,14 +347,10 @@ public abstract class Camera1Base
    */
   public void startPreview(@Camera1Facing int cameraFacing, int width, int height) {
     if (!isStreaming() && !onPreview) {
-      if (openGlView != null && Build.VERSION.SDK_INT >= 18) {
-        openGlView.setEncoderSize(videoEncoder.getWidth(), videoEncoder.getHeight());
-        openGlView.startGLThread(false);
-        cameraManager.setSurfaceTexture(openGlView.getSurfaceTexture());
-      } else if (lightOpenGlView != null && Build.VERSION.SDK_INT >= 18) {
-        lightOpenGlView.setEncoderSize(videoEncoder.getWidth(), videoEncoder.getHeight());
-        lightOpenGlView.startGLThread(false);
-        cameraManager.setSurfaceTexture(lightOpenGlView.getSurfaceTexture());
+      if (openGlViewBase != null && Build.VERSION.SDK_INT >= 18) {
+        openGlViewBase.setEncoderSize(videoEncoder.getWidth(), videoEncoder.getHeight());
+        openGlViewBase.startGLThread(false);
+        cameraManager.setSurfaceTexture(openGlViewBase.getSurfaceTexture());
       }
       cameraManager.prepareCamera();
       if (width == 0 || height == 0) {
@@ -406,10 +402,8 @@ public abstract class Camera1Base
    */
   public void stopPreview() {
     if (!isStreaming() && onPreview) {
-      if (openGlView != null && Build.VERSION.SDK_INT >= 18) {
-        openGlView.stopGlThread();
-      } else if (lightOpenGlView != null && Build.VERSION.SDK_INT >= 18) {
-        lightOpenGlView.stopGlThread();
+      if (openGlViewBase != null && Build.VERSION.SDK_INT >= 18) {
+        openGlViewBase.stopGlThread();
       }
       cameraManager.stop();
       onPreview = false;
@@ -454,32 +448,18 @@ public abstract class Camera1Base
   }
 
   private void prepareGlView() {
-    if (openGlView != null && Build.VERSION.SDK_INT >= 18) {
-      openGlView.init();
+    if (openGlViewBase != null && Build.VERSION.SDK_INT >= 18) {
+      openGlViewBase.init();
       if (videoEncoder.getRotation() == 90 || videoEncoder.getRotation() == 270) {
-        openGlView.setEncoderSize(videoEncoder.getHeight(), videoEncoder.getWidth());
+        openGlViewBase.setEncoderSize(videoEncoder.getHeight(), videoEncoder.getWidth());
       } else {
-        openGlView.setEncoderSize(videoEncoder.getWidth(), videoEncoder.getHeight());
+        openGlViewBase.setEncoderSize(videoEncoder.getWidth(), videoEncoder.getHeight());
       }
-      openGlView.startGLThread(false);
+      openGlViewBase.startGLThread(false);
       if (videoEncoder.getInputSurface() != null) {
-        openGlView.addMediaCodecSurface(videoEncoder.getInputSurface());
+        openGlViewBase.addMediaCodecSurface(videoEncoder.getInputSurface());
       }
-      cameraManager.setSurfaceTexture(openGlView.getSurfaceTexture());
-      cameraManager.prepareCamera(videoEncoder.getWidth(), videoEncoder.getHeight(),
-          videoEncoder.getFps(), ImageFormat.NV21);
-    } else if (lightOpenGlView != null && Build.VERSION.SDK_INT >= 18) {
-      lightOpenGlView.init();
-      if (videoEncoder.getRotation() == 90 || videoEncoder.getRotation() == 270) {
-        lightOpenGlView.setEncoderSize(videoEncoder.getHeight(), videoEncoder.getWidth());
-      } else {
-        lightOpenGlView.setEncoderSize(videoEncoder.getWidth(), videoEncoder.getHeight());
-      }
-      lightOpenGlView.startGLThread(false);
-      if (videoEncoder.getInputSurface() != null) {
-        lightOpenGlView.addMediaCodecSurface(videoEncoder.getInputSurface());
-      }
-      cameraManager.setSurfaceTexture(lightOpenGlView.getSurfaceTexture());
+      cameraManager.setSurfaceTexture(openGlViewBase.getSurfaceTexture());
       cameraManager.prepareCamera(videoEncoder.getWidth(), videoEncoder.getHeight(),
           videoEncoder.getFps(), ImageFormat.NV21);
     }
@@ -495,10 +475,8 @@ public abstract class Camera1Base
     stopStreamRtp();
     videoEncoder.stop();
     audioEncoder.stop();
-    if (openGlView != null && Build.VERSION.SDK_INT >= 18) {
-      openGlView.removeMediaCodecSurface();
-    } else if (lightOpenGlView != null && Build.VERSION.SDK_INT >= 18) {
-      lightOpenGlView.removeMediaCodecSurface();
+    if (openGlViewBase != null && Build.VERSION.SDK_INT >= 18) {
+      openGlViewBase.removeMediaCodecSurface();
     }
     streaming = false;
   }

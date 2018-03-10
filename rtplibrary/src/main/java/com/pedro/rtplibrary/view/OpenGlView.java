@@ -3,14 +3,10 @@ package com.pedro.rtplibrary.view;
 import android.content.Context;
 import android.graphics.PointF;
 import android.graphics.SurfaceTexture;
-import android.graphics.SurfaceTexture.OnFrameAvailableListener;
 import android.os.Build;
 import android.support.annotation.RequiresApi;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.view.Surface;
-import android.view.SurfaceHolder;
-import android.view.SurfaceView;
 import com.pedro.encoder.input.gl.SurfaceManager;
 import com.pedro.encoder.input.gl.render.ManagerRender;
 import com.pedro.encoder.input.gl.render.filters.BaseFilterRender;
@@ -18,34 +14,15 @@ import com.pedro.encoder.utils.gl.GifStreamObject;
 import com.pedro.encoder.utils.gl.ImageStreamObject;
 import com.pedro.encoder.utils.gl.TextStreamObject;
 import com.pedro.encoder.utils.gl.TranslateTo;
-import java.util.concurrent.Semaphore;
 
 /**
  * Created by pedro on 9/09/17.
  */
 
 @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
-public class OpenGlView extends SurfaceView
-    implements Runnable, OnFrameAvailableListener, SurfaceHolder.Callback {
+public class OpenGlView extends OpenGlViewBase {
 
-  public final static String TAG = "OpenGlView";
-
-  private Thread thread = null;
-  private boolean frameAvailable = false;
-  private boolean running = true;
-  private boolean initialized = false;
-
-  private SurfaceManager surfaceManager = null;
-  private SurfaceManager surfaceManagerEncoder = null;
-
-  private ManagerRender textureManager = null;
-
-  private final Semaphore semaphore = new Semaphore(0);
-  private final Object sync = new Object();
-  private int previewWidth, previewHeight;
-  private int encoderWidth, encoderHeight;
-  private int rotatedPreviewWidth, rotatedPreviewHeight;
-  private int rotatedEncoderWidth, rotatedEncoderHeight;
+  private ManagerRender managerRender = null;
   private boolean loadStreamObject = false;
   private boolean loadAlpha = false;
   private boolean loadScale = false;
@@ -63,79 +40,30 @@ public class OpenGlView extends SurfaceView
   private float positionX, positionY;
   private boolean AAEnabled = false;
   private TranslateTo positionTo;
-  private Surface surface;
-  private boolean isCamera2Landscape = false;
-  private int waitTime = 10;
-  private static boolean rotate = false;
-  private OnStartResolution onRotateResolution;
+
+  public OpenGlView(Context context) {
+    super(context);
+  }
 
   public OpenGlView(Context context, AttributeSet attrs) {
     super(context, attrs);
-    getHolder().addCallback(this);
   }
 
+  @Override
   public void init() {
-    if (!initialized) textureManager = new ManagerRender();
+    if (!initialized) managerRender = new ManagerRender();
+    waitTime = 10;
     initialized = true;
   }
 
+  @Override
   public SurfaceTexture getSurfaceTexture() {
-    return textureManager.getSurfaceTexture();
+    return managerRender.getSurfaceTexture();
   }
 
+  @Override
   public Surface getSurface() {
-    return textureManager.getSurface();
-  }
-
-  public void addMediaCodecSurface(Surface surface) {
-    synchronized (sync) {
-      this.surface = surface;
-      surfaceManagerEncoder = new SurfaceManager(surface, surfaceManager);
-    }
-  }
-
-  public void removeMediaCodecSurface() {
-    synchronized (sync) {
-      if (surfaceManagerEncoder != null) {
-        surfaceManagerEncoder.release();
-        surfaceManagerEncoder = null;
-      }
-    }
-  }
-
-  public void rotated() {
-    rotate = !rotate;
-  }
-
-  public void onChangeResolution(OnStartResolution onRotateResolution) {
-    this.onRotateResolution = onRotateResolution;
-  }
-
-  public void setPreviewResolution(int width, int height) {
-    previewWidth = width;
-    previewHeight = height;
-  }
-
-  public void setRotatedPreviewResolution(int width, int height) {
-    rotatedPreviewWidth = width;
-    rotatedPreviewHeight = height;
-  }
-
-  public void setEncoderResolution(int width, int height) {
-    encoderWidth = width;
-    encoderHeight = height;
-  }
-
-  public void setRotatedEncoderResolution(int width, int height) {
-    rotatedEncoderWidth = width;
-    rotatedEncoderHeight = height;
-  }
-
-  public void setEncoderSize(int width, int height) {
-    this.encoderWidth = width;
-    this.encoderHeight = height;
-    this.rotatedEncoderWidth = width;
-    this.rotatedEncoderHeight = height;
+    return managerRender.getSurface();
   }
 
   public void setFilter(BaseFilterRender baseFilterRender) {
@@ -199,59 +127,33 @@ public class OpenGlView extends SurfaceView
   }
 
   public boolean isAAEnabled() {
-    return textureManager != null && textureManager.isAAEnabled();
-  }
-
-  public void setWaitTime(int waitTime) {
-    this.waitTime = waitTime;
+    return managerRender != null && managerRender.isAAEnabled();
   }
 
   public PointF getScale() {
-    if (textureManager != null) {
-      return textureManager.getScale();
+    if (managerRender != null) {
+      return managerRender.getScale();
     } else {
       return new PointF(0f, 0f);
     }
   }
 
   public PointF getPosition() {
-    if (textureManager != null) {
-      return textureManager.getPosition();
+    if (managerRender != null) {
+      return managerRender.getPosition();
     } else {
       return new PointF(0f, 0f);
     }
-  }
-
-  public void startGLThread(boolean isCamera2Landscape) {
-    this.isCamera2Landscape = isCamera2Landscape;
-    Log.i(TAG, "Thread started.");
-    thread = new Thread(this);
-    running = true;
-    thread.start();
-    semaphore.acquireUninterruptibly();
-  }
-
-  public void stopGlThread() {
-    if (thread != null) {
-      thread.interrupt();
-      try {
-        thread.join();
-      } catch (InterruptedException e) {
-        thread.interrupt();
-      }
-      thread = null;
-    }
-    running = false;
   }
 
   @Override
   public void run() {
     surfaceManager = new SurfaceManager(getHolder().getSurface());
     surfaceManager.makeCurrent();
-    textureManager.setStreamSize(encoderWidth, encoderHeight);
-    textureManager.initGl(encoderWidth, encoderHeight, isCamera2Landscape, getContext());
+    managerRender.setStreamSize(encoderWidth, encoderHeight);
+    managerRender.initGl(encoderWidth, encoderHeight, isCamera2Landscape, getContext());
     if (onRotateResolution != null) onRotateResolution.onStartChangeResolution();
-    textureManager.getSurfaceTexture().setOnFrameAvailableListener(this);
+    managerRender.getSurfaceTexture().setOnFrameAvailableListener(this);
     semaphore.release();
     try {
       while (running) {
@@ -264,19 +166,19 @@ public class OpenGlView extends SurfaceView
             //need load a stream object
             if (loadStreamObject) {
               if (textStreamObject != null) {
-                textureManager.setText(textStreamObject);
+                managerRender.setText(textStreamObject);
               } else if (imageStreamObject != null) {
-                textureManager.setImage(imageStreamObject);
+                managerRender.setImage(imageStreamObject);
               } else if (gifStreamObject != null) {
-                textureManager.setGif(gifStreamObject);
+                managerRender.setGif(gifStreamObject);
               } else {
-                textureManager.clear();
+                managerRender.clear();
               }
             }
-            textureManager.updateFrame();
-            textureManager.drawOffScreen();
-            if (rotate) textureManager.drawScreen(rotatedPreviewWidth, rotatedPreviewHeight);
-            else textureManager.drawScreen(previewWidth, previewHeight);
+            managerRender.updateFrame();
+            managerRender.drawOffScreen();
+            if (rotate) managerRender.drawScreen(rotatedPreviewWidth, rotatedPreviewHeight);
+            else managerRender.drawScreen(previewWidth, previewHeight);
             surfaceManager.swapBuffer();
             //stream object loaded but you need reset surfaceManagerEncoder
             if (loadStreamObject) {
@@ -289,9 +191,9 @@ public class OpenGlView extends SurfaceView
             synchronized (sync) {
               if (surfaceManagerEncoder != null) {
                 surfaceManagerEncoder.makeCurrent();
-                if (rotate) textureManager.drawScreen(rotatedEncoderWidth, rotatedEncoderHeight);
-                else textureManager.drawScreen(encoderWidth, encoderHeight);
-                long ts = textureManager.getSurfaceTexture().getTimestamp();
+                if (rotate) managerRender.drawScreen(rotatedEncoderWidth, rotatedEncoderHeight);
+                else managerRender.drawScreen(encoderWidth, encoderHeight);
+                long ts = managerRender.getSurfaceTexture().getTimestamp();
                 surfaceManagerEncoder.setPresentationTime(ts);
                 surfaceManagerEncoder.swapBuffer();
               }
@@ -299,22 +201,22 @@ public class OpenGlView extends SurfaceView
           }
           //set new parameters
           if (loadAlpha) {
-            textureManager.setAlpha(alpha);
+            managerRender.setAlpha(alpha);
             loadAlpha = false;
           } else if (loadScale) {
-            textureManager.setScale(scaleX, scaleY);
+            managerRender.setScale(scaleX, scaleY);
             loadScale = false;
           } else if (loadPosition) {
-            textureManager.setPosition(positionX, positionY);
+            managerRender.setPosition(positionX, positionY);
             loadPosition = false;
           } else if (loadPositionTo) {
-            textureManager.setPosition(positionTo);
+            managerRender.setPosition(positionTo);
             loadPositionTo = false;
           } else if (loadFilter) {
-            textureManager.setFilter(baseFilterRender);
+            managerRender.setFilter(baseFilterRender);
             loadFilter = false;
           } else if (loadAA) {
-            textureManager.enableAA(AAEnabled);
+            managerRender.enableAA(AAEnabled);
             loadAA = false;
           }
         }
@@ -322,33 +224,7 @@ public class OpenGlView extends SurfaceView
     } catch (InterruptedException ignore) {
     } finally {
       surfaceManager.release();
-      textureManager.release();
+      managerRender.release();
     }
-  }
-
-  @Override
-  public void onFrameAvailable(SurfaceTexture surfaceTexture) {
-    synchronized (sync) {
-      frameAvailable = true;
-      sync.notifyAll();
-    }
-  }
-
-  @Override
-  public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
-    Log.i(TAG, "size: " + width + "x" + height);
-    this.previewWidth = width;
-    this.previewHeight = height;
-    this.rotatedPreviewWidth = width;
-    this.rotatedPreviewHeight = height;
-  }
-
-  @Override
-  public void surfaceCreated(SurfaceHolder holder) {
-  }
-
-  @Override
-  public void surfaceDestroyed(SurfaceHolder holder) {
-    stopGlThread();
   }
 }
