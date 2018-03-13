@@ -171,6 +171,7 @@ public class RtspClient {
               connectionSocket = CreateSSLSocket.createSSlSocket(host, port);
               if (connectionSocket == null) throw new IOException("Socket creation failed");
             }
+            connectionSocket.setSoTimeout(3000);
             reader = new BufferedReader(new InputStreamReader(connectionSocket.getInputStream()));
             outputStream = connectionSocket.getOutputStream();
             writer = new BufferedWriter(new OutputStreamWriter(outputStream));
@@ -399,6 +400,7 @@ public class RtspClient {
     try {
       String response = "";
       String line;
+
       while ((line = reader.readLine()) != null) {
         if (line.contains("Session")) {
           Pattern rtspPattern = Pattern.compile("Session: (\\w+)");

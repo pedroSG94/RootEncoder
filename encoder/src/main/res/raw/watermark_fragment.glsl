@@ -11,7 +11,7 @@ void main() {
   vec2 coord = vec2(1.0 - vTextureWatermarkCoord.y, 1.0 - vTextureWatermarkCoord.x);
   vec4 watermarkPixel = texture2D(sWatermark, coord);
   vec4 cameraPixel = texture2D(sCamera, vTextureCameraCoord);
-  if (watermarkPixel.a < 1.0) {
+  if (watermarkPixel.a <= 0.5) {  //0.5 to support antialias on TextStreamObject
     gl_FragColor = cameraPixel;
   } else {
     gl_FragColor = (watermarkPixel * uAlpha) + (cameraPixel * (1.0 - uAlpha));
