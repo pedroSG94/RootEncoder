@@ -302,6 +302,7 @@ public abstract class Camera2Base
       }
       mediaMuxer.start();
       recording = true;
+      if (videoEncoder.isRunning()) videoEncoder.reset();
     } else {
       throw new IOException("Need be called while stream");
     }

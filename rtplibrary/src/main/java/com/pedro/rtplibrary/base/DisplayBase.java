@@ -162,6 +162,7 @@ public abstract class DisplayBase implements GetAacData, GetH264Data, GetMicroph
       audioTrack = mediaMuxer.addTrack(audioFormat);
       mediaMuxer.start();
       recording = true;
+      if (videoEncoder.isRunning()) videoEncoder.reset();
     } else {
       throw new IOException("Need be called while stream");
     }

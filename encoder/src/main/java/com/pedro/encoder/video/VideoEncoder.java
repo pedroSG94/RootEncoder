@@ -138,7 +138,8 @@ public class VideoEncoder implements GetCameraData {
    * Prepare encoder with default parameters
    */
   public boolean prepareVideoEncoder() {
-    return prepareVideoEncoder(width, height, fps, bitRate, rotation, false, iFrameInterval, formatVideoEncoder);
+    return prepareVideoEncoder(width, height, fps, bitRate, rotation, false, iFrameInterval,
+        formatVideoEncoder);
   }
 
   @RequiresApi(api = Build.VERSION_CODES.KITKAT)
@@ -269,6 +270,15 @@ public class VideoEncoder implements GetCameraData {
       queue.clear();
       spsPpsSetted = false;
       inputSurface = null;
+    }
+  }
+
+  public void reset() {
+    synchronized (sync) {
+      stop();
+      prepareVideoEncoder(width, height, fps, bitRate, rotation, hardwareRotation, iFrameInterval,
+          formatVideoEncoder);
+      start();
     }
   }
 
