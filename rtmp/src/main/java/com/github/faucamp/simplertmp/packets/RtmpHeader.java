@@ -341,7 +341,7 @@ public class RtmpHeader {
                 break;
             }
             case TYPE_3_RELATIVE_SINGLE_BYTE: { // b11 = 1 byte: basic header only
-                if (extendedTimestamp > 0){
+                if (extendedTimestamp > 0) {
                     Util.writeUnsignedInt32(out, extendedTimestamp);
                 }
                 break;
