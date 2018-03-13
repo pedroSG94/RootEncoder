@@ -194,10 +194,14 @@ public class VideoEncoder implements GetCameraData {
   }
 
   public void start() {
+    start(true);
+  }
+
+  public void start(boolean resetTs) {
     synchronized (sync) {
       if (videoEncoder != null) {
         spsPpsSetted = false;
-        mPresentTimeUs = System.nanoTime() / 1000;
+        if (resetTs) mPresentTimeUs = System.nanoTime() / 1000;
         videoEncoder.start();
         //surface to buffer
         if (formatVideoEncoder == FormatVideoEncoder.SURFACE
@@ -278,7 +282,7 @@ public class VideoEncoder implements GetCameraData {
       stop();
       prepareVideoEncoder(width, height, fps, bitRate, rotation, hardwareRotation, iFrameInterval,
           formatVideoEncoder);
-      start();
+      start(false);
     }
   }
 

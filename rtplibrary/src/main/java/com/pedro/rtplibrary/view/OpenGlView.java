@@ -181,15 +181,16 @@ public class OpenGlView extends OpenGlViewBase {
             else managerRender.drawScreen(previewWidth, previewHeight);
             surfaceManager.swapBuffer();
             //stream object loaded but you need reset surfaceManagerEncoder
-            if (loadStreamObject) {
-              surfaceManagerEncoder.release();
-              surfaceManagerEncoder = null;
-              addMediaCodecSurface(surface);
-              loadStreamObject = false;
-              continue;
-            }
+
             synchronized (sync) {
               if (surfaceManagerEncoder != null) {
+                if (loadStreamObject) {
+                  surfaceManagerEncoder.release();
+                  surfaceManagerEncoder = null;
+                  addMediaCodecSurface(surface);
+                  loadStreamObject = false;
+                  continue;
+                }
                 surfaceManagerEncoder.makeCurrent();
                 if (rotate) managerRender.drawScreen(rotatedEncoderWidth, rotatedEncoderHeight);
                 else managerRender.drawScreen(encoderWidth, encoderHeight);
