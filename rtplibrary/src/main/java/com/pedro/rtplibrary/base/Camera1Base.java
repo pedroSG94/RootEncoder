@@ -313,7 +313,13 @@ public abstract class Camera1Base
       }
       mediaMuxer.start();
       recording = true;
-      if (videoEncoder.isRunning()) videoEncoder.reset();
+      if (videoEncoder.isRunning()) {
+        if (openGlViewBase != null) openGlViewBase.removeMediaCodecSurface();
+        videoEncoder.reset();
+        if (openGlViewBase != null) {
+          openGlViewBase.addMediaCodecSurface(videoEncoder.getInputSurface());
+        }
+      }
     } else {
       throw new IOException("Need be called while stream");
     }

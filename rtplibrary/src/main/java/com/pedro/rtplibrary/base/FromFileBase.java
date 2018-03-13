@@ -159,7 +159,13 @@ public abstract class FromFileBase
       audioTrack = mediaMuxer.addTrack(audioFormat);
       mediaMuxer.start();
       recording = true;
-      if (videoEncoder.isRunning()) videoEncoder.reset();
+      if (videoEncoder.isRunning()) {
+        if (offScreenGlThread != null) offScreenGlThread.removeMediaCodecSurface();
+        videoEncoder.reset();
+        if (offScreenGlThread != null) {
+          offScreenGlThread.addMediaCodecSurface(videoEncoder.getInputSurface());
+        }
+      }
     } else {
       throw new IOException("Need be called while stream");
     }
@@ -230,6 +236,7 @@ public abstract class FromFileBase
   /**
    * If you want reproduce video in loop.
    * This mode clear all effects or stream object when video is restarted. TODO: No clear it.
+   *
    * @param loopMode true in loop, false stop stream when video finish.
    */
   public void setLoopMode(boolean loopMode) {

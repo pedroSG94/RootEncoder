@@ -166,6 +166,13 @@ public abstract class GlBase implements GetAacData, GetH264Data, GetMicrophoneDa
       }
       mediaMuxer.start();
       recording = true;
+      if (videoEncoder.isRunning()) {
+        if (customGlSurfaceView != null) customGlSurfaceView.removeMediaCodecSurface();
+        videoEncoder.reset();
+        if (customGlSurfaceView != null) {
+          customGlSurfaceView.addMediaCodecSurface(videoEncoder.getInputSurface());
+        }
+      }
     } else {
       throw new IOException("Need be called while stream");
     }
