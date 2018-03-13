@@ -154,6 +154,7 @@ public class StreamObjectRender extends BaseRenderOffScreen {
 
   @Override
   public void release() {
+    if (streamObjectTextureId != null) GLES20.glDeleteTextures(1, streamObjectTextureId, 0);
     streamObjectTextureId = null;
     streamObjectBase = null;
     sprite.reset();
@@ -164,6 +165,7 @@ public class StreamObjectRender extends BaseRenderOffScreen {
   }
 
   public void setImage(ImageStreamObject imageStreamObject) {
+    if (streamObjectTextureId != null) GLES20.glDeleteTextures(1, streamObjectTextureId, 0);
     streamObjectTextureId = null;
     streamObjectBase = imageStreamObject;
     textureLoader.setImageStreamObject(imageStreamObject);
@@ -172,6 +174,7 @@ public class StreamObjectRender extends BaseRenderOffScreen {
   }
 
   public void setText(TextStreamObject textStreamObject) {
+    if (streamObjectTextureId != null) GLES20.glDeleteTextures(1, streamObjectTextureId, 0);
     streamObjectTextureId = null;
     streamObjectBase = textStreamObject;
     textureLoader.setTextStreamObject(textStreamObject);
@@ -180,6 +183,7 @@ public class StreamObjectRender extends BaseRenderOffScreen {
   }
 
   public void setGif(GifStreamObject gifStreamObject) {
+    if (streamObjectTextureId != null) GLES20.glDeleteTextures(1, streamObjectTextureId, 0);
     streamObjectTextureId = null;
     streamObjectBase = gifStreamObject;
     textureLoader.setGifStreamObject(gifStreamObject);
@@ -188,6 +192,7 @@ public class StreamObjectRender extends BaseRenderOffScreen {
   }
 
   public void clear() {
+    if (streamObjectTextureId != null) GLES20.glDeleteTextures(1, streamObjectTextureId, 0);
     streamObjectTextureId = new int[] { -1 };
     sprite.reset();
   }
