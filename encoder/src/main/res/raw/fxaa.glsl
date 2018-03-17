@@ -13,8 +13,8 @@ uniform float uAAEnabled;
 
 varying vec2 vTextureCoord;
 
-vec4 FxaaTexOff(sampler2D texture, vec2 p, vec2 o, vec2 r){
-  return texture2D(texture, p + (o * r));
+vec4 FxaaTexOff(sampler2D tex, vec2 p, vec2 o, vec2 r){
+  return texture2D(tex, p + (o * r));
 }
 /**
  *
@@ -22,13 +22,13 @@ vec4 FxaaTexOff(sampler2D texture, vec2 p, vec2 o, vec2 r){
  * @param tex {@link sampler2D} The input texture.
  * @param rcpFrame {@link vec2} Constant {1.0/frameWidth, 1.0/frameHeight}.
  */
-vec3 FxaaPixelShader(sampler2D texture, vec2 uv, vec2 pos, vec2 rcpFrame) {
+vec3 FxaaPixelShader(sampler2D tex, vec2 uv, vec2 pos, vec2 rcpFrame) {
 /*---------------------------------------------------------*/
-    vec3 rgbNW = texture2D(texture, pos).xyz;
-    vec3 rgbNE = FxaaTexOff(texture, pos, vec2(1,0), rcpFrame).xyz;
-    vec3 rgbSW = FxaaTexOff(texture, pos, vec2(0,1), rcpFrame).xyz;
-    vec3 rgbSE = FxaaTexOff(texture, pos, vec2(1,1), rcpFrame).xyz;
-    vec3 rgbM  = texture2D(texture, uv).xyz;
+    vec3 rgbNW = texture2D(tex, pos).xyz;
+    vec3 rgbNE = FxaaTexOff(tex, pos, vec2(1,0), rcpFrame).xyz;
+    vec3 rgbSW = FxaaTexOff(tex, pos, vec2(0,1), rcpFrame).xyz;
+    vec3 rgbSE = FxaaTexOff(tex, pos, vec2(1,1), rcpFrame).xyz;
+    vec3 rgbM  = texture2D(tex, uv).xyz;
 /*---------------------------------------------------------*/
     vec3 luma = vec3(0.299, 0.587, 0.114);
     float lumaNW = dot(rgbNW, luma);
@@ -51,11 +51,11 @@ vec3 FxaaPixelShader(sampler2D texture, vec2 uv, vec2 pos, vec2 rcpFrame) {
           dir * rcpDirMin)) * rcpFrame.xy;
 /*--------------------------------------------------------*/
     vec3 rgbA = (1.0 / 2.0) * (
-        texture2D(texture, uv + dir * (1.0 / 3.0 - 0.5)).xyz +
-        texture2D(texture, uv + dir * (2.0 / 3.0 - 0.5)).xyz);
+        texture2D(tex, uv + dir * (1.0 / 3.0 - 0.5)).xyz +
+        texture2D(tex, uv + dir * (2.0 / 3.0 - 0.5)).xyz);
     vec3 rgbB = rgbA * (1.0 / 2.0) + (1.0 / 4.0) * (
-        texture2D(texture, uv + dir * (0.0 / 3.0 - 0.5)).xyz +
-        texture2D(texture, uv + dir * (3.0 / 3.0 - 0.5)).xyz);
+        texture2D(tex, uv + dir * (0.0 / 3.0 - 0.5)).xyz +
+        texture2D(tex, uv + dir * (3.0 / 3.0 - 0.5)).xyz);
     float lumaB = dot(rgbB, luma);
     if((lumaB < lumaMin) || (lumaB > lumaMax)) {
         return rgbA;
@@ -63,11 +63,11 @@ vec3 FxaaPixelShader(sampler2D texture, vec2 uv, vec2 pos, vec2 rcpFrame) {
     return rgbB;
 }
 
-vec4 PostFX(sampler2D texture, vec2 uv) {
+vec4 PostFX(sampler2D tex, vec2 uv) {
   vec2 rcpFrame = vec2(1.0 / uResolution.x, 1.0 / uResolution.y);
   vec4 c = vec4(0.0);
   vec2 pos = uv - (rcpFrame * (0.5 + FXAA_REDUCE_MUL));
-  c.rgb = FxaaPixelShader(texture, uv, pos, rcpFrame);
+  c.rgb = FxaaPixelShader(tex, uv, pos, rcpFrame);
   c.a = 1.0;
   return c;
 }
