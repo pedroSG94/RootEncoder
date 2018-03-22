@@ -135,12 +135,17 @@ public class SurfaceManager {
     GlUtil.checkEglError("eglCreateContext");
 
     // Create a window surface, and attach it to the Surface we received.
-    int[] surfaceAttribs = {
-        EGL14.EGL_NONE
-    };
     if (surface == null) {
+      int[] surfaceAttribs = {
+          EGL14.EGL_WIDTH, 1,
+          EGL14.EGL_HEIGHT, 1,
+          EGL14.EGL_NONE
+      };
       eglSurface = EGL14.eglCreatePbufferSurface(eglDisplay, configs[0], surfaceAttribs, 0);
     } else {
+      int[] surfaceAttribs = {
+          EGL14.EGL_NONE
+      };
       eglSurface = EGL14.eglCreateWindowSurface(eglDisplay, configs[0], surface, surfaceAttribs, 0);
     }
     GlUtil.checkEglError("eglCreateWindowSurface");
