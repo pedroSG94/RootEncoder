@@ -15,34 +15,14 @@ import java.io.IOException;
 
 public class YUVUtil {
 
-  private static byte[] rotate90Buffer;
-  private static byte[] rotate180Buffer;
-  private static byte[] rotate270Buffer;
+  private static byte[] preAllocatedBufferRotate;
+  private static byte[] preAllocatedBufferRotate270;
+  private static byte[] preAllocatedBufferColor;
 
-  public static void preAllocateRotateBuffers(int length) {
-    rotate90Buffer = new byte[length];
-    rotate180Buffer = new byte[length];
-    rotate270Buffer = new byte[length];
-  }
-
-  private static byte[] yv12i420Buffer;
-  private static byte[] yv12nv12Buffer;
-  private static byte[] yv12nv21Buffer;
-
-  public static void preAllocateYv12Buffers(int length) {
-    yv12i420Buffer = new byte[length];
-    yv12nv12Buffer = new byte[length];
-    yv12nv21Buffer = new byte[length];
-  }
-
-  private static byte[] nv21i420pBuffer;
-  private static byte[] nv21nv12Buffer;
-  private static byte[] nv21yv12Buffer;
-
-  public static void preAllocateNv21Buffers(int length) {
-    nv21i420pBuffer = new byte[length];
-    nv21nv12Buffer = new byte[length];
-    nv21yv12Buffer = new byte[length];
+  public static void preAllocateBuffers(int length) {
+    preAllocatedBufferRotate = new byte[length];
+    preAllocatedBufferRotate270 = new byte[length];
+    preAllocatedBufferColor = new byte[length];
   }
 
   // for the vbuffer for YV12(android YUV), @see below:
@@ -121,32 +101,34 @@ public class YUVUtil {
   public static byte[] YV12toNV12(byte[] input, int width, int height) {
     final int frameSize = width * height;
     final int qFrameSize = frameSize / 4;
-    System.arraycopy(input, 0, yv12nv12Buffer, 0, frameSize); // Y
+    System.arraycopy(input, 0, preAllocatedBufferColor, 0, frameSize); // Y
     for (int i = 0; i < qFrameSize; i++) {
-      yv12nv12Buffer[frameSize + i * 2] = input[frameSize + i + qFrameSize]; // Cb (U)
-      yv12nv12Buffer[frameSize + i * 2 + 1] = input[frameSize + i]; // Cr (V)
+      preAllocatedBufferColor[frameSize + i * 2] = input[frameSize + i + qFrameSize]; // Cb (U)
+      preAllocatedBufferColor[frameSize + i * 2 + 1] = input[frameSize + i]; // Cr (V)
     }
-    return yv12nv12Buffer;
+    return preAllocatedBufferColor;
   }
 
   public static byte[] YV12toI420(byte[] input, int width, int height) {
     final int frameSize = width * height;
     final int qFrameSize = frameSize / 4;
-    System.arraycopy(input, 0, yv12i420Buffer, 0, frameSize); // Y
-    System.arraycopy(input, frameSize + qFrameSize, yv12i420Buffer, frameSize, qFrameSize); // Cb (U)
-    System.arraycopy(input, frameSize, yv12i420Buffer, frameSize + qFrameSize, qFrameSize); // Cr (V)
-    return yv12i420Buffer;
+    System.arraycopy(input, 0, preAllocatedBufferColor, 0, frameSize); // Y
+    System.arraycopy(input, frameSize + qFrameSize, preAllocatedBufferColor, frameSize,
+        qFrameSize); // Cb (U)
+    System.arraycopy(input, frameSize, preAllocatedBufferColor, frameSize + qFrameSize,
+        qFrameSize); // Cr (V)
+    return preAllocatedBufferColor;
   }
 
   public static byte[] YV12toNV21(byte[] input, int width, int height) {
     final int frameSize = width * height;
     final int qFrameSize = frameSize / 4;
-    System.arraycopy(input, 0, yv12nv21Buffer, 0, frameSize); // Y
+    System.arraycopy(input, 0, preAllocatedBufferColor, 0, frameSize); // Y
     for (int i = 0; i < qFrameSize; i++) {
-      yv12nv21Buffer[frameSize + i * 2 + 1] = input[frameSize + i + qFrameSize]; // Cb (U)
-      yv12nv21Buffer[frameSize + i * 2] = input[frameSize + i]; // Cr (V)
+      preAllocatedBufferColor[frameSize + i * 2 + 1] = input[frameSize + i + qFrameSize]; // Cb (U)
+      preAllocatedBufferColor[frameSize + i * 2] = input[frameSize + i]; // Cr (V)
     }
-    return yv12nv21Buffer;
+    return preAllocatedBufferColor;
   }
 
   public static byte[] NV21toYUV420byColor(byte[] input, int width, int height,
@@ -170,34 +152,34 @@ public class YUVUtil {
   public static byte[] NV21toNV12(byte[] input, int width, int height) {
     final int frameSize = width * height;
     final int qFrameSize = frameSize / 4;
-    System.arraycopy(input, 0, nv21nv12Buffer, 0, frameSize); // Y
+    System.arraycopy(input, 0, preAllocatedBufferColor, 0, frameSize); // Y
     for (int i = 0; i < qFrameSize; i++) {
-      nv21nv12Buffer[frameSize + i * 2] = input[frameSize + i * 2 + 1]; // Cb (U)
-      nv21nv12Buffer[frameSize + i * 2 + 1] = input[frameSize + i * 2]; // Cr (V)
+      preAllocatedBufferColor[frameSize + i * 2] = input[frameSize + i * 2 + 1]; // Cb (U)
+      preAllocatedBufferColor[frameSize + i * 2 + 1] = input[frameSize + i * 2]; // Cr (V)
     }
-    return nv21nv12Buffer;
+    return preAllocatedBufferColor;
   }
 
   public static byte[] NV21toI420(byte[] input, int width, int height) {
     final int frameSize = width * height;
     final int qFrameSize = frameSize / 4;
-    System.arraycopy(input, 0, nv21i420pBuffer, 0, frameSize); // Y
+    System.arraycopy(input, 0, preAllocatedBufferColor, 0, frameSize); // Y
     for (int i = 0; i < qFrameSize; i++) {
-      nv21i420pBuffer[frameSize + i] = input[frameSize + i * 2 + 1]; // Cb (U)
-      nv21i420pBuffer[frameSize + i + qFrameSize] = input[frameSize + i * 2]; // Cr (V)
+      preAllocatedBufferColor[frameSize + i] = input[frameSize + i * 2 + 1]; // Cb (U)
+      preAllocatedBufferColor[frameSize + i + qFrameSize] = input[frameSize + i * 2]; // Cr (V)
     }
-    return nv21i420pBuffer;
+    return preAllocatedBufferColor;
   }
 
   public static byte[] NV21toYV12(byte[] input, int width, int height) {
     final int frameSize = width * height;
     final int qFrameSize = frameSize / 4;
-    System.arraycopy(input, 0, nv21yv12Buffer, 0, frameSize); // Y
+    System.arraycopy(input, 0, preAllocatedBufferColor, 0, frameSize); // Y
     for (int i = 0; i < qFrameSize; i++) {
-      nv21yv12Buffer[frameSize + i + qFrameSize] = input[frameSize + i * 2 + 1]; // Cb (U)
-      nv21yv12Buffer[frameSize + i] = input[frameSize + i * 2]; // Cr (V)
+      preAllocatedBufferColor[frameSize + i + qFrameSize] = input[frameSize + i * 2 + 1]; // Cb (U)
+      preAllocatedBufferColor[frameSize + i] = input[frameSize + i * 2]; // Cr (V)
     }
-    return nv21yv12Buffer;
+    return preAllocatedBufferColor;
   }
 
   public static byte[] rotateNV21(byte[] data, int width, int height, int rotation) {
@@ -220,64 +202,59 @@ public class YUVUtil {
     int i = 0;
     for (int x = 0; x < imageWidth; x++) {
       for (int y = imageHeight - 1; y >= 0; y--) {
-        rotate90Buffer[i] = data[y * imageWidth + x];
-        i++;
+        preAllocatedBufferRotate[i++] = data[y * imageWidth + x];
       }
     }
     // Rotate the U and V color components
-    i = imageWidth * imageHeight * 3 / 2 - 1;
+    int size = imageWidth * imageHeight;
+    i = size * 3 / 2 - 1;
     for (int x = imageWidth - 1; x > 0; x = x - 2) {
       for (int y = 0; y < imageHeight / 2; y++) {
-        rotate90Buffer[i] = data[(imageWidth * imageHeight) + (y * imageWidth) + x];
-        i--;
-        rotate90Buffer[i] = data[(imageWidth * imageHeight) + (y * imageWidth) + (x - 1)];
-        i--;
+        preAllocatedBufferRotate[i--] = data[size + (y * imageWidth) + x];
+        preAllocatedBufferRotate[i--] = data[size + (y * imageWidth) + (x - 1)];
       }
     }
-    return rotate90Buffer;
+    return preAllocatedBufferRotate;
   }
 
   private static byte[] rotateNV21Degree180(byte[] data, int imageWidth, int imageHeight) {
     int count = 0;
     for (int i = imageWidth * imageHeight - 1; i >= 0; i--) {
-      rotate180Buffer[count] = data[i];
+      preAllocatedBufferRotate[count] = data[i];
       count++;
     }
     for (int i = imageWidth * imageHeight * 3 / 2 - 1; i >= imageWidth * imageHeight; i -= 2) {
-      rotate180Buffer[count++] = data[i - 1];
-      rotate180Buffer[count++] = data[i];
+      preAllocatedBufferRotate[count++] = data[i - 1];
+      preAllocatedBufferRotate[count++] = data[i];
     }
-    return rotate180Buffer;
+    return preAllocatedBufferRotate;
   }
 
   private static byte[] rotateNV21Degree270(byte[] data, int imageWidth, int imageHeight) {
-    int nWidth = 0, nHeight = 0;
-    int wh = 0;
-    int uvHeight = 0;
-    if (imageWidth != nWidth || imageHeight != nHeight) {
-      wh = imageWidth * imageHeight;
-      uvHeight = imageHeight >> 1;// uvHeight = height / 2
-    }
-    // ??Y
-    int k = 0;
+    int wh = imageWidth * imageHeight;
+    int uvHeight = imageHeight >> 1;// uvHeight = height / 2
+
+    //Y
+    int cont = 0;
     for (int i = 0; i < imageWidth; i++) {
       int nPos = 0;
       for (int j = 0; j < imageHeight; j++) {
-        rotate270Buffer[k] = data[nPos + i];
-        k++;
+        preAllocatedBufferRotate270[cont++] = data[nPos + i];
         nPos += imageWidth;
       }
     }
+
+    //UV
     for (int i = 0; i < imageWidth; i += 2) {
       int nPos = wh;
       for (int j = 0; j < uvHeight; j++) {
-        rotate270Buffer[k] = data[nPos + i];
-        rotate270Buffer[k + 1] = data[nPos + i + 1];
-        k += 2;
+        preAllocatedBufferRotate270[cont] = data[nPos + i];
+        preAllocatedBufferRotate270[cont + 1] = data[nPos + i + 1];
+        cont += 2;
         nPos += imageWidth;
       }
     }
-    return rotateNV21Degree180(rotate270Buffer, imageWidth, imageHeight);
+    return rotateNV21Degree180(preAllocatedBufferRotate270, imageWidth, imageHeight);
   }
 
   public void dumpYUVData(byte[] buffer, int len, String name) {

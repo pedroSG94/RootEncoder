@@ -8,7 +8,6 @@ import android.media.CamcorderProfile;
 import android.util.Log;
 import android.view.SurfaceView;
 import android.view.TextureView;
-import com.pedro.encoder.utils.YUVUtil;
 import java.io.IOException;
 import java.util.Iterator;
 import java.util.List;
@@ -109,11 +108,6 @@ public class Camera1ApiManager implements Camera.PreviewCallback, Camera.FaceDet
       throw new CameraOpenException("This camera resolution cant be opened");
     }
     yuvBuffer = new byte[width * height * 3 / 2];
-    YUVUtil.preAllocateRotateBuffers(yuvBuffer.length);
-    YUVUtil.preAllocateNv21Buffers(yuvBuffer.length);
-    if (imageFormat == ImageFormat.YV12) {
-      YUVUtil.preAllocateYv12Buffers(yuvBuffer.length);
-    }
     if (camera == null && prepared) {
       try {
         camera = Camera.open(cameraSelect);
