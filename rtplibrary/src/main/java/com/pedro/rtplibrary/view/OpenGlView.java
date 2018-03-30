@@ -174,6 +174,7 @@ public class OpenGlView extends OpenGlViewBase {
               } else {
                 managerRender.clear();
               }
+              if (surfaceManagerEncoder == null) loadStreamObject = false;
             }
             managerRender.updateFrame();
             managerRender.drawOffScreen();
@@ -181,7 +182,6 @@ public class OpenGlView extends OpenGlViewBase {
             else managerRender.drawScreen(previewWidth, previewHeight);
             surfaceManager.swapBuffer();
             //stream object loaded but you need reset surfaceManagerEncoder
-
             synchronized (sync) {
               if (surfaceManagerEncoder != null) {
                 if (loadStreamObject) {

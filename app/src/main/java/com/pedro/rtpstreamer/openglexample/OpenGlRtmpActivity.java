@@ -102,128 +102,124 @@ public class OpenGlRtmpActivity extends AppCompatActivity
 
   @Override
   public boolean onOptionsItemSelected(MenuItem item) {
-    if (rtmpCamera1.isStreaming()) {
-      switch (item.getItemId()) {
-        case R.id.e_d_fxaa:
-          Toast.makeText(this, "FXAA " + (rtmpCamera1.isAAEnabled() ? " enabled" : "disabled"),
-              Toast.LENGTH_SHORT).show();
-          rtmpCamera1.enableAA(!rtmpCamera1.isAAEnabled());
-          return true;
-        //stream object
-        case R.id.text:
-          setTextToStream();
-          return true;
-        case R.id.image:
-          setImageToStream();
-          return true;
-        case R.id.gif:
-          setGifToStream();
-          return true;
-        case R.id.clear:
-          rtmpCamera1.clearStreamObject();
-          return true;
-        //filters. NOTE: You can change filter values on fly without re set the filter.
-        // Example:
-        // ColorFilterRender color = new ColorFilterRender()
-        // rtmpCamera1.setFilter(color);
-        // color.setRGBColor(255, 0, 0); //red tint
-        case R.id.no_filter:
-          rtmpCamera1.setFilter(new NoFilterRender());
-          return true;
-        case R.id.android_view:
-          AndroidViewFilterRender androidViewFilterRender = new AndroidViewFilterRender();
-          androidViewFilterRender.setView(findViewById(R.id.activity_example_rtmp));
-          rtmpCamera1.setFilter(androidViewFilterRender);
-          return true;
-        case R.id.basic_deformation:
-          rtmpCamera1.setFilter(new BasicDeformationFilterRender());
-          return true;
-        case R.id.beauty:
-          rtmpCamera1.setFilter(new BeautyFilterRender());
-          return true;
-        case R.id.blur:
-          rtmpCamera1.setFilter(new BlurFilterRender());
-          return true;
-        case R.id.brightness:
-          rtmpCamera1.setFilter(new BrightnessFilterRender());
-          return true;
-        case R.id.cartoon:
-          rtmpCamera1.setFilter(new CartoonFilterRender());
-          return true;
-        case R.id.color:
-          rtmpCamera1.setFilter(new ColorFilterRender());
-          return true;
-        case R.id.contrast:
-          rtmpCamera1.setFilter(new ContrastFilterRender());
-          return true;
-        case R.id.duotone:
-          rtmpCamera1.setFilter(new DuotoneFilterRender());
-          return true;
-        case R.id.early_bird:
-          rtmpCamera1.setFilter(new EarlyBirdFilterRender());
-          return true;
-        case R.id.edge_detection:
-          rtmpCamera1.setFilter(new EdgeDetectionFilterRender());
-          return true;
-        case R.id.exposure:
-          rtmpCamera1.setFilter(new ExposureFilterRender());
-          return true;
-        case R.id.fire:
-          rtmpCamera1.setFilter(new FireFilterRender());
-          return true;
-        case R.id.gamma:
-          rtmpCamera1.setFilter(new GammaFilterRender());
-          return true;
-        case R.id.grey_scale:
-          rtmpCamera1.setFilter(new GreyScaleFilterRender());
-          return true;
-        case R.id.halftone_lines:
-          rtmpCamera1.setFilter(new HalftoneLinesFilterRender());
-          return true;
-        case R.id.image_70s:
-          rtmpCamera1.setFilter(new Image70sFilterRender());
-          return true;
-        case R.id.lamoish:
-          rtmpCamera1.setFilter(new LamoishFilterRender());
-          return true;
-        case R.id.money:
-          rtmpCamera1.setFilter(new MoneyFilterRender());
-          return true;
-        case R.id.negative:
-          rtmpCamera1.setFilter(new NegativeFilterRender());
-          return true;
-        case R.id.pixelated:
-          rtmpCamera1.setFilter(new PixelatedFilterRender());
-          return true;
-        case R.id.polygonization:
-          rtmpCamera1.setFilter(new PolygonizationFilterRender());
-          return true;
-        case R.id.rainbow:
-          rtmpCamera1.setFilter(new RainbowFilterRender());
-          return true;
-        case R.id.ripple:
-          rtmpCamera1.setFilter(new RippleFilterRender());
-          return true;
-        case R.id.saturation:
-          rtmpCamera1.setFilter(new SaturationFilterRender());
-          return true;
-        case R.id.sepia:
-          rtmpCamera1.setFilter(new SepiaFilterRender());
-          return true;
-        case R.id.sharpness:
-          rtmpCamera1.setFilter(new SharpnessFilterRender());
-          return true;
-        case R.id.temperature:
-          rtmpCamera1.setFilter(new TemperatureFilterRender());
-          return true;
-        case R.id.zebra:
-          rtmpCamera1.setFilter(new ZebraFilterRender());
-          return true;
-        default:
-          return false;
-      }
-    } else {
-      return false;
+    switch (item.getItemId()) {
+      case R.id.e_d_fxaa:
+        Toast.makeText(this, "FXAA " + (rtmpCamera1.isAAEnabled() ? " enabled" : "disabled"),
+            Toast.LENGTH_SHORT).show();
+        rtmpCamera1.enableAA(!rtmpCamera1.isAAEnabled());
+        return true;
+      //stream object
+      case R.id.text:
+        setTextToStream();
+        return true;
+      case R.id.image:
+        setImageToStream();
+        return true;
+      case R.id.gif:
+        setGifToStream();
+        return true;
+      case R.id.clear:
+        rtmpCamera1.clearStreamObject();
+        return true;
+      //filters. NOTE: You can change filter values on fly without re set the filter.
+      // Example:
+      // ColorFilterRender color = new ColorFilterRender()
+      // rtmpCamera1.setFilter(color);
+      // color.setRGBColor(255, 0, 0); //red tint
+      case R.id.no_filter:
+        rtmpCamera1.setFilter(new NoFilterRender());
+        return true;
+      case R.id.android_view:
+        AndroidViewFilterRender androidViewFilterRender = new AndroidViewFilterRender();
+        androidViewFilterRender.setView(findViewById(R.id.activity_example_rtmp));
+        rtmpCamera1.setFilter(androidViewFilterRender);
+        return true;
+      case R.id.basic_deformation:
+        rtmpCamera1.setFilter(new BasicDeformationFilterRender());
+        return true;
+      case R.id.beauty:
+        rtmpCamera1.setFilter(new BeautyFilterRender());
+        return true;
+      case R.id.blur:
+        rtmpCamera1.setFilter(new BlurFilterRender());
+        return true;
+      case R.id.brightness:
+        rtmpCamera1.setFilter(new BrightnessFilterRender());
+        return true;
+      case R.id.cartoon:
+        rtmpCamera1.setFilter(new CartoonFilterRender());
+        return true;
+      case R.id.color:
+        rtmpCamera1.setFilter(new ColorFilterRender());
+        return true;
+      case R.id.contrast:
+        rtmpCamera1.setFilter(new ContrastFilterRender());
+        return true;
+      case R.id.duotone:
+        rtmpCamera1.setFilter(new DuotoneFilterRender());
+        return true;
+      case R.id.early_bird:
+        rtmpCamera1.setFilter(new EarlyBirdFilterRender());
+        return true;
+      case R.id.edge_detection:
+        rtmpCamera1.setFilter(new EdgeDetectionFilterRender());
+        return true;
+      case R.id.exposure:
+        rtmpCamera1.setFilter(new ExposureFilterRender());
+        return true;
+      case R.id.fire:
+        rtmpCamera1.setFilter(new FireFilterRender());
+        return true;
+      case R.id.gamma:
+        rtmpCamera1.setFilter(new GammaFilterRender());
+        return true;
+      case R.id.grey_scale:
+        rtmpCamera1.setFilter(new GreyScaleFilterRender());
+        return true;
+      case R.id.halftone_lines:
+        rtmpCamera1.setFilter(new HalftoneLinesFilterRender());
+        return true;
+      case R.id.image_70s:
+        rtmpCamera1.setFilter(new Image70sFilterRender());
+        return true;
+      case R.id.lamoish:
+        rtmpCamera1.setFilter(new LamoishFilterRender());
+        return true;
+      case R.id.money:
+        rtmpCamera1.setFilter(new MoneyFilterRender());
+        return true;
+      case R.id.negative:
+        rtmpCamera1.setFilter(new NegativeFilterRender());
+        return true;
+      case R.id.pixelated:
+        rtmpCamera1.setFilter(new PixelatedFilterRender());
+        return true;
+      case R.id.polygonization:
+        rtmpCamera1.setFilter(new PolygonizationFilterRender());
+        return true;
+      case R.id.rainbow:
+        rtmpCamera1.setFilter(new RainbowFilterRender());
+        return true;
+      case R.id.ripple:
+        rtmpCamera1.setFilter(new RippleFilterRender());
+        return true;
+      case R.id.saturation:
+        rtmpCamera1.setFilter(new SaturationFilterRender());
+        return true;
+      case R.id.sepia:
+        rtmpCamera1.setFilter(new SepiaFilterRender());
+        return true;
+      case R.id.sharpness:
+        rtmpCamera1.setFilter(new SharpnessFilterRender());
+        return true;
+      case R.id.temperature:
+        rtmpCamera1.setFilter(new TemperatureFilterRender());
+        return true;
+      case R.id.zebra:
+        rtmpCamera1.setFilter(new ZebraFilterRender());
+        return true;
+      default:
+        return false;
     }
   }
 
