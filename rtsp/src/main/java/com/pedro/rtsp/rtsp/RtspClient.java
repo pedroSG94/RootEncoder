@@ -2,12 +2,15 @@ package com.pedro.rtsp.rtsp;
 
 import android.media.MediaCodec;
 import android.util.Base64;
-import android.util.Log;
 import com.pedro.rtsp.rtp.packets.AacPacket;
 import com.pedro.rtsp.rtp.packets.H264Packet;
 import com.pedro.rtsp.utils.AuthUtil;
 import com.pedro.rtsp.utils.ConnectCheckerRtsp;
 import com.pedro.rtsp.utils.CreateSSLSocket;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.IOException;
@@ -27,7 +30,7 @@ import java.util.regex.Pattern;
 
 public class RtspClient {
 
-  private final String TAG = "RtspClient";
+  private final static Logger logger = LoggerFactory.getLogger(RtspClient.class);
   private static final Pattern rtspUrlPattern =
       Pattern.compile("^rtsp://([^/:]+)(:(\\d+))*/([^/]+)(/(.*))*$");
   private static final Pattern rtspsUrlPattern =
@@ -185,7 +188,7 @@ public class RtspClient {
             int status = getResponseStatus(response);
             if (status == 403) {
               connectCheckerRtsp.onConnectionFailedRtsp("Error configure stream, access denied");
-              Log.e(TAG, "Response 403, access denied");
+              logger.error("Response 403, access denied");
               return;
             } else if (status == 401) {
               if (user == null || password == null) {
@@ -223,7 +226,7 @@ public class RtspClient {
             streaming = true;
             connectCheckerRtsp.onConnectionSuccessRtsp();
           } catch (IOException | NullPointerException e) {
-            Log.e(TAG, "connection error", e);
+            logger.error("connection error", e);
             connectCheckerRtsp.onConnectionFailedRtsp("Error configure stream, " + e.getMessage());
             streaming = false;
           }
@@ -247,7 +250,7 @@ public class RtspClient {
             writer.write(sendTearDown());
             connectionSocket.close();
           } catch (IOException e) {
-            Log.e(TAG, "disconnect error", e);
+            logger.error("disconnect error", e);
           }
           connectCheckerRtsp.onDisconnectRtsp();
         }
@@ -297,7 +300,7 @@ public class RtspClient {
           + "Content-Type: application/sdp\r\n\r\n"
           + body;
     }
-    Log.i(TAG, announce);
+    logger.info(announce);
     return announce;
   }
 
@@ -352,14 +355,14 @@ public class RtspClient {
         + params
         + "\r\n"
         + addHeaders(authorization);
-    Log.i(TAG, setup);
+    logger.info(setup);
     return setup;
   }
 
   private String sendOptions() {
     String options =
         "OPTIONS rtsp://" + host + ":" + port + path + " RTSP/1.0\r\n" + addHeaders(authorization);
-    Log.i(TAG, options);
+    logger.info(options);
     return options;
   }
 
@@ -372,14 +375,14 @@ public class RtspClient {
         + " RTSP/1.0\r\n"
         + "Range: npt=0.000-\r\n"
         + addHeaders(authorization);
-    Log.i(TAG, record);
+    logger.info(record);
     return record;
   }
 
   private String sendTearDown() {
     String teardown =
         "TEARDOWN rtsp://" + host + ":" + port + path + " RTSP/1.0\r\n" + addHeaders(authorization);
-    Log.i(TAG, teardown);
+    logger.info(teardown);
     return teardown;
   }
 
@@ -430,17 +433,17 @@ public class RtspClient {
       if (checkStatus && getResponseStatus(response) != 200) {
         connectCheckerRtsp.onConnectionFailedRtsp("Error configure stream, " + response);
       }
-      Log.i(TAG, response);
+      logger.info(response);
       return response;
     } catch (IOException e) {
-      Log.e(TAG, "read error", e);
+      logger.error("read error", e);
       return null;
     }
   }
 
   private String sendAnnounceWithAuth(String authResponse) {
     authorization = createAuth(authResponse);
-    Log.i("Auth", authorization);
+    logger.info("Auth {}", authorization);
     String body = createBody();
     String announce = "ANNOUNCE rtsp://"
         + host
@@ -459,7 +462,7 @@ public class RtspClient {
         + "\r\n"
         + "Content-Type: application/sdp\r\n\r\n"
         + body;
-    Log.i(TAG, announce);
+    logger.info(announce);
     return announce;
   }
 
@@ -469,7 +472,7 @@ public class RtspClient {
     Matcher matcher = authPattern.matcher(authResponse);
     //digest auth
     if (matcher.find()) {
-      Log.i(TAG, "using digest auth");
+      logger.info("using digest auth");
       String realm = matcher.group(1);
       String nonce = matcher.group(2);
       String hash1 = AuthUtil.getMd5Hash(user + ":" + realm + ":" + password);
@@ -491,7 +494,7 @@ public class RtspClient {
           + "\"";
       //basic auth
     } else {
-      Log.i(TAG, "using basic auth");
+      logger.info("using basic auth");
       String data = user + ":" + password;
       String base64Data = Base64.encodeToString(data.getBytes(), Base64.DEFAULT);
       return "Basic " + base64Data;

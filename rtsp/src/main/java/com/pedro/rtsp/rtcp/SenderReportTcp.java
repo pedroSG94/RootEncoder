@@ -1,7 +1,10 @@
 package com.pedro.rtsp.rtcp;
 
-import android.util.Log;
 import com.pedro.rtsp.utils.ConnectCheckerRtsp;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.IOException;
 import java.io.OutputStream;
 
@@ -10,6 +13,8 @@ import java.io.OutputStream;
  */
 
 public class SenderReportTcp extends BaseSenderReport {
+
+  private final static Logger logger = LoggerFactory.getLogger(SenderReportTcp.class);
 
   private final byte[] mTcpHeader;
   private OutputStream mOutputStream = null;
@@ -46,9 +51,9 @@ public class SenderReportTcp extends BaseSenderReport {
           try {
             mOutputStream.write(mTcpHeader);
             mOutputStream.write(mBuffer, 0, PACKET_LENGTH);
-            Log.i(TAG, "send report");
+            logger.info("send report");
           } catch (IOException e) {
-            Log.e(TAG, "send TCP report error", e);
+            logger.error("send TCP report error", e);
             connectCheckerRtsp.onConnectionFailedRtsp("Error send report, " + e.getMessage());
           }
         }

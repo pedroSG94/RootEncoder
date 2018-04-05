@@ -1,8 +1,11 @@
 package com.pedro.encoder.utils.gl;
 
 import android.graphics.Bitmap;
-import android.util.Log;
 import com.pedro.encoder.utils.gl.gif.GifDecoder;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.IOException;
 import java.io.InputStream;
 
@@ -12,7 +15,7 @@ import java.io.InputStream;
 
 public class GifStreamObject extends StreamObjectBase {
 
-  private static final String TAG = "GifStreamObject";
+  private final static Logger logger = LoggerFactory.getLogger(GifStreamObject.class);
 
   private int numFrames;
   private Bitmap[] gifBitmaps;
@@ -36,7 +39,7 @@ public class GifStreamObject extends StreamObjectBase {
   public void load(InputStream inputStreamGif) throws IOException {
     GifDecoder gifDecoder = new GifDecoder();
     if (gifDecoder.read(inputStreamGif, inputStreamGif.available()) == 0) {
-      Log.i(TAG, "read gif ok");
+      logger.info("read gif ok");
       numFrames = gifDecoder.getFrameCount();
       gifDelayFrames = new int[numFrames];
       gifBitmaps = new Bitmap[numFrames];
@@ -45,7 +48,7 @@ public class GifStreamObject extends StreamObjectBase {
         gifBitmaps[i] = gifDecoder.getNextFrame();
         gifDelayFrames[i] = gifDecoder.getNextDelay();
       }
-      Log.i(TAG, "finish load gif frames");
+      logger.info("finish load gif frames");
     } else {
       throw new RuntimeException("read gif error");
     }

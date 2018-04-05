@@ -6,18 +6,19 @@ import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
 import java.lang.String;
 
-import android.util.Log;
-
+import com.github.faucamp.simplertmp.Crypto;
 import com.github.faucamp.simplertmp.Util;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  *
  * @author francois
  */
 public class AmfString implements AmfData {
+    private final static Logger logger = LoggerFactory.getLogger(Crypto.class);
 
-    private static final String TAG = "AmfString";
-	
     private String value;
     private boolean key;
     private int size = -1;
@@ -110,7 +111,7 @@ public class AmfString implements AmfData {
             try {
                 size = (isKey() ? 0 : 1) + 2 + value.getBytes("ASCII").length;
             } catch (UnsupportedEncodingException ex) {
-                Log.e(TAG, "AmfString.getSize(): caught exception", ex);
+                logger.error("AmfString.getSize(): caught exception", ex);
                 throw new RuntimeException(ex);
             }
         }
@@ -123,7 +124,7 @@ public class AmfString implements AmfData {
             int size = (isKey ? 0 : 1) + 2 + string.getBytes("ASCII").length;
             return size;
         } catch (UnsupportedEncodingException ex) {
-            Log.e(TAG, "AmfString.SizeOf(): caught exception", ex);
+            logger.error("AmfString.SizeOf(): caught exception", ex);
             throw new RuntimeException(ex);
         }
     }

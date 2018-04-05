@@ -6,6 +6,10 @@ import com.pedro.rtsp.rtp.sockets.RtpSocketUdp;
 import com.pedro.rtsp.rtsp.Protocol;
 import com.pedro.rtsp.rtsp.RtspClient;
 import com.pedro.rtsp.utils.RtpConstants;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.IOException;
 import java.util.Random;
 
@@ -15,6 +19,8 @@ import java.util.Random;
  * All packets inherits from this one and therefore uses UDP.
  */
 public abstract class BasePacket {
+
+  private final static Logger logger = LoggerFactory.getLogger(BasePacket.class);
 
   //used on all packets
   protected final static int maxPacketSize = RtpConstants.MTU - 28;
@@ -36,7 +42,7 @@ public abstract class BasePacket {
       try {
         ((RtpSocketUdp) socket).setTimeToLive(64);
       } catch (IOException e) {
-        e.printStackTrace();
+        logger.error("setTimeToLive", e);
       }
     }
   }

@@ -8,6 +8,10 @@ import android.support.annotation.RequiresApi;
 import android.util.Log;
 import com.pedro.encoder.input.audio.GetMicrophoneData;
 import com.pedro.encoder.utils.CodecUtil;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
@@ -20,7 +24,7 @@ import java.util.List;
 
 public class AudioEncoder implements GetMicrophoneData {
 
-  private String TAG = "AudioEncoder";
+  private final static Logger logger = LoggerFactory.getLogger(AudioEncoder.class);
   private MediaCodec audioEncoder;
   private GetAacData getAacData;
   private MediaCodec.BufferInfo audioInfo = new MediaCodec.BufferInfo();
@@ -55,7 +59,7 @@ public class AudioEncoder implements GetMicrophoneData {
         audioEncoder = MediaCodec.createEncoderByType(CodecUtil.AAC_MIME);
       } else {
         if (encoders.isEmpty()) {
-          Log.e(TAG, "Valid encoder not found");
+          logger.error("Valid encoder not found");
           return false;
         } else {
           audioEncoder = MediaCodec.createByCodecName(encoders.get(0).getName());
@@ -72,10 +76,10 @@ public class AudioEncoder implements GetMicrophoneData {
       running = false;
       return true;
     } catch (IOException e) {
-      e.printStackTrace();
+      logger.error("audioEncoder.configure failed", e);
       return false;
     } catch (IllegalStateException e) {
-      e.printStackTrace();
+      logger.error("audioEncoder.configure failed", e);
       return false;
     }
   }
@@ -96,9 +100,9 @@ public class AudioEncoder implements GetMicrophoneData {
       mPresentTimeUs = System.nanoTime() / 1000;
       audioEncoder.start();
       running = true;
-      Log.i(TAG, "AudioEncoder started");
+      logger.info("AudioEncoder started");
     } else {
-      Log.e(TAG, "AudioEncoder need be prepared, AudioEncoder not enabled");
+      logger.error("AudioEncoder need be prepared, AudioEncoder not enabled");
     }
   }
 
@@ -109,7 +113,7 @@ public class AudioEncoder implements GetMicrophoneData {
       audioEncoder.release();
       audioEncoder = null;
     }
-    Log.i(TAG, "AudioEncoder stopped");
+    logger.info("AudioEncoder stopped");
   }
 
   /**

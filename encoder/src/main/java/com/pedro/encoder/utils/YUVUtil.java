@@ -4,6 +4,10 @@ import android.graphics.Bitmap;
 import android.media.MediaCodecInfo;
 import android.os.Environment;
 import com.pedro.encoder.video.FormatVideoEncoder;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -14,6 +18,8 @@ import java.io.IOException;
  */
 
 public class YUVUtil {
+
+  private final static Logger logger = LoggerFactory.getLogger(YUVUtil.class);
 
   private static byte[] preAllocatedBufferRotate;
   private static byte[] preAllocatedBufferRotate270;
@@ -268,7 +274,7 @@ public class YUVUtil {
       out.flush();
       out.close();
     } catch (IOException e) {
-      e.printStackTrace();
+      logger.error("dumpYUVData", e);
     }
   }
 

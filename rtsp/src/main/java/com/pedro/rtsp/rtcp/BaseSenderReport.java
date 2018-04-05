@@ -6,8 +6,6 @@ package com.pedro.rtsp.rtcp;
 
 public abstract class BaseSenderReport {
 
-  protected final String TAG = "SenderReport";
-
   protected static final int MTU = 1500;
   protected static final int PACKET_LENGTH = 28;
 

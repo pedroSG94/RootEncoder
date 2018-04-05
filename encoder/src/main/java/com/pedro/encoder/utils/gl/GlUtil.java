@@ -7,7 +7,10 @@ import android.opengl.GLES11Ext;
 import android.opengl.GLES20;
 import android.os.Build;
 import android.support.annotation.RequiresApi;
-import android.util.Log;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -19,7 +22,7 @@ import java.io.InputStream;
 @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
 public class GlUtil {
 
-  private static final String TAG = "GlUtil";
+  private final static Logger logger = LoggerFactory.getLogger(GlUtil.class);
 
   public static int loadShader(int shaderType, String source) {
     int shader = GLES20.glCreateShader(shaderType);
@@ -29,8 +32,8 @@ public class GlUtil {
     int[] compiled = new int[1];
     GLES20.glGetShaderiv(shader, GLES20.GL_COMPILE_STATUS, compiled, 0);
     if (compiled[0] == 0) {
-      Log.e(TAG, "Could not compile shader " + shaderType + ":");
-      Log.e(TAG, " " + GLES20.glGetShaderInfoLog(shader));
+      logger.error("Could not compile shader {}:", shaderType);
+      logger.error(" {}", GLES20.glGetShaderInfoLog(shader));
       GLES20.glDeleteShader(shader);
       shader = 0;
     }
@@ -50,7 +53,7 @@ public class GlUtil {
     int program = GLES20.glCreateProgram();
     checkGlError("glCreateProgram");
     if (program == 0) {
-      Log.e(TAG, "Could not create program");
+      logger.error("Could not create program");
     }
     GLES20.glAttachShader(program, vertexShader);
     checkGlError("glAttachShader");
@@ -60,8 +63,8 @@ public class GlUtil {
     int[] linkStatus = new int[1];
     GLES20.glGetProgramiv(program, GLES20.GL_LINK_STATUS, linkStatus, 0);
     if (linkStatus[0] != GLES20.GL_TRUE) {
-      Log.e(TAG, "Could not link program: ");
-      Log.e(TAG, GLES20.glGetProgramInfoLog(program));
+      logger.error("Could not link program: ");
+      logger.error(GLES20.glGetProgramInfoLog(program));
       GLES20.glDeleteProgram(program);
       program = 0;
     }
@@ -120,7 +123,7 @@ public class GlUtil {
   public static void checkGlError(String op) {
     int error;
     while ((error = GLES20.glGetError()) != GLES20.GL_NO_ERROR) {
-      Log.e(TAG, op + ": glError " + error);
+      logger.error("{}: glError {}", op, error);
       throw new RuntimeException(op + ": glError " + error);
     }
   }

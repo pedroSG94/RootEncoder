@@ -22,4 +22,5 @@ android {
 
 dependencies {
   api 'com.android.support:support-annotations:27.1.0'
+  implementation 'org.slf4j:slf4j-api:1.7.25'
 }

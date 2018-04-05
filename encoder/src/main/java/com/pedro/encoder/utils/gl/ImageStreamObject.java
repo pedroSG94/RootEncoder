@@ -1,7 +1,10 @@
 package com.pedro.encoder.utils.gl;
 
 import android.graphics.Bitmap;
-import android.util.Log;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.IOException;
 
 /**
@@ -10,7 +13,7 @@ import java.io.IOException;
 
 public class ImageStreamObject extends StreamObjectBase {
 
-  private static final String TAG = "ImageStreamObject";
+  private final static Logger logger = LoggerFactory.getLogger(ImageStreamObject.class);
 
   private int numFrames;
   private Bitmap imageBitmap;
@@ -31,7 +34,7 @@ public class ImageStreamObject extends StreamObjectBase {
   public void load(Bitmap imageBitmap) throws IOException {
     this.imageBitmap = imageBitmap;
     numFrames = 1;
-    Log.i(TAG, "finish load image");
+    logger.info("finish load image");
   }
 
   @Override

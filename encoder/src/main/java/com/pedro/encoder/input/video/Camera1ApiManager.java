@@ -5,9 +5,12 @@ import android.graphics.ImageFormat;
 import android.graphics.SurfaceTexture;
 import android.hardware.Camera;
 import android.media.CamcorderProfile;
-import android.util.Log;
 import android.view.SurfaceView;
 import android.view.TextureView;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.IOException;
 import java.util.Iterator;
 import java.util.List;
@@ -27,6 +30,7 @@ import java.util.List;
 public class Camera1ApiManager implements Camera.PreviewCallback, Camera.FaceDetectionListener {
 
   private String TAG = "Camera1ApiManager";
+  private final static Logger logger = LoggerFactory.getLogger(Camera1ApiManager.class);
   private Camera camera = null;
   private SurfaceView surfaceView;
   private TextureView textureView;
@@ -146,12 +150,12 @@ public class Camera1ApiManager implements Camera.PreviewCallback, Camera.FaceDet
         }
         camera.startPreview();
         running = true;
-        Log.i(TAG, width + "X" + height);
+        logger.info("{}X{}", width, height);
       } catch (IOException e) {
-        e.printStackTrace();
+        logger.error("camera start failed", e);
       }
     } else {
-      Log.e(TAG, "Camera1ApiManager need be prepared, Camera1ApiManager not enabled");
+      logger.error("Camera1ApiManager need be prepared, Camera1ApiManager not enabled");
     }
   }
 
@@ -245,7 +249,7 @@ public class Camera1ApiManager implements Camera.PreviewCallback, Camera.FaceDet
     if (camera != null) {
       formats = camera.getParameters().getSupportedPreviewFormats();
       for (Integer i : formats) {
-        Log.i(TAG, "camera format supported: " + i);
+        logger.info("camera format supported: {}", i);
       }
     } else {
       camera = Camera.open(cameraSelect);
@@ -274,7 +278,7 @@ public class Camera1ApiManager implements Camera.PreviewCallback, Camera.FaceDet
     while (iterator.hasNext()) {
       Camera.Size size = iterator.next();
       if (size.width > maxSize.width || size.height > maxSize.height) {
-        Log.i(TAG, size.width + "X" + size.height + ", not supported for encoder");
+        logger.info("{}X{} not supported for encoder", size.width, size.height);
         iterator.remove();
       }
     }
@@ -311,7 +315,7 @@ public class Camera1ApiManager implements Camera.PreviewCallback, Camera.FaceDet
       try {
         camera.setParameters(parameters);
       } catch (RuntimeException e) {
-        Log.e(TAG, "Unsupported effect: ", e);
+        logger.error("Unsupported effect: ", e);
       }
     }
   }
@@ -368,7 +372,7 @@ public class Camera1ApiManager implements Camera.PreviewCallback, Camera.FaceDet
           camera.setParameters(parameters);
           lanternEnable = true;
         } else {
-          Log.e(TAG, "Lantern unsupported");
+          logger.error("Lantern unsupported");
         }
       }
     }

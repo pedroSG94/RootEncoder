@@ -1,6 +1,8 @@
 package com.pedro.rtsp.utils;
 
-import android.util.Log;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.IOException;
 import java.net.Socket;
 import java.security.KeyManagementException;
@@ -14,6 +16,8 @@ import java.security.NoSuchAlgorithmException;
 
 public class CreateSSLSocket {
 
+  private final static Logger logger = LoggerFactory.getLogger(CreateSSLSocket.class);
+
   /**
    *
    * @param host variable from RtspConnection
@@ -25,7 +29,7 @@ public class CreateSSLSocket {
       TLSSocketFactory socketFactory = new TLSSocketFactory();
       return socketFactory.createSocket(host, port);
     } catch (NoSuchAlgorithmException | KeyManagementException | IOException e) {
-      Log.e("CreateSSLSocket", "Error", e);
+      logger.error("CreateSSLSocket: Error", e);
       return null;
     }
   }

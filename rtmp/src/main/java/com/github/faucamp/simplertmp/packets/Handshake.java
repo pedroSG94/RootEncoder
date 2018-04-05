@@ -5,10 +5,11 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Random;
 
-import android.util.Log;
-
 import com.github.faucamp.simplertmp.Crypto;
 import com.github.faucamp.simplertmp.Util;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Handles the RTMP handshake song 'n dance
@@ -19,7 +20,6 @@ import com.github.faucamp.simplertmp.Util;
  * @author francois
  */
 public final class Handshake {
-    private static final String TAG = "Handshake";
     /** S1 as sent by the server */
     private byte[] s1;
     private static final int PROTOCOL_VERSION = 0x03;
@@ -38,14 +38,16 @@ public final class Handshake {
         (byte) 0x6E, (byte) 0xEC, (byte) 0x5D, (byte) 0x2D, (byte) 0x29, (byte) 0x80, (byte) 0x6F, (byte) 0xAB,
         (byte) 0x93, (byte) 0xB8, (byte) 0xE6, (byte) 0x36, (byte) 0xCF, (byte) 0xEB, (byte) 0x31, (byte) 0xAE};
 
+    private final static Logger logger = LoggerFactory.getLogger(Handshake.class);
+
     /** Generates and writes the first handshake packet (C0) */
     public final void writeC0(OutputStream out) throws IOException {
-        Log.d(TAG, "writeC0");
+		logger.debug("writeC0");
         out.write(PROTOCOL_VERSION);
     }
 
     public final void readS0(InputStream in) throws IOException {
-        Log.d(TAG, "readS0");
+		logger.debug("readS0");
         byte s0 = (byte) in.read();
         if (s0 != PROTOCOL_VERSION) {
             if (s0 == -1) {
@@ -58,24 +60,24 @@ public final class Handshake {
 
     /** Generates and writes the second handshake packet (C1) */
     public final void writeC1(OutputStream out) throws IOException {
-        Log.d(TAG, "writeC1");
+        logger.debug("writeC1");
 //        Util.writeUnsignedInt32(out, (int) (System.currentTimeMillis() / 1000)); // Bytes 0 - 3 bytes: current epoch (timestamp)
         //out.write(new byte[]{0x09, 0x00, 0x7c, 0x02}); // Bytes 4 - 7: Flash player version: 9.0.124.2
 
 //        out.write(new byte[]{(byte) 0x80, 0x00, 0x07, 0x02}); // Bytes 4 - 7: Flash player version: 11.2.202.233
 
 
-        Log.d(TAG, "writeC1(): Calculating digest offset");
+        logger.debug("writeC1(): Calculating digest offset");
         Random random = new Random();
         // Since we are faking a real Flash Player handshake, include a digest in C1        
         // Choose digest offset point (scheme 1; that is, offset is indicated by bytes 772 - 775 (4 bytes) )
         final int digestOffset = random.nextInt(HANDSHAKE_SIZE - DIGEST_OFFSET_INDICATOR_POS - 4 - 8 - SHA256_DIGEST_SIZE); //random.nextInt(DIGEST_OFFSET_INDICATOR_POS - SHA256_DIGEST_SIZE);
 
         final int absoluteDigestOffset = ((digestOffset % 728) + DIGEST_OFFSET_INDICATOR_POS + 4);
-        Log.d(TAG, "writeC1(): (real value of) digestOffset: " + digestOffset);
+        logger.debug("writeC1(): (real value of) digestOffset: {}", digestOffset);
         
         
-        Log.d(TAG, "writeC1(): recalculated digestOffset: " + absoluteDigestOffset);
+        logger.debug("writeC1(): recalculated digestOffset: {}", absoluteDigestOffset);
 
         int remaining = digestOffset;
         final byte[] digestOffsetBytes = new byte[4];
@@ -94,36 +96,36 @@ public final class Handshake {
         
         // Calculate the offset value that will be written
         //inal byte[] digestOffsetBytes = Util.unsignedInt32ToByteArray(digestOffset);// //((digestOffset - DIGEST_OFFSET_INDICATOR_POS) % 728)); // Thanks to librtmp for the mod 728                
-        Log.d(TAG, "writeC1(): digestOffsetBytes: " + Util.toHexString(digestOffsetBytes));  //Util.unsignedInt32ToByteArray((digestOffset % 728))));
+        logger.debug("writeC1(): digestOffsetBytes: {}", Util.toHexString(digestOffsetBytes));  //Util.unsignedInt32ToByteArray((digestOffset % 728))));
 
         // Create random bytes up to the digest offset point
         byte[] partBeforeDigest = new byte[absoluteDigestOffset];
-        Log.d(TAG, "partBeforeDigest(): size: " + partBeforeDigest.length);
+        logger.debug("partBeforeDigest(): size: {}", partBeforeDigest.length);
         random.nextBytes(partBeforeDigest);
 
-        Log.d(TAG, "writeC1(): Writing timestamp and Flash Player version");
+        logger.debug("writeC1(): Writing timestamp and Flash Player version");
         byte[] timeStamp = Util.unsignedInt32ToByteArray((int) (System.currentTimeMillis() / 1000));
         System.arraycopy(timeStamp, 0, partBeforeDigest, 0, 4); // Bytes 0 - 3 bytes: current epoch timestamp
         System.arraycopy(new byte[]{(byte) 0x80, 0x00, 0x07, 0x02}, 0, partBeforeDigest, 4, 4); // Bytes 4 - 7: Flash player version: 11.2.202.233
 
         // Create random bytes for the part after the digest
         byte[] partAfterDigest = new byte[HANDSHAKE_SIZE - absoluteDigestOffset - SHA256_DIGEST_SIZE]; // subtract 8 because of initial 8 bytes already written
-        Log.d(TAG, "partAfterDigest(): size: " + partAfterDigest.length);
+        logger.debug("partAfterDigest(): size: {}", partAfterDigest.length);
         random.nextBytes(partAfterDigest);
 
 
         // Set the offset byte
 //        if (digestOffset > 772) {                      
-            Log.d(TAG, "copying digest offset bytes in partBeforeDigest");
+            logger.debug("copying digest offset bytes in partBeforeDigest");
             System.arraycopy(digestOffsetBytes, 0, partBeforeDigest, 772, 4);          
 //        } else {
         // Implied offset of partAfterDigest is digestOffset + 32
-///        Log.d(TAG, "copying digest offset bytes in partAfterDigest");
-///        Log.d(TAG, " writing to location: " + (DIGEST_OFFSET_INDICATOR_POS - digestOffset - SHA256_DIGEST_SIZE - 8));
+///        logger.debug("copying digest offset bytes in partAfterDigest");
+///        logger.debug(" writing to location: {}", (DIGEST_OFFSET_INDICATOR_POS - digestOffset - SHA256_DIGEST_SIZE - 8));
 //        System.arraycopy(digestOffsetBytes, 0, partAfterDigest, (DIGEST_OFFSET_INDICATOR_POS - digestOffset - SHA256_DIGEST_SIZE - 8), 4);
 //        }
 
-        Log.d(TAG, "writeC1(): Calculating digest");
+        logger.debug("writeC1(): Calculating digest");
         byte[] tempBuffer = new byte[HANDSHAKE_SIZE - SHA256_DIGEST_SIZE];
         System.arraycopy(partBeforeDigest, 0, tempBuffer, 0, partBeforeDigest.length);
         System.arraycopy(partAfterDigest, 0, tempBuffer, partBeforeDigest.length, partAfterDigest.length);
@@ -132,7 +134,7 @@ public final class Handshake {
         byte[] digest = crypto.calculateHmacSHA256(tempBuffer, GENUINE_FP_KEY, 30);
 
         // Now write the packet
-        Log.d(TAG, "writeC1(): writing C1 packet");
+        logger.debug("writeC1(): writing C1 packet");
         out.write(partBeforeDigest);
         out.write(digest);
         out.write(partAfterDigest);
@@ -140,7 +142,7 @@ public final class Handshake {
 
     public final void readS1(InputStream in) throws IOException {
         // S1 == 1536 bytes. We do not bother with checking the content of it
-        Log.d(TAG, "readS1");
+        logger.debug("readS1");
         s1 = new byte[HANDSHAKE_SIZE];
 
         // Read server time (4 bytes)
@@ -156,13 +158,13 @@ public final class Handshake {
         if (totalBytesRead != HANDSHAKE_SIZE) {
             throw new IOException("Unexpected EOF while reading S1, expected " + HANDSHAKE_SIZE + " bytes, but only read " + totalBytesRead + " bytes");
         } else {
-            Log.d(TAG, "readS1(): S1 total bytes read OK");
+            logger.debug("readS1(): S1 total bytes read OK");
         }
     }
 
     /** Generates and writes the third handshake packet (C2) */
     public final void writeC2(OutputStream out) throws IOException {
-        Log.d(TAG, "writeC2");
+        logger.debug("writeC2");
         // C2 is an echo of S1
         if (s1 == null) {
             throw new IllegalStateException("C2 cannot be written without S1 being read first");
@@ -172,7 +174,7 @@ public final class Handshake {
 
     public final void readS2(InputStream in) throws IOException {
         // S2 should be an echo of C1, but we are not too strict
-        Log.d(TAG, "readS2");
+        logger.debug("readS2");
         byte[] sr_serverTime = new byte[4];
         byte[] s2_serverVersion = new byte[4];
         byte[] s2_rest = new byte[HANDSHAKE_SIZE - 8]; // subtract 4+4 bytes for time and version
@@ -215,7 +217,7 @@ public final class Handshake {
         if (totalBytesRead != remainingBytes) {
             throw new IOException("Unexpected EOF while reading remainder of S2, expected " + remainingBytes + " bytes, but only read " + totalBytesRead + " bytes");
         } else {
-            Log.d(TAG, "readS2(): S2 total bytes read OK");
+            logger.debug("readS2(): S2 total bytes read OK");
         }
 
         // Technically we should check that S2 == C1, but for now this is ignored
