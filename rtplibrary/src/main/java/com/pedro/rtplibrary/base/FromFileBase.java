@@ -7,7 +7,6 @@ import android.media.MediaFormat;
 import android.media.MediaMuxer;
 import android.os.Build;
 import android.support.annotation.RequiresApi;
-import android.util.Log;
 import com.pedro.encoder.audio.AudioEncoder;
 import com.pedro.encoder.audio.GetAacData;
 import com.pedro.encoder.input.audio.GetMicrophoneData;
@@ -26,6 +25,10 @@ import com.pedro.encoder.video.FormatVideoEncoder;
 import com.pedro.encoder.video.GetH264Data;
 import com.pedro.encoder.video.VideoEncoder;
 import com.pedro.rtplibrary.OffScreenGlThread;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.IOException;
 import java.nio.ByteBuffer;
 
@@ -43,7 +46,7 @@ import java.nio.ByteBuffer;
 public abstract class FromFileBase
     implements GetH264Data, GetAacData, GetMicrophoneData, LoopFileInterface {
 
-  private static final String TAG = "FromFileBase";
+  private final Logger logger = LoggerFactory.getLogger(FromFileBase.class);
   private Context context;
 
   protected VideoEncoder videoEncoder;
@@ -254,7 +257,7 @@ public abstract class FromFileBase
         if (isStreaming()) {
           offScreenGlThread.setFilter(baseFilterRender);
         } else {
-          Log.e(TAG, "You are not streaming, ignored");
+          logger.error("You are not streaming, ignored");
         }
       } else {
         throw new RuntimeException("You must use context in the constructor to set a gif");
@@ -275,7 +278,7 @@ public abstract class FromFileBase
         if (isStreaming()) {
           offScreenGlThread.setGif(gifStreamObject);
         } else {
-          Log.e(TAG, "You are not streaming, ignored");
+          logger.error("You are not streaming, ignored");
         }
       } else {
         throw new RuntimeException("You must use context in the constructor to set a gif");
@@ -296,7 +299,7 @@ public abstract class FromFileBase
         if (isStreaming()) {
           offScreenGlThread.setImage(imageStreamObject);
         } else {
-          Log.e(TAG, "You are not streaming, ignored");
+          logger.error("You are not streaming, ignored");
         }
       } else {
         throw new RuntimeException("You must use context in the constructor to set an image");
@@ -317,7 +320,7 @@ public abstract class FromFileBase
         if (isStreaming()) {
           offScreenGlThread.setText(textStreamObject);
         } else {
-          Log.e(TAG, "You are not streaming, ignored");
+          logger.error("You are not streaming, ignored");
         }
       } else {
         throw new RuntimeException("You must use context in the constructor to set a text");
@@ -336,7 +339,7 @@ public abstract class FromFileBase
         if (isStreaming()) {
           offScreenGlThread.clear();
         } else {
-          Log.e(TAG, "You are not streaming, ignored");
+          logger.error("You are not streaming, ignored");
         }
       } else {
         throw new RuntimeException("You must use context in the constructor to clear");
@@ -356,7 +359,7 @@ public abstract class FromFileBase
         if (isStreaming()) {
           offScreenGlThread.setStreamObjectAlpha(alpha);
         } else {
-          Log.e(TAG, "You are not streaming, ignored");
+          logger.error("You are not streaming, ignored");
         }
       } else {
         throw new RuntimeException("You must use context in the constructor to set an alpha");
@@ -377,7 +380,7 @@ public abstract class FromFileBase
         if (isStreaming()) {
           offScreenGlThread.setStreamObjectSize(sizeX, sizeY);
         } else {
-          Log.e(TAG, "You are not streaming, ignored");
+          logger.error("You are not streaming, ignored");
         }
       } else {
         throw new RuntimeException("You must use context in the constructor to set a size");
@@ -398,7 +401,7 @@ public abstract class FromFileBase
         if (isStreaming()) {
           offScreenGlThread.setStreamObjectPosition(x, y);
         } else {
-          Log.e(TAG, "You are not streaming, ignored");
+          logger.error("You are not streaming, ignored");
         }
       } else {
         throw new RuntimeException("You must use context in the constructor to set a position");
@@ -418,7 +421,7 @@ public abstract class FromFileBase
         if (isStreaming()) {
           offScreenGlThread.setStreamObjectPosition(translateTo);
         } else {
-          Log.e(TAG, "You are not streaming, ignored");
+          logger.error("You are not streaming, ignored");
         }
       } else {
         throw new RuntimeException("You must use context in the constructor to set a position");
@@ -438,7 +441,7 @@ public abstract class FromFileBase
         if (isStreaming()) {
           offScreenGlThread.enableAA(AAEnabled);
         } else {
-          Log.e(TAG, "You are not streaming, ignored");
+          logger.error("You are not streaming, ignored");
         }
       } else {
         throw new RuntimeException("You must use context in the constructor to set a position");
@@ -613,7 +616,7 @@ public abstract class FromFileBase
           audioDecoder.start();
         }
       } catch (IOException e) {
-        Log.e(TAG, "Error", e);
+        logger.error("Error", e);
         if (isVideo) {
           videoDecoderInterface.onVideoDecoderFinished();
         } else {

@@ -12,11 +12,14 @@ import android.opengl.Matrix;
 import android.os.Build;
 import android.support.annotation.RequiresApi;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.view.MotionEvent;
 import android.view.Surface;
 import com.pedro.encoder.input.gl.SurfaceManager;
 import com.pedro.encoder.utils.gl.GlUtil;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.FloatBuffer;
@@ -31,6 +34,8 @@ import javax.microedition.khronos.opengles.GL10;
  */
 @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
 public class CustomGlSurfaceView extends GLSurfaceView {
+
+  private final Logger logger = LoggerFactory.getLogger(CustomGlSurfaceView.class);
 
   private CubeRenderer mRenderer;
   private float mPreviousX;
@@ -65,7 +70,7 @@ public class CustomGlSurfaceView extends GLSurfaceView {
       int[] configCounts = new int[1];
       egl10.eglChooseConfig(eglDisplay, attribs, configs, 1, configCounts);
       if (configCounts[0] == 0) {
-        Log.e("GlConfig", "failed config");
+        logger.error("failed config");
         return null;
       } else {
         return configs[0];

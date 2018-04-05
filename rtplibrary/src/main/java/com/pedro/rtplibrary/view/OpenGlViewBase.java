@@ -5,11 +5,14 @@ import android.graphics.SurfaceTexture;
 import android.os.Build;
 import android.support.annotation.RequiresApi;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.view.Surface;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import com.pedro.encoder.input.gl.SurfaceManager;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.util.concurrent.Semaphore;
 
 /**
@@ -20,7 +23,7 @@ import java.util.concurrent.Semaphore;
 public abstract class OpenGlViewBase extends SurfaceView
     implements Runnable, SurfaceTexture.OnFrameAvailableListener, SurfaceHolder.Callback{
 
-  public final static String TAG = "OpenGlViewBase";
+  private final Logger logger = LoggerFactory.getLogger(OpenGlViewBase.class);
 
   protected Thread thread = null;
   protected boolean frameAvailable = false;
@@ -115,7 +118,7 @@ public abstract class OpenGlViewBase extends SurfaceView
 
   public void startGLThread(boolean isCamera2Landscape) {
     this.isCamera2Landscape = isCamera2Landscape;
-    Log.i(TAG, "Thread started.");
+    logger.info("Thread started.");
     thread = new Thread(this);
     running = true;
     thread.start();
@@ -145,7 +148,7 @@ public abstract class OpenGlViewBase extends SurfaceView
 
   @Override
   public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
-    Log.i(TAG, "size: " + width + "x" + height);
+    logger.info("size: {}x{}", width, height);
     this.previewWidth = width;
     this.previewHeight = height;
     this.rotatedPreviewWidth = width;
