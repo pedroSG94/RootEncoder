@@ -9,6 +9,8 @@ import android.opengl.GLES11Ext;
 import android.opengl.GLES20;
 import android.opengl.Matrix;
 import android.os.Build;
+import android.os.Handler;
+import android.os.Looper;
 import android.support.annotation.RequiresApi;
 import android.view.Surface;
 import android.view.View;
@@ -45,6 +47,7 @@ public class AndroidViewFilterRender extends BaseFilterRender {
   private View view;
   private SurfaceTexture surfaceTexture;
   private Surface surface;
+  private Handler mainHandler;
 
   public AndroidViewFilterRender() {
     squareVertex = ByteBuffer.allocateDirect(squareVertexDataFilter.length * FLOAT_SIZE_BYTES)
@@ -53,6 +56,7 @@ public class AndroidViewFilterRender extends BaseFilterRender {
     squareVertex.put(squareVertexDataFilter).position(0);
     Matrix.setIdentityM(MVPMatrix, 0);
     Matrix.setIdentityM(STMatrix, 0);
+    mainHandler = new Handler(Looper.getMainLooper());
   }
 
   @Override
@@ -76,12 +80,17 @@ public class AndroidViewFilterRender extends BaseFilterRender {
   @Override
   protected void drawFilter() {
     surfaceTexture.setDefaultBufferSize(getWidth(), getHeight());
-    Canvas canvas = surface.lockCanvas(null);
-    canvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR);
     if (view != null) {
-      view.draw(canvas);
+      mainHandler.post(new Runnable() {
+        @Override
+        public void run() {
+          Canvas canvas = surface.lockCanvas(null);
+          canvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR);
+          view.draw(canvas);
+          surface.unlockCanvasAndPost(canvas);
+        }
+      });
     }
-    surface.unlockCanvasAndPost(canvas);
     surfaceTexture.updateTexImage();
 
     GLES20.glUseProgram(program);
@@ -98,7 +107,6 @@ public class AndroidViewFilterRender extends BaseFilterRender {
 
     GLES20.glUniformMatrix4fv(uMVPMatrixHandle, 1, false, MVPMatrix, 0);
     GLES20.glUniformMatrix4fv(uSTMatrixHandle, 1, false, STMatrix, 0);
-
 
     GLES20.glUniform1i(uSamplerHandle, 4);
     GLES20.glActiveTexture(GLES20.GL_TEXTURE4);
