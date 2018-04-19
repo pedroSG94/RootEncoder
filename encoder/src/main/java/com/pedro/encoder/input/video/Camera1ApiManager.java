@@ -316,6 +316,10 @@ public class Camera1ApiManager implements Camera.PreviewCallback, Camera.FaceDet
     }
   }
 
+  public boolean isFrontCamera() {
+    return isFrontCamera;
+  }
+
   public void switchCamera() throws CameraOpenException {
     if (camera != null) {
       int oldCamera = cameraSelect;

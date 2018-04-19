@@ -76,6 +76,10 @@ public class LightOpenGlView extends OpenGlViewBase {
                 surfaceManagerEncoder.swapBuffer();
               }
             }
+            if (onChangeFace) {
+              simpleCameraRender.faceChanged(isFrontCamera);
+              onChangeFace = false;
+            }
           }
         }
       }

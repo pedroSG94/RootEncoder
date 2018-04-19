@@ -151,4 +151,8 @@ public class SimpleCameraRender {
     surfaceTexture = null;
     surface = null;
   }
+
+  public void faceChanged(boolean isFrontCamera) {
+
+  }
 }

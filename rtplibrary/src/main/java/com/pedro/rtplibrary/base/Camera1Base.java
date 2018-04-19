@@ -177,6 +177,9 @@ public abstract class Camera1Base
     int orientation = (context.getResources().getConfiguration().orientation == 1) ? 90 : 0;
     cameraManager.setPreviewOrientation(orientation);
     cameraManager.start();
+    if (openGlViewBase != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
+      openGlViewBase.setCameraFace(cameraManager.isFrontCamera());
+    }
   }
 
   /**
@@ -365,6 +368,9 @@ public abstract class Camera1Base
       } else {
         cameraManager.start(cameraFacing, width, height);
       }
+      if (openGlViewBase != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
+        openGlViewBase.setCameraFace(cameraManager.isFrontCamera());
+      }
       onPreview = true;
     } else {
       Log.e(TAG, "Streaming or preview started, ignored");
@@ -449,6 +455,9 @@ public abstract class Camera1Base
     videoEncoder.start();
     audioEncoder.start();
     cameraManager.start();
+    if (openGlViewBase != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
+      openGlViewBase.setCameraFace(cameraManager.isFrontCamera());
+    }
     microphoneManager.start();
     streaming = true;
     onPreview = true;
@@ -563,6 +572,9 @@ public abstract class Camera1Base
   public void switchCamera() throws CameraOpenException {
     if (isStreaming() || onPreview) {
       cameraManager.switchCamera();
+      if (openGlViewBase != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
+        openGlViewBase.setCameraFace(cameraManager.isFrontCamera());
+      }
     }
   }
 
