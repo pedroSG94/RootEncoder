@@ -58,9 +58,11 @@ public class SimpleCameraRender {
   private int uSTMatrixHandle = -1;
   private int aPositionHandle = -1;
   private int aTextureCoordHandle = -1;
+  private int uIsFrontCameraHandle = -1;
 
   private SurfaceTexture surfaceTexture;
   private Surface surface;
+  private boolean isFrontCamera = false;
 
   public SimpleCameraRender() {
     Matrix.setIdentityM(MVPMatrix, 0);
@@ -116,6 +118,7 @@ public class SimpleCameraRender {
 
     GLES20.glUniformMatrix4fv(uMVPMatrixHandle, 1, false, MVPMatrix, 0);
     GLES20.glUniformMatrix4fv(uSTMatrixHandle, 1, false, STMatrix, 0);
+    GLES20.glUniform1f(uIsFrontCameraHandle, isFrontCamera ? 1f : 0f);
     //camera
     GLES20.glActiveTexture(GLES20.GL_TEXTURE0);
     GLES20.glBindTexture(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, textureID);
@@ -137,6 +140,7 @@ public class SimpleCameraRender {
     aTextureCoordHandle = GLES20.glGetAttribLocation(program, "aTextureCoord");
     uMVPMatrixHandle = GLES20.glGetUniformLocation(program, "uMVPMatrix");
     uSTMatrixHandle = GLES20.glGetUniformLocation(program, "uSTMatrix");
+    uIsFrontCameraHandle = GLES20.glGetUniformLocation(program, "uIsFrontCamera");
 
     //camera texture
     GlUtil.createExternalTextures(1, texturesID, 0);
@@ -150,5 +154,9 @@ public class SimpleCameraRender {
   public void release() {
     surfaceTexture = null;
     surface = null;
+  }
+
+  public void faceChanged(boolean isFrontCamera) {
+    this.isFrontCamera = isFrontCamera;
   }
 }

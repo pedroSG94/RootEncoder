@@ -63,6 +63,7 @@ public class Camera2ApiManager extends CameraDevice.StateCallback {
   private int cameraId = -1;
   private Surface preview;
   private boolean isOpenGl = false;
+  private boolean isFrontCamera = false;
   //private boolean faceDetectionSupported = false;
   //private Integer faceDetectionMode;
 
@@ -245,7 +246,6 @@ public class Camera2ApiManager extends CameraDevice.StateCallback {
       } else {
         openCameraId(1);
       }
-
       //int[] FD = cameraCharacteristics.get(
       //    CameraCharacteristics.STATISTICS_INFO_AVAILABLE_FACE_DETECT_MODES);
       //int maxFD = cameraCharacteristics.get(CameraCharacteristics.STATISTICS_INFO_MAX_FACE_COUNT);
@@ -287,6 +287,9 @@ public class Camera2ApiManager extends CameraDevice.StateCallback {
       cameraHandler = new Handler(cameraHandlerThread.getLooper());
       try {
         cameraManager.openCamera(cameraId.toString(), this, cameraHandler);
+        final CameraCharacteristics cameraCharacteristics =
+            cameraManager.getCameraCharacteristics(Integer.toString(cameraId));
+        isFrontCamera = (LENS_FACING_FRONT == cameraCharacteristics.get(CameraCharacteristics.LENS_FACING));
       } catch (CameraAccessException | SecurityException e) {
         logger.error("openCamera failed", e);
       }
@@ -302,6 +305,10 @@ public class Camera2ApiManager extends CameraDevice.StateCallback {
       prepared = true;
       openCameraId(cameraId);
     }
+  }
+
+  public boolean isFrontCamera() {
+    return isFrontCamera;
   }
 
   public void closeCamera(boolean reOpen) {

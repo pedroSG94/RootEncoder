@@ -136,4 +136,8 @@ public class ManagerRender {
   public void setStreamSize(int encoderWidth, int encoderHeight) {
     streamObjectRender.setStreamSize(encoderWidth, encoderHeight);
   }
+
+  public void faceChanged(boolean isFrontCamera) {
+    cameraRender.faceChanged(isFrontCamera);
+  }
 }

@@ -45,9 +45,11 @@ public class CameraRender extends BaseRenderOffScreen {
   private int uSTMatrixHandle = -1;
   private int aPositionHandle = -1;
   private int aTextureCameraHandle = -1;
+  private int uIsFrontCameraHandle = -1;
 
   private SurfaceTexture surfaceTexture;
   private Surface surface;
+  private boolean isFrontCamera = false;
 
   public CameraRender() {
     Matrix.setIdentityM(MVPMatrix, 0);
@@ -67,6 +69,8 @@ public class CameraRender extends BaseRenderOffScreen {
     aTextureCameraHandle = GLES20.glGetAttribLocation(program, "aTextureCoord");
     uMVPMatrixHandle = GLES20.glGetUniformLocation(program, "uMVPMatrix");
     uSTMatrixHandle = GLES20.glGetUniformLocation(program, "uSTMatrix");
+    uSTMatrixHandle = GLES20.glGetUniformLocation(program, "uSTMatrix");
+    uIsFrontCameraHandle = GLES20.glGetUniformLocation(program, "uIsFrontCamera");
 
     //camera texture
     GlUtil.createExternalTextures(1, textureID, 0);
@@ -99,6 +103,7 @@ public class CameraRender extends BaseRenderOffScreen {
 
     GLES20.glUniformMatrix4fv(uMVPMatrixHandle, 1, false, MVPMatrix, 0);
     GLES20.glUniformMatrix4fv(uSTMatrixHandle, 1, false, STMatrix, 0);
+    GLES20.glUniform1f(uIsFrontCameraHandle, isFrontCamera ? 1f : 0f);
     //camera
     GLES20.glActiveTexture(GLES20.GL_TEXTURE0);
     GLES20.glBindTexture(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, textureID[0]);
@@ -136,5 +141,9 @@ public class CameraRender extends BaseRenderOffScreen {
     } else {
       squareVertex.put(squareVertexDataCamera).position(0);
     }
+  }
+
+  public void faceChanged(boolean isFrontCamera) {
+    this.isFrontCamera = isFrontCamera;
   }
 }

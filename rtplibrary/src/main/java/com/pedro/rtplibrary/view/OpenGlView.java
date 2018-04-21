@@ -219,6 +219,9 @@ public class OpenGlView extends OpenGlViewBase {
           } else if (loadAA) {
             managerRender.enableAA(AAEnabled);
             loadAA = false;
+          } else if (onChangeFace) {
+            managerRender.faceChanged(isFrontCamera);
+            onChangeFace = false;
           }
         }
       }

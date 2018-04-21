@@ -39,6 +39,8 @@ public abstract class OpenGlViewBase extends SurfaceView
   protected int encoderWidth, encoderHeight;
   protected int rotatedPreviewWidth, rotatedPreviewHeight;
   protected int rotatedEncoderWidth, rotatedEncoderHeight;
+  protected boolean onChangeFace = false;
+  protected boolean isFrontCamera = false;
   protected boolean isCamera2Landscape = false;
   protected int waitTime;
   protected static boolean rotate = false;
@@ -107,6 +109,11 @@ public abstract class OpenGlViewBase extends SurfaceView
   public void setRotatedEncoderResolution(int width, int height) {
     rotatedEncoderWidth = width;
     rotatedEncoderHeight = height;
+  }
+
+  public void setCameraFace(boolean frontCamera) {
+    onChangeFace = true;
+    isFrontCamera = frontCamera;
   }
 
   public void setEncoderSize(int width, int height) {
