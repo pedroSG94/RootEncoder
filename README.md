@@ -63,6 +63,7 @@ dependencies {
 - [X] Set Image, Gif or Text to stream on real time.
 - [X] OpenGL real time filters. [More info](https://github.com/pedroSG94/rtmp-rtsp-stream-client-java/wiki/Real-time-filters)
 - [X] RTMPS and RTSPS
+- [X] SLF4J for logging.
 
 ### Backlog
 

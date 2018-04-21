@@ -5,7 +5,10 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.PorterDuff;
-import android.util.Log;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.IOException;
 
 /**
@@ -14,7 +17,7 @@ import java.io.IOException;
 
 public class TextStreamObject extends StreamObjectBase {
 
-  private static final String TAG = "TextStreamObject";
+  private final static Logger logger = LoggerFactory.getLogger(TextStreamObject.class);
 
   private int numFrames;
   private Bitmap imageBitmap;
@@ -35,7 +38,7 @@ public class TextStreamObject extends StreamObjectBase {
   public void load(String text, float textSize, int textColor) throws IOException {
     numFrames = 1;
     imageBitmap = textAsBitmap(text, textSize, textColor);
-    Log.i(TAG, "finish load text");
+    logger.info("finish load text");
   }
 
   @Override

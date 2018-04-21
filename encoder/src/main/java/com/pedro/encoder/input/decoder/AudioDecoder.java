@@ -3,8 +3,11 @@ package com.pedro.encoder.input.decoder;
 import android.media.MediaCodec;
 import android.media.MediaExtractor;
 import android.media.MediaFormat;
-import android.util.Log;
 import com.pedro.encoder.input.audio.GetMicrophoneData;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.IOException;
 import java.nio.ByteBuffer;
 
@@ -13,7 +16,7 @@ import java.nio.ByteBuffer;
  */
 public class AudioDecoder {
 
-  private final String TAG = "AudioDecoder";
+  private final static Logger logger = LoggerFactory.getLogger(AudioDecoder.class);
 
   private AudioDecoderInterface audioDecoderInterface;
   private LoopFileInterface loopFileInterface;
@@ -74,7 +77,7 @@ public class AudioDecoder {
       audioDecoder.configure(audioFormat, null, null, 0);
       return true;
     } catch (IOException e) {
-      Log.e(TAG, "Prepare decoder error:", e);
+      logger.error("Prepare decoder error:", e);
       return false;
     }
   }
@@ -166,7 +169,7 @@ public class AudioDecoder {
         // All decoded frames have been rendered, we can stop playing now
         if ((audioInfo.flags & MediaCodec.BUFFER_FLAG_END_OF_STREAM) != 0) {
           seekTime = 0;
-          Log.i(TAG, "end of file out");
+          logger.info("end of file out");
           if (loopMode) {
             loopFileInterface.onReset(false);
           } else {

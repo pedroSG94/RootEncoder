@@ -1,7 +1,10 @@
 package com.pedro.rtsp.rtcp;
 
-import android.util.Log;
 import com.pedro.rtsp.utils.ConnectCheckerRtsp;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.InetAddress;
@@ -12,6 +15,8 @@ import java.net.MulticastSocket;
  */
 
 public class SenderReportUdp extends BaseSenderReport {
+
+  private final static Logger logger = LoggerFactory.getLogger(SenderReportUdp.class);
 
   private MulticastSocket socket;
   private DatagramPacket datagramPacket;
@@ -64,9 +69,9 @@ public class SenderReportUdp extends BaseSenderReport {
         datagramPacket.setPort(port);
         try {
           socket.send(datagramPacket);
-          Log.i(TAG, "send report, " + datagramPacket.getPort() + " Port");
+          logger.info("send report, {} Port", datagramPacket.getPort());
         } catch (IOException e) {
-          Log.e(TAG, "send UDP report error", e);
+          logger.error("send UDP report error", e);
           connectCheckerRtsp.onConnectionFailedRtsp("Error send report, " + e.getMessage());
         }
       }

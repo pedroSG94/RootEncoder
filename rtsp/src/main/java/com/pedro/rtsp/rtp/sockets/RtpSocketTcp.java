@@ -1,8 +1,11 @@
 package com.pedro.rtsp.rtp.sockets;
 
-import android.util.Log;
 import com.pedro.rtsp.rtcp.SenderReportTcp;
 import com.pedro.rtsp.utils.ConnectCheckerRtsp;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.concurrent.TimeUnit;
@@ -11,6 +14,8 @@ import java.util.concurrent.TimeUnit;
  * Created by pedro on 24/02/17.
  */
 public class RtpSocketTcp extends BaseRtpSocket implements Runnable {
+
+  private final static Logger logger = LoggerFactory.getLogger(RtpSocketTcp.class);
 
   private SenderReportTcp senderReportTcp;
   private byte tcpHeader[];
@@ -58,7 +63,7 @@ public class RtpSocketTcp extends BaseRtpSocket implements Runnable {
         bufferRequested.release();
       }
     } catch (IOException | InterruptedException e) {
-      Log.e(TAG, "TCP send error: ", e);
+      logger.error("TCP send error: ", e);
       connectCheckerRtsp.onConnectionFailedRtsp("Error send packet, " + e.getMessage());
     }
     thread = null;
@@ -75,7 +80,7 @@ public class RtpSocketTcp extends BaseRtpSocket implements Runnable {
         outputStream.write(tcpHeader);
         outputStream.write(buffers[bufferOut], 0, len);
         outputStream.flush();
-        Log.i(TAG, "send packet, " + len + " Size");
+        logger.info("send packet, {} Size", len);
       }
     }
   }

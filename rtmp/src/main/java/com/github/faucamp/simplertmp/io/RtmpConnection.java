@@ -1,6 +1,5 @@
 package com.github.faucamp.simplertmp.io;
 
-import android.util.Log;
 import com.github.faucamp.simplertmp.RtmpPublisher;
 import com.github.faucamp.simplertmp.Util;
 import com.github.faucamp.simplertmp.amf.AmfMap;
@@ -29,12 +28,12 @@ import java.net.Socket;
 import java.net.SocketAddress;
 import java.net.SocketException;
 import java.util.Random;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import net.ossrs.rtmp.ConnectCheckerRtmp;
 import net.ossrs.rtmp.CreateSSLSocket;
+
+import org.slf4j.LoggerFactory;
 
 /**
  * Main RTMP connection implementation class
@@ -43,7 +42,7 @@ import net.ossrs.rtmp.CreateSSLSocket;
  */
 public class RtmpConnection implements RtmpPublisher {
 
-  private static final String TAG = "RtmpConnection";
+  private final static org.slf4j.Logger logger = LoggerFactory.getLogger(RtmpConnection.class);
   private static final Pattern rtmpUrlPattern =
       Pattern.compile("^rtmp://([^/:]+)(:(\\d+))*/([^/]+)(/(.*))*$");
   private static final Pattern rtmpsUrlPattern =
@@ -126,7 +125,7 @@ public class RtmpConnection implements RtmpPublisher {
     streamName = matcher.group(6);
 
     // socket connection
-    Log.d(TAG, "connect() called. Host: "
+    logger.debug("connect() called. Host: "
         + host
         + ", port: "
         + port
@@ -147,11 +146,11 @@ public class RtmpConnection implements RtmpPublisher {
       }
       inputStream = new BufferedInputStream(socket.getInputStream());
       outputStream = new BufferedOutputStream(socket.getOutputStream());
-      Log.d(TAG, "connect(): socket connection established, doing handhake...");
+      logger.debug("connect(): socket connection established, doing handhake...");
       handshake(inputStream, outputStream);
-      Log.d(TAG, "connect(): handshake done");
+      logger.debug("connect(): handshake done");
     } catch (IOException e) {
-      Log.e(TAG, "Error", e);
+      logger.error("Error", e);
       connectCheckerRtmp.onConnectionFailedRtmp("Connect error, " + e.getMessage());
       return false;
     }
@@ -162,10 +161,10 @@ public class RtmpConnection implements RtmpPublisher {
       @Override
       public void run() {
         try {
-          Log.d(TAG, "starting main rx handler loop");
+          logger.debug("starting main rx handler loop");
           handleRxPacketLoop();
         } catch (IOException ex) {
-          Logger.getLogger(RtmpConnection.class.getName()).log(Level.SEVERE, null, ex);
+          logger.error("handleRxPacketLoop", ex);
         }
       }
     });
@@ -184,7 +183,7 @@ public class RtmpConnection implements RtmpPublisher {
     } else {
       // Mark session timestamp of all chunk stream information on connection.
       ChunkStreamInfo.markSessionTimestampTx();
-      Log.d(TAG, "rtmpConnect(): Building 'connect' invoke packet");
+      logger.debug("rtmpConnect(): Building 'connect' invoke packet");
       ChunkStreamInfo chunkStreamInfo =
           rtmpSessionInfo.getChunkStreamInfo(ChunkStreamInfo.RTMP_CID_OVER_CONNECTION);
       Command invoke = new Command("connect", ++transactionIdCounter, chunkStreamInfo);
@@ -220,7 +219,7 @@ public class RtmpConnection implements RtmpPublisher {
 
   private void sendConnectAuthPacketUser(String user) {
     ChunkStreamInfo.markSessionTimestampTx();
-    Log.d(TAG, "rtmpConnect(): Building 'connect' invoke packet");
+    logger.debug("rtmpConnect(): Building 'connect' invoke packet");
     ChunkStreamInfo chunkStreamInfo =
         rtmpSessionInfo.getChunkStreamInfo(ChunkStreamInfo.RTMP_CID_OVER_STREAM);
     Command invoke = new Command("connect", ++transactionIdCounter, chunkStreamInfo);
@@ -258,7 +257,7 @@ public class RtmpConnection implements RtmpPublisher {
     }
 
     ChunkStreamInfo.markSessionTimestampTx();
-    Log.d(TAG, "rtmpConnect(): Building 'connect' invoke packet");
+    logger.debug("rtmpConnect(): Building 'connect' invoke packet");
     ChunkStreamInfo chunkStreamInfo =
         rtmpSessionInfo.getChunkStreamInfo(ChunkStreamInfo.RTMP_CID_OVER_STREAM);
     Command invoke = new Command("connect", ++transactionIdCounter, chunkStreamInfo);
@@ -296,7 +295,7 @@ public class RtmpConnection implements RtmpPublisher {
       return false;
     }
 
-    Log.d(TAG, "createStream(): Sending releaseStream command...");
+    logger.debug("createStream(): Sending releaseStream command...");
     // transactionId == 2
     Command releaseStream = new Command("releaseStream", ++transactionIdCounter);
     releaseStream.getHeader().setChunkStreamId(ChunkStreamInfo.RTMP_CID_OVER_STREAM);
@@ -304,7 +303,7 @@ public class RtmpConnection implements RtmpPublisher {
     releaseStream.addData(streamName);  // command object: null for "releaseStream"
     sendRtmpPacket(releaseStream);
 
-    Log.d(TAG, "createStream(): Sending FCPublish command...");
+    logger.debug("createStream(): Sending FCPublish command...");
     // transactionId == 3
     Command FCPublish = new Command("FCPublish", ++transactionIdCounter);
     FCPublish.getHeader().setChunkStreamId(ChunkStreamInfo.RTMP_CID_OVER_STREAM);
@@ -312,7 +311,7 @@ public class RtmpConnection implements RtmpPublisher {
     FCPublish.addData(streamName);
     sendRtmpPacket(FCPublish);
 
-    Log.d(TAG, "createStream(): Sending createStream command...");
+    logger.debug("createStream(): Sending createStream command...");
     ChunkStreamInfo chunkStreamInfo =
         rtmpSessionInfo.getChunkStreamInfo(ChunkStreamInfo.RTMP_CID_OVER_CONNECTION);
     // transactionId == 4
@@ -337,11 +336,11 @@ public class RtmpConnection implements RtmpPublisher {
 
   private void fmlePublish() {
     if (!connected || currentStreamId == 0) {
-      Log.e(TAG, "fmlePublish failed");
+      logger.error("fmlePublish failed");
       return;
     }
 
-    Log.d(TAG, "fmlePublish(): Sending publish command...");
+    logger.debug("fmlePublish(): Sending publish command...");
     Command publish = new Command("publish", 0);
     publish.getHeader().setChunkStreamId(ChunkStreamInfo.RTMP_CID_OVER_STREAM);
     publish.getHeader().setMessageStreamId(currentStreamId);
@@ -353,11 +352,11 @@ public class RtmpConnection implements RtmpPublisher {
 
   private void onMetaData() {
     if (!connected || currentStreamId == 0) {
-      Log.e(TAG, "onMetaData failed");
+      logger.error("onMetaData failed");
       return;
     }
 
-    Log.d(TAG, "onMetaData(): Sending empty onMetaData...");
+    logger.debug("onMetaData(): Sending empty onMetaData...");
     Data metadata = new Data("@setDataFrame");
     metadata.getHeader().setMessageStreamId(currentStreamId);
     metadata.addData("onMetaData");
@@ -386,10 +385,10 @@ public class RtmpConnection implements RtmpPublisher {
 
   private void closeStream() {
     if (!connected || currentStreamId == 0 || !publishPermitted) {
-      Log.e(TAG, "closeStream failed");
+      logger.error("closeStream failed");
       return;
     }
-    Log.d(TAG, "closeStream(): setting current stream ID to 0");
+    logger.debug("closeStream(): setting current stream ID to 0");
     Command closeStream = new Command("closeStream", 0);
     closeStream.getHeader().setChunkStreamId(ChunkStreamInfo.RTMP_CID_OVER_STREAM);
     closeStream.getHeader().setMessageStreamId(currentStreamId);
@@ -405,7 +404,7 @@ public class RtmpConnection implements RtmpPublisher {
         // It will raise SocketException in sendRtmpPacket
         socket.shutdownOutput();
       } catch (IOException | UnsupportedOperationException e) {
-        e.printStackTrace();
+        logger.error("shutdown(): failed to shutdown socket(s)", e);
       }
 
       // shutdown rxPacketHandler
@@ -422,9 +421,9 @@ public class RtmpConnection implements RtmpPublisher {
       // shutdown socket as well as its input and output stream
       try {
         socket.close();
-        Log.d(TAG, "socket closed");
+        logger.debug("socket closed");
       } catch (IOException ex) {
-        Log.e(TAG, "shutdown(): failed to close socket", ex);
+        logger.error("shutdown(): failed to close socket", ex);
       }
     }
 
@@ -498,8 +497,10 @@ public class RtmpConnection implements RtmpPublisher {
             .setAbsoluteTimestamp((int) chunkStreamInfo.markAbsoluteTimestampTx());
       }
       rtmpPacket.writeTo(outputStream, rtmpSessionInfo.getTxChunkSize(), chunkStreamInfo);
-      Log.d(TAG,
-          "wrote packet: " + rtmpPacket + ", size: " + rtmpPacket.getHeader().getPacketLength());
+      if (logger.isTraceEnabled()) {
+        logger.trace(
+                "wrote packet: " + rtmpPacket + ", size: " + rtmpPacket.getHeader().getPacketLength());
+      }
       if (rtmpPacket instanceof Command) {
         rtmpSessionInfo.addInvokedCommand(((Command) rtmpPacket).getTransactionId(),
             ((Command) rtmpPacket).getCommandName());
@@ -511,10 +512,10 @@ public class RtmpConnection implements RtmpPublisher {
       if (!socketExceptionCause.contentEquals(se.getMessage())) {
         socketExceptionCause = se.getMessage();
         connectCheckerRtmp.onConnectionFailedRtmp("Error send packet: " + se.getMessage());
-        Log.e(TAG, "Caught SocketException during write loop, shutting down: " + se.getMessage());
+        logger.error("Caught SocketException during write loop, shutting down: {}", se.getMessage());
       }
     } catch (IOException ioe) {
-      Log.e(TAG, "Caught IOException during write loop, shutting down: " + ioe.getMessage());
+      logger.error("Caught IOException during write loop, shutting down: {}", ioe.getMessage());
     }
   }
 
@@ -525,7 +526,7 @@ public class RtmpConnection implements RtmpPublisher {
         // It will be blocked when no data in input stream buffer
         RtmpPacket rtmpPacket = rtmpDecoder.readPacket(inputStream);
         if (rtmpPacket != null) {
-          //Log.d(TAG, "handleRxPacketLoop(): RTMP rx packet message type: " + rtmpPacket.getHeader().getMessageType());
+          //logger.debug("handleRxPacketLoop(): RTMP rx packet message type: {}", rtmpPacket.getHeader().getMessageType());
           switch (rtmpPacket.getHeader().getMessageType()) {
             case ABORT:
               rtmpSessionInfo.getChunkStreamInfo(((Abort) rtmpPacket).getChunkStreamId())
@@ -539,12 +540,12 @@ public class RtmpConnection implements RtmpPublisher {
                 case PING_REQUEST:
                   ChunkStreamInfo channelInfo =
                       rtmpSessionInfo.getChunkStreamInfo(ChunkStreamInfo.RTMP_CID_PROTOCOL_CONTROL);
-                  Log.d(TAG, "handleRxPacketLoop(): Sending PONG reply..");
+                  logger.debug("handleRxPacketLoop(): Sending PONG reply..");
                   UserControl pong = new UserControl(user, channelInfo);
                   sendRtmpPacket(pong);
                   break;
                 case STREAM_EOF:
-                  Log.i(TAG, "handleRxPacketLoop(): Stream EOF reached, closing RTMP writer...");
+                  logger.info("handleRxPacketLoop(): Stream EOF reached, closing RTMP writer...");
                   break;
                 default:
                   // Ignore...
@@ -554,7 +555,7 @@ public class RtmpConnection implements RtmpPublisher {
             case WINDOW_ACKNOWLEDGEMENT_SIZE:
               WindowAckSize windowAckSize = (WindowAckSize) rtmpPacket;
               int size = windowAckSize.getAcknowledgementWindowSize();
-              Log.d(TAG, "handleRxPacketLoop(): Setting acknowledgement window size: " + size);
+              logger.debug("handleRxPacketLoop(): Setting acknowledgement window size: {}", size);
               rtmpSessionInfo.setAcknowledgmentWindowSize(size);
               break;
             case SET_PEER_BANDWIDTH:
@@ -563,7 +564,7 @@ public class RtmpConnection implements RtmpPublisher {
               int acknowledgementWindowsize = rtmpSessionInfo.getAcknowledgementWindowSize();
               ChunkStreamInfo chunkStreamInfo =
                   rtmpSessionInfo.getChunkStreamInfo(ChunkStreamInfo.RTMP_CID_PROTOCOL_CONTROL);
-              Log.d(TAG, "handleRxPacketLoop(): Send acknowledgement window size: "
+              logger.debug("handleRxPacketLoop(): Send acknowledgement window size: "
                   + acknowledgementWindowsize);
               sendRtmpPacket(new WindowAckSize(acknowledgementWindowsize, chunkStreamInfo));
               // Set socket option
@@ -573,7 +574,7 @@ public class RtmpConnection implements RtmpPublisher {
               handleRxInvoke((Command) rtmpPacket);
               break;
             default:
-              Log.w(TAG, "handleRxPacketLoop(): Not handling unimplemented/unknown packet of type: "
+              logger.warn("handleRxPacketLoop(): Not handling unimplemented/unknown packet of type: "
                   + rtmpPacket.getHeader().getMessageType());
               break;
           }
@@ -582,7 +583,7 @@ public class RtmpConnection implements RtmpPublisher {
         Thread.currentThread().interrupt();
       } catch (IOException e) {
         connectCheckerRtmp.onConnectionFailedRtmp("Error reading packet: " + e.getMessage());
-        Log.e(TAG, "Caught SocketException while reading/decoding packet, shutting down: "
+        logger.error("Caught SocketException while reading/decoding packet, shutting down: "
             + e.getMessage());
       }
     }
@@ -595,7 +596,7 @@ public class RtmpConnection implements RtmpPublisher {
         try {
           String description = ((AmfString) ((AmfObject) invoke.getData().get(1)).getProperty(
               "description")).getValue();
-          Log.i(TAG, description);
+          logger.info(description);
           if (description.contains("reason=authfailed")) {
             connectCheckerRtmp.onAuthErrorRtmp();
             connected = false;
@@ -610,7 +611,7 @@ public class RtmpConnection implements RtmpPublisher {
             try {
               shutdown(false);
             } catch (Exception e) {
-              e.printStackTrace();
+              logger.error("shutdown(false)", e);
             }
             rtmpSessionInfo = new RtmpSessionInfo();
             rtmpDecoder = new RtmpDecoder(rtmpSessionInfo);
@@ -621,7 +622,7 @@ public class RtmpConnection implements RtmpPublisher {
             }
             inputStream = new BufferedInputStream(socket.getInputStream());
             outputStream = new BufferedOutputStream(socket.getOutputStream());
-            Log.d(TAG, "connect(): socket connection established, doing handshake...");
+            logger.debug("connect(): socket connection established, doing handshake...");
             salt = Util.getSalt(description);
             challenge = Util.getChallenge(description);
             opaque = Util.getOpaque(description);
@@ -632,7 +633,7 @@ public class RtmpConnection implements RtmpPublisher {
                 try {
                   handleRxPacketLoop();
                 } catch (IOException e) {
-                  e.printStackTrace();
+                  logger.error("handleRxPacketLoop", e);
                 }
               }
             });
@@ -663,7 +664,7 @@ public class RtmpConnection implements RtmpPublisher {
         // This is the result of one of the methods invoked by us
         String method = rtmpSessionInfo.takeInvokedCommand(invoke.getTransactionId());
 
-        Log.i(TAG, "handleRxInvoke: Got result for invoked method: " + method);
+        logger.info("handleRxInvoke: Got result for invoked method: {}", method);
         if ("connect".equals(method)) {
           if (onAuth) {
             connectCheckerRtmp.onAuthSuccessRtmp();
@@ -678,28 +679,28 @@ public class RtmpConnection implements RtmpPublisher {
         } else if ("createStream".contains(method)) {
           // Get stream id
           currentStreamId = (int) ((AmfNumber) invoke.getData().get(1)).getValue();
-          Log.d(TAG, "handleRxInvoke(): Stream ID to publish: " + currentStreamId);
+          logger.debug("handleRxInvoke(): Stream ID to publish: {}", currentStreamId);
           if (streamName != null && publishType != null) {
             fmlePublish();
           }
         } else if ("releaseStream".contains(method)) {
-          Log.d(TAG, "handleRxInvoke(): 'releaseStream'");
+          logger.debug("handleRxInvoke(): 'releaseStream'");
         } else if ("FCPublish".contains(method)) {
-          Log.d(TAG, "handleRxInvoke(): 'FCPublish'");
+          logger.debug("handleRxInvoke(): 'FCPublish'");
         } else {
-          Log.w(TAG, "handleRxInvoke(): '_result' message received for unknown method: " + method);
+          logger.warn("handleRxInvoke(): '_result' message received for unknown method: {}", method);
         }
         break;
       case "onBWDone":
-        Log.d(TAG, "handleRxInvoke(): 'onBWDone'");
+        logger.debug("handleRxInvoke(): 'onBWDone'");
         break;
       case "onFCPublish":
-        Log.d(TAG, "handleRxInvoke(): 'onFCPublish'");
+        logger.debug("handleRxInvoke(): 'onFCPublish'");
         break;
       case "onStatus":
         String code =
             ((AmfString) ((AmfObject) invoke.getData().get(1)).getProperty("code")).getValue();
-        Log.d(TAG, "handleRxInvoke(): onStatus " + code);
+        logger.debug("handleRxInvoke(): onStatus {}", code);
         if (code.equals("NetStream.Publish.Start")) {
           onMetaData();
           // We can now publish AV data
@@ -710,7 +711,7 @@ public class RtmpConnection implements RtmpPublisher {
         }
         break;
       default:
-        Log.e(TAG, "handleRxInvoke(): Unknown/unhandled server invoke: " + invoke);
+        logger.error("handleRxInvoke(): Unknown/unhandled server invoke: {}", invoke);
         break;
     }
   }

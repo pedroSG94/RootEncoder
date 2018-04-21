@@ -1,6 +1,7 @@
 package com.github.faucamp.simplertmp;
 
-import android.util.Log;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
@@ -19,7 +20,7 @@ import javax.crypto.spec.SecretKeySpec;
  */
 public class Crypto {
 
-    private static final String TAG = "Crypto";
+    private final static Logger logger = LoggerFactory.getLogger(Crypto.class);
 
     private Mac hmacSHA256;
 
@@ -27,9 +28,9 @@ public class Crypto {
         try {
             hmacSHA256 = Mac.getInstance("HmacSHA256");
         } catch (SecurityException e) {
-            Log.e(TAG, "Security exception when getting HMAC", e);
+            logger.error("Security exception when getting HMAC", e);
         } catch (NoSuchAlgorithmException e) {
-            Log.e(TAG, "HMAC SHA256 does not exist");
+            logger.error("HMAC SHA256 does not exist");
         }
     }
 
@@ -47,7 +48,7 @@ public class Crypto {
             hmacSHA256.init(new SecretKeySpec(key, "HmacSHA256"));
             output = hmacSHA256.doFinal(input);
         } catch (InvalidKeyException e) {
-            Log.e(TAG, "Invalid key", e);
+            logger.error("Invalid key", e);
         }
         return output;
     }
@@ -66,7 +67,7 @@ public class Crypto {
             hmacSHA256.init(new SecretKeySpec(key, 0, length, "HmacSHA256"));
             output = hmacSHA256.doFinal(input);
         } catch (InvalidKeyException e) {
-            Log.e(TAG, "Invalid key", e);
+            logger.error("Invalid key", e);
         }
         return output;
     }

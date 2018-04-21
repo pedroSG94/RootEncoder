@@ -18,11 +18,14 @@ import android.os.Handler;
 import android.os.HandlerThread;
 import android.support.annotation.NonNull;
 import android.support.annotation.RequiresApi;
-import android.util.Log;
 import android.util.Size;
 import android.view.Surface;
 import android.view.SurfaceView;
 import android.view.TextureView;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -47,6 +50,7 @@ import static android.hardware.camera2.CameraMetadata.LENS_FACING_FRONT;
 public class Camera2ApiManager extends CameraDevice.StateCallback {
 
   private final String TAG = "Camera2ApiManager";
+  private final static Logger logger = LoggerFactory.getLogger(Camera2ApiManager.class);
 
   private CameraDevice cameraDevice;
   private SurfaceView surfaceView;
@@ -121,20 +125,20 @@ public class Camera2ApiManager extends CameraDevice.StateCallback {
               cameraCaptureSession.setRepeatingBurst(
                   Collections.singletonList(drawInputSurface(surfaceEncoder)), null, cameraHandler);
             }
-            Log.i(TAG, "camera configured");
+            logger.info("camera configured");
           } catch (CameraAccessException | NullPointerException e) {
-            e.printStackTrace();
+            logger.error("camera configuration failed", e);
           }
         }
 
         @Override
         public void onConfigureFailed(@NonNull CameraCaptureSession cameraCaptureSession) {
           cameraCaptureSession.close();
-          Log.e(TAG, "configuration failed");
+          logger.error("configuration failed");
         }
       }, null);
     } catch (CameraAccessException e) {
-      e.printStackTrace();
+      logger.error("createCaptureSession failed", e);
     }
   }
 
@@ -157,7 +161,7 @@ public class Camera2ApiManager extends CameraDevice.StateCallback {
       captureRequestBuilder.set(CaptureRequest.CONTROL_MODE, CameraMetadata.CONTROL_MODE_AUTO);
       return captureRequestBuilder.build();
     } catch (CameraAccessException e) {
-      e.printStackTrace();
+      logger.error("CaptureRequest.Builder failed", e);
       return null;
     }
   }
@@ -170,7 +174,7 @@ public class Camera2ApiManager extends CameraDevice.StateCallback {
       //setFaceDetect(builder, faceDetectionMode);
       return builder.build();
     } catch (CameraAccessException | IllegalStateException e) {
-      Log.e(TAG, e.getMessage());
+      logger.error(e.getMessage());
       return null;
     }
   }
@@ -206,7 +210,7 @@ public class Camera2ApiManager extends CameraDevice.StateCallback {
           cameraCharacteristics.get(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP);
       return streamConfigurationMap.getOutputSizes(SurfaceTexture.class);
     } catch (CameraAccessException e) {
-      Log.e(TAG, e.getMessage());
+      logger.error(e.getMessage());
       return new Size[0];
     }
   }
@@ -222,7 +226,7 @@ public class Camera2ApiManager extends CameraDevice.StateCallback {
           cameraCharacteristics.get(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP);
       return streamConfigurationMap.getOutputSizes(SurfaceTexture.class);
     } catch (CameraAccessException e) {
-      Log.e(TAG, e.getMessage());
+      logger.error(e.getMessage());
       return new Size[0];
     }
   }
@@ -256,7 +260,7 @@ public class Camera2ApiManager extends CameraDevice.StateCallback {
       //  }
       //}
     } catch (CameraAccessException e) {
-      e.printStackTrace();
+      logger.error("openCameraFacing failed", e);
     }
   }
 
@@ -271,7 +275,7 @@ public class Camera2ApiManager extends CameraDevice.StateCallback {
   //  public void onCaptureCompleted(@NonNull CameraCaptureSession session,
   //      @NonNull CaptureRequest request, @NonNull TotalCaptureResult result) {
   //    Face face[] = result.get(CaptureResult.STATISTICS_FACES);
-  //    Log.e("Pedro", "faces: " + face.length);
+  //    logger.error("faces: {}", face.length);
   //  }
   //}
 
@@ -287,10 +291,10 @@ public class Camera2ApiManager extends CameraDevice.StateCallback {
             cameraManager.getCameraCharacteristics(Integer.toString(cameraId));
         isFrontCamera = (LENS_FACING_FRONT == cameraCharacteristics.get(CameraCharacteristics.LENS_FACING));
       } catch (CameraAccessException | SecurityException e) {
-        e.printStackTrace();
+        logger.error("openCamera failed", e);
       }
     } else {
-      Log.e(TAG, "Camera2ApiManager need be prepared, Camera2ApiManager not enabled");
+      logger.error("Camera2ApiManager need be prepared, Camera2ApiManager not enabled");
     }
   }
 
@@ -319,7 +323,7 @@ public class Camera2ApiManager extends CameraDevice.StateCallback {
               Collections.singletonList(drawPreview(surfaceEncoder)), null, cameraHandler);
         }
       } catch (Exception e) {
-        e.printStackTrace();
+        logger.error("closeCamera failed", e);
       }
     } else {
       if (cameraCaptureSession != null) {
@@ -342,18 +346,18 @@ public class Camera2ApiManager extends CameraDevice.StateCallback {
   public void onOpened(@NonNull CameraDevice cameraDevice) {
     this.cameraDevice = cameraDevice;
     startPreview(cameraDevice);
-    Log.i(TAG, "camera opened");
+    logger.info("camera opened");
   }
 
   @Override
   public void onDisconnected(@NonNull CameraDevice cameraDevice) {
     cameraDevice.close();
-    Log.i(TAG, "camera disconnected");
+    logger.info("camera disconnected");
   }
 
   @Override
   public void onError(@NonNull CameraDevice cameraDevice, int i) {
     cameraDevice.close();
-    Log.e(TAG, "open failed");
+    logger.error("open failed");
   }
 }

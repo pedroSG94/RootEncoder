@@ -20,6 +20,9 @@ package com.pedro.encoder.utils.gl.gif;
 
 import android.util.Log;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.nio.BufferUnderflowException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
@@ -30,7 +33,7 @@ import java.util.Arrays;
  * representing animated gifs.
  */
 public class GifHeaderParser {
-  public static final String TAG = "GifHeaderParser";
+  private final static Logger logger = LoggerFactory.getLogger(GifHeaderParser.class);
 
   // The minimum frame delay in hundredths of a second.
   static final int MIN_FRAME_DELAY = 2;
@@ -338,9 +341,7 @@ public class GifHeaderParser {
         tab[i++] = 0xff000000 | (r << 16) | (g << 8) | b;
       }
     } catch (BufferUnderflowException e) {
-      if (Log.isLoggable(TAG, Log.DEBUG)) {
-        Log.d(TAG, "Format Error Reading Color Table", e);
-      }
+      logger.debug("Format Error Reading Color Table", e);
       header.status = GifDecoder.STATUS_FORMAT_ERROR;
     }
 
@@ -389,10 +390,7 @@ public class GifHeaderParser {
           n += count;
         }
       } catch (Exception e) {
-        if (Log.isLoggable(TAG, Log.DEBUG)) {
-          Log.d(TAG,
-              "Error Reading Block n: " + n + " count: " + count + " blockSize: " + blockSize, e);
-        }
+        logger.debug("Error Reading Block n: {} count: {} blockSize: {}", n, count, blockSize, e);
         header.status = GifDecoder.STATUS_FORMAT_ERROR;
       }
     }

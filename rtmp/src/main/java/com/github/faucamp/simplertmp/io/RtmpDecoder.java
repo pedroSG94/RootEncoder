@@ -3,8 +3,6 @@ package com.github.faucamp.simplertmp.io;
 import java.io.IOException;
 import java.io.InputStream;
 
-import android.util.Log;
-
 import com.github.faucamp.simplertmp.packets.Abort;
 import com.github.faucamp.simplertmp.packets.Audio;
 import com.github.faucamp.simplertmp.packets.Command;
@@ -18,12 +16,15 @@ import com.github.faucamp.simplertmp.packets.Video;
 import com.github.faucamp.simplertmp.packets.WindowAckSize;
 import com.github.faucamp.simplertmp.packets.Acknowledgement;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 /**
  * @author francois
  */
 public class RtmpDecoder {
 
-    private static final String TAG = "RtmpDecoder";
+    private final static Logger logger = LoggerFactory.getLogger(RtmpDecoder.class);
 
     private RtmpSessionInfo rtmpSessionInfo;
 
@@ -34,7 +35,7 @@ public class RtmpDecoder {
     public RtmpPacket readPacket(InputStream in) throws IOException {
 
         RtmpHeader header = RtmpHeader.readHeader(in, rtmpSessionInfo);
-        // Log.d(TAG, "readPacket(): header.messageType: " + header.getMessageType());
+        // logger.debug("readPacket(): header.messageType: {}", header.getMessageType());
 
         ChunkStreamInfo chunkStreamInfo = rtmpSessionInfo.getChunkStreamInfo(header.getChunkStreamId());
         chunkStreamInfo.setPrevHeaderRx(header);
@@ -56,7 +57,7 @@ public class RtmpDecoder {
             case SET_CHUNK_SIZE:
                 SetChunkSize setChunkSize = new SetChunkSize(header);
                 setChunkSize.readBody(in);
-                Log.d(TAG, "readPacket(): Setting chunk size to: " + setChunkSize.getChunkSize());
+                logger.debug("readPacket(): Setting chunk size to: {}", setChunkSize.getChunkSize());
                 rtmpSessionInfo.setRxChunkSize(setChunkSize.getChunkSize());
                 return null;
             case ABORT:

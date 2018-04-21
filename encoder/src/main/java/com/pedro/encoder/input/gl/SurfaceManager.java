@@ -8,9 +8,12 @@ import android.opengl.EGLExt;
 import android.opengl.EGLSurface;
 import android.os.Build;
 import android.support.annotation.RequiresApi;
-import android.util.Log;
 import android.view.Surface;
+
 import com.pedro.encoder.utils.gl.GlUtil;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Created by pedro on 9/09/17.
@@ -18,6 +21,8 @@ import com.pedro.encoder.utils.gl.GlUtil;
 
 @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
 public class SurfaceManager {
+
+  private final static Logger logger = LoggerFactory.getLogger(SurfaceManager.class);
 
   private static final int EGL_RECORDABLE_ANDROID = 0x3142;
 
@@ -60,7 +65,7 @@ public class SurfaceManager {
 
   public void makeCurrent() {
     if (!EGL14.eglMakeCurrent(eglDisplay, eglSurface, eglSurface, eglContext)) {
-      Log.e("Error", "eglMakeCurrent failed");
+      logger.error("eglMakeCurrent failed");
     }
   }
 

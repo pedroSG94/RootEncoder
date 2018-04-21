@@ -2,8 +2,11 @@ package net.ossrs.rtmp;
 
 import android.media.MediaCodec;
 import android.os.Process;
-import android.util.Log;
 import com.github.faucamp.simplertmp.DefaultRtmpPublisher;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.concurrent.BlockingQueue;
@@ -44,8 +47,6 @@ import java.util.concurrent.LinkedBlockingQueue;
  */
 public class SrsFlvMuxer {
 
-  private static final String TAG = "SrsFlvMuxer";
-
   private static final int VIDEO_ALLOC_SIZE = 128 * 1024;
   private static final int AUDIO_ALLOC_SIZE = 4 * 1024;
   private volatile boolean connected = false;
@@ -62,6 +63,8 @@ public class SrsFlvMuxer {
   private int sampleRate = 44100;
   private boolean isPpsSpsSend = false;
   private byte profileIop = ProfileIop.BASELINE;
+
+  private final static Logger logger = LoggerFactory.getLogger(SrsFlvMuxer.class);
 
   /**
    * constructor.
@@ -115,12 +118,12 @@ public class SrsFlvMuxer {
     mVideoSequenceHeader = null;
     mAudioSequenceHeader = null;
     connectChecker.onDisconnectRtmp();
-    Log.i(TAG, "worker: disconnect ok.");
+    logger.info("worker: disconnect ok.");
   }
 
   private boolean connect(String url) {
     if (!connected) {
-      Log.i(TAG, String.format("worker: connecting to RTMP server by url=%s\n", url));
+      logger.info(String.format("worker: connecting to RTMP server by url=%s\n", url));
       if (publisher.connect(url)) {
         connected = publisher.publish("live");
       }
@@ -137,7 +140,7 @@ public class SrsFlvMuxer {
 
     if (frame.is_video()) {
       if (frame.is_keyframe()) {
-        Log.i(TAG,
+        logger.info(
             String.format("worker: send frame type=%d, dts=%d, size=%dB", frame.type, frame.dts,
                 frame.flvTag.array().length));
       }
@@ -204,7 +207,7 @@ public class SrsFlvMuxer {
     mFlvTagCache.clear();
     flv.reset();
     needToFindKeyFrame = true;
-    Log.i(TAG, "SrsFlvMuxer closed");
+    logger.info("SrsFlvMuxer closed");
 
     new Thread(new Runnable() {
       @Override
@@ -602,7 +605,7 @@ public class SrsFlvMuxer {
             isOnlyChkHeader ? searchStartcode(bb, size) : searchAnnexb(bb, size);
         // tbbsc.nb_start_code always 4 , after 00 00 00 01
         if (!tbbsc.match || tbbsc.nb_start_code < 3) {
-          Log.e(TAG, "annexb not match.");
+          logger.error("annexb not match.");
         } else {
           // the start codes.
           for (int i = 0; i < tbbsc.nb_start_code; i++) {
@@ -832,7 +835,7 @@ public class SrsFlvMuxer {
       isPpsSpsSend = true;
       // the timestamp in rtmp message header is dts.
       writeRtmpPacket(SrsCodecFlvTag.Video, pts, frame_type, avc_packet_type, video_tag);
-      Log.i(TAG, String.format("flv: h264 sps/pps sent, sps=%dB, pps=%dB", Sps.array().length,
+      logger.info(String.format("flv: h264 sps/pps sent, sps=%dB, pps=%dB", Sps.array().length,
           Pps.array().length));
     }
 
@@ -874,7 +877,7 @@ public class SrsFlvMuxer {
       try {
         mFlvTagCache.add(frame);
       } catch (IllegalStateException e) {
-        Log.i(TAG, "frame discarded");
+        logger.info("frame discarded");
       }
     }
   }

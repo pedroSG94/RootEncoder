@@ -3,8 +3,11 @@ package com.pedro.encoder.input.decoder;
 import android.media.MediaCodec;
 import android.media.MediaExtractor;
 import android.media.MediaFormat;
-import android.util.Log;
 import android.view.Surface;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.IOException;
 import java.nio.ByteBuffer;
 
@@ -13,7 +16,7 @@ import java.nio.ByteBuffer;
  */
 public class VideoDecoder {
 
-  private final String TAG = "VideoDecoder";
+  private final static Logger logger = LoggerFactory.getLogger(VideoDecoder.class);
 
   private VideoDecoderInterface videoDecoderInterface;
   private LoopFileInterface loopFileInterface;
@@ -69,7 +72,7 @@ public class VideoDecoder {
       videoDecoder.configure(videoFormat, surface, null, 0);
       return true;
     } catch (IOException e) {
-      Log.e(TAG, "Prepare decoder error:", e);
+      logger.error("Prepare decoder error:", e);
       return false;
     }
   }
@@ -139,7 +142,7 @@ public class VideoDecoder {
       }
       if ((videoInfo.flags & MediaCodec.BUFFER_FLAG_END_OF_STREAM) != 0) {
         seekTime = 0;
-        Log.i(TAG, "end of file out");
+        logger.info("end of file out");
         if (loopMode) {
           loopFileInterface.onReset(true);
         } else {

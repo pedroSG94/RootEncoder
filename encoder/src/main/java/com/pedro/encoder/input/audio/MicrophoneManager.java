@@ -3,8 +3,10 @@ package com.pedro.encoder.input.audio;
 import android.media.AudioFormat;
 import android.media.AudioRecord;
 import android.media.MediaRecorder;
-import android.util.Log;
 import com.pedro.encoder.audio.DataTaken;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Created by pedro on 19/01/17.
@@ -12,7 +14,7 @@ import com.pedro.encoder.audio.DataTaken;
 
 public class MicrophoneManager {
 
-  private final String TAG = "MicrophoneManager";
+  private final static Logger logger = LoggerFactory.getLogger(MicrophoneManager.class);
   public static final int BUFFER_SIZE = 4096;
   private AudioRecord audioRecord;
   private GetMicrophoneData getMicrophoneData;
@@ -37,7 +39,7 @@ public class MicrophoneManager {
    */
   public void createMicrophone() {
     createMicrophone(sampleRate, true, false, false);
-    Log.i(TAG, "Microphone created, " + sampleRate + "hz, Stereo");
+    logger.info("Microphone created, {}hz, Stereo", sampleRate);
   }
 
   /**
@@ -54,7 +56,7 @@ public class MicrophoneManager {
     if (echoCanceler) audioPostProcessEffect.enableEchoCanceler();
     if (noiseSuppressor) audioPostProcessEffect.enableNoiseSuppressor();
     String chl = (isStereo) ? "Stereo" : "Mono";
-    Log.i(TAG, "Microphone created, " + sampleRate + "hz, " + chl);
+    logger.info("Microphone created, {}hz, {}", sampleRate, chl);
     created = true;
   }
 
@@ -78,7 +80,7 @@ public class MicrophoneManager {
         }
       }).start();
     } else {
-      Log.e(TAG, "Microphone no created, MicrophoneManager not enabled");
+      logger.error("Microphone no created, MicrophoneManager not enabled");
     }
   }
 
@@ -86,9 +88,9 @@ public class MicrophoneManager {
     if (audioRecord != null) {
       audioRecord.startRecording();
       running = true;
-      Log.i(TAG, "Microphone started");
+      logger.info("Microphone started");
     } else {
-      Log.e(TAG, "Error starting, microphone was stopped or not created, "
+      logger.error("Error starting, microphone was stopped or not created, "
           + "use createMicrophone() before start()");
     }
   }
@@ -137,7 +139,7 @@ public class MicrophoneManager {
       audioPostProcessEffect.releaseEchoCanceler();
       audioPostProcessEffect.releaseNoiseSuppressor();
     }
-    Log.i(TAG, "Microphone stopped");
+    logger.info("Microphone stopped");
   }
 
   /**

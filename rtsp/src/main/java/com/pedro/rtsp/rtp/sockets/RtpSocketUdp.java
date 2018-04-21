@@ -1,8 +1,11 @@
 package com.pedro.rtsp.rtp.sockets;
 
-import android.util.Log;
 import com.pedro.rtsp.rtcp.SenderReportUdp;
 import com.pedro.rtsp.utils.ConnectCheckerRtsp;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.InetAddress;
@@ -15,6 +18,8 @@ import java.util.concurrent.TimeUnit;
  */
 
 public class RtpSocketUdp extends BaseRtpSocket implements Runnable {
+
+  private final static Logger logger = LoggerFactory.getLogger(RtpSocketUdp.class);
 
   private SenderReportUdp senderReportUdp;
   private MulticastSocket mSocket;
@@ -37,7 +42,7 @@ public class RtpSocketUdp extends BaseRtpSocket implements Runnable {
     try {
       mSocket = new MulticastSocket();
     } catch (IOException e) {
-      e.printStackTrace();
+      logger.error("MulticastSocket", e);
     }
   }
 
@@ -70,7 +75,7 @@ public class RtpSocketUdp extends BaseRtpSocket implements Runnable {
         senderReportUdp.setDestination(InetAddress.getByName(dest), rtcpPort);
       }
     } catch (UnknownHostException e) {
-      e.printStackTrace();
+      logger.error("setDestination", e);
     }
   }
 
@@ -87,7 +92,7 @@ public class RtpSocketUdp extends BaseRtpSocket implements Runnable {
         if (running) {
           senderReportUdp.update(packets[bufferOut].getLength(), timestamps[bufferOut], port);
           mSocket.send(packets[bufferOut]);
-          Log.i(TAG, "send packet, "
+          logger.info("send packet, "
               + packets[bufferOut].getLength()
               + " Size, "
               + packets[bufferOut].getPort()
@@ -97,7 +102,7 @@ public class RtpSocketUdp extends BaseRtpSocket implements Runnable {
         }
       }
     } catch (IOException | InterruptedException e) {
-      Log.e(TAG, "UDP send error: ", e);
+      logger.error("UDP send error: ", e);
       connectCheckerRtsp.onConnectionFailedRtsp("Error send packet, " + e.getMessage());
     }
     thread = null;

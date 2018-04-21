@@ -10,7 +10,6 @@ import android.media.MediaFormat;
 import android.media.MediaMuxer;
 import android.os.Build;
 import android.support.annotation.RequiresApi;
-import android.util.Log;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.TextureView;
@@ -36,6 +35,10 @@ import com.pedro.encoder.video.VideoEncoder;
 import com.pedro.rtplibrary.view.LightOpenGlView;
 import com.pedro.rtplibrary.view.OpenGlView;
 import com.pedro.rtplibrary.view.OpenGlViewBase;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.List;
@@ -57,7 +60,7 @@ public abstract class Camera1Base
     implements GetAacData, GetCameraData, GetH264Data, GetMicrophoneData, SurfaceHolder.Callback,
     TextureView.SurfaceTextureListener {
 
-  private static final String TAG = "Camera1Base";
+  private final Logger logger = LoggerFactory.getLogger(Camera1Base.class);
 
   private Context context;
   protected Camera1ApiManager cameraManager;
@@ -373,7 +376,7 @@ public abstract class Camera1Base
       }
       onPreview = true;
     } else {
-      Log.e(TAG, "Streaming or preview started, ignored");
+      logger.error("Streaming or preview started, ignored");
     }
   }
 
@@ -421,7 +424,7 @@ public abstract class Camera1Base
       cameraManager.stop();
       onPreview = false;
     } else {
-      Log.e(TAG, "Streaming or preview stopped, ignored");
+      logger.error("Streaming or preview stopped, ignored");
     }
   }
 

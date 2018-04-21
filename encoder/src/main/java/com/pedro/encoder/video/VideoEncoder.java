@@ -10,13 +10,16 @@ import android.media.MediaFormat;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.RequiresApi;
-import android.util.Log;
 import android.util.Pair;
 import android.view.Surface;
 import com.pedro.encoder.input.video.Frame;
 import com.pedro.encoder.input.video.GetCameraData;
 import com.pedro.encoder.utils.CodecUtil;
 import com.pedro.encoder.utils.YUVUtil;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.List;
@@ -30,7 +33,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 
 public class VideoEncoder implements GetCameraData {
 
-  private String TAG = "VideoEncoder";
+  private final static Logger logger = LoggerFactory.getLogger(VideoEncoder.class);
   private MediaCodec videoEncoder;
   private Thread thread;
   private GetH264Data getH264Data;
@@ -82,12 +85,12 @@ public class VideoEncoder implements GetCameraData {
         if (this.formatVideoEncoder == FormatVideoEncoder.YUV420Dynamical) {
           this.formatVideoEncoder = chooseColorDynamically(encoder);
           if (this.formatVideoEncoder == null) {
-            Log.e(TAG, "YUV420 dynamical choose failed");
+            logger.error("YUV420 dynamical choose failed");
             return false;
           }
         }
       } else {
-        Log.e(TAG, "Valid encoder not found");
+        logger.error("Valid encoder not found");
         return false;
       }
       MediaFormat videoFormat;
@@ -116,7 +119,7 @@ public class VideoEncoder implements GetCameraData {
       prepareBlackImage();
       return true;
     } catch (IOException | IllegalStateException e) {
-      Log.e(TAG, "create videoEncoder failed.", e);
+      logger.error("create videoEncoder failed.", e);
       return false;
     }
   }
@@ -151,8 +154,7 @@ public class VideoEncoder implements GetCameraData {
       try {
         videoEncoder.setParameters(bundle);
       } catch (IllegalStateException e) {
-        Log.e(TAG, "encoder need be running");
-        e.printStackTrace();
+        logger.error("encoder need be running", e);
       }
     }
   }
@@ -250,7 +252,7 @@ public class VideoEncoder implements GetCameraData {
         }
         running = true;
       } else {
-        Log.e(TAG, "VideoEncoder need be prepared, VideoEncoder not enabled");
+        logger.error("VideoEncoder need be prepared, VideoEncoder not enabled");
       }
     }
   }
@@ -294,7 +296,7 @@ public class VideoEncoder implements GetCameraData {
         try {
           queue.add(frame);
         } catch (IllegalStateException e) {
-          Log.i(TAG, "frame discarded");
+          logger.info("frame discarded");
         }
       }
     }
@@ -473,10 +475,10 @@ public class VideoEncoder implements GetCameraData {
       mediaCodecInfoList = CodecUtil.getAllEncoders(mime);
     }
     for (MediaCodecInfo mci : mediaCodecInfoList) {
-      Log.i(TAG, String.format("VideoEncoder %s", mci.getName()));
+      logger.info(String.format("VideoEncoder %s", mci.getName()));
       MediaCodecInfo.CodecCapabilities codecCapabilities = mci.getCapabilitiesForType(mime);
       for (int color : codecCapabilities.colorFormats) {
-        Log.i(TAG, "Color supported: " + color);
+        logger.info("Color supported: {}", color);
         //check if encoder support any yuv420 color
         if (color == FormatVideoEncoder.YUV420PLANAR.getFormatCodec()
             || color == FormatVideoEncoder.YUV420SEMIPLANAR.getFormatCodec()
@@ -508,8 +510,7 @@ public class VideoEncoder implements GetCameraData {
         try {
           videoEncoder.setParameters(bundle);
         } catch (IllegalStateException e) {
-          Log.e(TAG, "encoder need be running");
-          e.printStackTrace();
+          logger.error("encoder need be running", e);
         }
       }
     }
