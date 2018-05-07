@@ -412,7 +412,7 @@ public class RtmpConnection implements RtmpPublisher {
       if (rxPacketHandler != null) {
         rxPacketHandler.interrupt();
         try {
-          rxPacketHandler.join();
+          rxPacketHandler.join(1000);
         } catch (InterruptedException ie) {
           rxPacketHandler.interrupt();
         }

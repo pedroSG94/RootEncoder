@@ -92,6 +92,7 @@ public class OpenGlRtspActivity extends AppCompatActivity
     etUrl.setHint(R.string.hint_rtsp);
     rtspCamera1 = new RtspCamera1(openGlView, this);
     openGlView.getHolder().addCallback(this);
+    //openGlView.setKeepAspectRatio(true);
   }
 
   @Override

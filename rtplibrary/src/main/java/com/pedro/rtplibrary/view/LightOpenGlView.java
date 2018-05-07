@@ -18,6 +18,7 @@ import com.pedro.encoder.input.gl.render.SimpleCameraRender;
 public class LightOpenGlView extends OpenGlViewBase {
 
   private SimpleCameraRender simpleCameraRender = null;
+  private boolean keepAspectRatio = false;
 
   public LightOpenGlView(Context context) {
     super(context);
@@ -34,6 +35,14 @@ public class LightOpenGlView extends OpenGlViewBase {
     initialized = true;
   }
 
+  public boolean isKeepAspectRatio() {
+    return keepAspectRatio;
+  }
+
+  public void setKeepAspectRatio(boolean keepAspectRatio) {
+    this.keepAspectRatio = keepAspectRatio;
+  }
+
   @Override
   public SurfaceTexture getSurfaceTexture() {
     return simpleCameraRender.getSurfaceTexture();
@@ -48,9 +57,9 @@ public class LightOpenGlView extends OpenGlViewBase {
   public void run() {
     surfaceManager = new SurfaceManager(getHolder().getSurface());
     surfaceManager.makeCurrent();
+    simpleCameraRender.setStreamSize(encoderWidth, encoderHeight);
     simpleCameraRender.isCamera2LandScape(isCamera2Landscape);
     simpleCameraRender.initGl(getContext());
-    if (onRotateResolution != null) onRotateResolution.onStartChangeResolution();
     simpleCameraRender.getSurfaceTexture().setOnFrameAvailableListener(this);
     semaphore.release();
     try {
@@ -60,17 +69,14 @@ public class LightOpenGlView extends OpenGlViewBase {
           if (frameAvailable) {
             frameAvailable = false;
             surfaceManager.makeCurrent();
-
             simpleCameraRender.updateFrame();
-            if (rotate) simpleCameraRender.drawFrame(rotatedPreviewWidth, rotatedPreviewHeight);
-            else simpleCameraRender.drawFrame(previewWidth, previewHeight);
+            simpleCameraRender.drawFrame(previewWidth, previewHeight, keepAspectRatio);
             surfaceManager.swapBuffer();
 
             synchronized (sync) {
               if (surfaceManagerEncoder != null) {
                 surfaceManagerEncoder.makeCurrent();
-                if (rotate) simpleCameraRender.drawFrame(rotatedEncoderWidth, rotatedEncoderHeight);
-                else simpleCameraRender.drawFrame(encoderWidth, encoderHeight);
+                simpleCameraRender.drawFrame(encoderWidth, encoderHeight, false);
                 long ts = simpleCameraRender.getSurfaceTexture().getTimestamp();
                 surfaceManagerEncoder.setPresentationTime(ts);
                 surfaceManagerEncoder.swapBuffer();

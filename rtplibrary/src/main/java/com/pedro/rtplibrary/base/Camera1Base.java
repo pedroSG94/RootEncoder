@@ -3,7 +3,6 @@ package com.pedro.rtplibrary.base;
 import android.content.Context;
 import android.graphics.ImageFormat;
 import android.graphics.PointF;
-import android.graphics.SurfaceTexture;
 import android.hardware.Camera;
 import android.media.MediaCodec;
 import android.media.MediaFormat;
@@ -11,7 +10,6 @@ import android.media.MediaMuxer;
 import android.os.Build;
 import android.support.annotation.RequiresApi;
 import android.util.Log;
-import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.TextureView;
 import com.pedro.encoder.audio.AudioEncoder;
@@ -54,8 +52,7 @@ import java.util.List;
  */
 
 public abstract class Camera1Base
-    implements GetAacData, GetCameraData, GetH264Data, GetMicrophoneData, SurfaceHolder.Callback,
-    TextureView.SurfaceTextureListener {
+    implements GetAacData, GetCameraData, GetH264Data, GetMicrophoneData {
 
   private static final String TAG = "Camera1Base";
 
@@ -79,7 +76,6 @@ public abstract class Camera1Base
   private boolean onPreview = false;
   private MediaFormat videoFormat;
   private MediaFormat audioFormat;
-  private boolean onChangeOrientation = false;
 
   public Camera1Base(SurfaceView surfaceView) {
     this.surfaceView = surfaceView;
@@ -121,65 +117,6 @@ public abstract class Camera1Base
     videoEncoder = new VideoEncoder(this);
     microphoneManager = new MicrophoneManager(this);
     audioEncoder = new AudioEncoder(this);
-  }
-
-  public void refreshView(SurfaceView surfaceView) {
-    surfaceView.getHolder().addCallback(this);
-    onChangeOrientation();
-    cameraManager = new Camera1ApiManager(surfaceView, this);
-  }
-
-  public void refreshView(TextureView textureView) {
-    textureView.setSurfaceTextureListener(this);
-    onChangeOrientation();
-    cameraManager = new Camera1ApiManager(textureView, this);
-  }
-
-  @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
-  public void refreshView(OpenGlView openGlView) {
-    openGlView.rotated();
-    openGlView.getHolder().addCallback(this);
-    onChangeOrientation();
-    this.openGlView = openGlView;
-    this.openGlViewBase = openGlView;
-  }
-
-  @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
-  public void refreshView(LightOpenGlView lightOpenGlView) {
-    lightOpenGlView.rotated();
-    lightOpenGlView.getHolder().addCallback(this);
-    onChangeOrientation();
-    this.openGlViewBase = lightOpenGlView;
-  }
-
-  public boolean isOnChangeOrientation() {
-    return onChangeOrientation;
-  }
-
-  public void setOnChangeOrientation(boolean onChangeOrientation) {
-    this.onChangeOrientation = onChangeOrientation;
-  }
-
-  private void onChangeOrientation() {
-    if (openGlViewBase != null && Build.VERSION.SDK_INT >= 18) {
-      openGlViewBase.removeMediaCodecSurface();
-      openGlViewBase.stopGlThread();
-    }
-    cameraManager.stop();
-  }
-
-  private void onChanged() {
-    prepareGlView();
-    if (surfaceView != null || textureView != null) {
-      cameraManager.prepareCamera(videoEncoder.getWidth(), videoEncoder.getHeight(),
-          videoEncoder.getFps(), ImageFormat.NV21);
-    }
-    int orientation = (context.getResources().getConfiguration().orientation == 1) ? 90 : 0;
-    cameraManager.setPreviewOrientation(orientation);
-    cameraManager.start();
-    if (openGlViewBase != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
-      openGlViewBase.setCameraFace(cameraManager.isFrontCamera());
-    }
   }
 
   /**
@@ -358,7 +295,20 @@ public abstract class Camera1Base
   public void startPreview(@Camera1Facing int cameraFacing, int width, int height) {
     if (!isStreaming() && !onPreview) {
       if (openGlViewBase != null && Build.VERSION.SDK_INT >= 18) {
-        openGlViewBase.setEncoderSize(videoEncoder.getWidth(), videoEncoder.getHeight());
+        boolean isPortrait = context.getResources().getConfiguration().orientation == 1;
+        if (isPortrait) {
+          if (width == 0 || height == 0) {
+            openGlViewBase.setEncoderSize(videoEncoder.getHeight(), videoEncoder.getWidth());
+          } else {
+            openGlViewBase.setEncoderSize(height, width);
+          }
+        } else {
+          if (width == 0 || height == 0) {
+            openGlViewBase.setEncoderSize(videoEncoder.getWidth(), videoEncoder.getHeight());
+          } else {
+            openGlViewBase.setEncoderSize(width, height);
+          }
+        }
         openGlViewBase.startGLThread(false);
         cameraManager.setSurfaceTexture(openGlViewBase.getSurfaceTexture());
       }
@@ -866,39 +816,5 @@ public abstract class Camera1Base
   @Override
   public void onAudioFormat(MediaFormat mediaFormat) {
     audioFormat = mediaFormat;
-  }
-
-  @Override
-  public void surfaceCreated(SurfaceHolder surfaceHolder) {
-
-  }
-
-  @Override
-  public void surfaceChanged(SurfaceHolder surfaceHolder, int i, int i1, int i2) {
-    if (isOnChangeOrientation()) onChanged();
-  }
-
-  @Override
-  public void surfaceDestroyed(SurfaceHolder surfaceHolder) {
-  }
-
-  @Override
-  public void onSurfaceTextureAvailable(SurfaceTexture surfaceTexture, int i, int i1) {
-
-  }
-
-  @Override
-  public void onSurfaceTextureSizeChanged(SurfaceTexture surfaceTexture, int i, int i1) {
-    if (isOnChangeOrientation()) onChanged();
-  }
-
-  @Override
-  public boolean onSurfaceTextureDestroyed(SurfaceTexture surfaceTexture) {
-    return false;
-  }
-
-  @Override
-  public void onSurfaceTextureUpdated(SurfaceTexture surfaceTexture) {
-
   }
 }

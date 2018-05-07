@@ -92,6 +92,7 @@ public class OpenGlRtmpActivity extends AppCompatActivity
     etUrl.setHint(R.string.hint_rtmp);
     rtmpCamera1 = new RtmpCamera1(openGlView, this);
     openGlView.getHolder().addCallback(this);
+    //openGlView.setKeepAspectRatio(true);
   }
 
   @Override

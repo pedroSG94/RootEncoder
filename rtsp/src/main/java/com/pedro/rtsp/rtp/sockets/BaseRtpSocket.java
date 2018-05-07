@@ -87,7 +87,7 @@ public abstract class BaseRtpSocket implements Runnable {
     } catch (InterruptedException ignored) {
       Thread.currentThread().interrupt();
       try {
-        Thread.currentThread().join();
+        Thread.currentThread().join(1000);
       } catch (InterruptedException e) {
         Thread.currentThread().interrupt();
       }

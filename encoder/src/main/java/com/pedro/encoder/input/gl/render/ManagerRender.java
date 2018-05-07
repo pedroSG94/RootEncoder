@@ -57,8 +57,8 @@ public class ManagerRender {
     baseFilterRender.draw();
   }
 
-  public void drawScreen(int width, int height) {
-    screenRender.draw(width, height);
+  public void drawScreen(int width, int height, boolean keepAspectRatio) {
+    screenRender.draw(width, height, keepAspectRatio);
   }
 
   public void release() {
@@ -135,6 +135,7 @@ public class ManagerRender {
 
   public void setStreamSize(int encoderWidth, int encoderHeight) {
     streamObjectRender.setStreamSize(encoderWidth, encoderHeight);
+    screenRender.setStreamSize(encoderWidth, encoderHeight);
   }
 
   public void faceChanged(boolean isFrontCamera) {

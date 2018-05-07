@@ -40,6 +40,7 @@ public class OpenGlView extends OpenGlViewBase {
   private float positionX, positionY;
   private boolean AAEnabled = false;
   private TranslateTo positionTo;
+  private boolean keepAspectRatio = false;
 
   public OpenGlView(Context context) {
     super(context);
@@ -126,6 +127,14 @@ public class OpenGlView extends OpenGlViewBase {
     loadAA = true;
   }
 
+  public boolean isKeepAspectRatio() {
+    return keepAspectRatio;
+  }
+
+  public void setKeepAspectRatio(boolean keepAspectRatio) {
+    this.keepAspectRatio = keepAspectRatio;
+  }
+
   public boolean isAAEnabled() {
     return managerRender != null && managerRender.isAAEnabled();
   }
@@ -152,7 +161,6 @@ public class OpenGlView extends OpenGlViewBase {
     surfaceManager.makeCurrent();
     managerRender.setStreamSize(encoderWidth, encoderHeight);
     managerRender.initGl(previewWidth, previewHeight, isCamera2Landscape, getContext());
-    if (onRotateResolution != null) onRotateResolution.onStartChangeResolution();
     managerRender.getSurfaceTexture().setOnFrameAvailableListener(this);
     semaphore.release();
     try {
@@ -178,8 +186,7 @@ public class OpenGlView extends OpenGlViewBase {
             }
             managerRender.updateFrame();
             managerRender.drawOffScreen();
-            if (rotate) managerRender.drawScreen(rotatedPreviewWidth, rotatedPreviewHeight);
-            else managerRender.drawScreen(previewWidth, previewHeight);
+            managerRender.drawScreen(previewWidth, previewHeight, keepAspectRatio);
             surfaceManager.swapBuffer();
             //stream object loaded but you need reset surfaceManagerEncoder
             synchronized (sync) {
@@ -192,8 +199,7 @@ public class OpenGlView extends OpenGlViewBase {
                   continue;
                 }
                 surfaceManagerEncoder.makeCurrent();
-                if (rotate) managerRender.drawScreen(rotatedEncoderWidth, rotatedEncoderHeight);
-                else managerRender.drawScreen(encoderWidth, encoderHeight);
+                managerRender.drawScreen(encoderWidth, encoderHeight, false);
                 long ts = managerRender.getSurfaceTexture().getTimestamp();
                 surfaceManagerEncoder.setPresentationTime(ts);
                 surfaceManagerEncoder.swapBuffer();

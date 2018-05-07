@@ -261,7 +261,7 @@ public class VideoEncoder implements GetCameraData {
       if (thread != null) {
         thread.interrupt();
         try {
-          thread.join();
+          thread.join(1000);
         } catch (InterruptedException e) {
           thread.interrupt();
         }

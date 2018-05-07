@@ -63,6 +63,9 @@ public class SimpleCameraRender {
   private SurfaceTexture surfaceTexture;
   private Surface surface;
   private boolean isFrontCamera = false;
+  private int streamWidth;
+  private int streamHeight;
+  private boolean isLandscape;
 
   public SimpleCameraRender() {
     Matrix.setIdentityM(MVPMatrix, 0);
@@ -96,11 +99,21 @@ public class SimpleCameraRender {
     surfaceTexture.updateTexImage();
   }
 
-  public void drawFrame(int width, int height) {
+  public void drawFrame(int width, int height, boolean keepAspectRatio) {
     GlUtil.checkGlError("drawFrame start");
     surfaceTexture.getTransformMatrix(STMatrix);
 
-    GLES20.glViewport(0, 0, width, height);
+    if (keepAspectRatio) {
+      if (width > height) { //landscape
+        int realWidth = height * streamWidth / streamHeight;
+        GLES20.glViewport((width - realWidth) / 2, 0, realWidth, height);
+      } else { //portrait
+        int realHeight = width * streamHeight / streamWidth;
+        GLES20.glViewport(0, (height - realHeight) / 2, width, realHeight);
+      }
+    } else {
+      GLES20.glViewport(0, 0, width, height);
+    }
     GLES20.glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
     GLES20.glClear(GLES20.GL_DEPTH_BUFFER_BIT | GLES20.GL_COLOR_BUFFER_BIT);
 
@@ -118,7 +131,7 @@ public class SimpleCameraRender {
 
     GLES20.glUniformMatrix4fv(uMVPMatrixHandle, 1, false, MVPMatrix, 0);
     GLES20.glUniformMatrix4fv(uSTMatrixHandle, 1, false, STMatrix, 0);
-    GLES20.glUniform1f(uIsFrontCameraHandle, isFrontCamera ? 1f : 0f);
+    GLES20.glUniform1f(uIsFrontCameraHandle, isFrontCamera && isLandscape ? 1f : 0f);
     //camera
     GLES20.glActiveTexture(GLES20.GL_TEXTURE0);
     GLES20.glBindTexture(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, textureID);
@@ -131,6 +144,7 @@ public class SimpleCameraRender {
    * Initializes GL state.  Call this after the EGL surface has been created and made current.
    */
   public void initGl(Context context) {
+    isLandscape = context.getResources().getConfiguration().orientation != 1;
     GlUtil.checkGlError("initGl start");
     String vertexShader = GlUtil.getStringFromRaw(context, R.raw.simple_vertex);
     String fragmentShader = GlUtil.getStringFromRaw(context, R.raw.camera_fragment);
@@ -158,5 +172,10 @@ public class SimpleCameraRender {
 
   public void faceChanged(boolean isFrontCamera) {
     this.isFrontCamera = isFrontCamera;
+  }
+
+  public void setStreamSize(int streamWidth, int streamHeight) {
+    this.streamWidth = streamWidth;
+    this.streamHeight = streamHeight;
   }
 }

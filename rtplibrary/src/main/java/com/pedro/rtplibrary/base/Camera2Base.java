@@ -2,7 +2,6 @@ package com.pedro.rtplibrary.base;
 
 import android.content.Context;
 import android.graphics.PointF;
-import android.graphics.SurfaceTexture;
 import android.hardware.camera2.CameraCharacteristics;
 import android.media.MediaCodec;
 import android.media.MediaFormat;
@@ -11,7 +10,6 @@ import android.os.Build;
 import android.support.annotation.RequiresApi;
 import android.util.Size;
 import android.view.Surface;
-import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.TextureView;
 import com.pedro.encoder.audio.AudioEncoder;
@@ -50,9 +48,7 @@ import java.util.List;
  * Created by pedro on 7/07/17.
  */
 @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
-public abstract class Camera2Base
-    implements GetAacData, GetH264Data, GetMicrophoneData, SurfaceHolder.Callback,
-    TextureView.SurfaceTextureListener {
+public abstract class Camera2Base implements GetAacData, GetH264Data, GetMicrophoneData {
 
   protected Context context;
   protected Camera2ApiManager cameraManager;
@@ -123,60 +119,6 @@ public abstract class Camera2Base
     videoEncoder = new VideoEncoder(this);
     microphoneManager = new MicrophoneManager(this);
     audioEncoder = new AudioEncoder(this);
-  }
-
-  public void refreshView(SurfaceView surfaceView) {
-    surfaceView.getHolder().addCallback(this);
-    onChangeOrientation();
-    cameraManager = new Camera2ApiManager(context);
-    this.surfaceView = surfaceView;
-  }
-
-  public void refreshView(TextureView textureView) {
-    textureView.setSurfaceTextureListener(this);
-    onChangeOrientation();
-    cameraManager = new Camera2ApiManager(context);
-    this.textureView = textureView;
-  }
-
-  public void refreshView(OpenGlView openGlView) {
-    openGlView.rotated();
-    openGlView.getHolder().addCallback(this);
-    onChangeOrientation();
-    this.openGlView = openGlView;
-    this.openGlViewBase = openGlView;
-  }
-
-  public void refreshView(LightOpenGlView lightOpenGlView) {
-    lightOpenGlView.rotated();
-    lightOpenGlView.getHolder().addCallback(this);
-    onChangeOrientation();
-    this.openGlViewBase = lightOpenGlView;
-  }
-
-  public boolean isOnChangeOrientation() {
-    return onChangeOrientation;
-  }
-
-  public void setOnChangeOrientation(boolean onChangeOrientation) {
-    this.onChangeOrientation = onChangeOrientation;
-  }
-
-  private void onChangeOrientation() {
-    if (openGlViewBase != null && Build.VERSION.SDK_INT >= 18) {
-      openGlViewBase.removeMediaCodecSurface();
-      openGlViewBase.stopGlThread();
-    }
-    cameraManager.closeCamera(false);
-  }
-
-  private void onChanged() {
-    prepareGlView(true);
-    prepareCameraManager();
-    cameraManager.openLastCamera();
-    if (openGlViewBase != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
-      openGlViewBase.setCameraFace(cameraManager.isFrontCamera());
-    }
   }
 
   /**
@@ -350,7 +292,8 @@ public abstract class Camera2Base
         cameraManager.prepareCamera(new Surface(textureView.getSurfaceTexture()));
       } else if (openGlViewBase != null) {
         boolean isCamera2Lanscape = context.getResources().getConfiguration().orientation != 1;
-        openGlViewBase.setEncoderSize(videoEncoder.getWidth(), videoEncoder.getHeight());
+        if (isCamera2Lanscape) openGlViewBase.setEncoderSize(videoEncoder.getWidth(), videoEncoder.getHeight());
+        else openGlViewBase.setEncoderSize(videoEncoder.getHeight(), videoEncoder.getWidth());
         openGlViewBase.startGLThread(isCamera2Lanscape);
         cameraManager.prepareCamera(openGlViewBase.getSurfaceTexture(), videoEncoder.getWidth(),
             videoEncoder.getHeight());
@@ -806,39 +749,5 @@ public abstract class Camera2Base
   @Override
   public void onAudioFormat(MediaFormat mediaFormat) {
     audioFormat = mediaFormat;
-  }
-
-  @Override
-  public void surfaceCreated(SurfaceHolder surfaceHolder) {
-
-  }
-
-  @Override
-  public void surfaceChanged(SurfaceHolder surfaceHolder, int i, int i1, int i2) {
-    if (isOnChangeOrientation()) onChanged();
-  }
-
-  @Override
-  public void surfaceDestroyed(SurfaceHolder surfaceHolder) {
-  }
-
-  @Override
-  public void onSurfaceTextureAvailable(SurfaceTexture surfaceTexture, int i, int i1) {
-
-  }
-
-  @Override
-  public void onSurfaceTextureSizeChanged(SurfaceTexture surfaceTexture, int i, int i1) {
-    if (isOnChangeOrientation()) onChanged();
-  }
-
-  @Override
-  public boolean onSurfaceTextureDestroyed(SurfaceTexture surfaceTexture) {
-    return false;
-  }
-
-  @Override
-  public void onSurfaceTextureUpdated(SurfaceTexture surfaceTexture) {
-
   }
 }

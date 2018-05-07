@@ -44,12 +44,15 @@ public class ScreenRender {
   private int uResolutionHandle = -1;
   private int uAAEnabledHandle = -1;
 
+  private int streamWidth;
+  private int streamHeight;
+
   public ScreenRender() {
-    squareVertex = ByteBuffer.allocateDirect(
-        squareVertexData.length * BaseRenderOffScreen.FLOAT_SIZE_BYTES)
-        .order(ByteOrder.nativeOrder())
-        .asFloatBuffer();
-      squareVertex.put(squareVertexData).position(0);
+    squareVertex =
+        ByteBuffer.allocateDirect(squareVertexData.length * BaseRenderOffScreen.FLOAT_SIZE_BYTES)
+            .order(ByteOrder.nativeOrder())
+            .asFloatBuffer();
+    squareVertex.put(squareVertexData).position(0);
     Matrix.setIdentityM(MVPMatrix, 0);
     Matrix.setIdentityM(STMatrix, 0);
   }
@@ -72,10 +75,20 @@ public class ScreenRender {
     GlUtil.checkGlError("initGl end");
   }
 
-  public void draw(int width, int height) {
+  public void draw(int width, int height, boolean keepAspectRatio) {
     GlUtil.checkGlError("drawScreen start");
 
-    GLES20.glViewport(0, 0, width, height);
+    if (keepAspectRatio) {
+      if (width > height) { //landscape
+        int realWidth = height * streamWidth / streamHeight;
+        GLES20.glViewport((width - realWidth) / 2, 0, realWidth, height);
+      } else { //portrait
+        int realHeight = width * streamHeight / streamWidth;
+        GLES20.glViewport(0, (height - realHeight) / 2, width, realHeight);
+      }
+    } else {
+      GLES20.glViewport(0, 0, width, height);
+    }
     GLES20.glUseProgram(program);
 
     squareVertex.position(BaseRenderOffScreen.SQUARE_VERTEX_DATA_POS_OFFSET);
@@ -115,5 +128,10 @@ public class ScreenRender {
 
   public boolean isAAEnabled() {
     return AAEnabled;
+  }
+
+  public void setStreamSize(int streamWidth, int streamHeight) {
+    this.streamWidth = streamWidth;
+    this.streamHeight = streamHeight;
   }
 }
