@@ -47,8 +47,8 @@ public class RtspCamera2 extends Camera2Base {
     rtspClient = new RtspClient(connectCheckerRtsp);
   }
 
-  public RtspCamera2(Context context, ConnectCheckerRtsp connectCheckerRtsp) {
-    super(context);
+  public RtspCamera2(Context context, boolean useOpengl, ConnectCheckerRtsp connectCheckerRtsp) {
+    super(context, useOpengl);
     rtspClient = new RtspClient(connectCheckerRtsp);
   }
 

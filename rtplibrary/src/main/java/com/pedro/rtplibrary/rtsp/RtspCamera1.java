@@ -1,5 +1,6 @@
 package com.pedro.rtplibrary.rtsp;
 
+import android.content.Context;
 import android.media.MediaCodec;
 import android.os.Build;
 import android.support.annotation.RequiresApi;
@@ -43,6 +44,12 @@ public class RtspCamera1 extends Camera1Base {
   @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
   public RtspCamera1(LightOpenGlView lightOpenGlView, ConnectCheckerRtsp connectCheckerRtsp) {
     super(lightOpenGlView);
+    rtspClient = new RtspClient(connectCheckerRtsp);
+  }
+
+  @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
+  public RtspCamera1(Context context, ConnectCheckerRtsp connectCheckerRtsp) {
+    super(context);
     rtspClient = new RtspClient(connectCheckerRtsp);
   }
 

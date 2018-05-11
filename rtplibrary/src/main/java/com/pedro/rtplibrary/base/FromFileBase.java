@@ -204,7 +204,7 @@ public abstract class FromFileBase
   public void startStream(String url) {
     startStreamRtp(url);
     if (context != null) {
-      offScreenGlThread.start();
+      offScreenGlThread.start(false);
       offScreenGlThread.addMediaCodecSurface(videoEncoder.getInputSurface());
       videoDecoder.prepareVideo(offScreenGlThread.getSurface());
     }
@@ -596,7 +596,7 @@ public abstract class FromFileBase
             throw new IOException("fail to reset video file");
           }
           if (context != null) {
-            offScreenGlThread.start();
+            offScreenGlThread.start(false);
             offScreenGlThread.addMediaCodecSurface(videoEncoder.getInputSurface());
             videoDecoder.prepareVideo(offScreenGlThread.getSurface());
           } else {

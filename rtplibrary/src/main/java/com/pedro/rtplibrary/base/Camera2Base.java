@@ -28,6 +28,7 @@ import com.pedro.encoder.utils.gl.TranslateTo;
 import com.pedro.encoder.video.FormatVideoEncoder;
 import com.pedro.encoder.video.GetH264Data;
 import com.pedro.encoder.video.VideoEncoder;
+import com.pedro.rtplibrary.OffScreenGlThread;
 import com.pedro.rtplibrary.view.LightOpenGlView;
 import com.pedro.rtplibrary.view.OpenGlView;
 import com.pedro.rtplibrary.view.OpenGlViewBase;
@@ -70,8 +71,9 @@ public abstract class Camera2Base implements GetAacData, GetH264Data, GetMicroph
   private boolean onPreview = false;
   private MediaFormat videoFormat;
   private MediaFormat audioFormat;
-  private boolean onChangeOrientation = false;
   private boolean isBackground = false;
+  private boolean isBackgroundOpengl = false;
+  private OffScreenGlThread offScreenGlThread;
 
   public Camera2Base(SurfaceView surfaceView) {
     this.surfaceView = surfaceView;
@@ -112,8 +114,9 @@ public abstract class Camera2Base implements GetAacData, GetH264Data, GetMicroph
     audioEncoder = new AudioEncoder(this);
   }
 
-  public Camera2Base(Context context) {
+  public Camera2Base(Context context, boolean useOpengl) {
     this.context = context;
+    this.isBackgroundOpengl = useOpengl;
     isBackground = true;
     cameraManager = new Camera2ApiManager(context);
     videoEncoder = new VideoEncoder(this);
@@ -285,16 +288,19 @@ public abstract class Camera2Base implements GetAacData, GetH264Data, GetMicroph
    * {@link android.hardware.camera2.CameraMetadata#LENS_FACING_FRONT}
    */
   public void startPreview(@Camera2Facing int cameraFacing) {
-    if (!isStreaming() && !onPreview) {
+    if (!isStreaming() && !onPreview && !isBackground) {
       if (surfaceView != null) {
         cameraManager.prepareCamera(surfaceView.getHolder().getSurface());
       } else if (textureView != null) {
         cameraManager.prepareCamera(new Surface(textureView.getSurfaceTexture()));
       } else if (openGlViewBase != null) {
-        boolean isCamera2Lanscape = context.getResources().getConfiguration().orientation != 1;
-        if (isCamera2Lanscape) openGlViewBase.setEncoderSize(videoEncoder.getWidth(), videoEncoder.getHeight());
-        else openGlViewBase.setEncoderSize(videoEncoder.getHeight(), videoEncoder.getWidth());
-        openGlViewBase.startGLThread(isCamera2Lanscape);
+        boolean isCamera2Landscape = context.getResources().getConfiguration().orientation != 1;
+        if (isCamera2Landscape) {
+          openGlViewBase.setEncoderSize(videoEncoder.getWidth(), videoEncoder.getHeight());
+        } else {
+          openGlViewBase.setEncoderSize(videoEncoder.getHeight(), videoEncoder.getWidth());
+        }
+        openGlViewBase.startGLThread(isCamera2Landscape);
         cameraManager.prepareCamera(openGlViewBase.getSurfaceTexture(), videoEncoder.getWidth(),
             videoEncoder.getHeight());
       }
@@ -320,7 +326,7 @@ public abstract class Camera2Base implements GetAacData, GetH264Data, GetMicroph
    * You need call it after @stopStream to release camera properly if you will close activity.
    */
   public void stopPreview() {
-    if (!isStreaming() && onPreview) {
+    if (!isStreaming() && onPreview && !isBackground) {
       if (openGlViewBase != null) {
         openGlViewBase.stopGlThread();
       }
@@ -380,6 +386,22 @@ public abstract class Camera2Base implements GetAacData, GetH264Data, GetMicroph
       }
       cameraManager.prepareCamera(openGlViewBase.getSurfaceTexture(), videoEncoder.getWidth(),
           videoEncoder.getHeight());
+    } else if (isBackgroundOpengl && videoEnabled) {
+      if (videoEncoder.getRotation() == 90 || videoEncoder.getRotation() == 270) {
+        offScreenGlThread =
+            new OffScreenGlThread(context, videoEncoder.getHeight(), videoEncoder.getWidth());
+      } else {
+        offScreenGlThread =
+            new OffScreenGlThread(context, videoEncoder.getWidth(), videoEncoder.getHeight());
+      }
+      offScreenGlThread.init();
+      boolean isCamera2Landscape = context.getResources().getConfiguration().orientation != 1;
+      offScreenGlThread.start(isCamera2Landscape);
+      if (videoEncoder.getInputSurface() != null) {
+        offScreenGlThread.addMediaCodecSurface(videoEncoder.getInputSurface());
+      }
+      cameraManager.prepareCamera(offScreenGlThread.getSurfaceTexture(), videoEncoder.getWidth(),
+          videoEncoder.getHeight());
     }
   }
 
@@ -397,6 +419,9 @@ public abstract class Camera2Base implements GetAacData, GetH264Data, GetMicroph
     audioEncoder.stop();
     if (openGlViewBase != null) {
       openGlViewBase.removeMediaCodecSurface();
+    } else if (offScreenGlThread != null) {
+      offScreenGlThread.removeMediaCodecSurface();
+      offScreenGlThread.stop();
     }
     streaming = false;
   }
@@ -478,6 +503,9 @@ public abstract class Camera2Base implements GetAacData, GetH264Data, GetMicroph
       cameraManager.switchCamera();
       if (openGlViewBase != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
         openGlViewBase.setCameraFace(cameraManager.isFrontCamera());
+      } else if (offScreenGlThread != null
+          && Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
+        offScreenGlThread.setCameraFace(cameraManager.isFrontCamera());
       }
     }
   }
@@ -485,6 +513,8 @@ public abstract class Camera2Base implements GetAacData, GetH264Data, GetMicroph
   public void setFilter(BaseFilterRender baseFilterRender) {
     if (openGlView != null) {
       openGlView.setFilter(baseFilterRender);
+    } else if (offScreenGlThread != null) {
+      offScreenGlThread.setFilter(baseFilterRender);
     } else {
       throw new RuntimeException("You must use OpenGlView in the constructor to set a gif");
     }
@@ -500,6 +530,8 @@ public abstract class Camera2Base implements GetAacData, GetH264Data, GetMicroph
   public void setGifStreamObject(GifStreamObject gifStreamObject) throws RuntimeException {
     if (openGlView != null) {
       openGlView.setGif(gifStreamObject);
+    } else if (offScreenGlThread != null) {
+      offScreenGlThread.setGif(gifStreamObject);
     } else {
       throw new RuntimeException("You must use OpenGlView in the constructor to set a gif");
     }
@@ -515,6 +547,8 @@ public abstract class Camera2Base implements GetAacData, GetH264Data, GetMicroph
   public void setImageStreamObject(ImageStreamObject imageStreamObject) throws RuntimeException {
     if (openGlView != null) {
       openGlView.setImage(imageStreamObject);
+    } else if (offScreenGlThread != null) {
+      offScreenGlThread.setImage(imageStreamObject);
     } else {
       throw new RuntimeException("You must use OpenGlView in the constructor to set a image");
     }
@@ -530,6 +564,8 @@ public abstract class Camera2Base implements GetAacData, GetH264Data, GetMicroph
   public void setTextStreamObject(TextStreamObject textStreamObject) throws RuntimeException {
     if (openGlView != null) {
       openGlView.setText(textStreamObject);
+    } else if (offScreenGlThread != null) {
+      offScreenGlThread.setText(textStreamObject);
     } else {
       throw new RuntimeException("You must use OpenGlView in the constructor to set a text");
     }
@@ -543,6 +579,8 @@ public abstract class Camera2Base implements GetAacData, GetH264Data, GetMicroph
   public void clearStreamObject() throws RuntimeException {
     if (openGlView != null) {
       openGlView.clear();
+    } else if (offScreenGlThread != null) {
+      offScreenGlThread.clear();
     } else {
       throw new RuntimeException("You must use OpenGlView in the constructor to set a text");
     }
@@ -557,6 +595,8 @@ public abstract class Camera2Base implements GetAacData, GetH264Data, GetMicroph
   public void setAlphaStreamObject(float alpha) throws RuntimeException {
     if (openGlView != null) {
       openGlView.setStreamObjectAlpha(alpha);
+    } else if (offScreenGlThread != null) {
+      offScreenGlThread.setStreamObjectAlpha(alpha);
     } else {
       throw new RuntimeException("You must use OpenGlView in the constructor to set an alpha");
     }
@@ -572,6 +612,8 @@ public abstract class Camera2Base implements GetAacData, GetH264Data, GetMicroph
   public void setSizeStreamObject(float sizeX, float sizeY) throws RuntimeException {
     if (openGlView != null) {
       openGlView.setStreamObjectSize(sizeX, sizeY);
+    } else if (offScreenGlThread != null) {
+      offScreenGlThread.setStreamObjectSize(sizeX, sizeY);
     } else {
       throw new RuntimeException("You must use OpenGlView in the constructor to set a size");
     }
@@ -587,6 +629,8 @@ public abstract class Camera2Base implements GetAacData, GetH264Data, GetMicroph
   public void setPositionStreamObject(float x, float y) throws RuntimeException {
     if (openGlView != null) {
       openGlView.setStreamObjectPosition(x, y);
+    } else if (offScreenGlThread != null) {
+      offScreenGlThread.setStreamObjectPosition(x, y);
     } else {
       throw new RuntimeException("You must use OpenGlView in the constructor to set a position");
     }
@@ -601,6 +645,8 @@ public abstract class Camera2Base implements GetAacData, GetH264Data, GetMicroph
   public void setPositionStreamObject(TranslateTo translateTo) throws RuntimeException {
     if (openGlView != null) {
       openGlView.setStreamObjectPosition(translateTo);
+    } else if (offScreenGlThread != null) {
+      offScreenGlThread.setStreamObjectPosition(translateTo);
     } else {
       throw new RuntimeException("You must use OpenGlView in the constructor to set a position");
     }
@@ -615,6 +661,8 @@ public abstract class Camera2Base implements GetAacData, GetH264Data, GetMicroph
   public void enableAA(boolean AAEnabled) throws RuntimeException {
     if (openGlView != null) {
       openGlView.enableAA(AAEnabled);
+    } else if (offScreenGlThread != null) {
+      offScreenGlThread.enableAA(AAEnabled);
     } else {
       throw new RuntimeException("You must use OpenGlView in the constructor to set a position");
     }
@@ -623,6 +671,8 @@ public abstract class Camera2Base implements GetAacData, GetH264Data, GetMicroph
   public boolean isAAEnabled() throws RuntimeException {
     if (openGlView != null) {
       return openGlView.isAAEnabled();
+    } else if (offScreenGlThread != null) {
+      return offScreenGlThread.isAAEnabled();
     } else {
       throw new RuntimeException("You must use OpenGlView in the constructor to set a position");
     }
@@ -637,6 +687,8 @@ public abstract class Camera2Base implements GetAacData, GetH264Data, GetMicroph
   public PointF getSizeStreamObject() throws RuntimeException {
     if (openGlView != null) {
       return openGlView.getScale();
+    } else if (offScreenGlThread != null) {
+      return offScreenGlThread.getScale();
     } else {
       throw new RuntimeException("You must use OpenGlView in the constructor to get position");
     }
@@ -651,6 +703,8 @@ public abstract class Camera2Base implements GetAacData, GetH264Data, GetMicroph
   public PointF getPositionStreamObject() throws RuntimeException {
     if (openGlView != null) {
       return openGlView.getPosition();
+    } else if (offScreenGlThread != null) {
+      return offScreenGlThread.getPosition();
     } else {
       throw new RuntimeException("You must use OpenGlView in the constructor to get scale");
     }

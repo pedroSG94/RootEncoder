@@ -47,8 +47,8 @@ public class RtmpCamera2 extends Camera2Base {
     srsFlvMuxer = new SrsFlvMuxer(connectChecker);
   }
 
-  public RtmpCamera2(Context context, ConnectCheckerRtmp connectChecker) {
-    super(context);
+  public RtmpCamera2(Context context, boolean useOpengl, ConnectCheckerRtmp connectChecker) {
+    super(context, useOpengl);
     srsFlvMuxer = new SrsFlvMuxer(connectChecker);
   }
 

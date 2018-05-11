@@ -55,6 +55,10 @@ public class OffScreenGlThread implements Runnable, SurfaceTexture.OnFrameAvaila
   private TranslateTo positionTo;
   private Surface surface;
   private int waitTime = 10;
+  //used with camera
+  private boolean isCamera2Landscape = false;
+  protected boolean onChangeFace = false;
+  protected boolean isFrontCamera = false;
 
   public OffScreenGlThread(Context context, int encoderWidth, int encoderHeight) {
     this.context = context;
@@ -151,6 +155,11 @@ public class OffScreenGlThread implements Runnable, SurfaceTexture.OnFrameAvaila
     loadAA = true;
   }
 
+  public void setCameraFace(boolean frontCamera) {
+    onChangeFace = true;
+    isFrontCamera = frontCamera;
+  }
+
   public boolean isAAEnabled() {
     return textureManager != null && textureManager.isAAEnabled();
   }
@@ -175,7 +184,8 @@ public class OffScreenGlThread implements Runnable, SurfaceTexture.OnFrameAvaila
     }
   }
 
-  public void start() {
+  public void start(boolean isCamera2Landscape) {
+    this.isCamera2Landscape = isCamera2Landscape;
     thread = new Thread(this);
     running = true;
     thread.start();
@@ -200,7 +210,7 @@ public class OffScreenGlThread implements Runnable, SurfaceTexture.OnFrameAvaila
     surfaceManager = new SurfaceManager();
     surfaceManager.makeCurrent();
     textureManager.setStreamSize(encoderWidth, encoderHeight);
-    textureManager.initGl(encoderWidth, encoderHeight, false, context);
+    textureManager.initGl(encoderWidth, encoderHeight, isCamera2Landscape, context);
     textureManager.getSurfaceTexture().setOnFrameAvailableListener(this);
     semaphore.release();
     try {
@@ -264,6 +274,9 @@ public class OffScreenGlThread implements Runnable, SurfaceTexture.OnFrameAvaila
           } else if (loadAA) {
             textureManager.enableAA(AAEnabled);
             loadAA = false;
+          } else if (onChangeFace) {
+            textureManager.faceChanged(isFrontCamera);
+            onChangeFace = false;
           }
         }
       }
