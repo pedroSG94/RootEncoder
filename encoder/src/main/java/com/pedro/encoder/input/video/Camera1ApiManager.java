@@ -304,18 +304,6 @@ public class Camera1ApiManager implements Camera.PreviewCallback, Camera.FaceDet
     }
   }
 
-  public void setEffect(EffectManager effect) {
-    if (camera != null) {
-      Camera.Parameters parameters = camera.getParameters();
-      parameters.setColorEffect(effect.getEffect());
-      try {
-        camera.setParameters(parameters);
-      } catch (RuntimeException e) {
-        Log.e(TAG, "Unsupported effect: ", e);
-      }
-    }
-  }
-
   public boolean isFrontCamera() {
     return isFrontCamera;
   }

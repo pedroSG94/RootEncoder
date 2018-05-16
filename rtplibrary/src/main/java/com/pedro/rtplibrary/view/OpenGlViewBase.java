@@ -38,7 +38,6 @@ public abstract class OpenGlViewBase extends SurfaceView
   protected boolean isFrontCamera = false;
   protected boolean isCamera2Landscape = false;
   protected int waitTime;
-  protected static boolean rotate = false;
   protected Surface surface;
 
   public OpenGlViewBase(Context context) {
@@ -56,10 +55,6 @@ public abstract class OpenGlViewBase extends SurfaceView
   public abstract SurfaceTexture getSurfaceTexture();
 
   public abstract Surface getSurface();
-
-  public void rotated() {
-    rotate = !rotate;
-  }
 
   public void addMediaCodecSurface(Surface surface) {
     synchronized (sync) {
@@ -79,16 +74,6 @@ public abstract class OpenGlViewBase extends SurfaceView
 
   public void setWaitTime(int waitTime) {
     this.waitTime = waitTime;
-  }
-
-  public void setPreviewResolution(int width, int height) {
-    previewWidth = width;
-    previewHeight = height;
-  }
-
-  public void setEncoderResolution(int width, int height) {
-    encoderWidth = width;
-    encoderHeight = height;
   }
 
   public void setCameraFace(boolean frontCamera) {

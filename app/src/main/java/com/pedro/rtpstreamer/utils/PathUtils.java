@@ -84,7 +84,7 @@ public class PathUtils {
     return null;
   }
 
-  public static String getDataColumn(Context context, Uri uri, String selection,
+  private static String getDataColumn(Context context, Uri uri, String selection,
       String[] selectionArgs) {
 
     Cursor cursor = null;
@@ -105,19 +105,19 @@ public class PathUtils {
     return null;
   }
 
-  public static boolean isExternalStorageDocument(Uri uri) {
+  private static boolean isExternalStorageDocument(Uri uri) {
     return "com.android.externalstorage.documents".equals(uri.getAuthority());
   }
 
-  public static boolean isDownloadsDocument(Uri uri) {
+  private static boolean isDownloadsDocument(Uri uri) {
     return "com.android.providers.downloads.documents".equals(uri.getAuthority());
   }
 
-  public static boolean isMediaDocument(Uri uri) {
+  private static boolean isMediaDocument(Uri uri) {
     return "com.android.providers.media.documents".equals(uri.getAuthority());
   }
 
-  public static boolean isGooglePhotosUri(Uri uri) {
+  private static boolean isGooglePhotosUri(Uri uri) {
     return "com.google.android.apps.photos.content".equals(uri.getAuthority());
   }
 }

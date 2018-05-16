@@ -1,14 +1,15 @@
 package com.pedro.encoder.input.video;
 
+import android.annotation.TargetApi;
+import android.hardware.camera2.CameraMetadata;
+import android.os.Build;
 import android.support.annotation.IntDef;
-
-import static android.hardware.camera2.CameraMetadata.LENS_FACING_BACK;
-import static android.hardware.camera2.CameraMetadata.LENS_FACING_FRONT;
 
 /**
  * Created by pedro on 7/10/17.
  */
 
-@IntDef({ LENS_FACING_BACK, LENS_FACING_FRONT /*, LENS_FACING_EXTERNAL*/ })
+@TargetApi(Build.VERSION_CODES.LOLLIPOP)
+@IntDef({ CameraMetadata.LENS_FACING_BACK, CameraMetadata.LENS_FACING_FRONT })
 public @interface Camera2Facing {
 }

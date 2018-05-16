@@ -23,38 +23,4 @@
           />
     </menu>
   </item>
-  <item
-      android:id="@+id/filters"
-      android:icon="@drawable/icon_menu"
-      android:title="@string/filters"
-      app:showAsAction="ifRoom"
-      >
-
-    <menu>
-      <item
-          android:id="@+id/clear"
-          android:title="@string/clear"
-          />
-      <item
-          android:id="@+id/grey_scale"
-          android:title="@string/grey_scale"
-          />
-      <item
-          android:id="@+id/sepia"
-          android:title="@string/sepia"
-          />
-      <item
-          android:id="@+id/negative"
-          android:title="@string/negative"
-          />
-      <item
-          android:id="@+id/aqua"
-          android:title="@string/aqua"
-          />
-      <item
-          android:id="@+id/posterize"
-          android:title="@string/posterize"
-          />
-    </menu>
-  </item>
 </menu>

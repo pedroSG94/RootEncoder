@@ -20,7 +20,6 @@ import com.pedro.encoder.input.gl.render.filters.BaseFilterRender;
 import com.pedro.encoder.input.video.Camera1ApiManager;
 import com.pedro.encoder.input.video.Camera1Facing;
 import com.pedro.encoder.input.video.CameraOpenException;
-import com.pedro.encoder.input.video.EffectManager;
 import com.pedro.encoder.input.video.Frame;
 import com.pedro.encoder.input.video.GetCameraData;
 import com.pedro.encoder.utils.CodecUtil;
@@ -565,9 +564,10 @@ public abstract class Camera1Base
     if (openGlView != null) {
       openGlView.setFilter(baseFilterRender);
     } else if (offScreenGlThread != null) {
-        offScreenGlThread.setFilter(baseFilterRender);
+      offScreenGlThread.setFilter(baseFilterRender);
     } else {
-      throw new RuntimeException("You must use OpenGlView in the constructor to set a gif");
+      throw new RuntimeException(
+          "You must use OpenGlView, LightOpenGlView or Context in the constructor to set a filter");
     }
   }
 
@@ -585,7 +585,8 @@ public abstract class Camera1Base
     } else if (offScreenGlThread != null) {
       offScreenGlThread.setGif(gifStreamObject);
     } else {
-      throw new RuntimeException("You must use OpenGlView in the constructor to set a gif");
+      throw new RuntimeException(
+          "You must use OpenGlView, LightOpenGlView or Context in the constructor to set a gif");
     }
   }
 
@@ -603,7 +604,8 @@ public abstract class Camera1Base
     } else if (offScreenGlThread != null) {
       offScreenGlThread.setImage(imageStreamObject);
     } else {
-      throw new RuntimeException("You must use OpenGlView in the constructor to set an image");
+      throw new RuntimeException(
+          "You must use OpenGlView, LightOpenGlView or Context in the constructor to set an image");
     }
   }
 
@@ -621,7 +623,8 @@ public abstract class Camera1Base
     } else if (offScreenGlThread != null) {
       offScreenGlThread.setText(textStreamObject);
     } else {
-      throw new RuntimeException("You must use OpenGlView in the constructor to set a text");
+      throw new RuntimeException(
+          "You must use OpenGlView, LightOpenGlView or Context in the constructor to set a text");
     }
   }
 
@@ -637,7 +640,8 @@ public abstract class Camera1Base
     } else if (offScreenGlThread != null) {
       offScreenGlThread.clear();
     } else {
-      throw new RuntimeException("You must use OpenGlView in the constructor to set a text");
+      throw new RuntimeException(
+          "You must use OpenGlView, LightOpenGlView or Context in the constructor to clear");
     }
   }
 
@@ -654,7 +658,8 @@ public abstract class Camera1Base
     } else if (offScreenGlThread != null) {
       offScreenGlThread.setStreamObjectAlpha(alpha);
     } else {
-      throw new RuntimeException("You must use OpenGlView in the constructor to set an alpha");
+      throw new RuntimeException(
+          "You must use OpenGlView, LightOpenGlView or Context in the constructor to set an alpha");
     }
   }
 
@@ -672,7 +677,8 @@ public abstract class Camera1Base
     } else if (offScreenGlThread != null) {
       offScreenGlThread.setStreamObjectSize(sizeX, sizeY);
     } else {
-      throw new RuntimeException("You must use OpenGlView in the constructor to set a size");
+      throw new RuntimeException(
+          "You must use OpenGlView, LightOpenGlView or Context in the constructor to set a size");
     }
   }
 
@@ -690,7 +696,8 @@ public abstract class Camera1Base
     } else if (offScreenGlThread != null) {
       offScreenGlThread.setStreamObjectPosition(x, y);
     } else {
-      throw new RuntimeException("You must use OpenGlView in the constructor to set a position");
+      throw new RuntimeException(
+          "You must use OpenGlView, LightOpenGlView or Context in the constructor to set a position");
     }
   }
 
@@ -707,7 +714,8 @@ public abstract class Camera1Base
     } else if (offScreenGlThread != null) {
       offScreenGlThread.setStreamObjectPosition(translateTo);
     } else {
-      throw new RuntimeException("You must use OpenGlView in the constructor to set a position");
+      throw new RuntimeException(
+          "You must use OpenGlView, LightOpenGlView or Context in the constructor to set a position");
     }
   }
 
@@ -724,7 +732,8 @@ public abstract class Camera1Base
     } else if (offScreenGlThread != null) {
       offScreenGlThread.enableAA(AAEnabled);
     } else {
-      throw new RuntimeException("You must use OpenGlView in the constructor to set a position");
+      throw new RuntimeException(
+          "You must use OpenGlView, LightOpenGlView or Context in the constructor to enable AA");
     }
   }
 
@@ -735,7 +744,8 @@ public abstract class Camera1Base
     } else if (offScreenGlThread != null) {
       return offScreenGlThread.isAAEnabled();
     } else {
-      throw new RuntimeException("You must use OpenGlView in the constructor to set a position");
+      throw new RuntimeException(
+          "You must use OpenGlView, LightOpenGlView or Context in the constructor to get AA isEnabled");
     }
   }
 
@@ -752,7 +762,8 @@ public abstract class Camera1Base
     } else if (offScreenGlThread != null) {
       return offScreenGlThread.getScale();
     } else {
-      throw new RuntimeException("You must use OpenGlView in the constructor to get position");
+      throw new RuntimeException(
+          "You must use OpenGlView, LightOpenGlView or Context in the constructor to get size");
     }
   }
 
@@ -769,7 +780,8 @@ public abstract class Camera1Base
     } else if (offScreenGlThread != null) {
       return offScreenGlThread.getPosition();
     } else {
-      throw new RuntimeException("You must use OpenGlView in the constructor to get scale");
+      throw new RuntimeException(
+          "You must use OpenGlView, LightOpenGlView or Context in the constructor to get position");
     }
   }
 
@@ -808,17 +820,6 @@ public abstract class Camera1Base
    */
   public boolean isRecording() {
     return recording;
-  }
-
-  /**
-   * Set basic camera effect while preview or stream.
-   *
-   * @param effect seated.
-   */
-  public void setEffect(EffectManager effect) {
-    if (isStreaming()) {
-      cameraManager.setEffect(effect);
-    }
   }
 
   protected abstract void getAacDataRtp(ByteBuffer aacBuffer, MediaCodec.BufferInfo info);

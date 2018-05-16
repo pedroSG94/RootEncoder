@@ -20,6 +20,7 @@ import java.io.File;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Locale;
 import net.ossrs.rtmp.ConnectCheckerRtmp;
 
 /**
@@ -143,7 +144,7 @@ public class TextureModeRtmpActivity extends AppCompatActivity
             if (!folder.exists()) {
               folder.mkdir();
             }
-            SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd_HHmmss");
+            SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault());
             currentDateAndTime = sdf.format(new Date());
             rtmpCamera2.startRecord(folder.getAbsolutePath() + "/" + currentDateAndTime + ".mp4");
             bRecord.setText(R.string.stop_record);

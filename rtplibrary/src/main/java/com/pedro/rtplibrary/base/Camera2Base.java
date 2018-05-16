@@ -516,7 +516,8 @@ public abstract class Camera2Base implements GetAacData, GetH264Data, GetMicroph
     } else if (offScreenGlThread != null) {
       offScreenGlThread.setFilter(baseFilterRender);
     } else {
-      throw new RuntimeException("You must use OpenGlView in the constructor to set a gif");
+      throw new RuntimeException(
+          "You must use OpenGlView, LightOpenGlView or Context with Opengl enabled in the constructor to set a filter");
     }
   }
 
@@ -533,7 +534,8 @@ public abstract class Camera2Base implements GetAacData, GetH264Data, GetMicroph
     } else if (offScreenGlThread != null) {
       offScreenGlThread.setGif(gifStreamObject);
     } else {
-      throw new RuntimeException("You must use OpenGlView in the constructor to set a gif");
+      throw new RuntimeException(
+          "You must use OpenGlView, LightOpenGlView or Context with Opengl enabled in the constructor to set a gif");
     }
   }
 
@@ -550,7 +552,8 @@ public abstract class Camera2Base implements GetAacData, GetH264Data, GetMicroph
     } else if (offScreenGlThread != null) {
       offScreenGlThread.setImage(imageStreamObject);
     } else {
-      throw new RuntimeException("You must use OpenGlView in the constructor to set a image");
+      throw new RuntimeException(
+          "You must use OpenGlView, LightOpenGlView or Context with Opengl enabled in the constructor to set a image");
     }
   }
 
@@ -567,7 +570,8 @@ public abstract class Camera2Base implements GetAacData, GetH264Data, GetMicroph
     } else if (offScreenGlThread != null) {
       offScreenGlThread.setText(textStreamObject);
     } else {
-      throw new RuntimeException("You must use OpenGlView in the constructor to set a text");
+      throw new RuntimeException(
+          "You must use OpenGlView, LightOpenGlView or Context with Opengl enabled in the constructor to set a text");
     }
   }
 
@@ -582,7 +586,8 @@ public abstract class Camera2Base implements GetAacData, GetH264Data, GetMicroph
     } else if (offScreenGlThread != null) {
       offScreenGlThread.clear();
     } else {
-      throw new RuntimeException("You must use OpenGlView in the constructor to set a text");
+      throw new RuntimeException(
+          "You must use OpenGlView, LightOpenGlView or Context with Opengl enabled in the constructor to clear");
     }
   }
 
@@ -598,7 +603,8 @@ public abstract class Camera2Base implements GetAacData, GetH264Data, GetMicroph
     } else if (offScreenGlThread != null) {
       offScreenGlThread.setStreamObjectAlpha(alpha);
     } else {
-      throw new RuntimeException("You must use OpenGlView in the constructor to set an alpha");
+      throw new RuntimeException(
+          "You must use OpenGlView, LightOpenGlView or Context with Opengl enabled in the constructor to set an alpha");
     }
   }
 
@@ -615,7 +621,8 @@ public abstract class Camera2Base implements GetAacData, GetH264Data, GetMicroph
     } else if (offScreenGlThread != null) {
       offScreenGlThread.setStreamObjectSize(sizeX, sizeY);
     } else {
-      throw new RuntimeException("You must use OpenGlView in the constructor to set a size");
+      throw new RuntimeException(
+          "You must use OpenGlView, LightOpenGlView or Context with Opengl enabled in the constructor to set a size");
     }
   }
 
@@ -632,7 +639,8 @@ public abstract class Camera2Base implements GetAacData, GetH264Data, GetMicroph
     } else if (offScreenGlThread != null) {
       offScreenGlThread.setStreamObjectPosition(x, y);
     } else {
-      throw new RuntimeException("You must use OpenGlView in the constructor to set a position");
+      throw new RuntimeException(
+          "You must use OpenGlView, LightOpenGlView or Context with Opengl enabled in the constructor to set a position");
     }
   }
 
@@ -648,7 +656,8 @@ public abstract class Camera2Base implements GetAacData, GetH264Data, GetMicroph
     } else if (offScreenGlThread != null) {
       offScreenGlThread.setStreamObjectPosition(translateTo);
     } else {
-      throw new RuntimeException("You must use OpenGlView in the constructor to set a position");
+      throw new RuntimeException(
+          "You must use OpenGlView, LightOpenGlView or Context with Opengl enabled in the constructor to set a position");
     }
   }
 
@@ -664,7 +673,8 @@ public abstract class Camera2Base implements GetAacData, GetH264Data, GetMicroph
     } else if (offScreenGlThread != null) {
       offScreenGlThread.enableAA(AAEnabled);
     } else {
-      throw new RuntimeException("You must use OpenGlView in the constructor to set a position");
+      throw new RuntimeException(
+          "You must use OpenGlView, LightOpenGlView or Context with Opengl enabled in the constructor to enable AA");
     }
   }
 
@@ -674,7 +684,8 @@ public abstract class Camera2Base implements GetAacData, GetH264Data, GetMicroph
     } else if (offScreenGlThread != null) {
       return offScreenGlThread.isAAEnabled();
     } else {
-      throw new RuntimeException("You must use OpenGlView in the constructor to set a position");
+      throw new RuntimeException(
+          "You must use OpenGlView, LightOpenGlView or Context with Opengl enabled in the constructor to get AA isEnabled");
     }
   }
 
@@ -690,7 +701,8 @@ public abstract class Camera2Base implements GetAacData, GetH264Data, GetMicroph
     } else if (offScreenGlThread != null) {
       return offScreenGlThread.getScale();
     } else {
-      throw new RuntimeException("You must use OpenGlView in the constructor to get position");
+      throw new RuntimeException(
+          "You must use OpenGlView, LightOpenGlView or Context with Opengl enabled in the constructor to get size");
     }
   }
 
@@ -706,7 +718,8 @@ public abstract class Camera2Base implements GetAacData, GetH264Data, GetMicroph
     } else if (offScreenGlThread != null) {
       return offScreenGlThread.getPosition();
     } else {
-      throw new RuntimeException("You must use OpenGlView in the constructor to get scale");
+      throw new RuntimeException(
+          "You must use OpenGlView, LightOpenGlView or Context with Opengl enabled in the constructor to get position");
     }
   }
 
