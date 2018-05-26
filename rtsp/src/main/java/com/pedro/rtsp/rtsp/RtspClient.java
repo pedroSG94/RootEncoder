@@ -166,12 +166,12 @@ public class RtspClient {
             if (!tlsEnabled) {
               connectionSocket = new Socket();
               SocketAddress socketAddress = new InetSocketAddress(host, port);
-              connectionSocket.connect(socketAddress, 3000);
+              connectionSocket.connect(socketAddress, 5000);
             } else {
               connectionSocket = CreateSSLSocket.createSSlSocket(host, port);
               if (connectionSocket == null) throw new IOException("Socket creation failed");
             }
-            connectionSocket.setSoTimeout(3000);
+            connectionSocket.setSoTimeout(5000);
             reader = new BufferedReader(new InputStreamReader(connectionSocket.getInputStream()));
             outputStream = connectionSocket.getOutputStream();
             writer = new BufferedWriter(new OutputStreamWriter(outputStream));
