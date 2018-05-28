@@ -15,7 +15,7 @@ import java.nio.ByteOrder;
  */
 
 @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
-public class FireFilterRender extends BaseFilterRender{
+public class FireFilterRender extends BaseFilterRender {
 
   //rotation matrix
   private final float[] squareVertexDataFilter = {

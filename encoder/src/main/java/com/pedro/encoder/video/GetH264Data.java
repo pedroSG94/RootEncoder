@@ -11,9 +11,9 @@ import java.nio.ByteBuffer;
 
 public interface GetH264Data {
 
-    void onSPSandPPS(ByteBuffer sps, ByteBuffer pps);
+  void onSPSandPPS(ByteBuffer sps, ByteBuffer pps);
 
-    void getH264Data(ByteBuffer h264Buffer, MediaCodec.BufferInfo info);
+  void getH264Data(ByteBuffer h264Buffer, MediaCodec.BufferInfo info);
 
-    void onVideoFormat(MediaFormat mediaFormat);
+  void onVideoFormat(MediaFormat mediaFormat);
 }

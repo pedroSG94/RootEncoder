@@ -9,9 +9,6 @@ import android.hardware.camera2.CameraDevice;
 import android.hardware.camera2.CameraManager;
 import android.hardware.camera2.CameraMetadata;
 import android.hardware.camera2.CaptureRequest;
-import android.hardware.camera2.CaptureResult;
-import android.hardware.camera2.TotalCaptureResult;
-import android.hardware.camera2.params.Face;
 import android.hardware.camera2.params.StreamConfigurationMap;
 import android.os.Build;
 import android.os.Handler;
@@ -285,7 +282,8 @@ public class Camera2ApiManager extends CameraDevice.StateCallback {
         cameraManager.openCamera(cameraId.toString(), this, cameraHandler);
         final CameraCharacteristics cameraCharacteristics =
             cameraManager.getCameraCharacteristics(Integer.toString(cameraId));
-        isFrontCamera = (LENS_FACING_FRONT == cameraCharacteristics.get(CameraCharacteristics.LENS_FACING));
+        isFrontCamera =
+            (LENS_FACING_FRONT == cameraCharacteristics.get(CameraCharacteristics.LENS_FACING));
       } catch (CameraAccessException | SecurityException e) {
         e.printStackTrace();
       }

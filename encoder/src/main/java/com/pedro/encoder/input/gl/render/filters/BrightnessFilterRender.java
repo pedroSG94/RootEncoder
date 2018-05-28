@@ -15,7 +15,7 @@ import java.nio.ByteOrder;
  */
 
 @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
-public class BrightnessFilterRender extends BaseFilterRender{
+public class BrightnessFilterRender extends BaseFilterRender {
 
   //rotation matrix
   private final float[] squareVertexDataFilter = {
@@ -88,7 +88,6 @@ public class BrightnessFilterRender extends BaseFilterRender{
   }
 
   /**
-   *
    * @param brightness Range should be between 0.1 - 2.0 with 1.0 being normal.
    */
   public void setBrightness(float brightness) {

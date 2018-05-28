@@ -30,31 +30,56 @@ public class Body {
 
   public static String createAudioBody(int trackAudio, int sampleRate, boolean isStereo) {
     int sampleRateNum = -1;
-    for(int i = 0; i < AUDIO_SAMPLING_RATES.length; i++){
-      if(AUDIO_SAMPLING_RATES[i] == sampleRate){
+    for (int i = 0; i < AUDIO_SAMPLING_RATES.length; i++) {
+      if (AUDIO_SAMPLING_RATES[i] == sampleRate) {
         sampleRateNum = i;
         break;
       }
     }
     int channel = (isStereo) ? 2 : 1;
     int config = (2 & 0x1F) << 11 | (sampleRateNum & 0x0F) << 7 | (channel & 0x0F) << 3;
-    return "m=audio " + (5000 + 2 * trackAudio) + " RTP/AVP " + RtpConstants.payloadType
-        + "\r\n" +
-        "a=rtpmap:" + RtpConstants.payloadType
-        + " mpeg4-generic/" + sampleRate + "/" + channel + "\r\n" +
-        "a=fmtp:" + RtpConstants.payloadType
-        + " streamtype=5; profile-level-id=15; mode=AAC-hbr; config=" +
-        Integer.toHexString(config) + "; SizeLength=13; IndexLength=3; IndexDeltaLength=3;\r\n"
-        + "a=control:trackID=" + trackAudio + "\r\n";
+    return "m=audio "
+        + (5000 + 2 * trackAudio)
+        + " RTP/AVP "
+        + RtpConstants.payloadType
+        + "\r\n"
+        + "a=rtpmap:"
+        + RtpConstants.payloadType
+        + " mpeg4-generic/"
+        + sampleRate
+        + "/"
+        + channel
+        + "\r\n"
+        + "a=fmtp:"
+        + RtpConstants.payloadType
+        + " streamtype=5; profile-level-id=15; mode=AAC-hbr; config="
+        + Integer.toHexString(config)
+        + "; SizeLength=13; IndexLength=3; IndexDeltaLength=3;\r\n"
+        + "a=control:trackID="
+        + trackAudio
+        + "\r\n";
   }
 
   public static String createVideoBody(int trackVideo, String sps, String pps) {
-    return "m=video " + (5000 + 2 * trackVideo) + " RTP/AVP " + RtpConstants.payloadType
-        + "\r\n" +
-        "a=rtpmap:" + RtpConstants.payloadType
-        + " H264/" + RtpConstants.clockVideoFrequency + "\r\n" +
-        "a=fmtp:" + RtpConstants.payloadType
-        + " packetization-mode=1;sprop-parameter-sets=" + sps + "," + pps + ";\r\n"
-        + "a=control:trackID=" + trackVideo + "\r\n";
+    return "m=video "
+        + (5000 + 2 * trackVideo)
+        + " RTP/AVP "
+        + RtpConstants.payloadType
+        + "\r\n"
+        + "a=rtpmap:"
+        + RtpConstants.payloadType
+        + " H264/"
+        + RtpConstants.clockVideoFrequency
+        + "\r\n"
+        + "a=fmtp:"
+        + RtpConstants.payloadType
+        + " packetization-mode=1;sprop-parameter-sets="
+        + sps
+        + ","
+        + pps
+        + ";\r\n"
+        + "a=control:trackID="
+        + trackVideo
+        + "\r\n";
   }
 }

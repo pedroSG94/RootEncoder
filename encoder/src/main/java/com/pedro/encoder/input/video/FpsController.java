@@ -17,8 +17,8 @@ public class FpsController {
     ignoredFps = (fpsCamera[0] / 1000) / fps;
   }
 
-  public boolean fpsIsValid(){
-    if(cont++ < ignoredFps){
+  public boolean fpsIsValid() {
+    if (cont++ < ignoredFps) {
       return false;
     }
     cont = 0;

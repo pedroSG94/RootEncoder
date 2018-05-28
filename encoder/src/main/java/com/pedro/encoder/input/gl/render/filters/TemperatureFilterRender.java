@@ -15,7 +15,7 @@ import java.nio.ByteOrder;
  */
 
 @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
-public class TemperatureFilterRender extends BaseFilterRender{
+public class TemperatureFilterRender extends BaseFilterRender {
 
   //rotation matrix
   private final float[] squareVertexDataFilter = {
@@ -88,13 +88,16 @@ public class TemperatureFilterRender extends BaseFilterRender{
   }
 
   /**
-   *
    * @param temperature min value 0f, max value 1f
    */
   public void setTemperature(float temperature) {
-    if (temperature < 0.0f) this.temperature = 0.0f;
-    else if (temperature > 1.0f) this.temperature = 1.0f;
-    else this.temperature = temperature;
+    if (temperature < 0.0f) {
+      this.temperature = 0.0f;
+    } else if (temperature > 1.0f) {
+      this.temperature = 1.0f;
+    } else {
+      this.temperature = temperature;
+    }
     this.temperature = 2.0f * this.temperature - 1.0f;
   }
 }

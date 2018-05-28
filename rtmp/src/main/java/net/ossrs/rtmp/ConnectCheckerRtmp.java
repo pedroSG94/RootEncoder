@@ -6,13 +6,13 @@ package net.ossrs.rtmp;
 
 public interface ConnectCheckerRtmp {
 
-    void onConnectionSuccessRtmp();
+  void onConnectionSuccessRtmp();
 
-    void onConnectionFailedRtmp(String reason);
+  void onConnectionFailedRtmp(String reason);
 
-    void onDisconnectRtmp();
+  void onDisconnectRtmp();
 
-    void onAuthErrorRtmp();
+  void onAuthErrorRtmp();
 
-    void onAuthSuccessRtmp();
+  void onAuthSuccessRtmp();
 }

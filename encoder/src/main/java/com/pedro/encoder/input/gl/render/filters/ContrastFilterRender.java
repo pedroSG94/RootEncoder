@@ -15,7 +15,7 @@ import java.nio.ByteOrder;
  */
 
 @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
-public class ContrastFilterRender extends BaseFilterRender{
+public class ContrastFilterRender extends BaseFilterRender {
 
   //rotation matrix
   private final float[] squareVertexDataFilter = {
@@ -88,7 +88,6 @@ public class ContrastFilterRender extends BaseFilterRender{
   }
 
   /**
-   *
    * @param contrast Range should be between 0.1 - 2.0 with 1.0 being normal.
    */
   public void setContrast(float contrast) {

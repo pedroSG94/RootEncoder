@@ -71,8 +71,7 @@ public class SrsFlvMuxer {
     publisher = new DefaultRtmpPublisher(connectCheckerRtmp);
   }
 
-  public void setProfileIop(byte profileIop)
-  {
+  public void setProfileIop(byte profileIop) {
     this.profileIop = profileIop;
   }
 

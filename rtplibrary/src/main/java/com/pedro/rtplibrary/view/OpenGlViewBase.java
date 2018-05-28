@@ -18,7 +18,7 @@ import java.util.concurrent.Semaphore;
 
 @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
 public abstract class OpenGlViewBase extends SurfaceView
-    implements Runnable, SurfaceTexture.OnFrameAvailableListener, SurfaceHolder.Callback{
+    implements Runnable, SurfaceTexture.OnFrameAvailableListener, SurfaceHolder.Callback {
 
   public final static String TAG = "OpenGlViewBase";
 

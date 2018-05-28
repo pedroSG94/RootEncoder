@@ -72,7 +72,7 @@ public abstract class BaseRenderOffScreen {
         GLES20.GL_TEXTURE_2D, texId[0], 0);
 
     int status = GLES20.glCheckFramebufferStatus(GLES20.GL_FRAMEBUFFER);
-    if (status != GLES20.GL_FRAMEBUFFER_COMPLETE){
+    if (status != GLES20.GL_FRAMEBUFFER_COMPLETE) {
       throw new RuntimeException("FrameBuffer uncompleted code: " + status);
     }
     GlUtil.checkGlError("initFBO_E");

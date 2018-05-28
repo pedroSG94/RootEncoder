@@ -6,5 +6,5 @@ package com.pedro.encoder.input.video;
 
 public interface GetCameraData {
 
-    void inputYUVData(Frame frame);
+  void inputYUVData(Frame frame);
 }

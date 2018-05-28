@@ -18,7 +18,7 @@ public abstract class BasePacket {
 
   //used on all packets
   protected final static int maxPacketSize = RtpConstants.MTU - 28;
-  protected BaseRtpSocket socket = null;
+  protected BaseRtpSocket socket;
   protected byte[] buffer;
   protected long ts;
   protected RtspClient rtspClient;

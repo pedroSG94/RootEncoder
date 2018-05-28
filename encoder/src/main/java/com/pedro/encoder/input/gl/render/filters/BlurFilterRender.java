@@ -15,7 +15,7 @@ import java.nio.ByteOrder;
  */
 
 @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
-public class BlurFilterRender extends BaseFilterRender{
+public class BlurFilterRender extends BaseFilterRender {
 
   //rotation matrix
   private final float[] squareVertexDataFilter = {
@@ -91,7 +91,6 @@ public class BlurFilterRender extends BaseFilterRender{
   }
 
   /**
-   *
    * @param blur Range should be between 0.0 or more with 0.0 being normal.
    */
   public void setBlur(float blur) {

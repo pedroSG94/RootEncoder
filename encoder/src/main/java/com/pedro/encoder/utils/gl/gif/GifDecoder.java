@@ -147,10 +147,10 @@ public class GifDecoder {
     /**
      * Returns an {@link Bitmap} with exactly the given dimensions and config.
      *
-     * @param width  The width in pixels of the desired {@link Bitmap}.
+     * @param width The width in pixels of the desired {@link Bitmap}.
      * @param height The height in pixels of the desired {@link Bitmap}.
      * @param config The {@link Bitmap.Config} of the desired {@link
-     *               Bitmap}.
+     * Bitmap}.
      */
     @NonNull
     Bitmap obtain(int width, int height, Bitmap.Config config);
@@ -174,13 +174,11 @@ public class GifDecoder {
 
     /**
      * Returns an int array used for decoding/generating the frame bitmaps.
-     * @param size
      */
     int[] obtainIntArray(int size);
 
     /**
      * Release the given array back to the pool.
-     * @param array
      */
     void release(int[] array);
   }
@@ -237,11 +235,11 @@ public class GifDecoder {
       return false;
     }
 
-    if(framePointer == getFrameCount() - 1) {
+    if (framePointer == getFrameCount() - 1) {
       loopIndex++;
     }
 
-    if(header.loopCount != LOOP_FOREVER && loopIndex > header.loopCount) {
+    if (header.loopCount != LOOP_FOREVER && loopIndex > header.loopCount) {
       return false;
     }
 
@@ -298,7 +296,7 @@ public class GifDecoder {
    * @return boolean true if the move was successful
    */
   public boolean setFrameIndex(int frame) {
-    if(frame < INITIAL_FRAME_POINTER || frame >= getFrameCount()) {
+    if (frame < INITIAL_FRAME_POINTER || frame >= getFrameCount()) {
       return false;
     }
     framePointer = frame;
@@ -316,14 +314,18 @@ public class GifDecoder {
   /**
    * Resets the loop index to the first loop.
    */
-  public void resetLoopIndex() { loopIndex = 0; }
+  public void resetLoopIndex() {
+    loopIndex = 0;
+  }
 
   /**
    * Gets the "Netscape" iteration count, if any. A count of 0 means repeat indefinitely.
    *
    * @return iteration count if one was specified, else 1.
    */
-  public int getLoopCount() { return header.loopCount; }
+  public int getLoopCount() {
+    return header.loopCount;
+  }
 
   /**
    * Gets the number of loops that have been shown.
@@ -350,7 +352,9 @@ public class GifDecoder {
   public synchronized Bitmap getNextFrame() {
     if (header.frameCount <= 0 || framePointer < 0) {
       if (Log.isLoggable(TAG, Log.DEBUG)) {
-        Log.d(TAG, "unable to decode frame, frameCount=" + header.frameCount + " framePointer="
+        Log.d(TAG, "unable to decode frame, frameCount="
+            + header.frameCount
+            + " framePointer="
             + framePointer);
       }
       status = STATUS_FORMAT_ERROR;
@@ -560,8 +564,8 @@ public class GifDecoder {
           int downsampledIW = previousFrame.iw / sampleSize;
           int downsampledIX = previousFrame.ix / sampleSize;
           int topLeft = downsampledIY * downsampledWidth + downsampledIX;
-          previousImage.getPixels(dest, topLeft, downsampledWidth,
-              downsampledIX, downsampledIY, downsampledIW, downsampledIH);
+          previousImage.getPixels(dest, topLeft, downsampledWidth, downsampledIX, downsampledIY,
+              downsampledIW, downsampledIH);
         }
       }
     }
@@ -644,8 +648,7 @@ public class GifDecoder {
       if (previousImage == null) {
         previousImage = getNextBitmap();
       }
-      previousImage.setPixels(dest, 0, downsampledWidth, 0, 0, downsampledWidth,
-          downsampledHeight);
+      previousImage.setPixels(dest, 0, downsampledWidth, 0, 0, downsampledWidth, downsampledHeight);
     }
 
     // Set pixels for current image.
@@ -679,9 +682,9 @@ public class GifDecoder {
 
     int totalAdded = 0;
     // Find the pixels in the current row.
-    for (int i = positionInMainPixels;
-        i < positionInMainPixels + sampleSize && i < mainPixels.length
-            && i < maxPositionInMainPixels; i++) {
+    for (int i = positionInMainPixels; i < positionInMainPixels + sampleSize
+        && i < mainPixels.length
+        && i < maxPositionInMainPixels; i++) {
       int currentColorIndex = ((int) mainPixels[i]) & 0xff;
       int currentColor = act[currentColorIndex];
       if (currentColor != 0) {
@@ -694,7 +697,8 @@ public class GifDecoder {
     }
     // Find the pixels in the next row.
     for (int i = positionInMainPixels + currentFrameIw;
-        i < positionInMainPixels + currentFrameIw + sampleSize && i < mainPixels.length
+        i < positionInMainPixels + currentFrameIw + sampleSize
+            && i < mainPixels.length
             && i < maxPositionInMainPixels; i++) {
       int currentColorIndex = ((int) mainPixels[i]) & 0xff;
       int currentColor = act[currentColorIndex];
@@ -709,10 +713,8 @@ public class GifDecoder {
     if (totalAdded == 0) {
       return 0;
     } else {
-      return ((alphaSum / totalAdded) << 24)
-          | ((redSum / totalAdded) << 16)
-          | ((greenSum / totalAdded) << 8)
-          | (blueSum / totalAdded);
+      return ((alphaSum / totalAdded) << 24) | ((redSum / totalAdded) << 16) | ((greenSum
+          / totalAdded) << 8) | (blueSum / totalAdded);
     }
   }
 
@@ -729,8 +731,7 @@ public class GifDecoder {
 
     int npix = (frame == null) ? header.width * header.height : frame.iw * frame.ih;
     int available, clear, codeMask, codeSize, endOfInformation, inCode, oldCode, bits, code, count,
-        i, datum,
-        dataSize, first, top, bi, pi;
+        i, datum, dataSize, first, top, bi, pi;
 
     if (mainPixels == null || mainPixels.length < npix) {
       // Allocate new pixel array.
@@ -913,8 +914,8 @@ public class GifDecoder {
   }
 
   private Bitmap getNextBitmap() {
-    Bitmap.Config config = isFirstFrameTransparent
-        ? Bitmap.Config.ARGB_8888 : Bitmap.Config.RGB_565;
+    Bitmap.Config config =
+        isFirstFrameTransparent ? Bitmap.Config.ARGB_8888 : Bitmap.Config.RGB_565;
     Bitmap result = bitmapProvider.obtain(downsampledWidth, downsampledHeight, config);
     setAlpha(result);
     return result;

@@ -15,10 +15,8 @@ import java.security.NoSuchAlgorithmException;
 public class CreateSSLSocket {
 
   /**
-   *
    * @param host variable from RtspConnection
    * @param port variable from RtspConnection
-   * @return
    */
   public static Socket createSSlSocket(String host, int port) {
     try {

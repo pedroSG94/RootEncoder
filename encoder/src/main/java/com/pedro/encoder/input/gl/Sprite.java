@@ -97,7 +97,8 @@ public class Sprite {
 
   //return position in percent
   public PointF getTranslation() {
-    return new PointF(-(translation.x * 100 / (scale.x - 1)), -(translation.y * 100 / (scale.y - 1)));
+    return new PointF(-(translation.x * 100 / (scale.x - 1)),
+        -(translation.y * 100 / (scale.y - 1)));
   }
 
   public void rotate(float delta) {

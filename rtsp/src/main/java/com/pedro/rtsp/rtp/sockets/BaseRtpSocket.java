@@ -42,7 +42,7 @@ public abstract class BaseRtpSocket implements Runnable {
       buffers[i][0] = (byte) Integer.parseInt("10000000", 2);
       buffers[i][1] = (byte) RtpConstants.payloadType;
 
-			/* Byte 2,3        ->  Sequence Number                   */
+      /* Byte 2,3        ->  Sequence Number                   */
       /* Byte 4,5,6,7    ->  Timestamp                         */
       /* Byte 8,9,10,11  ->  Sync Source Identifier            */
     }
@@ -79,7 +79,6 @@ public abstract class BaseRtpSocket implements Runnable {
 
   /**
    * Returns an available buffer from the FIFO, it can then be modified.
-   *
    **/
   public byte[] requestBuffer() {
     try {
