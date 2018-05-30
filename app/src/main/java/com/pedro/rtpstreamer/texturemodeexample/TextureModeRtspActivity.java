@@ -119,7 +119,8 @@ public class TextureModeRtspActivity extends AppCompatActivity
     switch (view.getId()) {
       case R.id.b_start_stop:
         if (!rtspCamera2.isStreaming()) {
-          if (rtspCamera2.prepareAudio() && rtspCamera2.prepareVideo()) {
+          if (rtspCamera2.isRecording()
+              || rtspCamera2.prepareAudio() && rtspCamera2.prepareVideo()) {
             button.setText(R.string.stop_button);
             rtspCamera2.startStream(etUrl.getText().toString());
           } else {
@@ -146,9 +147,21 @@ public class TextureModeRtspActivity extends AppCompatActivity
             }
             SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault());
             currentDateAndTime = sdf.format(new Date());
-            rtspCamera2.startRecord(folder.getAbsolutePath() + "/" + currentDateAndTime + ".mp4");
-            bRecord.setText(R.string.stop_record);
-            Toast.makeText(this, "Recording... ", Toast.LENGTH_SHORT).show();
+            if (!rtspCamera2.isStreaming()) {
+              if (rtspCamera2.prepareAudio() && rtspCamera2.prepareVideo()) {
+                rtspCamera2.startRecord(
+                    folder.getAbsolutePath() + "/" + currentDateAndTime + ".mp4");
+                bRecord.setText(R.string.stop_record);
+                Toast.makeText(this, "Recording... ", Toast.LENGTH_SHORT).show();
+              } else {
+                Toast.makeText(this, "Error preparing stream, This device cant do it",
+                    Toast.LENGTH_SHORT).show();
+              }
+            } else {
+              rtspCamera2.startRecord(folder.getAbsolutePath() + "/" + currentDateAndTime + ".mp4");
+              bRecord.setText(R.string.stop_record);
+              Toast.makeText(this, "Recording... ", Toast.LENGTH_SHORT).show();
+            }
           } catch (IOException e) {
             rtspCamera2.stopRecord();
             bRecord.setText(R.string.start_record);

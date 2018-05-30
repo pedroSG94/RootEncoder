@@ -240,25 +240,12 @@ public abstract class Camera2Base implements GetAacData, GetH264Data, GetMicroph
    * @throws IOException If you init it before start stream.
    */
   public void startRecord(String path) throws IOException {
-    if (streaming) {
-      mediaMuxer = new MediaMuxer(path, MediaMuxer.OutputFormat.MUXER_OUTPUT_MPEG_4);
-      if (videoFormat != null) {
-        videoTrack = mediaMuxer.addTrack(videoFormat);
-      }
-      if (audioFormat != null) {
-        audioTrack = mediaMuxer.addTrack(audioFormat);
-      }
-      mediaMuxer.start();
-      recording = true;
-      if (videoEncoder.isRunning()) {
-        if (openGlViewBase != null) openGlViewBase.removeMediaCodecSurface();
-        videoEncoder.reset();
-        if (openGlViewBase != null) {
-          openGlViewBase.addMediaCodecSurface(videoEncoder.getInputSurface());
-        }
-      }
-    } else {
-      throw new IOException("Need be called while stream");
+    mediaMuxer = new MediaMuxer(path, MediaMuxer.OutputFormat.MUXER_OUTPUT_MPEG_4);
+    recording = true;
+    if (!streaming) {
+      startEncoders();
+    } else if (videoEncoder.isRunning()) {
+      resetVideoEncoder();
     }
   }
 
@@ -275,8 +262,11 @@ public abstract class Camera2Base implements GetAacData, GetH264Data, GetMicroph
       }
       mediaMuxer = null;
     }
+    videoFormat = null;
+    audioFormat = null;
     videoTrack = -1;
     audioTrack = -1;
+    if (!streaming) stopStream();
   }
 
   /**
@@ -305,7 +295,7 @@ public abstract class Camera2Base implements GetAacData, GetH264Data, GetMicroph
             videoEncoder.getHeight());
       }
       cameraManager.openCameraFacing(cameraFacing);
-      if (openGlViewBase != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
+      if (openGlViewBase != null) {
         openGlViewBase.setCameraFace(cameraManager.isFrontCamera());
       }
       onPreview = true;
@@ -351,21 +341,37 @@ public abstract class Camera2Base implements GetAacData, GetH264Data, GetMicroph
    * RTMPS: rtmps://192.168.1.1:1935/live/pedroSG94
    */
   public void startStream(String url) {
+    startStreamRtp(url);
+    if (!recording) {
+      startEncoders();
+    } else {
+      resetVideoEncoder();
+    }
+    streaming = true;
+    onPreview = true;
+  }
+
+  private void startEncoders() {
     prepareGlView(false);
     videoEncoder.start();
     audioEncoder.start();
+    microphoneManager.start();
     if (onPreview) {
       cameraManager.openLastCamera();
     } else {
       cameraManager.openCameraBack();
     }
-    if (openGlViewBase != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
+    if (openGlViewBase != null) {
       openGlViewBase.setCameraFace(cameraManager.isFrontCamera());
     }
-    microphoneManager.start();
-    streaming = true;
-    onPreview = true;
-    startStreamRtp(url);
+  }
+
+  private void resetVideoEncoder() {
+    if (openGlViewBase != null) openGlViewBase.removeMediaCodecSurface();
+    videoEncoder.reset();
+    if (openGlViewBase != null) {
+      openGlViewBase.addMediaCodecSurface(videoEncoder.getInputSurface());
+    }
   }
 
   private void prepareGlView(boolean onChangeOrientation) {
@@ -411,17 +417,19 @@ public abstract class Camera2Base implements GetAacData, GetH264Data, GetMicroph
    * Stop stream started with @startStream.
    */
   public void stopStream() {
-    cameraManager.closeCamera(!isBackground);
-    onPreview = !isBackground;
-    microphoneManager.stop();
-    stopStreamRtp();
-    videoEncoder.stop();
-    audioEncoder.stop();
-    if (openGlViewBase != null) {
-      openGlViewBase.removeMediaCodecSurface();
-    } else if (offScreenGlThread != null) {
-      offScreenGlThread.removeMediaCodecSurface();
-      offScreenGlThread.stop();
+    if (streaming) stopStreamRtp();
+    if (!recording) {
+      cameraManager.closeCamera(!isBackground);
+      onPreview = !isBackground;
+      microphoneManager.stop();
+      videoEncoder.stop();
+      audioEncoder.stop();
+      if (openGlViewBase != null) {
+        openGlViewBase.removeMediaCodecSurface();
+      } else if (offScreenGlThread != null) {
+        offScreenGlThread.removeMediaCodecSurface();
+        offScreenGlThread.stop();
+      }
     }
     streaming = false;
   }
@@ -501,10 +509,9 @@ public abstract class Camera2Base implements GetAacData, GetH264Data, GetMicroph
   public void switchCamera() throws CameraOpenException {
     if (isStreaming() || onPreview) {
       cameraManager.switchCamera();
-      if (openGlViewBase != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
+      if (openGlViewBase != null) {
         openGlViewBase.setCameraFace(cameraManager.isFrontCamera());
-      } else if (offScreenGlThread != null
-          && Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
+      } else if (offScreenGlThread != null) {
         offScreenGlThread.setCameraFace(cameraManager.isFrontCamera());
       }
     }
@@ -729,9 +736,7 @@ public abstract class Camera2Base implements GetAacData, GetH264Data, GetMicroph
    * @param bitrate H264 in kb.
    */
   public void setVideoBitrateOnFly(int bitrate) {
-    if (Build.VERSION.SDK_INT >= 19) {
-      videoEncoder.setVideoBitrateOnFly(bitrate);
-    }
+    videoEncoder.setVideoBitrateOnFly(bitrate);
   }
 
   /**
@@ -777,10 +782,10 @@ public abstract class Camera2Base implements GetAacData, GetH264Data, GetMicroph
 
   @Override
   public void getAacData(ByteBuffer aacBuffer, MediaCodec.BufferInfo info) {
-    if (recording && audioTrack != -1 && canRecord) {
+    if (recording && canRecord) {
       mediaMuxer.writeSampleData(audioTrack, aacBuffer, info);
     }
-    getAacDataRtp(aacBuffer, info);
+    if (streaming) getAacDataRtp(aacBuffer, info);
   }
 
   protected abstract void onSPSandPPSRtp(ByteBuffer sps, ByteBuffer pps);
@@ -794,13 +799,21 @@ public abstract class Camera2Base implements GetAacData, GetH264Data, GetMicroph
 
   @Override
   public void getH264Data(ByteBuffer h264Buffer, MediaCodec.BufferInfo info) {
-    if (recording && videoTrack != -1) {
-      if (info.flags == MediaCodec.BUFFER_FLAG_KEY_FRAME) canRecord = true;
-      if (canRecord) {
+    if (recording) {
+      if (info.flags == MediaCodec.BUFFER_FLAG_KEY_FRAME
+          && !canRecord
+          && videoFormat != null
+          && audioFormat != null) {
+        videoTrack = mediaMuxer.addTrack(videoFormat);
+        audioTrack = mediaMuxer.addTrack(audioFormat);
+        mediaMuxer.start();
+        canRecord = true;
+      }
+      if (canRecord && videoTrack != -1) {
         mediaMuxer.writeSampleData(videoTrack, h264Buffer, info);
       }
     }
-    getH264DataRtp(h264Buffer, info);
+    if (streaming) getH264DataRtp(h264Buffer, info);
   }
 
   @Override

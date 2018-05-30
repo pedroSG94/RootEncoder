@@ -223,7 +223,9 @@ public class RtmpActivity extends AppCompatActivity
           }
           int width = resolution.width;
           int height = resolution.height;
-          if (rtmpCamera1.prepareVideo(width, height, Integer.parseInt(etFps.getText().toString()),
+          if (rtmpCamera1.isRecording()
+              || rtmpCamera1.prepareVideo(width, height,
+              Integer.parseInt(etFps.getText().toString()),
               Integer.parseInt(etVideoBitrate.getText().toString()) * 1024,
               cbHardwareRotation.isChecked(), orientations[spOrientation.getSelectedItemPosition()])
               && rtmpCamera1.prepareAudio(
@@ -256,9 +258,22 @@ public class RtmpActivity extends AppCompatActivity
               }
               SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault());
               currentDateAndTime = sdf.format(new Date());
-              rtmpCamera1.startRecord(folder.getAbsolutePath() + "/" + currentDateAndTime + ".mp4");
-              bRecord.setText(R.string.stop_record);
-              Toast.makeText(this, "Recording... ", Toast.LENGTH_SHORT).show();
+              if (!rtmpCamera1.isStreaming()) {
+                if (rtmpCamera1.prepareAudio() && rtmpCamera1.prepareVideo()) {
+                  rtmpCamera1.startRecord(
+                      folder.getAbsolutePath() + "/" + currentDateAndTime + ".mp4");
+                  bRecord.setText(R.string.stop_record);
+                  Toast.makeText(this, "Recording... ", Toast.LENGTH_SHORT).show();
+                } else {
+                  Toast.makeText(this, "Error preparing stream, This device cant do it",
+                      Toast.LENGTH_SHORT).show();
+                }
+              } else {
+                rtmpCamera1.startRecord(
+                    folder.getAbsolutePath() + "/" + currentDateAndTime + ".mp4");
+                bRecord.setText(R.string.stop_record);
+                Toast.makeText(this, "Recording... ", Toast.LENGTH_SHORT).show();
+              }
             } catch (IOException e) {
               rtmpCamera1.stopRecord();
               bRecord.setText(R.string.start_record);
