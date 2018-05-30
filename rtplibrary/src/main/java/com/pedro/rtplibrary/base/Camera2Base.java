@@ -782,9 +782,7 @@ public abstract class Camera2Base implements GetAacData, GetH264Data, GetMicroph
 
   @Override
   public void getAacData(ByteBuffer aacBuffer, MediaCodec.BufferInfo info) {
-    if (recording && canRecord) {
-      mediaMuxer.writeSampleData(audioTrack, aacBuffer, info);
-    }
+    if (canRecord && recording) mediaMuxer.writeSampleData(audioTrack, aacBuffer, info);
     if (streaming) getAacDataRtp(aacBuffer, info);
   }
 
@@ -809,9 +807,7 @@ public abstract class Camera2Base implements GetAacData, GetH264Data, GetMicroph
         mediaMuxer.start();
         canRecord = true;
       }
-      if (canRecord && videoTrack != -1) {
-        mediaMuxer.writeSampleData(videoTrack, h264Buffer, info);
-      }
+      if (canRecord) mediaMuxer.writeSampleData(videoTrack, h264Buffer, info);
     }
     if (streaming) getH264DataRtp(h264Buffer, info);
   }

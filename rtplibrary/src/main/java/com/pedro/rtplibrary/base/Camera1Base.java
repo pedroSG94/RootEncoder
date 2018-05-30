@@ -863,9 +863,7 @@ public abstract class Camera1Base
         mediaMuxer.start();
         canRecord = true;
       }
-      if (canRecord && videoTrack != -1) {
-        mediaMuxer.writeSampleData(videoTrack, h264Buffer, info);
-      }
+      if (canRecord && recording) mediaMuxer.writeSampleData(videoTrack, h264Buffer, info);
     }
     if (streaming) getH264DataRtp(h264Buffer, info);
   }
