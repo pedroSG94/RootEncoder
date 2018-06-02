@@ -93,11 +93,15 @@ public class VideoEncoder implements GetCameraData {
       MediaFormat videoFormat;
       //if you dont use mediacodec rotation you need swap width and height in rotation 90 or 270
       // for correct encoding resolution
+      String resolution;
       if (!hardwareRotation && (rotation == 90 || rotation == 270)) {
+        resolution = height + "x" + width;
         videoFormat = MediaFormat.createVideoFormat(CodecUtil.H264_MIME, height, width);
       } else {
+        resolution = width + "x" + height;
         videoFormat = MediaFormat.createVideoFormat(CodecUtil.H264_MIME, width, height);
       }
+      Log.i(TAG, "Prepare video info: " + this.formatVideoEncoder.name() + ", " + resolution);
       videoFormat.setInteger(MediaFormat.KEY_COLOR_FORMAT,
           this.formatVideoEncoder.getFormatCodec());
       videoFormat.setInteger(MediaFormat.KEY_MAX_INPUT_SIZE, 0);
@@ -410,6 +414,7 @@ public class VideoEncoder implements GetCameraData {
             }
           }
         }
+        videoInfo.presentationTimeUs = System.nanoTime() / 1000 - mPresentTimeUs;
         getH264Data.getH264Data(bb, videoInfo);
         videoEncoder.releaseOutputBuffer(outBufferIndex, false);
       } else {
@@ -452,6 +457,7 @@ public class VideoEncoder implements GetCameraData {
             }
           }
         }
+        videoInfo.presentationTimeUs = System.nanoTime() / 1000 - mPresentTimeUs;
         getH264Data.getH264Data(bb, videoInfo);
         videoEncoder.releaseOutputBuffer(outBufferIndex, false);
       } else {

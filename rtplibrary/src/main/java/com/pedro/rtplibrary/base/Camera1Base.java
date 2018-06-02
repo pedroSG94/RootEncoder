@@ -846,12 +846,11 @@ public abstract class Camera1Base
 
   @Override
   public void onSPSandPPS(ByteBuffer sps, ByteBuffer pps) {
-    onSPSandPPSRtp(sps, pps);
+    if (streaming) onSPSandPPSRtp(sps, pps);
   }
 
   protected abstract void getH264DataRtp(ByteBuffer h264Buffer, MediaCodec.BufferInfo info);
 
-  //TODO record while press start stream in buffer to buffer mode
   @Override
   public void getH264Data(ByteBuffer h264Buffer, MediaCodec.BufferInfo info) {
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2 && recording) {
@@ -864,7 +863,7 @@ public abstract class Camera1Base
         mediaMuxer.start();
         canRecord = true;
       }
-      if (canRecord && recording) mediaMuxer.writeSampleData(videoTrack, h264Buffer, info);
+      if (canRecord) mediaMuxer.writeSampleData(videoTrack, h264Buffer, info);
     }
     if (streaming) getH264DataRtp(h264Buffer, info);
   }

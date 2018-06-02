@@ -854,7 +854,6 @@ public class SrsFlvMuxer {
       frame.dts = dts;
       frame.frame_type = frame_type;
       frame.avc_aac_type = avc_aac_type;
-
       if (frame.is_video()) {
         if (needToFindKeyFrame) {
           if (frame.is_keyframe()) {

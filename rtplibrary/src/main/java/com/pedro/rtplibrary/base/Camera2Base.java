@@ -790,7 +790,7 @@ public abstract class Camera2Base implements GetAacData, GetH264Data, GetMicroph
 
   @Override
   public void onSPSandPPS(ByteBuffer sps, ByteBuffer pps) {
-    onSPSandPPSRtp(sps, pps);
+    if (streaming) onSPSandPPSRtp(sps, pps);
   }
 
   protected abstract void getH264DataRtp(ByteBuffer h264Buffer, MediaCodec.BufferInfo info);
