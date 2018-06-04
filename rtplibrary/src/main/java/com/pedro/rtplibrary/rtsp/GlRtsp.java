@@ -47,7 +47,6 @@ public class GlRtsp extends GlBase {
   @Override
   protected void startStreamRtp(String url) {
     rtspClient.setUrl(url);
-    rtspClient.connect();
   }
 
   @Override

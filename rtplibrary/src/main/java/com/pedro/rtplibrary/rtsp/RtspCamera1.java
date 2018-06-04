@@ -76,9 +76,6 @@ public class RtspCamera1 extends Camera1Base {
   @Override
   protected void startStreamRtp(String url) {
     rtspClient.setUrl(url);
-    if (!cameraManager.isPrepared()) {
-      rtspClient.connect();
-    }
   }
 
   @Override

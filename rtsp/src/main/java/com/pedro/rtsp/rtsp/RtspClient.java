@@ -154,9 +154,7 @@ public class RtspClient {
   public void connect() {
     if (!streaming) {
       h264Packet = new H264Packet(this, protocol);
-      if (sps != null && pps != null) {
-        h264Packet.setSPSandPPS(sps, pps);
-      }
+      h264Packet.setSPSandPPS(sps, pps);
       aacPacket = new AacPacket(this, protocol);
       aacPacket.setSampleRate(sampleRate);
       thread = new Thread(new Runnable() {
@@ -387,10 +385,7 @@ public class RtspClient {
     return "CSeq: "
         + (++mCSeq)
         + "\r\n"
-        + "Content-Length: 0\r\n"
-        + (sessionId != null ? "Session: "
-        + sessionId
-        + "\r\n" : "")
+        + (sessionId != null ? "Session: " + sessionId + "\r\n" : "")
         // For some reason you may have to remove last "\r\n" in the next line to make the RTSP client work with your wowza server :/
         + (authorization != null ? "Authorization: " + authorization + "\r\n" : "")
         + "\r\n";
