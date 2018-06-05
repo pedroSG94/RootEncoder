@@ -51,7 +51,6 @@ public class H264Packet extends BasePacket {
       System.arraycopy(stapA, 0, buffer, RtpConstants.RTP_HEADER_LENGTH, stapA.length);
       socket.commitBuffer(stapA.length + RtpConstants.RTP_HEADER_LENGTH);
     }
-
     // Small NAL unit => Single NAL unit
     if (naluLength <= maxPacketSize - RtpConstants.RTP_HEADER_LENGTH - 2) {
       buffer = socket.requestBuffer();
@@ -59,6 +58,7 @@ public class H264Packet extends BasePacket {
       int cont = naluLength - 1;
       int length = cont < bufferInfo.size - byteBuffer.position() ? cont
           : bufferInfo.size - byteBuffer.position();
+      if (length < 0) return;
       byteBuffer.get(buffer, RtpConstants.RTP_HEADER_LENGTH + 1, length);
       socket.updateTimestamp(ts);
       socket.markNextPacket();
@@ -85,10 +85,8 @@ public class H264Packet extends BasePacket {
                 - 2 : naluLength - sum;
         int length = cont < bufferInfo.size - byteBuffer.position() ? cont
             : bufferInfo.size - byteBuffer.position();
+        if (length < 0) return;
         byteBuffer.get(buffer, RtpConstants.RTP_HEADER_LENGTH + 2, length);
-        if (length < 0) {
-          return;
-        }
         sum += length;
         // Last packet before next NAL
         if (sum >= naluLength) {
