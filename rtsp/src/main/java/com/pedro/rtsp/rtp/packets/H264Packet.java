@@ -39,6 +39,7 @@ public class H264Packet extends BasePacket {
   public void createAndSendPacket(ByteBuffer byteBuffer, MediaCodec.BufferInfo bufferInfo) {
     // We read a NAL units from ByteBuffer and we send them
     // NAL units are preceded with 0x00000001
+    byteBuffer.rewind();
     byteBuffer.get(header, 0, 5);
     ts = bufferInfo.presentationTimeUs * 1000L;
     int naluLength = bufferInfo.size - byteBuffer.position() + 1;
@@ -58,7 +59,6 @@ public class H264Packet extends BasePacket {
       int cont = naluLength - 1;
       int length = cont < bufferInfo.size - byteBuffer.position() ? cont
           : bufferInfo.size - byteBuffer.position();
-      if (length < 0) return;
       byteBuffer.get(buffer, RtpConstants.RTP_HEADER_LENGTH + 1, length);
       socket.updateTimestamp(ts);
       socket.markNextPacket();
@@ -85,7 +85,6 @@ public class H264Packet extends BasePacket {
                 - 2 : naluLength - sum;
         int length = cont < bufferInfo.size - byteBuffer.position() ? cont
             : bufferInfo.size - byteBuffer.position();
-        if (length < 0) return;
         byteBuffer.get(buffer, RtpConstants.RTP_HEADER_LENGTH + 2, length);
         sum += length;
         // Last packet before next NAL
