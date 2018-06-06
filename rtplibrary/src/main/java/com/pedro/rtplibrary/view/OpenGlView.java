@@ -41,6 +41,7 @@ public class OpenGlView extends OpenGlViewBase {
   private boolean AAEnabled = false;
   private TranslateTo positionTo;
   private boolean keepAspectRatio = false;
+  private boolean isFrontPreviewFlip = false;
 
   public OpenGlView(Context context) {
     super(context);
@@ -135,6 +136,14 @@ public class OpenGlView extends OpenGlViewBase {
     this.keepAspectRatio = keepAspectRatio;
   }
 
+  public boolean isFrontPreviewFlip() {
+    return isFrontPreviewFlip;
+  }
+
+  public void setFrontPreviewFlip(boolean frontPreviewFlip) {
+    isFrontPreviewFlip = frontPreviewFlip;
+  }
+
   public boolean isAAEnabled() {
     return managerRender != null && managerRender.isAAEnabled();
   }
@@ -186,7 +195,8 @@ public class OpenGlView extends OpenGlViewBase {
             }
             managerRender.updateFrame();
             managerRender.drawOffScreen();
-            managerRender.drawScreen(previewWidth, previewHeight, keepAspectRatio);
+            managerRender.drawScreen(previewWidth, previewHeight, keepAspectRatio,
+                isFrontPreviewFlip);
             surfaceManager.swapBuffer();
             //stream object loaded but you need reset surfaceManagerEncoder
             synchronized (sync) {
@@ -199,7 +209,7 @@ public class OpenGlView extends OpenGlViewBase {
                   continue;
                 }
                 surfaceManagerEncoder.makeCurrent();
-                managerRender.drawScreen(encoderWidth, encoderHeight, false);
+                managerRender.drawScreen(encoderWidth, encoderHeight, false, false);
                 long ts = managerRender.getSurfaceTexture().getTimestamp();
                 surfaceManagerEncoder.setPresentationTime(ts);
                 surfaceManagerEncoder.swapBuffer();

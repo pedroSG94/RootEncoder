@@ -58,14 +58,14 @@ public class SimpleCameraRender {
   private int uSTMatrixHandle = -1;
   private int aPositionHandle = -1;
   private int aTextureCoordHandle = -1;
-  private int uIsFrontCameraHandle = -1;
+  private int uOnFlipHandle = -1;
 
   private SurfaceTexture surfaceTexture;
   private Surface surface;
-  private boolean isFrontCamera = false;
   private int streamWidth;
   private int streamHeight;
-  private boolean isLandscape;
+  private boolean isPortrait;
+  private float onFlip = 0f;
 
   public SimpleCameraRender() {
     Matrix.setIdentityM(MVPMatrix, 0);
@@ -99,7 +99,7 @@ public class SimpleCameraRender {
     surfaceTexture.updateTexImage();
   }
 
-  public void drawFrame(int width, int height, boolean keepAspectRatio) {
+  public void drawFrame(int width, int height, boolean keepAspectRatio, boolean isFrontFlip) {
     GlUtil.checkGlError("drawFrame start");
     surfaceTexture.getTransformMatrix(STMatrix);
 
@@ -131,7 +131,7 @@ public class SimpleCameraRender {
 
     GLES20.glUniformMatrix4fv(uMVPMatrixHandle, 1, false, MVPMatrix, 0);
     GLES20.glUniformMatrix4fv(uSTMatrixHandle, 1, false, STMatrix, 0);
-    GLES20.glUniform1f(uIsFrontCameraHandle, isFrontCamera && isLandscape ? 1f : 0f);
+    GLES20.glUniform1f(uOnFlipHandle, isFrontFlip ? 0f : onFlip);
     //camera
     GLES20.glActiveTexture(GLES20.GL_TEXTURE0);
     GLES20.glBindTexture(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, textureID);
@@ -144,7 +144,7 @@ public class SimpleCameraRender {
    * Initializes GL state.  Call this after the EGL surface has been created and made current.
    */
   public void initGl(Context context) {
-    isLandscape = context.getResources().getConfiguration().orientation != 1;
+    isPortrait = context.getResources().getConfiguration().orientation == 1;
     GlUtil.checkGlError("initGl start");
     String vertexShader = GlUtil.getStringFromRaw(context, R.raw.simple_vertex);
     String fragmentShader = GlUtil.getStringFromRaw(context, R.raw.camera_fragment);
@@ -154,7 +154,7 @@ public class SimpleCameraRender {
     aTextureCoordHandle = GLES20.glGetAttribLocation(program, "aTextureCoord");
     uMVPMatrixHandle = GLES20.glGetUniformLocation(program, "uMVPMatrix");
     uSTMatrixHandle = GLES20.glGetUniformLocation(program, "uSTMatrix");
-    uIsFrontCameraHandle = GLES20.glGetUniformLocation(program, "uIsFrontCamera");
+    uOnFlipHandle = GLES20.glGetUniformLocation(program, "uOnFlip");
 
     //camera texture
     GlUtil.createExternalTextures(1, texturesID, 0);
@@ -171,7 +171,11 @@ public class SimpleCameraRender {
   }
 
   public void faceChanged(boolean isFrontCamera) {
-    this.isFrontCamera = isFrontCamera;
+    if (isFrontCamera) {
+      onFlip = isPortrait ? 1f : 2f;  //Front portrait flip on Y. Front landscape flip on X
+    } else {
+      onFlip = 0f;  //no flip
+    }
   }
 
   public void setStreamSize(int streamWidth, int streamHeight) {

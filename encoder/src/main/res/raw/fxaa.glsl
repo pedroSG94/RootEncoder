@@ -10,6 +10,7 @@ precision highp float;
 uniform sampler2D uSampler;
 uniform vec2 uResolution;
 uniform float uAAEnabled;
+uniform float uOnFlip;
 
 varying vec2 vTextureCoord;
 
@@ -73,9 +74,6 @@ vec4 PostFX(sampler2D tex, vec2 uv) {
 }
 
 void main() {
-  if (uAAEnabled == 1.0) {
-	  gl_FragColor = PostFX(uSampler, vTextureCoord);
-  } else {
-    gl_FragColor = texture2D(uSampler, vTextureCoord);
-  }
+  vec2 coord = uOnFlip == 1.0 ? vec2(1.0 - vTextureCoord.x, vTextureCoord.y) : vec2(vTextureCoord.x, vTextureCoord.y);
+	gl_FragColor = uAAEnabled == 1.0 ? PostFX(uSampler, vTextureCoord) : texture2D(uSampler, coord);
 }

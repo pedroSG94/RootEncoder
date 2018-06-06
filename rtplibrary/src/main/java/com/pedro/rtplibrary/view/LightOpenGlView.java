@@ -19,6 +19,7 @@ public class LightOpenGlView extends OpenGlViewBase {
 
   private SimpleCameraRender simpleCameraRender = null;
   private boolean keepAspectRatio = false;
+  private boolean isFrontPreviewFlip = false;
 
   public LightOpenGlView(Context context) {
     super(context);
@@ -41,6 +42,14 @@ public class LightOpenGlView extends OpenGlViewBase {
 
   public void setKeepAspectRatio(boolean keepAspectRatio) {
     this.keepAspectRatio = keepAspectRatio;
+  }
+
+  public boolean isFrontPreviewFlip() {
+    return isFrontPreviewFlip;
+  }
+
+  public void setFrontPreviewFlip(boolean frontPreviewFlip) {
+    isFrontPreviewFlip = frontPreviewFlip;
   }
 
   @Override
@@ -70,13 +79,14 @@ public class LightOpenGlView extends OpenGlViewBase {
             frameAvailable = false;
             surfaceManager.makeCurrent();
             simpleCameraRender.updateFrame();
-            simpleCameraRender.drawFrame(previewWidth, previewHeight, keepAspectRatio);
+            simpleCameraRender.drawFrame(previewWidth, previewHeight, keepAspectRatio,
+                isFrontPreviewFlip);
             surfaceManager.swapBuffer();
 
             synchronized (sync) {
               if (surfaceManagerEncoder != null) {
                 surfaceManagerEncoder.makeCurrent();
-                simpleCameraRender.drawFrame(encoderWidth, encoderHeight, false);
+                simpleCameraRender.drawFrame(encoderWidth, encoderHeight, false, false);
                 long ts = simpleCameraRender.getSurfaceTexture().getTimestamp();
                 surfaceManagerEncoder.setPresentationTime(ts);
                 surfaceManagerEncoder.swapBuffer();
