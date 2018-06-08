@@ -54,6 +54,7 @@ dependencies {
 - [x] Disable/Enable video and audio while streaming.
 - [x] Switch camera while streaming.
 - [x] Change video bitrate while streaming (API 19+).
+- [X] Get upload bandwidth used.
 - [X] Record MP4 file while streaming (API 18+).
 - [x] H264 and AAC hardware encoding.
 - [x] Force H264 and AAC Codec hardware/software encoding (Not recommended).
