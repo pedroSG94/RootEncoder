@@ -505,6 +505,9 @@ public abstract class FromFileBase
     videoEnabled = true;
   }
 
+  public int getBitrate() {
+    return videoEncoder.getBitRate();
+  }
   /**
    * Get video camera state
    *

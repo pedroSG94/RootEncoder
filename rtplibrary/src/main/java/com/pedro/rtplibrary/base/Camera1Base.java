@@ -552,6 +552,9 @@ public abstract class Camera1Base
     videoEnabled = true;
   }
 
+  public int getBitrate() {
+    return videoEncoder.getBitRate();
+  }
   /**
    * Switch camera used. Can be called on preview or while stream, ignored with preview off.
    *

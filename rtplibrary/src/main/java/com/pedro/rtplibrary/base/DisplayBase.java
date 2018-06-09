@@ -283,6 +283,9 @@ public abstract class DisplayBase implements GetAacData, GetH264Data, GetMicroph
     videoEnabled = true;
   }
 
+  public int getBitrate() {
+    return videoEncoder.getBitRate();
+  }
   /**
    * Se video bitrate of H264 in kb while stream.
    *

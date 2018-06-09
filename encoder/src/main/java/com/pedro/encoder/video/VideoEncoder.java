@@ -201,6 +201,10 @@ public class VideoEncoder implements GetCameraData {
     start(true);
   }
 
+  public int getBitRate() {
+    return bitRate;
+  }
+
   public void start(boolean resetTs) {
     synchronized (sync) {
       if (videoEncoder != null) {

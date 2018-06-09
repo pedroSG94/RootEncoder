@@ -21,125 +21,125 @@ import java.util.NoSuchElementException;
  * from {@code /proc/net/xt_qtaguid/stats}.
  */
 class QTagTxParser {
-    private static final String TAG = "QTagParser";
-    private static final String QTAGUID_UID_STATS = "/proc/net/xt_qtaguid/stats";
+  private static final String TAG = "QTagParser";
+  private static final String QTAGUID_UID_STATS = "/proc/net/xt_qtaguid/stats";
 
-    private static final ThreadLocal<byte[]> sLineBuffer = new ThreadLocal<byte[]>() {
-        @Override
-        public byte[] initialValue() {
-            return new byte[512];
-        }
-    };
-
-    private static long sPreviousBytes = -1;
-    private static LineBufferReader sStatsReader = new LineBufferReader();
-    private static ByteArrayScanner sScanner = new ByteArrayScanner();
-    public static QTagTxParser sInstance;
-
-    public static synchronized QTagTxParser getInstance() {
-        if (sInstance == null) {
-            sInstance = new QTagTxParser(QTAGUID_UID_STATS);
-        }
-        return sInstance;
+  private static final ThreadLocal<byte[]> sLineBuffer = new ThreadLocal<byte[]>() {
+    @Override
+    public byte[] initialValue() {
+      return new byte[512];
     }
+  };
 
-    private String mPath;
+  private static long sPreviousBytes = -1;
+  private static LineBufferReader sStatsReader = new LineBufferReader();
+  private static ByteArrayScanner sScanner = new ByteArrayScanner();
+  public static QTagTxParser sInstance;
 
-    // @VisibleForTesting
-    public QTagTxParser(String path) {
-        mPath = path;
+  public static synchronized QTagTxParser getInstance() {
+    if (sInstance == null) {
+      sInstance = new QTagTxParser(QTAGUID_UID_STATS);
     }
+    return sInstance;
+  }
 
-    /**
-     * Reads the qtaguid file and returns a difference from the previous read.
-     * @param uid The target uid to read bytes downloaded for.
-     * @return The difference between the current number of bytes downloaded and
-     */
-    public long parseDataUsageForUidAndTag(int uid) {
-        // The format of each line is
-        // idx iface acct_tag_hex uid_tag_int cnt_set rx_bytes rx_packets tx_bytes
-        // (There are many more fields but we are not interested in them)
-        // For us parts: 1, 2, 3 are to see if the line is relevant
-        // and part 5 is the received bytes
-        // (part numbers start from 0)
+  private String mPath;
 
-        // Permit disk reads here, as /proc/net/xt_qtaguid/stats isn't really "on
-        // disk" and should be fast.
-        StrictMode.ThreadPolicy savedPolicy = StrictMode.allowThreadDiskReads();
-        try {
-            long tagTxBytes = 0;
+  // @VisibleForTesting
+  public QTagTxParser(String path) {
+    mPath = path;
+  }
 
-            FileInputStream fis = new FileInputStream(mPath);
-            sStatsReader.setFileStream(fis);
-            byte[] buffer = sLineBuffer.get();
+  /**
+   * Reads the qtaguid file and returns a difference from the previous read.
+   *
+   * @param uid The target uid to read bytes downloaded for.
+   * @return The difference between the current number of bytes downloaded and
+   */
+  public long parseDataUsageForUidAndTag(int uid) {
+    // The format of each line is
+    // idx iface acct_tag_hex uid_tag_int cnt_set rx_bytes rx_packets tx_bytes
+    // (There are many more fields but we are not interested in them)
+    // For us parts: 1, 2, 3 are to see if the line is relevant
+    // and part 5 is the received bytes
+    // (part numbers start from 0)
 
-            try {
-                int length;
-                sStatsReader.skipLine(); // skip first line (headers)
+    // Permit disk reads here, as /proc/net/xt_qtaguid/stats isn't really "on
+    // disk" and should be fast.
+    StrictMode.ThreadPolicy savedPolicy = StrictMode.allowThreadDiskReads();
+    try {
+      long tagTxBytes = 0;
 
-                int line = 2;
-                while ((length = sStatsReader.readLine(buffer)) != -1) {
-                    try {
+      FileInputStream fis = new FileInputStream(mPath);
+      sStatsReader.setFileStream(fis);
+      byte[] buffer = sLineBuffer.get();
 
-                        // Content is arranged in terms of:
-                        // idx iface acct_tag_hex uid_tag_int cnt_set rx_bytes rx_packets tx_bytes tx_packets rx_tcp_bytes
-                        // rx_tcp_packets rx_udp_bytes rx_udp_packets rx_other_bytes rx_other_packets tx_tcp_bytes tx_tcp_packets
-                        // tx_udp_bytes tx_udp_packets tx_other_bytes tx_other_packets
+      try {
+        int length;
+        sStatsReader.skipLine(); // skip first line (headers)
 
-                        // The ones we're interested in are:
-                        // idx - ignore
-                        // interface, filter out local interface ("lo")
-                        // tag - ignore
-                        // uid_tag_int, match it with the UID of interest
-                        // cnt_set - ignore
-                        // rx_bytes
+        int line = 2;
+        while ((length = sStatsReader.readLine(buffer)) != -1) {
+          try {
 
-                        sScanner.reset(buffer, length);
-                        sScanner.useDelimiter(' ');
+            // Content is arranged in terms of:
+            // idx iface acct_tag_hex uid_tag_int cnt_set rx_bytes rx_packets tx_bytes tx_packets rx_tcp_bytes
+            // rx_tcp_packets rx_udp_bytes rx_udp_packets rx_other_bytes rx_other_packets tx_tcp_bytes tx_tcp_packets
+            // tx_udp_bytes tx_udp_packets tx_other_bytes tx_other_packets
 
-                        sScanner.skip();
-                        if (sScanner.nextStringEquals("lo")) {
-                            continue;
-                        }
-                        sScanner.skip();
-                        if (sScanner.nextInt() != uid) {
-                            continue;
-                        }
-                        sScanner.skip();
-                        sScanner.skip();
-                        sScanner.skip();
-                        int txBytes = sScanner.nextInt();
-                        tagTxBytes += txBytes;
-                        line++;
-                        // If the line is incorrectly formatted, ignore the line.
-                    } catch (NumberFormatException e) {
-                        Log.e(TAG, "Cannot parse byte count at line" + line + ".");
-                        continue;
-                    } catch (NoSuchElementException e) {
-                        Log.e(TAG, "Invalid number of tokens on line " + line + ".");
-                        continue;
-                    }
-                }
-            } finally {
-                fis.close();
+            // The ones we're interested in are:
+            // idx - ignore
+            // interface, filter out local interface ("lo")
+            // tag - ignore
+            // uid_tag_int, match it with the UID of interest
+            // cnt_set - ignore
+            // rx_bytes
+
+            sScanner.reset(buffer, length);
+            sScanner.useDelimiter(' ');
+
+            sScanner.skip();
+            if (sScanner.nextStringEquals("lo")) {
+              continue;
             }
-
-            if (sPreviousBytes == -1) {
-                sPreviousBytes = tagTxBytes;
-                return -1;
+            sScanner.skip();
+            if (sScanner.nextInt() != uid) {
+              continue;
             }
-            long diff = tagTxBytes - sPreviousBytes;
-            sPreviousBytes = tagTxBytes;
-            return diff;
-
-        } catch (IOException e) {
-            Log.e (TAG, "Error reading from /proc/net/xt_qtaguid/stats. Please check if this file exists.");
-        } finally {
-            StrictMode.setThreadPolicy(savedPolicy);
+            sScanner.skip();
+            sScanner.skip();
+            sScanner.skip();
+            int txBytes = sScanner.nextInt();
+            tagTxBytes += txBytes;
+            line++;
+            // If the line is incorrectly formatted, ignore the line.
+          } catch (NumberFormatException e) {
+            Log.e(TAG, "Cannot parse byte count at line" + line + ".");
+            continue;
+          } catch (NoSuchElementException e) {
+            Log.e(TAG, "Invalid number of tokens on line " + line + ".");
+            continue;
+          }
         }
+      } finally {
+        fis.close();
+      }
 
-        // Return -1 upon error.
+      if (sPreviousBytes == -1) {
+        sPreviousBytes = tagTxBytes;
         return -1;
+      }
+      long diff = tagTxBytes - sPreviousBytes;
+      sPreviousBytes = tagTxBytes;
+      return diff;
+    } catch (IOException e) {
+      Log.e(TAG,
+          "Error reading from /proc/net/xt_qtaguid/stats. Please check if this file exists.");
+    } finally {
+      StrictMode.setThreadPolicy(savedPolicy);
     }
-}
 
+    // Return -1 upon error.
+    return -1;
+  }
+}

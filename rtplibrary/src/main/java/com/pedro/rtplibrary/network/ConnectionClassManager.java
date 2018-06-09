@@ -10,8 +10,6 @@
 
 package com.pedro.rtplibrary.network;
 
-import java.util.concurrent.atomic.AtomicReference;
-
 /**
  * <p>
  * Class used to calculate the approximate bandwidth of a user's connection.
@@ -25,19 +23,7 @@ public class ConnectionClassManager {
 
   private static final int BYTES_TO_BITS = 8;
 
-  /**
-   * The factor used to calculate the current bandwidth
-   * depending upon the previous calculated value for bandwidth.
-   *
-   * The smaller this value is, the less responsive to new samples the moving average becomes.
-   */
-  private static final double DEFAULT_DECAY_CONSTANT = 0.05;
-
   /** Current bandwidth of the user's connection depending upon the response. */
-  private ExponentialGeometricAverage mDownloadBandwidth =
-      new ExponentialGeometricAverage(DEFAULT_DECAY_CONSTANT);
-  private AtomicReference<ConnectionQuality> mCurrentBandwidthConnectionQuality =
-      new AtomicReference<>(ConnectionQuality.UNKNOWN);
   private ConnectionClassStateChangeListener listener;
   /**
    * The lower bound for measured bandwidth in bits/ms. Readings
@@ -76,16 +62,6 @@ public class ConnectionClassManager {
     }
     double bandwidth = (bytes) * 1.0 / (timeInMs) * BYTES_TO_BITS;
     if (listener != null) listener.onBandwidthStateChange(bandwidth);
-  }
-
-  /**
-   * Resets the bandwidth average for this instance of the bandwidth manager.
-   */
-  public void reset() {
-    if (mDownloadBandwidth != null) {
-      mDownloadBandwidth.reset();
-    }
-    mCurrentBandwidthConnectionQuality.set(ConnectionQuality.UNKNOWN);
   }
 
   /**
