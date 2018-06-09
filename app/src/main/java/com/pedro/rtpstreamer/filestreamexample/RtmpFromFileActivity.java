@@ -189,6 +189,7 @@ public class RtmpFromFileActivity extends AppCompatActivity
       }
     }).start();
   }
+
   @Override
   public void onVideoDecoderFinished() {
     runOnUiThread(new Runnable() {

@@ -92,8 +92,6 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         getString(R.string.opengl_rtmp), JELLY_BEAN_MR2));
     activities.add(new ActivityLink(new Intent(this, OpenGlRtspActivity.class),
         getString(R.string.opengl_rtsp), JELLY_BEAN_MR2));
-    activities.add(new ActivityLink(new Intent(this, CubeTestRtmpActivity.class),
-        getString(R.string.cube_test_rtmp), JELLY_BEAN_MR2));
   }
 
   private void setListAdapter(List<ActivityLink> activities) {

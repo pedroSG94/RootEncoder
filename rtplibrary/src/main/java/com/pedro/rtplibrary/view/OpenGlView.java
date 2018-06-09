@@ -68,11 +68,13 @@ public class OpenGlView extends OpenGlViewBase {
     return managerRender.getSurface();
   }
 
+  @Override
   public void setFilter(BaseFilterRender baseFilterRender) {
     loadFilter = true;
     this.baseFilterRender = baseFilterRender;
   }
 
+  @Override
   public void setGif(GifStreamObject gifStreamObject) {
     this.gifStreamObject = gifStreamObject;
     this.imageStreamObject = null;
@@ -80,6 +82,7 @@ public class OpenGlView extends OpenGlViewBase {
     loadStreamObject = true;
   }
 
+  @Override
   public void setImage(ImageStreamObject imageStreamObject) {
     this.imageStreamObject = imageStreamObject;
     this.gifStreamObject = null;
@@ -87,6 +90,7 @@ public class OpenGlView extends OpenGlViewBase {
     loadStreamObject = true;
   }
 
+  @Override
   public void setText(TextStreamObject textStreamObject) {
     this.textStreamObject = textStreamObject;
     this.gifStreamObject = null;
@@ -94,6 +98,7 @@ public class OpenGlView extends OpenGlViewBase {
     loadStreamObject = true;
   }
 
+  @Override
   public void clear() {
     this.textStreamObject = null;
     this.gifStreamObject = null;
@@ -101,28 +106,33 @@ public class OpenGlView extends OpenGlViewBase {
     loadStreamObject = true;
   }
 
+  @Override
   public void setStreamObjectAlpha(float alpha) {
     this.alpha = alpha;
     loadAlpha = true;
   }
 
+  @Override
   public void setStreamObjectSize(float sizeX, float sizeY) {
     this.scaleX = sizeX;
     this.scaleY = sizeY;
     loadScale = true;
   }
 
+  @Override
   public void setStreamObjectPosition(float x, float y) {
     this.positionX = x;
     this.positionY = y;
     loadPosition = true;
   }
 
+  @Override
   public void setStreamObjectPosition(TranslateTo translateTo) {
     this.positionTo = translateTo;
     loadPositionTo = true;
   }
 
+  @Override
   public void enableAA(boolean AAEnabled) {
     this.AAEnabled = AAEnabled;
     loadAA = true;
@@ -144,10 +154,12 @@ public class OpenGlView extends OpenGlViewBase {
     isFrontPreviewFlip = frontPreviewFlip;
   }
 
+  @Override
   public boolean isAAEnabled() {
     return managerRender != null && managerRender.isAAEnabled();
   }
 
+  @Override
   public PointF getScale() {
     if (managerRender != null) {
       return managerRender.getScale();
@@ -156,6 +168,7 @@ public class OpenGlView extends OpenGlViewBase {
     }
   }
 
+  @Override
   public PointF getPosition() {
     if (managerRender != null) {
       return managerRender.getPosition();

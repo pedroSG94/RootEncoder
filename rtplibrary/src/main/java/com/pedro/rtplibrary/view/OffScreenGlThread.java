@@ -1,4 +1,4 @@
-package com.pedro.rtplibrary;
+package com.pedro.rtplibrary.view;
 
 import android.content.Context;
 import android.graphics.PointF;
@@ -20,7 +20,7 @@ import java.util.concurrent.Semaphore;
  */
 
 @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
-public class OffScreenGlThread implements Runnable, SurfaceTexture.OnFrameAvailableListener {
+public class OffScreenGlThread implements GlInterface, Runnable, SurfaceTexture.OnFrameAvailableListener {
 
   private final Context context;
   private Thread thread = null;
@@ -60,25 +60,33 @@ public class OffScreenGlThread implements Runnable, SurfaceTexture.OnFrameAvaila
   protected boolean onChangeFace = false;
   protected boolean isFrontCamera = false;
 
-  public OffScreenGlThread(Context context, int encoderWidth, int encoderHeight) {
+  public OffScreenGlThread(Context context) {
     this.context = context;
-    this.encoderWidth = encoderWidth;
-    this.encoderHeight = encoderHeight;
   }
 
+  @Override
   public void init() {
     if (!initialized) textureManager = new ManagerRender();
     initialized = true;
   }
 
+  @Override
+  public void setEncoderSize(int width, int height) {
+    this.encoderWidth = width;
+    this.encoderHeight = height;
+  }
+
+  @Override
   public SurfaceTexture getSurfaceTexture() {
     return textureManager.getSurfaceTexture();
   }
 
+  @Override
   public Surface getSurface() {
     return textureManager.getSurface();
   }
 
+  @Override
   public void addMediaCodecSurface(Surface surface) {
     synchronized (sync) {
       this.surface = surface;
@@ -86,6 +94,7 @@ public class OffScreenGlThread implements Runnable, SurfaceTexture.OnFrameAvaila
     }
   }
 
+  @Override
   public void removeMediaCodecSurface() {
     synchronized (sync) {
       if (surfaceManagerEncoder != null) {
@@ -95,11 +104,13 @@ public class OffScreenGlThread implements Runnable, SurfaceTexture.OnFrameAvaila
     }
   }
 
+  @Override
   public void setFilter(BaseFilterRender baseFilterRender) {
     loadFilter = true;
     this.baseFilterRender = baseFilterRender;
   }
 
+  @Override
   public void setGif(GifStreamObject gifStreamObject) {
     this.gifStreamObject = gifStreamObject;
     this.imageStreamObject = null;
@@ -107,6 +118,7 @@ public class OffScreenGlThread implements Runnable, SurfaceTexture.OnFrameAvaila
     loadStreamObject = true;
   }
 
+  @Override
   public void setImage(ImageStreamObject imageStreamObject) {
     this.imageStreamObject = imageStreamObject;
     this.gifStreamObject = null;
@@ -114,6 +126,7 @@ public class OffScreenGlThread implements Runnable, SurfaceTexture.OnFrameAvaila
     loadStreamObject = true;
   }
 
+  @Override
   public void setText(TextStreamObject textStreamObject) {
     this.textStreamObject = textStreamObject;
     this.gifStreamObject = null;
@@ -121,6 +134,7 @@ public class OffScreenGlThread implements Runnable, SurfaceTexture.OnFrameAvaila
     loadStreamObject = true;
   }
 
+  @Override
   public void clear() {
     this.textStreamObject = null;
     this.gifStreamObject = null;
@@ -128,46 +142,55 @@ public class OffScreenGlThread implements Runnable, SurfaceTexture.OnFrameAvaila
     loadStreamObject = true;
   }
 
+  @Override
   public void setStreamObjectAlpha(float alpha) {
     this.alpha = alpha;
     loadAlpha = true;
   }
 
+  @Override
   public void setStreamObjectSize(float sizeX, float sizeY) {
     this.scaleX = sizeX;
     this.scaleY = sizeY;
     loadScale = true;
   }
 
+  @Override
   public void setStreamObjectPosition(float x, float y) {
     this.positionX = x;
     this.positionY = y;
     loadPosition = true;
   }
 
+  @Override
   public void setStreamObjectPosition(TranslateTo translateTo) {
     this.positionTo = translateTo;
     loadPositionTo = true;
   }
 
+  @Override
   public void enableAA(boolean AAEnabled) {
     this.AAEnabled = AAEnabled;
     loadAA = true;
   }
 
+  @Override
   public void setCameraFace(boolean frontCamera) {
     onChangeFace = true;
     isFrontCamera = frontCamera;
   }
 
+  @Override
   public boolean isAAEnabled() {
     return textureManager != null && textureManager.isAAEnabled();
   }
 
+  @Override
   public void setWaitTime(int waitTime) {
     this.waitTime = waitTime;
   }
 
+  @Override
   public PointF getScale() {
     if (textureManager != null) {
       return textureManager.getScale();
@@ -176,6 +199,7 @@ public class OffScreenGlThread implements Runnable, SurfaceTexture.OnFrameAvaila
     }
   }
 
+  @Override
   public PointF getPosition() {
     if (textureManager != null) {
       return textureManager.getPosition();
@@ -184,6 +208,7 @@ public class OffScreenGlThread implements Runnable, SurfaceTexture.OnFrameAvaila
     }
   }
 
+  @Override
   public void start(boolean isCamera2Landscape) {
     this.isCamera2Landscape = isCamera2Landscape;
     thread = new Thread(this);
@@ -192,6 +217,7 @@ public class OffScreenGlThread implements Runnable, SurfaceTexture.OnFrameAvaila
     semaphore.acquireUninterruptibly();
   }
 
+  @Override
   public void stop() {
     if (thread != null) {
       thread.interrupt();
@@ -281,6 +307,7 @@ public class OffScreenGlThread implements Runnable, SurfaceTexture.OnFrameAvaila
         }
       }
     } catch (InterruptedException ignore) {
+      Thread.currentThread().interrupt();
     } finally {
       surfaceManager.release();
       textureManager.release();

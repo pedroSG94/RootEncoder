@@ -18,7 +18,7 @@ import java.util.concurrent.Semaphore;
 
 @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
 public abstract class OpenGlViewBase extends SurfaceView
-    implements Runnable, SurfaceTexture.OnFrameAvailableListener, SurfaceHolder.Callback {
+    implements GlInterface, Runnable, SurfaceTexture.OnFrameAvailableListener, SurfaceHolder.Callback {
 
   public final static String TAG = "OpenGlViewBase";
 
@@ -50,12 +50,16 @@ public abstract class OpenGlViewBase extends SurfaceView
     getHolder().addCallback(this);
   }
 
+  @Override
   public abstract void init();
 
+  @Override
   public abstract SurfaceTexture getSurfaceTexture();
 
+  @Override
   public abstract Surface getSurface();
 
+  @Override
   public void addMediaCodecSurface(Surface surface) {
     synchronized (sync) {
       this.surface = surface;
@@ -63,6 +67,7 @@ public abstract class OpenGlViewBase extends SurfaceView
     }
   }
 
+  @Override
   public void removeMediaCodecSurface() {
     synchronized (sync) {
       if (surfaceManagerEncoder != null) {
@@ -72,21 +77,25 @@ public abstract class OpenGlViewBase extends SurfaceView
     }
   }
 
+  @Override
   public void setWaitTime(int waitTime) {
     this.waitTime = waitTime;
   }
 
+  @Override
   public void setCameraFace(boolean frontCamera) {
     onChangeFace = true;
     isFrontCamera = frontCamera;
   }
 
+  @Override
   public void setEncoderSize(int width, int height) {
     this.encoderWidth = width;
     this.encoderHeight = height;
   }
 
-  public void startGLThread(boolean isCamera2Landscape) {
+  @Override
+  public void start(boolean isCamera2Landscape) {
     this.isCamera2Landscape = isCamera2Landscape;
     Log.i(TAG, "Thread started.");
     thread = new Thread(this);
@@ -95,7 +104,8 @@ public abstract class OpenGlViewBase extends SurfaceView
     semaphore.acquireUninterruptibly();
   }
 
-  public void stopGlThread() {
+  @Override
+  public void stop() {
     if (thread != null) {
       thread.interrupt();
       try {
@@ -129,6 +139,6 @@ public abstract class OpenGlViewBase extends SurfaceView
 
   @Override
   public void surfaceDestroyed(SurfaceHolder holder) {
-    stopGlThread();
+    stop();
   }
 }

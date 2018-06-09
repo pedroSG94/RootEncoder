@@ -1,7 +1,6 @@
 package com.pedro.rtplibrary.base;
 
 import android.content.Context;
-import android.graphics.PointF;
 import android.media.MediaCodec;
 import android.media.MediaFormat;
 import android.media.MediaMuxer;
@@ -16,16 +15,12 @@ import com.pedro.encoder.input.decoder.AudioDecoderInterface;
 import com.pedro.encoder.input.decoder.LoopFileInterface;
 import com.pedro.encoder.input.decoder.VideoDecoder;
 import com.pedro.encoder.input.decoder.VideoDecoderInterface;
-import com.pedro.encoder.input.gl.render.filters.BaseFilterRender;
 import com.pedro.encoder.utils.CodecUtil;
-import com.pedro.encoder.utils.gl.GifStreamObject;
-import com.pedro.encoder.utils.gl.ImageStreamObject;
-import com.pedro.encoder.utils.gl.TextStreamObject;
-import com.pedro.encoder.utils.gl.TranslateTo;
 import com.pedro.encoder.video.FormatVideoEncoder;
 import com.pedro.encoder.video.GetH264Data;
 import com.pedro.encoder.video.VideoEncoder;
-import com.pedro.rtplibrary.OffScreenGlThread;
+import com.pedro.rtplibrary.view.GlInterface;
+import com.pedro.rtplibrary.view.OffScreenGlThread;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 
@@ -48,7 +43,7 @@ public abstract class FromFileBase
 
   protected VideoEncoder videoEncoder;
   protected AudioEncoder audioEncoder;
-  private OffScreenGlThread offScreenGlThread;
+  private GlInterface glInterface;
   private boolean streaming = false;
   private boolean videoEnabled = true;
   //record
@@ -83,6 +78,7 @@ public abstract class FromFileBase
   public FromFileBase(Context context, VideoDecoderInterface videoDecoderInterface,
       AudioDecoderInterface audioDecoderInterface) {
     this.context = context;
+    glInterface = new OffScreenGlThread(context);
     this.videoDecoderInterface = videoDecoderInterface;
     this.audioDecoderInterface = audioDecoderInterface;
     videoEncoder = new VideoEncoder(this);
@@ -112,9 +108,9 @@ public abstract class FromFileBase
         videoEncoder.prepareVideoEncoder(videoDecoder.getWidth(), videoDecoder.getHeight(), 30,
             bitRate, 0, true, 2, FormatVideoEncoder.SURFACE);
     if (context != null) {
-      offScreenGlThread =
-          new OffScreenGlThread(context, videoDecoder.getWidth(), videoDecoder.getHeight());
-      offScreenGlThread.init();
+      glInterface = new OffScreenGlThread(context);
+      glInterface.setEncoderSize(videoDecoder.getWidth(), videoDecoder.getHeight());
+      glInterface.init();
     } else {
       videoDecoder.prepareVideo(videoEncoder.getInputSurface());
     }
@@ -160,10 +156,10 @@ public abstract class FromFileBase
       mediaMuxer.start();
       recording = true;
       if (videoEncoder.isRunning()) {
-        if (offScreenGlThread != null) offScreenGlThread.removeMediaCodecSurface();
+        if (glInterface != null) glInterface.removeMediaCodecSurface();
         videoEncoder.reset();
-        if (offScreenGlThread != null) {
-          offScreenGlThread.addMediaCodecSurface(videoEncoder.getInputSurface());
+        if (glInterface != null) {
+          glInterface.addMediaCodecSurface(videoEncoder.getInputSurface());
         }
       }
     } else {
@@ -204,9 +200,9 @@ public abstract class FromFileBase
   public void startStream(String url) {
     startStreamRtp(url);
     if (context != null) {
-      offScreenGlThread.start(false);
-      offScreenGlThread.addMediaCodecSurface(videoEncoder.getInputSurface());
-      videoDecoder.prepareVideo(offScreenGlThread.getSurface());
+      glInterface.start(false);
+      glInterface.addMediaCodecSurface(videoEncoder.getInputSurface());
+      videoDecoder.prepareVideo(glInterface.getSurface());
     }
     videoEncoder.start();
     audioEncoder.start();
@@ -223,8 +219,8 @@ public abstract class FromFileBase
   public void stopStream() {
     stopStreamRtp();
     if (context != null) {
-      offScreenGlThread.removeMediaCodecSurface();
-      offScreenGlThread.stop();
+      glInterface.removeMediaCodecSurface();
+      glInterface.stop();
     }
     videoDecoder.stop();
     audioDecoder.stop();
@@ -248,244 +244,9 @@ public abstract class FromFileBase
     if (isStreaming()) audioDecoder.moveTo(videoDecoder.getTime());
   }
 
-  public void setFilter(BaseFilterRender baseFilterRender) {
-    synchronized (sync) {
-      if (offScreenGlThread != null) {
-        if (isStreaming()) {
-          offScreenGlThread.setFilter(baseFilterRender);
-        } else {
-          Log.e(TAG, "You are not streaming, ignored");
-        }
-      } else {
-        throw new RuntimeException("You must use context in the constructor to set a gif");
-      }
-    }
-  }
-
-  /**
-   * Set a gif to the stream.
-   * By default with same resolution in px that the original file and in bottom-right position.
-   *
-   * @param gifStreamObject gif object that will be streamed.
-   * @throws RuntimeException If you don't use context
-   */
-  public void setGifStreamObject(GifStreamObject gifStreamObject) throws RuntimeException {
-    synchronized (sync) {
-      if (offScreenGlThread != null) {
-        if (isStreaming()) {
-          offScreenGlThread.setGif(gifStreamObject);
-        } else {
-          Log.e(TAG, "You are not streaming, ignored");
-        }
-      } else {
-        throw new RuntimeException("You must use context in the constructor to set a gif");
-      }
-    }
-  }
-
-  /**
-   * Set an image to the stream.
-   * By default with same resolution in px that the original file and in bottom-right position.
-   *
-   * @param imageStreamObject image object that will be streamed.
-   * @throws RuntimeException If you don't use context
-   */
-  public void setImageStreamObject(ImageStreamObject imageStreamObject) throws RuntimeException {
-    synchronized (sync) {
-      if (offScreenGlThread != null) {
-        if (isStreaming()) {
-          offScreenGlThread.setImage(imageStreamObject);
-        } else {
-          Log.e(TAG, "You are not streaming, ignored");
-        }
-      } else {
-        throw new RuntimeException("You must use context in the constructor to set an image");
-      }
-    }
-  }
-
-  /**
-   * Set a text to the stream.
-   * By default with same resolution in px that the original file and in bottom-right position.
-   *
-   * @param textStreamObject text object that will be streamed.
-   * @throws RuntimeException If you don't use context
-   */
-  public void setTextStreamObject(TextStreamObject textStreamObject) throws RuntimeException {
-    synchronized (sync) {
-      if (offScreenGlThread != null) {
-        if (isStreaming()) {
-          offScreenGlThread.setText(textStreamObject);
-        } else {
-          Log.e(TAG, "You are not streaming, ignored");
-        }
-      } else {
-        throw new RuntimeException("You must use context in the constructor to set a text");
-      }
-    }
-  }
-
-  /**
-   * Clear stream object of the stream.
-   *
-   * @throws RuntimeException If you don't use context
-   */
-  public void clearStreamObject() throws RuntimeException {
-    synchronized (sync) {
-      if (offScreenGlThread != null) {
-        if (isStreaming()) {
-          offScreenGlThread.clear();
-        } else {
-          Log.e(TAG, "You are not streaming, ignored");
-        }
-      } else {
-        throw new RuntimeException("You must use context in the constructor to clear");
-      }
-    }
-  }
-
-  /**
-   * Set alpha to the stream object.
-   *
-   * @param alpha of the stream object on fly, 1.0f totally opaque and 0.0f totally transparent
-   * @throws RuntimeException If you don't use context
-   */
-  public void setAlphaStreamObject(float alpha) throws RuntimeException {
-    synchronized (sync) {
-      if (offScreenGlThread != null) {
-        if (isStreaming()) {
-          offScreenGlThread.setStreamObjectAlpha(alpha);
-        } else {
-          Log.e(TAG, "You are not streaming, ignored");
-        }
-      } else {
-        throw new RuntimeException("You must use context in the constructor to set an alpha");
-      }
-    }
-  }
-
-  /**
-   * Set resolution to the stream object in percent.
-   *
-   * @param sizeX of the stream object in percent: 100 full screen to 1
-   * @param sizeY of the stream object in percent: 100 full screen to 1
-   * @throws RuntimeException If you don't use context
-   */
-  public void setSizeStreamObject(float sizeX, float sizeY) throws RuntimeException {
-    synchronized (sync) {
-      if (offScreenGlThread != null) {
-        if (isStreaming()) {
-          offScreenGlThread.setStreamObjectSize(sizeX, sizeY);
-        } else {
-          Log.e(TAG, "You are not streaming, ignored");
-        }
-      } else {
-        throw new RuntimeException("You must use context in the constructor to set a size");
-      }
-    }
-  }
-
-  /**
-   * Set position to the stream object in percent.
-   *
-   * @param x of the stream object in percent: 100 full screen left to 0 full right
-   * @param y of the stream object in percent: 100 full screen top to 0 full bottom
-   * @throws RuntimeException If you don't use context
-   */
-  public void setPositionStreamObject(float x, float y) throws RuntimeException {
-    synchronized (sync) {
-      if (offScreenGlThread != null) {
-        if (isStreaming()) {
-          offScreenGlThread.setStreamObjectPosition(x, y);
-        } else {
-          Log.e(TAG, "You are not streaming, ignored");
-        }
-      } else {
-        throw new RuntimeException("You must use context in the constructor to set a position");
-      }
-    }
-  }
-
-  /**
-   * Set position to the stream object with commons values developed.
-   *
-   * @param translateTo pre determinate positions
-   * @throws RuntimeException If you don't use context
-   */
-  public void setPositionStreamObject(TranslateTo translateTo) throws RuntimeException {
-    synchronized (sync) {
-      if (offScreenGlThread != null) {
-        if (isStreaming()) {
-          offScreenGlThread.setStreamObjectPosition(translateTo);
-        } else {
-          Log.e(TAG, "You are not streaming, ignored");
-        }
-      } else {
-        throw new RuntimeException("You must use context in the constructor to set a position");
-      }
-    }
-  }
-
-  /**
-   * Enable FXAA. Disabled by default.
-   *
-   * @param AAEnabled true to enable false to disable
-   * @throws RuntimeException
-   */
-  public void enableAA(boolean AAEnabled) throws RuntimeException {
-    synchronized (sync) {
-      if (offScreenGlThread != null) {
-        if (isStreaming()) {
-          offScreenGlThread.enableAA(AAEnabled);
-        } else {
-          Log.e(TAG, "You are not streaming, ignored");
-        }
-      } else {
-        throw new RuntimeException("You must use context in the constructor to set a position");
-      }
-    }
-  }
-
-  public boolean isAAEnabled() throws RuntimeException {
-    synchronized (sync) {
-      if (offScreenGlThread != null) {
-        return offScreenGlThread.isAAEnabled();
-      } else {
-        throw new RuntimeException("You must use context in the constructor to set a position");
-      }
-    }
-  }
-
-  /**
-   * Get scale of the stream object in percent.
-   *
-   * @return scale in percent, 0 is stream not started
-   * @throws RuntimeException If you don't use context
-   */
-  public PointF getSizeStreamObject() throws RuntimeException {
-    synchronized (sync) {
-      if (offScreenGlThread != null) {
-        return offScreenGlThread.getScale();
-      } else {
-        throw new RuntimeException("You must use context in the constructor to get position");
-      }
-    }
-  }
-
-  /**
-   * Get position of the stream object in percent.
-   *
-   * @return position in percent, 0 is stream not started
-   * @throws RuntimeException If you don't use context
-   */
-  public PointF getPositionStreamObject() throws RuntimeException {
-    synchronized (sync) {
-      if (offScreenGlThread != null) {
-        return offScreenGlThread.getPosition();
-      } else {
-        throw new RuntimeException("You must use context in the constructor to get scale");
-      }
-    }
+  public GlInterface getGlInterface() {
+    if (glInterface != null) return glInterface;
+    else throw new RuntimeException("You can't do it. You are not using Opengl");
   }
 
   /**
@@ -508,6 +269,7 @@ public abstract class FromFileBase
   public int getBitrate() {
     return videoEncoder.getBitRate();
   }
+
   /**
    * Get video camera state
    *
@@ -590,8 +352,8 @@ public abstract class FromFileBase
       try {
         if (isVideo) {
           if (context != null) {
-            offScreenGlThread.removeMediaCodecSurface();
-            offScreenGlThread.stop();
+            glInterface.removeMediaCodecSurface();
+            glInterface.stop();
           }
           videoDecoder.stop();
           videoDecoder = new VideoDecoder(videoDecoderInterface, this);
@@ -599,9 +361,9 @@ public abstract class FromFileBase
             throw new IOException("fail to reset video file");
           }
           if (context != null) {
-            offScreenGlThread.start(false);
-            offScreenGlThread.addMediaCodecSurface(videoEncoder.getInputSurface());
-            videoDecoder.prepareVideo(offScreenGlThread.getSurface());
+            glInterface.start(false);
+            glInterface.addMediaCodecSurface(videoEncoder.getInputSurface());
+            videoDecoder.prepareVideo(glInterface.getSurface());
           } else {
             videoDecoder.prepareVideo(videoEncoder.getInputSurface());
           }

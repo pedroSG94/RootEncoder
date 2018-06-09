@@ -2,7 +2,6 @@ package com.pedro.rtplibrary.base;
 
 import android.content.Context;
 import android.graphics.ImageFormat;
-import android.graphics.PointF;
 import android.hardware.Camera;
 import android.media.MediaCodec;
 import android.media.MediaFormat;
@@ -16,24 +15,19 @@ import com.pedro.encoder.audio.AudioEncoder;
 import com.pedro.encoder.audio.GetAacData;
 import com.pedro.encoder.input.audio.GetMicrophoneData;
 import com.pedro.encoder.input.audio.MicrophoneManager;
-import com.pedro.encoder.input.gl.render.filters.BaseFilterRender;
 import com.pedro.encoder.input.video.Camera1ApiManager;
 import com.pedro.encoder.input.video.Camera1Facing;
 import com.pedro.encoder.input.video.CameraOpenException;
 import com.pedro.encoder.input.video.Frame;
 import com.pedro.encoder.input.video.GetCameraData;
 import com.pedro.encoder.utils.CodecUtil;
-import com.pedro.encoder.utils.gl.GifStreamObject;
-import com.pedro.encoder.utils.gl.ImageStreamObject;
-import com.pedro.encoder.utils.gl.TextStreamObject;
-import com.pedro.encoder.utils.gl.TranslateTo;
 import com.pedro.encoder.video.FormatVideoEncoder;
 import com.pedro.encoder.video.GetH264Data;
 import com.pedro.encoder.video.VideoEncoder;
-import com.pedro.rtplibrary.OffScreenGlThread;
+import com.pedro.rtplibrary.view.GlInterface;
 import com.pedro.rtplibrary.view.LightOpenGlView;
+import com.pedro.rtplibrary.view.OffScreenGlThread;
 import com.pedro.rtplibrary.view.OpenGlView;
-import com.pedro.rtplibrary.view.OpenGlViewBase;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.List;
@@ -61,8 +55,7 @@ public abstract class Camera1Base
   protected VideoEncoder videoEncoder;
   protected MicrophoneManager microphoneManager;
   protected AudioEncoder audioEncoder;
-  private OpenGlView openGlView;
-  private OpenGlViewBase openGlViewBase;
+  private GlInterface glInterface;
   private boolean streaming = false;
   private boolean videoEnabled = true;
   //record
@@ -74,8 +67,6 @@ public abstract class Camera1Base
   private boolean onPreview = false;
   private MediaFormat videoFormat;
   private MediaFormat audioFormat;
-  private boolean isBackground = false;
-  private OffScreenGlThread offScreenGlThread;
 
   public Camera1Base(SurfaceView surfaceView) {
     context = surfaceView.getContext();
@@ -96,10 +87,9 @@ public abstract class Camera1Base
   @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
   public Camera1Base(OpenGlView openGlView) {
     context = openGlView.getContext();
-    this.openGlView = openGlView;
-    this.openGlViewBase = openGlView;
-    this.openGlView.init();
-    cameraManager = new Camera1ApiManager(openGlView.getSurfaceTexture(), openGlView.getContext());
+    this.glInterface = openGlView;
+    this.glInterface.init();
+    cameraManager = new Camera1ApiManager(glInterface.getSurfaceTexture(), openGlView.getContext());
     videoEncoder = new VideoEncoder(this);
     microphoneManager = new MicrophoneManager(this);
     audioEncoder = new AudioEncoder(this);
@@ -108,10 +98,10 @@ public abstract class Camera1Base
   @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
   public Camera1Base(LightOpenGlView lightOpenGlView) {
     context = lightOpenGlView.getContext();
-    this.openGlViewBase = lightOpenGlView;
-    this.openGlViewBase.init();
+    this.glInterface = lightOpenGlView;
+    this.glInterface.init();
     cameraManager =
-        new Camera1ApiManager(lightOpenGlView.getSurfaceTexture(), lightOpenGlView.getContext());
+        new Camera1ApiManager(glInterface.getSurfaceTexture(), lightOpenGlView.getContext());
     videoEncoder = new VideoEncoder(this);
     microphoneManager = new MicrophoneManager(this);
     audioEncoder = new AudioEncoder(this);
@@ -120,7 +110,9 @@ public abstract class Camera1Base
   @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
   public Camera1Base(Context context) {
     this.context = context;
-    this.isBackground = true;
+    glInterface = new OffScreenGlThread(context);
+    glInterface.init();
+    cameraManager = new Camera1ApiManager(glInterface.getSurfaceTexture(), context);
     videoEncoder = new VideoEncoder(this);
     microphoneManager = new MicrophoneManager(this);
     audioEncoder = new AudioEncoder(this);
@@ -158,7 +150,7 @@ public abstract class Camera1Base
       onPreview = true;
     }
     int imageFormat = ImageFormat.NV21; //supported nv21 and yv12
-    if (openGlViewBase == null && !isBackground) {
+    if (glInterface == null) {
       cameraManager.prepareCamera(width, height, fps, imageFormat);
       return videoEncoder.prepareVideoEncoder(width, height, fps, bitrate, rotation,
           hardwareRotation, iFrameInterval, FormatVideoEncoder.YUV420Dynamical);
@@ -211,7 +203,7 @@ public abstract class Camera1Base
       stopPreview();
       onPreview = true;
     }
-    if (openGlViewBase == null && !isBackground) {
+    if (glInterface == null) {
       cameraManager.prepareCamera();
       return videoEncoder.prepareVideoEncoder();
     } else {
@@ -290,24 +282,24 @@ public abstract class Camera1Base
    * @param height of preview in px.
    */
   public void startPreview(@Camera1Facing int cameraFacing, int width, int height) {
-    if (!isStreaming() && !onPreview && !isBackground) {
-      if (openGlViewBase != null && Build.VERSION.SDK_INT >= 18) {
+    if (!isStreaming() && !onPreview && !(glInterface instanceof OffScreenGlThread)) {
+      if (glInterface != null && Build.VERSION.SDK_INT >= 18) {
         boolean isPortrait = context.getResources().getConfiguration().orientation == 1;
         if (isPortrait) {
           if (width == 0 || height == 0) {
-            openGlViewBase.setEncoderSize(videoEncoder.getHeight(), videoEncoder.getWidth());
+            glInterface.setEncoderSize(videoEncoder.getHeight(), videoEncoder.getWidth());
           } else {
-            openGlViewBase.setEncoderSize(height, width);
+            glInterface.setEncoderSize(height, width);
           }
         } else {
           if (width == 0 || height == 0) {
-            openGlViewBase.setEncoderSize(videoEncoder.getWidth(), videoEncoder.getHeight());
+            glInterface.setEncoderSize(videoEncoder.getWidth(), videoEncoder.getHeight());
           } else {
-            openGlViewBase.setEncoderSize(width, height);
+            glInterface.setEncoderSize(width, height);
           }
         }
-        openGlViewBase.startGLThread(false);
-        cameraManager.setSurfaceTexture(openGlViewBase.getSurfaceTexture());
+        glInterface.start(false);
+        cameraManager.setSurfaceTexture(glInterface.getSurfaceTexture());
       }
       cameraManager.prepareCamera();
       if (width == 0 || height == 0) {
@@ -315,8 +307,8 @@ public abstract class Camera1Base
       } else {
         cameraManager.start(cameraFacing, width, height);
       }
-      if (openGlViewBase != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
-        openGlViewBase.setCameraFace(cameraManager.isFrontCamera());
+      if (glInterface != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
+        glInterface.setCameraFace(cameraManager.isFrontCamera());
       }
       onPreview = true;
     } else {
@@ -361,9 +353,9 @@ public abstract class Camera1Base
    * You need call it after @stopStream to release camera properly if you will close activity.
    */
   public void stopPreview() {
-    if (!isStreaming() && onPreview && !isBackground) {
-      if (openGlViewBase != null && Build.VERSION.SDK_INT >= 18) {
-        openGlViewBase.stopGlThread();
+    if (!isStreaming() && onPreview && !(glInterface instanceof OffScreenGlThread)) {
+      if (glInterface != null && Build.VERSION.SDK_INT >= 18) {
+        glInterface.stop();
       }
       cameraManager.stop();
       onPreview = false;
@@ -413,51 +405,37 @@ public abstract class Camera1Base
     audioEncoder.start();
     microphoneManager.start();
     cameraManager.start();
-    if (openGlViewBase != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
-      openGlViewBase.setCameraFace(cameraManager.isFrontCamera());
+    if (glInterface != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
+      glInterface.setCameraFace(cameraManager.isFrontCamera());
     }
   }
 
   private void resetVideoEncoder() {
-    if (openGlViewBase != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
-      openGlViewBase.removeMediaCodecSurface();
+    if (glInterface != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
+      glInterface.removeMediaCodecSurface();
     }
     videoEncoder.reset();
-    if (openGlViewBase != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
-      openGlViewBase.addMediaCodecSurface(videoEncoder.getInputSurface());
+    if (glInterface != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
+      glInterface.addMediaCodecSurface(videoEncoder.getInputSurface());
     }
   }
 
   private void prepareGlView() {
-    if (openGlViewBase != null && Build.VERSION.SDK_INT >= 18) {
-      openGlViewBase.init();
+    if (glInterface != null && Build.VERSION.SDK_INT >= 18) {
+      if (glInterface instanceof OffScreenGlThread) {
+        glInterface = new OffScreenGlThread(context);
+      }
+      glInterface.init();
       if (videoEncoder.getRotation() == 90 || videoEncoder.getRotation() == 270) {
-        openGlViewBase.setEncoderSize(videoEncoder.getHeight(), videoEncoder.getWidth());
+        glInterface.setEncoderSize(videoEncoder.getHeight(), videoEncoder.getWidth());
       } else {
-        openGlViewBase.setEncoderSize(videoEncoder.getWidth(), videoEncoder.getHeight());
+        glInterface.setEncoderSize(videoEncoder.getWidth(), videoEncoder.getHeight());
       }
-      openGlViewBase.startGLThread(false);
+      glInterface.start(false);
       if (videoEncoder.getInputSurface() != null) {
-        openGlViewBase.addMediaCodecSurface(videoEncoder.getInputSurface());
+        glInterface.addMediaCodecSurface(videoEncoder.getInputSurface());
       }
-      cameraManager.setSurfaceTexture(openGlViewBase.getSurfaceTexture());
-      cameraManager.prepareCamera(videoEncoder.getWidth(), videoEncoder.getHeight(),
-          videoEncoder.getFps(), ImageFormat.NV21);
-    } else if (isBackground && Build.VERSION.SDK_INT >= 18) {
-      if (videoEncoder.getRotation() == 90 || videoEncoder.getRotation() == 270) {
-        offScreenGlThread =
-            new OffScreenGlThread(context, videoEncoder.getHeight(), videoEncoder.getWidth());
-      } else {
-        offScreenGlThread =
-            new OffScreenGlThread(context, videoEncoder.getWidth(), videoEncoder.getHeight());
-      }
-      offScreenGlThread.init();
-      offScreenGlThread.start(false);
-      if (videoEncoder.getInputSurface() != null) {
-        offScreenGlThread.addMediaCodecSurface(videoEncoder.getInputSurface());
-      }
-      cameraManager = new Camera1ApiManager(offScreenGlThread.getSurfaceTexture(), context);
-      cameraManager.setSurfaceTexture(offScreenGlThread.getSurfaceTexture());
+      cameraManager.setSurfaceTexture(glInterface.getSurfaceTexture());
       cameraManager.prepareCamera(videoEncoder.getWidth(), videoEncoder.getHeight(),
           videoEncoder.getFps(), ImageFormat.NV21);
     }
@@ -474,12 +452,12 @@ public abstract class Camera1Base
       microphoneManager.stop();
       videoEncoder.stop();
       audioEncoder.stop();
-      if (openGlViewBase != null && Build.VERSION.SDK_INT >= 18) {
-        openGlViewBase.removeMediaCodecSurface();
-      } else if (offScreenGlThread != null && Build.VERSION.SDK_INT >= 18) {
-        offScreenGlThread.removeMediaCodecSurface();
-        offScreenGlThread.stop();
-        cameraManager.stop();
+      if (glInterface != null && Build.VERSION.SDK_INT >= 18) {
+        glInterface.removeMediaCodecSurface();
+        if (glInterface instanceof OffScreenGlThread) {
+          glInterface.stop();
+          cameraManager.stop();
+        }
       }
     }
     streaming = false;
@@ -555,6 +533,7 @@ public abstract class Camera1Base
   public int getBitrate() {
     return videoEncoder.getBitRate();
   }
+
   /**
    * Switch camera used. Can be called on preview or while stream, ignored with preview off.
    *
@@ -563,239 +542,15 @@ public abstract class Camera1Base
   public void switchCamera() throws CameraOpenException {
     if (isStreaming() || onPreview) {
       cameraManager.switchCamera();
-      if (openGlViewBase != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
-        openGlViewBase.setCameraFace(cameraManager.isFrontCamera());
-      } else if (offScreenGlThread != null
-          && Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
-        offScreenGlThread.setCameraFace(cameraManager.isFrontCamera());
+      if (glInterface != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
+        glInterface.setCameraFace(cameraManager.isFrontCamera());
       }
     }
   }
 
-  @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
-  public void setFilter(BaseFilterRender baseFilterRender) {
-    if (openGlView != null) {
-      openGlView.setFilter(baseFilterRender);
-    } else if (offScreenGlThread != null) {
-      offScreenGlThread.setFilter(baseFilterRender);
-    } else {
-      throw new RuntimeException(
-          "You must use OpenGlView, LightOpenGlView or Context in the constructor to set a filter");
-    }
-  }
-
-  /**
-   * Set a gif to the stream.
-   * By default with same resolution in px that the original file and in bottom-right position.
-   *
-   * @param gifStreamObject gif object that will be streamed.
-   * @throws RuntimeException If you don't use OpenGlvIew
-   */
-  @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
-  public void setGifStreamObject(GifStreamObject gifStreamObject) throws RuntimeException {
-    if (openGlView != null) {
-      openGlView.setGif(gifStreamObject);
-    } else if (offScreenGlThread != null) {
-      offScreenGlThread.setGif(gifStreamObject);
-    } else {
-      throw new RuntimeException(
-          "You must use OpenGlView, LightOpenGlView or Context in the constructor to set a gif");
-    }
-  }
-
-  /**
-   * Set an image to the stream.
-   * By default with same resolution in px that the original file and in bottom-right position.
-   *
-   * @param imageStreamObject image object that will be streamed.
-   * @throws RuntimeException If you don't use OpenGlvIew
-   */
-  @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
-  public void setImageStreamObject(ImageStreamObject imageStreamObject) throws RuntimeException {
-    if (openGlView != null) {
-      openGlView.setImage(imageStreamObject);
-    } else if (offScreenGlThread != null) {
-      offScreenGlThread.setImage(imageStreamObject);
-    } else {
-      throw new RuntimeException(
-          "You must use OpenGlView, LightOpenGlView or Context in the constructor to set an image");
-    }
-  }
-
-  /**
-   * Set a text to the stream.
-   * By default with same resolution in px that the original file and in bottom-right position.
-   *
-   * @param textStreamObject text object that will be streamed.
-   * @throws RuntimeException If you don't use OpenGlvIew
-   */
-  @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
-  public void setTextStreamObject(TextStreamObject textStreamObject) throws RuntimeException {
-    if (openGlView != null) {
-      openGlView.setText(textStreamObject);
-    } else if (offScreenGlThread != null) {
-      offScreenGlThread.setText(textStreamObject);
-    } else {
-      throw new RuntimeException(
-          "You must use OpenGlView, LightOpenGlView or Context in the constructor to set a text");
-    }
-  }
-
-  /**
-   * Clear stream object of the stream.
-   *
-   * @throws RuntimeException If you don't use OpenGlvIew
-   */
-  @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
-  public void clearStreamObject() throws RuntimeException {
-    if (openGlView != null) {
-      openGlView.clear();
-    } else if (offScreenGlThread != null) {
-      offScreenGlThread.clear();
-    } else {
-      throw new RuntimeException(
-          "You must use OpenGlView, LightOpenGlView or Context in the constructor to clear");
-    }
-  }
-
-  /**
-   * Set alpha to the stream object.
-   *
-   * @param alpha of the stream object on fly, 1.0f totally opaque and 0.0f totally transparent
-   * @throws RuntimeException If you don't use OpenGlvIew
-   */
-  @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
-  public void setAlphaStreamObject(float alpha) throws RuntimeException {
-    if (openGlView != null) {
-      openGlView.setStreamObjectAlpha(alpha);
-    } else if (offScreenGlThread != null) {
-      offScreenGlThread.setStreamObjectAlpha(alpha);
-    } else {
-      throw new RuntimeException(
-          "You must use OpenGlView, LightOpenGlView or Context in the constructor to set an alpha");
-    }
-  }
-
-  /**
-   * Set resolution to the stream object in percent.
-   *
-   * @param sizeX of the stream object in percent: 100 full screen to 1
-   * @param sizeY of the stream object in percent: 100 full screen to 1
-   * @throws RuntimeException If you don't use OpenGlvIew
-   */
-  @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
-  public void setSizeStreamObject(float sizeX, float sizeY) throws RuntimeException {
-    if (openGlView != null) {
-      openGlView.setStreamObjectSize(sizeX, sizeY);
-    } else if (offScreenGlThread != null) {
-      offScreenGlThread.setStreamObjectSize(sizeX, sizeY);
-    } else {
-      throw new RuntimeException(
-          "You must use OpenGlView, LightOpenGlView or Context in the constructor to set a size");
-    }
-  }
-
-  /**
-   * Set position to the stream object in percent.
-   *
-   * @param x of the stream object in percent: 100 full screen left to 0 full right
-   * @param y of the stream object in percent: 100 full screen top to 0 full bottom
-   * @throws RuntimeException If you don't use OpenGlvIew
-   */
-  @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
-  public void setPositionStreamObject(float x, float y) throws RuntimeException {
-    if (openGlView != null) {
-      openGlView.setStreamObjectPosition(x, y);
-    } else if (offScreenGlThread != null) {
-      offScreenGlThread.setStreamObjectPosition(x, y);
-    } else {
-      throw new RuntimeException(
-          "You must use OpenGlView, LightOpenGlView or Context in the constructor to set a position");
-    }
-  }
-
-  /**
-   * Set position to the stream object with commons values developed.
-   *
-   * @param translateTo pre determinate positions
-   * @throws RuntimeException If you don't use OpenGlvIew
-   */
-  @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
-  public void setPositionStreamObject(TranslateTo translateTo) throws RuntimeException {
-    if (openGlView != null) {
-      openGlView.setStreamObjectPosition(translateTo);
-    } else if (offScreenGlThread != null) {
-      offScreenGlThread.setStreamObjectPosition(translateTo);
-    } else {
-      throw new RuntimeException(
-          "You must use OpenGlView, LightOpenGlView or Context in the constructor to set a position");
-    }
-  }
-
-  /**
-   * Enable FXAA. Disabled by default.
-   *
-   * @param AAEnabled true to enable false to disable
-   * @throws RuntimeException
-   */
-  @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
-  public void enableAA(boolean AAEnabled) throws RuntimeException {
-    if (openGlView != null) {
-      openGlView.enableAA(AAEnabled);
-    } else if (offScreenGlThread != null) {
-      offScreenGlThread.enableAA(AAEnabled);
-    } else {
-      throw new RuntimeException(
-          "You must use OpenGlView, LightOpenGlView or Context in the constructor to enable AA");
-    }
-  }
-
-  @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
-  public boolean isAAEnabled() throws RuntimeException {
-    if (openGlView != null) {
-      return openGlView.isAAEnabled();
-    } else if (offScreenGlThread != null) {
-      return offScreenGlThread.isAAEnabled();
-    } else {
-      throw new RuntimeException(
-          "You must use OpenGlView, LightOpenGlView or Context in the constructor to get AA isEnabled");
-    }
-  }
-
-  /**
-   * Get scale of the stream object in percent.
-   *
-   * @return scale in percent, 0 is stream not started
-   * @throws RuntimeException If you don't use OpenGlvIew
-   */
-  @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
-  public PointF getSizeStreamObject() throws RuntimeException {
-    if (openGlView != null) {
-      return openGlView.getScale();
-    } else if (offScreenGlThread != null) {
-      return offScreenGlThread.getScale();
-    } else {
-      throw new RuntimeException(
-          "You must use OpenGlView, LightOpenGlView or Context in the constructor to get size");
-    }
-  }
-
-  /**
-   * Get position of the stream object in percent.
-   *
-   * @return position in percent, 0 is stream not started
-   * @throws RuntimeException If you don't use OpenGlvIew
-   */
-  @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
-  public PointF getPositionStreamObject() throws RuntimeException {
-    if (openGlView != null) {
-      return openGlView.getPosition();
-    } else if (offScreenGlThread != null) {
-      return offScreenGlThread.getPosition();
-    } else {
-      throw new RuntimeException(
-          "You must use OpenGlView, LightOpenGlView or Context in the constructor to get position");
-    }
+  public GlInterface getGlInterface() {
+    if (glInterface != null) return glInterface;
+    else throw new RuntimeException("You can't do it. You are not using Opengl");
   }
 
   /**
