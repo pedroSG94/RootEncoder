@@ -43,9 +43,7 @@ public class RtmpConnection implements RtmpPublisher {
 
   private static final String TAG = "RtmpConnection";
   private static final Pattern rtmpUrlPattern =
-      Pattern.compile("^rtmp://([^/:]+)(:(\\d+))*/([^/]+)(/(.*))*$");
-  private static final Pattern rtmpsUrlPattern =
-      Pattern.compile("^rtmps://([^/:]+)(:(\\d+))*/([^/]+)(/(.*))*$");
+      Pattern.compile("^rtmps?://([^/:]+)(?::(\\d+))*/([^/]+)/?([^/]*)$");
 
   private int port;
   private String host;
@@ -100,28 +98,22 @@ public class RtmpConnection implements RtmpPublisher {
   @Override
   public boolean connect(String url) {
     Matcher rtmpMatcher = rtmpUrlPattern.matcher(url);
-    Matcher rtmpsMatcher = rtmpsUrlPattern.matcher(url);
-    Matcher matcher;
     if (rtmpMatcher.matches()) {
-      matcher = rtmpMatcher;
-      tlsEnabled = false;
-    } else if (rtmpsMatcher.matches()) {
-      matcher = rtmpsMatcher;
-      tlsEnabled = true;
+      tlsEnabled = rtmpMatcher.group(0).startsWith("rtmps");
     } else {
       connectCheckerRtmp.onConnectionFailedRtmp(
           "Endpoint malformed, should be: rtmp://ip:port/appname/streamname");
       return false;
     }
 
-    tcUrl = url.substring(0, url.lastIndexOf('/'));
     swfUrl = "";
     pageUrl = "";
-    host = matcher.group(1);
-    String portStr = matcher.group(3);
+    host = rtmpMatcher.group(1);
+    String portStr = rtmpMatcher.group(2);
     port = portStr != null ? Integer.parseInt(portStr) : 1935;
-    appName = matcher.group(4);
-    streamName = matcher.group(6);
+    appName = rtmpMatcher.group(3);
+    streamName = rtmpMatcher.group(4);
+    tcUrl = rtmpMatcher.group(0).substring(0, rtmpMatcher.group(0).length() - streamName.length());
 
     // socket connection
     Log.d(TAG, "connect() called. Host: "
