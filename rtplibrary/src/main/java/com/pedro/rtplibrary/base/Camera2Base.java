@@ -486,6 +486,10 @@ public abstract class Camera2Base implements GetAacData, GetH264Data, GetMicroph
     return videoEncoder.getBitRate();
   }
 
+  public int getResolutionValue() {
+    return videoEncoder.getWidth() * videoEncoder.getHeight();
+  }
+
   /**
    * Switch camera used. Can be called on preview or while stream, ignored with preview off.
    *

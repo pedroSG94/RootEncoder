@@ -286,6 +286,10 @@ public abstract class DisplayBase implements GetAacData, GetH264Data, GetMicroph
     return videoEncoder.getBitRate();
   }
 
+  public int getResolutionValue() {
+    return videoEncoder.getWidth() * videoEncoder.getHeight();
+  }
+
   /**
    * Se video bitrate of H264 in kb while stream.
    *

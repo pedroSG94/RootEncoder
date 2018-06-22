@@ -534,6 +534,10 @@ public abstract class Camera1Base
     return videoEncoder.getBitRate();
   }
 
+  public int getResolutionValue() {
+    return videoEncoder.getWidth() * videoEncoder.getHeight();
+  }
+
   /**
    * Switch camera used. Can be called on preview or while stream, ignored with preview off.
    *

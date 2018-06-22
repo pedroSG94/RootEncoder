@@ -270,6 +270,10 @@ public abstract class FromFileBase
     return videoEncoder.getBitRate();
   }
 
+  public int getResolutionValue() {
+    return videoEncoder.getWidth() * videoEncoder.getHeight();
+  }
+
   /**
    * Get video camera state
    *
