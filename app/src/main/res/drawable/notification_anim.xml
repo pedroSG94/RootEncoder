@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<animation-list xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/selected"
+    android:oneshot="false"
+    >
+  <item
+      android:drawable="@drawable/icon_camera"
+      android:duration="500"
+      />
+  <item
+      android:drawable="@drawable/icon_camera_off"
+      android:duration="500"
+      />
+</animation-list>
