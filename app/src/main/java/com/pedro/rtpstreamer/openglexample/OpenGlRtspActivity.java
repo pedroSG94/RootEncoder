@@ -40,6 +40,7 @@ import com.pedro.encoder.input.gl.render.filters.PixelatedFilterRender;
 import com.pedro.encoder.input.gl.render.filters.PolygonizationFilterRender;
 import com.pedro.encoder.input.gl.render.filters.RainbowFilterRender;
 import com.pedro.encoder.input.gl.render.filters.RippleFilterRender;
+import com.pedro.encoder.input.gl.render.filters.RotationFilterRender;
 import com.pedro.encoder.input.gl.render.filters.SaturationFilterRender;
 import com.pedro.encoder.input.gl.render.filters.SepiaFilterRender;
 import com.pedro.encoder.input.gl.render.filters.SharpnessFilterRender;
@@ -206,6 +207,11 @@ public class OpenGlRtspActivity extends AppCompatActivity
         return true;
       case R.id.ripple:
         rtspCamera1.getGlInterface().setFilter(new RippleFilterRender());
+        return true;
+      case R.id.rotation:
+        RotationFilterRender rotationFilterRender = new RotationFilterRender();
+        rtspCamera1.getGlInterface().setFilter(rotationFilterRender);
+        rotationFilterRender.setRotation(90);
         return true;
       case R.id.saturation:
         rtspCamera1.getGlInterface().setFilter(new SaturationFilterRender());

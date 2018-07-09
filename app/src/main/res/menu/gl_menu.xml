@@ -132,6 +132,10 @@
           android:title="@string/ripple"
           />
       <item
+          android:id="@+id/rotation"
+          android:title="@string/ripple"
+          />
+      <item
           android:id="@+id/saturation"
           android:title="@string/saturation"
           />
