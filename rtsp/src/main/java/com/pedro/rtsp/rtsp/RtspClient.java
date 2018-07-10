@@ -146,7 +146,7 @@ public class RtspClient {
   public void connect() {
     if (!streaming) {
       h264Packet = new H264Packet(this, protocol);
-      h264Packet.setSPSandPPS(sps, pps);
+      if (sps  != null && pps != null) h264Packet.setSPSandPPS(sps, pps);
       aacPacket = new AacPacket(this, protocol);
       aacPacket.setSampleRate(sampleRate);
       thread = new Thread(new Runnable() {
