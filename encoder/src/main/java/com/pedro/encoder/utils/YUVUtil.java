@@ -3,6 +3,7 @@ package com.pedro.encoder.utils;
 import android.graphics.Bitmap;
 import android.media.MediaCodecInfo;
 import android.os.Environment;
+import com.pedro.encoder.input.video.Frame;
 import com.pedro.encoder.video.FormatVideoEncoder;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -25,6 +26,39 @@ public class YUVUtil {
     preAllocatedBufferColor = new byte[length];
   }
 
+  public static Bitmap frameToBitmap(Frame frame, int width, int height, int orientation) {
+    int w = (orientation == 90 || orientation == 270) ? height : width;
+    int h = (orientation == 90 || orientation == 270) ? width : height;
+    int[] argb = NV21toARGB(rotateNV21(frame.getBuffer(), width, height, orientation), w, h);
+    return Bitmap.createBitmap(argb, w, h, Bitmap.Config.ARGB_8888);
+  }
+
+  public static int[] NV21toARGB(byte[] yuv, int width, int height) {
+    int[] argb = new int[width * height];
+    final int frameSize = width * height;
+    final int ii = 0;
+    final int ij = 0;
+    final int di = +1;
+    final int dj = +1;
+    int a = 0;
+    for (int i = 0, ci = ii; i < height; ++i, ci += di) {
+      for (int j = 0, cj = ij; j < width; ++j, cj += dj) {
+        int y = (0xff & ((int) yuv[ci * width + cj]));
+        int v = (0xff & ((int) yuv[frameSize + (ci >> 1) * width + (cj & ~1) + 0]));
+        int u = (0xff & ((int) yuv[frameSize + (ci >> 1) * width + (cj & ~1) + 1]));
+        y = y < 16 ? 16 : y;
+        int r = (int) (1.164f * (y - 16) + 1.596f * (v - 128));
+        int g = (int) (1.164f * (y - 16) - 0.813f * (v - 128) - 0.391f * (u - 128));
+        int b = (int) (1.164f * (y - 16) + 2.018f * (u - 128));
+        r = r < 0 ? 0 : (r > 255 ? 255 : r);
+        g = g < 0 ? 0 : (g > 255 ? 255 : g);
+        b = b < 0 ? 0 : (b > 255 ? 255 : b);
+        argb[a++] = 0xff000000 | (r << 16) | (g << 8) | b;
+      }
+    }
+    return argb;
+  }
+
   // for the vbuffer for YV12(android YUV), @see below:
   // https://developer.android.com/reference/android/hardware/Camera.Parameters.html#setPreviewFormat(int)
   // https://developer.android.com/reference/android/graphics/ImageFormat.html#YV12
@@ -42,9 +76,9 @@ public class YUVUtil {
   }
 
   public static byte[] ARGBtoYUV420SemiPlanar(int[] input, int width, int height) {
-        /*
-         * COLOR_FormatYUV420SemiPlanar is NV12
-         */
+    /*
+     * COLOR_FormatYUV420SemiPlanar is NV12
+     */
     final int frameSize = width * height;
     byte[] yuv420sp = new byte[width * height * 3 / 2];
     int yIndex = 0;
