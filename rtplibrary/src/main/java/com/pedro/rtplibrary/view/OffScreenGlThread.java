@@ -10,6 +10,7 @@ import com.pedro.encoder.input.gl.SurfaceManager;
 import com.pedro.encoder.input.gl.render.ManagerRender;
 import com.pedro.encoder.input.gl.render.filters.BaseFilterRender;
 import com.pedro.encoder.utils.gl.GifStreamObject;
+import com.pedro.encoder.utils.gl.GlUtil;
 import com.pedro.encoder.utils.gl.ImageStreamObject;
 import com.pedro.encoder.utils.gl.TextStreamObject;
 import com.pedro.encoder.utils.gl.TranslateTo;
@@ -20,7 +21,8 @@ import java.util.concurrent.Semaphore;
  */
 
 @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
-public class OffScreenGlThread implements GlInterface, Runnable, SurfaceTexture.OnFrameAvailableListener {
+public class OffScreenGlThread
+    implements GlInterface, Runnable, SurfaceTexture.OnFrameAvailableListener {
 
   private final Context context;
   private Thread thread = null;
@@ -59,6 +61,7 @@ public class OffScreenGlThread implements GlInterface, Runnable, SurfaceTexture.
   private boolean isCamera2Landscape = false;
   protected boolean onChangeFace = false;
   protected boolean isFrontCamera = false;
+  private TakePhotoCallback takePhotoCallback;
 
   public OffScreenGlThread(Context context) {
     this.context = context;
@@ -102,6 +105,11 @@ public class OffScreenGlThread implements GlInterface, Runnable, SurfaceTexture.
         surfaceManagerEncoder = null;
       }
     }
+  }
+
+  @Override
+  public void takePhoto(TakePhotoCallback takePhotoCallback) {
+    this.takePhotoCallback = takePhotoCallback;
   }
 
   @Override
@@ -262,6 +270,11 @@ public class OffScreenGlThread implements GlInterface, Runnable, SurfaceTexture.
             textureManager.updateFrame();
             textureManager.drawOffScreen();
             textureManager.drawScreen(encoderWidth, encoderHeight, false, false);
+            if (takePhotoCallback != null) {
+              takePhotoCallback.onTakePhoto(
+                  GlUtil.getBitmap(encoderWidth, encoderHeight, encoderWidth, encoderHeight));
+              takePhotoCallback = null;
+            }
             surfaceManager.swapBuffer();
             //stream object loaded but you need reset surfaceManagerEncoder
             if (loadStreamObject) {

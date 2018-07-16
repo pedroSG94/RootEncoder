@@ -11,6 +11,7 @@ import com.pedro.encoder.input.gl.SurfaceManager;
 import com.pedro.encoder.input.gl.render.ManagerRender;
 import com.pedro.encoder.input.gl.render.filters.BaseFilterRender;
 import com.pedro.encoder.utils.gl.GifStreamObject;
+import com.pedro.encoder.utils.gl.GlUtil;
 import com.pedro.encoder.utils.gl.ImageStreamObject;
 import com.pedro.encoder.utils.gl.TextStreamObject;
 import com.pedro.encoder.utils.gl.TranslateTo;
@@ -211,6 +212,11 @@ public class OpenGlView extends OpenGlViewBase {
             managerRender.drawScreen(previewWidth, previewHeight, keepAspectRatio,
                 isFrontPreviewFlip);
             surfaceManager.swapBuffer();
+            if (takePhotoCallback != null) {
+              takePhotoCallback.onTakePhoto(
+                  GlUtil.getBitmap(previewWidth, previewHeight, encoderWidth, encoderHeight));
+              takePhotoCallback = null;
+            }
             //stream object loaded but you need reset surfaceManagerEncoder
             synchronized (sync) {
               if (surfaceManagerEncoder != null) {

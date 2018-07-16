@@ -18,7 +18,8 @@ import java.util.concurrent.Semaphore;
 
 @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
 public abstract class OpenGlViewBase extends SurfaceView
-    implements GlInterface, Runnable, SurfaceTexture.OnFrameAvailableListener, SurfaceHolder.Callback {
+    implements GlInterface, Runnable, SurfaceTexture.OnFrameAvailableListener,
+    SurfaceHolder.Callback {
 
   public final static String TAG = "OpenGlViewBase";
 
@@ -39,6 +40,7 @@ public abstract class OpenGlViewBase extends SurfaceView
   protected boolean isCamera2Landscape = false;
   protected int waitTime;
   protected Surface surface;
+  protected TakePhotoCallback takePhotoCallback;
 
   public OpenGlViewBase(Context context) {
     super(context);
@@ -58,6 +60,11 @@ public abstract class OpenGlViewBase extends SurfaceView
 
   @Override
   public abstract Surface getSurface();
+
+  @Override
+  public void takePhoto(TakePhotoCallback takePhotoCallback) {
+    this.takePhotoCallback = takePhotoCallback;
+  }
 
   @Override
   public void addMediaCodecSurface(Surface surface) {

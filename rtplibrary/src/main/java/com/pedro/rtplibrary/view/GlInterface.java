@@ -23,6 +23,8 @@ public interface GlInterface {
 
   void removeMediaCodecSurface();
 
+  void takePhoto(TakePhotoCallback takePhotoCallback);
+
   void setFilter(BaseFilterRender baseFilterRender);
 
   void setGif(GifStreamObject gifStreamObject);

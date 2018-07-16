@@ -2,6 +2,8 @@ package com.pedro.encoder.utils.gl;
 
 import android.content.Context;
 import android.content.res.Resources;
+import android.graphics.Bitmap;
+import android.graphics.Matrix;
 import android.opengl.EGL14;
 import android.opengl.GLES11Ext;
 import android.opengl.GLES20;
@@ -11,6 +13,7 @@ import android.util.Log;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.ByteBuffer;
 
 /**
  * Created by pedro on 9/09/17.
@@ -130,5 +133,29 @@ public class GlUtil {
     if ((error = EGL14.eglGetError()) != EGL14.EGL_SUCCESS) {
       throw new RuntimeException(msg + ": EGL error: 0x" + Integer.toHexString(error));
     }
+  }
+
+  public static Bitmap getBitmap(int originalWidth, int originalHeight, int finalWidth,
+      int finalHeight) {
+    //Get opengl buffer
+    ByteBuffer buffer = ByteBuffer.allocateDirect(originalWidth * originalHeight * 4);
+    GLES20.glReadPixels(0, 0, originalWidth, originalHeight, GLES20.GL_RGBA,
+        GLES20.GL_UNSIGNED_BYTE, buffer);
+    //Create bitmap preview resolution
+    Bitmap bitmap = Bitmap.createBitmap(originalWidth, originalHeight, Bitmap.Config.ARGB_8888);
+    //Set buffer to bitmap
+    bitmap.copyPixelsFromBuffer(buffer);
+    //Scale to stream resolution
+    bitmap = Bitmap.createScaledBitmap(bitmap, finalWidth, finalHeight, false);
+    //Flip vertical
+    return flipVerticalBitmap(bitmap, finalWidth, finalHeight);
+  }
+
+  private static Bitmap flipVerticalBitmap(Bitmap bitmap, int width, int height) {
+    float cx = width / 2f;
+    float cy = height / 2f;
+    Matrix matrix = new Matrix();
+    matrix.postScale(1f, -1f, cx, cy);
+    return Bitmap.createBitmap(bitmap, 0, 0, width, height, matrix, true);
   }
 }

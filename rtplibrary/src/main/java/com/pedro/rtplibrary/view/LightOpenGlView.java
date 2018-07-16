@@ -11,6 +11,7 @@ import com.pedro.encoder.input.gl.SurfaceManager;
 import com.pedro.encoder.input.gl.render.SimpleCameraRender;
 import com.pedro.encoder.input.gl.render.filters.BaseFilterRender;
 import com.pedro.encoder.utils.gl.GifStreamObject;
+import com.pedro.encoder.utils.gl.GlUtil;
 import com.pedro.encoder.utils.gl.ImageStreamObject;
 import com.pedro.encoder.utils.gl.TextStreamObject;
 import com.pedro.encoder.utils.gl.TranslateTo;
@@ -77,6 +78,11 @@ public class LightOpenGlView extends OpenGlViewBase {
             simpleCameraRender.updateFrame();
             simpleCameraRender.drawFrame(previewWidth, previewHeight, keepAspectRatio,
                 isFrontPreviewFlip);
+            if (takePhotoCallback != null) {
+              takePhotoCallback.onTakePhoto(
+                  GlUtil.getBitmap(previewWidth, previewHeight, encoderWidth, encoderHeight));
+              takePhotoCallback = null;
+            }
             surfaceManager.swapBuffer();
 
             synchronized (sync) {
