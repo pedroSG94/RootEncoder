@@ -270,12 +270,12 @@ public class OffScreenGlThread
             textureManager.updateFrame();
             textureManager.drawOffScreen();
             textureManager.drawScreen(encoderWidth, encoderHeight, false, false);
+            surfaceManager.swapBuffer();
             if (takePhotoCallback != null) {
               takePhotoCallback.onTakePhoto(
                   GlUtil.getBitmap(encoderWidth, encoderHeight, encoderWidth, encoderHeight));
               takePhotoCallback = null;
             }
-            surfaceManager.swapBuffer();
             //stream object loaded but you need reset surfaceManagerEncoder
             if (loadStreamObject) {
               surfaceManagerEncoder.release();
