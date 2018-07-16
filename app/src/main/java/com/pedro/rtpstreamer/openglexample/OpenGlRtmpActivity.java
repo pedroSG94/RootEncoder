@@ -1,6 +1,6 @@
 package com.pedro.rtpstreamer.openglexample;
 
-import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.os.Build;
 import android.os.Bundle;
@@ -52,7 +52,6 @@ import com.pedro.encoder.utils.gl.ImageStreamObject;
 import com.pedro.encoder.utils.gl.TextStreamObject;
 import com.pedro.rtplibrary.rtmp.RtmpCamera1;
 import com.pedro.rtplibrary.view.OpenGlView;
-import com.pedro.rtplibrary.view.TakePhotoCallback;
 import com.pedro.rtpstreamer.R;
 import java.io.File;
 import java.io.IOException;
@@ -245,18 +244,13 @@ public class OpenGlRtmpActivity extends AppCompatActivity
   }
 
   private void setImageToStream() {
-    rtmpCamera1.getGlInterface().takePhoto(new TakePhotoCallback() {
-      @Override
-      public void onTakePhoto(Bitmap bitmap) {
-        try {
-          ImageStreamObject imageStreamObject = new ImageStreamObject();
-          imageStreamObject.load(bitmap);
-          rtmpCamera1.getGlInterface().setImage(imageStreamObject);
-        } catch (IOException e) {
-          Toast.makeText(OpenGlRtmpActivity.this, e.getMessage(), Toast.LENGTH_SHORT).show();
-        }
-      }
-    });
+    try {
+      ImageStreamObject imageStreamObject = new ImageStreamObject();
+      imageStreamObject.load(BitmapFactory.decodeResource(getResources(), R.mipmap.ic_launcher));
+      rtmpCamera1.getGlInterface().setImage(imageStreamObject);
+    } catch (IOException e) {
+      Toast.makeText(this, e.getMessage(), Toast.LENGTH_SHORT).show();
+    }
   }
 
   private void setGifToStream() {
