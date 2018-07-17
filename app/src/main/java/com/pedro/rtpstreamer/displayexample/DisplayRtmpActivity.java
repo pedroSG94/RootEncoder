@@ -71,7 +71,7 @@ public class DisplayRtmpActivity extends AppCompatActivity
 
   private RtmpDisplay getInstance() {
     if (rtmpDisplay == null) {
-      return new RtmpDisplay(this, this);
+      return new RtmpDisplay(this, false, this);
     } else {
       return rtmpDisplay;
     }

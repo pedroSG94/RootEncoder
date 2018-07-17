@@ -77,6 +77,7 @@ public class CameraRender extends BaseRenderOffScreen {
     //camera texture
     GlUtil.createExternalTextures(1, textureID, 0);
     surfaceTexture = new SurfaceTexture(textureID[0]);
+    surfaceTexture.setDefaultBufferSize(width, height);
     surface = new Surface(surfaceTexture);
     initFBO(width, height);
     GlUtil.checkGlError("initGl end");

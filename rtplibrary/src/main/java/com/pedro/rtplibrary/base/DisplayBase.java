@@ -9,6 +9,7 @@ import android.media.projection.MediaProjection;
 import android.media.projection.MediaProjectionManager;
 import android.os.Build;
 import android.support.annotation.RequiresApi;
+import android.view.Surface;
 import android.view.SurfaceView;
 import com.pedro.encoder.audio.AudioEncoder;
 import com.pedro.encoder.audio.GetAacData;
@@ -18,6 +19,8 @@ import com.pedro.encoder.utils.CodecUtil;
 import com.pedro.encoder.video.FormatVideoEncoder;
 import com.pedro.encoder.video.GetH264Data;
 import com.pedro.encoder.video.VideoEncoder;
+import com.pedro.rtplibrary.view.GlInterface;
+import com.pedro.rtplibrary.view.OffScreenGlThread;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 
@@ -35,6 +38,7 @@ import static android.content.Context.MEDIA_PROJECTION_SERVICE;
 @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
 public abstract class DisplayBase implements GetAacData, GetH264Data, GetMicrophoneData {
 
+  private OffScreenGlThread glInterface;
   protected Context context;
   private MediaProjection mediaProjection;
   private MediaProjectionManager mediaProjectionManager;
@@ -54,8 +58,9 @@ public abstract class DisplayBase implements GetAacData, GetH264Data, GetMicroph
   private MediaFormat audioFormat;
   private int dpi = 320;
 
-  public DisplayBase(Context context) {
+  public DisplayBase(Context context, boolean useOpengl) {
     this.context = context;
+    if (useOpengl) glInterface = new OffScreenGlThread(context);
     mediaProjectionManager =
         ((MediaProjectionManager) context.getSystemService(MEDIA_PROJECTION_SERVICE));
     this.surfaceView = null;
@@ -89,8 +94,15 @@ public abstract class DisplayBase implements GetAacData, GetH264Data, GetMicroph
    */
   public boolean prepareVideo(int width, int height, int fps, int bitrate, int rotation, int dpi) {
     this.dpi = dpi;
-    return videoEncoder.prepareVideoEncoder(width, height, fps, bitrate, rotation, true, 2,
-        FormatVideoEncoder.SURFACE);
+    boolean result =
+        videoEncoder.prepareVideoEncoder(width, height, fps, bitrate, rotation, true, 2,
+            FormatVideoEncoder.SURFACE);
+    if (glInterface != null) {
+      glInterface = new OffScreenGlThread(context);
+      glInterface.setEncoderSize(videoEncoder.getWidth(), videoEncoder.getHeight());
+      glInterface.init();
+    }
+    return result;
   }
 
   protected abstract void prepareAudioRtp(boolean isStereo, int sampleRate);
@@ -124,8 +136,7 @@ public abstract class DisplayBase implements GetAacData, GetH264Data, GetMicroph
    * doesn't support any configuration seated or your device hasn't a H264 encoder).
    */
   public boolean prepareVideo() {
-    return videoEncoder.prepareVideoEncoder(640, 480, 30, 1200 * 1024, 0, true, 2,
-        FormatVideoEncoder.SURFACE);
+    return prepareVideo(640, 480, 30, 1200 * 1024, 0, 320);
   }
 
   /**
@@ -209,9 +220,15 @@ public abstract class DisplayBase implements GetAacData, GetH264Data, GetMicroph
   public void startStream(String url, int resultCode, Intent data) {
     videoEncoder.start();
     audioEncoder.start();
+    if (glInterface != null) {
+      glInterface.start(false);
+      glInterface.addMediaCodecSurface(videoEncoder.getInputSurface());
+    }
+    Surface surface =
+        (glInterface != null) ? glInterface.getSurface() : videoEncoder.getInputSurface();
     mediaProjection = mediaProjectionManager.getMediaProjection(resultCode, data);
     mediaProjection.createVirtualDisplay("Stream Display", videoEncoder.getWidth(),
-        videoEncoder.getHeight(), dpi, 0, videoEncoder.getInputSurface(), null, null);
+        videoEncoder.getHeight(), dpi, 0, surface, null, null);
     microphoneManager.start();
     streaming = true;
     startStreamRtp(url);
@@ -227,10 +244,19 @@ public abstract class DisplayBase implements GetAacData, GetH264Data, GetMicroph
     if (mediaProjection != null) {
       mediaProjection.stop();
     }
+    if (glInterface != null) {
+      glInterface.removeMediaCodecSurface();
+      glInterface.stop();
+    }
     stopStreamRtp();
     videoEncoder.stop();
     audioEncoder.stop();
     streaming = false;
+  }
+
+  public GlInterface getGlInterface() {
+    if (glInterface != null) return glInterface;
+    else throw new RuntimeException("You can't do it. You are not using Opengl");
   }
 
   /**

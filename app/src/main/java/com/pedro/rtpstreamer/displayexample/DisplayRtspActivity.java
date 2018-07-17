@@ -71,7 +71,7 @@ public class DisplayRtspActivity extends AppCompatActivity
 
   private RtspDisplay getInstance() {
     if (rtspDisplay == null) {
-      return new RtspDisplay(this, this);
+      return new RtspDisplay(this, false, this);
     } else {
       return rtspDisplay;
     }
