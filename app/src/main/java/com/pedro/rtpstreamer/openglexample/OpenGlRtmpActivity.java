@@ -38,6 +38,7 @@ import com.pedro.encoder.input.gl.render.filters.NegativeFilterRender;
 import com.pedro.encoder.input.gl.render.filters.NoFilterRender;
 import com.pedro.encoder.input.gl.render.filters.PixelatedFilterRender;
 import com.pedro.encoder.input.gl.render.filters.PolygonizationFilterRender;
+import com.pedro.encoder.input.gl.render.filters.RGBSaturationFilterRender;
 import com.pedro.encoder.input.gl.render.filters.RainbowFilterRender;
 import com.pedro.encoder.input.gl.render.filters.RippleFilterRender;
 import com.pedro.encoder.input.gl.render.filters.RotationFilterRender;
@@ -204,6 +205,12 @@ public class OpenGlRtmpActivity extends AppCompatActivity
         return true;
       case R.id.rainbow:
         rtmpCamera1.getGlInterface().setFilter(new RainbowFilterRender());
+        return true;
+      case R.id.rgb_saturate:
+        RGBSaturationFilterRender rgbSaturationFilterRender = new RGBSaturationFilterRender();
+        rtmpCamera1.getGlInterface().setFilter(rgbSaturationFilterRender);
+        //Reduce green and blue colors 20%. Red will predominate.
+        rgbSaturationFilterRender.setRGBSaturation(1f, 0.8f, 0.8f);
         return true;
       case R.id.ripple:
         rtmpCamera1.getGlInterface().setFilter(new RippleFilterRender());

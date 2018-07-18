@@ -128,6 +128,10 @@
           android:title="@string/rainbow"
           />
       <item
+          android:id="@+id/rgb_saturate"
+          android:title="@string/rgb_saturate"
+          />
+      <item
           android:id="@+id/ripple"
           android:title="@string/ripple"
           />
