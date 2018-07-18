@@ -2,6 +2,7 @@ package com.pedro.rtpstreamer.openglexample;
 
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
+import android.media.MediaPlayer;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
@@ -45,6 +46,7 @@ import com.pedro.encoder.input.gl.render.filters.RotationFilterRender;
 import com.pedro.encoder.input.gl.render.filters.SaturationFilterRender;
 import com.pedro.encoder.input.gl.render.filters.SepiaFilterRender;
 import com.pedro.encoder.input.gl.render.filters.SharpnessFilterRender;
+import com.pedro.encoder.input.gl.render.filters.SurfaceFilterRender;
 import com.pedro.encoder.input.gl.render.filters.TemperatureFilterRender;
 import com.pedro.encoder.input.gl.render.filters.ZebraFilterRender;
 import com.pedro.encoder.input.video.CameraOpenException;
@@ -228,6 +230,16 @@ public class OpenGlRtmpActivity extends AppCompatActivity
         return true;
       case R.id.sharpness:
         rtmpCamera1.getGlInterface().setFilter(new SharpnessFilterRender());
+        return true;
+      case R.id.surface_filter:
+        //You can render this filter with other api that draw in a surface. for example you can use VLC
+        SurfaceFilterRender surfaceFilterRender = new SurfaceFilterRender();
+        rtmpCamera1.getGlInterface().setFilter(surfaceFilterRender);
+        MediaPlayer mediaPlayer = MediaPlayer.create(this, R.raw.big_bunny_240p);
+        mediaPlayer.setSurface(surfaceFilterRender.getSurface());
+        mediaPlayer.start();
+        //Video is 360x240 so select a percent to keep aspect ratio (50% x 33.3% screen)
+        surfaceFilterRender.setScale(50f, 33.f);
         return true;
       case R.id.temperature:
         rtmpCamera1.getGlInterface().setFilter(new TemperatureFilterRender());

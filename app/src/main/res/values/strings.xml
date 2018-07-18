@@ -67,6 +67,7 @@
   <string name="ripple">Ripple</string>
   <string name="rotation">Rotation</string>
   <string name="saturation">Saturation</string>
+  <string name="surface_filter">Surface filter</string>
   <string name="rainbow">Rainbow</string>
   <string name="sharpness">Sharpness</string>
   <string name="temperature">Temperature</string>

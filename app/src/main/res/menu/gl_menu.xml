@@ -152,6 +152,10 @@
           android:title="@string/sharpness"
           />
       <item
+          android:id="@+id/surface_filter"
+          android:title="@string/surface_filter"
+          />
+      <item
           android:id="@+id/temperature"
           android:title="@string/temperature"
           />
