@@ -102,7 +102,7 @@ public class StreamObjectRender extends BaseRenderOffScreen {
   public void draw() {
     GlUtil.checkGlError("drawStreamObject start");
 
-    GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, fboId[0]);
+    GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, renderHandler.getFboId()[0]);
     GLES20.glViewport(0, 0, width, height);
     GLES20.glUseProgram(program);
 

@@ -86,7 +86,7 @@ public class CameraRender extends BaseRenderOffScreen {
   @Override
   public void draw() {
     GlUtil.checkGlError("drawCamera start");
-    GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, fboId[0]);
+    GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, renderHandler.getFboId()[0]);
 
     surfaceTexture.getTransformMatrix(STMatrix);
     GLES20.glViewport(0, 0, width, height);

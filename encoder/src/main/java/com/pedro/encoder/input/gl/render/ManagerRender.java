@@ -44,7 +44,7 @@ public class ManagerRender {
     cameraRender.initGl(width, height, context);
     streamObjectRender.setTexId(cameraRender.getTexId());
     streamObjectRender.initGl(width, height, context);
-    baseFilterRender.setTexId(streamObjectRender.getTexId());
+    baseFilterRender.setPreviousTexId(streamObjectRender.getTexId());
     baseFilterRender.initGl(width, height, context);
     baseFilterRender.initFBOLink();
     screenRender.setTexId(baseFilterRender.getTexId());
@@ -89,8 +89,12 @@ public class ManagerRender {
   }
 
   public void setFilter(BaseFilterRender baseFilterRender) {
+    final int id = this.baseFilterRender.getPreviousTexId();
+    final RenderHandler renderHandler = this.baseFilterRender.getRenderHandler();
     this.baseFilterRender = baseFilterRender;
     this.baseFilterRender.initGl(width, height, context);
+    this.baseFilterRender.setPreviousTexId(id);
+    this.baseFilterRender.setRenderHandler(renderHandler);
   }
 
   public void setImage(ImageStreamObject imageStreamObject) {
