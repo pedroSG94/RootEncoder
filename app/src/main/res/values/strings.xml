@@ -38,10 +38,6 @@
   <string name="posterize">Posterize</string>
   <!--gl menu-->
   <string name="enable_disable_fxaa">enable/disable FXAA</string>
-  <string name="stream_object">Stream object</string>
-  <string name="gif">Gif</string>
-  <string name="image">Image</string>
-  <string name="text">Text</string>
   <!--filters-->
   <string name="no_filter">No filter</string>
   <string name="android_view">Android view</string>
@@ -50,6 +46,7 @@
   <string name="blur">Blur</string>
   <string name="brightness">Brightness</string>
   <string name="cartoon">Cartoon</string>
+  <string name="color">Color</string>
   <string name="contrast">Contrast</string>
   <string name="duotone">Duotone</string>
   <string name="earlybird">EarlyBird</string>
@@ -57,7 +54,9 @@
   <string name="exposure">Exposure</string>
   <string name="fire">Fire</string>
   <string name="gamma">Gamma</string>
+  <string name="gif">Gif</string>
   <string name="halftone_lines">Halftone lines</string>
+  <string name="image">Image</string>
   <string name="image_70s">Image 70s</string>
   <string name="lamoish">Lamoish</string>
   <string name="money">Money</string>
@@ -71,6 +70,7 @@
   <string name="rainbow">Rainbow</string>
   <string name="sharpness">Sharpness</string>
   <string name="temperature">Temperature</string>
+  <string name="text">Text</string>
   <string name="zebra">Zebra</string>
   <!--drawer-->
   <string name="drawer_title">Options</string>

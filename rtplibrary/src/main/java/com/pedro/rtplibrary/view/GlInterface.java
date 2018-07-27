@@ -1,13 +1,8 @@
 package com.pedro.rtplibrary.view;
 
-import android.graphics.PointF;
 import android.graphics.SurfaceTexture;
 import android.view.Surface;
 import com.pedro.encoder.input.gl.render.filters.BaseFilterRender;
-import com.pedro.encoder.utils.gl.GifStreamObject;
-import com.pedro.encoder.utils.gl.ImageStreamObject;
-import com.pedro.encoder.utils.gl.TextStreamObject;
-import com.pedro.encoder.utils.gl.TranslateTo;
 
 public interface GlInterface {
 
@@ -61,63 +56,14 @@ public interface GlInterface {
    *
    * @param baseFilterRender filter to set. You can modify parameters to filter after set it to stream.
    */
+  void setFilter(int filterPosition, BaseFilterRender baseFilterRender);
+
+  /**
+   * Set filter in position 0.
+   * @param baseFilterRender filter to set. You can modify parameters to filter after set it to stream.
+   */
   void setFilter(BaseFilterRender baseFilterRender);
-
-  /**
-   * Set a gif to stream. You can resize your gif before set it to stream.
-   * Your GifStreamObject object will be released after set to stream.
-   */
-  void setGif(GifStreamObject gifStreamObject);
-
-  /**
-   * Set an image to stream. You can resize your image before set it to stream.
-   * Your ImageStreamObject object will be released after set to stream.
-   */
-  void setImage(ImageStreamObject imageStreamObject);
-
-  /**
-   * Set a text to stream. You can resize text before set it to stream.
-   * Your TextStreamObject object will be released after set to stream.
-   */
-  void setText(TextStreamObject textStreamObject);
-
-  /**
-   * Clear GifStreamObject, ImageStreamObject or TextStreamObject from stream.
-   */
-  void clear();
-
-  /**
-   * Set alpha to GifStreamObject, ImageStreamObject or TextStreamObject from stream.
-   *
-   * @param alpha values between 0.0f to 1.0f
-   */
-  void setStreamObjectAlpha(float alpha);
-
-  /**
-   * Set size to GifStreamObject, ImageStreamObject or TextStreamObject from stream.
-   * Values is a stream percent so 0.0f is 0% (no X or Y) and 100.0f is 100% (full X or Y).
-   *
-   * @param sizeX values between 0.0f to 100.0f
-   * @param sizeY values between 0.0f to 100.0f
-   */
-  void setStreamObjectSize(float sizeX, float sizeY);
-
-  /**
-   * Set position to GifStreamObject, ImageStreamObject or TextStreamObject from stream.
-   * Values is a stream percent so 0.0f is 0% (no X or Y) and 100.0f is 100% (full X or Y).
-   *
-   * @param x values between 0.0f to 100.0f
-   * @param x values between 0.0f to 100.0f
-   */
-  void setStreamObjectPosition(float x, float y);
-
-  /**
-   * Set position to GifStreamObject, ImageStreamObject or TextStreamObject from stream.
-   *
-   * @param translateTo enum to set position in stream with default values.
-   */
-  void setStreamObjectPosition(TranslateTo translateTo);
-
+  
   /**
    * Enable or disable Anti aliasing (This method use FXAA).
    *
@@ -148,20 +94,6 @@ public interface GlInterface {
    * @param waitTime time in milliseconds
    */
   void setWaitTime(int waitTime);
-
-  /**
-   * Get size values of GifStreamObject, ImageStreamObject or TextStreamObject.
-   *
-   * @return Point with X and Y scale values in stream. Values in stream percent size.
-   */
-  PointF getScale();
-
-  /**
-   * Get position values of GifStreamObject, ImageStreamObject or TextStreamObject.
-   *
-   * @return Point with X and Y position values in stream. Values in stream percent size.
-   */
-  PointF getPosition();
 
   /**
    * INTERNAL METHOD.

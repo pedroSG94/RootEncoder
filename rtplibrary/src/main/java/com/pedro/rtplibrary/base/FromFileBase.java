@@ -274,6 +274,14 @@ public abstract class FromFileBase
     return videoEncoder.getWidth() * videoEncoder.getHeight();
   }
 
+  public int getStreamWidth() {
+    return videoEncoder.getWidth();
+  }
+
+  public int getStreamHeight() {
+    return videoEncoder.getHeight();
+  }
+
   /**
    * Get video camera state
    *

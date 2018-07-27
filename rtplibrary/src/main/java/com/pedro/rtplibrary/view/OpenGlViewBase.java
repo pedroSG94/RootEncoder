@@ -39,7 +39,6 @@ public abstract class OpenGlViewBase extends SurfaceView
   protected boolean isFrontCamera = false;
   protected boolean isCamera2Landscape = false;
   protected int waitTime;
-  protected Surface surface;
   protected TakePhotoCallback takePhotoCallback;
 
   public OpenGlViewBase(Context context) {
@@ -69,7 +68,6 @@ public abstract class OpenGlViewBase extends SurfaceView
   @Override
   public void addMediaCodecSurface(Surface surface) {
     synchronized (sync) {
-      this.surface = surface;
       surfaceManagerEncoder = new SurfaceManager(surface, surfaceManager);
     }
   }

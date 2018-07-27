@@ -1,17 +1,14 @@
 package com.pedro.encoder.input.gl.render;
 
 import android.content.Context;
-import android.graphics.PointF;
 import android.graphics.SurfaceTexture;
 import android.os.Build;
 import android.support.annotation.RequiresApi;
 import android.view.Surface;
 import com.pedro.encoder.input.gl.render.filters.BaseFilterRender;
 import com.pedro.encoder.input.gl.render.filters.NoFilterRender;
-import com.pedro.encoder.utils.gl.GifStreamObject;
-import com.pedro.encoder.utils.gl.ImageStreamObject;
-import com.pedro.encoder.utils.gl.TextStreamObject;
-import com.pedro.encoder.utils.gl.TranslateTo;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Created by pedro on 27/01/18.
@@ -20,9 +17,12 @@ import com.pedro.encoder.utils.gl.TranslateTo;
 @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
 public class ManagerRender {
 
+  //Increase it to render more than 1 filter and set filter by position.
+  // You must modify it before create your rtmp or rtsp object.
+  public static int numFilters = 1;
+
   private CameraRender cameraRender;
-  private StreamObjectRender streamObjectRender;
-  private BaseFilterRender baseFilterRender;
+  private List<BaseFilterRender> baseFilterRender = new ArrayList<>(numFilters);
   private ScreenRender screenRender;
 
   private int width;
@@ -31,8 +31,7 @@ public class ManagerRender {
 
   public ManagerRender() {
     cameraRender = new CameraRender();
-    baseFilterRender = new NoFilterRender();
-    streamObjectRender = new StreamObjectRender();
+    for (int i = 0; i < numFilters; i++) baseFilterRender.add(new NoFilterRender());
     screenRender = new ScreenRender();
   }
 
@@ -42,19 +41,19 @@ public class ManagerRender {
     this.context = context;
     cameraRender.isCamera2LandScape(isCamera2Landscape);
     cameraRender.initGl(width, height, context);
-    streamObjectRender.setTexId(cameraRender.getTexId());
-    streamObjectRender.initGl(width, height, context);
-    baseFilterRender.setPreviousTexId(streamObjectRender.getTexId());
-    baseFilterRender.initGl(width, height, context);
-    baseFilterRender.initFBOLink();
-    screenRender.setTexId(baseFilterRender.getTexId());
+    for (int i = 0; i < numFilters; i++) {
+      int textId = i == 0 ? cameraRender.getTexId() : baseFilterRender.get(i - 1).getTexId();
+      baseFilterRender.get(i).setPreviousTexId(textId);
+      baseFilterRender.get(i).initGl(width, height, context);
+      baseFilterRender.get(i).initFBOLink();
+    }
+    screenRender.setTexId(baseFilterRender.get(numFilters - 1).getTexId());
     screenRender.initGl(context);
   }
 
   public void drawOffScreen() {
     cameraRender.draw();
-    streamObjectRender.draw();
-    baseFilterRender.draw();
+    for (BaseFilterRender baseFilterRender : baseFilterRender) baseFilterRender.draw();
   }
 
   public void drawScreen(int width, int height, boolean keepAspectRatio, boolean isFrontFlip) {
@@ -63,8 +62,7 @@ public class ManagerRender {
 
   public void release() {
     cameraRender.release();
-    streamObjectRender.release();
-    baseFilterRender.release();
+    for (BaseFilterRender baseFilterRender : baseFilterRender) baseFilterRender.release();
     screenRender.release();
   }
 
@@ -88,58 +86,17 @@ public class ManagerRender {
     return cameraRender.getSurface();
   }
 
-  public void setFilter(BaseFilterRender baseFilterRender) {
-    final int id = this.baseFilterRender.getPreviousTexId();
-    final RenderHandler renderHandler = this.baseFilterRender.getRenderHandler();
-    this.baseFilterRender.release();
-    this.baseFilterRender = baseFilterRender;
-    this.baseFilterRender.initGl(width, height, context);
-    this.baseFilterRender.setPreviousTexId(id);
-    this.baseFilterRender.setRenderHandler(renderHandler);
-  }
-
-  public void setImage(ImageStreamObject imageStreamObject) {
-    streamObjectRender.setImage(imageStreamObject);
-  }
-
-  public void setText(TextStreamObject textStreamObject) {
-    streamObjectRender.setText(textStreamObject);
-  }
-
-  public void setGif(GifStreamObject gifStreamObject) {
-    streamObjectRender.setGif(gifStreamObject);
-  }
-
-  public void clear() {
-    streamObjectRender.clear();
-  }
-
-  public void setAlpha(float alpha) {
-    streamObjectRender.setAlpha(alpha);
-  }
-
-  public void setScale(float scaleX, float scaleY) {
-    streamObjectRender.setScale(scaleX, scaleY);
-  }
-
-  public void setPosition(float x, float y) {
-    streamObjectRender.setPosition(x, y);
-  }
-
-  public void setPosition(TranslateTo positionTo) {
-    streamObjectRender.setPosition(positionTo);
-  }
-
-  public PointF getScale() {
-    return streamObjectRender.getScale();
-  }
-
-  public PointF getPosition() {
-    return streamObjectRender.getPosition();
+  public void setFilter(int position, BaseFilterRender baseFilterRender) {
+    final int id = this.baseFilterRender.get(position).getPreviousTexId();
+    final RenderHandler renderHandler = this.baseFilterRender.get(position).getRenderHandler();
+    this.baseFilterRender.get(position).release();
+    this.baseFilterRender.set(position, baseFilterRender);
+    this.baseFilterRender.get(position).initGl(width, height, context);
+    this.baseFilterRender.get(position).setPreviousTexId(id);
+    this.baseFilterRender.get(position).setRenderHandler(renderHandler);
   }
 
   public void setStreamSize(int encoderWidth, int encoderHeight) {
-    streamObjectRender.setStreamSize(encoderWidth, encoderHeight);
     screenRender.setStreamSize(encoderWidth, encoderHeight);
   }
 

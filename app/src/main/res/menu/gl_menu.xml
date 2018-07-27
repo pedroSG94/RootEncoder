@@ -6,28 +6,6 @@
       android:title="@string/enable_disable_fxaa"
     />
   <item
-      android:title="@string/stream_object"
-      >
-    <menu>
-      <item
-          android:id="@+id/clear"
-          android:title="@string/clear"
-          />
-      <item
-          android:id="@+id/gif"
-          android:title="@string/gif"
-          />
-      <item
-          android:id="@+id/image"
-          android:title="@string/image"
-          />
-      <item
-          android:id="@+id/text"
-          android:title="@string/text"
-          />
-    </menu>
-  </item>
-  <item
       android:title="@string/filters"
       >
     <menu>
@@ -61,7 +39,7 @@
           />
       <item
           android:id="@+id/color"
-          android:title="Color"
+          android:title="@string/color"
           />
       <item
           android:id="@+id/contrast"
@@ -92,12 +70,20 @@
           android:title="@string/gamma"
           />
       <item
+          android:id="@+id/gif"
+          android:title="@string/gif"
+          />
+      <item
           android:id="@+id/grey_scale"
           android:title="@string/grey_scale"
           />
       <item
           android:id="@+id/halftone_lines"
           android:title="@string/halftone_lines"
+          />
+      <item
+          android:id="@+id/image"
+          android:title="@string/image"
           />
       <item
           android:id="@+id/image_70s"
@@ -158,6 +144,10 @@
       <item
           android:id="@+id/temperature"
           android:title="@string/temperature"
+          />
+      <item
+          android:id="@+id/text"
+          android:title="@string/text"
           />
       <item
           android:id="@+id/zebra"
