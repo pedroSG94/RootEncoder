@@ -91,6 +91,7 @@ public class ManagerRender {
   public void setFilter(BaseFilterRender baseFilterRender) {
     final int id = this.baseFilterRender.getPreviousTexId();
     final RenderHandler renderHandler = this.baseFilterRender.getRenderHandler();
+    this.baseFilterRender.release();
     this.baseFilterRender = baseFilterRender;
     this.baseFilterRender.initGl(width, height, context);
     this.baseFilterRender.setPreviousTexId(id);
@@ -141,7 +142,6 @@ public class ManagerRender {
     streamObjectRender.setStreamSize(encoderWidth, encoderHeight);
     screenRender.setStreamSize(encoderWidth, encoderHeight);
   }
-
 
   public void faceChanged(boolean isFrontCamera) {
     cameraRender.faceChanged(isFrontCamera);

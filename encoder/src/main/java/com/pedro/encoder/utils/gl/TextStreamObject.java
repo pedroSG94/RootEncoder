@@ -6,7 +6,6 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.PorterDuff;
 import android.util.Log;
-import java.io.IOException;
 
 /**
  * Created by pedro on 23/09/17.
@@ -32,7 +31,7 @@ public class TextStreamObject extends StreamObjectBase {
     return imageBitmap.getHeight();
   }
 
-  public void load(String text, float textSize, int textColor) throws IOException {
+  public void load(String text, float textSize, int textColor) {
     numFrames = 1;
     imageBitmap = textAsBitmap(text, textSize, textColor);
     Log.i(TAG, "finish load text");

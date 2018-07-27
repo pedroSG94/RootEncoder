@@ -253,23 +253,15 @@ public class OpenGlRtspActivity extends AppCompatActivity
   }
 
   private void setTextToStream() {
-    try {
-      TextStreamObject textStreamObject = new TextStreamObject();
-      textStreamObject.load("Hello world", 22, Color.RED);
-      rtspCamera1.getGlInterface().setText(textStreamObject);
-    } catch (IOException e) {
-      Toast.makeText(this, e.getMessage(), Toast.LENGTH_SHORT).show();
-    }
+    TextStreamObject textStreamObject = new TextStreamObject();
+    textStreamObject.load("Hello world", 22, Color.RED);
+    rtspCamera1.getGlInterface().setText(textStreamObject);
   }
 
   private void setImageToStream() {
-    try {
-      ImageStreamObject imageStreamObject = new ImageStreamObject();
-      imageStreamObject.load(BitmapFactory.decodeResource(getResources(), R.mipmap.ic_launcher));
-      rtspCamera1.getGlInterface().setImage(imageStreamObject);
-    } catch (IOException e) {
-      Toast.makeText(this, e.getMessage(), Toast.LENGTH_SHORT).show();
-    }
+    ImageStreamObject imageStreamObject = new ImageStreamObject();
+    imageStreamObject.load(BitmapFactory.decodeResource(getResources(), R.mipmap.ic_launcher));
+    rtspCamera1.getGlInterface().setImage(imageStreamObject);
   }
 
   private void setGifToStream() {

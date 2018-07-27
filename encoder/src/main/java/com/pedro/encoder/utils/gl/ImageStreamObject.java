@@ -2,7 +2,6 @@ package com.pedro.encoder.utils.gl;
 
 import android.graphics.Bitmap;
 import android.util.Log;
-import java.io.IOException;
 
 /**
  * Created by pedro on 23/09/17.
@@ -28,7 +27,7 @@ public class ImageStreamObject extends StreamObjectBase {
     return imageBitmap.getHeight();
   }
 
-  public void load(Bitmap imageBitmap) throws IOException {
+  public void load(Bitmap imageBitmap) {
     this.imageBitmap = imageBitmap;
     numFrames = 1;
     Log.i(TAG, "finish load image");

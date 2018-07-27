@@ -30,6 +30,7 @@ import com.pedro.encoder.input.gl.render.filters.EdgeDetectionFilterRender;
 import com.pedro.encoder.input.gl.render.filters.ExposureFilterRender;
 import com.pedro.encoder.input.gl.render.filters.FireFilterRender;
 import com.pedro.encoder.input.gl.render.filters.GammaFilterRender;
+import com.pedro.encoder.input.gl.render.filters.GifObjectFilterRender;
 import com.pedro.encoder.input.gl.render.filters.GreyScaleFilterRender;
 import com.pedro.encoder.input.gl.render.filters.HalftoneLinesFilterRender;
 import com.pedro.encoder.input.gl.render.filters.Image70sFilterRender;
@@ -50,7 +51,6 @@ import com.pedro.encoder.input.gl.render.filters.SurfaceFilterRender;
 import com.pedro.encoder.input.gl.render.filters.TemperatureFilterRender;
 import com.pedro.encoder.input.gl.render.filters.ZebraFilterRender;
 import com.pedro.encoder.input.video.CameraOpenException;
-import com.pedro.encoder.utils.gl.GifStreamObject;
 import com.pedro.encoder.utils.gl.ImageStreamObject;
 import com.pedro.encoder.utils.gl.TextStreamObject;
 import com.pedro.rtplibrary.rtmp.RtmpCamera1;
@@ -253,30 +253,25 @@ public class OpenGlRtmpActivity extends AppCompatActivity
   }
 
   private void setTextToStream() {
-    try {
-      TextStreamObject textStreamObject = new TextStreamObject();
-      textStreamObject.load("Hello world", 22, Color.RED);
-      rtmpCamera1.getGlInterface().setText(textStreamObject);
-    } catch (IOException e) {
-      Toast.makeText(this, e.getMessage(), Toast.LENGTH_SHORT).show();
-    }
+    TextStreamObject textStreamObject = new TextStreamObject();
+    textStreamObject.load("Hello world", 22, Color.RED);
+    rtmpCamera1.getGlInterface().setText(textStreamObject);
   }
 
   private void setImageToStream() {
-    try {
-      ImageStreamObject imageStreamObject = new ImageStreamObject();
-      imageStreamObject.load(BitmapFactory.decodeResource(getResources(), R.mipmap.ic_launcher));
-      rtmpCamera1.getGlInterface().setImage(imageStreamObject);
-    } catch (IOException e) {
-      Toast.makeText(this, e.getMessage(), Toast.LENGTH_SHORT).show();
-    }
+    ImageStreamObject imageStreamObject = new ImageStreamObject();
+    imageStreamObject.load(BitmapFactory.decodeResource(getResources(), R.mipmap.ic_launcher));
+    rtmpCamera1.getGlInterface().setImage(imageStreamObject);
   }
 
   private void setGifToStream() {
     try {
-      GifStreamObject gifStreamObject = new GifStreamObject();
-      gifStreamObject.load(getResources().openRawResource(R.raw.banana));
-      rtmpCamera1.getGlInterface().setGif(gifStreamObject);
+      //GifStreamObject gifStreamObject = new GifStreamObject();
+      //gifStreamObject.load(getResources().openRawResource(R.raw.banana));
+      GifObjectFilterRender gifStreamObject = new GifObjectFilterRender();
+      gifStreamObject.setGif(getResources().openRawResource(R.raw.banana));
+      rtmpCamera1.getGlInterface().setFilter(gifStreamObject);
+      gifStreamObject.setDefaultScale(480, 640);
     } catch (IOException e) {
       Toast.makeText(this, e.getMessage(), Toast.LENGTH_SHORT).show();
     }
