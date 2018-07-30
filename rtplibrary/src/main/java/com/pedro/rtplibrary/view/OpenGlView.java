@@ -19,14 +19,11 @@ import com.pedro.encoder.utils.gl.GlUtil;
 public class OpenGlView extends OpenGlViewBase {
 
   private ManagerRender managerRender = null;
-  private boolean loadFilter = false;
   private boolean loadAA = false;
 
-  private BaseFilterRender baseFilterRender;
   private boolean AAEnabled = false;
   private boolean keepAspectRatio = false;
   private boolean isFrontPreviewFlip = false;
-  private int filterPosition = 0;
 
   public OpenGlView(Context context) {
     super(context);
@@ -55,9 +52,7 @@ public class OpenGlView extends OpenGlViewBase {
 
   @Override
   public void setFilter(int filterPosition, BaseFilterRender baseFilterRender) {
-    this.filterPosition = filterPosition;
-    loadFilter = true;
-    this.baseFilterRender = baseFilterRender;
+    filterQueue.add(new Filter(filterPosition, baseFilterRender));
   }
 
   @Override
@@ -128,9 +123,9 @@ public class OpenGlView extends OpenGlViewBase {
               }
             }
           }
-          if (loadFilter) {
-            managerRender.setFilter(filterPosition, baseFilterRender);
-            loadFilter = false;
+          if (!filterQueue.isEmpty()) {
+            Filter filter = filterQueue.take();
+            managerRender.setFilter(filter.getPosition(), filter.getBaseFilterRender());
           } else if (loadAA) {
             managerRender.enableAA(AAEnabled);
             loadAA = false;

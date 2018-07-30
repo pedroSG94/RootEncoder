@@ -9,6 +9,8 @@ import com.pedro.encoder.input.gl.SurfaceManager;
 import com.pedro.encoder.input.gl.render.ManagerRender;
 import com.pedro.encoder.input.gl.render.filters.BaseFilterRender;
 import com.pedro.encoder.utils.gl.GlUtil;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.Semaphore;
 
 /**
@@ -31,12 +33,11 @@ public class OffScreenGlThread
   private ManagerRender textureManager = null;
 
   private final Semaphore semaphore = new Semaphore(0);
+  private final BlockingQueue<Filter> filterQueue = new LinkedBlockingQueue<>();
   private final Object sync = new Object();
   private int encoderWidth, encoderHeight;
-  private boolean loadFilter = false;
   private boolean loadAA = false;
 
-  private BaseFilterRender baseFilterRender;
   private boolean AAEnabled = false;
   private int waitTime = 10;
   //used with camera
@@ -44,7 +45,6 @@ public class OffScreenGlThread
   private boolean onChangeFace = false;
   private boolean isFrontCamera = false;
   private TakePhotoCallback takePhotoCallback;
-  private int filterPosition = 0;
 
   public OffScreenGlThread(Context context) {
     this.context = context;
@@ -96,9 +96,7 @@ public class OffScreenGlThread
 
   @Override
   public void setFilter(int filterPosition, BaseFilterRender baseFilterRender) {
-    this.filterPosition = filterPosition;
-    loadFilter = true;
-    this.baseFilterRender = baseFilterRender;
+    filterQueue.add(new Filter(filterPosition, baseFilterRender));
   }
 
   @Override
@@ -186,9 +184,9 @@ public class OffScreenGlThread
               }
             }
           }
-          if (loadFilter) {
-            textureManager.setFilter(filterPosition, baseFilterRender);
-            loadFilter = false;
+          if (!filterQueue.isEmpty()) {
+            Filter filter = filterQueue.poll();
+            textureManager.setFilter(filter.getPosition(), filter.getBaseFilterRender());
           } else if (loadAA) {
             textureManager.enableAA(AAEnabled);
             loadAA = false;
