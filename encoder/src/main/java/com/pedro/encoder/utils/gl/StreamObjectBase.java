@@ -12,8 +12,6 @@ public abstract class StreamObjectBase {
 
   public abstract int updateFrame();
 
-  public abstract void resize(int width, int height);
-
   public abstract void recycle();
 
   public abstract int getNumFrames();

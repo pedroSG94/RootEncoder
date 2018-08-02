@@ -25,12 +25,12 @@ public class GifStreamObject extends StreamObjectBase {
 
   @Override
   public int getWidth() {
-    return gifBitmaps[0].getWidth();
+    return gifBitmaps != null ? gifBitmaps[0].getWidth() : 0;
   }
 
   @Override
   public int getHeight() {
-    return gifBitmaps[0].getHeight();
+    return gifBitmaps != null ? gifBitmaps[0].getHeight() : 0;
   }
 
   public void load(InputStream inputStreamGif) throws IOException {
@@ -52,16 +52,11 @@ public class GifStreamObject extends StreamObjectBase {
   }
 
   @Override
-  public void resize(int width, int height) {
-    for (int i = 0; i < numFrames; i++) {
-      gifBitmaps[i] = Bitmap.createScaledBitmap(gifBitmaps[i], width, height, false);
-    }
-  }
-
-  @Override
   public void recycle() {
-    for (int i = 0; i < numFrames; i++) {
-      gifBitmaps[i].recycle();
+    if (gifBitmaps != null) {
+      for (int i = 0; i < numFrames; i++) {
+        gifBitmaps[i].recycle();
+      }
     }
   }
 
@@ -76,6 +71,10 @@ public class GifStreamObject extends StreamObjectBase {
 
   public Bitmap[] getGifBitmaps() {
     return gifBitmaps;
+  }
+
+  public int updateFrame(int size) {
+    return size <= 1 ? 0 : updateFrame();
   }
 
   @Override

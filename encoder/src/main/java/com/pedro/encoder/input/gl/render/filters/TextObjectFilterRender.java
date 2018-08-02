@@ -44,7 +44,7 @@ public class TextObjectFilterRender extends BaseFilterRender {
 
   private FloatBuffer squareVertexWatermark;
 
-  private int[] streamObjectTextureId = null;
+  private int[] streamObjectTextureId = new int[] { -1 };
   private TextureLoader textureLoader = new TextureLoader();
   private TextStreamObject textStreamObject;
   private Sprite sprite;
@@ -52,6 +52,7 @@ public class TextObjectFilterRender extends BaseFilterRender {
   private boolean shouldLoad = false;
 
   public TextObjectFilterRender() {
+    textStreamObject = new TextStreamObject();
     squareVertex = ByteBuffer.allocateDirect(squareVertexDataFilter.length * FLOAT_SIZE_BYTES)
         .order(ByteOrder.nativeOrder())
         .asFloatBuffer();
@@ -115,29 +116,23 @@ public class TextObjectFilterRender extends BaseFilterRender {
     // watermark
     GLES20.glUniform1i(sWatermarkHandle, 5);
     GLES20.glActiveTexture(GLES20.GL_TEXTURE5);
-    if (streamObjectTextureId != null) {
-      GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, streamObjectTextureId[0]);
-      //watermark enable, set actual alpha
-      GLES20.glUniform1f(uAlphaHandle, alpha);
-    } else {
-      //no watermark. Set watermark size transparent
-      GLES20.glUniform1f(uAlphaHandle, 0.0f);
-    }
+    GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, streamObjectTextureId[0]);
+    //Set alpha. 0f if no image loaded.
+    GLES20.glUniform1f(uAlphaHandle, streamObjectTextureId[0] == -1 ? 0f : alpha);
   }
 
   @Override
   public void release() {
     if (streamObjectTextureId != null) GLES20.glDeleteTextures(1, streamObjectTextureId, 0);
-    streamObjectTextureId = null;
+    streamObjectTextureId = new int[] { -1 };
     sprite.reset();
     textStreamObject.recycle();
   }
 
   public void setText(String text, float textSize, int textColor) {
-    textStreamObject = new TextStreamObject();
     textStreamObject.load(text, textSize, textColor);
     if (streamObjectTextureId != null) GLES20.glDeleteTextures(1, streamObjectTextureId, 0);
-    streamObjectTextureId = null;
+    streamObjectTextureId = new int[] { -1 };
     textureLoader.setTextStreamObject(textStreamObject);
     shouldLoad = true;
   }
