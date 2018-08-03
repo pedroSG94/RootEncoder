@@ -1,7 +1,6 @@
 package com.pedro.encoder.input.gl;
 
 import android.graphics.PointF;
-import android.graphics.RectF;
 import com.pedro.encoder.utils.gl.TranslateTo;
 
 /**
@@ -9,154 +8,155 @@ import com.pedro.encoder.utils.gl.TranslateTo;
  */
 
 public class Sprite {
-  private float angle;
-  private RectF base;
-  private PointF translation;
+
   private PointF scale;
+  private PointF position;
 
   public Sprite() {
     reset();
   }
 
+  /**
+   * @param deltaX Position x in percent
+   * @param deltaY Position x in percent
+   */
   public void translate(float deltaX, float deltaY) {
-    float rangeX = scale.x - 1;
-    float rangeY = scale.y - 1;
-    translation.x = -rangeX / (100 / deltaY);
-    translation.y = -rangeY / (100 / deltaX);
+    position.x = deltaX;
+    position.y = deltaY;
   }
 
+  /**
+   * @param translation Predefined position
+   */
   public void translate(TranslateTo translation) {
     switch (translation) {
       case CENTER:
-        this.translation.x = -scale.x / 2f;
-        this.translation.x += 0.5f;
-        this.translation.y = -scale.y / 2f;
-        this.translation.y += 0.5f;
+        this.position.x = 50f - scale.x / 2f;
+        this.position.y = 50f - scale.x / 2f;
         break;
       case BOTTOM:
-        this.translation.x = 0f;
-        this.translation.y = -scale.y / 2f;
-        this.translation.y += 0.5f;
+        this.position.x = 50f - scale.x / 2f;
+        this.position.y = 100f - scale.y;
         break;
       case TOP:
-        this.translation.x = -scale.x + 1;
-        this.translation.y = -scale.y / 2f;
-        this.translation.y += 0.5f;
+        this.position.x = 50f - scale.x / 2f;
+        this.position.y = 0f;
         break;
       case LEFT:
-        this.translation.x = -scale.x / 2f;
-        this.translation.x += 0.5f;
-        this.translation.y = -scale.y + 1;
+        this.position.x = 0f;
+        this.position.y = 50f - scale.y / 2f;
         break;
       case RIGHT:
-        this.translation.x = -scale.x / 2f;
-        this.translation.x += 0.5f;
-        this.translation.y = 0f;
+        this.position.x = 100f - scale.x;
+        this.position.y = 50f - scale.y / 2f;
         break;
       case TOP_LEFT:
-        this.translation.x = -scale.x + 1;
-        this.translation.y = -scale.y + 1;
+        this.position.x = 0f;
+        this.position.y = 0f;
         break;
       case TOP_RIGHT:
-        this.translation.x = -scale.x + 1;
-        this.translation.y = 0f;
+        this.position.x = 100f - scale.x;
+        this.position.y = 0f;
         break;
       case BOTTOM_LEFT:
-        this.translation.x = 0f;
-        this.translation.y = -scale.y + 1;
+        this.position.x = 0f;
+        this.position.y = 100f - scale.y;
         break;
       case BOTTOM_RIGHT:
-        this.translation.x = 0f;
-        this.translation.y = 0f;
+        this.position.x = 100f - scale.x;
+        this.position.y = 100f - scale.y;
         break;
       default:
         break;
     }
   }
 
-  //scale and translate object to keep position
+  /**
+   * @param deltaX Scale x in percent
+   * @param deltaY Scale y in percent
+   */
   public void scale(float deltaX, float deltaY) {
-    PointF oldScale = scale;
-    scale = new PointF(100 / deltaY, 100 / deltaX);
-    translation.x = keepOldPosition(translation.x, oldScale.x, scale.x);
-    translation.y = keepOldPosition(translation.y, oldScale.y, scale.y);
+    //keep old position
+    position.x /= deltaX / scale.x;
+    position.y /= deltaY / scale.y;
+    //set new scale.
+    scale = new PointF(deltaX, deltaY);
   }
 
-  private float keepOldPosition(float position, float oldScale, float newScale) {
-    float oldRange = oldScale - 1;
-    float percent = position * 100 / oldRange;
-    float newRange = newScale - 1;
-    position = newRange / (100 / percent);
+  /**
+   * @return Scale in percent
+   */
+  public PointF getScale() {
+    return scale;
+  }
+
+  /**
+   * @return Position in percent
+   */
+  public PointF getTranslation() {
     return position;
   }
 
-  //return scale in percent
-  public PointF getScale() {
-    return new PointF(100 / scale.y, 100 / scale.x);
-  }
-
-  //return position in percent
-  public PointF getTranslation() {
-    return new PointF(-(translation.x * 100 / (scale.x - 1)),
-        -(translation.y * 100 / (scale.y - 1)));
-  }
-
-  public void rotate(float delta) {
-    angle = delta;
-  }
-
   public void reset() {
-    base = new RectF(0f, 0f, 1f, 1f);
-    // Initial translation
-    translation = new PointF(0f, 0f);
-    // Initial size
-    scale = new PointF(100f, 100f); //this is 100 / 100 = 1% of the OpenGlView
-    // Initial angle
-    angle = 0f;
+    scale = new PointF(100f, 100f);
+    position = new PointF(0f, 0f);
   }
 
+  private final float[] squareVertexDataSprite = {
+      //X  Y
+      0f, 1f, //top left
+      1f, 1f, //top right
+      0f, 0f, //bottom left
+      1f, 0f, //bottom right
+  };
+
+  /**
+   * @return Actual vertex of sprite.
+   */
   public float[] getTransformedVertices() {
-    // Start with scaling
-    float x1 = base.left * scale.x;
-    float x2 = base.right * scale.x;
-    float y1 = base.bottom * scale.y;
-    float y2 = base.top * scale.y;
+    PointF bottomRight = new PointF(squareVertexDataSprite[0], squareVertexDataSprite[1]);
+    PointF bottomLeft = new PointF(squareVertexDataSprite[2], squareVertexDataSprite[3]);
+    PointF topRight = new PointF(squareVertexDataSprite[4], squareVertexDataSprite[5]);
+    PointF topLeft = new PointF(squareVertexDataSprite[6], squareVertexDataSprite[7]);
 
-    // We now detach from our Rect because when rotating,
-    // we need the separate points, so we do so in opengl order
-    PointF one = new PointF(x1, y1);
-    PointF two = new PointF(x1, y2);
-    PointF three = new PointF(x2, y1);
-    PointF four = new PointF(x2, y2);
+    //Traduce scale to Opengl vertex values
+    float scaleX = scale.x / 100f;
+    float scaleY = scale.y / 100f;
 
-    // We create the sin and cos function once,
-    // so we do not have calculate them each time.
-    float s = (float) Math.sin(angle);
-    float c = (float) Math.cos(angle);
+    //Scale sprite
+    bottomRight.x /= scaleX;
+    bottomRight.y /= scaleY;
 
-    // Then we rotate each point
-    one.x = x1 * c - y1 * s;
-    one.y = x1 * s + y1 * c;
-    two.x = x1 * c - y2 * s;
-    two.y = x1 * s + y2 * c;
-    three.x = x2 * c - y1 * s;
-    three.y = x2 * s + y1 * c;
-    four.x = x2 * c - y2 * s;
-    four.y = x2 * s + y2 * c;
+    bottomLeft.x /= scaleX;
+    bottomLeft.y /= scaleY;
 
-    // Finally we translate the sprite to its correct position.
-    one.x += translation.x;
-    one.y += translation.y;
-    two.x += translation.x;
-    two.y += translation.y;
-    three.x += translation.x;
-    three.y += translation.y;
-    four.x += translation.x;
-    four.y += translation.y;
+    topRight.x /= scaleX;
+    topRight.y /= scaleY;
 
-    // We now return our float array of vertices.
+    topLeft.x /= scaleX;
+    topLeft.y /= scaleY;
+
+    //Traduce position to Opengl values
+    float positionX = -position.x / scale.x;
+    float positionY = -position.y / scale.y;
+
+    //Translate sprite
+    bottomRight.x += positionX;
+    bottomRight.y += positionY;
+
+    bottomLeft.x += positionX;
+    bottomLeft.y += positionY;
+
+    topRight.x += positionX;
+    topRight.y += positionY;
+
+    topLeft.x += positionX;
+    topLeft.y += positionY;
+
+    //Recreate vertex like initial vertex.
     return new float[] {
-        one.x, one.y, two.x, two.y, three.x, three.y, four.x, four.y,
+        bottomRight.x, bottomRight.y, bottomLeft.x, bottomLeft.y, topRight.x, topRight.y, topLeft.x,
+        topLeft.y,
     };
   }
 }

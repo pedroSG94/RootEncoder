@@ -236,7 +236,7 @@ public class OpenGlRtspActivity extends AppCompatActivity
         mediaPlayer.setSurface(surfaceFilterRender.getSurface());
         mediaPlayer.start();
         //Video is 360x240 so select a percent to keep aspect ratio (50% x 33.3% screen)
-        surfaceFilterRender.setScale(50f, 33.f);
+        surfaceFilterRender.setScale(50f, 33.3f);
         return true;
       case R.id.temperature:
         rtspCamera1.getGlInterface().setFilter(new TemperatureFilterRender());
