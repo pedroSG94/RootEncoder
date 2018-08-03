@@ -41,12 +41,14 @@ public class SurfaceFilterRender extends BaseFilterRender {
   private int uSamplerHandle = -1;
   private int uSamplerSurfaceHandle = -1;
   private int aTextureSurfaceHandle = -1;
+  private int uAlphaHandle = -1;
 
-  private int[] surfaceId = new int[1];
+  private int[] surfaceId = new int[] { -1 };
   private Sprite sprite;
   private FloatBuffer squareVertexSurface;
   private SurfaceTexture surfaceTexture;
   private Surface surface;
+  private float alpha = 1f;
 
   public SurfaceFilterRender() {
     squareVertex = ByteBuffer.allocateDirect(squareVertexDataFilter.length * FLOAT_SIZE_BYTES)
@@ -78,6 +80,7 @@ public class SurfaceFilterRender extends BaseFilterRender {
     uSTMatrixHandle = GLES20.glGetUniformLocation(program, "uSTMatrix");
     uSamplerHandle = GLES20.glGetUniformLocation(program, "uSampler");
     uSamplerSurfaceHandle = GLES20.glGetUniformLocation(program, "uSamplerSurface");
+    uAlphaHandle = GLES20.glGetUniformLocation(program, "uAlpha");
 
     GlUtil.createExternalTextures(1, surfaceId, 0);
     surfaceTexture = new SurfaceTexture(surfaceId[0]);
@@ -116,11 +119,16 @@ public class SurfaceFilterRender extends BaseFilterRender {
     GLES20.glUniform1i(uSamplerSurfaceHandle, 5);
     GLES20.glActiveTexture(GLES20.GL_TEXTURE5);
     GLES20.glBindTexture(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, surfaceId[0]);
+    //Set alpha. 0f if no image loaded.
+    GLES20.glUniform1f(uAlphaHandle, surfaceId[0] == -1 ? 0f : alpha);
   }
 
   @Override
   public void release() {
-
+    if (surfaceId != null) GLES20.glDeleteTextures(1, surfaceId, 0);
+    surfaceId = new int[] { -1 };
+    surfaceTexture.release();
+    surface.release();
   }
 
   public SurfaceTexture getSurfaceTexture() {
@@ -129,6 +137,10 @@ public class SurfaceFilterRender extends BaseFilterRender {
 
   public Surface getSurface() {
     return surface;
+  }
+
+  public void setAlpha(float alpha) {
+    this.alpha = alpha;
   }
 
   public void setScale(float scaleX, float scaleY) {

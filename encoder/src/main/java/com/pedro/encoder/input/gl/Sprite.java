@@ -9,6 +9,13 @@ import com.pedro.encoder.utils.gl.TranslateTo;
 
 public class Sprite {
 
+  private final float[] squareVertexDataSprite = {
+      //X  Y
+      0f, 1f, //top left
+      1f, 1f, //top right
+      0f, 0f, //bottom left
+      1f, 0f, //bottom right
+  };
   private PointF scale;
   private PointF position;
 
@@ -101,14 +108,6 @@ public class Sprite {
     scale = new PointF(100f, 100f);
     position = new PointF(0f, 0f);
   }
-
-  private final float[] squareVertexDataSprite = {
-      //X  Y
-      0f, 1f, //top left
-      1f, 1f, //top right
-      0f, 0f, //bottom left
-      1f, 0f, //bottom right
-  };
 
   /**
    * @return Actual vertex of sprite.

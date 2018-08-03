@@ -10,5 +10,10 @@ varying vec2 vTextureObjectCoord;
 void main() {
   vec4 samplerPixel = texture2D(uSampler, vTextureCoord);
   vec4 objectPixel = texture2D(uObject, vTextureObjectCoord);
-  gl_FragColor = mix(samplerPixel, objectPixel, objectPixel.a * uAlpha);
+  if (vTextureObjectCoord.x < 0.0 || vTextureObjectCoord.x > 1.0 ||
+  vTextureObjectCoord.y < 0.0 || vTextureObjectCoord.y > 1.0) {
+    gl_FragColor = samplerPixel;
+  } else {
+    gl_FragColor = mix(samplerPixel, objectPixel, objectPixel.a * uAlpha);
+  }
 }
