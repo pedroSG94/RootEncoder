@@ -92,6 +92,10 @@ public class SrsFlvMuxer {
     publisher.setAuthorization(user, password);
   }
 
+  public boolean isConnected() {
+    return connected;
+  }
+
   /**
    * set video resolution for publisher
    *
@@ -214,11 +218,11 @@ public class SrsFlvMuxer {
   }
 
   public void sendVideo(ByteBuffer byteBuffer, MediaCodec.BufferInfo bufferInfo) {
-    flv.writeVideoSample(byteBuffer, bufferInfo);
+    if (connected) flv.writeVideoSample(byteBuffer, bufferInfo);
   }
 
   public void sendAudio(ByteBuffer byteBuffer, MediaCodec.BufferInfo bufferInfo) {
-    flv.writeAudioSample(byteBuffer, bufferInfo);
+    if (connected) flv.writeAudioSample(byteBuffer, bufferInfo);
   }
 
   // E.4.3.1 VIDEODATA

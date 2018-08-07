@@ -5,6 +5,19 @@ import com.pedro.encoder.utils.gl.TranslateTo;
 
 /**
  * Created by pedro on 17/11/17.
+ *
+ * Sprite is drawn from top left of the image.
+ * Sprite positions in screen:
+ *
+ *  0,0     100,0
+ *    ________
+ *   |        |
+ *   |        |
+ *   | Screen |
+ *   |        |
+ *   |________|
+ *
+ *  0,100   100,100
  */
 
 public class Sprite {

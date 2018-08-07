@@ -6,8 +6,10 @@ import android.opengl.GLES20;
 import android.opengl.Matrix;
 import android.os.Build;
 import android.support.annotation.RequiresApi;
+import android.view.View;
 import com.pedro.encoder.R;
 import com.pedro.encoder.input.gl.Sprite;
+import com.pedro.encoder.input.gl.SpriteGestureController;
 import com.pedro.encoder.input.gl.TextureLoader;
 import com.pedro.encoder.input.gl.render.filters.BaseFilterRender;
 import com.pedro.encoder.utils.gl.GlUtil;
@@ -22,7 +24,8 @@ import java.nio.FloatBuffer;
  */
 
 @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
-abstract class BaseObjectFilterRender extends BaseFilterRender {
+abstract class BaseObjectFilterRender extends BaseFilterRender
+    implements SpriteGestureController.UpdateGestureCallback {
 
   //rotation matrix
   private final float[] squareVertexDataFilter = {
@@ -51,6 +54,7 @@ abstract class BaseObjectFilterRender extends BaseFilterRender {
   private Sprite sprite;
   protected float alpha = 1f;
   protected boolean shouldLoad = false;
+  private SpriteGestureController spriteGestureController;
 
   public BaseObjectFilterRender() {
     squareVertex = ByteBuffer.allocateDirect(squareVertexDataFilter.length * FLOAT_SIZE_BYTES)
@@ -58,6 +62,7 @@ abstract class BaseObjectFilterRender extends BaseFilterRender {
         .asFloatBuffer();
     squareVertex.put(squareVertexDataFilter).position(0);
     sprite = new Sprite();
+    spriteGestureController = new SpriteGestureController(sprite, this);
     float[] vertices = sprite.getTransformedVertices();
     squareVertexObject = ByteBuffer.allocateDirect(vertices.length * FLOAT_SIZE_BYTES)
         .order(ByteOrder.nativeOrder())
@@ -160,6 +165,19 @@ abstract class BaseObjectFilterRender extends BaseFilterRender {
   public void setDefaultScale(int streamWidth, int streamHeight) {
     sprite.scale(streamObject.getWidth() * 100 / streamWidth,
         streamObject.getHeight() * 100 / streamHeight);
+    squareVertexObject.put(sprite.getTransformedVertices()).position(0);
+  }
+
+  public void setListeners(View view) {
+    spriteGestureController.setListeners(view);
+  }
+
+  public void releaseListeners(View view) {
+    spriteGestureController.releaseListeners(view);
+  }
+
+  @Override
+  public void onUpdate() {
     squareVertexObject.put(sprite.getTransformedVertices()).position(0);
   }
 }

@@ -81,13 +81,14 @@ public class OpenGlRtspActivity extends AppCompatActivity
   private String currentDateAndTime = "";
   private File folder = new File(Environment.getExternalStorageDirectory().getAbsolutePath()
       + "/rtmp-rtsp-stream-client-java");
+  private OpenGlView openGlView;
 
   @Override
   protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
     getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
     setContentView(R.layout.activity_open_gl);
-    OpenGlView openGlView = findViewById(R.id.surfaceView);
+    openGlView = findViewById(R.id.surfaceView);
     button = findViewById(R.id.b_start_stop);
     button.setOnClickListener(this);
     bRecord = findViewById(R.id.b_record);
@@ -237,6 +238,7 @@ public class OpenGlRtspActivity extends AppCompatActivity
         mediaPlayer.start();
         //Video is 360x240 so select a percent to keep aspect ratio (50% x 33.3% screen)
         surfaceFilterRender.setScale(50f, 33.3f);
+        surfaceFilterRender.setListeners(openGlView);
         return true;
       case R.id.temperature:
         rtspCamera1.getGlInterface().setFilter(new TemperatureFilterRender());
@@ -259,6 +261,7 @@ public class OpenGlRtspActivity extends AppCompatActivity
     textObjectFilterRender.setDefaultScale(rtspCamera1.getStreamWidth(),
         rtspCamera1.getStreamHeight());
     textObjectFilterRender.setPosition(TranslateTo.CENTER);
+    textObjectFilterRender.setListeners(openGlView);
   }
 
   private void setImageToStream() {
@@ -269,15 +272,17 @@ public class OpenGlRtspActivity extends AppCompatActivity
     imageObjectFilterRender.setDefaultScale(rtspCamera1.getStreamWidth(),
         rtspCamera1.getStreamHeight());
     imageObjectFilterRender.setPosition(TranslateTo.RIGHT);
+    imageObjectFilterRender.setListeners(openGlView);
   }
 
   private void setGifToStream() {
     try {
-      GifObjectFilterRender gifStreamObject = new GifObjectFilterRender();
-      gifStreamObject.setGif(getResources().openRawResource(R.raw.banana));
-      rtspCamera1.getGlInterface().setFilter(gifStreamObject);
-      gifStreamObject.setDefaultScale(rtspCamera1.getStreamWidth(), rtspCamera1.getStreamHeight());
-      gifStreamObject.setPosition(TranslateTo.BOTTOM);
+      GifObjectFilterRender gifObjectFilterRender = new GifObjectFilterRender();
+      gifObjectFilterRender.setGif(getResources().openRawResource(R.raw.banana));
+      rtspCamera1.getGlInterface().setFilter(gifObjectFilterRender);
+      gifObjectFilterRender.setDefaultScale(rtspCamera1.getStreamWidth(), rtspCamera1.getStreamHeight());
+      gifObjectFilterRender.setPosition(TranslateTo.BOTTOM);
+      gifObjectFilterRender.setListeners(openGlView);
     } catch (IOException e) {
       Toast.makeText(this, e.getMessage(), Toast.LENGTH_SHORT).show();
     }
