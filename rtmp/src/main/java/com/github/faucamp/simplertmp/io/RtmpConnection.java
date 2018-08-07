@@ -43,7 +43,7 @@ public class RtmpConnection implements RtmpPublisher {
 
   private static final String TAG = "RtmpConnection";
   private static final Pattern rtmpUrlPattern =
-      Pattern.compile("^rtmps?://([^/:]+)(?::(\\d+))*/([^/]+)/?([^/]*)$");
+      Pattern.compile("^rtmps?://([^/:]+)(?::(\\d+))*/([^/]+)/?([^*]*)$");
 
   private int port;
   private String host;

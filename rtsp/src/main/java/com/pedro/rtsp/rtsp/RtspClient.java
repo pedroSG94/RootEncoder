@@ -29,7 +29,7 @@ public class RtspClient {
 
   private final String TAG = "RtspClient";
   private static final Pattern rtspUrlPattern =
-      Pattern.compile("^rtsps?://([^/:]+)(?::(\\d+))*/([^/]+)/?([^/]*)$");
+      Pattern.compile("^rtsps?://([^/:]+)(?::(\\d+))*/([^/]+)/?([^*]*)$");
 
   private final long timestamp;
   private String host = "";
