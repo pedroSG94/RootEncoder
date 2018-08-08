@@ -42,7 +42,7 @@ public abstract class FromFileBase
   private Context context;
 
   protected VideoEncoder videoEncoder;
-  protected AudioEncoder audioEncoder;
+  private AudioEncoder audioEncoder;
   private GlInterface glInterface;
   private boolean streaming = false;
   private boolean videoEnabled = true;

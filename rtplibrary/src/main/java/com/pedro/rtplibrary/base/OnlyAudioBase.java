@@ -15,8 +15,8 @@ import java.nio.ByteBuffer;
  */
 public abstract class OnlyAudioBase implements GetAacData, GetMicrophoneData {
 
-  protected MicrophoneManager microphoneManager;
-  protected AudioEncoder audioEncoder;
+  private MicrophoneManager microphoneManager;
+  private AudioEncoder audioEncoder;
   private boolean streaming = false;
 
   public OnlyAudioBase() {

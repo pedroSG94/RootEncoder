@@ -43,8 +43,8 @@ public abstract class DisplayBase implements GetAacData, GetH264Data, GetMicroph
   private MediaProjection mediaProjection;
   private MediaProjectionManager mediaProjectionManager;
   protected VideoEncoder videoEncoder;
-  protected MicrophoneManager microphoneManager;
-  protected AudioEncoder audioEncoder;
+  private MicrophoneManager microphoneManager;
+  private AudioEncoder audioEncoder;
   private boolean streaming = false;
   protected SurfaceView surfaceView;
   private boolean videoEnabled = true;

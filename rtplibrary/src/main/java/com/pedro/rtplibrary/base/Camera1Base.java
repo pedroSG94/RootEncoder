@@ -51,10 +51,10 @@ public abstract class Camera1Base
   private static final String TAG = "Camera1Base";
 
   private Context context;
-  protected Camera1ApiManager cameraManager;
+  private Camera1ApiManager cameraManager;
   protected VideoEncoder videoEncoder;
-  protected MicrophoneManager microphoneManager;
-  protected AudioEncoder audioEncoder;
+  private MicrophoneManager microphoneManager;
+  private AudioEncoder audioEncoder;
   private GlInterface glInterface;
   private boolean streaming = false;
   private boolean videoEnabled = true;

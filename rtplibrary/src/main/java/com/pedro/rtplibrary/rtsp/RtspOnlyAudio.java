@@ -13,11 +13,11 @@ import java.nio.ByteBuffer;
  *
  * Created by pedro on 10/07/18.
  */
-public class OnlyAudioRtsp extends OnlyAudioBase {
+public class RtspOnlyAudio extends OnlyAudioBase {
 
   private RtspClient rtspClient;
 
-  public OnlyAudioRtsp(ConnectCheckerRtsp connectCheckerRtsp) {
+  public RtspOnlyAudio(ConnectCheckerRtsp connectCheckerRtsp) {
     super();
     rtspClient = new RtspClient(connectCheckerRtsp);
   }

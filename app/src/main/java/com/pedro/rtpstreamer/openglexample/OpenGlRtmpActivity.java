@@ -81,7 +81,8 @@ public class OpenGlRtmpActivity extends AppCompatActivity
   private String currentDateAndTime = "";
   private File folder = new File(Environment.getExternalStorageDirectory().getAbsolutePath()
       + "/rtmp-rtsp-stream-client-java");
-  OpenGlView openGlView;
+  private OpenGlView openGlView;
+
   @Override
   protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
@@ -237,7 +238,7 @@ public class OpenGlRtmpActivity extends AppCompatActivity
         mediaPlayer.start();
         //Video is 360x240 so select a percent to keep aspect ratio (50% x 33.3% screen)
         surfaceFilterRender.setScale(50f, 33.3f);
-        surfaceFilterRender.setListeners(openGlView);
+        surfaceFilterRender.setListeners(openGlView); //Optional
         return true;
       case R.id.temperature:
         rtmpCamera1.getGlInterface().setFilter(new TemperatureFilterRender());
@@ -260,7 +261,7 @@ public class OpenGlRtmpActivity extends AppCompatActivity
     textObjectFilterRender.setDefaultScale(rtmpCamera1.getStreamWidth(),
         rtmpCamera1.getStreamHeight());
     textObjectFilterRender.setPosition(TranslateTo.CENTER);
-    textObjectFilterRender.setListeners(openGlView);
+    textObjectFilterRender.setListeners(openGlView);  //Optional
   }
 
   private void setImageToStream() {
@@ -271,7 +272,7 @@ public class OpenGlRtmpActivity extends AppCompatActivity
     imageObjectFilterRender.setDefaultScale(rtmpCamera1.getStreamWidth(),
         rtmpCamera1.getStreamHeight());
     imageObjectFilterRender.setPosition(TranslateTo.RIGHT);
-    imageObjectFilterRender.setListeners(openGlView);
+    imageObjectFilterRender.setListeners(openGlView); //Optional
   }
 
   private void setGifToStream() {
@@ -281,7 +282,7 @@ public class OpenGlRtmpActivity extends AppCompatActivity
       rtmpCamera1.getGlInterface().setFilter(gifObjectFilterRender);
       gifObjectFilterRender.setDefaultScale(rtmpCamera1.getStreamWidth(), rtmpCamera1.getStreamHeight());
       gifObjectFilterRender.setPosition(TranslateTo.BOTTOM);
-      gifObjectFilterRender.setListeners(openGlView);
+      gifObjectFilterRender.setListeners(openGlView); //Optional
     } catch (IOException e) {
       Toast.makeText(this, e.getMessage(), Toast.LENGTH_SHORT).show();
     }

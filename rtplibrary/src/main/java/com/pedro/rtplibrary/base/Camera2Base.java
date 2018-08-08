@@ -46,10 +46,10 @@ import java.util.List;
 public abstract class Camera2Base implements GetAacData, GetH264Data, GetMicrophoneData {
 
   protected Context context;
-  protected Camera2ApiManager cameraManager;
+  private Camera2ApiManager cameraManager;
   protected VideoEncoder videoEncoder;
-  protected MicrophoneManager microphoneManager;
-  protected AudioEncoder audioEncoder;
+  private MicrophoneManager microphoneManager;
+  private AudioEncoder audioEncoder;
   private boolean streaming = false;
   private SurfaceView surfaceView;
   private TextureView textureView;

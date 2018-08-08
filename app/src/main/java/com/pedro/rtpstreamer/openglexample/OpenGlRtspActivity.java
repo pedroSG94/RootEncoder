@@ -238,7 +238,7 @@ public class OpenGlRtspActivity extends AppCompatActivity
         mediaPlayer.start();
         //Video is 360x240 so select a percent to keep aspect ratio (50% x 33.3% screen)
         surfaceFilterRender.setScale(50f, 33.3f);
-        surfaceFilterRender.setListeners(openGlView);
+        surfaceFilterRender.setListeners(openGlView); //Optional
         return true;
       case R.id.temperature:
         rtspCamera1.getGlInterface().setFilter(new TemperatureFilterRender());
@@ -261,7 +261,7 @@ public class OpenGlRtspActivity extends AppCompatActivity
     textObjectFilterRender.setDefaultScale(rtspCamera1.getStreamWidth(),
         rtspCamera1.getStreamHeight());
     textObjectFilterRender.setPosition(TranslateTo.CENTER);
-    textObjectFilterRender.setListeners(openGlView);
+    textObjectFilterRender.setListeners(openGlView); //Optional
   }
 
   private void setImageToStream() {
@@ -272,7 +272,7 @@ public class OpenGlRtspActivity extends AppCompatActivity
     imageObjectFilterRender.setDefaultScale(rtspCamera1.getStreamWidth(),
         rtspCamera1.getStreamHeight());
     imageObjectFilterRender.setPosition(TranslateTo.RIGHT);
-    imageObjectFilterRender.setListeners(openGlView);
+    imageObjectFilterRender.setListeners(openGlView); //Optional
   }
 
   private void setGifToStream() {
@@ -282,7 +282,7 @@ public class OpenGlRtspActivity extends AppCompatActivity
       rtspCamera1.getGlInterface().setFilter(gifObjectFilterRender);
       gifObjectFilterRender.setDefaultScale(rtspCamera1.getStreamWidth(), rtspCamera1.getStreamHeight());
       gifObjectFilterRender.setPosition(TranslateTo.BOTTOM);
-      gifObjectFilterRender.setListeners(openGlView);
+      gifObjectFilterRender.setListeners(openGlView); //Optional
     } catch (IOException e) {
       Toast.makeText(this, e.getMessage(), Toast.LENGTH_SHORT).show();
     }

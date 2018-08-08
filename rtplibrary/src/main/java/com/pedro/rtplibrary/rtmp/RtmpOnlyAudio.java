@@ -12,11 +12,11 @@ import net.ossrs.rtmp.SrsFlvMuxer;
  *
  * Created by pedro on 10/07/18.
  */
-public class OnlyAudioRtmp extends OnlyAudioBase {
+public class RtmpOnlyAudio extends OnlyAudioBase {
 
   private SrsFlvMuxer srsFlvMuxer;
 
-  public OnlyAudioRtmp(ConnectCheckerRtmp connectChecker) {
+  public RtmpOnlyAudio(ConnectCheckerRtmp connectChecker) {
     super();
     srsFlvMuxer = new SrsFlvMuxer(connectChecker);
   }
