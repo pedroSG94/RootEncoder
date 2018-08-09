@@ -218,11 +218,11 @@ public class SrsFlvMuxer {
   }
 
   public void sendVideo(ByteBuffer byteBuffer, MediaCodec.BufferInfo bufferInfo) {
-    if (connected) flv.writeVideoSample(byteBuffer, bufferInfo);
+    flv.writeVideoSample(byteBuffer, bufferInfo);
   }
 
   public void sendAudio(ByteBuffer byteBuffer, MediaCodec.BufferInfo bufferInfo) {
-    if (connected) flv.writeAudioSample(byteBuffer, bufferInfo);
+    flv.writeAudioSample(byteBuffer, bufferInfo);
   }
 
   // E.4.3.1 VIDEODATA
