@@ -147,8 +147,7 @@ public abstract class DisplayBase implements GetAacData, GetH264Data, GetMicroph
    * doesn't support any configuration seated or your device hasn't a AAC encoder).
    */
   public boolean prepareAudio() {
-    microphoneManager.createMicrophone();
-    return audioEncoder.prepareAudioEncoder();
+    return prepareAudio(128 * 1024, 44100, true, false, false);
   }
 
   /**
@@ -255,8 +254,11 @@ public abstract class DisplayBase implements GetAacData, GetH264Data, GetMicroph
   }
 
   public GlInterface getGlInterface() {
-    if (glInterface != null) return glInterface;
-    else throw new RuntimeException("You can't do it. You are not using Opengl");
+    if (glInterface != null) {
+      return glInterface;
+    } else {
+      throw new RuntimeException("You can't do it. You are not using Opengl");
+    }
   }
 
   /**

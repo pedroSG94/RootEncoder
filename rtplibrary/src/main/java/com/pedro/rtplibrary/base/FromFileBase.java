@@ -66,10 +66,7 @@ public abstract class FromFileBase
 
   public FromFileBase(VideoDecoderInterface videoDecoderInterface,
       AudioDecoderInterface audioDecoderInterface) {
-    this.videoDecoderInterface = videoDecoderInterface;
-    this.audioDecoderInterface = audioDecoderInterface;
-    videoEncoder = new VideoEncoder(this);
-    audioEncoder = new AudioEncoder(this);
+    init(videoDecoderInterface, audioDecoderInterface);
   }
 
   /**
@@ -79,6 +76,11 @@ public abstract class FromFileBase
       AudioDecoderInterface audioDecoderInterface) {
     this.context = context;
     glInterface = new OffScreenGlThread(context);
+    init(videoDecoderInterface, audioDecoderInterface);
+  }
+
+  private void init(VideoDecoderInterface videoDecoderInterface,
+      AudioDecoderInterface audioDecoderInterface) {
     this.videoDecoderInterface = videoDecoderInterface;
     this.audioDecoderInterface = audioDecoderInterface;
     videoEncoder = new VideoEncoder(this);
@@ -245,8 +247,11 @@ public abstract class FromFileBase
   }
 
   public GlInterface getGlInterface() {
-    if (glInterface != null) return glInterface;
-    else throw new RuntimeException("You can't do it. You are not using Opengl");
+    if (glInterface != null) {
+      return glInterface;
+    } else {
+      throw new RuntimeException("You can't do it. You are not using Opengl");
+    }
   }
 
   /**

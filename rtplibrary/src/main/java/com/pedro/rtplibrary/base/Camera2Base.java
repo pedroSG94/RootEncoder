@@ -69,39 +69,27 @@ public abstract class Camera2Base implements GetAacData, GetH264Data, GetMicroph
   public Camera2Base(SurfaceView surfaceView) {
     this.surfaceView = surfaceView;
     this.context = surfaceView.getContext();
-    cameraManager = new Camera2ApiManager(context);
-    videoEncoder = new VideoEncoder(this);
-    microphoneManager = new MicrophoneManager(this);
-    audioEncoder = new AudioEncoder(this);
+    init(context);
   }
 
   public Camera2Base(TextureView textureView) {
     this.textureView = textureView;
     this.context = textureView.getContext();
-    cameraManager = new Camera2ApiManager(context);
-    videoEncoder = new VideoEncoder(this);
-    microphoneManager = new MicrophoneManager(this);
-    audioEncoder = new AudioEncoder(this);
+    init(context);
   }
 
   public Camera2Base(OpenGlView openGlView) {
     context = openGlView.getContext();
     glInterface = openGlView;
     glInterface.init();
-    cameraManager = new Camera2ApiManager(context);
-    videoEncoder = new VideoEncoder(this);
-    microphoneManager = new MicrophoneManager(this);
-    audioEncoder = new AudioEncoder(this);
+    init(context);
   }
 
   public Camera2Base(LightOpenGlView lightOpenGlView) {
     this.context = lightOpenGlView.getContext();
     glInterface = lightOpenGlView;
     glInterface.init();
-    cameraManager = new Camera2ApiManager(context);
-    videoEncoder = new VideoEncoder(this);
-    microphoneManager = new MicrophoneManager(this);
-    audioEncoder = new AudioEncoder(this);
+    init(context);
   }
 
   public Camera2Base(Context context, boolean useOpengl) {
@@ -111,6 +99,10 @@ public abstract class Camera2Base implements GetAacData, GetH264Data, GetMicroph
       glInterface.init();
     }
     isBackground = true;
+    init(context);
+  }
+
+  private void init(Context context) {
     cameraManager = new Camera2ApiManager(context);
     videoEncoder = new VideoEncoder(this);
     microphoneManager = new MicrophoneManager(this);
@@ -192,17 +184,9 @@ public abstract class Camera2Base implements GetAacData, GetH264Data, GetMicroph
    * doesn't support any configuration seated or your device hasn't a H264 encoder).
    */
   public boolean prepareVideo() {
-    if (onPreview) {
-      stopPreview();
-      onPreview = true;
-    }
     boolean isHardwareRotation = glInterface == null;
     int orientation = (context.getResources().getConfiguration().orientation == 1) ? 90 : 0;
-    boolean result =
-        videoEncoder.prepareVideoEncoder(640, 480, 30, 1200 * 1024, orientation, isHardwareRotation,
-            2, FormatVideoEncoder.SURFACE);
-    prepareCameraManager();
-    return result;
+    return prepareVideo(640, 480, 30, 1200 * 1024, isHardwareRotation, orientation);
   }
 
   /**
@@ -213,8 +197,7 @@ public abstract class Camera2Base implements GetAacData, GetH264Data, GetMicroph
    * doesn't support any configuration seated or your device hasn't a AAC encoder).
    */
   public boolean prepareAudio() {
-    microphoneManager.createMicrophone();
-    return audioEncoder.prepareAudioEncoder();
+    return prepareAudio(128 * 1024, 44100, true, false, false);
   }
 
   /**
@@ -513,8 +496,11 @@ public abstract class Camera2Base implements GetAacData, GetH264Data, GetMicroph
   }
 
   public GlInterface getGlInterface() {
-    if (glInterface != null) return glInterface;
-    else throw new RuntimeException("You can't do it. You are not using Opengl");
+    if (glInterface != null) {
+      return glInterface;
+    } else {
+      throw new RuntimeException("You can't do it. You are not using Opengl");
+    }
   }
 
   private void prepareCameraManager() {

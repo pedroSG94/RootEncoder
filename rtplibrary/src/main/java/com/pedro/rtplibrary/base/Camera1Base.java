@@ -71,17 +71,13 @@ public abstract class Camera1Base
   public Camera1Base(SurfaceView surfaceView) {
     context = surfaceView.getContext();
     cameraManager = new Camera1ApiManager(surfaceView, this);
-    videoEncoder = new VideoEncoder(this);
-    microphoneManager = new MicrophoneManager(this);
-    audioEncoder = new AudioEncoder(this);
+    init();
   }
 
   public Camera1Base(TextureView textureView) {
     context = textureView.getContext();
     cameraManager = new Camera1ApiManager(textureView, this);
-    videoEncoder = new VideoEncoder(this);
-    microphoneManager = new MicrophoneManager(this);
-    audioEncoder = new AudioEncoder(this);
+    init();
   }
 
   @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
@@ -90,9 +86,7 @@ public abstract class Camera1Base
     this.glInterface = openGlView;
     this.glInterface.init();
     cameraManager = new Camera1ApiManager(glInterface.getSurfaceTexture(), openGlView.getContext());
-    videoEncoder = new VideoEncoder(this);
-    microphoneManager = new MicrophoneManager(this);
-    audioEncoder = new AudioEncoder(this);
+    init();
   }
 
   @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
@@ -102,9 +96,7 @@ public abstract class Camera1Base
     this.glInterface.init();
     cameraManager =
         new Camera1ApiManager(glInterface.getSurfaceTexture(), lightOpenGlView.getContext());
-    videoEncoder = new VideoEncoder(this);
-    microphoneManager = new MicrophoneManager(this);
-    audioEncoder = new AudioEncoder(this);
+    init();
   }
 
   @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
@@ -113,6 +105,10 @@ public abstract class Camera1Base
     glInterface = new OffScreenGlThread(context);
     glInterface.init();
     cameraManager = new Camera1ApiManager(glInterface.getSurfaceTexture(), context);
+    init();
+  }
+
+  private void init() {
     videoEncoder = new VideoEncoder(this);
     microphoneManager = new MicrophoneManager(this);
     audioEncoder = new AudioEncoder(this);
@@ -199,18 +195,8 @@ public abstract class Camera1Base
    * doesn't support any configuration seated or your device hasn't a H264 encoder).
    */
   public boolean prepareVideo() {
-    if (onPreview) {
-      stopPreview();
-      onPreview = true;
-    }
-    if (glInterface == null) {
-      cameraManager.prepareCamera();
-      return videoEncoder.prepareVideoEncoder();
-    } else {
-      int orientation = (context.getResources().getConfiguration().orientation == 1) ? 90 : 0;
-      return videoEncoder.prepareVideoEncoder(640, 480, 30, 1200 * 1024, orientation, false, 2,
-          FormatVideoEncoder.SURFACE);
-    }
+    int orientation = (context.getResources().getConfiguration().orientation == 1) ? 90 : 0;
+    return prepareVideo(640, 480, 30, 1200 * 1024, false, orientation);
   }
 
   /**
@@ -221,8 +207,7 @@ public abstract class Camera1Base
    * doesn't support any configuration seated or your device hasn't a AAC encoder).
    */
   public boolean prepareAudio() {
-    microphoneManager.createMicrophone();
-    return audioEncoder.prepareAudioEncoder();
+    return prepareAudio(128 * 1024, 44100, true, false, false);
   }
 
   /**
@@ -561,8 +546,11 @@ public abstract class Camera1Base
   }
 
   public GlInterface getGlInterface() {
-    if (glInterface != null) return glInterface;
-    else throw new RuntimeException("You can't do it. You are not using Opengl");
+    if (glInterface != null) {
+      return glInterface;
+    } else {
+      throw new RuntimeException("You can't do it. You are not using Opengl");
+    }
   }
 
   /**
