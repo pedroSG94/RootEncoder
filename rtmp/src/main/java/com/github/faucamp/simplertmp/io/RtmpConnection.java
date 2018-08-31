@@ -1,6 +1,7 @@
 package com.github.faucamp.simplertmp.io;
 
 import android.util.Log;
+
 import com.github.faucamp.simplertmp.RtmpPublisher;
 import com.github.faucamp.simplertmp.Util;
 import com.github.faucamp.simplertmp.amf.AmfMap;
@@ -78,6 +79,7 @@ public class RtmpConnection implements RtmpPublisher {
   private String challenge = null;
   private String opaque = null;
   private boolean onAuth = false;
+  private String netConnectionDescription;
 
   public RtmpConnection(ConnectCheckerRtmp connectCheckerRtmp) {
     this.connectCheckerRtmp = connectCheckerRtmp;
@@ -228,7 +230,7 @@ public class RtmpConnection implements RtmpPublisher {
   }
 
   private void sendConnectAuthPacketFinal(String user, String password, String salt,
-      String challenge, String opaque) {
+                                          String challenge, String opaque) {
     String challenge2 = String.format("%08x", new Random().nextInt());
     String response = Util.stringToMD5BASE64(user + salt + password);
     if (!opaque.isEmpty()) {
@@ -281,6 +283,7 @@ public class RtmpConnection implements RtmpPublisher {
           "Create stream failed, connected= " + connected + ", StreamId= " + currentStreamId);
       return false;
     }
+    netConnectionDescription = null;
 
     Log.d(TAG, "createStream(): Sending releaseStream command...");
     // transactionId == 2
@@ -316,7 +319,11 @@ public class RtmpConnection implements RtmpPublisher {
     }
     if (!publishPermitted) {
       shutdown(true);
-      connectCheckerRtmp.onConnectionFailedRtmp("Error configure stream, publish permitted failed");
+      if (null != netConnectionDescription) {
+        connectCheckerRtmp.onConnectionFailedRtmp(netConnectionDescription);
+      } else {
+        connectCheckerRtmp.onConnectionFailedRtmp("Error configure stream, publish permitted failed");
+      }
     }
     return publishPermitted;
   }
@@ -682,6 +689,8 @@ public class RtmpConnection implements RtmpPublisher {
       case "onStatus":
         String code =
             ((AmfString) ((AmfObject) invoke.getData().get(1)).getProperty("code")).getValue();
+
+
         Log.d(TAG, "handleRxInvoke(): onStatus " + code);
         if (code.equals("NetStream.Publish.Start")) {
           onMetaData();
@@ -690,6 +699,9 @@ public class RtmpConnection implements RtmpPublisher {
           synchronized (publishLock) {
             publishLock.notifyAll();
           }
+        } else if (code.equals("NetConnection.Connect.Rejected")) {
+          netConnectionDescription =
+              ((AmfString) ((AmfObject) invoke.getData().get(1)).getProperty("description")).getValue();
         }
         break;
       default:
