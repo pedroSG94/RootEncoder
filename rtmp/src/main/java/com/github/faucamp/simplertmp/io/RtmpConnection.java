@@ -230,7 +230,7 @@ public class RtmpConnection implements RtmpPublisher {
   }
 
   private void sendConnectAuthPacketFinal(String user, String password, String salt,
-                                          String challenge, String opaque) {
+      String challenge, String opaque) {
     String challenge2 = String.format("%08x", new Random().nextInt());
     String response = Util.stringToMD5BASE64(user + salt + password);
     if (!opaque.isEmpty()) {
@@ -319,10 +319,11 @@ public class RtmpConnection implements RtmpPublisher {
     }
     if (!publishPermitted) {
       shutdown(true);
-      if (null != netConnectionDescription) {
+      if (netConnectionDescription != null && !netConnectionDescription.isEmpty()) {
         connectCheckerRtmp.onConnectionFailedRtmp(netConnectionDescription);
       } else {
-        connectCheckerRtmp.onConnectionFailedRtmp("Error configure stream, publish permitted failed");
+        connectCheckerRtmp.onConnectionFailedRtmp(
+            "Error configure stream, publish permitted failed");
       }
     }
     return publishPermitted;
@@ -429,6 +430,7 @@ public class RtmpConnection implements RtmpPublisher {
   private void reset() {
     connected = false;
     publishPermitted = false;
+    netConnectionDescription = null;
     tcUrl = null;
     swfUrl = null;
     pageUrl = null;
@@ -689,8 +691,6 @@ public class RtmpConnection implements RtmpPublisher {
       case "onStatus":
         String code =
             ((AmfString) ((AmfObject) invoke.getData().get(1)).getProperty("code")).getValue();
-
-
         Log.d(TAG, "handleRxInvoke(): onStatus " + code);
         if (code.equals("NetStream.Publish.Start")) {
           onMetaData();
@@ -700,8 +700,12 @@ public class RtmpConnection implements RtmpPublisher {
             publishLock.notifyAll();
           }
         } else if (code.equals("NetConnection.Connect.Rejected")) {
-          netConnectionDescription =
-              ((AmfString) ((AmfObject) invoke.getData().get(1)).getProperty("description")).getValue();
+          netConnectionDescription = ((AmfString) ((AmfObject) invoke.getData().get(1)).getProperty(
+              "description")).getValue();
+          publishPermitted = false;
+          synchronized (publishLock) {
+            publishLock.notifyAll();
+          }
         }
         break;
       default:
