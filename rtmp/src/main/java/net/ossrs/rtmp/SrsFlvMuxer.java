@@ -632,14 +632,14 @@ public class SrsFlvMuxer {
     private ByteBuffer Sps;
     private ByteBuffer Pps;
     private boolean aac_specific_config_got;
-    private int achannel = 0;
+    private int achannel;
 
     public SrsFlv() {
       reset();
     }
 
     public void setAchannel(int achannel) {
-      //this.achannel = achannel;
+      this.achannel = achannel;
     }
 
     public void reset() {
