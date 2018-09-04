@@ -59,7 +59,7 @@ public class SrsFlvMuxer {
   private SrsAllocator mAudioAllocator = new SrsAllocator(AUDIO_ALLOC_SIZE);
   private BlockingQueue<SrsFlvFrame> mFlvTagCache = new LinkedBlockingQueue<>(30);
   private ConnectCheckerRtmp connectCheckerRtmp;
-  private int sampleRate = 44100;
+  private int sampleRate = 0;
   private boolean isPpsSpsSend = false;
   private byte profileIop = ProfileIop.BASELINE;
 
@@ -632,14 +632,14 @@ public class SrsFlvMuxer {
     private ByteBuffer Sps;
     private ByteBuffer Pps;
     private boolean aac_specific_config_got;
-    private int achannel = 2;
+    private int achannel = 0;
 
     public SrsFlv() {
       reset();
     }
 
     public void setAchannel(int achannel) {
-      this.achannel = achannel;
+      //this.achannel = achannel;
     }
 
     public void reset() {
@@ -659,7 +659,7 @@ public class SrsFlvMuxer {
         // AudioSpecificConfig (), page 33
         // 1.6.2.1 AudioSpecificConfig
         // audioObjectType; 5 bslbf
-        byte ch = (byte) (bb.get(0) & 0xf8);
+        byte ch = (byte) ((bb.get(0) & 0xf8) / 2);
         // 3bits left.
 
         // samplingFrequencyIndex; 4 bslbf
@@ -727,7 +727,6 @@ public class SrsFlvMuxer {
 
       audio_tag.put(audio_header, 0);
       audio_tag.put(aac_packet_type, 1);
-
       writeRtmpPacket(SrsCodecFlvTag.Audio, dts, 0, aac_packet_type, audio_tag);
     }
 
