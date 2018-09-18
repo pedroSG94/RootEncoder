@@ -58,6 +58,7 @@ public class VideoEncoder implements GetCameraData {
   //for disable video
   private boolean sendBlackImage = false;
   private byte[] blackImage;
+  private long lastFrameTimestamp = 0L;
 
   public VideoEncoder(GetH264Data getH264Data) {
     this.getH264Data = getH264Data;
@@ -205,6 +206,14 @@ public class VideoEncoder implements GetCameraData {
     return bitRate;
   }
 
+  private boolean limitFPS() {
+    if (System.currentTimeMillis() - lastFrameTimestamp > 1000 / fps) {
+      lastFrameTimestamp = System.currentTimeMillis();
+      return false;
+    }
+    return true;
+  }
+
   public void start(boolean resetTs) {
     synchronized (sync) {
       if (videoEncoder != null) {
@@ -232,6 +241,7 @@ public class VideoEncoder implements GetCameraData {
               while (!Thread.interrupted()) {
                 try {
                   Frame frame = queue.take();
+                  if (limitFPS()) continue;
                   byte[] buffer = frame.getBuffer();
                   if (frame.getFormat() == ImageFormat.YV12) {
                     buffer = YUVUtil.YV12toNV21(buffer, width, height);
@@ -315,6 +325,7 @@ public class VideoEncoder implements GetCameraData {
       public void run() {
         while (!Thread.interrupted()) {
           for (; ; ) {
+            if (limitFPS()) continue;
             int outBufferIndex = videoEncoder.dequeueOutputBuffer(videoInfo, 0);
             if (outBufferIndex == MediaCodec.INFO_OUTPUT_FORMAT_CHANGED) {
               MediaFormat mediaFormat = videoEncoder.getOutputFormat();
@@ -355,6 +366,7 @@ public class VideoEncoder implements GetCameraData {
         while (!Thread.interrupted()) {
           ByteBuffer[] outputBuffers = videoEncoder.getOutputBuffers();
           for (; ; ) {
+            if (limitFPS()) continue;
             int outBufferIndex = videoEncoder.dequeueOutputBuffer(videoInfo, 10000);
             if (outBufferIndex == MediaCodec.INFO_OUTPUT_FORMAT_CHANGED) {
               MediaFormat mediaFormat = videoEncoder.getOutputFormat();
