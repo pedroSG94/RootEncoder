@@ -87,6 +87,10 @@ public class ExposureFilterRender extends BaseFilterRender {
 
   }
 
+  public float getExposure() {
+    return exposure;
+  }
+
   public void setExposure(float exposure) {
     this.exposure = exposure;
   }

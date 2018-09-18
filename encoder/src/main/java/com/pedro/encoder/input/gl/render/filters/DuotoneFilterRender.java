@@ -102,6 +102,30 @@ public class DuotoneFilterRender extends BaseFilterRender {
 
   }
 
+  public float getRed() {
+    return red;
+  }
+
+  public float getGreen() {
+    return green;
+  }
+
+  public float getBlue() {
+    return blue;
+  }
+
+  public float getRed2() {
+    return red2;
+  }
+
+  public float getGreen2() {
+    return green2;
+  }
+
+  public float getBlue2() {
+    return blue2;
+  }
+
   /**
    * @param rgbHexColor color represented with 7 characters (1 to start with #, 2 for red, 2 for
    * green and 2 for blue)

@@ -33,8 +33,10 @@ public class ZebraFilterRender extends BaseFilterRender {
   private int uSTMatrixHandle = -1;
   private int uSamplerHandle = -1;
   private int uTimeHandle = -1;
+  private int uLevelsHandle = -1;
 
   private long START_TIME = System.currentTimeMillis();
+  private float levels = 8f;
 
   public ZebraFilterRender() {
     squareVertex = ByteBuffer.allocateDirect(squareVertexDataFilter.length * FLOAT_SIZE_BYTES)
@@ -57,6 +59,7 @@ public class ZebraFilterRender extends BaseFilterRender {
     uSTMatrixHandle = GLES20.glGetUniformLocation(program, "uSTMatrix");
     uSamplerHandle = GLES20.glGetUniformLocation(program, "uSampler");
     uTimeHandle = GLES20.glGetUniformLocation(program, "uTime");
+    uLevelsHandle = GLES20.glGetUniformLocation(program, "uLevels");
   }
 
   @Override
@@ -77,6 +80,7 @@ public class ZebraFilterRender extends BaseFilterRender {
     GLES20.glUniformMatrix4fv(uSTMatrixHandle, 1, false, STMatrix, 0);
     float time = ((float) (System.currentTimeMillis() - START_TIME)) / 1000.0f;
     GLES20.glUniform1f(uTimeHandle, time);
+    GLES20.glUniform1f(uLevelsHandle, levels);
     GLES20.glUniform1i(uSamplerHandle, 4);
     GLES20.glActiveTexture(GLES20.GL_TEXTURE4);
     GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, previousTexId);
@@ -85,5 +89,13 @@ public class ZebraFilterRender extends BaseFilterRender {
   @Override
   public void release() {
 
+  }
+
+  public float getLevels() {
+    return levels;
+  }
+
+  public void setLevels(float levels) {
+    this.levels = levels;
   }
 }

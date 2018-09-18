@@ -87,6 +87,18 @@ public class RGBSaturationFilterRender extends BaseFilterRender {
 
   }
 
+  public float getR() {
+    return r;
+  }
+
+  public float getG() {
+    return g;
+  }
+
+  public float getB() {
+    return b;
+  }
+
   /**
    * Saturate red, green and blue colors 0% to 100% (0.0f to 1.0f)
    */

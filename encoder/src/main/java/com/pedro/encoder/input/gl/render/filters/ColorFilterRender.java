@@ -94,6 +94,18 @@ public class ColorFilterRender extends BaseFilterRender {
 
   }
 
+  public float getRed() {
+    return red;
+  }
+
+  public float getGreen() {
+    return green;
+  }
+
+  public float getBlue() {
+    return blue;
+  }
+
   /**
    * @param rgbHexColor color represented with 7 characters (1 to start with #, 2 for red, 2 for
    * green and 2 for blue)

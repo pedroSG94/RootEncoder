@@ -90,6 +90,10 @@ public class BlurFilterRender extends BaseFilterRender {
 
   }
 
+  public float getBlur() {
+    return blur;
+  }
+
   /**
    * @param blur Range should be between 0.0 or more with 0.0 being normal.
    */

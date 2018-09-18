@@ -90,6 +90,10 @@ public class SharpnessFilterRender extends BaseFilterRender {
 
   }
 
+  public float getSharpness() {
+    return sharpness;
+  }
+
   /**
    * @param sharpness between 0 and 1. 0 means no change.
    */

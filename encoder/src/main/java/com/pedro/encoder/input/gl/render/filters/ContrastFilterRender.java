@@ -87,6 +87,10 @@ public class ContrastFilterRender extends BaseFilterRender {
 
   }
 
+  public float getContrast() {
+    return contrast;
+  }
+
   /**
    * @param contrast Range should be between 0.1 - 2.0 with 1.0 being normal.
    */

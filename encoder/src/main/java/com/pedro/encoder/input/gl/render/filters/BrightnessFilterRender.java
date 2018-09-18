@@ -87,6 +87,10 @@ public class BrightnessFilterRender extends BaseFilterRender {
 
   }
 
+  public float getBrightness() {
+    return brightness;
+  }
+
   /**
    * @param brightness Range should be between 0.1 - 2.0 with 1.0 being normal.
    */

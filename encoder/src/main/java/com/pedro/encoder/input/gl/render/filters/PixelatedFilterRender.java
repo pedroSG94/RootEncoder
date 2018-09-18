@@ -87,6 +87,10 @@ public class PixelatedFilterRender extends BaseFilterRender {
 
   }
 
+  public float getPixelated() {
+    return pixelated;
+  }
+
   /**
    * @param pixelated min value 0.0f, max value 1.0f
    */

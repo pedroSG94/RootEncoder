@@ -122,6 +122,10 @@ public class AndroidViewFilterRender extends BaseFilterRender {
 
   }
 
+  public View getView() {
+    return view;
+  }
+
   public void setView(final View view) {
     this.view = view;
   }

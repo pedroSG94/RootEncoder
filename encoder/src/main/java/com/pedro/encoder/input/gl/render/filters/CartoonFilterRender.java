@@ -87,6 +87,10 @@ public class CartoonFilterRender extends BaseFilterRender {
 
   }
 
+  public float getCartoon() {
+    return cartoon;
+  }
+
   public void setCartoon(float cartoon) {
     this.cartoon = cartoon;
   }

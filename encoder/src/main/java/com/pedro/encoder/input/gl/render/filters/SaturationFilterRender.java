@@ -99,6 +99,10 @@ public class SaturationFilterRender extends BaseFilterRender {
 
   }
 
+  public float getSaturation() {
+    return saturation;
+  }
+
   /**
    * @param saturation between -1.0f and 1.0f means no change, while -1.0f indicates full desaturation,
    * i.e. grayscale.

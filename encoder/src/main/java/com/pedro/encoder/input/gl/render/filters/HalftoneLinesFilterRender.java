@@ -106,6 +106,26 @@ public class HalftoneLinesFilterRender extends BaseFilterRender {
 
   }
 
+  public float getMode() {
+    return mode;
+  }
+
+  public float getRows() {
+    return rows;
+  }
+
+  public float getRotation() {
+    return rotation;
+  }
+
+  public float getAntialias() {
+    return antialias;
+  }
+
+  public float[] getSampleDist() {
+    return sampleDist;
+  }
+
   /**
    * @param mode 1 to 7 values
    */

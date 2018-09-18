@@ -87,6 +87,10 @@ public class TemperatureFilterRender extends BaseFilterRender {
 
   }
 
+  public float getTemperature() {
+    return temperature;
+  }
+
   /**
    * @param temperature min value 0f, max value 1f
    */

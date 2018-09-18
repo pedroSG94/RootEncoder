@@ -87,6 +87,10 @@ public class GammaFilterRender extends BaseFilterRender {
 
   }
 
+  public float getGamma() {
+    return gamma;
+  }
+
   /**
    * @param gamma Range should be between 0.0 - 2.0 with 1.0 being normal.
    */
