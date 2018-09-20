@@ -33,11 +33,11 @@
       >
 
     <Button
-        android:text="@string/resync_file"
+        android:text="@string/start_record"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginRight="5dp"
-        android:id="@+id/b_re_sync"
+        android:id="@+id/b_record"
         />
 
     <Button
@@ -48,13 +48,28 @@
         android:id="@+id/b_start_stop"
         />
 
-    <Button
-        android:text="@string/select_file"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:id="@+id/b_select_file"
-        />
   </LinearLayout>
+
+  <Button
+      android:text="@string/select_file"
+      android:layout_width="wrap_content"
+      android:layout_height="wrap_content"
+      android:id="@+id/b_select_file"
+      android:layout_marginBottom="10dp"
+      android:layout_marginRight="10dp"
+      android:layout_above="@+id/seek_bar"
+      android:layout_alignParentRight="true"
+      />
+
+  <Button
+      android:text="@string/resync_file"
+      android:layout_width="wrap_content"
+      android:layout_height="wrap_content"
+      android:layout_above="@+id/seek_bar"
+      android:layout_marginBottom="10dp"
+      android:layout_marginLeft="10dp"
+      android:id="@+id/b_re_sync"
+      />
 
   <SeekBar
       style="?android:attr/progressBarStyleHorizontal"

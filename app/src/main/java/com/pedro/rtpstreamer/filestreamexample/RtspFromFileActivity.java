@@ -5,6 +5,7 @@ import android.graphics.Color;
 import android.graphics.PorterDuff;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Environment;
 import android.support.annotation.RequiresApi;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
@@ -20,7 +21,11 @@ import com.pedro.rtplibrary.rtsp.RtspFromFile;
 import com.pedro.rtpstreamer.R;
 import com.pedro.rtpstreamer.utils.PathUtils;
 import com.pedro.rtsp.utils.ConnectCheckerRtsp;
+import java.io.File;
 import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Locale;
 
 /**
  * More documentation see:
@@ -33,12 +38,16 @@ public class RtspFromFileActivity extends AppCompatActivity
     AudioDecoderInterface, SeekBar.OnSeekBarChangeListener {
 
   private RtspFromFile rtspFromFile;
-  private Button button, bSelectFile, bReSync;
+  private Button button, bSelectFile, bReSync, bRecord;
   private SeekBar seekBar;
   private EditText etUrl;
   private TextView tvFile;
   private String filePath = "";
   private boolean touching = false;
+
+  private String currentDateAndTime = "";
+  private File folder = new File(Environment.getExternalStorageDirectory().getAbsolutePath()
+      + "/rtmp-rtsp-stream-client-java");
 
   @Override
   protected void onCreate(Bundle savedInstanceState) {
@@ -51,6 +60,8 @@ public class RtspFromFileActivity extends AppCompatActivity
     bSelectFile.setOnClickListener(this);
     bReSync = findViewById(R.id.b_re_sync);
     bReSync.setOnClickListener(this);
+    bRecord = findViewById(R.id.b_record);
+    bRecord.setOnClickListener(this);
     etUrl = findViewById(R.id.et_rtp_url);
     etUrl.setHint(R.string.hint_rtsp);
     seekBar = findViewById(R.id.seek_bar);
@@ -130,12 +141,15 @@ public class RtspFromFileActivity extends AppCompatActivity
         if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
           if (!rtspFromFile.isStreaming()) {
             try {
-              if (rtspFromFile.prepareVideo(filePath, 1200 * 1024) && rtspFromFile.prepareAudio(
+              if (rtspFromFile.isRecording()
+                  || rtspFromFile.prepareVideo(filePath, 1200 * 1024) && rtspFromFile.prepareAudio(
                   filePath, 64 * 1024)) {
                 button.setText(R.string.stop_button);
                 rtspFromFile.startStream(etUrl.getText().toString());
-                seekBar.setMax((int) rtspFromFile.getVideoDuration());
-                updateProgress();
+                if (!rtspFromFile.isRecording()) {
+                  seekBar.setMax((int) rtspFromFile.getVideoDuration());
+                  updateProgress();
+                }
               } else {
                 button.setText(R.string.start_button);
                 rtspFromFile.stopStream();
@@ -164,6 +178,47 @@ public class RtspFromFileActivity extends AppCompatActivity
       case R.id.b_re_sync:
         rtspFromFile.reSyncFile();
         break;
+      case R.id.b_record:
+        if (!rtspFromFile.isRecording()) {
+          try {
+            if (!folder.exists()) {
+              folder.mkdir();
+            }
+            SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault());
+            currentDateAndTime = sdf.format(new Date());
+            if (!rtspFromFile.isStreaming()) {
+              if (rtspFromFile.prepareVideo(filePath, 1200 * 1024) && rtspFromFile.prepareAudio(
+                  filePath, 64 * 1024)) {
+                rtspFromFile.startRecord(
+                    folder.getAbsolutePath() + "/" + currentDateAndTime + ".mp4");
+                seekBar.setMax((int) rtspFromFile.getVideoDuration());
+                updateProgress();
+                bRecord.setText(R.string.stop_record);
+                Toast.makeText(this, "Recording... ", Toast.LENGTH_SHORT).show();
+              } else {
+                Toast.makeText(this, "Error preparing stream, This device cant do it",
+                    Toast.LENGTH_SHORT).show();
+              }
+            } else {
+              rtspFromFile.startRecord(
+                  folder.getAbsolutePath() + "/" + currentDateAndTime + ".mp4");
+              bRecord.setText(R.string.stop_record);
+              Toast.makeText(this, "Recording... ", Toast.LENGTH_SHORT).show();
+            }
+          } catch (IOException e) {
+            rtspFromFile.stopRecord();
+            bRecord.setText(R.string.start_record);
+            Toast.makeText(this, e.getMessage(), Toast.LENGTH_SHORT).show();
+          }
+        } else {
+          rtspFromFile.stopRecord();
+          bRecord.setText(R.string.start_record);
+          Toast.makeText(this,
+              "file " + currentDateAndTime + ".mp4 saved in " + folder.getAbsolutePath(),
+              Toast.LENGTH_SHORT).show();
+          currentDateAndTime = "";
+        }
+        break;
       default:
         break;
     }
@@ -173,7 +228,7 @@ public class RtspFromFileActivity extends AppCompatActivity
     new Thread(new Runnable() {
       @Override
       public void run() {
-        while (rtspFromFile.isStreaming()) {
+        while (rtspFromFile.isStreaming() || rtspFromFile.isRecording()) {
           try {
             Thread.sleep(1000);
             if (!touching) {
@@ -197,6 +252,14 @@ public class RtspFromFileActivity extends AppCompatActivity
     runOnUiThread(new Runnable() {
       @Override
       public void run() {
+        if (rtspFromFile.isRecording()) {
+          rtspFromFile.stopRecord();
+          bRecord.setText(R.string.start_record);
+          Toast.makeText(RtspFromFileActivity.this,
+              "file " + currentDateAndTime + ".mp4 saved in " + folder.getAbsolutePath(),
+              Toast.LENGTH_SHORT).show();
+          currentDateAndTime = "";
+        }
         if (rtspFromFile.isStreaming()) {
           button.setText(R.string.start_button);
           Toast.makeText(RtspFromFileActivity.this, "Video stream finished", Toast.LENGTH_SHORT)
