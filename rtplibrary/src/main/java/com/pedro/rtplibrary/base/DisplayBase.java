@@ -2,6 +2,7 @@ package com.pedro.rtplibrary.base;
 
 import android.content.Context;
 import android.content.Intent;
+import android.hardware.display.VirtualDisplay;
 import android.media.MediaCodec;
 import android.media.MediaFormat;
 import android.media.MediaMuxer;
@@ -57,6 +58,9 @@ public abstract class DisplayBase implements GetAacData, GetH264Data, GetMicroph
   private MediaFormat videoFormat;
   private MediaFormat audioFormat;
   private int dpi = 320;
+  private VirtualDisplay virtualDisplay;
+  private int resultCode = -1;
+  private Intent data;
 
   public DisplayBase(Context context, boolean useOpengl) {
     this.context = context;
@@ -166,14 +170,12 @@ public abstract class DisplayBase implements GetAacData, GetH264Data, GetMicroph
    * @throws IOException If you init it before start stream.
    */
   public void startRecord(String path) throws IOException {
-    if (streaming) {
-      mediaMuxer = new MediaMuxer(path, MediaMuxer.OutputFormat.MUXER_OUTPUT_MPEG_4);
-      videoTrack = mediaMuxer.addTrack(videoFormat);
-      audioTrack = mediaMuxer.addTrack(audioFormat);
-      mediaMuxer.start();
-      recording = true;
-    } else {
-      throw new IOException("Need be called while stream");
+    mediaMuxer = new MediaMuxer(path, MediaMuxer.OutputFormat.MUXER_OUTPUT_MPEG_4);
+    recording = true;
+    if (!streaming) {
+      startEncoders(resultCode, data);
+    } else if (videoEncoder.isRunning()) {
+      resetVideoEncoder();
     }
   }
 
@@ -190,8 +192,11 @@ public abstract class DisplayBase implements GetAacData, GetH264Data, GetMicroph
       }
       mediaMuxer = null;
     }
+    videoFormat = null;
+    audioFormat = null;
     videoTrack = -1;
     audioTrack = -1;
+    if (!streaming) stopStream();
   }
 
   protected abstract void startStreamRtp(String url);
@@ -205,6 +210,11 @@ public abstract class DisplayBase implements GetAacData, GetH264Data, GetMicroph
     return mediaProjectionManager.createScreenCaptureIntent();
   }
 
+  public void setIntentResult(int resultCode, Intent data) {
+    this.resultCode = resultCode;
+    this.data = data;
+  }
+
   /**
    * Need be called after @prepareVideo or/and @prepareAudio.
    *
@@ -216,7 +226,18 @@ public abstract class DisplayBase implements GetAacData, GetH264Data, GetMicroph
    * RTMP: rtmp://192.168.1.1:1935/live/pedroSG94
    * RTMPS: rtmps://192.168.1.1:1935/live/pedroSG94
    */
-  public void startStream(String url, int resultCode, Intent data) {
+  public void startStream(String url) {
+    startStreamRtp(url);
+    if (!recording) {
+      startEncoders(resultCode, data);
+    } else {
+      resetVideoEncoder();
+    }
+    streaming = true;
+  }
+
+  private void startEncoders(int resultCode, Intent data) {
+    if (data == null) throw new RuntimeException("You need send intent data before startRecord or startStream");
     videoEncoder.start();
     audioEncoder.start();
     if (glInterface != null) {
@@ -226,11 +247,22 @@ public abstract class DisplayBase implements GetAacData, GetH264Data, GetMicroph
     Surface surface =
         (glInterface != null) ? glInterface.getSurface() : videoEncoder.getInputSurface();
     mediaProjection = mediaProjectionManager.getMediaProjection(resultCode, data);
-    mediaProjection.createVirtualDisplay("Stream Display", videoEncoder.getWidth(),
+    virtualDisplay = mediaProjection.createVirtualDisplay("Stream Display", videoEncoder.getWidth(),
         videoEncoder.getHeight(), dpi, 0, surface, null, null);
     microphoneManager.start();
-    streaming = true;
-    startStreamRtp(url);
+  }
+
+  private void resetVideoEncoder() {
+    virtualDisplay.setSurface(null);
+    if (glInterface != null) {
+      glInterface.removeMediaCodecSurface();
+    }
+    videoEncoder.reset();
+    if (glInterface != null) {
+      glInterface.addMediaCodecSurface(videoEncoder.getInputSurface());
+    }
+    virtualDisplay.setSurface(
+        glInterface != null ? glInterface.getSurface() : videoEncoder.getInputSurface());
   }
 
   protected abstract void stopStreamRtp();
@@ -239,17 +271,20 @@ public abstract class DisplayBase implements GetAacData, GetH264Data, GetMicroph
    * Stop stream started with @startStream.
    */
   public void stopStream() {
-    microphoneManager.stop();
-    if (mediaProjection != null) {
-      mediaProjection.stop();
+    if (streaming) stopStreamRtp();
+    if (!recording) {
+      microphoneManager.stop();
+      if (mediaProjection != null) {
+        mediaProjection.stop();
+      }
+      if (glInterface != null) {
+        glInterface.removeMediaCodecSurface();
+        glInterface.stop();
+      }
+      videoEncoder.stop();
+      audioEncoder.stop();
+      data = null;
     }
-    if (glInterface != null) {
-      glInterface.removeMediaCodecSurface();
-      glInterface.stop();
-    }
-    stopStreamRtp();
-    videoEncoder.stop();
-    audioEncoder.stop();
     streaming = false;
   }
 
@@ -372,14 +407,14 @@ public abstract class DisplayBase implements GetAacData, GetH264Data, GetMicroph
     if (recording && canRecord) {
       mediaMuxer.writeSampleData(audioTrack, aacBuffer, info);
     }
-    getAacDataRtp(aacBuffer, info);
+    if (streaming) getAacDataRtp(aacBuffer, info);
   }
 
   protected abstract void onSPSandPPSRtp(ByteBuffer sps, ByteBuffer pps);
 
   @Override
   public void onSPSandPPS(ByteBuffer sps, ByteBuffer pps) {
-    onSPSandPPSRtp(sps, pps);
+    if (streaming) onSPSandPPSRtp(sps, pps);
   }
 
   protected abstract void getH264DataRtp(ByteBuffer h264Buffer, MediaCodec.BufferInfo info);
@@ -387,12 +422,18 @@ public abstract class DisplayBase implements GetAacData, GetH264Data, GetMicroph
   @Override
   public void getH264Data(ByteBuffer h264Buffer, MediaCodec.BufferInfo info) {
     if (recording) {
-      if (info.flags == MediaCodec.BUFFER_FLAG_KEY_FRAME) canRecord = true;
-      if (canRecord) {
-        mediaMuxer.writeSampleData(videoTrack, h264Buffer, info);
+      if (info.flags == MediaCodec.BUFFER_FLAG_KEY_FRAME
+          && !canRecord
+          && videoFormat != null
+          && audioFormat != null) {
+        videoTrack = mediaMuxer.addTrack(videoFormat);
+        audioTrack = mediaMuxer.addTrack(audioFormat);
+        mediaMuxer.start();
+        canRecord = true;
       }
+      if (canRecord) mediaMuxer.writeSampleData(videoTrack, h264Buffer, info);
     }
-    getH264DataRtp(h264Buffer, info);
+    if (streaming) getH264DataRtp(h264Buffer, info);
   }
 
   @Override

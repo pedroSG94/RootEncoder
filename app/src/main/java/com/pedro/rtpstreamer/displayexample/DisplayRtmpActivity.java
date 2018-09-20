@@ -36,7 +36,8 @@ public class DisplayRtmpActivity extends AppCompatActivity
   private Button button;
   private Button bRecord;
   private EditText etUrl;
-  private final int REQUEST_CODE = 179; //random num
+  private final int REQUEST_CODE_STREAM = 179; //random num
+  private final int REQUEST_CODE_RECORD = 180; //random num
 
   private String currentDateAndTime = "";
   private File folder = new File(Environment.getExternalStorageDirectory().getAbsolutePath()
@@ -153,10 +154,22 @@ public class DisplayRtmpActivity extends AppCompatActivity
 
   @Override
   protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-    if (requestCode == REQUEST_CODE && resultCode == Activity.RESULT_OK) {
+    if (requestCode == REQUEST_CODE_STREAM
+        || requestCode == REQUEST_CODE_RECORD && resultCode == Activity.RESULT_OK) {
       if (rtmpDisplay.prepareAudio() && rtmpDisplay.prepareVideo()) {
         initNotification();
-        rtmpDisplay.startStream(etUrl.getText().toString(), resultCode, data);
+        rtmpDisplay.setIntentResult(resultCode, data);
+        if (requestCode == REQUEST_CODE_STREAM) {
+          rtmpDisplay.startStream(etUrl.getText().toString());
+        } else {
+          try {
+            rtmpDisplay.startRecord(folder.getAbsolutePath() + "/" + currentDateAndTime + ".mp4");
+          } catch (IOException e) {
+            rtmpDisplay.stopRecord();
+            bRecord.setText(R.string.start_record);
+            Toast.makeText(this, e.getMessage(), Toast.LENGTH_SHORT).show();
+          }
+        }
       } else {
         Toast.makeText(this, "Error preparing stream, This device cant do it", Toast.LENGTH_SHORT)
             .show();
@@ -171,21 +184,18 @@ public class DisplayRtmpActivity extends AppCompatActivity
     switch (view.getId()) {
       case R.id.b_start_stop:
         if (!rtmpDisplay.isStreaming()) {
-          button.setText(R.string.stop_button);
-          startActivityForResult(rtmpDisplay.sendIntent(), REQUEST_CODE);
-        } else {
           if (rtmpDisplay.isRecording()) {
-            rtmpDisplay.stopRecord();
-            bRecord.setText(R.string.start_record);
-            Toast.makeText(this,
-                "file " + currentDateAndTime + ".mp4 saved in " + folder.getAbsolutePath(),
-                Toast.LENGTH_SHORT).show();
-            currentDateAndTime = "";
+            button.setText(R.string.stop_button);
+            rtmpDisplay.startStream(etUrl.getText().toString());
+          } else {
+            button.setText(R.string.stop_button);
+            startActivityForResult(rtmpDisplay.sendIntent(), REQUEST_CODE_STREAM);
           }
+        } else {
           button.setText(R.string.start_button);
-          stopNotification();
           rtmpDisplay.stopStream();
         }
+        if (!rtmpDisplay.isStreaming() && !rtmpDisplay.isRecording()) stopNotification();
         break;
       case R.id.b_record:
         if (!rtmpDisplay.isRecording()) {
@@ -195,9 +205,15 @@ public class DisplayRtmpActivity extends AppCompatActivity
             }
             SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault());
             currentDateAndTime = sdf.format(new Date());
-            rtmpDisplay.startRecord(folder.getAbsolutePath() + "/" + currentDateAndTime + ".mp4");
-            bRecord.setText(R.string.stop_record);
-            Toast.makeText(this, "Recording... ", Toast.LENGTH_SHORT).show();
+            if (!rtmpDisplay.isStreaming()) {
+              bRecord.setText(R.string.stop_record);
+              Toast.makeText(this, "Recording... ", Toast.LENGTH_SHORT).show();
+              startActivityForResult(rtmpDisplay.sendIntent(), REQUEST_CODE_RECORD);
+            } else {
+              rtmpDisplay.startRecord(folder.getAbsolutePath() + "/" + currentDateAndTime + ".mp4");
+              bRecord.setText(R.string.stop_record);
+              Toast.makeText(this, "Recording... ", Toast.LENGTH_SHORT).show();
+            }
           } catch (IOException e) {
             rtmpDisplay.stopRecord();
             bRecord.setText(R.string.start_record);
@@ -211,6 +227,7 @@ public class DisplayRtmpActivity extends AppCompatActivity
               Toast.LENGTH_SHORT).show();
           currentDateAndTime = "";
         }
+        if (!rtmpDisplay.isStreaming() && !rtmpDisplay.isRecording()) stopNotification();
         break;
       default:
         break;
