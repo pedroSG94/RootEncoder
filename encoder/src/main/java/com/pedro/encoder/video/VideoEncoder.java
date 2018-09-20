@@ -194,6 +194,10 @@ public class VideoEncoder implements GetCameraData {
     return rotation;
   }
 
+  public void setFps(int fps) {
+    this.fps = fps;
+  }
+
   public int getFps() {
     return fps;
   }

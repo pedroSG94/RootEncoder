@@ -554,13 +554,23 @@ public abstract class Camera1Base
   }
 
   /**
-   * Se video bitrate of H264 in kb while stream.
+   * Set video bitrate of H264 in kb while stream.
    *
    * @param bitrate H264 in kb.
    */
   @RequiresApi(api = Build.VERSION_CODES.KITKAT)
   public void setVideoBitrateOnFly(int bitrate) {
     videoEncoder.setVideoBitrateOnFly(bitrate);
+  }
+
+  /**
+   * Set limit FPS while stream. This will be override when you call to prepareVideo method.
+   * This could produce a change in iFrameInterval.
+   *
+   * @param fps frames per second
+   */
+  public void setLimitFPSOnFly(int fps) {
+    videoEncoder.setFps(fps);
   }
 
   /**

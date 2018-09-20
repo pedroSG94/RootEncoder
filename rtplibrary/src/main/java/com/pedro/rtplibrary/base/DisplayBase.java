@@ -327,7 +327,7 @@ public abstract class DisplayBase implements GetAacData, GetH264Data, GetMicroph
   }
 
   /**
-   * Se video bitrate of H264 in kb while stream.
+   * Set video bitrate of H264 in kb while stream.
    *
    * @param bitrate H264 in kb.
    */
@@ -335,6 +335,16 @@ public abstract class DisplayBase implements GetAacData, GetH264Data, GetMicroph
     if (Build.VERSION.SDK_INT >= 19) {
       videoEncoder.setVideoBitrateOnFly(bitrate);
     }
+  }
+
+  /**
+   * Set limit FPS while stream. This will be override when you call to prepareVideo method.
+   * This could produce a change in iFrameInterval.
+   *
+   * @param fps frames per second
+   */
+  public void setLimitFPSOnFly(int fps) {
+    videoEncoder.setFps(fps);
   }
 
   /**
