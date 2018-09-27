@@ -33,10 +33,10 @@ public class Camera1ApiManager implements Camera.PreviewCallback, Camera.FaceDet
   private SurfaceTexture surfaceTexture;
   private GetCameraData getCameraData;
   private boolean running = false;
-  private volatile boolean prepared = false;
   private boolean lanternEnable = false;
   private int cameraSelect;
   private boolean isFrontCamera = false;
+  private int cameraFacing = Camera.CameraInfo.CAMERA_FACING_BACK;
 
   //default parameters for camera
   private int width = 640;
@@ -79,36 +79,26 @@ public class Camera1ApiManager implements Camera.PreviewCallback, Camera.FaceDet
     this.surfaceTexture = surfaceTexture;
   }
 
-  public void prepareCamera(int width, int height, int fps, int imageFormat) {
+  public void start(@Camera1Facing int cameraFacing, int width, int height, int fps) {
     this.width = width;
     this.height = height;
     this.fps = fps;
-    this.imageFormat = imageFormat;
-    prepared = true;
-  }
-
-  public void prepareCamera() {
-    prepareCamera(640, 480, fps, imageFormat);
-  }
-
-  public void start(@Camera1Facing int cameraFacing, int width, int height) {
-    this.width = width;
-    this.height = height;
+    this.cameraFacing = cameraFacing;
     cameraSelect = (cameraFacing == Camera.CameraInfo.CAMERA_FACING_BACK) ? selectCameraBack()
         : selectCameraFront();
     start();
   }
 
-  public void start(@Camera1Facing int cameraFacing) {
-    start(cameraFacing, width, height);
+  public void start(int width, int height, int fps) {
+    start(cameraFacing, width, height, fps);
   }
 
-  public void start() {
+  private void start() {
     if (!checkCanOpen()) {
       throw new CameraOpenException("This camera resolution cant be opened");
     }
     yuvBuffer = new byte[width * height * 3 / 2];
-    if (camera == null && prepared) {
+    if (camera == null) {
       try {
         camera = Camera.open(cameraSelect);
         Camera.CameraInfo info = new Camera.CameraInfo();
@@ -201,15 +191,10 @@ public class Camera1ApiManager implements Camera.PreviewCallback, Camera.FaceDet
       camera = null;
     }
     running = false;
-    prepared = false;
   }
 
   public boolean isRunning() {
     return running;
-  }
-
-  public boolean isPrepared() {
-    return prepared;
   }
 
   private int[] adaptFpsRange(int expectedFps, List<int[]> fpsRanges) {
@@ -320,7 +305,8 @@ public class Camera1ApiManager implements Camera.PreviewCallback, Camera.FaceDet
             throw new CameraOpenException("This camera resolution cant be opened");
           }
           stop();
-          prepared = true;
+          cameraFacing = cameraFacing == Camera.CameraInfo.CAMERA_FACING_BACK
+              ? Camera.CameraInfo.CAMERA_FACING_FRONT : Camera.CameraInfo.CAMERA_FACING_BACK;
           start();
           return;
         }

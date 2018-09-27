@@ -1,7 +1,6 @@
 package com.pedro.rtplibrary.base;
 
 import android.content.Context;
-import android.graphics.ImageFormat;
 import android.hardware.Camera;
 import android.media.MediaCodec;
 import android.media.MediaFormat;
@@ -145,15 +144,10 @@ public abstract class Camera1Base
       stopPreview();
       onPreview = true;
     }
-    int imageFormat = ImageFormat.NV21; //supported nv21 and yv12
-    if (glInterface == null) {
-      cameraManager.prepareCamera(width, height, fps, imageFormat);
-      return videoEncoder.prepareVideoEncoder(width, height, fps, bitrate, rotation,
-          hardwareRotation, iFrameInterval, FormatVideoEncoder.YUV420Dynamical);
-    } else {
-      return videoEncoder.prepareVideoEncoder(width, height, fps, bitrate, rotation,
-          hardwareRotation, iFrameInterval, FormatVideoEncoder.SURFACE);
-    }
+    FormatVideoEncoder formatVideoEncoder =
+        glInterface == null ? FormatVideoEncoder.YUV420Dynamical : FormatVideoEncoder.SURFACE;
+    return videoEncoder.prepareVideoEncoder(width, height, fps, bitrate, rotation, hardwareRotation,
+        iFrameInterval, formatVideoEncoder);
   }
 
   /**
@@ -271,27 +265,14 @@ public abstract class Camera1Base
       if (glInterface != null && Build.VERSION.SDK_INT >= 18) {
         boolean isPortrait = context.getResources().getConfiguration().orientation == 1;
         if (isPortrait) {
-          if (width == 0 || height == 0) {
-            glInterface.setEncoderSize(videoEncoder.getHeight(), videoEncoder.getWidth());
-          } else {
-            glInterface.setEncoderSize(height, width);
-          }
+          glInterface.setEncoderSize(height, width);
         } else {
-          if (width == 0 || height == 0) {
-            glInterface.setEncoderSize(videoEncoder.getWidth(), videoEncoder.getHeight());
-          } else {
-            glInterface.setEncoderSize(width, height);
-          }
+          glInterface.setEncoderSize(width, height);
         }
         glInterface.start(false);
         cameraManager.setSurfaceTexture(glInterface.getSurfaceTexture());
       }
-      cameraManager.prepareCamera();
-      if (width == 0 || height == 0) {
-        cameraManager.start(cameraFacing);
-      } else {
-        cameraManager.start(cameraFacing, width, height);
-      }
+      cameraManager.start(cameraFacing, width, height, videoEncoder.getFps());
       if (glInterface != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
         glInterface.setCameraFace(cameraManager.isFrontCamera());
       }
@@ -303,14 +284,14 @@ public abstract class Camera1Base
 
   /**
    * Start camera preview. Ignored, if stream or preview is started.
-   * Width and height preview will be the last resolution used to start camera. 640x480 first time.
+   * Width and height preview will be 640x480.
    *
    * @param cameraFacing front ot back camera. Like:
    * {@link android.hardware.Camera.CameraInfo#CAMERA_FACING_BACK}
    * {@link android.hardware.Camera.CameraInfo#CAMERA_FACING_FRONT}
    */
   public void startPreview(@Camera1Facing int cameraFacing) {
-    startPreview(cameraFacing, 0, 0);
+    startPreview(cameraFacing, 640, 480);
   }
 
   /**
@@ -326,7 +307,7 @@ public abstract class Camera1Base
 
   /**
    * Start camera preview. Ignored, if stream or preview is started.
-   * Width and height preview will be the last resolution used to start camera. 640x480 first time.
+   * Width and height preview will be 640x480.
    * CameraFacing will be always back.
    */
   public void startPreview() {
@@ -389,7 +370,8 @@ public abstract class Camera1Base
     videoEncoder.start();
     audioEncoder.start();
     microphoneManager.start();
-    cameraManager.start();
+    cameraManager.start(videoEncoder.getWidth(), videoEncoder.getHeight(), videoEncoder.getFps());
+    onPreview = true;
     if (glInterface != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
       glInterface.setCameraFace(cameraManager.isFrontCamera());
     }
@@ -421,8 +403,6 @@ public abstract class Camera1Base
         glInterface.addMediaCodecSurface(videoEncoder.getInputSurface());
       }
       cameraManager.setSurfaceTexture(glInterface.getSurfaceTexture());
-      cameraManager.prepareCamera(videoEncoder.getWidth(), videoEncoder.getHeight(),
-          videoEncoder.getFps(), ImageFormat.NV21);
     }
   }
 

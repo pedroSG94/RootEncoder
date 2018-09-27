@@ -214,25 +214,12 @@ public class RtmpActivity extends AppCompatActivity
       case R.id.b_start_stop:
         if (!rtmpCamera1.isStreaming()) {
           bStartStop.setText(getResources().getString(R.string.stop_button));
-          Camera.Size resolution =
-              rtmpCamera1.getResolutionsBack().get(spResolution.getSelectedItemPosition());
           String user = etWowzaUser.getText().toString();
           String password = etWowzaPassword.getText().toString();
           if (!user.isEmpty() && !password.isEmpty()) {
             rtmpCamera1.setAuthorization(user, password);
           }
-          int width = resolution.width;
-          int height = resolution.height;
-          if (rtmpCamera1.isRecording()
-              || rtmpCamera1.prepareVideo(width, height,
-              Integer.parseInt(etFps.getText().toString()),
-              Integer.parseInt(etVideoBitrate.getText().toString()) * 1024,
-              cbHardwareRotation.isChecked(), orientations[spOrientation.getSelectedItemPosition()])
-              && rtmpCamera1.prepareAudio(
-              Integer.parseInt(etAudioBitrate.getText().toString()) * 1024,
-              Integer.parseInt(etSampleRate.getText().toString()),
-              rgChannel.getCheckedRadioButtonId() == R.id.rb_stereo, cbEchoCanceler.isChecked(),
-              cbNoiseSuppressor.isChecked())) {
+          if (rtmpCamera1.isRecording() || prepareEncoders()) {
             rtmpCamera1.startStream(etUrl.getText().toString());
           } else {
             //If you see this all time when you start stream,
@@ -259,7 +246,7 @@ public class RtmpActivity extends AppCompatActivity
               SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault());
               currentDateAndTime = sdf.format(new Date());
               if (!rtmpCamera1.isStreaming()) {
-                if (rtmpCamera1.prepareAudio() && rtmpCamera1.prepareVideo()) {
+                if (prepareEncoders()) {
                   rtmpCamera1.startRecord(
                       folder.getAbsolutePath() + "/" + currentDateAndTime + ".mp4");
                   bRecord.setText(R.string.stop_record);
@@ -302,6 +289,20 @@ public class RtmpActivity extends AppCompatActivity
       default:
         break;
     }
+  }
+
+  private boolean prepareEncoders() {
+    Camera.Size resolution =
+        rtmpCamera1.getResolutionsBack().get(spResolution.getSelectedItemPosition());
+    int width = resolution.width;
+    int height = resolution.height;
+    return rtmpCamera1.prepareVideo(width, height, Integer.parseInt(etFps.getText().toString()),
+        Integer.parseInt(etVideoBitrate.getText().toString()) * 1024,
+        cbHardwareRotation.isChecked(), orientations[spOrientation.getSelectedItemPosition()])
+        && rtmpCamera1.prepareAudio(Integer.parseInt(etAudioBitrate.getText().toString()) * 1024,
+        Integer.parseInt(etSampleRate.getText().toString()),
+        rgChannel.getCheckedRadioButtonId() == R.id.rb_stereo, cbEchoCanceler.isChecked(),
+        cbNoiseSuppressor.isChecked());
   }
 
   @Override

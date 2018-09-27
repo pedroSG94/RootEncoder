@@ -223,25 +223,12 @@ public class RtspActivity extends AppCompatActivity
           } else {
             rtspCamera1.setProtocol(Protocol.UDP);
           }
-          Camera.Size resolution =
-              rtspCamera1.getResolutionsBack().get(spResolution.getSelectedItemPosition());
           String user = etWowzaUser.getText().toString();
           String password = etWowzaPassword.getText().toString();
           if (!user.isEmpty() && !password.isEmpty()) {
             rtspCamera1.setAuthorization(user, password);
           }
-          int width = resolution.width;
-          int height = resolution.height;
-          if (rtspCamera1.isRecording()
-              || rtspCamera1.prepareAudio(
-              Integer.parseInt(etAudioBitrate.getText().toString()) * 1024,
-              Integer.parseInt(etSampleRate.getText().toString()),
-              rgChannel.getCheckedRadioButtonId() == R.id.rb_stereo, cbEchoCanceler.isChecked(),
-              cbNoiseSuppressor.isChecked()) && rtspCamera1.prepareVideo(width, height,
-              Integer.parseInt(etFps.getText().toString()),
-              Integer.parseInt(etVideoBitrate.getText().toString()) * 1024,
-              cbHardwareRotation.isChecked(),
-              orientations[spOrientation.getSelectedItemPosition()])) {
+          if (rtspCamera1.isRecording() || prepareEncoders()) {
             rtspCamera1.startStream(etUrl.getText().toString());
           } else {
             //If you see this all time when you start stream,
@@ -268,7 +255,7 @@ public class RtspActivity extends AppCompatActivity
               SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault());
               currentDateAndTime = sdf.format(new Date());
               if (!rtspCamera1.isStreaming()) {
-                if (rtspCamera1.prepareAudio() && rtspCamera1.prepareVideo()) {
+                if (prepareEncoders()) {
                   rtspCamera1.startRecord(
                       folder.getAbsolutePath() + "/" + currentDateAndTime + ".mp4");
                   bRecord.setText(R.string.stop_record);
@@ -323,6 +310,20 @@ public class RtspActivity extends AppCompatActivity
       default:
         break;
     }
+  }
+
+  private boolean prepareEncoders() {
+    Camera.Size resolution =
+        rtspCamera1.getResolutionsBack().get(spResolution.getSelectedItemPosition());
+    int width = resolution.width;
+    int height = resolution.height;
+    return rtspCamera1.prepareVideo(width, height, Integer.parseInt(etFps.getText().toString()),
+        Integer.parseInt(etVideoBitrate.getText().toString()) * 1024,
+        cbHardwareRotation.isChecked(), orientations[spOrientation.getSelectedItemPosition()])
+        && rtspCamera1.prepareAudio(Integer.parseInt(etAudioBitrate.getText().toString()) * 1024,
+        Integer.parseInt(etSampleRate.getText().toString()),
+        rgChannel.getCheckedRadioButtonId() == R.id.rb_stereo, cbEchoCanceler.isChecked(),
+        cbNoiseSuppressor.isChecked());
   }
 
   @Override

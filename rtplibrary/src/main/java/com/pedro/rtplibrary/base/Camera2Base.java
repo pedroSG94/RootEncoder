@@ -337,6 +337,7 @@ public abstract class Camera2Base implements GetAacData, GetH264Data, GetMicroph
     } else {
       cameraManager.openCameraBack();
     }
+    onPreview = true;
     if (glInterface != null) {
       glInterface.setCameraFace(cameraManager.isFrontCamera());
     }
