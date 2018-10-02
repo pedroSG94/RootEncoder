@@ -9,7 +9,6 @@ import android.view.Surface;
 import com.pedro.encoder.input.gl.SurfaceManager;
 import com.pedro.encoder.input.gl.render.SimpleCameraRender;
 import com.pedro.encoder.input.gl.render.filters.BaseFilterRender;
-import com.pedro.encoder.input.video.CameraHelper;
 import com.pedro.encoder.utils.gl.GlUtil;
 
 /**
@@ -22,7 +21,6 @@ public class LightOpenGlView extends OpenGlViewBase {
 
   private SimpleCameraRender simpleCameraRender = null;
   private boolean keepAspectRatio = false;
-  private boolean isFrontPreviewFlip = false;
 
   public LightOpenGlView(Context context) {
     super(context);
@@ -47,20 +45,11 @@ public class LightOpenGlView extends OpenGlViewBase {
     this.keepAspectRatio = keepAspectRatio;
   }
 
-  public boolean isFrontPreviewFlip() {
-    return isFrontPreviewFlip;
-  }
-
-  public void setFrontPreviewFlip(boolean frontPreviewFlip) {
-    isFrontPreviewFlip = frontPreviewFlip;
-  }
-
   @Override
   public void run() {
     surfaceManager = new SurfaceManager(getHolder().getSurface());
     surfaceManager.makeCurrent();
     simpleCameraRender.setStreamSize(encoderWidth, encoderHeight);
-    int rotation = isCamera2 ? CameraHelper.getCamera2Orientation(getContext()) : 0;
     simpleCameraRender.setRotation(rotation);
     simpleCameraRender.initGl(getContext());
     simpleCameraRender.getSurfaceTexture().setOnFrameAvailableListener(this);

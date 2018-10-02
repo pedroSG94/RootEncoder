@@ -1,6 +1,5 @@
 package com.pedro.encoder.input.video;
 
-import android.content.Context;
 import android.graphics.ImageFormat;
 import android.graphics.SurfaceTexture;
 import android.hardware.Camera;
@@ -42,7 +41,7 @@ public class Camera1ApiManager implements Camera.PreviewCallback, Camera.FaceDet
   private int width = 640;
   private int height = 480;
   private int fps = 30;
-  private int orientation = 0;
+  private int rotation = 0;
   private int imageFormat = ImageFormat.NV21;
   private byte[] yuvBuffer;
   private List<Camera.Size> previewSizeBack;
@@ -51,26 +50,29 @@ public class Camera1ApiManager implements Camera.PreviewCallback, Camera.FaceDet
   public Camera1ApiManager(SurfaceView surfaceView, GetCameraData getCameraData) {
     this.surfaceView = surfaceView;
     this.getCameraData = getCameraData;
-    init(surfaceView.getContext());
+    init();
   }
 
   public Camera1ApiManager(TextureView textureView, GetCameraData getCameraData) {
     this.textureView = textureView;
     this.getCameraData = getCameraData;
-    init(textureView.getContext());
+    init();
   }
 
-  public Camera1ApiManager(SurfaceTexture surfaceTexture, Context context) {
+  public Camera1ApiManager(SurfaceTexture surfaceTexture) {
     this.surfaceTexture = surfaceTexture;
-    init(context);
+    init();
   }
 
-  private void init(Context context) {
-    orientation = CameraHelper.getCamera1Orientation(context);
+  private void init() {
     cameraSelect = selectCameraFront();
     previewSizeFront = getPreviewSize();
     cameraSelect = selectCameraBack();
     previewSizeBack = getPreviewSize();
+  }
+
+  public void setRotation(int rotation) {
+    this.rotation = rotation;
   }
 
   public void setSurfaceTexture(SurfaceTexture surfaceTexture) {
@@ -120,7 +122,7 @@ public class Camera1ApiManager implements Camera.PreviewCallback, Camera.FaceDet
           }
         }
         camera.setParameters(parameters);
-        camera.setDisplayOrientation(orientation);
+        camera.setDisplayOrientation(rotation);
         if (surfaceView != null) {
           camera.setPreviewDisplay(surfaceView.getHolder());
           camera.addCallbackBuffer(yuvBuffer);
@@ -144,7 +146,7 @@ public class Camera1ApiManager implements Camera.PreviewCallback, Camera.FaceDet
   }
 
   public void setPreviewOrientation(final int orientation) {
-    this.orientation = orientation;
+    this.rotation = orientation;
     if (camera != null && running) {
       camera.stopPreview();
       camera.setDisplayOrientation(orientation);
@@ -213,7 +215,7 @@ public class Camera1ApiManager implements Camera.PreviewCallback, Camera.FaceDet
 
   @Override
   public void onPreviewFrame(byte[] data, Camera camera) {
-    getCameraData.inputYUVData(new Frame(data, orientation, isFrontCamera, imageFormat));
+    getCameraData.inputYUVData(new Frame(data, rotation, isFrontCamera, imageFormat));
     camera.addCallbackBuffer(yuvBuffer);
   }
 

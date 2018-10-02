@@ -9,7 +9,6 @@ import android.view.Surface;
 import com.pedro.encoder.input.gl.SurfaceManager;
 import com.pedro.encoder.input.gl.render.ManagerRender;
 import com.pedro.encoder.input.gl.render.filters.BaseFilterRender;
-import com.pedro.encoder.input.video.CameraHelper;
 import com.pedro.encoder.utils.gl.GlUtil;
 
 /**
@@ -24,7 +23,6 @@ public class OpenGlView extends OpenGlViewBase {
 
   private boolean AAEnabled = false;
   private boolean keepAspectRatio = false;
-  private boolean isFrontPreviewFlip = false;
 
   public OpenGlView(Context context) {
     super(context);
@@ -75,14 +73,6 @@ public class OpenGlView extends OpenGlViewBase {
     this.keepAspectRatio = keepAspectRatio;
   }
 
-  public boolean isFrontPreviewFlip() {
-    return isFrontPreviewFlip;
-  }
-
-  public void setFrontPreviewFlip(boolean frontPreviewFlip) {
-    isFrontPreviewFlip = frontPreviewFlip;
-  }
-
   @Override
   public boolean isAAEnabled() {
     return managerRender != null && managerRender.isAAEnabled();
@@ -93,7 +83,6 @@ public class OpenGlView extends OpenGlViewBase {
     surfaceManager = new SurfaceManager(getHolder().getSurface());
     surfaceManager.makeCurrent();
     managerRender.setStreamSize(encoderWidth, encoderHeight);
-    int rotation = isCamera2 ? CameraHelper.getCamera2Orientation(getContext()) : 0;
     managerRender.setCameraRotation(rotation);
     managerRender.initGl(previewWidth, previewHeight, getContext());
     managerRender.getSurfaceTexture().setOnFrameAvailableListener(this);

@@ -103,7 +103,6 @@ public class OpenGlRtmpActivity extends AppCompatActivity
     rtmpCamera1 = new RtmpCamera1(openGlView, this);
     openGlView.getHolder().addCallback(this);
     //openGlView.setKeepAspectRatio(true);
-    //openGlView.setFrontPreviewFlip(true);
   }
 
   @Override

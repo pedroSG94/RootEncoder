@@ -295,7 +295,7 @@ public class RtmpActivity extends AppCompatActivity
     int height = resolution.height;
     return rtmpCamera1.prepareVideo(width, height, Integer.parseInt(etFps.getText().toString()),
         Integer.parseInt(etVideoBitrate.getText().toString()) * 1024,
-        cbHardwareRotation.isChecked(), CameraHelper.getCamera1Orientation(this))
+        cbHardwareRotation.isChecked(), CameraHelper.getCameraOrientation(this))
         && rtmpCamera1.prepareAudio(Integer.parseInt(etAudioBitrate.getText().toString()) * 1024,
         Integer.parseInt(etSampleRate.getText().toString()),
         rgChannel.getCheckedRadioButtonId() == R.id.rb_stereo, cbEchoCanceler.isChecked(),

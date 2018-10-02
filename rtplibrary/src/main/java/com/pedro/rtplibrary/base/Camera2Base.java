@@ -17,6 +17,7 @@ import com.pedro.encoder.input.audio.GetMicrophoneData;
 import com.pedro.encoder.input.audio.MicrophoneManager;
 import com.pedro.encoder.input.video.Camera2ApiManager;
 import com.pedro.encoder.input.video.Camera2Facing;
+import com.pedro.encoder.input.video.CameraHelper;
 import com.pedro.encoder.input.video.CameraOpenException;
 import com.pedro.encoder.utils.CodecUtil;
 import com.pedro.encoder.video.FormatVideoEncoder;
@@ -185,8 +186,8 @@ public abstract class Camera2Base implements GetAacData, GetH264Data, GetMicroph
    */
   public boolean prepareVideo() {
     boolean isHardwareRotation = glInterface == null;
-    int orientation = (context.getResources().getConfiguration().orientation == 1) ? 90 : 0;
-    return prepareVideo(640, 480, 30, 1200 * 1024, isHardwareRotation, orientation);
+    int rotation = CameraHelper.getCameraOrientation(context);
+    return prepareVideo(640, 480, 30, 1200 * 1024, isHardwareRotation, rotation);
   }
 
   /**
@@ -253,7 +254,7 @@ public abstract class Camera2Base implements GetAacData, GetH264Data, GetMicroph
    * {@link android.hardware.camera2.CameraMetadata#LENS_FACING_BACK}
    * {@link android.hardware.camera2.CameraMetadata#LENS_FACING_FRONT}
    */
-  public void startPreview(@Camera2Facing int cameraFacing) {
+  public void startPreview(@Camera2Facing int cameraFacing, int rotation) {
     if (!isStreaming() && !onPreview && !isBackground) {
       if (surfaceView != null) {
         cameraManager.prepareCamera(surfaceView.getHolder().getSurface());
@@ -266,7 +267,7 @@ public abstract class Camera2Base implements GetAacData, GetH264Data, GetMicroph
         } else {
           glInterface.setEncoderSize(videoEncoder.getHeight(), videoEncoder.getWidth());
         }
-        glInterface.isCamera2(true);
+        glInterface.setRotation(rotation == 0 ? 270 : rotation - 90);
         glInterface.start();
         cameraManager.prepareCamera(glInterface.getSurfaceTexture(), videoEncoder.getWidth(),
             videoEncoder.getHeight());
@@ -274,6 +275,10 @@ public abstract class Camera2Base implements GetAacData, GetH264Data, GetMicroph
       cameraManager.openCameraFacing(cameraFacing);
       onPreview = true;
     }
+  }
+
+  public void startPreview(@Camera2Facing int cameraFacing) {
+    startPreview(cameraFacing, CameraHelper.getCameraOrientation(context));
   }
 
   /**
@@ -357,7 +362,8 @@ public abstract class Camera2Base implements GetAacData, GetH264Data, GetMicroph
       } else {
         glInterface.setEncoderSize(videoEncoder.getWidth(), videoEncoder.getHeight());
       }
-      glInterface.isCamera2(true);
+      int rotation = videoEncoder.getRotation();
+      glInterface.setRotation(rotation == 0 ? 270 : rotation - 90);
       glInterface.start();
       if (videoEncoder.getInputSurface() != null) {
         glInterface.addMediaCodecSurface(videoEncoder.getInputSurface());

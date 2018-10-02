@@ -108,7 +108,7 @@ public class OffScreenGlThread
   }
 
   @Override
-  public void isCamera2(boolean isCamera2) {
+  public void setRotation(int rotation) {
     //unused
   }
 

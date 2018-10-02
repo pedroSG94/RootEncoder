@@ -32,7 +32,7 @@
     <activity
         android:name=".customexample.RtmpActivity"
         android:label="@string/rtmp_streamer"
-        android:screenOrientation="reverseLandscape"
+        android:screenOrientation="portrait"
         />
     <activity
         android:name=".customexample.RtspActivity"

@@ -85,7 +85,7 @@ public abstract class Camera1Base
     context = openGlView.getContext();
     this.glInterface = openGlView;
     this.glInterface.init();
-    cameraManager = new Camera1ApiManager(glInterface.getSurfaceTexture(), openGlView.getContext());
+    cameraManager = new Camera1ApiManager(glInterface.getSurfaceTexture());
     init();
   }
 
@@ -95,7 +95,7 @@ public abstract class Camera1Base
     this.glInterface = lightOpenGlView;
     this.glInterface.init();
     cameraManager =
-        new Camera1ApiManager(glInterface.getSurfaceTexture(), lightOpenGlView.getContext());
+        new Camera1ApiManager(glInterface.getSurfaceTexture());
     init();
   }
 
@@ -104,7 +104,7 @@ public abstract class Camera1Base
     this.context = context;
     glInterface = new OffScreenGlThread(context);
     glInterface.init();
-    cameraManager = new Camera1ApiManager(glInterface.getSurfaceTexture(), context);
+    cameraManager = new Camera1ApiManager(glInterface.getSurfaceTexture());
     init();
   }
 
@@ -133,7 +133,7 @@ public abstract class Camera1Base
    * @param hardwareRotation true if you want rotate using encoder, false if you want rotate with
    * software if you are using a SurfaceView or TextureView or with OpenGl if you are using
    * OpenGlView.
-   * @param rotation could be 90, 180, 270 or 0. You should use CameraHelper.getCamera1Orientation with SurfaceView or TextureView
+   * @param rotation could be 90, 180, 270 or 0. You should use CameraHelper.getCameraOrientation with SurfaceView or TextureView
    * and 0 with OpenGlView or LightOpenGlView.
    * NOTE: Rotation with encoder is silence ignored in some devices.
    * @return true if success, false if you get a error (Normally because the encoder selected
@@ -190,7 +190,7 @@ public abstract class Camera1Base
    * doesn't support any configuration seated or your device hasn't a H264 encoder).
    */
   public boolean prepareVideo() {
-    int rotation = CameraHelper.getCamera1Orientation(context);
+    int rotation = CameraHelper.getCameraOrientation(context);
     return prepareVideo(640, 480, 30, 1200 * 1024, false, rotation);
   }
 
@@ -261,7 +261,7 @@ public abstract class Camera1Base
    * @param width of preview in px.
    * @param height of preview in px.
    */
-  public void startPreview(@Camera1Facing int cameraFacing, int width, int height) {
+  public void startPreview(@Camera1Facing int cameraFacing, int width, int height, int rotation) {
     if (!isStreaming() && !onPreview && !(glInterface instanceof OffScreenGlThread)) {
       if (glInterface != null && Build.VERSION.SDK_INT >= 18) {
         boolean isPortrait = context.getResources().getConfiguration().orientation == 1;
@@ -270,14 +270,20 @@ public abstract class Camera1Base
         } else {
           glInterface.setEncoderSize(width, height);
         }
+        glInterface.setRotation(0);
         glInterface.start();
         cameraManager.setSurfaceTexture(glInterface.getSurfaceTexture());
       }
+      cameraManager.setRotation(rotation);
       cameraManager.start(cameraFacing, width, height, videoEncoder.getFps());
       onPreview = true;
     } else {
       Log.e(TAG, "Streaming or preview started, ignored");
     }
+  }
+
+  public void startPreview(@Camera1Facing int cameraFacing, int width, int height){
+    startPreview(cameraFacing, width, height, CameraHelper.getCameraOrientation(context));
   }
 
   /**
@@ -368,6 +374,7 @@ public abstract class Camera1Base
     videoEncoder.start();
     audioEncoder.start();
     microphoneManager.start();
+    cameraManager.setRotation(videoEncoder.getRotation());
     cameraManager.start(videoEncoder.getWidth(), videoEncoder.getHeight(), videoEncoder.getFps());
     onPreview = true;
   }

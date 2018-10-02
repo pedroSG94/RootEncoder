@@ -57,7 +57,7 @@ public class CameraHelper {
     }
   }
 
-  public static int getCamera1Orientation(Context context) {
+  public static int getCameraOrientation(Context context) {
     WindowManager windowManager = (WindowManager) context.getSystemService(Context.WINDOW_SERVICE);
     if (windowManager != null) {
       int orientation = windowManager.getDefaultDisplay().getRotation();
@@ -70,27 +70,6 @@ public class CameraHelper {
           return 270;
         case Surface.ROTATION_270: //reverse landscape
           return 180;
-        default:
-          return 0;
-      }
-    } else {
-      return 0;
-    }
-  }
-
-  public static int getCamera2Orientation(Context context) {
-    WindowManager windowManager = (WindowManager) context.getSystemService(Context.WINDOW_SERVICE);
-    if (windowManager != null) {
-      int orientation = windowManager.getDefaultDisplay().getRotation();
-      switch (orientation) {
-        case Surface.ROTATION_0: //portrait
-          return 0;
-        case Surface.ROTATION_90: //landscape
-          return 270;
-        case Surface.ROTATION_180: //reverse portrait
-          return 180;
-        case Surface.ROTATION_270: //reverse landscape
-          return 90;
         default:
           return 0;
       }

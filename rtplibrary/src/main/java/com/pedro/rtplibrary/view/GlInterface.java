@@ -71,12 +71,7 @@ public interface GlInterface {
    */
   void enableAA(boolean AAEnabled);
 
-  /**
-   * Indicate to render if you are using camera2 to rotate render.
-   *
-   * @param isCamera2 true when camera2 is used false with other mode.
-   */
-  void isCamera2(boolean isCamera2);
+  void setRotation(int rotation);
 
   /**
    * Get Anti alias is enabled.

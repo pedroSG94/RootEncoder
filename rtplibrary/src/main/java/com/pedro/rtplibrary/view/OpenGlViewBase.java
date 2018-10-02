@@ -40,7 +40,7 @@ public abstract class OpenGlViewBase extends SurfaceView
   protected int encoderWidth, encoderHeight;
   protected int waitTime;
   protected TakePhotoCallback takePhotoCallback;
-  protected boolean isCamera2 = false;
+  protected int rotation = 0;
 
   public OpenGlViewBase(Context context) {
     super(context);
@@ -62,8 +62,8 @@ public abstract class OpenGlViewBase extends SurfaceView
   public abstract Surface getSurface();
 
   @Override
-  public void isCamera2(boolean isCamera2) {
-    this.isCamera2 = isCamera2;
+  public void setRotation(int rotation) {
+    this.rotation = rotation;
   }
 
   @Override
@@ -120,7 +120,7 @@ public abstract class OpenGlViewBase extends SurfaceView
       thread = null;
     }
     running = false;
-    isCamera2 = false;
+    rotation = 0;
   }
 
   @Override
