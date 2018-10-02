@@ -9,6 +9,7 @@ import android.os.Build;
 import android.support.annotation.RequiresApi;
 import android.view.Surface;
 import com.pedro.encoder.R;
+import com.pedro.encoder.input.video.CameraHelper;
 import com.pedro.encoder.utils.gl.GlUtil;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
@@ -26,24 +27,6 @@ public class SimpleCameraRender {
   private static final int SQUARE_VERTEX_DATA_STRIDE_BYTES = 5 * FLOAT_SIZE_BYTES;
   private static final int SQUARE_VERTEX_DATA_POS_OFFSET = 0;
   private static final int SQUARE_VERTEX_DATA_UV_OFFSET = 3;
-
-  //rotation matrix
-  private final float[] squareVertexDataCamera = {
-      // X, Y, Z, U, V
-      -1f, -1f, 0f, 0f, 0f, //bottom left
-      1f, -1f, 0f, 1f, 0f, //bottom right
-      -1f, 1f, 0f, 0f, 1f, //top left
-      1f, 1f, 0f, 1f, 1f, //top right
-  };
-
-  //fix orientation in camera2 landscape
-  private final float[] squareVertexDataCamera2LandScape = {
-      // X, Y, Z, U, V
-      -1f, -1f, 0f, 0f, 1f, //bottom left
-      1f, -1f, 0f, 0f, 0f, //bottom right
-      -1f, 1f, 0f, 1f, 1f, //top left
-      1f, 1f, 0f, 1f, 0f, //top right
-  };
 
   private FloatBuffer squareVertex;
 
@@ -64,23 +47,19 @@ public class SimpleCameraRender {
   private Surface surface;
   private int streamWidth;
   private int streamHeight;
-  private boolean isPortrait;
-  private float onFlip = 0f;
+  private boolean isFlipHorizontal = false, isFlipVertical = false;
 
   public SimpleCameraRender() {
     Matrix.setIdentityM(MVPMatrix, 0);
     Matrix.setIdentityM(STMatrix, 0);
   }
 
-  public void isCamera2LandScape(boolean isCamera2Landscape) {
-    squareVertex = ByteBuffer.allocateDirect(squareVertexDataCamera.length * FLOAT_SIZE_BYTES)
+  public void setRotation(int rotation) {
+    float[] vertex = CameraHelper.getVertex(rotation);
+    squareVertex = ByteBuffer.allocateDirect(vertex.length * FLOAT_SIZE_BYTES)
         .order(ByteOrder.nativeOrder())
         .asFloatBuffer();
-    if (isCamera2Landscape) {
-      squareVertex.put(squareVertexDataCamera2LandScape).position(0);
-    } else {
-      squareVertex.put(squareVertexDataCamera).position(0);
-    }
+    squareVertex.put(vertex).position(0);
   }
 
   public int getTextureId() {
@@ -99,7 +78,7 @@ public class SimpleCameraRender {
     surfaceTexture.updateTexImage();
   }
 
-  public void drawFrame(int width, int height, boolean keepAspectRatio, boolean isFrontFlip) {
+  public void drawFrame(int width, int height, boolean keepAspectRatio) {
     GlUtil.checkGlError("drawFrame start");
     surfaceTexture.getTransformMatrix(STMatrix);
 
@@ -131,7 +110,7 @@ public class SimpleCameraRender {
 
     GLES20.glUniformMatrix4fv(uMVPMatrixHandle, 1, false, MVPMatrix, 0);
     GLES20.glUniformMatrix4fv(uSTMatrixHandle, 1, false, STMatrix, 0);
-    GLES20.glUniform1f(uOnFlipHandle, isFrontFlip ? 0f : onFlip);
+    GLES20.glUniform2f(uOnFlipHandle, isFlipHorizontal ? 1f : 0f, isFlipVertical ? 1f : 0f);
     //camera
     GLES20.glActiveTexture(GLES20.GL_TEXTURE0);
     GLES20.glBindTexture(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, textureID);
@@ -144,7 +123,6 @@ public class SimpleCameraRender {
    * Initializes GL state.  Call this after the EGL surface has been created and made current.
    */
   public void initGl(Context context) {
-    isPortrait = context.getResources().getConfiguration().orientation == 1;
     GlUtil.checkGlError("initGl start");
     String vertexShader = GlUtil.getStringFromRaw(context, R.raw.simple_vertex);
     String fragmentShader = GlUtil.getStringFromRaw(context, R.raw.camera_fragment);
@@ -170,16 +148,13 @@ public class SimpleCameraRender {
     surface = null;
   }
 
-  public void faceChanged(boolean isFrontCamera) {
-    if (isFrontCamera) {
-      onFlip = isPortrait ? 1f : 2f;  //Front portrait flip on Y. Front landscape flip on X
-    } else {
-      onFlip = 0f;  //no flip
-    }
-  }
-
   public void setStreamSize(int streamWidth, int streamHeight) {
     this.streamWidth = streamWidth;
     this.streamHeight = streamHeight;
+  }
+
+  public void setFlip(boolean isFlipHorizontal, boolean isFlipVertical) {
+    this.isFlipHorizontal = isFlipHorizontal;
+    this.isFlipVertical = isFlipVertical;
   }
 }

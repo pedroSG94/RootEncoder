@@ -251,7 +251,8 @@ public class VideoEncoder implements GetCameraData {
                     buffer = YUVUtil.YV12toNV21(buffer, width, height);
                   }
                   if (!hardwareRotation) {
-                    int orientation = (frame.isFlip()) ? rotation + 180 : rotation;
+                    int orientation =
+                        frame.isFlip() ? frame.getOrientation() + 180 : frame.getOrientation();
                     if (orientation >= 360) orientation -= 360;
                     buffer = YUVUtil.rotateNV21(buffer, width, height, orientation);
                   }

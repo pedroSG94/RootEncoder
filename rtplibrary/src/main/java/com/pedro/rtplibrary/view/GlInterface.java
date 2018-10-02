@@ -72,13 +72,11 @@ public interface GlInterface {
   void enableAA(boolean AAEnabled);
 
   /**
-   * INTERNAL METHOD.
+   * Indicate to render if you are using camera2 to rotate render.
    *
-   * Used to notify Opengl if you change to front camera for image rotation.
-   *
-   * @param frontCamera true if you are using front camera, false if you are using back camera.
+   * @param isCamera2 true when camera2 is used false with other mode.
    */
-  void setCameraFace(boolean frontCamera);
+  void isCamera2(boolean isCamera2);
 
   /**
    * Get Anti alias is enabled.
@@ -100,9 +98,8 @@ public interface GlInterface {
    *
    * Start Opengl rendering.
    *
-   * @param isCamera2Landscape true if you start stream with device in landscape and with camera2 to fix orientation error.
    */
-  void start(boolean isCamera2Landscape);
+  void start();
 
   /**
    * INTERNAL METHOD.

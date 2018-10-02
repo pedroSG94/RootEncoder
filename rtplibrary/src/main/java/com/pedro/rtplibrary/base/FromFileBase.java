@@ -224,7 +224,7 @@ public abstract class FromFileBase
       }
       videoEncoder.reset();
       if (context != null) {
-        glInterface.start(false);
+        glInterface.start();
         glInterface.addMediaCodecSurface(videoEncoder.getInputSurface());
         videoDecoder.prepareVideo(glInterface.getSurface());
       } else {
@@ -414,7 +414,7 @@ public abstract class FromFileBase
             throw new IOException("fail to reset video file");
           }
           if (context != null) {
-            glInterface.start(false);
+            glInterface.start();
             glInterface.addMediaCodecSurface(videoEncoder.getInputSurface());
             videoDecoder.prepareVideo(glInterface.getSurface());
           } else {

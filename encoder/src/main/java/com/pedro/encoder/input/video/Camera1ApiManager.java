@@ -66,9 +66,7 @@ public class Camera1ApiManager implements Camera.PreviewCallback, Camera.FaceDet
   }
 
   private void init(Context context) {
-    if (context.getResources().getConfiguration().orientation == 1) {
-      orientation = 90;
-    }
+    orientation = CameraHelper.getCamera1Orientation(context);
     cameraSelect = selectCameraFront();
     previewSizeFront = getPreviewSize();
     cameraSelect = selectCameraBack();
@@ -215,8 +213,7 @@ public class Camera1ApiManager implements Camera.PreviewCallback, Camera.FaceDet
 
   @Override
   public void onPreviewFrame(byte[] data, Camera camera) {
-    getCameraData.inputYUVData(
-        new Frame(data, isFrontCamera && (orientation == 90 || orientation == 270), imageFormat));
+    getCameraData.inputYUVData(new Frame(data, orientation, isFrontCamera, imageFormat));
     camera.addCallbackBuffer(yuvBuffer);
   }
 

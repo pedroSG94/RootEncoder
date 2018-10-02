@@ -2,15 +2,10 @@
 precision mediump float;
 
 uniform samplerExternalOES sCamera;
-uniform float uOnFlip;
+uniform vec2 uOnFlip;
 varying vec2 vTextureCoord;
 
 void main() {
-  if (uOnFlip == 1.0) {
-    gl_FragColor = texture2D(sCamera, vec2(vTextureCoord.x, 1.0 - vTextureCoord.y));
-  } else if (uOnFlip == 2.0) {
-    gl_FragColor = texture2D(sCamera, vec2(1.0 - vTextureCoord.x, vTextureCoord.y));
-  } else {
-    gl_FragColor = texture2D(sCamera, vTextureCoord);
-  }
+  vec2 coord = vec2(uOnFlip.y == 1.0 ? 1.0 - vTextureCoord.x : vTextureCoord.x, uOnFlip.x == 1.0 ? 1.0 - vTextureCoord.y : vTextureCoord.y);
+  gl_FragColor = texture2D(sCamera, coord);
 }

@@ -266,14 +266,12 @@ public abstract class Camera2Base implements GetAacData, GetH264Data, GetMicroph
         } else {
           glInterface.setEncoderSize(videoEncoder.getHeight(), videoEncoder.getWidth());
         }
-        glInterface.start(isCamera2Landscape);
+        glInterface.isCamera2(true);
+        glInterface.start();
         cameraManager.prepareCamera(glInterface.getSurfaceTexture(), videoEncoder.getWidth(),
             videoEncoder.getHeight());
       }
       cameraManager.openCameraFacing(cameraFacing);
-      if (glInterface != null) {
-        glInterface.setCameraFace(cameraManager.isFrontCamera());
-      }
       onPreview = true;
     }
   }
@@ -338,9 +336,6 @@ public abstract class Camera2Base implements GetAacData, GetH264Data, GetMicroph
       cameraManager.openCameraBack();
     }
     onPreview = true;
-    if (glInterface != null) {
-      glInterface.setCameraFace(cameraManager.isFrontCamera());
-    }
   }
 
   private void resetVideoEncoder() {
@@ -357,16 +352,13 @@ public abstract class Camera2Base implements GetAacData, GetH264Data, GetMicroph
         glInterface = new OffScreenGlThread(context);
       }
       glInterface.init();
-      boolean rotate;
       if (videoEncoder.getRotation() == 90 || videoEncoder.getRotation() == 270) {
         glInterface.setEncoderSize(videoEncoder.getHeight(), videoEncoder.getWidth());
-        rotate = false;
       } else {
         glInterface.setEncoderSize(videoEncoder.getWidth(), videoEncoder.getHeight());
-        rotate = true;
       }
-      boolean isCamera2Landscape = context.getResources().getConfiguration().orientation != 1;
-      glInterface.start((glInterface instanceof OffScreenGlThread) ? isCamera2Landscape : rotate);
+      glInterface.isCamera2(true);
+      glInterface.start();
       if (videoEncoder.getInputSurface() != null) {
         glInterface.addMediaCodecSurface(videoEncoder.getInputSurface());
       }
@@ -490,9 +482,6 @@ public abstract class Camera2Base implements GetAacData, GetH264Data, GetMicroph
   public void switchCamera() throws CameraOpenException {
     if (isStreaming() || onPreview) {
       cameraManager.switchCamera();
-      if (glInterface != null) {
-        glInterface.setCameraFace(cameraManager.isFrontCamera());
-      }
     }
   }
 

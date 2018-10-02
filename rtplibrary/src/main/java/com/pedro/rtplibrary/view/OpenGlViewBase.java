@@ -38,11 +38,9 @@ public abstract class OpenGlViewBase extends SurfaceView
   protected final Object sync = new Object();
   protected int previewWidth, previewHeight;
   protected int encoderWidth, encoderHeight;
-  protected boolean onChangeFace = false;
-  protected boolean isFrontCamera = false;
-  protected boolean isCamera2Landscape = false;
   protected int waitTime;
   protected TakePhotoCallback takePhotoCallback;
+  protected boolean isCamera2 = false;
 
   public OpenGlViewBase(Context context) {
     super(context);
@@ -62,6 +60,11 @@ public abstract class OpenGlViewBase extends SurfaceView
 
   @Override
   public abstract Surface getSurface();
+
+  @Override
+  public void isCamera2(boolean isCamera2) {
+    this.isCamera2 = isCamera2;
+  }
 
   @Override
   public void takePhoto(TakePhotoCallback takePhotoCallback) {
@@ -91,20 +94,13 @@ public abstract class OpenGlViewBase extends SurfaceView
   }
 
   @Override
-  public void setCameraFace(boolean frontCamera) {
-    onChangeFace = true;
-    isFrontCamera = frontCamera;
-  }
-
-  @Override
   public void setEncoderSize(int width, int height) {
     this.encoderWidth = width;
     this.encoderHeight = height;
   }
 
   @Override
-  public void start(boolean isCamera2Landscape) {
-    this.isCamera2Landscape = isCamera2Landscape;
+  public void start() {
     Log.i(TAG, "Thread started.");
     thread = new Thread(this);
     running = true;
@@ -124,6 +120,7 @@ public abstract class OpenGlViewBase extends SurfaceView
       thread = null;
     }
     running = false;
+    isCamera2 = false;
   }
 
   @Override

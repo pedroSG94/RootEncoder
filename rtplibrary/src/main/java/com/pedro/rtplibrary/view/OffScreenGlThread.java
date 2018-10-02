@@ -41,9 +41,6 @@ public class OffScreenGlThread
   private boolean AAEnabled = false;
   private int waitTime = 10;
   //used with camera
-  private boolean isCamera2Landscape = false;
-  private boolean onChangeFace = false;
-  private boolean isFrontCamera = false;
   private TakePhotoCallback takePhotoCallback;
 
   public OffScreenGlThread(Context context) {
@@ -111,9 +108,8 @@ public class OffScreenGlThread
   }
 
   @Override
-  public void setCameraFace(boolean frontCamera) {
-    onChangeFace = true;
-    isFrontCamera = frontCamera;
+  public void isCamera2(boolean isCamera2) {
+    //unused
   }
 
   @Override
@@ -127,8 +123,7 @@ public class OffScreenGlThread
   }
 
   @Override
-  public void start(boolean isCamera2Landscape) {
-    this.isCamera2Landscape = isCamera2Landscape;
+  public void start() {
     thread = new Thread(this);
     running = true;
     thread.start();
@@ -154,7 +149,8 @@ public class OffScreenGlThread
     surfaceManager = new SurfaceManager();
     surfaceManager.makeCurrent();
     textureManager.setStreamSize(encoderWidth, encoderHeight);
-    textureManager.initGl(encoderWidth, encoderHeight, isCamera2Landscape, context);
+    textureManager.setCameraRotation(0);
+    textureManager.initGl(encoderWidth, encoderHeight, context);
     textureManager.getSurfaceTexture().setOnFrameAvailableListener(this);
     semaphore.release();
     try {
@@ -166,13 +162,13 @@ public class OffScreenGlThread
             surfaceManager.makeCurrent();
             textureManager.updateFrame();
             textureManager.drawOffScreen();
-            textureManager.drawScreen(encoderWidth, encoderHeight, false, false);
+            textureManager.drawScreen(encoderWidth, encoderHeight, false);
             surfaceManager.swapBuffer();
 
             synchronized (sync) {
               if (surfaceManagerEncoder != null) {
                 surfaceManagerEncoder.makeCurrent();
-                textureManager.drawScreen(encoderWidth, encoderHeight, false, false);
+                textureManager.drawScreen(encoderWidth, encoderHeight, false);
                 long ts = textureManager.getSurfaceTexture().getTimestamp();
                 surfaceManagerEncoder.setPresentationTime(ts);
                 surfaceManagerEncoder.swapBuffer();
@@ -190,9 +186,6 @@ public class OffScreenGlThread
           } else if (loadAA) {
             textureManager.enableAA(AAEnabled);
             loadAA = false;
-          } else if (onChangeFace) {
-            textureManager.faceChanged(isFrontCamera);
-            onChangeFace = false;
           }
         }
       }

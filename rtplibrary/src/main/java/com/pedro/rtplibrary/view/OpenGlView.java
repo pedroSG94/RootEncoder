@@ -9,6 +9,7 @@ import android.view.Surface;
 import com.pedro.encoder.input.gl.SurfaceManager;
 import com.pedro.encoder.input.gl.render.ManagerRender;
 import com.pedro.encoder.input.gl.render.filters.BaseFilterRender;
+import com.pedro.encoder.input.video.CameraHelper;
 import com.pedro.encoder.utils.gl.GlUtil;
 
 /**
@@ -92,7 +93,9 @@ public class OpenGlView extends OpenGlViewBase {
     surfaceManager = new SurfaceManager(getHolder().getSurface());
     surfaceManager.makeCurrent();
     managerRender.setStreamSize(encoderWidth, encoderHeight);
-    managerRender.initGl(previewWidth, previewHeight, isCamera2Landscape, getContext());
+    int rotation = isCamera2 ? CameraHelper.getCamera2Orientation(getContext()) : 0;
+    managerRender.setCameraRotation(rotation);
+    managerRender.initGl(previewWidth, previewHeight, getContext());
     managerRender.getSurfaceTexture().setOnFrameAvailableListener(this);
     semaphore.release();
     try {
@@ -104,8 +107,7 @@ public class OpenGlView extends OpenGlViewBase {
             surfaceManager.makeCurrent();
             managerRender.updateFrame();
             managerRender.drawOffScreen();
-            managerRender.drawScreen(previewWidth, previewHeight, keepAspectRatio,
-                isFrontPreviewFlip);
+            managerRender.drawScreen(previewWidth, previewHeight, keepAspectRatio);
             surfaceManager.swapBuffer();
             if (takePhotoCallback != null) {
               takePhotoCallback.onTakePhoto(
@@ -116,7 +118,7 @@ public class OpenGlView extends OpenGlViewBase {
             synchronized (sync) {
               if (surfaceManagerEncoder != null) {
                 surfaceManagerEncoder.makeCurrent();
-                managerRender.drawScreen(encoderWidth, encoderHeight, false, false);
+                managerRender.drawScreen(encoderWidth, encoderHeight, false);
                 long ts = managerRender.getSurfaceTexture().getTimestamp();
                 surfaceManagerEncoder.setPresentationTime(ts);
                 surfaceManagerEncoder.swapBuffer();
@@ -129,9 +131,6 @@ public class OpenGlView extends OpenGlViewBase {
           } else if (loadAA) {
             managerRender.enableAA(AAEnabled);
             loadAA = false;
-          } else if (onChangeFace) {
-            managerRender.faceChanged(isFrontCamera);
-            onChangeFace = false;
           }
         }
       }

@@ -16,6 +16,7 @@ import com.pedro.encoder.input.audio.GetMicrophoneData;
 import com.pedro.encoder.input.audio.MicrophoneManager;
 import com.pedro.encoder.input.video.Camera1ApiManager;
 import com.pedro.encoder.input.video.Camera1Facing;
+import com.pedro.encoder.input.video.CameraHelper;
 import com.pedro.encoder.input.video.CameraOpenException;
 import com.pedro.encoder.input.video.Frame;
 import com.pedro.encoder.input.video.GetCameraData;
@@ -132,8 +133,8 @@ public abstract class Camera1Base
    * @param hardwareRotation true if you want rotate using encoder, false if you want rotate with
    * software if you are using a SurfaceView or TextureView or with OpenGl if you are using
    * OpenGlView.
-   * @param rotation could be 90, 180, 270 or 0 (Normally 0 if you are streaming in landscape or 90
-   * if you are streaming in Portrait). This only affect to stream result.
+   * @param rotation could be 90, 180, 270 or 0. You should use CameraHelper.getCamera1Orientation with SurfaceView or TextureView
+   * and 0 with OpenGlView or LightOpenGlView.
    * NOTE: Rotation with encoder is silence ignored in some devices.
    * @return true if success, false if you get a error (Normally because the encoder selected
    * doesn't support any configuration seated or your device hasn't a H264 encoder).
@@ -189,8 +190,8 @@ public abstract class Camera1Base
    * doesn't support any configuration seated or your device hasn't a H264 encoder).
    */
   public boolean prepareVideo() {
-    int orientation = (context.getResources().getConfiguration().orientation == 1) ? 90 : 0;
-    return prepareVideo(640, 480, 30, 1200 * 1024, false, orientation);
+    int rotation = CameraHelper.getCamera1Orientation(context);
+    return prepareVideo(640, 480, 30, 1200 * 1024, false, rotation);
   }
 
   /**
@@ -269,13 +270,10 @@ public abstract class Camera1Base
         } else {
           glInterface.setEncoderSize(width, height);
         }
-        glInterface.start(false);
+        glInterface.start();
         cameraManager.setSurfaceTexture(glInterface.getSurfaceTexture());
       }
       cameraManager.start(cameraFacing, width, height, videoEncoder.getFps());
-      if (glInterface != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
-        glInterface.setCameraFace(cameraManager.isFrontCamera());
-      }
       onPreview = true;
     } else {
       Log.e(TAG, "Streaming or preview started, ignored");
@@ -372,9 +370,6 @@ public abstract class Camera1Base
     microphoneManager.start();
     cameraManager.start(videoEncoder.getWidth(), videoEncoder.getHeight(), videoEncoder.getFps());
     onPreview = true;
-    if (glInterface != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
-      glInterface.setCameraFace(cameraManager.isFrontCamera());
-    }
   }
 
   private void resetVideoEncoder() {
@@ -398,7 +393,7 @@ public abstract class Camera1Base
       } else {
         glInterface.setEncoderSize(videoEncoder.getWidth(), videoEncoder.getHeight());
       }
-      glInterface.start(false);
+      glInterface.start();
       if (videoEncoder.getInputSurface() != null) {
         glInterface.addMediaCodecSurface(videoEncoder.getInputSurface());
       }
@@ -519,9 +514,6 @@ public abstract class Camera1Base
   public void switchCamera() throws CameraOpenException {
     if (isStreaming() || onPreview) {
       cameraManager.switchCamera();
-      if (glInterface != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
-        glInterface.setCameraFace(cameraManager.isFrontCamera());
-      }
     }
   }
 

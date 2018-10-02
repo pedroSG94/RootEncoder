@@ -9,6 +9,7 @@ import android.os.Build;
 import android.support.annotation.RequiresApi;
 import android.view.Surface;
 import com.pedro.encoder.R;
+import com.pedro.encoder.input.video.CameraHelper;
 import com.pedro.encoder.utils.gl.GlUtil;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
@@ -19,24 +20,6 @@ import java.nio.ByteOrder;
 
 @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
 public class CameraRender extends BaseRenderOffScreen {
-
-  //rotation matrix
-  private final float[] squareVertexDataCamera = {
-      // X, Y, Z, U, V
-      -1f, -1f, 0f, 0f, 0f, //bottom left
-      1f, -1f, 0f, 1f, 0f, //bottom right
-      -1f, 1f, 0f, 0f, 1f, //top left
-      1f, 1f, 0f, 1f, 1f, //top right
-  };
-
-  //fix orientation in camera2 landscape
-  private final float[] squareVertexDataCamera2LandScape = {
-      // X, Y, Z, U, V
-      -1f, -1f, 0f, 0f, 1f, //bottom left
-      1f, -1f, 0f, 0f, 0f, //bottom right
-      -1f, 1f, 0f, 1f, 1f, //top left
-      1f, 1f, 0f, 1f, 0f, //top right
-  };
 
   private int[] textureID = new int[1];
 
@@ -49,8 +32,7 @@ public class CameraRender extends BaseRenderOffScreen {
 
   private SurfaceTexture surfaceTexture;
   private Surface surface;
-  private float onFlip = 0f;
-  private boolean isPortrait;
+  private boolean isFlipHorizontal = false, isFlipVertical = false;
 
   public CameraRender() {
     Matrix.setIdentityM(MVPMatrix, 0);
@@ -61,7 +43,6 @@ public class CameraRender extends BaseRenderOffScreen {
   public void initGl(int width, int height, Context context) {
     this.width = width;
     this.height = height;
-    isPortrait = context.getResources().getConfiguration().orientation == 1;
     GlUtil.checkGlError("initGl start");
     String vertexShader = GlUtil.getStringFromRaw(context, R.raw.simple_vertex);
     String fragmentShader = GlUtil.getStringFromRaw(context, R.raw.camera_fragment);
@@ -106,7 +87,7 @@ public class CameraRender extends BaseRenderOffScreen {
 
     GLES20.glUniformMatrix4fv(uMVPMatrixHandle, 1, false, MVPMatrix, 0);
     GLES20.glUniformMatrix4fv(uSTMatrixHandle, 1, false, STMatrix, 0);
-    GLES20.glUniform1f(uOnFlipHandle, onFlip);
+    GLES20.glUniform2f(uOnFlipHandle, isFlipHorizontal ? 1f : 0f, isFlipVertical ? 1f : 0f);
     //camera
     GLES20.glActiveTexture(GLES20.GL_TEXTURE0);
     GLES20.glBindTexture(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, textureID[0]);
@@ -135,22 +116,16 @@ public class CameraRender extends BaseRenderOffScreen {
     return surface;
   }
 
-  public void isCamera2LandScape(boolean isCamera2Landscape) {
-    squareVertex = ByteBuffer.allocateDirect(squareVertexDataCamera.length * FLOAT_SIZE_BYTES)
+  public void setRotation(int rotation) {
+    float[] vertex = CameraHelper.getVertex(rotation);
+    squareVertex = ByteBuffer.allocateDirect(vertex.length * FLOAT_SIZE_BYTES)
         .order(ByteOrder.nativeOrder())
         .asFloatBuffer();
-    if (isCamera2Landscape) {
-      squareVertex.put(squareVertexDataCamera2LandScape).position(0);
-    } else {
-      squareVertex.put(squareVertexDataCamera).position(0);
-    }
+    squareVertex.put(vertex).position(0);
   }
 
-  public void faceChanged(boolean isFrontCamera) {
-    if (isFrontCamera) {
-      onFlip = isPortrait ? 1f : 2f;  //Front portrait flip on Y. Front landscape flip on X
-    } else {
-      onFlip = 0f;  //no flip
-    }
+  public void setFlip(boolean isFlipHorizontal, boolean isFlipVertical) {
+    this.isFlipHorizontal = isFlipHorizontal;
+    this.isFlipVertical = isFlipVertical;
   }
 }

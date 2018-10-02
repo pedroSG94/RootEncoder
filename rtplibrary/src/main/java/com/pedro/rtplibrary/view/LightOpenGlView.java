@@ -9,6 +9,7 @@ import android.view.Surface;
 import com.pedro.encoder.input.gl.SurfaceManager;
 import com.pedro.encoder.input.gl.render.SimpleCameraRender;
 import com.pedro.encoder.input.gl.render.filters.BaseFilterRender;
+import com.pedro.encoder.input.video.CameraHelper;
 import com.pedro.encoder.utils.gl.GlUtil;
 
 /**
@@ -59,7 +60,8 @@ public class LightOpenGlView extends OpenGlViewBase {
     surfaceManager = new SurfaceManager(getHolder().getSurface());
     surfaceManager.makeCurrent();
     simpleCameraRender.setStreamSize(encoderWidth, encoderHeight);
-    simpleCameraRender.isCamera2LandScape(isCamera2Landscape);
+    int rotation = isCamera2 ? CameraHelper.getCamera2Orientation(getContext()) : 0;
+    simpleCameraRender.setRotation(rotation);
     simpleCameraRender.initGl(getContext());
     simpleCameraRender.getSurfaceTexture().setOnFrameAvailableListener(this);
     semaphore.release();
@@ -71,8 +73,7 @@ public class LightOpenGlView extends OpenGlViewBase {
             frameAvailable = false;
             surfaceManager.makeCurrent();
             simpleCameraRender.updateFrame();
-            simpleCameraRender.drawFrame(previewWidth, previewHeight, keepAspectRatio,
-                isFrontPreviewFlip);
+            simpleCameraRender.drawFrame(previewWidth, previewHeight, keepAspectRatio);
             surfaceManager.swapBuffer();
             if (takePhotoCallback != null) {
               takePhotoCallback.onTakePhoto(
@@ -83,15 +84,11 @@ public class LightOpenGlView extends OpenGlViewBase {
             synchronized (sync) {
               if (surfaceManagerEncoder != null) {
                 surfaceManagerEncoder.makeCurrent();
-                simpleCameraRender.drawFrame(encoderWidth, encoderHeight, false, false);
+                simpleCameraRender.drawFrame(encoderWidth, encoderHeight, false);
                 long ts = simpleCameraRender.getSurfaceTexture().getTimestamp();
                 surfaceManagerEncoder.setPresentationTime(ts);
                 surfaceManagerEncoder.swapBuffer();
               }
-            }
-            if (onChangeFace) {
-              simpleCameraRender.faceChanged(isFrontCamera);
-              onChangeFace = false;
             }
           }
         }

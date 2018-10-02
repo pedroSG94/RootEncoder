@@ -9,11 +9,13 @@ import android.graphics.ImageFormat;
 public class Frame {
 
   private byte[] buffer;
-  private boolean flip = false;
+  private int orientation;
+  private boolean flip;
   private int format = ImageFormat.NV21; //nv21 or yv12 supported
 
-  public Frame(byte[] buffer, boolean flip, int format) {
+  public Frame(byte[] buffer, int orientation, boolean flip, int format) {
     this.buffer = buffer;
+    this.orientation = orientation;
     this.flip = flip;
     this.format = format;
   }
@@ -24,6 +26,14 @@ public class Frame {
 
   public void setBuffer(byte[] buffer) {
     this.buffer = buffer;
+  }
+
+  public int getOrientation() {
+    return orientation;
+  }
+
+  public void setOrientation(int orientation) {
+    this.orientation = orientation;
   }
 
   public boolean isFlip() {

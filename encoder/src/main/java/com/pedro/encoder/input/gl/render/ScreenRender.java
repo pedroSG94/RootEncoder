@@ -47,7 +47,6 @@ public class ScreenRender {
 
   private int streamWidth;
   private int streamHeight;
-  private boolean isFrontCamera = false;
 
   public ScreenRender() {
     squareVertex =
@@ -76,7 +75,7 @@ public class ScreenRender {
     GlUtil.checkGlError("initGl end");
   }
 
-  public void draw(int width, int height, boolean keepAspectRatio, boolean isFrontFlip) {
+  public void draw(int width, int height, boolean keepAspectRatio) {
     GlUtil.checkGlError("drawScreen start");
 
     if (keepAspectRatio) {
@@ -106,7 +105,7 @@ public class ScreenRender {
     GLES20.glUniformMatrix4fv(uSTMatrixHandle, 1, false, STMatrix, 0);
     GLES20.glUniform2f(uResolutionHandle, width, height);
     GLES20.glUniform1f(uAAEnabledHandle, AAEnabled ? 1f : 0f);
-    GLES20.glUniform1f(uOnFlipHandle, isFrontFlip && isFrontCamera ? 1f : 0f);
+    //GLES20.glUniform1f(uOnFlipHandle, isFrontFlip && isFrontCamera ? 1f : 0f);
     GLES20.glUniform1i(uSamplerHandle, 5);
     GLES20.glActiveTexture(GLES20.GL_TEXTURE5);
     GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, texId);
@@ -135,9 +134,5 @@ public class ScreenRender {
   public void setStreamSize(int streamWidth, int streamHeight) {
     this.streamWidth = streamWidth;
     this.streamHeight = streamHeight;
-  }
-
-  public void faceChanged(boolean isFrontCamera) {
-    this.isFrontCamera = isFrontCamera;
   }
 }

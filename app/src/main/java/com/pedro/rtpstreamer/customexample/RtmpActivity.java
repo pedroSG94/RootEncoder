@@ -24,6 +24,7 @@ import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.Spinner;
 import android.widget.Toast;
+import com.pedro.encoder.input.video.CameraHelper;
 import com.pedro.encoder.input.video.CameraOpenException;
 import com.pedro.rtplibrary.rtmp.RtmpCamera1;
 import com.pedro.rtpstreamer.R;
@@ -57,7 +58,7 @@ public class RtmpActivity extends AppCompatActivity
   private NavigationView navigationView;
   private ActionBarDrawerToggle actionBarDrawerToggle;
   private RadioGroup rgChannel;
-  private Spinner spResolution, spOrientation;
+  private Spinner spResolution;
   private CheckBox cbEchoCanceler, cbNoiseSuppressor, cbHardwareRotation;
   private EditText etVideoBitrate, etFps, etAudioBitrate, etSampleRate, etWowzaUser,
       etWowzaPassword;
@@ -130,14 +131,10 @@ public class RtmpActivity extends AppCompatActivity
     rbTcp.setChecked(true);
     //spinners
     spResolution = (Spinner) navigationView.getMenu().findItem(R.id.sp_resolution).getActionView();
-    spOrientation =
-        (Spinner) navigationView.getMenu().findItem(R.id.sp_orientation).getActionView();
 
     ArrayAdapter<Integer> orientationAdapter =
         new ArrayAdapter<>(this, R.layout.support_simple_spinner_dropdown_item);
     orientationAdapter.addAll(orientations);
-    spOrientation.setAdapter(orientationAdapter);
-    spOrientation.setSelection(1);
 
     ArrayAdapter<String> resolutionAdapter =
         new ArrayAdapter<>(this, R.layout.support_simple_spinner_dropdown_item);
@@ -298,7 +295,7 @@ public class RtmpActivity extends AppCompatActivity
     int height = resolution.height;
     return rtmpCamera1.prepareVideo(width, height, Integer.parseInt(etFps.getText().toString()),
         Integer.parseInt(etVideoBitrate.getText().toString()) * 1024,
-        cbHardwareRotation.isChecked(), orientations[spOrientation.getSelectedItemPosition()])
+        cbHardwareRotation.isChecked(), CameraHelper.getCamera1Orientation(this))
         && rtmpCamera1.prepareAudio(Integer.parseInt(etAudioBitrate.getText().toString()) * 1024,
         Integer.parseInt(etSampleRate.getText().toString()),
         rgChannel.getCheckedRadioButtonId() == R.id.rb_stereo, cbEchoCanceler.isChecked(),

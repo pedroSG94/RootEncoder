@@ -29,11 +29,6 @@
           android:id="@+id/et_fps"
           />
       <item
-          android:title="@string/orientation"
-          app:actionViewClass="android.widget.Spinner"
-          android:id="@+id/sp_orientation"
-          />
-      <item
           android:title="@string/hardware_rotation"
           app:actionViewClass="android.widget.CheckBox"
           android:id="@+id/cb_hardware_rotation"

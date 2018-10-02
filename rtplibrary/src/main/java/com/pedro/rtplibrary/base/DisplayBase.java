@@ -241,7 +241,7 @@ public abstract class DisplayBase implements GetAacData, GetH264Data, GetMicroph
     videoEncoder.start();
     audioEncoder.start();
     if (glInterface != null) {
-      glInterface.start(false);
+      glInterface.start();
       glInterface.addMediaCodecSurface(videoEncoder.getInputSurface());
     }
     Surface surface =

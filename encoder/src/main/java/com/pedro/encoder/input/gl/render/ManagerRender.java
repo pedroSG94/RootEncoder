@@ -35,11 +35,10 @@ public class ManagerRender {
     screenRender = new ScreenRender();
   }
 
-  public void initGl(int width, int height, boolean isCamera2Landscape, Context context) {
+  public void initGl(int width, int height, Context context) {
     this.width = width;
     this.height = height;
     this.context = context;
-    cameraRender.isCamera2LandScape(isCamera2Landscape);
     cameraRender.initGl(width, height, context);
     for (int i = 0; i < numFilters; i++) {
       int textId = i == 0 ? cameraRender.getTexId() : baseFilterRender.get(i - 1).getTexId();
@@ -56,8 +55,8 @@ public class ManagerRender {
     for (BaseFilterRender baseFilterRender : baseFilterRender) baseFilterRender.draw();
   }
 
-  public void drawScreen(int width, int height, boolean keepAspectRatio, boolean isFrontFlip) {
-    screenRender.draw(width, height, keepAspectRatio, isFrontFlip);
+  public void drawScreen(int width, int height, boolean keepAspectRatio) {
+    screenRender.draw(width, height, keepAspectRatio);
   }
 
   public void release() {
@@ -100,8 +99,11 @@ public class ManagerRender {
     screenRender.setStreamSize(encoderWidth, encoderHeight);
   }
 
-  public void faceChanged(boolean isFrontCamera) {
-    cameraRender.faceChanged(isFrontCamera);
-    screenRender.faceChanged(isFrontCamera);
+  public void setCameraRotation(int rotation) {
+    cameraRender.setRotation(rotation);
+  }
+
+  public void setCameraFlip(boolean isFlipHorizontal, boolean isFlipVertical) {
+    cameraRender.setFlip(isFlipHorizontal, isFlipVertical);
   }
 }
