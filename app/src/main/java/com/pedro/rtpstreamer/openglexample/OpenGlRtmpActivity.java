@@ -97,12 +97,8 @@ public class OpenGlRtmpActivity extends AppCompatActivity
     switchCamera.setOnClickListener(this);
     etUrl = findViewById(R.id.et_rtp_url);
     etUrl.setHint(R.string.hint_rtmp);
-    //Number of filters to use at same time.
-    // You must modify it before create rtmp or rtsp object.
-    //ManagerRender.numFilters = 2;
     rtmpCamera1 = new RtmpCamera1(openGlView, this);
     openGlView.getHolder().addCallback(this);
-    //openGlView.setKeepAspectRatio(true);
   }
 
   @Override

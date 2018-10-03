@@ -1,6 +1,7 @@
 package com.pedro.rtplibrary.view;
 
 import android.content.Context;
+import android.content.res.TypedArray;
 import android.graphics.SurfaceTexture;
 import android.os.Build;
 import android.support.annotation.RequiresApi;
@@ -10,6 +11,7 @@ import com.pedro.encoder.input.gl.SurfaceManager;
 import com.pedro.encoder.input.gl.render.ManagerRender;
 import com.pedro.encoder.input.gl.render.filters.BaseFilterRender;
 import com.pedro.encoder.utils.gl.GlUtil;
+import com.pedro.rtplibrary.R;
 
 /**
  * Created by pedro on 9/09/17.
@@ -23,6 +25,7 @@ public class OpenGlView extends OpenGlViewBase {
 
   private boolean AAEnabled = false;
   private boolean keepAspectRatio = false;
+  private boolean isFlipHorizontal = false, isFlipVertical = false;
 
   public OpenGlView(Context context) {
     super(context);
@@ -30,11 +33,22 @@ public class OpenGlView extends OpenGlViewBase {
 
   public OpenGlView(Context context, AttributeSet attrs) {
     super(context, attrs);
+    TypedArray typedArray = context.obtainStyledAttributes(attrs, R.styleable.OpenGlView);
+    try {
+      keepAspectRatio = typedArray.getBoolean(R.styleable.OpenGlView_keepAspectRatio, false);
+      AAEnabled = typedArray.getBoolean(R.styleable.OpenGlView_AAEnabled, false);
+      ManagerRender.numFilters = typedArray.getInt(R.styleable.OpenGlView_numFilters, 1);
+      isFlipHorizontal = typedArray.getBoolean(R.styleable.OpenGlView_isFlipHorizontal, false);
+      isFlipVertical = typedArray.getBoolean(R.styleable.OpenGlView_isFlipVertical, false);
+    } finally {
+      typedArray.recycle();
+    }
   }
 
   @Override
   public void init() {
     if (!initialized) managerRender = new ManagerRender();
+    managerRender.setCameraFlip(isFlipHorizontal, isFlipVertical);
     waitTime = 10;
     initialized = true;
   }
@@ -71,6 +85,10 @@ public class OpenGlView extends OpenGlViewBase {
 
   public void setKeepAspectRatio(boolean keepAspectRatio) {
     this.keepAspectRatio = keepAspectRatio;
+  }
+
+  public void setCameraFlip(boolean isFlipHorizontal, boolean isFlipVertical) {
+    managerRender.setCameraFlip(isFlipHorizontal, isFlipVertical);
   }
 
   @Override

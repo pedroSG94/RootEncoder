@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <declare-styleable name="OpenGlView">
+    <attr name="keepAspectRatio" format="boolean"/>
+    <attr name="AAEnabled" format="boolean"/>
+    <attr name="numFilters" format="integer"/>
+    <attr name="isFlipHorizontal" format="boolean"/>
+    <attr name="isFlipVertical" format="boolean"/>
+  </declare-styleable>
+</resources>
