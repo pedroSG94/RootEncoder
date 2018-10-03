@@ -156,8 +156,20 @@ public class VideoEncoder implements GetCameraData {
       try {
         videoEncoder.setParameters(bundle);
       } catch (IllegalStateException e) {
-        Log.e(TAG, "encoder need be running");
-        e.printStackTrace();
+        Log.e(TAG, "encoder need be running", e);
+      }
+    }
+  }
+
+  @RequiresApi(api = Build.VERSION_CODES.KITKAT)
+  public void forceSyncFrame() {
+    if (isRunning()) {
+      Bundle bundle = new Bundle();
+      bundle.putInt(MediaCodec.PARAMETER_KEY_REQUEST_SYNC_FRAME, 0);
+      try {
+        videoEncoder.setParameters(bundle);
+      } catch (IllegalStateException e) {
+        Log.e(TAG, "encoder need be running", e);
       }
     }
   }

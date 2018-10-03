@@ -192,8 +192,6 @@ public abstract class DisplayBase implements GetAacData, GetH264Data, GetMicroph
       }
       mediaMuxer = null;
     }
-    videoFormat = null;
-    audioFormat = null;
     videoTrack = -1;
     audioTrack = -1;
     if (!streaming) stopStream();
@@ -283,6 +281,8 @@ public abstract class DisplayBase implements GetAacData, GetH264Data, GetMicroph
       }
       videoEncoder.stop();
       audioEncoder.stop();
+      videoFormat = null;
+      audioFormat = null;
       data = null;
     }
     streaming = false;

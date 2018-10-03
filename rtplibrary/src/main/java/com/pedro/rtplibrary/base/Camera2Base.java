@@ -239,8 +239,6 @@ public abstract class Camera2Base implements GetAacData, GetH264Data, GetMicroph
       }
       mediaMuxer = null;
     }
-    videoFormat = null;
-    audioFormat = null;
     videoTrack = -1;
     audioTrack = -1;
     if (!streaming) stopStream();
@@ -386,6 +384,8 @@ public abstract class Camera2Base implements GetAacData, GetH264Data, GetMicroph
       microphoneManager.stop();
       videoEncoder.stop();
       audioEncoder.stop();
+      videoFormat = null;
+      audioFormat = null;
       if (glInterface != null) {
         glInterface.removeMediaCodecSurface();
         if (glInterface instanceof OffScreenGlThread) {

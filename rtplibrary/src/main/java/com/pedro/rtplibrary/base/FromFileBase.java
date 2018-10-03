@@ -173,8 +173,6 @@ public abstract class FromFileBase
       }
       mediaMuxer = null;
     }
-    videoFormat = null;
-    audioFormat = null;
     videoTrack = -1;
     audioTrack = -1;
     if (!streaming) stopStream();
@@ -253,6 +251,8 @@ public abstract class FromFileBase
       if (audioDecoder != null) audioDecoder.stop();
       videoEncoder.stop();
       audioEncoder.stop();
+      videoFormat = null;
+      audioFormat = null;
     }
     streaming = false;
   }
