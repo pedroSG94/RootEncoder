@@ -275,7 +275,8 @@ public class OpenGlRtspActivity extends AppCompatActivity
       GifObjectFilterRender gifObjectFilterRender = new GifObjectFilterRender();
       gifObjectFilterRender.setGif(getResources().openRawResource(R.raw.banana));
       rtspCamera1.getGlInterface().setFilter(gifObjectFilterRender);
-      gifObjectFilterRender.setDefaultScale(rtspCamera1.getStreamWidth(), rtspCamera1.getStreamHeight());
+      gifObjectFilterRender.setDefaultScale(rtspCamera1.getStreamWidth(),
+          rtspCamera1.getStreamHeight());
       gifObjectFilterRender.setPosition(TranslateTo.BOTTOM);
       gifObjectFilterRender.setListeners(openGlView); //Optional
     } catch (IOException e) {

@@ -17,7 +17,7 @@ public class MicrophoneManager {
   private AudioRecord audioRecord;
   private GetMicrophoneData getMicrophoneData;
   private byte[] pcmBuffer = new byte[BUFFER_SIZE];
-  private byte[] pcmBufferMuted = new byte[11];
+  private byte[] pcmBufferMuted = new byte[BUFFER_SIZE];
   private boolean running = false;
   private boolean created = false;
 
@@ -109,16 +109,11 @@ public class MicrophoneManager {
    * @return Object with size and PCM buffer data
    */
   private DataTaken read() {
-    int size;
-    if (muted) {
-      size = audioRecord.read(pcmBufferMuted, 0, pcmBufferMuted.length);
-    } else {
-      size = audioRecord.read(pcmBuffer, 0, pcmBuffer.length);
-    }
+    int size = audioRecord.read(pcmBuffer, 0, pcmBuffer.length);
     if (size <= 0) {
       return null;
     }
-    return new DataTaken(pcmBuffer, size);
+    return new DataTaken(muted ? pcmBufferMuted : pcmBuffer, size);
   }
 
   /**

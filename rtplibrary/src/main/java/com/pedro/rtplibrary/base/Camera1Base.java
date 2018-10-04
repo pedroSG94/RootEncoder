@@ -94,8 +94,7 @@ public abstract class Camera1Base
     context = lightOpenGlView.getContext();
     this.glInterface = lightOpenGlView;
     this.glInterface.init();
-    cameraManager =
-        new Camera1ApiManager(glInterface.getSurfaceTexture());
+    cameraManager = new Camera1ApiManager(glInterface.getSurfaceTexture());
     init();
   }
 
@@ -112,6 +111,20 @@ public abstract class Camera1Base
     videoEncoder = new VideoEncoder(this);
     microphoneManager = new MicrophoneManager(this);
     audioEncoder = new AudioEncoder(this);
+  }
+
+  /**
+   * Experimental
+   */
+  public void enableFaceDetection(Camera1ApiManager.FaceDetectorCallback faceDetectorCallback) {
+    cameraManager.enableFaceDetection(faceDetectorCallback);
+  }
+
+  /**
+   * Experimental
+   */
+  public void disableFaceDetection() {
+    cameraManager.disableFaceDetection();
   }
 
   /**
@@ -280,7 +293,7 @@ public abstract class Camera1Base
     }
   }
 
-  public void startPreview(@Camera1Facing int cameraFacing, int width, int height){
+  public void startPreview(@Camera1Facing int cameraFacing, int width, int height) {
     startPreview(cameraFacing, width, height, CameraHelper.getCameraOrientation(context));
   }
 

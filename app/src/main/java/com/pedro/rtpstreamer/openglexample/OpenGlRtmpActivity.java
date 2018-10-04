@@ -275,7 +275,8 @@ public class OpenGlRtmpActivity extends AppCompatActivity
       GifObjectFilterRender gifObjectFilterRender = new GifObjectFilterRender();
       gifObjectFilterRender.setGif(getResources().openRawResource(R.raw.banana));
       rtmpCamera1.getGlInterface().setFilter(gifObjectFilterRender);
-      gifObjectFilterRender.setDefaultScale(rtmpCamera1.getStreamWidth(), rtmpCamera1.getStreamHeight());
+      gifObjectFilterRender.setDefaultScale(rtmpCamera1.getStreamWidth(),
+          rtmpCamera1.getStreamHeight());
       gifObjectFilterRender.setPosition(TranslateTo.BOTTOM);
       gifObjectFilterRender.setListeners(openGlView); //Optional
     } catch (IOException e) {
