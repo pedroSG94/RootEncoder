@@ -1,4 +1,4 @@
-package com.pedro.rtplibrary.view;
+package com.pedro.encoder.input.video;
 
 import android.graphics.Matrix;
 import android.graphics.PointF;
