@@ -5,6 +5,7 @@ import android.graphics.SurfaceTexture;
 import android.hardware.Camera;
 import android.media.CamcorderProfile;
 import android.util.Log;
+import android.view.MotionEvent;
 import android.view.SurfaceView;
 import android.view.TextureView;
 import java.io.IOException;
@@ -46,6 +47,7 @@ public class Camera1ApiManager implements Camera.PreviewCallback, Camera.FaceDet
   private byte[] yuvBuffer;
   private List<Camera.Size> previewSizeBack;
   private List<Camera.Size> previewSizeFront;
+  private float mDistance;
 
   public Camera1ApiManager(SurfaceView surfaceView, GetCameraData getCameraData) {
     this.surfaceView = surfaceView;
@@ -154,7 +156,41 @@ public class Camera1ApiManager implements Camera.PreviewCallback, Camera.FaceDet
     }
   }
 
-  private int selectCameraBack() {
+  public void setZoom(MotionEvent event) {
+      try {
+          if (camera != null && running && camera.getParameters() != null &&
+                  camera.getParameters().isZoomSupported()) {
+              android.hardware.Camera.Parameters params = camera.getParameters();
+              int maxZoom = params.getMaxZoom();
+              int zoom = params.getZoom();
+              float newDist = getFingerSpacing(event);
+
+              if (newDist > mDistance) {
+                  if (zoom < maxZoom) {
+                      zoom++;
+                  }
+              } else if (newDist < mDistance) {
+                  if (zoom > 0) {
+                      zoom--;
+                  }
+              }
+
+              mDistance = newDist;
+              params.setZoom(zoom);
+              camera.setParameters(params);
+          }
+      }  catch (Exception e) {
+          e.printStackTrace();
+      }
+  }
+
+    public float getFingerSpacing(MotionEvent event) {
+        float x = event.getX(0) - event.getX(1);
+        float y = event.getY(0) - event.getY(1);
+        return (float)Math.sqrt(x * x + y * y);
+    }
+
+    private int selectCameraBack() {
     int number = Camera.getNumberOfCameras();
     for (int i = 0; i < number; i++) {
       Camera.CameraInfo info = new Camera.CameraInfo();
