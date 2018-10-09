@@ -46,6 +46,12 @@ public class Camera1ApiManager implements Camera.PreviewCallback, Camera.FaceDet
   private byte[] yuvBuffer;
   private List<Camera.Size> previewSizeBack;
   private List<Camera.Size> previewSizeFront;
+  //Face detector
+  public interface FaceDetectorCallback {
+    void onGetFaces(Camera.Face[] faces);
+  }
+
+  private FaceDetectorCallback faceDetectorCallback;
 
   public Camera1ApiManager(SurfaceView surfaceView, GetCameraData getCameraData) {
     this.surfaceView = surfaceView;
@@ -363,12 +369,6 @@ public class Camera1ApiManager implements Camera.PreviewCallback, Camera.FaceDet
     }
   }
 
-  public interface FaceDetectorCallback {
-    void onGetFaces(Camera.Face[] faces);
-  }
-
-  private FaceDetectorCallback faceDetectorCallback;
-
   public void enableFaceDetection(FaceDetectorCallback faceDetectorCallback) {
     if (camera != null) {
       this.faceDetectorCallback = faceDetectorCallback;
@@ -383,6 +383,10 @@ public class Camera1ApiManager implements Camera.PreviewCallback, Camera.FaceDet
       camera.stopFaceDetection();
       camera.setFaceDetectionListener(null);
     }
+  }
+
+  public boolean isFaceDetectionEnabled() {
+    return faceDetectorCallback != null;
   }
 
   @Override

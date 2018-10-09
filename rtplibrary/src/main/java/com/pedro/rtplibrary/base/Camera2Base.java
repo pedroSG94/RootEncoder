@@ -111,6 +111,27 @@ public abstract class Camera2Base implements GetAacData, GetH264Data, GetMicroph
   }
 
   /**
+   * Experimental
+   */
+  public void enableFaceDetection(Camera2ApiManager.FaceDetectorCallback faceDetectorCallback) {
+    cameraManager.enableFaceDetection(faceDetectorCallback);
+  }
+
+  /**
+   * Experimental
+   */
+  public void disableFaceDetection() {
+    cameraManager.disableFaceDetection();
+  }
+
+  /**
+   * Experimental
+   */
+  public boolean isFaceDetectionEnabled() {
+    return cameraManager.isFaceDetectionEnabled();
+  }
+
+  /**
    * Basic auth developed to work with Wowza. No tested with other server
    *
    * @param user auth.

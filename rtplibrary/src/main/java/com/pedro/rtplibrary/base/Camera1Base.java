@@ -128,6 +128,13 @@ public abstract class Camera1Base
   }
 
   /**
+   * Experimental
+   */
+  public boolean isFaceDetectionEnabled() {
+    return cameraManager.isFaceDetectionEnabled();
+  }
+
+  /**
    * Basic auth developed to work with Wowza. No tested with other server
    *
    * @param user auth.
