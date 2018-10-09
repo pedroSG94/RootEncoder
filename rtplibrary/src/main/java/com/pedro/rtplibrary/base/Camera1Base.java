@@ -8,6 +8,7 @@ import android.media.MediaMuxer;
 import android.os.Build;
 import android.support.annotation.RequiresApi;
 import android.util.Log;
+import android.view.MotionEvent;
 import android.view.SurfaceView;
 import android.view.TextureView;
 import com.pedro.encoder.audio.AudioEncoder;
@@ -359,6 +360,19 @@ public abstract class Camera1Base
    */
   public void setPreviewOrientation(int orientation) {
     cameraManager.setPreviewOrientation(orientation);
+  }
+
+  /**
+   * Set zoomIn or zoomOut to camera.
+   *
+   * @param event motion event. Expected to get event.getPointerCount() > 1
+   */
+  public void setZoom(MotionEvent event) {
+    cameraManager.setZoom(event);
+  }
+
+  public float getFingerSpacing(MotionEvent event) {
+    return cameraManager.getFingerSpacing(event);
   }
 
   protected abstract void startStreamRtp(String url);

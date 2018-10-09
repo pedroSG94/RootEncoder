@@ -12,6 +12,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.MotionEvent;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.View;
@@ -44,7 +45,8 @@ import java.util.Locale;
  * {@link com.pedro.rtplibrary.rtsp.RtspCamera1}
  */
 public class RtspActivity extends AppCompatActivity
-    implements Button.OnClickListener, ConnectCheckerRtsp, SurfaceHolder.Callback {
+    implements Button.OnClickListener, ConnectCheckerRtsp, SurfaceHolder.Callback,
+    View.OnTouchListener {
 
   private Integer[] orientations = new Integer[] { 0, 90, 180, 270 };
 
@@ -77,6 +79,7 @@ public class RtspActivity extends AppCompatActivity
 
     surfaceView = findViewById(R.id.surfaceView);
     surfaceView.getHolder().addCallback(this);
+    surfaceView.setOnTouchListener(this);
     rtspCamera1 = new RtspCamera1(surfaceView, this);
     prepareOptionsMenuViews();
 
@@ -434,5 +437,20 @@ public class RtspActivity extends AppCompatActivity
       bStartStop.setText(getResources().getString(R.string.start_button));
     }
     rtspCamera1.stopPreview();
+  }
+
+  @Override
+  public boolean onTouch(View view, MotionEvent motionEvent) {
+    int action = motionEvent.getAction();
+    if (motionEvent.getPointerCount() > 1) {
+      if (action == MotionEvent.ACTION_MOVE) {
+        rtspCamera1.setZoom(motionEvent);
+      }
+    } else {
+      if (action == MotionEvent.ACTION_UP) {
+        // todo place to add autofocus functional.
+      }
+    }
+    return true;
   }
 }

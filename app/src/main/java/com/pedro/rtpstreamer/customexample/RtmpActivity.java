@@ -9,9 +9,11 @@ import android.support.design.widget.NavigationView;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.MotionEvent;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.View;
@@ -24,10 +26,12 @@ import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.Spinner;
 import android.widget.Toast;
+
 import com.pedro.encoder.input.video.CameraHelper;
 import com.pedro.encoder.input.video.CameraOpenException;
 import com.pedro.rtplibrary.rtmp.RtmpCamera1;
 import com.pedro.rtpstreamer.R;
+
 import java.io.File;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
@@ -35,6 +39,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
+
 import net.ossrs.rtmp.ConnectCheckerRtmp;
 
 /**
@@ -43,7 +48,8 @@ import net.ossrs.rtmp.ConnectCheckerRtmp;
  * {@link com.pedro.rtplibrary.rtmp.RtmpCamera1}
  */
 public class RtmpActivity extends AppCompatActivity
-    implements Button.OnClickListener, ConnectCheckerRtmp, SurfaceHolder.Callback {
+    implements Button.OnClickListener, ConnectCheckerRtmp, SurfaceHolder.Callback,
+    View.OnTouchListener {
 
   private Integer[] orientations = new Integer[] { 0, 90, 180, 270 };
 
@@ -74,6 +80,7 @@ public class RtmpActivity extends AppCompatActivity
 
     SurfaceView surfaceView = findViewById(R.id.surfaceView);
     surfaceView.getHolder().addCallback(this);
+    surfaceView.setOnTouchListener(this);
     rtmpCamera1 = new RtmpCamera1(surfaceView, this);
     prepareOptionsMenuViews();
 
@@ -209,6 +216,7 @@ public class RtmpActivity extends AppCompatActivity
   public void onClick(View v) {
     switch (v.getId()) {
       case R.id.b_start_stop:
+        Log.d("TAG_R", "b_start_stop: ");
         if (!rtmpCamera1.isStreaming()) {
           bStartStop.setText(getResources().getString(R.string.stop_button));
           String user = etWowzaUser.getText().toString();
@@ -234,6 +242,7 @@ public class RtmpActivity extends AppCompatActivity
         }
         break;
       case R.id.b_record:
+        Log.d("TAG_R", "b_start_stop: ");
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
           if (!rtmpCamera1.isRecording()) {
             try {
@@ -402,5 +411,20 @@ public class RtmpActivity extends AppCompatActivity
       bStartStop.setText(getResources().getString(R.string.start_button));
     }
     rtmpCamera1.stopPreview();
+  }
+
+  @Override
+  public boolean onTouch(View view, MotionEvent motionEvent) {
+    int action = motionEvent.getAction();
+    if (motionEvent.getPointerCount() > 1) {
+      if (action == MotionEvent.ACTION_MOVE) {
+        rtmpCamera1.setZoom(motionEvent);
+      }
+    } else {
+      if (action == MotionEvent.ACTION_UP) {
+        // todo place to add autofocus functional.
+      }
+    }
+    return true;
   }
 }
