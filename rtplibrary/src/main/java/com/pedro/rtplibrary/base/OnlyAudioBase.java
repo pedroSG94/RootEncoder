@@ -78,10 +78,10 @@ public abstract class OnlyAudioBase implements GetAacData, GetMicrophoneData {
    * RTMPS: rtmps://192.168.1.1:1935/live/pedroSG94
    */
   public void startStream(String url) {
-    audioEncoder.start();
-    microphoneManager.start();
     streaming = true;
     startStreamRtp(url);
+    audioEncoder.start();
+    microphoneManager.start();
   }
 
   protected abstract void stopStreamRtp();
@@ -90,10 +90,10 @@ public abstract class OnlyAudioBase implements GetAacData, GetMicrophoneData {
    * Stop stream started with @startStream.
    */
   public void stopStream() {
-    microphoneManager.stop();
-    stopStreamRtp();
-    audioEncoder.stop();
     streaming = false;
+    stopStreamRtp();
+    microphoneManager.stop();
+    audioEncoder.stop();
   }
 
   /**

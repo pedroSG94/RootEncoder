@@ -391,13 +391,13 @@ public abstract class Camera1Base
    * RTMPS: rtmps://192.168.1.1:1935/live/pedroSG94
    */
   public void startStream(String url) {
+    streaming = true;
     startStreamRtp(url);
     if (!recording) {
       startEncoders();
     } else {
       resetVideoEncoder();
     }
-    streaming = true;
     onPreview = true;
   }
 
@@ -425,6 +425,7 @@ public abstract class Camera1Base
     if (glInterface != null && Build.VERSION.SDK_INT >= 18) {
       if (glInterface instanceof OffScreenGlThread) {
         glInterface = new OffScreenGlThread(context);
+        ((OffScreenGlThread) glInterface).setFps(videoEncoder.getFps());
       }
       glInterface.init();
       if (videoEncoder.getRotation() == 90 || videoEncoder.getRotation() == 270) {
@@ -446,7 +447,10 @@ public abstract class Camera1Base
    * Stop stream started with @startStream.
    */
   public void stopStream() {
-    if (streaming) stopStreamRtp();
+    if (streaming) {
+      streaming = false;
+      stopStreamRtp();
+    }
     if (!recording) {
       microphoneManager.stop();
       videoEncoder.stop();
@@ -461,7 +465,6 @@ public abstract class Camera1Base
         }
       }
     }
-    streaming = false;
   }
 
   /**

@@ -8,6 +8,7 @@ import android.view.Surface;
 import com.pedro.encoder.input.gl.SurfaceManager;
 import com.pedro.encoder.input.gl.render.ManagerRender;
 import com.pedro.encoder.input.gl.render.filters.BaseFilterRender;
+import com.pedro.encoder.input.video.FpsLimiter;
 import com.pedro.encoder.utils.gl.GlUtil;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -40,6 +41,8 @@ public class OffScreenGlThread
 
   private boolean AAEnabled = false;
   private int waitTime = 10;
+  private int fps = 30;
+  private FpsLimiter fpsLimiter = new FpsLimiter();
   //used with camera
   private TakePhotoCallback takePhotoCallback;
 
@@ -57,6 +60,10 @@ public class OffScreenGlThread
   public void setEncoderSize(int width, int height) {
     this.encoderWidth = width;
     this.encoderHeight = height;
+  }
+
+  public void setFps(int fps) {
+    this.fps = fps;
   }
 
   @Override
@@ -141,6 +148,7 @@ public class OffScreenGlThread
       }
       thread = null;
     }
+    fpsLimiter.reset();
     running = false;
   }
 
@@ -155,6 +163,7 @@ public class OffScreenGlThread
     semaphore.release();
     try {
       while (running) {
+        if (fpsLimiter.limitFPS(fps)) continue;
         synchronized (sync) {
           sync.wait(waitTime);
           if (frameAvailable) {

@@ -47,7 +47,7 @@ public class Camera1ApiManager implements Camera.PreviewCallback, Camera.FaceDet
   private byte[] yuvBuffer;
   private List<Camera.Size> previewSizeBack;
   private List<Camera.Size> previewSizeFront;
-  private float mDistance;
+  private float distance;
 
   //Face detector
   public interface FaceDetectorCallback {
@@ -172,17 +172,17 @@ public class Camera1ApiManager implements Camera.PreviewCallback, Camera.FaceDet
         int zoom = params.getZoom();
         float newDist = getFingerSpacing(event);
 
-        if (newDist > mDistance) {
+        if (newDist > distance) {
           if (zoom < maxZoom) {
             zoom++;
           }
-        } else if (newDist < mDistance) {
+        } else if (newDist < distance) {
           if (zoom > 0) {
             zoom--;
           }
         }
 
-        mDistance = newDist;
+        distance = newDist;
         params.setZoom(zoom);
         camera.setParameters(params);
       }

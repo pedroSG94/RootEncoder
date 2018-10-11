@@ -225,20 +225,23 @@ public abstract class DisplayBase implements GetAacData, GetH264Data, GetMicroph
    * RTMPS: rtmps://192.168.1.1:1935/live/pedroSG94
    */
   public void startStream(String url) {
+    streaming = true;
     startStreamRtp(url);
     if (!recording) {
       startEncoders(resultCode, data);
     } else {
       resetVideoEncoder();
     }
-    streaming = true;
   }
 
   private void startEncoders(int resultCode, Intent data) {
-    if (data == null) throw new RuntimeException("You need send intent data before startRecord or startStream");
+    if (data == null) {
+      throw new RuntimeException("You need send intent data before startRecord or startStream");
+    }
     videoEncoder.start();
     audioEncoder.start();
     if (glInterface != null) {
+      glInterface.setFps(videoEncoder.getFps());
       glInterface.start();
       glInterface.addMediaCodecSurface(videoEncoder.getInputSurface());
     }
@@ -269,7 +272,10 @@ public abstract class DisplayBase implements GetAacData, GetH264Data, GetMicroph
    * Stop stream started with @startStream.
    */
   public void stopStream() {
-    if (streaming) stopStreamRtp();
+    if (streaming) {
+      streaming = false;
+      stopStreamRtp();
+    }
     if (!recording) {
       microphoneManager.stop();
       if (mediaProjection != null) {
@@ -285,7 +291,6 @@ public abstract class DisplayBase implements GetAacData, GetH264Data, GetMicroph
       audioFormat = null;
       data = null;
     }
-    streaming = false;
   }
 
   public GlInterface getGlInterface() {

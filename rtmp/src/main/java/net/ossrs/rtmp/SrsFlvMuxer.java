@@ -659,7 +659,8 @@ public class SrsFlvMuxer {
         // AudioSpecificConfig (), page 33
         // 1.6.2.1 AudioSpecificConfig
         // audioObjectType; 5 bslbf
-        byte ch = (byte) ((bb.get(0) & 0xf8) / 2);
+        byte ch = (byte) (bi.flags == MediaCodec.BUFFER_FLAG_CODEC_CONFIG ? bb.get(0) & 0xf8
+            : (bb.get(0) & 0xf8) / 2);
         // 3bits left.
 
         // samplingFrequencyIndex; 4 bslbf

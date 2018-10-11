@@ -43,7 +43,7 @@ public abstract class FromFileBase
 
   protected VideoEncoder videoEncoder;
   private AudioEncoder audioEncoder;
-  private GlInterface glInterface;
+  private OffScreenGlThread glInterface;
   private boolean streaming = false;
   private boolean videoEnabled = true;
   //record
@@ -192,13 +192,13 @@ public abstract class FromFileBase
    * RTMPS: rtmps://192.168.1.1:1935/live/pedroSG94
    */
   public void startStream(String url) {
+    streaming = true;
     startStreamRtp(url);
     if (!recording) {
       startEncoders();
     } else {
       resetVideoEncoder();
     }
-    streaming = true;
   }
 
   private void startEncoders() {
@@ -222,6 +222,7 @@ public abstract class FromFileBase
       }
       videoEncoder.reset();
       if (context != null) {
+        glInterface.setFps(videoEncoder.getFps());
         glInterface.start();
         glInterface.addMediaCodecSurface(videoEncoder.getInputSurface());
         videoDecoder.prepareVideo(glInterface.getSurface());
@@ -241,7 +242,10 @@ public abstract class FromFileBase
    * Stop stream started with @startStream.
    */
   public void stopStream() {
-    if (streaming) stopStreamRtp();
+    if (streaming) {
+      streaming = false;
+      stopStreamRtp();
+    }
     if (!recording) {
       if (context != null) {
         glInterface.removeMediaCodecSurface();
@@ -254,7 +258,6 @@ public abstract class FromFileBase
       videoFormat = null;
       audioFormat = null;
     }
-    streaming = false;
   }
 
   /**
@@ -414,6 +417,7 @@ public abstract class FromFileBase
             throw new IOException("fail to reset video file");
           }
           if (context != null) {
+            glInterface.setFps(videoEncoder.getFps());
             glInterface.start();
             glInterface.addMediaCodecSurface(videoEncoder.getInputSurface());
             videoDecoder.prepareVideo(glInterface.getSurface());
