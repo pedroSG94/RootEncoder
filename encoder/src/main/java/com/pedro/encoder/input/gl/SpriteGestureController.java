@@ -1,67 +1,70 @@
 package com.pedro.encoder.input.gl;
 
 import android.graphics.PointF;
+import android.os.Build;
+import android.support.annotation.RequiresApi;
 import android.view.MotionEvent;
-import android.view.ScaleGestureDetector;
 import android.view.View;
+import com.pedro.encoder.input.gl.render.filters.object.BaseObjectFilterRender;
 
-public class SpriteGestureController
-    implements View.OnTouchListener, ScaleGestureDetector.OnScaleGestureListener {
+@RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
+public class SpriteGestureController {
 
-  private ScaleGestureDetector gestureScale;
-  private Sprite sprite;
-  private UpdateGestureCallback updateGestureCallback;
+  private BaseObjectFilterRender baseObjectFilterRender;
+  private float lastDistance;
 
-  public interface UpdateGestureCallback {
-    void onUpdate();
+  public SpriteGestureController() {
   }
 
-  public SpriteGestureController(Sprite sprite, UpdateGestureCallback updateGestureCallback) {
-    this.sprite = sprite;
-    this.updateGestureCallback = updateGestureCallback;
+  public SpriteGestureController(BaseObjectFilterRender sprite) {
+    this.baseObjectFilterRender = sprite;
   }
 
-  public void setListeners(View view) {
-    if (view != null) {
-      gestureScale = new ScaleGestureDetector(view.getContext(), this);
-      view.setOnTouchListener(this);
+  public BaseObjectFilterRender getBaseObjectFilterRender() {
+    return baseObjectFilterRender;
+  }
+
+  public void setBaseObjectFilterRender(BaseObjectFilterRender baseObjectFilterRender) {
+    this.baseObjectFilterRender = baseObjectFilterRender;
+  }
+
+  public boolean spriteTouched(View view, MotionEvent motionEvent) {
+    if (baseObjectFilterRender == null) return false;
+    float xPercent = motionEvent.getX() * 100 / view.getWidth();
+    float yPercent = motionEvent.getY() * 100 / view.getHeight();
+    PointF scale = baseObjectFilterRender.getScale();
+    PointF position = baseObjectFilterRender.getPosition();
+    boolean xTouched = xPercent >= position.x && xPercent <= position.x + scale.x;
+    boolean yTouched = yPercent >= position.y && yPercent <= position.y + scale.y;
+    return xTouched && yTouched;
+  }
+
+  public void moveSprite(View view, MotionEvent motionEvent) {
+    if (baseObjectFilterRender == null) return;
+    if (motionEvent.getPointerCount() == 1) {
+      float xPercent = motionEvent.getX() * 100 / view.getWidth();
+      float yPercent = motionEvent.getY() * 100 / view.getHeight();
+      PointF scale = baseObjectFilterRender.getScale();
+      baseObjectFilterRender.setPosition(xPercent - scale.x / 2f, yPercent - scale.y / 2f);
     }
   }
 
-  public void releaseListeners(View view) {
-    if (view != null) view.setOnTouchListener(null);
-    gestureScale = null;
+  public void scaleSprite(MotionEvent motionEvent) {
+    if (baseObjectFilterRender == null) return;
+    if (motionEvent.getPointerCount() > 1) {
+      float distance = getFingerSpacing(motionEvent);
+      float percent = distance >= lastDistance ? 1 : -1;
+      PointF scale = baseObjectFilterRender.getScale();
+      scale.x += percent;
+      scale.y += percent;
+      baseObjectFilterRender.setScale(scale.x, scale.y);
+      lastDistance = distance;
+    }
   }
 
-  @Override
-  public boolean onTouch(View view, MotionEvent motionEvent) {
-    if (gestureScale != null) gestureScale.onTouchEvent(motionEvent);
-    float xPercent = motionEvent.getX() * 100 / view.getWidth();
-    float yPercent = motionEvent.getY() * 100 / view.getHeight();
-    PointF scale = sprite.getScale();
-    sprite.translate(xPercent - scale.x / 2f, yPercent - scale.y / 2f);
-    updateGestureCallback.onUpdate();
-    return true;
-  }
-
-  @Override
-  public boolean onScale(ScaleGestureDetector detector) {
-    float factor = detector.getScaleFactor() - 1;
-    PointF scale = sprite.getScale();
-    float percent = factor >= 0 ? 1 : -1;
-    scale.x += percent;
-    scale.y += percent;
-    sprite.scale(scale.x, scale.y);
-    updateGestureCallback.onUpdate();
-    return true;
-  }
-
-  @Override
-  public boolean onScaleBegin(ScaleGestureDetector detector) {
-    return true;
-  }
-
-  @Override
-  public void onScaleEnd(ScaleGestureDetector detector) {
+  private float getFingerSpacing(MotionEvent event) {
+    float x = event.getX(0) - event.getX(1);
+    float y = event.getY(0) - event.getY(1);
+    return (float) Math.sqrt(x * x + y * y);
   }
 }

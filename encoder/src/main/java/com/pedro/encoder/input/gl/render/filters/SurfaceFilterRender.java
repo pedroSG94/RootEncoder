@@ -9,10 +9,9 @@ import android.opengl.Matrix;
 import android.os.Build;
 import android.support.annotation.RequiresApi;
 import android.view.Surface;
-import android.view.View;
 import com.pedro.encoder.R;
 import com.pedro.encoder.input.gl.Sprite;
-import com.pedro.encoder.input.gl.SpriteGestureController;
+import com.pedro.encoder.input.gl.render.filters.object.BaseObjectFilterRender;
 import com.pedro.encoder.utils.gl.GlUtil;
 import com.pedro.encoder.utils.gl.TranslateTo;
 import java.nio.ByteBuffer;
@@ -24,8 +23,7 @@ import java.nio.FloatBuffer;
  */
 
 @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
-public class SurfaceFilterRender extends BaseFilterRender
-    implements SpriteGestureController.UpdateGestureCallback {
+public class SurfaceFilterRender extends BaseObjectFilterRender {
 
   //rotation matrix
   private final float[] squareVertexDataFilter = {
@@ -52,7 +50,6 @@ public class SurfaceFilterRender extends BaseFilterRender
   private SurfaceTexture surfaceTexture;
   private Surface surface;
   private float alpha = 1f;
-  private SpriteGestureController spriteGestureController;
 
   public SurfaceFilterRender() {
     squareVertex = ByteBuffer.allocateDirect(squareVertexDataFilter.length * FLOAT_SIZE_BYTES)
@@ -60,7 +57,6 @@ public class SurfaceFilterRender extends BaseFilterRender
         .asFloatBuffer();
     squareVertex.put(squareVertexDataFilter).position(0);
     sprite = new Sprite();
-    spriteGestureController = new SpriteGestureController(sprite, this);
     float[] vertices = sprite.getTransformedVertices();
     squareVertexSurface = ByteBuffer.allocateDirect(vertices.length * FLOAT_SIZE_BYTES)
         .order(ByteOrder.nativeOrder())
@@ -169,18 +165,5 @@ public class SurfaceFilterRender extends BaseFilterRender
 
   public PointF getPosition() {
     return sprite.getTranslation();
-  }
-
-  public void setListeners(View view) {
-    spriteGestureController.setListeners(view);
-  }
-
-  public void releaseListeners(View view) {
-    spriteGestureController.releaseListeners(view);
-  }
-
-  @Override
-  public void onUpdate() {
-    squareVertexSurface.put(sprite.getTransformedVertices()).position(0);
   }
 }

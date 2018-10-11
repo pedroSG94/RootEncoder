@@ -187,7 +187,7 @@ public class Camera1ApiManager implements Camera.PreviewCallback, Camera.FaceDet
         camera.setParameters(params);
       }
     } catch (Exception e) {
-      e.printStackTrace();
+      Log.e(TAG, "Error", e);
     }
   }
 
