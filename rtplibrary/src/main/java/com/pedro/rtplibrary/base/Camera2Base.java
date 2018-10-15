@@ -2,6 +2,7 @@ package com.pedro.rtplibrary.base;
 
 import android.content.Context;
 import android.hardware.camera2.CameraCharacteristics;
+import android.hardware.camera2.CameraMetadata;
 import android.media.MediaCodec;
 import android.media.MediaFormat;
 import android.media.MediaMuxer;
@@ -274,6 +275,7 @@ public abstract class Camera2Base implements GetAacData, GetH264Data, GetMicroph
    * {@link android.hardware.camera2.CameraMetadata#LENS_FACING_BACK}
    * {@link android.hardware.camera2.CameraMetadata#LENS_FACING_FRONT}
    */
+  @Deprecated
   public void startPreview(@Camera2Facing int cameraFacing, int rotation) {
     if (!isStreaming() && !onPreview && !isBackground) {
       if (surfaceView != null) {
@@ -297,8 +299,21 @@ public abstract class Camera2Base implements GetAacData, GetH264Data, GetMicroph
     }
   }
 
+  public void startPreview(CameraHelper.Facing cameraFacing, int rotation) {
+    int facing = cameraFacing == CameraHelper.Facing.BACK ? CameraMetadata.LENS_FACING_BACK
+        : CameraMetadata.LENS_FACING_FRONT;
+    startPreview(facing, rotation);
+  }
+
+  @Deprecated
   public void startPreview(@Camera2Facing int cameraFacing) {
     startPreview(cameraFacing, CameraHelper.getCameraOrientation(context));
+  }
+
+  public void startPreview(CameraHelper.Facing cameraFacing) {
+    int facing = cameraFacing == CameraHelper.Facing.BACK ? CameraMetadata.LENS_FACING_BACK
+        : CameraMetadata.LENS_FACING_FRONT;
+    startPreview(facing);
   }
 
   /**
@@ -307,7 +322,7 @@ public abstract class Camera2Base implements GetAacData, GetH264Data, GetMicroph
    * CameraFacing will be always back.
    */
   public void startPreview() {
-    startPreview(CameraCharacteristics.LENS_FACING_BACK);
+    startPreview(CameraHelper.Facing.BACK);
   }
 
   /**

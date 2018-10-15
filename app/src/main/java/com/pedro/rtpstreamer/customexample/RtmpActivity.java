@@ -391,9 +391,9 @@ public class RtmpActivity extends AppCompatActivity
   public void surfaceChanged(SurfaceHolder surfaceHolder, int i, int i1, int i2) {
     rtmpCamera1.startPreview();
     // optionally:
-    //rtmpCamera1.startPreview(Camera.CameraInfo.CAMERA_FACING_BACK);
+    //rtmpCamera1.startPreview(CameraHelper.Facing.BACK);
     //or
-    //rtmpCamera1.startPreview(Camera.CameraInfo.CAMERA_FACING_FRONT);
+    //rtmpCamera1.startPreview(CameraHelper.Facing.FRONT);
   }
 
   @Override

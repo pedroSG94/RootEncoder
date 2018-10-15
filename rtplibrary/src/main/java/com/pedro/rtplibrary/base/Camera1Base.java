@@ -280,6 +280,7 @@ public abstract class Camera1Base
    * @param width of preview in px.
    * @param height of preview in px.
    */
+  @Deprecated
   public void startPreview(@Camera1Facing int cameraFacing, int width, int height, int rotation) {
     if (!isStreaming() && !onPreview && !(glInterface instanceof OffScreenGlThread)) {
       if (glInterface != null && Build.VERSION.SDK_INT >= 18) {
@@ -301,8 +302,21 @@ public abstract class Camera1Base
     }
   }
 
+  public void startPreview(CameraHelper.Facing cameraFacing, int width, int height, int rotation) {
+    int facing = cameraFacing == CameraHelper.Facing.BACK ? Camera.CameraInfo.CAMERA_FACING_BACK
+        : Camera.CameraInfo.CAMERA_FACING_FRONT;
+    startPreview(facing, width, height, rotation);
+  }
+
+  @Deprecated
   public void startPreview(@Camera1Facing int cameraFacing, int width, int height) {
     startPreview(cameraFacing, width, height, CameraHelper.getCameraOrientation(context));
+  }
+
+  public void startPreview(CameraHelper.Facing cameraFacing, int width, int height) {
+    int facing = cameraFacing == CameraHelper.Facing.BACK ? Camera.CameraInfo.CAMERA_FACING_BACK
+        : Camera.CameraInfo.CAMERA_FACING_FRONT;
+    startPreview(facing, width, height);
   }
 
   /**
@@ -313,8 +327,15 @@ public abstract class Camera1Base
    * {@link android.hardware.Camera.CameraInfo#CAMERA_FACING_BACK}
    * {@link android.hardware.Camera.CameraInfo#CAMERA_FACING_FRONT}
    */
+  @Deprecated
   public void startPreview(@Camera1Facing int cameraFacing) {
     startPreview(cameraFacing, 640, 480);
+  }
+
+  public void startPreview(CameraHelper.Facing cameraFacing) {
+    int facing = cameraFacing == CameraHelper.Facing.BACK ? Camera.CameraInfo.CAMERA_FACING_BACK
+        : Camera.CameraInfo.CAMERA_FACING_FRONT;
+    startPreview(facing);
   }
 
   /**
@@ -325,7 +346,7 @@ public abstract class Camera1Base
    * @param height preview in px.
    */
   public void startPreview(int width, int height) {
-    startPreview(Camera.CameraInfo.CAMERA_FACING_BACK, width, height);
+    startPreview(CameraHelper.Facing.BACK, width, height);
   }
 
   /**
@@ -334,7 +355,7 @@ public abstract class Camera1Base
    * CameraFacing will be always back.
    */
   public void startPreview() {
-    startPreview(Camera.CameraInfo.CAMERA_FACING_BACK);
+    startPreview(CameraHelper.Facing.BACK);
   }
 
   /**

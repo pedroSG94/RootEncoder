@@ -417,9 +417,9 @@ public class RtspActivity extends AppCompatActivity
   public void surfaceChanged(SurfaceHolder surfaceHolder, int i, int i1, int i2) {
     rtspCamera1.startPreview();
     // optionally:
-    //rtspCamera1.startPreview(Camera.CameraInfo.CAMERA_FACING_BACK);
+    //rtspCamera1.startPreview(CameraHelper.Facing.BACK);
     //or
-    //rtspCamera1.startPreview(Camera.CameraInfo.CAMERA_FACING_FRONT);
+    //rtspCamera1.startPreview(CameraHelper.Facing.FRONT);
   }
 
   @Override

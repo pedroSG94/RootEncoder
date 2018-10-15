@@ -84,4 +84,8 @@ public class CameraHelper {
     float y = event.getY(0) - event.getY(1);
     return (float) Math.sqrt(x * x + y * y);
   }
+
+  public enum Facing {
+    BACK, FRONT
+  }
 }

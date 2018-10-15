@@ -179,9 +179,8 @@ public class Camera2ApiManager extends CameraDevice.StateCallback {
 
   private CaptureRequest drawInputSurface(Surface surface) {
     try {
-      builderInputSurface = cameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_RECORD);
+      builderInputSurface = cameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_PREVIEW);
       builderInputSurface.addTarget(surface);
-      if (faceDetectionEnabled) setFaceDetect(builderInputSurface, faceDetectionMode);
       return builderInputSurface.build();
     } catch (CameraAccessException | IllegalStateException e) {
       Log.e(TAG, "Error", e);
@@ -274,7 +273,9 @@ public class Camera2ApiManager extends CameraDevice.StateCallback {
         this.faceDetectorCallback = faceDetectorCallback;
         faceDetectionEnabled = true;
         faceDetectionMode = Collections.max(fdList);
-        closeCamera(true);
+        if (builderPreview != null) setFaceDetect(builderPreview, faceDetectionMode);
+        setFaceDetect(builderInputSurface, faceDetectionMode);
+        prepareFaceDetectionCallback();
       } else {
         Log.e(TAG, "No face detection");
       }
@@ -288,7 +289,7 @@ public class Camera2ApiManager extends CameraDevice.StateCallback {
       faceDetectorCallback = null;
       faceDetectionEnabled = false;
       faceDetectionMode = 0;
-      closeCamera(true);
+      prepareFaceDetectionCallback();
     }
   }
 
@@ -302,13 +303,28 @@ public class Camera2ApiManager extends CameraDevice.StateCallback {
     }
   }
 
+  private void prepareFaceDetectionCallback() {
+    try {
+      cameraCaptureSession.stopRepeating();
+      if (builderPreview != null) {
+        cameraCaptureSession.setRepeatingRequest(builderPreview.build(),
+            faceDetectionEnabled ? cb : null, null);
+      }
+      cameraCaptureSession.setRepeatingRequest(builderInputSurface.build(),
+          faceDetectionEnabled ? cb : null, null);
+    } catch (CameraAccessException e) {
+      Log.e(TAG, "Error", e);
+    }
+  }
+
   private final CameraCaptureSession.CaptureCallback cb =
       new CameraCaptureSession.CaptureCallback() {
+
         @Override
         public void onCaptureCompleted(@NonNull CameraCaptureSession session,
             @NonNull CaptureRequest request, @NonNull TotalCaptureResult result) {
           Face[] faces = result.get(CaptureResult.STATISTICS_FACES);
-          if (faceDetectorCallback != null && faces.length > 0) {
+          if (faceDetectorCallback != null) {
             faceDetectorCallback.onGetFaces(faces);
           }
         }
