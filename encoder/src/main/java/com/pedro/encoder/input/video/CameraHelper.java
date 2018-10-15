@@ -1,6 +1,7 @@
 package com.pedro.encoder.input.video;
 
 import android.content.Context;
+import android.view.MotionEvent;
 import android.view.Surface;
 import android.view.WindowManager;
 
@@ -76,5 +77,11 @@ public class CameraHelper {
     } else {
       return 0;
     }
+  }
+
+  public static float getFingerSpacing(MotionEvent event) {
+    float x = event.getX(0) - event.getX(1);
+    float y = event.getY(0) - event.getY(1);
+    return (float) Math.sqrt(x * x + y * y);
   }
 }

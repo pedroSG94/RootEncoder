@@ -6,6 +6,7 @@ import android.support.annotation.RequiresApi;
 import android.view.MotionEvent;
 import android.view.View;
 import com.pedro.encoder.input.gl.render.filters.object.BaseObjectFilterRender;
+import com.pedro.encoder.input.video.CameraHelper;
 
 @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
 public class SpriteGestureController {
@@ -52,7 +53,7 @@ public class SpriteGestureController {
   public void scaleSprite(MotionEvent motionEvent) {
     if (baseObjectFilterRender == null) return;
     if (motionEvent.getPointerCount() > 1) {
-      float distance = getFingerSpacing(motionEvent);
+      float distance = CameraHelper.getFingerSpacing(motionEvent);
       float percent = distance >= lastDistance ? 1 : -1;
       PointF scale = baseObjectFilterRender.getScale();
       scale.x += percent;
@@ -60,11 +61,5 @@ public class SpriteGestureController {
       baseObjectFilterRender.setScale(scale.x, scale.y);
       lastDistance = distance;
     }
-  }
-
-  private float getFingerSpacing(MotionEvent event) {
-    float x = event.getX(0) - event.getX(1);
-    float y = event.getY(0) - event.getY(1);
-    return (float) Math.sqrt(x * x + y * y);
   }
 }

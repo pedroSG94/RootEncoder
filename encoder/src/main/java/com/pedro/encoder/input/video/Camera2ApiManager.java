@@ -1,6 +1,8 @@
 package com.pedro.encoder.input.video;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
+import android.graphics.Rect;
 import android.graphics.SurfaceTexture;
 import android.hardware.camera2.CameraAccessException;
 import android.hardware.camera2.CameraCaptureSession;
@@ -20,6 +22,7 @@ import android.support.annotation.NonNull;
 import android.support.annotation.RequiresApi;
 import android.util.Log;
 import android.util.Size;
+import android.view.MotionEvent;
 import android.view.Surface;
 import android.view.SurfaceView;
 import android.view.TextureView;
@@ -61,6 +64,11 @@ public class Camera2ApiManager extends CameraDevice.StateCallback {
   private boolean isOpenGl = false;
   private boolean isFrontCamera = false;
   private CameraCharacteristics cameraCharacteristics;
+  private CaptureRequest.Builder builderPreview;
+  private CaptureRequest.Builder builderInputSurface;
+  private float fingerSpacing = 0;
+  private int zoomLevel = 1;
+
   //Face detector
   public interface FaceDetectorCallback {
     void onGetFaces(Face[] faces);
@@ -159,11 +167,10 @@ public class Camera2ApiManager extends CameraDevice.StateCallback {
 
   private CaptureRequest drawPreview(Surface surface) {
     try {
-      CaptureRequest.Builder captureRequestBuilder =
-          cameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_PREVIEW);
-      captureRequestBuilder.addTarget(surface);
-      captureRequestBuilder.set(CaptureRequest.CONTROL_MODE, CameraMetadata.CONTROL_MODE_AUTO);
-      return captureRequestBuilder.build();
+      builderPreview = cameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_PREVIEW);
+      builderPreview.addTarget(surface);
+      builderPreview.set(CaptureRequest.CONTROL_MODE, CameraMetadata.CONTROL_MODE_AUTO);
+      return builderPreview.build();
     } catch (CameraAccessException e) {
       Log.e(TAG, "Error", e);
       return null;
@@ -172,11 +179,10 @@ public class Camera2ApiManager extends CameraDevice.StateCallback {
 
   private CaptureRequest drawInputSurface(Surface surface) {
     try {
-      CaptureRequest.Builder builder =
-          cameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_RECORD);
-      builder.addTarget(surface);
-      if (faceDetectionEnabled) setFaceDetect(builder, faceDetectionMode);
-      return builder.build();
+      builderInputSurface = cameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_RECORD);
+      builderInputSurface.addTarget(surface);
+      if (faceDetectionEnabled) setFaceDetect(builderInputSurface, faceDetectionMode);
+      return builderInputSurface.build();
     } catch (CameraAccessException | IllegalStateException e) {
       Log.e(TAG, "Error", e);
       return null;
@@ -301,13 +307,14 @@ public class Camera2ApiManager extends CameraDevice.StateCallback {
         @Override
         public void onCaptureCompleted(@NonNull CameraCaptureSession session,
             @NonNull CaptureRequest request, @NonNull TotalCaptureResult result) {
-            Face[] faces = result.get(CaptureResult.STATISTICS_FACES);
+          Face[] faces = result.get(CaptureResult.STATISTICS_FACES);
           if (faceDetectorCallback != null && faces.length > 0) {
             faceDetectorCallback.onGetFaces(faces);
           }
         }
       };
 
+  @SuppressLint("MissingPermission")
   public void openCameraId(Integer cameraId) {
     this.cameraId = cameraId;
     if (prepared) {
@@ -333,6 +340,47 @@ public class Camera2ApiManager extends CameraDevice.StateCallback {
       closeCamera(false);
       prepared = true;
       openCameraId(cameraId);
+    }
+  }
+
+  public void setZoom(MotionEvent event) {
+    try {
+      float maxZoom =
+          (cameraCharacteristics.get(CameraCharacteristics.SCALER_AVAILABLE_MAX_DIGITAL_ZOOM)) * 10;
+      Rect m = cameraCharacteristics.get(CameraCharacteristics.SENSOR_INFO_ACTIVE_ARRAY_SIZE);
+      float currentFingerSpacing;
+
+      if (event.getPointerCount() > 1) {
+        // Multi touch logic
+        currentFingerSpacing = CameraHelper.getFingerSpacing(event);
+        if (fingerSpacing != 0) {
+          if (currentFingerSpacing > fingerSpacing && maxZoom > zoomLevel) {
+            zoomLevel++;
+          } else if (currentFingerSpacing < fingerSpacing && zoomLevel > 1) {
+            zoomLevel--;
+          }
+          int minW = (int) (m.width() / maxZoom);
+          int minH = (int) (m.height() / maxZoom);
+          int difW = m.width() - minW;
+          int difH = m.height() - minH;
+          int cropW = difW / 100 * zoomLevel;
+          int cropH = difH / 100 * zoomLevel;
+          cropW -= cropW & 3;
+          cropH -= cropH & 3;
+          Rect zoom = new Rect(cropW, cropH, m.width() - cropW, m.height() - cropH);
+          if (builderPreview != null) builderPreview.set(CaptureRequest.SCALER_CROP_REGION, zoom);
+          builderInputSurface.set(CaptureRequest.SCALER_CROP_REGION, zoom);
+        }
+        fingerSpacing = currentFingerSpacing;
+      }
+      if (builderPreview != null) {
+        cameraCaptureSession.setRepeatingRequest(builderPreview.build(),
+            faceDetectionEnabled ? cb : null, null);
+      }
+      cameraCaptureSession.setRepeatingRequest(builderInputSurface.build(),
+          faceDetectionEnabled ? cb : null, null);
+    } catch (CameraAccessException e) {
+      Log.e(TAG, "Error", e);
     }
   }
 
@@ -368,6 +416,8 @@ public class Camera2ApiManager extends CameraDevice.StateCallback {
         cameraHandler = null;
       }
       prepared = false;
+      builderPreview = null;
+      builderInputSurface = null;
     }
   }
 

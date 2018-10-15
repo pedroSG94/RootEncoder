@@ -119,7 +119,7 @@ public class OpenGlRtspActivity extends AppCompatActivity
     switch (item.getItemId()) {
       case R.id.e_d_fxaa:
         Toast.makeText(this,
-            "FXAA " + (rtspCamera1.getGlInterface().isAAEnabled() ? " enabled" : "disabled"),
+            "FXAA " + (rtspCamera1.getGlInterface().isAAEnabled() ? "enabled" : "disabled"),
             Toast.LENGTH_SHORT).show();
         rtspCamera1.getGlInterface().enableAA(!rtspCamera1.getGlInterface().isAAEnabled());
         return true;

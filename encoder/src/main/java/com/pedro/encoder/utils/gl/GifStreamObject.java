@@ -47,7 +47,7 @@ public class GifStreamObject extends StreamObjectBase {
       }
       Log.i(TAG, "finish load gif frames");
     } else {
-      throw new RuntimeException("read gif error");
+      throw new IOException("Read gif error");
     }
   }
 

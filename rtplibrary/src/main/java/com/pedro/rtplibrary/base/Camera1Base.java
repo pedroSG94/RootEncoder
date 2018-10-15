@@ -371,10 +371,6 @@ public abstract class Camera1Base
     cameraManager.setZoom(event);
   }
 
-  public float getFingerSpacing(MotionEvent event) {
-    return cameraManager.getFingerSpacing(event);
-  }
-
   protected abstract void startStreamRtp(String url);
 
   /**

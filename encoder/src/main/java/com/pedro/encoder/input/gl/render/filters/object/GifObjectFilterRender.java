@@ -29,7 +29,7 @@ public class GifObjectFilterRender extends BaseObjectFilterRender {
     GLES20.glUniform1f(uAlphaHandle, streamObjectTextureId[0] == -1 ? 0f : alpha);
   }
 
-  public void setGif(InputStream inputStream) throws IOException, RuntimeException {
+  public void setGif(InputStream inputStream) throws IOException {
     releaseTextureId();
     ((GifStreamObject) streamObject).load(inputStream);
     textureLoader.setGifStreamObject((GifStreamObject) streamObject);

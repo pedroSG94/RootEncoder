@@ -170,7 +170,7 @@ public class Camera1ApiManager implements Camera.PreviewCallback, Camera.FaceDet
         android.hardware.Camera.Parameters params = camera.getParameters();
         int maxZoom = params.getMaxZoom();
         int zoom = params.getZoom();
-        float newDist = getFingerSpacing(event);
+        float newDist = CameraHelper.getFingerSpacing(event);
 
         if (newDist > distance) {
           if (zoom < maxZoom) {
@@ -189,12 +189,6 @@ public class Camera1ApiManager implements Camera.PreviewCallback, Camera.FaceDet
     } catch (Exception e) {
       Log.e(TAG, "Error", e);
     }
-  }
-
-  public float getFingerSpacing(MotionEvent event) {
-    float x = event.getX(0) - event.getX(1);
-    float y = event.getY(0) - event.getY(1);
-    return (float) Math.sqrt(x * x + y * y);
   }
 
   private int selectCameraBack() {

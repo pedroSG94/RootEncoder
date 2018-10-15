@@ -8,6 +8,7 @@ import android.media.MediaMuxer;
 import android.os.Build;
 import android.support.annotation.RequiresApi;
 import android.util.Size;
+import android.view.MotionEvent;
 import android.view.Surface;
 import android.view.SurfaceView;
 import android.view.TextureView;
@@ -486,6 +487,15 @@ public abstract class Camera2Base implements GetAacData, GetH264Data, GetMicroph
   public void enableVideo() {
     videoEncoder.stopSendBlackImage();
     videoEnabled = true;
+  }
+
+  /**
+   * Set zoomIn or zoomOut to camera.
+   *
+   * @param event motion event. Expected to get event.getPointerCount() > 1
+   */
+  public void setZoom(MotionEvent event) {
+    cameraManager.setZoom(event);
   }
 
   public int getBitrate() {

@@ -119,7 +119,7 @@ public class OpenGlRtmpActivity extends AppCompatActivity
     switch (item.getItemId()) {
       case R.id.e_d_fxaa:
         Toast.makeText(this,
-            "FXAA " + (rtmpCamera1.getGlInterface().isAAEnabled() ? " enabled" : "disabled"),
+            "FXAA " + (rtmpCamera1.getGlInterface().isAAEnabled() ? "enabled" : "disabled"),
             Toast.LENGTH_SHORT).show();
         rtmpCamera1.getGlInterface().enableAA(!rtmpCamera1.getGlInterface().isAAEnabled());
         return true;
