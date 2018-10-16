@@ -1,28 +1,29 @@
 <?xml version="1.0" encoding="utf-8"?>
-<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/activity_main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:gravity="center"
-    android:orientation="vertical">
+    android:orientation="vertical"
+    >
 
   <TextView
       android:id="@+id/tv_select"
       android:layout_width="wrap_content"
       android:layout_height="wrap_content"
+      android:layout_marginTop="@dimen/grid_2"
+      android:layout_marginLeft="@dimen/grid_2"
+      android:layout_marginRight="@dimen/grid_2"
       android:text="@string/tv_select"
-      android:layout_margin="24dp"
       android:textColor="@color/appColor"
       android:textSize="22sp"
-      app:layout_constraintTop_toTopOf="parent"
-      app:layout_constraintStart_toStartOf="parent"
-      app:layout_constraintEnd_toEndOf="parent"/>
+      />
 
   <GridView
       android:id="@+id/list"
       android:layout_width="match_parent"
-      android:layout_height="0dp"
+      android:layout_height="match_parent"
+      android:layout_marginTop="@dimen/grid_1"
       android:columnWidth="40dp"
       android:gravity="center"
       android:horizontalSpacing="@dimen/grid_2"
@@ -30,5 +31,5 @@
       android:padding="@dimen/grid_2"
       android:stretchMode="columnWidth"
       android:verticalSpacing="@dimen/grid_2"
-      app:layout_constraintTop_toBottomOf="@id/tv_select"/>
-</android.support.constraint.ConstraintLayout>
+      />
+</LinearLayout>

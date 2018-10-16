@@ -137,7 +137,7 @@ public class Camera2ApiManager extends CameraDevice.StateCallback {
                   Collections.singletonList(drawInputSurface(surfaceEncoder)),
                   faceDetectionEnabled ? cb : null, cameraHandler);
             }
-            Log.i(TAG, "camera configured");
+            Log.i(TAG, "Camera configured");
           } catch (CameraAccessException | NullPointerException e) {
             Log.e(TAG, "Error", e);
           }
@@ -146,7 +146,7 @@ public class Camera2ApiManager extends CameraDevice.StateCallback {
         @Override
         public void onConfigureFailed(@NonNull CameraCaptureSession cameraCaptureSession) {
           cameraCaptureSession.close();
-          Log.e(TAG, "configuration failed");
+          Log.e(TAG, "Configuration failed");
         }
       }, null);
     } catch (CameraAccessException e) {
@@ -210,7 +210,7 @@ public class Camera2ApiManager extends CameraDevice.StateCallback {
 
   public Size[] getCameraResolutionsBack() {
     try {
-      CameraCharacteristics cameraCharacteristics = cameraManager.getCameraCharacteristics("0");
+      cameraCharacteristics = cameraManager.getCameraCharacteristics("0");
       if (cameraCharacteristics.get(CameraCharacteristics.LENS_FACING)
           != CameraCharacteristics.LENS_FACING_BACK) {
         cameraCharacteristics = cameraManager.getCameraCharacteristics("1");
@@ -226,7 +226,7 @@ public class Camera2ApiManager extends CameraDevice.StateCallback {
 
   public Size[] getCameraResolutionsFront() {
     try {
-      CameraCharacteristics cameraCharacteristics = cameraManager.getCameraCharacteristics("0");
+      cameraCharacteristics = cameraManager.getCameraCharacteristics("0");
       if (cameraCharacteristics.get(CameraCharacteristics.LENS_FACING)
           != CameraCharacteristics.LENS_FACING_FRONT) {
         cameraCharacteristics = cameraManager.getCameraCharacteristics("1");
@@ -248,7 +248,7 @@ public class Camera2ApiManager extends CameraDevice.StateCallback {
    */
   public void openCameraFacing(@Camera2Facing int cameraFacing) {
     try {
-      final CameraCharacteristics cameraCharacteristics =
+      cameraCharacteristics =
           cameraManager.getCameraCharacteristics("0");
       if (cameraCharacteristics.get(CameraCharacteristics.LENS_FACING) == cameraFacing) {
         openCameraId(0);
@@ -441,18 +441,18 @@ public class Camera2ApiManager extends CameraDevice.StateCallback {
   public void onOpened(@NonNull CameraDevice cameraDevice) {
     this.cameraDevice = cameraDevice;
     startPreview(cameraDevice);
-    Log.i(TAG, "camera opened");
+    Log.i(TAG, "Camera opened");
   }
 
   @Override
   public void onDisconnected(@NonNull CameraDevice cameraDevice) {
     cameraDevice.close();
-    Log.i(TAG, "camera disconnected");
+    Log.i(TAG, "Camera disconnected");
   }
 
   @Override
   public void onError(@NonNull CameraDevice cameraDevice, int i) {
     cameraDevice.close();
-    Log.e(TAG, "open failed");
+    Log.e(TAG, "Open failed");
   }
 }

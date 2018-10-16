@@ -22,5 +22,4 @@ android {
 dependencies {
   implementation project(':rtplibrary')
   implementation 'com.android.support:design:28.0.0'
-  implementation 'com.android.support.constraint:constraint-layout:1.1.3'
 }
