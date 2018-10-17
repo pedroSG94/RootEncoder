@@ -1,7 +1,6 @@
 package com.pedro.rtplibrary.base;
 
 import android.content.Context;
-import android.hardware.camera2.CameraCharacteristics;
 import android.hardware.camera2.CameraMetadata;
 import android.media.MediaCodec;
 import android.media.MediaFormat;
@@ -131,6 +130,10 @@ public abstract class Camera2Base implements GetAacData, GetH264Data, GetMicroph
    */
   public boolean isFaceDetectionEnabled() {
     return cameraManager.isFaceDetectionEnabled();
+  }
+
+  public boolean isFrontCamera() {
+    return cameraManager.isFrontCamera();
   }
 
   /**
