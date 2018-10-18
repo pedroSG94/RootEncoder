@@ -17,12 +17,10 @@ import java.io.IOException;
 public class YUVUtil {
 
   private static byte[] preAllocatedBufferRotate;
-  private static byte[] preAllocatedBufferRotate270;
   private static byte[] preAllocatedBufferColor;
 
   public static void preAllocateBuffers(int length) {
     preAllocatedBufferRotate = new byte[length];
-    preAllocatedBufferRotate270 = new byte[length];
     preAllocatedBufferColor = new byte[length];
   }
 
@@ -265,30 +263,24 @@ public class YUVUtil {
   }
 
   private static byte[] rotateNV21Degree270(byte[] data, int imageWidth, int imageHeight) {
-    int wh = imageWidth * imageHeight;
-    int uvHeight = imageHeight >> 1;// uvHeight = height / 2
-
-    //Y
-    int cont = 0;
-    for (int i = 0; i < imageWidth; i++) {
-      int nPos = 0;
-      for (int j = 0; j < imageHeight; j++) {
-        preAllocatedBufferRotate270[cont++] = data[nPos + i];
-        nPos += imageWidth;
+    // Rotate the Y luma
+    int i = 0;
+    for (int x = imageWidth - 1; x >= 0; x--) {
+      for (int y = 0; y < imageHeight; y++) {
+        preAllocatedBufferRotate[i++] = data[y * imageWidth + x];
       }
     }
 
-    //UV
-    for (int i = 0; i < imageWidth; i += 2) {
-      int nPos = wh;
-      for (int j = 0; j < uvHeight; j++) {
-        preAllocatedBufferRotate270[cont] = data[nPos + i];
-        preAllocatedBufferRotate270[cont + 1] = data[nPos + i + 1];
-        cont += 2;
-        nPos += imageWidth;
+    // Rotate the U and V color components
+    i = imageWidth * imageHeight;
+    int uvHeight = imageHeight / 2;
+    for (int x = imageWidth - 1; x >= 0; x -= 2) {
+      for (int y = imageHeight; y < uvHeight + imageHeight; y++) {
+        preAllocatedBufferRotate[i++] = data[y * imageWidth + x - 1];
+        preAllocatedBufferRotate[i++] = data[y * imageWidth + x];
       }
     }
-    return rotateNV21Degree180(preAllocatedBufferRotate270, imageWidth, imageHeight);
+    return preAllocatedBufferRotate;
   }
 
   public void dumpYUVData(byte[] buffer, int len, String name) {
