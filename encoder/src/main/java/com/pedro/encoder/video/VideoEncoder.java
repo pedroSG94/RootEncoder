@@ -17,7 +17,7 @@ import com.pedro.encoder.input.video.FpsLimiter;
 import com.pedro.encoder.input.video.Frame;
 import com.pedro.encoder.input.video.GetCameraData;
 import com.pedro.encoder.utils.CodecUtil;
-import com.pedro.encoder.utils.YUVUtil;
+import com.pedro.encoder.utils.yuv.YUVUtil;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.List;
@@ -133,8 +133,6 @@ public class VideoEncoder implements GetCameraData {
         return FormatVideoEncoder.YUV420PLANAR;
       } else if (color == FormatVideoEncoder.YUV420SEMIPLANAR.getFormatCodec()) {
         return FormatVideoEncoder.YUV420SEMIPLANAR;
-      } else if (color == FormatVideoEncoder.YUV420PACKEDPLANAR.getFormatCodec()) {
-        return FormatVideoEncoder.YUV420PACKEDPLANAR;
       }
     }
     return null;
@@ -252,17 +250,18 @@ public class VideoEncoder implements GetCameraData {
                   Frame frame = queue.take();
                   if (fpsLimiter.limitFPS(fps)) continue;
                   byte[] buffer = frame.getBuffer();
-                  if (frame.getFormat() == ImageFormat.YV12) {
-                    buffer = YUVUtil.YV12toNV21(buffer, width, height);
-                  }
+                  boolean isYV12 = frame.getFormat() == ImageFormat.YV12;
                   if (!hardwareRotation) {
                     int orientation =
                         frame.isFlip() ? frame.getOrientation() + 180 : frame.getOrientation();
                     if (orientation >= 360) orientation -= 360;
-                    buffer = YUVUtil.rotateNV21(buffer, width, height, orientation);
+                    buffer = isYV12 ? YUVUtil.rotateYV12(buffer, width, height, orientation)
+                        : YUVUtil.rotateNV21(buffer, width, height, orientation);
                   }
                   buffer = (sendBlackImage) ? blackImage
-                      : YUVUtil.NV21toYUV420byColor(buffer, width, height, formatVideoEncoder);
+                      : isYV12 ? YUVUtil.YV12toYUV420byColor(buffer, width, height,
+                          formatVideoEncoder)
+                          : YUVUtil.NV21toYUV420byColor(buffer, width, height, formatVideoEncoder);
                   if (Build.VERSION.SDK_INT >= 21) {
                     getDataFromEncoderAPI21(buffer);
                   } else {
@@ -512,8 +511,7 @@ public class VideoEncoder implements GetCameraData {
         Log.i(TAG, "Color supported: " + color);
         //check if encoder support any yuv420 color
         if (color == FormatVideoEncoder.YUV420PLANAR.getFormatCodec()
-            || color == FormatVideoEncoder.YUV420SEMIPLANAR.getFormatCodec()
-            || color == FormatVideoEncoder.YUV420PACKEDPLANAR.getFormatCodec()) {
+            || color == FormatVideoEncoder.YUV420SEMIPLANAR.getFormatCodec()) {
           return mci;
         }
       }
