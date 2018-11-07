@@ -43,8 +43,8 @@ public class AacPacket extends BasePacket {
 
       updateSeq(buffer);
       RtpFrame rtpFrame =
-          new RtpFrame(buffer, ts, RtpConstants.RTP_HEADER_LENGTH + length + 4, rtpPort,
-              rtcpPort, channelIdentifier);
+          new RtpFrame(buffer, ts, RtpConstants.RTP_HEADER_LENGTH + length + 4, rtpPort, rtcpPort,
+              channelIdentifier);
       audioPacketCallback.onAudioFrameCreated(rtpFrame);
     }
   }

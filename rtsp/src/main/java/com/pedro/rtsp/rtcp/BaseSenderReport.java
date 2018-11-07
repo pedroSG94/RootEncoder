@@ -53,8 +53,7 @@ public abstract class BaseSenderReport {
   }
 
   public static BaseSenderReport getInstance(Protocol protocol) {
-    return protocol == Protocol.TCP ? new SenderReportTcp()
-        : new SenderReportUdp();
+    return protocol == Protocol.TCP ? new SenderReportTcp() : new SenderReportUdp();
   }
 
   public abstract void setDataStream(OutputStream outputStream, String host);

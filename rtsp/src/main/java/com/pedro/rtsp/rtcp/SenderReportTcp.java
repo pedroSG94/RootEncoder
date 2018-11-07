@@ -15,7 +15,6 @@ public class SenderReportTcp extends BaseSenderReport {
     tcpHeader = new byte[] { '$', 0, 0, PACKET_LENGTH };
   }
 
-
   @Override
   public void setDataStream(OutputStream outputStream, String host) {
     this.outputStream = outputStream;

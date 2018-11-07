@@ -54,10 +54,9 @@ import com.pedro.encoder.input.gl.render.filters.ZebraFilterRender;
 import com.pedro.encoder.input.gl.render.filters.object.GifObjectFilterRender;
 import com.pedro.encoder.input.gl.render.filters.object.ImageObjectFilterRender;
 import com.pedro.encoder.input.gl.render.filters.object.TextObjectFilterRender;
-import com.pedro.encoder.input.video.CameraHelper;
 import com.pedro.encoder.input.video.CameraOpenException;
 import com.pedro.encoder.utils.gl.TranslateTo;
-import com.pedro.rtplibrary.rtsp.RtspCamera2;
+import com.pedro.rtplibrary.rtsp.RtspCamera1;
 import com.pedro.rtplibrary.view.OpenGlView;
 import com.pedro.rtpstreamer.R;
 import com.pedro.rtsp.utils.ConnectCheckerRtsp;
@@ -77,7 +76,7 @@ public class OpenGlRtspActivity extends AppCompatActivity
     implements ConnectCheckerRtsp, View.OnClickListener, SurfaceHolder.Callback,
     View.OnTouchListener {
 
-  private RtspCamera2 rtspCamera1;
+  private RtspCamera1 rtspCamera1;
   private Button button;
   private Button bRecord;
   private EditText etUrl;
@@ -102,7 +101,7 @@ public class OpenGlRtspActivity extends AppCompatActivity
     switchCamera.setOnClickListener(this);
     etUrl = findViewById(R.id.et_rtp_url);
     etUrl.setHint(R.string.hint_rtsp);
-    rtspCamera1 = new RtspCamera2(openGlView, this);
+    rtspCamera1 = new RtspCamera1(openGlView, this);
     openGlView.getHolder().addCallback(this);
     openGlView.setOnTouchListener(this);
   }
@@ -345,27 +344,24 @@ public class OpenGlRtspActivity extends AppCompatActivity
     });
   }
 
-  //3840, 2160, 30, 8000 * 1000, false,
-  //    CameraHelper.getCameraOrientation(this))
   @Override
   public void onClick(View view) {
     switch (view.getId()) {
       case R.id.b_start_stop:
         if (!rtspCamera1.isStreaming()) {
-          if (rtspCamera1.isRecording() || rtspCamera1.prepareAudio() && rtspCamera1.prepareVideo(
-              3840, 2160, 30, 12000 * 1000, false, 1, CameraHelper.getCameraOrientation(this))){
+          if (rtspCamera1.isRecording()
+              || rtspCamera1.prepareAudio() && rtspCamera1.prepareVideo()) {
             button.setText(R.string.stop_button);
-            rtspCamera1.startStream("rtsp://d3b8c9.entrypoint.cloud.wowza.com/app-aca2/26c11193");
-            //rtspCamera1.startStream("rtsp://10.7.12.160:80/live/pedro");
-            //rtspCamera1.startStream(etUrl.getText().toString());
-          } else{
+            rtspCamera1.startStream(etUrl.getText().toString());
+          } else {
             Toast.makeText(this, "Error preparing stream, This device cant do it",
                 Toast.LENGTH_SHORT).show();
           }
         } else {
           button.setText(R.string.start_button);
           rtspCamera1.stopStream();
-        } break;
+        }
+        break;
       case R.id.switch_camera:
         try {
           rtspCamera1.switchCamera();
