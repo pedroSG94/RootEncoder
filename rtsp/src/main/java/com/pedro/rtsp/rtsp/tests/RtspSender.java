@@ -15,7 +15,6 @@ import com.pedro.rtsp.utils.ConnectCheckerRtsp;
 import com.pedro.rtsp.utils.RtpConstants;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
-import java.util.List;
 import java.util.Random;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -26,8 +25,10 @@ public class RtspSender implements VideoPacketCallback, AudioPacketCallback {
   private H264Packet h264Packet;
   private AacPacket aacPacket;
   private RtpSocket rtpSocket;
-  private BaseSenderReport baseSenderReport;
-  private BlockingQueue<RtpFrame> rtpFrameBlockingQueue = new LinkedBlockingQueue<>(getCacheSize(10));
+  private BaseSenderReport baseSenderReportVideo;
+  private BaseSenderReport baseSenderReportAudio;
+  private BlockingQueue<RtpFrame> rtpFrameBlockingQueue =
+      new LinkedBlockingQueue<>(getCacheSize(10));
   private Thread thread;
 
   public RtspSender(ConnectCheckerRtsp connectCheckerRtsp, Protocol protocol, byte[] sps,
@@ -35,13 +36,16 @@ public class RtspSender implements VideoPacketCallback, AudioPacketCallback {
     h264Packet = new H264Packet(sps, pps, this);
     aacPacket = new AacPacket(sampleRate, this);
     rtpSocket = new RtpSocket(connectCheckerRtsp, protocol);
-    baseSenderReport = protocol == Protocol.TCP ? new SenderReportTcp(connectCheckerRtsp)
+    int ssrc = new Random().nextInt();
+    baseSenderReportVideo = protocol == Protocol.TCP ? new SenderReportTcp(connectCheckerRtsp)
         : new SenderReportUdp(connectCheckerRtsp);
-    baseSenderReport.setSSRC(new Random().nextInt());
+    baseSenderReportAudio = protocol == Protocol.TCP ? new SenderReportTcp(connectCheckerRtsp)
+        : new SenderReportUdp(connectCheckerRtsp);
+    baseSenderReportVideo.setSSRC(ssrc);
+    baseSenderReportAudio.setSSRC(ssrc);
   }
 
   /**
-   *
    * @param size in mb
    * @return number of packets
    */
@@ -51,10 +55,12 @@ public class RtspSender implements VideoPacketCallback, AudioPacketCallback {
 
   public void setDataStream(OutputStream outputStream, String host) {
     rtpSocket.setDataStream(outputStream, host);
-    if (baseSenderReport instanceof SenderReportTcp) {
-      ((SenderReportTcp) baseSenderReport).setOutputStream(outputStream);
+    if (baseSenderReportVideo instanceof SenderReportTcp) {
+      ((SenderReportTcp) baseSenderReportVideo).setOutputStream(outputStream);
+      ((SenderReportTcp) baseSenderReportAudio).setOutputStream(outputStream);
     } else {
-      ((SenderReportUdp) baseSenderReport).setHost(host);
+      ((SenderReportUdp) baseSenderReportVideo).setHost(host);
+      ((SenderReportUdp) baseSenderReportAudio).setHost(host);
     }
   }
 
@@ -75,9 +81,9 @@ public class RtspSender implements VideoPacketCallback, AudioPacketCallback {
   }
 
   @Override
-  public void onVideoFramesCreated(List<RtpFrame> rtpFrames) {
+  public void onVideoFramesCreated(RtpFrame rtpFrames) {
     try {
-      rtpFrameBlockingQueue.addAll(rtpFrames);
+      rtpFrameBlockingQueue.add(rtpFrames);
     } catch (IllegalStateException e) {
       Log.i(TAG, "video frame discarded");
     }
@@ -99,7 +105,11 @@ public class RtspSender implements VideoPacketCallback, AudioPacketCallback {
         while (!Thread.interrupted()) {
           try {
             RtpFrame rtpFrame = rtpFrameBlockingQueue.take();
-            baseSenderReport.update(rtpFrame);
+            if (rtpFrame.getChannelIdentifier() == (byte) 2) {
+              baseSenderReportVideo.update(rtpFrame);
+            } else {
+              baseSenderReportAudio.update(rtpFrame);
+            }
             rtpSocket.sendFrame(rtpFrame);
           } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
@@ -121,10 +131,14 @@ public class RtspSender implements VideoPacketCallback, AudioPacketCallback {
       thread = null;
     }
     rtpFrameBlockingQueue.clear();
-    baseSenderReport.reset();
+    baseSenderReportVideo.reset();
+    baseSenderReportAudio.reset();
     rtpSocket.close();
     aacPacket.reset();
     h264Packet.reset();
-    if (baseSenderReport instanceof SenderReportUdp) ((SenderReportUdp) baseSenderReport).close();
+    if (baseSenderReportVideo instanceof SenderReportUdp) {
+      ((SenderReportUdp) baseSenderReportVideo).close();
+      ((SenderReportUdp) baseSenderReportAudio).close();
+    }
   }
 }

@@ -43,7 +43,7 @@ public class H264Packet extends BasePacket {
       RtpFrame rtpFrame =
           new RtpFrame(allocation.array(), ts, stapA.length + RtpConstants.RTP_HEADER_LENGTH,
               rtpPort, rtcpPort, channelIdentifier);
-      videoFrames.add(rtpFrame);
+      videoPacketCallback.onVideoFramesCreated(rtpFrame);
       srsAllocator.release(allocation);
     }
     // Small NAL unit => Single NAL unit
@@ -64,7 +64,7 @@ public class H264Packet extends BasePacket {
       RtpFrame rtpFrame =
           new RtpFrame(allocation.array(), ts, naluLength + RtpConstants.RTP_HEADER_LENGTH, rtpPort,
               rtcpPort, channelIdentifier);
-      videoFrames.add(rtpFrame);
+      videoPacketCallback.onVideoFramesCreated(rtpFrame);
       srsAllocator.release(allocation);
     }
     // Large NAL unit => Split nal unit
@@ -102,13 +102,12 @@ public class H264Packet extends BasePacket {
         RtpFrame rtpFrame =
             new RtpFrame(allocation.array(), ts, length + RtpConstants.RTP_HEADER_LENGTH + 2,
                 rtpPort, rtcpPort, channelIdentifier);
-        videoFrames.add(rtpFrame);
+        videoPacketCallback.onVideoFramesCreated(rtpFrame);
         srsAllocator.release(allocation);
         // Switch start bit
         header[1] = (byte) (header[1] & 0x7F);
       }
     }
-    videoPacketCallback.onVideoFramesCreated(videoFrames);
   }
 
   private void setSPSandPPS(byte[] sps, byte[] pps) {

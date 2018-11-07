@@ -46,7 +46,7 @@ public class SenderReportTcp extends BaseSenderReport {
           try {
             mOutputStream.write(mTcpHeader);
             mOutputStream.write(mBuffer, 0, PACKET_LENGTH);
-            Log.i(TAG, "send report ";
+            Log.i(TAG, "send report");
           } catch (IOException e) {
             Log.e(TAG, "send TCP report error", e);
             connectCheckerRtsp.onConnectionFailedRtsp("Error send report, " + e.getMessage());
