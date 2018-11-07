@@ -19,8 +19,8 @@ public class SenderReportUdp extends BaseSenderReport {
   private DatagramPacket datagramPacket;
   private ConnectCheckerRtsp connectCheckerRtsp;
 
-  public SenderReportUdp(ConnectCheckerRtsp connectCheckerRtsp) {
-    super();
+  public SenderReportUdp(boolean isVideo, ConnectCheckerRtsp connectCheckerRtsp) {
+    super(isVideo);
     this.connectCheckerRtsp = connectCheckerRtsp;
     try {
       multicastSocket = new MulticastSocket();

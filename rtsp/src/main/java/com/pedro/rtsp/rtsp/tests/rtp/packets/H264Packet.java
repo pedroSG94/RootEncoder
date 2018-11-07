@@ -3,14 +3,12 @@ package com.pedro.rtsp.rtsp.tests.rtp.packets;
 import android.media.MediaCodec;
 import com.pedro.rtsp.rtsp.tests.RtpFrame;
 import com.pedro.rtsp.utils.RtpConstants;
-import com.pedro.rtsp.utils.SrsAllocator;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
 
 public class H264Packet extends BasePacket {
 
-  private SrsAllocator srsAllocator = new SrsAllocator(RtpConstants.MTU);
   private byte[] header = new byte[5];
   private byte[] stapA;
   private List<RtpFrame> videoFrames = new ArrayList<>();
@@ -33,39 +31,36 @@ public class H264Packet extends BasePacket {
     int naluLength = bufferInfo.size - byteBuffer.position() + 1;
     int type = header[4] & 0x1F;
     if (type == 5) {
-      SrsAllocator.Allocation allocation = getAllocation(srsAllocator, RtpConstants.MTU);
-      requestBuffer(allocation.array());
-      updateTimeStamp(allocation.array(), ts);
-      markPacket(allocation.array());
-      System.arraycopy(stapA, 0, allocation.array(), RtpConstants.RTP_HEADER_LENGTH, stapA.length);
+      byte[] buffer = getBuffer();
+      updateTimeStamp(buffer, ts);
 
-      updateSeq(allocation.array());
+      markPacket(buffer); //mark end frame
+      System.arraycopy(stapA, 0, buffer, RtpConstants.RTP_HEADER_LENGTH, stapA.length);
+
+      updateSeq(buffer);
       RtpFrame rtpFrame =
-          new RtpFrame(allocation.array(), ts, stapA.length + RtpConstants.RTP_HEADER_LENGTH,
+          new RtpFrame(buffer, ts, stapA.length + RtpConstants.RTP_HEADER_LENGTH,
               rtpPort, rtcpPort, channelIdentifier);
-      videoPacketCallback.onVideoFramesCreated(rtpFrame);
-      srsAllocator.release(allocation);
+      videoFrames.add(rtpFrame);
     }
     // Small NAL unit => Single NAL unit
     if (naluLength <= maxPacketSize - RtpConstants.RTP_HEADER_LENGTH - 2) {
-      SrsAllocator.Allocation allocation = getAllocation(srsAllocator, RtpConstants.MTU);
-      requestBuffer(allocation.array());
+      byte[] buffer = getBuffer();
 
-      allocation.put(header[4], RtpConstants.RTP_HEADER_LENGTH);
+      buffer[RtpConstants.RTP_HEADER_LENGTH] = header[4];
       int cont = naluLength - 1;
       int length = cont < bufferInfo.size - byteBuffer.position() ? cont
           : bufferInfo.size - byteBuffer.position();
-      byteBuffer.get(allocation.array(), RtpConstants.RTP_HEADER_LENGTH + 1, length);
+      byteBuffer.get(buffer, RtpConstants.RTP_HEADER_LENGTH + 1, length);
 
-      updateTimeStamp(allocation.array(), ts);
-      markPacket(allocation.array());
+      updateTimeStamp(buffer, ts);
+      markPacket(buffer); //mark end frame
 
-      updateSeq(allocation.array());
+      updateSeq(buffer);
       RtpFrame rtpFrame =
-          new RtpFrame(allocation.array(), ts, naluLength + RtpConstants.RTP_HEADER_LENGTH, rtpPort,
+          new RtpFrame(buffer, ts, naluLength + RtpConstants.RTP_HEADER_LENGTH, rtpPort,
               rtcpPort, channelIdentifier);
-      videoPacketCallback.onVideoFramesCreated(rtpFrame);
-      srsAllocator.release(allocation);
+      videoFrames.add(rtpFrame);
     }
     // Large NAL unit => Split nal unit
     else {
@@ -78,35 +73,33 @@ public class H264Packet extends BasePacket {
 
       int sum = 1;
       while (sum < naluLength) {
-        SrsAllocator.Allocation allocation = getAllocation(srsAllocator, RtpConstants.MTU);
-
-        requestBuffer(allocation.array());
-        allocation.put(header[0], RtpConstants.RTP_HEADER_LENGTH);
-        allocation.put(header[1], RtpConstants.RTP_HEADER_LENGTH + 1);
-        updateTimeStamp(allocation.array(), ts);
+        byte[] buffer = getBuffer();
+        buffer[RtpConstants.RTP_HEADER_LENGTH] = header[0];
+        buffer[RtpConstants.RTP_HEADER_LENGTH + 1] = header[1];
+        updateTimeStamp(buffer, ts);
         int cont = naluLength - sum > maxPacketSize - RtpConstants.RTP_HEADER_LENGTH - 2 ?
             maxPacketSize
                 - RtpConstants.RTP_HEADER_LENGTH
                 - 2 : naluLength - sum;
         int length = cont < bufferInfo.size - byteBuffer.position() ? cont
             : bufferInfo.size - byteBuffer.position();
-        byteBuffer.get(allocation.array(), RtpConstants.RTP_HEADER_LENGTH + 2, length);
+        byteBuffer.get(buffer, RtpConstants.RTP_HEADER_LENGTH + 2, length);
         sum += length;
         // Last packet before next NAL
         if (sum >= naluLength) {
           // End bit on
-          allocation.array()[RtpConstants.RTP_HEADER_LENGTH + 1] += 0x40;
-          markPacket(allocation.array());
+          buffer[RtpConstants.RTP_HEADER_LENGTH + 1] += 0x40;
+          markPacket(buffer); //mark end frame
         }
-        updateSeq(allocation.array());
+        updateSeq(buffer);
         RtpFrame rtpFrame =
-            new RtpFrame(allocation.array(), ts, length + RtpConstants.RTP_HEADER_LENGTH + 2,
+            new RtpFrame(buffer, ts, length + RtpConstants.RTP_HEADER_LENGTH + 2,
                 rtpPort, rtcpPort, channelIdentifier);
-        videoPacketCallback.onVideoFramesCreated(rtpFrame);
-        srsAllocator.release(allocation);
+        videoFrames.add(rtpFrame);
         // Switch start bit
         header[1] = (byte) (header[1] & 0x7F);
       }
+      videoPacketCallback.onVideoFramesCreated(videoFrames);
     }
   }
 

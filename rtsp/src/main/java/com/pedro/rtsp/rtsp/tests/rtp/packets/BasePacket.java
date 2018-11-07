@@ -1,7 +1,6 @@
 package com.pedro.rtsp.rtsp.tests.rtp.packets;
 
 import com.pedro.rtsp.utils.RtpConstants;
-import com.pedro.rtsp.utils.SrsAllocator;
 import java.util.Random;
 
 public class BasePacket {
@@ -29,12 +28,13 @@ public class BasePacket {
     ssrc = new Random().nextInt();
   }
 
-  public SrsAllocator.Allocation getAllocation(SrsAllocator srsAllocator, int size) {
-    SrsAllocator.Allocation allocation = srsAllocator.allocate(size);
-    allocation.put((byte) Integer.parseInt("10000000", 2), 0);
-    allocation.put((byte) RtpConstants.payloadType, 1);
-    setLongSSRC(allocation.array(), ssrc);
-    return allocation;
+  protected byte[] getBuffer() {
+    byte[] buffer = new byte[RtpConstants.MTU];
+    buffer[0] = (byte) Integer.parseInt("10000000", 2);
+    buffer[1] = (byte) RtpConstants.payloadType;
+    setLongSSRC(buffer, ssrc);
+    requestBuffer(buffer);
+    return buffer;
   }
 
   protected void setLongSSRC(byte[] buffer, int ssrc) {

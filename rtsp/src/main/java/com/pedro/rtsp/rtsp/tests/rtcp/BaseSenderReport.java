@@ -16,8 +16,11 @@ public abstract class BaseSenderReport {
   protected byte[] buffer = new byte[MTU];
   protected int mOctetCount = 0, mPacketCount = 0;
   protected long interval, delta, now, old;
+  protected boolean isVideo = false;
+  protected boolean shouldSend = false;
 
-  public BaseSenderReport() {
+  public BaseSenderReport(boolean isVideo) {
+    this.isVideo = isVideo;
     /*							     Version(2)  Padding(0)					 					*/
     /*									 ^		  ^			PT = 0	    						*/
     /*									 |		  |				^								*/
@@ -73,6 +76,7 @@ public abstract class BaseSenderReport {
       if (delta >= interval) {
         // We send a Sender Report
         delta = 0;
+        shouldSend = true;
         return true;
       }
     }

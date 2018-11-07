@@ -15,6 +15,7 @@ import com.pedro.rtsp.utils.ConnectCheckerRtsp;
 import com.pedro.rtsp.utils.RtpConstants;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
+import java.util.List;
 import java.util.Random;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -26,7 +27,6 @@ public class RtspSender implements VideoPacketCallback, AudioPacketCallback {
   private AacPacket aacPacket;
   private RtpSocket rtpSocket;
   private BaseSenderReport baseSenderReportVideo;
-  private BaseSenderReport baseSenderReportAudio;
   private BlockingQueue<RtpFrame> rtpFrameBlockingQueue =
       new LinkedBlockingQueue<>(getCacheSize(10));
   private Thread thread;
@@ -37,12 +37,9 @@ public class RtspSender implements VideoPacketCallback, AudioPacketCallback {
     aacPacket = new AacPacket(sampleRate, this);
     rtpSocket = new RtpSocket(connectCheckerRtsp, protocol);
     int ssrc = new Random().nextInt();
-    baseSenderReportVideo = protocol == Protocol.TCP ? new SenderReportTcp(connectCheckerRtsp)
-        : new SenderReportUdp(connectCheckerRtsp);
-    baseSenderReportAudio = protocol == Protocol.TCP ? new SenderReportTcp(connectCheckerRtsp)
-        : new SenderReportUdp(connectCheckerRtsp);
+    baseSenderReportVideo = protocol == Protocol.TCP ? new SenderReportTcp(true, connectCheckerRtsp)
+        : new SenderReportUdp(true, connectCheckerRtsp);
     baseSenderReportVideo.setSSRC(ssrc);
-    baseSenderReportAudio.setSSRC(ssrc);
   }
 
   /**
@@ -57,10 +54,8 @@ public class RtspSender implements VideoPacketCallback, AudioPacketCallback {
     rtpSocket.setDataStream(outputStream, host);
     if (baseSenderReportVideo instanceof SenderReportTcp) {
       ((SenderReportTcp) baseSenderReportVideo).setOutputStream(outputStream);
-      ((SenderReportTcp) baseSenderReportAudio).setOutputStream(outputStream);
     } else {
       ((SenderReportUdp) baseSenderReportVideo).setHost(host);
-      ((SenderReportUdp) baseSenderReportAudio).setHost(host);
     }
   }
 
@@ -81,9 +76,9 @@ public class RtspSender implements VideoPacketCallback, AudioPacketCallback {
   }
 
   @Override
-  public void onVideoFramesCreated(RtpFrame rtpFrames) {
+  public void onVideoFramesCreated(List<RtpFrame> rtpFrames) {
     try {
-      rtpFrameBlockingQueue.add(rtpFrames);
+      rtpFrameBlockingQueue.addAll(rtpFrames);
     } catch (IllegalStateException e) {
       Log.i(TAG, "video frame discarded");
     }
@@ -105,11 +100,7 @@ public class RtspSender implements VideoPacketCallback, AudioPacketCallback {
         while (!Thread.interrupted()) {
           try {
             RtpFrame rtpFrame = rtpFrameBlockingQueue.take();
-            if (rtpFrame.getChannelIdentifier() == (byte) 2) {
-              baseSenderReportVideo.update(rtpFrame);
-            } else {
-              baseSenderReportAudio.update(rtpFrame);
-            }
+            baseSenderReportVideo.update(rtpFrame);
             rtpSocket.sendFrame(rtpFrame);
           } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
@@ -132,13 +123,11 @@ public class RtspSender implements VideoPacketCallback, AudioPacketCallback {
     }
     rtpFrameBlockingQueue.clear();
     baseSenderReportVideo.reset();
-    baseSenderReportAudio.reset();
     rtpSocket.close();
     aacPacket.reset();
     h264Packet.reset();
     if (baseSenderReportVideo instanceof SenderReportUdp) {
       ((SenderReportUdp) baseSenderReportVideo).close();
-      ((SenderReportUdp) baseSenderReportAudio).close();
     }
   }
 }

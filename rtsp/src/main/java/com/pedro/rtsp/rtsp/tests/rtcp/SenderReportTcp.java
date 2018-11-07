@@ -16,20 +16,24 @@ public class SenderReportTcp extends BaseSenderReport {
   private OutputStream outputStream = null;
   private ConnectCheckerRtsp connectCheckerRtsp;
 
-  public SenderReportTcp(ConnectCheckerRtsp connectCheckerRtsp) {
-    super();
+  public SenderReportTcp(boolean isVideo, ConnectCheckerRtsp connectCheckerRtsp) {
+    super(isVideo);
     this.connectCheckerRtsp = connectCheckerRtsp;
     tcpHeader = new byte[] { '$', 0, 0, PACKET_LENGTH };
   }
 
   /**
    * Updates the number of packets sent, and the total amount of data sent.
-   *
    **/
   @Override
   public void update(RtpFrame rtpFrame) {
-    if (updateSend(rtpFrame.getLength())) {
-      send(System.nanoTime(), rtpFrame.getTimeStamp(), rtpFrame.getChannelIdentifier());
+    updateSend(rtpFrame.getLength());
+    if (shouldSend) {
+      if (isVideo && rtpFrame.getChannelIdentifier() == (byte) 2
+          || !isVideo && rtpFrame.getChannelIdentifier() == (byte) 0) {
+        send(System.nanoTime(), rtpFrame.getTimeStamp(), rtpFrame.getChannelIdentifier());
+        shouldSend = false;
+      }
     }
   }
 

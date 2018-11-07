@@ -1,7 +1,8 @@
 package com.pedro.rtsp.rtsp.tests.rtp.packets;
 
 import com.pedro.rtsp.rtsp.tests.RtpFrame;
+import java.util.List;
 
 public interface VideoPacketCallback {
-  void onVideoFramesCreated(RtpFrame rtpFrames);
+  void onVideoFramesCreated(List<RtpFrame> rtpFrames);
 }
