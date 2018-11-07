@@ -54,10 +54,6 @@ public class RtpSocket {
       } else {
         sendFrameUDP(rtpFrame);
       }
-      Log.i(TAG, "wrote packet: "
-          + (rtpFrame.getChannelIdentifier() == (byte) 2 ? "Video" : "Audio")
-          + ", size: "
-          + rtpFrame.getLength() +  ", port: " + rtpFrame.getRtpPort());
     } catch (IOException e) {
       Log.e(TAG, "TCP send error: ", e);
       connectCheckerRtsp.onConnectionFailedRtsp("Error send packet, " + e.getMessage());
@@ -74,6 +70,10 @@ public class RtpSocket {
         outputStream.write(tcpHeader);
         outputStream.write(rtpFrame.getBuffer(), 0, len);
         outputStream.flush();
+        Log.i(TAG, "wrote packet: "
+            + (rtpFrame.getChannelIdentifier() == (byte) 2 ? "Video" : "Audio")
+            + ", size: "
+            + rtpFrame.getLength());
       } catch (ArrayIndexOutOfBoundsException e) {
         Log.e(TAG, "Error", e);
       }
@@ -84,6 +84,10 @@ public class RtpSocket {
     datagramPacket.setData(rtpFrame.getBuffer(), 0, rtpFrame.getLength());
     datagramPacket.setLength(rtpFrame.getLength());
     multicastSocket.send(datagramPacket);
+    Log.i(TAG, "wrote packet: "
+        + (rtpFrame.getChannelIdentifier() == (byte) 2 ? "Video" : "Audio")
+        + ", size: "
+        + rtpFrame.getLength() +  ", port: " + rtpFrame.getRtpPort());
   }
 
   public void close() {

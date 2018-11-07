@@ -4,14 +4,11 @@ import android.media.MediaCodec;
 import com.pedro.rtsp.rtsp.tests.RtpFrame;
 import com.pedro.rtsp.utils.RtpConstants;
 import java.nio.ByteBuffer;
-import java.util.ArrayList;
-import java.util.List;
 
 public class H264Packet extends BasePacket {
 
   private byte[] header = new byte[5];
   private byte[] stapA;
-  private List<RtpFrame> videoFrames = new ArrayList<>();
   private VideoPacketCallback videoPacketCallback;
 
   public H264Packet(byte[] sps, byte[] pps, VideoPacketCallback videoPacketCallback) {
@@ -24,7 +21,6 @@ public class H264Packet extends BasePacket {
   public void createAndSendPacket(ByteBuffer byteBuffer, MediaCodec.BufferInfo bufferInfo) {
     // We read a NAL units from ByteBuffer and we send them
     // NAL units are preceded with 0x00000001
-    videoFrames.clear();
     byteBuffer.rewind();
     byteBuffer.get(header, 0, 5);
     long ts = bufferInfo.presentationTimeUs * 1000L;
@@ -41,7 +37,7 @@ public class H264Packet extends BasePacket {
       RtpFrame rtpFrame =
           new RtpFrame(buffer, ts, stapA.length + RtpConstants.RTP_HEADER_LENGTH,
               rtpPort, rtcpPort, channelIdentifier);
-      videoFrames.add(rtpFrame);
+      videoPacketCallback.onVideoFrameCreated(rtpFrame);
     }
     // Small NAL unit => Single NAL unit
     if (naluLength <= maxPacketSize - RtpConstants.RTP_HEADER_LENGTH - 2) {
@@ -60,7 +56,7 @@ public class H264Packet extends BasePacket {
       RtpFrame rtpFrame =
           new RtpFrame(buffer, ts, naluLength + RtpConstants.RTP_HEADER_LENGTH, rtpPort,
               rtcpPort, channelIdentifier);
-      videoFrames.add(rtpFrame);
+      videoPacketCallback.onVideoFrameCreated(rtpFrame);
     }
     // Large NAL unit => Split nal unit
     else {
@@ -95,11 +91,10 @@ public class H264Packet extends BasePacket {
         RtpFrame rtpFrame =
             new RtpFrame(buffer, ts, length + RtpConstants.RTP_HEADER_LENGTH + 2,
                 rtpPort, rtcpPort, channelIdentifier);
-        videoFrames.add(rtpFrame);
+        videoPacketCallback.onVideoFrameCreated(rtpFrame);
         // Switch start bit
         header[1] = (byte) (header[1] & 0x7F);
       }
-      videoPacketCallback.onVideoFramesCreated(videoFrames);
     }
   }
 
