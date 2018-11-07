@@ -1,4 +1,4 @@
-package net.ossrs.rtmp;
+package com.pedro.rtsp.utils;
 
 import java.util.Arrays;
 

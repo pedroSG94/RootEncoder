@@ -32,11 +32,9 @@ import com.pedro.encoder.input.gl.render.filters.EdgeDetectionFilterRender;
 import com.pedro.encoder.input.gl.render.filters.ExposureFilterRender;
 import com.pedro.encoder.input.gl.render.filters.FireFilterRender;
 import com.pedro.encoder.input.gl.render.filters.GammaFilterRender;
-import com.pedro.encoder.input.gl.render.filters.object.GifObjectFilterRender;
 import com.pedro.encoder.input.gl.render.filters.GreyScaleFilterRender;
 import com.pedro.encoder.input.gl.render.filters.HalftoneLinesFilterRender;
 import com.pedro.encoder.input.gl.render.filters.Image70sFilterRender;
-import com.pedro.encoder.input.gl.render.filters.object.ImageObjectFilterRender;
 import com.pedro.encoder.input.gl.render.filters.LamoishFilterRender;
 import com.pedro.encoder.input.gl.render.filters.MoneyFilterRender;
 import com.pedro.encoder.input.gl.render.filters.NegativeFilterRender;
@@ -52,11 +50,14 @@ import com.pedro.encoder.input.gl.render.filters.SepiaFilterRender;
 import com.pedro.encoder.input.gl.render.filters.SharpnessFilterRender;
 import com.pedro.encoder.input.gl.render.filters.SurfaceFilterRender;
 import com.pedro.encoder.input.gl.render.filters.TemperatureFilterRender;
-import com.pedro.encoder.input.gl.render.filters.object.TextObjectFilterRender;
 import com.pedro.encoder.input.gl.render.filters.ZebraFilterRender;
+import com.pedro.encoder.input.gl.render.filters.object.GifObjectFilterRender;
+import com.pedro.encoder.input.gl.render.filters.object.ImageObjectFilterRender;
+import com.pedro.encoder.input.gl.render.filters.object.TextObjectFilterRender;
+import com.pedro.encoder.input.video.CameraHelper;
 import com.pedro.encoder.input.video.CameraOpenException;
 import com.pedro.encoder.utils.gl.TranslateTo;
-import com.pedro.rtplibrary.rtsp.RtspCamera1;
+import com.pedro.rtplibrary.rtsp.RtspCamera2;
 import com.pedro.rtplibrary.view.OpenGlView;
 import com.pedro.rtpstreamer.R;
 import com.pedro.rtsp.utils.ConnectCheckerRtsp;
@@ -76,7 +77,7 @@ public class OpenGlRtspActivity extends AppCompatActivity
     implements ConnectCheckerRtsp, View.OnClickListener, SurfaceHolder.Callback,
     View.OnTouchListener {
 
-  private RtspCamera1 rtspCamera1;
+  private RtspCamera2 rtspCamera1;
   private Button button;
   private Button bRecord;
   private EditText etUrl;
@@ -101,7 +102,7 @@ public class OpenGlRtspActivity extends AppCompatActivity
     switchCamera.setOnClickListener(this);
     etUrl = findViewById(R.id.et_rtp_url);
     etUrl.setHint(R.string.hint_rtsp);
-    rtspCamera1 = new RtspCamera1(openGlView, this);
+    rtspCamera1 = new RtspCamera2(openGlView, this);
     openGlView.getHolder().addCallback(this);
     openGlView.setOnTouchListener(this);
   }
@@ -344,6 +345,8 @@ public class OpenGlRtspActivity extends AppCompatActivity
     });
   }
 
+  //3840, 2160, 30, 8000 * 1000, false,
+  //    CameraHelper.getCameraOrientation(this))
   @Override
   public void onClick(View view) {
     switch (view.getId()) {
@@ -352,7 +355,8 @@ public class OpenGlRtspActivity extends AppCompatActivity
           if (rtspCamera1.isRecording()
               || rtspCamera1.prepareAudio() && rtspCamera1.prepareVideo()) {
             button.setText(R.string.stop_button);
-            rtspCamera1.startStream(etUrl.getText().toString());
+            rtspCamera1.startStream("rtsp://3a2946.entrypoint.cloud.wowza.com/app-fe1a/d1dc240d");
+            //rtspCamera1.startStream(etUrl.getText().toString());
           } else {
             Toast.makeText(this, "Error preparing stream, This device cant do it",
                 Toast.LENGTH_SHORT).show();

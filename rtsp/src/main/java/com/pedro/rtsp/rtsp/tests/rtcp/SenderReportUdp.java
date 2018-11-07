@@ -1,11 +1,13 @@
-package com.pedro.rtsp.rtcp;
+package com.pedro.rtsp.rtsp.tests.rtcp;
 
 import android.util.Log;
+import com.pedro.rtsp.rtsp.tests.RtpFrame;
 import com.pedro.rtsp.utils.ConnectCheckerRtsp;
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.InetAddress;
 import java.net.MulticastSocket;
+import java.net.UnknownHostException;
 
 /**
  * Created by pedro on 24/02/17.
@@ -13,7 +15,7 @@ import java.net.MulticastSocket;
 
 public class SenderReportUdp extends BaseSenderReport {
 
-  private MulticastSocket socket;
+  private MulticastSocket multicastSocket;
   private DatagramPacket datagramPacket;
   private ConnectCheckerRtsp connectCheckerRtsp;
 
@@ -21,32 +23,34 @@ public class SenderReportUdp extends BaseSenderReport {
     super();
     this.connectCheckerRtsp = connectCheckerRtsp;
     try {
-      socket = new MulticastSocket();
+      multicastSocket = new MulticastSocket();
     } catch (IOException e) {
       // Very unlikely to happen. Means that all UDP ports are already being used
       throw new RuntimeException(e.getMessage());
     }
-    datagramPacket = new DatagramPacket(mBuffer, 1);
+    datagramPacket = new DatagramPacket(buffer, 1);
   }
 
   public void close() {
-    socket.close();
+    multicastSocket.close();
   }
 
   /**
    * Updates the number of packets sent, and the total amount of data sent.
-   *
-   * @param length The length of the packet
-   * @param rtpts The RTP timestamp.
-   * @param port to send packet
    **/
-  public void update(int length, long rtpts, int port) {
-    if (updateSend(length)) send(System.nanoTime(), rtpts, port);
+  @Override
+  public void update(RtpFrame rtpFrame) {
+    if (updateSend(rtpFrame.getLength())) {
+      send(System.nanoTime(), rtpFrame.getTimeStamp(), rtpFrame.getRtcpPort());
+    }
   }
 
-  public void setDestination(InetAddress dest, int dport) {
-    datagramPacket.setPort(dport);
-    datagramPacket.setAddress(dest);
+  public void setHost(String host) {
+    try {
+      datagramPacket.setAddress(InetAddress.getByName(host));
+    } catch (UnknownHostException e) {
+      Log.e(TAG, "Error", e);
+    }
   }
 
   /**
@@ -56,20 +60,15 @@ public class SenderReportUdp extends BaseSenderReport {
    * @param rtpts the RTP timestamp.
    */
   private void send(final long ntpts, final long rtpts, final int port) {
-    new Thread(new Runnable() {
-      @Override
-      public void run() {
-        setData(ntpts, rtpts);
-        datagramPacket.setLength(PACKET_LENGTH);
-        datagramPacket.setPort(port);
-        try {
-          socket.send(datagramPacket);
-          Log.i(TAG, "send report, " + datagramPacket.getPort() + " Port");
-        } catch (IOException e) {
-          Log.e(TAG, "send UDP report error", e);
-          connectCheckerRtsp.onConnectionFailedRtsp("Error send report, " + e.getMessage());
-        }
-      }
-    }).start();
+    setData(ntpts, rtpts);
+    datagramPacket.setLength(PACKET_LENGTH);
+    datagramPacket.setPort(port);
+    try {
+      multicastSocket.send(datagramPacket);
+      Log.i(TAG, "wrote report, " + datagramPacket.getPort() + " Port");
+    } catch (IOException e) {
+      Log.e(TAG, "send UDP report error", e);
+      connectCheckerRtsp.onConnectionFailedRtsp("Error send report, " + e.getMessage());
+    }
   }
 }

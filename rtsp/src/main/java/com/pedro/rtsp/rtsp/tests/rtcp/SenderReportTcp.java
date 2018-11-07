@@ -1,6 +1,7 @@
-package com.pedro.rtsp.rtcp;
+package com.pedro.rtsp.rtsp.tests.rtcp;
 
 import android.util.Log;
+import com.pedro.rtsp.rtsp.tests.RtpFrame;
 import com.pedro.rtsp.utils.ConnectCheckerRtsp;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -11,24 +12,25 @@ import java.io.OutputStream;
 
 public class SenderReportTcp extends BaseSenderReport {
 
-  private final byte[] mTcpHeader;
-  private OutputStream mOutputStream = null;
+  private final byte[] tcpHeader;
+  private OutputStream outputStream = null;
   private ConnectCheckerRtsp connectCheckerRtsp;
 
   public SenderReportTcp(ConnectCheckerRtsp connectCheckerRtsp) {
     super();
     this.connectCheckerRtsp = connectCheckerRtsp;
-    mTcpHeader = new byte[] { '$', 0, 0, PACKET_LENGTH };
+    tcpHeader = new byte[] { '$', 0, 0, PACKET_LENGTH };
   }
 
   /**
    * Updates the number of packets sent, and the total amount of data sent.
    *
-   * @param length The length of the packet
-   * @param rtpts The RTP timestamp.
    **/
-  public void update(int length, long rtpts) {
-    if (updateSend(length)) send(System.nanoTime(), rtpts);
+  @Override
+  public void update(RtpFrame rtpFrame) {
+    if (updateSend(rtpFrame.getLength())) {
+      send(System.nanoTime(), rtpFrame.getTimeStamp(), rtpFrame.getChannelIdentifier());
+    }
   }
 
   /**
@@ -37,27 +39,23 @@ public class SenderReportTcp extends BaseSenderReport {
    * @param ntpts the NTP timestamp.
    * @param rtpts the RTP timestamp.
    */
-  private void send(final long ntpts, final long rtpts) {
-    new Thread(new Runnable() {
-      @Override
-      public void run() {
+  private void send(final long ntpts, final long rtpts, byte channelIdentifier) {
+    synchronized (outputStream) {
+      try {
         setData(ntpts, rtpts);
-        synchronized (mOutputStream) {
-          try {
-            mOutputStream.write(mTcpHeader);
-            mOutputStream.write(mBuffer, 0, PACKET_LENGTH);
-            Log.i(TAG, "send report");
-          } catch (IOException e) {
-            Log.e(TAG, "send TCP report error", e);
-            connectCheckerRtsp.onConnectionFailedRtsp("Error send report, " + e.getMessage());
-          }
-        }
+        tcpHeader[1] = (byte) (channelIdentifier + 1);
+        outputStream.write(tcpHeader);
+        outputStream.write(buffer, 0, PACKET_LENGTH);
+        outputStream.flush();
+        Log.i(TAG, "wrote report");
+      } catch (IOException e) {
+        Log.e(TAG, "send TCP report error", e);
+        connectCheckerRtsp.onConnectionFailedRtsp("Error send report, " + e.getMessage());
       }
-    }).start();
+    }
   }
 
-  public void setOutputStream(OutputStream os, byte channelIdentifier) {
-    mOutputStream = os;
-    mTcpHeader[1] = channelIdentifier;
+  public void setOutputStream(OutputStream os) {
+    outputStream = os;
   }
 }

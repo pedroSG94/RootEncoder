@@ -1,4 +1,6 @@
-package com.pedro.rtsp.rtcp;
+package com.pedro.rtsp.rtsp.tests.rtcp;
+
+import com.pedro.rtsp.rtsp.tests.RtpFrame;
 
 /**
  * Created by pedro on 24/02/17.
@@ -11,7 +13,7 @@ public abstract class BaseSenderReport {
   protected static final int MTU = 1500;
   protected static final int PACKET_LENGTH = 28;
 
-  protected byte[] mBuffer = new byte[MTU];
+  protected byte[] buffer = new byte[MTU];
   protected int mOctetCount = 0, mPacketCount = 0;
   protected long interval, delta, now, old;
 
@@ -23,10 +25,10 @@ public abstract class BaseSenderReport {
     /*									 | |---------------------								*/
     /*									 | ||													*/
     /*									 | ||													*/
-    mBuffer[0] = (byte) Integer.parseInt("10000000", 2);
+    buffer[0] = (byte) Integer.parseInt("10000000", 2);
 
     /* Packet Type PT */
-    mBuffer[1] = (byte) 200;
+    buffer[1] = (byte) 200;
 
     /* Byte 2,3          ->  Length		                     */
     setLong(PACKET_LENGTH / 4 - 1, 2, 4);
@@ -50,6 +52,8 @@ public abstract class BaseSenderReport {
     setLong(mPacketCount, 20, 24);
     setLong(mOctetCount, 24, 28);
   }
+
+  public abstract void update(RtpFrame rtpFrame);
 
   /**
    * Updates the number of packets sent, and the total amount of data sent.
@@ -88,7 +92,7 @@ public abstract class BaseSenderReport {
 
   protected void setLong(long n, int begin, int end) {
     for (end--; end >= begin; end--) {
-      mBuffer[end] = (byte) (n % 256);
+      buffer[end] = (byte) (n % 256);
       n >>= 8;
     }
   }
