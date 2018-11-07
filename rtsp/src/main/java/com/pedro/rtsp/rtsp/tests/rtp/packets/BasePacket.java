@@ -10,14 +10,12 @@ public class BasePacket {
   protected int seq = 0;
   protected long clock;
   protected int ssrc;
-  protected PacketCallback packetCallback;
   protected byte channelIdentifier;
   protected int rtpPort;
   protected int rtcpPort;
 
-  public BasePacket(long clock, PacketCallback packetCallback) {
+  public BasePacket(long clock) {
     this.clock = clock;
-    this.packetCallback = packetCallback;
     ssrc = new Random().nextInt();
   }
 

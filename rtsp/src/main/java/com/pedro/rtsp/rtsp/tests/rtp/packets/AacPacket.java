@@ -9,9 +9,11 @@ import java.nio.ByteBuffer;
 public class AacPacket extends BasePacket {
 
   private SrsAllocator srsAllocator = new SrsAllocator(RtpConstants.MTU);
+  private AudioPacketCallback audioPacketCallback;
 
-  public AacPacket(int sampleRate, PacketCallback packetCallback) {
-    super(sampleRate, packetCallback);
+  public AacPacket(int sampleRate, AudioPacketCallback audioPacketCallback) {
+    super(sampleRate);
+    this.audioPacketCallback = audioPacketCallback;
     channelIdentifier = (byte) 0;
   }
 
@@ -45,7 +47,7 @@ public class AacPacket extends BasePacket {
       RtpFrame rtpFrame =
           new RtpFrame(allocation.array(), ts, RtpConstants.RTP_HEADER_LENGTH + length + 4, rtpPort,
               rtcpPort, channelIdentifier);
-      packetCallback.onFrameCreated(rtpFrame);
+      audioPacketCallback.onAudioFrameCreated(rtpFrame);
       srsAllocator.release(allocation);
     }
   }

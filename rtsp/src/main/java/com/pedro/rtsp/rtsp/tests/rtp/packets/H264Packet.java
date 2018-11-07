@@ -14,9 +14,11 @@ public class H264Packet extends BasePacket {
   private byte[] header = new byte[5];
   private byte[] stapA;
   private List<RtpFrame> videoFrames = new ArrayList<>();
+  private VideoPacketCallback videoPacketCallback;
 
-  public H264Packet(byte[] sps, byte[] pps, PacketCallback packetCallback) {
-    super(RtpConstants.clockVideoFrequency, packetCallback);
+  public H264Packet(byte[] sps, byte[] pps, VideoPacketCallback videoPacketCallback) {
+    super(RtpConstants.clockVideoFrequency);
+    this.videoPacketCallback = videoPacketCallback;
     channelIdentifier = (byte) 2;
     setSPSandPPS(sps, pps);
   }
@@ -106,7 +108,7 @@ public class H264Packet extends BasePacket {
         header[1] = (byte) (header[1] & 0x7F);
       }
     }
-    packetCallback.onFrameCreated(videoFrames);
+    videoPacketCallback.onVideoFramesCreated(videoFrames);
   }
 
   private void setSPSandPPS(byte[] sps, byte[] pps) {

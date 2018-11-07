@@ -7,10 +7,12 @@ import com.pedro.rtsp.rtsp.tests.rtcp.BaseSenderReport;
 import com.pedro.rtsp.rtsp.tests.rtcp.SenderReportTcp;
 import com.pedro.rtsp.rtsp.tests.rtcp.SenderReportUdp;
 import com.pedro.rtsp.rtsp.tests.rtp.packets.AacPacket;
+import com.pedro.rtsp.rtsp.tests.rtp.packets.AudioPacketCallback;
 import com.pedro.rtsp.rtsp.tests.rtp.packets.H264Packet;
-import com.pedro.rtsp.rtsp.tests.rtp.packets.PacketCallback;
+import com.pedro.rtsp.rtsp.tests.rtp.packets.VideoPacketCallback;
 import com.pedro.rtsp.rtsp.tests.rtp.sockets.RtpSocket;
 import com.pedro.rtsp.utils.ConnectCheckerRtsp;
+import com.pedro.rtsp.utils.RtpConstants;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.util.List;
@@ -18,24 +20,33 @@ import java.util.Random;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
-public class RtspSender {
+public class RtspSender implements VideoPacketCallback, AudioPacketCallback {
 
   private final static String TAG = "RtspSender";
   private H264Packet h264Packet;
   private AacPacket aacPacket;
   private RtpSocket rtpSocket;
   private BaseSenderReport baseSenderReport;
-  private BlockingQueue<RtpFrame> rtpFrameBlockingQueue = new LinkedBlockingQueue<>(300);
+  private BlockingQueue<RtpFrame> rtpFrameBlockingQueue = new LinkedBlockingQueue<>(getCacheSize(10));
   private Thread thread;
 
   public RtspSender(ConnectCheckerRtsp connectCheckerRtsp, Protocol protocol, byte[] sps,
       byte[] pps, int sampleRate) {
-    h264Packet = new H264Packet(sps, pps, videoPacketCallback);
-    aacPacket = new AacPacket(sampleRate, audioPacketCallback);
+    h264Packet = new H264Packet(sps, pps, this);
+    aacPacket = new AacPacket(sampleRate, this);
     rtpSocket = new RtpSocket(connectCheckerRtsp, protocol);
     baseSenderReport = protocol == Protocol.TCP ? new SenderReportTcp(connectCheckerRtsp)
         : new SenderReportUdp(connectCheckerRtsp);
     baseSenderReport.setSSRC(new Random().nextInt());
+  }
+
+  /**
+   *
+   * @param size in mb
+   * @return number of packets
+   */
+  private int getCacheSize(int size) {
+    return size * 1024 * 1024 / RtpConstants.MTU;
   }
 
   public void setDataStream(OutputStream outputStream, String host) {
@@ -63,45 +74,23 @@ public class RtspSender {
     aacPacket.createAndSendPacket(aacBuffer, info);
   }
 
-  private PacketCallback videoPacketCallback = new PacketCallback() {
-    @Override
-    public void onFrameCreated(RtpFrame rtpFrame) {
-      try {
-        rtpFrameBlockingQueue.add(rtpFrame);
-      } catch (IllegalStateException e) {
-        Log.i(TAG, "video frame discarded");
-      }
+  @Override
+  public void onVideoFramesCreated(List<RtpFrame> rtpFrames) {
+    try {
+      rtpFrameBlockingQueue.addAll(rtpFrames);
+    } catch (IllegalStateException e) {
+      Log.i(TAG, "video frame discarded");
     }
+  }
 
-    @Override
-    public void onFrameCreated(List<RtpFrame> rtpFrames) {
-      try {
-        rtpFrameBlockingQueue.addAll(rtpFrames);
-      } catch (IllegalStateException e) {
-        Log.i(TAG, "video frame discarded");
-      }
+  @Override
+  public void onAudioFrameCreated(RtpFrame rtpFrame) {
+    try {
+      rtpFrameBlockingQueue.add(rtpFrame);
+    } catch (IllegalStateException e) {
+      Log.i(TAG, "audio frame discarded");
     }
-  };
-
-  private PacketCallback audioPacketCallback = new PacketCallback() {
-    @Override
-    public void onFrameCreated(RtpFrame rtpFrame) {
-      try {
-        rtpFrameBlockingQueue.add(rtpFrame);
-      } catch (IllegalStateException e) {
-        Log.i(TAG, "audio frame discarded");
-      }
-    }
-
-    @Override
-    public void onFrameCreated(List<RtpFrame> rtpFrames) {
-      try {
-        rtpFrameBlockingQueue.addAll(rtpFrames);
-      } catch (IllegalStateException e) {
-        Log.i(TAG, "video frame discarded");
-      }
-    }
-  };
+  }
 
   public void start() {
     thread = new Thread(new Runnable() {
