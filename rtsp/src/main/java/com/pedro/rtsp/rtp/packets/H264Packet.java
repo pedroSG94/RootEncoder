@@ -1,39 +1,21 @@
 package com.pedro.rtsp.rtp.packets;
 
 import android.media.MediaCodec;
-import com.pedro.rtsp.rtp.sockets.RtpSocketTcp;
-import com.pedro.rtsp.rtp.sockets.RtpSocketUdp;
-import com.pedro.rtsp.rtsp.Protocol;
-import com.pedro.rtsp.rtsp.RtspClient;
+import com.pedro.rtsp.rtsp.RtpFrame;
 import com.pedro.rtsp.utils.RtpConstants;
 import java.nio.ByteBuffer;
 
-/**
- * Created by pedro on 19/02/17.
- *
- * RFC 3984.
- * H264 streaming over RTP.
- */
 public class H264Packet extends BasePacket {
 
-  private final String TAG = "H264Packet";
-
-  //contain header from ByteBuffer (first 5 bytes)
   private byte[] header = new byte[5];
   private byte[] stapA;
+  private VideoPacketCallback videoPacketCallback;
 
-  public H264Packet(RtspClient rtspClient, Protocol protocol) {
-    super(rtspClient, protocol);
-    socket.setClockFrequency(RtpConstants.clockVideoFrequency);
-  }
-
-  public void updateDestinationVideo() {
-    if (socket instanceof RtpSocketUdp) {
-      ((RtpSocketUdp) socket).setDestination(rtspClient.getHost(), rtspClient.getVideoPorts()[0],
-          rtspClient.getVideoPorts()[1]);
-    } else {
-      ((RtpSocketTcp) socket).setOutputStream(rtspClient.getOutputStream(), (byte) 2);
-    }
+  public H264Packet(byte[] sps, byte[] pps, VideoPacketCallback videoPacketCallback) {
+    super(RtpConstants.clockVideoFrequency);
+    this.videoPacketCallback = videoPacketCallback;
+    channelIdentifier = (byte) 2;
+    setSPSandPPS(sps, pps);
   }
 
   public void createAndSendPacket(ByteBuffer byteBuffer, MediaCodec.BufferInfo bufferInfo) {
@@ -41,28 +23,40 @@ public class H264Packet extends BasePacket {
     // NAL units are preceded with 0x00000001
     byteBuffer.rewind();
     byteBuffer.get(header, 0, 5);
-    ts = bufferInfo.presentationTimeUs * 1000L;
+    long ts = bufferInfo.presentationTimeUs * 1000L;
     int naluLength = bufferInfo.size - byteBuffer.position() + 1;
     int type = header[4] & 0x1F;
-
     if (type == 5) {
-      buffer = socket.requestBuffer();
-      socket.markNextPacket();
-      socket.updateTimestamp(ts);
+      byte[] buffer = getBuffer();
+      updateTimeStamp(buffer, ts);
+
+      markPacket(buffer); //mark end frame
       System.arraycopy(stapA, 0, buffer, RtpConstants.RTP_HEADER_LENGTH, stapA.length);
-      socket.commitBuffer(stapA.length + RtpConstants.RTP_HEADER_LENGTH);
+
+      updateSeq(buffer);
+      RtpFrame rtpFrame =
+          new RtpFrame(buffer, ts, stapA.length + RtpConstants.RTP_HEADER_LENGTH,
+              rtpPort, rtcpPort, channelIdentifier);
+      videoPacketCallback.onVideoFrameCreated(rtpFrame);
     }
     // Small NAL unit => Single NAL unit
     if (naluLength <= maxPacketSize - RtpConstants.RTP_HEADER_LENGTH - 2) {
-      buffer = socket.requestBuffer();
+      byte[] buffer = getBuffer();
+
       buffer[RtpConstants.RTP_HEADER_LENGTH] = header[4];
       int cont = naluLength - 1;
       int length = cont < bufferInfo.size - byteBuffer.position() ? cont
           : bufferInfo.size - byteBuffer.position();
       byteBuffer.get(buffer, RtpConstants.RTP_HEADER_LENGTH + 1, length);
-      socket.updateTimestamp(ts);
-      socket.markNextPacket();
-      socket.commitBuffer(naluLength + RtpConstants.RTP_HEADER_LENGTH);
+
+      updateTimeStamp(buffer, ts);
+      markPacket(buffer); //mark end frame
+
+      updateSeq(buffer);
+      RtpFrame rtpFrame =
+          new RtpFrame(buffer, ts, naluLength + RtpConstants.RTP_HEADER_LENGTH, rtpPort,
+              rtcpPort, channelIdentifier);
+      videoPacketCallback.onVideoFrameCreated(rtpFrame);
     }
     // Large NAL unit => Split nal unit
     else {
@@ -75,10 +69,10 @@ public class H264Packet extends BasePacket {
 
       int sum = 1;
       while (sum < naluLength) {
-        buffer = socket.requestBuffer();
+        byte[] buffer = getBuffer();
         buffer[RtpConstants.RTP_HEADER_LENGTH] = header[0];
         buffer[RtpConstants.RTP_HEADER_LENGTH + 1] = header[1];
-        socket.updateTimestamp(ts);
+        updateTimeStamp(buffer, ts);
         int cont = naluLength - sum > maxPacketSize - RtpConstants.RTP_HEADER_LENGTH - 2 ?
             maxPacketSize
                 - RtpConstants.RTP_HEADER_LENGTH
@@ -91,16 +85,20 @@ public class H264Packet extends BasePacket {
         if (sum >= naluLength) {
           // End bit on
           buffer[RtpConstants.RTP_HEADER_LENGTH + 1] += 0x40;
-          socket.markNextPacket();
+          markPacket(buffer); //mark end frame
         }
-        socket.commitBuffer(length + RtpConstants.RTP_HEADER_LENGTH + 2);
+        updateSeq(buffer);
+        RtpFrame rtpFrame =
+            new RtpFrame(buffer, ts, length + RtpConstants.RTP_HEADER_LENGTH + 2,
+                rtpPort, rtcpPort, channelIdentifier);
+        videoPacketCallback.onVideoFrameCreated(rtpFrame);
         // Switch start bit
         header[1] = (byte) (header[1] & 0x7F);
       }
     }
   }
 
-  public void setSPSandPPS(byte[] sps, byte[] pps) {
+  private void setSPSandPPS(byte[] sps, byte[] pps) {
     stapA = new byte[sps.length + pps.length + 5];
 
     // STAP-A NAL header is 24

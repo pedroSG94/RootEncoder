@@ -1,12 +1,12 @@
-package com.pedro.rtsp.rtsp.tests;
+package com.pedro.rtsp.rtsp;
 
 public class RtpFrame {
 
   private byte[] buffer;
   private long timeStamp;
   private int length;
-  private int rtpPort; //udp
-  private int rtcpPort; //udp
+  private int rtpPort; //rtp udp
+  private int rtcpPort; //rtcp udp
   private byte channelIdentifier; //rtcp tcp
 
   public RtpFrame(byte[] buffer, long timeStamp, int length, int rtpPort, int rtcpPort,

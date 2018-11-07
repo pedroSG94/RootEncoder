@@ -3,7 +3,6 @@ package com.pedro.rtsp.rtsp;
 import android.media.MediaCodec;
 import android.util.Base64;
 import android.util.Log;
-import com.pedro.rtsp.rtsp.tests.RtspSender;
 import com.pedro.rtsp.utils.AuthUtil;
 import com.pedro.rtsp.utils.ConnectCheckerRtsp;
 import com.pedro.rtsp.utils.CreateSSLSocket;
@@ -64,9 +63,6 @@ public class RtspClient {
   private volatile boolean streaming = false;
   //for secure transport
   private boolean tlsEnabled = false;
-  //packets
-  //private H264Packet h264Packet;
-  //private AacPacket aacPacket;
   private RtspSender rtspSender;
 
   public RtspClient(ConnectCheckerRtsp connectCheckerRtsp) {
@@ -146,10 +142,6 @@ public class RtspClient {
   public void connect() {
     if (!streaming) {
       rtspSender = new RtspSender(connectCheckerRtsp, protocol, sps, pps, sampleRate);
-      //h264Packet = new H264Packet(this, protocol);
-      //if (sps  != null && pps != null) h264Packet.setSPSandPPS(sps, pps);
-      //aacPacket = new AacPacket(this, protocol);
-      //aacPacket.setSampleRate(sampleRate);
       thread = new Thread(new Runnable() {
         @Override
         public void run() {
@@ -213,8 +205,6 @@ public class RtspClient {
             rtspSender.setVideoPorts(videoPorts[0], videoPorts[1]);
             rtspSender.setAudioPorts(audioPorts[0], audioPorts[1]);
             rtspSender.start();
-            //h264Packet.updateDestinationVideo();
-            //aacPacket.updateDestinationAudio();
             streaming = true;
             connectCheckerRtsp.onConnectionSuccessRtsp();
           } catch (IOException | NullPointerException e) {
@@ -232,10 +222,6 @@ public class RtspClient {
     if (streaming) {
       streaming = false;
       rtspSender.stop();
-      //if (h264Packet != null && aacPacket != null) {
-      //  h264Packet.close();
-      //  aacPacket.close();
-      //}
       thread = new Thread(new Runnable() {
         @Override
         public void run() {
@@ -512,14 +498,12 @@ public class RtspClient {
   public void sendVideo(ByteBuffer h264Buffer, MediaCodec.BufferInfo info) {
     if (isStreaming()) {
       rtspSender.sendVideoFrame(h264Buffer, info);
-      //h264Packet.createAndSendPacket(h264Buffer, info);
     }
   }
 
   public void sendAudio(ByteBuffer aacBuffer, MediaCodec.BufferInfo info) {
     if (isStreaming()) {
       rtspSender.sendAudioFrame(aacBuffer, info);
-      //aacPacket.createAndSendPacket(aacBuffer, info);
     }
   }
 }

@@ -1,6 +1,6 @@
-package com.pedro.rtsp.rtsp.tests.rtp.packets;
+package com.pedro.rtsp.rtp.packets;
 
-import com.pedro.rtsp.rtsp.tests.RtpFrame;
+import com.pedro.rtsp.rtsp.RtpFrame;
 
 public interface AudioPacketCallback {
   void onAudioFrameCreated(RtpFrame rtpFrame);

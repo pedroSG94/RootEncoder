@@ -1,21 +1,30 @@
 package com.pedro.rtsp.rtcp;
 
-/**
- * Created by pedro on 24/02/17.
- */
+import android.util.Log;
+import com.pedro.rtsp.rtsp.Protocol;
+import com.pedro.rtsp.rtsp.RtpFrame;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.util.Random;
 
 public abstract class BaseSenderReport {
 
-  protected final String TAG = "SenderReport";
-
-  protected static final int MTU = 1500;
+  protected static final String TAG = "BaseSenderReport";
   protected static final int PACKET_LENGTH = 28;
+  private static final int MTU = 1500;
+  private final long interval = 3000;
 
-  protected byte[] mBuffer = new byte[MTU];
-  protected int mOctetCount = 0, mPacketCount = 0;
-  protected long interval, delta, now, old;
+  private final byte[] videoBuffer = new byte[MTU];
+  private final byte[] audioBuffer = new byte[MTU];
 
-  public BaseSenderReport() {
+  private long videoTime;
+  private long audioTime;
+  private int videoPacketCount;
+  private int videoOctetCount;
+  private int audioPacketCount;
+  private int audioOctetCount;
+
+  BaseSenderReport() {
     /*							     Version(2)  Padding(0)					 					*/
     /*									 ^		  ^			PT = 0	    						*/
     /*									 |		  |				^								*/
@@ -23,81 +32,100 @@ public abstract class BaseSenderReport {
     /*									 | |---------------------								*/
     /*									 | ||													*/
     /*									 | ||													*/
-    mBuffer[0] = (byte) Integer.parseInt("10000000", 2);
+    videoBuffer[0] = (byte) Integer.parseInt("10000000", 2);
+    audioBuffer[0] = (byte) Integer.parseInt("10000000", 2);
 
     /* Packet Type PT */
-    mBuffer[1] = (byte) 200;
+    videoBuffer[1] = (byte) 200;
+    audioBuffer[1] = (byte) 200;
 
     /* Byte 2,3          ->  Length		                     */
-    setLong(PACKET_LENGTH / 4 - 1, 2, 4);
-
+    setLong(videoBuffer, PACKET_LENGTH / 4 - 1, 2, 4);
+    setLong(audioBuffer, PACKET_LENGTH / 4 - 1, 2, 4);
     /* Byte 4,5,6,7      ->  SSRC                            */
+    setLong(videoBuffer, new Random().nextInt(), 4, 8);
+    setLong(audioBuffer, new Random().nextInt(), 4, 8);
     /* Byte 8,9,10,11    ->  NTP timestamp hb				 */
     /* Byte 12,13,14,15  ->  NTP timestamp lb				 */
     /* Byte 16,17,18,19  ->  RTP timestamp		             */
     /* Byte 20,21,22,23  ->  packet count				 	 */
     /* Byte 24,25,26,27  ->  octet count			         */
-
-    // By default we sent one report every 3 second
-    interval = 3000;
-    delta = interval;
   }
 
-  public void setSSRC(int ssrc) {
-    setLong(ssrc, 4, 8);
-    mPacketCount = 0;
-    mOctetCount = 0;
-    setLong(mPacketCount, 20, 24);
-    setLong(mOctetCount, 24, 28);
+  public static BaseSenderReport getInstance(Protocol protocol) {
+    return protocol == Protocol.TCP ? new SenderReportTcp()
+        : new SenderReportUdp();
   }
 
-  /**
-   * Updates the number of packets sent, and the total amount of data sent.
-   *
-   * @param length The length of the packet
-   */
-  protected boolean updateSend(int length) {
-    mPacketCount += 1;
-    mOctetCount += length;
-    setLong(mPacketCount, 20, 24);
-    setLong(mOctetCount, 24, 28);
+  public abstract void setDataStream(OutputStream outputStream, String host);
 
-    now = System.currentTimeMillis();
-    delta += old != 0 ? now - old : 0;
-    old = now;
-    if (interval > 0) {
-      if (delta >= interval) {
-        // We send a Sender Report
-        delta = 0;
-        return true;
+  public void update(RtpFrame rtpFrame) {
+    if (rtpFrame.getChannelIdentifier() == (byte) 2) {
+      updateVideo(rtpFrame);
+    } else {
+      updateAudio(rtpFrame);
+    }
+  }
+
+  public abstract void sendReport(byte[] buffer, RtpFrame rtpFrame, String type, int packetCount,
+      int octetCount) throws IOException;
+
+  private void updateVideo(RtpFrame rtpFrame) {
+    videoPacketCount++;
+    videoOctetCount += rtpFrame.getLength();
+    setLong(videoBuffer, videoPacketCount, 20, 24);
+    setLong(videoBuffer, videoOctetCount, 24, 28);
+    if (System.currentTimeMillis() - videoTime >= interval) {
+      videoTime = System.currentTimeMillis();
+      setData(videoBuffer, System.nanoTime(), rtpFrame.getTimeStamp());
+      try {
+        sendReport(videoBuffer, rtpFrame, "Video", videoPacketCount, videoOctetCount);
+      } catch (IOException e) {
+        Log.e(TAG, "Error", e);
       }
     }
-    return false;
   }
 
-  /**
-   * Resets the reports (total number of bytes sent, number of packets sent, etc.)
-   */
+  private void updateAudio(RtpFrame rtpFrame) {
+    audioPacketCount++;
+    audioOctetCount += rtpFrame.getLength();
+    setLong(audioBuffer, audioPacketCount, 20, 24);
+    setLong(audioBuffer, audioOctetCount, 24, 28);
+    if (System.currentTimeMillis() - audioTime >= interval) {
+      audioTime = System.currentTimeMillis();
+      setData(audioBuffer, System.nanoTime(), rtpFrame.getTimeStamp());
+      try {
+        sendReport(audioBuffer, rtpFrame, "Audio", audioPacketCount, audioOctetCount);
+      } catch (IOException e) {
+        Log.e(TAG, "Error", e);
+      }
+    }
+  }
+
   public void reset() {
-    mPacketCount = 0;
-    mOctetCount = 0;
-    setLong(mPacketCount, 20, 24);
-    setLong(mOctetCount, 24, 28);
-    delta = now = old = 0;
+    videoPacketCount = videoOctetCount = 0;
+    audioPacketCount = audioOctetCount = 0;
+    videoTime = audioTime = 0;
+    setLong(videoBuffer, videoPacketCount, 20, 24);
+    setLong(videoBuffer, videoOctetCount, 24, 28);
+    setLong(audioBuffer, audioPacketCount, 20, 24);
+    setLong(audioBuffer, audioOctetCount, 24, 28);
   }
 
-  protected void setLong(long n, int begin, int end) {
+  public abstract void close();
+
+  private void setLong(byte[] buffer, long n, int begin, int end) {
     for (end--; end >= begin; end--) {
-      mBuffer[end] = (byte) (n % 256);
+      buffer[end] = (byte) (n % 256);
       n >>= 8;
     }
   }
 
-  protected void setData(long ntpts, long rtpts) {
+  private void setData(byte[] buffer, long ntpts, long rtpts) {
     long hb = ntpts / 1000000000;
     long lb = ((ntpts - hb * 1000000000) * 4294967296L) / 1000000000;
-    setLong(hb, 8, 12);
-    setLong(lb, 12, 16);
-    setLong(rtpts, 16, 20);
+    setLong(buffer, hb, 8, 12);
+    setLong(buffer, lb, 12, 16);
+    setLong(buffer, rtpts, 16, 20);
   }
 }
