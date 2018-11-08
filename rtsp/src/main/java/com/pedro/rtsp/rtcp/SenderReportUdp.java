@@ -50,6 +50,6 @@ public class SenderReportUdp extends BaseSenderReport {
     datagramPacket.setPort(port);
     datagramPacket.setLength(PACKET_LENGTH);
     multicastSocket.send(datagramPacket);
-    Log.i(TAG, "wrote report" + type + ", packets: " + packet + ", octet: " + octet);
+    Log.i(TAG, "wrote report: " + type + ", packets: " + packet + ", octet: " + octet);
   }
 }

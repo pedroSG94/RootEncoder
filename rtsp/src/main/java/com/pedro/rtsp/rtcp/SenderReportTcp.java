@@ -38,7 +38,7 @@ public class SenderReportTcp extends BaseSenderReport {
       outputStream.write(tcpHeader);
       outputStream.write(buffer, 0, PACKET_LENGTH);
       outputStream.flush();
-      Log.i(TAG, "wrote report" + type + ", packets: " + packet + ", octet: " + octet);
+      Log.i(TAG, "wrote report: " + type + ", packets: " + packet + ", octet: " + octet);
     }
   }
 }

@@ -97,7 +97,7 @@
     <activity
         android:name=".openglexample.OpenGlRtspActivity"
         android:label="@string/opengl_rtsp"
-        android:screenOrientation="landscape"
+        android:screenOrientation="portrait"
         />
   </application>
 
