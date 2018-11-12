@@ -70,6 +70,8 @@ public class RtspClient {
     long uptime = System.currentTimeMillis();
     timestamp = (uptime / 1000) << 32 & (((uptime - ((uptime / 1000) * 1000)) >> 32)
         / 1000); // NTP timestamp
+    sps = defaultSPS.getBytes();
+    pps = defaultPPS.getBytes();
   }
 
   public void setProtocol(Protocol protocol) {
