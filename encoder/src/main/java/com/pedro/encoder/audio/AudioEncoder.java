@@ -29,8 +29,8 @@ public class AudioEncoder implements GetMicrophoneData {
 
   //default parameters for encoder
   private CodecUtil.Force force = CodecUtil.Force.FIRST_COMPATIBLE_FOUND;
-  private int bitRate = 128 * 1024;  //in kbps
-  private int sampleRate = 44100; //in hz
+  private int bitRate = 64 * 1024;  //in kbps
+  private int sampleRate = 32000; //in hz
   private boolean isStereo = true;
 
   public AudioEncoder(GetAacData getAacData) {

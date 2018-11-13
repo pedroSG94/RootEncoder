@@ -221,13 +221,13 @@ public abstract class Camera1Base
 
   /**
    * Same to call:
-   * prepareAudio(128 * 1024, 44100, true, false, false);
+   * prepareAudio(64 * 1024, 32000, true, false, false);
    *
    * @return true if success, false if you get a error (Normally because the encoder selected
    * doesn't support any configuration seated or your device hasn't a AAC encoder).
    */
   public boolean prepareAudio() {
-    return prepareAudio(128 * 1024, 44100, true, false, false);
+    return prepareAudio(64 * 1024, 32000, true, false, false);
   }
 
   /**

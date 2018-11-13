@@ -22,7 +22,7 @@ public class MicrophoneManager {
   private boolean created = false;
 
   //default parameters for microphone
-  private int sampleRate = 44100; //hz
+  private int sampleRate = 32000; //hz
   private int audioFormat = AudioFormat.ENCODING_PCM_16BIT;
   private int channel = AudioFormat.CHANNEL_IN_STEREO;
   private boolean muted = false;

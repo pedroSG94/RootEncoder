@@ -120,8 +120,8 @@ public abstract class FromFileBase
     return result;
   }
 
-  public boolean prepareVideo(String filePath, int bitRate) throws IOException {
-    return prepareVideo(filePath, bitRate, 0);
+  public boolean prepareVideo(String filePath) throws IOException {
+    return prepareVideo(filePath, 1200 * 1024, 0);
   }
 
   /**
@@ -139,6 +139,10 @@ public abstract class FromFileBase
         audioDecoder.isStereo());
     audioDecoder.prepareAudio();
     return result;
+  }
+
+  public boolean prepareAudio(String filePath) throws IOException {
+    return prepareAudio(filePath, 64 * 1024);
   }
 
   /**

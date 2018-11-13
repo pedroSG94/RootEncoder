@@ -10,7 +10,7 @@ public class AacPacket extends BasePacket {
   private AudioPacketCallback audioPacketCallback;
 
   public AacPacket(int sampleRate, AudioPacketCallback audioPacketCallback) {
-    super(sampleRate == 44100 ? 32000 : sampleRate);  //fix audio sync with 44100 sampleRate
+    super(sampleRate);
     this.audioPacketCallback = audioPacketCallback;
     channelIdentifier = (byte) 0;
   }

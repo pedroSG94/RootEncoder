@@ -33,7 +33,7 @@ public class RtspClient {
   private String host = "";
   private int port;
   private String path;
-  private int sampleRate = 44100;
+  private int sampleRate = 32000;
   private boolean isStereo = true;
 
   private final int trackVideo = 1;

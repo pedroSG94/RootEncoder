@@ -142,8 +142,7 @@ public class RtspFromFileActivity extends AppCompatActivity
           if (!rtspFromFile.isStreaming()) {
             try {
               if (rtspFromFile.isRecording()
-                  || rtspFromFile.prepareVideo(filePath, 1200 * 1024) && rtspFromFile.prepareAudio(
-                  filePath, 64 * 1024)) {
+                  || rtspFromFile.prepareVideo(filePath) && rtspFromFile.prepareAudio(filePath)) {
                 button.setText(R.string.stop_button);
                 rtspFromFile.startStream(etUrl.getText().toString());
                 if (!rtspFromFile.isRecording()) {
@@ -187,8 +186,7 @@ public class RtspFromFileActivity extends AppCompatActivity
             SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault());
             currentDateAndTime = sdf.format(new Date());
             if (!rtspFromFile.isStreaming()) {
-              if (rtspFromFile.prepareVideo(filePath, 1200 * 1024) && rtspFromFile.prepareAudio(
-                  filePath, 64 * 1024)) {
+              if (rtspFromFile.prepareVideo(filePath) && rtspFromFile.prepareAudio(filePath)) {
                 rtspFromFile.startRecord(
                     folder.getAbsolutePath() + "/" + currentDateAndTime + ".mp4");
                 seekBar.setMax((int) rtspFromFile.getVideoDuration());
