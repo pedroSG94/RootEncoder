@@ -52,6 +52,12 @@ public class RtmpFromFile extends FromFileBase {
   }
 
   @Override
+  protected void prepareAudioRtp(boolean isStereo, int sampleRate) {
+    srsFlvMuxer.setIsStereo(isStereo);
+    srsFlvMuxer.setSampleRate(sampleRate);
+  }
+
+  @Override
   protected void startStreamRtp(String url) {
     if (videoEncoder.getRotation() == 90 || videoEncoder.getRotation() == 270) {
       srsFlvMuxer.setVideoResolution(videoEncoder.getHeight(), videoEncoder.getWidth());

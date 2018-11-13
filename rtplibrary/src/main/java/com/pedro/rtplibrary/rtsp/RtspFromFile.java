@@ -43,6 +43,12 @@ public class RtspFromFile extends FromFileBase {
   }
 
   @Override
+  protected void prepareAudioRtp(boolean isStereo, int sampleRate) {
+    rtspClient.setIsStereo(isStereo);
+    rtspClient.setSampleRate(sampleRate);
+  }
+
+  @Override
   protected void startStreamRtp(String url) {
     rtspClient.setUrl(url);
   }

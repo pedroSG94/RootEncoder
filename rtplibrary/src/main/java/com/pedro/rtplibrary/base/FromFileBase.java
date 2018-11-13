@@ -137,6 +137,7 @@ public abstract class FromFileBase
     if (!audioDecoder.initExtractor(filePath)) return false;
     boolean result = audioEncoder.prepareAudioEncoder(bitRate, audioDecoder.getSampleRate(),
         audioDecoder.isStereo());
+    prepareAudioRtp(audioDecoder.isStereo(), audioDecoder.getSampleRate());
     audioDecoder.prepareAudio();
     return result;
   }
@@ -144,6 +145,8 @@ public abstract class FromFileBase
   public boolean prepareAudio(String filePath) throws IOException {
     return prepareAudio(filePath, 64 * 1024);
   }
+
+  protected abstract void prepareAudioRtp(boolean isStereo, int sampleRate);
 
   /**
    * @param forceVideo force type codec used. FIRST_COMPATIBLE_FOUND, SOFTWARE, HARDWARE
