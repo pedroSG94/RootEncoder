@@ -102,21 +102,26 @@ public abstract class FromFileBase
    * doesn't support any configuration seated or your device hasn't a H264 encoder).
    * @throws IOException Normally file not found.
    */
-  public boolean prepareVideo(String filePath, int bitRate) throws IOException {
+  public boolean prepareVideo(String filePath, int bitRate, int rotation) throws IOException {
     videoPath = filePath;
     videoDecoder = new VideoDecoder(videoDecoderInterface, this);
     if (!videoDecoder.initExtractor(filePath)) return false;
     boolean result =
         videoEncoder.prepareVideoEncoder(videoDecoder.getWidth(), videoDecoder.getHeight(), 30,
-            bitRate, 0, true, 2, FormatVideoEncoder.SURFACE);
+            bitRate, rotation, true, 2, FormatVideoEncoder.SURFACE);
     if (context != null) {
       glInterface = new OffScreenGlThread(context);
+      glInterface.setRotation(rotation);
       glInterface.setEncoderSize(videoDecoder.getWidth(), videoDecoder.getHeight());
       glInterface.init();
     } else {
       videoDecoder.prepareVideo(videoEncoder.getInputSurface());
     }
     return result;
+  }
+
+  public boolean prepareVideo(String filePath, int bitRate) throws IOException {
+    return prepareVideo(filePath, bitRate, 0);
   }
 
   /**

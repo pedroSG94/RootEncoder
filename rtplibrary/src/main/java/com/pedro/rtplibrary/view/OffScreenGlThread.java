@@ -45,6 +45,7 @@ public class OffScreenGlThread
   private FpsLimiter fpsLimiter = new FpsLimiter();
   //used with camera
   private TakePhotoCallback takePhotoCallback;
+  private int rotation = 0;
 
   public OffScreenGlThread(Context context) {
     this.context = context;
@@ -116,7 +117,7 @@ public class OffScreenGlThread
 
   @Override
   public void setRotation(int rotation) {
-    //unused
+    this.rotation = rotation;
   }
 
   @Override
@@ -157,7 +158,7 @@ public class OffScreenGlThread
     surfaceManager = new SurfaceManager();
     surfaceManager.makeCurrent();
     textureManager.setStreamSize(encoderWidth, encoderHeight);
-    textureManager.setCameraRotation(0);
+    textureManager.setCameraRotation(rotation);
     textureManager.initGl(encoderWidth, encoderHeight, context);
     textureManager.getSurfaceTexture().setOnFrameAvailableListener(this);
     semaphore.release();

@@ -198,7 +198,8 @@ public class RtmpFromFileActivity extends AppCompatActivity
                     Toast.LENGTH_SHORT).show();
               }
             } else {
-              rtmpFromFile.startRecord(folder.getAbsolutePath() + "/" + currentDateAndTime + ".mp4");
+              rtmpFromFile.startRecord(
+                  folder.getAbsolutePath() + "/" + currentDateAndTime + ".mp4");
               bRecord.setText(R.string.stop_record);
               Toast.makeText(this, "Recording... ", Toast.LENGTH_SHORT).show();
             }
