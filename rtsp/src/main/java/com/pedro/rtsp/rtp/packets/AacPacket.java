@@ -16,11 +16,9 @@ public class AacPacket extends BasePacket {
   }
 
   public void createAndSendPacket(ByteBuffer byteBuffer, MediaCodec.BufferInfo bufferInfo) {
-    int length = maxPacketSize - (RtpConstants.RTP_HEADER_LENGTH + 4)
-        < bufferInfo.size - byteBuffer.position() ? maxPacketSize - (RtpConstants.RTP_HEADER_LENGTH
-        + 4) : bufferInfo.size - byteBuffer.position();
+    int length = bufferInfo.size - byteBuffer.position();
     if (length > 0) {
-      byte[] buffer = getBuffer();
+      byte[] buffer = getBuffer(length + RtpConstants.RTP_HEADER_LENGTH + 4);
 
       byteBuffer.get(buffer, RtpConstants.RTP_HEADER_LENGTH + 4, length);
       long ts = bufferInfo.presentationTimeUs * 1000;

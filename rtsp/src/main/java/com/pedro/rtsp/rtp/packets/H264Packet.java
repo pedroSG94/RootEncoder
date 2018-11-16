@@ -27,7 +27,7 @@ public class H264Packet extends BasePacket {
     int naluLength = bufferInfo.size - byteBuffer.position() + 1;
     int type = header[4] & 0x1F;
     if (type == 5) {
-      byte[] buffer = getBuffer();
+      byte[] buffer = getBuffer(stapA.length + RtpConstants.RTP_HEADER_LENGTH);
       updateTimeStamp(buffer, ts);
 
       markPacket(buffer); //mark end frame
@@ -41,12 +41,12 @@ public class H264Packet extends BasePacket {
     }
     // Small NAL unit => Single NAL unit
     if (naluLength <= maxPacketSize - RtpConstants.RTP_HEADER_LENGTH - 2) {
-      byte[] buffer = getBuffer();
-
-      buffer[RtpConstants.RTP_HEADER_LENGTH] = header[4];
       int cont = naluLength - 1;
       int length = cont < bufferInfo.size - byteBuffer.position() ? cont
           : bufferInfo.size - byteBuffer.position();
+      byte[] buffer = getBuffer(length + RtpConstants.RTP_HEADER_LENGTH + 1);
+
+      buffer[RtpConstants.RTP_HEADER_LENGTH] = header[4];
       byteBuffer.get(buffer, RtpConstants.RTP_HEADER_LENGTH + 1, length);
 
       updateTimeStamp(buffer, ts);
@@ -69,16 +69,17 @@ public class H264Packet extends BasePacket {
 
       int sum = 1;
       while (sum < naluLength) {
-        byte[] buffer = getBuffer();
-        buffer[RtpConstants.RTP_HEADER_LENGTH] = header[0];
-        buffer[RtpConstants.RTP_HEADER_LENGTH + 1] = header[1];
-        updateTimeStamp(buffer, ts);
         int cont = naluLength - sum > maxPacketSize - RtpConstants.RTP_HEADER_LENGTH - 2 ?
             maxPacketSize
                 - RtpConstants.RTP_HEADER_LENGTH
                 - 2 : naluLength - sum;
         int length = cont < bufferInfo.size - byteBuffer.position() ? cont
             : bufferInfo.size - byteBuffer.position();
+        byte[] buffer = getBuffer(length + RtpConstants.RTP_HEADER_LENGTH + 2);
+
+        buffer[RtpConstants.RTP_HEADER_LENGTH] = header[0];
+        buffer[RtpConstants.RTP_HEADER_LENGTH + 1] = header[1];
+        updateTimeStamp(buffer, ts);
         byteBuffer.get(buffer, RtpConstants.RTP_HEADER_LENGTH + 2, length);
         sum += length;
         // Last packet before next NAL

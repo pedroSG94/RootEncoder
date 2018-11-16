@@ -28,8 +28,8 @@ public class BasePacket {
     ssrc = new Random().nextInt();
   }
 
-  protected byte[] getBuffer() {
-    byte[] buffer = new byte[RtpConstants.MTU];
+  protected byte[] getBuffer(int size) {
+    byte[] buffer = new byte[size];
     buffer[0] = (byte) Integer.parseInt("10000000", 2);
     buffer[1] = (byte) RtpConstants.payloadType;
     setLongSSRC(buffer, ssrc);
