@@ -142,8 +142,8 @@ public class OpenGlView extends OpenGlViewBase {
         }
       }
     } catch (InterruptedException ignore) {
+      Thread.currentThread().interrupt();
     } finally {
-      surfaceManager.release();
       managerRender.release();
     }
   }

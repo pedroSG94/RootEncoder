@@ -132,25 +132,30 @@ public class OffScreenGlThread
 
   @Override
   public void start() {
-    thread = new Thread(this);
-    running = true;
-    thread.start();
-    semaphore.acquireUninterruptibly();
+    synchronized (sync) {
+      thread = new Thread(this);
+      running = true;
+      thread.start();
+      semaphore.acquireUninterruptibly();
+    }
   }
 
   @Override
   public void stop() {
-    if (thread != null) {
-      thread.interrupt();
-      try {
-        thread.join(1000);
-      } catch (InterruptedException e) {
+    synchronized (sync) {
+      if (thread != null) {
         thread.interrupt();
+        try {
+          thread.join(1000);
+        } catch (InterruptedException e) {
+          thread.interrupt();
+        }
+        thread = null;
       }
-      thread = null;
+      fpsLimiter.reset();
+      surfaceManager.release();
+      running = false;
     }
-    fpsLimiter.reset();
-    running = false;
   }
 
   @Override
@@ -202,7 +207,6 @@ public class OffScreenGlThread
     } catch (InterruptedException ignore) {
       Thread.currentThread().interrupt();
     } finally {
-      surfaceManager.release();
       textureManager.release();
     }
   }

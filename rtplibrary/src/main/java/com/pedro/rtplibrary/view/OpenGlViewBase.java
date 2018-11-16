@@ -101,26 +101,31 @@ public abstract class OpenGlViewBase extends SurfaceView
 
   @Override
   public void start() {
-    Log.i(TAG, "Thread started.");
-    thread = new Thread(this);
-    running = true;
-    thread.start();
-    semaphore.acquireUninterruptibly();
+    synchronized (sync) {
+      Log.i(TAG, "Thread started.");
+      thread = new Thread(this);
+      running = true;
+      thread.start();
+      semaphore.acquireUninterruptibly();
+    }
   }
 
   @Override
   public void stop() {
-    if (thread != null) {
-      thread.interrupt();
-      try {
-        thread.join(1000);
-      } catch (InterruptedException e) {
+    synchronized (sync) {
+      if (thread != null) {
         thread.interrupt();
+        try {
+          thread.join(1000);
+        } catch (InterruptedException e) {
+          thread.interrupt();
+        }
+        thread = null;
       }
-      thread = null;
+      surfaceManager.release();
+      running = false;
+      rotation = 0;
     }
-    running = false;
-    rotation = 0;
   }
 
   @Override

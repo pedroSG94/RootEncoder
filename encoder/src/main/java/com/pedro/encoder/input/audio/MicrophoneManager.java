@@ -62,24 +62,20 @@ public class MicrophoneManager {
    * Start record and get data
    */
   public void start() {
-    if (isCreated()) {
-      init();
-      new Thread(new Runnable() {
-        @Override
-        public void run() {
-          while (running && !Thread.interrupted()) {
-            DataTaken dataTaken = read();
-            if (dataTaken != null) {
-              getMicrophoneData.inputPCMData(dataTaken.getPcmBuffer(), dataTaken.getSize());
-            } else {
-              running = false;
-            }
+    init();
+    new Thread(new Runnable() {
+      @Override
+      public void run() {
+        while (running && !Thread.interrupted()) {
+          DataTaken dataTaken = read();
+          if (dataTaken != null) {
+            getMicrophoneData.inputPCMData(dataTaken.getPcmBuffer(), dataTaken.getSize());
+          } else {
+            running = false;
           }
         }
-      }).start();
-    } else {
-      Log.e(TAG, "Microphone no created, MicrophoneManager not enabled");
-    }
+      }
+    }).start();
   }
 
   private void init() {

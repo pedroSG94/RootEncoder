@@ -36,7 +36,7 @@ public class VideoEncoder implements GetCameraData {
   private Thread thread;
   private GetH264Data getH264Data;
   private MediaCodec.BufferInfo videoInfo = new MediaCodec.BufferInfo();
-  private long mPresentTimeUs;
+  private long presentTimeUs;
   private boolean running = false;
   private boolean spsPpsSetted = false;
   private boolean hardwareRotation = false;
@@ -122,7 +122,7 @@ public class VideoEncoder implements GetCameraData {
       prepareBlackImage();
       return true;
     } catch (IOException | IllegalStateException e) {
-      Log.e(TAG, "create videoEncoder failed.", e);
+      Log.e(TAG, "Create VideoEncoder failed.", e);
       return false;
     }
   }
@@ -223,62 +223,62 @@ public class VideoEncoder implements GetCameraData {
 
   public void start(boolean resetTs) {
     synchronized (sync) {
-      if (videoEncoder != null) {
-        spsPpsSetted = false;
-        if (resetTs) mPresentTimeUs = System.nanoTime() / 1000;
-        videoEncoder.start();
-        //surface to buffer
-        if (formatVideoEncoder == FormatVideoEncoder.SURFACE
-            && Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
-          if (Build.VERSION.SDK_INT >= 21) {
-            getDataFromSurfaceAPI21();
-          } else {
-            getDataFromSurface();
+      spsPpsSetted = false;
+      if (resetTs) presentTimeUs = System.nanoTime() / 1000;
+      videoEncoder.start();
+      //surface to buffer
+      if (formatVideoEncoder == FormatVideoEncoder.SURFACE
+          && Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
+        thread = new Thread(new Runnable() {
+          @Override
+          public void run() {
+            if (Build.VERSION.SDK_INT >= 21) {
+              getDataFromSurfaceAPI21();
+            } else {
+              getDataFromSurface();
+            }
           }
-          //buffer to buffer
-        } else {
-          if (!(rotation == 0 || rotation == 90 || rotation == 180 || rotation == 270)) {
-            throw new RuntimeException(
-                "rotation value unsupported, select value 0, 90, 180 or 270");
-          }
-          thread = new Thread(new Runnable() {
-            @Override
-            public void run() {
-              YUVUtil.preAllocateBuffers(width * height * 3 / 2);
-              while (!Thread.interrupted()) {
-                try {
-                  Frame frame = queue.take();
-                  if (fpsLimiter.limitFPS(fps)) continue;
-                  byte[] buffer = frame.getBuffer();
-                  boolean isYV12 = frame.getFormat() == ImageFormat.YV12;
-                  if (!hardwareRotation) {
-                    int orientation =
-                        frame.isFlip() ? frame.getOrientation() + 180 : frame.getOrientation();
-                    if (orientation >= 360) orientation -= 360;
-                    buffer = isYV12 ? YUVUtil.rotateYV12(buffer, width, height, orientation)
-                        : YUVUtil.rotateNV21(buffer, width, height, orientation);
-                  }
-                  buffer = (sendBlackImage) ? blackImage
-                      : isYV12 ? YUVUtil.YV12toYUV420byColor(buffer, width, height,
-                          formatVideoEncoder)
-                          : YUVUtil.NV21toYUV420byColor(buffer, width, height, formatVideoEncoder);
-                  if (Build.VERSION.SDK_INT >= 21) {
-                    getDataFromEncoderAPI21(buffer);
-                  } else {
-                    getDataFromEncoder(buffer);
-                  }
-                } catch (InterruptedException e) {
-                  if (thread != null) thread.interrupt();
+        });
+        //buffer to buffer
+      } else {
+        if (!(rotation == 0 || rotation == 90 || rotation == 180 || rotation == 270)) {
+          throw new RuntimeException("rotation value unsupported, select value 0, 90, 180 or 270");
+        }
+        thread = new Thread(new Runnable() {
+          @Override
+          public void run() {
+            YUVUtil.preAllocateBuffers(width * height * 3 / 2);
+            while (running && !Thread.interrupted()) {
+              try {
+                Frame frame = queue.take();
+                if (fpsLimiter.limitFPS(fps)) continue;
+                byte[] buffer = frame.getBuffer();
+                boolean isYV12 = frame.getFormat() == ImageFormat.YV12;
+                if (!hardwareRotation) {
+                  int orientation =
+                      frame.isFlip() ? frame.getOrientation() + 180 : frame.getOrientation();
+                  if (orientation >= 360) orientation -= 360;
+                  buffer = isYV12 ? YUVUtil.rotateYV12(buffer, width, height, orientation)
+                      : YUVUtil.rotateNV21(buffer, width, height, orientation);
                 }
+                buffer = (sendBlackImage) ? blackImage
+                    : isYV12 ? YUVUtil.YV12toYUV420byColor(buffer, width, height,
+                        formatVideoEncoder)
+                        : YUVUtil.NV21toYUV420byColor(buffer, width, height, formatVideoEncoder);
+                if (Build.VERSION.SDK_INT >= 21) {
+                  getDataFromEncoderAPI21(buffer);
+                } else {
+                  getDataFromEncoder(buffer);
+                }
+              } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
               }
             }
-          });
-          thread.start();
-        }
-        running = true;
-      } else {
-        Log.e(TAG, "VideoEncoder need be prepared, VideoEncoder not enabled");
+          }
+        });
       }
+      running = true;
+      thread.start();
     }
   }
 
@@ -330,84 +330,72 @@ public class VideoEncoder implements GetCameraData {
 
   @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
   private void getDataFromSurfaceAPI21() {
-    thread = new Thread(new Runnable() {
-      @Override
-      public void run() {
-        while (!Thread.interrupted()) {
-          for (; ; ) {
-            if (fpsLimiter.limitFPS(fps)) continue;
-            int outBufferIndex = videoEncoder.dequeueOutputBuffer(videoInfo, 0);
-            if (outBufferIndex == MediaCodec.INFO_OUTPUT_FORMAT_CHANGED) {
-              MediaFormat mediaFormat = videoEncoder.getOutputFormat();
-              getH264Data.onVideoFormat(mediaFormat);
-              getH264Data.onSPSandPPS(mediaFormat.getByteBuffer("csd-0"),
-                  mediaFormat.getByteBuffer("csd-1"));
-              spsPpsSetted = true;
-            } else if (outBufferIndex >= 0) {
-              //This ByteBuffer is H264
-              ByteBuffer bb = videoEncoder.getOutputBuffer(outBufferIndex);
-              if ((videoInfo.flags & MediaCodec.BUFFER_FLAG_CODEC_CONFIG) != 0) {
-                if (!spsPpsSetted) {
-                  Pair<ByteBuffer, ByteBuffer> buffers =
-                      decodeSpsPpsFromBuffer(bb.duplicate(), videoInfo.size);
-                  if (buffers != null) {
-                    getH264Data.onSPSandPPS(buffers.first, buffers.second);
-                    spsPpsSetted = true;
-                  }
-                }
+    while (running && !Thread.interrupted()) {
+      for (; ; ) {
+        if (fpsLimiter.limitFPS(fps)) continue;
+        int outBufferIndex = videoEncoder.dequeueOutputBuffer(videoInfo, 0);
+        if (outBufferIndex == MediaCodec.INFO_OUTPUT_FORMAT_CHANGED) {
+          MediaFormat mediaFormat = videoEncoder.getOutputFormat();
+          getH264Data.onVideoFormat(mediaFormat);
+          getH264Data.onSPSandPPS(mediaFormat.getByteBuffer("csd-0"),
+              mediaFormat.getByteBuffer("csd-1"));
+          spsPpsSetted = true;
+        } else if (outBufferIndex >= 0) {
+          //This ByteBuffer is H264
+          ByteBuffer bb = videoEncoder.getOutputBuffer(outBufferIndex);
+          if ((videoInfo.flags & MediaCodec.BUFFER_FLAG_CODEC_CONFIG) != 0) {
+            if (!spsPpsSetted) {
+              Pair<ByteBuffer, ByteBuffer> buffers =
+                  decodeSpsPpsFromBuffer(bb.duplicate(), videoInfo.size);
+              if (buffers != null) {
+                getH264Data.onSPSandPPS(buffers.first, buffers.second);
+                spsPpsSetted = true;
               }
-              videoInfo.presentationTimeUs = System.nanoTime() / 1000 - mPresentTimeUs;
-              getH264Data.getH264Data(bb, videoInfo);
-              videoEncoder.releaseOutputBuffer(outBufferIndex, false);
-            } else {
-              break;
             }
           }
+          videoInfo.presentationTimeUs = System.nanoTime() / 1000 - presentTimeUs;
+          getH264Data.getH264Data(bb, videoInfo);
+          videoEncoder.releaseOutputBuffer(outBufferIndex, false);
+        } else {
+          break;
         }
       }
-    });
-    thread.start();
+    }
   }
 
   private void getDataFromSurface() {
-    thread = new Thread(new Runnable() {
-      @Override
-      public void run() {
-        while (!Thread.interrupted()) {
-          ByteBuffer[] outputBuffers = videoEncoder.getOutputBuffers();
-          for (; ; ) {
-            if (fpsLimiter.limitFPS(fps)) continue;
-            int outBufferIndex = videoEncoder.dequeueOutputBuffer(videoInfo, 10000);
-            if (outBufferIndex == MediaCodec.INFO_OUTPUT_FORMAT_CHANGED) {
-              MediaFormat mediaFormat = videoEncoder.getOutputFormat();
-              getH264Data.onVideoFormat(mediaFormat);
-              getH264Data.onSPSandPPS(mediaFormat.getByteBuffer("csd-0"),
-                  mediaFormat.getByteBuffer("csd-1"));
-              spsPpsSetted = true;
-            } else if (outBufferIndex >= 0) {
-              //This ByteBuffer is H264
-              ByteBuffer bb = outputBuffers[outBufferIndex];
-              if ((videoInfo.flags & MediaCodec.BUFFER_FLAG_CODEC_CONFIG) != 0) {
-                if (!spsPpsSetted) {
-                  Pair<ByteBuffer, ByteBuffer> buffers =
-                      decodeSpsPpsFromBuffer(bb.duplicate(), videoInfo.size);
-                  if (buffers != null) {
-                    getH264Data.onSPSandPPS(buffers.first, buffers.second);
-                    spsPpsSetted = true;
-                  }
-                }
+    while (running && !Thread.interrupted()) {
+      ByteBuffer[] outputBuffers = videoEncoder.getOutputBuffers();
+      for (; ; ) {
+        if (fpsLimiter.limitFPS(fps)) continue;
+        int outBufferIndex = videoEncoder.dequeueOutputBuffer(videoInfo, 10000);
+        if (outBufferIndex == MediaCodec.INFO_OUTPUT_FORMAT_CHANGED) {
+          MediaFormat mediaFormat = videoEncoder.getOutputFormat();
+          getH264Data.onVideoFormat(mediaFormat);
+          getH264Data.onSPSandPPS(mediaFormat.getByteBuffer("csd-0"),
+              mediaFormat.getByteBuffer("csd-1"));
+          spsPpsSetted = true;
+        } else if (outBufferIndex >= 0) {
+          //This ByteBuffer is H264
+          ByteBuffer bb = outputBuffers[outBufferIndex];
+          if ((videoInfo.flags & MediaCodec.BUFFER_FLAG_CODEC_CONFIG) != 0) {
+            if (!spsPpsSetted) {
+              Pair<ByteBuffer, ByteBuffer> buffers =
+                  decodeSpsPpsFromBuffer(bb.duplicate(), videoInfo.size);
+              if (buffers != null) {
+                getH264Data.onSPSandPPS(buffers.first, buffers.second);
+                spsPpsSetted = true;
               }
-              videoInfo.presentationTimeUs = System.nanoTime() / 1000 - mPresentTimeUs;
-              getH264Data.getH264Data(bb, videoInfo);
-              videoEncoder.releaseOutputBuffer(outBufferIndex, false);
-            } else {
-              break;
             }
           }
+          videoInfo.presentationTimeUs = System.nanoTime() / 1000 - presentTimeUs;
+          getH264Data.getH264Data(bb, videoInfo);
+          videoEncoder.releaseOutputBuffer(outBufferIndex, false);
+        } else {
+          break;
         }
       }
-    });
-    thread.start();
+    }
   }
 
   @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
@@ -416,7 +404,7 @@ public class VideoEncoder implements GetCameraData {
     if (inBufferIndex >= 0) {
       ByteBuffer bb = videoEncoder.getInputBuffer(inBufferIndex);
       bb.put(buffer, 0, buffer.length);
-      long pts = System.nanoTime() / 1000 - mPresentTimeUs;
+      long pts = System.nanoTime() / 1000 - presentTimeUs;
       videoEncoder.queueInputBuffer(inBufferIndex, 0, buffer.length, pts, 0);
     }
     for (; ; ) {
@@ -440,7 +428,7 @@ public class VideoEncoder implements GetCameraData {
             }
           }
         }
-        videoInfo.presentationTimeUs = System.nanoTime() / 1000 - mPresentTimeUs;
+        videoInfo.presentationTimeUs = System.nanoTime() / 1000 - presentTimeUs;
         getH264Data.getH264Data(bb, videoInfo);
         videoEncoder.releaseOutputBuffer(outBufferIndex, false);
       } else {
@@ -458,7 +446,7 @@ public class VideoEncoder implements GetCameraData {
       ByteBuffer bb = inputBuffers[inBufferIndex];
       bb.clear();
       bb.put(buffer, 0, buffer.length);
-      long pts = System.nanoTime() / 1000 - mPresentTimeUs;
+      long pts = System.nanoTime() / 1000 - presentTimeUs;
       videoEncoder.queueInputBuffer(inBufferIndex, 0, buffer.length, pts, 0);
     }
 
@@ -483,7 +471,7 @@ public class VideoEncoder implements GetCameraData {
             }
           }
         }
-        videoInfo.presentationTimeUs = System.nanoTime() / 1000 - mPresentTimeUs;
+        videoInfo.presentationTimeUs = System.nanoTime() / 1000 - presentTimeUs;
         getH264Data.getH264Data(bb, videoInfo);
         videoEncoder.releaseOutputBuffer(outBufferIndex, false);
       } else {

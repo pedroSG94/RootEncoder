@@ -107,50 +107,46 @@ public class Camera1ApiManager implements Camera.PreviewCallback, Camera.FaceDet
       throw new CameraOpenException("This camera resolution cant be opened");
     }
     yuvBuffer = new byte[width * height * 3 / 2];
-    if (camera == null) {
-      try {
-        camera = Camera.open(cameraSelect);
-        Camera.CameraInfo info = new Camera.CameraInfo();
-        Camera.getCameraInfo(cameraSelect, info);
-        isFrontCamera = info.facing == Camera.CameraInfo.CAMERA_FACING_FRONT;
+    try {
+      camera = Camera.open(cameraSelect);
+      Camera.CameraInfo info = new Camera.CameraInfo();
+      Camera.getCameraInfo(cameraSelect, info);
+      isFrontCamera = info.facing == Camera.CameraInfo.CAMERA_FACING_FRONT;
 
-        Camera.Parameters parameters = camera.getParameters();
-        parameters.setPreviewSize(width, height);
-        parameters.setPreviewFormat(imageFormat);
-        int[] range = adaptFpsRange(fps, parameters.getSupportedPreviewFpsRange());
-        parameters.setPreviewFpsRange(range[0], range[1]);
+      Camera.Parameters parameters = camera.getParameters();
+      parameters.setPreviewSize(width, height);
+      parameters.setPreviewFormat(imageFormat);
+      int[] range = adaptFpsRange(fps, parameters.getSupportedPreviewFpsRange());
+      parameters.setPreviewFpsRange(range[0], range[1]);
 
-        List<String> supportedFocusModes = parameters.getSupportedFocusModes();
-        if (supportedFocusModes != null && !supportedFocusModes.isEmpty()) {
-          if (supportedFocusModes.contains(Camera.Parameters.FOCUS_MODE_CONTINUOUS_PICTURE)) {
-            parameters.setFocusMode(Camera.Parameters.FOCUS_MODE_CONTINUOUS_PICTURE);
-          } else if (supportedFocusModes.contains(Camera.Parameters.FOCUS_MODE_AUTO)) {
-            parameters.setFocusMode(Camera.Parameters.FOCUS_MODE_AUTO);
-          } else {
-            parameters.setFocusMode(supportedFocusModes.get(0));
-          }
-        }
-        camera.setParameters(parameters);
-        camera.setDisplayOrientation(rotation);
-        if (surfaceView != null) {
-          camera.setPreviewDisplay(surfaceView.getHolder());
-          camera.addCallbackBuffer(yuvBuffer);
-          camera.setPreviewCallbackWithBuffer(this);
-        } else if (textureView != null) {
-          camera.setPreviewTexture(textureView.getSurfaceTexture());
-          camera.addCallbackBuffer(yuvBuffer);
-          camera.setPreviewCallbackWithBuffer(this);
+      List<String> supportedFocusModes = parameters.getSupportedFocusModes();
+      if (supportedFocusModes != null && !supportedFocusModes.isEmpty()) {
+        if (supportedFocusModes.contains(Camera.Parameters.FOCUS_MODE_CONTINUOUS_PICTURE)) {
+          parameters.setFocusMode(Camera.Parameters.FOCUS_MODE_CONTINUOUS_PICTURE);
+        } else if (supportedFocusModes.contains(Camera.Parameters.FOCUS_MODE_AUTO)) {
+          parameters.setFocusMode(Camera.Parameters.FOCUS_MODE_AUTO);
         } else {
-          camera.setPreviewTexture(surfaceTexture);
+          parameters.setFocusMode(supportedFocusModes.get(0));
         }
-        camera.startPreview();
-        running = true;
-        Log.i(TAG, width + "X" + height);
-      } catch (IOException e) {
-        e.printStackTrace();
       }
-    } else {
-      Log.e(TAG, "Camera1ApiManager need be prepared, Camera1ApiManager not enabled");
+      camera.setParameters(parameters);
+      camera.setDisplayOrientation(rotation);
+      if (surfaceView != null) {
+        camera.setPreviewDisplay(surfaceView.getHolder());
+        camera.addCallbackBuffer(yuvBuffer);
+        camera.setPreviewCallbackWithBuffer(this);
+      } else if (textureView != null) {
+        camera.setPreviewTexture(textureView.getSurfaceTexture());
+        camera.addCallbackBuffer(yuvBuffer);
+        camera.setPreviewCallbackWithBuffer(this);
+      } else {
+        camera.setPreviewTexture(surfaceTexture);
+      }
+      camera.startPreview();
+      running = true;
+      Log.i(TAG, width + "X" + height);
+    } catch (IOException e) {
+      Log.e(TAG, "Error", e);
     }
   }
 

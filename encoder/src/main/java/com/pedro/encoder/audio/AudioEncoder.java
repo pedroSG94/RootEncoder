@@ -24,7 +24,7 @@ public class AudioEncoder implements GetMicrophoneData {
   private MediaCodec audioEncoder;
   private GetAacData getAacData;
   private MediaCodec.BufferInfo audioInfo = new MediaCodec.BufferInfo();
-  private long mPresentTimeUs;
+  private long presentTimeUs;
   private boolean running;
 
   //default parameters for encoder
@@ -43,7 +43,6 @@ public class AudioEncoder implements GetMicrophoneData {
   public boolean prepareAudioEncoder(int bitRate, int sampleRate, boolean isStereo) {
     this.sampleRate = sampleRate;
     try {
-
       List<MediaCodecInfo> encoders = new ArrayList<>();
       if (force == CodecUtil.Force.HARDWARE) {
         encoders = CodecUtil.getAllHardwareEncoders(CodecUtil.AAC_MIME);
@@ -71,11 +70,8 @@ public class AudioEncoder implements GetMicrophoneData {
       audioEncoder.configure(audioFormat, null, null, MediaCodec.CONFIGURE_FLAG_ENCODE);
       running = false;
       return true;
-    } catch (IOException e) {
-      e.printStackTrace();
-      return false;
-    } catch (IllegalStateException e) {
-      e.printStackTrace();
+    } catch (IOException | IllegalStateException e) {
+      Log.e(TAG, "Create AudioEncoder failed.", e);
       return false;
     }
   }
@@ -92,14 +88,10 @@ public class AudioEncoder implements GetMicrophoneData {
   }
 
   public void start() {
-    if (audioEncoder != null) {
-      mPresentTimeUs = System.nanoTime() / 1000;
-      audioEncoder.start();
-      running = true;
-      Log.i(TAG, "AudioEncoder started");
-    } else {
-      Log.e(TAG, "AudioEncoder need be prepared, AudioEncoder not enabled");
-    }
+    presentTimeUs = System.nanoTime() / 1000;
+    audioEncoder.start();
+    running = true;
+    Log.i(TAG, "AudioEncoder started");
   }
 
   public void stop() {
@@ -135,7 +127,7 @@ public class AudioEncoder implements GetMicrophoneData {
     if (inBufferIndex >= 0) {
       ByteBuffer bb = audioEncoder.getInputBuffer(inBufferIndex);
       bb.put(data, 0, size);
-      long pts = System.nanoTime() / 1000 - mPresentTimeUs;
+      long pts = System.nanoTime() / 1000 - presentTimeUs;
       audioEncoder.queueInputBuffer(inBufferIndex, 0, size, pts, 0);
     }
 
@@ -163,7 +155,7 @@ public class AudioEncoder implements GetMicrophoneData {
       ByteBuffer bb = inputBuffers[inBufferIndex];
       bb.clear();
       bb.put(data, 0, size);
-      long pts = System.nanoTime() / 1000 - mPresentTimeUs;
+      long pts = System.nanoTime() / 1000 - presentTimeUs;
       audioEncoder.queueInputBuffer(inBufferIndex, 0, size, pts, 0);
     }
 

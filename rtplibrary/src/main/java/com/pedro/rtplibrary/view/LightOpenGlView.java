@@ -99,8 +99,8 @@ public class LightOpenGlView extends OpenGlViewBase {
         }
       }
     } catch (InterruptedException ignore) {
+      Thread.currentThread().interrupt();
     } finally {
-      surfaceManager.release();
       simpleCameraRender.release();
     }
   }

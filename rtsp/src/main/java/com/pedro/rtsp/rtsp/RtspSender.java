@@ -68,7 +68,7 @@ public class RtspSender implements VideoPacketCallback, AudioPacketCallback {
     try {
       rtpFrameBlockingQueue.add(rtpFrame);
     } catch (IllegalStateException e) {
-      Log.i(TAG, "video frame discarded");
+      Log.i(TAG, "Video frame discarded");
     }
   }
 
@@ -77,7 +77,7 @@ public class RtspSender implements VideoPacketCallback, AudioPacketCallback {
     try {
       rtpFrameBlockingQueue.add(rtpFrame);
     } catch (IllegalStateException e) {
-      Log.i(TAG, "audio frame discarded");
+      Log.i(TAG, "Audio frame discarded");
     }
   }
 

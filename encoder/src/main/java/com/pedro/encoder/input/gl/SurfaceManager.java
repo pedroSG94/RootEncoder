@@ -25,7 +25,6 @@ public class SurfaceManager {
   private EGLSurface eglSurface = null;
   private EGLDisplay eglDisplay = null;
 
-
   /**
    * Creates an EGL context and an EGL surface.
    */
@@ -113,12 +112,8 @@ public class SurfaceManager {
         EGL14.EGL_CONTEXT_CLIENT_VERSION, 2, EGL14.EGL_NONE
     };
 
-    if (eglSharedContext == null) {
-      eglContext =
-          EGL14.eglCreateContext(eglDisplay, configs[0], EGL14.EGL_NO_CONTEXT, attrib_list, 0);
-    } else {
-      eglContext = EGL14.eglCreateContext(eglDisplay, configs[0], eglSharedContext, attrib_list, 0);
-    }
+    eglContext = EGL14.eglCreateContext(eglDisplay, configs[0],
+        eglSharedContext == null ? EGL14.EGL_NO_CONTEXT : eglSharedContext, attrib_list, 0);
     GlUtil.checkEglError("eglCreateContext");
 
     // Create a window surface, and attach it to the Surface we received.
