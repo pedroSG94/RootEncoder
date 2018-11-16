@@ -109,8 +109,8 @@ public class RtmpActivity extends AppCompatActivity
 
       public void onDrawerClosed(View view) {
         actionBarDrawerToggle.syncState();
-        if (!lastVideoBitrate.equals(etVideoBitrate.getText().toString())
-            && rtmpCamera1.isStreaming()) {
+        if (lastVideoBitrate != null && !lastVideoBitrate.equals(
+            etVideoBitrate.getText().toString()) && rtmpCamera1.isStreaming()) {
           if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
             int bitrate = Integer.parseInt(etVideoBitrate.getText().toString()) * 1024;
             rtmpCamera1.setVideoBitrateOnFly(bitrate);

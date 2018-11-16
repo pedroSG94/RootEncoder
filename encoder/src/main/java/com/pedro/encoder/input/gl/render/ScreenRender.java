@@ -43,7 +43,6 @@ public class ScreenRender {
   private int uSamplerHandle = -1;
   private int uResolutionHandle = -1;
   private int uAAEnabledHandle = -1;
-  private int uOnFlipHandle = -1;
 
   private int streamWidth;
   private int streamHeight;
@@ -71,7 +70,6 @@ public class ScreenRender {
     uSamplerHandle = GLES20.glGetUniformLocation(program, "uSampler");
     uResolutionHandle = GLES20.glGetUniformLocation(program, "uResolution");
     uAAEnabledHandle = GLES20.glGetUniformLocation(program, "uAAEnabled");
-    uOnFlipHandle = GLES20.glGetUniformLocation(program, "uOnFlip");
     GlUtil.checkGlError("initGl end");
   }
 
@@ -89,6 +87,9 @@ public class ScreenRender {
     } else {
       GLES20.glViewport(0, 0, width, height);
     }
+    GLES20.glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+    GLES20.glClear(GLES20.GL_DEPTH_BUFFER_BIT | GLES20.GL_COLOR_BUFFER_BIT);
+
     GLES20.glUseProgram(program);
 
     squareVertex.position(BaseRenderOffScreen.SQUARE_VERTEX_DATA_POS_OFFSET);

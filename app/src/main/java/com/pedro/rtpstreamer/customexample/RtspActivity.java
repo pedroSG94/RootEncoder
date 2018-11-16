@@ -107,8 +107,8 @@ public class RtspActivity extends AppCompatActivity
 
       public void onDrawerClosed(View view) {
         actionBarDrawerToggle.syncState();
-        if (!lastVideoBitrate.equals(etVideoBitrate.getText().toString())
-            && rtspCamera1.isStreaming()) {
+        if (lastVideoBitrate != null && !lastVideoBitrate.equals(
+            etVideoBitrate.getText().toString()) && rtspCamera1.isStreaming()) {
           if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
             int bitrate = Integer.parseInt(etVideoBitrate.getText().toString()) * 1024;
             rtspCamera1.setVideoBitrateOnFly(bitrate);
