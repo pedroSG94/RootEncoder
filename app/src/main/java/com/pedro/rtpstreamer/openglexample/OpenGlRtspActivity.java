@@ -352,9 +352,7 @@ public class OpenGlRtspActivity extends AppCompatActivity
           if (rtspCamera1.isRecording()
               || rtspCamera1.prepareAudio() && rtspCamera1.prepareVideo()) {
             button.setText(R.string.stop_button);
-            //rtspCamera1.startStream(etUrl.getText().toString());
-            rtspCamera1.setAuthorization("streye", "Str3y3.01Dr01D3r5");
-            rtspCamera1.startStream("rtsp://52.212.11.96/live/pedro");
+            rtspCamera1.startStream(etUrl.getText().toString());
           } else {
             Toast.makeText(this, "Error preparing stream, This device cant do it",
                 Toast.LENGTH_SHORT).show();
