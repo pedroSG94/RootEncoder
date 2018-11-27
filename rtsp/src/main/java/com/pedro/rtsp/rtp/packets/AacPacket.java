@@ -5,6 +5,9 @@ import com.pedro.rtsp.rtsp.RtpFrame;
 import com.pedro.rtsp.utils.RtpConstants;
 import java.nio.ByteBuffer;
 
+/**
+ * RFC 3640.
+ */
 public class AacPacket extends BasePacket {
 
   private AudioPacketCallback audioPacketCallback;
