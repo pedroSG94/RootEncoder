@@ -22,7 +22,7 @@ import com.pedro.encoder.input.video.CameraHelper;
 import com.pedro.encoder.input.video.CameraOpenException;
 import com.pedro.encoder.utils.CodecUtil;
 import com.pedro.encoder.video.FormatVideoEncoder;
-import com.pedro.encoder.video.GetH264Data;
+import com.pedro.encoder.video.GetVideoData;
 import com.pedro.encoder.video.VideoEncoder;
 import com.pedro.rtplibrary.view.GlInterface;
 import com.pedro.rtplibrary.view.LightOpenGlView;
@@ -45,7 +45,7 @@ import java.util.List;
  * Created by pedro on 7/07/17.
  */
 @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
-public abstract class Camera2Base implements GetAacData, GetH264Data, GetMicrophoneData {
+public abstract class Camera2Base implements GetAacData, GetVideoData, GetMicrophoneData {
 
   protected Context context;
   private Camera2ApiManager cameraManager;
@@ -359,12 +359,12 @@ public abstract class Camera2Base implements GetAacData, GetH264Data, GetMicroph
    */
   public void startStream(String url) {
     streaming = true;
-    startStreamRtp(url);
     if (!recording) {
       startEncoders();
     } else {
       resetVideoEncoder();
     }
+    startStreamRtp(url);
     onPreview = true;
   }
 
@@ -617,17 +617,22 @@ public abstract class Camera2Base implements GetAacData, GetH264Data, GetMicroph
     if (streaming) getAacDataRtp(aacBuffer, info);
   }
 
-  protected abstract void onSPSandPPSRtp(ByteBuffer sps, ByteBuffer pps);
+  protected abstract void onSpsPpsVpsRtp(ByteBuffer sps, ByteBuffer pps, ByteBuffer vps);
 
   @Override
-  public void onSPSandPPS(ByteBuffer sps, ByteBuffer pps) {
-    if (streaming) onSPSandPPSRtp(sps, pps);
+  public void onSpsPps(ByteBuffer sps, ByteBuffer pps) {
+    if (streaming) onSpsPpsVpsRtp(sps, pps, null);
+  }
+
+  @Override
+  public void onSpsPpsVps(ByteBuffer sps, ByteBuffer pps, ByteBuffer vps) {
+    if (streaming) onSpsPpsVpsRtp(sps, pps, vps);
   }
 
   protected abstract void getH264DataRtp(ByteBuffer h264Buffer, MediaCodec.BufferInfo info);
 
   @Override
-  public void getH264Data(ByteBuffer h264Buffer, MediaCodec.BufferInfo info) {
+  public void getVideoData(ByteBuffer h264Buffer, MediaCodec.BufferInfo info) {
     if (recording) {
       if (info.flags == MediaCodec.BUFFER_FLAG_KEY_FRAME
           && !canRecord

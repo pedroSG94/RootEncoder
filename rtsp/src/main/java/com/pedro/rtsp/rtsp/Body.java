@@ -28,7 +28,7 @@ public class Body {
       -1,   // 15
   };
 
-  public static String createAudioBody(int trackAudio, int sampleRate, boolean isStereo) {
+  public static String createAacBody(int trackAudio, int sampleRate, boolean isStereo) {
     int sampleRateNum = -1;
     for (int i = 0; i < AUDIO_SAMPLING_RATES.length; i++) {
       if (AUDIO_SAMPLING_RATES[i] == sampleRate) {
@@ -60,7 +60,7 @@ public class Body {
         + "\r\n";
   }
 
-  public static String createVideoBody(int trackVideo, String sps, String pps) {
+  public static String createH264Body(int trackVideo, String sps, String pps) {
     return "m=video "
         + (5000 + 2 * trackVideo)
         + " RTP/AVP "
@@ -77,6 +77,35 @@ public class Body {
         + sps
         + ","
         + pps
+        + ";\r\n"
+        + "a=control:trackID="
+        + trackVideo
+        + "\r\n";
+  }
+
+  public static String createH265Body(int trackVideo, String sps, String pps, String vps) {
+    return "m=video "
+        + (5000 + 2 * trackVideo)
+        + " RTP/AVP "
+        + RtpConstants.payloadType
+        + "\r\n"
+        + "a=rtpmap:"
+        + RtpConstants.payloadType
+        + " H265/"
+        + RtpConstants.clockVideoFrequency
+        + "\r\n"
+        + "a=fmtp:"
+        + RtpConstants.payloadType
+        + " packetization-mode=1"
+        + ";\r\n"
+        + "sprop-sps="
+        + sps
+        + ";\r\n"
+        + "sprop-pps="
+        + pps
+        + ";\r\n"
+        + "sprop-vps="
+        + vps
         + ";\r\n"
         + "a=control:trackID="
         + trackVideo

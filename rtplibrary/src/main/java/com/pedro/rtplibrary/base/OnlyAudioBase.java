@@ -79,9 +79,9 @@ public abstract class OnlyAudioBase implements GetAacData, GetMicrophoneData {
    */
   public void startStream(String url) {
     streaming = true;
-    startStreamRtp(url);
     audioEncoder.start();
     microphoneManager.start();
+    startStreamRtp(url);
   }
 
   protected abstract void stopStreamRtp();

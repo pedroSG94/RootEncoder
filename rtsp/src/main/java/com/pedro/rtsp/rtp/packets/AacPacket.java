@@ -15,6 +15,7 @@ public class AacPacket extends BasePacket {
     channelIdentifier = (byte) 0;
   }
 
+  @Override
   public void createAndSendPacket(ByteBuffer byteBuffer, MediaCodec.BufferInfo bufferInfo) {
     int length = bufferInfo.size - byteBuffer.position();
     if (length > 0) {

@@ -9,11 +9,13 @@ import java.nio.ByteBuffer;
  * Created by pedro on 20/01/17.
  */
 
-public interface GetH264Data {
+public interface GetVideoData {
 
-  void onSPSandPPS(ByteBuffer sps, ByteBuffer pps);
+  void onSpsPps(ByteBuffer sps, ByteBuffer pps);
 
-  void getH264Data(ByteBuffer h264Buffer, MediaCodec.BufferInfo info);
+  void onSpsPpsVps(ByteBuffer sps, ByteBuffer pps, ByteBuffer vps);
+
+  void getVideoData(ByteBuffer h264Buffer, MediaCodec.BufferInfo info);
 
   void onVideoFormat(MediaFormat mediaFormat);
 }

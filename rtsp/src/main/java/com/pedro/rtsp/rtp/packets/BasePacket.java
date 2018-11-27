@@ -1,9 +1,11 @@
 package com.pedro.rtsp.rtp.packets;
 
+import android.media.MediaCodec;
 import com.pedro.rtsp.utils.RtpConstants;
+import java.nio.ByteBuffer;
 import java.util.Random;
 
-public class BasePacket {
+public abstract class BasePacket {
 
   protected final static int maxPacketSize = RtpConstants.MTU - 28;
   protected byte channelIdentifier;
@@ -17,6 +19,8 @@ public class BasePacket {
     this.clock = clock;
     ssrc = new Random().nextInt();
   }
+
+  public abstract void createAndSendPacket(ByteBuffer byteBuffer, MediaCodec.BufferInfo bufferInfo);
 
   public void setPorts(int rtpPort, int rtcpPort) {
     this.rtpPort = rtpPort;

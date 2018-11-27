@@ -69,7 +69,7 @@ public class RtmpDisplay extends DisplayBase {
   }
 
   @Override
-  protected void onSPSandPPSRtp(ByteBuffer sps, ByteBuffer pps) {
+  protected void onSpsPpsVpsRtp(ByteBuffer sps, ByteBuffer pps, ByteBuffer vps) {
     srsFlvMuxer.setSpsPPs(sps, pps);
   }
 

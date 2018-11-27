@@ -5,13 +5,41 @@ import com.pedro.rtsp.rtsp.RtpFrame;
 import com.pedro.rtsp.utils.RtpConstants;
 import java.nio.ByteBuffer;
 
-public class H264Packet extends BasePacket {
+/**
+ * TODO Finish develop it, for now, I only detect key frame and I do all like H264.
+ *
+ * RFC 7798.
+ *
+ * NAL unit header:
+ *
+ * +---------------+---------------+
+ * |0|1|2|3|4|5|6|7|0|1|2|3|4|5|6|7|
+ * +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+ * |F|   Type    |  LayerId  | TID |
+ * +-------------+-----------------+
+ *
+ * RTP Header Usage:
+ *
+ * 0                   1                   2                   3
+ * 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+ * +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+ * |V=2|P|X|  CC   |M|     PT      |       sequence number         |
+ * +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+ * |                           timestamp                           |
+ * +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+ * |           synchronization source (SSRC) identifier            |
+ * +=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+
+ * |            contributing source (CSRC) identifiers             |
+ * |                             ....                              |
+ * +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+ */
+public class H265Packet extends BasePacket {
 
-  private byte[] header = new byte[5];
+  private byte[] header = new byte[6];
   private byte[] stapA;
   private VideoPacketCallback videoPacketCallback;
 
-  public H264Packet(byte[] sps, byte[] pps, VideoPacketCallback videoPacketCallback) {
+  public H265Packet(byte[] sps, byte[] pps, byte[] vps, VideoPacketCallback videoPacketCallback) {
     super(RtpConstants.clockVideoFrequency);
     this.videoPacketCallback = videoPacketCallback;
     channelIdentifier = (byte) 2;
@@ -20,14 +48,13 @@ public class H264Packet extends BasePacket {
 
   @Override
   public void createAndSendPacket(ByteBuffer byteBuffer, MediaCodec.BufferInfo bufferInfo) {
-    // We read a NAL units from ByteBuffer and we send them
-    // NAL units are preceded with 0x00000001
     byteBuffer.rewind();
-    byteBuffer.get(header, 0, 5);
+    byteBuffer.get(header, 0, 6);
+
     long ts = bufferInfo.presentationTimeUs * 1000L;
     int naluLength = bufferInfo.size - byteBuffer.position() + 1;
-    int type = header[4] & 0x1F;
-    if (type == 5) {
+    int type = (header[4] >> 1) & 0x3f;
+    if (type == 20) {
       byte[] buffer = getBuffer(stapA.length + RtpConstants.RTP_HEADER_LENGTH);
       updateTimeStamp(buffer, ts);
 

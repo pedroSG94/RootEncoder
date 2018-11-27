@@ -51,7 +51,7 @@ public class RtspClient {
   private BufferedReader reader;
   private BufferedWriter writer;
   private Thread thread;
-  private byte[] sps, pps;
+  private byte[] sps, pps, vps;
   //default sps and pps to work only audio
   private String defaultSPS = "Z0KAHtoHgUZA";
   private String defaultPPS = "aM4NiA==";
@@ -126,15 +126,24 @@ public class RtspClient {
     return connectCheckerRtsp;
   }
 
-  public void setSPSandPPS(ByteBuffer sps, ByteBuffer pps) {
+  public void setSPSandPPS(ByteBuffer sps, ByteBuffer pps, ByteBuffer vps) {
     byte[] mSPS = new byte[sps.capacity() - 4];
     sps.position(4);
     sps.get(mSPS, 0, mSPS.length);
+    this.sps = mSPS;
     byte[] mPPS = new byte[pps.capacity() - 4];
     pps.position(4);
     pps.get(mPPS, 0, mPPS.length);
-    this.sps = mSPS;
     this.pps = mPPS;
+    //H264 haven't vps so assume H265 if not null.
+    if (vps != null) {
+      byte[] mVPS = new byte[vps.capacity() - 4];
+      vps.position(4);
+      vps.get(mVPS, 0, mVPS.length);
+      this.vps = mVPS;
+    } else {
+      this.vps = null;
+    }
   }
 
   public void setIsStereo(boolean isStereo) {
@@ -143,7 +152,7 @@ public class RtspClient {
 
   public void connect() {
     if (!streaming) {
-      rtspSender = new RtspSender(connectCheckerRtsp, protocol, sps, pps, sampleRate);
+      rtspSender = new RtspSender(connectCheckerRtsp, protocol, sps, pps, vps, sampleRate);
       thread = new Thread(new Runnable() {
         @Override
         public void run() {
@@ -286,15 +295,11 @@ public class RtspClient {
   }
 
   private String createBody() {
-    String sSPS;
-    String sPPS;
-    if (sps != null && pps != null) {
-      sSPS = Base64.encodeToString(sps, 0, sps.length, Base64.NO_WRAP);
-      sPPS = Base64.encodeToString(pps, 0, pps.length, Base64.NO_WRAP);
-    } else {
-      sSPS = defaultSPS;
-      sPPS = defaultPPS;
-    }
+    String sSPS = Base64.encodeToString(sps, 0, sps.length, Base64.NO_WRAP);
+    String sPPS = Base64.encodeToString(pps, 0, pps.length, Base64.NO_WRAP);
+    String sVPS = vps != null ? Base64.encodeToString(vps, 0, vps.length, Base64.NO_WRAP) : null;
+    String videoBody = sVPS == null ? Body.createH264Body(trackVideo, sSPS, sPPS)
+        : Body.createH265Body(trackVideo, sSPS, sPPS, sVPS);
     return "v=0\r\n"
         +
         // TODO: Add IPV6 support
@@ -314,8 +319,8 @@ public class RtspClient {
         // means the session is permanent
         "t=0 0\r\n"
         + "a=recvonly\r\n"
-        + Body.createAudioBody(trackAudio, sampleRate, isStereo)
-        + Body.createVideoBody(trackVideo, sSPS, sPPS);
+        + Body.createAacBody(trackAudio, sampleRate, isStereo)
+        + videoBody;
   }
 
   private String sendSetup(int track, Protocol protocol) {

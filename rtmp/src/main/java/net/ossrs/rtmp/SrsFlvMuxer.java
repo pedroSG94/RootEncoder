@@ -103,9 +103,7 @@ public class SrsFlvMuxer {
    * @param height height
    */
   public void setVideoResolution(int width, int height) {
-    if (publisher != null) {
-      publisher.setVideoResolution(width, height);
-    }
+    publisher.setVideoResolution(width, height);
   }
 
   private void disconnect(ConnectCheckerRtmp connectChecker) {

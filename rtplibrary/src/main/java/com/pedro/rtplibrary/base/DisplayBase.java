@@ -18,7 +18,7 @@ import com.pedro.encoder.input.audio.GetMicrophoneData;
 import com.pedro.encoder.input.audio.MicrophoneManager;
 import com.pedro.encoder.utils.CodecUtil;
 import com.pedro.encoder.video.FormatVideoEncoder;
-import com.pedro.encoder.video.GetH264Data;
+import com.pedro.encoder.video.GetVideoData;
 import com.pedro.encoder.video.VideoEncoder;
 import com.pedro.rtplibrary.view.GlInterface;
 import com.pedro.rtplibrary.view.OffScreenGlThread;
@@ -37,7 +37,7 @@ import static android.content.Context.MEDIA_PROJECTION_SERVICE;
  * Created by pedro on 9/08/17.
  */
 @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
-public abstract class DisplayBase implements GetAacData, GetH264Data, GetMicrophoneData {
+public abstract class DisplayBase implements GetAacData, GetVideoData, GetMicrophoneData {
 
   private OffScreenGlThread glInterface;
   protected Context context;
@@ -226,12 +226,12 @@ public abstract class DisplayBase implements GetAacData, GetH264Data, GetMicroph
    */
   public void startStream(String url) {
     streaming = true;
-    startStreamRtp(url);
     if (!recording) {
       startEncoders(resultCode, data);
     } else {
       resetVideoEncoder();
     }
+    startStreamRtp(url);
   }
 
   private void startEncoders(int resultCode, Intent data) {
@@ -415,17 +415,22 @@ public abstract class DisplayBase implements GetAacData, GetH264Data, GetMicroph
     if (streaming) getAacDataRtp(aacBuffer, info);
   }
 
-  protected abstract void onSPSandPPSRtp(ByteBuffer sps, ByteBuffer pps);
+  protected abstract void onSpsPpsVpsRtp(ByteBuffer sps, ByteBuffer pps, ByteBuffer vps);
 
   @Override
-  public void onSPSandPPS(ByteBuffer sps, ByteBuffer pps) {
-    if (streaming) onSPSandPPSRtp(sps, pps);
+  public void onSpsPps(ByteBuffer sps, ByteBuffer pps) {
+    if (streaming) onSpsPpsVpsRtp(sps, pps, null);
+  }
+
+  @Override
+  public void onSpsPpsVps(ByteBuffer sps, ByteBuffer pps, ByteBuffer vps) {
+    if (streaming) onSpsPpsVpsRtp(sps, pps, vps);
   }
 
   protected abstract void getH264DataRtp(ByteBuffer h264Buffer, MediaCodec.BufferInfo info);
 
   @Override
-  public void getH264Data(ByteBuffer h264Buffer, MediaCodec.BufferInfo info) {
+  public void getVideoData(ByteBuffer h264Buffer, MediaCodec.BufferInfo info) {
     if (recording) {
       if (info.flags == MediaCodec.BUFFER_FLAG_KEY_FRAME
           && !canRecord

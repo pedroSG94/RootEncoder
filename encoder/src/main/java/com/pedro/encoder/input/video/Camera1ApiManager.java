@@ -74,10 +74,10 @@ public class Camera1ApiManager implements Camera.PreviewCallback, Camera.FaceDet
   }
 
   private void init() {
-    cameraSelect = selectCameraFront();
-    previewSizeFront = getPreviewSize();
     cameraSelect = selectCameraBack();
     previewSizeBack = getPreviewSize();
+    cameraSelect = selectCameraFront();
+    previewSizeFront = getPreviewSize();
   }
 
   public void setRotation(int rotation) {
@@ -93,7 +93,7 @@ public class Camera1ApiManager implements Camera.PreviewCallback, Camera.FaceDet
     this.height = height;
     this.fps = fps;
     this.cameraFacing = cameraFacing;
-    cameraSelect = (cameraFacing == Camera.CameraInfo.CAMERA_FACING_BACK) ? selectCameraBack()
+    cameraSelect = cameraFacing == Camera.CameraInfo.CAMERA_FACING_BACK ? selectCameraBack()
         : selectCameraFront();
     start();
   }
@@ -188,31 +188,21 @@ public class Camera1ApiManager implements Camera.PreviewCallback, Camera.FaceDet
   }
 
   private int selectCameraBack() {
-    int number = Camera.getNumberOfCameras();
-    for (int i = 0; i < number; i++) {
-      Camera.CameraInfo info = new Camera.CameraInfo();
-      Camera.getCameraInfo(i, info);
-      if (info.facing == Camera.CameraInfo.CAMERA_FACING_BACK) {
-        return i;
-      } else {
-        cameraSelect = i;
-      }
-    }
-    return cameraSelect;
+    return selectCamera(Camera.CameraInfo.CAMERA_FACING_BACK);
   }
 
   private int selectCameraFront() {
+    return selectCamera(Camera.CameraInfo.CAMERA_FACING_FRONT);
+  }
+
+  private int selectCamera(int facing) {
     int number = Camera.getNumberOfCameras();
     for (int i = 0; i < number; i++) {
       Camera.CameraInfo info = new Camera.CameraInfo();
       Camera.getCameraInfo(i, info);
-      if (info.facing == Camera.CameraInfo.CAMERA_FACING_FRONT) {
-        return i;
-      } else {
-        cameraSelect = i;
-      }
+      if (info.facing == facing) return i;
     }
-    return cameraSelect;
+    return 0;
   }
 
   public void stop() {

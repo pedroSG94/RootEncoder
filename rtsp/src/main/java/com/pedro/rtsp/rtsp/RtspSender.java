@@ -5,7 +5,9 @@ import android.util.Log;
 import com.pedro.rtsp.rtcp.BaseSenderReport;
 import com.pedro.rtsp.rtp.packets.AacPacket;
 import com.pedro.rtsp.rtp.packets.AudioPacketCallback;
+import com.pedro.rtsp.rtp.packets.BasePacket;
 import com.pedro.rtsp.rtp.packets.H264Packet;
+import com.pedro.rtsp.rtp.packets.H265Packet;
 import com.pedro.rtsp.rtp.packets.VideoPacketCallback;
 import com.pedro.rtsp.rtp.sockets.BaseRtpSocket;
 import com.pedro.rtsp.utils.ConnectCheckerRtsp;
@@ -18,17 +20,18 @@ import java.util.concurrent.LinkedBlockingQueue;
 public class RtspSender implements VideoPacketCallback, AudioPacketCallback {
 
   private final static String TAG = "RtspSender";
-  private H264Packet h264Packet;
-  private AacPacket aacPacket;
-  private BaseRtpSocket rtpSocket;
-  private BaseSenderReport baseSenderReport;
+  private final BasePacket videoPacket;
+  private final AacPacket aacPacket;
+  private final BaseRtpSocket rtpSocket;
+  private final BaseSenderReport baseSenderReport;
   private BlockingQueue<RtpFrame> rtpFrameBlockingQueue =
       new LinkedBlockingQueue<>(getCacheSize(10));
   private Thread thread;
 
   public RtspSender(ConnectCheckerRtsp connectCheckerRtsp, Protocol protocol, byte[] sps,
-      byte[] pps, int sampleRate) {
-    h264Packet = new H264Packet(sps, pps, this);
+      byte[] pps, byte[] vps, int sampleRate) {
+    videoPacket =
+        vps == null ? new H264Packet(sps, pps, this) : new H265Packet(sps, pps, vps, this);
     aacPacket = new AacPacket(sampleRate, this);
     rtpSocket = BaseRtpSocket.getInstance(connectCheckerRtsp, protocol);
     baseSenderReport = BaseSenderReport.getInstance(protocol);
@@ -48,7 +51,7 @@ public class RtspSender implements VideoPacketCallback, AudioPacketCallback {
   }
 
   public void setVideoPorts(int rtpPort, int rtcpPort) {
-    h264Packet.setPorts(rtpPort, rtcpPort);
+    videoPacket.setPorts(rtpPort, rtcpPort);
   }
 
   public void setAudioPorts(int rtpPort, int rtcpPort) {
@@ -56,7 +59,7 @@ public class RtspSender implements VideoPacketCallback, AudioPacketCallback {
   }
 
   public void sendVideoFrame(ByteBuffer h264Buffer, MediaCodec.BufferInfo info) {
-    h264Packet.createAndSendPacket(h264Buffer, info);
+    videoPacket.createAndSendPacket(h264Buffer, info);
   }
 
   public void sendAudioFrame(ByteBuffer aacBuffer, MediaCodec.BufferInfo info) {
@@ -114,6 +117,6 @@ public class RtspSender implements VideoPacketCallback, AudioPacketCallback {
     baseSenderReport.close();
     rtpSocket.close();
     aacPacket.reset();
-    h264Packet.reset();
+    videoPacket.reset();
   }
 }

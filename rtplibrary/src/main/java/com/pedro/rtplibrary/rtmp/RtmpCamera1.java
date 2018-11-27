@@ -93,7 +93,7 @@ public class RtmpCamera1 extends Camera1Base {
   }
 
   @Override
-  protected void onSPSandPPSRtp(ByteBuffer sps, ByteBuffer pps) {
+  protected void onSpsPpsVpsRtp(ByteBuffer sps, ByteBuffer pps, ByteBuffer vps) {
     srsFlvMuxer.setSpsPPs(sps, pps);
   }
 

@@ -23,7 +23,7 @@ import com.pedro.encoder.input.video.Frame;
 import com.pedro.encoder.input.video.GetCameraData;
 import com.pedro.encoder.utils.CodecUtil;
 import com.pedro.encoder.video.FormatVideoEncoder;
-import com.pedro.encoder.video.GetH264Data;
+import com.pedro.encoder.video.GetVideoData;
 import com.pedro.encoder.video.VideoEncoder;
 import com.pedro.rtplibrary.view.GlInterface;
 import com.pedro.rtplibrary.view.LightOpenGlView;
@@ -47,7 +47,7 @@ import java.util.List;
  */
 
 public abstract class Camera1Base
-    implements GetAacData, GetCameraData, GetH264Data, GetMicrophoneData {
+    implements GetAacData, GetCameraData, GetVideoData, GetMicrophoneData {
 
   private static final String TAG = "Camera1Base";
 
@@ -413,12 +413,12 @@ public abstract class Camera1Base
    */
   public void startStream(String url) {
     streaming = true;
-    startStreamRtp(url);
     if (!recording) {
       startEncoders();
     } else {
       resetVideoEncoder();
     }
+    startStreamRtp(url);
     onPreview = true;
   }
 
@@ -647,17 +647,22 @@ public abstract class Camera1Base
     if (streaming) getAacDataRtp(aacBuffer, info);
   }
 
-  protected abstract void onSPSandPPSRtp(ByteBuffer sps, ByteBuffer pps);
+  protected abstract void onSpsPpsVpsRtp(ByteBuffer sps, ByteBuffer pps, ByteBuffer vps);
 
   @Override
-  public void onSPSandPPS(ByteBuffer sps, ByteBuffer pps) {
-    if (streaming) onSPSandPPSRtp(sps, pps);
+  public void onSpsPps(ByteBuffer sps, ByteBuffer pps) {
+    if (streaming) onSpsPpsVpsRtp(sps, pps, null);
+  }
+
+  @Override
+  public void onSpsPpsVps(ByteBuffer sps, ByteBuffer pps, ByteBuffer vps) {
+    if (streaming) onSpsPpsVpsRtp(sps, pps, vps);
   }
 
   protected abstract void getH264DataRtp(ByteBuffer h264Buffer, MediaCodec.BufferInfo info);
 
   @Override
-  public void getH264Data(ByteBuffer h264Buffer, MediaCodec.BufferInfo info) {
+  public void getVideoData(ByteBuffer h264Buffer, MediaCodec.BufferInfo info) {
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2 && recording) {
       if (info.flags == MediaCodec.BUFFER_FLAG_KEY_FRAME
           && !canRecord
