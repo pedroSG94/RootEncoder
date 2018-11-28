@@ -37,7 +37,7 @@ allprojects {
   }
 }
 dependencies {
-  compile 'com.github.pedroSG94.rtmp-rtsp-stream-client-java:rtplibrary:1.4.6'
+  compile 'com.github.pedroSG94.rtmp-rtsp-stream-client-java:rtplibrary:1.4.7'
 }
 
 ```
@@ -56,7 +56,7 @@ dependencies {
 - [x] Change video bitrate while streaming (API 19+).
 - [X] Get upload bandwidth used.
 - [X] Record MP4 file while streaming (API 18+).
-- [x] H264 and AAC hardware encoding.
+- [x] H264, H265 and AAC hardware encoding.
 - [x] Force H264 and AAC Codec hardware/software encoding (Not recommended).
 - [x] RTSP TCP/UDP.
 - [x] Stream from video files like mp4, webm, etc (Limited by device decoders). [More info](https://github.com/pedroSG94/rtmp-rtsp-stream-client-java/wiki/Stream-from-file)
@@ -64,10 +64,7 @@ dependencies {
 - [X] Set Image, Gif or Text to stream on real time.
 - [X] OpenGL real time filters. [More info](https://github.com/pedroSG94/rtmp-rtsp-stream-client-java/wiki/Real-time-filters)
 - [X] RTMPS and RTSPS
-
-### Backlog
-
-- H265 support
+- [X] RTSP H265 support (Waiting FLV official packetization to add RTMP support).
 
 ## Use example:
 

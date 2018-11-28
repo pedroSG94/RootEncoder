@@ -4,10 +4,12 @@ import android.media.MediaCodec;
 import android.os.Build;
 import android.support.annotation.RequiresApi;
 import com.pedro.encoder.input.decoder.AudioDecoderInterface;
+import com.pedro.encoder.utils.CodecUtil;
 import com.pedro.rtplibrary.base.FromFileBase;
 import com.pedro.encoder.input.decoder.VideoDecoderInterface;
 import com.pedro.rtsp.rtsp.Protocol;
 import com.pedro.rtsp.rtsp.RtspClient;
+import com.pedro.rtsp.rtsp.VideoCodec;
 import com.pedro.rtsp.utils.ConnectCheckerRtsp;
 import java.nio.ByteBuffer;
 
@@ -35,6 +37,10 @@ public class RtspFromFile extends FromFileBase {
    */
   public void setProtocol(Protocol protocol) {
     rtspClient.setProtocol(protocol);
+  }
+
+  public void setVideoCodec(VideoCodec videoCodec) {
+    videoEncoder.setType(videoCodec == VideoCodec.H265 ? CodecUtil.H265_MIME : CodecUtil.H264_MIME);
   }
 
   @Override

@@ -1,7 +1,6 @@
 package com.pedro.rtsp.rtp.packets;
 
 import android.media.MediaCodec;
-import android.util.Log;
 import com.pedro.rtsp.rtsp.RtpFrame;
 import com.pedro.rtsp.utils.RtpConstants;
 import java.nio.ByteBuffer;

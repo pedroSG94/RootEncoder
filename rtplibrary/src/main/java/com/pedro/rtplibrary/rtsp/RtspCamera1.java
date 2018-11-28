@@ -6,11 +6,13 @@ import android.os.Build;
 import android.support.annotation.RequiresApi;
 import android.view.SurfaceView;
 import android.view.TextureView;
+import com.pedro.encoder.utils.CodecUtil;
 import com.pedro.rtplibrary.base.Camera1Base;
 import com.pedro.rtplibrary.view.LightOpenGlView;
 import com.pedro.rtplibrary.view.OpenGlView;
 import com.pedro.rtsp.rtsp.Protocol;
 import com.pedro.rtsp.rtsp.RtspClient;
+import com.pedro.rtsp.rtsp.VideoCodec;
 import com.pedro.rtsp.utils.ConnectCheckerRtsp;
 import java.nio.ByteBuffer;
 
@@ -60,6 +62,10 @@ public class RtspCamera1 extends Camera1Base {
    */
   public void setProtocol(Protocol protocol) {
     rtspClient.setProtocol(protocol);
+  }
+
+  public void setVideoCodec(VideoCodec videoCodec) {
+    videoEncoder.setType(videoCodec == VideoCodec.H265 ? CodecUtil.H265_MIME : CodecUtil.H264_MIME);
   }
 
   @Override
