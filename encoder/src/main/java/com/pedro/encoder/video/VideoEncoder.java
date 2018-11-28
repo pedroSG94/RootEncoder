@@ -234,10 +234,15 @@ public class VideoEncoder implements GetCameraData {
         thread = new Thread(new Runnable() {
           @Override
           public void run() {
-            if (Build.VERSION.SDK_INT >= 21) {
-              getDataFromSurfaceAPI21();
-            } else {
-              getDataFromSurface();
+            try {
+              if (Build.VERSION.SDK_INT >= 21) {
+                getDataFromSurfaceAPI21();
+              } else {
+                getDataFromSurface();
+              }
+            } catch (IllegalStateException e) {
+              Log.e(TAG, "Error, encoding while encoded is stopped", e);
+              stop();
             }
           }
         });
@@ -274,6 +279,9 @@ public class VideoEncoder implements GetCameraData {
                 }
               } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
+              } catch (IllegalStateException e) {
+                Log.e(TAG, "Error, encoding while encoded is stopped", e);
+                stop();
               }
             }
           }
@@ -338,8 +346,7 @@ public class VideoEncoder implements GetCameraData {
       getVideoData.onSpsPpsVps(byteBufferList.get(1), byteBufferList.get(2), byteBufferList.get(0));
       //H264
     } else {
-      getVideoData.onSpsPps(mediaFormat.getByteBuffer("csd-0"),
-          mediaFormat.getByteBuffer("csd-1"));
+      getVideoData.onSpsPps(mediaFormat.getByteBuffer("csd-0"), mediaFormat.getByteBuffer("csd-1"));
     }
   }
 

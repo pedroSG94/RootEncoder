@@ -249,7 +249,7 @@ public class Camera2ApiManager extends CameraDevice.StateCallback {
       if (cameraCharacteristics.get(CameraCharacteristics.LENS_FACING) == cameraFacing) {
         openCameraId(0);
       } else {
-        openCameraId(1);
+        openCameraId(cameraManager.getCameraIdList().length - 1);
       }
     } catch (CameraAccessException e) {
       Log.e(TAG, "Error", e);
