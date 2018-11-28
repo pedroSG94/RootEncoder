@@ -46,7 +46,6 @@ public class H265Packet extends BasePacket {
     }
     // Small NAL unit => Single NAL unit
     if (naluLength <= maxPacketSize - RtpConstants.RTP_HEADER_LENGTH - 3) {
-      Log.e("Pedro", "small");
       int cont = naluLength - 1;
       int length = cont < bufferInfo.size - byteBuffer.position() ? cont
           : bufferInfo.size - byteBuffer.position();
