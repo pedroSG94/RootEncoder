@@ -319,8 +319,8 @@ public class RtspClient {
         // means the session is permanent
         "t=0 0\r\n"
         + "a=recvonly\r\n"
-        + Body.createAacBody(trackAudio, sampleRate, isStereo)
-        + videoBody;
+        + videoBody
+        + Body.createAacBody(trackAudio, sampleRate, isStereo);
   }
 
   private String sendSetup(int track, Protocol protocol) {

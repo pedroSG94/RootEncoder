@@ -38,14 +38,12 @@ public class Body {
     }
     int channel = (isStereo) ? 2 : 1;
     int config = (2 & 0x1F) << 11 | (sampleRateNum & 0x0F) << 7 | (channel & 0x0F) << 3;
-    return "m=audio "
-        + (5000 + 2 * trackAudio)
-        + " RTP/AVP "
+    return "m=audio 0 RTP/AVP "
         + RtpConstants.payloadType
         + "\r\n"
         + "a=rtpmap:"
         + RtpConstants.payloadType
-        + " mpeg4-generic/"
+        + " MPEG4-GENERIC/"
         + sampleRate
         + "/"
         + channel
@@ -61,9 +59,7 @@ public class Body {
   }
 
   public static String createH264Body(int trackVideo, String sps, String pps) {
-    return "m=video "
-        + (5000 + 2 * trackVideo)
-        + " RTP/AVP "
+    return "m=video 0 RTP/AVP "
         + RtpConstants.payloadType
         + "\r\n"
         + "a=rtpmap:"
@@ -84,9 +80,7 @@ public class Body {
   }
 
   public static String createH265Body(int trackVideo, String sps, String pps, String vps) {
-    return "m=video "
-        + (5000 + 2 * trackVideo)
-        + " RTP/AVP "
+    return "m=video 0 RTP/AVP "
         + RtpConstants.payloadType
         + "\r\n"
         + "a=rtpmap:"

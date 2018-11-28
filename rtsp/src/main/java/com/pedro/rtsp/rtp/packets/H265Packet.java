@@ -1,18 +1,17 @@
 package com.pedro.rtsp.rtp.packets;
 
 import android.media.MediaCodec;
+import android.util.Log;
 import com.pedro.rtsp.rtsp.RtpFrame;
 import com.pedro.rtsp.utils.RtpConstants;
 import java.nio.ByteBuffer;
 
 /**
- * TODO Finish develop it, for now, I only detect key frame and I do all like H264.
- *
  * RFC 7798.
  */
 public class H265Packet extends BasePacket {
 
-  private byte[] header = new byte[5];
+  private byte[] header = new byte[6];
   private byte[] stapA;
   private VideoPacketCallback videoPacketCallback;
 
@@ -28,7 +27,7 @@ public class H265Packet extends BasePacket {
     // We read a NAL units from ByteBuffer and we send them
     // NAL units are preceded with 0x00000001
     byteBuffer.rewind();
-    byteBuffer.get(header, 0, 5);
+    byteBuffer.get(header, 0, 6);
     long ts = bufferInfo.presentationTimeUs * 1000L;
     int naluLength = bufferInfo.size - byteBuffer.position() + 1;
     int type = (header[4] >> 1) & 0x3f;
@@ -46,14 +45,16 @@ public class H265Packet extends BasePacket {
       videoPacketCallback.onVideoFrameCreated(rtpFrame);
     }
     // Small NAL unit => Single NAL unit
-    if (naluLength <= maxPacketSize - RtpConstants.RTP_HEADER_LENGTH - 2) {
+    if (naluLength <= maxPacketSize - RtpConstants.RTP_HEADER_LENGTH - 3) {
+      Log.e("Pedro", "small");
       int cont = naluLength - 1;
       int length = cont < bufferInfo.size - byteBuffer.position() ? cont
           : bufferInfo.size - byteBuffer.position();
-      byte[] buffer = getBuffer(length + RtpConstants.RTP_HEADER_LENGTH + 1);
-
+      byte[] buffer = getBuffer(length + RtpConstants.RTP_HEADER_LENGTH + 2);
+      //Set PayloadHdr (exact copy of nal unit header)
       buffer[RtpConstants.RTP_HEADER_LENGTH] = header[4];
-      byteBuffer.get(buffer, RtpConstants.RTP_HEADER_LENGTH + 1, length);
+      buffer[RtpConstants.RTP_HEADER_LENGTH + 1] = header[5];
+      byteBuffer.get(buffer, RtpConstants.RTP_HEADER_LENGTH + 2, length);
 
       updateTimeStamp(buffer, ts);
       markPacket(buffer); //mark end frame
@@ -66,16 +67,16 @@ public class H265Packet extends BasePacket {
     }
     // Large NAL unit => Split nal unit
     else {
-      //Set PayloadHdr (16bit value 49)
-      header[0] = 0;
-      header[1] = (byte) 49;
+      //Set PayloadHdr (16bit type=49)
+      header[0] = 49 << 1;
+      header[1] = 1;
       // Set FU header
       //   +---------------+
       //   |0|1|2|3|4|5|6|7|
       //   +-+-+-+-+-+-+-+-+
       //   |S|E|  FuType   |
       //   +---------------+
-      header[2] = (byte) (header[4] & 0x3f);  // FU header type
+      header[2] = (byte) type;  // FU header type
       header[2] += 0x80; // Start bit
 
       int sum = 1;
@@ -92,7 +93,7 @@ public class H265Packet extends BasePacket {
         buffer[RtpConstants.RTP_HEADER_LENGTH + 1] = header[1];
         buffer[RtpConstants.RTP_HEADER_LENGTH + 2] = header[2];
         updateTimeStamp(buffer, ts);
-        byteBuffer.get(buffer, RtpConstants.RTP_HEADER_LENGTH + 2, length);
+        byteBuffer.get(buffer, RtpConstants.RTP_HEADER_LENGTH + 3, length);
         sum += length;
         // Last packet before next NAL
         if (sum >= naluLength) {
@@ -113,8 +114,9 @@ public class H265Packet extends BasePacket {
 
   private void setSpsPpsVps(byte[] sps, byte[] pps, byte[] vps) {
     stapA = new byte[sps.length + pps.length + 6];
-    stapA[0] = 0;
-    stapA[1] = 48;
+
+    stapA[0] = 48 << 1;
+    stapA[1] = 1;
 
     // Write NALU 1 size into the array (NALU 1 is the SPS).
     stapA[2] = (byte) (sps.length >> 8);
