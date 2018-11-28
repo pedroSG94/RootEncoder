@@ -98,7 +98,7 @@ public class RtspClient {
       return;
     }
     host = rtspMatcher.group(1);
-    port = Integer.parseInt((rtspMatcher.group(2) != null) ? rtspMatcher.group(2) : "1935");
+    port = Integer.parseInt((rtspMatcher.group(2) != null) ? rtspMatcher.group(2) : "554");
     path = "/" + rtspMatcher.group(3) + "/" + rtspMatcher.group(4);
   }
 

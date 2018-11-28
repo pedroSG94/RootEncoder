@@ -80,28 +80,29 @@ public class H265Packet extends BasePacket {
 
       int sum = 1;
       while (sum < naluLength) {
-        int cont = naluLength - sum > maxPacketSize - RtpConstants.RTP_HEADER_LENGTH - 2 ?
+        int cont = naluLength - sum > maxPacketSize - RtpConstants.RTP_HEADER_LENGTH - 3 ?
             maxPacketSize
                 - RtpConstants.RTP_HEADER_LENGTH
-                - 2 : naluLength - sum;
+                - 3 : naluLength - sum;
         int length = cont < bufferInfo.size - byteBuffer.position() ? cont
             : bufferInfo.size - byteBuffer.position();
-        byte[] buffer = getBuffer(length + RtpConstants.RTP_HEADER_LENGTH + 2);
+        byte[] buffer = getBuffer(length + RtpConstants.RTP_HEADER_LENGTH + 3);
 
         buffer[RtpConstants.RTP_HEADER_LENGTH] = header[0];
         buffer[RtpConstants.RTP_HEADER_LENGTH + 1] = header[1];
+        buffer[RtpConstants.RTP_HEADER_LENGTH + 2] = header[2];
         updateTimeStamp(buffer, ts);
         byteBuffer.get(buffer, RtpConstants.RTP_HEADER_LENGTH + 2, length);
         sum += length;
         // Last packet before next NAL
         if (sum >= naluLength) {
           // End bit on
-          buffer[RtpConstants.RTP_HEADER_LENGTH + 1] += 0x40;
+          buffer[RtpConstants.RTP_HEADER_LENGTH + 2] += 0x40;
           markPacket(buffer); //mark end frame
         }
         updateSeq(buffer);
         RtpFrame rtpFrame =
-            new RtpFrame(buffer, ts, length + RtpConstants.RTP_HEADER_LENGTH + 2, rtpPort, rtcpPort,
+            new RtpFrame(buffer, ts, length + RtpConstants.RTP_HEADER_LENGTH + 3, rtpPort, rtcpPort,
                 channelIdentifier);
         videoPacketCallback.onVideoFrameCreated(rtpFrame);
         // Switch start bit

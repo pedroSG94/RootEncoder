@@ -96,15 +96,11 @@ public class Body {
         + "\r\n"
         + "a=fmtp:"
         + RtpConstants.payloadType
-        + " packetization-mode=1"
-        + ";\r\n"
-        + "sprop-sps="
+        + " sprop-sps="
         + sps
-        + ";\r\n"
-        + "sprop-pps="
+        + "; sprop-pps="
         + pps
-        + ";\r\n"
-        + "sprop-vps="
+        + "; sprop-vps="
         + vps
         + ";\r\n"
         + "a=control:trackID="
