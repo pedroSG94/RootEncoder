@@ -16,7 +16,6 @@ import com.pedro.encoder.audio.GetAacData;
 import com.pedro.encoder.input.audio.GetMicrophoneData;
 import com.pedro.encoder.input.audio.MicrophoneManager;
 import com.pedro.encoder.input.video.Camera1ApiManager;
-import com.pedro.encoder.input.video.Camera1Facing;
 import com.pedro.encoder.input.video.CameraHelper;
 import com.pedro.encoder.input.video.CameraOpenException;
 import com.pedro.encoder.input.video.Frame;
@@ -278,14 +277,15 @@ public abstract class Camera1Base
   /**
    * Start camera preview. Ignored, if stream or preview is started.
    *
-   * @param cameraFacing front ot back camera. Like:
-   * {@link android.hardware.Camera.CameraInfo#CAMERA_FACING_BACK}
-   * {@link android.hardware.Camera.CameraInfo#CAMERA_FACING_FRONT}
+   * @param cameraFacing front or back camera. Like:
+   * {@link com.pedro.encoder.input.video.CameraHelper.Facing#BACK}
+   * {@link com.pedro.encoder.input.video.CameraHelper.Facing#FRONT}
    * @param width of preview in px.
    * @param height of preview in px.
+   * @param rotation camera rotation (0, 90, 180, 270). Recommended:
+   * {@link com.pedro.encoder.input.video.CameraHelper#getCameraOrientation(Context)}
    */
-  @Deprecated
-  public void startPreview(@Camera1Facing int cameraFacing, int width, int height, int rotation) {
+  public void startPreview(CameraHelper.Facing cameraFacing, int width, int height, int rotation) {
     if (!isStreaming() && !onPreview && !(glInterface instanceof OffScreenGlThread)) {
       if (glInterface != null && Build.VERSION.SDK_INT >= 18) {
         boolean isPortrait = context.getResources().getConfiguration().orientation == 1;
@@ -306,58 +306,18 @@ public abstract class Camera1Base
     }
   }
 
-  public void startPreview(CameraHelper.Facing cameraFacing, int width, int height, int rotation) {
-    int facing = cameraFacing == CameraHelper.Facing.BACK ? Camera.CameraInfo.CAMERA_FACING_BACK
-        : Camera.CameraInfo.CAMERA_FACING_FRONT;
-    startPreview(facing, width, height, rotation);
-  }
-
-  @Deprecated
-  public void startPreview(@Camera1Facing int cameraFacing, int width, int height) {
+  public void startPreview(CameraHelper.Facing cameraFacing, int width, int height) {
     startPreview(cameraFacing, width, height, CameraHelper.getCameraOrientation(context));
   }
 
-  public void startPreview(CameraHelper.Facing cameraFacing, int width, int height) {
-    int facing = cameraFacing == CameraHelper.Facing.BACK ? Camera.CameraInfo.CAMERA_FACING_BACK
-        : Camera.CameraInfo.CAMERA_FACING_FRONT;
-    startPreview(facing, width, height);
-  }
-
-  /**
-   * Start camera preview. Ignored, if stream or preview is started.
-   * Width and height preview will be 640x480.
-   *
-   * @param cameraFacing front ot back camera. Like:
-   * {@link android.hardware.Camera.CameraInfo#CAMERA_FACING_BACK}
-   * {@link android.hardware.Camera.CameraInfo#CAMERA_FACING_FRONT}
-   */
-  @Deprecated
-  public void startPreview(@Camera1Facing int cameraFacing) {
+  public void startPreview(CameraHelper.Facing cameraFacing) {
     startPreview(cameraFacing, 640, 480);
   }
 
-  public void startPreview(CameraHelper.Facing cameraFacing) {
-    int facing = cameraFacing == CameraHelper.Facing.BACK ? Camera.CameraInfo.CAMERA_FACING_BACK
-        : Camera.CameraInfo.CAMERA_FACING_FRONT;
-    startPreview(facing);
-  }
-
-  /**
-   * Start camera preview. Ignored, if stream or preview is started.
-   * CameraFacing will be always back.
-   *
-   * @param width preview in px.
-   * @param height preview in px.
-   */
   public void startPreview(int width, int height) {
     startPreview(CameraHelper.Facing.BACK, width, height);
   }
 
-  /**
-   * Start camera preview. Ignored, if stream or preview is started.
-   * Width and height preview will be 640x480.
-   * CameraFacing will be always back.
-   */
   public void startPreview() {
     startPreview(CameraHelper.Facing.BACK);
   }

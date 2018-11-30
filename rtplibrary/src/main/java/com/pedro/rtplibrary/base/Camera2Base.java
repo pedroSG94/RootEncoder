@@ -1,7 +1,6 @@
 package com.pedro.rtplibrary.base;
 
 import android.content.Context;
-import android.hardware.camera2.CameraMetadata;
 import android.media.MediaCodec;
 import android.media.MediaFormat;
 import android.media.MediaMuxer;
@@ -17,7 +16,6 @@ import com.pedro.encoder.audio.GetAacData;
 import com.pedro.encoder.input.audio.GetMicrophoneData;
 import com.pedro.encoder.input.audio.MicrophoneManager;
 import com.pedro.encoder.input.video.Camera2ApiManager;
-import com.pedro.encoder.input.video.Camera2Facing;
 import com.pedro.encoder.input.video.CameraHelper;
 import com.pedro.encoder.input.video.CameraOpenException;
 import com.pedro.encoder.utils.CodecUtil;
@@ -272,14 +270,14 @@ public abstract class Camera2Base implements GetAacData, GetVideoData, GetMicrop
 
   /**
    * Start camera preview. Ignored, if stream or preview is started.
-   * Width and height preview will be the last resolution used to prepareVideo. 640x480 first time.
    *
    * @param cameraFacing front or back camera. Like:
-   * {@link android.hardware.camera2.CameraMetadata#LENS_FACING_BACK}
-   * {@link android.hardware.camera2.CameraMetadata#LENS_FACING_FRONT}
+   * {@link com.pedro.encoder.input.video.CameraHelper.Facing#BACK}
+   * {@link com.pedro.encoder.input.video.CameraHelper.Facing#FRONT}
+   * @param rotation camera rotation (0, 90, 180, 270). Recommended:
+   * {@link com.pedro.encoder.input.video.CameraHelper#getCameraOrientation(Context)}
    */
-  @Deprecated
-  public void startPreview(@Camera2Facing int cameraFacing, int rotation) {
+  public void startPreview(CameraHelper.Facing cameraFacing, int rotation) {
     if (!isStreaming() && !onPreview && !isBackground) {
       if (surfaceView != null) {
         cameraManager.prepareCamera(surfaceView.getHolder().getSurface());
@@ -302,28 +300,10 @@ public abstract class Camera2Base implements GetAacData, GetVideoData, GetMicrop
     }
   }
 
-  public void startPreview(CameraHelper.Facing cameraFacing, int rotation) {
-    int facing = cameraFacing == CameraHelper.Facing.BACK ? CameraMetadata.LENS_FACING_BACK
-        : CameraMetadata.LENS_FACING_FRONT;
-    startPreview(facing, rotation);
-  }
-
-  @Deprecated
-  public void startPreview(@Camera2Facing int cameraFacing) {
+  public void startPreview(CameraHelper.Facing cameraFacing) {
     startPreview(cameraFacing, CameraHelper.getCameraOrientation(context));
   }
 
-  public void startPreview(CameraHelper.Facing cameraFacing) {
-    int facing = cameraFacing == CameraHelper.Facing.BACK ? CameraMetadata.LENS_FACING_BACK
-        : CameraMetadata.LENS_FACING_FRONT;
-    startPreview(facing);
-  }
-
-  /**
-   * Start camera preview. Ignored, if stream or preview is started.
-   * Width and height preview will be the last resolution used to start camera. 640x480 first time.
-   * CameraFacing will be always back.
-   */
   public void startPreview() {
     startPreview(CameraHelper.Facing.BACK);
   }

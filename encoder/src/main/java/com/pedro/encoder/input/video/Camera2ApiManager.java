@@ -9,6 +9,7 @@ import android.hardware.camera2.CameraCaptureSession;
 import android.hardware.camera2.CameraCharacteristics;
 import android.hardware.camera2.CameraDevice;
 import android.hardware.camera2.CameraManager;
+import android.hardware.camera2.CameraMetadata;
 import android.hardware.camera2.CaptureRequest;
 import android.hardware.camera2.CaptureResult;
 import android.hardware.camera2.TotalCaptureResult;
@@ -30,7 +31,6 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-import static android.hardware.camera2.CameraMetadata.LENS_FACING_BACK;
 import static android.hardware.camera2.CameraMetadata.LENS_FACING_FRONT;
 
 /**
@@ -190,11 +190,11 @@ public class Camera2ApiManager extends CameraDevice.StateCallback {
   }
 
   public void openCameraBack() {
-    openCameraFacing(LENS_FACING_BACK);
+    openCameraFacing(CameraHelper.Facing.BACK);
   }
 
   public void openCameraFront() {
-    openCameraFacing(LENS_FACING_FRONT);
+    openCameraFacing(CameraHelper.Facing.FRONT);
   }
 
   public void openLastCamera() {
@@ -243,10 +243,12 @@ public class Camera2ApiManager extends CameraDevice.StateCallback {
    * @param cameraFacing - CameraCharacteristics.LENS_FACING_FRONT, CameraCharacteristics.LENS_FACING_BACK,
    * CameraCharacteristics.LENS_FACING_EXTERNAL
    */
-  public void openCameraFacing(@Camera2Facing int cameraFacing) {
+  public void openCameraFacing(CameraHelper.Facing cameraFacing) {
+    int facing = cameraFacing == CameraHelper.Facing.BACK ? CameraMetadata.LENS_FACING_BACK
+        : CameraMetadata.LENS_FACING_FRONT;
     try {
       cameraCharacteristics = cameraManager.getCameraCharacteristics("0");
-      if (cameraCharacteristics.get(CameraCharacteristics.LENS_FACING) == cameraFacing) {
+      if (cameraCharacteristics.get(CameraCharacteristics.LENS_FACING) == facing) {
         openCameraId(0);
       } else {
         openCameraId(cameraManager.getCameraIdList().length - 1);
