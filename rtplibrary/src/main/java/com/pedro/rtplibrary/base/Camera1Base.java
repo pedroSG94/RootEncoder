@@ -434,10 +434,6 @@ public abstract class Camera1Base
     }
     if (!recording) {
       microphoneManager.stop();
-      videoEncoder.stop();
-      audioEncoder.stop();
-      videoFormat = null;
-      audioFormat = null;
       if (glInterface != null && Build.VERSION.SDK_INT >= 18) {
         glInterface.removeMediaCodecSurface();
         if (glInterface instanceof OffScreenGlThread) {
@@ -445,6 +441,10 @@ public abstract class Camera1Base
           cameraManager.stop();
         }
       }
+      videoEncoder.stop();
+      audioEncoder.stop();
+      videoFormat = null;
+      audioFormat = null;
     }
   }
 
