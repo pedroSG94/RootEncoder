@@ -6,6 +6,7 @@ import android.graphics.SurfaceTexture;
 import android.os.Build;
 import android.support.annotation.RequiresApi;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.Surface;
 import com.pedro.encoder.input.gl.SurfaceManager;
 import com.pedro.encoder.input.gl.render.ManagerRender;
@@ -98,6 +99,7 @@ public class OpenGlView extends OpenGlViewBase {
 
   @Override
   public void run() {
+    releaseSurfaceManager();
     surfaceManager = new SurfaceManager(getHolder().getSurface());
     surfaceManager.makeCurrent();
     managerRender.setStreamSize(encoderWidth, encoderHeight);

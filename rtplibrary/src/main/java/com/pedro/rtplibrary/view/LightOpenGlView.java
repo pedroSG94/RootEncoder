@@ -63,6 +63,7 @@ public class LightOpenGlView extends OpenGlViewBase {
 
   @Override
   public void run() {
+    releaseSurfaceManager();
     surfaceManager = new SurfaceManager(getHolder().getSurface());
     surfaceManager.makeCurrent();
     simpleCameraRender.setStreamSize(encoderWidth, encoderHeight);
