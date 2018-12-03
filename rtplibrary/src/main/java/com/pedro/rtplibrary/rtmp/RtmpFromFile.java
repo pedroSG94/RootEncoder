@@ -9,6 +9,8 @@ import com.pedro.encoder.input.decoder.AudioDecoderInterface;
 import com.pedro.encoder.input.decoder.VideoDecoderInterface;
 import com.pedro.rtplibrary.base.FromFileBase;
 
+import com.pedro.rtplibrary.view.LightOpenGlView;
+import com.pedro.rtplibrary.view.OpenGlView;
 import net.ossrs.rtmp.ConnectCheckerRtmp;
 import net.ossrs.rtmp.SrsFlvMuxer;
 
@@ -34,6 +36,18 @@ public class RtmpFromFile extends FromFileBase {
   public RtmpFromFile(Context context, ConnectCheckerRtmp connectChecker,
       VideoDecoderInterface videoDecoderInterface, AudioDecoderInterface audioDecoderInterface) {
     super(context, videoDecoderInterface, audioDecoderInterface);
+    srsFlvMuxer = new SrsFlvMuxer(connectChecker);
+  }
+
+  public RtmpFromFile(OpenGlView openGlView, ConnectCheckerRtmp connectChecker,
+      VideoDecoderInterface videoDecoderInterface, AudioDecoderInterface audioDecoderInterface) {
+    super(openGlView, videoDecoderInterface, audioDecoderInterface);
+    srsFlvMuxer = new SrsFlvMuxer(connectChecker);
+  }
+
+  public RtmpFromFile(LightOpenGlView lightOpenGlView, ConnectCheckerRtmp connectChecker,
+      VideoDecoderInterface videoDecoderInterface, AudioDecoderInterface audioDecoderInterface) {
+    super(lightOpenGlView, videoDecoderInterface, audioDecoderInterface);
     srsFlvMuxer = new SrsFlvMuxer(connectChecker);
   }
 

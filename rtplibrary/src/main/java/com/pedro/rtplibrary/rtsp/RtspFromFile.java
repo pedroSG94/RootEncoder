@@ -1,12 +1,15 @@
 package com.pedro.rtplibrary.rtsp;
 
+import android.content.Context;
 import android.media.MediaCodec;
 import android.os.Build;
 import android.support.annotation.RequiresApi;
 import com.pedro.encoder.input.decoder.AudioDecoderInterface;
+import com.pedro.encoder.input.decoder.VideoDecoderInterface;
 import com.pedro.encoder.utils.CodecUtil;
 import com.pedro.rtplibrary.base.FromFileBase;
-import com.pedro.encoder.input.decoder.VideoDecoderInterface;
+import com.pedro.rtplibrary.view.LightOpenGlView;
+import com.pedro.rtplibrary.view.OpenGlView;
 import com.pedro.rtsp.rtsp.Protocol;
 import com.pedro.rtsp.rtsp.RtspClient;
 import com.pedro.rtsp.rtsp.VideoCodec;
@@ -27,6 +30,24 @@ public class RtspFromFile extends FromFileBase {
   public RtspFromFile(ConnectCheckerRtsp connectCheckerRtsp,
       VideoDecoderInterface videoDecoderInterface, AudioDecoderInterface audioDecoderInterface) {
     super(videoDecoderInterface, audioDecoderInterface);
+    rtspClient = new RtspClient(connectCheckerRtsp);
+  }
+
+  public RtspFromFile(Context context, ConnectCheckerRtsp connectCheckerRtsp,
+      VideoDecoderInterface videoDecoderInterface, AudioDecoderInterface audioDecoderInterface) {
+    super(context, videoDecoderInterface, audioDecoderInterface);
+    rtspClient = new RtspClient(connectCheckerRtsp);
+  }
+
+  public RtspFromFile(OpenGlView openGlView, ConnectCheckerRtsp connectCheckerRtsp,
+      VideoDecoderInterface videoDecoderInterface, AudioDecoderInterface audioDecoderInterface) {
+    super(openGlView, videoDecoderInterface, audioDecoderInterface);
+    rtspClient = new RtspClient(connectCheckerRtsp);
+  }
+
+  public RtspFromFile(LightOpenGlView lightOpenGlView, ConnectCheckerRtsp connectCheckerRtsp,
+      VideoDecoderInterface videoDecoderInterface, AudioDecoderInterface audioDecoderInterface) {
+    super(lightOpenGlView, videoDecoderInterface, audioDecoderInterface);
     rtspClient = new RtspClient(connectCheckerRtsp);
   }
 
