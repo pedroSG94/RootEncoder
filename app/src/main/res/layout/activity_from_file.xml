@@ -2,13 +2,8 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@color/black"
     >
-
-  <SurfaceView
-      android:layout_width="match_parent"
-      android:layout_height="match_parent"
-      android:id="@id/surfaceView"
-      />
 
   <EditText
       android:hint="@string/hint_rtmp"
@@ -86,7 +81,7 @@
       android:layout_width="wrap_content"
       android:layout_height="wrap_content"
       android:id="@+id/tv_file"
-      android:layout_above="@+id/seek_bar"
+      android:layout_above="@+id/b_select_file"
       android:layout_centerHorizontal="true"
       android:textColor="@color/appColor"
       android:layout_margin="10dp"

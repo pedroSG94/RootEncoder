@@ -72,6 +72,19 @@ public class RtspFromFileActivity extends AppCompatActivity
   }
 
   @Override
+  protected void onPause() {
+    super.onPause();
+    if (rtspFromFile.isRecording()) {
+      rtspFromFile.stopRecord();
+      bRecord.setText(R.string.start_record);
+    }
+    if (rtspFromFile.isStreaming()) {
+      rtspFromFile.stopStream();
+      button.setText(getResources().getString(R.string.start_button));
+    }
+  }
+
+  @Override
   public void onConnectionSuccessRtsp() {
     runOnUiThread(new Runnable() {
       @Override

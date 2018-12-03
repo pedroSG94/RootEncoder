@@ -72,6 +72,19 @@ public class RtmpFromFileActivity extends AppCompatActivity
   }
 
   @Override
+  protected void onPause() {
+    super.onPause();
+    if (rtmpFromFile.isRecording()) {
+      rtmpFromFile.stopRecord();
+      bRecord.setText(R.string.start_record);
+    }
+    if (rtmpFromFile.isStreaming()) {
+      rtmpFromFile.stopStream();
+      button.setText(getResources().getString(R.string.start_button));
+    }
+  }
+
+  @Override
   public void onConnectionSuccessRtmp() {
     runOnUiThread(new Runnable() {
       @Override

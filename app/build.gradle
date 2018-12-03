@@ -8,8 +8,8 @@ android {
     applicationId "com.pedro.rtpstreamer"
     minSdkVersion 16
     targetSdkVersion 28
-    versionCode 147
-    versionName "1.4.7"
+    versionCode 148
+    versionName "1.4.8"
   }
   buildTypes {
     release {
