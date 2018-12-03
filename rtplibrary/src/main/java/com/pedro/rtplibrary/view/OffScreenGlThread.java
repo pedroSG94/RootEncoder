@@ -153,13 +153,20 @@ public class OffScreenGlThread
         thread = null;
       }
       fpsLimiter.reset();
-      surfaceManager.release();
       running = false;
+    }
+  }
+
+  private void releaseSurfaceManager() {
+    if (surfaceManager != null) {
+      surfaceManager.release();
+      surfaceManager = null;
     }
   }
 
   @Override
   public void run() {
+    releaseSurfaceManager();
     surfaceManager = new SurfaceManager();
     surfaceManager.makeCurrent();
     textureManager.setStreamSize(encoderWidth, encoderHeight);
@@ -208,6 +215,7 @@ public class OffScreenGlThread
       Thread.currentThread().interrupt();
     } finally {
       textureManager.release();
+      releaseSurfaceManager();
     }
   }
 

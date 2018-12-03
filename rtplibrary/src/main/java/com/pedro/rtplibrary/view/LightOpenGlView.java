@@ -103,6 +103,7 @@ public class LightOpenGlView extends OpenGlViewBase {
       Thread.currentThread().interrupt();
     } finally {
       simpleCameraRender.release();
+      releaseSurfaceManager();
     }
   }
 

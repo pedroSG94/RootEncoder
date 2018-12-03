@@ -122,18 +122,15 @@ public abstract class OpenGlViewBase extends SurfaceView
         }
         thread = null;
       }
-      releaseSurfaceManager();
       running = false;
       rotation = 0;
     }
   }
 
   protected void releaseSurfaceManager() {
-    synchronized (sync) {
-      if (surfaceManager != null) {
-        surfaceManager.release();
-        surfaceManager = null;
-      }
+    if (surfaceManager != null) {
+      surfaceManager.release();
+      surfaceManager = null;
     }
   }
 
