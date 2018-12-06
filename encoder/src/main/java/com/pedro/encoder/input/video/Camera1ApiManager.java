@@ -1,5 +1,7 @@
 package com.pedro.encoder.input.video;
 
+import android.content.Context;
+import android.content.res.Configuration;
 import android.graphics.ImageFormat;
 import android.graphics.SurfaceTexture;
 import android.hardware.Camera;
@@ -36,7 +38,9 @@ public class Camera1ApiManager implements Camera.PreviewCallback, Camera.FaceDet
   private boolean lanternEnable = false;
   private int cameraSelect;
   private boolean isFrontCamera = false;
+  private boolean isPortrait = false;
   private int cameraFacing = Camera.CameraInfo.CAMERA_FACING_BACK;
+  private Context context;
 
   //default parameters for camera
   private int width = 640;
@@ -59,17 +63,20 @@ public class Camera1ApiManager implements Camera.PreviewCallback, Camera.FaceDet
   public Camera1ApiManager(SurfaceView surfaceView, GetCameraData getCameraData) {
     this.surfaceView = surfaceView;
     this.getCameraData = getCameraData;
+    this.context = surfaceView.getContext();
     init();
   }
 
   public Camera1ApiManager(TextureView textureView, GetCameraData getCameraData) {
     this.textureView = textureView;
     this.getCameraData = getCameraData;
+    this.context = textureView.getContext();
     init();
   }
 
-  public Camera1ApiManager(SurfaceTexture surfaceTexture) {
+  public Camera1ApiManager(SurfaceTexture surfaceTexture, Context context) {
     this.surfaceTexture = surfaceTexture;
+    this.context = context;
     init();
   }
 
@@ -117,7 +124,8 @@ public class Camera1ApiManager implements Camera.PreviewCallback, Camera.FaceDet
       Camera.CameraInfo info = new Camera.CameraInfo();
       Camera.getCameraInfo(cameraSelect, info);
       isFrontCamera = info.facing == Camera.CameraInfo.CAMERA_FACING_FRONT;
-
+      isPortrait = context.getResources().getConfiguration().orientation
+          == Configuration.ORIENTATION_PORTRAIT;
       Camera.Parameters parameters = camera.getParameters();
       parameters.setPreviewSize(width, height);
       parameters.setPreviewFormat(imageFormat);
@@ -243,7 +251,7 @@ public class Camera1ApiManager implements Camera.PreviewCallback, Camera.FaceDet
 
   @Override
   public void onPreviewFrame(byte[] data, Camera camera) {
-    getCameraData.inputYUVData(new Frame(data, rotation, isFrontCamera, imageFormat));
+    getCameraData.inputYUVData(new Frame(data, rotation, isFrontCamera && isPortrait, imageFormat));
     camera.addCallbackBuffer(yuvBuffer);
   }
 
