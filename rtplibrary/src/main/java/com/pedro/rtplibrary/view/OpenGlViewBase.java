@@ -38,7 +38,6 @@ public abstract class OpenGlViewBase extends SurfaceView
   protected final Object sync = new Object();
   protected int previewWidth, previewHeight;
   protected int encoderWidth, encoderHeight;
-  protected int waitTime;
   protected TakePhotoCallback takePhotoCallback;
   protected int rotation = 0;
 
@@ -89,11 +88,6 @@ public abstract class OpenGlViewBase extends SurfaceView
   }
 
   @Override
-  public void setWaitTime(int waitTime) {
-    this.waitTime = waitTime;
-  }
-
-  @Override
   public void setEncoderSize(int width, int height) {
     this.encoderWidth = width;
     this.encoderHeight = height;
@@ -116,7 +110,7 @@ public abstract class OpenGlViewBase extends SurfaceView
       if (thread != null) {
         thread.interrupt();
         try {
-          thread.join(1000);
+          thread.join(100);
         } catch (InterruptedException e) {
           thread.interrupt();
         }

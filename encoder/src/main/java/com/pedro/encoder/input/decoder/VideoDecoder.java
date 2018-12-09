@@ -92,7 +92,7 @@ public class VideoDecoder {
     if (thread != null) {
       thread.interrupt();
       try {
-        thread.join();
+        thread.join(100);
       } catch (InterruptedException e) {
         thread.interrupt();
       }

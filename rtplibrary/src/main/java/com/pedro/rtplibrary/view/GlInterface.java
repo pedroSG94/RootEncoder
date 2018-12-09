@@ -82,15 +82,6 @@ public interface GlInterface {
   /**
    * INTERNAL METHOD.
    *
-   * Set wait time for next frame to OpenglView, LightOpenglView or OffScreenGlThread.
-   *
-   * @param waitTime time in milliseconds
-   */
-  void setWaitTime(int waitTime);
-
-  /**
-   * INTERNAL METHOD.
-   *
    * Start Opengl rendering.
    *
    */

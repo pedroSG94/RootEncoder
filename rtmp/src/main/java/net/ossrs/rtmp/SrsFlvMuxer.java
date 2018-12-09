@@ -196,7 +196,7 @@ public class SrsFlvMuxer {
     if (worker != null) {
       worker.interrupt();
       try {
-        worker.join(1000);
+        worker.join(100);
       } catch (InterruptedException e) {
         worker.interrupt();
       }

@@ -45,7 +45,6 @@ public class LightOpenGlView extends OpenGlViewBase {
   public void init() {
     if (!initialized) simpleCameraRender = new SimpleCameraRender();
     simpleCameraRender.setFlip(isFlipHorizontal, isFlipVertical);
-    waitTime = 200;
     initialized = true;
   }
 
@@ -71,40 +70,31 @@ public class LightOpenGlView extends OpenGlViewBase {
     simpleCameraRender.initGl(getContext());
     simpleCameraRender.getSurfaceTexture().setOnFrameAvailableListener(this);
     semaphore.release();
-    try {
-      while (running) {
+    while (running) {
+      if (frameAvailable) {
+        frameAvailable = false;
+        surfaceManager.makeCurrent();
+        simpleCameraRender.updateFrame();
+        simpleCameraRender.drawFrame(previewWidth, previewHeight, keepAspectRatio);
+        surfaceManager.swapBuffer();
+        if (takePhotoCallback != null) {
+          takePhotoCallback.onTakePhoto(
+              GlUtil.getBitmap(previewWidth, previewHeight, encoderWidth, encoderHeight));
+          takePhotoCallback = null;
+        }
         synchronized (sync) {
-          sync.wait(waitTime);
-          if (frameAvailable) {
-            frameAvailable = false;
-            surfaceManager.makeCurrent();
-            simpleCameraRender.updateFrame();
-            simpleCameraRender.drawFrame(previewWidth, previewHeight, keepAspectRatio);
-            surfaceManager.swapBuffer();
-            if (takePhotoCallback != null) {
-              takePhotoCallback.onTakePhoto(
-                  GlUtil.getBitmap(previewWidth, previewHeight, encoderWidth, encoderHeight));
-              takePhotoCallback = null;
-            }
-
-            synchronized (sync) {
-              if (surfaceManagerEncoder != null) {
-                surfaceManagerEncoder.makeCurrent();
-                simpleCameraRender.drawFrame(encoderWidth, encoderHeight, false);
-                long ts = simpleCameraRender.getSurfaceTexture().getTimestamp();
-                surfaceManagerEncoder.setPresentationTime(ts);
-                surfaceManagerEncoder.swapBuffer();
-              }
-            }
+          if (surfaceManagerEncoder != null) {
+            surfaceManagerEncoder.makeCurrent();
+            simpleCameraRender.drawFrame(encoderWidth, encoderHeight, false);
+            long ts = simpleCameraRender.getSurfaceTexture().getTimestamp();
+            surfaceManagerEncoder.setPresentationTime(ts);
+            surfaceManagerEncoder.swapBuffer();
           }
         }
       }
-    } catch (InterruptedException ignore) {
-      Thread.currentThread().interrupt();
-    } finally {
-      simpleCameraRender.release();
-      releaseSurfaceManager();
     }
+    simpleCameraRender.release();
+    releaseSurfaceManager();
   }
 
   @Override

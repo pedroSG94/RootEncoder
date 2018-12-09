@@ -38,7 +38,7 @@ public class VideoEncoder implements GetCameraData {
   private GetVideoData getVideoData;
   private MediaCodec.BufferInfo videoInfo = new MediaCodec.BufferInfo();
   private long presentTimeUs;
-  private boolean running = false;
+  private volatile boolean running = false;
   private boolean spsPpsSetted = false;
   private boolean hardwareRotation = false;
 
@@ -242,15 +242,10 @@ public class VideoEncoder implements GetCameraData {
         thread = new Thread(new Runnable() {
           @Override
           public void run() {
-            try {
-              if (Build.VERSION.SDK_INT >= 21) {
-                getDataFromSurfaceAPI21();
-              } else {
-                getDataFromSurface();
-              }
-            } catch (IllegalStateException e) {
-              Log.e(TAG, "Error, encoding while encoded is stopped", e);
-              stop();
+            if (Build.VERSION.SDK_INT >= 21) {
+              getDataFromSurfaceAPI21();
+            } else {
+              getDataFromSurface();
             }
           }
         });
@@ -263,7 +258,7 @@ public class VideoEncoder implements GetCameraData {
           @Override
           public void run() {
             YUVUtil.preAllocateBuffers(width * height * 3 / 2);
-            while (running && !Thread.interrupted()) {
+            while (!Thread.interrupted()) {
               try {
                 Frame frame = queue.take();
                 if (fpsLimiter.limitFPS(fps)) continue;
@@ -287,9 +282,6 @@ public class VideoEncoder implements GetCameraData {
                 }
               } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
-              } catch (IllegalStateException e) {
-                Log.e(TAG, "Error, encoding while encoded is stopped", e);
-                stop();
               }
             }
           }
@@ -306,13 +298,14 @@ public class VideoEncoder implements GetCameraData {
       if (thread != null) {
         thread.interrupt();
         try {
-          thread.join(1000);
+          thread.join(100);
         } catch (InterruptedException e) {
           thread.interrupt();
         }
         thread = null;
       }
       if (videoEncoder != null) {
+        videoEncoder.flush();
         videoEncoder.stop();
         videoEncoder.release();
         videoEncoder = null;
@@ -360,8 +353,8 @@ public class VideoEncoder implements GetCameraData {
 
   @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
   private void getDataFromSurfaceAPI21() {
-    while (running && !Thread.interrupted()) {
-      for (; ; ) {
+    while (!Thread.interrupted()) {
+      for (; running; ) {
         if (fpsLimiter.limitFPS(fps)) continue;
         int outBufferIndex = videoEncoder.dequeueOutputBuffer(videoInfo, 0);
         if (outBufferIndex == MediaCodec.INFO_OUTPUT_FORMAT_CHANGED) {
@@ -393,9 +386,9 @@ public class VideoEncoder implements GetCameraData {
   }
 
   private void getDataFromSurface() {
-    while (running && !Thread.interrupted()) {
+    while (!Thread.interrupted()) {
       ByteBuffer[] outputBuffers = videoEncoder.getOutputBuffers();
-      for (; ; ) {
+      for (; running; ) {
         if (fpsLimiter.limitFPS(fps)) continue;
         int outBufferIndex = videoEncoder.dequeueOutputBuffer(videoInfo, 10000);
         if (outBufferIndex == MediaCodec.INFO_OUTPUT_FORMAT_CHANGED) {
@@ -435,7 +428,7 @@ public class VideoEncoder implements GetCameraData {
       long pts = System.nanoTime() / 1000 - presentTimeUs;
       videoEncoder.queueInputBuffer(inBufferIndex, 0, buffer.length, pts, 0);
     }
-    for (; ; ) {
+    for (; running; ) {
       int outBufferIndex = videoEncoder.dequeueOutputBuffer(videoInfo, 0);
       if (outBufferIndex == MediaCodec.INFO_OUTPUT_FORMAT_CHANGED) {
         MediaFormat mediaFormat = videoEncoder.getOutputFormat();
@@ -477,7 +470,7 @@ public class VideoEncoder implements GetCameraData {
       videoEncoder.queueInputBuffer(inBufferIndex, 0, buffer.length, pts, 0);
     }
 
-    for (; ; ) {
+    for (; running; ) {
       int outBufferIndex = videoEncoder.dequeueOutputBuffer(videoInfo, 0);
       if (outBufferIndex == MediaCodec.INFO_OUTPUT_FORMAT_CHANGED) {
         MediaFormat mediaFormat = videoEncoder.getOutputFormat();
@@ -557,8 +550,7 @@ public class VideoEncoder implements GetCameraData {
         try {
           videoEncoder.setParameters(bundle);
         } catch (IllegalStateException e) {
-          Log.e(TAG, "encoder need be running");
-          e.printStackTrace();
+          Log.e(TAG, "encoder need be running", e);
         }
       }
     }

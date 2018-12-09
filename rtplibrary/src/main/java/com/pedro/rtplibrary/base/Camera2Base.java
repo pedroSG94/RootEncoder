@@ -349,9 +349,9 @@ public abstract class Camera2Base implements GetAacData, GetVideoData, GetMicrop
   }
 
   private void startEncoders() {
-    prepareGlView();
     videoEncoder.start();
     audioEncoder.start();
+    prepareGlView();
     microphoneManager.start();
     if (onPreview) {
       cameraManager.openLastCamera();
@@ -362,10 +362,16 @@ public abstract class Camera2Base implements GetAacData, GetVideoData, GetMicrop
   }
 
   private void resetVideoEncoder() {
-    if (glInterface != null) glInterface.removeMediaCodecSurface();
+    if (glInterface != null) {
+      glInterface.removeMediaCodecSurface();
+    }
     videoEncoder.reset();
     if (glInterface != null) {
       glInterface.addMediaCodecSurface(videoEncoder.getInputSurface());
+    } else {
+      cameraManager.closeCamera(false);
+      cameraManager.prepareCamera(videoEncoder.getInputSurface());
+      cameraManager.openLastCamera();
     }
   }
 

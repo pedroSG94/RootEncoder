@@ -406,7 +406,7 @@ public class RtmpConnection implements RtmpPublisher {
       if (rxPacketHandler != null) {
         rxPacketHandler.interrupt();
         try {
-          rxPacketHandler.join(1000);
+          rxPacketHandler.join(100);
         } catch (InterruptedException ie) {
           rxPacketHandler.interrupt();
         }
