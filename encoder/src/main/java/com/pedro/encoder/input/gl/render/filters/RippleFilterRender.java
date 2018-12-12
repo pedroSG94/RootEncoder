@@ -37,7 +37,7 @@ public class RippleFilterRender extends BaseFilterRender {
   private int uTimeHandle = -1;
 
   private float speed = 15f;
-  private float time = 0f;
+  private long START_TIME = System.currentTimeMillis();
 
   public RippleFilterRender() {
     squareVertex = ByteBuffer.allocateDirect(squareVertexDataFilter.length * FLOAT_SIZE_BYTES)
@@ -82,9 +82,9 @@ public class RippleFilterRender extends BaseFilterRender {
     GLES20.glUniformMatrix4fv(uSTMatrixHandle, 1, false, STMatrix, 0);
     GLES20.glUniform2f(uResolutionHandle, getWidth(), getHeight());
     GLES20.glUniform1f(uSpeedHandle, speed);
-    time += 0.05f;
+    float time = ((float) (System.currentTimeMillis() - START_TIME)) / 1000f;
+    if (time >= 10) START_TIME += 10000;
     GLES20.glUniform1f(uTimeHandle, time);
-    if (time >= 1f) time = 0f;
     GLES20.glUniform1i(uSamplerHandle, 4);
     GLES20.glActiveTexture(GLES20.GL_TEXTURE4);
     GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, previousTexId);
