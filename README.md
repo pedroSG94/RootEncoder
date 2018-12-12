@@ -48,7 +48,7 @@ dependencies {
 - [x] Support [camera1](https://developer.android.com/reference/android/hardware/Camera.html) and [camera2](https://developer.android.com/reference/android/hardware/camera2/package-summary.html) API
 - [x] Encoder type buffer to buffer.
 - [x] Encoder type surface to buffer.
-- [x] RTMP/RTSP auth wowza.
+- [x] RTMP/RTSP auth.
 - [x] Audio mode suppressor.
 - [x] Audio echo cancellation.
 - [x] Disable/Enable video and audio while streaming.
