@@ -1,4 +1,4 @@
-package com.pedro.encoder.input.gl.render.filters;
+package com.pedro.encoder.input.gl.render.filters.object;
 
 import android.content.Context;
 import android.graphics.PointF;
@@ -11,7 +11,6 @@ import android.support.annotation.RequiresApi;
 import android.view.Surface;
 import com.pedro.encoder.R;
 import com.pedro.encoder.input.gl.Sprite;
-import com.pedro.encoder.input.gl.render.filters.object.BaseObjectFilterRender;
 import com.pedro.encoder.utils.gl.GlUtil;
 import com.pedro.encoder.utils.gl.TranslateTo;
 import java.nio.ByteBuffer;
@@ -41,7 +40,7 @@ public class SurfaceFilterRender extends BaseObjectFilterRender {
   private int uSTMatrixHandle = -1;
   private int uSamplerHandle = -1;
   private int uSamplerSurfaceHandle = -1;
-  private int aTextureSurfaceHandle = -1;
+  private int aTextureObjectHandle = -1;
   private int uAlphaHandle = -1;
 
   private int[] surfaceId = new int[] { -1 };
@@ -70,13 +69,13 @@ public class SurfaceFilterRender extends BaseObjectFilterRender {
 
   @Override
   protected void initGlFilter(Context context) {
-    String vertexShader = GlUtil.getStringFromRaw(context, R.raw.surface_vertex);
+    String vertexShader = GlUtil.getStringFromRaw(context, R.raw.object_vertex);
     String fragmentShader = GlUtil.getStringFromRaw(context, R.raw.surface_fragment);
 
     program = GlUtil.createProgram(vertexShader, fragmentShader);
     aPositionHandle = GLES20.glGetAttribLocation(program, "aPosition");
     aTextureHandle = GLES20.glGetAttribLocation(program, "aTextureCoord");
-    aTextureSurfaceHandle = GLES20.glGetAttribLocation(program, "aTextureSurfaceCoord");
+    aTextureObjectHandle = GLES20.glGetAttribLocation(program, "aTextureObjectCoord");
     uMVPMatrixHandle = GLES20.glGetUniformLocation(program, "uMVPMatrix");
     uSTMatrixHandle = GLES20.glGetUniformLocation(program, "uSTMatrix");
     uSamplerHandle = GLES20.glGetUniformLocation(program, "uSampler");
@@ -85,12 +84,12 @@ public class SurfaceFilterRender extends BaseObjectFilterRender {
 
     GlUtil.createExternalTextures(1, surfaceId, 0);
     surfaceTexture = new SurfaceTexture(surfaceId[0]);
+    surfaceTexture.setDefaultBufferSize(getWidth(), getHeight());
     surface = new Surface(surfaceTexture);
   }
 
   @Override
   protected void drawFilter() {
-    surfaceTexture.setDefaultBufferSize(getWidth(), getHeight());
     surfaceTexture.updateTexImage();
 
     GLES20.glUseProgram(program);
@@ -106,9 +105,9 @@ public class SurfaceFilterRender extends BaseObjectFilterRender {
     GLES20.glEnableVertexAttribArray(aTextureHandle);
 
     squareVertexSurface.position(SQUARE_VERTEX_DATA_POS_OFFSET);
-    GLES20.glVertexAttribPointer(aTextureSurfaceHandle, 2, GLES20.GL_FLOAT, false,
+    GLES20.glVertexAttribPointer(aTextureObjectHandle, 2, GLES20.GL_FLOAT, false,
         2 * FLOAT_SIZE_BYTES, squareVertexSurface);
-    GLES20.glEnableVertexAttribArray(aTextureSurfaceHandle);
+    GLES20.glEnableVertexAttribArray(aTextureObjectHandle);
 
     GLES20.glUniformMatrix4fv(uMVPMatrixHandle, 1, false, MVPMatrix, 0);
     GLES20.glUniformMatrix4fv(uSTMatrixHandle, 1, false, STMatrix, 0);
