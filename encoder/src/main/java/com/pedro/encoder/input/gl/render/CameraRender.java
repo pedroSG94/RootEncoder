@@ -22,21 +22,26 @@ import java.nio.ByteOrder;
 public class CameraRender extends BaseRenderOffScreen {
 
   private int[] textureID = new int[1];
+  private float[] rotationMatrix = new float[16];
+  private float[] scaleMatrix = new float[16];
 
   private int program = -1;
   private int uMVPMatrixHandle = -1;
   private int uSTMatrixHandle = -1;
   private int aPositionHandle = -1;
   private int aTextureCameraHandle = -1;
-  private int uOnFlipHandle = -1;
 
   private SurfaceTexture surfaceTexture;
   private Surface surface;
-  private boolean isFlipHorizontal = false, isFlipVertical = false;
 
   public CameraRender() {
     Matrix.setIdentityM(MVPMatrix, 0);
     Matrix.setIdentityM(STMatrix, 0);
+    float[] vertex = CameraHelper.getVerticesData();
+    squareVertex = ByteBuffer.allocateDirect(vertex.length * FLOAT_SIZE_BYTES)
+        .order(ByteOrder.nativeOrder())
+        .asFloatBuffer();
+    squareVertex.put(vertex).position(0);
   }
 
   @Override
@@ -53,7 +58,6 @@ public class CameraRender extends BaseRenderOffScreen {
     uMVPMatrixHandle = GLES20.glGetUniformLocation(program, "uMVPMatrix");
     uSTMatrixHandle = GLES20.glGetUniformLocation(program, "uSTMatrix");
     uSTMatrixHandle = GLES20.glGetUniformLocation(program, "uSTMatrix");
-    uOnFlipHandle = GLES20.glGetUniformLocation(program, "uOnFlip");
 
     //camera texture
     GlUtil.createExternalTextures(1, textureID, 0);
@@ -72,6 +76,8 @@ public class CameraRender extends BaseRenderOffScreen {
     surfaceTexture.getTransformMatrix(STMatrix);
     GLES20.glViewport(0, 0, width, height);
     GLES20.glUseProgram(program);
+    GLES20.glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+    GLES20.glClear(GLES20.GL_DEPTH_BUFFER_BIT | GLES20.GL_COLOR_BUFFER_BIT);
 
     squareVertex.position(SQUARE_VERTEX_DATA_POS_OFFSET);
     GLES20.glVertexAttribPointer(aPositionHandle, 3, GLES20.GL_FLOAT, false,
@@ -85,7 +91,6 @@ public class CameraRender extends BaseRenderOffScreen {
 
     GLES20.glUniformMatrix4fv(uMVPMatrixHandle, 1, false, MVPMatrix, 0);
     GLES20.glUniformMatrix4fv(uSTMatrixHandle, 1, false, STMatrix, 0);
-    GLES20.glUniform2f(uOnFlipHandle, isFlipHorizontal ? 1f : 0f, isFlipVertical ? 1f : 0f);
     //camera
     GLES20.glActiveTexture(GLES20.GL_TEXTURE0);
     GLES20.glBindTexture(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, textureID[0]);
@@ -115,15 +120,21 @@ public class CameraRender extends BaseRenderOffScreen {
   }
 
   public void setRotation(int rotation) {
-    float[] vertex = CameraHelper.getVertex(rotation);
-    squareVertex = ByteBuffer.allocateDirect(vertex.length * FLOAT_SIZE_BYTES)
-        .order(ByteOrder.nativeOrder())
-        .asFloatBuffer();
-    squareVertex.put(vertex).position(0);
+    Matrix.setIdentityM(rotationMatrix, 0);
+    Matrix.setIdentityM(MVPMatrix, 0);
+    Matrix.rotateM(rotationMatrix, 0, rotation, 0f, 0f, -1f);
+    update();
   }
 
   public void setFlip(boolean isFlipHorizontal, boolean isFlipVertical) {
-    this.isFlipHorizontal = isFlipHorizontal;
-    this.isFlipVertical = isFlipVertical;
+    Matrix.setIdentityM(scaleMatrix, 0);
+    Matrix.setIdentityM(MVPMatrix, 0);
+    Matrix.scaleM(scaleMatrix, 0, isFlipHorizontal ? -1f : 1f, isFlipVertical ? -1f : 1f, 1f);
+    update();
+  }
+
+  private void update() {
+    Matrix.multiplyMM(MVPMatrix, 0, scaleMatrix, 0, MVPMatrix, 0);
+    Matrix.multiplyMM(MVPMatrix, 0, rotationMatrix, 0, MVPMatrix, 0);
   }
 }

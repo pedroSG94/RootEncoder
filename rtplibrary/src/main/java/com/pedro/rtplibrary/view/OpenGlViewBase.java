@@ -39,7 +39,6 @@ public abstract class OpenGlViewBase extends SurfaceView
   protected int previewWidth, previewHeight;
   protected int encoderWidth, encoderHeight;
   protected TakePhotoCallback takePhotoCallback;
-  protected int rotation = 0;
 
   public OpenGlViewBase(Context context) {
     super(context);
@@ -59,11 +58,6 @@ public abstract class OpenGlViewBase extends SurfaceView
 
   @Override
   public abstract Surface getSurface();
-
-  @Override
-  public void setRotation(int rotation) {
-    this.rotation = rotation;
-  }
 
   @Override
   public void takePhoto(TakePhotoCallback takePhotoCallback) {
@@ -117,7 +111,6 @@ public abstract class OpenGlViewBase extends SurfaceView
         thread = null;
       }
       running = false;
-      rotation = 0;
     }
   }
 

@@ -66,7 +66,6 @@ public class LightOpenGlView extends OpenGlViewBase {
     surfaceManager = new SurfaceManager(getHolder().getSurface());
     surfaceManager.makeCurrent();
     simpleCameraRender.setStreamSize(encoderWidth, encoderHeight);
-    simpleCameraRender.setRotation(rotation);
     simpleCameraRender.initGl(getContext());
     simpleCameraRender.getSurfaceTexture().setOnFrameAvailableListener(this);
     semaphore.release();
@@ -120,6 +119,11 @@ public class LightOpenGlView extends OpenGlViewBase {
   @Override
   public void enableAA(boolean AAEnabled) {
 
+  }
+
+  @Override
+  public void setRotation(int rotation) {
+    simpleCameraRender.setRotation(rotation);
   }
 
   @Override

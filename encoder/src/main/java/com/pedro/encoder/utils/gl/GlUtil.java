@@ -121,16 +121,16 @@ public class GlUtil {
   }
 
   public static void checkGlError(String op) {
-    int error;
-    while ((error = GLES20.glGetError()) != GLES20.GL_NO_ERROR) {
+    int error = GLES20.glGetError();
+    if (error != GLES20.GL_NO_ERROR) {
       Log.e(TAG, op + ": glError " + error);
       throw new RuntimeException(op + ": glError " + error);
     }
   }
 
   public static void checkEglError(String msg) {
-    int error;
-    if ((error = EGL14.eglGetError()) != EGL14.EGL_SUCCESS) {
+    int error = EGL14.eglGetError();
+    if (error != EGL14.EGL_SUCCESS) {
       throw new RuntimeException(msg + ": EGL error: 0x" + Integer.toHexString(error));
     }
   }

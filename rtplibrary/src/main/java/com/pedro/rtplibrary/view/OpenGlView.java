@@ -78,6 +78,11 @@ public class OpenGlView extends OpenGlViewBase {
     loadAA = true;
   }
 
+  @Override
+  public void setRotation(int rotation) {
+    managerRender.setCameraRotation(rotation);
+  }
+
   public boolean isKeepAspectRatio() {
     return keepAspectRatio;
   }
@@ -101,7 +106,6 @@ public class OpenGlView extends OpenGlViewBase {
     surfaceManager = new SurfaceManager(getHolder().getSurface());
     surfaceManager.makeCurrent();
     managerRender.setStreamSize(encoderWidth, encoderHeight);
-    managerRender.setCameraRotation(rotation);
     managerRender.initGl(previewWidth, previewHeight, getContext());
     managerRender.getSurfaceTexture().setOnFrameAvailableListener(this);
     semaphore.release();

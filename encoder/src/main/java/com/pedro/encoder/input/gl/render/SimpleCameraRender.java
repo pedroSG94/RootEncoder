@@ -32,6 +32,8 @@ public class SimpleCameraRender {
 
   private float[] MVPMatrix = new float[16];
   private float[] STMatrix = new float[16];
+  private float[] rotationMatrix = new float[16];
+  private float[] scaleMatrix = new float[16];
 
   private int[] texturesID = new int[1];
 
@@ -41,25 +43,27 @@ public class SimpleCameraRender {
   private int uSTMatrixHandle = -1;
   private int aPositionHandle = -1;
   private int aTextureCoordHandle = -1;
-  private int uOnFlipHandle = -1;
 
   private SurfaceTexture surfaceTexture;
   private Surface surface;
   private int streamWidth;
   private int streamHeight;
-  private boolean isFlipHorizontal = false, isFlipVertical = false;
 
   public SimpleCameraRender() {
     Matrix.setIdentityM(MVPMatrix, 0);
     Matrix.setIdentityM(STMatrix, 0);
-  }
-
-  public void setRotation(int rotation) {
-    float[] vertex = CameraHelper.getVertex(rotation);
+    float[] vertex = CameraHelper.getVerticesData();
     squareVertex = ByteBuffer.allocateDirect(vertex.length * FLOAT_SIZE_BYTES)
         .order(ByteOrder.nativeOrder())
         .asFloatBuffer();
     squareVertex.put(vertex).position(0);
+  }
+
+  public void setRotation(int rotation) {
+    Matrix.setIdentityM(rotationMatrix, 0);
+    Matrix.setIdentityM(MVPMatrix, 0);
+    Matrix.rotateM(rotationMatrix, 0, rotation, 0f, 0f, -1f);
+    update();
   }
 
   public int getTextureId() {
@@ -110,7 +114,6 @@ public class SimpleCameraRender {
 
     GLES20.glUniformMatrix4fv(uMVPMatrixHandle, 1, false, MVPMatrix, 0);
     GLES20.glUniformMatrix4fv(uSTMatrixHandle, 1, false, STMatrix, 0);
-    GLES20.glUniform2f(uOnFlipHandle, isFlipHorizontal ? 1f : 0f, isFlipVertical ? 1f : 0f);
     //camera
     GLES20.glActiveTexture(GLES20.GL_TEXTURE0);
     GLES20.glBindTexture(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, textureID);
@@ -132,7 +135,6 @@ public class SimpleCameraRender {
     aTextureCoordHandle = GLES20.glGetAttribLocation(program, "aTextureCoord");
     uMVPMatrixHandle = GLES20.glGetUniformLocation(program, "uMVPMatrix");
     uSTMatrixHandle = GLES20.glGetUniformLocation(program, "uSTMatrix");
-    uOnFlipHandle = GLES20.glGetUniformLocation(program, "uOnFlip");
 
     //camera texture
     GlUtil.createExternalTextures(1, texturesID, 0);
@@ -154,7 +156,14 @@ public class SimpleCameraRender {
   }
 
   public void setFlip(boolean isFlipHorizontal, boolean isFlipVertical) {
-    this.isFlipHorizontal = isFlipHorizontal;
-    this.isFlipVertical = isFlipVertical;
+    Matrix.setIdentityM(scaleMatrix, 0);
+    Matrix.setIdentityM(MVPMatrix, 0);
+    Matrix.scaleM(scaleMatrix, 0, isFlipHorizontal ? -1f : 1f, isFlipVertical ? -1f : 1f, 1f);
+    update();
+  }
+
+  private void update() {
+    Matrix.multiplyMM(MVPMatrix, 0, scaleMatrix, 0, MVPMatrix, 0);
+    Matrix.multiplyMM(MVPMatrix, 0, rotationMatrix, 0, MVPMatrix, 0);
   }
 }

@@ -7,8 +7,7 @@ import android.view.WindowManager;
 
 public class CameraHelper {
 
-  //Rotation matrix 0 degrees
-  private static final float[] vertex0 = {
+  private static final float[] verticesData = {
       // X, Y, Z, U, V
       -1f, -1f, 0f, 0f, 0f,
       1f, -1f, 0f, 1f, 0f,
@@ -16,46 +15,8 @@ public class CameraHelper {
       1f, 1f, 0f, 1f, 1f,
   };
 
-  //Rotation matrix 90 degrees
-  private static final float[] vertex90 = {
-      // X, Y, Z, U, V
-      -1f, -1f, 0f, 1f, 0f,
-      1f, -1f, 0f, 1f, 1f,
-      -1f, 1f, 0f, 0f, 0f,
-      1f, 1f, 0f, 0f, 1f,
-  };
-
-  //Rotation matrix 180 degrees
-  private static final float[] vertex180 = {
-      // X, Y, Z, U, V
-      -1f, -1f, 0f, 1f, 1f,
-      1f, -1f, 0f, 0f, 1f,
-      -1f, 1f, 0f, 1f, 0f,
-      1f, 1f, 0f, 0f, 0f,
-  };
-
-  //Rotation matrix 270 degrees
-  private static final float[] vertex270 = {
-      // X, Y, Z, U, V
-      -1f, -1f, 0f, 0f, 1f,
-      1f, -1f, 0f, 0f, 0f,
-      -1f, 1f, 0f, 1f, 1f,
-      1f, 1f, 0f, 1f, 0f,
-  };
-
-  public static float[] getVertex(int rotation) {
-    switch (rotation) {
-      case 0:
-        return vertex0;
-      case 90:
-        return vertex90;
-      case 180:
-        return vertex180;
-      case 270:
-        return vertex270;
-      default:
-        return vertex0;
-    }
+  public static float[] getVerticesData() {
+    return verticesData;
   }
 
   public static int getCameraOrientation(Context context) {
