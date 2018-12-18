@@ -119,7 +119,7 @@ public class AndroidViewFilterRender extends BaseFilterRender {
 
   @Override
   public void release() {
-
+    GLES20.glDeleteProgram(program);
   }
 
   public View getView() {

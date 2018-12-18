@@ -117,7 +117,7 @@ public class ScreenRender {
   }
 
   public void release() {
-
+    GLES20.glDeleteProgram(program);
   }
 
   public void setTexId(int texId) {

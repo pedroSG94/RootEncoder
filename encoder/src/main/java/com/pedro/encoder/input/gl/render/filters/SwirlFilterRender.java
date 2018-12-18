@@ -11,11 +11,11 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 
 /**
- * Created by pedro on 31/01/18.
+ * Created by pedro on 29/01/18.
  */
 
 @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
-public class ContrastFilterRender extends BaseFilterRender {
+public class SwirlFilterRender extends BaseFilterRender {
 
   //rotation matrix
   private final float[] squareVertexDataFilter = {
@@ -32,11 +32,18 @@ public class ContrastFilterRender extends BaseFilterRender {
   private int uMVPMatrixHandle = -1;
   private int uSTMatrixHandle = -1;
   private int uSamplerHandle = -1;
-  private int uContrastHandle = -1;
+  private int uTimeHandle = -1;
+  private int uResolutionHandle = -1;
+  private int uRadiusHandle = -1;
+  private int uCenterHandle = -1;
 
-  private float contrast = 0.5f;
+  private long START_TIME = System.currentTimeMillis();
+  private boolean isIncrement = true;
+  private float time = 0f;
+  private float radius = 0.2f;
+  private float centerX = 0.5f, centerY = 0.5f;
 
-  public ContrastFilterRender() {
+  public SwirlFilterRender() {
     squareVertex = ByteBuffer.allocateDirect(squareVertexDataFilter.length * FLOAT_SIZE_BYTES)
         .order(ByteOrder.nativeOrder())
         .asFloatBuffer();
@@ -48,7 +55,7 @@ public class ContrastFilterRender extends BaseFilterRender {
   @Override
   protected void initGlFilter(Context context) {
     String vertexShader = GlUtil.getStringFromRaw(context, R.raw.simple_vertex);
-    String fragmentShader = GlUtil.getStringFromRaw(context, R.raw.contrast_fragment);
+    String fragmentShader = GlUtil.getStringFromRaw(context, R.raw.swirl_fragment);
 
     program = GlUtil.createProgram(vertexShader, fragmentShader);
     aPositionHandle = GLES20.glGetAttribLocation(program, "aPosition");
@@ -56,7 +63,10 @@ public class ContrastFilterRender extends BaseFilterRender {
     uMVPMatrixHandle = GLES20.glGetUniformLocation(program, "uMVPMatrix");
     uSTMatrixHandle = GLES20.glGetUniformLocation(program, "uSTMatrix");
     uSamplerHandle = GLES20.glGetUniformLocation(program, "uSampler");
-    uContrastHandle = GLES20.glGetUniformLocation(program, "uContrast");
+    uTimeHandle = GLES20.glGetUniformLocation(program, "uTime");
+    uResolutionHandle = GLES20.glGetUniformLocation(program, "uResolution");
+    uRadiusHandle = GLES20.glGetUniformLocation(program, "uRadius");
+    uCenterHandle = GLES20.glGetUniformLocation(program, "uCenter");
   }
 
   @Override
@@ -75,11 +85,29 @@ public class ContrastFilterRender extends BaseFilterRender {
 
     GLES20.glUniformMatrix4fv(uMVPMatrixHandle, 1, false, MVPMatrix, 0);
     GLES20.glUniformMatrix4fv(uSTMatrixHandle, 1, false, STMatrix, 0);
-    GLES20.glUniform1f(uContrastHandle, contrast);
-
+    GLES20.glUniform1f(uTimeHandle, getTime());
+    GLES20.glUniform2f(uResolutionHandle, getWidth(), getHeight());
+    GLES20.glUniform2f(uCenterHandle, centerX, centerY);
+    GLES20.glUniform1f(uRadiusHandle, radius);
     GLES20.glUniform1i(uSamplerHandle, 4);
     GLES20.glActiveTexture(GLES20.GL_TEXTURE4);
     GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, previousTexId);
+  }
+
+  private float getTime() {
+    float interval = ((float) (System.currentTimeMillis() - START_TIME)) / 1000f;
+    START_TIME = System.currentTimeMillis();
+    if (isIncrement) {
+      time += interval;
+    } else {
+      time -= interval;
+    }
+    if (time > 2) {
+      isIncrement = false;
+    } else if (time < -2) {
+      isIncrement = true;
+    }
+    return time;
   }
 
   @Override
@@ -87,14 +115,20 @@ public class ContrastFilterRender extends BaseFilterRender {
     GLES20.glDeleteProgram(program);
   }
 
-  public float getContrast() {
-    return contrast;
+  public float getRadius() {
+    return radius;
   }
 
-  /**
-   * @param contrast Range should be between 0.1 - 2.0 with 1.0 being normal.
-   */
-  public void setContrast(float contrast) {
-    this.contrast = contrast;
+  public void setRadius(float radius) {
+    this.radius = radius;
+  }
+
+  public float[] getCenter() {
+    return new float[] { centerX, centerY };
+  }
+
+  public void setCenterX(float centerX, float centerY) {
+    this.centerX = centerX;
+    this.centerY = centerY;
   }
 }

@@ -145,6 +145,7 @@ public class SimpleCameraRender {
   }
 
   public void release() {
+    GLES20.glDeleteProgram(program);
     surfaceTexture = null;
     surface = null;
   }

@@ -48,6 +48,7 @@ import com.pedro.encoder.input.gl.render.filters.RotationFilterRender;
 import com.pedro.encoder.input.gl.render.filters.SaturationFilterRender;
 import com.pedro.encoder.input.gl.render.filters.SepiaFilterRender;
 import com.pedro.encoder.input.gl.render.filters.SharpnessFilterRender;
+import com.pedro.encoder.input.gl.render.filters.SwirlFilterRender;
 import com.pedro.encoder.input.gl.render.filters.object.SurfaceFilterRender;
 import com.pedro.encoder.input.gl.render.filters.TemperatureFilterRender;
 import com.pedro.encoder.input.gl.render.filters.ZebraFilterRender;
@@ -118,10 +119,10 @@ public class OpenGlRtmpActivity extends AppCompatActivity
     spriteGestureController.setBaseObjectFilterRender(null);
     switch (item.getItemId()) {
       case R.id.e_d_fxaa:
+        rtmpCamera1.getGlInterface().enableAA(!rtmpCamera1.getGlInterface().isAAEnabled());
         Toast.makeText(this,
             "FXAA " + (rtmpCamera1.getGlInterface().isAAEnabled() ? "enabled" : "disabled"),
             Toast.LENGTH_SHORT).show();
-        rtmpCamera1.getGlInterface().enableAA(!rtmpCamera1.getGlInterface().isAAEnabled());
         return true;
       //filters. NOTE: You can change filter values on fly without reset the filter.
       // Example:
@@ -230,6 +231,9 @@ public class OpenGlRtmpActivity extends AppCompatActivity
         return true;
       case R.id.sharpness:
         rtmpCamera1.getGlInterface().setFilter(new SharpnessFilterRender());
+        return true;
+      case R.id.swirl:
+        rtmpCamera1.getGlInterface().setFilter(new SwirlFilterRender());
         return true;
       case R.id.surface_filter:
         //You can render this filter with other api that draw in a surface. for example you can use VLC

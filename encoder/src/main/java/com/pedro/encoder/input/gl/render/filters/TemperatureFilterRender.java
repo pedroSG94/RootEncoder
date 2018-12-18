@@ -84,7 +84,7 @@ public class TemperatureFilterRender extends BaseFilterRender {
 
   @Override
   public void release() {
-
+    GLES20.glDeleteProgram(program);
   }
 
   public float getTemperature() {

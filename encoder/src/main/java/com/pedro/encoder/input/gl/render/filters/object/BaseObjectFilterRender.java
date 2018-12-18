@@ -120,6 +120,7 @@ abstract public class BaseObjectFilterRender extends BaseFilterRender {
 
   @Override
   public void release() {
+    GLES20.glDeleteProgram(program);
     releaseTextureId();
     sprite.reset();
     if (streamObject != null) streamObject.recycle();

@@ -82,7 +82,7 @@ public class RotationFilterRender extends BaseFilterRender {
 
   @Override
   public void release() {
-
+    GLES20.glDeleteProgram(program);
   }
 
   public int getRotation() {

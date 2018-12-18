@@ -84,7 +84,7 @@ public class RGBSaturationFilterRender extends BaseFilterRender {
 
   @Override
   public void release() {
-
+    GLES20.glDeleteProgram(program);
   }
 
   public float getR() {
