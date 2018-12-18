@@ -33,10 +33,10 @@ import java.nio.ByteBuffer;
 import java.util.List;
 
 /**
- * Wrapper to stream with camera1 api and microphone.
- * Support stream with SurfaceView, TextureView and OpenGlView(Custom SurfaceView that use OpenGl).
- * SurfaceView and TextureView use buffer to buffer encoding mode for H264 and OpenGlView use
- * Surface to buffer mode(This mode is generally better because skip buffer processing).
+ * Wrapper to stream with camera1 api and microphone. Support stream with SurfaceView, TextureView
+ * and OpenGlView(Custom SurfaceView that use OpenGl). SurfaceView and TextureView use buffer to
+ * buffer encoding mode for H264 and OpenGlView use Surface to buffer mode(This mode is generally
+ * better because skip buffer processing).
  *
  * API requirements:
  * SurfaceView and TextureView mode: API 16+.
@@ -138,6 +138,18 @@ public abstract class Camera1Base
     return cameraManager.isFrontCamera();
   }
 
+  public void enableLantern() throws Exception {
+    cameraManager.enableLantern();
+  }
+
+  public void disableLantern() {
+    cameraManager.disableLantern();
+  }
+
+  public boolean isLanternEnabled() {
+    return cameraManager.isLanternEnabled();
+  }
+
   /**
    * Basic auth developed to work with Wowza. No tested with other server
    *
@@ -147,8 +159,8 @@ public abstract class Camera1Base
   public abstract void setAuthorization(String user, String password);
 
   /**
-   * Call this method before use @startStream. If not you will do a stream without video.
-   * NOTE: Rotation with encoder is silence ignored in some devices.
+   * Call this method before use @startStream. If not you will do a stream without video. NOTE:
+   * Rotation with encoder is silence ignored in some devices.
    *
    * @param width resolution in px.
    * @param height resolution in px.
@@ -157,9 +169,9 @@ public abstract class Camera1Base
    * @param hardwareRotation true if you want rotate using encoder, false if you want rotate with
    * software if you are using a SurfaceView or TextureView or with OpenGl if you are using
    * OpenGlView.
-   * @param rotation could be 90, 180, 270 or 0. You should use CameraHelper.getCameraOrientation with SurfaceView or TextureView
-   * and 0 with OpenGlView or LightOpenGlView.
-   * NOTE: Rotation with encoder is silence ignored in some devices.
+   * @param rotation could be 90, 180, 270 or 0. You should use CameraHelper.getCameraOrientation
+   * with SurfaceView or TextureView and 0 with OpenGlView or LightOpenGlView. NOTE: Rotation with
+   * encoder is silence ignored in some devices.
    * @return true if success, false if you get a error (Normally because the encoder selected
    * doesn't support any configuration seated or your device hasn't a H264 encoder).
    */
@@ -205,10 +217,8 @@ public abstract class Camera1Base
   }
 
   /**
-   * Same to call:
-   * rotation = 0;
-   * if (Portrait) rotation = 90;
-   * prepareVideo(640, 480, 30, 1200 * 1024, false, rotation);
+   * Same to call: rotation = 0; if (Portrait) rotation = 90; prepareVideo(640, 480, 30, 1200 *
+   * 1024, false, rotation);
    *
    * @return true if success, false if you get a error (Normally because the encoder selected
    * doesn't support any configuration seated or your device hasn't a H264 encoder).
@@ -219,8 +229,7 @@ public abstract class Camera1Base
   }
 
   /**
-   * Same to call:
-   * prepareAudio(64 * 1024, 32000, true, false, false);
+   * Same to call: prepareAudio(64 * 1024, 32000, true, false, false);
    *
    * @return true if success, false if you get a error (Normally because the encoder selected
    * doesn't support any configuration seated or your device hasn't a AAC encoder).
@@ -277,13 +286,12 @@ public abstract class Camera1Base
   /**
    * Start camera preview. Ignored, if stream or preview is started.
    *
-   * @param cameraFacing front or back camera. Like:
-   * {@link com.pedro.encoder.input.video.CameraHelper.Facing#BACK}
+   * @param cameraFacing front or back camera. Like: {@link com.pedro.encoder.input.video.CameraHelper.Facing#BACK}
    * {@link com.pedro.encoder.input.video.CameraHelper.Facing#FRONT}
    * @param width of preview in px.
    * @param height of preview in px.
-   * @param rotation camera rotation (0, 90, 180, 270). Recommended:
-   * {@link com.pedro.encoder.input.video.CameraHelper#getCameraOrientation(Context)}
+   * @param rotation camera rotation (0, 90, 180, 270). Recommended: {@link
+   * com.pedro.encoder.input.video.CameraHelper#getCameraOrientation(Context)}
    */
   public void startPreview(CameraHelper.Facing cameraFacing, int width, int height, int rotation) {
     if (!isStreaming() && !onPreview && !(glInterface instanceof OffScreenGlThread)) {
@@ -323,8 +331,9 @@ public abstract class Camera1Base
   }
 
   /**
-   * Stop camera preview. Ignored if streaming or already stopped.
-   * You need call it after @stopStream to release camera properly if you will close activity.
+   * Stop camera preview. Ignored if streaming or already stopped. You need call it after
+   *
+   * @stopStream to release camera properly if you will close activity.
    */
   public void stopPreview() {
     if (!isStreaming() && onPreview && !(glInterface instanceof OffScreenGlThread)) {
@@ -359,17 +368,14 @@ public abstract class Camera1Base
   protected abstract void startStreamRtp(String url);
 
   /**
-   * Need be called after @prepareVideo or/and @prepareAudio.
-   * This method override resolution of @startPreview to resolution seated in @prepareVideo. If you
-   * never startPreview this method startPreview for you to resolution seated in @prepareVideo.
+   * Need be called after @prepareVideo or/and @prepareAudio. This method override resolution of
    *
-   * @param url of the stream like:
-   * protocol://ip:port/application/streamName
+   * @param url of the stream like: protocol://ip:port/application/streamName
    *
-   * RTSP: rtsp://192.168.1.1:1935/live/pedroSG94
-   * RTSPS: rtsps://192.168.1.1:1935/live/pedroSG94
-   * RTMP: rtmp://192.168.1.1:1935/live/pedroSG94
-   * RTMPS: rtmps://192.168.1.1:1935/live/pedroSG94
+   * RTSP: rtsp://192.168.1.1:1935/live/pedroSG94 RTSPS: rtsps://192.168.1.1:1935/live/pedroSG94
+   * RTMP: rtmp://192.168.1.1:1935/live/pedroSG94 RTMPS: rtmps://192.168.1.1:1935/live/pedroSG94
+   * @startPreview to resolution seated in @prepareVideo. If you never startPreview this method
+   * startPreview for you to resolution seated in @prepareVideo.
    */
   public void startStream(String url) {
     streaming = true;
@@ -561,8 +567,8 @@ public abstract class Camera1Base
   }
 
   /**
-   * Set limit FPS while stream. This will be override when you call to prepareVideo method.
-   * This could produce a change in iFrameInterval.
+   * Set limit FPS while stream. This will be override when you call to prepareVideo method. This
+   * could produce a change in iFrameInterval.
    *
    * @param fps frames per second
    */

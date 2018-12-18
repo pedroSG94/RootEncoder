@@ -10,6 +10,7 @@ import android.util.Log;
 import android.view.MotionEvent;
 import android.view.SurfaceView;
 import android.view.TextureView;
+
 import java.io.IOException;
 import java.util.Iterator;
 import java.util.List;
@@ -18,10 +19,10 @@ import java.util.List;
  * Created by pedro on 20/01/17.
  * This class need use same resolution, fps and imageFormat that VideoEncoder
  * Tested with YV12 and NV21.
- *
+ * <p>
  * Advantage = you can control fps of the stream.
  * Disadvantages = you cant use all resolutions, only resolution that your camera support.
- *
+ * <p>
  * If you want use all resolutions. You can use libYuv for resize images in OnPreviewFrame:
  * https://chromium.googlesource.com/libyuv/libyuv/
  */
@@ -364,14 +365,14 @@ public class Camera1ApiManager implements Camera.PreviewCallback, Camera.FaceDet
     return false;
   }
 
-  public boolean isLanternEnable() {
+  public boolean isLanternEnabled() {
     return lanternEnable;
   }
 
   /**
    * @required: <uses-permission android:name="android.permission.FLASHLIGHT"/>
    */
-  public void enableLantern() {
+  public void enableLantern() throws Exception {
     if (camera != null) {
       Camera.Parameters parameters = camera.getParameters();
       List<String> supportedFlashModes = parameters.getSupportedFlashModes();
@@ -382,6 +383,7 @@ public class Camera1ApiManager implements Camera.PreviewCallback, Camera.FaceDet
           lanternEnable = true;
         } else {
           Log.e(TAG, "Lantern unsupported");
+          throw new Exception("Lantern unsupported");
         }
       }
     }

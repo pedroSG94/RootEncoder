@@ -1,6 +1,7 @@
 package com.pedro.encoder.input.gl;
 
 import android.graphics.PointF;
+
 import com.pedro.encoder.utils.gl.TranslateTo;
 
 /**
@@ -29,6 +30,7 @@ public class Sprite {
       0f, 0f, //bottom left
       1f, 0f, //bottom right
   };
+
   private PointF scale;
   private PointF position;
 
@@ -130,7 +132,6 @@ public class Sprite {
     PointF bottomLeft = new PointF(squareVertexDataSprite[2], squareVertexDataSprite[3]);
     PointF topRight = new PointF(squareVertexDataSprite[4], squareVertexDataSprite[5]);
     PointF topLeft = new PointF(squareVertexDataSprite[6], squareVertexDataSprite[7]);
-
     //Traduce scale to Opengl vertex values
     float scaleX = scale.x / 100f;
     float scaleY = scale.y / 100f;

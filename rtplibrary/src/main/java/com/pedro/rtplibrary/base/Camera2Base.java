@@ -32,10 +32,9 @@ import java.util.Arrays;
 import java.util.List;
 
 /**
- * Wrapper to stream with camera2 api and microphone.
- * Support stream with SurfaceView, TextureView, OpenGlView(Custom SurfaceView that use OpenGl) and
- * Context(background mode).
- * All views use Surface to buffer encoding mode for H264.
+ * Wrapper to stream with camera2 api and microphone. Support stream with SurfaceView, TextureView,
+ * OpenGlView(Custom SurfaceView that use OpenGl) and Context(background mode). All views use
+ * Surface to buffer encoding mode for H264.
  *
  * API requirements:
  * API 21+.
@@ -152,8 +151,8 @@ public abstract class Camera2Base implements GetAacData, GetVideoData, GetMicrop
    * @param hardwareRotation true if you want rotate using encoder, false if you with OpenGl if you
    * are using OpenGlView.
    * @param rotation could be 90, 180, 270 or 0 (Normally 0 if you are streaming in landscape or 90
-   * if you are streaming in Portrait). This only affect to stream result.
-   * NOTE: Rotation with encoder is silence ignored in some devices.
+   * if you are streaming in Portrait). This only affect to stream result. NOTE: Rotation with
+   * encoder is silence ignored in some devices.
    * @return true if success, false if you get a error (Normally because the encoder selected
    * doesn't support any configuration seated or your device hasn't a H264 encoder).
    */
@@ -200,9 +199,7 @@ public abstract class Camera2Base implements GetAacData, GetVideoData, GetMicrop
   }
 
   /**
-   * Same to call:
-   * isHardwareRotation = true;
-   * if (openGlVIew) isHardwareRotation = false;
+   * Same to call: isHardwareRotation = true; if (openGlVIew) isHardwareRotation = false;
    * prepareVideo(640, 480, 30, 1200 * 1024, isHardwareRotation, 90);
    *
    * @return true if success, false if you get a error (Normally because the encoder selected
@@ -215,8 +212,7 @@ public abstract class Camera2Base implements GetAacData, GetVideoData, GetMicrop
   }
 
   /**
-   * Same to call:
-   * prepareAudio(64 * 1024, 32000, true, false, false);
+   * Same to call: prepareAudio(64 * 1024, 32000, true, false, false);
    *
    * @return true if success, false if you get a error (Normally because the encoder selected
    * doesn't support any configuration seated or your device hasn't a AAC encoder).
@@ -271,11 +267,10 @@ public abstract class Camera2Base implements GetAacData, GetVideoData, GetMicrop
   /**
    * Start camera preview. Ignored, if stream or preview is started.
    *
-   * @param cameraFacing front or back camera. Like:
-   * {@link com.pedro.encoder.input.video.CameraHelper.Facing#BACK}
+   * @param cameraFacing front or back camera. Like: {@link com.pedro.encoder.input.video.CameraHelper.Facing#BACK}
    * {@link com.pedro.encoder.input.video.CameraHelper.Facing#FRONT}
-   * @param rotation camera rotation (0, 90, 180, 270). Recommended:
-   * {@link com.pedro.encoder.input.video.CameraHelper#getCameraOrientation(Context)}
+   * @param rotation camera rotation (0, 90, 180, 270). Recommended: {@link
+   * com.pedro.encoder.input.video.CameraHelper#getCameraOrientation(Context)}
    */
   public void startPreview(CameraHelper.Facing cameraFacing, int rotation) {
     if (!isStreaming() && !onPreview && !isBackground) {
@@ -309,8 +304,9 @@ public abstract class Camera2Base implements GetAacData, GetVideoData, GetMicrop
   }
 
   /**
-   * Stop camera preview. Ignored if streaming or already stopped.
-   * You need call it after @stopStream to release camera properly if you will close activity.
+   * Stop camera preview. Ignored if streaming or already stopped. You need call it after
+   *
+   * @stopStream to release camera properly if you will close activity.
    */
   public void stopPreview() {
     if (!isStreaming() && onPreview && !isBackground) {
@@ -325,17 +321,14 @@ public abstract class Camera2Base implements GetAacData, GetVideoData, GetMicrop
   protected abstract void startStreamRtp(String url);
 
   /**
-   * Need be called after @prepareVideo or/and @prepareAudio.
-   * This method override resolution of @startPreview to resolution seated in @prepareVideo. If you
-   * never startPreview this method startPreview for you to resolution seated in @prepareVideo.
+   * Need be called after @prepareVideo or/and @prepareAudio. This method override resolution of
    *
-   * @param url of the stream like:
-   * protocol://ip:port/application/streamName
+   * @param url of the stream like: protocol://ip:port/application/streamName
    *
-   * RTSP: rtsp://192.168.1.1:1935/live/pedroSG94
-   * RTSPS: rtsps://192.168.1.1:1935/live/pedroSG94
-   * RTMP: rtmp://192.168.1.1:1935/live/pedroSG94
-   * RTMPS: rtmps://192.168.1.1:1935/live/pedroSG94
+   * RTSP: rtsp://192.168.1.1:1935/live/pedroSG94 RTSPS: rtsps://192.168.1.1:1935/live/pedroSG94
+   * RTMP: rtmp://192.168.1.1:1935/live/pedroSG94 RTMPS: rtmps://192.168.1.1:1935/live/pedroSG94
+   * @startPreview to resolution seated in @prepareVideo. If you never startPreview this method
+   * startPreview for you to resolution seated in @prepareVideo.
    */
   public void startStream(String url) {
     streaming = true;
@@ -559,8 +552,8 @@ public abstract class Camera2Base implements GetAacData, GetVideoData, GetMicrop
   }
 
   /**
-   * Set limit FPS while stream. This will be override when you call to prepareVideo method.
-   * This could produce a change in iFrameInterval.
+   * Set limit FPS while stream. This will be override when you call to prepareVideo method. This
+   * could produce a change in iFrameInterval.
    *
    * @param fps frames per second
    */
