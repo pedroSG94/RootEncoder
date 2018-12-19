@@ -32,6 +32,7 @@ import com.pedro.encoder.input.gl.render.filters.EdgeDetectionFilterRender;
 import com.pedro.encoder.input.gl.render.filters.ExposureFilterRender;
 import com.pedro.encoder.input.gl.render.filters.FireFilterRender;
 import com.pedro.encoder.input.gl.render.filters.GammaFilterRender;
+import com.pedro.encoder.input.gl.render.filters.GlitchFilterRender;
 import com.pedro.encoder.input.gl.render.filters.GreyScaleFilterRender;
 import com.pedro.encoder.input.gl.render.filters.HalftoneLinesFilterRender;
 import com.pedro.encoder.input.gl.render.filters.Image70sFilterRender;
@@ -48,6 +49,7 @@ import com.pedro.encoder.input.gl.render.filters.RotationFilterRender;
 import com.pedro.encoder.input.gl.render.filters.SaturationFilterRender;
 import com.pedro.encoder.input.gl.render.filters.SepiaFilterRender;
 import com.pedro.encoder.input.gl.render.filters.SharpnessFilterRender;
+import com.pedro.encoder.input.gl.render.filters.SnowFilterRender;
 import com.pedro.encoder.input.gl.render.filters.SwirlFilterRender;
 import com.pedro.encoder.input.gl.render.filters.TemperatureFilterRender;
 import com.pedro.encoder.input.gl.render.filters.ZebraFilterRender;
@@ -176,6 +178,9 @@ public class OpenGlRtspActivity extends AppCompatActivity
       case R.id.gamma:
         rtspCamera1.getGlInterface().setFilter(new GammaFilterRender());
         return true;
+      case R.id.glitch:
+        rtspCamera1.getGlInterface().setFilter(new GlitchFilterRender());
+        return true;
       case R.id.gif:
         setGifToStream();
         return true;
@@ -232,6 +237,9 @@ public class OpenGlRtspActivity extends AppCompatActivity
       case R.id.sharpness:
         rtspCamera1.getGlInterface().setFilter(new SharpnessFilterRender());
         return true;
+      case R.id.snow:
+        rtspCamera1.getGlInterface().setFilter(new SnowFilterRender());
+        return true;
       case R.id.swirl:
         rtspCamera1.getGlInterface().setFilter(new SwirlFilterRender());
         return true;
@@ -284,8 +292,8 @@ public class OpenGlRtspActivity extends AppCompatActivity
   private void setGifToStream() {
     try {
       GifObjectFilterRender gifObjectFilterRender = new GifObjectFilterRender();
-      gifObjectFilterRender.setGif(getResources().openRawResource(R.raw.banana));
       rtspCamera1.getGlInterface().setFilter(gifObjectFilterRender);
+      gifObjectFilterRender.setGif(getResources().openRawResource(R.raw.banana));
       gifObjectFilterRender.setDefaultScale(rtspCamera1.getStreamWidth(),
           rtspCamera1.getStreamHeight());
       gifObjectFilterRender.setPosition(TranslateTo.BOTTOM);

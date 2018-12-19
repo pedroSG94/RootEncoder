@@ -32,6 +32,7 @@ import com.pedro.encoder.input.gl.render.filters.EdgeDetectionFilterRender;
 import com.pedro.encoder.input.gl.render.filters.ExposureFilterRender;
 import com.pedro.encoder.input.gl.render.filters.FireFilterRender;
 import com.pedro.encoder.input.gl.render.filters.GammaFilterRender;
+import com.pedro.encoder.input.gl.render.filters.GlitchFilterRender;
 import com.pedro.encoder.input.gl.render.filters.GreyScaleFilterRender;
 import com.pedro.encoder.input.gl.render.filters.HalftoneLinesFilterRender;
 import com.pedro.encoder.input.gl.render.filters.Image70sFilterRender;
@@ -48,6 +49,7 @@ import com.pedro.encoder.input.gl.render.filters.RotationFilterRender;
 import com.pedro.encoder.input.gl.render.filters.SaturationFilterRender;
 import com.pedro.encoder.input.gl.render.filters.SepiaFilterRender;
 import com.pedro.encoder.input.gl.render.filters.SharpnessFilterRender;
+import com.pedro.encoder.input.gl.render.filters.SnowFilterRender;
 import com.pedro.encoder.input.gl.render.filters.SwirlFilterRender;
 import com.pedro.encoder.input.gl.render.filters.object.SurfaceFilterRender;
 import com.pedro.encoder.input.gl.render.filters.TemperatureFilterRender;
@@ -176,6 +178,9 @@ public class OpenGlRtmpActivity extends AppCompatActivity
       case R.id.gamma:
         rtmpCamera1.getGlInterface().setFilter(new GammaFilterRender());
         return true;
+      case R.id.glitch:
+        rtmpCamera1.getGlInterface().setFilter(new GlitchFilterRender());
+        return true;
       case R.id.gif:
         setGifToStream();
         return true;
@@ -231,6 +236,9 @@ public class OpenGlRtmpActivity extends AppCompatActivity
         return true;
       case R.id.sharpness:
         rtmpCamera1.getGlInterface().setFilter(new SharpnessFilterRender());
+        return true;
+      case R.id.snow:
+        rtmpCamera1.getGlInterface().setFilter(new SnowFilterRender());
         return true;
       case R.id.swirl:
         rtmpCamera1.getGlInterface().setFilter(new SwirlFilterRender());

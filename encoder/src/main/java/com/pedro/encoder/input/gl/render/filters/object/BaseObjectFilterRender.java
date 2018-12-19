@@ -127,7 +127,7 @@ abstract public class BaseObjectFilterRender extends BaseFilterRender {
   }
 
   protected void releaseTextureId() {
-    if (streamObjectTextureId != null) GLES20.glDeleteTextures(1, streamObjectTextureId, 0);
+    if (streamObjectTextureId[0] != -1) GLES20.glDeleteTextures(1, streamObjectTextureId, 0);
     streamObjectTextureId = new int[] { -1 };
   }
 

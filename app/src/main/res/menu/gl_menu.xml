@@ -70,6 +70,10 @@
           android:title="@string/gamma"
           />
       <item
+          android:id="@+id/glitch"
+          android:title="@string/glitch"
+          />
+      <item
           android:id="@+id/gif"
           android:title="@string/gif"
           />
@@ -136,6 +140,10 @@
       <item
           android:id="@+id/sharpness"
           android:title="@string/sharpness"
+          />
+      <item
+          android:id="@+id/snow"
+          android:title="@string/snow"
           />
       <item
           android:id="@+id/swirl"
