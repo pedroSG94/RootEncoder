@@ -55,7 +55,7 @@ public class DisplayRtspActivity extends AppCompatActivity
     bRecord = findViewById(R.id.b_record);
     bRecord.setOnClickListener(this);
     etUrl = findViewById(R.id.et_rtp_url);
-    etUrl.setHint(R.string.hint_rtmp);
+    etUrl.setHint(R.string.hint_rtsp);
     rtspDisplay = getInstance();
 
     if (rtspDisplay.isStreaming()) {
