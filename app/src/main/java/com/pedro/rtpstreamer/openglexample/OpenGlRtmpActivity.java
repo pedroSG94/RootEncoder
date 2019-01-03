@@ -287,6 +287,7 @@ public class OpenGlRtmpActivity extends AppCompatActivity
         rtmpCamera1.getStreamHeight());
     imageObjectFilterRender.setPosition(TranslateTo.RIGHT);
     spriteGestureController.setBaseObjectFilterRender(imageObjectFilterRender); //Optional
+    spriteGestureController.setPreventMoveOutside(false); //Optional
   }
 
   private void setGifToStream() {
