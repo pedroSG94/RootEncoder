@@ -6,6 +6,10 @@ import com.pedro.rtsp.utils.ConnectCheckerRtsp;
 import java.io.IOException;
 import java.io.OutputStream;
 
+/**
+ * Created by pedro on 7/11/18.
+ */
+
 public class RtpSocketTcp extends BaseRtpSocket {
 
   private OutputStream outputStream;

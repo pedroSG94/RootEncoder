@@ -1,5 +1,9 @@
 package com.pedro.encoder.input.video;
 
+/**
+ * Created by pedro on 11/10/18.
+ */
+
 public class FpsLimiter {
 
   private long lastFrameTimestamp = 0L;

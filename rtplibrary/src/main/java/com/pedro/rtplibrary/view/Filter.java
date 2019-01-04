@@ -2,6 +2,10 @@ package com.pedro.rtplibrary.view;
 
 import com.pedro.encoder.input.gl.render.filters.BaseFilterRender;
 
+/**
+ * Created by pedro on 30/07/18.
+ */
+
 public class Filter {
 
   private int position;

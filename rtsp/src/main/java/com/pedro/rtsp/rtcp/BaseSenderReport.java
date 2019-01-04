@@ -7,6 +7,10 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.util.Random;
 
+/**
+ * Created by pedro on 7/11/18.
+ */
+
 public abstract class BaseSenderReport {
 
   protected static final String TAG = "BaseSenderReport";

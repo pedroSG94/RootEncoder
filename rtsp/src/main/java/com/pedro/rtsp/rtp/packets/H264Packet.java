@@ -6,6 +6,8 @@ import com.pedro.rtsp.utils.RtpConstants;
 import java.nio.ByteBuffer;
 
 /**
+ * Created by pedro on 27/11/18.
+ *
  * RFC 3984
  */
 public class H264Packet extends BasePacket {

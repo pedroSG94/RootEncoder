@@ -15,6 +15,7 @@ import com.pedro.rtplibrary.R;
 
 /**
  * Created by pedro on 21/02/18.
+ *
  * Light version of OpenGlView for devices too slow.
  */
 

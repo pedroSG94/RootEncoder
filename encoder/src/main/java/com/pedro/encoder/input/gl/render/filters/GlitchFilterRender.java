@@ -10,6 +10,10 @@ import com.pedro.encoder.utils.gl.GlUtil;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 
+/**
+ * Created by pedro on 19/12/18.
+ */
+
 @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
 public class GlitchFilterRender extends BaseFilterRender {
 

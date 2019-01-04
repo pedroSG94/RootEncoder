@@ -35,6 +35,7 @@ import static android.hardware.camera2.CameraMetadata.LENS_FACING_FRONT;
 
 /**
  * Created by pedro on 4/03/17.
+ *
  * <p>
  * Class for use surfaceEncoder to buffer encoder.
  * Advantage = you can use all resolutions.

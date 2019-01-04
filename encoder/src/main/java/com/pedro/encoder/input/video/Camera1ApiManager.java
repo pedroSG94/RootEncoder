@@ -17,6 +17,7 @@ import java.util.List;
 
 /**
  * Created by pedro on 20/01/17.
+ *
  * This class need use same resolution, fps and imageFormat that VideoEncoder
  * Tested with YV12 and NV21.
  * <p>

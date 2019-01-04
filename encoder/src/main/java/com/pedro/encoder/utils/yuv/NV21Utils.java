@@ -1,5 +1,9 @@
 package com.pedro.encoder.utils.yuv;
 
+/**
+ * Created by pedro on 31/10/18.
+ */
+
 public class NV21Utils {
 
   private static byte[] preAllocatedBufferRotate;

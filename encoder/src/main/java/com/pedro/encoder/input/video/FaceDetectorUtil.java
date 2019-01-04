@@ -9,6 +9,10 @@ import android.os.Build;
 import android.support.annotation.RequiresApi;
 import android.view.View;
 
+/**
+ * Created by pedro on 17/10/18.
+ */
+
 public class FaceDetectorUtil {
 
   public class FaceParsed {

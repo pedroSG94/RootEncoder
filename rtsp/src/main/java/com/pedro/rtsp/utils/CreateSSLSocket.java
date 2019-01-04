@@ -8,6 +8,7 @@ import java.security.NoSuchAlgorithmException;
 
 /**
  * Created by pedro on 25/02/17.
+ *
  * this class is used for secure transport, to use replace socket on RtmpConnection with this and
  * you will have a secure stream under ssl/tls.
  */

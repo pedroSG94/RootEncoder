@@ -17,6 +17,10 @@ import java.nio.ByteBuffer;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
+/**
+ * Created by pedro on 7/11/18.
+ */
+
 public class RtspSender implements VideoPacketCallback, AudioPacketCallback {
 
   private final static String TAG = "RtspSender";

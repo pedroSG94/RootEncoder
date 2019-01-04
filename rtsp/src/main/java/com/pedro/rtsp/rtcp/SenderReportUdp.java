@@ -9,6 +9,10 @@ import java.net.InetAddress;
 import java.net.MulticastSocket;
 import java.net.UnknownHostException;
 
+/**
+ * Created by pedro on 8/11/18.
+ */
+
 public class SenderReportUdp extends BaseSenderReport {
 
   private MulticastSocket multicastSocket;

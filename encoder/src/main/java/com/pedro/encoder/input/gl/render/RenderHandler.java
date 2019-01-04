@@ -1,5 +1,9 @@
 package com.pedro.encoder.input.gl.render;
 
+/**
+ * Created by pedro on 25/7/18.
+ */
+
 public class RenderHandler {
 
   private int[] fboId = new int[] { 0 };

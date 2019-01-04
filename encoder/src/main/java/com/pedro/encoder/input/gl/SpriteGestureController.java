@@ -8,6 +8,10 @@ import android.view.View;
 import com.pedro.encoder.input.gl.render.filters.object.BaseObjectFilterRender;
 import com.pedro.encoder.input.video.CameraHelper;
 
+/**
+ * Created by pedro on 9/09/17.
+ */
+
 @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
 public class SpriteGestureController {
 

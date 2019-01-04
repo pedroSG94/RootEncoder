@@ -5,6 +5,10 @@ import com.pedro.rtsp.utils.RtpConstants;
 import java.nio.ByteBuffer;
 import java.util.Random;
 
+/**
+ * Created by pedro on 27/11/18.
+ */
+
 public abstract class BasePacket {
 
   protected final static int maxPacketSize = RtpConstants.MTU - 28;

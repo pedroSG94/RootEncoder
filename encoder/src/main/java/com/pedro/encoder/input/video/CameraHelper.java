@@ -5,6 +5,9 @@ import android.view.MotionEvent;
 import android.view.Surface;
 import android.view.WindowManager;
 
+/**
+ * Created by pedro on 17/12/18.
+ */
 public class CameraHelper {
 
   private static final float[] verticesData = {
