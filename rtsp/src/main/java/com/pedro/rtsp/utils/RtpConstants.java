@@ -9,7 +9,4 @@ public class RtpConstants {
   public static final int RTP_HEADER_LENGTH = 12;
   public static final int MTU = 1300;
   public static final int payloadType = 96;
-
-  public static final int VIDEO_ALLOC_SIZE = 128 * 1024;
-  public static final int AUDIO_ALLOC_SIZE = 4 * 1024;
 }

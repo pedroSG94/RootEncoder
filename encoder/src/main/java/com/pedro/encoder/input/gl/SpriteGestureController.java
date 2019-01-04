@@ -51,22 +51,22 @@ public class SpriteGestureController {
       float xPercent = motionEvent.getX() * 100 / view.getWidth();
       float yPercent = motionEvent.getY() * 100 / view.getHeight();
       PointF scale = baseObjectFilterRender.getScale();
-      if(this.preventMoveOutside) {
+      if (preventMoveOutside) {
         float x = xPercent - scale.x / 2.0F;
         float y = yPercent - scale.y / 2.0F;
-        if( x < 0 ) {
+        if (x < 0) {
           x = 0;
         }
-        if( x + scale.x > 100.0F ) {
+        if (x + scale.x > 100.0F) {
           x = 100.0F - scale.x;
         }
-        if( y < 0 ) {
+        if (y < 0) {
           y = 0;
         }
-        if( y + scale.y > 100.0F ) {
+        if (y + scale.y > 100.0F) {
           y = 100.0F - scale.y;
         }
-        this.baseObjectFilterRender.setPosition(x, y);
+        baseObjectFilterRender.setPosition(x, y);
       } else {
         baseObjectFilterRender.setPosition(xPercent - scale.x / 2f, yPercent - scale.y / 2f);
       }
