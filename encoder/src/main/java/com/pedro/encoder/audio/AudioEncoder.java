@@ -52,7 +52,13 @@ public class AudioEncoder implements GetMicrophoneData {
       }
 
       if (force == CodecUtil.Force.FIRST_COMPATIBLE_FOUND) {
-        audioEncoder = MediaCodec.createEncoderByType(CodecUtil.AAC_MIME);
+        MediaCodecInfo encoder = chooseAudioEncoder(CodecUtil.AAC_MIME);
+        if (encoder != null) {
+          audioEncoder = MediaCodec.createByCodecName(encoder.getName());
+        } else {
+          Log.e(TAG, "Valid encoder not found");
+          return false;
+        }
       } else {
         if (encoders.isEmpty()) {
           Log.e(TAG, "Valid encoder not found");
@@ -173,6 +179,16 @@ public class AudioEncoder implements GetMicrophoneData {
         break;
       }
     }
+  }
+
+  private MediaCodecInfo chooseAudioEncoder(String mime) {
+    List<MediaCodecInfo> mediaCodecInfoList = CodecUtil.getAllEncoders(mime);
+    for (MediaCodecInfo mediaCodecInfo : mediaCodecInfoList) {
+      String name = mediaCodecInfo.getName().toLowerCase();
+      if (!name.contains("omx.google")) return mediaCodecInfo;
+    }
+    if (mediaCodecInfoList.size() > 0) return mediaCodecInfoList.get(0);
+    else return null;
   }
 
   public void setSampleRate(int sampleRate) {
