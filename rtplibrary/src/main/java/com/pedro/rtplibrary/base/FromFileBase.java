@@ -133,9 +133,9 @@ public abstract class FromFileBase
       if (glInterface instanceof OffScreenGlThread) {
         glInterface = new OffScreenGlThread(context);
       }
+      glInterface.init();
       glInterface.setRotation(rotation);
       glInterface.setEncoderSize(videoDecoder.getWidth(), videoDecoder.getHeight());
-      glInterface.init();
     }
     return result;
   }
