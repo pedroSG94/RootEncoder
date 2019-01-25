@@ -64,7 +64,10 @@ public abstract class DisplayBase implements GetAacData, GetVideoData, GetMicrop
 
   public DisplayBase(Context context, boolean useOpengl) {
     this.context = context;
-    if (useOpengl) glInterface = new OffScreenGlThread(context);
+    if (useOpengl) {
+      glInterface = new OffScreenGlThread(context);
+      glInterface.init();
+    }
     mediaProjectionManager =
         ((MediaProjectionManager) context.getSystemService(MEDIA_PROJECTION_SERVICE));
     this.surfaceView = null;
@@ -103,8 +106,8 @@ public abstract class DisplayBase implements GetAacData, GetVideoData, GetMicrop
             FormatVideoEncoder.SURFACE);
     if (glInterface != null) {
       glInterface = new OffScreenGlThread(context);
-      glInterface.setEncoderSize(videoEncoder.getWidth(), videoEncoder.getHeight());
       glInterface.init();
+      glInterface.setEncoderSize(videoEncoder.getWidth(), videoEncoder.getHeight());
     }
     return result;
   }

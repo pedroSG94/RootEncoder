@@ -82,20 +82,23 @@ public abstract class FromFileBase
       AudioDecoderInterface audioDecoderInterface) {
     this.context = context;
     glInterface = new OffScreenGlThread(context);
+    glInterface.init();
     init(videoDecoderInterface, audioDecoderInterface);
   }
 
   public FromFileBase(OpenGlView openGlView, VideoDecoderInterface videoDecoderInterface,
       AudioDecoderInterface audioDecoderInterface) {
-    this.context = openGlView.getContext();
+    context = openGlView.getContext();
     glInterface = openGlView;
+    glInterface.init();
     init(videoDecoderInterface, audioDecoderInterface);
   }
 
   public FromFileBase(LightOpenGlView lightOpenGlView, VideoDecoderInterface videoDecoderInterface,
       AudioDecoderInterface audioDecoderInterface) {
-    this.context = lightOpenGlView.getContext();
+    context = lightOpenGlView.getContext();
     glInterface = lightOpenGlView;
+    glInterface.init();
     init(videoDecoderInterface, audioDecoderInterface);
   }
 
@@ -126,18 +129,9 @@ public abstract class FromFileBase
     videoPath = filePath;
     videoDecoder = new VideoDecoder(videoDecoderInterface, this);
     if (!videoDecoder.initExtractor(filePath)) return false;
-    boolean result =
-        videoEncoder.prepareVideoEncoder(videoDecoder.getWidth(), videoDecoder.getHeight(), 30,
-            bitRate, rotation, true, 2, FormatVideoEncoder.SURFACE);
-    if (context != null) {
-      if (glInterface instanceof OffScreenGlThread) {
-        glInterface = new OffScreenGlThread(context);
-      }
-      glInterface.init();
-      glInterface.setRotation(rotation);
-      glInterface.setEncoderSize(videoDecoder.getWidth(), videoDecoder.getHeight());
-    }
-    return result;
+    boolean hardwareRotation = glInterface == null;
+    return videoEncoder.prepareVideoEncoder(videoDecoder.getWidth(), videoDecoder.getHeight(), 30,
+        bitRate, rotation, hardwareRotation, 2, FormatVideoEncoder.SURFACE);
   }
 
   public boolean prepareVideo(String filePath) throws IOException {
@@ -159,7 +153,7 @@ public abstract class FromFileBase
         audioDecoder.isStereo());
     prepareAudioRtp(audioDecoder.isStereo(), audioDecoder.getSampleRate());
     audioDecoder.prepareAudio();
-    if (context != null && !(glInterface instanceof OffScreenGlThread)) {
+    if (glInterface != null && !(glInterface instanceof OffScreenGlThread)) {
       int channel =
           audioDecoder.isStereo() ? AudioFormat.CHANNEL_OUT_STEREO : AudioFormat.CHANNEL_OUT_MONO;
       int buffSize = AudioTrack.getMinBufferSize(audioDecoder.getSampleRate(), channel,
@@ -243,26 +237,40 @@ public abstract class FromFileBase
   }
 
   private void startEncoders() {
-    if (context != null) {
-      if (glInterface instanceof OffScreenGlThread) {
-        ((OffScreenGlThread) glInterface).setFps(videoEncoder.getFps());
-      }
-      glInterface.start();
-      glInterface.addMediaCodecSurface(videoEncoder.getInputSurface());
-      videoDecoder.prepareVideo(glInterface.getSurface());
-    } else {
-      videoDecoder.prepareVideo(videoEncoder.getInputSurface());
-    }
     videoEncoder.start();
     if (audioTrackPlayer != null) audioTrackPlayer.play();
     audioEncoder.start();
+    prepareGlView();
     videoDecoder.start();
     audioDecoder.start();
   }
 
+  private void prepareGlView() {
+    if (glInterface != null && Build.VERSION.SDK_INT >= 18) {
+      if (glInterface instanceof OffScreenGlThread) {
+        glInterface = new OffScreenGlThread(context);
+        glInterface.init();
+        ((OffScreenGlThread) glInterface).setFps(videoEncoder.getFps());
+      }
+      if (videoEncoder.getRotation() == 90 || videoEncoder.getRotation() == 270) {
+        glInterface.setEncoderSize(videoEncoder.getHeight(), videoEncoder.getWidth());
+      } else {
+        glInterface.setEncoderSize(videoEncoder.getWidth(), videoEncoder.getHeight());
+      }
+      glInterface.setRotation(0);
+      glInterface.start();
+      if (videoEncoder.getInputSurface() != null) {
+        glInterface.addMediaCodecSurface(videoEncoder.getInputSurface());
+      }
+      videoDecoder.prepareVideo(glInterface.getSurface());
+    } else {
+      videoDecoder.prepareVideo(videoEncoder.getInputSurface());
+    }
+  }
+
   private void resetVideoEncoder() {
     try {
-      if (context != null) {
+      if (glInterface != null) {
         glInterface.removeMediaCodecSurface();
         glInterface.stop();
       }
@@ -273,16 +281,7 @@ public abstract class FromFileBase
         throw new IOException("fail to reset video file");
       }
       videoEncoder.reset();
-      if (context != null) {
-        if (glInterface instanceof OffScreenGlThread) {
-          ((OffScreenGlThread) glInterface).setFps(videoEncoder.getFps());
-        }
-        glInterface.start();
-        glInterface.addMediaCodecSurface(videoEncoder.getInputSurface());
-        videoDecoder.prepareVideo(glInterface.getSurface());
-      } else {
-        videoDecoder.prepareVideo(videoEncoder.getInputSurface());
-      }
+      prepareGlView();
       videoDecoder.start();
       videoDecoder.moveTo(time);
     } catch (IOException e) {
@@ -301,7 +300,7 @@ public abstract class FromFileBase
       stopStreamRtp();
     }
     if (!recording) {
-      if (context != null) {
+      if (glInterface != null) {
         glInterface.removeMediaCodecSurface();
         glInterface.stop();
       }
@@ -466,7 +465,7 @@ public abstract class FromFileBase
     synchronized (sync) {
       try {
         if (isVideo) {
-          if (context != null) {
+          if (glInterface != null) {
             glInterface.removeMediaCodecSurface();
             glInterface.stop();
           }
@@ -475,16 +474,7 @@ public abstract class FromFileBase
           if (!videoDecoder.initExtractor(videoPath)) {
             throw new IOException("fail to reset video file");
           }
-          if (context != null) {
-            if (glInterface instanceof OffScreenGlThread) {
-              ((OffScreenGlThread) glInterface).setFps(videoEncoder.getFps());
-            }
-            glInterface.start();
-            glInterface.addMediaCodecSurface(videoEncoder.getInputSurface());
-            videoDecoder.prepareVideo(glInterface.getSurface());
-          } else {
-            videoDecoder.prepareVideo(videoEncoder.getInputSurface());
-          }
+          prepareGlView();
           videoDecoder.start();
         } else {
           audioDecoder.stop();

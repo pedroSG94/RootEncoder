@@ -57,6 +57,8 @@ public class SimpleCameraRender {
         .order(ByteOrder.nativeOrder())
         .asFloatBuffer();
     squareVertex.put(vertex).position(0);
+    setRotation(0);
+    setFlip(false, false);
   }
 
   public void setRotation(int rotation) {

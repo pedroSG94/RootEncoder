@@ -42,6 +42,8 @@ public class CameraRender extends BaseRenderOffScreen {
         .order(ByteOrder.nativeOrder())
         .asFloatBuffer();
     squareVertex.put(vertex).position(0);
+    setRotation(0);
+    setFlip(false, false);
   }
 
   @Override
