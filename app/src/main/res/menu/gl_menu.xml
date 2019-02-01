@@ -38,6 +38,10 @@
           android:title="@string/cartoon"
           />
       <item
+          android:id="@+id/circle"
+          android:title="@string/circle"
+          />
+      <item
           android:id="@+id/color"
           android:title="@string/color"
           />
