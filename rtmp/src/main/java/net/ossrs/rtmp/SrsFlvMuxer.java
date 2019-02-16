@@ -768,6 +768,7 @@ public class SrsFlvMuxer {
     public void writeVideoSample(final ByteBuffer bb, MediaCodec.BufferInfo bi) {
       if (bi.size < 4) return;
 
+      bb.rewind();  //Sometimes the position is not 0.
       int pts = (int) (bi.presentationTimeUs / 1000);
       int type = SrsCodecVideoAVCFrame.InterFrame;
       SrsFlvFrameBytes frame = avc.demuxAnnexb(bb, bi.size, true);
