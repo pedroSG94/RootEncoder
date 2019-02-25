@@ -258,7 +258,7 @@ public class VideoEncoder implements GetCameraData {
           @Override
           public void run() {
             YUVUtil.preAllocateBuffers(width * height * 3 / 2);
-            while (!Thread.interrupted()) {
+            while (running && !Thread.interrupted()) {
               try {
                 Frame frame = queue.take();
                 if (fpsLimiter.limitFPS(fps)) continue;
@@ -275,6 +275,8 @@ public class VideoEncoder implements GetCameraData {
                     : isYV12 ? YUVUtil.YV12toYUV420byColor(buffer, width, height,
                         formatVideoEncoder)
                         : YUVUtil.NV21toYUV420byColor(buffer, width, height, formatVideoEncoder);
+
+                if (Thread.currentThread().isInterrupted()) return;
                 if (Build.VERSION.SDK_INT >= 21) {
                   getDataFromEncoderAPI21(buffer);
                 } else {

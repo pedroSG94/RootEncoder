@@ -21,6 +21,7 @@ import com.pedro.encoder.input.gl.SpriteGestureController;
 import com.pedro.encoder.input.gl.render.filters.AndroidViewFilterRender;
 import com.pedro.encoder.input.gl.render.filters.BasicDeformationFilterRender;
 import com.pedro.encoder.input.gl.render.filters.BeautyFilterRender;
+import com.pedro.encoder.input.gl.render.filters.BlackFilterRender;
 import com.pedro.encoder.input.gl.render.filters.BlurFilterRender;
 import com.pedro.encoder.input.gl.render.filters.BrightnessFilterRender;
 import com.pedro.encoder.input.gl.render.filters.CartoonFilterRender;
@@ -145,6 +146,9 @@ public class OpenGlRtmpActivity extends AppCompatActivity
         return true;
       case R.id.beauty:
         rtmpCamera1.getGlInterface().setFilter(new BeautyFilterRender());
+        return true;
+      case R.id.black:
+        rtmpCamera1.getGlInterface().setFilter(new BlackFilterRender());
         return true;
       case R.id.blur:
         rtmpCamera1.getGlInterface().setFilter(new BlurFilterRender());

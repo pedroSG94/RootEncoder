@@ -26,6 +26,10 @@
           android:title="@string/beauty"
           />
       <item
+          android:id="@+id/black"
+          android:title="@string/black"
+          />
+      <item
           android:id="@+id/blur"
           android:title="@string/blur"
           />

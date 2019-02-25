@@ -27,6 +27,7 @@ public class MicrophoneManager {
   private int channel = AudioFormat.CHANNEL_IN_STEREO;
   private boolean muted = false;
   private AudioPostProcessEffect audioPostProcessEffect;
+  private Thread thread;
 
   public MicrophoneManager(GetMicrophoneData getMicrophoneData) {
     this.getMicrophoneData = getMicrophoneData;
@@ -63,7 +64,7 @@ public class MicrophoneManager {
    */
   public void start() {
     init();
-    new Thread(new Runnable() {
+    thread = new Thread(new Runnable() {
       @Override
       public void run() {
         while (running && !Thread.interrupted()) {
@@ -75,7 +76,8 @@ public class MicrophoneManager {
           }
         }
       }
-    }).start();
+    });
+    thread.start();
   }
 
   private void init() {
@@ -118,6 +120,15 @@ public class MicrophoneManager {
   public void stop() {
     running = false;
     created = false;
+    if (thread != null) {
+      thread.interrupt();
+      try {
+        thread.join(100);
+      } catch (InterruptedException e) {
+        thread.interrupt();
+      }
+    }
+    thread = null;
     if (audioRecord != null) {
       audioRecord.setRecordPositionUpdateListener(null);
       audioRecord.stop();
