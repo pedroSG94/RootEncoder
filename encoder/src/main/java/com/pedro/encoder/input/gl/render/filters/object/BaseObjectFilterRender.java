@@ -114,8 +114,8 @@ abstract public class BaseObjectFilterRender extends BaseFilterRender {
     GLES20.glActiveTexture(GLES20.GL_TEXTURE4);
     GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, previousTexId);
     //Object
-    GLES20.glUniform1i(uObjectHandle, 5);
-    GLES20.glActiveTexture(GLES20.GL_TEXTURE5);
+    GLES20.glUniform1i(uObjectHandle, 0);
+    GLES20.glActiveTexture(GLES20.GL_TEXTURE0);
   }
 
   @Override
