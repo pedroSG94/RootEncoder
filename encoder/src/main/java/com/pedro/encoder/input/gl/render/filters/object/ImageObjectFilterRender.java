@@ -27,7 +27,6 @@ public class ImageObjectFilterRender extends BaseObjectFilterRender {
   }
 
   public void setImage(Bitmap bitmap) {
-    releaseTextureId();
     ((ImageStreamObject) streamObject).load(bitmap);
     textureLoader.setImageStreamObject((ImageStreamObject) streamObject);
     shouldLoad = true;

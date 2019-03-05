@@ -26,7 +26,6 @@ public class TextObjectFilterRender extends BaseObjectFilterRender {
   }
 
   public void setText(String text, float textSize, int textColor) {
-    releaseTextureId();
     ((TextStreamObject) streamObject).load(text, textSize, textColor);
     textureLoader.setTextStreamObject((TextStreamObject) streamObject);
     shouldLoad = true;

@@ -111,35 +111,35 @@ public class OpenGlView extends OpenGlViewBase {
     semaphore.release();
     try {
       while (running) {
-          if (frameAvailable) {
-            frameAvailable = false;
-            surfaceManager.makeCurrent();
-            managerRender.updateFrame();
-            managerRender.drawOffScreen();
-            managerRender.drawScreen(previewWidth, previewHeight, keepAspectRatio);
-            surfaceManager.swapBuffer();
-            if (takePhotoCallback != null) {
-              takePhotoCallback.onTakePhoto(
-                  GlUtil.getBitmap(previewWidth, previewHeight, encoderWidth, encoderHeight));
-              takePhotoCallback = null;
-            }
-            synchronized (sync) {
-              if (surfaceManagerEncoder != null) {
-                surfaceManagerEncoder.makeCurrent();
-                managerRender.drawScreen(encoderWidth, encoderHeight, false);
-                long ts = managerRender.getSurfaceTexture().getTimestamp();
-                surfaceManagerEncoder.setPresentationTime(ts);
-                surfaceManagerEncoder.swapBuffer();
-              }
+        if (frameAvailable) {
+          frameAvailable = false;
+          surfaceManager.makeCurrent();
+          managerRender.updateFrame();
+          managerRender.drawOffScreen();
+          managerRender.drawScreen(previewWidth, previewHeight, keepAspectRatio);
+          surfaceManager.swapBuffer();
+          if (takePhotoCallback != null) {
+            takePhotoCallback.onTakePhoto(
+                GlUtil.getBitmap(previewWidth, previewHeight, encoderWidth, encoderHeight));
+            takePhotoCallback = null;
+          }
+          synchronized (sync) {
+            if (surfaceManagerEncoder != null) {
+              surfaceManagerEncoder.makeCurrent();
+              managerRender.drawScreen(encoderWidth, encoderHeight, false);
+              long ts = managerRender.getSurfaceTexture().getTimestamp();
+              surfaceManagerEncoder.setPresentationTime(ts);
+              surfaceManagerEncoder.swapBuffer();
             }
           }
-          if (!filterQueue.isEmpty()) {
-            Filter filter = filterQueue.take();
-            managerRender.setFilter(filter.getPosition(), filter.getBaseFilterRender());
-          } else if (loadAA) {
-            managerRender.enableAA(AAEnabled);
-            loadAA = false;
-          }
+        }
+        if (!filterQueue.isEmpty()) {
+          Filter filter = filterQueue.take();
+          managerRender.setFilter(filter.getPosition(), filter.getBaseFilterRender());
+        } else if (loadAA) {
+          managerRender.enableAA(AAEnabled);
+          loadAA = false;
+        }
       }
     } catch (InterruptedException ignore) {
       Thread.currentThread().interrupt();
