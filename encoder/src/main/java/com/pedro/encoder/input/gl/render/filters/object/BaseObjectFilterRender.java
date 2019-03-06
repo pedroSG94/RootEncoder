@@ -127,8 +127,7 @@ abstract public class BaseObjectFilterRender extends BaseFilterRender {
     new Handler(Looper.getMainLooper()).post(new Runnable() {
       @Override
       public void run() {
-        int length = streamObject.getNumFrames();
-        GLES20.glDeleteTextures(length, streamObjectTextureId, 0);
+        GLES20.glDeleteTextures(streamObjectTextureId.length, streamObjectTextureId, 0);
         streamObjectTextureId = new int[] { -1 };
       }
     });
