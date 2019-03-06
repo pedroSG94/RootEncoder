@@ -129,6 +129,7 @@ abstract public class BaseObjectFilterRender extends BaseFilterRender {
       public void run() {
         int length = streamObject.getNumFrames();
         GLES20.glDeleteTextures(length, streamObjectTextureId, 0);
+        streamObjectTextureId = new int[] { -1 };
       }
     });
     sprite.reset();
