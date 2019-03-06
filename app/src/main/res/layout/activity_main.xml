@@ -8,6 +8,16 @@
     >
 
   <TextView
+      android:id="@+id/tv_version"
+      android:layout_width="wrap_content"
+      android:layout_height="wrap_content"
+      android:textColor="@color/appColor"
+      android:textSize="12sp"
+      android:layout_marginTop="@dimen/grid_2"
+      android:layout_marginLeft="@dimen/grid_2"
+      android:layout_marginRight="@dimen/grid_2"
+      />
+  <TextView
       android:id="@+id/tv_select"
       android:layout_width="wrap_content"
       android:layout_height="wrap_content"
