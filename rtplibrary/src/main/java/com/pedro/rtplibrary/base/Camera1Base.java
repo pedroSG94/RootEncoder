@@ -4,7 +4,6 @@ import android.content.Context;
 import android.hardware.Camera;
 import android.media.MediaCodec;
 import android.media.MediaFormat;
-import android.media.MediaMuxer;
 import android.os.Build;
 import android.support.annotation.RequiresApi;
 import android.util.Log;
@@ -58,15 +57,8 @@ public abstract class Camera1Base
   private GlInterface glInterface;
   private boolean streaming = false;
   private boolean videoEnabled = true;
-  //record
-  private MediaMuxer mediaMuxer;
-  private int videoTrack = -1;
-  private int audioTrack = -1;
-  private boolean recording = false;
-  private boolean canRecord = false;
   private boolean onPreview = false;
-  private MediaFormat videoFormat;
-  private MediaFormat audioFormat;
+  private RecordController recordController;
 
   public Camera1Base(SurfaceView surfaceView) {
     context = surfaceView.getContext();
@@ -111,6 +103,7 @@ public abstract class Camera1Base
     videoEncoder = new VideoEncoder(this);
     microphoneManager = new MicrophoneManager(this);
     audioEncoder = new AudioEncoder(this);
+    recordController = new RecordController();
   }
 
   /**
@@ -255,8 +248,7 @@ public abstract class Camera1Base
    */
   @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
   public void startRecord(final String path) throws IOException {
-    mediaMuxer = new MediaMuxer(path, MediaMuxer.OutputFormat.MUXER_OUTPUT_MPEG_4);
-    recording = true;
+    recordController.startRecord(path);
     if (!streaming) {
       startEncoders();
     } else if (videoEncoder.isRunning()) {
@@ -269,17 +261,7 @@ public abstract class Camera1Base
    */
   @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
   public void stopRecord() {
-    recording = false;
-    if (mediaMuxer != null) {
-      if (canRecord) {
-        mediaMuxer.stop();
-        mediaMuxer.release();
-        canRecord = false;
-      }
-      mediaMuxer = null;
-    }
-    videoTrack = -1;
-    audioTrack = -1;
+    recordController.stopRecord();
     if (!streaming) stopStream();
   }
 
@@ -379,7 +361,7 @@ public abstract class Camera1Base
    */
   public void startStream(String url) {
     streaming = true;
-    if (!recording) {
+    if (!recordController.isRecording()) {
       startEncoders();
     } else {
       resetVideoEncoder();
@@ -439,7 +421,7 @@ public abstract class Camera1Base
       streaming = false;
       stopStreamRtp();
     }
-    if (!recording) {
+    if (!recordController.isRecording()) {
       microphoneManager.stop();
       if (glInterface != null && Build.VERSION.SDK_INT >= 18) {
         glInterface.removeMediaCodecSurface();
@@ -450,8 +432,7 @@ public abstract class Camera1Base
       }
       videoEncoder.stop();
       audioEncoder.stop();
-      videoFormat = null;
-      audioFormat = null;
+      recordController.resetFormats();
     }
   }
 
@@ -601,15 +582,15 @@ public abstract class Camera1Base
    * @return true if recording, false if not recoding.
    */
   public boolean isRecording() {
-    return recording;
+    return recordController.isRecording();
   }
 
   protected abstract void getAacDataRtp(ByteBuffer aacBuffer, MediaCodec.BufferInfo info);
 
   @Override
   public void getAacData(ByteBuffer aacBuffer, MediaCodec.BufferInfo info) {
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2 && recording && canRecord) {
-      mediaMuxer.writeSampleData(audioTrack, aacBuffer, info);
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
+      recordController.recordAudio(aacBuffer, info);
     }
     if (streaming) getAacDataRtp(aacBuffer, info);
   }
@@ -630,17 +611,8 @@ public abstract class Camera1Base
 
   @Override
   public void getVideoData(ByteBuffer h264Buffer, MediaCodec.BufferInfo info) {
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2 && recording) {
-      if (info.flags == MediaCodec.BUFFER_FLAG_KEY_FRAME
-          && !canRecord
-          && videoFormat != null
-          && audioFormat != null) {
-        videoTrack = mediaMuxer.addTrack(videoFormat);
-        audioTrack = mediaMuxer.addTrack(audioFormat);
-        mediaMuxer.start();
-        canRecord = true;
-      }
-      if (canRecord) mediaMuxer.writeSampleData(videoTrack, h264Buffer, info);
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
+      recordController.recordVideo(h264Buffer, info);
     }
     if (streaming) getH264DataRtp(h264Buffer, info);
   }
@@ -657,11 +629,11 @@ public abstract class Camera1Base
 
   @Override
   public void onVideoFormat(MediaFormat mediaFormat) {
-    videoFormat = mediaFormat;
+    recordController.setVideoFormat(mediaFormat);
   }
 
   @Override
   public void onAudioFormat(MediaFormat mediaFormat) {
-    audioFormat = mediaFormat;
+    recordController.setAudioFormat(mediaFormat);
   }
 }
