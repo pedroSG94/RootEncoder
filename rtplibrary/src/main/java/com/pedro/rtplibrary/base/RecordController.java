@@ -15,38 +15,47 @@ import java.nio.ByteBuffer;
  */
 public class RecordController {
 
-  private boolean recording;
+  private Status status = Status.STOPPED;
   private MediaMuxer mediaMuxer;
   private MediaFormat videoFormat, audioFormat;
   private int videoTrack = -1;
   private int audioTrack = -1;
-  private boolean isFirstFrame = true;
+  //Pause/Resume
+  private long pauseMoment = 0;
+  private long pauseTime = 0;
+  private MediaCodec.BufferInfo videoInfo = new MediaCodec.BufferInfo();
+  private MediaCodec.BufferInfo audioInfo = new MediaCodec.BufferInfo();
 
-  public RecordController() {
+  public enum Status {
+    STARTED, STOPPED, RECORDING, PAUSED, RESUMED
   }
 
   @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
   public void startRecord(String path) throws IOException {
     mediaMuxer = new MediaMuxer(path, MediaMuxer.OutputFormat.MUXER_OUTPUT_MPEG_4);
-    recording = true;
-    isFirstFrame = true;
+    status = Status.STARTED;
   }
 
   @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
   public void stopRecord() {
+    status = Status.STOPPED;
     if (mediaMuxer != null) {
       mediaMuxer.stop();
       mediaMuxer.release();
     }
     mediaMuxer = null;
-    recording = false;
-    isFirstFrame = true;
     videoTrack = -1;
     audioTrack = -1;
+    pauseMoment = 0;
+    pauseTime = 0;
   }
 
   public boolean isRecording() {
-    return recording;
+    return status == Status.RECORDING;
+  }
+
+  public Status getStatus() {
+    return status;
   }
 
   public void resetFormats() {
@@ -54,24 +63,44 @@ public class RecordController {
     audioFormat = null;
   }
 
+  public void pauseRecord() {
+    if (status == Status.RECORDING) {
+      pauseMoment = System.nanoTime() / 1000;
+      status = Status.PAUSED;
+    }
+  }
+
+  public void resumeRecord() {
+    if (status == Status.PAUSED) {
+      pauseTime += System.nanoTime() / 1000 - pauseMoment;
+      status = Status.RESUMED;
+    }
+  }
+
   @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
   public void recordVideo(ByteBuffer videoBuffer, MediaCodec.BufferInfo videoInfo) {
-    if (mediaMuxer != null && recording) {
-      if (isFirstFrame && videoInfo.flags == MediaCodec.BUFFER_FLAG_KEY_FRAME
-          && videoFormat != null && audioFormat != null) {
-        videoTrack = mediaMuxer.addTrack(videoFormat);
-        audioTrack = mediaMuxer.addTrack(audioFormat);
-        mediaMuxer.start();
-        isFirstFrame = false;
-      }
-      if (!isFirstFrame) mediaMuxer.writeSampleData(videoTrack, videoBuffer, videoInfo);
+    if (status == Status.STARTED
+        && videoInfo.flags == MediaCodec.BUFFER_FLAG_KEY_FRAME
+        && videoFormat != null
+        && audioFormat != null) {
+      videoTrack = mediaMuxer.addTrack(videoFormat);
+      audioTrack = mediaMuxer.addTrack(audioFormat);
+      mediaMuxer.start();
+      status = Status.RECORDING;
+    } else if (status == Status.RESUMED && videoInfo.flags == MediaCodec.BUFFER_FLAG_KEY_FRAME) {
+      status = Status.RECORDING;
+    }
+    if (status == Status.RECORDING) {
+      updateFormat(this.videoInfo, videoInfo);
+      mediaMuxer.writeSampleData(videoTrack, videoBuffer, this.videoInfo);
     }
   }
 
   @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
   public void recordAudio(ByteBuffer audioBuffer, MediaCodec.BufferInfo audioInfo) {
-    if (mediaMuxer != null && recording && !isFirstFrame) {
-      mediaMuxer.writeSampleData(audioTrack, audioBuffer, audioInfo);
+    if (status == Status.RECORDING) {
+      updateFormat(this.audioInfo, audioInfo);
+      mediaMuxer.writeSampleData(audioTrack, audioBuffer, this.audioInfo);
     }
   }
 
@@ -81,5 +110,13 @@ public class RecordController {
 
   public void setAudioFormat(MediaFormat audioFormat) {
     this.audioFormat = audioFormat;
+  }
+
+  //We can't reuse info because could produce stream issues
+  private void updateFormat(MediaCodec.BufferInfo newInfo, MediaCodec.BufferInfo oldInfo) {
+    newInfo.flags = oldInfo.flags;
+    newInfo.offset = oldInfo.offset;
+    newInfo.size = oldInfo.size;
+    newInfo.presentationTimeUs = oldInfo.presentationTimeUs - pauseTime;
   }
 }

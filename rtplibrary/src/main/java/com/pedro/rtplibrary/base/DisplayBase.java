@@ -389,6 +389,18 @@ public abstract class DisplayBase implements GetAacData, GetVideoData, GetMicrop
     return recordController.isRecording();
   }
 
+  public void pauseRecord() {
+    recordController.pauseRecord();
+  }
+
+  public void resumeRecord() {
+    recordController.resumeRecord();
+  }
+
+  public RecordController.Status getRecordStatus() {
+    return recordController.getStatus();
+  }
+
   protected abstract void getAacDataRtp(ByteBuffer aacBuffer, MediaCodec.BufferInfo info);
 
   @Override

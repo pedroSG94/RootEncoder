@@ -560,6 +560,18 @@ public abstract class Camera2Base implements GetAacData, GetVideoData, GetMicrop
     return recordController.isRecording();
   }
 
+  public void pauseRecord() {
+    recordController.pauseRecord();
+  }
+
+  public void resumeRecord() {
+    recordController.resumeRecord();
+  }
+
+  public RecordController.Status getRecordStatus() {
+    return recordController.getStatus();
+  }
+
   /**
    * Get preview state.
    *

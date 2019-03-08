@@ -403,6 +403,18 @@ public abstract class FromFileBase
     return recordController.isRecording();
   }
 
+  public void pauseRecord() {
+    recordController.pauseRecord();
+  }
+
+  public void resumeRecord() {
+    recordController.resumeRecord();
+  }
+
+  public RecordController.Status getRecordStatus() {
+    return recordController.getStatus();
+  }
+
   /**
    * @return return time in second. 0 if no streaming
    */
