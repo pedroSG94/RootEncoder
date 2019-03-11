@@ -258,7 +258,7 @@ public abstract class Camera2Base implements GetAacData, GetVideoData, GetMicrop
    * @param rotation camera rotation (0, 90, 180, 270). Recommended: {@link
    * com.pedro.encoder.input.video.CameraHelper#getCameraOrientation(Context)}
    */
-  public void startPreview(CameraHelper.Facing cameraFacing, int rotation) {
+  public void startPreview(CameraHelper.Facing cameraFacing, int width, int height, int rotation) {
     if (!isStreaming() && !onPreview && !isBackground) {
       if (surfaceView != null) {
         cameraManager.prepareCamera(surfaceView.getHolder().getSurface());
@@ -267,22 +267,26 @@ public abstract class Camera2Base implements GetAacData, GetVideoData, GetMicrop
       } else if (glInterface != null) {
         boolean isCamera2Landscape = context.getResources().getConfiguration().orientation != 1;
         if (isCamera2Landscape) {
-          glInterface.setEncoderSize(videoEncoder.getWidth(), videoEncoder.getHeight());
+          glInterface.setEncoderSize(width, height);
         } else {
-          glInterface.setEncoderSize(videoEncoder.getHeight(), videoEncoder.getWidth());
+          glInterface.setEncoderSize(width, height);
         }
         glInterface.setRotation(rotation == 0 ? 270 : rotation - 90);
         glInterface.start();
-        cameraManager.prepareCamera(glInterface.getSurfaceTexture(), videoEncoder.getWidth(),
-            videoEncoder.getHeight());
+        cameraManager.prepareCamera(glInterface.getSurfaceTexture(), width, height);
       }
       cameraManager.openCameraFacing(cameraFacing);
       onPreview = true;
     }
   }
 
+  public void startPreview(CameraHelper.Facing cameraFacing, int rotation) {
+    startPreview(cameraFacing, videoEncoder.getWidth(), videoEncoder.getHeight(), rotation);
+  }
+
   public void startPreview(CameraHelper.Facing cameraFacing) {
-    startPreview(cameraFacing, CameraHelper.getCameraOrientation(context));
+    startPreview(cameraFacing, videoEncoder.getWidth(), videoEncoder.getHeight(),
+        CameraHelper.getCameraOrientation(context));
   }
 
   public void startPreview() {
