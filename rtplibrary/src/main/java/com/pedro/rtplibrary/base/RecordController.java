@@ -20,6 +20,7 @@ public class RecordController {
   private MediaFormat videoFormat, audioFormat;
   private int videoTrack = -1;
   private int audioTrack = -1;
+  private Listener listener;
   //Pause/Resume
   private long pauseMoment = 0;
   private long pauseTime = 0;
@@ -30,10 +31,16 @@ public class RecordController {
     STARTED, STOPPED, RECORDING, PAUSED, RESUMED
   }
 
+  public interface Listener {
+    void onStatusChange(Status status);
+  }
+
   @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
-  public void startRecord(String path) throws IOException {
+  public void startRecord(String path, Listener listener) throws IOException {
     mediaMuxer = new MediaMuxer(path, MediaMuxer.OutputFormat.MUXER_OUTPUT_MPEG_4);
+    this.listener = listener;
     status = Status.STARTED;
+    if (listener != null) listener.onStatusChange(status);
   }
 
   @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
@@ -48,6 +55,7 @@ public class RecordController {
     audioTrack = -1;
     pauseMoment = 0;
     pauseTime = 0;
+    if (listener != null) listener.onStatusChange(status);
   }
 
   public boolean isRecording() {
@@ -67,6 +75,7 @@ public class RecordController {
     if (status == Status.RECORDING) {
       pauseMoment = System.nanoTime() / 1000;
       status = Status.PAUSED;
+      if (listener != null) listener.onStatusChange(status);
     }
   }
 
@@ -74,6 +83,7 @@ public class RecordController {
     if (status == Status.PAUSED) {
       pauseTime += System.nanoTime() / 1000 - pauseMoment;
       status = Status.RESUMED;
+      if (listener != null) listener.onStatusChange(status);
     }
   }
 
@@ -87,8 +97,10 @@ public class RecordController {
       audioTrack = mediaMuxer.addTrack(audioFormat);
       mediaMuxer.start();
       status = Status.RECORDING;
+      if (listener != null) listener.onStatusChange(status);
     } else if (status == Status.RESUMED && videoInfo.flags == MediaCodec.BUFFER_FLAG_KEY_FRAME) {
       status = Status.RECORDING;
+      if (listener != null) listener.onStatusChange(status);
     }
     if (status == Status.RECORDING) {
       updateFormat(this.videoInfo, videoInfo);

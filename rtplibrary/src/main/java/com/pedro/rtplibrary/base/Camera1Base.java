@@ -247,13 +247,20 @@ public abstract class Camera1Base
    * @throws IOException If you init it before start stream.
    */
   @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
-  public void startRecord(final String path) throws IOException {
-    recordController.startRecord(path);
+  public void startRecord(final String path, RecordController.Listener listener)
+      throws IOException {
+    recordController.startRecord(path, listener);
     if (!streaming) {
       startEncoders();
     } else if (videoEncoder.isRunning()) {
       resetVideoEncoder();
     }
+  }
+
+  @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
+  public void startRecord(final String path)
+      throws IOException {
+    startRecord(path, null);
   }
 
   /**

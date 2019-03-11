@@ -229,13 +229,17 @@ public abstract class Camera2Base implements GetAacData, GetVideoData, GetMicrop
    * @param path where file will be saved.
    * @throws IOException If you init it before start stream.
    */
-  public void startRecord(String path) throws IOException {
-    recordController.startRecord(path);
+  public void startRecord(String path, RecordController.Listener listener) throws IOException {
+    recordController.startRecord(path, listener);
     if (!streaming) {
       startEncoders();
     } else if (videoEncoder.isRunning()) {
       resetVideoEncoder();
     }
+  }
+
+  public void startRecord(final String path) throws IOException {
+    startRecord(path, null);
   }
 
   /**
