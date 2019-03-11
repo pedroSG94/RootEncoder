@@ -265,9 +265,9 @@ public abstract class Camera2Base implements GetAacData, GetVideoData, GetMicrop
       } else if (textureView != null) {
         cameraManager.prepareCamera(new Surface(textureView.getSurfaceTexture()));
       } else if (glInterface != null) {
-        boolean isCamera2Landscape = context.getResources().getConfiguration().orientation != 1;
-        if (isCamera2Landscape) {
-          glInterface.setEncoderSize(width, height);
+        boolean isPortrait = context.getResources().getConfiguration().orientation == 1;
+        if (isPortrait) {
+          glInterface.setEncoderSize(height, width);
         } else {
           glInterface.setEncoderSize(width, height);
         }
