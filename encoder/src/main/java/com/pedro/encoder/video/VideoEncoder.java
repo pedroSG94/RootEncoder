@@ -357,7 +357,6 @@ public class VideoEncoder implements GetCameraData {
   private void getDataFromSurfaceAPI21() {
     while (!Thread.interrupted()) {
       for (; running; ) {
-        if (fpsLimiter.limitFPS(fps)) continue;
         int outBufferIndex = videoEncoder.dequeueOutputBuffer(videoInfo, 0);
         if (outBufferIndex == MediaCodec.INFO_OUTPUT_FORMAT_CHANGED) {
           MediaFormat mediaFormat = videoEncoder.getOutputFormat();
@@ -391,7 +390,6 @@ public class VideoEncoder implements GetCameraData {
     while (!Thread.interrupted()) {
       ByteBuffer[] outputBuffers = videoEncoder.getOutputBuffers();
       for (; running; ) {
-        if (fpsLimiter.limitFPS(fps)) continue;
         int outBufferIndex = videoEncoder.dequeueOutputBuffer(videoInfo, 10000);
         if (outBufferIndex == MediaCodec.INFO_OUTPUT_FORMAT_CHANGED) {
           MediaFormat mediaFormat = videoEncoder.getOutputFormat();
