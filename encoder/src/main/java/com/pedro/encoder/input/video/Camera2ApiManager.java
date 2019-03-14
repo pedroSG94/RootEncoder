@@ -68,6 +68,7 @@ public class Camera2ApiManager extends CameraDevice.StateCallback {
   private CaptureRequest.Builder builderInputSurface;
   private float fingerSpacing = 0;
   private int zoomLevel = 1;
+  private boolean lanternEnable = false;
 
   //Face detector
   public interface FaceDetectorCallback {
@@ -259,6 +260,48 @@ public class Camera2ApiManager extends CameraDevice.StateCallback {
     }
   }
 
+
+  public boolean isLanternEnabled() {
+      return lanternEnable;
+  }
+
+  /**
+   * @required: <uses-permission android:name="android.permission.FLASHLIGHT"/>
+   */
+  public void enableLantern() throws Exception {
+    if ((cameraCharacteristics != null) && cameraCharacteristics.get(CameraCharacteristics.FLASH_INFO_AVAILABLE)) {
+      if (builderInputSurface != null) {
+        try {
+          builderInputSurface.set(CaptureRequest.FLASH_MODE, CameraMetadata.FLASH_MODE_TORCH);
+          cameraCaptureSession.setRepeatingRequest(builderInputSurface.build(), faceDetectionEnabled ? cb : null, null);
+          lanternEnable = true;
+        } catch (CameraAccessException | IllegalStateException e) {
+          e.printStackTrace();
+        }
+      }
+    } else {
+      Log.e(TAG, "Lantern unsupported");
+      throw new Exception("Lantern unsupported");
+    }
+  }
+
+  /**
+   * @required: <uses-permission android:name="android.permission.FLASHLIGHT"/>
+   */
+  public void disableLantern() {
+    if ((cameraCharacteristics != null) && cameraCharacteristics.get(CameraCharacteristics.FLASH_INFO_AVAILABLE)) {
+      if (builderInputSurface != null) {
+        try {
+          builderInputSurface.set(CaptureRequest.FLASH_MODE, CameraMetadata.FLASH_MODE_OFF);
+          cameraCaptureSession.setRepeatingRequest(builderInputSurface.build(), faceDetectionEnabled ? cb : null, null);
+          lanternEnable = false;
+        } catch (CameraAccessException | IllegalStateException e) {
+          e.printStackTrace();
+        }
+      }
+    }
+  }
+
   public void enableFaceDetection(FaceDetectorCallback faceDetectorCallback) {
     int[] fd = cameraCharacteristics.get(
         CameraCharacteristics.STATISTICS_INFO_AVAILABLE_FACE_DETECT_MODES);
@@ -418,6 +461,8 @@ public class Camera2ApiManager extends CameraDevice.StateCallback {
         Log.e(TAG, "Error", e);
       }
     } else {
+      lanternEnable = false;
+
       if (cameraCaptureSession != null) {
         cameraCaptureSession.close();
         cameraCaptureSession = null;
