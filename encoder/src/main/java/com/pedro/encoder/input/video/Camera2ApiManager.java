@@ -239,6 +239,9 @@ public class Camera2ApiManager extends CameraDevice.StateCallback {
     }
   }
 
+  public CameraCharacteristics getCameraCharacteristics() {
+    return cameraCharacteristics;
+  }
   /**
    * Select camera facing
    *
@@ -463,6 +466,7 @@ public class Camera2ApiManager extends CameraDevice.StateCallback {
     } else {
       lanternEnable = false;
 
+      cameraCharacteristics = null;
       if (cameraCaptureSession != null) {
         cameraCaptureSession.close();
         cameraCaptureSession = null;

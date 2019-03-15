@@ -1,6 +1,7 @@
 package com.pedro.rtplibrary.base;
 
 import android.content.Context;
+import android.hardware.camera2.CameraCharacteristics;
 import android.media.MediaCodec;
 import android.media.MediaFormat;
 import android.os.Build;
@@ -436,6 +437,15 @@ public abstract class Camera2Base implements GetAacData, GetVideoData, GetMicrop
    */
   public List<Size> getResolutionsFront() {
     return Arrays.asList(cameraManager.getCameraResolutionsFront());
+  }
+
+  /**
+   * Get supported properties of the camera
+   *
+   * @return CameraCharacteristics object
+   */
+  public CameraCharacteristics getCameraCharacteristics() {
+    return cameraManager.getCameraCharacteristics();
   }
 
   /**
