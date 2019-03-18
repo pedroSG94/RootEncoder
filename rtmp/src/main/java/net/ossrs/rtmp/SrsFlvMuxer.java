@@ -57,11 +57,14 @@ public class SrsFlvMuxer {
   private SrsFlvFrame mAudioSequenceHeader;
   private SrsAllocator mVideoAllocator = new SrsAllocator(VIDEO_ALLOC_SIZE);
   private SrsAllocator mAudioAllocator = new SrsAllocator(AUDIO_ALLOC_SIZE);
-  private BlockingQueue<SrsFlvFrame> mFlvTagCache = new LinkedBlockingQueue<>(30);
+  private volatile BlockingQueue<SrsFlvFrame> mFlvTagCache = new LinkedBlockingQueue<>(30);
   private ConnectCheckerRtmp connectCheckerRtmp;
   private int sampleRate = 0;
   private boolean isPpsSpsSend = false;
   private byte profileIop = ProfileIop.BASELINE;
+
+  private long mAudioFramesSent = 0;
+  private long mVideoFramesSent = 0;
 
   /**
    * constructor.
@@ -94,6 +97,31 @@ public class SrsFlvMuxer {
 
   public boolean isConnected() {
     return connected;
+  }
+
+  public void resizeFlvTagCache(int newSize){
+    if(newSize < mFlvTagCache.size()){
+      throw new RuntimeException("FlvTagCache new max size lower than current cache size");
+    }
+
+    synchronized (mFlvTagCache) {
+      BlockingQueue<SrsFlvFrame> tempQueue = new LinkedBlockingQueue<>(newSize);
+      mFlvTagCache.drainTo(tempQueue);
+      mFlvTagCache = new LinkedBlockingQueue<>(newSize);
+      tempQueue.drainTo(mFlvTagCache);
+    }
+  }
+
+  public int getFlvTagCacheSize(){
+    return mFlvTagCache.size();
+  }
+
+  public long getSentAudioFrames() {
+    return mAudioFramesSent;
+  }
+
+  public long getSentVideoFrames() {
+    return mVideoFramesSent;
   }
 
   /**
@@ -144,9 +172,11 @@ public class SrsFlvMuxer {
       }
       publisher.publishVideoData(frame.flvTag.array(), frame.flvTag.size(), frame.dts);
       mVideoAllocator.release(frame.flvTag);
+      mVideoFramesSent++;
     } else if (frame.is_audio()) {
       publisher.publishAudioData(frame.flvTag.array(), frame.flvTag.size(), frame.dts);
       mAudioAllocator.release(frame.flvTag);
+      mAudioFramesSent++;
     }
   }
 
