@@ -63,8 +63,8 @@ public class SrsFlvMuxer {
   private boolean isPpsSpsSend = false;
   private byte profileIop = ProfileIop.BASELINE;
 
-  private int mAudioFramesSent = 0;
-  private int mVideoFramesSent = 0;
+  private long mAudioFramesSent = 0;
+  private long mVideoFramesSent = 0;
 
   /**
    * constructor.
@@ -116,11 +116,11 @@ public class SrsFlvMuxer {
     return mFlvTagCache.size();
   }
 
-  public int getSentAudioFrames() {
+  public long getSentAudioFrames() {
     return mAudioFramesSent;
   }
 
-  public int getSentVideoFrames() {
+  public long getSentVideoFrames() {
     return mVideoFramesSent;
   }
 
