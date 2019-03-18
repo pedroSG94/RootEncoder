@@ -263,6 +263,9 @@ public class Camera2ApiManager extends CameraDevice.StateCallback {
     }
   }
 
+  public boolean isLanternSupported() {
+    return (cameraCharacteristics != null ? cameraCharacteristics.get(CameraCharacteristics.FLASH_INFO_AVAILABLE) : false);
+  }
 
   public boolean isLanternEnabled() {
       return lanternEnable;
