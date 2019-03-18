@@ -72,14 +72,14 @@ public class RtmpCamera2 extends Camera2Base {
     return -1;
   }
 
-  public int getSentAudioFrames() {
+  public long getSentAudioFrames() {
     if(srsFlvMuxer != null) {
       return srsFlvMuxer.getSentAudioFrames();
     }
     return -1;
   }
 
-  public int getSentVideoFrames() {
+  public long getSentVideoFrames() {
     if(srsFlvMuxer != null) {
       return srsFlvMuxer.getSentVideoFrames();
     }

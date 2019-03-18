@@ -116,11 +116,11 @@ public class SrsFlvMuxer {
     return mFlvTagCache.size();
   }
 
-  public int getSentAudioFrames() {
+  public long getSentAudioFrames() {
     return mAudioFramesSent;
   }
 
-  public int getSentVideoFrames() {
+  public long getSentVideoFrames() {
     return mVideoFramesSent;
   }
 
