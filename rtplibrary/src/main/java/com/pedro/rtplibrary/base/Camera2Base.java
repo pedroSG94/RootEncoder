@@ -139,6 +139,10 @@ public abstract class Camera2Base implements GetAacData, GetVideoData, GetMicrop
     return cameraManager.isLanternEnabled();
   }
 
+  public boolean isLanternSupported() {
+    return cameraManager.isLanternSupported();
+  }
+
   /**
    * Basic auth developed to work with Wowza. No tested with other server
    *
