@@ -60,6 +60,31 @@ public class RtmpFromFile extends FromFileBase {
     srsFlvMuxer.setProfileIop(profileIop);
   }
 
+  public void resizeFlvTagCache(int newSize){
+    srsFlvMuxer.resizeFlvTagCache(newSize);
+  }
+
+  public int getFlvTagCacheSize(){
+    if(srsFlvMuxer != null) {
+      return srsFlvMuxer.getFlvTagCacheSize();
+    }
+    return -1;
+  }
+
+  public long getSentAudioFrames() {
+    if(srsFlvMuxer != null) {
+      return srsFlvMuxer.getSentAudioFrames();
+    }
+    return -1;
+  }
+
+  public long getSentVideoFrames() {
+    if(srsFlvMuxer != null) {
+      return srsFlvMuxer.getSentVideoFrames();
+    }
+    return -1;
+  }
+
   @Override
   public void setAuthorization(String user, String password) {
     srsFlvMuxer.setAuthorization(user, password);
