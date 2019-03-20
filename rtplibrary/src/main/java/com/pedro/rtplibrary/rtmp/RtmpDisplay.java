@@ -41,17 +41,17 @@ public class RtmpDisplay extends DisplayBase {
     srsFlvMuxer.resizeFlvTagCache(newSize);
   }
 
-  public int getFlvTagCacheSize() {
-    return srsFlvMuxer.getFlvTagCacheSize();
-  }
+  public int getFlvTagCacheSize()       { return srsFlvMuxer.getFlvTagCacheSize();    }
 
-  public long getSentAudioFrames() {
-    return srsFlvMuxer.getSentAudioFrames();
-  }
+  public long getSentAudioFrames()      { return srsFlvMuxer.getSentAudioFrames();    }
+  public long getSentVideoFrames()      { return srsFlvMuxer.getSentVideoFrames();    }
+  public long getDroppedAudioFrames()   { return srsFlvMuxer.getDroppedAudioFrames(); }
+  public long getDroppedVideoFrames()   { return srsFlvMuxer.getDroppedVideoFrames(); }
 
-  public long getSentVideoFrames() {
-    return srsFlvMuxer.getSentVideoFrames();
-  }
+  public void resetSentAudioFrames()    { srsFlvMuxer.resetSentAudioFrames();         }
+  public void resetSentVideoFrames()    { srsFlvMuxer.resetSentVideoFrames();         }
+  public void resetDroppedAudioFrames() { srsFlvMuxer.resetDroppedAudioFrames();      }
+  public void resetDroppedVideoFrames() { srsFlvMuxer.resetDroppedVideoFrames();      }
 
   @Override
   public void setAuthorization(String user, String password) {
