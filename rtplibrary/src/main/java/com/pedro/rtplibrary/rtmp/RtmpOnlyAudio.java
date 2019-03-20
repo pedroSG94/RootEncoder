@@ -21,24 +21,18 @@ public class RtmpOnlyAudio extends OnlyAudioBase {
     srsFlvMuxer = new SrsFlvMuxer(connectChecker);
   }
 
-  public void resizeFlvTagCache(int newSize){
+  public void resizeFlvTagCache(int newSize) {
     srsFlvMuxer.resizeFlvTagCache(newSize);
   }
 
-  public int getFlvTagCacheSize(){
-    if(srsFlvMuxer != null) {
-      return srsFlvMuxer.getFlvTagCacheSize();
-    }
-    return -1;
+  public int getFlvTagCacheSize() {
+    return srsFlvMuxer.getFlvTagCacheSize();
   }
 
   public long getSentAudioFrames() {
-    if(srsFlvMuxer != null) {
-      return srsFlvMuxer.getSentAudioFrames();
-    }
-    return -1;
+    return srsFlvMuxer.getSentAudioFrames();
   }
-  
+
   @Override
   public void setAuthorization(String user, String password) {
     srsFlvMuxer.setAuthorization(user, password);

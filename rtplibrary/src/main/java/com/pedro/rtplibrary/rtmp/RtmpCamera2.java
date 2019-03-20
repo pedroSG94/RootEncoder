@@ -61,29 +61,20 @@ public class RtmpCamera2 extends Camera2Base {
     srsFlvMuxer.setProfileIop(profileIop);
   }
 
-  public void resizeFlvTagCache(int newSize){
+  public void resizeFlvTagCache(int newSize) {
     srsFlvMuxer.resizeFlvTagCache(newSize);
   }
 
-  public int getFlvTagCacheSize(){
-    if(srsFlvMuxer != null) {
-      return srsFlvMuxer.getFlvTagCacheSize();
-    }
-    return -1;
+  public int getFlvTagCacheSize() {
+    return srsFlvMuxer.getFlvTagCacheSize();
   }
 
   public long getSentAudioFrames() {
-    if(srsFlvMuxer != null) {
-      return srsFlvMuxer.getSentAudioFrames();
-    }
-    return -1;
+    return srsFlvMuxer.getSentAudioFrames();
   }
 
   public long getSentVideoFrames() {
-    if(srsFlvMuxer != null) {
-      return srsFlvMuxer.getSentVideoFrames();
-    }
-    return -1;
+    return srsFlvMuxer.getSentVideoFrames();
   }
 
   @Override
