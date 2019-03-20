@@ -502,6 +502,36 @@ public abstract class Camera2Base implements GetAacData, GetVideoData, GetMicrop
   }
 
   /**
+   * Return max zoom level
+   *
+   * @return max zoom level
+   */
+  public float getMaxZoom() {
+    return cameraManager.getMaxZoom();
+  }
+
+  /**
+   * Return current zoom level
+   *
+   * @return current zoom level
+   */
+  public float getZoom() {
+    return cameraManager.getZoom();
+  }
+
+  /**
+   * Set zoomIn or zoomOut to camera.
+   * Use this method if you use a zoom slider.
+   *
+   * @param level Expected to be >= 1 and <= max zoom level
+   *
+   * @see Camera2Base#getMaxZoom()
+   */
+  public void setZoom(float level) {
+    cameraManager.setZoom(level);
+  }
+
+  /**
    * Set zoomIn or zoomOut to camera.
    *
    * @param event motion event. Expected to get event.getPointerCount() > 1
