@@ -65,17 +65,17 @@ public class RtmpCamera2 extends Camera2Base {
     srsFlvMuxer.resizeFlvTagCache(newSize);
   }
 
-  public int getFlvTagCacheSize(){ return srsFlvMuxer != null ? srsFlvMuxer.getFlvTagCacheSize() : -1; }
+  public int getFlvTagCacheSize()       { return srsFlvMuxer.getFlvTagCacheSize();    }
 
-  public long getSentAudioFrames() { return srsFlvMuxer != null ? srsFlvMuxer.getSentAudioFrames() : -1; }
-  public long getSentVideoFrames() { return srsFlvMuxer != null ? srsFlvMuxer.getSentVideoFrames() : -1; }
-  public long getDroppedAudioFrames() { return srsFlvMuxer != null ? srsFlvMuxer.getDroppedAudioFrames() : -1; }
-  public long getDroppedVideoFrames() { return srsFlvMuxer != null ? srsFlvMuxer.getDroppedVideoFrames() : -1; }
+  public long getSentAudioFrames()      { return srsFlvMuxer.getSentAudioFrames();    }
+  public long getSentVideoFrames()      { return srsFlvMuxer.getSentVideoFrames();    }
+  public long getDroppedAudioFrames()   { return srsFlvMuxer.getDroppedAudioFrames(); }
+  public long getDroppedVideoFrames()   { return srsFlvMuxer.getDroppedVideoFrames(); }
 
-  public void resetSentAudioFrames() { if(srsFlvMuxer != null) { srsFlvMuxer.resetSentAudioFrames(); } }
-  public void resetSentVideoFrames() { if(srsFlvMuxer != null) { srsFlvMuxer.resetSentVideoFrames(); } }
-  public void resetDroppedAudioFrames() { if(srsFlvMuxer != null) { srsFlvMuxer.resetDroppedAudioFrames(); } }
-  public void resetDroppedVideoFrames() { if(srsFlvMuxer != null) { srsFlvMuxer.resetDroppedVideoFrames(); } }
+  public void resetSentAudioFrames()    { srsFlvMuxer.resetSentAudioFrames();         }
+  public void resetSentVideoFrames()    { srsFlvMuxer.resetSentVideoFrames();         }
+  public void resetDroppedAudioFrames() { srsFlvMuxer.resetDroppedAudioFrames();      }
+  public void resetDroppedVideoFrames() { srsFlvMuxer.resetDroppedVideoFrames();      }
 
   @Override
   public void setAuthorization(String user, String password) {
