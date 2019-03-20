@@ -8,6 +8,7 @@ import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Created by winlin on 5/2/15.
@@ -63,8 +64,10 @@ public class SrsFlvMuxer {
   private boolean isPpsSpsSend = false;
   private byte profileIop = ProfileIop.BASELINE;
 
-  private long mAudioFramesSent = 0;
-  private long mVideoFramesSent = 0;
+  private long mAudioFramesSent     = 0;
+  private long mVideoFramesSent     = 0;
+  private long mDroppedAudioFrames  = 0;
+  private long mDroppedVideoFrames  = 0;
 
   /**
    * constructor.
@@ -100,29 +103,23 @@ public class SrsFlvMuxer {
   }
 
   public void resizeFlvTagCache(int newSize){
-    if(newSize < mFlvTagCache.size()){
-      throw new RuntimeException("FlvTagCache new max size lower than current cache size");
-    }
+    if(newSize < mFlvTagCache.size() - mFlvTagCache.remainingCapacity()) throw new RuntimeException("Can't fit current cache inside new cache size");
 
-    synchronized (mFlvTagCache) {
-      BlockingQueue<SrsFlvFrame> tempQueue = new LinkedBlockingQueue<>(newSize);
-      mFlvTagCache.drainTo(tempQueue);
-      mFlvTagCache = new LinkedBlockingQueue<>(newSize);
-      tempQueue.drainTo(mFlvTagCache);
-    }
+    BlockingQueue<SrsFlvFrame> tempQueue = new LinkedBlockingQueue<>(newSize);
+    mFlvTagCache.drainTo(tempQueue);
+    mFlvTagCache = tempQueue;
   }
 
-  public int getFlvTagCacheSize(){
-    return mFlvTagCache.size();
-  }
+  public int  getFlvTagCacheSize()      { return mFlvTagCache.size(); }
+  public long getSentAudioFrames()      { return mAudioFramesSent;    }
+  public long getSentVideoFrames()      { return mVideoFramesSent;    }
+  public long getDroppedAudioFrames()   { return mDroppedAudioFrames; }
+  public long getDroppedVideoFrames()   { return mDroppedVideoFrames; }
 
-  public long getSentAudioFrames() {
-    return mAudioFramesSent;
-  }
-
-  public long getSentVideoFrames() {
-    return mVideoFramesSent;
-  }
+  public void resetSentAudioFrames()    { mAudioFramesSent    = 0; }
+  public void resetSentVideoFrames()    { mVideoFramesSent    = 0; }
+  public void resetDroppedAudioFrames() { mDroppedAudioFrames = 0; }
+  public void resetDroppedVideoFrames() { mDroppedVideoFrames = 0; }
 
   /**
    * set video resolution for publisher
@@ -196,7 +193,12 @@ public class SrsFlvMuxer {
         connectCheckerRtmp.onConnectionSuccessRtmp();
         while (!Thread.interrupted()) {
           try {
-            SrsFlvFrame frame = mFlvTagCache.take();
+            SrsFlvFrame frame = mFlvTagCache.poll(1, TimeUnit.SECONDS);
+            if(frame == null) {
+              Log.i(TAG, "Skipping iteration, frame null");
+              continue;
+            }
+
             if (frame.is_sequenceHeader()) {
               if (frame.is_video()) {
                 mVideoSequenceHeader = frame;
@@ -456,7 +458,7 @@ public class SrsFlvMuxer {
     }
 
     public void muxSequenceHeader(ByteBuffer sps, ByteBuffer pps,
-        ArrayList<SrsFlvFrameBytes> frames) {
+                                  ArrayList<SrsFlvFrameBytes> frames) {
       // 5bytes sps/pps header:
       //      configurationVersion, AVCProfileIndication, profile_compatibility,
       //      AVCLevelIndication, lengthSizeMinusOne
@@ -544,7 +546,7 @@ public class SrsFlvMuxer {
     }
 
     public SrsAllocator.Allocation muxFlvTag(ArrayList<SrsFlvFrameBytes> frames, int frame_type,
-        int avc_packet_type) {
+                                             int avc_packet_type) {
       // for h264 in RTMP video payload, there is 5bytes header:
       //      1bytes, FrameType | CodecID
       //      1bytes, AVCPacketType
@@ -882,7 +884,7 @@ public class SrsFlvMuxer {
     }
 
     private void writeRtmpPacket(int type, int dts, int frame_type, int avc_aac_type,
-        SrsAllocator.Allocation tag) {
+                                 SrsAllocator.Allocation tag) {
       SrsFlvFrame frame = new SrsFlvFrame();
       frame.flvTag = tag;
       frame.type = type;
@@ -908,6 +910,11 @@ public class SrsFlvMuxer {
         mFlvTagCache.add(frame);
       } catch (IllegalStateException e) {
         Log.i(TAG, "frame discarded");
+        if(frame.is_video()){
+          mDroppedVideoFrames++;
+        }else{
+          mDroppedAudioFrames++;
+        }
       }
     }
   }
