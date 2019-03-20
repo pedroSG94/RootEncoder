@@ -143,6 +143,8 @@ public class SrsFlvMuxer {
     connected = false;
     mVideoSequenceHeader = null;
     mAudioSequenceHeader = null;
+    mVideoFramesSent = 0;
+    mAudioFramesSent = 0;
     connectChecker.onDisconnectRtmp();
     Log.i(TAG, "worker: disconnect ok.");
   }

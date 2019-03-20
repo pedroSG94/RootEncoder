@@ -67,7 +67,7 @@ public class Camera2ApiManager extends CameraDevice.StateCallback {
   private CaptureRequest.Builder builderPreview;
   private CaptureRequest.Builder builderInputSurface;
   private float fingerSpacing = 0;
-  private int zoomLevel = 1;
+  private float zoomLevel = 1.0f;
   private boolean lanternEnable = false;
 
   //Face detector
@@ -263,6 +263,9 @@ public class Camera2ApiManager extends CameraDevice.StateCallback {
     }
   }
 
+  public boolean isLanternSupported() {
+    return (cameraCharacteristics != null ? cameraCharacteristics.get(CameraCharacteristics.FLASH_INFO_AVAILABLE) : false);
+  }
 
   public boolean isLanternEnabled() {
       return lanternEnable;
@@ -404,49 +407,70 @@ public class Camera2ApiManager extends CameraDevice.StateCallback {
     }
   }
 
-  public void setZoom(MotionEvent event) {
-    try {
-      float maxZoom =
-          (cameraCharacteristics.get(CameraCharacteristics.SCALER_AVAILABLE_MAX_DIGITAL_ZOOM)) * 10;
-      Rect m = cameraCharacteristics.get(CameraCharacteristics.SENSOR_INFO_ACTIVE_ARRAY_SIZE);
-      float currentFingerSpacing;
+  public float getMaxZoom() {
+    return (cameraCharacteristics != null ? cameraCharacteristics.get(CameraCharacteristics.SCALER_AVAILABLE_MAX_DIGITAL_ZOOM) : 1);
+  }
 
-      if (event.getPointerCount() > 1) {
-        // Multi touch logic
-        currentFingerSpacing = CameraHelper.getFingerSpacing(event);
-        if (fingerSpacing != 0) {
-          if (currentFingerSpacing > fingerSpacing && maxZoom > zoomLevel) {
-            zoomLevel++;
-          } else if (currentFingerSpacing < fingerSpacing && zoomLevel > 1) {
-            zoomLevel--;
-          }
-          int minW = (int) (m.width() / maxZoom);
-          int minH = (int) (m.height() / maxZoom);
-          int difW = m.width() - minW;
-          int difH = m.height() - minH;
-          int cropW = difW / 100 * zoomLevel;
-          int cropH = difH / 100 * zoomLevel;
-          cropW -= cropW & 3;
-          cropH -= cropH & 3;
-          Rect zoom = new Rect(cropW, cropH, m.width() - cropW, m.height() - cropH);
-          if (builderPreview != null) builderPreview.set(CaptureRequest.SCALER_CROP_REGION, zoom);
-          builderInputSurface.set(CaptureRequest.SCALER_CROP_REGION, zoom);
+  public Float getZoom() {
+    return zoomLevel;
+  }
+
+  public void setZoom(Float level) {
+    try {
+      float maxZoom = getMaxZoom();
+      Rect m = cameraCharacteristics.get(CameraCharacteristics.SENSOR_INFO_ACTIVE_ARRAY_SIZE);
+
+      if ((level <= maxZoom) && (level >= 1)) {
+        zoomLevel = level;
+        int minW = (int) (m.width() / (maxZoom * 10));
+        int minH = (int) (m.height() / (maxZoom * 10));
+        int difW = m.width() - minW;
+        int difH = m.height() - minH;
+        int cropW = (int) (difW / 10 * level);
+        int cropH = (int) (difH / 10 * level);
+        cropW -= cropW & 3;
+        cropH -= cropH & 3;
+        Rect zoom = new Rect(cropW, cropH, m.width() - cropW, m.height() - cropH);
+        if (builderPreview != null) builderPreview.set(CaptureRequest.SCALER_CROP_REGION, zoom);
+        builderInputSurface.set(CaptureRequest.SCALER_CROP_REGION, zoom);
+
+        if (builderPreview != null) {
+          cameraCaptureSession.setRepeatingRequest(builderPreview.build(),
+                  faceDetectionEnabled ? cb : null, null);
         }
-        fingerSpacing = currentFingerSpacing;
+        cameraCaptureSession.setRepeatingRequest(builderInputSurface.build(),
+                faceDetectionEnabled ? cb : null, null);
       }
-      if (builderPreview != null) {
-        cameraCaptureSession.setRepeatingRequest(builderPreview.build(),
-            faceDetectionEnabled ? cb : null, null);
-      }
-      cameraCaptureSession.setRepeatingRequest(builderInputSurface.build(),
-          faceDetectionEnabled ? cb : null, null);
     } catch (CameraAccessException e) {
       Log.e(TAG, "Error", e);
     }
   }
 
+  public void setZoom(MotionEvent event) {
+    float currentFingerSpacing;
+
+    if (event.getPointerCount() > 1) {
+      // Multi touch logic
+      currentFingerSpacing = CameraHelper.getFingerSpacing(event);
+      if (fingerSpacing != 0) {
+        if (currentFingerSpacing > fingerSpacing && getMaxZoom() > zoomLevel) {
+          zoomLevel += 0.1f;
+        } else if (currentFingerSpacing < fingerSpacing && zoomLevel > 1) {
+          zoomLevel -= 0.1f;
+        }
+        setZoom(zoomLevel);
+      }
+      fingerSpacing = currentFingerSpacing;
+    }
+  }
+
   public boolean isFrontCamera() {
     return isFrontCamera;
+  }
+
+  private void resetCameraValues() {
+    lanternEnable = false;
+    zoomLevel = 1.0f;
   }
 
   public void closeCamera(boolean reOpen) {
@@ -464,7 +488,7 @@ public class Camera2ApiManager extends CameraDevice.StateCallback {
         Log.e(TAG, "Error", e);
       }
     } else {
-      lanternEnable = false;
+      resetCameraValues();
 
       cameraCharacteristics = null;
       if (cameraCaptureSession != null) {

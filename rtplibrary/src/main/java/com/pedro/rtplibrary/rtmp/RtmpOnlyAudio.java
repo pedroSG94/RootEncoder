@@ -21,6 +21,18 @@ public class RtmpOnlyAudio extends OnlyAudioBase {
     srsFlvMuxer = new SrsFlvMuxer(connectChecker);
   }
 
+  public void resizeFlvTagCache(int newSize) {
+    srsFlvMuxer.resizeFlvTagCache(newSize);
+  }
+
+  public int getFlvTagCacheSize() {
+    return srsFlvMuxer.getFlvTagCacheSize();
+  }
+
+  public long getSentAudioFrames() {
+    return srsFlvMuxer.getSentAudioFrames();
+  }
+
   @Override
   public void setAuthorization(String user, String password) {
     srsFlvMuxer.setAuthorization(user, password);
