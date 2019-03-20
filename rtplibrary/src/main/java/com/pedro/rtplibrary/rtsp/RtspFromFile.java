@@ -60,6 +60,31 @@ public class RtspFromFile extends FromFileBase {
     rtspClient.setProtocol(protocol);
   }
 
+  @Override
+  public void resizeCache(int newSize) throws RuntimeException {
+    rtspClient.resizeCache(newSize);
+  }
+
+  @Override
+  public int getCacheCapacity() {
+    return rtspClient.getCacheCapacity();
+  }
+
+  @Override
+  public int getCacheSize() {
+    return rtspClient.getCacheSize();
+  }
+
+  @Override
+  public long getSentAudioFrames() {
+    return rtspClient.getSentAudioFrames();
+  }
+
+  @Override
+  public long getSentVideoFrames() {
+    return rtspClient.getSentVideoFrames();
+  }
+
   public void setVideoCodec(VideoCodec videoCodec) {
     videoEncoder.setType(videoCodec == VideoCodec.H265 ? CodecUtil.H265_MIME : CodecUtil.H264_MIME);
   }

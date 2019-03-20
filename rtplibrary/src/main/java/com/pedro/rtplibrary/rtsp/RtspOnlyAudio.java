@@ -32,6 +32,31 @@ public class RtspOnlyAudio extends OnlyAudioBase {
   }
 
   @Override
+  public void resizeCache(int newSize) throws RuntimeException {
+    rtspClient.resizeCache(newSize);
+  }
+
+  @Override
+  public int getCacheCapacity() {
+    return rtspClient.getCacheCapacity();
+  }
+
+  @Override
+  public int getCacheSize() {
+    return rtspClient.getCacheSize();
+  }
+
+  @Override
+  public long getSentAudioFrames() {
+    return rtspClient.getSentAudioFrames();
+  }
+
+  @Override
+  public long getSentVideoFrames() {
+    return rtspClient.getSentVideoFrames();
+  }
+
+  @Override
   public void setAuthorization(String user, String password) {
     rtspClient.setAuthorization(user, password);
   }

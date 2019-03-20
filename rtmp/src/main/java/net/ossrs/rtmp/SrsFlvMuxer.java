@@ -99,17 +99,20 @@ public class SrsFlvMuxer {
     return connected;
   }
 
-  public void resizeFlvTagCache(int newSize){
+  public void resizeFlvTagCache(int newSize) throws RuntimeException {
     if(newSize < mFlvTagCache.size()){
-      throw new RuntimeException("FlvTagCache new max size lower than current cache size");
+      throw new RuntimeException("Cache new max size lower than current cache size");
     }
 
     synchronized (mFlvTagCache) {
       BlockingQueue<SrsFlvFrame> tempQueue = new LinkedBlockingQueue<>(newSize);
       mFlvTagCache.drainTo(tempQueue);
-      mFlvTagCache = new LinkedBlockingQueue<>(newSize);
-      tempQueue.drainTo(mFlvTagCache);
+      mFlvTagCache = tempQueue;
     }
+  }
+
+  public int getFlvTagCapacity() {
+    return mFlvTagCache.remainingCapacity();
   }
 
   public int getFlvTagCacheSize(){

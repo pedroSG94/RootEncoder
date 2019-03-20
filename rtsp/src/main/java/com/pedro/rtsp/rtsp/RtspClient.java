@@ -44,6 +44,7 @@ public class RtspClient {
   public RtspClient(ConnectCheckerRtsp connectCheckerRtsp) {
     this.connectCheckerRtsp = connectCheckerRtsp;
     commandsManager = new CommandsManager();
+    rtspSender = new RtspSender(connectCheckerRtsp);
   }
 
   public void setProtocol(Protocol protocol) {
@@ -94,6 +95,25 @@ public class RtspClient {
     return connectCheckerRtsp;
   }
 
+  public void resizeCache(int newSize) throws RuntimeException {
+    rtspSender.resizeCache(newSize);
+  }
+
+  public int getCacheCapacity() {
+    return rtspSender.getCacheCapacity();
+  }
+  public int getCacheSize() {
+    return rtspSender.getCacheSize();
+  }
+
+  public long getSentAudioFrames() {
+    return rtspSender.getSentAudioFrames();
+  }
+
+  public long getSentVideoFrames() {
+    return rtspSender.getSentVideoFrames();
+  }
+
   public void setSPSandPPS(ByteBuffer sps, ByteBuffer pps, ByteBuffer vps) {
     commandsManager.setVideoInfo(sps, pps, vps);
   }
@@ -104,9 +124,8 @@ public class RtspClient {
 
   public void connect() {
     if (!streaming) {
-      rtspSender = new RtspSender(connectCheckerRtsp, commandsManager.getProtocol(),
-          commandsManager.getSps(), commandsManager.getPps(), commandsManager.getVps(),
-          commandsManager.getSampleRate());
+      rtspSender.setInfo(commandsManager.getProtocol(), commandsManager.getSps(),
+          commandsManager.getPps(), commandsManager.getVps(), commandsManager.getSampleRate());
       thread = new Thread(new Runnable() {
         @Override
         public void run() {

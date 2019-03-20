@@ -70,4 +70,8 @@ public class RtpFrame {
   public void setChannelIdentifier(byte channelIdentifier) {
     this.channelIdentifier = channelIdentifier;
   }
+
+  public boolean isVideoFrame() {
+    return channelIdentifier == (byte) 2;
+  }
 }

@@ -86,6 +86,16 @@ public abstract class OnlyAudioBase implements GetAacData, GetMicrophoneData {
 
   protected abstract void stopStreamRtp();
 
+  public abstract void resizeCache(int newSize) throws RuntimeException;
+
+  public abstract int getCacheCapacity();
+
+  public abstract int getCacheSize();
+
+  public abstract long getSentAudioFrames();
+
+  public abstract long getSentVideoFrames();
+
   /**
    * Stop stream started with @startStream.
    */

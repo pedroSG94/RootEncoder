@@ -12,6 +12,7 @@ import com.pedro.rtsp.rtp.packets.VideoPacketCallback;
 import com.pedro.rtsp.rtp.sockets.BaseRtpSocket;
 import com.pedro.rtsp.utils.ConnectCheckerRtsp;
 import com.pedro.rtsp.utils.RtpConstants;
+import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.util.concurrent.BlockingQueue;
@@ -24,29 +25,34 @@ import java.util.concurrent.LinkedBlockingQueue;
 public class RtspSender implements VideoPacketCallback, AudioPacketCallback {
 
   private final static String TAG = "RtspSender";
-  private final BasePacket videoPacket;
-  private final AacPacket aacPacket;
-  private final BaseRtpSocket rtpSocket;
-  private final BaseSenderReport baseSenderReport;
-  private BlockingQueue<RtpFrame> rtpFrameBlockingQueue =
-      new LinkedBlockingQueue<>(getCacheSize(10));
+  private BasePacket videoPacket;
+  private AacPacket aacPacket;
+  private BaseRtpSocket rtpSocket;
+  private BaseSenderReport baseSenderReport;
+  private volatile BlockingQueue<RtpFrame> rtpFrameBlockingQueue =
+      new LinkedBlockingQueue<>(getDefaultCacheSize());
   private Thread thread;
+  private ConnectCheckerRtsp connectCheckerRtsp;
+  private long audioFramesSent = 0;
+  private long videoFramesSent = 0;
 
-  public RtspSender(ConnectCheckerRtsp connectCheckerRtsp, Protocol protocol, byte[] sps,
-      byte[] pps, byte[] vps, int sampleRate) {
+  public RtspSender(ConnectCheckerRtsp connectCheckerRtsp) {
+    this.connectCheckerRtsp = connectCheckerRtsp;
+  }
+
+  public void setInfo(Protocol protocol, byte[] sps, byte[] pps, byte[] vps, int sampleRate) {
     videoPacket =
         vps == null ? new H264Packet(sps, pps, this) : new H265Packet(sps, pps, vps, this);
     aacPacket = new AacPacket(sampleRate, this);
-    rtpSocket = BaseRtpSocket.getInstance(connectCheckerRtsp, protocol);
+    rtpSocket = BaseRtpSocket.getInstance(protocol);
     baseSenderReport = BaseSenderReport.getInstance(protocol);
   }
 
   /**
-   * @param size in mb
    * @return number of packets
    */
-  private int getCacheSize(int size) {
-    return size * 1024 * 1024 / RtpConstants.MTU;
+  private int getDefaultCacheSize() {
+    return 10 * 1024 * 1024 / RtpConstants.MTU;
   }
 
   public void setDataStream(OutputStream outputStream, String host) {
@@ -68,6 +74,34 @@ public class RtspSender implements VideoPacketCallback, AudioPacketCallback {
 
   public void sendAudioFrame(ByteBuffer aacBuffer, MediaCodec.BufferInfo info) {
     aacPacket.createAndSendPacket(aacBuffer, info);
+  }
+
+  public void resizeCache(int newSize) throws RuntimeException {
+    if (newSize < rtpFrameBlockingQueue.size()) {
+      throw new RuntimeException("Cache new max size lower than current cache size");
+    }
+
+    synchronized (rtpFrameBlockingQueue) {
+      BlockingQueue<RtpFrame> tempQueue = new LinkedBlockingQueue<>(newSize);
+      rtpFrameBlockingQueue.drainTo(tempQueue);
+      rtpFrameBlockingQueue = tempQueue;
+    }
+  }
+
+  public int getCacheCapacity() {
+    return rtpFrameBlockingQueue.remainingCapacity();
+  }
+
+  public int getCacheSize() {
+    return rtpFrameBlockingQueue.size();
+  }
+
+  public long getSentAudioFrames() {
+    return audioFramesSent;
+  }
+
+  public long getSentVideoFrames() {
+    return videoFramesSent;
   }
 
   @Override
@@ -96,9 +130,17 @@ public class RtspSender implements VideoPacketCallback, AudioPacketCallback {
           try {
             RtpFrame rtpFrame = rtpFrameBlockingQueue.take();
             rtpSocket.sendFrame(rtpFrame);
+            if (rtpFrame.isVideoFrame()) {
+              videoFramesSent++;
+            } else {
+              audioFramesSent++;
+            }
             baseSenderReport.update(rtpFrame);
           } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
+          } catch (IOException e) {
+            Log.e(TAG, "send error: ", e);
+            connectCheckerRtsp.onConnectionFailedRtsp("Error send packet, " + e.getMessage());
           }
         }
       }
@@ -122,5 +164,7 @@ public class RtspSender implements VideoPacketCallback, AudioPacketCallback {
     rtpSocket.close();
     aacPacket.reset();
     videoPacket.reset();
+    videoFramesSent = 0;
+    audioFramesSent = 0;
   }
 }

@@ -2,7 +2,6 @@ package com.pedro.rtsp.rtp.sockets;
 
 import android.util.Log;
 import com.pedro.rtsp.rtsp.RtpFrame;
-import com.pedro.rtsp.utils.ConnectCheckerRtsp;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.DatagramPacket;
@@ -19,8 +18,7 @@ public class RtpSocketUdp extends BaseRtpSocket {
   private MulticastSocket multicastSocket;
   private DatagramPacket datagramPacket = new DatagramPacket(new byte[] { 0 }, 1);
 
-  public RtpSocketUdp(ConnectCheckerRtsp connectCheckerRtsp) {
-    super(connectCheckerRtsp);
+  public RtpSocketUdp() {
     try {
       multicastSocket = new MulticastSocket();
       multicastSocket.setTimeToLive(64);
@@ -39,13 +37,8 @@ public class RtpSocketUdp extends BaseRtpSocket {
   }
 
   @Override
-  public void sendFrame(RtpFrame rtpFrame) {
-    try {
-      sendFrameUDP(rtpFrame);
-    } catch (IOException e) {
-      Log.e(TAG, "TCP send error: ", e);
-      connectCheckerRtsp.onConnectionFailedRtsp("Error send packet, " + e.getMessage());
-    }
+  public void sendFrame(RtpFrame rtpFrame) throws IOException {
+    sendFrameUDP(rtpFrame);
   }
 
   @Override
