@@ -37,11 +37,6 @@ public class RtspOnlyAudio extends OnlyAudioBase {
   }
 
   @Override
-  public int getCacheCapacity() {
-    return rtspClient.getCacheCapacity();
-  }
-
-  @Override
   public int getCacheSize() {
     return rtspClient.getCacheSize();
   }
@@ -54,6 +49,36 @@ public class RtspOnlyAudio extends OnlyAudioBase {
   @Override
   public long getSentVideoFrames() {
     return rtspClient.getSentVideoFrames();
+  }
+
+  @Override
+  public long getDroppedAudioFrames() {
+    return rtspClient.getDroppedAudioFrames();
+  }
+
+  @Override
+  public long getDroppedVideoFrames() {
+    return rtspClient.getDroppedVideoFrames();
+  }
+
+  @Override
+  public void resetSentAudioFrames() {
+    rtspClient.resetSentAudioFrames();
+  }
+
+  @Override
+  public void resetSentVideoFrames() {
+    rtspClient.resetSentVideoFrames();
+  }
+
+  @Override
+  public void resetDroppedAudioFrames() {
+    rtspClient.resetDroppedAudioFrames();
+  }
+
+  @Override
+  public void resetDroppedVideoFrames() {
+    rtspClient.resetDroppedVideoFrames();
   }
 
   @Override

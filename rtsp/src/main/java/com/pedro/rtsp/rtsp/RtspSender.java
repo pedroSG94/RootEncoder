@@ -17,6 +17,7 @@ import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Created by pedro on 7/11/18.
@@ -35,6 +36,8 @@ public class RtspSender implements VideoPacketCallback, AudioPacketCallback {
   private ConnectCheckerRtsp connectCheckerRtsp;
   private long audioFramesSent = 0;
   private long videoFramesSent = 0;
+  private long droppedAudioFrames = 0;
+  private long droppedVideoFrames = 0;
 
   public RtspSender(ConnectCheckerRtsp connectCheckerRtsp) {
     this.connectCheckerRtsp = connectCheckerRtsp;
@@ -78,30 +81,12 @@ public class RtspSender implements VideoPacketCallback, AudioPacketCallback {
 
   public void resizeCache(int newSize) throws RuntimeException {
     if (newSize < rtpFrameBlockingQueue.size()) {
-      throw new RuntimeException("Cache new max size lower than current cache size");
+      throw new RuntimeException("Can't fit current cache inside new cache size");
     }
 
-    synchronized (rtpFrameBlockingQueue) {
-      BlockingQueue<RtpFrame> tempQueue = new LinkedBlockingQueue<>(newSize);
-      rtpFrameBlockingQueue.drainTo(tempQueue);
-      rtpFrameBlockingQueue = tempQueue;
-    }
-  }
-
-  public int getCacheCapacity() {
-    return rtpFrameBlockingQueue.remainingCapacity();
-  }
-
-  public int getCacheSize() {
-    return rtpFrameBlockingQueue.size();
-  }
-
-  public long getSentAudioFrames() {
-    return audioFramesSent;
-  }
-
-  public long getSentVideoFrames() {
-    return videoFramesSent;
+    BlockingQueue<RtpFrame> tempQueue = new LinkedBlockingQueue<>(newSize);
+    rtpFrameBlockingQueue.drainTo(tempQueue);
+    rtpFrameBlockingQueue = tempQueue;
   }
 
   @Override
@@ -110,6 +95,7 @@ public class RtspSender implements VideoPacketCallback, AudioPacketCallback {
       rtpFrameBlockingQueue.add(rtpFrame);
     } catch (IllegalStateException e) {
       Log.i(TAG, "Video frame discarded");
+      droppedVideoFrames++;
     }
   }
 
@@ -119,6 +105,7 @@ public class RtspSender implements VideoPacketCallback, AudioPacketCallback {
       rtpFrameBlockingQueue.add(rtpFrame);
     } catch (IllegalStateException e) {
       Log.i(TAG, "Audio frame discarded");
+      droppedAudioFrames++;
     }
   }
 
@@ -128,7 +115,11 @@ public class RtspSender implements VideoPacketCallback, AudioPacketCallback {
       public void run() {
         while (!Thread.interrupted()) {
           try {
-            RtpFrame rtpFrame = rtpFrameBlockingQueue.take();
+            RtpFrame rtpFrame = rtpFrameBlockingQueue.poll(1, TimeUnit.SECONDS);
+            if (rtpFrame == null) {
+              Log.i(TAG, "Skipping iteration, frame null");
+              continue;
+            }
             rtpSocket.sendFrame(rtpFrame);
             if (rtpFrame.isVideoFrame()) {
               videoFramesSent++;
@@ -164,7 +155,46 @@ public class RtspSender implements VideoPacketCallback, AudioPacketCallback {
     rtpSocket.close();
     aacPacket.reset();
     videoPacket.reset();
-    videoFramesSent = 0;
+
+    resetSentAudioFrames();
+    resetSentVideoFrames();
+    resetDroppedAudioFrames();
+    resetDroppedVideoFrames();
+  }
+
+  public int getCacheSize() {
+    return rtpFrameBlockingQueue.size();
+  }
+
+  public long getSentAudioFrames() {
+    return audioFramesSent;
+  }
+
+  public long getSentVideoFrames() {
+    return videoFramesSent;
+  }
+
+  public long getDroppedAudioFrames() {
+    return droppedAudioFrames;
+  }
+
+  public long getDroppedVideoFrames() {
+    return droppedVideoFrames;
+  }
+
+  public void resetSentAudioFrames() {
     audioFramesSent = 0;
+  }
+
+  public void resetSentVideoFrames() {
+    videoFramesSent = 0;
+  }
+
+  public void resetDroppedAudioFrames() {
+    droppedAudioFrames = 0;
+  }
+
+  public void resetDroppedVideoFrames() {
+    droppedVideoFrames = 0;
   }
 }

@@ -27,11 +27,6 @@ public class RtmpOnlyAudio extends OnlyAudioBase {
   }
 
   @Override
-  public int getCacheCapacity() {
-    return srsFlvMuxer.getFlvTagCapacity();
-  }
-
-  @Override
   public int getCacheSize() {
     return srsFlvMuxer.getFlvTagCacheSize();
   }
@@ -44,6 +39,36 @@ public class RtmpOnlyAudio extends OnlyAudioBase {
   @Override
   public long getSentVideoFrames() {
     return srsFlvMuxer.getSentVideoFrames();
+  }
+
+  @Override
+  public long getDroppedAudioFrames() {
+    return srsFlvMuxer.getDroppedAudioFrames();
+  }
+
+  @Override
+  public long getDroppedVideoFrames() {
+    return srsFlvMuxer.getDroppedVideoFrames();
+  }
+
+  @Override
+  public void resetSentAudioFrames() {
+    srsFlvMuxer.resetSentAudioFrames();
+  }
+
+  @Override
+  public void resetSentVideoFrames() {
+    srsFlvMuxer.resetSentVideoFrames();
+  }
+
+  @Override
+  public void resetDroppedAudioFrames() {
+    srsFlvMuxer.resetDroppedAudioFrames();
+  }
+
+  @Override
+  public void resetDroppedVideoFrames() {
+    srsFlvMuxer.resetDroppedVideoFrames();
   }
 
   @Override

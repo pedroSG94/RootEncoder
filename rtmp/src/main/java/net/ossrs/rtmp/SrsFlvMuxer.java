@@ -8,6 +8,7 @@ import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Created by winlin on 5/2/15.
@@ -65,6 +66,8 @@ public class SrsFlvMuxer {
 
   private long mAudioFramesSent = 0;
   private long mVideoFramesSent = 0;
+  private long mDroppedAudioFrames = 0;
+  private long mDroppedVideoFrames = 0;
 
   /**
    * constructor.
@@ -99,23 +102,17 @@ public class SrsFlvMuxer {
     return connected;
   }
 
-  public void resizeFlvTagCache(int newSize) throws RuntimeException {
-    if(newSize < mFlvTagCache.size()){
-      throw new RuntimeException("Cache new max size lower than current cache size");
+  public void resizeFlvTagCache(int newSize) {
+    if (newSize < mFlvTagCache.size() - mFlvTagCache.remainingCapacity()) {
+      throw new RuntimeException("Can't fit current cache inside new cache size");
     }
 
-    synchronized (mFlvTagCache) {
-      BlockingQueue<SrsFlvFrame> tempQueue = new LinkedBlockingQueue<>(newSize);
-      mFlvTagCache.drainTo(tempQueue);
-      mFlvTagCache = tempQueue;
-    }
+    BlockingQueue<SrsFlvFrame> tempQueue = new LinkedBlockingQueue<>(newSize);
+    mFlvTagCache.drainTo(tempQueue);
+    mFlvTagCache = tempQueue;
   }
 
-  public int getFlvTagCapacity() {
-    return mFlvTagCache.remainingCapacity();
-  }
-
-  public int getFlvTagCacheSize(){
+  public int getFlvTagCacheSize() {
     return mFlvTagCache.size();
   }
 
@@ -125,6 +122,30 @@ public class SrsFlvMuxer {
 
   public long getSentVideoFrames() {
     return mVideoFramesSent;
+  }
+
+  public long getDroppedAudioFrames() {
+    return mDroppedAudioFrames;
+  }
+
+  public long getDroppedVideoFrames() {
+    return mDroppedVideoFrames;
+  }
+
+  public void resetSentAudioFrames() {
+    mAudioFramesSent = 0;
+  }
+
+  public void resetSentVideoFrames() {
+    mVideoFramesSent = 0;
+  }
+
+  public void resetDroppedAudioFrames() {
+    mDroppedAudioFrames = 0;
+  }
+
+  public void resetDroppedVideoFrames() {
+    mDroppedVideoFrames = 0;
   }
 
   /**
@@ -146,8 +167,12 @@ public class SrsFlvMuxer {
     connected = false;
     mVideoSequenceHeader = null;
     mAudioSequenceHeader = null;
-    mVideoFramesSent = 0;
-    mAudioFramesSent = 0;
+
+    resetSentAudioFrames();
+    resetSentVideoFrames();
+    resetDroppedAudioFrames();
+    resetDroppedVideoFrames();
+
     connectChecker.onDisconnectRtmp();
     Log.i(TAG, "worker: disconnect ok.");
   }
@@ -199,7 +224,12 @@ public class SrsFlvMuxer {
         connectCheckerRtmp.onConnectionSuccessRtmp();
         while (!Thread.interrupted()) {
           try {
-            SrsFlvFrame frame = mFlvTagCache.take();
+            SrsFlvFrame frame = mFlvTagCache.poll(1, TimeUnit.SECONDS);
+            if (frame == null) {
+              Log.i(TAG, "Skipping iteration, frame null");
+              continue;
+            }
+
             if (frame.is_sequenceHeader()) {
               if (frame.is_video()) {
                 mVideoSequenceHeader = frame;
@@ -911,6 +941,11 @@ public class SrsFlvMuxer {
         mFlvTagCache.add(frame);
       } catch (IllegalStateException e) {
         Log.i(TAG, "frame discarded");
+        if (frame.is_video()) {
+          mDroppedVideoFrames++;
+        } else {
+          mDroppedAudioFrames++;
+        }
       }
     }
   }

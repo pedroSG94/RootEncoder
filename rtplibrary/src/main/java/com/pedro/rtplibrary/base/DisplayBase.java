@@ -281,15 +281,26 @@ public abstract class DisplayBase implements GetAacData, GetVideoData, GetMicrop
     }
   }
 
+  //cache control
   public abstract void resizeCache(int newSize) throws RuntimeException;
-
-  public abstract int getCacheCapacity();
 
   public abstract int getCacheSize();
 
   public abstract long getSentAudioFrames();
 
   public abstract long getSentVideoFrames();
+
+  public abstract long getDroppedAudioFrames();
+
+  public abstract long getDroppedVideoFrames();
+
+  public abstract void resetSentAudioFrames();
+
+  public abstract void resetSentVideoFrames();
+
+  public abstract void resetDroppedAudioFrames();
+
+  public abstract void resetDroppedVideoFrames();
 
   public GlInterface getGlInterface() {
     if (glInterface != null) {

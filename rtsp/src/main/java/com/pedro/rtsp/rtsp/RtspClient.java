@@ -95,25 +95,6 @@ public class RtspClient {
     return connectCheckerRtsp;
   }
 
-  public void resizeCache(int newSize) throws RuntimeException {
-    rtspSender.resizeCache(newSize);
-  }
-
-  public int getCacheCapacity() {
-    return rtspSender.getCacheCapacity();
-  }
-  public int getCacheSize() {
-    return rtspSender.getCacheSize();
-  }
-
-  public long getSentAudioFrames() {
-    return rtspSender.getSentAudioFrames();
-  }
-
-  public long getSentVideoFrames() {
-    return rtspSender.getSentVideoFrames();
-  }
-
   public void setSPSandPPS(ByteBuffer sps, ByteBuffer pps, ByteBuffer vps) {
     commandsManager.setVideoInfo(sps, pps, vps);
   }
@@ -239,6 +220,46 @@ public class RtspClient {
     if (isStreaming()) {
       rtspSender.sendAudioFrame(aacBuffer, info);
     }
+  }
+
+  public long getDroppedAudioFrames() {
+    return rtspSender.getDroppedAudioFrames();
+  }
+
+  public long getDroppedVideoFrames() {
+    return rtspSender.getDroppedVideoFrames();
+  }
+
+  public void resetSentAudioFrames() {
+    rtspSender.resetSentAudioFrames();
+  }
+
+  public void resetSentVideoFrames() {
+    rtspSender.resetSentVideoFrames();
+  }
+
+  public void resetDroppedAudioFrames() {
+    rtspSender.resetDroppedAudioFrames();
+  }
+
+  public void resetDroppedVideoFrames() {
+    rtspSender.resetDroppedVideoFrames();
+  }
+
+  public void resizeCache(int newSize) throws RuntimeException {
+    rtspSender.resizeCache(newSize);
+  }
+
+  public int getCacheSize() {
+    return rtspSender.getCacheSize();
+  }
+
+  public long getSentAudioFrames() {
+    return rtspSender.getSentAudioFrames();
+  }
+
+  public long getSentVideoFrames() {
+    return rtspSender.getSentVideoFrames();
   }
 }
 
