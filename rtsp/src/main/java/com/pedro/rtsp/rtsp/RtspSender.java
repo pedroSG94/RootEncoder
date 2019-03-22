@@ -79,16 +79,6 @@ public class RtspSender implements VideoPacketCallback, AudioPacketCallback {
     aacPacket.createAndSendPacket(aacBuffer, info);
   }
 
-  public void resizeCache(int newSize) throws RuntimeException {
-    if (newSize < rtpFrameBlockingQueue.size()) {
-      throw new RuntimeException("Can't fit current cache inside new cache size");
-    }
-
-    BlockingQueue<RtpFrame> tempQueue = new LinkedBlockingQueue<>(newSize);
-    rtpFrameBlockingQueue.drainTo(tempQueue);
-    rtpFrameBlockingQueue = tempQueue;
-  }
-
   @Override
   public void onVideoFrameCreated(RtpFrame rtpFrame) {
     try {
@@ -160,6 +150,16 @@ public class RtspSender implements VideoPacketCallback, AudioPacketCallback {
     resetSentVideoFrames();
     resetDroppedAudioFrames();
     resetDroppedVideoFrames();
+  }
+
+  public void resizeCache(int newSize) {
+    if (newSize < rtpFrameBlockingQueue.size() - rtpFrameBlockingQueue.remainingCapacity()) {
+      throw new RuntimeException("Can't fit current cache inside new cache size");
+    }
+
+    BlockingQueue<RtpFrame> tempQueue = new LinkedBlockingQueue<>(newSize);
+    rtpFrameBlockingQueue.drainTo(tempQueue);
+    rtpFrameBlockingQueue = tempQueue;
   }
 
   public int getCacheSize() {

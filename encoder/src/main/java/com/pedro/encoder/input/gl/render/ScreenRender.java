@@ -7,6 +7,7 @@ import android.os.Build;
 import android.support.annotation.RequiresApi;
 import com.pedro.encoder.R;
 import com.pedro.encoder.utils.gl.GlUtil;
+import com.pedro.encoder.utils.gl.PreviewSizeCalculator;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.FloatBuffer;
@@ -76,17 +77,9 @@ public class ScreenRender {
   public void draw(int width, int height, boolean keepAspectRatio) {
     GlUtil.checkGlError("drawScreen start");
 
-    if (keepAspectRatio) {
-      if (width > height) { //landscape
-        int realWidth = height * streamWidth / streamHeight;
-        GLES20.glViewport((width - realWidth) / 2, 0, realWidth, height);
-      } else { //portrait
-        int realHeight = width * streamHeight / streamWidth;
-        GLES20.glViewport(0, (height - realHeight) / 2, width, realHeight);
-      }
-    } else {
-      GLES20.glViewport(0, 0, width, height);
-    }
+    PreviewSizeCalculator.calculateViewPort(keepAspectRatio, width, height, streamWidth,
+        streamHeight);
+
     GLES20.glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
     GLES20.glClear(GLES20.GL_DEPTH_BUFFER_BIT | GLES20.GL_COLOR_BUFFER_BIT);
 

@@ -297,6 +297,10 @@ public abstract class Camera2Base implements GetAacData, GetVideoData, GetMicrop
     }
   }
 
+  public void startPreview(CameraHelper.Facing cameraFacing, int width, int height) {
+    startPreview(cameraFacing, width, height, CameraHelper.getCameraOrientation(context));
+  }
+
   public void startPreview(CameraHelper.Facing cameraFacing, int rotation) {
     startPreview(cameraFacing, videoEncoder.getWidth(), videoEncoder.getHeight(), rotation);
   }

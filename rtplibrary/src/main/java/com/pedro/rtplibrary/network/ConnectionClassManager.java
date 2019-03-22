@@ -12,7 +12,7 @@ package com.pedro.rtplibrary.network;
 
 /**
  * <p>
- * Class used to calculate the approximate bandwidth of a user's connection.
+ * Class used to calculateViewPort the approximate bandwidth of a user's connection.
  * </p>
  * <p>
  * This class notifies all subscribed {@link ConnectionClassStateChangeListener} with the new
