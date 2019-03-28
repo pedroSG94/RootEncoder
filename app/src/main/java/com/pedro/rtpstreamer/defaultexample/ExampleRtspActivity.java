@@ -4,6 +4,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.View;
@@ -34,6 +35,7 @@ public class ExampleRtspActivity extends AppCompatActivity
   private Button button;
   private Button bRecord;
   private EditText etUrl;
+  private int retries = 10;
 
   private String currentDateAndTime = "";
   private File folder = new File(Environment.getExternalStorageDirectory().getAbsolutePath()
@@ -63,6 +65,7 @@ public class ExampleRtspActivity extends AppCompatActivity
       @Override
       public void run() {
         Toast.makeText(ExampleRtspActivity.this, "Connection success", Toast.LENGTH_SHORT).show();
+        retries = 10;
       }
     });
   }
@@ -72,10 +75,17 @@ public class ExampleRtspActivity extends AppCompatActivity
     runOnUiThread(new Runnable() {
       @Override
       public void run() {
-        Toast.makeText(ExampleRtspActivity.this, "Connection failed. " + reason, Toast.LENGTH_SHORT)
-            .show();
-        rtspCamera1.stopStream();
-        button.setText(R.string.start_button);
+        if (retries > 0) {
+          Toast.makeText(ExampleRtspActivity.this, "Retry: " + retries, Toast.LENGTH_SHORT)
+              .show();
+          rtspCamera1.reTry(5000);
+          retries--;
+        } else {
+          Toast.makeText(ExampleRtspActivity.this, "Connection failed. " + reason, Toast.LENGTH_SHORT)
+              .show();
+          rtspCamera1.stopStream();
+          button.setText(R.string.start_button);
+        }
       }
     });
   }
@@ -126,6 +136,7 @@ public class ExampleRtspActivity extends AppCompatActivity
                 Toast.LENGTH_SHORT).show();
           }
         } else {
+          retries = 0;
           button.setText(R.string.start_button);
           rtspCamera1.stopStream();
         }

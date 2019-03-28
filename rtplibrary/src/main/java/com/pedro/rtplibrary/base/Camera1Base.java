@@ -443,6 +443,13 @@ public abstract class Camera1Base
     }
   }
 
+  public void reTry(long delay) {
+    resetVideoEncoder();
+    reConnect(delay);
+  }
+
+  protected abstract void reConnect(long delay);
+
   //cache control
   public abstract void resizeCache(int newSize) throws RuntimeException;
 

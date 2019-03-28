@@ -140,6 +140,11 @@ public class RtspCamera1 extends Camera1Base {
   }
 
   @Override
+  public void reConnect(long delay) {
+    rtspClient.reConnect(delay);
+  }
+
+  @Override
   protected void getAacDataRtp(ByteBuffer aacBuffer, MediaCodec.BufferInfo info) {
     rtspClient.sendAudio(aacBuffer, info);
   }

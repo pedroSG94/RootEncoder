@@ -1,6 +1,8 @@
 package net.ossrs.rtmp;
 
 import android.media.MediaCodec;
+import android.os.Handler;
+import android.os.Looper;
 import android.os.Process;
 import android.util.Log;
 import com.github.faucamp.simplertmp.DefaultRtmpPublisher;
@@ -63,6 +65,7 @@ public class SrsFlvMuxer {
   private int sampleRate = 0;
   private boolean isPpsSpsSend = false;
   private byte profileIop = ProfileIop.BASELINE;
+  private String url;
 
   private long mAudioFramesSent = 0;
   private long mVideoFramesSent = 0;
@@ -173,11 +176,24 @@ public class SrsFlvMuxer {
     resetDroppedAudioFrames();
     resetDroppedVideoFrames();
 
-    connectChecker.onDisconnectRtmp();
+    if (connectChecker != null) {
+      connectChecker.onDisconnectRtmp();
+    }
     Log.i(TAG, "worker: disconnect ok.");
   }
 
+  public void reConnect(final long delay) {
+    stop(null);
+    new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
+      @Override
+      public void run() {
+        start(url);
+      }
+    }, delay);
+  }
+
   private boolean connect(String url) {
+    this.url = url;
     if (!connected) {
       Log.i(TAG, String.format("worker: connecting to RTMP server by url=%s\n", url));
       if (publisher.connect(url)) {
@@ -254,10 +270,14 @@ public class SrsFlvMuxer {
     worker.start();
   }
 
+  public void stop() {
+    stop(connectCheckerRtmp);
+  }
+
   /**
    * stop the muxer, disconnect RTMP connection.
    */
-  public void stop() {
+  private void stop(final ConnectCheckerRtmp connectCheckerRtmp) {
     if (worker != null) {
       worker.interrupt();
       try {

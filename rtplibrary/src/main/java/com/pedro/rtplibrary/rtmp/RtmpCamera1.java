@@ -138,6 +138,11 @@ public class RtmpCamera1 extends Camera1Base {
   }
 
   @Override
+  public void reConnect(long delay) {
+    srsFlvMuxer.reConnect(delay);
+  }
+
+  @Override
   protected void getAacDataRtp(ByteBuffer aacBuffer, MediaCodec.BufferInfo info) {
     srsFlvMuxer.sendAudio(aacBuffer, info);
   }

@@ -12,8 +12,8 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 import com.pedro.encoder.input.video.CameraOpenException;
-import com.pedro.rtpstreamer.R;
 import com.pedro.rtplibrary.rtmp.RtmpCamera1;
+import com.pedro.rtpstreamer.R;
 import java.io.File;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
@@ -33,6 +33,7 @@ public class ExampleRtmpActivity extends AppCompatActivity
   private Button button;
   private Button bRecord;
   private EditText etUrl;
+  private int retries = 10;
 
   private String currentDateAndTime = "";
   private File folder = new File(Environment.getExternalStorageDirectory().getAbsolutePath()
@@ -71,10 +72,17 @@ public class ExampleRtmpActivity extends AppCompatActivity
     runOnUiThread(new Runnable() {
       @Override
       public void run() {
-        Toast.makeText(ExampleRtmpActivity.this, "Connection failed. " + reason, Toast.LENGTH_SHORT)
-            .show();
-        rtmpCamera1.stopStream();
-        button.setText(R.string.start_button);
+        if (retries > 0) {
+          Toast.makeText(ExampleRtmpActivity.this, "Retry: " + retries, Toast.LENGTH_SHORT)
+              .show();
+          retries--;
+          rtmpCamera1.reTry(5000);
+        } else {
+          Toast.makeText(ExampleRtmpActivity.this, "Connection failed. " + reason, Toast.LENGTH_SHORT)
+              .show();
+          rtmpCamera1.stopStream();
+          button.setText(R.string.start_button);
+        }
       }
     });
   }
@@ -116,13 +124,15 @@ public class ExampleRtmpActivity extends AppCompatActivity
         if (!rtmpCamera1.isStreaming()) {
           if (rtmpCamera1.isRecording()
               || rtmpCamera1.prepareAudio() && rtmpCamera1.prepareVideo()) {
+            retries = 10;
             button.setText(R.string.stop_button);
-            rtmpCamera1.startStream(etUrl.getText().toString());
+            rtmpCamera1.startStream("rtmp://10.7.12.216/live/pedro");
           } else {
             Toast.makeText(this, "Error preparing stream, This device cant do it",
                 Toast.LENGTH_SHORT).show();
           }
         } else {
+          retries = 0;
           button.setText(R.string.start_button);
           rtmpCamera1.stopStream();
         }

@@ -1,6 +1,8 @@
 package com.pedro.rtsp.rtsp;
 
 import android.media.MediaCodec;
+import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
 import com.pedro.rtsp.utils.ConnectCheckerRtsp;
 import com.pedro.rtsp.utils.CreateSSLSocket;
@@ -190,6 +192,10 @@ public class RtspClient {
   }
 
   public void disconnect() {
+    disconnect(true);
+  }
+
+  private void disconnect(final boolean clear) {
     if (streaming) {
       streaming = false;
       rtspSender.stop();
@@ -202,11 +208,11 @@ public class RtspClient {
           } catch (IOException e) {
             Log.e(TAG, "disconnect error", e);
           }
-          connectCheckerRtsp.onDisconnectRtsp();
+          if (clear) connectCheckerRtsp.onDisconnectRtsp();
         }
       });
       thread.start();
-      commandsManager.clear();
+      if (clear) commandsManager.clear();
     }
   }
 
@@ -220,6 +226,16 @@ public class RtspClient {
     if (isStreaming()) {
       rtspSender.sendAudioFrame(aacBuffer, info);
     }
+  }
+
+  public void reConnect(long delay) {
+    disconnect(false);
+    new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
+      @Override
+      public void run() {
+        connect();
+      }
+    }, delay);
   }
 
   public long getDroppedAudioFrames() {
