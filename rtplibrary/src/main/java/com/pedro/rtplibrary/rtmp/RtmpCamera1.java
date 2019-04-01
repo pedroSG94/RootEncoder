@@ -138,6 +138,16 @@ public class RtmpCamera1 extends Camera1Base {
   }
 
   @Override
+  public void setReTries(int reTries) {
+    srsFlvMuxer.setReTries(reTries);
+  }
+
+  @Override
+  public boolean shouldRetry() {
+    return srsFlvMuxer.shouldRetry();
+  }
+
+  @Override
   public void reConnect(long delay) {
     srsFlvMuxer.reConnect(delay);
   }

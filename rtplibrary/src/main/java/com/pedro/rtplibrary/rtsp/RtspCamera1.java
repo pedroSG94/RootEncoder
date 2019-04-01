@@ -140,6 +140,16 @@ public class RtspCamera1 extends Camera1Base {
   }
 
   @Override
+  public void setReTries(int reTries) {
+    rtspClient.setReTries(reTries);
+  }
+
+  @Override
+  public boolean shouldRetry() {
+    return rtspClient.shouldRetry();
+  }
+
+  @Override
   public void reConnect(long delay) {
     rtspClient.reConnect(delay);
   }

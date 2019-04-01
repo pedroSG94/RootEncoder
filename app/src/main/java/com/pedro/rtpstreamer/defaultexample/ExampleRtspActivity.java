@@ -4,7 +4,6 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.View;
@@ -12,7 +11,6 @@ import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
-
 import com.pedro.encoder.input.video.CameraOpenException;
 import com.pedro.rtplibrary.rtsp.RtspCamera1;
 import com.pedro.rtpstreamer.R;
@@ -35,7 +33,6 @@ public class ExampleRtspActivity extends AppCompatActivity
   private Button button;
   private Button bRecord;
   private EditText etUrl;
-  private int retries = 10;
 
   private String currentDateAndTime = "";
   private File folder = new File(Environment.getExternalStorageDirectory().getAbsolutePath()
@@ -56,6 +53,7 @@ public class ExampleRtspActivity extends AppCompatActivity
     etUrl = findViewById(R.id.et_rtp_url);
     etUrl.setHint(R.string.hint_rtsp);
     rtspCamera1 = new RtspCamera1(surfaceView, this);
+    rtspCamera1.setReTries(10);
     surfaceView.getHolder().addCallback(this);
   }
 
@@ -65,7 +63,6 @@ public class ExampleRtspActivity extends AppCompatActivity
       @Override
       public void run() {
         Toast.makeText(ExampleRtspActivity.this, "Connection success", Toast.LENGTH_SHORT).show();
-        retries = 10;
       }
     });
   }
@@ -75,11 +72,10 @@ public class ExampleRtspActivity extends AppCompatActivity
     runOnUiThread(new Runnable() {
       @Override
       public void run() {
-        if (retries > 0) {
-          Toast.makeText(ExampleRtspActivity.this, "Retry: " + retries, Toast.LENGTH_SHORT)
+        if (rtspCamera1.shouldRetry()) {
+          Toast.makeText(ExampleRtspActivity.this, "Retry", Toast.LENGTH_SHORT)
               .show();
-          rtspCamera1.reTry(5000);
-          retries--;
+          rtspCamera1.reTry(5000);  //Wait 5s and retry connect stream
         } else {
           Toast.makeText(ExampleRtspActivity.this, "Connection failed. " + reason, Toast.LENGTH_SHORT)
               .show();
@@ -136,7 +132,6 @@ public class ExampleRtspActivity extends AppCompatActivity
                 Toast.LENGTH_SHORT).show();
           }
         } else {
-          retries = 0;
           button.setText(R.string.start_button);
           rtspCamera1.stopStream();
         }

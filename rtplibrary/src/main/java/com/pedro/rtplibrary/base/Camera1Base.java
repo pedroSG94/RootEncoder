@@ -448,6 +448,11 @@ public abstract class Camera1Base
     reConnect(delay);
   }
 
+  //re connection
+  public abstract void setReTries(int reTries);
+
+  public abstract boolean shouldRetry();
+
   protected abstract void reConnect(long delay);
 
   //cache control

@@ -429,6 +429,13 @@ public abstract class Camera2Base implements GetAacData, GetVideoData, GetMicrop
     }
   }
 
+  //re connection
+  public abstract void setReTries(int reTries);
+
+  public abstract boolean shouldRetry();
+
+  protected abstract void reConnect(long delay);
+
   //cache control
   public abstract void resizeCache(int newSize) throws RuntimeException;
 

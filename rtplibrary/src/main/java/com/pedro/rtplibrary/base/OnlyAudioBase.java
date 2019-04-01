@@ -86,6 +86,13 @@ public abstract class OnlyAudioBase implements GetAacData, GetMicrophoneData {
 
   protected abstract void stopStreamRtp();
 
+  //re connection
+  public abstract void setReTries(int reTries);
+
+  public abstract boolean shouldRetry();
+
+  protected abstract void reConnect(long delay);
+
   //cache control
   public abstract void resizeCache(int newSize) throws RuntimeException;
 

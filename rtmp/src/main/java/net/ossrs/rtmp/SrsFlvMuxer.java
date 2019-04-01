@@ -66,6 +66,11 @@ public class SrsFlvMuxer {
   private boolean isPpsSpsSend = false;
   private byte profileIop = ProfileIop.BASELINE;
   private String url;
+  //re connection
+  private int numRetry;
+  private int reTries;
+  private Handler handler;
+  private Runnable runnable;
 
   private long mAudioFramesSent = 0;
   private long mVideoFramesSent = 0;
@@ -78,6 +83,7 @@ public class SrsFlvMuxer {
   public SrsFlvMuxer(ConnectCheckerRtmp connectCheckerRtmp) {
     this.connectCheckerRtmp = connectCheckerRtmp;
     publisher = new DefaultRtmpPublisher(connectCheckerRtmp);
+    handler = new Handler(Looper.getMainLooper());
   }
 
   public void setProfileIop(byte profileIop) {
@@ -177,19 +183,31 @@ public class SrsFlvMuxer {
     resetDroppedVideoFrames();
 
     if (connectChecker != null) {
+      reTries = 0;
       connectChecker.onDisconnectRtmp();
     }
     Log.i(TAG, "worker: disconnect ok.");
   }
 
+  public void setReTries(int reTries) {
+    numRetry = reTries;
+    this.reTries = reTries;
+  }
+
+  public boolean shouldRetry() {
+    return reTries > 0;
+  }
+
   public void reConnect(final long delay) {
+    reTries--;
     stop(null);
-    new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
+    runnable = new Runnable() {
       @Override
       public void run() {
         start(url);
       }
-    }, delay);
+    };
+    handler.postDelayed(runnable, delay);
   }
 
   private boolean connect(String url) {
@@ -237,6 +255,7 @@ public class SrsFlvMuxer {
         if (!connect(rtmpUrl)) {
           return;
         }
+        reTries = numRetry;
         connectCheckerRtmp.onConnectionSuccessRtmp();
         while (!Thread.interrupted()) {
           try {
@@ -278,6 +297,7 @@ public class SrsFlvMuxer {
    * stop the muxer, disconnect RTMP connection.
    */
   private void stop(final ConnectCheckerRtmp connectCheckerRtmp) {
+    handler.removeCallbacks(runnable);
     if (worker != null) {
       worker.interrupt();
       try {

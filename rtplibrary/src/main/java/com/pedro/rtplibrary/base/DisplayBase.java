@@ -281,6 +281,13 @@ public abstract class DisplayBase implements GetAacData, GetVideoData, GetMicrop
     }
   }
 
+  //re connection
+  public abstract void setReTries(int reTries);
+
+  public abstract boolean shouldRetry();
+
+  protected abstract void reConnect(long delay);
+
   //cache control
   public abstract void resizeCache(int newSize) throws RuntimeException;
 
@@ -381,9 +388,7 @@ public abstract class DisplayBase implements GetAacData, GetVideoData, GetMicrop
    * @param bitrate H264 in kb.
    */
   public void setVideoBitrateOnFly(int bitrate) {
-    if (Build.VERSION.SDK_INT >= 19) {
-      videoEncoder.setVideoBitrateOnFly(bitrate);
-    }
+    videoEncoder.setVideoBitrateOnFly(bitrate);
   }
 
   /**

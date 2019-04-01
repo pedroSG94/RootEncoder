@@ -33,7 +33,6 @@ public class ExampleRtmpActivity extends AppCompatActivity
   private Button button;
   private Button bRecord;
   private EditText etUrl;
-  private int retries = 10;
 
   private String currentDateAndTime = "";
   private File folder = new File(Environment.getExternalStorageDirectory().getAbsolutePath()
@@ -54,6 +53,7 @@ public class ExampleRtmpActivity extends AppCompatActivity
     etUrl = findViewById(R.id.et_rtp_url);
     etUrl.setHint(R.string.hint_rtmp);
     rtmpCamera1 = new RtmpCamera1(surfaceView, this);
+    rtmpCamera1.setReTries(10);
     surfaceView.getHolder().addCallback(this);
   }
 
@@ -72,11 +72,10 @@ public class ExampleRtmpActivity extends AppCompatActivity
     runOnUiThread(new Runnable() {
       @Override
       public void run() {
-        if (retries > 0) {
-          Toast.makeText(ExampleRtmpActivity.this, "Retry: " + retries, Toast.LENGTH_SHORT)
+        if (rtmpCamera1.shouldRetry()) {
+          Toast.makeText(ExampleRtmpActivity.this, "Retry", Toast.LENGTH_SHORT)
               .show();
-          retries--;
-          rtmpCamera1.reTry(5000);
+          rtmpCamera1.reTry(5000);  //Wait 5s and retry connect stream
         } else {
           Toast.makeText(ExampleRtmpActivity.this, "Connection failed. " + reason, Toast.LENGTH_SHORT)
               .show();
@@ -124,7 +123,6 @@ public class ExampleRtmpActivity extends AppCompatActivity
         if (!rtmpCamera1.isStreaming()) {
           if (rtmpCamera1.isRecording()
               || rtmpCamera1.prepareAudio() && rtmpCamera1.prepareVideo()) {
-            retries = 10;
             button.setText(R.string.stop_button);
             rtmpCamera1.startStream("rtmp://10.7.12.216/live/pedro");
           } else {
@@ -132,7 +130,6 @@ public class ExampleRtmpActivity extends AppCompatActivity
                 Toast.LENGTH_SHORT).show();
           }
         } else {
-          retries = 0;
           button.setText(R.string.start_button);
           rtmpCamera1.stopStream();
         }

@@ -114,6 +114,21 @@ public class RtmpDisplay extends DisplayBase {
   }
 
   @Override
+  public void setReTries(int reTries) {
+    srsFlvMuxer.setReTries(reTries);
+  }
+
+  @Override
+  public boolean shouldRetry() {
+    return srsFlvMuxer.shouldRetry();
+  }
+
+  @Override
+  public void reConnect(long delay) {
+    srsFlvMuxer.reConnect(delay);
+  }
+
+  @Override
   protected void getAacDataRtp(ByteBuffer aacBuffer, MediaCodec.BufferInfo info) {
     srsFlvMuxer.sendAudio(aacBuffer, info);
   }

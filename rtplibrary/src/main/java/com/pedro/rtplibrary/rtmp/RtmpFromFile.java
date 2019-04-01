@@ -137,6 +137,21 @@ public class RtmpFromFile extends FromFileBase {
   }
 
   @Override
+  public void setReTries(int reTries) {
+    srsFlvMuxer.setReTries(reTries);
+  }
+
+  @Override
+  public boolean shouldRetry() {
+    return srsFlvMuxer.shouldRetry();
+  }
+
+  @Override
+  public void reConnect(long delay) {
+    srsFlvMuxer.reConnect(delay);
+  }
+
+  @Override
   protected void onSpsPpsVpsRtp(ByteBuffer sps, ByteBuffer pps, ByteBuffer vps) {
     srsFlvMuxer.setSpsPPs(sps, pps);
   }

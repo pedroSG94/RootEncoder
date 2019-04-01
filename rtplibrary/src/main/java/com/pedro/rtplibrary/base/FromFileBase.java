@@ -232,7 +232,7 @@ public abstract class FromFileBase
   }
 
   private void prepareGlView() {
-    if (glInterface != null && Build.VERSION.SDK_INT >= 18) {
+    if (glInterface != null) {
       if (glInterface instanceof OffScreenGlThread) {
         glInterface = new OffScreenGlThread(context);
         glInterface.init();
@@ -276,6 +276,13 @@ public abstract class FromFileBase
   }
 
   protected abstract void stopStreamRtp();
+
+  //re connection
+  public abstract void setReTries(int reTries);
+
+  public abstract boolean shouldRetry();
+
+  protected abstract void reConnect(long delay);
 
   //cache control
   public abstract void resizeCache(int newSize) throws RuntimeException;

@@ -113,6 +113,21 @@ public class RtspDisplay extends DisplayBase {
   }
 
   @Override
+  public void setReTries(int reTries) {
+    rtspClient.setReTries(reTries);
+  }
+
+  @Override
+  public boolean shouldRetry() {
+    return rtspClient.shouldRetry();
+  }
+
+  @Override
+  public void reConnect(long delay) {
+    rtspClient.reConnect(delay);
+  }
+
+  @Override
   protected void getAacDataRtp(ByteBuffer aacBuffer, MediaCodec.BufferInfo info) {
     rtspClient.sendAudio(aacBuffer, info);
   }

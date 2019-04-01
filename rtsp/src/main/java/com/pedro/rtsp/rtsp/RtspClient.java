@@ -42,11 +42,16 @@ public class RtspClient {
   private boolean tlsEnabled = false;
   private RtspSender rtspSender;
   private CommandsManager commandsManager;
+  private int numRetry;
+  private int reTries;
+  private Handler handler;
+  private Runnable runnable;
 
   public RtspClient(ConnectCheckerRtsp connectCheckerRtsp) {
     this.connectCheckerRtsp = connectCheckerRtsp;
     commandsManager = new CommandsManager();
     rtspSender = new RtspSender(connectCheckerRtsp);
+    handler = new Handler(Looper.getMainLooper());
   }
 
   public void setProtocol(Protocol protocol) {
@@ -55,6 +60,15 @@ public class RtspClient {
 
   public void setAuthorization(String user, String password) {
     commandsManager.setAuth(user, password);
+  }
+
+  public void setReTries(int reTries) {
+    numRetry = reTries;
+    this.reTries = reTries;
+  }
+
+  public boolean shouldRetry() {
+    return reTries > 0;
   }
 
   public boolean isStreaming() {
@@ -140,7 +154,6 @@ public class RtspClient {
               Log.e(TAG, "Response 403, access denied");
               return;
             } else if (status == 401) {
-              Log.e("pedro", commandsManager.getUser() + "- -" + commandsManager.getPassword());
               if (commandsManager.getUser() == null || commandsManager.getPassword() == null) {
                 connectCheckerRtsp.onAuthErrorRtsp();
                 return;
@@ -179,6 +192,7 @@ public class RtspClient {
             rtspSender.setAudioPorts(audioPorts[0], audioPorts[1]);
             rtspSender.start();
             streaming = true;
+            reTries = numRetry;
             connectCheckerRtsp.onConnectionSuccessRtsp();
           } catch (IOException | NullPointerException e) {
             Log.e(TAG, "connection error", e);
@@ -192,27 +206,31 @@ public class RtspClient {
   }
 
   public void disconnect() {
+    handler.removeCallbacks(runnable);
     disconnect(true);
   }
 
   private void disconnect(final boolean clear) {
-    if (streaming) {
-      streaming = false;
-      rtspSender.stop();
-      thread = new Thread(new Runnable() {
-        @Override
-        public void run() {
-          try {
-            writer.write(commandsManager.createTeardown());
-            connectionSocket.close();
-          } catch (IOException e) {
-            Log.e(TAG, "disconnect error", e);
-          }
-          if (clear) connectCheckerRtsp.onDisconnectRtsp();
+    streaming = false;
+    rtspSender.stop();
+    thread = new Thread(new Runnable() {
+      @Override
+      public void run() {
+        try {
+          if (writer != null) writer.write(commandsManager.createTeardown());
+          if (connectionSocket != null) connectionSocket.close();
+          writer = null;
+          connectionSocket = null;
+        } catch (IOException e) {
+          Log.e(TAG, "disconnect error", e);
         }
-      });
-      thread.start();
-      if (clear) commandsManager.clear();
+      }
+    });
+    thread.start();
+    if (clear) {
+      reTries = 0;
+      commandsManager.clear();
+      connectCheckerRtsp.onDisconnectRtsp();
     }
   }
 
@@ -229,13 +247,15 @@ public class RtspClient {
   }
 
   public void reConnect(long delay) {
+    reTries--;
     disconnect(false);
-    new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
+    runnable = new Runnable() {
       @Override
       public void run() {
         connect();
       }
-    }, delay);
+    };
+    handler.postDelayed(runnable, delay);
   }
 
   public long getDroppedAudioFrames() {
