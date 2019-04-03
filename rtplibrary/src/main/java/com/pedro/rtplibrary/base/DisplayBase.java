@@ -284,7 +284,7 @@ public abstract class DisplayBase implements GetAacData, GetVideoData, GetMicrop
   //re connection
   public abstract void setReTries(int reTries);
 
-  public abstract boolean shouldRetry();
+  public abstract boolean shouldRetry(String reason);
 
   protected abstract void reConnect(long delay);
 

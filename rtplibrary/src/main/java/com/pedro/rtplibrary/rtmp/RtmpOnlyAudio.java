@@ -98,8 +98,8 @@ public class RtmpOnlyAudio extends OnlyAudioBase {
   }
 
   @Override
-  public boolean shouldRetry() {
-    return srsFlvMuxer.shouldRetry();
+  public boolean shouldRetry(String reason) {
+    return srsFlvMuxer.shouldRetry(reason);
   }
 
   @Override

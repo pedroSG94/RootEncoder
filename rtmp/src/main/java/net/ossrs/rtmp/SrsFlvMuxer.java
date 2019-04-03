@@ -194,8 +194,9 @@ public class SrsFlvMuxer {
     this.reTries = reTries;
   }
 
-  public boolean shouldRetry() {
-    return reTries > 0;
+  public boolean shouldRetry(String reason) {
+    boolean validReason = !reason.contains("Endpoint malformed");
+    return validReason && reTries > 0;
   }
 
   public void reConnect(final long delay) {

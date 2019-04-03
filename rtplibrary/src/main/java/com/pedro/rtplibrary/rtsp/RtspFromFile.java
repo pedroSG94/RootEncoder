@@ -141,8 +141,8 @@ public class RtspFromFile extends FromFileBase {
   }
 
   @Override
-  public boolean shouldRetry() {
-    return rtspClient.shouldRetry();
+  public boolean shouldRetry(String reason) {
+    return rtspClient.shouldRetry(reason);
   }
 
   @Override

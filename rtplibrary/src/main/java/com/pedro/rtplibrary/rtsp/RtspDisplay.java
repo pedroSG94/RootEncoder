@@ -118,8 +118,8 @@ public class RtspDisplay extends DisplayBase {
   }
 
   @Override
-  public boolean shouldRetry() {
-    return rtspClient.shouldRetry();
+  public boolean shouldRetry(String reason) {
+    return rtspClient.shouldRetry(reason);
   }
 
   @Override
