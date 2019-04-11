@@ -145,7 +145,6 @@ public class AudioEncoder implements GetMicrophoneData {
       } else if (outBufferIndex >= 0) {
         //This ByteBuffer is AAC
         ByteBuffer bb = audioEncoder.getOutputBuffer(outBufferIndex);
-        audioInfo.presentationTimeUs = System.nanoTime() / 1000 - presentTimeUs;
         getAacData.getAacData(bb, audioInfo);
         audioEncoder.releaseOutputBuffer(outBufferIndex, false);
       } else {
@@ -174,7 +173,6 @@ public class AudioEncoder implements GetMicrophoneData {
       } else if (outBufferIndex >= 0) {
         //This ByteBuffer is AAC
         ByteBuffer bb = outputBuffers[outBufferIndex];
-        audioInfo.presentationTimeUs = System.nanoTime() / 1000 - presentTimeUs;
         getAacData.getAacData(bb, audioInfo);
         audioEncoder.releaseOutputBuffer(outBufferIndex, false);
       } else {
