@@ -35,9 +35,7 @@ public class ManagerRender {
     screenRender = new ScreenRender();
   }
 
-  public void initGl(int width, int height, Context context) {
-    this.width = width;
-    this.height = height;
+  public void initGl(Context context) {
     this.context = context;
     cameraRender.initGl(width, height, context);
     for (int i = 0; i < numFilters; i++) {
@@ -96,6 +94,8 @@ public class ManagerRender {
   }
 
   public void setStreamSize(int encoderWidth, int encoderHeight) {
+    this.width = encoderWidth;
+    this.height = encoderHeight;
     screenRender.setStreamSize(encoderWidth, encoderHeight);
   }
 

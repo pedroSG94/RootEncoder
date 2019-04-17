@@ -163,7 +163,7 @@ public class OffScreenGlThread
     surfaceManager = new SurfaceManager();
     surfaceManager.makeCurrent();
     textureManager.setStreamSize(encoderWidth, encoderHeight);
-    textureManager.initGl(encoderWidth, encoderHeight, context);
+    textureManager.initGl(context);
     textureManager.getSurfaceTexture().setOnFrameAvailableListener(this);
     semaphore.release();
     try {
