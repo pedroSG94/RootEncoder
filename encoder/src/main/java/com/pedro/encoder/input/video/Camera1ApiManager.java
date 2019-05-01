@@ -129,6 +129,7 @@ public class Camera1ApiManager implements Camera.PreviewCallback, Camera.FaceDet
       isPortrait = context.getResources().getConfiguration().orientation
           == Configuration.ORIENTATION_PORTRAIT;
       Camera.Parameters parameters = camera.getParameters();
+      parameters.setRecordingHint(true);
       parameters.setPreviewSize(width, height);
       parameters.setPreviewFormat(imageFormat);
       int[] range = adaptFpsRange(fps, parameters.getSupportedPreviewFpsRange());
