@@ -6,7 +6,7 @@ import android.graphics.RectF;
 import android.hardware.Camera;
 import android.hardware.camera2.params.Face;
 import android.os.Build;
-import android.support.annotation.RequiresApi;
+import androidx.annotation.RequiresApi;
 import android.view.View;
 
 /**

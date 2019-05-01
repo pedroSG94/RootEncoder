@@ -3,7 +3,7 @@ package com.pedro.encoder.input.gl.render.filters.object;
 import android.graphics.Bitmap;
 import android.opengl.GLES20;
 import android.os.Build;
-import android.support.annotation.RequiresApi;
+import androidx.annotation.RequiresApi;
 import com.pedro.encoder.utils.gl.ImageStreamObject;
 
 /**
