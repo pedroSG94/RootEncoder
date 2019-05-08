@@ -402,6 +402,22 @@ public class Camera1ApiManager implements Camera.PreviewCallback, Camera.FaceDet
     }
   }
 
+  public void enableRecordingHint() {
+    if (camera != null) {
+      Camera.Parameters parameters = camera.getParameters();
+      parameters.setRecordingHint(true);
+      camera.setParameters(parameters);
+    }
+  }
+
+  public void disableRecordingHint() {
+    if (camera != null) {
+      Camera.Parameters parameters = camera.getParameters();
+      parameters.setRecordingHint(false);
+      camera.setParameters(parameters);
+    }
+  }
+
   public void enableFaceDetection(FaceDetectorCallback faceDetectorCallback) {
     if (camera != null) {
       this.faceDetectorCallback = faceDetectorCallback;
