@@ -29,7 +29,8 @@ public abstract class BaseRenderOffScreen {
   protected int width;
   protected int height;
 
-  public abstract void initGl(int width, int height, Context context);
+  public abstract void initGl(int width, int height, Context context, int previewWidth,
+      int previewHeight);
 
   public abstract void draw();
 

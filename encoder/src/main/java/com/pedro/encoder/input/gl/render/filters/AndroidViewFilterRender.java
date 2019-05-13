@@ -79,7 +79,7 @@ public class AndroidViewFilterRender extends BaseFilterRender {
 
   @Override
   protected void drawFilter() {
-    surfaceTexture.setDefaultBufferSize(getWidth(), getHeight());
+    surfaceTexture.setDefaultBufferSize(getPreviewWidth(), getPreviewHeight());
     if (view != null) {
       mainHandler.post(new Runnable() {
         @Override

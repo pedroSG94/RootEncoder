@@ -47,7 +47,8 @@ public class CameraRender extends BaseRenderOffScreen {
   }
 
   @Override
-  public void initGl(int width, int height, Context context) {
+  public void initGl(int width, int height, Context context, int previewWidth,
+      int previewHeight) {
     this.width = width;
     this.height = height;
     GlUtil.checkGlError("initGl start");

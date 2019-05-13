@@ -17,13 +17,18 @@ public abstract class BaseFilterRender extends BaseRenderOffScreen {
 
   private int width;
   private int height;
+  private int previewWidth;
+  private int previewHeight;
 
   protected int previousTexId;
   private RenderHandler renderHandler = new RenderHandler();
 
-  public void initGl(int width, int height, Context context) {
+  public void initGl(int width, int height, Context context, int previewWidth,
+      int previewHeight) {
     this.width = width;
     this.height = height;
+    this.previewWidth = previewWidth;
+    this.previewHeight = previewHeight;
     GlUtil.checkGlError("initGl start");
     initGlFilter(context);
     GlUtil.checkGlError("initGl end");
@@ -63,6 +68,14 @@ public abstract class BaseFilterRender extends BaseRenderOffScreen {
 
   protected int getHeight() {
     return height;
+  }
+
+  public int getPreviewWidth() {
+    return previewWidth;
+  }
+
+  public int getPreviewHeight() {
+    return previewHeight;
   }
 
   public int getPreviousTexId() {

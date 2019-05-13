@@ -27,6 +27,8 @@ public class ManagerRender {
 
   private int width;
   private int height;
+  private int previewWidth;
+  private int previewHeight;
   private Context context;
 
   public ManagerRender() {
@@ -35,15 +37,21 @@ public class ManagerRender {
     screenRender = new ScreenRender();
   }
 
-  public void initGl(Context context) {
+  public void initGl(Context context, int encoderWidth, int encoderHeight, int previewWidth,
+      int previewHeight) {
     this.context = context;
-    cameraRender.initGl(width, height, context);
+    this.width = encoderWidth;
+    this.height = encoderHeight;
+    this.previewWidth = previewWidth;
+    this.previewHeight = previewHeight;
+    cameraRender.initGl(width, height, context, previewWidth, previewHeight);
     for (int i = 0; i < numFilters; i++) {
       int textId = i == 0 ? cameraRender.getTexId() : baseFilterRender.get(i - 1).getTexId();
       baseFilterRender.get(i).setPreviousTexId(textId);
-      baseFilterRender.get(i).initGl(width, height, context);
+      baseFilterRender.get(i).initGl(width, height, context, previewWidth, previewHeight);
       baseFilterRender.get(i).initFBOLink();
     }
+    screenRender.setStreamSize(encoderWidth, encoderHeight);
     screenRender.setTexId(baseFilterRender.get(numFilters - 1).getTexId());
     screenRender.initGl(context);
   }
@@ -88,15 +96,9 @@ public class ManagerRender {
     final RenderHandler renderHandler = this.baseFilterRender.get(position).getRenderHandler();
     this.baseFilterRender.get(position).release();
     this.baseFilterRender.set(position, baseFilterRender);
-    this.baseFilterRender.get(position).initGl(width, height, context);
+    this.baseFilterRender.get(position).initGl(width, height, context, previewWidth, previewHeight);
     this.baseFilterRender.get(position).setPreviousTexId(id);
     this.baseFilterRender.get(position).setRenderHandler(renderHandler);
-  }
-
-  public void setStreamSize(int encoderWidth, int encoderHeight) {
-    this.width = encoderWidth;
-    this.height = encoderHeight;
-    screenRender.setStreamSize(encoderWidth, encoderHeight);
   }
 
   public void setCameraRotation(int rotation) {
