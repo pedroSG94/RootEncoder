@@ -119,7 +119,9 @@ public class SimpleCameraRender {
   /**
    * Initializes GL state.  Call this after the EGL surface has been created and made current.
    */
-  public void initGl(Context context) {
+  public void initGl(Context context, int streamWidth, int streamHeight) {
+    this.streamWidth = streamWidth;
+    this.streamHeight = streamHeight;
     GlUtil.checkGlError("initGl start");
     String vertexShader = GlUtil.getStringFromRaw(context, R.raw.simple_vertex);
     String fragmentShader = GlUtil.getStringFromRaw(context, R.raw.camera_fragment);
@@ -135,6 +137,7 @@ public class SimpleCameraRender {
     textureID = texturesID[0];
 
     surfaceTexture = new SurfaceTexture(textureID);
+    surfaceTexture.setDefaultBufferSize(streamWidth, streamHeight);
     surface = new Surface(surfaceTexture);
     GlUtil.checkGlError("initGl end");
   }
@@ -143,11 +146,6 @@ public class SimpleCameraRender {
     GLES20.glDeleteProgram(program);
     surfaceTexture = null;
     surface = null;
-  }
-
-  public void setStreamSize(int streamWidth, int streamHeight) {
-    this.streamWidth = streamWidth;
-    this.streamHeight = streamHeight;
   }
 
   public void setFlip(boolean isFlipHorizontal, boolean isFlipVertical) {

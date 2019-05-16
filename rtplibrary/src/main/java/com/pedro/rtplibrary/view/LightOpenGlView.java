@@ -66,8 +66,7 @@ public class LightOpenGlView extends OpenGlViewBase {
     releaseSurfaceManager();
     surfaceManager = new SurfaceManager(getHolder().getSurface());
     surfaceManager.makeCurrent();
-    simpleCameraRender.setStreamSize(encoderWidth, encoderHeight);
-    simpleCameraRender.initGl(getContext());
+    simpleCameraRender.initGl(getContext(), encoderWidth, encoderHeight);
     simpleCameraRender.getSurfaceTexture().setOnFrameAvailableListener(this);
     semaphore.release();
     while (running) {
