@@ -170,7 +170,7 @@ public abstract class Camera1Base
    */
   public boolean prepareVideo(int width, int height, int fps, int bitrate, boolean hardwareRotation,
       int iFrameInterval, int rotation) {
-    if (onPreview) {
+    if (onPreview && width != cameraManager.getWidth() || height != cameraManager.getHeight()) {
       stopPreview();
       onPreview = true;
     }
@@ -383,7 +383,9 @@ public abstract class Camera1Base
     prepareGlView();
     microphoneManager.start();
     cameraManager.setRotation(videoEncoder.getRotation());
-    cameraManager.start(videoEncoder.getWidth(), videoEncoder.getHeight(), videoEncoder.getFps());
+    if (!cameraManager.isRunning()) {
+      cameraManager.start(videoEncoder.getWidth(), videoEncoder.getHeight(), videoEncoder.getFps());
+    }
     onPreview = true;
   }
 
@@ -410,7 +412,7 @@ public abstract class Camera1Base
         glInterface.setEncoderSize(videoEncoder.getWidth(), videoEncoder.getHeight());
       }
       glInterface.setRotation(0);
-      glInterface.start();
+      if (!cameraManager.isRunning()) glInterface.start();
       if (videoEncoder.getInputSurface() != null) {
         glInterface.addMediaCodecSurface(videoEncoder.getInputSurface());
       }

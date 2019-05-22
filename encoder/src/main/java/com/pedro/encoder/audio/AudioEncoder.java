@@ -69,7 +69,8 @@ public class AudioEncoder implements GetMicrophoneData {
       }
 
       int channelCount = (isStereo) ? 2 : 1;
-      MediaFormat audioFormat = MediaFormat.createAudioFormat(CodecUtil.AAC_MIME, sampleRate, channelCount);
+      MediaFormat audioFormat =
+          MediaFormat.createAudioFormat(CodecUtil.AAC_MIME, sampleRate, channelCount);
       audioFormat.setInteger(MediaFormat.KEY_BIT_RATE, bitRate);
       audioFormat.setInteger(MediaFormat.KEY_MAX_INPUT_SIZE, 0);
       audioFormat.setInteger(MediaFormat.KEY_AAC_PROFILE,
@@ -104,6 +105,7 @@ public class AudioEncoder implements GetMicrophoneData {
   public void stop() {
     running = false;
     if (audioEncoder != null) {
+      audioEncoder.flush();
       audioEncoder.stop();
       audioEncoder.release();
       audioEncoder = null;
@@ -138,7 +140,7 @@ public class AudioEncoder implements GetMicrophoneData {
       audioEncoder.queueInputBuffer(inBufferIndex, 0, size, pts, 0);
     }
 
-    for (; ; ) {
+    for (; running; ) {
       int outBufferIndex = audioEncoder.dequeueOutputBuffer(audioInfo, 0);
       if (outBufferIndex == MediaCodec.INFO_OUTPUT_FORMAT_CHANGED) {
         getAacData.onAudioFormat(audioEncoder.getOutputFormat());
@@ -166,7 +168,7 @@ public class AudioEncoder implements GetMicrophoneData {
       audioEncoder.queueInputBuffer(inBufferIndex, 0, size, pts, 0);
     }
 
-    for (; ; ) {
+    for (; running; ) {
       int outBufferIndex = audioEncoder.dequeueOutputBuffer(audioInfo, 0);
       if (outBufferIndex == MediaCodec.INFO_OUTPUT_FORMAT_CHANGED) {
         getAacData.onAudioFormat(audioEncoder.getOutputFormat());
@@ -187,8 +189,11 @@ public class AudioEncoder implements GetMicrophoneData {
       String name = mediaCodecInfo.getName().toLowerCase();
       if (!name.contains("omx.google")) return mediaCodecInfo;
     }
-    if (mediaCodecInfoList.size() > 0) return mediaCodecInfoList.get(0);
-    else return null;
+    if (mediaCodecInfoList.size() > 0) {
+      return mediaCodecInfoList.get(0);
+    } else {
+      return null;
+    }
   }
 
   public void setSampleRate(int sampleRate) {

@@ -97,6 +97,14 @@ public class Camera1ApiManager implements Camera.PreviewCallback, Camera.FaceDet
     this.surfaceTexture = surfaceTexture;
   }
 
+  public int getWidth() {
+    return width;
+  }
+
+  public int getHeight() {
+    return height;
+  }
+
   public void start(CameraHelper.Facing cameraFacing, int width, int height, int fps) {
     int facing = cameraFacing == CameraHelper.Facing.BACK ? Camera.CameraInfo.CAMERA_FACING_BACK
         : Camera.CameraInfo.CAMERA_FACING_FRONT;

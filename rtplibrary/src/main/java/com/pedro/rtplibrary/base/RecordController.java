@@ -47,8 +47,10 @@ public class RecordController {
   public void stopRecord() {
     status = Status.STOPPED;
     if (mediaMuxer != null) {
-      mediaMuxer.stop();
-      mediaMuxer.release();
+      try {
+        mediaMuxer.stop();
+        mediaMuxer.release();
+      } catch (Exception ignored) { }
     }
     mediaMuxer = null;
     videoTrack = -1;
