@@ -57,6 +57,7 @@ public abstract class Camera2Base implements GetAacData, GetVideoData, GetMicrop
   private boolean onPreview = false;
   private boolean isBackground = false;
   private RecordController recordController;
+  private int previewWidth, previewHeight;
 
   public Camera2Base(SurfaceView surfaceView) {
     this.surfaceView = surfaceView;
@@ -168,7 +169,7 @@ public abstract class Camera2Base implements GetAacData, GetVideoData, GetMicrop
    */
   public boolean prepareVideo(int width, int height, int fps, int bitrate, boolean hardwareRotation,
       int iFrameInterval, int rotation) {
-    if (onPreview) {
+    if (onPreview && !(glInterface != null && width == previewWidth && height == previewHeight)) {
       stopPreview();
       onPreview = true;
     }
@@ -276,6 +277,8 @@ public abstract class Camera2Base implements GetAacData, GetVideoData, GetMicrop
    * com.pedro.encoder.input.video.CameraHelper#getCameraOrientation(Context)}
    */
   public void startPreview(CameraHelper.Facing cameraFacing, int width, int height, int rotation) {
+    previewWidth = width;
+    previewHeight = height;
     if (!isStreaming() && !onPreview && !isBackground) {
       if (surfaceView != null) {
         cameraManager.prepareCamera(surfaceView.getHolder().getSurface());
@@ -326,6 +329,8 @@ public abstract class Camera2Base implements GetAacData, GetVideoData, GetMicrop
       }
       cameraManager.closeCamera(false);
       onPreview = false;
+      previewWidth = 0;
+      previewHeight = 0;
     }
   }
 
@@ -357,10 +362,13 @@ public abstract class Camera2Base implements GetAacData, GetVideoData, GetMicrop
     audioEncoder.start();
     prepareGlView();
     microphoneManager.start();
-    if (onPreview) {
-      cameraManager.openLastCamera();
-    } else {
-      cameraManager.openCameraBack();
+    if (glInterface == null && !cameraManager.isRunning() && videoEncoder.getWidth() != previewWidth
+        || videoEncoder.getHeight() != previewHeight) {
+      if (onPreview) {
+        cameraManager.openLastCamera();
+      } else {
+        cameraManager.openCameraBack();
+      }
     }
     onPreview = true;
   }
@@ -393,7 +401,10 @@ public abstract class Camera2Base implements GetAacData, GetVideoData, GetMicrop
       }
       int rotation = videoEncoder.getRotation();
       glInterface.setRotation(rotation == 0 ? 270 : rotation - 90);
-      glInterface.start();
+      if (!cameraManager.isRunning() && videoEncoder.getWidth() != previewWidth
+          || videoEncoder.getHeight() != previewHeight) {
+        glInterface.start();
+      }
       if (videoEncoder.getInputSurface() != null) {
         glInterface.addMediaCodecSurface(videoEncoder.getInputSurface());
       }
@@ -556,7 +567,6 @@ public abstract class Camera2Base implements GetAacData, GetVideoData, GetMicrop
    * Use this method if you use a zoom slider.
    *
    * @param level Expected to be >= 1 and <= max zoom level
-   *
    * @see Camera2Base#getMaxZoom()
    */
   public void setZoom(float level) {
@@ -653,7 +663,7 @@ public abstract class Camera2Base implements GetAacData, GetVideoData, GetMicrop
    * @return true if recording, false if not recoding.
    */
   public boolean isRecording() {
-    return recordController.isRecording();
+    return recordController.isRunning();
   }
 
   public void pauseRecord() {

@@ -432,7 +432,7 @@ public abstract class FromFileBase
    * @return true if recording, false if not recoding.
    */
   public boolean isRecording() {
-    return recordController.isRecording();
+    return recordController.isRunning();
   }
 
   public void pauseRecord() {

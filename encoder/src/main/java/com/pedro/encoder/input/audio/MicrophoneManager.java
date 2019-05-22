@@ -127,8 +127,8 @@ public class MicrophoneManager {
       } catch (InterruptedException e) {
         thread.interrupt();
       }
+      thread = null;
     }
-    thread = null;
     if (audioRecord != null) {
       audioRecord.setRecordPositionUpdateListener(null);
       audioRecord.stop();

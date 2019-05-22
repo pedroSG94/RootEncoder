@@ -59,6 +59,7 @@ public abstract class Camera1Base
   private boolean videoEnabled = true;
   private boolean onPreview = false;
   private RecordController recordController;
+  private int previewWidth, previewHeight;
 
   public Camera1Base(SurfaceView surfaceView) {
     context = surfaceView.getContext();
@@ -170,7 +171,7 @@ public abstract class Camera1Base
    */
   public boolean prepareVideo(int width, int height, int fps, int bitrate, boolean hardwareRotation,
       int iFrameInterval, int rotation) {
-    if (onPreview && width != cameraManager.getWidth() || height != cameraManager.getHeight()) {
+    if (onPreview && width != previewWidth || height != previewHeight) {
       stopPreview();
       onPreview = true;
     }
@@ -258,8 +259,7 @@ public abstract class Camera1Base
   }
 
   @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
-  public void startRecord(final String path)
-      throws IOException {
+  public void startRecord(final String path) throws IOException {
     startRecord(path, null);
   }
 
@@ -283,6 +283,8 @@ public abstract class Camera1Base
    * com.pedro.encoder.input.video.CameraHelper#getCameraOrientation(Context)}
    */
   public void startPreview(CameraHelper.Facing cameraFacing, int width, int height, int rotation) {
+    previewWidth = width;
+    previewHeight = height;
     if (!isStreaming() && !onPreview && !(glInterface instanceof OffScreenGlThread)) {
       if (glInterface != null && Build.VERSION.SDK_INT >= 18) {
         boolean isPortrait = context.getResources().getConfiguration().orientation == 1;
@@ -331,6 +333,8 @@ public abstract class Camera1Base
       }
       cameraManager.stop();
       onPreview = false;
+      previewWidth = 0;
+      previewHeight = 0;
     } else {
       Log.e(TAG, "Streaming or preview stopped, ignored");
     }
@@ -383,7 +387,8 @@ public abstract class Camera1Base
     prepareGlView();
     microphoneManager.start();
     cameraManager.setRotation(videoEncoder.getRotation());
-    if (!cameraManager.isRunning()) {
+    if (!cameraManager.isRunning() && videoEncoder.getWidth() != previewWidth
+        || videoEncoder.getHeight() != previewHeight) {
       cameraManager.start(videoEncoder.getWidth(), videoEncoder.getHeight(), videoEncoder.getFps());
     }
     onPreview = true;
@@ -412,7 +417,8 @@ public abstract class Camera1Base
         glInterface.setEncoderSize(videoEncoder.getWidth(), videoEncoder.getHeight());
       }
       glInterface.setRotation(0);
-      if (!cameraManager.isRunning()) glInterface.start();
+      if (!cameraManager.isRunning() && videoEncoder.getWidth() != previewWidth
+          || videoEncoder.getHeight() != previewHeight) glInterface.start();
       if (videoEncoder.getInputSurface() != null) {
         glInterface.addMediaCodecSurface(videoEncoder.getInputSurface());
       }
@@ -624,7 +630,7 @@ public abstract class Camera1Base
    * @return true if recording, false if not recoding.
    */
   public boolean isRecording() {
-    return recordController.isRecording();
+    return recordController.isRunning();
   }
 
   public void pauseRecord() {
