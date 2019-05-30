@@ -283,9 +283,9 @@ public abstract class Camera1Base
    * com.pedro.encoder.input.video.CameraHelper#getCameraOrientation(Context)}
    */
   public void startPreview(CameraHelper.Facing cameraFacing, int width, int height, int rotation) {
-    previewWidth = width;
-    previewHeight = height;
     if (!isStreaming() && !onPreview && !(glInterface instanceof OffScreenGlThread)) {
+      previewWidth = width;
+      previewHeight = height;
       if (glInterface != null && Build.VERSION.SDK_INT >= 18) {
         boolean isPortrait = context.getResources().getConfiguration().orientation == 1;
         if (isPortrait) {

@@ -277,9 +277,9 @@ public abstract class Camera2Base implements GetAacData, GetVideoData, GetMicrop
    * com.pedro.encoder.input.video.CameraHelper#getCameraOrientation(Context)}
    */
   public void startPreview(CameraHelper.Facing cameraFacing, int width, int height, int rotation) {
-    previewWidth = width;
-    previewHeight = height;
     if (!isStreaming() && !onPreview && !isBackground) {
+      previewWidth = width;
+      previewHeight = height;
       if (surfaceView != null) {
         cameraManager.prepareCamera(surfaceView.getHolder().getSurface());
       } else if (textureView != null) {
