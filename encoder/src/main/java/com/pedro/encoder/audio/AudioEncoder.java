@@ -41,7 +41,8 @@ public class AudioEncoder implements GetMicrophoneData {
   /**
    * Prepare encoder with custom parameters
    */
-  public boolean prepareAudioEncoder(int bitRate, int sampleRate, boolean isStereo) {
+  public boolean prepareAudioEncoder(int bitRate, int sampleRate, boolean isStereo,
+      int maxInputSize) {
     this.sampleRate = sampleRate;
     try {
       List<MediaCodecInfo> encoders = new ArrayList<>();
@@ -72,7 +73,7 @@ public class AudioEncoder implements GetMicrophoneData {
       MediaFormat audioFormat =
           MediaFormat.createAudioFormat(CodecUtil.AAC_MIME, sampleRate, channelCount);
       audioFormat.setInteger(MediaFormat.KEY_BIT_RATE, bitRate);
-      audioFormat.setInteger(MediaFormat.KEY_MAX_INPUT_SIZE, 0);
+      audioFormat.setInteger(MediaFormat.KEY_MAX_INPUT_SIZE, maxInputSize);
       audioFormat.setInteger(MediaFormat.KEY_AAC_PROFILE,
           MediaCodecInfo.CodecProfileLevel.AACObjectLC);
       audioEncoder.configure(audioFormat, null, null, MediaCodec.CONFIGURE_FLAG_ENCODE);
@@ -92,7 +93,7 @@ public class AudioEncoder implements GetMicrophoneData {
    * Prepare encoder with default parameters
    */
   public boolean prepareAudioEncoder() {
-    return prepareAudioEncoder(bitRate, sampleRate, isStereo);
+    return prepareAudioEncoder(bitRate, sampleRate, isStereo, 0);
   }
 
   public void start() {

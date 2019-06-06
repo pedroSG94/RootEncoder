@@ -143,7 +143,7 @@ public abstract class FromFileBase
     audioDecoder = new AudioDecoder(this, audioDecoderInterface, this);
     if (!audioDecoder.initExtractor(filePath)) return false;
     boolean result = audioEncoder.prepareAudioEncoder(bitRate, audioDecoder.getSampleRate(),
-        audioDecoder.isStereo());
+        audioDecoder.isStereo(), 0);
     prepareAudioRtp(audioDecoder.isStereo(), audioDecoder.getSampleRate());
     audioDecoder.prepareAudio();
     if (glInterface != null && !(glInterface instanceof OffScreenGlThread)) {
