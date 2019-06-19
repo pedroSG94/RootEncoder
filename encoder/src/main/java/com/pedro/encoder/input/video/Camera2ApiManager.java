@@ -18,8 +18,8 @@ import android.hardware.camera2.params.StreamConfigurationMap;
 import android.os.Build;
 import android.os.Handler;
 import android.os.HandlerThread;
-import android.support.annotation.NonNull;
-import android.support.annotation.RequiresApi;
+import androidx.annotation.NonNull;
+import androidx.annotation.RequiresApi;
 import android.util.Log;
 import android.util.Size;
 import android.view.MotionEvent;
@@ -27,7 +27,6 @@ import android.view.Surface;
 import android.view.SurfaceView;
 import android.view.TextureView;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -132,7 +131,7 @@ public class Camera2ApiManager extends CameraDevice.StateCallback {
           try {
             if (surfaceView != null || textureView != null) {
               cameraCaptureSession.setRepeatingBurst(
-                  Arrays.asList(drawSurface(preview), drawSurface(surfaceEncoder)),
+                  Collections.singletonList(drawSurface(preview, surfaceEncoder)),
                   faceDetectionEnabled ? cb : null, cameraHandler);
             } else {
               cameraCaptureSession.setRepeatingBurst(
@@ -167,10 +166,10 @@ public class Camera2ApiManager extends CameraDevice.StateCallback {
     return surface;
   }
 
-  private CaptureRequest drawSurface(Surface surface) {
+  private CaptureRequest drawSurface(Surface... surfaces) {
     try {
       builderInputSurface = cameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_PREVIEW);
-      builderInputSurface.addTarget(surface);
+      for (Surface surface : surfaces) builderInputSurface.addTarget(surface);
       return builderInputSurface.build();
     } catch (CameraAccessException | IllegalStateException e) {
       Log.e(TAG, "Error", e);

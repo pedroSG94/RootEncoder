@@ -3,7 +3,7 @@ package com.pedro.rtplibrary.rtsp;
 import android.content.Context;
 import android.media.MediaCodec;
 import android.os.Build;
-import android.support.annotation.RequiresApi;
+import androidx.annotation.RequiresApi;
 import com.pedro.encoder.utils.CodecUtil;
 import com.pedro.rtplibrary.base.DisplayBase;
 import com.pedro.rtsp.rtsp.Protocol;

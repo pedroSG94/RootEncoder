@@ -1,7 +1,7 @@
 package com.pedro.rtpstreamer.utils;
 
 import android.content.res.Resources;
-import android.support.v4.content.res.ResourcesCompat;
+import androidx.core.content.res.ResourcesCompat;
 import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.View;

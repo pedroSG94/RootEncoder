@@ -7,7 +7,7 @@ import android.opengl.Matrix;
 import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
-import android.support.annotation.RequiresApi;
+import androidx.annotation.RequiresApi;
 import com.pedro.encoder.R;
 import com.pedro.encoder.input.gl.Sprite;
 import com.pedro.encoder.input.gl.TextureLoader;
