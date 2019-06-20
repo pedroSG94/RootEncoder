@@ -33,6 +33,7 @@ public class AudioEncoder implements GetMicrophoneData {
   private int bitRate = 64 * 1024;  //in kbps
   private int sampleRate = 32000; //in hz
   private boolean isStereo = true;
+  private boolean canFlush = false;
 
   public AudioEncoder(GetAacData getAacData) {
     this.getAacData = getAacData;
@@ -106,11 +107,13 @@ public class AudioEncoder implements GetMicrophoneData {
   public void stop() {
     running = false;
     if (audioEncoder != null) {
-      audioEncoder.flush();
+      //First frame encoded so I can flush.
+      if (canFlush) audioEncoder.flush();
       audioEncoder.stop();
       audioEncoder.release();
       audioEncoder = null;
     }
+    canFlush = false;
     Log.i(TAG, "AudioEncoder stopped");
   }
 
@@ -145,6 +148,7 @@ public class AudioEncoder implements GetMicrophoneData {
       int outBufferIndex = audioEncoder.dequeueOutputBuffer(audioInfo, 0);
       if (outBufferIndex == MediaCodec.INFO_OUTPUT_FORMAT_CHANGED) {
         getAacData.onAudioFormat(audioEncoder.getOutputFormat());
+        canFlush = true;
       } else if (outBufferIndex >= 0) {
         //This ByteBuffer is AAC
         ByteBuffer bb = audioEncoder.getOutputBuffer(outBufferIndex);
@@ -173,6 +177,7 @@ public class AudioEncoder implements GetMicrophoneData {
       int outBufferIndex = audioEncoder.dequeueOutputBuffer(audioInfo, 0);
       if (outBufferIndex == MediaCodec.INFO_OUTPUT_FORMAT_CHANGED) {
         getAacData.onAudioFormat(audioEncoder.getOutputFormat());
+        canFlush = true;
       } else if (outBufferIndex >= 0) {
         //This ByteBuffer is AAC
         ByteBuffer bb = outputBuffers[outBufferIndex];

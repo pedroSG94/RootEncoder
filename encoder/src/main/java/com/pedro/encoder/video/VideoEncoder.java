@@ -307,7 +307,8 @@ public class VideoEncoder implements GetCameraData {
         thread = null;
       }
       if (videoEncoder != null) {
-        videoEncoder.flush();
+        //First frame encoded so I can flush.
+        if (spsPpsSetted) videoEncoder.flush();
         videoEncoder.stop();
         videoEncoder.release();
         videoEncoder = null;
