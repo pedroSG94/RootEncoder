@@ -1,4 +1,6 @@
 apply plugin: 'com.android.application'
+apply plugin: 'kotlin-android-extensions'
+apply plugin: 'kotlin-android'
 
 android {
   compileSdkVersion 29
@@ -7,8 +9,8 @@ android {
     applicationId "com.pedro.rtpstreamer"
     minSdkVersion 16
     targetSdkVersion 29
-    versionCode 161
-    versionName "1.6.1"
+    versionCode 162
+    versionName "1.6.2"
   }
   buildTypes {
     release {
@@ -21,4 +23,5 @@ android {
 dependencies {
   implementation project(':rtplibrary')
   implementation 'com.google.android.material:material:1.0.0'
+  implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
 }

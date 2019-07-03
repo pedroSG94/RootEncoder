@@ -13,6 +13,7 @@ import android.widget.AdapterView;
 import android.widget.GridView;
 import android.widget.TextView;
 import android.widget.Toast;
+import com.pedro.rtpstreamer.backgroundexample.BackgroundActivity;
 import com.pedro.rtpstreamer.customexample.RtmpActivity;
 import com.pedro.rtpstreamer.customexample.RtspActivity;
 import com.pedro.rtpstreamer.defaultexample.ExampleRtmpActivity;
@@ -95,6 +96,8 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         getString(R.string.opengl_rtmp), JELLY_BEAN_MR2));
     activities.add(new ActivityLink(new Intent(this, OpenGlRtspActivity.class),
         getString(R.string.opengl_rtsp), JELLY_BEAN_MR2));
+    activities.add(new ActivityLink(new Intent(this, BackgroundActivity.class),
+        getString(R.string.service_rtp), LOLLIPOP));
   }
 
   private void setListAdapter(List<ActivityLink> activities) {

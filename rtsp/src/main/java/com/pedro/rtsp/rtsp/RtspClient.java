@@ -199,6 +199,9 @@ public class RtspClient {
             Log.e(TAG, "connection error", e);
             connectCheckerRtsp.onConnectionFailedRtsp("Error configure stream, " + e.getMessage());
             streaming = false;
+          } catch (IllegalArgumentException e) {
+            Log.e(TAG, "connection error", e);
+            streaming = false;
           }
         }
       });

@@ -7,8 +7,7 @@
   <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
   <uses-permission android:name="android.permission.INTERNET"/>
   <uses-permission android:name="android.permission.RECORD_AUDIO"/>
-  <uses-permission android:name="android.permission.CAMERA"/>
-  <!-- some devices need it -->
+  <uses-permission android:name="android.permission.CAMERA"/> <!-- some devices need it -->
   <uses-feature android:name="android.hardware.camera"/>
   <uses-feature android:name="android.hardware.camera2.full"/>
   <uses-feature android:name="android.hardware.camera2.autofocus"/>
@@ -25,8 +24,9 @@
         android:screenOrientation="portrait"
         >
       <intent-filter>
-        <action android:name="android.intent.action.VIEW" />
+        <action android:name="android.intent.action.VIEW"/>
         <action android:name="android.intent.action.MAIN"/>
+
         <category android:name="android.intent.category.LAUNCHER"/>
       </intent-filter>
     </activity>
@@ -99,6 +99,14 @@
         android:name=".openglexample.OpenGlRtspActivity"
         android:label="@string/opengl_rtsp"
         android:screenOrientation="portrait"
+        />
+
+    <activity
+        android:name=".backgroundexample.BackgroundActivity"
+        android:label="@string/service_rtp"
+        />
+
+    <service android:name=".backgroundexample.RtpService"
         />
   </application>
 

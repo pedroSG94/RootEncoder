@@ -282,7 +282,7 @@ public class Camera2ApiManager extends CameraDevice.StateCallback {
           cameraCaptureSession.setRepeatingRequest(builderInputSurface.build(), faceDetectionEnabled ? cb : null, null);
           lanternEnable = true;
         } catch (CameraAccessException | IllegalStateException e) {
-          e.printStackTrace();
+          Log.e(TAG, "Error", e);
         }
       }
     } else {
@@ -302,7 +302,7 @@ public class Camera2ApiManager extends CameraDevice.StateCallback {
           cameraCaptureSession.setRepeatingRequest(builderInputSurface.build(), faceDetectionEnabled ? cb : null, null);
           lanternEnable = false;
         } catch (CameraAccessException | IllegalStateException e) {
-          e.printStackTrace();
+          Log.e(TAG, "Error", e);
         }
       }
     }
