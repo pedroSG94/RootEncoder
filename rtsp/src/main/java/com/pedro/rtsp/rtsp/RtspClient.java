@@ -41,6 +41,7 @@ public class RtspClient {
   //for secure transport
   private boolean tlsEnabled = false;
   private RtspSender rtspSender;
+  private String url;
   private CommandsManager commandsManager;
   private int numRetry;
   private int reTries;
@@ -77,19 +78,7 @@ public class RtspClient {
   }
 
   public void setUrl(String url) {
-    Matcher rtspMatcher = rtspUrlPattern.matcher(url);
-    if (rtspMatcher.matches()) {
-      tlsEnabled = rtspMatcher.group(0).startsWith("rtsps");
-    } else {
-      streaming = false;
-      connectCheckerRtsp.onConnectionFailedRtsp(
-          "Endpoint malformed, should be: rtsp://ip:port/appname/streamname");
-      return;
-    }
-    String host = rtspMatcher.group(1);
-    int port = Integer.parseInt((rtspMatcher.group(2) != null) ? rtspMatcher.group(2) : "554");
-    String path = "/" + rtspMatcher.group(3) + "/" + rtspMatcher.group(4);
-    commandsManager.setUrl(host, port, path);
+    this.url = url;
   }
 
   public void setSampleRate(int sampleRate) {
@@ -122,6 +111,20 @@ public class RtspClient {
 
   public void connect() {
     if (!streaming) {
+      Matcher rtspMatcher = rtspUrlPattern.matcher(url);
+      if (rtspMatcher.matches()) {
+        tlsEnabled = rtspMatcher.group(0).startsWith("rtsps");
+      } else {
+        streaming = false;
+        connectCheckerRtsp.onConnectionFailedRtsp(
+            "Endpoint malformed, should be: rtsp://ip:port/appname/streamname");
+        return;
+      }
+      String host = rtspMatcher.group(1);
+      int port = Integer.parseInt((rtspMatcher.group(2) != null) ? rtspMatcher.group(2) : "554");
+      String path = "/" + rtspMatcher.group(3) + "/" + rtspMatcher.group(4);
+      commandsManager.setUrl(host, port, path);
+
       rtspSender.setInfo(commandsManager.getProtocol(), commandsManager.getSps(),
           commandsManager.getPps(), commandsManager.getVps(), commandsManager.getSampleRate());
       thread = new Thread(new Runnable() {
@@ -199,9 +202,6 @@ public class RtspClient {
             Log.e(TAG, "connection error", e);
             connectCheckerRtsp.onConnectionFailedRtsp("Error configure stream, " + e.getMessage());
             streaming = false;
-          } catch (IllegalArgumentException e) {
-            Log.e(TAG, "connection error", e);
-            streaming = false;
           }
         }
       });
@@ -215,8 +215,8 @@ public class RtspClient {
   }
 
   private void disconnect(final boolean clear) {
+    if (streaming) rtspSender.stop();
     streaming = false;
-    rtspSender.stop();
     thread = new Thread(new Runnable() {
       @Override
       public void run() {
