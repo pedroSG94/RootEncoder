@@ -560,8 +560,8 @@ public abstract class FromFileBase
   }
 
   @Override
-  public void inputPCMData(byte[] buffer, int size) {
-    if (audioTrackPlayer != null) audioTrackPlayer.write(buffer, 0, size);
-    audioEncoder.inputPCMData(buffer, size);
+  public void inputPCMData(byte[] buffer, int offset, int size) {
+    if (audioTrackPlayer != null) audioTrackPlayer.write(buffer, offset, size);
+    audioEncoder.inputPCMData(buffer, offset, size);
   }
 }

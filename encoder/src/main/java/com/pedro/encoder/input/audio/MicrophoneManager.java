@@ -71,7 +71,7 @@ public class MicrophoneManager {
         while (running && !Thread.interrupted()) {
           DataTaken dataTaken = read();
           if (dataTaken != null) {
-            getMicrophoneData.inputPCMData(dataTaken.getPcmBuffer(), dataTaken.getSize());
+            getMicrophoneData.inputPCMData(dataTaken.getPcmBuffer(), dataTaken.getOffset(), dataTaken.getSize());
           } else {
             running = false;
           }
@@ -113,7 +113,7 @@ public class MicrophoneManager {
     if (size <= 0) {
       return null;
     }
-    return new DataTaken(muted ? pcmBufferMuted : pcmBuffer.array(), size);
+    return new DataTaken(muted ? pcmBufferMuted : pcmBuffer.array(), muted ? 0 : pcmBuffer.arrayOffset(), size);
   }
 
   /**

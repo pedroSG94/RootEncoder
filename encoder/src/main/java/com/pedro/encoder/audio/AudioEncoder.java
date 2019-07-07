@@ -126,20 +126,20 @@ public class AudioEncoder implements GetMicrophoneData {
    * @param size Min PCM buffer size
    */
   @Override
-  public void inputPCMData(final byte[] buffer, final int size) {
+  public void inputPCMData(final byte[] buffer, final int offset, final int size) {
     if (Build.VERSION.SDK_INT >= 21) {
-      getDataFromEncoderAPI21(buffer, size);
+      getDataFromEncoderAPI21(buffer, offset, size);
     } else {
-      getDataFromEncoder(buffer, size);
+      getDataFromEncoder(buffer, offset, size);
     }
   }
 
   @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
-  private void getDataFromEncoderAPI21(byte[] data, int size) {
+  private void getDataFromEncoderAPI21(byte[] data, int offset, int size) {
     int inBufferIndex = audioEncoder.dequeueInputBuffer(-1);
     if (inBufferIndex >= 0) {
       ByteBuffer bb = audioEncoder.getInputBuffer(inBufferIndex);
-      bb.put(data, 0, size);
+      bb.put(data, offset, size);
       long pts = System.nanoTime() / 1000 - presentTimeUs;
       audioEncoder.queueInputBuffer(inBufferIndex, 0, size, pts, 0);
     }
@@ -160,7 +160,7 @@ public class AudioEncoder implements GetMicrophoneData {
     }
   }
 
-  private void getDataFromEncoder(byte[] data, int size) {
+  private void getDataFromEncoder(byte[] data, int offset, int size) {
     ByteBuffer[] inputBuffers = audioEncoder.getInputBuffers();
     ByteBuffer[] outputBuffers = audioEncoder.getOutputBuffers();
 
