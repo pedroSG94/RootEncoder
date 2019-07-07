@@ -7,10 +7,12 @@ package com.pedro.encoder.audio;
 public class DataTaken {
 
   private byte[] pcmBuffer;
+  private int offset;
   private int size;
 
-  public DataTaken(byte[] pcmBuffer, int size) {
+  public DataTaken(byte[] pcmBuffer, int offset, int size) {
     this.pcmBuffer = pcmBuffer;
+    this.offset = offset;
     this.size = size;
   }
 
@@ -20,6 +22,10 @@ public class DataTaken {
 
   public void setPcmBuffer(byte[] pcmBuffer) {
     this.pcmBuffer = pcmBuffer;
+  }
+
+  public int getOffset() {
+    return offset;
   }
 
   public int getSize() {

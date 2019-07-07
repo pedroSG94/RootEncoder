@@ -461,8 +461,8 @@ public abstract class DisplayBase implements GetAacData, GetVideoData, GetMicrop
   }
 
   @Override
-  public void inputPCMData(byte[] buffer, int size) {
-    audioEncoder.inputPCMData(buffer, size);
+  public void inputPCMData(byte[] buffer, int offset, int size) {
+    audioEncoder.inputPCMData(buffer, offset, size);
   }
 
   @Override
