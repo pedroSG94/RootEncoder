@@ -19,6 +19,8 @@ import com.pedro.encoder.utils.CodecUtil;
 import com.pedro.encoder.video.FormatVideoEncoder;
 import com.pedro.encoder.video.GetVideoData;
 import com.pedro.encoder.video.VideoEncoder;
+import com.pedro.rtplibrary.util.FpsListener;
+import com.pedro.rtplibrary.util.RecordController;
 import com.pedro.rtplibrary.view.GlInterface;
 import com.pedro.rtplibrary.view.OffScreenGlThread;
 import java.io.IOException;
@@ -53,6 +55,7 @@ public abstract class DisplayBase implements GetAacData, GetVideoData, GetMicrop
   private int resultCode = -1;
   private Intent data;
   private RecordController recordController;
+  private FpsListener fpsListener = new FpsListener();
 
   public DisplayBase(Context context, boolean useOpengl) {
     this.context = context;
@@ -67,6 +70,13 @@ public abstract class DisplayBase implements GetAacData, GetVideoData, GetMicrop
     microphoneManager = new MicrophoneManager(this);
     audioEncoder = new AudioEncoder(this);
     recordController = new RecordController();
+  }
+
+  /**
+   * @param callback get fps while record or stream
+   */
+  public void setFpsListener(FpsListener.Callback callback) {
+    fpsListener.setCallback(callback);
   }
 
   /**
@@ -456,6 +466,7 @@ public abstract class DisplayBase implements GetAacData, GetVideoData, GetMicrop
 
   @Override
   public void getVideoData(ByteBuffer h264Buffer, MediaCodec.BufferInfo info) {
+    fpsListener.calculateFps();
     recordController.recordVideo(h264Buffer, info);
     if (streaming) getH264DataRtp(h264Buffer, info);
   }

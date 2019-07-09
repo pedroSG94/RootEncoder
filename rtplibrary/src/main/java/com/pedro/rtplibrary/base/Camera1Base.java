@@ -23,6 +23,8 @@ import com.pedro.encoder.utils.CodecUtil;
 import com.pedro.encoder.video.FormatVideoEncoder;
 import com.pedro.encoder.video.GetVideoData;
 import com.pedro.encoder.video.VideoEncoder;
+import com.pedro.rtplibrary.util.FpsListener;
+import com.pedro.rtplibrary.util.RecordController;
 import com.pedro.rtplibrary.view.GlInterface;
 import com.pedro.rtplibrary.view.LightOpenGlView;
 import com.pedro.rtplibrary.view.OffScreenGlThread;
@@ -60,6 +62,7 @@ public abstract class Camera1Base
   private boolean onPreview = false;
   private RecordController recordController;
   private int previewWidth, previewHeight;
+  private FpsListener fpsListener = new FpsListener();
 
   public Camera1Base(SurfaceView surfaceView) {
     context = surfaceView.getContext();
@@ -105,6 +108,13 @@ public abstract class Camera1Base
     microphoneManager = new MicrophoneManager(this);
     audioEncoder = new AudioEncoder(this);
     recordController = new RecordController();
+  }
+
+  /**
+   * @param callback get fps while record or stream
+   */
+  public void setFpsListener(FpsListener.Callback callback) {
+    fpsListener.setCallback(callback);
   }
 
   /**
@@ -674,6 +684,7 @@ public abstract class Camera1Base
 
   @Override
   public void getVideoData(ByteBuffer h264Buffer, MediaCodec.BufferInfo info) {
+    fpsListener.calculateFps();
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
       recordController.recordVideo(h264Buffer, info);
     }

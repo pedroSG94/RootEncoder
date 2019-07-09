@@ -35,6 +35,7 @@ class BackgroundActivity : AppCompatActivity() {
     }
   }
 
+  @Suppress("DEPRECATION")
   private fun isMyServiceRunning(serviceClass: Class<*>): Boolean {
     val manager = getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager
     for (service in manager.getRunningServices(Integer.MAX_VALUE)) {

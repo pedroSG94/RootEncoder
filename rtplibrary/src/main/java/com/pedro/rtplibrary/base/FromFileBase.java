@@ -21,6 +21,8 @@ import com.pedro.encoder.utils.CodecUtil;
 import com.pedro.encoder.video.FormatVideoEncoder;
 import com.pedro.encoder.video.GetVideoData;
 import com.pedro.encoder.video.VideoEncoder;
+import com.pedro.rtplibrary.util.FpsListener;
+import com.pedro.rtplibrary.util.RecordController;
 import com.pedro.rtplibrary.view.GlInterface;
 import com.pedro.rtplibrary.view.LightOpenGlView;
 import com.pedro.rtplibrary.view.OffScreenGlThread;
@@ -51,6 +53,7 @@ public abstract class FromFileBase
   private boolean streaming = false;
   private boolean videoEnabled = true;
   private RecordController recordController;
+  private FpsListener fpsListener = new FpsListener();
 
   private VideoDecoder videoDecoder;
   private AudioDecoder audioDecoder;
@@ -101,6 +104,13 @@ public abstract class FromFileBase
     videoEncoder = new VideoEncoder(this);
     audioEncoder = new AudioEncoder(this);
     recordController = new RecordController();
+  }
+
+  /**
+   * @param callback get fps while record or stream
+   */
+  public void setFpsListener(FpsListener.Callback callback) {
+    fpsListener.setCallback(callback);
   }
 
   /**
@@ -537,6 +547,7 @@ public abstract class FromFileBase
 
   @Override
   public void getVideoData(ByteBuffer h264Buffer, MediaCodec.BufferInfo info) {
+    fpsListener.calculateFps();
     recordController.recordVideo(h264Buffer, info);
     if (streaming) getH264DataRtp(h264Buffer, info);
   }

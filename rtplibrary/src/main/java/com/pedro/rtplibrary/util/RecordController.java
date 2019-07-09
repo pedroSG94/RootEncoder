@@ -1,4 +1,4 @@
-package com.pedro.rtplibrary.base;
+package com.pedro.rtplibrary.util;
 
 import android.media.MediaCodec;
 import android.media.MediaFormat;
