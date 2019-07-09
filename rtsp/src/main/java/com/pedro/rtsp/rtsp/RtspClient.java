@@ -221,7 +221,11 @@ public class RtspClient {
       @Override
       public void run() {
         try {
-          if (writer != null) writer.write(commandsManager.createTeardown());
+          if (writer != null) {
+            writer.write(commandsManager.createTeardown());
+            writer.flush();
+            if (clear) commandsManager.clear();
+          }
           if (connectionSocket != null) connectionSocket.close();
           writer = null;
           connectionSocket = null;
@@ -233,7 +237,6 @@ public class RtspClient {
     thread.start();
     if (clear) {
       reTries = 0;
-      commandsManager.clear();
       connectCheckerRtsp.onDisconnectRtsp();
     }
   }
