@@ -15,13 +15,16 @@ import java.net.UnknownHostException;
 
 public class RtpSocketUdp extends BaseRtpSocket {
 
-  private MulticastSocket multicastSocket;
+  private MulticastSocket multicastSocketVideo;
+  private MulticastSocket multicastSocketAudio;
   private DatagramPacket datagramPacket = new DatagramPacket(new byte[] { 0 }, 1);
 
   public RtpSocketUdp() {
     try {
-      multicastSocket = new MulticastSocket();
-      multicastSocket.setTimeToLive(64);
+      multicastSocketVideo = new MulticastSocket(5000);
+      multicastSocketVideo.setTimeToLive(64);
+      multicastSocketAudio = new MulticastSocket(5002);
+      multicastSocketAudio.setTimeToLive(64);
     } catch (IOException e) {
       Log.e(TAG, "Error", e);
     }
@@ -43,14 +46,19 @@ public class RtpSocketUdp extends BaseRtpSocket {
 
   @Override
   public void close() {
-    multicastSocket.close();
+    multicastSocketVideo.close();
+    multicastSocketAudio.close();
   }
 
   private void sendFrameUDP(RtpFrame rtpFrame) throws IOException {
     datagramPacket.setData(rtpFrame.getBuffer());
     datagramPacket.setPort(rtpFrame.getRtpPort());
     datagramPacket.setLength(rtpFrame.getLength());
-    multicastSocket.send(datagramPacket);
+    if (rtpFrame.getChannelIdentifier() == (byte) 2) {
+      multicastSocketVideo.send(datagramPacket);
+    } else {
+      multicastSocketAudio.send(datagramPacket);
+    }
     Log.i(TAG, "wrote packet: "
         + (rtpFrame.getChannelIdentifier() == (byte) 2 ? "Video" : "Audio")
         + ", size: "

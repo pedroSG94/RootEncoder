@@ -15,14 +15,17 @@ import java.net.UnknownHostException;
 
 public class SenderReportUdp extends BaseSenderReport {
 
-  private MulticastSocket multicastSocket;
+  private MulticastSocket multicastSocketVideo;
+  private MulticastSocket multicastSocketAudio;
   private DatagramPacket datagramPacket = new DatagramPacket(new byte[] { 0 }, 1);
 
   public SenderReportUdp() {
     super();
     try {
-      multicastSocket = new MulticastSocket();
-      multicastSocket.setTimeToLive(64);
+      multicastSocketVideo = new MulticastSocket(5001);
+      multicastSocketVideo.setTimeToLive(64);
+      multicastSocketAudio = new MulticastSocket(5002);
+      multicastSocketAudio.setTimeToLive(64);
     } catch (IOException e) {
       Log.e(TAG, "Error", e);
     }
@@ -45,7 +48,8 @@ public class SenderReportUdp extends BaseSenderReport {
 
   @Override
   public void close() {
-    multicastSocket.close();
+    multicastSocketVideo.close();
+    multicastSocketAudio.close();
   }
 
   private void sendReportUDP(byte[] buffer, int port, String type, int packet, int octet)
@@ -53,7 +57,11 @@ public class SenderReportUdp extends BaseSenderReport {
     datagramPacket.setData(buffer);
     datagramPacket.setPort(port);
     datagramPacket.setLength(PACKET_LENGTH);
-    multicastSocket.send(datagramPacket);
+    if (type.equals("Video")) {
+      multicastSocketVideo.send(datagramPacket);
+    } else {
+      multicastSocketAudio.send(datagramPacket);
+    }
     Log.i(TAG, "wrote report: " + type + ", port: " + port + ", packets: " + packet + ", octet: " + octet);
   }
 }

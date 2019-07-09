@@ -138,7 +138,7 @@ public class OpenGlRtspActivity extends AppCompatActivity
         return true;
       case R.id.android_view:
         AndroidViewFilterRender androidViewFilterRender = new AndroidViewFilterRender();
-        androidViewFilterRender.setView(findViewById(R.id.activity_example_rtmp));
+        androidViewFilterRender.setView(findViewById(R.id.switch_camera));
         rtspCamera1.getGlInterface().setFilter(androidViewFilterRender);
         return true;
       case R.id.basic_deformation:
