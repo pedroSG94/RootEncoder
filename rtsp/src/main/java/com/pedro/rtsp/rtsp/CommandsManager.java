@@ -35,8 +35,10 @@ public class CommandsManager {
   private Protocol protocol;
 
   //For udp
-  private int[] audioPorts = new int[] { 5000, 5001 };
-  private int[] videoPorts = new int[] { 5002, 5003 };
+  private final int[] audioClientPorts = new int[] { 5000, 5001 };
+  private final int[] videoClientPorts = new int[] { 5002, 5003 };
+  private int[] audioServerPorts = new int[] { 5004, 5005 };
+  private int[] videoServerPorts = new int[] { 5006, 5007 };
   private byte[] vps; //For H265
   //For auth
   private String user;
@@ -136,6 +138,14 @@ public class CommandsManager {
     return protocol;
   }
 
+  public int[] getAudioClientPorts() {
+    return audioClientPorts;
+  }
+
+  public int[] getVideoClientPorts() {
+    return videoClientPorts;
+  }
+
   public byte[] getVps() {
     return vps;
   }
@@ -148,12 +158,12 @@ public class CommandsManager {
     return password;
   }
 
-  public int[] getAudioPorts() {
-    return audioPorts;
+  public int[] getAudioServerPorts() {
+    return audioServerPorts;
   }
 
-  public int[] getVideoPorts() {
-    return videoPorts;
+  public int[] getVideoServerPorts() {
+    return videoServerPorts;
   }
 
   public void clear() {
@@ -246,10 +256,9 @@ public class CommandsManager {
   }
 
   public String createSetup(int track) {
+    int[] udpPorts = track == trackVideo ? videoClientPorts : audioClientPorts;
     String params =
-        (protocol == Protocol.UDP) ? ("UDP;unicast;client_port=" + (5000 + 2 * track) + "-" + (5000
-            + 2 * track
-            + 1) + ";mode=record")
+        (protocol == Protocol.UDP) ? ("UDP;unicast;client_port=" + udpPorts[0] + "-" + udpPorts[1] + ";mode=record")
             : ("TCP;interleaved=" + 2 * track + "-" + (2 * track + 1) + ";mode=record");
     String setup = "SETUP rtsp://"
         + host
@@ -377,11 +386,11 @@ public class CommandsManager {
           Matcher matcher = rtspPattern.matcher(line);
           if (matcher.find()) {
             if (isAudio) {
-              audioPorts[0] = Integer.parseInt(matcher.group(1));
-              audioPorts[1] = Integer.parseInt(matcher.group(2));
+              audioServerPorts[0] = Integer.parseInt(matcher.group(1));
+              audioServerPorts[1] = Integer.parseInt(matcher.group(2));
             } else {
-              videoPorts[0] = Integer.parseInt(matcher.group(1));
-              videoPorts[1] = Integer.parseInt(matcher.group(2));
+              videoServerPorts[0] = Integer.parseInt(matcher.group(1));
+              videoServerPorts[1] = Integer.parseInt(matcher.group(2));
             }
           }
         }

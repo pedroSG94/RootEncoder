@@ -126,7 +126,8 @@ public class RtspClient {
       commandsManager.setUrl(host, port, path);
 
       rtspSender.setInfo(commandsManager.getProtocol(), commandsManager.getSps(),
-          commandsManager.getPps(), commandsManager.getVps(), commandsManager.getSampleRate());
+          commandsManager.getPps(), commandsManager.getVps(), commandsManager.getSampleRate(),
+          commandsManager.getVideoClientPorts(), commandsManager.getAudioClientPorts());
       thread = new Thread(new Runnable() {
         @Override
         public void run() {
@@ -190,8 +191,8 @@ public class RtspClient {
             commandsManager.getResponse(reader, connectCheckerRtsp, false, true);
 
             rtspSender.setDataStream(outputStream, commandsManager.getHost());
-            int[] videoPorts = commandsManager.getVideoPorts();
-            int[] audioPorts = commandsManager.getAudioPorts();
+            int[] videoPorts = commandsManager.getVideoServerPorts();
+            int[] audioPorts = commandsManager.getAudioServerPorts();
             rtspSender.setVideoPorts(videoPorts[0], videoPorts[1]);
             rtspSender.setAudioPorts(audioPorts[0], audioPorts[1]);
             rtspSender.start();

@@ -19,12 +19,12 @@ public class SenderReportUdp extends BaseSenderReport {
   private MulticastSocket multicastSocketAudio;
   private DatagramPacket datagramPacket = new DatagramPacket(new byte[] { 0 }, 1);
 
-  public SenderReportUdp() {
+  public SenderReportUdp(int videoSourcePort, int audioSourcePort) {
     super();
     try {
-      multicastSocketVideo = new MulticastSocket(5001);
+      multicastSocketVideo = new MulticastSocket(videoSourcePort);
       multicastSocketVideo.setTimeToLive(64);
-      multicastSocketAudio = new MulticastSocket(5002);
+      multicastSocketAudio = new MulticastSocket(audioSourcePort);
       multicastSocketAudio.setTimeToLive(64);
     } catch (IOException e) {
       Log.e(TAG, "Error", e);

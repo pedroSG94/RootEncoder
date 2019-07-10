@@ -56,8 +56,10 @@ public abstract class BaseSenderReport {
     /* Byte 24,25,26,27  ->  octet count			         */
   }
 
-  public static BaseSenderReport getInstance(Protocol protocol) {
-    return protocol == Protocol.TCP ? new SenderReportTcp() : new SenderReportUdp();
+  public static BaseSenderReport getInstance(Protocol protocol, int videoSourcePort,
+      int audioSourcePort) {
+    return protocol == Protocol.TCP ? new SenderReportTcp()
+        : new SenderReportUdp(videoSourcePort, audioSourcePort);
   }
 
   public abstract void setDataStream(OutputStream outputStream, String host);

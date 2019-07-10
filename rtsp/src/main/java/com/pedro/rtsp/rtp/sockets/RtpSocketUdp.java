@@ -19,11 +19,11 @@ public class RtpSocketUdp extends BaseRtpSocket {
   private MulticastSocket multicastSocketAudio;
   private DatagramPacket datagramPacket = new DatagramPacket(new byte[] { 0 }, 1);
 
-  public RtpSocketUdp() {
+  public RtpSocketUdp(int videoSourcePort, int audioSourcePort) {
     try {
-      multicastSocketVideo = new MulticastSocket(5000);
+      multicastSocketVideo = new MulticastSocket(videoSourcePort);
       multicastSocketVideo.setTimeToLive(64);
-      multicastSocketAudio = new MulticastSocket(5002);
+      multicastSocketAudio = new MulticastSocket(audioSourcePort);
       multicastSocketAudio.setTimeToLive(64);
     } catch (IOException e) {
       Log.e(TAG, "Error", e);

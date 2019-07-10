@@ -13,8 +13,10 @@ public abstract class BaseRtpSocket {
 
   protected final static String TAG = "BaseRtpSocket";
 
-  public static BaseRtpSocket getInstance(Protocol protocol) {
-    return protocol == Protocol.TCP ? new RtpSocketTcp() : new RtpSocketUdp();
+  public static BaseRtpSocket getInstance(Protocol protocol, int videoSourcePort,
+      int audioSourcePort) {
+    return protocol == Protocol.TCP ? new RtpSocketTcp()
+        : new RtpSocketUdp(videoSourcePort, audioSourcePort);
   }
 
   public abstract void setDataStream(OutputStream outputStream, String host);

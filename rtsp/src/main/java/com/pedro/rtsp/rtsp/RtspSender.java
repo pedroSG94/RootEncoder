@@ -43,12 +43,14 @@ public class RtspSender implements VideoPacketCallback, AudioPacketCallback {
     this.connectCheckerRtsp = connectCheckerRtsp;
   }
 
-  public void setInfo(Protocol protocol, byte[] sps, byte[] pps, byte[] vps, int sampleRate) {
+  public void setInfo(Protocol protocol, byte[] sps, byte[] pps, byte[] vps, int sampleRate,
+      int[] videoSourcePorts, int[] audioSourcePorts) {
     videoPacket =
         vps == null ? new H264Packet(sps, pps, this) : new H265Packet(sps, pps, vps, this);
     aacPacket = new AacPacket(sampleRate, this);
-    rtpSocket = BaseRtpSocket.getInstance(protocol);
-    baseSenderReport = BaseSenderReport.getInstance(protocol);
+    rtpSocket = BaseRtpSocket.getInstance(protocol, videoSourcePorts[0], audioSourcePorts[0]);
+    baseSenderReport =
+        BaseSenderReport.getInstance(protocol, videoSourcePorts[1], audioSourcePorts[1]);
   }
 
   /**
