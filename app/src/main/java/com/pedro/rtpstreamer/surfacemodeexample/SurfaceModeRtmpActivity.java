@@ -83,6 +83,11 @@ public class SurfaceModeRtmpActivity extends AppCompatActivity
   }
 
   @Override
+  public void onNewBitrateRtmp(long bitrate) {
+
+  }
+
+  @Override
   public void onDisconnectRtmp() {
     runOnUiThread(new Runnable() {
       @Override

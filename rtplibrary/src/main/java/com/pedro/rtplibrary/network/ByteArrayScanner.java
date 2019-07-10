@@ -12,6 +12,7 @@ package com.pedro.rtplibrary.network;
 
 import java.util.NoSuchElementException;
 
+@Deprecated
 class ByteArrayScanner {
   private byte[] mData;
   private int mCurrentOffset;

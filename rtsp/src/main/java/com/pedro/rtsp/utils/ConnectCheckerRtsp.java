@@ -10,6 +10,8 @@ public interface ConnectCheckerRtsp {
 
   void onConnectionFailedRtsp(String reason);
 
+  void onNewBitrateRtsp(long bitrate);
+
   void onDisconnectRtsp();
 
   void onAuthErrorRtsp();

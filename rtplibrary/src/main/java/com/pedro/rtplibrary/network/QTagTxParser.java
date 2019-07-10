@@ -20,6 +20,8 @@ import java.util.NoSuchElementException;
  * Class for parsing total number of downloaded bytes
  * from {@code /proc/net/xt_qtaguid/stats}.
  */
+
+@Deprecated
 class QTagTxParser {
   private static final String TAG = "QTagParser";
   private static final String QTAGUID_UID_STATS = "/proc/net/xt_qtaguid/stats";

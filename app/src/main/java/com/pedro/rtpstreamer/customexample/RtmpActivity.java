@@ -4,13 +4,7 @@ import android.hardware.Camera;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
-import androidx.annotation.Nullable;
-import com.google.android.material.navigation.NavigationView;
-import androidx.drawerlayout.widget.DrawerLayout;
-import androidx.appcompat.app.ActionBarDrawerToggle;
-import androidx.appcompat.app.AppCompatActivity;
 import android.util.Log;
-import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.MotionEvent;
@@ -25,13 +19,18 @@ import android.widget.EditText;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.Spinner;
+import android.widget.TextView;
 import android.widget.Toast;
-
+import androidx.annotation.Nullable;
+import androidx.appcompat.app.ActionBarDrawerToggle;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.view.GravityCompat;
+import androidx.drawerlayout.widget.DrawerLayout;
+import com.google.android.material.navigation.NavigationView;
 import com.pedro.encoder.input.video.CameraHelper;
 import com.pedro.encoder.input.video.CameraOpenException;
 import com.pedro.rtplibrary.rtmp.RtmpCamera1;
 import com.pedro.rtpstreamer.R;
-
 import java.io.File;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
@@ -39,7 +38,6 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
-
 import net.ossrs.rtmp.ConnectCheckerRtmp;
 
 /**
@@ -69,6 +67,7 @@ public class RtmpActivity extends AppCompatActivity
   private EditText etVideoBitrate, etFps, etAudioBitrate, etSampleRate, etWowzaUser,
       etWowzaPassword;
   private String lastVideoBitrate;
+  private TextView tvBitrate;
 
   @Override
   protected void onCreate(Bundle savedInstanceState) {
@@ -83,7 +82,7 @@ public class RtmpActivity extends AppCompatActivity
     surfaceView.setOnTouchListener(this);
     rtmpCamera1 = new RtmpCamera1(surfaceView, this);
     prepareOptionsMenuViews();
-
+    tvBitrate = findViewById(R.id.tv_bitrate);
     etUrl = findViewById(R.id.et_rtp_url);
     etUrl.setHint(R.string.hint_rtmp);
     bStartStop = findViewById(R.id.b_start_stop);
@@ -183,10 +182,10 @@ public class RtmpActivity extends AppCompatActivity
   public boolean onOptionsItemSelected(MenuItem item) {
     switch (item.getItemId()) {
       case android.R.id.home:
-        if (!drawerLayout.isDrawerOpen(Gravity.START)) {
-          drawerLayout.openDrawer(Gravity.START);
+        if (!drawerLayout.isDrawerOpen(GravityCompat.START)) {
+          drawerLayout.openDrawer(GravityCompat.START);
         } else {
-          drawerLayout.closeDrawer(Gravity.START);
+          drawerLayout.closeDrawer(GravityCompat.START);
         }
         return true;
       case R.id.microphone:
@@ -344,6 +343,16 @@ public class RtmpActivity extends AppCompatActivity
   }
 
   @Override
+  public void onNewBitrateRtmp(final long bitrate) {
+    runOnUiThread(new Runnable() {
+      @Override
+      public void run() {
+        tvBitrate.setText(bitrate + " bps");
+      }
+    });
+  }
+
+  @Override
   public void onDisconnectRtmp() {
     runOnUiThread(new Runnable() {
       @Override
@@ -384,7 +393,7 @@ public class RtmpActivity extends AppCompatActivity
 
   @Override
   public void surfaceCreated(SurfaceHolder surfaceHolder) {
-    drawerLayout.openDrawer(Gravity.START);
+    drawerLayout.openDrawer(GravityCompat.START);
   }
 
   @Override

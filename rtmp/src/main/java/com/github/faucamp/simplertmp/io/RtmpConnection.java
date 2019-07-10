@@ -32,6 +32,7 @@ import java.net.SocketException;
 import java.util.Random;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import net.ossrs.rtmp.BitrateManager;
 import net.ossrs.rtmp.ConnectCheckerRtmp;
 import net.ossrs.rtmp.CreateSSLSocket;
 
@@ -80,9 +81,11 @@ public class RtmpConnection implements RtmpPublisher {
   private String opaque = null;
   private boolean onAuth = false;
   private String netConnectionDescription;
+  private BitrateManager bitrateManager;
 
   public RtmpConnection(ConnectCheckerRtmp connectCheckerRtmp) {
     this.connectCheckerRtmp = connectCheckerRtmp;
+    bitrateManager = new BitrateManager(connectCheckerRtmp);
   }
 
   private void handshake(InputStream in, OutputStream out) throws IOException {
@@ -464,6 +467,8 @@ public class RtmpConnection implements RtmpPublisher {
     audio.getHeader().setAbsoluteTimestamp(dts);
     audio.getHeader().setMessageStreamId(currentStreamId);
     sendRtmpPacket(audio);
+    //bytes to bits
+    bitrateManager.calculateBitrate(size * 8);
   }
 
   @Override
@@ -481,6 +486,8 @@ public class RtmpConnection implements RtmpPublisher {
     video.getHeader().setAbsoluteTimestamp(dts);
     video.getHeader().setMessageStreamId(currentStreamId);
     sendRtmpPacket(video);
+    //bytes to bits
+    bitrateManager.calculateBitrate(size * 8);
   }
 
   private void sendRtmpPacket(RtmpPacket rtmpPacket) {

@@ -19,6 +19,8 @@ package com.pedro.rtplibrary.network;
  * ConnectionClass when the network's ConnectionClass changes.
  * </p>
  */
+
+@Deprecated
 public class ConnectionClassManager {
 
   private static final int BYTES_TO_BITS = 8;

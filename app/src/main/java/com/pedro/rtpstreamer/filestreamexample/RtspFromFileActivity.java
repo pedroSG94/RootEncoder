@@ -108,6 +108,11 @@ public class RtspFromFileActivity extends AppCompatActivity
   }
 
   @Override
+  public void onNewBitrateRtsp(long bitrate) {
+
+  }
+
+  @Override
   public void onDisconnectRtsp() {
     runOnUiThread(new Runnable() {
       @Override

@@ -12,6 +12,7 @@
       android:layout_width="match_parent"
       android:layout_height="match_parent"
       >
+
     <SurfaceView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
@@ -61,6 +62,17 @@
           android:id="@+id/switch_camera"
           />
     </LinearLayout>
+
+    <TextView
+        android:textColor="@color/appColor"
+        android:id="@+id/tv_bitrate"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentRight="true"
+        android:layout_below="@+id/et_rtp_url"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_margin="20dp"
+        />
   </RelativeLayout>
 
   <com.google.android.material.navigation.NavigationView

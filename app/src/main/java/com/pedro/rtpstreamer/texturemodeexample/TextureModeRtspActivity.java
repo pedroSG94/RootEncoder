@@ -85,6 +85,11 @@ public class TextureModeRtspActivity extends AppCompatActivity
   }
 
   @Override
+  public void onNewBitrateRtsp(long bitrate) {
+
+  }
+
+  @Override
   public void onDisconnectRtsp() {
     runOnUiThread(new Runnable() {
       @Override

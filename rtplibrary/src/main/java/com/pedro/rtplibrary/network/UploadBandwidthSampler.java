@@ -22,6 +22,8 @@ import java.util.concurrent.atomic.AtomicInteger;
  * Class used to read from the file {@code /proc/net/xt_qtaguid/stats} periodically, in order to
  * determine a ConnectionClass.
  */
+
+@Deprecated
 public class UploadBandwidthSampler {
 
   /**

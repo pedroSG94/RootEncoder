@@ -1,5 +1,6 @@
 package com.pedro.rtplibrary.network;
 
+@Deprecated
 public class AdapterBitrateParser {
 
   public static long DELAY = 1000;

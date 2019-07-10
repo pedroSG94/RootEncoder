@@ -10,6 +10,8 @@ public interface ConnectCheckerRtmp {
 
   void onConnectionFailedRtmp(String reason);
 
+  void onNewBitrateRtmp(long bitrate);
+
   void onDisconnectRtmp();
 
   void onAuthErrorRtmp();

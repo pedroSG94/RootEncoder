@@ -16,6 +16,8 @@ interface ConnectCheckerRtp: ConnectCheckerRtmp, ConnectCheckerRtsp {
 
   fun onConnectionFailedRtp(reason: String)
 
+  fun onNewBitrateRtp(bitrate: Long)
+
   fun onDisconnectRtp()
 
   fun onAuthErrorRtp()
@@ -31,6 +33,10 @@ interface ConnectCheckerRtp: ConnectCheckerRtmp, ConnectCheckerRtsp {
 
   override fun onConnectionFailedRtmp(reason: String) {
     onConnectionFailedRtp(reason)
+  }
+
+  override fun onNewBitrateRtmp(bitrate: Long) {
+    onNewBitrateRtp(bitrate)
   }
 
   override fun onDisconnectRtmp() {
@@ -54,6 +60,10 @@ interface ConnectCheckerRtp: ConnectCheckerRtmp, ConnectCheckerRtsp {
 
   override fun onConnectionFailedRtsp(reason: String) {
     onConnectionFailedRtp(reason)
+  }
+
+  override fun onNewBitrateRtsp(bitrate: Long) {
+    onNewBitrateRtp(bitrate)
   }
 
   override fun onDisconnectRtsp() {

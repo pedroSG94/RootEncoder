@@ -116,6 +116,10 @@ class RtpService : Service(), ConnectCheckerRtp {
     Log.e(TAG, "RTP service destroy")
   }
 
+  override fun onNewBitrateRtp(bitrate: Long) {
+
+  }
+
   override fun onConnectionFailedRtp(reason: String) {
     showNotification("Stream connection failed")
     Log.e(TAG, "RTP service destroy")

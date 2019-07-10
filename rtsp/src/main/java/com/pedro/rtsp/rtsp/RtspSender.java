@@ -10,6 +10,7 @@ import com.pedro.rtsp.rtp.packets.H264Packet;
 import com.pedro.rtsp.rtp.packets.H265Packet;
 import com.pedro.rtsp.rtp.packets.VideoPacketCallback;
 import com.pedro.rtsp.rtp.sockets.BaseRtpSocket;
+import com.pedro.rtsp.utils.BitrateManager;
 import com.pedro.rtsp.utils.ConnectCheckerRtsp;
 import com.pedro.rtsp.utils.RtpConstants;
 import java.io.IOException;
@@ -38,9 +39,11 @@ public class RtspSender implements VideoPacketCallback, AudioPacketCallback {
   private long videoFramesSent = 0;
   private long droppedAudioFrames = 0;
   private long droppedVideoFrames = 0;
+  private BitrateManager bitrateManager;
 
   public RtspSender(ConnectCheckerRtsp connectCheckerRtsp) {
     this.connectCheckerRtsp = connectCheckerRtsp;
+    bitrateManager = new BitrateManager(connectCheckerRtsp);
   }
 
   public void setInfo(Protocol protocol, byte[] sps, byte[] pps, byte[] vps, int sampleRate,
@@ -113,6 +116,8 @@ public class RtspSender implements VideoPacketCallback, AudioPacketCallback {
               continue;
             }
             rtpSocket.sendFrame(rtpFrame);
+            //bytes to bits
+            bitrateManager.calculateBitrate(rtpFrame.getLength() * 8);
             if (rtpFrame.isVideoFrame()) {
               videoFramesSent++;
             } else {

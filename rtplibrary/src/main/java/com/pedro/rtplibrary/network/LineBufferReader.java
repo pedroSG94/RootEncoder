@@ -17,6 +17,8 @@ import java.io.IOException;
  * Class for reading {@code /proc/net/xt_qtaguid/stats} line by line with a small,
  * reusable byte buffer.
  */
+
+@Deprecated
 class LineBufferReader {
 
   private byte[] mFileBuffer;

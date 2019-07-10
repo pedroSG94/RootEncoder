@@ -4,12 +4,6 @@ import android.hardware.Camera;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
-import androidx.annotation.Nullable;
-import com.google.android.material.navigation.NavigationView;
-import androidx.drawerlayout.widget.DrawerLayout;
-import androidx.appcompat.app.ActionBarDrawerToggle;
-import androidx.appcompat.app.AppCompatActivity;
-import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.MotionEvent;
@@ -24,7 +18,14 @@ import android.widget.EditText;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.Spinner;
+import android.widget.TextView;
 import android.widget.Toast;
+import androidx.annotation.Nullable;
+import androidx.appcompat.app.ActionBarDrawerToggle;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.view.GravityCompat;
+import androidx.drawerlayout.widget.DrawerLayout;
+import com.google.android.material.navigation.NavigationView;
 import com.pedro.encoder.input.video.CameraHelper;
 import com.pedro.encoder.input.video.CameraOpenException;
 import com.pedro.rtplibrary.rtsp.RtspCamera1;
@@ -68,6 +69,7 @@ public class RtspActivity extends AppCompatActivity
   private EditText etVideoBitrate, etFps, etAudioBitrate, etSampleRate, etWowzaUser,
       etWowzaPassword;
   private String lastVideoBitrate;
+  private TextView tvBitrate;
 
   @Override
   protected void onCreate(Bundle savedInstanceState) {
@@ -83,6 +85,7 @@ public class RtspActivity extends AppCompatActivity
     rtspCamera1 = new RtspCamera1(surfaceView, this);
     prepareOptionsMenuViews();
 
+    tvBitrate = findViewById(R.id.tv_bitrate);
     etUrl = findViewById(R.id.et_rtp_url);
     etUrl.setHint(R.string.hint_rtsp);
     bStartStop = findViewById(R.id.b_start_stop);
@@ -183,10 +186,10 @@ public class RtspActivity extends AppCompatActivity
   public boolean onOptionsItemSelected(MenuItem item) {
     switch (item.getItemId()) {
       case android.R.id.home:
-        if (!drawerLayout.isDrawerOpen(Gravity.START)) {
-          drawerLayout.openDrawer(Gravity.START);
+        if (!drawerLayout.isDrawerOpen(GravityCompat.START)) {
+          drawerLayout.openDrawer(GravityCompat.START);
         } else {
-          drawerLayout.closeDrawer(Gravity.START);
+          drawerLayout.closeDrawer(GravityCompat.START);
         }
         return true;
       case R.id.microphone:
@@ -359,6 +362,16 @@ public class RtspActivity extends AppCompatActivity
   }
 
   @Override
+  public void onNewBitrateRtsp(final long bitrate) {
+    runOnUiThread(new Runnable() {
+      @Override
+      public void run() {
+        tvBitrate.setText(bitrate + " bps");
+      }
+    });
+  }
+
+  @Override
   public void onDisconnectRtsp() {
     runOnUiThread(new Runnable() {
       @Override
@@ -410,7 +423,7 @@ public class RtspActivity extends AppCompatActivity
 
   @Override
   public void surfaceCreated(SurfaceHolder surfaceHolder) {
-    drawerLayout.openDrawer(Gravity.START);
+    drawerLayout.openDrawer(GravityCompat.START);
   }
 
   @Override
