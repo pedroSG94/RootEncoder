@@ -1,6 +1,5 @@
 package com.pedro.rtpstreamer.defaultexample;
 
-import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.view.SurfaceHolder;
@@ -11,15 +10,10 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
-import com.pedro.encoder.input.video.CameraOpenException;
-import com.pedro.rtplibrary.rtsp.RtspCamera1;
+import com.pedro.rtplibrary.rtsp.RtspOnlyAudio;
 import com.pedro.rtpstreamer.R;
 import com.pedro.rtsp.utils.ConnectCheckerRtsp;
 import java.io.File;
-import java.io.IOException;
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.Locale;
 
 /**
  * More documentation see:
@@ -29,7 +23,7 @@ import java.util.Locale;
 public class ExampleRtspActivity extends AppCompatActivity
     implements ConnectCheckerRtsp, View.OnClickListener, SurfaceHolder.Callback {
 
-  private RtspCamera1 rtspCamera1;
+  private RtspOnlyAudio rtspCamera1;
   private Button button;
   private Button bRecord;
   private EditText etUrl;
@@ -52,7 +46,7 @@ public class ExampleRtspActivity extends AppCompatActivity
     switchCamera.setOnClickListener(this);
     etUrl = findViewById(R.id.et_rtp_url);
     etUrl.setHint(R.string.hint_rtsp);
-    rtspCamera1 = new RtspCamera1(surfaceView, this);
+    rtspCamera1 = new RtspOnlyAudio( this);
     rtspCamera1.setReTries(10);
     surfaceView.getHolder().addCallback(this);
   }
@@ -128,8 +122,7 @@ public class ExampleRtspActivity extends AppCompatActivity
     switch (view.getId()) {
       case R.id.b_start_stop:
         if (!rtspCamera1.isStreaming()) {
-          if (rtspCamera1.isRecording()
-              || rtspCamera1.prepareAudio() && rtspCamera1.prepareVideo()) {
+          if (rtspCamera1.prepareAudio()) {
             button.setText(R.string.stop_button);
             rtspCamera1.startStream(etUrl.getText().toString());
           } else {
@@ -142,53 +135,53 @@ public class ExampleRtspActivity extends AppCompatActivity
         }
         break;
       case R.id.switch_camera:
-        try {
-          rtspCamera1.switchCamera();
-        } catch (CameraOpenException e) {
-          Toast.makeText(this, e.getMessage(), Toast.LENGTH_SHORT).show();
-        }
+        //try {
+        //  rtspCamera1.switchCamera();
+        //} catch (CameraOpenException e) {
+        //  Toast.makeText(this, e.getMessage(), Toast.LENGTH_SHORT).show();
+        //}
         break;
       case R.id.b_record:
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
-          if (!rtspCamera1.isRecording()) {
-            try {
-              if (!folder.exists()) {
-                folder.mkdir();
-              }
-              SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault());
-              currentDateAndTime = sdf.format(new Date());
-              if (!rtspCamera1.isStreaming()) {
-                if (rtspCamera1.prepareAudio() && rtspCamera1.prepareVideo()) {
-                  rtspCamera1.startRecord(
-                      folder.getAbsolutePath() + "/" + currentDateAndTime + ".mp4");
-                  bRecord.setText(R.string.stop_record);
-                  Toast.makeText(this, "Recording... ", Toast.LENGTH_SHORT).show();
-                } else {
-                  Toast.makeText(this, "Error preparing stream, This device cant do it",
-                      Toast.LENGTH_SHORT).show();
-                }
-              } else {
-                rtspCamera1.startRecord(
-                    folder.getAbsolutePath() + "/" + currentDateAndTime + ".mp4");
-                bRecord.setText(R.string.stop_record);
-                Toast.makeText(this, "Recording... ", Toast.LENGTH_SHORT).show();
-              }
-            } catch (IOException e) {
-              rtspCamera1.stopRecord();
-              bRecord.setText(R.string.start_record);
-              Toast.makeText(this, e.getMessage(), Toast.LENGTH_SHORT).show();
-            }
-          } else {
-            rtspCamera1.stopRecord();
-            bRecord.setText(R.string.start_record);
-            Toast.makeText(this,
-                "file " + currentDateAndTime + ".mp4 saved in " + folder.getAbsolutePath(),
-                Toast.LENGTH_SHORT).show();
-          }
-        } else {
-          Toast.makeText(this, "You need min JELLY_BEAN_MR2(API 18) for do it...",
-              Toast.LENGTH_SHORT).show();
-        }
+        //if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
+        //  if (!rtspCamera1.isRecording()) {
+        //    try {
+        //      if (!folder.exists()) {
+        //        folder.mkdir();
+        //      }
+        //      SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault());
+        //      currentDateAndTime = sdf.format(new Date());
+        //      if (!rtspCamera1.isStreaming()) {
+        //        if (rtspCamera1.prepareAudio() && rtspCamera1.prepareVideo()) {
+        //          rtspCamera1.startRecord(
+        //              folder.getAbsolutePath() + "/" + currentDateAndTime + ".mp4");
+        //          bRecord.setText(R.string.stop_record);
+        //          Toast.makeText(this, "Recording... ", Toast.LENGTH_SHORT).show();
+        //        } else {
+        //          Toast.makeText(this, "Error preparing stream, This device cant do it",
+        //              Toast.LENGTH_SHORT).show();
+        //        }
+        //      } else {
+        //        rtspCamera1.startRecord(
+        //            folder.getAbsolutePath() + "/" + currentDateAndTime + ".mp4");
+        //        bRecord.setText(R.string.stop_record);
+        //        Toast.makeText(this, "Recording... ", Toast.LENGTH_SHORT).show();
+        //      }
+        //    } catch (IOException e) {
+        //      rtspCamera1.stopRecord();
+        //      bRecord.setText(R.string.start_record);
+        //      Toast.makeText(this, e.getMessage(), Toast.LENGTH_SHORT).show();
+        //    }
+        //  } else {
+        //    rtspCamera1.stopRecord();
+        //    bRecord.setText(R.string.start_record);
+        //    Toast.makeText(this,
+        //        "file " + currentDateAndTime + ".mp4 saved in " + folder.getAbsolutePath(),
+        //        Toast.LENGTH_SHORT).show();
+        //  }
+        //} else {
+        //  Toast.makeText(this, "You need min JELLY_BEAN_MR2(API 18) for do it...",
+        //      Toast.LENGTH_SHORT).show();
+        //}
         break;
       default:
         break;
@@ -202,23 +195,23 @@ public class ExampleRtspActivity extends AppCompatActivity
 
   @Override
   public void surfaceChanged(SurfaceHolder surfaceHolder, int i, int i1, int i2) {
-    rtspCamera1.startPreview();
+    //rtspCamera1.startPreview();
   }
 
   @Override
   public void surfaceDestroyed(SurfaceHolder surfaceHolder) {
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2 && rtspCamera1.isRecording()) {
-      rtspCamera1.stopRecord();
+    //if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2 && rtspCamera1.isRecording()) {
+    //  rtspCamera1.stopRecord();
       bRecord.setText(R.string.start_record);
       Toast.makeText(this,
           "file " + currentDateAndTime + ".mp4 saved in " + folder.getAbsolutePath(),
           Toast.LENGTH_SHORT).show();
       currentDateAndTime = "";
-    }
+    //}
     if (rtspCamera1.isStreaming()) {
       rtspCamera1.stopStream();
       button.setText(getResources().getString(R.string.start_button));
     }
-    rtspCamera1.stopPreview();
+    //rtspCamera1.stopPreview();
   }
 }

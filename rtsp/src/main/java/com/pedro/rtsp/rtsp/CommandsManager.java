@@ -167,9 +167,14 @@ public class CommandsManager {
   }
 
   public void clear() {
-    cSeq = 0;
     sps = null;
     pps = null;
+    vps = null;
+    retryClear();
+  }
+
+  public void retryClear() {
+    cSeq = 0;
     sessionId = null;
   }
 

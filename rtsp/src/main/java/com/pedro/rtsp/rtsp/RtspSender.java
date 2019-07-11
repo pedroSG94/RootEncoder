@@ -127,6 +127,7 @@ public class RtspSender implements VideoPacketCallback, AudioPacketCallback {
           } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
           } catch (IOException e) {
+            Thread.currentThread().interrupt();
             Log.e(TAG, "send error: ", e);
             connectCheckerRtsp.onConnectionFailedRtsp("Error send packet, " + e.getMessage());
           }

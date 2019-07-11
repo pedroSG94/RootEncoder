@@ -226,11 +226,14 @@ public class RtspClient {
             writer.write(commandsManager.createTeardown());
             writer.flush();
             if (clear) commandsManager.clear();
+            else commandsManager.retryClear();
           }
           if (connectionSocket != null) connectionSocket.close();
           writer = null;
           connectionSocket = null;
         } catch (IOException e) {
+          if (clear) commandsManager.clear();
+          else commandsManager.retryClear();
           Log.e(TAG, "disconnect error", e);
         }
       }
