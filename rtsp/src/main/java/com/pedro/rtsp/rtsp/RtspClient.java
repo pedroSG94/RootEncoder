@@ -55,6 +55,10 @@ public class RtspClient {
     handler = new Handler(Looper.getMainLooper());
   }
 
+  public void setOnlyAudio(boolean onlyAudio) {
+    commandsManager.setOnlyAudio(onlyAudio);
+  }
+
   public void setProtocol(Protocol protocol) {
     commandsManager.setProtocol(protocol);
   }
@@ -125,9 +129,13 @@ public class RtspClient {
       String path = "/" + rtspMatcher.group(3) + "/" + rtspMatcher.group(4);
       commandsManager.setUrl(host, port, path);
 
-      rtspSender.setInfo(commandsManager.getProtocol(), commandsManager.getSps(),
-          commandsManager.getPps(), commandsManager.getVps(), commandsManager.getSampleRate(),
+      rtspSender.setSocketsInfo(commandsManager.getProtocol(),
           commandsManager.getVideoClientPorts(), commandsManager.getAudioClientPorts());
+      rtspSender.setAudioInfo(commandsManager.getSampleRate());
+      if (!commandsManager.isOnlyAudio()) {
+        rtspSender.setVideoInfo(commandsManager.getSps(), commandsManager.getPps(),
+            commandsManager.getVps());
+      }
       thread = new Thread(new Runnable() {
         @Override
         public void run() {
@@ -183,9 +191,11 @@ public class RtspClient {
             writer.write(commandsManager.createSetup(commandsManager.getTrackAudio()));
             writer.flush();
             commandsManager.getResponse(reader, connectCheckerRtsp, true, true);
-            writer.write(commandsManager.createSetup(commandsManager.getTrackVideo()));
-            writer.flush();
-            commandsManager.getResponse(reader, connectCheckerRtsp, false, true);
+            if (!commandsManager.isOnlyAudio()) {
+              writer.write(commandsManager.createSetup(commandsManager.getTrackVideo()));
+              writer.flush();
+              commandsManager.getResponse(reader, connectCheckerRtsp, false, true);
+            }
             writer.write(commandsManager.createRecord());
             writer.flush();
             commandsManager.getResponse(reader, connectCheckerRtsp, false, true);
@@ -193,7 +203,9 @@ public class RtspClient {
             rtspSender.setDataStream(outputStream, commandsManager.getHost());
             int[] videoPorts = commandsManager.getVideoServerPorts();
             int[] audioPorts = commandsManager.getAudioServerPorts();
-            rtspSender.setVideoPorts(videoPorts[0], videoPorts[1]);
+            if (!commandsManager.isOnlyAudio()) {
+              rtspSender.setVideoPorts(videoPorts[0], videoPorts[1]);
+            }
             rtspSender.setAudioPorts(audioPorts[0], audioPorts[1]);
             rtspSender.start();
             streaming = true;
@@ -225,15 +237,21 @@ public class RtspClient {
           if (writer != null) {
             writer.write(commandsManager.createTeardown());
             writer.flush();
-            if (clear) commandsManager.clear();
-            else commandsManager.retryClear();
+            if (clear) {
+              commandsManager.clear();
+            } else {
+              commandsManager.retryClear();
+            }
           }
           if (connectionSocket != null) connectionSocket.close();
           writer = null;
           connectionSocket = null;
         } catch (IOException e) {
-          if (clear) commandsManager.clear();
-          else commandsManager.retryClear();
+          if (clear) {
+            commandsManager.clear();
+          } else {
+            commandsManager.retryClear();
+          }
           Log.e(TAG, "disconnect error", e);
         }
       }
@@ -246,7 +264,7 @@ public class RtspClient {
   }
 
   public void sendVideo(ByteBuffer h264Buffer, MediaCodec.BufferInfo info) {
-    if (isStreaming()) {
+    if (isStreaming() && !commandsManager.isOnlyAudio()) {
       rtspSender.sendVideoFrame(h264Buffer, info);
     }
   }

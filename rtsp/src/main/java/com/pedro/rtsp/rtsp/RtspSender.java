@@ -46,14 +46,19 @@ public class RtspSender implements VideoPacketCallback, AudioPacketCallback {
     bitrateManager = new BitrateManager(connectCheckerRtsp);
   }
 
-  public void setInfo(Protocol protocol, byte[] sps, byte[] pps, byte[] vps, int sampleRate,
-      int[] videoSourcePorts, int[] audioSourcePorts) {
-    videoPacket =
-        vps == null ? new H264Packet(sps, pps, this) : new H265Packet(sps, pps, vps, this);
-    aacPacket = new AacPacket(sampleRate, this);
+  public void setSocketsInfo(Protocol protocol, int[] videoSourcePorts, int[] audioSourcePorts) {
     rtpSocket = BaseRtpSocket.getInstance(protocol, videoSourcePorts[0], audioSourcePorts[0]);
     baseSenderReport =
         BaseSenderReport.getInstance(protocol, videoSourcePorts[1], audioSourcePorts[1]);
+  }
+
+  public void setVideoInfo(byte[] sps, byte[] pps, byte[] vps) {
+    videoPacket =
+        vps == null ? new H264Packet(sps, pps, this) : new H265Packet(sps, pps, vps, this);
+  }
+
+  public void setAudioInfo(int sampleRate) {
+    aacPacket = new AacPacket(sampleRate, this);
   }
 
   /**
@@ -152,7 +157,7 @@ public class RtspSender implements VideoPacketCallback, AudioPacketCallback {
     baseSenderReport.close();
     rtpSocket.close();
     aacPacket.reset();
-    videoPacket.reset();
+    if (videoPacket != null) videoPacket.reset();
 
     resetSentAudioFrames();
     resetSentVideoFrames();

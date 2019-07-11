@@ -33,6 +33,7 @@ public class CommandsManager {
   private int trackAudio = 0;
   private int trackVideo = 1;
   private Protocol protocol;
+  private boolean isOnlyAudio;
 
   //For udp
   private final int[] audioClientPorts = new int[] { 5000, 5001 };
@@ -43,9 +44,6 @@ public class CommandsManager {
   //For auth
   private String user;
   private String password;
-  //For only audio
-  private final String defaultSps = "Z0KAHtoHgUZA";
-  private final String defaultPps = "aM4NiA==";
 
   public CommandsManager() {
     protocol = Protocol.TCP;
@@ -67,6 +65,14 @@ public class CommandsManager {
 
   private String encodeToString(byte[] bytes) {
     return Base64.encodeToString(bytes, 0, bytes.length, Base64.NO_WRAP);
+  }
+
+  public boolean isOnlyAudio() {
+    return isOnlyAudio;
+  }
+
+  public void setOnlyAudio(boolean onlyAudio) {
+    isOnlyAudio = onlyAudio;
   }
 
   public void setVideoInfo(ByteBuffer sps, ByteBuffer pps, ByteBuffer vps) {
@@ -179,11 +185,11 @@ public class CommandsManager {
   }
 
   private String getSpsString() {
-    return sps != null ? encodeToString(sps) : defaultSps;
+    return encodeToString(sps);
   }
 
   private String getPpsString() {
-    return pps != null ? encodeToString(pps) : defaultPps;
+    return encodeToString(pps);
   }
 
   private String getVpsString() {
@@ -196,8 +202,11 @@ public class CommandsManager {
   }
 
   private String createBody() {
-    String videoBody = vps == null ? Body.createH264Body(trackVideo, getSpsString(), getPpsString())
-        : Body.createH265Body(trackVideo, getSpsString(), getPpsString(), getVpsString());
+    String videoBody = "";
+    if (!isOnlyAudio) {
+      videoBody = vps == null ? Body.createH264Body(trackVideo, getSpsString(), getPpsString())
+          : Body.createH265Body(trackVideo, getSpsString(), getPpsString(), getVpsString());
+    }
     return "v=0\r\n"
         + "o=- "
         + timeStamp
