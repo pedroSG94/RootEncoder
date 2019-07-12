@@ -1,6 +1,8 @@
 package net.ossrs.rtmp;
 
 /**
+ * Created by pedro on 10/07/19.
+ *
  * Calculate video and audio bitrate per second
  */
 public class BitrateManager {
