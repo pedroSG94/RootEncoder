@@ -451,6 +451,11 @@ public abstract class Camera2Base implements GetAacData, GetVideoData, GetMicrop
     }
   }
 
+  public void reTry(long delay) {
+    resetVideoEncoder();
+    reConnect(delay);
+  }
+
   //re connection
   public abstract void setReTries(int reTries);
 

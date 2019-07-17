@@ -287,6 +287,11 @@ public abstract class FromFileBase
 
   protected abstract void stopStreamRtp();
 
+  public void reTry(long delay) {
+    resetVideoEncoder();
+    reConnect(delay);
+  }
+
   //re connection
   public abstract void setReTries(int reTries);
 
