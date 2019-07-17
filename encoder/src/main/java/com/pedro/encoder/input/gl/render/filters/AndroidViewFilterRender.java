@@ -11,11 +11,12 @@ import android.opengl.Matrix;
 import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
-import androidx.annotation.RequiresApi;
 import android.view.Surface;
 import android.view.View;
+import androidx.annotation.RequiresApi;
 import com.pedro.encoder.R;
 import com.pedro.encoder.utils.gl.GlUtil;
+import com.pedro.encoder.utils.gl.TranslateTo;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 
@@ -48,6 +49,11 @@ public class AndroidViewFilterRender extends BaseFilterRender {
   private SurfaceTexture surfaceTexture;
   private Surface surface;
   private Handler mainHandler;
+
+  private int rotation;
+  private float positionX, positionY;
+  private float scaleX = 1f, scaleY = 1f;
+  private float viewX, viewY;
 
   public AndroidViewFilterRender() {
     squareVertex = ByteBuffer.allocateDirect(squareVertexDataFilter.length * FLOAT_SIZE_BYTES)
@@ -86,6 +92,9 @@ public class AndroidViewFilterRender extends BaseFilterRender {
         public void run() {
           Canvas canvas = surface.lockCanvas(null);
           canvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR);
+          canvas.translate(positionX, positionY);
+          canvas.rotate(rotation, viewX / 2f, viewY / 2f);
+          canvas.scale(scaleX, scaleY);
           view.draw(canvas);
           surface.unlockCanvasAndPost(canvas);
         }
@@ -128,5 +137,81 @@ public class AndroidViewFilterRender extends BaseFilterRender {
 
   public void setView(final View view) {
     this.view = view;
+    if (view != null) {
+      view.measure(View.MeasureSpec.UNSPECIFIED, View.MeasureSpec.UNSPECIFIED);
+      viewX = view.getMeasuredWidth();
+      viewY = view.getMeasuredHeight();
+    }
+  }
+
+  /**
+   *
+   * @param x Position in percent
+   * @param y Position in percent
+   */
+  public void setPosition(float x, float y) {
+    int previewX = getPreviewWidth();
+    int previewY = getPreviewHeight();
+    this.positionX = previewX * x / 100f;
+    this.positionY = previewY * y / 100f;
+  }
+
+  public void setPosition(TranslateTo positionTo) {
+    int previewX = getPreviewWidth();
+    int previewY = getPreviewHeight();
+    switch (positionTo) {
+      case TOP:
+        this.positionX = previewX / 2f - (viewX / 2f);
+        this.positionY = 0f;
+        break;
+      case LEFT:
+        this.positionX = 0;
+        this.positionY = previewY / 2f - (viewY / 2f);
+        break;
+      case RIGHT:
+        this.positionX = previewX - viewX;
+        this.positionY = previewY / 2f - (viewY / 2f);
+        break;
+      case BOTTOM:
+        this.positionX = previewX / 2f - (viewX / 2f);
+        this.positionY = previewY - viewY;
+        break;
+      case CENTER:
+        this.positionX = previewX / 2f - (viewX / 2f);
+        this.positionY = previewY / 2f - (viewY / 2f);
+        break;
+      case TOP_RIGHT:
+        this.positionX = previewX - viewX;
+        this.positionY = 0;
+        break;
+      case BOTTOM_LEFT:
+        this.positionX = 0;
+        this.positionY = previewY - viewY;
+        break;
+      case BOTTOM_RIGHT:
+        this.positionX = previewX - viewX;
+        this.positionY = previewY - viewY;
+        break;
+      case TOP_LEFT:
+      default:
+        this.positionX = 0;
+        this.positionY = 0;
+        break;
+    }
+  }
+
+  public void setRotation(int rotation) {
+    if (rotation < 0) {
+      this.rotation = 0;
+    } else if (rotation > 360) {
+      this.rotation = 360;
+    } else {
+      this.rotation = rotation;
+    }
+  }
+  
+  public void setScale(float scaleX, float scaleY) {
+    this.scaleX = scaleX;
+    this.scaleY = scaleY;
   }
 }
