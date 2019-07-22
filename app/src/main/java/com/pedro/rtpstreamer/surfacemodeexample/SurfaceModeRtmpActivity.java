@@ -3,8 +3,6 @@ package com.pedro.rtpstreamer.surfacemodeexample;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
-import androidx.annotation.RequiresApi;
-import androidx.appcompat.app.AppCompatActivity;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.View;
@@ -12,9 +10,11 @@ import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
+import androidx.annotation.RequiresApi;
+import androidx.appcompat.app.AppCompatActivity;
 import com.pedro.encoder.input.video.CameraOpenException;
-import com.pedro.rtpstreamer.R;
 import com.pedro.rtplibrary.rtmp.RtmpCamera2;
+import com.pedro.rtpstreamer.R;
 import java.io.File;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
@@ -55,6 +55,7 @@ public class SurfaceModeRtmpActivity extends AppCompatActivity
     etUrl = findViewById(R.id.et_rtp_url);
     etUrl.setHint(R.string.hint_rtmp);
     rtmpCamera2 = new RtmpCamera2(surfaceView, this);
+    rtmpCamera2.setReTries(10);
     surfaceView.getHolder().addCallback(this);
   }
 
@@ -74,10 +75,15 @@ public class SurfaceModeRtmpActivity extends AppCompatActivity
     runOnUiThread(new Runnable() {
       @Override
       public void run() {
-        Toast.makeText(SurfaceModeRtmpActivity.this, "Connection failed. " + reason,
-            Toast.LENGTH_SHORT).show();
-        rtmpCamera2.stopStream();
-        button.setText(R.string.start_button);
+        if (rtmpCamera2.shouldRetry(reason)) {
+          Toast.makeText(SurfaceModeRtmpActivity.this, "Retry", Toast.LENGTH_SHORT)
+              .show();
+          rtmpCamera2.reTry(5000);  //Wait 5s and retry connect stream
+        } else {
+          Toast.makeText(SurfaceModeRtmpActivity.this, "Connection failed. " + reason, Toast.LENGTH_SHORT).show();
+          rtmpCamera2.stopStream();
+          button.setText(R.string.start_button);
+        }
       }
     });
   }

@@ -394,7 +394,7 @@ public class RtmpConnection implements RtmpPublisher {
     sendRtmpPacket(closeStream);
   }
 
-  private void shutdown(boolean r) {
+  private synchronized void shutdown(boolean r) {
     if (socket != null) {
       try {
         // It will raise EOFException in handleRxPacketThread
@@ -402,7 +402,7 @@ public class RtmpConnection implements RtmpPublisher {
         // It will raise SocketException in sendRtmpPacket
         socket.shutdownOutput();
       } catch (IOException | UnsupportedOperationException e) {
-        e.printStackTrace();
+        Log.e(TAG, "Shutdown socket", e);
       }
 
       // shutdown rxPacketHandler

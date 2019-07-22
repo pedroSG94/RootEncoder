@@ -34,6 +34,7 @@ public class AudioEncoder implements GetMicrophoneData {
   private int sampleRate = 32000; //in hz
   private boolean isStereo = true;
   private boolean canFlush = false;
+  private final Object sync = new Object();
 
   public AudioEncoder(GetAacData getAacData) {
     this.getAacData = getAacData;
@@ -98,23 +99,27 @@ public class AudioEncoder implements GetMicrophoneData {
   }
 
   public void start() {
-    presentTimeUs = System.nanoTime() / 1000;
-    audioEncoder.start();
-    running = true;
-    Log.i(TAG, "AudioEncoder started");
+    synchronized (sync) {
+      presentTimeUs = System.nanoTime() / 1000;
+      audioEncoder.start();
+      running = true;
+      Log.i(TAG, "AudioEncoder started");
+    }
   }
 
   public void stop() {
-    running = false;
-    if (audioEncoder != null) {
-      //First frame encoded so I can flush.
-      if (canFlush) audioEncoder.flush();
-      audioEncoder.stop();
-      audioEncoder.release();
-      audioEncoder = null;
+    synchronized (sync) {
+      running = false;
+      if (audioEncoder != null) {
+        //First frame encoded so I can flush.
+        if (canFlush) audioEncoder.flush();
+        audioEncoder.stop();
+        audioEncoder.release();
+        audioEncoder = null;
+      }
+      canFlush = false;
+      Log.i(TAG, "AudioEncoder stopped");
     }
-    canFlush = false;
-    Log.i(TAG, "AudioEncoder stopped");
   }
 
   /**
@@ -168,7 +173,7 @@ public class AudioEncoder implements GetMicrophoneData {
     if (inBufferIndex >= 0) {
       ByteBuffer bb = inputBuffers[inBufferIndex];
       bb.clear();
-      bb.put(data, 0, size);
+      bb.put(data, offset, size);
       long pts = System.nanoTime() / 1000 - presentTimeUs;
       audioEncoder.queueInputBuffer(inBufferIndex, 0, size, pts, 0);
     }

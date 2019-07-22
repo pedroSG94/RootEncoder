@@ -63,7 +63,7 @@ public class MicrophoneManager {
   /**
    * Start record and get data
    */
-  public void start() {
+  public synchronized void start() {
     init();
     thread = new Thread(new Runnable() {
       @Override
@@ -119,7 +119,7 @@ public class MicrophoneManager {
   /**
    * Stop and release microphone
    */
-  public void stop() {
+  public synchronized void stop() {
     running = false;
     created = false;
     if (thread != null) {
