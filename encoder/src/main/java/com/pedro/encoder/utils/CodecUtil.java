@@ -26,7 +26,7 @@ public class CodecUtil {
 
   @RequiresApi(api = Build.VERSION_CODES.M)
   public static List<String> showAllCodecsInfo() {
-    List<MediaCodecInfo> mediaCodecInfoList = getAllCodecs();
+    List<MediaCodecInfo> mediaCodecInfoList = getAllCodecs(false);
     List<String> infos = new ArrayList<>();
     for (MediaCodecInfo mediaCodecInfo : mediaCodecInfoList) {
       String info = "----------------\n";
@@ -45,14 +45,19 @@ public class CodecUtil {
               + " - "
               + encoderCapabilities.getComplexityRange().getUpper()
               + "\n";
-          info += "Quality range: "
-              + encoderCapabilities.getQualityRange().getLower()
-              + " - "
-              + encoderCapabilities.getQualityRange().getUpper()
-              + "\n";
-          info += "CBR supported: " + encoderCapabilities.isBitrateModeSupported(MediaCodecInfo.EncoderCapabilities.BITRATE_MODE_CBR) + "\n";
-          info += "VBR supported: " + encoderCapabilities.isBitrateModeSupported(MediaCodecInfo.EncoderCapabilities.BITRATE_MODE_VBR) + "\n";
-          info += "CQ supported: " + encoderCapabilities.isBitrateModeSupported(MediaCodecInfo.EncoderCapabilities.BITRATE_MODE_CQ) + "\n";
+          if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+            info += "Quality range: "
+                + encoderCapabilities.getQualityRange().getLower()
+                + " - "
+                + encoderCapabilities.getQualityRange().getUpper()
+                + "\n";
+          }
+          info += "CBR supported: " + encoderCapabilities.isBitrateModeSupported(
+              MediaCodecInfo.EncoderCapabilities.BITRATE_MODE_CBR) + "\n";
+          info += "VBR supported: " + encoderCapabilities.isBitrateModeSupported(
+              MediaCodecInfo.EncoderCapabilities.BITRATE_MODE_VBR) + "\n";
+          info += "CQ supported: " + encoderCapabilities.isBitrateModeSupported(
+              MediaCodecInfo.EncoderCapabilities.BITRATE_MODE_CQ) + "\n";
           info += "----- -----\n";
         } else {
           info += "----- Decoder info -----\n";
@@ -120,7 +125,7 @@ public class CodecUtil {
     return infos;
   }
 
-  public static List<MediaCodecInfo> getAllCodecs() {
+  public static List<MediaCodecInfo> getAllCodecs(boolean filterBroken) {
     List<MediaCodecInfo> mediaCodecInfoList = new ArrayList<>();
     if (Build.VERSION.SDK_INT >= 21) {
       MediaCodecList mediaCodecList = new MediaCodecList(MediaCodecList.ALL_CODECS);
@@ -133,7 +138,7 @@ public class CodecUtil {
         mediaCodecInfoList.add(mci);
       }
     }
-    return mediaCodecInfoList;
+    return filterBroken ? filterBrokenCodecs(mediaCodecInfoList) : mediaCodecInfoList;
   }
 
   public static List<MediaCodecInfo> getAllHardwareEncoders(String mime) {
@@ -184,105 +189,71 @@ public class CodecUtil {
     return mediaCodecInfoSoftware;
   }
 
+  /**
+   * choose the video encoder by mime.
+   */
   public static List<MediaCodecInfo> getAllEncoders(String mime) {
-    if (Build.VERSION.SDK_INT >= 21) {
-      return getAllEncodersAPI21(mime);
-    } else {
-      return getAllEncodersAPI16(mime);
+    List<MediaCodecInfo> mediaCodecInfoList = new ArrayList<>();
+    List<MediaCodecInfo> mediaCodecInfos = getAllCodecs(true);
+    for (MediaCodecInfo mci : mediaCodecInfos) {
+      if (!mci.isEncoder()) {
+        continue;
+      }
+      String[] types = mci.getSupportedTypes();
+      for (String type : types) {
+        if (type.equalsIgnoreCase(mime)) {
+          mediaCodecInfoList.add(mci);
+        }
+      }
     }
+    return mediaCodecInfoList;
   }
 
+  /**
+   * choose the video encoder by mime.
+   */
   public static List<MediaCodecInfo> getAllDecoders(String mime) {
-    if (Build.VERSION.SDK_INT >= 21) {
-      return getAllDecodersAPI21(mime);
+    List<MediaCodecInfo> mediaCodecInfoList = new ArrayList<>();
+    List<MediaCodecInfo> mediaCodecInfos = getAllCodecs(true);
+    for (MediaCodecInfo mci : mediaCodecInfos) {
+      if (mci.isEncoder()) {
+        continue;
+      }
+      String[] types = mci.getSupportedTypes();
+      for (String type : types) {
+        if (type.equalsIgnoreCase(mime)) {
+          mediaCodecInfoList.add(mci);
+        }
+      }
+    }
+    return mediaCodecInfoList;
+  }
+
+  /**
+   * Filter broken codecs by name and device model.
+   *
+   * Note:
+   * There is no way to know broken encoders so we will check by name and device.
+   * Please add your encoder to this method if you detect one.
+   *
+   * @param codecs All device codecs
+   * @return a list without broken codecs
+   */
+  private static List<MediaCodecInfo> filterBrokenCodecs(List<MediaCodecInfo> codecs) {
+    List<MediaCodecInfo> listFilter = new ArrayList<>();
+    for (MediaCodecInfo mediaCodecInfo : codecs) {
+      if (!isValid(mediaCodecInfo.getName())) {
+        listFilter.add(mediaCodecInfo);
+      }
+    }
+    return listFilter;
+  }
+
+  private static boolean isValid(String name) {
+    if (name.equals("OMX.qcom.video.encoder.avc") && Build.MODEL.equals("Pixel 3a")) {
+      return false;
     } else {
-      return getAllDecodersAPI16(mime);
+      return true;
     }
-  }
-
-  /**
-   * choose the video encoder by mime. API 21+
-   */
-  @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
-  private static List<MediaCodecInfo> getAllEncodersAPI21(String mime) {
-    List<MediaCodecInfo> mediaCodecInfoList = new ArrayList<>();
-    MediaCodecList mediaCodecList = new MediaCodecList(MediaCodecList.ALL_CODECS);
-    MediaCodecInfo[] mediaCodecInfos = mediaCodecList.getCodecInfos();
-    for (MediaCodecInfo mci : mediaCodecInfos) {
-      if (!mci.isEncoder()) {
-        continue;
-      }
-      String[] types = mci.getSupportedTypes();
-      for (String type : types) {
-        if (type.equalsIgnoreCase(mime)) {
-          mediaCodecInfoList.add(mci);
-        }
-      }
-    }
-    return mediaCodecInfoList;
-  }
-
-  /**
-   * choose the video encoder by mime. API > 16
-   */
-  private static List<MediaCodecInfo> getAllEncodersAPI16(String mime) {
-    List<MediaCodecInfo> mediaCodecInfoList = new ArrayList<>();
-    int count = MediaCodecList.getCodecCount();
-    for (int i = 0; i < count; i++) {
-      MediaCodecInfo mci = MediaCodecList.getCodecInfoAt(i);
-      if (!mci.isEncoder()) {
-        continue;
-      }
-      String[] types = mci.getSupportedTypes();
-      for (String type : types) {
-        if (type.equalsIgnoreCase(mime)) {
-          mediaCodecInfoList.add(mci);
-        }
-      }
-    }
-    return mediaCodecInfoList;
-  }
-
-  /**
-   * choose the video encoder by mime. API 21+
-   */
-  @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
-  private static List<MediaCodecInfo> getAllDecodersAPI21(String mime) {
-    List<MediaCodecInfo> mediaCodecInfoList = new ArrayList<>();
-    MediaCodecList mediaCodecList = new MediaCodecList(MediaCodecList.ALL_CODECS);
-    MediaCodecInfo[] mediaCodecInfos = mediaCodecList.getCodecInfos();
-    for (MediaCodecInfo mci : mediaCodecInfos) {
-      if (mci.isEncoder()) {
-        continue;
-      }
-      String[] types = mci.getSupportedTypes();
-      for (String type : types) {
-        if (type.equalsIgnoreCase(mime)) {
-          mediaCodecInfoList.add(mci);
-        }
-      }
-    }
-    return mediaCodecInfoList;
-  }
-
-  /**
-   * choose the video encoder by mime. API > 16
-   */
-  private static List<MediaCodecInfo> getAllDecodersAPI16(String mime) {
-    List<MediaCodecInfo> mediaCodecInfoList = new ArrayList<>();
-    int count = MediaCodecList.getCodecCount();
-    for (int i = 0; i < count; i++) {
-      MediaCodecInfo mci = MediaCodecList.getCodecInfoAt(i);
-      if (mci.isEncoder()) {
-        continue;
-      }
-      String[] types = mci.getSupportedTypes();
-      for (String type : types) {
-        if (type.equalsIgnoreCase(mime)) {
-          mediaCodecInfoList.add(mci);
-        }
-      }
-    }
-    return mediaCodecInfoList;
   }
 }
