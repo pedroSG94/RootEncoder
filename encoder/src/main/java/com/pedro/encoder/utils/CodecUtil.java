@@ -242,7 +242,7 @@ public class CodecUtil {
   private static List<MediaCodecInfo> filterBrokenCodecs(List<MediaCodecInfo> codecs) {
     List<MediaCodecInfo> listFilter = new ArrayList<>();
     for (MediaCodecInfo mediaCodecInfo : codecs) {
-      if (!isValid(mediaCodecInfo.getName())) {
+      if (isValid(mediaCodecInfo.getName())) {
         listFilter.add(mediaCodecInfo);
       }
     }
