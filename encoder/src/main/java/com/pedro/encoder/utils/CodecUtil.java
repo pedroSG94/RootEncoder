@@ -3,7 +3,6 @@ package com.pedro.encoder.utils;
 import android.media.MediaCodecInfo;
 import android.media.MediaCodecList;
 import android.os.Build;
-import androidx.annotation.RequiresApi;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -24,7 +23,6 @@ public class CodecUtil {
     FIRST_COMPATIBLE_FOUND, SOFTWARE, HARDWARE
   }
 
-  @RequiresApi(api = Build.VERSION_CODES.M)
   public static List<String> showAllCodecsInfo() {
     List<MediaCodecInfo> mediaCodecInfoList = getAllCodecs(false);
     List<String> infos = new ArrayList<>();
@@ -35,16 +33,20 @@ public class CodecUtil {
         info += "Type: " + type + "\n";
         MediaCodecInfo.CodecCapabilities codecCapabilities =
             mediaCodecInfo.getCapabilitiesForType(type);
-        info += "Max instances: " + codecCapabilities.getMaxSupportedInstances() + "\n";
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+          info += "Max instances: " + codecCapabilities.getMaxSupportedInstances() + "\n";
+        }
         if (mediaCodecInfo.isEncoder()) {
           info += "----- Encoder info -----\n";
-          MediaCodecInfo.EncoderCapabilities encoderCapabilities =
-              codecCapabilities.getEncoderCapabilities();
-          info += "Complexity range: "
-              + encoderCapabilities.getComplexityRange().getLower()
-              + " - "
-              + encoderCapabilities.getComplexityRange().getUpper()
-              + "\n";
+          MediaCodecInfo.EncoderCapabilities encoderCapabilities = null;
+          if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            encoderCapabilities = codecCapabilities.getEncoderCapabilities();
+            info += "Complexity range: "
+                + encoderCapabilities.getComplexityRange().getLower()
+                + " - "
+                + encoderCapabilities.getComplexityRange().getUpper()
+                + "\n";
+          }
           if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
             info += "Quality range: "
                 + encoderCapabilities.getQualityRange().getLower()
@@ -52,12 +54,14 @@ public class CodecUtil {
                 + encoderCapabilities.getQualityRange().getUpper()
                 + "\n";
           }
-          info += "CBR supported: " + encoderCapabilities.isBitrateModeSupported(
-              MediaCodecInfo.EncoderCapabilities.BITRATE_MODE_CBR) + "\n";
-          info += "VBR supported: " + encoderCapabilities.isBitrateModeSupported(
-              MediaCodecInfo.EncoderCapabilities.BITRATE_MODE_VBR) + "\n";
-          info += "CQ supported: " + encoderCapabilities.isBitrateModeSupported(
-              MediaCodecInfo.EncoderCapabilities.BITRATE_MODE_CQ) + "\n";
+          if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            info += "CBR supported: " + encoderCapabilities.isBitrateModeSupported(
+                MediaCodecInfo.EncoderCapabilities.BITRATE_MODE_CBR) + "\n";
+            info += "VBR supported: " + encoderCapabilities.isBitrateModeSupported(
+                MediaCodecInfo.EncoderCapabilities.BITRATE_MODE_VBR) + "\n";
+            info += "CQ supported: " + encoderCapabilities.isBitrateModeSupported(
+                MediaCodecInfo.EncoderCapabilities.BITRATE_MODE_CQ) + "\n";
+          }
           info += "----- -----\n";
         } else {
           info += "----- Decoder info -----\n";
@@ -70,54 +74,60 @@ public class CodecUtil {
           for (int color : codecCapabilities.colorFormats) info += color + "\n";
           for (MediaCodecInfo.CodecProfileLevel profile : codecCapabilities.profileLevels)
             info += "Profile: " + profile.profile + ", level: " + profile.level + "\n";
-          MediaCodecInfo.VideoCapabilities videoCapabilities =
-              codecCapabilities.getVideoCapabilities();
+          MediaCodecInfo.VideoCapabilities videoCapabilities = null;
+          if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            videoCapabilities = codecCapabilities.getVideoCapabilities();
 
-          info += "Bitrate range: "
-              + videoCapabilities.getBitrateRange().getLower()
-              + " - "
-              + videoCapabilities.getBitrateRange().getUpper()
-              + "\n";
-          info += "Frame rate range: "
-              + videoCapabilities.getSupportedFrameRates().getLower()
-              + " - "
-              + videoCapabilities.getSupportedFrameRates().getUpper()
-              + "\n";
-          info += "Width range: "
-              + videoCapabilities.getSupportedWidths().getLower()
-              + " - "
-              + videoCapabilities.getSupportedWidths().getUpper()
-              + "\n";
-          info += "Height range: "
-              + videoCapabilities.getSupportedHeights().getLower()
-              + " - "
-              + videoCapabilities.getSupportedHeights().getUpper()
-              + "\n";
+            info += "Bitrate range: "
+                + videoCapabilities.getBitrateRange().getLower()
+                + " - "
+                + videoCapabilities.getBitrateRange().getUpper()
+                + "\n";
+            info += "Frame rate range: "
+                + videoCapabilities.getSupportedFrameRates().getLower()
+                + " - "
+                + videoCapabilities.getSupportedFrameRates().getUpper()
+                + "\n";
+            info += "Width range: "
+                + videoCapabilities.getSupportedWidths().getLower()
+                + " - "
+                + videoCapabilities.getSupportedWidths().getUpper()
+                + "\n";
+            info += "Height range: "
+                + videoCapabilities.getSupportedHeights().getLower()
+                + " - "
+                + videoCapabilities.getSupportedHeights().getUpper()
+                + "\n";
+          }
           info += "----- -----\n";
         } else {
           info += "----- Audio info -----\n";
           for (MediaCodecInfo.CodecProfileLevel profile : codecCapabilities.profileLevels)
             info += "Profile: " + profile.profile + ", level: " + profile.level + "\n";
-          MediaCodecInfo.AudioCapabilities audioCapabilities =
-              codecCapabilities.getAudioCapabilities();
+          if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            MediaCodecInfo.AudioCapabilities audioCapabilities =
+                codecCapabilities.getAudioCapabilities();
 
-          info += "Bitrate range: "
-              + audioCapabilities.getBitrateRange().getLower()
-              + " - "
-              + audioCapabilities.getBitrateRange().getUpper()
-              + "\n";
-          info += "Channels supported: " + audioCapabilities.getMaxInputChannelCount() + "\n";
-          try {
-            if (audioCapabilities.getSupportedSampleRates() != null
-                && audioCapabilities.getSupportedSampleRates().length > 0) {
-              info += "Supported sample rate: \n";
-              for (int sr : audioCapabilities.getSupportedSampleRates()) info += sr + "\n";
+            info += "Bitrate range: "
+                + audioCapabilities.getBitrateRange().getLower()
+                + " - "
+                + audioCapabilities.getBitrateRange().getUpper()
+                + "\n";
+            info += "Channels supported: " + audioCapabilities.getMaxInputChannelCount() + "\n";
+            try {
+              if (audioCapabilities.getSupportedSampleRates() != null
+                  && audioCapabilities.getSupportedSampleRates().length > 0) {
+                info += "Supported sample rate: \n";
+                for (int sr : audioCapabilities.getSupportedSampleRates()) info += sr + "\n";
+              }
+            } catch (Exception e) {
             }
-          } catch (Exception e) {
           }
           info += "----- -----\n";
         }
-        info += "Max instances: " + codecCapabilities.getMaxSupportedInstances() + "\n";
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+          info += "Max instances: " + codecCapabilities.getMaxSupportedInstances() + "\n";
+        }
       }
       info += "----------------\n";
       infos.add(info);
@@ -250,7 +260,8 @@ public class CodecUtil {
   }
 
   private static boolean isValid(String name) {
-    if (name.equals("OMX.qcom.video.encoder.avc") && Build.MODEL.equals("Pixel 3a")) {
+    if (name.equals("OMX.qcom.video.encoder.avc")
+        || name.equals("c2.qti.avc.encoder") && Build.MODEL.equals("Pixel 3a")) {
       return false;
     } else {
       return true;
