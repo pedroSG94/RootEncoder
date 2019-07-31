@@ -93,4 +93,6 @@ public interface GlInterface {
    * Stop Opengl rendering.
    */
   void stop();
+
+  void setFps(int fps);
 }

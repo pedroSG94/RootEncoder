@@ -123,21 +123,19 @@ public class OpenGlView extends OpenGlViewBase {
             takePhotoCallback = null;
           }
           synchronized (sync) {
-            if (surfaceManagerEncoder != null) {
+            if (surfaceManagerEncoder != null  && !fpsLimiter.limitFPS(fps)) {
               surfaceManagerEncoder.makeCurrent();
               managerRender.drawScreen(encoderWidth, encoderHeight, false);
-              long ts = managerRender.getSurfaceTexture().getTimestamp();
-              surfaceManagerEncoder.setPresentationTime(ts);
               surfaceManagerEncoder.swapBuffer();
             }
           }
-        }
-        if (!filterQueue.isEmpty()) {
-          Filter filter = filterQueue.take();
-          managerRender.setFilter(filter.getPosition(), filter.getBaseFilterRender());
-        } else if (loadAA) {
-          managerRender.enableAA(AAEnabled);
-          loadAA = false;
+          if (!filterQueue.isEmpty()) {
+            Filter filter = filterQueue.take();
+            managerRender.setFilter(filter.getPosition(), filter.getBaseFilterRender());
+          } else if (loadAA) {
+            managerRender.enableAA(AAEnabled);
+            loadAA = false;
+          }
         }
       }
     } catch (InterruptedException ignore) {

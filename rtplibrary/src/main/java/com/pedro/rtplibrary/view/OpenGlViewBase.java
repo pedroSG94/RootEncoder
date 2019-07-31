@@ -10,6 +10,7 @@ import android.view.Surface;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import com.pedro.encoder.input.gl.SurfaceManager;
+import com.pedro.encoder.input.video.FpsLimiter;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.Semaphore;
@@ -33,6 +34,8 @@ public abstract class OpenGlViewBase extends SurfaceView
   protected SurfaceManager surfaceManager = null;
   protected SurfaceManager surfaceManagerEncoder = null;
 
+  protected int fps = 30;
+  protected FpsLimiter fpsLimiter = new FpsLimiter();
   protected final Semaphore semaphore = new Semaphore(0);
   protected final BlockingQueue<Filter> filterQueue = new LinkedBlockingQueue<>();
   protected final Object sync = new Object();
@@ -58,6 +61,11 @@ public abstract class OpenGlViewBase extends SurfaceView
 
   @Override
   public abstract Surface getSurface();
+
+  @Override
+  public void setFps(int fps) {
+    this.fps = fps;
+  }
 
   @Override
   public void takePhoto(TakePhotoCallback takePhotoCallback) {
