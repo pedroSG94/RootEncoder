@@ -63,7 +63,7 @@ public class OffScreenGlThread
 
   @Override
   public void setFps(int fps) {
-    this.fps = fps;
+    fpsLimiter.setFPS(fps);
   }
 
   @Override
@@ -147,7 +147,6 @@ public class OffScreenGlThread
         thread = null;
       }
       running = false;
-      fpsLimiter.reset();
     }
   }
 
@@ -182,7 +181,7 @@ public class OffScreenGlThread
           }
 
           synchronized (sync) {
-            if (surfaceManagerEncoder != null && !fpsLimiter.limitFPS(fps)) {
+            if (surfaceManagerEncoder != null && !fpsLimiter.limitFPS()) {
               surfaceManagerEncoder.makeCurrent();
               textureManager.drawScreen(encoderWidth, encoderHeight, false);
               surfaceManagerEncoder.swapBuffer();

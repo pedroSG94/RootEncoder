@@ -123,7 +123,7 @@ public class OpenGlView extends OpenGlViewBase {
             takePhotoCallback = null;
           }
           synchronized (sync) {
-            if (surfaceManagerEncoder != null  && !fpsLimiter.limitFPS(fps)) {
+            if (surfaceManagerEncoder != null  && !fpsLimiter.limitFPS()) {
               surfaceManagerEncoder.makeCurrent();
               managerRender.drawScreen(encoderWidth, encoderHeight, false);
               surfaceManagerEncoder.swapBuffer();

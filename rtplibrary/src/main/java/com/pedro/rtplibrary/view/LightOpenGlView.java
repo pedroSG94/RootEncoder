@@ -82,7 +82,7 @@ public class LightOpenGlView extends OpenGlViewBase {
           takePhotoCallback = null;
         }
         synchronized (sync) {
-          if (surfaceManagerEncoder != null && !fpsLimiter.limitFPS(fps)) {
+          if (surfaceManagerEncoder != null && !fpsLimiter.limitFPS()) {
             surfaceManagerEncoder.makeCurrent();
             simpleCameraRender.drawFrame(encoderWidth, encoderHeight, false);
             surfaceManagerEncoder.swapBuffer();

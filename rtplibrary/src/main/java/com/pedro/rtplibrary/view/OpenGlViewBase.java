@@ -34,7 +34,6 @@ public abstract class OpenGlViewBase extends SurfaceView
   protected SurfaceManager surfaceManager = null;
   protected SurfaceManager surfaceManagerEncoder = null;
 
-  protected int fps = 30;
   protected FpsLimiter fpsLimiter = new FpsLimiter();
   protected final Semaphore semaphore = new Semaphore(0);
   protected final BlockingQueue<Filter> filterQueue = new LinkedBlockingQueue<>();
@@ -64,7 +63,7 @@ public abstract class OpenGlViewBase extends SurfaceView
 
   @Override
   public void setFps(int fps) {
-    this.fps = fps;
+    fpsLimiter.setFPS(fps);
   }
 
   @Override

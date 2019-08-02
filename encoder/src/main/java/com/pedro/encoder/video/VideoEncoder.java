@@ -234,7 +234,10 @@ public class VideoEncoder implements GetCameraData {
   public void start(boolean resetTs) {
     synchronized (sync) {
       spsPpsSetted = false;
-      if (resetTs) presentTimeUs = System.nanoTime() / 1000;
+      if (resetTs) {
+        presentTimeUs = System.nanoTime() / 1000;
+        fpsLimiter.setFPS(fps);
+      }
       videoEncoder.start();
       //surface to buffer
       if (formatVideoEncoder == FormatVideoEncoder.SURFACE
@@ -261,7 +264,7 @@ public class VideoEncoder implements GetCameraData {
             while (running && !Thread.interrupted()) {
               try {
                 Frame frame = queue.take();
-                if (fpsLimiter.limitFPS(fps)) continue;
+                if (fpsLimiter.limitFPS()) continue;
                 byte[] buffer = frame.getBuffer();
                 boolean isYV12 = frame.getFormat() == ImageFormat.YV12;
                 if (!hardwareRotation) {
@@ -314,7 +317,6 @@ public class VideoEncoder implements GetCameraData {
         videoEncoder = null;
       }
       queue.clear();
-      fpsLimiter.reset();
       spsPpsSetted = false;
       inputSurface = null;
     }

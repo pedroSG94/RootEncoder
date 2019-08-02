@@ -6,17 +6,22 @@ package com.pedro.encoder.input.video;
 
 public class FpsLimiter {
 
-  private long lastFrameTimestamp = 0L;
+  private long startTS = System.currentTimeMillis();
+  private long ratioF = 1000 / 30;
+  private long ratio = 1000 / 30;
 
-  public boolean limitFPS(int fps) {
-    if (System.currentTimeMillis() - lastFrameTimestamp > 1000 / fps) {
-      lastFrameTimestamp = System.currentTimeMillis();
+  public void setFPS(int fps) {
+    startTS = System.currentTimeMillis();
+    ratioF = 1000 / fps;
+    ratio = 1000 / fps;
+  }
+
+  public boolean limitFPS() {
+    long lastFrameTimestamp = System.currentTimeMillis() - startTS;
+    if (ratio < lastFrameTimestamp) {
+      ratio += ratioF;
       return false;
     }
     return true;
-  }
-
-  public void reset() {
-    lastFrameTimestamp = 0;
   }
 }
