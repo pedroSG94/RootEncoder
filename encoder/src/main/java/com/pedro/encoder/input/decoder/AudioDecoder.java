@@ -5,6 +5,7 @@ import android.media.MediaExtractor;
 import android.media.MediaFormat;
 import android.util.Log;
 import com.pedro.encoder.input.audio.GetMicrophoneData;
+import com.pedro.encoder.utils.PCMUtil;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 
@@ -27,7 +28,9 @@ public class AudioDecoder {
   private String mime = "";
   private int sampleRate;
   private boolean isStereo;
-  private byte[] pcmBuffer = new byte[4096];
+  private int channels = 2;
+  private int size = 4096;
+  private byte[] pcmBuffer = new byte[size];
   private byte[] pcmBufferMuted = new byte[11];
   private static boolean loopMode = false;
   private boolean muted = false;
@@ -56,9 +59,13 @@ public class AudioDecoder {
       }
     }
     if (audioFormat != null) {
-      isStereo = (audioFormat.getInteger(MediaFormat.KEY_CHANNEL_COUNT) == 2);
+      channels = audioFormat.getInteger(MediaFormat.KEY_CHANNEL_COUNT);
+      isStereo = channels >= 2;
       sampleRate = audioFormat.getInteger(MediaFormat.KEY_SAMPLE_RATE);
       duration = audioFormat.getLong(MediaFormat.KEY_DURATION);
+      if (channels > 2) {
+        pcmBuffer = new byte[2048 * channels];
+      }
       return true;
       //audio decoder not supported
     } else {
@@ -136,7 +143,6 @@ public class AudioDecoder {
             outputBuffers = audioDecoder.getOutputBuffers();
             break;
           case MediaCodec.INFO_OUTPUT_FORMAT_CHANGED:
-            break;
           case MediaCodec.INFO_TRY_AGAIN_LATER:
             break;
           default:
@@ -156,8 +162,13 @@ public class AudioDecoder {
               outBuffer.get(pcmBufferMuted, 0, pcmBufferMuted.length);
               getMicrophoneData.inputPCMData(pcmBufferMuted, 0, pcmBufferMuted.length);
             } else {
-              outBuffer.get(pcmBuffer, 0, outBuffer.remaining());
-              getMicrophoneData.inputPCMData(pcmBuffer, 0, pcmBuffer.length);
+              outBuffer.get(pcmBuffer, 0, pcmBuffer.length);
+              if (channels > 2) { //downgrade to stereo
+                byte[] bufferStereo = PCMUtil.pcmToStereo(pcmBuffer, channels);
+                getMicrophoneData.inputPCMData(bufferStereo, 0, bufferStereo.length);
+              } else {
+                getMicrophoneData.inputPCMData(pcmBuffer, 0, pcmBuffer.length);
+              }
             }
             audioDecoder.releaseOutputBuffer(outIndex, false);
             break;
