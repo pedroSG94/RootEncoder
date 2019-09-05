@@ -5,6 +5,7 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.PorterDuff;
+import android.graphics.Typeface;
 import android.util.Log;
 
 /**
@@ -31,9 +32,9 @@ public class TextStreamObject extends StreamObjectBase {
     return imageBitmap != null ? imageBitmap.getHeight() : 0;
   }
 
-  public void load(String text, float textSize, int textColor) {
+  public void load(String text, float textSize, int textColor, Typeface typeface) {
     numFrames = 1;
-    imageBitmap = textAsBitmap(text, textSize, textColor);
+    imageBitmap = textAsBitmap(text, textSize, textColor, typeface);
     Log.i(TAG, "finish load text");
   }
 
@@ -42,11 +43,12 @@ public class TextStreamObject extends StreamObjectBase {
     if (imageBitmap != null) imageBitmap.recycle();
   }
 
-  private Bitmap textAsBitmap(String text, float textSize, int textColor) {
+  private Bitmap textAsBitmap(String text, float textSize, int textColor, Typeface typeface) {
     Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
     paint.setTextSize(textSize);
     paint.setColor(textColor);
     paint.setAlpha(255);
+    if (typeface != null) paint.setTypeface(typeface);
     paint.setTextAlign(Paint.Align.LEFT);
 
     float baseline = -paint.ascent(); // ascent() is negative
