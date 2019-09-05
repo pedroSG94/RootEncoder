@@ -296,14 +296,6 @@ public class RtmpConnection implements RtmpPublisher {
     releaseStream.addData(streamName);  // command object: null for "releaseStream"
     sendRtmpPacket(releaseStream);
 
-    Log.d(TAG, "createStream(): Sending createStream command...");
-    ChunkStreamInfo chunkStreamInfo =
-        rtmpSessionInfo.getChunkStreamInfo(ChunkStreamInfo.RTMP_CID_OVER_CONNECTION);
-    // transactionId == 4
-    Command createStream = new Command("createStream", ++transactionIdCounter, chunkStreamInfo);
-    createStream.addData(new AmfNull());  // command object: null for "createStream"
-    sendRtmpPacket(createStream);
-
     Log.d(TAG, "createStream(): Sending FCPublish command...");
     // transactionId == 3
     Command FCPublish = new Command("FCPublish", ++transactionIdCounter);
@@ -311,6 +303,14 @@ public class RtmpConnection implements RtmpPublisher {
     FCPublish.addData(new AmfNull());  // command object: null for "FCPublish"
     FCPublish.addData(streamName);
     sendRtmpPacket(FCPublish);
+
+    Log.d(TAG, "createStream(): Sending createStream command...");
+    ChunkStreamInfo chunkStreamInfo =
+        rtmpSessionInfo.getChunkStreamInfo(ChunkStreamInfo.RTMP_CID_OVER_CONNECTION);
+    // transactionId == 4
+    Command createStream = new Command("createStream", ++transactionIdCounter, chunkStreamInfo);
+    createStream.addData(new AmfNull());  // command object: null for "createStream"
+    sendRtmpPacket(createStream);
 
     // Waiting for "NetStream.Publish.Start" response.
     synchronized (publishLock) {
@@ -586,20 +586,6 @@ public class RtmpConnection implements RtmpPublisher {
         connectCheckerRtmp.onConnectionFailedRtmp("Error reading packet: " + e.getMessage());
         Log.e(TAG, "Caught SocketException while reading/decoding packet, shutting down: "
             + e.getMessage());
-        /**
-         * This is a temporal solution.
-         * ffmpeg server send packets so rare.
-         * He send part of the second packet in the first stream when you send create stream command.
-         * So packet parser crash for this reason we assume that publish is always permitted and send data.
-         * Maybe this is ffmpeg server bug (in page documentation it is an experimental command).
-         * */
-      } catch (IllegalArgumentException e) {
-        onMetaData();
-        // We can now publish AV data
-        publishPermitted = true;
-        synchronized (publishLock) {
-          publishLock.notifyAll();
-        }
       }
     }
   }
