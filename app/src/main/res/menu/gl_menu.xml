@@ -14,6 +14,10 @@
           android:title="@string/no_filter"
           />
       <item
+          android:id="@+id/analog_tv"
+          android:title="@string/analog_tv"
+          />
+      <item
           android:id="@+id/android_view"
           android:title="@string/android_view"
           />

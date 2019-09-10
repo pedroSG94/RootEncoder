@@ -15,9 +15,9 @@ import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
-import androidx.annotation.RequiresApi;
-import androidx.appcompat.app.AppCompatActivity;
+
 import com.pedro.encoder.input.gl.SpriteGestureController;
+import com.pedro.encoder.input.gl.render.filters.AnalogTVFilterRender;
 import com.pedro.encoder.input.gl.render.filters.AndroidViewFilterRender;
 import com.pedro.encoder.input.gl.render.filters.BasicDeformationFilterRender;
 import com.pedro.encoder.input.gl.render.filters.BeautyFilterRender;
@@ -64,12 +64,17 @@ import com.pedro.encoder.utils.gl.TranslateTo;
 import com.pedro.rtplibrary.rtmp.RtmpCamera1;
 import com.pedro.rtplibrary.view.OpenGlView;
 import com.pedro.rtpstreamer.R;
+
+import net.ossrs.rtmp.ConnectCheckerRtmp;
+
 import java.io.File;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
-import net.ossrs.rtmp.ConnectCheckerRtmp;
+
+import androidx.annotation.RequiresApi;
+import androidx.appcompat.app.AppCompatActivity;
 
 /**
  * More documentation see:
@@ -135,6 +140,9 @@ public class OpenGlRtmpActivity extends AppCompatActivity
       // color.setRGBColor(255, 0, 0); //red tint
       case R.id.no_filter:
         rtmpCamera1.getGlInterface().setFilter(new NoFilterRender());
+        return true;
+      case R.id.analog_tv:
+        rtmpCamera1.getGlInterface().setFilter(new AnalogTVFilterRender());
         return true;
       case R.id.android_view:
         AndroidViewFilterRender androidViewFilterRender = new AndroidViewFilterRender();
