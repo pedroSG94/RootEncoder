@@ -12,8 +12,7 @@ float rand(vec2 co) {
 
 void main() {
     vec2 uv = vTextureCoord;
-    uv.x -= 0.5;
-    uv.y -= 0.5;
+    uv -= 0.5;
 
     // Take video pixel
     vec3 col = texture2D(uSampler, (uv + 0.5)).rgb;

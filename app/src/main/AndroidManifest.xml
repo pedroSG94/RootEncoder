@@ -5,14 +5,14 @@
 
   <uses-permission android:name="android.permission.FLASHLIGHT"/>
   <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
-  <!--some devices need read to create folders-->
+  <!--some devices need read permission to create folders or files-->
   <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
   <uses-permission android:name="android.permission.INTERNET"/>
   <uses-permission android:name="android.permission.RECORD_AUDIO"/>
-  <uses-permission android:name="android.permission.CAMERA"/> <!-- some devices need it -->
-  <uses-feature android:name="android.hardware.camera"/>
-  <uses-feature android:name="android.hardware.camera2.full"/>
-  <uses-feature android:name="android.hardware.camera2.autofocus"/>
+  <uses-permission android:name="android.permission.CAMERA"/>
+  <!--Optional for play store-->
+  <uses-feature android:name="android.hardware.camera" android:required="false" />
+  <uses-feature android:name="android.hardware.camera.autofocus" android:required="false" />
 
   <application
       android:allowBackup="true"

@@ -20,9 +20,9 @@ https://github.com/pedroSG94/rtmp-rtsp-stream-client-java/wiki
 <uses-permission android:name="android.permission.RECORD_AUDIO" />
 <uses-permission android:name="android.permission.CAMERA" />
 <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
-
+<!--Optional for play store-->
 <uses-feature android:name="android.hardware.camera" android:required="false" />
-<uses-feature android:name="android.hardware.camera.autofocus" android:required="false"
+<uses-feature android:name="android.hardware.camera.autofocus" android:required="false" />
 ```
 
 ## Compile
