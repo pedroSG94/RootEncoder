@@ -33,9 +33,10 @@ public class BlurFilterRender extends BaseFilterRender {
   private int uSTMatrixHandle = -1;
   private int uSamplerHandle = -1;
   private int uBlurHandle = -1;
-  private int uResolutionHandle = -1;
+  private int uRadiusHandle = -1;
 
-  private float blur = 40f;
+  private float blur = 10f;
+  private float radius = 0.03f;
 
   public BlurFilterRender() {
     squareVertex = ByteBuffer.allocateDirect(squareVertexDataFilter.length * FLOAT_SIZE_BYTES)
@@ -58,7 +59,7 @@ public class BlurFilterRender extends BaseFilterRender {
     uSTMatrixHandle = GLES20.glGetUniformLocation(program, "uSTMatrix");
     uSamplerHandle = GLES20.glGetUniformLocation(program, "uSampler");
     uBlurHandle = GLES20.glGetUniformLocation(program, "uBlur");
-    uResolutionHandle = GLES20.glGetUniformLocation(program, "uResolution");
+    uRadiusHandle = GLES20.glGetUniformLocation(program, "uRadius");
   }
 
   @Override
@@ -78,7 +79,7 @@ public class BlurFilterRender extends BaseFilterRender {
     GLES20.glUniformMatrix4fv(uMVPMatrixHandle, 1, false, MVPMatrix, 0);
     GLES20.glUniformMatrix4fv(uSTMatrixHandle, 1, false, STMatrix, 0);
     GLES20.glUniform1f(uBlurHandle, blur);
-    GLES20.glUniform2f(uResolutionHandle, getWidth(), getHeight());
+    GLES20.glUniform1f(uRadiusHandle, radius);
 
     GLES20.glUniform1i(uSamplerHandle, 4);
     GLES20.glActiveTexture(GLES20.GL_TEXTURE4);
@@ -90,14 +91,22 @@ public class BlurFilterRender extends BaseFilterRender {
     GLES20.glDeleteProgram(program);
   }
 
-  public float getBlur() {
-    return blur;
+  public int getBlur() {
+    return (int) blur;
   }
 
   /**
-   * @param blur Range should be between 0.0 or more with 0.0 being normal.
+   * @param blur Range should be between 0 or more. Not recommended more than 20
    */
-  public void setBlur(float blur) {
+  public void setBlur(int blur) {
     this.blur = blur;
+  }
+
+  public float getRadius() {
+    return radius;
+  }
+
+  public void setRadius(float radius) {
+    this.radius = radius;
   }
 }

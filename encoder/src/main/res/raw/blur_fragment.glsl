@@ -1,28 +1,21 @@
 precision mediump float;
 
 uniform sampler2D uSampler;
-uniform vec2 uResolution;
 uniform float uBlur;
+uniform float uRadius;
 
 varying vec2 vTextureCoord;
 
-float sCurve(float x) {
-  x = x * 2.0 - 1.0;
-  return -x * abs(x) * 0.5 + x + 0.5;
-}
-
 void main() {
-  vec4 A = vec4(0.0);
-	vec4 C = vec4(0.0);
-	float width = 1.0 / uResolution.x;
-	float divisor = 0.0;
-  float weight = 0.0;
-  float radiusMultiplier = 1.0 / uBlur;
-  for (float x = -20.0; x <= 20.0; x++)	{
-    A = texture2D(uSampler, vTextureCoord + vec2(x * width, 0.0));
-    weight = sCurve(1.0 - (abs(x) * radiusMultiplier));
-    C += A * weight;
-		divisor += weight;
+  vec3 sum = vec3(0);
+  if (uBlur > 0.0) {
+    for (float i = -uBlur; i < uBlur; i++) {
+      for (float j = -uBlur; j < uBlur; j++) {
+        sum += texture2D(uSampler, vTextureCoord + vec2(i, j) * (uRadius / uBlur)).rgb / pow(uBlur * 2.0, 2.0);
+      }
+    }
+  } else {
+    sum = texture2D(uSampler, vTextureCoord).rgb;
   }
-  gl_FragColor = vec4(C.rgb / divisor, 1.0);
+  gl_FragColor = vec4(sum, 1.0);
 }
