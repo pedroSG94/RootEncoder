@@ -22,6 +22,8 @@ import com.pedro.encoder.utils.CodecUtil;
 import com.pedro.encoder.video.FormatVideoEncoder;
 import com.pedro.encoder.video.GetVideoData;
 import com.pedro.encoder.video.VideoEncoder;
+import com.pedro.encoder.video.VideoEncoderAsync;
+import com.pedro.encoder.video.VideoEncoderSync;
 import com.pedro.rtplibrary.util.FpsListener;
 import com.pedro.rtplibrary.util.RecordController;
 import com.pedro.rtplibrary.view.GlInterface;
@@ -100,7 +102,11 @@ public abstract class Camera2Base implements GetAacData, GetVideoData, GetMicrop
 
   private void init(Context context) {
     cameraManager = new Camera2ApiManager(context);
-    videoEncoder = new VideoEncoder(this);
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+      videoEncoder = new VideoEncoderAsync(this);
+    } else {
+      videoEncoder = new VideoEncoderSync(this);
+    }
     microphoneManager = new MicrophoneManager(this);
     audioEncoder = new AudioEncoder(this);
     recordController = new RecordController();
@@ -541,23 +547,6 @@ public abstract class Camera2Base implements GetAacData, GetVideoData, GetMicrop
    */
   public boolean isVideoEnabled() {
     return videoEnabled;
-  }
-
-  /**
-   * Disable send camera frames and send a black image with low bitrate(to reduce bandwith used)
-   * instance it.
-   */
-  public void disableVideo() {
-    videoEncoder.startSendBlackImage();
-    videoEnabled = false;
-  }
-
-  /**
-   * Enable send camera frames.
-   */
-  public void enableVideo() {
-    videoEncoder.stopSendBlackImage();
-    videoEnabled = true;
   }
 
   /**

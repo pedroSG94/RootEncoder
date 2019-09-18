@@ -21,16 +21,21 @@ import android.widget.RadioGroup;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
+
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.ActionBarDrawerToggle;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
+
 import com.google.android.material.navigation.NavigationView;
 import com.pedro.encoder.input.video.CameraHelper;
 import com.pedro.encoder.input.video.CameraOpenException;
 import com.pedro.rtplibrary.rtmp.RtmpCamera1;
 import com.pedro.rtpstreamer.R;
+
+import net.ossrs.rtmp.ConnectCheckerRtmp;
+
 import java.io.File;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
@@ -38,7 +43,6 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
-import net.ossrs.rtmp.ConnectCheckerRtmp;
 
 /**
  * More documentation see:
@@ -195,15 +199,6 @@ public class RtmpActivity extends AppCompatActivity
         } else {
           item.setIcon(getResources().getDrawable(R.drawable.icon_microphone));
           rtmpCamera1.enableAudio();
-        }
-        return true;
-      case R.id.camera:
-        if (rtmpCamera1.isVideoEnabled()) {
-          item.setIcon(getResources().getDrawable(R.drawable.icon_camera_off));
-          rtmpCamera1.disableVideo();
-        } else {
-          item.setIcon(getResources().getDrawable(R.drawable.icon_camera));
-          rtmpCamera1.enableVideo();
         }
         return true;
       default:

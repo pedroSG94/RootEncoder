@@ -201,15 +201,6 @@ public class RtspActivity extends AppCompatActivity
           rtspCamera1.enableAudio();
         }
         return true;
-      case R.id.camera:
-        if (rtspCamera1.isVideoEnabled()) {
-          item.setIcon(getResources().getDrawable(R.drawable.icon_camera_off));
-          rtspCamera1.disableVideo();
-        } else {
-          item.setIcon(getResources().getDrawable(R.drawable.icon_camera));
-          rtspCamera1.enableVideo();
-        }
-        return true;
       default:
         return false;
     }

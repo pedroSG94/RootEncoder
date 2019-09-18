@@ -21,6 +21,8 @@ import com.pedro.encoder.utils.CodecUtil;
 import com.pedro.encoder.video.FormatVideoEncoder;
 import com.pedro.encoder.video.GetVideoData;
 import com.pedro.encoder.video.VideoEncoder;
+import com.pedro.encoder.video.VideoEncoderAsync;
+import com.pedro.encoder.video.VideoEncoderSync;
 import com.pedro.rtplibrary.util.FpsListener;
 import com.pedro.rtplibrary.util.RecordController;
 import com.pedro.rtplibrary.view.GlInterface;
@@ -101,7 +103,11 @@ public abstract class FromFileBase
       AudioDecoderInterface audioDecoderInterface) {
     this.videoDecoderInterface = videoDecoderInterface;
     this.audioDecoderInterface = audioDecoderInterface;
-    videoEncoder = new VideoEncoder(this);
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+      videoEncoder = new VideoEncoderAsync(this);
+    } else {
+      videoEncoder = new VideoEncoderSync(this);
+    }
     audioEncoder = new AudioEncoder(this);
     recordController = new RecordController();
   }
@@ -367,23 +373,6 @@ public abstract class FromFileBase
     } else {
       throw new RuntimeException("You can't do it. You are not using Opengl");
     }
-  }
-
-  /**
-   * Disable send camera frames and send a black image with low bitrate(to reduce bandwith used)
-   * instance it.
-   */
-  public void disableVideo() {
-    videoEncoder.startSendBlackImage();
-    videoEnabled = false;
-  }
-
-  /**
-   * Enable send MP4 file frames.
-   */
-  public void enableVideo() {
-    videoEncoder.stopSendBlackImage();
-    videoEnabled = true;
   }
 
   public int getBitrate() {
