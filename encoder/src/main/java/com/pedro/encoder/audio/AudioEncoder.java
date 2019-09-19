@@ -3,9 +3,11 @@ package com.pedro.encoder.audio;
 import android.media.MediaCodec;
 import android.media.MediaCodecInfo;
 import android.media.MediaFormat;
-import android.os.Build;
-import androidx.annotation.RequiresApi;
+import android.os.HandlerThread;
 import android.util.Log;
+import androidx.annotation.NonNull;
+import com.pedro.encoder.BaseEncoder;
+import com.pedro.encoder.Frame;
 import com.pedro.encoder.input.audio.GetMicrophoneData;
 import com.pedro.encoder.utils.CodecUtil;
 import java.io.IOException;
@@ -19,22 +21,14 @@ import java.util.List;
  * Encode PCM audio data to ACC and return in a callback
  */
 
-public class AudioEncoder implements GetMicrophoneData {
+public class AudioEncoder extends BaseEncoder implements GetMicrophoneData {
 
-  private String TAG = "AudioEncoder";
-  private MediaCodec audioEncoder;
+  private static final String TAG = "AudioEncoder";
+
   private GetAacData getAacData;
-  private MediaCodec.BufferInfo audioInfo = new MediaCodec.BufferInfo();
-  private long presentTimeUs;
-  private boolean running;
-
-  //default parameters for encoder
-  private CodecUtil.Force force = CodecUtil.Force.FIRST_COMPATIBLE_FOUND;
   private int bitRate = 64 * 1024;  //in kbps
   private int sampleRate = 32000; //in hz
   private boolean isStereo = true;
-  private boolean canFlush = false;
-  private final Object sync = new Object();
 
   public AudioEncoder(GetAacData getAacData) {
     this.getAacData = getAacData;
@@ -46,6 +40,7 @@ public class AudioEncoder implements GetMicrophoneData {
   public boolean prepareAudioEncoder(int bitRate, int sampleRate, boolean isStereo,
       int maxInputSize) {
     this.sampleRate = sampleRate;
+    isBufferMode = true;
     try {
       List<MediaCodecInfo> encoders = new ArrayList<>();
       if (force == CodecUtil.Force.HARDWARE) {
@@ -57,7 +52,7 @@ public class AudioEncoder implements GetMicrophoneData {
       if (force == CodecUtil.Force.FIRST_COMPATIBLE_FOUND) {
         MediaCodecInfo encoder = chooseAudioEncoder(CodecUtil.AAC_MIME);
         if (encoder != null) {
-          audioEncoder = MediaCodec.createByCodecName(encoder.getName());
+          codec = MediaCodec.createByCodecName(encoder.getName());
         } else {
           Log.e(TAG, "Valid encoder not found");
           return false;
@@ -67,7 +62,7 @@ public class AudioEncoder implements GetMicrophoneData {
           Log.e(TAG, "Valid encoder not found");
           return false;
         } else {
-          audioEncoder = MediaCodec.createByCodecName(encoders.get(0).getName());
+          codec = MediaCodec.createByCodecName(encoders.get(0).getName());
         }
       }
 
@@ -78,7 +73,7 @@ public class AudioEncoder implements GetMicrophoneData {
       audioFormat.setInteger(MediaFormat.KEY_MAX_INPUT_SIZE, maxInputSize);
       audioFormat.setInteger(MediaFormat.KEY_AAC_PROFILE,
           MediaCodecInfo.CodecProfileLevel.AACObjectLC);
-      audioEncoder.configure(audioFormat, null, null, MediaCodec.CONFIGURE_FLAG_ENCODE);
+      codec.configure(audioFormat, null, null, MediaCodec.CONFIGURE_FLAG_ENCODE);
       running = false;
       return true;
     } catch (IOException | IllegalStateException e) {
@@ -98,28 +93,32 @@ public class AudioEncoder implements GetMicrophoneData {
     return prepareAudioEncoder(bitRate, sampleRate, isStereo, 0);
   }
 
-  public void start() {
-    synchronized (sync) {
-      presentTimeUs = System.nanoTime() / 1000;
-      audioEncoder.start();
-      running = true;
-      Log.i(TAG, "AudioEncoder started");
-    }
+  @Override
+  protected void startImp(boolean resetTs) {
+    presentTimeUs = System.nanoTime() / 1000;
+    handlerThread = new HandlerThread(TAG);
   }
 
-  public void stop() {
-    synchronized (sync) {
-      running = false;
-      if (audioEncoder != null) {
-        //First frame encoded so I can flush.
-        if (canFlush) audioEncoder.flush();
-        audioEncoder.stop();
-        audioEncoder.release();
-        audioEncoder = null;
-      }
-      canFlush = false;
-      Log.i(TAG, "AudioEncoder stopped");
-    }
+  @Override
+  protected void stopImp() {
+  }
+
+  @Override
+  protected Frame getInputFrame() throws InterruptedException {
+    return queue.take();
+  }
+
+  @Override
+  protected void checkBuffer(@NonNull ByteBuffer byteBuffer,
+      @NonNull MediaCodec.BufferInfo bufferInfo) {
+
+  }
+
+  @Override
+  protected void sendBuffer(@NonNull ByteBuffer byteBuffer,
+      @NonNull MediaCodec.BufferInfo bufferInfo) {
+    bufferInfo.presentationTimeUs = System.nanoTime() / 1000 - presentTimeUs;
+    getAacData.getAacData(byteBuffer, bufferInfo);
   }
 
   /**
@@ -127,70 +126,11 @@ public class AudioEncoder implements GetMicrophoneData {
    * Use it after prepareAudioEncoder(int sampleRate, int channel).
    * Used too with microphone.
    *
-   * @param buffer PCM buffer
-   * @param size Min PCM buffer size
    */
   @Override
-  public void inputPCMData(final byte[] buffer, final int offset, final int size) {
-    if (Build.VERSION.SDK_INT >= 21) {
-      getDataFromEncoderAPI21(buffer, offset, size);
-    } else {
-      getDataFromEncoder(buffer, offset, size);
-    }
-  }
-
-  @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
-  private void getDataFromEncoderAPI21(byte[] data, int offset, int size) {
-    int inBufferIndex = audioEncoder.dequeueInputBuffer(-1);
-    if (inBufferIndex >= 0) {
-      ByteBuffer bb = audioEncoder.getInputBuffer(inBufferIndex);
-      bb.put(data, offset, size);
-      long pts = System.nanoTime() / 1000 - presentTimeUs;
-      audioEncoder.queueInputBuffer(inBufferIndex, 0, size, pts, 0);
-    }
-
-    for (; running; ) {
-      int outBufferIndex = audioEncoder.dequeueOutputBuffer(audioInfo, 0);
-      if (outBufferIndex == MediaCodec.INFO_OUTPUT_FORMAT_CHANGED) {
-        getAacData.onAudioFormat(audioEncoder.getOutputFormat());
-        canFlush = true;
-      } else if (outBufferIndex >= 0) {
-        //This ByteBuffer is AAC
-        ByteBuffer bb = audioEncoder.getOutputBuffer(outBufferIndex);
-        getAacData.getAacData(bb, audioInfo);
-        audioEncoder.releaseOutputBuffer(outBufferIndex, false);
-      } else {
-        break;
-      }
-    }
-  }
-
-  private void getDataFromEncoder(byte[] data, int offset, int size) {
-    ByteBuffer[] inputBuffers = audioEncoder.getInputBuffers();
-    ByteBuffer[] outputBuffers = audioEncoder.getOutputBuffers();
-
-    int inBufferIndex = audioEncoder.dequeueInputBuffer(-1);
-    if (inBufferIndex >= 0) {
-      ByteBuffer bb = inputBuffers[inBufferIndex];
-      bb.clear();
-      bb.put(data, offset, size);
-      long pts = System.nanoTime() / 1000 - presentTimeUs;
-      audioEncoder.queueInputBuffer(inBufferIndex, 0, size, pts, 0);
-    }
-
-    for (; running; ) {
-      int outBufferIndex = audioEncoder.dequeueOutputBuffer(audioInfo, 0);
-      if (outBufferIndex == MediaCodec.INFO_OUTPUT_FORMAT_CHANGED) {
-        getAacData.onAudioFormat(audioEncoder.getOutputFormat());
-        canFlush = true;
-      } else if (outBufferIndex >= 0) {
-        //This ByteBuffer is AAC
-        ByteBuffer bb = outputBuffers[outBufferIndex];
-        getAacData.getAacData(bb, audioInfo);
-        audioEncoder.releaseOutputBuffer(outBufferIndex, false);
-      } else {
-        break;
-      }
+  public void inputPCMData(Frame frame) {
+    if (running && !queue.offer(frame)) {
+      Log.i(TAG, "frame discarded");
     }
   }
 
@@ -213,5 +153,10 @@ public class AudioEncoder implements GetMicrophoneData {
 
   public boolean isRunning() {
     return running;
+  }
+
+  @Override
+  public void formatChanged(@NonNull MediaCodec mediaCodec, @NonNull MediaFormat mediaFormat) {
+    getAacData.onAudioFormat(mediaFormat);
   }
 }

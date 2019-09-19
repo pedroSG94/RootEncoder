@@ -1,5 +1,7 @@
 package com.pedro.encoder.input.video;
 
+import com.pedro.encoder.Frame;
+
 /**
  * Created by pedro on 20/01/17.
  */

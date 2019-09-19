@@ -2,7 +2,7 @@ package com.pedro.encoder.utils.yuv;
 
 import android.graphics.Bitmap;
 import android.media.MediaCodecInfo;
-import com.pedro.encoder.input.video.Frame;
+import com.pedro.encoder.Frame;
 import com.pedro.encoder.video.FormatVideoEncoder;
 
 /**

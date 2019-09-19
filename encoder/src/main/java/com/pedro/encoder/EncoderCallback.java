@@ -1,4 +1,4 @@
-package com.pedro.encoder.video;
+package com.pedro.encoder;
 
 import android.media.MediaCodec;
 import android.media.MediaFormat;

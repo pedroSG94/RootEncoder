@@ -2,6 +2,7 @@ package com.pedro.rtplibrary.base;
 
 import android.media.MediaCodec;
 import android.media.MediaFormat;
+import com.pedro.encoder.Frame;
 import com.pedro.encoder.audio.AudioEncoder;
 import com.pedro.encoder.audio.GetAacData;
 import com.pedro.encoder.input.audio.GetMicrophoneData;
@@ -169,8 +170,8 @@ public abstract class OnlyAudioBase implements GetAacData, GetMicrophoneData {
   }
 
   @Override
-  public void inputPCMData(byte[] buffer, int offset, int size) {
-    audioEncoder.inputPCMData(buffer, offset, size);
+  public void inputPCMData(Frame frame) {
+    audioEncoder.inputPCMData(frame);
   }
 
   @Override

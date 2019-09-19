@@ -10,6 +10,7 @@ import android.view.MotionEvent;
 import android.view.SurfaceView;
 import android.view.TextureView;
 import androidx.annotation.RequiresApi;
+import com.pedro.encoder.Frame;
 import com.pedro.encoder.audio.AudioEncoder;
 import com.pedro.encoder.audio.GetAacData;
 import com.pedro.encoder.input.audio.GetMicrophoneData;
@@ -17,14 +18,11 @@ import com.pedro.encoder.input.audio.MicrophoneManager;
 import com.pedro.encoder.input.video.Camera1ApiManager;
 import com.pedro.encoder.input.video.CameraHelper;
 import com.pedro.encoder.input.video.CameraOpenException;
-import com.pedro.encoder.input.video.Frame;
 import com.pedro.encoder.input.video.GetCameraData;
 import com.pedro.encoder.utils.CodecUtil;
 import com.pedro.encoder.video.FormatVideoEncoder;
 import com.pedro.encoder.video.GetVideoData;
 import com.pedro.encoder.video.VideoEncoder;
-import com.pedro.encoder.video.VideoEncoderAsync;
-import com.pedro.encoder.video.VideoEncoderSync;
 import com.pedro.rtplibrary.util.FpsListener;
 import com.pedro.rtplibrary.util.RecordController;
 import com.pedro.rtplibrary.view.GlInterface;
@@ -106,11 +104,7 @@ public abstract class Camera1Base
   }
 
   private void init() {
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-      videoEncoder = new VideoEncoderAsync(this);
-    } else {
-      videoEncoder = new VideoEncoderSync(this);
-    }
+    videoEncoder = new VideoEncoder(this);
     microphoneManager = new MicrophoneManager(this);
     audioEncoder = new AudioEncoder(this);
     recordController = new RecordController();
@@ -681,8 +675,8 @@ public abstract class Camera1Base
   }
 
   @Override
-  public void inputPCMData(byte[] buffer, int offset, int size) {
-    audioEncoder.inputPCMData(buffer, offset, size);
+  public void inputPCMData(Frame frame) {
+    audioEncoder.inputPCMData(frame);
   }
 
   @Override

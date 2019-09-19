@@ -3,8 +3,11 @@ package com.pedro.encoder.input.audio;
 import android.media.AudioFormat;
 import android.media.AudioRecord;
 import android.media.MediaRecorder;
+import android.os.Build;
+import android.os.Handler;
+import android.os.HandlerThread;
 import android.util.Log;
-import com.pedro.encoder.audio.DataTaken;
+import com.pedro.encoder.Frame;
 import java.nio.ByteBuffer;
 
 /**
@@ -28,7 +31,7 @@ public class MicrophoneManager {
   private int channel = AudioFormat.CHANNEL_IN_STEREO;
   private boolean muted = false;
   private AudioPostProcessEffect audioPostProcessEffect;
-  private Thread thread;
+  private HandlerThread handlerThread;
 
   public MicrophoneManager(GetMicrophoneData getMicrophoneData) {
     this.getMicrophoneData = getMicrophoneData;
@@ -65,20 +68,22 @@ public class MicrophoneManager {
    */
   public synchronized void start() {
     init();
-    thread = new Thread(new Runnable() {
+    handlerThread = new HandlerThread(TAG);
+    handlerThread.start();
+    Handler handler = new Handler(handlerThread.getLooper());
+    handler.post(new Runnable() {
       @Override
       public void run() {
-        while (running && !Thread.interrupted()) {
-          DataTaken dataTaken = read();
-          if (dataTaken != null) {
-            getMicrophoneData.inputPCMData(dataTaken.getPcmBuffer(), dataTaken.getOffset(), dataTaken.getSize());
+        while (running) {
+          Frame frame = read();
+          if (frame != null) {
+            getMicrophoneData.inputPCMData(frame);
           } else {
             running = false;
           }
         }
       }
     });
-    thread.start();
   }
 
   private void init() {
@@ -107,13 +112,14 @@ public class MicrophoneManager {
   /**
    * @return Object with size and PCM buffer data
    */
-  private DataTaken read() {
+  private Frame read() {
     pcmBuffer.rewind();
     int size = audioRecord.read(pcmBuffer, pcmBuffer.remaining());
     if (size <= 0) {
       return null;
     }
-    return new DataTaken(muted ? pcmBufferMuted : pcmBuffer.array(), muted ? 0 : pcmBuffer.arrayOffset(), size);
+    return new Frame(muted ? pcmBufferMuted : pcmBuffer.array(),
+        muted ? 0 : pcmBuffer.arrayOffset(), size);
   }
 
   /**
@@ -122,14 +128,10 @@ public class MicrophoneManager {
   public synchronized void stop() {
     running = false;
     created = false;
-    if (thread != null) {
-      thread.interrupt();
-      try {
-        thread.join(100);
-      } catch (InterruptedException e) {
-        thread.interrupt();
-      }
-      thread = null;
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
+      handlerThread.quitSafely();
+    } else {
+      handlerThread.quit();
     }
     if (audioRecord != null) {
       audioRecord.setRecordPositionUpdateListener(null);

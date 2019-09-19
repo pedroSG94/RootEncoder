@@ -4,6 +4,7 @@ import android.media.MediaCodec;
 import android.media.MediaExtractor;
 import android.media.MediaFormat;
 import android.util.Log;
+import com.pedro.encoder.Frame;
 import com.pedro.encoder.input.audio.GetMicrophoneData;
 import com.pedro.encoder.utils.PCMUtil;
 import java.io.IOException;
@@ -160,14 +161,14 @@ public class AudioDecoder {
             //This buffer is PCM data
             if (muted) {
               outBuffer.get(pcmBufferMuted, 0, pcmBufferMuted.length);
-              getMicrophoneData.inputPCMData(pcmBufferMuted, 0, pcmBufferMuted.length);
+              getMicrophoneData.inputPCMData(new Frame(pcmBufferMuted, 0, pcmBufferMuted.length));
             } else {
               outBuffer.get(pcmBuffer, 0, pcmBuffer.length);
               if (channels > 2) { //downgrade to stereo
                 byte[] bufferStereo = PCMUtil.pcmToStereo(pcmBuffer, channels);
-                getMicrophoneData.inputPCMData(bufferStereo, 0, bufferStereo.length);
+                getMicrophoneData.inputPCMData(new Frame(bufferStereo, 0, bufferStereo.length));
               } else {
-                getMicrophoneData.inputPCMData(pcmBuffer, 0, pcmBuffer.length);
+                getMicrophoneData.inputPCMData(new Frame(pcmBuffer, 0, pcmBuffer.length));
               }
             }
             audioDecoder.releaseOutputBuffer(outIndex, false);

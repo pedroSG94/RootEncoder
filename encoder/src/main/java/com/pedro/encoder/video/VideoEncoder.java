@@ -6,15 +6,15 @@ import android.media.MediaCodecInfo;
 import android.media.MediaFormat;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.Handler;
 import android.os.HandlerThread;
 import android.util.Log;
 import android.util.Pair;
 import android.view.Surface;
 import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
+import com.pedro.encoder.BaseEncoder;
+import com.pedro.encoder.Frame;
 import com.pedro.encoder.input.video.FpsLimiter;
-import com.pedro.encoder.input.video.Frame;
 import com.pedro.encoder.input.video.GetCameraData;
 import com.pedro.encoder.utils.CodecUtil;
 import com.pedro.encoder.utils.yuv.YUVUtil;
@@ -22,42 +22,32 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.LinkedBlockingQueue;
 
 /**
  * Created by pedro on 19/01/17.
  * This class need use same resolution, fps and imageFormat that Camera1ApiManagerGl
  */
 
-public abstract class VideoEncoder implements GetCameraData, EncoderCallback {
+public class VideoEncoder extends BaseEncoder implements GetCameraData {
 
-  private String TAG = "VideoEncoder";
-  protected MediaCodec videoEncoder;
-  private HandlerThread handlerThread;
+  private static final String TAG = "VideoEncoder";
   private GetVideoData getVideoData;
-  private long presentTimeUs;
-  protected volatile boolean running = false;
   private boolean spsPpsSetted = false;
   private boolean hardwareRotation = false;
 
   //surface to buffer encoder
   private Surface inputSurface;
-  //buffer to buffer, 3 queue to optimize frames on rotation
-  private BlockingQueue<Frame> queue = new LinkedBlockingQueue<>(80);
 
-  //default parameters for encoder
-  private CodecUtil.Force force = CodecUtil.Force.FIRST_COMPATIBLE_FOUND;
   private int width = 640;
   private int height = 480;
   private int fps = 30;
   private int bitRate = 1200 * 1024; //in kbps
   private int rotation = 90;
   private int iFrameInterval = 2;
-  protected FormatVideoEncoder formatVideoEncoder = FormatVideoEncoder.YUV420Dynamical;
   //for disable video
   private FpsLimiter fpsLimiter = new FpsLimiter();
   private String type = CodecUtil.H264_MIME;
+  private FormatVideoEncoder formatVideoEncoder = FormatVideoEncoder.YUV420Dynamical;
 
   public VideoEncoder(GetVideoData getVideoData) {
     this.getVideoData = getVideoData;
@@ -75,10 +65,11 @@ public abstract class VideoEncoder implements GetCameraData, EncoderCallback {
     this.rotation = rotation;
     this.hardwareRotation = hardwareRotation;
     this.formatVideoEncoder = formatVideoEncoder;
+    isBufferMode = true;
     MediaCodecInfo encoder = chooseVideoEncoder(type);
     try {
       if (encoder != null) {
-        videoEncoder = MediaCodec.createByCodecName(encoder.getName());
+        codec = MediaCodec.createByCodecName(encoder.getName());
         if (this.formatVideoEncoder == FormatVideoEncoder.YUV420Dynamical) {
           this.formatVideoEncoder = chooseColorDynamically(encoder);
           if (this.formatVideoEncoder == null) {
@@ -111,17 +102,31 @@ public abstract class VideoEncoder implements GetCameraData, EncoderCallback {
       if (hardwareRotation) {
         videoFormat.setInteger("rotation-degrees", rotation);
       }
-      videoEncoder.configure(videoFormat, null, null, MediaCodec.CONFIGURE_FLAG_ENCODE);
+      codec.configure(videoFormat, null, null, MediaCodec.CONFIGURE_FLAG_ENCODE);
       running = false;
       if (formatVideoEncoder == FormatVideoEncoder.SURFACE
           && Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
-        inputSurface = videoEncoder.createInputSurface();
+        isBufferMode = false;
+        inputSurface = codec.createInputSurface();
       }
       return true;
     } catch (IOException | IllegalStateException e) {
       Log.e(TAG, "Create VideoEncoder failed.", e);
       return false;
     }
+  }
+
+  @Override
+  protected void startImp(boolean resetTs) {
+    spsPpsSetted = false;
+    if (resetTs) {
+      presentTimeUs = System.nanoTime() / 1000;
+      fpsLimiter.setFPS(fps);
+    }
+    if (formatVideoEncoder != FormatVideoEncoder.SURFACE) {
+      YUVUtil.preAllocateBuffers(width * height * 3 / 2);
+    }
+    handlerThread = new HandlerThread(TAG);
   }
 
   private FormatVideoEncoder chooseColorDynamically(MediaCodecInfo mediaCodecInfo) {
@@ -150,7 +155,7 @@ public abstract class VideoEncoder implements GetCameraData, EncoderCallback {
       Bundle bundle = new Bundle();
       bundle.putInt(MediaCodec.PARAMETER_KEY_VIDEO_BITRATE, bitrate);
       try {
-        videoEncoder.setParameters(bundle);
+        codec.setParameters(bundle);
       } catch (IllegalStateException e) {
         Log.e(TAG, "encoder need be running", e);
       }
@@ -163,15 +168,11 @@ public abstract class VideoEncoder implements GetCameraData, EncoderCallback {
       Bundle bundle = new Bundle();
       bundle.putInt(MediaCodec.PARAMETER_KEY_REQUEST_SYNC_FRAME, 0);
       try {
-        videoEncoder.setParameters(bundle);
+        codec.setParameters(bundle);
       } catch (IllegalStateException e) {
         Log.e(TAG, "encoder need be running", e);
       }
     }
-  }
-
-  public void setForce(CodecUtil.Force force) {
-    this.force = force;
   }
 
   public Surface getInputSurface() {
@@ -192,10 +193,6 @@ public abstract class VideoEncoder implements GetCameraData, EncoderCallback {
 
   public boolean isHardwareRotation() {
     return hardwareRotation;
-  }
-
-  public boolean isRunning() {
-    return running;
   }
 
   public int getRotation() {
@@ -226,37 +223,8 @@ public abstract class VideoEncoder implements GetCameraData, EncoderCallback {
     this.type = type;
   }
 
-  protected abstract void startImp(Handler handler);
-
-  public void start(boolean resetTs) {
-    spsPpsSetted = false;
-    if (resetTs) {
-      presentTimeUs = System.nanoTime() / 1000;
-      fpsLimiter.setFPS(fps);
-    }
-    if (formatVideoEncoder != FormatVideoEncoder.SURFACE) {
-      YUVUtil.preAllocateBuffers(width * height * 3 / 2);
-    }
-    handlerThread = new HandlerThread(TAG);
-    handlerThread.start();
-    Handler handler = new Handler(handlerThread.getLooper());
-    startImp(handler);
-    running = true;
-  }
-
-  public void stop() {
-    running = false;
-    if (videoEncoder != null) {
-      videoEncoder.stop();
-      videoEncoder.release();
-      videoEncoder = null;
-    }
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
-      handlerThread.quitSafely();
-    } else {
-      handlerThread.quit();
-    }
-    queue.clear();
+  @Override
+  protected void stopImp() {
     spsPpsSetted = false;
     inputSurface = null;
   }
@@ -270,12 +238,8 @@ public abstract class VideoEncoder implements GetCameraData, EncoderCallback {
 
   @Override
   public void inputYUVData(Frame frame) {
-    if (running) {
-      try {
-        queue.add(frame);
-      } catch (IllegalStateException e) {
-        Log.i(TAG, "frame discarded");
-      }
+    if (running && !queue.offer(frame)) {
+      Log.i(TAG, "frame discarded");
     }
   }
 
@@ -403,60 +367,34 @@ public abstract class VideoEncoder implements GetCameraData, EncoderCallback {
     return byteBufferList;
   }
 
-  @RequiresApi(api = Build.VERSION_CODES.M)
-  protected MediaCodec.Callback callback = new MediaCodec.Callback() {
-        @Override
-        public void onInputBufferAvailable(@NonNull MediaCodec mediaCodec, int inBufferIndex) {
-          inputAvailable(mediaCodec, inBufferIndex);
-        }
-
-        @Override
-        public void onOutputBufferAvailable(@NonNull MediaCodec mediaCodec, int outBufferIndex,
-            @NonNull MediaCodec.BufferInfo bufferInfo) {
-          outputAvailable(mediaCodec, outBufferIndex, bufferInfo);
-        }
-
-        @Override
-        public void onError(@NonNull MediaCodec mediaCodec, @NonNull MediaCodec.CodecException e) {
-          Log.e(TAG, "Error", e);
-        }
-
-        @Override
-        public void onOutputFormatChanged(@NonNull MediaCodec mediaCodec,
-            @NonNull MediaFormat mediaFormat) {
-          formatChanged(mediaCodec, mediaFormat);
-        }
-      };
-
-  protected void processInput(@NonNull ByteBuffer byteBuffer, @NonNull MediaCodec mediaCodec,
-      int inBufferIndex) {
-    try {
-      Frame frame = queue.take();
-      if (fpsLimiter.limitFPS()) { //skip fps
-        processInput(byteBuffer, mediaCodec, inBufferIndex);
-        return;
-      }
-      byte[] buffer = frame.getBuffer();
-      boolean isYV12 = frame.getFormat() == ImageFormat.YV12;
-      if (!hardwareRotation) {
-        int orientation = frame.isFlip() ? frame.getOrientation() + 180 : frame.getOrientation();
-        if (orientation >= 360) orientation -= 360;
-        buffer = isYV12 ? YUVUtil.rotateYV12(buffer, width, height, orientation)
-            : YUVUtil.rotateNV21(buffer, width, height, orientation);
-      }
-      buffer = isYV12 ? YUVUtil.YV12toYUV420byColor(buffer, width, height, formatVideoEncoder)
-          : YUVUtil.NV21toYUV420byColor(buffer, width, height, formatVideoEncoder);
-      byteBuffer.clear();
-      byteBuffer.put(buffer, 0, buffer.length);
-      long pts = System.nanoTime() / 1000 - presentTimeUs;
-      mediaCodec.queueInputBuffer(inBufferIndex, 0, buffer.length, pts, 0);
-    } catch (InterruptedException | IllegalStateException e) {
-      Thread.currentThread().interrupt();
+  @Override
+  protected Frame getInputFrame() throws InterruptedException {
+    Frame frame = queue.take();
+    if (fpsLimiter.limitFPS()) return getInputFrame();
+    byte[] buffer = frame.getBuffer();
+    boolean isYV12 = frame.getFormat() == ImageFormat.YV12;
+    if (!hardwareRotation) {
+      int orientation = frame.isFlip() ? frame.getOrientation() + 180 : frame.getOrientation();
+      if (orientation >= 360) orientation -= 360;
+      buffer = isYV12 ? YUVUtil.rotateYV12(buffer, width, height, orientation)
+          : YUVUtil.rotateNV21(buffer, width, height, orientation);
     }
+    buffer = isYV12 ? YUVUtil.YV12toYUV420byColor(buffer, width, height, formatVideoEncoder)
+        : YUVUtil.NV21toYUV420byColor(buffer, width, height, formatVideoEncoder);
+    frame.setBuffer(buffer);
+    return frame;
   }
 
-  protected void processOutput(@NonNull ByteBuffer byteBuffer, @NonNull MediaCodec mediaCodec,
-      int outBufferIndex, @NonNull MediaCodec.BufferInfo bufferInfo) {
+  @Override
+  public void formatChanged(@NonNull MediaCodec mediaCodec, @NonNull MediaFormat mediaFormat) {
+    getVideoData.onVideoFormat(mediaFormat);
+    sendSPSandPPS(mediaFormat);
+    spsPpsSetted = true;
+  }
+
+  @Override
+  protected void checkBuffer(@NonNull ByteBuffer byteBuffer,
+      @NonNull MediaCodec.BufferInfo bufferInfo) {
     if ((bufferInfo.flags & MediaCodec.BUFFER_FLAG_CODEC_CONFIG) != 0) {
       if (!spsPpsSetted) {
         Pair<ByteBuffer, ByteBuffer> buffers =
@@ -467,15 +405,12 @@ public abstract class VideoEncoder implements GetCameraData, EncoderCallback {
         }
       }
     }
-    bufferInfo.presentationTimeUs = System.nanoTime() / 1000 - presentTimeUs;
-    getVideoData.getVideoData(byteBuffer, bufferInfo);
-    mediaCodec.releaseOutputBuffer(outBufferIndex, false);
   }
 
   @Override
-  public void formatChanged(@NonNull MediaCodec mediaCodec, @NonNull MediaFormat mediaFormat) {
-    getVideoData.onVideoFormat(mediaFormat);
-    sendSPSandPPS(mediaFormat);
-    spsPpsSetted = true;
+  protected void sendBuffer(@NonNull ByteBuffer byteBuffer,
+      @NonNull MediaCodec.BufferInfo bufferInfo) {
+    bufferInfo.presentationTimeUs = System.nanoTime() / 1000 - presentTimeUs;
+    getVideoData.getVideoData(byteBuffer, bufferInfo);
   }
 }

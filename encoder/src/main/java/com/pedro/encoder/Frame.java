@@ -1,4 +1,4 @@
-package com.pedro.encoder.input.video;
+package com.pedro.encoder;
 
 import android.graphics.ImageFormat;
 
@@ -9,15 +9,31 @@ import android.graphics.ImageFormat;
 public class Frame {
 
   private byte[] buffer;
+  private int offset;
+  private int size;
   private int orientation;
   private boolean flip;
   private int format = ImageFormat.NV21; //nv21 or yv12 supported
 
+  /**
+   * Used with video frame
+   */
   public Frame(byte[] buffer, int orientation, boolean flip, int format) {
     this.buffer = buffer;
     this.orientation = orientation;
     this.flip = flip;
     this.format = format;
+    offset = 0;
+    size = buffer.length;
+  }
+
+  /**
+   * Used with audio frame
+   */
+  public Frame(byte[] buffer, int offset, int size) {
+    this.buffer = buffer;
+    this.offset = offset;
+    this.size = size;
   }
 
   public byte[] getBuffer() {
@@ -50,5 +66,21 @@ public class Frame {
 
   public void setFormat(int format) {
     this.format = format;
+  }
+
+  public int getOffset() {
+    return offset;
+  }
+
+  public void setOffset(int offset) {
+    this.offset = offset;
+  }
+
+  public int getSize() {
+    return size;
+  }
+
+  public void setSize(int size) {
+    this.size = size;
   }
 }

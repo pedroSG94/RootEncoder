@@ -11,6 +11,7 @@ import android.view.MotionEvent;
 import android.view.SurfaceView;
 import android.view.TextureView;
 
+import com.pedro.encoder.Frame;
 import java.io.IOException;
 import java.util.Iterator;
 import java.util.List;
