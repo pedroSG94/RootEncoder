@@ -150,6 +150,25 @@ public class VideoEncoder extends BaseEncoder implements GetCameraData {
     Log.i(TAG, "started");
   }
 
+  @Override
+  protected void stopImp() {
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
+      handlerThread.quitSafely();
+    } else {
+      handlerThread.quit();
+    }
+    spsPpsSetted = false;
+    inputSurface = null;
+    Log.i(TAG, "stopped");
+  }
+
+  public void reset() {
+    stop();
+    prepareVideoEncoder(width, height, fps, bitRate, rotation, hardwareRotation, iFrameInterval,
+        formatVideoEncoder);
+    start(false);
+  }
+
   private FormatVideoEncoder chooseColorDynamically(MediaCodecInfo mediaCodecInfo) {
     for (int color : mediaCodecInfo.getCapabilitiesForType(CodecUtil.H264_MIME).colorFormats) {
       if (color == FormatVideoEncoder.YUV420PLANAR.getFormatCodec()) {
@@ -238,25 +257,6 @@ public class VideoEncoder extends BaseEncoder implements GetCameraData {
 
   public void setType(String type) {
     this.type = type;
-  }
-
-  @Override
-  protected void stopImp() {
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
-      handlerThread.quitSafely();
-    } else {
-      handlerThread.quit();
-    }
-    spsPpsSetted = false;
-    inputSurface = null;
-    Log.i(TAG, "stopped");
-  }
-
-  public void reset() {
-    stop();
-    prepareVideoEncoder(width, height, fps, bitRate, rotation, hardwareRotation, iFrameInterval,
-        formatVideoEncoder);
-    start(false);
   }
 
   @Override
@@ -438,8 +438,8 @@ public class VideoEncoder extends BaseEncoder implements GetCameraData {
     getVideoData.getVideoData(byteBuffer, bufferInfo);
   }
 
-  @RequiresApi(api = Build.VERSION_CODES.M)
-  private MediaCodec.Callback callback = new MediaCodec.Callback() {
+  @RequiresApi(api = Build.VERSION_CODES.M) private MediaCodec.Callback callback =
+      new MediaCodec.Callback() {
         @Override
         public void onInputBufferAvailable(@NonNull MediaCodec mediaCodec, int inBufferIndex) {
           inputAvailable(mediaCodec, inBufferIndex);

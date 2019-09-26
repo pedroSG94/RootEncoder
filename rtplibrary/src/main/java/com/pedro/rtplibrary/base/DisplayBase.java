@@ -227,7 +227,7 @@ public abstract class DisplayBase implements GetAacData, GetVideoData, GetMicrop
    */
   public void startStream(String url) {
     streaming = true;
-    if (!recordController.isRecording()) {
+    if (!recordController.isRunning()) {
       startEncoders(resultCode, data);
     } else {
       resetVideoEncoder();
