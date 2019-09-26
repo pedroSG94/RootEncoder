@@ -6,6 +6,7 @@ import android.media.MediaCodecInfo;
 import android.media.MediaFormat;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
 import android.os.HandlerThread;
 import android.util.Log;
 import android.util.Pair;
@@ -48,6 +49,7 @@ public class VideoEncoder extends BaseEncoder implements GetCameraData {
   private FpsLimiter fpsLimiter = new FpsLimiter();
   private String type = CodecUtil.H264_MIME;
   private FormatVideoEncoder formatVideoEncoder = FormatVideoEncoder.YUV420Dynamical;
+  private HandlerThread handlerThread;
 
   public VideoEncoder(GetVideoData getVideoData) {
     this.getVideoData = getVideoData;
@@ -66,7 +68,7 @@ public class VideoEncoder extends BaseEncoder implements GetCameraData {
     this.hardwareRotation = hardwareRotation;
     this.formatVideoEncoder = formatVideoEncoder;
     isBufferMode = true;
-    MediaCodecInfo encoder = chooseVideoEncoder(type);
+    MediaCodecInfo encoder = chooseEncoder(type);
     try {
       if (encoder != null) {
         codec = MediaCodec.createByCodecName(encoder.getName());
@@ -109,6 +111,7 @@ public class VideoEncoder extends BaseEncoder implements GetCameraData {
         isBufferMode = false;
         inputSurface = codec.createInputSurface();
       }
+      Log.i(TAG, "prepared");
       return true;
     } catch (IOException | IllegalStateException e) {
       Log.e(TAG, "Create VideoEncoder failed.", e);
@@ -117,7 +120,7 @@ public class VideoEncoder extends BaseEncoder implements GetCameraData {
   }
 
   @Override
-  protected void startImp(boolean resetTs) {
+  public void start(boolean resetTs) {
     spsPpsSetted = false;
     if (resetTs) {
       presentTimeUs = System.nanoTime() / 1000;
@@ -127,6 +130,24 @@ public class VideoEncoder extends BaseEncoder implements GetCameraData {
       YUVUtil.preAllocateBuffers(width * height * 3 / 2);
     }
     handlerThread = new HandlerThread(TAG);
+    handlerThread.start();
+    Handler handler = new Handler(handlerThread.getLooper());
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+      codec.setCallback(callback, handler);
+      codec.start();
+    } else {
+      codec.start();
+      handler.post(new Runnable() {
+        @Override
+        public void run() {
+          while (running) {
+            getDataFromEncoder();
+          }
+        }
+      });
+    }
+    running = true;
+    Log.i(TAG, "started");
   }
 
   private FormatVideoEncoder chooseColorDynamically(MediaCodecInfo mediaCodecInfo) {
@@ -207,10 +228,6 @@ public class VideoEncoder extends BaseEncoder implements GetCameraData {
     return fps;
   }
 
-  public void start() {
-    start(true);
-  }
-
   public int getBitRate() {
     return bitRate;
   }
@@ -225,8 +242,14 @@ public class VideoEncoder extends BaseEncoder implements GetCameraData {
 
   @Override
   protected void stopImp() {
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
+      handlerThread.quitSafely();
+    } else {
+      handlerThread.quit();
+    }
     spsPpsSetted = false;
     inputSurface = null;
+    Log.i(TAG, "stopped");
   }
 
   public void reset() {
@@ -258,7 +281,8 @@ public class VideoEncoder extends BaseEncoder implements GetCameraData {
   /**
    * choose the video encoder by mime.
    */
-  private MediaCodecInfo chooseVideoEncoder(String mime) {
+  @Override
+  protected MediaCodecInfo chooseEncoder(String mime) {
     List<MediaCodecInfo> mediaCodecInfoList;
     if (force == CodecUtil.Force.HARDWARE) {
       mediaCodecInfoList = CodecUtil.getAllHardwareEncoders(mime);
@@ -413,4 +437,29 @@ public class VideoEncoder extends BaseEncoder implements GetCameraData {
     bufferInfo.presentationTimeUs = System.nanoTime() / 1000 - presentTimeUs;
     getVideoData.getVideoData(byteBuffer, bufferInfo);
   }
+
+  @RequiresApi(api = Build.VERSION_CODES.M)
+  private MediaCodec.Callback callback = new MediaCodec.Callback() {
+        @Override
+        public void onInputBufferAvailable(@NonNull MediaCodec mediaCodec, int inBufferIndex) {
+          inputAvailable(mediaCodec, inBufferIndex);
+        }
+
+        @Override
+        public void onOutputBufferAvailable(@NonNull MediaCodec mediaCodec, int outBufferIndex,
+            @NonNull MediaCodec.BufferInfo bufferInfo) {
+          outputAvailable(mediaCodec, outBufferIndex, bufferInfo);
+        }
+
+        @Override
+        public void onError(@NonNull MediaCodec mediaCodec, @NonNull MediaCodec.CodecException e) {
+          Log.e(TAG, "Error", e);
+        }
+
+        @Override
+        public void onOutputFormatChanged(@NonNull MediaCodec mediaCodec,
+            @NonNull MediaFormat mediaFormat) {
+          formatChanged(mediaCodec, mediaFormat);
+        }
+      };
 }

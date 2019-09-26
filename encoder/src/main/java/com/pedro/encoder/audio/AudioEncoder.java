@@ -3,7 +3,6 @@ package com.pedro.encoder.audio;
 import android.media.MediaCodec;
 import android.media.MediaCodecInfo;
 import android.media.MediaFormat;
-import android.os.HandlerThread;
 import android.util.Log;
 import androidx.annotation.NonNull;
 import com.pedro.encoder.BaseEncoder;
@@ -50,7 +49,7 @@ public class AudioEncoder extends BaseEncoder implements GetMicrophoneData {
       }
 
       if (force == CodecUtil.Force.FIRST_COMPATIBLE_FOUND) {
-        MediaCodecInfo encoder = chooseAudioEncoder(CodecUtil.AAC_MIME);
+        MediaCodecInfo encoder = chooseEncoder(CodecUtil.AAC_MIME);
         if (encoder != null) {
           codec = MediaCodec.createByCodecName(encoder.getName());
         } else {
@@ -75,15 +74,12 @@ public class AudioEncoder extends BaseEncoder implements GetMicrophoneData {
           MediaCodecInfo.CodecProfileLevel.AACObjectLC);
       codec.configure(audioFormat, null, null, MediaCodec.CONFIGURE_FLAG_ENCODE);
       running = false;
+      Log.i(TAG, "prepared");
       return true;
     } catch (IOException | IllegalStateException e) {
       Log.e(TAG, "Create AudioEncoder failed.", e);
       return false;
     }
-  }
-
-  public void setForce(CodecUtil.Force force) {
-    this.force = force;
   }
 
   /**
@@ -94,13 +90,16 @@ public class AudioEncoder extends BaseEncoder implements GetMicrophoneData {
   }
 
   @Override
-  protected void startImp(boolean resetTs) {
+  public void start(boolean resetTs) {
     presentTimeUs = System.nanoTime() / 1000;
-    handlerThread = new HandlerThread(TAG);
+    codec.start();
+    running = true;
+    Log.i(TAG, "started");
   }
 
   @Override
   protected void stopImp() {
+    Log.i(TAG, "stopped");
   }
 
   @Override
@@ -129,12 +128,15 @@ public class AudioEncoder extends BaseEncoder implements GetMicrophoneData {
    */
   @Override
   public void inputPCMData(Frame frame) {
-    if (running && !queue.offer(frame)) {
+    if (running && queue.offer(frame)) {
+      getDataFromEncoder();
+    } else {
       Log.i(TAG, "frame discarded");
     }
   }
 
-  private MediaCodecInfo chooseAudioEncoder(String mime) {
+  @Override
+  protected MediaCodecInfo chooseEncoder(String mime) {
     List<MediaCodecInfo> mediaCodecInfoList = CodecUtil.getAllEncoders(mime);
     for (MediaCodecInfo mediaCodecInfo : mediaCodecInfoList) {
       String name = mediaCodecInfo.getName().toLowerCase();
@@ -149,10 +151,6 @@ public class AudioEncoder extends BaseEncoder implements GetMicrophoneData {
 
   public void setSampleRate(int sampleRate) {
     this.sampleRate = sampleRate;
-  }
-
-  public boolean isRunning() {
-    return running;
   }
 
   @Override

@@ -1,13 +1,10 @@
 package com.pedro.encoder;
 
 import android.media.MediaCodec;
+import android.media.MediaCodecInfo;
 import android.media.MediaFormat;
 import android.os.Build;
-import android.os.Handler;
-import android.os.HandlerThread;
-import android.util.Log;
 import androidx.annotation.NonNull;
-import androidx.annotation.RequiresApi;
 import com.pedro.encoder.utils.CodecUtil;
 import java.nio.ByteBuffer;
 import java.util.concurrent.ArrayBlockingQueue;
@@ -21,39 +18,17 @@ public abstract class BaseEncoder implements EncoderCallback {
   private static final String TAG = "BaseEncoder";
   private MediaCodec.BufferInfo bufferInfo = new MediaCodec.BufferInfo();
   protected MediaCodec codec;
-  protected HandlerThread handlerThread;
   protected long presentTimeUs;
   protected volatile boolean running = false;
   protected boolean isBufferMode = true;
   protected CodecUtil.Force force = CodecUtil.Force.FIRST_COMPATIBLE_FOUND;
   protected BlockingQueue<Frame> queue = new ArrayBlockingQueue<>(80);
 
-  protected abstract void startImp(boolean resetTs);
-
   public void start() {
     start(true);
   }
 
-  public void start(boolean resetTs) {
-    startImp(resetTs);
-    handlerThread.start();
-    Handler handler = new Handler(handlerThread.getLooper());
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-      codec.setCallback(callback, handler);
-      codec.start();
-    } else {
-      codec.start();
-      handler.post(new Runnable() {
-        @Override
-        public void run() {
-          while (running) {
-            getDataFromEncoder();
-          }
-        }
-      });
-    }
-    running = true;
-  }
+  public abstract void start(boolean resetTs);
 
   protected abstract void stopImp();
 
@@ -64,16 +39,13 @@ public abstract class BaseEncoder implements EncoderCallback {
       codec.release();
       codec = null;
     }
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
-      handlerThread.quitSafely();
-    } else {
-      handlerThread.quit();
-    }
-    queue.clear();
     stopImp();
+    queue.clear();
   }
 
-  private void getDataFromEncoder() {
+  protected abstract MediaCodecInfo chooseEncoder(String mime);
+
+  protected void getDataFromEncoder() {
     if (isBufferMode) {
       int inBufferIndex = codec.dequeueInputBuffer(0);
       if (inBufferIndex >= 0) {
@@ -92,31 +64,6 @@ public abstract class BaseEncoder implements EncoderCallback {
       }
     }
   }
-
-  @RequiresApi(api = Build.VERSION_CODES.M)
-  private MediaCodec.Callback callback = new MediaCodec.Callback() {
-        @Override
-        public void onInputBufferAvailable(@NonNull MediaCodec mediaCodec, int inBufferIndex) {
-          inputAvailable(mediaCodec, inBufferIndex);
-        }
-
-        @Override
-        public void onOutputBufferAvailable(@NonNull MediaCodec mediaCodec, int outBufferIndex,
-            @NonNull MediaCodec.BufferInfo bufferInfo) {
-          outputAvailable(mediaCodec, outBufferIndex, bufferInfo);
-        }
-
-        @Override
-        public void onError(@NonNull MediaCodec mediaCodec, @NonNull MediaCodec.CodecException e) {
-          Log.e(TAG, "Error", e);
-        }
-
-        @Override
-        public void onOutputFormatChanged(@NonNull MediaCodec mediaCodec,
-            @NonNull MediaFormat mediaFormat) {
-          formatChanged(mediaCodec, mediaFormat);
-        }
-      };
 
   protected abstract Frame getInputFrame() throws InterruptedException;
 
