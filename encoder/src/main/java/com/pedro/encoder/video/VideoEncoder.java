@@ -438,8 +438,8 @@ public class VideoEncoder extends BaseEncoder implements GetCameraData {
     getVideoData.getVideoData(byteBuffer, bufferInfo);
   }
 
-  @RequiresApi(api = Build.VERSION_CODES.M) private MediaCodec.Callback callback =
-      new MediaCodec.Callback() {
+  @RequiresApi(api = Build.VERSION_CODES.M)
+  private MediaCodec.Callback callback = new MediaCodec.Callback() {
         @Override
         public void onInputBufferAvailable(@NonNull MediaCodec mediaCodec, int inBufferIndex) {
           inputAvailable(mediaCodec, inBufferIndex);
