@@ -45,7 +45,7 @@ public abstract class BaseEncoder implements EncoderCallback {
 
   protected abstract MediaCodecInfo chooseEncoder(String mime);
 
-  protected void getDataFromEncoder() {
+  protected void getDataFromEncoder() throws IllegalStateException {
     if (isBufferMode) {
       int inBufferIndex = codec.dequeueInputBuffer(0);
       if (inBufferIndex >= 0) {
@@ -68,14 +68,14 @@ public abstract class BaseEncoder implements EncoderCallback {
   protected abstract Frame getInputFrame() throws InterruptedException;
 
   private void processInput(@NonNull ByteBuffer byteBuffer, @NonNull MediaCodec mediaCodec,
-      int inBufferIndex) {
+      int inBufferIndex) throws IllegalStateException {
     try {
       Frame frame = getInputFrame();
       byteBuffer.clear();
       byteBuffer.put(frame.getBuffer(), frame.getOffset(), frame.getSize());
       long pts = System.nanoTime() / 1000 - presentTimeUs;
       mediaCodec.queueInputBuffer(inBufferIndex, 0, frame.getSize(), pts, 0);
-    } catch (InterruptedException | IllegalStateException e) {
+    } catch (InterruptedException e) {
       Thread.currentThread().interrupt();
     }
   }
@@ -87,7 +87,7 @@ public abstract class BaseEncoder implements EncoderCallback {
       @NonNull MediaCodec.BufferInfo bufferInfo);
 
   private void processOutput(@NonNull ByteBuffer byteBuffer, @NonNull MediaCodec mediaCodec,
-      int outBufferIndex, @NonNull MediaCodec.BufferInfo bufferInfo) {
+      int outBufferIndex, @NonNull MediaCodec.BufferInfo bufferInfo) throws IllegalStateException {
     checkBuffer(byteBuffer, bufferInfo);
     sendBuffer(byteBuffer, bufferInfo);
     mediaCodec.releaseOutputBuffer(outBufferIndex, false);
@@ -102,7 +102,8 @@ public abstract class BaseEncoder implements EncoderCallback {
   }
 
   @Override
-  public void inputAvailable(@NonNull MediaCodec mediaCodec, int inBufferIndex) {
+  public void inputAvailable(@NonNull MediaCodec mediaCodec, int inBufferIndex)
+      throws IllegalStateException {
     ByteBuffer byteBuffer;
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
       byteBuffer = mediaCodec.getInputBuffer(inBufferIndex);
@@ -114,7 +115,7 @@ public abstract class BaseEncoder implements EncoderCallback {
 
   @Override
   public void outputAvailable(@NonNull MediaCodec mediaCodec, int outBufferIndex,
-      @NonNull MediaCodec.BufferInfo bufferInfo) {
+      @NonNull MediaCodec.BufferInfo bufferInfo) throws IllegalStateException {
     ByteBuffer byteBuffer;
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
       byteBuffer = mediaCodec.getOutputBuffer(outBufferIndex);

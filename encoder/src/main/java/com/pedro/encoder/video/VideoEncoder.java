@@ -141,7 +141,11 @@ public class VideoEncoder extends BaseEncoder implements GetCameraData {
         @Override
         public void run() {
           while (running) {
-            getDataFromEncoder();
+            try {
+              getDataFromEncoder();
+            } catch (IllegalStateException e) {
+              Log.i(TAG, "Encoding error", e);
+            }
           }
         }
       });
@@ -442,13 +446,21 @@ public class VideoEncoder extends BaseEncoder implements GetCameraData {
   private MediaCodec.Callback callback = new MediaCodec.Callback() {
         @Override
         public void onInputBufferAvailable(@NonNull MediaCodec mediaCodec, int inBufferIndex) {
-          inputAvailable(mediaCodec, inBufferIndex);
+          try {
+            inputAvailable(mediaCodec, inBufferIndex);
+          } catch (IllegalStateException e) {
+            Log.i(TAG, "Encoding error", e);
+          }
         }
 
         @Override
         public void onOutputBufferAvailable(@NonNull MediaCodec mediaCodec, int outBufferIndex,
             @NonNull MediaCodec.BufferInfo bufferInfo) {
-          outputAvailable(mediaCodec, outBufferIndex, bufferInfo);
+          try {
+            outputAvailable(mediaCodec, outBufferIndex, bufferInfo);
+          } catch (IllegalStateException e) {
+            Log.i(TAG, "Encoding error", e);
+          }
         }
 
         @Override
