@@ -116,7 +116,6 @@ public class AudioEncoder extends BaseEncoder implements GetMicrophoneData {
   @Override
   protected void sendBuffer(@NonNull ByteBuffer byteBuffer,
       @NonNull MediaCodec.BufferInfo bufferInfo) {
-    bufferInfo.presentationTimeUs = System.nanoTime() / 1000 - presentTimeUs;
     getAacData.getAacData(byteBuffer, bufferInfo);
   }
 
