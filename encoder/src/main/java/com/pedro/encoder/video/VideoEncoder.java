@@ -23,6 +23,8 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.BlockingQueue;
 
 /**
  * Created by pedro on 19/01/17.
@@ -50,6 +52,7 @@ public class VideoEncoder extends BaseEncoder implements GetCameraData {
   private String type = CodecUtil.H264_MIME;
   private FormatVideoEncoder formatVideoEncoder = FormatVideoEncoder.YUV420Dynamical;
   private HandlerThread handlerThread;
+  private BlockingQueue<Frame> queue = new ArrayBlockingQueue<>(80);
 
   public VideoEncoder(GetVideoData getVideoData) {
     this.getVideoData = getVideoData;
@@ -142,7 +145,7 @@ public class VideoEncoder extends BaseEncoder implements GetCameraData {
         public void run() {
           while (running) {
             try {
-              getDataFromEncoder();
+              getDataFromEncoder(null);
             } catch (IllegalStateException e) {
               Log.i(TAG, "Encoding error", e);
             }
@@ -161,6 +164,7 @@ public class VideoEncoder extends BaseEncoder implements GetCameraData {
     } else {
       handlerThread.quit();
     }
+    queue.clear();
     spsPpsSetted = false;
     inputSurface = null;
     Log.i(TAG, "stopped");
@@ -447,7 +451,7 @@ public class VideoEncoder extends BaseEncoder implements GetCameraData {
         @Override
         public void onInputBufferAvailable(@NonNull MediaCodec mediaCodec, int inBufferIndex) {
           try {
-            inputAvailable(mediaCodec, inBufferIndex);
+            inputAvailable(mediaCodec, inBufferIndex, null);
           } catch (IllegalStateException e) {
             Log.i(TAG, "Encoding error", e);
           }

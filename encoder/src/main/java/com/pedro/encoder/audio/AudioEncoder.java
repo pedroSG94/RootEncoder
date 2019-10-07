@@ -104,7 +104,7 @@ public class AudioEncoder extends BaseEncoder implements GetMicrophoneData {
 
   @Override
   protected Frame getInputFrame() throws InterruptedException {
-    return queue.take();
+    return null;
   }
 
   @Override
@@ -128,9 +128,9 @@ public class AudioEncoder extends BaseEncoder implements GetMicrophoneData {
    */
   @Override
   public void inputPCMData(Frame frame) {
-    if (running && queue.offer(frame)) {
+    if (running) {
       try {
-        getDataFromEncoder();
+        getDataFromEncoder(frame);
       } catch (IllegalStateException e) {
         Log.i(TAG, "Encoding error", e);
       }
