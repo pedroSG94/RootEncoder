@@ -339,7 +339,7 @@ public abstract class Camera2Base implements GetAacData, GetVideoData, GetMicrop
       if (glInterface != null) {
         glInterface.stop();
       }
-      cameraManager.closeCamera(false);
+      cameraManager.closeCamera();
       onPreview = false;
       previewWidth = 0;
       previewHeight = 0;
@@ -393,7 +393,7 @@ public abstract class Camera2Base implements GetAacData, GetVideoData, GetMicrop
     if (glInterface != null) {
       glInterface.addMediaCodecSurface(videoEncoder.getInputSurface());
     } else {
-      cameraManager.closeCamera(false);
+      cameraManager.closeCamera();
       cameraManager.prepareCamera(videoEncoder.getInputSurface());
       cameraManager.openLastCamera();
     }
@@ -436,15 +436,17 @@ public abstract class Camera2Base implements GetAacData, GetVideoData, GetMicrop
       stopStreamRtp();
     }
     if (!recordController.isRecording()) {
-      cameraManager.closeCamera(!isBackground);
       onPreview = !isBackground;
       microphoneManager.stop();
       if (glInterface != null) {
         glInterface.removeMediaCodecSurface();
         if (glInterface instanceof OffScreenGlThread) {
-          glInterface.removeMediaCodecSurface();
           glInterface.stop();
+          cameraManager.closeCamera();
         }
+      } else {
+        if (isBackground) cameraManager.closeCamera();
+        else cameraManager.stopRepeatingEncoder();
       }
       videoEncoder.stop();
       audioEncoder.stop();

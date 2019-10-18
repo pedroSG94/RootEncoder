@@ -18,14 +18,14 @@ import android.hardware.camera2.params.StreamConfigurationMap;
 import android.os.Build;
 import android.os.Handler;
 import android.os.HandlerThread;
-import androidx.annotation.NonNull;
-import androidx.annotation.RequiresApi;
 import android.util.Log;
 import android.util.Size;
 import android.view.MotionEvent;
 import android.view.Surface;
 import android.view.SurfaceView;
 import android.view.TextureView;
+import androidx.annotation.NonNull;
+import androidx.annotation.RequiresApi;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -59,11 +59,8 @@ public class Camera2ApiManager extends CameraDevice.StateCallback {
   private CameraCaptureSession cameraCaptureSession;
   private boolean prepared = false;
   private int cameraId = -1;
-  private Surface preview;
-  private boolean isOpenGl = false;
   private boolean isFrontCamera = false;
   private CameraCharacteristics cameraCharacteristics;
-  private CaptureRequest.Builder builderPreview;
   private CaptureRequest.Builder builderInputSurface;
   private float fingerSpacing = 0;
   private float zoomLevel = 1.0f;
@@ -87,27 +84,23 @@ public class Camera2ApiManager extends CameraDevice.StateCallback {
     this.surfaceView = surfaceView;
     this.surfaceEncoder = surface;
     prepared = true;
-    isOpenGl = false;
   }
 
   public void prepareCamera(TextureView textureView, Surface surface) {
     this.textureView = textureView;
     this.surfaceEncoder = surface;
     prepared = true;
-    isOpenGl = false;
   }
 
   public void prepareCamera(Surface surface) {
     this.surfaceEncoder = surface;
     prepared = true;
-    isOpenGl = false;
   }
 
   public void prepareCamera(SurfaceTexture surfaceTexture, int width, int height) {
     surfaceTexture.setDefaultBufferSize(width, height);
     this.surfaceEncoder = new Surface(surfaceTexture);
     prepared = true;
-    isOpenGl = true;
   }
 
   public boolean isPrepared() {
@@ -116,29 +109,24 @@ public class Camera2ApiManager extends CameraDevice.StateCallback {
 
   private void startPreview(CameraDevice cameraDevice) {
     try {
-      List<Surface> listSurfaces = new ArrayList<>();
-      preview = addPreviewSurface();
-      if (preview != null) {
-        listSurfaces.add(preview);
-      }
-      if (surfaceEncoder != null) {
-        listSurfaces.add(surfaceEncoder);
-      }
+      final List<Surface> listSurfaces = new ArrayList<>();
+      Surface preview = addPreviewSurface();
+      if (preview != null) listSurfaces.add(preview);
+      if (surfaceEncoder != null) listSurfaces.add(surfaceEncoder);
+
       cameraDevice.createCaptureSession(listSurfaces, new CameraCaptureSession.StateCallback() {
         @Override
         public void onConfigured(@NonNull CameraCaptureSession cameraCaptureSession) {
           Camera2ApiManager.this.cameraCaptureSession = cameraCaptureSession;
           try {
-            if (surfaceView != null || textureView != null) {
-              cameraCaptureSession.setRepeatingBurst(
-                  Collections.singletonList(drawSurface(preview, surfaceEncoder)),
+            CaptureRequest captureRequest = drawSurface(listSurfaces);
+            if (captureRequest != null) {
+              cameraCaptureSession.setRepeatingRequest(captureRequest,
                   faceDetectionEnabled ? cb : null, cameraHandler);
+              Log.i(TAG, "Camera configured");
             } else {
-              cameraCaptureSession.setRepeatingBurst(
-                  Collections.singletonList(drawSurface(surfaceEncoder)),
-                  faceDetectionEnabled ? cb : null, cameraHandler);
+              Log.e(TAG, "Error, captureRequest is null");
             }
-            Log.i(TAG, "Camera configured");
           } catch (CameraAccessException | NullPointerException e) {
             Log.e(TAG, "Error", e);
           }
@@ -166,10 +154,10 @@ public class Camera2ApiManager extends CameraDevice.StateCallback {
     return surface;
   }
 
-  private CaptureRequest drawSurface(Surface... surfaces) {
+  private CaptureRequest drawSurface(List<Surface> surfaces) {
     try {
       builderInputSurface = cameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_PREVIEW);
-      for (Surface surface : surfaces) builderInputSurface.addTarget(surface);
+      for (Surface surface : surfaces) if (surface != null) builderInputSurface.addTarget(surface);
       return builderInputSurface.build();
     } catch (CameraAccessException | IllegalStateException e) {
       Log.e(TAG, "Error", e);
@@ -242,6 +230,7 @@ public class Camera2ApiManager extends CameraDevice.StateCallback {
   public CameraCharacteristics getCameraCharacteristics() {
     return cameraCharacteristics;
   }
+
   /**
    * Select camera facing
    *
@@ -264,22 +253,25 @@ public class Camera2ApiManager extends CameraDevice.StateCallback {
   }
 
   public boolean isLanternSupported() {
-    return (cameraCharacteristics != null ? cameraCharacteristics.get(CameraCharacteristics.FLASH_INFO_AVAILABLE) : false);
+    return (cameraCharacteristics != null ? cameraCharacteristics.get(
+        CameraCharacteristics.FLASH_INFO_AVAILABLE) : false);
   }
 
   public boolean isLanternEnabled() {
-      return lanternEnable;
+    return lanternEnable;
   }
 
   /**
    * @required: <uses-permission android:name="android.permission.FLASHLIGHT"/>
    */
   public void enableLantern() throws Exception {
-    if ((cameraCharacteristics != null) && cameraCharacteristics.get(CameraCharacteristics.FLASH_INFO_AVAILABLE)) {
+    if ((cameraCharacteristics != null) && cameraCharacteristics.get(
+        CameraCharacteristics.FLASH_INFO_AVAILABLE)) {
       if (builderInputSurface != null) {
         try {
           builderInputSurface.set(CaptureRequest.FLASH_MODE, CameraMetadata.FLASH_MODE_TORCH);
-          cameraCaptureSession.setRepeatingRequest(builderInputSurface.build(), faceDetectionEnabled ? cb : null, null);
+          cameraCaptureSession.setRepeatingRequest(builderInputSurface.build(),
+              faceDetectionEnabled ? cb : null, null);
           lanternEnable = true;
         } catch (CameraAccessException | IllegalStateException e) {
           Log.e(TAG, "Error", e);
@@ -295,11 +287,13 @@ public class Camera2ApiManager extends CameraDevice.StateCallback {
    * @required: <uses-permission android:name="android.permission.FLASHLIGHT"/>
    */
   public void disableLantern() {
-    if ((cameraCharacteristics != null) && cameraCharacteristics.get(CameraCharacteristics.FLASH_INFO_AVAILABLE)) {
+    if ((cameraCharacteristics != null) && cameraCharacteristics.get(
+        CameraCharacteristics.FLASH_INFO_AVAILABLE)) {
       if (builderInputSurface != null) {
         try {
           builderInputSurface.set(CaptureRequest.FLASH_MODE, CameraMetadata.FLASH_MODE_OFF);
-          cameraCaptureSession.setRepeatingRequest(builderInputSurface.build(), faceDetectionEnabled ? cb : null, null);
+          cameraCaptureSession.setRepeatingRequest(builderInputSurface.build(),
+              faceDetectionEnabled ? cb : null, null);
           lanternEnable = false;
         } catch (CameraAccessException | IllegalStateException e) {
           Log.e(TAG, "Error", e);
@@ -321,7 +315,6 @@ public class Camera2ApiManager extends CameraDevice.StateCallback {
         this.faceDetectorCallback = faceDetectorCallback;
         faceDetectionEnabled = true;
         faceDetectionMode = Collections.max(fdList);
-        if (builderPreview != null) setFaceDetect(builderPreview, faceDetectionMode);
         setFaceDetect(builderInputSurface, faceDetectionMode);
         prepareFaceDetectionCallback();
       } else {
@@ -354,10 +347,6 @@ public class Camera2ApiManager extends CameraDevice.StateCallback {
   private void prepareFaceDetectionCallback() {
     try {
       cameraCaptureSession.stopRepeating();
-      if (builderPreview != null) {
-        cameraCaptureSession.setRepeatingRequest(builderPreview.build(),
-            faceDetectionEnabled ? cb : null, null);
-      }
       cameraCaptureSession.setRepeatingRequest(builderInputSurface.build(),
           faceDetectionEnabled ? cb : null, null);
     } catch (CameraAccessException e) {
@@ -406,14 +395,36 @@ public class Camera2ApiManager extends CameraDevice.StateCallback {
   public void switchCamera() {
     if (cameraDevice != null) {
       int cameraId = Integer.parseInt(cameraDevice.getId()) == 1 ? 0 : 1;
-      closeCamera(false);
-      prepared = true;
+      closeCamera();
+      if (textureView != null) {
+        prepareCamera(textureView, surfaceEncoder);
+      } else if (surfaceView != null) {
+        prepareCamera(surfaceView, surfaceEncoder);
+      } else {
+        prepareCamera(surfaceEncoder);
+      }
+      openCameraId(cameraId);
+    }
+  }
+
+  public void reOpen() {
+    if (cameraDevice != null) {
+      int cameraId = Integer.parseInt(cameraDevice.getId());
+      closeCamera();
+      if (textureView != null) {
+        prepareCamera(textureView, surfaceEncoder);
+      } else if (surfaceView != null) {
+        prepareCamera(surfaceView, surfaceEncoder);
+      } else {
+        prepareCamera(surfaceEncoder);
+      }
       openCameraId(cameraId);
     }
   }
 
   public float getMaxZoom() {
-    return (cameraCharacteristics != null ? cameraCharacteristics.get(CameraCharacteristics.SCALER_AVAILABLE_MAX_DIGITAL_ZOOM) : 1);
+    return (cameraCharacteristics != null ? cameraCharacteristics.get(
+        CameraCharacteristics.SCALER_AVAILABLE_MAX_DIGITAL_ZOOM) : 1);
   }
 
   public Float getZoom() {
@@ -436,15 +447,9 @@ public class Camera2ApiManager extends CameraDevice.StateCallback {
         cropW -= cropW & 3;
         cropH -= cropH & 3;
         Rect zoom = new Rect(cropW, cropH, m.width() - cropW, m.height() - cropH);
-        if (builderPreview != null) builderPreview.set(CaptureRequest.SCALER_CROP_REGION, zoom);
         builderInputSurface.set(CaptureRequest.SCALER_CROP_REGION, zoom);
-
-        if (builderPreview != null) {
-          cameraCaptureSession.setRepeatingRequest(builderPreview.build(),
-                  faceDetectionEnabled ? cb : null, null);
-        }
         cameraCaptureSession.setRepeatingRequest(builderInputSurface.build(),
-                faceDetectionEnabled ? cb : null, null);
+            faceDetectionEnabled ? cb : null, null);
       }
     } catch (CameraAccessException e) {
       Log.e(TAG, "Error", e);
@@ -478,39 +483,40 @@ public class Camera2ApiManager extends CameraDevice.StateCallback {
     zoomLevel = 1.0f;
   }
 
-  public void closeCamera(boolean reOpen) {
-    if (reOpen) {
+  public void stopRepeatingEncoder() {
+    if (cameraCaptureSession != null) {
       try {
-        if (surfaceEncoder != null && isOpenGl) return;
         cameraCaptureSession.stopRepeating();
-        if (surfaceView != null || textureView != null) {
-          cameraCaptureSession.setRepeatingBurst(Collections.singletonList(drawSurface(preview)),
-              null, cameraHandler);
+        surfaceEncoder = null;
+        CaptureRequest captureRequest = drawSurface(Collections.singletonList(addPreviewSurface()));
+        if (captureRequest != null) {
+          cameraCaptureSession.setRepeatingRequest(captureRequest, null, cameraHandler);
         }
-      } catch (Exception e) {
+      } catch (CameraAccessException e) {
         Log.e(TAG, "Error", e);
       }
-    } else {
-      resetCameraValues();
-
-      cameraCharacteristics = null;
-      if (cameraCaptureSession != null) {
-        cameraCaptureSession.close();
-        cameraCaptureSession = null;
-      }
-      if (cameraDevice != null) {
-        cameraDevice.close();
-        cameraDevice = null;
-      }
-      if (cameraHandler != null) {
-        cameraHandler.getLooper().quitSafely();
-        cameraHandler = null;
-      }
-      prepared = false;
-      builderPreview = null;
-      builderInputSurface = null;
-      running = false;
     }
+  }
+
+  public void closeCamera() {
+    resetCameraValues();
+    cameraCharacteristics = null;
+    if (cameraCaptureSession != null) {
+      cameraCaptureSession.close();
+      cameraCaptureSession = null;
+    }
+    if (cameraDevice != null) {
+      cameraDevice.close();
+      cameraDevice = null;
+    }
+    if (cameraHandler != null) {
+      cameraHandler.getLooper().quitSafely();
+      cameraHandler = null;
+    }
+    surfaceEncoder = null;
+    prepared = false;
+    builderInputSurface = null;
+    running = false;
   }
 
   @Override
