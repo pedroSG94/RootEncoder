@@ -407,21 +407,6 @@ public class Camera2ApiManager extends CameraDevice.StateCallback {
     }
   }
 
-  public void reOpen() {
-    if (cameraDevice != null) {
-      int cameraId = Integer.parseInt(cameraDevice.getId());
-      closeCamera();
-      if (textureView != null) {
-        prepareCamera(textureView, surfaceEncoder);
-      } else if (surfaceView != null) {
-        prepareCamera(surfaceView, surfaceEncoder);
-      } else {
-        prepareCamera(surfaceEncoder);
-      }
-      openCameraId(cameraId);
-    }
-  }
-
   public float getMaxZoom() {
     return (cameraCharacteristics != null ? cameraCharacteristics.get(
         CameraCharacteristics.SCALER_AVAILABLE_MAX_DIGITAL_ZOOM) : 1);
