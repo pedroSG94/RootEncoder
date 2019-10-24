@@ -31,12 +31,12 @@ public abstract class BaseEncoder implements EncoderCallback {
 
   public void stop() {
     running = false;
+    stopImp();
     if (codec != null) {
       codec.stop();
       codec.release();
       codec = null;
     }
-    stopImp();
   }
 
   protected abstract MediaCodecInfo chooseEncoder(String mime);
