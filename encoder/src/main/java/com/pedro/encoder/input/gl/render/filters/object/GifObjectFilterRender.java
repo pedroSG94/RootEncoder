@@ -30,7 +30,6 @@ public class GifObjectFilterRender extends BaseObjectFilterRender {
 
   public void setGif(InputStream inputStream) throws IOException {
     ((GifStreamObject) streamObject).load(inputStream);
-    textureLoader.setGifStreamObject((GifStreamObject) streamObject);
     shouldLoad = true;
   }
 }

@@ -96,8 +96,8 @@ public class ManagerRender {
     final RenderHandler renderHandler = this.baseFilterRender.get(position).getRenderHandler();
     this.baseFilterRender.get(position).release();
     this.baseFilterRender.set(position, baseFilterRender);
-    this.baseFilterRender.get(position).initGl(width, height, context, previewWidth, previewHeight);
     this.baseFilterRender.get(position).setPreviousTexId(id);
+    this.baseFilterRender.get(position).initGl(width, height, context, previewWidth, previewHeight);
     this.baseFilterRender.get(position).setRenderHandler(renderHandler);
   }
 

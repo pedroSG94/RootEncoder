@@ -32,7 +32,6 @@ public class TextObjectFilterRender extends BaseObjectFilterRender {
 
   public void setText(String text, float textSize, int textColor, Typeface typeface) {
     ((TextStreamObject) streamObject).load(text, textSize, textColor, typeface);
-    textureLoader.setTextStreamObject((TextStreamObject) streamObject);
     shouldLoad = true;
   }
 }

@@ -43,8 +43,9 @@ public class ImageStreamObject extends StreamObjectBase {
     return numFrames;
   }
 
-  public Bitmap getImageBitmap() {
-    return imageBitmap;
+  @Override
+  public Bitmap[] getBitmaps() {
+    return new Bitmap[]{imageBitmap};
   }
 
   @Override

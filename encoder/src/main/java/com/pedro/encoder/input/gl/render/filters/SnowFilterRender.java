@@ -70,8 +70,7 @@ public class SnowFilterRender extends BaseFilterRender {
     Bitmap snowBitmap = BitmapFactory.decodeResource(context.getResources(), R.drawable.snow_flakes);
     streamObjectBase = new ImageStreamObject();
     ((ImageStreamObject) streamObjectBase).load(snowBitmap);
-    textureLoader.setImageStreamObject((ImageStreamObject) streamObjectBase);
-    snowTextureId = textureLoader.load();
+    snowTextureId = textureLoader.load(streamObjectBase.getBitmaps());
   }
 
   @Override

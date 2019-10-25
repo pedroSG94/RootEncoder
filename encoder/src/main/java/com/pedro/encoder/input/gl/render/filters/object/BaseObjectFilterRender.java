@@ -5,8 +5,6 @@ import android.graphics.PointF;
 import android.opengl.GLES20;
 import android.opengl.Matrix;
 import android.os.Build;
-import android.os.Handler;
-import android.os.Looper;
 import androidx.annotation.RequiresApi;
 import com.pedro.encoder.R;
 import com.pedro.encoder.input.gl.Sprite;
@@ -88,7 +86,8 @@ abstract public class BaseObjectFilterRender extends BaseFilterRender {
   @Override
   protected void drawFilter() {
     if (shouldLoad) {
-      streamObjectTextureId = textureLoader.load();
+      releaseTexture();
+      streamObjectTextureId = textureLoader.load(streamObject.getBitmaps());
       shouldLoad = false;
     }
 
@@ -123,16 +122,14 @@ abstract public class BaseObjectFilterRender extends BaseFilterRender {
   @Override
   public void release() {
     GLES20.glDeleteProgram(program);
-    //DeleteTextures should be called in main thread or you will have issues.
-    new Handler(Looper.getMainLooper()).post(new Runnable() {
-      @Override
-      public void run() {
-        GLES20.glDeleteTextures(streamObjectTextureId.length, streamObjectTextureId, 0);
-        streamObjectTextureId = new int[] { -1 };
-      }
-    });
+    releaseTexture();
     sprite.reset();
     if (streamObject != null) streamObject.recycle();
+  }
+
+  private void releaseTexture() {
+    GLES20.glDeleteTextures(streamObjectTextureId.length, streamObjectTextureId, 0);
+    streamObjectTextureId = new int[] { -1 };
   }
 
   public void setAlpha(float alpha) {
