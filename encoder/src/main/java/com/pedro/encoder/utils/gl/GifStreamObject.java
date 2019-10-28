@@ -55,7 +55,7 @@ public class GifStreamObject extends StreamObjectBase {
   public void recycle() {
     if (gifBitmaps != null) {
       for (int i = 0; i < numFrames; i++) {
-        gifBitmaps[i].recycle();
+        if (gifBitmaps[i] != null) gifBitmaps[i].recycle();
       }
     }
   }
