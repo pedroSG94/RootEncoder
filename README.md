@@ -36,7 +36,7 @@ allprojects {
   }
 }
 dependencies {
-  implementation 'com.github.pedroSG94.rtmp-rtsp-stream-client-java:rtplibrary:1.7.0'
+  implementation 'com.github.pedroSG94.rtmp-rtsp-stream-client-java:rtplibrary:1.7.1'
 }
 
 ```
@@ -48,7 +48,7 @@ dependencies {
 - [x] Encoder type buffer to buffer.
 - [x] Encoder type surface to buffer.
 - [x] RTMP/RTSP auth.
-- [x] Audio mode suppressor.
+- [x] Audio noise suppressor.
 - [x] Audio echo cancellation.
 - [x] Disable/Enable video and audio while streaming.
 - [x] Switch camera while streaming.

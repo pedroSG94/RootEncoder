@@ -395,7 +395,7 @@ public class Camera2ApiManager extends CameraDevice.StateCallback {
   public void switchCamera() {
     if (cameraDevice != null) {
       int cameraId = Integer.parseInt(cameraDevice.getId()) == 1 ? 0 : 1;
-      closeCamera();
+      closeCamera(false);
       if (textureView != null) {
         prepareCamera(textureView, surfaceEncoder);
       } else if (surfaceView != null) {
@@ -484,6 +484,10 @@ public class Camera2ApiManager extends CameraDevice.StateCallback {
   }
 
   public void closeCamera() {
+    closeCamera(true);
+  }
+
+  public void closeCamera(boolean resetSurface) {
     resetCameraValues();
     cameraCharacteristics = null;
     if (cameraCaptureSession != null) {
@@ -498,9 +502,11 @@ public class Camera2ApiManager extends CameraDevice.StateCallback {
       cameraHandler.getLooper().quitSafely();
       cameraHandler = null;
     }
-    surfaceEncoder = null;
+    if (resetSurface) {
+      surfaceEncoder = null;
+      builderInputSurface = null;
+    }
     prepared = false;
-    builderInputSurface = null;
     running = false;
   }
 
