@@ -94,7 +94,9 @@ public class AndroidViewFilterRender extends BaseFilterRender {
           canvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR);
           canvas.translate(positionX, positionY);
           canvas.rotate(rotation, viewX / 2f, viewY / 2f);
-          canvas.scale(scaleX, scaleY);
+          float scaleFactorX = (float) getPreviewWidth() / (float) view.getWidth();
+          float scaleFactorY = (float) getPreviewHeight() / (float) view.getHeight();
+          canvas.scale(scaleX * scaleFactorX, scaleY * scaleFactorY);
           view.draw(canvas);
           surface.unlockCanvasAndPost(canvas);
         }
