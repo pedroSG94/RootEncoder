@@ -33,6 +33,11 @@ public abstract class BaseFilterRender extends BaseRenderOffScreen {
     GlUtil.checkGlError("initGl end");
   }
 
+  public void setPreviewSize(int previewWidth, int previewHeight) {
+    this.previewWidth = previewWidth;
+    this.previewHeight = previewHeight;
+  }
+
   public void initFBOLink() {
     initFBO(width, height, renderHandler.getFboId(), renderHandler.getRboId(),
         renderHandler.getTexId());

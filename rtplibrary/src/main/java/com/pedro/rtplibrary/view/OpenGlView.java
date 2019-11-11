@@ -4,9 +4,11 @@ import android.content.Context;
 import android.content.res.TypedArray;
 import android.graphics.SurfaceTexture;
 import android.os.Build;
-import androidx.annotation.RequiresApi;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.Surface;
+import android.view.SurfaceHolder;
+import androidx.annotation.RequiresApi;
 import com.pedro.encoder.input.gl.SurfaceManager;
 import com.pedro.encoder.input.gl.render.ManagerRender;
 import com.pedro.encoder.input.gl.render.filters.BaseFilterRender;
@@ -98,6 +100,14 @@ public class OpenGlView extends OpenGlViewBase {
   @Override
   public boolean isAAEnabled() {
     return managerRender != null && managerRender.isAAEnabled();
+  }
+
+  @Override
+  public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
+    Log.i(TAG, "size: " + width + "x" + height);
+    this.previewWidth = width;
+    this.previewHeight = height;
+    if (managerRender != null) managerRender.setPreviewSize(previewWidth, previewHeight);
   }
 
   @Override

@@ -4,6 +4,8 @@ import android.content.Context;
 import android.content.res.TypedArray;
 import android.graphics.SurfaceTexture;
 import android.os.Build;
+import android.util.Log;
+import android.view.SurfaceHolder;
 import androidx.annotation.RequiresApi;
 import android.util.AttributeSet;
 import android.view.Surface;
@@ -59,6 +61,13 @@ public class LightOpenGlView extends OpenGlViewBase {
 
   public void setCameraFlip(boolean isFlipHorizontal, boolean isFlipVertical) {
     simpleCameraRender.setFlip(isFlipHorizontal, isFlipVertical);
+  }
+
+  @Override
+  public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
+    Log.i(TAG, "size: " + width + "x" + height);
+    this.previewWidth = width;
+    this.previewHeight = height;
   }
 
   @Override

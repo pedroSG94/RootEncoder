@@ -111,4 +111,10 @@ public class ManagerRender {
   public void setCameraFlip(boolean isFlipHorizontal, boolean isFlipVertical) {
     cameraRender.setFlip(isFlipHorizontal, isFlipVertical);
   }
+
+  public void setPreviewSize(int previewWidth, int previewHeight) {
+    for (int i = 0; i < this.baseFilterRender.size(); i++) {
+      this.baseFilterRender.get(i).setPreviewSize(previewWidth, previewHeight);
+    }
+  }
 }
