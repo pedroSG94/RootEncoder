@@ -136,6 +136,7 @@ public class VideoEncoder extends BaseEncoder implements GetCameraData {
     handlerThread.start();
     Handler handler = new Handler(handlerThread.getLooper());
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+      createAsyncCallback();
       codec.setCallback(callback, handler);
       codec.start();
     } else {
@@ -446,36 +447,40 @@ public class VideoEncoder extends BaseEncoder implements GetCameraData {
     getVideoData.getVideoData(byteBuffer, bufferInfo);
   }
 
+  private MediaCodec.Callback callback;
+
   @RequiresApi(api = Build.VERSION_CODES.M)
-  private MediaCodec.Callback callback = new MediaCodec.Callback() {
-        @Override
-        public void onInputBufferAvailable(@NonNull MediaCodec mediaCodec, int inBufferIndex) {
-          try {
-            inputAvailable(mediaCodec, inBufferIndex, null);
-          } catch (IllegalStateException e) {
-            Log.i(TAG, "Encoding error", e);
-          }
+  private void createAsyncCallback() {
+    callback = new MediaCodec.Callback() {
+      @Override
+      public void onInputBufferAvailable(@NonNull MediaCodec mediaCodec, int inBufferIndex) {
+        try {
+          inputAvailable(mediaCodec, inBufferIndex, null);
+        } catch (IllegalStateException e) {
+          Log.i(TAG, "Encoding error", e);
         }
+      }
 
-        @Override
-        public void onOutputBufferAvailable(@NonNull MediaCodec mediaCodec, int outBufferIndex,
-            @NonNull MediaCodec.BufferInfo bufferInfo) {
-          try {
-            outputAvailable(mediaCodec, outBufferIndex, bufferInfo);
-          } catch (IllegalStateException e) {
-            Log.i(TAG, "Encoding error", e);
-          }
+      @Override
+      public void onOutputBufferAvailable(@NonNull MediaCodec mediaCodec, int outBufferIndex,
+          @NonNull MediaCodec.BufferInfo bufferInfo) {
+        try {
+          outputAvailable(mediaCodec, outBufferIndex, bufferInfo);
+        } catch (IllegalStateException e) {
+          Log.i(TAG, "Encoding error", e);
         }
+      }
 
-        @Override
-        public void onError(@NonNull MediaCodec mediaCodec, @NonNull MediaCodec.CodecException e) {
-          Log.e(TAG, "Error", e);
-        }
+      @Override
+      public void onError(@NonNull MediaCodec mediaCodec, @NonNull MediaCodec.CodecException e) {
+        Log.e(TAG, "Error", e);
+      }
 
-        @Override
-        public void onOutputFormatChanged(@NonNull MediaCodec mediaCodec,
-            @NonNull MediaFormat mediaFormat) {
-          formatChanged(mediaCodec, mediaFormat);
-        }
-      };
+      @Override
+      public void onOutputFormatChanged(@NonNull MediaCodec mediaCodec,
+          @NonNull MediaFormat mediaFormat) {
+        formatChanged(mediaCodec, mediaFormat);
+      }
+    };
+  }
 }
