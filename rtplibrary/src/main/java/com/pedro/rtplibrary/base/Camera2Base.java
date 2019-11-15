@@ -288,7 +288,6 @@ public abstract class Camera2Base implements GetAacData, GetVideoData, GetMicrop
     replaceGlInterface(openGlView);
   }
 
-
   public void replaceView(LightOpenGlView lightOpenGlView) {
     replaceGlInterface(lightOpenGlView);
   }
@@ -316,13 +315,8 @@ public abstract class Camera2Base implements GetAacData, GetVideoData, GetMicrop
         if (isStreaming() || isRecording()) {
           this.glInterface.addMediaCodecSurface(videoEncoder.getInputSurface());
         }
-        if (isPortrait) {
-          cameraManager.prepareCamera(this.glInterface.getSurfaceTexture(),
-              videoEncoder.getHeight(), videoEncoder.getWidth());
-        } else {
-          cameraManager.prepareCamera(this.glInterface.getSurfaceTexture(), videoEncoder.getWidth(),
-              videoEncoder.getHeight());
-        }
+        cameraManager.prepareCamera(this.glInterface.getSurfaceTexture(), videoEncoder.getWidth(),
+            videoEncoder.getHeight());
         cameraManager.openLastCamera();
       } else {
         this.glInterface = glInterface;

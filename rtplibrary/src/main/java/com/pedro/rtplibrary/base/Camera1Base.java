@@ -325,13 +325,8 @@ public abstract class Camera1Base
         }
         cameraManager.setSurfaceTexture(glInterface.getSurfaceTexture());
         cameraManager.setRotation(videoEncoder.getRotation());
-        if (isPortrait) {
-          cameraManager.start(videoEncoder.getHeight(), videoEncoder.getWidth(),
-              videoEncoder.getFps());
-        } else {
-          cameraManager.start(videoEncoder.getWidth(), videoEncoder.getHeight(),
-              videoEncoder.getFps());
-        }
+        cameraManager.start(videoEncoder.getWidth(), videoEncoder.getHeight(),
+            videoEncoder.getFps());
       } else {
         this.glInterface = glInterface;
       }
@@ -393,7 +388,10 @@ public abstract class Camera1Base
    * @stopStream to release camera properly if you will close activity.
    */
   public void stopPreview() {
-    if (!isStreaming() && !isRecording() && onPreview && !(glInterface instanceof OffScreenGlThread)) {
+    if (!isStreaming()
+        && !isRecording()
+        && onPreview
+        && !(glInterface instanceof OffScreenGlThread)) {
       if (glInterface != null && Build.VERSION.SDK_INT >= 18) {
         glInterface.stop();
       }
