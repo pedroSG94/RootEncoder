@@ -72,10 +72,9 @@ public class ExampleRtmpActivity extends AppCompatActivity
     runOnUiThread(new Runnable() {
       @Override
       public void run() {
-        if (rtmpCamera1.shouldRetry(reason)) {
+        if (rtmpCamera1.reTry(5000, reason)) {
           Toast.makeText(ExampleRtmpActivity.this, "Retry", Toast.LENGTH_SHORT)
               .show();
-          rtmpCamera1.reTry(5000);  //Wait 5s and retry connect stream
         } else {
           Toast.makeText(ExampleRtmpActivity.this, "Connection failed. " + reason, Toast.LENGTH_SHORT)
               .show();

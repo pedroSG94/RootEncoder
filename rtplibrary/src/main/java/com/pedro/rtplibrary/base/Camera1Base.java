@@ -283,6 +283,61 @@ public abstract class Camera1Base
     if (!streaming) stopStream();
   }
 
+  @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
+  public void replaceView(Context context) {
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
+      replaceGlInterface(new OffScreenGlThread(context));
+    }
+  }
+
+  @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
+  public void replaceView(OpenGlView openGlView) {
+    replaceGlInterface(openGlView);
+  }
+
+  @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
+  public void replaceView(LightOpenGlView lightOpenGlView) {
+    replaceGlInterface(lightOpenGlView);
+  }
+
+  /**
+   * Replace glInterface used on fly. Ignored if you use SurfaceView or TextureView
+   */
+  @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
+  private void replaceGlInterface(GlInterface glInterface) {
+    if (this.glInterface != null && Build.VERSION.SDK_INT >= 18) {
+      if (isStreaming() || isRecording() || isOnPreview()) {
+        cameraManager.stop();
+        this.glInterface.removeMediaCodecSurface();
+        this.glInterface.stop();
+        this.glInterface = glInterface;
+        this.glInterface.init();
+        boolean isPortrait = CameraHelper.isPortrait(context);
+        if (isPortrait) {
+          this.glInterface.setEncoderSize(videoEncoder.getHeight(), videoEncoder.getWidth());
+        } else {
+          this.glInterface.setEncoderSize(videoEncoder.getWidth(), videoEncoder.getHeight());
+        }
+        this.glInterface.setRotation(0);
+        this.glInterface.start();
+        if (isStreaming() || isRecording()) {
+          this.glInterface.addMediaCodecSurface(videoEncoder.getInputSurface());
+        }
+        cameraManager.setSurfaceTexture(glInterface.getSurfaceTexture());
+        cameraManager.setRotation(videoEncoder.getRotation());
+        if (isPortrait) {
+          cameraManager.start(videoEncoder.getHeight(), videoEncoder.getWidth(),
+              videoEncoder.getFps());
+        } else {
+          cameraManager.start(videoEncoder.getWidth(), videoEncoder.getHeight(),
+              videoEncoder.getFps());
+        }
+      } else {
+        this.glInterface = glInterface;
+      }
+    }
+  }
+
   /**
    * Start camera preview. Ignored, if stream or preview is started.
    *
@@ -298,7 +353,7 @@ public abstract class Camera1Base
       previewWidth = width;
       previewHeight = height;
       if (glInterface != null && Build.VERSION.SDK_INT >= 18) {
-        boolean isPortrait = context.getResources().getConfiguration().orientation == 1;
+        boolean isPortrait = CameraHelper.isPortrait(context);
         if (isPortrait) {
           glInterface.setEncoderSize(height, width);
         } else {
@@ -338,7 +393,7 @@ public abstract class Camera1Base
    * @stopStream to release camera properly if you will close activity.
    */
   public void stopPreview() {
-    if (!isStreaming() && onPreview && !(glInterface instanceof OffScreenGlThread)) {
+    if (!isStreaming() && !isRecording() && onPreview && !(glInterface instanceof OffScreenGlThread)) {
       if (glInterface != null && Build.VERSION.SDK_INT >= 18) {
         glInterface.stop();
       }
@@ -464,15 +519,30 @@ public abstract class Camera1Base
     }
   }
 
+  public boolean reTry(long delay, String reason) {
+    boolean result = shouldRetry(reason);
+    if (result) {
+      reTry(delay);
+    }
+    return result;
+  }
+
+  /**
+   * Replace with reTry(long delay, String reason);
+   */
+  @Deprecated
   public void reTry(long delay) {
     resetVideoEncoder();
     reConnect(delay);
   }
 
-  //re connection
-  public abstract void setReTries(int reTries);
-
+  /**
+   * Replace with reTry(long delay, String reason);
+   */
+  @Deprecated
   public abstract boolean shouldRetry(String reason);
+
+  public abstract void setReTries(int reTries);
 
   protected abstract void reConnect(long delay);
 

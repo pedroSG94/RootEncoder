@@ -43,6 +43,11 @@ public class CameraHelper {
     }
   }
 
+  public static boolean isPortrait(Context context) {
+    int orientation = getCameraOrientation(context);
+    return orientation == 90 || orientation == 270;
+  }
+
   public static float getFingerSpacing(MotionEvent event) {
     float x = event.getX(0) - event.getX(1);
     float y = event.getY(0) - event.getY(1);

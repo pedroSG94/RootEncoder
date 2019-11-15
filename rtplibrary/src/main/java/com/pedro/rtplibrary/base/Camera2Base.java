@@ -280,6 +280,56 @@ public abstract class Camera2Base implements GetAacData, GetVideoData, GetMicrop
     if (!streaming) stopStream();
   }
 
+  public void replaceView(Context context) {
+    replaceGlInterface(new OffScreenGlThread(context));
+  }
+
+  public void replaceView(OpenGlView openGlView) {
+    replaceGlInterface(openGlView);
+  }
+
+
+  public void replaceView(LightOpenGlView lightOpenGlView) {
+    replaceGlInterface(lightOpenGlView);
+  }
+
+  /**
+   * Replace glInterface used on fly. Ignored if you use SurfaceView, TextureView or context without OpenGl.
+   */
+  private void replaceGlInterface(GlInterface glInterface) {
+    if (this.glInterface != null && Build.VERSION.SDK_INT >= 18) {
+      if (isStreaming() || isRecording() || isOnPreview()) {
+        cameraManager.closeCamera();
+        this.glInterface.removeMediaCodecSurface();
+        this.glInterface.stop();
+        this.glInterface = glInterface;
+        this.glInterface.init();
+        boolean isPortrait = CameraHelper.isPortrait(context);
+        if (isPortrait) {
+          this.glInterface.setEncoderSize(videoEncoder.getHeight(), videoEncoder.getWidth());
+        } else {
+          this.glInterface.setEncoderSize(videoEncoder.getWidth(), videoEncoder.getHeight());
+        }
+        this.glInterface.setRotation(
+            videoEncoder.getRotation() == 0 ? 270 : videoEncoder.getRotation() - 90);
+        this.glInterface.start();
+        if (isStreaming() || isRecording()) {
+          this.glInterface.addMediaCodecSurface(videoEncoder.getInputSurface());
+        }
+        if (isPortrait) {
+          cameraManager.prepareCamera(this.glInterface.getSurfaceTexture(),
+              videoEncoder.getHeight(), videoEncoder.getWidth());
+        } else {
+          cameraManager.prepareCamera(this.glInterface.getSurfaceTexture(), videoEncoder.getWidth(),
+              videoEncoder.getHeight());
+        }
+        cameraManager.openLastCamera();
+      } else {
+        this.glInterface = glInterface;
+      }
+    }
+  }
+
   /**
    * Start camera preview. Ignored, if stream or preview is started.
    *
@@ -297,7 +347,7 @@ public abstract class Camera2Base implements GetAacData, GetVideoData, GetMicrop
       } else if (textureView != null) {
         cameraManager.prepareCamera(new Surface(textureView.getSurfaceTexture()));
       } else if (glInterface != null) {
-        boolean isPortrait = context.getResources().getConfiguration().orientation == 1;
+        boolean isPortrait = CameraHelper.isPortrait(context);
         if (isPortrait) {
           glInterface.setEncoderSize(height, width);
         } else {
@@ -335,7 +385,7 @@ public abstract class Camera2Base implements GetAacData, GetVideoData, GetMicrop
    * @stopStream to release camera properly if you will close activity.
    */
   public void stopPreview() {
-    if (!isStreaming() && onPreview && !isBackground) {
+    if (!isStreaming() && !isRecording() && onPreview && !isBackground) {
       if (glInterface != null) {
         glInterface.stop();
       }
@@ -445,8 +495,11 @@ public abstract class Camera2Base implements GetAacData, GetVideoData, GetMicrop
           cameraManager.closeCamera();
         }
       } else {
-        if (isBackground) cameraManager.closeCamera();
-        else cameraManager.stopRepeatingEncoder();
+        if (isBackground) {
+          cameraManager.closeCamera();
+        } else {
+          cameraManager.stopRepeatingEncoder();
+        }
       }
       videoEncoder.stop();
       audioEncoder.stop();
@@ -454,15 +507,30 @@ public abstract class Camera2Base implements GetAacData, GetVideoData, GetMicrop
     }
   }
 
+  public boolean reTry(long delay, String reason) {
+    boolean result = shouldRetry(reason);
+    if (result) {
+      reTry(delay);
+    }
+    return result;
+  }
+
+  /**
+   * Replace with reTry(long delay, String reason);
+   */
+  @Deprecated
   public void reTry(long delay) {
     resetVideoEncoder();
     reConnect(delay);
   }
 
-  //re connection
-  public abstract void setReTries(int reTries);
-
+  /**
+   * Replace with reTry(long delay, String reason);
+   */
+  @Deprecated
   public abstract boolean shouldRetry(String reason);
+
+  public abstract void setReTries(int reTries);
 
   protected abstract void reConnect(long delay);
 

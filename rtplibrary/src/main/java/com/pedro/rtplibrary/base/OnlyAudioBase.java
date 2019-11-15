@@ -86,16 +86,31 @@ public abstract class OnlyAudioBase implements GetAacData, GetMicrophoneData {
     startStreamRtp(url);
   }
 
+  protected abstract void stopStreamRtp();
+
+  public boolean reTry(long delay, String reason) {
+    boolean result = shouldRetry(reason);
+    if (result) {
+      reTry(delay);
+    }
+    return result;
+  }
+
+  /**
+   * Replace with reTry(long delay, String reason);
+   */
+  @Deprecated
   public void reTry(long delay) {
     reConnect(delay);
   }
 
-  protected abstract void stopStreamRtp();
-
-  //re connection
-  public abstract void setReTries(int reTries);
-
+  /**
+   * Replace with reTry(long delay, String reason);
+   */
+  @Deprecated
   public abstract boolean shouldRetry(String reason);
+
+  public abstract void setReTries(int reTries);
 
   protected abstract void reConnect(long delay);
 
