@@ -14,6 +14,7 @@ import androidx.core.app.NotificationCompat
 import com.pedro.rtplibrary.base.Camera2Base
 import com.pedro.rtplibrary.rtmp.RtmpCamera2
 import com.pedro.rtplibrary.rtsp.RtspCamera2
+import com.pedro.rtplibrary.view.OpenGlView
 import com.pedro.rtpstreamer.R
 
 
@@ -28,7 +29,6 @@ class RtpService : Service(), ConnectCheckerRtp {
   private val notifyId = 123456
   private var notificationManager: NotificationManager? = null
   private var endpoint: String? = null
-  private var camera2Base: Camera2Base? = null
 
   override fun onCreate() {
     super.onCreate()
@@ -67,6 +67,21 @@ class RtpService : Service(), ConnectCheckerRtp {
     return START_STICKY
   }
 
+  companion object {
+    private var camera2Base: Camera2Base? = null
+    private var openGlView: OpenGlView? = null
+
+    fun setView(openGlView: OpenGlView) {
+      this.openGlView = openGlView
+      camera2Base?.replaceView(openGlView)
+    }
+
+    fun setView(context: Context) {
+      this.openGlView = null
+      camera2Base?.replaceView(context)
+    }
+  }
+
   override fun onDestroy() {
     super.onDestroy()
     Log.e(TAG, "RTP service destroy")
@@ -75,9 +90,17 @@ class RtpService : Service(), ConnectCheckerRtp {
 
   private fun prepareStreamRtp() {
     if (endpoint!!.startsWith("rtmp")) {
-      camera2Base = RtmpCamera2(baseContext, true, this)
+      camera2Base = if (openGlView == null) {
+        RtmpCamera2(baseContext, true, this)
+      } else {
+        RtmpCamera2(openGlView, this)
+      }
     } else {
-      camera2Base = RtspCamera2(baseContext, true, this)
+      camera2Base = if (openGlView == null) {
+        RtspCamera2(baseContext, true, this)
+      } else {
+        RtspCamera2(openGlView, this)
+      }
     }
   }
 
@@ -93,9 +116,8 @@ class RtpService : Service(), ConnectCheckerRtp {
 
   private fun stopStreamRtp() {
     if (camera2Base != null) {
-      if (camera2Base!!.isStreaming) {
-        camera2Base!!.stopStream()
-      }
+      if (camera2Base!!.isStreaming) camera2Base!!.stopStream()
+      if (camera2Base!!.isOnPreview) camera2Base!!.stopPreview()
     }
   }
 
