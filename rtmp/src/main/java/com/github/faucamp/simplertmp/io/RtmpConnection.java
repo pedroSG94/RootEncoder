@@ -516,6 +516,7 @@ public class RtmpConnection implements RtmpPublisher {
         Log.e(TAG, "Caught SocketException during write loop, shutting down: " + se.getMessage());
       }
     } catch (IOException ioe) {
+      connectCheckerRtmp.onConnectionFailedRtmp("Error send packet: " + ioe.getMessage());
       Log.e(TAG, "Caught IOException during write loop, shutting down: " + ioe.getMessage());
     }
   }
