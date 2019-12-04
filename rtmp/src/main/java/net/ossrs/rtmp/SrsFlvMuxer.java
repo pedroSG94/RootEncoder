@@ -879,7 +879,7 @@ public class SrsFlvMuxer {
       int type = SrsCodecVideoAVCFrame.InterFrame;
       SrsFlvFrameBytes frame = avc.demuxAnnexb(bb, bi.size, true);
       int nal_unit_type = frame.data.get(0) & 0x1f;
-      if (nal_unit_type == SrsAvcNaluType.IDR) {
+      if (nal_unit_type == SrsAvcNaluType.IDR || bi.flags == MediaCodec.BUFFER_FLAG_KEY_FRAME) {
         type = SrsCodecVideoAVCFrame.KeyFrame;
       } else if (nal_unit_type == SrsAvcNaluType.SPS || nal_unit_type == SrsAvcNaluType.PPS) {
         SrsFlvFrameBytes frame_pps = avc.demuxAnnexb(bb, bi.size, false);

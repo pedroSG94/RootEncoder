@@ -32,7 +32,8 @@ public class H265Packet extends BasePacket {
     long ts = bufferInfo.presentationTimeUs * 1000L;
     int naluLength = bufferInfo.size - byteBuffer.position() + 1;
     int type = (header[4] >> 1) & 0x3f;
-    if (type == RtpConstants.IDR_N_LP || type == RtpConstants.IDR_W_DLP) {
+    if (type == RtpConstants.IDR_N_LP || type == RtpConstants.IDR_W_DLP
+        || bufferInfo.flags == MediaCodec.BUFFER_FLAG_KEY_FRAME) {
       byte[] buffer = getBuffer(stapA.length + RtpConstants.RTP_HEADER_LENGTH);
       updateTimeStamp(buffer, ts);
 

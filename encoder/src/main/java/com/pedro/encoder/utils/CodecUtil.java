@@ -259,12 +259,10 @@ public class CodecUtil {
     return listFilter;
   }
 
+  /**
+   * For now, none broken codec reported.
+   */
   private static boolean isValid(String name) {
-    if ((name.equals("OMX.qcom.video.encoder.avc")
-        || name.equals("c2.qti.avc.encoder")) && Build.MODEL.equals("Pixel 3a")) {
-      return false;
-    } else {
-      return true;
-    }
+    return true;
   }
 }

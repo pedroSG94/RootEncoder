@@ -32,7 +32,7 @@ public class H264Packet extends BasePacket {
     long ts = bufferInfo.presentationTimeUs * 1000L;
     int naluLength = bufferInfo.size - byteBuffer.position() + 1;
     int type = header[4] & 0x1F;
-    if (type == RtpConstants.IDR) {
+    if (type == RtpConstants.IDR || bufferInfo.flags == MediaCodec.BUFFER_FLAG_KEY_FRAME) {
       byte[] buffer = getBuffer(stapA.length + RtpConstants.RTP_HEADER_LENGTH);
       updateTimeStamp(buffer, ts);
 
