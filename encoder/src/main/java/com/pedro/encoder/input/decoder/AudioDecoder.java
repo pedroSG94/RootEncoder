@@ -160,10 +160,14 @@ public class AudioDecoder {
             ByteBuffer outBuffer = outputBuffers[outIndex];
             //This buffer is PCM data
             if (muted) {
-              outBuffer.get(pcmBufferMuted, 0, pcmBufferMuted.length);
+              outBuffer.get(pcmBufferMuted, 0,
+                  outBuffer.remaining() <= pcmBufferMuted.length ? outBuffer.remaining()
+                      : pcmBufferMuted.length);
               getMicrophoneData.inputPCMData(new Frame(pcmBufferMuted, 0, pcmBufferMuted.length));
             } else {
-              outBuffer.get(pcmBuffer, 0, pcmBuffer.length);
+              outBuffer.get(pcmBuffer, 0,
+                  outBuffer.remaining() <= pcmBuffer.length ? outBuffer.remaining()
+                      : pcmBuffer.length);
               if (channels > 2) { //downgrade to stereo
                 byte[] bufferStereo = PCMUtil.pcmToStereo(pcmBuffer, channels);
                 getMicrophoneData.inputPCMData(new Frame(bufferStereo, 0, bufferStereo.length));
