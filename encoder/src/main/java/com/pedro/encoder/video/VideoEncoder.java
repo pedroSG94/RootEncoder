@@ -118,6 +118,7 @@ public class VideoEncoder extends BaseEncoder implements GetCameraData {
       if (hardwareRotation) {
         videoFormat.setInteger("rotation-degrees", rotation);
       }
+
       if (this.avcProfile > 0 && this.avcProfileLevel > 0) {
         // MediaFormat.KEY_PROFILE, API > 21
         videoFormat.setInteger("profile", this.avcProfile);
