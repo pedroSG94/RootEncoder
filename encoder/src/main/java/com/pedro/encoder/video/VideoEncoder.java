@@ -51,6 +51,8 @@ public class VideoEncoder extends BaseEncoder implements GetCameraData {
   private FpsLimiter fpsLimiter = new FpsLimiter();
   private String type = CodecUtil.H264_MIME;
   private FormatVideoEncoder formatVideoEncoder = FormatVideoEncoder.YUV420Dynamical;
+  private int avcProfile = -1;
+  private int avcProfileLevel = -1;
   private HandlerThread handlerThread;
   private BlockingQueue<Frame> queue = new ArrayBlockingQueue<>(80);
 
@@ -58,11 +60,18 @@ public class VideoEncoder extends BaseEncoder implements GetCameraData {
     this.getVideoData = getVideoData;
   }
 
+  public boolean prepareVideoEncoder(int width, int height, int fps, int bitRate, int rotation,
+       boolean hardwareRotation, int iFrameInterval, FormatVideoEncoder formatVideoEncoder) {
+    return prepareVideoEncoder(width, height, fps, bitRate, rotation, hardwareRotation,
+      iFrameInterval, formatVideoEncoder, -1, -1);
+  }
+
   /**
    * Prepare encoder with custom parameters
    */
   public boolean prepareVideoEncoder(int width, int height, int fps, int bitRate, int rotation,
-      boolean hardwareRotation, int iFrameInterval, FormatVideoEncoder formatVideoEncoder) {
+      boolean hardwareRotation, int iFrameInterval, FormatVideoEncoder formatVideoEncoder,
+      int avcProfile, int avcProfileLevel) {
     this.width = width;
     this.height = height;
     this.fps = fps;
@@ -70,6 +79,8 @@ public class VideoEncoder extends BaseEncoder implements GetCameraData {
     this.rotation = rotation;
     this.hardwareRotation = hardwareRotation;
     this.formatVideoEncoder = formatVideoEncoder;
+    this.avcProfile = avcProfile;
+    this.avcProfileLevel = avcProfileLevel;
     isBufferMode = true;
     MediaCodecInfo encoder = chooseEncoder(type);
     try {
@@ -106,6 +117,12 @@ public class VideoEncoder extends BaseEncoder implements GetCameraData {
       videoFormat.setInteger(MediaFormat.KEY_I_FRAME_INTERVAL, iFrameInterval);
       if (hardwareRotation) {
         videoFormat.setInteger("rotation-degrees", rotation);
+      }
+      if (this.avcProfile > 0 && this.avcProfileLevel > 0) {
+        // MediaFormat.KEY_PROFILE, API > 21
+        videoFormat.setInteger("profile", this.avcProfile);
+        // MediaFormat.KEY_LEVEL, API > 23
+        videoFormat.setInteger("level", this.avcProfileLevel);
       }
       codec.configure(videoFormat, null, null, MediaCodec.CONFIGURE_FLAG_ENCODE);
       running = false;
@@ -174,7 +191,7 @@ public class VideoEncoder extends BaseEncoder implements GetCameraData {
   public void reset() {
     stop();
     prepareVideoEncoder(width, height, fps, bitRate, rotation, hardwareRotation, iFrameInterval,
-        formatVideoEncoder);
+        formatVideoEncoder, avcProfile, avcProfileLevel);
     start(false);
   }
 
@@ -194,7 +211,7 @@ public class VideoEncoder extends BaseEncoder implements GetCameraData {
    */
   public boolean prepareVideoEncoder() {
     return prepareVideoEncoder(width, height, fps, bitRate, rotation, false, iFrameInterval,
-        formatVideoEncoder);
+        formatVideoEncoder, avcProfile, avcProfileLevel);
   }
 
   @RequiresApi(api = Build.VERSION_CODES.KITKAT)

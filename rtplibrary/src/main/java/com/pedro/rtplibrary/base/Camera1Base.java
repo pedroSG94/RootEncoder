@@ -180,7 +180,7 @@ public abstract class Camera1Base
    * doesn't support any configuration seated or your device hasn't a H264 encoder).
    */
   public boolean prepareVideo(int width, int height, int fps, int bitrate, boolean hardwareRotation,
-      int iFrameInterval, int rotation) {
+      int iFrameInterval, int rotation, int avcProfile, int avcProfileLevel) {
     if (onPreview && width != previewWidth || height != previewHeight) {
       stopPreview();
       onPreview = true;
@@ -188,12 +188,18 @@ public abstract class Camera1Base
     FormatVideoEncoder formatVideoEncoder =
         glInterface == null ? FormatVideoEncoder.YUV420Dynamical : FormatVideoEncoder.SURFACE;
     return videoEncoder.prepareVideoEncoder(width, height, fps, bitrate, rotation, hardwareRotation,
-        iFrameInterval, formatVideoEncoder);
+        iFrameInterval, formatVideoEncoder, avcProfile, avcProfileLevel);
   }
 
   /**
    * backward compatibility reason
    */
+  public boolean prepareVideo(int width, int height, int fps, int bitrate, boolean hardwareRotation,
+                              int iFrameInterval, int rotation) {
+    return prepareVideo(width, height, fps, bitrate, hardwareRotation, iFrameInterval, rotation,
+        -1, -1);
+  }
+
   public boolean prepareVideo(int width, int height, int fps, int bitrate, boolean hardwareRotation,
       int rotation) {
     return prepareVideo(width, height, fps, bitrate, hardwareRotation, 2, rotation);
