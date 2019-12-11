@@ -251,7 +251,7 @@ public class CodecUtil {
    * https://github.com/google/ExoPlayer/commit/48555550d7fcf6953f2382466818c74092b26355
    */
   private static boolean isSoftwareOnly(MediaCodecInfo mediaCodecInfo) {
-    if (Build.VERSION.SDK_INT > 29) {
+    if (Build.VERSION.SDK_INT >= 29) {
       return mediaCodecInfo.isSoftwareOnly();
     }
     String name = mediaCodecInfo.getName().toLowerCase();
