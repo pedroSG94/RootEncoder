@@ -93,7 +93,11 @@ public class AudioDecoder {
     thread = new Thread(new Runnable() {
       @Override
       public void run() {
-        decodeAudio();
+        try {
+          decodeAudio();
+        } catch (IllegalStateException e) {
+          Log.i(TAG, "Decoding error", e);
+        }
       }
     });
     thread.start();
@@ -111,9 +115,13 @@ public class AudioDecoder {
       }
       thread = null;
     }
-    if (audioDecoder != null) {
-      audioDecoder.stop();
-      audioDecoder.release();
+    try {
+      if (audioDecoder != null) {
+        audioDecoder.stop();
+        audioDecoder.release();
+        audioDecoder = null;
+      }
+    } catch (IllegalStateException e) {
       audioDecoder = null;
     }
     if (audioExtractor != null) {
@@ -122,7 +130,7 @@ public class AudioDecoder {
     }
   }
 
-  private void decodeAudio() {
+  private void decodeAudio() throws IllegalStateException {
     ByteBuffer[] inputBuffers = audioDecoder.getInputBuffers();
     ByteBuffer[] outputBuffers = audioDecoder.getOutputBuffers();
     startMs = System.currentTimeMillis();
@@ -153,7 +161,7 @@ public class AudioDecoder {
               try {
                 Thread.sleep(10);
               } catch (InterruptedException e) {
-                thread.interrupt();
+                if (thread != null) thread.interrupt();
                 return;
               }
             }

@@ -32,9 +32,13 @@ public abstract class BaseEncoder implements EncoderCallback {
   public void stop() {
     running = false;
     stopImp();
-    if (codec != null) {
-      codec.stop();
-      codec.release();
+    try {
+      if (codec != null) {
+        codec.stop();
+        codec.release();
+        codec = null;
+      }
+    } catch (IllegalStateException e) {
       codec = null;
     }
   }
