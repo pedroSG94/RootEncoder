@@ -14,6 +14,7 @@ class BackgroundActivity : AppCompatActivity(), SurfaceHolder.Callback {
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
     setContentView(R.layout.activity_background)
+    RtpService.init(this)
     b_start_stop.setOnClickListener {
       if (isMyServiceRunning(RtpService::class.java)) {
         stopService(Intent(applicationContext, RtpService::class.java))
@@ -30,10 +31,12 @@ class BackgroundActivity : AppCompatActivity(), SurfaceHolder.Callback {
 
   override fun surfaceChanged(p0: SurfaceHolder?, p1: Int, p2: Int, p3: Int) {
     RtpService.setView(surfaceView)
+    RtpService.startPreview()
   }
 
   override fun surfaceDestroyed(p0: SurfaceHolder?) {
     RtpService.setView(applicationContext)
+    RtpService.stopPreview()
   }
 
   override fun surfaceCreated(p0: SurfaceHolder?) {

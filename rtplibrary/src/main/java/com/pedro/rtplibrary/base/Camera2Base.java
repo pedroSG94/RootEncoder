@@ -287,14 +287,17 @@ public abstract class Camera2Base implements GetAacData, GetVideoData, GetMicrop
   }
 
   public void replaceView(Context context) {
+    isBackground = true;
     replaceGlInterface(new OffScreenGlThread(context));
   }
 
   public void replaceView(OpenGlView openGlView) {
+    isBackground = false;
     replaceGlInterface(openGlView);
   }
 
   public void replaceView(LightOpenGlView lightOpenGlView) {
+    isBackground = false;
     replaceGlInterface(lightOpenGlView);
   }
 
@@ -327,6 +330,7 @@ public abstract class Camera2Base implements GetAacData, GetVideoData, GetMicrop
         cameraManager.openLastCamera();
       } else {
         this.glInterface = glInterface;
+        this.glInterface.init();
       }
     }
   }
