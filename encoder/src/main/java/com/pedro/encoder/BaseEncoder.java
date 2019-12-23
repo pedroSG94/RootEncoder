@@ -20,7 +20,7 @@ public abstract class BaseEncoder implements EncoderCallback {
   protected volatile boolean running = false;
   protected boolean isBufferMode = true;
   protected CodecUtil.Force force = CodecUtil.Force.FIRST_COMPATIBLE_FOUND;
-q
+
   public void start() {
     start(true);
   }
