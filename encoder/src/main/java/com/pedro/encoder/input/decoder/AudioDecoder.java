@@ -116,12 +116,10 @@ public class AudioDecoder {
       thread = null;
     }
     try {
-      if (audioDecoder != null) {
-        audioDecoder.stop();
-        audioDecoder.release();
-        audioDecoder = null;
-      }
-    } catch (IllegalStateException e) {
+      audioDecoder.stop();
+      audioDecoder.release();
+      audioDecoder = null;
+    } catch (IllegalStateException | NullPointerException e) {
       audioDecoder = null;
     }
     if (audioExtractor != null) {

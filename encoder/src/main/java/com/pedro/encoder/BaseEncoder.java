@@ -20,7 +20,7 @@ public abstract class BaseEncoder implements EncoderCallback {
   protected volatile boolean running = false;
   protected boolean isBufferMode = true;
   protected CodecUtil.Force force = CodecUtil.Force.FIRST_COMPATIBLE_FOUND;
-
+q
   public void start() {
     start(true);
   }
@@ -33,12 +33,10 @@ public abstract class BaseEncoder implements EncoderCallback {
     running = false;
     stopImp();
     try {
-      if (codec != null) {
-        codec.stop();
-        codec.release();
-        codec = null;
-      }
-    } catch (IllegalStateException e) {
+      codec.stop();
+      codec.release();
+      codec = null;
+    } catch (IllegalStateException | NullPointerException e) {
       codec = null;
     }
   }

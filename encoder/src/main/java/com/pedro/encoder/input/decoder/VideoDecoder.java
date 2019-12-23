@@ -103,12 +103,10 @@ public class VideoDecoder {
       thread = null;
     }
     try {
-      if (videoDecoder != null) {
-        videoDecoder.stop();
-        videoDecoder.release();
-        videoDecoder = null;
-      }
-    } catch (IllegalStateException e) {
+      videoDecoder.stop();
+      videoDecoder.release();
+      videoDecoder = null;
+    } catch (IllegalStateException | NullPointerException e) {
       videoDecoder = null;
     }
     if (videoExtractor != null) {
@@ -117,7 +115,7 @@ public class VideoDecoder {
     }
   }
 
-  private void decodeVideo() throws IllegalStateException{
+  private void decodeVideo() throws IllegalStateException {
     ByteBuffer[] inputBuffers = videoDecoder.getInputBuffers();
     startMs = System.currentTimeMillis();
     while (decoding) {
