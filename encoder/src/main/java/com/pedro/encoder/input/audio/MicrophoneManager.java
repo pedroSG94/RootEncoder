@@ -18,11 +18,11 @@ public class MicrophoneManager {
 
   private final String TAG = "MicrophoneManager";
   private static final int BUFFER_SIZE = 4096;
-  private AudioRecord audioRecord;
+  AudioRecord audioRecord;
   private GetMicrophoneData getMicrophoneData;
   private ByteBuffer pcmBuffer = ByteBuffer.allocateDirect(BUFFER_SIZE);
   private byte[] pcmBufferMuted = new byte[BUFFER_SIZE];
-  private boolean running = false;
+  protected boolean running = false;
   private boolean created = false;
 
   //default parameters for microphone
@@ -31,7 +31,7 @@ public class MicrophoneManager {
   private int channel = AudioFormat.CHANNEL_IN_STEREO;
   private boolean muted = false;
   private AudioPostProcessEffect audioPostProcessEffect;
-  private HandlerThread handlerThread;
+  HandlerThread handlerThread;
 
   public MicrophoneManager(GetMicrophoneData getMicrophoneData) {
     this.getMicrophoneData = getMicrophoneData;
