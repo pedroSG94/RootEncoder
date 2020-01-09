@@ -365,6 +365,11 @@ public class RtmpConnection implements RtmpPublisher {
     ecmaArray.setProperty("videodatarate", 0);
     ecmaArray.setProperty("framerate", 0);
     ecmaArray.setProperty("audiodatarate", 0);
+    // @see FLV video_file_format_spec_v10_1.pdf
+    // According to E.4.2.1 AUDIODATA
+    // "If the SoundFormat indicates AAC, the SoundType should be 1 (stereo) and the SoundRate should be 3 (44 kHz).
+    // However, this does not mean that AAC audio in FLV is always stereo, 44 kHz data. Instead, the Flash Player ignores
+    // these values and extracts the channel and sample rate data is encoded in the AAC bit stream."
     ecmaArray.setProperty("audiosamplerate", 44100);
     ecmaArray.setProperty("audiosamplesize", 16);
     ecmaArray.setProperty("stereo", true);
