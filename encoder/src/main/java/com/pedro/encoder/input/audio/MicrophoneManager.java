@@ -18,7 +18,7 @@ public class MicrophoneManager {
 
   private final String TAG = "MicrophoneManager";
   private static final int BUFFER_SIZE = 4096;
-  AudioRecord audioRecord;
+  protected AudioRecord audioRecord;
   private GetMicrophoneData getMicrophoneData;
   private ByteBuffer pcmBuffer = ByteBuffer.allocateDirect(BUFFER_SIZE);
   private byte[] pcmBufferMuted = new byte[BUFFER_SIZE];
