@@ -33,7 +33,6 @@ import java.util.Random;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import net.ossrs.rtmp.BitrateManager;
-import net.ossrs.rtmp.BuildConfig;
 import net.ossrs.rtmp.ConnectCheckerRtmp;
 import net.ossrs.rtmp.CreateSSLSocket;
 
@@ -501,10 +500,8 @@ public class RtmpConnection implements RtmpPublisher {
             .setAbsoluteTimestamp((int) chunkStreamInfo.markAbsoluteTimestampTx());
       }
       rtmpPacket.writeTo(outputStream, rtmpSessionInfo.getTxChunkSize(), chunkStreamInfo);
-      if (BuildConfig.DEBUG) {
-        Log.d(TAG,
-            "wrote packet: " + rtmpPacket + ", size: " + rtmpPacket.getHeader().getPacketLength());
-      }
+      Log.d(TAG,
+          "wrote packet: " + rtmpPacket + ", size: " + rtmpPacket.getHeader().getPacketLength());
       if (rtmpPacket instanceof Command) {
         rtmpSessionInfo.addInvokedCommand(((Command) rtmpPacket).getTransactionId(),
             ((Command) rtmpPacket).getCommandName());
