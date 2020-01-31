@@ -65,6 +65,14 @@ dependencies {
 - [X] RTMPS and RTSPS
 - [X] RTSP H265 support (Waiting FLV official packetization to add RTMP support).
 
+## Other related projects:
+
+https://github.com/pedroSG94/RTSP-Server
+
+https://github.com/pedroSG94/AndroidReStreamer
+
+https://github.com/pedroSG94/Stream-USB-test
+
 ## Use example:
 
 This code is a basic example.
