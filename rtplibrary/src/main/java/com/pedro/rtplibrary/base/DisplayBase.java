@@ -3,6 +3,8 @@ package com.pedro.rtplibrary.base;
 import android.content.Context;
 import android.content.Intent;
 import android.hardware.display.VirtualDisplay;
+import android.media.AudioAttributes;
+import android.media.AudioPlaybackCaptureConfiguration;
 import android.media.MediaCodec;
 import android.media.MediaFormat;
 import android.media.projection.MediaProjection;
@@ -144,6 +146,33 @@ public abstract class DisplayBase implements GetAacData, GetVideoData, GetMicrop
   }
 
   /**
+   * Call this method before use @startStream for streaming internal audio only.
+   *
+   * @param bitrate AAC in kb.
+   * @param sampleRate of audio in hz. Can be 8000, 16000, 22500, 32000, 44100.
+   * @param isStereo true if you want Stereo audio (2 audio channels), false if you want Mono audio
+   * (1 audio channel).
+   * @see AudioPlaybackCaptureConfiguration.Builder#Builder(MediaProjection)
+   */
+  @RequiresApi(api = Build.VERSION_CODES.Q)
+  public boolean prepareInternalAudio(int bitrate, int sampleRate, boolean isStereo) {
+    if (mediaProjection == null) {
+      mediaProjection = mediaProjectionManager.getMediaProjection(resultCode, data);
+    }
+
+    AudioPlaybackCaptureConfiguration config = new AudioPlaybackCaptureConfiguration
+            .Builder(mediaProjection)
+            .addMatchingUsage(AudioAttributes.USAGE_MEDIA)
+            .addMatchingUsage(AudioAttributes.USAGE_GAME)
+            .addMatchingUsage(AudioAttributes.USAGE_UNKNOWN)
+            .build();
+    microphoneManager.createInternalMicrophone(config, sampleRate, isStereo);
+    prepareAudioRtp(isStereo, sampleRate);
+    return audioEncoder.prepareAudioEncoder(bitrate, sampleRate, isStereo,
+            microphoneManager.getMaxInputSize());
+  }
+
+  /**
    * Same to call:
    * rotation = 0;
    * if (Portrait) rotation = 90;
@@ -253,7 +282,9 @@ public abstract class DisplayBase implements GetAacData, GetVideoData, GetMicrop
     }
     Surface surface =
         (glInterface != null) ? glInterface.getSurface() : videoEncoder.getInputSurface();
-    mediaProjection = mediaProjectionManager.getMediaProjection(resultCode, data);
+    if (mediaProjection == null) {
+      mediaProjection = mediaProjectionManager.getMediaProjection(resultCode, data);
+    }
     virtualDisplay = mediaProjection.createVirtualDisplay("Stream Display", videoEncoder.getWidth(),
         videoEncoder.getHeight(), dpi, 0, surface, null, null);
     microphoneManager.start();
