@@ -19,6 +19,7 @@
   <uses-feature android:name="android.hardware.camera.autofocus" android:required="false" />
 
   <application
+      android:requestLegacyExternalStorage="true"
       android:allowBackup="true"
       android:icon="@mipmap/ic_launcher"
       android:supportsRtl="true"

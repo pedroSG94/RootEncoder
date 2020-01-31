@@ -171,10 +171,12 @@ public class MicrophoneManager {
   public synchronized void stop() {
     running = false;
     created = false;
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
-      handlerThread.quitSafely();
-    } else {
-      handlerThread.quit();
+    if (handlerThread != null) {
+      if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
+        handlerThread.quitSafely();
+      } else {
+        handlerThread.quit();
+      }
     }
     if (audioRecord != null) {
       audioRecord.setRecordPositionUpdateListener(null);

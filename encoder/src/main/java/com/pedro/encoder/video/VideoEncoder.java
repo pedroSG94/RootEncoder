@@ -178,10 +178,12 @@ public class VideoEncoder extends BaseEncoder implements GetCameraData {
 
   @Override
   protected void stopImp() {
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
-      handlerThread.quitSafely();
-    } else {
-      handlerThread.quit();
+    if (handlerThread != null) {
+      if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
+        handlerThread.quitSafely();
+      } else {
+        handlerThread.quit();
+      }
     }
     queue.clear();
     spsPpsSetted = false;

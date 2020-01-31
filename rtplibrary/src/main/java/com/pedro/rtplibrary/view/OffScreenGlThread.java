@@ -52,6 +52,7 @@ public class OffScreenGlThread
   @Override
   public void init() {
     if (!initialized) textureManager = new ManagerRender();
+    textureManager.setCameraFlip(false, false);
     initialized = true;
   }
 
