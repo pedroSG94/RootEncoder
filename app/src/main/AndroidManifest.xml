@@ -88,16 +88,6 @@
         android:screenOrientation="portrait"
         />
     <activity
-        android:name=".displayexample.DisplayRtmpActivity"
-        android:label="@string/display_rtmp"
-        android:screenOrientation="portrait"
-        />
-    <activity
-        android:name=".displayexample.DisplayRtspActivity"
-        android:label="@string/display_rtsp"
-        android:screenOrientation="portrait"
-        />
-    <activity
         android:name=".openglexample.OpenGlRtmpActivity"
         android:label="@string/opengl_rtmp"
         android:screenOrientation="portrait"
@@ -107,13 +97,21 @@
         android:label="@string/opengl_rtsp"
         android:screenOrientation="portrait"
         />
-
+    <activity
+        android:name=".displayexample.DisplayActivity"
+        android:label="@string/display_rtmp"
+        android:screenOrientation="portrait"
+        />
     <activity
         android:name=".backgroundexample.BackgroundActivity"
         android:label="@string/service_rtp"
         />
 
     <service android:name=".backgroundexample.RtpService"
+        />
+
+    <service android:name=".displayexample.DisplayService"
+        android:foregroundServiceType="mediaProjection"
         />
   </application>
 

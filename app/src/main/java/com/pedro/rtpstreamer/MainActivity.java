@@ -18,8 +18,7 @@ import com.pedro.rtpstreamer.customexample.RtmpActivity;
 import com.pedro.rtpstreamer.customexample.RtspActivity;
 import com.pedro.rtpstreamer.defaultexample.ExampleRtmpActivity;
 import com.pedro.rtpstreamer.defaultexample.ExampleRtspActivity;
-import com.pedro.rtpstreamer.displayexample.DisplayRtmpActivity;
-import com.pedro.rtpstreamer.displayexample.DisplayRtspActivity;
+import com.pedro.rtpstreamer.displayexample.DisplayActivity;
 import com.pedro.rtpstreamer.filestreamexample.RtmpFromFileActivity;
 import com.pedro.rtpstreamer.filestreamexample.RtspFromFileActivity;
 import com.pedro.rtpstreamer.openglexample.OpenGlRtmpActivity;
@@ -88,14 +87,12 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         getString(R.string.texture_mode_rtmp), LOLLIPOP));
     activities.add(new ActivityLink(new Intent(this, TextureModeRtspActivity.class),
         getString(R.string.texture_mode_rtsp), LOLLIPOP));
-    activities.add(new ActivityLink(new Intent(this, DisplayRtmpActivity.class),
-        getString(R.string.display_rtmp), LOLLIPOP));
-    activities.add(new ActivityLink(new Intent(this, DisplayRtspActivity.class),
-        getString(R.string.display_rtsp), LOLLIPOP));
     activities.add(new ActivityLink(new Intent(this, OpenGlRtmpActivity.class),
         getString(R.string.opengl_rtmp), JELLY_BEAN_MR2));
     activities.add(new ActivityLink(new Intent(this, OpenGlRtspActivity.class),
         getString(R.string.opengl_rtsp), JELLY_BEAN_MR2));
+    activities.add(new ActivityLink(new Intent(this, DisplayActivity.class),
+        getString(R.string.display_rtmp), LOLLIPOP));
     activities.add(new ActivityLink(new Intent(this, BackgroundActivity.class),
         getString(R.string.service_rtp), LOLLIPOP));
   }
