@@ -29,8 +29,8 @@ public class AudioDecoder {
   private String mime = "";
   private int sampleRate;
   private boolean isStereo;
-  private int channels = 2;
-  private int size = 4096;
+  private int channels = 1;
+  private int size = 2048;
   private byte[] pcmBuffer = new byte[size];
   private byte[] pcmBufferMuted = new byte[11];
   private static boolean loopMode = false;
@@ -64,7 +64,7 @@ public class AudioDecoder {
       isStereo = channels >= 2;
       sampleRate = audioFormat.getInteger(MediaFormat.KEY_SAMPLE_RATE);
       duration = audioFormat.getLong(MediaFormat.KEY_DURATION);
-      if (channels > 2) {
+      if (channels >= 2) {
         pcmBuffer = new byte[2048 * channels];
       }
       return true;
