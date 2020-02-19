@@ -24,6 +24,10 @@ import java.nio.FloatBuffer;
 @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
 public class SurfaceFilterRender extends BaseObjectFilterRender {
 
+  interface SurfaceReadyCallback {
+    void surfaceReady();
+  }
+
   //rotation matrix
   private final float[] squareVertexDataFilter = {
       // X, Y, Z, U, V
@@ -49,8 +53,14 @@ public class SurfaceFilterRender extends BaseObjectFilterRender {
   private SurfaceTexture surfaceTexture;
   private Surface surface;
   private float alpha = 1f;
+  private SurfaceReadyCallback surfaceReadyCallback;
 
   public SurfaceFilterRender() {
+    this(null);
+  }
+  
+  public SurfaceFilterRender(SurfaceReadyCallback surfaceReadyCallback) {
+    this.surfaceReadyCallback = surfaceReadyCallback;
     squareVertex = ByteBuffer.allocateDirect(squareVertexDataFilter.length * FLOAT_SIZE_BYTES)
         .order(ByteOrder.nativeOrder())
         .asFloatBuffer();
@@ -86,6 +96,7 @@ public class SurfaceFilterRender extends BaseObjectFilterRender {
     surfaceTexture = new SurfaceTexture(surfaceId[0]);
     surfaceTexture.setDefaultBufferSize(getWidth(), getHeight());
     surface = new Surface(surfaceTexture);
+    if (surfaceReadyCallback != null) surfaceReadyCallback.surfaceReady();
   }
 
   @Override
