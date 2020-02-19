@@ -291,7 +291,7 @@ public class SrsFlvMuxer {
               }
             }
           } catch (InterruptedException e) {
-            worker.interrupt();
+            Thread.currentThread().interrupt();
           }
         }
       }

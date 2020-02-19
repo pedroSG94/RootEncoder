@@ -12,11 +12,8 @@ import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.core.app.NotificationCompat
 import com.pedro.rtplibrary.base.DisplayBase
-import com.pedro.rtplibrary.rtmp.RtmpCamera2
 import com.pedro.rtplibrary.rtmp.RtmpDisplay
-import com.pedro.rtplibrary.rtsp.RtspCamera2
 import com.pedro.rtplibrary.rtsp.RtspDisplay
-import com.pedro.rtplibrary.view.OpenGlView
 import com.pedro.rtpstreamer.R
 import com.pedro.rtpstreamer.backgroundexample.ConnectCheckerRtp
 
