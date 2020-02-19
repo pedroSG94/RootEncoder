@@ -24,7 +24,7 @@ import java.nio.FloatBuffer;
 @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
 public class SurfaceFilterRender extends BaseObjectFilterRender {
 
-  interface SurfaceReadyCallback {
+  public interface SurfaceReadyCallback {
     void surfaceReady();
   }
 
@@ -58,7 +58,7 @@ public class SurfaceFilterRender extends BaseObjectFilterRender {
   public SurfaceFilterRender() {
     this(null);
   }
-  
+
   public SurfaceFilterRender(SurfaceReadyCallback surfaceReadyCallback) {
     this.surfaceReadyCallback = surfaceReadyCallback;
     squareVertex = ByteBuffer.allocateDirect(squareVertexDataFilter.length * FLOAT_SIZE_BYTES)
