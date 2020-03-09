@@ -199,7 +199,7 @@ public class VideoEncoder extends BaseEncoder implements GetCameraData {
   }
 
   private FormatVideoEncoder chooseColorDynamically(MediaCodecInfo mediaCodecInfo) {
-    for (int color : mediaCodecInfo.getCapabilitiesForType(CodecUtil.H264_MIME).colorFormats) {
+    for (int color : mediaCodecInfo.getCapabilitiesForType(type).colorFormats) {
       if (color == FormatVideoEncoder.YUV420PLANAR.getFormatCodec()) {
         return FormatVideoEncoder.YUV420PLANAR;
       } else if (color == FormatVideoEncoder.YUV420SEMIPLANAR.getFormatCodec()) {
