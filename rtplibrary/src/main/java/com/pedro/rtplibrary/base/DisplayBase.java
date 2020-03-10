@@ -106,11 +106,11 @@ public abstract class DisplayBase implements GetAacData, GetVideoData, GetMicrop
    * doesn't support any configuration seated or your device hasn't a H264 encoder).
    */
   public boolean prepareVideo(int width, int height, int fps, int bitrate, int rotation, int dpi,
-      int avcProfile, int avcProfileLevel) {
+                              int avcProfile, int avcProfileLevel, int iFrameInterval) {
     this.dpi = dpi;
     boolean result =
-        videoEncoder.prepareVideoEncoder(width, height, fps, bitrate, rotation, true, 2,
-            FormatVideoEncoder.SURFACE, avcProfile, avcProfileLevel);
+            videoEncoder.prepareVideoEncoder(width, height, fps, bitrate, rotation, true, iFrameInterval,
+                    FormatVideoEncoder.SURFACE, avcProfile, avcProfileLevel);
     if (glInterface != null) {
       glInterface = new OffScreenGlThread(context);
       glInterface.init();
@@ -120,7 +120,7 @@ public abstract class DisplayBase implements GetAacData, GetVideoData, GetMicrop
   }
 
   public boolean prepareVideo(int width, int height, int fps, int bitrate, int rotation, int dpi) {
-    return prepareVideo(width, height, fps, bitrate, rotation, dpi, -1, -1);
+    return prepareVideo(width, height, fps, bitrate, rotation, dpi, -1, -1, 2);
   }
 
   protected abstract void prepareAudioRtp(boolean isStereo, int sampleRate);
