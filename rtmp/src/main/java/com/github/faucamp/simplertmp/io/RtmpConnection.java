@@ -171,29 +171,9 @@ public class RtmpConnection implements RtmpPublisher {
     }
 
     if (user != null && password != null) {
-      sendConnectAuthPacketUser(user);
+      sendConnect("?authmod=adobe&user=" + user);
     } else {
-      // Mark session timestamp of all chunk stream information on connection.
-      ChunkStreamInfo.markSessionTimestampTx();
-      Log.d(TAG, "rtmpConnect(): Building 'connect' invoke packet");
-      ChunkStreamInfo chunkStreamInfo =
-          rtmpSessionInfo.getChunkStreamInfo(ChunkStreamInfo.RTMP_CID_OVER_CONNECTION);
-      Command invoke = new Command("connect", ++transactionIdCounter, chunkStreamInfo);
-      invoke.getHeader().setMessageStreamId(0);
-      AmfObject args = new AmfObject();
-      args.setProperty("app", appName);
-      args.setProperty("flashVer", "FMLE/3.0 (compatible; Lavf57.56.101)");
-      args.setProperty("swfUrl", swfUrl);
-      args.setProperty("tcUrl", tcUrl);
-      args.setProperty("fpad", false);
-      args.setProperty("capabilities", 239);
-      args.setProperty("audioCodecs", 3575);
-      args.setProperty("videoCodecs", 252);
-      args.setProperty("videoFunction", 1);
-      args.setProperty("pageUrl", pageUrl);
-      args.setProperty("objectEncoding", 0);
-      invoke.addData(args);
-      sendRtmpPacket(invoke);
+      sendConnect("");
     }
     synchronized (connectingLock) {
       try {
@@ -209,7 +189,7 @@ public class RtmpConnection implements RtmpPublisher {
     return connected;
   }
 
-  private void sendConnectAuthPacketUser(String user) {
+  private void sendConnect(String user) {
     ChunkStreamInfo.markSessionTimestampTx();
     Log.d(TAG, "rtmpConnect(): Building 'connect' invoke packet");
     ChunkStreamInfo chunkStreamInfo =
@@ -217,10 +197,10 @@ public class RtmpConnection implements RtmpPublisher {
     Command invoke = new Command("connect", ++transactionIdCounter, chunkStreamInfo);
     invoke.getHeader().setMessageStreamId(0);
     AmfObject args = new AmfObject();
-    args.setProperty("app", appName + "?authmod=adobe&user=" + user);
+    args.setProperty("app", appName + user);
     args.setProperty("flashVer", "FMLE/3.0 (compatible; Lavf57.56.101)");
     args.setProperty("swfUrl", swfUrl);
-    args.setProperty("tcUrl", tcUrl + "?authmod=adobe&user=" + user);
+    args.setProperty("tcUrl", tcUrl + user);
     args.setProperty("fpad", false);
     args.setProperty("capabilities", 239);
     args.setProperty("audioCodecs", 3575);
@@ -232,7 +212,7 @@ public class RtmpConnection implements RtmpPublisher {
     sendRtmpPacket(invoke);
   }
 
-  private void sendConnectAuthPacketFinal(String user, String password, String salt,
+  private String getAuthUserResult(String user, String password, String salt,
       String challenge, String opaque) {
     String challenge2 = String.format("%08x", new Random().nextInt());
     String response = Util.stringToMD5BASE64(user + salt + password);
@@ -247,27 +227,7 @@ public class RtmpConnection implements RtmpPublisher {
     if (!opaque.isEmpty()) {
       result += "&opaque=" + opaque;
     }
-
-    ChunkStreamInfo.markSessionTimestampTx();
-    Log.d(TAG, "rtmpConnect(): Building 'connect' invoke packet");
-    ChunkStreamInfo chunkStreamInfo =
-        rtmpSessionInfo.getChunkStreamInfo(ChunkStreamInfo.RTMP_CID_OVER_STREAM);
-    Command invoke = new Command("connect", ++transactionIdCounter, chunkStreamInfo);
-    invoke.getHeader().setMessageStreamId(0);
-    AmfObject args = new AmfObject();
-    args.setProperty("app", appName + result);
-    args.setProperty("flashVer", "FMLE/3.0 (compatible; Lavf57.56.101)");
-    args.setProperty("swfUrl", swfUrl);
-    args.setProperty("tcUrl", tcUrl + result);
-    args.setProperty("fpad", false);
-    args.setProperty("capabilities", 239);
-    args.setProperty("audioCodecs", 3575);
-    args.setProperty("videoCodecs", 252);
-    args.setProperty("videoFunction", 1);
-    args.setProperty("pageUrl", pageUrl);
-    args.setProperty("objectEncoding", 0);
-    invoke.addData(args);
-    sendRtmpPacket(invoke);
+    return result;
   }
 
   @Override
@@ -642,7 +602,7 @@ public class RtmpConnection implements RtmpPublisher {
               }
             });
             rxPacketHandler.start();
-            sendConnectAuthPacketFinal(user, password, salt, challenge, opaque);
+            sendConnect(getAuthUserResult(user, password, salt, challenge, opaque));
           } else if (description.contains("code=403") && user == null || password == null) {
             connectCheckerRtmp.onAuthErrorRtmp();
             connected = false;
