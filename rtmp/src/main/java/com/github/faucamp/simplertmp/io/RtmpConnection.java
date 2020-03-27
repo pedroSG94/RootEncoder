@@ -203,7 +203,7 @@ public class RtmpConnection implements RtmpPublisher {
     args.setProperty("tcUrl", tcUrl + user);
     args.setProperty("fpad", false);
     args.setProperty("capabilities", 239);
-    args.setProperty("audioCodecs", 3575);
+    args.setProperty("audioCodecs", 3191);
     args.setProperty("videoCodecs", 252);
     args.setProperty("videoFunction", 1);
     args.setProperty("pageUrl", pageUrl);
@@ -322,16 +322,18 @@ public class RtmpConnection implements RtmpPublisher {
     ecmaArray.setProperty("duration", 0);
     ecmaArray.setProperty("width", videoWidth);
     ecmaArray.setProperty("height", videoHeight);
+    ecmaArray.setProperty("videocodecid", 7);
+    ecmaArray.setProperty("framerate", 30);
     ecmaArray.setProperty("videodatarate", 0);
-    ecmaArray.setProperty("framerate", 0);
-    ecmaArray.setProperty("audiodatarate", 0);
     // @see FLV video_file_format_spec_v10_1.pdf
     // According to E.4.2.1 AUDIODATA
     // "If the SoundFormat indicates AAC, the SoundType should be 1 (stereo) and the SoundRate should be 3 (44 kHz).
     // However, this does not mean that AAC audio in FLV is always stereo, 44 kHz data. Instead, the Flash Player ignores
     // these values and extracts the channel and sample rate data is encoded in the AAC bit stream."
+    ecmaArray.setProperty("audiocodecid", 10);
     ecmaArray.setProperty("audiosamplerate", 44100);
     ecmaArray.setProperty("audiosamplesize", 16);
+    ecmaArray.setProperty("audiodatarate", 0);
     ecmaArray.setProperty("stereo", true);
     ecmaArray.setProperty("filesize", 0);
     metadata.addData(ecmaArray);
