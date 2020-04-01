@@ -26,6 +26,7 @@ public class LightOpenGlView extends OpenGlViewBase {
 
   private SimpleCameraRender simpleCameraRender = null;
   private boolean keepAspectRatio = false;
+  private int aspectRatioMode = 0;
   private boolean isFlipHorizontal = false, isFlipVertical = false;
 
   public LightOpenGlView(Context context) {
@@ -37,6 +38,7 @@ public class LightOpenGlView extends OpenGlViewBase {
     TypedArray typedArray = context.obtainStyledAttributes(attrs, R.styleable.LightOpenGlView);
     try {
       keepAspectRatio = typedArray.getBoolean(R.styleable.LightOpenGlView_keepAspectRatio, false);
+      aspectRatioMode = typedArray.getInt(R.styleable.OpenGlView_aspectRatioMode, 0);
       isFlipHorizontal = typedArray.getBoolean(R.styleable.LightOpenGlView_isFlipHorizontal, false);
       isFlipVertical = typedArray.getBoolean(R.styleable.LightOpenGlView_isFlipVertical, false);
     } finally {
@@ -83,7 +85,7 @@ public class LightOpenGlView extends OpenGlViewBase {
         frameAvailable = false;
         surfaceManager.makeCurrent();
         simpleCameraRender.updateFrame();
-        simpleCameraRender.drawFrame(previewWidth, previewHeight, keepAspectRatio);
+        simpleCameraRender.drawFrame(previewWidth, previewHeight, keepAspectRatio, aspectRatioMode);
         surfaceManager.swapBuffer();
         if (takePhotoCallback != null) {
           takePhotoCallback.onTakePhoto(
@@ -93,7 +95,7 @@ public class LightOpenGlView extends OpenGlViewBase {
         synchronized (sync) {
           if (surfaceManagerEncoder != null && !fpsLimiter.limitFPS()) {
             surfaceManagerEncoder.makeCurrent();
-            simpleCameraRender.drawFrame(encoderWidth, encoderHeight, false);
+            simpleCameraRender.drawFrame(encoderWidth, encoderHeight, false, aspectRatioMode);
             surfaceManagerEncoder.swapBuffer();
           }
         }

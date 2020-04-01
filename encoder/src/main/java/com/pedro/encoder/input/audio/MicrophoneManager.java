@@ -34,9 +34,14 @@ public class MicrophoneManager {
   private boolean muted = false;
   private AudioPostProcessEffect audioPostProcessEffect;
   HandlerThread handlerThread;
+  private CustomAudioEffect customAudioEffect = new NoAudioEffect();
 
   public MicrophoneManager(GetMicrophoneData getMicrophoneData) {
     this.getMicrophoneData = getMicrophoneData;
+  }
+
+  public void setCustomAudioEffect(CustomAudioEffect customAudioEffect) {
+    this.customAudioEffect = customAudioEffect;
   }
 
   /**
@@ -161,7 +166,7 @@ public class MicrophoneManager {
     if (size <= 0) {
       return null;
     }
-    return new Frame(muted ? pcmBufferMuted : pcmBuffer.array(),
+    return new Frame(muted ? pcmBufferMuted : customAudioEffect.process(pcmBuffer.array()),
         muted ? 0 : pcmBuffer.arrayOffset(), size);
   }
 

@@ -173,13 +173,13 @@ public class OffScreenGlThread
           surfaceManager.makeCurrent();
           textureManager.updateFrame();
           textureManager.drawOffScreen();
-          textureManager.drawScreen(encoderWidth, encoderHeight, false);
+          textureManager.drawScreen(encoderWidth, encoderHeight, false, 0);
           surfaceManager.swapBuffer();
 
           synchronized (sync) {
             if (surfaceManagerEncoder != null && !fpsLimiter.limitFPS()) {
               surfaceManagerEncoder.makeCurrent();
-              textureManager.drawScreen(encoderWidth, encoderHeight, false);
+              textureManager.drawScreen(encoderWidth, encoderHeight, false, 0);
               surfaceManagerEncoder.swapBuffer();
             }
             if (takePhotoCallback != null) {

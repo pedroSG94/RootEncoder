@@ -84,11 +84,11 @@ public class SimpleCameraRender {
     surfaceTexture.updateTexImage();
   }
 
-  public void drawFrame(int width, int height, boolean keepAspectRatio) {
+  public void drawFrame(int width, int height, boolean keepAspectRatio, int mode) {
     GlUtil.checkGlError("drawFrame start");
     surfaceTexture.getTransformMatrix(STMatrix);
 
-    PreviewSizeCalculator.calculateViewPort(keepAspectRatio, width, height, streamWidth,
+    PreviewSizeCalculator.calculateViewPort(keepAspectRatio, mode, width, height, streamWidth,
         streamHeight);
 
     GLES20.glClearColor(0.0f, 0.0f, 0.0f, 1.0f);

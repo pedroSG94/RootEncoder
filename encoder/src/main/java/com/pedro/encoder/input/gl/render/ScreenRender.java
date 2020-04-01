@@ -74,10 +74,10 @@ public class ScreenRender {
     GlUtil.checkGlError("initGl end");
   }
 
-  public void draw(int width, int height, boolean keepAspectRatio) {
+  public void draw(int width, int height, boolean keepAspectRatio, int mode) {
     GlUtil.checkGlError("drawScreen start");
 
-    PreviewSizeCalculator.calculateViewPort(keepAspectRatio, width, height, streamWidth,
+    PreviewSizeCalculator.calculateViewPort(keepAspectRatio, mode, width, height, streamWidth,
         streamHeight);
 
     GLES20.glClearColor(0.0f, 0.0f, 0.0f, 1.0f);

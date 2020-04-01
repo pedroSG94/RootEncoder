@@ -16,6 +16,7 @@ import androidx.annotation.RequiresApi;
 import com.pedro.encoder.Frame;
 import com.pedro.encoder.audio.AudioEncoder;
 import com.pedro.encoder.audio.GetAacData;
+import com.pedro.encoder.input.audio.CustomAudioEffect;
 import com.pedro.encoder.input.audio.GetMicrophoneData;
 import com.pedro.encoder.input.audio.MicrophoneManager;
 import com.pedro.encoder.utils.CodecUtil;
@@ -73,6 +74,13 @@ public abstract class DisplayBase implements GetAacData, GetVideoData, GetMicrop
     microphoneManager = new MicrophoneManager(this);
     audioEncoder = new AudioEncoder(this);
     recordController = new RecordController();
+  }
+
+  /**
+   * Set an audio effect modifying microphone's PCM buffer.
+   */
+  public void setCustomAudioEffect(CustomAudioEffect customAudioEffect) {
+    microphoneManager.setCustomAudioEffect(customAudioEffect);
   }
 
   /**

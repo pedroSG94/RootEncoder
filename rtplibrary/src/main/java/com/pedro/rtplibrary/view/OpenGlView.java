@@ -27,6 +27,7 @@ public class OpenGlView extends OpenGlViewBase {
 
   private boolean AAEnabled = false;
   private boolean keepAspectRatio = false;
+  private int aspectRatioMode = 0;
   private boolean isFlipHorizontal = false, isFlipVertical = false;
 
   public OpenGlView(Context context) {
@@ -38,6 +39,7 @@ public class OpenGlView extends OpenGlViewBase {
     TypedArray typedArray = context.obtainStyledAttributes(attrs, R.styleable.OpenGlView);
     try {
       keepAspectRatio = typedArray.getBoolean(R.styleable.OpenGlView_keepAspectRatio, false);
+      aspectRatioMode = typedArray.getInt(R.styleable.OpenGlView_aspectRatioMode, 0);
       AAEnabled = typedArray.getBoolean(R.styleable.OpenGlView_AAEnabled, false);
       ManagerRender.numFilters = typedArray.getInt(R.styleable.OpenGlView_numFilters, 1);
       isFlipHorizontal = typedArray.getBoolean(R.styleable.OpenGlView_isFlipHorizontal, false);
@@ -125,7 +127,7 @@ public class OpenGlView extends OpenGlViewBase {
           surfaceManager.makeCurrent();
           managerRender.updateFrame();
           managerRender.drawOffScreen();
-          managerRender.drawScreen(previewWidth, previewHeight, keepAspectRatio);
+          managerRender.drawScreen(previewWidth, previewHeight, keepAspectRatio, aspectRatioMode);
           surfaceManager.swapBuffer();
           if (takePhotoCallback != null) {
             takePhotoCallback.onTakePhoto(
@@ -135,7 +137,7 @@ public class OpenGlView extends OpenGlViewBase {
           synchronized (sync) {
             if (surfaceManagerEncoder != null  && !fpsLimiter.limitFPS()) {
               surfaceManagerEncoder.makeCurrent();
-              managerRender.drawScreen(encoderWidth, encoderHeight, false);
+              managerRender.drawScreen(encoderWidth, encoderHeight, false, aspectRatioMode);
               surfaceManagerEncoder.swapBuffer();
             }
           }

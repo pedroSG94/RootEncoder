@@ -5,6 +5,7 @@ import android.media.MediaFormat;
 import com.pedro.encoder.Frame;
 import com.pedro.encoder.audio.AudioEncoder;
 import com.pedro.encoder.audio.GetAacData;
+import com.pedro.encoder.input.audio.CustomAudioEffect;
 import com.pedro.encoder.input.audio.GetMicrophoneData;
 import com.pedro.encoder.input.audio.MicrophoneManager;
 import java.nio.ByteBuffer;
@@ -23,6 +24,13 @@ public abstract class OnlyAudioBase implements GetAacData, GetMicrophoneData {
   public OnlyAudioBase() {
     microphoneManager = new MicrophoneManager(this);
     audioEncoder = new AudioEncoder(this);
+  }
+
+  /**
+   * Set an audio effect modifying microphone's PCM buffer.
+   */
+  public void setCustomAudioEffect(CustomAudioEffect customAudioEffect) {
+    microphoneManager.setCustomAudioEffect(customAudioEffect);
   }
 
   /**

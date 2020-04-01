@@ -6,6 +6,11 @@
       format="boolean"/>
   <attr name="isFlipVertical"
       format="boolean"/>
+<!--  FILL, ADJUST-->
+  <attr name="aspectRatioMode" format="enum">
+    <enum name="adjust" value="0"/>
+    <enum name="fill" value="1"/>
+  </attr>
 
   <declare-styleable name="OpenGlView">
     <attr name="AAEnabled"
@@ -13,12 +18,14 @@
     <attr name="numFilters"
         format="integer"/>
     <attr name="keepAspectRatio"/>
+    <attr name="aspectRatioMode"/>
     <attr name="isFlipHorizontal"/>
     <attr name="isFlipVertical"/>
   </declare-styleable>
 
   <declare-styleable name="LightOpenGlView">
     <attr name="keepAspectRatio"/>
+    <attr name="aspectRatioMode"/>
     <attr name="isFlipHorizontal"/>
     <attr name="isFlipVertical"/>
   </declare-styleable>
