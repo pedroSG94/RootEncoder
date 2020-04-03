@@ -61,8 +61,8 @@ public class ManagerRender {
     for (BaseFilterRender baseFilterRender : baseFilterRender) baseFilterRender.draw();
   }
 
-  public void drawScreen(int width, int height, boolean keepAspectRatio, int mode) {
-    screenRender.draw(width, height, keepAspectRatio, mode);
+  public void drawScreen(int width, int height, boolean keepAspectRatio, int mode, int rotation) {
+    screenRender.draw(width, height, keepAspectRatio, mode, rotation);
   }
 
   public void release() {

@@ -32,6 +32,7 @@ public class ScreenRender {
 
   private float[] MVPMatrix = new float[16];
   private float[] STMatrix = new float[16];
+  private float[] rotationMatrix = new float[16];
   private boolean AAEnabled = false;  //FXAA enable/disable
 
   private int texId;
@@ -74,8 +75,10 @@ public class ScreenRender {
     GlUtil.checkGlError("initGl end");
   }
 
-  public void draw(int width, int height, boolean keepAspectRatio, int mode) {
+  public void draw(int width, int height, boolean keepAspectRatio, int mode, int rotation) {
     GlUtil.checkGlError("drawScreen start");
+
+    setRotation(rotation);
 
     PreviewSizeCalculator.calculateViewPort(keepAspectRatio, mode, width, height, streamWidth,
         streamHeight);
@@ -107,6 +110,17 @@ public class ScreenRender {
     GLES20.glDrawArrays(GLES20.GL_TRIANGLE_STRIP, 0, 4);
 
     GlUtil.checkGlError("drawScreen end");
+  }
+
+  public void setRotation(int rotation) {
+    Matrix.setIdentityM(rotationMatrix, 0);
+    Matrix.rotateM(rotationMatrix, 0, rotation, 0f, 0f, -1f);
+    update();
+  }
+
+  private void update() {
+    Matrix.setIdentityM(MVPMatrix, 0);
+    Matrix.multiplyMM(MVPMatrix, 0, rotationMatrix, 0, MVPMatrix, 0);
   }
 
   public void release() {

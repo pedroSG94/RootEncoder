@@ -14,6 +14,7 @@ import com.pedro.encoder.input.gl.render.ManagerRender;
 import com.pedro.encoder.input.gl.render.filters.BaseFilterRender;
 import com.pedro.encoder.utils.gl.GlUtil;
 import com.pedro.rtplibrary.R;
+import com.pedro.rtplibrary.util.RotationSensor;
 
 /**
  * Created by pedro on 9/09/17.
@@ -21,6 +22,14 @@ import com.pedro.rtplibrary.R;
 
 @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
 public class OpenGlView extends OpenGlViewBase {
+
+  public RotationSensor rotationSensor = new RotationSensor(getContext(), new RotationSensor.GetRotation() {
+    @Override
+    public void getRotation(int rotation) {
+      rotationResult = rotation;
+    }
+  });
+  private int rotationResult = 0;
 
   private ManagerRender managerRender = null;
   private boolean loadAA = false;
@@ -32,6 +41,7 @@ public class OpenGlView extends OpenGlViewBase {
 
   public OpenGlView(Context context) {
     super(context);
+    rotationSensor.prepare();
   }
 
   public OpenGlView(Context context, AttributeSet attrs) {
@@ -47,6 +57,7 @@ public class OpenGlView extends OpenGlViewBase {
     } finally {
       typedArray.recycle();
     }
+    rotationSensor.prepare();
   }
 
   @Override
@@ -127,7 +138,7 @@ public class OpenGlView extends OpenGlViewBase {
           surfaceManager.makeCurrent();
           managerRender.updateFrame();
           managerRender.drawOffScreen();
-          managerRender.drawScreen(previewWidth, previewHeight, keepAspectRatio, aspectRatioMode);
+          managerRender.drawScreen(previewWidth, previewHeight, keepAspectRatio, aspectRatioMode, rotationResult);
           surfaceManager.swapBuffer();
           if (takePhotoCallback != null) {
             takePhotoCallback.onTakePhoto(
@@ -137,7 +148,7 @@ public class OpenGlView extends OpenGlViewBase {
           synchronized (sync) {
             if (surfaceManagerEncoder != null  && !fpsLimiter.limitFPS()) {
               surfaceManagerEncoder.makeCurrent();
-              managerRender.drawScreen(encoderWidth, encoderHeight, false, aspectRatioMode);
+              managerRender.drawScreen(encoderWidth, encoderHeight, false, aspectRatioMode, rotationResult);
               surfaceManagerEncoder.swapBuffer();
             }
           }
