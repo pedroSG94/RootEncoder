@@ -219,7 +219,7 @@ public class RtmpActivity extends AppCompatActivity
             rtmpCamera1.setAuthorization(user, password);
           }
           if (rtmpCamera1.isRecording() || prepareEncoders()) {
-            rtmpCamera1.startStream(etUrl.getText().toString());
+            rtmpCamera1.startStream("rtmp://192.168.0.12/live/r1l5Z-fPL");
           } else {
             //If you see this all time when you start stream,
             //it is because your encoder device dont support the configuration

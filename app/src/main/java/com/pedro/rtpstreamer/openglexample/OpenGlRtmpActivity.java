@@ -387,7 +387,7 @@ public class OpenGlRtmpActivity extends AppCompatActivity
               || rtmpCamera2.prepareAudio() &&
                   rtmpCamera2.prepareVideo(
                           size.getWidth(), size.getHeight(),
-                          30, 2 * 104 * 1024, true,
+                          30, 2 * 1024 * 1024, true,
                           CameraHelper.getCameraOrientation(this))) {
             button.setText(R.string.stop_button);
             //rtmpCamera2.startStream(etUrl.getText().toString());
