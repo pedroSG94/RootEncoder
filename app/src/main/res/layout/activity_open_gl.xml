@@ -13,6 +13,7 @@
       app:aspectRatioMode="adjust"
       app:AAEnabled="false"
       app:numFilters="1"
+      app:isPreviewRotation="false"
       app:isFlipHorizontal="false"
       app:isFlipVertical="false"
       />

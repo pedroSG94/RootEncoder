@@ -6,6 +6,8 @@
       format="boolean"/>
   <attr name="isFlipVertical"
       format="boolean"/>
+  <attr name="isPreviewRotation"
+      format="boolean"/>
 <!--  FILL, ADJUST-->
   <attr name="aspectRatioMode" format="enum">
     <enum name="adjust" value="0"/>
@@ -21,6 +23,7 @@
     <attr name="aspectRatioMode"/>
     <attr name="isFlipHorizontal"/>
     <attr name="isFlipVertical"/>
+    <attr name="isPreviewRotation"/>
   </declare-styleable>
 
   <declare-styleable name="LightOpenGlView">

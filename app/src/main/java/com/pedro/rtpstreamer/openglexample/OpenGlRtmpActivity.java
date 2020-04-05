@@ -458,7 +458,7 @@ public class OpenGlRtmpActivity extends AppCompatActivity
   @Override
   public void surfaceChanged(SurfaceHolder surfaceHolder, int i, int i1, int i2) {
     rtmpCamera2.startPreview();
-    openGlView.rotationSensor.resume();
+    openGlView.sensorRotationManager.start();
   }
 
   @Override
@@ -476,7 +476,7 @@ public class OpenGlRtmpActivity extends AppCompatActivity
       button.setText(getResources().getString(R.string.start_button));
     }
     rtmpCamera2.stopPreview();
-    openGlView.rotationSensor.pause();
+    openGlView.sensorRotationManager.stop();
   }
 
   @Override

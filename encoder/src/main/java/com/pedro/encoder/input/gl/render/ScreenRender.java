@@ -32,7 +32,6 @@ public class ScreenRender {
 
   private float[] MVPMatrix = new float[16];
   private float[] STMatrix = new float[16];
-  private float[] rotationMatrix = new float[16];
   private boolean AAEnabled = false;  //FXAA enable/disable
 
   private int texId;
@@ -75,13 +74,18 @@ public class ScreenRender {
     GlUtil.checkGlError("initGl end");
   }
 
-  public void draw(int width, int height, boolean keepAspectRatio, int mode, int rotation) {
+  public void draw(int width, int height, boolean keepAspectRatio, int mode, int rotation, boolean isPreview) {
     GlUtil.checkGlError("drawScreen start");
 
-    setRotation(rotation);
+    float scaleX = scaleX(isPreview, width, height, isLandscape(rotation));
+    updateMatrix(rotation, scaleX, 1f);
 
-    PreviewSizeCalculator.calculateViewPort(keepAspectRatio, mode, width, height, streamWidth,
-        streamHeight);
+    if (isPreview) {
+      PreviewSizeCalculator.calculateViewPort(keepAspectRatio, mode, width, height, streamWidth,
+              streamHeight);
+    } else {
+        GLES20.glViewport(0, 0, height, width);
+    }
 
     GLES20.glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
     GLES20.glClear(GLES20.GL_DEPTH_BUFFER_BIT | GLES20.GL_COLOR_BUFFER_BIT);
@@ -112,15 +116,22 @@ public class ScreenRender {
     GlUtil.checkGlError("drawScreen end");
   }
 
-  public void setRotation(int rotation) {
-    Matrix.setIdentityM(rotationMatrix, 0);
-    Matrix.rotateM(rotationMatrix, 0, rotation, 0f, 0f, -1f);
-    update();
+  private float scaleX(boolean isPreview, int width, int height, boolean isLandscape) {
+    if (isPreview || isLandscape) {
+      return 1f;
+    }
+    final float adjustedWidth = width * (width / (float) height);
+    return adjustedWidth / height;
   }
 
-  private void update() {
+  private boolean isLandscape(int rotation) {
+    return rotation == 90 || rotation == 270;
+  }
+
+  private void updateMatrix(int rotation, float scaleX, float scaleY) {
     Matrix.setIdentityM(MVPMatrix, 0);
-    Matrix.multiplyMM(MVPMatrix, 0, rotationMatrix, 0, MVPMatrix, 0);
+    Matrix.scaleM(MVPMatrix, 0, scaleX, scaleY, 1f);
+    Matrix.rotateM(MVPMatrix, 0, (float) rotation, 0f, 0f, -1f);
   }
 
   public void release() {

@@ -14,7 +14,7 @@ import com.pedro.encoder.input.gl.render.ManagerRender;
 import com.pedro.encoder.input.gl.render.filters.BaseFilterRender;
 import com.pedro.encoder.utils.gl.GlUtil;
 import com.pedro.rtplibrary.R;
-import com.pedro.rtplibrary.util.RotationSensor;
+import com.pedro.rtplibrary.util.SensorRotationManager;
 
 /**
  * Created by pedro on 9/09/17.
@@ -23,13 +23,15 @@ import com.pedro.rtplibrary.util.RotationSensor;
 @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
 public class OpenGlView extends OpenGlViewBase {
 
-  public RotationSensor rotationSensor = new RotationSensor(getContext(), new RotationSensor.GetRotation() {
-    @Override
-    public void getRotation(int rotation) {
-      rotationResult = rotation;
-    }
-  });
-  private int rotationResult = 0;
+  public SensorRotationManager sensorRotationManager = new SensorRotationManager(
+          getContext(),
+          new SensorRotationManager.RotationChangedListener() {
+            @Override
+            public void onRotationChanged(int rotation) {
+              currentRotation = rotation;
+            }
+          });
+  private int currentRotation = 0;
 
   private ManagerRender managerRender = null;
   private boolean loadAA = false;
@@ -38,10 +40,10 @@ public class OpenGlView extends OpenGlViewBase {
   private boolean keepAspectRatio = false;
   private int aspectRatioMode = 0;
   private boolean isFlipHorizontal = false, isFlipVertical = false;
+  private boolean isPreviewRotation = true;
 
   public OpenGlView(Context context) {
     super(context);
-    rotationSensor.prepare();
   }
 
   public OpenGlView(Context context, AttributeSet attrs) {
@@ -54,10 +56,10 @@ public class OpenGlView extends OpenGlViewBase {
       ManagerRender.numFilters = typedArray.getInt(R.styleable.OpenGlView_numFilters, 1);
       isFlipHorizontal = typedArray.getBoolean(R.styleable.OpenGlView_isFlipHorizontal, false);
       isFlipVertical = typedArray.getBoolean(R.styleable.OpenGlView_isFlipVertical, false);
+      isPreviewRotation = typedArray.getBoolean(R.styleable.OpenGlView_isPreviewRotation, true);
     } finally {
       typedArray.recycle();
     }
-    rotationSensor.prepare();
   }
 
   @Override
@@ -138,7 +140,8 @@ public class OpenGlView extends OpenGlViewBase {
           surfaceManager.makeCurrent();
           managerRender.updateFrame();
           managerRender.drawOffScreen();
-          managerRender.drawScreen(previewWidth, previewHeight, keepAspectRatio, aspectRatioMode, 0);
+          managerRender.drawScreen(previewWidth, previewHeight, keepAspectRatio, aspectRatioMode,
+                  isPreviewRotation ? currentRotation : 0, true);
           surfaceManager.swapBuffer();
           if (takePhotoCallback != null) {
             takePhotoCallback.onTakePhoto(
@@ -148,7 +151,7 @@ public class OpenGlView extends OpenGlViewBase {
           synchronized (sync) {
             if (surfaceManagerEncoder != null  && !fpsLimiter.limitFPS()) {
               surfaceManagerEncoder.makeCurrent();
-              managerRender.drawScreen(encoderWidth, encoderHeight, false, aspectRatioMode, rotationResult);
+              managerRender.drawScreen(encoderWidth, encoderHeight, false, aspectRatioMode, currentRotation, false);
               surfaceManagerEncoder.swapBuffer();
             }
           }
