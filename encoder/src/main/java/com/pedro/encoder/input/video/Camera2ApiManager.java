@@ -129,6 +129,8 @@ public class Camera2ApiManager extends CameraDevice.StateCallback {
             }
           } catch (CameraAccessException | NullPointerException e) {
             Log.e(TAG, "Error", e);
+          } catch (IllegalStateException e) {
+            reOpenCamera(cameraId != -1 ? cameraId : 0);
           }
         }
 
