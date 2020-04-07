@@ -177,7 +177,7 @@ public abstract class Camera2Base implements GetAacData, GetVideoData, GetMicrop
    * @param width resolution in px.
    * @param height resolution in px.
    * @param fps frames per second of the stream.
-   * @param bitrate H264 in kb.
+   * @param bitrate H264 in bps.
    * @param hardwareRotation true if you want rotate using encoder, false if you with OpenGl if you
    * are using OpenGlView.
    * @param rotation could be 90, 180, 270 or 0 (Normally 0 if you are streaming in landscape or 90
@@ -713,9 +713,9 @@ public abstract class Camera2Base implements GetAacData, GetVideoData, GetMicrop
   }
 
   /**
-   * Set video bitrate of H264 in kb while stream.
+   * Set video bitrate of H264 in bits per second while stream.
    *
-   * @param bitrate H264 in kb.
+   * @param bitrate H264 in bits per second.
    */
   public void setVideoBitrateOnFly(int bitrate) {
     videoEncoder.setVideoBitrateOnFly(bitrate);

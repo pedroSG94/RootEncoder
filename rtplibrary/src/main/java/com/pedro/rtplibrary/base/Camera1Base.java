@@ -177,7 +177,7 @@ public abstract class Camera1Base
    * @param width resolution in px.
    * @param height resolution in px.
    * @param fps frames per second of the stream.
-   * @param bitrate H264 in kb.
+   * @param bitrate H264 in bps.
    * @param hardwareRotation true if you want rotate using encoder, false if you want rotate with
    * software if you are using a SurfaceView or TextureView or with OpenGl if you are using
    * OpenGlView.
@@ -665,9 +665,9 @@ public abstract class Camera1Base
   }
 
   /**
-   * Set video bitrate of H264 in kb while stream.
+   * Set video bitrate of H264 in bits per second while stream.
    *
-   * @param bitrate H264 in kb.
+   * @param bitrate H264 in bits per second.
    */
   @RequiresApi(api = Build.VERSION_CODES.KITKAT)
   public void setVideoBitrateOnFly(int bitrate) {

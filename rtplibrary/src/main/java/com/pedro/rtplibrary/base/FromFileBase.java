@@ -124,7 +124,7 @@ public abstract class FromFileBase
 
   /**
    * @param filePath to video MP4 file.
-   * @param bitRate H264 in kb.
+   * @param bitRate H264 in bps.
    * @return true if success, false if you get a error (Normally because the encoder selected
    * doesn't support any configuration seated or your device hasn't a H264 encoder).
    * @throws IOException Normally file not found.
@@ -417,9 +417,9 @@ public abstract class FromFileBase
   }
 
   /**
-   * Set video bitrate of H264 in kb while stream.
+   * Set video bitrate of H264 in bits per second while stream.
    *
-   * @param bitrate H264 in kb.
+   * @param bitrate H264 in bits per second.
    */
   public void setVideoBitrateOnFly(int bitrate) {
     if (Build.VERSION.SDK_INT >= 19) {
