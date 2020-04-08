@@ -1024,8 +1024,8 @@ public class SrsFlvMuxer {
 
     private void flvFrameCacheAdd(SrsFlvFrame frame) {
       try {
-        mFlvTagCache.add(frame);
-      } catch (IllegalStateException e) {
+        mFlvTagCache.put(frame);
+      } catch (InterruptedException e) {
         Log.i(TAG, "frame discarded");
         if (frame.is_video()) {
           mDroppedVideoFrames++;
