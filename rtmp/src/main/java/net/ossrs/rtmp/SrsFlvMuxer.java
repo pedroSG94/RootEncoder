@@ -65,7 +65,8 @@ public class SrsFlvMuxer {
   private SrsFlvFrame mAudioSequenceHeader;
   private SrsAllocator mVideoAllocator = new SrsAllocator(VIDEO_ALLOC_SIZE);
   private SrsAllocator mAudioAllocator = new SrsAllocator(AUDIO_ALLOC_SIZE);
-  private volatile BlockingQueue<SrsFlvFrame> mFlvTagCache = new LinkedBlockingQueue<>(30);
+  private volatile BlockingQueue<SrsFlvFrame> mFlvVideoTagCache = new LinkedBlockingQueue<>(30);
+  private volatile BlockingQueue<SrsFlvFrame> mFlvAudioTagCache = new LinkedBlockingQueue<>(30);
   private ConnectCheckerRtmp connectCheckerRtmp;
   private int sampleRate = 0;
   private boolean isPpsSpsSend = false;
@@ -121,17 +122,26 @@ public class SrsFlvMuxer {
   }
 
   public void resizeFlvTagCache(int newSize) {
-    if (newSize < mFlvTagCache.size() - mFlvTagCache.remainingCapacity()) {
+    synchronized (mFlvAudioTagCache) {
+      mFlvAudioTagCache = resizeFlvTagCacheInternal(mFlvAudioTagCache, newSize);
+    }
+    synchronized (mFlvVideoTagCache) {
+      mFlvVideoTagCache = resizeFlvTagCacheInternal(mFlvVideoTagCache, newSize);
+    }
+  }
+
+  private BlockingQueue<SrsFlvFrame> resizeFlvTagCacheInternal(BlockingQueue<SrsFlvFrame> cache, int newSize) {
+    if(newSize < cache.size() - cache.remainingCapacity()) {
       throw new RuntimeException("Can't fit current cache inside new cache size");
     }
 
-    BlockingQueue<SrsFlvFrame> tempQueue = new LinkedBlockingQueue<>(newSize);
-    mFlvTagCache.drainTo(tempQueue);
-    mFlvTagCache = tempQueue;
+    BlockingQueue<SrsFlvFrame> newQueue = new LinkedBlockingQueue<>(newSize);
+    cache.drainTo(newQueue);
+    return newQueue;
   }
 
   public int getFlvTagCacheSize() {
-    return mFlvTagCache.size();
+    return mFlvVideoTagCache.size() + mFlvAudioTagCache.size();
   }
 
   public long getSentAudioFrames() {
@@ -269,26 +279,21 @@ public class SrsFlvMuxer {
         connectCheckerRtmp.onConnectionSuccessRtmp();
         while (!Thread.interrupted()) {
           try {
-            SrsFlvFrame frame = mFlvTagCache.poll(1, TimeUnit.SECONDS);
-            if (frame == null) {
-              Log.i(TAG, "Skipping iteration, frame null");
-              continue;
+            SrsFlvFrame frame = mFlvAudioTagCache.poll(1, TimeUnit.MILLISECONDS);
+            if (frame != null) {
+              if (frame.is_sequenceHeader()) {
+                mAudioSequenceHeader = frame;
+              }
+              sendFlvTag(frame);
             }
 
-            if (frame.is_sequenceHeader()) {
-              if (frame.is_video()) {
+            frame = mFlvVideoTagCache.poll(1, TimeUnit.MILLISECONDS);
+            if (frame != null) {
+              // video
+              if (frame.is_sequenceHeader()) {
                 mVideoSequenceHeader = frame;
-                sendFlvTag(mVideoSequenceHeader);
-              } else if (frame.is_audio()) {
-                mAudioSequenceHeader = frame;
-                sendFlvTag(mAudioSequenceHeader);
               }
-            } else {
-              if (frame.is_video() && mVideoSequenceHeader != null) {
-                sendFlvTag(frame);
-              } else if (frame.is_audio() && mAudioSequenceHeader != null) {
-                sendFlvTag(frame);
-              }
+              sendFlvTag(frame);
             }
           } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
@@ -317,7 +322,8 @@ public class SrsFlvMuxer {
       }
       worker = null;
     }
-    mFlvTagCache.clear();
+    mFlvAudioTagCache.clear();
+    mFlvVideoTagCache.clear();
     flv.reset();
     needToFindKeyFrame = true;
     Log.i(TAG, "SrsFlvMuxer closed");
@@ -1024,7 +1030,11 @@ public class SrsFlvMuxer {
 
     private void flvFrameCacheAdd(SrsFlvFrame frame) {
       try {
-        mFlvTagCache.add(frame);
+        if(frame.is_video()) {
+          mFlvVideoTagCache.add(frame);
+        } else {
+          mFlvAudioTagCache.add(frame);
+        }
       } catch (IllegalStateException e) {
         Log.i(TAG, "frame discarded");
         if (frame.is_video()) {
