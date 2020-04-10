@@ -84,10 +84,11 @@ public class SimpleCameraRender {
     surfaceTexture.updateTexImage();
   }
 
-  public void drawFrame(int width, int height, boolean keepAspectRatio, int mode) {
+  public void drawFrame(int width, int height, boolean keepAspectRatio, int mode, int rotation) {
     GlUtil.checkGlError("drawFrame start");
     surfaceTexture.getTransformMatrix(STMatrix);
 
+    setRotation(rotation);
     PreviewSizeCalculator.calculateViewPort(keepAspectRatio, mode, width, height, streamWidth,
         streamHeight);
 

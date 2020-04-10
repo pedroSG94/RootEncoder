@@ -74,6 +74,11 @@ public interface GlInterface {
   void setRotation(int rotation);
 
   /**
+   * @param rotation change stream rotation on fly. No effect to preview
+   */
+  void setStreamRotation(int rotation);
+
+  /**
    * Get Anti alias is enabled.
    * @return true is enabled, false is disabled.
    */

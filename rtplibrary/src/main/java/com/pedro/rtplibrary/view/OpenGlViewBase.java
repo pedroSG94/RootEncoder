@@ -41,6 +41,7 @@ public abstract class OpenGlViewBase extends SurfaceView
   protected int previewWidth, previewHeight;
   protected int encoderWidth, encoderHeight;
   protected TakePhotoCallback takePhotoCallback;
+  protected int streamRotation;
 
   public OpenGlViewBase(Context context) {
     super(context);
@@ -50,6 +51,11 @@ public abstract class OpenGlViewBase extends SurfaceView
   public OpenGlViewBase(Context context, AttributeSet attrs) {
     super(context, attrs);
     getHolder().addCallback(this);
+  }
+
+  @Override
+  public void setStreamRotation(int streamRotation) {
+    this.streamRotation = streamRotation;
   }
 
   @Override
