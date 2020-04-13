@@ -57,6 +57,8 @@ public abstract class BaseFilterRender extends BaseRenderOffScreen {
 
   protected abstract void drawFilter();
 
+  //public abstract BaseFilterRender copy();
+
   public void setPreviousTexId(int texId) {
     this.previousTexId = texId;
   }

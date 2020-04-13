@@ -127,7 +127,8 @@ public class OpenGlView extends OpenGlViewBase {
           surfaceManager.makeCurrent();
           managerRender.updateFrame();
           managerRender.drawOffScreen();
-          managerRender.drawScreen(previewWidth, previewHeight, keepAspectRatio, aspectRatioMode, 0);
+          managerRender.drawScreen(previewWidth, previewHeight, keepAspectRatio, aspectRatioMode, 0,
+              true);
           surfaceManager.swapBuffer();
           if (takePhotoCallback != null) {
             takePhotoCallback.onTakePhoto(
@@ -135,9 +136,10 @@ public class OpenGlView extends OpenGlViewBase {
             takePhotoCallback = null;
           }
           synchronized (sync) {
-            if (surfaceManagerEncoder != null  && !fpsLimiter.limitFPS()) {
+            if (surfaceManagerEncoder != null && !fpsLimiter.limitFPS()) {
               surfaceManagerEncoder.makeCurrent();
-              managerRender.drawScreen(encoderWidth, encoderHeight, false, aspectRatioMode, streamRotation);
+              managerRender.drawScreen(encoderWidth, encoderHeight, false, aspectRatioMode,
+                  streamRotation, false);
               surfaceManagerEncoder.swapBuffer();
             }
           }
