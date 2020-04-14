@@ -1,7 +1,6 @@
 package com.pedro.encoder.input.gl.render;
 
 import android.content.Context;
-import android.graphics.PointF;
 import android.graphics.SurfaceTexture;
 import android.opengl.GLES11Ext;
 import android.opengl.GLES20;
@@ -12,7 +11,7 @@ import android.view.Surface;
 import com.pedro.encoder.R;
 import com.pedro.encoder.input.video.CameraHelper;
 import com.pedro.encoder.utils.gl.GlUtil;
-import com.pedro.encoder.utils.gl.PreviewSizeCalculator;
+import com.pedro.encoder.utils.gl.SizeCalculator;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.FloatBuffer;
@@ -91,8 +90,8 @@ public class SimpleCameraRender {
     GlUtil.checkGlError("drawFrame start");
     surfaceTexture.getTransformMatrix(STMatrix);
 
-    updateMatrix(rotation, width, height, isPreview, isPortrait);
-    PreviewSizeCalculator.calculateViewPort(keepAspectRatio, mode, width, height, streamWidth,
+    SizeCalculator.updateMatrix(rotation, width, height, isPreview, isPortrait, MVPMatrix);
+    SizeCalculator.calculateViewPort(keepAspectRatio, mode, width, height, streamWidth,
         streamHeight);
 
     GLES20.glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
@@ -163,29 +162,5 @@ public class SimpleCameraRender {
     Matrix.setIdentityM(MVPMatrix, 0);
     Matrix.multiplyMM(MVPMatrix, 0, scaleMatrix, 0, MVPMatrix, 0);
     Matrix.multiplyMM(MVPMatrix, 0, rotationMatrix, 0, MVPMatrix, 0);
-  }
-
-  private void updateMatrix(int rotation, int width, int height, boolean isPreview, boolean isPortrait) {
-    Matrix.setIdentityM(MVPMatrix, 0);
-    PointF scale = getScale(rotation, width, height, isPortrait, isPreview);
-    Matrix.scaleM(MVPMatrix, 0, scale.x, scale.y, 1f);
-    if (!isPreview && !isPortrait) rotation += 90;
-    Matrix.rotateM(MVPMatrix, 0, rotation, 0f, 0f, -1f);
-  }
-
-  private PointF getScale(int rotation, int width, int height, boolean isPortrait,
-      boolean isPreview) {
-    float scaleX = 1f;
-    float scaleY = 1f;
-    if (!isPreview) {
-      if (isPortrait && rotation != 0 && rotation != 180) { //portrait
-        final float adjustedWidth = width * (width / (float) height);
-        scaleY = adjustedWidth / height;
-      } else if (!isPortrait && rotation != 90 && rotation != 270) { //landscape
-        final float adjustedWidth = height * (height / (float) width);
-        scaleX = adjustedWidth / width;
-      }
-    }
-    return new PointF(scaleX, scaleY);
   }
 }
