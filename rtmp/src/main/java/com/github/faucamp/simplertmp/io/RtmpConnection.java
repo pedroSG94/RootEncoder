@@ -528,8 +528,8 @@ public class RtmpConnection implements RtmpPublisher {
               Log.d(TAG, "handleRxPacketLoop(): Send acknowledgement window size: "
                   + acknowledgementWindowsize);
               sendRtmpPacket(new WindowAckSize(acknowledgementWindowsize, chunkStreamInfo));
-              // Set socket option
-              socket.setSendBufferSize(acknowledgementWindowsize);
+              // Set socket option. This line could produce bps calculation problems.
+              //socket.setSendBufferSize(acknowledgementWindowsize);
               break;
             case COMMAND_AMF0:
               handleRxInvoke((Command) rtmpPacket);
