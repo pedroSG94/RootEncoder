@@ -39,14 +39,14 @@ public class BitrateAdapter {
   }
 
   private int getBitrateAdapted(int bitrate) {
-    //reduce bitrate 10%
-    if (bitrate < oldBitrate * 0.65) {
-      oldBitrate -= maxBitrate * 0.1;
-      if (oldBitrate < maxBitrate * 0.1) oldBitrate = (int) (maxBitrate * 0.1);
+    if (bitrate >= maxBitrate) { //You have high speed and max bitrate. Keep max speed
+      oldBitrate = maxBitrate;
       return oldBitrate;
-      //increase bitrate 10%
-    } else {
-      oldBitrate += maxBitrate * 0.1;
+    } else if (bitrate <= oldBitrate * 0.9f) { //You have low speed and bitrate too high. Reduce bitrate by 10%.
+      oldBitrate = (int) (bitrate * 0.9);
+      return oldBitrate;
+    } else { //You have high speed and bitrate too low. Increase bitrate by 10%.
+      oldBitrate = (int) (bitrate * 1.1);
       if (oldBitrate > maxBitrate) oldBitrate = maxBitrate;
       return oldBitrate;
     }

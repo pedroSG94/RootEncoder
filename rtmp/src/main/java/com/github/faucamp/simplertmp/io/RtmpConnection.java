@@ -520,8 +520,7 @@ public class RtmpConnection implements RtmpPublisher {
               rtmpSessionInfo.setAcknowledgmentWindowSize(size);
               break;
             case SET_PEER_BANDWIDTH:
-              SetPeerBandwidth bw = (SetPeerBandwidth) rtmpPacket;
-              rtmpSessionInfo.setAcknowledgmentWindowSize(bw.getAcknowledgementWindowSize());
+              rtmpSessionInfo.setAcknowledgmentWindowSize(socket.getSendBufferSize());
               int acknowledgementWindowsize = rtmpSessionInfo.getAcknowledgementWindowSize();
               ChunkStreamInfo chunkStreamInfo =
                   rtmpSessionInfo.getChunkStreamInfo(ChunkStreamInfo.RTMP_CID_PROTOCOL_CONTROL);
@@ -529,7 +528,7 @@ public class RtmpConnection implements RtmpPublisher {
                   + acknowledgementWindowsize);
               sendRtmpPacket(new WindowAckSize(acknowledgementWindowsize, chunkStreamInfo));
               // Set socket option. This line could produce bps calculation problems.
-              //socket.setSendBufferSize(acknowledgementWindowsize);
+              socket.setSendBufferSize(acknowledgementWindowsize);
               break;
             case COMMAND_AMF0:
               handleRxInvoke((Command) rtmpPacket);
