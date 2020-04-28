@@ -85,7 +85,8 @@ public class LightOpenGlView extends OpenGlViewBase {
         frameAvailable = false;
         surfaceManager.makeCurrent();
         simpleCameraRender.updateFrame();
-        simpleCameraRender.drawFrame(previewWidth, previewHeight, keepAspectRatio, aspectRatioMode, 0, true);
+        simpleCameraRender.drawFrame(previewWidth, previewHeight, keepAspectRatio, aspectRatioMode,
+            0, true);
         surfaceManager.swapBuffer();
         if (takePhotoCallback != null) {
           takePhotoCallback.onTakePhoto(
@@ -95,7 +96,8 @@ public class LightOpenGlView extends OpenGlViewBase {
         synchronized (sync) {
           if (surfaceManagerEncoder != null && !fpsLimiter.limitFPS()) {
             surfaceManagerEncoder.makeCurrent();
-            simpleCameraRender.drawFrame(encoderWidth, encoderHeight, false, aspectRatioMode, streamRotation, false);
+            simpleCameraRender.drawFrame(encoderWidth, encoderHeight, false, aspectRatioMode,
+                streamRotation, false);
             surfaceManagerEncoder.swapBuffer();
           }
         }

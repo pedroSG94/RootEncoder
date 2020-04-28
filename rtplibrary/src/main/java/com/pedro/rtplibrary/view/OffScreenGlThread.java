@@ -41,7 +41,6 @@ public class OffScreenGlThread
   private int streamRotation;
 
   private boolean AAEnabled = false;
-  private int fps = 30;
   private FpsLimiter fpsLimiter = new FpsLimiter();
   //used with camera
   private TakePhotoCallback takePhotoCallback;
