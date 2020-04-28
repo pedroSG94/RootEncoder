@@ -19,7 +19,7 @@ public class BitrateManager {
     bitrate += size;
     long timeDiff = System.currentTimeMillis() - timeStamp;
     if (timeDiff >= 1000) {
-      connectCheckerRtmp.onNewBitrateRtmp(bitrate / (timeDiff / 1000L));
+      connectCheckerRtmp.onNewBitrateRtmp((int) (bitrate / (timeDiff / 1000f)));
       timeStamp = System.currentTimeMillis();
       bitrate = 0;
     }
