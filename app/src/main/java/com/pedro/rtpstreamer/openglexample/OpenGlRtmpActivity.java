@@ -2,6 +2,7 @@ package com.pedro.rtpstreamer.openglexample;
 
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
+import android.graphics.SurfaceTexture;
 import android.media.MediaPlayer;
 import android.os.Build;
 import android.os.Bundle;
@@ -9,6 +10,7 @@ import android.os.Environment;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.MotionEvent;
+import android.view.Surface;
 import android.view.SurfaceHolder;
 import android.view.View;
 import android.view.WindowManager;
@@ -256,12 +258,18 @@ public class OpenGlRtmpActivity extends AppCompatActivity
         rtmpCamera1.getGlInterface().setFilter(new SwirlFilterRender());
         return true;
       case R.id.surface_filter:
-        //You can render this filter with other api that draw in a surface. for example you can use VLC
-        SurfaceFilterRender surfaceFilterRender = new SurfaceFilterRender();
+        SurfaceFilterRender surfaceFilterRender =
+            new SurfaceFilterRender(new SurfaceFilterRender.SurfaceReadyCallback() {
+              @Override
+              public void surfaceReady(SurfaceTexture surfaceTexture) {
+                //You can render this filter with other api that draw in a surface. for example you can use VLC
+                MediaPlayer mediaPlayer =
+                    MediaPlayer.create(OpenGlRtmpActivity.this, R.raw.big_bunny_240p);
+                mediaPlayer.setSurface(new Surface(surfaceTexture));
+                mediaPlayer.start();
+              }
+            });
         rtmpCamera1.getGlInterface().setFilter(surfaceFilterRender);
-        MediaPlayer mediaPlayer = MediaPlayer.create(this, R.raw.big_bunny_240p);
-        mediaPlayer.setSurface(surfaceFilterRender.getSurface());
-        mediaPlayer.start();
         //Video is 360x240 so select a percent to keep aspect ratio (50% x 33.3% screen)
         surfaceFilterRender.setScale(50f, 33.3f);
         spriteGestureController.setBaseObjectFilterRender(surfaceFilterRender); //Optional

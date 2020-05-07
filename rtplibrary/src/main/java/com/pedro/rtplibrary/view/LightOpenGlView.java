@@ -87,12 +87,13 @@ public class LightOpenGlView extends OpenGlViewBase {
         simpleCameraRender.updateFrame();
         simpleCameraRender.drawFrame(previewWidth, previewHeight, keepAspectRatio, aspectRatioMode,
             0, true);
-        surfaceManager.swapBuffer();
         if (takePhotoCallback != null) {
           takePhotoCallback.onTakePhoto(
               GlUtil.getBitmap(previewWidth, previewHeight, encoderWidth, encoderHeight));
           takePhotoCallback = null;
         }
+        surfaceManager.swapBuffer();
+
         synchronized (sync) {
           if (surfaceManagerEncoder != null && !fpsLimiter.limitFPS()) {
             surfaceManagerEncoder.makeCurrent();

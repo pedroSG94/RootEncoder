@@ -179,6 +179,11 @@ public class OffScreenGlThread
           textureManager.updateFrame();
           textureManager.drawOffScreen();
           textureManager.drawScreen(encoderWidth, encoderHeight, false, 0, 0, true);
+          if (takePhotoCallback != null) {
+            takePhotoCallback.onTakePhoto(
+                GlUtil.getBitmap(encoderWidth, encoderHeight, encoderWidth, encoderHeight));
+            takePhotoCallback = null;
+          }
           surfaceManager.swapBuffer();
 
           synchronized (sync) {
@@ -187,11 +192,6 @@ public class OffScreenGlThread
               textureManager.drawScreen(encoderWidth, encoderHeight, false, 0, streamRotation,
                   false);
               surfaceManagerEncoder.swapBuffer();
-            }
-            if (takePhotoCallback != null) {
-              takePhotoCallback.onTakePhoto(
-                  GlUtil.getBitmap(encoderWidth, encoderHeight, encoderWidth, encoderHeight));
-              takePhotoCallback = null;
             }
           }
           if (!filterQueue.isEmpty()) {

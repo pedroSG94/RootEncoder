@@ -25,7 +25,7 @@ import java.nio.FloatBuffer;
 public class SurfaceFilterRender extends BaseObjectFilterRender {
 
   public interface SurfaceReadyCallback {
-    void surfaceReady();
+    void surfaceReady(SurfaceTexture surfaceTexture);
   }
 
   //rotation matrix
@@ -96,7 +96,7 @@ public class SurfaceFilterRender extends BaseObjectFilterRender {
     surfaceTexture = new SurfaceTexture(surfaceId[0]);
     surfaceTexture.setDefaultBufferSize(getWidth(), getHeight());
     surface = new Surface(surfaceTexture);
-    if (surfaceReadyCallback != null) surfaceReadyCallback.surfaceReady();
+    if (surfaceReadyCallback != null) surfaceReadyCallback.surfaceReady(surfaceTexture);
   }
 
   @Override
