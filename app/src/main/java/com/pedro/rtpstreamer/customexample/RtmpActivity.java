@@ -102,8 +102,8 @@ public class RtmpActivity extends AppCompatActivity
     navigationView = findViewById(R.id.nv_rtp);
 
     navigationView.inflateMenu(R.menu.options_rtmp);
-    actionBarDrawerToggle = new ActionBarDrawerToggle(this, drawerLayout, R.string.rtsp_streamer,
-        R.string.rtsp_streamer) {
+    actionBarDrawerToggle = new ActionBarDrawerToggle(this, drawerLayout, R.string.rtmp_streamer,
+        R.string.rtmp_streamer) {
 
       public void onDrawerOpened(View drawerView) {
         actionBarDrawerToggle.syncState();
