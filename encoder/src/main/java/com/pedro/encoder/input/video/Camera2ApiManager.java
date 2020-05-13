@@ -238,18 +238,21 @@ public class Camera2ApiManager extends CameraDevice.StateCallback {
   /**
    * Select camera facing
    *
-   * @param cameraFacing - CameraCharacteristics.LENS_FACING_FRONT, CameraCharacteristics.LENS_FACING_BACK,
+   * @param selectedCameraFacing - CameraCharacteristics.LENS_FACING_FRONT, CameraCharacteristics.LENS_FACING_BACK,
    * CameraCharacteristics.LENS_FACING_EXTERNAL
    */
-  public void openCameraFacing(CameraHelper.Facing cameraFacing) {
-    int facing = cameraFacing == CameraHelper.Facing.BACK ? CameraMetadata.LENS_FACING_BACK
-        : CameraMetadata.LENS_FACING_FRONT;
+  public void openCameraFacing(CameraHelper.Facing selectedCameraFacing) {
+    int selectedFacing = selectedCameraFacing == CameraHelper.Facing.BACK ? CameraMetadata.LENS_FACING_BACK
+            : CameraMetadata.LENS_FACING_FRONT;
     try {
-      cameraCharacteristics = cameraManager.getCameraCharacteristics("0");
-      if (cameraCharacteristics.get(CameraCharacteristics.LENS_FACING) == facing) {
-        openCameraId(0);
-      } else {
-        openCameraId(cameraManager.getCameraIdList().length - 1);
+      for (String cameraId : cameraManager.getCameraIdList()) {
+        CameraCharacteristics cameraCharacteristic = cameraManager.getCameraCharacteristics(cameraId);
+        Integer cameraFacing = cameraCharacteristic.get(CameraCharacteristics.LENS_FACING);
+        if (cameraFacing != null && cameraFacing == selectedFacing) {
+          this.cameraCharacteristics = cameraCharacteristic;
+          openCameraId(Integer.valueOf(cameraId));
+          break;
+        }
       }
     } catch (CameraAccessException e) {
       Log.e(TAG, "Error", e);
