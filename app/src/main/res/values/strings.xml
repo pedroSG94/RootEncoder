@@ -27,6 +27,8 @@
   <string name="select_file">Select file</string>
   <string name="start_record">Start record</string>
   <string name="stop_record">Stop record</string>
+  <string name="pause_stream">Pause stream</string>
+  <string name="resume_stream">Resume stream</string>
   <string name="resync_file">ReSync file</string>
   <!--menu-->
   <string name="microphone">Microphone</string>

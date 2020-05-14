@@ -459,6 +459,40 @@ public abstract class Camera1Base
     onPreview = true;
   }
 
+  /**
+   * Pauses only video part of a stream keeping preview on.
+   */
+  @RequiresApi(api = Build.VERSION_CODES.KITKAT)
+  public void pauseStreamVideo() {
+    videoEncoder.pause();
+  }
+
+  /**
+   * Resumes video part of a stream.
+   */
+  @RequiresApi(api = Build.VERSION_CODES.KITKAT)
+  public void resumeStreamVideo() {
+    videoEncoder.resume();
+  }
+
+  /**
+   * Pauses both video and audio part of a stream keeping preview on.
+   */
+  @RequiresApi(api = Build.VERSION_CODES.KITKAT)
+  public void pauseStream() {
+    pauseStreamVideo();
+    disableAudio();
+  }
+
+  /**
+   * Resumes both video and audio part of a stream.
+   */
+  @RequiresApi(api = Build.VERSION_CODES.KITKAT)
+  public void resumeStream() {
+    resumeStreamVideo();
+    enableAudio();
+  }
+
   private void startEncoders() {
     videoEncoder.start();
     audioEncoder.start();

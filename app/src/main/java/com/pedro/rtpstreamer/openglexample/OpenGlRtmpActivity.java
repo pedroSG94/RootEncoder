@@ -107,6 +107,8 @@ public class OpenGlRtmpActivity extends AppCompatActivity
     bRecord.setOnClickListener(this);
     Button switchCamera = findViewById(R.id.switch_camera);
     switchCamera.setOnClickListener(this);
+    findViewById(R.id.b_pause_stream).setOnClickListener(this);
+    findViewById(R.id.b_resume_stream).setOnClickListener(this);
     etUrl = findViewById(R.id.et_rtp_url);
     etUrl.setHint(R.string.hint_rtmp);
     rtmpCamera1 = new RtmpCamera1(openGlView, this);
@@ -405,6 +407,16 @@ public class OpenGlRtmpActivity extends AppCompatActivity
           rtmpCamera1.switchCamera();
         } catch (CameraOpenException e) {
           Toast.makeText(this, e.getMessage(), Toast.LENGTH_SHORT).show();
+        }
+        break;
+      case R.id.b_pause_stream:
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+          rtmpCamera1.pauseStream();
+        }
+        break;
+      case R.id.b_resume_stream:
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+          rtmpCamera1.resumeStream();
         }
         break;
       case R.id.b_record:

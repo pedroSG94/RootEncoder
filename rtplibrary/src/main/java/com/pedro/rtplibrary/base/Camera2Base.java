@@ -432,6 +432,36 @@ public abstract class Camera2Base implements GetAacData, GetVideoData, GetMicrop
     onPreview = true;
   }
 
+  /**
+   * Pauses only video part of a stream keeping preview on.
+   */
+  public void pauseStreamVideo() {
+    videoEncoder.pause();
+  }
+
+  /**
+   * Resumes video part of a stream.
+   */
+  public void resumeStreamVideo() {
+    videoEncoder.resume();
+  }
+
+  /**
+   * Pauses both video and audio part of a stream keeping preview on.
+   */
+  public void pauseStream() {
+    pauseStreamVideo();
+    disableAudio();
+  }
+
+  /**
+   * Resumes both video and audio part of a stream.
+   */
+  public void resumeStream() {
+    resumeStreamVideo();
+    enableAudio();
+  }
+
   private void startEncoders() {
     videoEncoder.start();
     audioEncoder.start();

@@ -176,6 +176,20 @@ public class VideoEncoder extends BaseEncoder implements GetCameraData {
     Log.i(TAG, "started");
   }
 
+  @RequiresApi(api = Build.VERSION_CODES.KITKAT)
+  public void pause() {
+    Bundle params = new Bundle();
+    params.putInt(MediaCodec.PARAMETER_KEY_SUSPEND, 1);
+    codec.setParameters(params);
+  }
+
+  @RequiresApi(api = Build.VERSION_CODES.KITKAT)
+  public void resume() {
+    Bundle params = new Bundle();
+    params.putInt(MediaCodec.PARAMETER_KEY_SUSPEND, 0);
+    codec.setParameters(params);
+  }
+
   @Override
   protected void stopImp() {
     if (handlerThread != null) {
