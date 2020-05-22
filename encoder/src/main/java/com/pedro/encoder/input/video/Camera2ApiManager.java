@@ -30,8 +30,8 @@ import androidx.annotation.RequiresApi;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+
 import static android.hardware.camera2.CameraMetadata.LENS_FACING_FRONT;
-import static com.pedro.encoder.input.video.Camera2Helper.*;
 import static com.pedro.encoder.input.video.CameraHelper.*;
 
 /**
@@ -217,7 +217,7 @@ public class Camera2ApiManager extends CameraDevice.StateCallback {
       }
 
       StreamConfigurationMap streamConfigurationMap =
-              characteristics.get(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP);
+          characteristics.get(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP);
       Size[] outputSizes = streamConfigurationMap.getOutputSizes(SurfaceTexture.class);
       return outputSizes != null ? outputSizes : new Size[0];
     } catch (CameraAccessException | NullPointerException e) {
@@ -229,7 +229,8 @@ public class Camera2ApiManager extends CameraDevice.StateCallback {
   @Nullable
   public CameraCharacteristics getCameraCharacteristics() {
     try {
-      return cameraId != -1 ? cameraManager.getCameraCharacteristics(String.valueOf(cameraId)) : null;
+      return cameraId != -1 ? cameraManager.getCameraCharacteristics(String.valueOf(cameraId))
+          : null;
     } catch (CameraAccessException e) {
       Log.e(TAG, "Error", e);
       return null;
@@ -239,7 +240,8 @@ public class Camera2ApiManager extends CameraDevice.StateCallback {
   /**
    * Select camera facing
    *
-   * @param selectedCameraFacing - CameraCharacteristics.LENS_FACING_FRONT, CameraCharacteristics.LENS_FACING_BACK,
+   * @param selectedCameraFacing - CameraCharacteristics.LENS_FACING_FRONT,
+   * CameraCharacteristics.LENS_FACING_BACK,
    * CameraCharacteristics.LENS_FACING_EXTERNAL
    */
   public void openCameraFacing(Facing selectedCameraFacing) {
@@ -314,8 +316,8 @@ public class Camera2ApiManager extends CameraDevice.StateCallback {
     CameraCharacteristics characteristics = getCameraCharacteristics();
     if (characteristics == null) return;
 
-    int[] fd = characteristics.get(
-        CameraCharacteristics.STATISTICS_INFO_AVAILABLE_FACE_DETECT_MODES);
+    int[] fd =
+        characteristics.get(CameraCharacteristics.STATISTICS_INFO_AVAILABLE_FACE_DETECT_MODES);
     int maxFD = characteristics.get(CameraCharacteristics.STATISTICS_INFO_MAX_FACE_COUNT);
     if (fd.length > 0) {
       List<Integer> fdList = new ArrayList<>();
@@ -387,7 +389,8 @@ public class Camera2ApiManager extends CameraDevice.StateCallback {
       cameraHandler = new Handler(cameraHandlerThread.getLooper());
       try {
         cameraManager.openCamera(cameraId.toString(), this, cameraHandler);
-        CameraCharacteristics cameraCharacteristics = cameraManager.getCameraCharacteristics(Integer.toString(cameraId));
+        CameraCharacteristics cameraCharacteristics =
+            cameraManager.getCameraCharacteristics(Integer.toString(cameraId));
         running = true;
         isFrontCamera =
             (LENS_FACING_FRONT == cameraCharacteristics.get(CameraCharacteristics.LENS_FACING));
@@ -553,5 +556,31 @@ public class Camera2ApiManager extends CameraDevice.StateCallback {
   public void onError(@NonNull CameraDevice cameraDevice, int i) {
     cameraDevice.close();
     Log.e(TAG, "Open failed");
+  }
+
+  @Nullable
+  private String getCameraIdForFacing(CameraManager cameraManager, CameraHelper.Facing facing)
+      throws CameraAccessException {
+    int selectedFacing = getFacing(facing);
+    for (String cameraId : cameraManager.getCameraIdList()) {
+      Integer cameraFacing =
+          cameraManager.getCameraCharacteristics(cameraId).get(CameraCharacteristics.LENS_FACING);
+      if (cameraFacing != null && cameraFacing == selectedFacing) {
+        return cameraId;
+      }
+    }
+    return null;
+  }
+
+  @Nullable
+  private CameraCharacteristics getCharacteristicsForFacing(CameraManager cameraManager,
+      CameraHelper.Facing facing) throws CameraAccessException {
+    String cameraId = getCameraIdForFacing(cameraManager, facing);
+    return cameraId != null ? cameraManager.getCameraCharacteristics(cameraId) : null;
+  }
+
+  private static int getFacing(CameraHelper.Facing facing) {
+    return facing == CameraHelper.Facing.BACK ? CameraMetadata.LENS_FACING_BACK
+        : CameraMetadata.LENS_FACING_FRONT;
   }
 }
