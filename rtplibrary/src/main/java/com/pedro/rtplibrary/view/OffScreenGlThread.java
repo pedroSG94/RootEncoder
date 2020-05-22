@@ -39,6 +39,7 @@ public class OffScreenGlThread
   private int encoderWidth, encoderHeight;
   private boolean loadAA = false;
   private int streamRotation;
+  private boolean muteVideo = false;
 
   private boolean AAEnabled = false;
   private FpsLimiter fpsLimiter = new FpsLimiter();
@@ -60,6 +61,21 @@ public class OffScreenGlThread
   public void setEncoderSize(int width, int height) {
     this.encoderWidth = width;
     this.encoderHeight = height;
+  }
+
+  @Override
+  public void muteVideo() {
+    muteVideo = true;
+  }
+
+  @Override
+  public void unMuteVideo() {
+    muteVideo = false;
+  }
+
+  @Override
+  public boolean isVideoMuted() {
+    return muteVideo;
   }
 
   @Override
@@ -189,8 +205,12 @@ public class OffScreenGlThread
           synchronized (sync) {
             if (surfaceManagerEncoder != null && !fpsLimiter.limitFPS()) {
               surfaceManagerEncoder.makeCurrent();
-              textureManager.drawScreen(encoderWidth, encoderHeight, false, 0, streamRotation,
-                  false);
+              if (muteVideo) {
+                textureManager.drawScreen(0, 0, false, 0, streamRotation, false);
+              } else {
+                textureManager.drawScreen(encoderWidth, encoderHeight, false, 0, streamRotation,
+                    false);
+              }
               surfaceManagerEncoder.swapBuffer();
             }
           }

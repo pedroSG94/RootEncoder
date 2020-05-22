@@ -42,6 +42,7 @@ public abstract class OpenGlViewBase extends SurfaceView
   protected int encoderWidth, encoderHeight;
   protected TakePhotoCallback takePhotoCallback;
   protected int streamRotation;
+  protected boolean muteVideo = false;
 
   public OpenGlViewBase(Context context) {
     super(context);
@@ -56,6 +57,21 @@ public abstract class OpenGlViewBase extends SurfaceView
   @Override
   public void setStreamRotation(int streamRotation) {
     this.streamRotation = streamRotation;
+  }
+
+  @Override
+  public void muteVideo() {
+    muteVideo = true;
+  }
+
+  @Override
+  public void unMuteVideo() {
+    muteVideo = false;
+  }
+
+  @Override
+  public boolean isVideoMuted() {
+    return muteVideo;
   }
 
   @Override

@@ -139,8 +139,12 @@ public class OpenGlView extends OpenGlViewBase {
           synchronized (sync) {
             if (surfaceManagerEncoder != null && !fpsLimiter.limitFPS()) {
               surfaceManagerEncoder.makeCurrent();
-              managerRender.drawScreen(encoderWidth, encoderHeight, false, aspectRatioMode,
-                  streamRotation, false);
+              if (muteVideo) {
+                managerRender.drawScreen(0, 0, false, aspectRatioMode, streamRotation, false);
+              } else {
+                managerRender.drawScreen(encoderWidth, encoderHeight, false, aspectRatioMode,
+                    streamRotation, false);
+              }
               surfaceManagerEncoder.swapBuffer();
             }
           }

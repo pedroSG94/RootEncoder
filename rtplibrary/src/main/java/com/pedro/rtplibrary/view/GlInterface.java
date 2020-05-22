@@ -100,4 +100,14 @@ public interface GlInterface {
   void stop();
 
   void setFps(int fps);
+
+  /**
+   * This produce send black image all time.
+   * This affect to stream and record result.
+   */
+  void muteVideo();
+
+  void unMuteVideo();
+
+  boolean isVideoMuted();
 }

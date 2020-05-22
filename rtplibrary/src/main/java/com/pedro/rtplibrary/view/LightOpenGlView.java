@@ -97,8 +97,12 @@ public class LightOpenGlView extends OpenGlViewBase {
         synchronized (sync) {
           if (surfaceManagerEncoder != null && !fpsLimiter.limitFPS()) {
             surfaceManagerEncoder.makeCurrent();
-            simpleCameraRender.drawFrame(encoderWidth, encoderHeight, false, aspectRatioMode,
-                streamRotation, false);
+            if (muteVideo) {
+              simpleCameraRender.drawFrame(0, 0, false, aspectRatioMode, streamRotation, false);
+            } else {
+              simpleCameraRender.drawFrame(encoderWidth, encoderHeight, false, aspectRatioMode,
+                  streamRotation, false);
+            }
             surfaceManagerEncoder.swapBuffer();
           }
         }
