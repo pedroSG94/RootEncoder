@@ -1,6 +1,10 @@
 package com.pedro.encoder.input.video;
 
 import android.content.Context;
+import android.hardware.camera2.CameraAccessException;
+import android.hardware.camera2.CameraCharacteristics;
+import android.hardware.camera2.CameraMetadata;
+import android.util.Log;
 import android.view.MotionEvent;
 import android.view.Surface;
 import android.view.WindowManager;
