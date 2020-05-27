@@ -195,11 +195,6 @@ public class OffScreenGlThread
           textureManager.updateFrame();
           textureManager.drawOffScreen();
           textureManager.drawScreen(encoderWidth, encoderHeight, false, 0, 0, true);
-          if (takePhotoCallback != null) {
-            takePhotoCallback.onTakePhoto(
-                GlUtil.getBitmap(encoderWidth, encoderHeight, encoderWidth, encoderHeight));
-            takePhotoCallback = null;
-          }
           surfaceManager.swapBuffer();
 
           synchronized (sync) {
@@ -210,6 +205,12 @@ public class OffScreenGlThread
               } else {
                 textureManager.drawScreen(encoderWidth, encoderHeight, false, 0, streamRotation,
                     false);
+              }
+              //Necessary use surfaceManagerEncoder because preview manager size in background is 1x1.
+              if (takePhotoCallback != null) {
+                takePhotoCallback.onTakePhoto(
+                    GlUtil.getBitmap(encoderWidth, encoderHeight, encoderWidth, encoderHeight));
+                takePhotoCallback = null;
               }
               surfaceManagerEncoder.swapBuffer();
             }
