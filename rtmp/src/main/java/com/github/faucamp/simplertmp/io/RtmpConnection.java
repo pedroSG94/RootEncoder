@@ -472,7 +472,6 @@ public class RtmpConnection implements RtmpPublisher {
             ((Command) rtmpPacket).getCommandName());
       }
       outputStream.flush();
-    } catch (SocketException ignored) {
     } catch (IOException ioe) {
       connectCheckerRtmp.onConnectionFailedRtmp("Error send packet: " + ioe.getMessage());
       Log.e(TAG, "Caught IOException during write loop, shutting down: " + ioe.getMessage());
