@@ -196,15 +196,16 @@ public class SrsFlvMuxer {
     mVideoSequenceHeader = null;
     mAudioSequenceHeader = null;
 
+    if (connectChecker != null) {
+      reTries = 0;
+      connectChecker.onDisconnectRtmp();
+    }
+
     resetSentAudioFrames();
     resetSentVideoFrames();
     resetDroppedAudioFrames();
     resetDroppedVideoFrames();
 
-    if (connectChecker != null) {
-      reTries = 0;
-      connectChecker.onDisconnectRtmp();
-    }
     Log.i(TAG, "worker: disconnect ok.");
   }
 
