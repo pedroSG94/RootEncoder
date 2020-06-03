@@ -40,6 +40,8 @@ public class OffScreenGlThread
   private boolean loadAA = false;
   private int streamRotation;
   private boolean muteVideo = false;
+  private boolean isStreamHorizontalFlip = false;
+  private boolean isStreamVerticalFlip = false;
 
   private boolean AAEnabled = false;
   private FpsLimiter fpsLimiter = new FpsLimiter();
@@ -142,6 +144,16 @@ public class OffScreenGlThread
   }
 
   @Override
+  public void setIsStreamHorizontalFlip(boolean flip) {
+    isStreamHorizontalFlip = flip;
+  }
+
+  @Override
+  public void setIsStreamVerticalFlip(boolean flip) {
+    isStreamVerticalFlip = flip;
+  }
+
+  @Override
   public boolean isAAEnabled() {
     return textureManager != null && textureManager.isAAEnabled();
   }
@@ -194,17 +206,19 @@ public class OffScreenGlThread
           surfaceManager.makeCurrent();
           textureManager.updateFrame();
           textureManager.drawOffScreen();
-          textureManager.drawScreen(encoderWidth, encoderHeight, false, 0, 0, true);
+          textureManager.drawScreen(encoderWidth, encoderHeight, false, 0, 0, true,
+                  isStreamVerticalFlip, isStreamHorizontalFlip);
           surfaceManager.swapBuffer();
 
           synchronized (sync) {
             if (surfaceManagerEncoder != null && !fpsLimiter.limitFPS()) {
               surfaceManagerEncoder.makeCurrent();
               if (muteVideo) {
-                textureManager.drawScreen(0, 0, false, 0, streamRotation, false);
+                textureManager.drawScreen(0, 0, false, 0, streamRotation, false,
+                        isStreamVerticalFlip, isStreamHorizontalFlip);
               } else {
                 textureManager.drawScreen(encoderWidth, encoderHeight, false, 0, streamRotation,
-                    false);
+                    false, isStreamVerticalFlip, isStreamHorizontalFlip);
               }
               //Necessary use surfaceManagerEncoder because preview manager size in background is 1x1.
               if (takePhotoCallback != null) {

@@ -36,15 +36,31 @@ public class SizeCalculator {
   }
 
   public static void updateMatrix(int rotation, int width, int height, boolean isPreview,
-      boolean isPortrait, float[] MVPMatrix) {
-    Matrix.setIdentityM(MVPMatrix, 0);
-    PointF scale = getScale(rotation, width, height, isPortrait, isPreview);
-    Matrix.scaleM(MVPMatrix, 0, scale.x, scale.y, 1f);
+                                  boolean isPortrait, boolean flipStreamHorizontal,
+                                  boolean flipStreamVertical, int mode, float[] MVPMatrix) {
+    PointF scale;
+    if (mode == 2 || mode == 3) {
+      scale = getScaleForRotation(rotation, width, height, isPortrait, isPreview);
+    } else {
+      scale = new PointF(1f, 1f);
+    }
+    if (!isPreview) {
+      float xFlip = flipStreamHorizontal ? -1f : 1f;
+      float yFlip = flipStreamVertical ? -1f : 1f;
+      scale = new PointF(scale.x * xFlip, scale.y * yFlip);
+    }
+
     if (!isPreview && !isPortrait) rotation += 90;
-    Matrix.rotateM(MVPMatrix, 0, rotation, 0f, 0f, -1f);
+
+    updateMatrix(rotation, scale, MVPMatrix);
   }
 
-  private static PointF getScale(int rotation, int width, int height, boolean isPortrait,
+  private static void updateMatrix(int rotation, PointF scale, float[] MVPMatrix) {
+    Matrix.setIdentityM(MVPMatrix, 0);
+    Matrix.scaleM(MVPMatrix, 0, scale.x, scale.y, 1f);
+    Matrix.rotateM(MVPMatrix, 0, rotation, 0f, 0f, -1f);
+  }
+  private static PointF getScaleForRotation(int rotation, int width, int height, boolean isPortrait,
       boolean isPreview) {
     float scaleX = 1f;
     float scaleY = 1f;

@@ -79,6 +79,16 @@ public interface GlInterface {
   void setStreamRotation(int rotation);
 
   /**
+   * When true, flips only the stream horizontally
+   */
+  void setIsStreamHorizontalFlip(boolean flip);
+
+  /**
+   * When false, flips only the stream vertically
+   */
+  void setIsStreamVerticalFlip(boolean flip);
+
+  /**
    * Get Anti alias is enabled.
    * @return true is enabled, false is disabled.
    */

@@ -43,6 +43,8 @@ public abstract class OpenGlViewBase extends SurfaceView
   protected TakePhotoCallback takePhotoCallback;
   protected int streamRotation;
   protected boolean muteVideo = false;
+  protected boolean isStreamHorizontalFlip = false;
+  protected boolean isStreamVerticalFlip = false;
 
   public OpenGlViewBase(Context context) {
     super(context);
@@ -57,6 +59,16 @@ public abstract class OpenGlViewBase extends SurfaceView
   @Override
   public void setStreamRotation(int streamRotation) {
     this.streamRotation = streamRotation;
+  }
+
+  @Override
+  public void setIsStreamHorizontalFlip(boolean flip) {
+    isStreamHorizontalFlip = flip;
+  }
+
+  @Override
+  public void setIsStreamVerticalFlip(boolean flip) {
+    isStreamVerticalFlip = flip;
   }
 
   @Override
