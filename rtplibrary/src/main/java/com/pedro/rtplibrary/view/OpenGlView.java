@@ -128,7 +128,7 @@ public class OpenGlView extends OpenGlViewBase {
           managerRender.updateFrame();
           managerRender.drawOffScreen();
           managerRender.drawScreen(previewWidth, previewHeight, keepAspectRatio, aspectRatioMode, 0,
-              true, isStreamVerticalFlip, isStreamHorizontalFlip);
+              true, false, false);
           if (takePhotoCallback != null) {
             takePhotoCallback.onTakePhoto(
                 GlUtil.getBitmap(previewWidth, previewHeight, encoderWidth, encoderHeight));

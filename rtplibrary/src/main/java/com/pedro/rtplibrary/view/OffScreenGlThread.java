@@ -206,8 +206,7 @@ public class OffScreenGlThread
           surfaceManager.makeCurrent();
           textureManager.updateFrame();
           textureManager.drawOffScreen();
-          textureManager.drawScreen(encoderWidth, encoderHeight, false, 0, 0, true,
-                  isStreamVerticalFlip, isStreamHorizontalFlip);
+          textureManager.drawScreen(encoderWidth, encoderHeight, false, 0, 0, true, false, false);
           surfaceManager.swapBuffer();
 
           synchronized (sync) {

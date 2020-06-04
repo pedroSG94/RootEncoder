@@ -116,9 +116,8 @@ public class OpenGlRtmpActivity extends AppCompatActivity
     rtmpCamera.setCameraCallbacks(new Camera2ApiManager.CameraCallbacks() {
       @Override
       public void onCameraChanged(boolean isFrontCamera) {
-        if (isFrontCamera) {
-          rtmpCamera.getGlInterface().setIsStreamHorizontalFlip(true);
-        }
+        // Note it's gonna flip front camera on the stream!
+        rtmpCamera.getGlInterface().setIsStreamHorizontalFlip(isFrontCamera);
       }
     });
   }
