@@ -39,18 +39,18 @@ public class SizeCalculator {
                                   boolean isPortrait, boolean flipStreamHorizontal,
                                   boolean flipStreamVertical, int mode, float[] MVPMatrix) {
     PointF scale;
-    if (mode == 2 || mode == 3) {
+    if (mode == 2 || mode == 3) { // stream rotation is enabled
       scale = getScaleForRotation(rotation, width, height, isPortrait, isPreview);
+      if (!isPreview && !isPortrait) rotation += 90;
     } else {
       scale = new PointF(1f, 1f);
     }
+
     if (!isPreview) {
       float xFlip = flipStreamHorizontal ? -1f : 1f;
       float yFlip = flipStreamVertical ? -1f : 1f;
       scale = new PointF(scale.x * xFlip, scale.y * yFlip);
     }
-
-    if (!isPreview && !isPortrait) rotation += 90;
 
     updateMatrix(rotation, scale, MVPMatrix);
   }
