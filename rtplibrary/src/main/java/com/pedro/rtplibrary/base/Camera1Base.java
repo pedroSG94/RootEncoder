@@ -111,6 +111,10 @@ public abstract class Camera1Base
     recordController = new RecordController();
   }
 
+  public void setCameraCallbacks(Camera1ApiManager.CameraCallbacks callbacks) {
+    cameraManager.setCameraCallbacks(callbacks);
+  }
+
   /**
    * Set an audio effect modifying microphone's PCM buffer.
    */

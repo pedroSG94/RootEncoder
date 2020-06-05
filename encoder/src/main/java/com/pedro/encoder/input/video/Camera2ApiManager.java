@@ -362,8 +362,8 @@ public class Camera2ApiManager extends CameraDevice.StateCallback {
     }
   }
 
-  public void setCameraCallbacks(CameraCallbacks cameracallbacks) {
-    this.cameraCallbacks = cameracallbacks;
+  public void setCameraCallbacks(CameraCallbacks cameraCallbacks) {
+    this.cameraCallbacks = cameraCallbacks;
   }
 
   private void prepareFaceDetectionCallback() {
