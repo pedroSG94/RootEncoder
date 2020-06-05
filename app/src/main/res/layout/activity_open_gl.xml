@@ -10,7 +10,7 @@
       android:layout_height="match_parent"
       android:id="@+id/surfaceView"
       app:keepAspectRatio="true"
-      app:aspectRatioMode="fill"
+      app:aspectRatioMode="adjust"
       app:AAEnabled="false"
       app:numFilters="1"
       app:isFlipHorizontal="false"
