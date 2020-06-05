@@ -19,7 +19,7 @@ public class SizeCalculator {
           GLES20.glViewport((previewWidth - realWidth) / 2, 0, realWidth, previewHeight);
         } else { //fill
           int realHeight = previewWidth * streamHeight / streamWidth;
-          int yCrop = (realHeight - previewWidth) / 2;
+          int yCrop = Math.abs((realHeight - previewWidth) / 2);
           GLES20.glViewport(0, -yCrop, previewWidth, realHeight);
         }
       } else { //portrait
