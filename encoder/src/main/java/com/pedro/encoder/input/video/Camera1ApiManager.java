@@ -62,10 +62,6 @@ public class Camera1ApiManager implements Camera.PreviewCallback, Camera.FaceDet
     void onGetFaces(Camera.Face[] faces);
   }
 
-  public interface CameraCallbacks {
-    void onCameraChanged(boolean isFrontCamera);
-  }
-
   private FaceDetectorCallback faceDetectorCallback;
 
   public Camera1ApiManager(SurfaceView surfaceView, GetCameraData getCameraData) {

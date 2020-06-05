@@ -74,10 +74,6 @@ public class Camera2ApiManager extends CameraDevice.StateCallback {
     void onGetFaces(Face[] faces);
   }
 
-  public interface CameraCallbacks {
-    void onCameraChanged(boolean isFrontCamera);
-  }
-
   private FaceDetectorCallback faceDetectorCallback;
   private boolean faceDetectionEnabled = false;
   private int faceDetectionMode;

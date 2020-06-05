@@ -99,7 +99,7 @@ public class LightOpenGlView extends OpenGlViewBase {
             surfaceManagerEncoder.makeCurrent();
             if (muteVideo) {
               simpleCameraRender.drawFrame(0, 0, false, aspectRatioMode, streamRotation, false,
-                      isStreamVerticalFlip, isStreamHorizontalFlip);
+                  isStreamVerticalFlip, isStreamHorizontalFlip);
             } else {
               simpleCameraRender.drawFrame(encoderWidth, encoderHeight, false, aspectRatioMode,
                   streamRotation, false, isStreamVerticalFlip, isStreamHorizontalFlip);

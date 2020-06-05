@@ -84,7 +84,7 @@ public interface GlInterface {
   void setIsStreamHorizontalFlip(boolean flip);
 
   /**
-   * When false, flips only the stream vertically
+   * When true, flips only the stream vertically
    */
   void setIsStreamVerticalFlip(boolean flip);
 

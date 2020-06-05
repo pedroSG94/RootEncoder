@@ -214,7 +214,7 @@ public class OffScreenGlThread
               surfaceManagerEncoder.makeCurrent();
               if (muteVideo) {
                 textureManager.drawScreen(0, 0, false, 0, streamRotation, false,
-                        isStreamVerticalFlip, isStreamHorizontalFlip);
+                    isStreamVerticalFlip, isStreamHorizontalFlip);
               } else {
                 textureManager.drawScreen(encoderWidth, encoderHeight, false, 0, streamRotation,
                     false, isStreamVerticalFlip, isStreamHorizontalFlip);

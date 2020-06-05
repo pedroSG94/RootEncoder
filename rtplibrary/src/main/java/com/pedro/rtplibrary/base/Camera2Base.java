@@ -18,6 +18,7 @@ import com.pedro.encoder.input.audio.CustomAudioEffect;
 import com.pedro.encoder.input.audio.GetMicrophoneData;
 import com.pedro.encoder.input.audio.MicrophoneManager;
 import com.pedro.encoder.input.video.Camera2ApiManager;
+import com.pedro.encoder.input.video.CameraCallbacks;
 import com.pedro.encoder.input.video.CameraHelper;
 import com.pedro.encoder.input.video.CameraOpenException;
 import com.pedro.encoder.utils.CodecUtil;
@@ -108,7 +109,7 @@ public abstract class Camera2Base implements GetAacData, GetVideoData, GetMicrop
     recordController = new RecordController();
   }
 
-  public void setCameraCallbacks(Camera2ApiManager.CameraCallbacks callbacks) {
+  public void setCameraCallbacks(CameraCallbacks callbacks) {
     cameraManager.setCameraCallbacks(callbacks);
   }
 

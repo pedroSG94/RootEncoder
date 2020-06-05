@@ -62,8 +62,6 @@ import com.pedro.encoder.input.gl.render.filters.object.GifObjectFilterRender;
 import com.pedro.encoder.input.gl.render.filters.object.ImageObjectFilterRender;
 import com.pedro.encoder.input.gl.render.filters.object.SurfaceFilterRender;
 import com.pedro.encoder.input.gl.render.filters.object.TextObjectFilterRender;
-import com.pedro.encoder.input.video.Camera1ApiManager;
-import com.pedro.encoder.input.video.Camera2ApiManager;
 import com.pedro.encoder.input.video.CameraOpenException;
 import com.pedro.encoder.utils.gl.TranslateTo;
 import com.pedro.rtplibrary.rtmp.RtmpCamera1;
@@ -81,7 +79,7 @@ import net.ossrs.rtmp.ConnectCheckerRtmp;
  * {@link com.pedro.rtplibrary.base.Camera1Base}
  * {@link com.pedro.rtplibrary.rtmp.RtmpCamera1}
  */
-@RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
+@RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
 public class OpenGlRtmpActivity extends AppCompatActivity
     implements ConnectCheckerRtmp, View.OnClickListener, SurfaceHolder.Callback,
     View.OnTouchListener {
@@ -114,13 +112,6 @@ public class OpenGlRtmpActivity extends AppCompatActivity
     rtmpCamera1 = new RtmpCamera1(openGlView, this);
     openGlView.getHolder().addCallback(this);
     openGlView.setOnTouchListener(this);
-    rtmpCamera1.setCameraCallbacks(new Camera1ApiManager.CameraCallbacks() {
-      @Override
-      public void onCameraChanged(boolean isFrontCamera) {
-        // Note it's gonna flip front camera on the stream!
-        rtmpCamera1.getGlInterface().setIsStreamHorizontalFlip(isFrontCamera);
-      }
-    });
   }
 
   @Override
