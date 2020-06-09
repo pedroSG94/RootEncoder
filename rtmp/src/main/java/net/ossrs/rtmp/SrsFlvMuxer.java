@@ -10,6 +10,9 @@ import com.github.faucamp.simplertmp.RtmpPublisher;
 
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
@@ -263,12 +266,17 @@ public class SrsFlvMuxer {
       mAudioAllocator.release(frame.flvTag);
       mAudioFramesSent++;
     }
+    if (frame.is_audio()) {
+      Log.d("lol", "ts: " + frame.dts + " audio");
+    } else {
+      Log.d("lol", "ts: " + frame.dts + " video");
+    }
   }
 
   /**
    * start to the remote SRS for remux.
    */
-  public void start(final String rtmpUrl) {
+  public void start2(final String rtmpUrl) {
     worker = new Thread(new Runnable() {
       @Override
       public void run() {
@@ -295,6 +303,67 @@ public class SrsFlvMuxer {
                 mVideoSequenceHeader = frame;
               }
               sendFlvTag(frame);
+            }
+          } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+          }
+        }
+      }
+    });
+    worker.start();
+  }
+
+
+  private SrsFlvFrame pivotFrame;
+  private List<SrsFlvFrame> framesToSend = new ArrayList<>();
+
+  public void start(final String rtmpUrl) {
+    pivotFrame = null;
+    framesToSend.clear();
+    worker = new Thread(new Runnable() {
+      @Override
+      public void run() {
+        android.os.Process.setThreadPriority(Process.THREAD_PRIORITY_MORE_FAVORABLE);
+        if (!connect(rtmpUrl)) {
+          return;
+        }
+        reTries = numRetry;
+        connectCheckerRtmp.onConnectionSuccessRtmp();
+        while (!Thread.interrupted()) {
+          try {
+            SrsFlvFrame audioFrame = mFlvAudioTagCache.peek();
+            SrsFlvFrame videoFrame = mFlvVideoTagCache.peek();
+
+            if (pivotFrame == null && audioFrame != null && videoFrame != null) {
+              if (audioFrame.dts < videoFrame.dts) {
+                pivotFrame = audioFrame;
+              } else {
+                pivotFrame = videoFrame;
+              }
+            }
+
+            if (audioFrame != null && audioFrame.dts > pivotFrame.dts && videoFrame != null && videoFrame.dts > pivotFrame.dts) {
+              Collections.sort(framesToSend, new Comparator<SrsFlvFrame>() {
+                @Override
+                public int compare(SrsFlvFrame o1, SrsFlvFrame o2) {
+                  return (o1.dts < o2.dts) ? -1 : ((o1.dts == o2.dts) ? 0 : 1);
+                }
+              });
+              for (SrsFlvFrame srsFlvFrame : framesToSend) {
+                sendFlvTag(srsFlvFrame);
+              }
+              framesToSend.clear();
+              pivotFrame = null;
+            }
+
+            if (pivotFrame != null && audioFrame != null && audioFrame.dts <= pivotFrame.dts) {
+              framesToSend.add(audioFrame);
+              mFlvAudioTagCache.poll(1, TimeUnit.MILLISECONDS);
+            }
+
+            if (pivotFrame != null && videoFrame != null && videoFrame.dts <= pivotFrame.dts) {
+              framesToSend.add(videoFrame);
+              mFlvVideoTagCache.poll(1, TimeUnit.MILLISECONDS);
             }
           } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
@@ -1036,6 +1105,7 @@ public class SrsFlvMuxer {
         } else {
           mFlvAudioTagCache.add(frame);
         }
+        //framesQueue.add(frame);
       } catch (IllegalStateException e) {
         Log.i(TAG, "frame discarded");
         if (frame.is_video()) {
