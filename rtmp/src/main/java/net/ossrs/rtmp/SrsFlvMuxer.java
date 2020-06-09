@@ -10,9 +10,9 @@ import com.github.faucamp.simplertmp.RtmpPublisher;
 
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Comparator;
-import java.util.List;
+import java.util.SortedSet;
+import java.util.TreeSet;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
@@ -315,7 +315,12 @@ public class SrsFlvMuxer {
 
 
   private SrsFlvFrame pivotFrame;
-  private List<SrsFlvFrame> framesToSend = new ArrayList<>();
+  private SortedSet<SrsFlvFrame> framesToSend = new TreeSet<>(new Comparator<SrsFlvFrame>() {
+    @Override
+    public int compare(SrsFlvFrame o1, SrsFlvFrame o2) {
+      return Integer.valueOf(o1.dts).compareTo(Integer.valueOf(o2.dts));
+    }
+  });
 
   public void start(final String rtmpUrl) {
     pivotFrame = null;
@@ -342,13 +347,8 @@ public class SrsFlvMuxer {
               }
             }
 
-            if (audioFrame != null && audioFrame.dts > pivotFrame.dts && videoFrame != null && videoFrame.dts > pivotFrame.dts) {
-              Collections.sort(framesToSend, new Comparator<SrsFlvFrame>() {
-                @Override
-                public int compare(SrsFlvFrame o1, SrsFlvFrame o2) {
-                  return (o1.dts < o2.dts) ? -1 : ((o1.dts == o2.dts) ? 0 : 1);
-                }
-              });
+            if (pivotFrame != null && audioFrame != null && audioFrame.dts > pivotFrame.dts &&
+                    videoFrame != null && videoFrame.dts > pivotFrame.dts) {
               for (SrsFlvFrame srsFlvFrame : framesToSend) {
                 sendFlvTag(srsFlvFrame);
               }
