@@ -64,8 +64,6 @@ public class SrsFlvMuxer {
   private Thread worker;
   private SrsFlv flv = new SrsFlv();
   private boolean needToFindKeyFrame = true;
-  private SrsFlvFrame mVideoSequenceHeader;
-  private SrsFlvFrame mAudioSequenceHeader;
   private SrsAllocator mVideoAllocator = new SrsAllocator(VIDEO_ALLOC_SIZE);
   private SrsAllocator mAudioAllocator = new SrsAllocator(AUDIO_ALLOC_SIZE);
   private volatile BlockingQueue<SrsFlvFrame> mFlvVideoTagCache = new LinkedBlockingQueue<>(30);
@@ -85,18 +83,22 @@ public class SrsFlvMuxer {
   private long mVideoFramesSent = 0;
   private long mDroppedAudioFrames = 0;
   private long mDroppedVideoFrames = 0;
+  private boolean isAudioOnly;
+  private boolean isVideoOnly;
 
   /**
    * constructor.
    */
-  public SrsFlvMuxer(ConnectCheckerRtmp connectCheckerRtmp, RtmpPublisher publisher) {
+  public SrsFlvMuxer(ConnectCheckerRtmp connectCheckerRtmp, RtmpPublisher publisher, boolean isAudioOnly, boolean isVideoOnly) {
     this.connectCheckerRtmp = connectCheckerRtmp;
     this.publisher = publisher;
+    this.isAudioOnly = isAudioOnly;
+    this.isVideoOnly = isVideoOnly;
     handler = new Handler(Looper.getMainLooper());
   }
 
   public SrsFlvMuxer(ConnectCheckerRtmp connectCheckerRtmp) {
-    this(connectCheckerRtmp, new DefaultRtmpPublisher(connectCheckerRtmp));
+    this(connectCheckerRtmp, new DefaultRtmpPublisher(connectCheckerRtmp), false, false);
   }
 
   public void setProfileIop(byte profileIop) {
@@ -196,8 +198,6 @@ public class SrsFlvMuxer {
       // Ignore illegal state.
     }
     connected = false;
-    mVideoSequenceHeader = null;
-    mAudioSequenceHeader = null;
 
     if (connectChecker != null) {
       reTries = 0;
@@ -241,8 +241,6 @@ public class SrsFlvMuxer {
       if (publisher.connect(url)) {
         connected = publisher.publish("live");
       }
-      mVideoSequenceHeader = null;
-      mAudioSequenceHeader = null;
     }
     return connected;
   }
@@ -266,55 +264,15 @@ public class SrsFlvMuxer {
       mAudioAllocator.release(frame.flvTag);
       mAudioFramesSent++;
     }
-    if (frame.is_audio()) {
+    if (frame.is_audio()) { // TODO remove
       Log.d("lol", "ts: " + frame.dts + " audio");
     } else {
       Log.d("lol", "ts: " + frame.dts + " video");
     }
   }
 
-  /**
-   * start to the remote SRS for remux.
-   */
-  public void start2(final String rtmpUrl) {
-    worker = new Thread(new Runnable() {
-      @Override
-      public void run() {
-        android.os.Process.setThreadPriority(Process.THREAD_PRIORITY_MORE_FAVORABLE);
-        if (!connect(rtmpUrl)) {
-          return;
-        }
-        reTries = numRetry;
-        connectCheckerRtmp.onConnectionSuccessRtmp();
-        while (!Thread.interrupted()) {
-          try {
-            SrsFlvFrame frame = mFlvAudioTagCache.poll(1, TimeUnit.MILLISECONDS);
-            if (frame != null) {
-              if (frame.is_sequenceHeader()) {
-                mAudioSequenceHeader = frame;
-              }
-              sendFlvTag(frame);
-            }
-
-            frame = mFlvVideoTagCache.poll(1, TimeUnit.MILLISECONDS);
-            if (frame != null) {
-              // video
-              if (frame.is_sequenceHeader()) {
-                mVideoSequenceHeader = frame;
-              }
-              sendFlvTag(frame);
-            }
-          } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-          }
-        }
-      }
-    });
-    worker.start();
-  }
-
-
   private SrsFlvFrame pivotFrame;
+  // Collects frames to send and sort them by increasing dts
   private SortedSet<SrsFlvFrame> framesToSend = new TreeSet<>(new Comparator<SrsFlvFrame>() {
     @Override
     public int compare(SrsFlvFrame o1, SrsFlvFrame o2) {
@@ -322,6 +280,9 @@ public class SrsFlvMuxer {
     }
   });
 
+  /**
+   * start to the remote SRS for remux.
+   */
   public void start(final String rtmpUrl) {
     pivotFrame = null;
     framesToSend.clear();
@@ -336,34 +297,14 @@ public class SrsFlvMuxer {
         connectCheckerRtmp.onConnectionSuccessRtmp();
         while (!Thread.interrupted()) {
           try {
-            SrsFlvFrame audioFrame = mFlvAudioTagCache.peek();
-            SrsFlvFrame videoFrame = mFlvVideoTagCache.peek();
-
-            if (pivotFrame == null && audioFrame != null && videoFrame != null) {
-              if (audioFrame.dts < videoFrame.dts) {
-                pivotFrame = audioFrame;
-              } else {
-                pivotFrame = videoFrame;
-              }
-            }
-
-            if (pivotFrame != null && audioFrame != null && audioFrame.dts > pivotFrame.dts &&
-                    videoFrame != null && videoFrame.dts > pivotFrame.dts) {
-              for (SrsFlvFrame srsFlvFrame : framesToSend) {
-                sendFlvTag(srsFlvFrame);
-              }
-              framesToSend.clear();
-              pivotFrame = null;
-            }
-
-            if (pivotFrame != null && audioFrame != null && audioFrame.dts <= pivotFrame.dts) {
-              framesToSend.add(audioFrame);
-              mFlvAudioTagCache.poll(1, TimeUnit.MILLISECONDS);
-            }
-
-            if (pivotFrame != null && videoFrame != null && videoFrame.dts <= pivotFrame.dts) {
-              framesToSend.add(videoFrame);
-              mFlvVideoTagCache.poll(1, TimeUnit.MILLISECONDS);
+            if (isAudioOnly) {
+              SrsFlvFrame frame = mFlvAudioTagCache.poll(1, TimeUnit.MILLISECONDS);
+              if (frame != null) sendFlvTag(frame);
+            } else if (isVideoOnly) {
+              SrsFlvFrame frame = mFlvVideoTagCache.poll(1, TimeUnit.MILLISECONDS);
+              if (frame != null) sendFlvTag(frame);
+            } else {
+              sendFramesWithIncreasingTimestamp();
             }
           } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
@@ -372,6 +313,43 @@ public class SrsFlvMuxer {
       }
     });
     worker.start();
+  }
+
+  /**
+   * Sends frames with increasing dts order regardless of type (audio/video/metadata/etc.)
+   * according to Akamai docs https://learn.akamai.com/en-us/webhelp/media-services-live/media-services-live-encoder-compatibility-testing-and-qualification-guide-v4.0/GUID-F941C88B-9128-4BF4-A81B-C2E5CFD35BBF.html
+   * Such order is required by some servers like Dacast.
+   */
+  private void sendFramesWithIncreasingTimestamp() throws InterruptedException {
+    SrsFlvFrame audioFrame = mFlvAudioTagCache.peek();
+    SrsFlvFrame videoFrame = mFlvVideoTagCache.peek();
+
+    if (pivotFrame == null && audioFrame != null && videoFrame != null) {
+      if (audioFrame.dts < videoFrame.dts) {
+        pivotFrame = audioFrame;
+      } else {
+        pivotFrame = videoFrame;
+      }
+    }
+
+    if (pivotFrame != null && audioFrame != null && audioFrame.dts > pivotFrame.dts &&
+            videoFrame != null && videoFrame.dts > pivotFrame.dts) {
+      for (SrsFlvFrame srsFlvFrame : framesToSend) {
+        sendFlvTag(srsFlvFrame);
+      }
+      framesToSend.clear();
+      pivotFrame = null;
+    }
+
+    if (pivotFrame != null && audioFrame != null && audioFrame.dts <= pivotFrame.dts) {
+      framesToSend.add(audioFrame);
+      mFlvAudioTagCache.poll(1, TimeUnit.MILLISECONDS);
+    }
+
+    if (pivotFrame != null && videoFrame != null && videoFrame.dts <= pivotFrame.dts) {
+      framesToSend.add(videoFrame);
+      mFlvVideoTagCache.poll(1, TimeUnit.MILLISECONDS);
+    }
   }
 
   public void stop() {
@@ -1105,7 +1083,6 @@ public class SrsFlvMuxer {
         } else {
           mFlvAudioTagCache.add(frame);
         }
-        //framesQueue.add(frame);
       } catch (IllegalStateException e) {
         Log.i(TAG, "frame discarded");
         if (frame.is_video()) {

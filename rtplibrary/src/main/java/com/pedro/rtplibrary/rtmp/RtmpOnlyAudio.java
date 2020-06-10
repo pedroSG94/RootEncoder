@@ -1,6 +1,8 @@
 package com.pedro.rtplibrary.rtmp;
 
 import android.media.MediaCodec;
+
+import com.github.faucamp.simplertmp.DefaultRtmpPublisher;
 import com.pedro.rtplibrary.base.OnlyAudioBase;
 import java.nio.ByteBuffer;
 import net.ossrs.rtmp.ConnectCheckerRtmp;
@@ -18,7 +20,7 @@ public class RtmpOnlyAudio extends OnlyAudioBase {
 
   public RtmpOnlyAudio(ConnectCheckerRtmp connectChecker) {
     super();
-    srsFlvMuxer = new SrsFlvMuxer(connectChecker);
+    srsFlvMuxer = new SrsFlvMuxer(connectChecker, new DefaultRtmpPublisher(connectChecker), true, false);
   }
 
   @Override
