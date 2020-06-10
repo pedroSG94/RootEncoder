@@ -82,6 +82,7 @@ public class SrsFlvMuxer {
   private long mVideoFramesSent = 0;
   private long mDroppedAudioFrames = 0;
   private long mDroppedVideoFrames = 0;
+  private long startTs = 0;
 
   /**
    * constructor.
@@ -269,6 +270,7 @@ public class SrsFlvMuxer {
    * start to the remote SRS for remux.
    */
   public void start(final String rtmpUrl) {
+    startTs = System.nanoTime() / 1000;
     worker = new Thread(new Runnable() {
       @Override
       public void run() {
@@ -313,6 +315,7 @@ public class SrsFlvMuxer {
    * stop the muxer, disconnect RTMP connection.
    */
   private void stop(final ConnectCheckerRtmp connectCheckerRtmp) {
+    startTs = 0;
     handler.removeCallbacks(runnable);
     if (worker != null) {
       worker.interrupt();
@@ -1012,7 +1015,7 @@ public class SrsFlvMuxer {
       SrsFlvFrame frame = new SrsFlvFrame();
       frame.flvTag = tag;
       frame.type = type;
-      frame.dts = dts;
+      frame.dts = (int)((System.nanoTime() / 1000 - startTs) / 1000);
       frame.frame_type = frame_type;
       frame.avc_aac_type = avc_aac_type;
       if (frame.is_video()) {
