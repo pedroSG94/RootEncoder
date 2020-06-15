@@ -61,8 +61,6 @@ public class SrsFlvMuxer {
   private Thread worker;
   private SrsFlv flv = new SrsFlv();
   private boolean needToFindKeyFrame = true;
-  private SrsFlvFrame mVideoSequenceHeader;
-  private SrsFlvFrame mAudioSequenceHeader;
   private SrsAllocator mVideoAllocator = new SrsAllocator(VIDEO_ALLOC_SIZE);
   private SrsAllocator mAudioAllocator = new SrsAllocator(AUDIO_ALLOC_SIZE);
   private volatile BlockingQueue<SrsFlvFrame> mFlvVideoTagCache = new LinkedBlockingQueue<>(30);
@@ -77,6 +75,7 @@ public class SrsFlvMuxer {
   private int reTries;
   private Handler handler;
   private Runnable runnable;
+  private boolean akamaiTs = false;
 
   private long mAudioFramesSent = 0;
   private long mVideoFramesSent = 0;
@@ -112,6 +111,10 @@ public class SrsFlvMuxer {
   public void setIsStereo(boolean isStereo) {
     int channel = (isStereo) ? 2 : 1;
     flv.setAchannel(channel);
+  }
+
+  public void forceAkamaiTs(boolean enabled) {
+    akamaiTs = enabled;
   }
 
   public void setAuthorization(String user, String password) {
@@ -194,8 +197,6 @@ public class SrsFlvMuxer {
       // Ignore illegal state.
     }
     connected = false;
-    mVideoSequenceHeader = null;
-    mAudioSequenceHeader = null;
 
     if (connectChecker != null) {
       reTries = 0;
@@ -239,8 +240,6 @@ public class SrsFlvMuxer {
       if (publisher.connect(url)) {
         connected = publisher.publish("live");
       }
-      mVideoSequenceHeader = null;
-      mAudioSequenceHeader = null;
     }
     return connected;
   }
@@ -250,17 +249,18 @@ public class SrsFlvMuxer {
       return;
     }
 
+    int dts = akamaiTs ? (int)((System.nanoTime() / 1000 - startTs) / 1000) : frame.dts;
     if (frame.is_video()) {
       if (frame.is_keyframe()) {
         Log.i(TAG,
-            String.format("worker: send frame type=%d, dts=%d, size=%dB", frame.type, frame.dts,
+            String.format("worker: send frame type=%d, dts=%d, size=%dB", frame.type, dts,
                 frame.flvTag.array().length));
       }
-      publisher.publishVideoData(frame.flvTag.array(), frame.flvTag.size(), frame.dts);
+      publisher.publishVideoData(frame.flvTag.array(), frame.flvTag.size(), dts);
       mVideoAllocator.release(frame.flvTag);
       mVideoFramesSent++;
     } else if (frame.is_audio()) {
-      publisher.publishAudioData(frame.flvTag.array(), frame.flvTag.size(), frame.dts);
+      publisher.publishAudioData(frame.flvTag.array(), frame.flvTag.size(), dts);
       mAudioAllocator.release(frame.flvTag);
       mAudioFramesSent++;
     }
@@ -284,18 +284,11 @@ public class SrsFlvMuxer {
           try {
             SrsFlvFrame frame = mFlvAudioTagCache.poll(1, TimeUnit.MILLISECONDS);
             if (frame != null) {
-              if (frame.is_sequenceHeader()) {
-                mAudioSequenceHeader = frame;
-              }
               sendFlvTag(frame);
             }
 
             frame = mFlvVideoTagCache.poll(1, TimeUnit.MILLISECONDS);
             if (frame != null) {
-              // video
-              if (frame.is_sequenceHeader()) {
-                mVideoSequenceHeader = frame;
-              }
               sendFlvTag(frame);
             }
           } catch (InterruptedException e) {
@@ -1015,7 +1008,7 @@ public class SrsFlvMuxer {
       SrsFlvFrame frame = new SrsFlvFrame();
       frame.flvTag = tag;
       frame.type = type;
-      frame.dts = (int)((System.nanoTime() / 1000 - startTs) / 1000);
+      frame.dts = dts;
       frame.frame_type = frame_type;
       frame.avc_aac_type = avc_aac_type;
       if (frame.is_video()) {
