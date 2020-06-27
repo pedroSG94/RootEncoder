@@ -1,8 +1,10 @@
 package com.pedro.encoder.utils.gl;
 
+import android.graphics.Point;
 import android.graphics.PointF;
 import android.opengl.GLES20;
 import android.opengl.Matrix;
+import android.util.Pair;
 
 /**
  * Created by pedro on 22/03/19.
@@ -12,28 +14,35 @@ public class SizeCalculator {
 
   public static void calculateViewPort(boolean keepAspectRatio, int mode, int previewWidth,
       int previewHeight, int streamWidth, int streamHeight) {
+    Pair<Point, Point> pair = getViewport(keepAspectRatio, mode, previewWidth, previewHeight, streamWidth, streamHeight);
+    GLES20.glViewport(pair.first.x, pair.first.y, pair.second.x, pair.second.y);
+  }
+
+  public static Pair<Point, Point> getViewport(boolean keepAspectRatio, int mode, int previewWidth,
+      int previewHeight, int streamWidth, int streamHeight) {
     if (keepAspectRatio) {
       if (previewWidth > previewHeight) { //landscape
         if (mode == 0 || mode == 2) { //adjust
           int realWidth = previewHeight * streamWidth / streamHeight;
-          GLES20.glViewport((previewWidth - realWidth) / 2, 0, realWidth, previewHeight);
+          return new Pair<>(new Point((previewWidth - realWidth) / 2, 0),
+              new Point(realWidth, previewHeight));
         } else { //fill
           int realHeight = previewWidth * streamHeight / streamWidth;
           int yCrop = Math.abs((realHeight - previewWidth) / 2);
-          GLES20.glViewport(0, -yCrop, previewWidth, realHeight);
+          return new Pair<>(new Point(0, -yCrop), new Point(previewWidth, realHeight));
         }
       } else { //portrait
         if (mode == 0 || mode == 2) { //adjust
           int realHeight = previewWidth * streamHeight / streamWidth;
-          GLES20.glViewport(0, (previewHeight - realHeight) / 2, previewWidth, realHeight);
+          return new Pair<>(new Point(0, (previewHeight - realHeight) / 2), new Point(previewWidth, realHeight));
         } else { //fill
           int realWidth = previewHeight * streamWidth / streamHeight;
           int xCrop = Math.abs((realWidth - previewWidth) / 2);
-          GLES20.glViewport(-xCrop, 0, realWidth, previewHeight);
+          return new Pair<>(new Point(-xCrop, 0), new Point(realWidth, previewHeight));
         }
       }
     } else {
-      GLES20.glViewport(0, 0, previewWidth, previewHeight);
+      return new Pair<>(new Point(0, 0), new Point(previewWidth, previewHeight));
     }
   }
 

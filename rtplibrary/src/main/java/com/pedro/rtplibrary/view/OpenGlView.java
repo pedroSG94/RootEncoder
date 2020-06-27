@@ -131,7 +131,8 @@ public class OpenGlView extends OpenGlViewBase {
               true, false, false);
           if (takePhotoCallback != null) {
             takePhotoCallback.onTakePhoto(
-                GlUtil.getBitmap(previewWidth, previewHeight, encoderWidth, encoderHeight));
+                GlUtil.getBitmap(keepAspectRatio, aspectRatioMode, previewWidth, previewHeight,
+                    encoderWidth, encoderHeight));
             takePhotoCallback = null;
           }
           surfaceManager.swapBuffer();

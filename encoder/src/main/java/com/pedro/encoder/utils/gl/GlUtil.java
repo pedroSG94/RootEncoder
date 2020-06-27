@@ -4,10 +4,12 @@ import android.content.Context;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.Matrix;
+import android.graphics.Point;
 import android.opengl.EGL14;
 import android.opengl.GLES11Ext;
 import android.opengl.GLES20;
 import android.os.Build;
+import android.util.Pair;
 import androidx.annotation.RequiresApi;
 import android.util.Log;
 import java.io.ByteArrayOutputStream;
@@ -135,20 +137,23 @@ public class GlUtil {
     }
   }
 
-  public static Bitmap getBitmap(int originalWidth, int originalHeight, int finalWidth,
-      int finalHeight) {
+  public static Bitmap getBitmap(boolean keepAspectRatio, int mode, int previewWidth,
+      int previewHeight, int streamWidth, int streamHeight) {
     //Get opengl buffer
-    ByteBuffer buffer = ByteBuffer.allocateDirect(originalWidth * originalHeight * 4);
-    GLES20.glReadPixels(0, 0, originalWidth, originalHeight, GLES20.GL_RGBA,
+    Pair<Point, Point> pair =
+        SizeCalculator.getViewport(keepAspectRatio, mode, previewWidth, previewHeight, streamWidth,
+            streamHeight);
+    ByteBuffer buffer = ByteBuffer.allocateDirect(previewWidth * previewHeight * 4);
+    GLES20.glReadPixels(pair.first.x, pair.first.y, pair.second.x, pair.second.y, GLES20.GL_RGBA,
         GLES20.GL_UNSIGNED_BYTE, buffer);
     //Create bitmap preview resolution
-    Bitmap bitmap = Bitmap.createBitmap(originalWidth, originalHeight, Bitmap.Config.ARGB_8888);
+    Bitmap bitmap = Bitmap.createBitmap(previewWidth, previewHeight, Bitmap.Config.ARGB_8888);
     //Set buffer to bitmap
     bitmap.copyPixelsFromBuffer(buffer);
     //Scale to stream resolution
-    bitmap = Bitmap.createScaledBitmap(bitmap, finalWidth, finalHeight, false);
+    bitmap = Bitmap.createScaledBitmap(bitmap, streamWidth, streamHeight, false);
     //Flip vertical
-    return flipVerticalBitmap(bitmap, finalWidth, finalHeight);
+    return flipVerticalBitmap(bitmap, streamWidth, streamHeight);
   }
 
   private static Bitmap flipVerticalBitmap(Bitmap bitmap, int width, int height) {

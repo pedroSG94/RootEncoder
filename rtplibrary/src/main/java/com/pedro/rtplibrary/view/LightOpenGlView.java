@@ -89,7 +89,8 @@ public class LightOpenGlView extends OpenGlViewBase {
             0, true, isStreamVerticalFlip, isStreamHorizontalFlip);
         if (takePhotoCallback != null) {
           takePhotoCallback.onTakePhoto(
-              GlUtil.getBitmap(previewWidth, previewHeight, encoderWidth, encoderHeight));
+              GlUtil.getBitmap(keepAspectRatio, aspectRatioMode, previewWidth, previewHeight,
+                  encoderWidth, encoderHeight));
           takePhotoCallback = null;
         }
         surfaceManager.swapBuffer();

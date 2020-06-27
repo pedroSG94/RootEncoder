@@ -222,7 +222,7 @@ public class OffScreenGlThread
               //Necessary use surfaceManagerEncoder because preview manager size in background is 1x1.
               if (takePhotoCallback != null) {
                 takePhotoCallback.onTakePhoto(
-                    GlUtil.getBitmap(encoderWidth, encoderHeight, encoderWidth, encoderHeight));
+                    GlUtil.getBitmap(false, 0, encoderWidth, encoderHeight, encoderWidth, encoderHeight));
                 takePhotoCallback = null;
               }
               surfaceManagerEncoder.swapBuffer();
