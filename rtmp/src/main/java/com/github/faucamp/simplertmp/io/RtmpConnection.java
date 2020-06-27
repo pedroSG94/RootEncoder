@@ -99,6 +99,22 @@ public class RtmpConnection implements RtmpPublisher {
     handshake.readS2(in);
   }
 
+  private String getAppName(String app, String name) {
+    if (!name.contains("/")) {
+      return app;
+    } else {
+      return app + "/" + name.substring(0, name.indexOf("/"));
+    }
+  }
+
+  private String getStreamName(String name) {
+    if (!name.contains("/")) {
+      return name;
+    } else {
+      return name.substring(name.indexOf("/") + 1);
+    }
+  }
+
   @Override
   public boolean connect(String url) {
     Matcher rtmpMatcher = rtmpUrlPattern.matcher(url);
@@ -115,8 +131,8 @@ public class RtmpConnection implements RtmpPublisher {
     host = rtmpMatcher.group(1);
     String portStr = rtmpMatcher.group(2);
     port = portStr != null ? Integer.parseInt(portStr) : 1935;
-    appName = rtmpMatcher.group(3);
-    streamName = rtmpMatcher.group(4);
+    appName = getAppName(rtmpMatcher.group(3), rtmpMatcher.group(4));
+    streamName = getStreamName(rtmpMatcher.group(4));
     tcUrl = rtmpMatcher.group(0).substring(0, rtmpMatcher.group(0).length() - streamName.length());
 
     // socket connection
