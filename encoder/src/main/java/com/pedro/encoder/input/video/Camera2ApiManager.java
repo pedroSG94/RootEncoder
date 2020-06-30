@@ -114,7 +114,7 @@ public class Camera2ApiManager extends CameraDevice.StateCallback {
       final List<Surface> listSurfaces = new ArrayList<>();
       Surface preview = addPreviewSurface();
       if (preview != null) listSurfaces.add(preview);
-      if (surfaceEncoder != null) listSurfaces.add(surfaceEncoder);
+      if (surfaceEncoder != preview && surfaceEncoder != null) listSurfaces.add(surfaceEncoder);
 
       cameraDevice.createCaptureSession(listSurfaces, new CameraCaptureSession.StateCallback() {
         @Override
