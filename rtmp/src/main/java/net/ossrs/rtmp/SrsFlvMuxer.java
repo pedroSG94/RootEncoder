@@ -134,8 +134,9 @@ public class SrsFlvMuxer {
     }
   }
 
-  private BlockingQueue<SrsFlvFrame> resizeFlvTagCacheInternal(BlockingQueue<SrsFlvFrame> cache, int newSize) {
-    if(newSize < cache.size() - cache.remainingCapacity()) {
+  private BlockingQueue<SrsFlvFrame> resizeFlvTagCacheInternal(BlockingQueue<SrsFlvFrame> cache,
+      int newSize) {
+    if (newSize < cache.size() - cache.remainingCapacity()) {
       throw new RuntimeException("Can't fit current cache inside new cache size");
     }
 
@@ -249,12 +250,11 @@ public class SrsFlvMuxer {
       return;
     }
 
-    int dts = akamaiTs ? (int)((System.nanoTime() / 1000 - startTs) / 1000) : frame.dts;
+    int dts = akamaiTs ? (int) ((System.nanoTime() / 1000 - startTs) / 1000) : frame.dts;
     if (frame.is_video()) {
       if (frame.is_keyframe()) {
-        Log.i(TAG,
-            String.format("worker: send frame type=%d, dts=%d, size=%dB", frame.type, dts,
-                frame.flvTag.array().length));
+        Log.i(TAG, String.format("worker: send frame type=%d, dts=%d, size=%dB", frame.type, dts,
+            frame.flvTag.array().length));
       }
       publisher.publishVideoData(frame.flvTag.array(), frame.flvTag.size(), dts);
       mVideoAllocator.release(frame.flvTag);
@@ -726,17 +726,16 @@ public class SrsFlvMuxer {
             isOnlyChkHeader ? searchStartcode(bb, size) : searchAnnexb(bb, size);
         // tbbsc.nb_start_code always 4 , after 00 00 00 01
         if (!tbbsc.match || tbbsc.nb_start_code < 3) {
-          Log.e(TAG, "annexb not match.");
+          Log.i(TAG, "annexb not match, Trying without it. Maybe isn't h264 buffer");
         } else {
           // the start codes.
           for (int i = 0; i < tbbsc.nb_start_code; i++) {
             bb.get();
           }
-
-          // find out the frame size.
-          tbb.data = bb.slice();
-          tbb.size = size - bb.position();
         }
+        // find out the frame size.
+        tbb.data = bb.slice();
+        tbb.size = size - bb.position();
       }
       return tbb;
     }
@@ -1027,7 +1026,7 @@ public class SrsFlvMuxer {
 
     private void flvFrameCacheAdd(SrsFlvFrame frame) {
       try {
-        if(frame.is_video()) {
+        if (frame.is_video()) {
           mFlvVideoTagCache.add(frame);
         } else {
           mFlvAudioTagCache.add(frame);
