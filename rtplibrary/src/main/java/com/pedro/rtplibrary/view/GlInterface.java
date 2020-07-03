@@ -120,4 +120,11 @@ public interface GlInterface {
   void unMuteVideo();
 
   boolean isVideoMuted();
+
+  /**
+   * @param force render last frame.
+   * This is useful with Display mode to continue producing video frames.
+   * Not recommendable in others modes.
+   */
+  void setForceRender(boolean force);
 }

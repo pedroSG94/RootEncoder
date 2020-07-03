@@ -45,6 +45,7 @@ public abstract class OpenGlViewBase extends SurfaceView
   protected boolean muteVideo = false;
   protected boolean isStreamHorizontalFlip = false;
   protected boolean isStreamVerticalFlip = false;
+  protected boolean forceRender = false;
 
   public OpenGlViewBase(Context context) {
     super(context);
@@ -54,6 +55,11 @@ public abstract class OpenGlViewBase extends SurfaceView
   public OpenGlViewBase(Context context, AttributeSet attrs) {
     super(context, attrs);
     getHolder().addCallback(this);
+  }
+
+  @Override
+  public void setForceRender(boolean forceRender) {
+    this.forceRender = forceRender;
   }
 
   @Override

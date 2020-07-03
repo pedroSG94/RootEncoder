@@ -47,6 +47,7 @@ public class OffScreenGlThread
   private FpsLimiter fpsLimiter = new FpsLimiter();
   //used with camera
   private TakePhotoCallback takePhotoCallback;
+  private boolean forceRender = false;
 
   public OffScreenGlThread(Context context) {
     this.context = context;
@@ -57,6 +58,11 @@ public class OffScreenGlThread
     if (!initialized) textureManager = new ManagerRender();
     textureManager.setCameraFlip(false, false);
     initialized = true;
+  }
+
+  @Override
+  public void setForceRender(boolean forceRender) {
+    this.forceRender = forceRender;
   }
 
   @Override
@@ -201,7 +207,7 @@ public class OffScreenGlThread
     semaphore.release();
     try {
       while (running) {
-        if (frameAvailable) {
+        if (frameAvailable || forceRender) {
           frameAvailable = false;
           surfaceManager.makeCurrent();
           textureManager.updateFrame();
