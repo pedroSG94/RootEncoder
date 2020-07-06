@@ -688,6 +688,8 @@ public class RtmpConnection implements RtmpPublisher {
           synchronized (publishLock) {
             publishLock.notifyAll();
           }
+        } else if (code.equals("NetStream.Unpublish.Success")) {
+          connectCheckerRtmp.onConnectionFailedRtmp("Unpublish received");
         }
         break;
       default:
