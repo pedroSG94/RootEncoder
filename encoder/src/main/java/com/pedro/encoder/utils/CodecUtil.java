@@ -291,6 +291,7 @@ public class CodecUtil {
    * For now, none broken codec reported.
    */
   private static boolean isValid(String name) {
-    return true;
+    return (!name.equals("OMX.qcom.video.encoder.avc") &&
+            !name.equals("c2.qti.avc.encoder")) || !Build.MODEL.startsWith("Pixel 3");
   }
 }
