@@ -257,7 +257,6 @@ public class SrsFlvMuxer {
       } else {
         mVideoAllocator.release(frame.flvTag);
       }
-      mVideoAllocator.release(frame.flvTag);
       mVideoFramesSent++;
     } else if (frame.is_audio()) {
       publisher.publishAudioData(frame.flvTag.array(), frame.flvTag.size(), frame.dts);
