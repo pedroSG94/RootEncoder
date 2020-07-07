@@ -128,7 +128,7 @@ public abstract class DisplayBase implements GetAacData, GetVideoData, GetMicrop
   }
 
   public boolean prepareVideo(int width, int height, int fps, int bitrate, int rotation, int dpi) {
-    return prepareVideo(width, height, fps, bitrate, rotation, dpi, -1, -1, 2);
+    return prepareVideo(width, height, fps, bitrate, rotation, dpi, -1, -1, 1);
   }
 
   protected abstract void prepareAudioRtp(boolean isStereo, int sampleRate);

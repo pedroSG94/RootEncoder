@@ -277,6 +277,9 @@ public class SrsFlvMuxer {
         }
         reTries = numRetry;
         connectCheckerRtmp.onConnectionSuccessRtmp();
+        SrsFlvFrame lastKeyFrame = null;
+        long lastVideoFrameSentMs = 0;
+        long lastVideoFrameSentDts = 0;
         while (!Thread.interrupted()) {
           try {
             SrsFlvFrame frame = mFlvAudioTagCache.poll(1, TimeUnit.MILLISECONDS);
@@ -288,16 +291,38 @@ public class SrsFlvMuxer {
             }
 
             frame = mFlvVideoTagCache.poll(1, TimeUnit.MILLISECONDS);
-            if (frame != null) {
+            if (frame == null) {
+              if (lastKeyFrame != null) {
+                int diff = (int)(System.currentTimeMillis() - lastVideoFrameSentMs);
+                if (diff > 1000) {
+                  lastKeyFrame.dts = (int)(diff + lastVideoFrameSentDts);
+                  lastVideoFrameSentMs = System.currentTimeMillis();
+                  sendFlvTag(lastKeyFrame);
+                }
+              }
+            } else {
               // video
               if (frame.is_sequenceHeader()) {
                 mVideoSequenceHeader = frame;
               }
-              sendFlvTag(frame);
+              if (frame.is_video()) {
+                if (frame.is_keyframe()) {
+                  if (lastKeyFrame != null) {
+                    mVideoAllocator.release(lastKeyFrame.flvTag);
+                  }
+                  lastKeyFrame = frame;
+                }
+                lastVideoFrameSentDts = frame.dts;
+                lastVideoFrameSentMs = System.currentTimeMillis();
+                sendFlvTag(frame);
+              }
             }
           } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
           }
+        }
+        if (lastKeyFrame != null) {
+          mVideoAllocator.release(lastKeyFrame.flvTag);
         }
       }
     });
