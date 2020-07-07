@@ -249,12 +249,14 @@ public class SrsFlvMuxer {
     }
 
     if (frame.is_video()) {
+      publisher.publishVideoData(frame.flvTag.array(), frame.flvTag.size(), frame.dts);
       if (frame.is_keyframe()) {
         Log.i(TAG,
             String.format("worker: send frame type=%d, dts=%d, size=%dB", frame.type, frame.dts,
                 frame.flvTag.array().length));
+      } else {
+        mVideoAllocator.release(frame.flvTag);
       }
-      publisher.publishVideoData(frame.flvTag.array(), frame.flvTag.size(), frame.dts);
       mVideoAllocator.release(frame.flvTag);
       mVideoFramesSent++;
     } else if (frame.is_audio()) {
