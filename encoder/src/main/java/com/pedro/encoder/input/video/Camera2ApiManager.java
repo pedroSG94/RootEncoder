@@ -511,9 +511,14 @@ public class Camera2ApiManager extends CameraDevice.StateCallback {
       try {
         cameraCaptureSession.stopRepeating();
         surfaceEncoder = null;
-        CaptureRequest captureRequest = drawSurface(Collections.singletonList(addPreviewSurface()));
-        if (captureRequest != null) {
-          cameraCaptureSession.setRepeatingRequest(captureRequest, null, cameraHandler);
+        Surface preview = addPreviewSurface();
+        if (preview != null) {
+          CaptureRequest captureRequest = drawSurface(Collections.singletonList(preview));
+          if (captureRequest != null) {
+            cameraCaptureSession.setRepeatingRequest(captureRequest, null, cameraHandler);
+          }
+        } else {
+          Log.e(TAG, "preview surface is null");
         }
       } catch (CameraAccessException e) {
         Log.e(TAG, "Error", e);
