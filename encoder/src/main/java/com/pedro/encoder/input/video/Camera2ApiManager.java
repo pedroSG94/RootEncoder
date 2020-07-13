@@ -66,6 +66,7 @@ public class Camera2ApiManager extends CameraDevice.StateCallback {
   private float fingerSpacing = 0;
   private float zoomLevel = 1.0f;
   private boolean lanternEnable = false;
+  private boolean autoFocusEnabled = true;
   private boolean running = false;
   private CameraCallbacks cameraCallbacks;
 
@@ -311,6 +312,70 @@ public class Camera2ApiManager extends CameraDevice.StateCallback {
         }
       }
     }
+  }
+
+  public void enableAutoFocus() {
+    CameraCharacteristics characteristics = getCameraCharacteristics();
+    if (characteristics == null) return;
+    int[] supportedFocusModes =
+        characteristics.get(CameraCharacteristics.CONTROL_AF_AVAILABLE_MODES);
+    if (supportedFocusModes != null) {
+      if (builderInputSurface != null) {
+        try {
+          for (int mode : supportedFocusModes) {
+            if (mode == CaptureRequest.CONTROL_AF_MODE_CONTINUOUS_PICTURE) {
+              builderInputSurface.set(CaptureRequest.CONTROL_AF_MODE,
+                  CaptureRequest.CONTROL_AF_MODE_CONTINUOUS_PICTURE);
+              cameraCaptureSession.setRepeatingRequest(builderInputSurface.build(),
+                  faceDetectionEnabled ? cb : null, null);
+              autoFocusEnabled = true;
+              return;
+            }
+          }
+          for (int mode : supportedFocusModes) {
+            if (mode == CaptureRequest.CONTROL_AF_MODE_AUTO) {
+              builderInputSurface.set(CaptureRequest.CONTROL_AF_MODE,
+                  CaptureRequest.CONTROL_AF_MODE_AUTO);
+              cameraCaptureSession.setRepeatingRequest(builderInputSurface.build(),
+                  faceDetectionEnabled ? cb : null, null);
+              autoFocusEnabled = true;
+              return;
+            }
+          }
+        } catch (Exception e) {
+          Log.e(TAG, "Error", e);
+        }
+      }
+    }
+  }
+
+  public void disableAutoFocus() {
+    CameraCharacteristics characteristics = getCameraCharacteristics();
+    if (characteristics == null) return;
+    int[] supportedFocusModes =
+        characteristics.get(CameraCharacteristics.CONTROL_AF_AVAILABLE_MODES);
+    if (supportedFocusModes != null) {
+      if (builderInputSurface != null) {
+        for (int mode : supportedFocusModes) {
+          try {
+            if (mode == CaptureRequest.CONTROL_AF_MODE_OFF) {
+              builderInputSurface.set(CaptureRequest.CONTROL_AF_MODE,
+                  CaptureRequest.CONTROL_AF_MODE_OFF);
+              cameraCaptureSession.setRepeatingRequest(builderInputSurface.build(),
+                  faceDetectionEnabled ? cb : null, null);
+              autoFocusEnabled = false;
+              return;
+            }
+          } catch (Exception e) {
+            Log.e(TAG, "Error", e);
+          }
+        }
+      }
+    }
+  }
+
+  public boolean isAutoFocusEnabled() {
+    return autoFocusEnabled;
   }
 
   public void enableFaceDetection(FaceDetectorCallback faceDetectorCallback) {

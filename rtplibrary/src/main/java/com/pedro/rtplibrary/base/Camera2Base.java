@@ -168,6 +168,18 @@ public abstract class Camera2Base implements GetAacData, GetVideoData, GetMicrop
     return cameraManager.isLanternSupported();
   }
 
+  public void enableAutoFocus() {
+    cameraManager.enableAutoFocus();
+  }
+
+  public void disableAutoFocus() {
+    cameraManager.disableAutoFocus();
+  }
+
+  public boolean isAutoFocusEnabled() {
+    return cameraManager.isAutoFocusEnabled();
+  }
+
   /**
    * Basic auth developed to work with Wowza. No tested with other server
    *

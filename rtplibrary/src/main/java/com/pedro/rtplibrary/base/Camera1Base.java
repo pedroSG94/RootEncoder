@@ -167,6 +167,18 @@ public abstract class Camera1Base
     return cameraManager.isLanternEnabled();
   }
 
+  public void enableAutoFocus() {
+    cameraManager.enableAutoFocus();
+  }
+
+  public void disableAutoFocus() {
+    cameraManager.disableAutoFocus();
+  }
+
+  public boolean isAutoFocusEnabled() {
+    return cameraManager.isAutoFocusEnabled();
+  }
+
   /**
    * Basic auth developed to work with Wowza. No tested with other server
    *
