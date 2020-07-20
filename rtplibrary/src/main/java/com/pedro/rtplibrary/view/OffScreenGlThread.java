@@ -212,17 +212,17 @@ public class OffScreenGlThread
           surfaceManager.makeCurrent();
           textureManager.updateFrame();
           textureManager.drawOffScreen();
-          textureManager.drawScreen(encoderWidth, encoderHeight, false, 0, 0, true, false, false);
+          textureManager.drawScreen(encoderWidth, encoderHeight, false, 2, 0, true, false, false);
           surfaceManager.swapBuffer();
 
           synchronized (sync) {
             if (surfaceManagerEncoder != null && !fpsLimiter.limitFPS()) {
               surfaceManagerEncoder.makeCurrent();
               if (muteVideo) {
-                textureManager.drawScreen(0, 0, false, 0, streamRotation, false,
+                textureManager.drawScreen(0, 0, false, 2, streamRotation, false,
                     isStreamVerticalFlip, isStreamHorizontalFlip);
               } else {
-                textureManager.drawScreen(encoderWidth, encoderHeight, false, 0, streamRotation,
+                textureManager.drawScreen(encoderWidth, encoderHeight, false, 2, streamRotation,
                     false, isStreamVerticalFlip, isStreamHorizontalFlip);
               }
               //Necessary use surfaceManagerEncoder because preview manager size in background is 1x1.
