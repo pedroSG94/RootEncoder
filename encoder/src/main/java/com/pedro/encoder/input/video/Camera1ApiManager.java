@@ -446,9 +446,9 @@ public class Camera1ApiManager implements Camera.PreviewCallback, Camera.FaceDet
       if (supportedFocusModes != null && !supportedFocusModes.isEmpty()) {
         if (supportedFocusModes.contains(Camera.Parameters.FOCUS_MODE_INFINITY)) {
           parameters.setFocusMode(Camera.Parameters.FOCUS_MODE_INFINITY);
+        } else {
+          parameters.setFocusMode(supportedFocusModes.get(0));
         }
-      } else {
-        parameters.setFocusMode(supportedFocusModes.get(0));
       }
       autoFocusEnabled = false;
       camera.setParameters(parameters);
