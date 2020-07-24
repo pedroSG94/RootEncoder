@@ -18,6 +18,7 @@ import com.pedro.encoder.input.audio.CustomAudioEffect;
 import com.pedro.encoder.input.audio.GetMicrophoneData;
 import com.pedro.encoder.input.audio.MicrophoneManager;
 import com.pedro.encoder.input.video.Camera2ApiManager;
+import com.pedro.encoder.input.video.CameraCallbacks;
 import com.pedro.encoder.input.video.CameraHelper;
 import com.pedro.encoder.input.video.CameraOpenException;
 import com.pedro.encoder.utils.CodecUtil;
@@ -108,6 +109,10 @@ public abstract class Camera2Base implements GetAacData, GetVideoData, GetMicrop
     recordController = new RecordController();
   }
 
+  public void setCameraCallbacks(CameraCallbacks callbacks) {
+    cameraManager.setCameraCallbacks(callbacks);
+  }
+
   /**
    * Set an audio effect modifying microphone's PCM buffer.
    */
@@ -161,6 +166,18 @@ public abstract class Camera2Base implements GetAacData, GetVideoData, GetMicrop
 
   public boolean isLanternSupported() {
     return cameraManager.isLanternSupported();
+  }
+
+  public void enableAutoFocus() {
+    cameraManager.enableAutoFocus();
+  }
+
+  public void disableAutoFocus() {
+    cameraManager.disableAutoFocus();
+  }
+
+  public boolean isAutoFocusEnabled() {
+    return cameraManager.isAutoFocusEnabled();
   }
 
   /**

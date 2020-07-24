@@ -18,6 +18,7 @@ import com.pedro.encoder.input.decoder.AudioDecoderInterface;
 import com.pedro.encoder.input.decoder.LoopFileInterface;
 import com.pedro.encoder.input.decoder.VideoDecoder;
 import com.pedro.encoder.input.decoder.VideoDecoderInterface;
+import com.pedro.encoder.input.video.CameraHelper;
 import com.pedro.encoder.utils.CodecUtil;
 import com.pedro.encoder.video.FormatVideoEncoder;
 import com.pedro.encoder.video.GetVideoData;
@@ -52,7 +53,6 @@ public abstract class FromFileBase
   private AudioEncoder audioEncoder;
   private GlInterface glInterface;
   private boolean streaming = false;
-  private boolean videoEnabled = true;
   private RecordController recordController;
   private FpsListener fpsListener = new FpsListener();
 
@@ -175,6 +175,32 @@ public abstract class FromFileBase
     return result;
   }
 
+  public boolean isAudioDeviceEnabled() {
+    return audioTrackPlayer != null
+        && audioTrackPlayer.getPlayState() == AudioTrack.PLAYSTATE_PLAYING;
+  }
+
+  public void playAudioDevice() {
+    if (isAudioDeviceEnabled()) {
+      audioTrackPlayer.stop();
+    }
+    int channel =
+        audioDecoder.isStereo() ? AudioFormat.CHANNEL_OUT_STEREO : AudioFormat.CHANNEL_OUT_MONO;
+    int buffSize = AudioTrack.getMinBufferSize(audioDecoder.getSampleRate(), channel,
+        AudioFormat.ENCODING_PCM_16BIT);
+    audioTrackPlayer =
+        new AudioTrack(AudioManager.STREAM_MUSIC, audioDecoder.getSampleRate(), channel,
+            AudioFormat.ENCODING_PCM_16BIT, buffSize, AudioTrack.MODE_STREAM);
+    audioTrackPlayer.play();
+  }
+
+  public void stopAudioDevice() {
+    if (isAudioDeviceEnabled()) {
+      audioTrackPlayer.stop();
+      audioTrackPlayer = null;
+    }
+  }
+
   public boolean prepareAudio(String filePath) throws IOException {
     return prepareAudio(filePath, 64 * 1024);
   }
@@ -246,6 +272,56 @@ public abstract class FromFileBase
     prepareGlView();
     videoDecoder.start();
     audioDecoder.start();
+  }
+
+  @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
+  public void replaceView(Context context) {
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
+      replaceGlInterface(new OffScreenGlThread(context));
+    }
+  }
+
+  @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
+  public void replaceView(OpenGlView openGlView) {
+    replaceGlInterface(openGlView);
+  }
+
+  @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
+  public void replaceView(LightOpenGlView lightOpenGlView) {
+    replaceGlInterface(lightOpenGlView);
+  }
+
+  /**
+   * Replace glInterface used on fly. Ignored if you use SurfaceView or TextureView
+   */
+  @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
+  private void replaceGlInterface(GlInterface glInterface) {
+    if (this.glInterface != null && Build.VERSION.SDK_INT >= 18) {
+      if (isStreaming() || isRecording()) {
+        try {
+          this.glInterface.removeMediaCodecSurface();
+          this.glInterface.stop();
+          this.glInterface = glInterface;
+          double time = videoDecoder.getTime();
+          videoDecoder.stop();
+          videoDecoder = new VideoDecoder(videoDecoderInterface, this);
+          if (!videoDecoder.initExtractor(videoPath)) {
+            throw new IOException("fail to reset video file");
+          }
+          videoEncoder.reset();
+          if (!(glInterface instanceof OffScreenGlThread)) {
+            glInterface.init();
+          }
+          prepareGlView();
+          videoDecoder.start();
+          videoDecoder.moveTo(time);
+        } catch (IOException e) {
+          Log.e(TAG, "Error", e);
+        }
+      } else {
+        this.glInterface = glInterface;
+      }
+    }
   }
 
   private void prepareGlView() {
@@ -357,8 +433,7 @@ public abstract class FromFileBase
       }
       if (videoDecoder != null) videoDecoder.stop();
       if (audioDecoder != null) audioDecoder.stop();
-      if (audioTrackPlayer != null
-          && audioTrackPlayer.getPlayState() == AudioTrack.PLAYSTATE_PLAYING) {
+      if (isAudioDeviceEnabled()) {
         audioTrackPlayer.stop();
       }
       audioTrackPlayer = null;
@@ -405,15 +480,6 @@ public abstract class FromFileBase
 
   public int getStreamHeight() {
     return videoEncoder.getHeight();
-  }
-
-  /**
-   * Get video camera state
-   *
-   * @return true if disabled, false if enabled
-   */
-  public boolean isVideoEnabled() {
-    return videoEnabled;
   }
 
   /**

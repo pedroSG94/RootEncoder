@@ -13,6 +13,11 @@ import com.pedro.encoder.utils.gl.TextStreamObject;
 @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
 public class TextObjectFilterRender extends BaseObjectFilterRender {
 
+  private String text;
+  private float textSize;
+  private int textColor;
+  private Typeface typeface;
+
   public TextObjectFilterRender() {
     super();
     streamObject = new TextStreamObject();
@@ -31,7 +36,27 @@ public class TextObjectFilterRender extends BaseObjectFilterRender {
   }
 
   public void setText(String text, float textSize, int textColor, Typeface typeface) {
+    this.text = text;
+    this.textSize = textSize;
+    this.textColor = textColor;
+    this.typeface = typeface;
     ((TextStreamObject) streamObject).load(text, textSize, textColor, typeface);
     shouldLoad = true;
+  }
+
+  public void addText(String text) {
+    setText(this.text + text, textSize, textColor, typeface);
+  }
+
+  public void updateColor(int textColor) {
+    setText(this.text + text, textSize, textColor, typeface);
+  }
+
+  public void updateTypeface(Typeface typeface) {
+    setText(this.text + text, textSize, textColor, typeface);
+  }
+
+  public void updateTextSize(float textSize) {
+    setText(this.text + text, textSize, textColor, typeface);
   }
 }

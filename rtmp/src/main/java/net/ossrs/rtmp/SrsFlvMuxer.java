@@ -61,8 +61,6 @@ public class SrsFlvMuxer {
   private Thread worker;
   private SrsFlv flv = new SrsFlv();
   private boolean needToFindKeyFrame = true;
-  private SrsFlvFrame mVideoSequenceHeader;
-  private SrsFlvFrame mAudioSequenceHeader;
   private SrsAllocator mVideoAllocator = new SrsAllocator(VIDEO_ALLOC_SIZE);
   private SrsAllocator mAudioAllocator = new SrsAllocator(AUDIO_ALLOC_SIZE);
   private volatile BlockingQueue<SrsFlvFrame> mFlvVideoTagCache = new LinkedBlockingQueue<>(30);
@@ -77,11 +75,13 @@ public class SrsFlvMuxer {
   private int reTries;
   private Handler handler;
   private Runnable runnable;
+  private boolean akamaiTs = false;
 
   private long mAudioFramesSent = 0;
   private long mVideoFramesSent = 0;
   private long mDroppedAudioFrames = 0;
   private long mDroppedVideoFrames = 0;
+  private long startTs = 0;
 
   /**
    * constructor.
@@ -113,6 +113,10 @@ public class SrsFlvMuxer {
     flv.setAchannel(channel);
   }
 
+  public void forceAkamaiTs(boolean enabled) {
+    akamaiTs = enabled;
+  }
+
   public void setAuthorization(String user, String password) {
     publisher.setAuthorization(user, password);
   }
@@ -130,8 +134,9 @@ public class SrsFlvMuxer {
     }
   }
 
-  private BlockingQueue<SrsFlvFrame> resizeFlvTagCacheInternal(BlockingQueue<SrsFlvFrame> cache, int newSize) {
-    if(newSize < cache.size() - cache.remainingCapacity()) {
+  private BlockingQueue<SrsFlvFrame> resizeFlvTagCacheInternal(BlockingQueue<SrsFlvFrame> cache,
+      int newSize) {
+    if (newSize < cache.size() - cache.remainingCapacity()) {
       throw new RuntimeException("Can't fit current cache inside new cache size");
     }
 
@@ -193,18 +198,17 @@ public class SrsFlvMuxer {
       // Ignore illegal state.
     }
     connected = false;
-    mVideoSequenceHeader = null;
-    mAudioSequenceHeader = null;
+
+    if (connectChecker != null) {
+      reTries = 0;
+      connectChecker.onDisconnectRtmp();
+    }
 
     resetSentAudioFrames();
     resetSentVideoFrames();
     resetDroppedAudioFrames();
     resetDroppedVideoFrames();
 
-    if (connectChecker != null) {
-      reTries = 0;
-      connectChecker.onDisconnectRtmp();
-    }
     Log.i(TAG, "worker: disconnect ok.");
   }
 
@@ -237,8 +241,6 @@ public class SrsFlvMuxer {
       if (publisher.connect(url)) {
         connected = publisher.publish("live");
       }
-      mVideoSequenceHeader = null;
-      mAudioSequenceHeader = null;
     }
     return connected;
   }
@@ -248,17 +250,17 @@ public class SrsFlvMuxer {
       return;
     }
 
+    int dts = akamaiTs ? (int) ((System.nanoTime() / 1000 - startTs) / 1000) : frame.dts;
     if (frame.is_video()) {
       if (frame.is_keyframe()) {
-        Log.i(TAG,
-            String.format("worker: send frame type=%d, dts=%d, size=%dB", frame.type, frame.dts,
-                frame.flvTag.array().length));
+        Log.i(TAG, String.format("worker: send frame type=%d, dts=%d, size=%dB", frame.type, dts,
+            frame.flvTag.array().length));
       }
-      publisher.publishVideoData(frame.flvTag.array(), frame.flvTag.size(), frame.dts);
+      publisher.publishVideoData(frame.flvTag.array(), frame.flvTag.size(), dts);
       mVideoAllocator.release(frame.flvTag);
       mVideoFramesSent++;
     } else if (frame.is_audio()) {
-      publisher.publishAudioData(frame.flvTag.array(), frame.flvTag.size(), frame.dts);
+      publisher.publishAudioData(frame.flvTag.array(), frame.flvTag.size(), dts);
       mAudioAllocator.release(frame.flvTag);
       mAudioFramesSent++;
     }
@@ -268,6 +270,7 @@ public class SrsFlvMuxer {
    * start to the remote SRS for remux.
    */
   public void start(final String rtmpUrl) {
+    startTs = System.nanoTime() / 1000;
     worker = new Thread(new Runnable() {
       @Override
       public void run() {
@@ -281,18 +284,11 @@ public class SrsFlvMuxer {
           try {
             SrsFlvFrame frame = mFlvAudioTagCache.poll(1, TimeUnit.MILLISECONDS);
             if (frame != null) {
-              if (frame.is_sequenceHeader()) {
-                mAudioSequenceHeader = frame;
-              }
               sendFlvTag(frame);
             }
 
             frame = mFlvVideoTagCache.poll(1, TimeUnit.MILLISECONDS);
             if (frame != null) {
-              // video
-              if (frame.is_sequenceHeader()) {
-                mVideoSequenceHeader = frame;
-              }
               sendFlvTag(frame);
             }
           } catch (InterruptedException e) {
@@ -312,6 +308,7 @@ public class SrsFlvMuxer {
    * stop the muxer, disconnect RTMP connection.
    */
   private void stop(final ConnectCheckerRtmp connectCheckerRtmp) {
+    startTs = 0;
     handler.removeCallbacks(runnable);
     if (worker != null) {
       worker.interrupt();
@@ -729,17 +726,16 @@ public class SrsFlvMuxer {
             isOnlyChkHeader ? searchStartcode(bb, size) : searchAnnexb(bb, size);
         // tbbsc.nb_start_code always 4 , after 00 00 00 01
         if (!tbbsc.match || tbbsc.nb_start_code < 3) {
-          Log.e(TAG, "annexb not match.");
+          Log.i(TAG, "annexb not match, Trying without it. Maybe isn't h264 buffer");
         } else {
           // the start codes.
           for (int i = 0; i < tbbsc.nb_start_code; i++) {
             bb.get();
           }
-
-          // find out the frame size.
-          tbb.data = bb.slice();
-          tbb.size = size - bb.position();
         }
+        // find out the frame size.
+        tbb.data = bb.slice();
+        tbb.size = size - bb.position();
       }
       return tbb;
     }
@@ -1030,7 +1026,7 @@ public class SrsFlvMuxer {
 
     private void flvFrameCacheAdd(SrsFlvFrame frame) {
       try {
-        if(frame.is_video()) {
+        if (frame.is_video()) {
           mFlvVideoTagCache.add(frame);
         } else {
           mFlvAudioTagCache.add(frame);

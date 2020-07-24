@@ -66,7 +66,9 @@ public class Camera2ApiManager extends CameraDevice.StateCallback {
   private float fingerSpacing = 0;
   private float zoomLevel = 1.0f;
   private boolean lanternEnable = false;
+  private boolean autoFocusEnabled = true;
   private boolean running = false;
+  private CameraCallbacks cameraCallbacks;
 
   //Face detector
   public interface FaceDetectorCallback {
@@ -113,7 +115,7 @@ public class Camera2ApiManager extends CameraDevice.StateCallback {
       final List<Surface> listSurfaces = new ArrayList<>();
       Surface preview = addPreviewSurface();
       if (preview != null) listSurfaces.add(preview);
-      if (surfaceEncoder != null) listSurfaces.add(surfaceEncoder);
+      if (surfaceEncoder != preview && surfaceEncoder != null) listSurfaces.add(surfaceEncoder);
 
       cameraDevice.createCaptureSession(listSurfaces, new CameraCaptureSession.StateCallback() {
         @Override
@@ -174,7 +176,9 @@ public class Camera2ApiManager extends CameraDevice.StateCallback {
     try {
       CameraCharacteristics characteristics = getCameraCharacteristics();
       if (characteristics == null) return -1;
-      return characteristics.get(CameraCharacteristics.INFO_SUPPORTED_HARDWARE_LEVEL);
+      Integer level = characteristics.get(CameraCharacteristics.INFO_SUPPORTED_HARDWARE_LEVEL);
+      if (level == null) return -1;
+      return level;
     } catch (IllegalStateException e) {
       Log.e(TAG, "Error", e);
       return -1;
@@ -218,6 +222,7 @@ public class Camera2ApiManager extends CameraDevice.StateCallback {
 
       StreamConfigurationMap streamConfigurationMap =
           characteristics.get(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP);
+      if (streamConfigurationMap == null) return new Size[0];
       Size[] outputSizes = streamConfigurationMap.getOutputSizes(SurfaceTexture.class);
       return outputSizes != null ? outputSizes : new Size[0];
     } catch (CameraAccessException | NullPointerException e) {
@@ -260,7 +265,9 @@ public class Camera2ApiManager extends CameraDevice.StateCallback {
   public boolean isLanternSupported() {
     CameraCharacteristics characteristics = getCameraCharacteristics();
     if (characteristics == null) return false;
-    return characteristics.get(CameraCharacteristics.FLASH_INFO_AVAILABLE);
+    Boolean available = characteristics.get(CameraCharacteristics.FLASH_INFO_AVAILABLE);
+    if (available == null) return false;
+    return available;
   }
 
   public boolean isLanternEnabled() {
@@ -273,8 +280,9 @@ public class Camera2ApiManager extends CameraDevice.StateCallback {
   public void enableLantern() throws Exception {
     CameraCharacteristics characteristics = getCameraCharacteristics();
     if (characteristics == null) return;
-
-    if (characteristics.get(CameraCharacteristics.FLASH_INFO_AVAILABLE)) {
+    Boolean available = characteristics.get(CameraCharacteristics.FLASH_INFO_AVAILABLE);
+    if (available == null) return;
+    if (available) {
       if (builderInputSurface != null) {
         try {
           builderInputSurface.set(CaptureRequest.FLASH_MODE, CameraMetadata.FLASH_MODE_TORCH);
@@ -297,8 +305,9 @@ public class Camera2ApiManager extends CameraDevice.StateCallback {
   public void disableLantern() {
     CameraCharacteristics characteristics = getCameraCharacteristics();
     if (characteristics == null) return;
-
-    if (characteristics.get(CameraCharacteristics.FLASH_INFO_AVAILABLE)) {
+    Boolean available = characteristics.get(CameraCharacteristics.FLASH_INFO_AVAILABLE);
+    if (available == null) return;
+    if (available) {
       if (builderInputSurface != null) {
         try {
           builderInputSurface.set(CaptureRequest.FLASH_MODE, CameraMetadata.FLASH_MODE_OFF);
@@ -312,13 +321,73 @@ public class Camera2ApiManager extends CameraDevice.StateCallback {
     }
   }
 
+  public void enableAutoFocus() {
+    CameraCharacteristics characteristics = getCameraCharacteristics();
+    if (characteristics == null) return;
+    int[] supportedFocusModes =
+        characteristics.get(CameraCharacteristics.CONTROL_AF_AVAILABLE_MODES);
+    if (supportedFocusModes != null) {
+      List<Integer> focusModesList = new ArrayList<>();
+      for (int i : supportedFocusModes) focusModesList.add(i);
+      if (builderInputSurface != null) {
+        try {
+          if (focusModesList.contains(CaptureRequest.CONTROL_AF_MODE_CONTINUOUS_PICTURE)) {
+            builderInputSurface.set(CaptureRequest.CONTROL_AF_MODE,
+                CaptureRequest.CONTROL_AF_MODE_CONTINUOUS_PICTURE);
+            cameraCaptureSession.setRepeatingRequest(builderInputSurface.build(),
+                faceDetectionEnabled ? cb : null, null);
+            autoFocusEnabled = true;
+          } else if (focusModesList.contains(CaptureRequest.CONTROL_AF_MODE_AUTO)) {
+            builderInputSurface.set(CaptureRequest.CONTROL_AF_MODE,
+                CaptureRequest.CONTROL_AF_MODE_AUTO);
+            cameraCaptureSession.setRepeatingRequest(builderInputSurface.build(),
+                faceDetectionEnabled ? cb : null, null);
+            autoFocusEnabled = true;
+          }
+        } catch (Exception e) {
+          Log.e(TAG, "Error", e);
+        }
+      }
+    }
+  }
+
+  public void disableAutoFocus() {
+    CameraCharacteristics characteristics = getCameraCharacteristics();
+    if (characteristics == null) return;
+    int[] supportedFocusModes =
+        characteristics.get(CameraCharacteristics.CONTROL_AF_AVAILABLE_MODES);
+    if (supportedFocusModes != null) {
+      if (builderInputSurface != null) {
+        for (int mode : supportedFocusModes) {
+          try {
+            if (mode == CaptureRequest.CONTROL_AF_MODE_OFF) {
+              builderInputSurface.set(CaptureRequest.CONTROL_AF_MODE,
+                  CaptureRequest.CONTROL_AF_MODE_OFF);
+              cameraCaptureSession.setRepeatingRequest(builderInputSurface.build(),
+                  faceDetectionEnabled ? cb : null, null);
+              autoFocusEnabled = false;
+              return;
+            }
+          } catch (Exception e) {
+            Log.e(TAG, "Error", e);
+          }
+        }
+      }
+    }
+  }
+
+  public boolean isAutoFocusEnabled() {
+    return autoFocusEnabled;
+  }
+
   public void enableFaceDetection(FaceDetectorCallback faceDetectorCallback) {
     CameraCharacteristics characteristics = getCameraCharacteristics();
     if (characteristics == null) return;
-
     int[] fd =
         characteristics.get(CameraCharacteristics.STATISTICS_INFO_AVAILABLE_FACE_DETECT_MODES);
-    int maxFD = characteristics.get(CameraCharacteristics.STATISTICS_INFO_MAX_FACE_COUNT);
+    if (fd == null) return;
+    Integer maxFD = characteristics.get(CameraCharacteristics.STATISTICS_INFO_MAX_FACE_COUNT);
+    if (maxFD == null) return;
     if (fd.length > 0) {
       List<Integer> fdList = new ArrayList<>();
       for (int FaceD : fd) {
@@ -357,6 +426,10 @@ public class Camera2ApiManager extends CameraDevice.StateCallback {
     }
   }
 
+  public void setCameraCallbacks(CameraCallbacks cameraCallbacks) {
+    this.cameraCallbacks = cameraCallbacks;
+  }
+
   private void prepareFaceDetectionCallback() {
     try {
       cameraCaptureSession.stopRepeating();
@@ -392,8 +465,12 @@ public class Camera2ApiManager extends CameraDevice.StateCallback {
         CameraCharacteristics cameraCharacteristics =
             cameraManager.getCameraCharacteristics(Integer.toString(cameraId));
         running = true;
-        isFrontCamera =
-            (LENS_FACING_FRONT == cameraCharacteristics.get(CameraCharacteristics.LENS_FACING));
+        Integer facing = cameraCharacteristics.get(CameraCharacteristics.LENS_FACING);
+        if (facing == null) return;
+        isFrontCamera = LENS_FACING_FRONT == facing;
+        if (cameraCallbacks != null) {
+          cameraCallbacks.onCameraChanged(isFrontCamera);
+        }
       } catch (CameraAccessException | SecurityException e) {
         Log.e(TAG, "Error", e);
       }
@@ -414,7 +491,8 @@ public class Camera2ApiManager extends CameraDevice.StateCallback {
       } else {
         cameraId = getCameraIdForFacing(cameraManager, Facing.FRONT);
       }
-      reOpenCamera(Integer.valueOf(cameraId));
+      if (cameraId == null) cameraId = "0";
+      reOpenCamera(Integer.parseInt(cameraId));
     } catch (CameraAccessException e) {
       Log.e(TAG, "Error", e);
     }
@@ -436,8 +514,10 @@ public class Camera2ApiManager extends CameraDevice.StateCallback {
 
   public float getMaxZoom() {
     CameraCharacteristics characteristics = getCameraCharacteristics();
-    return characteristics != null ? characteristics.get(
-        CameraCharacteristics.SCALER_AVAILABLE_MAX_DIGITAL_ZOOM) : 1;
+    if (characteristics == null) return 1;
+    Float maxZoom = characteristics.get(CameraCharacteristics.SCALER_AVAILABLE_MAX_DIGITAL_ZOOM);
+    if (maxZoom == null) return 1;
+    return maxZoom;
   }
 
   public Float getZoom() {
@@ -450,7 +530,7 @@ public class Camera2ApiManager extends CameraDevice.StateCallback {
       CameraCharacteristics characteristics = getCameraCharacteristics();
       if (characteristics == null) return;
       Rect m = characteristics.get(CameraCharacteristics.SENSOR_INFO_ACTIVE_ARRAY_SIZE);
-
+      if (m == null) return;
       if ((level <= maxZoom) && (level >= 1)) {
         zoomLevel = level;
         int minW = (int) (m.width() / (maxZoom * 10));
@@ -503,9 +583,14 @@ public class Camera2ApiManager extends CameraDevice.StateCallback {
       try {
         cameraCaptureSession.stopRepeating();
         surfaceEncoder = null;
-        CaptureRequest captureRequest = drawSurface(Collections.singletonList(addPreviewSurface()));
-        if (captureRequest != null) {
-          cameraCaptureSession.setRepeatingRequest(captureRequest, null, cameraHandler);
+        Surface preview = addPreviewSurface();
+        if (preview != null) {
+          CaptureRequest captureRequest = drawSurface(Collections.singletonList(preview));
+          if (captureRequest != null) {
+            cameraCaptureSession.setRepeatingRequest(captureRequest, null, cameraHandler);
+          }
+        } else {
+          Log.e(TAG, "preview surface is null");
         }
       } catch (CameraAccessException e) {
         Log.e(TAG, "Error", e);

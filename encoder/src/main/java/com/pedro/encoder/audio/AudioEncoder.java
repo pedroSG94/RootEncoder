@@ -41,28 +41,12 @@ public class AudioEncoder extends BaseEncoder implements GetMicrophoneData {
     this.sampleRate = sampleRate;
     isBufferMode = true;
     try {
-      List<MediaCodecInfo> encoders = new ArrayList<>();
-      if (force == CodecUtil.Force.HARDWARE) {
-        encoders = CodecUtil.getAllHardwareEncoders(CodecUtil.AAC_MIME);
-      } else if (force == CodecUtil.Force.SOFTWARE) {
-        encoders = CodecUtil.getAllSoftwareEncoders(CodecUtil.AAC_MIME);
-      }
-
-      if (force == CodecUtil.Force.FIRST_COMPATIBLE_FOUND) {
-        MediaCodecInfo encoder = chooseEncoder(CodecUtil.AAC_MIME);
-        if (encoder != null) {
-          codec = MediaCodec.createByCodecName(encoder.getName());
-        } else {
-          Log.e(TAG, "Valid encoder not found");
-          return false;
-        }
+      MediaCodecInfo encoder = chooseEncoder(CodecUtil.AAC_MIME);
+      if (encoder != null) {
+        codec = MediaCodec.createByCodecName(encoder.getName());
       } else {
-        if (encoders.isEmpty()) {
-          Log.e(TAG, "Valid encoder not found");
-          return false;
-        } else {
-          codec = MediaCodec.createByCodecName(encoders.get(0).getName());
-        }
+        Log.e(TAG, "Valid encoder not found");
+        return false;
       }
 
       int channelCount = (isStereo) ? 2 : 1;
@@ -140,15 +124,30 @@ public class AudioEncoder extends BaseEncoder implements GetMicrophoneData {
 
   @Override
   protected MediaCodecInfo chooseEncoder(String mime) {
-    List<MediaCodecInfo> mediaCodecInfoList = CodecUtil.getAllEncoders(mime);
-    for (MediaCodecInfo mediaCodecInfo : mediaCodecInfoList) {
-      String name = mediaCodecInfo.getName().toLowerCase();
-      if (!name.contains("omx.google")) return mediaCodecInfo;
+    List<MediaCodecInfo> encoders = new ArrayList<>();
+    if (force == CodecUtil.Force.HARDWARE) {
+      encoders = CodecUtil.getAllHardwareEncoders(CodecUtil.AAC_MIME);
+    } else if (force == CodecUtil.Force.SOFTWARE) {
+      encoders = CodecUtil.getAllSoftwareEncoders(CodecUtil.AAC_MIME);
     }
-    if (mediaCodecInfoList.size() > 0) {
-      return mediaCodecInfoList.get(0);
+
+    if (force == CodecUtil.Force.FIRST_COMPATIBLE_FOUND) {
+      List<MediaCodecInfo> mediaCodecInfoList = CodecUtil.getAllEncoders(mime);
+      for (MediaCodecInfo mediaCodecInfo : mediaCodecInfoList) {
+        String name = mediaCodecInfo.getName().toLowerCase();
+        if (!name.contains("omx.google")) return mediaCodecInfo;
+      }
+      if (mediaCodecInfoList.size() > 0) {
+        return mediaCodecInfoList.get(0);
+      } else {
+        return null;
+      }
     } else {
-      return null;
+      if (encoders.isEmpty()) {
+        return null;
+      } else {
+        return encoders.get(0);
+      }
     }
   }
 

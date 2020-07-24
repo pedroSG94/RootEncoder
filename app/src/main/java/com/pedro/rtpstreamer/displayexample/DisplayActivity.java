@@ -137,6 +137,7 @@ public class DisplayActivity extends AppCompatActivity
 
   @Override
   protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+    super.onActivityResult(requestCode, resultCode, data);
     if (requestCode == REQUEST_CODE_STREAM
         || requestCode == REQUEST_CODE_RECORD && resultCode == Activity.RESULT_OK) {
       initNotification();

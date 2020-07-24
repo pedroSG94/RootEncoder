@@ -39,6 +39,7 @@ public class Camera1ApiManager implements Camera.PreviewCallback, Camera.FaceDet
   private GetCameraData getCameraData;
   private boolean running = false;
   private boolean lanternEnable = false;
+  private boolean autoFocusEnabled = false;
   private int cameraSelect;
   private boolean isFrontCamera = false;
   private boolean isPortrait = false;
@@ -55,6 +56,7 @@ public class Camera1ApiManager implements Camera.PreviewCallback, Camera.FaceDet
   private List<Camera.Size> previewSizeBack;
   private List<Camera.Size> previewSizeFront;
   private float distance;
+  private CameraCallbacks cameraCallbacks;
 
   //Face detector
   public interface FaceDetectorCallback {
@@ -147,10 +149,13 @@ public class Camera1ApiManager implements Camera.PreviewCallback, Camera.FaceDet
       if (supportedFocusModes != null && !supportedFocusModes.isEmpty()) {
         if (supportedFocusModes.contains(Camera.Parameters.FOCUS_MODE_CONTINUOUS_PICTURE)) {
           parameters.setFocusMode(Camera.Parameters.FOCUS_MODE_CONTINUOUS_PICTURE);
+          autoFocusEnabled = true;
         } else if (supportedFocusModes.contains(Camera.Parameters.FOCUS_MODE_AUTO)) {
           parameters.setFocusMode(Camera.Parameters.FOCUS_MODE_AUTO);
+          autoFocusEnabled = true;
         } else {
           parameters.setFocusMode(supportedFocusModes.get(0));
+          autoFocusEnabled = false;
         }
       }
       camera.setParameters(parameters);
@@ -168,6 +173,9 @@ public class Camera1ApiManager implements Camera.PreviewCallback, Camera.FaceDet
       }
       camera.startPreview();
       running = true;
+      if (cameraCallbacks != null) {
+        cameraCallbacks.onCameraChanged(isFrontCamera);
+      }
       Log.i(TAG, width + "X" + height);
     } catch (IOException e) {
       Log.e(TAG, "Error", e);
@@ -411,6 +419,46 @@ public class Camera1ApiManager implements Camera.PreviewCallback, Camera.FaceDet
     }
   }
 
+  public void enableAutoFocus() {
+    if (camera != null) {
+      Camera.Parameters parameters = camera.getParameters();
+      List<String> supportedFocusModes = parameters.getSupportedFocusModes();
+      if (supportedFocusModes != null && !supportedFocusModes.isEmpty()) {
+        if (supportedFocusModes.contains(Camera.Parameters.FOCUS_MODE_CONTINUOUS_PICTURE)) {
+          parameters.setFocusMode(Camera.Parameters.FOCUS_MODE_CONTINUOUS_PICTURE);
+          autoFocusEnabled = true;
+        } else if (supportedFocusModes.contains(Camera.Parameters.FOCUS_MODE_AUTO)) {
+          parameters.setFocusMode(Camera.Parameters.FOCUS_MODE_AUTO);
+          autoFocusEnabled = true;
+        } else {
+          autoFocusEnabled = false;
+          parameters.setFocusMode(supportedFocusModes.get(0));
+        }
+      }
+      camera.setParameters(parameters);
+    }
+  }
+
+  public void disableAutoFocus() {
+    if (camera != null) {
+      Camera.Parameters parameters = camera.getParameters();
+      List<String> supportedFocusModes = parameters.getSupportedFocusModes();
+      if (supportedFocusModes != null && !supportedFocusModes.isEmpty()) {
+        if (supportedFocusModes.contains(Camera.Parameters.FOCUS_MODE_INFINITY)) {
+          parameters.setFocusMode(Camera.Parameters.FOCUS_MODE_INFINITY);
+        } else {
+          parameters.setFocusMode(supportedFocusModes.get(0));
+        }
+      }
+      autoFocusEnabled = false;
+      camera.setParameters(parameters);
+    }
+  }
+
+  public boolean isAutoFocusEnabled() {
+    return autoFocusEnabled;
+  }
+
   public void enableRecordingHint() {
     if (camera != null) {
       Camera.Parameters parameters = camera.getParameters();
@@ -441,6 +489,10 @@ public class Camera1ApiManager implements Camera.PreviewCallback, Camera.FaceDet
       camera.stopFaceDetection();
       camera.setFaceDetectionListener(null);
     }
+  }
+
+  public void setCameraCallbacks(CameraCallbacks cameraCallbacks) {
+    this.cameraCallbacks = cameraCallbacks;
   }
 
   public boolean isFaceDetectionEnabled() {

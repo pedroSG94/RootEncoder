@@ -62,8 +62,9 @@ public class ManagerRender {
   }
 
   public void drawScreen(int width, int height, boolean keepAspectRatio, int mode, int rotation,
-      boolean isPreview) {
-    screenRender.draw(width, height, keepAspectRatio, mode, rotation, isPreview);
+      boolean isPreview, boolean flipStreamVertical, boolean flipStreamHorizontal) {
+    screenRender.draw(width, height, keepAspectRatio, mode, rotation, isPreview,
+            flipStreamVertical, flipStreamHorizontal);
   }
 
   public void release() {

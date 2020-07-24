@@ -79,6 +79,16 @@ public interface GlInterface {
   void setStreamRotation(int rotation);
 
   /**
+   * When true, flips only the stream horizontally
+   */
+  void setIsStreamHorizontalFlip(boolean flip);
+
+  /**
+   * When true, flips only the stream vertically
+   */
+  void setIsStreamVerticalFlip(boolean flip);
+
+  /**
    * Get Anti alias is enabled.
    * @return true is enabled, false is disabled.
    */
@@ -110,4 +120,11 @@ public interface GlInterface {
   void unMuteVideo();
 
   boolean isVideoMuted();
+
+  /**
+   * @param force render last frame.
+   * This is useful with Display mode to continue producing video frames.
+   * Not recommendable in others modes.
+   */
+  void setForceRender(boolean force);
 }
