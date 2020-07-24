@@ -25,11 +25,13 @@ public class AudioPostProcessEffect {
   public void enableAutoGainControl() {
     if (AutomaticGainControl.isAvailable() && automaticGainControl == null) {
       automaticGainControl = AutomaticGainControl.create(microphoneId);
-      automaticGainControl.setEnabled(true);
-      Log.i(TAG, "AutoGainControl enabled");
-    } else {
-      Log.e(TAG, "This device don't support AutoGainControl");
+      if (automaticGainControl != null) {
+        automaticGainControl.setEnabled(true);
+        Log.i(TAG, "AutoGainControl enabled");
+        return;
+      }
     }
+    Log.e(TAG, "This device does't implement AutoGainControl");
   }
 
   public void releaseAutoGainControl() {
@@ -43,11 +45,13 @@ public class AudioPostProcessEffect {
   public void enableEchoCanceler() {
     if (AcousticEchoCanceler.isAvailable() && acousticEchoCanceler == null) {
       acousticEchoCanceler = AcousticEchoCanceler.create(microphoneId);
-      acousticEchoCanceler.setEnabled(true);
-      Log.i(TAG, "EchoCanceler enabled");
-    } else {
-      Log.e(TAG, "This device don't support EchoCanceler");
+      if (acousticEchoCanceler != null) {
+        acousticEchoCanceler.setEnabled(true);
+        Log.i(TAG, "EchoCanceler enabled");
+        return;
+      }
     }
+    Log.e(TAG, "This device does't implement EchoCanceler");
   }
 
   public void releaseEchoCanceler() {
@@ -61,11 +65,13 @@ public class AudioPostProcessEffect {
   public void enableNoiseSuppressor() {
     if (NoiseSuppressor.isAvailable() && noiseSuppressor == null) {
       noiseSuppressor = NoiseSuppressor.create(microphoneId);
-      noiseSuppressor.setEnabled(true);
-      Log.i(TAG, "NoiseSuppressor enabled");
-    } else {
-      Log.e(TAG, "This device don't support NoiseSuppressor");
+      if (noiseSuppressor != null) {
+        noiseSuppressor.setEnabled(true);
+        Log.i(TAG, "NoiseSuppressor enabled");
+        return;
+      }
     }
+    Log.e(TAG, "This device does't implement NoiseSuppressor");
   }
 
   public void releaseNoiseSuppressor() {
