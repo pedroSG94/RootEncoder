@@ -79,8 +79,8 @@ public class SizeCalculator {
         final float adjustedWidth = width * (width / (float) height);
         scaleY = adjustedWidth / height;
       } else if (!isPortrait && rotation != 90 && rotation != 270) { //landscape
-        final float adjustedWidth = height * (height / (float) width);
-        scaleX = adjustedWidth / width;
+        final float adjustedWidth = width * (width / (float) height);
+        scaleY = adjustedWidth / height;
       }
     }
     return new PointF(scaleX, scaleY);
