@@ -63,6 +63,10 @@ public abstract class OnlyAudioBase implements GetAacData, GetMicrophoneData {
         microphoneManager.getMaxInputSize());
   }
 
+  public boolean prepareAudio(int bitrate, int sampleRate, boolean isStereo) {
+    return prepareAudio(bitrate, sampleRate, isStereo, false, false);
+  }
+
   /**
    * Same to call:
    * prepareAudio(64 * 1024, 32000, true, false, false);

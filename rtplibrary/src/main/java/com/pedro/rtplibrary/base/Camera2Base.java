@@ -230,6 +230,11 @@ public abstract class Camera2Base implements GetAacData, GetVideoData, GetMicrop
     return prepareVideo(width, height, fps, bitrate, hardwareRotation, 2, rotation);
   }
 
+  public boolean prepareVideo(int width, int height, int bitrate) {
+    int rotation = CameraHelper.getCameraOrientation(context);
+    return prepareVideo(width, height, 30, bitrate, false, 2, rotation);
+  }
+
   protected abstract void prepareAudioRtp(boolean isStereo, int sampleRate);
 
   /**
@@ -250,6 +255,10 @@ public abstract class Camera2Base implements GetAacData, GetVideoData, GetMicrop
     prepareAudioRtp(isStereo, sampleRate);
     return audioEncoder.prepareAudioEncoder(bitrate, sampleRate, isStereo,
         microphoneManager.getMaxInputSize());
+  }
+
+  public boolean prepareAudio(int bitrate, int sampleRate, boolean isStereo) {
+    return prepareAudio(bitrate, sampleRate, isStereo, false, false);
   }
 
   /**

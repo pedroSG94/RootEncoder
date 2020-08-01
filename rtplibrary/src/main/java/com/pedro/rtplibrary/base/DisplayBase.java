@@ -19,6 +19,7 @@ import com.pedro.encoder.audio.GetAacData;
 import com.pedro.encoder.input.audio.CustomAudioEffect;
 import com.pedro.encoder.input.audio.GetMicrophoneData;
 import com.pedro.encoder.input.audio.MicrophoneManager;
+import com.pedro.encoder.input.video.CameraHelper;
 import com.pedro.encoder.utils.CodecUtil;
 import com.pedro.encoder.video.FormatVideoEncoder;
 import com.pedro.encoder.video.GetVideoData;
@@ -135,6 +136,10 @@ public abstract class DisplayBase implements GetAacData, GetVideoData, GetMicrop
     return prepareVideo(width, height, fps, bitrate, rotation, dpi, -1, -1, 2);
   }
 
+  public boolean prepareVideo(int width, int height, int bitrate) {
+    return prepareVideo(width, height, 30, bitrate, 0, 320);
+  }
+
   protected abstract void prepareAudioRtp(boolean isStereo, int sampleRate);
 
   /**
@@ -155,6 +160,10 @@ public abstract class DisplayBase implements GetAacData, GetVideoData, GetMicrop
     prepareAudioRtp(isStereo, sampleRate);
     return audioEncoder.prepareAudioEncoder(bitrate, sampleRate, isStereo,
         microphoneManager.getMaxInputSize());
+  }
+
+  public boolean prepareAudio(int bitrate, int sampleRate, boolean isStereo) {
+    return prepareAudio(bitrate, sampleRate, isStereo, false, false);
   }
 
   /**
