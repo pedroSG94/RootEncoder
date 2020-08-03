@@ -148,4 +148,9 @@ public class LightOpenGlView extends OpenGlViewBase {
   public boolean isAAEnabled() {
     return false;
   }
+
+  @Override
+  public boolean isPortraitStart() {
+    return false;
+  }
 }

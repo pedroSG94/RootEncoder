@@ -165,6 +165,11 @@ public class OffScreenGlThread
   }
 
   @Override
+  public boolean isPortraitStart() {
+    return textureManager.isPortraitStart();
+  }
+
+  @Override
   public void start() {
     synchronized (sync) {
       thread = new Thread(this);

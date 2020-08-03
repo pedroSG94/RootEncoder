@@ -48,7 +48,7 @@ public class ScreenRender {
 
   private int streamWidth;
   private int streamHeight;
-  private boolean isPortrait;
+  public boolean isPortrait;
 
   public ScreenRender() {
     squareVertex =
