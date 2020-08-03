@@ -291,6 +291,8 @@ public class CodecUtil {
    * For now, none broken codec reported.
    */
   private static boolean isValid(String name) {
+    //This encoder is invalid and produce errors (Only found in AVD API 16)
+    if (name.equalsIgnoreCase("aacencoder")) return false;
     // 一部エンコーダーで配信ができなかったため、該当エンコーダーのチェックを外す
     return (!name.equals("OMX.qcom.video.encoder.avc") &&
             !name.equals("c2.qti.avc.encoder")) || !Build.MODEL.startsWith("Pixel 3");

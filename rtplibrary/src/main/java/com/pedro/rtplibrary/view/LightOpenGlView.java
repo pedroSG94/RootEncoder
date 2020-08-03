@@ -81,15 +81,16 @@ public class LightOpenGlView extends OpenGlViewBase {
     simpleCameraRender.getSurfaceTexture().setOnFrameAvailableListener(this);
     semaphore.release();
     while (running) {
-      if (frameAvailable) {
+      if (frameAvailable || forceRender) {
         frameAvailable = false;
         surfaceManager.makeCurrent();
         simpleCameraRender.updateFrame();
         simpleCameraRender.drawFrame(previewWidth, previewHeight, keepAspectRatio, aspectRatioMode,
-            0, true);
+            0, true, isStreamVerticalFlip, isStreamHorizontalFlip);
         if (takePhotoCallback != null) {
           takePhotoCallback.onTakePhoto(
-              GlUtil.getBitmap(previewWidth, previewHeight, encoderWidth, encoderHeight));
+              GlUtil.getBitmap(keepAspectRatio, aspectRatioMode, previewWidth, previewHeight,
+                  encoderWidth, encoderHeight));
           takePhotoCallback = null;
         }
         surfaceManager.swapBuffer();
@@ -97,8 +98,13 @@ public class LightOpenGlView extends OpenGlViewBase {
         synchronized (sync) {
           if (surfaceManagerEncoder != null && !fpsLimiter.limitFPS()) {
             surfaceManagerEncoder.makeCurrent();
-            simpleCameraRender.drawFrame(encoderWidth, encoderHeight, false, aspectRatioMode,
-                streamRotation, false);
+            if (muteVideo) {
+              simpleCameraRender.drawFrame(0, 0, false, aspectRatioMode, streamRotation, false,
+                  isStreamVerticalFlip, isStreamHorizontalFlip);
+            } else {
+              simpleCameraRender.drawFrame(encoderWidth, encoderHeight, false, aspectRatioMode,
+                  streamRotation, false, isStreamVerticalFlip, isStreamHorizontalFlip);
+            }
             surfaceManagerEncoder.swapBuffer();
           }
         }

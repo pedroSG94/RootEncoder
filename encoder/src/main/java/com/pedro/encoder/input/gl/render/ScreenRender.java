@@ -78,12 +78,11 @@ public class ScreenRender {
   }
 
   public void draw(int width, int height, boolean keepAspectRatio, int mode, int rotation,
-      boolean isPreview) {
+      boolean isPreview, boolean flipStreamVertical, boolean flipStreamHorizontal) {
     GlUtil.checkGlError("drawScreen start");
 
-    if (mode == 2 || mode == 3) { //stream rotation is enabled
-      SizeCalculator.updateMatrix(rotation, width, height, isPreview, isPortrait, MVPMatrix);
-    }
+    SizeCalculator.processMatrix(rotation, width, height, isPreview, isPortrait,
+        flipStreamHorizontal, flipStreamVertical, mode, MVPMatrix);
     SizeCalculator.calculateViewPort(keepAspectRatio, mode, width, height, streamWidth,
         streamHeight);
 

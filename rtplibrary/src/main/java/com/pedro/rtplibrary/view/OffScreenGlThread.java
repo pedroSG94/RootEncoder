@@ -39,11 +39,15 @@ public class OffScreenGlThread
   private int encoderWidth, encoderHeight;
   private boolean loadAA = false;
   private int streamRotation;
+  private boolean muteVideo = false;
+  private boolean isStreamHorizontalFlip = false;
+  private boolean isStreamVerticalFlip = false;
 
   private boolean AAEnabled = false;
   private FpsLimiter fpsLimiter = new FpsLimiter();
   //used with camera
   private TakePhotoCallback takePhotoCallback;
+  private boolean forceRender = false;
 
   public OffScreenGlThread(Context context) {
     this.context = context;
@@ -57,9 +61,29 @@ public class OffScreenGlThread
   }
 
   @Override
+  public void setForceRender(boolean forceRender) {
+    this.forceRender = forceRender;
+  }
+
+  @Override
   public void setEncoderSize(int width, int height) {
     this.encoderWidth = width;
     this.encoderHeight = height;
+  }
+
+  @Override
+  public void muteVideo() {
+    muteVideo = true;
+  }
+
+  @Override
+  public void unMuteVideo() {
+    muteVideo = false;
+  }
+
+  @Override
+  public boolean isVideoMuted() {
+    return muteVideo;
   }
 
   @Override
@@ -126,6 +150,16 @@ public class OffScreenGlThread
   }
 
   @Override
+  public void setIsStreamHorizontalFlip(boolean flip) {
+    isStreamHorizontalFlip = flip;
+  }
+
+  @Override
+  public void setIsStreamVerticalFlip(boolean flip) {
+    isStreamVerticalFlip = flip;
+  }
+
+  @Override
   public boolean isAAEnabled() {
     return textureManager != null && textureManager.isAAEnabled();
   }
@@ -173,24 +207,30 @@ public class OffScreenGlThread
     semaphore.release();
     try {
       while (running) {
-        if (frameAvailable) {
+        if (frameAvailable || forceRender) {
           frameAvailable = false;
           surfaceManager.makeCurrent();
           textureManager.updateFrame();
           textureManager.drawOffScreen();
-          textureManager.drawScreen(encoderWidth, encoderHeight, false, 2, 0, true);
-          if (takePhotoCallback != null) {
-            takePhotoCallback.onTakePhoto(
-                GlUtil.getBitmap(encoderWidth, encoderHeight, encoderWidth, encoderHeight));
-            takePhotoCallback = null;
-          }
+          textureManager.drawScreen(encoderWidth, encoderHeight, false, 2, 0, true, false, false);
           surfaceManager.swapBuffer();
 
           synchronized (sync) {
             if (surfaceManagerEncoder != null && !fpsLimiter.limitFPS()) {
               surfaceManagerEncoder.makeCurrent();
-              textureManager.drawScreen(encoderWidth, encoderHeight, false, 2, streamRotation,
-                  false);
+              if (muteVideo) {
+                textureManager.drawScreen(0, 0, false, 2, streamRotation, false,
+                    isStreamVerticalFlip, isStreamHorizontalFlip);
+              } else {
+                textureManager.drawScreen(encoderWidth, encoderHeight, false, 2, streamRotation,
+                    false, isStreamVerticalFlip, isStreamHorizontalFlip);
+              }
+              //Necessary use surfaceManagerEncoder because preview manager size in background is 1x1.
+              if (takePhotoCallback != null) {
+                takePhotoCallback.onTakePhoto(
+                    GlUtil.getBitmap(false, 0, encoderWidth, encoderHeight, encoderWidth, encoderHeight));
+                takePhotoCallback = null;
+              }
               surfaceManagerEncoder.swapBuffer();
             }
           }

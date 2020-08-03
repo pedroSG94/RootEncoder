@@ -86,13 +86,12 @@ public class SimpleCameraRender {
   }
 
   public void drawFrame(int width, int height, boolean keepAspectRatio, int mode, int rotation,
-      boolean isPreview) {
+      boolean isPreview, boolean flipStreamVertical, boolean flipStreamHorizontal) {
     GlUtil.checkGlError("drawFrame start");
     surfaceTexture.getTransformMatrix(STMatrix);
 
-    if (mode == 2 || mode == 3) { //stream rotation is enabled
-      SizeCalculator.updateMatrix(rotation, width, height, isPreview, isPortrait, MVPMatrix);
-    }
+    SizeCalculator.processMatrix(rotation, width, height, isPreview, isPortrait,
+        flipStreamHorizontal, flipStreamVertical, mode, MVPMatrix);
     SizeCalculator.calculateViewPort(keepAspectRatio, mode, width, height, streamWidth,
         streamHeight);
 

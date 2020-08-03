@@ -114,15 +114,19 @@ public abstract class DisplayBase implements GetAacData, GetVideoData, GetMicrop
    * doesn't support any configuration seated or your device hasn't a H264 encoder).
    */
   public boolean prepareVideo(int width, int height, int fps, int bitrate, int rotation, int dpi,
-                              int avcProfile, int avcProfileLevel, int iFrameInterval) {
+      int avcProfile, int avcProfileLevel, int iFrameInterval) {
     this.dpi = dpi;
     boolean result =
-            videoEncoder.prepareVideoEncoder(width, height, fps, bitrate, rotation, true, iFrameInterval,
-                    FormatVideoEncoder.SURFACE, avcProfile, avcProfileLevel);
+        videoEncoder.prepareVideoEncoder(width, height, fps, bitrate, rotation, glInterface == null,
+            iFrameInterval, FormatVideoEncoder.SURFACE, avcProfile, avcProfileLevel);
     if (glInterface != null) {
       glInterface = new OffScreenGlThread(context);
       glInterface.init();
-      glInterface.setEncoderSize(videoEncoder.getWidth(), videoEncoder.getHeight());
+      if (rotation == 90 || rotation == 270) {
+        glInterface.setEncoderSize(videoEncoder.getHeight(), videoEncoder.getWidth());
+      } else {
+        glInterface.setEncoderSize(videoEncoder.getWidth(), videoEncoder.getHeight());
+      }
     }
     return result;
   }
@@ -168,16 +172,16 @@ public abstract class DisplayBase implements GetAacData, GetVideoData, GetMicrop
       mediaProjection = mediaProjectionManager.getMediaProjection(resultCode, data);
     }
 
-    AudioPlaybackCaptureConfiguration config = new AudioPlaybackCaptureConfiguration
-            .Builder(mediaProjection)
-            .addMatchingUsage(AudioAttributes.USAGE_MEDIA)
+    AudioPlaybackCaptureConfiguration config =
+        new AudioPlaybackCaptureConfiguration.Builder(mediaProjection).addMatchingUsage(
+            AudioAttributes.USAGE_MEDIA)
             .addMatchingUsage(AudioAttributes.USAGE_GAME)
             .addMatchingUsage(AudioAttributes.USAGE_UNKNOWN)
             .build();
     microphoneManager.createInternalMicrophone(config, sampleRate, isStereo);
     prepareAudioRtp(isStereo, sampleRate);
     return audioEncoder.prepareAudioEncoder(bitrate, sampleRate, isStereo,
-            microphoneManager.getMaxInputSize());
+        microphoneManager.getMaxInputSize());
   }
 
   /**
@@ -293,8 +297,16 @@ public abstract class DisplayBase implements GetAacData, GetVideoData, GetMicrop
     if (mediaProjection == null) {
       mediaProjection = mediaProjectionManager.getMediaProjection(resultCode, data);
     }
-    virtualDisplay = mediaProjection.createVirtualDisplay("Stream Display", videoEncoder.getWidth(),
-        videoEncoder.getHeight(), dpi, 0, surface, null, null);
+    if (glInterface != null && videoEncoder.getRotation() == 90
+        || videoEncoder.getRotation() == 270) {
+      virtualDisplay =
+          mediaProjection.createVirtualDisplay("Stream Display", videoEncoder.getHeight(),
+              videoEncoder.getWidth(), dpi, 0, surface, null, null);
+    } else {
+      virtualDisplay =
+          mediaProjection.createVirtualDisplay("Stream Display", videoEncoder.getWidth(),
+              videoEncoder.getHeight(), dpi, 0, surface, null, null);
+    }
     microphoneManager.start();
   }
 

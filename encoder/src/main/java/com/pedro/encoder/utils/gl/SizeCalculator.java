@@ -1,8 +1,10 @@
 package com.pedro.encoder.utils.gl;
 
+import android.graphics.Point;
 import android.graphics.PointF;
 import android.opengl.GLES20;
 import android.opengl.Matrix;
+import android.util.Pair;
 
 /**
  * Created by pedro on 22/03/19.
@@ -12,35 +14,59 @@ public class SizeCalculator {
 
   public static void calculateViewPort(boolean keepAspectRatio, int mode, int previewWidth,
       int previewHeight, int streamWidth, int streamHeight) {
+    Pair<Point, Point> pair = getViewport(keepAspectRatio, mode, previewWidth, previewHeight, streamWidth, streamHeight);
+    GLES20.glViewport(pair.first.x, pair.first.y, pair.second.x, pair.second.y);
+  }
+
+  public static Pair<Point, Point> getViewport(boolean keepAspectRatio, int mode, int previewWidth,
+      int previewHeight, int streamWidth, int streamHeight) {
     if (keepAspectRatio) {
       if (previewWidth > previewHeight) { //landscape
-        if (mode == 0) { //adjust
+        if (mode == 0 || mode == 2) { //adjust
           int realWidth = previewHeight * streamWidth / streamHeight;
-          GLES20.glViewport((previewWidth - realWidth) / 2, 0, realWidth, previewHeight);
+          return new Pair<>(new Point((previewWidth - realWidth) / 2, 0),
+              new Point(realWidth, previewHeight));
         } else { //fill
           int realHeight = previewWidth * streamHeight / streamWidth;
-          GLES20.glViewport(0, -((realHeight - previewWidth) / 2), previewWidth, realHeight);
+          int yCrop = Math.abs((realHeight - previewWidth) / 2);
+          return new Pair<>(new Point(0, -yCrop), new Point(previewWidth, realHeight));
         }
       } else { //portrait
-        if (mode == 0) { //adjust
+        if (mode == 0 || mode == 2) { //adjust
           int realHeight = previewWidth * streamHeight / streamWidth;
-          GLES20.glViewport(0, (previewHeight - realHeight) / 2, previewWidth, realHeight);
+          return new Pair<>(new Point(0, (previewHeight - realHeight) / 2), new Point(previewWidth, realHeight));
         } else { //fill
           int realWidth = previewHeight * streamWidth / streamHeight;
-          GLES20.glViewport(-((realWidth - previewWidth) / 2), 0, realWidth, previewHeight);
+          int xCrop = Math.abs((realWidth - previewWidth) / 2);
+          return new Pair<>(new Point(-xCrop, 0), new Point(realWidth, previewHeight));
         }
       }
     } else {
-      GLES20.glViewport(0, 0, previewWidth, previewHeight);
+      return new Pair<>(new Point(0, 0), new Point(previewWidth, previewHeight));
     }
   }
 
-  public static void updateMatrix(int rotation, int width, int height, boolean isPreview,
-      boolean isPortrait, float[] MVPMatrix) {
+  public static void processMatrix(int rotation, int width, int height, boolean isPreview,
+      boolean isPortrait, boolean flipStreamHorizontal, boolean flipStreamVertical, int mode,
+      float[] MVPMatrix) {
+    PointF scale;
+    if (mode == 2 || mode == 3) { // stream rotation is enabled
+      scale = getScale(rotation, width, height, isPortrait, isPreview);
+      if (!isPreview && !isPortrait) rotation += 90;
+    } else {
+      scale = new PointF(1f, 1f);
+    }
+    if (!isPreview) {
+      float xFlip = flipStreamHorizontal ? -1f : 1f;
+      float yFlip = flipStreamVertical ? -1f : 1f;
+      scale = new PointF(scale.x * xFlip, scale.y * yFlip);
+    }
+    updateMatrix(rotation, scale, MVPMatrix);
+  }
+
+  private static void updateMatrix(int rotation, PointF scale, float[] MVPMatrix) {
     Matrix.setIdentityM(MVPMatrix, 0);
-    PointF scale = getScale(rotation, width, height, isPortrait, isPreview);
     Matrix.scaleM(MVPMatrix, 0, scale.x, scale.y, 1f);
-    if (!isPreview && !isPortrait) rotation += 90;
     Matrix.rotateM(MVPMatrix, 0, rotation, 0f, 0f, -1f);
   }
 

@@ -55,6 +55,7 @@ public class Camera1ApiManager implements Camera.PreviewCallback, Camera.FaceDet
   private List<Camera.Size> previewSizeBack;
   private List<Camera.Size> previewSizeFront;
   private float distance;
+  private CameraCallbacks cameraCallbacks;
 
   //Face detector
   public interface FaceDetectorCallback {
@@ -168,6 +169,9 @@ public class Camera1ApiManager implements Camera.PreviewCallback, Camera.FaceDet
       }
       camera.startPreview();
       running = true;
+      if (cameraCallbacks != null) {
+        cameraCallbacks.onCameraChanged(isFrontCamera);
+      }
       Log.i(TAG, width + "X" + height);
     } catch (IOException e) {
       Log.e(TAG, "Error", e);
@@ -441,6 +445,10 @@ public class Camera1ApiManager implements Camera.PreviewCallback, Camera.FaceDet
       camera.stopFaceDetection();
       camera.setFaceDetectionListener(null);
     }
+  }
+
+  public void setCameraCallbacks(CameraCallbacks cameraCallbacks) {
+    this.cameraCallbacks = cameraCallbacks;
   }
 
   public boolean isFaceDetectionEnabled() {

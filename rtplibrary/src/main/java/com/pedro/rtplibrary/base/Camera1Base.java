@@ -17,6 +17,7 @@ import com.pedro.encoder.input.audio.CustomAudioEffect;
 import com.pedro.encoder.input.audio.GetMicrophoneData;
 import com.pedro.encoder.input.audio.MicrophoneManager;
 import com.pedro.encoder.input.video.Camera1ApiManager;
+import com.pedro.encoder.input.video.CameraCallbacks;
 import com.pedro.encoder.input.video.CameraHelper;
 import com.pedro.encoder.input.video.CameraOpenException;
 import com.pedro.encoder.input.video.GetCameraData;
@@ -109,6 +110,10 @@ public abstract class Camera1Base
     microphoneManager = new MicrophoneManager(this);
     audioEncoder = new AudioEncoder(this);
     recordController = new RecordController();
+  }
+
+  public void setCameraCallbacks(CameraCallbacks callbacks) {
+    cameraManager.setCameraCallbacks(callbacks);
   }
 
   /**
