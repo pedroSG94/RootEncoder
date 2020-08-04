@@ -105,9 +105,7 @@ public class OpenGlView extends OpenGlViewBase {
   }
 
   @Override
-  public boolean isPortrait() {
-    return false;
-  }
+  public boolean isPortrait() { return false; }
 
   @Override
   public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
