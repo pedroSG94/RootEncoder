@@ -76,7 +76,9 @@ public class ManagerRender {
     screenRender.release();
   }
 
-  public boolean isPortrait() { return screenRender.isPortrait(); }
+  public boolean isPortrait() {
+    return screenRender.isPortrait();
+  }
 
   public void enableAA(boolean AAEnabled) {
     screenRender.setAAEnabled(AAEnabled);
