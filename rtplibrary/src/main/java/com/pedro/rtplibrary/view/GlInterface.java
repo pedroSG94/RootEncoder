@@ -128,5 +128,5 @@ public interface GlInterface {
    */
   void setForceRender(boolean force);
 
-  boolean isPortraitStart();
+  boolean isPortrait();
 }

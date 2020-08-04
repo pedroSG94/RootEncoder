@@ -105,7 +105,7 @@ public class OpenGlView extends OpenGlViewBase {
   }
 
   @Override
-  public boolean isPortraitStart() {
+  public boolean isPortrait() {
     return false;
   }
 

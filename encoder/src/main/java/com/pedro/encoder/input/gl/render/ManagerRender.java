@@ -76,7 +76,7 @@ public class ManagerRender {
     screenRender.release();
   }
 
-  public boolean isPortraitStart() {
+  public boolean isPortrait() {
     return screenRender.isPortrait();
   }
 

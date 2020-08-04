@@ -165,8 +165,8 @@ public class OffScreenGlThread
   }
 
   @Override
-  public boolean isPortraitStart() {
-    return textureManager.isPortraitStart();
+  public boolean isPortrait() {
+    return textureManager.isPortrait();
   }
 
   @Override

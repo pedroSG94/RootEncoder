@@ -150,7 +150,7 @@ public class LightOpenGlView extends OpenGlViewBase {
   }
 
   @Override
-  public boolean isPortraitStart() {
+  public boolean isPortrait() {
     return false;
   }
 }
