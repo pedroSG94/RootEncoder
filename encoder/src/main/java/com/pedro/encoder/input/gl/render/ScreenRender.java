@@ -48,7 +48,7 @@ public class ScreenRender {
 
   private int streamWidth;
   private int streamHeight;
-  public boolean isPortrait;
+  private boolean isPortrait;
 
   public ScreenRender() {
     squareVertex =
@@ -130,6 +130,8 @@ public class ScreenRender {
   public boolean isAAEnabled() {
     return AAEnabled;
   }
+
+  public boolean isPortrait() { return isPortrait; }
 
   public void setStreamSize(int streamWidth, int streamHeight) {
     this.streamWidth = streamWidth;
