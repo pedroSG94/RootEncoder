@@ -105,6 +105,11 @@ public class OpenGlView extends OpenGlViewBase {
   }
 
   @Override
+  public boolean isPortrait() {
+    return false;
+  }
+
+  @Override
   public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
     Log.i(TAG, "size: " + width + "x" + height);
     this.previewWidth = width;

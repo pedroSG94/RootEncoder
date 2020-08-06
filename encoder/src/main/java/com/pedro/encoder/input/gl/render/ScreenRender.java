@@ -131,6 +131,10 @@ public class ScreenRender {
     return AAEnabled;
   }
 
+  public boolean isPortrait() {
+    return isPortrait;
+  }
+
   public void setStreamSize(int streamWidth, int streamHeight) {
     this.streamWidth = streamWidth;
     this.streamHeight = streamHeight;
