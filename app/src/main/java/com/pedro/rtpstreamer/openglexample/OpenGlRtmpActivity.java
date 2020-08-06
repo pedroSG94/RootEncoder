@@ -123,7 +123,7 @@ public class OpenGlRtmpActivity extends AppCompatActivity
   @Override
   public boolean onOptionsItemSelected(MenuItem item) {
     //Stop listener for image, text and gif stream objects.
-    spriteGestureController.setBaseObjectFilterRender(null);
+    spriteGestureController.stopListener();
     switch (item.getItemId()) {
       case R.id.e_d_fxaa:
         rtmpCamera1.getGlInterface().enableAA(!rtmpCamera1.getGlInterface().isAAEnabled());

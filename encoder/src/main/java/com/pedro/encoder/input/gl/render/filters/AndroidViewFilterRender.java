@@ -3,6 +3,7 @@ package com.pedro.encoder.input.gl.render.filters;
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Color;
+import android.graphics.PointF;
 import android.graphics.PorterDuff;
 import android.graphics.SurfaceTexture;
 import android.opengl.GLES11Ext;
@@ -51,8 +52,9 @@ public class AndroidViewFilterRender extends BaseFilterRender {
   private Handler mainHandler;
 
   private int rotation;
-  private float positionX, positionY;
+  private float positionX = 0, positionY = 0;
   private float scaleX = 1f, scaleY = 1f;
+  private boolean loaded = false;
   private float viewX, viewY;
 
   public AndroidViewFilterRender() {
@@ -92,11 +94,16 @@ public class AndroidViewFilterRender extends BaseFilterRender {
         public void run() {
           Canvas canvas = surface.lockCanvas(null);
           canvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR);
+          float scaleFactorX = 100f * (float) view.getWidth() / (float) getPreviewWidth();
+          float scaleFactorY = 100f * (float) view.getHeight() / (float) getPreviewHeight();
           canvas.translate(positionX, positionY);
           canvas.rotate(rotation, viewX / 2f, viewY / 2f);
-          float scaleFactorX = (float) getPreviewWidth() / (float) view.getWidth();
-          float scaleFactorY = (float) getPreviewHeight() / (float) view.getHeight();
-          canvas.scale(scaleX * scaleFactorX, scaleY * scaleFactorY);
+          if (!loaded) {
+            scaleX = scaleFactorX;
+            scaleY = scaleFactorY;
+            loaded = true;
+          }
+          canvas.scale(scaleX / scaleFactorX, scaleY / scaleFactorY);
           view.draw(canvas);
           surface.unlockCanvasAndPost(canvas);
         }
@@ -215,5 +222,16 @@ public class AndroidViewFilterRender extends BaseFilterRender {
   public void setScale(float scaleX, float scaleY) {
     this.scaleX = scaleX;
     this.scaleY = scaleY;
+    loaded = true;
+  }
+
+  public PointF getScale() {
+    return new PointF(scaleX, scaleY);
+  }
+
+  public PointF getPosition() {
+    int previewX = getPreviewWidth();
+    int previewY = getPreviewHeight();
+    return new PointF(positionX * 100 / previewX, positionY  * 100 / previewY);
   }
 }
