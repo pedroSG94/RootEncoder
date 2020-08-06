@@ -252,15 +252,13 @@ public class SrsFlvMuxer {
 
     int dts = akamaiTs ? (int) ((System.nanoTime() / 1000 - startTs) / 1000) : frame.dts;
     if (frame.is_video()) {
-      publisher.publishVideoData(frame.flvTag.array(), frame.flvTag.size(), frame.dts);
+      publisher.publishVideoData(frame.flvTag.array(), frame.flvTag.size(), dts);
       if (frame.is_keyframe()) {
         Log.i(TAG, String.format("worker: send frame type=%d, dts=%d, size=%dB", frame.type, dts,
             frame.flvTag.array().length));
       } else {
         mVideoAllocator.release(frame.flvTag);
       }
-      publisher.publishVideoData(frame.flvTag.array(), frame.flvTag.size(), dts);
-      mVideoAllocator.release(frame.flvTag);
       mVideoFramesSent++;
     } else if (frame.is_audio()) {
       publisher.publishAudioData(frame.flvTag.array(), frame.flvTag.size(), dts);
