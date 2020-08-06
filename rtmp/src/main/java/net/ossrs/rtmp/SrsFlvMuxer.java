@@ -252,15 +252,13 @@ public class SrsFlvMuxer {
 
     int dts = akamaiTs ? (int) ((System.nanoTime() / 1000 - startTs) / 1000) : frame.dts;
     if (frame.is_video()) {
-      publisher.publishVideoData(frame.flvTag.array(), frame.flvTag.size(), frame.dts);
+      publisher.publishVideoData(frame.flvTag.array(), frame.flvTag.size(), dts);
       if (frame.is_keyframe()) {
         Log.i(TAG, String.format("worker: send frame type=%d, dts=%d, size=%dB", frame.type, dts,
             frame.flvTag.array().length));
       } else {
         mVideoAllocator.release(frame.flvTag);
       }
-      publisher.publishVideoData(frame.flvTag.array(), frame.flvTag.size(), dts);
-      mVideoAllocator.release(frame.flvTag);
       mVideoFramesSent++;
     } else if (frame.is_audio()) {
       publisher.publishAudioData(frame.flvTag.array(), frame.flvTag.size(), dts);
@@ -285,11 +283,12 @@ public class SrsFlvMuxer {
         connectCheckerRtmp.onConnectionSuccessRtmp();
         SrsFlvFrame lastKeyFrame = null;
         long lastVideoFrameSentMs = 0;
-        long lastVideoFrameSentDts = 0;
+        long lastAudioFrameDts = 0;
         while (!Thread.interrupted()) {
           try {
             SrsFlvFrame frame = mFlvAudioTagCache.poll(1, TimeUnit.MILLISECONDS);
             if (frame != null) {
+              lastAudioFrameDts = frame.dts;
               sendFlvTag(frame);
             }
 
@@ -298,7 +297,10 @@ public class SrsFlvMuxer {
               if (lastKeyFrame != null) {
                 int diff = (int)(System.currentTimeMillis() - lastVideoFrameSentMs);
                 if (diff > 1000) {
-                  lastKeyFrame.dts = (int)(diff + lastVideoFrameSentDts);
+                  if (lastKeyFrame.dts < lastAudioFrameDts) {
+                    lastKeyFrame.dts = (int)lastAudioFrameDts;
+                  }
+
                   lastVideoFrameSentMs = System.currentTimeMillis();
                   sendFlvTag(lastKeyFrame);
                 }
@@ -311,7 +313,6 @@ public class SrsFlvMuxer {
                   }
                   lastKeyFrame = frame;
                 }
-                lastVideoFrameSentDts = frame.dts;
                 lastVideoFrameSentMs = System.currentTimeMillis();
                 sendFlvTag(frame);
               }
