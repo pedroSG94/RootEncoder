@@ -283,11 +283,12 @@ public class SrsFlvMuxer {
         connectCheckerRtmp.onConnectionSuccessRtmp();
         SrsFlvFrame lastKeyFrame = null;
         long lastVideoFrameSentMs = 0;
-        long lastVideoFrameSentDts = 0;
+        long lastAudioFrameDts = 0;
         while (!Thread.interrupted()) {
           try {
             SrsFlvFrame frame = mFlvAudioTagCache.poll(1, TimeUnit.MILLISECONDS);
             if (frame != null) {
+              lastAudioFrameDts = frame.dts;
               sendFlvTag(frame);
             }
 
@@ -296,7 +297,10 @@ public class SrsFlvMuxer {
               if (lastKeyFrame != null) {
                 int diff = (int)(System.currentTimeMillis() - lastVideoFrameSentMs);
                 if (diff > 1000) {
-                  lastKeyFrame.dts = (int)(diff + lastVideoFrameSentDts);
+                  if (lastKeyFrame.dts < lastAudioFrameDts) {
+                    lastKeyFrame.dts = (int)lastAudioFrameDts;
+                  }
+
                   lastVideoFrameSentMs = System.currentTimeMillis();
                   sendFlvTag(lastKeyFrame);
                 }
@@ -309,7 +313,6 @@ public class SrsFlvMuxer {
                   }
                   lastKeyFrame = frame;
                 }
-                lastVideoFrameSentDts = frame.dts;
                 lastVideoFrameSentMs = System.currentTimeMillis();
                 sendFlvTag(frame);
               }
