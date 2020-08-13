@@ -356,23 +356,14 @@ public abstract class FromFileBase
   }
 
   private void resetVideoEncoder() {
-    try {
-      if (glInterface != null) {
-        glInterface.removeMediaCodecSurface();
-        glInterface.stop();
-      }
-      double time = videoDecoder.getTime();
-      videoDecoder.stop();
-      videoDecoder = new VideoDecoder(videoDecoderInterface, this);
-      if (!videoDecoder.initExtractor(videoPath)) {
-        throw new IOException("fail to reset video file");
-      }
-      videoEncoder.reset();
-      prepareGlView();
-      videoDecoder.start();
-      videoDecoder.moveTo(time);
-    } catch (IOException e) {
-      Log.e(TAG, "Error", e);
+    if (glInterface != null) {
+      glInterface.removeMediaCodecSurface();
+    }
+    videoEncoder.reset();
+    if (glInterface != null) {
+      glInterface.addMediaCodecSurface(videoEncoder.getInputSurface());
+    } else {
+      videoDecoder.reset(videoEncoder.getInputSurface());
     }
   }
 
