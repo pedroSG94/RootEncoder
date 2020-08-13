@@ -187,6 +187,7 @@ public class VideoEncoder extends BaseEncoder implements GetCameraData {
     }
     queue.clear();
     spsPpsSetted = false;
+    if (inputSurface != null) inputSurface.release();
     inputSurface = null;
     Log.i(TAG, "stopped");
   }

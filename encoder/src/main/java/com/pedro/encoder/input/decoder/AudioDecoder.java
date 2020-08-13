@@ -97,6 +97,9 @@ public class AudioDecoder {
           decodeAudio();
         } catch (IllegalStateException e) {
           Log.i(TAG, "Decoding error", e);
+        } catch (NullPointerException e) {
+          Log.i(TAG, "Decoder maybe was stopped");
+          Log.i(TAG, "Decoding error", e);
         }
       }
     });
@@ -104,6 +107,25 @@ public class AudioDecoder {
   }
 
   public void stop() {
+    stopDecoder();
+    if (audioExtractor != null) {
+      audioExtractor.release();
+      audioExtractor = null;
+      mime = "";
+    }
+  }
+
+  public void reset() {
+    boolean wasRunning = decoding;
+    stopDecoder();
+    seekTime = audioExtractor.getSampleTime() / 1000;
+    prepareAudio();
+    if (wasRunning) {
+      start();
+    }
+  }
+
+  private void stopDecoder() {
     decoding = false;
     seekTime = 0;
     if (thread != null) {
@@ -122,13 +144,9 @@ public class AudioDecoder {
     } catch (IllegalStateException | NullPointerException e) {
       audioDecoder = null;
     }
-    if (audioExtractor != null) {
-      audioExtractor.release();
-      audioExtractor = null;
-    }
   }
 
-  private void decodeAudio() throws IllegalStateException {
+  private void decodeAudio() throws IllegalStateException, NullPointerException {
     ByteBuffer[] inputBuffers = audioDecoder.getInputBuffers();
     ByteBuffer[] outputBuffers = audioDecoder.getOutputBuffers();
     startMs = System.currentTimeMillis();
@@ -167,13 +185,10 @@ public class AudioDecoder {
             //This buffer is PCM data
             if (muted) {
               outBuffer.get(pcmBufferMuted, 0,
-                  outBuffer.remaining() <= pcmBufferMuted.length ? outBuffer.remaining()
-                      : pcmBufferMuted.length);
+                  Math.min(outBuffer.remaining(), pcmBufferMuted.length));
               getMicrophoneData.inputPCMData(new Frame(pcmBufferMuted, 0, pcmBufferMuted.length));
             } else {
-              outBuffer.get(pcmBuffer, 0,
-                  outBuffer.remaining() <= pcmBuffer.length ? outBuffer.remaining()
-                      : pcmBuffer.length);
+              outBuffer.get(pcmBuffer, 0, Math.min(outBuffer.remaining(), pcmBuffer.length));
               if (channels > 2) { //downgrade to stereo
                 byte[] bufferStereo = PCMUtil.pcmToStereo(pcmBuffer, channels);
                 getMicrophoneData.inputPCMData(new Frame(bufferStereo, 0, bufferStereo.length));

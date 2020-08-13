@@ -3,6 +3,7 @@ package com.pedro.encoder.input.decoder;
 import android.media.MediaCodec;
 import android.media.MediaExtractor;
 import android.media.MediaFormat;
+import android.os.Build;
 import android.util.Log;
 import android.view.Surface;
 import java.io.IOException;
@@ -74,6 +75,14 @@ public class VideoDecoder {
     }
   }
 
+  public void changeOutputSurface(Surface surface) {
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+      videoDecoder.setOutputSurface(surface);
+    } else {
+      reset(surface);
+    }
+  }
+
   public void start() {
     decoding = true;
     videoDecoder.start();
@@ -84,13 +93,32 @@ public class VideoDecoder {
           decodeVideo();
         } catch (IllegalStateException e) {
           Log.i(TAG, "Decoding error", e);
+        } catch (NullPointerException e) {
+          Log.i(TAG, "Decoder maybe was stopped");
+          Log.i(TAG, "Decoding error", e);
         }
       }
     });
     thread.start();
   }
 
+  public void reset(Surface surface) {
+    stopDecoder();
+    prepareVideo(surface);
+    seekTime = videoExtractor.getSampleTime() / 1000;
+    start();
+  }
+
   public void stop() {
+    stopDecoder();
+    if (videoExtractor != null) {
+      videoExtractor.release();
+      videoExtractor = null;
+      mime = "";
+    }
+  }
+
+  private void stopDecoder() {
     decoding = false;
     seekTime = 0;
     if (thread != null) {
@@ -109,13 +137,9 @@ public class VideoDecoder {
     } catch (IllegalStateException | NullPointerException e) {
       videoDecoder = null;
     }
-    if (videoExtractor != null) {
-      videoExtractor.release();
-      videoExtractor = null;
-    }
   }
 
-  private void decodeVideo() throws IllegalStateException {
+  private void decodeVideo() throws IllegalStateException, NullPointerException {
     ByteBuffer[] inputBuffers = videoDecoder.getInputBuffers();
     startMs = System.currentTimeMillis();
     while (decoding) {
