@@ -53,8 +53,6 @@ public class VideoEncoder extends BaseEncoder implements GetCameraData {
   private FormatVideoEncoder formatVideoEncoder = FormatVideoEncoder.YUV420Dynamical;
   private int avcProfile = -1;
   private int avcProfileLevel = -1;
-  private HandlerThread handlerThread;
-  private BlockingQueue<Frame> queue = new ArrayBlockingQueue<>(80);
 
   public VideoEncoder(GetVideoData getVideoData) {
     this.getVideoData = getVideoData;
@@ -143,49 +141,18 @@ public class VideoEncoder extends BaseEncoder implements GetCameraData {
   @Override
   public void start(boolean resetTs) {
     spsPpsSetted = false;
+    if (formatVideoEncoder != FormatVideoEncoder.SURFACE) {
+      YUVUtil.preAllocateBuffers(width * height * 3 / 2);
+    }
     if (resetTs) {
       presentTimeUs = System.nanoTime() / 1000;
       fpsLimiter.setFPS(fps);
     }
-    if (formatVideoEncoder != FormatVideoEncoder.SURFACE) {
-      YUVUtil.preAllocateBuffers(width * height * 3 / 2);
-    }
-    handlerThread = new HandlerThread(TAG);
-    handlerThread.start();
-    Handler handler = new Handler(handlerThread.getLooper());
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-      createAsyncCallback();
-      codec.setCallback(callback, handler);
-      codec.start();
-    } else {
-      codec.start();
-      handler.post(new Runnable() {
-        @Override
-        public void run() {
-          while (running) {
-            try {
-              getDataFromEncoder(null);
-            } catch (IllegalStateException e) {
-              Log.i(TAG, "Encoding error", e);
-            }
-          }
-        }
-      });
-    }
-    running = true;
     Log.i(TAG, "started");
   }
 
   @Override
   protected void stopImp() {
-    if (handlerThread != null) {
-      if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
-        handlerThread.quitSafely();
-      } else {
-        handlerThread.quit();
-      }
-    }
-    queue.clear();
     spsPpsSetted = false;
     if (inputSurface != null) inputSurface.release();
     inputSurface = null;
@@ -468,42 +435,5 @@ public class VideoEncoder extends BaseEncoder implements GetCameraData {
       bufferInfo.presentationTimeUs = System.nanoTime() / 1000 - presentTimeUs;
     }
     getVideoData.getVideoData(byteBuffer, bufferInfo);
-  }
-
-  private MediaCodec.Callback callback;
-
-  @RequiresApi(api = Build.VERSION_CODES.M)
-  private void createAsyncCallback() {
-    callback = new MediaCodec.Callback() {
-      @Override
-      public void onInputBufferAvailable(@NonNull MediaCodec mediaCodec, int inBufferIndex) {
-        try {
-          inputAvailable(mediaCodec, inBufferIndex, null);
-        } catch (IllegalStateException e) {
-          Log.i(TAG, "Encoding error", e);
-        }
-      }
-
-      @Override
-      public void onOutputBufferAvailable(@NonNull MediaCodec mediaCodec, int outBufferIndex,
-          @NonNull MediaCodec.BufferInfo bufferInfo) {
-        try {
-          outputAvailable(mediaCodec, outBufferIndex, bufferInfo);
-        } catch (IllegalStateException e) {
-          Log.i(TAG, "Encoding error", e);
-        }
-      }
-
-      @Override
-      public void onError(@NonNull MediaCodec mediaCodec, @NonNull MediaCodec.CodecException e) {
-        Log.e(TAG, "Error", e);
-      }
-
-      @Override
-      public void onOutputFormatChanged(@NonNull MediaCodec mediaCodec,
-          @NonNull MediaFormat mediaFormat) {
-        formatChanged(mediaCodec, mediaFormat);
-      }
-    };
   }
 }

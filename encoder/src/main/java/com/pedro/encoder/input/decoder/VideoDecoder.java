@@ -78,7 +78,7 @@ public class VideoDecoder extends BaseDecoder {
           try {
             Thread.sleep(10);
           } catch (InterruptedException e) {
-            if (thread != null) thread.interrupt();
+            Thread.currentThread().interrupt();
             return;
           }
         }

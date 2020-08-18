@@ -8,6 +8,8 @@ import android.media.MediaExtractor;
 import android.media.MediaFormat;
 import android.net.Uri;
 import android.os.Build;
+import android.os.Handler;
+import android.os.HandlerThread;
 import android.util.Log;
 import android.view.Surface;
 import androidx.annotation.RequiresApi;
@@ -24,7 +26,7 @@ public abstract class BaseDecoder {
   protected MediaCodec codec;
   protected volatile boolean running = false;
   protected MediaFormat mediaFormat;
-  protected Thread thread;
+  private HandlerThread handlerThread;
   protected String mime = "";
   protected boolean loopMode = false;
   protected volatile long seekTime = 0;
@@ -83,8 +85,11 @@ public abstract class BaseDecoder {
 
   public void start() {
     running = true;
+    handlerThread = new HandlerThread(TAG);
+    handlerThread.start();
+    Handler handler = new Handler(handlerThread.getLooper());
     codec.start();
-    thread = new Thread(new Runnable() {
+    handler.post(new Runnable() {
       @Override
       public void run() {
         try {
@@ -97,7 +102,6 @@ public abstract class BaseDecoder {
         }
       }
     });
-    thread.start();
   }
 
   public void stop() {
@@ -133,14 +137,12 @@ public abstract class BaseDecoder {
   protected void stopDecoder() {
     running = false;
     seekTime = 0;
-    if (thread != null) {
-      thread.interrupt();
-      try {
-        thread.join(100);
-      } catch (InterruptedException e) {
-        thread.interrupt();
+    if (handlerThread != null) {
+      if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
+        handlerThread.quitSafely();
+      } else {
+        handlerThread.quit();
       }
-      thread = null;
     }
     try {
       codec.stop();
