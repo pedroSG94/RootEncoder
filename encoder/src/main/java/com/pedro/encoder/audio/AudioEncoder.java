@@ -92,7 +92,7 @@ public class AudioEncoder extends BaseEncoder implements GetMicrophoneData {
   public void reset() {
     stop();
     prepareAudioEncoder(bitRate, sampleRate, isStereo, maxInputSize);
-    start(false);
+    restart();
   }
 
   @Override

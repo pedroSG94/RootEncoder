@@ -141,12 +141,12 @@ public class VideoEncoder extends BaseEncoder implements GetCameraData {
   @Override
   public void start(boolean resetTs) {
     spsPpsSetted = false;
-    if (formatVideoEncoder != FormatVideoEncoder.SURFACE) {
-      YUVUtil.preAllocateBuffers(width * height * 3 / 2);
-    }
     if (resetTs) {
       presentTimeUs = System.nanoTime() / 1000;
       fpsLimiter.setFPS(fps);
+    }
+    if (formatVideoEncoder != FormatVideoEncoder.SURFACE) {
+      YUVUtil.preAllocateBuffers(width * height * 3 / 2);
     }
     Log.i(TAG, "started");
   }
@@ -163,7 +163,7 @@ public class VideoEncoder extends BaseEncoder implements GetCameraData {
     stop();
     prepareVideoEncoder(width, height, fps, bitRate, rotation, hardwareRotation, iFrameInterval,
         formatVideoEncoder, avcProfile, avcProfileLevel);
-    start(false);
+    restart();
   }
 
   private FormatVideoEncoder chooseColorDynamically(MediaCodecInfo mediaCodecInfo) {

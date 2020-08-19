@@ -30,8 +30,17 @@ public abstract class BaseEncoder implements EncoderCallback {
   protected CodecUtil.Force force = CodecUtil.Force.FIRST_COMPATIBLE_FOUND;
   private MediaCodec.Callback callback;
 
+  public void restart() {
+    start(false);
+    initCodec();
+  }
+
   public void start() {
     start(true);
+    initCodec();
+  }
+
+  private void initCodec() {
     handlerThread = new HandlerThread(TAG);
     handlerThread.start();
     Handler handler = new Handler(handlerThread.getLooper());
