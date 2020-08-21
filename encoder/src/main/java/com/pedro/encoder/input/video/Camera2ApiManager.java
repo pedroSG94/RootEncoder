@@ -30,6 +30,7 @@ import androidx.annotation.RequiresApi;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.Semaphore;
 
 import static android.hardware.camera2.CameraMetadata.LENS_FACING_FRONT;
 import static com.pedro.encoder.input.video.CameraHelper.*;
@@ -68,6 +69,7 @@ public class Camera2ApiManager extends CameraDevice.StateCallback {
   private boolean lanternEnable = false;
   private boolean autoFocusEnabled = true;
   private boolean running = false;
+  private final Semaphore semaphore = new Semaphore(0);
   private CameraCallbacks cameraCallbacks;
 
   //Face detector
@@ -462,6 +464,7 @@ public class Camera2ApiManager extends CameraDevice.StateCallback {
       cameraHandler = new Handler(cameraHandlerThread.getLooper());
       try {
         cameraManager.openCamera(cameraId.toString(), this, cameraHandler);
+        semaphore.acquireUninterruptibly();
         CameraCharacteristics cameraCharacteristics =
             cameraManager.getCameraCharacteristics(Integer.toString(cameraId));
         running = true;
@@ -628,18 +631,21 @@ public class Camera2ApiManager extends CameraDevice.StateCallback {
   public void onOpened(@NonNull CameraDevice cameraDevice) {
     this.cameraDevice = cameraDevice;
     startPreview(cameraDevice);
+    semaphore.release();
     Log.i(TAG, "Camera opened");
   }
 
   @Override
   public void onDisconnected(@NonNull CameraDevice cameraDevice) {
     cameraDevice.close();
+    semaphore.release();
     Log.i(TAG, "Camera disconnected");
   }
 
   @Override
   public void onError(@NonNull CameraDevice cameraDevice, int i) {
     cameraDevice.close();
+    semaphore.release();
     Log.e(TAG, "Open failed");
   }
 
