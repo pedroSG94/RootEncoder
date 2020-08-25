@@ -220,9 +220,9 @@ public abstract class Camera1Base
    * backward compatibility reason
    */
   public boolean prepareVideo(int width, int height, int fps, int bitrate, boolean hardwareRotation,
-                              int iFrameInterval, int rotation) {
-    return prepareVideo(width, height, fps, bitrate, hardwareRotation, iFrameInterval, rotation,
-        -1, -1);
+      int iFrameInterval, int rotation) {
+    return prepareVideo(width, height, fps, bitrate, hardwareRotation, iFrameInterval, rotation, -1,
+        -1);
   }
 
   public boolean prepareVideo(int width, int height, int fps, int bitrate, boolean hardwareRotation,

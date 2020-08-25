@@ -114,6 +114,12 @@ public class RtspClient {
   }
 
   public void connect() {
+    if (url == null) {
+      streaming = false;
+      connectCheckerRtsp.onConnectionFailedRtsp(
+          "Endpoint malformed, should be: rtsp://ip:port/appname/streamname");
+      return;
+    }
     if (!streaming) {
       Matcher rtspMatcher = rtspUrlPattern.matcher(url);
       if (rtspMatcher.matches()) {

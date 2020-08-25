@@ -117,6 +117,11 @@ public class RtmpConnection implements RtmpPublisher {
 
   @Override
   public boolean connect(String url) {
+    if (url == null) {
+      connectCheckerRtmp.onConnectionFailedRtmp(
+          "Endpoint malformed, should be: rtmp://ip:port/appname/streamname");
+      return false;
+    }
     Matcher rtmpMatcher = rtmpUrlPattern.matcher(url);
     if (rtmpMatcher.matches()) {
       tlsEnabled = rtmpMatcher.group(0).startsWith("rtmps");
