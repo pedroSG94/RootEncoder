@@ -115,6 +115,14 @@ public class RtmpConnection implements RtmpPublisher {
     }
   }
 
+  private String getTcUrl(String url) {
+    if (url.endsWith("/")) {
+      return url.substring(0, url.length() - 1);
+    } else {
+      return url;
+    }
+  }
+
   @Override
   public boolean connect(String url) {
     if (url == null) {
@@ -138,7 +146,8 @@ public class RtmpConnection implements RtmpPublisher {
     port = portStr != null ? Integer.parseInt(portStr) : 1935;
     appName = getAppName(rtmpMatcher.group(3), rtmpMatcher.group(4));
     streamName = getStreamName(rtmpMatcher.group(4));
-    tcUrl = rtmpMatcher.group(0).substring(0, rtmpMatcher.group(0).length() - streamName.length());
+    tcUrl = getTcUrl(
+        rtmpMatcher.group(0).substring(0, rtmpMatcher.group(0).length() - streamName.length()));
 
     // socket connection
     Log.d(TAG, "connect() called. Host: "
@@ -232,8 +241,8 @@ public class RtmpConnection implements RtmpPublisher {
     sendRtmpPacket(invoke);
   }
 
-  private String getAuthUserResult(String user, String password, String salt,
-      String challenge, String opaque) {
+  private String getAuthUserResult(String user, String password, String salt, String challenge,
+      String opaque) {
     String challenge2 = String.format("%08x", new Random().nextInt());
     String response = Util.stringToMD5BASE64(user + salt + password);
     if (!opaque.isEmpty()) {
@@ -319,7 +328,7 @@ public class RtmpConnection implements RtmpPublisher {
     }
 
     Log.d(TAG, "fmlePublish(): Sending publish command...");
-    Command publish = new Command("publish", 0);
+    Command publish = new Command("publish", ++transactionIdCounter);
     publish.getHeader().setChunkStreamId(ChunkStreamInfo.RTMP_CID_OVER_STREAM);
     publish.getHeader().setMessageStreamId(currentStreamId);
     publish.addData(new AmfNull());  // command object: null for "publish"
@@ -374,7 +383,7 @@ public class RtmpConnection implements RtmpPublisher {
       return;
     }
     Log.d(TAG, "closeStream(): setting current stream ID to 0");
-    Command closeStream = new Command("closeStream", 0);
+    Command closeStream = new Command("closeStream", ++transactionIdCounter);
     closeStream.getHeader().setChunkStreamId(ChunkStreamInfo.RTMP_CID_OVER_STREAM);
     closeStream.getHeader().setMessageStreamId(currentStreamId);
     closeStream.addData(new AmfNull());
