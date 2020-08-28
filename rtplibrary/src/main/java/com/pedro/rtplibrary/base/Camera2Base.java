@@ -65,12 +65,24 @@ public abstract class Camera2Base implements GetAacData, GetVideoData, GetMicrop
   private int previewWidth, previewHeight;
   private FpsListener fpsListener = new FpsListener();
 
+  /**
+   * @deprecated This view produce rotations problems and could be unsupported in future versions.
+   * Use {@link Camera2Base#Camera2Base(OpenGlView)} or {@link Camera2Base#Camera2Base(LightOpenGlView)}
+   * instead.
+   */
+  @Deprecated
   public Camera2Base(SurfaceView surfaceView) {
     this.surfaceView = surfaceView;
     this.context = surfaceView.getContext();
     init(context);
   }
 
+  /**
+   * @deprecated This view produce rotations problems and could be unsupported in future versions.
+   * Use {@link Camera2Base#Camera2Base(OpenGlView)} or {@link Camera2Base#Camera2Base(LightOpenGlView)}
+   * instead.
+   */
+  @Deprecated
   public Camera2Base(TextureView textureView) {
     this.textureView = textureView;
     this.context = textureView.getContext();
@@ -195,44 +207,40 @@ public abstract class Camera2Base implements GetAacData, GetVideoData, GetMicrop
    * @param height resolution in px.
    * @param fps frames per second of the stream.
    * @param bitrate H264 in bps.
-   * @param hardwareRotation true if you want rotate using encoder, false if you with OpenGl if you
-   * are using OpenGlView.
    * @param rotation could be 90, 180, 270 or 0 (Normally 0 if you are streaming in landscape or 90
    * if you are streaming in Portrait). This only affect to stream result. NOTE: Rotation with
    * encoder is silence ignored in some devices.
    * @return true if success, false if you get a error (Normally because the encoder selected
    * doesn't support any configuration seated or your device hasn't a H264 encoder).
    */
-  public boolean prepareVideo(int width, int height, int fps, int bitrate, boolean hardwareRotation,
-      int iFrameInterval, int rotation, int avcProfile, int avcProfileLevel) {
+  public boolean prepareVideo(int width, int height, int fps, int bitrate, int iFrameInterval,
+      int rotation, int avcProfile, int avcProfileLevel) {
     if (onPreview && !(glInterface != null && width == previewWidth && height == previewHeight)) {
       stopPreview();
       onPreview = true;
     }
     boolean result =
-        videoEncoder.prepareVideoEncoder(width, height, fps, bitrate, rotation, hardwareRotation,
-            iFrameInterval, FormatVideoEncoder.SURFACE, avcProfile, avcProfileLevel);
+        videoEncoder.prepareVideoEncoder(width, height, fps, bitrate, rotation, iFrameInterval,
+            FormatVideoEncoder.SURFACE, avcProfile, avcProfileLevel);
     prepareCameraManager();
     return result;
   }
 
-  public boolean prepareVideo(int width, int height, int fps, int bitrate, boolean hardwareRotation,
-      int iFrameInterval, int rotation) {
-    return prepareVideo(width, height, fps, bitrate, hardwareRotation, iFrameInterval, rotation, -1,
-        -1);
+  public boolean prepareVideo(int width, int height, int fps, int bitrate, int iFrameInterval,
+      int rotation) {
+    return prepareVideo(width, height, fps, bitrate, iFrameInterval, rotation, -1, -1);
   }
 
   /**
    * backward compatibility reason
    */
-  public boolean prepareVideo(int width, int height, int fps, int bitrate, boolean hardwareRotation,
-      int rotation) {
-    return prepareVideo(width, height, fps, bitrate, hardwareRotation, 2, rotation);
+  public boolean prepareVideo(int width, int height, int fps, int bitrate, int rotation) {
+    return prepareVideo(width, height, fps, bitrate, 2, rotation);
   }
 
   public boolean prepareVideo(int width, int height, int bitrate) {
     int rotation = CameraHelper.getCameraOrientation(context);
-    return prepareVideo(width, height, 30, bitrate, false, 2, rotation);
+    return prepareVideo(width, height, 30, bitrate, 2, rotation);
   }
 
   protected abstract void prepareAudioRtp(boolean isStereo, int sampleRate);
@@ -269,9 +277,8 @@ public abstract class Camera2Base implements GetAacData, GetVideoData, GetMicrop
    * doesn't support any configuration seated or your device hasn't a H264 encoder).
    */
   public boolean prepareVideo() {
-    boolean isHardwareRotation = glInterface == null;
     int rotation = CameraHelper.getCameraOrientation(context);
-    return prepareVideo(640, 480, 30, 1200 * 1024, isHardwareRotation, rotation);
+    return prepareVideo(640, 480, 30, 1200 * 1024, rotation);
   }
 
   /**

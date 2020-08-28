@@ -195,44 +195,39 @@ public abstract class Camera1Base
    * @param height resolution in px.
    * @param fps frames per second of the stream.
    * @param bitrate H264 in bps.
-   * @param hardwareRotation true if you want rotate using encoder, false if you want rotate with
-   * software if you are using a SurfaceView or TextureView or with OpenGl if you are using
-   * OpenGlView.
    * @param rotation could be 90, 180, 270 or 0. You should use CameraHelper.getCameraOrientation
    * with SurfaceView or TextureView and 0 with OpenGlView or LightOpenGlView. NOTE: Rotation with
    * encoder is silence ignored in some devices.
    * @return true if success, false if you get a error (Normally because the encoder selected
    * doesn't support any configuration seated or your device hasn't a H264 encoder).
    */
-  public boolean prepareVideo(int width, int height, int fps, int bitrate, boolean hardwareRotation,
-      int iFrameInterval, int rotation, int avcProfile, int avcProfileLevel) {
+  public boolean prepareVideo(int width, int height, int fps, int bitrate, int iFrameInterval,
+      int rotation, int avcProfile, int avcProfileLevel) {
     if (onPreview && width != previewWidth || height != previewHeight) {
       stopPreview();
       onPreview = true;
     }
     FormatVideoEncoder formatVideoEncoder =
         glInterface == null ? FormatVideoEncoder.YUV420Dynamical : FormatVideoEncoder.SURFACE;
-    return videoEncoder.prepareVideoEncoder(width, height, fps, bitrate, rotation, hardwareRotation,
-        iFrameInterval, formatVideoEncoder, avcProfile, avcProfileLevel);
+    return videoEncoder.prepareVideoEncoder(width, height, fps, bitrate, rotation, iFrameInterval,
+        formatVideoEncoder, avcProfile, avcProfileLevel);
   }
 
   /**
    * backward compatibility reason
    */
-  public boolean prepareVideo(int width, int height, int fps, int bitrate, boolean hardwareRotation,
-      int iFrameInterval, int rotation) {
-    return prepareVideo(width, height, fps, bitrate, hardwareRotation, iFrameInterval, rotation, -1,
-        -1);
+  public boolean prepareVideo(int width, int height, int fps, int bitrate, int iFrameInterval,
+      int rotation) {
+    return prepareVideo(width, height, fps, bitrate, iFrameInterval, rotation, -1, -1);
   }
 
-  public boolean prepareVideo(int width, int height, int fps, int bitrate, boolean hardwareRotation,
-      int rotation) {
-    return prepareVideo(width, height, fps, bitrate, hardwareRotation, 2, rotation);
+  public boolean prepareVideo(int width, int height, int fps, int bitrate, int rotation) {
+    return prepareVideo(width, height, fps, bitrate, 2, rotation);
   }
 
   public boolean prepareVideo(int width, int height, int bitrate) {
     int rotation = CameraHelper.getCameraOrientation(context);
-    return prepareVideo(width, height, 30, bitrate, false, 2, rotation);
+    return prepareVideo(width, height, 30, bitrate, 2, rotation);
   }
 
   protected abstract void prepareAudioRtp(boolean isStereo, int sampleRate);
@@ -270,7 +265,7 @@ public abstract class Camera1Base
    */
   public boolean prepareVideo() {
     int rotation = CameraHelper.getCameraOrientation(context);
-    return prepareVideo(640, 480, 30, 1200 * 1024, false, rotation);
+    return prepareVideo(640, 480, 30, 1200 * 1024, rotation);
   }
 
   /**

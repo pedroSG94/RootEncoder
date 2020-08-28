@@ -36,7 +36,6 @@ public class VideoEncoder extends BaseEncoder implements GetCameraData {
   private static final String TAG = "VideoEncoder";
   private GetVideoData getVideoData;
   private boolean spsPpsSetted = false;
-  private boolean hardwareRotation = false;
 
   //surface to buffer encoder
   private Surface inputSurface;
@@ -59,23 +58,22 @@ public class VideoEncoder extends BaseEncoder implements GetCameraData {
   }
 
   public boolean prepareVideoEncoder(int width, int height, int fps, int bitRate, int rotation,
-       boolean hardwareRotation, int iFrameInterval, FormatVideoEncoder formatVideoEncoder) {
-    return prepareVideoEncoder(width, height, fps, bitRate, rotation, hardwareRotation,
-      iFrameInterval, formatVideoEncoder, -1, -1);
+      int iFrameInterval, FormatVideoEncoder formatVideoEncoder) {
+    return prepareVideoEncoder(width, height, fps, bitRate, rotation, iFrameInterval,
+        formatVideoEncoder, -1, -1);
   }
 
   /**
    * Prepare encoder with custom parameters
    */
   public boolean prepareVideoEncoder(int width, int height, int fps, int bitRate, int rotation,
-      boolean hardwareRotation, int iFrameInterval, FormatVideoEncoder formatVideoEncoder,
-      int avcProfile, int avcProfileLevel) {
+      int iFrameInterval, FormatVideoEncoder formatVideoEncoder, int avcProfile,
+      int avcProfileLevel) {
     this.width = width;
     this.height = height;
     this.fps = fps;
     this.bitRate = bitRate;
     this.rotation = rotation;
-    this.hardwareRotation = hardwareRotation;
     this.formatVideoEncoder = formatVideoEncoder;
     this.avcProfile = avcProfile;
     this.avcProfileLevel = avcProfileLevel;
@@ -99,7 +97,7 @@ public class VideoEncoder extends BaseEncoder implements GetCameraData {
       //if you dont use mediacodec rotation you need swap width and height in rotation 90 or 270
       // for correct encoding resolution
       String resolution;
-      if (!hardwareRotation && (rotation == 90 || rotation == 270)) {
+      if ((rotation == 90 || rotation == 270)) {
         resolution = height + "x" + width;
         videoFormat = MediaFormat.createVideoFormat(type, height, width);
       } else {
@@ -113,13 +111,15 @@ public class VideoEncoder extends BaseEncoder implements GetCameraData {
       videoFormat.setInteger(MediaFormat.KEY_BIT_RATE, bitRate);
       videoFormat.setInteger(MediaFormat.KEY_FRAME_RATE, fps);
       videoFormat.setInteger(MediaFormat.KEY_I_FRAME_INTERVAL, iFrameInterval);
-      if (hardwareRotation) {
-        videoFormat.setInteger("rotation-degrees", rotation);
-      }
+      // Rotation by encoder.
+      // Removed because this is ignored by most encoders, producing different results on different devices
+      //  videoFormat.setInteger(MediaFormat.KEY_ROTATION, rotation);
 
-      if (this.avcProfile > 0 && this.avcProfileLevel > 0) {
+      if (this.avcProfile > 0) {
         // MediaFormat.KEY_PROFILE, API > 21
         videoFormat.setInteger("profile", this.avcProfile);
+      }
+      if (this.avcProfileLevel > 0) {
         // MediaFormat.KEY_LEVEL, API > 23
         videoFormat.setInteger("level", this.avcProfileLevel);
       }
@@ -161,8 +161,8 @@ public class VideoEncoder extends BaseEncoder implements GetCameraData {
 
   public void reset() {
     stop();
-    prepareVideoEncoder(width, height, fps, bitRate, rotation, hardwareRotation, iFrameInterval,
-        formatVideoEncoder, avcProfile, avcProfileLevel);
+    prepareVideoEncoder(width, height, fps, bitRate, rotation, iFrameInterval, formatVideoEncoder,
+        avcProfile, avcProfileLevel);
     restart();
   }
 
@@ -181,7 +181,7 @@ public class VideoEncoder extends BaseEncoder implements GetCameraData {
    * Prepare encoder with default parameters
    */
   public boolean prepareVideoEncoder() {
-    return prepareVideoEncoder(width, height, fps, bitRate, rotation, false, iFrameInterval,
+    return prepareVideoEncoder(width, height, fps, bitRate, rotation, iFrameInterval,
         formatVideoEncoder, avcProfile, avcProfileLevel);
   }
 
@@ -226,10 +226,6 @@ public class VideoEncoder extends BaseEncoder implements GetCameraData {
 
   public int getHeight() {
     return height;
-  }
-
-  public boolean isHardwareRotation() {
-    return hardwareRotation;
   }
 
   public int getRotation() {
@@ -394,12 +390,12 @@ public class VideoEncoder extends BaseEncoder implements GetCameraData {
     if (fpsLimiter.limitFPS()) return getInputFrame();
     byte[] buffer = frame.getBuffer();
     boolean isYV12 = frame.getFormat() == ImageFormat.YV12;
-    if (!hardwareRotation) {
-      int orientation = frame.isFlip() ? frame.getOrientation() + 180 : frame.getOrientation();
-      if (orientation >= 360) orientation -= 360;
-      buffer = isYV12 ? YUVUtil.rotateYV12(buffer, width, height, orientation)
-          : YUVUtil.rotateNV21(buffer, width, height, orientation);
-    }
+
+    int orientation = frame.isFlip() ? frame.getOrientation() + 180 : frame.getOrientation();
+    if (orientation >= 360) orientation -= 360;
+    buffer = isYV12 ? YUVUtil.rotateYV12(buffer, width, height, orientation)
+        : YUVUtil.rotateNV21(buffer, width, height, orientation);
+
     buffer = isYV12 ? YUVUtil.YV12toYUV420byColor(buffer, width, height, formatVideoEncoder)
         : YUVUtil.NV21toYUV420byColor(buffer, width, height, formatVideoEncoder);
     frame.setBuffer(buffer);

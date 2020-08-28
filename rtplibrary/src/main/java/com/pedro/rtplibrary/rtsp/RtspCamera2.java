@@ -29,11 +29,23 @@ public class RtspCamera2 extends Camera2Base {
 
   private RtspClient rtspClient;
 
+  /**
+   * @deprecated This view produce rotations problems and could be unsupported in future versions.
+   * Use {@link Camera2Base#Camera2Base(OpenGlView)} or {@link Camera2Base#Camera2Base(LightOpenGlView)}
+   * instead.
+   */
+  @Deprecated
   public RtspCamera2(SurfaceView surfaceView, ConnectCheckerRtsp connectCheckerRtsp) {
     super(surfaceView);
     rtspClient = new RtspClient(connectCheckerRtsp);
   }
 
+  /**
+   * @deprecated This view produce rotations problems and could be unsupported in future versions.
+   * Use {@link Camera2Base#Camera2Base(OpenGlView)} or {@link Camera2Base#Camera2Base(LightOpenGlView)}
+   * instead.
+   */
+  @Deprecated
   public RtspCamera2(TextureView textureView, ConnectCheckerRtsp connectCheckerRtsp) {
     super(textureView);
     rtspClient = new RtspClient(connectCheckerRtsp);

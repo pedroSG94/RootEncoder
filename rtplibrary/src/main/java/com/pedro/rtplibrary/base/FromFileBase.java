@@ -136,11 +136,9 @@ public abstract class FromFileBase
       int avcProfileLevel) throws IOException {
     videoPath = filePath;
     if (!videoDecoder.initExtractor(filePath)) return false;
-    boolean hardwareRotation = glInterface == null;
     boolean result =
         videoEncoder.prepareVideoEncoder(videoDecoder.getWidth(), videoDecoder.getHeight(), 30,
-            bitRate, rotation, hardwareRotation, 2, FormatVideoEncoder.SURFACE, avcProfile,
-            avcProfileLevel);
+            bitRate, rotation, 2, FormatVideoEncoder.SURFACE, avcProfile, avcProfileLevel);
     if (!result) return false;
     result = videoDecoder.prepareVideo(videoEncoder.getInputSurface());
     return result;

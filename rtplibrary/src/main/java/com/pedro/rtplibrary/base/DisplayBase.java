@@ -118,8 +118,8 @@ public abstract class DisplayBase implements GetAacData, GetVideoData, GetMicrop
       int avcProfile, int avcProfileLevel, int iFrameInterval) {
     this.dpi = dpi;
     boolean result =
-        videoEncoder.prepareVideoEncoder(width, height, fps, bitrate, rotation, glInterface == null,
-            iFrameInterval, FormatVideoEncoder.SURFACE, avcProfile, avcProfileLevel);
+        videoEncoder.prepareVideoEncoder(width, height, fps, bitrate, rotation, iFrameInterval,
+            FormatVideoEncoder.SURFACE, avcProfile, avcProfileLevel);
     if (glInterface != null) {
       glInterface = new OffScreenGlThread(context);
       glInterface.init();

@@ -98,8 +98,8 @@
   <string name="mono">Mono</string>
   <string name="echo_canceler">Echo canceler</string>
   <string name="camera">Camera</string>
-  <string name="wowza_auth">Wowza Auth</string>
-  <string name="wowza_user">User</string>
-  <string name="wowza_password">Password</string>
+  <string name="auth">Auth</string>
+  <string name="user">User</string>
+  <string name="password">Password</string>
   <string name="noise_suppressor">Noise suppressor</string>
 </resources>

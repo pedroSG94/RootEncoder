@@ -36,7 +36,7 @@ allprojects {
   }
 }
 dependencies {
-  implementation 'com.github.pedroSG94.rtmp-rtsp-stream-client-java:rtplibrary:1.8.7'
+  implementation 'com.github.pedroSG94.rtmp-rtsp-stream-client-java:rtplibrary:1.8.8'
 }
 
 ```
@@ -85,7 +85,7 @@ I recommend you go to Activities in app module and see all examples.
 //default
 
 //create builder
-RtmpCamera1 rtmpCamera1 = new RtmpCamera1(surfaceView, connectCheckerRtmp);
+RtmpCamera1 rtmpCamera1 = new RtmpCamera1(openGlView, connectCheckerRtmp);
 //start stream
 if (rtmpCamera1.prepareAudio() && rtmpCamera1.prepareVideo()) {
   rtmpCamera1.startStream("rtmp://yourEndPoint");
@@ -98,10 +98,10 @@ rtmpCamera1.stopStream();
 //with params
 
 //create builder
-RtmpCamera1 rtmpCamera1 = new RtmpCamera1(surfaceView, connectCheckerRtmp);
+RtmpCamera1 rtmpCamera1 = new RtmpCamera1(openGlView, connectCheckerRtmp);
 //start stream
 if (rtmpCamera1.prepareAudio(int bitrate, int sampleRate, boolean isStereo, boolean echoCanceler,
-      boolean noiseSuppressor) && rtmpCamera1.prepareVideo(int width, int height, int fps, int bitrate, boolean hardwareRotation, int rotation)) {
+      boolean noiseSuppressor) && rtmpCamera1.prepareVideo(int width, int height, int fps, int bitrate, int rotation)) {
   rtmpCamera1.startStream("rtmp://yourEndPoint");
 } else {
  /**This device cant init encoders, this could be for 2 reasons: The encoder selected doesnt support any configuration setted or your device hasnt a H264 or AAC encoder (in this case you can see log error valid encoder not found)*/
@@ -119,7 +119,7 @@ rtmpCamera1.stopStream();
 
 //create builder
 //by default TCP protocol.
-RtspCamera1 rtspCamera1 = new RtspCamera1(surfaceView, connectCheckerRtsp);
+RtspCamera1 rtspCamera1 = new RtspCamera1(openGlView, connectCheckerRtsp);
 //start stream
 if (rtspCamera1.prepareAudio() && rtspCamera1.prepareVideo()) {
   rtspCamera1.startStream("rtsp://yourEndPoint");
@@ -132,11 +132,11 @@ rtspCamera1.stopStream();
 //with params
 
 //create builder
-RtspCamera1 rtspCamera1 = new RtspCamera1(surfaceView, connectCheckerRtsp);
+RtspCamera1 rtspCamera1 = new RtspCamera1(openGlView, connectCheckerRtsp);
 rtspCamera1.setProtocol(protocol);
 //start stream
 if (rtspCamera1.prepareAudio(int bitrate, int sampleRate, boolean isStereo, boolean echoCanceler,
-      boolean noiseSuppressor) && rtspCamera1.prepareVideo(int width, int height, int fps, int bitrate, boolean hardwareRotation, int rotation)) {
+      boolean noiseSuppressor) && rtspCamera1.prepareVideo(int width, int height, int fps, int bitrate, int rotation)) {
   rtspCamera1.startStream("rtsp://yourEndPoint");
 } else {
  /**This device cant init encoders, this could be for 2 reasons: The encoder selected doesnt support any configuration setted or your device hasnt a H264 or AAC encoder (in this case you can see log error valid encoder not found)*/
