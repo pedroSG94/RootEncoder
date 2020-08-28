@@ -688,22 +688,27 @@ public class RtmpConnection implements RtmpPublisher {
         String code =
             ((AmfString) ((AmfObject) invoke.getData().get(1)).getProperty("code")).getValue();
         Log.d(TAG, "handleRxInvoke(): onStatus " + code);
-        if (code.equals("NetStream.Publish.Start")) {
-          onMetaData();
-          // We can now publish AV data
-          publishPermitted = true;
-          synchronized (publishLock) {
-            publishLock.notifyAll();
-          }
-        } else if (code.equals("NetConnection.Connect.Rejected")) {
-          netConnectionDescription = ((AmfString) ((AmfObject) invoke.getData().get(1)).getProperty(
-              "description")).getValue();
-          publishPermitted = false;
-          synchronized (publishLock) {
-            publishLock.notifyAll();
-          }
-        } else if (code.equals("NetStream.Unpublish.Success")) {
-          connectCheckerRtmp.onConnectionFailedRtmp("Unpublish received");
+        switch (code) {
+          case "NetStream.Publish.Start":
+            onMetaData();
+            // We can now publish AV data
+            publishPermitted = true;
+            synchronized (publishLock) {
+              publishLock.notifyAll();
+            }
+            break;
+          case "NetConnection.Connect.Rejected":
+            netConnectionDescription =
+                ((AmfString) ((AmfObject) invoke.getData().get(1)).getProperty(
+                    "description")).getValue();
+            publishPermitted = false;
+            synchronized (publishLock) {
+              publishLock.notifyAll();
+            }
+            break;
+          case "NetStream.Unpublish.Success":
+            connectCheckerRtmp.onConnectionFailedRtmp("Unpublish received");
+            break;
         }
         break;
       default:
