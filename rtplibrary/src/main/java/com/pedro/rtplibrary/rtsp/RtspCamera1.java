@@ -27,32 +27,32 @@ public class RtspCamera1 extends Camera1Base {
 
   private RtspClient rtspClient;
 
-  public RtspCamera1(SurfaceView surfaceView, ConnectCheckerRtsp connectCheckerRtsp) {
+  public RtspCamera1(SurfaceView surfaceView, ConnectCheckerRtsp connectCheckerRtsp, boolean enableLogs) {
     super(surfaceView);
-    rtspClient = new RtspClient(connectCheckerRtsp);
+    rtspClient = new RtspClient(connectCheckerRtsp, enableLogs);
   }
 
-  public RtspCamera1(TextureView textureView, ConnectCheckerRtsp connectCheckerRtsp) {
+  public RtspCamera1(TextureView textureView, ConnectCheckerRtsp connectCheckerRtsp, boolean enableLogs) {
     super(textureView);
-    rtspClient = new RtspClient(connectCheckerRtsp);
+    rtspClient = new RtspClient(connectCheckerRtsp, enableLogs);
   }
 
   @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
-  public RtspCamera1(OpenGlView openGlView, ConnectCheckerRtsp connectCheckerRtsp) {
+  public RtspCamera1(OpenGlView openGlView, ConnectCheckerRtsp connectCheckerRtsp, boolean enableLogs) {
     super(openGlView);
-    rtspClient = new RtspClient(connectCheckerRtsp);
+    rtspClient = new RtspClient(connectCheckerRtsp, enableLogs);
   }
 
   @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
-  public RtspCamera1(LightOpenGlView lightOpenGlView, ConnectCheckerRtsp connectCheckerRtsp) {
+  public RtspCamera1(LightOpenGlView lightOpenGlView, ConnectCheckerRtsp connectCheckerRtsp, boolean enableLogs) {
     super(lightOpenGlView);
-    rtspClient = new RtspClient(connectCheckerRtsp);
+    rtspClient = new RtspClient(connectCheckerRtsp, enableLogs);
   }
 
   @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
-  public RtspCamera1(Context context, ConnectCheckerRtsp connectCheckerRtsp) {
+  public RtspCamera1(Context context, ConnectCheckerRtsp connectCheckerRtsp, boolean enableLogs) {
     super(context);
-    rtspClient = new RtspClient(connectCheckerRtsp);
+    rtspClient = new RtspClient(connectCheckerRtsp, enableLogs);
   }
 
   /**

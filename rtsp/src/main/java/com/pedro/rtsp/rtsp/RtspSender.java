@@ -40,14 +40,16 @@ public class RtspSender implements VideoPacketCallback, AudioPacketCallback {
   private long droppedAudioFrames = 0;
   private long droppedVideoFrames = 0;
   private BitrateManager bitrateManager;
+  private boolean enableLogs;
 
-  public RtspSender(ConnectCheckerRtsp connectCheckerRtsp) {
+  public RtspSender(ConnectCheckerRtsp connectCheckerRtsp, boolean enableLogs) {
     this.connectCheckerRtsp = connectCheckerRtsp;
     bitrateManager = new BitrateManager(connectCheckerRtsp);
+    this.enableLogs = enableLogs;
   }
 
   public void setSocketsInfo(Protocol protocol, int[] videoSourcePorts, int[] audioSourcePorts) {
-    rtpSocket = BaseRtpSocket.getInstance(protocol, videoSourcePorts[0], audioSourcePorts[0]);
+    rtpSocket = BaseRtpSocket.getInstance(protocol, videoSourcePorts[0], audioSourcePorts[0], enableLogs);
     baseSenderReport =
         BaseSenderReport.getInstance(protocol, videoSourcePorts[1], audioSourcePorts[1]);
   }

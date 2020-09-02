@@ -14,9 +14,9 @@ public abstract class BaseRtpSocket {
   protected final static String TAG = "BaseRtpSocket";
 
   public static BaseRtpSocket getInstance(Protocol protocol, int videoSourcePort,
-      int audioSourcePort) {
-    return protocol == Protocol.TCP ? new RtpSocketTcp()
-        : new RtpSocketUdp(videoSourcePort, audioSourcePort);
+      int audioSourcePort, boolean enableLogs) {
+    return protocol == Protocol.TCP ? new RtpSocketTcp(enableLogs)
+        : new RtpSocketUdp(videoSourcePort, audioSourcePort, enableLogs);
   }
 
   public abstract void setDataStream(OutputStream outputStream, String host);

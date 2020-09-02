@@ -13,9 +13,11 @@ public class RtpSocketTcp extends BaseRtpSocket {
 
   private OutputStream outputStream;
   private byte tcpHeader[];
+  private boolean enableLogs;
 
-  public RtpSocketTcp() {
+  public RtpSocketTcp(boolean enableLogs) {
     tcpHeader = new byte[] { '$', 0, 0, 0 };
+    this.enableLogs = enableLogs;
   }
 
   @Override
@@ -42,10 +44,12 @@ public class RtpSocketTcp extends BaseRtpSocket {
       outputStream.write(tcpHeader);
       outputStream.write(rtpFrame.getBuffer(), 0, len);
       outputStream.flush();
-      Log.i(TAG, "wrote packet: "
-          + (rtpFrame.getChannelIdentifier() == (byte) 2 ? "Video" : "Audio")
-          + ", size: "
-          + rtpFrame.getLength());
+      if (enableLogs) {
+        Log.i(TAG, "wrote packet: "
+                + (rtpFrame.getChannelIdentifier() == (byte) 2 ? "Video" : "Audio")
+                + ", size: "
+                + rtpFrame.getLength());
+      }
     }
   }
 }

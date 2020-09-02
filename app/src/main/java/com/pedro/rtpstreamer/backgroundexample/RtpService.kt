@@ -161,9 +161,9 @@ class RtpService : Service() {
       }
     } else {
       camera2Base = if (openGlView == null) {
-        RtspCamera2(baseContext, true, connectCheckerRtp)
+        RtspCamera2(baseContext, true, connectCheckerRtp, true)
       } else {
-        RtspCamera2(openGlView, connectCheckerRtp)
+        RtspCamera2(openGlView, connectCheckerRtp, true)
       }
     }
   }

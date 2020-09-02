@@ -17,9 +17,9 @@ public class RtspOnlyAudio extends OnlyAudioBase {
 
   private RtspClient rtspClient;
 
-  public RtspOnlyAudio(ConnectCheckerRtsp connectCheckerRtsp) {
+  public RtspOnlyAudio(ConnectCheckerRtsp connectCheckerRtsp, boolean enableLogs) {
     super();
-    rtspClient = new RtspClient(connectCheckerRtsp);
+    rtspClient = new RtspClient(connectCheckerRtsp, enableLogs);
     rtspClient.setOnlyAudio(true);
   }
 

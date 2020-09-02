@@ -23,9 +23,9 @@ public class RtspDisplay extends DisplayBase {
 
   private RtspClient rtspClient;
 
-  public RtspDisplay(Context context, boolean useOpengl, ConnectCheckerRtsp connectCheckerRtsp) {
+  public RtspDisplay(Context context, boolean useOpengl, ConnectCheckerRtsp connectCheckerRtsp, boolean enableLogs) {
     super(context, useOpengl);
-    rtspClient = new RtspClient(connectCheckerRtsp);
+    rtspClient = new RtspClient(connectCheckerRtsp, enableLogs);
   }
 
   /**

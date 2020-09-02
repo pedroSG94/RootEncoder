@@ -56,7 +56,7 @@ public class TextureModeRtspActivity extends AppCompatActivity
     switchCamera.setOnClickListener(this);
     etUrl = findViewById(R.id.et_rtp_url);
     etUrl.setHint(R.string.hint_rtsp);
-    rtspCamera2 = new RtspCamera2(textureView, this);
+    rtspCamera2 = new RtspCamera2(textureView, this, true);
     textureView.setSurfaceTextureListener(this);
   }
 

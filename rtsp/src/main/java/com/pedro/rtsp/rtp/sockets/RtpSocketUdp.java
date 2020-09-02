@@ -18,8 +18,9 @@ public class RtpSocketUdp extends BaseRtpSocket {
   private MulticastSocket multicastSocketVideo;
   private MulticastSocket multicastSocketAudio;
   private DatagramPacket datagramPacket = new DatagramPacket(new byte[] { 0 }, 1);
+  private boolean enableLogs;
 
-  public RtpSocketUdp(int videoSourcePort, int audioSourcePort) {
+  public RtpSocketUdp(int videoSourcePort, int audioSourcePort, boolean enableLogs) {
     try {
       multicastSocketVideo = new MulticastSocket(videoSourcePort);
       multicastSocketVideo.setTimeToLive(64);
@@ -28,6 +29,7 @@ public class RtpSocketUdp extends BaseRtpSocket {
     } catch (IOException e) {
       Log.e(TAG, "Error", e);
     }
+    this.enableLogs = enableLogs;
   }
 
   @Override
@@ -59,11 +61,13 @@ public class RtpSocketUdp extends BaseRtpSocket {
     } else {
       multicastSocketAudio.send(datagramPacket);
     }
-    Log.i(TAG, "wrote packet: "
-        + (rtpFrame.getChannelIdentifier() == (byte) 2 ? "Video" : "Audio")
-        + ", size: "
-        + rtpFrame.getLength()
-        + ", port: "
-        + rtpFrame.getRtpPort());
+    if (enableLogs) {
+      Log.i(TAG, "wrote packet: "
+              + (rtpFrame.getChannelIdentifier() == (byte) 2 ? "Video" : "Audio")
+              + ", size: "
+              + rtpFrame.getLength()
+              + ", port: "
+              + rtpFrame.getRtpPort());
+    }
   }
 }

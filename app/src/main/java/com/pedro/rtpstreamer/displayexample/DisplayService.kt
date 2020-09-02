@@ -156,7 +156,7 @@ class DisplayService : Service() {
       displayBase = RtmpDisplay(baseContext, true, connectCheckerRtp)
       displayBase?.setIntentResult(resultCode!!, data)
     } else {
-      displayBase = RtspDisplay(baseContext, true, connectCheckerRtp)
+      displayBase = RtspDisplay(baseContext, true, connectCheckerRtp, true)
       displayBase?.setIntentResult(resultCode!!, data)
     }
   }

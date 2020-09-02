@@ -48,10 +48,10 @@ public class RtspClient {
   private Handler handler;
   private Runnable runnable;
 
-  public RtspClient(ConnectCheckerRtsp connectCheckerRtsp) {
+  public RtspClient(ConnectCheckerRtsp connectCheckerRtsp, boolean enableLogs) {
     this.connectCheckerRtsp = connectCheckerRtsp;
     commandsManager = new CommandsManager();
-    rtspSender = new RtspSender(connectCheckerRtsp);
+    rtspSender = new RtspSender(connectCheckerRtsp, enableLogs);
     handler = new Handler(Looper.getMainLooper());
   }
 

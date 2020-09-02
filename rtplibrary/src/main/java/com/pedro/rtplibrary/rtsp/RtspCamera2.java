@@ -35,9 +35,9 @@ public class RtspCamera2 extends Camera2Base {
    * instead.
    */
   @Deprecated
-  public RtspCamera2(SurfaceView surfaceView, ConnectCheckerRtsp connectCheckerRtsp) {
+  public RtspCamera2(SurfaceView surfaceView, ConnectCheckerRtsp connectCheckerRtsp, boolean enableLogs) {
     super(surfaceView);
-    rtspClient = new RtspClient(connectCheckerRtsp);
+    rtspClient = new RtspClient(connectCheckerRtsp, enableLogs);
   }
 
   /**
@@ -46,24 +46,24 @@ public class RtspCamera2 extends Camera2Base {
    * instead.
    */
   @Deprecated
-  public RtspCamera2(TextureView textureView, ConnectCheckerRtsp connectCheckerRtsp) {
+  public RtspCamera2(TextureView textureView, ConnectCheckerRtsp connectCheckerRtsp, boolean enableLogs) {
     super(textureView);
-    rtspClient = new RtspClient(connectCheckerRtsp);
+    rtspClient = new RtspClient(connectCheckerRtsp, enableLogs);
   }
 
-  public RtspCamera2(OpenGlView openGlView, ConnectCheckerRtsp connectCheckerRtsp) {
+  public RtspCamera2(OpenGlView openGlView, ConnectCheckerRtsp connectCheckerRtsp, boolean enableLogs) {
     super(openGlView);
-    rtspClient = new RtspClient(connectCheckerRtsp);
+    rtspClient = new RtspClient(connectCheckerRtsp, enableLogs);
   }
 
-  public RtspCamera2(LightOpenGlView lightOpenGlView, ConnectCheckerRtsp connectCheckerRtsp) {
+  public RtspCamera2(LightOpenGlView lightOpenGlView, ConnectCheckerRtsp connectCheckerRtsp, boolean enableLogs) {
     super(lightOpenGlView);
-    rtspClient = new RtspClient(connectCheckerRtsp);
+    rtspClient = new RtspClient(connectCheckerRtsp, enableLogs);
   }
 
-  public RtspCamera2(Context context, boolean useOpengl, ConnectCheckerRtsp connectCheckerRtsp) {
+  public RtspCamera2(Context context, boolean useOpengl, ConnectCheckerRtsp connectCheckerRtsp, boolean enableLogs) {
     super(context, useOpengl);
-    rtspClient = new RtspClient(connectCheckerRtsp);
+    rtspClient = new RtspClient(connectCheckerRtsp, enableLogs);
   }
 
   /**
