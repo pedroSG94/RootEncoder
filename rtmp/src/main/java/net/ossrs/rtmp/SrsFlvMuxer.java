@@ -92,8 +92,8 @@ public class SrsFlvMuxer {
     handler = new Handler(Looper.getMainLooper());
   }
 
-  public SrsFlvMuxer(ConnectCheckerRtmp connectCheckerRtmp) {
-    this(connectCheckerRtmp, new DefaultRtmpPublisher(connectCheckerRtmp));
+  public SrsFlvMuxer(ConnectCheckerRtmp connectCheckerRtmp, boolean enableLogs) {
+    this(connectCheckerRtmp, new DefaultRtmpPublisher(connectCheckerRtmp, enableLogs));
   }
 
   public void setProfileIop(byte profileIop) {

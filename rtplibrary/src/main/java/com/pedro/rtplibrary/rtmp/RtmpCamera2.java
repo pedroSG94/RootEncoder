@@ -33,9 +33,9 @@ public class RtmpCamera2 extends Camera2Base {
    * instead.
    */
   @Deprecated
-  public RtmpCamera2(SurfaceView surfaceView, ConnectCheckerRtmp connectChecker) {
+  public RtmpCamera2(SurfaceView surfaceView, ConnectCheckerRtmp connectChecker, boolean enableLogs) {
     super(surfaceView);
-    srsFlvMuxer = new SrsFlvMuxer(connectChecker);
+    srsFlvMuxer = new SrsFlvMuxer(connectChecker, enableLogs);
   }
 
   /**
@@ -44,24 +44,24 @@ public class RtmpCamera2 extends Camera2Base {
    * instead.
    */
   @Deprecated
-  public RtmpCamera2(TextureView textureView, ConnectCheckerRtmp connectChecker) {
+  public RtmpCamera2(TextureView textureView, ConnectCheckerRtmp connectChecker, boolean enableLogs) {
     super(textureView);
-    srsFlvMuxer = new SrsFlvMuxer(connectChecker);
+    srsFlvMuxer = new SrsFlvMuxer(connectChecker, enableLogs);
   }
 
-  public RtmpCamera2(OpenGlView openGlView, ConnectCheckerRtmp connectChecker) {
+  public RtmpCamera2(OpenGlView openGlView, ConnectCheckerRtmp connectChecker, boolean enableLogs) {
     super(openGlView);
-    srsFlvMuxer = new SrsFlvMuxer(connectChecker);
+    srsFlvMuxer = new SrsFlvMuxer(connectChecker, enableLogs);
   }
 
-  public RtmpCamera2(LightOpenGlView lightOpenGlView, ConnectCheckerRtmp connectChecker) {
+  public RtmpCamera2(LightOpenGlView lightOpenGlView, ConnectCheckerRtmp connectChecker, boolean enableLogs) {
     super(lightOpenGlView);
-    srsFlvMuxer = new SrsFlvMuxer(connectChecker);
+    srsFlvMuxer = new SrsFlvMuxer(connectChecker, enableLogs);
   }
 
-  public RtmpCamera2(Context context, boolean useOpengl, ConnectCheckerRtmp connectChecker) {
+  public RtmpCamera2(Context context, boolean useOpengl, ConnectCheckerRtmp connectChecker, boolean enableLogs) {
     super(context, useOpengl);
-    srsFlvMuxer = new SrsFlvMuxer(connectChecker);
+    srsFlvMuxer = new SrsFlvMuxer(connectChecker, enableLogs);
   }
 
   /**

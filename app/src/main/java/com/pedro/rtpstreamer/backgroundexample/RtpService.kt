@@ -89,7 +89,7 @@ class RtpService : Service() {
 
     fun init(context: Context) {
       contextApp = context
-      if (camera2Base == null) camera2Base = RtmpCamera2(context, true, connectCheckerRtp)
+      if (camera2Base == null) camera2Base = RtmpCamera2(context, true, connectCheckerRtp, true)
     }
 
     fun stopStream() {
@@ -155,9 +155,9 @@ class RtpService : Service() {
     stopPreview()
     if (endpoint!!.startsWith("rtmp")) {
       camera2Base = if (openGlView == null) {
-        RtmpCamera2(baseContext, true, connectCheckerRtp)
+        RtmpCamera2(baseContext, true, connectCheckerRtp, true)
       } else {
-        RtmpCamera2(openGlView, connectCheckerRtp)
+        RtmpCamera2(openGlView, connectCheckerRtp, true)
       }
     } else {
       camera2Base = if (openGlView == null) {

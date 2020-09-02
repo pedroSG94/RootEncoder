@@ -12,8 +12,8 @@ public class DefaultRtmpPublisher implements RtmpPublisher {
 
   private RtmpConnection rtmpConnection;
 
-  public DefaultRtmpPublisher(ConnectCheckerRtmp connectCheckerRtmp) {
-    rtmpConnection = new RtmpConnection(connectCheckerRtmp);
+  public DefaultRtmpPublisher(ConnectCheckerRtmp connectCheckerRtmp, boolean enableLogs) {
+    rtmpConnection = new RtmpConnection(connectCheckerRtmp, enableLogs);
   }
 
   @Override

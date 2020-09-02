@@ -75,7 +75,7 @@ class DisplayService : Service() {
 
     fun init(context: Context) {
       contextApp = context
-      if (displayBase == null) displayBase = RtmpDisplay(context, true, connectCheckerRtp)
+      if (displayBase == null) displayBase = RtmpDisplay(context, true, connectCheckerRtp, true)
     }
 
     fun setData(resultCode: Int, data: Intent) {
@@ -153,7 +153,7 @@ class DisplayService : Service() {
   private fun prepareStreamRtp() {
     stopStream()
     if (endpoint!!.startsWith("rtmp")) {
-      displayBase = RtmpDisplay(baseContext, true, connectCheckerRtp)
+      displayBase = RtmpDisplay(baseContext, true, connectCheckerRtp, true)
       displayBase?.setIntentResult(resultCode!!, data)
     } else {
       displayBase = RtspDisplay(baseContext, true, connectCheckerRtp, true)

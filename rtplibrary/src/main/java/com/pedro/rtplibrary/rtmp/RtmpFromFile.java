@@ -28,27 +28,27 @@ public class RtmpFromFile extends FromFileBase {
   private SrsFlvMuxer srsFlvMuxer;
 
   public RtmpFromFile(ConnectCheckerRtmp connectChecker,
-      VideoDecoderInterface videoDecoderInterface, AudioDecoderInterface audioDecoderInterface) {
+      VideoDecoderInterface videoDecoderInterface, AudioDecoderInterface audioDecoderInterface, boolean enableLogs) {
     super(videoDecoderInterface, audioDecoderInterface);
-    srsFlvMuxer = new SrsFlvMuxer(connectChecker);
+    srsFlvMuxer = new SrsFlvMuxer(connectChecker, enableLogs);
   }
 
   public RtmpFromFile(Context context, ConnectCheckerRtmp connectChecker,
-      VideoDecoderInterface videoDecoderInterface, AudioDecoderInterface audioDecoderInterface) {
+      VideoDecoderInterface videoDecoderInterface, AudioDecoderInterface audioDecoderInterface, boolean enableLogs) {
     super(context, videoDecoderInterface, audioDecoderInterface);
-    srsFlvMuxer = new SrsFlvMuxer(connectChecker);
+    srsFlvMuxer = new SrsFlvMuxer(connectChecker, enableLogs);
   }
 
   public RtmpFromFile(OpenGlView openGlView, ConnectCheckerRtmp connectChecker,
-      VideoDecoderInterface videoDecoderInterface, AudioDecoderInterface audioDecoderInterface) {
+      VideoDecoderInterface videoDecoderInterface, AudioDecoderInterface audioDecoderInterface, boolean enableLogs) {
     super(openGlView, videoDecoderInterface, audioDecoderInterface);
-    srsFlvMuxer = new SrsFlvMuxer(connectChecker);
+    srsFlvMuxer = new SrsFlvMuxer(connectChecker, enableLogs);
   }
 
   public RtmpFromFile(LightOpenGlView lightOpenGlView, ConnectCheckerRtmp connectChecker,
-      VideoDecoderInterface videoDecoderInterface, AudioDecoderInterface audioDecoderInterface) {
+      VideoDecoderInterface videoDecoderInterface, AudioDecoderInterface audioDecoderInterface, boolean enableLogs) {
     super(lightOpenGlView, videoDecoderInterface, audioDecoderInterface);
-    srsFlvMuxer = new SrsFlvMuxer(connectChecker);
+    srsFlvMuxer = new SrsFlvMuxer(connectChecker, enableLogs);
   }
 
   /**

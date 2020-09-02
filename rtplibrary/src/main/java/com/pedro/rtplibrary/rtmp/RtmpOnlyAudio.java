@@ -16,9 +16,9 @@ public class RtmpOnlyAudio extends OnlyAudioBase {
 
   private SrsFlvMuxer srsFlvMuxer;
 
-  public RtmpOnlyAudio(ConnectCheckerRtmp connectChecker) {
+  public RtmpOnlyAudio(ConnectCheckerRtmp connectChecker, boolean enableLogs) {
     super();
-    srsFlvMuxer = new SrsFlvMuxer(connectChecker);
+    srsFlvMuxer = new SrsFlvMuxer(connectChecker, enableLogs);
   }
 
   @Override

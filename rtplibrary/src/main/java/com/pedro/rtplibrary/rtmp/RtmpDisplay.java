@@ -23,9 +23,9 @@ public class RtmpDisplay extends DisplayBase {
 
   private SrsFlvMuxer srsFlvMuxer;
 
-  public RtmpDisplay(Context context, boolean useOpengl, ConnectCheckerRtmp connectChecker) {
+  public RtmpDisplay(Context context, boolean useOpengl, ConnectCheckerRtmp connectChecker, boolean enableLogs) {
     super(context, useOpengl);
-    srsFlvMuxer = new SrsFlvMuxer(connectChecker);
+    srsFlvMuxer = new SrsFlvMuxer(connectChecker, enableLogs);
   }
 
   /**

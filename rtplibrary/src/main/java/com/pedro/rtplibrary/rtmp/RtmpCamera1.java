@@ -24,32 +24,32 @@ public class RtmpCamera1 extends Camera1Base {
 
   private SrsFlvMuxer srsFlvMuxer;
 
-  public RtmpCamera1(SurfaceView surfaceView, ConnectCheckerRtmp connectChecker) {
+  public RtmpCamera1(SurfaceView surfaceView, ConnectCheckerRtmp connectChecker, boolean enableLogs) {
     super(surfaceView);
-    srsFlvMuxer = new SrsFlvMuxer(connectChecker);
+    srsFlvMuxer = new SrsFlvMuxer(connectChecker, enableLogs);
   }
 
-  public RtmpCamera1(TextureView textureView, ConnectCheckerRtmp connectChecker) {
+  public RtmpCamera1(TextureView textureView, ConnectCheckerRtmp connectChecker, boolean enableLogs) {
     super(textureView);
-    srsFlvMuxer = new SrsFlvMuxer(connectChecker);
+    srsFlvMuxer = new SrsFlvMuxer(connectChecker, enableLogs);
   }
 
   @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
-  public RtmpCamera1(OpenGlView openGlView, ConnectCheckerRtmp connectChecker) {
+  public RtmpCamera1(OpenGlView openGlView, ConnectCheckerRtmp connectChecker, boolean enableLogs) {
     super(openGlView);
-    srsFlvMuxer = new SrsFlvMuxer(connectChecker);
+    srsFlvMuxer = new SrsFlvMuxer(connectChecker, enableLogs);
   }
 
   @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
-  public RtmpCamera1(LightOpenGlView lightOpenGlView, ConnectCheckerRtmp connectChecker) {
+  public RtmpCamera1(LightOpenGlView lightOpenGlView, ConnectCheckerRtmp connectChecker, boolean enableLogs) {
     super(lightOpenGlView);
-    srsFlvMuxer = new SrsFlvMuxer(connectChecker);
+    srsFlvMuxer = new SrsFlvMuxer(connectChecker, enableLogs);
   }
 
   @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
-  public RtmpCamera1(Context context, ConnectCheckerRtmp connectChecker) {
+  public RtmpCamera1(Context context, ConnectCheckerRtmp connectChecker, boolean enableLogs) {
     super(context);
-    srsFlvMuxer = new SrsFlvMuxer(connectChecker);
+    srsFlvMuxer = new SrsFlvMuxer(connectChecker, enableLogs);
   }
 
   /**
