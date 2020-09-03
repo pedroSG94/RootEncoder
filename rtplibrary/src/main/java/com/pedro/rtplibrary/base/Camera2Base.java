@@ -61,7 +61,7 @@ public abstract class Camera2Base implements GetAacData, GetVideoData, GetMicrop
   private boolean videoEnabled = false;
   private boolean onPreview = false;
   private boolean isBackground = false;
-  private RecordController recordController;
+  protected RecordController recordController;
   private int previewWidth, previewHeight;
   private FpsListener fpsListener = new FpsListener();
 

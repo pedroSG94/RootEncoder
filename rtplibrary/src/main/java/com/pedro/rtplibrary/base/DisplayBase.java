@@ -58,7 +58,7 @@ public abstract class DisplayBase implements GetAacData, GetVideoData, GetMicrop
   private VirtualDisplay virtualDisplay;
   private int resultCode = -1;
   private Intent data;
-  private RecordController recordController;
+  protected RecordController recordController;
   private FpsListener fpsListener = new FpsListener();
   private boolean audioInitialized = false;
 

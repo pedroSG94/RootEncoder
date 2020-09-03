@@ -54,7 +54,7 @@ public abstract class FromFileBase
   private AudioEncoder audioEncoder;
   private GlInterface glInterface;
   private boolean streaming = false;
-  private RecordController recordController;
+  protected RecordController recordController;
   private FpsListener fpsListener = new FpsListener();
 
   private VideoDecoder videoDecoder;

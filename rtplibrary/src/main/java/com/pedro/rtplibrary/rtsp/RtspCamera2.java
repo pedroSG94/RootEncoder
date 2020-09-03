@@ -126,6 +126,8 @@ public class RtspCamera2 extends Camera2Base {
   }
 
   public void setVideoCodec(VideoCodec videoCodec) {
+    recordController.setVideoMime(
+        videoCodec == VideoCodec.H265 ? CodecUtil.H265_MIME : CodecUtil.H264_MIME);
     videoEncoder.setType(videoCodec == VideoCodec.H265 ? CodecUtil.H265_MIME : CodecUtil.H264_MIME);
   }
 

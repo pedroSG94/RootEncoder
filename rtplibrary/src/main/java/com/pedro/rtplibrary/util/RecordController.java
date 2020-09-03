@@ -5,6 +5,8 @@ import android.media.MediaFormat;
 import android.media.MediaMuxer;
 import android.os.Build;
 import androidx.annotation.RequiresApi;
+import com.pedro.encoder.utils.CodecUtil;
+import com.pedro.rtsp.utils.RtpConstants;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 
@@ -26,6 +28,7 @@ public class RecordController {
   private long pauseTime = 0;
   private MediaCodec.BufferInfo videoInfo = new MediaCodec.BufferInfo();
   private MediaCodec.BufferInfo audioInfo = new MediaCodec.BufferInfo();
+  private String videoMime = CodecUtil.H264_MIME;
 
   public enum Status {
     STARTED, STOPPED, RECORDING, PAUSED, RESUMED
@@ -59,6 +62,10 @@ public class RecordController {
     pauseMoment = 0;
     pauseTime = 0;
     if (listener != null) listener.onStatusChange(status);
+  }
+
+  public void setVideoMime(String videoMime) {
+    this.videoMime = videoMime;
   }
 
   public boolean isRunning() {
@@ -97,17 +104,28 @@ public class RecordController {
     }
   }
 
+  private boolean isKeyFrame(ByteBuffer videoBuffer) {
+    byte[] header = new byte[5];
+    videoBuffer.duplicate().get(header, 0, header.length);
+    if (videoMime.equals(CodecUtil.H264_MIME) && (header[4] & 0x1F) == RtpConstants.IDR) {  //h264
+      return true;
+    } else { //h265
+      return videoMime.equals(CodecUtil.H265_MIME)
+          && ((header[4] >> 1) & 0x3f) == RtpConstants.IDR_W_DLP
+          || ((header[4] >> 1) & 0x3f) == RtpConstants.IDR_N_LP;
+    }
+  }
+
   @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
   public void recordVideo(ByteBuffer videoBuffer, MediaCodec.BufferInfo videoInfo) {
-    if (status == Status.STARTED
-        && videoInfo.flags == MediaCodec.BUFFER_FLAG_KEY_FRAME
-        && videoFormat != null
-        && audioFormat != null) {
-      videoTrack = mediaMuxer.addTrack(videoFormat);
-      audioTrack = mediaMuxer.addTrack(audioFormat);
-      mediaMuxer.start();
-      status = Status.RECORDING;
-      if (listener != null) listener.onStatusChange(status);
+    if (status == Status.STARTED && videoFormat != null && audioFormat != null) {
+      if (videoInfo.flags == MediaCodec.BUFFER_FLAG_KEY_FRAME || isKeyFrame(videoBuffer)) {
+        videoTrack = mediaMuxer.addTrack(videoFormat);
+        audioTrack = mediaMuxer.addTrack(audioFormat);
+        mediaMuxer.start();
+        status = Status.RECORDING;
+        if (listener != null) listener.onStatusChange(status);
+      }
     } else if (status == Status.RESUMED && videoInfo.flags == MediaCodec.BUFFER_FLAG_KEY_FRAME) {
       status = Status.RECORDING;
       if (listener != null) listener.onStatusChange(status);
