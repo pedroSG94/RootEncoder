@@ -186,9 +186,7 @@ public class RtspCamera2 extends Camera2Base {
 
   @Override
   public void setLogs(boolean enable) {
-    if (rtspClient != null) {
-      rtspClient.setLogs(enable);
-    }
+    rtspClient.setLogs(enable);
   }
 }
 

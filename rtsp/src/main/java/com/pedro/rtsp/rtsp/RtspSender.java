@@ -40,6 +40,7 @@ public class RtspSender implements VideoPacketCallback, AudioPacketCallback {
   private long droppedAudioFrames = 0;
   private long droppedVideoFrames = 0;
   private BitrateManager bitrateManager;
+  private boolean isEnableLogs = true;
 
   public RtspSender(ConnectCheckerRtsp connectCheckerRtsp) {
     this.connectCheckerRtsp = connectCheckerRtsp;
@@ -120,7 +121,7 @@ public class RtspSender implements VideoPacketCallback, AudioPacketCallback {
               Log.i(TAG, "Skipping iteration, frame null");
               continue;
             }
-            rtpSocket.sendFrame(rtpFrame);
+            rtpSocket.sendFrame(rtpFrame, isEnableLogs);
             //bytes to bits
             bitrateManager.calculateBitrate(rtpFrame.getLength() * 8);
             if (rtpFrame.isVideoFrame()) {
@@ -212,8 +213,6 @@ public class RtspSender implements VideoPacketCallback, AudioPacketCallback {
   }
 
   public void setLogs(boolean enable) {
-    if (rtpSocket != null) {
-      rtpSocket.setLogs(enable);
-    }
+    this.isEnableLogs = enable;
   }
 }

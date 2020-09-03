@@ -12,7 +12,6 @@ import java.io.OutputStream;
 public abstract class BaseRtpSocket {
 
   protected final static String TAG = "BaseRtpSocket";
-  protected boolean isEnableLogs = true;
 
   public static BaseRtpSocket getInstance(Protocol protocol, int videoSourcePort,
       int audioSourcePort) {
@@ -22,11 +21,7 @@ public abstract class BaseRtpSocket {
 
   public abstract void setDataStream(OutputStream outputStream, String host);
 
-  public abstract void sendFrame(RtpFrame rtpFrame) throws IOException;
+  public abstract void sendFrame(RtpFrame rtpFrame, boolean isEnableLogs) throws IOException;
 
   public abstract void close();
-
-  public void setLogs(boolean enable) {
-    isEnableLogs = enable;
-  }
 }

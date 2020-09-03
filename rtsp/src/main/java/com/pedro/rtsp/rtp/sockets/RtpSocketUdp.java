@@ -40,8 +40,8 @@ public class RtpSocketUdp extends BaseRtpSocket {
   }
 
   @Override
-  public void sendFrame(RtpFrame rtpFrame) throws IOException {
-    sendFrameUDP(rtpFrame);
+  public void sendFrame(RtpFrame rtpFrame, boolean isEnableLogs) throws IOException {
+    sendFrameUDP(rtpFrame, isEnableLogs);
   }
 
   @Override
@@ -50,7 +50,7 @@ public class RtpSocketUdp extends BaseRtpSocket {
     multicastSocketAudio.close();
   }
 
-  private void sendFrameUDP(RtpFrame rtpFrame) throws IOException {
+  private void sendFrameUDP(RtpFrame rtpFrame, boolean isEnableLogs) throws IOException {
     datagramPacket.setData(rtpFrame.getBuffer());
     datagramPacket.setPort(rtpFrame.getRtpPort());
     datagramPacket.setLength(rtpFrame.getLength());
@@ -61,11 +61,11 @@ public class RtpSocketUdp extends BaseRtpSocket {
     }
     if (isEnableLogs) {
       Log.i(TAG, "wrote packet: "
-              + (rtpFrame.getChannelIdentifier() == (byte) 2 ? "Video" : "Audio")
-              + ", size: "
-              + rtpFrame.getLength()
-              + ", port: "
-              + rtpFrame.getRtpPort());
+          + (rtpFrame.getChannelIdentifier() == (byte) 2 ? "Video" : "Audio")
+          + ", size: "
+          + rtpFrame.getLength()
+          + ", port: "
+          + rtpFrame.getRtpPort());
     }
   }
 }

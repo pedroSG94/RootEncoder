@@ -1043,8 +1043,6 @@ public class SrsFlvMuxer {
   }
 
   public void setLogs(boolean enable) {
-    if (publisher != null) {
-      publisher.setLogs(enable);
-    }
+    publisher.setLogs(enable);
   }
 }

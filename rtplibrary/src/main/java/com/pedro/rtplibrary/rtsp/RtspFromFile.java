@@ -171,9 +171,7 @@ public class RtspFromFile extends FromFileBase {
 
   @Override
   public void setLogs(boolean enable) {
-    if (rtspClient != null) {
-      rtspClient.setLogs(enable);
-    }
+    rtspClient.setLogs(enable);
   }
 }
 

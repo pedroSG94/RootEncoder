@@ -334,9 +334,7 @@ public class RtspClient {
   }
 
   public void setLogs(boolean enable) {
-    if (rtspSender != null) {
-      rtspSender.setLogs(enable);
-    }
+    rtspSender.setLogs(enable);
   }
 }
 
