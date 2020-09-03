@@ -42,8 +42,8 @@ public class SenderReportUdp extends BaseSenderReport {
 
   @Override
   public void sendReport(byte[] buffer, RtpFrame rtpFrame, String type, int packetCount,
-      int octetCount) throws IOException {
-    sendReportUDP(buffer, rtpFrame.getRtcpPort(), type, packetCount, octetCount);
+      int octetCount, boolean isEnableLogs) throws IOException {
+    sendReportUDP(buffer, rtpFrame.getRtcpPort(), type, packetCount, octetCount, isEnableLogs);
   }
 
   @Override
@@ -52,8 +52,8 @@ public class SenderReportUdp extends BaseSenderReport {
     multicastSocketAudio.close();
   }
 
-  private void sendReportUDP(byte[] buffer, int port, String type, int packet, int octet)
-      throws IOException {
+  private void sendReportUDP(byte[] buffer, int port, String type, int packet, int octet,
+      boolean isEnableLogs) throws IOException {
     datagramPacket.setData(buffer);
     datagramPacket.setPort(port);
     datagramPacket.setLength(PACKET_LENGTH);
@@ -62,6 +62,15 @@ public class SenderReportUdp extends BaseSenderReport {
     } else {
       multicastSocketAudio.send(datagramPacket);
     }
-    Log.i(TAG, "wrote report: " + type + ", port: " + port + ", packets: " + packet + ", octet: " + octet);
+    if (isEnableLogs) {
+      Log.i(TAG, "wrote report: "
+          + type
+          + ", port: "
+          + port
+          + ", packets: "
+          + packet
+          + ", octet: "
+          + octet);
+    }
   }
 }

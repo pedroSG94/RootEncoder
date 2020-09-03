@@ -26,8 +26,9 @@ public class SenderReportTcp extends BaseSenderReport {
 
   @Override
   public void sendReport(byte[] buffer, RtpFrame rtpFrame, String type, int packetCount,
-      int octetCount) throws IOException {
-    sendReportTCP(buffer, rtpFrame.getChannelIdentifier(), type, packetCount, octetCount);
+      int octetCount, boolean isEnableLogs) throws IOException {
+    sendReportTCP(buffer, rtpFrame.getChannelIdentifier(), type, packetCount, octetCount,
+        isEnableLogs);
   }
 
   @Override
@@ -36,13 +37,15 @@ public class SenderReportTcp extends BaseSenderReport {
   }
 
   private void sendReportTCP(byte[] buffer, byte channelIdentifier, String type, int packet,
-      int octet) throws IOException {
+      int octet, boolean isEnableLogs) throws IOException {
     synchronized (outputStream) {
       tcpHeader[1] = (byte) (channelIdentifier + 1);
       outputStream.write(tcpHeader);
       outputStream.write(buffer, 0, PACKET_LENGTH);
       outputStream.flush();
-      Log.i(TAG, "wrote report: " + type + ", packets: " + packet + ", octet: " + octet);
+      if (isEnableLogs) {
+        Log.i(TAG, "wrote report: " + type + ", packets: " + packet + ", octet: " + octet);
+      }
     }
   }
 }

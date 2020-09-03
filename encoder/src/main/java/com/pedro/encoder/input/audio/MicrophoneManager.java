@@ -130,8 +130,6 @@ public class MicrophoneManager {
           Frame frame = read();
           if (frame != null) {
             getMicrophoneData.inputPCMData(frame);
-          } else {
-            running = false;
           }
         }
       }

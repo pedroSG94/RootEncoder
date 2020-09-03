@@ -64,18 +64,18 @@ public abstract class BaseSenderReport {
 
   public abstract void setDataStream(OutputStream outputStream, String host);
 
-  public void update(RtpFrame rtpFrame) {
+  public void update(RtpFrame rtpFrame, boolean isEnableLogs) {
     if (rtpFrame.getChannelIdentifier() == (byte) 2) {
-      updateVideo(rtpFrame);
+      updateVideo(rtpFrame, isEnableLogs);
     } else {
-      updateAudio(rtpFrame);
+      updateAudio(rtpFrame, isEnableLogs);
     }
   }
 
   public abstract void sendReport(byte[] buffer, RtpFrame rtpFrame, String type, int packetCount,
-      int octetCount) throws IOException;
+      int octetCount, boolean isEnableLogs) throws IOException;
 
-  private void updateVideo(RtpFrame rtpFrame) {
+  private void updateVideo(RtpFrame rtpFrame, boolean isEnableLogs) {
     videoPacketCount++;
     videoOctetCount += rtpFrame.getLength();
     setLong(videoBuffer, videoPacketCount, 20, 24);
@@ -84,14 +84,14 @@ public abstract class BaseSenderReport {
       videoTime = System.currentTimeMillis();
       setData(videoBuffer, System.nanoTime(), rtpFrame.getTimeStamp());
       try {
-        sendReport(videoBuffer, rtpFrame, "Video", videoPacketCount, videoOctetCount);
+        sendReport(videoBuffer, rtpFrame, "Video", videoPacketCount, videoOctetCount, isEnableLogs);
       } catch (IOException e) {
         Log.e(TAG, "Error", e);
       }
     }
   }
 
-  private void updateAudio(RtpFrame rtpFrame) {
+  private void updateAudio(RtpFrame rtpFrame, boolean isEnableLogs) {
     audioPacketCount++;
     audioOctetCount += rtpFrame.getLength();
     setLong(audioBuffer, audioPacketCount, 20, 24);
@@ -100,7 +100,7 @@ public abstract class BaseSenderReport {
       audioTime = System.currentTimeMillis();
       setData(audioBuffer, System.nanoTime(), rtpFrame.getTimeStamp());
       try {
-        sendReport(audioBuffer, rtpFrame, "Audio", audioPacketCount, audioOctetCount);
+        sendReport(audioBuffer, rtpFrame, "Audio", audioPacketCount, audioOctetCount, isEnableLogs);
       } catch (IOException e) {
         Log.e(TAG, "Error", e);
       }

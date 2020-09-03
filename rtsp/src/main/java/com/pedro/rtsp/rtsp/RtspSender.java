@@ -129,7 +129,7 @@ public class RtspSender implements VideoPacketCallback, AudioPacketCallback {
             } else {
               audioFramesSent++;
             }
-            baseSenderReport.update(rtpFrame);
+            baseSenderReport.update(rtpFrame, isEnableLogs);
           } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
           } catch (IOException e) {

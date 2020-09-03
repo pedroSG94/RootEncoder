@@ -122,8 +122,10 @@ public abstract class BaseEncoder implements EncoderCallback {
       byteBuffer.put(frame.getBuffer(), frame.getOffset(), frame.getSize());
       long pts = System.nanoTime() / 1000 - presentTimeUs;
       mediaCodec.queueInputBuffer(inBufferIndex, 0, frame.getSize(), pts, 0);
-    } catch (InterruptedException | NullPointerException e) {
+    } catch (InterruptedException e) {
       Thread.currentThread().interrupt();
+    } catch (NullPointerException e) {
+      Log.i(TAG, "Encoding error", e);
     }
   }
 
