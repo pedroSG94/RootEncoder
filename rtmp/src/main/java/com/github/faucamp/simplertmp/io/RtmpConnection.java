@@ -81,9 +81,9 @@ public class RtmpConnection implements RtmpPublisher {
   private boolean onAuth = false;
   private String netConnectionDescription;
   private BitrateManager bitrateManager;
-  private boolean enableLogs;
+  private boolean isEnableLogs = true;
 
-  public RtmpConnection(ConnectCheckerRtmp connectCheckerRtmp, boolean enableLogs) {
+  public RtmpConnection(ConnectCheckerRtmp connectCheckerRtmp) {
     this.connectCheckerRtmp = connectCheckerRtmp;
     bitrateManager = new BitrateManager(connectCheckerRtmp);
   }
@@ -496,7 +496,7 @@ public class RtmpConnection implements RtmpPublisher {
             .setAbsoluteTimestamp((int) chunkStreamInfo.markAbsoluteTimestampTx());
       }
       rtmpPacket.writeTo(outputStream, rtmpSessionInfo.getTxChunkSize(), chunkStreamInfo);
-      if (enableLogs) {
+      if (isEnableLogs) {
         Log.d(TAG,
                 "wrote packet: " + rtmpPacket + ", size: " + rtmpPacket.getHeader().getPacketLength());
       }
@@ -730,5 +730,9 @@ public class RtmpConnection implements RtmpPublisher {
   public void setAuthorization(String user, String password) {
     this.user = user;
     this.password = password;
+  }
+
+  public void setLogs(boolean enable) {
+    isEnableLogs = enable;
   }
 }

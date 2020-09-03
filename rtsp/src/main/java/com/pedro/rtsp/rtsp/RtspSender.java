@@ -40,16 +40,14 @@ public class RtspSender implements VideoPacketCallback, AudioPacketCallback {
   private long droppedAudioFrames = 0;
   private long droppedVideoFrames = 0;
   private BitrateManager bitrateManager;
-  private boolean enableLogs;
 
-  public RtspSender(ConnectCheckerRtsp connectCheckerRtsp, boolean enableLogs) {
+  public RtspSender(ConnectCheckerRtsp connectCheckerRtsp) {
     this.connectCheckerRtsp = connectCheckerRtsp;
     bitrateManager = new BitrateManager(connectCheckerRtsp);
-    this.enableLogs = enableLogs;
   }
 
   public void setSocketsInfo(Protocol protocol, int[] videoSourcePorts, int[] audioSourcePorts) {
-    rtpSocket = BaseRtpSocket.getInstance(protocol, videoSourcePorts[0], audioSourcePorts[0], enableLogs);
+    rtpSocket = BaseRtpSocket.getInstance(protocol, videoSourcePorts[0], audioSourcePorts[0]);
     baseSenderReport =
         BaseSenderReport.getInstance(protocol, videoSourcePorts[1], audioSourcePorts[1]);
   }
@@ -211,5 +209,11 @@ public class RtspSender implements VideoPacketCallback, AudioPacketCallback {
 
   public void resetDroppedVideoFrames() {
     droppedVideoFrames = 0;
+  }
+
+  public void setLogs(boolean enable) {
+    if (rtpSocket != null) {
+      rtpSocket.setLogs(enable);
+    }
   }
 }

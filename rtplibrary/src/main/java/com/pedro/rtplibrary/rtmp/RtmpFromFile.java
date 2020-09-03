@@ -28,27 +28,27 @@ public class RtmpFromFile extends FromFileBase {
   private SrsFlvMuxer srsFlvMuxer;
 
   public RtmpFromFile(ConnectCheckerRtmp connectChecker,
-      VideoDecoderInterface videoDecoderInterface, AudioDecoderInterface audioDecoderInterface, boolean enableLogs) {
+      VideoDecoderInterface videoDecoderInterface, AudioDecoderInterface audioDecoderInterface) {
     super(videoDecoderInterface, audioDecoderInterface);
-    srsFlvMuxer = new SrsFlvMuxer(connectChecker, enableLogs);
+    srsFlvMuxer = new SrsFlvMuxer(connectChecker);
   }
 
   public RtmpFromFile(Context context, ConnectCheckerRtmp connectChecker,
-      VideoDecoderInterface videoDecoderInterface, AudioDecoderInterface audioDecoderInterface, boolean enableLogs) {
+      VideoDecoderInterface videoDecoderInterface, AudioDecoderInterface audioDecoderInterface) {
     super(context, videoDecoderInterface, audioDecoderInterface);
-    srsFlvMuxer = new SrsFlvMuxer(connectChecker, enableLogs);
+    srsFlvMuxer = new SrsFlvMuxer(connectChecker);
   }
 
   public RtmpFromFile(OpenGlView openGlView, ConnectCheckerRtmp connectChecker,
-      VideoDecoderInterface videoDecoderInterface, AudioDecoderInterface audioDecoderInterface, boolean enableLogs) {
+      VideoDecoderInterface videoDecoderInterface, AudioDecoderInterface audioDecoderInterface) {
     super(openGlView, videoDecoderInterface, audioDecoderInterface);
-    srsFlvMuxer = new SrsFlvMuxer(connectChecker, enableLogs);
+    srsFlvMuxer = new SrsFlvMuxer(connectChecker);
   }
 
   public RtmpFromFile(LightOpenGlView lightOpenGlView, ConnectCheckerRtmp connectChecker,
-      VideoDecoderInterface videoDecoderInterface, AudioDecoderInterface audioDecoderInterface, boolean enableLogs) {
+      VideoDecoderInterface videoDecoderInterface, AudioDecoderInterface audioDecoderInterface) {
     super(lightOpenGlView, videoDecoderInterface, audioDecoderInterface);
-    srsFlvMuxer = new SrsFlvMuxer(connectChecker, enableLogs);
+    srsFlvMuxer = new SrsFlvMuxer(connectChecker);
   }
 
   /**
@@ -174,5 +174,10 @@ public class RtmpFromFile extends FromFileBase {
   @Override
   protected void getAacDataRtp(ByteBuffer aacBuffer, MediaCodec.BufferInfo info) {
     srsFlvMuxer.sendAudio(aacBuffer, info);
+  }
+
+  @Override
+  public void setLogs(boolean enable) {
+    srsFlvMuxer.setLogs(enable);
   }
 }

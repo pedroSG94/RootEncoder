@@ -12,11 +12,12 @@ import java.io.OutputStream;
 public abstract class BaseRtpSocket {
 
   protected final static String TAG = "BaseRtpSocket";
+  protected boolean isEnableLogs = true;
 
   public static BaseRtpSocket getInstance(Protocol protocol, int videoSourcePort,
-      int audioSourcePort, boolean enableLogs) {
-    return protocol == Protocol.TCP ? new RtpSocketTcp(enableLogs)
-        : new RtpSocketUdp(videoSourcePort, audioSourcePort, enableLogs);
+      int audioSourcePort) {
+    return protocol == Protocol.TCP ? new RtpSocketTcp()
+        : new RtpSocketUdp(videoSourcePort, audioSourcePort);
   }
 
   public abstract void setDataStream(OutputStream outputStream, String host);
@@ -24,4 +25,8 @@ public abstract class BaseRtpSocket {
   public abstract void sendFrame(RtpFrame rtpFrame) throws IOException;
 
   public abstract void close();
+
+  public void setLogs(boolean enable) {
+    isEnableLogs = enable;
+  }
 }

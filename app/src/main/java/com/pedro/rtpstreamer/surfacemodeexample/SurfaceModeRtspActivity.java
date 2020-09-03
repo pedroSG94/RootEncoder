@@ -55,7 +55,7 @@ public class SurfaceModeRtspActivity extends AppCompatActivity
     switchCamera.setOnClickListener(this);
     etUrl = findViewById(R.id.et_rtp_url);
     etUrl.setHint(R.string.hint_rtsp);
-    rtspCamera2 = new RtspCamera2(surfaceView, this, true);
+    rtspCamera2 = new RtspCamera2(surfaceView, this);
     rtspCamera2.setReTries(10);
     surfaceView.getHolder().addCallback(this);
   }

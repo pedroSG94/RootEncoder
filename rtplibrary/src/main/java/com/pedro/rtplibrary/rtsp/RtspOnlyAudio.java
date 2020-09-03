@@ -17,9 +17,9 @@ public class RtspOnlyAudio extends OnlyAudioBase {
 
   private RtspClient rtspClient;
 
-  public RtspOnlyAudio(ConnectCheckerRtsp connectCheckerRtsp, boolean enableLogs) {
+  public RtspOnlyAudio(ConnectCheckerRtsp connectCheckerRtsp) {
     super();
-    rtspClient = new RtspClient(connectCheckerRtsp, enableLogs);
+    rtspClient = new RtspClient(connectCheckerRtsp);
     rtspClient.setOnlyAudio(true);
   }
 
@@ -122,5 +122,12 @@ public class RtspOnlyAudio extends OnlyAudioBase {
   @Override
   protected void getAacDataRtp(ByteBuffer aacBuffer, MediaCodec.BufferInfo info) {
     rtspClient.sendAudio(aacBuffer, info);
+  }
+
+  @Override
+  public void setLogs(boolean enable) {
+    if (rtspClient != null) {
+      rtspClient.setLogs(enable);
+    }
   }
 }

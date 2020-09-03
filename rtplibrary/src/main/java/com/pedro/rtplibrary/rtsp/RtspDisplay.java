@@ -23,9 +23,9 @@ public class RtspDisplay extends DisplayBase {
 
   private RtspClient rtspClient;
 
-  public RtspDisplay(Context context, boolean useOpengl, ConnectCheckerRtsp connectCheckerRtsp, boolean enableLogs) {
+  public RtspDisplay(Context context, boolean useOpengl, ConnectCheckerRtsp connectCheckerRtsp) {
     super(context, useOpengl);
-    rtspClient = new RtspClient(connectCheckerRtsp, enableLogs);
+    rtspClient = new RtspClient(connectCheckerRtsp);
   }
 
   /**
@@ -144,5 +144,12 @@ public class RtspDisplay extends DisplayBase {
   @Override
   protected void getH264DataRtp(ByteBuffer h264Buffer, MediaCodec.BufferInfo info) {
     rtspClient.sendVideo(h264Buffer, info);
+  }
+
+  @Override
+  public void setLogs(boolean enable) {
+    if (rtspClient != null) {
+      rtspClient.setLogs(enable);
+    }
   }
 }

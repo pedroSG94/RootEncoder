@@ -48,10 +48,10 @@ public class RtspClient {
   private Handler handler;
   private Runnable runnable;
 
-  public RtspClient(ConnectCheckerRtsp connectCheckerRtsp, boolean enableLogs) {
+  public RtspClient(ConnectCheckerRtsp connectCheckerRtsp) {
     this.connectCheckerRtsp = connectCheckerRtsp;
     commandsManager = new CommandsManager();
-    rtspSender = new RtspSender(connectCheckerRtsp, enableLogs);
+    rtspSender = new RtspSender(connectCheckerRtsp);
     handler = new Handler(Looper.getMainLooper());
   }
 
@@ -331,6 +331,12 @@ public class RtspClient {
 
   public long getSentVideoFrames() {
     return rtspSender.getSentVideoFrames();
+  }
+
+  public void setLogs(boolean enable) {
+    if (rtspSender != null) {
+      rtspSender.setLogs(enable);
+    }
   }
 }
 

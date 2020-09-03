@@ -24,32 +24,32 @@ public class RtmpCamera1 extends Camera1Base {
 
   private SrsFlvMuxer srsFlvMuxer;
 
-  public RtmpCamera1(SurfaceView surfaceView, ConnectCheckerRtmp connectChecker, boolean enableLogs) {
+  public RtmpCamera1(SurfaceView surfaceView, ConnectCheckerRtmp connectChecker) {
     super(surfaceView);
-    srsFlvMuxer = new SrsFlvMuxer(connectChecker, enableLogs);
+    srsFlvMuxer = new SrsFlvMuxer(connectChecker);
   }
 
-  public RtmpCamera1(TextureView textureView, ConnectCheckerRtmp connectChecker, boolean enableLogs) {
+  public RtmpCamera1(TextureView textureView, ConnectCheckerRtmp connectChecker) {
     super(textureView);
-    srsFlvMuxer = new SrsFlvMuxer(connectChecker, enableLogs);
+    srsFlvMuxer = new SrsFlvMuxer(connectChecker);
   }
 
   @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
-  public RtmpCamera1(OpenGlView openGlView, ConnectCheckerRtmp connectChecker, boolean enableLogs) {
+  public RtmpCamera1(OpenGlView openGlView, ConnectCheckerRtmp connectChecker) {
     super(openGlView);
-    srsFlvMuxer = new SrsFlvMuxer(connectChecker, enableLogs);
+    srsFlvMuxer = new SrsFlvMuxer(connectChecker);
   }
 
   @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
-  public RtmpCamera1(LightOpenGlView lightOpenGlView, ConnectCheckerRtmp connectChecker, boolean enableLogs) {
+  public RtmpCamera1(LightOpenGlView lightOpenGlView, ConnectCheckerRtmp connectChecker) {
     super(lightOpenGlView);
-    srsFlvMuxer = new SrsFlvMuxer(connectChecker, enableLogs);
+    srsFlvMuxer = new SrsFlvMuxer(connectChecker);
   }
 
   @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
-  public RtmpCamera1(Context context, ConnectCheckerRtmp connectChecker, boolean enableLogs) {
+  public RtmpCamera1(Context context, ConnectCheckerRtmp connectChecker) {
     super(context);
-    srsFlvMuxer = new SrsFlvMuxer(connectChecker, enableLogs);
+    srsFlvMuxer = new SrsFlvMuxer(connectChecker);
   }
 
   /**
@@ -175,5 +175,10 @@ public class RtmpCamera1 extends Camera1Base {
   @Override
   protected void getH264DataRtp(ByteBuffer h264Buffer, MediaCodec.BufferInfo info) {
     srsFlvMuxer.sendVideo(h264Buffer, info);
+  }
+
+  @Override
+  public void setLogs(boolean enable) {
+    srsFlvMuxer.setLogs(enable);
   }
 }

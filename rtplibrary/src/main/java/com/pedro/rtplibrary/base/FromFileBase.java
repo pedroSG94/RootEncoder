@@ -650,4 +650,6 @@ public abstract class FromFileBase
     }
     audioEncoder.inputPCMData(frame);
   }
+
+  public abstract void setLogs(boolean enable);
 }

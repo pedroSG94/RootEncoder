@@ -30,25 +30,25 @@ public class RtspFromFile extends FromFileBase {
   public RtspFromFile(ConnectCheckerRtsp connectCheckerRtsp,
       VideoDecoderInterface videoDecoderInterface, AudioDecoderInterface audioDecoderInterface) {
     super(videoDecoderInterface, audioDecoderInterface);
-    rtspClient = new RtspClient(connectCheckerRtsp, true);
+    rtspClient = new RtspClient(connectCheckerRtsp);
   }
 
   public RtspFromFile(Context context, ConnectCheckerRtsp connectCheckerRtsp,
       VideoDecoderInterface videoDecoderInterface, AudioDecoderInterface audioDecoderInterface) {
     super(context, videoDecoderInterface, audioDecoderInterface);
-    rtspClient = new RtspClient(connectCheckerRtsp, true);
+    rtspClient = new RtspClient(connectCheckerRtsp);
   }
 
   public RtspFromFile(OpenGlView openGlView, ConnectCheckerRtsp connectCheckerRtsp,
       VideoDecoderInterface videoDecoderInterface, AudioDecoderInterface audioDecoderInterface) {
     super(openGlView, videoDecoderInterface, audioDecoderInterface);
-    rtspClient = new RtspClient(connectCheckerRtsp, true);
+    rtspClient = new RtspClient(connectCheckerRtsp);
   }
 
   public RtspFromFile(LightOpenGlView lightOpenGlView, ConnectCheckerRtsp connectCheckerRtsp,
       VideoDecoderInterface videoDecoderInterface, AudioDecoderInterface audioDecoderInterface) {
     super(lightOpenGlView, videoDecoderInterface, audioDecoderInterface);
-    rtspClient = new RtspClient(connectCheckerRtsp, true);
+    rtspClient = new RtspClient(connectCheckerRtsp);
   }
 
   /**
@@ -167,6 +167,13 @@ public class RtspFromFile extends FromFileBase {
   @Override
   protected void getAacDataRtp(ByteBuffer aacBuffer, MediaCodec.BufferInfo info) {
     rtspClient.sendAudio(aacBuffer, info);
+  }
+
+  @Override
+  public void setLogs(boolean enable) {
+    if (rtspClient != null) {
+      rtspClient.setLogs(enable);
+    }
   }
 }
 

@@ -52,7 +52,7 @@ public class ExampleRtspActivity extends AppCompatActivity
     switchCamera.setOnClickListener(this);
     etUrl = findViewById(R.id.et_rtp_url);
     etUrl.setHint(R.string.hint_rtsp);
-    rtspCamera1 = new RtspCamera1(surfaceView, this, true);
+    rtspCamera1 = new RtspCamera1(surfaceView, this);
     rtspCamera1.setReTries(10);
     surfaceView.getHolder().addCallback(this);
   }

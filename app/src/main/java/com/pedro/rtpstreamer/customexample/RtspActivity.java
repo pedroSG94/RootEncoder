@@ -82,7 +82,7 @@ public class RtspActivity extends AppCompatActivity
     surfaceView = findViewById(R.id.surfaceView);
     surfaceView.getHolder().addCallback(this);
     surfaceView.setOnTouchListener(this);
-    rtspCamera1 = new RtspCamera1(surfaceView, this, true);
+    rtspCamera1 = new RtspCamera1(surfaceView, this);
     prepareOptionsMenuViews();
 
     tvBitrate = findViewById(R.id.tv_bitrate);

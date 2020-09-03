@@ -12,8 +12,8 @@ public class DefaultRtmpPublisher implements RtmpPublisher {
 
   private RtmpConnection rtmpConnection;
 
-  public DefaultRtmpPublisher(ConnectCheckerRtmp connectCheckerRtmp, boolean enableLogs) {
-    rtmpConnection = new RtmpConnection(connectCheckerRtmp, enableLogs);
+  public DefaultRtmpPublisher(ConnectCheckerRtmp connectCheckerRtmp) {
+    rtmpConnection = new RtmpConnection(connectCheckerRtmp);
   }
 
   @Override
@@ -49,5 +49,10 @@ public class DefaultRtmpPublisher implements RtmpPublisher {
   @Override
   public void setAuthorization(String user, String password) {
     rtmpConnection.setAuthorization(user, password);
+  }
+
+  @Override
+  public void setLogs(boolean enable) {
+    rtmpConnection.setLogs(enable);
   }
 }

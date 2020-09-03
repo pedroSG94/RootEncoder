@@ -796,4 +796,6 @@ public abstract class Camera1Base
   public void onAudioFormat(MediaFormat mediaFormat) {
     recordController.setAudioFormat(mediaFormat);
   }
+
+  public abstract void setLogs(boolean enable);
 }

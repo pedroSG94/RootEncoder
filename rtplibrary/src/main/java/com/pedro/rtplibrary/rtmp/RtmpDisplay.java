@@ -23,9 +23,9 @@ public class RtmpDisplay extends DisplayBase {
 
   private SrsFlvMuxer srsFlvMuxer;
 
-  public RtmpDisplay(Context context, boolean useOpengl, ConnectCheckerRtmp connectChecker, boolean enableLogs) {
+  public RtmpDisplay(Context context, boolean useOpengl, ConnectCheckerRtmp connectChecker) {
     super(context, useOpengl);
-    srsFlvMuxer = new SrsFlvMuxer(connectChecker, enableLogs);
+    srsFlvMuxer = new SrsFlvMuxer(connectChecker);
   }
 
   /**
@@ -151,5 +151,10 @@ public class RtmpDisplay extends DisplayBase {
   @Override
   protected void getH264DataRtp(ByteBuffer h264Buffer, MediaCodec.BufferInfo info) {
     srsFlvMuxer.sendVideo(h264Buffer, info);
+  }
+
+  @Override
+  public void setLogs(boolean enable) {
+    srsFlvMuxer.setLogs(enable);
   }
 }

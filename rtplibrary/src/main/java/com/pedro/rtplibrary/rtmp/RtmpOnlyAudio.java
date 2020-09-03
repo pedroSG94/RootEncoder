@@ -16,9 +16,9 @@ public class RtmpOnlyAudio extends OnlyAudioBase {
 
   private SrsFlvMuxer srsFlvMuxer;
 
-  public RtmpOnlyAudio(ConnectCheckerRtmp connectChecker, boolean enableLogs) {
+  public RtmpOnlyAudio(ConnectCheckerRtmp connectChecker) {
     super();
-    srsFlvMuxer = new SrsFlvMuxer(connectChecker, enableLogs);
+    srsFlvMuxer = new SrsFlvMuxer(connectChecker);
   }
 
   @Override
@@ -120,5 +120,10 @@ public class RtmpOnlyAudio extends OnlyAudioBase {
   @Override
   protected void getAacDataRtp(ByteBuffer aacBuffer, MediaCodec.BufferInfo info) {
     srsFlvMuxer.sendAudio(aacBuffer, info);
+  }
+
+  @Override
+  public void setLogs(boolean enable) {
+    srsFlvMuxer.setLogs(enable);
   }
 }

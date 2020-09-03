@@ -205,4 +205,6 @@ public abstract class OnlyAudioBase implements GetAacData, GetMicrophoneData {
   public void onAudioFormat(MediaFormat mediaFormat) {
     //ignored because record is not implemented
   }
+
+  public abstract void setLogs(boolean enable);
 }

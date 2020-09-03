@@ -35,9 +35,9 @@ public class RtspCamera2 extends Camera2Base {
    * instead.
    */
   @Deprecated
-  public RtspCamera2(SurfaceView surfaceView, ConnectCheckerRtsp connectCheckerRtsp, boolean enableLogs) {
+  public RtspCamera2(SurfaceView surfaceView, ConnectCheckerRtsp connectCheckerRtsp) {
     super(surfaceView);
-    rtspClient = new RtspClient(connectCheckerRtsp, enableLogs);
+    rtspClient = new RtspClient(connectCheckerRtsp);
   }
 
   /**
@@ -46,24 +46,24 @@ public class RtspCamera2 extends Camera2Base {
    * instead.
    */
   @Deprecated
-  public RtspCamera2(TextureView textureView, ConnectCheckerRtsp connectCheckerRtsp, boolean enableLogs) {
+  public RtspCamera2(TextureView textureView, ConnectCheckerRtsp connectCheckerRtsp) {
     super(textureView);
-    rtspClient = new RtspClient(connectCheckerRtsp, enableLogs);
+    rtspClient = new RtspClient(connectCheckerRtsp);
   }
 
-  public RtspCamera2(OpenGlView openGlView, ConnectCheckerRtsp connectCheckerRtsp, boolean enableLogs) {
+  public RtspCamera2(OpenGlView openGlView, ConnectCheckerRtsp connectCheckerRtsp) {
     super(openGlView);
-    rtspClient = new RtspClient(connectCheckerRtsp, enableLogs);
+    rtspClient = new RtspClient(connectCheckerRtsp);
   }
 
-  public RtspCamera2(LightOpenGlView lightOpenGlView, ConnectCheckerRtsp connectCheckerRtsp, boolean enableLogs) {
+  public RtspCamera2(LightOpenGlView lightOpenGlView, ConnectCheckerRtsp connectCheckerRtsp) {
     super(lightOpenGlView);
-    rtspClient = new RtspClient(connectCheckerRtsp, enableLogs);
+    rtspClient = new RtspClient(connectCheckerRtsp);
   }
 
-  public RtspCamera2(Context context, boolean useOpengl, ConnectCheckerRtsp connectCheckerRtsp, boolean enableLogs) {
+  public RtspCamera2(Context context, boolean useOpengl, ConnectCheckerRtsp connectCheckerRtsp) {
     super(context, useOpengl);
-    rtspClient = new RtspClient(connectCheckerRtsp, enableLogs);
+    rtspClient = new RtspClient(connectCheckerRtsp);
   }
 
   /**
@@ -182,6 +182,13 @@ public class RtspCamera2 extends Camera2Base {
   @Override
   protected void getH264DataRtp(ByteBuffer h264Buffer, MediaCodec.BufferInfo info) {
     rtspClient.sendVideo(h264Buffer, info);
+  }
+
+  @Override
+  public void setLogs(boolean enable) {
+    if (rtspClient != null) {
+      rtspClient.setLogs(enable);
+    }
   }
 }
 

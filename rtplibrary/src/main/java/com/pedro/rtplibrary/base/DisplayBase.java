@@ -560,5 +560,7 @@ public abstract class DisplayBase implements GetAacData, GetVideoData, GetMicrop
   public void onAudioFormat(MediaFormat mediaFormat) {
     recordController.setAudioFormat(mediaFormat);
   }
+
+  public abstract void setLogs(boolean enable);
 }
 

@@ -67,7 +67,7 @@ public class RtmpFromFileActivity extends AppCompatActivity
     seekBar = findViewById(R.id.seek_bar);
     seekBar.getProgressDrawable().setColorFilter(Color.RED, PorterDuff.Mode.SRC_IN);
     tvFile = findViewById(R.id.tv_file);
-    rtmpFromFile = new RtmpFromFile(this, this, this, true);
+    rtmpFromFile = new RtmpFromFile(this, this, this);
     seekBar.setOnSeekBarChangeListener(this);
   }
 

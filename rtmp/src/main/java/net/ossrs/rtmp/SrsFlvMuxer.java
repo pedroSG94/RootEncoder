@@ -92,8 +92,8 @@ public class SrsFlvMuxer {
     handler = new Handler(Looper.getMainLooper());
   }
 
-  public SrsFlvMuxer(ConnectCheckerRtmp connectCheckerRtmp, boolean enableLogs) {
-    this(connectCheckerRtmp, new DefaultRtmpPublisher(connectCheckerRtmp, enableLogs));
+  public SrsFlvMuxer(ConnectCheckerRtmp connectCheckerRtmp) {
+    this(connectCheckerRtmp, new DefaultRtmpPublisher(connectCheckerRtmp));
   }
 
   public void setProfileIop(byte profileIop) {
@@ -1039,6 +1039,12 @@ public class SrsFlvMuxer {
           mDroppedAudioFrames++;
         }
       }
+    }
+  }
+
+  public void setLogs(boolean enable) {
+    if (publisher != null) {
+      publisher.setLogs(enable);
     }
   }
 }
