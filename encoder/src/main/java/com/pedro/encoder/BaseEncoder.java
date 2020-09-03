@@ -81,6 +81,7 @@ public abstract class BaseEncoder implements EncoderCallback {
       }
     }
     queue.clear();
+    queue = new ArrayBlockingQueue<>(80);
     try {
       codec.stop();
       codec.release();
