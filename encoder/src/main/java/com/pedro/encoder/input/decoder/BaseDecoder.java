@@ -127,7 +127,7 @@ public abstract class BaseDecoder {
   protected void resetCodec(Surface surface) {
     boolean wasRunning = running;
     stopDecoder();
-    seekTime = extractor.getSampleTime() / 1000;
+    if (extractor != null) seekTime = extractor.getSampleTime() / 1000;
     prepare(surface);
     if (wasRunning) {
       start();
@@ -146,7 +146,7 @@ public abstract class BaseDecoder {
     }
     try {
       codec.stop();
-      codec.release();
+      //codec.release();
       codec = null;
     } catch (IllegalStateException | NullPointerException e) {
       codec = null;

@@ -2,12 +2,16 @@ package com.pedro.rtplibrary.base;
 
 import android.media.MediaCodec;
 import android.media.MediaFormat;
+import android.os.Build;
+import androidx.annotation.RequiresApi;
 import com.pedro.encoder.Frame;
 import com.pedro.encoder.audio.AudioEncoder;
 import com.pedro.encoder.audio.GetAacData;
 import com.pedro.encoder.input.audio.CustomAudioEffect;
 import com.pedro.encoder.input.audio.GetMicrophoneData;
 import com.pedro.encoder.input.audio.MicrophoneManager;
+import com.pedro.rtplibrary.util.RecordController;
+import java.io.IOException;
 import java.nio.ByteBuffer;
 
 /**
@@ -17,6 +21,7 @@ import java.nio.ByteBuffer;
  */
 public abstract class OnlyAudioBase implements GetAacData, GetMicrophoneData {
 
+  protected RecordController recordController;
   private MicrophoneManager microphoneManager;
   private AudioEncoder audioEncoder;
   private boolean streaming = false;
@@ -24,6 +29,7 @@ public abstract class OnlyAudioBase implements GetAacData, GetMicrophoneData {
   public OnlyAudioBase() {
     microphoneManager = new MicrophoneManager(this);
     audioEncoder = new AudioEncoder(this);
+    recordController = new RecordController();
   }
 
   /**
@@ -78,6 +84,34 @@ public abstract class OnlyAudioBase implements GetAacData, GetMicrophoneData {
     return prepareAudio(64 * 1024, 32000, true, false, false);
   }
 
+  /**
+   * Start record a MP4 video. Need be called while stream.
+   *
+   * @param path where file will be saved.
+   * @throws IOException If you init it before start stream.
+   */
+  @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
+  public void startRecord(String path, RecordController.Listener listener) throws IOException {
+    recordController.startRecord(path, listener);
+    if (!streaming) {
+      startEncoders();
+    }
+  }
+
+  @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
+  public void startRecord(final String path) throws IOException {
+    startRecord(path, null);
+  }
+
+  /**
+   * Stop record MP4 video started with @startRecord. If you don't call it file will be unreadable.
+   */
+  @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
+  public void stopRecord() {
+    recordController.stopRecord();
+    if (!streaming) stopStream();
+  }
+
   protected abstract void startStreamRtp(String url);
 
   /**
@@ -93,12 +127,52 @@ public abstract class OnlyAudioBase implements GetAacData, GetMicrophoneData {
    */
   public void startStream(String url) {
     streaming = true;
-    audioEncoder.start();
-    microphoneManager.start();
+    if (!recordController.isRunning()) {
+      startEncoders();
+    }
     startStreamRtp(url);
   }
 
+  /**
+   * Stop stream started with @startStream.
+   */
+  public void stopStream() {
+    streaming = false;
+    stopStreamRtp();
+    if (!recordController.isRecording()) {
+      microphoneManager.stop();
+      audioEncoder.stop();
+      recordController.resetFormats();
+    }
+  }
+
+  private void startEncoders() {
+    audioEncoder.start();
+    microphoneManager.start();
+  }
+
   protected abstract void stopStreamRtp();
+
+  /**
+   * Get record state.
+   *
+   * @return true if recording, false if not recoding.
+   */
+  public boolean isRecording() {
+    return recordController.isRunning();
+  }
+
+  public void pauseRecord() {
+    recordController.pauseRecord();
+  }
+
+  public void resumeRecord() {
+    recordController.resumeRecord();
+  }
+
+  public RecordController.Status getRecordStatus() {
+    return recordController.getStatus();
+  }
 
   public boolean reTry(long delay, String reason) {
     boolean result = shouldRetry(reason);
@@ -148,16 +222,6 @@ public abstract class OnlyAudioBase implements GetAacData, GetMicrophoneData {
   public abstract void resetDroppedVideoFrames();
 
   /**
-   * Stop stream started with @startStream.
-   */
-  public void stopStream() {
-    streaming = false;
-    stopStreamRtp();
-    microphoneManager.stop();
-    audioEncoder.stop();
-  }
-
-  /**
    * Mute microphone, can be called before, while and after stream.
    */
   public void disableAudio() {
@@ -193,7 +257,10 @@ public abstract class OnlyAudioBase implements GetAacData, GetMicrophoneData {
 
   @Override
   public void getAacData(ByteBuffer aacBuffer, MediaCodec.BufferInfo info) {
-    getAacDataRtp(aacBuffer, info);
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
+      recordController.recordAudio(aacBuffer, info);
+    }
+    if (streaming) getAacDataRtp(aacBuffer, info);
   }
 
   @Override
@@ -203,7 +270,7 @@ public abstract class OnlyAudioBase implements GetAacData, GetMicrophoneData {
 
   @Override
   public void onAudioFormat(MediaFormat mediaFormat) {
-    //ignored because record is not implemented
+    recordController.setAudioFormat(mediaFormat, true);
   }
 
   public abstract void setLogs(boolean enable);

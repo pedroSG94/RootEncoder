@@ -31,6 +31,7 @@ public class RecordController {
   private MediaCodec.BufferInfo videoInfo = new MediaCodec.BufferInfo();
   private MediaCodec.BufferInfo audioInfo = new MediaCodec.BufferInfo();
   private String videoMime = CodecUtil.H264_MIME;
+  private boolean isOnlyAudio = false;
 
   public enum Status {
     STARTED, STOPPED, RECORDING, PAUSED, RESUMED
@@ -46,6 +47,7 @@ public class RecordController {
     this.listener = listener;
     status = Status.STARTED;
     if (listener != null) listener.onStatusChange(status);
+    if (isOnlyAudio && audioFormat != null) init();
   }
 
   @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
@@ -128,14 +130,19 @@ public class RecordController {
   }
 
   @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
+  private void init() {
+    audioTrack = mediaMuxer.addTrack(audioFormat);
+    mediaMuxer.start();
+    status = Status.RECORDING;
+    if (listener != null) listener.onStatusChange(status);
+  }
+
+  @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
   public void recordVideo(ByteBuffer videoBuffer, MediaCodec.BufferInfo videoInfo) {
     if (status == Status.STARTED && videoFormat != null && audioFormat != null) {
       if (videoInfo.flags == MediaCodec.BUFFER_FLAG_KEY_FRAME || isKeyFrame(videoBuffer)) {
         videoTrack = mediaMuxer.addTrack(videoFormat);
-        audioTrack = mediaMuxer.addTrack(audioFormat);
-        mediaMuxer.start();
-        status = Status.RECORDING;
-        if (listener != null) listener.onStatusChange(status);
+        init();
       }
     } else if (status == Status.RESUMED && (videoInfo.flags == MediaCodec.BUFFER_FLAG_KEY_FRAME
         || isKeyFrame(videoBuffer))) {
@@ -160,8 +167,17 @@ public class RecordController {
     this.videoFormat = videoFormat;
   }
 
-  public void setAudioFormat(MediaFormat audioFormat) {
+  public void setAudioFormat(MediaFormat audioFormat, boolean isOnlyAudio) {
     this.audioFormat = audioFormat;
+    this.isOnlyAudio = isOnlyAudio;
+    if (isOnlyAudio && status == Status.STARTED
+        && Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
+      init();
+    }
+  }
+
+  public void setAudioFormat(MediaFormat audioFormat) {
+    setAudioFormat(audioFormat, false);
   }
 
   //We can't reuse info because could produce stream issues
