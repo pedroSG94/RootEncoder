@@ -130,6 +130,10 @@ public class RtspFromFile extends FromFileBase {
   @Override
   protected void startStreamRtp(String url) {
     rtspClient.setUrl(url);
+    rtspClient.setOnlyAudio(!videoEnabled);
+    if (!videoEnabled) {
+      rtspClient.connect();
+    }
   }
 
   @Override

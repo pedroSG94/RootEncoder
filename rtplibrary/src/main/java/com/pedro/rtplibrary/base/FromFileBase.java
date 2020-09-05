@@ -64,7 +64,8 @@ public abstract class FromFileBase
   private AudioDecoderInterface audioDecoderInterface;
 
   private String videoPath, audioPath;
-  private boolean videoEnabled = false, audioEnabled = false;
+  protected boolean videoEnabled = false;
+  private boolean audioEnabled = false;
   private final Object sync = new Object();
   private AudioTrack audioTrackPlayer;
 
