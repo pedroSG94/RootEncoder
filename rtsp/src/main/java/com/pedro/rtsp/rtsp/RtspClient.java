@@ -270,15 +270,13 @@ public class RtspClient {
   }
 
   public void sendVideo(ByteBuffer h264Buffer, MediaCodec.BufferInfo info) {
-    if (isStreaming() && !commandsManager.isOnlyAudio()) {
+    if (!commandsManager.isOnlyAudio()) {
       rtspSender.sendVideoFrame(h264Buffer, info);
     }
   }
 
   public void sendAudio(ByteBuffer aacBuffer, MediaCodec.BufferInfo info) {
-    if (isStreaming()) {
-      rtspSender.sendAudioFrame(aacBuffer, info);
-    }
+    rtspSender.sendAudioFrame(aacBuffer, info);
   }
 
   public void reConnect(long delay) {

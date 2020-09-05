@@ -4,6 +4,7 @@ import android.media.MediaCodec;
 import android.media.MediaFormat;
 import android.media.MediaMuxer;
 import android.os.Build;
+import android.util.Log;
 import androidx.annotation.RequiresApi;
 import com.pedro.encoder.utils.CodecUtil;
 import com.pedro.rtsp.utils.RtpConstants;
@@ -17,6 +18,7 @@ import java.nio.ByteBuffer;
  */
 public class RecordController {
 
+  private static final String TAG = "RecordController";
   private Status status = Status.STOPPED;
   private MediaMuxer mediaMuxer;
   private MediaFormat videoFormat, audioFormat;
@@ -117,6 +119,15 @@ public class RecordController {
   }
 
   @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
+  private void write(int track, ByteBuffer byteBuffer, MediaCodec.BufferInfo info) {
+    try {
+      mediaMuxer.writeSampleData(track, byteBuffer, info);
+    } catch (IllegalStateException | IllegalArgumentException e) {
+      Log.i(TAG, "Write error", e);
+    }
+  }
+
+  @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
   public void recordVideo(ByteBuffer videoBuffer, MediaCodec.BufferInfo videoInfo) {
     if (status == Status.STARTED && videoFormat != null && audioFormat != null) {
       if (videoInfo.flags == MediaCodec.BUFFER_FLAG_KEY_FRAME || isKeyFrame(videoBuffer)) {
@@ -132,7 +143,7 @@ public class RecordController {
     }
     if (status == Status.RECORDING) {
       updateFormat(this.videoInfo, videoInfo);
-      mediaMuxer.writeSampleData(videoTrack, videoBuffer, this.videoInfo);
+      write(videoTrack, videoBuffer, this.videoInfo);
     }
   }
 
@@ -140,7 +151,7 @@ public class RecordController {
   public void recordAudio(ByteBuffer audioBuffer, MediaCodec.BufferInfo audioInfo) {
     if (status == Status.RECORDING) {
       updateFormat(this.audioInfo, audioInfo);
-      mediaMuxer.writeSampleData(audioTrack, audioBuffer, this.audioInfo);
+      write(audioTrack, audioBuffer, this.audioInfo);
     }
   }
 

@@ -83,11 +83,11 @@ public class RtspSender implements VideoPacketCallback, AudioPacketCallback {
   }
 
   public void sendVideoFrame(ByteBuffer h264Buffer, MediaCodec.BufferInfo info) {
-    videoPacket.createAndSendPacket(h264Buffer, info);
+    if (videoPacket != null) videoPacket.createAndSendPacket(h264Buffer, info);
   }
 
   public void sendAudioFrame(ByteBuffer aacBuffer, MediaCodec.BufferInfo info) {
-    aacPacket.createAndSendPacket(aacBuffer, info);
+    if (aacPacket != null) aacPacket.createAndSendPacket(aacBuffer, info);
   }
 
   @Override
