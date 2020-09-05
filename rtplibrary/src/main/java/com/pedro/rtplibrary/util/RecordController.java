@@ -137,7 +137,8 @@ public class RecordController {
         status = Status.RECORDING;
         if (listener != null) listener.onStatusChange(status);
       }
-    } else if (status == Status.RESUMED && videoInfo.flags == MediaCodec.BUFFER_FLAG_KEY_FRAME) {
+    } else if (status == Status.RESUMED && (videoInfo.flags == MediaCodec.BUFFER_FLAG_KEY_FRAME
+        || isKeyFrame(videoBuffer))) {
       status = Status.RECORDING;
       if (listener != null) listener.onStatusChange(status);
     }

@@ -29,6 +29,7 @@ public abstract class BaseEncoder implements EncoderCallback {
   protected boolean isBufferMode = true;
   protected CodecUtil.Force force = CodecUtil.Force.FIRST_COMPATIBLE_FOUND;
   private MediaCodec.Callback callback;
+  private long oldTimeStamp = 0L;
 
   public void restart() {
     start(false);
@@ -70,6 +71,11 @@ public abstract class BaseEncoder implements EncoderCallback {
 
   protected abstract void stopImp();
 
+  protected void fixTimeStamp(MediaCodec.BufferInfo info) {
+    if (oldTimeStamp > info.presentationTimeUs) info.presentationTimeUs = oldTimeStamp;
+    else oldTimeStamp = info.presentationTimeUs;
+  }
+
   public void stop() {
     running = false;
     stopImp();
@@ -89,6 +95,7 @@ public abstract class BaseEncoder implements EncoderCallback {
     } catch (IllegalStateException | NullPointerException e) {
       codec = null;
     }
+    oldTimeStamp = 0L;
   }
 
   protected abstract MediaCodecInfo chooseEncoder(String mime);

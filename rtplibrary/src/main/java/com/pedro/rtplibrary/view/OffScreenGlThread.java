@@ -112,7 +112,7 @@ public class OffScreenGlThread
   public void removeMediaCodecSurface() {
     synchronized (sync) {
       if (surfaceManagerEncoder != null) {
-        surfaceManagerEncoder.release();
+        surfaceManagerEncoder.release(false);
         surfaceManagerEncoder = null;
       }
     }
@@ -192,7 +192,7 @@ public class OffScreenGlThread
 
   private void releaseSurfaceManager() {
     if (surfaceManager != null) {
-      surfaceManager.release();
+      surfaceManager.release(true);
       surfaceManager = null;
     }
   }

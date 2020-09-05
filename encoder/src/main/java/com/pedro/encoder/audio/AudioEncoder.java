@@ -103,7 +103,7 @@ public class AudioEncoder extends BaseEncoder implements GetMicrophoneData {
   @Override
   protected void checkBuffer(@NonNull ByteBuffer byteBuffer,
       @NonNull MediaCodec.BufferInfo bufferInfo) {
-
+    fixTimeStamp(bufferInfo);
   }
 
   @Override

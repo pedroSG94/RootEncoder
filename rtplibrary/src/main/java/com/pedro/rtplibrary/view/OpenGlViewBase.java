@@ -122,7 +122,7 @@ public abstract class OpenGlViewBase extends SurfaceView
   public void removeMediaCodecSurface() {
     synchronized (sync) {
       if (surfaceManagerEncoder != null) {
-        surfaceManagerEncoder.release();
+        surfaceManagerEncoder.release(false);
         surfaceManagerEncoder = null;
       }
     }
@@ -163,7 +163,7 @@ public abstract class OpenGlViewBase extends SurfaceView
 
   protected void releaseSurfaceManager() {
     if (surfaceManager != null) {
-      surfaceManager.release();
+      surfaceManager.release(true);
       surfaceManager = null;
     }
   }

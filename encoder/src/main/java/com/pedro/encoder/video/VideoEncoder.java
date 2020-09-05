@@ -6,8 +6,6 @@ import android.media.MediaCodecInfo;
 import android.media.MediaFormat;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.HandlerThread;
 import android.util.Log;
 import android.util.Pair;
 import android.view.Surface;
@@ -23,8 +21,6 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.BlockingQueue;
 
 /**
  * Created by pedro on 19/01/17.
@@ -412,6 +408,7 @@ public class VideoEncoder extends BaseEncoder implements GetCameraData {
   @Override
   protected void checkBuffer(@NonNull ByteBuffer byteBuffer,
       @NonNull MediaCodec.BufferInfo bufferInfo) {
+    fixTimeStamp(bufferInfo);
     if ((bufferInfo.flags & MediaCodec.BUFFER_FLAG_CODEC_CONFIG) != 0) {
       if (!spsPpsSetted) {
         Pair<ByteBuffer, ByteBuffer> buffers =
