@@ -549,7 +549,7 @@ public abstract class FromFileBase
    * @return return time in seconds. 0 if no streaming
    */
   public double getAudioTime() {
-    return videoDecoder.getTime();
+    return audioDecoder.getTime();
   }
 
   /**
