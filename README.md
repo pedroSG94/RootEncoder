@@ -58,11 +58,11 @@ dependencies {
 - [x] H264, H265 and AAC hardware encoding.
 - [x] Force H264 and AAC Codec hardware/software encoding (Not recommended).
 - [x] RTSP TCP/UDP.
-- [x] Stream from video files like mp4, webm, etc (Limited by device decoders). [More info](https://github.com/pedroSG94/rtmp-rtsp-stream-client-java/wiki/Stream-from-file)
-- [x] Stream device display(API 21+).
+- [x] Stream from video and audio files like mp4, webm, mp3, etc (Limited by device decoders). [More info](https://github.com/pedroSG94/rtmp-rtsp-stream-client-java/wiki/Stream-from-file)
+- [x] Stream device display (API 21+).
 - [X] Set Image, Gif or Text to stream on real time.
 - [X] OpenGL real time filters. [More info](https://github.com/pedroSG94/rtmp-rtsp-stream-client-java/wiki/Real-time-filters)
-- [X] RTMPS and RTSPS
+- [X] RTMPS and RTSPS.
 - [X] RTSP H265 support (Waiting FLV official packetization to add RTMP support).
 
 ## Other related projects:
