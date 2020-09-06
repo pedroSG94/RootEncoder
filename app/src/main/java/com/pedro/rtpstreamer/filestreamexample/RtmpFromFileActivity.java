@@ -158,12 +158,17 @@ public class RtmpFromFileActivity extends AppCompatActivity
       case R.id.b_start_stop:
         if (!rtmpFromFile.isStreaming()) {
           try {
-            if (rtmpFromFile.isRecording()
-                || rtmpFromFile.prepareVideo(filePath) && rtmpFromFile.prepareAudio(filePath)) {
+            Boolean start = rtmpFromFile.isRecording();
+            if (!start)
+            {
+              start |= rtmpFromFile.prepareVideo(filePath);
+              start |= rtmpFromFile.prepareAudio(filePath);
+            }
+            if (start) {
               button.setText(R.string.stop_button);
               rtmpFromFile.startStream(etUrl.getText().toString());
               if (!rtmpFromFile.isRecording()) {
-                seekBar.setMax((int) rtmpFromFile.getVideoDuration());
+                seekBar.setMax(Math.max((int) rtmpFromFile.getVideoDuration(), (int) rtmpFromFile.getAudioDuration()));
                 updateProgress();
               }
             } else {
@@ -249,7 +254,7 @@ public class RtmpFromFileActivity extends AppCompatActivity
               runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
-                  seekBar.setProgress((int) rtmpFromFile.getVideoTime());
+                  seekBar.setProgress(Math.max((int) rtmpFromFile.getVideoTime(), (int) rtmpFromFile.getAudioTime()));
                 }
               });
             }

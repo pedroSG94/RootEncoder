@@ -159,12 +159,17 @@ public class RtspFromFileActivity extends AppCompatActivity
         if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
           if (!rtspFromFile.isStreaming()) {
             try {
-              if (rtspFromFile.isRecording()
-                  || rtspFromFile.prepareVideo(filePath) && rtspFromFile.prepareAudio(filePath)) {
+              Boolean start = rtspFromFile.isRecording();
+              if (!start)
+              {
+                start |= rtspFromFile.prepareVideo(filePath);
+                start |= rtspFromFile.prepareAudio(filePath);
+              }
+              if (start) {
                 button.setText(R.string.stop_button);
                 rtspFromFile.startStream(etUrl.getText().toString());
                 if (!rtspFromFile.isRecording()) {
-                  seekBar.setMax((int) rtspFromFile.getVideoDuration());
+                  seekBar.setMax(Math.max((int) rtspFromFile.getVideoDuration(), (int) rtspFromFile.getAudioDuration()));
                   updateProgress();
                 }
               } else {
@@ -251,7 +256,7 @@ public class RtspFromFileActivity extends AppCompatActivity
               runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
-                  seekBar.setProgress((int) rtspFromFile.getVideoTime());
+                  seekBar.setProgress(Math.max((int) rtspFromFile.getVideoTime(), (int) rtspFromFile.getAudioTime()));
                 }
               });
             }
