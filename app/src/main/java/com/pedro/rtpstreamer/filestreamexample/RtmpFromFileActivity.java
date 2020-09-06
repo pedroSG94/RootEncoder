@@ -191,7 +191,7 @@ public class RtmpFromFileActivity extends AppCompatActivity
         break;
       case R.id.b_select_file:
         Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
-        intent.setType("video/mp4");
+        intent.setType("*/*");
         startActivityForResult(intent, 5);
         break;
       //sometimes async is produced when you move in file several times
