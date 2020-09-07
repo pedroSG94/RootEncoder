@@ -208,7 +208,6 @@ public class RtmpFromFileActivity extends AppCompatActivity
                     folder.getAbsolutePath() + "/" + currentDateAndTime + ".mp4");
                 seekBar.setMax((int) rtmpFromFile.getVideoDuration());
                 updateProgress();
-                rtmpFromFile.playAudioDevice();
                 bRecord.setText(R.string.stop_record);
                 Toast.makeText(this, "Recording... ", Toast.LENGTH_SHORT).show();
               } else {
