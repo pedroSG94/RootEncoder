@@ -159,17 +159,13 @@ public class RtspFromFileActivity extends AppCompatActivity
         if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
           if (!rtspFromFile.isStreaming()) {
             try {
-              Boolean start = rtspFromFile.isRecording();
-              if (!start)
-              {
-                start |= rtspFromFile.prepareVideo(filePath);
-                start |= rtspFromFile.prepareAudio(filePath);
-              }
-              if (start) {
+              if (!rtspFromFile.isRecording() && (rtspFromFile.prepareVideo(filePath)
+                  || rtspFromFile.prepareAudio(filePath))) {
                 button.setText(R.string.stop_button);
                 rtspFromFile.startStream(etUrl.getText().toString());
                 if (!rtspFromFile.isRecording()) {
-                  seekBar.setMax(Math.max((int) rtspFromFile.getVideoDuration(), (int) rtspFromFile.getAudioDuration()));
+                  seekBar.setMax(Math.max((int) rtspFromFile.getVideoDuration(),
+                      (int) rtspFromFile.getAudioDuration()));
                   updateProgress();
                 }
               } else {
@@ -209,7 +205,7 @@ public class RtspFromFileActivity extends AppCompatActivity
             SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault());
             currentDateAndTime = sdf.format(new Date());
             if (!rtspFromFile.isStreaming()) {
-              if (rtspFromFile.prepareVideo(filePath) && rtspFromFile.prepareAudio(filePath)) {
+              if (rtspFromFile.prepareVideo(filePath) || rtspFromFile.prepareAudio(filePath)) {
                 rtspFromFile.startRecord(
                     folder.getAbsolutePath() + "/" + currentDateAndTime + ".mp4");
                 seekBar.setMax((int) rtspFromFile.getVideoDuration());
@@ -256,7 +252,8 @@ public class RtspFromFileActivity extends AppCompatActivity
               runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
-                  seekBar.setProgress(Math.max((int) rtspFromFile.getVideoTime(), (int) rtspFromFile.getAudioTime()));
+                  seekBar.setProgress(Math.max((int) rtspFromFile.getVideoTime(),
+                      (int) rtspFromFile.getAudioTime()));
                 }
               });
             }

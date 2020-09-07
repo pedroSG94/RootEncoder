@@ -158,17 +158,13 @@ public class RtmpFromFileActivity extends AppCompatActivity
       case R.id.b_start_stop:
         if (!rtmpFromFile.isStreaming()) {
           try {
-            Boolean start = rtmpFromFile.isRecording();
-            if (!start)
-            {
-              start |= rtmpFromFile.prepareVideo(filePath);
-              start |= rtmpFromFile.prepareAudio(filePath);
-            }
-            if (start) {
+            if (!rtmpFromFile.isRecording() && (rtmpFromFile.prepareVideo(filePath)
+                || rtmpFromFile.prepareAudio(filePath))) {
               button.setText(R.string.stop_button);
               rtmpFromFile.startStream(etUrl.getText().toString());
               if (!rtmpFromFile.isRecording()) {
-                seekBar.setMax(Math.max((int) rtmpFromFile.getVideoDuration(), (int) rtmpFromFile.getAudioDuration()));
+                seekBar.setMax(Math.max((int) rtmpFromFile.getVideoDuration(),
+                    (int) rtmpFromFile.getAudioDuration()));
                 updateProgress();
               }
             } else {
@@ -207,11 +203,12 @@ public class RtmpFromFileActivity extends AppCompatActivity
             SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault());
             currentDateAndTime = sdf.format(new Date());
             if (!rtmpFromFile.isStreaming()) {
-              if (rtmpFromFile.prepareVideo(filePath) && rtmpFromFile.prepareAudio(filePath)) {
+              if (rtmpFromFile.prepareVideo(filePath) || rtmpFromFile.prepareAudio(filePath)) {
                 rtmpFromFile.startRecord(
                     folder.getAbsolutePath() + "/" + currentDateAndTime + ".mp4");
                 seekBar.setMax((int) rtmpFromFile.getVideoDuration());
                 updateProgress();
+                rtmpFromFile.playAudioDevice();
                 bRecord.setText(R.string.stop_record);
                 Toast.makeText(this, "Recording... ", Toast.LENGTH_SHORT).show();
               } else {
@@ -254,7 +251,8 @@ public class RtmpFromFileActivity extends AppCompatActivity
               runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
-                  seekBar.setProgress(Math.max((int) rtmpFromFile.getVideoTime(), (int) rtmpFromFile.getAudioTime()));
+                  seekBar.setProgress(Math.max((int) rtmpFromFile.getVideoTime(),
+                      (int) rtmpFromFile.getAudioTime()));
                 }
               });
             }
