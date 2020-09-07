@@ -27,6 +27,9 @@ import com.pedro.rtplibrary.util.FpsListener;
 import com.pedro.rtplibrary.util.RecordController;
 import com.pedro.rtplibrary.view.GlInterface;
 import com.pedro.rtplibrary.view.OffScreenGlThread;
+
+import net.ossrs.rtmp.MediaProjectionCallback;
+
 import java.io.IOException;
 import java.nio.ByteBuffer;
 
@@ -60,6 +63,7 @@ public abstract class DisplayBase implements GetAacData, GetVideoData, GetMicrop
   private Intent data;
   private RecordController recordController;
   private FpsListener fpsListener = new FpsListener();
+  private MediaProjectionCallback mediaProjectionCallback;
 
   public DisplayBase(Context context, boolean useOpengl) {
     this.context = context;
@@ -88,6 +92,11 @@ public abstract class DisplayBase implements GetAacData, GetVideoData, GetMicrop
    */
   public void setFpsListener(FpsListener.Callback callback) {
     fpsListener.setCallback(callback);
+  }
+
+  public void setMediaProjectionCallback(MediaProjectionCallback callback) {
+    mediaProjectionCallback = callback;
+
   }
 
   /**
@@ -296,6 +305,15 @@ public abstract class DisplayBase implements GetAacData, GetVideoData, GetMicrop
         (glInterface != null) ? glInterface.getSurface() : videoEncoder.getInputSurface();
     if (mediaProjection == null) {
       mediaProjection = mediaProjectionManager.getMediaProjection(resultCode, data);
+      mediaProjection.registerCallback(new MediaProjection.Callback() {
+        @Override
+        public void onStop() {
+          super.onStop();
+          if (mediaProjectionCallback != null) {
+            mediaProjectionCallback.onStop();
+          }
+        }
+      }, null);
     }
     if (glInterface != null && videoEncoder.getRotation() == 90
         || videoEncoder.getRotation() == 270) {
