@@ -158,8 +158,7 @@ public class RtmpFromFileActivity extends AppCompatActivity
       case R.id.b_start_stop:
         if (!rtmpFromFile.isStreaming()) {
           try {
-            if (!rtmpFromFile.isRecording() && (rtmpFromFile.prepareVideo(filePath)
-                || rtmpFromFile.prepareAudio(filePath))) {
+            if (!rtmpFromFile.isRecording() && prepare()) {
               button.setText(R.string.stop_button);
               rtmpFromFile.startStream(etUrl.getText().toString());
               if (!rtmpFromFile.isRecording()) {
@@ -203,7 +202,7 @@ public class RtmpFromFileActivity extends AppCompatActivity
             SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault());
             currentDateAndTime = sdf.format(new Date());
             if (!rtmpFromFile.isStreaming()) {
-              if (rtmpFromFile.prepareVideo(filePath) || rtmpFromFile.prepareAudio(filePath)) {
+              if (prepare()) {
                 rtmpFromFile.startRecord(
                     folder.getAbsolutePath() + "/" + currentDateAndTime + ".mp4");
                 seekBar.setMax((int) rtmpFromFile.getVideoDuration());
@@ -237,6 +236,12 @@ public class RtmpFromFileActivity extends AppCompatActivity
       default:
         break;
     }
+  }
+
+  private boolean prepare() throws IOException {
+    boolean result = rtmpFromFile.prepareVideo(filePath);
+    result |= rtmpFromFile.prepareAudio(filePath);
+    return result;
   }
 
   private void updateProgress() {

@@ -159,8 +159,7 @@ public class RtspFromFileActivity extends AppCompatActivity
         if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
           if (!rtspFromFile.isStreaming()) {
             try {
-              if (!rtspFromFile.isRecording() && (rtspFromFile.prepareVideo(filePath)
-                  || rtspFromFile.prepareAudio(filePath))) {
+              if (!rtspFromFile.isRecording() && prepare()) {
                 button.setText(R.string.stop_button);
                 rtspFromFile.startStream(etUrl.getText().toString());
                 if (!rtspFromFile.isRecording()) {
@@ -205,7 +204,7 @@ public class RtspFromFileActivity extends AppCompatActivity
             SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault());
             currentDateAndTime = sdf.format(new Date());
             if (!rtspFromFile.isStreaming()) {
-              if (rtspFromFile.prepareVideo(filePath) || rtspFromFile.prepareAudio(filePath)) {
+              if (prepare()) {
                 rtspFromFile.startRecord(
                     folder.getAbsolutePath() + "/" + currentDateAndTime + ".mp4");
                 seekBar.setMax((int) rtspFromFile.getVideoDuration());
@@ -239,6 +238,12 @@ public class RtspFromFileActivity extends AppCompatActivity
       default:
         break;
     }
+  }
+
+  private boolean prepare() throws IOException {
+    boolean result = rtspFromFile.prepareVideo(filePath);
+    result |= rtspFromFile.prepareAudio(filePath);
+    return result;
   }
 
   private void updateProgress() {
