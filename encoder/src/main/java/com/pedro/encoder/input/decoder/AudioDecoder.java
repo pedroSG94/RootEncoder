@@ -33,6 +33,7 @@ public class AudioDecoder extends BaseDecoder {
 
   @Override
   protected boolean extract(MediaExtractor audioExtractor) {
+    size = 2048;
     running = false;
     for (int i = 0; i < audioExtractor.getTrackCount() && !mime.startsWith("audio/"); i++) {
       mediaFormat = audioExtractor.getTrackFormat(i);
@@ -48,9 +49,7 @@ public class AudioDecoder extends BaseDecoder {
       isStereo = channels >= 2;
       sampleRate = mediaFormat.getInteger(MediaFormat.KEY_SAMPLE_RATE);
       duration = mediaFormat.getLong(MediaFormat.KEY_DURATION);
-      if (channels >= 2) {
-        pcmBuffer = new byte[2048 * channels];
-      }
+      fixBuffer();
       return true;
       //audio decoder not supported
     } else {
@@ -58,6 +57,17 @@ public class AudioDecoder extends BaseDecoder {
       mediaFormat = null;
       return false;
     }
+  }
+
+  private void fixBuffer() {
+    ByteBuffer buffer = ByteBuffer.allocateDirect(9999999);
+    if (mime.equals("audio/raw")) {
+      int sample = extractor.readSampleData(buffer, 0);
+      if (sample > 0) size = sample;
+    } else if (channels >= 2) {
+      size *= channels;
+    }
+    pcmBuffer = new byte[size];
   }
 
   public boolean prepareAudio() {
@@ -111,6 +121,8 @@ public class AudioDecoder extends BaseDecoder {
                   Math.min(outBuffer.remaining(), pcmBufferMuted.length));
               getMicrophoneData.inputPCMData(new Frame(pcmBufferMuted, 0, pcmBufferMuted.length));
             } else {
+              if (pcmBuffer.length < outBuffer.remaining()) pcmBuffer = new byte[outBuffer.remaining()];
+
               outBuffer.get(pcmBuffer, 0, Math.min(outBuffer.remaining(), pcmBuffer.length));
               if (channels > 2) { //downgrade to stereo
                 byte[] bufferStereo = PCMUtil.pcmToStereo(pcmBuffer, channels);
@@ -155,5 +167,9 @@ public class AudioDecoder extends BaseDecoder {
 
   public boolean isStereo() {
     return isStereo;
+  }
+
+  public int getSize() {
+    return mime.equals("audio/raw") ? size : 0;
   }
 }

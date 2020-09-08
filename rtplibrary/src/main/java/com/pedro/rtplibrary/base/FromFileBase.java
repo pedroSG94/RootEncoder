@@ -166,18 +166,9 @@ public abstract class FromFileBase
     audioPath = filePath;
     if (!audioDecoder.initExtractor(filePath)) return false;
     boolean result = audioEncoder.prepareAudioEncoder(bitRate, audioDecoder.getSampleRate(),
-        audioDecoder.isStereo(), 0);
+        audioDecoder.isStereo(), audioDecoder.getSize());
     prepareAudioRtp(audioDecoder.isStereo(), audioDecoder.getSampleRate());
     audioDecoder.prepareAudio();
-    if (glInterface != null && !(glInterface instanceof OffScreenGlThread)) {
-      int channel =
-          audioDecoder.isStereo() ? AudioFormat.CHANNEL_OUT_STEREO : AudioFormat.CHANNEL_OUT_MONO;
-      int buffSize = AudioTrack.getMinBufferSize(audioDecoder.getSampleRate(), channel,
-          AudioFormat.ENCODING_PCM_16BIT);
-      audioTrackPlayer =
-          new AudioTrack(AudioManager.STREAM_MUSIC, audioDecoder.getSampleRate(), channel,
-              AudioFormat.ENCODING_PCM_16BIT, buffSize, AudioTrack.MODE_STREAM);
-    }
     audioEnabled = result;
     return result;
   }
