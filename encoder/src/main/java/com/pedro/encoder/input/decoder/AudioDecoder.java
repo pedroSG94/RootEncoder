@@ -6,6 +6,7 @@ import android.media.MediaFormat;
 import android.util.Log;
 import com.pedro.encoder.Frame;
 import com.pedro.encoder.input.audio.GetMicrophoneData;
+import com.pedro.encoder.utils.CodecUtil;
 import com.pedro.encoder.utils.PCMUtil;
 import java.nio.ByteBuffer;
 
@@ -117,7 +118,9 @@ public class AudioDecoder extends BaseDecoder {
                   Math.min(outBuffer.remaining(), pcmBufferMuted.length));
               getMicrophoneData.inputPCMData(new Frame(pcmBufferMuted, 0, pcmBufferMuted.length));
             } else {
-              if (pcmBuffer.length < outBuffer.remaining()) pcmBuffer = new byte[outBuffer.remaining()];
+              if (pcmBuffer.length < outBuffer.remaining()) {
+                pcmBuffer = new byte[outBuffer.remaining()];
+              }
               outBuffer.get(pcmBuffer, 0, Math.min(outBuffer.remaining(), pcmBuffer.length));
               if (channels > 2) { //downgrade to stereo
                 byte[] bufferStereo = PCMUtil.pcmToStereo(pcmBuffer, channels);
@@ -149,7 +152,9 @@ public class AudioDecoder extends BaseDecoder {
    * Get max output size to set max input size in encoder.
    */
   public int getOutsize() {
-    if (mime.equals("audio/raw") || mime.equals("audio/mpeg")) {
+    if (!(mime.equals(CodecUtil.AAC_MIME) || mime.equals(CodecUtil.OPUS_MIME) || mime.equals(
+        CodecUtil.VORBIS_MIME))) {
+      Log.i(TAG, "fixing input size");
       try {
         if (running) {
           return codec.getOutputBuffers()[0].remaining();
@@ -166,6 +171,7 @@ public class AudioDecoder extends BaseDecoder {
         return 0;
       }
     } else {
+      Log.i(TAG, "default input size");
       return 0;
     }
   }
