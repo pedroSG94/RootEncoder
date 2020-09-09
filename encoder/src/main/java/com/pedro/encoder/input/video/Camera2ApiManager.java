@@ -527,25 +527,27 @@ public class Camera2ApiManager extends CameraDevice.StateCallback {
     return zoomLevel;
   }
 
-  public void setZoom(Float level) {
+  public void setZoom(float level) {
     try {
       float maxZoom = getMaxZoom();
+      //Avoid out range level
+      if (level <= 0f) level = 0.01f;
+      else if (level > maxZoom) level = maxZoom;
+
       CameraCharacteristics characteristics = getCameraCharacteristics();
       if (characteristics == null) return;
       Rect rect = characteristics.get(CameraCharacteristics.SENSOR_INFO_ACTIVE_ARRAY_SIZE);
       if (rect == null) return;
-      if ((level <= maxZoom) && (level >= 0)) {
-        float ratio = (float) 1 / level; //This ratio is the ratio of cropped Rect to Camera's original(Maximum) Rect
-        //croppedWidth and croppedHeight are the pixels cropped away, not pixels after cropped
-        int croppedWidth = rect.width() - Math.round((float)rect.width() * ratio);
-        int croppedHeight = rect.height() - Math.round((float)rect.height() * ratio);
-        //Finally, zoom represents the zoomed visible area
-        Rect zoom = new Rect(croppedWidth / 2, croppedHeight/2,
-            rect.width() - croppedWidth / 2, rect.height() - croppedHeight/2);
-        builderInputSurface.set(CaptureRequest.SCALER_CROP_REGION, zoom);
-        cameraCaptureSession.setRepeatingRequest(builderInputSurface.build(),
-            faceDetectionEnabled ? cb : null, null);
-      }
+      float ratio = 1f / level; //This ratio is the ratio of cropped Rect to Camera's original(Maximum) Rect
+      //croppedWidth and croppedHeight are the pixels cropped away, not pixels after cropped
+      int croppedWidth = rect.width() - Math.round((float) rect.width() * ratio);
+      int croppedHeight = rect.height() - Math.round((float) rect.height() * ratio);
+      //Finally, zoom represents the zoomed visible area
+      Rect zoom = new Rect(croppedWidth / 2, croppedHeight / 2, rect.width() - croppedWidth / 2,
+          rect.height() - croppedHeight / 2);
+      builderInputSurface.set(CaptureRequest.SCALER_CROP_REGION, zoom);
+      cameraCaptureSession.setRepeatingRequest(builderInputSurface.build(),
+          faceDetectionEnabled ? cb : null, null);
     } catch (CameraAccessException e) {
       Log.e(TAG, "Error", e);
     }
@@ -563,7 +565,7 @@ public class Camera2ApiManager extends CameraDevice.StateCallback {
             delta = maxZoom - zoomLevel;
           }
           zoomLevel += delta;
-        } else if (currentFingerSpacing < fingerSpacing){ //Don't over zoom-out
+        } else if (currentFingerSpacing < fingerSpacing) { //Don't over zoom-out
           if ((zoomLevel - delta) < 1f) {
             delta = zoomLevel - 1f;
           }
