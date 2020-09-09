@@ -143,6 +143,7 @@ public abstract class BaseDecoder {
       } else {
         handlerThread.quit();
       }
+      handlerThread = null;
     }
     try {
       codec.stop();
