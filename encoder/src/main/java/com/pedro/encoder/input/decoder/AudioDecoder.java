@@ -60,11 +60,7 @@ public class AudioDecoder extends BaseDecoder {
   }
 
   private void fixBuffer() {
-    ByteBuffer buffer = ByteBuffer.allocateDirect(9999999);
-    if (mime.equals("audio/raw")) {
-      int sample = extractor.readSampleData(buffer, 0);
-      if (sample > 0) size = sample;
-    } else if (channels >= 2) {
+    if (channels >= 2) {
       size *= channels;
     }
     pcmBuffer = new byte[size];
@@ -122,7 +118,6 @@ public class AudioDecoder extends BaseDecoder {
               getMicrophoneData.inputPCMData(new Frame(pcmBufferMuted, 0, pcmBufferMuted.length));
             } else {
               if (pcmBuffer.length < outBuffer.remaining()) pcmBuffer = new byte[outBuffer.remaining()];
-
               outBuffer.get(pcmBuffer, 0, Math.min(outBuffer.remaining(), pcmBuffer.length));
               if (channels > 2) { //downgrade to stereo
                 byte[] bufferStereo = PCMUtil.pcmToStereo(pcmBuffer, channels);
@@ -149,6 +144,28 @@ public class AudioDecoder extends BaseDecoder {
     }
   }
 
+  /**
+   * This method should be called after prepare.
+   * Get max output size to set max input size in encoder.
+   */
+  public int getOutsize() {
+    try {
+      if (running) {
+        return codec.getOutputBuffers()[0].remaining();
+      } else {
+        if (codec != null) {
+          codec.start();
+          int outSize = codec.getOutputBuffers()[0].remaining();
+          stopDecoder();
+          if (prepare(null)) return outSize;
+        }
+        return 0;
+      }
+    } catch (Exception e) {
+      return 0;
+    }
+  }
+
   public void mute() {
     muted = true;
   }
@@ -167,9 +184,5 @@ public class AudioDecoder extends BaseDecoder {
 
   public boolean isStereo() {
     return isStereo;
-  }
-
-  public int getSize() {
-    return mime.equals("audio/raw") ? size : 0;
   }
 }

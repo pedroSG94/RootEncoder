@@ -158,22 +158,25 @@ public class RtmpFromFileActivity extends AppCompatActivity
       case R.id.b_start_stop:
         if (!rtmpFromFile.isStreaming()) {
           try {
-            if (!rtmpFromFile.isRecording() && prepare()) {
-              button.setText(R.string.stop_button);
-              rtmpFromFile.startStream(etUrl.getText().toString());
-              if (!rtmpFromFile.isRecording()) {
+            if (!rtmpFromFile.isRecording()) {
+              if (prepare()) {
+                button.setText(R.string.stop_button);
+                rtmpFromFile.startStream(etUrl.getText().toString());
                 seekBar.setMax(Math.max((int) rtmpFromFile.getVideoDuration(),
                     (int) rtmpFromFile.getAudioDuration()));
                 updateProgress();
-              }
-            } else {
-              button.setText(R.string.start_button);
-              rtmpFromFile.stopStream();
+              } else {
+                button.setText(R.string.start_button);
+                rtmpFromFile.stopStream();
                 /*This error could be 2 things.
                  Your device cant decode or encode this file or
                  the file is not supported for the library.
                 The file need has h264 video codec and acc audio codec*/
-              Toast.makeText(this, "Error: unsupported file", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "Error: unsupported file", Toast.LENGTH_SHORT).show();
+              }
+            } else {
+              button.setText(R.string.stop_button);
+              rtmpFromFile.startStream(etUrl.getText().toString());
             }
           } catch (IOException e) {
             //Normally this error is for file not found or read permissions
@@ -205,7 +208,8 @@ public class RtmpFromFileActivity extends AppCompatActivity
               if (prepare()) {
                 rtmpFromFile.startRecord(
                     folder.getAbsolutePath() + "/" + currentDateAndTime + ".mp4");
-                seekBar.setMax((int) rtmpFromFile.getVideoDuration());
+                seekBar.setMax(Math.max((int) rtmpFromFile.getVideoDuration(),
+                    (int) rtmpFromFile.getAudioDuration()));
                 updateProgress();
                 bRecord.setText(R.string.stop_record);
                 Toast.makeText(this, "Recording... ", Toast.LENGTH_SHORT).show();

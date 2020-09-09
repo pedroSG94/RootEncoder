@@ -165,10 +165,10 @@ public abstract class FromFileBase
   public boolean prepareAudio(String filePath, int bitRate) throws IOException {
     audioPath = filePath;
     if (!audioDecoder.initExtractor(filePath)) return false;
-    boolean result = audioEncoder.prepareAudioEncoder(bitRate, audioDecoder.getSampleRate(),
-        audioDecoder.isStereo(), audioDecoder.getSize());
-    prepareAudioRtp(audioDecoder.isStereo(), audioDecoder.getSampleRate());
     audioDecoder.prepareAudio();
+    boolean result = audioEncoder.prepareAudioEncoder(bitRate, audioDecoder.getSampleRate(),
+        audioDecoder.isStereo(), audioDecoder.getOutsize());
+    prepareAudioRtp(audioDecoder.isStereo(), audioDecoder.getSampleRate());
     audioEnabled = result;
     return result;
   }
