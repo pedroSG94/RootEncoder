@@ -532,19 +532,16 @@ public class Camera2ApiManager extends CameraDevice.StateCallback {
       float maxZoom = getMaxZoom();
       CameraCharacteristics characteristics = getCameraCharacteristics();
       if (characteristics == null) return;
-      Rect m = characteristics.get(CameraCharacteristics.SENSOR_INFO_ACTIVE_ARRAY_SIZE);
-      if (m == null) return;
+      Rect rect = characteristics.get(CameraCharacteristics.SENSOR_INFO_ACTIVE_ARRAY_SIZE);
+      if (rect == null) return;
       if ((level <= maxZoom) && (level >= 0)) {
-        zoomLevel = level;
-        int minW = (int) (m.width() / (maxZoom * 10));
-        int minH = (int) (m.height() / (maxZoom * 10));
-        int difW = m.width() - minW;
-        int difH = m.height() - minH;
-        int cropW = (int) (difW / 10 * level);
-        int cropH = (int) (difH / 10 * level);
-        cropW -= cropW & 3;
-        cropH -= cropH & 3;
-        Rect zoom = new Rect(cropW, cropH, m.width() - cropW, m.height() - cropH);
+        float ratio = (float) 1 / level; //This ratio is the ratio of cropped Rect to Camera's original(Maximum) Rect
+        //croppedWidth and croppedHeight are the pixels cropped away, not pixels after cropped
+        int croppedWidth = rect.width() - Math.round((float)rect.width() * ratio);
+        int croppedHeight = rect.height() - Math.round((float)rect.height() * ratio);
+        //Finally, zoom represents the zoomed visible area
+        Rect zoom = new Rect(croppedWidth / 2, croppedHeight/2,
+            rect.width() - croppedWidth / 2, rect.height() - croppedHeight/2);
         builderInputSurface.set(CaptureRequest.SCALER_CROP_REGION, zoom);
         cameraCaptureSession.setRepeatingRequest(builderInputSurface.build(),
             faceDetectionEnabled ? cb : null, null);
@@ -556,15 +553,21 @@ public class Camera2ApiManager extends CameraDevice.StateCallback {
 
   public void setZoom(MotionEvent event) {
     float currentFingerSpacing;
-
     if (event.getPointerCount() > 1) {
-      // Multi touch logic
       currentFingerSpacing = getFingerSpacing(event);
+      float delta = 0.1f;
+      float maxZoom = getMaxZoom();
       if (fingerSpacing != 0) {
-        if (currentFingerSpacing > fingerSpacing && getMaxZoom() > zoomLevel) {
-          zoomLevel += 0.1f;
-        } else if (currentFingerSpacing < fingerSpacing && zoomLevel > 0) {
-          zoomLevel -= 0.1f;
+        if (currentFingerSpacing > fingerSpacing) { //Don't over zoom-in
+          if ((maxZoom - zoomLevel) <= delta) {
+            delta = maxZoom - zoomLevel;
+          }
+          zoomLevel += delta;
+        } else if (currentFingerSpacing < fingerSpacing){ //Don't over zoom-out
+          if ((zoomLevel - delta) < 1f) {
+            delta = zoomLevel - 1f;
+          }
+          zoomLevel -= delta;
         }
         setZoom(zoomLevel);
       }
