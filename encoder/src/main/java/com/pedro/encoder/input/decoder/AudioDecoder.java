@@ -149,19 +149,23 @@ public class AudioDecoder extends BaseDecoder {
    * Get max output size to set max input size in encoder.
    */
   public int getOutsize() {
-    try {
-      if (running) {
-        return codec.getOutputBuffers()[0].remaining();
-      } else {
-        if (codec != null) {
-          codec.start();
-          int outSize = codec.getOutputBuffers()[0].remaining();
-          stopDecoder();
-          if (prepare(null)) return outSize;
+    if (mime.equals("audio/raw") || mime.equals("audio/mpeg")) {
+      try {
+        if (running) {
+          return codec.getOutputBuffers()[0].remaining();
+        } else {
+          if (codec != null) {
+            codec.start();
+            int outSize = codec.getOutputBuffers()[0].remaining();
+            stopDecoder();
+            if (prepare(null)) return outSize;
+          }
+          return 0;
         }
+      } catch (Exception e) {
         return 0;
       }
-    } catch (Exception e) {
+    } else {
       return 0;
     }
   }

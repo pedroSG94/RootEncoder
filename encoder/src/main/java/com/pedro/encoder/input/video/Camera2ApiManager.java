@@ -65,7 +65,7 @@ public class Camera2ApiManager extends CameraDevice.StateCallback {
   private boolean isFrontCamera = false;
   private CaptureRequest.Builder builderInputSurface;
   private float fingerSpacing = 0;
-  private float zoomLevel = 1.0f;
+  private float zoomLevel = 0f;
   private boolean lanternEnable = false;
   private boolean autoFocusEnabled = true;
   private boolean running = false;
@@ -534,7 +534,7 @@ public class Camera2ApiManager extends CameraDevice.StateCallback {
       if (characteristics == null) return;
       Rect m = characteristics.get(CameraCharacteristics.SENSOR_INFO_ACTIVE_ARRAY_SIZE);
       if (m == null) return;
-      if ((level <= maxZoom) && (level >= 1)) {
+      if ((level <= maxZoom) && (level >= 0)) {
         zoomLevel = level;
         int minW = (int) (m.width() / (maxZoom * 10));
         int minH = (int) (m.height() / (maxZoom * 10));
@@ -563,7 +563,7 @@ public class Camera2ApiManager extends CameraDevice.StateCallback {
       if (fingerSpacing != 0) {
         if (currentFingerSpacing > fingerSpacing && getMaxZoom() > zoomLevel) {
           zoomLevel += 0.1f;
-        } else if (currentFingerSpacing < fingerSpacing && zoomLevel > 1) {
+        } else if (currentFingerSpacing < fingerSpacing && zoomLevel > 0) {
           zoomLevel -= 0.1f;
         }
         setZoom(zoomLevel);
