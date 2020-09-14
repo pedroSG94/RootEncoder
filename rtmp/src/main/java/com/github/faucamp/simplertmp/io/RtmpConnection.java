@@ -175,7 +175,7 @@ public class RtmpConnection implements RtmpPublisher {
       Log.d(TAG, "connect(): socket connection established, doing handhake...");
       handshake(inputStream, outputStream);
       Log.d(TAG, "connect(): handshake done");
-    } catch (IOException e) {
+    } catch (Exception e) {
       Log.e(TAG, "Error", e);
       connectCheckerRtmp.onConnectionFailedRtmp("Connect error, " + e.getMessage());
       return false;
@@ -653,7 +653,10 @@ public class RtmpConnection implements RtmpPublisher {
       case "_result":
         // This is the result of one of the methods invoked by us
         String method = rtmpSessionInfo.takeInvokedCommand(invoke.getTransactionId());
-
+        if (method == null) {
+          Log.i(TAG, "'_result' message received for unknown method: ");
+          return;
+        }
         Log.i(TAG, "handleRxInvoke: Got result for invoked method: " + method);
         if ("connect".equals(method)) {
           if (onAuth) {
@@ -711,6 +714,12 @@ public class RtmpConnection implements RtmpPublisher {
             break;
           case "NetStream.Unpublish.Success":
             connectCheckerRtmp.onConnectionFailedRtmp("Unpublish received");
+            break;
+          case "NetStream.Publish.BadName":
+            connectCheckerRtmp.onConnectionFailedRtmp("BadName received, endpoint in use.");
+            break;
+          default:
+            connectCheckerRtmp.onConnectionFailedRtmp("Unknown on status received");
             break;
         }
         break;
