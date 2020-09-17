@@ -96,7 +96,6 @@ public abstract class DisplayBase implements GetAacData, GetVideoData, GetMicrop
 
   public void setMediaProjectionCallback(MediaProjectionCallback callback) {
     mediaProjectionCallback = callback;
-
   }
 
   /**
