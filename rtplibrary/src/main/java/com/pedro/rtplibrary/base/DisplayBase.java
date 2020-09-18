@@ -64,6 +64,14 @@ public abstract class DisplayBase implements GetAacData, GetVideoData, GetMicrop
   private RecordController recordController;
   private FpsListener fpsListener = new FpsListener();
   private MediaProjectionCallback mediaProjectionCallback;
+  private MediaProjection.Callback mediaProjectionStopCallback = new MediaProjection.Callback() {
+    @Override
+    public void onStop() {
+      if (mediaProjectionCallback != null) {
+        mediaProjectionCallback.onStop();
+      }
+    }
+  };
 
   public DisplayBase(Context context, boolean useOpengl) {
     this.context = context;
@@ -304,15 +312,7 @@ public abstract class DisplayBase implements GetAacData, GetVideoData, GetMicrop
         (glInterface != null) ? glInterface.getSurface() : videoEncoder.getInputSurface();
     if (mediaProjection == null) {
       mediaProjection = mediaProjectionManager.getMediaProjection(resultCode, data);
-      mediaProjection.registerCallback(new MediaProjection.Callback() {
-        @Override
-        public void onStop() {
-          super.onStop();
-          if (mediaProjectionCallback != null) {
-            mediaProjectionCallback.onStop();
-          }
-        }
-      }, null);
+      mediaProjection.registerCallback(mediaProjectionStopCallback, null);
     }
     if (glInterface != null && videoEncoder.getRotation() == 90
         || videoEncoder.getRotation() == 270) {
