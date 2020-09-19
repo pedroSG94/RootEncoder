@@ -264,7 +264,7 @@ public class RtspClient {
     });
     thread.start();
     if (clear) {
-      reTries = 0;
+      reTries = numRetry;
       connectCheckerRtsp.onDisconnectRtsp();
     }
   }

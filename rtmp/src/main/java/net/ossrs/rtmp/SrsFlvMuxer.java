@@ -200,7 +200,7 @@ public class SrsFlvMuxer {
     connected = false;
 
     if (connectChecker != null) {
-      reTries = 0;
+      reTries = numRetry;
       connectChecker.onDisconnectRtmp();
     }
 
