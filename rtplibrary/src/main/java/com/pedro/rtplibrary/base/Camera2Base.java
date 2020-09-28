@@ -10,6 +10,9 @@ import android.view.MotionEvent;
 import android.view.Surface;
 import android.view.SurfaceView;
 import android.view.TextureView;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 import com.pedro.encoder.Frame;
 import com.pedro.encoder.audio.AudioEncoder;
@@ -31,6 +34,8 @@ import com.pedro.rtplibrary.view.GlInterface;
 import com.pedro.rtplibrary.view.LightOpenGlView;
 import com.pedro.rtplibrary.view.OffScreenGlThread;
 import com.pedro.rtplibrary.view.OpenGlView;
+
+import java.io.FileDescriptor;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
@@ -301,12 +306,12 @@ public abstract class Camera2Base implements GetAacData, GetVideoData, GetMicrop
   }
 
   /**
-   * Start record a MP4 video. Need be called while stream.
+   * Starts recording an MP4 video. Needs to be called while streaming.
    *
-   * @param path where file will be saved.
-   * @throws IOException If you init it before start stream.
+   * @param path Where file will be saved.
+   * @throws IOException If initialized before a stream.
    */
-  public void startRecord(String path, RecordController.Listener listener) throws IOException {
+  public void startRecord(@NonNull String path, @Nullable RecordController.Listener listener) throws IOException {
     recordController.startRecord(path, listener);
     if (!streaming) {
       startEncoders();
@@ -315,8 +320,29 @@ public abstract class Camera2Base implements GetAacData, GetVideoData, GetMicrop
     }
   }
 
-  public void startRecord(final String path) throws IOException {
+  public void startRecord(@NonNull final String path) throws IOException {
     startRecord(path, null);
+  }
+
+  /**
+   * Starts recording an MP4 video. Needs to be called while streaming.
+   *
+   * @param fd Where the file will be saved.
+   * @throws IOException If initialized before a stream.
+   */
+  @RequiresApi(api = Build.VERSION_CODES.O)
+  public void startRecord(@NonNull final FileDescriptor fd, @Nullable RecordController.Listener listener) throws IOException {
+    recordController.startRecord(fd, listener);
+    if (!streaming) {
+      startEncoders();
+    } else if (videoEncoder.isRunning()) {
+      resetVideoEncoder();
+    }
+  }
+
+  @RequiresApi(api = Build.VERSION_CODES.O)
+  public void startRecord(@NonNull final FileDescriptor fd) throws IOException{
+    startRecord(fd, null);
   }
 
   /**
