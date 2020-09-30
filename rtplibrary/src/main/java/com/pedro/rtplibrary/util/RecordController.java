@@ -5,9 +5,14 @@ import android.media.MediaFormat;
 import android.media.MediaMuxer;
 import android.os.Build;
 import android.util.Log;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 import com.pedro.encoder.utils.CodecUtil;
 import com.pedro.rtsp.utils.RtpConstants;
+
+import java.io.FileDescriptor;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 
@@ -42,12 +47,21 @@ public class RecordController {
   }
 
   @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
-  public void startRecord(String path, Listener listener) throws IOException {
+  public void startRecord(@NonNull String path, @Nullable Listener listener) throws IOException {
     mediaMuxer = new MediaMuxer(path, MediaMuxer.OutputFormat.MUXER_OUTPUT_MPEG_4);
     this.listener = listener;
     status = Status.STARTED;
     if (listener != null) listener.onStatusChange(status);
     if (isOnlyAudio && audioFormat != null) init();
+  }
+
+  @RequiresApi(api = Build.VERSION_CODES.O)
+  public void startRecord(@NonNull FileDescriptor fd, @Nullable Listener listener) throws IOException {
+    mediaMuxer = new MediaMuxer(fd, MediaMuxer.OutputFormat.MUXER_OUTPUT_MPEG_4);
+    this.listener = listener;
+    status = Status.STARTED;
+    if(listener != null) listener.onStatusChange(status);
+    if(isOnlyAudio && audioFormat != null) init();
   }
 
   @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)

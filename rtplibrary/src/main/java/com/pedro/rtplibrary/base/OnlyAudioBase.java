@@ -3,6 +3,9 @@ package com.pedro.rtplibrary.base;
 import android.media.MediaCodec;
 import android.media.MediaFormat;
 import android.os.Build;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 import com.pedro.encoder.Frame;
 import com.pedro.encoder.audio.AudioEncoder;
@@ -11,6 +14,8 @@ import com.pedro.encoder.input.audio.CustomAudioEffect;
 import com.pedro.encoder.input.audio.GetMicrophoneData;
 import com.pedro.encoder.input.audio.MicrophoneManager;
 import com.pedro.rtplibrary.util.RecordController;
+
+import java.io.FileDescriptor;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 
@@ -85,10 +90,10 @@ public abstract class OnlyAudioBase implements GetAacData, GetMicrophoneData {
   }
 
   /**
-   * Start record a MP4 video. Need be called while stream.
+   * Starts recording an MP4 video. Needs to be called while streaming.
    *
-   * @param path where file will be saved.
-   * @throws IOException If you init it before start stream.
+   * @param path Where file will be saved.
+   * @throws IOException If initialized before a stream.
    */
   @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
   public void startRecord(String path, RecordController.Listener listener) throws IOException {
@@ -101,6 +106,25 @@ public abstract class OnlyAudioBase implements GetAacData, GetMicrophoneData {
   @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
   public void startRecord(final String path) throws IOException {
     startRecord(path, null);
+  }
+
+  /**
+   * Starts recording an MP4 video. Needs to be called while streaming.
+   *
+   * @param fd Where the file will be saved.
+   * @throws IOException If initialized before a stream.
+   */
+  @RequiresApi(api = Build.VERSION_CODES.O)
+  public void startRecord(@NonNull final FileDescriptor fd, @Nullable RecordController.Listener listener) throws IOException {
+    recordController.startRecord(fd, listener);
+    if (!streaming) {
+      startEncoders();
+    }
+  }
+
+  @RequiresApi(api = Build.VERSION_CODES.O)
+  public void startRecord(@NonNull final FileDescriptor fd) throws IOException{
+    startRecord(fd, null);
   }
 
   /**
