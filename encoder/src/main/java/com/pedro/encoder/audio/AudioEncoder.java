@@ -13,6 +13,7 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Created by pedro on 19/01/17.
@@ -97,7 +98,7 @@ public class AudioEncoder extends BaseEncoder implements GetMicrophoneData {
 
   @Override
   protected Frame getInputFrame() throws InterruptedException {
-    return queue.take();
+    return queue.poll(100, TimeUnit.MILLISECONDS);
   }
 
   @Override

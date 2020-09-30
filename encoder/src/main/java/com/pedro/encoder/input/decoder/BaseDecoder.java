@@ -22,6 +22,7 @@ public abstract class BaseDecoder {
   protected static final String TAG = "BaseDecoder";
   protected LoopFileInterface loopFileInterface;
   protected MediaCodec.BufferInfo bufferInfo = new MediaCodec.BufferInfo();
+  protected final Object lock = new Object();
   protected MediaExtractor extractor;
   protected MediaCodec codec;
   protected volatile boolean running = false;
@@ -84,32 +85,37 @@ public abstract class BaseDecoder {
   }
 
   public void start() {
-    running = true;
-    handlerThread = new HandlerThread(TAG);
-    handlerThread.start();
-    Handler handler = new Handler(handlerThread.getLooper());
-    codec.start();
-    handler.post(new Runnable() {
-      @Override
-      public void run() {
-        try {
-          decode();
-        } catch (IllegalStateException e) {
-          Log.i(TAG, "Decoding error", e);
-        } catch (NullPointerException e) {
-          Log.i(TAG, "Decoder maybe was stopped");
-          Log.i(TAG, "Decoding error", e);
+    synchronized (lock) {
+      running = true;
+      handlerThread = new HandlerThread(TAG);
+      handlerThread.start();
+      Handler handler = new Handler(handlerThread.getLooper());
+      codec.start();
+      handler.post(new Runnable() {
+        @Override
+        public void run() {
+          try {
+            decode();
+          } catch (IllegalStateException e) {
+            Log.i(TAG, "Decoding error", e);
+          } catch (NullPointerException e) {
+            Log.i(TAG, "Decoder maybe was stopped");
+            Log.i(TAG, "Decoding error", e);
+          }
         }
-      }
-    });
+      });
+    }
   }
 
   public void stop() {
-    stopDecoder();
-    if (extractor != null) {
-      extractor.release();
-      extractor = null;
-      mime = "";
+    running = false;
+    synchronized (lock) {
+      stopDecoder();
+      if (extractor != null) {
+        extractor.release();
+        extractor = null;
+        mime = "";
+      }
     }
   }
 
@@ -147,7 +153,7 @@ public abstract class BaseDecoder {
     }
     try {
       codec.stop();
-      //codec.release();
+      codec.release();
       codec = null;
     } catch (IllegalStateException | NullPointerException e) {
       codec = null;

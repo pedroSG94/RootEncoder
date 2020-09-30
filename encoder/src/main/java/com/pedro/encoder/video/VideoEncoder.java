@@ -21,6 +21,7 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Created by pedro on 19/01/17.
@@ -382,7 +383,8 @@ public class VideoEncoder extends BaseEncoder implements GetCameraData {
 
   @Override
   protected Frame getInputFrame() throws InterruptedException {
-    Frame frame = queue.take();
+    Frame frame = queue.poll(100, TimeUnit.MILLISECONDS);
+    if (frame == null) return null;
     if (fpsLimiter.limitFPS()) return getInputFrame();
     byte[] buffer = frame.getBuffer();
     boolean isYV12 = frame.getFormat() == ImageFormat.YV12;

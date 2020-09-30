@@ -23,6 +23,7 @@ public abstract class BaseEncoder implements EncoderCallback {
   private MediaCodec.BufferInfo bufferInfo = new MediaCodec.BufferInfo();
   private HandlerThread handlerThread;
   protected BlockingQueue<Frame> queue = new ArrayBlockingQueue<>(80);
+  private final Object lock = new Object();
   protected MediaCodec codec;
   protected long presentTimeUs;
   protected volatile boolean running = false;
@@ -42,29 +43,31 @@ public abstract class BaseEncoder implements EncoderCallback {
   }
 
   private void initCodec() {
-    handlerThread = new HandlerThread(TAG);
-    handlerThread.start();
-    Handler handler = new Handler(handlerThread.getLooper());
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-      createAsyncCallback();
-      codec.setCallback(callback, handler);
-      codec.start();
-    } else {
-      codec.start();
-      handler.post(new Runnable() {
-        @Override
-        public void run() {
-          while (running) {
-            try {
-              getDataFromEncoder();
-            } catch (IllegalStateException e) {
-              Log.i(TAG, "Encoding error", e);
+    synchronized (lock) {
+      handlerThread = new HandlerThread(TAG);
+      handlerThread.start();
+      Handler handler = new Handler(handlerThread.getLooper());
+      if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+        createAsyncCallback();
+        codec.setCallback(callback, handler);
+        codec.start();
+      } else {
+        codec.start();
+        handler.post(new Runnable() {
+          @Override
+          public void run() {
+            while (running) {
+              try {
+                getDataFromEncoder();
+              } catch (IllegalStateException e) {
+                Log.i(TAG, "Encoding error", e);
+              }
             }
           }
-        }
-      });
+        });
+      }
+      running = true;
     }
-    running = true;
   }
 
   public abstract void start(boolean resetTs);
@@ -78,24 +81,26 @@ public abstract class BaseEncoder implements EncoderCallback {
 
   public void stop() {
     running = false;
-    stopImp();
-    if (handlerThread != null) {
-      if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
-        handlerThread.quitSafely();
-      } else {
-        handlerThread.quit();
+    synchronized (lock) {
+      stopImp();
+      if (handlerThread != null) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
+          handlerThread.quitSafely();
+        } else {
+          handlerThread.quit();
+        }
       }
+      queue.clear();
+      queue = new ArrayBlockingQueue<>(80);
+      try {
+        codec.stop();
+        codec.release();
+        codec = null;
+      } catch (IllegalStateException | NullPointerException e) {
+        codec = null;
+      }
+      oldTimeStamp = 0L;
     }
-    queue.clear();
-    queue = new ArrayBlockingQueue<>(80);
-    try {
-      codec.stop();
-      codec.release();
-      codec = null;
-    } catch (IllegalStateException | NullPointerException e) {
-      codec = null;
-    }
-    oldTimeStamp = 0L;
   }
 
   protected abstract MediaCodecInfo chooseEncoder(String mime);
@@ -126,6 +131,7 @@ public abstract class BaseEncoder implements EncoderCallback {
       int inBufferIndex) throws IllegalStateException {
     try {
       Frame frame = getInputFrame();
+      if (frame == null) return;
       byteBuffer.clear();
       byteBuffer.put(frame.getBuffer(), frame.getOffset(), frame.getSize());
       long pts = System.nanoTime() / 1000 - presentTimeUs;
@@ -161,25 +167,29 @@ public abstract class BaseEncoder implements EncoderCallback {
   @Override
   public void inputAvailable(@NonNull MediaCodec mediaCodec, int inBufferIndex)
       throws IllegalStateException {
-    ByteBuffer byteBuffer;
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-      byteBuffer = mediaCodec.getInputBuffer(inBufferIndex);
-    } else {
-      byteBuffer = mediaCodec.getInputBuffers()[inBufferIndex];
+    synchronized (lock) {
+      ByteBuffer byteBuffer;
+      if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+        byteBuffer = mediaCodec.getInputBuffer(inBufferIndex);
+      } else {
+        byteBuffer = mediaCodec.getInputBuffers()[inBufferIndex];
+      }
+      processInput(byteBuffer, mediaCodec, inBufferIndex);
     }
-    processInput(byteBuffer, mediaCodec, inBufferIndex);
   }
 
   @Override
   public void outputAvailable(@NonNull MediaCodec mediaCodec, int outBufferIndex,
       @NonNull MediaCodec.BufferInfo bufferInfo) throws IllegalStateException {
-    ByteBuffer byteBuffer;
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-      byteBuffer = mediaCodec.getOutputBuffer(outBufferIndex);
-    } else {
-      byteBuffer = mediaCodec.getOutputBuffers()[outBufferIndex];
+    synchronized (lock) {
+      ByteBuffer byteBuffer;
+      if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+        byteBuffer = mediaCodec.getOutputBuffer(outBufferIndex);
+      } else {
+        byteBuffer = mediaCodec.getOutputBuffers()[outBufferIndex];
+      }
+      processOutput(byteBuffer, mediaCodec, outBufferIndex, bufferInfo);
     }
-    processOutput(byteBuffer, mediaCodec, outBufferIndex, bufferInfo);
   }
 
   @RequiresApi(api = Build.VERSION_CODES.M)

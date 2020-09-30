@@ -669,8 +669,9 @@ public class SrsFlvMuxer {
       for (int i = 0; i < frames.size(); i++) {
         SrsFlvFrameBytes frame = frames.get(i);
         frame.data.rewind();
-        frame.data.get(allocation.array(), allocation.size(), frame.size);
-        allocation.appendOffset(frame.size);
+        int s = Math.min(frame.size, frame.data.remaining());
+        frame.data.get(allocation.array(), allocation.size(), s);
+        allocation.appendOffset(s);
       }
 
       return allocation;

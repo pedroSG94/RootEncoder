@@ -1,7 +1,6 @@
 package com.github.faucamp.simplertmp.io;
 
 import android.util.Log;
-
 import com.github.faucamp.simplertmp.RtmpPublisher;
 import com.github.faucamp.simplertmp.Util;
 import com.github.faucamp.simplertmp.amf.AmfMap;
@@ -15,7 +14,6 @@ import com.github.faucamp.simplertmp.packets.Command;
 import com.github.faucamp.simplertmp.packets.Data;
 import com.github.faucamp.simplertmp.packets.Handshake;
 import com.github.faucamp.simplertmp.packets.RtmpPacket;
-import com.github.faucamp.simplertmp.packets.SetPeerBandwidth;
 import com.github.faucamp.simplertmp.packets.UserControl;
 import com.github.faucamp.simplertmp.packets.Video;
 import com.github.faucamp.simplertmp.packets.WindowAckSize;
@@ -28,7 +26,6 @@ import java.io.OutputStream;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.SocketAddress;
-import java.net.SocketException;
 import java.util.Random;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -146,9 +143,9 @@ public class RtmpConnection implements RtmpPublisher {
     String portStr = rtmpMatcher.group(2);
     port = portStr != null ? Integer.parseInt(portStr) : 1935;
     appName = getAppName(rtmpMatcher.group(3), rtmpMatcher.group(4));
-    streamName = getStreamName(rtmpMatcher.group(4));
-    tcUrl = getTcUrl(
-        rtmpMatcher.group(0).substring(0, rtmpMatcher.group(0).length() - streamName.length()));
+    String streamName = getStreamName(rtmpMatcher.group(4));
+    tcUrl = getTcUrl(rtmpMatcher.group(0).substring(0, rtmpMatcher.group(0).length() - streamName.length()));
+    this.streamName = streamName;
 
     // socket connection
     Log.d(TAG, "connect() called. Host: "
