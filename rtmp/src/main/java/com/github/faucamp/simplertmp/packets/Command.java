@@ -1,12 +1,12 @@
 package com.github.faucamp.simplertmp.packets;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-
+import com.github.faucamp.simplertmp.amf.AmfDecoder;
 import com.github.faucamp.simplertmp.amf.AmfNumber;
 import com.github.faucamp.simplertmp.amf.AmfString;
 import com.github.faucamp.simplertmp.io.ChunkStreamInfo;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 
 /**
  * Encapsulates an command/"invoke" RTMP packet
@@ -63,7 +63,13 @@ public class Command extends VariableBodyRtmpPacket {
   @Override
   public void readBody(InputStream in) throws IOException {
     // The command name and transaction ID are always present (AMF string followed by number)
-    commandName = AmfString.readStringFrom(in, false);
+    AmfString amfString = (AmfString) AmfDecoder.readFrom(in);
+    commandName = amfString.getValue();
+    //Sometimes only command name is received
+    if (amfString.getSize() == header.getPacketLength()) {
+      transactionId = 0;
+      return;
+    }
     transactionId = (int) AmfNumber.readNumberFrom(in);
     int bytesRead = AmfString.sizeOf(commandName, false) + AmfNumber.SIZE;
     readVariableData(in, bytesRead);
