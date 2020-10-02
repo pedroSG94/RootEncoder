@@ -94,7 +94,7 @@ public class MicrophoneManager {
    * @see "https://medium.com/@debuggingisfun/android-10-audio-capture-77dd8e9070f9"
    */
   public void createInternalMicrophone(AudioPlaybackCaptureConfiguration config, int sampleRate,
-      boolean isStereo) {
+      boolean isStereo, boolean echoCanceler, boolean noiseSuppressor) {
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
       this.sampleRate = sampleRate;
       if (!isStereo) channel = AudioFormat.CHANNEL_IN_MONO;
@@ -105,16 +105,23 @@ public class MicrophoneManager {
               .build())
           .setBufferSizeInBytes(getPcmBufferSize())
           .build();
-
+      BUFFER_SIZE = 4096;
       audioPostProcessEffect = new AudioPostProcessEffect(audioRecord.getAudioSessionId());
+      if (echoCanceler) audioPostProcessEffect.enableEchoCanceler();
+      if (noiseSuppressor) audioPostProcessEffect.enableNoiseSuppressor();
       String chl = (isStereo) ? "Stereo" : "Mono";
       Log.i(TAG, "Internal microphone created, " + sampleRate + "hz, " + chl);
       created = true;
     } else {
-      createMicrophone(sampleRate, isStereo, false, false);
+      createMicrophone(sampleRate, isStereo, echoCanceler, noiseSuppressor);
     }
   }
 
+  public void createInternalMicrophone(AudioPlaybackCaptureConfiguration config, int sampleRate,
+      boolean isStereo) {
+    createInternalMicrophone(config, sampleRate, isStereo, false, false);
+  }
+  
   /**
    * Start record and get data
    */

@@ -182,7 +182,8 @@ public abstract class DisplayBase implements GetAacData, GetVideoData, GetMicrop
    * @see AudioPlaybackCaptureConfiguration.Builder#Builder(MediaProjection)
    */
   @RequiresApi(api = Build.VERSION_CODES.Q)
-  public boolean prepareInternalAudio(int bitrate, int sampleRate, boolean isStereo) {
+  public boolean prepareInternalAudio(int bitrate, int sampleRate, boolean isStereo,
+      boolean echoCanceler, boolean noiseSuppressor) {
     if (mediaProjection == null) {
       mediaProjection = mediaProjectionManager.getMediaProjection(resultCode, data);
     }
@@ -193,11 +194,17 @@ public abstract class DisplayBase implements GetAacData, GetVideoData, GetMicrop
             .addMatchingUsage(AudioAttributes.USAGE_GAME)
             .addMatchingUsage(AudioAttributes.USAGE_UNKNOWN)
             .build();
-    microphoneManager.createInternalMicrophone(config, sampleRate, isStereo);
+    microphoneManager.createInternalMicrophone(config, sampleRate, isStereo, echoCanceler,
+        noiseSuppressor);
     prepareAudioRtp(isStereo, sampleRate);
     audioInitialized = audioEncoder.prepareAudioEncoder(bitrate, sampleRate, isStereo,
         microphoneManager.getMaxInputSize());
     return audioInitialized;
+  }
+
+  @RequiresApi(api = Build.VERSION_CODES.Q)
+  public boolean prepareInternalAudio(int bitrate, int sampleRate, boolean isStereo) {
+    return prepareInternalAudio(bitrate, sampleRate, isStereo, false, false);
   }
 
   /**
@@ -224,6 +231,11 @@ public abstract class DisplayBase implements GetAacData, GetVideoData, GetMicrop
     return prepareAudio(64 * 1024, 32000, true, false, false);
   }
 
+  @RequiresApi(api = Build.VERSION_CODES.Q)
+  public boolean prepareInternalAudio() {
+    return prepareInternalAudio(64 * 1024, 32000, true);
+  }
+
   /**
    * @param forceVideo force type codec used. FIRST_COMPATIBLE_FOUND, SOFTWARE, HARDWARE
    * @param forceAudio force type codec used. FIRST_COMPATIBLE_FOUND, SOFTWARE, HARDWARE
@@ -239,7 +251,8 @@ public abstract class DisplayBase implements GetAacData, GetVideoData, GetMicrop
    * @param path Where file will be saved.
    * @throws IOException If initialized before a stream.
    */
-  public void startRecord(@NonNull String path, @Nullable RecordController.Listener listener) throws IOException {
+  public void startRecord(@NonNull String path, @Nullable RecordController.Listener listener)
+      throws IOException {
     recordController.startRecord(path, listener);
     if (!streaming) {
       startEncoders(resultCode, data);
@@ -259,7 +272,8 @@ public abstract class DisplayBase implements GetAacData, GetVideoData, GetMicrop
    * @throws IOException If initialized before a stream.
    */
   @RequiresApi(api = Build.VERSION_CODES.O)
-  public void startRecord(@NonNull final FileDescriptor fd, @Nullable RecordController.Listener listener) throws IOException {
+  public void startRecord(@NonNull final FileDescriptor fd,
+      @Nullable RecordController.Listener listener) throws IOException {
     recordController.startRecord(fd, listener);
     if (!streaming) {
       startEncoders(resultCode, data);
@@ -269,7 +283,7 @@ public abstract class DisplayBase implements GetAacData, GetVideoData, GetMicrop
   }
 
   @RequiresApi(api = Build.VERSION_CODES.O)
-  public void startRecord(@NonNull final FileDescriptor fd) throws IOException{
+  public void startRecord(@NonNull final FileDescriptor fd) throws IOException {
     startRecord(fd, null);
   }
 
