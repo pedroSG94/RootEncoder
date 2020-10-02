@@ -29,25 +29,29 @@ public class SurfaceManager {
    * Creates an EGL context and an EGL surface.
    */
   public SurfaceManager(Surface surface, SurfaceManager manager) {
-    eglSetup(surface, manager.eglContext);
+    eglSetup(1, 1, surface, manager.eglContext);
+  }
+
+  public SurfaceManager(int width, int height, SurfaceManager manager) {
+    eglSetup(width, height, null, manager.eglContext);
   }
 
   /**
    * Creates an EGL context and an EGL surface.
    */
   public SurfaceManager(Surface surface, EGLContext eglContext) {
-    eglSetup(surface, eglContext);
+    eglSetup(1, 1, surface, eglContext);
   }
 
   /**
    * Creates an EGL context and an EGL surface.
    */
   public SurfaceManager(Surface surface) {
-    eglSetup(surface, null);
+    eglSetup(1, 1, surface, null);
   }
 
   public SurfaceManager() {
-    eglSetup(null, null);
+    eglSetup(1, 1, null, null);
   }
 
   public void makeCurrent() {
@@ -71,7 +75,7 @@ public class SurfaceManager {
   /**
    * Prepares EGL.  We want a GLES 2.0 context and a surface that supports recording.
    */
-  private void eglSetup(Surface surface, EGLContext eglSharedContext) {
+  private void eglSetup(int width, int height, Surface surface, EGLContext eglSharedContext) {
     eglDisplay = EGL14.eglGetDisplay(EGL14.EGL_DEFAULT_DISPLAY);
     if (eglDisplay == EGL14.EGL_NO_DISPLAY) {
       throw new RuntimeException("unable to get EGL14 display");
@@ -119,7 +123,7 @@ public class SurfaceManager {
     // Create a window surface, and attach it to the Surface we received.
     if (surface == null) {
       int[] surfaceAttribs = {
-          EGL14.EGL_WIDTH, 1, EGL14.EGL_HEIGHT, 1, EGL14.EGL_NONE
+          EGL14.EGL_WIDTH, width, EGL14.EGL_HEIGHT, height, EGL14.EGL_NONE
       };
       eglSurface = EGL14.eglCreatePbufferSurface(eglDisplay, configs[0], surfaceAttribs, 0);
     } else {

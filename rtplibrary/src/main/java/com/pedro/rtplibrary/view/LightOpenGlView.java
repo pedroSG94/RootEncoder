@@ -4,11 +4,11 @@ import android.content.Context;
 import android.content.res.TypedArray;
 import android.graphics.SurfaceTexture;
 import android.os.Build;
+import android.util.AttributeSet;
 import android.util.Log;
+import android.view.Surface;
 import android.view.SurfaceHolder;
 import androidx.annotation.RequiresApi;
-import android.util.AttributeSet;
-import android.view.Surface;
 import com.pedro.encoder.input.gl.SurfaceManager;
 import com.pedro.encoder.input.gl.render.SimpleCameraRender;
 import com.pedro.encoder.input.gl.render.filters.BaseFilterRender;
@@ -79,6 +79,9 @@ public class LightOpenGlView extends OpenGlViewBase {
     surfaceManager.makeCurrent();
     simpleCameraRender.initGl(getContext(), encoderWidth, encoderHeight);
     simpleCameraRender.getSurfaceTexture().setOnFrameAvailableListener(this);
+    if (surfaceManagerEncoder == null && surfaceManagerPhoto == null) {
+      surfaceManagerPhoto = new SurfaceManager(encoderWidth, encoderHeight, surfaceManager);
+    }
     semaphore.release();
     while (running) {
       if (frameAvailable || forceRender) {
@@ -87,12 +90,6 @@ public class LightOpenGlView extends OpenGlViewBase {
         simpleCameraRender.updateFrame();
         simpleCameraRender.drawFrame(previewWidth, previewHeight, keepAspectRatio, aspectRatioMode,
             0, true, isStreamVerticalFlip, isStreamHorizontalFlip);
-        if (takePhotoCallback != null) {
-          takePhotoCallback.onTakePhoto(
-              GlUtil.getBitmap(keepAspectRatio, aspectRatioMode, previewWidth, previewHeight,
-                  encoderWidth, encoderHeight));
-          takePhotoCallback = null;
-        }
         surfaceManager.swapBuffer();
 
         synchronized (sync) {
@@ -105,8 +102,17 @@ public class LightOpenGlView extends OpenGlViewBase {
               simpleCameraRender.drawFrame(encoderWidth, encoderHeight, false, aspectRatioMode,
                   streamRotation, false, isStreamVerticalFlip, isStreamHorizontalFlip);
             }
-            surfaceManagerEncoder.swapBuffer();
+          } else if (takePhotoCallback != null && surfaceManagerPhoto != null) {
+            surfaceManagerPhoto.makeCurrent();
+            simpleCameraRender.drawFrame(encoderWidth, encoderHeight, false, aspectRatioMode,
+                streamRotation, false, isStreamVerticalFlip, isStreamHorizontalFlip);
           }
+          if (takePhotoCallback != null) {
+            takePhotoCallback.onTakePhoto(GlUtil.getBitmap(encoderWidth, encoderHeight));
+            takePhotoCallback = null;
+          }
+          if (surfaceManagerEncoder != null) surfaceManagerEncoder.swapBuffer();
+          else if (surfaceManagerPhoto != null) surfaceManagerPhoto.swapBuffer();
         }
       }
     }
