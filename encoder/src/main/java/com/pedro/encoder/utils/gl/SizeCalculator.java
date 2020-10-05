@@ -36,10 +36,10 @@ public class SizeCalculator {
           && previewAspectRatio < 1f)) {
         if (mode == 0 || mode == 2) {
           yf = streamHeight * previewWidth / streamWidth;
-          yo = ((yf - previewHeight) / 2) * -1;
+          yo = (yf - previewHeight) / -2;
         } else {
           xf = streamWidth * previewHeight / streamHeight;
-          xo = ((xf - previewWidth) / 2) * -1;
+          xo = (xf - previewWidth) / -2;
         }
       } else if ((streamAspectRatio > 1f
           && previewAspectRatio > 1f
@@ -49,10 +49,10 @@ public class SizeCalculator {
           && previewAspectRatio > 1f)) {
         if (mode == 0 || mode == 2) {
           xf = streamWidth * previewHeight / streamHeight;
-          xo = ((xf - previewWidth) / 2) * -1;
+          xo = (xf - previewWidth) / -2;
         } else {
           yf = streamHeight * previewWidth / streamWidth;
-          yo = ((yf - previewHeight) / 2) * -1;
+          yo = (yf - previewHeight) / -2;
         }
       }
       return new Pair<>(new Point(xo, yo), new Point(xf, yf));
