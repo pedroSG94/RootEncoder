@@ -142,10 +142,12 @@ public class Camera2ApiManager extends CameraDevice.StateCallback {
         @Override
         public void onConfigureFailed(@NonNull CameraCaptureSession cameraCaptureSession) {
           cameraCaptureSession.close();
+          cameraCallbacks.onCameraError("Configuration failed");
           Log.e(TAG, "Configuration failed");
         }
-      }, null);
-    } catch (CameraAccessException e) {
+      }, cameraHandler);
+    } catch (CameraAccessException | IllegalArgumentException e) {
+      cameraCallbacks.onCameraError("Create capture session failed: " + e.getMessage());
       Log.e(TAG, "Error", e);
     } catch (IllegalStateException e) {
       reOpenCamera(cameraId != -1 ? cameraId : 0);
@@ -475,6 +477,7 @@ public class Camera2ApiManager extends CameraDevice.StateCallback {
           cameraCallbacks.onCameraChanged(isFrontCamera);
         }
       } catch (CameraAccessException | SecurityException e) {
+        cameraCallbacks.onCameraError("Open camera " + cameraId + " failed");
         Log.e(TAG, "Error", e);
       }
     } else {
@@ -651,6 +654,7 @@ public class Camera2ApiManager extends CameraDevice.StateCallback {
   public void onError(@NonNull CameraDevice cameraDevice, int i) {
     cameraDevice.close();
     semaphore.release();
+    cameraCallbacks.onCameraError("Open camera failed: " + i);
     Log.e(TAG, "Open failed");
   }
 
