@@ -142,12 +142,14 @@ public class Camera2ApiManager extends CameraDevice.StateCallback {
         @Override
         public void onConfigureFailed(@NonNull CameraCaptureSession cameraCaptureSession) {
           cameraCaptureSession.close();
-          cameraCallbacks.onCameraError("Configuration failed");
+          if (cameraCallbacks != null) cameraCallbacks.onCameraError("Configuration failed");
           Log.e(TAG, "Configuration failed");
         }
       }, cameraHandler);
     } catch (CameraAccessException | IllegalArgumentException e) {
-      cameraCallbacks.onCameraError("Create capture session failed: " + e.getMessage());
+      if (cameraCallbacks != null) {
+        cameraCallbacks.onCameraError("Create capture session failed: " + e.getMessage());
+      }
       Log.e(TAG, "Error", e);
     } catch (IllegalStateException e) {
       reOpenCamera(cameraId != -1 ? cameraId : 0);
@@ -477,7 +479,9 @@ public class Camera2ApiManager extends CameraDevice.StateCallback {
           cameraCallbacks.onCameraChanged(isFrontCamera);
         }
       } catch (CameraAccessException | SecurityException e) {
-        cameraCallbacks.onCameraError("Open camera " + cameraId + " failed");
+        if (cameraCallbacks != null) {
+          cameraCallbacks.onCameraError("Open camera " + cameraId + " failed");
+        }
         Log.e(TAG, "Error", e);
       }
     } else {
@@ -541,7 +545,8 @@ public class Camera2ApiManager extends CameraDevice.StateCallback {
       if (characteristics == null) return;
       Rect rect = characteristics.get(CameraCharacteristics.SENSOR_INFO_ACTIVE_ARRAY_SIZE);
       if (rect == null) return;
-      float ratio = 1f / level; //This ratio is the ratio of cropped Rect to Camera's original(Maximum) Rect
+      //This ratio is the ratio of cropped Rect to Camera's original(Maximum) Rect
+      float ratio = 1f / level;
       //croppedWidth and croppedHeight are the pixels cropped away, not pixels after cropped
       int croppedWidth = rect.width() - Math.round((float) rect.width() * ratio);
       int croppedHeight = rect.height() - Math.round((float) rect.height() * ratio);
@@ -654,7 +659,7 @@ public class Camera2ApiManager extends CameraDevice.StateCallback {
   public void onError(@NonNull CameraDevice cameraDevice, int i) {
     cameraDevice.close();
     semaphore.release();
-    cameraCallbacks.onCameraError("Open camera failed: " + i);
+    if (cameraCallbacks != null) cameraCallbacks.onCameraError("Open camera failed: " + i);
     Log.e(TAG, "Open failed");
   }
 

@@ -178,7 +178,7 @@ public class Camera1ApiManager implements Camera.PreviewCallback, Camera.FaceDet
       }
       Log.i(TAG, width + "X" + height);
     } catch (IOException e) {
-      cameraCallbacks.onCameraError(e.getMessage());
+      if (cameraCallbacks != null) cameraCallbacks.onCameraError(e.getMessage());
       Log.e(TAG, "Error", e);
     }
   }
