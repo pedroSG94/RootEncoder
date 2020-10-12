@@ -22,6 +22,7 @@ import com.pedro.encoder.audio.GetAacData;
 import com.pedro.encoder.input.audio.CustomAudioEffect;
 import com.pedro.encoder.input.audio.GetMicrophoneData;
 import com.pedro.encoder.input.audio.MicrophoneManager;
+import com.pedro.encoder.input.audio.MicrophoneManagerManual;
 import com.pedro.encoder.utils.CodecUtil;
 import com.pedro.encoder.video.FormatVideoEncoder;
 import com.pedro.encoder.video.GetVideoData;
@@ -54,7 +55,7 @@ public abstract class DisplayBase implements GetAacData, GetVideoData, GetMicrop
   private MediaProjection mediaProjection;
   private MediaProjectionManager mediaProjectionManager;
   protected VideoEncoder videoEncoder;
-  private MicrophoneManager microphoneManager;
+  private MicrophoneManagerManual microphoneManager;
   private AudioEncoder audioEncoder;
   private boolean streaming = false;
   protected SurfaceView surfaceView;
@@ -77,8 +78,10 @@ public abstract class DisplayBase implements GetAacData, GetVideoData, GetMicrop
         ((MediaProjectionManager) context.getSystemService(MEDIA_PROJECTION_SERVICE));
     this.surfaceView = null;
     videoEncoder = new VideoEncoder(this);
-    microphoneManager = new MicrophoneManager(this);
     audioEncoder = new AudioEncoder(this);
+    //Necessary use same thread to read input buffer and encode it with internal audio or audio is choppy.
+    microphoneManager = new MicrophoneManagerManual();
+    audioEncoder.setGetFrame(microphoneManager.getGetFrame());
     recordController = new RecordController();
   }
 

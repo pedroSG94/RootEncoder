@@ -123,15 +123,14 @@ public class GlUtil {
   public static void checkGlError(String op) {
     int error = GLES20.glGetError();
     if (error != GLES20.GL_NO_ERROR) {
-      Log.e(TAG, op + ": glError " + error);
-      throw new RuntimeException(op + ": glError " + error);
+      throw new RuntimeException(op + ". GL error: " + error);
     }
   }
 
   public static void checkEglError(String msg) {
     int error = EGL14.eglGetError();
     if (error != EGL14.EGL_SUCCESS) {
-      throw new RuntimeException(msg + ": EGL error: 0x" + Integer.toHexString(error));
+      throw new RuntimeException(msg + ". EGL error: " + error);
     }
   }
 

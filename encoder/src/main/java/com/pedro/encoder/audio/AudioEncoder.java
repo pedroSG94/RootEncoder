@@ -7,6 +7,7 @@ import android.util.Log;
 import androidx.annotation.NonNull;
 import com.pedro.encoder.BaseEncoder;
 import com.pedro.encoder.Frame;
+import com.pedro.encoder.GetFrame;
 import com.pedro.encoder.input.audio.GetMicrophoneData;
 import com.pedro.encoder.utils.CodecUtil;
 import java.io.IOException;
@@ -29,6 +30,7 @@ public class AudioEncoder extends BaseEncoder implements GetMicrophoneData {
   private int sampleRate = 32000; //in hz
   private int maxInputSize = 0;
   private boolean isStereo = true;
+  private GetFrame getFrame;
 
   public AudioEncoder(GetAacData getAacData) {
     this.getAacData = getAacData;
@@ -70,6 +72,10 @@ public class AudioEncoder extends BaseEncoder implements GetMicrophoneData {
     }
   }
 
+  public void setGetFrame(GetFrame getFrame) {
+    this.getFrame = getFrame;
+  }
+
   /**
    * Prepare encoder with default parameters
    */
@@ -98,7 +104,7 @@ public class AudioEncoder extends BaseEncoder implements GetMicrophoneData {
 
   @Override
   protected Frame getInputFrame() throws InterruptedException {
-    return queue.poll(100, TimeUnit.MILLISECONDS);
+    return getFrame != null ? getFrame.getInputFrame() : queue.poll(100, TimeUnit.MILLISECONDS);
   }
 
   @Override
