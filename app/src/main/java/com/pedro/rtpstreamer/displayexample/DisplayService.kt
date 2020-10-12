@@ -163,7 +163,7 @@ class DisplayService : Service() {
 
   private fun startStreamRtp(endpoint: String) {
     if (!displayBase!!.isStreaming) {
-      if (displayBase!!.prepareVideo() && displayBase!!.prepareInternalAudio()) {
+      if (displayBase!!.prepareVideo() && displayBase!!.prepareAudio()) {
         displayBase!!.startStream(endpoint)
       }
     } else {
