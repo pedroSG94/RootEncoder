@@ -29,7 +29,7 @@ public class SurfaceManager {
    * Creates an EGL context and an EGL surface.
    */
   public SurfaceManager(Surface surface, SurfaceManager manager) {
-    eglSetup(1, 1, surface, manager.eglContext);
+    eglSetup(2, 2, surface, manager.eglContext);
   }
 
   public SurfaceManager(int width, int height, SurfaceManager manager) {
@@ -40,18 +40,18 @@ public class SurfaceManager {
    * Creates an EGL context and an EGL surface.
    */
   public SurfaceManager(Surface surface, EGLContext eglContext) {
-    eglSetup(1, 1, surface, eglContext);
+    eglSetup(2, 2, surface, eglContext);
   }
 
   /**
    * Creates an EGL context and an EGL surface.
    */
   public SurfaceManager(Surface surface) {
-    eglSetup(1, 1, surface, null);
+    eglSetup(2, 2, surface, null);
   }
 
   public SurfaceManager() {
-    eglSetup(1, 1, null, null);
+    eglSetup(2, 2, null, null);
   }
 
   public void makeCurrent() {

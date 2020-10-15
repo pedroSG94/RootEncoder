@@ -217,7 +217,7 @@ public class RtspClient {
             streaming = true;
             reTries = numRetry;
             connectCheckerRtsp.onConnectionSuccessRtsp();
-          } catch (IOException | NullPointerException e) {
+          } catch (IOException | NullPointerException | IllegalStateException e) {
             Log.e(TAG, "connection error", e);
             connectCheckerRtsp.onConnectionFailedRtsp("Error configure stream, " + e.getMessage());
             streaming = false;

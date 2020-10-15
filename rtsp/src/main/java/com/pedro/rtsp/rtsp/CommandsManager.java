@@ -393,7 +393,8 @@ public class CommandsManager {
           if (matcher.find()) {
             sessionId = matcher.group(1);
           }
-          sessionId = line.split(";")[0].split(":")[1].trim();
+          String[] arrSplit = line.split(";")[0].split(":");
+          if (arrSplit.length > 1) sessionId = arrSplit[1].trim();
         }
         if (line.contains("server_port")) {
           Pattern rtspPattern = Pattern.compile("server_port=([0-9]+)-([0-9]+)");
