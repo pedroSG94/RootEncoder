@@ -23,6 +23,7 @@ import com.pedro.encoder.input.audio.CustomAudioEffect;
 import com.pedro.encoder.input.audio.GetMicrophoneData;
 import com.pedro.encoder.input.audio.MicrophoneManager;
 import com.pedro.encoder.input.audio.MicrophoneManagerManual;
+import com.pedro.encoder.input.audio.MicrophoneMode;
 import com.pedro.encoder.utils.CodecUtil;
 import com.pedro.encoder.video.FormatVideoEncoder;
 import com.pedro.encoder.video.GetVideoData;
@@ -55,7 +56,7 @@ public abstract class DisplayBase implements GetAacData, GetVideoData, GetMicrop
   private MediaProjection mediaProjection;
   private MediaProjectionManager mediaProjectionManager;
   protected VideoEncoder videoEncoder;
-  private MicrophoneManagerManual microphoneManager;
+  private MicrophoneManager microphoneManager;
   private AudioEncoder audioEncoder;
   private boolean streaming = false;
   protected SurfaceView surfaceView;
@@ -80,9 +81,29 @@ public abstract class DisplayBase implements GetAacData, GetVideoData, GetMicrop
     videoEncoder = new VideoEncoder(this);
     audioEncoder = new AudioEncoder(this);
     //Necessary use same thread to read input buffer and encode it with internal audio or audio is choppy.
-    microphoneManager = new MicrophoneManagerManual();
-    audioEncoder.setGetFrame(microphoneManager.getGetFrame());
+    setMicrophoneMode(MicrophoneMode.SYNC);
     recordController = new RecordController();
+  }
+
+  /**
+   * Must be called before prepareAudio.
+   *
+   * @param microphoneMode mode to work accord to audioEncoder. By default SYNC:
+   * SYNC using same thread. This mode could solve choppy audio or audio frame discarded.
+   * ASYNC using other thread.
+   */
+  public void setMicrophoneMode(MicrophoneMode microphoneMode) {
+    switch (microphoneMode) {
+      case SYNC:
+        microphoneManager = new MicrophoneManagerManual();
+        audioEncoder = new AudioEncoder(this);
+        audioEncoder.setGetFrame(((MicrophoneManagerManual) microphoneManager).getGetFrame());
+        break;
+      case ASYNC:
+        microphoneManager = new MicrophoneManager(this);
+        audioEncoder = new AudioEncoder(this);
+        break;
+    }
   }
 
   /**

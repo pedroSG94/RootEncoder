@@ -13,6 +13,8 @@ import com.pedro.encoder.audio.GetAacData;
 import com.pedro.encoder.input.audio.CustomAudioEffect;
 import com.pedro.encoder.input.audio.GetMicrophoneData;
 import com.pedro.encoder.input.audio.MicrophoneManager;
+import com.pedro.encoder.input.audio.MicrophoneManagerManual;
+import com.pedro.encoder.input.audio.MicrophoneMode;
 import com.pedro.rtplibrary.util.RecordController;
 
 import java.io.FileDescriptor;
@@ -32,9 +34,29 @@ public abstract class OnlyAudioBase implements GetAacData, GetMicrophoneData {
   private boolean streaming = false;
 
   public OnlyAudioBase() {
-    microphoneManager = new MicrophoneManager(this);
-    audioEncoder = new AudioEncoder(this);
+    setMicrophoneMode(MicrophoneMode.ASYNC);
     recordController = new RecordController();
+  }
+
+  /**
+   * Must be called before prepareAudio.
+   *
+   * @param microphoneMode mode to work accord to audioEncoder. By default ASYNC:
+   * SYNC using same thread. This mode could solve choppy audio or audio frame discarded.
+   * ASYNC using other thread.
+   */
+  public void setMicrophoneMode(MicrophoneMode microphoneMode) {
+    switch (microphoneMode) {
+      case SYNC:
+        microphoneManager = new MicrophoneManagerManual();
+        audioEncoder = new AudioEncoder(this);
+        audioEncoder.setGetFrame(((MicrophoneManagerManual) microphoneManager).getGetFrame());
+        break;
+      case ASYNC:
+        microphoneManager = new MicrophoneManager(this);
+        audioEncoder = new AudioEncoder(this);
+        break;
+    }
   }
 
   /**
@@ -115,7 +137,8 @@ public abstract class OnlyAudioBase implements GetAacData, GetMicrophoneData {
    * @throws IOException If initialized before a stream.
    */
   @RequiresApi(api = Build.VERSION_CODES.O)
-  public void startRecord(@NonNull final FileDescriptor fd, @Nullable RecordController.Listener listener) throws IOException {
+  public void startRecord(@NonNull final FileDescriptor fd,
+      @Nullable RecordController.Listener listener) throws IOException {
     recordController.startRecord(fd, listener);
     if (!streaming) {
       startEncoders();
@@ -123,7 +146,7 @@ public abstract class OnlyAudioBase implements GetAacData, GetMicrophoneData {
   }
 
   @RequiresApi(api = Build.VERSION_CODES.O)
-  public void startRecord(@NonNull final FileDescriptor fd) throws IOException{
+  public void startRecord(@NonNull final FileDescriptor fd) throws IOException {
     startRecord(fd, null);
   }
 

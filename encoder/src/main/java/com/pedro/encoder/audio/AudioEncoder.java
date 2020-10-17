@@ -104,7 +104,7 @@ public class AudioEncoder extends BaseEncoder implements GetMicrophoneData {
 
   @Override
   protected Frame getInputFrame() throws InterruptedException {
-    return getFrame != null ? getFrame.getInputFrame() : queue.poll(100, TimeUnit.MILLISECONDS);
+    return getFrame != null ? getFrame.getInputFrame() : queue.take();
   }
 
   @Override

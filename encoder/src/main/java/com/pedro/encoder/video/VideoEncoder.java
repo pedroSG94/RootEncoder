@@ -383,7 +383,7 @@ public class VideoEncoder extends BaseEncoder implements GetCameraData {
 
   @Override
   protected Frame getInputFrame() throws InterruptedException {
-    Frame frame = queue.poll(100, TimeUnit.MILLISECONDS);
+    Frame frame = queue.take();
     if (frame == null) return null;
     if (fpsLimiter.limitFPS()) return getInputFrame();
     byte[] buffer = frame.getBuffer();

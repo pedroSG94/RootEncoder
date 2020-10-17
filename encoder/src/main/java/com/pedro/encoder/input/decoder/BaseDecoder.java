@@ -139,7 +139,12 @@ public abstract class BaseDecoder {
     running = false;
     seekTime = 0;
     if (handlerThread != null) {
-      if (handlerThread.getLooper() != null) handlerThread.getLooper().quit();
+      if (handlerThread.getLooper() != null) {
+        if (handlerThread.getLooper().getThread() != null) {
+          handlerThread.getLooper().getThread().interrupt();
+        }
+        handlerThread.getLooper().quit();
+      }
       handlerThread.quit();
       if (codec != null) codec.flush();
       //wait for thread to die for 500ms.
