@@ -61,40 +61,37 @@ public class VideoDecoder extends BaseDecoder {
     ByteBuffer[] inputBuffers = codec.getInputBuffers();
     startMs = System.currentTimeMillis();
     while (running) {
-      synchronized (lock) {
-        int inIndex = codec.dequeueInputBuffer(10000);
-        if (inIndex >= 0) {
-          ByteBuffer buffer = inputBuffers[inIndex];
-          int sampleSize = extractor.readSampleData(buffer, 0);
-          if (sampleSize < 0) {
-            codec.queueInputBuffer(inIndex, 0, 0, 0, MediaCodec.BUFFER_FLAG_END_OF_STREAM);
-          } else {
-            codec.queueInputBuffer(inIndex, 0, sampleSize, extractor.getSampleTime(), 0);
-            extractor.advance();
-          }
-        }
-        int outIndex = codec.dequeueOutputBuffer(bufferInfo, 10000);
-        if (outIndex >= 0) {
-          while (extractor.getSampleTime() / 1000
-              > System.currentTimeMillis() - startMs + seekTime) {
-            try {
-              Thread.sleep(10);
-            } catch (InterruptedException e) {
-              Thread.currentThread().interrupt();
-              return;
-            }
-          }
-          codec.releaseOutputBuffer(outIndex, bufferInfo.size != 0);
+      int inIndex = codec.dequeueInputBuffer(10000);
+      if (inIndex >= 0) {
+        ByteBuffer buffer = inputBuffers[inIndex];
+        int sampleSize = extractor.readSampleData(buffer, 0);
+        if (sampleSize < 0) {
+          codec.queueInputBuffer(inIndex, 0, 0, 0, MediaCodec.BUFFER_FLAG_END_OF_STREAM);
+        } else {
+          codec.queueInputBuffer(inIndex, 0, sampleSize, extractor.getSampleTime(), 0);
+          extractor.advance();
         }
       }
-      if ((bufferInfo.flags & MediaCodec.BUFFER_FLAG_END_OF_STREAM) != 0) {
-        seekTime = 0;
-        Log.i(TAG, "end of file out");
-        if (loopMode) {
-          loopFileInterface.onReset(true);
-        } else {
-          videoDecoderInterface.onVideoDecoderFinished();
+      int outIndex = codec.dequeueOutputBuffer(bufferInfo, 10000);
+      if (outIndex >= 0) {
+        while (extractor.getSampleTime() / 1000 > System.currentTimeMillis() - startMs + seekTime) {
+          try {
+            Thread.sleep(10);
+          } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            return;
+          }
         }
+        codec.releaseOutputBuffer(outIndex, bufferInfo.size != 0);
+      }
+    }
+    if ((bufferInfo.flags & MediaCodec.BUFFER_FLAG_END_OF_STREAM) != 0) {
+      seekTime = 0;
+      Log.i(TAG, "end of file out");
+      if (loopMode) {
+        loopFileInterface.onReset(true);
+      } else {
+        videoDecoderInterface.onVideoDecoderFinished();
       }
     }
   }

@@ -22,7 +22,6 @@ public abstract class BaseDecoder {
   protected static final String TAG = "BaseDecoder";
   protected LoopFileInterface loopFileInterface;
   protected MediaCodec.BufferInfo bufferInfo = new MediaCodec.BufferInfo();
-  protected final Object lock = new Object();
   protected MediaExtractor extractor;
   protected MediaCodec codec;
   protected volatile boolean running = false;
@@ -85,37 +84,33 @@ public abstract class BaseDecoder {
   }
 
   public void start() {
-    synchronized (lock) {
-      running = true;
-      handlerThread = new HandlerThread(TAG);
-      handlerThread.start();
-      Handler handler = new Handler(handlerThread.getLooper());
-      codec.start();
-      handler.post(new Runnable() {
-        @Override
-        public void run() {
-          try {
-            decode();
-          } catch (IllegalStateException e) {
-            Log.i(TAG, "Decoding error", e);
-          } catch (NullPointerException e) {
-            Log.i(TAG, "Decoder maybe was stopped");
-            Log.i(TAG, "Decoding error", e);
-          }
+    running = true;
+    handlerThread = new HandlerThread(TAG);
+    handlerThread.start();
+    Handler handler = new Handler(handlerThread.getLooper());
+    codec.start();
+    handler.post(new Runnable() {
+      @Override
+      public void run() {
+        try {
+          decode();
+        } catch (IllegalStateException e) {
+          Log.i(TAG, "Decoding error", e);
+        } catch (NullPointerException e) {
+          Log.i(TAG, "Decoder maybe was stopped");
+          Log.i(TAG, "Decoding error", e);
         }
-      });
-    }
+      }
+    });
   }
 
   public void stop() {
     running = false;
-    synchronized (lock) {
-      stopDecoder();
-      if (extractor != null) {
-        extractor.release();
-        extractor = null;
-        mime = "";
-      }
+    stopDecoder();
+    if (extractor != null) {
+      extractor.release();
+      extractor = null;
+      mime = "";
     }
   }
 
@@ -144,10 +139,16 @@ public abstract class BaseDecoder {
     running = false;
     seekTime = 0;
     if (handlerThread != null) {
-      if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
-        handlerThread.quitSafely();
-      } else {
-        handlerThread.quit();
+      if (handlerThread.getLooper() != null) handlerThread.getLooper().quit();
+      handlerThread.quit();
+      if (codec != null) codec.flush();
+      //wait for thread to die for 500ms.
+      long time = System.currentTimeMillis();
+      while (handlerThread.isAlive()) {
+        if (System.currentTimeMillis() - time > 500) {
+          Log.e(TAG, "wait to die failed");
+          break;
+        }
       }
       handlerThread = null;
     }

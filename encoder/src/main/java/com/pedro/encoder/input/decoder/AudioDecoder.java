@@ -81,69 +81,67 @@ public class AudioDecoder extends BaseDecoder {
     ByteBuffer[] outputBuffers = codec.getOutputBuffers();
     startMs = System.currentTimeMillis();
     while (running) {
-      synchronized (lock) {
-        int inIndex = codec.dequeueInputBuffer(10000);
-        if (inIndex >= 0) {
-          ByteBuffer buffer = inputBuffers[inIndex];
-          int sampleSize = extractor.readSampleData(buffer, 0);
-          if (sampleSize < 0) {
-            codec.queueInputBuffer(inIndex, 0, 0, 0, MediaCodec.BUFFER_FLAG_END_OF_STREAM);
-          } else {
-            codec.queueInputBuffer(inIndex, 0, sampleSize, extractor.getSampleTime(), 0);
-            extractor.advance();
-          }
-
-          int outIndex = codec.dequeueOutputBuffer(bufferInfo, 10000);
-          switch (outIndex) {
-            case MediaCodec.INFO_OUTPUT_BUFFERS_CHANGED:
-              outputBuffers = codec.getOutputBuffers();
-              break;
-            case MediaCodec.INFO_OUTPUT_FORMAT_CHANGED:
-            case MediaCodec.INFO_TRY_AGAIN_LATER:
-              break;
-            default:
-              //needed for fix decode speed
-              while (extractor.getSampleTime() / 1000
-                  > System.currentTimeMillis() - startMs + seekTime) {
-                try {
-                  Thread.sleep(10);
-                } catch (InterruptedException e) {
-                  Thread.currentThread().interrupt();
-                  return;
-                }
-              }
-              ByteBuffer outBuffer = outputBuffers[outIndex];
-              //This buffer is PCM data
-              if (muted) {
-                outBuffer.get(pcmBufferMuted, 0,
-                    Math.min(outBuffer.remaining(), pcmBufferMuted.length));
-                getMicrophoneData.inputPCMData(new Frame(pcmBufferMuted, 0, pcmBufferMuted.length));
-              } else {
-                if (pcmBuffer.length < outBuffer.remaining()) {
-                  pcmBuffer = new byte[outBuffer.remaining()];
-                }
-                outBuffer.get(pcmBuffer, 0, Math.min(outBuffer.remaining(), pcmBuffer.length));
-                if (channels > 2) { //downgrade to stereo
-                  byte[] bufferStereo = PCMUtil.pcmToStereo(pcmBuffer, channels);
-                  getMicrophoneData.inputPCMData(new Frame(bufferStereo, 0, bufferStereo.length));
-                } else {
-                  getMicrophoneData.inputPCMData(new Frame(pcmBuffer, 0, pcmBuffer.length));
-                }
-              }
-              codec.releaseOutputBuffer(outIndex, false);
-              break;
-          }
+      int inIndex = codec.dequeueInputBuffer(10000);
+      if (inIndex >= 0) {
+        ByteBuffer buffer = inputBuffers[inIndex];
+        int sampleSize = extractor.readSampleData(buffer, 0);
+        if (sampleSize < 0) {
+          codec.queueInputBuffer(inIndex, 0, 0, 0, MediaCodec.BUFFER_FLAG_END_OF_STREAM);
+        } else {
+          codec.queueInputBuffer(inIndex, 0, sampleSize, extractor.getSampleTime(), 0);
+          extractor.advance();
         }
 
-        // All decoded frames have been rendered, we can stop playing now
-        if ((bufferInfo.flags & MediaCodec.BUFFER_FLAG_END_OF_STREAM) != 0) {
-          seekTime = 0;
-          Log.i(TAG, "end of file out");
-          if (loopMode) {
-            loopFileInterface.onReset(false);
-          } else {
-            audioDecoderInterface.onAudioDecoderFinished();
-          }
+        int outIndex = codec.dequeueOutputBuffer(bufferInfo, 10000);
+        switch (outIndex) {
+          case MediaCodec.INFO_OUTPUT_BUFFERS_CHANGED:
+            outputBuffers = codec.getOutputBuffers();
+            break;
+          case MediaCodec.INFO_OUTPUT_FORMAT_CHANGED:
+          case MediaCodec.INFO_TRY_AGAIN_LATER:
+            break;
+          default:
+            //needed for fix decode speed
+            while (extractor.getSampleTime() / 1000
+                > System.currentTimeMillis() - startMs + seekTime) {
+              try {
+                Thread.sleep(10);
+              } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                return;
+              }
+            }
+            ByteBuffer outBuffer = outputBuffers[outIndex];
+            //This buffer is PCM data
+            if (muted) {
+              outBuffer.get(pcmBufferMuted, 0,
+                  Math.min(outBuffer.remaining(), pcmBufferMuted.length));
+              getMicrophoneData.inputPCMData(new Frame(pcmBufferMuted, 0, pcmBufferMuted.length));
+            } else {
+              if (pcmBuffer.length < outBuffer.remaining()) {
+                pcmBuffer = new byte[outBuffer.remaining()];
+              }
+              outBuffer.get(pcmBuffer, 0, Math.min(outBuffer.remaining(), pcmBuffer.length));
+              if (channels > 2) { //downgrade to stereo
+                byte[] bufferStereo = PCMUtil.pcmToStereo(pcmBuffer, channels);
+                getMicrophoneData.inputPCMData(new Frame(bufferStereo, 0, bufferStereo.length));
+              } else {
+                getMicrophoneData.inputPCMData(new Frame(pcmBuffer, 0, pcmBuffer.length));
+              }
+            }
+            codec.releaseOutputBuffer(outIndex, false);
+            break;
+        }
+      }
+
+      // All decoded frames have been rendered, we can stop playing now
+      if ((bufferInfo.flags & MediaCodec.BUFFER_FLAG_END_OF_STREAM) != 0) {
+        seekTime = 0;
+        Log.i(TAG, "end of file out");
+        if (loopMode) {
+          loopFileInterface.onReset(false);
+        } else {
+          audioDecoderInterface.onAudioDecoderFinished();
         }
       }
     }

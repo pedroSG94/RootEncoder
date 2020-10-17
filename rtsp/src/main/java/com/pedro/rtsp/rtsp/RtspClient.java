@@ -43,6 +43,7 @@ public class RtspClient {
   private RtspSender rtspSender;
   private String url;
   private CommandsManager commandsManager;
+  private boolean doingRetry;
   private int numRetry;
   private int reTries;
   private Handler handler;
@@ -73,7 +74,7 @@ public class RtspClient {
   }
 
   public boolean shouldRetry(String reason) {
-    boolean validReason = !reason.contains("Endpoint malformed");
+    boolean validReason = doingRetry && !reason.contains("Endpoint malformed");
     return validReason && reTries > 0;
   }
 
@@ -114,6 +115,11 @@ public class RtspClient {
   }
 
   public void connect() {
+    connect(false);
+  }
+
+  public void connect(boolean isRetry) {
+    if (!isRetry) doingRetry = true;
     if (url == null) {
       streaming = false;
       connectCheckerRtsp.onConnectionFailedRtsp(
@@ -265,6 +271,7 @@ public class RtspClient {
     thread.start();
     if (clear) {
       reTries = numRetry;
+      doingRetry = false;
       connectCheckerRtsp.onDisconnectRtsp();
     }
   }
@@ -285,7 +292,7 @@ public class RtspClient {
     runnable = new Runnable() {
       @Override
       public void run() {
-        connect();
+        connect(true);
       }
     };
     handler.postDelayed(runnable, delay);

@@ -71,6 +71,7 @@ public class SrsFlvMuxer {
   private byte profileIop = ProfileIop.BASELINE;
   private String url;
   //re connection
+  private boolean doingRetry;
   private int numRetry;
   private int reTries;
   private Handler handler;
@@ -201,6 +202,7 @@ public class SrsFlvMuxer {
 
     if (connectChecker != null) {
       reTries = numRetry;
+      doingRetry = false;
       connectChecker.onDisconnectRtmp();
     }
 
@@ -218,7 +220,7 @@ public class SrsFlvMuxer {
   }
 
   public boolean shouldRetry(String reason) {
-    boolean validReason = !reason.contains("Endpoint malformed");
+    boolean validReason = doingRetry && !reason.contains("Endpoint malformed");
     return validReason && reTries > 0;
   }
 
@@ -228,7 +230,7 @@ public class SrsFlvMuxer {
     runnable = new Runnable() {
       @Override
       public void run() {
-        start(url);
+        start(url, true);
       }
     };
     handler.postDelayed(runnable, delay);
@@ -266,10 +268,15 @@ public class SrsFlvMuxer {
     }
   }
 
+  public void start(final String rtmpUrl) {
+    start(rtmpUrl, false);
+  }
+
   /**
    * start to the remote SRS for remux.
    */
-  public void start(final String rtmpUrl) {
+  public void start(final String rtmpUrl, boolean isRetry) {
+    if (!isRetry) doingRetry = true;
     startTs = System.nanoTime() / 1000;
     worker = new Thread(new Runnable() {
       @Override
