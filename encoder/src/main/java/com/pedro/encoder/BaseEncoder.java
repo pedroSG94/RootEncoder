@@ -92,13 +92,9 @@ public abstract class BaseEncoder implements EncoderCallback {
       handlerThread.quit();
       if (codec != null) codec.flush();
       //wait for thread to die for 500ms.
-      long time = System.currentTimeMillis();
-      while (handlerThread.isAlive()) {
-        if (System.currentTimeMillis() - time > 500) {
-          Log.e(TAG, "wait to die failed");
-          break;
-        }
-      }
+      try {
+        handlerThread.getLooper().getThread().join(500);
+      } catch (Exception ignored) { }
     }
     queue.clear();
     queue = new ArrayBlockingQueue<>(80);
