@@ -140,6 +140,11 @@ public class RtmpDisplay extends DisplayBase {
   }
 
   @Override
+  public boolean hasCongestion() {
+    return srsFlvMuxer.hasCongestion();
+  }
+
+  @Override
   protected void getAacDataRtp(ByteBuffer aacBuffer, MediaCodec.BufferInfo info) {
     srsFlvMuxer.sendAudio(aacBuffer, info);
   }

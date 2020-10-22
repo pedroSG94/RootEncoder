@@ -163,6 +163,11 @@ public class RtmpFromFile extends FromFileBase {
   }
 
   @Override
+  public boolean hasCongestion() {
+    return srsFlvMuxer.hasCongestion();
+  }
+
+  @Override
   protected void onSpsPpsVpsRtp(ByteBuffer sps, ByteBuffer pps, ByteBuffer vps) {
     srsFlvMuxer.setSpsPPs(sps, pps);
   }

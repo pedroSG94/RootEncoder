@@ -164,6 +164,11 @@ public class RtmpCamera1 extends Camera1Base {
   }
 
   @Override
+  public boolean hasCongestion() {
+    return srsFlvMuxer.hasCongestion();
+  }
+
+  @Override
   protected void getAacDataRtp(ByteBuffer aacBuffer, MediaCodec.BufferInfo info) {
     srsFlvMuxer.sendAudio(aacBuffer, info);
   }

@@ -14,6 +14,8 @@ public class BitrateAdapter {
   private int averageBitrate;
   private int cont;
   private Listener listener;
+  private float decreaseRange = 0.8f; //20%
+  private float increaseRange = 1.2f; //20%
 
   public BitrateAdapter(Listener listener) {
     this.listener = listener;
@@ -38,13 +40,40 @@ public class BitrateAdapter {
     }
   }
 
+  /**
+   * Adapt bitrate on fly based on queue state.
+   */
+  public void adaptBitrate(long actualBitrate, boolean hasCongestion) {
+    averageBitrate += actualBitrate;
+    averageBitrate /= 2;
+    cont++;
+    if (cont >= 5) {
+      if (listener != null && maxBitrate != 0) {
+        listener.onBitrateAdapted(getBitrateAdapted(averageBitrate, hasCongestion));
+        reset();
+      }
+    }
+  }
+
   private int getBitrateAdapted(int bitrate) {
     if (bitrate >= maxBitrate) { //You have high speed and max bitrate. Keep max speed
       oldBitrate = maxBitrate;
     } else if (bitrate <= oldBitrate * 0.9f) { //You have low speed and bitrate too high. Reduce bitrate by 10%.
-      oldBitrate = (int) (bitrate * 0.9);
+      oldBitrate = (int) (bitrate * decreaseRange);
     } else { //You have high speed and bitrate too low. Increase bitrate by 10%.
-      oldBitrate = (int) (bitrate * 1.1);
+      oldBitrate = (int) (bitrate * increaseRange);
+      if (oldBitrate > maxBitrate) oldBitrate = maxBitrate;
+    }
+    return oldBitrate;
+  }
+
+  private int getBitrateAdapted(int bitrate, boolean hasCongestion) {
+    if (bitrate >= maxBitrate) { //You have high speed and max bitrate. Keep max speed
+      oldBitrate = maxBitrate;
+    } else if (hasCongestion) { //You have low speed and bitrate too high. Reduce bitrate by 10%.
+      oldBitrate = (int) (bitrate * decreaseRange);
+    } else { //You have high speed and bitrate too low. Increase bitrate by 10%.
+      oldBitrate = (int) (bitrate * increaseRange);
       if (oldBitrate > maxBitrate) oldBitrate = maxBitrate;
     }
     return oldBitrate;
@@ -53,5 +82,35 @@ public class BitrateAdapter {
   public void reset() {
     averageBitrate = 0;
     cont = 0;
+  }
+
+  public float getDecreaseRange() {
+    return decreaseRange;
+  }
+
+  /**
+   * @param decreaseRange in percent. How many bitrate will be reduced based on oldBitrate.
+   * valid values:
+   * 0 to 100 not included
+   */
+  public void setDecreaseRange(float decreaseRange) {
+    if (decreaseRange > 0f && decreaseRange < 100f) {
+      this.decreaseRange = 1f - (decreaseRange / 100f);
+    }
+  }
+
+  public float getIncreaseRange() {
+    return increaseRange;
+  }
+
+  /**
+   * @param increaseRange in percent. How many bitrate will be increment based on oldBitrate.
+   * valid values:
+   * 0 to 100
+   */
+  public void setIncreaseRange(float increaseRange) {
+    if (increaseRange > 0f && increaseRange < 100f) {
+      this.increaseRange = 1f + (increaseRange / 100f);
+    }
   }
 }

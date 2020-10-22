@@ -166,6 +166,13 @@ public class RtspSender implements VideoPacketCallback, AudioPacketCallback {
     resetDroppedVideoFrames();
   }
 
+  public boolean hasCongestion() {
+    float size = rtpFrameBlockingQueue.size();
+    float remaining = rtpFrameBlockingQueue.remainingCapacity();
+    float capacity = size + remaining;
+    return size >= capacity * 0.2;  //more than 20% queue used. You could have congestion
+  }
+
   public void resizeCache(int newSize) {
     if (newSize < rtpFrameBlockingQueue.size() - rtpFrameBlockingQueue.remainingCapacity()) {
       throw new RuntimeException("Can't fit current cache inside new cache size");

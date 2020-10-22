@@ -287,6 +287,10 @@ public class RtspClient {
     rtspSender.sendAudioFrame(aacBuffer, info);
   }
 
+  public boolean hasCongestion() {
+    return rtspSender.hasCongestion();
+  }
+
   public void reConnect(long delay) {
     reTries--;
     disconnect(false);
