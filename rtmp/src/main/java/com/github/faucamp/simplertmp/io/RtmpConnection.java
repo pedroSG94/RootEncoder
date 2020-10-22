@@ -167,6 +167,7 @@ public class RtmpConnection implements RtmpPublisher {
         socket = CreateSSLSocket.createSSlSocket(host, port);
         if (socket == null) throw new IOException("Socket creation failed");
       }
+      socket.setSendBufferSize(1);
       inputStream = new BufferedInputStream(socket.getInputStream());
       outputStream = new BufferedOutputStream(socket.getOutputStream());
       Log.d(TAG, "connect(): socket connection established, doing handhake...");
@@ -557,7 +558,7 @@ public class RtmpConnection implements RtmpPublisher {
                   + acknowledgementWindowsize);
               sendRtmpPacket(new WindowAckSize(acknowledgementWindowsize, chunkStreamInfo));
               // Set socket option. This line could produce bps calculation problems.
-              socket.setSendBufferSize(acknowledgementWindowsize);
+              //socket.setSendBufferSize(acknowledgementWindowsize);
               break;
             case COMMAND_AMF0:
               handleRxInvoke((Command) rtmpPacket);

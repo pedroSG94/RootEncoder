@@ -108,6 +108,14 @@ public class VideoEncoder extends BaseEncoder implements GetCameraData {
       videoFormat.setInteger(MediaFormat.KEY_BIT_RATE, bitRate);
       videoFormat.setInteger(MediaFormat.KEY_FRAME_RATE, fps);
       videoFormat.setInteger(MediaFormat.KEY_I_FRAME_INTERVAL, iFrameInterval);
+      //Set CBR mode if supported by encoder.
+      if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP && isCBRModeSupported(encoder)) {
+        Log.i(TAG, "set bitrate mode CBR");
+        videoFormat.setInteger(MediaFormat.KEY_BITRATE_MODE,
+            MediaCodecInfo.EncoderCapabilities.BITRATE_MODE_CBR);
+      } else {
+        Log.i(TAG, "bitrate mode CBR not supported using default mode");
+      }
       // Rotation by encoder.
       // Removed because this is ignored by most encoders, producing different results on different devices
       //  videoFormat.setInteger(MediaFormat.KEY_ROTATION, rotation);
@@ -133,6 +141,16 @@ public class VideoEncoder extends BaseEncoder implements GetCameraData {
       Log.e(TAG, "Create VideoEncoder failed.", e);
       return false;
     }
+  }
+
+  @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
+  private boolean isCBRModeSupported(MediaCodecInfo mediaCodecInfo) {
+    MediaCodecInfo.CodecCapabilities codecCapabilities =
+        mediaCodecInfo.getCapabilitiesForType(type);
+    MediaCodecInfo.EncoderCapabilities encoderCapabilities =
+        codecCapabilities.getEncoderCapabilities();
+    return encoderCapabilities.isBitrateModeSupported(
+        MediaCodecInfo.EncoderCapabilities.BITRATE_MODE_CBR);
   }
 
   @Override

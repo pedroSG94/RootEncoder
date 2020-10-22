@@ -90,7 +90,11 @@ public abstract class BaseEncoder implements EncoderCallback {
         handlerThread.getLooper().quit();
       }
       handlerThread.quit();
-      if (codec != null) codec.flush();
+      if (codec != null) {
+        try {
+          codec.flush();
+        } catch (IllegalStateException ignored) { }
+      }
       //wait for thread to die for 500ms.
       try {
         handlerThread.getLooper().getThread().join(500);

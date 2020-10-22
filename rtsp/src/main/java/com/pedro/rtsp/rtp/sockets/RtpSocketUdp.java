@@ -22,8 +22,10 @@ public class RtpSocketUdp extends BaseRtpSocket {
   public RtpSocketUdp(int videoSourcePort, int audioSourcePort) {
     try {
       multicastSocketVideo = new MulticastSocket(videoSourcePort);
+      multicastSocketVideo.setSendBufferSize(1);
       multicastSocketVideo.setTimeToLive(64);
       multicastSocketAudio = new MulticastSocket(audioSourcePort);
+      multicastSocketAudio.setSendBufferSize(1);
       multicastSocketAudio.setTimeToLive(64);
     } catch (IOException e) {
       Log.e(TAG, "Error", e);
