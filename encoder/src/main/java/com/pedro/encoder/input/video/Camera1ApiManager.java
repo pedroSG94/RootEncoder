@@ -409,20 +409,20 @@ public class Camera1ApiManager implements Camera.PreviewCallback, Camera.FaceDet
   }
 
   public List<int[]> getSupportedFps() {
-      List<int[]> supportedFps;
-      if (camera != null) {
-        supportedFps = camera.getParameters().getSupportedPreviewFpsRange();
-      } else {
-        camera = Camera.open(cameraSelect);
-        supportedFps = camera.getParameters().getSupportedPreviewFpsRange();
-        camera.release();
-        camera = null;
-      }
-      for (int[] range: supportedFps) {
-        range[0] /= 1000;
-        range[1] /= 1000;
-      }
-      return supportedFps;
+    List<int[]> supportedFps;
+    if (camera != null) {
+      supportedFps = camera.getParameters().getSupportedPreviewFpsRange();
+    } else {
+      camera = Camera.open(cameraSelect);
+      supportedFps = camera.getParameters().getSupportedPreviewFpsRange();
+      camera.release();
+      camera = null;
+    }
+    for (int[] range : supportedFps) {
+      range[0] /= 1000;
+      range[1] /= 1000;
+    }
+    return supportedFps;
   }
 
   /**

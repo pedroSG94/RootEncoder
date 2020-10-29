@@ -2,6 +2,7 @@ package com.pedro.rtsp.rtp.sockets;
 
 import android.util.Log;
 import com.pedro.rtsp.rtsp.RtpFrame;
+import com.pedro.rtsp.utils.RtpConstants;
 import java.io.IOException;
 import java.io.OutputStream;
 
@@ -34,7 +35,7 @@ public class RtpSocketTcp extends BaseRtpSocket {
   }
 
   private void sendFrameTCP(RtpFrame rtpFrame, boolean isEnableLogs) throws IOException {
-    synchronized (outputStream) {
+    synchronized (RtpConstants.lock) {
       int len = rtpFrame.getLength();
       tcpHeader[1] = rtpFrame.getChannelIdentifier();
       tcpHeader[2] = (byte) (len >> 8);

@@ -2,6 +2,7 @@ package com.pedro.rtsp.rtcp;
 
 import android.util.Log;
 import com.pedro.rtsp.rtsp.RtpFrame;
+import com.pedro.rtsp.utils.RtpConstants;
 import java.io.IOException;
 import java.io.OutputStream;
 
@@ -38,7 +39,7 @@ public class SenderReportTcp extends BaseSenderReport {
 
   private void sendReportTCP(byte[] buffer, byte channelIdentifier, String type, int packet,
       int octet, boolean isEnableLogs) throws IOException {
-    synchronized (outputStream) {
+    synchronized (RtpConstants.lock) {
       tcpHeader[1] = (byte) (channelIdentifier + 1);
       outputStream.write(tcpHeader);
       outputStream.write(buffer, 0, PACKET_LENGTH);

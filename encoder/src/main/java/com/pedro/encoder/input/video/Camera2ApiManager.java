@@ -188,33 +188,33 @@ public class Camera2ApiManager extends CameraDevice.StateCallback {
   private void adaptFpsRange(int expectedFps, CaptureRequest.Builder builderInputSurface) {
     Range<Integer>[] fpsRanges = getSupportedFps();
     if (fpsRanges != null && fpsRanges.length > 0) {
-        Range<Integer> closestRange = fpsRanges[0];
-        int measure = Math.abs(closestRange.getLower() - expectedFps) +
-                Math.abs(closestRange.getUpper() - expectedFps);
-        for (Range<Integer> range : fpsRanges) {
-            if (range.getLower() <= expectedFps && range.getUpper() >= expectedFps) {
-                int curMeasure = Math.abs(range.getLower() - expectedFps) +
-                        Math.abs(range.getUpper() - expectedFps);
-                if (curMeasure < measure) {
-                    closestRange = range;
-                    measure = curMeasure;
-                }
-            }
+      Range<Integer> closestRange = fpsRanges[0];
+      int measure = Math.abs(closestRange.getLower() - expectedFps) + Math.abs(
+          closestRange.getUpper() - expectedFps);
+      for (Range<Integer> range : fpsRanges) {
+        if (range.getLower() <= expectedFps && range.getUpper() >= expectedFps) {
+          int curMeasure =
+              Math.abs(range.getLower() - expectedFps) + Math.abs(range.getUpper() - expectedFps);
+          if (curMeasure < measure) {
+            closestRange = range;
+            measure = curMeasure;
+          }
         }
-        Log.i(TAG, "camera2 fps: " + closestRange.getLower() + " - " + closestRange.getUpper());
-        builderInputSurface.set(CaptureRequest.CONTROL_AE_TARGET_FPS_RANGE, closestRange);
+      }
+      Log.i(TAG, "camera2 fps: " + closestRange.getLower() + " - " + closestRange.getUpper());
+      builderInputSurface.set(CaptureRequest.CONTROL_AE_TARGET_FPS_RANGE, closestRange);
     }
   }
 
   public Range<Integer>[] getSupportedFps() {
-      try {
-          CameraCharacteristics characteristics = getCameraCharacteristics();
-          if (characteristics == null) return null;
-          return characteristics.get(CameraCharacteristics.CONTROL_AE_AVAILABLE_TARGET_FPS_RANGES);
-      } catch (IllegalStateException e) {
-          Log.e(TAG, "Error", e);
-          return null;
-      }
+    try {
+      CameraCharacteristics characteristics = getCameraCharacteristics();
+      if (characteristics == null) return null;
+      return characteristics.get(CameraCharacteristics.CONTROL_AE_AVAILABLE_TARGET_FPS_RANGES);
+    } catch (IllegalStateException e) {
+      Log.e(TAG, "Error", e);
+      return null;
+    }
   }
 
   public int getLevelSupported() {
@@ -577,8 +577,9 @@ public class Camera2ApiManager extends CameraDevice.StateCallback {
     try {
       float maxZoom = getMaxZoom();
       //Avoid out range level
-      if (level <= 0f) level = 0.01f;
-      else if (level > maxZoom) level = maxZoom;
+      if (level <= 0f) {
+        level = 0.01f;
+      } else if (level > maxZoom) level = maxZoom;
 
       CameraCharacteristics characteristics = getCameraCharacteristics();
       if (characteristics == null) return;
@@ -647,7 +648,7 @@ public class Camera2ApiManager extends CameraDevice.StateCallback {
         } else {
           Log.e(TAG, "preview surface is null");
         }
-      } catch (CameraAccessException e) {
+      } catch (CameraAccessException | IllegalStateException e) {
         Log.e(TAG, "Error", e);
       }
     }
