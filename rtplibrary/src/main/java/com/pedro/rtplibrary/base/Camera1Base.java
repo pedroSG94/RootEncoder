@@ -6,6 +6,7 @@ import android.media.MediaCodec;
 import android.media.MediaFormat;
 import android.os.Build;
 import android.util.Log;
+import android.util.Range;
 import android.view.MotionEvent;
 import android.view.SurfaceView;
 import android.view.TextureView;
@@ -667,6 +668,10 @@ public abstract class Camera1Base
    */
   public List<Camera.Size> getResolutionsFront() {
     return cameraManager.getPreviewSizeFront();
+  }
+
+  public List<int[]> getSupportedFps() {
+    return cameraManager.getSupportedFps();
   }
 
   /**

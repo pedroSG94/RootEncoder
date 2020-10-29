@@ -5,6 +5,7 @@ import android.hardware.camera2.CameraCharacteristics;
 import android.media.MediaCodec;
 import android.media.MediaFormat;
 import android.os.Build;
+import android.util.Range;
 import android.util.Size;
 import android.view.MotionEvent;
 import android.view.Surface;
@@ -417,7 +418,7 @@ public abstract class Camera2Base implements GetAacData, GetVideoData, GetMicrop
           this.glInterface.addMediaCodecSurface(videoEncoder.getInputSurface());
         }
         cameraManager.prepareCamera(this.glInterface.getSurfaceTexture(), videoEncoder.getWidth(),
-            videoEncoder.getHeight());
+            videoEncoder.getHeight(), videoEncoder.getFps());
         cameraManager.openLastCamera();
       } else {
         this.glInterface = glInterface;
@@ -439,9 +440,9 @@ public abstract class Camera2Base implements GetAacData, GetVideoData, GetMicrop
       previewWidth = width;
       previewHeight = height;
       if (surfaceView != null) {
-        cameraManager.prepareCamera(surfaceView.getHolder().getSurface());
+        cameraManager.prepareCamera(surfaceView.getHolder().getSurface(), videoEncoder.getFps());
       } else if (textureView != null) {
-        cameraManager.prepareCamera(new Surface(textureView.getSurfaceTexture()));
+        cameraManager.prepareCamera(new Surface(textureView.getSurfaceTexture()), videoEncoder.getFps());
       } else if (glInterface != null) {
         boolean isPortrait = CameraHelper.isPortrait(context);
         if (isPortrait) {
@@ -451,7 +452,7 @@ public abstract class Camera2Base implements GetAacData, GetVideoData, GetMicrop
         }
         glInterface.setRotation(rotation == 0 ? 270 : rotation - 90);
         glInterface.start();
-        cameraManager.prepareCamera(glInterface.getSurfaceTexture(), width, height);
+        cameraManager.prepareCamera(glInterface.getSurfaceTexture(), width, height, videoEncoder.getFps());
       }
       cameraManager.openCameraFacing(cameraFacing);
       onPreview = true;
@@ -540,7 +541,7 @@ public abstract class Camera2Base implements GetAacData, GetVideoData, GetMicrop
       glInterface.addMediaCodecSurface(videoEncoder.getInputSurface());
     } else {
       cameraManager.closeCamera();
-      cameraManager.prepareCamera(videoEncoder.getInputSurface());
+      cameraManager.prepareCamera(videoEncoder.getInputSurface(), videoEncoder.getFps());
       cameraManager.openLastCamera();
     }
   }
@@ -567,7 +568,7 @@ public abstract class Camera2Base implements GetAacData, GetVideoData, GetMicrop
         glInterface.addMediaCodecSurface(videoEncoder.getInputSurface());
       }
       cameraManager.prepareCamera(glInterface.getSurfaceTexture(), videoEncoder.getWidth(),
-          videoEncoder.getHeight());
+          videoEncoder.getHeight(), videoEncoder.getFps());
     }
   }
 
@@ -669,6 +670,10 @@ public abstract class Camera2Base implements GetAacData, GetVideoData, GetMicrop
    */
   public List<Size> getResolutionsFront() {
     return Arrays.asList(cameraManager.getCameraResolutionsFront());
+  }
+
+  public Range<Integer>[] getSupportedFps() {
+    return cameraManager.getSupportedFps();
   }
 
   /**
@@ -787,12 +792,12 @@ public abstract class Camera2Base implements GetAacData, GetVideoData, GetMicrop
 
   private void prepareCameraManager() {
     if (textureView != null) {
-      cameraManager.prepareCamera(textureView, videoEncoder.getInputSurface());
+      cameraManager.prepareCamera(textureView, videoEncoder.getInputSurface(), videoEncoder.getFps());
     } else if (surfaceView != null) {
-      cameraManager.prepareCamera(surfaceView, videoEncoder.getInputSurface());
+      cameraManager.prepareCamera(surfaceView, videoEncoder.getInputSurface(), videoEncoder.getFps());
     } else if (glInterface != null) {
     } else {
-      cameraManager.prepareCamera(videoEncoder.getInputSurface());
+      cameraManager.prepareCamera(videoEncoder.getInputSurface(), videoEncoder.getFps());
     }
     videoEnabled = true;
   }
