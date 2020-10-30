@@ -104,8 +104,8 @@ public abstract class BaseDecoder {
     });
   }
   
-  private volatile long pauseStartMs = 0;
-  private volatile long startMsBeforePaused = 0;
+  private long pauseStartMs = 0;
+  private long startMsBeforePaused = 0;
   public void pause(Boolean pause) {
     if (pause == true && startMs < Long.MAX_VALUE) {
       pauseStartMs = System.currentTimeMillis();
