@@ -290,6 +290,13 @@ public abstract class FromFileBase
     }
     startStreamRtp(url);
   }
+  
+  public void pause(Boolean pause) {
+    if (streaming) {
+      if (videoEnabled) videoDecoder.pause(pause);
+      if (audioEnabled) audioDecoder.pause(pause);
+    }
+  }
 
   private void startEncoders() {
     if (videoEnabled) videoEncoder.start();

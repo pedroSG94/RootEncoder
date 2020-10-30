@@ -103,6 +103,20 @@ public abstract class BaseDecoder {
       }
     });
   }
+  
+  private volatile long pauseStartMs = 0;
+  private volatile long startMsBeforePaused = 0;
+  public void pause(Boolean pause) {
+    if (pause == true && startMs < Long.MAX_VALUE) {
+      pauseStartMs = System.currentTimeMillis();
+      startMsBeforePaused = startMs;
+      startMs = Long.MAX_VALUE;
+    }
+    else if (pause == false && startMs == Long.MAX_VALUE) {
+      startMs = startMsBeforePaused + System.currentTimeMillis() - pauseStartMs;
+    }
+  }
+
 
   public void stop() {
     running = false;
