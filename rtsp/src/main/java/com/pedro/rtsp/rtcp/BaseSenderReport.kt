@@ -51,9 +51,11 @@ abstract class BaseSenderReport internal constructor() {
     /* Packet Type PT */videoBuffer[1] = 200.toByte()
     audioBuffer[1] = 200.toByte()
 
-    /* Byte 2,3          ->  Length		                     */setLong(videoBuffer, PACKET_LENGTH / 4 - 1.toLong(), 2, 4)
+    /* Byte 2,3          ->  Length		                     */
+    setLong(videoBuffer, PACKET_LENGTH / 4 - 1.toLong(), 2, 4)
     setLong(audioBuffer, PACKET_LENGTH / 4 - 1.toLong(), 2, 4)
-    /* Byte 4,5,6,7      ->  SSRC                            */setLong(videoBuffer, Random().nextInt().toLong(), 4, 8)
+    /* Byte 4,5,6,7      ->  SSRC                            */
+    setLong(videoBuffer, Random().nextInt().toLong(), 4, 8)
     setLong(audioBuffer, Random().nextInt().toLong(), 4, 8)
     /* Byte 8,9,10,11    ->  NTP timestamp hb				 */
     /* Byte 12,13,14,15  ->  NTP timestamp lb				 */

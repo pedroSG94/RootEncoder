@@ -121,9 +121,10 @@ class CommandsManager {
     get() = encodeToString(vps)
 
   private fun addHeaders(): String {
-    return "CSeq: ${++cSeq}" +
-        if (sessionId == null) "" else "Session: $sessionId\r\n" +
-            if (authorization == null) "" else " Authorization: $authorization\r\n"
+    return "CSeq: ${++cSeq}\r\n" +
+        (if (sessionId == null) "" else "Session: $sessionId\r\n") +
+        (if (authorization == null) "" else " Authorization: $authorization\r\n") +
+        "\r\n"
 
   }
 
@@ -200,9 +201,9 @@ class CommandsManager {
     val announce = "ANNOUNCE rtsp://$host:$port$path RTSP/1.0\r\n" +
         "CSeq: ${++cSeq}\r\n" +
         "Content-Length: ${body.length}\r\n" +
-        if (authorization == null) "" else " Authorization: $authorization\r\n" +
-            "Content-Type: application/sdp\r\n\r\n" +
-            body
+        (if (authorization == null) "" else " Authorization: $authorization\r\n") +
+        "Content-Type: application/sdp\r\n\r\n" +
+        body
     Log.i(TAG, announce)
     return announce
   }

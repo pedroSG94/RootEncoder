@@ -27,7 +27,7 @@ class H265Packet(sps: ByteArray, pps: ByteArray, vps: ByteArray, private val vid
     // We read a NAL units from ByteBuffer and we send them
     // NAL units are preceded with 0x00000001
     byteBuffer.rewind()
-    byteBuffer[header, 0, 6]
+    byteBuffer.get(header, 0, 6)
     val ts = bufferInfo.presentationTimeUs * 1000L
     val naluLength = bufferInfo.size - byteBuffer.position() + 1
     val type: Int = header[4].toInt().shr(1 and 0x3f)

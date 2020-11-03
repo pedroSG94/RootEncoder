@@ -27,7 +27,7 @@ class H264Packet(sps: ByteArray, pps: ByteArray, private val videoPacketCallback
     // We read a NAL units from ByteBuffer and we send them
     // NAL units are preceded with 0x00000001
     byteBuffer.rewind()
-    byteBuffer[header, 0, 5]
+    byteBuffer.get(header, 0, 5)
     val ts = bufferInfo.presentationTimeUs * 1000L
     val naluLength = bufferInfo.size - byteBuffer.position() + 1
     val type: Int = (header[4] and 0x1F).toInt()
