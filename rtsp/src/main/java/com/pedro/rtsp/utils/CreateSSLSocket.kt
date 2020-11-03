@@ -13,24 +13,24 @@ import java.security.NoSuchAlgorithmException
  * you will have a secure stream under ssl/tls.
  */
 object CreateSSLSocket {
-    /**
-     * @param host variable from RtspConnection
-     * @param port variable from RtspConnection
-     */
-    @JvmStatic
-    fun createSSlSocket(host: String, port: Int): Socket? {
-        return try {
-            val socketFactory = TLSSocketFactory()
-            socketFactory.createSocket(host, port)
-        } catch (e: NoSuchAlgorithmException) {
-            Log.e("CreateSSLSocket", "Error", e)
-            null
-        } catch (e: KeyManagementException) {
-            Log.e("CreateSSLSocket", "Error", e)
-            null
-        } catch (e: IOException) {
-            Log.e("CreateSSLSocket", "Error", e)
-            null
-        }
+  /**
+   * @param host variable from RtspConnection
+   * @param port variable from RtspConnection
+   */
+  @JvmStatic
+  fun createSSlSocket(host: String, port: Int): Socket? {
+    return try {
+      val socketFactory = TLSSocketFactory()
+      socketFactory.createSocket(host, port)
+    } catch (e: NoSuchAlgorithmException) {
+      Log.e("CreateSSLSocket", "Error", e)
+      null
+    } catch (e: KeyManagementException) {
+      Log.e("CreateSSLSocket", "Error", e)
+      null
+    } catch (e: IOException) {
+      Log.e("CreateSSLSocket", "Error", e)
+      null
     }
+  }
 }

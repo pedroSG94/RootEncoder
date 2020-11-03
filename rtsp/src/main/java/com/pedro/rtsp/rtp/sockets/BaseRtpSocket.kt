@@ -10,23 +10,23 @@ import java.io.OutputStream
  */
 abstract class BaseRtpSocket {
 
-    protected val TAG = "BaseRtpSocket"
+  protected val TAG = "BaseRtpSocket"
 
-    companion object {
-        @JvmStatic
-        fun getInstance(protocol: Protocol, videoSourcePort: Int, audioSourcePort: Int): BaseRtpSocket {
-            return if (protocol === Protocol.TCP) {
-                RtpSocketTcp()
-            } else {
-                RtpSocketUdp(videoSourcePort, audioSourcePort)
-            }
-        }
+  companion object {
+    @JvmStatic
+    fun getInstance(protocol: Protocol, videoSourcePort: Int, audioSourcePort: Int): BaseRtpSocket {
+      return if (protocol === Protocol.TCP) {
+        RtpSocketTcp()
+      } else {
+        RtpSocketUdp(videoSourcePort, audioSourcePort)
+      }
     }
+  }
 
-    abstract fun setDataStream(outputStream: OutputStream, host: String)
+  abstract fun setDataStream(outputStream: OutputStream, host: String)
 
-    @Throws(IOException::class)
-    abstract fun sendFrame(rtpFrame: RtpFrame, isEnableLogs: Boolean)
+  @Throws(IOException::class)
+  abstract fun sendFrame(rtpFrame: RtpFrame, isEnableLogs: Boolean)
 
-    abstract fun close()
+  abstract fun close()
 }
