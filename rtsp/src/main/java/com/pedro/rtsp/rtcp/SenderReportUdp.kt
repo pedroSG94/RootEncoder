@@ -24,7 +24,7 @@ class SenderReportUdp(videoSourcePort: Int, audioSourcePort: Int) : BaseSenderRe
       multicastSocketVideo?.timeToLive = 64
       multicastSocketAudio = MulticastSocket(audioSourcePort)
       multicastSocketAudio?.timeToLive = 64
-    } catch (e: IOException) {
+    } catch (e: Exception) {
       Log.e(TAG, "Error", e)
     }
   }
@@ -38,8 +38,7 @@ class SenderReportUdp(videoSourcePort: Int, audioSourcePort: Int) : BaseSenderRe
   }
 
   @Throws(IOException::class)
-  override fun sendReport(buffer: ByteArray, rtpFrame: RtpFrame, type: String, packetCount: Int,
-                          octetCount: Int, isEnableLogs: Boolean) {
+  override fun sendReport(buffer: ByteArray, rtpFrame: RtpFrame, type: String, packetCount: Int, octetCount: Int, isEnableLogs: Boolean) {
     sendReportUDP(buffer, rtpFrame.rtcpPort, type, packetCount, octetCount, isEnableLogs)
   }
 
@@ -49,8 +48,7 @@ class SenderReportUdp(videoSourcePort: Int, audioSourcePort: Int) : BaseSenderRe
   }
 
   @Throws(IOException::class)
-  private fun sendReportUDP(buffer: ByteArray, port: Int, type: String, packet: Int, octet: Int,
-                            isEnableLogs: Boolean) {
+  private fun sendReportUDP(buffer: ByteArray, port: Int, type: String, packet: Int, octet: Int, isEnableLogs: Boolean) {
     datagramPacket.data = buffer
     datagramPacket.port = port
     datagramPacket.length = PACKET_LENGTH

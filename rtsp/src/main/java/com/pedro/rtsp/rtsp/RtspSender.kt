@@ -102,7 +102,7 @@ class RtspSender(private val connectCheckerRtsp: ConnectCheckerRtsp) : VideoPack
 
   fun start() {
     thread = GlobalScope.launch(Dispatchers.IO) {
-      while (!Thread.interrupted()) {
+      while (isActive) {
         try {
           val rtpFrame = rtpFrameBlockingQueue.poll(1, TimeUnit.SECONDS)
           if (rtpFrame == null) {
@@ -118,11 +118,9 @@ class RtspSender(private val connectCheckerRtsp: ConnectCheckerRtsp) : VideoPack
             audioFramesSent++
           }
           baseSenderReport?.update(rtpFrame, isEnableLogs)
-        } catch (e: InterruptedException) {
-          Thread.currentThread().interrupt()
-        } catch (e: IOException) {
+        } catch (e: Exception) {
           connectCheckerRtsp.onConnectionFailedRtsp("Error send packet, " + e.message)
-          Thread.currentThread().interrupt()
+          cancel()
           Log.e(TAG, "send error: ", e)
         }
       }
@@ -150,7 +148,7 @@ class RtspSender(private val connectCheckerRtsp: ConnectCheckerRtsp) : VideoPack
     val size = rtpFrameBlockingQueue.size.toFloat()
     val remaining = rtpFrameBlockingQueue.remainingCapacity().toFloat()
     val capacity = size + remaining
-    return size >= capacity * 0.2 //more than 20% queue used. You could have congestion
+    return size >= capacity * 0.2f //more than 20% queue used. You could have congestion
   }
 
   fun resizeCache(newSize: Int) {

@@ -27,7 +27,6 @@ abstract class BaseSenderReport internal constructor() {
   protected val TAG = "BaseSenderReport"
 
   companion object {
-
     @JvmStatic
     fun getInstance(protocol: Protocol, videoSourcePort: Int, audioSourcePort: Int): BaseSenderReport {
       return if (protocol === Protocol.TCP) {
@@ -76,8 +75,7 @@ abstract class BaseSenderReport internal constructor() {
   }
 
   @Throws(IOException::class)
-  abstract fun sendReport(buffer: ByteArray, rtpFrame: RtpFrame, type: String, packetCount: Int,
-                          octetCount: Int, isEnableLogs: Boolean)
+  abstract fun sendReport(buffer: ByteArray, rtpFrame: RtpFrame, type: String, packetCount: Int, octetCount: Int, isEnableLogs: Boolean)
 
   private fun updateVideo(rtpFrame: RtpFrame, isEnableLogs: Boolean) {
     videoPacketCount++

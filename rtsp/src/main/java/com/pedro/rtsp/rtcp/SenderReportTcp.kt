@@ -19,22 +19,19 @@ class SenderReportTcp : BaseSenderReport() {
   }
 
   @Throws(IOException::class)
-  override fun sendReport(buffer: ByteArray, rtpFrame: RtpFrame, type: String, packetCount: Int,
-                          octetCount: Int, isEnableLogs: Boolean) {
-    sendReportTCP(buffer, rtpFrame.channelIdentifier, type, packetCount, octetCount,
-        isEnableLogs)
+  override fun sendReport(buffer: ByteArray, rtpFrame: RtpFrame, type: String, packetCount: Int, octetCount: Int, isEnableLogs: Boolean) {
+    sendReportTCP(buffer, rtpFrame.channelIdentifier, type, packetCount, octetCount, isEnableLogs)
   }
 
   override fun close() {}
 
   @Throws(IOException::class)
-  private fun sendReportTCP(buffer: ByteArray, channelIdentifier: Byte, type: String, packet: Int,
-                            octet: Int, isEnableLogs: Boolean) {
+  private fun sendReportTCP(buffer: ByteArray, channelIdentifier: Byte, type: String, packet: Int, octet: Int, isEnableLogs: Boolean) {
     synchronized(RtpConstants.lock) {
       tcpHeader[1] = (channelIdentifier + 1).toByte()
-      outputStream!!.write(tcpHeader)
-      outputStream!!.write(buffer, 0, PACKET_LENGTH)
-      outputStream!!.flush()
+      outputStream?.write(tcpHeader)
+      outputStream?.write(buffer, 0, PACKET_LENGTH)
+      outputStream?.flush()
       if (isEnableLogs) {
         Log.i(TAG, "wrote report: $type, packets: $packet, octet: $octet")
       }

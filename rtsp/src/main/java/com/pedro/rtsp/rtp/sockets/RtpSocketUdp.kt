@@ -54,13 +54,13 @@ class RtpSocketUdp(videoSourcePort: Int, audioSourcePort: Int) : BaseRtpSocket()
     datagramPacket.data = rtpFrame.buffer
     datagramPacket.port = rtpFrame.rtpPort
     datagramPacket.length = rtpFrame.length
-    if (rtpFrame.channelIdentifier == 2.toByte()) {
+    if (rtpFrame.isVideoFrame()) {
       multicastSocketVideo?.send(datagramPacket)
     } else {
       multicastSocketAudio?.send(datagramPacket)
     }
     if (isEnableLogs) {
-      Log.i(TAG, "wrote packet: ${(if (rtpFrame.channelIdentifier == 2.toByte()) "Video" else "Audio")}, size: ${rtpFrame.length}, port: ${rtpFrame.rtpPort}")
+      Log.i(TAG, "wrote packet: ${(if (rtpFrame.isVideoFrame()) "Video" else "Audio")}, size: ${rtpFrame.length}, port: ${rtpFrame.rtpPort}")
     }
   }
 }

@@ -36,7 +36,7 @@ class RtpSocketTcp : BaseRtpSocket() {
       outputStream?.write(rtpFrame.buffer, 0, len)
       outputStream?.flush()
       if (isEnableLogs) {
-        Log.i(TAG, "wrote packet: ${(if (rtpFrame.channelIdentifier == 2.toByte()) "Video" else "Audio")}, size: ${rtpFrame.length}")
+        Log.i(TAG, "wrote packet: ${(if (rtpFrame.isVideoFrame()) "Video" else "Audio")}, size: ${rtpFrame.length}")
       }
     }
   }

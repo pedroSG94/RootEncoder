@@ -22,7 +22,7 @@ class AacPacket(sampleRate: Int, private val audioPacketCallback: AudioPacketCal
     val length = bufferInfo.size - byteBuffer.position()
     if (length > 0) {
       val buffer = getBuffer(length + RtpConstants.RTP_HEADER_LENGTH + 4)
-      byteBuffer[buffer, RtpConstants.RTP_HEADER_LENGTH + 4, length]
+      byteBuffer.get(buffer, RtpConstants.RTP_HEADER_LENGTH + 4, length)
       val ts = bufferInfo.presentationTimeUs * 1000
       markPacket(buffer)
       updateTimeStamp(buffer, ts)
@@ -41,8 +41,7 @@ class AacPacket(sampleRate: Int, private val audioPacketCallback: AudioPacketCal
       buffer[RtpConstants.RTP_HEADER_LENGTH + 3] = buffer[RtpConstants.RTP_HEADER_LENGTH + 3] and 0xF8.toByte()
       buffer[RtpConstants.RTP_HEADER_LENGTH + 3] = buffer[RtpConstants.RTP_HEADER_LENGTH + 3] or 0x00
       updateSeq(buffer)
-      val rtpFrame = RtpFrame(buffer, ts, RtpConstants.RTP_HEADER_LENGTH + length + 4, rtpPort, rtcpPort,
-          channelIdentifier)
+      val rtpFrame = RtpFrame(buffer, ts, RtpConstants.RTP_HEADER_LENGTH + length + 4, rtpPort, rtcpPort, channelIdentifier)
       audioPacketCallback.onAudioFrameCreated(rtpFrame)
     }
   }

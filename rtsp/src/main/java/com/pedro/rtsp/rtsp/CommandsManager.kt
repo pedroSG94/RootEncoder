@@ -17,7 +17,7 @@ import java.util.regex.Pattern
  *
  * Class to create request to server and parse response from server.
  */
-class CommandsManager {
+class CommandsManager(private val connectCheckerRtsp: ConnectCheckerRtsp) {
 
   var host: String? = null
     private set
@@ -229,8 +229,7 @@ class CommandsManager {
   }
 
   //Response parser
-  fun getResponse(reader: BufferedReader?, connectCheckerRtsp: ConnectCheckerRtsp,
-                  isAudio: Boolean, checkStatus: Boolean): String? {
+  fun getResponse(reader: BufferedReader?, isAudio: Boolean, checkStatus: Boolean): String {
     reader?.let { br ->
       return try {
         var response = ""
@@ -264,15 +263,16 @@ class CommandsManager {
         }
         if (checkStatus && getResponseStatus(response) != 200) {
           connectCheckerRtsp.onConnectionFailedRtsp("Error configure stream, $response")
+          return ""
         }
         Log.i(TAG, response)
         response
       } catch (e: IOException) {
         Log.e(TAG, "read error", e)
-        null
+        ""
       }
     }
-    return null
+    return ""
   }
 
   fun getResponseStatus(response: String): Int {
