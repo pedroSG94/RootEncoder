@@ -2,6 +2,7 @@ package com.pedro.rtsp.rtp.packets
 
 import android.media.MediaCodec
 import com.pedro.rtsp.utils.RtpConstants
+import com.pedro.rtsp.utils.setLong
 import java.nio.ByteBuffer
 import java.util.*
 import kotlin.experimental.and
@@ -43,20 +44,11 @@ abstract class BasePacket(private val clock: Long) {
 
   protected fun updateTimeStamp(buffer: ByteArray, timestamp: Long) {
     val ts = timestamp * clock / 1000000000L
-    setLong(buffer, ts, 4, 8)
-  }
-
-
-  private fun setLong(buffer: ByteArray, n: Long, begin: Int, end: Int) {
-    var value = n
-    for (i in end downTo begin step 1) {
-      buffer[i] = (value % 256).toByte()
-      value = value shr 8
-    }
+    buffer.setLong(ts, 4, 8)
   }
 
   protected fun updateSeq(buffer: ByteArray) {
-    setLong(buffer, (++seq).toLong(), 2, 4)
+    buffer.setLong((++seq).toLong(), 2, 4)
   }
 
   protected fun markPacket(buffer: ByteArray) {
@@ -64,7 +56,7 @@ abstract class BasePacket(private val clock: Long) {
   }
 
   private fun setLongSSRC(buffer: ByteArray, ssrc: Int) {
-    setLong(buffer, ssrc.toLong(), 8, 12)
+    buffer.setLong(ssrc.toLong(), 8, 12)
   }
 
   private fun requestBuffer(buffer: ByteArray) {

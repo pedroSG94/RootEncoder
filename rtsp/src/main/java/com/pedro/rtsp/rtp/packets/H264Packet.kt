@@ -53,7 +53,7 @@ class H264Packet(sps: ByteArray, pps: ByteArray, private val videoPacketCallback
         val length = if (cont < bufferInfo.size - byteBuffer.position()) cont else bufferInfo.size - byteBuffer.position()
         val buffer = getBuffer(length + RtpConstants.RTP_HEADER_LENGTH + 1)
         buffer[RtpConstants.RTP_HEADER_LENGTH] = header[4]
-        byteBuffer[buffer, RtpConstants.RTP_HEADER_LENGTH + 1, length]
+        byteBuffer.get(buffer, RtpConstants.RTP_HEADER_LENGTH + 1, length)
         updateTimeStamp(buffer, ts)
         markPacket(buffer) //mark end frame
         updateSeq(buffer)
@@ -63,10 +63,10 @@ class H264Packet(sps: ByteArray, pps: ByteArray, private val videoPacketCallback
       } else {
         // Set FU-A header
         header[1] = header[4] and 0x1F // FU header type
-        header[1].plus(0x80)  // set start bit to 1
+        header[1] = header[1].plus(0x80).toByte()  // set start bit to 1
         // Set FU-A indicator
         header[0] = header[4] and 0x60 and 0xFF.toByte() // FU indicator NRI
-        header[0].plus(28)
+        header[0] = header[0].plus(28).toByte()
         var sum = 1
         while (sum < naluLength) {
           val cont = if (naluLength - sum > maxPacketSize - RtpConstants.RTP_HEADER_LENGTH - 2) {
@@ -79,12 +79,12 @@ class H264Packet(sps: ByteArray, pps: ByteArray, private val videoPacketCallback
           buffer[RtpConstants.RTP_HEADER_LENGTH] = header[0]
           buffer[RtpConstants.RTP_HEADER_LENGTH + 1] = header[1]
           updateTimeStamp(buffer, ts)
-          byteBuffer[buffer, RtpConstants.RTP_HEADER_LENGTH + 2, length]
+          byteBuffer.get(buffer, RtpConstants.RTP_HEADER_LENGTH + 2, length)
           sum += length
           // Last packet before next NAL
           if (sum >= naluLength) {
             // End bit on
-            buffer[RtpConstants.RTP_HEADER_LENGTH + 1].plus(0x40)
+            buffer[RtpConstants.RTP_HEADER_LENGTH + 1] = buffer[RtpConstants.RTP_HEADER_LENGTH + 1].plus(0x40).toByte()
             markPacket(buffer) //mark end frame
           }
           updateSeq(buffer)

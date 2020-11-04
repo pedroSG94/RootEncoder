@@ -3,6 +3,7 @@ package com.pedro.rtsp.rtcp
 import android.util.Log
 import com.pedro.rtsp.rtsp.Protocol
 import com.pedro.rtsp.rtsp.RtpFrame
+import com.pedro.rtsp.utils.setLong
 import java.io.IOException
 import java.io.OutputStream
 import java.util.*
@@ -52,11 +53,11 @@ abstract class BaseSenderReport internal constructor() {
     audioBuffer[1] = 200.toByte()
 
     /* Byte 2,3          ->  Length		                     */
-    setLong(videoBuffer, PACKET_LENGTH / 4 - 1.toLong(), 2, 4)
-    setLong(audioBuffer, PACKET_LENGTH / 4 - 1.toLong(), 2, 4)
+    videoBuffer.setLong(PACKET_LENGTH / 4 - 1.toLong(), 2, 4)
+    audioBuffer.setLong(PACKET_LENGTH / 4 - 1.toLong(), 2, 4)
     /* Byte 4,5,6,7      ->  SSRC                            */
-    setLong(videoBuffer, Random().nextInt().toLong(), 4, 8)
-    setLong(audioBuffer, Random().nextInt().toLong(), 4, 8)
+    videoBuffer.setLong(Random().nextInt().toLong(), 4, 8)
+    audioBuffer.setLong(Random().nextInt().toLong(), 4, 8)
     /* Byte 8,9,10,11    ->  NTP timestamp hb				 */
     /* Byte 12,13,14,15  ->  NTP timestamp lb				 */
     /* Byte 16,17,18,19  ->  RTP timestamp		             */
@@ -81,8 +82,8 @@ abstract class BaseSenderReport internal constructor() {
   private fun updateVideo(rtpFrame: RtpFrame, isEnableLogs: Boolean) {
     videoPacketCount++
     videoOctetCount += rtpFrame.length
-    setLong(videoBuffer, videoPacketCount.toLong(), 20, 24)
-    setLong(videoBuffer, videoOctetCount.toLong(), 24, 28)
+    videoBuffer.setLong(videoPacketCount.toLong(), 20, 24)
+    videoBuffer.setLong(videoOctetCount.toLong(), 24, 28)
     if (System.currentTimeMillis() - videoTime >= interval) {
       videoTime = System.currentTimeMillis()
       setData(videoBuffer, System.nanoTime(), rtpFrame.timeStamp)
@@ -97,8 +98,8 @@ abstract class BaseSenderReport internal constructor() {
   private fun updateAudio(rtpFrame: RtpFrame, isEnableLogs: Boolean) {
     audioPacketCount++
     audioOctetCount += rtpFrame.length
-    setLong(audioBuffer, audioPacketCount.toLong(), 20, 24)
-    setLong(audioBuffer, audioOctetCount.toLong(), 24, 28)
+    audioBuffer.setLong(audioPacketCount.toLong(), 20, 24)
+    audioBuffer.setLong(audioOctetCount.toLong(), 24, 28)
     if (System.currentTimeMillis() - audioTime >= interval) {
       audioTime = System.currentTimeMillis()
       setData(audioBuffer, System.nanoTime(), rtpFrame.timeStamp)
@@ -117,27 +118,19 @@ abstract class BaseSenderReport internal constructor() {
     audioPacketCount = audioOctetCount
     audioTime = 0
     videoTime = audioTime
-    setLong(videoBuffer, videoPacketCount.toLong(), 20, 24)
-    setLong(videoBuffer, videoOctetCount.toLong(), 24, 28)
-    setLong(audioBuffer, audioPacketCount.toLong(), 20, 24)
-    setLong(audioBuffer, audioOctetCount.toLong(), 24, 28)
+    videoBuffer.setLong(videoPacketCount.toLong(), 20, 24)
+    videoBuffer.setLong(videoOctetCount.toLong(), 24, 28)
+    audioBuffer.setLong(audioPacketCount.toLong(), 20, 24)
+    audioBuffer.setLong(audioOctetCount.toLong(), 24, 28)
   }
 
   abstract fun close()
 
-  private fun setLong(buffer: ByteArray, n: Long, begin: Int, end: Int) {
-    var value = n
-    for (i in end downTo begin step 1) {
-      buffer[i] = (value % 256).toByte()
-      value = value shr 8
-    }
-  }
-
   private fun setData(buffer: ByteArray, ntpts: Long, rtpts: Long) {
     val hb = ntpts / 1000000000
     val lb = (ntpts - hb * 1000000000) * 4294967296L / 1000000000
-    setLong(buffer, hb, 8, 12)
-    setLong(buffer, lb, 12, 16)
-    setLong(buffer, rtpts, 16, 20)
+    buffer.setLong(hb, 8, 12)
+    buffer.setLong(lb, 12, 16)
+    buffer.setLong(rtpts, 16, 20)
   }
 }

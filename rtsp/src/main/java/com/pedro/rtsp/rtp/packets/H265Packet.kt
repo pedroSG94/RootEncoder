@@ -55,7 +55,7 @@ class H265Packet(sps: ByteArray, pps: ByteArray, vps: ByteArray, private val vid
         //Set PayloadHdr (exact copy of nal unit header)
         buffer[RtpConstants.RTP_HEADER_LENGTH] = header[4]
         buffer[RtpConstants.RTP_HEADER_LENGTH + 1] = header[5]
-        byteBuffer[buffer, RtpConstants.RTP_HEADER_LENGTH + 2, length]
+        byteBuffer.get(buffer, RtpConstants.RTP_HEADER_LENGTH + 2, length)
         updateTimeStamp(buffer, ts)
         markPacket(buffer) //mark end frame
         updateSeq(buffer)
@@ -73,7 +73,7 @@ class H265Packet(sps: ByteArray, pps: ByteArray, vps: ByteArray, private val vid
         //   |S|E|  FuType   |
         //   +---------------+
         header[2] = type.toByte() // FU header type
-        header[2].plus(0x80) // Start bit
+        header[2] = header[2].plus(0x80).toByte() // Start bit
         var sum = 1
         while (sum < naluLength) {
           val cont = if (naluLength - sum > maxPacketSize - RtpConstants.RTP_HEADER_LENGTH - 3) {
@@ -87,12 +87,12 @@ class H265Packet(sps: ByteArray, pps: ByteArray, vps: ByteArray, private val vid
           buffer[RtpConstants.RTP_HEADER_LENGTH + 1] = header[1]
           buffer[RtpConstants.RTP_HEADER_LENGTH + 2] = header[2]
           updateTimeStamp(buffer, ts)
-          byteBuffer[buffer, RtpConstants.RTP_HEADER_LENGTH + 3, length]
+          byteBuffer.get(buffer, RtpConstants.RTP_HEADER_LENGTH + 3, length)
           sum += length
           // Last packet before next NAL
           if (sum >= naluLength) {
             // End bit on
-            buffer[RtpConstants.RTP_HEADER_LENGTH + 2].plus(0x40)
+            buffer[RtpConstants.RTP_HEADER_LENGTH + 2] = buffer[RtpConstants.RTP_HEADER_LENGTH + 2].plus(0x40).toByte()
             markPacket(buffer) //mark end frame
           }
           updateSeq(buffer)
