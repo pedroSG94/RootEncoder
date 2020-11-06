@@ -1,6 +1,8 @@
 package com.pedro.rtsp.rtsp
 
 import android.media.MediaCodec
+import android.os.Handler
+import android.os.HandlerThread
 import android.util.Log
 import com.pedro.rtsp.rtcp.BaseSenderReport
 import com.pedro.rtsp.rtp.packets.*
@@ -8,8 +10,6 @@ import com.pedro.rtsp.rtp.sockets.BaseRtpSocket
 import com.pedro.rtsp.utils.BitrateManager
 import com.pedro.rtsp.utils.ConnectCheckerRtsp
 import com.pedro.rtsp.utils.RtpConstants
-import kotlinx.coroutines.*
-import java.io.IOException
 import java.io.OutputStream
 import java.nio.ByteBuffer
 import java.util.concurrent.BlockingQueue
@@ -28,7 +28,7 @@ class RtspSender(private val connectCheckerRtsp: ConnectCheckerRtsp) : VideoPack
 
   @Volatile
   private var rtpFrameBlockingQueue: BlockingQueue<RtpFrame> = LinkedBlockingQueue(defaultCacheSize)
-  private var thread: Job? = null
+  private var thread: HandlerThread? = null
   private var audioFramesSent: Long = 0
   private var videoFramesSent: Long = 0
   var droppedAudioFrames: Long = 0
@@ -101,47 +101,55 @@ class RtspSender(private val connectCheckerRtsp: ConnectCheckerRtsp) : VideoPack
   }
 
   fun start() {
-    thread = GlobalScope.launch(Dispatchers.IO) {
-      while (isActive) {
-        try {
-          val rtpFrame = rtpFrameBlockingQueue.poll(1, TimeUnit.SECONDS)
-          if (rtpFrame == null) {
-            Log.i(TAG, "Skipping iteration, frame null")
-            continue
+    thread = HandlerThread(TAG)
+    thread?.start()
+    thread?.let {
+      val h = Handler(it.looper)
+      h.post {
+        while (!Thread.interrupted()) {
+          try {
+            val rtpFrame = rtpFrameBlockingQueue.poll(1, TimeUnit.SECONDS)
+            if (rtpFrame == null) {
+              Log.i(TAG, "Skipping iteration, frame null")
+              continue
+            }
+            rtpSocket?.sendFrame(rtpFrame, isEnableLogs)
+            //bytes to bits
+            bitrateManager.calculateBitrate(rtpFrame.length * 8.toLong())
+            if (rtpFrame.isVideoFrame()) {
+              videoFramesSent++
+            } else {
+              audioFramesSent++
+            }
+            baseSenderReport?.update(rtpFrame, isEnableLogs)
+          } catch (e: Exception) {
+            connectCheckerRtsp.onConnectionFailedRtsp("Error send packet, " + e.message)
+            Log.e(TAG, "send error: ", e)
+            return@post
           }
-          rtpSocket?.sendFrame(rtpFrame, isEnableLogs)
-          //bytes to bits
-          bitrateManager.calculateBitrate(rtpFrame.length * 8.toLong())
-          if (rtpFrame.isVideoFrame()) {
-            videoFramesSent++
-          } else {
-            audioFramesSent++
-          }
-          baseSenderReport?.update(rtpFrame, isEnableLogs)
-        } catch (e: Exception) {
-          connectCheckerRtsp.onConnectionFailedRtsp("Error send packet, " + e.message)
-          cancel()
-          Log.e(TAG, "send error: ", e)
         }
       }
     }
   }
 
   fun stop() {
-    runBlocking {
-      thread?.cancelAndJoin()
-      thread = null
-      rtpFrameBlockingQueue.clear()
-      baseSenderReport?.reset()
-      baseSenderReport?.close()
-      rtpSocket?.close()
-      aacPacket?.reset()
-      videoPacket?.reset()
-      resetSentAudioFrames()
-      resetSentVideoFrames()
-      resetDroppedAudioFrames()
-      resetDroppedVideoFrames()
-    }
+    thread?.looper?.thread?.interrupt()
+    thread?.looper?.quit()
+    thread?.quit()
+    try {
+      thread?.join(100)
+    } catch (e: Exception) { }
+    thread = null
+    rtpFrameBlockingQueue.clear()
+    baseSenderReport?.reset()
+    baseSenderReport?.close()
+    rtpSocket?.close()
+    aacPacket?.reset()
+    videoPacket?.reset()
+    resetSentAudioFrames()
+    resetSentVideoFrames()
+    resetDroppedAudioFrames()
+    resetDroppedVideoFrames()
   }
 
   fun hasCongestion(): Boolean {

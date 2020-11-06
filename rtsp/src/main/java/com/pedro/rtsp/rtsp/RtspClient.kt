@@ -2,14 +2,12 @@ package com.pedro.rtsp.rtsp
 
 import android.media.MediaCodec
 import android.os.Handler
+import android.os.HandlerThread
 import android.os.Looper
 import android.util.Log
 import com.pedro.rtsp.utils.ConnectCheckerRtsp
 import com.pedro.rtsp.utils.CreateSSLSocket.createSSlSocket
-import kotlinx.coroutines.*
 import java.io.*
-import java.lang.Exception
-import java.lang.Runnable
 import java.net.InetSocketAddress
 import java.net.Socket
 import java.net.SocketAddress
@@ -34,7 +32,7 @@ class RtspClient(private val connectCheckerRtsp: ConnectCheckerRtsp) {
   private var connectionSocket: Socket? = null
   private var reader: BufferedReader? = null
   private var writer: BufferedWriter? = null
-  private var thread: Job? = null
+  private var thread: HandlerThread? = null
 
   @Volatile
   var isStreaming = false
@@ -110,11 +108,10 @@ class RtspClient(private val connectCheckerRtsp: ConnectCheckerRtsp) {
     if (!isRetry) doingRetry = true
     if (url == null) {
       isStreaming = false
-      connectCheckerRtsp.onConnectionFailedRtsp(
-          "Endpoint malformed, should be: rtsp://ip:port/appname/streamname")
+      connectCheckerRtsp.onConnectionFailedRtsp("Endpoint malformed, should be: rtsp://ip:port/appname/streamname")
       return
     }
-    if (!isStreaming) {
+    if (!isStreaming || isRetry) {
       val rtspMatcher = rtspUrlPattern.matcher(url!!)
       if (rtspMatcher.matches()) {
         tlsEnabled = (rtspMatcher.group(0) ?: "").startsWith("rtsps")
@@ -139,95 +136,99 @@ class RtspClient(private val connectCheckerRtsp: ConnectCheckerRtsp) {
           return
         }
       }
-      thread = GlobalScope.launch(Dispatchers.IO) {
-        try {
-          if (!tlsEnabled) {
-            connectionSocket = Socket()
-            val socketAddress: SocketAddress = InetSocketAddress(commandsManager.host, commandsManager.port)
-            connectionSocket?.connect(socketAddress, 5000)
-          } else {
-            connectionSocket = createSSlSocket(commandsManager.host ?: "",
-                commandsManager.port)
-            if (connectionSocket == null) throw IOException("Socket creation failed")
-          }
-          connectionSocket?.sendBufferSize = 1
-          connectionSocket?.soTimeout = 5000
-          reader = BufferedReader(InputStreamReader(connectionSocket?.getInputStream()))
-          val outputStream = connectionSocket?.getOutputStream()
-          writer = BufferedWriter(OutputStreamWriter(outputStream))
-          writer?.write(commandsManager.createOptions())
-          writer?.flush()
-          commandsManager.getResponse(reader, isAudio = false, checkStatus = false)
-          writer?.write(commandsManager.createAnnounce())
-          writer?.flush()
-          //check if you need credential for stream, if you need try connect with credential
-          val response = commandsManager.getResponse(reader, isAudio = false, checkStatus = false)
-          when (commandsManager.getResponseStatus(response)) {
-            403 -> {
-              connectCheckerRtsp.onConnectionFailedRtsp("Error configure stream, access denied")
-              Log.e(TAG, "Response 403, access denied")
-              cancel()
+      isStreaming = true
+      thread = HandlerThread(TAG)
+      thread?.start()
+      thread?.let {
+        val h = Handler(it.looper)
+        h.post {
+          try {
+            if (!tlsEnabled) {
+              connectionSocket = Socket()
+              val socketAddress: SocketAddress = InetSocketAddress(commandsManager.host, commandsManager.port)
+              connectionSocket?.connect(socketAddress, 5000)
+            } else {
+              connectionSocket = createSSlSocket(commandsManager.host ?: "",
+                  commandsManager.port)
+              if (connectionSocket == null) throw IOException("Socket creation failed")
             }
-            401 -> {
-              if (commandsManager.user == null || commandsManager.password == null) {
-                connectCheckerRtsp.onAuthErrorRtsp()
-                cancel()
-              } else {
-                writer?.write(commandsManager.createAnnounceWithAuth(response))
-                writer?.flush()
-                val authResponse = commandsManager.getResponse(reader, isAudio = false, checkStatus = false)
-                when (commandsManager.getResponseStatus(authResponse)) {
-                  401 -> {
-                    connectCheckerRtsp.onAuthErrorRtsp()
-                    cancel()
-                  }
-                  200 -> {
-                    connectCheckerRtsp.onAuthSuccessRtsp()
-                  }
-                  else -> {
-                    connectCheckerRtsp.onConnectionFailedRtsp("Error configure stream, announce with auth failed")
-                    cancel()
+            connectionSocket?.sendBufferSize = 1
+            connectionSocket?.soTimeout = 5000
+            reader = BufferedReader(InputStreamReader(connectionSocket?.getInputStream()))
+            val outputStream = connectionSocket?.getOutputStream()
+            writer = BufferedWriter(OutputStreamWriter(outputStream))
+            writer?.write(commandsManager.createOptions())
+            writer?.flush()
+            commandsManager.getResponse(reader, isAudio = false, checkStatus = false)
+            writer?.write(commandsManager.createAnnounce())
+            writer?.flush()
+            //check if you need credential for stream, if you need try connect with credential
+            val response = commandsManager.getResponse(reader, isAudio = false, checkStatus = false)
+            when (commandsManager.getResponseStatus(response)) {
+              403 -> {
+                connectCheckerRtsp.onConnectionFailedRtsp("Error configure stream, access denied")
+                Log.e(TAG, "Response 403, access denied")
+                return@post
+              }
+              401 -> {
+                if (commandsManager.user == null || commandsManager.password == null) {
+                  connectCheckerRtsp.onAuthErrorRtsp()
+                  return@post
+                } else {
+                  writer?.write(commandsManager.createAnnounceWithAuth(response))
+                  writer?.flush()
+                  val authResponse = commandsManager.getResponse(reader, isAudio = false, checkStatus = false)
+                  when (commandsManager.getResponseStatus(authResponse)) {
+                    401 -> {
+                      connectCheckerRtsp.onAuthErrorRtsp()
+                      return@post
+                    }
+                    200 -> {
+                      connectCheckerRtsp.onAuthSuccessRtsp()
+                    }
+                    else -> {
+                      connectCheckerRtsp.onConnectionFailedRtsp("Error configure stream, announce with auth failed")
+                      return@post
+                    }
                   }
                 }
               }
+              200 -> {
+                Log.i(TAG, "announce success")
+              }
+              else -> {
+                connectCheckerRtsp.onConnectionFailedRtsp("Error configure stream, announce failed")
+                return@post
+              }
             }
-            200 -> {
-              Log.i(TAG, "announce success")
+            writer?.write(commandsManager.createSetup(commandsManager.trackAudio))
+            writer?.flush()
+            commandsManager.getResponse(reader, isAudio = true, checkStatus = true)
+            if (!commandsManager.isOnlyAudio) {
+              writer?.write(commandsManager.createSetup(commandsManager.trackVideo))
+              writer?.flush()
+              commandsManager.getResponse(reader, isAudio = false, checkStatus = true)
             }
-            else -> {
-              connectCheckerRtsp.onConnectionFailedRtsp("Error configure stream, announce failed")
-              cancel()
-            }
-          }
-          writer?.write(commandsManager.createSetup(commandsManager.trackAudio))
-          writer?.flush()
-          commandsManager.getResponse(reader, isAudio = true, checkStatus = true)
-          if (!commandsManager.isOnlyAudio) {
-            writer?.write(commandsManager.createSetup(commandsManager.trackVideo))
+            writer?.write(commandsManager.createRecord())
             writer?.flush()
             commandsManager.getResponse(reader, isAudio = false, checkStatus = true)
+            outputStream?.let {
+              rtspSender.setDataStream(it, commandsManager.host ?: "")
+            }
+            val videoPorts = commandsManager.videoServerPorts
+            val audioPorts = commandsManager.audioServerPorts
+            if (!commandsManager.isOnlyAudio) {
+              rtspSender.setVideoPorts(videoPorts[0], videoPorts[1])
+            }
+            rtspSender.setAudioPorts(audioPorts[0], audioPorts[1])
+            rtspSender.start()
+            reTries = numRetry
+            connectCheckerRtsp.onConnectionSuccessRtsp()
+          } catch (e: Exception) {
+            Log.e(TAG, "connection error", e)
+            connectCheckerRtsp.onConnectionFailedRtsp("Error configure stream, " + e.message)
+            return@post
           }
-          writer?.write(commandsManager.createRecord())
-          writer?.flush()
-          commandsManager.getResponse(reader, isAudio = false, checkStatus = true)
-          outputStream?.let {
-            rtspSender.setDataStream(it, commandsManager.host ?: "")
-          }
-          val videoPorts = commandsManager.videoServerPorts
-          val audioPorts = commandsManager.audioServerPorts
-          if (!commandsManager.isOnlyAudio) {
-            rtspSender.setVideoPorts(videoPorts[0], videoPorts[1])
-          }
-          rtspSender.setAudioPorts(audioPorts[0], audioPorts[1])
-          rtspSender.start()
-          isStreaming = true
-          reTries = numRetry
-          connectCheckerRtsp.onConnectionSuccessRtsp()
-        } catch (e: Exception) {
-          Log.e(TAG, "connection error", e)
-          connectCheckerRtsp.onConnectionFailedRtsp("Error configure stream, " + e.message)
-          isStreaming = false
-          cancel()
         }
       }
     }
@@ -239,12 +240,19 @@ class RtspClient(private val connectCheckerRtsp: ConnectCheckerRtsp) {
   }
 
   private fun disconnect(clear: Boolean) {
-    runBlocking {
+    if (isStreaming) rtspSender.stop()
+    thread?.looper?.thread?.interrupt()
+    thread?.looper?.quit()
+    thread?.quit()
+    try {
       writer?.flush()
-      if (isStreaming) rtspSender.stop()
-      if (!doingRetry) isStreaming = false
-      thread?.cancelAndJoin()
-      val teardown = async(Dispatchers.IO) {
+      thread?.join(100)
+    } catch (e: Exception) { }
+    thread = HandlerThread(TAG)
+    thread?.start()
+    thread?.let {
+      val h = Handler(it.looper)
+      h.post {
         try {
           writer?.write(commandsManager.createTeardown())
           writer?.flush()
@@ -265,12 +273,21 @@ class RtspClient(private val connectCheckerRtsp: ConnectCheckerRtsp) {
           Log.e(TAG, "disconnect error", e)
         }
       }
-      teardown.await()
-      if (clear) {
-        reTries = numRetry
-        doingRetry = false
-        connectCheckerRtsp.onDisconnectRtsp()
-      }
+    }
+    try {
+      thread?.join(200) //wait finish teardown
+      thread?.looper?.thread?.interrupt()
+      thread?.looper?.quit()
+      thread?.quit()
+      writer?.flush()
+      thread?.join(100)
+      thread = null
+    } catch (e: Exception) { }
+    if (clear) {
+      reTries = numRetry
+      doingRetry = false
+      isStreaming = false
+      connectCheckerRtsp.onDisconnectRtsp()
     }
   }
 
@@ -291,7 +308,10 @@ class RtspClient(private val connectCheckerRtsp: ConnectCheckerRtsp) {
   fun reConnect(delay: Long) {
     reTries--
     disconnect(false)
-    runnable = Runnable { connect(true) }
+    runnable = Runnable {
+      Log.e("Pedro", "connect")
+      connect(true)
+    }
     runnable?.let { handler.postDelayed(it, delay) }
   }
 
