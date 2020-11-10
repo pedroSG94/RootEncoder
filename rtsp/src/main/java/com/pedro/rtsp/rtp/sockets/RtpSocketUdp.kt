@@ -21,10 +21,8 @@ class RtpSocketUdp(videoSourcePort: Int, audioSourcePort: Int) : BaseRtpSocket()
   init {
     try {
       multicastSocketVideo = MulticastSocket(videoSourcePort)
-      multicastSocketVideo?.sendBufferSize = 1
       multicastSocketVideo?.timeToLive = 64
       multicastSocketAudio = MulticastSocket(audioSourcePort)
-      multicastSocketAudio?.sendBufferSize = 1
       multicastSocketAudio?.timeToLive = 64
     } catch (e: IOException) {
       Log.e(TAG, "Error", e)

@@ -95,8 +95,7 @@ public class RtspOnlyAudio extends OnlyAudioBase {
 
   @Override
   protected void startStreamRtp(String url) {
-    rtspClient.setUrl(url);
-    rtspClient.connect();
+    rtspClient.connect(url);
   }
 
   @Override

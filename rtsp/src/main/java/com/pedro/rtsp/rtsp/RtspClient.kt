@@ -12,6 +12,8 @@ import java.net.InetSocketAddress
 import java.net.Socket
 import java.net.SocketAddress
 import java.nio.ByteBuffer
+import java.util.concurrent.Semaphore
+import java.util.concurrent.TimeUnit
 import java.util.regex.Pattern
 
 /**
@@ -21,18 +23,12 @@ class RtspClient(private val connectCheckerRtsp: ConnectCheckerRtsp) {
 
   private val TAG = "RtspClient"
 
-  val host: String?
-    get() = commandsManager.host
-  val port: Int
-    get() = commandsManager.port
-  val path: String?
-    get() = commandsManager.path
-
   //sockets objects
   private var connectionSocket: Socket? = null
   private var reader: BufferedReader? = null
   private var writer: BufferedWriter? = null
   private var thread: HandlerThread? = null
+  private val semaphore = Semaphore(0)
 
   @Volatile
   var isStreaming = false
@@ -87,16 +83,13 @@ class RtspClient(private val connectCheckerRtsp: ConnectCheckerRtsp) {
     return validReason && reTries > 0
   }
 
-  fun setUrl(url: String?) {
-    this.url = url
-  }
-
   fun setSampleRate(sampleRate: Int) {
     commandsManager.sampleRate = sampleRate
   }
 
   fun setSPSandPPS(sps: ByteBuffer?, pps: ByteBuffer?, vps: ByteBuffer?) {
     commandsManager.setVideoInfo(sps, pps, vps)
+    semaphore.release()
   }
 
   fun setIsStereo(isStereo: Boolean) {
@@ -104,7 +97,7 @@ class RtspClient(private val connectCheckerRtsp: ConnectCheckerRtsp) {
   }
 
   @JvmOverloads
-  fun connect(isRetry: Boolean = false) {
+  fun connect(url: String?, isRetry: Boolean = false) {
     if (!isRetry) doingRetry = true
     if (url == null) {
       isStreaming = false
@@ -112,7 +105,8 @@ class RtspClient(private val connectCheckerRtsp: ConnectCheckerRtsp) {
       return
     }
     if (!isStreaming || isRetry) {
-      val rtspMatcher = rtspUrlPattern.matcher(url!!)
+      this.url = url
+      val rtspMatcher = rtspUrlPattern.matcher(url)
       if (rtspMatcher.matches()) {
         tlsEnabled = (rtspMatcher.group(0) ?: "").startsWith("rtsps")
       } else {
@@ -120,22 +114,10 @@ class RtspClient(private val connectCheckerRtsp: ConnectCheckerRtsp) {
         connectCheckerRtsp.onConnectionFailedRtsp("Endpoint malformed, should be: rtsp://ip:port/appname/streamname")
         return
       }
-      val host = rtspMatcher.group(1)
+      val host = rtspMatcher.group(1) ?: ""
       val port: Int = (rtspMatcher.group(2) ?: "554").toInt()
       val path = "/" + rtspMatcher.group(3) + "/" + rtspMatcher.group(4)
-      commandsManager.setUrl(host, port, path)
-      rtspSender.setSocketsInfo(commandsManager.protocol,
-          commandsManager.videoClientPorts, commandsManager.audioClientPorts)
-      rtspSender.setAudioInfo(commandsManager.sampleRate)
-      if (!commandsManager.isOnlyAudio) {
-        if (commandsManager.sps != null && commandsManager.pps != null) {
-          rtspSender.setVideoInfo(commandsManager.sps!!, commandsManager.pps!!,
-              commandsManager.vps)
-        } else {
-          connectCheckerRtsp.onConnectionFailedRtsp("sps or pps is null")
-          return
-        }
-      }
+
       isStreaming = true
       thread = HandlerThread(TAG)
       thread?.start()
@@ -143,16 +125,30 @@ class RtspClient(private val connectCheckerRtsp: ConnectCheckerRtsp) {
         val h = Handler(it.looper)
         h.post {
           try {
+            commandsManager.setUrl(host, port, path)
+            rtspSender.setSocketsInfo(commandsManager.protocol,
+                commandsManager.videoClientPorts, commandsManager.audioClientPorts)
+            rtspSender.setAudioInfo(commandsManager.sampleRate)
+            if (!commandsManager.isOnlyAudio) {
+              if (commandsManager.sps == null && commandsManager.pps == null) {
+                semaphore.tryAcquire(5000, TimeUnit.MILLISECONDS) //wait for sps and pps
+              }
+              if (commandsManager.sps == null && commandsManager.pps == null) {
+                connectCheckerRtsp.onConnectionFailedRtsp("sps or pps is null")
+                return@post
+              } else {
+                rtspSender.setVideoInfo(commandsManager.sps!!, commandsManager.pps!!,
+                    commandsManager.vps)
+              }
+            }
             if (!tlsEnabled) {
               connectionSocket = Socket()
-              val socketAddress: SocketAddress = InetSocketAddress(commandsManager.host, commandsManager.port)
+              val socketAddress: SocketAddress = InetSocketAddress(host, port)
               connectionSocket?.connect(socketAddress, 5000)
             } else {
-              connectionSocket = createSSlSocket(commandsManager.host ?: "",
-                  commandsManager.port)
+              connectionSocket = createSSlSocket(host, port)
               if (connectionSocket == null) throw IOException("Socket creation failed")
             }
-            connectionSocket?.sendBufferSize = 1
             connectionSocket?.soTimeout = 5000
             reader = BufferedReader(InputStreamReader(connectionSocket?.getInputStream()))
             val outputStream = connectionSocket?.getOutputStream()
@@ -212,8 +208,8 @@ class RtspClient(private val connectCheckerRtsp: ConnectCheckerRtsp) {
             writer?.write(commandsManager.createRecord())
             writer?.flush()
             commandsManager.getResponse(reader, isAudio = false, checkStatus = true)
-            outputStream?.let {
-              rtspSender.setDataStream(it, commandsManager.host ?: "")
+            outputStream?.let { out ->
+              rtspSender.setDataStream(out, host)
             }
             val videoPorts = commandsManager.videoServerPorts
             val audioPorts = commandsManager.audioServerPorts
@@ -310,7 +306,7 @@ class RtspClient(private val connectCheckerRtsp: ConnectCheckerRtsp) {
     disconnect(false)
     runnable = Runnable {
       Log.e("Pedro", "connect")
-      connect(true)
+      connect(url, true)
     }
     runnable?.let { handler.postDelayed(it, delay) }
   }

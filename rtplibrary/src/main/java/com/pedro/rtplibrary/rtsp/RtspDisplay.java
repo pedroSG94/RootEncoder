@@ -106,7 +106,7 @@ public class RtspDisplay extends DisplayBase {
 
   @Override
   protected void startStreamRtp(String url) {
-    rtspClient.setUrl(url);
+    rtspClient.connect(url);
   }
 
   @Override
@@ -145,7 +145,6 @@ public class RtspDisplay extends DisplayBase {
     ByteBuffer newPps = pps.duplicate();
     ByteBuffer newVps = vps != null ? vps.duplicate() : null;
     rtspClient.setSPSandPPS(newSps, newPps, newVps);
-    rtspClient.connect();
   }
 
   @Override
