@@ -25,6 +25,7 @@ class RtspSender(private val connectCheckerRtsp: ConnectCheckerRtsp) : VideoPack
   private var aacPacket: AacPacket? = null
   private var rtpSocket: BaseRtpSocket? = null
   private var baseSenderReport: BaseSenderReport? = null
+  private var running = false
 
   @Volatile
   private var rtpFrameBlockingQueue: BlockingQueue<RtpFrame> = LinkedBlockingQueue(defaultCacheSize)
@@ -75,11 +76,11 @@ class RtspSender(private val connectCheckerRtsp: ConnectCheckerRtsp) : VideoPack
   }
 
   fun sendVideoFrame(h264Buffer: ByteBuffer, info: MediaCodec.BufferInfo) {
-    videoPacket?.createAndSendPacket(h264Buffer, info)
+    if (running) videoPacket?.createAndSendPacket(h264Buffer, info)
   }
 
   fun sendAudioFrame(aacBuffer: ByteBuffer, info: MediaCodec.BufferInfo) {
-    aacPacket?.createAndSendPacket(aacBuffer, info)
+    if (running) aacPacket?.createAndSendPacket(aacBuffer, info)
   }
 
   override fun onVideoFrameCreated(rtpFrame: RtpFrame) {
@@ -105,6 +106,7 @@ class RtspSender(private val connectCheckerRtsp: ConnectCheckerRtsp) : VideoPack
     thread?.start()
     thread?.let {
       val h = Handler(it.looper)
+      running = true
       h.post {
         while (!Thread.interrupted()) {
           try {
@@ -123,7 +125,10 @@ class RtspSender(private val connectCheckerRtsp: ConnectCheckerRtsp) : VideoPack
             }
             baseSenderReport?.update(rtpFrame, isEnableLogs)
           } catch (e: Exception) {
-            connectCheckerRtsp.onConnectionFailedRtsp("Error send packet, " + e.message)
+            //InterruptedException is only when you disconnect manually, you don't need report it.
+            if (e !is InterruptedException) {
+              connectCheckerRtsp.onConnectionFailedRtsp("Error send packet, " + e.message)
+            }
             Log.e(TAG, "send error: ", e)
             return@post
           }
@@ -133,6 +138,7 @@ class RtspSender(private val connectCheckerRtsp: ConnectCheckerRtsp) : VideoPack
   }
 
   fun stop() {
+    running = false
     thread?.looper?.thread?.interrupt()
     thread?.looper?.quit()
     thread?.quit()

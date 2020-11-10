@@ -2,6 +2,7 @@ package com.pedro.rtsp.rtcp
 
 import android.util.Log
 import com.pedro.rtsp.rtsp.RtpFrame
+import com.pedro.rtsp.utils.RtpConstants
 import java.io.IOException
 import java.io.OutputStream
 import java.net.DatagramPacket
@@ -49,16 +50,18 @@ class SenderReportUdp(videoSourcePort: Int, audioSourcePort: Int) : BaseSenderRe
 
   @Throws(IOException::class)
   private fun sendReportUDP(buffer: ByteArray, port: Int, type: String, packet: Int, octet: Int, isEnableLogs: Boolean) {
-    datagramPacket.data = buffer
-    datagramPacket.port = port
-    datagramPacket.length = PACKET_LENGTH
-    if (type == "Video") {
-      multicastSocketVideo?.send(datagramPacket)
-    } else {
-      multicastSocketAudio?.send(datagramPacket)
-    }
-    if (isEnableLogs) {
-      Log.i(TAG, "wrote report: $type, port: $port, packets: $packet, octet: $octet")
+    synchronized(RtpConstants.lock) {
+      datagramPacket.data = buffer
+      datagramPacket.port = port
+      datagramPacket.length = PACKET_LENGTH
+      if (type == "Video") {
+        multicastSocketVideo?.send(datagramPacket)
+      } else {
+        multicastSocketAudio?.send(datagramPacket)
+      }
+      if (isEnableLogs) {
+        Log.i(TAG, "wrote report: $type, port: $port, packets: $packet, octet: $octet")
+      }
     }
   }
 }

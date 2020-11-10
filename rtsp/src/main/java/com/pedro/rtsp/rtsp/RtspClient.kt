@@ -88,6 +88,7 @@ class RtspClient(private val connectCheckerRtsp: ConnectCheckerRtsp) {
   }
 
   fun setSPSandPPS(sps: ByteBuffer?, pps: ByteBuffer?, vps: ByteBuffer?) {
+    Log.i(TAG, "send sps and pps")
     commandsManager.setVideoInfo(sps, pps, vps)
     semaphore.release()
   }
@@ -131,14 +132,15 @@ class RtspClient(private val connectCheckerRtsp: ConnectCheckerRtsp) {
             rtspSender.setAudioInfo(commandsManager.sampleRate)
             if (!commandsManager.isOnlyAudio) {
               if (commandsManager.sps == null && commandsManager.pps == null) {
-                semaphore.tryAcquire(5000, TimeUnit.MILLISECONDS) //wait for sps and pps
+                semaphore.drainPermits()
+                Log.i(TAG, "waiting for sps and pps")
+                semaphore.tryAcquire(5000, TimeUnit.MILLISECONDS)
               }
               if (commandsManager.sps == null && commandsManager.pps == null) {
                 connectCheckerRtsp.onConnectionFailedRtsp("sps or pps is null")
                 return@post
               } else {
-                rtspSender.setVideoInfo(commandsManager.sps!!, commandsManager.pps!!,
-                    commandsManager.vps)
+                rtspSender.setVideoInfo(commandsManager.sps!!, commandsManager.pps!!, commandsManager.vps)
               }
             }
             if (!tlsEnabled) {
@@ -260,6 +262,7 @@ class RtspClient(private val connectCheckerRtsp: ConnectCheckerRtsp) {
           connectionSocket?.close()
           writer = null
           connectionSocket = null
+          Log.i(TAG, "write teardown success")
         } catch (e: IOException) {
           if (clear) {
             commandsManager.clear()
@@ -278,6 +281,7 @@ class RtspClient(private val connectCheckerRtsp: ConnectCheckerRtsp) {
       writer?.flush()
       thread?.join(100)
       thread = null
+      semaphore.release()
     } catch (e: Exception) { }
     if (clear) {
       reTries = numRetry

@@ -2,6 +2,7 @@ package com.pedro.rtsp.rtp.sockets
 
 import android.util.Log
 import com.pedro.rtsp.rtsp.RtpFrame
+import com.pedro.rtsp.utils.RtpConstants
 import java.io.IOException
 import java.io.OutputStream
 import java.net.DatagramPacket
@@ -49,16 +50,18 @@ class RtpSocketUdp(videoSourcePort: Int, audioSourcePort: Int) : BaseRtpSocket()
 
   @Throws(IOException::class)
   private fun sendFrameUDP(rtpFrame: RtpFrame, isEnableLogs: Boolean) {
-    datagramPacket.data = rtpFrame.buffer
-    datagramPacket.port = rtpFrame.rtpPort
-    datagramPacket.length = rtpFrame.length
-    if (rtpFrame.isVideoFrame()) {
-      multicastSocketVideo?.send(datagramPacket)
-    } else {
-      multicastSocketAudio?.send(datagramPacket)
-    }
-    if (isEnableLogs) {
-      Log.i(TAG, "wrote packet: ${(if (rtpFrame.isVideoFrame()) "Video" else "Audio")}, size: ${rtpFrame.length}, port: ${rtpFrame.rtpPort}")
+    synchronized(RtpConstants.lock) {
+      datagramPacket.data = rtpFrame.buffer
+      datagramPacket.port = rtpFrame.rtpPort
+      datagramPacket.length = rtpFrame.length
+      if (rtpFrame.isVideoFrame()) {
+        multicastSocketVideo?.send(datagramPacket)
+      } else {
+        multicastSocketAudio?.send(datagramPacket)
+      }
+      if (isEnableLogs) {
+        Log.i(TAG, "wrote packet: ${(if (rtpFrame.isVideoFrame()) "Video" else "Audio")}, size: ${rtpFrame.length}, port: ${rtpFrame.rtpPort}")
+      }
     }
   }
 }
