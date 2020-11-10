@@ -162,7 +162,6 @@ public class RtspClient {
                   commandsManager.getPort());
               if (connectionSocket == null) throw new IOException("Socket creation failed");
             }
-            connectionSocket.setSendBufferSize(1);
             connectionSocket.setSoTimeout(5000);
             reader = new BufferedReader(new InputStreamReader(connectionSocket.getInputStream()));
             outputStream = connectionSocket.getOutputStream();
