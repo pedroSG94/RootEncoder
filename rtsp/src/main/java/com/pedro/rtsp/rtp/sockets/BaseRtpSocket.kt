@@ -8,7 +8,7 @@ import java.io.OutputStream
 /**
  * Created by pedro on 7/11/18.
  */
-abstract class BaseRtpSocket {
+internal abstract class BaseRtpSocket {
 
   protected val TAG = "BaseRtpSocket"
 

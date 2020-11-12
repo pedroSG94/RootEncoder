@@ -5,7 +5,7 @@ package com.pedro.rtsp.utils
  *
  * Calculate video and audio bitrate per second
  */
-class BitrateManager(private val connectCheckerRtsp: ConnectCheckerRtsp) {
+internal class BitrateManager(private val connectCheckerRtsp: ConnectCheckerRtsp) {
 
   private var bitrate: Long = 0
   private var timeStamp = System.currentTimeMillis()

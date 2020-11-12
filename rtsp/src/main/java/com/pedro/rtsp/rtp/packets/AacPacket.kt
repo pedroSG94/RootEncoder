@@ -12,7 +12,7 @@ import kotlin.experimental.or
  *
  * RFC 3640.
  */
-class AacPacket(sampleRate: Int, private val audioPacketCallback: AudioPacketCallback) : BasePacket(sampleRate.toLong()) {
+internal class AacPacket(sampleRate: Int, private val audioPacketCallback: AudioPacketCallback) : BasePacket(sampleRate.toLong()) {
 
   init {
     channelIdentifier = 0.toByte()

@@ -11,7 +11,7 @@ import kotlin.experimental.or
 /**
  * Created by pedro on 27/11/18.
  */
-abstract class BasePacket(private val clock: Long) {
+internal abstract class BasePacket(private val clock: Long) {
 
   protected var channelIdentifier: Byte = 0
   protected var rtpPort = 0

@@ -9,7 +9,7 @@ import java.io.OutputStream
 /**
  * Created by pedro on 7/11/18.
  */
-class RtpSocketTcp : BaseRtpSocket() {
+internal class RtpSocketTcp : BaseRtpSocket() {
 
   private var outputStream: OutputStream? = null
   private val tcpHeader: ByteArray = byteArrayOf('$'.toByte(), 0, 0, 0)

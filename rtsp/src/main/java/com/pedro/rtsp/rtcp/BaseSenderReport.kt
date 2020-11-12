@@ -11,7 +11,7 @@ import java.util.*
 /**
  * Created by pedro on 7/11/18.
  */
-abstract class BaseSenderReport internal constructor() {
+internal abstract class BaseSenderReport internal constructor() {
 
   private val interval: Long = 3000
   private val MTU = 1500

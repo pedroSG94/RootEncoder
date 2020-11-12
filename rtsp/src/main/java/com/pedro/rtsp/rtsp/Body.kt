@@ -26,7 +26,6 @@ object Body {
       -1,  // 14
       -1)
 
-  @JvmStatic
   fun createAacBody(trackAudio: Int, sampleRate: Int, isStereo: Boolean): String {
     val sampleRateNum = AUDIO_SAMPLING_RATES.toList().indexOf(sampleRate)
     val channel = if (isStereo) 2 else 1
@@ -37,7 +36,6 @@ object Body {
         "a=control:trackID=$trackAudio\r\n"
   }
 
-  @JvmStatic
   fun createH264Body(trackVideo: Int, sps: String, pps: String): String {
     return "m=video 0 RTP/AVP ${RtpConstants.payloadType}\r\n" +
         "a=rtpmap:${RtpConstants.payloadType} H264/${RtpConstants.clockVideoFrequency}\r\n" +
@@ -45,7 +43,6 @@ object Body {
         "a=control:trackID=$trackVideo\r\n"
   }
 
-  @JvmStatic
   fun createH265Body(trackVideo: Int, sps: String, pps: String, vps: String): String {
     return "m=video 0 RTP/AVP ${RtpConstants.payloadType}\r\n" +
         "a=rtpmap:${RtpConstants.payloadType} H265/${RtpConstants.clockVideoFrequency}\r\n" +

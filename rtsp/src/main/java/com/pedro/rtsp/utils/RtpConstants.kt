@@ -3,7 +3,7 @@ package com.pedro.rtsp.utils
 /**
  * Created by pedro on 19/02/17.
  */
-object RtpConstants {
+internal object RtpConstants {
 
   @JvmField
   val lock = Any()

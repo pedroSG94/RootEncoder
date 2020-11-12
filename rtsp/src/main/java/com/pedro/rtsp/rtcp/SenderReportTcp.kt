@@ -9,7 +9,7 @@ import java.io.OutputStream
 /**
  * Created by pedro on 8/11/18.
  */
-class SenderReportTcp : BaseSenderReport() {
+internal class SenderReportTcp : BaseSenderReport() {
 
   private var outputStream: OutputStream? = null
   private val tcpHeader: ByteArray = byteArrayOf('$'.toByte(), 0, 0, PACKET_LENGTH.toByte())

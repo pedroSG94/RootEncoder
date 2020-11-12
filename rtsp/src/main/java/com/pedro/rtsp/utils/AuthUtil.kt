@@ -8,7 +8,7 @@ import kotlin.experimental.and
 /**
  * Created by pedro on 22/02/17.
  */
-object AuthUtil {
+internal object AuthUtil {
 
   private val hexArray = charArrayOf('0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f')
 
