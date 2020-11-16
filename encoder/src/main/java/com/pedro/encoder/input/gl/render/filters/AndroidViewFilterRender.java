@@ -49,13 +49,14 @@ public class AndroidViewFilterRender extends BaseFilterRender {
   private View view;
   private SurfaceTexture surfaceTexture;
   private Surface surface;
-  private Handler mainHandler;
+  private final Handler mainHandler;
 
   private int rotation;
   private float positionX = 0, positionY = 0;
   private float scaleX = 1f, scaleY = 1f;
   private boolean loaded = false;
   private float viewX, viewY;
+  private volatile boolean renderingView = false;
 
   public AndroidViewFilterRender() {
     squareVertex = ByteBuffer.allocateDirect(squareVertexDataFilter.length * FLOAT_SIZE_BYTES)
@@ -88,26 +89,35 @@ public class AndroidViewFilterRender extends BaseFilterRender {
   @Override
   protected void drawFilter() {
     surfaceTexture.setDefaultBufferSize(getPreviewWidth(), getPreviewHeight());
-    if (view != null) {
-      mainHandler.post(new Runnable() {
-        @Override
-        public void run() {
-          Canvas canvas = surface.lockCanvas(null);
-          canvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR);
-          float scaleFactorX = 100f * (float) view.getWidth() / (float) getPreviewWidth();
-          float scaleFactorY = 100f * (float) view.getHeight() / (float) getPreviewHeight();
-          canvas.translate(positionX, positionY);
-          canvas.rotate(rotation, viewX / 2f, viewY / 2f);
-          if (!loaded) {
-            scaleX = scaleFactorX;
-            scaleY = scaleFactorY;
-            loaded = true;
+    if (view != null && !renderingView) {
+      renderingView = true;
+      final Canvas canvas = surface.lockCanvas(null);
+      canvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR);
+      float scaleFactorX = 100f * (float) view.getWidth() / (float) getPreviewWidth();
+      float scaleFactorY = 100f * (float) view.getHeight() / (float) getPreviewHeight();
+      canvas.translate(positionX, positionY);
+      canvas.rotate(rotation, viewX / 2f, viewY / 2f);
+      if (!loaded) {
+        scaleX = scaleFactorX;
+        scaleY = scaleFactorY;
+        loaded = true;
+      }
+      canvas.scale(scaleX / scaleFactorX, scaleY / scaleFactorY);
+      try {
+        view.draw(canvas);
+        surface.unlockCanvasAndPost(canvas);
+        renderingView = false;
+        //Sometimes draw could crash if you don't use main thread. Ensuring you can render always
+      } catch (Exception e) {
+        mainHandler.post(new Runnable() {
+          @Override
+          public void run() {
+            view.draw(canvas);
+            surface.unlockCanvasAndPost(canvas);
+            renderingView = false;
           }
-          canvas.scale(scaleX / scaleFactorX, scaleY / scaleFactorY);
-          view.draw(canvas);
-          surface.unlockCanvasAndPost(canvas);
-        }
-      });
+        });
+      }
     }
     surfaceTexture.updateTexImage();
 

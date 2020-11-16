@@ -53,8 +53,8 @@ public class RtmpConnection implements RtmpPublisher {
   private String tcUrl;
   private String pageUrl;
   private Socket socket;
-  private RtmpSessionInfo rtmpSessionInfo;
-  private RtmpDecoder rtmpDecoder;
+  private final RtmpSessionInfo rtmpSessionInfo = new RtmpSessionInfo();
+  private final RtmpDecoder rtmpDecoder = new RtmpDecoder(rtmpSessionInfo);
   private BufferedInputStream inputStream;
   private BufferedOutputStream outputStream;
   private Thread rxPacketHandler;
@@ -66,7 +66,7 @@ public class RtmpConnection implements RtmpPublisher {
   private int transactionIdCounter = 0;
   private int videoWidth;
   private int videoHeight;
-  private ConnectCheckerRtmp connectCheckerRtmp;
+  private final ConnectCheckerRtmp connectCheckerRtmp;
   //for secure transport
   private boolean tlsEnabled;
   //for auth
@@ -77,7 +77,7 @@ public class RtmpConnection implements RtmpPublisher {
   private String opaque = null;
   private boolean onAuth = false;
   private String netConnectionDescription;
-  private BitrateManager bitrateManager;
+  private final BitrateManager bitrateManager;
   private boolean isEnableLogs = true;
 
   public RtmpConnection(ConnectCheckerRtmp connectCheckerRtmp) {
@@ -156,8 +156,7 @@ public class RtmpConnection implements RtmpPublisher {
         + appName
         + ", publishPath: "
         + streamName);
-    rtmpSessionInfo = new RtmpSessionInfo();
-    rtmpDecoder = new RtmpDecoder(rtmpSessionInfo);
+    rtmpSessionInfo.reset();
     try {
       if (!tlsEnabled) {
         socket = new Socket();
@@ -167,7 +166,6 @@ public class RtmpConnection implements RtmpPublisher {
         socket = CreateSSLSocket.createSSlSocket(host, port);
         if (socket == null) throw new IOException("Socket creation failed");
       }
-      socket.setSendBufferSize(1);
       inputStream = new BufferedInputStream(socket.getInputStream());
       outputStream = new BufferedOutputStream(socket.getOutputStream());
       Log.d(TAG, "connect(): socket connection established, doing handhake...");
@@ -438,12 +436,12 @@ public class RtmpConnection implements RtmpPublisher {
     currentStreamId = 0;
     transactionIdCounter = 0;
     socket = null;
-    rtmpSessionInfo = null;
     user = null;
     password = null;
     salt = null;
     challenge = null;
     opaque = null;
+    rtmpSessionInfo.reset();
   }
 
   @Override
@@ -604,8 +602,7 @@ public class RtmpConnection implements RtmpPublisher {
             } catch (Exception e) {
               e.printStackTrace();
             }
-            rtmpSessionInfo = new RtmpSessionInfo();
-            rtmpDecoder = new RtmpDecoder(rtmpSessionInfo);
+            rtmpSessionInfo.reset();
             if (!tlsEnabled) {
               socket = new Socket(host, port);
             } else {

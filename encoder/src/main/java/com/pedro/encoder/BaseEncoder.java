@@ -121,7 +121,7 @@ public abstract class BaseEncoder implements EncoderCallback {
         inputAvailable(codec, inBufferIndex);
       }
     }
-    for (; running; ) {
+    while (running) {
       int outBufferIndex = codec.dequeueOutputBuffer(bufferInfo, 0);
       if (outBufferIndex == MediaCodec.INFO_OUTPUT_FORMAT_CHANGED) {
         MediaFormat mediaFormat = codec.getOutputFormat();
@@ -140,11 +140,12 @@ public abstract class BaseEncoder implements EncoderCallback {
       int inBufferIndex) throws IllegalStateException {
     try {
       Frame frame = getInputFrame();
-      if (frame == null) return;
+      while (frame == null) frame = getInputFrame();
       byteBuffer.clear();
-      byteBuffer.put(frame.getBuffer(), frame.getOffset(), frame.getSize());
+      int size = Math.max(frame.getSize(), 0);
+      byteBuffer.put(frame.getBuffer(), frame.getOffset(), size);
       long pts = System.nanoTime() / 1000 - presentTimeUs;
-      mediaCodec.queueInputBuffer(inBufferIndex, 0, frame.getSize(), pts, 0);
+      mediaCodec.queueInputBuffer(inBufferIndex, 0, size, pts, 0);
     } catch (InterruptedException e) {
       Thread.currentThread().interrupt();
     } catch (NullPointerException e) {

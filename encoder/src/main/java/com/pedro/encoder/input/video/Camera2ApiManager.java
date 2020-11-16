@@ -596,6 +596,7 @@ public class Camera2ApiManager extends CameraDevice.StateCallback {
       builderInputSurface.set(CaptureRequest.SCALER_CROP_REGION, zoom);
       cameraCaptureSession.setRepeatingRequest(builderInputSurface.build(),
           faceDetectionEnabled ? cb : null, null);
+      zoomLevel = level;
     } catch (CameraAccessException e) {
       Log.e(TAG, "Error", e);
     }
@@ -608,18 +609,19 @@ public class Camera2ApiManager extends CameraDevice.StateCallback {
       float delta = 0.1f;
       float maxZoom = getMaxZoom();
       if (fingerSpacing != 0) {
+        float newLevel = zoomLevel;
         if (currentFingerSpacing > fingerSpacing) { //Don't over zoom-in
           if ((maxZoom - zoomLevel) <= delta) {
             delta = maxZoom - zoomLevel;
           }
-          zoomLevel += delta;
+          newLevel += delta;
         } else if (currentFingerSpacing < fingerSpacing) { //Don't over zoom-out
           if ((zoomLevel - delta) < 1f) {
             delta = zoomLevel - 1f;
           }
-          zoomLevel -= delta;
+          newLevel -= delta;
         }
-        setZoom(zoomLevel);
+        setZoom(newLevel);
       }
       fingerSpacing = currentFingerSpacing;
     }
