@@ -275,7 +275,7 @@ public class SrsFlvMuxer {
   /**
    * start to the remote SRS for remux.
    */
-  public void start(final String rtmpUrl, boolean isRetry) {
+  public void start(final String rtmpUrl, final boolean isRetry) {
     if (!isRetry) doingRetry = true;
     startTs = System.nanoTime() / 1000;
     worker = new Thread(new Runnable() {
@@ -285,6 +285,7 @@ public class SrsFlvMuxer {
         if (!connect(rtmpUrl)) {
           return;
         }
+        if (isRetry) flv.reset();
         reTries = numRetry;
         connectCheckerRtmp.onConnectionSuccessRtmp();
         while (!Thread.interrupted()) {
