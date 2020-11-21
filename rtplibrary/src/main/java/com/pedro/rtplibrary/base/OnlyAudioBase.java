@@ -90,7 +90,9 @@ public abstract class OnlyAudioBase implements GetAacData, GetMicrophoneData {
    */
   public boolean prepareAudio(int bitrate, int sampleRate, boolean isStereo, boolean echoCanceler,
       boolean noiseSuppressor) {
-    microphoneManager.createMicrophone(sampleRate, isStereo, echoCanceler, noiseSuppressor);
+    if (!microphoneManager.createMicrophone(sampleRate, isStereo, echoCanceler, noiseSuppressor)) {
+      return false;
+    }
     prepareAudioRtp(isStereo, sampleRate);
     return audioEncoder.prepareAudioEncoder(bitrate, sampleRate, isStereo,
         microphoneManager.getMaxInputSize());

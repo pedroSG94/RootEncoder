@@ -185,7 +185,9 @@ public abstract class DisplayBase implements GetAacData, GetVideoData, GetMicrop
    */
   public boolean prepareAudio(int bitrate, int sampleRate, boolean isStereo, boolean echoCanceler,
       boolean noiseSuppressor) {
-    microphoneManager.createMicrophone(sampleRate, isStereo, echoCanceler, noiseSuppressor);
+    if (!microphoneManager.createMicrophone(sampleRate, isStereo, echoCanceler, noiseSuppressor)) {
+      return false;
+    }
     prepareAudioRtp(isStereo, sampleRate);
     audioInitialized = audioEncoder.prepareAudioEncoder(bitrate, sampleRate, isStereo,
         microphoneManager.getMaxInputSize());
@@ -218,8 +220,10 @@ public abstract class DisplayBase implements GetAacData, GetVideoData, GetMicrop
             .addMatchingUsage(AudioAttributes.USAGE_GAME)
             .addMatchingUsage(AudioAttributes.USAGE_UNKNOWN)
             .build();
-    microphoneManager.createInternalMicrophone(config, sampleRate, isStereo, echoCanceler,
-        noiseSuppressor);
+    if (!microphoneManager.createInternalMicrophone(config, sampleRate, isStereo, echoCanceler,
+        noiseSuppressor)) {
+      return false;
+    }
     prepareAudioRtp(isStereo, sampleRate);
     audioInitialized = audioEncoder.prepareAudioEncoder(bitrate, sampleRate, isStereo,
         microphoneManager.getMaxInputSize());
