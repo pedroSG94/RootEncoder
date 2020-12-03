@@ -11,7 +11,7 @@ import kotlin.experimental.or
 /**
  * Created by pedro on 27/11/18.
  */
-internal abstract class BasePacket(private val clock: Long) {
+internal abstract class BasePacket(private val clock: Long, private val payloadType: Int) {
 
   protected var channelIdentifier: Byte = 0
   protected var rtpPort = 0
@@ -36,7 +36,7 @@ internal abstract class BasePacket(private val clock: Long) {
   protected fun getBuffer(size: Int): ByteArray {
     val buffer = ByteArray(size)
     buffer[0] = "10000000".toInt(2).toByte()
-    buffer[1] = RtpConstants.payloadType.toByte()
+    buffer[1] = payloadType.toByte()
     setLongSSRC(buffer, ssrc)
     requestBuffer(buffer)
     return buffer

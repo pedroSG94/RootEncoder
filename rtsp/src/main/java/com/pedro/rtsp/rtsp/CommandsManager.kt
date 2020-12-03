@@ -180,7 +180,7 @@ class CommandsManager(private val connectCheckerRtsp: ConnectCheckerRtsp) {
     val params = if (protocol === Protocol.UDP) {
       "UDP;unicast;client_port=${udpPorts[0]}-${udpPorts[1]};mode=record"
     } else {
-      "TCP;interleaved=${2 * track}-${2 * track + 1};mode=record"
+      "TCP;unicast;interleaved=${2 * track}-${2 * track + 1};mode=record"
     }
     val setup = "SETUP rtsp://$host:$port$path/trackID=$track RTSP/1.0\r\n" +
         "Transport: RTP/AVP/$params\r\n" +

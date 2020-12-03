@@ -12,7 +12,7 @@ import kotlin.experimental.and
  *
  * RFC 3984
  */
-internal class H264Packet(sps: ByteArray, pps: ByteArray, private val videoPacketCallback: VideoPacketCallback) : BasePacket(RtpConstants.clockVideoFrequency) {
+internal class H264Packet(sps: ByteArray, pps: ByteArray, private val videoPacketCallback: VideoPacketCallback) : BasePacket(RtpConstants.clockVideoFrequency, RtpConstants.payloadTypeVideo) {
 
   private val header = ByteArray(5)
   private var stapA: ByteArray? = null
