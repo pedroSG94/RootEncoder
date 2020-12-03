@@ -117,7 +117,8 @@ class RtspClient(private val connectCheckerRtsp: ConnectCheckerRtsp) {
       }
       val host = rtspMatcher.group(1) ?: ""
       val port: Int = (rtspMatcher.group(2) ?: "554").toInt()
-      val path = "/" + rtspMatcher.group(3) + "/" + rtspMatcher.group(4)
+      val streamName = if (rtspMatcher.group(4).isNullOrEmpty()) "" else "/" + rtspMatcher.group(4)
+      val path = "/" + rtspMatcher.group(3) + streamName
 
       isStreaming = true
       thread = HandlerThread(TAG)
