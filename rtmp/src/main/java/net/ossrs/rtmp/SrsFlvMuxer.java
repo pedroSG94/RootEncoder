@@ -285,7 +285,7 @@ public class SrsFlvMuxer {
         if (!connect(rtmpUrl)) {
           return;
         }
-        if (isRetry) flv.reset();
+        if (isRetry) flv.retry();
         reTries = numRetry;
         connectCheckerRtmp.onConnectionSuccessRtmp();
         while (!Thread.interrupted()) {
@@ -774,6 +774,11 @@ public class SrsFlvMuxer {
     public void reset() {
       Sps = null;
       Pps = null;
+      isPpsSpsSend = false;
+      aac_specific_config_got = false;
+    }
+
+    public void retry() {
       isPpsSpsSend = false;
       aac_specific_config_got = false;
     }
