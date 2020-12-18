@@ -19,7 +19,7 @@ internal class H264Packet(sps: ByteArray, pps: ByteArray, private val videoPacke
   private var sendKeyFrame = false
 
   init {
-    channelIdentifier = 2.toByte()
+    channelIdentifier = (RtpConstants.trackVideo * 2).toByte()
     setSpsPps(sps, pps)
   }
 

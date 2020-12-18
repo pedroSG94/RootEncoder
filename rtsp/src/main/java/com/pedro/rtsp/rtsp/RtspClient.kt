@@ -7,6 +7,7 @@ import android.os.Looper
 import android.util.Log
 import com.pedro.rtsp.utils.ConnectCheckerRtsp
 import com.pedro.rtsp.utils.CreateSSLSocket.createSSlSocket
+import com.pedro.rtsp.utils.RtpConstants
 import java.io.*
 import java.net.InetSocketAddress
 import java.net.Socket
@@ -62,6 +63,13 @@ class RtspClient(private val connectCheckerRtsp: ConnectCheckerRtsp) {
   }
 
   fun setOnlyAudio(onlyAudio: Boolean) {
+    if (onlyAudio) {
+      RtpConstants.trackAudio = 0
+      RtpConstants.trackVideo = 1
+    } else {
+      RtpConstants.trackVideo = 0
+      RtpConstants.trackAudio = 1
+    }
     commandsManager.isOnlyAudio = onlyAudio
   }
 
@@ -200,14 +208,14 @@ class RtspClient(private val connectCheckerRtsp: ConnectCheckerRtsp) {
                 return@post
               }
             }
-            writer?.write(commandsManager.createSetup(commandsManager.trackAudio))
-            writer?.flush()
-            commandsManager.getResponse(reader, isAudio = true, checkStatus = true)
             if (!commandsManager.isOnlyAudio) {
-              writer?.write(commandsManager.createSetup(commandsManager.trackVideo))
+              writer?.write(commandsManager.createSetup(RtpConstants.trackVideo))
               writer?.flush()
               commandsManager.getResponse(reader, isAudio = false, checkStatus = true)
             }
+            writer?.write(commandsManager.createSetup(RtpConstants.trackAudio))
+            writer?.flush()
+            commandsManager.getResponse(reader, isAudio = true, checkStatus = true)
             writer?.write(commandsManager.createRecord())
             writer?.flush()
             commandsManager.getResponse(reader, isAudio = false, checkStatus = true)

@@ -7,6 +7,7 @@ import com.pedro.rtsp.rtsp.Body.createH264Body
 import com.pedro.rtsp.rtsp.Body.createH265Body
 import com.pedro.rtsp.utils.AuthUtil.getMd5Hash
 import com.pedro.rtsp.utils.ConnectCheckerRtsp
+import com.pedro.rtsp.utils.RtpConstants
 import java.io.BufferedReader
 import java.io.IOException
 import java.nio.ByteBuffer
@@ -34,8 +35,6 @@ class CommandsManager(private val connectCheckerRtsp: ConnectCheckerRtsp) {
   private val timeStamp: Long
   var sampleRate = 32000
   var isStereo = true
-  val trackAudio = 0
-  val trackVideo = 1
   var protocol: Protocol = Protocol.TCP
   var isOnlyAudio = false
 
@@ -132,9 +131,9 @@ class CommandsManager(private val connectCheckerRtsp: ConnectCheckerRtsp) {
     var videoBody = ""
     if (!isOnlyAudio) {
       videoBody = if (vps == null) {
-        createH264Body(trackVideo, spsString, ppsString)
+        createH264Body(RtpConstants.trackVideo, spsString, ppsString)
       } else {
-        createH265Body(trackVideo, spsString, ppsString, vpsString)
+        createH265Body(RtpConstants.trackVideo, spsString, ppsString, vpsString)
       }
     }
     return "v=0\r\n" +
@@ -144,7 +143,7 @@ class CommandsManager(private val connectCheckerRtsp: ConnectCheckerRtsp) {
         "c=IN IP4 $host\r\n" +
         "t=0 0\r\n" +
         "a=recvonly\r\n" +
-        "$videoBody${createAacBody(trackAudio, sampleRate, isStereo)}"
+        "$videoBody${createAacBody(RtpConstants.trackAudio, sampleRate, isStereo)}"
   }
 
   private fun createAuth(authResponse: String): String {
@@ -176,7 +175,7 @@ class CommandsManager(private val connectCheckerRtsp: ConnectCheckerRtsp) {
   }
 
   fun createSetup(track: Int): String {
-    val udpPorts = if (track == trackVideo) videoClientPorts else audioClientPorts
+    val udpPorts = if (track == RtpConstants.trackVideo) videoClientPorts else audioClientPorts
     val params = if (protocol === Protocol.UDP) {
       "UDP;unicast;client_port=${udpPorts[0]}-${udpPorts[1]};mode=record"
     } else {

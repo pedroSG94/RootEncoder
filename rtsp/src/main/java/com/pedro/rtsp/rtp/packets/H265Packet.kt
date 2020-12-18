@@ -19,7 +19,7 @@ internal class H265Packet(sps: ByteArray, pps: ByteArray, vps: ByteArray, privat
   private var sendKeyFrame = false
 
   init {
-    channelIdentifier = 2.toByte()
+    channelIdentifier = (RtpConstants.trackVideo * 2).toByte()
     setSpsPpsVps(sps, pps, vps)
   }
 

@@ -7,6 +7,8 @@ internal object RtpConstants {
 
   @JvmField
   val lock = Any()
+  var trackAudio = 1
+  var trackVideo = 0
   const val clockVideoFrequency = 90000L
   const val RTP_HEADER_LENGTH = 12
   const val MTU = 1300

@@ -48,7 +48,8 @@ internal abstract class BaseSenderReport internal constructor() {
     videoBuffer[0] = "10000000".toInt(2).toByte()
     audioBuffer[0] = "10000000".toInt(2).toByte()
 
-    /* Packet Type PT */videoBuffer[1] = 200.toByte()
+    /* Packet Type PT */
+    videoBuffer[1] = 200.toByte()
     audioBuffer[1] = 200.toByte()
 
     /* Byte 2,3          ->  Length		                     */
