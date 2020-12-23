@@ -85,9 +85,6 @@ public class AudioEncoder extends BaseEncoder implements GetMicrophoneData {
 
   @Override
   public void start(boolean resetTs) {
-    if (resetTs) {
-      presentTimeUs = System.nanoTime() / 1000;
-    }
     Log.i(TAG, "started");
   }
 
@@ -97,7 +94,7 @@ public class AudioEncoder extends BaseEncoder implements GetMicrophoneData {
   }
 
   public void reset() {
-    stop();
+    stop(false);
     prepareAudioEncoder(bitRate, sampleRate, isStereo, maxInputSize);
     restart();
   }

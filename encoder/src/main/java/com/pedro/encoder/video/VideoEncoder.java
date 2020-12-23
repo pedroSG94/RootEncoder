@@ -157,7 +157,6 @@ public class VideoEncoder extends BaseEncoder implements GetCameraData {
   public void start(boolean resetTs) {
     spsPpsSetted = false;
     if (resetTs) {
-      presentTimeUs = System.nanoTime() / 1000;
       fpsLimiter.setFPS(fps);
     }
     if (formatVideoEncoder != FormatVideoEncoder.SURFACE) {
@@ -175,7 +174,7 @@ public class VideoEncoder extends BaseEncoder implements GetCameraData {
   }
 
   public void reset() {
-    stop();
+    stop(false);
     prepareVideoEncoder(width, height, fps, bitRate, rotation, iFrameInterval, formatVideoEncoder,
         avcProfile, avcProfileLevel);
     restart();
