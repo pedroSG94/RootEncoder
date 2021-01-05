@@ -27,6 +27,7 @@ import com.pedro.encoder.input.gl.render.filters.BlackFilterRender;
 import com.pedro.encoder.input.gl.render.filters.BlurFilterRender;
 import com.pedro.encoder.input.gl.render.filters.BrightnessFilterRender;
 import com.pedro.encoder.input.gl.render.filters.CartoonFilterRender;
+import com.pedro.encoder.input.gl.render.filters.ChromaFilterRender;
 import com.pedro.encoder.input.gl.render.filters.CircleFilterRender;
 import com.pedro.encoder.input.gl.render.filters.ColorFilterRender;
 import com.pedro.encoder.input.gl.render.filters.ContrastFilterRender;
@@ -167,6 +168,11 @@ public class OpenGlRtspActivity extends AppCompatActivity
         return true;
       case R.id.cartoon:
         rtspCamera1.getGlInterface().setFilter(new CartoonFilterRender());
+        return true;
+      case R.id.chroma:
+        ChromaFilterRender imageObjectFilterRender = new ChromaFilterRender();
+        rtspCamera1.getGlInterface().setFilter(imageObjectFilterRender);
+        imageObjectFilterRender.setImage(BitmapFactory.decodeResource(getResources(), R.drawable.bg_chroma));
         return true;
       case R.id.circle:
         rtspCamera1.getGlInterface().setFilter(new CircleFilterRender());
