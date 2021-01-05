@@ -41,6 +41,7 @@ public class ChromaFilterRender extends BaseFilterRender {
     private int uSTMatrixHandle = -1;
     private int uSamplerHandle = -1;
     private int uObjectHandle = -1;
+    private int uSensitiveHandle = -1;
 
     private FloatBuffer squareVertexObject;
 
@@ -49,6 +50,7 @@ public class ChromaFilterRender extends BaseFilterRender {
     protected StreamObjectBase streamObject;
     private Sprite sprite;
     protected boolean shouldLoad = false;
+    private float sensitive = 0.8f;
 
     public ChromaFilterRender() {
         streamObject = new ImageStreamObject();
@@ -79,6 +81,7 @@ public class ChromaFilterRender extends BaseFilterRender {
         uSTMatrixHandle = GLES20.glGetUniformLocation(program, "uSTMatrix");
         uSamplerHandle = GLES20.glGetUniformLocation(program, "uSampler");
         uObjectHandle = GLES20.glGetUniformLocation(program, "uObject");
+        uSensitiveHandle = GLES20.glGetUniformLocation(program, "uSensitive");
     }
 
     @Override
@@ -117,6 +120,7 @@ public class ChromaFilterRender extends BaseFilterRender {
         GLES20.glActiveTexture(GLES20.GL_TEXTURE0);
 
         GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, streamObjectTextureId[0]);
+        GLES20.glUniform1f(uSensitiveHandle, sensitive);
     }
 
     @Override
@@ -146,5 +150,9 @@ public class ChromaFilterRender extends BaseFilterRender {
         shouldLoad = true;
         setScale(100f, 100f);
         setPosition(TranslateTo.CENTER);
+    }
+
+    public void setSensitive(float sensitive) {
+        this.sensitive = sensitive;
     }
 }

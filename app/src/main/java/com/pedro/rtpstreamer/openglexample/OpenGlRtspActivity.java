@@ -170,9 +170,9 @@ public class OpenGlRtspActivity extends AppCompatActivity
         rtspCamera1.getGlInterface().setFilter(new CartoonFilterRender());
         return true;
       case R.id.chroma:
-        ChromaFilterRender imageObjectFilterRender = new ChromaFilterRender();
-        rtspCamera1.getGlInterface().setFilter(imageObjectFilterRender);
-        imageObjectFilterRender.setImage(BitmapFactory.decodeResource(getResources(), R.drawable.bg_chroma));
+        ChromaFilterRender chromaFilterRender = new ChromaFilterRender();
+        rtspCamera1.getGlInterface().setFilter(chromaFilterRender);
+        chromaFilterRender.setImage(BitmapFactory.decodeResource(getResources(), R.drawable.bg_chroma));
         return true;
       case R.id.circle:
         rtspCamera1.getGlInterface().setFilter(new CircleFilterRender());

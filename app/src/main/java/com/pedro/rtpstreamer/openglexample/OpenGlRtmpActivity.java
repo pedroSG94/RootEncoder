@@ -167,9 +167,9 @@ public class OpenGlRtmpActivity extends AppCompatActivity
         rtmpCamera1.getGlInterface().setFilter(new CartoonFilterRender());
         return true;
       case R.id.chroma:
-        ChromaFilterRender imageObjectFilterRender = new ChromaFilterRender();
-        rtmpCamera1.getGlInterface().setFilter(imageObjectFilterRender);
-        imageObjectFilterRender.setImage(BitmapFactory.decodeResource(getResources(), R.drawable.bg_chroma));
+        ChromaFilterRender chromaFilterRender = new ChromaFilterRender();
+        rtmpCamera1.getGlInterface().setFilter(chromaFilterRender);
+        chromaFilterRender.setImage(BitmapFactory.decodeResource(getResources(), R.drawable.bg_chroma));
         return true;
       case R.id.circle:
         rtmpCamera1.getGlInterface().setFilter(new CircleFilterRender());

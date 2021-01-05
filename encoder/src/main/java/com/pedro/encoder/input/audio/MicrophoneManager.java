@@ -32,7 +32,7 @@ public class MicrophoneManager {
   private int channel = AudioFormat.CHANNEL_IN_STEREO;
   protected boolean muted = false;
   private AudioPostProcessEffect audioPostProcessEffect;
-  HandlerThread handlerThread;
+  protected HandlerThread handlerThread;
   protected CustomAudioEffect customAudioEffect = new NoAudioEffect();
 
   public MicrophoneManager(GetMicrophoneData getMicrophoneData) {
