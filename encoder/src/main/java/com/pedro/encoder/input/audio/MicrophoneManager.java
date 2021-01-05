@@ -180,9 +180,7 @@ public class MicrophoneManager {
   private Frame read() {
     pcmBuffer.rewind();
     int size = audioRecord.read(pcmBuffer, pcmBuffer.remaining());
-    if (size < 0) {
-      return null;
-    }
+    if (size < 0) return null;
     return new Frame(muted ? pcmBufferMuted : customAudioEffect.process(pcmBuffer.array()),
         muted ? 0 : pcmBuffer.arrayOffset(), size);
   }
