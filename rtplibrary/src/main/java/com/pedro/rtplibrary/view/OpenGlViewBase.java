@@ -119,7 +119,9 @@ public abstract class OpenGlViewBase extends SurfaceView
         surfaceManagerPhoto.release();
         surfaceManagerPhoto = null;
       }
-      surfaceManagerEncoder = new SurfaceManager(surface, surfaceManager);
+      if (surfaceManager != null) {
+        surfaceManagerEncoder = new SurfaceManager(surface, surfaceManager);
+      }
     }
   }
 
