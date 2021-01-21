@@ -174,7 +174,7 @@ open class CommandsManager(private val connectCheckerRtsp: ConnectCheckerRtsp) {
     return options
   }
 
-  fun createSetup(track: Int): String {
+  open fun createSetup(track: Int): String {
     val udpPorts = if (track == RtpConstants.trackVideo) videoClientPorts else audioClientPorts
     val params = if (protocol === Protocol.UDP) {
       "UDP;unicast;client_port=${udpPorts[0]}-${udpPorts[1]};mode=record"
