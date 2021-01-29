@@ -139,13 +139,7 @@ public class VideoEncoder extends BaseEncoder implements GetCameraData {
       return true;
     } catch (IOException | IllegalStateException e) {
       Log.e(TAG, "Create VideoEncoder failed.", e);
-      if (codec != null) {
-        codec.stop();
-        codec.release();
-      }
-      if (inputSurface != null) {
-        inputSurface.release();
-      }
+      this.stop();
       return false;
     }
   }
