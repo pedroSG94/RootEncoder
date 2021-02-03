@@ -77,6 +77,9 @@ public class MicrophoneManager {
       if (echoCanceler) audioPostProcessEffect.enableEchoCanceler();
       if (noiseSuppressor) audioPostProcessEffect.enableNoiseSuppressor();
       String chl = (isStereo) ? "Stereo" : "Mono";
+      if (audioRecord.getState() != AudioRecord.STATE_INITIALIZED) {
+        throw new IllegalArgumentException("Some parameters specified is not valid");
+      }
       Log.i(TAG, "Microphone created, " + sampleRate + "hz, " + chl);
       created = true;
     } catch (IllegalArgumentException e) {
@@ -114,6 +117,9 @@ public class MicrophoneManager {
         if (echoCanceler) audioPostProcessEffect.enableEchoCanceler();
         if (noiseSuppressor) audioPostProcessEffect.enableNoiseSuppressor();
         String chl = (isStereo) ? "Stereo" : "Mono";
+        if (audioRecord.getState() != AudioRecord.STATE_INITIALIZED) {
+          throw new IllegalArgumentException("Some parameters specified is not valid");
+        }
         Log.i(TAG, "Internal microphone created, " + sampleRate + "hz, " + chl);
         created = true;
       } else {

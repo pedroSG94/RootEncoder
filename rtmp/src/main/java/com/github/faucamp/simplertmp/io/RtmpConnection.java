@@ -436,8 +436,6 @@ public class RtmpConnection implements RtmpPublisher {
     currentStreamId = 0;
     transactionIdCounter = 0;
     socket = null;
-    user = null;
-    password = null;
     salt = null;
     challenge = null;
     opaque = null;
