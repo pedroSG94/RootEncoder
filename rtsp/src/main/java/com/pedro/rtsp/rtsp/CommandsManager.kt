@@ -122,9 +122,7 @@ open class CommandsManager(private val connectCheckerRtsp: ConnectCheckerRtsp) {
   private fun addHeaders(): String {
     return "CSeq: ${++cSeq}\r\n" +
         (if (sessionId == null) "" else "Session: $sessionId\r\n") +
-        (if (authorization == null) "" else " Authorization: $authorization\r\n") +
-        "\r\n"
-
+        (if (authorization == null) "" else "Authorization: $authorization\r\n")
   }
 
   private fun createBody(): String {
@@ -157,7 +155,7 @@ open class CommandsManager(private val connectCheckerRtsp: ConnectCheckerRtsp) {
       val hash1 = getMd5Hash("$user:$realm:$password")
       val hash2 = getMd5Hash("ANNOUNCE:rtsp://$host:$port$path")
       val hash3 = getMd5Hash("$hash1:$nonce:$hash2")
-      "Digest username=\"$user\",realm=\"$realm\",nonce=\"$nonce\",uri=\"rtsp://$host:$port$path\",response=\"$hash3\""
+      "Digest username=\"$user\", realm=\"$realm\", nonce=\"$nonce\", uri=\"rtsp://$host:$port$path\", response=\"$hash3\""
       //basic auth
     } else {
       Log.i(TAG, "using basic auth")
@@ -169,7 +167,7 @@ open class CommandsManager(private val connectCheckerRtsp: ConnectCheckerRtsp) {
 
   //Commands
   fun createOptions(): String {
-    val options = "OPTIONS rtsp://$host:$port$path RTSP/1.0\r\n" + addHeaders()
+    val options = "OPTIONS rtsp://$host:$port$path RTSP/1.0\r\n" + addHeaders() + "\r\n"
     Log.i(TAG, options)
     return options
   }
@@ -183,14 +181,14 @@ open class CommandsManager(private val connectCheckerRtsp: ConnectCheckerRtsp) {
     }
     val setup = "SETUP rtsp://$host:$port$path/trackID=$track RTSP/1.0\r\n" +
         "Transport: RTP/AVP/$params\r\n" +
-        addHeaders()
+        addHeaders() + "\r\n"
     Log.i(TAG, setup)
     return setup
   }
 
   fun createRecord(): String {
     val record = "RECORD rtsp://$host:$port$path RTSP/1.0\r\n" +
-        "Range: npt=0.000-\r\n" + addHeaders()
+        "Range: npt=0.000-\r\n" + addHeaders() + "\r\n"
     Log.i(TAG, record)
     return record
   }
@@ -198,9 +196,8 @@ open class CommandsManager(private val connectCheckerRtsp: ConnectCheckerRtsp) {
   fun createAnnounce(): String {
     val body = createBody()
     val announce = "ANNOUNCE rtsp://$host:$port$path RTSP/1.0\r\n" +
-        "CSeq: ${++cSeq}\r\n" +
+        addHeaders() +
         "Content-Length: ${body.length}\r\n" +
-        (if (authorization == null) "" else " Authorization: $authorization\r\n") +
         "Content-Type: application/sdp\r\n\r\n" +
         body
     Log.i(TAG, announce)
@@ -210,19 +207,11 @@ open class CommandsManager(private val connectCheckerRtsp: ConnectCheckerRtsp) {
   fun createAnnounceWithAuth(authResponse: String): String {
     authorization = createAuth(authResponse)
     Log.i("Auth", "$authorization")
-    val body = createBody()
-    val announceAuth = "ANNOUNCE rtsp://$host:$port$path RTSP/1.0\r\n" +
-        "CSeq: ${++cSeq}\r\n" +
-        "Content-Length: ${body.length}\r\n" +
-        "Authorization: $authorization\r\n" +
-        "Content-Type: application/sdp\r\n" +
-        body
-    Log.i(TAG, announceAuth)
-    return announceAuth
+    return createAnnounce()
   }
 
   fun createTeardown(): String {
-    val teardown = "TEARDOWN rtsp://$host:$port$path RTSP/1.0\r\n" + addHeaders()
+    val teardown = "TEARDOWN rtsp://$host:$port$path RTSP/1.0\r\n" + addHeaders() + "\r\n"
     Log.i(TAG, teardown)
     return teardown
   }
