@@ -1039,13 +1039,8 @@ public class SrsFlvMuxer {
     }
 
     private void flvFrameCacheAdd(SrsFlvFrame frame) {
-      try {
-        if (frame.is_video()) {
-          mFlvVideoTagCache.add(frame);
-        } else {
-          mFlvAudioTagCache.add(frame);
-        }
-      } catch (IllegalStateException e) {
+      boolean wasFrameAdded = frame.is_video() ? mFlvVideoTagCache.offer(frame) : mFlvAudioTagCache.offer(frame);
+      if(!wasFrameAdded) {
         Log.i(TAG, "frame discarded");
         if (frame.is_video()) {
           mDroppedVideoFrames++;
