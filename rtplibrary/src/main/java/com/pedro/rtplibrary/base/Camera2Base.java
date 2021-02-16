@@ -68,6 +68,7 @@ public abstract class Camera2Base implements GetAacData, GetVideoData, GetMicrop
   private TextureView textureView;
   private GlInterface glInterface;
   private boolean videoEnabled = false;
+  private boolean audioInitialized = false;
   private boolean onPreview = false;
   private boolean isBackground = false;
   protected RecordController recordController;
@@ -292,8 +293,9 @@ public abstract class Camera2Base implements GetAacData, GetVideoData, GetMicrop
       return false;
     }
     prepareAudioRtp(isStereo, sampleRate);
-    return audioEncoder.prepareAudioEncoder(bitrate, sampleRate, isStereo,
+    audioInitialized = audioEncoder.prepareAudioEncoder(bitrate, sampleRate, isStereo,
         microphoneManager.getMaxInputSize());
+    return audioInitialized;
   }
 
   public boolean prepareAudio(int bitrate, int sampleRate, boolean isStereo, boolean echoCanceler,
@@ -529,9 +531,9 @@ public abstract class Camera2Base implements GetAacData, GetVideoData, GetMicrop
 
   private void startEncoders() {
     videoEncoder.start();
-    audioEncoder.start();
+    if (audioInitialized) audioEncoder.start();
     prepareGlView();
-    microphoneManager.start();
+    if (audioInitialized) microphoneManager.start();
     if (glInterface == null && !cameraManager.isRunning() && videoEncoder.getWidth() != previewWidth
         || videoEncoder.getHeight() != previewHeight) {
       if (onPreview) {
@@ -595,7 +597,7 @@ public abstract class Camera2Base implements GetAacData, GetVideoData, GetMicrop
     }
     if (!recordController.isRecording()) {
       onPreview = !isBackground;
-      microphoneManager.stop();
+      if (audioInitialized) microphoneManager.stop();
       if (glInterface != null) {
         glInterface.removeMediaCodecSurface();
         if (glInterface instanceof OffScreenGlThread) {
@@ -610,7 +612,7 @@ public abstract class Camera2Base implements GetAacData, GetVideoData, GetMicrop
         }
       }
       videoEncoder.stop();
-      audioEncoder.stop();
+      if (audioInitialized) audioEncoder.stop();
       recordController.resetFormats();
     }
   }
@@ -700,14 +702,14 @@ public abstract class Camera2Base implements GetAacData, GetVideoData, GetMicrop
    * Mute microphone, can be called before, while and after stream.
    */
   public void disableAudio() {
-    microphoneManager.mute();
+    if (audioInitialized) microphoneManager.mute();
   }
 
   /**
    * Enable a muted microphone, can be called before, while and after stream.
    */
   public void enableAudio() {
-    microphoneManager.unMute();
+    if (audioInitialized) microphoneManager.unMute();
   }
 
   /**
