@@ -3,6 +3,7 @@ package com.pedro.encoder.input.video;
 import android.content.Context;
 import android.content.res.Configuration;
 import android.graphics.ImageFormat;
+import android.graphics.Rect;
 import android.graphics.SurfaceTexture;
 import android.hardware.Camera;
 import android.media.CamcorderProfile;
@@ -10,9 +11,11 @@ import android.util.Log;
 import android.view.MotionEvent;
 import android.view.SurfaceView;
 import android.view.TextureView;
+import android.view.View;
 
 import com.pedro.encoder.Frame;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
@@ -57,6 +60,7 @@ public class Camera1ApiManager implements Camera.PreviewCallback, Camera.FaceDet
   private List<Camera.Size> previewSizeFront;
   private float distance;
   private CameraCallbacks cameraCallbacks;
+  private final int focusAreaSize = 100;
 
   //Face detector
   public interface FaceDetectorCallback {
@@ -218,6 +222,40 @@ public class Camera1ApiManager implements Camera.PreviewCallback, Camera.FaceDet
     } catch (Exception e) {
       Log.e(TAG, "Error", e);
     }
+  }
+
+  public void setExposure(int value) {
+    if (camera != null && camera.getParameters() != null) {
+      android.hardware.Camera.Parameters params = camera.getParameters();
+      if (value > params.getMaxExposureCompensation()) value = params.getMaxExposureCompensation();
+      else if (value < params.getMinExposureCompensation()) value = params.getMinExposureCompensation();
+      params.setExposureCompensation(value);
+      camera.setParameters(params);
+    }
+  }
+
+  public int getExposure() {
+    if (camera != null && camera.getParameters() != null) {
+      android.hardware.Camera.Parameters params = camera.getParameters();
+      return params.getExposureCompensation();
+    }
+    return 0;
+  }
+
+  public int getMaxExposure() {
+    if (camera != null && camera.getParameters() != null) {
+      android.hardware.Camera.Parameters params = camera.getParameters();
+      return params.getMaxExposureCompensation();
+    }
+    return 0;
+  }
+
+  public int getMinExposure() {
+    if (camera != null && camera.getParameters() != null) {
+      android.hardware.Camera.Parameters params = camera.getParameters();
+      return params.getMinExposureCompensation();
+    }
+    return 0;
   }
 
   private int selectCameraBack() {
@@ -437,6 +475,20 @@ public class Camera1ApiManager implements Camera.PreviewCallback, Camera.FaceDet
     }
   }
 
+  public void tapToFocus(View view, MotionEvent event) {
+    if (camera != null && camera.getParameters() != null) {
+      Camera.Parameters parameters = camera.getParameters();
+      if (parameters.getMaxNumMeteringAreas() > 0) {
+        Rect rect = calculateFocusArea(event.getX(), event.getY(), view.getWidth(), view.getHeight());
+        parameters.setFocusMode(Camera.Parameters.FOCUS_MODE_AUTO);
+        List<Camera.Area> meteringAreas = new ArrayList<>();
+        meteringAreas.add(new Camera.Area(rect, 800));
+        parameters.setFocusAreas(meteringAreas);
+        camera.setParameters(parameters);
+      }
+    }
+  }
+
   public void enableAutoFocus() {
     if (camera != null) {
       Camera.Parameters parameters = camera.getParameters();
@@ -520,5 +572,25 @@ public class Camera1ApiManager implements Camera.PreviewCallback, Camera.FaceDet
   @Override
   public void onFaceDetection(Camera.Face[] faces, Camera camera) {
     if (faceDetectorCallback != null) faceDetectorCallback.onGetFaces(faces);
+  }
+
+  private Rect calculateFocusArea(float x, float y, float previewWidth, float previewHeight) {
+    int left = clamp((int) (x / previewWidth * 2000f - 1000f), focusAreaSize);
+    int top = clamp((int) (y / previewHeight * 2000f - 1000f), focusAreaSize);
+    return new Rect(left, top, left + focusAreaSize, top + focusAreaSize);
+  }
+
+  private int clamp(int touchCoordinateInCameraReper, int focusAreaSize) {
+    int result;
+    if (Math.abs(touchCoordinateInCameraReper) + focusAreaSize / 2 > 1000){
+      if (touchCoordinateInCameraReper > 0){
+        result = 1000 - focusAreaSize / 2;
+      } else {
+        result = -1000 + focusAreaSize / 2;
+      }
+    } else{
+      result = touchCoordinateInCameraReper - focusAreaSize / 2;
+    }
+    return result;
   }
 }

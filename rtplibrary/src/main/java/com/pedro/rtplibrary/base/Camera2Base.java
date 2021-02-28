@@ -12,6 +12,7 @@ import android.view.MotionEvent;
 import android.view.Surface;
 import android.view.SurfaceView;
 import android.view.TextureView;
+import android.view.View;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -793,6 +794,26 @@ public abstract class Camera2Base implements GetAacData, GetVideoData, GetMicrop
     if (isStreaming() || onPreview) {
       cameraManager.switchCamera();
     }
+  }
+
+  public void setExposure(int value) {
+    cameraManager.setExposure(value);
+  }
+
+  public int getExposure() {
+    return cameraManager.getExposure();
+  }
+
+  public int getMaxExposure() {
+    return cameraManager.getMaxExposure();
+  }
+
+  public int getMinExposure() {
+    return cameraManager.getMinExposure();
+  }
+
+  public void tapToFocus(MotionEvent event) {
+    cameraManager.tapToFocus(event);
   }
 
   public GlInterface getGlInterface() {

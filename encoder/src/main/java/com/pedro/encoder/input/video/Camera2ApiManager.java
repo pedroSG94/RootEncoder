@@ -14,6 +14,7 @@ import android.hardware.camera2.CaptureRequest;
 import android.hardware.camera2.CaptureResult;
 import android.hardware.camera2.TotalCaptureResult;
 import android.hardware.camera2.params.Face;
+import android.hardware.camera2.params.MeteringRectangle;
 import android.hardware.camera2.params.StreamConfigurationMap;
 import android.os.Build;
 import android.os.Handler;
@@ -25,6 +26,8 @@ import android.view.MotionEvent;
 import android.view.Surface;
 import android.view.SurfaceView;
 import android.view.TextureView;
+import android.view.View;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
@@ -284,6 +287,92 @@ public class Camera2ApiManager extends CameraDevice.StateCallback {
     } catch (CameraAccessException e) {
       Log.e(TAG, "Error", e);
       return null;
+    }
+  }
+
+  public void setExposure(int value) {
+    CameraCharacteristics characteristics = getCameraCharacteristics();
+    if (characteristics == null) return;
+    Range<Integer> supportedExposure =
+        characteristics.get(CameraCharacteristics.CONTROL_AE_COMPENSATION_RANGE);
+    if (supportedExposure != null && builderInputSurface != null) {
+      if (value > supportedExposure.getUpper()) value = supportedExposure.getUpper();
+      if (value < supportedExposure.getLower()) value = supportedExposure.getLower();
+      try {
+        builderInputSurface.set(CaptureRequest.CONTROL_AE_EXPOSURE_COMPENSATION, value);
+        cameraCaptureSession.setRepeatingRequest(builderInputSurface.build(),
+            faceDetectionEnabled ? cb : null, null);
+      } catch (Exception e) {
+        Log.e(TAG, "Error", e);
+      }
+    }
+  }
+
+  public int getExposure() {
+    CameraCharacteristics characteristics = getCameraCharacteristics();
+    if (characteristics == null) return 0;
+    if (builderInputSurface != null) {
+      try {
+        return builderInputSurface.get(CaptureRequest.CONTROL_AE_EXPOSURE_COMPENSATION);
+      } catch (Exception e) {
+        Log.e(TAG, "Error", e);
+      }
+    }
+    return 0;
+  }
+
+
+
+  public int getMaxExposure() {
+    CameraCharacteristics characteristics = getCameraCharacteristics();
+    if (characteristics == null) return 0;
+    Range<Integer> supportedExposure =
+        characteristics.get(CameraCharacteristics.CONTROL_AE_COMPENSATION_RANGE);
+    if (supportedExposure != null) {
+      return supportedExposure.getUpper();
+    }
+    return 0;
+  }
+
+  public int getMinExposure() {
+    CameraCharacteristics characteristics = getCameraCharacteristics();
+    if (characteristics == null) return 0;
+    Range<Integer> supportedExposure =
+        characteristics.get(CameraCharacteristics.CONTROL_AE_COMPENSATION_RANGE);
+    if (supportedExposure != null) {
+      return supportedExposure.getLower();
+    }
+    return 0;
+  }
+
+  public void tapToFocus(MotionEvent event) {
+    CameraCharacteristics characteristics = getCameraCharacteristics();
+    if (characteristics == null) return;
+    int pointerId = event.getPointerId(0);
+    int pointerIndex = event.findPointerIndex(pointerId);
+    // Get the pointer's current position
+    float x = event.getX(pointerIndex);
+    float y = event.getY(pointerIndex);
+
+    Rect touchRect = new Rect((int) (x - 100), (int) (y - 100),
+        (int) (x + 100), (int) (y + 100));
+    MeteringRectangle focusArea = new MeteringRectangle(touchRect, MeteringRectangle.METERING_WEIGHT_DONT_CARE);
+    if (builderInputSurface != null) {
+      try {
+        //cancel any existing AF trigger (repeated touches, etc.)
+        builderInputSurface.set(CaptureRequest.CONTROL_AF_TRIGGER, CameraMetadata.CONTROL_AF_TRIGGER_CANCEL);
+        builderInputSurface.set(CaptureRequest.CONTROL_AF_MODE, CaptureRequest.CONTROL_AF_MODE_OFF);
+        cameraCaptureSession.setRepeatingRequest(builderInputSurface.build(),
+            faceDetectionEnabled ? cb : null, null);
+        builderInputSurface.set(CaptureRequest.CONTROL_AF_REGIONS, new MeteringRectangle[]{focusArea});
+        builderInputSurface.set(CaptureRequest.CONTROL_MODE, CameraMetadata.CONTROL_MODE_AUTO);
+        builderInputSurface.set(CaptureRequest.CONTROL_AF_MODE, CaptureRequest.CONTROL_AF_MODE_AUTO);
+        builderInputSurface.set(CaptureRequest.CONTROL_AF_TRIGGER, CameraMetadata.CONTROL_AF_TRIGGER_START);
+        cameraCaptureSession.setRepeatingRequest(builderInputSurface.build(),
+            faceDetectionEnabled ? cb : null, null);
+      } catch (Exception e) {
+        Log.e(TAG, "Error", e);
+      }
     }
   }
 

@@ -10,6 +10,8 @@ import android.util.Log;
 import android.view.MotionEvent;
 import android.view.SurfaceView;
 import android.view.TextureView;
+import android.view.View;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
@@ -739,6 +741,26 @@ public abstract class Camera1Base
     if (isStreaming() || onPreview) {
       cameraManager.switchCamera();
     }
+  }
+
+  public void setExposure(int value) {
+    cameraManager.setExposure(value);
+  }
+
+  public int getExposure() {
+    return cameraManager.getExposure();
+  }
+
+  public int getMaxExposure() {
+    return cameraManager.getMaxExposure();
+  }
+
+  public int getMinExposure() {
+    return cameraManager.getMinExposure();
+  }
+
+  public void tapToFocus(View view, MotionEvent event) {
+    cameraManager.tapToFocus(view, event);
   }
 
   public GlInterface getGlInterface() {
