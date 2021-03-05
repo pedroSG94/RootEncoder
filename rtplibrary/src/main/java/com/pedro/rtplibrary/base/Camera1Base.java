@@ -517,6 +517,17 @@ public abstract class Camera1Base
     cameraManager.setZoom(event);
   }
 
+  @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
+  public void startStreamAndRecord(String url, String path, RecordController.Listener listener) throws IOException {
+    recordController.startRecord(path, listener);
+    startStream(url);
+  }
+
+  @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
+  public void startStreamAndRecord(String url, String path) throws IOException {
+    startStreamAndRecord(url, path, null);
+  }
+
   protected abstract void startStreamRtp(String url);
 
   /**
