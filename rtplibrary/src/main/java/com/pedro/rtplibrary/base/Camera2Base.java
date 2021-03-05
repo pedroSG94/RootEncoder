@@ -508,8 +508,8 @@ public abstract class Camera2Base implements GetAacData, GetVideoData, GetMicrop
   }
 
   public void startStreamAndRecord(String url, String path, RecordController.Listener listener) throws IOException {
-    recordController.startRecord(path, listener);
     startStream(url);
+    recordController.startRecord(path, listener);
   }
 
   public void startStreamAndRecord(String url, String path) throws IOException {

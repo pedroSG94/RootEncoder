@@ -519,8 +519,8 @@ public abstract class Camera1Base
 
   @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
   public void startStreamAndRecord(String url, String path, RecordController.Listener listener) throws IOException {
-    recordController.startRecord(path, listener);
     startStream(url);
+    recordController.startRecord(path, listener);
   }
 
   @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
