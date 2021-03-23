@@ -15,7 +15,7 @@ import kotlin.experimental.or
 internal class AacPacket(sampleRate: Int, private val audioPacketCallback: AudioPacketCallback) : BasePacket(sampleRate.toLong(), RtpConstants.payloadTypeAudio) {
 
   init {
-    channelIdentifier = (RtpConstants.trackAudio * 2).toByte()
+    channelIdentifier = RtpConstants.trackAudio
   }
 
   override fun createAndSendPacket(byteBuffer: ByteBuffer, bufferInfo: MediaCodec.BufferInfo) {

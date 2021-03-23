@@ -13,7 +13,7 @@ import kotlin.experimental.or
  */
 internal abstract class BasePacket(private val clock: Long, private val payloadType: Int) {
 
-  protected var channelIdentifier: Byte = 0
+  protected var channelIdentifier: Int = 0
   protected var rtpPort = 0
   protected var rtcpPort = 0
   private var seq = 0

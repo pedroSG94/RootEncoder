@@ -26,9 +26,9 @@ internal class SenderReportTcp : BaseSenderReport() {
   override fun close() {}
 
   @Throws(IOException::class)
-  private fun sendReportTCP(buffer: ByteArray, channelIdentifier: Byte, type: String, packet: Int, octet: Int, isEnableLogs: Boolean) {
+  private fun sendReportTCP(buffer: ByteArray, channelIdentifier: Int, type: String, packet: Int, octet: Int, isEnableLogs: Boolean) {
     synchronized(RtpConstants.lock) {
-      tcpHeader[1] = (channelIdentifier.toInt() + 1).toByte()
+      tcpHeader[1] = (2 * channelIdentifier + 1).toByte()
       outputStream?.write(tcpHeader)
       outputStream?.write(buffer, 0, PACKET_LENGTH)
       outputStream?.flush()

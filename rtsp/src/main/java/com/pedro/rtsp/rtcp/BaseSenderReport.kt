@@ -3,6 +3,7 @@ package com.pedro.rtsp.rtcp
 import android.util.Log
 import com.pedro.rtsp.rtsp.Protocol
 import com.pedro.rtsp.rtsp.RtpFrame
+import com.pedro.rtsp.utils.RtpConstants
 import com.pedro.rtsp.utils.setLong
 import java.io.IOException
 import java.io.OutputStream
@@ -68,7 +69,7 @@ internal abstract class BaseSenderReport internal constructor() {
   abstract fun setDataStream(outputStream: OutputStream, host: String)
 
   fun update(rtpFrame: RtpFrame, isEnableLogs: Boolean) {
-    if (rtpFrame.channelIdentifier == 2.toByte()) {
+    if (rtpFrame.channelIdentifier == RtpConstants.trackVideo) {
       updateVideo(rtpFrame, isEnableLogs)
     } else {
       updateAudio(rtpFrame, isEnableLogs)

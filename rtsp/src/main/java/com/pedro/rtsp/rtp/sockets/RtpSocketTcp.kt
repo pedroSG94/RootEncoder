@@ -29,7 +29,7 @@ internal class RtpSocketTcp : BaseRtpSocket() {
   private fun sendFrameTCP(rtpFrame: RtpFrame, isEnableLogs: Boolean) {
     synchronized(RtpConstants.lock) {
       val len = rtpFrame.length
-      tcpHeader[1] = rtpFrame.channelIdentifier
+      tcpHeader[1] = (2 * rtpFrame.channelIdentifier).toByte()
       tcpHeader[2] = (len shr 8).toByte()
       tcpHeader[3] = (len and 0xFF).toByte()
       outputStream?.write(tcpHeader)
