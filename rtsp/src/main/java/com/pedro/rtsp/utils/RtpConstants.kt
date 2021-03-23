@@ -12,8 +12,7 @@ object RtpConstants {
   const val clockVideoFrequency = 90000L
   const val RTP_HEADER_LENGTH = 12
   const val MTU = 1300
-  const val payloadTypeVideo = 96
-  const val payloadTypeAudio = 97
+  const val payloadType = 96
 
   //H264 IDR
   const val IDR = 5

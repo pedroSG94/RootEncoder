@@ -179,7 +179,7 @@ open class CommandsManager(private val connectCheckerRtsp: ConnectCheckerRtsp) {
     } else {
       "TCP;unicast;interleaved=${2 * track}-${2 * track + 1};mode=record"
     }
-    val setup = "SETUP rtsp://$host:$port$path/trackID=$track RTSP/1.0\r\n" +
+    val setup = "SETUP rtsp://$host:$port$path/streamid=$track RTSP/1.0\r\n" +
         "Transport: RTP/AVP/$params\r\n" +
         addHeaders() + "\r\n"
     Log.i(TAG, setup)

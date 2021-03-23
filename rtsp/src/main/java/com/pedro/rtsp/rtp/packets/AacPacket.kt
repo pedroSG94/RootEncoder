@@ -12,7 +12,8 @@ import kotlin.experimental.or
  *
  * RFC 3640.
  */
-internal class AacPacket(sampleRate: Int, private val audioPacketCallback: AudioPacketCallback) : BasePacket(sampleRate.toLong(), RtpConstants.payloadTypeAudio) {
+internal class AacPacket(sampleRate: Int, private val audioPacketCallback: AudioPacketCallback) : BasePacket(sampleRate.toLong(),
+    RtpConstants.payloadType + RtpConstants.trackAudio) {
 
   init {
     channelIdentifier = RtpConstants.trackAudio

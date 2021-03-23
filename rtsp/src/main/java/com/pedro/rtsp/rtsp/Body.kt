@@ -30,23 +30,26 @@ object Body {
     val sampleRateNum = AUDIO_SAMPLING_RATES.toList().indexOf(sampleRate)
     val channel = if (isStereo) 2 else 1
     val config = 2 and 0x1F shl 11 or (sampleRateNum and 0x0F shl 7) or (channel and 0x0F shl 3)
-    return "m=audio 0 RTP/AVP ${RtpConstants.payloadTypeAudio}\r\n" +
-        "a=rtpmap:${RtpConstants.payloadTypeAudio} MPEG4-GENERIC/$sampleRate/$channel\r\n" +
-        "a=fmtp:${RtpConstants.payloadTypeAudio} streamtype=5; profile-level-id=15; mode=AAC-hbr; config=${Integer.toHexString(config)}; SizeLength=13; IndexLength=3; IndexDeltaLength=3;\n" +
-        "a=control:trackID=$trackAudio\r\n"
+    val payload = RtpConstants.payloadType + RtpConstants.trackAudio
+    return "m=audio 0 RTP/AVP ${payload}\r\n" +
+        "a=rtpmap:${payload} MPEG4-GENERIC/$sampleRate/$channel\r\n" +
+        "a=fmtp:${payload} profile-level-id=15; mode=AAC-hbr; config=${Integer.toHexString(config)}; SizeLength=13; IndexLength=3; IndexDeltaLength=3\n" +
+        "a=control:streamid=$trackAudio\r\n"
   }
 
   fun createH264Body(trackVideo: Int, sps: String, pps: String): String {
-    return "m=video 0 RTP/AVP ${RtpConstants.payloadTypeVideo}\r\n" +
-        "a=rtpmap:${RtpConstants.payloadTypeVideo} H264/${RtpConstants.clockVideoFrequency}\r\n" +
-        "a=fmtp:${RtpConstants.payloadTypeVideo} packetization-mode=1; sprop-parameter-sets=$sps,$pps;\r\n" +
-        "a=control:trackID=$trackVideo\r\n"
+    val payload = RtpConstants.payloadType + RtpConstants.trackVideo
+    return "m=video 0 RTP/AVP ${payload}\r\n" +
+        "a=rtpmap:${payload} H264/${RtpConstants.clockVideoFrequency}\r\n" +
+        "a=fmtp:${payload} packetization-mode=1; sprop-parameter-sets=$sps,$pps\r\n" +
+        "a=control:streamid=$trackVideo\r\n"
   }
 
   fun createH265Body(trackVideo: Int, sps: String, pps: String, vps: String): String {
-    return "m=video 0 RTP/AVP ${RtpConstants.payloadTypeVideo}\r\n" +
-        "a=rtpmap:${RtpConstants.payloadTypeVideo} H265/${RtpConstants.clockVideoFrequency}\r\n" +
-        "a=fmtp:${RtpConstants.payloadTypeVideo} sprop-sps=$sps; sprop-pps=$pps; sprop-vps=$vps;\r\n" +
-        "a=control:trackID=$trackVideo\r\n"
+    val payload = RtpConstants.payloadType + RtpConstants.trackVideo
+    return "m=video 0 RTP/AVP ${payload}\r\n" +
+        "a=rtpmap:${payload} H265/${RtpConstants.clockVideoFrequency}\r\n" +
+        "a=fmtp:${RtpConstants.payloadType + RtpConstants.trackVideo} sprop-sps=$sps; sprop-pps=$pps; sprop-vps=$vps\r\n" +
+        "a=control:streamid=$trackVideo\r\n"
   }
 }
