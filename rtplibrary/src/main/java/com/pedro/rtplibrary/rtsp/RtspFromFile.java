@@ -111,6 +111,8 @@ public class RtspFromFile extends FromFileBase {
   }
 
   public void setVideoCodec(VideoCodec videoCodec) {
+    recordController.setVideoMime(
+        videoCodec == VideoCodec.H265 ? CodecUtil.H265_MIME : CodecUtil.H264_MIME);
     videoEncoder.setType(videoCodec == VideoCodec.H265 ? CodecUtil.H265_MIME : CodecUtil.H264_MIME);
   }
 
@@ -127,7 +129,8 @@ public class RtspFromFile extends FromFileBase {
 
   @Override
   protected void startStreamRtp(String url) {
-    rtspClient.setUrl(url);
+    rtspClient.setOnlyAudio(!videoEnabled);
+    rtspClient.connect(url);
   }
 
   @Override
@@ -151,12 +154,16 @@ public class RtspFromFile extends FromFileBase {
   }
 
   @Override
+  public boolean hasCongestion() {
+    return rtspClient.hasCongestion();
+  }
+
+  @Override
   protected void onSpsPpsVpsRtp(ByteBuffer sps, ByteBuffer pps, ByteBuffer vps) {
     ByteBuffer newSps = sps.duplicate();
     ByteBuffer newPps = pps.duplicate();
     ByteBuffer newVps = vps != null ? vps.duplicate() : null;
     rtspClient.setSPSandPPS(newSps, newPps, newVps);
-    rtspClient.connect();
   }
 
   @Override
@@ -167,6 +174,11 @@ public class RtspFromFile extends FromFileBase {
   @Override
   protected void getAacDataRtp(ByteBuffer aacBuffer, MediaCodec.BufferInfo info) {
     rtspClient.sendAudio(aacBuffer, info);
+  }
+
+  @Override
+  public void setLogs(boolean enable) {
+    rtspClient.setLogs(enable);
   }
 }
 

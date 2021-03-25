@@ -65,7 +65,7 @@ public class RtspActivity extends AppCompatActivity
   private RadioGroup rgChannel;
   private RadioButton rbTcp, rbUdp;
   private Spinner spResolution;
-  private CheckBox cbEchoCanceler, cbNoiseSuppressor, cbHardwareRotation;
+  private CheckBox cbEchoCanceler, cbNoiseSuppressor;
   private EditText etVideoBitrate, etFps, etAudioBitrate, etSampleRate, etWowzaUser,
       etWowzaPassword;
   private String lastVideoBitrate;
@@ -130,8 +130,6 @@ public class RtspActivity extends AppCompatActivity
         (CheckBox) navigationView.getMenu().findItem(R.id.cb_echo_canceler).getActionView();
     cbNoiseSuppressor =
         (CheckBox) navigationView.getMenu().findItem(R.id.cb_noise_suppressor).getActionView();
-    cbHardwareRotation =
-        (CheckBox) navigationView.getMenu().findItem(R.id.cb_hardware_rotation).getActionView();
     //radiobuttons
     rbTcp = (RadioButton) navigationView.getMenu().findItem(R.id.rb_tcp).getActionView();
     rbUdp = (RadioButton) navigationView.getMenu().findItem(R.id.rb_udp).getActionView();
@@ -165,9 +163,9 @@ public class RtspActivity extends AppCompatActivity
     etFps.setText("30");
     etAudioBitrate.setText("128");
     etSampleRate.setText("44100");
-    etWowzaUser = (EditText) navigationView.getMenu().findItem(R.id.et_wowza_user).getActionView();
+    etWowzaUser = (EditText) navigationView.getMenu().findItem(R.id.et_user).getActionView();
     etWowzaPassword =
-        (EditText) navigationView.getMenu().findItem(R.id.et_wowza_password).getActionView();
+        (EditText) navigationView.getMenu().findItem(R.id.et_password).getActionView();
   }
 
   @Override
@@ -313,8 +311,8 @@ public class RtspActivity extends AppCompatActivity
     int height = resolution.height;
     return rtspCamera1.prepareVideo(width, height, Integer.parseInt(etFps.getText().toString()),
         Integer.parseInt(etVideoBitrate.getText().toString()) * 1024,
-        cbHardwareRotation.isChecked(), CameraHelper.getCameraOrientation(this))
-        && rtspCamera1.prepareAudio(Integer.parseInt(etAudioBitrate.getText().toString()) * 1024,
+        CameraHelper.getCameraOrientation(this)) && rtspCamera1.prepareAudio(
+        Integer.parseInt(etAudioBitrate.getText().toString()) * 1024,
         Integer.parseInt(etSampleRate.getText().toString()),
         rgChannel.getCheckedRadioButtonId() == R.id.rb_stereo, cbEchoCanceler.isChecked(),
         cbNoiseSuppressor.isChecked());

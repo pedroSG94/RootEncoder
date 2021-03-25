@@ -2,12 +2,24 @@ package com.pedro.rtplibrary.base;
 
 import android.media.MediaCodec;
 import android.media.MediaFormat;
+import android.media.MediaRecorder;
+import android.os.Build;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.annotation.RequiresApi;
 import com.pedro.encoder.Frame;
 import com.pedro.encoder.audio.AudioEncoder;
 import com.pedro.encoder.audio.GetAacData;
 import com.pedro.encoder.input.audio.CustomAudioEffect;
 import com.pedro.encoder.input.audio.GetMicrophoneData;
 import com.pedro.encoder.input.audio.MicrophoneManager;
+import com.pedro.encoder.input.audio.MicrophoneManagerManual;
+import com.pedro.encoder.input.audio.MicrophoneMode;
+import com.pedro.rtplibrary.util.RecordController;
+
+import java.io.FileDescriptor;
+import java.io.IOException;
 import java.nio.ByteBuffer;
 
 /**
@@ -17,13 +29,35 @@ import java.nio.ByteBuffer;
  */
 public abstract class OnlyAudioBase implements GetAacData, GetMicrophoneData {
 
+  protected RecordController recordController;
   private MicrophoneManager microphoneManager;
   private AudioEncoder audioEncoder;
   private boolean streaming = false;
 
   public OnlyAudioBase() {
-    microphoneManager = new MicrophoneManager(this);
-    audioEncoder = new AudioEncoder(this);
+    setMicrophoneMode(MicrophoneMode.ASYNC);
+    recordController = new RecordController();
+  }
+
+  /**
+   * Must be called before prepareAudio.
+   *
+   * @param microphoneMode mode to work accord to audioEncoder. By default ASYNC:
+   * SYNC using same thread. This mode could solve choppy audio or audio frame discarded.
+   * ASYNC using other thread.
+   */
+  public void setMicrophoneMode(MicrophoneMode microphoneMode) {
+    switch (microphoneMode) {
+      case SYNC:
+        microphoneManager = new MicrophoneManagerManual();
+        audioEncoder = new AudioEncoder(this);
+        audioEncoder.setGetFrame(((MicrophoneManagerManual) microphoneManager).getGetFrame());
+        break;
+      case ASYNC:
+        microphoneManager = new MicrophoneManager(this);
+        audioEncoder = new AudioEncoder(this);
+        break;
+    }
   }
 
   /**
@@ -55,12 +89,24 @@ public abstract class OnlyAudioBase implements GetAacData, GetMicrophoneData {
    * @return true if success, false if you get a error (Normally because the encoder selected
    * doesn't support any configuration seated or your device hasn't a AAC encoder).
    */
-  public boolean prepareAudio(int bitrate, int sampleRate, boolean isStereo, boolean echoCanceler,
+  public boolean prepareAudio(int audioSource, int bitrate, int sampleRate, boolean isStereo, boolean echoCanceler,
       boolean noiseSuppressor) {
-    microphoneManager.createMicrophone(sampleRate, isStereo, echoCanceler, noiseSuppressor);
+    if (!microphoneManager.createMicrophone(audioSource, sampleRate, isStereo, echoCanceler, noiseSuppressor)) {
+      return false;
+    }
     prepareAudioRtp(isStereo, sampleRate);
     return audioEncoder.prepareAudioEncoder(bitrate, sampleRate, isStereo,
         microphoneManager.getMaxInputSize());
+  }
+
+  public boolean prepareAudio(int bitrate, int sampleRate, boolean isStereo, boolean echoCanceler,
+      boolean noiseSuppressor) {
+    return prepareAudio(MediaRecorder.AudioSource.DEFAULT, bitrate, sampleRate, isStereo, echoCanceler,
+        noiseSuppressor);
+  }
+
+  public boolean prepareAudio(int bitrate, int sampleRate, boolean isStereo) {
+    return prepareAudio(bitrate, sampleRate, isStereo, false, false);
   }
 
   /**
@@ -72,6 +118,54 @@ public abstract class OnlyAudioBase implements GetAacData, GetMicrophoneData {
    */
   public boolean prepareAudio() {
     return prepareAudio(64 * 1024, 32000, true, false, false);
+  }
+
+  /**
+   * Starts recording an MP4 video. Needs to be called while streaming.
+   *
+   * @param path Where file will be saved.
+   * @throws IOException If initialized before a stream.
+   */
+  @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
+  public void startRecord(String path, RecordController.Listener listener) throws IOException {
+    recordController.startRecord(path, listener);
+    if (!streaming) {
+      startEncoders();
+    }
+  }
+
+  @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
+  public void startRecord(final String path) throws IOException {
+    startRecord(path, null);
+  }
+
+  /**
+   * Starts recording an MP4 video. Needs to be called while streaming.
+   *
+   * @param fd Where the file will be saved.
+   * @throws IOException If initialized before a stream.
+   */
+  @RequiresApi(api = Build.VERSION_CODES.O)
+  public void startRecord(@NonNull final FileDescriptor fd,
+      @Nullable RecordController.Listener listener) throws IOException {
+    recordController.startRecord(fd, listener);
+    if (!streaming) {
+      startEncoders();
+    }
+  }
+
+  @RequiresApi(api = Build.VERSION_CODES.O)
+  public void startRecord(@NonNull final FileDescriptor fd) throws IOException {
+    startRecord(fd, null);
+  }
+
+  /**
+   * Stop record MP4 video started with @startRecord. If you don't call it file will be unreadable.
+   */
+  @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
+  public void stopRecord() {
+    recordController.stopRecord();
+    if (!streaming) stopStream();
   }
 
   protected abstract void startStreamRtp(String url);
@@ -89,12 +183,52 @@ public abstract class OnlyAudioBase implements GetAacData, GetMicrophoneData {
    */
   public void startStream(String url) {
     streaming = true;
-    audioEncoder.start();
-    microphoneManager.start();
+    if (!recordController.isRunning()) {
+      startEncoders();
+    }
     startStreamRtp(url);
   }
 
+  /**
+   * Stop stream started with @startStream.
+   */
+  public void stopStream() {
+    streaming = false;
+    stopStreamRtp();
+    if (!recordController.isRecording()) {
+      microphoneManager.stop();
+      audioEncoder.stop();
+      recordController.resetFormats();
+    }
+  }
+
+  private void startEncoders() {
+    audioEncoder.start();
+    microphoneManager.start();
+  }
+
   protected abstract void stopStreamRtp();
+
+  /**
+   * Get record state.
+   *
+   * @return true if recording, false if not recoding.
+   */
+  public boolean isRecording() {
+    return recordController.isRunning();
+  }
+
+  public void pauseRecord() {
+    recordController.pauseRecord();
+  }
+
+  public void resumeRecord() {
+    recordController.resumeRecord();
+  }
+
+  public RecordController.Status getRecordStatus() {
+    return recordController.getStatus();
+  }
 
   public boolean reTry(long delay, String reason) {
     boolean result = shouldRetry(reason);
@@ -123,6 +257,8 @@ public abstract class OnlyAudioBase implements GetAacData, GetMicrophoneData {
   protected abstract void reConnect(long delay);
 
   //cache control
+  public abstract boolean hasCongestion();
+
   public abstract void resizeCache(int newSize) throws RuntimeException;
 
   public abstract int getCacheSize();
@@ -142,16 +278,6 @@ public abstract class OnlyAudioBase implements GetAacData, GetMicrophoneData {
   public abstract void resetDroppedAudioFrames();
 
   public abstract void resetDroppedVideoFrames();
-
-  /**
-   * Stop stream started with @startStream.
-   */
-  public void stopStream() {
-    streaming = false;
-    stopStreamRtp();
-    microphoneManager.stop();
-    audioEncoder.stop();
-  }
 
   /**
    * Mute microphone, can be called before, while and after stream.
@@ -189,7 +315,10 @@ public abstract class OnlyAudioBase implements GetAacData, GetMicrophoneData {
 
   @Override
   public void getAacData(ByteBuffer aacBuffer, MediaCodec.BufferInfo info) {
-    getAacDataRtp(aacBuffer, info);
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
+      recordController.recordAudio(aacBuffer, info);
+    }
+    if (streaming) getAacDataRtp(aacBuffer, info);
   }
 
   @Override
@@ -199,6 +328,8 @@ public abstract class OnlyAudioBase implements GetAacData, GetMicrophoneData {
 
   @Override
   public void onAudioFormat(MediaFormat mediaFormat) {
-    //ignored because record is not implemented
+    recordController.setAudioFormat(mediaFormat, true);
   }
+
+  public abstract void setLogs(boolean enable);
 }

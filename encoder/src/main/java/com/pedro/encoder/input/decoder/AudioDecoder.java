@@ -6,160 +6,108 @@ import android.media.MediaFormat;
 import android.util.Log;
 import com.pedro.encoder.Frame;
 import com.pedro.encoder.input.audio.GetMicrophoneData;
+import com.pedro.encoder.utils.CodecUtil;
 import com.pedro.encoder.utils.PCMUtil;
-import java.io.IOException;
 import java.nio.ByteBuffer;
 
 /**
  * Created by pedro on 20/06/17.
  */
-public class AudioDecoder {
-
-  private final String TAG = "AudioDecoder";
+public class AudioDecoder extends BaseDecoder {
 
   private AudioDecoderInterface audioDecoderInterface;
-  private LoopFileInterface loopFileInterface;
-  private MediaExtractor audioExtractor;
-  private MediaCodec audioDecoder;
-  private MediaCodec.BufferInfo audioInfo = new MediaCodec.BufferInfo();
-  private boolean decoding;
-  private Thread thread;
   private GetMicrophoneData getMicrophoneData;
-  private MediaFormat audioFormat;
-  private String mime = "";
   private int sampleRate;
   private boolean isStereo;
   private int channels = 1;
   private int size = 2048;
   private byte[] pcmBuffer = new byte[size];
   private byte[] pcmBufferMuted = new byte[11];
-  private static boolean loopMode = false;
   private boolean muted = false;
-  private long duration;
-  private volatile long seekTime = 0;
-  private volatile long startMs = 0;
 
   public AudioDecoder(GetMicrophoneData getMicrophoneData,
       AudioDecoderInterface audioDecoderInterface, LoopFileInterface loopFileInterface) {
+    super(loopFileInterface);
     this.getMicrophoneData = getMicrophoneData;
     this.audioDecoderInterface = audioDecoderInterface;
-    this.loopFileInterface = loopFileInterface;
   }
 
-  public boolean initExtractor(String filePath) throws IOException {
-    decoding = false;
-    audioExtractor = new MediaExtractor();
-    audioExtractor.setDataSource(filePath);
+  @Override
+  protected boolean extract(MediaExtractor audioExtractor) {
+    size = 2048;
+    running = false;
     for (int i = 0; i < audioExtractor.getTrackCount() && !mime.startsWith("audio/"); i++) {
-      audioFormat = audioExtractor.getTrackFormat(i);
-      mime = audioFormat.getString(MediaFormat.KEY_MIME);
+      mediaFormat = audioExtractor.getTrackFormat(i);
+      mime = mediaFormat.getString(MediaFormat.KEY_MIME);
       if (mime.startsWith("audio/")) {
         audioExtractor.selectTrack(i);
       } else {
-        audioFormat = null;
+        mediaFormat = null;
       }
     }
-    if (audioFormat != null) {
-      channels = audioFormat.getInteger(MediaFormat.KEY_CHANNEL_COUNT);
+    if (mediaFormat != null) {
+      channels = mediaFormat.getInteger(MediaFormat.KEY_CHANNEL_COUNT);
       isStereo = channels >= 2;
-      sampleRate = audioFormat.getInteger(MediaFormat.KEY_SAMPLE_RATE);
-      duration = audioFormat.getLong(MediaFormat.KEY_DURATION);
-      if (channels >= 2) {
-        pcmBuffer = new byte[2048 * channels];
-      }
+      sampleRate = mediaFormat.getInteger(MediaFormat.KEY_SAMPLE_RATE);
+      duration = mediaFormat.getLong(MediaFormat.KEY_DURATION);
+      fixBuffer();
       return true;
       //audio decoder not supported
     } else {
       mime = "";
-      audioFormat = null;
+      mediaFormat = null;
       return false;
     }
+  }
+
+  private void fixBuffer() {
+    if (channels >= 2) {
+      size *= channels;
+    }
+    pcmBuffer = new byte[size];
   }
 
   public boolean prepareAudio() {
-    try {
-      audioDecoder = MediaCodec.createDecoderByType(mime);
-      audioDecoder.configure(audioFormat, null, null, 0);
-      return true;
-    } catch (IOException e) {
-      Log.e(TAG, "Prepare decoder error:", e);
-      return false;
-    }
+    return prepare(null);
   }
 
-  public void start() {
-    decoding = true;
-    audioDecoder.start();
-    thread = new Thread(new Runnable() {
-      @Override
-      public void run() {
-        try {
-          decodeAudio();
-        } catch (IllegalStateException e) {
-          Log.i(TAG, "Decoding error", e);
-        }
-      }
-    });
-    thread.start();
+  public void reset() {
+    resetCodec(null);
   }
 
-  public void stop() {
-    decoding = false;
-    seekTime = 0;
-    if (thread != null) {
-      thread.interrupt();
-      try {
-        thread.join(100);
-      } catch (InterruptedException e) {
-        thread.interrupt();
-      }
-      thread = null;
-    }
-    try {
-      audioDecoder.stop();
-      audioDecoder.release();
-      audioDecoder = null;
-    } catch (IllegalStateException | NullPointerException e) {
-      audioDecoder = null;
-    }
-    if (audioExtractor != null) {
-      audioExtractor.release();
-      audioExtractor = null;
-    }
-  }
-
-  private void decodeAudio() throws IllegalStateException {
-    ByteBuffer[] inputBuffers = audioDecoder.getInputBuffers();
-    ByteBuffer[] outputBuffers = audioDecoder.getOutputBuffers();
+  @Override
+  protected void decode() {
+    ByteBuffer[] inputBuffers = codec.getInputBuffers();
+    ByteBuffer[] outputBuffers = codec.getOutputBuffers();
     startMs = System.currentTimeMillis();
-    while (decoding) {
-      int inIndex = audioDecoder.dequeueInputBuffer(10000);
+    while (running) {
+      int inIndex = codec.dequeueInputBuffer(10000);
       if (inIndex >= 0) {
         ByteBuffer buffer = inputBuffers[inIndex];
-        int sampleSize = audioExtractor.readSampleData(buffer, 0);
+        int sampleSize = extractor.readSampleData(buffer, 0);
         if (sampleSize < 0) {
-          audioDecoder.queueInputBuffer(inIndex, 0, 0, 0, MediaCodec.BUFFER_FLAG_END_OF_STREAM);
+          codec.queueInputBuffer(inIndex, 0, 0, 0, MediaCodec.BUFFER_FLAG_END_OF_STREAM);
         } else {
-          audioDecoder.queueInputBuffer(inIndex, 0, sampleSize, audioExtractor.getSampleTime(), 0);
-          audioExtractor.advance();
+          codec.queueInputBuffer(inIndex, 0, sampleSize, extractor.getSampleTime(), 0);
+          extractor.advance();
         }
 
-        int outIndex = audioDecoder.dequeueOutputBuffer(audioInfo, 10000);
+        int outIndex = codec.dequeueOutputBuffer(bufferInfo, 10000);
         switch (outIndex) {
           case MediaCodec.INFO_OUTPUT_BUFFERS_CHANGED:
-            outputBuffers = audioDecoder.getOutputBuffers();
+            outputBuffers = codec.getOutputBuffers();
             break;
           case MediaCodec.INFO_OUTPUT_FORMAT_CHANGED:
           case MediaCodec.INFO_TRY_AGAIN_LATER:
             break;
           default:
             //needed for fix decode speed
-            while (audioExtractor.getSampleTime() / 1000
+            while (extractor.getSampleTime() / 1000
                 > System.currentTimeMillis() - startMs + seekTime) {
               try {
                 Thread.sleep(10);
               } catch (InterruptedException e) {
-                if (thread != null) thread.interrupt();
+                Thread.currentThread().interrupt();
                 return;
               }
             }
@@ -167,13 +115,13 @@ public class AudioDecoder {
             //This buffer is PCM data
             if (muted) {
               outBuffer.get(pcmBufferMuted, 0,
-                  outBuffer.remaining() <= pcmBufferMuted.length ? outBuffer.remaining()
-                      : pcmBufferMuted.length);
+                  Math.min(outBuffer.remaining(), pcmBufferMuted.length));
               getMicrophoneData.inputPCMData(new Frame(pcmBufferMuted, 0, pcmBufferMuted.length));
             } else {
-              outBuffer.get(pcmBuffer, 0,
-                  outBuffer.remaining() <= pcmBuffer.length ? outBuffer.remaining()
-                      : pcmBuffer.length);
+              if (pcmBuffer.length < outBuffer.remaining()) {
+                pcmBuffer = new byte[outBuffer.remaining()];
+              }
+              outBuffer.get(pcmBuffer, 0, Math.min(outBuffer.remaining(), pcmBuffer.length));
               if (channels > 2) { //downgrade to stereo
                 byte[] bufferStereo = PCMUtil.pcmToStereo(pcmBuffer, channels);
                 getMicrophoneData.inputPCMData(new Frame(bufferStereo, 0, bufferStereo.length));
@@ -181,40 +129,51 @@ public class AudioDecoder {
                 getMicrophoneData.inputPCMData(new Frame(pcmBuffer, 0, pcmBuffer.length));
               }
             }
-            audioDecoder.releaseOutputBuffer(outIndex, false);
+            codec.releaseOutputBuffer(outIndex, false);
             break;
         }
+      }
 
-        // All decoded frames have been rendered, we can stop playing now
-        if ((audioInfo.flags & MediaCodec.BUFFER_FLAG_END_OF_STREAM) != 0) {
-          seekTime = 0;
-          Log.i(TAG, "end of file out");
-          if (loopMode) {
-            loopFileInterface.onReset(false);
-          } else {
-            audioDecoderInterface.onAudioDecoderFinished();
-          }
+      // All decoded frames have been rendered, we can stop playing now
+      if ((bufferInfo.flags & MediaCodec.BUFFER_FLAG_END_OF_STREAM) != 0) {
+        seekTime = 0;
+        Log.i(TAG, "end of file out");
+        if (loopMode) {
+          loopFileInterface.onReset(false);
+        } else {
+          audioDecoderInterface.onAudioDecoderFinished();
         }
       }
     }
   }
 
-  public double getTime() {
-    if (decoding) {
-      return audioExtractor.getSampleTime() / 10E5;
+  /**
+   * This method should be called after prepare.
+   * Get max output size to set max input size in encoder.
+   */
+  public int getOutsize() {
+    if (!(mime.equals(CodecUtil.AAC_MIME) || mime.equals(CodecUtil.OPUS_MIME) || mime.equals(
+        CodecUtil.VORBIS_MIME))) {
+      Log.i(TAG, "fixing input size");
+      try {
+        if (running) {
+          return codec.getOutputBuffers()[0].remaining();
+        } else {
+          if (codec != null) {
+            codec.start();
+            int outSize = codec.getOutputBuffers()[0].remaining();
+            stopDecoder();
+            if (prepare(null)) return outSize;
+          }
+          return 0;
+        }
+      } catch (Exception e) {
+        return 0;
+      }
     } else {
+      Log.i(TAG, "default input size");
       return 0;
     }
-  }
-
-  public void moveTo(double time) {
-    audioExtractor.seekTo((long) (time * 10E5), MediaExtractor.SEEK_TO_CLOSEST_SYNC);
-    seekTime = audioExtractor.getSampleTime() / 1000;
-    startMs = System.currentTimeMillis();
-  }
-
-  public void setLoopMode(boolean loopMode) {
-    this.loopMode = loopMode;
   }
 
   public void mute() {
@@ -235,9 +194,5 @@ public class AudioDecoder {
 
   public boolean isStereo() {
     return isStereo;
-  }
-
-  public double getDuration() {
-    return duration / 10E5;
   }
 }

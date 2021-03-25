@@ -3,13 +3,15 @@ package com.pedro.encoder.input.audio;
 import android.os.HandlerThread;
 import android.util.Log;
 
+import com.pedro.encoder.Frame;
+import com.pedro.encoder.GetFrame;
 import java.nio.ByteBuffer;
 
 /**
  * Similar to MicrophoneManager but samples are not read automatically.
  * The owner must manually call read(...) as often as samples are needed.
  */
-public class MicrophoneManagerManual extends MicrophoneManager {
+public class MicrophoneManagerManual extends MicrophoneManager implements GetFrame {
 
   private final String TAG = "MicMM";
 
@@ -53,5 +55,17 @@ public class MicrophoneManagerManual extends MicrophoneManager {
     // handlerThread must not be null, else the stop impl will throw
     handlerThread = new HandlerThread("nothing");
     super.stop();
+  }
+
+  public GetFrame getGetFrame() {
+    return this;
+  }
+
+  @Override
+  public Frame getInputFrame() {
+    int size = audioRecord.read(pcmBuffer, pcmBuffer.remaining());
+    if (size < 0) return null;
+    return new Frame(muted ? pcmBufferMuted : customAudioEffect.process(pcmBuffer.array()),
+        muted ? 0 : pcmBuffer.arrayOffset(), size);
   }
 }

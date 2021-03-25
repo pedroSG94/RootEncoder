@@ -124,6 +124,9 @@ public class OpenGlView extends OpenGlViewBase {
     surfaceManager.makeCurrent();
     managerRender.initGl(getContext(), encoderWidth, encoderHeight, previewWidth, previewHeight);
     managerRender.getSurfaceTexture().setOnFrameAvailableListener(this);
+    if (surfaceManagerEncoder == null && surfaceManagerPhoto == null) {
+      surfaceManagerPhoto = new SurfaceManager(encoderWidth, encoderHeight, surfaceManager);
+    }
     semaphore.release();
     try {
       while (running) {
@@ -134,12 +137,6 @@ public class OpenGlView extends OpenGlViewBase {
           managerRender.drawOffScreen();
           managerRender.drawScreen(previewWidth, previewHeight, keepAspectRatio, aspectRatioMode, 0,
               true, false, false);
-          if (takePhotoCallback != null) {
-            takePhotoCallback.onTakePhoto(
-                GlUtil.getBitmap(keepAspectRatio, aspectRatioMode, previewWidth, previewHeight,
-                    encoderWidth, encoderHeight));
-            takePhotoCallback = null;
-          }
           surfaceManager.swapBuffer();
 
           synchronized (sync) {
@@ -152,8 +149,17 @@ public class OpenGlView extends OpenGlViewBase {
                 managerRender.drawScreen(encoderWidth, encoderHeight, false, aspectRatioMode,
                     streamRotation, false, isStreamVerticalFlip, isStreamHorizontalFlip);
               }
-              surfaceManagerEncoder.swapBuffer();
+            } else if (takePhotoCallback != null && surfaceManagerPhoto != null) {
+              surfaceManagerPhoto.makeCurrent();
+              managerRender.drawScreen(encoderWidth, encoderHeight, false, aspectRatioMode,
+                  streamRotation, false, isStreamVerticalFlip, isStreamHorizontalFlip);
             }
+            if (takePhotoCallback != null) {
+              takePhotoCallback.onTakePhoto(GlUtil.getBitmap(encoderWidth, encoderHeight));
+              takePhotoCallback = null;
+            }
+            if (surfaceManagerEncoder != null) surfaceManagerEncoder.swapBuffer();
+            else if (surfaceManagerPhoto != null) surfaceManagerPhoto.swapBuffer();
           }
           if (!filterQueue.isEmpty()) {
             Filter filter = filterQueue.take();

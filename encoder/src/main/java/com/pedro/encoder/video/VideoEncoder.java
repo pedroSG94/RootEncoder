@@ -6,8 +6,6 @@ import android.media.MediaCodecInfo;
 import android.media.MediaFormat;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.HandlerThread;
 import android.util.Log;
 import android.util.Pair;
 import android.view.Surface;
@@ -23,8 +21,7 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Created by pedro on 19/01/17.
@@ -36,7 +33,6 @@ public class VideoEncoder extends BaseEncoder implements GetCameraData {
   private static final String TAG = "VideoEncoder";
   private GetVideoData getVideoData;
   private boolean spsPpsSetted = false;
-  private boolean hardwareRotation = false;
 
   //surface to buffer encoder
   private Surface inputSurface;
@@ -53,31 +49,28 @@ public class VideoEncoder extends BaseEncoder implements GetCameraData {
   private FormatVideoEncoder formatVideoEncoder = FormatVideoEncoder.YUV420Dynamical;
   private int avcProfile = -1;
   private int avcProfileLevel = -1;
-  private HandlerThread handlerThread;
-  private BlockingQueue<Frame> queue = new ArrayBlockingQueue<>(80);
 
   public VideoEncoder(GetVideoData getVideoData) {
     this.getVideoData = getVideoData;
   }
 
   public boolean prepareVideoEncoder(int width, int height, int fps, int bitRate, int rotation,
-       boolean hardwareRotation, int iFrameInterval, FormatVideoEncoder formatVideoEncoder) {
-    return prepareVideoEncoder(width, height, fps, bitRate, rotation, hardwareRotation,
-      iFrameInterval, formatVideoEncoder, -1, -1);
+      int iFrameInterval, FormatVideoEncoder formatVideoEncoder) {
+    return prepareVideoEncoder(width, height, fps, bitRate, rotation, iFrameInterval,
+        formatVideoEncoder, -1, -1);
   }
 
   /**
    * Prepare encoder with custom parameters
    */
   public boolean prepareVideoEncoder(int width, int height, int fps, int bitRate, int rotation,
-      boolean hardwareRotation, int iFrameInterval, FormatVideoEncoder formatVideoEncoder,
-      int avcProfile, int avcProfileLevel) {
+      int iFrameInterval, FormatVideoEncoder formatVideoEncoder, int avcProfile,
+      int avcProfileLevel) {
     this.width = width;
     this.height = height;
     this.fps = fps;
     this.bitRate = bitRate;
     this.rotation = rotation;
-    this.hardwareRotation = hardwareRotation;
     this.formatVideoEncoder = formatVideoEncoder;
     this.avcProfile = avcProfile;
     this.avcProfileLevel = avcProfileLevel;
@@ -101,7 +94,7 @@ public class VideoEncoder extends BaseEncoder implements GetCameraData {
       //if you dont use mediacodec rotation you need swap width and height in rotation 90 or 270
       // for correct encoding resolution
       String resolution;
-      if (!hardwareRotation && (rotation == 90 || rotation == 270)) {
+      if ((rotation == 90 || rotation == 270)) {
         resolution = height + "x" + width;
         videoFormat = MediaFormat.createVideoFormat(type, height, width);
       } else {
@@ -115,13 +108,23 @@ public class VideoEncoder extends BaseEncoder implements GetCameraData {
       videoFormat.setInteger(MediaFormat.KEY_BIT_RATE, bitRate);
       videoFormat.setInteger(MediaFormat.KEY_FRAME_RATE, fps);
       videoFormat.setInteger(MediaFormat.KEY_I_FRAME_INTERVAL, iFrameInterval);
-      if (hardwareRotation) {
-        videoFormat.setInteger("rotation-degrees", rotation);
+      //Set CBR mode if supported by encoder.
+      if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP && isCBRModeSupported(encoder)) {
+        Log.i(TAG, "set bitrate mode CBR");
+        videoFormat.setInteger(MediaFormat.KEY_BITRATE_MODE,
+            MediaCodecInfo.EncoderCapabilities.BITRATE_MODE_CBR);
+      } else {
+        Log.i(TAG, "bitrate mode CBR not supported using default mode");
       }
+      // Rotation by encoder.
+      // Removed because this is ignored by most encoders, producing different results on different devices
+      //  videoFormat.setInteger(MediaFormat.KEY_ROTATION, rotation);
 
-      if (this.avcProfile > 0 && this.avcProfileLevel > 0) {
+      if (this.avcProfile > 0) {
         // MediaFormat.KEY_PROFILE, API > 21
         videoFormat.setInteger("profile", this.avcProfile);
+      }
+      if (this.avcProfileLevel > 0) {
         // MediaFormat.KEY_LEVEL, API > 23
         videoFormat.setInteger("level", this.avcProfileLevel);
       }
@@ -134,68 +137,48 @@ public class VideoEncoder extends BaseEncoder implements GetCameraData {
       }
       Log.i(TAG, "prepared");
       return true;
-    } catch (IOException | IllegalStateException e) {
+    } catch (Exception e) {
       Log.e(TAG, "Create VideoEncoder failed.", e);
+      this.stop();
       return false;
     }
+  }
+
+  @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
+  private boolean isCBRModeSupported(MediaCodecInfo mediaCodecInfo) {
+    MediaCodecInfo.CodecCapabilities codecCapabilities =
+        mediaCodecInfo.getCapabilitiesForType(type);
+    MediaCodecInfo.EncoderCapabilities encoderCapabilities =
+        codecCapabilities.getEncoderCapabilities();
+    return encoderCapabilities.isBitrateModeSupported(
+        MediaCodecInfo.EncoderCapabilities.BITRATE_MODE_CBR);
   }
 
   @Override
   public void start(boolean resetTs) {
     spsPpsSetted = false;
     if (resetTs) {
-      presentTimeUs = System.nanoTime() / 1000;
       fpsLimiter.setFPS(fps);
     }
     if (formatVideoEncoder != FormatVideoEncoder.SURFACE) {
       YUVUtil.preAllocateBuffers(width * height * 3 / 2);
     }
-    handlerThread = new HandlerThread(TAG);
-    handlerThread.start();
-    Handler handler = new Handler(handlerThread.getLooper());
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-      createAsyncCallback();
-      codec.setCallback(callback, handler);
-      codec.start();
-    } else {
-      codec.start();
-      handler.post(new Runnable() {
-        @Override
-        public void run() {
-          while (running) {
-            try {
-              getDataFromEncoder(null);
-            } catch (IllegalStateException e) {
-              Log.i(TAG, "Encoding error", e);
-            }
-          }
-        }
-      });
-    }
-    running = true;
     Log.i(TAG, "started");
   }
 
   @Override
   protected void stopImp() {
-    if (handlerThread != null) {
-      if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
-        handlerThread.quitSafely();
-      } else {
-        handlerThread.quit();
-      }
-    }
-    queue.clear();
     spsPpsSetted = false;
+    if (inputSurface != null) inputSurface.release();
     inputSurface = null;
     Log.i(TAG, "stopped");
   }
 
   public void reset() {
-    stop();
-    prepareVideoEncoder(width, height, fps, bitRate, rotation, hardwareRotation, iFrameInterval,
-        formatVideoEncoder, avcProfile, avcProfileLevel);
-    start(false);
+    stop(false);
+    prepareVideoEncoder(width, height, fps, bitRate, rotation, iFrameInterval, formatVideoEncoder,
+        avcProfile, avcProfileLevel);
+    restart();
   }
 
   private FormatVideoEncoder chooseColorDynamically(MediaCodecInfo mediaCodecInfo) {
@@ -213,7 +196,7 @@ public class VideoEncoder extends BaseEncoder implements GetCameraData {
    * Prepare encoder with default parameters
    */
   public boolean prepareVideoEncoder() {
-    return prepareVideoEncoder(width, height, fps, bitRate, rotation, false, iFrameInterval,
+    return prepareVideoEncoder(width, height, fps, bitRate, rotation, iFrameInterval,
         formatVideoEncoder, avcProfile, avcProfileLevel);
   }
 
@@ -258,10 +241,6 @@ public class VideoEncoder extends BaseEncoder implements GetCameraData {
 
   public int getHeight() {
     return height;
-  }
-
-  public boolean isHardwareRotation() {
-    return hardwareRotation;
   }
 
   public int getRotation() {
@@ -423,15 +402,16 @@ public class VideoEncoder extends BaseEncoder implements GetCameraData {
   @Override
   protected Frame getInputFrame() throws InterruptedException {
     Frame frame = queue.take();
+    if (frame == null) return null;
     if (fpsLimiter.limitFPS()) return getInputFrame();
     byte[] buffer = frame.getBuffer();
     boolean isYV12 = frame.getFormat() == ImageFormat.YV12;
-    if (!hardwareRotation) {
-      int orientation = frame.isFlip() ? frame.getOrientation() + 180 : frame.getOrientation();
-      if (orientation >= 360) orientation -= 360;
-      buffer = isYV12 ? YUVUtil.rotateYV12(buffer, width, height, orientation)
-          : YUVUtil.rotateNV21(buffer, width, height, orientation);
-    }
+
+    int orientation = frame.isFlip() ? frame.getOrientation() + 180 : frame.getOrientation();
+    if (orientation >= 360) orientation -= 360;
+    buffer = isYV12 ? YUVUtil.rotateYV12(buffer, width, height, orientation)
+        : YUVUtil.rotateNV21(buffer, width, height, orientation);
+
     buffer = isYV12 ? YUVUtil.YV12toYUV420byColor(buffer, width, height, formatVideoEncoder)
         : YUVUtil.NV21toYUV420byColor(buffer, width, height, formatVideoEncoder);
     frame.setBuffer(buffer);
@@ -448,6 +428,7 @@ public class VideoEncoder extends BaseEncoder implements GetCameraData {
   @Override
   protected void checkBuffer(@NonNull ByteBuffer byteBuffer,
       @NonNull MediaCodec.BufferInfo bufferInfo) {
+    fixTimeStamp(bufferInfo);
     if ((bufferInfo.flags & MediaCodec.BUFFER_FLAG_CODEC_CONFIG) != 0) {
       if (!spsPpsSetted) {
         Pair<ByteBuffer, ByteBuffer> buffers =
@@ -467,42 +448,5 @@ public class VideoEncoder extends BaseEncoder implements GetCameraData {
       bufferInfo.presentationTimeUs = System.nanoTime() / 1000 - presentTimeUs;
     }
     getVideoData.getVideoData(byteBuffer, bufferInfo);
-  }
-
-  private MediaCodec.Callback callback;
-
-  @RequiresApi(api = Build.VERSION_CODES.M)
-  private void createAsyncCallback() {
-    callback = new MediaCodec.Callback() {
-      @Override
-      public void onInputBufferAvailable(@NonNull MediaCodec mediaCodec, int inBufferIndex) {
-        try {
-          inputAvailable(mediaCodec, inBufferIndex, null);
-        } catch (IllegalStateException e) {
-          Log.i(TAG, "Encoding error", e);
-        }
-      }
-
-      @Override
-      public void onOutputBufferAvailable(@NonNull MediaCodec mediaCodec, int outBufferIndex,
-          @NonNull MediaCodec.BufferInfo bufferInfo) {
-        try {
-          outputAvailable(mediaCodec, outBufferIndex, bufferInfo);
-        } catch (IllegalStateException e) {
-          Log.i(TAG, "Encoding error", e);
-        }
-      }
-
-      @Override
-      public void onError(@NonNull MediaCodec mediaCodec, @NonNull MediaCodec.CodecException e) {
-        Log.e(TAG, "Error", e);
-      }
-
-      @Override
-      public void onOutputFormatChanged(@NonNull MediaCodec mediaCodec,
-          @NonNull MediaFormat mediaFormat) {
-        formatChanged(mediaCodec, mediaFormat);
-      }
-    };
   }
 }

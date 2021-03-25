@@ -29,11 +29,23 @@ public class RtspCamera2 extends Camera2Base {
 
   private RtspClient rtspClient;
 
+  /**
+   * @deprecated This view produce rotations problems and could be unsupported in future versions.
+   * Use {@link Camera2Base#Camera2Base(OpenGlView)} or {@link Camera2Base#Camera2Base(LightOpenGlView)}
+   * instead.
+   */
+  @Deprecated
   public RtspCamera2(SurfaceView surfaceView, ConnectCheckerRtsp connectCheckerRtsp) {
     super(surfaceView);
     rtspClient = new RtspClient(connectCheckerRtsp);
   }
 
+  /**
+   * @deprecated This view produce rotations problems and could be unsupported in future versions.
+   * Use {@link Camera2Base#Camera2Base(OpenGlView)} or {@link Camera2Base#Camera2Base(LightOpenGlView)}
+   * instead.
+   */
+  @Deprecated
   public RtspCamera2(TextureView textureView, ConnectCheckerRtsp connectCheckerRtsp) {
     super(textureView);
     rtspClient = new RtspClient(connectCheckerRtsp);
@@ -114,6 +126,8 @@ public class RtspCamera2 extends Camera2Base {
   }
 
   public void setVideoCodec(VideoCodec videoCodec) {
+    recordController.setVideoMime(
+        videoCodec == VideoCodec.H265 ? CodecUtil.H265_MIME : CodecUtil.H264_MIME);
     videoEncoder.setType(videoCodec == VideoCodec.H265 ? CodecUtil.H265_MIME : CodecUtil.H264_MIME);
   }
 
@@ -130,7 +144,7 @@ public class RtspCamera2 extends Camera2Base {
 
   @Override
   protected void startStreamRtp(String url) {
-    rtspClient.setUrl(url);
+    rtspClient.connect(url);
   }
 
   @Override
@@ -154,6 +168,11 @@ public class RtspCamera2 extends Camera2Base {
   }
 
   @Override
+  public boolean hasCongestion() {
+    return rtspClient.hasCongestion();
+  }
+
+  @Override
   protected void getAacDataRtp(ByteBuffer aacBuffer, MediaCodec.BufferInfo info) {
     rtspClient.sendAudio(aacBuffer, info);
   }
@@ -164,12 +183,16 @@ public class RtspCamera2 extends Camera2Base {
     ByteBuffer newPps = pps.duplicate();
     ByteBuffer newVps = vps != null ? vps.duplicate() : null;
     rtspClient.setSPSandPPS(newSps, newPps, newVps);
-    rtspClient.connect();
   }
 
   @Override
   protected void getH264DataRtp(ByteBuffer h264Buffer, MediaCodec.BufferInfo info) {
     rtspClient.sendVideo(h264Buffer, info);
+  }
+
+  @Override
+  public void setLogs(boolean enable) {
+    rtspClient.setLogs(enable);
   }
 }
 

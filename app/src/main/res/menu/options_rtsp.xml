@@ -33,11 +33,6 @@
           app:actionLayout="@xml/edit_text_int"
           android:id="@+id/et_fps"
           />
-      <item
-          android:title="@string/hardware_rotation"
-          app:actionViewClass="android.widget.CheckBox"
-          android:id="@+id/cb_hardware_rotation"
-          />
     </menu>
   </item>
   <item android:title="@string/audio">
@@ -69,17 +64,17 @@
           />
     </menu>
   </item>
-  <item android:title="@string/wowza_auth">
+  <item android:title="@string/auth">
     <menu>
       <item
-          android:title="@string/wowza_user"
+          android:title="@string/user"
           app:actionLayout="@xml/edit_text_auth"
-          android:id="@+id/et_wowza_user"
+          android:id="@+id/et_user"
           />
       <item
-          android:title="@string/wowza_password"
+          android:title="@string/password"
           app:actionLayout="@xml/edit_text_auth"
-          android:id="@+id/et_wowza_password"
+          android:id="@+id/et_password"
           />
     </menu>
   </item>

@@ -115,6 +115,8 @@ public class RtspCamera1 extends Camera1Base {
   }
 
   public void setVideoCodec(VideoCodec videoCodec) {
+    recordController.setVideoMime(
+        videoCodec == VideoCodec.H265 ? CodecUtil.H265_MIME : CodecUtil.H264_MIME);
     videoEncoder.setType(videoCodec == VideoCodec.H265 ? CodecUtil.H265_MIME : CodecUtil.H264_MIME);
   }
 
@@ -131,7 +133,7 @@ public class RtspCamera1 extends Camera1Base {
 
   @Override
   protected void startStreamRtp(String url) {
-    rtspClient.setUrl(url);
+    rtspClient.connect(url);
   }
 
   @Override
@@ -155,6 +157,11 @@ public class RtspCamera1 extends Camera1Base {
   }
 
   @Override
+  public boolean hasCongestion() {
+    return rtspClient.hasCongestion();
+  }
+
+  @Override
   protected void getAacDataRtp(ByteBuffer aacBuffer, MediaCodec.BufferInfo info) {
     rtspClient.sendAudio(aacBuffer, info);
   }
@@ -165,11 +172,15 @@ public class RtspCamera1 extends Camera1Base {
     ByteBuffer newPps = pps.duplicate();
     ByteBuffer newVps = vps != null ? vps.duplicate() : null;
     rtspClient.setSPSandPPS(newSps, newPps, newVps);
-    rtspClient.connect();
   }
 
   @Override
   protected void getH264DataRtp(ByteBuffer h264Buffer, MediaCodec.BufferInfo info) {
     rtspClient.sendVideo(h264Buffer, info);
+  }
+
+  @Override
+  public void setLogs(boolean enable) {
+    rtspClient.setLogs(enable);
   }
 }

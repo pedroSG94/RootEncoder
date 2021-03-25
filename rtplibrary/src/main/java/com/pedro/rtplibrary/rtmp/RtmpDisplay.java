@@ -93,7 +93,8 @@ public class RtmpDisplay extends DisplayBase {
   }
 
   /**
-   * Some Livestream hosts use Akamai auth that requires RTMP packets to be sent with increasing timestamp order regardless of packet type.
+   * Some Livestream hosts use Akamai auth that requires RTMP packets to be sent with increasing
+   * timestamp order regardless of packet type.
    * Necessary with Servers like Dacast.
    * More info here:
    * https://learn.akamai.com/en-us/webhelp/media-services-live/media-services-live-encoder-compatibility-testing-and-qualification-guide-v4.0/GUID-F941C88B-9128-4BF4-A81B-C2E5CFD35BBF.html
@@ -139,6 +140,11 @@ public class RtmpDisplay extends DisplayBase {
   }
 
   @Override
+  public boolean hasCongestion() {
+    return srsFlvMuxer.hasCongestion();
+  }
+
+  @Override
   protected void getAacDataRtp(ByteBuffer aacBuffer, MediaCodec.BufferInfo info) {
     srsFlvMuxer.sendAudio(aacBuffer, info);
   }
@@ -151,5 +157,10 @@ public class RtmpDisplay extends DisplayBase {
   @Override
   protected void getH264DataRtp(ByteBuffer h264Buffer, MediaCodec.BufferInfo info) {
     srsFlvMuxer.sendVideo(h264Buffer, info);
+  }
+
+  @Override
+  public void setLogs(boolean enable) {
+    srsFlvMuxer.setLogs(enable);
   }
 }

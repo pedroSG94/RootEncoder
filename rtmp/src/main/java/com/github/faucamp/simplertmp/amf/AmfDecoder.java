@@ -42,7 +42,8 @@ public class AmfDecoder {
           throw new IOException("Unknown/unimplemented AMF data type: " + amfType);
       }
     } else {
-      throw new IOException("Unknown AMF data type");
+      //If you can see -1 here it is because server close connection before library can read AMF packet.
+      throw new IOException("Unknown AMF data type: " + amfTypeByte);
     }
 
     amfData.readFrom(in);
