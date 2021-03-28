@@ -12,6 +12,7 @@ import com.pedro.rtsp.utils.ConnectCheckerRtsp
 import com.pedro.rtsp.utils.RtpConstants
 import java.io.OutputStream
 import java.nio.ByteBuffer
+import java.util.*
 import java.util.concurrent.BlockingQueue
 import java.util.concurrent.LinkedBlockingQueue
 import java.util.concurrent.TimeUnit
@@ -108,6 +109,12 @@ class RtspSender(private val connectCheckerRtsp: ConnectCheckerRtsp) : VideoPack
       val h = Handler(it.looper)
       running = true
       h.post {
+        val ssrcVideo = Random().nextInt()
+        val ssrcAudio = Random().nextInt()
+        baseSenderReport?.setSSRC(ssrcVideo, ssrcAudio)
+        videoPacket?.setSSRC(ssrcVideo)
+        aacPacket?.setSSRC(ssrcAudio)
+
         while (!Thread.interrupted()) {
           try {
             val rtpFrame = rtpFrameBlockingQueue.poll(1, TimeUnit.SECONDS)

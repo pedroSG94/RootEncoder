@@ -7,7 +7,6 @@ import com.pedro.rtsp.utils.RtpConstants
 import com.pedro.rtsp.utils.setLong
 import java.io.IOException
 import java.io.OutputStream
-import java.util.*
 
 /**
  * Created by pedro on 7/11/18.
@@ -56,13 +55,16 @@ internal abstract class BaseSenderReport internal constructor() {
     videoBuffer.setLong(PACKET_LENGTH / 4 - 1.toLong(), 2, 4)
     audioBuffer.setLong(PACKET_LENGTH / 4 - 1.toLong(), 2, 4)
     /* Byte 4,5,6,7      ->  SSRC                            */
-    videoBuffer.setLong(Random().nextInt().toLong(), 4, 8)
-    audioBuffer.setLong(Random().nextInt().toLong(), 4, 8)
     /* Byte 8,9,10,11    ->  NTP timestamp hb				 */
     /* Byte 12,13,14,15  ->  NTP timestamp lb				 */
     /* Byte 16,17,18,19  ->  RTP timestamp		             */
     /* Byte 20,21,22,23  ->  packet count				 	 */
     /* Byte 24,25,26,27  ->  octet count			         */
+  }
+
+  fun setSSRC(ssrcVideo: Int, ssrcAudio: Int) {
+    videoBuffer.setLong(ssrcVideo.toLong(), 4, 8)
+    audioBuffer.setLong(ssrcAudio.toLong(), 4, 8)
   }
 
   abstract fun setDataStream(outputStream: OutputStream, host: String)

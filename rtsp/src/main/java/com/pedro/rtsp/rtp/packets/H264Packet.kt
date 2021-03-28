@@ -35,11 +35,11 @@ internal class H264Packet(sps: ByteArray, pps: ByteArray, private val videoPacke
     if (type == RtpConstants.IDR || bufferInfo.flags == MediaCodec.BUFFER_FLAG_KEY_FRAME) {
       stapA?.let {
         val buffer = getBuffer(it.size + RtpConstants.RTP_HEADER_LENGTH)
-        updateTimeStamp(buffer, ts)
+        val rtpts = updateTimeStamp(buffer, ts)
         markPacket(buffer) //mark end frame
         System.arraycopy(it, 0, buffer, RtpConstants.RTP_HEADER_LENGTH, it.size)
         updateSeq(buffer)
-        val rtpFrame = RtpFrame(buffer, ts, it.size + RtpConstants.RTP_HEADER_LENGTH, rtpPort, rtcpPort, channelIdentifier)
+        val rtpFrame = RtpFrame(buffer, rtpts, it.size + RtpConstants.RTP_HEADER_LENGTH, rtpPort, rtcpPort, channelIdentifier)
         videoPacketCallback.onVideoFrameCreated(rtpFrame)
         sendKeyFrame = true
       } ?: run {
@@ -58,10 +58,10 @@ internal class H264Packet(sps: ByteArray, pps: ByteArray, private val videoPacke
         val buffer = getBuffer(length + RtpConstants.RTP_HEADER_LENGTH + 1)
         buffer[RtpConstants.RTP_HEADER_LENGTH] = header[4]
         byteBuffer.get(buffer, RtpConstants.RTP_HEADER_LENGTH + 1, length)
-        updateTimeStamp(buffer, ts)
+        val rtpts = updateTimeStamp(buffer, ts)
         markPacket(buffer) //mark end frame
         updateSeq(buffer)
-        val rtpFrame = RtpFrame(buffer, ts, naluLength + RtpConstants.RTP_HEADER_LENGTH, rtpPort, rtcpPort, channelIdentifier)
+        val rtpFrame = RtpFrame(buffer, rtpts, naluLength + RtpConstants.RTP_HEADER_LENGTH, rtpPort, rtcpPort, channelIdentifier)
         videoPacketCallback.onVideoFrameCreated(rtpFrame)
       } else {
         // Set FU-A header
@@ -85,7 +85,7 @@ internal class H264Packet(sps: ByteArray, pps: ByteArray, private val videoPacke
           val buffer = getBuffer(length + RtpConstants.RTP_HEADER_LENGTH + 2)
           buffer[RtpConstants.RTP_HEADER_LENGTH] = header[0]
           buffer[RtpConstants.RTP_HEADER_LENGTH + 1] = header[1]
-          updateTimeStamp(buffer, ts)
+          val rtpts = updateTimeStamp(buffer, ts)
           byteBuffer.get(buffer, RtpConstants.RTP_HEADER_LENGTH + 2, length)
           sum += length
           // Last packet before next NAL
@@ -95,7 +95,7 @@ internal class H264Packet(sps: ByteArray, pps: ByteArray, private val videoPacke
             markPacket(buffer) //mark end frame
           }
           updateSeq(buffer)
-          val rtpFrame = RtpFrame(buffer, ts, length + RtpConstants.RTP_HEADER_LENGTH + 2, rtpPort, rtcpPort, channelIdentifier)
+          val rtpFrame = RtpFrame(buffer, rtpts, length + RtpConstants.RTP_HEADER_LENGTH + 2, rtpPort, rtcpPort, channelIdentifier)
           videoPacketCallback.onVideoFrameCreated(rtpFrame)
           // Switch start bit
           header[1] = header[1] and 0x7F

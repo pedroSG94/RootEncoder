@@ -35,11 +35,11 @@ internal class H265Packet(sps: ByteArray, pps: ByteArray, vps: ByteArray, privat
     if (type == RtpConstants.IDR_N_LP || type == RtpConstants.IDR_W_DLP || bufferInfo.flags == MediaCodec.BUFFER_FLAG_KEY_FRAME) {
       stapA?.let {
         val buffer = getBuffer(it.size + RtpConstants.RTP_HEADER_LENGTH)
-        updateTimeStamp(buffer, ts)
+        val rtpts = updateTimeStamp(buffer, ts)
         markPacket(buffer) //mark end frame
         System.arraycopy(it, 0, buffer, RtpConstants.RTP_HEADER_LENGTH, it.size)
         updateSeq(buffer)
-        val rtpFrame = RtpFrame(buffer, ts, it.size + RtpConstants.RTP_HEADER_LENGTH, rtpPort, rtcpPort, channelIdentifier)
+        val rtpFrame = RtpFrame(buffer, rtpts, it.size + RtpConstants.RTP_HEADER_LENGTH, rtpPort, rtcpPort, channelIdentifier)
         videoPacketCallback.onVideoFrameCreated(rtpFrame)
         sendKeyFrame = true
       } ?: run {
@@ -60,10 +60,10 @@ internal class H265Packet(sps: ByteArray, pps: ByteArray, vps: ByteArray, privat
         buffer[RtpConstants.RTP_HEADER_LENGTH] = header[4]
         buffer[RtpConstants.RTP_HEADER_LENGTH + 1] = header[5]
         byteBuffer.get(buffer, RtpConstants.RTP_HEADER_LENGTH + 2, length)
-        updateTimeStamp(buffer, ts)
+        val rtpts = updateTimeStamp(buffer, ts)
         markPacket(buffer) //mark end frame
         updateSeq(buffer)
-        val rtpFrame = RtpFrame(buffer, ts, naluLength + RtpConstants.RTP_HEADER_LENGTH, rtpPort, rtcpPort, channelIdentifier)
+        val rtpFrame = RtpFrame(buffer, rtpts, naluLength + RtpConstants.RTP_HEADER_LENGTH, rtpPort, rtcpPort, channelIdentifier)
         videoPacketCallback.onVideoFrameCreated(rtpFrame)
       } else {
         //Set PayloadHdr (16bit type=49)
@@ -93,7 +93,7 @@ internal class H265Packet(sps: ByteArray, pps: ByteArray, vps: ByteArray, privat
           buffer[RtpConstants.RTP_HEADER_LENGTH] = header[0]
           buffer[RtpConstants.RTP_HEADER_LENGTH + 1] = header[1]
           buffer[RtpConstants.RTP_HEADER_LENGTH + 2] = header[2]
-          updateTimeStamp(buffer, ts)
+          val rtpts = updateTimeStamp(buffer, ts)
           byteBuffer.get(buffer, RtpConstants.RTP_HEADER_LENGTH + 3, length)
           sum += length
           // Last packet before next NAL
@@ -103,7 +103,7 @@ internal class H265Packet(sps: ByteArray, pps: ByteArray, vps: ByteArray, privat
             markPacket(buffer) //mark end frame
           }
           updateSeq(buffer)
-          val rtpFrame = RtpFrame(buffer, ts, length + RtpConstants.RTP_HEADER_LENGTH + 3, rtpPort, rtcpPort, channelIdentifier)
+          val rtpFrame = RtpFrame(buffer, rtpts, length + RtpConstants.RTP_HEADER_LENGTH + 3, rtpPort, rtcpPort, channelIdentifier)
           videoPacketCallback.onVideoFrameCreated(rtpFrame)
           // Switch start bit
           header[2] = header[2] and 0x7F
