@@ -11,6 +11,8 @@ android {
     targetSdkVersion 30
     versionCode 199
     versionName "1.9.9"
+    buildConfigField 'int', 'VERSION_CODE', "${versionCode}"
+    buildConfigField 'String', 'VERSION_NAME', "\"${versionName}\""
   }
   buildTypes {
     release {

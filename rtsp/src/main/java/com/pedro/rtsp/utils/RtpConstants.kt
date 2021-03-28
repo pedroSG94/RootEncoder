@@ -11,7 +11,7 @@ object RtpConstants {
   var trackVideo = 0
   const val clockVideoFrequency = 90000L
   const val RTP_HEADER_LENGTH = 12
-  const val MTU = 1300
+  const val MTU = 1500
   const val payloadType = 96
 
   //H264 IDR

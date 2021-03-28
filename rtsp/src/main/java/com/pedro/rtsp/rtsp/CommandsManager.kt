@@ -2,6 +2,7 @@ package com.pedro.rtsp.rtsp
 
 import android.util.Base64
 import android.util.Log
+import com.pedro.rtsp.BuildConfig
 import com.pedro.rtsp.rtsp.Body.createAacBody
 import com.pedro.rtsp.rtsp.Body.createH264Body
 import com.pedro.rtsp.rtsp.Body.createH265Body
@@ -121,6 +122,7 @@ open class CommandsManager(private val connectCheckerRtsp: ConnectCheckerRtsp) {
 
   private fun addHeaders(): String {
     return "CSeq: ${++cSeq}\r\n" +
+        "User-Agent: ${BuildConfig.LIBRARY_PACKAGE_NAME} ${BuildConfig.VERSION_NAME}\r\n" +
         (if (sessionId == null) "" else "Session: $sessionId\r\n") +
         (if (authorization == null) "" else "Authorization: $authorization\r\n")
   }
@@ -141,7 +143,8 @@ open class CommandsManager(private val connectCheckerRtsp: ConnectCheckerRtsp) {
         "c=IN IP4 $host\r\n" +
         "t=0 0\r\n" +
         "a=recvonly\r\n" +
-        "$videoBody${createAacBody(RtpConstants.trackAudio, sampleRate, isStereo)}"
+        videoBody +
+        createAacBody(RtpConstants.trackAudio, sampleRate, isStereo)
   }
 
   private fun createAuth(authResponse: String): String {
@@ -196,9 +199,9 @@ open class CommandsManager(private val connectCheckerRtsp: ConnectCheckerRtsp) {
   fun createAnnounce(): String {
     val body = createBody()
     val announce = "ANNOUNCE rtsp://$host:$port$path RTSP/1.0\r\n" +
+        "Content-Type: application/sdp\r\n" +
         addHeaders() +
-        "Content-Length: ${body.length}\r\n" +
-        "Content-Type: application/sdp\r\n\r\n" +
+        "Content-Length: ${body.length}\r\n\r\n" +
         body
     Log.i(TAG, announce)
     return announce

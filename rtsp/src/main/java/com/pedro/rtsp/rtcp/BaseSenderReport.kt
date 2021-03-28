@@ -15,9 +15,8 @@ import java.util.*
 internal abstract class BaseSenderReport internal constructor() {
 
   private val interval: Long = 3000
-  private val MTU = 1500
-  private val videoBuffer = ByteArray(MTU)
-  private val audioBuffer = ByteArray(MTU)
+  private val videoBuffer = ByteArray(RtpConstants.MTU)
+  private val audioBuffer = ByteArray(RtpConstants.MTU)
   private var videoTime: Long = 0
   private var audioTime: Long = 0
   private var videoPacketCount = 0
