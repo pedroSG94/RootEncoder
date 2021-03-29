@@ -59,4 +59,6 @@ public interface RtmpPublisher {
   void setVideoResolution(int width, int height);
 
   void setAuthorization(String user, String password);
+
+  void setLogs(boolean enable);
 }

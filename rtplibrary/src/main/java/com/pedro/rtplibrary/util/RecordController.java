@@ -4,7 +4,15 @@ import android.media.MediaCodec;
 import android.media.MediaFormat;
 import android.media.MediaMuxer;
 import android.os.Build;
+import android.util.Log;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
+import com.pedro.encoder.utils.CodecUtil;
+import com.pedro.rtsp.utils.RtpConstants;
+
+import java.io.FileDescriptor;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 
@@ -15,6 +23,7 @@ import java.nio.ByteBuffer;
  */
 public class RecordController {
 
+  private static final String TAG = "RecordController";
   private Status status = Status.STOPPED;
   private MediaMuxer mediaMuxer;
   private MediaFormat videoFormat, audioFormat;
@@ -26,6 +35,8 @@ public class RecordController {
   private long pauseTime = 0;
   private MediaCodec.BufferInfo videoInfo = new MediaCodec.BufferInfo();
   private MediaCodec.BufferInfo audioInfo = new MediaCodec.BufferInfo();
+  private String videoMime = CodecUtil.H264_MIME;
+  private boolean isOnlyAudio = false;
 
   public enum Status {
     STARTED, STOPPED, RECORDING, PAUSED, RESUMED
@@ -36,11 +47,21 @@ public class RecordController {
   }
 
   @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
-  public void startRecord(String path, Listener listener) throws IOException {
+  public void startRecord(@NonNull String path, @Nullable Listener listener) throws IOException {
     mediaMuxer = new MediaMuxer(path, MediaMuxer.OutputFormat.MUXER_OUTPUT_MPEG_4);
     this.listener = listener;
     status = Status.STARTED;
     if (listener != null) listener.onStatusChange(status);
+    if (isOnlyAudio && audioFormat != null) init();
+  }
+
+  @RequiresApi(api = Build.VERSION_CODES.O)
+  public void startRecord(@NonNull FileDescriptor fd, @Nullable Listener listener) throws IOException {
+    mediaMuxer = new MediaMuxer(fd, MediaMuxer.OutputFormat.MUXER_OUTPUT_MPEG_4);
+    this.listener = listener;
+    status = Status.STARTED;
+    if(listener != null) listener.onStatusChange(status);
+    if(isOnlyAudio && audioFormat != null) init();
   }
 
   @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
@@ -59,6 +80,10 @@ public class RecordController {
     pauseMoment = 0;
     pauseTime = 0;
     if (listener != null) listener.onStatusChange(status);
+  }
+
+  public void setVideoMime(String videoMime) {
+    this.videoMime = videoMime;
   }
 
   public boolean isRunning() {
@@ -97,24 +122,50 @@ public class RecordController {
     }
   }
 
+  private boolean isKeyFrame(ByteBuffer videoBuffer) {
+    byte[] header = new byte[5];
+    videoBuffer.duplicate().get(header, 0, header.length);
+    if (videoMime.equals(CodecUtil.H264_MIME) && (header[4] & 0x1F) == RtpConstants.IDR) {  //h264
+      return true;
+    } else { //h265
+      return videoMime.equals(CodecUtil.H265_MIME)
+          && ((header[4] >> 1) & 0x3f) == RtpConstants.IDR_W_DLP
+          || ((header[4] >> 1) & 0x3f) == RtpConstants.IDR_N_LP;
+    }
+  }
+
+  @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
+  private void write(int track, ByteBuffer byteBuffer, MediaCodec.BufferInfo info) {
+    try {
+      mediaMuxer.writeSampleData(track, byteBuffer, info);
+    } catch (IllegalStateException | IllegalArgumentException e) {
+      Log.i(TAG, "Write error", e);
+    }
+  }
+
+  @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
+  private void init() {
+    audioTrack = mediaMuxer.addTrack(audioFormat);
+    mediaMuxer.start();
+    status = Status.RECORDING;
+    if (listener != null) listener.onStatusChange(status);
+  }
+
   @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
   public void recordVideo(ByteBuffer videoBuffer, MediaCodec.BufferInfo videoInfo) {
-    if (status == Status.STARTED
-        && videoInfo.flags == MediaCodec.BUFFER_FLAG_KEY_FRAME
-        && videoFormat != null
-        && audioFormat != null) {
-      videoTrack = mediaMuxer.addTrack(videoFormat);
-      audioTrack = mediaMuxer.addTrack(audioFormat);
-      mediaMuxer.start();
-      status = Status.RECORDING;
-      if (listener != null) listener.onStatusChange(status);
-    } else if (status == Status.RESUMED && videoInfo.flags == MediaCodec.BUFFER_FLAG_KEY_FRAME) {
+    if (status == Status.STARTED && videoFormat != null && audioFormat != null) {
+      if (videoInfo.flags == MediaCodec.BUFFER_FLAG_KEY_FRAME || isKeyFrame(videoBuffer)) {
+        videoTrack = mediaMuxer.addTrack(videoFormat);
+        init();
+      }
+    } else if (status == Status.RESUMED && (videoInfo.flags == MediaCodec.BUFFER_FLAG_KEY_FRAME
+        || isKeyFrame(videoBuffer))) {
       status = Status.RECORDING;
       if (listener != null) listener.onStatusChange(status);
     }
     if (status == Status.RECORDING) {
       updateFormat(this.videoInfo, videoInfo);
-      mediaMuxer.writeSampleData(videoTrack, videoBuffer, this.videoInfo);
+      write(videoTrack, videoBuffer, this.videoInfo);
     }
   }
 
@@ -122,7 +173,7 @@ public class RecordController {
   public void recordAudio(ByteBuffer audioBuffer, MediaCodec.BufferInfo audioInfo) {
     if (status == Status.RECORDING) {
       updateFormat(this.audioInfo, audioInfo);
-      mediaMuxer.writeSampleData(audioTrack, audioBuffer, this.audioInfo);
+      write(audioTrack, audioBuffer, this.audioInfo);
     }
   }
 
@@ -130,8 +181,17 @@ public class RecordController {
     this.videoFormat = videoFormat;
   }
 
-  public void setAudioFormat(MediaFormat audioFormat) {
+  public void setAudioFormat(MediaFormat audioFormat, boolean isOnlyAudio) {
     this.audioFormat = audioFormat;
+    this.isOnlyAudio = isOnlyAudio;
+    if (isOnlyAudio && status == Status.STARTED
+        && Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
+      init();
+    }
+  }
+
+  public void setAudioFormat(MediaFormat audioFormat) {
+    setAudioFormat(audioFormat, false);
   }
 
   //We can't reuse info because could produce stream issues

@@ -27,11 +27,23 @@ public class RtmpCamera2 extends Camera2Base {
 
   private SrsFlvMuxer srsFlvMuxer;
 
+  /**
+   * @deprecated This view produce rotations problems and could be unsupported in future versions.
+   * Use {@link Camera2Base#Camera2Base(OpenGlView)} or {@link Camera2Base#Camera2Base(LightOpenGlView)}
+   * instead.
+   */
+  @Deprecated
   public RtmpCamera2(SurfaceView surfaceView, ConnectCheckerRtmp connectChecker) {
     super(surfaceView);
     srsFlvMuxer = new SrsFlvMuxer(connectChecker);
   }
 
+  /**
+   * @deprecated This view produce rotations problems and could be unsupported in future versions.
+   * Use {@link Camera2Base#Camera2Base(OpenGlView)} or {@link Camera2Base#Camera2Base(LightOpenGlView)}
+   * instead.
+   */
+  @Deprecated
   public RtmpCamera2(TextureView textureView, ConnectCheckerRtmp connectChecker) {
     super(textureView);
     srsFlvMuxer = new SrsFlvMuxer(connectChecker);
@@ -117,7 +129,8 @@ public class RtmpCamera2 extends Camera2Base {
   }
 
   /**
-   * Some Livestream hosts use Akamai auth that requires RTMP packets to be sent with increasing timestamp order regardless of packet type.
+   * Some Livestream hosts use Akamai auth that requires RTMP packets to be sent with increasing
+   * timestamp order regardless of packet type.
    * Necessary with Servers like Dacast.
    * More info here:
    * https://learn.akamai.com/en-us/webhelp/media-services-live/media-services-live-encoder-compatibility-testing-and-qualification-guide-v4.0/GUID-F941C88B-9128-4BF4-A81B-C2E5CFD35BBF.html
@@ -163,6 +176,11 @@ public class RtmpCamera2 extends Camera2Base {
   }
 
   @Override
+  public boolean hasCongestion() {
+    return srsFlvMuxer.hasCongestion();
+  }
+
+  @Override
   protected void getAacDataRtp(ByteBuffer aacBuffer, MediaCodec.BufferInfo info) {
     srsFlvMuxer.sendAudio(aacBuffer, info);
   }
@@ -175,6 +193,11 @@ public class RtmpCamera2 extends Camera2Base {
   @Override
   protected void getH264DataRtp(ByteBuffer h264Buffer, MediaCodec.BufferInfo info) {
     srsFlvMuxer.sendVideo(h264Buffer, info);
+  }
+
+  @Override
+  public void setLogs(boolean enable) {
+    srsFlvMuxer.setLogs(enable);
   }
 }
 

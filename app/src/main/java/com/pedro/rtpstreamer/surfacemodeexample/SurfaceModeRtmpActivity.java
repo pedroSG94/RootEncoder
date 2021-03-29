@@ -75,10 +75,10 @@ public class SurfaceModeRtmpActivity extends AppCompatActivity
     runOnUiThread(new Runnable() {
       @Override
       public void run() {
-        if (rtmpCamera2.shouldRetry(reason)) {
+        //Wait 5s and retry connect stream
+        if (rtmpCamera2.reTry(5000, reason)) {
           Toast.makeText(SurfaceModeRtmpActivity.this, "Retry", Toast.LENGTH_SHORT)
               .show();
-          rtmpCamera2.reTry(5000);  //Wait 5s and retry connect stream
         } else {
           Toast.makeText(SurfaceModeRtmpActivity.this, "Connection failed. " + reason, Toast.LENGTH_SHORT).show();
           rtmpCamera2.stopStream();

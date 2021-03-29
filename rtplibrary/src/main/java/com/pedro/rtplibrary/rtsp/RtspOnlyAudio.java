@@ -95,8 +95,7 @@ public class RtspOnlyAudio extends OnlyAudioBase {
 
   @Override
   protected void startStreamRtp(String url) {
-    rtspClient.setUrl(url);
-    rtspClient.connect();
+    rtspClient.connect(url);
   }
 
   @Override
@@ -120,7 +119,17 @@ public class RtspOnlyAudio extends OnlyAudioBase {
   }
 
   @Override
+  public boolean hasCongestion() {
+    return rtspClient.hasCongestion();
+  }
+
+  @Override
   protected void getAacDataRtp(ByteBuffer aacBuffer, MediaCodec.BufferInfo info) {
     rtspClient.sendAudio(aacBuffer, info);
+  }
+
+  @Override
+  public void setLogs(boolean enable) {
+    rtspClient.setLogs(enable);
   }
 }

@@ -4,12 +4,18 @@ import android.content.Context;
 import android.hardware.camera2.CameraCharacteristics;
 import android.media.MediaCodec;
 import android.media.MediaFormat;
+import android.media.MediaRecorder;
 import android.os.Build;
+import android.util.Range;
 import android.util.Size;
 import android.view.MotionEvent;
 import android.view.Surface;
 import android.view.SurfaceView;
 import android.view.TextureView;
+import android.view.View;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 import com.pedro.encoder.Frame;
 import com.pedro.encoder.audio.AudioEncoder;
@@ -17,6 +23,8 @@ import com.pedro.encoder.audio.GetAacData;
 import com.pedro.encoder.input.audio.CustomAudioEffect;
 import com.pedro.encoder.input.audio.GetMicrophoneData;
 import com.pedro.encoder.input.audio.MicrophoneManager;
+import com.pedro.encoder.input.audio.MicrophoneManagerManual;
+import com.pedro.encoder.input.audio.MicrophoneMode;
 import com.pedro.encoder.input.video.Camera2ApiManager;
 import com.pedro.encoder.input.video.CameraCallbacks;
 import com.pedro.encoder.input.video.CameraHelper;
@@ -31,6 +39,8 @@ import com.pedro.rtplibrary.view.GlInterface;
 import com.pedro.rtplibrary.view.LightOpenGlView;
 import com.pedro.rtplibrary.view.OffScreenGlThread;
 import com.pedro.rtplibrary.view.OpenGlView;
+
+import java.io.FileDescriptor;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
@@ -59,18 +69,31 @@ public abstract class Camera2Base implements GetAacData, GetVideoData, GetMicrop
   private TextureView textureView;
   private GlInterface glInterface;
   private boolean videoEnabled = false;
+  private boolean audioInitialized = false;
   private boolean onPreview = false;
   private boolean isBackground = false;
-  private RecordController recordController;
+  protected RecordController recordController;
   private int previewWidth, previewHeight;
   private FpsListener fpsListener = new FpsListener();
 
+  /**
+   * @deprecated This view produce rotations problems and could be unsupported in future versions.
+   * Use {@link Camera2Base#Camera2Base(OpenGlView)} or {@link Camera2Base#Camera2Base(LightOpenGlView)}
+   * instead.
+   */
+  @Deprecated
   public Camera2Base(SurfaceView surfaceView) {
     this.surfaceView = surfaceView;
     this.context = surfaceView.getContext();
     init(context);
   }
 
+  /**
+   * @deprecated This view produce rotations problems and could be unsupported in future versions.
+   * Use {@link Camera2Base#Camera2Base(OpenGlView)} or {@link Camera2Base#Camera2Base(LightOpenGlView)}
+   * instead.
+   */
+  @Deprecated
   public Camera2Base(TextureView textureView) {
     this.textureView = textureView;
     this.context = textureView.getContext();
@@ -104,9 +127,29 @@ public abstract class Camera2Base implements GetAacData, GetVideoData, GetMicrop
   private void init(Context context) {
     cameraManager = new Camera2ApiManager(context);
     videoEncoder = new VideoEncoder(this);
-    microphoneManager = new MicrophoneManager(this);
-    audioEncoder = new AudioEncoder(this);
+    setMicrophoneMode(MicrophoneMode.ASYNC);
     recordController = new RecordController();
+  }
+
+  /**
+   * Must be called before prepareAudio.
+   *
+   * @param microphoneMode mode to work accord to audioEncoder. By default ASYNC:
+   * SYNC using same thread. This mode could solve choppy audio or AudioEncoder frame discarded.
+   * ASYNC using other thread.
+   */
+  public void setMicrophoneMode(MicrophoneMode microphoneMode) {
+    switch (microphoneMode) {
+      case SYNC:
+        microphoneManager = new MicrophoneManagerManual();
+        audioEncoder = new AudioEncoder(this);
+        audioEncoder.setGetFrame(((MicrophoneManagerManual) microphoneManager).getGetFrame());
+        break;
+      case ASYNC:
+        microphoneManager = new MicrophoneManager(this);
+        audioEncoder = new AudioEncoder(this);
+        break;
+    }
   }
 
   public void setCameraCallbacks(CameraCallbacks callbacks) {
@@ -168,6 +211,18 @@ public abstract class Camera2Base implements GetAacData, GetVideoData, GetMicrop
     return cameraManager.isLanternSupported();
   }
 
+  public void enableAutoFocus() {
+    cameraManager.enableAutoFocus();
+  }
+
+  public void disableAutoFocus() {
+    cameraManager.disableAutoFocus();
+  }
+
+  public boolean isAutoFocusEnabled() {
+    return cameraManager.isAutoFocusEnabled();
+  }
+
   /**
    * Basic auth developed to work with Wowza. No tested with other server
    *
@@ -183,39 +238,40 @@ public abstract class Camera2Base implements GetAacData, GetVideoData, GetMicrop
    * @param height resolution in px.
    * @param fps frames per second of the stream.
    * @param bitrate H264 in bps.
-   * @param hardwareRotation true if you want rotate using encoder, false if you with OpenGl if you
-   * are using OpenGlView.
    * @param rotation could be 90, 180, 270 or 0 (Normally 0 if you are streaming in landscape or 90
    * if you are streaming in Portrait). This only affect to stream result. NOTE: Rotation with
    * encoder is silence ignored in some devices.
    * @return true if success, false if you get a error (Normally because the encoder selected
    * doesn't support any configuration seated or your device hasn't a H264 encoder).
    */
-  public boolean prepareVideo(int width, int height, int fps, int bitrate, boolean hardwareRotation,
-      int iFrameInterval, int rotation, int avcProfile, int avcProfileLevel) {
+  public boolean prepareVideo(int width, int height, int fps, int bitrate, int iFrameInterval,
+      int rotation, int avcProfile, int avcProfileLevel) {
     if (onPreview && !(glInterface != null && width == previewWidth && height == previewHeight)) {
       stopPreview();
       onPreview = true;
     }
     boolean result =
-        videoEncoder.prepareVideoEncoder(width, height, fps, bitrate, rotation, hardwareRotation,
-            iFrameInterval, FormatVideoEncoder.SURFACE, avcProfile, avcProfileLevel);
+        videoEncoder.prepareVideoEncoder(width, height, fps, bitrate, rotation, iFrameInterval,
+            FormatVideoEncoder.SURFACE, avcProfile, avcProfileLevel);
     prepareCameraManager();
     return result;
   }
 
-  public boolean prepareVideo(int width, int height, int fps, int bitrate, boolean hardwareRotation,
-      int iFrameInterval, int rotation) {
-    return prepareVideo(width, height, fps, bitrate, hardwareRotation, iFrameInterval, rotation, -1,
-        -1);
+  public boolean prepareVideo(int width, int height, int fps, int bitrate, int iFrameInterval,
+      int rotation) {
+    return prepareVideo(width, height, fps, bitrate, iFrameInterval, rotation, -1, -1);
   }
 
   /**
    * backward compatibility reason
    */
-  public boolean prepareVideo(int width, int height, int fps, int bitrate, boolean hardwareRotation,
-      int rotation) {
-    return prepareVideo(width, height, fps, bitrate, hardwareRotation, 2, rotation);
+  public boolean prepareVideo(int width, int height, int fps, int bitrate, int rotation) {
+    return prepareVideo(width, height, fps, bitrate, 2, rotation);
+  }
+
+  public boolean prepareVideo(int width, int height, int bitrate) {
+    int rotation = CameraHelper.getCameraOrientation(context);
+    return prepareVideo(width, height, 30, bitrate, 2, rotation);
   }
 
   protected abstract void prepareAudioRtp(boolean isStereo, int sampleRate);
@@ -232,12 +288,25 @@ public abstract class Camera2Base implements GetAacData, GetVideoData, GetMicrop
    * @return true if success, false if you get a error (Normally because the encoder selected
    * doesn't support any configuration seated or your device hasn't a AAC encoder).
    */
+  public boolean prepareAudio(int audioSource, int bitrate, int sampleRate, boolean isStereo, boolean echoCanceler,
+      boolean noiseSuppressor) {
+    if (!microphoneManager.createMicrophone(audioSource, sampleRate, isStereo, echoCanceler, noiseSuppressor)) {
+      return false;
+    }
+    prepareAudioRtp(isStereo, sampleRate);
+    audioInitialized = audioEncoder.prepareAudioEncoder(bitrate, sampleRate, isStereo,
+        microphoneManager.getMaxInputSize());
+    return audioInitialized;
+  }
+
   public boolean prepareAudio(int bitrate, int sampleRate, boolean isStereo, boolean echoCanceler,
       boolean noiseSuppressor) {
-    microphoneManager.createMicrophone(sampleRate, isStereo, echoCanceler, noiseSuppressor);
-    prepareAudioRtp(isStereo, sampleRate);
-    return audioEncoder.prepareAudioEncoder(bitrate, sampleRate, isStereo,
-        microphoneManager.getMaxInputSize());
+    return prepareAudio(MediaRecorder.AudioSource.DEFAULT, bitrate, sampleRate, isStereo, echoCanceler,
+        noiseSuppressor);
+  }
+
+  public boolean prepareAudio(int bitrate, int sampleRate, boolean isStereo) {
+    return prepareAudio(bitrate, sampleRate, isStereo, false, false);
   }
 
   /**
@@ -248,9 +317,8 @@ public abstract class Camera2Base implements GetAacData, GetVideoData, GetMicrop
    * doesn't support any configuration seated or your device hasn't a H264 encoder).
    */
   public boolean prepareVideo() {
-    boolean isHardwareRotation = glInterface == null;
     int rotation = CameraHelper.getCameraOrientation(context);
-    return prepareVideo(640, 480, 30, 1200 * 1024, isHardwareRotation, rotation);
+    return prepareVideo(1280, 720, 30, 1200 * 1024, rotation);
   }
 
   /**
@@ -273,12 +341,13 @@ public abstract class Camera2Base implements GetAacData, GetVideoData, GetMicrop
   }
 
   /**
-   * Start record a MP4 video. Need be called while stream.
+   * Starts recording an MP4 video. Needs to be called while streaming.
    *
-   * @param path where file will be saved.
-   * @throws IOException If you init it before start stream.
+   * @param path Where file will be saved.
+   * @throws IOException If initialized before a stream.
    */
-  public void startRecord(String path, RecordController.Listener listener) throws IOException {
+  public void startRecord(@NonNull String path, @Nullable RecordController.Listener listener)
+      throws IOException {
     recordController.startRecord(path, listener);
     if (!streaming) {
       startEncoders();
@@ -287,8 +356,30 @@ public abstract class Camera2Base implements GetAacData, GetVideoData, GetMicrop
     }
   }
 
-  public void startRecord(final String path) throws IOException {
+  public void startRecord(@NonNull final String path) throws IOException {
     startRecord(path, null);
+  }
+
+  /**
+   * Starts recording an MP4 video. Needs to be called while streaming.
+   *
+   * @param fd Where the file will be saved.
+   * @throws IOException If initialized before a stream.
+   */
+  @RequiresApi(api = Build.VERSION_CODES.O)
+  public void startRecord(@NonNull final FileDescriptor fd,
+      @Nullable RecordController.Listener listener) throws IOException {
+    recordController.startRecord(fd, listener);
+    if (!streaming) {
+      startEncoders();
+    } else if (videoEncoder.isRunning()) {
+      resetVideoEncoder();
+    }
+  }
+
+  @RequiresApi(api = Build.VERSION_CODES.O)
+  public void startRecord(@NonNull final FileDescriptor fd) throws IOException {
+    startRecord(fd, null);
   }
 
   /**
@@ -339,7 +430,7 @@ public abstract class Camera2Base implements GetAacData, GetVideoData, GetMicrop
           this.glInterface.addMediaCodecSurface(videoEncoder.getInputSurface());
         }
         cameraManager.prepareCamera(this.glInterface.getSurfaceTexture(), videoEncoder.getWidth(),
-            videoEncoder.getHeight());
+            videoEncoder.getHeight(), videoEncoder.getFps());
         cameraManager.openLastCamera();
       } else {
         this.glInterface = glInterface;
@@ -361,9 +452,10 @@ public abstract class Camera2Base implements GetAacData, GetVideoData, GetMicrop
       previewWidth = width;
       previewHeight = height;
       if (surfaceView != null) {
-        cameraManager.prepareCamera(surfaceView.getHolder().getSurface());
+        cameraManager.prepareCamera(surfaceView.getHolder().getSurface(), videoEncoder.getFps());
       } else if (textureView != null) {
-        cameraManager.prepareCamera(new Surface(textureView.getSurfaceTexture()));
+        cameraManager.prepareCamera(new Surface(textureView.getSurfaceTexture()),
+            videoEncoder.getFps());
       } else if (glInterface != null) {
         boolean isPortrait = CameraHelper.isPortrait(context);
         if (isPortrait) {
@@ -373,7 +465,8 @@ public abstract class Camera2Base implements GetAacData, GetVideoData, GetMicrop
         }
         glInterface.setRotation(rotation == 0 ? 270 : rotation - 90);
         glInterface.start();
-        cameraManager.prepareCamera(glInterface.getSurfaceTexture(), width, height);
+        cameraManager.prepareCamera(glInterface.getSurfaceTexture(), width, height,
+            videoEncoder.getFps());
       }
       cameraManager.openCameraFacing(cameraFacing);
       onPreview = true;
@@ -414,6 +507,15 @@ public abstract class Camera2Base implements GetAacData, GetVideoData, GetMicrop
     }
   }
 
+  public void startStreamAndRecord(String url, String path, RecordController.Listener listener) throws IOException {
+    startStream(url);
+    recordController.startRecord(path, listener);
+  }
+
+  public void startStreamAndRecord(String url, String path) throws IOException {
+    startStreamAndRecord(url, path, null);
+  }
+
   protected abstract void startStreamRtp(String url);
 
   /**
@@ -439,9 +541,9 @@ public abstract class Camera2Base implements GetAacData, GetVideoData, GetMicrop
 
   private void startEncoders() {
     videoEncoder.start();
-    audioEncoder.start();
+    if (audioInitialized) audioEncoder.start();
     prepareGlView();
-    microphoneManager.start();
+    if (audioInitialized) microphoneManager.start();
     if (glInterface == null && !cameraManager.isRunning() && videoEncoder.getWidth() != previewWidth
         || videoEncoder.getHeight() != previewHeight) {
       if (onPreview) {
@@ -462,7 +564,7 @@ public abstract class Camera2Base implements GetAacData, GetVideoData, GetMicrop
       glInterface.addMediaCodecSurface(videoEncoder.getInputSurface());
     } else {
       cameraManager.closeCamera();
-      cameraManager.prepareCamera(videoEncoder.getInputSurface());
+      cameraManager.prepareCamera(videoEncoder.getInputSurface(), videoEncoder.getFps());
       cameraManager.openLastCamera();
     }
   }
@@ -489,7 +591,7 @@ public abstract class Camera2Base implements GetAacData, GetVideoData, GetMicrop
         glInterface.addMediaCodecSurface(videoEncoder.getInputSurface());
       }
       cameraManager.prepareCamera(glInterface.getSurfaceTexture(), videoEncoder.getWidth(),
-          videoEncoder.getHeight());
+          videoEncoder.getHeight(), videoEncoder.getFps());
     }
   }
 
@@ -505,7 +607,7 @@ public abstract class Camera2Base implements GetAacData, GetVideoData, GetMicrop
     }
     if (!recordController.isRecording()) {
       onPreview = !isBackground;
-      microphoneManager.stop();
+      if (audioInitialized) microphoneManager.stop();
       if (glInterface != null) {
         glInterface.removeMediaCodecSurface();
         if (glInterface instanceof OffScreenGlThread) {
@@ -520,7 +622,7 @@ public abstract class Camera2Base implements GetAacData, GetVideoData, GetMicrop
         }
       }
       videoEncoder.stop();
-      audioEncoder.stop();
+      if (audioInitialized) audioEncoder.stop();
       recordController.resetFormats();
     }
   }
@@ -553,6 +655,8 @@ public abstract class Camera2Base implements GetAacData, GetVideoData, GetMicrop
   protected abstract void reConnect(long delay);
 
   //cache control
+  public abstract boolean hasCongestion();
+
   public abstract void resizeCache(int newSize) throws RuntimeException;
 
   public abstract int getCacheSize();
@@ -591,6 +695,10 @@ public abstract class Camera2Base implements GetAacData, GetVideoData, GetMicrop
     return Arrays.asList(cameraManager.getCameraResolutionsFront());
   }
 
+  public Range<Integer>[] getSupportedFps() {
+    return cameraManager.getSupportedFps();
+  }
+
   /**
    * Get supported properties of the camera
    *
@@ -604,14 +712,14 @@ public abstract class Camera2Base implements GetAacData, GetVideoData, GetMicrop
    * Mute microphone, can be called before, while and after stream.
    */
   public void disableAudio() {
-    microphoneManager.mute();
+    if (audioInitialized) microphoneManager.mute();
   }
 
   /**
    * Enable a muted microphone, can be called before, while and after stream.
    */
   public void enableAudio() {
-    microphoneManager.unMute();
+    if (audioInitialized) microphoneManager.unMute();
   }
 
   /**
@@ -697,6 +805,26 @@ public abstract class Camera2Base implements GetAacData, GetVideoData, GetMicrop
     }
   }
 
+  public void setExposure(int value) {
+    cameraManager.setExposure(value);
+  }
+
+  public int getExposure() {
+    return cameraManager.getExposure();
+  }
+
+  public int getMaxExposure() {
+    return cameraManager.getMaxExposure();
+  }
+
+  public int getMinExposure() {
+    return cameraManager.getMinExposure();
+  }
+
+  public void tapToFocus(MotionEvent event) {
+    cameraManager.tapToFocus(event);
+  }
+
   public GlInterface getGlInterface() {
     if (glInterface != null) {
       return glInterface;
@@ -707,12 +835,14 @@ public abstract class Camera2Base implements GetAacData, GetVideoData, GetMicrop
 
   private void prepareCameraManager() {
     if (textureView != null) {
-      cameraManager.prepareCamera(textureView, videoEncoder.getInputSurface());
+      cameraManager.prepareCamera(textureView, videoEncoder.getInputSurface(),
+          videoEncoder.getFps());
     } else if (surfaceView != null) {
-      cameraManager.prepareCamera(surfaceView, videoEncoder.getInputSurface());
+      cameraManager.prepareCamera(surfaceView, videoEncoder.getInputSurface(),
+          videoEncoder.getFps());
     } else if (glInterface != null) {
     } else {
-      cameraManager.prepareCamera(videoEncoder.getInputSurface());
+      cameraManager.prepareCamera(videoEncoder.getInputSurface(), videoEncoder.getFps());
     }
     videoEnabled = true;
   }
@@ -818,4 +948,6 @@ public abstract class Camera2Base implements GetAacData, GetVideoData, GetMicrop
   public void onAudioFormat(MediaFormat mediaFormat) {
     recordController.setAudioFormat(mediaFormat);
   }
+
+  public abstract void setLogs(boolean enable);
 }

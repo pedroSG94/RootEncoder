@@ -4,7 +4,9 @@ import android.util.Base64;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.UnsupportedEncodingException;
 import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 
 /**
  * Misc utility method
@@ -117,7 +119,7 @@ public class Util {
     };
   }
 
-  public static byte[] unsignedInt32ToByteArray(int value) throws IOException {
+  public static byte[] unsignedInt32ToByteArray(int value) {
     return new byte[] {
         (byte) (value >>> 24), (byte) (value >>> 16), (byte) (value >>> 8), (byte) value
     };
@@ -148,7 +150,7 @@ public class Util {
 
   public static String getSalt(String description) {
     String salt = null;
-    String data[] = description.split("&");
+    String[] data = description.split("&");
     for (String s : data) {
       if (s.contains("salt=")) {
         salt = s.substring(5);
@@ -160,7 +162,7 @@ public class Util {
 
   public static String getChallenge(String description) {
     String challenge = null;
-    String data[] = description.split("&");
+    String[] data = description.split("&");
     for (String s : data) {
       if (s.contains("challenge=")) {
         challenge = s.substring(10);
@@ -172,7 +174,7 @@ public class Util {
 
   public static String getOpaque(String description) {
     String opaque = "";
-    String data[] = description.split("&");
+    String[] data = description.split("&");
     for (String s : data) {
       if (s.contains("opaque=")) {
         opaque = s.substring(7);
@@ -191,5 +193,44 @@ public class Util {
     } catch (Exception e) {
       return null;
     }
+  }
+
+  /**
+   * Limelight auth utils
+   */
+  public static String getNonce(String description) {
+    String nonce = "";
+    String[] data = description.split("&");
+    for (String s : data) {
+      if (s.contains("nonce=")) {
+        nonce = s.substring(6);
+        break;
+      }
+    }
+    return nonce;
+  }
+
+  private static final char[] hexArray =
+      { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f' };
+
+  public static String getMd5Hash(String buffer) {
+    MessageDigest md;
+    try {
+      md = MessageDigest.getInstance("MD5");
+      return bytesToHex(md.digest(buffer.getBytes("UTF-8")));
+    } catch (NoSuchAlgorithmException | UnsupportedEncodingException ignore) {
+    }
+    return "";
+  }
+
+  private static String bytesToHex(byte[] bytes) {
+    char[] hexChars = new char[bytes.length * 2];
+    int v;
+    for (int j = 0; j < bytes.length; j++) {
+      v = bytes[j] & 0xFF;
+      hexChars[j * 2] = hexArray[v >>> 4];
+      hexChars[j * 2 + 1] = hexArray[v & 0x0F];
+    }
+    return new String(hexChars);
   }
 }

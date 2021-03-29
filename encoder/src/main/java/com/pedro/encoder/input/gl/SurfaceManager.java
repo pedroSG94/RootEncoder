@@ -29,25 +29,29 @@ public class SurfaceManager {
    * Creates an EGL context and an EGL surface.
    */
   public SurfaceManager(Surface surface, SurfaceManager manager) {
-    eglSetup(surface, manager.eglContext);
+    eglSetup(2, 2, surface, manager.eglContext);
+  }
+
+  public SurfaceManager(int width, int height, SurfaceManager manager) {
+    eglSetup(width, height, null, manager.eglContext);
   }
 
   /**
    * Creates an EGL context and an EGL surface.
    */
   public SurfaceManager(Surface surface, EGLContext eglContext) {
-    eglSetup(surface, eglContext);
+    eglSetup(2, 2, surface, eglContext);
   }
 
   /**
    * Creates an EGL context and an EGL surface.
    */
   public SurfaceManager(Surface surface) {
-    eglSetup(surface, null);
+    eglSetup(2, 2, surface, null);
   }
 
   public SurfaceManager() {
-    eglSetup(null, null);
+    eglSetup(2, 2, null, null);
   }
 
   public void makeCurrent() {
@@ -71,7 +75,7 @@ public class SurfaceManager {
   /**
    * Prepares EGL.  We want a GLES 2.0 context and a surface that supports recording.
    */
-  private void eglSetup(Surface surface, EGLContext eglSharedContext) {
+  private void eglSetup(int width, int height, Surface surface, EGLContext eglSharedContext) {
     eglDisplay = EGL14.eglGetDisplay(EGL14.EGL_DEFAULT_DISPLAY);
     if (eglDisplay == EGL14.EGL_NO_DISPLAY) {
       throw new RuntimeException("unable to get EGL14 display");
@@ -83,23 +87,43 @@ public class SurfaceManager {
 
     // Configure EGL for recording and OpenGL ES 2.0.
     int[] attribList;
-    if (eglSharedContext == null) {
+    if (eglSharedContext == null && surface == null) {
+      attribList = new int[]{
+              EGL14.EGL_RED_SIZE, 8, EGL14.EGL_GREEN_SIZE, 8, EGL14.EGL_BLUE_SIZE, 8,
+              EGL14.EGL_SURFACE_TYPE, EGL14.EGL_PBUFFER_BIT,
+              EGL14.EGL_RENDERABLE_TYPE, EGL14.EGL_OPENGL_ES2_BIT,
+              /* AA https://stackoverflow.com/questions/27035893/antialiasing-in-opengl-es-2-0 */
+              //EGL14.EGL_SAMPLE_BUFFERS, 1 /* true */,
+              //EGL14.EGL_SAMPLES, 4, /* increase to more smooth limit of your GPU */
+              EGL14.EGL_NONE
+      };
+    } else if (eglSharedContext == null) {
+      attribList = new int[]{
+              EGL14.EGL_RED_SIZE, 8, EGL14.EGL_GREEN_SIZE, 8, EGL14.EGL_BLUE_SIZE, 8,
+              EGL14.EGL_RENDERABLE_TYPE, EGL14.EGL_OPENGL_ES2_BIT,
+              /* AA https://stackoverflow.com/questions/27035893/antialiasing-in-opengl-es-2-0 */
+              //EGL14.EGL_SAMPLE_BUFFERS, 1 /* true */,
+              //EGL14.EGL_SAMPLES, 4, /* increase to more smooth limit of your GPU */
+              EGL14.EGL_NONE
+      };
+    } else if (surface == null) {
       attribList = new int[] {
-          EGL14.EGL_RED_SIZE, 8, EGL14.EGL_GREEN_SIZE, 8, EGL14.EGL_BLUE_SIZE, 8,
-          EGL14.EGL_RENDERABLE_TYPE, EGL14.EGL_OPENGL_ES2_BIT,
-          /* AA https://stackoverflow.com/questions/27035893/antialiasing-in-opengl-es-2-0 */
-          //EGL14.EGL_SAMPLE_BUFFERS, 1 /* true */,
-          //EGL14.EGL_SAMPLES, 4, /* increase to more smooth limit of your GPU */
-          EGL14.EGL_NONE
+              EGL14.EGL_RED_SIZE, 8, EGL14.EGL_GREEN_SIZE, 8, EGL14.EGL_BLUE_SIZE, 8,
+              EGL14.EGL_SURFACE_TYPE, EGL14.EGL_PBUFFER_BIT,
+              EGL14.EGL_RENDERABLE_TYPE, EGL14.EGL_OPENGL_ES2_BIT, EGL_RECORDABLE_ANDROID, 1,
+              /* AA https://stackoverflow.com/questions/27035893/antialiasing-in-opengl-es-2-0 */
+              //EGL14.EGL_SAMPLE_BUFFERS, 1 /* true */,
+              //EGL14.EGL_SAMPLES, 4, /* increase to more smooth limit of your GPU */
+              EGL14.EGL_NONE
       };
     } else {
       attribList = new int[] {
-          EGL14.EGL_RED_SIZE, 8, EGL14.EGL_GREEN_SIZE, 8, EGL14.EGL_BLUE_SIZE, 8,
-          EGL14.EGL_RENDERABLE_TYPE, EGL14.EGL_OPENGL_ES2_BIT, EGL_RECORDABLE_ANDROID, 1,
-          /* AA https://stackoverflow.com/questions/27035893/antialiasing-in-opengl-es-2-0 */
-          //EGL14.EGL_SAMPLE_BUFFERS, 1 /* true */,
-          //EGL14.EGL_SAMPLES, 4, /* increase to more smooth limit of your GPU */
-          EGL14.EGL_NONE
+              EGL14.EGL_RED_SIZE, 8, EGL14.EGL_GREEN_SIZE, 8, EGL14.EGL_BLUE_SIZE, 8,
+              EGL14.EGL_RENDERABLE_TYPE, EGL14.EGL_OPENGL_ES2_BIT, EGL_RECORDABLE_ANDROID, 1,
+              /* AA https://stackoverflow.com/questions/27035893/antialiasing-in-opengl-es-2-0 */
+              //EGL14.EGL_SAMPLE_BUFFERS, 1 /* true */,
+              //EGL14.EGL_SAMPLES, 4, /* increase to more smooth limit of your GPU */
+              EGL14.EGL_NONE
       };
     }
     EGLConfig[] configs = new EGLConfig[1];
@@ -119,7 +143,7 @@ public class SurfaceManager {
     // Create a window surface, and attach it to the Surface we received.
     if (surface == null) {
       int[] surfaceAttribs = {
-          EGL14.EGL_WIDTH, 1, EGL14.EGL_HEIGHT, 1, EGL14.EGL_NONE
+          EGL14.EGL_WIDTH, width, EGL14.EGL_HEIGHT, height, EGL14.EGL_NONE
       };
       eglSurface = EGL14.eglCreatePbufferSurface(eglDisplay, configs[0], surfaceAttribs, 0);
     } else {

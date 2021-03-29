@@ -158,22 +158,25 @@ public class RtmpFromFileActivity extends AppCompatActivity
       case R.id.b_start_stop:
         if (!rtmpFromFile.isStreaming()) {
           try {
-            if (rtmpFromFile.isRecording()
-                || rtmpFromFile.prepareVideo(filePath) && rtmpFromFile.prepareAudio(filePath)) {
-              button.setText(R.string.stop_button);
-              rtmpFromFile.startStream(etUrl.getText().toString());
-              if (!rtmpFromFile.isRecording()) {
-                seekBar.setMax((int) rtmpFromFile.getVideoDuration());
+            if (!rtmpFromFile.isRecording()) {
+              if (prepare()) {
+                button.setText(R.string.stop_button);
+                rtmpFromFile.startStream(etUrl.getText().toString());
+                seekBar.setMax(Math.max((int) rtmpFromFile.getVideoDuration(),
+                    (int) rtmpFromFile.getAudioDuration()));
                 updateProgress();
-              }
-            } else {
-              button.setText(R.string.start_button);
-              rtmpFromFile.stopStream();
+              } else {
+                button.setText(R.string.start_button);
+                rtmpFromFile.stopStream();
                 /*This error could be 2 things.
                  Your device cant decode or encode this file or
                  the file is not supported for the library.
                 The file need has h264 video codec and acc audio codec*/
-              Toast.makeText(this, "Error: unsupported file", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "Error: unsupported file", Toast.LENGTH_SHORT).show();
+              }
+            } else {
+              button.setText(R.string.stop_button);
+              rtmpFromFile.startStream(etUrl.getText().toString());
             }
           } catch (IOException e) {
             //Normally this error is for file not found or read permissions
@@ -186,7 +189,7 @@ public class RtmpFromFileActivity extends AppCompatActivity
         break;
       case R.id.b_select_file:
         Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
-        intent.setType("video/mp4");
+        intent.setType("*/*");
         startActivityForResult(intent, 5);
         break;
       //sometimes async is produced when you move in file several times
@@ -202,10 +205,11 @@ public class RtmpFromFileActivity extends AppCompatActivity
             SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault());
             currentDateAndTime = sdf.format(new Date());
             if (!rtmpFromFile.isStreaming()) {
-              if (rtmpFromFile.prepareVideo(filePath) && rtmpFromFile.prepareAudio(filePath)) {
+              if (prepare()) {
                 rtmpFromFile.startRecord(
                     folder.getAbsolutePath() + "/" + currentDateAndTime + ".mp4");
-                seekBar.setMax((int) rtmpFromFile.getVideoDuration());
+                seekBar.setMax(Math.max((int) rtmpFromFile.getVideoDuration(),
+                    (int) rtmpFromFile.getAudioDuration()));
                 updateProgress();
                 bRecord.setText(R.string.stop_record);
                 Toast.makeText(this, "Recording... ", Toast.LENGTH_SHORT).show();
@@ -238,6 +242,12 @@ public class RtmpFromFileActivity extends AppCompatActivity
     }
   }
 
+  private boolean prepare() throws IOException {
+    boolean result = rtmpFromFile.prepareVideo(filePath);
+    result |= rtmpFromFile.prepareAudio(filePath);
+    return result;
+  }
+
   private void updateProgress() {
     new Thread(new Runnable() {
       @Override
@@ -249,7 +259,8 @@ public class RtmpFromFileActivity extends AppCompatActivity
               runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
-                  seekBar.setProgress((int) rtmpFromFile.getVideoTime());
+                  seekBar.setProgress(Math.max((int) rtmpFromFile.getVideoTime(),
+                      (int) rtmpFromFile.getAudioTime()));
                 }
               });
             }

@@ -56,6 +56,7 @@ public class SurfaceModeRtspActivity extends AppCompatActivity
     etUrl = findViewById(R.id.et_rtp_url);
     etUrl.setHint(R.string.hint_rtsp);
     rtspCamera2 = new RtspCamera2(surfaceView, this);
+    rtspCamera2.setReTries(10);
     surfaceView.getHolder().addCallback(this);
   }
 
@@ -75,10 +76,15 @@ public class SurfaceModeRtspActivity extends AppCompatActivity
     runOnUiThread(new Runnable() {
       @Override
       public void run() {
-        Toast.makeText(SurfaceModeRtspActivity.this, "Connection failed. " + reason,
-            Toast.LENGTH_SHORT).show();
-        rtspCamera2.stopStream();
-        button.setText(R.string.start_button);
+        //Wait 5s and retry connect stream
+        if (rtspCamera2.reTry(5000, reason)) {
+          Toast.makeText(SurfaceModeRtspActivity.this, "Retry", Toast.LENGTH_SHORT)
+              .show();
+        } else {
+          Toast.makeText(SurfaceModeRtspActivity.this, "Connection failed. " + reason, Toast.LENGTH_SHORT).show();
+          rtspCamera2.stopStream();
+          button.setText(R.string.start_button);
+        }
       }
     });
   }

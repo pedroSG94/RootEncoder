@@ -7,12 +7,14 @@ import android.util.Log;
 import androidx.annotation.NonNull;
 import com.pedro.encoder.BaseEncoder;
 import com.pedro.encoder.Frame;
+import com.pedro.encoder.GetFrame;
 import com.pedro.encoder.input.audio.GetMicrophoneData;
 import com.pedro.encoder.utils.CodecUtil;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Created by pedro on 19/01/17.
@@ -23,11 +25,12 @@ import java.util.List;
 public class AudioEncoder extends BaseEncoder implements GetMicrophoneData {
 
   private static final String TAG = "AudioEncoder";
-
   private GetAacData getAacData;
   private int bitRate = 64 * 1024;  //in kbps
   private int sampleRate = 32000; //in hz
+  private int maxInputSize = 0;
   private boolean isStereo = true;
+  private GetFrame getFrame;
 
   public AudioEncoder(GetAacData getAacData) {
     this.getAacData = getAacData;
@@ -38,7 +41,10 @@ public class AudioEncoder extends BaseEncoder implements GetMicrophoneData {
    */
   public boolean prepareAudioEncoder(int bitRate, int sampleRate, boolean isStereo,
       int maxInputSize) {
+    this.bitRate = bitRate;
     this.sampleRate = sampleRate;
+    this.maxInputSize = maxInputSize;
+    this.isStereo = isStereo;
     isBufferMode = true;
     try {
       MediaCodecInfo encoder = chooseEncoder(CodecUtil.AAC_MIME);
@@ -60,24 +66,26 @@ public class AudioEncoder extends BaseEncoder implements GetMicrophoneData {
       running = false;
       Log.i(TAG, "prepared");
       return true;
-    } catch (IOException | IllegalStateException e) {
+    } catch (Exception e) {
       Log.e(TAG, "Create AudioEncoder failed.", e);
+      this.stop();
       return false;
     }
+  }
+
+  public void setGetFrame(GetFrame getFrame) {
+    this.getFrame = getFrame;
   }
 
   /**
    * Prepare encoder with default parameters
    */
   public boolean prepareAudioEncoder() {
-    return prepareAudioEncoder(bitRate, sampleRate, isStereo, 0);
+    return prepareAudioEncoder(bitRate, sampleRate, isStereo, maxInputSize);
   }
 
   @Override
   public void start(boolean resetTs) {
-    presentTimeUs = System.nanoTime() / 1000;
-    codec.start();
-    running = true;
     Log.i(TAG, "started");
   }
 
@@ -86,15 +94,21 @@ public class AudioEncoder extends BaseEncoder implements GetMicrophoneData {
     Log.i(TAG, "stopped");
   }
 
+  public void reset() {
+    stop(false);
+    prepareAudioEncoder(bitRate, sampleRate, isStereo, maxInputSize);
+    restart();
+  }
+
   @Override
   protected Frame getInputFrame() throws InterruptedException {
-    return null;
+    return getFrame != null ? getFrame.getInputFrame() : queue.take();
   }
 
   @Override
   protected void checkBuffer(@NonNull ByteBuffer byteBuffer,
       @NonNull MediaCodec.BufferInfo bufferInfo) {
-
+    fixTimeStamp(bufferInfo);
   }
 
   @Override
@@ -107,17 +121,10 @@ public class AudioEncoder extends BaseEncoder implements GetMicrophoneData {
    * Set custom PCM data.
    * Use it after prepareAudioEncoder(int sampleRate, int channel).
    * Used too with microphone.
-   *
    */
   @Override
   public void inputPCMData(Frame frame) {
-    if (running) {
-      try {
-        getDataFromEncoder(frame);
-      } catch (IllegalStateException e) {
-        Log.i(TAG, "Encoding error", e);
-      }
-    } else {
+    if (running && !queue.offer(frame)) {
       Log.i(TAG, "frame discarded");
     }
   }

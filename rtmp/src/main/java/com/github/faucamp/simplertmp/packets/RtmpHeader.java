@@ -301,8 +301,7 @@ public class RtmpHeader {
     switch (chunkType) {
       case TYPE_0_FULL: { //  b00 = 12 byte header (full header)
         chunkStreamInfo.markDeltaTimestampTx();
-        Util.writeUnsignedInt24(out,
-            (absoluteTimestamp >= 0xffffff) ? 0xffffff : absoluteTimestamp);
+        Util.writeUnsignedInt24(out, Math.min(absoluteTimestamp, 0xffffff));
         Util.writeUnsignedInt24(out, packetLength);
         out.write(messageType.getValue());
         Util.writeUnsignedInt32LittleEndian(out, messageStreamId);

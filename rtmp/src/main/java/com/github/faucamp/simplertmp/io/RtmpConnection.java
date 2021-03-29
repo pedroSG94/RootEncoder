@@ -1,7 +1,6 @@
 package com.github.faucamp.simplertmp.io;
 
 import android.util.Log;
-
 import com.github.faucamp.simplertmp.RtmpPublisher;
 import com.github.faucamp.simplertmp.Util;
 import com.github.faucamp.simplertmp.amf.AmfMap;
@@ -15,7 +14,6 @@ import com.github.faucamp.simplertmp.packets.Command;
 import com.github.faucamp.simplertmp.packets.Data;
 import com.github.faucamp.simplertmp.packets.Handshake;
 import com.github.faucamp.simplertmp.packets.RtmpPacket;
-import com.github.faucamp.simplertmp.packets.SetPeerBandwidth;
 import com.github.faucamp.simplertmp.packets.UserControl;
 import com.github.faucamp.simplertmp.packets.Video;
 import com.github.faucamp.simplertmp.packets.WindowAckSize;
@@ -28,7 +26,6 @@ import java.io.OutputStream;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.SocketAddress;
-import java.net.SocketException;
 import java.util.Random;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -56,8 +53,8 @@ public class RtmpConnection implements RtmpPublisher {
   private String tcUrl;
   private String pageUrl;
   private Socket socket;
-  private RtmpSessionInfo rtmpSessionInfo;
-  private RtmpDecoder rtmpDecoder;
+  private final RtmpSessionInfo rtmpSessionInfo = new RtmpSessionInfo();
+  private final RtmpDecoder rtmpDecoder = new RtmpDecoder(rtmpSessionInfo);
   private BufferedInputStream inputStream;
   private BufferedOutputStream outputStream;
   private Thread rxPacketHandler;
@@ -69,18 +66,16 @@ public class RtmpConnection implements RtmpPublisher {
   private int transactionIdCounter = 0;
   private int videoWidth;
   private int videoHeight;
-  private ConnectCheckerRtmp connectCheckerRtmp;
+  private final ConnectCheckerRtmp connectCheckerRtmp;
   //for secure transport
   private boolean tlsEnabled;
   //for auth
   private String user = null;
   private String password = null;
-  private String salt = null;
-  private String challenge = null;
-  private String opaque = null;
   private boolean onAuth = false;
   private String netConnectionDescription;
-  private BitrateManager bitrateManager;
+  private final BitrateManager bitrateManager;
+  private boolean isEnableLogs = true;
 
   public RtmpConnection(ConnectCheckerRtmp connectCheckerRtmp) {
     this.connectCheckerRtmp = connectCheckerRtmp;
@@ -115,8 +110,21 @@ public class RtmpConnection implements RtmpPublisher {
     }
   }
 
+  private String getTcUrl(String url) {
+    if (url.endsWith("/")) {
+      return url.substring(0, url.length() - 1);
+    } else {
+      return url;
+    }
+  }
+
   @Override
   public boolean connect(String url) {
+    if (url == null) {
+      connectCheckerRtmp.onConnectionFailedRtmp(
+          "Endpoint malformed, should be: rtmp://ip:port/appname/streamname");
+      return false;
+    }
     Matcher rtmpMatcher = rtmpUrlPattern.matcher(url);
     if (rtmpMatcher.matches()) {
       tlsEnabled = rtmpMatcher.group(0).startsWith("rtmps");
@@ -132,8 +140,9 @@ public class RtmpConnection implements RtmpPublisher {
     String portStr = rtmpMatcher.group(2);
     port = portStr != null ? Integer.parseInt(portStr) : 1935;
     appName = getAppName(rtmpMatcher.group(3), rtmpMatcher.group(4));
-    streamName = getStreamName(rtmpMatcher.group(4));
-    tcUrl = rtmpMatcher.group(0).substring(0, rtmpMatcher.group(0).length() - streamName.length());
+    String streamName = getStreamName(rtmpMatcher.group(4));
+    tcUrl = getTcUrl(rtmpMatcher.group(0).substring(0, rtmpMatcher.group(0).length() - streamName.length()));
+    this.streamName = streamName;
 
     // socket connection
     Log.d(TAG, "connect() called. Host: "
@@ -144,8 +153,22 @@ public class RtmpConnection implements RtmpPublisher {
         + appName
         + ", publishPath: "
         + streamName);
-    rtmpSessionInfo = new RtmpSessionInfo();
-    rtmpDecoder = new RtmpDecoder(rtmpSessionInfo);
+    rtmpSessionInfo.reset();
+    if (!establishConnection()) return false;
+    // Start the "main" handling thread
+    rxPacketHandler = new Thread(new Runnable() {
+
+      @Override
+      public void run() {
+        Log.d(TAG, "starting main rx handler loop");
+        handleRxPacketLoop();
+      }
+    });
+    rxPacketHandler.start();
+    return rtmpConnect();
+  }
+
+  private boolean establishConnection() {
     try {
       if (!tlsEnabled) {
         socket = new Socket();
@@ -160,23 +183,12 @@ public class RtmpConnection implements RtmpPublisher {
       Log.d(TAG, "connect(): socket connection established, doing handhake...");
       handshake(inputStream, outputStream);
       Log.d(TAG, "connect(): handshake done");
-    } catch (IOException e) {
+      return true;
+    } catch (Exception e) {
       Log.e(TAG, "Error", e);
       connectCheckerRtmp.onConnectionFailedRtmp("Connect error, " + e.getMessage());
       return false;
     }
-
-    // Start the "main" handling thread
-    rxPacketHandler = new Thread(new Runnable() {
-
-      @Override
-      public void run() {
-        Log.d(TAG, "starting main rx handler loop");
-        handleRxPacketLoop();
-      }
-    });
-    rxPacketHandler.start();
-    return rtmpConnect();
   }
 
   private boolean rtmpConnect() {
@@ -185,11 +197,7 @@ public class RtmpConnection implements RtmpPublisher {
       return false;
     }
 
-    if (user != null && password != null) {
-      sendConnect("?authmod=adobe&user=" + user);
-    } else {
-      sendConnect("");
-    }
+    sendConnect("");
     synchronized (connectingLock) {
       try {
         connectingLock.wait(5000);
@@ -227,8 +235,8 @@ public class RtmpConnection implements RtmpPublisher {
     sendRtmpPacket(invoke);
   }
 
-  private String getAuthUserResult(String user, String password, String salt,
-      String challenge, String opaque) {
+  private String getAdobeAuthUserResult(String user, String password, String salt, String challenge,
+      String opaque) {
     String challenge2 = String.format("%08x", new Random().nextInt());
     String response = Util.stringToMD5BASE64(user + salt + password);
     if (!opaque.isEmpty()) {
@@ -237,12 +245,37 @@ public class RtmpConnection implements RtmpPublisher {
       response += challenge;
     }
     response = Util.stringToMD5BASE64(response + challenge2);
-    String result =
-        "?authmod=adobe&user=" + user + "&challenge=" + challenge2 + "&response=" + response;
+    String result = "?authmod=adobe&user=" + user + "&challenge=" + challenge2 + "&response=" + response;
     if (!opaque.isEmpty()) {
       result += "&opaque=" + opaque;
     }
     return result;
+  }
+
+  /**
+   * Limelight auth. This auth is closely to Digest auth
+   *  http://tools.ietf.org/html/rfc2617
+   *  http://en.wikipedia.org/wiki/Digest_access_authentication
+   *
+   *  https://github.com/ossrs/librtmp/blob/feature/srs/librtmp/rtmp.c
+   */
+  private String getLlnwAuthUserResult(String user, String password, String nonce, String app) {
+    String authMod = "llnw";
+    String realm = "live";
+    String method = "publish";
+    String qop = "auth";
+    String ncHex = String.format("%08x", 1);
+    String cNonce = String.format("%08x", new Random().nextInt());
+    String path = app;
+    //extract query parameters
+    int queryPos = path.indexOf("?");
+    if (queryPos >= 0) path = path.substring(0, queryPos);
+
+    if (!path.contains("/")) path += "/_definst_";
+    String hash1 = Util.getMd5Hash(user + ":" + realm + ":" + password);
+    String hash2 = Util.getMd5Hash(method + ":/" + path);
+    String hash3 = Util.getMd5Hash(hash1 + ":" + nonce + ":" + ncHex + ":" + cNonce + ":" + qop + ":" + hash2);
+    return "?authmod=" + authMod + "&user=" + user + "&nonce=" + nonce + "&cnonce=" + cNonce + "&nc=" + ncHex + "&response=" + hash3;
   }
 
   @Override
@@ -314,7 +347,7 @@ public class RtmpConnection implements RtmpPublisher {
     }
 
     Log.d(TAG, "fmlePublish(): Sending publish command...");
-    Command publish = new Command("publish", 0);
+    Command publish = new Command("publish", ++transactionIdCounter);
     publish.getHeader().setChunkStreamId(ChunkStreamInfo.RTMP_CID_OVER_STREAM);
     publish.getHeader().setMessageStreamId(currentStreamId);
     publish.addData(new AmfNull());  // command object: null for "publish"
@@ -369,7 +402,7 @@ public class RtmpConnection implements RtmpPublisher {
       return;
     }
     Log.d(TAG, "closeStream(): setting current stream ID to 0");
-    Command closeStream = new Command("closeStream", 0);
+    Command closeStream = new Command("closeStream", ++transactionIdCounter);
     closeStream.getHeader().setChunkStreamId(ChunkStreamInfo.RTMP_CID_OVER_STREAM);
     closeStream.getHeader().setMessageStreamId(currentStreamId);
     closeStream.addData(new AmfNull());
@@ -425,12 +458,7 @@ public class RtmpConnection implements RtmpPublisher {
     currentStreamId = 0;
     transactionIdCounter = 0;
     socket = null;
-    rtmpSessionInfo = null;
-    user = null;
-    password = null;
-    salt = null;
-    challenge = null;
-    opaque = null;
+    rtmpSessionInfo.reset();
   }
 
   @Override
@@ -481,8 +509,10 @@ public class RtmpConnection implements RtmpPublisher {
             .setAbsoluteTimestamp((int) chunkStreamInfo.markAbsoluteTimestampTx());
       }
       rtmpPacket.writeTo(outputStream, rtmpSessionInfo.getTxChunkSize(), chunkStreamInfo);
-      Log.d(TAG,
-          "wrote packet: " + rtmpPacket + ", size: " + rtmpPacket.getHeader().getPacketLength());
+      if (isEnableLogs) {
+        Log.d(TAG,
+                "wrote packet: " + rtmpPacket + ", size: " + rtmpPacket.getHeader().getPacketLength());
+      }
       if (rtmpPacket instanceof Command) {
         rtmpSessionInfo.addInvokedCommand(((Command) rtmpPacket).getTransactionId(),
             ((Command) rtmpPacket).getCommandName());
@@ -543,7 +573,7 @@ public class RtmpConnection implements RtmpPublisher {
                   + acknowledgementWindowsize);
               sendRtmpPacket(new WindowAckSize(acknowledgementWindowsize, chunkStreamInfo));
               // Set socket option. This line could produce bps calculation problems.
-              socket.setSendBufferSize(acknowledgementWindowsize);
+              //socket.setSendBufferSize(acknowledgementWindowsize);
               break;
             case COMMAND_AMF0:
               handleRxInvoke((Command) rtmpPacket);
@@ -573,24 +603,22 @@ public class RtmpConnection implements RtmpPublisher {
           String description = ((AmfString) ((AmfObject) invoke.getData().get(1)).getProperty(
               "description")).getValue();
           Log.i(TAG, description);
-          if (description.contains("reason=authfailed")) {
+          if (description.contains("reason=authfail") || description.contains("reason=nosuchuser")) {
             connectCheckerRtmp.onAuthErrorRtmp();
             connected = false;
             synchronized (connectingLock) {
               connectingLock.notifyAll();
             }
-          } else if (user != null
-              && password != null
-              && description.contains("challenge=")
-              && description.contains("salt=")) {
+          } else if (user != null && password != null
+              && description.contains("challenge=") && description.contains("salt=") //adobe response
+              || description.contains("nonce=")) { //llnw response
             onAuth = true;
             try {
               shutdown(false);
             } catch (Exception e) {
               e.printStackTrace();
             }
-            rtmpSessionInfo = new RtmpSessionInfo();
-            rtmpDecoder = new RtmpDecoder(rtmpSessionInfo);
+            rtmpSessionInfo.reset();
             if (!tlsEnabled) {
               socket = new Socket(host, port);
             } else {
@@ -600,9 +628,6 @@ public class RtmpConnection implements RtmpPublisher {
             inputStream = new BufferedInputStream(socket.getInputStream());
             outputStream = new BufferedOutputStream(socket.getOutputStream());
             Log.d(TAG, "connect(): socket connection established, doing handshake...");
-            salt = Util.getSalt(description);
-            challenge = Util.getChallenge(description);
-            opaque = Util.getOpaque(description);
             handshake(inputStream, outputStream);
             rxPacketHandler = new Thread(new Runnable() {
               @Override
@@ -611,8 +636,33 @@ public class RtmpConnection implements RtmpPublisher {
               }
             });
             rxPacketHandler.start();
-            sendConnect(getAuthUserResult(user, password, salt, challenge, opaque));
-          } else if (description.contains("code=403") && user == null || password == null) {
+            if (description.contains("challenge=") && description.contains("salt=")) { //create adobe auth
+              String salt = Util.getSalt(description);
+              String challenge = Util.getChallenge(description);
+              String opaque = Util.getOpaque(description);
+              Log.i(TAG, "sending adobe auth response");
+              sendConnect(getAdobeAuthUserResult(user, password, salt, challenge, opaque));
+            } else if (description.contains("nonce=")){ //create llnw auth
+              String nonce = Util.getNonce(description);
+              Log.i(TAG, "sending llnw auth response");
+              sendConnect(getLlnwAuthUserResult(user, password, nonce, appName));
+            }
+          } else if (description.contains("code=403")) {
+            if (user != null && password != null) {
+              // few servers close connection after send code=403
+              if (socket == null || !socket.getKeepAlive()) {
+                establishConnection();
+              }
+              if (description.contains("authmod=adobe")) {
+                Log.i(TAG, "sending auth mode adobe");
+                sendConnect("?authmod=adobe&user=" + user);
+                return;
+              } else if (description.contains("authmod=llnw")) {
+                Log.i(TAG, "sending auth mode llnw");
+                sendConnect("?authmod=llnw&user=" + user);
+                return;
+              }
+            }
             connectCheckerRtmp.onAuthErrorRtmp();
             connected = false;
             synchronized (connectingLock) {
@@ -636,7 +686,10 @@ public class RtmpConnection implements RtmpPublisher {
       case "_result":
         // This is the result of one of the methods invoked by us
         String method = rtmpSessionInfo.takeInvokedCommand(invoke.getTransactionId());
-
+        if (method == null) {
+          Log.i(TAG, "'_result' message received for unknown method: ");
+          return;
+        }
         Log.i(TAG, "handleRxInvoke: Got result for invoked method: " + method);
         if ("connect".equals(method)) {
           if (onAuth) {
@@ -674,22 +727,33 @@ public class RtmpConnection implements RtmpPublisher {
         String code =
             ((AmfString) ((AmfObject) invoke.getData().get(1)).getProperty("code")).getValue();
         Log.d(TAG, "handleRxInvoke(): onStatus " + code);
-        if (code.equals("NetStream.Publish.Start")) {
-          onMetaData();
-          // We can now publish AV data
-          publishPermitted = true;
-          synchronized (publishLock) {
-            publishLock.notifyAll();
-          }
-        } else if (code.equals("NetConnection.Connect.Rejected")) {
-          netConnectionDescription = ((AmfString) ((AmfObject) invoke.getData().get(1)).getProperty(
-              "description")).getValue();
-          publishPermitted = false;
-          synchronized (publishLock) {
-            publishLock.notifyAll();
-          }
-        } else if (code.equals("NetStream.Unpublish.Success")) {
-          connectCheckerRtmp.onConnectionFailedRtmp("Unpublish received");
+        switch (code) {
+          case "NetStream.Publish.Start":
+            onMetaData();
+            // We can now publish AV data
+            publishPermitted = true;
+            synchronized (publishLock) {
+              publishLock.notifyAll();
+            }
+            break;
+          case "NetConnection.Connect.Rejected":
+            netConnectionDescription =
+                ((AmfString) ((AmfObject) invoke.getData().get(1)).getProperty(
+                    "description")).getValue();
+            publishPermitted = false;
+            synchronized (publishLock) {
+              publishLock.notifyAll();
+            }
+            break;
+          case "NetStream.Unpublish.Success":
+            connectCheckerRtmp.onConnectionFailedRtmp("Unpublish received");
+            break;
+          case "NetStream.Publish.BadName":
+            connectCheckerRtmp.onConnectionFailedRtmp("BadName received, endpoint in use.");
+            break;
+          default:
+            connectCheckerRtmp.onConnectionFailedRtmp("Unknown on status received");
+            break;
         }
         break;
       default:
@@ -708,5 +772,9 @@ public class RtmpConnection implements RtmpPublisher {
   public void setAuthorization(String user, String password) {
     this.user = user;
     this.password = password;
+  }
+
+  public void setLogs(boolean enable) {
+    isEnableLogs = enable;
   }
 }

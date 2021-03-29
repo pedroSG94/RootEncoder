@@ -21,8 +21,8 @@ public class RtmpSessionInfo {
   /** Default chunk size is 128 bytes */
   private int rxChunkSize = 128;
   private int txChunkSize = 128;
-  private Map<Integer, ChunkStreamInfo> chunkChannels = new HashMap<>();
-  private Map<Integer, String> invokedMethods = new ConcurrentHashMap<>();
+  private final Map<Integer, ChunkStreamInfo> chunkChannels = new HashMap<>();
+  private final Map<Integer, String> invokedMethods = new ConcurrentHashMap<>();
 
   public ChunkStreamInfo getChunkStreamInfo(int chunkStreamId) {
     ChunkStreamInfo chunkStreamInfo = chunkChannels.get(chunkStreamId);
@@ -79,5 +79,15 @@ public class RtmpSessionInfo {
       windowBytesRead -= acknowledgementWindowSize;
       throw new WindowAckRequired(totalBytesRead, packet);
     }
+  }
+
+  public void reset() {
+    windowBytesRead = 0;
+    acknowledgementWindowSize = Integer.MAX_VALUE;
+    totalBytesRead = 0;
+    rxChunkSize = 128;
+    txChunkSize = 128;
+    chunkChannels.clear();
+    invokedMethods.clear();
   }
 }

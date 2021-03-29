@@ -71,6 +71,7 @@ public class SrsFlvMuxer {
   private byte profileIop = ProfileIop.BASELINE;
   private String url;
   //re connection
+  private boolean doingRetry;
   private int numRetry;
   private int reTries;
   private Handler handler;
@@ -200,7 +201,8 @@ public class SrsFlvMuxer {
     connected = false;
 
     if (connectChecker != null) {
-      reTries = 0;
+      reTries = numRetry;
+      doingRetry = false;
       connectChecker.onDisconnectRtmp();
     }
 
@@ -218,7 +220,7 @@ public class SrsFlvMuxer {
   }
 
   public boolean shouldRetry(String reason) {
-    boolean validReason = !reason.contains("Endpoint malformed");
+    boolean validReason = doingRetry && !reason.contains("Endpoint malformed");
     return validReason && reTries > 0;
   }
 
@@ -228,7 +230,7 @@ public class SrsFlvMuxer {
     runnable = new Runnable() {
       @Override
       public void run() {
-        start(url);
+        start(url, true);
       }
     };
     handler.postDelayed(runnable, delay);
@@ -267,10 +269,15 @@ public class SrsFlvMuxer {
     }
   }
 
+  public void start(final String rtmpUrl) {
+    start(rtmpUrl, false);
+  }
+
   /**
    * start to the remote SRS for remux.
    */
-  public void start(final String rtmpUrl) {
+  public void start(final String rtmpUrl, final boolean isRetry) {
+    if (!isRetry) doingRetry = true;
     startTs = System.nanoTime() / 1000;
     worker = new Thread(new Runnable() {
       @Override
@@ -279,6 +286,7 @@ public class SrsFlvMuxer {
         if (!connect(rtmpUrl)) {
           return;
         }
+        if (isRetry) flv.retry();
         reTries = numRetry;
         connectCheckerRtmp.onConnectionSuccessRtmp();
         SrsFlvFrame lastKeyFrame = null;
@@ -698,8 +706,9 @@ public class SrsFlvMuxer {
       for (int i = 0; i < frames.size(); i++) {
         SrsFlvFrameBytes frame = frames.get(i);
         frame.data.rewind();
-        frame.data.get(allocation.array(), allocation.size(), frame.size);
-        allocation.appendOffset(frame.size);
+        int s = Math.min(frame.size, frame.data.remaining());
+        frame.data.get(allocation.array(), allocation.size(), s);
+        allocation.appendOffset(s);
       }
 
       return allocation;
@@ -794,6 +803,11 @@ public class SrsFlvMuxer {
     public void reset() {
       Sps = null;
       Pps = null;
+      isPpsSpsSend = false;
+      aac_specific_config_got = false;
+    }
+
+    public void retry() {
       isPpsSpsSend = false;
       aac_specific_config_got = false;
     }
@@ -1054,13 +1068,8 @@ public class SrsFlvMuxer {
     }
 
     private void flvFrameCacheAdd(SrsFlvFrame frame) {
-      try {
-        if (frame.is_video()) {
-          mFlvVideoTagCache.add(frame);
-        } else {
-          mFlvAudioTagCache.add(frame);
-        }
-      } catch (IllegalStateException e) {
+      boolean wasFrameAdded = frame.is_video() ? mFlvVideoTagCache.offer(frame) : mFlvAudioTagCache.offer(frame);
+      if(!wasFrameAdded) {
         Log.i(TAG, "frame discarded");
         if (frame.is_video()) {
           mDroppedVideoFrames++;
@@ -1069,5 +1078,16 @@ public class SrsFlvMuxer {
         }
       }
     }
+  }
+
+  public boolean hasCongestion() {
+    float size = mFlvVideoTagCache.size();
+    float remaining = mFlvVideoTagCache.remainingCapacity();
+    float capacity = size + remaining;
+    return size >= capacity * 0.2;  //more than 20% queue used. You could have congestion
+  }
+
+  public void setLogs(boolean enable) {
+    publisher.setLogs(enable);
   }
 }

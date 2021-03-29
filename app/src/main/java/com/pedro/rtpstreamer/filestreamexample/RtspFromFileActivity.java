@@ -156,17 +156,15 @@ public class RtspFromFileActivity extends AppCompatActivity
   public void onClick(View view) {
     switch (view.getId()) {
       case R.id.b_start_stop:
-        if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
-          if (!rtspFromFile.isStreaming()) {
-            try {
-              if (rtspFromFile.isRecording()
-                  || rtspFromFile.prepareVideo(filePath) && rtspFromFile.prepareAudio(filePath)) {
+        if (!rtspFromFile.isStreaming()) {
+          try {
+            if (!rtspFromFile.isRecording()) {
+              if (prepare()) {
                 button.setText(R.string.stop_button);
                 rtspFromFile.startStream(etUrl.getText().toString());
-                if (!rtspFromFile.isRecording()) {
-                  seekBar.setMax((int) rtspFromFile.getVideoDuration());
-                  updateProgress();
-                }
+                seekBar.setMax(Math.max((int) rtspFromFile.getVideoDuration(),
+                    (int) rtspFromFile.getAudioDuration()));
+                updateProgress();
               } else {
                 button.setText(R.string.start_button);
                 rtspFromFile.stopStream();
@@ -176,19 +174,22 @@ public class RtspFromFileActivity extends AppCompatActivity
                 The file need has h264 video codec and acc audio codec*/
                 Toast.makeText(this, "Error: unsupported file", Toast.LENGTH_SHORT).show();
               }
-            } catch (IOException e) {
-              //Normally this error is for file not found or read permissions
-              Toast.makeText(this, "Error: file not found", Toast.LENGTH_SHORT).show();
+            } else {
+              button.setText(R.string.stop_button);
+              rtspFromFile.startStream(etUrl.getText().toString());
             }
-          } else {
-            button.setText(R.string.start_button);
-            rtspFromFile.stopStream();
+          } catch (IOException e) {
+            //Normally this error is for file not found or read permissions
+            Toast.makeText(this, "Error: file not found", Toast.LENGTH_SHORT).show();
           }
+        } else {
+          button.setText(R.string.start_button);
+          rtspFromFile.stopStream();
         }
         break;
       case R.id.b_select_file:
         Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
-        intent.setType("video/mp4");
+        intent.setType("*/*");
         startActivityForResult(intent, 5);
         break;
       //sometimes async is produced when you move in file several times
@@ -204,10 +205,11 @@ public class RtspFromFileActivity extends AppCompatActivity
             SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault());
             currentDateAndTime = sdf.format(new Date());
             if (!rtspFromFile.isStreaming()) {
-              if (rtspFromFile.prepareVideo(filePath) && rtspFromFile.prepareAudio(filePath)) {
+              if (prepare()) {
                 rtspFromFile.startRecord(
                     folder.getAbsolutePath() + "/" + currentDateAndTime + ".mp4");
-                seekBar.setMax((int) rtspFromFile.getVideoDuration());
+                seekBar.setMax(Math.max((int) rtspFromFile.getVideoDuration(),
+                    (int) rtspFromFile.getAudioDuration()));
                 updateProgress();
                 bRecord.setText(R.string.stop_record);
                 Toast.makeText(this, "Recording... ", Toast.LENGTH_SHORT).show();
@@ -240,6 +242,12 @@ public class RtspFromFileActivity extends AppCompatActivity
     }
   }
 
+  private boolean prepare() throws IOException {
+    boolean result = rtspFromFile.prepareVideo(filePath);
+    result |= rtspFromFile.prepareAudio(filePath);
+    return result;
+  }
+
   private void updateProgress() {
     new Thread(new Runnable() {
       @Override
@@ -251,7 +259,8 @@ public class RtspFromFileActivity extends AppCompatActivity
               runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
-                  seekBar.setProgress((int) rtspFromFile.getVideoTime());
+                  seekBar.setProgress(Math.max((int) rtspFromFile.getVideoTime(),
+                      (int) rtspFromFile.getAudioTime()));
                 }
               });
             }
