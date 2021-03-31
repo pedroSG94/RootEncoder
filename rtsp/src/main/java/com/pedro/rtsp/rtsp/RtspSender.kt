@@ -20,7 +20,7 @@ import java.util.concurrent.TimeUnit
 /**
  * Created by pedro on 7/11/18.
  */
-class RtspSender(private val connectCheckerRtsp: ConnectCheckerRtsp) : VideoPacketCallback, AudioPacketCallback {
+open class RtspSender(private val connectCheckerRtsp: ConnectCheckerRtsp) : VideoPacketCallback, AudioPacketCallback {
 
   private var videoPacket: BasePacket? = null
   private var aacPacket: AacPacket? = null

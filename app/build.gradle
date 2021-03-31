@@ -1,8 +1,6 @@
 apply plugin: 'com.android.application'
 apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-android-extensions'
-apply plugin: 'com.google.gms.google-services'
-apply plugin: 'com.google.firebase.crashlytics'
 
 android {
   compileSdkVersion 30
@@ -11,8 +9,8 @@ android {
     applicationId "com.pedro.rtpstreamer"
     minSdkVersion 16
     targetSdkVersion 30
-    versionCode 199
-    versionName "1.9.9"
+    versionCode 200
+    versionName "2.0.0"
   }
   buildTypes {
     release {
@@ -24,8 +22,6 @@ android {
 
 dependencies {
   implementation project(':rtplibrary')
-  implementation 'com.google.firebase:firebase-crashlytics:17.3.0'
-  implementation 'com.google.firebase:firebase-analytics:18.0.1'
   implementation 'com.google.android.material:material:1.3.0'
   implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
 }

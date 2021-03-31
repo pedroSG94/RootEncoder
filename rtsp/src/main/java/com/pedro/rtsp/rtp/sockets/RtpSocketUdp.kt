@@ -13,7 +13,7 @@ import java.net.UnknownHostException
 /**
  * Created by pedro on 7/11/18.
  */
-internal class RtpSocketUdp(videoSourcePort: Int, audioSourcePort: Int) : BaseRtpSocket() {
+open class RtpSocketUdp(videoSourcePort: Int, audioSourcePort: Int) : BaseRtpSocket() {
 
   private var multicastSocketVideo: MulticastSocket? = null
   private var multicastSocketAudio: MulticastSocket? = null

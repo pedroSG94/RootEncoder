@@ -12,7 +12,7 @@ import java.security.NoSuchAlgorithmException
  * this class is used for secure transport, to use replace socket on RtmpConnection with this and
  * you will have a secure stream under ssl/tls.
  */
-internal object CreateSSLSocket {
+object CreateSSLSocket {
   /**
    * @param host variable from RtspConnection
    * @param port variable from RtspConnection

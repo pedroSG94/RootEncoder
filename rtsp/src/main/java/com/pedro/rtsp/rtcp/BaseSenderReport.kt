@@ -11,7 +11,7 @@ import java.io.OutputStream
 /**
  * Created by pedro on 7/11/18.
  */
-internal abstract class BaseSenderReport internal constructor() {
+abstract class BaseSenderReport internal constructor() {
 
   private val interval: Long = 3000
   private val videoBuffer = ByteArray(RtpConstants.MTU)

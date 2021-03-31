@@ -20,7 +20,7 @@ import java.util.regex.Pattern
 /**
  * Created by pedro on 10/02/17.
  */
-class RtspClient(private val connectCheckerRtsp: ConnectCheckerRtsp) {
+open class RtspClient(private val connectCheckerRtsp: ConnectCheckerRtsp) {
 
   private val TAG = "RtspClient"
 

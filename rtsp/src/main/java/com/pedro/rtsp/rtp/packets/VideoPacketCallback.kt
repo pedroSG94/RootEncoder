@@ -5,6 +5,6 @@ import com.pedro.rtsp.rtsp.RtpFrame
 /**
  * Created by pedro on 7/11/18.
  */
-internal interface VideoPacketCallback {
+interface VideoPacketCallback {
   fun onVideoFrameCreated(rtpFrame: RtpFrame)
 }

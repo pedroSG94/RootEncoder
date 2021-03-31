@@ -8,8 +8,8 @@ android {
   defaultConfig {
     minSdkVersion 16
     targetSdkVersion 30
-    versionCode 199
-    versionName "1.9.9"
+    versionCode 200
+    versionName "2.0.0"
   }
   buildTypes {
     release {
@@ -19,5 +19,5 @@ android {
 }
 
 dependencies {
-  api 'androidx.annotation:annotation:1.1.0'
+  api 'androidx.annotation:annotation:1.2.0'
 }

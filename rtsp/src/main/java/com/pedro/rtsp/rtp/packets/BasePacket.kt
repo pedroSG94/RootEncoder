@@ -10,7 +10,7 @@ import kotlin.experimental.or
 /**
  * Created by pedro on 27/11/18.
  */
-internal abstract class BasePacket(private val clock: Long, private val payloadType: Int) {
+abstract class BasePacket(private val clock: Long, private val payloadType: Int) {
 
   protected var channelIdentifier: Int = 0
   protected var rtpPort = 0

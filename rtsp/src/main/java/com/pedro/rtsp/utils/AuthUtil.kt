@@ -4,7 +4,7 @@ import java.io.UnsupportedEncodingException
 import java.security.MessageDigest
 import java.security.NoSuchAlgorithmException
 
-internal object AuthUtil {
+object AuthUtil {
 
   @JvmStatic
   fun getMd5Hash(buffer: String): String {

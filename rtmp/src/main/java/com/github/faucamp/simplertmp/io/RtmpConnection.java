@@ -49,9 +49,7 @@ public class RtmpConnection implements RtmpPublisher {
   private String appName;
   private String streamName;
   private String publishType;
-  private String swfUrl;
   private String tcUrl;
-  private String pageUrl;
   private Socket socket;
   private final RtmpSessionInfo rtmpSessionInfo = new RtmpSessionInfo();
   private final RtmpDecoder rtmpDecoder = new RtmpDecoder(rtmpSessionInfo);
@@ -134,8 +132,6 @@ public class RtmpConnection implements RtmpPublisher {
       return false;
     }
 
-    swfUrl = "";
-    pageUrl = "";
     host = rtmpMatcher.group(1);
     String portStr = rtmpMatcher.group(2);
     port = portStr != null ? Integer.parseInt(portStr) : 1935;
@@ -222,14 +218,14 @@ public class RtmpConnection implements RtmpPublisher {
     AmfObject args = new AmfObject();
     args.setProperty("app", appName + user);
     args.setProperty("flashVer", "FMLE/3.0 (compatible; Lavf57.56.101)");
-    args.setProperty("swfUrl", swfUrl);
+    args.setProperty("swfUrl", "");
     args.setProperty("tcUrl", tcUrl + user);
     args.setProperty("fpad", false);
     args.setProperty("capabilities", 239);
     args.setProperty("audioCodecs", 3191);
     args.setProperty("videoCodecs", 252);
     args.setProperty("videoFunction", 1);
-    args.setProperty("pageUrl", pageUrl);
+    args.setProperty("pageUrl", "");
     args.setProperty("objectEncoding", 0);
     invoke.addData(args);
     sendRtmpPacket(invoke);
@@ -450,8 +446,6 @@ public class RtmpConnection implements RtmpPublisher {
     publishPermitted = false;
     netConnectionDescription = null;
     tcUrl = null;
-    swfUrl = null;
-    pageUrl = null;
     appName = null;
     streamName = null;
     publishType = null;
