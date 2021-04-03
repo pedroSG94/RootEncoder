@@ -109,13 +109,20 @@ public class OffScreenGlThread
         surfaceManagerPhoto.release();
         surfaceManagerPhoto = null;
       }
-      surfaceManagerEncoder = new SurfaceManager(surface, surfaceManager);
+      if (surfaceManager != null) {
+        surfaceManagerEncoder = new SurfaceManager(surface, surfaceManager);
+        surfaceManagerPhoto = new SurfaceManager(encoderWidth, encoderHeight, surfaceManagerEncoder);
+      }
     }
   }
 
   @Override
   public void removeMediaCodecSurface() {
     synchronized (sync) {
+      if (surfaceManagerPhoto != null) {
+        surfaceManagerPhoto.release();
+        surfaceManagerPhoto = null;
+      }
       if (surfaceManagerEncoder != null) {
         surfaceManagerEncoder.release();
         surfaceManagerEncoder = null;
@@ -233,25 +240,20 @@ public class OffScreenGlThread
           synchronized (sync) {
             if (surfaceManagerEncoder != null && !fpsLimiter.limitFPS()) {
               surfaceManagerEncoder.makeCurrent();
-              if (muteVideo) {
-                textureManager.drawScreen(0, 0, false, 0, streamRotation, false,
-                    isStreamVerticalFlip, isStreamHorizontalFlip);
-              } else {
-                textureManager.drawScreen(encoderWidth, encoderHeight, false, 0, streamRotation,
-                    false, isStreamVerticalFlip, isStreamHorizontalFlip);
-              }
-              //Necessary use surfaceManagerEncoder because preview manager size in background is 1x1.
-            } else if (takePhotoCallback != null && surfaceManagerPhoto != null) {
-              surfaceManagerPhoto.makeCurrent();
-              textureManager.drawScreen(encoderWidth, encoderHeight, false, 0, streamRotation,
-                  false, isStreamVerticalFlip, isStreamHorizontalFlip);
+              int w = muteVideo ? 0 : encoderWidth;
+              int h = muteVideo ? 0 : encoderHeight;
+              textureManager.drawScreen(w, h, false, 0,
+                  streamRotation, false, isStreamVerticalFlip, isStreamHorizontalFlip);
+              surfaceManagerEncoder.swapBuffer();
             }
-            if (takePhotoCallback != null) {
+            if (takePhotoCallback != null && surfaceManagerPhoto != null) {
+              surfaceManagerPhoto.makeCurrent();
+              textureManager.drawScreen(encoderWidth, encoderHeight, false, 0,
+                  streamRotation, false, isStreamVerticalFlip, isStreamHorizontalFlip);
               takePhotoCallback.onTakePhoto(GlUtil.getBitmap(encoderWidth, encoderHeight));
               takePhotoCallback = null;
+              surfaceManagerPhoto.swapBuffer();
             }
-            if (surfaceManagerEncoder != null) surfaceManagerEncoder.swapBuffer();
-            else if (surfaceManagerPhoto != null) surfaceManagerPhoto.swapBuffer();
           }
           if (!filterQueue.isEmpty()) {
             Filter filter = filterQueue.take();

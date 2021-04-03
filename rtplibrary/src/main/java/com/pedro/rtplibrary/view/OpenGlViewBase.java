@@ -121,6 +121,7 @@ public abstract class OpenGlViewBase extends SurfaceView
       }
       if (surfaceManager != null) {
         surfaceManagerEncoder = new SurfaceManager(surface, surfaceManager);
+        surfaceManagerPhoto = new SurfaceManager(encoderWidth, encoderHeight, surfaceManagerEncoder);
       }
     }
   }
@@ -128,6 +129,10 @@ public abstract class OpenGlViewBase extends SurfaceView
   @Override
   public void removeMediaCodecSurface() {
     synchronized (sync) {
+      if (surfaceManagerPhoto != null) {
+        surfaceManagerPhoto.release();
+        surfaceManagerPhoto = null;
+      }
       if (surfaceManagerEncoder != null) {
         surfaceManagerEncoder.release();
         surfaceManagerEncoder = null;

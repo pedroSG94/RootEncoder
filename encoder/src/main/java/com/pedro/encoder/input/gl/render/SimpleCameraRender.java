@@ -149,8 +149,8 @@ public class SimpleCameraRender {
 
   public void release() {
     GLES20.glDeleteProgram(program);
-    surfaceTexture = null;
-    surface = null;
+    surfaceTexture.release();
+    surface.release();
   }
 
   public void setFlip(boolean isFlipHorizontal, boolean isFlipVertical) {

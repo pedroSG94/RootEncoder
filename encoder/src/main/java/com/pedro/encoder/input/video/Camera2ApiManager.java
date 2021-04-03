@@ -26,7 +26,6 @@ import android.view.MotionEvent;
 import android.view.Surface;
 import android.view.SurfaceView;
 import android.view.TextureView;
-import android.view.View;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -791,7 +790,7 @@ public class Camera2ApiManager extends CameraDevice.StateCallback {
     cameraDevice.close();
     semaphore.release();
     if (cameraCallbacks != null) cameraCallbacks.onCameraError("Open camera failed: " + i);
-    Log.e(TAG, "Open failed");
+    Log.e(TAG, "Open failed: " + i);
   }
 
   @Nullable

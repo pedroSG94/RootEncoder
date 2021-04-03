@@ -107,8 +107,8 @@ public class CameraRender extends BaseRenderOffScreen {
   @Override
   public void release() {
     GLES20.glDeleteProgram(program);
-    surfaceTexture = null;
-    surface = null;
+    surfaceTexture.release();
+    surface.release();
   }
 
   public void updateTexImage() {
