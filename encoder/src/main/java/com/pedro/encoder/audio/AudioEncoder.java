@@ -49,6 +49,7 @@ public class AudioEncoder extends BaseEncoder implements GetMicrophoneData {
     try {
       MediaCodecInfo encoder = chooseEncoder(CodecUtil.AAC_MIME);
       if (encoder != null) {
+        Log.i(TAG, "Encoder selected " + encoder.getName());
         codec = MediaCodec.createByCodecName(encoder.getName());
       } else {
         Log.e(TAG, "Valid encoder not found");
@@ -131,31 +132,26 @@ public class AudioEncoder extends BaseEncoder implements GetMicrophoneData {
 
   @Override
   protected MediaCodecInfo chooseEncoder(String mime) {
-    List<MediaCodecInfo> encoders = new ArrayList<>();
+    List<MediaCodecInfo> mediaCodecInfoList;
     if (force == CodecUtil.Force.HARDWARE) {
-      encoders = CodecUtil.getAllHardwareEncoders(CodecUtil.AAC_MIME);
+      mediaCodecInfoList = CodecUtil.getAllHardwareEncoders(CodecUtil.AAC_MIME);
     } else if (force == CodecUtil.Force.SOFTWARE) {
-      encoders = CodecUtil.getAllSoftwareEncoders(CodecUtil.AAC_MIME);
+      mediaCodecInfoList = CodecUtil.getAllSoftwareEncoders(CodecUtil.AAC_MIME);
+    } else {
+      mediaCodecInfoList = CodecUtil.getAllEncoders(CodecUtil.AAC_MIME);
     }
 
-    if (force == CodecUtil.Force.FIRST_COMPATIBLE_FOUND) {
-      List<MediaCodecInfo> mediaCodecInfoList = CodecUtil.getAllEncoders(mime);
-      for (MediaCodecInfo mediaCodecInfo : mediaCodecInfoList) {
-        String name = mediaCodecInfo.getName().toLowerCase();
-        if (!name.contains("omx.google")) return mediaCodecInfo;
+    Log.i(TAG, mediaCodecInfoList.size() + " encoders found");
+    for (MediaCodecInfo mci : mediaCodecInfoList) {
+      String name = mci.getName().toLowerCase();
+      Log.i(TAG, "Encoder " + mci.getName());
+      if (name.contains("omx.google") && mediaCodecInfoList.size() > 1) {
+        //skip omx.google.aac.encoder if possible
+        continue;
       }
-      if (mediaCodecInfoList.size() > 0) {
-        return mediaCodecInfoList.get(0);
-      } else {
-        return null;
-      }
-    } else {
-      if (encoders.isEmpty()) {
-        return null;
-      } else {
-        return encoders.get(0);
-      }
+      return mci;
     }
+    return null;
   }
 
   public void setSampleRate(int sampleRate) {

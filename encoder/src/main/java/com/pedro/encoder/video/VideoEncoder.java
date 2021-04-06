@@ -78,6 +78,7 @@ public class VideoEncoder extends BaseEncoder implements GetCameraData {
     MediaCodecInfo encoder = chooseEncoder(type);
     try {
       if (encoder != null) {
+        Log.i(TAG, "Encoder selected " + encoder.getName());
         codec = MediaCodec.createByCodecName(encoder.getName());
         if (this.formatVideoEncoder == FormatVideoEncoder.YUV420Dynamical) {
           this.formatVideoEncoder = chooseColorDynamically(encoder);
@@ -316,8 +317,21 @@ public class VideoEncoder extends BaseEncoder implements GetCameraData {
     } else {
       mediaCodecInfoList = CodecUtil.getAllEncoders(mime);
     }
+
+    Log.i(TAG, mediaCodecInfoList.size() + " encoders found");
+    //re order codec for cbr priority
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+      List<MediaCodecInfo> cbrPriority = new ArrayList<>();
+      for (MediaCodecInfo mci : mediaCodecInfoList) {
+        if (isCBRModeSupported(mci)) {
+          cbrPriority.add(mci);
+        }
+      }
+      mediaCodecInfoList.removeAll(cbrPriority);
+      mediaCodecInfoList.addAll(0, cbrPriority);
+    }
     for (MediaCodecInfo mci : mediaCodecInfoList) {
-      Log.i(TAG, String.format("VideoEncoder %s", mci.getName()));
+      Log.i(TAG, "Encoder " + mci.getName());
       MediaCodecInfo.CodecCapabilities codecCapabilities = mci.getCapabilitiesForType(mime);
       for (int color : codecCapabilities.colorFormats) {
         Log.i(TAG, "Color supported: " + color);
