@@ -17,11 +17,9 @@ import com.pedro.encoder.input.video.FpsLimiter;
 import com.pedro.encoder.input.video.GetCameraData;
 import com.pedro.encoder.utils.CodecUtil;
 import com.pedro.encoder.utils.yuv.YUVUtil;
-import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 
 /**
  * Created by pedro on 19/01/17.
@@ -157,6 +155,7 @@ public class VideoEncoder extends BaseEncoder implements GetCameraData {
 
   @Override
   public void start(boolean resetTs) {
+    shouldReset = resetTs;
     spsPpsSetted = false;
     if (resetTs) {
       fpsLimiter.setFPS(fps);
@@ -175,15 +174,21 @@ public class VideoEncoder extends BaseEncoder implements GetCameraData {
     Log.i(TAG, "stopped");
   }
 
-  public void reset() {
+  public void forceKeyFrame() {
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
       requestKeyframe();
     } else {
-      stop(false);
-      prepareVideoEncoder(width, height, fps, bitRate, rotation, iFrameInterval, formatVideoEncoder,
-          avcProfile, avcProfileLevel);
-      restart();
+      //The only way to force keyframe if api < 19 is reset it.
+      reset();
     }
+  }
+
+  @Override
+  public void reset() {
+    stop(false);
+    prepareVideoEncoder(width, height, fps, bitRate, rotation, iFrameInterval, formatVideoEncoder,
+        avcProfile, avcProfileLevel);
+    restart();
   }
 
   private FormatVideoEncoder chooseColorDynamically(MediaCodecInfo mediaCodecInfo) {
@@ -221,19 +226,6 @@ public class VideoEncoder extends BaseEncoder implements GetCameraData {
 
   @RequiresApi(api = Build.VERSION_CODES.KITKAT)
   public void requestKeyframe() {
-    if (isRunning()) {
-      Bundle bundle = new Bundle();
-      bundle.putInt(MediaCodec.PARAMETER_KEY_REQUEST_SYNC_FRAME, 0);
-      try {
-        codec.setParameters(bundle);
-      } catch (IllegalStateException e) {
-        Log.e(TAG, "encoder need be running", e);
-      }
-    }
-  }
-
-  @RequiresApi(api = Build.VERSION_CODES.KITKAT)
-  public void forceSyncFrame() {
     if (isRunning()) {
       Bundle bundle = new Bundle();
       bundle.putInt(MediaCodec.PARAMETER_KEY_REQUEST_SYNC_FRAME, 0);

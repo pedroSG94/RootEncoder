@@ -30,6 +30,7 @@ public abstract class BaseEncoder implements EncoderCallback {
   protected CodecUtil.Force force = CodecUtil.Force.FIRST_COMPATIBLE_FOUND;
   private MediaCodec.Callback callback;
   private long oldTimeStamp = 0L;
+  protected boolean shouldReset = true;
 
   public void restart() {
     start(false);
@@ -62,6 +63,7 @@ public abstract class BaseEncoder implements EncoderCallback {
               getDataFromEncoder();
             } catch (IllegalStateException e) {
               Log.i(TAG, "Encoding error", e);
+              reloadCodec();
             }
           }
         }
@@ -69,6 +71,8 @@ public abstract class BaseEncoder implements EncoderCallback {
     }
     running = true;
   }
+
+  public abstract void reset();
 
   public abstract void start(boolean resetTs);
 
@@ -79,6 +83,14 @@ public abstract class BaseEncoder implements EncoderCallback {
       info.presentationTimeUs = oldTimeStamp;
     } else {
       oldTimeStamp = info.presentationTimeUs;
+    }
+  }
+
+  private void reloadCodec() {
+    //Sometimes encoder crash, we will try recover it. Reset encoder a time if crash
+    if (shouldReset) {
+      Log.e(TAG, "Encoder crashed, trying to recover it");
+      reset();
     }
   }
 
@@ -217,6 +229,7 @@ public abstract class BaseEncoder implements EncoderCallback {
           inputAvailable(mediaCodec, inBufferIndex);
         } catch (IllegalStateException e) {
           Log.i(TAG, "Encoding error", e);
+          reloadCodec();
         }
       }
 
@@ -227,6 +240,7 @@ public abstract class BaseEncoder implements EncoderCallback {
           outputAvailable(mediaCodec, outBufferIndex, bufferInfo);
         } catch (IllegalStateException e) {
           Log.i(TAG, "Encoding error", e);
+          reloadCodec();
         }
       }
 

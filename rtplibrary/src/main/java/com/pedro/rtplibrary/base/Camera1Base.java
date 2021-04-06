@@ -568,7 +568,7 @@ public abstract class Camera1Base
     if (glInterface != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
       glInterface.removeMediaCodecSurface();
     }
-    videoEncoder.reset();
+    videoEncoder.forceKeyFrame();
     if (glInterface != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
       glInterface.addMediaCodecSurface(videoEncoder.getInputSurface());
     }

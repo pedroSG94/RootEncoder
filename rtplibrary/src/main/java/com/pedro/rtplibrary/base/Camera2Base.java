@@ -559,7 +559,7 @@ public abstract class Camera2Base implements GetAacData, GetVideoData, GetMicrop
     if (glInterface != null) {
       glInterface.removeMediaCodecSurface();
     }
-    videoEncoder.reset();
+    videoEncoder.forceKeyFrame();
     if (glInterface != null) {
       glInterface.addMediaCodecSurface(videoEncoder.getInputSurface());
     } else {

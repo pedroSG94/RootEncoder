@@ -87,6 +87,7 @@ public class AudioEncoder extends BaseEncoder implements GetMicrophoneData {
 
   @Override
   public void start(boolean resetTs) {
+    shouldReset = resetTs;
     Log.i(TAG, "started");
   }
 
@@ -95,6 +96,7 @@ public class AudioEncoder extends BaseEncoder implements GetMicrophoneData {
     Log.i(TAG, "stopped");
   }
 
+  @Override
   public void reset() {
     stop(false);
     prepareAudioEncoder(bitRate, sampleRate, isStereo, maxInputSize);
