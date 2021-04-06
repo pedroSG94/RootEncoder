@@ -425,6 +425,9 @@ public class RtmpActivity extends AppCompatActivity
     } else {
       if (action == MotionEvent.ACTION_UP) {
         // todo place to add autofocus functional.
+      } else if (action == MotionEvent.ACTION_DOWN) {
+          rtmpCamera1.tapToFocus(view, motionEvent);
+          return true;
       }
     }
     return true;
