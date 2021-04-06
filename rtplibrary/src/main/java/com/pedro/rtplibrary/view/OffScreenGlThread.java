@@ -239,9 +239,9 @@ public class OffScreenGlThread
 
           synchronized (sync) {
             if (surfaceManagerEncoder != null && !fpsLimiter.limitFPS()) {
-              surfaceManagerEncoder.makeCurrent();
               int w = muteVideo ? 0 : encoderWidth;
               int h = muteVideo ? 0 : encoderHeight;
+              surfaceManagerEncoder.makeCurrent();
               textureManager.drawScreen(w, h, false, 0,
                   streamRotation, false, isStreamVerticalFlip, isStreamHorizontalFlip);
               surfaceManagerEncoder.swapBuffer();

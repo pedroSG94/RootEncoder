@@ -151,8 +151,6 @@ public abstract class DisplayBase implements GetAacData, GetVideoData, GetMicrop
         videoEncoder.prepareVideoEncoder(width, height, fps, bitrate, rotation, iFrameInterval,
             FormatVideoEncoder.SURFACE, avcProfile, avcProfileLevel);
     if (glInterface != null) {
-      glInterface = new OffScreenGlThread(context);
-      glInterface.init();
       if (rotation == 90 || rotation == 270) {
         glInterface.setEncoderSize(videoEncoder.getHeight(), videoEncoder.getWidth());
       } else {
@@ -374,6 +372,7 @@ public abstract class DisplayBase implements GetAacData, GetVideoData, GetMicrop
     videoEncoder.start();
     if (audioInitialized) audioEncoder.start();
     if (glInterface != null) {
+      glInterface.init();
       glInterface.setFps(videoEncoder.getFps());
       glInterface.start();
       glInterface.addMediaCodecSurface(videoEncoder.getInputSurface());

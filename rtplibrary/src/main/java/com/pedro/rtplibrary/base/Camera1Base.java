@@ -577,7 +577,6 @@ public abstract class Camera1Base
   private void prepareGlView() {
     if (glInterface != null && Build.VERSION.SDK_INT >= 18) {
       if (glInterface instanceof OffScreenGlThread) {
-        glInterface = new OffScreenGlThread(context);
         glInterface.init();
       }
       glInterface.setFps(videoEncoder.getFps());

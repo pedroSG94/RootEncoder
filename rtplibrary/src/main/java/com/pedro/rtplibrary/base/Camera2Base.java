@@ -572,7 +572,6 @@ public abstract class Camera2Base implements GetAacData, GetVideoData, GetMicrop
   private void prepareGlView() {
     if (glInterface != null && videoEnabled) {
       if (glInterface instanceof OffScreenGlThread) {
-        glInterface = new OffScreenGlThread(context);
         glInterface.init();
       }
       glInterface.setFps(videoEncoder.getFps());

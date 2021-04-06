@@ -358,7 +358,6 @@ public abstract class FromFileBase
   private void prepareGlView() {
     if (glInterface != null) {
       if (glInterface instanceof OffScreenGlThread) {
-        glInterface = new OffScreenGlThread(context);
         glInterface.init();
       }
       glInterface.setFps(videoEncoder.getFps());

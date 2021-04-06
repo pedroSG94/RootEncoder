@@ -175,10 +175,14 @@ public class VideoEncoder extends BaseEncoder implements GetCameraData {
   }
 
   public void reset() {
-    stop(false);
-    prepareVideoEncoder(width, height, fps, bitRate, rotation, iFrameInterval, formatVideoEncoder,
-        avcProfile, avcProfileLevel);
-    restart();
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+      requestKeyframe();
+    } else {
+      stop(false);
+      prepareVideoEncoder(width, height, fps, bitRate, rotation, iFrameInterval, formatVideoEncoder,
+          avcProfile, avcProfileLevel);
+      restart();
+    }
   }
 
   private FormatVideoEncoder chooseColorDynamically(MediaCodecInfo mediaCodecInfo) {
@@ -206,6 +210,19 @@ public class VideoEncoder extends BaseEncoder implements GetCameraData {
       this.bitRate = bitrate;
       Bundle bundle = new Bundle();
       bundle.putInt(MediaCodec.PARAMETER_KEY_VIDEO_BITRATE, bitrate);
+      try {
+        codec.setParameters(bundle);
+      } catch (IllegalStateException e) {
+        Log.e(TAG, "encoder need be running", e);
+      }
+    }
+  }
+
+  @RequiresApi(api = Build.VERSION_CODES.KITKAT)
+  public void requestKeyframe() {
+    if (isRunning()) {
+      Bundle bundle = new Bundle();
+      bundle.putInt(MediaCodec.PARAMETER_KEY_REQUEST_SYNC_FRAME, 0);
       try {
         codec.setParameters(bundle);
       } catch (IllegalStateException e) {

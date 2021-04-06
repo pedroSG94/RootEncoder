@@ -21,15 +21,19 @@ public class SurfaceManager {
 
   private static final int EGL_RECORDABLE_ANDROID = 0x3142;
 
-  private EGLContext eglContext = null;
-  private EGLSurface eglSurface = null;
-  private EGLDisplay eglDisplay = null;
+  private EGLContext eglContext = EGL14.EGL_NO_CONTEXT;
+  private EGLSurface eglSurface = EGL14.EGL_NO_SURFACE;
+  private EGLDisplay eglDisplay = EGL14.EGL_NO_DISPLAY;
 
   /**
    * Creates an EGL context and an EGL surface.
    */
   public SurfaceManager(Surface surface, SurfaceManager manager) {
     eglSetup(2, 2, surface, manager.eglContext);
+  }
+
+  public SurfaceManager(int width, int height, Surface surface, SurfaceManager manager) {
+    eglSetup(width, height, surface, manager.eglContext);
   }
 
   public SurfaceManager(int width, int height, SurfaceManager manager) {
@@ -61,7 +65,9 @@ public class SurfaceManager {
   }
 
   public void swapBuffer() {
-    EGL14.eglSwapBuffers(eglDisplay, eglSurface);
+    if (!EGL14.eglSwapBuffers(eglDisplay, eglSurface)) {
+      Log.e("Error", "eglSwapBuffers failed");
+    }
   }
 
   /**
