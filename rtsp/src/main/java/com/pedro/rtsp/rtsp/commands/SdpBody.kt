@@ -1,11 +1,11 @@
-package com.pedro.rtsp.rtsp
+package com.pedro.rtsp.rtsp.commands
 
 import com.pedro.rtsp.utils.RtpConstants
 
 /**
  * Created by pedro on 21/02/17.
  */
-object Body {
+object SdpBody {
 
   /** supported sampleRates.  */
   private val AUDIO_SAMPLING_RATES = intArrayOf(
