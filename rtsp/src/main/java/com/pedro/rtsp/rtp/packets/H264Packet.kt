@@ -33,6 +33,8 @@ open class H264Packet(sps: ByteArray, pps: ByteArray, private val videoPacketCal
     val naluLength = bufferInfo.size - byteBuffer.position() + 1
     val type: Int = (header[4] and 0x1F).toInt()
     if (type == RtpConstants.IDR || bufferInfo.flags == MediaCodec.BUFFER_FLAG_KEY_FRAME) {
+      //fix malformed keyframe header if necessary
+      if (type != RtpConstants.IDR) header[4] = RtpConstants.IDR.toByte()
       stapA?.let {
         val buffer = getBuffer(it.size + RtpConstants.RTP_HEADER_LENGTH)
         val rtpts = updateTimeStamp(buffer, ts)

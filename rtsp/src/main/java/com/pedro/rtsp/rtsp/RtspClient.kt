@@ -215,6 +215,7 @@ open class RtspClient(private val connectCheckerRtsp: ConnectCheckerRtsp) {
               val setupVideoStatus = commandsManager.getResponse(reader, Method.SETUP).status
               if (setupVideoStatus != 200) {
                 connectCheckerRtsp.onConnectionFailedRtsp("Error configure stream, setup video $setupVideoStatus")
+                return@post
               }
             }
             writer?.write(commandsManager.createSetup(RtpConstants.trackAudio))
@@ -222,12 +223,14 @@ open class RtspClient(private val connectCheckerRtsp: ConnectCheckerRtsp) {
             val setupAudioStatus = commandsManager.getResponse(reader, Method.SETUP).status
             if (setupAudioStatus != 200) {
               connectCheckerRtsp.onConnectionFailedRtsp("Error configure stream, setup audio $setupAudioStatus")
+              return@post
             }
             writer?.write(commandsManager.createRecord())
             writer?.flush()
             val recordStatus = commandsManager.getResponse(reader, Method.RECORD).status
             if (recordStatus != 200) {
               connectCheckerRtsp.onConnectionFailedRtsp("Error configure stream, record $recordStatus")
+              return@post
             }
             outputStream?.let { out ->
               rtspSender.setDataStream(out, host)
