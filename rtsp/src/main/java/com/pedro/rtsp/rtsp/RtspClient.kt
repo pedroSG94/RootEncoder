@@ -41,7 +41,7 @@ open class RtspClient(private val connectCheckerRtsp: ConnectCheckerRtsp) {
   private var tlsEnabled = false
   private val rtspSender: RtspSender = RtspSender(connectCheckerRtsp)
   private var url: String? = null
-  private val commandsManager: CommandsManager = CommandsManager(connectCheckerRtsp)
+  private val commandsManager: CommandsManager = CommandsManager()
   private var doingRetry = false
   private var numRetry = 0
   private var reTries = 0

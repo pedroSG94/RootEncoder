@@ -138,7 +138,7 @@ public class SimpleCameraRender {
     uSTMatrixHandle = GLES20.glGetUniformLocation(program, "uSTMatrix");
 
     //camera texture
-    GlUtil.createExternalTextures(1, texturesID, 0);
+    GlUtil.createExternalTextures(texturesID.length, texturesID, 0);
     textureID = texturesID[0];
 
     surfaceTexture = new SurfaceTexture(textureID);

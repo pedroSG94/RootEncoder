@@ -92,7 +92,7 @@ public class SurfaceFilterRender extends BaseObjectFilterRender {
     uSamplerSurfaceHandle = GLES20.glGetUniformLocation(program, "uSamplerSurface");
     uAlphaHandle = GLES20.glGetUniformLocation(program, "uAlpha");
 
-    GlUtil.createExternalTextures(1, surfaceId, 0);
+    GlUtil.createExternalTextures(surfaceId.length, surfaceId, 0);
     surfaceTexture = new SurfaceTexture(surfaceId[0]);
     surfaceTexture.setDefaultBufferSize(getWidth(), getHeight());
     surface = new Surface(surfaceTexture);

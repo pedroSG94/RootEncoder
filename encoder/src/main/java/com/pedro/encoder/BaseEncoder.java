@@ -19,7 +19,7 @@ import java.util.concurrent.BlockingQueue;
  */
 public abstract class BaseEncoder implements EncoderCallback {
 
-  private static final String TAG = "BaseEncoder";
+  protected String TAG = "BaseEncoder";
   private final MediaCodec.BufferInfo bufferInfo = new MediaCodec.BufferInfo();
   private HandlerThread handlerThread;
   protected BlockingQueue<Frame> queue = new ArrayBlockingQueue<>(80);

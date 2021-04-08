@@ -81,7 +81,7 @@ public class AndroidViewFilterRender extends BaseFilterRender {
     uSamplerHandle = GLES20.glGetUniformLocation(program, "uSampler");
     uSamplerViewHandle = GLES20.glGetUniformLocation(program, "uSamplerView");
 
-    GlUtil.createExternalTextures(1, viewId, 0);
+    GlUtil.createExternalTextures(viewId.length, viewId, 0);
     surfaceTexture = new SurfaceTexture(viewId[0]);
     surface = new Surface(surfaceTexture);
   }

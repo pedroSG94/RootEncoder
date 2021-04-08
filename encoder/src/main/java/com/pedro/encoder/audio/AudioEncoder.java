@@ -24,7 +24,6 @@ import java.util.concurrent.TimeUnit;
 
 public class AudioEncoder extends BaseEncoder implements GetMicrophoneData {
 
-  private static final String TAG = "AudioEncoder";
   private GetAacData getAacData;
   private int bitRate = 64 * 1024;  //in kbps
   private int sampleRate = 32000; //in hz
@@ -34,6 +33,7 @@ public class AudioEncoder extends BaseEncoder implements GetMicrophoneData {
 
   public AudioEncoder(GetAacData getAacData) {
     this.getAacData = getAacData;
+    TAG = "AudioEncoder";
   }
 
   /**

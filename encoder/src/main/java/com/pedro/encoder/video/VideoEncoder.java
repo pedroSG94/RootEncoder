@@ -28,7 +28,6 @@ import java.util.List;
 
 public class VideoEncoder extends BaseEncoder implements GetCameraData {
 
-  private static final String TAG = "VideoEncoder";
   private GetVideoData getVideoData;
   private boolean spsPpsSetted = false;
 
@@ -50,6 +49,7 @@ public class VideoEncoder extends BaseEncoder implements GetCameraData {
 
   public VideoEncoder(GetVideoData getVideoData) {
     this.getVideoData = getVideoData;
+    TAG = "VideoEncoder";
   }
 
   public boolean prepareVideoEncoder(int width, int height, int fps, int bitRate, int rotation,
@@ -462,14 +462,14 @@ public class VideoEncoder extends BaseEncoder implements GetCameraData {
         }
       }
     }
+    if (formatVideoEncoder == FormatVideoEncoder.SURFACE) {
+      bufferInfo.presentationTimeUs = System.nanoTime() / 1000 - presentTimeUs;
+    }
   }
 
   @Override
   protected void sendBuffer(@NonNull ByteBuffer byteBuffer,
       @NonNull MediaCodec.BufferInfo bufferInfo) {
-    if (formatVideoEncoder == FormatVideoEncoder.SURFACE) {
-      bufferInfo.presentationTimeUs = System.nanoTime() / 1000 - presentTimeUs;
-    }
     getVideoData.getVideoData(byteBuffer, bufferInfo);
   }
 }
