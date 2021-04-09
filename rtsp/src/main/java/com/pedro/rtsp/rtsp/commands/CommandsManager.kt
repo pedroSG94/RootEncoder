@@ -8,7 +8,6 @@ import com.pedro.rtsp.rtsp.commands.SdpBody.createAacBody
 import com.pedro.rtsp.rtsp.commands.SdpBody.createH264Body
 import com.pedro.rtsp.rtsp.commands.SdpBody.createH265Body
 import com.pedro.rtsp.utils.AuthUtil.getMd5Hash
-import com.pedro.rtsp.utils.ConnectCheckerRtsp
 import com.pedro.rtsp.utils.RtpConstants
 import java.io.BufferedReader
 import java.io.IOException

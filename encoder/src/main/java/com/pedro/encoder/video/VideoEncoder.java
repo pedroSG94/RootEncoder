@@ -30,6 +30,7 @@ public class VideoEncoder extends BaseEncoder implements GetCameraData {
 
   private GetVideoData getVideoData;
   private boolean spsPpsSetted = false;
+  private boolean forceKey = false;
 
   //surface to buffer encoder
   private Surface inputSurface;
@@ -155,6 +156,7 @@ public class VideoEncoder extends BaseEncoder implements GetCameraData {
 
   @Override
   public void start(boolean resetTs) {
+    forceKey = false;
     shouldReset = resetTs;
     spsPpsSetted = false;
     if (resetTs) {
@@ -227,12 +229,17 @@ public class VideoEncoder extends BaseEncoder implements GetCameraData {
   @RequiresApi(api = Build.VERSION_CODES.KITKAT)
   public void requestKeyframe() {
     if (isRunning()) {
-      Bundle bundle = new Bundle();
-      bundle.putInt(MediaCodec.PARAMETER_KEY_REQUEST_SYNC_FRAME, 0);
-      try {
-        codec.setParameters(bundle);
-      } catch (IllegalStateException e) {
-        Log.e(TAG, "encoder need be running", e);
+      if (spsPpsSetted) {
+        Bundle bundle = new Bundle();
+        bundle.putInt(MediaCodec.PARAMETER_KEY_REQUEST_SYNC_FRAME, 0);
+        try {
+          codec.setParameters(bundle);
+        } catch (IllegalStateException e) {
+          Log.e(TAG, "encoder need be running", e);
+        }
+      } else {
+        //You need wait until encoder generate first frame.
+        forceKey = true;
       }
     }
   }
@@ -451,6 +458,10 @@ public class VideoEncoder extends BaseEncoder implements GetCameraData {
   @Override
   protected void checkBuffer(@NonNull ByteBuffer byteBuffer,
       @NonNull MediaCodec.BufferInfo bufferInfo) {
+    if (forceKey && Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+      forceKey = false;
+      requestKeyframe();
+    }
     fixTimeStamp(bufferInfo);
     if ((bufferInfo.flags & MediaCodec.BUFFER_FLAG_CODEC_CONFIG) != 0) {
       if (!spsPpsSetted) {
