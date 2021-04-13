@@ -8,6 +8,9 @@ import android.opengl.GLES20;
 import android.opengl.Matrix;
 import android.os.Build;
 import androidx.annotation.RequiresApi;
+
+import android.os.Handler;
+import android.os.Looper;
 import android.view.Surface;
 import com.pedro.encoder.R;
 import com.pedro.encoder.input.gl.Sprite;
@@ -96,7 +99,14 @@ public class SurfaceFilterRender extends BaseObjectFilterRender {
     surfaceTexture = new SurfaceTexture(surfaceId[0]);
     surfaceTexture.setDefaultBufferSize(getWidth(), getHeight());
     surface = new Surface(surfaceTexture);
-    if (surfaceReadyCallback != null) surfaceReadyCallback.surfaceReady(surfaceTexture);
+    if (surfaceReadyCallback != null) {
+      new Handler(Looper.getMainLooper()).post(new Runnable() {
+        @Override
+        public void run() {
+          surfaceReadyCallback.surfaceReady(surfaceTexture);
+        }
+      });
+    }
   }
 
   @Override
@@ -142,10 +152,16 @@ public class SurfaceFilterRender extends BaseObjectFilterRender {
     surface.release();
   }
 
+  /**
+   * This texture must be renderer using an api called on main thread to avoid possible errors
+   */
   public SurfaceTexture getSurfaceTexture() {
     return surfaceTexture;
   }
 
+  /**
+   * This surface must be renderer using an api called on main thread to avoid possible errors
+   */
   public Surface getSurface() {
     return surface;
   }
