@@ -243,10 +243,10 @@ open class CommandsManager() {
         }
       } catch (e: IOException) {
         Log.e(TAG, "read error", e)
-        Command(method, -1, "")
+        Command(method, cSeq, -1, "")
       }
     }
-    return Command(method, -1, "")
+    return Command(method, cSeq, -1, "")
   }
 
   private fun getSession(response: String) {
