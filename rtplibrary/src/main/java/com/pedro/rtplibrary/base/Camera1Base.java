@@ -180,8 +180,16 @@ public abstract class Camera1Base
     return cameraManager.isFaceDetectionEnabled();
   }
 
+  /**
+   * Use getCameraFacing instead
+   */
+  @Deprecated
   public boolean isFrontCamera() {
-    return cameraManager.isFrontCamera();
+    return cameraManager.getCameraFacing() == CameraHelper.Facing.FRONT;
+  }
+
+  public CameraHelper.Facing getCameraFacing() {
+    return cameraManager.getCameraFacing();
   }
 
   public void enableLantern() throws Exception {
@@ -424,6 +432,7 @@ public abstract class Camera1Base
             videoEncoder.getFps());
       } else {
         this.glInterface = glInterface;
+        this.glInterface.init();
       }
     }
   }
@@ -456,6 +465,10 @@ public abstract class Camera1Base
       cameraManager.setRotation(rotation);
       cameraManager.start(cameraFacing, width, height, videoEncoder.getFps());
       onPreview = true;
+    } else if (glInterface instanceof OffScreenGlThread) {
+      // if you are using background mode startPreview only work to indicate
+      // that you want start with front or back camera
+      cameraManager.setCameraFacing(cameraFacing);
     } else {
       Log.e(TAG, "Streaming or preview started, ignored");
     }
@@ -465,16 +478,20 @@ public abstract class Camera1Base
     startPreview(cameraFacing, width, height, CameraHelper.getCameraOrientation(context));
   }
 
+  public void startPreview(CameraHelper.Facing cameraFacing, int rotation) {
+    startPreview(cameraFacing, videoEncoder.getWidth(), videoEncoder.getHeight(), rotation);
+  }
+
   public void startPreview(CameraHelper.Facing cameraFacing) {
-    startPreview(cameraFacing, 640, 480);
+    startPreview(cameraFacing, videoEncoder.getWidth(), videoEncoder.getHeight());
   }
 
   public void startPreview(int width, int height) {
-    startPreview(CameraHelper.Facing.BACK, width, height);
+    startPreview(getCameraFacing(), width, height);
   }
 
   public void startPreview() {
-    startPreview(CameraHelper.Facing.BACK);
+    startPreview(getCameraFacing());
   }
 
   /**
@@ -614,6 +631,7 @@ public abstract class Camera1Base
         if (glInterface instanceof OffScreenGlThread) {
           glInterface.stop();
           cameraManager.stop();
+          onPreview = false;
         }
       }
       videoEncoder.stop();
@@ -743,13 +761,15 @@ public abstract class Camera1Base
   }
 
   /**
-   * Switch camera used. Can be called on preview or while stream, ignored with preview off.
+   * Switch camera used. Can be called anytime
    *
    * @throws CameraOpenException If the other camera doesn't support same resolution.
    */
   public void switchCamera() throws CameraOpenException {
     if (isStreaming() || onPreview) {
       cameraManager.switchCamera();
+    } else {
+      cameraManager.setCameraFacing(getCameraFacing() ==  CameraHelper.Facing.FRONT ? CameraHelper.Facing.BACK : CameraHelper.Facing.FRONT);
     }
   }
 

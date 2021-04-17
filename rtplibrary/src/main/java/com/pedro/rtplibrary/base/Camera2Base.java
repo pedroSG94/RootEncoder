@@ -6,6 +6,7 @@ import android.media.MediaCodec;
 import android.media.MediaFormat;
 import android.media.MediaRecorder;
 import android.os.Build;
+import android.util.Log;
 import android.util.Range;
 import android.util.Size;
 import android.view.MotionEvent;
@@ -58,6 +59,8 @@ import java.util.List;
  */
 @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
 public abstract class Camera2Base implements GetAacData, GetVideoData, GetMicrophoneData {
+
+  private static final String TAG = "Camera2Base";
 
   protected Context context;
   private Camera2ApiManager cameraManager;
@@ -191,8 +194,16 @@ public abstract class Camera2Base implements GetAacData, GetVideoData, GetMicrop
     return cameraManager.isFaceDetectionEnabled();
   }
 
+  /**
+   * Use getCameraFacing instead
+   */
+  @Deprecated
   public boolean isFrontCamera() {
-    return cameraManager.isFrontCamera();
+    return cameraManager.getCameraFacing() == CameraHelper.Facing.FRONT;
+  }
+
+  public CameraHelper.Facing getCameraFacing() {
+    return cameraManager.getCameraFacing();
   }
 
   public void enableLantern() throws Exception {
@@ -470,6 +481,12 @@ public abstract class Camera2Base implements GetAacData, GetVideoData, GetMicrop
       }
       cameraManager.openCameraFacing(cameraFacing);
       onPreview = true;
+    } else if (isBackground) {
+      // if you are using background mode startPreview only work to indicate
+      // that you want start with front or back camera
+      cameraManager.setCameraFacing(cameraFacing);
+    } else {
+      Log.e(TAG, "Streaming or preview started, ignored");
     }
   }
 
@@ -482,12 +499,15 @@ public abstract class Camera2Base implements GetAacData, GetVideoData, GetMicrop
   }
 
   public void startPreview(CameraHelper.Facing cameraFacing) {
-    startPreview(cameraFacing, videoEncoder.getWidth(), videoEncoder.getHeight(),
-        CameraHelper.getCameraOrientation(context));
+    startPreview(cameraFacing, videoEncoder.getWidth(), videoEncoder.getHeight());
+  }
+
+  public void startPreview(int width, int height) {
+    startPreview(getCameraFacing(), width, height);
   }
 
   public void startPreview() {
-    startPreview(CameraHelper.Facing.BACK);
+    startPreview(getCameraFacing());
   }
 
   /**
@@ -504,6 +524,8 @@ public abstract class Camera2Base implements GetAacData, GetVideoData, GetMicrop
       onPreview = false;
       previewWidth = 0;
       previewHeight = 0;
+    } else {
+      Log.e(TAG, "Streaming or preview stopped, ignored");
     }
   }
 
@@ -546,11 +568,7 @@ public abstract class Camera2Base implements GetAacData, GetVideoData, GetMicrop
     if (audioInitialized) microphoneManager.start();
     if (glInterface == null && !cameraManager.isRunning() && videoEncoder.getWidth() != previewWidth
         || videoEncoder.getHeight() != previewHeight) {
-      if (onPreview) {
-        cameraManager.openLastCamera();
-      } else {
-        cameraManager.openCameraBack();
-      }
+      cameraManager.openLastCamera();
     }
     onPreview = true;
   }
@@ -616,6 +634,7 @@ public abstract class Camera2Base implements GetAacData, GetVideoData, GetMicrop
       } else {
         if (isBackground) {
           cameraManager.closeCamera();
+          onPreview = false;
         } else {
           cameraManager.stopRepeatingEncoder();
         }
@@ -794,13 +813,15 @@ public abstract class Camera2Base implements GetAacData, GetVideoData, GetMicrop
   }
 
   /**
-   * Switch camera used. Can be called on preview or while stream, ignored with preview off.
+   * Switch camera used. Can be called anytime
    *
    * @throws CameraOpenException If the other camera doesn't support same resolution.
    */
   public void switchCamera() throws CameraOpenException {
     if (isStreaming() || onPreview) {
       cameraManager.switchCamera();
+    } else {
+      cameraManager.setCameraFacing(getCameraFacing() == CameraHelper.Facing.FRONT ? CameraHelper.Facing.BACK : CameraHelper.Facing.FRONT);
     }
   }
 

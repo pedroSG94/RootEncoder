@@ -351,6 +351,7 @@ public abstract class FromFileBase
         }
       } else {
         this.glInterface = glInterface;
+        this.glInterface.init();
       }
     }
   }

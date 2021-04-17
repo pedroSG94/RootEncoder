@@ -44,9 +44,8 @@ public class Camera1ApiManager implements Camera.PreviewCallback, Camera.FaceDet
   private boolean lanternEnable = false;
   private boolean autoFocusEnabled = false;
   private int cameraSelect;
-  private boolean isFrontCamera = false;
+  private CameraHelper.Facing facing = CameraHelper.Facing.BACK;
   private boolean isPortrait = false;
-  private int cameraFacing = Camera.CameraInfo.CAMERA_FACING_BACK;
   private Context context;
 
   //default parameters for camera
@@ -112,22 +111,22 @@ public class Camera1ApiManager implements Camera.PreviewCallback, Camera.FaceDet
     return height;
   }
 
+  public void setCameraFacing(CameraHelper.Facing cameraFacing) {
+    facing = cameraFacing;
+  }
+
   public void start(CameraHelper.Facing cameraFacing, int width, int height, int fps) {
     int facing = cameraFacing == CameraHelper.Facing.BACK ? Camera.CameraInfo.CAMERA_FACING_BACK
         : Camera.CameraInfo.CAMERA_FACING_FRONT;
     this.width = width;
     this.height = height;
     this.fps = fps;
-    this.cameraFacing = facing;
     cameraSelect =
         facing == Camera.CameraInfo.CAMERA_FACING_BACK ? selectCameraBack() : selectCameraFront();
     start();
   }
 
   public void start(int width, int height, int fps) {
-    CameraHelper.Facing facing =
-        cameraFacing == Camera.CameraInfo.CAMERA_FACING_BACK ? CameraHelper.Facing.BACK
-            : CameraHelper.Facing.FRONT;
     start(facing, width, height, fps);
   }
 
@@ -140,7 +139,7 @@ public class Camera1ApiManager implements Camera.PreviewCallback, Camera.FaceDet
       camera = Camera.open(cameraSelect);
       Camera.CameraInfo info = new Camera.CameraInfo();
       Camera.getCameraInfo(cameraSelect, info);
-      isFrontCamera = info.facing == Camera.CameraInfo.CAMERA_FACING_FRONT;
+      facing = info.facing == Camera.CameraInfo.CAMERA_FACING_FRONT ? CameraHelper.Facing.FRONT : CameraHelper.Facing.BACK;
       isPortrait = context.getResources().getConfiguration().orientation
           == Configuration.ORIENTATION_PORTRAIT;
       Camera.Parameters parameters = camera.getParameters();
@@ -178,7 +177,7 @@ public class Camera1ApiManager implements Camera.PreviewCallback, Camera.FaceDet
       camera.startPreview();
       running = true;
       if (cameraCallbacks != null) {
-        cameraCallbacks.onCameraChanged(isFrontCamera);
+        cameraCallbacks.onCameraChanged(facing);
       }
       Log.i(TAG, width + "X" + height);
     } catch (IOException e) {
@@ -309,7 +308,7 @@ public class Camera1ApiManager implements Camera.PreviewCallback, Camera.FaceDet
 
   @Override
   public void onPreviewFrame(byte[] data, Camera camera) {
-    getCameraData.inputYUVData(new Frame(data, rotation, isFrontCamera && isPortrait, imageFormat));
+    getCameraData.inputYUVData(new Frame(data, rotation, facing == CameraHelper.Facing.FRONT && isPortrait, imageFormat));
     camera.addCallbackBuffer(yuvBuffer);
   }
 
@@ -382,8 +381,8 @@ public class Camera1ApiManager implements Camera.PreviewCallback, Camera.FaceDet
     }
   }
 
-  public boolean isFrontCamera() {
-    return isFrontCamera;
+  public CameraHelper.Facing getCameraFacing() {
+    return facing;
   }
 
   public void switchCamera() throws CameraOpenException {
@@ -398,8 +397,6 @@ public class Camera1ApiManager implements Camera.PreviewCallback, Camera.FaceDet
             throw new CameraOpenException("This camera resolution cant be opened");
           }
           stop();
-          cameraFacing = cameraFacing == Camera.CameraInfo.CAMERA_FACING_BACK
-              ? Camera.CameraInfo.CAMERA_FACING_FRONT : Camera.CameraInfo.CAMERA_FACING_BACK;
           start();
           return;
         }
