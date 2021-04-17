@@ -481,7 +481,7 @@ public abstract class Camera2Base implements GetAacData, GetVideoData, GetMicrop
       }
       cameraManager.openCameraFacing(cameraFacing);
       onPreview = true;
-    } else if (isBackground) {
+    } else if (!isStreaming() && !onPreview && isBackground) {
       // if you are using background mode startPreview only work to indicate
       // that you want start with front or back camera
       cameraManager.setCameraFacing(cameraFacing);

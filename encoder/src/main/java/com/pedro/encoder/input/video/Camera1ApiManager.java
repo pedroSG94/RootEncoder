@@ -63,9 +63,12 @@ public class Camera1ApiManager implements Camera.PreviewCallback, Camera.FaceDet
 
   //Face detector
   public interface FaceDetectorCallback {
-    void onGetFaces(Camera.Face[] faces);
+    void onGetFaces(Camera.Face[] faces, Rect scaleSensor, int sensorOrientation);
   }
 
+  private final int sensorOrientation = 0;
+  //Value obtained from Camera.Face documentation api about bounds
+  private final Rect faceSensorScale = new Rect(-1000, -1000, 1000, 1000);
   private FaceDetectorCallback faceDetectorCallback;
 
   public Camera1ApiManager(SurfaceView surfaceView, GetCameraData getCameraData) {
@@ -568,7 +571,7 @@ public class Camera1ApiManager implements Camera.PreviewCallback, Camera.FaceDet
 
   @Override
   public void onFaceDetection(Camera.Face[] faces, Camera camera) {
-    if (faceDetectorCallback != null) faceDetectorCallback.onGetFaces(faces);
+    if (faceDetectorCallback != null) faceDetectorCallback.onGetFaces(faces, faceSensorScale, sensorOrientation);
   }
 
   private Rect calculateFocusArea(float x, float y, float previewWidth, float previewHeight) {

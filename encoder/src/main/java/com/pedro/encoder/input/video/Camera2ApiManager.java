@@ -78,9 +78,11 @@ public class Camera2ApiManager extends CameraDevice.StateCallback {
 
   //Face detector
   public interface FaceDetectorCallback {
-    void onGetFaces(Face[] faces);
+    void onGetFaces(Face[] faces, Rect scaleSensor, int sensorOrientation);
   }
 
+  private int sensorOrientation = 0;
+  private Rect faceSensorScale;
   private FaceDetectorCallback faceDetectorCallback;
   private boolean faceDetectionEnabled = false;
   private int faceDetectionMode;
@@ -531,6 +533,8 @@ public class Camera2ApiManager extends CameraDevice.StateCallback {
   public void enableFaceDetection(FaceDetectorCallback faceDetectorCallback) {
     CameraCharacteristics characteristics = getCameraCharacteristics();
     if (characteristics == null) return;
+    faceSensorScale = characteristics.get(CameraCharacteristics.SENSOR_INFO_ACTIVE_ARRAY_SIZE);
+    sensorOrientation = characteristics.get(CameraCharacteristics.SENSOR_ORIENTATION);
     int[] fd =
         characteristics.get(CameraCharacteristics.STATISTICS_INFO_AVAILABLE_FACE_DETECT_MODES);
     if (fd == null) return;
@@ -596,7 +600,7 @@ public class Camera2ApiManager extends CameraDevice.StateCallback {
             @NonNull CaptureRequest request, @NonNull TotalCaptureResult result) {
           Face[] faces = result.get(CaptureResult.STATISTICS_FACES);
           if (faceDetectorCallback != null) {
-            faceDetectorCallback.onGetFaces(faces);
+            faceDetectorCallback.onGetFaces(faces, faceSensorScale, sensorOrientation);
           }
         }
       };

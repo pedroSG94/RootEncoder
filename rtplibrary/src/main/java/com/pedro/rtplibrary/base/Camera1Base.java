@@ -465,7 +465,7 @@ public abstract class Camera1Base
       cameraManager.setRotation(rotation);
       cameraManager.start(cameraFacing, width, height, videoEncoder.getFps());
       onPreview = true;
-    } else if (glInterface instanceof OffScreenGlThread) {
+    } else if (!isStreaming() && !onPreview && glInterface instanceof OffScreenGlThread) {
       // if you are using background mode startPreview only work to indicate
       // that you want start with front or back camera
       cameraManager.setCameraFacing(cameraFacing);
