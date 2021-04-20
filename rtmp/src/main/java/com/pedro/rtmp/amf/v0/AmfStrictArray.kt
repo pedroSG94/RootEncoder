@@ -1,6 +1,8 @@
 package com.pedro.rtmp.amf.v0
 
 import com.pedro.rtmp.amf.AmfData
+import com.pedro.rtmp.utils.readUInt32
+import com.pedro.rtmp.utils.writeUInt32
 import java.io.InputStream
 import java.io.OutputStream
 
@@ -19,8 +21,7 @@ class AmfStrictArray(val items: MutableList<AmfData> = mutableListOf()): AmfData
 
   override fun readBody(input: InputStream) {
     //get number of items as UInt32
-    val length = input.read() and 0xff shl 24 or (input.read() and 0xff shl 16) or
-        (input.read() and 0xff shl 8) or (input.read() and 0xff)
+    val length = input.readUInt32()
     bodySize += 4
     //read items
     for (i in 0 until length) {
@@ -32,10 +33,7 @@ class AmfStrictArray(val items: MutableList<AmfData> = mutableListOf()): AmfData
 
   override fun writeBody(output: OutputStream) {
     //write number of items in the list as UInt32
-    output.write(items.size ushr 24)
-    output.write(items.size ushr 16)
-    output.write(items.size ushr 8)
-    output.write(items.size)
+    output.writeUInt32(items.size)
     //write items
     items.forEach {
       it.writeHeader(output)

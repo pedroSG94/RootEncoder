@@ -1,6 +1,8 @@
 package com.pedro.rtmp.amf.v0
 
 import com.pedro.rtmp.amf.AmfData
+import com.pedro.rtmp.utils.readUInt32
+import com.pedro.rtmp.utils.writeUInt32
 import java.io.InputStream
 import java.io.OutputStream
 
@@ -18,8 +20,7 @@ class AmfEcmaArray(val properties: HashMap<AmfString, AmfData> = HashMap()): Amf
 
   override fun readBody(input: InputStream) {
     //get number of items as UInt32
-    length = input.read() and 0xff shl 24 or (input.read() and 0xff shl 16) or
-        (input.read() and 0xff shl 8) or (input.read() and 0xff)
+    length = input.readUInt32()
     bodySize += 4
     //read items
     super.readBody(input)
@@ -27,10 +28,7 @@ class AmfEcmaArray(val properties: HashMap<AmfString, AmfData> = HashMap()): Amf
 
   override fun writeBody(output: OutputStream) {
     //write number of items in the list as UInt32
-    output.write(properties.size ushr 24)
-    output.write(properties.size ushr 16)
-    output.write(properties.size ushr 8)
-    output.write(properties.size)
+    output.writeUInt32(properties.size)
     //write items
     super.writeBody(output)
   }

@@ -1,6 +1,8 @@
 package com.pedro.rtmp.amf.v0
 
 import com.pedro.rtmp.amf.AmfData
+import com.pedro.rtmp.utils.readUInt16
+import com.pedro.rtmp.utils.writeUInt16
 import java.io.InputStream
 import java.io.OutputStream
 
@@ -13,7 +15,7 @@ class AmfString(private var value: String = ""): AmfData() {
 
   override fun readBody(input: InputStream) {
     //read value size as UInt16
-    bodySize = input.read() and 0xff shl 8 or (input.read() and 0xff)
+    bodySize = input.readUInt16()
     //read value in ASCII
     val bytes = ByteArray(bodySize)
     input.read(bytes)
@@ -23,8 +25,7 @@ class AmfString(private var value: String = ""): AmfData() {
   override fun writeBody(output: OutputStream) {
     val bytes = value.toByteArray(Charsets.US_ASCII)
     //write value size as UInt16
-    output.write(bodySize ushr 8)
-    output.write(bodySize)
+    output.writeUInt16(bodySize)
     //write value bytes in ASCII
     output.write(bytes)
   }
