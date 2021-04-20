@@ -34,7 +34,6 @@ open class AmfObject(private val properties: HashMap<AmfString, AmfData> = HashM
         markInputStream.reset()
 
         val key = AmfString()
-        key.readHeader(input)
         key.readBody(input)
         bodySize += key.getSize() + 1
 
@@ -48,7 +47,6 @@ open class AmfObject(private val properties: HashMap<AmfString, AmfData> = HashM
 
   override fun writeBody(output: OutputStream) {
     properties.forEach {
-      it.key.writeHeader(output)
       it.key.writeBody(output)
 
       it.value.writeHeader(output)

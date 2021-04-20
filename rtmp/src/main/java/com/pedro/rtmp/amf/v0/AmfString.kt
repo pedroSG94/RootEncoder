@@ -9,7 +9,7 @@ import java.io.OutputStream
 /**
  * Created by pedro on 8/04/21.
  */
-class AmfString(private var value: String = ""): AmfData() {
+class AmfString(var value: String = ""): AmfData() {
 
   private var bodySize: Int = value.length
 

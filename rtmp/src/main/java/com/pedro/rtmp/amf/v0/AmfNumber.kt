@@ -8,7 +8,7 @@ import java.nio.ByteBuffer
 /**
  * Created by pedro on 20/04/21.
  */
-class AmfNumber(private var value: Double = 0.0): AmfData() {
+class AmfNumber(var value: Double = 0.0): AmfData() {
 
   override fun readBody(input: InputStream) {
     val bytes = ByteArray(getSize())
