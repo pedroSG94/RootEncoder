@@ -31,7 +31,7 @@ class RtmpHeader(var timeStamp: Int = 0, var messageLength: Int = 0, var message
           timeStamp = input.readUInt24()
           messageLength = input.readUInt24()
           messageType = RtmpMessage.getMarkType(input.read())
-          messageStreamId = input.readUInt32()
+          messageStreamId = input.readUInt32LittleEndian()
         }
         ChunkType.TYPE_1 -> {
           timeStamp = input.readUInt24()

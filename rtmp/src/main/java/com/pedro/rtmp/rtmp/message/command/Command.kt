@@ -34,7 +34,7 @@ abstract class Command(var name: String = "", var transactionId: Int, private va
   }
 
   override fun updateHeader(): RtmpHeader {
-    return RtmpHeader(timeStamp, getSize(), getType(), streamId, basicHeader = BasicHeader(ChunkType.TYPE_0, ChunkStreamId.OVER_CONNECTION))
+    return RtmpHeader(3, getSize(), getType(), streamId, basicHeader = BasicHeader(ChunkType.TYPE_0, ChunkStreamId.OVER_CONNECTION))
   }
 
   fun addData(amfData: AmfData) {
