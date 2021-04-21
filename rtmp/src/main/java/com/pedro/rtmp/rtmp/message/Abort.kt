@@ -6,7 +6,7 @@ import java.io.OutputStream
 /**
  * Created by pedro on 21/04/21.
  */
-class Abort: RtmpMessage() {
+class Abort(header: RtmpHeader = RtmpHeader()): RtmpMessage(header) {
   override fun readBody(input: InputStream) {
     TODO("Not yet implemented")
   }

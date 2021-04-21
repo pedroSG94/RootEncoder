@@ -25,7 +25,7 @@ abstract class Command(var name: String = "", var transactionId: Int = 0, stream
   private var bodySize = 0
 
   init {
-    header = RtmpHeader(BasicHeader(ChunkType.TYPE_0, streamId))
+    header = RtmpHeader(basicHeader = BasicHeader(ChunkType.TYPE_0, streamId))
     val amfString = AmfString(name)
     data.add(amfString)
     bodySize += amfString.getSize() + 1

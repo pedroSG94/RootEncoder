@@ -1,5 +1,6 @@
 package com.pedro.rtmp.rtmp.message
 
+import android.util.Log
 import com.pedro.rtmp.rtmp.chunk.ChunkType
 import com.pedro.rtmp.utils.readUInt24
 import com.pedro.rtmp.utils.readUInt32
@@ -12,34 +13,41 @@ import java.io.OutputStream
 /**
  * Created by pedro on 20/04/21.
  */
-class RtmpHeader(var basicHeader: BasicHeader? = null) {
+class RtmpHeader(var timeStamp: Int = 0, var messageLength: Int = 0, var messageType: MessageType? = null,
+                 var messageStreamId: Int = 0, var basicHeader: BasicHeader? = null) {
 
-  var timeStamp = 0
-  var messageLength = 0
-  var messageType: MessageType? = null
-  var messageStreamId = 0
+  companion object {
 
-  @Throws(IOException::class)
-  fun readHeader(input: InputStream) {
-    val basicHeader = BasicHeader.parseBasicHeader(input.read().toByte())
-    when (basicHeader.chunkType) {
-      ChunkType.TYPE_0 -> {
-        timeStamp = input.readUInt24()
-        messageLength = input.readUInt24()
-        messageType = RtmpMessage.getMarkType(input.read())
-        messageStreamId = input.readUInt32()
+    private val TAG = "RtmpHeader"
+
+    @Throws(IOException::class)
+    fun readHeader(input: InputStream): RtmpHeader {
+      val basicHeader = BasicHeader.parseBasicHeader(input.read().toByte())
+      Log.i(TAG, "$basicHeader")
+      var timeStamp = 0
+      var messageLength = 0
+      var messageType: MessageType? = null
+      var messageStreamId = 0
+      when (basicHeader.chunkType) {
+        ChunkType.TYPE_0 -> {
+          timeStamp = input.readUInt24()
+          messageLength = input.readUInt24()
+          messageType = RtmpMessage.getMarkType(input.read())
+          messageStreamId = input.readUInt32()
+        }
+        ChunkType.TYPE_1 -> {
+          timeStamp = input.readUInt24()
+          messageLength = input.readUInt24()
+          messageType = RtmpMessage.getMarkType(input.read())
+        }
+        ChunkType.TYPE_2 -> {
+          timeStamp = input.readUInt24()
+        }
+        ChunkType.TYPE_3 -> {
+          //No header to read
+        }
       }
-      ChunkType.TYPE_1 -> {
-        timeStamp = input.readUInt24()
-        messageLength = input.readUInt24()
-        messageType = RtmpMessage.getMarkType(input.read())
-      }
-      ChunkType.TYPE_2 -> {
-        timeStamp = input.readUInt24()
-      }
-      ChunkType.TYPE_3 -> {
-        //No header to read
-      }
+      return RtmpHeader(timeStamp, messageLength, messageType, messageStreamId, basicHeader)
     }
   }
 
@@ -78,4 +86,8 @@ class RtmpHeader(var basicHeader: BasicHeader? = null) {
   }
 
   fun getPacketLength(): Int = messageLength
+
+  override fun toString(): String {
+    return "RtmpHeader(timeStamp=$timeStamp, messageLength=$messageLength, messageType=$messageType, messageStreamId=$messageStreamId, basicHeader=$basicHeader)"
+  }
 }
