@@ -18,6 +18,9 @@ class RtmpHeader(var timeStamp: Int = 0, var messageLength: Int = 0, var message
 
     private val TAG = "RtmpHeader"
 
+    /**
+     * Check ChunkType class to know header structure
+     */
     @Throws(IOException::class)
     fun readHeader(input: InputStream): RtmpHeader {
       val basicHeader = BasicHeader.parseBasicHeader(input.read().toByte())
@@ -32,16 +35,32 @@ class RtmpHeader(var timeStamp: Int = 0, var messageLength: Int = 0, var message
           messageLength = input.readUInt24()
           messageType = RtmpMessage.getMarkType(input.read())
           messageStreamId = input.readUInt32LittleEndian()
+          //extended timestamp
+          if (timeStamp >= 0xffffff) {
+            timeStamp = input.readUInt32()
+          }
         }
         ChunkType.TYPE_1 -> {
           timeStamp = input.readUInt24()
           messageLength = input.readUInt24()
           messageType = RtmpMessage.getMarkType(input.read())
+          //extended timestamp
+          if (timeStamp >= 0xffffff) {
+            timeStamp = input.readUInt32()
+          }
         }
         ChunkType.TYPE_2 -> {
           timeStamp = input.readUInt24()
+          //extended timestamp
+          if (timeStamp >= 0xffffff) {
+            timeStamp = input.readUInt32()
+          }
         }
         ChunkType.TYPE_3 -> {
+          //extended timestamp
+          if (timeStamp >= 0xffffff) {
+            timeStamp = input.readUInt32()
+          }
           //No header to read
         }
       }
@@ -56,6 +75,9 @@ class RtmpHeader(var timeStamp: Int = 0, var messageLength: Int = 0, var message
     }
   }
 
+  /**
+   * Check ChunkType class to know header structure
+   */
   fun writeHeader(basicHeader: BasicHeader, output: OutputStream) {
     // Write basic header byte
     output.write((basicHeader.chunkType.mark.toInt() shl 6) or basicHeader.chunkStreamId.mark.toInt())

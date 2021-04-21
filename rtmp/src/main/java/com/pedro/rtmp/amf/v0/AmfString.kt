@@ -32,8 +32,8 @@ class AmfString(var value: String = ""): AmfData() {
   @Throws(IOException::class)
   override fun writeBody(output: OutputStream) {
     val bytes = value.toByteArray(Charsets.US_ASCII)
-    //write value size as UInt16
-    output.writeUInt16(bodySize)
+    //write value size as UInt16. Value size not included
+    output.writeUInt16(bodySize - 2)
     //write value bytes in ASCII
     output.write(bytes)
   }

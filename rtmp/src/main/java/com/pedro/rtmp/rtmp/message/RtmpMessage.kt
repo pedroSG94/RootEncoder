@@ -10,6 +10,7 @@ import com.pedro.rtmp.rtmp.message.data.DataAmf0
 import com.pedro.rtmp.rtmp.message.data.DataAmf3
 import com.pedro.rtmp.rtmp.message.shared.SharedObjectAmf0
 import com.pedro.rtmp.rtmp.message.shared.SharedObjectAmf3
+import java.io.ByteArrayOutputStream
 import java.io.IOException
 import java.io.InputStream
 import java.io.OutputStream
