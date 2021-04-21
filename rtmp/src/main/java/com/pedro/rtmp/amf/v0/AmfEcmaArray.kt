@@ -10,8 +10,10 @@ import kotlin.jvm.Throws
 
 /**
  * Created by pedro on 20/04/21.
+ *
+ * Exactly the same that AmfObject but start with an UInt32 that indicate the number of lines in Map
  */
-class AmfEcmaArray(val properties: HashMap<AmfString, AmfData> = HashMap()): AmfObject(properties) {
+class AmfEcmaArray(private val properties: HashMap<AmfString, AmfData> = HashMap()): AmfObject(properties) {
 
   var length = 0
 
@@ -22,6 +24,7 @@ class AmfEcmaArray(val properties: HashMap<AmfString, AmfData> = HashMap()): Amf
 
   @Throws(IOException::class)
   override fun readBody(input: InputStream) {
+    bodySize = 0
     //get number of items as UInt32
     length = input.readUInt32()
     bodySize += 4

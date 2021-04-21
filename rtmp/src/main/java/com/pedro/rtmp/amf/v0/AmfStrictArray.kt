@@ -10,12 +10,15 @@ import kotlin.jvm.Throws
 
 /**
  * Created by pedro on 20/04/21.
+ *
+ * A list of any amf packets that start with an UInt32 to indicate number of items
  */
 class AmfStrictArray(val items: MutableList<AmfData> = mutableListOf()): AmfData() {
 
   private var bodySize = 0
 
   init {
+    bodySize += 4
     items.forEach {
       bodySize += it.getSize() + 1
     }
@@ -23,6 +26,8 @@ class AmfStrictArray(val items: MutableList<AmfData> = mutableListOf()): AmfData
 
   @Throws(IOException::class)
   override fun readBody(input: InputStream) {
+    items.clear()
+    bodySize = 0
     //get number of items as UInt32
     val length = input.readUInt32()
     bodySize += 4

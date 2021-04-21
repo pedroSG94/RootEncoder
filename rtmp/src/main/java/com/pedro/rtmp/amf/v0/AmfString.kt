@@ -11,6 +11,8 @@ import kotlin.jvm.Throws
 
 /**
  * Created by pedro on 8/04/21.
+ *
+ * A string encoded in ASCII where 2 first bytes indicate string size
  */
 class AmfString(var value: String = ""): AmfData() {
 

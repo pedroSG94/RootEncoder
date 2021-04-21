@@ -8,6 +8,8 @@ import kotlin.jvm.Throws
 
 /**
  * Created by pedro on 20/04/21.
+ *
+ * Contain an empty body
  */
 class AmfNull: AmfData() {
 

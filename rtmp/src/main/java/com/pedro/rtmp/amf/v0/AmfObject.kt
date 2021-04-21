@@ -9,6 +9,8 @@ import kotlin.jvm.Throws
 
 /**
  * Created by pedro on 20/04/21.
+ *
+ * A Map of others amf packets where key is an AmfString and value could be any amf packet
  */
 open class AmfObject(private val properties: HashMap<AmfString, AmfData> = HashMap()): AmfData() {
 
@@ -50,6 +52,7 @@ open class AmfObject(private val properties: HashMap<AmfString, AmfData> = HashM
 
   @Throws(IOException::class)
   override fun readBody(input: InputStream) {
+    properties.clear()
     val objectEnd = AmfObjectEnd()
     val markInputStream: InputStream = if (input.markSupported()) input else BufferedInputStream(input)
     while (!objectEnd.found) {

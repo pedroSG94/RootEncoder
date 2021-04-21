@@ -9,10 +9,13 @@ import kotlin.jvm.Throws
 
 /**
  * Created by pedro on 20/04/21.
+ *
+ * Packet used to indicate end of AmfObject and AmfEcmaArray.
+ * This is a final sequence of 3 bytes.
  */
 class AmfObjectEnd(var found: Boolean = false): AmfData() {
 
-  private val endSequence = byteArrayOf(0x00, 0x00, 0x09)
+  private val endSequence = byteArrayOf(0x00, 0x00, getType().mark)
 
   @Throws(IOException::class)
   override fun readBody(input: InputStream) {

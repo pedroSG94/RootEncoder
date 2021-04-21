@@ -10,6 +10,8 @@ import kotlin.jvm.Throws
 
 /**
  * Created by pedro on 20/04/21.
+ *
+ * A number in 8 bytes IEEE-754 double precision floating point value
  */
 class AmfNumber(var value: Double = 0.0): AmfData() {
 
