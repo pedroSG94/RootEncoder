@@ -90,4 +90,8 @@ open class AmfObject(private val properties: HashMap<AmfString, AmfData> = HashM
   override fun getType(): AmfType = AmfType.OBJECT
 
   override fun getSize(): Int = bodySize
+
+  override fun toString(): String {
+    return "AmfObject properties: $properties"
+  }
 }

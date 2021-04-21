@@ -26,4 +26,8 @@ class AmfUndefined: AmfData() {
   override fun getType(): AmfType = AmfType.UNDEFINED
 
   override fun getSize(): Int = 0
+
+  override fun toString(): String {
+    return "AmfUndefined"
+  }
 }

@@ -15,7 +15,7 @@ class CommandsManager {
 
   private val TAG = "CommandsManager"
 
-  private var transactionIdCounter = 0
+  private var messageStreamId = 0
   var host = ""
   var port = 1935
   var appName = ""
@@ -31,7 +31,7 @@ class CommandsManager {
 
   @Throws(IOException::class)
   fun sendConnect(auth: String, output: OutputStream) {
-    val connect = CommandAmf0("connect", transactionIdCounter++)
+    val connect = CommandAmf0("connect", messageStreamId++)
     val connectInfo = AmfObject()
     connectInfo.setProperty("app", appName + auth)
     connectInfo.setProperty("flashVer", "FMLE/3.0 (compatible; Lavf57.56.101)")
@@ -48,16 +48,18 @@ class CommandsManager {
 
     connect.writeHeader(output)
     connect.writeBody(output)
+    Log.i(TAG, "send connect: $connect")
   }
 
   @Throws(IOException::class)
   fun readMessageResponse(input: InputStream): RtmpMessage {
+    Log.i(TAG, "reading response...")
     val message = RtmpMessage.getRtmpMessage(input)
     Log.i(TAG, message.toString())
     return message
   }
 
   fun reset() {
-    transactionIdCounter = 0
+    messageStreamId = 0
   }
 }

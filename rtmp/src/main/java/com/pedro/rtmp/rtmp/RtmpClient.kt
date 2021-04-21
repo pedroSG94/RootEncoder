@@ -80,7 +80,7 @@ class RtmpClient(private val connectCheckerRtmp: ConnectCheckerRtmp) {
           handshake.sendHandshake(reader, writer)
           commandsManager.sendConnect("", writer)
           writer.flush()
-
+          commandsManager.readMessageResponse(reader)
 
         } catch (e: Exception) {
           Log.e(TAG, "connection error", e)

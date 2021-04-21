@@ -3,9 +3,13 @@ package com.pedro.rtmp.rtmp.message.command
 import com.pedro.rtmp.amf.AmfData
 import com.pedro.rtmp.amf.v0.AmfNumber
 import com.pedro.rtmp.amf.v0.AmfString
+import com.pedro.rtmp.rtmp.chunk.ChunkType
+import com.pedro.rtmp.rtmp.message.BasicHeader
+import com.pedro.rtmp.rtmp.message.RtmpHeader
 import com.pedro.rtmp.rtmp.message.RtmpMessage
 import java.io.InputStream
 import java.io.OutputStream
+import java.util.*
 
 /**
  * Created by pedro on 8/04/21.
@@ -15,12 +19,13 @@ import java.io.OutputStream
  *
  * TODO use amf3 or amf0 depend of getType method
  */
-abstract class Command(var name: String = "", var transactionId: Int = 0): RtmpMessage() {
+abstract class Command(var name: String = "", var transactionId: Int = 0, streamId: Int): RtmpMessage() {
 
   private val data: MutableList<AmfData> = mutableListOf()
   private var bodySize = 0
 
   init {
+    header = RtmpHeader(BasicHeader(ChunkType.TYPE_0, streamId))
     val amfString = AmfString(name)
     data.add(amfString)
     bodySize += amfString.getSize() + 1
@@ -60,4 +65,8 @@ abstract class Command(var name: String = "", var transactionId: Int = 0): RtmpM
   }
 
   override fun getSize(): Int = bodySize
+
+  override fun toString(): String {
+    return "Command ${data.toTypedArray().contentToString()}"
+  }
 }

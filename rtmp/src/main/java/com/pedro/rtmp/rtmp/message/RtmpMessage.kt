@@ -16,12 +16,12 @@ import kotlin.jvm.Throws
  */
 abstract class RtmpMessage {
 
-  protected val header = RtmpHeader()
+  protected var header = RtmpHeader()
 
   companion object {
     @Throws(IOException::class)
     fun getRtmpMessage(input: InputStream): RtmpMessage {
-      val rtmpMessage = when (val type = RtmpMessage.getMarkType(input.read())) {
+      val rtmpMessage = when (val type = getMarkType(input.read())) {
         MessageType.SET_CHUNK_SIZE -> SetChunkSize()
         MessageType.ABORT -> Abort()
         MessageType.ACKNOWLEDGEMENT -> Acknowledgement()

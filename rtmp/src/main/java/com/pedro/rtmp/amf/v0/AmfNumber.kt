@@ -32,4 +32,8 @@ class AmfNumber(var value: Double = 0.0): AmfData() {
   override fun getType(): AmfType = AmfType.NUMBER
 
   override fun getSize(): Int = 8
+
+  override fun toString(): String {
+    return "AmfNumber value: $value"
+  }
 }

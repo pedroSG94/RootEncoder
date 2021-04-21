@@ -33,4 +33,7 @@ class AmfObjectEnd(var found: Boolean = false): AmfData() {
 
   override fun getSize(): Int = endSequence.size
 
+  override fun toString(): String {
+    return "AmfObjectEnd"
+  }
 }

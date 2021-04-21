@@ -6,6 +6,7 @@ import com.pedro.rtmp.utils.writeUInt32
 import java.io.IOException
 import java.io.InputStream
 import java.io.OutputStream
+import java.util.*
 import kotlin.jvm.Throws
 
 /**
@@ -53,4 +54,8 @@ class AmfStrictArray(val items: MutableList<AmfData> = mutableListOf()): AmfData
   override fun getType(): AmfType = AmfType.STRICT_ARRAY
 
   override fun getSize(): Int = bodySize
+
+  override fun toString(): String {
+    return "AmfStrictArray items: ${items.toTypedArray().contentToString()}"
+  }
 }

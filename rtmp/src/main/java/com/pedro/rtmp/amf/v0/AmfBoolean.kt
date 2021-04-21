@@ -27,4 +27,8 @@ class AmfBoolean(private var value: Boolean = false): AmfData() {
   override fun getType(): AmfType = AmfType.BOOLEAN
 
   override fun getSize(): Int = 1
+
+  override fun toString(): String {
+    return "AmfBoolean value: $value"
+  }
 }

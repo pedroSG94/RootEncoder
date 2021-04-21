@@ -1,0 +1,57 @@
+package com.pedro.rtmp.rtmp.message
+
+import com.pedro.rtmp.rtmp.chunk.ChunkType
+import java.io.IOException
+import kotlin.experimental.and
+
+/**
+ * Created by pedro on 21/04/21.
+ *
+ * cs id (6 bits)
+ * fmt (2 bits)
+ * cs id - 64 (8 or 16 bits)
+ *
+ * 0 1 2 3 4 5 6 7
+ * +-+-+-+-+-+-+-+-+
+ * |fmt| cs id |
+ * +-+-+-+-+-+-+-+-+
+ * Chunk basic header 1
+ *
+ *
+ * Chunk stream IDs 64-319 can be encoded in the 2-byte form of the
+ * header. ID is computed as (the second byte + 64).
+ *
+ * 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5
+ * +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+ * |fmt| 0 | cs id - 64 |
+ * +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+ * Chunk basic header 2
+ *
+ *
+ * Chunk stream IDs 64-65599 can be encoded in the 3-byte version of
+ * this field. ID is computed as ((the third byte)*256 + (the second
+ * byte) + 64).
+ *
+ * 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3
+ * +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+ * |fmt| 1 | cs id - 64 |
+ * +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+ *
+ * Chunk basic header 3
+ */
+class BasicHeader(val chunkType: ChunkType, val chunkStreamId: Int) {
+
+  companion object {
+    fun parseBasicHeader(byte: Byte): BasicHeader {
+      val chunkType = when (val value = 0xff and byte.toInt() ushr 6) {
+        ChunkType.TYPE_0.mark.toInt() -> ChunkType.TYPE_0
+        ChunkType.TYPE_1.mark.toInt() -> ChunkType.TYPE_1
+        ChunkType.TYPE_2.mark.toInt() -> ChunkType.TYPE_2
+        ChunkType.TYPE_3.mark.toInt() -> ChunkType.TYPE_3
+        else -> throw IOException("Unknown chunk type value: $value")
+      }
+      val chunkStreamId = (byte and 0x3F).toInt()
+      return BasicHeader(chunkType, chunkStreamId)
+    }
+  }
+}

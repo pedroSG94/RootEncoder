@@ -26,4 +26,8 @@ class AmfNull: AmfData() {
   override fun getType(): AmfType = AmfType.NULL
 
   override fun getSize(): Int = 0
+
+  override fun toString(): String {
+    return "AmfNull"
+  }
 }

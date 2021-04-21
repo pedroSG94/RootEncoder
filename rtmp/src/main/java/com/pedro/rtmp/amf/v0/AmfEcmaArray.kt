@@ -41,4 +41,8 @@ class AmfEcmaArray(private val properties: HashMap<AmfString, AmfData> = HashMap
   }
 
   override fun getType(): AmfType = AmfType.ECMA_ARRAY
+
+  override fun toString(): String {
+    return "AmfEcmaArray length: $length, properties: $properties"
+  }
 }

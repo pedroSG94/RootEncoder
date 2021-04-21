@@ -40,4 +40,8 @@ class AmfString(var value: String = ""): AmfData() {
   override fun getType(): AmfType = AmfType.STRING
 
   override fun getSize(): Int = bodySize
+
+  override fun toString(): String {
+    return "AmfString value: $value"
+  }
 }
