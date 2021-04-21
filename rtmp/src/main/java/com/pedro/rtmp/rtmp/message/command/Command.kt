@@ -25,21 +25,20 @@ abstract class Command(var name: String = "", var transactionId: Int, private va
   private var bodySize = 0
 
   init {
+    header = RtmpHeader(timeStamp, messageType = getType(), messageStreamId = streamId, basicHeader = BasicHeader(ChunkType.TYPE_0, ChunkStreamId.OVER_CONNECTION))
     val amfString = AmfString(name)
     data.add(amfString)
     bodySize += amfString.getSize() + 1
     val amfNumber = AmfNumber(transactionId.toDouble())
     bodySize += amfNumber.getSize() + 1
     data.add(amfNumber)
-  }
-
-  override fun updateHeader(): RtmpHeader {
-    return RtmpHeader(3, getSize(), getType(), streamId, basicHeader = BasicHeader(ChunkType.TYPE_0, ChunkStreamId.OVER_CONNECTION))
+    header.messageLength = bodySize
   }
 
   fun addData(amfData: AmfData) {
     data.add(amfData)
     bodySize += amfData.getSize() + 1
+    header.messageLength = bodySize
   }
 
   override fun readBody(input: InputStream) {
@@ -59,6 +58,7 @@ abstract class Command(var name: String = "", var transactionId: Int, private va
       }
     }
     bodySize = bytesRead
+    header.messageLength = bodySize
   }
 
   override fun storeBody(): ByteArray {
@@ -73,6 +73,6 @@ abstract class Command(var name: String = "", var transactionId: Int, private va
   override fun getSize(): Int = bodySize
 
   override fun toString(): String {
-    return "Command ${data.toTypedArray().contentToString()}"
+    return "${super.toString()}\nCommand(name='$name', transactionId=$transactionId, timeStamp=$timeStamp, streamId=$streamId, data=$data, bodySize=$bodySize)"
   }
 }

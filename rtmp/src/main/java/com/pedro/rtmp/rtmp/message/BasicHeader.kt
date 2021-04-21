@@ -67,5 +67,4 @@ class BasicHeader(val chunkType: ChunkType, val chunkStreamId: ChunkStreamId) {
   override fun toString(): String {
     return "BasicHeader chunkType: $chunkType, chunkStreamId: $chunkStreamId"
   }
-
 }

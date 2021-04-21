@@ -1,17 +1,12 @@
 package com.pedro.rtmp.rtmp.message
 
 import java.io.InputStream
-import java.io.OutputStream
 
 /**
  * Created by pedro on 21/04/21.
  */
 class Abort(header: RtmpHeader = RtmpHeader()): RtmpMessage(header) {
   override fun readBody(input: InputStream) {
-    TODO("Not yet implemented")
-  }
-
-  override fun updateHeader(): RtmpHeader {
     TODO("Not yet implemented")
   }
 

@@ -6,6 +6,7 @@ import java.io.InputStream
  * Created by pedro on 21/04/21.
  */
 class WindowAcknowledgementSize: RtmpMessage() {
+
   override fun readBody(input: InputStream) {
     TODO("Not yet implemented")
   }
@@ -19,9 +20,6 @@ class WindowAcknowledgementSize: RtmpMessage() {
   }
 
   override fun getSize(): Int {
-    TODO("Not yet implemented")
-  }
-  override fun updateHeader(): RtmpHeader {
     TODO("Not yet implemented")
   }
 }

@@ -1,6 +1,5 @@
 package com.pedro.rtmp.rtmp.message
 
-import android.util.Log
 import com.pedro.rtmp.rtmp.chunk.ChunkStreamId
 import com.pedro.rtmp.rtmp.chunk.ChunkType
 import com.pedro.rtmp.rtmp.message.command.CommandAmf0
@@ -10,11 +9,9 @@ import com.pedro.rtmp.rtmp.message.data.DataAmf0
 import com.pedro.rtmp.rtmp.message.data.DataAmf3
 import com.pedro.rtmp.rtmp.message.shared.SharedObjectAmf0
 import com.pedro.rtmp.rtmp.message.shared.SharedObjectAmf3
-import java.io.ByteArrayOutputStream
 import java.io.IOException
 import java.io.InputStream
 import java.io.OutputStream
-import java.util.*
 
 /**
  * Created by pedro on 20/04/21.
@@ -46,7 +43,6 @@ abstract class RtmpMessage(var header: RtmpHeader = RtmpHeader()) {
         MessageType.AGGREGATE -> Aggregate()
         else -> throw IOException("Unimplemented message type: ${header.messageType}")
       }
-      Log.i(TAG, header.toString())
       rtmpMessage.readBody(input)
       return rtmpMessage
     }
@@ -76,7 +72,7 @@ abstract class RtmpMessage(var header: RtmpHeader = RtmpHeader()) {
   }
 
   fun writeHeader(output: OutputStream) {
-    updateHeader().writeHeader(output)
+    header.writeHeader(output)
   }
 
   fun writeBody(output: OutputStream) {
@@ -96,8 +92,6 @@ abstract class RtmpMessage(var header: RtmpHeader = RtmpHeader()) {
     output.write(bytes, pos, length)
   }
 
-  abstract fun updateHeader(): RtmpHeader
-
   abstract fun readBody(input: InputStream)
 
   abstract fun storeBody(): ByteArray
@@ -105,4 +99,8 @@ abstract class RtmpMessage(var header: RtmpHeader = RtmpHeader()) {
   abstract fun getType(): MessageType
 
   abstract fun getSize(): Int
+
+  override fun toString(): String {
+    return "RtmpMessage(header=$header)"
+  }
 }

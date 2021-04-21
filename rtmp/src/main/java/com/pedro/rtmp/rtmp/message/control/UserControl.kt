@@ -17,10 +17,6 @@ class UserControl: RtmpMessage() {
   private val TAG = "UserControl"
   private var bodySize = 0
 
-  override fun updateHeader(): RtmpHeader {
-    TODO("Not yet implemented")
-  }
-
   override fun readBody(input: InputStream) {
     bodySize = 0
     val type = input.readUInt16()

@@ -48,12 +48,11 @@ class CommandsManager {
 
     connect.writeHeader(output)
     connect.writeBody(output)
-    Log.i(TAG, "send connect: $connect")
+    Log.i(TAG, "$connect")
   }
 
   @Throws(IOException::class)
   fun readMessageResponse(input: InputStream): RtmpMessage {
-    Log.i(TAG, "reading response...")
     val message = RtmpMessage.getRtmpMessage(input)
     Log.i(TAG, message.toString())
     return message

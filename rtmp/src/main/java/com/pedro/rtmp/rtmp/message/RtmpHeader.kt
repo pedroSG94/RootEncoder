@@ -1,6 +1,5 @@
 package com.pedro.rtmp.rtmp.message
 
-import android.util.Log
 import com.pedro.rtmp.rtmp.chunk.ChunkType
 import com.pedro.rtmp.utils.*
 import java.io.IOException
@@ -24,7 +23,6 @@ class RtmpHeader(var timeStamp: Int = 0, var messageLength: Int = 0, var message
     @Throws(IOException::class)
     fun readHeader(input: InputStream): RtmpHeader {
       val basicHeader = BasicHeader.parseBasicHeader(input.read().toByte())
-      Log.i(TAG, "$basicHeader")
       var timeStamp = 0
       var messageLength = 0
       var messageType: MessageType? = null

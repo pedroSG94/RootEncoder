@@ -1,9 +1,7 @@
 package com.pedro.rtmp.rtmp.message.shared
 
-import com.pedro.rtmp.rtmp.message.RtmpHeader
 import com.pedro.rtmp.rtmp.message.RtmpMessage
 import java.io.InputStream
-import java.io.OutputStream
 
 /**
  * Created by pedro on 21/04/21.
@@ -18,9 +16,6 @@ abstract class SharedObject: RtmpMessage() {
   }
 
   override fun getSize(): Int {
-    TODO("Not yet implemented")
-  }
-  override fun updateHeader(): RtmpHeader {
     TODO("Not yet implemented")
   }
 }
