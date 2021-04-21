@@ -1,22 +1,27 @@
 package com.pedro.rtmp.amf.v0
 
 import com.pedro.rtmp.amf.AmfData
+import com.pedro.rtmp.utils.readUntil
+import java.io.IOException
 import java.io.InputStream
 import java.io.OutputStream
 import java.nio.ByteBuffer
+import kotlin.jvm.Throws
 
 /**
  * Created by pedro on 20/04/21.
  */
 class AmfNumber(var value: Double = 0.0): AmfData() {
 
+  @Throws(IOException::class)
   override fun readBody(input: InputStream) {
     val bytes = ByteArray(getSize())
-    input.read(bytes)
+    input.readUntil(bytes)
     val value = ByteBuffer.wrap(bytes).long
     this.value = Double.Companion.fromBits(value)
   }
 
+  @Throws(IOException::class)
   override fun writeBody(output: OutputStream) {
     val byteBuffer = ByteBuffer.allocate(getSize()).putLong(value.toRawBits())
     output.write(byteBuffer.array())

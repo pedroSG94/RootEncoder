@@ -13,6 +13,9 @@ import android.widget.AdapterView;
 import android.widget.GridView;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import com.pedro.rtmp.rtmp.RtmpClient;
+import com.pedro.rtmp.utils.ConnectCheckerRtmp;
 import com.pedro.rtpstreamer.backgroundexample.BackgroundActivity;
 import com.pedro.rtpstreamer.customexample.RtmpActivity;
 import com.pedro.rtpstreamer.customexample.RtspActivity;
@@ -29,6 +32,9 @@ import com.pedro.rtpstreamer.texturemodeexample.TextureModeRtmpActivity;
 import com.pedro.rtpstreamer.texturemodeexample.TextureModeRtspActivity;
 import com.pedro.rtpstreamer.utils.ActivityLink;
 import com.pedro.rtpstreamer.utils.ImageAdapter;
+
+import org.jetbrains.annotations.Nullable;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -61,6 +67,38 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
     if (!hasPermissions(this, PERMISSIONS)) {
       ActivityCompat.requestPermissions(this, PERMISSIONS, 1);
     }
+
+    new RtmpClient(new ConnectCheckerRtmp() {
+      @Override
+      public void onConnectionSuccessRtmp() {
+
+      }
+
+      @Override
+      public void onConnectionFailedRtmp(@Nullable String reason) {
+
+      }
+
+      @Override
+      public void onNewBitrateRtmp(long bitrate) {
+
+      }
+
+      @Override
+      public void onDisconnectRtmp() {
+
+      }
+
+      @Override
+      public void onAuthErrorRtmp() {
+
+      }
+
+      @Override
+      public void onAuthSuccessRtmp() {
+
+      }
+    }).connect("rtmp://192.168.1.133/live/pedro");
   }
 
   private void createList() {

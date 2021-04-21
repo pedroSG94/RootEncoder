@@ -3,8 +3,10 @@ package com.pedro.rtmp.amf.v0
 import com.pedro.rtmp.amf.AmfData
 import com.pedro.rtmp.utils.readUInt32
 import com.pedro.rtmp.utils.writeUInt32
+import java.io.IOException
 import java.io.InputStream
 import java.io.OutputStream
+import kotlin.jvm.Throws
 
 /**
  * Created by pedro on 20/04/21.
@@ -19,6 +21,7 @@ class AmfStrictArray(val items: MutableList<AmfData> = mutableListOf()): AmfData
     }
   }
 
+  @Throws(IOException::class)
   override fun readBody(input: InputStream) {
     //get number of items as UInt32
     val length = input.readUInt32()
@@ -31,6 +34,7 @@ class AmfStrictArray(val items: MutableList<AmfData> = mutableListOf()): AmfData
     }
   }
 
+  @Throws(IOException::class)
   override fun writeBody(output: OutputStream) {
     //write number of items in the list as UInt32
     output.writeUInt32(items.size)

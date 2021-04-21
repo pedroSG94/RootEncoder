@@ -2,8 +2,10 @@ package com.pedro.rtmp.amf.v0
 
 import com.pedro.rtmp.amf.AmfData
 import java.io.BufferedInputStream
+import java.io.IOException
 import java.io.InputStream
 import java.io.OutputStream
+import kotlin.jvm.Throws
 
 /**
  * Created by pedro on 20/04/21.
@@ -22,6 +24,31 @@ open class AmfObject(private val properties: HashMap<AmfString, AmfData> = HashM
     bodySize += objectEnd.getSize()
   }
 
+  fun setProperty(name: String, data: String) {
+    val key = AmfString(name)
+    val value = AmfString(data)
+    properties[key] = value
+    bodySize += key.getSize() + 1
+    bodySize += value.getSize() + 1
+  }
+
+  fun setProperty(name: String, data: Boolean) {
+    val key = AmfString(name)
+    val value = AmfBoolean(data)
+    properties[key] = value
+    bodySize += key.getSize() + 1
+    bodySize += value.getSize() + 1
+  }
+
+  fun setProperty(name: String, data: Double) {
+    val key = AmfString(name)
+    val value = AmfNumber(data)
+    properties[key] = value
+    bodySize += key.getSize() + 1
+    bodySize += value.getSize() + 1
+  }
+
+  @Throws(IOException::class)
   override fun readBody(input: InputStream) {
     val objectEnd = AmfObjectEnd()
     val markInputStream: InputStream = if (input.markSupported()) input else BufferedInputStream(input)
@@ -45,6 +72,7 @@ open class AmfObject(private val properties: HashMap<AmfString, AmfData> = HashM
     }
   }
 
+  @Throws(IOException::class)
   override fun writeBody(output: OutputStream) {
     properties.forEach {
       it.key.writeBody(output)

@@ -1,15 +1,21 @@
-package com.pedro.rtmp.rtmp.message
+package com.pedro.rtmp.rtmp.message.command
 
 import com.pedro.rtmp.amf.AmfData
 import com.pedro.rtmp.amf.v0.AmfNumber
 import com.pedro.rtmp.amf.v0.AmfString
+import com.pedro.rtmp.rtmp.message.RtmpMessage
 import java.io.InputStream
 import java.io.OutputStream
 
 /**
  * Created by pedro on 8/04/21.
+ *
+ * Represent packets like connect, createStream, play, pause...
+ * Can be encoded using AMF0 or AMF3
+ *
+ * TODO use amf3 or amf0 depend of getType method
  */
-class Command(var name: String = "", var transactionId: Int = 0): RtmpMessage() {
+abstract class Command(var name: String = "", var transactionId: Int = 0): RtmpMessage() {
 
   private val data: MutableList<AmfData> = mutableListOf()
   private var bodySize = 0
