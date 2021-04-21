@@ -11,7 +11,7 @@ class WindowAcknowledgementSize: RtmpMessage() {
     TODO("Not yet implemented")
   }
 
-  override fun writeBody(output: OutputStream) {
+  override fun storeBody(): ByteArray {
     TODO("Not yet implemented")
   }
 
@@ -20,6 +20,9 @@ class WindowAcknowledgementSize: RtmpMessage() {
   }
 
   override fun getSize(): Int {
+    TODO("Not yet implemented")
+  }
+  override fun updateHeader(): RtmpHeader {
     TODO("Not yet implemented")
   }
 }

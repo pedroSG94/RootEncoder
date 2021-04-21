@@ -1,5 +1,6 @@
 package com.pedro.rtmp.rtmp.message.shared
 
+import com.pedro.rtmp.rtmp.message.RtmpHeader
 import com.pedro.rtmp.rtmp.message.RtmpMessage
 import java.io.InputStream
 import java.io.OutputStream
@@ -12,11 +13,14 @@ abstract class SharedObject: RtmpMessage() {
     TODO("Not yet implemented")
   }
 
-  override fun writeBody(output: OutputStream) {
+  override fun storeBody(): ByteArray {
     TODO("Not yet implemented")
   }
 
   override fun getSize(): Int {
+    TODO("Not yet implemented")
+  }
+  override fun updateHeader(): RtmpHeader {
     TODO("Not yet implemented")
   }
 }

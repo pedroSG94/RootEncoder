@@ -2,6 +2,7 @@ package com.pedro.rtmp.rtmp.message.control
 
 import android.util.Log
 import com.pedro.rtmp.rtmp.message.MessageType
+import com.pedro.rtmp.rtmp.message.RtmpHeader
 import com.pedro.rtmp.rtmp.message.RtmpMessage
 import com.pedro.rtmp.utils.readUInt16
 import com.pedro.rtmp.utils.readUInt32
@@ -15,6 +16,10 @@ class UserControl: RtmpMessage() {
 
   private val TAG = "UserControl"
   private var bodySize = 0
+
+  override fun updateHeader(): RtmpHeader {
+    TODO("Not yet implemented")
+  }
 
   override fun readBody(input: InputStream) {
     bodySize = 0
@@ -31,7 +36,7 @@ class UserControl: RtmpMessage() {
     Log.i(TAG, "type: $type, event: $event")
   }
 
-  override fun writeBody(output: OutputStream) {
+  override fun storeBody(): ByteArray {
     TODO("Not yet implemented")
   }
 

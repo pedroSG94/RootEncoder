@@ -5,21 +5,21 @@ import java.io.BufferedInputStream
 import java.io.IOException
 import java.io.InputStream
 import java.io.OutputStream
-import kotlin.jvm.Throws
+import java.util.LinkedHashMap
 
 /**
  * Created by pedro on 20/04/21.
  *
  * A Map of others amf packets where key is an AmfString and value could be any amf packet
  */
-open class AmfObject(private val properties: HashMap<AmfString, AmfData> = HashMap()): AmfData() {
+open class AmfObject(private val properties: HashMap<AmfString, AmfData> = LinkedHashMap()): AmfData() {
 
   protected var bodySize = 0
 
   init {
     properties.forEach {
       //Get size of all elements and include in size value. + 1 because include header size
-      bodySize += it.key.getSize() + 1
+      bodySize += it.key.getSize()
       bodySize += it.value.getSize() + 1
     }
     val objectEnd = AmfObjectEnd()
@@ -30,7 +30,7 @@ open class AmfObject(private val properties: HashMap<AmfString, AmfData> = HashM
     val key = AmfString(name)
     val value = AmfString(data)
     properties[key] = value
-    bodySize += key.getSize() + 1
+    bodySize += key.getSize()
     bodySize += value.getSize() + 1
   }
 
@@ -38,7 +38,15 @@ open class AmfObject(private val properties: HashMap<AmfString, AmfData> = HashM
     val key = AmfString(name)
     val value = AmfBoolean(data)
     properties[key] = value
-    bodySize += key.getSize() + 1
+    bodySize += key.getSize()
+    bodySize += value.getSize() + 1
+  }
+
+  fun setProperty(name: String) {
+    val key = AmfString(name)
+    val value = AmfNull()
+    properties[key] = value
+    bodySize += key.getSize()
     bodySize += value.getSize() + 1
   }
 
@@ -46,13 +54,14 @@ open class AmfObject(private val properties: HashMap<AmfString, AmfData> = HashM
     val key = AmfString(name)
     val value = AmfNumber(data)
     properties[key] = value
-    bodySize += key.getSize() + 1
+    bodySize += key.getSize()
     bodySize += value.getSize() + 1
   }
 
   @Throws(IOException::class)
   override fun readBody(input: InputStream) {
     properties.clear()
+    bodySize = 0
     val objectEnd = AmfObjectEnd()
     val markInputStream: InputStream = if (input.markSupported()) input else BufferedInputStream(input)
     while (!objectEnd.found) {
@@ -65,7 +74,7 @@ open class AmfObject(private val properties: HashMap<AmfString, AmfData> = HashM
 
         val key = AmfString()
         key.readBody(input)
-        bodySize += key.getSize() + 1
+        bodySize += key.getSize()
 
         val value = getAmfData(input)
         bodySize += value.getSize() + 1

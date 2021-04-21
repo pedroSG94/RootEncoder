@@ -11,7 +11,11 @@ class Abort(header: RtmpHeader = RtmpHeader()): RtmpMessage(header) {
     TODO("Not yet implemented")
   }
 
-  override fun writeBody(output: OutputStream) {
+  override fun updateHeader(): RtmpHeader {
+    TODO("Not yet implemented")
+  }
+
+  override fun storeBody(): ByteArray {
     TODO("Not yet implemented")
   }
 

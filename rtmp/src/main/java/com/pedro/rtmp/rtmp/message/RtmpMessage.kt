@@ -1,6 +1,8 @@
 package com.pedro.rtmp.rtmp.message
 
 import android.util.Log
+import com.pedro.rtmp.rtmp.chunk.ChunkStreamId
+import com.pedro.rtmp.rtmp.chunk.ChunkType
 import com.pedro.rtmp.rtmp.message.command.CommandAmf0
 import com.pedro.rtmp.rtmp.message.command.CommandAmf3
 import com.pedro.rtmp.rtmp.message.control.UserControl
@@ -11,7 +13,7 @@ import com.pedro.rtmp.rtmp.message.shared.SharedObjectAmf3
 import java.io.IOException
 import java.io.InputStream
 import java.io.OutputStream
-import kotlin.jvm.Throws
+import java.util.*
 
 /**
  * Created by pedro on 20/04/21.
@@ -21,7 +23,6 @@ abstract class RtmpMessage(var header: RtmpHeader = RtmpHeader()) {
   companion object {
 
     private val TAG = "RtmpMessage"
-    protected var header = RtmpHeader()
 
     @Throws(IOException::class)
     fun getRtmpMessage(input: InputStream): RtmpMessage {
@@ -51,21 +52,21 @@ abstract class RtmpMessage(var header: RtmpHeader = RtmpHeader()) {
 
     fun getMarkType(type: Int): MessageType {
       return when (type) {
-          MessageType.SET_CHUNK_SIZE.mark.toInt() -> MessageType.SET_CHUNK_SIZE
-          MessageType.ABORT.mark.toInt() -> MessageType.ABORT
-          MessageType.ACKNOWLEDGEMENT.mark.toInt() -> MessageType.ACKNOWLEDGEMENT
-          MessageType.USER_CONTROL.mark.toInt() -> MessageType.USER_CONTROL
-          MessageType.WINDOW_ACKNOWLEDGEMENT_SIZE.mark.toInt() -> MessageType.WINDOW_ACKNOWLEDGEMENT_SIZE
-          MessageType.SET_PEER_BANDWIDTH.mark.toInt() -> MessageType.SET_PEER_BANDWIDTH
-          MessageType.AUDIO.mark.toInt() -> MessageType.AUDIO
-          MessageType.VIDEO.mark.toInt() -> MessageType.VIDEO
-          MessageType.DATA_AMF3.mark.toInt() -> MessageType.DATA_AMF3
-          MessageType.SHARED_OBJECT_AMF3.mark.toInt() -> MessageType.SHARED_OBJECT_AMF3
-          MessageType.COMMAND_AMF3.mark.toInt() -> MessageType.COMMAND_AMF3
-          MessageType.DATA_AMF0.mark.toInt() -> MessageType.DATA_AMF0
-          MessageType.SHARED_OBJECT_AMF0.mark.toInt() -> MessageType.SHARED_OBJECT_AMF0
-          MessageType.COMMAND_AMF0.mark.toInt() -> MessageType.COMMAND_AMF0
-          MessageType.AGGREGATE.mark.toInt() -> MessageType.AGGREGATE
+        MessageType.SET_CHUNK_SIZE.mark.toInt() -> MessageType.SET_CHUNK_SIZE
+        MessageType.ABORT.mark.toInt() -> MessageType.ABORT
+        MessageType.ACKNOWLEDGEMENT.mark.toInt() -> MessageType.ACKNOWLEDGEMENT
+        MessageType.USER_CONTROL.mark.toInt() -> MessageType.USER_CONTROL
+        MessageType.WINDOW_ACKNOWLEDGEMENT_SIZE.mark.toInt() -> MessageType.WINDOW_ACKNOWLEDGEMENT_SIZE
+        MessageType.SET_PEER_BANDWIDTH.mark.toInt() -> MessageType.SET_PEER_BANDWIDTH
+        MessageType.AUDIO.mark.toInt() -> MessageType.AUDIO
+        MessageType.VIDEO.mark.toInt() -> MessageType.VIDEO
+        MessageType.DATA_AMF3.mark.toInt() -> MessageType.DATA_AMF3
+        MessageType.SHARED_OBJECT_AMF3.mark.toInt() -> MessageType.SHARED_OBJECT_AMF3
+        MessageType.COMMAND_AMF3.mark.toInt() -> MessageType.COMMAND_AMF3
+        MessageType.DATA_AMF0.mark.toInt() -> MessageType.DATA_AMF0
+        MessageType.SHARED_OBJECT_AMF0.mark.toInt() -> MessageType.SHARED_OBJECT_AMF0
+        MessageType.COMMAND_AMF0.mark.toInt() -> MessageType.COMMAND_AMF0
+        MessageType.AGGREGATE.mark.toInt() -> MessageType.AGGREGATE
         else -> {
           throw IOException("Unknown rtmp message type: $type")
         }
@@ -74,12 +75,31 @@ abstract class RtmpMessage(var header: RtmpHeader = RtmpHeader()) {
   }
 
   fun writeHeader(output: OutputStream) {
-    header.writeHeader(output)
+    updateHeader().writeHeader(output)
   }
+
+  fun writeBody(output: OutputStream) {
+    val chunkSize = 128
+    val bytes = storeBody()
+    var pos = 0
+    var length = getSize()
+
+    while (length > chunkSize) {
+      // Write packet for chunk
+      output.write(bytes, pos, chunkSize)
+      length -= chunkSize
+      pos += chunkSize
+      // Write header for remain chunk
+      header.writeHeader(BasicHeader(ChunkType.TYPE_3, ChunkStreamId.OVER_CONNECTION), output)
+    }
+    output.write(bytes, pos, length)
+  }
+
+  abstract fun updateHeader(): RtmpHeader
 
   abstract fun readBody(input: InputStream)
 
-  abstract fun writeBody(output: OutputStream)
+  abstract fun storeBody(): ByteArray
 
   abstract fun getType(): MessageType
 

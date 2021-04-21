@@ -1,7 +1,6 @@
 package com.pedro.rtmp.rtmp.message
 
 import java.io.InputStream
-import java.io.OutputStream
 
 /**
  * Created by pedro on 21/04/21.
@@ -11,7 +10,7 @@ class SetChunkSize: RtmpMessage() {
     TODO("Not yet implemented")
   }
 
-  override fun writeBody(output: OutputStream) {
+  override fun storeBody(): ByteArray {
     TODO("Not yet implemented")
   }
 
@@ -20,6 +19,9 @@ class SetChunkSize: RtmpMessage() {
   }
 
   override fun getSize(): Int {
+    TODO("Not yet implemented")
+  }
+  override fun updateHeader(): RtmpHeader {
     TODO("Not yet implemented")
   }
 }

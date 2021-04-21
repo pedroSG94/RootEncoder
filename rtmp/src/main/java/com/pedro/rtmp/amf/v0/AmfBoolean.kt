@@ -9,7 +9,7 @@ import kotlin.jvm.Throws
 /**
  * Created by pedro on 20/04/21.
  *
- * Only 1 bit of size where 0 is false and another value is true
+ * Only 1 byte of size where 0 is false and another value is true
  */
 class AmfBoolean(private var value: Boolean = false): AmfData() {
 

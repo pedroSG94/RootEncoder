@@ -7,6 +7,7 @@ import com.pedro.rtmp.utils.writeUInt16
 import java.io.IOException
 import java.io.InputStream
 import java.io.OutputStream
+import java.nio.charset.Charset
 import kotlin.jvm.Throws
 
 /**
@@ -16,7 +17,7 @@ import kotlin.jvm.Throws
  */
 class AmfString(var value: String = ""): AmfData() {
 
-  private var bodySize: Int = value.length
+  private var bodySize: Int = value.toByteArray(Charsets.US_ASCII).size + 2
 
   @Throws(IOException::class)
   override fun readBody(input: InputStream) {

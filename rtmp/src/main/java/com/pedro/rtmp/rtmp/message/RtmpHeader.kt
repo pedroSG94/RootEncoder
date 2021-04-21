@@ -2,13 +2,11 @@ package com.pedro.rtmp.rtmp.message
 
 import android.util.Log
 import com.pedro.rtmp.rtmp.chunk.ChunkType
-import com.pedro.rtmp.utils.readUInt24
-import com.pedro.rtmp.utils.readUInt32
-import com.pedro.rtmp.utils.writeUInt24
-import com.pedro.rtmp.utils.writeUInt32
+import com.pedro.rtmp.utils.*
 import java.io.IOException
 import java.io.InputStream
 import java.io.OutputStream
+import kotlin.math.min
 
 /**
  * Created by pedro on 20/04/21.
@@ -58,29 +56,45 @@ class RtmpHeader(var timeStamp: Int = 0, var messageLength: Int = 0, var message
     }
   }
 
-  private fun writeHeader(basicHeader: BasicHeader, output: OutputStream) {
-    output.write((basicHeader.chunkType.mark.toInt() shl 6) or basicHeader.chunkStreamId)
+  fun writeHeader(basicHeader: BasicHeader, output: OutputStream) {
+    // Write basic header byte
+    output.write((basicHeader.chunkType.mark.toInt() shl 6) or basicHeader.chunkStreamId.mark.toInt())
     when (basicHeader.chunkType) {
       ChunkType.TYPE_0 -> {
-        output.writeUInt24(timeStamp)
+        output.writeUInt24(min(timeStamp, 0xffffff))
         output.writeUInt24(messageLength)
         messageType?.let { messageType ->
           output.write(messageType.mark.toInt())
         }
-        output.writeUInt32(messageStreamId)
+        output.writeUInt32LittleEndian(messageStreamId)
+        //extended timestamp
+        if (timeStamp > 0xffffff) {
+          output.writeUInt32(timeStamp)
+        }
       }
       ChunkType.TYPE_1 -> {
-        output.writeUInt24(timeStamp)
+        output.writeUInt24(min(timeStamp, 0xffffff))
         output.writeUInt24(messageLength)
         messageType?.let { messageType ->
           output.write(messageType.mark.toInt())
+        }
+        //extended timestamp
+        if (timeStamp > 0xffffff) {
+          output.writeUInt32(timeStamp)
         }
       }
       ChunkType.TYPE_2 -> {
-        output.writeUInt24(timeStamp)
+        output.writeUInt24(min(timeStamp, 0xffffff))
+        //extended timestamp
+        if (timeStamp > 0xffffff) {
+          output.writeUInt32(timeStamp)
+        }
       }
       ChunkType.TYPE_3 -> {
-        //No header to write
+        //extended timestamp
+        if (timeStamp > 0xffffff) {
+          output.writeUInt32(timeStamp)
+        }
       }
     }
   }

@@ -31,7 +31,7 @@ class CommandsManager {
 
   @Throws(IOException::class)
   fun sendConnect(auth: String, output: OutputStream) {
-    val connect = CommandAmf0("connect", messageStreamId++)
+    val connect = CommandAmf0("connect")
     val connectInfo = AmfObject()
     connectInfo.setProperty("app", appName + auth)
     connectInfo.setProperty("flashVer", "FMLE/3.0 (compatible; Lavf57.56.101)")

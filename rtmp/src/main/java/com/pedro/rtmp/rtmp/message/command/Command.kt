@@ -3,13 +3,13 @@ package com.pedro.rtmp.rtmp.message.command
 import com.pedro.rtmp.amf.AmfData
 import com.pedro.rtmp.amf.v0.AmfNumber
 import com.pedro.rtmp.amf.v0.AmfString
+import com.pedro.rtmp.rtmp.chunk.ChunkStreamId
 import com.pedro.rtmp.rtmp.chunk.ChunkType
 import com.pedro.rtmp.rtmp.message.BasicHeader
 import com.pedro.rtmp.rtmp.message.RtmpHeader
 import com.pedro.rtmp.rtmp.message.RtmpMessage
+import java.io.ByteArrayOutputStream
 import java.io.InputStream
-import java.io.OutputStream
-import java.util.*
 
 /**
  * Created by pedro on 8/04/21.
@@ -19,19 +19,22 @@ import java.util.*
  *
  * TODO use amf3 or amf0 depend of getType method
  */
-abstract class Command(var name: String = "", var transactionId: Int = 0, streamId: Int): RtmpMessage() {
+abstract class Command(var name: String = "", var transactionId: Int, private val timeStamp: Int, val streamId: Int = 0): RtmpMessage() {
 
   private val data: MutableList<AmfData> = mutableListOf()
   private var bodySize = 0
 
   init {
-    header = RtmpHeader(basicHeader = BasicHeader(ChunkType.TYPE_0, streamId))
     val amfString = AmfString(name)
     data.add(amfString)
     bodySize += amfString.getSize() + 1
     val amfNumber = AmfNumber(transactionId.toDouble())
     bodySize += amfNumber.getSize() + 1
     data.add(amfNumber)
+  }
+
+  override fun updateHeader(): RtmpHeader {
+    return RtmpHeader(timeStamp, getSize(), getType(), streamId, basicHeader = BasicHeader(ChunkType.TYPE_0, ChunkStreamId.OVER_CONNECTION))
   }
 
   fun addData(amfData: AmfData) {
@@ -55,13 +58,16 @@ abstract class Command(var name: String = "", var transactionId: Int = 0, stream
         transactionId = (data[1] as AmfNumber).value.toInt()
       }
     }
+    bodySize = bytesRead
   }
 
-  override fun writeBody(output: OutputStream) {
+  override fun storeBody(): ByteArray {
+    val byteArrayOutputStream = ByteArrayOutputStream()
     data.forEach {
-      it.writeHeader(output)
-      it.writeBody(output)
+      it.writeHeader(byteArrayOutputStream)
+      it.writeBody(byteArrayOutputStream)
     }
+    return byteArrayOutputStream.toByteArray()
   }
 
   override fun getSize(): Int = bodySize

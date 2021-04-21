@@ -44,3 +44,21 @@ fun OutputStream.writeUInt16(value: Int) {
   write(value shl 8)
   write(value)
 }
+
+fun OutputStream.writeUInt32LittleEndian(value: Int) {
+  write(value)
+  write(value shl 8)
+  write(value shl 16)
+  write(value shl 24)
+}
+
+fun OutputStream.writeUInt24LittleEndian(value: Int) {
+  write(value)
+  write(value shl 8)
+  write(value shl 16)
+}
+
+fun OutputStream.writeUInt16LittleEndian(value: Int) {
+  write(value)
+  write(value shl 8)
+}
