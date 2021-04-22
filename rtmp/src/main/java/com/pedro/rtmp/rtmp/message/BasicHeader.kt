@@ -1,5 +1,6 @@
 package com.pedro.rtmp.rtmp.message
 
+import android.util.Log
 import com.pedro.rtmp.rtmp.chunk.ChunkStreamId
 import com.pedro.rtmp.rtmp.chunk.ChunkType
 import java.io.IOException
@@ -44,22 +45,10 @@ class BasicHeader(val chunkType: ChunkType, val chunkStreamId: ChunkStreamId) {
 
   companion object {
     fun parseBasicHeader(byte: Byte): BasicHeader {
-      val chunkType = when(val value = 0xff and byte.toInt() ushr 6) {
-        ChunkType.TYPE_0.mark.toInt() -> ChunkType.TYPE_0
-        ChunkType.TYPE_1.mark.toInt() -> ChunkType.TYPE_1
-        ChunkType.TYPE_2.mark.toInt() -> ChunkType.TYPE_2
-        ChunkType.TYPE_3.mark.toInt() -> ChunkType.TYPE_3
-        else -> throw IOException("Unknown chunk type value: $value")
-      }
-      val chunkStreamId = when(val value = byte and 0x3F) {
-        ChunkStreamId.PROTOCOL_CONTROL.mark -> ChunkStreamId.PROTOCOL_CONTROL
-        ChunkStreamId.OVER_CONNECTION.mark -> ChunkStreamId.OVER_CONNECTION
-        ChunkStreamId.OVER_CONNECTION2.mark -> ChunkStreamId.OVER_CONNECTION2
-        ChunkStreamId.OVER_STREAM.mark -> ChunkStreamId.OVER_STREAM
-        ChunkStreamId.VIDEO.mark -> ChunkStreamId.VIDEO
-        ChunkStreamId.AUDIO.mark -> ChunkStreamId.AUDIO
-        else -> throw IOException("Unknown chunk stream id value: $value")
-      }
+      val chunkTypeValue = 0xff and byte.toInt() ushr 6
+      val chunkType = ChunkType.values().find { it.mark.toInt() == chunkTypeValue } ?: throw IOException("Unknown chunk type value: $chunkTypeValue")
+      val chunkStreamIdValue = byte and 0x3F
+      val chunkStreamId = ChunkStreamId.values().find { it.mark == chunkStreamIdValue } ?: throw IOException("Unknown chunk stream id value: $chunkStreamIdValue")
       return BasicHeader(chunkType, chunkStreamId)
     }
   }

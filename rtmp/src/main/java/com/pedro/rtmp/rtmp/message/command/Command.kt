@@ -19,13 +19,13 @@ import java.io.InputStream
  *
  * TODO use amf3 or amf0 depend of getType method
  */
-abstract class Command(var name: String = "", var transactionId: Int, private val timeStamp: Int, val streamId: Int = 0): RtmpMessage() {
+abstract class Command(var name: String = "", var transactionId: Int, private val timeStamp: Int, val streamId: Int = 0):
+    RtmpMessage(BasicHeader(ChunkType.TYPE_0, ChunkStreamId.OVER_CONNECTION)) {
 
   private val data: MutableList<AmfData> = mutableListOf()
   private var bodySize = 0
 
   init {
-    header = RtmpHeader(timeStamp, messageType = getType(), messageStreamId = streamId, basicHeader = BasicHeader(ChunkType.TYPE_0, ChunkStreamId.OVER_CONNECTION))
     val amfString = AmfString(name)
     data.add(amfString)
     bodySize += amfString.getSize() + 1

@@ -1,24 +1,33 @@
 package com.pedro.rtmp.rtmp.message
 
+import com.pedro.rtmp.rtmp.chunk.ChunkStreamId
+import com.pedro.rtmp.rtmp.chunk.ChunkType
+import com.pedro.rtmp.utils.readUInt32
+import com.pedro.rtmp.utils.writeUInt32
+import java.io.ByteArrayOutputStream
 import java.io.InputStream
 
 /**
  * Created by pedro on 21/04/21.
  */
-class Acknowledgement: RtmpMessage() {
+class Acknowledgement(private var sequenceNumber: Int = 0):
+    RtmpMessage(BasicHeader(ChunkType.TYPE_0, ChunkStreamId.PROTOCOL_CONTROL)) {
+
   override fun readBody(input: InputStream) {
-    TODO("Not yet implemented")
+    sequenceNumber = input.readUInt32()
   }
 
   override fun storeBody(): ByteArray {
-    TODO("Not yet implemented")
+    val byteArrayOutputStream = ByteArrayOutputStream()
+    byteArrayOutputStream.writeUInt32(sequenceNumber)
+    return byteArrayOutputStream.toByteArray()
   }
 
-  override fun getType(): MessageType {
-    TODO("Not yet implemented")
-  }
+  override fun getType(): MessageType = MessageType.ACKNOWLEDGEMENT
 
-  override fun getSize(): Int {
-    TODO("Not yet implemented")
+  override fun getSize(): Int = 4
+
+  override fun toString(): String {
+    return "${super.toString()}\nAcknowledgement(sequenceNumber=$sequenceNumber)"
   }
 }

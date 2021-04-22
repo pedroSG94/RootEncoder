@@ -1,11 +1,13 @@
 package com.pedro.rtmp.rtmp.message
 
+import com.pedro.rtmp.rtmp.chunk.ChunkStreamId
+import com.pedro.rtmp.rtmp.chunk.ChunkType
 import java.io.InputStream
 
 /**
  * Created by pedro on 21/04/21.
  */
-class Video: RtmpMessage() {
+class Video: RtmpMessage(BasicHeader(ChunkType.TYPE_0, ChunkStreamId.VIDEO)) {
 
   override fun readBody(input: InputStream) {
     TODO("Not yet implemented")
@@ -15,9 +17,7 @@ class Video: RtmpMessage() {
     TODO("Not yet implemented")
   }
 
-  override fun getType(): MessageType {
-    TODO("Not yet implemented")
-  }
+  override fun getType(): MessageType = MessageType.VIDEO
 
   override fun getSize(): Int {
     TODO("Not yet implemented")

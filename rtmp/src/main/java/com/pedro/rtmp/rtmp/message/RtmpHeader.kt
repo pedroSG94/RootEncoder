@@ -10,8 +10,12 @@ import kotlin.math.min
 /**
  * Created by pedro on 20/04/21.
  */
-class RtmpHeader(var timeStamp: Int = 0, var messageLength: Int = 0, var messageType: MessageType? = null,
-                 var messageStreamId: Int = 0, var basicHeader: BasicHeader? = null) {
+class RtmpHeader(var basicHeader: BasicHeader) {
+
+  var timeStamp: Int = 0
+  var messageLength: Int = 0
+  var messageType: MessageType? = null
+  var messageStreamId: Int = 0
 
   companion object {
 
@@ -62,15 +66,18 @@ class RtmpHeader(var timeStamp: Int = 0, var messageLength: Int = 0, var message
           //No header to read
         }
       }
-      return RtmpHeader(timeStamp, messageLength, messageType, messageStreamId, basicHeader)
+      val rtmpHeader = RtmpHeader(basicHeader)
+      rtmpHeader.timeStamp = timeStamp
+      rtmpHeader.messageLength = messageLength
+      rtmpHeader.messageType = messageType
+      rtmpHeader.messageStreamId = messageStreamId
+      return rtmpHeader
     }
   }
 
   @Throws(IOException::class)
   fun writeHeader(output: OutputStream) {
-    basicHeader?.let {
-      writeHeader(it, output)
-    }
+    writeHeader(basicHeader, output)
   }
 
   /**

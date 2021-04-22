@@ -1,46 +1,169 @@
 package com.pedro.rtmp.rtmp.message.control
 
 import android.util.Log
+import com.github.faucamp.simplertmp.packets.UserControl
+import com.pedro.rtmp.rtmp.chunk.ChunkStreamId
+import com.pedro.rtmp.rtmp.chunk.ChunkType
+import com.pedro.rtmp.rtmp.message.BasicHeader
 import com.pedro.rtmp.rtmp.message.MessageType
-import com.pedro.rtmp.rtmp.message.RtmpHeader
 import com.pedro.rtmp.rtmp.message.RtmpMessage
 import com.pedro.rtmp.utils.readUInt16
 import com.pedro.rtmp.utils.readUInt32
+import com.pedro.rtmp.utils.writeUInt16
+import com.pedro.rtmp.utils.writeUInt32
+import java.io.ByteArrayOutputStream
+import java.io.IOException
 import java.io.InputStream
-import java.io.OutputStream
 
 /**
  * Created by pedro on 21/04/21.
  */
-class UserControl: RtmpMessage() {
+class UserControl(private var type: Type = Type.PING_REQUEST, private var event: Event = Event(-1, -1)): RtmpMessage(BasicHeader(ChunkType.TYPE_0, ChunkStreamId.PROTOCOL_CONTROL)) {
 
   private val TAG = "UserControl"
-  private var bodySize = 0
+  private var bodySize = 6
+
+  enum class Type(val mark: Byte) {
+    /**
+     * Type: 0
+     * The server sends this event to notify the client that a stream has become
+     * functional and can be used for communication. By default, this event
+     * is sent on ID 0 after the application connect command is successfully
+     * received from the client.
+     *
+     * Event Data:
+     * eventData[0] (int) the stream ID of the stream that became functional
+     */
+    STREAM_BEGIN(0x00),
+
+    /**
+     * Type: 1
+     * The server sends this event to notify the client that the playback of
+     * data is over as requested on this stream. No more data is sent without
+     * issuing additional commands. The client discards the messages received
+     * for the stream.
+     *
+     * Event Data:
+     * eventData[0]: the ID of thestream on which playback has ended.
+     */
+    STREAM_EOF(0x01),
+
+    /**
+     * Type: 2
+     * The server sends this event to notify the client that there is no
+     * more data on the stream. If the server does not detect any message for
+     * a time period, it can notify the subscribed clients that the stream is
+     * dry.
+     *
+     * Event Data:
+     * eventData[0]: the stream ID of the dry stream.
+     */
+    STREAM_DRY(0x02),
+
+    /**
+     * Type: 3
+     * The client sends this event to inform the server of the buffer size
+     * (in milliseconds) that is used to buffer any data coming over a stream.
+     * This event is sent before the server starts  processing the stream.
+     *
+     * Event Data:
+     * eventData[0]: the stream ID and
+     * eventData[1]: the buffer length, in milliseconds.
+     */
+    SET_BUFFER_LENGTH(0x03),
+
+    /**
+     * Type: 4
+     * The server sends this event to notify the client that the stream is a
+     * recorded stream.
+     *
+     * Event Data:
+     * eventData[0]: the stream ID of the recorded stream.
+     */
+    STREAM_IS_RECORDED(0x04),
+
+    /**
+     * Type: 6
+     * The server sends this event to test whether the client is reachable.
+     *
+     * Event Data:
+     * eventData[0]: a timestamp representing the local server time when the server dispatched the command.
+     *
+     * The client responds with PING_RESPONSE on receiving PING_REQUEST.
+     */
+    PING_REQUEST(0x06),
+
+    /**
+     * Type: 7
+     * The client sends this event to the server in response to the ping request.
+     *
+     * Event Data:
+     * eventData[0]: the 4-byte timestamp which was received with the PING_REQUEST.
+     */
+    PONG_REPLY(0x07),
+
+    /**
+     * Type: 31 (0x1F)
+     *
+     * This user control type is not specified in any official documentation, but
+     * is sent by Flash Media Server 3.5. Thanks to the rtmpdump devs for their
+     * explanation:
+     *
+     * Buffer Empty (unofficial name): After the server has sent a complete buffer, and
+     * sends this Buffer Empty message, it will wait until the play
+     * duration of that buffer has passed before sending a new buffer.
+     * The Buffer Ready message will be sent when the new buffer starts.
+     *
+     * (see also: http://repo.or.cz/w/rtmpdump.git/blob/8880d1456b282ee79979adbe7b6a6eb8ad371081:/librtmp/rtmp.c#l2787)
+     */
+    BUFFER_EMPTY(0x1F),
+
+    /**
+     * Type: 32 (0x20)
+     *
+     * This user control type is not specified in any official documentation, but
+     * is sent by Flash Media Server 3.5. Thanks to the rtmpdump devs for their
+     * explanation:
+     *
+     * Buffer Ready (unofficial name): After the server has sent a complete buffer, and
+     * sends a Buffer Empty message, it will wait until the play
+     * duration of that buffer has passed before sending a new buffer.
+     * The Buffer Ready message will be sent when the new buffer starts.
+     * (There is no BufferReady message for the very first buffer;
+     * presumably the Stream Begin message is sufficient for that
+     * purpose.)
+     *
+     * (see also: http://repo.or.cz/w/rtmpdump.git/blob/8880d1456b282ee79979adbe7b6a6eb8ad371081:/librtmp/rtmp.c#l2787)
+     */
+    BUFFER_READY(0x20)
+  }
 
   override fun readBody(input: InputStream) {
     bodySize = 0
-    val type = input.readUInt16()
+    val t = input.readUInt16()
+    type = Type.values().find { it.mark.toInt() == t } ?: throw IOException("unknown user control type: $t")
     bodySize += 2
     val data = input.readUInt32()
-    val event: Event
-    if (type == 3) {
+    bodySize += 4
+    event = if (type == Type.SET_BUFFER_LENGTH) {
       val bufferLength = input.readUInt32()
-      event = Event(data, bufferLength)
+      Event(data, bufferLength)
     } else {
-      event = Event(data)
+      Event(data)
     }
-    Log.i(TAG, "type: $type, event: $event")
   }
 
   override fun storeBody(): ByteArray {
-    TODO("Not yet implemented")
+    val byteArrayOutputStream = ByteArrayOutputStream()
+    byteArrayOutputStream.writeUInt16(type.mark.toInt())
+    byteArrayOutputStream.writeUInt32(event.data)
+    if (event.bufferLength != -1) {
+      byteArrayOutputStream.writeUInt32(event.bufferLength)
+    }
+    return byteArrayOutputStream.toByteArray()
   }
 
-  override fun getType(): MessageType {
-    TODO("Not yet implemented")
-  }
+  override fun getType(): MessageType = MessageType.USER_CONTROL
 
-  override fun getSize(): Int {
-    TODO("Not yet implemented")
-  }
+  override fun getSize(): Int = bodySize
 }

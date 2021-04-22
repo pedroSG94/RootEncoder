@@ -80,8 +80,10 @@ class RtmpClient(private val connectCheckerRtmp: ConnectCheckerRtmp) {
           handshake.sendHandshake(reader, writer)
           commandsManager.sendConnect("", writer)
           writer.flush()
-          commandsManager.readMessageResponse(reader)
-
+          while (!Thread.interrupted()) {
+            commandsManager.readMessageResponse(reader)
+            Thread.sleep(1000)
+          }
         } catch (e: Exception) {
           Log.e(TAG, "connection error", e)
           connectCheckerRtmp.onConnectionFailedRtmp("Error configure stream, ${e.message}")
