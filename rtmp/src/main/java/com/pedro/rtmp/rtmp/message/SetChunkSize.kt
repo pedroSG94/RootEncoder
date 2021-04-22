@@ -26,4 +26,8 @@ class SetChunkSize(private var chunkSize: Int = 128):
   override fun getType(): MessageType = MessageType.SET_CHUNK_SIZE
 
   override fun getSize(): Int = 4
+
+  override fun toString(): String {
+    return "SetChunkSize(chunkSize=$chunkSize)"
+  }
 }

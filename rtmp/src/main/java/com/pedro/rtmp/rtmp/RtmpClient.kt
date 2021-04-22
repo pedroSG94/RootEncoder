@@ -3,6 +3,9 @@ package com.pedro.rtmp.rtmp
 import android.os.Handler
 import android.os.HandlerThread
 import android.util.Log
+import com.pedro.rtmp.amf.v0.AmfNumber
+import com.pedro.rtmp.rtmp.message.RtmpMessage
+import com.pedro.rtmp.rtmp.message.command.Command
 import com.pedro.rtmp.utils.ConnectCheckerRtmp
 import com.pedro.rtmp.utils.CreateSSLSocket
 import java.io.*
@@ -78,11 +81,14 @@ class RtmpClient(private val connectCheckerRtmp: ConnectCheckerRtmp) {
 
           val handshake = Handshake()
           handshake.sendHandshake(reader, writer)
-          commandsManager.sendConnect("", writer)
+          commandsManager.connect("", writer)
           writer.flush()
-          while (!Thread.interrupted()) {
-            commandsManager.readMessageResponse(reader)
-            Thread.sleep(1000)
+          val connectResponse = commandsManager.getCommandResponse("connect", reader)
+          if (connectResponse.name == "_result") {
+            commandsManager.createStream(writer)
+            val createStreamResponse = commandsManager.getCommandResponse("createStream", reader)
+            val n = createStreamResponse.data[3] as AmfNumber
+            Log.e("Pedro", "streamId: ${n.value}")
           }
         } catch (e: Exception) {
           Log.e(TAG, "connection error", e)

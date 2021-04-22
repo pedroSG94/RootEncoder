@@ -1,7 +1,5 @@
 package com.pedro.rtmp.rtmp.message.control
 
-import android.util.Log
-import com.github.faucamp.simplertmp.packets.UserControl
 import com.pedro.rtmp.rtmp.chunk.ChunkStreamId
 import com.pedro.rtmp.rtmp.chunk.ChunkType
 import com.pedro.rtmp.rtmp.message.BasicHeader
@@ -166,4 +164,8 @@ class UserControl(private var type: Type = Type.PING_REQUEST, private var event:
   override fun getType(): MessageType = MessageType.USER_CONTROL
 
   override fun getSize(): Int = bodySize
+
+  override fun toString(): String {
+    return "UserControl(type=$type, event=$event, bodySize=$bodySize)"
+  }
 }

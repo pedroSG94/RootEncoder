@@ -1,5 +1,7 @@
 package com.pedro.rtmp.rtmp.message
 
+import android.util.Log
+import com.pedro.rtmp.rtmp.chunk.ChunkConfig
 import com.pedro.rtmp.rtmp.chunk.ChunkType
 import com.pedro.rtmp.rtmp.message.command.CommandAmf0
 import com.pedro.rtmp.rtmp.message.command.CommandAmf3
@@ -72,7 +74,7 @@ abstract class RtmpMessage(basicHeader: BasicHeader) {
   }
 
   fun writeBody(output: OutputStream) {
-    val chunkSize = 128
+    val chunkSize = ChunkConfig.size
     val bytes = storeBody()
     var pos = 0
     var length = getSize()
@@ -95,8 +97,4 @@ abstract class RtmpMessage(basicHeader: BasicHeader) {
   abstract fun getType(): MessageType
 
   abstract fun getSize(): Int
-
-  override fun toString(): String {
-    return "RtmpMessage(header=$header)"
-  }
 }

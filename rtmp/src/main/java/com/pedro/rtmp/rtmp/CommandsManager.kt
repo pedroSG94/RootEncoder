@@ -1,9 +1,16 @@
 package com.pedro.rtmp.rtmp
 
 import android.util.Log
+import com.pedro.rtmp.amf.v0.AmfNull
 import com.pedro.rtmp.amf.v0.AmfObject
-import com.pedro.rtmp.rtmp.message.command.CommandAmf0
+import com.pedro.rtmp.amf.v0.AmfString
+import com.pedro.rtmp.rtmp.chunk.ChunkStreamId
+import com.pedro.rtmp.rtmp.chunk.ChunkType
+import com.pedro.rtmp.rtmp.message.BasicHeader
 import com.pedro.rtmp.rtmp.message.RtmpMessage
+import com.pedro.rtmp.rtmp.message.command.Command
+import com.pedro.rtmp.rtmp.message.command.CommandAmf0
+import com.pedro.rtmp.utils.CommandSessionHistory
 import java.io.IOException
 import java.io.InputStream
 import java.io.OutputStream
@@ -15,7 +22,9 @@ class CommandsManager {
 
   private val TAG = "CommandsManager"
 
-  private var messageStreamId = 0
+  private val sessionHistory = CommandSessionHistory()
+  private var commandId = 0
+  private var streamId = 0
   var host = ""
   var port = 1935
   var appName = ""
@@ -30,8 +39,8 @@ class CommandsManager {
   }
 
   @Throws(IOException::class)
-  fun sendConnect(auth: String, output: OutputStream) {
-    val connect = CommandAmf0("connect")
+  fun connect(auth: String, output: OutputStream) {
+    val connect = CommandAmf0("connect", ++commandId)
     val connectInfo = AmfObject()
     connectInfo.setProperty("app", appName + auth)
     connectInfo.setProperty("flashVer", "FMLE/3.0 (compatible; Lavf57.56.101)")
@@ -48,17 +57,68 @@ class CommandsManager {
 
     connect.writeHeader(output)
     connect.writeBody(output)
-    Log.i(TAG, "$connect")
+    sessionHistory.setPacket(commandId, "connect")
+    Log.i(TAG, "send $connect")
+  }
+
+  fun createStream(output: OutputStream) {
+    val releaseStream = CommandAmf0("releaseStream", ++commandId)
+    releaseStream.addData(AmfNull())
+    releaseStream.addData(AmfString(streamName))
+
+    releaseStream.writeHeader(output)
+    releaseStream.writeBody(output)
+    sessionHistory.setPacket(commandId, "releaseStream")
+    Log.i(TAG, "send $releaseStream")
+
+    val fcPublish = CommandAmf0("FCPublish", ++commandId)
+    fcPublish.addData(AmfNull())
+    fcPublish.addData(AmfString(streamName))
+
+    fcPublish.writeHeader(output)
+    fcPublish.writeBody(output)
+    sessionHistory.setPacket(commandId, "FCPublish")
+    Log.i(TAG, "send $fcPublish")
+
+    val createStream = CommandAmf0("createStream", ++commandId, basicHeader = BasicHeader(ChunkType.TYPE_1, ChunkStreamId.OVER_CONNECTION))
+    createStream.addData(AmfNull())
+
+    createStream.writeHeader(output)
+    createStream.writeBody(output)
+    sessionHistory.setPacket(commandId, "createStream")
+    commandId += 1
+    Log.i(TAG, "send $createStream")
   }
 
   @Throws(IOException::class)
   fun readMessageResponse(input: InputStream): RtmpMessage {
     val message = RtmpMessage.getRtmpMessage(input)
-    Log.i(TAG, message.toString())
+    Log.i(TAG, "read $message")
     return message
   }
 
+  fun getCommandResponse(commandName: String, input: InputStream): Command {
+    val response = readMessageResponse(input)
+    if (response is Command) {
+      if (sessionHistory.getName(response.commandId) == commandName) {
+        return response
+      }
+    } else {
+      return getCommandResponse(commandName, input)
+    }
+    return CommandAmf0()
+  }
+
+  fun getMessageName(rtmpMessage: RtmpMessage): String? {
+    return if (rtmpMessage is Command) {
+      sessionHistory.getName(rtmpMessage.commandId)
+    } else {
+      null
+    }
+  }
+
   fun reset() {
-    messageStreamId = 0
+    commandId = 0
+    sessionHistory.reset()
   }
 }

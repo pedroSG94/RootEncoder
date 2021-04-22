@@ -25,6 +25,7 @@ class AmfString(var value: String = ""): AmfData() {
     bodySize = input.readUInt16()
     //read value in ASCII
     val bytes = ByteArray(bodySize)
+    bodySize += 2
     input.readUntil(bytes)
     value = String(bytes, Charsets.US_ASCII)
   }

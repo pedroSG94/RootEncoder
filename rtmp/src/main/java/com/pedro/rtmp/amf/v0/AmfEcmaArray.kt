@@ -24,12 +24,11 @@ class AmfEcmaArray(private val properties: HashMap<AmfString, AmfData> = HashMap
 
   @Throws(IOException::class)
   override fun readBody(input: InputStream) {
-    bodySize = 0
     //get number of items as UInt32
     length = input.readUInt32()
-    bodySize += 4
     //read items
     super.readBody(input)
+    bodySize += 4 //add length size to body
   }
 
   @Throws(IOException::class)

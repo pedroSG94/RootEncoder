@@ -28,6 +28,6 @@ class WindowAcknowledgementSize(private var acknowledgementWindowSize: Int = 0):
   override fun getSize(): Int = 4
 
   override fun toString(): String {
-    return "${super.toString()}\nWindowAcknowledgementSize(acknowledgementWindowSize=$acknowledgementWindowSize)"
+    return "WindowAcknowledgementSize(acknowledgementWindowSize=$acknowledgementWindowSize)"
   }
 }

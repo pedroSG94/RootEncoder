@@ -3,10 +3,7 @@ package com.pedro.rtmp.rtmp.message.command
 import com.pedro.rtmp.amf.AmfData
 import com.pedro.rtmp.amf.v0.AmfNumber
 import com.pedro.rtmp.amf.v0.AmfString
-import com.pedro.rtmp.rtmp.chunk.ChunkStreamId
-import com.pedro.rtmp.rtmp.chunk.ChunkType
 import com.pedro.rtmp.rtmp.message.BasicHeader
-import com.pedro.rtmp.rtmp.message.RtmpHeader
 import com.pedro.rtmp.rtmp.message.RtmpMessage
 import java.io.ByteArrayOutputStream
 import java.io.InputStream
@@ -19,17 +16,16 @@ import java.io.InputStream
  *
  * TODO use amf3 or amf0 depend of getType method
  */
-abstract class Command(var name: String = "", var transactionId: Int, private val timeStamp: Int, val streamId: Int = 0):
-    RtmpMessage(BasicHeader(ChunkType.TYPE_0, ChunkStreamId.OVER_CONNECTION)) {
+abstract class Command(var name: String = "", var commandId: Int, private val timeStamp: Int, val streamId: Int = 0, basicHeader: BasicHeader): RtmpMessage(basicHeader) {
 
-  private val data: MutableList<AmfData> = mutableListOf()
+  val data: MutableList<AmfData> = mutableListOf()
   private var bodySize = 0
 
   init {
     val amfString = AmfString(name)
     data.add(amfString)
     bodySize += amfString.getSize() + 1
-    val amfNumber = AmfNumber(transactionId.toDouble())
+    val amfNumber = AmfNumber(commandId.toDouble())
     bodySize += amfNumber.getSize() + 1
     data.add(amfNumber)
     header.messageLength = bodySize
@@ -54,7 +50,7 @@ abstract class Command(var name: String = "", var transactionId: Int, private va
         name = (data[0] as AmfString).value
       }
       if (data.size >= 2 && data[1] is AmfNumber) {
-        transactionId = (data[1] as AmfNumber).value.toInt()
+        commandId = (data[1] as AmfNumber).value.toInt()
       }
     }
     bodySize = bytesRead
@@ -73,6 +69,6 @@ abstract class Command(var name: String = "", var transactionId: Int, private va
   override fun getSize(): Int = bodySize
 
   override fun toString(): String {
-    return "${super.toString()}\nCommand(name='$name', transactionId=$transactionId, timeStamp=$timeStamp, streamId=$streamId, data=$data, bodySize=$bodySize)"
+    return "Command(name='$name', transactionId=$commandId, timeStamp=$timeStamp, streamId=$streamId, data=$data, bodySize=$bodySize)"
   }
 }

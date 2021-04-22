@@ -26,4 +26,8 @@ class Abort(private var chunkStreamId: Int = 0):
   override fun getType(): MessageType = MessageType.ABORT
 
   override fun getSize(): Int = 4
+
+  override fun toString(): String {
+    return "Abort(chunkStreamId=$chunkStreamId)"
+  }
 }

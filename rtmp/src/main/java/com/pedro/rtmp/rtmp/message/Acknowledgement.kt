@@ -28,6 +28,6 @@ class Acknowledgement(private var sequenceNumber: Int = 0):
   override fun getSize(): Int = 4
 
   override fun toString(): String {
-    return "${super.toString()}\nAcknowledgement(sequenceNumber=$sequenceNumber)"
+    return "Acknowledgement(sequenceNumber=$sequenceNumber)"
   }
 }

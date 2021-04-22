@@ -16,15 +16,15 @@ fun InputStream.readUntil(byteArray: ByteArray) {
 }
 
 fun InputStream.readUInt32(): Int {
-  return read() and 0xff shl 24 or read() and 0xff shl 16 or read() and 0xff shl 8 or read() and 0xff
+  return read() and 0xff shl 24 or (read() and 0xff shl 16) or (read() and 0xff shl 8) or (read() and 0xff)
 }
 
 fun InputStream.readUInt24(): Int {
-  return read() and 0xff shl 16 or read() and 0xff shl 8 or read() and 0xff
+  return read() and 0xff shl 16 or (read() and 0xff shl 8) or (read() and 0xff)
 }
 
 fun InputStream.readUInt16(): Int {
-  return read() and 0xff shl 8 or read() and 0xff
+  return read() and 0xff shl 8 or (read() and 0xff)
 }
 
 fun InputStream.readUInt32LittleEndian(): Int {
