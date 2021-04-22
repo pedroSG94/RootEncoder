@@ -363,7 +363,7 @@ public abstract class Camera2Base implements GetAacData, GetVideoData, GetMicrop
     if (!streaming) {
       startEncoders();
     } else if (videoEncoder.isRunning()) {
-      resetVideoEncoder();
+      resetVideoEncoder(false);
     }
   }
 
@@ -384,7 +384,7 @@ public abstract class Camera2Base implements GetAacData, GetVideoData, GetMicrop
     if (!streaming) {
       startEncoders();
     } else if (videoEncoder.isRunning()) {
-      resetVideoEncoder();
+      resetVideoEncoder(false);
     }
   }
 
@@ -555,7 +555,7 @@ public abstract class Camera2Base implements GetAacData, GetVideoData, GetMicrop
     if (!recordController.isRunning()) {
       startEncoders();
     } else {
-      resetVideoEncoder();
+      resetVideoEncoder(true);
     }
     startStreamRtp(url);
     onPreview = true;
@@ -573,11 +573,11 @@ public abstract class Camera2Base implements GetAacData, GetVideoData, GetMicrop
     onPreview = true;
   }
 
-  private void resetVideoEncoder() {
+  private void resetVideoEncoder(boolean reset) {
     if (glInterface != null) {
       glInterface.removeMediaCodecSurface();
     }
-    videoEncoder.forceKeyFrame();
+    if (reset) videoEncoder.reset(); else videoEncoder.forceKeyFrame();
     if (glInterface != null) {
       glInterface.addMediaCodecSurface(videoEncoder.getInputSurface());
     } else {
@@ -658,7 +658,7 @@ public abstract class Camera2Base implements GetAacData, GetVideoData, GetMicrop
    */
   @Deprecated
   public void reTry(long delay) {
-    resetVideoEncoder();
+    resetVideoEncoder(true);
     reConnect(delay);
   }
 

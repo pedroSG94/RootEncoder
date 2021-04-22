@@ -346,7 +346,7 @@ public abstract class Camera1Base
     if (!streaming) {
       startEncoders();
     } else if (videoEncoder.isRunning()) {
-      resetVideoEncoder();
+      resetVideoEncoder(false);
     }
   }
 
@@ -368,7 +368,7 @@ public abstract class Camera1Base
     if (!streaming) {
       startEncoders();
     } else if (videoEncoder.isRunning()) {
-      resetVideoEncoder();
+      resetVideoEncoder(false);
     }
   }
 
@@ -562,7 +562,7 @@ public abstract class Camera1Base
     if (!recordController.isRunning()) {
       startEncoders();
     } else {
-      resetVideoEncoder();
+      resetVideoEncoder(true);
     }
     startStreamRtp(url);
     onPreview = true;
@@ -581,11 +581,11 @@ public abstract class Camera1Base
     onPreview = true;
   }
 
-  private void resetVideoEncoder() {
+  private void resetVideoEncoder(boolean reset) {
     if (glInterface != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
       glInterface.removeMediaCodecSurface();
     }
-    videoEncoder.forceKeyFrame();
+    if (reset) videoEncoder.reset(); else videoEncoder.forceKeyFrame();
     if (glInterface != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
       glInterface.addMediaCodecSurface(videoEncoder.getInputSurface());
     }
@@ -653,7 +653,7 @@ public abstract class Camera1Base
    */
   @Deprecated
   public void reTry(long delay) {
-    resetVideoEncoder();
+    resetVideoEncoder(true);
     reConnect(delay);
   }
 

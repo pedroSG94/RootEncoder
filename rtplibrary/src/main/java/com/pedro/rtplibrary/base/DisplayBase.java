@@ -290,7 +290,7 @@ public abstract class DisplayBase implements GetAacData, GetVideoData, GetMicrop
     if (!streaming) {
       startEncoders(resultCode, data);
     } else if (videoEncoder.isRunning()) {
-      resetVideoEncoder();
+      resetVideoEncoder(false);
     }
   }
 
@@ -311,7 +311,7 @@ public abstract class DisplayBase implements GetAacData, GetVideoData, GetMicrop
     if (!streaming) {
       startEncoders(resultCode, data);
     } else if (videoEncoder.isRunning()) {
-      resetVideoEncoder();
+      resetVideoEncoder(false);
     }
   }
 
@@ -360,7 +360,7 @@ public abstract class DisplayBase implements GetAacData, GetVideoData, GetMicrop
     if (!recordController.isRunning()) {
       startEncoders(resultCode, data);
     } else {
-      resetVideoEncoder();
+      resetVideoEncoder(true);
     }
     startStreamRtp(url);
   }
@@ -395,12 +395,12 @@ public abstract class DisplayBase implements GetAacData, GetVideoData, GetMicrop
     if (audioInitialized) microphoneManager.start();
   }
 
-  private void resetVideoEncoder() {
+  private void resetVideoEncoder(boolean reset) {
     virtualDisplay.setSurface(null);
     if (glInterface != null) {
       glInterface.removeMediaCodecSurface();
     }
-    videoEncoder.forceKeyFrame();
+    if (reset) videoEncoder.reset(); else videoEncoder.forceKeyFrame();
     if (glInterface != null) {
       glInterface.addMediaCodecSurface(videoEncoder.getInputSurface());
     }
@@ -447,7 +447,7 @@ public abstract class DisplayBase implements GetAacData, GetVideoData, GetMicrop
    */
   @Deprecated
   public void reTry(long delay) {
-    resetVideoEncoder();
+    resetVideoEncoder(true);
     reConnect(delay);
   }
 

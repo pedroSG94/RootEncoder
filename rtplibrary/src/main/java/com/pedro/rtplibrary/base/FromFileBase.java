@@ -231,7 +231,7 @@ public abstract class FromFileBase
     if (!streaming) {
       startEncoders();
     } else if (videoEncoder.isRunning()) {
-      resetVideoEncoder();
+      resetVideoEncoder(false);
     }
   }
 
@@ -251,7 +251,7 @@ public abstract class FromFileBase
     if (!streaming) {
       startEncoders();
     } else if (videoEncoder.isRunning()) {
-      resetVideoEncoder();
+      resetVideoEncoder(false);
     }
   }
 
@@ -286,7 +286,7 @@ public abstract class FromFileBase
     if (!recordController.isRunning()) {
       startEncoders();
     } else {
-      if (videoEnabled) resetVideoEncoder();
+      if (videoEnabled) resetVideoEncoder(true);
     }
     startStreamRtp(url);
   }
@@ -328,7 +328,6 @@ public abstract class FromFileBase
           this.glInterface.removeMediaCodecSurface();
           this.glInterface.stop();
           this.glInterface = glInterface;
-          videoEncoder.forceKeyFrame();
           if (!(glInterface instanceof OffScreenGlThread)) {
             glInterface.init();
           }
@@ -376,11 +375,11 @@ public abstract class FromFileBase
     }
   }
 
-  private void resetVideoEncoder() {
+  private void resetVideoEncoder(boolean reset) {
     if (glInterface != null) {
       glInterface.removeMediaCodecSurface();
     }
-    videoEncoder.forceKeyFrame();
+    if (reset) videoEncoder.reset(); else videoEncoder.forceKeyFrame();
     if (glInterface != null) {
       glInterface.addMediaCodecSurface(videoEncoder.getInputSurface());
     } else {
@@ -403,7 +402,7 @@ public abstract class FromFileBase
    */
   @Deprecated
   public void reTry(long delay) {
-    if (videoEnabled) resetVideoEncoder();
+    if (videoEnabled) resetVideoEncoder(true);
     reConnect(delay);
   }
 
