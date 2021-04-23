@@ -17,6 +17,9 @@ import com.pedro.rtpstreamer.R;
 import com.pedro.rtplibrary.rtsp.RtspCamera2;
 import com.pedro.rtplibrary.view.AutoFitTextureView;
 import com.pedro.rtsp.utils.ConnectCheckerRtsp;
+
+import org.jetbrains.annotations.NotNull;
+
 import java.io.File;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
@@ -222,5 +225,9 @@ public class TextureModeRtspActivity extends AppCompatActivity
   @Override
   public void onPointerCaptureChanged(boolean hasCapture) {
 
+  }
+
+  @Override
+  public void onConnectionStarted(@NotNull String rtmpUrl) {
   }
 }

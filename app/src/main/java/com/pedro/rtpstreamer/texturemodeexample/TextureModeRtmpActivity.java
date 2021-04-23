@@ -61,6 +61,10 @@ public class TextureModeRtmpActivity extends AppCompatActivity
   }
 
   @Override
+  public void onConnectionStarted(String rtmpUrl) {
+  }
+
+  @Override
   public void onConnectionSuccessRtmp() {
     runOnUiThread(new Runnable() {
       @Override

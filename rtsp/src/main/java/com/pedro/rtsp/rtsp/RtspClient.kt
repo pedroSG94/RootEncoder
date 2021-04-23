@@ -117,6 +117,7 @@ open class RtspClient(private val connectCheckerRtsp: ConnectCheckerRtsp) {
     }
     if (!isStreaming || isRetry) {
       this.url = url
+      connectCheckerRtsp.onConnectionStarted(url)
       val rtspMatcher = rtspUrlPattern.matcher(url)
       if (rtspMatcher.matches()) {
         tlsEnabled = (rtspMatcher.group(0) ?: "").startsWith("rtsps")

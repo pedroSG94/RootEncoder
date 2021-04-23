@@ -17,6 +17,9 @@ import com.pedro.encoder.input.video.CameraOpenException;
 import com.pedro.rtplibrary.rtsp.RtspCamera2;
 import com.pedro.rtpstreamer.R;
 import com.pedro.rtsp.utils.ConnectCheckerRtsp;
+
+import org.jetbrains.annotations.NotNull;
+
 import java.io.File;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
@@ -92,6 +95,10 @@ public class SurfaceModeRtspActivity extends AppCompatActivity
   @Override
   public void onNewBitrateRtsp(long bitrate) {
 
+  }
+
+  @Override
+  public void onConnectionStarted(@NotNull String rtmpUrl) {
   }
 
   @Override

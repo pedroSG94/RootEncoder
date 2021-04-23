@@ -131,6 +131,9 @@ class RtpService : Service() {
       override fun onAuthSuccessRtp() {
         showNotification("Stream auth success")
       }
+
+      override fun onConnectionStarted(rtmpUrl: String) {
+      }
     }
 
     private fun showNotification(text: String) {

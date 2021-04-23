@@ -78,6 +78,8 @@ import java.util.Locale;
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 
+import org.jetbrains.annotations.NotNull;
+
 /**
  * More documentation see:
  * {@link com.pedro.rtplibrary.base.Camera1Base}
@@ -496,5 +498,9 @@ public class OpenGlRtspActivity extends AppCompatActivity
       return true;
     }
     return false;
+  }
+
+  @Override
+  public void onConnectionStarted(@NotNull String rtmpUrl) {
   }
 }

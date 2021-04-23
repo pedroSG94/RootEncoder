@@ -58,6 +58,10 @@ public class ExampleRtmpActivity extends AppCompatActivity
   }
 
   @Override
+  public void onConnectionStarted(String rtmpUrl) {
+  }
+
+  @Override
   public void onConnectionSuccessRtmp() {
     runOnUiThread(new Runnable() {
       @Override

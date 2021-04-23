@@ -15,6 +15,9 @@ import com.pedro.encoder.input.video.CameraOpenException;
 import com.pedro.rtplibrary.rtsp.RtspCamera1;
 import com.pedro.rtpstreamer.R;
 import com.pedro.rtsp.utils.ConnectCheckerRtsp;
+
+import org.jetbrains.annotations.NotNull;
+
 import java.io.File;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
@@ -219,5 +222,9 @@ public class ExampleRtspActivity extends AppCompatActivity
       button.setText(getResources().getString(R.string.start_button));
     }
     rtspCamera1.stopPreview();
+  }
+
+  @Override
+  public void onConnectionStarted(@NotNull String rtmpUrl) {
   }
 }

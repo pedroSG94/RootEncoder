@@ -21,6 +21,9 @@ import com.pedro.rtplibrary.rtsp.RtspFromFile;
 import com.pedro.rtpstreamer.R;
 import com.pedro.rtpstreamer.utils.PathUtils;
 import com.pedro.rtsp.utils.ConnectCheckerRtsp;
+
+import org.jetbrains.annotations.NotNull;
+
 import java.io.File;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
@@ -314,5 +317,9 @@ public class RtspFromFileActivity extends AppCompatActivity
   public void onStopTrackingTouch(SeekBar seekBar) {
     if (rtspFromFile.isStreaming()) rtspFromFile.moveTo(seekBar.getProgress());
     touching = false;
+  }
+
+  @Override
+  public void onConnectionStarted(@NotNull String rtmpUrl) {
   }
 }
