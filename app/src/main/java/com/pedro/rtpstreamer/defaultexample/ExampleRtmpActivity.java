@@ -72,7 +72,7 @@ public class ExampleRtmpActivity extends AppCompatActivity
     runOnUiThread(new Runnable() {
       @Override
       public void run() {
-        if (rtmpCamera1.reTry(5000, reason)) {
+        if (rtmpCamera1.reTry(5000, reason, null)) {
           Toast.makeText(ExampleRtmpActivity.this, "Retry", Toast.LENGTH_SHORT)
               .show();
         } else {

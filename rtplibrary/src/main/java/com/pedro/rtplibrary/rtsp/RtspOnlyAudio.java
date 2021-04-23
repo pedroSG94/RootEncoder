@@ -1,6 +1,9 @@
 package com.pedro.rtplibrary.rtsp;
 
 import android.media.MediaCodec;
+
+import androidx.annotation.Nullable;
+
 import com.pedro.rtplibrary.base.OnlyAudioBase;
 import com.pedro.rtsp.rtsp.Protocol;
 import com.pedro.rtsp.rtsp.RtspClient;
@@ -114,8 +117,8 @@ public class RtspOnlyAudio extends OnlyAudioBase {
   }
 
   @Override
-  public void reConnect(long delay) {
-    rtspClient.reConnect(delay);
+  public void reConnect(long delay, @Nullable String backupUrl) {
+    rtspClient.reConnect(delay, backupUrl);
   }
 
   @Override

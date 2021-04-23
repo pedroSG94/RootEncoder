@@ -230,31 +230,35 @@ public abstract class OnlyAudioBase implements GetAacData, GetMicrophoneData {
     return recordController.getStatus();
   }
 
-  public boolean reTry(long delay, String reason) {
+  public boolean reTry(long delay, String reason, @Nullable String backupUrl) {
     boolean result = shouldRetry(reason);
     if (result) {
-      reTry(delay);
+      reTry(delay, backupUrl);
     }
     return result;
   }
 
   /**
-   * Replace with reTry(long delay, String reason);
+   * Replace with reTry(long delay, String reason, String backupUrl);
    */
   @Deprecated
   public void reTry(long delay) {
-    reConnect(delay);
+    reTry(delay, null);
+  }
+
+  private void reTry(long delay, @Nullable String backupUrl) {
+    reConnect(delay, backupUrl);
   }
 
   /**
-   * Replace with reTry(long delay, String reason);
+   * Replace with reTry(long delay, String reason, String backupUrl);
    */
   @Deprecated
   public abstract boolean shouldRetry(String reason);
 
   public abstract void setReTries(int reTries);
 
-  protected abstract void reConnect(long delay);
+  protected abstract void reConnect(long delay, @Nullable String backupUrl);
 
   //cache control
   public abstract boolean hasCongestion();

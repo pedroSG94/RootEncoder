@@ -224,13 +224,14 @@ public class SrsFlvMuxer {
     return validReason && reTries > 0;
   }
 
-  public void reConnect(final long delay) {
+  public void reConnect(final long delay, final String backupUrl) {
     reTries--;
     stop(null);
     runnable = new Runnable() {
       @Override
       public void run() {
-        start(url, true);
+        String reconnectUrl = backupUrl != null ? backupUrl : url;
+        start(reconnectUrl, true);
       }
     };
     handler.postDelayed(runnable, delay);
@@ -275,7 +276,7 @@ public class SrsFlvMuxer {
   /**
    * start to the remote SRS for remux.
    */
-  public void start(final String rtmpUrl, final boolean isRetry) {
+  private void start(final String rtmpUrl, final boolean isRetry) {
     if (!isRetry) doingRetry = true;
     startTs = System.nanoTime() / 1000;
     worker = new Thread(new Runnable() {
