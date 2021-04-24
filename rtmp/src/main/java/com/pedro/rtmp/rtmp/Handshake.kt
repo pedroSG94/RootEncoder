@@ -5,7 +5,6 @@ import com.pedro.rtmp.utils.readUntil
 import java.io.IOException
 import java.io.InputStream
 import java.io.OutputStream
-import java.util.*
 import kotlin.random.Random
 
 /**
@@ -55,6 +54,7 @@ class Handshake {
 
   private val protocolVersion = 0x03
   private val handshakeSize = 1536
+  private var timestampC1 = 0
 
   @Throws(IOException::class)
   fun sendHandshake(input: InputStream, output: OutputStream) {
@@ -62,8 +62,8 @@ class Handshake {
     val c1 = writeC1(output)
     output.flush()
     readS0(input)
-    val s1 = readS1(input)
-    writeC2(output, s1)
+    readS1(input)
+    writeC2(output, c1)
     output.flush()
     readS2(input, c1)
   }
@@ -79,35 +79,55 @@ class Handshake {
   private fun writeC1(output: OutputStream): ByteArray {
     Log.i(TAG, "writing C1")
     val c1 = ByteArray(handshakeSize)
-    val timestamp = (System.currentTimeMillis() / 1000).toInt()
-    Log.i(TAG, "writing time $timestamp to c1")
+
+    timestampC1 = (System.currentTimeMillis() / 1000).toInt()
+    Log.i(TAG, "writing time $timestampC1 to c1")
     val timestampData = ByteArray(4)
-    timestampData[0] = ((timestamp ushr 24) and 0xFFFF).toByte()
-    timestampData[1] = ((timestamp ushr 16) and 0xFFFF).toByte()
-    timestampData[2] = ((timestamp ushr 8) and 0xFFFF).toByte()
-    timestampData[3] = (timestamp and 0xFFFF).toByte()
+    timestampData[0] = (timestampC1 ushr 24).toByte()
+    timestampData[1] = (timestampC1 ushr 16).toByte()
+    timestampData[2] = (timestampC1 ushr 8).toByte()
+    timestampData[3] = timestampC1.toByte()
     System.arraycopy(timestampData, 0, c1, 0, timestampData.size)
+
     Log.i(TAG, "writing zero to c1")
     val zeroData = byteArrayOf(0x00, 0x00, 0x00, 0x00)
-    System.arraycopy(timestampData, 0, c1, timestampData.size, zeroData.size)
+    System.arraycopy(zeroData, 0, c1, timestampData.size, zeroData.size)
+
     Log.i(TAG, "writing random to c1")
     val random = Random.Default
-    val randomData = ByteArray(handshakeSize - timestampData.size - zeroData.size)
+    val randomData = ByteArray(handshakeSize - 8)
     for (i in randomData.indices step 1) { //step UInt8 size
       //random with UInt8 max value
-      val uInt8 = (random.nextInt(0, 255) and 0xFFFF).toByte()
+      val uInt8 = random.nextInt().toByte()
       randomData[i] = uInt8
     }
-    System.arraycopy(randomData, 0, c1, timestampData.size + zeroData.size, randomData.size)
+    System.arraycopy(randomData, 0, c1, 8, randomData.size)
     output.write(c1)
     Log.i(TAG, "C1 write successful")
     return c1
   }
 
   @Throws(IOException::class)
-  private fun writeC2(output: OutputStream, s1: ByteArray) {
+  private fun writeC2(output: OutputStream, c1: ByteArray) {
     Log.i(TAG, "writing C2")
-    output.write(s1)
+    val c2 = ByteArray(handshakeSize)
+    val timestampData = ByteArray(4)
+    timestampData[0] = (timestampC1 ushr 24).toByte()
+    timestampData[1] = (timestampC1 ushr 16).toByte()
+    timestampData[2] = (timestampC1 ushr 8).toByte()
+    timestampData[3] = timestampC1.toByte()
+    System.arraycopy(timestampData, 0, c2, 0, timestampData.size)
+
+    val timestampData2 = ByteArray(4)
+    val timestampC2 = System.currentTimeMillis() / 1000 - timestampC1
+    timestampData2[0] = (timestampC2 ushr 24).toByte()
+    timestampData2[1] = (timestampC2 ushr 16).toByte()
+    timestampData2[2] = (timestampC2 ushr 8).toByte()
+    timestampData2[3] = timestampC2.toByte()
+    System.arraycopy(timestampData2, 0, c2, timestampData.size, timestampData2.size)
+
+    System.arraycopy(c1, 8, c2, timestampData.size + timestampData2.size, c2.size - (timestampData.size + timestampData2.size))
+    output.write(c2)
     Log.i(TAG, "C2 write successful")
   }
 
@@ -124,12 +144,11 @@ class Handshake {
   }
 
   @Throws(IOException::class)
-  private fun readS1(input: InputStream): ByteArray {
+  private fun readS1(input: InputStream) {
     Log.i(TAG, "reading S1")
     val s1 = ByteArray(handshakeSize)
     input.readUntil(s1)
     Log.i(TAG, "read S1 successful")
-    return s1
   }
 
   @Throws(IOException::class)

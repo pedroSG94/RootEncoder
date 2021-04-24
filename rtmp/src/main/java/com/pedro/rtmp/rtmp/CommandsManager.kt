@@ -39,8 +39,8 @@ class CommandsManager {
   }
 
   @Throws(IOException::class)
-  fun connect(auth: String, output: OutputStream) {
-    val connect = CommandAmf0("connect", ++commandId)
+  fun connect(auth: String, output: OutputStream, timestamp: Long) {
+    val connect = CommandAmf0("connect", ++commandId, (timestamp - (System.currentTimeMillis() / 1000)).toInt())
     val connectInfo = AmfObject()
     connectInfo.setProperty("app", appName + auth)
     connectInfo.setProperty("flashVer", "FMLE/3.0 (compatible; Lavf57.56.101)")
@@ -61,8 +61,9 @@ class CommandsManager {
     Log.i(TAG, "send $connect")
   }
 
-  fun createStream(output: OutputStream) {
-    val releaseStream = CommandAmf0("releaseStream", ++commandId)
+  fun createStream(output: OutputStream, timestamp: Long) {
+    val releaseStream = CommandAmf0("releaseStream", ++commandId, (timestamp - (System.currentTimeMillis() / 1000)).toInt(),
+        basicHeader = BasicHeader(ChunkType.TYPE_0, ChunkStreamId.OVER_STREAM))
     releaseStream.addData(AmfNull())
     releaseStream.addData(AmfString(streamName))
 
@@ -71,7 +72,8 @@ class CommandsManager {
     sessionHistory.setPacket(commandId, "releaseStream")
     Log.i(TAG, "send $releaseStream")
 
-    val fcPublish = CommandAmf0("FCPublish", ++commandId)
+    val fcPublish = CommandAmf0("FCPublish", ++commandId, (timestamp - (System.currentTimeMillis() / 1000)).toInt(),
+        basicHeader = BasicHeader(ChunkType.TYPE_0, ChunkStreamId.OVER_STREAM))
     fcPublish.addData(AmfNull())
     fcPublish.addData(AmfString(streamName))
 
@@ -80,13 +82,13 @@ class CommandsManager {
     sessionHistory.setPacket(commandId, "FCPublish")
     Log.i(TAG, "send $fcPublish")
 
-    val createStream = CommandAmf0("createStream", ++commandId, basicHeader = BasicHeader(ChunkType.TYPE_1, ChunkStreamId.OVER_CONNECTION))
+    val createStream = CommandAmf0("createStream", ++commandId, (timestamp - (System.currentTimeMillis() / 1000)).toInt(),
+        basicHeader = BasicHeader(ChunkType.TYPE_1, ChunkStreamId.OVER_CONNECTION))
     createStream.addData(AmfNull())
 
     createStream.writeHeader(output)
     createStream.writeBody(output)
     sessionHistory.setPacket(commandId, "createStream")
-    commandId += 1
     Log.i(TAG, "send $createStream")
   }
 
@@ -103,10 +105,8 @@ class CommandsManager {
       if (sessionHistory.getName(response.commandId) == commandName) {
         return response
       }
-    } else {
-      return getCommandResponse(commandName, input)
     }
-    return CommandAmf0()
+    return getCommandResponse(commandName, input)
   }
 
   fun getMessageName(rtmpMessage: RtmpMessage): String? {

@@ -12,6 +12,7 @@ import java.io.*
 import java.net.InetSocketAddress
 import java.net.Socket
 import java.net.SocketAddress
+import java.util.*
 import java.util.regex.Pattern
 
 /**
@@ -78,17 +79,16 @@ class RtmpClient(private val connectCheckerRtmp: ConnectCheckerRtmp) {
           val writer = BufferedOutputStream(connectionSocket?.getOutputStream())
           this.reader = reader
           this.writer = writer
-
+          val timestamp = System.currentTimeMillis() / 1000
           val handshake = Handshake()
           handshake.sendHandshake(reader, writer)
-          commandsManager.connect("", writer)
+          commandsManager.connect("", writer, timestamp)
           writer.flush()
           val connectResponse = commandsManager.getCommandResponse("connect", reader)
           if (connectResponse.name == "_result") {
-            commandsManager.createStream(writer)
+            commandsManager.createStream(writer, timestamp)
             val createStreamResponse = commandsManager.getCommandResponse("createStream", reader)
-            val n = createStreamResponse.data[3] as AmfNumber
-            Log.e("Pedro", "streamId: ${n.value}")
+            Log.e("Pedro", createStreamResponse.toString())
           }
         } catch (e: Exception) {
           Log.e(TAG, "connection error", e)

@@ -34,7 +34,7 @@ class AmfStrictArray(val items: MutableList<AmfData> = mutableListOf()): AmfData
     bodySize += 4
     //read items
     for (i in 0 until length) {
-      val amfData = AmfData.getAmfData(input)
+      val amfData = getAmfData(input)
       bodySize += amfData.getSize() + 1
       items.add(amfData)
     }

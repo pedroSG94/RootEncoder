@@ -34,7 +34,7 @@ abstract class AmfData {
     }
 
     fun getMarkType(type: Int): AmfType {
-      return AmfType.values().find { it.mark.toInt() == type } ?: throw IOException("Unknown AMF data type: $type")
+      return AmfType.values().find { it.mark.toInt() == type } ?: AmfType.STRING
     }
   }
 

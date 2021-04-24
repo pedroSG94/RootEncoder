@@ -16,7 +16,7 @@ import java.io.InputStream
  *
  * TODO use amf3 or amf0 depend of getType method
  */
-abstract class Command(var name: String = "", var commandId: Int, private val timeStamp: Int, val streamId: Int = 0, basicHeader: BasicHeader): RtmpMessage(basicHeader) {
+abstract class Command(var name: String = "", var commandId: Int, private val timeStamp: Int, private val streamId: Int = 0, basicHeader: BasicHeader): RtmpMessage(basicHeader) {
 
   val data: MutableList<AmfData> = mutableListOf()
   private var bodySize = 0
@@ -29,6 +29,7 @@ abstract class Command(var name: String = "", var commandId: Int, private val ti
     bodySize += amfNumber.getSize() + 1
     data.add(amfNumber)
     header.messageLength = bodySize
+    header.timeStamp = timeStamp
   }
 
   fun addData(amfData: AmfData) {

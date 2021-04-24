@@ -10,9 +10,8 @@ import com.pedro.rtmp.rtmp.message.data.DataAmf0
 import com.pedro.rtmp.rtmp.message.data.DataAmf3
 import com.pedro.rtmp.rtmp.message.shared.SharedObjectAmf0
 import com.pedro.rtmp.rtmp.message.shared.SharedObjectAmf3
-import java.io.IOException
-import java.io.InputStream
-import java.io.OutputStream
+import com.pedro.rtmp.utils.readUntil
+import java.io.*
 
 /**
  * Created by pedro on 20/04/21.
@@ -52,12 +51,39 @@ abstract class RtmpMessage(basicHeader: BasicHeader) {
         else -> throw IOException("Unimplemented message type: ${header.messageType}")
       }
       rtmpMessage.updateHeader(header)
-      rtmpMessage.readBody(input)
+      //we have multiple chunk wait until we have full body on stream and discard chunk header
+      val bodyInput = if (header.messageLength > ChunkConfig.size) {
+        getInputWithoutChunks(input, header)
+      } else {
+        input
+      }
+      rtmpMessage.readBody(bodyInput)
       return rtmpMessage
     }
 
     fun getMarkType(type: Int): MessageType {
       return MessageType.values().find { it.mark.toInt() == type } ?: throw IOException("Unknown rtmp message type: $type")
+    }
+
+    private fun getInputWithoutChunks(input: InputStream, header: RtmpHeader): InputStream {
+      val packetStore = ByteArrayOutputStream()
+      var bytesRead = 0
+      while (bytesRead < header.messageLength) {
+        var chunk: ByteArray
+        if (header.messageLength - bytesRead < ChunkConfig.size) {
+          //last chunk
+          chunk = ByteArray(header.messageLength - (bytesRead - 1))
+          input.readUntil(chunk)
+        } else {
+          chunk = ByteArray(ChunkConfig.size)
+          input.readUntil(chunk)
+          input.read() //skip chunk header
+          bytesRead++
+        }
+        bytesRead += chunk.size
+        packetStore.write(chunk)
+      }
+      return ByteArrayInputStream(packetStore.toByteArray())
     }
   }
 
