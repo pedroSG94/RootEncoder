@@ -475,15 +475,13 @@ public class Camera1ApiManager implements Camera.PreviewCallback, Camera.FaceDet
     }
   }
   
-  private Camera.AutoFocusCallback mAutoFocusTakePictureCallback = new Camera.AutoFocusCallback() {
+  private Camera.AutoFocusCallback autoFocusTakePictureCallback = new Camera.AutoFocusCallback() {
     @Override
     public void onAutoFocus(boolean success, Camera camera) {
       if (success) {
-        // do something...
-        Log.i("tap_to_focus","success!");
+        Log.i(TAG, "tapToFocus success");
       } else {
-        // do something...
-        Log.i("tap_to_focus","fail!");
+        Log.e(TAG, "tapToFocus failed");
       }
     }
   };
@@ -500,7 +498,7 @@ public class Camera1ApiManager implements Camera.PreviewCallback, Camera.FaceDet
         try {
           camera.setParameters(parameters);
         }catch (Exception e) {
-          Log.i("tap2focus ",e.toString());
+          Log.i(TAG, "tapToFocus error: " + e.getMessage());
         }
       }
       camera.autoFocus(autoFocusTakePictureCallback);
