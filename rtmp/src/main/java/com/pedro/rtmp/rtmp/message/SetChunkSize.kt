@@ -10,7 +10,7 @@ import java.io.InputStream
 /**
  * Created by pedro on 21/04/21.
  */
-class SetChunkSize(private var chunkSize: Int = 128):
+class SetChunkSize(var chunkSize: Int = 128):
     RtmpMessage(BasicHeader(ChunkType.TYPE_0, ChunkStreamId.PROTOCOL_CONTROL)) {
 
   override fun readBody(input: InputStream) {

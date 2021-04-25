@@ -82,14 +82,9 @@ class RtmpClient(private val connectCheckerRtmp: ConnectCheckerRtmp) {
           val timestamp = System.currentTimeMillis() / 1000
           val handshake = Handshake()
           handshake.sendHandshake(reader, writer)
-          commandsManager.connect("", writer, timestamp)
-          writer.flush()
-          val connectResponse = commandsManager.getCommandResponse("connect", reader)
-          if (connectResponse.name == "_result") {
-            commandsManager.createStream(writer, timestamp)
-            val createStreamResponse = commandsManager.getCommandResponse("createStream", reader)
-            Log.e("Pedro", createStreamResponse.toString())
-          }
+          commandsManager.setTimestamp(timestamp.toInt())
+          commandsManager.connect("", writer)
+          commandsManager.handleMessages(reader, writer, connectCheckerRtmp)
         } catch (e: Exception) {
           Log.e(TAG, "connection error", e)
           connectCheckerRtmp.onConnectionFailedRtmp("Error configure stream, ${e.message}")

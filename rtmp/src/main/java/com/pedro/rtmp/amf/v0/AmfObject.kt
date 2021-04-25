@@ -26,6 +26,10 @@ open class AmfObject(private val properties: HashMap<AmfString, AmfData> = Linke
     bodySize += objectEnd.getSize()
   }
 
+  fun getProperty(name: String): AmfData? {
+    return properties[AmfString(name)]
+  }
+
   fun setProperty(name: String, data: String) {
     val key = AmfString(name)
     val value = AmfString(data)
