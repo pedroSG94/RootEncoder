@@ -1,6 +1,5 @@
 package com.pedro.rtmp.rtmp.message
 
-import android.util.Log
 import com.pedro.rtmp.rtmp.chunk.ChunkConfig
 import com.pedro.rtmp.rtmp.chunk.ChunkType
 import com.pedro.rtmp.rtmp.message.command.CommandAmf0
@@ -77,7 +76,8 @@ abstract class RtmpMessage(basicHeader: BasicHeader) {
         } else {
           chunk = ByteArray(ChunkConfig.size)
           input.readUntil(chunk)
-          input.read() //skip chunk header
+          //skip chunk header to discard it, set packet ts to indicate if you need read extended ts
+          RtmpHeader.readHeader(input, header.timeStamp)
           bytesRead++
         }
         bytesRead += chunk.size

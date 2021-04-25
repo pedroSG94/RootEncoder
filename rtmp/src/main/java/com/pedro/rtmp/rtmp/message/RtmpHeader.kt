@@ -25,9 +25,9 @@ class RtmpHeader(var basicHeader: BasicHeader) {
      * Check ChunkType class to know header structure
      */
     @Throws(IOException::class)
-    fun readHeader(input: InputStream): RtmpHeader {
+    fun readHeader(input: InputStream, timestamp: Int = 0): RtmpHeader {
       val basicHeader = BasicHeader.parseBasicHeader(input.read().toByte())
-      var timeStamp = 0
+      var timeStamp = timestamp
       var messageLength = 0
       var messageType: MessageType? = null
       var messageStreamId = 0
