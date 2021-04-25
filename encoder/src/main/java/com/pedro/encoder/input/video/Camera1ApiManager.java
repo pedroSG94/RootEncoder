@@ -474,6 +474,17 @@ public class Camera1ApiManager implements Camera.PreviewCallback, Camera.FaceDet
       lanternEnable = false;
     }
   }
+  
+  private Camera.AutoFocusCallback autoFocusTakePictureCallback = new Camera.AutoFocusCallback() {
+    @Override
+    public void onAutoFocus(boolean success, Camera camera) {
+      if (success) {
+        Log.i(TAG, "tapToFocus success");
+      } else {
+        Log.e(TAG, "tapToFocus failed");
+      }
+    }
+  };
 
   public void tapToFocus(View view, MotionEvent event) {
     if (camera != null && camera.getParameters() != null) {
@@ -484,8 +495,13 @@ public class Camera1ApiManager implements Camera.PreviewCallback, Camera.FaceDet
         List<Camera.Area> meteringAreas = new ArrayList<>();
         meteringAreas.add(new Camera.Area(rect, 800));
         parameters.setFocusAreas(meteringAreas);
-        camera.setParameters(parameters);
+        try {
+          camera.setParameters(parameters);
+        }catch (Exception e) {
+          Log.i(TAG, "tapToFocus error: " + e.getMessage());
+        }
       }
+      camera.autoFocus(autoFocusTakePictureCallback);
     }
   }
 

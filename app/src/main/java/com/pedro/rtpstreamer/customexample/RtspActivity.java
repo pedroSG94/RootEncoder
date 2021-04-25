@@ -448,10 +448,8 @@ public class RtspActivity extends AppCompatActivity
       if (action == MotionEvent.ACTION_MOVE) {
         rtspCamera1.setZoom(motionEvent);
       }
-    } else {
-      if (action == MotionEvent.ACTION_UP) {
-        // todo place to add autofocus functional.
-      }
+    } else if (action == MotionEvent.ACTION_DOWN) {
+      rtspCamera1.tapToFocus(view, motionEvent);
     }
     return true;
   }
