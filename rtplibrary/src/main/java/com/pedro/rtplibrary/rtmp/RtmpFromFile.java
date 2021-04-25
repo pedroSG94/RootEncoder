@@ -3,6 +3,8 @@ package com.pedro.rtplibrary.rtmp;
 import android.content.Context;
 import android.media.MediaCodec;
 import android.os.Build;
+
+import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 
 import com.pedro.encoder.input.decoder.AudioDecoderInterface;
@@ -153,13 +155,13 @@ public class RtmpFromFile extends FromFileBase {
   }
 
   @Override
-  public boolean shouldRetry(String reason) {
+  protected boolean shouldRetry(String reason) {
     return srsFlvMuxer.shouldRetry(reason);
   }
 
   @Override
-  public void reConnect(long delay) {
-    srsFlvMuxer.reConnect(delay);
+  public void reConnect(long delay, @Nullable String backupUrl) {
+    srsFlvMuxer.reConnect(delay, backupUrl);
   }
 
   @Override

@@ -3,6 +3,8 @@ package com.pedro.rtplibrary.rtsp;
 import android.content.Context;
 import android.media.MediaCodec;
 import android.os.Build;
+
+import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 import android.view.SurfaceView;
 import android.view.TextureView;
@@ -147,13 +149,13 @@ public class RtspCamera1 extends Camera1Base {
   }
 
   @Override
-  public boolean shouldRetry(String reason) {
+  protected boolean shouldRetry(String reason) {
     return rtspClient.shouldRetry(reason);
   }
 
   @Override
-  public void reConnect(long delay) {
-    rtspClient.reConnect(delay);
+  public void reConnect(long delay, @Nullable String backupUrl) {
+    rtspClient.reConnect(delay, backupUrl);
   }
 
   @Override

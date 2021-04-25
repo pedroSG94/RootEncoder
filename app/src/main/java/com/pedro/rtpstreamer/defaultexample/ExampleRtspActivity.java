@@ -15,6 +15,9 @@ import com.pedro.encoder.input.video.CameraOpenException;
 import com.pedro.rtplibrary.rtsp.RtspCamera1;
 import com.pedro.rtpstreamer.R;
 import com.pedro.rtsp.utils.ConnectCheckerRtsp;
+
+import org.jetbrains.annotations.NotNull;
+
 import java.io.File;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
@@ -58,6 +61,10 @@ public class ExampleRtspActivity extends AppCompatActivity
   }
 
   @Override
+  public void onConnectionStartedRtsp(@NotNull String rtspUrl) {
+  }
+
+  @Override
   public void onConnectionSuccessRtsp() {
     runOnUiThread(new Runnable() {
       @Override
@@ -72,7 +79,7 @@ public class ExampleRtspActivity extends AppCompatActivity
     runOnUiThread(new Runnable() {
       @Override
       public void run() {
-        if (rtspCamera1.reTry(5000, reason)) {
+        if (rtspCamera1.reTry(5000, reason, null)) {
           Toast.makeText(ExampleRtspActivity.this, "Retry", Toast.LENGTH_SHORT)
               .show();
         } else {

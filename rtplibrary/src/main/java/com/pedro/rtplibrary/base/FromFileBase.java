@@ -389,32 +389,29 @@ public abstract class FromFileBase
 
   protected abstract void stopStreamRtp();
 
-  public boolean reTry(long delay, String reason) {
+  /**
+   * Retries to connect with the given delay. You can pass an optional backupUrl
+   * if you'd like to connect to your backup server instead of the original one.
+   * Given backupUrl replaces the original one.
+   */
+  public boolean reTry(long delay, String reason, @Nullable String backupUrl) {
     boolean result = shouldRetry(reason);
     if (result) {
-      reTry(delay);
+      resetVideoEncoder(true);
+      reConnect(delay, backupUrl);
     }
     return result;
   }
 
-  /**
-   * Replace with reTry(long delay, String reason);
-   */
-  @Deprecated
-  public void reTry(long delay) {
-    if (videoEnabled) resetVideoEncoder(true);
-    reConnect(delay);
+  public boolean reTry(long delay, String reason) {
+    return reTry(delay, reason, null);
   }
 
-  /**
-   * Replace with reTry(long delay, String reason);
-   */
-  @Deprecated
-  public abstract boolean shouldRetry(String reason);
+  protected abstract boolean shouldRetry(String reason);
 
   public abstract void setReTries(int reTries);
 
-  protected abstract void reConnect(long delay);
+  protected abstract void reConnect(long delay, @Nullable String backupUrl);
 
   //cache control
   public abstract boolean hasCongestion();

@@ -3,6 +3,8 @@ package com.pedro.rtplibrary.rtsp;
 import android.content.Context;
 import android.media.MediaCodec;
 import android.os.Build;
+
+import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 import com.pedro.encoder.utils.CodecUtil;
 import com.pedro.rtplibrary.base.DisplayBase;
@@ -120,13 +122,13 @@ public class RtspDisplay extends DisplayBase {
   }
 
   @Override
-  public boolean shouldRetry(String reason) {
+  protected boolean shouldRetry(String reason) {
     return rtspClient.shouldRetry(reason);
   }
 
   @Override
-  public void reConnect(long delay) {
-    rtspClient.reConnect(delay);
+  public void reConnect(long delay, @Nullable String backupUrl) {
+    rtspClient.reConnect(delay, backupUrl);
   }
 
   @Override

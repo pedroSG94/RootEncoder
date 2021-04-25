@@ -1,6 +1,9 @@
 package com.pedro.rtplibrary.rtmp;
 
 import android.media.MediaCodec;
+
+import androidx.annotation.Nullable;
+
 import com.pedro.rtplibrary.base.OnlyAudioBase;
 import java.nio.ByteBuffer;
 import net.ossrs.rtmp.ConnectCheckerRtmp;
@@ -109,13 +112,13 @@ public class RtmpOnlyAudio extends OnlyAudioBase {
   }
 
   @Override
-  public boolean shouldRetry(String reason) {
+  protected boolean shouldRetry(String reason) {
     return srsFlvMuxer.shouldRetry(reason);
   }
 
   @Override
-  public void reConnect(long delay) {
-    srsFlvMuxer.reConnect(delay);
+  public void reConnect(long delay, @Nullable String backupUrl) {
+    srsFlvMuxer.reConnect(delay, backupUrl);
   }
 
   @Override

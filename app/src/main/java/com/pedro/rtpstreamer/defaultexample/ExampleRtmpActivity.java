@@ -58,6 +58,10 @@ public class ExampleRtmpActivity extends AppCompatActivity
   }
 
   @Override
+  public void onConnectionStartedRtmp(String rtmpUrl) {
+  }
+
+  @Override
   public void onConnectionSuccessRtmp() {
     runOnUiThread(new Runnable() {
       @Override
@@ -72,7 +76,7 @@ public class ExampleRtmpActivity extends AppCompatActivity
     runOnUiThread(new Runnable() {
       @Override
       public void run() {
-        if (rtmpCamera1.reTry(5000, reason)) {
+        if (rtmpCamera1.reTry(5000, reason, null)) {
           Toast.makeText(ExampleRtmpActivity.this, "Retry", Toast.LENGTH_SHORT)
               .show();
         } else {
