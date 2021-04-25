@@ -60,7 +60,7 @@ public class SurfaceModeRtmpActivity extends AppCompatActivity
   }
 
   @Override
-  public void onConnectionStarted(String rtmpUrl) {
+  public void onConnectionStartedRtmp(String rtmpUrl) {
   }
 
   @Override

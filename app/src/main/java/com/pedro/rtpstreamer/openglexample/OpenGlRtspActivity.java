@@ -339,6 +339,10 @@ public class OpenGlRtspActivity extends AppCompatActivity
   }
 
   @Override
+  public void onConnectionStartedRtsp(@NotNull String rtspUrl) {
+  }
+
+  @Override
   public void onConnectionSuccessRtsp() {
     runOnUiThread(new Runnable() {
       @Override
@@ -498,9 +502,5 @@ public class OpenGlRtspActivity extends AppCompatActivity
       return true;
     }
     return false;
-  }
-
-  @Override
-  public void onConnectionStarted(@NotNull String rtmpUrl) {
   }
 }

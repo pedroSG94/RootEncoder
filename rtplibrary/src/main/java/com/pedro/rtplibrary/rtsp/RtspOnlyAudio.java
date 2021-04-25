@@ -112,7 +112,7 @@ public class RtspOnlyAudio extends OnlyAudioBase {
   }
 
   @Override
-  public boolean shouldRetry(String reason) {
+  protected boolean shouldRetry(String reason) {
     return rtspClient.shouldRetry(reason);
   }
 

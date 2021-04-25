@@ -230,31 +230,24 @@ public abstract class OnlyAudioBase implements GetAacData, GetMicrophoneData {
     return recordController.getStatus();
   }
 
+  /**
+   * Retries to connect with the given delay. You can pass an optional backupUrl
+   * if you'd like to connect to your backup server instead of the original one.
+   * Given backupUrl replaces the original one.
+   */
   public boolean reTry(long delay, String reason, @Nullable String backupUrl) {
     boolean result = shouldRetry(reason);
     if (result) {
-      reTry(delay, backupUrl);
+      reConnect(delay, backupUrl);
     }
     return result;
   }
 
-  /**
-   * Replace with reTry(long delay, String reason, String backupUrl);
-   */
-  @Deprecated
-  public void reTry(long delay) {
-    reTry(delay, null);
+  public boolean reTry(long delay, String reason) {
+    return reTry(delay, reason, null);
   }
 
-  private void reTry(long delay, @Nullable String backupUrl) {
-    reConnect(delay, backupUrl);
-  }
-
-  /**
-   * Replace with reTry(long delay, String reason, String backupUrl);
-   */
-  @Deprecated
-  public abstract boolean shouldRetry(String reason);
+  protected abstract boolean shouldRetry(String reason);
 
   public abstract void setReTries(int reTries);
 

@@ -117,7 +117,7 @@ open class RtspClient(private val connectCheckerRtsp: ConnectCheckerRtsp) {
     }
     if (!isStreaming || isRetry) {
       this.url = url
-      connectCheckerRtsp.onConnectionStarted(url)
+      connectCheckerRtsp.onConnectionStartedRtsp(url)
       val rtspMatcher = rtspUrlPattern.matcher(url)
       if (rtspMatcher.matches()) {
         tlsEnabled = (rtspMatcher.group(0) ?: "").startsWith("rtsps")
@@ -344,11 +344,11 @@ open class RtspClient(private val connectCheckerRtsp: ConnectCheckerRtsp) {
     return rtspSender.hasCongestion()
   }
 
-  fun reConnect(delay: Long, backupUrl: String?) {
+  @JvmOverloads
+  fun reConnect(delay: Long, backupUrl: String? = null) {
     reTries--
     disconnect(false)
     runnable = Runnable {
-      Log.e("Pedro", "connect")
       val reconnectUrl = backupUrl ?: url
       connect(reconnectUrl, true)
     }

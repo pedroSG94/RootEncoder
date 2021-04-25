@@ -5,7 +5,7 @@ package net.ossrs.rtmp;
  */
 public interface ConnectCheckerRtmp {
 
-  void onConnectionStarted(String rtmpUrl);
+  void onConnectionStartedRtmp(String rtmpUrl);
 
   void onConnectionSuccessRtmp();
 

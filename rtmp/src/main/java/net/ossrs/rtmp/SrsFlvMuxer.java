@@ -224,6 +224,10 @@ public class SrsFlvMuxer {
     return validReason && reTries > 0;
   }
 
+  public void reConnect(final long delay) {
+    reConnect(delay, null);
+  }
+
   public void reConnect(final long delay, final String backupUrl) {
     reTries--;
     stop(null);
@@ -239,8 +243,8 @@ public class SrsFlvMuxer {
 
   private boolean connect(String url) {
     this.url = url;
-    connectCheckerRtmp.onConnectionStarted(url);
     if (!connected) {
+      connectCheckerRtmp.onConnectionStartedRtmp(url);
       Log.i(TAG, String.format("worker: connecting to RTMP server by url=%s\n", url));
       if (publisher.connect(url)) {
         connected = publisher.publish("live");

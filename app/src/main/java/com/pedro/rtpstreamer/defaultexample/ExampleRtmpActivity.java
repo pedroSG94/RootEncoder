@@ -58,7 +58,7 @@ public class ExampleRtmpActivity extends AppCompatActivity
   }
 
   @Override
-  public void onConnectionStarted(String rtmpUrl) {
+  public void onConnectionStartedRtmp(String rtmpUrl) {
   }
 
   @Override

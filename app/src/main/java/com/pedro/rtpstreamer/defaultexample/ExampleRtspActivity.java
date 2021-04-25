@@ -61,6 +61,10 @@ public class ExampleRtspActivity extends AppCompatActivity
   }
 
   @Override
+  public void onConnectionStartedRtsp(@NotNull String rtspUrl) {
+  }
+
+  @Override
   public void onConnectionSuccessRtsp() {
     runOnUiThread(new Runnable() {
       @Override
@@ -222,9 +226,5 @@ public class ExampleRtspActivity extends AppCompatActivity
       button.setText(getResources().getString(R.string.start_button));
     }
     rtspCamera1.stopPreview();
-  }
-
-  @Override
-  public void onConnectionStarted(@NotNull String rtmpUrl) {
   }
 }

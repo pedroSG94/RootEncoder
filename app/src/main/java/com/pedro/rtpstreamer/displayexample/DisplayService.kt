@@ -106,7 +106,8 @@ class DisplayService : Service() {
     }
 
     private val connectCheckerRtp = object : ConnectCheckerRtp {
-      override fun onConnectionStarted(rtmpUrl: String) {
+
+      override fun onConnectionStartedRtp(rtpUrl: String) {
       }
 
       override fun onConnectionSuccessRtp() {

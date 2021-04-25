@@ -88,6 +88,10 @@ public class RtspFromFileActivity extends AppCompatActivity
   }
 
   @Override
+  public void onConnectionStartedRtsp(@NotNull String rtspUrl) {
+  }
+
+  @Override
   public void onConnectionSuccessRtsp() {
     runOnUiThread(new Runnable() {
       @Override
@@ -317,9 +321,5 @@ public class RtspFromFileActivity extends AppCompatActivity
   public void onStopTrackingTouch(SeekBar seekBar) {
     if (rtspFromFile.isStreaming()) rtspFromFile.moveTo(seekBar.getProgress());
     touching = false;
-  }
-
-  @Override
-  public void onConnectionStarted(@NotNull String rtmpUrl) {
   }
 }

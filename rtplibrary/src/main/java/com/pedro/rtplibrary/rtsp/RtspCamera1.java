@@ -149,7 +149,7 @@ public class RtspCamera1 extends Camera1Base {
   }
 
   @Override
-  public boolean shouldRetry(String reason) {
+  protected boolean shouldRetry(String reason) {
     return rtspClient.shouldRetry(reason);
   }
 

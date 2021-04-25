@@ -168,7 +168,7 @@ public class RtmpCamera2 extends Camera2Base {
   }
 
   @Override
-  public boolean shouldRetry(String reason) {
+  protected boolean shouldRetry(String reason) {
     return srsFlvMuxer.shouldRetry(reason);
   }
 

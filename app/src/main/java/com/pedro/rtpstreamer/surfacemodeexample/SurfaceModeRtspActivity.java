@@ -64,6 +64,10 @@ public class SurfaceModeRtspActivity extends AppCompatActivity
   }
 
   @Override
+  public void onConnectionStartedRtsp(@NotNull String rtspUrl) {
+  }
+
+  @Override
   public void onConnectionSuccessRtsp() {
     runOnUiThread(new Runnable() {
       @Override
@@ -95,10 +99,6 @@ public class SurfaceModeRtspActivity extends AppCompatActivity
   @Override
   public void onNewBitrateRtsp(long bitrate) {
 
-  }
-
-  @Override
-  public void onConnectionStarted(@NotNull String rtmpUrl) {
   }
 
   @Override

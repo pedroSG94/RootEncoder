@@ -397,29 +397,17 @@ public abstract class FromFileBase
   public boolean reTry(long delay, String reason, @Nullable String backupUrl) {
     boolean result = shouldRetry(reason);
     if (result) {
-      reTry(delay, backupUrl);
+      resetVideoEncoder(true);
+      reConnect(delay, backupUrl);
     }
     return result;
   }
 
-  /**
-   * Replace with reTry(long delay, String reason);
-   */
-  @Deprecated
-  public void reTry(long delay) {
-    reTry(delay, null);
+  public boolean reTry(long delay, String reason) {
+    return reTry(delay, reason, null);
   }
 
-  private void reTry(long delay, @Nullable String backupUrl) {
-    if (videoEnabled) resetVideoEncoder(true);
-    reConnect(delay, backupUrl);
-  }
-
-  /**
-   * Replace with reTry(long delay, String reason);
-   */
-  @Deprecated
-  public abstract boolean shouldRetry(String reason);
+  protected abstract boolean shouldRetry(String reason);
 
   public abstract void setReTries(int reTries);
 

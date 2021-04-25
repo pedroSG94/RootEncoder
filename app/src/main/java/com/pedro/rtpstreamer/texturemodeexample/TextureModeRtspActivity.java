@@ -64,6 +64,10 @@ public class TextureModeRtspActivity extends AppCompatActivity
   }
 
   @Override
+  public void onConnectionStartedRtsp(@NotNull String rtspUrl) {
+  }
+
+  @Override
   public void onConnectionSuccessRtsp() {
     runOnUiThread(new Runnable() {
       @Override
@@ -225,9 +229,5 @@ public class TextureModeRtspActivity extends AppCompatActivity
   @Override
   public void onPointerCaptureChanged(boolean hasCapture) {
 
-  }
-
-  @Override
-  public void onConnectionStarted(@NotNull String rtmpUrl) {
   }
 }
