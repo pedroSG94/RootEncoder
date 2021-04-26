@@ -12,6 +12,7 @@ import java.io.*
 import java.net.InetSocketAddress
 import java.net.Socket
 import java.net.SocketAddress
+import java.nio.ByteBuffer
 import java.util.*
 import java.util.regex.Pattern
 
@@ -28,12 +29,22 @@ class RtmpClient(private val connectCheckerRtmp: ConnectCheckerRtmp) {
   private var writer: BufferedOutputStream? = null
   private var thread: HandlerThread? = null
   private val commandsManager = CommandsManager()
+  private val rtmpSender = RtmpSender()
 
   private var isStreaming = false
   private var tlsEnabled = false
 
   fun setAuthorization(user: String?, password: String?) {
     commandsManager.setAuth(user, password)
+  }
+
+  fun setAudioInfo(sampleRate: Int, isStereo: Boolean) {
+    commandsManager.setAudioInfo(sampleRate, isStereo)
+  }
+
+  fun setSPSandPPS(sps: ByteBuffer?, pps: ByteBuffer?, vps: ByteBuffer?) {
+    Log.i(TAG, "send sps and pps")
+    rtmpSender.setVideoInfo(sps, pps, vps)
   }
 
   fun connect(url: String?) {
@@ -82,9 +93,18 @@ class RtmpClient(private val connectCheckerRtmp: ConnectCheckerRtmp) {
           val timestamp = System.currentTimeMillis() / 1000
           val handshake = Handshake()
           handshake.sendHandshake(reader, writer)
-          commandsManager.setTimestamp(timestamp.toInt())
+          commandsManager.timestamp = timestamp.toInt()
           commandsManager.connect("", writer)
-          commandsManager.handleMessages(reader, writer, connectCheckerRtmp)
+          var connectionSuccess = false
+          while (!Thread.interrupted()) {
+            //Handle all command received and send response for it. Return true if connection success received
+            val result = commandsManager.handleMessages(reader, writer, connectCheckerRtmp)
+            if (result && !connectionSuccess) {
+              connectionSuccess = result
+              //We can start send audio and video packets. RtmpSender should be initialized here
+              rtmpSender.start()
+            }
+          }
         } catch (e: Exception) {
           Log.e(TAG, "connection error", e)
           connectCheckerRtmp.onConnectionFailedRtmp("Error configure stream, ${e.message}")

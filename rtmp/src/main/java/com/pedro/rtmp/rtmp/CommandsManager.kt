@@ -24,7 +24,7 @@ class CommandsManager {
   private val TAG = "CommandsManager"
 
   private val sessionHistory = CommandSessionHistory()
-  private var timestamp = 0
+  var timestamp = 0
   private var commandId = 0
   private var streamId = 0
   var host = ""
@@ -40,10 +40,6 @@ class CommandsManager {
   private var height = 480
   private var sampleRate = 44100
   private var isStereo = true
-
-  fun setTimestamp(timestamp: Int) {
-      this.timestamp = timestamp
-  }
 
   fun setVideoInfo(width: Int, height: Int) {
     this.width = width
@@ -196,12 +192,13 @@ class CommandsManager {
   /**
    * Read all messages from server and response to it
    */
-  fun handleMessages(input: InputStream, output: OutputStream, connectCheckerRtmp: ConnectCheckerRtmp) {
+  fun handleMessages(input: InputStream, output: OutputStream, connectCheckerRtmp: ConnectCheckerRtmp): Boolean {
     val message = readMessageResponse(input)
     when (message.getType()) {
       MessageType.SET_CHUNK_SIZE -> {
         val setChunkSize = message as SetChunkSize
         ChunkConfig.size = setChunkSize.chunkSize
+        Log.i(TAG, "chunk size configured to ${setChunkSize.chunkSize}")
       }
       MessageType.SET_PEER_BANDWIDTH -> {
         val setPeerBandwidth = message as SetPeerBandwidth
@@ -220,6 +217,17 @@ class CommandsManager {
       }
       MessageType.USER_CONTROL -> {
         val userControl = message as UserControl
+        when (val type = userControl.type) {
+          UserControl.Type.PING_REQUEST -> {
+            val pong = UserControl(UserControl.Type.PONG_REPLY, userControl.event)
+            pong.writeHeader(output)
+            pong.writeBody(output)
+            output.flush()
+          }
+          else -> {
+            Log.e(TAG, "user control command $type ignored")
+          }
+        }
       }
       MessageType.COMMAND_AMF0, MessageType.COMMAND_AMF3 -> {
         val command = message as Command
@@ -264,6 +272,7 @@ class CommandsManager {
                 "NetStream.Publish.Start" -> {
                   sendMetadata(output)
                   connectCheckerRtmp.onConnectionSuccessRtmp()
+                  return true
                 }
                 "NetConnection.Connect.Rejected" -> {
 
@@ -292,6 +301,7 @@ class CommandsManager {
         Log.e(TAG, "unimplemented response for ${message.getType()}. Ignored")
       }
     }
+    return false
   }
 
   fun reset() {
