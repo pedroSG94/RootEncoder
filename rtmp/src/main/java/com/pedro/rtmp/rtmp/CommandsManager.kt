@@ -144,8 +144,7 @@ class CommandsManager {
 
   fun sendMetadata(output: OutputStream) {
     val name = "@setDataFrame"
-    //name, ++commandId, getCurrentTimestamp()
-    val metadata = DataAmf0()
+    val metadata = DataAmf0(name, getCurrentTimestamp(), streamId)
     val amfEcmaArray = AmfEcmaArray()
     amfEcmaArray.setProperty("duration", 0.0)
     amfEcmaArray.setProperty("width", width.toDouble())
@@ -153,22 +152,13 @@ class CommandsManager {
     amfEcmaArray.setProperty("videocodecid", 7.0)
     amfEcmaArray.setProperty("framerate", 30.0)
     amfEcmaArray.setProperty("videodatarate", 0.0)
-    // @see FLV video_file_format_spec_v10_1.pdf
-    // According to E.4.2.1 AUDIODATA
-    // "If the SoundFormat indicates AAC, the SoundType should be 1 (stereo) and the SoundRate should be 3 (44 kHz).
-    // However, this does not mean that AAC audio in FLV is always stereo, 44 kHz data. Instead, the Flash Player ignores
-    // these values and extracts the channel and sample rate data is encoded in the AAC bit stream."
-    // @see FLV video_file_format_spec_v10_1.pdf
-    // According to E.4.2.1 AUDIODATA
-    // "If the SoundFormat indicates AAC, the SoundType should be 1 (stereo) and the SoundRate should be 3 (44 kHz).
-    // However, this does not mean that AAC audio in FLV is always stereo, 44 kHz data. Instead, the Flash Player ignores
-    // these values and extracts the channel and sample rate data is encoded in the AAC bit stream."
     amfEcmaArray.setProperty("audiocodecid", 10.0)
     amfEcmaArray.setProperty("audiosamplerate", sampleRate.toDouble())
     amfEcmaArray.setProperty("audiosamplesize", 16.0)
     amfEcmaArray.setProperty("audiodatarate", 0.0)
     amfEcmaArray.setProperty("stereo", isStereo)
     amfEcmaArray.setProperty("filesize", 0.0)
+    metadata.addData(amfEcmaArray)
 
     metadata.writeHeader(output)
     metadata.writeBody(output)
@@ -190,7 +180,7 @@ class CommandsManager {
   }
 
   fun sendWindowAcknowledgementSize(output: OutputStream) {
-    val windowAcknowledgementSize = WindowAcknowledgementSize(RtmpConfig.acknowledgementWindowSize)
+    val windowAcknowledgementSize = WindowAcknowledgementSize(RtmpConfig.acknowledgementWindowSize, getCurrentTimestamp())
     windowAcknowledgementSize.writeHeader(output)
     windowAcknowledgementSize.writeBody(output)
     output.flush()

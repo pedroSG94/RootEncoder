@@ -30,6 +30,7 @@ abstract class Command(var name: String = "", var commandId: Int, private val ti
     data.add(amfNumber)
     header.messageLength = bodySize
     header.timeStamp = timeStamp
+    header.messageStreamId = streamId
   }
 
   fun addData(amfData: AmfData) {
