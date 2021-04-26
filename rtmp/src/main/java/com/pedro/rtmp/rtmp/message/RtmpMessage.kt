@@ -1,6 +1,5 @@
 package com.pedro.rtmp.rtmp.message
 
-import com.pedro.rtmp.rtmp.chunk.ChunkConfig
 import com.pedro.rtmp.rtmp.chunk.ChunkType
 import com.pedro.rtmp.rtmp.message.command.CommandAmf0
 import com.pedro.rtmp.rtmp.message.command.CommandAmf3
@@ -9,6 +8,7 @@ import com.pedro.rtmp.rtmp.message.data.DataAmf0
 import com.pedro.rtmp.rtmp.message.data.DataAmf3
 import com.pedro.rtmp.rtmp.message.shared.SharedObjectAmf0
 import com.pedro.rtmp.rtmp.message.shared.SharedObjectAmf3
+import com.pedro.rtmp.utils.RtmpConfig
 import com.pedro.rtmp.utils.readUntil
 import java.io.*
 
@@ -51,7 +51,7 @@ abstract class RtmpMessage(basicHeader: BasicHeader) {
       }
       rtmpMessage.updateHeader(header)
       //we have multiple chunk wait until we have full body on stream and discard chunk header
-      val bodyInput = if (header.messageLength > ChunkConfig.size) {
+      val bodyInput = if (header.messageLength > RtmpConfig.chunkSize) {
         getInputWithoutChunks(input, header)
       } else {
         input
@@ -69,12 +69,12 @@ abstract class RtmpMessage(basicHeader: BasicHeader) {
       var bytesRead = 0
       while (bytesRead < header.messageLength) {
         var chunk: ByteArray
-        if (header.messageLength - bytesRead < ChunkConfig.size) {
+        if (header.messageLength - bytesRead < RtmpConfig.chunkSize) {
           //last chunk
           chunk = ByteArray(header.messageLength - (bytesRead - 1))
           input.readUntil(chunk)
         } else {
-          chunk = ByteArray(ChunkConfig.size)
+          chunk = ByteArray(RtmpConfig.chunkSize)
           input.readUntil(chunk)
           //skip chunk header to discard it, set packet ts to indicate if you need read extended ts
           RtmpHeader.readHeader(input, header.timeStamp)
@@ -100,7 +100,7 @@ abstract class RtmpMessage(basicHeader: BasicHeader) {
   }
 
   fun writeBody(output: OutputStream) {
-    val chunkSize = ChunkConfig.size
+    val chunkSize = RtmpConfig.chunkSize
     val bytes = storeBody()
     var pos = 0
     var length = getSize()

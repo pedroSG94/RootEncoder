@@ -2,7 +2,6 @@ package com.pedro.rtmp.rtmp
 
 import android.util.Log
 import com.pedro.rtmp.amf.v0.*
-import com.pedro.rtmp.rtmp.chunk.ChunkConfig
 import com.pedro.rtmp.rtmp.chunk.ChunkStreamId
 import com.pedro.rtmp.rtmp.chunk.ChunkType
 import com.pedro.rtmp.rtmp.message.*
@@ -12,6 +11,7 @@ import com.pedro.rtmp.rtmp.message.control.UserControl
 import com.pedro.rtmp.rtmp.message.data.DataAmf0
 import com.pedro.rtmp.utils.CommandSessionHistory
 import com.pedro.rtmp.utils.ConnectCheckerRtmp
+import com.pedro.rtmp.utils.RtmpConfig
 import java.io.IOException
 import java.io.InputStream
 import java.io.OutputStream
@@ -189,6 +189,13 @@ class CommandsManager {
     sessionHistory.setPacket(commandId, name)
   }
 
+  fun sendWindowAcknowledgementSize(output: OutputStream) {
+    val windowAcknowledgementSize = WindowAcknowledgementSize(RtmpConfig.acknowledgementWindowSize)
+    windowAcknowledgementSize.writeHeader(output)
+    windowAcknowledgementSize.writeBody(output)
+    output.flush()
+  }
+
   /**
    * Read all messages from server and response to it
    */
@@ -197,23 +204,25 @@ class CommandsManager {
     when (message.getType()) {
       MessageType.SET_CHUNK_SIZE -> {
         val setChunkSize = message as SetChunkSize
-        ChunkConfig.size = setChunkSize.chunkSize
+        RtmpConfig.chunkSize = setChunkSize.chunkSize
         Log.i(TAG, "chunk size configured to ${setChunkSize.chunkSize}")
       }
-      MessageType.SET_PEER_BANDWIDTH -> {
-        val setPeerBandwidth = message as SetPeerBandwidth
+      MessageType.ACKNOWLEDGEMENT -> {
+        val acknowledgement = message as Acknowledgement
       }
       MessageType.WINDOW_ACKNOWLEDGEMENT_SIZE -> {
         val windowAcknowledgementSize = message as WindowAcknowledgementSize
+        RtmpConfig.acknowledgementWindowSize = windowAcknowledgementSize.acknowledgementWindowSize
+      }
+      MessageType.SET_PEER_BANDWIDTH -> {
+        val setPeerBandwidth = message as SetPeerBandwidth
+        sendWindowAcknowledgementSize(output)
       }
       MessageType.ABORT -> {
         val abort = message as Abort
       }
       MessageType.AGGREGATE -> {
         val aggregate = message as Aggregate
-      }
-      MessageType.ACKNOWLEDGEMENT -> {
-        val acknowledgement = message as Acknowledgement
       }
       MessageType.USER_CONTROL -> {
         val userControl = message as UserControl
@@ -225,7 +234,7 @@ class CommandsManager {
             output.flush()
           }
           else -> {
-            Log.e(TAG, "user control command $type ignored")
+            Log.i(TAG, "user control command $type ignored")
           }
         }
       }
@@ -243,7 +252,7 @@ class CommandsManager {
                 createStream(output)
               }
               "createStream" -> {
-                streamId = (command.data[2] as AmfNumber).value.toInt()
+                streamId = (command.data[3] as AmfNumber).value.toInt()
                 sendPublish(output)
               }
               else -> {
@@ -252,7 +261,7 @@ class CommandsManager {
             }
           }
           "_error" -> {
-            when (val description = ((command.data[2] as AmfObject).getProperty("code") as AmfString).value) {
+            when (val description = ((command.data[3] as AmfObject).getProperty("code") as AmfString).value) {
               "connect" -> {
                 //connect command error check if you need auth and do it
                 if (user != null && password != null) {
@@ -268,7 +277,7 @@ class CommandsManager {
           }
           "onStatus" -> {
             try {
-              when (val code = ((command.data[2] as AmfObject).getProperty("code") as AmfString).value) {
+              when (val code = ((command.data[3] as AmfObject).getProperty("code") as AmfString).value) {
                 "NetStream.Publish.Start" -> {
                   sendMetadata(output)
                   connectCheckerRtmp.onConnectionSuccessRtmp()
@@ -292,7 +301,7 @@ class CommandsManager {
             }
           }
           else -> {
-            Log.e(TAG, "unknown ${command.name} response received from ${commandName ?: "unknown command"}")
+            Log.i(TAG, "unknown ${command.name} response received from ${commandName ?: "unknown command"}")
           }
         }
       }

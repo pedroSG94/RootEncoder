@@ -10,7 +10,7 @@ import java.io.InputStream
 /**
  * Created by pedro on 21/04/21.
  */
-class WindowAcknowledgementSize(private var acknowledgementWindowSize: Int = 0):
+class WindowAcknowledgementSize(var acknowledgementWindowSize: Int = 0):
     RtmpMessage(BasicHeader(ChunkType.TYPE_0, ChunkStreamId.PROTOCOL_CONTROL)) {
 
   override fun readBody(input: InputStream) {

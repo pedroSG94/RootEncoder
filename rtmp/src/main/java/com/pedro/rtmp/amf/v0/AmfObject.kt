@@ -27,7 +27,12 @@ open class AmfObject(private val properties: HashMap<AmfString, AmfData> = Linke
   }
 
   fun getProperty(name: String): AmfData? {
-    return properties[AmfString(name)]
+    properties.forEach {
+      if (it.key.value == name) {
+        return it.value
+      }
+    }
+    return null
   }
 
   fun setProperty(name: String, data: String) {
