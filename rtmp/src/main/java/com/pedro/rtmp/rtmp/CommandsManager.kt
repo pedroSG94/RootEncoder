@@ -7,11 +7,8 @@ import com.pedro.rtmp.rtmp.chunk.ChunkType
 import com.pedro.rtmp.rtmp.message.*
 import com.pedro.rtmp.rtmp.message.command.Command
 import com.pedro.rtmp.rtmp.message.command.CommandAmf0
-import com.pedro.rtmp.rtmp.message.control.UserControl
 import com.pedro.rtmp.rtmp.message.data.DataAmf0
-import com.pedro.rtmp.utils.AuthUtil
 import com.pedro.rtmp.utils.CommandSessionHistory
-import com.pedro.rtmp.utils.ConnectCheckerRtmp
 import com.pedro.rtmp.utils.RtmpConfig
 import java.io.IOException
 import java.io.InputStream
@@ -24,18 +21,18 @@ class CommandsManager {
 
   private val TAG = "CommandsManager"
 
-  private val sessionHistory = CommandSessionHistory()
+  val sessionHistory = CommandSessionHistory()
   var timestamp = 0
   private var commandId = 0
-  private var streamId = 0
+  var streamId = 0
   var host = ""
   var port = 1935
   var appName = ""
   var streamName = ""
   var  tcUrl = ""
-  private var user: String? = null
-  private var password: String? = null
-  private var onAuth = false
+  var user: String? = null
+  var password: String? = null
+  var onAuth = false
 
   private var width = 640
   private var height = 480
@@ -62,7 +59,7 @@ class CommandsManager {
   }
 
   @Throws(IOException::class)
-  fun connect(auth: String, output: OutputStream) {
+  fun sendConnect(auth: String, output: OutputStream) {
     val connect = CommandAmf0("connect", ++commandId, streamId, getCurrentTimestamp(),
         BasicHeader(ChunkType.TYPE_0, ChunkStreamId.OVER_CONNECTION))
     val connectInfo = AmfObject()
@@ -188,146 +185,14 @@ class CommandsManager {
     output.flush()
   }
 
-  /**
-   * Read all messages from server and response to it
-   */
-  fun handleMessages(input: InputStream, output: OutputStream, connectCheckerRtmp: ConnectCheckerRtmp): Boolean {
-    val message = readMessageResponse(input)
-    when (message.getType()) {
-      MessageType.SET_CHUNK_SIZE -> {
-        val setChunkSize = message as SetChunkSize
-        RtmpConfig.chunkSize = setChunkSize.chunkSize
-        Log.i(TAG, "chunk size configured to ${setChunkSize.chunkSize}")
-      }
-      MessageType.ACKNOWLEDGEMENT -> {
-        val acknowledgement = message as Acknowledgement
-      }
-      MessageType.WINDOW_ACKNOWLEDGEMENT_SIZE -> {
-        val windowAcknowledgementSize = message as WindowAcknowledgementSize
-        RtmpConfig.acknowledgementWindowSize = windowAcknowledgementSize.acknowledgementWindowSize
-      }
-      MessageType.SET_PEER_BANDWIDTH -> {
-        val setPeerBandwidth = message as SetPeerBandwidth
-        sendWindowAcknowledgementSize(output)
-      }
-      MessageType.ABORT -> {
-        val abort = message as Abort
-      }
-      MessageType.AGGREGATE -> {
-        val aggregate = message as Aggregate
-      }
-      MessageType.USER_CONTROL -> {
-        val userControl = message as UserControl
-        when (val type = userControl.type) {
-          UserControl.Type.PING_REQUEST -> {
-            val pong = UserControl(UserControl.Type.PONG_REPLY, userControl.event)
-            pong.writeHeader(output)
-            pong.writeBody(output)
-            output.flush()
-          }
-          else -> {
-            Log.i(TAG, "user control command $type ignored")
-          }
-        }
-      }
-      MessageType.COMMAND_AMF0, MessageType.COMMAND_AMF3 -> {
-        val command = message as Command
-        val commandName = sessionHistory.getName(command.commandId)
-        when (command.name) {
-          "_result" -> {
-            when (commandName) {
-              "connect" -> {
-                if (onAuth) {
-                  connectCheckerRtmp.onAuthSuccessRtmp()
-                  onAuth = false
-                }
-                createStream(output)
-              }
-              "createStream" -> {
-                streamId = (command.data[3] as AmfNumber).value.toInt()
-                sendPublish(output)
-              }
-              else -> {
-                Log.i(TAG, "success response received from ${commandName ?: "unknown command"}")
-              }
-            }
-          }
-          "_error" -> {
-            when (val description = ((command.data[3] as AmfObject).getProperty("code") as AmfString).value) {
-              "connect" -> {
-                if (description.contains("reason=authfail") || description.contains("reason=nosuchuser")) {
-                  connectCheckerRtmp.onAuthErrorRtmp()
-                } else if (user != null && password != null &&
-                    description.contains("challenge=") && description.contains("salt=") //adobe response
-                    || description.contains("nonce=")) { //llnw response
-                  onAuth = true
-                  if (description.contains("challenge=") && description.contains("salt=")) { //create adobe auth
-                    val salt = AuthUtil.getSalt(description)
-                    val challenge = AuthUtil.getChallenge(description)
-                    val opaque = AuthUtil.getOpaque(description)
-                    connect(AuthUtil.getAdobeAuthUserResult(user ?: "", password ?: "", salt, challenge, opaque), output)
-                  } else if (description.contains("nonce=")) { //create llnw auth
-                    val nonce = AuthUtil.getNonce(description)
-                    connect(AuthUtil.getLlnwAuthUserResult(user ?: "", password ?: "", nonce, appName), output)
-                  }
-                } else if (description.contains("code=403")) {
-                  if (description.contains("authmod=adobe")) {
-                    Log.i(TAG, "sending auth mode adobe")
-                    connect("?authmod=adobe&user=$user", output)
-                  } else if (description.contains("authmod=llnw")) {
-                    Log.i(TAG, "sending auth mode llnw")
-                    connect("?authmod=llnw&user=$user", output)
-                  }
-                } else {
-                  connectCheckerRtmp.onAuthErrorRtmp()
-                }
-              }
-              else -> {
-                connectCheckerRtmp.onConnectionFailedRtmp(description)
-              }
-            }
-          }
-          "onStatus" -> {
-            try {
-              when (val code = ((command.data[3] as AmfObject).getProperty("code") as AmfString).value) {
-                "NetStream.Publish.Start" -> {
-                  sendMetadata(output)
-                  connectCheckerRtmp.onConnectionSuccessRtmp()
-                  return true
-                }
-                "NetConnection.Connect.Rejected" -> {
-
-                }
-                "NetStream.Unpublish.Success" -> {
-
-                }
-                "NetStream.Publish.BadName" -> {
-
-                }
-                else -> {
-                  Log.i(TAG, "onStatus $code response received from ${commandName ?: "unknown command"}")
-                }
-              }
-            } catch (e: Exception) {
-              Log.e(TAG, "error parsing onStatus command", e)
-            }
-          }
-          else -> {
-            Log.i(TAG, "unknown ${command.name} response received from ${commandName ?: "unknown command"}")
-          }
-        }
-      }
-      MessageType.VIDEO, MessageType.AUDIO, MessageType.DATA_AMF0, MessageType.DATA_AMF3,
-      MessageType.SHARED_OBJECT_AMF0, MessageType.SHARED_OBJECT_AMF3 -> {
-        Log.e(TAG, "unimplemented response for ${message.getType()}. Ignored")
-      }
-    }
-    return false
-  }
-
   fun reset() {
     streamId = 0
     commandId = 0
     sessionHistory.reset()
+  }
+
+  fun setVideoResolution(width: Int, height: Int) {
+    this.width = width
+    this.height = height
   }
 }

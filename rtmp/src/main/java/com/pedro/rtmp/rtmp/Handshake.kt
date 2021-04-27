@@ -57,7 +57,7 @@ class Handshake {
   private var timestampC1 = 0
 
   @Throws(IOException::class)
-  fun sendHandshake(input: InputStream, output: OutputStream) {
+  fun sendHandshake(input: InputStream, output: OutputStream): Boolean {
     writeC0(output)
     val c1 = writeC1(output)
     output.flush()
@@ -66,6 +66,7 @@ class Handshake {
     writeC2(output, c1)
     output.flush()
     readS2(input, c1)
+    return true
   }
 
   @Throws(IOException::class)
