@@ -22,6 +22,26 @@ class AmfEcmaArray(private val properties: HashMap<AmfString, AmfData> = HashMap
     bodySize += 4
   }
 
+  override fun setProperty(name: String, data: String) {
+    super.setProperty(name, data)
+    length = properties.size
+  }
+
+  override fun setProperty(name: String, data: Boolean) {
+    super.setProperty(name, data)
+    length = properties.size
+  }
+
+  override fun setProperty(name: String) {
+    super.setProperty(name)
+    length = properties.size
+  }
+
+  override fun setProperty(name: String, data: Double) {
+    super.setProperty(name, data)
+    length = properties.size
+  }
+
   @Throws(IOException::class)
   override fun readBody(input: InputStream) {
     //get number of items as UInt32
@@ -34,7 +54,7 @@ class AmfEcmaArray(private val properties: HashMap<AmfString, AmfData> = HashMap
   @Throws(IOException::class)
   override fun writeBody(output: OutputStream) {
     //write number of items in the list as UInt32
-    output.writeUInt32(properties.size)
+    output.writeUInt32(length)
     //write items
     super.writeBody(output)
   }

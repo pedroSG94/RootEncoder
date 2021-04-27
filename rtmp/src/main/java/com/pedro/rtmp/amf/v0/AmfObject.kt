@@ -35,7 +35,7 @@ open class AmfObject(private val properties: HashMap<AmfString, AmfData> = Linke
     return null
   }
 
-  fun setProperty(name: String, data: String) {
+  open fun setProperty(name: String, data: String) {
     val key = AmfString(name)
     val value = AmfString(data)
     properties[key] = value
@@ -43,7 +43,7 @@ open class AmfObject(private val properties: HashMap<AmfString, AmfData> = Linke
     bodySize += value.getSize() + 1
   }
 
-  fun setProperty(name: String, data: Boolean) {
+  open fun setProperty(name: String, data: Boolean) {
     val key = AmfString(name)
     val value = AmfBoolean(data)
     properties[key] = value
@@ -51,7 +51,7 @@ open class AmfObject(private val properties: HashMap<AmfString, AmfData> = Linke
     bodySize += value.getSize() + 1
   }
 
-  fun setProperty(name: String) {
+  open fun setProperty(name: String) {
     val key = AmfString(name)
     val value = AmfNull()
     properties[key] = value
@@ -59,7 +59,7 @@ open class AmfObject(private val properties: HashMap<AmfString, AmfData> = Linke
     bodySize += value.getSize() + 1
   }
 
-  fun setProperty(name: String, data: Double) {
+  open fun setProperty(name: String, data: Double) {
     val key = AmfString(name)
     val value = AmfNumber(data)
     properties[key] = value

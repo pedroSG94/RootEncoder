@@ -9,6 +9,7 @@ import com.pedro.rtmp.rtmp.message.command.Command
 import com.pedro.rtmp.rtmp.message.command.CommandAmf0
 import com.pedro.rtmp.rtmp.message.control.UserControl
 import com.pedro.rtmp.rtmp.message.data.DataAmf0
+import com.pedro.rtmp.utils.AuthUtil
 import com.pedro.rtmp.utils.CommandSessionHistory
 import com.pedro.rtmp.utils.ConnectCheckerRtmp
 import com.pedro.rtmp.utils.RtmpConfig
@@ -145,6 +146,7 @@ class CommandsManager {
   fun sendMetadata(output: OutputStream) {
     val name = "@setDataFrame"
     val metadata = DataAmf0(name, getCurrentTimestamp(), streamId)
+    metadata.addData(AmfString("onMetaData"))
     val amfEcmaArray = AmfEcmaArray()
     amfEcmaArray.setProperty("duration", 0.0)
     amfEcmaArray.setProperty("width", width.toDouble())
@@ -163,7 +165,7 @@ class CommandsManager {
     metadata.writeHeader(output)
     metadata.writeBody(output)
     output.flush()
-    sessionHistory.setPacket(commandId, name)
+    Log.i(TAG, "send $metadata")
   }
 
   fun sendPublish(output: OutputStream) {
@@ -253,9 +255,29 @@ class CommandsManager {
           "_error" -> {
             when (val description = ((command.data[3] as AmfObject).getProperty("code") as AmfString).value) {
               "connect" -> {
-                //connect command error check if you need auth and do it
-                if (user != null && password != null) {
+                if (description.contains("reason=authfail") || description.contains("reason=nosuchuser")) {
+                  connectCheckerRtmp.onAuthErrorRtmp()
+                } else if (user != null && password != null &&
+                    description.contains("challenge=") && description.contains("salt=") //adobe response
+                    || description.contains("nonce=")) { //llnw response
                   onAuth = true
+                  if (description.contains("challenge=") && description.contains("salt=")) { //create adobe auth
+                    val salt = AuthUtil.getSalt(description)
+                    val challenge = AuthUtil.getChallenge(description)
+                    val opaque = AuthUtil.getOpaque(description)
+                    connect(AuthUtil.getAdobeAuthUserResult(user ?: "", password ?: "", salt, challenge, opaque), output)
+                  } else if (description.contains("nonce=")) { //create llnw auth
+                    val nonce = AuthUtil.getNonce(description)
+                    connect(AuthUtil.getLlnwAuthUserResult(user ?: "", password ?: "", nonce, appName), output)
+                  }
+                } else if (description.contains("code=403")) {
+                  if (description.contains("authmod=adobe")) {
+                    Log.i(TAG, "sending auth mode adobe")
+                    connect("?authmod=adobe&user=$user", output)
+                  } else if (description.contains("authmod=llnw")) {
+                    Log.i(TAG, "sending auth mode llnw")
+                    connect("?authmod=llnw&user=$user", output)
+                  }
                 } else {
                   connectCheckerRtmp.onAuthErrorRtmp()
                 }

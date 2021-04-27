@@ -58,4 +58,8 @@ abstract class Data(private val name: String, timeStamp: Int, streamId: Int, bas
   }
 
   override fun getSize(): Int = bodySize
+
+  override fun toString(): String {
+    return "Data(name='$name', data=$data, bodySize=$bodySize)"
+  }
 }
