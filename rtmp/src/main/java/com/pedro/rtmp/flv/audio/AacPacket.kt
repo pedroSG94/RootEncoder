@@ -4,7 +4,6 @@ import android.media.MediaCodec
 import com.pedro.rtmp.flv.FlvPacket
 import com.pedro.rtmp.flv.FlvType
 import java.nio.ByteBuffer
-import kotlin.experimental.and
 import kotlin.experimental.or
 
 /**
@@ -20,6 +19,8 @@ class AacPacket(private val audioPacketCallback: AudioPacketCallback) {
   private var isStereo = true
   //In microphone we are using always 16bits pcm encoding. Change me if needed
   private var audioSize = AudioSize.SND_16_BIT
+  //In encoder we are using always AAC LC. Change me if needed
+  private val objectType = AudioObjectType.AAC_LC
 
   enum class Type(val mark: Byte) {
     SEQUENCE(0x00), RAW(0x01)
@@ -35,8 +36,8 @@ class AacPacket(private val audioPacketCallback: AudioPacketCallback) {
     //header is 2 bytes length
     //4 bits sound format, 2 bits sound rate, 1 bit sound size, 1 bit sound type
     //8 bits sound data (always 10 because we aer using aac)
-    header[0] = if (isStereo) AudioSoundType.STEREO.mark else AudioSoundType.MONO.mark
-    header[0] = header[0] or (audioSize.mark.toInt() shl 1).toByte()
+    header[0] = if (isStereo) AudioSoundType.STEREO.value else AudioSoundType.MONO.value
+    header[0] = header[0] or (audioSize.value shl 1).toByte()
     val soundRate = when (sampleRate) {
       44100 -> AudioSoundRate.SR_44_1K
       22050 -> AudioSoundRate.SR_22K
@@ -44,16 +45,14 @@ class AacPacket(private val audioPacketCallback: AudioPacketCallback) {
       5500 -> AudioSoundRate.SR_5_5K
       else -> AudioSoundRate.SR_44_1K
     }
-    header[0] = header[0] or (soundRate.ordinal shl 2).toByte()
-    header[0] = header[0] or (AudioFormat.AAC.ordinal shl 4).toByte()
+    header[0] = header[0] or (soundRate.value shl 2).toByte()
+    header[0] = header[0] or (AudioFormat.AAC.value shl 4).toByte()
     val buffer: ByteArray
     if (!configSend) {
-      buffer = ByteArray(9 + header.size)
+      val config = AudioSpecificConfig(objectType.value, sampleRate, if (isStereo) 2 else 1)
+      buffer = ByteArray(config.size + header.size)
       header[1] = Type.SEQUENCE.mark
-      //try get audio object type, if not possible set AAC_LC
-      val objectType = AudioObjectType.AAC_LC.ordinal
-      val config = AudioSpecificConfig(objectType, sampleRate, if (isStereo) 2 else 1)
-      config.write(buffer)
+      config.write(buffer, header.size)
       configSend = true
     } else {
       header[1] = Type.RAW.mark

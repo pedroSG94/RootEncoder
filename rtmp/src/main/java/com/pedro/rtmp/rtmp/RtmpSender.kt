@@ -8,6 +8,7 @@ import com.pedro.rtmp.flv.FlvPacket
 import com.pedro.rtmp.flv.FlvType
 import com.pedro.rtmp.flv.audio.AacPacket
 import com.pedro.rtmp.flv.audio.AudioPacketCallback
+import com.pedro.rtmp.flv.video.H264Packet
 import com.pedro.rtmp.flv.video.VideoPacketCallback
 import com.pedro.rtmp.utils.BitrateManager
 import com.pedro.rtmp.utils.ConnectCheckerRtmp
@@ -24,6 +25,7 @@ import java.util.concurrent.TimeUnit
 class RtmpSender(private val connectCheckerRtmp: ConnectCheckerRtmp, private val commandsManager: CommandsManager) : AudioPacketCallback, VideoPacketCallback {
 
     private var aacPacket = AacPacket(this)
+    private var h264Packet = H264Packet(this)
     private var running = false
 
     @Volatile
@@ -40,10 +42,11 @@ class RtmpSender(private val connectCheckerRtmp: ConnectCheckerRtmp, private val
     private var isEnableLogs = true
 
     companion object {
-      private const val TAG = "RtspSender"
+      private const val TAG = "RtmpSender"
     }
 
-    fun setVideoInfo(sps: ByteArray?, pps: ByteArray?, vps: ByteArray?) {
+    fun setVideoInfo(sps: ByteBuffer, pps: ByteBuffer, vps: ByteBuffer?) {
+      h264Packet.sendVideoInfo(sps.array(), pps.array())
     }
 
     fun setAudioInfo(sampleRate: Int, isStereo: Boolean) {
@@ -51,6 +54,7 @@ class RtmpSender(private val connectCheckerRtmp: ConnectCheckerRtmp, private val
     }
 
     fun sendVideoFrame(h264Buffer: ByteBuffer, info: MediaCodec.BufferInfo) {
+      if (running) h264Packet.createFlvAudioPacket(h264Buffer, info)
     }
 
     fun sendAudioFrame(aacBuffer: ByteBuffer, info: MediaCodec.BufferInfo) {
@@ -126,6 +130,7 @@ class RtmpSender(private val connectCheckerRtmp: ConnectCheckerRtmp, private val
       thread = null
       flvPacketBlockingQueue.clear()
       aacPacket.reset()
+      h264Packet.reset()
       resetSentAudioFrames()
       resetSentVideoFrames()
       resetDroppedAudioFrames()

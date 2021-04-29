@@ -50,6 +50,7 @@ class RtmpClient(private val connectCheckerRtmp: ConnectCheckerRtmp) {
   private var reTries = 0
   private val handler: Handler = Handler(Looper.getMainLooper())
   private var runnable: Runnable? = null
+  private var publishPermitted = false
 
   fun setAuthorization(user: String?, password: String?) {
     commandsManager.setAuth(user, password)
@@ -70,9 +71,9 @@ class RtmpClient(private val connectCheckerRtmp: ConnectCheckerRtmp) {
     rtmpSender.setAudioInfo(sampleRate, isStereo)
   }
 
-  fun setSPSandPPS(sps: ByteBuffer?, pps: ByteBuffer?, vps: ByteBuffer?) {
+  fun setSPSandPPS(sps: ByteBuffer, pps: ByteBuffer, vps: ByteBuffer?) {
     Log.i(TAG, "send sps and pps")
-    //rtmpSender.setVideoInfo(sps, pps, vps)
+    rtmpSender.setVideoInfo(sps, pps, vps)
   }
 
   fun setVideoResolution(width: Int, height: Int) {
@@ -120,10 +121,13 @@ class RtmpClient(private val connectCheckerRtmp: ConnectCheckerRtmp) {
               return@post
             }
             commandsManager.sendConnect("", writer!!)
-            while (!Thread.interrupted()) {
+            //read packets until you did success connection to server and you are ready to send packets
+            while (!Thread.interrupted() && !publishPermitted) {
               //Handle all command received and send response for it. Return true if connection success received
               handleMessages(reader!!, writer!!)
             }
+            //read packet because maybe server want send you something while streaming
+            handleServerPackets()
           } catch (e: Exception) {
             Log.e(TAG, "connection error", e)
             connectCheckerRtmp.onConnectionFailedRtmp("Error configure stream, ${e.message}")
@@ -132,6 +136,14 @@ class RtmpClient(private val connectCheckerRtmp: ConnectCheckerRtmp) {
         }
       }
     }
+  }
+
+  private fun handleServerPackets() {
+    try {
+      while (!Thread.interrupted()) {
+        handleMessages(reader!!, writer!!)
+      }
+    } catch (e: Exception) {}
   }
 
   private fun getAppName(app: String, name: String): String {
@@ -295,6 +307,7 @@ class RtmpClient(private val connectCheckerRtmp: ConnectCheckerRtmp) {
 
                   rtmpSender.output = writer
                   rtmpSender.start()
+                  publishPermitted = true
                 }
                 else -> {
                   Log.i(TAG, "onStatus $code response received from ${commandName ?: "unknown command"}")
@@ -375,6 +388,7 @@ class RtmpClient(private val connectCheckerRtmp: ConnectCheckerRtmp) {
       isStreaming = false
       connectCheckerRtmp.onDisconnectRtmp()
     }
+    publishPermitted = false
     commandsManager.reset()
   }
 
@@ -384,5 +398,34 @@ class RtmpClient(private val connectCheckerRtmp: ConnectCheckerRtmp) {
 
   fun sendAudio(aacBuffer: ByteBuffer, info: MediaCodec.BufferInfo) {
     rtmpSender.sendAudioFrame(aacBuffer, info)
+  }
+
+  fun hasCongestion(): Boolean {
+    return rtmpSender.hasCongestion()
+  }
+
+  fun resetSentAudioFrames() {
+    rtmpSender.resetSentAudioFrames()
+  }
+
+  fun resetSentVideoFrames() {
+    rtmpSender.resetSentVideoFrames()
+  }
+
+  fun resetDroppedAudioFrames() {
+    rtmpSender.resetDroppedAudioFrames()
+  }
+
+  fun resetDroppedVideoFrames() {
+    rtmpSender.resetDroppedVideoFrames()
+  }
+
+  @Throws(RuntimeException::class)
+  fun resizeCache(newSize: Int) {
+    rtmpSender.resizeCache(newSize)
+  }
+
+  fun setLogs(enable: Boolean) {
+    rtmpSender.setLogs(enable)
   }
 }
