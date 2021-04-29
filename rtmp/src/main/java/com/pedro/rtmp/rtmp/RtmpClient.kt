@@ -1,5 +1,6 @@
 package com.pedro.rtmp.rtmp
 
+import android.media.MediaCodec
 import android.os.Handler
 import android.os.HandlerThread
 import android.os.Looper
@@ -35,7 +36,7 @@ class RtmpClient(private val connectCheckerRtmp: ConnectCheckerRtmp) {
   private var writer: BufferedOutputStream? = null
   private var thread: HandlerThread? = null
   private val commandsManager = CommandsManager()
-  private val rtmpSender = RtmpSender()
+  private val rtmpSender = RtmpSender(connectCheckerRtmp, commandsManager)
 
   @Volatile
   var isStreaming = false
@@ -66,17 +67,19 @@ class RtmpClient(private val connectCheckerRtmp: ConnectCheckerRtmp) {
 
   fun setAudioInfo(sampleRate: Int, isStereo: Boolean) {
     commandsManager.setAudioInfo(sampleRate, isStereo)
+    rtmpSender.setAudioInfo(sampleRate, isStereo)
   }
 
   fun setSPSandPPS(sps: ByteBuffer?, pps: ByteBuffer?, vps: ByteBuffer?) {
     Log.i(TAG, "send sps and pps")
-    rtmpSender.setVideoInfo(sps, pps, vps)
+    //rtmpSender.setVideoInfo(sps, pps, vps)
   }
 
   fun setVideoResolution(width: Int, height: Int) {
     commandsManager.setVideoResolution(width, height)
   }
 
+  @JvmOverloads
   fun connect(url: String?, isRetry: Boolean = false) {
     if (!isRetry) doingRetry = true
     if (url == null) {
@@ -289,6 +292,8 @@ class RtmpClient(private val connectCheckerRtmp: ConnectCheckerRtmp) {
                 "NetStream.Publish.Start" -> {
                   commandsManager.sendMetadata(output)
                   connectCheckerRtmp.onConnectionSuccessRtmp()
+
+                  rtmpSender.output = writer
                   rtmpSender.start()
                 }
                 else -> {
@@ -332,7 +337,6 @@ class RtmpClient(private val connectCheckerRtmp: ConnectCheckerRtmp) {
   }
 
   private fun disconnect(clear: Boolean) {
-    closeConnection()
     if (isStreaming) rtmpSender.stop()
     thread?.looper?.thread?.interrupt()
     thread?.looper?.quit()
@@ -340,13 +344,45 @@ class RtmpClient(private val connectCheckerRtmp: ConnectCheckerRtmp) {
     try {
       writer?.flush()
       thread?.join(100)
-    } catch (e: Exception) {
+    } catch (e: Exception) { }
+    thread = HandlerThread(TAG)
+    thread?.start()
+    thread?.let {
+      val h = Handler(it.looper)
+      h.post {
+        try {
+          writer?.let { writer ->
+            commandsManager.sendClose(writer)
+          }
+          closeConnection()
+        } catch (e: IOException) {
+          Log.e(TAG, "disconnect error", e)
+        }
+      }
     }
+    try {
+      thread?.join(200) //wait finish teardown
+      thread?.looper?.thread?.interrupt()
+      thread?.looper?.quit()
+      thread?.quit()
+      writer?.flush()
+      thread?.join(100)
+      thread = null
+    } catch (e: Exception) { }
     if (clear) {
       reTries = numRetry
       doingRetry = false
       isStreaming = false
       connectCheckerRtmp.onDisconnectRtmp()
     }
+    commandsManager.reset()
+  }
+
+  fun sendVideo(h264Buffer: ByteBuffer, info: MediaCodec.BufferInfo) {
+    rtmpSender.sendVideoFrame(h264Buffer, info)
+  }
+
+  fun sendAudio(aacBuffer: ByteBuffer, info: MediaCodec.BufferInfo) {
+    rtmpSender.sendAudioFrame(aacBuffer, info)
   }
 }

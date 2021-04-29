@@ -2,6 +2,7 @@ package com.pedro.rtmp.rtmp
 
 import android.util.Log
 import com.pedro.rtmp.amf.v0.*
+import com.pedro.rtmp.flv.FlvPacket
 import com.pedro.rtmp.rtmp.chunk.ChunkStreamId
 import com.pedro.rtmp.rtmp.chunk.ChunkType
 import com.pedro.rtmp.rtmp.message.*
@@ -36,8 +37,8 @@ class CommandsManager {
 
   private var width = 640
   private var height = 480
-  private var sampleRate = 44100
-  private var isStereo = true
+  var sampleRate = 44100
+  var isStereo = true
 
   fun setVideoInfo(width: Int, height: Int) {
     this.width = width
@@ -60,7 +61,7 @@ class CommandsManager {
 
   @Throws(IOException::class)
   fun sendConnect(auth: String, output: OutputStream) {
-    val connect = CommandAmf0("connect", ++commandId, streamId, getCurrentTimestamp(),
+    val connect = CommandAmf0("connect", ++commandId, getCurrentTimestamp(), streamId,
         BasicHeader(ChunkType.TYPE_0, ChunkStreamId.OVER_CONNECTION))
     val connectInfo = AmfObject()
     connectInfo.setProperty("app", appName + auth)
@@ -84,7 +85,7 @@ class CommandsManager {
   }
 
   fun createStream(output: OutputStream) {
-    val releaseStream = CommandAmf0("releaseStream", ++commandId, streamId, getCurrentTimestamp(),
+    val releaseStream = CommandAmf0("releaseStream", ++commandId, getCurrentTimestamp(), streamId,
         BasicHeader(ChunkType.TYPE_0, ChunkStreamId.OVER_STREAM))
     releaseStream.addData(AmfNull())
     releaseStream.addData(AmfString(streamName))
@@ -94,7 +95,7 @@ class CommandsManager {
     sessionHistory.setPacket(commandId, "releaseStream")
     Log.i(TAG, "send $releaseStream")
 
-    val fcPublish = CommandAmf0("FCPublish", ++commandId, streamId, getCurrentTimestamp(),
+    val fcPublish = CommandAmf0("FCPublish", ++commandId, getCurrentTimestamp(), streamId,
         BasicHeader(ChunkType.TYPE_0, ChunkStreamId.OVER_STREAM))
     fcPublish.addData(AmfNull())
     fcPublish.addData(AmfString(streamName))
@@ -104,7 +105,7 @@ class CommandsManager {
     sessionHistory.setPacket(commandId, "FCPublish")
     Log.i(TAG, "send $fcPublish")
 
-    val createStream = CommandAmf0("createStream", ++commandId, streamId, getCurrentTimestamp(),
+    val createStream = CommandAmf0("createStream", ++commandId, getCurrentTimestamp(), streamId,
         BasicHeader(ChunkType.TYPE_0, ChunkStreamId.OVER_CONNECTION))
     createStream.addData(AmfNull())
 
@@ -167,7 +168,7 @@ class CommandsManager {
 
   fun sendPublish(output: OutputStream) {
     val name = "publish"
-    val publish = CommandAmf0(name, ++commandId, streamId, getCurrentTimestamp(), BasicHeader(ChunkType.TYPE_0, ChunkStreamId.OVER_STREAM))
+    val publish = CommandAmf0(name, ++commandId, getCurrentTimestamp(), streamId, BasicHeader(ChunkType.TYPE_0, ChunkStreamId.OVER_STREAM))
     publish.addData(AmfNull())
     publish.addData(AmfString(streamName))
     publish.addData(AmfString("live"))
@@ -176,6 +177,7 @@ class CommandsManager {
     publish.writeBody(output)
     output.flush()
     sessionHistory.setPacket(commandId, name)
+    Log.i(TAG, "send $publish")
   }
 
   fun sendWindowAcknowledgementSize(output: OutputStream) {
@@ -183,6 +185,36 @@ class CommandsManager {
     windowAcknowledgementSize.writeHeader(output)
     windowAcknowledgementSize.writeBody(output)
     output.flush()
+  }
+
+  fun sendClose(output: OutputStream) {
+    val name = "closeStream"
+    val closeStream = CommandAmf0(name, ++commandId, getCurrentTimestamp(), streamId, BasicHeader(ChunkType.TYPE_0, ChunkStreamId.OVER_STREAM))
+    closeStream.addData(AmfNull())
+
+    closeStream.writeHeader(output)
+    closeStream.writeBody(output)
+    output.flush()
+    sessionHistory.setPacket(commandId, name)
+    Log.i(TAG, "send $closeStream")
+  }
+
+  fun sendVideoPacket(flvPacket: FlvPacket, output: OutputStream) {
+    val video = Video(flvPacket, streamId)
+
+    video.writeHeader(output)
+    video.writeBody(output)
+    output.flush()
+    Log.i(TAG, "send $video")
+  }
+
+  fun sendAudioPacket(flvPacket: FlvPacket, output: OutputStream) {
+    val audio = Audio(flvPacket, streamId)
+
+    audio.writeHeader(output)
+    audio.writeBody(output)
+    output.flush()
+    Log.i(TAG, "send $audio")
   }
 
   fun reset() {

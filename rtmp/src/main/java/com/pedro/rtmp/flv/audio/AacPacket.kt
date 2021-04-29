@@ -4,6 +4,7 @@ import android.media.MediaCodec
 import com.pedro.rtmp.flv.FlvPacket
 import com.pedro.rtmp.flv.FlvType
 import java.nio.ByteBuffer
+import kotlin.experimental.and
 import kotlin.experimental.or
 
 /**
@@ -50,9 +51,10 @@ class AacPacket(private val audioPacketCallback: AudioPacketCallback) {
       buffer = ByteArray(9 + header.size)
       header[1] = Type.SEQUENCE.mark
       //try get audio object type, if not possible set AAC_LC
-      val objectType = if (info.flags == MediaCodec.BUFFER_FLAG_CODEC_CONFIG) byteBuffer.get(0).toInt() and 0xF8 else AudioObjectType.AAC_LC.ordinal
+      val objectType = AudioObjectType.AAC_LC.ordinal
       val config = AudioSpecificConfig(objectType, sampleRate, if (isStereo) 2 else 1)
       config.write(buffer)
+      configSend = true
     } else {
       header[1] = Type.RAW.mark
       buffer = ByteArray(info.size - info.offset + header.size)

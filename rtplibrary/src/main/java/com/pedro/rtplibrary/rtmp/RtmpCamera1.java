@@ -6,6 +6,8 @@ import android.os.Build;
 import androidx.annotation.RequiresApi;
 import android.view.SurfaceView;
 import android.view.TextureView;
+
+import com.pedro.rtmp.rtmp.RtmpClient;
 import com.pedro.rtplibrary.base.Camera1Base;
 import com.pedro.rtplibrary.view.LightOpenGlView;
 import com.pedro.rtplibrary.view.OpenGlView;
@@ -23,10 +25,16 @@ import net.ossrs.rtmp.SrsFlvMuxer;
 public class RtmpCamera1 extends Camera1Base {
 
   private SrsFlvMuxer srsFlvMuxer;
+  private RtmpClient rtmpClient;
 
   public RtmpCamera1(SurfaceView surfaceView, ConnectCheckerRtmp connectChecker) {
     super(surfaceView);
     srsFlvMuxer = new SrsFlvMuxer(connectChecker);
+  }
+
+  public RtmpCamera1(SurfaceView surfaceView, com.pedro.rtmp.utils.ConnectCheckerRtmp connectChecker) {
+    super(surfaceView);
+    rtmpClient = new RtmpClient(connectChecker);
   }
 
   public RtmpCamera1(TextureView textureView, ConnectCheckerRtmp connectChecker) {
@@ -129,23 +137,28 @@ public class RtmpCamera1 extends Camera1Base {
 
   @Override
   protected void prepareAudioRtp(boolean isStereo, int sampleRate) {
-    srsFlvMuxer.setIsStereo(isStereo);
-    srsFlvMuxer.setSampleRate(sampleRate);
+//    srsFlvMuxer.setIsStereo(isStereo);
+  //  srsFlvMuxer.setSampleRate(sampleRate);
+    rtmpClient.setAudioInfo(sampleRate, isStereo);
   }
 
   @Override
   protected void startStreamRtp(String url) {
     if (videoEncoder.getRotation() == 90 || videoEncoder.getRotation() == 270) {
-      srsFlvMuxer.setVideoResolution(videoEncoder.getHeight(), videoEncoder.getWidth());
+      rtmpClient.setVideoResolution(videoEncoder.getHeight(), videoEncoder.getWidth());
+      //srsFlvMuxer.setVideoResolution(videoEncoder.getHeight(), videoEncoder.getWidth());
     } else {
-      srsFlvMuxer.setVideoResolution(videoEncoder.getWidth(), videoEncoder.getHeight());
+      rtmpClient.setVideoResolution(videoEncoder.getWidth(), videoEncoder.getHeight());
+      //srsFlvMuxer.setVideoResolution(videoEncoder.getWidth(), videoEncoder.getHeight());
     }
-    srsFlvMuxer.start(url);
+    rtmpClient.connect(url);
+    //srsFlvMuxer.start(url);
   }
 
   @Override
   protected void stopStreamRtp() {
-    srsFlvMuxer.stop();
+    //srsFlvMuxer.stop();
+    rtmpClient.disconnect();
   }
 
   @Override
@@ -170,17 +183,20 @@ public class RtmpCamera1 extends Camera1Base {
 
   @Override
   protected void getAacDataRtp(ByteBuffer aacBuffer, MediaCodec.BufferInfo info) {
-    srsFlvMuxer.sendAudio(aacBuffer, info);
+    //srsFlvMuxer.sendAudio(aacBuffer, info);
+    rtmpClient.sendAudio(aacBuffer, info);
   }
 
   @Override
   protected void onSpsPpsVpsRtp(ByteBuffer sps, ByteBuffer pps, ByteBuffer vps) {
-    srsFlvMuxer.setSpsPPs(sps, pps);
+    //srsFlvMuxer.setSpsPPs(sps, pps);
+    rtmpClient.setSPSandPPS(sps, pps, vps);
   }
 
   @Override
   protected void getH264DataRtp(ByteBuffer h264Buffer, MediaCodec.BufferInfo info) {
-    srsFlvMuxer.sendVideo(h264Buffer, info);
+    //srsFlvMuxer.sendVideo(h264Buffer, info);
+    rtmpClient.sendVideo(h264Buffer, info);
   }
 
   @Override

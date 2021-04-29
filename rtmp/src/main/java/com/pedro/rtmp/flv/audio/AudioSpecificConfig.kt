@@ -1,5 +1,7 @@
 package com.pedro.rtmp.flv.audio
 
+import android.util.Log
+
 /**
  * Created by pedro on 29/04/21.
  *
@@ -25,14 +27,14 @@ class AudioSpecificConfig(private val type: Int, private val sampleRate: Int, pr
   )
 
   fun write(buffer: ByteArray) {
-    writeConfig(buffer, 0)
-    writeAdts(buffer, 2)
+    writeConfig(buffer, 2)
+    writeAdts(buffer, 4)
   }
 
   private fun writeConfig(buffer: ByteArray, offset: Int) {
     val frequency = getFrequency()
-    buffer[offset] = (type shl 3 or frequency shr 1).toByte()
-    buffer[offset + 1] = ((frequency and 0x1) shl 7 or (channels and 0xF) shr 1).toByte()
+    buffer[offset] = ((type shl 3) or (frequency shr 1)).toByte()
+    buffer[offset + 1] = (frequency shl 7 and 0x80).plus(channels shl 3 and 0x78).toByte()
   }
 
   private fun writeAdts(buffer: ByteArray, offset: Int) {
