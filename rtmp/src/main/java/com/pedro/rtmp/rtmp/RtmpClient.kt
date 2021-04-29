@@ -52,6 +52,24 @@ class RtmpClient(private val connectCheckerRtmp: ConnectCheckerRtmp) {
   private val handler: Handler = Handler(Looper.getMainLooper())
   private var runnable: Runnable? = null
   private var publishPermitted = false
+  private var akamaiTs = false
+  private var startTs = 0L
+
+  val droppedAudioFrames: Long
+    get() = rtmpSender.droppedAudioFrames
+  val droppedVideoFrames: Long
+    get() = rtmpSender.droppedVideoFrames
+
+  val cacheSize: Int
+    get() = rtmpSender.getCacheSize()
+  val sentAudioFrames: Long
+    get() = rtmpSender.getSentAudioFrames()
+  val sentVideoFrames: Long
+    get() = rtmpSender.getSentVideoFrames()
+
+  fun forceAkamaiTs(enabled: Boolean) {
+    akamaiTs = enabled
+  }
 
   fun setAuthorization(user: String?, password: String?) {
     commandsManager.setAuth(user, password)
@@ -193,6 +211,7 @@ class RtmpClient(private val connectCheckerRtmp: ConnectCheckerRtmp) {
     val handshake = Handshake()
     if (!handshake.sendHandshake(reader, writer)) return false
     commandsManager.timestamp = timestamp.toInt()
+    startTs = System.nanoTime() / 1000
     return true
   }
 
@@ -398,11 +417,17 @@ class RtmpClient(private val connectCheckerRtmp: ConnectCheckerRtmp) {
   }
 
   fun sendVideo(h264Buffer: ByteBuffer, info: MediaCodec.BufferInfo) {
+    info.presentationTimeUs = if (akamaiTs) calculateAkamaiTs() else info.presentationTimeUs
     rtmpSender.sendVideoFrame(h264Buffer, info)
   }
 
   fun sendAudio(aacBuffer: ByteBuffer, info: MediaCodec.BufferInfo) {
+    info.presentationTimeUs = if (akamaiTs) calculateAkamaiTs() else info.presentationTimeUs
     rtmpSender.sendAudioFrame(aacBuffer, info)
+  }
+
+  private fun calculateAkamaiTs(): Long {
+    return System.nanoTime() / 1000 - startTs
   }
 
   fun hasCongestion(): Boolean {
