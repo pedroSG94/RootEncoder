@@ -117,6 +117,7 @@ open class RtspClient(private val connectCheckerRtsp: ConnectCheckerRtsp) {
     }
     if (!isStreaming || isRetry) {
       this.url = url
+      connectCheckerRtsp.onConnectionStartedRtsp(url)
       val rtspMatcher = rtspUrlPattern.matcher(url)
       if (rtspMatcher.matches()) {
         tlsEnabled = (rtspMatcher.group(0) ?: "").startsWith("rtsps")
@@ -139,7 +140,7 @@ open class RtspClient(private val connectCheckerRtsp: ConnectCheckerRtsp) {
           try {
             commandsManager.setUrl(host, port, path)
             rtspSender.setSocketsInfo(commandsManager.protocol,
-                commandsManager.videoClientPorts, commandsManager.audioClientPorts)
+              commandsManager.videoClientPorts, commandsManager.audioClientPorts)
             rtspSender.setAudioInfo(commandsManager.sampleRate)
             if (!commandsManager.isOnlyAudio) {
               if (commandsManager.sps == null && commandsManager.pps == null) {
@@ -343,12 +344,13 @@ open class RtspClient(private val connectCheckerRtsp: ConnectCheckerRtsp) {
     return rtspSender.hasCongestion()
   }
 
-  fun reConnect(delay: Long) {
+  @JvmOverloads
+  fun reConnect(delay: Long, backupUrl: String? = null) {
     reTries--
     disconnect(false)
     runnable = Runnable {
-      Log.e("Pedro", "connect")
-      connect(url, true)
+      val reconnectUrl = backupUrl ?: url
+      connect(reconnectUrl, true)
     }
     runnable?.let { handler.postDelayed(it, delay) }
   }

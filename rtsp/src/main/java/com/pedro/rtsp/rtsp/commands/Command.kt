@@ -1,27 +1,43 @@
 package com.pedro.rtsp.rtsp.commands
 
+import android.util.Log
 import java.util.regex.Pattern
 
 /**
  * Created by pedro on 7/04/21.
  */
-data class Command(val method: Method, val status: Int, val text: String) {
+data class Command(val method: Method, val cSeq: Int, val status: Int, val text: String) {
 
   companion object {
+
+    private const val TAG = "Command"
+
     /**
      * Response received after send a command
      */
     fun parseResponse(method: Method, responseText: String): Command {
       val status = getResponseStatus(responseText)
-      return Command(method, status, responseText)
+      val cSeq = getCSeq(responseText)
+      return Command(method, cSeq, status, responseText)
     }
 
     /**
-     * Command send by server
+     * Command send by server/player
      */
     fun parseCommand(commandText: String): Command {
       val method = getMethod(commandText)
-      return Command(method, -1, commandText)
+      val cSeq = getCSeq(commandText)
+      return Command(method, cSeq, -1, commandText)
+    }
+
+    private fun getCSeq(request: String): Int {
+      val cSeqMatcher = Pattern.compile("CSeq\\s*:\\s*(\\d+)", Pattern.CASE_INSENSITIVE).matcher(request)
+      return if (cSeqMatcher.find()) {
+        cSeqMatcher.group(1)?.toInt() ?: -1
+      } else {
+        Log.e(TAG, "cSeq not found")
+        -1
+      }
     }
 
     private fun getMethod(response: String): Method {
@@ -34,6 +50,7 @@ data class Command(val method: Method, val status: Int, val text: String) {
             Method.ANNOUNCE.name -> Method.ANNOUNCE
             Method.RECORD.name -> Method.RECORD
             Method.SETUP.name -> Method.SETUP
+            Method.DESCRIBE.name -> Method.DESCRIBE
             Method.TEARDOWN.name -> Method.TEARDOWN
             Method.PLAY.name -> Method.PLAY
             Method.PAUSE.name -> Method.PAUSE
@@ -55,6 +72,7 @@ data class Command(val method: Method, val status: Int, val text: String) {
       return if (matcher.find()) {
         (matcher.group(1) ?: "-1").toInt()
       } else {
+        Log.e(TAG, "status code not found")
         -1
       }
     }

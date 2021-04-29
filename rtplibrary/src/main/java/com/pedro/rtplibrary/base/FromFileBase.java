@@ -231,7 +231,7 @@ public abstract class FromFileBase
     if (!streaming) {
       startEncoders();
     } else if (videoEncoder.isRunning()) {
-      resetVideoEncoder();
+      resetVideoEncoder(false);
     }
   }
 
@@ -251,7 +251,7 @@ public abstract class FromFileBase
     if (!streaming) {
       startEncoders();
     } else if (videoEncoder.isRunning()) {
-      resetVideoEncoder();
+      resetVideoEncoder(false);
     }
   }
 
@@ -286,7 +286,7 @@ public abstract class FromFileBase
     if (!recordController.isRunning()) {
       startEncoders();
     } else {
-      if (videoEnabled) resetVideoEncoder();
+      if (videoEnabled) resetVideoEncoder(true);
     }
     startStreamRtp(url);
   }
@@ -328,7 +328,6 @@ public abstract class FromFileBase
           this.glInterface.removeMediaCodecSurface();
           this.glInterface.stop();
           this.glInterface = glInterface;
-          videoEncoder.forceKeyFrame();
           if (!(glInterface instanceof OffScreenGlThread)) {
             glInterface.init();
           }
@@ -351,6 +350,7 @@ public abstract class FromFileBase
         }
       } else {
         this.glInterface = glInterface;
+        this.glInterface.init();
       }
     }
   }
@@ -375,11 +375,11 @@ public abstract class FromFileBase
     }
   }
 
-  private void resetVideoEncoder() {
+  private void resetVideoEncoder(boolean reset) {
     if (glInterface != null) {
       glInterface.removeMediaCodecSurface();
     }
-    videoEncoder.forceKeyFrame();
+    if (reset) videoEncoder.reset(); else videoEncoder.forceKeyFrame();
     if (glInterface != null) {
       glInterface.addMediaCodecSurface(videoEncoder.getInputSurface());
     } else {
@@ -389,32 +389,29 @@ public abstract class FromFileBase
 
   protected abstract void stopStreamRtp();
 
-  public boolean reTry(long delay, String reason) {
+  /**
+   * Retries to connect with the given delay. You can pass an optional backupUrl
+   * if you'd like to connect to your backup server instead of the original one.
+   * Given backupUrl replaces the original one.
+   */
+  public boolean reTry(long delay, String reason, @Nullable String backupUrl) {
     boolean result = shouldRetry(reason);
     if (result) {
-      reTry(delay);
+      resetVideoEncoder(true);
+      reConnect(delay, backupUrl);
     }
     return result;
   }
 
-  /**
-   * Replace with reTry(long delay, String reason);
-   */
-  @Deprecated
-  public void reTry(long delay) {
-    if (videoEnabled) resetVideoEncoder();
-    reConnect(delay);
+  public boolean reTry(long delay, String reason) {
+    return reTry(delay, reason, null);
   }
 
-  /**
-   * Replace with reTry(long delay, String reason);
-   */
-  @Deprecated
-  public abstract boolean shouldRetry(String reason);
+  protected abstract boolean shouldRetry(String reason);
 
   public abstract void setReTries(int reTries);
 
-  protected abstract void reConnect(long delay);
+  protected abstract void reConnect(long delay, @Nullable String backupUrl);
 
   //cache control
   public abstract boolean hasCongestion();

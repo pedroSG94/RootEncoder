@@ -106,6 +106,10 @@ class RtpService : Service() {
 
 
     private val connectCheckerRtp = object : ConnectCheckerRtp {
+      override fun onConnectionStartedRtp(rtpUrl: String) {
+        showNotification("Stream connection started")
+      }
+
       override fun onConnectionSuccessRtp() {
         showNotification("Stream started")
         Log.e(TAG, "RTP service destroy")

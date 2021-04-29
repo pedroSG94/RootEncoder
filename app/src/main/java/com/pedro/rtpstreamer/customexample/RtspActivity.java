@@ -32,6 +32,9 @@ import com.pedro.rtplibrary.rtsp.RtspCamera1;
 import com.pedro.rtpstreamer.R;
 import com.pedro.rtsp.rtsp.Protocol;
 import com.pedro.rtsp.utils.ConnectCheckerRtsp;
+
+import org.jetbrains.annotations.NotNull;
+
 import java.io.File;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
@@ -319,6 +322,10 @@ public class RtspActivity extends AppCompatActivity
   }
 
   @Override
+  public void onConnectionStartedRtsp(@NotNull String rtspUrl) {
+  }
+
+  @Override
   public void onConnectionSuccessRtsp() {
     runOnUiThread(new Runnable() {
       @Override
@@ -448,10 +455,8 @@ public class RtspActivity extends AppCompatActivity
       if (action == MotionEvent.ACTION_MOVE) {
         rtspCamera1.setZoom(motionEvent);
       }
-    } else {
-      if (action == MotionEvent.ACTION_UP) {
-        // todo place to add autofocus functional.
-      }
+    } else if (action == MotionEvent.ACTION_DOWN) {
+      rtspCamera1.tapToFocus(view, motionEvent);
     }
     return true;
   }

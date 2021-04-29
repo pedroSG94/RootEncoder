@@ -183,7 +183,7 @@ public class MicrophoneManager {
   /**
    * @return Object with size and PCM buffer data
    */
-  private Frame read() {
+  protected Frame read() {
     pcmBuffer.rewind();
     int size = audioRecord.read(pcmBuffer, pcmBuffer.remaining());
     if (size < 0) return null;

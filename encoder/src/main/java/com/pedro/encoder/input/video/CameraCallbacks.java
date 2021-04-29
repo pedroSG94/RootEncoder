@@ -1,6 +1,6 @@
 package com.pedro.encoder.input.video;
 
 public interface CameraCallbacks {
-  void onCameraChanged(boolean isFrontCamera);
+  void onCameraChanged(CameraHelper.Facing facing);
   void onCameraError(String error);
 }

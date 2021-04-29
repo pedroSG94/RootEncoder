@@ -180,8 +180,16 @@ public abstract class Camera1Base
     return cameraManager.isFaceDetectionEnabled();
   }
 
+  /**
+   * Use getCameraFacing instead
+   */
+  @Deprecated
   public boolean isFrontCamera() {
-    return cameraManager.isFrontCamera();
+    return cameraManager.getCameraFacing() == CameraHelper.Facing.FRONT;
+  }
+
+  public CameraHelper.Facing getCameraFacing() {
+    return cameraManager.getCameraFacing();
   }
 
   public void enableLantern() throws Exception {
@@ -338,7 +346,7 @@ public abstract class Camera1Base
     if (!streaming) {
       startEncoders();
     } else if (videoEncoder.isRunning()) {
-      resetVideoEncoder();
+      resetVideoEncoder(false);
     }
   }
 
@@ -360,7 +368,7 @@ public abstract class Camera1Base
     if (!streaming) {
       startEncoders();
     } else if (videoEncoder.isRunning()) {
-      resetVideoEncoder();
+      resetVideoEncoder(false);
     }
   }
 
@@ -424,6 +432,7 @@ public abstract class Camera1Base
             videoEncoder.getFps());
       } else {
         this.glInterface = glInterface;
+        this.glInterface.init();
       }
     }
   }
@@ -456,6 +465,10 @@ public abstract class Camera1Base
       cameraManager.setRotation(rotation);
       cameraManager.start(cameraFacing, width, height, videoEncoder.getFps());
       onPreview = true;
+    } else if (!isStreaming() && !onPreview && glInterface instanceof OffScreenGlThread) {
+      // if you are using background mode startPreview only work to indicate
+      // that you want start with front or back camera
+      cameraManager.setCameraFacing(cameraFacing);
     } else {
       Log.e(TAG, "Streaming or preview started, ignored");
     }
@@ -465,16 +478,20 @@ public abstract class Camera1Base
     startPreview(cameraFacing, width, height, CameraHelper.getCameraOrientation(context));
   }
 
+  public void startPreview(CameraHelper.Facing cameraFacing, int rotation) {
+    startPreview(cameraFacing, videoEncoder.getWidth(), videoEncoder.getHeight(), rotation);
+  }
+
   public void startPreview(CameraHelper.Facing cameraFacing) {
-    startPreview(cameraFacing, 640, 480);
+    startPreview(cameraFacing, videoEncoder.getWidth(), videoEncoder.getHeight());
   }
 
   public void startPreview(int width, int height) {
-    startPreview(CameraHelper.Facing.BACK, width, height);
+    startPreview(getCameraFacing(), width, height);
   }
 
   public void startPreview() {
-    startPreview(CameraHelper.Facing.BACK);
+    startPreview(getCameraFacing());
   }
 
   /**
@@ -545,7 +562,7 @@ public abstract class Camera1Base
     if (!recordController.isRunning()) {
       startEncoders();
     } else {
-      resetVideoEncoder();
+      resetVideoEncoder(true);
     }
     startStreamRtp(url);
     onPreview = true;
@@ -564,11 +581,11 @@ public abstract class Camera1Base
     onPreview = true;
   }
 
-  private void resetVideoEncoder() {
+  private void resetVideoEncoder(boolean reset) {
     if (glInterface != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
       glInterface.removeMediaCodecSurface();
     }
-    videoEncoder.forceKeyFrame();
+    if (reset) videoEncoder.reset(); else videoEncoder.forceKeyFrame();
     if (glInterface != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
       glInterface.addMediaCodecSurface(videoEncoder.getInputSurface());
     }
@@ -614,6 +631,7 @@ public abstract class Camera1Base
         if (glInterface instanceof OffScreenGlThread) {
           glInterface.stop();
           cameraManager.stop();
+          onPreview = false;
         }
       }
       videoEncoder.stop();
@@ -622,32 +640,29 @@ public abstract class Camera1Base
     }
   }
 
-  public boolean reTry(long delay, String reason) {
+  /**
+   * Retries to connect with the given delay. You can pass an optional backupUrl
+   * if you'd like to connect to your backup server instead of the original one.
+   * Given backupUrl replaces the original one.
+   */
+  public boolean reTry(long delay, String reason, @Nullable String backupUrl) {
     boolean result = shouldRetry(reason);
     if (result) {
-      reTry(delay);
+      resetVideoEncoder(true);
+      reConnect(delay, backupUrl);
     }
     return result;
   }
 
-  /**
-   * Replace with reTry(long delay, String reason);
-   */
-  @Deprecated
-  public void reTry(long delay) {
-    resetVideoEncoder();
-    reConnect(delay);
+  public boolean reTry(long delay, String reason) {
+    return reTry(delay, reason, null);
   }
 
-  /**
-   * Replace with reTry(long delay, String reason);
-   */
-  @Deprecated
-  public abstract boolean shouldRetry(String reason);
+  protected abstract boolean shouldRetry(String reason);
 
   public abstract void setReTries(int reTries);
 
-  protected abstract void reConnect(long delay);
+  protected abstract void reConnect(long delay, @Nullable String backupUrl);
 
   //cache control
   public abstract boolean hasCongestion();
@@ -743,13 +758,15 @@ public abstract class Camera1Base
   }
 
   /**
-   * Switch camera used. Can be called on preview or while stream, ignored with preview off.
+   * Switch camera used. Can be called anytime
    *
    * @throws CameraOpenException If the other camera doesn't support same resolution.
    */
   public void switchCamera() throws CameraOpenException {
     if (isStreaming() || onPreview) {
       cameraManager.switchCamera();
+    } else {
+      cameraManager.setCameraFacing(getCameraFacing() ==  CameraHelper.Facing.FRONT ? CameraHelper.Facing.BACK : CameraHelper.Facing.FRONT);
     }
   }
 

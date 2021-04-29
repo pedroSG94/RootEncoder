@@ -12,7 +12,6 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 import com.pedro.encoder.input.video.CameraOpenException;
-import com.pedro.rtmp.utils.ConnectCheckerRtmp;
 import com.pedro.rtplibrary.rtmp.RtmpCamera1;
 import com.pedro.rtpstreamer.R;
 import java.io.File;
@@ -20,6 +19,7 @@ import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
+import net.ossrs.rtmp.ConnectCheckerRtmp;
 
 /**
  * More documentation see:
@@ -53,8 +53,12 @@ public class ExampleRtmpActivity extends AppCompatActivity
     etUrl = findViewById(R.id.et_rtp_url);
     etUrl.setHint(R.string.hint_rtmp);
     rtmpCamera1 = new RtmpCamera1(surfaceView, this);
-    //rtmpCamera1.setReTries(10);
+    rtmpCamera1.setReTries(10);
     surfaceView.getHolder().addCallback(this);
+  }
+
+  @Override
+  public void onConnectionStartedRtmp(String rtmpUrl) {
   }
 
   @Override
@@ -72,11 +76,16 @@ public class ExampleRtmpActivity extends AppCompatActivity
     runOnUiThread(new Runnable() {
       @Override
       public void run() {
+        if (rtmpCamera1.reTry(5000, reason)) {
+          Toast.makeText(ExampleRtmpActivity.this, "Retry", Toast.LENGTH_SHORT)
+              .show();
+        } else {
           Toast.makeText(ExampleRtmpActivity.this, "Connection failed. " + reason, Toast.LENGTH_SHORT)
               .show();
           rtmpCamera1.stopStream();
           button.setText(R.string.start_button);
         }
+      }
     });
   }
 

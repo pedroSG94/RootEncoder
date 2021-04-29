@@ -65,7 +65,7 @@ public class Camera2ApiManager extends CameraDevice.StateCallback {
   private CameraCaptureSession cameraCaptureSession;
   private boolean prepared = false;
   private int cameraId = -1;
-  private boolean isFrontCamera = false;
+  private CameraHelper.Facing facing = Facing.BACK;
   private CaptureRequest.Builder builderInputSurface;
   private float fingerSpacing = 0;
   private float zoomLevel = 0f;
@@ -78,9 +78,11 @@ public class Camera2ApiManager extends CameraDevice.StateCallback {
 
   //Face detector
   public interface FaceDetectorCallback {
-    void onGetFaces(Face[] faces);
+    void onGetFaces(Face[] faces, Rect scaleSensor, int sensorOrientation);
   }
 
+  private int sensorOrientation = 0;
+  private Rect faceSensorScale;
   private FaceDetectorCallback faceDetectorCallback;
   private boolean faceDetectionEnabled = false;
   private int faceDetectionMode;
@@ -250,6 +252,21 @@ public class Camera2ApiManager extends CameraDevice.StateCallback {
     } else {
       openCameraId(cameraId);
     }
+  }
+
+  public void setCameraFacing(CameraHelper.Facing cameraFacing) {
+    try {
+      String cameraId = getCameraIdForFacing(cameraManager, cameraFacing);
+      if (cameraId != null) {
+        this.cameraId = Integer.parseInt(cameraId);
+      }
+    } catch (CameraAccessException e) {
+      Log.e(TAG, "Error", e);
+    }
+  }
+
+  public CameraHelper.Facing getCameraFacing() {
+    return facing;
   }
 
   public Size[] getCameraResolutionsBack() {
@@ -516,6 +533,8 @@ public class Camera2ApiManager extends CameraDevice.StateCallback {
   public void enableFaceDetection(FaceDetectorCallback faceDetectorCallback) {
     CameraCharacteristics characteristics = getCameraCharacteristics();
     if (characteristics == null) return;
+    faceSensorScale = characteristics.get(CameraCharacteristics.SENSOR_INFO_ACTIVE_ARRAY_SIZE);
+    sensorOrientation = characteristics.get(CameraCharacteristics.SENSOR_ORIENTATION);
     int[] fd =
         characteristics.get(CameraCharacteristics.STATISTICS_INFO_AVAILABLE_FACE_DETECT_MODES);
     if (fd == null) return;
@@ -581,7 +600,7 @@ public class Camera2ApiManager extends CameraDevice.StateCallback {
             @NonNull CaptureRequest request, @NonNull TotalCaptureResult result) {
           Face[] faces = result.get(CaptureResult.STATISTICS_FACES);
           if (faceDetectorCallback != null) {
-            faceDetectorCallback.onGetFaces(faces);
+            faceDetectorCallback.onGetFaces(faces, faceSensorScale, sensorOrientation);
           }
         }
       };
@@ -601,9 +620,9 @@ public class Camera2ApiManager extends CameraDevice.StateCallback {
         running = true;
         Integer facing = cameraCharacteristics.get(CameraCharacteristics.LENS_FACING);
         if (facing == null) return;
-        isFrontCamera = LENS_FACING_FRONT == facing;
+        this.facing = LENS_FACING_FRONT == facing ? CameraHelper.Facing.FRONT : CameraHelper.Facing.BACK;
         if (cameraCallbacks != null) {
-          cameraCallbacks.onCameraChanged(isFrontCamera);
+          cameraCallbacks.onCameraChanged(this.facing);
         }
       } catch (CameraAccessException | SecurityException e) {
         if (cameraCallbacks != null) {
@@ -623,7 +642,7 @@ public class Camera2ApiManager extends CameraDevice.StateCallback {
   public void switchCamera() {
     try {
       String cameraId;
-      if (cameraDevice == null || isFrontCamera) {
+      if (cameraDevice == null || facing == Facing.FRONT) {
         cameraId = getCameraIdForFacing(cameraManager, Facing.BACK);
       } else {
         cameraId = getCameraIdForFacing(cameraManager, Facing.FRONT);
@@ -713,10 +732,6 @@ public class Camera2ApiManager extends CameraDevice.StateCallback {
       }
       fingerSpacing = currentFingerSpacing;
     }
-  }
-
-  public boolean isFrontCamera() {
-    return isFrontCamera;
   }
 
   private void resetCameraValues() {
