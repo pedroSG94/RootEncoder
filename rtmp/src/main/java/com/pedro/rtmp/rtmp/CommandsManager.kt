@@ -199,22 +199,24 @@ class CommandsManager {
     Log.i(TAG, "send $closeStream")
   }
 
-  fun sendVideoPacket(flvPacket: FlvPacket, output: OutputStream) {
+  fun sendVideoPacket(flvPacket: FlvPacket, output: OutputStream, isEnabledLogs: Boolean) {
     val video = Video(flvPacket, streamId)
-
     video.writeHeader(output)
     video.writeBody(output)
     output.flush()
-    Log.i(TAG, "send $video")
+    if (isEnabledLogs) {
+      Log.i(TAG, "wrote packet $video")
+    }
   }
 
-  fun sendAudioPacket(flvPacket: FlvPacket, output: OutputStream) {
+  fun sendAudioPacket(flvPacket: FlvPacket, output: OutputStream, isEnabledLogs: Boolean) {
     val audio = Audio(flvPacket, streamId)
-
     audio.writeHeader(output)
     audio.writeBody(output)
     output.flush()
-    Log.i(TAG, "send $audio")
+    if (isEnabledLogs) {
+      Log.i(TAG, "wrote packet $audio")
+    }
   }
 
   fun reset() {

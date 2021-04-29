@@ -103,12 +103,12 @@ class RtmpSender(private val connectCheckerRtmp: ConnectCheckerRtmp, private val
               if (flvPacket.type == FlvType.VIDEO) {
                 videoFramesSent++
                 output?.let { output ->
-                  commandsManager.sendVideoPacket(flvPacket, output)
+                  commandsManager.sendVideoPacket(flvPacket, output, isEnableLogs)
                 }
               } else {
                 audioFramesSent++
                 output?.let { output ->
-                  commandsManager.sendAudioPacket(flvPacket, output)
+                  commandsManager.sendAudioPacket(flvPacket, output, isEnableLogs)
                 }
               }
             } catch (e: Exception) {
