@@ -739,9 +739,6 @@ public class RtmpConnection implements RtmpPublisher {
               publishLock.notifyAll();
             }
             break;
-          case "NetStream.Unpublish.Success":
-            connectCheckerRtmp.onConnectionFailedRtmp("Unpublish received");
-            break;
           case "NetStream.Publish.BadName":
             connectCheckerRtmp.onConnectionFailedRtmp("BadName received, endpoint in use.");
             break;
