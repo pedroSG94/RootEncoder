@@ -95,10 +95,12 @@ abstract class RtmpMessage(basicHeader: BasicHeader) {
     header.timeStamp = rtmpHeader.timeStamp
   }
 
+  @Throws(IOException::class)
   fun writeHeader(output: OutputStream) {
     header.writeHeader(output)
   }
 
+  @Throws(IOException::class)
   fun writeBody(output: OutputStream) {
     val chunkSize = RtmpConfig.chunkSize
     val bytes = storeBody()

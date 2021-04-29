@@ -83,6 +83,7 @@ class RtmpHeader(var basicHeader: BasicHeader) {
   /**
    * Check ChunkType class to know header structure
    */
+  @Throws(IOException::class)
   fun writeHeader(basicHeader: BasicHeader, output: OutputStream) {
     // Write basic header byte
     output.write((basicHeader.chunkType.mark.toInt() shl 6) or basicHeader.chunkStreamId.mark.toInt())

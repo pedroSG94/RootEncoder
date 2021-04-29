@@ -40,7 +40,7 @@ class CommandsManager {
   var sampleRate = 44100
   var isStereo = true
 
-  fun setVideoInfo(width: Int, height: Int) {
+  fun setVideoResolution(width: Int, height: Int) {
     this.width = width
     this.height = height
   }
@@ -84,6 +84,7 @@ class CommandsManager {
     Log.i(TAG, "send $connect")
   }
 
+  @Throws(IOException::class)
   fun createStream(output: OutputStream) {
     val releaseStream = CommandAmf0("releaseStream", ++commandId, getCurrentTimestamp(), streamId,
         BasicHeader(ChunkType.TYPE_0, ChunkStreamId.OVER_STREAM))
@@ -123,24 +124,7 @@ class CommandsManager {
     return message
   }
 
-  fun getCommandResponse(commandName: String, input: InputStream): Command {
-    val response = readMessageResponse(input)
-    if (response is Command) {
-      if (sessionHistory.getName(response.commandId) == commandName) {
-        return response
-      }
-    }
-    return getCommandResponse(commandName, input)
-  }
-
-  fun getMessageName(rtmpMessage: RtmpMessage): String? {
-    return if (rtmpMessage is Command) {
-      sessionHistory.getName(rtmpMessage.commandId)
-    } else {
-      null
-    }
-  }
-
+  @Throws(IOException::class)
   fun sendMetadata(output: OutputStream) {
     val name = "@setDataFrame"
     val metadata = DataAmf0(name, getCurrentTimestamp(), streamId)
@@ -166,6 +150,7 @@ class CommandsManager {
     Log.i(TAG, "send $metadata")
   }
 
+  @Throws(IOException::class)
   fun sendPublish(output: OutputStream) {
     val name = "publish"
     val publish = CommandAmf0(name, ++commandId, getCurrentTimestamp(), streamId, BasicHeader(ChunkType.TYPE_0, ChunkStreamId.OVER_STREAM))
@@ -180,6 +165,7 @@ class CommandsManager {
     Log.i(TAG, "send $publish")
   }
 
+  @Throws(IOException::class)
   fun sendWindowAcknowledgementSize(output: OutputStream) {
     val windowAcknowledgementSize = WindowAcknowledgementSize(RtmpConfig.acknowledgementWindowSize, getCurrentTimestamp())
     windowAcknowledgementSize.writeHeader(output)
@@ -187,6 +173,7 @@ class CommandsManager {
     output.flush()
   }
 
+  @Throws(IOException::class)
   fun sendClose(output: OutputStream) {
     val name = "closeStream"
     val closeStream = CommandAmf0(name, ++commandId, getCurrentTimestamp(), streamId, BasicHeader(ChunkType.TYPE_0, ChunkStreamId.OVER_STREAM))
@@ -199,6 +186,7 @@ class CommandsManager {
     Log.i(TAG, "send $closeStream")
   }
 
+  @Throws(IOException::class)
   fun sendVideoPacket(flvPacket: FlvPacket, output: OutputStream, isEnabledLogs: Boolean) {
     val video = Video(flvPacket, streamId)
     video.writeHeader(output)
@@ -209,6 +197,7 @@ class CommandsManager {
     }
   }
 
+  @Throws(IOException::class)
   fun sendAudioPacket(flvPacket: FlvPacket, output: OutputStream, isEnabledLogs: Boolean) {
     val audio = Audio(flvPacket, streamId)
     audio.writeHeader(output)
@@ -223,10 +212,5 @@ class CommandsManager {
     streamId = 0
     commandId = 0
     sessionHistory.reset()
-  }
-
-  fun setVideoResolution(width: Int, height: Int) {
-    this.width = width
-    this.height = height
   }
 }

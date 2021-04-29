@@ -14,8 +14,8 @@ import java.security.NoSuchAlgorithmException
  */
 object CreateSSLSocket {
   /**
-   * @param host variable from RtspConnection
-   * @param port variable from RtspConnection
+   * @param host variable from RtmpConnection
+   * @param port variable from RtmpConnection
    */
   @JvmStatic
   fun createSSlSocket(host: String, port: Int): Socket? {

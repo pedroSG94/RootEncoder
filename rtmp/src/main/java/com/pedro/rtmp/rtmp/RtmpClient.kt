@@ -114,6 +114,7 @@ class RtmpClient(private val connectCheckerRtmp: ConnectCheckerRtmp) {
     }
     if (!isStreaming || isRetry) {
       this.url = url
+      connectCheckerRtmp.onConnectionStartedRtmp(url)
       val rtmpMatcher = rtmpUrlPattern.matcher(url)
       if (rtmpMatcher.matches()) {
         tlsEnabled = rtmpMatcher.group(0).startsWith("rtmps")
@@ -146,7 +147,7 @@ class RtmpClient(private val connectCheckerRtmp: ConnectCheckerRtmp) {
             commandsManager.sendConnect("", writer!!)
             //read packets until you did success connection to server and you are ready to send packets
             while (!Thread.interrupted() && !publishPermitted) {
-              //Handle all command received and send response for it. Return true if connection success received
+              //Handle all command received and send response for it.
               handleMessages(reader!!, writer!!)
             }
             //read packet because maybe server want send you something while streaming
@@ -193,6 +194,7 @@ class RtmpClient(private val connectCheckerRtmp: ConnectCheckerRtmp) {
     }
   }
 
+  @Throws(IOException::class)
   private fun establishConnection(): Boolean {
     if (!tlsEnabled) {
       connectionSocket = Socket()
@@ -218,6 +220,7 @@ class RtmpClient(private val connectCheckerRtmp: ConnectCheckerRtmp) {
   /**
    * Read all messages from server and response to it
    */
+  @Throws(IOException::class)
   private fun handleMessages(input: InputStream, output: OutputStream) {
     val message = commandsManager.readMessageResponse(input)
     when (message.getType()) {
@@ -271,55 +274,61 @@ class RtmpClient(private val connectCheckerRtmp: ConnectCheckerRtmp) {
                 commandsManager.createStream(output)
               }
               "createStream" -> {
-                commandsManager.streamId = (command.data[3] as AmfNumber).value.toInt()
-                commandsManager.sendPublish(output)
-              }
-              else -> {
-                Log.i(TAG, "success response received from ${commandName ?: "unknown command"}")
-              }
-            }
-          }
-          "_error" -> {
-            when (val description = ((command.data[3] as AmfObject).getProperty("code") as AmfString).value) {
-              "connect" -> {
-                if (description.contains("reason=authfail") || description.contains("reason=nosuchuser")) {
-                  connectCheckerRtmp.onAuthErrorRtmp()
-                } else if (commandsManager.user != null && commandsManager.password != null &&
-                    description.contains("challenge=") && description.contains("salt=") //adobe response
-                    || description.contains("nonce=")) { //llnw response
-                  closeConnection()
-                  establishConnection()
-                  commandsManager.onAuth = true
-                  if (description.contains("challenge=") && description.contains("salt=")) { //create adobe auth
-                    val salt = AuthUtil.getSalt(description)
-                    val challenge = AuthUtil.getChallenge(description)
-                    val opaque = AuthUtil.getOpaque(description)
-                    commandsManager.sendConnect(AuthUtil.getAdobeAuthUserResult(commandsManager.user
-                        ?: "", commandsManager.password ?: "",
-                        salt, challenge, opaque), output)
-                  } else if (description.contains("nonce=")) { //create llnw auth
-                    val nonce = AuthUtil.getNonce(description)
-                    commandsManager.sendConnect(AuthUtil.getLlnwAuthUserResult(commandsManager.user
-                        ?: "", commandsManager.password ?: "",
-                        nonce, commandsManager.appName), output)
-                  }
-                } else if (description.contains("code=403")) {
-                  if (description.contains("authmod=adobe")) {
-                    closeConnection()
-                    establishConnection()
-                    Log.i(TAG, "sending auth mode adobe")
-                    commandsManager.sendConnect("?authmod=adobe&user=${commandsManager.user}", output)
-                  } else if (description.contains("authmod=llnw")) {
-                    Log.i(TAG, "sending auth mode llnw")
-                    commandsManager.sendConnect("?authmod=llnw&user=${commandsManager.user}", output)
-                  }
-                } else {
-                  connectCheckerRtmp.onAuthErrorRtmp()
+                try {
+                  commandsManager.streamId = (command.data[3] as AmfNumber).value.toInt()
+                  commandsManager.sendPublish(output)
+                } catch (e: ClassCastException) {
+                  Log.e(TAG, "error parsing _result createStream", e)
                 }
               }
-              else -> {
-                connectCheckerRtmp.onConnectionFailedRtmp(description)
+            }
+            Log.i(TAG, "success response received from ${commandName ?: "unknown command"}")
+          }
+          "_error" -> {
+            try {
+              when (val description = ((command.data[3] as AmfObject).getProperty("code") as AmfString).value) {
+                "connect" -> {
+                  if (description.contains("reason=authfail") || description.contains("reason=nosuchuser")) {
+                    connectCheckerRtmp.onAuthErrorRtmp()
+                  } else if (commandsManager.user != null && commandsManager.password != null &&
+                      description.contains("challenge=") && description.contains("salt=") //adobe response
+                      || description.contains("nonce=")) { //llnw response
+                    closeConnection()
+                    establishConnection()
+                    commandsManager.onAuth = true
+                    if (description.contains("challenge=") && description.contains("salt=")) { //create adobe auth
+                      val salt = AuthUtil.getSalt(description)
+                      val challenge = AuthUtil.getChallenge(description)
+                      val opaque = AuthUtil.getOpaque(description)
+                      commandsManager.sendConnect(AuthUtil.getAdobeAuthUserResult(commandsManager.user
+                          ?: "", commandsManager.password ?: "",
+                          salt, challenge, opaque), output)
+                    } else if (description.contains("nonce=")) { //create llnw auth
+                      val nonce = AuthUtil.getNonce(description)
+                      commandsManager.sendConnect(AuthUtil.getLlnwAuthUserResult(commandsManager.user
+                          ?: "", commandsManager.password ?: "",
+                          nonce, commandsManager.appName), output)
+                    }
+                  } else if (description.contains("code=403")) {
+                    if (description.contains("authmod=adobe")) {
+                      closeConnection()
+                      establishConnection()
+                      Log.i(TAG, "sending auth mode adobe")
+                      commandsManager.sendConnect("?authmod=adobe&user=${commandsManager.user}", output)
+                    } else if (description.contains("authmod=llnw")) {
+                      Log.i(TAG, "sending auth mode llnw")
+                      commandsManager.sendConnect("?authmod=llnw&user=${commandsManager.user}", output)
+                    }
+                  } else {
+                    connectCheckerRtmp.onAuthErrorRtmp()
+                  }
+                }
+                else -> {
+                  connectCheckerRtmp.onConnectionFailedRtmp(description)
+                }
               }
+            } catch (e: ClassCastException) {
+              Log.e(TAG, "error parsing _error command", e)
             }
           }
           "onStatus" -> {
@@ -333,12 +342,14 @@ class RtmpClient(private val connectCheckerRtmp: ConnectCheckerRtmp) {
                   rtmpSender.start()
                   publishPermitted = true
                 }
-                else -> {
-                  Log.i(TAG, "onStatus $code response received from ${commandName ?: "unknown command"}")
+                "NetConnection.Connect.Rejected", "NetStream.Publish.BadName" -> {
                   connectCheckerRtmp.onConnectionFailedRtmp("onStatus: $code")
                 }
+                else -> {
+                  Log.i(TAG, "onStatus $code response received from ${commandName ?: "unknown command"}")
+                }
               }
-            } catch (e: Exception) {
+            } catch (e: ClassCastException) {
               Log.e(TAG, "error parsing onStatus command", e)
             }
           }
@@ -359,11 +370,13 @@ class RtmpClient(private val connectCheckerRtmp: ConnectCheckerRtmp) {
     commandsManager.reset()
   }
 
-  fun reConnect(delay: Long) {
+  @JvmOverloads
+  fun reConnect(delay: Long, backupUrl: String? = null) {
     reTries--
     disconnect(false)
     runnable = Runnable {
-      connect(url, true)
+      val reconnectUrl = backupUrl ?: url
+      connect(reconnectUrl, true)
     }
     runnable?.let { handler.postDelayed(it, delay) }
   }
@@ -412,6 +425,7 @@ class RtmpClient(private val connectCheckerRtmp: ConnectCheckerRtmp) {
       isStreaming = false
       connectCheckerRtmp.onDisconnectRtmp()
     }
+    startTs = 0
     publishPermitted = false
     commandsManager.reset()
   }
