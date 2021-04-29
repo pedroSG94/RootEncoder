@@ -1,4 +1,4 @@
-package com.pedro.rtmp.packets
+package com.pedro.rtmp.flv
 
 /**
  * Created by pedro on 8/04/21.
