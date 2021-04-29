@@ -9,6 +9,7 @@ import com.pedro.rtmp.flv.FlvType
 import com.pedro.rtmp.flv.audio.AacPacket
 import com.pedro.rtmp.flv.audio.AudioPacketCallback
 import com.pedro.rtmp.flv.video.H264Packet
+import com.pedro.rtmp.flv.video.ProfileIop
 import com.pedro.rtmp.flv.video.VideoPacketCallback
 import com.pedro.rtmp.utils.BitrateManager
 import com.pedro.rtmp.utils.ConnectCheckerRtmp
@@ -47,6 +48,10 @@ class RtmpSender(private val connectCheckerRtmp: ConnectCheckerRtmp, private val
 
     fun setVideoInfo(sps: ByteBuffer, pps: ByteBuffer, vps: ByteBuffer?) {
       h264Packet.sendVideoInfo(sps.array(), pps.array())
+    }
+
+    fun setProfileIop(profileIop: ProfileIop) {
+      h264Packet.profileIop = profileIop
     }
 
     fun setAudioInfo(sampleRate: Int, isStereo: Boolean) {

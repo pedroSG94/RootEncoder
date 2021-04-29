@@ -8,6 +8,7 @@ import android.util.Log
 import com.pedro.rtmp.amf.v0.AmfNumber
 import com.pedro.rtmp.amf.v0.AmfObject
 import com.pedro.rtmp.amf.v0.AmfString
+import com.pedro.rtmp.flv.video.ProfileIop
 import com.pedro.rtmp.rtmp.message.*
 import com.pedro.rtmp.rtmp.message.command.Command
 import com.pedro.rtmp.rtmp.message.control.UserControl
@@ -74,6 +75,10 @@ class RtmpClient(private val connectCheckerRtmp: ConnectCheckerRtmp) {
   fun setSPSandPPS(sps: ByteBuffer, pps: ByteBuffer, vps: ByteBuffer?) {
     Log.i(TAG, "send sps and pps")
     rtmpSender.setVideoInfo(sps, pps, vps)
+  }
+
+  fun setProfileIop(profileIop: ProfileIop) {
+    rtmpSender.setProfileIop(profileIop)
   }
 
   fun setVideoResolution(width: Int, height: Int) {

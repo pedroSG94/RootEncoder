@@ -17,10 +17,9 @@ import java.nio.ByteBuffer
  * N bytes of pps:
  * pictureParameterSetNALUnit (pps data)
  */
-class VideoSpecificConfig(private val sps: ByteArray, private val pps: ByteArray) {
+class VideoSpecificConfig(private val sps: ByteArray, private val pps: ByteArray, private val profileIop: ProfileIop) {
 
   var size = calculateSize(sps, pps)
-  var profileIop = ProfileIop.BASELINE
 
   fun write(buffer: ByteArray, offset: Int) {
     val data = ByteBuffer.wrap(buffer, offset, size)
