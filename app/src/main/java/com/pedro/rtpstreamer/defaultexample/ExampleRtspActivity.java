@@ -14,6 +14,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.pedro.encoder.input.video.CameraOpenException;
 import com.pedro.rtplibrary.rtsp.RtspCamera1;
 import com.pedro.rtpstreamer.R;
+import com.pedro.rtpstreamer.utils.PathUtils;
 import com.pedro.rtsp.utils.ConnectCheckerRtsp;
 
 import org.jetbrains.annotations.NotNull;
@@ -38,14 +39,14 @@ public class ExampleRtspActivity extends AppCompatActivity
   private EditText etUrl;
 
   private String currentDateAndTime = "";
-  private File folder = new File(Environment.getExternalStorageDirectory().getAbsolutePath()
-      + "/rtmp-rtsp-stream-client-java");
+  private File folder;
 
   @Override
   protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
     getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
     setContentView(R.layout.activity_example);
+    folder = PathUtils.getRecordPath(this);
     SurfaceView surfaceView = findViewById(R.id.surfaceView);
     button = findViewById(R.id.b_start_stop);
     button.setOnClickListener(this);

@@ -33,6 +33,7 @@ import com.pedro.encoder.input.video.CameraHelper;
 import com.pedro.encoder.input.video.CameraOpenException;
 import com.pedro.rtplibrary.rtmp.RtmpCamera1;
 import com.pedro.rtpstreamer.R;
+import com.pedro.rtpstreamer.utils.PathUtils;
 
 import net.ossrs.rtmp.ConnectCheckerRtmp;
 
@@ -59,8 +60,7 @@ public class RtmpActivity extends AppCompatActivity
   private Button bStartStop, bRecord;
   private EditText etUrl;
   private String currentDateAndTime = "";
-  private File folder = new File(Environment.getExternalStorageDirectory().getAbsolutePath()
-      + "/rtmp-rtsp-stream-client-java");
+  private File folder;
   //options menu
   private DrawerLayout drawerLayout;
   private NavigationView navigationView;
@@ -78,6 +78,7 @@ public class RtmpActivity extends AppCompatActivity
     super.onCreate(savedInstanceState);
     getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
     setContentView(R.layout.activity_custom);
+    folder = PathUtils.getRecordPath(this);
     getSupportActionBar().setDisplayHomeAsUpEnabled(true);
     getSupportActionBar().setHomeButtonEnabled(true);
 

@@ -46,14 +46,14 @@ public class RtmpFromFileActivity extends AppCompatActivity
   private boolean touching = false;
 
   private String currentDateAndTime = "";
-  private File folder = new File(Environment.getExternalStorageDirectory().getAbsolutePath()
-      + "/rtmp-rtsp-stream-client-java");
+  private File folder;
 
   @Override
   protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
     getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
     setContentView(R.layout.activity_from_file);
+    folder = PathUtils.getRecordPath(this);
     button = findViewById(R.id.b_start_stop);
     bSelectFile = findViewById(R.id.b_select_file);
     button.setOnClickListener(this);
