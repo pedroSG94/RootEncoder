@@ -6,7 +6,6 @@ import com.pedro.rtmp.flv.FlvPacket
 import com.pedro.rtmp.rtmp.chunk.ChunkStreamId
 import com.pedro.rtmp.rtmp.chunk.ChunkType
 import com.pedro.rtmp.rtmp.message.*
-import com.pedro.rtmp.rtmp.message.command.Command
 import com.pedro.rtmp.rtmp.message.command.CommandAmf0
 import com.pedro.rtmp.rtmp.message.data.DataAmf0
 import com.pedro.rtmp.utils.CommandSessionHistory
@@ -34,6 +33,8 @@ class CommandsManager {
   var user: String? = null
   var password: String? = null
   var onAuth = false
+  var akamaiTs = false
+  var startTs = 0L
 
   private var width = 640
   private var height = 480
@@ -188,6 +189,9 @@ class CommandsManager {
 
   @Throws(IOException::class)
   fun sendVideoPacket(flvPacket: FlvPacket, output: OutputStream, isEnabledLogs: Boolean) {
+    if (akamaiTs) {
+      flvPacket.timeStamp = ((System.nanoTime() / 1000 - startTs) / 1000)
+    }
     val video = Video(flvPacket, streamId)
     video.writeHeader(output)
     video.writeBody(output)
@@ -199,6 +203,9 @@ class CommandsManager {
 
   @Throws(IOException::class)
   fun sendAudioPacket(flvPacket: FlvPacket, output: OutputStream, isEnabledLogs: Boolean) {
+    if (akamaiTs) {
+      flvPacket.timeStamp = ((System.nanoTime() / 1000 - startTs) / 1000)
+    }
     val audio = Audio(flvPacket, streamId)
     audio.writeHeader(output)
     audio.writeBody(output)
@@ -209,6 +216,8 @@ class CommandsManager {
   }
 
   fun reset() {
+    startTs = 0
+    timestamp = 0
     streamId = 0
     commandId = 0
     sessionHistory.reset()

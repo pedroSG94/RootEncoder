@@ -6,6 +6,7 @@ import com.pedro.rtmp.utils.writeUInt32
 import java.io.IOException
 import java.io.InputStream
 import java.io.OutputStream
+import java.util.LinkedHashMap
 import kotlin.jvm.Throws
 
 /**
@@ -13,7 +14,7 @@ import kotlin.jvm.Throws
  *
  * Exactly the same that AmfObject but start with an UInt32 that indicate the number of lines in Map
  */
-class AmfEcmaArray(private val properties: HashMap<AmfString, AmfData> = HashMap()): AmfObject(properties) {
+class AmfEcmaArray(private val properties: HashMap<AmfString, AmfData> = LinkedHashMap()): AmfObject(properties) {
 
   var length = 0
 

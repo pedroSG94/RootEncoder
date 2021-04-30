@@ -52,8 +52,6 @@ class RtmpClient(private val connectCheckerRtmp: ConnectCheckerRtmp) {
   private val handler: Handler = Handler(Looper.getMainLooper())
   private var runnable: Runnable? = null
   private var publishPermitted = false
-  private var akamaiTs = false
-  private var startTs = 0L
 
   val droppedAudioFrames: Long
     get() = rtmpSender.droppedAudioFrames
@@ -68,7 +66,7 @@ class RtmpClient(private val connectCheckerRtmp: ConnectCheckerRtmp) {
     get() = rtmpSender.getSentVideoFrames()
 
   fun forceAkamaiTs(enabled: Boolean) {
-    akamaiTs = enabled
+    commandsManager.akamaiTs = enabled
   }
 
   fun setAuthorization(user: String?, password: String?) {
@@ -148,7 +146,7 @@ class RtmpClient(private val connectCheckerRtmp: ConnectCheckerRtmp) {
             //read packets until you did success connection to server and you are ready to send packets
             while (!Thread.interrupted() && !publishPermitted) {
               //Handle all command received and send response for it.
-              handleMessages(reader!!, writer!!)
+              handleMessages()
             }
             //read packet because maybe server want send you something while streaming
             handleServerPackets()
@@ -165,7 +163,7 @@ class RtmpClient(private val connectCheckerRtmp: ConnectCheckerRtmp) {
   private fun handleServerPackets() {
     try {
       while (!Thread.interrupted()) {
-        handleMessages(reader!!, writer!!)
+        handleMessages()
       }
     } catch (e: Exception) {}
   }
@@ -213,7 +211,7 @@ class RtmpClient(private val connectCheckerRtmp: ConnectCheckerRtmp) {
     val handshake = Handshake()
     if (!handshake.sendHandshake(reader, writer)) return false
     commandsManager.timestamp = timestamp.toInt()
-    startTs = System.nanoTime() / 1000
+    commandsManager.startTs = System.nanoTime() / 1000
     return true
   }
 
@@ -221,8 +219,8 @@ class RtmpClient(private val connectCheckerRtmp: ConnectCheckerRtmp) {
    * Read all messages from server and response to it
    */
   @Throws(IOException::class)
-  private fun handleMessages(input: InputStream, output: OutputStream) {
-    val message = commandsManager.readMessageResponse(input)
+  private fun handleMessages() {
+    val message = commandsManager.readMessageResponse(reader!!)
     when (message.getType()) {
       MessageType.SET_CHUNK_SIZE -> {
         val setChunkSize = message as SetChunkSize
@@ -238,7 +236,7 @@ class RtmpClient(private val connectCheckerRtmp: ConnectCheckerRtmp) {
       }
       MessageType.SET_PEER_BANDWIDTH -> {
         val setPeerBandwidth = message as SetPeerBandwidth
-        commandsManager.sendWindowAcknowledgementSize(output)
+        commandsManager.sendWindowAcknowledgementSize(writer!!)
       }
       MessageType.ABORT -> {
         val abort = message as Abort
@@ -251,9 +249,9 @@ class RtmpClient(private val connectCheckerRtmp: ConnectCheckerRtmp) {
         when (val type = userControl.type) {
           UserControl.Type.PING_REQUEST -> {
             val pong = UserControl(UserControl.Type.PONG_REPLY, userControl.event)
-            pong.writeHeader(output)
-            pong.writeBody(output)
-            output.flush()
+            pong.writeHeader(writer!!)
+            pong.writeBody(writer!!)
+            writer!!.flush()
           }
           else -> {
             Log.i(TAG, "user control command $type ignored")
@@ -271,12 +269,12 @@ class RtmpClient(private val connectCheckerRtmp: ConnectCheckerRtmp) {
                   connectCheckerRtmp.onAuthSuccessRtmp()
                   commandsManager.onAuth = false
                 }
-                commandsManager.createStream(output)
+                commandsManager.createStream(writer!!)
               }
               "createStream" -> {
                 try {
                   commandsManager.streamId = (command.data[3] as AmfNumber).value.toInt()
-                  commandsManager.sendPublish(output)
+                  commandsManager.sendPublish(writer!!)
                 } catch (e: ClassCastException) {
                   Log.e(TAG, "error parsing _result createStream", e)
                 }
@@ -286,7 +284,8 @@ class RtmpClient(private val connectCheckerRtmp: ConnectCheckerRtmp) {
           }
           "_error" -> {
             try {
-              when (val description = ((command.data[3] as AmfObject).getProperty("code") as AmfString).value) {
+              val description = ((command.data[3] as AmfObject).getProperty("description") as AmfString).value
+              when (commandName) {
                 "connect" -> {
                   if (description.contains("reason=authfail") || description.contains("reason=nosuchuser")) {
                     connectCheckerRtmp.onAuthErrorRtmp()
@@ -302,22 +301,22 @@ class RtmpClient(private val connectCheckerRtmp: ConnectCheckerRtmp) {
                       val opaque = AuthUtil.getOpaque(description)
                       commandsManager.sendConnect(AuthUtil.getAdobeAuthUserResult(commandsManager.user
                           ?: "", commandsManager.password ?: "",
-                          salt, challenge, opaque), output)
+                          salt, challenge, opaque), writer!!)
                     } else if (description.contains("nonce=")) { //create llnw auth
                       val nonce = AuthUtil.getNonce(description)
                       commandsManager.sendConnect(AuthUtil.getLlnwAuthUserResult(commandsManager.user
                           ?: "", commandsManager.password ?: "",
-                          nonce, commandsManager.appName), output)
+                          nonce, commandsManager.appName), writer!!)
                     }
                   } else if (description.contains("code=403")) {
                     if (description.contains("authmod=adobe")) {
                       closeConnection()
                       establishConnection()
                       Log.i(TAG, "sending auth mode adobe")
-                      commandsManager.sendConnect("?authmod=adobe&user=${commandsManager.user}", output)
+                      commandsManager.sendConnect("?authmod=adobe&user=${commandsManager.user}", writer!!)
                     } else if (description.contains("authmod=llnw")) {
                       Log.i(TAG, "sending auth mode llnw")
-                      commandsManager.sendConnect("?authmod=llnw&user=${commandsManager.user}", output)
+                      commandsManager.sendConnect("?authmod=llnw&user=${commandsManager.user}", writer!!)
                     }
                   } else {
                     connectCheckerRtmp.onAuthErrorRtmp()
@@ -335,7 +334,7 @@ class RtmpClient(private val connectCheckerRtmp: ConnectCheckerRtmp) {
             try {
               when (val code = ((command.data[3] as AmfObject).getProperty("code") as AmfString).value) {
                 "NetStream.Publish.Start" -> {
-                  commandsManager.sendMetadata(output)
+                  commandsManager.sendMetadata(writer!!)
                   connectCheckerRtmp.onConnectionSuccessRtmp()
 
                   rtmpSender.output = writer
@@ -425,23 +424,16 @@ class RtmpClient(private val connectCheckerRtmp: ConnectCheckerRtmp) {
       isStreaming = false
       connectCheckerRtmp.onDisconnectRtmp()
     }
-    startTs = 0
     publishPermitted = false
     commandsManager.reset()
   }
 
   fun sendVideo(h264Buffer: ByteBuffer, info: MediaCodec.BufferInfo) {
-    info.presentationTimeUs = if (akamaiTs) calculateAkamaiTs() else info.presentationTimeUs
     rtmpSender.sendVideoFrame(h264Buffer, info)
   }
 
   fun sendAudio(aacBuffer: ByteBuffer, info: MediaCodec.BufferInfo) {
-    info.presentationTimeUs = if (akamaiTs) calculateAkamaiTs() else info.presentationTimeUs
     rtmpSender.sendAudioFrame(aacBuffer, info)
-  }
-
-  private fun calculateAkamaiTs(): Long {
-    return System.nanoTime() / 1000 - startTs
   }
 
   fun hasCongestion(): Boolean {
