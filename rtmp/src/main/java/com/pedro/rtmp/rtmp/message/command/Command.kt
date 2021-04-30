@@ -42,7 +42,7 @@ abstract class Command(var name: String = "", var commandId: Int, private val ti
   override fun readBody(input: InputStream) {
     data.clear()
     var bytesRead = 0
-    while (bytesRead < header.getPacketLength()) {
+    while (bytesRead < header.messageLength) {
       val amfData = AmfData.getAmfData(input)
       bytesRead += amfData.getSize() + 1
       data.add(amfData)

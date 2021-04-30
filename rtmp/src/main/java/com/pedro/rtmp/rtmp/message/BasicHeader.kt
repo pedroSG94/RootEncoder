@@ -53,6 +53,19 @@ class BasicHeader(val chunkType: ChunkType, val chunkStreamId: ChunkStreamId) {
     }
   }
 
+  fun getHeaderSize(timestamp: Int): Int {
+    var size = when (chunkType) {
+      ChunkType.TYPE_0 -> 12
+      ChunkType.TYPE_1 -> 8
+      ChunkType.TYPE_2 -> 4
+      ChunkType.TYPE_3 -> 0
+    }
+    if (timestamp >= 0xffffff) {
+      size += 4
+    }
+    return size
+  }
+
   override fun toString(): String {
     return "BasicHeader chunkType: $chunkType, chunkStreamId: $chunkStreamId"
   }

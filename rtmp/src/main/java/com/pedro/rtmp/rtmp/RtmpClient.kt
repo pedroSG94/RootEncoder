@@ -248,10 +248,7 @@ class RtmpClient(private val connectCheckerRtmp: ConnectCheckerRtmp) {
         val userControl = message as UserControl
         when (val type = userControl.type) {
           UserControl.Type.PING_REQUEST -> {
-            val pong = UserControl(UserControl.Type.PONG_REPLY, userControl.event)
-            pong.writeHeader(writer!!)
-            pong.writeBody(writer!!)
-            writer!!.flush()
+            commandsManager.sendPong(userControl.event, writer!!)
           }
           else -> {
             Log.i(TAG, "user control command $type ignored")

@@ -7,12 +7,12 @@ import com.pedro.rtmp.rtmp.chunk.ChunkStreamId
 import com.pedro.rtmp.rtmp.chunk.ChunkType
 import com.pedro.rtmp.rtmp.message.*
 import com.pedro.rtmp.rtmp.message.command.CommandAmf0
+import com.pedro.rtmp.rtmp.message.control.Event
+import com.pedro.rtmp.rtmp.message.control.UserControl
 import com.pedro.rtmp.rtmp.message.data.DataAmf0
 import com.pedro.rtmp.utils.CommandSessionHistory
 import com.pedro.rtmp.utils.RtmpConfig
-import java.io.IOException
-import java.io.InputStream
-import java.io.OutputStream
+import java.io.*
 
 /**
  * Created by pedro on 21/04/21.
@@ -174,6 +174,14 @@ class CommandsManager {
     output.flush()
   }
 
+  fun sendPong(event: Event, output: OutputStream) {
+    val pong = UserControl(UserControl.Type.PONG_REPLY, event)
+    pong.writeHeader(output)
+    pong.writeBody(output)
+    output.flush()
+    Log.i(TAG, "send pong")
+  }
+
   @Throws(IOException::class)
   fun sendClose(output: OutputStream) {
     val name = "closeStream"
@@ -188,7 +196,7 @@ class CommandsManager {
   }
 
   @Throws(IOException::class)
-  fun sendVideoPacket(flvPacket: FlvPacket, output: OutputStream, isEnabledLogs: Boolean) {
+  fun sendVideoPacket(flvPacket: FlvPacket, output: OutputStream): Int {
     if (akamaiTs) {
       flvPacket.timeStamp = ((System.nanoTime() / 1000 - startTs) / 1000)
     }
@@ -196,13 +204,11 @@ class CommandsManager {
     video.writeHeader(output)
     video.writeBody(output)
     output.flush()
-    if (isEnabledLogs) {
-      Log.i(TAG, "wrote packet $video")
-    }
+    return video.header.getPacketLength() //get packet size with header included to calculate bps
   }
 
   @Throws(IOException::class)
-  fun sendAudioPacket(flvPacket: FlvPacket, output: OutputStream, isEnabledLogs: Boolean) {
+  fun sendAudioPacket(flvPacket: FlvPacket, output: OutputStream): Int {
     if (akamaiTs) {
       flvPacket.timeStamp = ((System.nanoTime() / 1000 - startTs) / 1000)
     }
@@ -210,9 +216,7 @@ class CommandsManager {
     audio.writeHeader(output)
     audio.writeBody(output)
     output.flush()
-    if (isEnabledLogs) {
-      Log.i(TAG, "wrote packet $audio")
-    }
+    return audio.header.getPacketLength() //get packet size with header included to calculate bps
   }
 
   fun reset() {

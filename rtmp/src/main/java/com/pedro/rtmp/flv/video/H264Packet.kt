@@ -59,18 +59,19 @@ class H264Packet(private val videoPacketCallback: VideoPacketCallback) {
       }
       configSend = true
     } else {
-      val size = info.size - info.offset
+      val validBuffer = removeH264StartCode(byteBuffer)
+      val size = validBuffer.remaining()
       buffer = ByteArray(header.size + size + naluSize)
 
-      val type: Int = (byteBuffer.get(4) and 0x1F).toInt()
-      var nalType = VideoNalType.SLICE.ordinal
+      val type: Int = (validBuffer.get(0) and 0x1F).toInt()
+      var nalType = VideoDataType.INTER_FRAME.value
       if (type == VideoNalType.IDR.value || info.flags == MediaCodec.BUFFER_FLAG_KEY_FRAME) {
-        nalType = VideoNalType.IDR.value
+        nalType = VideoDataType.KEYFRAME.value
       }
       header[0] = ((nalType shl 4) or VideoFormat.AVC.value).toByte()
       header[1] = Type.NALU.value
       writeNaluSize(buffer, header.size, size)
-      byteBuffer.get(buffer, header.size + naluSize, info.size - info.offset)
+      validBuffer.get(buffer, header.size + naluSize, size)
     }
     System.arraycopy(header, 0, buffer, 0, header.size)
     val ts = info.presentationTimeUs / 1000
@@ -83,6 +84,24 @@ class H264Packet(private val videoPacketCallback: VideoPacketCallback) {
     buffer[offset + 1] = (size ushr 16).toByte()
     buffer[offset + 2] = (size ushr 8).toByte()
     buffer[offset + 3] = size.toByte()
+  }
+
+  private fun removeH264StartCode(byteBuffer: ByteBuffer): ByteBuffer {
+    var startCodeSize = 0
+    if (byteBuffer.get(0).toInt() == 0x00 && byteBuffer.get(1).toInt() == 0x00
+        && byteBuffer.get(2).toInt() == 0x00 && byteBuffer.get(3).toInt() == 0x01) {
+      //match 00 00 00 01
+      startCodeSize = 4
+    } else if (byteBuffer.get(0).toInt() == 0x00 && byteBuffer.get(1).toInt() == 0x00
+        && byteBuffer.get(2).toInt() == 0x01) {
+      //match 00 00 01
+      startCodeSize = 3
+    }
+    byteBuffer.rewind()
+    for (i in 0 until startCodeSize) {
+      byteBuffer.get()
+    }
+    return byteBuffer.slice()
   }
 
   fun reset() {

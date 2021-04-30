@@ -127,7 +127,7 @@ class RtmpHeader(var basicHeader: BasicHeader) {
     }
   }
 
-  fun getPacketLength(): Int = messageLength
+  fun getPacketLength(): Int = messageLength + basicHeader.getHeaderSize(timeStamp)
 
   override fun toString(): String {
     return "RtmpHeader(timeStamp=$timeStamp, messageLength=$messageLength, messageType=$messageType, messageStreamId=$messageStreamId, basicHeader=$basicHeader)"

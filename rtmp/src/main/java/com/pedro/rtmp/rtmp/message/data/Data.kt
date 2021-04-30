@@ -38,7 +38,7 @@ abstract class Data(private val name: String, timeStamp: Int, streamId: Int, bas
     amfString.readHeader(input)
     amfString.readBody(input)
     bodySize += amfString.getSize() + 1
-    while (bodySize < header.getPacketLength()) {
+    while (bodySize < header.messageLength) {
       val amfData = AmfData.getAmfData(input)
       data.add(amfData)
       bodySize += amfData.getSize() + 1
