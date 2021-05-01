@@ -47,7 +47,7 @@ class RtmpSender(private val connectCheckerRtmp: ConnectCheckerRtmp, private val
     }
 
     fun setVideoInfo(sps: ByteBuffer, pps: ByteBuffer, vps: ByteBuffer?) {
-      h264Packet.sendVideoInfo(sps.array(), pps.array())
+      h264Packet.sendVideoInfo(sps, pps)
     }
 
     fun setProfileIop(profileIop: ProfileIop) {

@@ -29,9 +29,13 @@ class H264Packet(private val videoPacketCallback: VideoPacketCallback) {
     SEQUENCE(0x00), NALU(0x01), EO_SEQ(0x02)
   }
 
-  fun sendVideoInfo(sps: ByteArray, pps: ByteArray) {
-    this.pps = pps
-    this.sps = sps
+  fun sendVideoInfo(sps: ByteBuffer, pps: ByteBuffer) {
+    val mSps = removeH264StartCode(sps)
+    val mPps = removeH264StartCode(pps)
+    this.sps = ByteArray(mSps.remaining())
+    this.pps = ByteArray(mPps.remaining())
+    mSps.get(this.sps!!, 0, this.sps!!.size)
+    mPps.get(this.pps!!, 0, this.pps!!.size)
   }
 
   fun createFlvAudioPacket(byteBuffer: ByteBuffer, info: MediaCodec.BufferInfo) {
@@ -97,10 +101,7 @@ class H264Packet(private val videoPacketCallback: VideoPacketCallback) {
       //match 00 00 01
       startCodeSize = 3
     }
-    byteBuffer.rewind()
-    for (i in 0 until startCodeSize) {
-      byteBuffer.get()
-    }
+    byteBuffer.position(startCodeSize)
     return byteBuffer.slice()
   }
 
