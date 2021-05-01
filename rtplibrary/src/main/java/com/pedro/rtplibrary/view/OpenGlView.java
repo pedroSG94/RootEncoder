@@ -91,6 +91,10 @@ public class OpenGlView extends OpenGlViewBase {
     return keepAspectRatio;
   }
 
+  public void setAspectRatioMode(int aspectRatioMode) {
+    this.aspectRatioMode = aspectRatioMode;
+  }
+
   public void setKeepAspectRatio(boolean keepAspectRatio) {
     this.keepAspectRatio = keepAspectRatio;
   }
