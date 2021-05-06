@@ -57,6 +57,10 @@ public class LightOpenGlView extends OpenGlViewBase {
     return keepAspectRatio;
   }
 
+  public void setAspectRatioMode(AspectRatioMode aspectRatioMode) {
+    this.aspectRatioMode = aspectRatioMode;
+  }
+
   public void setKeepAspectRatio(boolean keepAspectRatio) {
     this.keepAspectRatio = keepAspectRatio;
   }
