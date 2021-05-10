@@ -1,6 +1,5 @@
-package com.pedro.rtmp.amf
+package com.pedro.rtmp.amf.v0
 
-import com.pedro.rtmp.amf.v0.*
 import java.io.IOException
 import java.io.InputStream
 import java.io.OutputStream

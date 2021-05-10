@@ -1,6 +1,5 @@
 package com.pedro.rtmp.amf.v0
 
-import com.pedro.rtmp.amf.AmfData
 import com.pedro.rtmp.utils.readUInt16
 import com.pedro.rtmp.utils.readUntil
 import com.pedro.rtmp.utils.writeUInt16

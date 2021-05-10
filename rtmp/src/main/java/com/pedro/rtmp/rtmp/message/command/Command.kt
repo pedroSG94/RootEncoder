@@ -1,6 +1,6 @@
 package com.pedro.rtmp.rtmp.message.command
 
-import com.pedro.rtmp.amf.AmfData
+import com.pedro.rtmp.amf.v0.AmfData
 import com.pedro.rtmp.amf.v0.AmfNumber
 import com.pedro.rtmp.amf.v0.AmfString
 import com.pedro.rtmp.rtmp.message.BasicHeader

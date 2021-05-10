@@ -1,6 +1,5 @@
 package com.pedro.rtmp.amf.v0
 
-import com.pedro.rtmp.amf.AmfData
 import com.pedro.rtmp.utils.readUntil
 import java.io.IOException
 import java.io.InputStream
