@@ -31,11 +31,9 @@ import androidx.drawerlayout.widget.DrawerLayout;
 import com.google.android.material.navigation.NavigationView;
 import com.pedro.encoder.input.video.CameraHelper;
 import com.pedro.encoder.input.video.CameraOpenException;
+import com.pedro.rtmp.utils.ConnectCheckerRtmp;
 import com.pedro.rtplibrary.rtmp.RtmpCamera1;
 import com.pedro.rtpstreamer.R;
-
-import net.ossrs.rtmp.ConnectCheckerRtmp;
-
 import java.io.File;
 import java.io.IOException;
 import java.text.SimpleDateFormat;

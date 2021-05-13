@@ -1,7 +1,7 @@
 package com.pedro.rtpstreamer.backgroundexample
 
+import com.pedro.rtmp.utils.ConnectCheckerRtmp
 import com.pedro.rtsp.utils.ConnectCheckerRtsp
-import net.ossrs.rtmp.ConnectCheckerRtmp
 
 /**
  * (Only working in kotlin)

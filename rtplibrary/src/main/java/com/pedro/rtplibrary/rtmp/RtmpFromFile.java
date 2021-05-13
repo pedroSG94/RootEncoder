@@ -9,12 +9,13 @@ import androidx.annotation.RequiresApi;
 
 import com.pedro.encoder.input.decoder.AudioDecoderInterface;
 import com.pedro.encoder.input.decoder.VideoDecoderInterface;
+import com.pedro.rtmp.flv.video.ProfileIop;
+import com.pedro.rtmp.rtmp.RtmpClient;
+import com.pedro.rtmp.utils.ConnectCheckerRtmp;
 import com.pedro.rtplibrary.base.FromFileBase;
 
 import com.pedro.rtplibrary.view.LightOpenGlView;
 import com.pedro.rtplibrary.view.OpenGlView;
-import net.ossrs.rtmp.ConnectCheckerRtmp;
-import net.ossrs.rtmp.SrsFlvMuxer;
 
 import java.nio.ByteBuffer;
 
@@ -27,30 +28,30 @@ import java.nio.ByteBuffer;
 @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
 public class RtmpFromFile extends FromFileBase {
 
-  private SrsFlvMuxer srsFlvMuxer;
+  private RtmpClient rtmpClient;
 
   public RtmpFromFile(ConnectCheckerRtmp connectChecker,
       VideoDecoderInterface videoDecoderInterface, AudioDecoderInterface audioDecoderInterface) {
     super(videoDecoderInterface, audioDecoderInterface);
-    srsFlvMuxer = new SrsFlvMuxer(connectChecker);
+    rtmpClient = new RtmpClient(connectChecker);
   }
 
   public RtmpFromFile(Context context, ConnectCheckerRtmp connectChecker,
       VideoDecoderInterface videoDecoderInterface, AudioDecoderInterface audioDecoderInterface) {
     super(context, videoDecoderInterface, audioDecoderInterface);
-    srsFlvMuxer = new SrsFlvMuxer(connectChecker);
+    rtmpClient = new RtmpClient(connectChecker);
   }
 
   public RtmpFromFile(OpenGlView openGlView, ConnectCheckerRtmp connectChecker,
       VideoDecoderInterface videoDecoderInterface, AudioDecoderInterface audioDecoderInterface) {
     super(openGlView, videoDecoderInterface, audioDecoderInterface);
-    srsFlvMuxer = new SrsFlvMuxer(connectChecker);
+    rtmpClient = new RtmpClient(connectChecker);
   }
 
   public RtmpFromFile(LightOpenGlView lightOpenGlView, ConnectCheckerRtmp connectChecker,
       VideoDecoderInterface videoDecoderInterface, AudioDecoderInterface audioDecoderInterface) {
     super(lightOpenGlView, videoDecoderInterface, audioDecoderInterface);
-    srsFlvMuxer = new SrsFlvMuxer(connectChecker);
+    rtmpClient = new RtmpClient(connectChecker);
   }
 
   /**
@@ -58,63 +59,63 @@ public class RtmpFromFile extends FromFileBase {
    *
    * @param profileIop Could be ProfileIop.BASELINE or ProfileIop.CONSTRAINED
    */
-  public void setProfileIop(byte profileIop) {
-    srsFlvMuxer.setProfileIop(profileIop);
+  public void setProfileIop(ProfileIop profileIop) {
+    rtmpClient.setProfileIop(profileIop);
   }
 
   @Override
   public void resizeCache(int newSize) throws RuntimeException {
-    srsFlvMuxer.resizeFlvTagCache(newSize);
+    rtmpClient.resizeCache(newSize);
   }
 
   @Override
   public int getCacheSize() {
-    return srsFlvMuxer.getFlvTagCacheSize();
+    return rtmpClient.getCacheSize();
   }
 
   @Override
   public long getSentAudioFrames() {
-    return srsFlvMuxer.getSentAudioFrames();
+    return rtmpClient.getSentAudioFrames();
   }
 
   @Override
   public long getSentVideoFrames() {
-    return srsFlvMuxer.getSentVideoFrames();
+    return rtmpClient.getSentVideoFrames();
   }
 
   @Override
   public long getDroppedAudioFrames() {
-    return srsFlvMuxer.getDroppedAudioFrames();
+    return rtmpClient.getDroppedAudioFrames();
   }
 
   @Override
   public long getDroppedVideoFrames() {
-    return srsFlvMuxer.getDroppedVideoFrames();
+    return rtmpClient.getDroppedVideoFrames();
   }
 
   @Override
   public void resetSentAudioFrames() {
-    srsFlvMuxer.resetSentAudioFrames();
+    rtmpClient.resetSentAudioFrames();
   }
 
   @Override
   public void resetSentVideoFrames() {
-    srsFlvMuxer.resetSentVideoFrames();
+    rtmpClient.resetSentVideoFrames();
   }
 
   @Override
   public void resetDroppedAudioFrames() {
-    srsFlvMuxer.resetDroppedAudioFrames();
+    rtmpClient.resetDroppedAudioFrames();
   }
 
   @Override
   public void resetDroppedVideoFrames() {
-    srsFlvMuxer.resetDroppedVideoFrames();
+    rtmpClient.resetDroppedVideoFrames();
   }
 
   @Override
   public void setAuthorization(String user, String password) {
-    srsFlvMuxer.setAuthorization(user, password);
+    rtmpClient.setAuthorization(user, password);
   }
 
   /**
@@ -125,67 +126,66 @@ public class RtmpFromFile extends FromFileBase {
    * https://learn.akamai.com/en-us/webhelp/media-services-live/media-services-live-encoder-compatibility-testing-and-qualification-guide-v4.0/GUID-F941C88B-9128-4BF4-A81B-C2E5CFD35BBF.html
    */
   public void forceAkamaiTs(boolean enabled) {
-    srsFlvMuxer.forceAkamaiTs(enabled);
+    rtmpClient.forceAkamaiTs(enabled);
   }
 
   @Override
   protected void prepareAudioRtp(boolean isStereo, int sampleRate) {
-    srsFlvMuxer.setIsStereo(isStereo);
-    srsFlvMuxer.setSampleRate(sampleRate);
+    rtmpClient.setAudioInfo(sampleRate, isStereo);
   }
 
   @Override
   protected void startStreamRtp(String url) {
     if (videoEncoder.getRotation() == 90 || videoEncoder.getRotation() == 270) {
-      srsFlvMuxer.setVideoResolution(videoEncoder.getHeight(), videoEncoder.getWidth());
+      rtmpClient.setVideoResolution(videoEncoder.getHeight(), videoEncoder.getWidth());
     } else {
-      srsFlvMuxer.setVideoResolution(videoEncoder.getWidth(), videoEncoder.getHeight());
+      rtmpClient.setVideoResolution(videoEncoder.getWidth(), videoEncoder.getHeight());
     }
-    srsFlvMuxer.start(url);
+    rtmpClient.connect(url);
   }
 
   @Override
   protected void stopStreamRtp() {
-    srsFlvMuxer.stop();
+    rtmpClient.disconnect();
   }
 
   @Override
   public void setReTries(int reTries) {
-    srsFlvMuxer.setReTries(reTries);
+    rtmpClient.setReTries(reTries);
   }
 
   @Override
   protected boolean shouldRetry(String reason) {
-    return srsFlvMuxer.shouldRetry(reason);
+    return rtmpClient.shouldRetry(reason);
   }
 
   @Override
   public void reConnect(long delay, @Nullable String backupUrl) {
-    srsFlvMuxer.reConnect(delay, backupUrl);
+    rtmpClient.reConnect(delay, backupUrl);
   }
 
   @Override
   public boolean hasCongestion() {
-    return srsFlvMuxer.hasCongestion();
+    return rtmpClient.hasCongestion();
   }
 
   @Override
   protected void onSpsPpsVpsRtp(ByteBuffer sps, ByteBuffer pps, ByteBuffer vps) {
-    srsFlvMuxer.setSpsPPs(sps, pps);
+    rtmpClient.setSPSandPPS(sps, pps, vps);
   }
 
   @Override
   protected void getH264DataRtp(ByteBuffer h264Buffer, MediaCodec.BufferInfo info) {
-    srsFlvMuxer.sendVideo(h264Buffer, info);
+    rtmpClient.sendVideo(h264Buffer, info);
   }
 
   @Override
   protected void getAacDataRtp(ByteBuffer aacBuffer, MediaCodec.BufferInfo info) {
-    srsFlvMuxer.sendAudio(aacBuffer, info);
+    rtmpClient.sendAudio(aacBuffer, info);
   }
 
   @Override
   public void setLogs(boolean enable) {
-    srsFlvMuxer.setLogs(enable);
+    rtmpClient.setLogs(enable);
   }
 }
