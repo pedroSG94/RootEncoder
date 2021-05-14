@@ -55,7 +55,7 @@ class H264Packet(private val videoPacketCallback: VideoPacketCallback) {
 
     var buffer: ByteArray
     if (!configSend) {
-      header[0] = ((VideoNalType.IDR.value shl 4) or VideoFormat.AVC.value).toByte()
+      header[0] = ((VideoDataType.KEYFRAME.value shl 4) or VideoFormat.AVC.value).toByte()
       header[1] = Type.SEQUENCE.value
 
       val sps = this.sps
