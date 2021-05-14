@@ -35,6 +35,7 @@ class CommandsManager {
   var onAuth = false
   var akamaiTs = false
   var startTs = 0L
+  var readChunkSize = 128
 
   private var width = 640
   private var height = 480
@@ -120,7 +121,7 @@ class CommandsManager {
 
   @Throws(IOException::class)
   fun readMessageResponse(input: InputStream): RtmpMessage {
-    val message = RtmpMessage.getRtmpMessage(input)
+    val message = RtmpMessage.getRtmpMessage(input, readChunkSize)
     Log.i(TAG, "read $message")
     return message
   }

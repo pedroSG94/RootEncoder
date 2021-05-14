@@ -224,7 +224,7 @@ class RtmpClient(private val connectCheckerRtmp: ConnectCheckerRtmp) {
     when (message.getType()) {
       MessageType.SET_CHUNK_SIZE -> {
         val setChunkSize = message as SetChunkSize
-        RtmpConfig.chunkSize = setChunkSize.chunkSize
+        commandsManager.readChunkSize = setChunkSize.chunkSize
         Log.i(TAG, "chunk size configured to ${setChunkSize.chunkSize}")
       }
       MessageType.ACKNOWLEDGEMENT -> {

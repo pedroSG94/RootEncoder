@@ -29,7 +29,7 @@ abstract class RtmpMessage(basicHeader: BasicHeader) {
     private val TAG = "RtmpMessage"
 
     @Throws(IOException::class)
-    fun getRtmpMessage(input: InputStream): RtmpMessage {
+    fun getRtmpMessage(input: InputStream, chunkSize: Int): RtmpMessage {
       val header = RtmpHeader.readHeader(input)
       val rtmpMessage = when (header.messageType) {
         MessageType.SET_CHUNK_SIZE -> SetChunkSize()
@@ -51,8 +51,8 @@ abstract class RtmpMessage(basicHeader: BasicHeader) {
       }
       rtmpMessage.updateHeader(header)
       //we have multiple chunk wait until we have full body on stream and discard chunk header
-      val bodyInput = if (header.messageLength > RtmpConfig.chunkSize) {
-        getInputWithoutChunks(input, header)
+      val bodyInput = if (header.messageLength > chunkSize) {
+        getInputWithoutChunks(input, header, chunkSize)
       } else {
         input
       }
@@ -64,17 +64,17 @@ abstract class RtmpMessage(basicHeader: BasicHeader) {
       return MessageType.values().find { it.mark.toInt() == type } ?: throw IOException("Unknown rtmp message type: $type")
     }
 
-    private fun getInputWithoutChunks(input: InputStream, header: RtmpHeader): InputStream {
+    private fun getInputWithoutChunks(input: InputStream, header: RtmpHeader, chunkSize: Int): InputStream {
       val packetStore = ByteArrayOutputStream()
       var bytesRead = 0
       while (bytesRead < header.messageLength) {
         var chunk: ByteArray
-        if (header.messageLength - bytesRead < RtmpConfig.chunkSize) {
+        if (header.messageLength - bytesRead < chunkSize) {
           //last chunk
           chunk = ByteArray(header.messageLength - (bytesRead - 1))
           input.readUntil(chunk)
         } else {
-          chunk = ByteArray(RtmpConfig.chunkSize)
+          chunk = ByteArray(chunkSize)
           input.readUntil(chunk)
           //skip chunk header to discard it, set packet ts to indicate if you need read extended ts
           RtmpHeader.readHeader(input, header.timeStamp)
@@ -102,7 +102,7 @@ abstract class RtmpMessage(basicHeader: BasicHeader) {
 
   @Throws(IOException::class)
   fun writeBody(output: OutputStream) {
-    val chunkSize = RtmpConfig.chunkSize
+    val chunkSize = RtmpConfig.writeChunkSize
     val bytes = storeBody()
     var pos = 0
     var length = getSize()

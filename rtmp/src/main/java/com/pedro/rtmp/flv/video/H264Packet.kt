@@ -20,8 +20,6 @@ class H264Packet(private val videoPacketCallback: VideoPacketCallback) {
   private val naluSize = 4
   //first time we need send video config
   private var configSend = false
-  //we need start stream with a keyframe
-  private var sendKeyFrame = false
 
   private var sps: ByteArray? = null
   private var pps: ByteArray? = null
@@ -84,13 +82,8 @@ class H264Packet(private val videoPacketCallback: VideoPacketCallback) {
       var nalType = VideoDataType.INTER_FRAME.value
       if (type == VideoNalType.IDR.value || info.flags == MediaCodec.BUFFER_FLAG_KEY_FRAME) {
         nalType = VideoDataType.KEYFRAME.value
-        sendKeyFrame = true
       } else if (type == VideoNalType.SPS.value || type == VideoNalType.PPS.value) {
         // we don't need send it because we already do it in video config
-        return
-      }
-      if (!sendKeyFrame) {
-        Log.i(TAG, "waiting for a keyframe")
         return
       }
       header[0] = ((nalType shl 4) or VideoFormat.AVC.value).toByte()
@@ -99,7 +92,6 @@ class H264Packet(private val videoPacketCallback: VideoPacketCallback) {
       validBuffer.get(buffer, header.size + naluSize, size)
 
       System.arraycopy(header, 0, buffer, 0, header.size)
-      Log.i(TAG, "h264 size: ${info.size - info.offset}")
       videoPacketCallback.onVideoFrameCreated(FlvPacket(buffer, ts, buffer.size, FlvType.VIDEO))
     }
   }
