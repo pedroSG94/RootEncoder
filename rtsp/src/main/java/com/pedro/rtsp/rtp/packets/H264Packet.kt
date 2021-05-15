@@ -104,6 +104,8 @@ open class H264Packet(sps: ByteArray, pps: ByteArray, private val videoPacketCal
           header[1] = header[1] and 0x7F
         }
       }
+    } else {
+      Log.i(TAG, "waiting for keyframe")
     }
   }
 

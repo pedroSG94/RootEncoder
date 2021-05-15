@@ -507,10 +507,9 @@ public abstract class FromFileBase
    *
    * @param bitrate H264 in bits per second.
    */
+  @RequiresApi(api = Build.VERSION_CODES.KITKAT)
   public void setVideoBitrateOnFly(int bitrate) {
-    if (Build.VERSION.SDK_INT >= 19) {
-      videoEncoder.setVideoBitrateOnFly(bitrate);
-    }
+    videoEncoder.setVideoBitrateOnFly(bitrate);
   }
 
   /**
