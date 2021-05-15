@@ -22,7 +22,7 @@ abstract class BaseSenderReport internal constructor() {
   private var videoOctetCount = 0
   private var audioPacketCount = 0
   private var audioOctetCount = 0
-  protected val PACKET_LENGTH = 28
+  val PACKET_LENGTH = 28
   protected val TAG = "BaseSenderReport"
 
   companion object {
@@ -69,18 +69,18 @@ abstract class BaseSenderReport internal constructor() {
 
   abstract fun setDataStream(outputStream: OutputStream, host: String)
 
-  fun update(rtpFrame: RtpFrame, isEnableLogs: Boolean) {
+  fun update(rtpFrame: RtpFrame, isEnableLogs: Boolean): Boolean {
     if (rtpFrame.channelIdentifier == RtpConstants.trackVideo) {
-      updateVideo(rtpFrame, isEnableLogs)
+      return updateVideo(rtpFrame, isEnableLogs)
     } else {
-      updateAudio(rtpFrame, isEnableLogs)
+      return updateAudio(rtpFrame, isEnableLogs)
     }
   }
 
   @Throws(IOException::class)
   abstract fun sendReport(buffer: ByteArray, rtpFrame: RtpFrame, type: String, packetCount: Int, octetCount: Int, isEnableLogs: Boolean)
 
-  private fun updateVideo(rtpFrame: RtpFrame, isEnableLogs: Boolean) {
+  private fun updateVideo(rtpFrame: RtpFrame, isEnableLogs: Boolean): Boolean {
     videoPacketCount++
     videoOctetCount += rtpFrame.length
     videoBuffer.setLong(videoPacketCount.toLong(), 20, 24)
@@ -90,13 +90,15 @@ abstract class BaseSenderReport internal constructor() {
       setData(videoBuffer, System.nanoTime(), rtpFrame.timeStamp)
       try {
         sendReport(videoBuffer, rtpFrame, "Video", videoPacketCount, videoOctetCount, isEnableLogs)
+        return true
       } catch (e: IOException) {
         Log.e(TAG, "Error", e)
       }
     }
+    return false
   }
 
-  private fun updateAudio(rtpFrame: RtpFrame, isEnableLogs: Boolean) {
+  private fun updateAudio(rtpFrame: RtpFrame, isEnableLogs: Boolean): Boolean {
     audioPacketCount++
     audioOctetCount += rtpFrame.length
     audioBuffer.setLong(audioPacketCount.toLong(), 20, 24)
@@ -106,10 +108,12 @@ abstract class BaseSenderReport internal constructor() {
       setData(audioBuffer, System.nanoTime(), rtpFrame.timeStamp)
       try {
         sendReport(audioBuffer, rtpFrame, "Audio", audioPacketCount, audioOctetCount, isEnableLogs)
+        return true
       } catch (e: IOException) {
         Log.e(TAG, "Error", e)
       }
     }
+    return false
   }
 
   fun reset() {
