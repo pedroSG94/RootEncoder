@@ -9,6 +9,8 @@ import android.os.Environment;
 import android.provider.DocumentsContract;
 import android.provider.MediaStore;
 
+import java.io.File;
+
 /**
  * Created by pedro on 21/06/17.
  * Get absolute path from onActivityResult
@@ -16,6 +18,11 @@ import android.provider.MediaStore;
  */
 
 public class PathUtils {
+
+  public static File getRecordPath(Context context) {
+    return new File(context.getExternalFilesDir(null).getAbsolutePath()
+        + "/rtmp-rtsp-stream-client-java");
+  }
 
   public static String getPath(final Context context, final Uri uri) {
 
