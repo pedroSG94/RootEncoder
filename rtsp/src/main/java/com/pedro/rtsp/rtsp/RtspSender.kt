@@ -142,8 +142,8 @@ open class RtspSender(private val connectCheckerRtsp: ConnectCheckerRtsp) : Vide
             //InterruptedException is only when you disconnect manually, you don't need report it.
             if (e !is InterruptedException) {
               connectCheckerRtsp.onConnectionFailedRtsp("Error send packet, " + e.message)
+              Log.e(TAG, "send error: ", e)
             }
-            Log.e(TAG, "send error: ", e)
             return@post
           }
         }
