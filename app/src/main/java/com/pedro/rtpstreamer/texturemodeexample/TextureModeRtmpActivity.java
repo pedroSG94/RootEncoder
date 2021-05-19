@@ -3,7 +3,6 @@ package com.pedro.rtpstreamer.texturemodeexample;
 import android.graphics.SurfaceTexture;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.Environment;
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 import android.view.TextureView;

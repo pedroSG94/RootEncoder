@@ -165,7 +165,9 @@ class RtmpClient(private val connectCheckerRtmp: ConnectCheckerRtmp) {
       while (!Thread.interrupted()) {
         handleMessages()
       }
-    } catch (e: Exception) {}
+    } catch (e: InterruptedException) {
+      Thread.currentThread().interrupt()
+    } catch (e: Exception) { }
   }
 
   private fun getAppName(app: String, name: String): String {
@@ -384,6 +386,8 @@ class RtmpClient(private val connectCheckerRtmp: ConnectCheckerRtmp) {
 
   private fun disconnect(clear: Boolean) {
     if (isStreaming) rtmpSender.stop()
+    reader?.close()
+    reader = null
     thread?.looper?.thread?.interrupt()
     thread?.looper?.quit()
     thread?.quit()
@@ -400,9 +404,14 @@ class RtmpClient(private val connectCheckerRtmp: ConnectCheckerRtmp) {
           writer?.let { writer ->
             commandsManager.sendClose(writer)
           }
+          writer?.close()
+          writer = null
           closeConnection()
         } catch (e: IOException) {
           Log.e(TAG, "disconnect error", e)
+        } finally {
+          thread?.looper?.quit()
+          return@post
         }
       }
     }
@@ -411,8 +420,6 @@ class RtmpClient(private val connectCheckerRtmp: ConnectCheckerRtmp) {
       thread?.looper?.thread?.interrupt()
       thread?.looper?.quit()
       thread?.quit()
-      writer?.flush()
-      thread?.join(100)
       thread = null
     } catch (e: Exception) { }
     if (clear) {

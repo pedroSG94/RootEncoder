@@ -9,14 +9,17 @@ import android.os.Bundle;
 import android.util.Log;
 import android.util.Pair;
 import android.view.Surface;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
+
 import com.pedro.encoder.BaseEncoder;
 import com.pedro.encoder.Frame;
 import com.pedro.encoder.input.video.FpsLimiter;
 import com.pedro.encoder.input.video.GetCameraData;
 import com.pedro.encoder.utils.CodecUtil;
 import com.pedro.encoder.utils.yuv.YUVUtil;
+
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
@@ -352,7 +355,6 @@ public class VideoEncoder extends BaseEncoder implements GetCameraData {
    * decode sps and pps if the encoder never call to MediaCodec.INFO_OUTPUT_FORMAT_CHANGED
    */
   private Pair<ByteBuffer, ByteBuffer> decodeSpsPpsFromBuffer(ByteBuffer outputBuffer, int length) {
-    byte[] mSPS = null, mPPS = null;
     byte[] csd = new byte[length];
     outputBuffer.get(csd, 0, length);
     int i = 0;
@@ -370,13 +372,11 @@ public class VideoEncoder extends BaseEncoder implements GetCameraData {
       i++;
     }
     if (spsIndex != -1 && ppsIndex != -1) {
-      mSPS = new byte[ppsIndex];
-      System.arraycopy(csd, spsIndex, mSPS, 0, ppsIndex);
-      mPPS = new byte[length - ppsIndex];
-      System.arraycopy(csd, ppsIndex, mPPS, 0, length - ppsIndex);
-    }
-    if (mSPS != null && mPPS != null) {
-      return new Pair<>(ByteBuffer.wrap(mSPS), ByteBuffer.wrap(mPPS));
+      byte[] sps = new byte[ppsIndex];
+      System.arraycopy(csd, spsIndex, sps, 0, ppsIndex);
+      byte[] pps = new byte[length - ppsIndex];
+      System.arraycopy(csd, ppsIndex, pps, 0, length - ppsIndex);
+      return new Pair<>(ByteBuffer.wrap(sps), ByteBuffer.wrap(pps));
     }
     return null;
   }
@@ -463,15 +463,18 @@ public class VideoEncoder extends BaseEncoder implements GetCameraData {
       requestKeyframe();
     }
     fixTimeStamp(bufferInfo);
-    if ((bufferInfo.flags & MediaCodec.BUFFER_FLAG_CODEC_CONFIG) != 0) {
-      if (!spsPpsSetted) {
-        Pair<ByteBuffer, ByteBuffer> buffers =
-            decodeSpsPpsFromBuffer(byteBuffer.duplicate(), bufferInfo.size);
-        if (buffers != null) {
-          getVideoData.onSpsPps(buffers.first, buffers.second);
-          spsPpsSetted = true;
-        }
+    if (!spsPpsSetted && type.equals(CodecUtil.H264_MIME)) {
+      Log.i(TAG, "formatChanged not called, doing manual sps/pps extraction...");
+      Pair<ByteBuffer, ByteBuffer> buffers = decodeSpsPpsFromBuffer(byteBuffer.duplicate(), bufferInfo.size);
+      if (buffers != null) {
+        Log.i(TAG, "manual sps/pps extraction success");
+        getVideoData.onSpsPps(buffers.first, buffers.second);
+        spsPpsSetted = true;
+      } else {
+        Log.e(TAG, "manual sps/pps extraction failed");
       }
+    } else if (!spsPpsSetted && type.equals(CodecUtil.H265_MIME)) {
+      Log.e(TAG, "formatChanged not called, manual sps/pps/vps extraction not supported");
     }
     if (formatVideoEncoder == FormatVideoEncoder.SURFACE) {
       bufferInfo.presentationTimeUs = System.nanoTime() / 1000 - presentTimeUs;

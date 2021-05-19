@@ -3,7 +3,6 @@ package com.pedro.rtpstreamer.customexample;
 import android.hardware.Camera;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.Environment;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;

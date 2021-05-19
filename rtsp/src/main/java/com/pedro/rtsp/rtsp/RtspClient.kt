@@ -143,12 +143,12 @@ open class RtspClient(private val connectCheckerRtsp: ConnectCheckerRtsp) {
               commandsManager.videoClientPorts, commandsManager.audioClientPorts)
             rtspSender.setAudioInfo(commandsManager.sampleRate)
             if (!commandsManager.isOnlyAudio) {
-              if (commandsManager.sps == null && commandsManager.pps == null) {
+              if (commandsManager.sps == null || commandsManager.pps == null) {
                 semaphore.drainPermits()
                 Log.i(TAG, "waiting for sps and pps")
                 semaphore.tryAcquire(5000, TimeUnit.MILLISECONDS)
               }
-              if (commandsManager.sps == null && commandsManager.pps == null) {
+              if (commandsManager.sps == null || commandsManager.pps == null) {
                 connectCheckerRtsp.onConnectionFailedRtsp("sps or pps is null")
                 return@post
               } else {
@@ -267,7 +267,9 @@ open class RtspClient(private val connectCheckerRtsp: ConnectCheckerRtsp) {
             //Do something depend of command if required
           }
         }
-      } catch (e: InterruptedException) { }
+      } catch (e: InterruptedException) {
+        Thread.currentThread().interrupt()
+      } catch (e:Exception) { }
     }
   }
 
@@ -278,6 +280,8 @@ open class RtspClient(private val connectCheckerRtsp: ConnectCheckerRtsp) {
 
   private fun disconnect(clear: Boolean) {
     if (isStreaming) rtspSender.stop()
+    reader?.close()
+    reader = null
     thread?.looper?.thread?.interrupt()
     thread?.looper?.quit()
     thread?.quit()
@@ -299,6 +303,7 @@ open class RtspClient(private val connectCheckerRtsp: ConnectCheckerRtsp) {
             commandsManager.retryClear()
           }
           connectionSocket?.close()
+          writer?.close()
           writer = null
           connectionSocket = null
           Log.i(TAG, "write teardown success")
@@ -309,6 +314,9 @@ open class RtspClient(private val connectCheckerRtsp: ConnectCheckerRtsp) {
             commandsManager.retryClear()
           }
           Log.e(TAG, "disconnect error", e)
+        } finally {
+          thread?.looper?.quit()
+          return@post
         }
       }
     }
@@ -317,8 +325,6 @@ open class RtspClient(private val connectCheckerRtsp: ConnectCheckerRtsp) {
       thread?.looper?.thread?.interrupt()
       thread?.looper?.quit()
       thread?.quit()
-      writer?.flush()
-      thread?.join(100)
       thread = null
       semaphore.release()
     } catch (e: Exception) { }
