@@ -119,7 +119,11 @@ class H264Packet(private val videoPacketCallback: VideoPacketCallback) {
     return byteBuffer.slice()
   }
 
-  fun reset() {
+  fun reset(resetInfo: Boolean = true) {
+    if (resetInfo) {
+      sps = null
+      pps = null
+    }
     configSend = false
   }
 }

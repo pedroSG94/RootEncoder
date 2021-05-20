@@ -131,7 +131,7 @@ class RtmpSender(private val connectCheckerRtmp: ConnectCheckerRtmp, private val
       }
     }
 
-    fun stop() {
+    fun stop(clear: Boolean = true) {
       running = false
       thread?.looper?.thread?.interrupt()
       thread?.looper?.quit()
@@ -142,7 +142,7 @@ class RtmpSender(private val connectCheckerRtmp: ConnectCheckerRtmp, private val
       thread = null
       flvPacketBlockingQueue.clear()
       aacPacket.reset()
-      h264Packet.reset()
+      h264Packet.reset(clear)
       resetSentAudioFrames()
       resetSentVideoFrames()
       resetDroppedAudioFrames()

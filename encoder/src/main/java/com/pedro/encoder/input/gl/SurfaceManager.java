@@ -19,6 +19,8 @@ import com.pedro.encoder.utils.gl.GlUtil;
 @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
 public class SurfaceManager {
 
+  private static final String TAG = "SurfaceManager";
+
   private static final int EGL_RECORDABLE_ANDROID = 0x3142;
 
   private EGLContext eglContext = EGL14.EGL_NO_CONTEXT;
@@ -60,13 +62,13 @@ public class SurfaceManager {
 
   public void makeCurrent() {
     if (!EGL14.eglMakeCurrent(eglDisplay, eglSurface, eglSurface, eglContext)) {
-      Log.e("Error", "eglMakeCurrent failed");
+      Log.e(TAG, "eglMakeCurrent failed");
     }
   }
 
   public void swapBuffer() {
     if (!EGL14.eglSwapBuffers(eglDisplay, eglSurface)) {
-      Log.e("Error", "eglSwapBuffers failed");
+      Log.e(TAG, "eglSwapBuffers failed");
     }
   }
 
@@ -82,6 +84,7 @@ public class SurfaceManager {
    * Prepares EGL.  We want a GLES 2.0 context and a surface that supports recording.
    */
   private void eglSetup(int width, int height, Surface surface, EGLContext eglSharedContext) {
+    Log.i(TAG, "initialize GL");
     eglDisplay = EGL14.eglGetDisplay(EGL14.EGL_DEFAULT_DISPLAY);
     if (eglDisplay == EGL14.EGL_NO_DISPLAY) {
       throw new RuntimeException("unable to get EGL14 display");
@@ -165,6 +168,7 @@ public class SurfaceManager {
    * Discards all resources held by this class, notably the EGL context.
    */
   public void release() {
+    Log.i(TAG, "release GL");
     if (eglDisplay != EGL14.EGL_NO_DISPLAY) {
       EGL14.eglMakeCurrent(eglDisplay, EGL14.EGL_NO_SURFACE, EGL14.EGL_NO_SURFACE,
           EGL14.EGL_NO_CONTEXT);
@@ -172,6 +176,9 @@ public class SurfaceManager {
       EGL14.eglDestroyContext(eglDisplay, eglContext);
       EGL14.eglReleaseThread();
       EGL14.eglTerminate(eglDisplay);
+      Log.i(TAG, "released GL");
+    } else {
+      Log.e(TAG, "GL already released");
     }
     eglDisplay = EGL14.EGL_NO_DISPLAY;
     eglContext = EGL14.EGL_NO_CONTEXT;

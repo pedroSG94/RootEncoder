@@ -385,7 +385,7 @@ class RtmpClient(private val connectCheckerRtmp: ConnectCheckerRtmp) {
   }
 
   private fun disconnect(clear: Boolean) {
-    if (isStreaming) rtmpSender.stop()
+    if (isStreaming) rtmpSender.stop(clear)
     reader?.close()
     reader = null
     thread?.looper?.thread?.interrupt()
