@@ -160,22 +160,16 @@ public abstract class Camera1Base
   }
 
   /**
-   * Experimental
+   * @return true if success, false if fail (not supported or called before start camera)
    */
-  public void enableFaceDetection(Camera1ApiManager.FaceDetectorCallback faceDetectorCallback) {
-    cameraManager.enableFaceDetection(faceDetectorCallback);
+  public boolean enableFaceDetection(Camera1ApiManager.FaceDetectorCallback faceDetectorCallback) {
+    return cameraManager.enableFaceDetection(faceDetectorCallback);
   }
 
-  /**
-   * Experimental
-   */
   public void disableFaceDetection() {
     cameraManager.disableFaceDetection();
   }
 
-  /**
-   * Experimental
-   */
   public boolean isFaceDetectionEnabled() {
     return cameraManager.isFaceDetectionEnabled();
   }

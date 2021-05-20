@@ -561,11 +561,20 @@ public class Camera1ApiManager implements Camera.PreviewCallback, Camera.FaceDet
     }
   }
 
-  public void enableFaceDetection(FaceDetectorCallback faceDetectorCallback) {
-    if (camera != null) {
-      this.faceDetectorCallback = faceDetectorCallback;
-      camera.setFaceDetectionListener(this);
-      camera.startFaceDetection();
+  public boolean enableFaceDetection(FaceDetectorCallback faceDetectorCallback) {
+    try {
+      if (camera != null) {
+        this.faceDetectorCallback = faceDetectorCallback;
+        camera.setFaceDetectionListener(this);
+        camera.startFaceDetection();
+        return true;
+      } else {
+        Log.e(TAG, "face detection called with camera stopped");
+        return false;
+      }
+    } catch (IllegalArgumentException e) {
+      Log.e(TAG, "face detection unsupported");
+      return false;
     }
   }
 

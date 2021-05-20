@@ -530,33 +530,34 @@ public class Camera2ApiManager extends CameraDevice.StateCallback {
     return autoFocusEnabled;
   }
 
-  public void enableFaceDetection(FaceDetectorCallback faceDetectorCallback) {
+  public boolean enableFaceDetection(FaceDetectorCallback faceDetectorCallback) {
     CameraCharacteristics characteristics = getCameraCharacteristics();
-    if (characteristics == null) return;
+    if (characteristics == null) {
+      Log.e(TAG, "face detection called with camera stopped");
+      return false;
+    }
     faceSensorScale = characteristics.get(CameraCharacteristics.SENSOR_INFO_ACTIVE_ARRAY_SIZE);
     sensorOrientation = characteristics.get(CameraCharacteristics.SENSOR_ORIENTATION);
-    int[] fd =
-        characteristics.get(CameraCharacteristics.STATISTICS_INFO_AVAILABLE_FACE_DETECT_MODES);
-    if (fd == null) return;
-    Integer maxFD = characteristics.get(CameraCharacteristics.STATISTICS_INFO_MAX_FACE_COUNT);
-    if (maxFD == null) return;
-    if (fd.length > 0) {
-      List<Integer> fdList = new ArrayList<>();
-      for (int FaceD : fd) {
-        fdList.add(FaceD);
-      }
-      if (maxFD > 0) {
-        this.faceDetectorCallback = faceDetectorCallback;
-        faceDetectionEnabled = true;
-        faceDetectionMode = Collections.max(fdList);
-        setFaceDetect(builderInputSurface, faceDetectionMode);
-        prepareFaceDetectionCallback();
-      } else {
-        Log.e(TAG, "No face detection");
-      }
-    } else {
-      Log.e(TAG, "No face detection");
+    int[] fd = characteristics.get(CameraCharacteristics.STATISTICS_INFO_AVAILABLE_FACE_DETECT_MODES);
+    if (fd == null || fd.length == 0) {
+      Log.e(TAG, "face detection unsupported");
+      return false;
     }
+    Integer maxFD = characteristics.get(CameraCharacteristics.STATISTICS_INFO_MAX_FACE_COUNT);
+    if (maxFD == null || maxFD <= 0) {
+      Log.e(TAG, "face detection unsupported");
+      return false;
+    }
+    List<Integer> fdList = new ArrayList<>();
+    for (int FaceD : fd) {
+      fdList.add(FaceD);
+    }
+    this.faceDetectorCallback = faceDetectorCallback;
+    faceDetectionEnabled = true;
+    faceDetectionMode = Collections.max(fdList);
+    setFaceDetect(builderInputSurface, faceDetectionMode);
+    prepareFaceDetectionCallback();
+    return true;
   }
 
   public void disableFaceDetection() {
