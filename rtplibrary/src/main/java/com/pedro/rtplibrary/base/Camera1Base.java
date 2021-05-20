@@ -587,9 +587,6 @@ public abstract class Camera1Base
 
   private void prepareGlView() {
     if (glInterface != null && Build.VERSION.SDK_INT >= 18) {
-      if (glInterface instanceof OffScreenGlThread) {
-        glInterface.init();
-      }
       glInterface.setFps(videoEncoder.getFps());
       if (videoEncoder.getRotation() == 90 || videoEncoder.getRotation() == 270) {
         glInterface.setEncoderSize(videoEncoder.getHeight(), videoEncoder.getWidth());

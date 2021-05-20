@@ -78,14 +78,13 @@ public class LightOpenGlView extends OpenGlViewBase {
 
   @Override
   public void run() {
-    releaseSurfaceManager();
-    surfaceManager = new SurfaceManager(getHolder().getSurface());
+    surfaceManager.release();
+    surfaceManager.eglSetup(getHolder().getSurface());
     surfaceManager.makeCurrent();
     simpleCameraRender.initGl(getContext(), encoderWidth, encoderHeight);
     simpleCameraRender.getSurfaceTexture().setOnFrameAvailableListener(this);
-    if (surfaceManagerEncoder == null && surfaceManagerPhoto == null) {
-      surfaceManagerPhoto = new SurfaceManager(encoderWidth, encoderHeight, surfaceManager);
-    }
+    surfaceManagerPhoto.release();
+    surfaceManagerPhoto.eglSetup(encoderWidth, encoderHeight, surfaceManager);
     semaphore.release();
     while (running) {
       if (frameAvailable || forceRender) {
@@ -97,7 +96,7 @@ public class LightOpenGlView extends OpenGlViewBase {
         surfaceManager.swapBuffer();
 
         synchronized (sync) {
-          if (surfaceManagerEncoder != null && !fpsLimiter.limitFPS()) {
+          if (surfaceManagerEncoder.isReady() && !fpsLimiter.limitFPS()) {
             int w = muteVideo ? 0 : encoderWidth;
             int h = muteVideo ? 0 : encoderHeight;
             surfaceManagerEncoder.makeCurrent();
@@ -105,7 +104,7 @@ public class LightOpenGlView extends OpenGlViewBase {
                 streamRotation, false, isStreamVerticalFlip, isStreamHorizontalFlip);
             surfaceManagerEncoder.swapBuffer();
           }
-          if (takePhotoCallback != null && surfaceManagerPhoto != null) {
+          if (takePhotoCallback != null && surfaceManagerPhoto.isReady()) {
             surfaceManagerPhoto.makeCurrent();
             simpleCameraRender.drawFrame(encoderWidth, encoderHeight, false, aspectRatioMode.id,
                 streamRotation, false, isStreamVerticalFlip, isStreamHorizontalFlip);
@@ -117,7 +116,9 @@ public class LightOpenGlView extends OpenGlViewBase {
       }
     }
     simpleCameraRender.release();
-    releaseSurfaceManager();
+    surfaceManager.release();
+    surfaceManagerPhoto.release();
+    surfaceManagerEncoder.release();
   }
 
   @Override

@@ -328,9 +328,7 @@ public abstract class FromFileBase
           this.glInterface.removeMediaCodecSurface();
           this.glInterface.stop();
           this.glInterface = glInterface;
-          if (!(glInterface instanceof OffScreenGlThread)) {
-            glInterface.init();
-          }
+          this.glInterface.init();
           prepareGlView();
           if (Build.VERSION.SDK_INT >= 23) {
             videoDecoder.changeOutputSurface(this.glInterface.getSurface());
@@ -357,9 +355,6 @@ public abstract class FromFileBase
 
   private void prepareGlView() {
     if (glInterface != null) {
-      if (glInterface instanceof OffScreenGlThread) {
-        glInterface.init();
-      }
       glInterface.setFps(videoEncoder.getFps());
       if (videoEncoder.getRotation() == 90 || videoEncoder.getRotation() == 270) {
         glInterface.setEncoderSize(videoEncoder.getHeight(), videoEncoder.getWidth());

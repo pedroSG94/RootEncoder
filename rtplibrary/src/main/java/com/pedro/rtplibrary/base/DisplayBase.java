@@ -372,7 +372,6 @@ public abstract class DisplayBase implements GetAacData, GetVideoData, GetMicrop
     videoEncoder.start();
     if (audioInitialized) audioEncoder.start();
     if (glInterface != null) {
-      glInterface.init();
       glInterface.setFps(videoEncoder.getFps());
       glInterface.start();
       glInterface.addMediaCodecSurface(videoEncoder.getInputSurface());
@@ -404,8 +403,7 @@ public abstract class DisplayBase implements GetAacData, GetVideoData, GetMicrop
     if (glInterface != null) {
       glInterface.addMediaCodecSurface(videoEncoder.getInputSurface());
     }
-    virtualDisplay.setSurface(
-        glInterface != null ? glInterface.getSurface() : videoEncoder.getInputSurface());
+    virtualDisplay.setSurface(glInterface != null ? glInterface.getSurface() : videoEncoder.getInputSurface());
   }
 
   protected abstract void stopStreamRtp();
