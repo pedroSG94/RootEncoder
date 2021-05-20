@@ -9,13 +9,13 @@ import java.security.NoSuchAlgorithmException
 /**
  * Created by pedro on 8/04/21.
  *
- * this class is used for secure transport, to use replace socket on RtmpConnection with this and
+ * this class is used for secure transport, to use replace socket on RtmpClient with this and
  * you will have a secure stream under ssl/tls.
  */
 object CreateSSLSocket {
   /**
-   * @param host variable from RtmpConnection
-   * @param port variable from RtmpConnection
+   * @param host variable from RtmpClient
+   * @param port variable from RtmpClient
    */
   @JvmStatic
   fun createSSlSocket(host: String, port: Int): Socket? {
