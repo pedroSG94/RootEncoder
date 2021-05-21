@@ -575,7 +575,7 @@ public abstract class Camera1Base
     onPreview = true;
   }
 
-  private void resetVideoEncoder(boolean reset) {
+  protected void resetVideoEncoder(boolean reset) {
     if (glInterface != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
       glInterface.removeMediaCodecSurface();
     }
