@@ -121,7 +121,8 @@ class CommandsManager {
 
   @Throws(IOException::class)
   fun readMessageResponse(input: InputStream): RtmpMessage {
-    val message = RtmpMessage.getRtmpMessage(input, readChunkSize)
+    val message = RtmpMessage.getRtmpMessage(input, readChunkSize, sessionHistory)
+    sessionHistory.setReadHeader(message.header)
     Log.i(TAG, "read $message")
     return message
   }

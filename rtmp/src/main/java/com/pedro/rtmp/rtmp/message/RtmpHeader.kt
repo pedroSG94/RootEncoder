@@ -25,12 +25,14 @@ class RtmpHeader(var basicHeader: BasicHeader) {
      * Check ChunkType class to know header structure
      */
     @Throws(IOException::class)
-    fun readHeader(input: InputStream, timestamp: Int = 0): RtmpHeader {
+    fun readHeader(input: InputStream, commandSessionHistory: CommandSessionHistory,
+      timestamp: Int = 0): RtmpHeader {
       val basicHeader = BasicHeader.parseBasicHeader(input.read().toByte())
       var timeStamp = timestamp
       var messageLength = 0
       var messageType: MessageType? = null
       var messageStreamId = 0
+      val lastHeader = commandSessionHistory.getLastReadHeader(basicHeader.chunkStreamId)
       when (basicHeader.chunkType) {
         ChunkType.TYPE_0 -> {
           timeStamp = input.readUInt24()
@@ -43,6 +45,9 @@ class RtmpHeader(var basicHeader: BasicHeader) {
           }
         }
         ChunkType.TYPE_1 -> {
+          if (lastHeader != null) {
+            messageStreamId = lastHeader.messageStreamId
+          }
           timeStamp = input.readUInt24()
           messageLength = input.readUInt24()
           messageType = RtmpMessage.getMarkType(input.read())
@@ -52,6 +57,11 @@ class RtmpHeader(var basicHeader: BasicHeader) {
           }
         }
         ChunkType.TYPE_2 -> {
+          if (lastHeader != null) {
+            messageLength = lastHeader.messageLength
+            messageType = lastHeader.messageType
+            messageStreamId = lastHeader.messageStreamId
+          }
           timeStamp = input.readUInt24()
           //extended timestamp
           if (timeStamp >= 0xffffff) {
@@ -59,6 +69,12 @@ class RtmpHeader(var basicHeader: BasicHeader) {
           }
         }
         ChunkType.TYPE_3 -> {
+          if (lastHeader != null) {
+            timeStamp = lastHeader.timeStamp
+            messageLength = lastHeader.messageLength
+            messageType = lastHeader.messageType
+            messageStreamId = lastHeader.messageStreamId
+          }
           //extended timestamp
           if (timeStamp >= 0xffffff) {
             timeStamp = input.readUInt32()

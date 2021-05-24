@@ -8,6 +8,7 @@ import com.pedro.rtmp.rtmp.message.data.DataAmf0
 import com.pedro.rtmp.rtmp.message.data.DataAmf3
 import com.pedro.rtmp.rtmp.message.shared.SharedObjectAmf0
 import com.pedro.rtmp.rtmp.message.shared.SharedObjectAmf3
+import com.pedro.rtmp.utils.CommandSessionHistory
 import com.pedro.rtmp.utils.RtmpConfig
 import com.pedro.rtmp.utils.readUntil
 import java.io.*
@@ -29,8 +30,9 @@ abstract class RtmpMessage(basicHeader: BasicHeader) {
     private val TAG = "RtmpMessage"
 
     @Throws(IOException::class)
-    fun getRtmpMessage(input: InputStream, chunkSize: Int): RtmpMessage {
-      val header = RtmpHeader.readHeader(input)
+    fun getRtmpMessage(input: InputStream, chunkSize: Int,
+      commandSessionHistory: CommandSessionHistory): RtmpMessage {
+      val header = RtmpHeader.readHeader(input, commandSessionHistory)
       val rtmpMessage = when (header.messageType) {
         MessageType.SET_CHUNK_SIZE -> SetChunkSize()
         MessageType.ABORT -> Abort()
@@ -52,7 +54,7 @@ abstract class RtmpMessage(basicHeader: BasicHeader) {
       rtmpMessage.updateHeader(header)
       //we have multiple chunk wait until we have full body on stream and discard chunk header
       val bodyInput = if (header.messageLength > chunkSize) {
-        getInputWithoutChunks(input, header, chunkSize)
+        getInputWithoutChunks(input, header, chunkSize, commandSessionHistory)
       } else {
         input
       }
@@ -64,7 +66,8 @@ abstract class RtmpMessage(basicHeader: BasicHeader) {
       return MessageType.values().find { it.mark.toInt() == type } ?: throw IOException("Unknown rtmp message type: $type")
     }
 
-    private fun getInputWithoutChunks(input: InputStream, header: RtmpHeader, chunkSize: Int): InputStream {
+    private fun getInputWithoutChunks(input: InputStream, header: RtmpHeader, chunkSize: Int,
+      commandSessionHistory: CommandSessionHistory): InputStream {
       val packetStore = ByteArrayOutputStream()
       var bytesRead = 0
       while (bytesRead < header.messageLength) {
@@ -77,7 +80,7 @@ abstract class RtmpMessage(basicHeader: BasicHeader) {
           chunk = ByteArray(chunkSize)
           input.readUntil(chunk)
           //skip chunk header to discard it, set packet ts to indicate if you need read extended ts
-          RtmpHeader.readHeader(input, header.timeStamp)
+          RtmpHeader.readHeader(input, commandSessionHistory, header.timeStamp)
           bytesRead++
         }
         bytesRead += chunk.size
