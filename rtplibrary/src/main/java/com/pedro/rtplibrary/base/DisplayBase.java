@@ -394,7 +394,7 @@ public abstract class DisplayBase implements GetAacData, GetVideoData, GetMicrop
     if (audioInitialized) microphoneManager.start();
   }
 
-  private void resetVideoEncoder(boolean reset) {
+  protected void resetVideoEncoder(boolean reset) {
     virtualDisplay.setSurface(null);
     if (glInterface != null) {
       glInterface.removeMediaCodecSurface();
