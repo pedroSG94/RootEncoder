@@ -55,23 +55,15 @@ public class MultiRtpDisplay extends DisplayBase {
     private final RtmpClient[] rtmpClients;
     private final RtspClient[] rtspClients;
 
-    public MultiRtpDisplay(
-            Context context,
-            boolean useOpenGL,
-            ConnectCheckerRtmp[] connectCheckerRtmpList,
-            ConnectCheckerRtsp[] connectCheckerRtspList
-    ) {
+    public MultiRtpDisplay(Context context, boolean useOpenGL, ConnectCheckerRtmp[] connectCheckerRtmpList,
+        ConnectCheckerRtsp[] connectCheckerRtspList) {
         super(context, useOpenGL);
-
         int rtmpSize = connectCheckerRtmpList != null ? connectCheckerRtmpList.length : 0;
-
         rtmpClients = new RtmpClient[rtmpSize];
         for (int i = 0; i < rtmpClients.length; i++) {
             rtmpClients[i] = new RtmpClient(connectCheckerRtmpList[i]);
         }
-
-        int rtspSize = connectCheckerRtmpList != null ? connectCheckerRtmpList.length : 0;
-
+        int rtspSize = connectCheckerRtspList != null ? connectCheckerRtspList.length : 0;
         rtspClients = new RtspClient[rtspSize];
         for (int i = 0; i < rtspClients.length; i++) {
             rtspClients[i] = new RtspClient(connectCheckerRtspList[i]);
