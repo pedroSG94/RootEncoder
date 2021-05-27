@@ -228,6 +228,10 @@ public abstract class Camera2Base implements GetAacData, GetVideoData, GetMicrop
     return cameraManager.isAutoFocusEnabled();
   }
 
+  public void setFocusDistance(float distance) {
+    cameraManager.setFocusDistance(distance);
+  }
+
   /**
    * Basic auth developed to work with Wowza. No tested with other server
    *

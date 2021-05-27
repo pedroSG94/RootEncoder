@@ -306,6 +306,21 @@ public class Camera2ApiManager extends CameraDevice.StateCallback {
     }
   }
 
+  public void setFocusDistance(float distance) {
+    CameraCharacteristics characteristics = getCameraCharacteristics();
+    if (characteristics == null) return;
+    if (builderInputSurface != null) {
+      try {
+        if (distance < 0) distance = 0f; //avoid invalid value
+        builderInputSurface.set(CaptureRequest.LENS_FOCUS_DISTANCE, distance);
+        cameraCaptureSession.setRepeatingRequest(builderInputSurface.build(),
+            faceDetectionEnabled ? cb : null, null);
+      } catch (Exception e) {
+        Log.e(TAG, "Error", e);
+      }
+    }
+  }
+
   public void setExposure(int value) {
     CameraCharacteristics characteristics = getCameraCharacteristics();
     if (characteristics == null) return;
