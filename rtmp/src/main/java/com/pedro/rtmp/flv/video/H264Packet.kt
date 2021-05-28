@@ -114,6 +114,8 @@ class H264Packet(private val videoPacketCallback: VideoPacketCallback) {
   }
 
   private fun getHeaderSize(byteBuffer: ByteBuffer): Int {
+    if (byteBuffer.remaining() < 4) return 0
+
     val sps = this.sps
     val pps = this.pps
     if (sps != null && pps != null) {
@@ -122,8 +124,9 @@ class H264Packet(private val videoPacketCallback: VideoPacketCallback) {
       val startCode = ByteArray(startCodeSize) { 0x00 }
       startCode[startCodeSize - 1] = 0x01
       val avcHeader = startCode.plus(sps).plus(startCode).plus(pps).plus(startCode)
+      if (byteBuffer.remaining() < avcHeader.size) return startCodeSize
+
       val possibleAvcHeader = ByteArray(avcHeader.size)
-      byteBuffer.rewind()
       byteBuffer.get(possibleAvcHeader, 0, possibleAvcHeader.size)
       return if (avcHeader.contentEquals(possibleAvcHeader)) {
         avcHeader.size

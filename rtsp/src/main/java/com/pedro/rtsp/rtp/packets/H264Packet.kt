@@ -27,7 +27,6 @@ open class H264Packet(sps: ByteArray, pps: ByteArray, private val videoPacketCal
   }
 
   override fun createAndSendPacket(byteBuffer: ByteBuffer, bufferInfo: MediaCodec.BufferInfo) {
-    if (bufferInfo.size < 5) return
     // We read a NAL units from ByteBuffer and we send them
     // NAL units are preceded with 0x00000001
     val header = ByteArray(getHeaderSize(byteBuffer) + 1)
@@ -123,6 +122,8 @@ open class H264Packet(sps: ByteArray, pps: ByteArray, private val videoPacketCal
   }
 
   private fun getHeaderSize(byteBuffer: ByteBuffer): Int {
+    if (byteBuffer.remaining() < 4) return 0
+
     val sps = this.sps
     val pps = this.pps
     if (sps != null && pps != null) {
@@ -131,8 +132,9 @@ open class H264Packet(sps: ByteArray, pps: ByteArray, private val videoPacketCal
       val startCode = ByteArray(startCodeSize) { 0x00 }
       startCode[startCodeSize - 1] = 0x01
       val avcHeader = startCode.plus(sps).plus(startCode).plus(pps).plus(startCode)
+      if (byteBuffer.remaining() < avcHeader.size) return startCodeSize
+
       val possibleAvcHeader = ByteArray(avcHeader.size)
-      byteBuffer.rewind()
       byteBuffer.get(possibleAvcHeader, 0, possibleAvcHeader.size)
       return if (avcHeader.contentEquals(possibleAvcHeader)) {
         avcHeader.size
