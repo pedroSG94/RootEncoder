@@ -107,6 +107,7 @@ public class VideoEncoder extends BaseEncoder implements GetCameraData {
       Log.i(TAG, "Prepare video info: " + this.formatVideoEncoder.name() + ", " + resolution);
       videoFormat.setInteger(MediaFormat.KEY_COLOR_FORMAT,
           this.formatVideoEncoder.getFormatCodec());
+      videoFormat.setInteger(MediaFormat.KEY_PREPEND_HEADER_TO_SYNC_FRAMES, 0);
       videoFormat.setInteger(MediaFormat.KEY_MAX_INPUT_SIZE, 0);
       videoFormat.setInteger(MediaFormat.KEY_BIT_RATE, bitRate);
       videoFormat.setInteger(MediaFormat.KEY_FRAME_RATE, fps);
