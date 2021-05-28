@@ -179,15 +179,6 @@ public class VideoEncoder extends BaseEncoder implements GetCameraData {
     Log.i(TAG, "stopped");
   }
 
-  public void forceKeyFrame() {
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
-      requestKeyframe();
-    } else {
-      //The only way to force keyframe if api < 19 is reset it.
-      reset();
-    }
-  }
-
   @Override
   public void reset() {
     stop(false);

@@ -340,7 +340,7 @@ public abstract class Camera1Base
     if (!streaming) {
       startEncoders();
     } else if (videoEncoder.isRunning()) {
-      resetVideoEncoder(false);
+      requestKeyFrame();
     }
   }
 
@@ -362,7 +362,7 @@ public abstract class Camera1Base
     if (!streaming) {
       startEncoders();
     } else if (videoEncoder.isRunning()) {
-      resetVideoEncoder(false);
+      requestKeyFrame();
     }
   }
 
@@ -556,7 +556,7 @@ public abstract class Camera1Base
     if (!recordController.isRunning()) {
       startEncoders();
     } else {
-      resetVideoEncoder(true);
+      requestKeyFrame();
     }
     startStreamRtp(url);
     onPreview = true;
@@ -575,13 +575,17 @@ public abstract class Camera1Base
     onPreview = true;
   }
 
-  protected void resetVideoEncoder(boolean reset) {
-    if (glInterface != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
-      glInterface.removeMediaCodecSurface();
-    }
-    if (reset) videoEncoder.reset(); else videoEncoder.forceKeyFrame();
-    if (glInterface != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
-      glInterface.addMediaCodecSurface(videoEncoder.getInputSurface());
+  protected void requestKeyFrame() {
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+      videoEncoder.requestKeyframe();
+    } else {
+      if (glInterface != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
+        glInterface.removeMediaCodecSurface();
+      }
+      videoEncoder.reset();
+      if (glInterface != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
+        glInterface.addMediaCodecSurface(videoEncoder.getInputSurface());
+      }
     }
   }
 
@@ -639,7 +643,7 @@ public abstract class Camera1Base
   public boolean reTry(long delay, String reason, @Nullable String backupUrl) {
     boolean result = shouldRetry(reason);
     if (result) {
-      resetVideoEncoder(true);
+      requestKeyFrame();
       reConnect(delay, backupUrl);
     }
     return result;

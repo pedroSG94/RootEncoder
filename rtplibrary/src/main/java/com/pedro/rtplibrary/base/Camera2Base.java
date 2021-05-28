@@ -13,7 +13,6 @@ import android.view.MotionEvent;
 import android.view.Surface;
 import android.view.SurfaceView;
 import android.view.TextureView;
-import android.view.View;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -361,7 +360,7 @@ public abstract class Camera2Base implements GetAacData, GetVideoData, GetMicrop
     if (!streaming) {
       startEncoders();
     } else if (videoEncoder.isRunning()) {
-      resetVideoEncoder(false);
+      requestKeyFrame();
     }
   }
 
@@ -382,7 +381,7 @@ public abstract class Camera2Base implements GetAacData, GetVideoData, GetMicrop
     if (!streaming) {
       startEncoders();
     } else if (videoEncoder.isRunning()) {
-      resetVideoEncoder(false);
+      requestKeyFrame();
     }
   }
 
@@ -553,7 +552,7 @@ public abstract class Camera2Base implements GetAacData, GetVideoData, GetMicrop
     if (!recordController.isRunning()) {
       startEncoders();
     } else {
-      resetVideoEncoder(true);
+      requestKeyFrame();
     }
     startStreamRtp(url);
     onPreview = true;
@@ -571,18 +570,8 @@ public abstract class Camera2Base implements GetAacData, GetVideoData, GetMicrop
     onPreview = true;
   }
 
-  protected void resetVideoEncoder(boolean reset) {
-    if (glInterface != null) {
-      glInterface.removeMediaCodecSurface();
-    }
-    if (reset) videoEncoder.reset(); else videoEncoder.forceKeyFrame();
-    if (glInterface != null) {
-      glInterface.addMediaCodecSurface(videoEncoder.getInputSurface());
-    } else {
-      cameraManager.closeCamera();
-      cameraManager.prepareCamera(videoEncoder.getInputSurface(), videoEncoder.getFps());
-      cameraManager.openLastCamera();
-    }
+  protected void requestKeyFrame() {
+    videoEncoder.requestKeyframe();
   }
 
   private void prepareGlView() {
@@ -648,7 +637,7 @@ public abstract class Camera2Base implements GetAacData, GetVideoData, GetMicrop
   public boolean reTry(long delay, String reason, @Nullable String backupUrl) {
     boolean result = shouldRetry(reason);
     if (result) {
-      resetVideoEncoder(true);
+      requestKeyFrame();
       reConnect(delay, backupUrl);
     }
     return result;

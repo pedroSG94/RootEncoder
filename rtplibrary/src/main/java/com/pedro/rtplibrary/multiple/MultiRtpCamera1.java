@@ -390,13 +390,13 @@ public class MultiRtpCamera1 extends Camera1Base {
     if (rtpType == RtpType.RTMP) {
       result = rtmpClients[index].shouldRetry(reason);
       if (result) {
-        resetVideoEncoder(true);
+        requestKeyFrame();
         rtmpClients[index].reConnect(delay, backupUrl);
       }
     } else {
       result = rtspClients[index].shouldRetry(reason);
       if (result) {
-        resetVideoEncoder(true);
+        requestKeyFrame();
         rtmpClients[index].reConnect(delay, backupUrl);
       }
     }
