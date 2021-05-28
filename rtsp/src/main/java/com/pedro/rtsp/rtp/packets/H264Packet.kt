@@ -4,6 +4,7 @@ import android.media.MediaCodec
 import android.util.Log
 import com.pedro.rtsp.rtsp.RtpFrame
 import com.pedro.rtsp.utils.RtpConstants
+import com.pedro.rtsp.utils.getVideoStartCodeSize
 import java.nio.ByteBuffer
 import kotlin.experimental.and
 
@@ -15,9 +16,10 @@ import kotlin.experimental.and
 open class H264Packet(sps: ByteArray, pps: ByteArray, private val videoPacketCallback: VideoPacketCallback) : BasePacket(RtpConstants.clockVideoFrequency,
     RtpConstants.payloadType + RtpConstants.trackVideo) {
 
-  private val header = ByteArray(5)
   private var stapA: ByteArray? = null
   private var sendKeyFrame = false
+  private var sps: ByteArray? = null
+  private var pps: ByteArray? = null
 
   init {
     channelIdentifier = RtpConstants.trackVideo
@@ -28,14 +30,14 @@ open class H264Packet(sps: ByteArray, pps: ByteArray, private val videoPacketCal
     if (bufferInfo.size < 5) return
     // We read a NAL units from ByteBuffer and we send them
     // NAL units are preceded with 0x00000001
+    val header = ByteArray(getHeaderSize(byteBuffer) + 1)
+    if (header.size == 1) return //invalid buffer or waiting for sps/pps
     byteBuffer.rewind()
-    byteBuffer.get(header, 0, 5)
+    byteBuffer.get(header, 0, header.size)
     val ts = bufferInfo.presentationTimeUs * 1000L
-    val naluLength = bufferInfo.size - byteBuffer.position() + 1
-    val type: Int = (header[4] and 0x1F).toInt()
+    val naluLength = bufferInfo.size - byteBuffer.position()
+    val type: Int = (header[header.size - 1] and 0x1F).toInt()
     if (type == RtpConstants.IDR || bufferInfo.flags == MediaCodec.BUFFER_FLAG_KEY_FRAME) {
-      //fix malformed keyframe header if necessary
-      if (type != RtpConstants.IDR) header[4] = RtpConstants.IDR.toByte()
       stapA?.let {
         val buffer = getBuffer(it.size + RtpConstants.RTP_HEADER_LENGTH)
         val rtpTs = updateTimeStamp(buffer, ts)
@@ -51,37 +53,26 @@ open class H264Packet(sps: ByteArray, pps: ByteArray, private val videoPacketCal
     }
     if (sendKeyFrame) {
       // Small NAL unit => Single NAL unit
-      if (naluLength <= maxPacketSize - RtpConstants.RTP_HEADER_LENGTH - 2) {
-        val cont = naluLength - 1
-        val length = if (cont < bufferInfo.size - byteBuffer.position()) {
-          cont
-        } else {
-          bufferInfo.size - byteBuffer.position()
-        }
-        val buffer = getBuffer(length + RtpConstants.RTP_HEADER_LENGTH + 1)
-        buffer[RtpConstants.RTP_HEADER_LENGTH] = header[4]
-        byteBuffer.get(buffer, RtpConstants.RTP_HEADER_LENGTH + 1, length)
+      if (naluLength <= maxPacketSize - RtpConstants.RTP_HEADER_LENGTH - 1) {
+        val buffer = getBuffer(naluLength + RtpConstants.RTP_HEADER_LENGTH + 1)
+        buffer[RtpConstants.RTP_HEADER_LENGTH] = header[header.size - 1]
+        byteBuffer.get(buffer, RtpConstants.RTP_HEADER_LENGTH + 1, naluLength)
         val rtpTs = updateTimeStamp(buffer, ts)
         markPacket(buffer) //mark end frame
         updateSeq(buffer)
-        val rtpFrame = RtpFrame(buffer, rtpTs, naluLength + RtpConstants.RTP_HEADER_LENGTH, rtpPort, rtcpPort, channelIdentifier)
+        val rtpFrame = RtpFrame(buffer, rtpTs, buffer.size, rtpPort, rtcpPort, channelIdentifier)
         videoPacketCallback.onVideoFrameCreated(rtpFrame)
       } else {
         // Set FU-A header
-        header[1] = header[4] and 0x1F // FU header type
+        header[1] = header[header.size - 1] and 0x1F // FU header type
         header[1] = header[1].plus(0x80).toByte()  // set start bit to 1
         // Set FU-A indicator
-        header[0] = header[4] and 0x60 and 0xFF.toByte() // FU indicator NRI
+        header[0] = header[header.size - 1] and 0x60 and 0xFF.toByte() // FU indicator NRI
         header[0] = header[0].plus(28).toByte()
-        var sum = 1
+        var sum = 0
         while (sum < naluLength) {
-          val cont = if (naluLength - sum > maxPacketSize - RtpConstants.RTP_HEADER_LENGTH - 2) {
+          val length = if (naluLength - sum > maxPacketSize - RtpConstants.RTP_HEADER_LENGTH - 2) {
             maxPacketSize - RtpConstants.RTP_HEADER_LENGTH - 2
-          } else {
-            naluLength - sum
-          }
-          val length = if (cont < bufferInfo.size - byteBuffer.position()) {
-            cont
           } else {
             bufferInfo.size - byteBuffer.position()
           }
@@ -98,7 +89,7 @@ open class H264Packet(sps: ByteArray, pps: ByteArray, private val videoPacketCal
             markPacket(buffer) //mark end frame
           }
           updateSeq(buffer)
-          val rtpFrame = RtpFrame(buffer, rtpTs, length + RtpConstants.RTP_HEADER_LENGTH + 2, rtpPort, rtcpPort, channelIdentifier)
+          val rtpFrame = RtpFrame(buffer, rtpTs, buffer.size, rtpPort, rtcpPort, channelIdentifier)
           videoPacketCallback.onVideoFrameCreated(rtpFrame)
           // Switch start bit
           header[1] = header[1] and 0x7F
@@ -110,6 +101,8 @@ open class H264Packet(sps: ByteArray, pps: ByteArray, private val videoPacketCal
   }
 
   private fun setSpsPps(sps: ByteArray, pps: ByteArray) {
+    this.sps = sps
+    this.pps = pps
     stapA = ByteArray(sps.size + pps.size + 5)
     stapA?.let {
       // STAP-A NAL header is 24
@@ -127,6 +120,27 @@ open class H264Packet(sps: ByteArray, pps: ByteArray, private val videoPacketCal
       System.arraycopy(sps, 0, it, 3, sps.size)
       System.arraycopy(pps, 0, it, 5 + sps.size, pps.size)
     }
+  }
+
+  private fun getHeaderSize(byteBuffer: ByteBuffer): Int {
+    val sps = this.sps
+    val pps = this.pps
+    if (sps != null && pps != null) {
+      val startCodeSize = byteBuffer.getVideoStartCodeSize()
+      if (startCodeSize == 0) return 0
+      val startCode = ByteArray(startCodeSize) { 0x00 }
+      startCode[startCodeSize - 1] = 0x01
+      val avcHeader = startCode.plus(sps).plus(startCode).plus(pps).plus(startCode)
+      val possibleAvcHeader = ByteArray(avcHeader.size)
+      byteBuffer.rewind()
+      byteBuffer.get(possibleAvcHeader, 0, possibleAvcHeader.size)
+      return if (avcHeader.contentEquals(possibleAvcHeader)) {
+        avcHeader.size
+      } else {
+        startCodeSize
+      }
+    }
+    return 0
   }
 
   override fun reset() {

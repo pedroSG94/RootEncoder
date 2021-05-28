@@ -30,8 +30,8 @@ class H264Packet(private val videoPacketCallback: VideoPacketCallback) {
   }
 
   fun sendVideoInfo(sps: ByteBuffer, pps: ByteBuffer) {
-    val mSps = removeH264StartCode(sps)
-    val mPps = removeH264StartCode(pps)
+    val mSps = removeHeader(sps)
+    val mPps = removeHeader(pps)
 
     val spsBytes = ByteArray(mSps.remaining())
     val ppsBytes = ByteArray(mPps.remaining())
@@ -74,7 +74,10 @@ class H264Packet(private val videoPacketCallback: VideoPacketCallback) {
       configSend = true
     }
     if (configSend){
-      val validBuffer = removeH264StartCode(byteBuffer)
+      val headerSize = getHeaderSize(byteBuffer)
+      if (headerSize == 0) return //invalid buffer or waiting for sps/pps
+      byteBuffer.rewind()
+      val validBuffer = removeHeader(byteBuffer, headerSize)
       val size = validBuffer.remaining()
       buffer = ByteArray(header.size + size + naluSize)
 
@@ -104,19 +107,45 @@ class H264Packet(private val videoPacketCallback: VideoPacketCallback) {
     buffer[offset + 3] = size.toByte()
   }
 
-  private fun removeH264StartCode(byteBuffer: ByteBuffer): ByteBuffer {
+  private fun removeHeader(byteBuffer: ByteBuffer, size: Int = -1): ByteBuffer {
+    val position = if (size == -1) getStartCodeSize(byteBuffer) else size
+    byteBuffer.position(position)
+    return byteBuffer.slice()
+  }
+
+  private fun getHeaderSize(byteBuffer: ByteBuffer): Int {
+    val sps = this.sps
+    val pps = this.pps
+    if (sps != null && pps != null) {
+      val startCodeSize = getStartCodeSize(byteBuffer)
+      if (startCodeSize == 0) return 0
+      val startCode = ByteArray(startCodeSize) { 0x00 }
+      startCode[startCodeSize - 1] = 0x01
+      val avcHeader = startCode.plus(sps).plus(startCode).plus(pps).plus(startCode)
+      val possibleAvcHeader = ByteArray(avcHeader.size)
+      byteBuffer.rewind()
+      byteBuffer.get(possibleAvcHeader, 0, possibleAvcHeader.size)
+      return if (avcHeader.contentEquals(possibleAvcHeader)) {
+        avcHeader.size
+      } else {
+        startCodeSize
+      }
+    }
+    return 0
+  }
+
+  private fun getStartCodeSize(byteBuffer: ByteBuffer): Int {
     var startCodeSize = 0
     if (byteBuffer.get(0).toInt() == 0x00 && byteBuffer.get(1).toInt() == 0x00
-        && byteBuffer.get(2).toInt() == 0x00 && byteBuffer.get(3).toInt() == 0x01) {
+      && byteBuffer.get(2).toInt() == 0x00 && byteBuffer.get(3).toInt() == 0x01) {
       //match 00 00 00 01
       startCodeSize = 4
     } else if (byteBuffer.get(0).toInt() == 0x00 && byteBuffer.get(1).toInt() == 0x00
-        && byteBuffer.get(2).toInt() == 0x01) {
+      && byteBuffer.get(2).toInt() == 0x01) {
       //match 00 00 01
       startCodeSize = 3
     }
-    byteBuffer.position(startCodeSize)
-    return byteBuffer.slice()
+    return startCodeSize
   }
 
   fun reset(resetInfo: Boolean = true) {

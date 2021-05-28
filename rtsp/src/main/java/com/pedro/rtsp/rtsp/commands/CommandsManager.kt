@@ -9,6 +9,7 @@ import com.pedro.rtsp.rtsp.commands.SdpBody.createH264Body
 import com.pedro.rtsp.rtsp.commands.SdpBody.createH265Body
 import com.pedro.rtsp.utils.AuthUtil.getMd5Hash
 import com.pedro.rtsp.utils.RtpConstants
+import com.pedro.rtsp.utils.getVideoStartCodeSize
 import java.io.BufferedReader
 import java.io.IOException
 import java.nio.ByteBuffer
@@ -68,8 +69,9 @@ open class CommandsManager() {
 
   private fun getData(byteBuffer: ByteBuffer?): ByteArray? {
     return if (byteBuffer != null) {
-      val bytes = ByteArray(byteBuffer.capacity() - 4)
-      byteBuffer.position(4)
+      val startCodeSize = byteBuffer.getVideoStartCodeSize()
+      val bytes = ByteArray(byteBuffer.capacity() - startCodeSize)
+      byteBuffer.position(startCodeSize)
       byteBuffer[bytes, 0, bytes.size]
       bytes
     } else {
