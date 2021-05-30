@@ -57,7 +57,7 @@ public abstract class FromFileBase
   private GlInterface glInterface;
   private boolean streaming = false;
   protected RecordController recordController;
-  private FpsListener fpsListener = new FpsListener();
+  private final FpsListener fpsListener = new FpsListener();
 
   private VideoDecoder videoDecoder;
   private AudioDecoder audioDecoder;
@@ -644,7 +644,7 @@ public abstract class FromFileBase
 
   @Override
   public void onVideoFormat(MediaFormat mediaFormat) {
-    recordController.setVideoFormat(mediaFormat);
+    recordController.setVideoFormat(mediaFormat, !audioEnabled);
   }
 
   protected abstract void getAacDataRtp(ByteBuffer aacBuffer, MediaCodec.BufferInfo info);

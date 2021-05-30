@@ -23,7 +23,7 @@ import java.nio.ByteBuffer;
 @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
 public class RtmpDisplay extends DisplayBase {
 
-  private RtmpClient rtmpClient;
+  private final RtmpClient rtmpClient;
 
   public RtmpDisplay(Context context, boolean useOpengl, ConnectCheckerRtmp connectChecker) {
     super(context, useOpengl);

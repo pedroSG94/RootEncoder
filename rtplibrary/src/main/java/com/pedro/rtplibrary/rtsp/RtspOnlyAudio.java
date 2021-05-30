@@ -18,7 +18,7 @@ import java.nio.ByteBuffer;
  */
 public class RtspOnlyAudio extends OnlyAudioBase {
 
-  private RtspClient rtspClient;
+  private final RtspClient rtspClient;
 
   public RtspOnlyAudio(ConnectCheckerRtsp connectCheckerRtsp) {
     super();

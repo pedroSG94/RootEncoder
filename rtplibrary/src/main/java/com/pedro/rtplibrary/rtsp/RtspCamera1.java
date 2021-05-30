@@ -27,7 +27,7 @@ import java.nio.ByteBuffer;
 
 public class RtspCamera1 extends Camera1Base {
 
-  private RtspClient rtspClient;
+  private final RtspClient rtspClient;
 
   public RtspCamera1(SurfaceView surfaceView, ConnectCheckerRtsp connectCheckerRtsp) {
     super(surfaceView);

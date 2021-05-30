@@ -53,25 +53,21 @@ import static android.content.Context.MEDIA_PROJECTION_SERVICE;
 public abstract class DisplayBase implements GetAacData, GetVideoData, GetMicrophoneData {
 
   private OffScreenGlThread glInterface;
-  protected Context context;
   private MediaProjection mediaProjection;
-  private MediaProjectionManager mediaProjectionManager;
+  private final MediaProjectionManager mediaProjectionManager;
   protected VideoEncoder videoEncoder;
   private MicrophoneManager microphoneManager;
   private AudioEncoder audioEncoder;
   private boolean streaming = false;
   protected SurfaceView surfaceView;
-  private boolean videoEnabled = true;
   private int dpi = 320;
-  private VirtualDisplay virtualDisplay;
   private int resultCode = -1;
   private Intent data;
   protected RecordController recordController;
-  private FpsListener fpsListener = new FpsListener();
+  private final FpsListener fpsListener = new FpsListener();
   private boolean audioInitialized = false;
 
   public DisplayBase(Context context, boolean useOpengl) {
-    this.context = context;
     if (useOpengl) {
       glInterface = new OffScreenGlThread(context);
       glInterface.init();
@@ -383,12 +379,10 @@ public abstract class DisplayBase implements GetAacData, GetVideoData, GetMicrop
     }
     if (glInterface != null && videoEncoder.getRotation() == 90
         || videoEncoder.getRotation() == 270) {
-      virtualDisplay =
-          mediaProjection.createVirtualDisplay("Stream Display", videoEncoder.getHeight(),
+      mediaProjection.createVirtualDisplay("Stream Display", videoEncoder.getHeight(),
               videoEncoder.getWidth(), dpi, 0, surface, null, null);
     } else {
-      virtualDisplay =
-          mediaProjection.createVirtualDisplay("Stream Display", videoEncoder.getWidth(),
+      mediaProjection.createVirtualDisplay("Stream Display", videoEncoder.getWidth(),
               videoEncoder.getHeight(), dpi, 0, surface, null, null);
     }
     if (audioInitialized) microphoneManager.start();
@@ -506,15 +500,6 @@ public abstract class DisplayBase implements GetAacData, GetVideoData, GetMicrop
     return microphoneManager.isMuted();
   }
 
-  /**
-   * Get video camera state
-   *
-   * @return true if disabled, false if enabled
-   */
-  public boolean isVideoEnabled() {
-    return videoEnabled;
-  }
-
   public int getBitrate() {
     return videoEncoder.getBitRate();
   }
@@ -616,7 +601,7 @@ public abstract class DisplayBase implements GetAacData, GetVideoData, GetMicrop
 
   @Override
   public void onVideoFormat(MediaFormat mediaFormat) {
-    recordController.setVideoFormat(mediaFormat);
+    recordController.setVideoFormat(mediaFormat, !audioInitialized);
   }
 
   @Override

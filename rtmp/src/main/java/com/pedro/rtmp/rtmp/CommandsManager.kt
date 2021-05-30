@@ -36,6 +36,7 @@ class CommandsManager {
   var akamaiTs = false
   var startTs = 0L
   var readChunkSize = 128
+  var isOnlyAudio = false
 
   private var width = 640
   private var height = 480
@@ -73,8 +74,10 @@ class CommandsManager {
     connectInfo.setProperty("fpad", false)
     connectInfo.setProperty("capabilities", 239.0)
     connectInfo.setProperty("audioCodecs", 3191.0)
-    connectInfo.setProperty("videoCodecs", 252.0)
-    connectInfo.setProperty("videoFunction", 1.0)
+    if (!isOnlyAudio) {
+      connectInfo.setProperty("videoCodecs", 252.0)
+      connectInfo.setProperty("videoFunction", 1.0)
+    }
     connectInfo.setProperty("pageUrl", "")
     connectInfo.setProperty("objectEncoding", 0.0)
     connect.addData(connectInfo)
@@ -134,11 +137,13 @@ class CommandsManager {
     metadata.addData(AmfString("onMetaData"))
     val amfEcmaArray = AmfEcmaArray()
     amfEcmaArray.setProperty("duration", 0.0)
-    amfEcmaArray.setProperty("width", width.toDouble())
-    amfEcmaArray.setProperty("height", height.toDouble())
-    amfEcmaArray.setProperty("videocodecid", 7.0)
-    amfEcmaArray.setProperty("framerate", 30.0)
-    amfEcmaArray.setProperty("videodatarate", 0.0)
+    if (!isOnlyAudio) {
+      amfEcmaArray.setProperty("width", width.toDouble())
+      amfEcmaArray.setProperty("height", height.toDouble())
+      amfEcmaArray.setProperty("videocodecid", 7.0)
+      amfEcmaArray.setProperty("framerate", 30.0)
+      amfEcmaArray.setProperty("videodatarate", 0.0)
+    }
     amfEcmaArray.setProperty("audiocodecid", 10.0)
     amfEcmaArray.setProperty("audiosamplerate", sampleRate.toDouble())
     amfEcmaArray.setProperty("audiosamplesize", 16.0)

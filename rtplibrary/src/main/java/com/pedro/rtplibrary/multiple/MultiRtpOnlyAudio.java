@@ -1,29 +1,20 @@
 package com.pedro.rtplibrary.multiple;
 
-import android.content.Context;
 import android.media.MediaCodec;
-import android.os.Build;
-import android.view.SurfaceView;
-import android.view.TextureView;
 
 import androidx.annotation.Nullable;
-import androidx.annotation.RequiresApi;
 
 import com.pedro.rtmp.flv.video.ProfileIop;
 import com.pedro.rtmp.rtmp.RtmpClient;
 import com.pedro.rtmp.utils.ConnectCheckerRtmp;
-import com.pedro.rtplibrary.base.Camera1Base;
-import com.pedro.rtplibrary.view.LightOpenGlView;
-import com.pedro.rtplibrary.view.OpenGlView;
+import com.pedro.rtplibrary.base.OnlyAudioBase;
 import com.pedro.rtsp.rtsp.RtspClient;
 import com.pedro.rtsp.utils.ConnectCheckerRtsp;
 
 import java.nio.ByteBuffer;
 
 /**
- * Created by pedro on 21/5/21.
- *
- * Experiment class.
+ * Created by pedro on 30/5/21.
  *
  * Support multiple streams in rtmp and rtsp at same time.
  * You must set the same number of ConnectChecker that you want use.
@@ -31,110 +22,49 @@ import java.nio.ByteBuffer;
  * For example. 2 RTMP and 1 RTSP:
  * stream1, stream2, stream3 (stream1 and stream2 are ConnectCheckerRtmp. stream3 is ConnectCheckerRtsp)
  *
- * MultiRtpCamera1 multiRtpCamera1 = new MultiRtpCamera1(surfaceView, new ConnectCheckerRtmp[]{ stream1, stream2 },
+ * MultiRtpOnlyAudio multiRtpOnlyAudio = new MultiRtpOnlyAudio(new ConnectCheckerRtmp[]{ stream1, stream2 },
  * new ConnectCheckerRtsp[]{ stream3 });
  *
  * You can set an empty array or null if you don't want use a protocol
- * new MultiRtpCamera1(surfaceView, new ConnectCheckerRtmp[]{ stream1, stream2 },
+ * new MultiRtpOnlyAudio(new ConnectCheckerRtmp[]{ stream1, stream2 },
  *  null); //RTSP protocol is not used
  *
  * In order to use start, stop and other calls you must send type of stream and index to execute it.
  * Example (using previous example interfaces):
  *
- * multiRtpCamera1.startStream(RtpType.RTMP, 1, myendpoint); //stream2 is started
- * multiRtpCamera1.stopStream(RtpType.RTSP, 0); //stream3 is stopped
- * multiRtpCamera1.retry(RtpType.RTMP, 0, delay, reason, backupUrl) //retry stream1
+ * multiRtpOnlyAudio.startStream(RtpType.RTMP, 1, myendpoint); //stream2 is started
+ * multiRtpOnlyAudio.stopStream(RtpType.RTSP, 0); //stream3 is stopped
+ * multiRtpOnlyAudio.retry(RtpType.RTMP, 0, delay, reason, backupUrl) //retry stream1
  *
  * NOTE:
  * If you call this methods nothing is executed:
  *
- * multiRtpCamera1.startStream(endpoint);
- * multiRtpCamera1.stopStream();
- * multiRtpCamera1.retry(delay, reason, backUpUrl);
+ * multiRtpOnlyAudio.startStream(endpoint);
+ * multiRtpOnlyAudio.stopStream();
+ * multiRtpOnlyAudio.retry(delay, reason, backUpUrl);
  *
  * The rest of methods without RtpType and index means that you will execute that command in all streams.
  * Read class code if you need info about any method.
  */
-public class MultiRtpCamera1 extends Camera1Base {
+public class MultiRtpOnlyAudio extends OnlyAudioBase {
 
   private final RtmpClient[] rtmpClients;
   private final RtspClient[] rtspClients;
 
-  public MultiRtpCamera1(SurfaceView surfaceView, ConnectCheckerRtmp[] connectCheckerRtmpList,
+  public MultiRtpOnlyAudio(ConnectCheckerRtmp[] connectCheckerRtmpList,
       ConnectCheckerRtsp[] connectCheckerRtspList) {
-    super(surfaceView);
+    super();
     int rtmpSize = connectCheckerRtmpList != null ? connectCheckerRtmpList.length : 0;
     rtmpClients = new RtmpClient[rtmpSize];
     for (int i = 0; i < rtmpClients.length; i++) {
       rtmpClients[i] = new RtmpClient(connectCheckerRtmpList[i]);
+      rtmpClients[i].setOnlyAudio(true);
     }
     int rtspSize = connectCheckerRtspList != null ? connectCheckerRtspList.length : 0;
     rtspClients = new RtspClient[rtspSize];
     for (int i = 0; i < rtspClients.length; i++) {
       rtspClients[i] = new RtspClient(connectCheckerRtspList[i]);
-    }
-  }
-
-  public MultiRtpCamera1(TextureView textureView, ConnectCheckerRtmp[] connectCheckerRtmpList,
-      ConnectCheckerRtsp[] connectCheckerRtspList) {
-    super(textureView);
-    int rtmpSize = connectCheckerRtmpList != null ? connectCheckerRtmpList.length : 0;
-    rtmpClients = new RtmpClient[rtmpSize];
-    for (int i = 0; i < rtmpClients.length; i++) {
-      rtmpClients[i] = new RtmpClient(connectCheckerRtmpList[i]);
-    }
-    int rtspSize = connectCheckerRtspList != null ? connectCheckerRtspList.length : 0;
-    rtspClients = new RtspClient[rtspSize];
-    for (int i = 0; i < rtspClients.length; i++) {
-      rtspClients[i] = new RtspClient(connectCheckerRtspList[i]);
-    }
-  }
-
-  @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
-  public MultiRtpCamera1(OpenGlView openGlView, ConnectCheckerRtmp[] connectCheckerRtmpList,
-      ConnectCheckerRtsp[] connectCheckerRtspList) {
-    super(openGlView);
-    int rtmpSize = connectCheckerRtmpList != null ? connectCheckerRtmpList.length : 0;
-    rtmpClients = new RtmpClient[rtmpSize];
-    for (int i = 0; i < rtmpClients.length; i++) {
-      rtmpClients[i] = new RtmpClient(connectCheckerRtmpList[i]);
-    }
-    int rtspSize = connectCheckerRtspList != null ? connectCheckerRtspList.length : 0;
-    rtspClients = new RtspClient[rtspSize];
-    for (int i = 0; i < rtspClients.length; i++) {
-      rtspClients[i] = new RtspClient(connectCheckerRtspList[i]);
-    }
-  }
-
-  @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
-  public MultiRtpCamera1(LightOpenGlView lightOpenGlView, ConnectCheckerRtmp[] connectCheckerRtmpList,
-      ConnectCheckerRtsp[] connectCheckerRtspList) {
-    super(lightOpenGlView);
-    int rtmpSize = connectCheckerRtmpList != null ? connectCheckerRtmpList.length : 0;
-    rtmpClients = new RtmpClient[rtmpSize];
-    for (int i = 0; i < rtmpClients.length; i++) {
-      rtmpClients[i] = new RtmpClient(connectCheckerRtmpList[i]);
-    }
-    int rtspSize = connectCheckerRtspList != null ? connectCheckerRtspList.length : 0;
-    rtspClients = new RtspClient[rtspSize];
-    for (int i = 0; i < rtspClients.length; i++) {
-      rtspClients[i] = new RtspClient(connectCheckerRtspList[i]);
-    }
-  }
-
-  @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
-  public MultiRtpCamera1(Context context, ConnectCheckerRtmp[] connectCheckerRtmpList,
-      ConnectCheckerRtsp[] connectCheckerRtspList) {
-    super(context);
-    int rtmpSize = connectCheckerRtmpList != null ? connectCheckerRtmpList.length : 0;
-    rtmpClients = new RtmpClient[rtmpSize];
-    for (int i = 0; i < rtmpClients.length; i++) {
-      rtmpClients[i] = new RtmpClient(connectCheckerRtmpList[i]);
-    }
-    int rtspSize = connectCheckerRtspList != null ? connectCheckerRtspList.length : 0;
-    rtspClients = new RtspClient[rtspSize];
-    for (int i = 0; i < rtspClients.length; i++) {
-      rtspClients[i] = new RtspClient(connectCheckerRtspList[i]);
+      rtspClients[i].setOnlyAudio(true);
     }
   }
 
@@ -334,11 +264,6 @@ public class MultiRtpCamera1 extends Camera1Base {
     }
     if (shouldStarEncoder) super.startStream("");
     if (rtpType == RtpType.RTMP) {
-      if (videoEncoder.getRotation() == 90 || videoEncoder.getRotation() == 270) {
-        rtmpClients[index].setVideoResolution(videoEncoder.getHeight(), videoEncoder.getWidth());
-      } else {
-        rtmpClients[index].setVideoResolution(videoEncoder.getWidth(), videoEncoder.getHeight());
-      }
       rtmpClients[index].connect(url);
     } else {
       rtspClients[index].connect(url);
@@ -392,13 +317,11 @@ public class MultiRtpCamera1 extends Camera1Base {
     if (rtpType == RtpType.RTMP) {
       result = rtmpClients[index].shouldRetry(reason);
       if (result) {
-        requestKeyFrame();
         rtmpClients[index].reConnect(delay, backupUrl);
       }
     } else {
       result = rtspClients[index].shouldRetry(reason);
       if (result) {
-        requestKeyFrame();
         rtmpClients[index].reConnect(delay, backupUrl);
       }
     }
@@ -435,26 +358,6 @@ public class MultiRtpCamera1 extends Camera1Base {
     }
     for (RtspClient rtspClient: rtspClients) {
       rtspClient.sendAudio(aacBuffer.duplicate(), info);
-    }
-  }
-
-  @Override
-  protected void onSpsPpsVpsRtp(ByteBuffer sps, ByteBuffer pps, ByteBuffer vps) {
-    for (RtmpClient rtmpClient: rtmpClients) {
-      rtmpClient.setSPSandPPS(sps.duplicate(), pps.duplicate(), vps != null ? vps.duplicate() : null);
-    }
-    for (RtspClient rtspClient: rtspClients) {
-      rtspClient.setSPSandPPS(sps.duplicate(), pps.duplicate(), vps != null ? vps.duplicate() : null);
-    }
-  }
-
-  @Override
-  protected void getH264DataRtp(ByteBuffer h264Buffer, MediaCodec.BufferInfo info) {
-    for (RtmpClient rtmpClient: rtmpClients) {
-      rtmpClient.sendVideo(h264Buffer.duplicate(), info);
-    }
-    for (RtspClient rtspClient: rtspClients) {
-      rtspClient.sendVideo(h264Buffer.duplicate(), info);
     }
   }
 

@@ -23,7 +23,9 @@ import java.nio.ByteBuffer;
 /**
  * Created by pedro on 21/5/21.
  *
- * Experiment class. Support multiple streams in rtmp and rtsp at same time.
+ * Experiment class.
+ *
+ * Support multiple streams in rtmp and rtsp at same time.
  * You must set the same number of ConnectChecker that you want use.
  *
  * For example. 2 RTMP and 1 RTSP:

@@ -61,19 +61,18 @@ public abstract class Camera1Base
 
   private static final String TAG = "Camera1Base";
 
-  private Context context;
-  private Camera1ApiManager cameraManager;
+  private final Context context;
+  private final Camera1ApiManager cameraManager;
   protected VideoEncoder videoEncoder;
   private MicrophoneManager microphoneManager;
   private AudioEncoder audioEncoder;
   private GlInterface glInterface;
   private boolean streaming = false;
-  private boolean videoEnabled = true;
   private boolean audioInitialized = false;
   private boolean onPreview = false;
   protected RecordController recordController;
   private int previewWidth, previewHeight;
-  private FpsListener fpsListener = new FpsListener();
+  private final FpsListener fpsListener = new FpsListener();
 
   public Camera1Base(SurfaceView surfaceView) {
     context = surfaceView.getContext();
@@ -727,15 +726,6 @@ public abstract class Camera1Base
     return microphoneManager.isMuted();
   }
 
-  /**
-   * Get video camera state
-   *
-   * @return true if disabled, false if enabled
-   */
-  public boolean isVideoEnabled() {
-    return videoEnabled;
-  }
-
   public int getBitrate() {
     return videoEncoder.getBitRate();
   }
@@ -897,7 +887,7 @@ public abstract class Camera1Base
 
   @Override
   public void onVideoFormat(MediaFormat mediaFormat) {
-    recordController.setVideoFormat(mediaFormat);
+    recordController.setVideoFormat(mediaFormat, !audioInitialized);
   }
 
   @Override

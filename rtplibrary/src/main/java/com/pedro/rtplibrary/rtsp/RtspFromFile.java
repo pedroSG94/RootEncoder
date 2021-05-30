@@ -27,7 +27,7 @@ import java.nio.ByteBuffer;
 @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
 public class RtspFromFile extends FromFileBase {
 
-  private RtspClient rtspClient;
+  private final RtspClient rtspClient;
 
   public RtspFromFile(ConnectCheckerRtsp connectCheckerRtsp,
       VideoDecoderInterface videoDecoderInterface, AudioDecoderInterface audioDecoderInterface) {

@@ -28,7 +28,7 @@ import java.nio.ByteBuffer;
 @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
 public class RtmpFromFile extends FromFileBase {
 
-  private RtmpClient rtmpClient;
+  private final RtmpClient rtmpClient;
 
   public RtmpFromFile(ConnectCheckerRtmp connectChecker,
       VideoDecoderInterface videoDecoderInterface, AudioDecoderInterface audioDecoderInterface) {

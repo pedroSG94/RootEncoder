@@ -17,11 +17,12 @@ import java.nio.ByteBuffer;
  */
 public class RtmpOnlyAudio extends OnlyAudioBase {
 
-  private RtmpClient rtmpClient;
+  private final RtmpClient rtmpClient;
 
   public RtmpOnlyAudio(ConnectCheckerRtmp connectChecker) {
     super();
     rtmpClient = new RtmpClient(connectChecker);
+    rtmpClient.setOnlyAudio(true);
   }
 
   @Override

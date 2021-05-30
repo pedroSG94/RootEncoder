@@ -29,7 +29,7 @@ import java.nio.ByteBuffer;
 @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
 public class RtspCamera2 extends Camera2Base {
 
-  private RtspClient rtspClient;
+  private final RtspClient rtspClient;
 
   /**
    * @deprecated This view produce rotations problems and could be unsupported in future versions.

@@ -23,7 +23,7 @@ import java.nio.ByteBuffer;
 @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
 public class RtspDisplay extends DisplayBase {
 
-  private RtspClient rtspClient;
+  private final RtspClient rtspClient;
 
   public RtspDisplay(Context context, boolean useOpengl, ConnectCheckerRtsp connectCheckerRtsp) {
     super(context, useOpengl);

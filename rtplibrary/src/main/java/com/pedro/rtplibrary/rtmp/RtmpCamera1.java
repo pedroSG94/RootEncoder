@@ -26,7 +26,7 @@ import java.nio.ByteBuffer;
 
 public class RtmpCamera1 extends Camera1Base {
 
-  private RtmpClient rtmpClient;
+  private final RtmpClient rtmpClient;
 
   public RtmpCamera1(SurfaceView surfaceView, ConnectCheckerRtmp connectChecker) {
     super(surfaceView);

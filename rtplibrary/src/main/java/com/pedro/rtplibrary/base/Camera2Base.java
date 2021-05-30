@@ -61,7 +61,7 @@ public abstract class Camera2Base implements GetAacData, GetVideoData, GetMicrop
 
   private static final String TAG = "Camera2Base";
 
-  protected Context context;
+  private final Context context;
   private Camera2ApiManager cameraManager;
   protected VideoEncoder videoEncoder;
   private MicrophoneManager microphoneManager;
@@ -70,13 +70,12 @@ public abstract class Camera2Base implements GetAacData, GetVideoData, GetMicrop
   private SurfaceView surfaceView;
   private TextureView textureView;
   private GlInterface glInterface;
-  private boolean videoEnabled = false;
   private boolean audioInitialized = false;
   private boolean onPreview = false;
   private boolean isBackground = false;
   protected RecordController recordController;
   private int previewWidth, previewHeight;
-  private FpsListener fpsListener = new FpsListener();
+  private final FpsListener fpsListener = new FpsListener();
 
   /**
    * @deprecated This view produce rotations problems and could be unsupported in future versions.
@@ -575,7 +574,7 @@ public abstract class Camera2Base implements GetAacData, GetVideoData, GetMicrop
   }
 
   private void prepareGlView() {
-    if (glInterface != null && videoEnabled) {
+    if (glInterface != null) {
       glInterface.setFps(videoEncoder.getFps());
       if (videoEncoder.getRotation() == 90 || videoEncoder.getRotation() == 270) {
         glInterface.setEncoderSize(videoEncoder.getHeight(), videoEncoder.getWidth());
@@ -731,15 +730,6 @@ public abstract class Camera2Base implements GetAacData, GetVideoData, GetMicrop
   }
 
   /**
-   * Get video camera state
-   *
-   * @return true if disabled, false if enabled
-   */
-  public boolean isVideoEnabled() {
-    return videoEnabled;
-  }
-
-  /**
    * Return max zoom level
    *
    * @return max zoom level
@@ -845,7 +835,6 @@ public abstract class Camera2Base implements GetAacData, GetVideoData, GetMicrop
     } else {
       cameraManager.prepareCamera(videoEncoder.getInputSurface(), videoEncoder.getFps());
     }
-    videoEnabled = true;
   }
 
   /**
@@ -942,7 +931,7 @@ public abstract class Camera2Base implements GetAacData, GetVideoData, GetMicrop
 
   @Override
   public void onVideoFormat(MediaFormat mediaFormat) {
-    recordController.setVideoFormat(mediaFormat);
+    recordController.setVideoFormat(mediaFormat, !audioInitialized);
   }
 
   @Override

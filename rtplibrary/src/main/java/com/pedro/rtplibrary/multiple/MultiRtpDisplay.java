@@ -19,7 +19,9 @@ import java.nio.ByteBuffer;
 /**
  * Created by pedro, HirogaKatageri on 2021-05-24.
  *
- * Experimental Class. It supports multiple streams of rtmp and rtsp at same time.
+ * Experimental Class.
+ *
+ * It supports multiple streams of rtmp and rtsp at same time.
  * You must set the same number of ConnectChecker that you want use.
  *
  * For example. 2 RTMP and 1 RTSP:
@@ -29,7 +31,7 @@ import java.nio.ByteBuffer;
  * new ConnectCheckerRtsp[]{ stream3 });
  *
  * You can set an empty array or null if you don't want to use a specific protocol.
- * new MultiRtpCamera2(surfaceView, new ConnectCheckerRtmp[]{ stream1, stream2 },
+ * new MultiRtpDisplay(context, true, new ConnectCheckerRtmp[]{ stream1, stream2 },
  * null); // RTSP protocol is not used
  *
  * In order to use start, stop and other calls you must send type of stream and index to execute it.

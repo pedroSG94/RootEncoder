@@ -65,6 +65,10 @@ class RtmpClient(private val connectCheckerRtmp: ConnectCheckerRtmp) {
   val sentVideoFrames: Long
     get() = rtmpSender.getSentVideoFrames()
 
+  fun setOnlyAudio(onlyAudio: Boolean) {
+    commandsManager.isOnlyAudio = onlyAudio
+  }
+
   fun forceAkamaiTs(enabled: Boolean) {
     commandsManager.akamaiTs = enabled
   }
