@@ -45,7 +45,7 @@ data class Command(val method: Method, val cSeq: Int, val status: Int, val text:
       if (matcher.find()) {
         val method = matcher.group(1)
         return if (method != null) {
-          when (method.toUpperCase()) {
+          when (method.uppercase()) {
             Method.OPTIONS.name -> Method.OPTIONS
             Method.ANNOUNCE.name -> Method.ANNOUNCE
             Method.RECORD.name -> Method.RECORD

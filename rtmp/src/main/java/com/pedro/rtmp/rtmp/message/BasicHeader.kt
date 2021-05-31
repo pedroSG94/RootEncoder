@@ -1,6 +1,5 @@
 package com.pedro.rtmp.rtmp.message
 
-import android.util.Log
 import com.pedro.rtmp.rtmp.chunk.ChunkStreamId
 import com.pedro.rtmp.rtmp.chunk.ChunkType
 import java.io.IOException

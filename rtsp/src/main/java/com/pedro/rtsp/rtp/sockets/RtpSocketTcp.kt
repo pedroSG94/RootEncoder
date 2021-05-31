@@ -12,7 +12,7 @@ import java.io.OutputStream
 open class RtpSocketTcp : BaseRtpSocket() {
 
   private var outputStream: OutputStream? = null
-  private val tcpHeader: ByteArray = byteArrayOf('$'.toByte(), 0, 0, 0)
+  private val tcpHeader: ByteArray = byteArrayOf('$'.code.toByte(), 0, 0, 0)
 
   override fun setDataStream(outputStream: OutputStream, host: String) {
     this.outputStream = outputStream

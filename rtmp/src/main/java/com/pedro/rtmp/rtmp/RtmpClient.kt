@@ -11,6 +11,7 @@ import com.pedro.rtmp.amf.v0.AmfString
 import com.pedro.rtmp.flv.video.ProfileIop
 import com.pedro.rtmp.rtmp.message.*
 import com.pedro.rtmp.rtmp.message.command.Command
+import com.pedro.rtmp.rtmp.message.control.Type
 import com.pedro.rtmp.rtmp.message.control.UserControl
 import com.pedro.rtmp.utils.AuthUtil
 import com.pedro.rtmp.utils.ConnectCheckerRtmp
@@ -119,7 +120,7 @@ class RtmpClient(private val connectCheckerRtmp: ConnectCheckerRtmp) {
       connectCheckerRtmp.onConnectionStartedRtmp(url)
       val rtmpMatcher = rtmpUrlPattern.matcher(url)
       if (rtmpMatcher.matches()) {
-        tlsEnabled = rtmpMatcher.group(0).startsWith("rtmps")
+        tlsEnabled = (rtmpMatcher.group(0) ?: "").startsWith("rtmps")
       } else {
         connectCheckerRtmp.onConnectionFailedRtmp(
             "Endpoint malformed, should be: rtmp://ip:port/appname/streamname")
@@ -258,7 +259,7 @@ class RtmpClient(private val connectCheckerRtmp: ConnectCheckerRtmp) {
       MessageType.USER_CONTROL -> {
         val userControl = message as UserControl
         when (val type = userControl.type) {
-          UserControl.Type.PING_REQUEST -> {
+          Type.PING_REQUEST -> {
             commandsManager.sendPong(userControl.event, writer)
           }
           else -> {

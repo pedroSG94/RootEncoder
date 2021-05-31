@@ -8,6 +8,7 @@ import com.pedro.rtmp.rtmp.chunk.ChunkType
 import com.pedro.rtmp.rtmp.message.*
 import com.pedro.rtmp.rtmp.message.command.CommandAmf0
 import com.pedro.rtmp.rtmp.message.control.Event
+import com.pedro.rtmp.rtmp.message.control.Type
 import com.pedro.rtmp.rtmp.message.control.UserControl
 import com.pedro.rtmp.rtmp.message.data.DataAmf0
 import com.pedro.rtmp.utils.CommandSessionHistory
@@ -182,7 +183,7 @@ class CommandsManager {
   }
 
   fun sendPong(event: Event, output: OutputStream) {
-    val pong = UserControl(UserControl.Type.PONG_REPLY, event)
+    val pong = UserControl(Type.PONG_REPLY, event)
     pong.writeHeader(output)
     pong.writeBody(output)
     output.flush()

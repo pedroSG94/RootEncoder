@@ -70,10 +70,10 @@ abstract class BaseSenderReport internal constructor() {
   abstract fun setDataStream(outputStream: OutputStream, host: String)
 
   fun update(rtpFrame: RtpFrame, isEnableLogs: Boolean): Boolean {
-    if (rtpFrame.channelIdentifier == RtpConstants.trackVideo) {
-      return updateVideo(rtpFrame, isEnableLogs)
+    return if (rtpFrame.channelIdentifier == RtpConstants.trackVideo) {
+      updateVideo(rtpFrame, isEnableLogs)
     } else {
-      return updateAudio(rtpFrame, isEnableLogs)
+      updateAudio(rtpFrame, isEnableLogs)
     }
   }
 

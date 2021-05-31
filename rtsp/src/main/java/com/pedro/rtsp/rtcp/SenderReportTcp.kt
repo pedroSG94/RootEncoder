@@ -12,7 +12,7 @@ import java.io.OutputStream
 open class SenderReportTcp : BaseSenderReport() {
 
   private var outputStream: OutputStream? = null
-  private val tcpHeader: ByteArray = byteArrayOf('$'.toByte(), 0, 0, PACKET_LENGTH.toByte())
+  private val tcpHeader: ByteArray = byteArrayOf('$'.code.toByte(), 0, 0, PACKET_LENGTH.toByte())
 
   override fun setDataStream(outputStream: OutputStream, host: String) {
     this.outputStream = outputStream
