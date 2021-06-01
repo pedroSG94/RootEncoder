@@ -190,6 +190,9 @@ public class OffScreenGlThread
         }
         thread = null;
       }
+      surfaceManagerPhoto.release();
+      surfaceManagerEncoder.release();
+      surfaceManager.release();
       running = false;
     }
   }

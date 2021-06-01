@@ -162,6 +162,9 @@ public abstract class OpenGlViewBase extends SurfaceView
         }
         thread = null;
       }
+      surfaceManagerPhoto.release();
+      surfaceManagerEncoder.release();
+      surfaceManager.release();
       running = false;
     }
   }
