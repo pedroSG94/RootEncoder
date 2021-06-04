@@ -15,8 +15,8 @@ abstract class BasePacket(private val clock: Long, private val payloadType: Int)
   protected var channelIdentifier: Int = 0
   protected var rtpPort = 0
   protected var rtcpPort = 0
-  private var seq = 0
-  private var ssrc = 0
+  private var seq = 0L
+  private var ssrc = 0L
   protected val maxPacketSize = RtpConstants.MTU - 28
   protected val TAG = "BasePacket"
 
@@ -32,13 +32,13 @@ abstract class BasePacket(private val clock: Long, private val payloadType: Int)
     ssrc = 0
   }
 
-  fun setSSRC(ssrc: Int) {
+  fun setSSRC(ssrc: Long) {
     this.ssrc = ssrc
   }
 
   protected fun getBuffer(size: Int): ByteArray {
     val buffer = ByteArray(size)
-    buffer[0] = "10000000".toInt(2).toByte()
+    buffer[0] = 0x80.toByte()
     buffer[1] = payloadType.toByte()
     setLongSSRC(buffer, ssrc)
     requestBuffer(buffer)
@@ -52,15 +52,15 @@ abstract class BasePacket(private val clock: Long, private val payloadType: Int)
   }
 
   protected fun updateSeq(buffer: ByteArray) {
-    buffer.setLong((++seq).toLong(), 2, 4)
+    buffer.setLong(++seq, 2, 4)
   }
 
   protected fun markPacket(buffer: ByteArray) {
-    buffer[1] = buffer[1] or (0x80).toByte()
+    buffer[1] = buffer[1] or 0x80.toByte()
   }
 
-  private fun setLongSSRC(buffer: ByteArray, ssrc: Int) {
-    buffer.setLong(ssrc.toLong(), 8, 12)
+  private fun setLongSSRC(buffer: ByteArray, ssrc: Long) {
+    buffer.setLong(ssrc, 8, 12)
   }
 
   private fun requestBuffer(buffer: ByteArray) {

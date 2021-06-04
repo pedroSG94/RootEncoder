@@ -18,10 +18,10 @@ abstract class BaseSenderReport internal constructor() {
   private val audioBuffer = ByteArray(RtpConstants.MTU)
   private var videoTime: Long = 0
   private var audioTime: Long = 0
-  private var videoPacketCount = 0
-  private var videoOctetCount = 0
-  private var audioPacketCount = 0
-  private var audioOctetCount = 0
+  private var videoPacketCount = 0L
+  private var videoOctetCount = 0L
+  private var audioPacketCount = 0L
+  private var audioOctetCount = 0L
   val PACKET_LENGTH = 28
   protected val TAG = "BaseSenderReport"
 
@@ -44,16 +44,16 @@ abstract class BaseSenderReport internal constructor() {
     /*									 | |---------------------								*/
     /*									 | ||													*/
     /*									 | ||													*/
-    videoBuffer[0] = "10000000".toInt(2).toByte()
-    audioBuffer[0] = "10000000".toInt(2).toByte()
+    videoBuffer[0] = 0x80.toByte()
+    audioBuffer[0] = 0x80.toByte()
 
     /* Packet Type PT */
     videoBuffer[1] = 200.toByte()
     audioBuffer[1] = 200.toByte()
 
     /* Byte 2,3          ->  Length		                     */
-    videoBuffer.setLong(PACKET_LENGTH / 4 - 1.toLong(), 2, 4)
-    audioBuffer.setLong(PACKET_LENGTH / 4 - 1.toLong(), 2, 4)
+    videoBuffer.setLong(PACKET_LENGTH / 4 - 1L, 2, 4)
+    audioBuffer.setLong(PACKET_LENGTH / 4 - 1L, 2, 4)
     /* Byte 4,5,6,7      ->  SSRC                            */
     /* Byte 8,9,10,11    ->  NTP timestamp hb				 */
     /* Byte 12,13,14,15  ->  NTP timestamp lb				 */
@@ -62,9 +62,9 @@ abstract class BaseSenderReport internal constructor() {
     /* Byte 24,25,26,27  ->  octet count			         */
   }
 
-  fun setSSRC(ssrcVideo: Int, ssrcAudio: Int) {
-    videoBuffer.setLong(ssrcVideo.toLong(), 4, 8)
-    audioBuffer.setLong(ssrcAudio.toLong(), 4, 8)
+  fun setSSRC(ssrcVideo: Long, ssrcAudio: Long) {
+    videoBuffer.setLong(ssrcVideo, 4, 8)
+    audioBuffer.setLong(ssrcAudio, 4, 8)
   }
 
   abstract fun setDataStream(outputStream: OutputStream, host: String)
@@ -78,13 +78,13 @@ abstract class BaseSenderReport internal constructor() {
   }
 
   @Throws(IOException::class)
-  abstract fun sendReport(buffer: ByteArray, rtpFrame: RtpFrame, type: String, packetCount: Int, octetCount: Int, isEnableLogs: Boolean)
+  abstract fun sendReport(buffer: ByteArray, rtpFrame: RtpFrame, type: String, packetCount: Long, octetCount: Long, isEnableLogs: Boolean)
 
   private fun updateVideo(rtpFrame: RtpFrame, isEnableLogs: Boolean): Boolean {
     videoPacketCount++
     videoOctetCount += rtpFrame.length
-    videoBuffer.setLong(videoPacketCount.toLong(), 20, 24)
-    videoBuffer.setLong(videoOctetCount.toLong(), 24, 28)
+    videoBuffer.setLong(videoPacketCount, 20, 24)
+    videoBuffer.setLong(videoOctetCount, 24, 28)
     if (System.currentTimeMillis() - videoTime >= interval) {
       videoTime = System.currentTimeMillis()
       setData(videoBuffer, System.nanoTime(), rtpFrame.timeStamp)
@@ -101,8 +101,8 @@ abstract class BaseSenderReport internal constructor() {
   private fun updateAudio(rtpFrame: RtpFrame, isEnableLogs: Boolean): Boolean {
     audioPacketCount++
     audioOctetCount += rtpFrame.length
-    audioBuffer.setLong(audioPacketCount.toLong(), 20, 24)
-    audioBuffer.setLong(audioOctetCount.toLong(), 24, 28)
+    audioBuffer.setLong(audioPacketCount, 20, 24)
+    audioBuffer.setLong(audioOctetCount, 24, 28)
     if (System.currentTimeMillis() - audioTime >= interval) {
       audioTime = System.currentTimeMillis()
       setData(audioBuffer, System.nanoTime(), rtpFrame.timeStamp)
@@ -123,10 +123,10 @@ abstract class BaseSenderReport internal constructor() {
     audioPacketCount = audioOctetCount
     audioTime = 0
     videoTime = audioTime
-    videoBuffer.setLong(videoPacketCount.toLong(), 20, 24)
-    videoBuffer.setLong(videoOctetCount.toLong(), 24, 28)
-    audioBuffer.setLong(audioPacketCount.toLong(), 20, 24)
-    audioBuffer.setLong(audioOctetCount.toLong(), 24, 28)
+    videoBuffer.setLong(videoPacketCount, 20, 24)
+    videoBuffer.setLong(videoOctetCount, 24, 28)
+    audioBuffer.setLong(audioPacketCount, 20, 24)
+    audioBuffer.setLong(audioOctetCount, 24, 28)
   }
 
   abstract fun close()

@@ -39,7 +39,7 @@ open class SenderReportUdp(videoSourcePort: Int, audioSourcePort: Int) : BaseSen
   }
 
   @Throws(IOException::class)
-  override fun sendReport(buffer: ByteArray, rtpFrame: RtpFrame, type: String, packetCount: Int, octetCount: Int, isEnableLogs: Boolean) {
+  override fun sendReport(buffer: ByteArray, rtpFrame: RtpFrame, type: String, packetCount: Long, octetCount: Long, isEnableLogs: Boolean) {
     sendReportUDP(buffer, rtpFrame.rtcpPort, type, packetCount, octetCount, isEnableLogs)
   }
 
@@ -49,7 +49,7 @@ open class SenderReportUdp(videoSourcePort: Int, audioSourcePort: Int) : BaseSen
   }
 
   @Throws(IOException::class)
-  private fun sendReportUDP(buffer: ByteArray, port: Int, type: String, packet: Int, octet: Int, isEnableLogs: Boolean) {
+  private fun sendReportUDP(buffer: ByteArray, port: Int, type: String, packet: Long, octet: Long, isEnableLogs: Boolean) {
     synchronized(RtpConstants.lock) {
       datagramPacket.data = buffer
       datagramPacket.port = port

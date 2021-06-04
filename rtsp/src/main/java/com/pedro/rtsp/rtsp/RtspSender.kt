@@ -110,8 +110,8 @@ open class RtspSender(private val connectCheckerRtsp: ConnectCheckerRtsp) : Vide
       val h = Handler(it.looper)
       running = true
       h.post {
-        val ssrcVideo = Random().nextInt()
-        val ssrcAudio = Random().nextInt()
+        val ssrcVideo = Random().nextInt().toLong()
+        val ssrcAudio = Random().nextInt().toLong()
         baseSenderReport?.setSSRC(ssrcVideo, ssrcAudio)
         videoPacket?.setSSRC(ssrcVideo)
         aacPacket?.setSSRC(ssrcAudio)

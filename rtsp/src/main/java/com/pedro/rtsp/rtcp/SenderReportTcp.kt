@@ -19,14 +19,14 @@ open class SenderReportTcp : BaseSenderReport() {
   }
 
   @Throws(IOException::class)
-  override fun sendReport(buffer: ByteArray, rtpFrame: RtpFrame, type: String, packetCount: Int, octetCount: Int, isEnableLogs: Boolean) {
+  override fun sendReport(buffer: ByteArray, rtpFrame: RtpFrame, type: String, packetCount: Long, octetCount: Long, isEnableLogs: Boolean) {
     sendReportTCP(buffer, rtpFrame.channelIdentifier, type, packetCount, octetCount, isEnableLogs)
   }
 
   override fun close() {}
 
   @Throws(IOException::class)
-  private fun sendReportTCP(buffer: ByteArray, channelIdentifier: Int, type: String, packet: Int, octet: Int, isEnableLogs: Boolean) {
+  private fun sendReportTCP(buffer: ByteArray, channelIdentifier: Int, type: String, packet: Long, octet: Long, isEnableLogs: Boolean) {
     synchronized(RtpConstants.lock) {
       tcpHeader[1] = (2 * channelIdentifier + 1).toByte()
       outputStream?.write(tcpHeader)
