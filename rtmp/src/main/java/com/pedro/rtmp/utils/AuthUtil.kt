@@ -128,11 +128,11 @@ object AuthUtil {
     return ""
   }
 
-  private fun bytesToHex(bytes: ByteArray): String {
+  fun bytesToHex(bytes: ByteArray): String {
     val hexChars = CharArray(bytes.size * 2)
     var v: Int
     for (j in bytes.indices) {
-      v = (bytes[j] and 0xFF.toByte()).toInt()
+      v = bytes[j].toInt() and 0xFF
       hexChars[j * 2] = hexArray[v ushr 4]
       hexChars[j * 2 + 1] = hexArray[v and 0x0F]
     }
