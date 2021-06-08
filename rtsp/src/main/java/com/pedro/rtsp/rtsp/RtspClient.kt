@@ -93,18 +93,14 @@ open class RtspClient(private val connectCheckerRtsp: ConnectCheckerRtsp) {
     return validReason && reTries > 0
   }
 
-  fun setSampleRate(sampleRate: Int) {
-    commandsManager.sampleRate = sampleRate
-  }
-
-  fun setSPSandPPS(sps: ByteBuffer?, pps: ByteBuffer?, vps: ByteBuffer?) {
+  fun setVideoInfo(sps: ByteBuffer?, pps: ByteBuffer?, vps: ByteBuffer?) {
     Log.i(TAG, "send sps and pps")
     commandsManager.setVideoInfo(sps, pps, vps)
     semaphore.release()
   }
 
-  fun setIsStereo(isStereo: Boolean) {
-    commandsManager.isStereo = isStereo
+  fun setAudioInfo(sampleRate: Int, isStereo: Boolean) {
+    commandsManager.setAudioInfo(sampleRate, isStereo)
   }
 
   @JvmOverloads

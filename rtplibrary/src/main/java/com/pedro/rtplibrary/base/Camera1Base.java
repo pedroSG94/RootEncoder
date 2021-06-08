@@ -855,13 +855,8 @@ public abstract class Camera1Base
   protected abstract void onSpsPpsVpsRtp(ByteBuffer sps, ByteBuffer pps, ByteBuffer vps);
 
   @Override
-  public void onSpsPps(ByteBuffer sps, ByteBuffer pps) {
-    if (streaming) onSpsPpsVpsRtp(sps, pps, null);
-  }
-
-  @Override
   public void onSpsPpsVps(ByteBuffer sps, ByteBuffer pps, ByteBuffer vps) {
-    if (streaming) onSpsPpsVpsRtp(sps, pps, vps);
+    onSpsPpsVpsRtp(sps.duplicate(), pps.duplicate(), vps != null ? vps.duplicate() : null);
   }
 
   protected abstract void getH264DataRtp(ByteBuffer h264Buffer, MediaCodec.BufferInfo info);

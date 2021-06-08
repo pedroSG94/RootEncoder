@@ -92,6 +92,11 @@ open class CommandsManager {
     this.vps = getData(vps) //H264 has no vps so if not null assume H265
   }
 
+  fun setAudioInfo(sampleRate: Int, isStereo: Boolean) {
+    this.isStereo = isStereo
+    this.sampleRate = sampleRate
+  }
+
   fun setAuth(user: String?, password: String?) {
     this.user = user
     this.password = password

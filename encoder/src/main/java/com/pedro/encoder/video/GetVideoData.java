@@ -11,8 +11,6 @@ import java.nio.ByteBuffer;
 
 public interface GetVideoData {
 
-  void onSpsPps(ByteBuffer sps, ByteBuffer pps);
-
   void onSpsPpsVps(ByteBuffer sps, ByteBuffer pps, ByteBuffer vps);
 
   void getVideoData(ByteBuffer h264Buffer, MediaCodec.BufferInfo info);

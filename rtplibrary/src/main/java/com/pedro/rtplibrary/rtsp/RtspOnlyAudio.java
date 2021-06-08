@@ -92,8 +92,7 @@ public class RtspOnlyAudio extends OnlyAudioBase {
 
   @Override
   protected void prepareAudioRtp(boolean isStereo, int sampleRate) {
-    rtspClient.setIsStereo(isStereo);
-    rtspClient.setSampleRate(sampleRate);
+    rtspClient.setAudioInfo(sampleRate, isStereo);
   }
 
   @Override

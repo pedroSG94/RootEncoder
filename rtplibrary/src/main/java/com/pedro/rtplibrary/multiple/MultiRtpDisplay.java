@@ -126,8 +126,7 @@ public class MultiRtpDisplay extends DisplayBase {
             rtmpClient.setAudioInfo(sampleRate, isStereo);
         }
         for (RtspClient rtspClient : rtspClients) {
-            rtspClient.setIsStereo(isStereo);
-            rtspClient.setSampleRate(sampleRate);
+            rtspClient.setAudioInfo(sampleRate, isStereo);
         }
     }
 
@@ -370,10 +369,10 @@ public class MultiRtpDisplay extends DisplayBase {
     @Override
     protected void onSpsPpsVpsRtp(ByteBuffer sps, ByteBuffer pps, ByteBuffer vps) {
         for (RtmpClient rtmpClient : rtmpClients) {
-            rtmpClient.setSPSandPPS(sps.duplicate(), pps.duplicate(), vps != null ? vps.duplicate() : null);
+            rtmpClient.setVideoInfo(sps.duplicate(), pps.duplicate(), vps != null ? vps.duplicate() : null);
         }
         for (RtspClient rtspClient : rtspClients) {
-            rtspClient.setSPSandPPS(sps.duplicate(), pps.duplicate(), vps != null ? vps.duplicate() : null);
+            rtspClient.setVideoInfo(sps.duplicate(), pps.duplicate(), vps != null ? vps.duplicate() : null);
         }
     }
 

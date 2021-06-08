@@ -102,8 +102,7 @@ public class RtspDisplay extends DisplayBase {
 
   @Override
   protected void prepareAudioRtp(boolean isStereo, int sampleRate) {
-    rtspClient.setIsStereo(isStereo);
-    rtspClient.setSampleRate(sampleRate);
+    rtspClient.setAudioInfo(sampleRate, isStereo);
   }
 
   @Override
@@ -143,10 +142,7 @@ public class RtspDisplay extends DisplayBase {
 
   @Override
   protected void onSpsPpsVpsRtp(ByteBuffer sps, ByteBuffer pps, ByteBuffer vps) {
-    ByteBuffer newSps = sps.duplicate();
-    ByteBuffer newPps = pps.duplicate();
-    ByteBuffer newVps = vps != null ? vps.duplicate() : null;
-    rtspClient.setSPSandPPS(newSps, newPps, newVps);
+    rtspClient.setVideoInfo(sps, pps, vps);
   }
 
   @Override

@@ -152,7 +152,7 @@ public class RtmpDisplay extends DisplayBase {
 
   @Override
   protected void onSpsPpsVpsRtp(ByteBuffer sps, ByteBuffer pps, ByteBuffer vps) {
-    rtmpClient.setSPSandPPS(sps, pps, vps);
+    rtmpClient.setVideoInfo(sps, pps, vps);
   }
 
   @Override

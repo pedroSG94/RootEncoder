@@ -178,7 +178,7 @@ public class RtmpCamera1 extends Camera1Base {
 
   @Override
   protected void onSpsPpsVpsRtp(ByteBuffer sps, ByteBuffer pps, ByteBuffer vps) {
-    rtmpClient.setSPSandPPS(sps, pps, vps);
+    rtmpClient.setVideoInfo(sps, pps, vps);
   }
 
   @Override

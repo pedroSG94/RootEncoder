@@ -241,8 +241,7 @@ public class MultiRtpOnlyAudio extends OnlyAudioBase {
       rtmpClient.setAudioInfo(sampleRate, isStereo);
     }
     for (RtspClient rtspClient: rtspClients) {
-      rtspClient.setIsStereo(isStereo);
-      rtspClient.setSampleRate(sampleRate);
+      rtspClient.setAudioInfo(sampleRate, isStereo);
     }
   }
 

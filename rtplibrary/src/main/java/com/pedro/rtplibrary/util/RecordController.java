@@ -192,6 +192,10 @@ public class RecordController {
     }
   }
 
+  public void setVideoFormat(MediaFormat videoFormat) {
+    setVideoFormat(videoFormat, false);
+  }
+
   public void setAudioFormat(MediaFormat audioFormat) {
     setAudioFormat(audioFormat, false);
   }

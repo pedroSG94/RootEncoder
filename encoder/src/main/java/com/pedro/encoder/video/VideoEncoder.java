@@ -288,12 +288,13 @@ public class VideoEncoder extends BaseEncoder implements GetCameraData {
   private void sendSPSandPPS(MediaFormat mediaFormat) {
     //H265
     if (type.equals(CodecUtil.H265_MIME)) {
-      List<ByteBuffer> byteBufferList =
-          extractVpsSpsPpsFromH265(mediaFormat.getByteBuffer("csd-0"));
+      List<ByteBuffer> byteBufferList = extractVpsSpsPpsFromH265(mediaFormat.getByteBuffer("csd-0"));
       getVideoData.onSpsPpsVps(byteBufferList.get(1), byteBufferList.get(2), byteBufferList.get(0));
       //H264
     } else {
-      getVideoData.onSpsPps(mediaFormat.getByteBuffer("csd-0"), mediaFormat.getByteBuffer("csd-1"));
+      ByteBuffer sps = mediaFormat.getByteBuffer("csd-0");
+      ByteBuffer pps = mediaFormat.getByteBuffer("csd-1");
+      getVideoData.onSpsPpsVps(sps, pps, null);
     }
   }
 
@@ -385,7 +386,9 @@ public class VideoEncoder extends BaseEncoder implements GetCameraData {
     int spsPosition = -1;
     int ppsPosition = -1;
     int contBufferInitiation = 0;
-    byte[] csdArray = csd0byteBuffer.array();
+    int length = csd0byteBuffer.remaining();
+    byte[] csdArray = new byte[length];
+    csd0byteBuffer.get(csdArray, 0, length);
     for (int i = 0; i < csdArray.length; i++) {
       if (contBufferInitiation == 3 && csdArray[i] == 1) {
         if (vpsPosition == -1) {
@@ -459,13 +462,21 @@ public class VideoEncoder extends BaseEncoder implements GetCameraData {
       Pair<ByteBuffer, ByteBuffer> buffers = decodeSpsPpsFromBuffer(byteBuffer.duplicate(), bufferInfo.size);
       if (buffers != null) {
         Log.i(TAG, "manual sps/pps extraction success");
-        getVideoData.onSpsPps(buffers.first, buffers.second);
+        getVideoData.onSpsPpsVps(buffers.first, buffers.second, null);
         spsPpsSetted = true;
       } else {
         Log.e(TAG, "manual sps/pps extraction failed");
       }
     } else if (!spsPpsSetted && type.equals(CodecUtil.H265_MIME)) {
-      Log.e(TAG, "formatChanged not called, manual sps/pps/vps extraction not supported");
+      Log.i(TAG, "formatChanged not called, doing manual vps/sps/pps extraction...");
+      List<ByteBuffer> byteBufferList = extractVpsSpsPpsFromH265(byteBuffer);
+      if (byteBufferList.size() == 3) {
+        Log.i(TAG, "manual vps/sps/pps extraction success");
+        getVideoData.onSpsPpsVps(byteBufferList.get(1), byteBufferList.get(2), byteBufferList.get(0));
+        spsPpsSetted = true;
+      } else {
+        Log.e(TAG, "manual vps/sps/pps extraction failed");
+      }
     }
     if (formatVideoEncoder == FormatVideoEncoder.SURFACE) {
       bufferInfo.presentationTimeUs = System.nanoTime() / 1000 - presentTimeUs;
