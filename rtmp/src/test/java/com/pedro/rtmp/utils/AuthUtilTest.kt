@@ -14,4 +14,9 @@ class AuthUtilTest {
         val expectedHex = numbersToHex.values.reduce { acc, s -> acc + s }
         assertEquals(expectedHex, AuthUtil.bytesToHex(testBytes))
     }
+
+    @Test
+    fun `convert string to MD5 and that MD5 to base64 string`() {
+        assertEquals("XrY7u+Ae7tCTyyK7j1rNww==", AuthUtil.stringToMd5Base64("hello world"))
+    }
 }

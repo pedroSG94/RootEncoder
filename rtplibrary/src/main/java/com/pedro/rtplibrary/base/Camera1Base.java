@@ -174,6 +174,21 @@ public abstract class Camera1Base
   }
 
   /**
+   * @return true if success, false if fail (not supported or called before start camera)
+   */
+  public boolean enableVideoStabilization() {
+    return cameraManager.enableVideoStabilization();
+  }
+
+  public void disableVideoStabilization() {
+    cameraManager.disableVideoStabilization();
+  }
+
+  public boolean isVideoStabilizationEnabled() {
+    return cameraManager.isVideoStabilizationEnabled();
+  }
+
+  /**
    * Use getCameraFacing instead
    */
   @Deprecated

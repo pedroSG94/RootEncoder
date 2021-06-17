@@ -42,6 +42,7 @@ public class Camera1ApiManager implements Camera.PreviewCallback, Camera.FaceDet
   private GetCameraData getCameraData;
   private boolean running = false;
   private boolean lanternEnable = false;
+  private boolean videoStabilizationEnable = false;
   private boolean autoFocusEnabled = false;
   private int cameraSelect;
   private CameraHelper.Facing facing = CameraHelper.Facing.BACK;
@@ -584,6 +585,31 @@ public class Camera1ApiManager implements Camera.PreviewCallback, Camera.FaceDet
       camera.stopFaceDetection();
       camera.setFaceDetectionListener(null);
     }
+  }
+
+  public boolean enableVideoStabilization() {
+    if (camera != null) {
+      Camera.Parameters parameters = camera.getParameters();
+      if (parameters.isVideoStabilizationSupported()) {
+        parameters.setVideoStabilization(true);
+        videoStabilizationEnable = true;
+      }
+    }
+    return videoStabilizationEnable;
+  }
+
+  public void disableVideoStabilization() {
+    if (camera != null) {
+      Camera.Parameters parameters = camera.getParameters();
+      if (parameters.isVideoStabilizationSupported()) {
+        parameters.setVideoStabilization(false);
+        videoStabilizationEnable = false;
+      }
+    }
+  }
+
+  public boolean isVideoStabilizationEnabled() {
+    return videoStabilizationEnable;
   }
 
   public void setCameraCallbacks(CameraCallbacks cameraCallbacks) {

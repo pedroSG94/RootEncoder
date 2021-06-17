@@ -70,6 +70,7 @@ public class Camera2ApiManager extends CameraDevice.StateCallback {
   private float fingerSpacing = 0;
   private float zoomLevel = 0f;
   private boolean lanternEnable = false;
+  private boolean videoStabilizationEnable = false;
   private boolean autoFocusEnabled = true;
   private boolean running = false;
   private int fps = 30;
@@ -304,6 +305,50 @@ public class Camera2ApiManager extends CameraDevice.StateCallback {
       Log.e(TAG, "Error", e);
       return null;
     }
+  }
+
+  public boolean enableVideoStabilization() {
+    CameraCharacteristics characteristics = getCameraCharacteristics();
+    if (characteristics == null) return false;
+    int[] modes = characteristics.get(CameraCharacteristics.CONTROL_AVAILABLE_VIDEO_STABILIZATION_MODES);
+    List<Integer> videoStabilizationList = new ArrayList<>();
+    for (int vsMode : modes) {
+      videoStabilizationList.add(vsMode);
+    }
+    if (!videoStabilizationList.contains(CaptureRequest.CONTROL_VIDEO_STABILIZATION_MODE_ON)) {
+      Log.e(TAG, "video stabilization unsupported");
+      return false;
+    }
+
+    if (builderInputSurface != null) {
+      builderInputSurface.set(CaptureRequest.CONTROL_VIDEO_STABILIZATION_MODE,
+          CaptureRequest.CONTROL_VIDEO_STABILIZATION_MODE_ON);
+      videoStabilizationEnable = true;
+    }
+    return videoStabilizationEnable;
+  }
+
+  public void disableVideoStabilization() {
+    CameraCharacteristics characteristics = getCameraCharacteristics();
+    if (characteristics == null) return;
+    int[] modes = characteristics.get(CameraCharacteristics.CONTROL_AVAILABLE_VIDEO_STABILIZATION_MODES);
+    List<Integer> videoStabilizationList = new ArrayList<>();
+    for (int vsMode : modes) {
+      videoStabilizationList.add(vsMode);
+    }
+    if (!videoStabilizationList.contains(CaptureRequest.CONTROL_VIDEO_STABILIZATION_MODE_ON)) {
+      Log.e(TAG, "video stabilization unsupported");
+      return;
+    }
+    if (builderInputSurface != null) {
+      builderInputSurface.set(CaptureRequest.CONTROL_VIDEO_STABILIZATION_MODE,
+          CaptureRequest.CONTROL_VIDEO_STABILIZATION_MODE_OFF);
+      videoStabilizationEnable = false;
+    }
+  }
+
+  public boolean isVideoStabilizationEnabled() {
+    return videoStabilizationEnable;
   }
 
   public void setFocusDistance(float distance) {
