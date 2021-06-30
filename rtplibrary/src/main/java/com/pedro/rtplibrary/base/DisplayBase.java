@@ -2,7 +2,6 @@ package com.pedro.rtplibrary.base;
 
 import android.content.Context;
 import android.content.Intent;
-import android.hardware.display.VirtualDisplay;
 import android.media.AudioAttributes;
 import android.media.AudioPlaybackCaptureConfiguration;
 import android.media.MediaCodec;

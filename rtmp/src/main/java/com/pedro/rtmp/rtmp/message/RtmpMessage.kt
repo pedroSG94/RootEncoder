@@ -27,7 +27,7 @@ abstract class RtmpMessage(basicHeader: BasicHeader) {
 
   companion object {
 
-    private val TAG = "RtmpMessage"
+    private const val TAG = "RtmpMessage"
 
     @Throws(IOException::class)
     fun getRtmpMessage(input: InputStream, chunkSize: Int,

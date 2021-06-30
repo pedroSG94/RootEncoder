@@ -2,7 +2,6 @@ package com.pedro.encoder.input.gl.render.filters;
 
 import android.content.Context;
 import android.graphics.Bitmap;
-import android.graphics.PointF;
 import android.opengl.GLES20;
 import android.opengl.Matrix;
 import android.os.Build;

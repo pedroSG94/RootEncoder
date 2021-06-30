@@ -64,9 +64,9 @@ class DisplayService : Service() {
   }
 
   companion object {
-    private val TAG = "DisplayService"
-    private val channelId = "rtpDisplayStreamChannel"
-    private val notifyId = 123456
+    private const val TAG = "DisplayService"
+    private const val channelId = "rtpDisplayStreamChannel"
+    private const val notifyId = 123456
     private var notificationManager: NotificationManager? = null
     private var displayBase: DisplayBase? = null
     private var contextApp: Context? = null

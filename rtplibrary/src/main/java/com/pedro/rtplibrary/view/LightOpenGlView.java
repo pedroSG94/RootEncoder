@@ -9,7 +9,6 @@ import android.util.Log;
 import android.view.Surface;
 import android.view.SurfaceHolder;
 import androidx.annotation.RequiresApi;
-import com.pedro.encoder.input.gl.SurfaceManager;
 import com.pedro.encoder.input.gl.render.SimpleCameraRender;
 import com.pedro.encoder.input.gl.render.filters.BaseFilterRender;
 import com.pedro.encoder.utils.gl.GlUtil;

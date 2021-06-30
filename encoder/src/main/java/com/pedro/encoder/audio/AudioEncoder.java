@@ -10,11 +10,8 @@ import com.pedro.encoder.Frame;
 import com.pedro.encoder.GetFrame;
 import com.pedro.encoder.input.audio.GetMicrophoneData;
 import com.pedro.encoder.utils.CodecUtil;
-import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 
 /**
  * Created by pedro on 19/01/17.
