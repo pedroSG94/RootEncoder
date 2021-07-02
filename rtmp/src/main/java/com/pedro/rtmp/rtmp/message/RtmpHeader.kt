@@ -19,7 +19,7 @@ class RtmpHeader(var basicHeader: BasicHeader) {
 
   companion object {
 
-    private val TAG = "RtmpHeader"
+    private const val TAG = "RtmpHeader"
 
     /**
      * Check ChunkType class to know header structure

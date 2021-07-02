@@ -9,9 +9,6 @@ import android.hardware.camera2.params.Face;
 import android.os.Build;
 import androidx.annotation.RequiresApi;
 
-import android.util.Log;
-import android.view.View;
-
 import com.pedro.encoder.input.video.CameraHelper;
 
 /**
