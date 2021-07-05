@@ -164,7 +164,7 @@ public abstract class BaseEncoder implements EncoderCallback {
       Frame frame = getInputFrame();
       while (frame == null) frame = getInputFrame();
       byteBuffer.clear();
-      int size = Math.min(frame.getSize(), byteBuffer.remaining());
+      int size = Math.max(0, Math.min(frame.getSize(), byteBuffer.remaining()) - frame.getOffset());
       byteBuffer.put(frame.getBuffer(), frame.getOffset(), size);
       long pts = System.nanoTime() / 1000 - presentTimeUs;
       mediaCodec.queueInputBuffer(inBufferIndex, 0, size, pts, 0);
