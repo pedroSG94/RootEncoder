@@ -1,8 +1,8 @@
 package com.pedro.rtmp.rtmp.message
 
-import com.pedro.rtmp.rtmp.chunk.ChunkStreamId
 import com.pedro.rtmp.rtmp.chunk.ChunkType
 import java.io.IOException
+import java.io.InputStream
 import kotlin.experimental.and
 
 /**
@@ -40,15 +40,24 @@ import kotlin.experimental.and
  *
  * Chunk basic header 3
  */
-class BasicHeader(val chunkType: ChunkType, val chunkStreamId: ChunkStreamId) {
+class BasicHeader(val chunkType: ChunkType, val chunkStreamId: Int) {
 
   companion object {
-    fun parseBasicHeader(byte: Byte): BasicHeader {
+    fun parseBasicHeader(input: InputStream): BasicHeader {
+      val byte = input.read().toByte()
       val chunkTypeValue = 0xff and byte.toInt() ushr 6
       val chunkType = ChunkType.values().find { it.mark.toInt() == chunkTypeValue } ?: throw IOException("Unknown chunk type value: $chunkTypeValue")
-      val chunkStreamIdValue = byte and 0x3F
-      val chunkStreamId = ChunkStreamId.values().find { it.mark == chunkStreamIdValue } ?: throw IOException("Unknown chunk stream id value: $chunkStreamIdValue")
-      return BasicHeader(chunkType, chunkStreamId)
+      var chunkStreamIdValue = (byte and 0x3F).toInt()
+      if (chunkStreamIdValue > 63) throw IOException("Unknown chunk stream id value: $chunkStreamIdValue")
+      if (chunkStreamIdValue == 0) { //Basic header 2 bytes
+        chunkStreamIdValue = input.read() - 64
+      } else if (chunkStreamIdValue == 1) { //Basic header 3 bytes
+        val a = input.read()
+        val b = input.read()
+        val value = b and 0xff shl 8 and a
+        chunkStreamIdValue = value - 64
+      }
+      return BasicHeader(chunkType, chunkStreamIdValue)
     }
   }
 

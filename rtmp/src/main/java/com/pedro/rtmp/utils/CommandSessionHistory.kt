@@ -15,7 +15,7 @@ class CommandSessionHistory(private val commandHistory: HashMap<Int, String> = H
     headerHistory.add(header)
   }
 
-  fun getLastReadHeader(chunkStreamId: ChunkStreamId): RtmpHeader? {
+  fun getLastReadHeader(chunkStreamId: Int): RtmpHeader? {
     val reverseList = headerHistory
     reverseList.reversed().forEach {
       if (it.basicHeader.chunkStreamId == chunkStreamId) {

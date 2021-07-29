@@ -12,7 +12,7 @@ import java.io.InputStream
  * Created by pedro on 21/04/21.
  */
 class SetPeerBandwidth(private var acknowledgementWindowSize: Int = 0, private var type: Type = Type.DYNAMIC):
-    RtmpMessage(BasicHeader(ChunkType.TYPE_0, ChunkStreamId.PROTOCOL_CONTROL)) {
+    RtmpMessage(BasicHeader(ChunkType.TYPE_0, ChunkStreamId.PROTOCOL_CONTROL.mark)) {
 
   enum class Type(val mark: Byte) {
     HARD(0x00), SOFT(0x01), DYNAMIC(0x02)

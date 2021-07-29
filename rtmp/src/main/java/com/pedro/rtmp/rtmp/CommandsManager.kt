@@ -66,7 +66,7 @@ class CommandsManager {
   @Throws(IOException::class)
   fun sendConnect(auth: String, output: OutputStream) {
     val connect = CommandAmf0("connect", ++commandId, getCurrentTimestamp(), streamId,
-        BasicHeader(ChunkType.TYPE_0, ChunkStreamId.OVER_CONNECTION))
+        BasicHeader(ChunkType.TYPE_0, ChunkStreamId.OVER_CONNECTION.mark))
     val connectInfo = AmfObject()
     connectInfo.setProperty("app", appName + auth)
     connectInfo.setProperty("flashVer", "FMLE/3.0 (compatible; Lavf57.56.101)")
@@ -93,7 +93,7 @@ class CommandsManager {
   @Throws(IOException::class)
   fun createStream(output: OutputStream) {
     val releaseStream = CommandAmf0("releaseStream", ++commandId, getCurrentTimestamp(), streamId,
-        BasicHeader(ChunkType.TYPE_0, ChunkStreamId.OVER_STREAM))
+        BasicHeader(ChunkType.TYPE_0, ChunkStreamId.OVER_STREAM.mark))
     releaseStream.addData(AmfNull())
     releaseStream.addData(AmfString(streamName))
 
@@ -103,7 +103,7 @@ class CommandsManager {
     Log.i(TAG, "send $releaseStream")
 
     val fcPublish = CommandAmf0("FCPublish", ++commandId, getCurrentTimestamp(), streamId,
-        BasicHeader(ChunkType.TYPE_0, ChunkStreamId.OVER_STREAM))
+        BasicHeader(ChunkType.TYPE_0, ChunkStreamId.OVER_STREAM.mark))
     fcPublish.addData(AmfNull())
     fcPublish.addData(AmfString(streamName))
 
@@ -113,7 +113,7 @@ class CommandsManager {
     Log.i(TAG, "send $fcPublish")
 
     val createStream = CommandAmf0("createStream", ++commandId, getCurrentTimestamp(), streamId,
-        BasicHeader(ChunkType.TYPE_0, ChunkStreamId.OVER_CONNECTION))
+        BasicHeader(ChunkType.TYPE_0, ChunkStreamId.OVER_CONNECTION.mark))
     createStream.addData(AmfNull())
 
     createStream.writeHeader(output)
@@ -162,7 +162,7 @@ class CommandsManager {
   @Throws(IOException::class)
   fun sendPublish(output: OutputStream) {
     val name = "publish"
-    val publish = CommandAmf0(name, ++commandId, getCurrentTimestamp(), streamId, BasicHeader(ChunkType.TYPE_0, ChunkStreamId.OVER_STREAM))
+    val publish = CommandAmf0(name, ++commandId, getCurrentTimestamp(), streamId, BasicHeader(ChunkType.TYPE_0, ChunkStreamId.OVER_STREAM.mark))
     publish.addData(AmfNull())
     publish.addData(AmfString(streamName))
     publish.addData(AmfString("live"))
@@ -193,7 +193,7 @@ class CommandsManager {
   @Throws(IOException::class)
   fun sendClose(output: OutputStream) {
     val name = "closeStream"
-    val closeStream = CommandAmf0(name, ++commandId, getCurrentTimestamp(), streamId, BasicHeader(ChunkType.TYPE_0, ChunkStreamId.OVER_STREAM))
+    val closeStream = CommandAmf0(name, ++commandId, getCurrentTimestamp(), streamId, BasicHeader(ChunkType.TYPE_0, ChunkStreamId.OVER_STREAM.mark))
     closeStream.addData(AmfNull())
 
     closeStream.writeHeader(output)

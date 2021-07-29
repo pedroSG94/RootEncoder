@@ -9,7 +9,7 @@ import java.io.InputStream
 /**
  * Created by pedro on 21/04/21.
  */
-abstract class SharedObject: RtmpMessage(BasicHeader(ChunkType.TYPE_0, ChunkStreamId.PROTOCOL_CONTROL)) {
+abstract class SharedObject: RtmpMessage(BasicHeader(ChunkType.TYPE_0, ChunkStreamId.PROTOCOL_CONTROL.mark)) {
   override fun readBody(input: InputStream) {
     TODO("Not yet implemented")
   }

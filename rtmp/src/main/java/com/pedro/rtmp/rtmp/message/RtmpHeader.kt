@@ -27,7 +27,7 @@ class RtmpHeader(var basicHeader: BasicHeader) {
     @Throws(IOException::class)
     fun readHeader(input: InputStream, commandSessionHistory: CommandSessionHistory,
       timestamp: Int = 0): RtmpHeader {
-      val basicHeader = BasicHeader.parseBasicHeader(input.read().toByte())
+      val basicHeader = BasicHeader.parseBasicHeader(input)
       var timeStamp = timestamp
       var messageLength = 0
       var messageType: MessageType? = null
@@ -102,7 +102,7 @@ class RtmpHeader(var basicHeader: BasicHeader) {
   @Throws(IOException::class)
   fun writeHeader(basicHeader: BasicHeader, output: OutputStream) {
     // Write basic header byte
-    output.write((basicHeader.chunkType.mark.toInt() shl 6) or basicHeader.chunkStreamId.mark.toInt())
+    output.write((basicHeader.chunkType.mark.toInt() shl 6) or basicHeader.chunkStreamId.toInt())
     when (basicHeader.chunkType) {
       ChunkType.TYPE_0 -> {
         output.writeUInt24(min(timeStamp, 0xffffff))

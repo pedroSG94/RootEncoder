@@ -16,7 +16,7 @@ import java.io.InputStream
 /**
  * Created by pedro on 21/04/21.
  */
-class UserControl(var type: Type = Type.PING_REQUEST, var event: Event = Event(-1, -1)): RtmpMessage(BasicHeader(ChunkType.TYPE_0, ChunkStreamId.PROTOCOL_CONTROL)) {
+class UserControl(var type: Type = Type.PING_REQUEST, var event: Event = Event(-1, -1)): RtmpMessage(BasicHeader(ChunkType.TYPE_0, ChunkStreamId.PROTOCOL_CONTROL.mark)) {
 
   private val TAG = "UserControl"
   private var bodySize = 6

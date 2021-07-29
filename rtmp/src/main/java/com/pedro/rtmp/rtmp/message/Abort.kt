@@ -11,7 +11,7 @@ import java.io.InputStream
  * Created by pedro on 21/04/21.
  */
 class Abort(private var chunkStreamId: Int = 0):
-    RtmpMessage(BasicHeader(ChunkType.TYPE_0, ChunkStreamId.PROTOCOL_CONTROL)) {
+    RtmpMessage(BasicHeader(ChunkType.TYPE_0, ChunkStreamId.PROTOCOL_CONTROL.mark)) {
 
   override fun readBody(input: InputStream) {
     chunkStreamId = input.readUInt32()

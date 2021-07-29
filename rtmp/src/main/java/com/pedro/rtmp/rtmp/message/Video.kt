@@ -8,7 +8,7 @@ import java.io.InputStream
 /**
  * Created by pedro on 21/04/21.
  */
-class Video(private val flvPacket: FlvPacket = FlvPacket(), streamId: Int = 0): RtmpMessage(BasicHeader(ChunkType.TYPE_0, ChunkStreamId.VIDEO)) {
+class Video(private val flvPacket: FlvPacket = FlvPacket(), streamId: Int = 0): RtmpMessage(BasicHeader(ChunkType.TYPE_0, ChunkStreamId.VIDEO.mark)) {
 
   init {
     header.messageStreamId = streamId
