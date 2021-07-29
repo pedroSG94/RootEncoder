@@ -62,8 +62,8 @@ class Handshake {
     val c1 = writeC1(output)
     output.flush()
     readS0(input)
-    readS1(input)
-    writeC2(output, c1)
+    val s1 = readS1(input)
+    writeC2(output, s1)
     output.flush()
     readS2(input, c1)
     return true
@@ -109,26 +109,9 @@ class Handshake {
   }
 
   @Throws(IOException::class)
-  private fun writeC2(output: OutputStream, c1: ByteArray) {
+  private fun writeC2(output: OutputStream, s1: ByteArray) {
     Log.i(TAG, "writing C2")
-    val c2 = ByteArray(handshakeSize)
-    val timestampData = ByteArray(4)
-    timestampData[0] = (timestampC1 ushr 24).toByte()
-    timestampData[1] = (timestampC1 ushr 16).toByte()
-    timestampData[2] = (timestampC1 ushr 8).toByte()
-    timestampData[3] = timestampC1.toByte()
-    System.arraycopy(timestampData, 0, c2, 0, timestampData.size)
-
-    val timestampData2 = ByteArray(4)
-    val timestampC2 = System.currentTimeMillis() / 1000 - timestampC1
-    timestampData2[0] = (timestampC2 ushr 24).toByte()
-    timestampData2[1] = (timestampC2 ushr 16).toByte()
-    timestampData2[2] = (timestampC2 ushr 8).toByte()
-    timestampData2[3] = timestampC2.toByte()
-    System.arraycopy(timestampData2, 0, c2, timestampData.size, timestampData2.size)
-
-    System.arraycopy(c1, 8, c2, timestampData.size + timestampData2.size, c2.size - (timestampData.size + timestampData2.size))
-    output.write(c2)
+    output.write(s1)
     Log.i(TAG, "C2 write successful")
   }
 
@@ -145,11 +128,12 @@ class Handshake {
   }
 
   @Throws(IOException::class)
-  private fun readS1(input: InputStream) {
+  private fun readS1(input: InputStream): ByteArray {
     Log.i(TAG, "reading S1")
     val s1 = ByteArray(handshakeSize)
     input.readUntil(s1)
     Log.i(TAG, "read S1 successful")
+    return s1
   }
 
   @Throws(IOException::class)
