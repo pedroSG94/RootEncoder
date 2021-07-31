@@ -276,8 +276,6 @@ open class RtspClient(private val connectCheckerRtsp: ConnectCheckerRtsp) {
 
   private fun disconnect(clear: Boolean) {
     if (isStreaming) rtspSender.stop()
-    reader?.close()
-    reader = null
     thread?.looper?.thread?.interrupt()
     thread?.looper?.quit()
     thread?.quit()
@@ -299,6 +297,8 @@ open class RtspClient(private val connectCheckerRtsp: ConnectCheckerRtsp) {
             commandsManager.retryClear()
           }
           connectionSocket?.close()
+          reader?.close()
+          reader = null
           writer?.close()
           writer = null
           connectionSocket = null

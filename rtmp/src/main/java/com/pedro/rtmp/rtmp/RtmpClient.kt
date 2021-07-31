@@ -398,8 +398,6 @@ class RtmpClient(private val connectCheckerRtmp: ConnectCheckerRtmp) {
 
   private fun disconnect(clear: Boolean) {
     if (isStreaming) rtmpSender.stop(clear)
-    reader?.close()
-    reader = null
     thread?.looper?.thread?.interrupt()
     thread?.looper?.quit()
     thread?.quit()
@@ -416,6 +414,8 @@ class RtmpClient(private val connectCheckerRtmp: ConnectCheckerRtmp) {
           writer?.let { writer ->
             commandsManager.sendClose(writer)
           }
+          reader?.close()
+          reader = null
           writer?.close()
           writer = null
           closeConnection()
