@@ -3,24 +3,27 @@ apply plugin: 'com.github.dcendents.android-maven'
 group = 'com.github.pedroSG94'
 
 android {
-  compileSdkVersion 30
+    compileSdkVersion 30
 
-  defaultConfig {
-    minSdkVersion 16
-    targetSdkVersion 30
-    versionCode 199
-    versionName "1.9.9"
-  }
-  buildTypes {
-    release {
-      minifyEnabled false
-      consumerProguardFiles 'proguard-rules.pro'
+    defaultConfig {
+        minSdkVersion 16
+        targetSdkVersion 30
+        versionCode 199
+        versionName "1.9.9"
     }
-  }
+    buildTypes {
+        create("debugProguard") {
+            initWith(buildTypes.debug)
+        }
+        release {
+            minifyEnabled false
+            consumerProguardFiles 'proguard-rules.pro'
+        }
+    }
 }
 
 dependencies {
-  api project(':encoder')
-  api project(':rtmp')
-  api project(':rtsp')
+    api project(':encoder')
+    api project(':rtmp')
+    api project(':rtsp')
 }
