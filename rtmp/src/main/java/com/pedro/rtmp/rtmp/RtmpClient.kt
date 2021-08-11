@@ -1,9 +1,6 @@
 package com.pedro.rtmp.rtmp
 
 import android.media.MediaCodec
-import android.os.Handler
-import android.os.HandlerThread
-import android.os.Looper
 import android.util.Log
 import com.pedro.rtmp.amf.v0.AmfNumber
 import com.pedro.rtmp.amf.v0.AmfObject
@@ -21,8 +18,12 @@ import java.io.*
 import java.net.InetSocketAddress
 import java.net.Socket
 import java.net.SocketAddress
+import java.net.SocketTimeoutException
 import java.nio.ByteBuffer
 import java.util.*
+import java.util.concurrent.ExecutorService
+import java.util.concurrent.Executors
+import java.util.concurrent.TimeUnit
 import java.util.regex.Pattern
 
 /**
@@ -36,7 +37,7 @@ class RtmpClient(private val connectCheckerRtmp: ConnectCheckerRtmp) {
   private var connectionSocket: Socket? = null
   private var reader: BufferedInputStream? = null
   private var writer: BufferedOutputStream? = null
-  private var thread: HandlerThread? = null
+  private var thread: ExecutorService? = null
   private val commandsManager = CommandsManager()
   private val rtmpSender = RtmpSender(connectCheckerRtmp, commandsManager)
 
@@ -50,7 +51,7 @@ class RtmpClient(private val connectCheckerRtmp: ConnectCheckerRtmp) {
   private var doingRetry = false
   private var numRetry = 0
   private var reTries = 0
-  private val handler: Handler = Handler(Looper.getMainLooper())
+  private val handler = Executors.newSingleThreadScheduledExecutor()
   private var runnable: Runnable? = null
   private var publishPermitted = false
 
@@ -137,43 +138,41 @@ class RtmpClient(private val connectCheckerRtmp: ConnectCheckerRtmp) {
           ?: "").length - commandsManager.streamName.length))
 
       isStreaming = true
-      thread = HandlerThread(TAG)
-      thread?.start()
-      thread?.let {
-        val h = Handler(it.looper)
-        h.post {
-          try {
-            if (!establishConnection()) {
-              connectCheckerRtmp.onConnectionFailedRtmp("Handshake failed")
-              return@post
-            }
-            val writer = this.writer ?: throw IOException("Invalid writer, Connection failed")
-            commandsManager.sendConnect("", writer)
-            //read packets until you did success connection to server and you are ready to send packets
-            while (!Thread.interrupted() && !publishPermitted) {
-              //Handle all command received and send response for it.
-              handleMessages()
-            }
-            //read packet because maybe server want send you something while streaming
-            handleServerPackets()
-          } catch (e: Exception) {
-            Log.e(TAG, "connection error", e)
-            connectCheckerRtmp.onConnectionFailedRtmp("Error configure stream, ${e.message}")
+      thread = Executors.newSingleThreadExecutor()
+      thread?.execute post@{
+        try {
+          if (!establishConnection()) {
+            connectCheckerRtmp.onConnectionFailedRtmp("Handshake failed")
             return@post
           }
+          val writer = this.writer ?: throw IOException("Invalid writer, Connection failed")
+          commandsManager.sendConnect("", writer)
+          //read packets until you did success connection to server and you are ready to send packets
+          while (!Thread.interrupted() && !publishPermitted) {
+            //Handle all command received and send response for it.
+            handleMessages()
+          }
+          //read packet because maybe server want send you something while streaming
+          handleServerPackets()
+        } catch (e: Exception) {
+          Log.e(TAG, "connection error", e)
+          connectCheckerRtmp.onConnectionFailedRtmp("Error configure stream, ${e.message}")
+          return@post
         }
       }
     }
   }
 
   private fun handleServerPackets() {
-    try {
-      while (!Thread.interrupted()) {
+    while (!Thread.interrupted()) {
+      try {
         handleMessages()
+      } catch (ignored: SocketTimeoutException) {
+        //new packet not found
+      } catch (e: Exception) {
+        Thread.currentThread().interrupt()
       }
-    } catch (e: InterruptedException) {
-      Thread.currentThread().interrupt()
-    } catch (e: Exception) { }
+    }
   }
 
   private fun getAppName(app: String, name: String): String {
@@ -388,50 +387,39 @@ class RtmpClient(private val connectCheckerRtmp: ConnectCheckerRtmp) {
       val reconnectUrl = backupUrl ?: url
       connect(reconnectUrl, true)
     }
-    runnable?.let { handler.postDelayed(it, delay) }
+    runnable?.let { handler.schedule(it, delay, TimeUnit.MILLISECONDS) }
   }
 
   fun disconnect() {
-    runnable?.let { handler.removeCallbacks(it) }
+    runnable?.let { handler.shutdownNow() }
     disconnect(true)
   }
 
   private fun disconnect(clear: Boolean) {
     if (isStreaming) rtmpSender.stop(clear)
-    thread?.looper?.thread?.interrupt()
-    thread?.looper?.quit()
-    thread?.quit()
+    thread?.shutdownNow()
     try {
+      reader?.close()
+      reader = null
       writer?.flush()
-      thread?.join(100)
+      thread?.awaitTermination(100, TimeUnit.MILLISECONDS)
     } catch (e: Exception) { }
-    thread = HandlerThread(TAG)
-    thread?.start()
-    thread?.let {
-      val h = Handler(it.looper)
-      h.post {
-        try {
-          writer?.let { writer ->
-            commandsManager.sendClose(writer)
-          }
-          reader?.close()
-          reader = null
-          writer?.close()
-          writer = null
-          closeConnection()
-        } catch (e: IOException) {
-          Log.e(TAG, "disconnect error", e)
-        } finally {
-          thread?.looper?.quit()
-          return@post
+    thread = Executors.newSingleThreadExecutor()
+    thread?.execute post@{
+      try {
+        writer?.let { writer ->
+          commandsManager.sendClose(writer)
         }
+        writer?.close()
+        writer = null
+        closeConnection()
+      } catch (e: IOException) {
+        Log.e(TAG, "disconnect error", e)
       }
     }
     try {
-      thread?.join(200) //wait finish sendClose
-      thread?.looper?.thread?.interrupt()
-      thread?.looper?.quit()
-      thread?.quit()
+      thread?.shutdownNow()
+      thread?.awaitTermination(200, TimeUnit.MILLISECONDS)
       thread = null
     } catch (e: Exception) { }
     if (clear) {

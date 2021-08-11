@@ -1,8 +1,6 @@
 package com.pedro.rtsp.rtsp
 
 import android.media.MediaCodec
-import android.os.Handler
-import android.os.HandlerThread
 import android.util.Log
 import com.pedro.rtsp.rtcp.BaseSenderReport
 import com.pedro.rtsp.rtp.packets.*
@@ -14,9 +12,7 @@ import com.pedro.rtsp.utils.RtpConstants
 import java.io.OutputStream
 import java.nio.ByteBuffer
 import java.util.*
-import java.util.concurrent.BlockingQueue
-import java.util.concurrent.LinkedBlockingQueue
-import java.util.concurrent.TimeUnit
+import java.util.concurrent.*
 
 /**
  * Created by pedro on 7/11/18.
@@ -31,7 +27,7 @@ open class RtspSender(private val connectCheckerRtsp: ConnectCheckerRtsp) : Vide
 
   @Volatile
   private var rtpFrameBlockingQueue: BlockingQueue<RtpFrame> = LinkedBlockingQueue(defaultCacheSize)
-  private var thread: HandlerThread? = null
+  private var thread: ExecutorService? = null
   private var audioFramesSent: Long = 0
   private var videoFramesSent: Long = 0
   var droppedAudioFrames: Long = 0
@@ -104,48 +100,44 @@ open class RtspSender(private val connectCheckerRtsp: ConnectCheckerRtsp) : Vide
   }
 
   fun start() {
-    thread = HandlerThread(TAG)
-    thread?.start()
-    thread?.let {
-      val h = Handler(it.looper)
-      running = true
-      h.post {
-        val ssrcVideo = Random().nextInt().toLong()
-        val ssrcAudio = Random().nextInt().toLong()
-        baseSenderReport?.setSSRC(ssrcVideo, ssrcAudio)
-        videoPacket?.setSSRC(ssrcVideo)
-        aacPacket?.setSSRC(ssrcAudio)
-        val isTcp = rtpSocket is RtpSocketTcp
+    thread = Executors.newSingleThreadExecutor()
+    running = true
+    thread?.execute post@{
+      val ssrcVideo = Random().nextInt().toLong()
+      val ssrcAudio = Random().nextInt().toLong()
+      baseSenderReport?.setSSRC(ssrcVideo, ssrcAudio)
+      videoPacket?.setSSRC(ssrcVideo)
+      aacPacket?.setSSRC(ssrcAudio)
+      val isTcp = rtpSocket is RtpSocketTcp
 
-        while (!Thread.interrupted()) {
-          try {
-            val rtpFrame = rtpFrameBlockingQueue.poll(1, TimeUnit.SECONDS)
-            if (rtpFrame == null) {
-              Log.i(TAG, "Skipping iteration, frame null")
-              continue
-            }
-            rtpSocket?.sendFrame(rtpFrame, isEnableLogs)
-            //bytes to bits (4 is tcp header length)
-            val packetSize = if (isTcp) rtpFrame.length + 4 else rtpFrame.length
-            bitrateManager.calculateBitrate(packetSize * 8.toLong())
-            if (rtpFrame.isVideoFrame()) {
-              videoFramesSent++
-            } else {
-              audioFramesSent++
-            }
-            if (baseSenderReport?.update(rtpFrame, isEnableLogs) == true) {
-              //bytes to bits (4 is tcp header length)
-              val reportSize = if (isTcp) baseSenderReport?.PACKET_LENGTH ?: 0 + 4 else baseSenderReport?.PACKET_LENGTH ?: 0
-              bitrateManager.calculateBitrate(reportSize * 8.toLong())
-            }
-          } catch (e: Exception) {
-            //InterruptedException is only when you disconnect manually, you don't need report it.
-            if (e !is InterruptedException) {
-              connectCheckerRtsp.onConnectionFailedRtsp("Error send packet, " + e.message)
-              Log.e(TAG, "send error: ", e)
-            }
-            return@post
+      while (!Thread.interrupted()) {
+        try {
+          val rtpFrame = rtpFrameBlockingQueue.poll(1, TimeUnit.SECONDS)
+          if (rtpFrame == null) {
+            Log.i(TAG, "Skipping iteration, frame null")
+            continue
           }
+          rtpSocket?.sendFrame(rtpFrame, isEnableLogs)
+          //bytes to bits (4 is tcp header length)
+          val packetSize = if (isTcp) rtpFrame.length + 4 else rtpFrame.length
+          bitrateManager.calculateBitrate(packetSize * 8.toLong())
+          if (rtpFrame.isVideoFrame()) {
+            videoFramesSent++
+          } else {
+            audioFramesSent++
+          }
+          if (baseSenderReport?.update(rtpFrame, isEnableLogs) == true) {
+            //bytes to bits (4 is tcp header length)
+            val reportSize = if (isTcp) baseSenderReport?.PACKET_LENGTH ?: 0 + 4 else baseSenderReport?.PACKET_LENGTH ?: 0
+            bitrateManager.calculateBitrate(reportSize * 8.toLong())
+          }
+        } catch (e: Exception) {
+          //InterruptedException is only when you disconnect manually, you don't need report it.
+          if (e !is InterruptedException) {
+            connectCheckerRtsp.onConnectionFailedRtsp("Error send packet, " + e.message)
+            Log.e(TAG, "send error: ", e)
+          }
+          return@post
         }
       }
     }
@@ -153,12 +145,10 @@ open class RtspSender(private val connectCheckerRtsp: ConnectCheckerRtsp) : Vide
 
   fun stop() {
     running = false
-    thread?.looper?.thread?.interrupt()
-    thread?.looper?.quit()
-    thread?.quit()
+    thread?.shutdownNow()
     try {
-      thread?.join(100)
-    } catch (e: Exception) { }
+      thread?.awaitTermination(100, TimeUnit.MILLISECONDS)
+    } catch (e: InterruptedException) { }
     thread = null
     rtpFrameBlockingQueue.clear()
     baseSenderReport?.reset()
