@@ -1,7 +1,6 @@
 apply plugin: 'com.android.library'
 apply plugin: 'kotlin-android'
-apply plugin: 'com.github.dcendents.android-maven'
-group = 'com.github.pedroSG94'
+apply plugin: 'maven-publish'
 
 android {
   compileSdkVersion 30
@@ -15,6 +14,23 @@ android {
   buildTypes {
     release {
       minifyEnabled false
+    }
+  }
+
+  afterEvaluate {
+    publishing {
+      publications {
+        // Creates a Maven publication called "release".
+        release(MavenPublication) {
+          // Applies the component for the release build variant.
+          from components.release
+
+          // You can then customize attributes of the publication as shown below.
+          groupId = "$library_group"
+          artifactId = "rtmp"
+          version = "$versionName"
+        }
+      }
     }
   }
 }
