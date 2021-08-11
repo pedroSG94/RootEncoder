@@ -42,7 +42,7 @@ open class RtspClient(private val connectCheckerRtsp: ConnectCheckerRtsp) {
   private var doingRetry = false
   private var numRetry = 0
   private var reTries = 0
-  private val handler = Executors.newSingleThreadScheduledExecutor()
+  private var handler: ScheduledExecutorService? = null
   private var runnable: Runnable? = null
 
   val droppedAudioFrames: Long
@@ -268,7 +268,7 @@ open class RtspClient(private val connectCheckerRtsp: ConnectCheckerRtsp) {
   }
 
   fun disconnect() {
-    runnable?.let { handler.shutdownNow() }
+    runnable?.let { handler?.shutdownNow() }
     disconnect(true)
   }
 
@@ -342,7 +342,10 @@ open class RtspClient(private val connectCheckerRtsp: ConnectCheckerRtsp) {
       val reconnectUrl = backupUrl ?: url
       connect(reconnectUrl, true)
     }
-    runnable?.let { handler.schedule(it, delay, TimeUnit.MILLISECONDS) }
+    runnable?.let {
+      handler = Executors.newSingleThreadScheduledExecutor()
+      handler?.schedule(it, delay, TimeUnit.MILLISECONDS)
+    }
   }
 
   fun resetSentAudioFrames() {

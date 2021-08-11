@@ -23,6 +23,7 @@ import java.nio.ByteBuffer
 import java.util.*
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
+import java.util.concurrent.ScheduledExecutorService
 import java.util.concurrent.TimeUnit
 import java.util.regex.Pattern
 
@@ -51,7 +52,7 @@ class RtmpClient(private val connectCheckerRtmp: ConnectCheckerRtmp) {
   private var doingRetry = false
   private var numRetry = 0
   private var reTries = 0
-  private val handler = Executors.newSingleThreadScheduledExecutor()
+  private var handler: ScheduledExecutorService? = null
   private var runnable: Runnable? = null
   private var publishPermitted = false
 
@@ -387,11 +388,14 @@ class RtmpClient(private val connectCheckerRtmp: ConnectCheckerRtmp) {
       val reconnectUrl = backupUrl ?: url
       connect(reconnectUrl, true)
     }
-    runnable?.let { handler.schedule(it, delay, TimeUnit.MILLISECONDS) }
+    runnable?.let {
+      handler = Executors.newSingleThreadScheduledExecutor()
+      handler?.schedule(it, delay, TimeUnit.MILLISECONDS)
+    }
   }
 
   fun disconnect() {
-    runnable?.let { handler.shutdownNow() }
+    runnable?.let { handler?.shutdownNow() }
     disconnect(true)
   }
 
