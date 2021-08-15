@@ -72,16 +72,15 @@ abstract class RtmpMessage(basicHeader: BasicHeader) {
       var bytesRead = 0
       while (bytesRead < header.messageLength) {
         var chunk: ByteArray
-        if (header.messageLength - bytesRead < chunkSize) {
+        if (header.messageLength - bytesRead <= chunkSize) {
           //last chunk
-          chunk = ByteArray(header.messageLength - (bytesRead - 1))
+          chunk = ByteArray(header.messageLength - (bytesRead))
           input.readUntil(chunk)
         } else {
           chunk = ByteArray(chunkSize)
           input.readUntil(chunk)
           //skip chunk header to discard it, set packet ts to indicate if you need read extended ts
           RtmpHeader.readHeader(input, commandSessionHistory, header.timeStamp)
-          bytesRead++
         }
         bytesRead += chunk.size
         packetStore.write(chunk)
