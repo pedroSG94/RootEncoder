@@ -91,7 +91,7 @@ public class LightOpenGlView extends OpenGlViewBase {
         surfaceManager.makeCurrent();
         simpleCameraRender.updateFrame();
         simpleCameraRender.drawFrame(previewWidth, previewHeight, keepAspectRatio, aspectRatioMode.id,
-            0, true, isStreamVerticalFlip, isStreamHorizontalFlip);
+            0, true, isPreviewVerticalFlip, isPreviewHorizontalFlip);
         surfaceManager.swapBuffer();
 
         synchronized (sync) {

@@ -133,7 +133,7 @@ public class OpenGlView extends OpenGlViewBase {
           managerRender.updateFrame();
           managerRender.drawOffScreen();
           managerRender.drawScreen(previewWidth, previewHeight, keepAspectRatio, aspectRatioMode.id, 0,
-              true, false, false);
+              true, isPreviewVerticalFlip, isPreviewHorizontalFlip);
           surfaceManager.swapBuffer();
 
           synchronized (sync) {

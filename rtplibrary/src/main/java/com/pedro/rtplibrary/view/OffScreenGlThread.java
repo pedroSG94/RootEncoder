@@ -41,6 +41,8 @@ public class OffScreenGlThread
   private boolean loadAA = false;
   private int streamRotation;
   private boolean muteVideo = false;
+  protected boolean isPreviewHorizontalFlip = false;
+  protected boolean isPreviewVerticalFlip = false;
   private boolean isStreamHorizontalFlip = false;
   private boolean isStreamVerticalFlip = false;
 
@@ -164,6 +166,16 @@ public class OffScreenGlThread
   }
 
   @Override
+  public void setIsPreviewHorizontalFlip(boolean flip) {
+    isPreviewHorizontalFlip = flip;
+  }
+
+  @Override
+  public void setIsPreviewVerticalFlip(boolean flip) {
+    isPreviewVerticalFlip = flip;
+  }
+
+  @Override
   public boolean isAAEnabled() {
     return managerRender != null && managerRender.isAAEnabled();
   }
@@ -214,7 +226,7 @@ public class OffScreenGlThread
           surfaceManager.makeCurrent();
           managerRender.updateFrame();
           managerRender.drawOffScreen();
-          managerRender.drawScreen(encoderWidth, encoderHeight, false, 0, 0, true, false, false);
+          managerRender.drawScreen(encoderWidth, encoderHeight, false, 0, 0, true, isPreviewVerticalFlip, isPreviewHorizontalFlip);
           surfaceManager.swapBuffer();
 
           synchronized (sync) {

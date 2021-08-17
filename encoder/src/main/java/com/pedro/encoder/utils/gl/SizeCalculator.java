@@ -71,11 +71,11 @@ public class SizeCalculator {
     } else {
       scale = new PointF(1f, 1f);
     }
-    if (!isPreview) {
-      float xFlip = flipStreamHorizontal ? -1f : 1f;
-      float yFlip = flipStreamVertical ? -1f : 1f;
-      scale = new PointF(scale.x * xFlip, scale.y * yFlip);
-    }
+
+    float xFlip = flipStreamHorizontal ? -1f : 1f;
+    float yFlip = flipStreamVertical ? -1f : 1f;
+    scale = new PointF(scale.x * xFlip, scale.y * yFlip);
+
     updateMatrix(rotation, scale, MVPMatrix);
   }
 

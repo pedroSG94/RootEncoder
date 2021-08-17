@@ -89,6 +89,16 @@ public interface GlInterface {
   void setIsStreamVerticalFlip(boolean flip);
 
   /**
+   * When true, flips only the preview horizontally
+   */
+  void setIsPreviewHorizontalFlip(boolean flip);
+
+  /**
+   * When true, flips only the preview vertically
+   */
+  void setIsPreviewVerticalFlip(boolean flip);
+
+  /**
    * Get Anti alias is enabled.
    * @return true is enabled, false is disabled.
    */
