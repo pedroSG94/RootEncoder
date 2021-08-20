@@ -42,7 +42,7 @@ class H264Packet(private val videoPacketCallback: VideoPacketCallback) {
     this.pps = ppsBytes
   }
 
-  fun createFlvAudioPacket(byteBuffer: ByteBuffer, info: MediaCodec.BufferInfo) {
+  fun createFlvVideoPacket(byteBuffer: ByteBuffer, info: MediaCodec.BufferInfo) {
     byteBuffer.rewind()
     val ts = info.presentationTimeUs / 1000
     //header is 5 bytes length:

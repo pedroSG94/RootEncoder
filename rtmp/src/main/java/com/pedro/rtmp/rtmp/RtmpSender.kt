@@ -56,7 +56,7 @@ class RtmpSender(private val connectCheckerRtmp: ConnectCheckerRtmp,
   }
 
   fun sendVideoFrame(h264Buffer: ByteBuffer, info: MediaCodec.BufferInfo) {
-    if (running) h264Packet.createFlvAudioPacket(h264Buffer, info)
+    if (running) h264Packet.createFlvVideoPacket(h264Buffer, info)
   }
 
   fun sendAudioFrame(aacBuffer: ByteBuffer, info: MediaCodec.BufferInfo) {

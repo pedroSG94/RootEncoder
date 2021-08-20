@@ -7,9 +7,9 @@ import java.nio.ByteBuffer
  *
  * 5 bytes sps/pps header:
  * 1 byte configurationVersion (always 1), 1 byte AVCProfileIndication, 1 byte profile_compatibility,
- * 1 byte AVCLevelIndication, 1 byte lengthSizeMinusOne (always 3)
+ * 1 byte AVCLevelIndication, 1 byte lengthSizeMinusOneWithReserved (always 0xff)
  * 3 bytes size of sps:
- * 1 byte numOfSequenceParameterSets (always 1), 2 bytes sequenceParameterSetLength(2B) (sps size)
+ * 1 byte numOfSequenceParameterSetsWithReserved (always 0xe1), 2 bytes sequenceParameterSetLength(2B) (sps size)
  * N bytes of sps.
  * sequenceParameterSetNALUnit (sps data)
  * 3 bytes size of pps:
@@ -30,9 +30,9 @@ class VideoSpecificConfig(private val sps: ByteArray, private val pps: ByteArray
     data.put(profileIop.value)
     val levelIdc = sps[3]
     data.put(levelIdc)
-    data.put(0x03)
+    data.put(0xff.toByte())
     //3 bytes size of sps
-    data.put(0x01)
+    data.put(0xe1.toByte())
     data.putShort(sps.size.toShort())
     //N bytes of sps
     data.put(sps)
