@@ -6,6 +6,7 @@ import android.opengl.Matrix;
 import android.os.Build;
 import androidx.annotation.RequiresApi;
 import com.pedro.encoder.R;
+import com.pedro.encoder.input.video.CameraHelper;
 import com.pedro.encoder.utils.gl.GlUtil;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
@@ -97,8 +98,33 @@ public class RotationFilterRender extends BaseFilterRender {
     this.rotation = rotation;
     //Set rotation
     Matrix.setRotateM(rotationMatrix, 0, rotation, 0, 0, 1.0f);
+    Matrix.scaleM(rotationMatrix, 0, 1f, 1f, 0f);
     //Translation
     //Matrix.translateM(rotationMatrix, 0, 0f, 0f, 0f);
+    // Combine the rotation matrix with the projection and camera view
+    Matrix.multiplyMM(MVPMatrix, 0, rotationMatrix, 0, MVPMatrix, 0);
+  }
+
+  /**
+   * Keep aspect ratio if you rotate 90º or 270º.
+   * @param rotation value
+   * @param width width of stream (prepareVideo method) if you are streaming or preview (startPreview method) if you aren't streaming.
+   * @param height height of stream (prepareVideo method) if you are streaming or preview (startPreview method) if you aren't streaming.
+   */
+  public void setRotationFixed(int rotation, int width, int height, Context context) {
+    this.rotation = rotation;
+    //Set rotation
+    Matrix.setRotateM(rotationMatrix, 0, rotation, 0, 0, 1.0f);
+    if (rotation == 90 || rotation == 270) {
+      float value = (float) height / (float) width;
+      if (CameraHelper.isPortrait(context)) {
+        Matrix.scaleM(rotationMatrix, 0, value, 1f, 0f);
+      } else {
+        Matrix.scaleM(rotationMatrix, 0, 1f, value, 0f);
+      }
+    } else {
+      Matrix.scaleM(rotationMatrix, 0, 1f, 1f, 0f);
+    }
     // Combine the rotation matrix with the projection and camera view
     Matrix.multiplyMM(MVPMatrix, 0, rotationMatrix, 0, MVPMatrix, 0);
   }
