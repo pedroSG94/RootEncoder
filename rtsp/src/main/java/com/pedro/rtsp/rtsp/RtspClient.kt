@@ -275,14 +275,8 @@ open class RtspClient(private val connectCheckerRtsp: ConnectCheckerRtsp) {
   private fun disconnect(clear: Boolean) {
     if (isStreaming) rtspSender.stop()
     thread?.shutdownNow()
-    try {
-      reader?.close()
-      reader = null
-      writer?.flush()
-      thread?.awaitTermination(100, TimeUnit.MILLISECONDS)
-    } catch (e: Exception) { }
-    thread = Executors.newSingleThreadExecutor()
-    thread?.execute post@{
+    val executor = Executors.newSingleThreadExecutor()
+    executor.execute post@{
       try {
         writer?.write(commandsManager.createTeardown())
         writer?.flush()
@@ -292,6 +286,8 @@ open class RtspClient(private val connectCheckerRtsp: ConnectCheckerRtsp) {
           commandsManager.retryClear()
         }
         connectionSocket?.close()
+        reader?.close()
+        reader = null
         writer?.close()
         writer = null
         connectionSocket = null
@@ -306,9 +302,9 @@ open class RtspClient(private val connectCheckerRtsp: ConnectCheckerRtsp) {
       }
     }
     try {
-      thread?.shutdown()
-      thread?.awaitTermination(200, TimeUnit.MILLISECONDS)
-      if (thread?.isTerminated != true) thread?.shutdownNow()
+      executor.shutdownNow()
+      executor.awaitTermination(200, TimeUnit.MILLISECONDS)
+      thread?.awaitTermination(100, TimeUnit.MILLISECONDS)
       thread = null
       semaphore.release()
     } catch (e: Exception) { }

@@ -37,7 +37,7 @@ class RtmpClient(private val connectCheckerRtmp: ConnectCheckerRtmp) {
 
   private var connectionSocket: Socket? = null
   private var reader: BufferedInputStream? = null
-  private var writer: BufferedOutputStream? = null
+  private var writer: OutputStream? = null
   private var thread: ExecutorService? = null
   private val commandsManager = CommandsManager()
   private val rtmpSender = RtmpSender(connectCheckerRtmp, commandsManager)
@@ -212,7 +212,7 @@ class RtmpClient(private val connectCheckerRtmp: ConnectCheckerRtmp) {
     }
     socket.soTimeout = 5000
     val reader = BufferedInputStream(socket.getInputStream())
-    val writer = BufferedOutputStream(socket.getOutputStream())
+    val writer = socket.getOutputStream()
     val timestamp = System.currentTimeMillis() / 1000
     val handshake = Handshake()
     if (!handshake.sendHandshake(reader, writer)) return false
@@ -402,18 +402,14 @@ class RtmpClient(private val connectCheckerRtmp: ConnectCheckerRtmp) {
   private fun disconnect(clear: Boolean) {
     if (isStreaming) rtmpSender.stop(clear)
     thread?.shutdownNow()
-    try {
-      reader?.close()
-      reader = null
-      writer?.flush()
-      thread?.awaitTermination(100, TimeUnit.MILLISECONDS)
-    } catch (e: Exception) { }
-    thread = Executors.newSingleThreadExecutor()
-    thread?.execute post@{
+    val executor = Executors.newSingleThreadExecutor()
+    executor.execute post@{
       try {
         writer?.let { writer ->
           commandsManager.sendClose(writer)
         }
+        reader?.close()
+        reader = null
         writer?.close()
         writer = null
         closeConnection()
@@ -422,8 +418,9 @@ class RtmpClient(private val connectCheckerRtmp: ConnectCheckerRtmp) {
       }
     }
     try {
-      thread?.shutdownNow()
-      thread?.awaitTermination(200, TimeUnit.MILLISECONDS)
+      executor.shutdownNow()
+      executor.awaitTermination(200, TimeUnit.MILLISECONDS)
+      thread?.awaitTermination(100, TimeUnit.MILLISECONDS)
       thread = null
     } catch (e: Exception) { }
     if (clear) {
