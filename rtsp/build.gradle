@@ -13,9 +13,6 @@ android {
         versionName "1.9.9"
     }
     buildTypes {
-        create("debugProguard") {
-            initWith(buildTypes.debug)
-        }
         release {
             minifyEnabled false
             consumerProguardFiles 'proguard-rules.pro'
