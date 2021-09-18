@@ -227,8 +227,7 @@ public class MicrophoneManager {
       audioRecord = null;
     }
     if (audioPostProcessEffect != null) {
-      audioPostProcessEffect.releaseEchoCanceler();
-      audioPostProcessEffect.releaseNoiseSuppressor();
+      audioPostProcessEffect.release();
     }
     Log.i(TAG, "Microphone stopped");
   }

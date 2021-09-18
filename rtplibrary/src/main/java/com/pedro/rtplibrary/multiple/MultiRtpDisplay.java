@@ -70,345 +70,346 @@ import java.nio.ByteBuffer;
 @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
 public class MultiRtpDisplay extends DisplayBase {
 
-    private final RtmpClient[] rtmpClients;
-    private final RtspClient[] rtspClients;
+  private final RtmpClient[] rtmpClients;
+  private final RtspClient[] rtspClients;
 
-    public MultiRtpDisplay(Context context, boolean useOpenGL, ConnectCheckerRtmp[] connectCheckerRtmpList,
-        ConnectCheckerRtsp[] connectCheckerRtspList) {
-        super(context, useOpenGL);
-        int rtmpSize = connectCheckerRtmpList != null ? connectCheckerRtmpList.length : 0;
-        rtmpClients = new RtmpClient[rtmpSize];
-        for (int i = 0; i < rtmpClients.length; i++) {
-            rtmpClients[i] = new RtmpClient(connectCheckerRtmpList[i]);
-        }
-        int rtspSize = connectCheckerRtspList != null ? connectCheckerRtspList.length : 0;
-        rtspClients = new RtspClient[rtspSize];
-        for (int i = 0; i < rtspClients.length; i++) {
-            rtspClients[i] = new RtspClient(connectCheckerRtspList[i]);
-        }
+  public MultiRtpDisplay(Context context, boolean useOpenGL, ConnectCheckerRtmp[] connectCheckerRtmpList,
+      ConnectCheckerRtsp[] connectCheckerRtspList) {
+    super(context, useOpenGL);
+    int rtmpSize = connectCheckerRtmpList != null ? connectCheckerRtmpList.length : 0;
+    rtmpClients = new RtmpClient[rtmpSize];
+    for (int i = 0; i < rtmpClients.length; i++) {
+      rtmpClients[i] = new RtmpClient(connectCheckerRtmpList[i]);
     }
-
-    public boolean isStreaming(RtpType rtpType, int index) {
-        if (rtpType == RtpType.RTMP) {
-            return rtmpClients[index].isStreaming();
-        } else {
-            return rtspClients[index].isStreaming();
-        }
+    int rtspSize = connectCheckerRtspList != null ? connectCheckerRtspList.length : 0;
+    rtspClients = new RtspClient[rtspSize];
+    for (int i = 0; i < rtspClients.length; i++) {
+      rtspClients[i] = new RtspClient(connectCheckerRtspList[i]);
     }
+  }
 
-    /**
-     * H264 profile.
-     *
-     * @param profileIop Could be ProfileIop.BASELINE or ProfileIop.CONSTRAINED
-     */
-    public void setProfileIop(ProfileIop profileIop, int index) {
-        rtmpClients[index].setProfileIop(profileIop);
+  public boolean isStreaming(RtpType rtpType, int index) {
+    if (rtpType == RtpType.RTMP) {
+      return rtmpClients[index].isStreaming();
+    } else {
+      return rtspClients[index].isStreaming();
     }
+  }
 
-    /**
-     * Some Livestream hosts use Akamai auth that requires RTMP packets to be sent with increasing
-     * timestamp order regardless of packet type.
-     * Necessary with Servers like Dacast.
-     * More info here:
-     * https://learn.akamai.com/en-us/webhelp/media-services-live/media-services-live-encoder-compatibility-testing-and-qualification-guide-v4.0/GUID-F941C88B-9128-4BF4-A81B-C2E5CFD35BBF.html
-     */
-    public void forceAkamaiTs(boolean enabled) {
-        for (RtmpClient rtmpClient : rtmpClients) {
-            rtmpClient.forceAkamaiTs(enabled);
-        }
+  /**
+   * H264 profile.
+   *
+   * @param profileIop Could be ProfileIop.BASELINE or ProfileIop.CONSTRAINED
+   */
+  public void setProfileIop(ProfileIop profileIop, int index) {
+    rtmpClients[index].setProfileIop(profileIop);
+  }
+
+  /**
+   * Some Livestream hosts use Akamai auth that requires RTMP packets to be sent with increasing
+   * timestamp order regardless of packet type.
+   * Necessary with Servers like Dacast.
+   * More info here:
+   * https://learn.akamai.com/en-us/webhelp/media-services-live/media-services-live-encoder-compatibility-testing-and-qualification-guide-v4.0/GUID-F941C88B-9128-4BF4-A81B-C2E5CFD35BBF.html
+   */
+  public void forceAkamaiTs(boolean enabled) {
+    for (RtmpClient rtmpClient : rtmpClients) {
+      rtmpClient.forceAkamaiTs(enabled);
     }
+  }
 
-    public void setAuthorization(RtpType rtpType, int index, String user, String password) {
-        if (rtpType == RtpType.RTMP) {
-            rtmpClients[index].setAuthorization(user, password);
-        } else {
-            rtspClients[index].setAuthorization(user, password);
-        }
+  public void setAuthorization(RtpType rtpType, int index, String user, String password) {
+    if (rtpType == RtpType.RTMP) {
+      rtmpClients[index].setAuthorization(user, password);
+    } else {
+      rtspClients[index].setAuthorization(user, password);
     }
+  }
 
-    @Override
-    public void setAuthorization(String user, String password) {
-        for (RtmpClient rtmpClient : rtmpClients) {
-            rtmpClient.setAuthorization(user, password);
-        }
-        for (RtspClient rtspClient : rtspClients) {
-            rtspClient.setAuthorization(user, password);
-        }
+  @Override
+  public void setAuthorization(String user, String password) {
+    for (RtmpClient rtmpClient : rtmpClients) {
+      rtmpClient.setAuthorization(user, password);
     }
-
-    @Override
-    protected void prepareAudioRtp(boolean isStereo, int sampleRate) {
-        for (RtmpClient rtmpClient : rtmpClients) {
-            rtmpClient.setAudioInfo(sampleRate, isStereo);
-        }
-        for (RtspClient rtspClient : rtspClients) {
-            rtspClient.setAudioInfo(sampleRate, isStereo);
-        }
+    for (RtspClient rtspClient : rtspClients) {
+      rtspClient.setAuthorization(user, password);
     }
+  }
 
-    public void startStream(RtpType rtpType, int index, String url) {
-        boolean shouldStarEncoder = true;
-        for (RtmpClient rtmpClient : rtmpClients) {
-            if (rtmpClient.isStreaming()) {
-                shouldStarEncoder = false;
-                break;
-            }
-        }
-        if (shouldStarEncoder) {
-            for (RtspClient rtspClient : rtspClients) {
-                if (rtspClient.isStreaming()) {
-                    shouldStarEncoder = false;
-                    break;
-                }
-            }
-        }
-        if (shouldStarEncoder) super.startStream("");
-        if (rtpType == RtpType.RTMP) {
-            if (videoEncoder.getRotation() == 90 || videoEncoder.getRotation() == 270) {
-                rtmpClients[index].setVideoResolution(videoEncoder.getHeight(), videoEncoder.getWidth());
-            } else {
-                rtmpClients[index].setVideoResolution(videoEncoder.getWidth(), videoEncoder.getHeight());
-            }
-            rtmpClients[index].connect(url);
-        } else {
-            rtspClients[index].connect(url);
-        }
+  @Override
+  protected void prepareAudioRtp(boolean isStereo, int sampleRate) {
+    for (RtmpClient rtmpClient : rtmpClients) {
+      rtmpClient.setAudioInfo(sampleRate, isStereo);
     }
-
-    public void stopStream(RtpType rtpType, int index) {
-        boolean shouldStopEncoder = true;
-        if (rtpType == RtpType.RTMP) {
-            rtmpClients[index].disconnect();
-        } else {
-            rtspClients[index].disconnect();
-        }
-        for (RtmpClient rtmpClient : rtmpClients) {
-            if (rtmpClient.isStreaming()) {
-                shouldStopEncoder = false;
-                break;
-            }
-        }
-        if (shouldStopEncoder) {
-            for (RtspClient rtspClient : rtspClients) {
-                if (rtspClient.isStreaming()) {
-                    shouldStopEncoder = false;
-                    break;
-                }
-            }
-        }
-        if (shouldStopEncoder) super.stopStream();
+    for (RtspClient rtspClient : rtspClients) {
+      rtspClient.setAudioInfo(sampleRate, isStereo);
     }
+  }
 
-    @Override
-    protected void startStreamRtp(String url) {
+  public void startStream(RtpType rtpType, int index, String url) {
+    boolean shouldStarEncoder = true;
+    for (RtmpClient rtmpClient : rtmpClients) {
+      if (rtmpClient.isStreaming()) {
+        shouldStarEncoder = false;
+        break;
+      }
     }
-
-    @Override
-    protected void stopStreamRtp() {
+    if (shouldStarEncoder) {
+      for (RtspClient rtspClient : rtspClients) {
+        if (rtspClient.isStreaming()) {
+          shouldStarEncoder = false;
+          break;
+        }
+      }
     }
-
-    public boolean reTry(RtpType rtpType, int index, long delay, String reason, @Nullable String backupUrl) {
-        boolean result;
-        if (rtpType == RtpType.RTMP) {
-            result = rtmpClients[index].shouldRetry(reason);
-            if (result) {
-                requestKeyFrame();
-                rtmpClients[index].reConnect(delay, backupUrl);
-            }
-        } else {
-            result = rtspClients[index].shouldRetry(reason);
-            if (result) {
-                requestKeyFrame();
-                rtmpClients[index].reConnect(delay, backupUrl);
-            }
-        }
-        return result;
+    if (shouldStarEncoder) super.startStream("");
+    if (rtpType == RtpType.RTMP) {
+      if (videoEncoder.getRotation() == 90 || videoEncoder.getRotation() == 270) {
+        rtmpClients[index].setVideoResolution(videoEncoder.getHeight(), videoEncoder.getWidth());
+      } else {
+        rtmpClients[index].setVideoResolution(videoEncoder.getWidth(), videoEncoder.getHeight());
+      }
+      rtmpClients[index].setFps(videoEncoder.getFps());
+      rtmpClients[index].connect(url);
+    } else {
+      rtspClients[index].connect(url);
     }
+  }
 
-    @Override
-    protected boolean shouldRetry(String reason) {
-        return false;
+  public void stopStream(RtpType rtpType, int index) {
+    boolean shouldStopEncoder = true;
+    if (rtpType == RtpType.RTMP) {
+      rtmpClients[index].disconnect();
+    } else {
+      rtspClients[index].disconnect();
     }
-
-    @Override
-    public void setReTries(int reTries) {
-        for (RtmpClient rtmpClient : rtmpClients) {
-            rtmpClient.setReTries(reTries);
-        }
-        for (RtspClient rtspClient : rtspClients) {
-            rtspClient.setReTries(reTries);
-        }
+    for (RtmpClient rtmpClient : rtmpClients) {
+      if (rtmpClient.isStreaming()) {
+        shouldStopEncoder = false;
+        break;
+      }
     }
-
-    @Override
-    protected void reConnect(long delay, @Nullable String backupUrl) {
-
+    if (shouldStopEncoder) {
+      for (RtspClient rtspClient : rtspClients) {
+        if (rtspClient.isStreaming()) {
+          shouldStopEncoder = false;
+          break;
+        }
+      }
     }
+    if (shouldStopEncoder) super.stopStream();
+  }
 
-    public boolean hasCongestion(RtpType rtpType, int index) {
-        if (rtpType == RtpType.RTMP) {
-            return rtmpClients[index].hasCongestion();
-        } else {
-            return rtspClients[index].hasCongestion();
-        }
+  @Override
+  protected void startStreamRtp(String url) {
+  }
+
+  @Override
+  protected void stopStreamRtp() {
+  }
+
+  public boolean reTry(RtpType rtpType, int index, long delay, String reason, @Nullable String backupUrl) {
+    boolean result;
+    if (rtpType == RtpType.RTMP) {
+      result = rtmpClients[index].shouldRetry(reason);
+      if (result) {
+        requestKeyFrame();
+        rtmpClients[index].reConnect(delay, backupUrl);
+      }
+    } else {
+      result = rtspClients[index].shouldRetry(reason);
+      if (result) {
+        requestKeyFrame();
+        rtmpClients[index].reConnect(delay, backupUrl);
+      }
     }
+    return result;
+  }
 
-    @Override
-    public boolean hasCongestion() {
-        return false;
+  @Override
+  protected boolean shouldRetry(String reason) {
+    return false;
+  }
+
+  @Override
+  public void setReTries(int reTries) {
+    for (RtmpClient rtmpClient : rtmpClients) {
+      rtmpClient.setReTries(reTries);
     }
-
-    public void resizeCache(RtpType rtpType, int index, int newSize) {
-        if (rtpType == RtpType.RTMP) {
-            rtmpClients[index].resizeCache(newSize);
-        } else {
-            rtspClients[index].resizeCache(newSize);
-        }
+    for (RtspClient rtspClient : rtspClients) {
+      rtspClient.setReTries(reTries);
     }
+  }
 
-    @Override
-    public void resizeCache(int newSize) throws RuntimeException {
+  @Override
+  protected void reConnect(long delay, @Nullable String backupUrl) {
 
+  }
+
+  public boolean hasCongestion(RtpType rtpType, int index) {
+    if (rtpType == RtpType.RTMP) {
+      return rtmpClients[index].hasCongestion();
+    } else {
+      return rtspClients[index].hasCongestion();
     }
+  }
 
-    public int getCacheSize(RtpType rtpType, int index) {
-        if (rtpType == RtpType.RTMP) {
-            return rtmpClients[index].getCacheSize();
-        } else {
-            return rtspClients[index].getCacheSize();
-        }
-    }
+  @Override
+  public boolean hasCongestion() {
+    return false;
+  }
 
-    @Override
-    public int getCacheSize() {
-        return 0;
+  public void resizeCache(RtpType rtpType, int index, int newSize) {
+    if (rtpType == RtpType.RTMP) {
+      rtmpClients[index].resizeCache(newSize);
+    } else {
+      rtspClients[index].resizeCache(newSize);
     }
+  }
 
-    @Override
-    public long getSentAudioFrames() {
-        long number = 0;
-        for (RtmpClient rtmpClient : rtmpClients) {
-            number += rtmpClient.getSentAudioFrames();
-        }
-        for (RtspClient rtspClient : rtspClients) {
-            number += rtspClient.getSentAudioFrames();
-        }
-        return number;
-    }
+  @Override
+  public void resizeCache(int newSize) throws RuntimeException {
 
-    @Override
-    public long getSentVideoFrames() {
-        long number = 0;
-        for (RtmpClient rtmpClient : rtmpClients) {
-            number += rtmpClient.getSentVideoFrames();
-        }
-        for (RtspClient rtspClient : rtspClients) {
-            number += rtspClient.getSentVideoFrames();
-        }
-        return number;
-    }
+  }
 
-    @Override
-    public long getDroppedAudioFrames() {
-        long number = 0;
-        for (RtmpClient rtmpClient : rtmpClients) {
-            number += rtmpClient.getDroppedAudioFrames();
-        }
-        for (RtspClient rtspClient : rtspClients) {
-            number += rtspClient.getDroppedAudioFrames();
-        }
-        return number;
+  public int getCacheSize(RtpType rtpType, int index) {
+    if (rtpType == RtpType.RTMP) {
+      return rtmpClients[index].getCacheSize();
+    } else {
+      return rtspClients[index].getCacheSize();
     }
+  }
 
-    @Override
-    public long getDroppedVideoFrames() {
-        long number = 0;
-        for (RtmpClient rtmpClient : rtmpClients) {
-            number += rtmpClient.getDroppedVideoFrames();
-        }
-        for (RtspClient rtspClient : rtspClients) {
-            number += rtspClient.getDroppedVideoFrames();
-        }
-        return number;
-    }
+  @Override
+  public int getCacheSize() {
+    return 0;
+  }
 
-    @Override
-    public void resetSentAudioFrames() {
-        for (RtmpClient rtmpClient : rtmpClients) {
-            rtmpClient.resetSentAudioFrames();
-        }
-        for (RtspClient rtspClient : rtspClients) {
-            rtspClient.resetSentAudioFrames();
-        }
+  @Override
+  public long getSentAudioFrames() {
+    long number = 0;
+    for (RtmpClient rtmpClient : rtmpClients) {
+      number += rtmpClient.getSentAudioFrames();
     }
+    for (RtspClient rtspClient : rtspClients) {
+      number += rtspClient.getSentAudioFrames();
+    }
+    return number;
+  }
 
-    @Override
-    public void resetSentVideoFrames() {
-        for (RtmpClient rtmpClient : rtmpClients) {
-            rtmpClient.resetSentVideoFrames();
-        }
-        for (RtspClient rtspClient : rtspClients) {
-            rtspClient.resetSentVideoFrames();
-        }
+  @Override
+  public long getSentVideoFrames() {
+    long number = 0;
+    for (RtmpClient rtmpClient : rtmpClients) {
+      number += rtmpClient.getSentVideoFrames();
     }
+    for (RtspClient rtspClient : rtspClients) {
+      number += rtspClient.getSentVideoFrames();
+    }
+    return number;
+  }
 
-    @Override
-    public void resetDroppedAudioFrames() {
-        for (RtmpClient rtmpClient : rtmpClients) {
-            rtmpClient.resetDroppedAudioFrames();
-        }
-        for (RtspClient rtspClient : rtspClients) {
-            rtspClient.resetDroppedAudioFrames();
-        }
+  @Override
+  public long getDroppedAudioFrames() {
+    long number = 0;
+    for (RtmpClient rtmpClient : rtmpClients) {
+      number += rtmpClient.getDroppedAudioFrames();
     }
+    for (RtspClient rtspClient : rtspClients) {
+      number += rtspClient.getDroppedAudioFrames();
+    }
+    return number;
+  }
 
-    @Override
-    public void resetDroppedVideoFrames() {
-        for (RtmpClient rtmpClient : rtmpClients) {
-            rtmpClient.resetDroppedVideoFrames();
-        }
-        for (RtspClient rtspClient : rtspClients) {
-            rtspClient.resetDroppedVideoFrames();
-        }
+  @Override
+  public long getDroppedVideoFrames() {
+    long number = 0;
+    for (RtmpClient rtmpClient : rtmpClients) {
+      number += rtmpClient.getDroppedVideoFrames();
     }
+    for (RtspClient rtspClient : rtspClients) {
+      number += rtspClient.getDroppedVideoFrames();
+    }
+    return number;
+  }
 
-    @Override
-    protected void getAacDataRtp(ByteBuffer aacBuffer, MediaCodec.BufferInfo info) {
-        for (RtmpClient rtmpClient : rtmpClients) {
-            rtmpClient.sendAudio(aacBuffer.duplicate(), info);
-        }
-        for (RtspClient rtspClient : rtspClients) {
-            rtspClient.sendAudio(aacBuffer.duplicate(), info);
-        }
+  @Override
+  public void resetSentAudioFrames() {
+    for (RtmpClient rtmpClient : rtmpClients) {
+      rtmpClient.resetSentAudioFrames();
     }
+    for (RtspClient rtspClient : rtspClients) {
+      rtspClient.resetSentAudioFrames();
+    }
+  }
 
-    @Override
-    protected void onSpsPpsVpsRtp(ByteBuffer sps, ByteBuffer pps, ByteBuffer vps) {
-        for (RtmpClient rtmpClient : rtmpClients) {
-            rtmpClient.setVideoInfo(sps.duplicate(), pps.duplicate(), vps != null ? vps.duplicate() : null);
-        }
-        for (RtspClient rtspClient : rtspClients) {
-            rtspClient.setVideoInfo(sps.duplicate(), pps.duplicate(), vps != null ? vps.duplicate() : null);
-        }
+  @Override
+  public void resetSentVideoFrames() {
+    for (RtmpClient rtmpClient : rtmpClients) {
+      rtmpClient.resetSentVideoFrames();
     }
+    for (RtspClient rtspClient : rtspClients) {
+      rtspClient.resetSentVideoFrames();
+    }
+  }
 
-    @Override
-    protected void getH264DataRtp(ByteBuffer h264Buffer, MediaCodec.BufferInfo info) {
-        for (RtmpClient rtmpClient : rtmpClients) {
-            rtmpClient.sendVideo(h264Buffer.duplicate(), info);
-        }
-        for (RtspClient rtspClient : rtspClients) {
-            rtspClient.sendVideo(h264Buffer.duplicate(), info);
-        }
+  @Override
+  public void resetDroppedAudioFrames() {
+    for (RtmpClient rtmpClient : rtmpClients) {
+      rtmpClient.resetDroppedAudioFrames();
     }
+    for (RtspClient rtspClient : rtspClients) {
+      rtspClient.resetDroppedAudioFrames();
+    }
+  }
 
-    @Override
-    public void setLogs(boolean enable) {
-        for (RtmpClient rtmpClient : rtmpClients) {
-            rtmpClient.setLogs(enable);
-        }
-        for (RtspClient rtspClient : rtspClients) {
-            rtspClient.setLogs(enable);
-        }
+  @Override
+  public void resetDroppedVideoFrames() {
+    for (RtmpClient rtmpClient : rtmpClients) {
+      rtmpClient.resetDroppedVideoFrames();
     }
+    for (RtspClient rtspClient : rtspClients) {
+      rtspClient.resetDroppedVideoFrames();
+    }
+  }
+
+  @Override
+  protected void getAacDataRtp(ByteBuffer aacBuffer, MediaCodec.BufferInfo info) {
+    for (RtmpClient rtmpClient : rtmpClients) {
+      rtmpClient.sendAudio(aacBuffer.duplicate(), info);
+    }
+    for (RtspClient rtspClient : rtspClients) {
+      rtspClient.sendAudio(aacBuffer.duplicate(), info);
+    }
+  }
+
+  @Override
+  protected void onSpsPpsVpsRtp(ByteBuffer sps, ByteBuffer pps, ByteBuffer vps) {
+    for (RtmpClient rtmpClient : rtmpClients) {
+      rtmpClient.setVideoInfo(sps.duplicate(), pps.duplicate(), vps != null ? vps.duplicate() : null);
+    }
+    for (RtspClient rtspClient : rtspClients) {
+      rtspClient.setVideoInfo(sps.duplicate(), pps.duplicate(), vps != null ? vps.duplicate() : null);
+    }
+  }
+
+  @Override
+  protected void getH264DataRtp(ByteBuffer h264Buffer, MediaCodec.BufferInfo info) {
+    for (RtmpClient rtmpClient : rtmpClients) {
+      rtmpClient.sendVideo(h264Buffer.duplicate(), info);
+    }
+    for (RtspClient rtspClient : rtspClients) {
+      rtspClient.sendVideo(h264Buffer.duplicate(), info);
+    }
+  }
+
+  @Override
+  public void setLogs(boolean enable) {
+    for (RtmpClient rtmpClient : rtmpClients) {
+      rtmpClient.setLogs(enable);
+    }
+    for (RtspClient rtspClient : rtspClients) {
+      rtspClient.setLogs(enable);
+    }
+  }
 }

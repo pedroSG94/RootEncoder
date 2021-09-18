@@ -354,6 +354,7 @@ public class MultiRtpCamera1 extends Camera1Base {
       } else {
         rtmpClients[index].setVideoResolution(videoEncoder.getWidth(), videoEncoder.getHeight());
       }
+      rtmpClients[index].setFps(videoEncoder.getFps());
       rtmpClients[index].connect(url);
     } else {
       rtspClients[index].connect(url);

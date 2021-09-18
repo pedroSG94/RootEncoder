@@ -157,6 +157,7 @@ public class RtmpFromFile extends FromFileBase {
     } else {
       rtmpClient.setVideoResolution(videoEncoder.getWidth(), videoEncoder.getHeight());
     }
+    rtmpClient.setFps(videoEncoder.getFps());
     rtmpClient.connect(url);
   }
 

@@ -29,7 +29,7 @@ public class AudioPostProcessEffect {
 
   private final String TAG = "AudioPostProcessEffect";
 
-  private int microphoneId;
+  private final int microphoneId;
   private AcousticEchoCanceler acousticEchoCanceler = null;
   private AutomaticGainControl automaticGainControl = null;
   private NoiseSuppressor noiseSuppressor = null;
@@ -47,7 +47,7 @@ public class AudioPostProcessEffect {
         return;
       }
     }
-    Log.e(TAG, "This device does't implement AutoGainControl");
+    Log.e(TAG, "This device doesn't implement AutoGainControl");
   }
 
   public void releaseAutoGainControl() {
@@ -67,7 +67,7 @@ public class AudioPostProcessEffect {
         return;
       }
     }
-    Log.e(TAG, "This device does't implement EchoCanceler");
+    Log.e(TAG, "This device doesn't implement EchoCanceler");
   }
 
   public void releaseEchoCanceler() {
@@ -87,7 +87,7 @@ public class AudioPostProcessEffect {
         return;
       }
     }
-    Log.e(TAG, "This device does't implement NoiseSuppressor");
+    Log.e(TAG, "This device doesn't implement NoiseSuppressor");
   }
 
   public void releaseNoiseSuppressor() {
@@ -96,5 +96,11 @@ public class AudioPostProcessEffect {
       noiseSuppressor.release();
       noiseSuppressor = null;
     }
+  }
+
+  public void release() {
+    releaseAutoGainControl();
+    releaseEchoCanceler();
+    releaseNoiseSuppressor();
   }
 }

@@ -133,6 +133,7 @@ public class RtmpDisplay extends DisplayBase {
     } else {
       rtmpClient.setVideoResolution(videoEncoder.getWidth(), videoEncoder.getHeight());
     }
+    rtmpClient.setFps(videoEncoder.getFps());
     rtmpClient.connect(url);
   }
 

@@ -124,6 +124,10 @@ class RtmpClient(private val connectCheckerRtmp: ConnectCheckerRtmp) {
     commandsManager.setVideoResolution(width, height)
   }
 
+  fun setFps(fps: Int) {
+    commandsManager.setFps(fps)
+  }
+
   @JvmOverloads
   fun connect(url: String?, isRetry: Boolean = false) {
     if (!isRetry) doingRetry = true

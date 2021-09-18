@@ -46,7 +46,7 @@ class CommandsManager {
   var port = 1935
   var appName = ""
   var streamName = ""
-  var  tcUrl = ""
+  var tcUrl = ""
   var user: String? = null
   var password: String? = null
   var onAuth = false
@@ -57,12 +57,17 @@ class CommandsManager {
 
   private var width = 640
   private var height = 480
-  var sampleRate = 44100
-  var isStereo = true
+  private var fps = 30
+  private var sampleRate = 44100
+  private var isStereo = true
 
   fun setVideoResolution(width: Int, height: Int) {
     this.width = width
     this.height = height
+  }
+
+  fun setFps(fps: Int) {
+    this.fps = fps
   }
 
   fun setAudioInfo(sampleRate: Int, isStereo: Boolean) {
@@ -158,7 +163,7 @@ class CommandsManager {
       amfEcmaArray.setProperty("width", width.toDouble())
       amfEcmaArray.setProperty("height", height.toDouble())
       amfEcmaArray.setProperty("videocodecid", 7.0)
-      amfEcmaArray.setProperty("framerate", 30.0)
+      amfEcmaArray.setProperty("framerate", fps.toDouble())
       amfEcmaArray.setProperty("videodatarate", 0.0)
     }
     amfEcmaArray.setProperty("audiocodecid", 10.0)

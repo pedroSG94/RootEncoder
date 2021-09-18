@@ -170,6 +170,7 @@ public class RtmpCamera2 extends Camera2Base {
     } else {
       rtmpClient.setVideoResolution(videoEncoder.getWidth(), videoEncoder.getHeight());
     }
+    rtmpClient.setFps(videoEncoder.getFps());
     rtmpClient.connect(url);
   }
 
