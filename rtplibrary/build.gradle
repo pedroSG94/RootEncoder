@@ -7,8 +7,8 @@ android {
   defaultConfig {
     minSdkVersion 16
     targetSdkVersion 30
-    versionCode 207
-    versionName "2.0.7"
+    versionCode version_code
+    versionName version_name
   }
   buildTypes {
     release {
@@ -28,7 +28,7 @@ android {
           // You can then customize attributes of the publication as shown below.
           groupId = "$library_group"
           artifactId = "rtplibrary"
-          version = "$versionName"
+          version = "$version_name"
         }
       }
     }
