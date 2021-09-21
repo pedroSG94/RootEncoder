@@ -21,11 +21,15 @@ import android.graphics.SurfaceTexture;
 import android.os.Build;
 import android.view.Surface;
 import androidx.annotation.RequiresApi;
+
+import com.pedro.encoder.input.gl.FilterAction;
 import com.pedro.encoder.input.gl.SurfaceManager;
 import com.pedro.encoder.input.gl.render.ManagerRender;
 import com.pedro.encoder.input.gl.render.filters.BaseFilterRender;
 import com.pedro.encoder.input.video.FpsLimiter;
 import com.pedro.encoder.utils.gl.GlUtil;
+import com.pedro.rtplibrary.util.Filter;
+
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.Semaphore;
@@ -147,12 +151,42 @@ public class OffScreenGlThread
 
   @Override
   public void setFilter(int filterPosition, BaseFilterRender baseFilterRender) {
-    filterQueue.add(new Filter(filterPosition, baseFilterRender));
+    filterQueue.add(new Filter(FilterAction.SET, filterPosition, baseFilterRender));
+  }
+
+  @Override
+  public void addFilter(BaseFilterRender baseFilterRender) {
+    filterQueue.add(new Filter(FilterAction.ADD, 0, baseFilterRender));
+  }
+
+  @Override
+  public void addFilter(int filterPosition, BaseFilterRender baseFilterRender) {
+    filterQueue.add(new Filter(FilterAction.ADD_INDEX, filterPosition, baseFilterRender));
+  }
+
+  @Override
+  public void clearFilters() {
+    filterQueue.add(new Filter(FilterAction.CLEAR, 0, null));
+  }
+
+  @Override
+  public void removeFilter(int filterPosition) {
+    filterQueue.add(new Filter(FilterAction.REMOVE, filterPosition, null));
+  }
+
+  @Override
+  public int filtersCount() {
+    return managerRender.filtersCount();
   }
 
   @Override
   public void setFilter(BaseFilterRender baseFilterRender) {
-    setFilter(0, baseFilterRender);
+    int count = managerRender.filtersCount();
+    if (count > 0) {
+      setFilter(0, baseFilterRender);
+    } else {
+      addFilter(baseFilterRender);
+    }
   }
 
   @Override
@@ -265,7 +299,7 @@ public class OffScreenGlThread
           }
           if (!filterQueue.isEmpty()) {
             Filter filter = filterQueue.take();
-            managerRender.setFilter(filter.getPosition(), filter.getBaseFilterRender());
+            managerRender.setFilterAction(filter.getFilterAction(), filter.getPosition(), filter.getBaseFilterRender());
           } else if (loadAA) {
             managerRender.enableAA(AAEnabled);
             loadAA = false;

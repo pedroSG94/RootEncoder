@@ -76,6 +76,10 @@ dependencies {
 - [X] RTMPS and RTSPS.
 - [X] RTSP H265 support (Waiting FLV official packetization to add RTMP support).
 
+## iOS version (under develop):
+
+https://github.com/pedroSG94/rtmp-rtsp-stream-client-swift
+
 ## Other related projects:
 
 https://github.com/pedroSG94/RTSP-Server
@@ -83,6 +87,13 @@ https://github.com/pedroSG94/RTSP-Server
 https://github.com/pedroSG94/AndroidReStreamer
 
 https://github.com/pedroSG94/Stream-USB-test
+
+## Real time filters:
+
+### NOTE:
+In library version 2.0.9, the filters was refactored. Check the wiki link to migrate your implementation.
+
+https://github.com/pedroSG94/rtmp-rtsp-stream-client-java/wiki/Real-time-filters
 
 ## Use example:
 

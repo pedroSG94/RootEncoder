@@ -21,6 +21,8 @@ import android.graphics.SurfaceTexture;
 import android.os.Build;
 import android.view.Surface;
 import androidx.annotation.RequiresApi;
+
+import com.pedro.encoder.input.gl.FilterAction;
 import com.pedro.encoder.input.gl.render.filters.BaseFilterRender;
 import com.pedro.encoder.input.gl.render.filters.NoFilterRender;
 import java.util.ArrayList;
@@ -33,13 +35,12 @@ import java.util.List;
 @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
 public class ManagerRender {
 
-  //Increase it to render more than 1 filter and set filter by position.
-  // You must modify it before create your rtmp or rtsp object.
-  public static int numFilters = 1;
+  //Set filter limit. If the number is 0 or less you can add infinity filters
+  public static int numFilters = 0;
 
-  private CameraRender cameraRender;
-  private List<BaseFilterRender> baseFilterRender = new ArrayList<>(numFilters);
-  private ScreenRender screenRender;
+  private final CameraRender cameraRender;
+  private final List<BaseFilterRender> baseFilterRender;
+  private final ScreenRender screenRender;
 
   private int width;
   private int height;
@@ -48,8 +49,8 @@ public class ManagerRender {
   private Context context;
 
   public ManagerRender() {
+    baseFilterRender = numFilters > 0 ? new ArrayList<>(numFilters) : new ArrayList<>();
     cameraRender = new CameraRender();
-    for (int i = 0; i < numFilters; i++) baseFilterRender.add(new NoFilterRender());
     screenRender = new ScreenRender();
   }
 
@@ -61,14 +62,8 @@ public class ManagerRender {
     this.previewWidth = previewWidth;
     this.previewHeight = previewHeight;
     cameraRender.initGl(width, height, context, previewWidth, previewHeight);
-    for (int i = 0; i < numFilters; i++) {
-      int textId = i == 0 ? cameraRender.getTexId() : baseFilterRender.get(i - 1).getTexId();
-      baseFilterRender.get(i).setPreviousTexId(textId);
-      baseFilterRender.get(i).initGl(width, height, context, previewWidth, previewHeight);
-      baseFilterRender.get(i).initFBOLink();
-    }
     screenRender.setStreamSize(encoderWidth, encoderHeight);
-    screenRender.setTexId(baseFilterRender.get(numFilters - 1).getTexId());
+    screenRender.setTexId(cameraRender.getTexId());
     screenRender.initGl(context);
   }
 
@@ -112,14 +107,91 @@ public class ManagerRender {
     return cameraRender.getSurface();
   }
 
-  public void setFilter(int position, BaseFilterRender baseFilterRender) {
-    final int id = this.baseFilterRender.get(position).getPreviousTexId();
-    final RenderHandler renderHandler = this.baseFilterRender.get(position).getRenderHandler();
+  private void setFilter(int position, BaseFilterRender baseFilterRender) {
+    int texId = this.baseFilterRender.isEmpty() ? cameraRender.getTexId() :
+        this.baseFilterRender.get(this.baseFilterRender.size() - 1).getTexId();
     this.baseFilterRender.get(position).release();
     this.baseFilterRender.set(position, baseFilterRender);
-    this.baseFilterRender.get(position).setPreviousTexId(id);
-    this.baseFilterRender.get(position).initGl(width, height, context, previewWidth, previewHeight);
-    this.baseFilterRender.get(position).setRenderHandler(renderHandler);
+    baseFilterRender.setPreviousTexId(texId);
+    baseFilterRender.initGl(width, height, context, previewWidth, previewHeight);
+    baseFilterRender.initFBOLink();
+    reOrderFilters();
+  }
+
+  private void addFilter(BaseFilterRender baseFilterRender) {
+    int texId = this.baseFilterRender.isEmpty() ? cameraRender.getTexId() :
+        this.baseFilterRender.get(this.baseFilterRender.size() - 1).getTexId();
+    this.baseFilterRender.add(baseFilterRender);
+    baseFilterRender.setPreviousTexId(texId);
+    baseFilterRender.initGl(width, height, context, previewWidth, previewHeight);
+    baseFilterRender.initFBOLink();
+    reOrderFilters();
+  }
+
+  private void addFilter(int position, BaseFilterRender baseFilterRender) {
+    int texId = position == 0 && this.baseFilterRender.size() == 1 ? cameraRender.getTexId() :
+        this.baseFilterRender.get(position - 1).getTexId();
+    this.baseFilterRender.add(position, baseFilterRender);
+    baseFilterRender.setPreviousTexId(texId);
+    baseFilterRender.initGl(width, height, context, previewWidth, previewHeight);
+    baseFilterRender.initFBOLink();
+    reOrderFilters();
+  }
+
+  private void clearFilters() {
+    for (BaseFilterRender baseFilterRender: this.baseFilterRender) {
+      baseFilterRender.release();
+    }
+    baseFilterRender.clear();
+    reOrderFilters();
+  }
+
+  private void removeFilter(int position) {
+    baseFilterRender.get(position).release();
+    baseFilterRender.remove(position);
+    reOrderFilters();
+  }
+
+  private void reOrderFilters() {
+    for (int i = 0; i < baseFilterRender.size(); i++) {
+      int texId = i == 0 ? cameraRender.getTexId() : baseFilterRender.get(i - 1).getTexId();
+      baseFilterRender.get(i).setPreviousTexId(texId);
+    }
+    int texId = baseFilterRender.size() < 1 ? cameraRender.getTexId() :
+        baseFilterRender.get(baseFilterRender.size() - 1).getTexId();
+    screenRender.setTexId(texId);
+  }
+
+  public void setFilterAction(FilterAction filterAction,  int position, BaseFilterRender baseFilterRender) {
+    switch (filterAction) {
+      case SET:
+        setFilter(position, baseFilterRender);
+        break;
+      case ADD:
+        if (numFilters == this.baseFilterRender.size()) {
+          throw new RuntimeException("limit of filters(" + numFilters + ") exceeded");
+        }
+        addFilter(baseFilterRender);
+        break;
+      case ADD_INDEX:
+        if (numFilters == this.baseFilterRender.size()) {
+          throw new RuntimeException("limit of filters(" + numFilters + ") exceeded");
+        }
+        addFilter(position, baseFilterRender);
+        break;
+      case CLEAR:
+        clearFilters();
+        break;
+      case REMOVE:
+        removeFilter(position);
+        break;
+      default:
+        break;
+    }
+  }
+
+  public int filtersCount() {
+    return baseFilterRender.size();
   }
 
   public void setCameraRotation(int rotation) {

@@ -152,8 +152,33 @@ public class LightOpenGlView extends OpenGlViewBase {
   }
 
   @Override
+  public void addFilter(BaseFilterRender baseFilterRender) {
+
+  }
+
+  @Override
+  public void addFilter(int filterPosition, BaseFilterRender baseFilterRender) {
+
+  }
+
+  @Override
+  public void clearFilters() {
+
+  }
+
+  @Override
+  public void removeFilter(int filterPosition) {
+
+  }
+
+  @Override
+  public int filtersCount() {
+    return 0;
+  }
+
+  @Override
   public void setFilter(BaseFilterRender baseFilterRender) {
-    setFilter(0, baseFilterRender);
+    addFilter(baseFilterRender);
   }
 
   @Override

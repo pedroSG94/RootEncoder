@@ -66,17 +66,53 @@ public interface GlInterface {
   void takePhoto(TakePhotoCallback takePhotoCallback);
 
   /**
-   * Set a filter to stream.
-   * You can select any filter from {@link com.pedro.encoder.input.gl.render.filters} or create
-   * your own filter if you extends from {@link com.pedro.encoder.input.gl.render.filters.BaseFilterRender}
+   * Replaces the filter at the specified position with the specified filter.
+   * You can modify filter's parameters after set it to stream.
    *
-   * @param baseFilterRender filter to set. You can modify parameters to filter after set it to stream.
+   * @param filterPosition filter position
+   * @param baseFilterRender filter to set
    */
   void setFilter(int filterPosition, BaseFilterRender baseFilterRender);
 
   /**
-   * Set filter in position 0.
-   * @param baseFilterRender filter to set. You can modify parameters to filter after set it to stream.
+   * Appends the specified filter to the end.
+   * You can modify filter's parameters after set it to stream.
+   *
+   * @param baseFilterRender filter to add
+   */
+  void addFilter(BaseFilterRender baseFilterRender);
+
+  /**
+   * Inserts the specified filter at the specified position.
+   * You can modify filter's parameters after set it to stream.
+   *
+   * @param filterPosition filter position
+   * @param baseFilterRender filter to set
+   */
+  void addFilter(int filterPosition, BaseFilterRender baseFilterRender);
+
+  /**
+   * Remove all filters
+   */
+  void clearFilters();
+
+  /**
+   * Remove the filter at the specified position.
+   *
+   * @param filterPosition position of filter to remove
+   */
+  void removeFilter(int filterPosition);
+
+  /**
+   * @return number of filters
+   */
+  int filtersCount();
+
+  /**
+   * Replace the filter in position 0 or add the filter if list is empty.
+   * You can modify filter's parameters after set it to stream.
+   *
+   * @param baseFilterRender filter to set.
    */
   void setFilter(BaseFilterRender baseFilterRender);
   

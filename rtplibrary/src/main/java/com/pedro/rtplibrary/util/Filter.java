@@ -14,8 +14,9 @@
  * limitations under the License.
  */
 
-package com.pedro.rtplibrary.view;
+package com.pedro.rtplibrary.util;
 
+import com.pedro.encoder.input.gl.FilterAction;
 import com.pedro.encoder.input.gl.render.filters.BaseFilterRender;
 
 /**
@@ -24,15 +25,22 @@ import com.pedro.encoder.input.gl.render.filters.BaseFilterRender;
 
 public class Filter {
 
+  private FilterAction filterAction;
   private int position;
   private BaseFilterRender baseFilterRender;
 
-  public Filter() {
-  }
-
-  public Filter(int position, BaseFilterRender baseFilterRender) {
+  public Filter(FilterAction filterAction, int position, BaseFilterRender baseFilterRender) {
+    this.filterAction = filterAction;
     this.position = position;
     this.baseFilterRender = baseFilterRender;
+  }
+
+  public FilterAction getFilterAction() {
+    return filterAction;
+  }
+
+  public void setFilterAction(FilterAction filterAction) {
+    this.filterAction = filterAction;
   }
 
   public int getPosition() {

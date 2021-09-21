@@ -27,6 +27,8 @@ import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import com.pedro.encoder.input.gl.SurfaceManager;
 import com.pedro.encoder.input.video.FpsLimiter;
+import com.pedro.rtplibrary.util.Filter;
+
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.Semaphore;

@@ -25,10 +25,13 @@ import android.util.Log;
 import android.view.Surface;
 import android.view.SurfaceHolder;
 import androidx.annotation.RequiresApi;
+
+import com.pedro.encoder.input.gl.FilterAction;
 import com.pedro.encoder.input.gl.render.ManagerRender;
 import com.pedro.encoder.input.gl.render.filters.BaseFilterRender;
 import com.pedro.encoder.utils.gl.GlUtil;
 import com.pedro.rtplibrary.R;
+import com.pedro.rtplibrary.util.Filter;
 
 /**
  * Created by pedro on 9/09/17.
@@ -56,7 +59,7 @@ public class OpenGlView extends OpenGlViewBase {
       keepAspectRatio = typedArray.getBoolean(R.styleable.OpenGlView_keepAspectRatio, false);
       aspectRatioMode = AspectRatioMode.fromId(typedArray.getInt(R.styleable.OpenGlView_aspectRatioMode, 0));
       AAEnabled = typedArray.getBoolean(R.styleable.OpenGlView_AAEnabled, false);
-      ManagerRender.numFilters = typedArray.getInt(R.styleable.OpenGlView_numFilters, 1);
+      ManagerRender.numFilters = typedArray.getInt(R.styleable.OpenGlView_numFilters, 0);
       isFlipHorizontal = typedArray.getBoolean(R.styleable.OpenGlView_isFlipHorizontal, false);
       isFlipVertical = typedArray.getBoolean(R.styleable.OpenGlView_isFlipVertical, false);
     } finally {
@@ -83,12 +86,42 @@ public class OpenGlView extends OpenGlViewBase {
 
   @Override
   public void setFilter(int filterPosition, BaseFilterRender baseFilterRender) {
-    filterQueue.add(new Filter(filterPosition, baseFilterRender));
+    filterQueue.add(new Filter(FilterAction.SET, filterPosition, baseFilterRender));
+  }
+
+  @Override
+  public void addFilter(BaseFilterRender baseFilterRender) {
+    filterQueue.add(new Filter(FilterAction.ADD, 0, baseFilterRender));
+  }
+
+  @Override
+  public void addFilter(int filterPosition, BaseFilterRender baseFilterRender) {
+    filterQueue.add(new Filter(FilterAction.ADD_INDEX, filterPosition, baseFilterRender));
+  }
+
+  @Override
+  public void clearFilters() {
+    filterQueue.add(new Filter(FilterAction.CLEAR, 0, null));
+  }
+
+  @Override
+  public void removeFilter(int filterPosition) {
+    filterQueue.add(new Filter(FilterAction.REMOVE, filterPosition, null));
+  }
+
+  @Override
+  public int filtersCount() {
+    return managerRender.filtersCount();
   }
 
   @Override
   public void setFilter(BaseFilterRender baseFilterRender) {
-    setFilter(0, baseFilterRender);
+    int count = managerRender.filtersCount();
+    if (count > 0) {
+      setFilter(0, baseFilterRender);
+    } else {
+      addFilter(baseFilterRender);
+    }
   }
 
   @Override
@@ -172,7 +205,7 @@ public class OpenGlView extends OpenGlViewBase {
           }
           if (!filterQueue.isEmpty()) {
             Filter filter = filterQueue.take();
-            managerRender.setFilter(filter.getPosition(), filter.getBaseFilterRender());
+            managerRender.setFilterAction(filter.getFilterAction(), filter.getPosition(), filter.getBaseFilterRender());
           } else if (loadAA) {
             managerRender.enableAA(AAEnabled);
             loadAA = false;
