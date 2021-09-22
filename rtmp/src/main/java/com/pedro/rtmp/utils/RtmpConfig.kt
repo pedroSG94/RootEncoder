@@ -20,6 +20,7 @@ package com.pedro.rtmp.utils
  * Created by pedro on 26/04/21.
  */
 object RtmpConfig {
-  const val writeChunkSize = 128
+  const val DEFAULT_CHUNK_SIZE = 128
+  var writeChunkSize = DEFAULT_CHUNK_SIZE
   var acknowledgementWindowSize = 0
 }

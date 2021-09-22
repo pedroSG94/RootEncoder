@@ -52,7 +52,7 @@ class CommandsManager {
   var onAuth = false
   var akamaiTs = false
   var startTs = 0L
-  var readChunkSize = 128
+  var readChunkSize = RtmpConfig.DEFAULT_CHUNK_SIZE
   var isOnlyAudio = false
 
   private var width = 640
@@ -82,6 +82,21 @@ class CommandsManager {
 
   private fun getCurrentTimestamp(): Int {
     return (System.currentTimeMillis() / 1000 - timestamp).toInt()
+  }
+
+  @Throws(IOException::class)
+  fun sendChunkSize(output: OutputStream) {
+    if (RtmpConfig.writeChunkSize != RtmpConfig.DEFAULT_CHUNK_SIZE) {
+      val chunkSize = SetChunkSize(RtmpConfig.writeChunkSize)
+      chunkSize.header.timeStamp = getCurrentTimestamp()
+      chunkSize.header.messageStreamId = streamId
+      chunkSize.writeHeader(output)
+      chunkSize.writeBody(output)
+      output.flush()
+      Log.i(TAG, "send $chunkSize")
+    } else {
+      Log.i(TAG, "using default write chunk size ${RtmpConfig.DEFAULT_CHUNK_SIZE}")
+    }
   }
 
   @Throws(IOException::class)

@@ -107,6 +107,22 @@ public class RtmpOnlyAudio extends OnlyAudioBase {
     rtmpClient.forceAkamaiTs(enabled);
   }
 
+  /**
+   * Must be called before start stream.
+   *
+   * Default value 128
+   * Range value: 1 to 16777215.
+   *
+   * The most common values example: 128, 4096, 65535
+   *
+   * @param chunkSize packet's chunk size send to server
+   */
+  public void setWriteChunkSize(int chunkSize) {
+    if (!isStreaming()) {
+      rtmpClient.setWriteChunkSize(chunkSize);
+    }
+  }
+
   @Override
   protected void prepareAudioRtp(boolean isStereo, int sampleRate) {
     rtmpClient.setAudioInfo(sampleRate, isStereo);

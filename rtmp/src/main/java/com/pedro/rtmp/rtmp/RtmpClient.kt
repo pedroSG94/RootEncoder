@@ -92,6 +92,10 @@ class RtmpClient(private val connectCheckerRtmp: ConnectCheckerRtmp) {
     commandsManager.akamaiTs = enabled
   }
 
+  fun setWriteChunkSize(chunkSize: Int) {
+    RtmpConfig.writeChunkSize = chunkSize
+  }
+
   fun setAuthorization(user: String?, password: String?) {
     commandsManager.setAuth(user, password)
   }
@@ -167,6 +171,7 @@ class RtmpClient(private val connectCheckerRtmp: ConnectCheckerRtmp) {
             return@post
           }
           val writer = this.writer ?: throw IOException("Invalid writer, Connection failed")
+          commandsManager.sendChunkSize(writer)
           commandsManager.sendConnect("", writer)
           //read packets until you did success connection to server and you are ready to send packets
           while (!Thread.interrupted() && !publishPermitted) {
