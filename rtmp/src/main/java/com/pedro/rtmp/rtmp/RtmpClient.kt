@@ -84,8 +84,20 @@ class RtmpClient(private val connectCheckerRtmp: ConnectCheckerRtmp) {
   val sentVideoFrames: Long
     get() = rtmpSender.getSentVideoFrames()
 
+  /**
+   * Must be called before connect
+   */
   fun setOnlyAudio(onlyAudio: Boolean) {
-    commandsManager.isOnlyAudio = onlyAudio
+    commandsManager.audioDisabled = false
+    commandsManager.videoDisabled = onlyAudio
+  }
+
+  /**
+   * Must be called before connect
+   */
+  fun setOnlyVideo(onlyVideo: Boolean) {
+    commandsManager.videoDisabled = false
+    commandsManager.audioDisabled = onlyVideo
   }
 
   fun forceAkamaiTs(enabled: Boolean) {
@@ -459,11 +471,15 @@ class RtmpClient(private val connectCheckerRtmp: ConnectCheckerRtmp) {
   }
 
   fun sendVideo(h264Buffer: ByteBuffer, info: MediaCodec.BufferInfo) {
-    rtmpSender.sendVideoFrame(h264Buffer, info)
+    if (!commandsManager.videoDisabled) {
+      rtmpSender.sendVideoFrame(h264Buffer, info)
+    }
   }
 
   fun sendAudio(aacBuffer: ByteBuffer, info: MediaCodec.BufferInfo) {
-    rtmpSender.sendAudioFrame(aacBuffer, info)
+    if (!commandsManager.audioDisabled) {
+      rtmpSender.sendAudioFrame(aacBuffer, info)
+    }
   }
 
   fun hasCongestion(): Boolean {

@@ -77,6 +77,9 @@ open class RtspClient(private val connectCheckerRtsp: ConnectCheckerRtsp) {
     private val rtspUrlPattern = Pattern.compile("^rtsps?://([^/:]+)(?::(\\d+))*/([^/]+)/?([^*]*)$")
   }
 
+  /**
+   * Must be called before connect
+   */
   fun setOnlyAudio(onlyAudio: Boolean) {
     if (onlyAudio) {
       RtpConstants.trackAudio = 0
@@ -85,7 +88,18 @@ open class RtspClient(private val connectCheckerRtsp: ConnectCheckerRtsp) {
       RtpConstants.trackVideo = 0
       RtpConstants.trackAudio = 1
     }
-    commandsManager.isOnlyAudio = onlyAudio
+    commandsManager.audioDisabled = false
+    commandsManager.videoDisabled = onlyAudio
+  }
+
+  /**
+   * Must be called before connect
+   */
+  fun setOnlyVideo(onlyVideo: Boolean) {
+    RtpConstants.trackVideo = 0
+    RtpConstants.trackAudio = 1
+    commandsManager.videoDisabled = false
+    commandsManager.audioDisabled = onlyVideo
   }
 
   fun setProtocol(protocol: Protocol) {
@@ -148,8 +162,10 @@ open class RtspClient(private val connectCheckerRtsp: ConnectCheckerRtsp) {
           rtspSender.setSocketsInfo(commandsManager.protocol,
             commandsManager.videoClientPorts,
             commandsManager.audioClientPorts)
-          rtspSender.setAudioInfo(commandsManager.sampleRate)
-          if (!commandsManager.isOnlyAudio) {
+          if (!commandsManager.audioDisabled) {
+            rtspSender.setAudioInfo(commandsManager.sampleRate)
+          }
+          if (!commandsManager.videoDisabled) {
             if (commandsManager.sps == null || commandsManager.pps == null) {
               semaphore.drainPermits()
               Log.i(TAG, "waiting for sps and pps")
@@ -219,7 +235,7 @@ open class RtspClient(private val connectCheckerRtsp: ConnectCheckerRtsp) {
               return@post
             }
           }
-          if (!commandsManager.isOnlyAudio) {
+          if (!commandsManager.videoDisabled) {
             writer?.write(commandsManager.createSetup(RtpConstants.trackVideo))
             writer?.flush()
             val setupVideoStatus = commandsManager.getResponse(reader, Method.SETUP).status
@@ -228,12 +244,14 @@ open class RtspClient(private val connectCheckerRtsp: ConnectCheckerRtsp) {
               return@post
             }
           }
-          writer?.write(commandsManager.createSetup(RtpConstants.trackAudio))
-          writer?.flush()
-          val setupAudioStatus = commandsManager.getResponse(reader, Method.SETUP).status
-          if (setupAudioStatus != 200) {
-            connectCheckerRtsp.onConnectionFailedRtsp("Error configure stream, setup audio $setupAudioStatus")
-            return@post
+          if (!commandsManager.audioDisabled) {
+            writer?.write(commandsManager.createSetup(RtpConstants.trackAudio))
+            writer?.flush()
+            val setupAudioStatus = commandsManager.getResponse(reader, Method.SETUP).status
+            if (setupAudioStatus != 200) {
+              connectCheckerRtsp.onConnectionFailedRtsp("Error configure stream, setup audio $setupAudioStatus")
+              return@post
+            }
           }
           writer?.write(commandsManager.createRecord())
           writer?.flush()
@@ -247,10 +265,12 @@ open class RtspClient(private val connectCheckerRtsp: ConnectCheckerRtsp) {
           }
           val videoPorts = commandsManager.videoServerPorts
           val audioPorts = commandsManager.audioServerPorts
-          if (!commandsManager.isOnlyAudio) {
+          if (!commandsManager.videoDisabled) {
             rtspSender.setVideoPorts(videoPorts[0], videoPorts[1])
           }
-          rtspSender.setAudioPorts(audioPorts[0], audioPorts[1])
+          if (!commandsManager.audioDisabled) {
+            rtspSender.setAudioPorts(audioPorts[0], audioPorts[1])
+          }
           rtspSender.start()
           reTries = numRetry
           connectCheckerRtsp.onConnectionSuccessRtsp()
@@ -333,13 +353,15 @@ open class RtspClient(private val connectCheckerRtsp: ConnectCheckerRtsp) {
   }
 
   fun sendVideo(h264Buffer: ByteBuffer, info: MediaCodec.BufferInfo) {
-    if (!commandsManager.isOnlyAudio) {
+    if (!commandsManager.videoDisabled) {
       rtspSender.sendVideoFrame(h264Buffer, info)
     }
   }
 
   fun sendAudio(aacBuffer: ByteBuffer, info: MediaCodec.BufferInfo) {
-    rtspSender.sendAudioFrame(aacBuffer, info)
+    if (!commandsManager.audioDisabled) {
+      rtspSender.sendAudioFrame(aacBuffer, info)
+    }
   }
 
   fun hasCongestion(): Boolean {

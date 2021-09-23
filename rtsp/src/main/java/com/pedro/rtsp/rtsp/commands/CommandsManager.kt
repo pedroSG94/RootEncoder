@@ -54,7 +54,8 @@ open class CommandsManager {
   var sampleRate = 32000
   var isStereo = true
   var protocol: Protocol = Protocol.TCP
-  var isOnlyAudio = false
+  var videoDisabled = false
+  var audioDisabled = false
 
   //For udp
   val audioClientPorts = intArrayOf(5000, 5001)
@@ -152,12 +153,16 @@ open class CommandsManager {
 
   private fun createBody(): String {
     var videoBody = ""
-    if (!isOnlyAudio) {
+    if (!videoDisabled) {
       videoBody = if (vps == null) {
         createH264Body(RtpConstants.trackVideo, spsString, ppsString)
       } else {
         createH265Body(RtpConstants.trackVideo, spsString, ppsString, vpsString)
       }
+    }
+    var audioBody = ""
+    if (!audioDisabled) {
+      audioBody = createAacBody(RtpConstants.trackAudio, sampleRate, isStereo)
     }
     return "v=0\r\n" +
         "o=- $timeStamp $timeStamp IN IP4 127.0.0.1\r\n" +
@@ -166,8 +171,7 @@ open class CommandsManager {
         "c=IN IP4 $host\r\n" +
         "t=0 0\r\n" +
         "a=recvonly\r\n" +
-        videoBody +
-        createAacBody(RtpConstants.trackAudio, sampleRate, isStereo)
+        videoBody + audioBody
   }
 
   private fun createAuth(authResponse: String): String {

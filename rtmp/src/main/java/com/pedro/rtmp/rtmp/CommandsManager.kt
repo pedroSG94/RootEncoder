@@ -53,7 +53,8 @@ class CommandsManager {
   var akamaiTs = false
   var startTs = 0L
   var readChunkSize = RtmpConfig.DEFAULT_CHUNK_SIZE
-  var isOnlyAudio = false
+  var audioDisabled = false
+  var videoDisabled = false
 
   private var width = 640
   private var height = 480
@@ -110,8 +111,10 @@ class CommandsManager {
     connectInfo.setProperty("tcUrl", tcUrl + auth)
     connectInfo.setProperty("fpad", false)
     connectInfo.setProperty("capabilities", 239.0)
-    connectInfo.setProperty("audioCodecs", 3191.0)
-    if (!isOnlyAudio) {
+    if (audioDisabled) {
+      connectInfo.setProperty("audioCodecs", 3191.0)
+    }
+    if (videoDisabled) {
       connectInfo.setProperty("videoCodecs", 252.0)
       connectInfo.setProperty("videoFunction", 1.0)
     }
@@ -174,17 +177,19 @@ class CommandsManager {
     metadata.addData(AmfString("onMetaData"))
     val amfEcmaArray = AmfEcmaArray()
     amfEcmaArray.setProperty("duration", 0.0)
-    if (!isOnlyAudio) {
+    if (videoDisabled) {
       amfEcmaArray.setProperty("width", width.toDouble())
       amfEcmaArray.setProperty("height", height.toDouble())
       amfEcmaArray.setProperty("videocodecid", 7.0)
       amfEcmaArray.setProperty("framerate", fps.toDouble())
       amfEcmaArray.setProperty("videodatarate", 0.0)
     }
-    amfEcmaArray.setProperty("audiocodecid", 10.0)
-    amfEcmaArray.setProperty("audiosamplerate", sampleRate.toDouble())
-    amfEcmaArray.setProperty("audiosamplesize", 16.0)
-    amfEcmaArray.setProperty("audiodatarate", 0.0)
+    if (audioDisabled) {
+      amfEcmaArray.setProperty("audiocodecid", 10.0)
+      amfEcmaArray.setProperty("audiosamplerate", sampleRate.toDouble())
+      amfEcmaArray.setProperty("audiosamplesize", 16.0)
+      amfEcmaArray.setProperty("audiodatarate", 0.0)
+    }
     amfEcmaArray.setProperty("stereo", isStereo)
     amfEcmaArray.setProperty("filesize", 0.0)
     metadata.addData(amfEcmaArray)
