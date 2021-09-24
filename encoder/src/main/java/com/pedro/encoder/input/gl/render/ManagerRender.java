@@ -38,7 +38,7 @@ public class ManagerRender {
   public static int numFilters = 0;
 
   private final CameraRender cameraRender;
-  private final List<BaseFilterRender> baseFilterRender;
+  private final List<BaseFilterRender> filterRenders;
   private final ScreenRender screenRender;
 
   private int width;
@@ -48,7 +48,7 @@ public class ManagerRender {
   private Context context;
 
   public ManagerRender() {
-    baseFilterRender = new ArrayList<>();
+    filterRenders = new ArrayList<>();
     cameraRender = new CameraRender();
     screenRender = new ScreenRender();
   }
@@ -68,7 +68,7 @@ public class ManagerRender {
 
   public void drawOffScreen() {
     cameraRender.draw();
-    for (BaseFilterRender baseFilterRender : baseFilterRender) baseFilterRender.draw();
+    for (BaseFilterRender baseFilterRender : filterRenders) baseFilterRender.draw();
   }
 
   public void drawScreen(int width, int height, boolean keepAspectRatio, int mode, int rotation,
@@ -79,10 +79,8 @@ public class ManagerRender {
 
   public void release() {
     cameraRender.release();
-    for (int i = 0; i < baseFilterRender.size(); i++) {
-      baseFilterRender.get(i).release();
-    }
-    baseFilterRender.clear();
+    for (BaseFilterRender baseFilterRender : filterRenders) baseFilterRender.release();
+    filterRenders.clear();
     screenRender.release();
   }
 
@@ -107,51 +105,55 @@ public class ManagerRender {
   }
 
   private void setFilter(int position, BaseFilterRender baseFilterRender) {
-    this.baseFilterRender.get(position).release();
-    this.baseFilterRender.set(position, baseFilterRender);
-    baseFilterRender.setPreviousTexId(0);
-    baseFilterRender.initGl(width, height, context, previewWidth, previewHeight);
-    baseFilterRender.initFBOLink();
-    reOrderFilters();
+    final int id = filterRenders.get(position).getPreviousTexId();
+    final RenderHandler renderHandler = filterRenders.get(position).getRenderHandler();
+    filterRenders.get(position).release();
+    filterRenders.set(position, baseFilterRender);
+    filterRenders.get(position).setPreviousTexId(id);
+    filterRenders.get(position).initGl(width, height, context, previewWidth, previewHeight);
+    filterRenders.get(position).setRenderHandler(renderHandler);
   }
 
   private void addFilter(BaseFilterRender baseFilterRender) {
-    this.baseFilterRender.add(baseFilterRender);
-    baseFilterRender.setPreviousTexId(0);
+    filterRenders.add(baseFilterRender);
     baseFilterRender.initGl(width, height, context, previewWidth, previewHeight);
     baseFilterRender.initFBOLink();
     reOrderFilters();
   }
 
   private void addFilter(int position, BaseFilterRender baseFilterRender) {
-    this.baseFilterRender.add(position, baseFilterRender);
-    baseFilterRender.setPreviousTexId(0);
+    filterRenders.add(position, baseFilterRender);
     baseFilterRender.initGl(width, height, context, previewWidth, previewHeight);
     baseFilterRender.initFBOLink();
     reOrderFilters();
   }
 
   private void clearFilters() {
-    for (BaseFilterRender baseFilterRender: this.baseFilterRender) {
+    for (BaseFilterRender baseFilterRender: filterRenders) {
       baseFilterRender.release();
     }
-    baseFilterRender.clear();
+    filterRenders.clear();
     reOrderFilters();
   }
 
   private void removeFilter(int position) {
-    baseFilterRender.get(position).release();
-    baseFilterRender.remove(position);
+    filterRenders.remove(position).release();
+    reOrderFilters();
+  }
+
+  private void removeFilter(BaseFilterRender baseFilterRender) {
+    baseFilterRender.release();
+    filterRenders.remove(baseFilterRender);
     reOrderFilters();
   }
 
   private void reOrderFilters() {
-    for (int i = 0; i < baseFilterRender.size(); i++) {
-      int texId = i == 0 ? cameraRender.getTexId() : baseFilterRender.get(i - 1).getTexId();
-      baseFilterRender.get(i).setPreviousTexId(texId);
+    for (int i = 0; i < filterRenders.size(); i++) {
+      int texId = i == 0 ? cameraRender.getTexId() : filterRenders.get(i - 1).getTexId();
+      filterRenders.get(i).setPreviousTexId(texId);
     }
-    int texId = baseFilterRender.size() < 1 ? cameraRender.getTexId() :
-        baseFilterRender.get(baseFilterRender.size() - 1).getTexId();
+    int texId = filterRenders.isEmpty() ? cameraRender.getTexId() :
+        filterRenders.get(filterRenders.size() - 1).getTexId();
     screenRender.setTexId(texId);
   }
 
@@ -161,13 +163,13 @@ public class ManagerRender {
         setFilter(position, baseFilterRender);
         break;
       case ADD:
-        if (numFilters > 0 && this.baseFilterRender.size() >= numFilters) {
+        if (numFilters > 0 && filterRenders.size() >= numFilters) {
           throw new RuntimeException("limit of filters(" + numFilters + ") exceeded");
         }
         addFilter(baseFilterRender);
         break;
       case ADD_INDEX:
-        if (numFilters > 0 && this.baseFilterRender.size() >= numFilters) {
+        if (numFilters > 0 && filterRenders.size() >= numFilters) {
           throw new RuntimeException("limit of filters(" + numFilters + ") exceeded");
         }
         addFilter(position, baseFilterRender);
@@ -176,6 +178,9 @@ public class ManagerRender {
         clearFilters();
         break;
       case REMOVE:
+        removeFilter(baseFilterRender);
+        break;
+      case REMOVE_INDEX:
         removeFilter(position);
         break;
       default:
@@ -184,7 +189,7 @@ public class ManagerRender {
   }
 
   public int filtersCount() {
-    return baseFilterRender.size();
+    return filterRenders.size();
   }
 
   public void setCameraRotation(int rotation) {
@@ -196,8 +201,8 @@ public class ManagerRender {
   }
 
   public void setPreviewSize(int previewWidth, int previewHeight) {
-    for (int i = 0; i < this.baseFilterRender.size(); i++) {
-      this.baseFilterRender.get(i).setPreviewSize(previewWidth, previewHeight);
+    for (int i = 0; i < filterRenders.size(); i++) {
+      filterRenders.get(i).setPreviewSize(previewWidth, previewHeight);
     }
   }
 }

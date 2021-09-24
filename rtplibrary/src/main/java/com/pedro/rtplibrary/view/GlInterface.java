@@ -104,6 +104,12 @@ public interface GlInterface {
   void removeFilter(int filterPosition);
 
   /**
+   * Removes the first occurrence of the specified element from this list, if it is present.
+   *
+   * @param baseFilterRender filter to remove
+   */
+  void removeFilter(BaseFilterRender baseFilterRender);
+  /**
    * @return number of filters
    */
   int filtersCount();

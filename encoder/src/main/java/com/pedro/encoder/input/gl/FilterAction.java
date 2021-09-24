@@ -20,5 +20,5 @@ package com.pedro.encoder.input.gl;
  * Created by pedro on 21/9/21.
  */
 public enum FilterAction {
-  SET, ADD, ADD_INDEX, CLEAR, REMOVE
+  SET, ADD, ADD_INDEX, CLEAR, REMOVE, REMOVE_INDEX
 }

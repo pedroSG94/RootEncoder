@@ -106,7 +106,12 @@ public class OpenGlView extends OpenGlViewBase {
 
   @Override
   public void removeFilter(int filterPosition) {
-    filterQueue.add(new Filter(FilterAction.REMOVE, filterPosition, null));
+    filterQueue.add(new Filter(FilterAction.REMOVE_INDEX, filterPosition, null));
+  }
+
+  @Override
+  public void removeFilter(BaseFilterRender baseFilterRender) {
+    filterQueue.add(new Filter(FilterAction.REMOVE, 0, baseFilterRender));
   }
 
   @Override
@@ -185,6 +190,14 @@ public class OpenGlView extends OpenGlViewBase {
               true, isPreviewVerticalFlip, isPreviewHorizontalFlip);
           surfaceManager.swapBuffer();
 
+          if (!filterQueue.isEmpty()) {
+            Filter filter = filterQueue.take();
+            managerRender.setFilterAction(filter.getFilterAction(), filter.getPosition(), filter.getBaseFilterRender());
+          } else if (loadAA) {
+            managerRender.enableAA(AAEnabled);
+            loadAA = false;
+          }
+
           synchronized (sync) {
             if (surfaceManagerEncoder.isReady() && !fpsLimiter.limitFPS()) {
               int w = muteVideo ? 0 : encoderWidth;
@@ -202,13 +215,6 @@ public class OpenGlView extends OpenGlViewBase {
               takePhotoCallback = null;
               surfaceManagerPhoto.swapBuffer();
             }
-          }
-          if (!filterQueue.isEmpty()) {
-            Filter filter = filterQueue.take();
-            managerRender.setFilterAction(filter.getFilterAction(), filter.getPosition(), filter.getBaseFilterRender());
-          } else if (loadAA) {
-            managerRender.enableAA(AAEnabled);
-            loadAA = false;
           }
         }
       }
