@@ -49,7 +49,7 @@ public class ManagerRender {
   private Context context;
 
   public ManagerRender() {
-    baseFilterRender = numFilters > 0 ? new ArrayList<>(numFilters) : new ArrayList<>();
+    baseFilterRender = new ArrayList<>();
     cameraRender = new CameraRender();
     screenRender = new ScreenRender();
   }
@@ -168,13 +168,13 @@ public class ManagerRender {
         setFilter(position, baseFilterRender);
         break;
       case ADD:
-        if (numFilters == this.baseFilterRender.size()) {
+        if (numFilters > 0 && this.baseFilterRender.size() >= numFilters) {
           throw new RuntimeException("limit of filters(" + numFilters + ") exceeded");
         }
         addFilter(baseFilterRender);
         break;
       case ADD_INDEX:
-        if (numFilters == this.baseFilterRender.size()) {
+        if (numFilters > 0 && this.baseFilterRender.size() >= numFilters) {
           throw new RuntimeException("limit of filters(" + numFilters + ") exceeded");
         }
         addFilter(position, baseFilterRender);
