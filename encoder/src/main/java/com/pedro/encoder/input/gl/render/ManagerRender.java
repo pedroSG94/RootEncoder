@@ -24,7 +24,6 @@ import androidx.annotation.RequiresApi;
 
 import com.pedro.encoder.input.gl.FilterAction;
 import com.pedro.encoder.input.gl.render.filters.BaseFilterRender;
-import com.pedro.encoder.input.gl.render.filters.NoFilterRender;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -80,10 +79,10 @@ public class ManagerRender {
 
   public void release() {
     cameraRender.release();
-    for (int i = 0; i < this.baseFilterRender.size(); i++) {
-      this.baseFilterRender.get(i).release();
-      this.baseFilterRender.set(i, new NoFilterRender());
+    for (int i = 0; i < baseFilterRender.size(); i++) {
+      baseFilterRender.get(i).release();
     }
+    baseFilterRender.clear();
     screenRender.release();
   }
 
@@ -108,31 +107,25 @@ public class ManagerRender {
   }
 
   private void setFilter(int position, BaseFilterRender baseFilterRender) {
-    int texId = this.baseFilterRender.isEmpty() ? cameraRender.getTexId() :
-        this.baseFilterRender.get(this.baseFilterRender.size() - 1).getTexId();
     this.baseFilterRender.get(position).release();
     this.baseFilterRender.set(position, baseFilterRender);
-    baseFilterRender.setPreviousTexId(texId);
+    baseFilterRender.setPreviousTexId(0);
     baseFilterRender.initGl(width, height, context, previewWidth, previewHeight);
     baseFilterRender.initFBOLink();
     reOrderFilters();
   }
 
   private void addFilter(BaseFilterRender baseFilterRender) {
-    int texId = this.baseFilterRender.isEmpty() ? cameraRender.getTexId() :
-        this.baseFilterRender.get(this.baseFilterRender.size() - 1).getTexId();
     this.baseFilterRender.add(baseFilterRender);
-    baseFilterRender.setPreviousTexId(texId);
+    baseFilterRender.setPreviousTexId(0);
     baseFilterRender.initGl(width, height, context, previewWidth, previewHeight);
     baseFilterRender.initFBOLink();
     reOrderFilters();
   }
 
   private void addFilter(int position, BaseFilterRender baseFilterRender) {
-    int texId = position == 0 && this.baseFilterRender.size() == 1 ? cameraRender.getTexId() :
-        this.baseFilterRender.get(position - 1).getTexId();
     this.baseFilterRender.add(position, baseFilterRender);
-    baseFilterRender.setPreviousTexId(texId);
+    baseFilterRender.setPreviousTexId(0);
     baseFilterRender.initGl(width, height, context, previewWidth, previewHeight);
     baseFilterRender.initFBOLink();
     reOrderFilters();
