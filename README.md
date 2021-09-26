@@ -16,6 +16,10 @@ Enterprise Grade APIs for Feeds & Chat. <a href="https://getstream.io/tutorials/
 
 Library for stream in RTMP and RTSP. All code in Java.
 
+## iOS version (under develop):
+
+https://github.com/pedroSG94/rtmp-rtsp-stream-client-swift
+
 If you need a player see this project:
 
 https://github.com/pedroSG94/vlc-example-streamplayer
@@ -47,7 +51,7 @@ allprojects {
   }
 }
 dependencies {
-  implementation 'com.github.pedroSG94.rtmp-rtsp-stream-client-java:rtplibrary:2.1.1'
+  implementation 'com.github.pedroSG94.rtmp-rtsp-stream-client-java:rtplibrary:2.1.2'
 }
 
 ```
@@ -75,10 +79,6 @@ dependencies {
 - [X] OpenGL real time filters. [More info](https://github.com/pedroSG94/rtmp-rtsp-stream-client-java/wiki/Real-time-filters)
 - [X] RTMPS and RTSPS.
 - [X] RTSP H265 support (Waiting FLV official packetization to add RTMP support).
-
-## iOS version (under develop):
-
-https://github.com/pedroSG94/rtmp-rtsp-stream-client-swift
 
 ## Other related projects:
 

@@ -47,9 +47,11 @@ import java.util.List;
 
 public class VideoEncoder extends BaseEncoder implements GetCameraData {
 
-  private GetVideoData getVideoData;
+  private final GetVideoData getVideoData;
   private boolean spsPpsSetted = false;
   private boolean forceKey = false;
+  //video data necessary to send after requestKeyframe.
+  private ByteBuffer oldSps, oldPps, oldVps;
 
   //surface to buffer encoder
   private Surface inputSurface;
@@ -61,7 +63,7 @@ public class VideoEncoder extends BaseEncoder implements GetCameraData {
   private int rotation = 90;
   private int iFrameInterval = 2;
   //for disable video
-  private FpsLimiter fpsLimiter = new FpsLimiter();
+  private final FpsLimiter fpsLimiter = new FpsLimiter();
   private String type = CodecUtil.H264_MIME;
   private FormatVideoEncoder formatVideoEncoder = FormatVideoEncoder.YUV420Dynamical;
   private int avcProfile = -1;
@@ -192,6 +194,9 @@ public class VideoEncoder extends BaseEncoder implements GetCameraData {
     spsPpsSetted = false;
     if (inputSurface != null) inputSurface.release();
     inputSurface = null;
+    oldSps = null;
+    oldPps = null;
+    oldVps = null;
     Log.i(TAG, "stopped");
   }
 
@@ -244,6 +249,7 @@ public class VideoEncoder extends BaseEncoder implements GetCameraData {
         bundle.putInt(MediaCodec.PARAMETER_KEY_REQUEST_SYNC_FRAME, 0);
         try {
           codec.setParameters(bundle);
+          getVideoData.onSpsPpsVps(oldSps, oldPps, oldVps);
         } catch (IllegalStateException e) {
           Log.e(TAG, "encoder need be running", e);
         }
@@ -305,12 +311,16 @@ public class VideoEncoder extends BaseEncoder implements GetCameraData {
     //H265
     if (type.equals(CodecUtil.H265_MIME)) {
       List<ByteBuffer> byteBufferList = extractVpsSpsPpsFromH265(mediaFormat.getByteBuffer("csd-0"));
-      getVideoData.onSpsPpsVps(byteBufferList.get(1), byteBufferList.get(2), byteBufferList.get(0));
+      oldSps = byteBufferList.get(1);
+      oldPps = byteBufferList.get(2);
+      oldVps = byteBufferList.get(0);
+      getVideoData.onSpsPpsVps(oldSps, oldPps, oldVps);
       //H264
     } else {
-      ByteBuffer sps = mediaFormat.getByteBuffer("csd-0");
-      ByteBuffer pps = mediaFormat.getByteBuffer("csd-1");
-      getVideoData.onSpsPpsVps(sps, pps, null);
+      oldSps = mediaFormat.getByteBuffer("csd-0");
+      oldPps = mediaFormat.getByteBuffer("csd-1");
+      oldVps = null;
+      getVideoData.onSpsPpsVps(oldSps, oldPps, oldVps);
     }
   }
 
@@ -478,7 +488,10 @@ public class VideoEncoder extends BaseEncoder implements GetCameraData {
       Pair<ByteBuffer, ByteBuffer> buffers = decodeSpsPpsFromBuffer(byteBuffer.duplicate(), bufferInfo.size);
       if (buffers != null) {
         Log.i(TAG, "manual sps/pps extraction success");
-        getVideoData.onSpsPpsVps(buffers.first, buffers.second, null);
+        oldSps = buffers.first;
+        oldPps = buffers.second;
+        oldVps = null;
+        getVideoData.onSpsPpsVps(oldSps, oldPps, oldVps);
         spsPpsSetted = true;
       } else {
         Log.e(TAG, "manual sps/pps extraction failed");
@@ -488,7 +501,10 @@ public class VideoEncoder extends BaseEncoder implements GetCameraData {
       List<ByteBuffer> byteBufferList = extractVpsSpsPpsFromH265(byteBuffer);
       if (byteBufferList.size() == 3) {
         Log.i(TAG, "manual vps/sps/pps extraction success");
-        getVideoData.onSpsPpsVps(byteBufferList.get(1), byteBufferList.get(2), byteBufferList.get(0));
+        oldSps = byteBufferList.get(1);
+        oldPps = byteBufferList.get(2);
+        oldVps = byteBufferList.get(0);
+        getVideoData.onSpsPpsVps(oldSps, oldPps, oldVps);
         spsPpsSetted = true;
       } else {
         Log.e(TAG, "manual vps/sps/pps extraction failed");
