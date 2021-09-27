@@ -16,13 +16,13 @@ Enterprise Grade APIs for Feeds & Chat. <a href="https://getstream.io/tutorials/
 
 Library for stream in RTMP and RTSP. All code in Java.
 
-## iOS version (under develop):
-
-https://github.com/pedroSG94/rtmp-rtsp-stream-client-swift
-
 If you need a player see this project:
 
 https://github.com/pedroSG94/vlc-example-streamplayer
+
+## iOS version (under develop):
+
+https://github.com/pedroSG94/rtmp-rtsp-stream-client-swift
 
 ## Wiki
 

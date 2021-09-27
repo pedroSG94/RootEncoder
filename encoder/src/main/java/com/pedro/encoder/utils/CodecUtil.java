@@ -19,6 +19,9 @@ package com.pedro.encoder.utils;
 import android.media.MediaCodecInfo;
 import android.media.MediaCodecList;
 import android.os.Build;
+
+import androidx.annotation.RequiresApi;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -161,8 +164,7 @@ public class CodecUtil {
                   info.append(sr)
                       .append("\n");
               }
-            } catch (Exception e) {
-            }
+            } catch (Exception ignored) { }
           }
           info.append("----- -----\n");
         }
@@ -194,18 +196,30 @@ public class CodecUtil {
     return filterBroken ? filterBrokenCodecs(mediaCodecInfoList) : mediaCodecInfoList;
   }
 
-  public static List<MediaCodecInfo> getAllHardwareEncoders(String mime) {
+  public static List<MediaCodecInfo> getAllHardwareEncoders(String mime, boolean cbrPriority) {
     List<MediaCodecInfo> mediaCodecInfoList = getAllEncoders(mime);
     List<MediaCodecInfo> mediaCodecInfoHardware = new ArrayList<>();
+    List<MediaCodecInfo> mediaCodecInfoHardwareCBR = new ArrayList<>();
     for (MediaCodecInfo mediaCodecInfo : mediaCodecInfoList) {
       if (isHardwareAccelerated(mediaCodecInfo)) {
         mediaCodecInfoHardware.add(mediaCodecInfo);
+        if (cbrPriority &&Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP
+            && isCBRModeSupported(mediaCodecInfo, mime)) {
+          mediaCodecInfoHardwareCBR.add(mediaCodecInfo);
+        }
       }
     }
+    mediaCodecInfoHardware.removeAll(mediaCodecInfoHardwareCBR);
+    mediaCodecInfoHardware.addAll(0, mediaCodecInfoHardwareCBR);
     return mediaCodecInfoHardware;
   }
 
-  public static List<MediaCodecInfo> getAllHardwareDecoders(String mime) {
+  public static List<MediaCodecInfo> getAllHardwareEncoders(String mime) {
+    return getAllHardwareEncoders(mime, false);
+  }
+
+
+    public static List<MediaCodecInfo> getAllHardwareDecoders(String mime) {
     List<MediaCodecInfo> mediaCodecInfoList = getAllDecoders(mime);
     List<MediaCodecInfo> mediaCodecInfoHardware = new ArrayList<>();
     for (MediaCodecInfo mediaCodecInfo : mediaCodecInfoList) {
@@ -216,18 +230,30 @@ public class CodecUtil {
     return mediaCodecInfoHardware;
   }
 
-  public static List<MediaCodecInfo> getAllSoftwareEncoders(String mime) {
+  public static List<MediaCodecInfo> getAllSoftwareEncoders(String mime, boolean cbrPriority) {
     List<MediaCodecInfo> mediaCodecInfoList = getAllEncoders(mime);
     List<MediaCodecInfo> mediaCodecInfoSoftware = new ArrayList<>();
+    List<MediaCodecInfo> mediaCodecInfoSoftwareCBR = new ArrayList<>();
     for (MediaCodecInfo mediaCodecInfo : mediaCodecInfoList) {
       if (isSoftwareOnly(mediaCodecInfo)) {
         mediaCodecInfoSoftware.add(mediaCodecInfo);
+        if (cbrPriority &&Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP
+            && isCBRModeSupported(mediaCodecInfo, mime)) {
+          mediaCodecInfoSoftwareCBR.add(mediaCodecInfo);
+        }
       }
     }
+    mediaCodecInfoSoftware.removeAll(mediaCodecInfoSoftwareCBR);
+    mediaCodecInfoSoftware.addAll(0, mediaCodecInfoSoftwareCBR);
     return mediaCodecInfoSoftware;
   }
 
-  public static List<MediaCodecInfo> getAllSoftwareDecoders(String mime) {
+  public static List<MediaCodecInfo> getAllSoftwareEncoders(String mime) {
+    return getAllSoftwareEncoders(mime, false);
+  }
+
+
+    public static List<MediaCodecInfo> getAllSoftwareDecoders(String mime) {
     List<MediaCodecInfo> mediaCodecInfoList = getAllDecoders(mime);
     List<MediaCodecInfo> mediaCodecInfoSoftware = new ArrayList<>();
     for (MediaCodecInfo mediaCodecInfo : mediaCodecInfoList) {
@@ -239,7 +265,7 @@ public class CodecUtil {
   }
 
   /**
-   * choose the video encoder by mime.
+   * choose encoder by mime.
    */
   public static List<MediaCodecInfo> getAllEncoders(String mime) {
     List<MediaCodecInfo> mediaCodecInfoList = new ArrayList<>();
@@ -258,9 +284,26 @@ public class CodecUtil {
     return mediaCodecInfoList;
   }
 
-  /**
-   * choose the video encoder by mime.
-   */
+  public static List<MediaCodecInfo> getAllEncoders(String mime, boolean hardwarePriority, boolean cbrPriority) {
+    List<MediaCodecInfo> mediaCodecInfoList = new ArrayList<>();
+    if (hardwarePriority) {
+      mediaCodecInfoList.addAll(getAllHardwareEncoders(mime, cbrPriority));
+      mediaCodecInfoList.addAll(getAllSoftwareEncoders(mime, cbrPriority));
+    } else {
+      mediaCodecInfoList.addAll(getAllEncoders(mime));
+    }
+    return mediaCodecInfoList;
+  }
+
+  public static List<MediaCodecInfo> getAllEncoders(String mime, boolean hardwarePriority) {
+    return getAllEncoders(mime, hardwarePriority, false);
+  }
+
+
+
+    /**
+     * choose decoder by mime.
+     */
   public static List<MediaCodecInfo> getAllDecoders(String mime) {
     List<MediaCodecInfo> mediaCodecInfoList = new ArrayList<>();
     List<MediaCodecInfo> mediaCodecInfos = getAllCodecs(true);
@@ -274,6 +317,17 @@ public class CodecUtil {
           mediaCodecInfoList.add(mci);
         }
       }
+    }
+    return mediaCodecInfoList;
+  }
+
+  public static List<MediaCodecInfo> getAllDecoders(String mime, boolean hardwarePriority) {
+    List<MediaCodecInfo> mediaCodecInfoList = new ArrayList<>();
+    if (hardwarePriority) {
+      mediaCodecInfoList.addAll(getAllHardwareDecoders(mime));
+      mediaCodecInfoList.addAll(getAllSoftwareDecoders(mime));
+    } else {
+      mediaCodecInfoList.addAll(getAllDecoders(mime));
     }
     return mediaCodecInfoList;
   }
@@ -308,6 +362,16 @@ public class CodecUtil {
         || name.startsWith("c2.android.")
         || name.startsWith("c2.google.")
         || (!name.startsWith("omx.") && !name.startsWith("c2."));
+  }
+
+  @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
+  public static boolean isCBRModeSupported(MediaCodecInfo mediaCodecInfo, String mime) {
+    MediaCodecInfo.CodecCapabilities codecCapabilities =
+        mediaCodecInfo.getCapabilitiesForType(mime);
+    MediaCodecInfo.EncoderCapabilities encoderCapabilities =
+        codecCapabilities.getEncoderCapabilities();
+    return encoderCapabilities.isBitrateModeSupported(
+        MediaCodecInfo.EncoderCapabilities.BITRATE_MODE_CBR);
   }
 
   /**

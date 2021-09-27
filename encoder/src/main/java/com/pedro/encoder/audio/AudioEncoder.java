@@ -37,7 +37,7 @@ import java.util.List;
 
 public class AudioEncoder extends BaseEncoder implements GetMicrophoneData {
 
-  private GetAacData getAacData;
+  private final GetAacData getAacData;
   private int bitRate = 64 * 1024;  //in kbps
   private int sampleRate = 32000; //in hz
   private int maxInputSize = 0;
@@ -153,7 +153,8 @@ public class AudioEncoder extends BaseEncoder implements GetMicrophoneData {
     } else if (force == CodecUtil.Force.SOFTWARE) {
       mediaCodecInfoList = CodecUtil.getAllSoftwareEncoders(CodecUtil.AAC_MIME);
     } else {
-      mediaCodecInfoList = CodecUtil.getAllEncoders(CodecUtil.AAC_MIME);
+      //Priority: hardware > software
+      mediaCodecInfoList = CodecUtil.getAllEncoders(CodecUtil.AAC_MIME, true);
     }
 
     Log.i(TAG, mediaCodecInfoList.size() + " encoders found");

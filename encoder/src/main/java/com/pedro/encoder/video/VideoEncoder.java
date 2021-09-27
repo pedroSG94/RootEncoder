@@ -91,6 +91,7 @@ public class VideoEncoder extends BaseEncoder implements GetCameraData {
     this.fps = fps;
     this.bitRate = bitRate;
     this.rotation = rotation;
+    this.iFrameInterval = iFrameInterval;
     this.formatVideoEncoder = formatVideoEncoder;
     this.avcProfile = avcProfile;
     this.avcProfileLevel = avcProfileLevel;
@@ -130,7 +131,7 @@ public class VideoEncoder extends BaseEncoder implements GetCameraData {
       videoFormat.setInteger(MediaFormat.KEY_FRAME_RATE, fps);
       videoFormat.setInteger(MediaFormat.KEY_I_FRAME_INTERVAL, iFrameInterval);
       //Set CBR mode if supported by encoder.
-      if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP && isCBRModeSupported(encoder)) {
+      if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP && CodecUtil.isCBRModeSupported(encoder, type)) {
         Log.i(TAG, "set bitrate mode CBR");
         videoFormat.setInteger(MediaFormat.KEY_BITRATE_MODE,
             MediaCodecInfo.EncoderCapabilities.BITRATE_MODE_CBR);
@@ -163,16 +164,6 @@ public class VideoEncoder extends BaseEncoder implements GetCameraData {
       this.stop();
       return false;
     }
-  }
-
-  @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
-  private boolean isCBRModeSupported(MediaCodecInfo mediaCodecInfo) {
-    MediaCodecInfo.CodecCapabilities codecCapabilities =
-        mediaCodecInfo.getCapabilitiesForType(type);
-    MediaCodecInfo.EncoderCapabilities encoderCapabilities =
-        codecCapabilities.getEncoderCapabilities();
-    return encoderCapabilities.isBitrateModeSupported(
-        MediaCodecInfo.EncoderCapabilities.BITRATE_MODE_CBR);
   }
 
   @Override
@@ -331,25 +322,15 @@ public class VideoEncoder extends BaseEncoder implements GetCameraData {
   protected MediaCodecInfo chooseEncoder(String mime) {
     List<MediaCodecInfo> mediaCodecInfoList;
     if (force == CodecUtil.Force.HARDWARE) {
-      mediaCodecInfoList = CodecUtil.getAllHardwareEncoders(mime);
+      mediaCodecInfoList = CodecUtil.getAllHardwareEncoders(mime, true);
     } else if (force == CodecUtil.Force.SOFTWARE) {
-      mediaCodecInfoList = CodecUtil.getAllSoftwareEncoders(mime);
+      mediaCodecInfoList = CodecUtil.getAllSoftwareEncoders(mime, true);
     } else {
-      mediaCodecInfoList = CodecUtil.getAllEncoders(mime);
+      //Priority: hardware CBR > hardware > software CBR > software
+      mediaCodecInfoList = CodecUtil.getAllEncoders(mime, true, true);
     }
 
     Log.i(TAG, mediaCodecInfoList.size() + " encoders found");
-    //re order codec for cbr priority
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-      List<MediaCodecInfo> cbrPriority = new ArrayList<>();
-      for (MediaCodecInfo mci : mediaCodecInfoList) {
-        if (isCBRModeSupported(mci)) {
-          cbrPriority.add(mci);
-        }
-      }
-      mediaCodecInfoList.removeAll(cbrPriority);
-      mediaCodecInfoList.addAll(0, cbrPriority);
-    }
     for (MediaCodecInfo mci : mediaCodecInfoList) {
       Log.i(TAG, "Encoder " + mci.getName());
       MediaCodecInfo.CodecCapabilities codecCapabilities = mci.getCapabilitiesForType(mime);
