@@ -248,6 +248,7 @@ public class OffScreenGlThread
   @Override
   public void stop() {
     synchronized (sync) {
+      running = false;
       if (thread != null) {
         thread.interrupt();
         try {
@@ -260,7 +261,6 @@ public class OffScreenGlThread
       surfaceManagerPhoto.release();
       surfaceManagerEncoder.release();
       surfaceManager.release();
-      running = false;
     }
   }
 
@@ -316,9 +316,9 @@ public class OffScreenGlThread
       Thread.currentThread().interrupt();
     } finally {
       managerRender.release();
-      surfaceManager.release();
       surfaceManagerPhoto.release();
       surfaceManagerEncoder.release();
+      surfaceManager.release();
     }
   }
 

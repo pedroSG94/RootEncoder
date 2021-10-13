@@ -131,9 +131,9 @@ public class LightOpenGlView extends OpenGlViewBase {
       }
     }
     simpleCameraRender.release();
-    surfaceManager.release();
     surfaceManagerPhoto.release();
     surfaceManagerEncoder.release();
+    surfaceManager.release();
   }
 
   @Override

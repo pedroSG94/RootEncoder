@@ -222,9 +222,9 @@ public class OpenGlView extends OpenGlViewBase {
       Thread.currentThread().interrupt();
     } finally {
       managerRender.release();
-      surfaceManager.release();
       surfaceManagerPhoto.release();
       surfaceManagerEncoder.release();
+      surfaceManager.release();
     }
   }
 }

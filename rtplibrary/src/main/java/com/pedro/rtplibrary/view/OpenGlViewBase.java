@@ -183,6 +183,7 @@ public abstract class OpenGlViewBase extends SurfaceView
   @Override
   public void stop() {
     synchronized (sync) {
+      running = false;
       if (thread != null) {
         thread.interrupt();
         try {
@@ -195,7 +196,6 @@ public abstract class OpenGlViewBase extends SurfaceView
       surfaceManagerPhoto.release();
       surfaceManagerEncoder.release();
       surfaceManager.release();
-      running = false;
     }
   }
 
