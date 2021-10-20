@@ -620,5 +620,7 @@ public abstract class DisplayBase implements GetAacData, GetVideoData, GetMicrop
   }
 
   public abstract void setLogs(boolean enable);
+
+  public abstract void setCheckServerAlive(boolean enable);
 }
 

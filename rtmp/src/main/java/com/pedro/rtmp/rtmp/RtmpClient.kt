@@ -31,10 +31,7 @@ import com.pedro.rtmp.utils.ConnectCheckerRtmp
 import com.pedro.rtmp.utils.CreateSSLSocket
 import com.pedro.rtmp.utils.RtmpConfig
 import java.io.*
-import java.net.InetSocketAddress
-import java.net.Socket
-import java.net.SocketAddress
-import java.net.SocketTimeoutException
+import java.net.*
 import java.nio.ByteBuffer
 import java.util.*
 import java.util.concurrent.ExecutorService
@@ -70,6 +67,7 @@ class RtmpClient(private val connectCheckerRtmp: ConnectCheckerRtmp) {
   private var reTries = 0
   private var handler: ScheduledExecutorService? = null
   private var runnable: Runnable? = null
+  private var checkServerAlive = false
   private var publishPermitted = false
 
   val droppedAudioFrames: Long
@@ -83,6 +81,13 @@ class RtmpClient(private val connectCheckerRtmp: ConnectCheckerRtmp) {
     get() = rtmpSender.getSentAudioFrames()
   val sentVideoFrames: Long
     get() = rtmpSender.getSentVideoFrames()
+
+  /**
+   * Check periodically if server is alive using Echo protocol.
+   */
+  fun setCheckServerAlive(enabled: Boolean) {
+    checkServerAlive = enabled
+  }
 
   /**
    * Must be called before connect
@@ -204,13 +209,29 @@ class RtmpClient(private val connectCheckerRtmp: ConnectCheckerRtmp) {
   private fun handleServerPackets() {
     while (!Thread.interrupted()) {
       try {
-        handleMessages()
+        if (isAlive()) {
+          handleMessages()
+        } else {
+          Thread.currentThread().interrupt()
+          connectCheckerRtmp.onConnectionFailedRtmp("No response from server")
+        }
       } catch (ignored: SocketTimeoutException) {
         //new packet not found
       } catch (e: Exception) {
         Thread.currentThread().interrupt()
       }
     }
+  }
+
+  /*
+    Send a heartbeat to know if server is alive using Echo Protocol.
+    Your firewall could block it.
+   */
+  private fun isAlive(): Boolean {
+    val connected = connectionSocket?.isConnected ?: false
+    if (!checkServerAlive) return connected
+    val reachable = connectionSocket?.inetAddress?.isReachable(5000) ?: false
+    return if (connected && !reachable) false else connected
   }
 
   private fun getAppName(app: String, name: String): String {

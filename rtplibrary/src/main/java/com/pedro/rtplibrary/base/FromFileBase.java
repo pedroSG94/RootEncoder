@@ -680,4 +680,6 @@ public abstract class FromFileBase
   }
 
   public abstract void setLogs(boolean enable);
+
+  public abstract void setCheckServerAlive(boolean enable);
 }

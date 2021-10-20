@@ -922,4 +922,6 @@ public abstract class Camera1Base
   }
 
   public abstract void setLogs(boolean enable);
+
+  public abstract void setCheckServerAlive(boolean enable);
 }

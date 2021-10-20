@@ -197,4 +197,9 @@ public class RtmpDisplay extends DisplayBase {
   public void setLogs(boolean enable) {
     rtmpClient.setLogs(enable);
   }
+
+  @Override
+  public void setCheckServerAlive(boolean enable) {
+    rtmpClient.setCheckServerAlive(enable);
+  }
 }

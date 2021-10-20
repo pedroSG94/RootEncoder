@@ -208,5 +208,10 @@ public class RtspCamera2 extends Camera2Base {
   public void setLogs(boolean enable) {
     rtspClient.setLogs(enable);
   }
+
+  @Override
+  public void setCheckServerAlive(boolean enable) {
+    rtspClient.setCheckServerAlive(enable);
+  }
 }
 

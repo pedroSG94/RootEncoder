@@ -60,6 +60,7 @@ open class RtspClient(private val connectCheckerRtsp: ConnectCheckerRtsp) {
   private var reTries = 0
   private var handler: ScheduledExecutorService? = null
   private var runnable: Runnable? = null
+  private var checkServerAlive = false
 
   val droppedAudioFrames: Long
     get() = rtspSender.droppedAudioFrames
@@ -75,6 +76,13 @@ open class RtspClient(private val connectCheckerRtsp: ConnectCheckerRtsp) {
 
   companion object {
     private val rtspUrlPattern = Pattern.compile("^rtsps?://([^/:]+)(?::(\\d+))*/([^/]+)/?([^*]*)$")
+  }
+
+  /**
+   * Check periodically if server is alive using Echo protocol.
+   */
+  fun setCheckServerAlive(enabled: Boolean) {
+    checkServerAlive = enabled
   }
 
   /**
@@ -288,12 +296,17 @@ open class RtspClient(private val connectCheckerRtsp: ConnectCheckerRtsp) {
     //Read and print server commands received each 2 seconds
     while (!Thread.interrupted()) {
       try {
-        Thread.sleep(2000)
-        reader?.let { r ->
-          if (r.ready()) {
-            val command = commandsManager.getResponse(r)
-            //Do something depend of command if required
+        if (isAlive()) {
+          Thread.sleep(2000)
+          reader?.let { r ->
+            if (r.ready()) {
+              val command = commandsManager.getResponse(r)
+              //Do something depend of command if required
+            }
           }
+        } else {
+          Thread.currentThread().interrupt()
+          connectCheckerRtsp.onConnectionFailedRtsp("No response from server")
         }
       } catch (ignored: SocketTimeoutException) {
         //new packet not found
@@ -301,6 +314,17 @@ open class RtspClient(private val connectCheckerRtsp: ConnectCheckerRtsp) {
         Thread.currentThread().interrupt()
       }
     }
+  }
+
+  /*
+    Send a heartbeat to know if server is alive using Echo Protocol.
+    Your firewall could block it.
+   */
+  private fun isAlive(): Boolean {
+    val connected = connectionSocket?.isConnected ?: false
+    if (!checkServerAlive) return connected
+    val reachable = connectionSocket?.inetAddress?.isReachable(5000) ?: false
+    return if (connected && !reachable) false else connected
   }
 
   fun disconnect() {

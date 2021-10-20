@@ -150,4 +150,9 @@ public class RtspOnlyAudio extends OnlyAudioBase {
   public void setLogs(boolean enable) {
     rtspClient.setLogs(enable);
   }
+
+  @Override
+  public void setCheckServerAlive(boolean enable) {
+    rtspClient.setCheckServerAlive(enable);
+  }
 }

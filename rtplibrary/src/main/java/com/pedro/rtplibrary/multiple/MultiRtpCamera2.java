@@ -483,4 +483,14 @@ public class MultiRtpCamera2 extends Camera2Base {
       rtspClient.setLogs(enable);
     }
   }
+
+  @Override
+  public void setCheckServerAlive(boolean enable) {
+    for (RtmpClient rtmpClient: rtmpClients) {
+      rtmpClient.setCheckServerAlive(enable);
+    }
+    for (RtspClient rtspClient: rtspClients) {
+      rtspClient.setCheckServerAlive(enable);
+    }
+  }
 }

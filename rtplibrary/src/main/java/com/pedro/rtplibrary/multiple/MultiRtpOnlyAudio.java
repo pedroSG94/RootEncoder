@@ -385,4 +385,14 @@ public class MultiRtpOnlyAudio extends OnlyAudioBase {
       rtspClient.setLogs(enable);
     }
   }
+
+  @Override
+  public void setCheckServerAlive(boolean enable) {
+    for (RtmpClient rtmpClient: rtmpClients) {
+      rtmpClient.setCheckServerAlive(enable);
+    }
+    for (RtspClient rtspClient: rtspClients) {
+      rtspClient.setCheckServerAlive(enable);
+    }
+  }
 }

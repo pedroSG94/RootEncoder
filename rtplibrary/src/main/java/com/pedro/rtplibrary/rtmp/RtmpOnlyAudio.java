@@ -167,4 +167,9 @@ public class RtmpOnlyAudio extends OnlyAudioBase {
   public void setLogs(boolean enable) {
     rtmpClient.setLogs(enable);
   }
+
+  @Override
+  public void setCheckServerAlive(boolean enable) {
+    rtmpClient.setCheckServerAlive(enable);
+  }
 }

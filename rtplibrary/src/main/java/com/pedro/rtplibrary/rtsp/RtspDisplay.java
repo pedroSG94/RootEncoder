@@ -170,4 +170,9 @@ public class RtspDisplay extends DisplayBase {
   public void setLogs(boolean enable) {
     rtspClient.setLogs(enable);
   }
+
+  @Override
+  public void setCheckServerAlive(boolean enable) {
+    rtspClient.setCheckServerAlive(enable);
+  }
 }

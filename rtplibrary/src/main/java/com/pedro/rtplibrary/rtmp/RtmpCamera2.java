@@ -234,5 +234,10 @@ public class RtmpCamera2 extends Camera2Base {
   public void setLogs(boolean enable) {
     rtmpClient.setLogs(enable);
   }
+
+  @Override
+  public void setCheckServerAlive(boolean enable) {
+    rtmpClient.setCheckServerAlive(enable);
+  }
 }
 
