@@ -557,7 +557,13 @@ public abstract class Camera1Base
   public void setZoom(MotionEvent event) {
     cameraManager.setZoom(event);
   }
+  public void setZoomIn() {
+    cameraManager.setZoomIn();
+  }
 
+  public void setZoomOut() {
+    cameraManager.setZoomOut();
+  }
   @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
   public void startStreamAndRecord(String url, String path, RecordController.Listener listener) throws IOException {
     startStream(url);
@@ -924,4 +930,8 @@ public abstract class Camera1Base
   public abstract void setLogs(boolean enable);
 
   public abstract void setCheckServerAlive(boolean enable);
+  public String getVideoFilePath() {
+    return recordController.getVideoFilePath();
+  }
+
 }

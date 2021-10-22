@@ -55,6 +55,7 @@ public class RecordController {
   private boolean isOnlyAudio = false;
   private boolean isOnlyVideo = false;
 
+  private String videoFilePath;
   public enum Status {
     STARTED, STOPPED, RECORDING, PAUSED, RESUMED
   }
@@ -65,6 +66,7 @@ public class RecordController {
 
   @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
   public void startRecord(@NonNull String path, @Nullable Listener listener) throws IOException {
+    videoFilePath = path;
     mediaMuxer = new MediaMuxer(path, MediaMuxer.OutputFormat.MUXER_OUTPUT_MPEG_4);
     this.listener = listener;
     status = Status.STARTED;
@@ -223,4 +225,8 @@ public class RecordController {
     newInfo.size = oldInfo.size;
     newInfo.presentationTimeUs = oldInfo.presentationTimeUs - pauseTime;
   }
+  public String getVideoFilePath() {
+    return videoFilePath;
+  }
+
 }

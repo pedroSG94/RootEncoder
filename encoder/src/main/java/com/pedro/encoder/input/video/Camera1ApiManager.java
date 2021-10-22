@@ -242,6 +242,41 @@ public class Camera1ApiManager implements Camera.PreviewCallback, Camera.FaceDet
       Log.e(TAG, "Error", e);
     }
   }
+  public void setZoomIn() {
+    try {
+      if (camera != null && running && camera.getParameters() != null && camera.getParameters()
+              .isZoomSupported()) {
+        android.hardware.Camera.Parameters params = camera.getParameters();
+        int zoom = params.getZoom();
+        if (zoom > 0) {
+          zoom -= 10;
+        }
+        params.setZoom(zoom);
+        camera.setParameters(params);
+      }
+    } catch (Exception e) {
+      Log.e(TAG, "Error", e);
+    }
+  }
+
+  public void setZoomOut() {
+    try {
+      if (camera != null && running && camera.getParameters() != null && camera.getParameters()
+              .isZoomSupported()) {
+        android.hardware.Camera.Parameters params = camera.getParameters();
+        int maxZoom = params.getMaxZoom();
+        int zoom = params.getZoom();
+
+        if (zoom < maxZoom) {
+          zoom += 10;
+        }
+        params.setZoom(zoom);
+        camera.setParameters(params);
+      }
+    } catch (Exception e) {
+      Log.e(TAG, "Error", e);
+    }
+  }
 
   public void setExposure(int value) {
     if (camera != null && camera.getParameters() != null) {
