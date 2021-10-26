@@ -104,6 +104,7 @@ public class RtmpActivity extends AppCompatActivity
     tvBitrate = findViewById(R.id.tv_bitrate);
     etUrl = findViewById(R.id.et_rtp_url);
     etUrl.setHint(R.string.hint_rtmp);
+    etUrl.setText("rtmp://a.rtmp.youtube.com/live2/q30j-fjf0-tpza-kvxg-9vp5");
     bStartStop = findViewById(R.id.b_start_stop);
     bStartStop.setOnClickListener(this);
     bRecord = findViewById(R.id.b_record);
@@ -262,6 +263,8 @@ public class RtmpActivity extends AppCompatActivity
                 if (prepareEncoders()) {
                   rtmpCamera1.startRecord(
                       folder.getAbsolutePath() + "/" + currentDateAndTime + ".mp4");
+                  rtmpCamera1.startRecord2(
+                      folder.getAbsolutePath() + "/" + currentDateAndTime + "-2.mp4");
                   bRecord.setText(R.string.stop_record);
                   Toast.makeText(this, "Recording... ", Toast.LENGTH_SHORT).show();
                 } else {
@@ -271,16 +274,21 @@ public class RtmpActivity extends AppCompatActivity
               } else {
                 rtmpCamera1.startRecord(
                     folder.getAbsolutePath() + "/" + currentDateAndTime + ".mp4");
+                rtmpCamera1.startRecord2(
+                        folder.getAbsolutePath() + "/" + currentDateAndTime + "-2.mp4");
+
                 bRecord.setText(R.string.stop_record);
                 Toast.makeText(this, "Recording... ", Toast.LENGTH_SHORT).show();
               }
             } catch (IOException e) {
               rtmpCamera1.stopRecord();
+              rtmpCamera1.stopRecord2();
               bRecord.setText(R.string.start_record);
               Toast.makeText(this, e.getMessage(), Toast.LENGTH_SHORT).show();
             }
           } else {
             rtmpCamera1.stopRecord();
+            rtmpCamera1.stopRecord2();
             bRecord.setText(R.string.start_record);
             Toast.makeText(this,
                 "file " + currentDateAndTime + ".mp4 saved in " + folder.getAbsolutePath(),
@@ -309,6 +317,7 @@ public class RtmpActivity extends AppCompatActivity
         rtmpCamera1.getResolutionsBack().get(spResolution.getSelectedItemPosition());
     int width = resolution.width;
     int height = resolution.height;
+    Log.e("with "+width," height "+height);
     return rtmpCamera1.prepareVideo(width, height, Integer.parseInt(etFps.getText().toString()),
         Integer.parseInt(etVideoBitrate.getText().toString()) * 1024,
         CameraHelper.getCameraOrientation(this)) && rtmpCamera1.prepareAudio(

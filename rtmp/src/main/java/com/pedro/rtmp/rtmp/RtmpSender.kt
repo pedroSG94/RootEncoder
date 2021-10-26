@@ -114,7 +114,7 @@ class RtmpSender(private val connectCheckerRtmp: ConnectCheckerRtmp,
             output?.let { output ->
               size = commandsManager.sendVideoPacket(flvPacket, output)
               if (isEnableLogs) {
-                Log.i(TAG, "wrote Video packet, size $size")
+//                Log.i(TAG, "wrote Video packet, size $size")
               }
             }
           } else {
