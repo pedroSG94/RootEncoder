@@ -432,7 +432,9 @@ public abstract class Camera1Base
     public void stopRecord() {
         recordController.stopRecord();
         if (!streaming) stopStream();
-    }/**
+    }
+
+    /**
      * Stop record MP4 video started with @startRecord. If you don't call it file will be unreadable.
      */
     @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
@@ -688,7 +690,7 @@ public abstract class Camera1Base
             streaming = false;
             stopStreamRtp();
         }
-        if (!recordController.isRecording()&&!recordController.isRecording2()) {
+        if (!recordController.isRecording() && !recordController.isRecording2()) {
             if (audioInitialized) microphoneManager.stop();
             if (glInterface != null && Build.VERSION.SDK_INT >= 18) {
                 glInterface.removeMediaCodecSurface();
@@ -899,7 +901,8 @@ public abstract class Camera1Base
     public boolean isRecording() {
         return recordController.isRunning();
     }
-  /**
+
+    /**
      * Get record state.
      *
      * @return true if recording, false if not recoding.
@@ -974,6 +977,10 @@ public abstract class Camera1Base
 
     public String getVideoFilePath() {
         return recordController.getVideoFilePath();
+    }
+
+    public String getVideoFilePath2() {
+        return recordController.getVideoFilePath2();
     }
 
 }
