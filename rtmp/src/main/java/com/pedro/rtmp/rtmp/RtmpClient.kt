@@ -207,7 +207,7 @@ class RtmpClient(private val connectCheckerRtmp: ConnectCheckerRtmp) {
   }
 
   private fun handleServerPackets() {
-    while (!Thread.interrupted()) {
+    while (!Thread.interrupted() && isStreaming) {
       try {
         if (isAlive()) {
           handleMessages()

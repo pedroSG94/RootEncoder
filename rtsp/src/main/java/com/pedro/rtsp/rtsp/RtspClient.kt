@@ -294,7 +294,7 @@ open class RtspClient(private val connectCheckerRtsp: ConnectCheckerRtsp) {
 
   private fun handleServerCommands() {
     //Read and print server commands received each 2 seconds
-    while (!Thread.interrupted()) {
+    while (!Thread.interrupted() && isStreaming) {
       try {
         if (isAlive()) {
           Thread.sleep(2000)
