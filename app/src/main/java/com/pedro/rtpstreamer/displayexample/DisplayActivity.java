@@ -45,50 +45,35 @@ public class DisplayActivity extends AppCompatActivity
   private EditText etUrl;
   private final int REQUEST_CODE_STREAM = 179; //random num
   private final int REQUEST_CODE_RECORD = 180; //random num
-  private NotificationManager notificationManager;
 
   @Override
   protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
     getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
     setContentView(R.layout.activity_display);
-    notificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
     button = findViewById(R.id.b_start_stop);
     button.setOnClickListener(this);
     etUrl = findViewById(R.id.et_rtp_url);
     etUrl.setHint(R.string.hint_rtmp);
-    getInstance();
-
-    if (DisplayService.Companion.isStreaming()) {
+    DisplayService displayService = DisplayService.Companion.getINSTANCE();
+    //No streaming/recording start service
+    if (displayService == null) {
+      startService(new Intent(this, DisplayService.class));
+    }
+    if (displayService != null && displayService.isStreaming()) {
       button.setText(R.string.stop_button);
     } else {
       button.setText(R.string.start_button);
     }
   }
 
-  private void getInstance() {
-    DisplayService.Companion.init(this);
-  }
-
-  /**
-   * This notification is to solve MediaProjection problem that only render surface if something
-   * changed.
-   * It could produce problem in some server like in Youtube that need send video and audio all time
-   * to work.
-   */
-  private void initNotification() {
-    Notification.Builder notificationBuilder =
-        new Notification.Builder(this).setSmallIcon(R.drawable.notification_anim)
-            .setContentTitle("Streaming")
-            .setContentText("Display mode stream")
-            .setTicker("Stream in progress");
-    notificationBuilder.setAutoCancel(true);
-    if (notificationManager != null) notificationManager.notify(12345, notificationBuilder.build());
-  }
-
-  private void stopNotification() {
-    if (notificationManager != null) {
-      notificationManager.cancel(12345);
+  @Override
+  protected void onDestroy() {
+    super.onDestroy();
+    DisplayService displayService = DisplayService.Companion.getINSTANCE();
+    if (displayService != null && !displayService.isStreaming() && !displayService.isRecording()) {
+      //stop service only if no streaming or recording
+      stopService(new Intent(this, DisplayService.class));
     }
   }
 
@@ -113,8 +98,10 @@ public class DisplayActivity extends AppCompatActivity
       public void run() {
         Toast.makeText(DisplayActivity.this, "Connection failed. " + reason, Toast.LENGTH_SHORT)
             .show();
-        stopNotification();
-        stopService(new Intent(DisplayActivity.this, DisplayService.class));
+        DisplayService displayService = DisplayService.Companion.getINSTANCE();
+        if (displayService != null) {
+          displayService.stopStream();
+        }
         button.setText(R.string.start_button);
       }
     });
@@ -160,11 +147,12 @@ public class DisplayActivity extends AppCompatActivity
     super.onActivityResult(requestCode, resultCode, data);
     if (data != null && (requestCode == REQUEST_CODE_STREAM
         || requestCode == REQUEST_CODE_RECORD && resultCode == Activity.RESULT_OK)) {
-      initNotification();
-      DisplayService.Companion.setData(resultCode, data);
-      Intent intent = new Intent(this, DisplayService.class);
-      intent.putExtra("endpoint", etUrl.getText().toString());
-      startService(intent);
+      DisplayService displayService = DisplayService.Companion.getINSTANCE();
+      if (displayService != null) {
+        String endpoint =  etUrl.getText().toString();
+        displayService.prepareStreamRtp(endpoint, resultCode, data);
+        displayService.startStreamRtp(endpoint);
+      }
     } else {
       Toast.makeText(this, "No permissions available", Toast.LENGTH_SHORT).show();
       button.setText(R.string.start_button);
@@ -173,21 +161,21 @@ public class DisplayActivity extends AppCompatActivity
 
   @Override
   public void onClick(View view) {
-    switch (view.getId()) {
-      case R.id.b_start_stop:
-        if (!DisplayService.Companion.isStreaming()) {
-          button.setText(R.string.stop_button);
-          startActivityForResult(DisplayService.Companion.sendIntent(), REQUEST_CODE_STREAM);
-        } else {
-          button.setText(R.string.start_button);
-          stopService(new Intent(DisplayActivity.this, DisplayService.class));
-        }
-        if (!DisplayService.Companion.isStreaming() && !DisplayService.Companion.isRecording()) {
-          stopNotification();
-        }
-        break;
-      default:
-        break;
+    DisplayService displayService = DisplayService.Companion.getINSTANCE();
+    if (displayService != null) {
+      switch (view.getId()) {
+        case R.id.b_start_stop:
+          if (!displayService.isStreaming()) {
+            button.setText(R.string.stop_button);
+            startActivityForResult(displayService.sendIntent(), REQUEST_CODE_STREAM);
+          } else {
+            button.setText(R.string.start_button);
+            displayService.stopStream();
+          }
+          break;
+        default:
+          break;
+      }
     }
   }
 }

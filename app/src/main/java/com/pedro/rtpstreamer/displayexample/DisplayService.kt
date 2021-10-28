@@ -16,7 +16,6 @@
 
 package com.pedro.rtpstreamer.displayexample
 
-import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.Service
@@ -40,11 +39,10 @@ import com.pedro.rtpstreamer.backgroundexample.ConnectCheckerRtp
 @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
 class DisplayService : Service() {
 
-  private var endpoint: String? = null
-
   override fun onCreate() {
     super.onCreate()
-    Log.e(TAG, "RTP Display service create")
+    INSTANCE = this
+    Log.i(TAG, "RTP Display service create")
     notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
       val channel = NotificationChannel(channelId, channelId, NotificationManager.IMPORTANCE_HIGH)
@@ -54,15 +52,12 @@ class DisplayService : Service() {
   }
 
   private fun keepAliveTrick() {
-    if (Build.VERSION.SDK_INT > Build.VERSION_CODES.O) {
-      val notification = NotificationCompat.Builder(this, channelId)
-          .setOngoing(true)
-          .setContentTitle("")
-          .setContentText("").build()
-      startForeground(1, notification)
-    } else {
-      startForeground(1, Notification())
-    }
+    val notification = NotificationCompat.Builder(this, channelId)
+      .setSmallIcon(R.drawable.notification_icon)
+      .setSilent(true)
+      .setOngoing(false)
+      .build()
+    startForeground(1, notification)
   }
 
   override fun onBind(p0: Intent?): IBinder? {
@@ -70,121 +65,107 @@ class DisplayService : Service() {
   }
 
   override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-    Log.e(TAG, "RTP Display service started")
-    endpoint = intent?.extras?.getString("endpoint")
-    if (endpoint != null) {
-      prepareStreamRtp()
-      startStreamRtp(endpoint!!)
-    }
+    INSTANCE = this
+    Log.i(TAG, "RTP Display service started")
+    displayBase = RtmpDisplay(baseContext, true, connectCheckerRtp)
+    displayBase?.glInterface?.setForceRender(true)
     return START_STICKY
   }
 
   companion object {
     private const val TAG = "DisplayService"
     private const val channelId = "rtpDisplayStreamChannel"
-    private const val notifyId = 123456
-    private var notificationManager: NotificationManager? = null
-    private var displayBase: DisplayBase? = null
-    private var contextApp: Context? = null
-    private var resultCode: Int? = null
-    private var data: Intent? = null
+    const val notifyId = 123456
+    var INSTANCE: DisplayService? = null
+  }
 
-    fun init(context: Context) {
-      contextApp = context
-      if (displayBase == null) displayBase = RtmpDisplay(context, true, connectCheckerRtp)
+  private var notificationManager: NotificationManager? = null
+  private var displayBase: DisplayBase? = null
+
+  fun sendIntent(): Intent? {
+    return displayBase?.sendIntent()
+  }
+
+  fun isStreaming(): Boolean {
+    return displayBase?.isStreaming ?: false
+  }
+
+  fun isRecording(): Boolean {
+    return displayBase?.isRecording ?: false
+  }
+
+  fun stopStream() {
+    if (displayBase?.isStreaming == true) {
+      displayBase?.stopStream()
+      notificationManager?.cancel(notifyId)
+    }
+  }
+
+  private val connectCheckerRtp = object : ConnectCheckerRtp {
+
+    override fun onConnectionStartedRtp(rtpUrl: String) {
     }
 
-    fun setData(resultCode: Int, data: Intent) {
-      this.resultCode = resultCode
-      this.data = data
+    override fun onConnectionSuccessRtp() {
+      showNotification("Stream started")
+      Log.i(TAG, "RTP service destroy")
     }
 
-    fun sendIntent(): Intent? {
-      if (displayBase != null) {
-        return displayBase!!.sendIntent()
-      } else {
-        return null
-      }
+    override fun onNewBitrateRtp(bitrate: Long) {
+
     }
 
-    fun isStreaming(): Boolean {
-      return if (displayBase != null) displayBase!!.isStreaming else false
+    override fun onConnectionFailedRtp(reason: String) {
+      showNotification("Stream connection failed")
+      Log.i(TAG, "RTP service destroy")
     }
 
-    fun isRecording(): Boolean {
-      return if (displayBase != null) displayBase!!.isRecording else false
+    override fun onDisconnectRtp() {
+      showNotification("Stream stopped")
     }
 
-    fun stopStream() {
-      if (displayBase != null) {
-        if (displayBase!!.isStreaming) displayBase!!.stopStream()
-      }
+    override fun onAuthErrorRtp() {
+      showNotification("Stream auth error")
     }
 
-    private val connectCheckerRtp = object : ConnectCheckerRtp {
-
-      override fun onConnectionStartedRtp(rtpUrl: String) {
-      }
-
-      override fun onConnectionSuccessRtp() {
-        showNotification("Stream started")
-        Log.e(TAG, "RTP service destroy")
-      }
-
-      override fun onNewBitrateRtp(bitrate: Long) {
-
-      }
-
-      override fun onConnectionFailedRtp(reason: String) {
-        showNotification("Stream connection failed")
-        Log.e(TAG, "RTP service destroy")
-      }
-
-      override fun onDisconnectRtp() {
-        showNotification("Stream stopped")
-      }
-
-      override fun onAuthErrorRtp() {
-        showNotification("Stream auth error")
-      }
-
-      override fun onAuthSuccessRtp() {
-        showNotification("Stream auth success")
-      }
+    override fun onAuthSuccessRtp() {
+      showNotification("Stream auth success")
     }
+  }
 
-    private fun showNotification(text: String) {
-      contextApp?.let {
-        val notification = NotificationCompat.Builder(it, channelId)
-            .setSmallIcon(R.mipmap.ic_launcher)
-            .setContentTitle("RTP Display Stream")
-            .setContentText(text).build()
-        notificationManager?.notify(notifyId, notification)
-      }
-    }
+  private fun showNotification(text: String) {
+    val notification = NotificationCompat.Builder(baseContext, channelId)
+      .setSmallIcon(R.drawable.notification_icon)
+      .setContentTitle("RTP Display Stream")
+      .setContentText(text)
+      .setOngoing(false)
+      .build()
+    notificationManager?.notify(notifyId, notification)
   }
 
   override fun onDestroy() {
     super.onDestroy()
-    Log.e(TAG, "RTP Display service destroy")
+    Log.i(TAG, "RTP Display service destroy")
     stopStream()
+    INSTANCE = null
   }
 
-  private fun prepareStreamRtp() {
+  fun prepareStreamRtp(endpoint: String, resultCode: Int, data: Intent) {
     stopStream()
-    if (endpoint!!.startsWith("rtmp")) {
+    if (endpoint.startsWith("rtmp")) {
       displayBase = RtmpDisplay(baseContext, true, connectCheckerRtp)
-      displayBase?.setIntentResult(resultCode!!, data)
+      displayBase?.setIntentResult(resultCode, data)
     } else {
       displayBase = RtspDisplay(baseContext, true, connectCheckerRtp)
-      displayBase?.setIntentResult(resultCode!!, data)
+      displayBase?.setIntentResult(resultCode, data)
     }
+    displayBase?.glInterface?.setForceRender(true)
   }
 
-  private fun startStreamRtp(endpoint: String) {
-    if (!displayBase!!.isStreaming) {
-      if (displayBase!!.prepareVideo() && displayBase!!.prepareAudio()) {
-        displayBase!!.startStream(endpoint)
+  fun startStreamRtp(endpoint: String) {
+    if (displayBase?.isStreaming != true) {
+      if (displayBase?.prepareVideo() == true && displayBase?.prepareAudio() == true) {
+        displayBase?.startStream(endpoint)
       }
     } else {
       showNotification("You are already streaming :(")
