@@ -86,7 +86,7 @@ public class OpenGlView extends OpenGlViewBase {
 
   @Override
   public void setFilter(int filterPosition, BaseFilterRender baseFilterRender) {
-    filterQueue.add(new Filter(FilterAction.SET, filterPosition, baseFilterRender));
+    filterQueue.add(new Filter(FilterAction.SET_INDEX, filterPosition, baseFilterRender));
   }
 
   @Override
@@ -121,12 +121,7 @@ public class OpenGlView extends OpenGlViewBase {
 
   @Override
   public void setFilter(BaseFilterRender baseFilterRender) {
-    int count = managerRender.filtersCount();
-    if (count > 0) {
-      setFilter(0, baseFilterRender);
-    } else {
-      addFilter(baseFilterRender);
-    }
+    filterQueue.add(new Filter(FilterAction.SET, 0, baseFilterRender));
   }
 
   @Override

@@ -160,6 +160,13 @@ public class ManagerRender {
   public void setFilterAction(FilterAction filterAction,  int position, BaseFilterRender baseFilterRender) {
     switch (filterAction) {
       case SET:
+        if (filterRenders.size() > 0) {
+          setFilter(position, baseFilterRender);
+        } else {
+          addFilter(baseFilterRender);
+        }
+        break;
+      case SET_INDEX:
         setFilter(position, baseFilterRender);
         break;
       case ADD:
