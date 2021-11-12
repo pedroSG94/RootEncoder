@@ -349,7 +349,9 @@ public class CodecUtil {
    */
   private static boolean isSoftwareOnly(MediaCodecInfo mediaCodecInfo) {
     if (Build.VERSION.SDK_INT >= 29) {
-      return mediaCodecInfo.isSoftwareOnly();
+      //mediaCodecInfo.isSoftwareOnly() is not working on emulators.
+      //Use !mediaCodecInfo.isHardwareAccelerated() to make sure that all codecs are classified as software or hardware
+      return !mediaCodecInfo.isHardwareAccelerated();
     }
     String name = mediaCodecInfo.getName().toLowerCase();
     if (name.startsWith("arc.")) { // App Runtime for Chrome (ARC) codecs
