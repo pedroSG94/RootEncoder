@@ -177,14 +177,14 @@ class CommandsManager {
     metadata.addData(AmfString("onMetaData"))
     val amfEcmaArray = AmfEcmaArray()
     amfEcmaArray.setProperty("duration", 0.0)
-    if (videoDisabled) {
+    if (!videoDisabled) {
       amfEcmaArray.setProperty("width", width.toDouble())
       amfEcmaArray.setProperty("height", height.toDouble())
       amfEcmaArray.setProperty("videocodecid", 7.0)
       amfEcmaArray.setProperty("framerate", fps.toDouble())
       amfEcmaArray.setProperty("videodatarate", 0.0)
     }
-    if (audioDisabled) {
+    if (!audioDisabled) {
       amfEcmaArray.setProperty("audiocodecid", 10.0)
       amfEcmaArray.setProperty("audiosamplerate", sampleRate.toDouble())
       amfEcmaArray.setProperty("audiosamplesize", 16.0)
