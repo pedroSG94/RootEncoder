@@ -172,7 +172,7 @@ class RtmpClient(private val connectCheckerRtmp: ConnectCheckerRtmp) {
 
       commandsManager.host = rtmpMatcher.group(1) ?: ""
       val portStr = rtmpMatcher.group(2)
-      commandsManager.port = portStr?.toInt() ?: 1935
+      commandsManager.port = portStr?.toInt() ?: if (tlsEnabled) 443 else 1935
       commandsManager.appName = getAppName(rtmpMatcher.group(3) ?: "", rtmpMatcher.group(4) ?: "")
       commandsManager.streamName = getStreamName(rtmpMatcher.group(4) ?: "")
       commandsManager.tcUrl = getTcUrl((rtmpMatcher.group(0)

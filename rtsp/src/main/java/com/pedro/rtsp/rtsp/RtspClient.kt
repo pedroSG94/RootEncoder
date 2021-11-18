@@ -158,7 +158,7 @@ open class RtspClient(private val connectCheckerRtsp: ConnectCheckerRtsp) {
         return
       }
       val host = rtspMatcher.group(1) ?: ""
-      val port: Int = (rtspMatcher.group(2) ?: "554").toInt()
+      val port: Int = rtmpMatcher.group(2)?.toInt() ?: if (tlsEnabled) 443 else 554
       val streamName = if (rtspMatcher.group(4).isNullOrEmpty()) "" else "/" + rtspMatcher.group(4)
       val path = "/" + rtspMatcher.group(3) + streamName
 
