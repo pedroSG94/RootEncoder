@@ -81,7 +81,7 @@ public class Camera2ApiManager extends CameraDevice.StateCallback {
   private Handler cameraHandler;
   private CameraCaptureSession cameraCaptureSession;
   private boolean prepared = false;
-  private int cameraId = -1;
+  private String cameraId = null;
   private CameraHelper.Facing facing = Facing.BACK;
   private CaptureRequest.Builder builderInputSurface;
   private float fingerSpacing = 0;
@@ -163,7 +163,7 @@ public class Camera2ApiManager extends CameraDevice.StateCallback {
           } catch (CameraAccessException | NullPointerException e) {
             Log.e(TAG, "Error", e);
           } catch (IllegalStateException e) {
-            reOpenCamera(cameraId != -1 ? cameraId : 0);
+            reOpenCamera(cameraId != null ? cameraId : "0");
           }
         }
 
@@ -180,7 +180,7 @@ public class Camera2ApiManager extends CameraDevice.StateCallback {
       }
       Log.e(TAG, "Error", e);
     } catch (IllegalStateException e) {
-      reOpenCamera(cameraId != -1 ? cameraId : 0);
+      reOpenCamera(cameraId != null ? cameraId : "0");
     }
   }
 
@@ -283,7 +283,7 @@ public class Camera2ApiManager extends CameraDevice.StateCallback {
   }
 
   public void openLastCamera() {
-    if (cameraId == -1) {
+    if (cameraId == null) {
       openCameraBack();
     } else {
       openCameraId(cameraId);
@@ -294,11 +294,15 @@ public class Camera2ApiManager extends CameraDevice.StateCallback {
     try {
       String cameraId = getCameraIdForFacing(cameraManager, cameraFacing);
       if (cameraId != null) {
-        this.cameraId = Integer.parseInt(cameraId);
+        this.cameraId = cameraId;
       }
     } catch (CameraAccessException e) {
       Log.e(TAG, "Error", e);
     }
+  }
+
+  public void setCameraId(String cameraId) {
+    this.cameraId = cameraId;
   }
 
   public CameraHelper.Facing getCameraFacing() {
@@ -334,8 +338,7 @@ public class Camera2ApiManager extends CameraDevice.StateCallback {
   @Nullable
   public CameraCharacteristics getCameraCharacteristics() {
     try {
-      return cameraId != -1 ? cameraManager.getCameraCharacteristics(String.valueOf(cameraId))
-          : null;
+      return cameraId != null ? cameraManager.getCameraCharacteristics(cameraId) : null;
     } catch (CameraAccessException e) {
       Log.e(TAG, "Error", e);
       return null;
@@ -498,7 +501,7 @@ public class Camera2ApiManager extends CameraDevice.StateCallback {
     try {
       String cameraId = getCameraIdForFacing(cameraManager, selectedCameraFacing);
       if (cameraId != null) {
-        openCameraId(Integer.valueOf(cameraId));
+        openCameraId(cameraId);
       } else {
         Log.e(TAG, "Camera not supported"); // TODO maybe we want to throw some exception here?
       }
@@ -702,17 +705,16 @@ public class Camera2ApiManager extends CameraDevice.StateCallback {
       };
 
   @SuppressLint("MissingPermission")
-  public void openCameraId(Integer cameraId) {
+  public void openCameraId(String cameraId) {
     this.cameraId = cameraId;
     if (prepared) {
       HandlerThread cameraHandlerThread = new HandlerThread(TAG + " Id = " + cameraId);
       cameraHandlerThread.start();
       cameraHandler = new Handler(cameraHandlerThread.getLooper());
       try {
-        cameraManager.openCamera(cameraId.toString(), this, cameraHandler);
+        cameraManager.openCamera(cameraId, this, cameraHandler);
         semaphore.acquireUninterruptibly();
-        CameraCharacteristics cameraCharacteristics =
-            cameraManager.getCameraCharacteristics(Integer.toString(cameraId));
+        CameraCharacteristics cameraCharacteristics = cameraManager.getCameraCharacteristics(cameraId);
         running = true;
         Integer facing = cameraCharacteristics.get(CameraCharacteristics.LENS_FACING);
         if (facing == null) return;
@@ -744,13 +746,13 @@ public class Camera2ApiManager extends CameraDevice.StateCallback {
         cameraId = getCameraIdForFacing(cameraManager, Facing.FRONT);
       }
       if (cameraId == null) cameraId = "0";
-      reOpenCamera(Integer.parseInt(cameraId));
+      reOpenCamera(cameraId);
     } catch (CameraAccessException e) {
       Log.e(TAG, "Error", e);
     }
   }
 
-  private void reOpenCamera(int cameraId) {
+  public void reOpenCamera(String cameraId) {
     if (cameraDevice != null) {
       closeCamera(false);
       if (textureView != null) {
@@ -916,6 +918,15 @@ public class Camera2ApiManager extends CameraDevice.StateCallback {
       }
     }
     return null;
+  }
+
+  @Nullable
+  public String getCameraIdForFacing(CameraHelper.Facing facing) {
+    try {
+      return getCameraIdForFacing(cameraManager, facing);
+    } catch (Exception e) {
+      return null;
+    }
   }
 
   @Nullable
