@@ -284,7 +284,8 @@ public abstract class Camera2Base implements GetAacData, GetVideoData, GetMicrop
    */
   public boolean prepareVideo(int width, int height, int fps, int bitrate, int iFrameInterval,
       int rotation, int avcProfile, int avcProfileLevel) {
-    if (onPreview && !(glInterface != null && width == previewWidth && height == previewHeight)) {
+    if (onPreview && glInterface != null && (width != previewWidth || height != previewHeight
+        || fps != videoEncoder.getFps())) {
       stopPreview();
       onPreview = true;
     }
@@ -724,8 +725,12 @@ public abstract class Camera2Base implements GetAacData, GetVideoData, GetMicrop
     return Arrays.asList(cameraManager.getCameraResolutionsFront());
   }
 
-  public Range<Integer>[] getSupportedFps() {
-    return cameraManager.getSupportedFps();
+  public List<Range<Integer>> getSupportedFps() {
+    return cameraManager.getSupportedFps(null, CameraHelper.Facing.BACK);
+  }
+
+  public List<Range<Integer>> getSupportedFps(Size size, CameraHelper.Facing facing) {
+    return cameraManager.getSupportedFps(size, facing);
   }
 
   /**

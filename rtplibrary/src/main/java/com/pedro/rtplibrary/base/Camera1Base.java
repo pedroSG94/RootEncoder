@@ -264,7 +264,7 @@ public abstract class Camera1Base
    */
   public boolean prepareVideo(int width, int height, int fps, int bitrate, int iFrameInterval,
       int rotation, int avcProfile, int avcProfileLevel) {
-    if (onPreview && width != previewWidth || height != previewHeight) {
+    if (onPreview && width != previewWidth || height != previewHeight || fps != videoEncoder.getFps()) {
       stopPreview();
       onPreview = true;
     }

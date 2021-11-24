@@ -117,11 +117,12 @@ public class AudioDecoder extends BaseDecoder {
           case MediaCodec.INFO_TRY_AGAIN_LATER:
             break;
           default:
-            //needed for fix decode speed
-            while (extractor.getSampleTime() / 1000
-                > System.currentTimeMillis() - startMs + seekTime) {
+            long extractorTs = extractor.getSampleTime() / 1000;
+            long currentTs = System.currentTimeMillis() - startMs + seekTime;
+            if (extractorTs > currentTs) {
               try {
-                Thread.sleep(10);
+                long sleepTime = extractorTs - currentTs;
+                Thread.sleep(sleepTime);
               } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
                 return;

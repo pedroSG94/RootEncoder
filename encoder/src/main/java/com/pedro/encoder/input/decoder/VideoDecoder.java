@@ -90,9 +90,12 @@ public class VideoDecoder extends BaseDecoder {
       }
       int outIndex = codec.dequeueOutputBuffer(bufferInfo, 10000);
       if (outIndex >= 0) {
-        while (extractor.getSampleTime() / 1000 > System.currentTimeMillis() - startMs + seekTime) {
+        long extractorTs = extractor.getSampleTime() / 1000;
+        long currentTs = System.currentTimeMillis() - startMs + seekTime;
+        if (extractorTs > currentTs) {
           try {
-            Thread.sleep(10);
+            long sleepTime = extractorTs - currentTs;
+            Thread.sleep(sleepTime);
           } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
             return;

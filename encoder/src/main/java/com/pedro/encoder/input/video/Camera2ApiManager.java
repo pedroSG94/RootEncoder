@@ -47,6 +47,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.Semaphore;
@@ -207,9 +208,9 @@ public class Camera2ApiManager extends CameraDevice.StateCallback {
   }
 
   private void adaptFpsRange(int expectedFps, CaptureRequest.Builder builderInputSurface) {
-    Range<Integer>[] fpsRanges = getSupportedFps();
-    if (fpsRanges != null && fpsRanges.length > 0) {
-      Range<Integer> closestRange = fpsRanges[0];
+    List<Range<Integer>> fpsRanges = getSupportedFps(null, Facing.BACK);
+    if (fpsRanges != null && fpsRanges.size() > 0) {
+      Range<Integer> closestRange = fpsRanges.get(0);
       int measure = Math.abs(closestRange.getLower() - expectedFps) + Math.abs(
           closestRange.getUpper() - expectedFps);
       for (Range<Integer> range : fpsRanges) {
@@ -227,11 +228,29 @@ public class Camera2ApiManager extends CameraDevice.StateCallback {
     }
   }
 
-  public Range<Integer>[] getSupportedFps() {
+  public List<Range<Integer>> getSupportedFps(Size size, Facing facing) {
     try {
-      CameraCharacteristics characteristics = getCameraCharacteristics();
+      CameraCharacteristics characteristics = null;
+      try {
+        characteristics = getCharacteristicsForFacing(cameraManager, facing);
+      } catch (CameraAccessException ignored) { }
       if (characteristics == null) return null;
-      return characteristics.get(CameraCharacteristics.CONTROL_AE_AVAILABLE_TARGET_FPS_RANGES);
+      Range<Integer>[] fpsSupported = characteristics.get(CameraCharacteristics.CONTROL_AE_AVAILABLE_TARGET_FPS_RANGES);
+      if (size != null) {
+        StreamConfigurationMap streamConfigurationMap =
+            characteristics.get(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP);
+        List<Range<Integer>> list = new ArrayList<>();
+        long fd = streamConfigurationMap.getOutputMinFrameDuration(SurfaceTexture.class, size);
+        for (Range<Integer> r : fpsSupported) {
+          int maxFPS = (int)(10f / Float.parseFloat("0." + fd));
+          if (r.getUpper() <= maxFPS) {
+            list.add(r);
+          }
+        }
+        return list;
+      } else {
+        return Arrays.asList(fpsSupported);
+      }
     } catch (IllegalStateException e) {
       Log.e(TAG, "Error", e);
       return null;
