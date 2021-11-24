@@ -822,6 +822,22 @@ public abstract class Camera2Base implements GetAacData, GetVideoData, GetMicrop
     cameraManager.setZoom(event);
   }
 
+  /**
+   * @Experimental
+   * @return optical zoom values available
+   */
+  public float[] getOpticalZooms() {
+    return cameraManager.getOpticalZooms();
+  }
+
+  /**
+   * @Experimental
+   * @param level value provided by getOpticalZooms method
+   */
+  public void setOpticalZoom(float level) {
+    cameraManager.setOpticalZoom(level);
+  }
+
   public int getBitrate() {
     return videoEncoder.getBitRate();
   }
@@ -838,6 +854,12 @@ public abstract class Camera2Base implements GetAacData, GetVideoData, GetMicrop
     return videoEncoder.getHeight();
   }
 
+  /**
+   * @return IDs of cameras available that can be used on startPreview of switchCamera. null If no cameras available
+   */
+  public String[] getCamerasAvailable() {
+    return cameraManager.getCamerasAvailable();
+  }
   /**
    * Switch camera used. Can be called anytime
    *

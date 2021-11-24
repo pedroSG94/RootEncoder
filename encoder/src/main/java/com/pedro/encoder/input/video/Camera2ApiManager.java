@@ -733,6 +733,14 @@ public class Camera2ApiManager extends CameraDevice.StateCallback {
     }
   }
 
+  public String[] getCamerasAvailable() {
+    try {
+      return cameraManager.getCameraIdList();
+    } catch (CameraAccessException e) {
+      return null;
+    }
+  }
+
   public boolean isRunning() {
     return running;
   }
@@ -776,6 +784,26 @@ public class Camera2ApiManager extends CameraDevice.StateCallback {
 
   public Float getZoom() {
     return zoomLevel;
+  }
+
+  public float[] getOpticalZooms() {
+    CameraCharacteristics characteristics = getCameraCharacteristics();
+    if (characteristics == null) return null;
+    return characteristics.get(CameraCharacteristics.LENS_INFO_AVAILABLE_FOCAL_LENGTHS);
+  }
+
+  public void setOpticalZoom(float level) {
+    CameraCharacteristics characteristics = getCameraCharacteristics();
+    if (characteristics == null) return;
+    if (builderInputSurface != null) {
+      try {
+        builderInputSurface.set(CaptureRequest.LENS_FOCAL_LENGTH, level);
+        cameraCaptureSession.setRepeatingRequest(builderInputSurface.build(),
+            faceDetectionEnabled ? cb : null, null);
+      } catch (Exception e) {
+        Log.e(TAG, "Error", e);
+      }
+    }
   }
 
   public void setZoom(float level) {
