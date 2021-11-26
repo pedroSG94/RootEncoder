@@ -774,12 +774,21 @@ public class Camera2ApiManager extends CameraDevice.StateCallback {
     }
   }
 
-  public float getMaxZoom() {
+  public Range<Float> getZoomRange() {
     CameraCharacteristics characteristics = getCameraCharacteristics();
-    if (characteristics == null) return 1;
-    Float maxZoom = characteristics.get(CameraCharacteristics.SCALER_AVAILABLE_MAX_DIGITAL_ZOOM);
-    if (maxZoom == null) return 1;
-    return maxZoom;
+    if (characteristics == null) return new Range<>(1f, 1f);
+    Range<Float> zoomRanges = null;
+    //only camera limited or better support this feature.
+    if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.R &&
+        getLevelSupported() != CameraMetadata.INFO_SUPPORTED_HARDWARE_LEVEL_LEGACY) {
+      zoomRanges = characteristics.get(CameraCharacteristics.CONTROL_ZOOM_RATIO_RANGE);
+    }
+    if (zoomRanges == null) {
+      Float maxZoom = characteristics.get(CameraCharacteristics.SCALER_AVAILABLE_MAX_DIGITAL_ZOOM);
+      if (maxZoom == null) maxZoom = 1f;
+      zoomRanges = new Range<>(1f, maxZoom);
+    }
+    return zoomRanges;
   }
 
   public Float getZoom() {
@@ -808,25 +817,30 @@ public class Camera2ApiManager extends CameraDevice.StateCallback {
 
   public void setZoom(float level) {
     try {
-      float maxZoom = getMaxZoom();
+      Range<Float> zoomRange = getZoomRange();
       //Avoid out range level
-      if (level <= 0f) {
-        level = 0.01f;
-      } else if (level > maxZoom) level = maxZoom;
+      if (level <= zoomRange.getLower()) level = zoomRange.getLower();
+      else if (level > zoomRange.getUpper()) level = zoomRange.getUpper();
 
       CameraCharacteristics characteristics = getCameraCharacteristics();
       if (characteristics == null) return;
-      Rect rect = characteristics.get(CameraCharacteristics.SENSOR_INFO_ACTIVE_ARRAY_SIZE);
-      if (rect == null) return;
-      //This ratio is the ratio of cropped Rect to Camera's original(Maximum) Rect
-      float ratio = 1f / level;
-      //croppedWidth and croppedHeight are the pixels cropped away, not pixels after cropped
-      int croppedWidth = rect.width() - Math.round((float) rect.width() * ratio);
-      int croppedHeight = rect.height() - Math.round((float) rect.height() * ratio);
-      //Finally, zoom represents the zoomed visible area
-      Rect zoom = new Rect(croppedWidth / 2, croppedHeight / 2, rect.width() - croppedWidth / 2,
-          rect.height() - croppedHeight / 2);
-      builderInputSurface.set(CaptureRequest.SCALER_CROP_REGION, zoom);
+
+      if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.R &&
+          getLevelSupported() != CameraMetadata.INFO_SUPPORTED_HARDWARE_LEVEL_LEGACY) {
+        builderInputSurface.set(CaptureRequest.CONTROL_ZOOM_RATIO, level);
+      } else {
+        Rect rect = characteristics.get(CameraCharacteristics.SENSOR_INFO_ACTIVE_ARRAY_SIZE);
+        if (rect == null) return;
+        //This ratio is the ratio of cropped Rect to Camera's original(Maximum) Rect
+        float ratio = 1f / level;
+        //croppedWidth and croppedHeight are the pixels cropped away, not pixels after cropped
+        int croppedWidth = rect.width() - Math.round((float) rect.width() * ratio);
+        int croppedHeight = rect.height() - Math.round((float) rect.height() * ratio);
+        //Finally, zoom represents the zoomed visible area
+        Rect zoom = new Rect(croppedWidth / 2, croppedHeight / 2, rect.width() - croppedWidth / 2,
+            rect.height() - croppedHeight / 2);
+        builderInputSurface.set(CaptureRequest.SCALER_CROP_REGION, zoom);
+      }
       cameraCaptureSession.setRepeatingRequest(builderInputSurface.build(),
           faceDetectionEnabled ? cb : null, null);
       zoomLevel = level;
@@ -839,18 +853,18 @@ public class Camera2ApiManager extends CameraDevice.StateCallback {
     float currentFingerSpacing;
     if (event.getPointerCount() > 1) {
       currentFingerSpacing = getFingerSpacing(event);
+      Range<Float> zoomRange = getZoomRange();
       float delta = 0.1f;
-      float maxZoom = getMaxZoom();
       if (fingerSpacing != 0) {
         float newLevel = zoomLevel;
         if (currentFingerSpacing > fingerSpacing) { //Don't over zoom-in
-          if ((maxZoom - zoomLevel) <= delta) {
-            delta = maxZoom - zoomLevel;
+          if (zoomRange.getUpper() - zoomLevel <= zoomRange.getUpper()) {
+            delta = zoomRange.getUpper() - zoomLevel;
           }
           newLevel += delta;
         } else if (currentFingerSpacing < fingerSpacing) { //Don't over zoom-out
-          if ((zoomLevel - delta) < 1f) {
-            delta = zoomLevel - 1f;
+          if (zoomLevel - delta < zoomRange.getLower()) {
+            delta = zoomLevel - zoomRange.getLower();
           }
           newLevel -= delta;
         }
