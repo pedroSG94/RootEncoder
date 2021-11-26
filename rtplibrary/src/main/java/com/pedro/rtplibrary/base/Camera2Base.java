@@ -785,12 +785,12 @@ public abstract class Camera2Base implements GetAacData, GetVideoData, GetMicrop
   }
 
   /**
-   * Return max zoom level
+   * Return zoom level range
    *
-   * @return max zoom level
+   * @return zoom level range
    */
-  public float getMaxZoom() {
-    return cameraManager.getMaxZoom();
+  public Range<Float> getZoomRange() {
+    return cameraManager.getZoomRange();
   }
 
   /**
