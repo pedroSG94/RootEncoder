@@ -17,9 +17,13 @@
 package com.pedro.encoder.input.video;
 
 import android.content.Context;
+import android.os.Build;
+import android.util.Range;
 import android.view.MotionEvent;
 import android.view.Surface;
 import android.view.WindowManager;
+
+import androidx.annotation.RequiresApi;
 
 /**
  * Created by pedro on 17/12/18.
@@ -68,6 +72,19 @@ public class CameraHelper {
     float x = event.getX(0) - event.getX(1);
     float y = event.getY(0) - event.getY(1);
     return (float) Math.sqrt(x * x + y * y);
+  }
+
+  /**
+   * Method to fix camera2 quality related with fps range.
+   * Add a device if needed.
+   */
+  @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
+  public static boolean discardCamera2Fps(Range<Integer> range, Facing facing) {
+    //On Google pixel 4a, 30 and 15 fps ranges produce quality problems with camera2 using facing back.
+    if (Build.MODEL.toLowerCase().contains("pixel 4a")) {
+      return facing == Facing.BACK && (range.getUpper() == 30 || range.getUpper() == 15);
+    }
+    return false;
   }
 
   public enum Facing {

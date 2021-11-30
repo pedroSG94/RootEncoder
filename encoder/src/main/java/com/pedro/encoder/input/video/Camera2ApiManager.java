@@ -199,12 +199,19 @@ public class Camera2ApiManager extends CameraDevice.StateCallback {
     try {
       builderInputSurface = cameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_PREVIEW);
       for (Surface surface : surfaces) if (surface != null) builderInputSurface.addTarget(surface);
+      setModeAuto(builderInputSurface);
       adaptFpsRange(fps, builderInputSurface);
       return builderInputSurface.build();
     } catch (CameraAccessException | IllegalStateException e) {
       Log.e(TAG, "Error", e);
       return null;
     }
+  }
+
+  private void setModeAuto(CaptureRequest.Builder builderInputSurface) {
+    try {
+      builderInputSurface.set(CaptureRequest.CONTROL_MODE, CameraMetadata.CONTROL_MODE_AUTO);
+    } catch (Exception ignored) { }
   }
 
   private void adaptFpsRange(int expectedFps, CaptureRequest.Builder builderInputSurface) {
@@ -214,16 +221,21 @@ public class Camera2ApiManager extends CameraDevice.StateCallback {
       int measure = Math.abs(closestRange.getLower() - expectedFps) + Math.abs(
           closestRange.getUpper() - expectedFps);
       for (Range<Integer> range : fpsRanges) {
+        if (CameraHelper.discardCamera2Fps(range, facing)) continue;
         if (range.getLower() <= expectedFps && range.getUpper() >= expectedFps) {
-          int curMeasure =
-              Math.abs(range.getLower() - expectedFps) + Math.abs(range.getUpper() - expectedFps);
+          int curMeasure = Math.abs(((range.getLower() + range.getUpper()) / 2) - expectedFps);
           if (curMeasure < measure) {
             closestRange = range;
             measure = curMeasure;
+          } else if (curMeasure == measure) {
+            if (Math.abs(range.getUpper() - expectedFps) < Math.abs(closestRange.getUpper() - expectedFps)) {
+              closestRange = range;
+              measure = curMeasure;
+            }
           }
         }
       }
-      Log.i(TAG, "camera2 fps: " + closestRange.getLower() + " - " + closestRange.getUpper());
+      Log.i(TAG, "fps: " + closestRange.getLower() + " - " + closestRange.getUpper());
       builderInputSurface.set(CaptureRequest.CONTROL_AE_TARGET_FPS_RANGE, closestRange);
     }
   }
@@ -241,8 +253,8 @@ public class Camera2ApiManager extends CameraDevice.StateCallback {
             characteristics.get(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP);
         List<Range<Integer>> list = new ArrayList<>();
         long fd = streamConfigurationMap.getOutputMinFrameDuration(SurfaceTexture.class, size);
+        int maxFPS = (int)(10f / Float.parseFloat("0." + fd));
         for (Range<Integer> r : fpsSupported) {
-          int maxFPS = (int)(10f / Float.parseFloat("0." + fd));
           if (r.getUpper() <= maxFPS) {
             list.add(r);
           }
@@ -526,11 +538,7 @@ public class Camera2ApiManager extends CameraDevice.StateCallback {
    * @required: <uses-permission android:name="android.permission.FLASHLIGHT"/>
    */
   public void enableLantern() throws Exception {
-    CameraCharacteristics characteristics = getCameraCharacteristics();
-    if (characteristics == null) return;
-    Boolean available = characteristics.get(CameraCharacteristics.FLASH_INFO_AVAILABLE);
-    if (available == null) return;
-    if (available) {
+    if (isLanternSupported()) {
       if (builderInputSurface != null) {
         try {
           builderInputSurface.set(CaptureRequest.FLASH_MODE, CameraMetadata.FLASH_MODE_TORCH);
@@ -579,18 +587,25 @@ public class Camera2ApiManager extends CameraDevice.StateCallback {
       for (int i : supportedFocusModes) focusModesList.add(i);
       if (builderInputSurface != null) {
         try {
-          if (focusModesList.contains(CaptureRequest.CONTROL_AF_MODE_CONTINUOUS_PICTURE)) {
-            builderInputSurface.set(CaptureRequest.CONTROL_AF_MODE,
-                CaptureRequest.CONTROL_AF_MODE_CONTINUOUS_PICTURE);
-            cameraCaptureSession.setRepeatingRequest(builderInputSurface.build(),
-                faceDetectionEnabled ? cb : null, null);
-            autoFocusEnabled = true;
-          } else if (focusModesList.contains(CaptureRequest.CONTROL_AF_MODE_AUTO)) {
-            builderInputSurface.set(CaptureRequest.CONTROL_AF_MODE,
-                CaptureRequest.CONTROL_AF_MODE_AUTO);
-            cameraCaptureSession.setRepeatingRequest(builderInputSurface.build(),
-                faceDetectionEnabled ? cb : null, null);
-            autoFocusEnabled = true;
+          if (!focusModesList.isEmpty()) {
+            if (focusModesList.contains(CaptureRequest.CONTROL_AF_MODE_CONTINUOUS_PICTURE)) {
+              builderInputSurface.set(CaptureRequest.CONTROL_AF_MODE,
+                  CaptureRequest.CONTROL_AF_MODE_CONTINUOUS_PICTURE);
+              cameraCaptureSession.setRepeatingRequest(builderInputSurface.build(),
+                  faceDetectionEnabled ? cb : null, null);
+              autoFocusEnabled = true;
+            } else if (focusModesList.contains(CaptureRequest.CONTROL_AF_MODE_AUTO)) {
+              builderInputSurface.set(CaptureRequest.CONTROL_AF_MODE,
+                  CaptureRequest.CONTROL_AF_MODE_AUTO);
+              cameraCaptureSession.setRepeatingRequest(builderInputSurface.build(),
+                  faceDetectionEnabled ? cb : null, null);
+              autoFocusEnabled = true;
+            } else {
+              builderInputSurface.set(CaptureRequest.CONTROL_AF_MODE, focusModesList.get(0));
+              cameraCaptureSession.setRepeatingRequest(builderInputSurface.build(),
+                  faceDetectionEnabled ? cb : null, null);
+              autoFocusEnabled = false;
+            }
           }
         } catch (Exception e) {
           Log.e(TAG, "Error", e);
