@@ -81,7 +81,8 @@ public class CameraHelper {
   @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
   public static boolean discardCamera2Fps(Range<Integer> range, Facing facing) {
     //On Google pixel 4a, 30 and 15 fps ranges produce quality problems with camera2 using facing back.
-    if (Build.MODEL.toLowerCase().contains("pixel 4a")) {
+    //Build.MODEL.equalsIgnoreCase("Pixel 4") maybe necessary in future.
+    if (Build.MODEL.equalsIgnoreCase("Pixel 4a")) {
       return facing == Facing.BACK && (range.getUpper() == 30 || range.getUpper() == 15);
     }
     return false;
