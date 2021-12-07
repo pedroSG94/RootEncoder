@@ -88,6 +88,7 @@ public class Camera2ApiManager extends CameraDevice.StateCallback {
   private float zoomLevel = 0f;
   private boolean lanternEnable = false;
   private boolean videoStabilizationEnable = false;
+  private boolean opticalVideoStabilizationEnable = false;
   private boolean autoFocusEnabled = true;
   private boolean running = false;
   private int fps = 30;
@@ -387,6 +388,51 @@ public class Camera2ApiManager extends CameraDevice.StateCallback {
 
   public boolean isVideoStabilizationEnabled() {
     return videoStabilizationEnable;
+  }
+
+  public boolean enableOpticalVideoStabilization() {
+    CameraCharacteristics characteristics = getCameraCharacteristics();
+    if (characteristics == null) return false;
+
+    int[] opticalStabilizationModes = characteristics.get(CameraCharacteristics.LENS_INFO_AVAILABLE_OPTICAL_STABILIZATION);
+    List<Integer> opticalStabilizationList = new ArrayList<>();
+    for (int vsMode : opticalStabilizationModes) {
+      opticalStabilizationList.add(vsMode);
+    }
+
+    if (!opticalStabilizationList.contains(CaptureRequest.LENS_OPTICAL_STABILIZATION_MODE_ON)) {
+      Log.e(TAG, "OIS video stabilization unsupported");
+      return false;
+    }
+    if (builderInputSurface != null) {
+      builderInputSurface.set(CaptureRequest.LENS_OPTICAL_STABILIZATION_MODE,
+              CaptureRequest.LENS_OPTICAL_STABILIZATION_MODE_ON);
+      opticalVideoStabilizationEnable = true;
+    }
+    return videoStabilizationEnable;
+  }
+
+  public void disableOpticalVideoStabilization() {
+    CameraCharacteristics characteristics = getCameraCharacteristics();
+    if (characteristics == null) return;
+    int[] modes = characteristics.get(CameraCharacteristics.LENS_INFO_AVAILABLE_OPTICAL_STABILIZATION);
+    List<Integer> videoStabilizationList = new ArrayList<>();
+    for (int vsMode : modes) {
+      videoStabilizationList.add(vsMode);
+    }
+    if (!videoStabilizationList.contains(CaptureRequest.LENS_OPTICAL_STABILIZATION_MODE_ON)) {
+      Log.e(TAG, "OIS video stabilization unsupported");
+      return;
+    }
+    if (builderInputSurface != null) {
+      builderInputSurface.set(CaptureRequest.LENS_OPTICAL_STABILIZATION_MODE,
+              CaptureRequest.LENS_OPTICAL_STABILIZATION_MODE_OFF);
+      opticalVideoStabilizationEnable = false;
+    }
+  }
+
+  public boolean isOpticalStabilizationEnabled() {
+    return opticalVideoStabilizationEnable;
   }
 
   public void setFocusDistance(float distance) {
