@@ -203,6 +203,8 @@ public abstract class Camera2Base implements GetAacData, GetVideoData, GetMicrop
   }
 
   /**
+   * Enable EIS video stabilization
+   * Warning: Turning both OIS and EIS modes on may produce undesirable interaction, so it is recommended not to enable both at the same time.
    * @return true if success, false if fail (not supported or called before start camera)
    */
   public boolean enableVideoStabilization() {
@@ -215,6 +217,23 @@ public abstract class Camera2Base implements GetAacData, GetVideoData, GetMicrop
 
   public boolean isVideoStabilizationEnabled() {
     return cameraManager.isVideoStabilizationEnabled();
+  }
+
+  /**
+   * Enable OIS video stabilization
+   * Warning: Turning both OIS and EIS modes on may produce undesirable interaction, so it is recommended not to enable both at the same time.
+   * @return true if success, false if fail (not supported or called before start camera)
+   */
+  public boolean enableOpticalVideoStabilization() {
+    return cameraManager.enableOpticalVideoStabilization();
+  }
+
+  public void disableOpticalVideoStabilization() {
+    cameraManager.disableOpticalVideoStabilization();
+  }
+
+  public boolean isOpticalVideoStabilizationEnabled() {
+    return cameraManager.isOpticalStabilizationEnabled();
   }
 
   /**
