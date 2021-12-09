@@ -421,7 +421,7 @@ public class Camera2ApiManager extends CameraDevice.StateCallback {
               CaptureRequest.LENS_OPTICAL_STABILIZATION_MODE_ON);
       opticalVideoStabilizationEnable = true;
     }
-    return videoStabilizationEnable;
+    return opticalVideoStabilizationEnable;
   }
 
   public void disableOpticalVideoStabilization() {
