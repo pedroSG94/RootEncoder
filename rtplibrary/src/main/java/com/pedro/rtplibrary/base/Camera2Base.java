@@ -17,6 +17,7 @@
 package com.pedro.rtplibrary.base;
 
 import android.content.Context;
+import android.graphics.Point;
 import android.hardware.camera2.CameraCharacteristics;
 import android.media.MediaCodec;
 import android.media.MediaFormat;
@@ -470,19 +471,14 @@ public abstract class Camera2Base implements GetAacData, GetVideoData, GetMicrop
   private void replaceGlInterface(GlInterface glInterface) {
     if (this.glInterface != null && Build.VERSION.SDK_INT >= 18) {
       if (isStreaming() || isRecording() || isOnPreview()) {
+        Point size = this.glInterface.getEncoderSize();
         cameraManager.closeCamera();
         this.glInterface.removeMediaCodecSurface();
         this.glInterface.stop();
         this.glInterface = glInterface;
         this.glInterface.init();
-        boolean isPortrait = CameraHelper.isPortrait(context);
-        if (isPortrait) {
-          this.glInterface.setEncoderSize(videoEncoder.getHeight(), videoEncoder.getWidth());
-        } else {
-          this.glInterface.setEncoderSize(videoEncoder.getWidth(), videoEncoder.getHeight());
-        }
-        this.glInterface.setRotation(
-            videoEncoder.getRotation() == 0 ? 270 : videoEncoder.getRotation() - 90);
+        this.glInterface.setEncoderSize(size.x, size.y);
+        this.glInterface.setRotation(videoEncoder.getRotation() == 0 ? 270 : videoEncoder.getRotation() - 90);
         this.glInterface.start();
         if (isStreaming() || isRecording()) {
           this.glInterface.addMediaCodecSurface(videoEncoder.getInputSurface());
@@ -639,8 +635,10 @@ public abstract class Camera2Base implements GetAacData, GetVideoData, GetMicrop
     onPreview = true;
   }
 
-  protected void requestKeyFrame() {
-    videoEncoder.requestKeyframe();
+  public void requestKeyFrame() {
+    if (videoEncoder.isRunning()) {
+      videoEncoder.requestKeyframe();
+    }
   }
 
   private void prepareGlView() {

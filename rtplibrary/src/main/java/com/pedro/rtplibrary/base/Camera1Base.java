@@ -17,6 +17,7 @@
 package com.pedro.rtplibrary.base;
 
 import android.content.Context;
+import android.graphics.Point;
 import android.hardware.Camera;
 import android.media.MediaCodec;
 import android.media.MediaFormat;
@@ -434,17 +435,13 @@ public abstract class Camera1Base
   private void replaceGlInterface(GlInterface glInterface) {
     if (this.glInterface != null && Build.VERSION.SDK_INT >= 18) {
       if (isStreaming() || isRecording() || isOnPreview()) {
+        Point size = this.glInterface.getEncoderSize();
         cameraManager.stop();
         this.glInterface.removeMediaCodecSurface();
         this.glInterface.stop();
         this.glInterface = glInterface;
         this.glInterface.init();
-        boolean isPortrait = CameraHelper.isPortrait(context);
-        if (isPortrait) {
-          this.glInterface.setEncoderSize(videoEncoder.getHeight(), videoEncoder.getWidth());
-        } else {
-          this.glInterface.setEncoderSize(videoEncoder.getWidth(), videoEncoder.getHeight());
-        }
+        this.glInterface.setEncoderSize(size.x, size.y);
         this.glInterface.setRotation(0);
         this.glInterface.start();
         if (isStreaming() || isRecording()) {
@@ -605,16 +602,18 @@ public abstract class Camera1Base
     onPreview = true;
   }
 
-  protected void requestKeyFrame() {
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
-      videoEncoder.requestKeyframe();
-    } else {
-      if (glInterface != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
-        glInterface.removeMediaCodecSurface();
-      }
-      videoEncoder.reset();
-      if (glInterface != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
-        glInterface.addMediaCodecSurface(videoEncoder.getInputSurface());
+  public void requestKeyFrame() {
+    if (videoEncoder.isRunning()) {
+      if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+        videoEncoder.requestKeyframe();
+      } else {
+        if (glInterface != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
+          glInterface.removeMediaCodecSurface();
+        }
+        videoEncoder.reset();
+        if (glInterface != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
+          glInterface.addMediaCodecSurface(videoEncoder.getInputSurface());
+        }
       }
     }
   }

@@ -403,8 +403,10 @@ public abstract class DisplayBase implements GetAacData, GetVideoData, GetMicrop
     if (audioInitialized) microphoneManager.start();
   }
 
-  protected void requestKeyFrame() {
-    videoEncoder.requestKeyframe();
+  public void requestKeyFrame() {
+    if (videoEncoder.isRunning()) {
+      videoEncoder.requestKeyframe();
+    }
   }
 
   protected abstract void stopStreamRtp();

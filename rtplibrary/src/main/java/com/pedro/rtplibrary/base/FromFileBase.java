@@ -380,18 +380,20 @@ public abstract class FromFileBase
     }
   }
 
-  private void requestKeyFrame() {
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
-      videoEncoder.requestKeyframe();
-    } else {
-      if (glInterface != null) {
-        glInterface.removeMediaCodecSurface();
-      }
-      videoEncoder.reset();
-      if (glInterface != null) {
-        glInterface.addMediaCodecSurface(videoEncoder.getInputSurface());
+  public void requestKeyFrame() {
+    if (videoEncoder.isRunning()) {
+      if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+        videoEncoder.requestKeyframe();
       } else {
-        videoDecoder.reset(videoEncoder.getInputSurface());
+        if (glInterface != null) {
+          glInterface.removeMediaCodecSurface();
+        }
+        videoEncoder.reset();
+        if (glInterface != null) {
+          glInterface.addMediaCodecSurface(videoEncoder.getInputSurface());
+        } else {
+          videoDecoder.reset(videoEncoder.getInputSurface());
+        }
       }
     }
   }
