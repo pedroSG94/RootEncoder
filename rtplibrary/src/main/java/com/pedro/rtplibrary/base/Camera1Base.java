@@ -737,14 +737,14 @@ public abstract class Camera1Base
    * Mute microphone, can be called before, while and after stream.
    */
   public void disableAudio() {
-    if (audioInitialized) microphoneManager.mute();
+    microphoneManager.mute();
   }
 
   /**
    * Enable a muted microphone, can be called before, while and after stream.
    */
   public void enableAudio() {
-    if (audioInitialized) microphoneManager.unMute();
+    microphoneManager.unMute();
   }
 
   /**
