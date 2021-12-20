@@ -111,10 +111,10 @@ class CommandsManager {
     connectInfo.setProperty("tcUrl", tcUrl + auth)
     connectInfo.setProperty("fpad", false)
     connectInfo.setProperty("capabilities", 239.0)
-    if (audioDisabled) {
+    if (!audioDisabled) {
       connectInfo.setProperty("audioCodecs", 3191.0)
     }
-    if (videoDisabled) {
+    if (!videoDisabled) {
       connectInfo.setProperty("videoCodecs", 252.0)
       connectInfo.setProperty("videoFunction", 1.0)
     }
