@@ -468,10 +468,11 @@ public abstract class Camera1Base
    * @param rotation camera rotation (0, 90, 180, 270). Recommended: {@link
    * com.pedro.encoder.input.video.CameraHelper#getCameraOrientation(Context)}
    */
-  public void startPreview(CameraHelper.Facing cameraFacing, int width, int height, int rotation) {
+  public void startPreview(CameraHelper.Facing cameraFacing, int width, int height, int fps, int rotation) {
     if (!isStreaming() && !onPreview && !(glInterface instanceof OffScreenGlThread)) {
       previewWidth = width;
       previewHeight = height;
+      videoEncoder.setFps(fps);
       if (glInterface != null && Build.VERSION.SDK_INT >= 18) {
         boolean isPortrait = CameraHelper.isPortrait(context);
         if (isPortrait) {
@@ -480,6 +481,7 @@ public abstract class Camera1Base
           glInterface.setEncoderSize(width, height);
         }
         glInterface.setRotation(0);
+        glInterface.setFps(fps);
         glInterface.start();
         cameraManager.setSurfaceTexture(glInterface.getSurfaceTexture());
       }
@@ -493,6 +495,10 @@ public abstract class Camera1Base
     } else {
       Log.e(TAG, "Streaming or preview started, ignored");
     }
+  }
+
+  public void startPreview(CameraHelper.Facing cameraFacing, int width, int height, int rotation) {
+    startPreview(cameraFacing, width, height, videoEncoder.getFps(), rotation);
   }
 
   public void startPreview(CameraHelper.Facing cameraFacing, int width, int height) {

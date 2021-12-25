@@ -501,14 +501,23 @@ public abstract class Camera2Base implements GetAacData, GetVideoData, GetMicrop
    * @param rotation camera rotation (0, 90, 180, 270). Recommended: {@link
    * com.pedro.encoder.input.video.CameraHelper#getCameraOrientation(Context)}
    */
+  public void startPreview(CameraHelper.Facing cameraFacing, int width, int height, int fps, int rotation) {
+    startPreview(cameraManager.getCameraIdForFacing(cameraFacing), width, height, fps, rotation);
+  }
+
   public void startPreview(CameraHelper.Facing cameraFacing, int width, int height, int rotation) {
-    startPreview(cameraManager.getCameraIdForFacing(cameraFacing), width, height, rotation);
+    startPreview(cameraFacing, width, height, videoEncoder.getFps(), rotation);
   }
 
   public void startPreview(String cameraId, int width, int height, int rotation) {
+    startPreview(cameraId, width, height, videoEncoder.getFps(), rotation);
+  }
+
+  public void startPreview(String cameraId, int width, int height, int fps, int rotation) {
     if (!isStreaming() && !onPreview && !isBackground) {
       previewWidth = width;
       previewHeight = height;
+      videoEncoder.setFps(fps);
       if (surfaceView != null) {
         cameraManager.prepareCamera(surfaceView.getHolder().getSurface(), videoEncoder.getFps());
       } else if (textureView != null) {
@@ -522,6 +531,7 @@ public abstract class Camera2Base implements GetAacData, GetVideoData, GetMicrop
           glInterface.setEncoderSize(width, height);
         }
         glInterface.setRotation(rotation == 0 ? 270 : rotation - 90);
+        glInterface.setFps(videoEncoder.getFps());
         glInterface.start();
         cameraManager.prepareCamera(glInterface.getSurfaceTexture(), width, height,
             videoEncoder.getFps());
@@ -824,7 +834,7 @@ public abstract class Camera2Base implements GetAacData, GetVideoData, GetMicrop
    * Use this method if you use a zoom slider.
    *
    * @param level Expected to be >= 1 and <= max zoom level
-   * @see Camera2Base#getMaxZoom()
+   * @see Camera2Base#getZoom()
    */
   public void setZoom(float level) {
     cameraManager.setZoom(level);
