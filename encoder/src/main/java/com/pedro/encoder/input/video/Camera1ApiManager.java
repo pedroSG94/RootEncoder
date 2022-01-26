@@ -216,6 +216,54 @@ public class Camera1ApiManager implements Camera.PreviewCallback, Camera.FaceDet
     }
   }
 
+  public void setZoom(int level) {
+    try {
+      if (camera != null && running && camera.getParameters() != null && camera.getParameters()
+          .isZoomSupported()) {
+        android.hardware.Camera.Parameters params = camera.getParameters();
+        int maxZoom = params.getMaxZoom();
+        if (level > maxZoom) level = maxZoom;
+        else if (level < getMinZoom()) level = getMinZoom();
+        params.setZoom(level);
+        camera.setParameters(params);
+      }
+    } catch (Exception e) {
+      Log.e(TAG, "Error", e);
+    }
+  }
+
+  public int getZoom() {
+    try {
+      if (camera != null && running && camera.getParameters() != null && camera.getParameters()
+          .isZoomSupported()) {
+        android.hardware.Camera.Parameters params = camera.getParameters();
+        return params.getZoom();
+      } else {
+        return getMinZoom();
+      }
+    } catch (Exception e) {
+      Log.e(TAG, "Error", e);
+      return getMinZoom();
+    }
+  }
+
+  public int getMaxZoom() {
+    try {
+      if (camera != null && running && camera.getParameters() != null && camera.getParameters()
+          .isZoomSupported()) {
+        android.hardware.Camera.Parameters params = camera.getParameters();
+        return params.getMaxZoom();
+      } else {
+        return getMinZoom();
+      }
+    } catch (Exception e) {
+      Log.e(TAG, "Error", e);
+      return getMinZoom();
+    }
+  }
+
+  public int getMinZoom() { return 0; }
+
   public void setZoom(MotionEvent event) {
     try {
       if (camera != null && running && camera.getParameters() != null && camera.getParameters()

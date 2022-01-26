@@ -561,6 +561,44 @@ public abstract class Camera1Base
     cameraManager.setZoom(event);
   }
 
+  /**
+   * Set zoomIn or zoomOut to camera.
+   * Use this method if you use a zoom slider.
+   *
+   * @param level Expected to be >= 1 and <= max zoom level
+   * @see Camera2Base#getZoom()
+   */
+  public void setZoom(int level) {
+    cameraManager.setZoom(level);
+  }
+
+  /**
+   * Return current zoom level
+   *
+   * @return current zoom level
+   */
+  public float getZoom() {
+    return cameraManager.getZoom();
+  }
+
+  /**
+   * Return max zoom level
+   *
+   * @return max zoom level range
+   */
+  public int getMaxZoom() {
+    return cameraManager.getMaxZoom();
+  }
+
+  /**
+   * Return min zoom level
+   *
+   * @return min zoom level range
+   */
+  public int getMinZoom() {
+    return cameraManager.getMinZoom();
+  }
+
   @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
   public void startStreamAndRecord(String url, String path, RecordController.Listener listener) throws IOException {
     startStream(url);
