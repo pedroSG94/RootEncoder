@@ -174,6 +174,8 @@ public abstract class BaseEncoder implements EncoderCallback {
 
   protected abstract Frame getInputFrame() throws InterruptedException;
 
+  protected abstract long calculatePts(Frame frame, long presentTimeUs);
+
   private void processInput(@NonNull ByteBuffer byteBuffer, @NonNull MediaCodec mediaCodec,
       int inBufferIndex) throws IllegalStateException {
     try {
@@ -182,7 +184,7 @@ public abstract class BaseEncoder implements EncoderCallback {
       byteBuffer.clear();
       int size = Math.max(0, Math.min(frame.getSize(), byteBuffer.remaining()) - frame.getOffset());
       byteBuffer.put(frame.getBuffer(), frame.getOffset(), size);
-      long pts = System.nanoTime() / 1000 - presentTimeUs;
+      long pts = calculatePts(frame, presentTimeUs);
       mediaCodec.queueInputBuffer(inBufferIndex, 0, size, pts, 0);
     } catch (InterruptedException e) {
       Thread.currentThread().interrupt();

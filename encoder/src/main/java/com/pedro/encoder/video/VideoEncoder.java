@@ -450,6 +450,11 @@ public class VideoEncoder extends BaseEncoder implements GetCameraData {
   }
 
   @Override
+  protected long calculatePts(Frame frame, long presentTimeUs) {
+    return System.nanoTime() / 1000 - presentTimeUs;
+  }
+
+  @Override
   public void formatChanged(@NonNull MediaCodec mediaCodec, @NonNull MediaFormat mediaFormat) {
     getVideoData.onVideoFormat(mediaFormat);
     sendSPSandPPS(mediaFormat);

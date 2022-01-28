@@ -162,10 +162,17 @@ public abstract class Camera2Base implements GetAacData, GetVideoData, GetMicrop
         microphoneManager = new MicrophoneManagerManual();
         audioEncoder = new AudioEncoder(this);
         audioEncoder.setGetFrame(((MicrophoneManagerManual) microphoneManager).getGetFrame());
+        audioEncoder.setTsModeBuffer(false);
         break;
       case ASYNC:
         microphoneManager = new MicrophoneManager(this);
         audioEncoder = new AudioEncoder(this);
+        audioEncoder.setTsModeBuffer(false);
+        break;
+      case BUFFER:
+        microphoneManager = new MicrophoneManager(this);
+        audioEncoder = new AudioEncoder(this);
+        audioEncoder.setTsModeBuffer(true);
         break;
     }
   }
