@@ -59,7 +59,7 @@ public class ExampleRtmpActivity extends AppCompatActivity
     super.onCreate(savedInstanceState);
     getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
     setContentView(R.layout.activity_example);
-    folder = PathUtils.getRecordPath(this);
+    folder = PathUtils.getRecordPath();
     SurfaceView surfaceView = findViewById(R.id.surfaceView);
     button = findViewById(R.id.b_start_stop);
     button.setOnClickListener(this);
@@ -193,11 +193,13 @@ public class ExampleRtmpActivity extends AppCompatActivity
               }
             } catch (IOException e) {
               rtmpCamera1.stopRecord();
+              PathUtils.updateGallery(this, folder.getAbsolutePath() + "/" + currentDateAndTime + ".mp4");
               bRecord.setText(R.string.start_record);
               Toast.makeText(this, e.getMessage(), Toast.LENGTH_SHORT).show();
             }
           } else {
             rtmpCamera1.stopRecord();
+            PathUtils.updateGallery(this, folder.getAbsolutePath() + "/" + currentDateAndTime + ".mp4");
             bRecord.setText(R.string.start_record);
             Toast.makeText(this,
                 "file " + currentDateAndTime + ".mp4 saved in " + folder.getAbsolutePath(),
@@ -228,6 +230,7 @@ public class ExampleRtmpActivity extends AppCompatActivity
   public void surfaceDestroyed(SurfaceHolder surfaceHolder) {
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2 && rtmpCamera1.isRecording()) {
       rtmpCamera1.stopRecord();
+      PathUtils.updateGallery(this, folder.getAbsolutePath() + "/" + currentDateAndTime + ".mp4");
       bRecord.setText(R.string.start_record);
       Toast.makeText(this,
           "file " + currentDateAndTime + ".mp4 saved in " + folder.getAbsolutePath(),

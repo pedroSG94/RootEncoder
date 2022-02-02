@@ -63,7 +63,7 @@ public class TextureModeRtmpActivity extends AppCompatActivity
     super.onCreate(savedInstanceState);
     getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
     setContentView(R.layout.activity_texture_mode);
-    folder = PathUtils.getRecordPath(this);
+    folder = PathUtils.getRecordPath();
     textureView = findViewById(R.id.textureView);
     button = findViewById(R.id.b_start_stop);
     button.setOnClickListener(this);
@@ -190,11 +190,13 @@ public class TextureModeRtmpActivity extends AppCompatActivity
             }
           } catch (IOException e) {
             rtmpCamera2.stopRecord();
+            PathUtils.updateGallery(this, folder.getAbsolutePath() + "/" + currentDateAndTime + ".mp4");
             bRecord.setText(R.string.start_record);
             Toast.makeText(this, e.getMessage(), Toast.LENGTH_SHORT).show();
           }
         } else {
           rtmpCamera2.stopRecord();
+          PathUtils.updateGallery(this, folder.getAbsolutePath() + "/" + currentDateAndTime + ".mp4");
           bRecord.setText(R.string.start_record);
           Toast.makeText(this,
               "file " + currentDateAndTime + ".mp4 saved in " + folder.getAbsolutePath(),
@@ -221,6 +223,7 @@ public class TextureModeRtmpActivity extends AppCompatActivity
   public boolean onSurfaceTextureDestroyed(SurfaceTexture surfaceTexture) {
     if (rtmpCamera2.isRecording()) {
       rtmpCamera2.stopRecord();
+      PathUtils.updateGallery(this, folder.getAbsolutePath() + "/" + currentDateAndTime + ".mp4");
       bRecord.setText(R.string.start_record);
       Toast.makeText(this,
           "file " + currentDateAndTime + ".mp4 saved in " + folder.getAbsolutePath(),

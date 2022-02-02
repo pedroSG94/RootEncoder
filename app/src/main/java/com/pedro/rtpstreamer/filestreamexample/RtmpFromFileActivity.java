@@ -68,7 +68,7 @@ public class RtmpFromFileActivity extends AppCompatActivity
     super.onCreate(savedInstanceState);
     getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
     setContentView(R.layout.activity_from_file);
-    folder = PathUtils.getRecordPath(this);
+    folder = PathUtils.getRecordPath();
     button = findViewById(R.id.b_start_stop);
     bSelectFile = findViewById(R.id.b_select_file);
     button.setOnClickListener(this);
@@ -91,6 +91,7 @@ public class RtmpFromFileActivity extends AppCompatActivity
     super.onPause();
     if (rtmpFromFile.isRecording()) {
       rtmpFromFile.stopRecord();
+      PathUtils.updateGallery(this, folder.getAbsolutePath() + "/" + currentDateAndTime + ".mp4");
       bRecord.setText(R.string.start_record);
     }
     if (rtmpFromFile.isStreaming()) {
@@ -244,11 +245,13 @@ public class RtmpFromFileActivity extends AppCompatActivity
             }
           } catch (IOException e) {
             rtmpFromFile.stopRecord();
+            PathUtils.updateGallery(this, folder.getAbsolutePath() + "/" + currentDateAndTime + ".mp4");
             bRecord.setText(R.string.start_record);
             Toast.makeText(this, e.getMessage(), Toast.LENGTH_SHORT).show();
           }
         } else {
           rtmpFromFile.stopRecord();
+          PathUtils.updateGallery(this, folder.getAbsolutePath() + "/" + currentDateAndTime + ".mp4");
           bRecord.setText(R.string.start_record);
           Toast.makeText(this,
               "file " + currentDateAndTime + ".mp4 saved in " + folder.getAbsolutePath(),
@@ -298,6 +301,7 @@ public class RtmpFromFileActivity extends AppCompatActivity
       public void run() {
         if (rtmpFromFile.isRecording()) {
           rtmpFromFile.stopRecord();
+          PathUtils.updateGallery(getApplicationContext(), folder.getAbsolutePath() + "/" + currentDateAndTime + ".mp4");
           bRecord.setText(R.string.start_record);
           Toast.makeText(RtmpFromFileActivity.this,
               "file " + currentDateAndTime + ".mp4 saved in " + folder.getAbsolutePath(),
