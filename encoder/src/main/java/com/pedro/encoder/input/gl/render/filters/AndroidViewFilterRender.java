@@ -32,6 +32,7 @@ import android.view.Surface;
 import android.view.View;
 import androidx.annotation.RequiresApi;
 import com.pedro.encoder.R;
+import com.pedro.encoder.input.gl.AndroidViewSprite;
 import com.pedro.encoder.utils.gl.GlUtil;
 import com.pedro.encoder.utils.gl.TranslateTo;
 import java.nio.ByteBuffer;
@@ -72,12 +73,7 @@ public class AndroidViewFilterRender extends BaseFilterRender {
   private boolean running = false;
   private ExecutorService thread = null;
   private boolean hardwareMode = true;
-
-  private int rotation;
-  private float positionX = 0, positionY = 0;
-  private float scaleX = 1f, scaleY = 1f;
-  private boolean loaded = false;
-  private float viewX, viewY;
+  private final AndroidViewSprite sprite;
   private volatile Status renderingStatus = Status.DONE1;
 
   private enum Status {
@@ -91,6 +87,7 @@ public class AndroidViewFilterRender extends BaseFilterRender {
     squareVertex.put(squareVertexDataFilter).position(0);
     Matrix.setIdentityM(MVPMatrix, 0);
     Matrix.setIdentityM(STMatrix, 0);
+    sprite = new AndroidViewSprite();
     mainHandler = new Handler(Looper.getMainLooper());
   }
 
@@ -192,8 +189,7 @@ public class AndroidViewFilterRender extends BaseFilterRender {
     this.view = view;
     if (view != null) {
       view.measure(View.MeasureSpec.UNSPECIFIED, View.MeasureSpec.UNSPECIFIED);
-      viewX = view.getMeasuredWidth();
-      viewY = view.getMeasuredHeight();
+      sprite.setView(view);
       startRender();
     }
   }
@@ -204,80 +200,31 @@ public class AndroidViewFilterRender extends BaseFilterRender {
    * @param y Position in percent
    */
   public void setPosition(float x, float y) {
-    int previewX = getPreviewWidth();
-    int previewY = getPreviewHeight();
-    this.positionX = previewX * x / 100f;
-    this.positionY = previewY * y / 100f;
+    sprite.translate(x, y);
   }
 
   public void setPosition(TranslateTo positionTo) {
-    int previewX = getPreviewWidth();
-    int previewY = getPreviewHeight();
-    switch (positionTo) {
-      case TOP:
-        this.positionX = previewX / 2f - (viewX / 2f);
-        this.positionY = 0f;
-        break;
-      case LEFT:
-        this.positionX = 0;
-        this.positionY = previewY / 2f - (viewY / 2f);
-        break;
-      case RIGHT:
-        this.positionX = previewX - viewX;
-        this.positionY = previewY / 2f - (viewY / 2f);
-        break;
-      case BOTTOM:
-        this.positionX = previewX / 2f - (viewX / 2f);
-        this.positionY = previewY - viewY;
-        break;
-      case CENTER:
-        this.positionX = previewX / 2f - (viewX / 2f);
-        this.positionY = previewY / 2f - (viewY / 2f);
-        break;
-      case TOP_RIGHT:
-        this.positionX = previewX - viewX;
-        this.positionY = 0;
-        break;
-      case BOTTOM_LEFT:
-        this.positionX = 0;
-        this.positionY = previewY - viewY;
-        break;
-      case BOTTOM_RIGHT:
-        this.positionX = previewX - viewX;
-        this.positionY = previewY - viewY;
-        break;
-      case TOP_LEFT:
-      default:
-        this.positionX = 0;
-        this.positionY = 0;
-        break;
-    }
+    sprite.translate(positionTo);
   }
 
   public void setRotation(int rotation) {
-    if (rotation < 0) {
-      this.rotation = 0;
-    } else if (rotation > 360) {
-      this.rotation = 360;
-    } else {
-      this.rotation = rotation;
-    }
+    sprite.setRotation(rotation);
   }
 
   public void setScale(float scaleX, float scaleY) {
-    this.scaleX = scaleX;
-    this.scaleY = scaleY;
-    loaded = true;
+    sprite.scale(scaleX, scaleY);
   }
 
   public PointF getScale() {
-    return new PointF(scaleX, scaleY);
+    return sprite.getScale();
   }
 
   public PointF getPosition() {
-    int previewX = getPreviewWidth();
-    int previewY = getPreviewHeight();
-    return new PointF(positionX * 100 / previewX, positionY  * 100 / previewY);
+    return sprite.getTranslation();
+  }
+
+  public int getRotation() {
+    return sprite.getRotation();
   }
 
   public boolean isHardwareMode() {
@@ -298,13 +245,6 @@ public class AndroidViewFilterRender extends BaseFilterRender {
       while (running) {
         final Status status = renderingStatus;
         if (status == Status.RENDER1 || status == Status.RENDER2) {
-          float scaleFactorX = 100f * (float) view.getWidth() / (float) getPreviewWidth();
-          float scaleFactorY = 100f * (float) view.getHeight() / (float) getPreviewHeight();
-          if (!loaded) {
-            scaleX = scaleFactorX;
-            scaleY = scaleFactorY;
-            loaded = true;
-          }
           final Canvas canvas;
           try {
             if (isHardwareMode()) {
@@ -315,10 +255,17 @@ public class AndroidViewFilterRender extends BaseFilterRender {
           } catch (IllegalStateException e) {
             continue;
           }
+
+          sprite.calculateDefaultScale(getPreviewWidth(), getPreviewHeight());
+          PointF canvasPosition = sprite.getCanvasPosition(getPreviewWidth(), getPreviewHeight());
+          PointF canvasScale = sprite.getCanvasScale(getPreviewWidth(), getPreviewHeight());
+          PointF rotationAxis = sprite.getRotationAxis();
+          int rotation = sprite.getRotation();
+
           canvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR);
-          canvas.rotate(rotation, viewX / 2f, viewY / 2f);
-          canvas.scale(scaleX / scaleFactorX, scaleY / scaleFactorY);
-          canvas.translate(positionX, positionY);
+          canvas.translate(canvasPosition.x, canvasPosition.y);
+          canvas.scale(canvasScale.x, canvasScale.y);
+          canvas.rotate(rotation, rotationAxis.x, rotationAxis.y);
           try {
             view.draw(canvas);
             if (status == Status.RENDER1) {
