@@ -388,11 +388,27 @@ public class CodecUtil {
    */
   private static List<MediaCodecInfo> filterBrokenCodecs(List<MediaCodecInfo> codecs) {
     List<MediaCodecInfo> listFilter = new ArrayList<>();
+    List<MediaCodecInfo> listLowPriority = new ArrayList<>();
+    List<MediaCodecInfo> listUltraLowPriority = new ArrayList<>();
     for (MediaCodecInfo mediaCodecInfo : codecs) {
       if (isValid(mediaCodecInfo.getName())) {
-        listFilter.add(mediaCodecInfo);
+        CodecPriority priority = checkCodecPriority(mediaCodecInfo.getName());
+        switch (priority) {
+          case ULTRA_LOW:
+            listUltraLowPriority.add(mediaCodecInfo);
+            break;
+          case LOW:
+            listLowPriority.add(mediaCodecInfo);
+            break;
+          case NORMAL:
+          default:
+            listFilter.add(mediaCodecInfo);
+            break;
+        }
       }
     }
+    listFilter.addAll(listLowPriority);
+    listFilter.addAll(listUltraLowPriority);
     return listFilter;
   }
 
@@ -403,5 +419,23 @@ public class CodecUtil {
     //This encoder is invalid and produce errors (Only found in AVD API 16)
     if (name.equalsIgnoreCase("aacencoder")) return false;
     return true;
+  }
+
+  private enum CodecPriority {
+    NORMAL, LOW, ULTRA_LOW
+  }
+
+  /**
+   * Few devices have codecs that is not working properly in few cases like using AWS MediaLive or YouTube
+   * but it is still usable in most of cases.
+   * @return priority level.
+   */
+  private static CodecPriority checkCodecPriority(String name) {
+    //maybe only broke on samsung with Android 12+ using YouTube and AWS MediaLive
+    // but set as ultra low priority in all cases.
+    if (name.equalsIgnoreCase("c2.sec.aac.encoder")) return CodecPriority.ULTRA_LOW;
+    //broke on few devices using YouTube and AWS MediaLive
+    else if (name.equalsIgnoreCase("omx.google.aac.encoder")) return CodecPriority.LOW;
+    else return CodecPriority.NORMAL;
   }
 }

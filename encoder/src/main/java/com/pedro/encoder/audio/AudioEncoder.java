@@ -174,16 +174,8 @@ public class AudioEncoder extends BaseEncoder implements GetMicrophoneData {
     }
 
     Log.i(TAG, mediaCodecInfoList.size() + " encoders found");
-    for (MediaCodecInfo mci : mediaCodecInfoList) {
-      String name = mci.getName().toLowerCase();
-      Log.i(TAG, "Encoder " + mci.getName());
-      if (name.contains("omx.google") && mediaCodecInfoList.size() > 1) {
-        //skip omx.google.aac.encoder if possible
-        continue;
-      }
-      return mci;
-    }
-    return null;
+    if (mediaCodecInfoList.isEmpty()) return null;
+    else return mediaCodecInfoList.get(0);
   }
 
   public void setSampleRate(int sampleRate) {
