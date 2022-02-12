@@ -3,15 +3,15 @@
 buildscript {
   ext.kotlin_version = '1.6.10'
   ext.library_group = "com.github.pedroSG94"
-  ext.version_code = 216
-  ext.version_name = "2.1.6"
+  ext.version_code = 217
+  ext.version_name = "2.1.7"
 
   repositories {
     google()
     mavenCentral()
   }
   dependencies {
-    classpath 'com.android.tools.build:gradle:7.0.4'
+    classpath 'com.android.tools.build:gradle:7.1.1'
     classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
     // NOTE: Do not place your application dependencies here; they belong
     // in the individual module build.gradle files

@@ -17,19 +17,23 @@ android {
     }
   }
 
-  afterEvaluate {
-    publishing {
-      publications {
-        // Creates a Maven publication called "release".
-        release(MavenPublication) {
-          // Applies the component for the release build variant.
-          from components.release
+  publishing {
+    singleVariant("release")
+  }
+}
 
-          // You can then customize attributes of the publication as shown below.
-          groupId = "$library_group"
-          artifactId = "encoder"
-          version = "$version_name"
-        }
+afterEvaluate {
+  publishing {
+    publications {
+      // Creates a Maven publication called "release".
+      release(MavenPublication) {
+        // Applies the component for the release build variant.
+        from components.release
+
+        // You can then customize attributes of the publication as shown below.
+        groupId = "$library_group"
+        artifactId = "encoder"
+        version = "$version_name"
       }
     }
   }
