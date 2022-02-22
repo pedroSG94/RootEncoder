@@ -117,6 +117,7 @@ public class OpenGlRtmpActivity extends AppCompatActivity
     super.onCreate(savedInstanceState);
     getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
     setContentView(R.layout.activity_open_gl);
+    getSupportActionBar().hide();
     folder = PathUtils.getRecordPath();
     openGlView = findViewById(R.id.surfaceView);
     button = findViewById(R.id.b_start_stop);
@@ -429,7 +430,7 @@ public class OpenGlRtmpActivity extends AppCompatActivity
         break;
       case R.id.switch_camera:
         try {
-          rtmpCamera1.switchCamera();
+
         } catch (CameraOpenException e) {
           Toast.makeText(this, e.getMessage(), Toast.LENGTH_SHORT).show();
         }
@@ -485,7 +486,7 @@ public class OpenGlRtmpActivity extends AppCompatActivity
 
   @Override
   public void surfaceChanged(SurfaceHolder surfaceHolder, int i, int i1, int i2) {
-    rtmpCamera1.startPreview();
+    rtmpCamera1.startPreview(1280, 720);
   }
 
   @Override
