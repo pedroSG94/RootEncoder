@@ -914,21 +914,15 @@ public class Camera2ApiManager extends CameraDevice.StateCallback {
     float currentFingerSpacing;
     if (event.getPointerCount() > 1) {
       currentFingerSpacing = getFingerSpacing(event);
-      Range<Float> zoomRange = getZoomRange();
       float delta = 0.1f;
       if (fingerSpacing != 0) {
         float newLevel = zoomLevel;
-        if (currentFingerSpacing > fingerSpacing) { //Don't over zoom-in
-          if (zoomRange.getUpper() - zoomLevel <= zoomRange.getUpper()) {
-            delta = zoomRange.getUpper() - zoomLevel;
-          }
+        if (currentFingerSpacing > fingerSpacing) {
           newLevel += delta;
-        } else if (currentFingerSpacing < fingerSpacing) { //Don't over zoom-out
-          if (zoomLevel - delta < zoomRange.getLower()) {
-            delta = zoomLevel - zoomRange.getLower();
-          }
+        } else if (currentFingerSpacing < fingerSpacing) {
           newLevel -= delta;
         }
+        //This method avoid out of range
         setZoom(newLevel);
       }
       fingerSpacing = currentFingerSpacing;
