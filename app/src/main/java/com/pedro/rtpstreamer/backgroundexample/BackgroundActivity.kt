@@ -19,34 +19,40 @@ package com.pedro.rtpstreamer.backgroundexample
 import android.app.ActivityManager
 import android.content.Context
 import android.content.Intent
+import android.os.Build
 import android.os.Bundle
 import android.view.SurfaceHolder
+import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import com.pedro.rtpstreamer.R
-import kotlinx.android.synthetic.main.activity_background.*
+import com.pedro.rtpstreamer.databinding.ActivityBackgroundBinding
 
+@RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
 class BackgroundActivity : AppCompatActivity(), SurfaceHolder.Callback {
+
+  private lateinit var binding: ActivityBackgroundBinding
 
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
-    setContentView(R.layout.activity_background)
+    binding = ActivityBackgroundBinding.inflate(layoutInflater)
+    setContentView(binding.root)
     RtpService.init(this)
-    b_start_stop.setOnClickListener {
+    binding.bStartStop.setOnClickListener {
       if (isMyServiceRunning(RtpService::class.java)) {
         stopService(Intent(applicationContext, RtpService::class.java))
-        b_start_stop.setText(R.string.start_button)
+        binding.bStartStop.setText(R.string.start_button)
       } else {
         val intent = Intent(applicationContext, RtpService::class.java)
-        intent.putExtra("endpoint", et_rtp_url.text.toString())
+        intent.putExtra("endpoint", binding.etRtpUrl.text.toString())
         startService(intent)
-        b_start_stop.setText(R.string.stop_button)
+        binding.bStartStop.setText(R.string.stop_button)
       }
     }
-    surfaceView.holder.addCallback(this)
+    binding.surfaceView.holder.addCallback(this)
   }
 
   override fun surfaceChanged(holder: SurfaceHolder, p1: Int, p2: Int, p3: Int) {
-    RtpService.setView(surfaceView)
+    RtpService.setView(binding.surfaceView)
     RtpService.startPreview()
   }
 
@@ -62,9 +68,9 @@ class BackgroundActivity : AppCompatActivity(), SurfaceHolder.Callback {
   override fun onResume() {
     super.onResume()
     if (isMyServiceRunning(RtpService::class.java)) {
-      b_start_stop.setText(R.string.stop_button)
+      binding.bStartStop.setText(R.string.stop_button)
     } else {
-      b_start_stop.setText(R.string.start_button)
+      binding.bStartStop.setText(R.string.start_button)
     }
   }
 
