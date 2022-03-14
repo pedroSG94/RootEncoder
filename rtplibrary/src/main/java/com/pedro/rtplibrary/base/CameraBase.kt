@@ -45,6 +45,7 @@ abstract class CameraBase(context: Context): GetVideoData, GetAacData, GetMicrop
   private val microphoneManager by lazy { MicrophoneManager(this) }
   //video/audio record
   private val recordController = RecordController()
+  private var streaming = false
 
   init {
     glInterface.init()
@@ -96,7 +97,9 @@ abstract class CameraBase(context: Context): GetVideoData, GetAacData, GetMicrop
   }
 
   fun stopPreview() {
-
+    if (!streaming) cameraManager.stop()
+    glInterface.deAttachPreview()
+    if (!streaming) glInterface.stop()
   }
 
   override fun inputPCMData(frame: Frame) {
