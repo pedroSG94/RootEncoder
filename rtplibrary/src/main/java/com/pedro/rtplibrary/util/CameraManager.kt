@@ -13,15 +13,14 @@ import com.pedro.encoder.input.video.CameraHelper
  * A class to use camera1 or camera2 with same methods totally transparent for user.
  */
 @RequiresApi(Build.VERSION_CODES.LOLLIPOP)
-class CameraManager(context: Context, surfaceTexture: SurfaceTexture) {
+class CameraManager(context: Context, private var source: Source) {
 
   enum class Source {
     CAMERA1, CAMERA2
   }
 
-  private val source = Source.CAMERA1
   private var facing = CameraHelper.Facing.BACK
-  private val camera1 = Camera1ApiManager(surfaceTexture, context)
+  private val camera1 = Camera1ApiManager(null, context)
   private val camera2 = Camera2ApiManager(context)
 
   private var surfaceTexture: SurfaceTexture ? = null
@@ -29,11 +28,15 @@ class CameraManager(context: Context, surfaceTexture: SurfaceTexture) {
   private var height = 480
   private var fps = 30
 
-  fun start(surfaceTexture: SurfaceTexture, width: Int, height: Int, fps: Int) {
-    this.surfaceTexture = surfaceTexture
+  fun createCameraManager(width: Int, height: Int, fps: Int): Boolean {
     this.width = width
     this.height = height
     this.fps = fps
+    return true //TODO check resolution to know if available
+  }
+
+  fun start(surfaceTexture: SurfaceTexture) {
+    this.surfaceTexture = surfaceTexture
 
     if (!isRunning()) {
       when (source) {
@@ -74,7 +77,7 @@ class CameraManager(context: Context, surfaceTexture: SurfaceTexture) {
     }
     stop()
     surfaceTexture?.let {
-      start(it, width, height, fps)
+      start(it)
     }
   }
 
