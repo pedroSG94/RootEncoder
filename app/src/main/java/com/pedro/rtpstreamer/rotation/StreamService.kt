@@ -6,13 +6,16 @@ import android.app.NotificationManager
 import android.app.Service
 import android.content.Context
 import android.content.Intent
+import android.graphics.BitmapFactory
 import android.os.Build
 import android.os.IBinder
 import android.util.Log
 import android.view.SurfaceView
 import androidx.annotation.RequiresApi
 import androidx.core.app.NotificationCompat
+import com.pedro.encoder.input.gl.render.filters.`object`.ImageObjectFilterRender
 import com.pedro.encoder.input.video.CameraHelper
+import com.pedro.encoder.utils.gl.TranslateTo
 import com.pedro.rtplibrary.rtmp.RtmpCamera
 import com.pedro.rtpstreamer.R
 import com.pedro.rtpstreamer.backgroundexample.ConnectCheckerRtp
@@ -63,6 +66,16 @@ class StreamService: Service() {
     private var rtmpCamera: RtmpCamera? = null
     private var context: Context? = null
 
+    private fun setImageToStream() {
+      context?.let {
+        val imageObjectFilterRender = ImageObjectFilterRender()
+        rtmpCamera?.getGlInterface()?.setFilter(imageObjectFilterRender)
+        imageObjectFilterRender.setImage(BitmapFactory.decodeResource(it.resources, R.mipmap.ic_launcher))
+        imageObjectFilterRender.setScale(30f, 30f)
+        imageObjectFilterRender.setPosition(TranslateTo.RIGHT)
+      }
+    }
+
     fun init(context: Context) {
       this.context = context
       rtmpCamera = RtmpCamera(context, connectCheckerRtp)
@@ -73,12 +86,11 @@ class StreamService: Service() {
     fun startPreview(surfaceView: SurfaceView) {
       rtmpCamera?.startPreview(surfaceView)
       if (CameraHelper.isPortrait(context)) {
-        rtmpCamera?.setPreviewOrientation(0)
-        rtmpCamera?.setStreamOrientation(0)
+        rtmpCamera?.setOrientation(0)
       } else {
-        rtmpCamera?.setPreviewOrientation(270)
-        rtmpCamera?.setStreamOrientation(270)
+        rtmpCamera?.setOrientation(270)
       }
+      setImageToStream()
     }
 
     fun stopPreview() {

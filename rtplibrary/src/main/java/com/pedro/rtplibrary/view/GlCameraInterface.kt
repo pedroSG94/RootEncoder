@@ -7,10 +7,15 @@ import android.graphics.SurfaceTexture.OnFrameAvailableListener
 import android.os.Build
 import android.view.Surface
 import androidx.annotation.RequiresApi
+import com.pedro.encoder.input.gl.FilterAction
 import com.pedro.encoder.input.gl.SurfaceManager
 import com.pedro.encoder.input.gl.render.MainRender
+import com.pedro.encoder.input.gl.render.filters.BaseFilterRender
 import com.pedro.encoder.input.video.CameraHelper
 import com.pedro.encoder.input.video.FpsLimiter
+import com.pedro.rtplibrary.util.Filter
+import java.util.concurrent.BlockingQueue
+import java.util.concurrent.LinkedBlockingQueue
 import java.util.concurrent.Semaphore
 
 /**
@@ -37,6 +42,7 @@ class GlCameraInterface(private val context: Context) : Runnable, OnFrameAvailab
   private var previewOrientation = 0
   private var isPortrait = false
   private val fpsLimiter = FpsLimiter()
+  private val filterQueue: BlockingQueue<Filter> = LinkedBlockingQueue()
 
   fun init() {
     if (!initialized) managerRender = MainRender()
@@ -122,6 +128,11 @@ class GlCameraInterface(private val context: Context) : Runnable, OnFrameAvailab
             true, false, false)
           surfaceManager.swapBuffer()
 
+          if (!filterQueue.isEmpty()) {
+            val filter = filterQueue.take()
+            managerRender?.setFilterAction(filter.filterAction, filter.position, filter.baseFilterRender)
+          }
+
           synchronized(sync) {
             val limitFps = fpsLimiter.limitFPS()
             // render VideoEncoder (stream and record)
@@ -137,10 +148,8 @@ class GlCameraInterface(private val context: Context) : Runnable, OnFrameAvailab
             if (surfaceManagerPreview.isReady && !limitFps) {
               val w =  if (previewWidth == 0) encoderWidth else previewWidth
               val h =  if (previewHeight == 0) encoderHeight else previewHeight
-              val eW = if (previewOrientation == 0) encoderHeight else encoderWidth
-              val eH = if (previewOrientation == 0) encoderWidth else encoderHeight
               surfaceManagerPreview.makeCurrent()
-              managerRender?.drawScreenPreview(w, h, eW, eH, true, 0, previewOrientation,
+              managerRender?.drawScreenPreview(w, h, isPortrait, true, 0, previewOrientation,
                 true, false, false)
               surfaceManagerPreview.swapBuffer()
             }
@@ -190,5 +199,41 @@ class GlCameraInterface(private val context: Context) : Runnable, OnFrameAvailab
 
   fun setPreviewOrientation(orientation: Int) {
     this.previewOrientation = orientation
+  }
+
+  fun setCameraOrientation(orientation: Int) {
+    managerRender?.setCameraRotation(orientation)
+  }
+
+  fun setFilter(filterPosition: Int, baseFilterRender: BaseFilterRender?) {
+    filterQueue.add(Filter(FilterAction.SET_INDEX, filterPosition, baseFilterRender))
+  }
+
+  fun addFilter(baseFilterRender: BaseFilterRender?) {
+    filterQueue.add(Filter(FilterAction.ADD, 0, baseFilterRender))
+  }
+
+  fun addFilter(filterPosition: Int, baseFilterRender: BaseFilterRender?) {
+    filterQueue.add(Filter(FilterAction.ADD_INDEX, filterPosition, baseFilterRender))
+  }
+
+  fun clearFilters() {
+    filterQueue.add(Filter(FilterAction.CLEAR, 0, null))
+  }
+
+  fun removeFilter(filterPosition: Int) {
+    filterQueue.add(Filter(FilterAction.REMOVE_INDEX, filterPosition, null))
+  }
+
+  fun removeFilter(baseFilterRender: BaseFilterRender?) {
+    filterQueue.add(Filter(FilterAction.REMOVE, 0, baseFilterRender))
+  }
+
+  fun filtersCount(): Int {
+    return managerRender?.filtersCount() ?: 0
+  }
+
+  fun setFilter(baseFilterRender: BaseFilterRender?) {
+    filterQueue.add(Filter(FilterAction.SET, 0, baseFilterRender))
   }
 }

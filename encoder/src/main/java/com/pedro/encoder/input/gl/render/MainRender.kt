@@ -5,6 +5,8 @@ import android.graphics.SurfaceTexture
 import android.os.Build
 import android.view.Surface
 import androidx.annotation.RequiresApi
+import com.pedro.encoder.input.gl.FilterAction
+import com.pedro.encoder.input.gl.render.filters.BaseFilterRender
 
 /**
  * Created by pedro on 20/3/22.
@@ -18,6 +20,7 @@ class MainRender {
   private var previewWidth = 0
   private var previewHeight = 0
   private var context: Context? = null
+  private var filterRenders: MutableList<BaseFilterRender> = ArrayList()
 
   fun initGl(context: Context, encoderWidth: Int, encoderHeight: Int, previewWidth: Int, previewHeight: Int) {
     this.context = context
@@ -33,6 +36,7 @@ class MainRender {
 
   fun drawOffScreen() {
     cameraRender.draw()
+    for (baseFilterRender in filterRenders) baseFilterRender.draw()
   }
 
   fun drawScreen(width: Int, height: Int, keepAspectRatio: Boolean, mode: Int, rotation: Int,
@@ -48,16 +52,101 @@ class MainRender {
       flipStreamVertical, flipStreamHorizontal)
   }
 
-  fun drawScreenPreview(width: Int, height: Int, streamWidth: Int, streamHeight: Int,
-    keepAspectRatio: Boolean, mode: Int, rotation: Int, isPreview: Boolean,
-    flipStreamVertical: Boolean, flipStreamHorizontal: Boolean) {
-    screenRender.drawPreview(width, height, streamWidth, streamHeight, keepAspectRatio, mode, rotation,
+  fun drawScreenPreview(width: Int, height: Int, isPortrait: Boolean, keepAspectRatio: Boolean,
+    mode: Int, rotation: Int, isPreview: Boolean, flipStreamVertical: Boolean,
+    flipStreamHorizontal: Boolean) {
+    screenRender.drawPreview(width, height, isPortrait, keepAspectRatio, mode, rotation,
       isPreview, flipStreamVertical, flipStreamHorizontal)
   }
 
   fun release() {
     cameraRender.release()
+    for (baseFilterRender in filterRenders) baseFilterRender.release()
+    filterRenders.clear()
     screenRender.release()
+  }
+
+  private fun setFilter(position: Int, baseFilterRender: BaseFilterRender) {
+    val id = filterRenders[position].previousTexId
+    val renderHandler = filterRenders[position].renderHandler
+    filterRenders[position].release()
+    filterRenders[position] = baseFilterRender
+    filterRenders[position].previousTexId = id
+    filterRenders[position].initGl(width, height, context, previewWidth, previewHeight)
+    filterRenders[position].renderHandler = renderHandler
+  }
+
+  private fun addFilter(baseFilterRender: BaseFilterRender) {
+    filterRenders.add(baseFilterRender)
+    baseFilterRender.initGl(width, height, context, previewWidth, previewHeight)
+    baseFilterRender.initFBOLink()
+    reOrderFilters()
+  }
+
+  private fun addFilter(position: Int, baseFilterRender: BaseFilterRender) {
+    filterRenders.add(position, baseFilterRender)
+    baseFilterRender.initGl(width, height, context, previewWidth, previewHeight)
+    baseFilterRender.initFBOLink()
+    reOrderFilters()
+  }
+
+  private fun clearFilters() {
+    for (baseFilterRender in filterRenders) {
+      baseFilterRender.release()
+    }
+    filterRenders.clear()
+    reOrderFilters()
+  }
+
+  private fun removeFilter(position: Int) {
+    filterRenders.removeAt(position).release()
+    reOrderFilters()
+  }
+
+  private fun removeFilter(baseFilterRender: BaseFilterRender) {
+    baseFilterRender.release()
+    filterRenders.remove(baseFilterRender)
+    reOrderFilters()
+  }
+
+  private fun reOrderFilters() {
+    for (i in filterRenders.indices) {
+      val texId = if (i == 0) cameraRender.texId else filterRenders[i - 1].texId
+      filterRenders[i].previousTexId = texId
+    }
+    val texId = if (filterRenders.isEmpty()) {
+      cameraRender.texId
+    } else {
+      filterRenders[filterRenders.size - 1].texId
+    }
+    screenRender.setTexId(texId)
+  }
+
+  fun setFilterAction(filterAction: FilterAction?, position: Int, baseFilterRender: BaseFilterRender) {
+    when (filterAction) {
+      FilterAction.SET -> if (filterRenders.size > 0) {
+        setFilter(position, baseFilterRender)
+      } else {
+        addFilter(baseFilterRender)
+      }
+      FilterAction.SET_INDEX -> setFilter(position, baseFilterRender)
+      FilterAction.ADD -> addFilter(baseFilterRender)
+      FilterAction.ADD_INDEX -> addFilter(position, baseFilterRender)
+      FilterAction.CLEAR -> clearFilters()
+      FilterAction.REMOVE -> removeFilter(baseFilterRender)
+      FilterAction.REMOVE_INDEX -> removeFilter(position)
+      else -> {}
+    }
+  }
+
+  fun filtersCount(): Int {
+    return filterRenders.size
+  }
+
+  fun setPreviewSize(previewWidth: Int, previewHeight: Int) {
+    for (i in filterRenders.indices) {
+      filterRenders[i].setPreviewSize(previewWidth, previewHeight)
+    }
   }
 
   fun enableAA(AAEnabled: Boolean) {

@@ -164,13 +164,11 @@ abstract class CameraBase(context: Context): GetVideoData, GetAacData, GetMicrop
     cameraManager.changeSource(source)
   }
 
-  fun setStreamOrientation(orientation: Int) {
-    glInterface.setStreamOrientation(orientation)
+  fun setOrientation(orientation: Int) {
+    glInterface.setCameraOrientation(orientation)
   }
 
-  fun setPreviewOrientation(orientation: Int) {
-    glInterface.setPreviewOrientation(orientation)
-  }
+  fun getGlInterface(): GlCameraInterface = glInterface
 
   override fun inputPCMData(frame: Frame) {
     audioEncoder.inputPCMData(frame)
