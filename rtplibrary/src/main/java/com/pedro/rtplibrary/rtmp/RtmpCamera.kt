@@ -4,6 +4,8 @@ import android.content.Context
 import android.media.MediaCodec
 import android.os.Build
 import androidx.annotation.RequiresApi
+import com.pedro.rtmp.rtmp.RtmpClient
+import com.pedro.rtmp.utils.ConnectCheckerRtmp
 import com.pedro.rtplibrary.base.CameraBase
 import java.nio.ByteBuffer
 
@@ -12,17 +14,35 @@ import java.nio.ByteBuffer
  */
 
 @RequiresApi(Build.VERSION_CODES.LOLLIPOP)
-class RtmpCamera(context: Context): CameraBase(context = context) {
+class RtmpCamera(context: Context, connectCheckerRtmp: ConnectCheckerRtmp): CameraBase(context = context) {
+
+  private val rtmpClient = RtmpClient(connectCheckerRtmp)
+
+  override fun videoInfo(width: Int, height: Int) {
+    rtmpClient.setVideoResolution(width, height)
+  }
+
+  override fun audioInfo(sampleRate: Int, isStereo: Boolean) {
+    rtmpClient.setAudioInfo(sampleRate, isStereo)
+  }
+
+  override fun rtpStartStream(endPoint: String) {
+    rtmpClient.connect(endPoint)
+  }
+
+  override fun rtpStopStream() {
+    rtmpClient.disconnect()
+  }
 
   override fun onSpsPpsVpsRtp(sps: ByteBuffer, pps: ByteBuffer, vps: ByteBuffer?) {
-
+    rtmpClient.setVideoInfo(sps, pps, vps)
   }
 
   override fun getH264DataRtp(h264Buffer: ByteBuffer, info: MediaCodec.BufferInfo) {
-
+    rtmpClient.sendVideo(h264Buffer, info)
   }
 
   override fun getAacDataRtp(aacBuffer: ByteBuffer, info: MediaCodec.BufferInfo) {
-
+    rtmpClient.sendAudio(aacBuffer, info)
   }
 }

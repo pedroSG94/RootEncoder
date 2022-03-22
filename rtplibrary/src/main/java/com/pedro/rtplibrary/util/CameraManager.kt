@@ -23,10 +23,10 @@ class CameraManager(context: Context, private var source: Source) {
   private val camera1 = Camera1ApiManager(null, context)
   private val camera2 = Camera2ApiManager(context)
 
-  private var surfaceTexture: SurfaceTexture ? = null
-  private var width = 640
-  private var height = 480
-  private var fps = 30
+  private var surfaceTexture: SurfaceTexture? = null
+  private var width = 0
+  private var height = 0
+  private var fps = 0
 
   fun createCameraManager(width: Int, height: Int, fps: Int): Boolean {
     this.width = width
@@ -35,22 +35,29 @@ class CameraManager(context: Context, private var source: Source) {
     return true //TODO check resolution to know if available
   }
 
+  fun changeSource(source: Source) {
+    if (this.source != source) {
+      val wasRunning = isRunning()
+      this.source = source
+      stop()
+      surfaceTexture?.let {
+        if (wasRunning) start(it)
+      }
+    }
+  }
+
   fun start(surfaceTexture: SurfaceTexture) {
     this.surfaceTexture = surfaceTexture
-
     if (!isRunning()) {
       when (source) {
         Source.CAMERA1 -> {
           camera1.setSurfaceTexture(surfaceTexture)
           camera1.start(facing, width, height, fps)
+          camera1.setPreviewOrientation(90) // necessary to use the same orientation than camera2
         }
         Source.CAMERA2 -> {
           camera2.prepareCamera(surfaceTexture, width, height, fps)
-          if (facing == CameraHelper.Facing.BACK) {
-            camera2.openCameraBack()
-          } else {
-            camera2.openCameraFront()
-          }
+          camera2.openCameraFacing(facing)
         }
       }
     }
@@ -75,9 +82,11 @@ class CameraManager(context: Context, private var source: Source) {
     } else {
       CameraHelper.Facing.BACK
     }
-    stop()
-    surfaceTexture?.let {
-      start(it)
+    if (isRunning()) {
+      stop()
+      surfaceTexture?.let {
+        start(it)
+      }
     }
   }
 

@@ -102,6 +102,35 @@ public class ScreenRender {
     SizeCalculator.calculateViewPort(keepAspectRatio, mode, width, height, streamWidth,
         streamHeight);
 
+    draw(width, height);
+  }
+
+  public void drawEncoder(int width, int height, boolean isPortrait, boolean keepAspectRatio,
+      int mode, int rotation, boolean isPreview, boolean flipStreamVertical,
+      boolean flipStreamHorizontal) {
+    GlUtil.checkGlError("drawScreen start");
+
+    SizeCalculator.processMatrix(rotation, width, height, isPreview, isPortrait,
+        flipStreamHorizontal, flipStreamVertical, mode, MVPMatrix);
+    SizeCalculator.calculateViewPortEncoder(width, height, isPortrait);
+
+    draw(width, height);
+  }
+
+  public void drawPreview(int width, int height, int streamWidth, int streamHeight,
+      boolean keepAspectRatio, int mode, int rotation, boolean isPreview,
+      boolean flipStreamVertical, boolean flipStreamHorizontal) {
+    GlUtil.checkGlError("drawScreen start");
+
+    SizeCalculator.processMatrix(rotation, width, height, isPreview, isPortrait,
+        flipStreamHorizontal, flipStreamVertical, mode, MVPMatrix);
+    SizeCalculator.calculateViewPort(keepAspectRatio, mode, width, height, streamWidth,
+        streamHeight);
+
+    draw(width, height);
+  }
+
+  private void draw(int width, int height) {
     GLES20.glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
     GLES20.glClear(GLES20.GL_DEPTH_BUFFER_BIT | GLES20.GL_COLOR_BUFFER_BIT);
 

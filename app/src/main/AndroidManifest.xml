@@ -56,7 +56,6 @@
     <activity
         android:name=".defaultexample.ExampleRtmpActivity"
         android:label="@string/default_rtmp"
-        android:screenOrientation="portrait"
         />
     <activity
         android:name=".filestreamexample.RtspFromFileActivity"
@@ -106,6 +105,13 @@
     <activity
         android:name=".backgroundexample.BackgroundActivity"
         android:label="@string/service_rtp"
+        />
+
+    <activity android:name=".rotation.RotationExampleActivity"
+        android:label="@string/service_rtp"
+        />
+
+    <service android:name=".rotation.StreamService"
         />
 
     <service android:name=".backgroundexample.RtpService"

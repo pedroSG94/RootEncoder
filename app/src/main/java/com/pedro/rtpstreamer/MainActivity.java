@@ -40,6 +40,7 @@ import com.pedro.rtpstreamer.filestreamexample.RtmpFromFileActivity;
 import com.pedro.rtpstreamer.filestreamexample.RtspFromFileActivity;
 import com.pedro.rtpstreamer.openglexample.OpenGlRtmpActivity;
 import com.pedro.rtpstreamer.openglexample.OpenGlRtspActivity;
+import com.pedro.rtpstreamer.rotation.RotationExampleActivity;
 import com.pedro.rtpstreamer.surfacemodeexample.SurfaceModeRtmpActivity;
 import com.pedro.rtpstreamer.surfacemodeexample.SurfaceModeRtspActivity;
 import com.pedro.rtpstreamer.texturemodeexample.TextureModeRtmpActivity;
@@ -89,7 +90,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
     activities.add(
         new ActivityLink(new Intent(this, RtspActivity.class), getString(R.string.rtsp_streamer),
             JELLY_BEAN));
-    activities.add(new ActivityLink(new Intent(this, ExampleRtmpActivity.class),
+    activities.add(new ActivityLink(new Intent(this, RotationExampleActivity.class),
         getString(R.string.default_rtmp), JELLY_BEAN));
     activities.add(new ActivityLink(new Intent(this, ExampleRtspActivity.class),
         getString(R.string.default_rtsp), JELLY_BEAN));

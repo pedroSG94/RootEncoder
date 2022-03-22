@@ -6,10 +6,10 @@ import android.graphics.SurfaceTexture
 import android.graphics.SurfaceTexture.OnFrameAvailableListener
 import android.os.Build
 import android.view.Surface
-import android.view.SurfaceView
 import androidx.annotation.RequiresApi
 import com.pedro.encoder.input.gl.SurfaceManager
-import com.pedro.encoder.input.gl.render.ManagerRender
+import com.pedro.encoder.input.gl.render.MainRender
+import com.pedro.encoder.input.video.CameraHelper
 import com.pedro.encoder.input.video.FpsLimiter
 import java.util.concurrent.Semaphore
 
@@ -26,15 +26,20 @@ class GlCameraInterface(private val context: Context) : Runnable, OnFrameAvailab
   private val surfaceManager = SurfaceManager()
   private val surfaceManagerEncoder = SurfaceManager()
   private val surfaceManagerPreview = SurfaceManager()
-  private var managerRender: ManagerRender? = null
+  private var managerRender: MainRender? = null
   private val semaphore = Semaphore(0)
   private val sync = Object()
   private var encoderWidth = 0
   private var encoderHeight = 0
+  private var streamOrientation = 0
+  private var previewWidth = 0
+  private var previewHeight = 0
+  private var previewOrientation = 0
+  private var isPortrait = false
   private val fpsLimiter = FpsLimiter()
 
   fun init() {
-    if (!initialized) managerRender = ManagerRender()
+    if (!initialized) managerRender = MainRender()
     managerRender?.setCameraFlip(false, false)
     initialized = true
   }
@@ -53,11 +58,11 @@ class GlCameraInterface(private val context: Context) : Runnable, OnFrameAvailab
   }
 
   fun getSurfaceTexture(): SurfaceTexture {
-    return managerRender!!.surfaceTexture
+    return managerRender!!.getSurfaceTexture()
   }
 
   fun getSurface(): Surface {
-    return managerRender!!.surface
+    return managerRender!!.getSurface()
   }
 
   fun addMediaCodecSurface(surface: Surface) {
@@ -104,7 +109,7 @@ class GlCameraInterface(private val context: Context) : Runnable, OnFrameAvailab
     surfaceManager.eglSetup()
     surfaceManager.makeCurrent()
     managerRender?.initGl(context, encoderWidth, encoderHeight, encoderWidth, encoderHeight)
-    managerRender?.surfaceTexture?.setOnFrameAvailableListener(this)
+    managerRender?.getSurfaceTexture()?.setOnFrameAvailableListener(this)
     semaphore.release()
     try {
       while (running) {
@@ -118,20 +123,25 @@ class GlCameraInterface(private val context: Context) : Runnable, OnFrameAvailab
           surfaceManager.swapBuffer()
 
           synchronized(sync) {
-            if (surfaceManagerEncoder.isReady && !fpsLimiter.limitFPS()) {
+            val limitFps = fpsLimiter.limitFPS()
+            // render VideoEncoder (stream and record)
+            if (surfaceManagerEncoder.isReady && !limitFps) {
               val w =  encoderWidth
               val h =  encoderHeight
               surfaceManagerEncoder.makeCurrent()
-              managerRender?.drawScreen(w, h, false, 0, 0,
+              managerRender?.drawScreenEncoder(w, h, isPortrait, false, 0, streamOrientation,
                 false, false, false)
               surfaceManagerEncoder.swapBuffer()
             }
-            if (surfaceManagerPreview.isReady && !fpsLimiter.limitFPS()) {
-              val w =  encoderWidth
-              val h =  encoderHeight
+            // render preview
+            if (surfaceManagerPreview.isReady && !limitFps) {
+              val w =  if (previewWidth == 0) encoderWidth else previewWidth
+              val h =  if (previewHeight == 0) encoderHeight else previewHeight
+              val eW = if (previewOrientation == 0) encoderHeight else encoderWidth
+              val eH = if (previewOrientation == 0) encoderWidth else encoderHeight
               surfaceManagerPreview.makeCurrent()
-              managerRender?.drawScreen(w, h, false, 0, 0,
-                false, false, false)
+              managerRender?.drawScreenPreview(w, h, eW, eH, true, 0, previewOrientation,
+                true, false, false)
               surfaceManagerPreview.swapBuffer()
             }
           }
@@ -153,11 +163,12 @@ class GlCameraInterface(private val context: Context) : Runnable, OnFrameAvailab
     }
   }
 
-  fun attachPreview(surfaceView: SurfaceView) {
+  fun attachPreview(surface: Surface) {
     synchronized(sync) {
       if (surfaceManager.isReady) {
+        isPortrait = CameraHelper.isPortrait(context)
         surfaceManagerPreview.release()
-        surfaceManagerPreview.eglSetup(surfaceView.holder.surface, surfaceManager)
+        surfaceManagerPreview.eglSetup(surface, surfaceManager)
       }
     }
   }
@@ -166,5 +177,18 @@ class GlCameraInterface(private val context: Context) : Runnable, OnFrameAvailab
     synchronized(sync) {
       surfaceManagerPreview.release()
     }
+  }
+
+  fun setStreamOrientation(orientation: Int) {
+    this.streamOrientation = orientation
+  }
+
+  fun setPreviewResolution(width: Int, height: Int) {
+    this.previewWidth = width
+    this.previewHeight = height
+  }
+
+  fun setPreviewOrientation(orientation: Int) {
+    this.previewOrientation = orientation
   }
 }
