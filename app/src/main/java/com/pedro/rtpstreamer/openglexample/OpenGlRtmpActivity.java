@@ -486,7 +486,7 @@ public class OpenGlRtmpActivity extends AppCompatActivity
 
   @Override
   public void surfaceChanged(SurfaceHolder surfaceHolder, int i, int i1, int i2) {
-    rtmpCamera1.startPreview(1280, 720);
+    rtmpCamera1.startPreview();
   }
 
   @Override

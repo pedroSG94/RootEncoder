@@ -53,6 +53,7 @@ class RotationExampleActivity: AppCompatActivity(), SurfaceHolder.Callback {
     super.onBackPressed()
     if (StreamService.isStreaming()) StreamService.stopStream()
     if (StreamService.isOnPreview()) StreamService.stopPreview()
+    stopService(Intent(applicationContext, StreamService::class.java))
   }
 
   override fun surfaceChanged(holder: SurfaceHolder, p1: Int, p2: Int, p3: Int) {

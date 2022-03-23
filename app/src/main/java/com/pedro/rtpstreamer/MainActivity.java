@@ -90,7 +90,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
     activities.add(
         new ActivityLink(new Intent(this, RtspActivity.class), getString(R.string.rtsp_streamer),
             JELLY_BEAN));
-    activities.add(new ActivityLink(new Intent(this, RotationExampleActivity.class),
+    activities.add(new ActivityLink(new Intent(this, ExampleRtmpActivity.class),
         getString(R.string.default_rtmp), JELLY_BEAN));
     activities.add(new ActivityLink(new Intent(this, ExampleRtspActivity.class),
         getString(R.string.default_rtsp), JELLY_BEAN));
@@ -114,6 +114,8 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         getString(R.string.display_rtmp), LOLLIPOP));
     activities.add(new ActivityLink(new Intent(this, BackgroundActivity.class),
         getString(R.string.service_rtp), LOLLIPOP));
+    activities.add(new ActivityLink(new Intent(this, RotationExampleActivity.class),
+        getString(R.string.rotation_rtp), LOLLIPOP));
   }
 
   private void setListAdapter(List<ActivityLink> activities) {
