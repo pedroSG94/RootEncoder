@@ -109,6 +109,7 @@
 
     <activity android:name=".rotation.RotationExampleActivity"
         android:label="@string/rotation_rtp"
+        android:screenOrientation="fullSensor"
         />
 
     <service android:name=".rotation.StreamService"

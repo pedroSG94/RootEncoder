@@ -19,6 +19,7 @@ import com.pedro.encoder.input.gl.render.filters.`object`.ImageObjectFilterRende
 import com.pedro.encoder.input.video.CameraHelper
 import com.pedro.encoder.utils.gl.TranslateTo
 import com.pedro.rtplibrary.rtmp.RtmpCamera
+import com.pedro.rtplibrary.util.SensorRotationManager
 import com.pedro.rtpstreamer.R
 import com.pedro.rtpstreamer.backgroundexample.ConnectCheckerRtp
 
@@ -67,6 +68,8 @@ class StreamService: Service() {
     private var notificationManager: NotificationManager? = null
     private var rtmpCamera: RtmpCamera? = null
     private var context: Context? = null
+    private var sensorRotationManager: SensorRotationManager? = null
+    private var currentOrientation = -1
 
     private fun setImageToStream() {
       context?.let {
@@ -81,17 +84,20 @@ class StreamService: Service() {
     fun init(context: Context) {
       this.context = context
       rtmpCamera = RtmpCamera(context, connectCheckerRtp)
+      sensorRotationManager = SensorRotationManager(context) {
+        //0 = portrait, 90 = landscape, 180 = reverse portrait, 270 = reverse landscape
+        if (currentOrientation != it) {
+          rtmpCamera?.setOrientation(it)
+          currentOrientation = it
+        }
+      }
+      sensorRotationManager?.start()
       rtmpCamera?.prepareVideo(640, 480, 1200 * 1000)
       rtmpCamera?.prepareAudio(44100, true, 128 * 1000)
     }
 
     fun startPreview(surfaceView: SurfaceView) {
       rtmpCamera?.startPreview(surfaceView)
-      if (CameraHelper.isPortrait(context)) {
-        rtmpCamera?.setOrientation(0)
-      } else {
-        rtmpCamera?.setOrientation(270)
-      }
       setImageToStream()
     }
 
@@ -166,5 +172,6 @@ class StreamService: Service() {
     super.onDestroy()
     Log.e(TAG, "RTP service destroy")
     stopStream()
+    sensorRotationManager?.stop()
   }
 }
