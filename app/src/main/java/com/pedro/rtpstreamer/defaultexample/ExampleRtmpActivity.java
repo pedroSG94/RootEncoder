@@ -32,7 +32,6 @@ import com.pedro.rtplibrary.rtmp.RtmpCamera1;
 import com.pedro.rtpstreamer.R;
 import com.pedro.rtpstreamer.utils.PathUtils;
 
-import org.jetbrains.annotations.NotNull;
 import java.io.File;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
@@ -69,14 +68,14 @@ public class ExampleRtmpActivity extends AppCompatActivity
     Button switchCamera = findViewById(R.id.switch_camera);
     switchCamera.setOnClickListener(this);
     etUrl = findViewById(R.id.et_rtp_url);
-    etUrl.setHint(R.string.hint_rtsp);
+    etUrl.setHint(R.string.hint_rtmp);
     rtmpCamera1 = new RtmpCamera1(surfaceView, this);
     rtmpCamera1.setReTries(10);
     surfaceView.getHolder().addCallback(this);
   }
 
   @Override
-  public void onConnectionStartedRtmp(@NotNull String rtspUrl) {
+  public void onConnectionStartedRtmp(String rtmpUrl) {
   }
 
   @Override
