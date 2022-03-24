@@ -17,6 +17,7 @@
 package com.pedro.rtpstreamer;
 
 import android.Manifest;
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -82,14 +83,13 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
     }
   }
 
+  @SuppressLint("NewApi")
   private void createList() {
     activities = new ArrayList<>();
-    activities.add(
-        new ActivityLink(new Intent(this, RtmpActivity.class), getString(R.string.rtmp_streamer),
-            JELLY_BEAN));
-    activities.add(
-        new ActivityLink(new Intent(this, RtspActivity.class), getString(R.string.rtsp_streamer),
-            JELLY_BEAN));
+    activities.add(new ActivityLink(new Intent(this, RtmpActivity.class),
+        getString(R.string.rtmp_streamer), JELLY_BEAN));
+    activities.add(new ActivityLink(new Intent(this, RtspActivity.class),
+        getString(R.string.rtsp_streamer), JELLY_BEAN));
     activities.add(new ActivityLink(new Intent(this, ExampleRtmpActivity.class),
         getString(R.string.default_rtmp), JELLY_BEAN));
     activities.add(new ActivityLink(new Intent(this, ExampleRtspActivity.class),

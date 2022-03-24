@@ -112,6 +112,7 @@
         />
 
     <service android:name=".rotation.StreamService"
+        android:foregroundServiceType="mediaProjection"
         />
 
     <service android:name=".backgroundexample.RtpService"

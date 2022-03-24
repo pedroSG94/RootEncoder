@@ -2,7 +2,11 @@ package com.pedro.rtplibrary.util
 
 import android.content.Context
 import android.graphics.SurfaceTexture
+import android.hardware.display.DisplayManager
+import android.hardware.display.VirtualDisplay
+import android.media.projection.MediaProjection
 import android.os.Build
+import android.view.Surface
 import androidx.annotation.RequiresApi
 import com.pedro.encoder.input.video.Camera1ApiManager
 import com.pedro.encoder.input.video.Camera2ApiManager
@@ -13,15 +17,17 @@ import com.pedro.encoder.input.video.CameraHelper
  * A class to use camera1 or camera2 with same methods totally transparent for user.
  */
 @RequiresApi(Build.VERSION_CODES.LOLLIPOP)
-class CameraManager(context: Context, private var source: Source) {
+class CameraManager(private val context: Context, private var source: Source) {
 
   enum class Source {
-    CAMERA1, CAMERA2
+    CAMERA1, CAMERA2, SCREEN
   }
 
   private var facing = CameraHelper.Facing.BACK
   private val camera1 = Camera1ApiManager(null, context)
   private val camera2 = Camera2ApiManager(context)
+  private var mediaProjection: MediaProjection? = null
+  private var virtualDisplay: VirtualDisplay? = null
 
   private var surfaceTexture: SurfaceTexture? = null
   private var width = 0
@@ -35,11 +41,25 @@ class CameraManager(context: Context, private var source: Source) {
     return true //TODO check resolution to know if available
   }
 
-  fun changeSource(source: Source) {
+  fun changeSourceCamera(source: Source) {
     if (this.source != source) {
       val wasRunning = isRunning()
-      this.source = source
       stop()
+      this.source = source
+      mediaProjection?.stop()
+      mediaProjection = null
+      surfaceTexture?.let {
+        if (wasRunning) start(it)
+      }
+    }
+  }
+
+  fun changeSourceScreen(mediaProjection: MediaProjection) {
+    if (this.source != Source.SCREEN) {
+      this.mediaProjection = mediaProjection
+      val wasRunning = isRunning()
+      stop()
+      this.source = Source.SCREEN
       surfaceTexture?.let {
         if (wasRunning) start(it)
       }
@@ -59,6 +79,14 @@ class CameraManager(context: Context, private var source: Source) {
           camera2.prepareCamera(surfaceTexture, width, height, fps)
           camera2.openCameraFacing(facing)
         }
+        Source.SCREEN -> {
+          val dpi = context.resources.displayMetrics.densityDpi
+          var flags = DisplayManager.VIRTUAL_DISPLAY_FLAG_AUTO_MIRROR
+          val VIRTUAL_DISPLAY_FLAG_ROTATES_WITH_CONTENT = 128
+          flags += VIRTUAL_DISPLAY_FLAG_ROTATES_WITH_CONTENT
+          virtualDisplay = mediaProjection?.createVirtualDisplay("Screen", width, height, dpi,
+            flags, Surface(surfaceTexture), null, null)
+        }
       }
     }
   }
@@ -72,11 +100,16 @@ class CameraManager(context: Context, private var source: Source) {
         Source.CAMERA2 -> {
           camera2.closeCamera()
         }
+        Source.SCREEN -> {
+          virtualDisplay?.release()
+          virtualDisplay = null
+        }
       }
     }
   }
 
   fun switchCamera() {
+    if (source == Source.SCREEN) return
     facing = if (facing == CameraHelper.Facing.BACK) {
       CameraHelper.Facing.FRONT
     } else {
@@ -94,6 +127,7 @@ class CameraManager(context: Context, private var source: Source) {
     return when (source) {
       Source.CAMERA1 -> camera1.isRunning
       Source.CAMERA2 -> camera2.isRunning
+      Source.SCREEN -> virtualDisplay != null
     }
   }
 }

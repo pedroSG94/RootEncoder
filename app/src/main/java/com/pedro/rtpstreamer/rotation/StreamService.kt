@@ -7,6 +7,8 @@ import android.app.Service
 import android.content.Context
 import android.content.Intent
 import android.graphics.BitmapFactory
+import android.media.projection.MediaProjection
+import android.media.projection.MediaProjectionManager
 import android.os.Build
 import android.os.IBinder
 import android.util.Log
@@ -103,6 +105,12 @@ class StreamService: Service() {
 
     fun startStream() {
       rtmpCamera?.startStream("rtmp://192.168.1.132/live/pedro")
+    }
+
+    fun changeVideoSourceScreen(context: Context, resultCode: Int, data: Intent) {
+      val mediaProjectionManager = context.applicationContext.getSystemService(MEDIA_PROJECTION_SERVICE) as MediaProjectionManager
+      val mediaProjection = mediaProjectionManager.getMediaProjection(resultCode, data)
+      rtmpCamera?.changeVideoSourceScreen(mediaProjection)
     }
 
     fun stopStream() {

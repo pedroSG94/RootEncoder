@@ -4,6 +4,7 @@ import android.content.Context
 import android.graphics.SurfaceTexture
 import android.media.MediaCodec
 import android.media.MediaFormat
+import android.media.projection.MediaProjection
 import android.os.Build
 import android.view.Surface
 import android.view.SurfaceView
@@ -160,8 +161,12 @@ abstract class CameraBase(context: Context): GetVideoData, GetAacData, GetMicrop
     if (!isStreaming && !recordController.isRunning) glInterface.stop()
   }
 
-  fun changeVideoSource(source: CameraManager.Source) {
-    cameraManager.changeSource(source)
+  fun changeVideoSourceCamera(source: CameraManager.Source) {
+    cameraManager.changeSourceCamera(source)
+  }
+
+  fun changeVideoSourceScreen(mediaProjection: MediaProjection) {
+    cameraManager.changeSourceScreen(mediaProjection)
   }
 
   fun setOrientation(orientation: Int) {

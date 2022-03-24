@@ -3,6 +3,7 @@ package com.pedro.rtpstreamer.rotation
 import android.app.ActivityManager
 import android.content.Context
 import android.content.Intent
+import android.media.projection.MediaProjectionManager
 import android.os.Build
 import android.os.Bundle
 import android.view.SurfaceHolder
@@ -17,6 +18,8 @@ import kotlinx.android.synthetic.main.activity_example.*
  */
 @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
 class RotationExampleActivity: AppCompatActivity(), SurfaceHolder.Callback {
+
+  private val REQUEST_CODE_SCREEN = 123
 
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
@@ -37,7 +40,20 @@ class RotationExampleActivity: AppCompatActivity(), SurfaceHolder.Callback {
         b_start_stop.setText(R.string.start_button)
       }
     }
+
+    switch_camera.setOnClickListener {
+      val mediaProjectionManager = getSystemService(MEDIA_PROJECTION_SERVICE) as MediaProjectionManager
+      val intent = mediaProjectionManager.createScreenCaptureIntent()
+      startActivityForResult(intent, REQUEST_CODE_SCREEN)
+    }
     surfaceView.holder.addCallback(this)
+  }
+
+  override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+    super.onActivityResult(requestCode, resultCode, data)
+    if (data != null && (requestCode == REQUEST_CODE_SCREEN && resultCode == RESULT_OK)) {
+      StreamService.changeVideoSourceScreen(this, resultCode, data)
+    }
   }
 
   override fun onResume() {
