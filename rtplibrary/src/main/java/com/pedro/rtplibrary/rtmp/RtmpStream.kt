@@ -6,7 +6,7 @@ import android.os.Build
 import androidx.annotation.RequiresApi
 import com.pedro.rtmp.rtmp.RtmpClient
 import com.pedro.rtmp.utils.ConnectCheckerRtmp
-import com.pedro.rtplibrary.base.CameraBase
+import com.pedro.rtplibrary.base.StreamBase
 import java.nio.ByteBuffer
 
 /**
@@ -14,7 +14,7 @@ import java.nio.ByteBuffer
  */
 
 @RequiresApi(Build.VERSION_CODES.LOLLIPOP)
-class RtmpCamera(context: Context, connectCheckerRtmp: ConnectCheckerRtmp): CameraBase(context = context) {
+class RtmpStream(context: Context, connectCheckerRtmp: ConnectCheckerRtmp): StreamBase(context = context) {
 
   private val rtmpClient = RtmpClient(connectCheckerRtmp)
 

@@ -14,11 +14,12 @@ import com.pedro.encoder.Frame
 import com.pedro.encoder.audio.AudioEncoder
 import com.pedro.encoder.audio.GetAacData
 import com.pedro.encoder.input.audio.GetMicrophoneData
-import com.pedro.encoder.input.audio.MicrophoneManager
+import com.pedro.encoder.input.video.CameraHelper
 import com.pedro.encoder.video.FormatVideoEncoder
 import com.pedro.encoder.video.GetVideoData
 import com.pedro.encoder.video.VideoEncoder
-import com.pedro.rtplibrary.util.CameraManager
+import com.pedro.rtplibrary.util.sources.AudioManager
+import com.pedro.rtplibrary.util.sources.VideoManager
 import com.pedro.rtplibrary.util.RecordController
 import com.pedro.rtplibrary.view.GlCameraInterface
 import java.nio.ByteBuffer
@@ -33,7 +34,7 @@ import java.nio.ByteBuffer
  * - Add filters only for preview or only for stream.
  */
 @RequiresApi(Build.VERSION_CODES.LOLLIPOP)
-abstract class CameraBase(context: Context): GetVideoData, GetAacData, GetMicrophoneData {
+abstract class StreamBase(context: Context): GetVideoData, GetAacData, GetMicrophoneData {
 
   //video and audio encoders
   private val videoEncoder by lazy { VideoEncoder(this) }
@@ -41,8 +42,8 @@ abstract class CameraBase(context: Context): GetVideoData, GetAacData, GetMicrop
   //video render
   private val glInterface = GlCameraInterface(context)
   //video and audio sources
-  private val cameraManager = CameraManager(context, CameraManager.Source.CAMERA1)
-  private val microphoneManager by lazy { MicrophoneManager(this) }
+  private val videoManager = VideoManager(context)
+  private val audioManager by lazy { AudioManager(this) }
   //video/audio record
   private val recordController = RecordController()
   var isStreaming = false
@@ -56,79 +57,77 @@ abstract class CameraBase(context: Context): GetVideoData, GetAacData, GetMicrop
     glInterface.init()
   }
 
+  /**
+   * Necessary only one time before start preview, stream or record.
+   * If you want change values stop preview, stream and record is necessary.
+   *
+   * @return True if success, False if failed
+   */
   @JvmOverloads
   fun prepareVideo(width: Int, height: Int, bitrate: Int, fps: Int = 30, iFrameInterval: Int = 2): Boolean {
-    val cameraResult = cameraManager.createCameraManager(width, height, fps)
-    if (cameraResult) {
+    val videoResult = videoManager.createVideoManager(width, height, fps)
+    if (videoResult) {
       glInterface.setEncoderSize(width, height)
       return videoEncoder.prepareVideoEncoder(width, height, fps, bitrate, 0,
         iFrameInterval, FormatVideoEncoder.SURFACE)
     }
-    return cameraResult
+    return videoResult
   }
 
+  /**
+   * Necessary only one time before start stream or record.
+   * If you want change values stop stream and record is necessary.
+   *
+   * @return True if success, False if failed
+   */
   @JvmOverloads
   fun prepareAudio(sampleRate: Int, isStereo: Boolean, bitrate: Int, echoCanceler: Boolean = false,
     noiseSuppressor: Boolean = false): Boolean {
-    val microphoneResult = microphoneManager.createMicrophone(sampleRate, isStereo, echoCanceler, noiseSuppressor)
-    if (microphoneResult) {
-      return audioEncoder.prepareAudioEncoder(bitrate, sampleRate, isStereo, microphoneManager.maxInputSize)
+    val audioResult = audioManager.createAudioManager(sampleRate, isStereo, echoCanceler, noiseSuppressor)
+    if (audioResult) {
+      return audioEncoder.prepareAudioEncoder(bitrate, sampleRate, isStereo, audioManager.getMaxInputSize())
     }
-    return microphoneResult
+    return audioResult
   }
 
   fun startStream(endPoint: String) {
     isStreaming = true
     rtpStartStream(endPoint)
-    if (!recordController.isRunning) {
-      if (!glInterface.running) glInterface.start()
-      if (!cameraManager.isRunning()) {
-        cameraManager.start(glInterface.getSurfaceTexture())
-      }
-      microphoneManager.start()
-      videoEncoder.start()
-      audioEncoder.start()
-      glInterface.addMediaCodecSurface(videoEncoder.inputSurface)
-    } else {
-      videoEncoder.reset()
-    }
+    if (!recordController.isRunning) startSources()
+    else videoEncoder.reset()
   }
 
-  fun stopStream() {
+  /**
+   * @return True if encoders prepared successfully with previous parameters. False other way
+   * If return is false you will need call prepareVideo and prepareAudio manually again before startStream or StartRecord
+   */
+  fun stopStream(): Boolean {
     isStreaming = false
     rtpStopStream()
-    if (!recordController.isRunning && !isOnPreview) cameraManager.stop()
-    microphoneManager.stop()
-    videoEncoder.stop()
-    audioEncoder.stop()
-    glInterface.removeMediaCodecSurface()
-    if (!recordController.isRunning && !isOnPreview) glInterface.stop()
+    if (!recordController.isRunning) {
+      stopSources()
+      return prepareEncoders()
+    }
+    return true
   }
 
   fun startRecord(path: String, listener: RecordController.Listener) {
     recordController.startRecord(path, listener)
-    if (!isStreaming) {
-      if (!glInterface.running) glInterface.start()
-      if (!cameraManager.isRunning()) {
-        cameraManager.start(glInterface.getSurfaceTexture())
-      }
-      microphoneManager.start()
-      videoEncoder.start()
-      audioEncoder.start()
-      glInterface.addMediaCodecSurface(videoEncoder.inputSurface)
-    } else {
-      videoEncoder.reset()
-    }
+    if (!isStreaming) startSources()
+    else videoEncoder.reset()
   }
 
-  fun stopRecord() {
+  /**
+   * @return True if encoders prepared successfully with previous parameters. False other way
+   * If return is false you will need call prepareVideo and prepareAudio manually again before startStream or StartRecord
+   */
+  fun stopRecord(): Boolean {
     recordController.stopRecord()
-    if (!isStreaming && !isOnPreview) cameraManager.stop()
-    microphoneManager.stop()
-    videoEncoder.stop()
-    audioEncoder.stop()
-    glInterface.removeMediaCodecSurface()
-    if (!isStreaming && !isOnPreview) glInterface.stop()
+    if (!isStreaming) {
+      stopSources()
+      return prepareEncoders()
+    }
+    return true
   }
 
   fun startPreview(textureView: TextureView) {
@@ -148,32 +147,71 @@ abstract class CameraBase(context: Context): GetVideoData, GetAacData, GetMicrop
   fun startPreview(surface: Surface) {
     isOnPreview = true
     if (!glInterface.running) glInterface.start()
-    if (!cameraManager.isRunning()) {
-      cameraManager.start(glInterface.getSurfaceTexture())
+    if (!videoManager.isRunning()) {
+      videoManager.start(glInterface.getSurfaceTexture())
     }
     glInterface.attachPreview(surface)
   }
 
   fun stopPreview() {
     isOnPreview = false
-    if (!isStreaming && !recordController.isRunning) cameraManager.stop()
+    if (!isStreaming && !recordController.isRunning) videoManager.stop()
     glInterface.deAttachPreview()
     if (!isStreaming && !recordController.isRunning) glInterface.stop()
   }
 
-  fun changeVideoSourceCamera(source: CameraManager.Source) {
-    cameraManager.changeSourceCamera(source)
+  fun changeVideoSourceCamera(source: VideoManager.Source) {
+    videoManager.changeSourceCamera(source)
   }
 
   fun changeVideoSourceScreen(mediaProjection: MediaProjection) {
-    cameraManager.changeSourceScreen(mediaProjection)
+    videoManager.changeSourceScreen(mediaProjection)
   }
+
+  fun changeAudioSourceMicrophone() {
+    audioManager.changeSourceMicrophone()
+  }
+
+  @RequiresApi(Build.VERSION_CODES.Q)
+  fun changeAudioSourceInternal(mediaProjection: MediaProjection) {
+    audioManager.changeSourceInternal(mediaProjection)
+  }
+
+  fun switchVideoCamera() {
+    videoManager.switchCamera()
+  }
+
+  fun getFacing(): CameraHelper.Facing = videoManager.getFacing()
 
   fun setOrientation(orientation: Int) {
     glInterface.setCameraOrientation(orientation)
   }
 
   fun getGlInterface(): GlCameraInterface = glInterface
+
+  private fun startSources() {
+    if (!glInterface.running) glInterface.start()
+    if (!videoManager.isRunning()) {
+      videoManager.start(glInterface.getSurfaceTexture())
+    }
+    audioManager.start()
+    videoEncoder.start()
+    audioEncoder.start()
+    glInterface.addMediaCodecSurface(videoEncoder.inputSurface)
+  }
+
+  private fun stopSources() {
+    if (!isOnPreview) videoManager.stop()
+    audioManager.stop()
+    videoEncoder.stop()
+    audioEncoder.stop()
+    glInterface.removeMediaCodecSurface()
+    if (!isOnPreview) glInterface.stop()
+  }
+
+  private fun prepareEncoders(): Boolean {
+    return videoEncoder.prepareVideoEncoder() && audioEncoder.prepareAudioEncoder()
+  }
 
   override fun inputPCMData(frame: Frame) {
     audioEncoder.inputPCMData(frame)

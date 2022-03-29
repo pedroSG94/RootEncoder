@@ -1,4 +1,4 @@
-package com.pedro.rtplibrary.util
+package com.pedro.rtplibrary.util.sources
 
 import android.content.Context
 import android.graphics.SurfaceTexture
@@ -6,23 +6,26 @@ import android.hardware.display.DisplayManager
 import android.hardware.display.VirtualDisplay
 import android.media.projection.MediaProjection
 import android.os.Build
+import android.util.Size
 import android.view.Surface
 import androidx.annotation.RequiresApi
 import com.pedro.encoder.input.video.Camera1ApiManager
 import com.pedro.encoder.input.video.Camera2ApiManager
 import com.pedro.encoder.input.video.CameraHelper
+import kotlin.IllegalArgumentException
 
 /**
  * Created by pedro on 21/2/22.
  * A class to use camera1 or camera2 with same methods totally transparent for user.
  */
 @RequiresApi(Build.VERSION_CODES.LOLLIPOP)
-class CameraManager(private val context: Context, private var source: Source) {
+class VideoManager(private val context: Context) {
 
   enum class Source {
     CAMERA1, CAMERA2, SCREEN
   }
 
+  private var source = Source.CAMERA2
   private var facing = CameraHelper.Facing.BACK
   private val camera1 = Camera1ApiManager(null, context)
   private val camera2 = Camera2ApiManager(context)
@@ -34,15 +37,21 @@ class CameraManager(private val context: Context, private var source: Source) {
   private var height = 0
   private var fps = 0
 
-  fun createCameraManager(width: Int, height: Int, fps: Int): Boolean {
+  fun createVideoManager(width: Int, height: Int, fps: Int): Boolean {
     this.width = width
     this.height = height
     this.fps = fps
-    return true //TODO check resolution to know if available
+    return checkResolutionSupported(width, height, source)
   }
 
   fun changeSourceCamera(source: Source) {
+    if (source == Source.SCREEN) {
+      throw IllegalArgumentException("Invalid ${source.name}. Only ${Source.CAMERA1.name} or ${Source.CAMERA2.name} is accepted.")
+    }
     if (this.source != source) {
+      if (!checkResolutionSupported(width, height, source)) {
+        throw IllegalArgumentException("Resolution ${width}x$height is not supported for ${source.name}.")
+      }
       val wasRunning = isRunning()
       stop()
       this.source = source
@@ -123,11 +132,36 @@ class CameraManager(private val context: Context, private var source: Source) {
     }
   }
 
+  fun getFacing(): CameraHelper.Facing = facing
+
   fun isRunning(): Boolean {
     return when (source) {
       Source.CAMERA1 -> camera1.isRunning
       Source.CAMERA2 -> camera2.isRunning
       Source.SCREEN -> virtualDisplay != null
+    }
+  }
+
+  private fun checkResolutionSupported(width: Int, height: Int, source: Source): Boolean {
+    if (width % 2 != 0 || height % 2 != 0) {
+      throw IllegalArgumentException("width and height values must be divisible by 2")
+    }
+    when (source) {
+      Source.CAMERA1 -> {
+        val size = camera1.getCameraSize(width, height)
+        val resultBack = camera1.previewSizeBack.contains(size)
+        val resultFront = camera1.previewSizeFront.contains(size)
+        return resultBack && resultFront
+      }
+      Source.CAMERA2 -> {
+        val size = Size(width, height)
+        val resultBack = camera2.cameraResolutionsBack.contains(size)
+        val resultFront = camera2.cameraResolutionsFront.contains(size)
+        return resultBack && resultFront
+      }
+      Source.SCREEN -> {
+        return true
+      }
     }
   }
 }

@@ -7,7 +7,6 @@ import android.app.Service
 import android.content.Context
 import android.content.Intent
 import android.graphics.BitmapFactory
-import android.media.projection.MediaProjection
 import android.media.projection.MediaProjectionManager
 import android.os.Build
 import android.os.IBinder
@@ -16,9 +15,8 @@ import android.view.SurfaceView
 import androidx.annotation.RequiresApi
 import androidx.core.app.NotificationCompat
 import com.pedro.encoder.input.gl.render.filters.`object`.ImageObjectFilterRender
-import com.pedro.encoder.input.video.CameraHelper
 import com.pedro.encoder.utils.gl.TranslateTo
-import com.pedro.rtplibrary.rtmp.RtmpCamera
+import com.pedro.rtplibrary.rtmp.RtmpStream
 import com.pedro.rtplibrary.util.SensorRotationManager
 import com.pedro.rtpstreamer.R
 import com.pedro.rtpstreamer.backgroundexample.ConnectCheckerRtp
@@ -66,7 +64,7 @@ class StreamService: Service() {
     private const val channelId = "rtpStreamChannel"
     private const val notifyId = 123456
     private var notificationManager: NotificationManager? = null
-    private var rtmpCamera: RtmpCamera? = null
+    private var rtmpCamera: RtmpStream? = null
     private var context: Context? = null
     private var sensorRotationManager: SensorRotationManager? = null
     private var currentOrientation = -1
@@ -83,7 +81,7 @@ class StreamService: Service() {
 
     fun init(context: Context) {
       this.context = context
-      rtmpCamera = RtmpCamera(context, connectCheckerRtp)
+      rtmpCamera = RtmpStream(context, connectCheckerRtp)
       sensorRotationManager = SensorRotationManager(context) {
         //0 = portrait, 90 = landscape, 180 = reverse portrait, 270 = reverse landscape
         if (currentOrientation != it) {
@@ -121,8 +119,6 @@ class StreamService: Service() {
 
     fun stopStream() {
       rtmpCamera?.stopStream()
-      rtmpCamera?.prepareVideo(640, 480, 1200 * 1000)
-      rtmpCamera?.prepareAudio(44100, true, 128 * 1000)
     }
 
     private val connectCheckerRtp = object : ConnectCheckerRtp {

@@ -16,6 +16,7 @@
 
 package com.pedro.encoder.input.audio;
 
+import android.annotation.SuppressLint;
 import android.media.AudioFormat;
 import android.media.AudioPlaybackCaptureConfiguration;
 import android.media.AudioRecord;
@@ -32,6 +33,7 @@ import java.nio.ByteBuffer;
  * Created by pedro on 19/01/17.
  */
 
+@SuppressLint("MissingPermission")
 public class MicrophoneManager {
 
   private final String TAG = "MicrophoneManager";
@@ -53,6 +55,7 @@ public class MicrophoneManager {
 
   public MicrophoneManager(GetMicrophoneData getMicrophoneData) {
     this.getMicrophoneData = getMicrophoneData;
+    getPcmBufferSize();
   }
 
   public void setCustomAudioEffect(CustomAudioEffect customAudioEffect) {
@@ -87,7 +90,7 @@ public class MicrophoneManager {
     try {
       this.sampleRate = sampleRate;
       channel = isStereo ? AudioFormat.CHANNEL_IN_STEREO : AudioFormat.CHANNEL_IN_MONO;
-      audioRecord = new AudioRecord(audioSource, sampleRate, channel, audioFormat, getPcmBufferSize());
+      audioRecord = new AudioRecord(audioSource, sampleRate, channel, audioFormat, getMaxInputSize() * 5);
       audioPostProcessEffect = new AudioPostProcessEffect(audioRecord.getAudioSessionId());
       if (echoCanceler) audioPostProcessEffect.enableEchoCanceler();
       if (noiseSuppressor) audioPostProcessEffect.enableNoiseSuppressor();
@@ -126,7 +129,7 @@ public class MicrophoneManager {
                 .setSampleRate(sampleRate)
                 .setChannelMask(channel)
                 .build())
-            .setBufferSizeInBytes(getPcmBufferSize())
+            .setBufferSizeInBytes(getMaxInputSize() * 5)
             .build();
         audioPostProcessEffect = new AudioPostProcessEffect(audioRecord.getAudioSessionId());
         if (echoCanceler) audioPostProcessEffect.enableEchoCanceler();
@@ -232,11 +235,10 @@ public class MicrophoneManager {
   /**
    * Get PCM buffer size
    */
-  private int getPcmBufferSize() {
+  private void getPcmBufferSize() {
     BUFFER_SIZE = AudioRecord.getMinBufferSize(sampleRate, channel, audioFormat);
     pcmBuffer = new byte[BUFFER_SIZE];
     pcmBufferMuted = new byte[BUFFER_SIZE];
-    return BUFFER_SIZE * 5;
   }
 
   public int getMaxInputSize() {

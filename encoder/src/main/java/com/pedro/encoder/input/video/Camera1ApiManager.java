@@ -386,6 +386,18 @@ public class Camera1ApiManager implements Camera.PreviewCallback, Camera.FaceDet
     camera.addCallbackBuffer(yuvBuffer);
   }
 
+  public Camera.Size getCameraSize(int width, int height) {
+    if (camera != null) {
+      return camera.new Size(width, height);
+    } else {
+      camera = Camera.open(cameraSelect);
+      Camera.Size size = camera.new Size(width, height);
+      camera.release();
+      camera = null;
+      return size;
+    }
+  }
+
   /**
    * See: https://developer.android.com/reference/android/graphics/ImageFormat.html to know name of
    * constant values
