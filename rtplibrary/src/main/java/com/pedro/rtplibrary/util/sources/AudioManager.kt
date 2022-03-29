@@ -74,7 +74,7 @@ class AudioManager(getMicrophoneData: GetMicrophoneData) {
 
   @RequiresApi(Build.VERSION_CODES.Q)
   fun changeSourceInternal(mediaProjection: MediaProjection) {
-    if (this.source != source) {
+    if (this.source != Source.INTERNAL) {
       this.mediaProjection = mediaProjection
       val wasRunning = isRunning()
       stop()
@@ -84,7 +84,7 @@ class AudioManager(getMicrophoneData: GetMicrophoneData) {
   }
 
   fun changeSourceMicrophone() {
-    if (this.source != source) {
+    if (this.source != Source.MICROPHONE) {
       val wasRunning = isRunning()
       stop()
       this.source = Source.MICROPHONE
