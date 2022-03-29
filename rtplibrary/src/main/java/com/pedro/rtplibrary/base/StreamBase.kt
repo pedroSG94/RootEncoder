@@ -21,7 +21,7 @@ import com.pedro.encoder.video.VideoEncoder
 import com.pedro.rtplibrary.util.sources.AudioManager
 import com.pedro.rtplibrary.util.sources.VideoManager
 import com.pedro.rtplibrary.util.RecordController
-import com.pedro.rtplibrary.view.GlCameraInterface
+import com.pedro.rtplibrary.view.GlStreamInterface
 import java.nio.ByteBuffer
 
 /**
@@ -40,7 +40,7 @@ abstract class StreamBase(context: Context): GetVideoData, GetAacData, GetMicrop
   private val videoEncoder by lazy { VideoEncoder(this) }
   private val audioEncoder by lazy { AudioEncoder(this) }
   //video render
-  private val glInterface = GlCameraInterface(context)
+  private val glInterface = GlStreamInterface(context)
   //video and audio sources
   private val videoManager = VideoManager(context)
   private val audioManager by lazy { AudioManager(this) }
@@ -187,7 +187,7 @@ abstract class StreamBase(context: Context): GetVideoData, GetAacData, GetMicrop
     glInterface.setCameraOrientation(orientation)
   }
 
-  fun getGlInterface(): GlCameraInterface = glInterface
+  fun getGlInterface(): GlStreamInterface = glInterface
 
   private fun startSources() {
     if (!glInterface.running) glInterface.start()

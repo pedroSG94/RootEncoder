@@ -105,9 +105,8 @@ public class ScreenRender {
     draw(width, height);
   }
 
-  public void drawEncoder(int width, int height, boolean isPortrait, boolean keepAspectRatio,
-      int mode, int rotation, boolean isPreview, boolean flipStreamVertical,
-      boolean flipStreamHorizontal) {
+  public void drawEncoder(int width, int height, boolean isPortrait, int mode, int rotation,
+      boolean isPreview, boolean flipStreamVertical, boolean flipStreamHorizontal) {
     GlUtil.checkGlError("drawScreen start");
 
     SizeCalculator.processMatrix(rotation, width, height, isPreview, isPortrait,

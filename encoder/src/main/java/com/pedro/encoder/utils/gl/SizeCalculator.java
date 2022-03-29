@@ -20,7 +20,6 @@ import android.graphics.Point;
 import android.graphics.PointF;
 import android.opengl.GLES20;
 import android.opengl.Matrix;
-import android.util.Log;
 import android.util.Pair;
 
 /**
@@ -39,8 +38,8 @@ public class SizeCalculator {
   public static void calculateViewPortEncoder(int streamWidth, int streamHeight, boolean isPortrait) {
     Pair<Point, Point> pair;
     if (isPortrait) {
-      int factor = streamWidth / streamHeight;
-      int width = streamHeight * factor;
+      float factor = (float) streamWidth / (float) streamHeight;
+      int width = (int) (streamHeight / factor);
       int oX = (streamWidth - width) / 2;
       pair = new Pair<>(new Point(oX, 0), new Point(width, streamHeight));
     } else {

@@ -45,10 +45,10 @@ class MainRender {
       flipStreamHorizontal)
   }
 
-  fun drawScreenEncoder(width: Int, height: Int, isPortrait: Boolean, keepAspectRatio: Boolean,
+  fun drawScreenEncoder(width: Int, height: Int, isPortrait: Boolean,
     mode: Int, rotation: Int, isPreview: Boolean, flipStreamVertical: Boolean,
     flipStreamHorizontal: Boolean) {
-    screenRender.drawEncoder(width, height, isPortrait, keepAspectRatio, mode, rotation, isPreview,
+    screenRender.drawEncoder(width, height, isPortrait, mode, rotation, isPreview,
       flipStreamVertical, flipStreamHorizontal)
   }
 

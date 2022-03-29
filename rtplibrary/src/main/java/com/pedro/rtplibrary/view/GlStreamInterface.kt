@@ -22,7 +22,7 @@ import java.util.concurrent.Semaphore
  * Created by pedro on 14/3/22.
  */
 @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
-class GlCameraInterface(private val context: Context) : Runnable, OnFrameAvailableListener {
+class GlStreamInterface(private val context: Context) : Runnable, OnFrameAvailableListener {
 
   private var thread: Thread? = null
   private var frameAvailable = false
@@ -140,7 +140,7 @@ class GlCameraInterface(private val context: Context) : Runnable, OnFrameAvailab
               val w =  encoderWidth
               val h =  encoderHeight
               surfaceManagerEncoder.makeCurrent()
-              managerRender?.drawScreenEncoder(w, h, isPortrait, false, 0, streamOrientation,
+              managerRender?.drawScreenEncoder(w, h, isPortrait, 0, streamOrientation,
                 false, false, false)
               surfaceManagerEncoder.swapBuffer()
             }
