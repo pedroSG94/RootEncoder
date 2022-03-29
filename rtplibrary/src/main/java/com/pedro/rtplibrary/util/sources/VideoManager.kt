@@ -22,7 +22,7 @@ import kotlin.IllegalArgumentException
 class VideoManager(private val context: Context) {
 
   enum class Source {
-    CAMERA1, CAMERA2, SCREEN
+    CAMERA1, CAMERA2, SCREEN, DISABLED
   }
 
   private var source = Source.CAMERA2
@@ -31,6 +31,7 @@ class VideoManager(private val context: Context) {
   private val camera2 = Camera2ApiManager(context)
   private var mediaProjection: MediaProjection? = null
   private var virtualDisplay: VirtualDisplay? = null
+  private val noSource = NoSource()
 
   private var surfaceTexture: SurfaceTexture? = null
   private var width = 0
@@ -75,6 +76,19 @@ class VideoManager(private val context: Context) {
     }
   }
 
+  fun changeVideoSourceDisabled() {
+    if (this.source != Source.DISABLED) {
+      val wasRunning = isRunning()
+      stop()
+      this.source = Source.DISABLED
+      mediaProjection?.stop()
+      mediaProjection = null
+      surfaceTexture?.let {
+        if (wasRunning) start(it)
+      }
+    }
+  }
+
   fun start(surfaceTexture: SurfaceTexture) {
     this.surfaceTexture = surfaceTexture
     if (!isRunning()) {
@@ -96,6 +110,7 @@ class VideoManager(private val context: Context) {
           virtualDisplay = mediaProjection?.createVirtualDisplay("Screen", width, height, dpi,
             flags, Surface(surfaceTexture), null, null)
         }
+        Source.DISABLED -> noSource.start()
       }
     }
   }
@@ -113,12 +128,13 @@ class VideoManager(private val context: Context) {
           virtualDisplay?.release()
           virtualDisplay = null
         }
+        Source.DISABLED -> noSource.stop()
       }
     }
   }
 
   fun switchCamera() {
-    if (source == Source.SCREEN) return
+    if (source == Source.SCREEN || source == Source.DISABLED) return
     facing = if (facing == CameraHelper.Facing.BACK) {
       CameraHelper.Facing.FRONT
     } else {
@@ -139,6 +155,7 @@ class VideoManager(private val context: Context) {
       Source.CAMERA1 -> camera1.isRunning
       Source.CAMERA2 -> camera2.isRunning
       Source.SCREEN -> virtualDisplay != null
+      Source.DISABLED -> noSource.isRunning()
     }
   }
 
@@ -159,7 +176,7 @@ class VideoManager(private val context: Context) {
         val resultFront = camera2.cameraResolutionsFront.contains(size)
         return resultBack && resultFront
       }
-      Source.SCREEN -> {
+      Source.SCREEN, Source.DISABLED -> {
         return true
       }
     }

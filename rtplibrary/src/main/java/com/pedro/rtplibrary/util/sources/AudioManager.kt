@@ -11,14 +11,16 @@ import com.pedro.encoder.input.audio.MicrophoneManager
 /**
  * Created by pedro on 29/3/22.
  */
+@RequiresApi(Build.VERSION_CODES.LOLLIPOP)
 class AudioManager(getMicrophoneData: GetMicrophoneData) {
 
   enum class Source {
-    MICROPHONE, INTERNAL
+    MICROPHONE, INTERNAL, DISABLED
   }
 
   private var source = Source.MICROPHONE
   private val microphone = MicrophoneManager(getMicrophoneData)
+  private val noSource = NoSource()
   private var mediaProjection: MediaProjection? = null
   private var sampleRate = 0
   private var isStereo = true
@@ -43,6 +45,7 @@ class AudioManager(getMicrophoneData: GetMicrophoneData) {
           if (!result) {
             throw IllegalArgumentException("Failed to create microphone audio source")
           }
+          microphone.start()
         }
         Source.INTERNAL -> {
           if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
@@ -60,15 +63,19 @@ class AudioManager(getMicrophoneData: GetMicrophoneData) {
           } else {
             throw IllegalStateException("Using internal audio in a invalid Android version. Android 10+ is necessary")
           }
+          microphone.start()
         }
+        Source.DISABLED -> noSource.start()
       }
-      microphone.start()
     }
   }
 
   fun stop() {
     if (isRunning()) {
-      microphone.stop()
+      when (source) {
+        Source.MICROPHONE, Source.INTERNAL -> microphone.stop()
+        Source.DISABLED -> noSource.stop()
+      }
     }
   }
 
@@ -88,15 +95,44 @@ class AudioManager(getMicrophoneData: GetMicrophoneData) {
       val wasRunning = isRunning()
       stop()
       this.source = Source.MICROPHONE
-      if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-        mediaProjection?.stop()
-        mediaProjection = null
-      }
+      mediaProjection?.stop()
+      mediaProjection = null
       if (wasRunning) start()
     }
   }
 
-  fun isRunning(): Boolean = microphone.isRunning
+  fun changeAudioSourceDisabled() {
+    if (this.source != Source.DISABLED) {
+      val wasRunning = isRunning()
+      stop()
+      this.source = Source.DISABLED
+      mediaProjection?.stop()
+      mediaProjection = null
+      if (wasRunning) start()
+    }
+  }
+
+  fun mute() {
+    if (source == Source.DISABLED) return
+    microphone.mute()
+  }
+
+  fun unMute() {
+    if (source == Source.DISABLED) return
+    microphone.unMute()
+  }
+
+  fun isMuted(): Boolean {
+    return if (source == Source.DISABLED) false
+    else microphone.isMuted
+  }
+
+  fun isRunning(): Boolean {
+    return when (source) {
+      Source.MICROPHONE, Source.INTERNAL -> microphone.isRunning
+      Source.DISABLED -> noSource.isRunning()
+    }
+  }
 
   fun getMaxInputSize(): Int = microphone.maxInputSize
 }

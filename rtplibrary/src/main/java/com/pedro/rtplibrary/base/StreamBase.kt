@@ -168,6 +168,18 @@ abstract class StreamBase(context: Context): GetVideoData, GetAacData, GetMicrop
     videoManager.changeSourceScreen(mediaProjection)
   }
 
+  /**
+   * Disable video stopping process video frames from video source.
+   * You can return to camera/screen video using changeVideoSourceCamera/changeVideoSourceScreen
+   *
+   * @NOTE:
+   * This isn't recommended because it isn't supported in all servers/players.
+   * Use BlackFilterRender to send only black images is recommended.
+   */
+  fun changeVideoSourceDisabled() {
+    videoManager.changeVideoSourceDisabled()
+  }
+
   fun changeAudioSourceMicrophone() {
     audioManager.changeSourceMicrophone()
   }
@@ -176,6 +188,28 @@ abstract class StreamBase(context: Context): GetVideoData, GetAacData, GetMicrop
   fun changeAudioSourceInternal(mediaProjection: MediaProjection) {
     audioManager.changeSourceInternal(mediaProjection)
   }
+
+  /**
+   * Disable audio stopping process audio frames from audio source.
+   * You can return to microphone/internal audio using changeAudioSourceMicrophone/changeAudioSourceInternal
+   *
+   * @NOTE:
+   * This isn't recommended because it isn't supported in all servers/players.
+   * Use mute and unMute to send empty audio is recommended
+   */
+  fun changeAudioSourceDisabled() {
+    audioManager.changeAudioSourceDisabled()
+  }
+
+  fun mute() {
+    audioManager.mute()
+  }
+
+  fun unMute() {
+    audioManager.unMute()
+  }
+
+  fun isMuted(): Boolean = audioManager.isMuted()
 
   fun switchVideoCamera() {
     videoManager.switchCamera()
