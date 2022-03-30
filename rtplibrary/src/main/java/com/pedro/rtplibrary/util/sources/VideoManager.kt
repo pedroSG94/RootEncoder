@@ -46,7 +46,7 @@ class VideoManager(private val context: Context) {
   }
 
   fun changeSourceCamera(source: Source) {
-    if (source == Source.SCREEN) {
+    if (source == Source.SCREEN || source == Source.DISABLED) {
       throw IllegalArgumentException("Invalid ${source.name}. Only ${Source.CAMERA1.name} or ${Source.CAMERA2.name} is accepted.")
     }
     if (this.source != source) {
@@ -148,7 +148,7 @@ class VideoManager(private val context: Context) {
     }
   }
 
-  fun getFacing(): CameraHelper.Facing = facing
+  fun getCameraFacing(): CameraHelper.Facing = facing
 
   fun isRunning(): Boolean {
     return when (source) {

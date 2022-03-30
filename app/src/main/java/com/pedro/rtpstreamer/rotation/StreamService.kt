@@ -15,9 +15,11 @@ import android.view.SurfaceView
 import androidx.annotation.RequiresApi
 import androidx.core.app.NotificationCompat
 import com.pedro.encoder.input.gl.render.filters.`object`.ImageObjectFilterRender
+import com.pedro.encoder.input.video.CameraHelper
 import com.pedro.encoder.utils.gl.TranslateTo
 import com.pedro.rtplibrary.rtmp.RtmpStream
 import com.pedro.rtplibrary.util.SensorRotationManager
+import com.pedro.rtplibrary.util.sources.VideoManager
 import com.pedro.rtpstreamer.R
 import com.pedro.rtpstreamer.backgroundexample.ConnectCheckerRtp
 
@@ -103,6 +105,10 @@ class StreamService: Service() {
       rtmpCamera?.stopPreview()
     }
 
+    fun switchCamera() {
+      rtmpCamera?.switchCamera()
+    }
+
     fun isStreaming(): Boolean = rtmpCamera?.isStreaming ?: false
 
     fun isOnPreview(): Boolean = rtmpCamera?.isOnPreview ?: false
@@ -111,10 +117,25 @@ class StreamService: Service() {
       rtmpCamera?.startStream("rtmp://192.168.1.132/live/pedro")
     }
 
+    fun changeVideoSourceCamera(source: VideoManager.Source) {
+      rtmpCamera?.changeVideoSourceCamera(source)
+    }
+
     fun changeVideoSourceScreen(context: Context, resultCode: Int, data: Intent) {
       val mediaProjectionManager = context.applicationContext.getSystemService(MEDIA_PROJECTION_SERVICE) as MediaProjectionManager
       val mediaProjection = mediaProjectionManager.getMediaProjection(resultCode, data)
       rtmpCamera?.changeVideoSourceScreen(mediaProjection)
+    }
+
+    fun changeAudioSourceMicrophone() {
+      rtmpCamera?.changeAudioSourceMicrophone()
+    }
+
+    @RequiresApi(Build.VERSION_CODES.Q)
+    fun changeAudioSourceInternal(context: Context, resultCode: Int, data: Intent) {
+      val mediaProjectionManager = context.applicationContext.getSystemService(MEDIA_PROJECTION_SERVICE) as MediaProjectionManager
+      val mediaProjection = mediaProjectionManager.getMediaProjection(resultCode, data)
+      rtmpCamera?.changeAudioSourceInternal(mediaProjection)
     }
 
     fun stopStream() {

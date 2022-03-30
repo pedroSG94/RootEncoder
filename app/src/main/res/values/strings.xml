@@ -104,4 +104,10 @@
   <string name="user">User</string>
   <string name="password">Password</string>
   <string name="noise_suppressor">Noise suppressor</string>
+  <string name="video_source">Video source</string>
+  <string name="audio_source">Audio source</string>
+  <string name="camera1">Camera1</string>
+  <string name="camera2">Camera2</string>
+  <string name="screen">Screen</string>
+  <string name="internal">Internal</string>
 </resources>

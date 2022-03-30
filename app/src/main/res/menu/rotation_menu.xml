@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    >
+    <item android:title="@string/video_source">
+        <menu>
+            <item
+                android:title="@string/camera1"
+                android:id="@+id/video_source_camera1"
+                />
+            <item
+                android:title="@string/camera2"
+                android:id="@+id/video_source_camera2"
+                />
+            <item
+                android:title="@string/screen"
+                android:id="@+id/video_source_screen"
+                />
+        </menu>
+    </item>
+    <item android:title="@string/audio_source">
+        <menu>
+            <item
+                android:title="@string/microphone"
+                android:id="@+id/audio_source_microphone"
+                />
+            <item
+                android:title="@string/internal"
+                android:id="@+id/audio_source_internal"
+                />
+        </menu>
+    </item>
+</menu>

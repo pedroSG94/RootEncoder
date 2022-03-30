@@ -211,11 +211,11 @@ abstract class StreamBase(context: Context): GetVideoData, GetAacData, GetMicrop
 
   fun isMuted(): Boolean = audioManager.isMuted()
 
-  fun switchVideoCamera() {
+  fun switchCamera() {
     videoManager.switchCamera()
   }
 
-  fun getFacing(): CameraHelper.Facing = videoManager.getFacing()
+  fun getCameraFacing(): CameraHelper.Facing = videoManager.getCameraFacing()
 
   fun setOrientation(orientation: Int) {
     glInterface.setCameraOrientation(orientation)
