@@ -15,7 +15,10 @@ import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import com.pedro.rtplibrary.util.sources.VideoManager
 import com.pedro.rtpstreamer.R
-import kotlinx.android.synthetic.main.activity_example.*
+import com.pedro.rtpstreamer.databinding.ActivityExampleBinding
+import com.pedro.rtpstreamer.utils.PathUtils
+import java.text.SimpleDateFormat
+import java.util.*
 
 /**
  * Created by pedro on 22/3/22.
@@ -26,12 +29,14 @@ class RotationExampleActivity: AppCompatActivity(), SurfaceHolder.Callback {
   private val REQUEST_CODE_SCREEN_VIDEO = 1
   private val REQUEST_CODE_INTERNAL_AUDIO = 2
   private var askingMediaProjection = false
+  private lateinit var binding: ActivityExampleBinding
 
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
     window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
-    setContentView(R.layout.activity_example)
-    surfaceView.holder.addCallback(this)
+    binding = ActivityExampleBinding.inflate(layoutInflater)
+    setContentView(binding.root)
+    binding.surfaceView.holder.addCallback(this)
 
     if (!isMyServiceRunning(StreamService::class.java)) {
       val intent = Intent(applicationContext, StreamService::class.java)
@@ -39,19 +44,29 @@ class RotationExampleActivity: AppCompatActivity(), SurfaceHolder.Callback {
       StreamService.init(this)
     }
 
-    b_start_stop.setOnClickListener {
+    binding.bStartStop.setOnClickListener {
       if (!StreamService.isStreaming()) {
         StreamService.startStream()
-        b_start_stop.setText(R.string.stop_button)
+        binding.bStartStop.setText(R.string.stop_button)
       } else {
-        StreamService.stopStream()
-        b_start_stop.setText(R.string.start_button)
+      StreamService.stopStream()
+        binding.bStartStop.setText(R.string.start_button)
       }
     }
-    b_record.setOnClickListener {
-
+    binding.bRecord.setOnClickListener {
+      if (!StreamService.isRecording()) {
+        val folder = PathUtils.getRecordPath()
+        if (!folder.exists()) folder.mkdir()
+        val sdf = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault())
+        val fileName = sdf.format(Date())
+        StreamService.startRecord("${folder.absolutePath}/$fileName.mp4")
+        binding.bRecord.setText(R.string.stop_record)
+      } else {
+        StreamService.stopRecord()
+        binding.bRecord.setText(R.string.start_record)
+      }
     }
-    switch_camera.setOnClickListener {
+    binding.switchCamera.setOnClickListener {
       StreamService.switchCamera()
     }
   }
@@ -109,9 +124,14 @@ class RotationExampleActivity: AppCompatActivity(), SurfaceHolder.Callback {
   override fun onResume() {
     super.onResume()
     if (StreamService.isStreaming()) {
-      b_start_stop.setText(R.string.stop_button)
+      binding.bStartStop.setText(R.string.stop_button)
     } else {
-      b_start_stop.setText(R.string.start_button)
+      binding.bStartStop.setText(R.string.start_button)
+    }
+    if (StreamService.isRecording()) {
+      binding.bRecord.setText(R.string.stop_record)
+    } else {
+      binding.bRecord.setText(R.string.start_record)
     }
   }
 
@@ -125,7 +145,7 @@ class RotationExampleActivity: AppCompatActivity(), SurfaceHolder.Callback {
   }
 
   override fun surfaceChanged(holder: SurfaceHolder, p1: Int, p2: Int, p3: Int) {
-    if (!StreamService.isOnPreview()) StreamService.startPreview(surfaceView)
+   if (!StreamService.isOnPreview()) StreamService.startPreview(binding.surfaceView)
   }
 
   override fun surfaceDestroyed(holder: SurfaceHolder) {

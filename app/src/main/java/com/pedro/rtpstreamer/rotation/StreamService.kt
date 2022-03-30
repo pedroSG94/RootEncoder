@@ -31,7 +31,7 @@ class StreamService: Service() {
 
   override fun onCreate() {
     super.onCreate()
-    Log.e(TAG, "RTP service create")
+    Log.e(TAG, "$TAG create")
     notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
       val channel = NotificationChannel(channelId, channelId, NotificationManager.IMPORTANCE_HIGH)
@@ -62,7 +62,7 @@ class StreamService: Service() {
   }
 
   companion object {
-    private const val TAG = "RtpService"
+    private const val TAG = "StreamService"
     private const val channelId = "rtpStreamChannel"
     private const val notifyId = 123456
     private var notificationManager: NotificationManager? = null
@@ -111,10 +111,26 @@ class StreamService: Service() {
 
     fun isStreaming(): Boolean = rtmpCamera?.isStreaming ?: false
 
+    fun isRecording(): Boolean = rtmpCamera?.isRecording ?: false
+
     fun isOnPreview(): Boolean = rtmpCamera?.isOnPreview ?: false
 
     fun startStream() {
       rtmpCamera?.startStream("rtmp://192.168.1.132/live/pedro")
+    }
+
+    fun stopStream() {
+      rtmpCamera?.stopStream()
+    }
+
+    fun startRecord(path: String) {
+      rtmpCamera?.startRecord(path) {
+        Log.i(TAG, "record state: ${it.name}")
+      }
+    }
+
+    fun stopRecord() {
+      rtmpCamera?.stopRecord()
     }
 
     fun changeVideoSourceCamera(source: VideoManager.Source) {
@@ -138,10 +154,6 @@ class StreamService: Service() {
       rtmpCamera?.changeAudioSourceInternal(mediaProjection)
     }
 
-    fun stopStream() {
-      rtmpCamera?.stopStream()
-    }
-
     private val connectCheckerRtp = object : ConnectCheckerRtp {
       override fun onConnectionStartedRtp(rtpUrl: String) {
         showNotification("Stream connection started")
@@ -149,7 +161,7 @@ class StreamService: Service() {
 
       override fun onConnectionSuccessRtp() {
         showNotification("Stream started")
-        Log.e(TAG, "RTP service destroy")
+        Log.e(TAG, "$TAG destroy")
       }
 
       override fun onNewBitrateRtp(bitrate: Long) {
@@ -158,7 +170,7 @@ class StreamService: Service() {
 
       override fun onConnectionFailedRtp(reason: String) {
         showNotification("Stream connection failed")
-        Log.e(TAG, "RTP service destroy")
+        Log.e(TAG, "$TAG destroy")
       }
 
       override fun onDisconnectRtp() {

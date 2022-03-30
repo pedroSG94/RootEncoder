@@ -94,7 +94,7 @@ abstract class StreamBase(context: Context): GetVideoData, GetAacData, GetMicrop
     isStreaming = true
     rtpStartStream(endPoint)
     if (!recordController.isRunning) startSources()
-    else videoEncoder.reset()
+    else videoEncoder.requestKeyframe()
   }
 
   /**
@@ -114,7 +114,7 @@ abstract class StreamBase(context: Context): GetVideoData, GetAacData, GetMicrop
   fun startRecord(path: String, listener: RecordController.Listener) {
     recordController.startRecord(path, listener)
     if (!isStreaming) startSources()
-    else videoEncoder.reset()
+    else videoEncoder.requestKeyframe()
   }
 
   /**
