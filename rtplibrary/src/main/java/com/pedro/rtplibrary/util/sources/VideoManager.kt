@@ -6,13 +6,15 @@ import android.hardware.display.DisplayManager
 import android.hardware.display.VirtualDisplay
 import android.media.projection.MediaProjection
 import android.os.Build
+import android.util.DisplayMetrics
 import android.util.Size
 import android.view.Surface
+import android.view.WindowManager
 import androidx.annotation.RequiresApi
 import com.pedro.encoder.input.video.Camera1ApiManager
 import com.pedro.encoder.input.video.Camera2ApiManager
 import com.pedro.encoder.input.video.CameraHelper
-import kotlin.IllegalArgumentException
+
 
 /**
  * Created by pedro on 21/2/22.
@@ -103,12 +105,15 @@ class VideoManager(private val context: Context) {
           camera2.openCameraFacing(facing)
         }
         Source.SCREEN -> {
+          val screenHelper = ScreenHelper(context)
+          val resolution = screenHelper.calculateMediaProjectionResolution(width, height)
           val dpi = context.resources.displayMetrics.densityDpi
           var flags = DisplayManager.VIRTUAL_DISPLAY_FLAG_AUTO_MIRROR
           val VIRTUAL_DISPLAY_FLAG_ROTATES_WITH_CONTENT = 128
           flags += VIRTUAL_DISPLAY_FLAG_ROTATES_WITH_CONTENT
-          virtualDisplay = mediaProjection?.createVirtualDisplay("Screen", width, height, dpi,
-            flags, Surface(surfaceTexture), null, null)
+          virtualDisplay = mediaProjection?.createVirtualDisplay("VideoManagerScreen",
+            resolution.width, resolution.height, screenHelper.getScreenDpi(), flags,
+            Surface(surfaceTexture), null, null)
         }
         Source.DISABLED -> noSource.start()
       }

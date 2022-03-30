@@ -31,7 +31,7 @@ class StreamService: Service() {
 
   override fun onCreate() {
     super.onCreate()
-    Log.e(TAG, "$TAG create")
+    Log.i(TAG, "$TAG create")
     notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
       val channel = NotificationChannel(channelId, channelId, NotificationManager.IMPORTANCE_HIGH)
@@ -57,7 +57,7 @@ class StreamService: Service() {
   }
 
   override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-    Log.e(TAG, "RTP service started")
+    Log.i(TAG, "RTP service started")
     return START_STICKY
   }
 
@@ -98,7 +98,7 @@ class StreamService: Service() {
 
     fun startPreview(surfaceView: SurfaceView) {
       rtmpCamera?.startPreview(surfaceView)
-      setImageToStream()
+      //setImageToStream()
     }
 
     fun stopPreview() {
@@ -161,7 +161,6 @@ class StreamService: Service() {
 
       override fun onConnectionSuccessRtp() {
         showNotification("Stream started")
-        Log.e(TAG, "$TAG destroy")
       }
 
       override fun onNewBitrateRtp(bitrate: Long) {
@@ -170,7 +169,6 @@ class StreamService: Service() {
 
       override fun onConnectionFailedRtp(reason: String) {
         showNotification("Stream connection failed")
-        Log.e(TAG, "$TAG destroy")
       }
 
       override fun onDisconnectRtp() {
@@ -199,7 +197,7 @@ class StreamService: Service() {
 
   override fun onDestroy() {
     super.onDestroy()
-    Log.e(TAG, "RTP service destroy")
+    Log.i(TAG, "RTP service destroy")
     stopStream()
     sensorRotationManager?.stop()
   }
