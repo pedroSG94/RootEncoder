@@ -6,10 +6,8 @@ import android.hardware.display.DisplayManager
 import android.hardware.display.VirtualDisplay
 import android.media.projection.MediaProjection
 import android.os.Build
-import android.util.DisplayMetrics
 import android.util.Size
 import android.view.Surface
-import android.view.WindowManager
 import androidx.annotation.RequiresApi
 import com.pedro.encoder.input.video.Camera1ApiManager
 import com.pedro.encoder.input.video.Camera2ApiManager
@@ -96,23 +94,30 @@ class VideoManager(private val context: Context) {
     if (!isRunning()) {
       when (source) {
         Source.CAMERA1 -> {
+          surfaceTexture.setDefaultBufferSize(width, height)
           camera1.setSurfaceTexture(surfaceTexture)
           camera1.start(facing, width, height, fps)
           camera1.setPreviewOrientation(90) // necessary to use the same orientation than camera2
         }
         Source.CAMERA2 -> {
+          surfaceTexture.setDefaultBufferSize(width, height)
           camera2.prepareCamera(surfaceTexture, width, height, fps)
           camera2.openCameraFacing(facing)
         }
         Source.SCREEN -> {
-          val screenHelper = ScreenHelper(context)
-          val resolution = screenHelper.calculateMediaProjectionResolution(width, height)
           val dpi = context.resources.displayMetrics.densityDpi
           var flags = DisplayManager.VIRTUAL_DISPLAY_FLAG_AUTO_MIRROR
           val VIRTUAL_DISPLAY_FLAG_ROTATES_WITH_CONTENT = 128
           flags += VIRTUAL_DISPLAY_FLAG_ROTATES_WITH_CONTENT
+          //Adapt MediaProjection render to stream resolution
+          val shouldRotate = width > height
+          val displayWidth = if (shouldRotate) height else width
+          val displayHeight = if (shouldRotate) width else height
+          if (shouldRotate) {
+            surfaceTexture.setDefaultBufferSize(height, width)
+          }
           virtualDisplay = mediaProjection?.createVirtualDisplay("VideoManagerScreen",
-            resolution.width, resolution.height, screenHelper.getScreenDpi(), flags,
+            displayWidth, displayHeight, dpi, flags,
             Surface(surfaceTexture), null, null)
         }
         Source.DISABLED -> noSource.start()
@@ -170,15 +175,22 @@ class VideoManager(private val context: Context) {
     }
     when (source) {
       Source.CAMERA1 -> {
-        val size = camera1.getCameraSize(width, height)
-        val resultBack = camera1.previewSizeBack.contains(size)
-        val resultFront = camera1.previewSizeFront.contains(size)
-        return resultBack && resultFront
+        val shouldRotate = width > height
+        val w = if (shouldRotate) height else width
+        val h = if (shouldRotate) width else height
+        val size = camera1.getCameraSize(w, h)
+        val resolutions = if (facing == CameraHelper.Facing.BACK) {
+          camera1.previewSizeBack
+        } else camera1.previewSizeFront
+        return resolutions.contains(size)
       }
       Source.CAMERA2 -> {
         val size = Size(width, height)
-        val widthList = camera2.cameraResolutionsBack.map { size.width }
-        val heightList = camera2.cameraResolutionsBack.map { size.height }
+        val resolutions = if (facing == CameraHelper.Facing.BACK) {
+          camera2.cameraResolutionsBack
+        } else camera2.cameraResolutionsFront
+        val widthList = resolutions.map { size.width }
+        val heightList = resolutions.map { size.height }
         val maxWidth = widthList.maxOrNull() ?: 0
         val maxHeight = heightList.maxOrNull() ?: 0
         val minWidth = widthList.minOrNull() ?: 0
