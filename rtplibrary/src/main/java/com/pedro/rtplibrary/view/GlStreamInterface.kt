@@ -43,6 +43,7 @@ class GlStreamInterface(private val context: Context) : Runnable, OnFrameAvailab
   private var isPortrait = false
   private val fpsLimiter = FpsLimiter()
   private val filterQueue: BlockingQueue<Filter> = LinkedBlockingQueue()
+  private var forceRender = false
 
   fun init() {
     if (!initialized) managerRender = MainRender()
@@ -61,6 +62,10 @@ class GlStreamInterface(private val context: Context) : Runnable, OnFrameAvailab
 
   fun setFps(fps: Int) {
     fpsLimiter.setFPS(fps)
+  }
+
+  fun setForceRender(forceRender: Boolean) {
+    this.forceRender = forceRender
   }
 
   fun getSurfaceTexture(): SurfaceTexture {
@@ -119,7 +124,7 @@ class GlStreamInterface(private val context: Context) : Runnable, OnFrameAvailab
     semaphore.release()
     try {
       while (running) {
-        if (frameAvailable) {
+        if (frameAvailable || forceRender) {
           frameAvailable = false
           surfaceManager.makeCurrent()
           managerRender?.updateFrame()

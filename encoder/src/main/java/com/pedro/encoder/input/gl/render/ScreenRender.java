@@ -123,8 +123,16 @@ public class ScreenRender {
 
     SizeCalculator.processMatrix(rotation, width, height, isPreview, isPortrait,
         flipStreamHorizontal, flipStreamVertical, mode, MVPMatrix);
-    int w = isPortrait ? streamHeight : streamWidth;
-    int h = isPortrait ? streamWidth : streamHeight;
+    float factor = (float) streamWidth / (float) streamHeight;
+    int w;
+    int h;
+    if (factor >= 1f) {
+      w = isPortrait ? streamHeight : streamWidth;
+      h = isPortrait ? streamWidth : streamHeight;
+    } else {
+      w = isPortrait ? streamWidth : streamHeight;
+      h = isPortrait ? streamHeight : streamWidth;
+    }
     SizeCalculator.calculateViewPort(keepAspectRatio, mode, width, height, w, h);
 
     draw(width, height);

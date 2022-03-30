@@ -172,9 +172,13 @@ class VideoManager(private val context: Context) {
       }
       Source.CAMERA2 -> {
         val size = Size(width, height)
-        val resultBack = camera2.cameraResolutionsBack.contains(size)
-        val resultFront = camera2.cameraResolutionsFront.contains(size)
-        return resultBack && resultFront
+        val widthList = camera2.cameraResolutionsBack.map { size.width }
+        val heightList = camera2.cameraResolutionsBack.map { size.height }
+        val maxWidth = widthList.maxOrNull() ?: 0
+        val maxHeight = heightList.maxOrNull() ?: 0
+        val minWidth = widthList.minOrNull() ?: 0
+        val minHeight = heightList.minOrNull() ?: 0
+        return size.width in minWidth..maxWidth && size.height in minHeight..maxHeight
       }
       Source.SCREEN, Source.DISABLED -> {
         return true

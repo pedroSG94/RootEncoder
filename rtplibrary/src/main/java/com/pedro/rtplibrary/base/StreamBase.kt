@@ -161,10 +161,12 @@ abstract class StreamBase(context: Context): GetVideoData, GetAacData, GetMicrop
   }
 
   fun changeVideoSourceCamera(source: VideoManager.Source) {
+    glInterface.setForceRender(false)
     videoManager.changeSourceCamera(source)
   }
 
   fun changeVideoSourceScreen(mediaProjection: MediaProjection) {
+    glInterface.setForceRender(true)
     videoManager.changeSourceScreen(mediaProjection)
   }
 
@@ -177,6 +179,7 @@ abstract class StreamBase(context: Context): GetVideoData, GetAacData, GetMicrop
    * Use BlackFilterRender to send only black images is recommended.
    */
   fun changeVideoSourceDisabled() {
+    glInterface.setForceRender(false)
     videoManager.changeVideoSourceDisabled()
   }
 

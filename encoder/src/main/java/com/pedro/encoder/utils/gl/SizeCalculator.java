@@ -37,13 +37,23 @@ public class SizeCalculator {
 
   public static void calculateViewPortEncoder(int streamWidth, int streamHeight, boolean isPortrait) {
     Pair<Point, Point> pair;
-    if (isPortrait) {
-      float factor = (float) streamWidth / (float) streamHeight;
-      int width = (int) (streamHeight / factor);
-      int oX = (streamWidth - width) / 2;
-      pair = new Pair<>(new Point(oX, 0), new Point(width, streamHeight));
+    float factor = (float) streamWidth / (float) streamHeight;
+    if (factor >= 1f) {
+      if (isPortrait) {
+        int width = (int) (streamHeight / factor);
+        int oX = (streamWidth - width) / 2;
+        pair = new Pair<>(new Point(oX, 0), new Point(width, streamHeight));
+      } else {
+        pair = new Pair<>(new Point(0, 0), new Point(streamWidth, streamHeight));
+      }
     } else {
-      pair = new Pair<>(new Point(0, 0), new Point(streamWidth, streamHeight));
+      if (isPortrait) {
+        pair = new Pair<>(new Point(0, 0), new Point(streamWidth, streamHeight));
+      } else {
+        int height = (int) (streamWidth * factor);
+        int oY = (streamHeight - height) / 2;
+        pair = new Pair<>(new Point(0, oY), new Point(streamWidth, height));
+      }
     }
     GLES20.glViewport(pair.first.x, pair.first.y, pair.second.x, pair.second.y);
   }
