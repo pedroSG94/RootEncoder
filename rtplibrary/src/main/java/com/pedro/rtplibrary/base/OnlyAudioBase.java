@@ -32,7 +32,9 @@ import com.pedro.encoder.input.audio.GetMicrophoneData;
 import com.pedro.encoder.input.audio.MicrophoneManager;
 import com.pedro.encoder.input.audio.MicrophoneManagerManual;
 import com.pedro.encoder.input.audio.MicrophoneMode;
-import com.pedro.rtplibrary.util.RecordController;
+import com.pedro.rtplibrary.base.recording.BaseRecordController;
+import com.pedro.rtplibrary.base.recording.Status;
+import com.pedro.rtplibrary.util.AndroidMuxerRecordController;
 
 import java.io.FileDescriptor;
 import java.io.IOException;
@@ -45,14 +47,14 @@ import java.nio.ByteBuffer;
  */
 public abstract class OnlyAudioBase implements GetAacData, GetMicrophoneData {
 
-  private final RecordController recordController;
+  protected BaseRecordController recordController;
   private MicrophoneManager microphoneManager;
   private AudioEncoder audioEncoder;
   private boolean streaming = false;
 
   public OnlyAudioBase() {
     setMicrophoneMode(MicrophoneMode.ASYNC);
-    recordController = new RecordController();
+    recordController = new AndroidMuxerRecordController();
   }
 
   /**
@@ -150,7 +152,7 @@ public abstract class OnlyAudioBase implements GetAacData, GetMicrophoneData {
    * @throws IOException If initialized before a stream.
    */
   @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
-  public void startRecord(String path, RecordController.Listener listener) throws IOException {
+  public void startRecord(String path, AndroidMuxerRecordController.Listener listener) throws IOException {
     recordController.startRecord(path, listener);
     if (!streaming) {
       startEncoders();
@@ -170,7 +172,7 @@ public abstract class OnlyAudioBase implements GetAacData, GetMicrophoneData {
    */
   @RequiresApi(api = Build.VERSION_CODES.O)
   public void startRecord(@NonNull final FileDescriptor fd,
-      @Nullable RecordController.Listener listener) throws IOException {
+      @Nullable AndroidMuxerRecordController.Listener listener) throws IOException {
     recordController.startRecord(fd, listener);
     if (!streaming) {
       startEncoders();
@@ -249,7 +251,7 @@ public abstract class OnlyAudioBase implements GetAacData, GetMicrophoneData {
     recordController.resumeRecord();
   }
 
-  public RecordController.Status getRecordStatus() {
+  public Status getRecordStatus() {
     return recordController.getStatus();
   }
 
@@ -349,6 +351,10 @@ public abstract class OnlyAudioBase implements GetAacData, GetMicrophoneData {
   @Override
   public void onAudioFormat(MediaFormat mediaFormat) {
     recordController.setAudioFormat(mediaFormat, true);
+  }
+
+  public void setRecordController(BaseRecordController recordController) {
+    this.recordController = recordController;
   }
 
   public abstract void setLogs(boolean enable);

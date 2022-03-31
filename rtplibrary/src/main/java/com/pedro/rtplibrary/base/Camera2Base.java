@@ -50,8 +50,11 @@ import com.pedro.encoder.utils.CodecUtil;
 import com.pedro.encoder.video.FormatVideoEncoder;
 import com.pedro.encoder.video.GetVideoData;
 import com.pedro.encoder.video.VideoEncoder;
+import com.pedro.rtplibrary.base.recording.BaseRecordController;
+import com.pedro.rtplibrary.base.recording.RecordController;
+import com.pedro.rtplibrary.base.recording.Status;
+import com.pedro.rtplibrary.util.AndroidMuxerRecordController;
 import com.pedro.rtplibrary.util.FpsListener;
-import com.pedro.rtplibrary.util.RecordController;
 import com.pedro.rtplibrary.view.GlInterface;
 import com.pedro.rtplibrary.view.LightOpenGlView;
 import com.pedro.rtplibrary.view.OffScreenGlThread;
@@ -90,7 +93,7 @@ public abstract class Camera2Base implements GetAacData, GetVideoData, GetMicrop
   private boolean audioInitialized = false;
   private boolean onPreview = false;
   private boolean isBackground = false;
-  protected RecordController recordController;
+  protected BaseRecordController recordController;
   private int previewWidth, previewHeight;
   private final FpsListener fpsListener = new FpsListener();
 
@@ -146,7 +149,7 @@ public abstract class Camera2Base implements GetAacData, GetVideoData, GetMicrop
     cameraManager = new Camera2ApiManager(context);
     videoEncoder = new VideoEncoder(this);
     setMicrophoneMode(MicrophoneMode.ASYNC);
-    recordController = new RecordController();
+    recordController = new AndroidMuxerRecordController();
   }
 
   /**
@@ -434,7 +437,7 @@ public abstract class Camera2Base implements GetAacData, GetVideoData, GetMicrop
    */
   @RequiresApi(api = Build.VERSION_CODES.O)
   public void startRecord(@NonNull final FileDescriptor fd,
-      @Nullable RecordController.Listener listener) throws IOException {
+      @Nullable AndroidMuxerRecordController.Listener listener) throws IOException {
     recordController.startRecord(fd, listener);
     if (!streaming) {
       startEncoders();
@@ -608,7 +611,7 @@ public abstract class Camera2Base implements GetAacData, GetVideoData, GetMicrop
     }
   }
 
-  public void startStreamAndRecord(String url, String path, RecordController.Listener listener) throws IOException {
+  public void startStreamAndRecord(String url, String path, AndroidMuxerRecordController.Listener listener) throws IOException {
     startStream(url);
     recordController.startRecord(path, listener);
   }
@@ -1007,7 +1010,7 @@ public abstract class Camera2Base implements GetAacData, GetVideoData, GetMicrop
     recordController.resumeRecord();
   }
 
-  public RecordController.Status getRecordStatus() {
+  public Status getRecordStatus() {
     return recordController.getStatus();
   }
 
@@ -1057,6 +1060,10 @@ public abstract class Camera2Base implements GetAacData, GetVideoData, GetMicrop
   @Override
   public void onAudioFormat(MediaFormat mediaFormat) {
     recordController.setAudioFormat(mediaFormat);
+  }
+
+  public void setRecordController(BaseRecordController recordController) {
+    this.recordController = recordController;
   }
 
   public abstract void setLogs(boolean enable);

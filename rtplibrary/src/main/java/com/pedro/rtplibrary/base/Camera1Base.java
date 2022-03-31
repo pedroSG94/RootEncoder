@@ -49,8 +49,10 @@ import com.pedro.encoder.utils.CodecUtil;
 import com.pedro.encoder.video.FormatVideoEncoder;
 import com.pedro.encoder.video.GetVideoData;
 import com.pedro.encoder.video.VideoEncoder;
+import com.pedro.rtplibrary.base.recording.BaseRecordController;
+import com.pedro.rtplibrary.base.recording.Status;
+import com.pedro.rtplibrary.util.AndroidMuxerRecordController;
 import com.pedro.rtplibrary.util.FpsListener;
-import com.pedro.rtplibrary.util.RecordController;
 import com.pedro.rtplibrary.view.GlInterface;
 import com.pedro.rtplibrary.view.LightOpenGlView;
 import com.pedro.rtplibrary.view.OffScreenGlThread;
@@ -87,7 +89,7 @@ public abstract class Camera1Base
   private boolean streaming = false;
   private boolean audioInitialized = false;
   private boolean onPreview = false;
-  protected RecordController recordController;
+  protected BaseRecordController recordController;
   private int previewWidth, previewHeight;
   private final FpsListener fpsListener = new FpsListener();
 
@@ -133,7 +135,7 @@ public abstract class Camera1Base
   private void init() {
     videoEncoder = new VideoEncoder(this);
     setMicrophoneMode(MicrophoneMode.ASYNC);
-    recordController = new RecordController();
+    recordController = new AndroidMuxerRecordController();
   }
 
   /**
@@ -372,7 +374,7 @@ public abstract class Camera1Base
    * @throws IOException If initialized before a stream.
    */
   @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
-  public void startRecord(@NonNull final String path, @Nullable RecordController.Listener listener)
+  public void startRecord(@NonNull final String path, @Nullable BaseRecordController.Listener listener)
       throws IOException {
     recordController.startRecord(path, listener);
     if (!streaming) {
@@ -395,7 +397,7 @@ public abstract class Camera1Base
    */
   @RequiresApi(api = Build.VERSION_CODES.O)
   public void startRecord(@NonNull final FileDescriptor fd,
-      @Nullable RecordController.Listener listener) throws IOException {
+      @Nullable BaseRecordController.Listener listener) throws IOException {
     recordController.startRecord(fd, listener);
     if (!streaming) {
       startEncoders();
@@ -607,7 +609,7 @@ public abstract class Camera1Base
   }
 
   @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
-  public void startStreamAndRecord(String url, String path, RecordController.Listener listener) throws IOException {
+  public void startStreamAndRecord(String url, String path, BaseRecordController.Listener listener) throws IOException {
     startStream(url);
     recordController.startRecord(path, listener);
   }
@@ -919,7 +921,7 @@ public abstract class Camera1Base
     recordController.resumeRecord();
   }
 
-  public RecordController.Status getRecordStatus() {
+  public Status getRecordStatus() {
     return recordController.getStatus();
   }
 
@@ -969,6 +971,10 @@ public abstract class Camera1Base
   @Override
   public void onAudioFormat(MediaFormat mediaFormat) {
     recordController.setAudioFormat(mediaFormat);
+  }
+
+  public void setRecordController(BaseRecordController recordController) {
+    this.recordController = recordController;
   }
 
   public abstract void setLogs(boolean enable);
