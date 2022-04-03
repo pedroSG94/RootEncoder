@@ -19,9 +19,11 @@ import com.pedro.encoder.input.video.CameraHelper
 import com.pedro.encoder.video.FormatVideoEncoder
 import com.pedro.encoder.video.GetVideoData
 import com.pedro.encoder.video.VideoEncoder
+import com.pedro.rtplibrary.base.recording.BaseRecordController
+import com.pedro.rtplibrary.base.recording.RecordController
+import com.pedro.rtplibrary.util.AndroidMuxerRecordController
 import com.pedro.rtplibrary.util.sources.AudioManager
 import com.pedro.rtplibrary.util.sources.VideoManager
-import com.pedro.rtplibrary.util.RecordController
 import com.pedro.rtplibrary.view.GlStreamInterface
 import java.nio.ByteBuffer
 
@@ -46,7 +48,7 @@ abstract class StreamBase(context: Context): GetVideoData, GetAacData, GetMicrop
   private val videoManager = VideoManager(context)
   private val audioManager by lazy { AudioManager(this) }
   //video/audio record
-  private val recordController = RecordController()
+  private var recordController: BaseRecordController = AndroidMuxerRecordController()
   var isStreaming = false
     private set
   var isOnPreview = false
@@ -99,7 +101,7 @@ abstract class StreamBase(context: Context): GetVideoData, GetAacData, GetMicrop
   fun startStream(endPoint: String) {
     isStreaming = true
     rtpStartStream(endPoint)
-    if (!recordController.isRunning) startSources()
+    if (!isRecording) startSources()
     else videoEncoder.requestKeyframe()
   }
 
@@ -114,7 +116,7 @@ abstract class StreamBase(context: Context): GetVideoData, GetAacData, GetMicrop
   fun stopStream(): Boolean {
     isStreaming = false
     rtpStopStream()
-    if (!recordController.isRunning) {
+    if (!isRecording) {
       stopSources()
       return prepareEncoders()
     }
@@ -192,9 +194,9 @@ abstract class StreamBase(context: Context): GetVideoData, GetAacData, GetMicrop
    */
   fun stopPreview() {
     isOnPreview = false
-    if (!isStreaming && !recordController.isRunning) videoManager.stop()
+    if (!isStreaming && !isRecording) videoManager.stop()
     glInterface.deAttachPreview()
-    if (!isStreaming && !recordController.isRunning) glInterface.stop()
+    if (!isStreaming && !isRecording) glInterface.stop()
   }
 
   /**
@@ -319,6 +321,10 @@ abstract class StreamBase(context: Context): GetVideoData, GetAacData, GetMicrop
    */
   fun getGlInterface(): GlStreamInterface = glInterface
 
+  fun setRecordController(recordController: BaseRecordController) {
+    if (!isRecording) this.recordController = recordController
+  }
+
   private fun startSources() {
     if (!glInterface.running) glInterface.start()
     if (!videoManager.isRunning()) {
@@ -337,6 +343,7 @@ abstract class StreamBase(context: Context): GetVideoData, GetAacData, GetMicrop
     audioEncoder.stop()
     glInterface.removeMediaCodecSurface()
     if (!isOnPreview) glInterface.stop()
+    if (!isRecording) recordController.resetFormats()
   }
 
   private fun prepareEncoders(): Boolean {
