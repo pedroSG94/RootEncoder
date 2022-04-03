@@ -42,7 +42,7 @@ import com.pedro.encoder.video.FormatVideoEncoder;
 import com.pedro.encoder.video.GetVideoData;
 import com.pedro.encoder.video.VideoEncoder;
 import com.pedro.rtplibrary.base.recording.BaseRecordController;
-import com.pedro.rtplibrary.base.recording.Status;
+import com.pedro.rtplibrary.base.recording.RecordController;
 import com.pedro.rtplibrary.util.FpsListener;
 import com.pedro.rtplibrary.util.AndroidMuxerRecordController;
 import com.pedro.rtplibrary.view.GlInterface;
@@ -238,7 +238,7 @@ public abstract class FromFileBase
    * @param path Where file will be saved.
    * @throws IOException If initialized before a stream.
    */
-  public void startRecord(@NonNull String path, @Nullable AndroidMuxerRecordController.Listener listener) throws IOException {
+  public void startRecord(@NonNull String path, @Nullable BaseRecordController.Listener listener) throws IOException {
     recordController.startRecord(path, listener);
     if (!streaming) {
       startEncoders();
@@ -258,7 +258,7 @@ public abstract class FromFileBase
    * @throws IOException If initialized before a stream.
    */
   @RequiresApi(api = Build.VERSION_CODES.O)
-  public void startRecord(@NonNull final FileDescriptor fd, @Nullable AndroidMuxerRecordController.Listener listener) throws IOException {
+  public void startRecord(@NonNull final FileDescriptor fd, @Nullable BaseRecordController.Listener listener) throws IOException {
     recordController.startRecord(fd, listener);
     if (!streaming) {
       startEncoders();
@@ -561,7 +561,7 @@ public abstract class FromFileBase
     recordController.resumeRecord();
   }
 
-  public Status getRecordStatus() {
+  public RecordController.Status getRecordStatus() {
     return recordController.getStatus();
   }
 
@@ -684,7 +684,7 @@ public abstract class FromFileBase
   }
 
   public void setRecordController(BaseRecordController recordController) {
-    this.recordController = recordController;
+    if (!isRecording()) this.recordController = recordController;
   }
 
   public abstract void setLogs(boolean enable);

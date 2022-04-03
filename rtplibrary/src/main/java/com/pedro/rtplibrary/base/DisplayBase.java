@@ -45,7 +45,7 @@ import com.pedro.encoder.video.FormatVideoEncoder;
 import com.pedro.encoder.video.GetVideoData;
 import com.pedro.encoder.video.VideoEncoder;
 import com.pedro.rtplibrary.base.recording.BaseRecordController;
-import com.pedro.rtplibrary.base.recording.Status;
+import com.pedro.rtplibrary.base.recording.RecordController;
 import com.pedro.rtplibrary.util.FpsListener;
 import com.pedro.rtplibrary.util.AndroidMuxerRecordController;
 import com.pedro.rtplibrary.view.GlInterface;
@@ -297,7 +297,7 @@ public abstract class DisplayBase implements GetAacData, GetVideoData, GetMicrop
    * @param path Where file will be saved.
    * @throws IOException If initialized before a stream.
    */
-  public void startRecord(@NonNull String path, @Nullable AndroidMuxerRecordController.Listener listener)
+  public void startRecord(@NonNull String path, @Nullable BaseRecordController.Listener listener)
       throws IOException {
     recordController.startRecord(path, listener);
     if (!streaming) {
@@ -319,7 +319,7 @@ public abstract class DisplayBase implements GetAacData, GetVideoData, GetMicrop
    */
   @RequiresApi(api = Build.VERSION_CODES.O)
   public void startRecord(@NonNull final FileDescriptor fd,
-      @Nullable AndroidMuxerRecordController.Listener listener) throws IOException {
+      @Nullable BaseRecordController.Listener listener) throws IOException {
     recordController.startRecord(fd, listener);
     if (!streaming) {
       startEncoders(resultCode, data);
@@ -576,7 +576,7 @@ public abstract class DisplayBase implements GetAacData, GetVideoData, GetMicrop
     recordController.resumeRecord();
   }
 
-  public Status getRecordStatus() {
+  public RecordController.Status getRecordStatus() {
     return recordController.getStatus();
   }
 
@@ -620,7 +620,7 @@ public abstract class DisplayBase implements GetAacData, GetVideoData, GetMicrop
   }
 
   public void setRecordController(BaseRecordController recordController) {
-    this.recordController = recordController;
+    if (!isRecording()) this.recordController = recordController;
   }
 
   public abstract void setLogs(boolean enable);

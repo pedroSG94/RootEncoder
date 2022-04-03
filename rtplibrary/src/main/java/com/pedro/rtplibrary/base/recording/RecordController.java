@@ -14,13 +14,13 @@ import java.nio.ByteBuffer;
 
 public interface RecordController {
 
+    void init();
     void startRecord(@NonNull String path, @Nullable Listener listener) throws IOException;
     void startRecord(@NonNull FileDescriptor fd, @Nullable Listener listener) throws IOException;
     void recordVideo(ByteBuffer videoBuffer, MediaCodec.BufferInfo videoInfo);
     void recordAudio(ByteBuffer audioBuffer, MediaCodec.BufferInfo audioInfo);
     void setVideoFormat(MediaFormat videoFormat, boolean isOnlyVideo);
-    void setAudioFormat(MediaFormat audioFormat);
-    void setAudioFormat(MediaFormat audioFormat,boolean isOnlyVideo);
+    void setAudioFormat(MediaFormat audioFormat, boolean isOnlyVideo);
     void write(int track, ByteBuffer byteBuffer, MediaCodec.BufferInfo info);
     void stopRecord();
     boolean isRunning();
@@ -31,8 +31,11 @@ public interface RecordController {
     void pauseRecord();
     void resumeRecord();
 
-    public interface Listener {
+    interface Listener {
         void onStatusChange(Status status);
     }
 
+    enum Status {
+        STARTED, STOPPED, RECORDING, PAUSED, RESUMED
+    }
 }

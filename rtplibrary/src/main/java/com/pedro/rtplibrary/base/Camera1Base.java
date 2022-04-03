@@ -50,7 +50,7 @@ import com.pedro.encoder.video.FormatVideoEncoder;
 import com.pedro.encoder.video.GetVideoData;
 import com.pedro.encoder.video.VideoEncoder;
 import com.pedro.rtplibrary.base.recording.BaseRecordController;
-import com.pedro.rtplibrary.base.recording.Status;
+import com.pedro.rtplibrary.base.recording.RecordController;
 import com.pedro.rtplibrary.util.AndroidMuxerRecordController;
 import com.pedro.rtplibrary.util.FpsListener;
 import com.pedro.rtplibrary.view.GlInterface;
@@ -921,7 +921,7 @@ public abstract class Camera1Base
     recordController.resumeRecord();
   }
 
-  public Status getRecordStatus() {
+  public RecordController.Status getRecordStatus() {
     return recordController.getStatus();
   }
 
@@ -974,7 +974,7 @@ public abstract class Camera1Base
   }
 
   public void setRecordController(BaseRecordController recordController) {
-    this.recordController = recordController;
+    if (!isRecording()) this.recordController = recordController;
   }
 
   public abstract void setLogs(boolean enable);

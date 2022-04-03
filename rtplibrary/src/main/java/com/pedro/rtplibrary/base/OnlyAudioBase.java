@@ -33,7 +33,7 @@ import com.pedro.encoder.input.audio.MicrophoneManager;
 import com.pedro.encoder.input.audio.MicrophoneManagerManual;
 import com.pedro.encoder.input.audio.MicrophoneMode;
 import com.pedro.rtplibrary.base.recording.BaseRecordController;
-import com.pedro.rtplibrary.base.recording.Status;
+import com.pedro.rtplibrary.base.recording.RecordController;
 import com.pedro.rtplibrary.util.AndroidMuxerRecordController;
 
 import java.io.FileDescriptor;
@@ -152,7 +152,7 @@ public abstract class OnlyAudioBase implements GetAacData, GetMicrophoneData {
    * @throws IOException If initialized before a stream.
    */
   @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
-  public void startRecord(String path, AndroidMuxerRecordController.Listener listener) throws IOException {
+  public void startRecord(String path, BaseRecordController.Listener listener) throws IOException {
     recordController.startRecord(path, listener);
     if (!streaming) {
       startEncoders();
@@ -172,7 +172,7 @@ public abstract class OnlyAudioBase implements GetAacData, GetMicrophoneData {
    */
   @RequiresApi(api = Build.VERSION_CODES.O)
   public void startRecord(@NonNull final FileDescriptor fd,
-      @Nullable AndroidMuxerRecordController.Listener listener) throws IOException {
+      @Nullable BaseRecordController.Listener listener) throws IOException {
     recordController.startRecord(fd, listener);
     if (!streaming) {
       startEncoders();
@@ -251,7 +251,7 @@ public abstract class OnlyAudioBase implements GetAacData, GetMicrophoneData {
     recordController.resumeRecord();
   }
 
-  public Status getRecordStatus() {
+  public RecordController.Status getRecordStatus() {
     return recordController.getStatus();
   }
 
@@ -354,7 +354,7 @@ public abstract class OnlyAudioBase implements GetAacData, GetMicrophoneData {
   }
 
   public void setRecordController(BaseRecordController recordController) {
-    this.recordController = recordController;
+    if (!isRecording()) this.recordController = recordController;
   }
 
   public abstract void setLogs(boolean enable);

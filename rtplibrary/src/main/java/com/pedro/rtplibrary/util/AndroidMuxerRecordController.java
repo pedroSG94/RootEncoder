@@ -28,7 +28,6 @@ import androidx.annotation.RequiresApi;
 
 
 import com.pedro.rtplibrary.base.recording.BaseRecordController;
-import com.pedro.rtplibrary.base.recording.Status;
 
 import java.io.FileDescriptor;
 import java.io.IOException;
@@ -44,18 +43,8 @@ public class AndroidMuxerRecordController extends BaseRecordController {
   private static final String TAG = "AndroidRecordController";
   private MediaMuxer mediaMuxer;
   private MediaFormat videoFormat, audioFormat;
-  //Pause/Resume
-  private long pauseMoment = 0;
-  private long pauseTime = 0;
-  private final MediaCodec.BufferInfo videoInfo = new MediaCodec.BufferInfo();
-  private final MediaCodec.BufferInfo audioInfo = new MediaCodec.BufferInfo();
-  private boolean isOnlyAudio = false;
-  private boolean isOnlyVideo = false;
 
-
-
-
-
+  @Override
   @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
   public void startRecord(@NonNull String path, @Nullable Listener listener) throws IOException {
     mediaMuxer = new MediaMuxer(path, MediaMuxer.OutputFormat.MUXER_OUTPUT_MPEG_4);
@@ -65,6 +54,7 @@ public class AndroidMuxerRecordController extends BaseRecordController {
     if (isOnlyAudio && audioFormat != null) init();
   }
 
+  @Override
   @RequiresApi(api = Build.VERSION_CODES.O)
   public void startRecord(@NonNull FileDescriptor fd, @Nullable Listener listener) throws IOException {
     mediaMuxer = new MediaMuxer(fd, MediaMuxer.OutputFormat.MUXER_OUTPUT_MPEG_4);
@@ -74,9 +64,11 @@ public class AndroidMuxerRecordController extends BaseRecordController {
     if(isOnlyAudio && audioFormat != null) init();
   }
 
+  @Override
   @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
   public void stopRecord() {
-    super.stopRecord();
+    videoTrack = -1;
+    audioTrack = -1;
     status = Status.STOPPED;
     if (mediaMuxer != null) {
       try {
@@ -91,21 +83,19 @@ public class AndroidMuxerRecordController extends BaseRecordController {
     if (listener != null) listener.onStatusChange(status);
   }
 
+  @Override
   public void setVideoMime(String videoMime) {
     this.videoMime = videoMime;
   }
 
-
-
+  @Override
   public void resetFormats() {
     videoFormat = null;
     audioFormat = null;
   }
 
-
-
-  @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
   @Override
+  @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
   public void write(int track, ByteBuffer byteBuffer, MediaCodec.BufferInfo info) {
     try {
       mediaMuxer.writeSampleData(track, byteBuffer, info);
@@ -114,6 +104,7 @@ public class AndroidMuxerRecordController extends BaseRecordController {
     }
   }
 
+  @Override
   @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
   public void init() {
     if (!isOnlyVideo) audioTrack = mediaMuxer.addTrack(audioFormat);
@@ -122,6 +113,7 @@ public class AndroidMuxerRecordController extends BaseRecordController {
     if (listener != null) listener.onStatusChange(status);
   }
 
+  @Override
   @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
   public void recordVideo(ByteBuffer videoBuffer, MediaCodec.BufferInfo videoInfo) {
     if (status == Status.STARTED && videoFormat != null && (audioFormat != null || isOnlyVideo)) {
@@ -140,6 +132,7 @@ public class AndroidMuxerRecordController extends BaseRecordController {
     }
   }
 
+  @Override
   @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
   public void recordAudio(ByteBuffer audioBuffer, MediaCodec.BufferInfo audioInfo) {
     if (status == Status.RECORDING) {
@@ -148,11 +141,13 @@ public class AndroidMuxerRecordController extends BaseRecordController {
     }
   }
 
+  @Override
   public void setVideoFormat(MediaFormat videoFormat, boolean isOnlyVideo) {
     this.videoFormat = videoFormat;
     this.isOnlyVideo = isOnlyVideo;
   }
 
+  @Override
   public void setAudioFormat(MediaFormat audioFormat, boolean isOnlyAudio) {
     this.audioFormat = audioFormat;
     this.isOnlyAudio = isOnlyAudio;
@@ -161,13 +156,4 @@ public class AndroidMuxerRecordController extends BaseRecordController {
       init();
     }
   }
-
-  public void setVideoFormat(MediaFormat videoFormat) {
-    setVideoFormat(videoFormat, false);
-  }
-
-  public void setAudioFormat(MediaFormat audioFormat) {
-    setAudioFormat(audioFormat, false);
-  }
-
 }
