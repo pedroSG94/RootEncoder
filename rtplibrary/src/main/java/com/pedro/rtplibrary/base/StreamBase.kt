@@ -27,9 +27,9 @@ import java.nio.ByteBuffer
 /**
  * Created by pedro on 21/2/22.
  *
- * Class to stream using Camera and microphone.
  * Allow:
- * - Choose camera1 or camera2.
+ * - video source camera1, camera2 or screen.
+ * - audio source microphone or internal.
  * - Rotation on realtime.
  * - Add filters only for preview or only for stream.
  */
@@ -90,6 +90,11 @@ abstract class StreamBase(context: Context): GetVideoData, GetAacData, GetMicrop
     return audioResult
   }
 
+  /**
+   * Start stream.
+   *
+   * Must be called after prepareVideo and prepareAudio
+   */
   fun startStream(endPoint: String) {
     isStreaming = true
     rtpStartStream(endPoint)
@@ -98,8 +103,12 @@ abstract class StreamBase(context: Context): GetVideoData, GetAacData, GetMicrop
   }
 
   /**
+   * Stop stream.
+   *
    * @return True if encoders prepared successfully with previous parameters. False other way
    * If return is false you will need call prepareVideo and prepareAudio manually again before startStream or StartRecord
+   *
+   * Must be called after prepareVideo and prepareAudio.
    */
   fun stopStream(): Boolean {
     isStreaming = false
@@ -111,6 +120,11 @@ abstract class StreamBase(context: Context): GetVideoData, GetAacData, GetMicrop
     return true
   }
 
+  /**
+   * Start record.
+   *
+   * Must be called after prepareVideo and prepareAudio.
+   */
   fun startRecord(path: String, listener: RecordController.Listener) {
     recordController.startRecord(path, listener)
     if (!isStreaming) startSources()
@@ -120,6 +134,8 @@ abstract class StreamBase(context: Context): GetVideoData, GetAacData, GetMicrop
   /**
    * @return True if encoders prepared successfully with previous parameters. False other way
    * If return is false you will need call prepareVideo and prepareAudio manually again before startStream or StartRecord
+   *
+   * Must be called after prepareVideo and prepareAudio.
    */
   fun stopRecord(): Boolean {
     recordController.stopRecord()
@@ -130,20 +146,36 @@ abstract class StreamBase(context: Context): GetVideoData, GetAacData, GetMicrop
     return true
   }
 
+  /**
+   * Start preview in the selected TextureView.
+   * Must be called after prepareVideo.
+   */
   fun startPreview(textureView: TextureView) {
     startPreview(Surface(textureView.surfaceTexture))
     glInterface.setPreviewResolution(textureView.width, textureView.height)
   }
 
+  /**
+   * Start preview in the selected SurfaceView.
+   * Must be called after prepareVideo.
+   */
   fun startPreview(surfaceView: SurfaceView) {
     startPreview(surfaceView.holder.surface)
     glInterface.setPreviewResolution(surfaceView.width, surfaceView.height)
   }
 
+  /**
+   * Start preview in the selected SurfaceTexture.
+   * Must be called after prepareVideo.
+   */
   fun startPreview(surfaceTexture: SurfaceTexture) {
     startPreview(Surface(surfaceTexture))
   }
 
+  /**
+   * Start preview in the selected Surface.
+   * Must be called after prepareVideo.
+   */
   fun startPreview(surface: Surface) {
     isOnPreview = true
     if (!glInterface.running) glInterface.start()
@@ -153,6 +185,10 @@ abstract class StreamBase(context: Context): GetVideoData, GetAacData, GetMicrop
     glInterface.attachPreview(surface)
   }
 
+  /**
+   * Stop preview.
+   * Must be called after prepareVideo.
+   */
   fun stopPreview() {
     isOnPreview = false
     if (!isStreaming && !recordController.isRunning) videoManager.stop()
@@ -160,11 +196,19 @@ abstract class StreamBase(context: Context): GetVideoData, GetAacData, GetMicrop
     if (!isStreaming && !recordController.isRunning) glInterface.stop()
   }
 
+  /**
+   * Change video source to Camera1 or Camera2.
+   * Must be called after prepareVideo.
+   */
   fun changeVideoSourceCamera(source: VideoManager.Source) {
     glInterface.setForceRender(false)
     videoManager.changeSourceCamera(source)
   }
 
+  /**
+   * Change video source to Screen.
+   * Must be called after prepareVideo.
+   */
   fun changeVideoSourceScreen(mediaProjection: MediaProjection) {
     glInterface.setForceRender(true)
     videoManager.changeSourceScreen(mediaProjection)
@@ -183,10 +227,18 @@ abstract class StreamBase(context: Context): GetVideoData, GetAacData, GetMicrop
     videoManager.changeVideoSourceDisabled()
   }
 
+  /**
+   * Change audio source to Microphone.
+   * Must be called after prepareAudio.
+   */
   fun changeAudioSourceMicrophone() {
     audioManager.changeSourceMicrophone()
   }
 
+  /**
+   * Change audio source to Internal.
+   * Must be called after prepareAudio.
+   */
   @RequiresApi(Build.VERSION_CODES.Q)
   fun changeAudioSourceInternal(mediaProjection: MediaProjection) {
     audioManager.changeSourceInternal(mediaProjection)
@@ -204,26 +256,56 @@ abstract class StreamBase(context: Context): GetVideoData, GetAacData, GetMicrop
     audioManager.changeAudioSourceDisabled()
   }
 
+  /**
+   * Mute microphone or internal audio.
+   * Must be called after prepareAudio.
+   */
   fun mute() {
     audioManager.mute()
   }
 
+  /**
+   * Mute microphone or internal audio.
+   * Must be called after prepareAudio.
+   */
   fun unMute() {
     audioManager.unMute()
   }
 
+  /**
+   * Check if microphone or internal audio is muted.
+   * Must be called after prepareAudio.
+   */
   fun isMuted(): Boolean = audioManager.isMuted()
 
+  /**
+   * Switch between front or back camera if using Camera1 or Camera2.
+   * Must be called after prepareVideo.
+   */
   fun switchCamera() {
     videoManager.switchCamera()
   }
 
+  /**
+   * get if using front or back camera with Camera1 or Camera2.
+   * Must be called after prepareVideo.
+   */
   fun getCameraFacing(): CameraHelper.Facing = videoManager.getCameraFacing()
 
+  /**
+   * Change stream orientation depend of activity orientation.
+   * This method affect ro preview and stream.
+   * Must be called after prepareVideo.
+   */
   fun setOrientation(orientation: Int) {
     glInterface.setCameraOrientation(orientation)
   }
 
+  /**
+   * Get glInterface used to render video.
+   * This is useful to send filters to stream.
+   * Must be called after prepareVideo.
+   */
   fun getGlInterface(): GlStreamInterface = glInterface
 
   private fun startSources() {
