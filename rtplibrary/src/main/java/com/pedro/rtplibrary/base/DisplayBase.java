@@ -44,8 +44,10 @@ import com.pedro.encoder.utils.CodecUtil;
 import com.pedro.encoder.video.FormatVideoEncoder;
 import com.pedro.encoder.video.GetVideoData;
 import com.pedro.encoder.video.VideoEncoder;
+import com.pedro.rtplibrary.base.recording.BaseRecordController;
+import com.pedro.rtplibrary.base.recording.RecordController;
 import com.pedro.rtplibrary.util.FpsListener;
-import com.pedro.rtplibrary.util.RecordController;
+import com.pedro.rtplibrary.util.AndroidMuxerRecordController;
 import com.pedro.rtplibrary.view.GlInterface;
 import com.pedro.rtplibrary.view.OffScreenGlThread;
 
@@ -78,7 +80,7 @@ public abstract class DisplayBase implements GetAacData, GetVideoData, GetMicrop
   private int dpi = 320;
   private int resultCode = -1;
   private Intent data;
-  protected RecordController recordController;
+  protected BaseRecordController recordController;
   private final FpsListener fpsListener = new FpsListener();
   private boolean audioInitialized = false;
 
@@ -94,7 +96,7 @@ public abstract class DisplayBase implements GetAacData, GetVideoData, GetMicrop
     audioEncoder = new AudioEncoder(this);
     //Necessary use same thread to read input buffer and encode it with internal audio or audio is choppy.
     setMicrophoneMode(MicrophoneMode.SYNC);
-    recordController = new RecordController();
+    recordController = new AndroidMuxerRecordController();
   }
 
   /**
@@ -615,6 +617,10 @@ public abstract class DisplayBase implements GetAacData, GetVideoData, GetMicrop
   @Override
   public void onAudioFormat(MediaFormat mediaFormat) {
     recordController.setAudioFormat(mediaFormat);
+  }
+
+  public void setRecordController(BaseRecordController recordController) {
+    if (!isRecording()) this.recordController = recordController;
   }
 
   public abstract void setLogs(boolean enable);

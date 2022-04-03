@@ -49,8 +49,10 @@ import com.pedro.encoder.utils.CodecUtil;
 import com.pedro.encoder.video.FormatVideoEncoder;
 import com.pedro.encoder.video.GetVideoData;
 import com.pedro.encoder.video.VideoEncoder;
+import com.pedro.rtplibrary.base.recording.BaseRecordController;
+import com.pedro.rtplibrary.base.recording.RecordController;
+import com.pedro.rtplibrary.util.AndroidMuxerRecordController;
 import com.pedro.rtplibrary.util.FpsListener;
-import com.pedro.rtplibrary.util.RecordController;
 import com.pedro.rtplibrary.view.GlInterface;
 import com.pedro.rtplibrary.view.LightOpenGlView;
 import com.pedro.rtplibrary.view.OffScreenGlThread;
@@ -87,7 +89,7 @@ public abstract class Camera1Base
   private boolean streaming = false;
   private boolean audioInitialized = false;
   private boolean onPreview = false;
-  protected RecordController recordController;
+  protected BaseRecordController recordController;
   private int previewWidth, previewHeight;
   private final FpsListener fpsListener = new FpsListener();
 
@@ -133,7 +135,7 @@ public abstract class Camera1Base
   private void init() {
     videoEncoder = new VideoEncoder(this);
     setMicrophoneMode(MicrophoneMode.ASYNC);
-    recordController = new RecordController();
+    recordController = new AndroidMuxerRecordController();
   }
 
   /**
@@ -969,6 +971,10 @@ public abstract class Camera1Base
   @Override
   public void onAudioFormat(MediaFormat mediaFormat) {
     recordController.setAudioFormat(mediaFormat);
+  }
+
+  public void setRecordController(BaseRecordController recordController) {
+    if (!isRecording()) this.recordController = recordController;
   }
 
   public abstract void setLogs(boolean enable);

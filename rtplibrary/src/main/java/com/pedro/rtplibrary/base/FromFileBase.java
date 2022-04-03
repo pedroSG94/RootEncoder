@@ -41,8 +41,10 @@ import com.pedro.encoder.utils.CodecUtil;
 import com.pedro.encoder.video.FormatVideoEncoder;
 import com.pedro.encoder.video.GetVideoData;
 import com.pedro.encoder.video.VideoEncoder;
+import com.pedro.rtplibrary.base.recording.BaseRecordController;
+import com.pedro.rtplibrary.base.recording.RecordController;
 import com.pedro.rtplibrary.util.FpsListener;
-import com.pedro.rtplibrary.util.RecordController;
+import com.pedro.rtplibrary.util.AndroidMuxerRecordController;
 import com.pedro.rtplibrary.view.GlInterface;
 import com.pedro.rtplibrary.view.LightOpenGlView;
 import com.pedro.rtplibrary.view.OffScreenGlThread;
@@ -72,7 +74,7 @@ public abstract class FromFileBase
   private AudioEncoder audioEncoder;
   private GlInterface glInterface;
   private boolean streaming = false;
-  protected RecordController recordController;
+  protected BaseRecordController recordController;
   private final FpsListener fpsListener = new FpsListener();
 
   private VideoDecoder videoDecoder;
@@ -124,7 +126,7 @@ public abstract class FromFileBase
     audioEncoder = new AudioEncoder(this);
     videoDecoder = new VideoDecoder(videoDecoderInterface, this);
     audioDecoder = new AudioDecoder(this, audioDecoderInterface, this);
-    recordController = new RecordController();
+    recordController = new AndroidMuxerRecordController();
   }
 
   /**
@@ -679,6 +681,10 @@ public abstract class FromFileBase
       audioTrackPlayer.write(frame.getBuffer(), frame.getOffset(), frame.getSize());
     }
     audioEncoder.inputPCMData(frame);
+  }
+
+  public void setRecordController(BaseRecordController recordController) {
+    if (!isRecording()) this.recordController = recordController;
   }
 
   public abstract void setLogs(boolean enable);

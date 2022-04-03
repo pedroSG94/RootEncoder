@@ -32,7 +32,9 @@ import com.pedro.encoder.input.audio.GetMicrophoneData;
 import com.pedro.encoder.input.audio.MicrophoneManager;
 import com.pedro.encoder.input.audio.MicrophoneManagerManual;
 import com.pedro.encoder.input.audio.MicrophoneMode;
-import com.pedro.rtplibrary.util.RecordController;
+import com.pedro.rtplibrary.base.recording.BaseRecordController;
+import com.pedro.rtplibrary.base.recording.RecordController;
+import com.pedro.rtplibrary.util.AndroidMuxerRecordController;
 
 import java.io.FileDescriptor;
 import java.io.IOException;
@@ -45,14 +47,14 @@ import java.nio.ByteBuffer;
  */
 public abstract class OnlyAudioBase implements GetAacData, GetMicrophoneData {
 
-  private final RecordController recordController;
+  protected BaseRecordController recordController;
   private MicrophoneManager microphoneManager;
   private AudioEncoder audioEncoder;
   private boolean streaming = false;
 
   public OnlyAudioBase() {
     setMicrophoneMode(MicrophoneMode.ASYNC);
-    recordController = new RecordController();
+    recordController = new AndroidMuxerRecordController();
   }
 
   /**
@@ -349,6 +351,10 @@ public abstract class OnlyAudioBase implements GetAacData, GetMicrophoneData {
   @Override
   public void onAudioFormat(MediaFormat mediaFormat) {
     recordController.setAudioFormat(mediaFormat, true);
+  }
+
+  public void setRecordController(BaseRecordController recordController) {
+    if (!isRecording()) this.recordController = recordController;
   }
 
   public abstract void setLogs(boolean enable);
