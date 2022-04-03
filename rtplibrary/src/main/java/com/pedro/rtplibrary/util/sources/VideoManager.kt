@@ -169,6 +169,28 @@ class VideoManager(private val context: Context) {
     }
   }
 
+  fun getCameraResolutions(source: Source, facing: CameraHelper.Facing): List<Size> {
+      return when (source) {
+        Source.CAMERA1 -> {
+          val resolutions = if (facing == CameraHelper.Facing.FRONT) {
+            camera1.previewSizeFront
+          } else {
+            camera1.previewSizeBack
+          }
+          resolutions.map { Size(it.width, it.height) }
+        }
+        Source.CAMERA2 -> {
+          val resolutions = if (facing == CameraHelper.Facing.FRONT) {
+            camera2.cameraResolutionsFront
+          } else {
+            camera2.cameraResolutionsBack
+          }
+          resolutions.toList()
+        }
+        else -> emptyList()
+      }
+  }
+
   private fun checkResolutionSupported(width: Int, height: Int, source: Source): Boolean {
     if (width % 2 != 0 || height % 2 != 0) {
       throw IllegalArgumentException("width and height values must be divisible by 2")

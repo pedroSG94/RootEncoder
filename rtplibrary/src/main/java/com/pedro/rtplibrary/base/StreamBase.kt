@@ -6,6 +6,7 @@ import android.media.MediaCodec
 import android.media.MediaFormat
 import android.media.projection.MediaProjection
 import android.os.Build
+import android.util.Size
 import android.view.Surface
 import android.view.SurfaceView
 import android.view.TextureView
@@ -291,6 +292,16 @@ abstract class StreamBase(context: Context): GetVideoData, GetAacData, GetMicrop
    * Must be called after prepareVideo.
    */
   fun getCameraFacing(): CameraHelper.Facing = videoManager.getCameraFacing()
+
+  /**
+   * Get camera resolutions.
+   *
+   * @param source select camera source (Camera1 or Camera2) of the required resolutions.
+   * @param facing indicate if resolutions provide from front camera or back camera.
+   */
+  fun getCameraResolutions(source: VideoManager.Source, facing: CameraHelper.Facing): List<Size> {
+    return videoManager.getCameraResolutions(source, facing)
+  }
 
   /**
    * Change stream orientation depend of activity orientation.
