@@ -297,7 +297,7 @@ public abstract class DisplayBase implements GetAacData, GetVideoData, GetMicrop
    * @param path Where file will be saved.
    * @throws IOException If initialized before a stream.
    */
-  public void startRecord(@NonNull String path, @Nullable BaseRecordController.Listener listener)
+  public void startRecord(@NonNull String path, @Nullable RecordController.Listener listener)
       throws IOException {
     recordController.startRecord(path, listener);
     if (!streaming) {
@@ -319,7 +319,7 @@ public abstract class DisplayBase implements GetAacData, GetVideoData, GetMicrop
    */
   @RequiresApi(api = Build.VERSION_CODES.O)
   public void startRecord(@NonNull final FileDescriptor fd,
-      @Nullable BaseRecordController.Listener listener) throws IOException {
+      @Nullable RecordController.Listener listener) throws IOException {
     recordController.startRecord(fd, listener);
     if (!streaming) {
       startEncoders(resultCode, data);

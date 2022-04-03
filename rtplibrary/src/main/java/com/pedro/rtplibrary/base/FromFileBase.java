@@ -238,7 +238,7 @@ public abstract class FromFileBase
    * @param path Where file will be saved.
    * @throws IOException If initialized before a stream.
    */
-  public void startRecord(@NonNull String path, @Nullable BaseRecordController.Listener listener) throws IOException {
+  public void startRecord(@NonNull String path, @Nullable RecordController.Listener listener) throws IOException {
     recordController.startRecord(path, listener);
     if (!streaming) {
       startEncoders();
@@ -258,7 +258,7 @@ public abstract class FromFileBase
    * @throws IOException If initialized before a stream.
    */
   @RequiresApi(api = Build.VERSION_CODES.O)
-  public void startRecord(@NonNull final FileDescriptor fd, @Nullable BaseRecordController.Listener listener) throws IOException {
+  public void startRecord(@NonNull final FileDescriptor fd, @Nullable RecordController.Listener listener) throws IOException {
     recordController.startRecord(fd, listener);
     if (!streaming) {
       startEncoders();

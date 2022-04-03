@@ -152,7 +152,7 @@ public abstract class OnlyAudioBase implements GetAacData, GetMicrophoneData {
    * @throws IOException If initialized before a stream.
    */
   @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
-  public void startRecord(String path, BaseRecordController.Listener listener) throws IOException {
+  public void startRecord(String path, RecordController.Listener listener) throws IOException {
     recordController.startRecord(path, listener);
     if (!streaming) {
       startEncoders();
@@ -172,7 +172,7 @@ public abstract class OnlyAudioBase implements GetAacData, GetMicrophoneData {
    */
   @RequiresApi(api = Build.VERSION_CODES.O)
   public void startRecord(@NonNull final FileDescriptor fd,
-      @Nullable BaseRecordController.Listener listener) throws IOException {
+      @Nullable RecordController.Listener listener) throws IOException {
     recordController.startRecord(fd, listener);
     if (!streaming) {
       startEncoders();

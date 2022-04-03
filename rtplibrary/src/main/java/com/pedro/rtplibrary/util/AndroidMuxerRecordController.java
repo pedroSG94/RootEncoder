@@ -84,36 +84,6 @@ public class AndroidMuxerRecordController extends BaseRecordController {
   }
 
   @Override
-  public void setVideoMime(String videoMime) {
-    this.videoMime = videoMime;
-  }
-
-  @Override
-  public void resetFormats() {
-    videoFormat = null;
-    audioFormat = null;
-  }
-
-  @Override
-  @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
-  public void write(int track, ByteBuffer byteBuffer, MediaCodec.BufferInfo info) {
-    try {
-      mediaMuxer.writeSampleData(track, byteBuffer, info);
-    } catch (IllegalStateException | IllegalArgumentException e) {
-      Log.i(TAG, "Write error", e);
-    }
-  }
-
-  @Override
-  @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
-  public void init() {
-    if (!isOnlyVideo) audioTrack = mediaMuxer.addTrack(audioFormat);
-    mediaMuxer.start();
-    status = Status.RECORDING;
-    if (listener != null) listener.onStatusChange(status);
-  }
-
-  @Override
   @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
   public void recordVideo(ByteBuffer videoBuffer, MediaCodec.BufferInfo videoInfo) {
     if (status == Status.STARTED && videoFormat != null && (audioFormat != null || isOnlyVideo)) {
@@ -154,6 +124,29 @@ public class AndroidMuxerRecordController extends BaseRecordController {
     if (isOnlyAudio && status == Status.STARTED
             && Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
       init();
+    }
+  }
+
+  @Override
+  public void resetFormats() {
+    videoFormat = null;
+    audioFormat = null;
+  }
+
+  @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
+  private void init() {
+    if (!isOnlyVideo) audioTrack = mediaMuxer.addTrack(audioFormat);
+    mediaMuxer.start();
+    status = Status.RECORDING;
+    if (listener != null) listener.onStatusChange(status);
+  }
+
+  @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
+  private void write(int track, ByteBuffer byteBuffer, MediaCodec.BufferInfo info) {
+    try {
+      mediaMuxer.writeSampleData(track, byteBuffer, info);
+    } catch (IllegalStateException | IllegalArgumentException e) {
+      Log.i(TAG, "Write error", e);
     }
   }
 }

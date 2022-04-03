@@ -374,7 +374,7 @@ public abstract class Camera1Base
    * @throws IOException If initialized before a stream.
    */
   @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
-  public void startRecord(@NonNull final String path, @Nullable BaseRecordController.Listener listener)
+  public void startRecord(@NonNull final String path, @Nullable RecordController.Listener listener)
       throws IOException {
     recordController.startRecord(path, listener);
     if (!streaming) {
@@ -397,7 +397,7 @@ public abstract class Camera1Base
    */
   @RequiresApi(api = Build.VERSION_CODES.O)
   public void startRecord(@NonNull final FileDescriptor fd,
-      @Nullable BaseRecordController.Listener listener) throws IOException {
+      @Nullable RecordController.Listener listener) throws IOException {
     recordController.startRecord(fd, listener);
     if (!streaming) {
       startEncoders();
@@ -609,7 +609,7 @@ public abstract class Camera1Base
   }
 
   @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
-  public void startStreamAndRecord(String url, String path, BaseRecordController.Listener listener) throws IOException {
+  public void startStreamAndRecord(String url, String path, RecordController.Listener listener) throws IOException {
     startStream(url);
     recordController.startRecord(path, listener);
   }

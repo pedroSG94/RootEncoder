@@ -436,7 +436,7 @@ public abstract class Camera2Base implements GetAacData, GetVideoData, GetMicrop
    */
   @RequiresApi(api = Build.VERSION_CODES.O)
   public void startRecord(@NonNull final FileDescriptor fd,
-      @Nullable BaseRecordController.Listener listener) throws IOException {
+      @Nullable RecordController.Listener listener) throws IOException {
     recordController.startRecord(fd, listener);
     if (!streaming) {
       startEncoders();
@@ -610,7 +610,7 @@ public abstract class Camera2Base implements GetAacData, GetVideoData, GetMicrop
     }
   }
 
-  public void startStreamAndRecord(String url, String path, BaseRecordController.Listener listener) throws IOException {
+  public void startStreamAndRecord(String url, String path, RecordController.Listener listener) throws IOException {
     startStream(url);
     recordController.startRecord(path, listener);
   }

@@ -22,6 +22,10 @@ public abstract class BaseRecordController implements RecordController {
     protected boolean isOnlyAudio = false;
     protected boolean isOnlyVideo = false;
 
+    public void setVideoMime(String videoMime) {
+        this.videoMime = videoMime;
+    }
+
     public boolean isRunning() {
         return status == Status.STARTED
                 || status == Status.RECORDING
