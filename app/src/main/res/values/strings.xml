@@ -17,7 +17,7 @@
   <string name="opengl_rtsp">OpenGl RTSP</string>
   <string name="service_rtp">Service RTP</string>
   <string name="cube_test_rtmp">Cube test RTMP</string>
-  <string name="rotation_rtp">Rotation RTP</string>
+  <string name="rotation_rtmp">Rotation RTMP</string>
 
   <string name="tv_select">Select your streamer</string>
   <string name="hint_rtsp">rtsp://yourendpoint</string>

@@ -109,7 +109,7 @@
         />
 
     <activity android:name=".rotation.RotationExampleActivity"
-        android:label="@string/rotation_rtp"
+        android:label="@string/rotation_rtmp"
         android:screenOrientation="fullSensor"
         />
 

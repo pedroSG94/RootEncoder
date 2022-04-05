@@ -2,6 +2,8 @@ package com.pedro.rtplibrary.util.sources
 
 import android.content.Context
 import android.graphics.SurfaceTexture
+import android.hardware.Camera
+import android.hardware.camera2.CameraCharacteristics
 import android.hardware.display.DisplayManager
 import android.hardware.display.VirtualDisplay
 import android.media.projection.MediaProjection
@@ -19,13 +21,12 @@ import com.pedro.encoder.input.video.CameraHelper
  * A class to use camera1 or camera2 with same methods totally transparent for user.
  */
 @RequiresApi(Build.VERSION_CODES.LOLLIPOP)
-class VideoManager(private val context: Context) {
+class VideoManager(private val context: Context, private var source: Source) {
 
   enum class Source {
     CAMERA1, CAMERA2, SCREEN, DISABLED
   }
 
-  private var source = Source.CAMERA2
   private var facing = CameraHelper.Facing.BACK
   private val camera1 = Camera1ApiManager(null, context)
   private val camera2 = Camera2ApiManager(context)
@@ -65,7 +66,7 @@ class VideoManager(private val context: Context) {
   }
 
   fun changeSourceScreen(mediaProjection: MediaProjection) {
-    if (this.source != Source.SCREEN) {
+    if (this.source != Source.SCREEN || this.mediaProjection == null) {
       this.mediaProjection = mediaProjection
       val wasRunning = isRunning()
       stop()
@@ -177,7 +178,7 @@ class VideoManager(private val context: Context) {
           } else {
             camera1.previewSizeBack
           }
-          resolutions.map { Size(it.width, it.height) }
+          mapCamera1Resolutions(resolutions)
         }
         Source.CAMERA2 -> {
           val resolutions = if (facing == CameraHelper.Facing.FRONT) {
@@ -200,28 +201,36 @@ class VideoManager(private val context: Context) {
         val shouldRotate = width > height
         val w = if (shouldRotate) height else width
         val h = if (shouldRotate) width else height
-        val size = camera1.getCameraSize(w, h)
+        val size = Size(w, h)
         val resolutions = if (facing == CameraHelper.Facing.BACK) {
           camera1.previewSizeBack
         } else camera1.previewSizeFront
-        return resolutions.contains(size)
+        return mapCamera1Resolutions(resolutions).contains(size)
       }
       Source.CAMERA2 -> {
         val size = Size(width, height)
         val resolutions = if (facing == CameraHelper.Facing.BACK) {
           camera2.cameraResolutionsBack
         } else camera2.cameraResolutionsFront
-        val widthList = resolutions.map { size.width }
-        val heightList = resolutions.map { size.height }
-        val maxWidth = widthList.maxOrNull() ?: 0
-        val maxHeight = heightList.maxOrNull() ?: 0
-        val minWidth = widthList.minOrNull() ?: 0
-        val minHeight = heightList.minOrNull() ?: 0
-        return size.width in minWidth..maxWidth && size.height in minHeight..maxHeight
+        return if (camera2.levelSupported == CameraCharacteristics.INFO_SUPPORTED_HARDWARE_LEVEL_LEGACY) {
+          //this is a wrapper of camera1 api. Only listed resolutions are supported
+          resolutions.contains(size)
+        } else {
+          val widthList = resolutions.map { size.width }
+          val heightList = resolutions.map { size.height }
+          val maxWidth = widthList.maxOrNull() ?: 0
+          val maxHeight = heightList.maxOrNull() ?: 0
+          val minWidth = widthList.minOrNull() ?: 0
+          val minHeight = heightList.minOrNull() ?: 0
+          size.width in minWidth..maxWidth && size.height in minHeight..maxHeight
+        }
       }
       Source.SCREEN, Source.DISABLED -> {
         return true
       }
     }
   }
+
+  @Suppress("DEPRECATION")
+  private fun mapCamera1Resolutions(resolutions: List<Camera.Size>) = resolutions.map { Size(it.width, it.height) }
 }

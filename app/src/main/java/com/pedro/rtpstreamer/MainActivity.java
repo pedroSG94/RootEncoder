@@ -115,7 +115,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
     activities.add(new ActivityLink(new Intent(this, BackgroundActivity.class),
         getString(R.string.service_rtp), LOLLIPOP));
     activities.add(new ActivityLink(new Intent(this, RotationExampleActivity.class),
-        getString(R.string.rotation_rtp), LOLLIPOP));
+        getString(R.string.rotation_rtmp), LOLLIPOP));
   }
 
   private void setListAdapter(List<ActivityLink> activities) {

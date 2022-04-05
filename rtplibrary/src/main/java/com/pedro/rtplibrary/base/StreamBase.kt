@@ -34,10 +34,10 @@ import java.nio.ByteBuffer
  * - video source camera1, camera2 or screen.
  * - audio source microphone or internal.
  * - Rotation on realtime.
- * - Add filters only for preview or only for stream.
  */
 @RequiresApi(Build.VERSION_CODES.LOLLIPOP)
-abstract class StreamBase(context: Context): GetVideoData, GetAacData, GetMicrophoneData {
+abstract class StreamBase(context: Context, videoSource: VideoManager.Source,
+  audioSource: AudioManager.Source): GetVideoData, GetAacData, GetMicrophoneData {
 
   //video and audio encoders
   private val videoEncoder by lazy { VideoEncoder(this) }
@@ -45,8 +45,8 @@ abstract class StreamBase(context: Context): GetVideoData, GetAacData, GetMicrop
   //video render
   private val glInterface = GlStreamInterface(context)
   //video and audio sources
-  private val videoManager = VideoManager(context)
-  private val audioManager by lazy { AudioManager(this) }
+  private val videoManager = VideoManager(context, videoSource)
+  private val audioManager by lazy { AudioManager(this, audioSource) }
   //video/audio record
   private var recordController: BaseRecordController = AndroidMuxerRecordController()
   var isStreaming = false
@@ -67,12 +67,13 @@ abstract class StreamBase(context: Context): GetVideoData, GetAacData, GetMicrop
    * @return True if success, False if failed
    */
   @JvmOverloads
-  fun prepareVideo(width: Int, height: Int, bitrate: Int, fps: Int = 30, iFrameInterval: Int = 2): Boolean {
+  fun prepareVideo(width: Int, height: Int, bitrate: Int, fps: Int = 30, iFrameInterval: Int = 2,
+    avcProfile: Int = -1, avcProfileLevel: Int = -1): Boolean {
     val videoResult = videoManager.createVideoManager(width, height, fps)
     if (videoResult) {
       glInterface.setEncoderSize(width, height)
       return videoEncoder.prepareVideoEncoder(width, height, fps, bitrate, 0,
-        iFrameInterval, FormatVideoEncoder.SURFACE)
+        iFrameInterval, FormatVideoEncoder.SURFACE, avcProfile, avcProfileLevel)
     }
     return videoResult
   }
@@ -154,8 +155,7 @@ abstract class StreamBase(context: Context): GetVideoData, GetAacData, GetMicrop
    * Must be called after prepareVideo.
    */
   fun startPreview(textureView: TextureView) {
-    startPreview(Surface(textureView.surfaceTexture))
-    glInterface.setPreviewResolution(textureView.width, textureView.height)
+    startPreview(Surface(textureView.surfaceTexture), textureView.width, textureView.height)
   }
 
   /**
@@ -163,29 +163,30 @@ abstract class StreamBase(context: Context): GetVideoData, GetAacData, GetMicrop
    * Must be called after prepareVideo.
    */
   fun startPreview(surfaceView: SurfaceView) {
-    startPreview(surfaceView.holder.surface)
-    glInterface.setPreviewResolution(surfaceView.width, surfaceView.height)
+    startPreview(surfaceView.holder.surface, surfaceView.width, surfaceView.height)
   }
 
   /**
    * Start preview in the selected SurfaceTexture.
    * Must be called after prepareVideo.
    */
-  fun startPreview(surfaceTexture: SurfaceTexture) {
-    startPreview(Surface(surfaceTexture))
+  fun startPreview(surfaceTexture: SurfaceTexture, width: Int, height: Int) {
+    startPreview(Surface(surfaceTexture), width, height)
   }
 
   /**
    * Start preview in the selected Surface.
    * Must be called after prepareVideo.
    */
-  fun startPreview(surface: Surface) {
+  fun startPreview(surface: Surface, width: Int, height: Int) {
+    if (!surface.isValid) throw IllegalArgumentException("Make sure the Surface is valid")
     isOnPreview = true
     if (!glInterface.running) glInterface.start()
     if (!videoManager.isRunning()) {
       videoManager.start(glInterface.getSurfaceTexture())
     }
     glInterface.attachPreview(surface)
+    glInterface.setPreviewResolution(width, height)
   }
 
   /**
@@ -315,6 +316,21 @@ abstract class StreamBase(context: Context): GetVideoData, GetAacData, GetMicrop
   }
 
   /**
+   * Retries to connect with the given delay. You can pass an optional backupUrl
+   * if you'd like to connect to your backup server instead of the original one.
+   * Given backupUrl replaces the original one.
+   */
+  @JvmOverloads
+  fun reTry(delay: Long, reason: String, backupUrl: String? = null): Boolean {
+    val result = shouldRetry(reason)
+    if (result) {
+      videoEncoder.requestKeyframe()
+      reConnect(delay, backupUrl)
+    }
+    return result
+  }
+
+  /**
    * Get glInterface used to render video.
    * This is useful to send filters to stream.
    * Must be called after prepareVideo.
@@ -324,6 +340,15 @@ abstract class StreamBase(context: Context): GetVideoData, GetAacData, GetMicrop
   fun setRecordController(recordController: BaseRecordController) {
     if (!isRecording) this.recordController = recordController
   }
+
+  protected fun setVideoMime(videoMime: String) {
+    recordController.setVideoMime(videoMime)
+    videoEncoder.type = videoMime
+  }
+
+  protected fun getVideoResolution() = Size(videoEncoder.width, videoEncoder.height)
+
+  protected fun getVideoFps() = videoEncoder.fps
 
   private fun startSources() {
     if (!glInterface.running) glInterface.start()
@@ -376,11 +401,28 @@ abstract class StreamBase(context: Context): GetVideoData, GetAacData, GetMicrop
     recordController.recordAudio(aacBuffer, info)
   }
 
-  protected abstract fun videoInfo(width: Int, height: Int)
   protected abstract fun audioInfo(sampleRate: Int, isStereo: Boolean)
   protected abstract fun rtpStartStream(endPoint: String)
   protected abstract fun rtpStopStream()
+  protected abstract fun setAuthorization(user: String?, password: String?)
   protected abstract fun onSpsPpsVpsRtp(sps: ByteBuffer, pps: ByteBuffer, vps: ByteBuffer?)
   protected abstract fun getH264DataRtp(h264Buffer: ByteBuffer, info: MediaCodec.BufferInfo)
   protected abstract fun getAacDataRtp(aacBuffer: ByteBuffer, info: MediaCodec.BufferInfo)
+  protected abstract fun shouldRetry(reason: String): Boolean
+  protected abstract fun reConnect(delay: Long, backupUrl: String?)
+  abstract fun setReTries(reTries: Int)
+  abstract fun hasCongestion(): Boolean
+  abstract fun setLogs(enabled: Boolean)
+  abstract fun setCheckServerAlive(enabled: Boolean)
+  @Throws(RuntimeException::class)
+  abstract fun resizeCache(newSize: Int)
+  abstract fun getCacheSize(): Int
+  abstract fun getSentAudioFrames(): Long
+  abstract fun getSentVideoFrames(): Long
+  abstract fun getDroppedAudioFrames(): Long
+  abstract fun getDroppedVideoFrames(): Long
+  abstract fun resetSentAudioFrames()
+  abstract fun resetSentVideoFrames()
+  abstract fun resetDroppedAudioFrames()
+  abstract fun resetDroppedVideoFrames()
 }

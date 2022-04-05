@@ -6,7 +6,6 @@ import android.app.NotificationManager
 import android.app.Service
 import android.content.Context
 import android.content.Intent
-import android.graphics.BitmapFactory
 import android.media.projection.MediaProjectionManager
 import android.os.Build
 import android.os.IBinder
@@ -14,20 +13,40 @@ import android.util.Log
 import android.view.SurfaceView
 import androidx.annotation.RequiresApi
 import androidx.core.app.NotificationCompat
-import com.pedro.encoder.input.gl.render.filters.`object`.ImageObjectFilterRender
-import com.pedro.encoder.input.video.CameraHelper
-import com.pedro.encoder.utils.gl.TranslateTo
+import androidx.lifecycle.MutableLiveData
+import com.pedro.rtmp.utils.ConnectCheckerRtmp
 import com.pedro.rtplibrary.rtmp.RtmpStream
 import com.pedro.rtplibrary.util.SensorRotationManager
 import com.pedro.rtplibrary.util.sources.VideoManager
 import com.pedro.rtpstreamer.R
-import com.pedro.rtpstreamer.backgroundexample.ConnectCheckerRtp
 
 /**
  * Created by pedro on 22/3/22.
  */
 @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
-class StreamService: Service() {
+class StreamService: Service(), ConnectCheckerRtmp {
+
+  companion object {
+    private const val TAG = "StreamService"
+    private const val channelId = "rtpStreamChannel"
+    private const val notifyId = 123456
+    private var notificationManager: NotificationManager? = null
+    val observer = MutableLiveData<StreamService?>()
+  }
+
+  private var rtmpCamera: RtmpStream? = null
+  private var sensorRotationManager: SensorRotationManager? = null
+  private var currentOrientation = -1
+  private var prepared = false
+
+  override fun onBind(p0: Intent?): IBinder? {
+    return null
+  }
+
+  override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+    Log.i(TAG, "RTP service started")
+    return START_STICKY
+  }
 
   override fun onCreate() {
     super.onCreate()
@@ -38,6 +57,27 @@ class StreamService: Service() {
       notificationManager?.createNotificationChannel(channel)
     }
     keepAliveTrick()
+    rtmpCamera = RtmpStream(applicationContext, this)
+    sensorRotationManager = SensorRotationManager(applicationContext) {
+      //0 = portrait, 90 = landscape, 180 = reverse portrait, 270 = reverse landscape
+      if (currentOrientation != it) {
+        rtmpCamera?.setOrientation(it)
+        currentOrientation = it
+      }
+    }
+    sensorRotationManager?.start()
+    observer.postValue(this)
+  }
+
+  override fun onDestroy() {
+    super.onDestroy()
+    Log.i(TAG, "RTP service destroy")
+    stopRecord()
+    stopStream()
+    stopPreview()
+    sensorRotationManager?.stop()
+    prepared = false
+    observer.postValue(null)
   }
 
   private fun keepAliveTrick() {
@@ -52,153 +92,104 @@ class StreamService: Service() {
     }
   }
 
-  override fun onBind(p0: Intent?): IBinder? {
-    return null
+  private fun showNotification(text: String) {
+    val notification = NotificationCompat.Builder(applicationContext, channelId)
+      .setSmallIcon(R.mipmap.ic_launcher)
+      .setContentTitle("RTP Stream")
+      .setContentText(text).build()
+    notificationManager?.notify(notifyId, notification)
   }
 
-  override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-    Log.i(TAG, "RTP service started")
-    return START_STICKY
+  fun prepare(): Boolean {
+    if (!prepared) {
+      prepared = rtmpCamera?.prepareVideo(640, 480, 1200 * 1000) ?: false &&
+          rtmpCamera?.prepareAudio(44100, true, 128 * 1000) ?: false
+    }
+    return prepared
   }
 
-  companion object {
-    private const val TAG = "StreamService"
-    private const val channelId = "rtpStreamChannel"
-    private const val notifyId = 123456
-    private var notificationManager: NotificationManager? = null
-    private var rtmpCamera: RtmpStream? = null
-    private var context: Context? = null
-    private var sensorRotationManager: SensorRotationManager? = null
-    private var currentOrientation = -1
+  fun startPreview(surfaceView: SurfaceView) {
+    rtmpCamera?.startPreview(surfaceView)
+  }
 
-    private fun setImageToStream() {
-      context?.let {
-        val imageObjectFilterRender = ImageObjectFilterRender()
-        rtmpCamera?.getGlInterface()?.setFilter(imageObjectFilterRender)
-        imageObjectFilterRender.setImage(BitmapFactory.decodeResource(it.resources, R.mipmap.ic_launcher))
-        imageObjectFilterRender.setScale(30f, 30f)
-        imageObjectFilterRender.setPosition(TranslateTo.RIGHT)
-      }
-    }
+  fun stopPreview() {
+    rtmpCamera?.stopPreview()
+  }
 
-    fun init(context: Context) {
-      this.context = context
-      rtmpCamera = RtmpStream(context, connectCheckerRtp)
-      sensorRotationManager = SensorRotationManager(context) {
-        //0 = portrait, 90 = landscape, 180 = reverse portrait, 270 = reverse landscape
-        if (currentOrientation != it) {
-          rtmpCamera?.setOrientation(it)
-          currentOrientation = it
-        }
-      }
-      sensorRotationManager?.start()
-      rtmpCamera?.prepareVideo(640, 480, 1200 * 1000)
-      rtmpCamera?.prepareAudio(44100, true, 128 * 1000)
-    }
+  fun switchCamera() {
+    rtmpCamera?.switchCamera()
+  }
 
-    fun startPreview(surfaceView: SurfaceView) {
-      rtmpCamera?.startPreview(surfaceView)
-      //setImageToStream()
-    }
+  fun isStreaming(): Boolean = rtmpCamera?.isStreaming ?: false
 
-    fun stopPreview() {
-      rtmpCamera?.stopPreview()
-    }
+  fun isRecording(): Boolean = rtmpCamera?.isRecording ?: false
 
-    fun switchCamera() {
-      rtmpCamera?.switchCamera()
-    }
+  fun isOnPreview(): Boolean = rtmpCamera?.isOnPreview ?: false
 
-    fun isStreaming(): Boolean = rtmpCamera?.isStreaming ?: false
+  fun startStream(endpoint: String) {
+    rtmpCamera?.startStream(endpoint)
+  }
 
-    fun isRecording(): Boolean = rtmpCamera?.isRecording ?: false
+  fun stopStream() {
+    rtmpCamera?.stopStream()
+  }
 
-    fun isOnPreview(): Boolean = rtmpCamera?.isOnPreview ?: false
-
-    fun startStream() {
-      rtmpCamera?.startStream("rtmp://192.168.1.132/live/pedro")
-    }
-
-    fun stopStream() {
-      rtmpCamera?.stopStream()
-    }
-
-    fun startRecord(path: String) {
-      rtmpCamera?.startRecord(path) {
-        Log.i(TAG, "record state: ${it.name}")
-      }
-    }
-
-    fun stopRecord() {
-      rtmpCamera?.stopRecord()
-    }
-
-    fun changeVideoSourceCamera(source: VideoManager.Source) {
-      rtmpCamera?.changeVideoSourceCamera(source)
-    }
-
-    fun changeVideoSourceScreen(context: Context, resultCode: Int, data: Intent) {
-      val mediaProjectionManager = context.applicationContext.getSystemService(MEDIA_PROJECTION_SERVICE) as MediaProjectionManager
-      val mediaProjection = mediaProjectionManager.getMediaProjection(resultCode, data)
-      rtmpCamera?.changeVideoSourceScreen(mediaProjection)
-    }
-
-    fun changeAudioSourceMicrophone() {
-      rtmpCamera?.changeAudioSourceMicrophone()
-    }
-
-    @RequiresApi(Build.VERSION_CODES.Q)
-    fun changeAudioSourceInternal(context: Context, resultCode: Int, data: Intent) {
-      val mediaProjectionManager = context.applicationContext.getSystemService(MEDIA_PROJECTION_SERVICE) as MediaProjectionManager
-      val mediaProjection = mediaProjectionManager.getMediaProjection(resultCode, data)
-      rtmpCamera?.changeAudioSourceInternal(mediaProjection)
-    }
-
-    private val connectCheckerRtp = object : ConnectCheckerRtp {
-      override fun onConnectionStartedRtp(rtpUrl: String) {
-        showNotification("Stream connection started")
-      }
-
-      override fun onConnectionSuccessRtp() {
-        showNotification("Stream started")
-      }
-
-      override fun onNewBitrateRtp(bitrate: Long) {
-
-      }
-
-      override fun onConnectionFailedRtp(reason: String) {
-        showNotification("Stream connection failed")
-      }
-
-      override fun onDisconnectRtp() {
-        showNotification("Stream stopped")
-      }
-
-      override fun onAuthErrorRtp() {
-        showNotification("Stream auth error")
-      }
-
-      override fun onAuthSuccessRtp() {
-        showNotification("Stream auth success")
-      }
-    }
-
-    private fun showNotification(text: String) {
-      context?.let {
-        val notification = NotificationCompat.Builder(it, channelId)
-          .setSmallIcon(R.mipmap.ic_launcher)
-          .setContentTitle("RTP Stream")
-          .setContentText(text).build()
-        notificationManager?.notify(notifyId, notification)
-      }
+  fun startRecord(path: String) {
+    rtmpCamera?.startRecord(path) {
+      Log.i(TAG, "record state: ${it.name}")
     }
   }
 
-  override fun onDestroy() {
-    super.onDestroy()
-    Log.i(TAG, "RTP service destroy")
-    stopStream()
-    sensorRotationManager?.stop()
+  fun stopRecord() {
+    rtmpCamera?.stopRecord()
+  }
+
+  fun changeVideoSourceCamera(source: VideoManager.Source) {
+    rtmpCamera?.changeVideoSourceCamera(source)
+  }
+
+  fun changeVideoSourceScreen(context: Context, resultCode: Int, data: Intent) {
+    val mediaProjectionManager = context.applicationContext.getSystemService(MEDIA_PROJECTION_SERVICE) as MediaProjectionManager
+    val mediaProjection = mediaProjectionManager.getMediaProjection(resultCode, data)
+    rtmpCamera?.changeVideoSourceScreen(mediaProjection)
+  }
+
+  fun changeAudioSourceMicrophone() {
+    rtmpCamera?.changeAudioSourceMicrophone()
+  }
+
+  @RequiresApi(Build.VERSION_CODES.Q)
+  fun changeAudioSourceInternal(context: Context, resultCode: Int, data: Intent) {
+    val mediaProjectionManager = context.applicationContext.getSystemService(MEDIA_PROJECTION_SERVICE) as MediaProjectionManager
+    val mediaProjection = mediaProjectionManager.getMediaProjection(resultCode, data)
+    rtmpCamera?.changeAudioSourceInternal(mediaProjection)
+  }
+
+  override fun onConnectionStartedRtmp(rtmpUrl: String) {
+    showNotification("Stream connection started")
+  }
+
+  override fun onConnectionSuccessRtmp() {
+    showNotification("Stream started")
+  }
+
+  override fun onNewBitrateRtmp(bitrate: Long) {
+
+  }
+
+  override fun onConnectionFailedRtmp(reason: String) {
+    showNotification("Stream connection failed")
+  }
+
+  override fun onDisconnectRtmp() {
+    showNotification("Stream stopped")
+  }
+
+  override fun onAuthErrorRtmp() {
+    showNotification("Stream auth error")
+  }
+
+  override fun onAuthSuccessRtmp() {
+    showNotification("Stream auth success")
   }
 }

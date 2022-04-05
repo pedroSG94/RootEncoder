@@ -12,13 +12,14 @@ import com.pedro.encoder.input.audio.MicrophoneManager
  * Created by pedro on 29/3/22.
  */
 @RequiresApi(Build.VERSION_CODES.LOLLIPOP)
-class AudioManager(getMicrophoneData: GetMicrophoneData) {
+class AudioManager(getMicrophoneData: GetMicrophoneData, private var source: Source) {
 
   enum class Source {
-    MICROPHONE, INTERNAL, DISABLED
+    MICROPHONE, DISABLED,
+    @RequiresApi(Build.VERSION_CODES.Q)
+    INTERNAL,
   }
 
-  private var source = Source.MICROPHONE
   private val microphone = MicrophoneManager(getMicrophoneData)
   private val noSource = NoSource()
   private var mediaProjection: MediaProjection? = null
@@ -81,7 +82,7 @@ class AudioManager(getMicrophoneData: GetMicrophoneData) {
 
   @RequiresApi(Build.VERSION_CODES.Q)
   fun changeSourceInternal(mediaProjection: MediaProjection) {
-    if (this.source != Source.INTERNAL) {
+    if (this.source != Source.INTERNAL || this.mediaProjection == null) {
       this.mediaProjection = mediaProjection
       val wasRunning = isRunning()
       stop()
