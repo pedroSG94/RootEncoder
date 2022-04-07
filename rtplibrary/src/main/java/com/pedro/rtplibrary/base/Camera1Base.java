@@ -495,7 +495,8 @@ public abstract class Camera1Base
         cameraManager.setSurfaceTexture(glInterface.getSurfaceTexture());
       }
       cameraManager.setRotation(rotation);
-      cameraManager.start(cameraFacing, width, height, videoEncoder.getFps());
+      cameraManager.setCameraFacing(cameraFacing);
+      cameraManager.start(cameraFacing.ordinal(), width, height, videoEncoder.getFps());
       onPreview = true;
     } else if (!isStreaming() && !onPreview && glInterface instanceof OffScreenGlThread) {
       // if you are using background mode startPreview only work to indicate
@@ -506,11 +507,58 @@ public abstract class Camera1Base
     }
   }
 
+  /**
+   * Start camera preview. Ignored, if stream or preview is started.
+   *
+   * @param cameraId camera id.
+   * {@link com.pedro.encoder.input.video.CameraHelper.Facing#FRONT}
+   * @param width of preview in px.
+   * @param height of preview in px.
+   * @param rotation camera rotation (0, 90, 180, 270). Recommended: {@link
+   * com.pedro.encoder.input.video.CameraHelper#getCameraOrientation(Context)}
+   */
+  public void startPreview(int cameraId, int width, int height, int fps, int rotation) {
+    if (!isStreaming() && !onPreview && !(glInterface instanceof OffScreenGlThread)) {
+      previewWidth = width;
+      previewHeight = height;
+      videoEncoder.setFps(fps);
+      if (glInterface != null && Build.VERSION.SDK_INT >= 18) {
+        boolean isPortrait = CameraHelper.isPortrait(context);
+        if (isPortrait) {
+          glInterface.setEncoderSize(height, width);
+        } else {
+          glInterface.setEncoderSize(width, height);
+        }
+        glInterface.setRotation(0);
+        glInterface.setFps(fps);
+        glInterface.start();
+        cameraManager.setSurfaceTexture(glInterface.getSurfaceTexture());
+      }
+      cameraManager.setRotation(rotation);
+      cameraManager.start(cameraId, width, height, videoEncoder.getFps());
+      onPreview = true;
+    } else if (!isStreaming() && !onPreview && glInterface instanceof OffScreenGlThread) {
+      // if you are using background mode startPreview only work to indicate
+      // that you want start with front or back camera
+      cameraManager.setCameraSelect(cameraId);
+    } else {
+      Log.e(TAG, "Streaming or preview started, ignored");
+    }
+  }
+
   public void startPreview(CameraHelper.Facing cameraFacing, int width, int height, int rotation) {
     startPreview(cameraFacing, width, height, videoEncoder.getFps(), rotation);
   }
 
+  public void startPreview(int cameraFacing, int width, int height, int rotation) {
+    startPreview(cameraFacing, width, height, videoEncoder.getFps(), rotation);
+  }
+
   public void startPreview(CameraHelper.Facing cameraFacing, int width, int height) {
+    startPreview(cameraFacing, width, height, CameraHelper.getCameraOrientation(context));
+  }
+
+  public void startPreview(int cameraFacing, int width, int height) {
     startPreview(cameraFacing, width, height, CameraHelper.getCameraOrientation(context));
   }
 
@@ -519,6 +567,10 @@ public abstract class Camera1Base
   }
 
   public void startPreview(CameraHelper.Facing cameraFacing) {
+    startPreview(cameraFacing, videoEncoder.getWidth(), videoEncoder.getHeight());
+  }
+
+  public void startPreview(int cameraFacing) {
     startPreview(cameraFacing, videoEncoder.getWidth(), videoEncoder.getHeight());
   }
 
