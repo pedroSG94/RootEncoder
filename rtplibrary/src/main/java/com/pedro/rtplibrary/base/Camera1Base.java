@@ -890,6 +890,14 @@ public abstract class Camera1Base
     }
   }
 
+  public void switchCamera(int cameraId) throws CameraOpenException {
+    if (isStreaming() || onPreview) {
+      cameraManager.switchCamera(cameraId);
+    } else {
+      cameraManager.setCameraSelect(cameraId);
+    }
+  }
+
   public void setExposure(int value) {
     cameraManager.setExposure(value);
   }

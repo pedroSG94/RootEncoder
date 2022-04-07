@@ -492,6 +492,20 @@ public class Camera1ApiManager implements Camera.PreviewCallback, Camera.FaceDet
     }
   }
 
+  public void switchCamera(int cameraId) throws CameraOpenException {
+    if (camera != null) {
+      int oldCamera = cameraSelect;
+      cameraSelect = cameraId;
+      if (!checkCanOpen()) {
+        cameraSelect = oldCamera;
+        throw new CameraOpenException("This camera resolution cant be opened");
+      }
+      stop();
+      start();
+      return;
+    }
+  }
+
   private boolean checkCanOpen() {
     List<Camera.Size> previews;
     if (cameraSelect == selectCameraBack()) {
