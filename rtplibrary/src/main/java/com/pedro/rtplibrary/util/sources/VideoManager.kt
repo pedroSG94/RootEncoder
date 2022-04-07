@@ -97,7 +97,7 @@ class VideoManager(private val context: Context, private var source: Source) {
         Source.CAMERA1 -> {
           surfaceTexture.setDefaultBufferSize(width, height)
           camera1.setSurfaceTexture(surfaceTexture)
-          camera1.start(facing, width, height, fps)
+          camera1.start(facing.ordinal, width, height, fps)
           camera1.setPreviewOrientation(90) // necessary to use the same orientation than camera2
         }
         Source.CAMERA2 -> {
