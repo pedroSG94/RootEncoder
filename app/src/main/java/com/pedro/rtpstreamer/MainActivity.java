@@ -31,6 +31,7 @@ import android.widget.GridView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.pedro.rtmp.utils.socket.TcpTunneledSocket;
 import com.pedro.rtpstreamer.backgroundexample.BackgroundActivity;
 import com.pedro.rtpstreamer.customexample.RtmpActivity;
 import com.pedro.rtpstreamer.customexample.RtspActivity;
@@ -81,6 +82,9 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
     if (!hasPermissions(this, PERMISSIONS)) {
       ActivityCompat.requestPermissions(this, PERMISSIONS, 1);
     }
+    new Thread(() -> {
+      new TcpTunneledSocket("", 443, true).connect();
+    }).start();
   }
 
   @SuppressLint("NewApi")

@@ -118,7 +118,7 @@ class RtmpHeader(var basicHeader: BasicHeader) {
   @Throws(IOException::class)
   fun writeHeader(basicHeader: BasicHeader, output: OutputStream) {
     // Write basic header byte
-    output.write((basicHeader.chunkType.mark.toInt() shl 6) or basicHeader.chunkStreamId.toInt())
+    output.write((basicHeader.chunkType.mark.toInt() shl 6) or basicHeader.chunkStreamId)
     when (basicHeader.chunkType) {
       ChunkType.TYPE_0 -> {
         output.writeUInt24(min(timeStamp, 0xffffff))
