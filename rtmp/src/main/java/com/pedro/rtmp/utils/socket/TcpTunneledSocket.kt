@@ -20,7 +20,7 @@ class TcpTunneledSocket(private val host: String, private val port: Int, private
   private var connectionId: String = ""
   private var connected = false
   private var index = 0
-  private val output = ByteArrayOutputStream()
+  private var output = ByteArrayOutputStream()
   private var input = ByteArrayInputStream(byteArrayOf())
 
   override fun getOutStream(): OutputStream = output
@@ -29,9 +29,7 @@ class TcpTunneledSocket(private val host: String, private val port: Int, private
     while (input.available() <= 1) {
       index++
       val bytes = requestRead("/idle/$connectionId/$index", secured)
-      Log.i(TAG, "read bytes: ${bytes.contentToString()}")
       input = ByteArrayInputStream(bytes, 1, bytes.size)
-      Thread.sleep(100)
     }
     return input
   }
@@ -39,7 +37,7 @@ class TcpTunneledSocket(private val host: String, private val port: Int, private
   override fun flush() {
     index++
     val bytes = output.toByteArray()
-    Log.i(TAG, "write bytes: ${bytes.contentToString()}")
+    output = ByteArrayOutputStream()
     requestWrite("/send/$connectionId/$index", secured, bytes)
   }
 
@@ -81,11 +79,9 @@ class TcpTunneledSocket(private val host: String, private val port: Int, private
     val socket = configureSocket(path, secured)
     socket.connect()
     socket.outputStream.write(data)
-    val bytes = socket.inputStream.readBytes()
     val success = socket.responseCode == 200
-    Log.i(TAG, "write response: ${socket.responseCode}")
     socket.disconnect()
-    if (!success) throw IOException("send packet failed")
+    if (!success) throw IOException("send packet failed: ${socket.responseMessage}")
   }
 
   @Throws(IOException::class)
@@ -96,7 +92,7 @@ class TcpTunneledSocket(private val host: String, private val port: Int, private
     val success = socket.responseCode == 200
     Log.i(TAG, "read response: ${socket.responseCode}")
     socket.disconnect()
-    if (!success) throw IOException("receive packet failed")
+    if (!success) throw IOException("receive packet failed: ${socket.responseMessage}")
     return data
   }
 

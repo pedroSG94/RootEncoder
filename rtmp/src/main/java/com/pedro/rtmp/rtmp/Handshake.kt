@@ -75,18 +75,18 @@ class Handshake {
 
   @Throws(IOException::class)
   fun sendHandshake(socket: RtpSocket): Boolean {
-    val o1 = socket.getOutStream() ?: return false
-    writeC0(o1)
-    val c1 = writeC1(o1)
+    var output = socket.getOutStream()
+    writeC0(output)
+    val c1 = writeC1(output)
     socket.flush()
-    val i1 = socket.getInputStream() ?: return false
-    readS0(i1)
-    val s1 = readS1(i1)
-    val o2 = socket.getOutStream() ?: return false
-    writeC2(o2, s1)
+    var input = socket.getInputStream()
+    readS0(input)
+    val s1 = readS1(input)
+    output = socket.getOutStream()
+    writeC2(output, s1)
     socket.flush()
-    val i2 = socket.getInputStream() ?: return false
-    readS2(i2, c1)
+    input = socket.getInputStream()
+    readS2(input, c1)
     return true
   }
 

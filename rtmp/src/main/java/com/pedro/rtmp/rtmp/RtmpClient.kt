@@ -31,6 +31,7 @@ import com.pedro.rtmp.utils.ConnectCheckerRtmp
 import com.pedro.rtmp.utils.RtmpConfig
 import com.pedro.rtmp.utils.socket.RtpSocket
 import com.pedro.rtmp.utils.socket.TcpSocket
+import com.pedro.rtmp.utils.socket.TcpTunneledSocket
 import java.io.*
 import java.net.*
 import java.nio.ByteBuffer
@@ -46,7 +47,7 @@ import java.util.regex.Pattern
 class RtmpClient(private val connectCheckerRtmp: ConnectCheckerRtmp) {
 
   private val TAG = "RtmpClient"
-  private val rtmpUrlPattern = Pattern.compile("^rtmps?://([^/:]+)(?::(\\d+))*/([^/]+)/?([^*]*)$")
+  private val rtmpUrlPattern = Pattern.compile("^rtmpt?s?://([^/:]+)(?::(\\d+))*/([^/]+)/?([^*]*)$")
 
   private var socket: RtpSocket? = null
   private var thread: ExecutorService? = null
@@ -59,6 +60,7 @@ class RtmpClient(private val connectCheckerRtmp: ConnectCheckerRtmp) {
 
   private var url: String? = null
   private var tlsEnabled = false
+  private var tunneled = false
 
   private var doingRetry = false
   private var numRetry = 0
@@ -161,7 +163,10 @@ class RtmpClient(private val connectCheckerRtmp: ConnectCheckerRtmp) {
       connectCheckerRtmp.onConnectionStartedRtmp(url)
       val rtmpMatcher = rtmpUrlPattern.matcher(url)
       if (rtmpMatcher.matches()) {
-        tlsEnabled = (rtmpMatcher.group(0) ?: "").startsWith("rtmps")
+        val schema = rtmpMatcher.group(0) ?: ""
+        tunneled = schema.startsWith("rtmpt")
+        tlsEnabled = schema.startsWith("rtmps") || schema.startsWith("rtmpts")
+        Log.e("Pedro", "tunneled?: $tunneled")
       } else {
         connectCheckerRtmp.onConnectionFailedRtmp(
             "Endpoint malformed, should be: rtmp://ip:port/appname/streamname")
@@ -170,7 +175,8 @@ class RtmpClient(private val connectCheckerRtmp: ConnectCheckerRtmp) {
 
       commandsManager.host = rtmpMatcher.group(1) ?: ""
       val portStr = rtmpMatcher.group(2)
-      commandsManager.port = portStr?.toInt() ?: if (tlsEnabled) 443 else 1935
+      val defaultPort = if (tlsEnabled) 443 else if (tunneled) 80 else 1935
+      commandsManager.port = portStr?.toInt() ?: defaultPort
       commandsManager.appName = getAppName(rtmpMatcher.group(3) ?: "", rtmpMatcher.group(4) ?: "")
       commandsManager.streamName = getStreamName(rtmpMatcher.group(4) ?: "")
       commandsManager.tcUrl = getTcUrl((rtmpMatcher.group(0)
@@ -258,15 +264,19 @@ class RtmpClient(private val connectCheckerRtmp: ConnectCheckerRtmp) {
 
   @Throws(IOException::class)
   private fun establishConnection(): Boolean {
-    val tcpSocket = TcpSocket(commandsManager.host, commandsManager.port, tlsEnabled)
-    tcpSocket.connect()
-    if (!tcpSocket.isConnected()) return false
+    val socket = if (tunneled) {
+      TcpTunneledSocket(commandsManager.host, commandsManager.port, tlsEnabled)
+    } else {
+      TcpSocket(commandsManager.host, commandsManager.port, tlsEnabled)
+    }
+    socket.connect()
+    if (!socket.isConnected()) return false
     val timestamp = System.currentTimeMillis() / 1000
     val handshake = Handshake()
-    if (!handshake.sendHandshake(tcpSocket)) return false
+    if (!handshake.sendHandshake(socket)) return false
     commandsManager.timestamp = timestamp.toInt()
     commandsManager.startTs = System.nanoTime() / 1000
-    this.socket = tcpSocket
+    this.socket = socket
     return true
   }
 
