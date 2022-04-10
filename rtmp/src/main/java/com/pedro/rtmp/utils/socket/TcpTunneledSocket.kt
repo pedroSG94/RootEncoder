@@ -80,6 +80,8 @@ class TcpTunneledSocket(private val host: String, private val port: Int, private
     val socket = configureSocket(path, secured)
     socket.connect()
     socket.outputStream.write(data)
+    //necessary to improve speed
+    socket.inputStream.readBytes()
     val success = socket.responseCode == HttpURLConnection.HTTP_OK
     socket.disconnect()
     if (!success) throw IOException("send packet failed: ${socket.responseMessage}")
@@ -111,7 +113,6 @@ class TcpTunneledSocket(private val host: String, private val port: Int, private
     }
     socket.doOutput = true
     socket.doInput = true
-    socket.useCaches = false
     socket.connectTimeout = 5000
     socket.readTimeout = 5000
     return socket
