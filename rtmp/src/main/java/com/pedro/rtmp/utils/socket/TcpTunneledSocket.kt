@@ -4,6 +4,7 @@ import android.util.Log
 import java.io.*
 import java.net.HttpURLConnection
 import java.net.URL
+import java.util.concurrent.atomic.AtomicLong
 import javax.net.ssl.HttpsURLConnection
 
 /**
@@ -19,7 +20,7 @@ class TcpTunneledSocket(private val host: String, private val port: Int, private
   )
   private var connectionId: String = ""
   private var connected = false
-  private var index = 0
+  private var index = AtomicLong(0)
   private var output = ByteArrayOutputStream()
   private var input = ByteArrayInputStream(byteArrayOf())
 
@@ -27,26 +28,26 @@ class TcpTunneledSocket(private val host: String, private val port: Int, private
 
   override fun getInputStream(): InputStream {
     while (input.available() <= 1) {
-      index++
-      val bytes = requestRead("/idle/$connectionId/$index", secured)
+      val i = index.addAndGet(1)
+      val bytes = requestRead("idle/$connectionId/$i", secured)
       input = ByteArrayInputStream(bytes, 1, bytes.size)
     }
     return input
   }
 
   override fun flush() {
-    index++
+    val i = index.addAndGet(1)
     val bytes = output.toByteArray()
     output = ByteArrayOutputStream()
-    requestWrite("/send/$connectionId/$index", secured, bytes)
+    requestWrite("send/$connectionId/$i", secured, bytes)
   }
 
   override fun connect() {
     try {
-      requestWrite("/fcs/ident2", secured, byteArrayOf(0x00))
-      val openResult = requestRead("/open/1", secured)
-      connectionId = String(openResult)
-      requestWrite("/idle/$connectionId/$index", secured, byteArrayOf(0x00))
+      requestWrite("fcs/ident2", secured, byteArrayOf(0x00))
+      val openResult = requestRead("open/1", secured)
+      connectionId = String(openResult).trimIndent()
+      requestWrite("idle/$connectionId/${index.get()}", secured, byteArrayOf(0x00))
       connected = true
       Log.i(TAG,"Connection success")
     } catch (e: IOException) {
@@ -57,13 +58,13 @@ class TcpTunneledSocket(private val host: String, private val port: Int, private
 
   override fun close() {
     try {
-      requestWrite("/close/$connectionId", secured, byteArrayOf(0x00))
+      requestWrite("close/$connectionId", secured, byteArrayOf(0x00))
       Log.i(TAG,"Close success")
     } catch (e: IOException) {
       Log.e(TAG,"Close request failed: ${e.message}")
       connected = false
     } finally {
-      index = 0
+      index.set(0)
       connectionId = ""
       connected = false
     }
@@ -79,7 +80,7 @@ class TcpTunneledSocket(private val host: String, private val port: Int, private
     val socket = configureSocket(path, secured)
     socket.connect()
     socket.outputStream.write(data)
-    val success = socket.responseCode == 200
+    val success = socket.responseCode == HttpURLConnection.HTTP_OK
     socket.disconnect()
     if (!success) throw IOException("send packet failed: ${socket.responseMessage}")
   }
@@ -89,8 +90,7 @@ class TcpTunneledSocket(private val host: String, private val port: Int, private
     val socket = configureSocket(path, secured)
     socket.connect()
     val data = socket.inputStream.readBytes()
-    val success = socket.responseCode == 200
-    Log.i(TAG, "read response: ${socket.responseCode}")
+    val success = socket.responseCode == HttpURLConnection.HTTP_OK
     socket.disconnect()
     if (!success) throw IOException("receive packet failed: ${socket.responseMessage}")
     return data
@@ -104,6 +104,7 @@ class TcpTunneledSocket(private val host: String, private val port: Int, private
     } else {
       url.openConnection() as HttpURLConnection
     }
+    Log.i(TAG, "open: $url")
     socket.requestMethod = "POST"
     headers.forEach { (key, value) ->
       socket.addRequestProperty(key, value)

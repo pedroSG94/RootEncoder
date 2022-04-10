@@ -166,7 +166,6 @@ class RtmpClient(private val connectCheckerRtmp: ConnectCheckerRtmp) {
         val schema = rtmpMatcher.group(0) ?: ""
         tunneled = schema.startsWith("rtmpt")
         tlsEnabled = schema.startsWith("rtmps") || schema.startsWith("rtmpts")
-        Log.e("Pedro", "tunneled?: $tunneled")
       } else {
         connectCheckerRtmp.onConnectionFailedRtmp(
             "Endpoint malformed, should be: rtmp://ip:port/appname/streamname")
