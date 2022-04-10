@@ -33,8 +33,9 @@ abstract class RtpSocket {
     }
   }
 
-  abstract fun getOutStream(): OutputStream?
-  abstract fun getInputStream(): InputStream?
+  abstract fun getOutStream(): OutputStream
+  abstract fun getInputStream(): InputStream
+  abstract fun flush()
   abstract fun connect()
   abstract fun close()
   abstract fun isConnected(): Boolean

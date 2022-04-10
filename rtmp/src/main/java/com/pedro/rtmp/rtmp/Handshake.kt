@@ -18,6 +18,7 @@ package com.pedro.rtmp.rtmp
 
 import android.util.Log
 import com.pedro.rtmp.utils.readUntil
+import com.pedro.rtmp.utils.socket.RtpSocket
 import java.io.IOException
 import java.io.InputStream
 import java.io.OutputStream
@@ -73,15 +74,19 @@ class Handshake {
   private var timestampC1 = 0
 
   @Throws(IOException::class)
-  fun sendHandshake(input: InputStream, output: OutputStream): Boolean {
-    writeC0(output)
-    val c1 = writeC1(output)
-    output.flush()
-    readS0(input)
-    val s1 = readS1(input)
-    writeC2(output, s1)
-    output.flush()
-    readS2(input, c1)
+  fun sendHandshake(socket: RtpSocket): Boolean {
+    val o1 = socket.getOutStream() ?: return false
+    writeC0(o1)
+    val c1 = writeC1(o1)
+    socket.flush()
+    val i1 = socket.getInputStream() ?: return false
+    readS0(i1)
+    val s1 = readS1(i1)
+    val o2 = socket.getOutStream() ?: return false
+    writeC2(o2, s1)
+    socket.flush()
+    val i2 = socket.getInputStream() ?: return false
+    readS2(i2, c1)
     return true
   }
 

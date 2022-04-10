@@ -1,9 +1,7 @@
 package com.pedro.rtmp.utils.socket
 
 import android.util.Log
-import java.io.IOException
-import java.io.InputStream
-import java.io.OutputStream
+import java.io.*
 import java.net.HttpURLConnection
 import java.net.URL
 import javax.net.ssl.HttpsURLConnection
@@ -22,13 +20,27 @@ class TcpTunneledSocket(private val host: String, private val port: Int, private
   private var connectionId: String = ""
   private var connected = false
   private var index = 0
+  private val output = ByteArrayOutputStream()
+  private var input = ByteArrayInputStream(byteArrayOf())
 
-  override fun getOutStream(): OutputStream? {
-    return null
+  override fun getOutStream(): OutputStream = output
+
+  override fun getInputStream(): InputStream {
+    while (input.available() <= 1) {
+      index++
+      val bytes = requestRead("/idle/$connectionId/$index", secured)
+      Log.i(TAG, "read bytes: ${bytes.contentToString()}")
+      input = ByteArrayInputStream(bytes, 1, bytes.size)
+      Thread.sleep(100)
+    }
+    return input
   }
 
-  override fun getInputStream(): InputStream? {
-    return null
+  override fun flush() {
+    index++
+    val bytes = output.toByteArray()
+    Log.i(TAG, "write bytes: ${bytes.contentToString()}")
+    requestWrite("/send/$connectionId/$index", secured, bytes)
   }
 
   override fun connect() {
@@ -64,23 +76,12 @@ class TcpTunneledSocket(private val host: String, private val port: Int, private
   override fun isReachable(): Boolean = connected
 
   @Throws(IOException::class)
-  fun write(bytes: ByteArray) {
-    index++
-    requestWrite("/send/$connectionId/$index", secured, bytes)
-  }
-
-  @Throws(IOException::class)
-  fun read(): ByteArray {
-    index++
-    return requestRead("/idle/$connectionId/$index", secured)
-  }
-
-  @Throws(IOException::class)
   private fun requestWrite(path: String, secured: Boolean,
     data: ByteArray) {
     val socket = configureSocket(path, secured)
     socket.connect()
     socket.outputStream.write(data)
+    val bytes = socket.inputStream.readBytes()
     val success = socket.responseCode == 200
     Log.i(TAG, "write response: ${socket.responseCode}")
     socket.disconnect()

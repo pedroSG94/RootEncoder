@@ -29,6 +29,7 @@ import com.pedro.rtmp.rtmp.message.control.UserControl
 import com.pedro.rtmp.rtmp.message.data.DataAmf0
 import com.pedro.rtmp.utils.CommandSessionHistory
 import com.pedro.rtmp.utils.RtmpConfig
+import com.pedro.rtmp.utils.socket.RtpSocket
 import java.io.*
 
 /**
@@ -88,15 +89,16 @@ class CommandsManager {
   }
 
   @Throws(IOException::class)
-  fun sendChunkSize(output: OutputStream) {
+  fun sendChunkSize(socket: RtpSocket) {
     synchronized(writeSync) {
+      val output = socket.getOutStream()
       if (RtmpConfig.writeChunkSize != RtmpConfig.DEFAULT_CHUNK_SIZE) {
         val chunkSize = SetChunkSize(RtmpConfig.writeChunkSize)
         chunkSize.header.timeStamp = getCurrentTimestamp()
         chunkSize.header.messageStreamId = streamId
         chunkSize.writeHeader(output)
         chunkSize.writeBody(output)
-        output.flush()
+        socket.flush()
         Log.i(TAG, "send $chunkSize")
       } else {
         Log.i(TAG, "using default write chunk size ${RtmpConfig.DEFAULT_CHUNK_SIZE}")
@@ -105,8 +107,9 @@ class CommandsManager {
   }
 
   @Throws(IOException::class)
-  fun sendConnect(auth: String, output: OutputStream) {
+  fun sendConnect(auth: String, socket: RtpSocket) {
     synchronized(writeSync) {
+      val output = socket.getOutStream()
       val connect = CommandAmf0("connect", ++commandId, getCurrentTimestamp(), streamId,
         BasicHeader(ChunkType.TYPE_0, ChunkStreamId.OVER_CONNECTION.mark))
       val connectInfo = AmfObject()
@@ -129,15 +132,16 @@ class CommandsManager {
 
       connect.writeHeader(output)
       connect.writeBody(output)
-      output.flush()
+      socket.flush()
       sessionHistory.setPacket(commandId, "connect")
       Log.i(TAG, "send $connect")
     }
   }
 
   @Throws(IOException::class)
-  fun createStream(output: OutputStream) {
+  fun createStream(socket: RtpSocket) {
     synchronized(writeSync) {
+      val output = socket.getOutStream()
       val releaseStream = CommandAmf0("releaseStream", ++commandId, getCurrentTimestamp(), streamId,
         BasicHeader(ChunkType.TYPE_0, ChunkStreamId.OVER_STREAM.mark))
       releaseStream.addData(AmfNull())
@@ -164,14 +168,15 @@ class CommandsManager {
 
       createStream.writeHeader(output)
       createStream.writeBody(output)
-      output.flush()
+      socket.flush()
       sessionHistory.setPacket(commandId, "createStream")
       Log.i(TAG, "send $createStream")
     }
   }
 
   @Throws(IOException::class)
-  fun readMessageResponse(input: InputStream): RtmpMessage {
+  fun readMessageResponse(socket: RtpSocket): RtmpMessage {
+    val input = socket.getInputStream()
     val message = RtmpMessage.getRtmpMessage(input, readChunkSize, sessionHistory)
     sessionHistory.setReadHeader(message.header)
     Log.i(TAG, "read $message")
@@ -179,8 +184,9 @@ class CommandsManager {
   }
 
   @Throws(IOException::class)
-  fun sendMetadata(output: OutputStream) {
+  fun sendMetadata(socket: RtpSocket) {
     synchronized(writeSync) {
+      val output = socket.getOutStream()
       val name = "@setDataFrame"
       val metadata = DataAmf0(name, getCurrentTimestamp(), streamId)
       metadata.addData(AmfString("onMetaData"))
@@ -205,14 +211,15 @@ class CommandsManager {
 
       metadata.writeHeader(output)
       metadata.writeBody(output)
-      output.flush()
+      socket.flush()
       Log.i(TAG, "send $metadata")
     }
   }
 
   @Throws(IOException::class)
-  fun sendPublish(output: OutputStream) {
+  fun sendPublish(socket: RtpSocket) {
     synchronized(writeSync) {
+      val output = socket.getOutStream()
       val name = "publish"
       val publish = CommandAmf0(name, ++commandId, getCurrentTimestamp(), streamId,
         BasicHeader(ChunkType.TYPE_0, ChunkStreamId.OVER_STREAM.mark))
@@ -222,71 +229,76 @@ class CommandsManager {
 
       publish.writeHeader(output)
       publish.writeBody(output)
-      output.flush()
+      socket.flush()
       sessionHistory.setPacket(commandId, name)
       Log.i(TAG, "send $publish")
     }
   }
 
   @Throws(IOException::class)
-  fun sendWindowAcknowledgementSize(output: OutputStream) {
+  fun sendWindowAcknowledgementSize(socket: RtpSocket) {
     synchronized(writeSync) {
+      val output = socket.getOutStream()
       val windowAcknowledgementSize = WindowAcknowledgementSize(RtmpConfig.acknowledgementWindowSize, getCurrentTimestamp())
       windowAcknowledgementSize.writeHeader(output)
       windowAcknowledgementSize.writeBody(output)
-      output.flush()
+      socket.flush()
     }
   }
 
-  fun sendPong(event: Event, output: OutputStream) {
+  fun sendPong(event: Event, socket: RtpSocket) {
     synchronized(writeSync) {
+      val output = socket.getOutStream()
       val pong = UserControl(Type.PONG_REPLY, event)
       pong.writeHeader(output)
       pong.writeBody(output)
-      output.flush()
+      socket.flush()
       Log.i(TAG, "send pong")
     }
   }
 
   @Throws(IOException::class)
-  fun sendClose(output: OutputStream) {
+  fun sendClose(socket: RtpSocket) {
     synchronized(writeSync) {
+      val output = socket.getOutStream()
       val name = "closeStream"
       val closeStream = CommandAmf0(name, ++commandId, getCurrentTimestamp(), streamId, BasicHeader(ChunkType.TYPE_0, ChunkStreamId.OVER_STREAM.mark))
       closeStream.addData(AmfNull())
 
       closeStream.writeHeader(output)
       closeStream.writeBody(output)
-      output.flush()
+      socket.flush()
       sessionHistory.setPacket(commandId, name)
       Log.i(TAG, "send $closeStream")
     }
   }
 
   @Throws(IOException::class)
-  fun sendVideoPacket(flvPacket: FlvPacket, output: OutputStream): Int {
+  fun sendVideoPacket(flvPacket: FlvPacket, socket: RtpSocket): Int {
     synchronized(writeSync) {
+      val output = socket.getOutStream()
       if (akamaiTs) {
         flvPacket.timeStamp = ((System.nanoTime() / 1000 - startTs) / 1000)
       }
       val video = Video(flvPacket, streamId)
       video.writeHeader(output)
       video.writeBody(output)
-      output.flush()
+      socket.flush()
       return video.header.getPacketLength() //get packet size with header included to calculate bps
     }
   }
 
   @Throws(IOException::class)
-  fun sendAudioPacket(flvPacket: FlvPacket, output: OutputStream): Int {
+  fun sendAudioPacket(flvPacket: FlvPacket, socket: RtpSocket): Int {
     synchronized(writeSync) {
+      val output = socket.getOutStream()
       if (akamaiTs) {
         flvPacket.timeStamp = ((System.nanoTime() / 1000 - startTs) / 1000)
       }
       val audio = Audio(flvPacket, streamId)
       audio.writeHeader(output)
       audio.writeBody(output)
-      output.flush()
+      socket.flush()
       return audio.header.getPacketLength() //get packet size with header included to calculate bps
     }
   }

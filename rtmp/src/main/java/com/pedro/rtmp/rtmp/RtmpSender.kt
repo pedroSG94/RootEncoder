@@ -110,16 +110,16 @@ class RtmpSender(private val connectCheckerRtmp: ConnectCheckerRtmp,
           var size = 0
           if (flvPacket.type == FlvType.VIDEO) {
             videoFramesSent++
-            socket?.getOutStream()?.let { output ->
-              size = commandsManager.sendVideoPacket(flvPacket, output)
+            socket?.let { socket ->
+              size = commandsManager.sendVideoPacket(flvPacket, socket)
               if (isEnableLogs) {
                 Log.i(TAG, "wrote Video packet, size $size")
               }
             }
           } else {
             audioFramesSent++
-            socket?.getOutStream()?.let { output ->
-              size = commandsManager.sendAudioPacket(flvPacket, output)
+            socket?.let { socket ->
+              size = commandsManager.sendAudioPacket(flvPacket, socket)
               if (isEnableLogs) {
                 Log.i(TAG, "wrote Audio packet, size $size")
               }
