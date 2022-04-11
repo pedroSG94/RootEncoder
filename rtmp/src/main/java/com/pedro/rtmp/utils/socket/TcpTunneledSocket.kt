@@ -23,50 +23,59 @@ class TcpTunneledSocket(private val host: String, private val port: Int, private
   private var index = AtomicLong(0)
   private var output = ByteArrayOutputStream()
   private var input = ByteArrayInputStream(byteArrayOf())
+  private val sync = Any()
 
   override fun getOutStream(): OutputStream = output
 
   override fun getInputStream(): InputStream {
-    while (input.available() <= 1) {
-      val i = index.addAndGet(1)
-      val bytes = requestRead("idle/$connectionId/$i", secured)
-      input = ByteArrayInputStream(bytes, 1, bytes.size)
+    synchronized(sync) {
+      while (input.available() <= 1) {
+        val i = index.addAndGet(1)
+        val bytes = requestRead("idle/$connectionId/$i", secured)
+        input = ByteArrayInputStream(bytes, 1, bytes.size)
+      }
     }
     return input
   }
 
   override fun flush() {
-    val i = index.addAndGet(1)
-    val bytes = output.toByteArray()
-    output = ByteArrayOutputStream()
-    requestWrite("send/$connectionId/$i", secured, bytes)
+    synchronized(sync) {
+      val i = index.addAndGet(1)
+      val bytes = output.toByteArray()
+      output = ByteArrayOutputStream()
+      requestWrite("send/$connectionId/$i", secured, bytes)
+    }
   }
 
   override fun connect() {
-    try {
-      requestWrite("fcs/ident2", secured, byteArrayOf(0x00))
-      val openResult = requestRead("open/1", secured)
-      connectionId = String(openResult).trimIndent()
-      requestWrite("idle/$connectionId/${index.get()}", secured, byteArrayOf(0x00))
-      connected = true
-      Log.i(TAG,"Connection success")
-    } catch (e: IOException) {
-      Log.e(TAG,"Connection failed: ${e.message}")
-      connected = false
+    synchronized(sync) {
+      try {
+        requestWrite("fcs/ident2", secured, byteArrayOf(0x00))
+        val openResult = requestRead("open/1", secured)
+        connectionId = String(openResult).trimIndent()
+        requestWrite("idle/$connectionId/${index.get()}", secured, byteArrayOf(0x00))
+        connected = true
+        Log.i(TAG, "Connection success")
+      } catch (e: IOException) {
+        Log.e(TAG, "Connection failed: ${e.message}")
+        connected = false
+      }
     }
   }
 
   override fun close() {
-    try {
-      requestWrite("close/$connectionId", secured, byteArrayOf(0x00))
-      Log.i(TAG,"Close success")
-    } catch (e: IOException) {
-      Log.e(TAG,"Close request failed: ${e.message}")
-      connected = false
-    } finally {
-      index.set(0)
-      connectionId = ""
-      connected = false
+    synchronized(sync) {
+      try {
+        requestWrite("close/$connectionId", secured, byteArrayOf(0x00))
+        Log.i(TAG, "Close success")
+      } catch (e: IOException) {
+        Log.e(TAG, "Close request failed: ${e.message}")
+        connected = false
+      } finally {
+        index.set(0)
+        connectionId = ""
+        connected = false
+      }
     }
   }
 

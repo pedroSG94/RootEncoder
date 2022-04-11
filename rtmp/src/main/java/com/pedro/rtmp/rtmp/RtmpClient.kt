@@ -213,7 +213,11 @@ class RtmpClient(private val connectCheckerRtmp: ConnectCheckerRtmp) {
     while (!Thread.interrupted() && isStreaming) {
       try {
         if (isAlive()) {
-          handleMessages()
+          if (tunneled && publishPermitted) {
+            if (!publishPermitted) handleMessages()
+          } else {
+            handleMessages()
+          }
         } else {
           Thread.currentThread().interrupt()
           connectCheckerRtmp.onConnectionFailedRtmp("No response from server")
