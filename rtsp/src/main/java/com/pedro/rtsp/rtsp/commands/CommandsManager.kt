@@ -56,6 +56,7 @@ open class CommandsManager {
   var protocol: Protocol = Protocol.TCP
   var videoDisabled = false
   var audioDisabled = false
+  private val commandParser = CommandParser()
 
   //For udp
   val audioClientPorts = intArrayOf(5000, 5001)
@@ -246,34 +247,26 @@ open class CommandsManager {
     return teardown
   }
 
-  //Response parser
-  fun getResponse(reader: BufferedReader?, method: Method = Method.UNKNOWN): Command {
-    reader?.let { br ->
-      return try {
-        var response = ""
-        var line: String?
-        while (br.readLine().also { line = it } != null) {
-          response += "${line ?: ""}\n"
-          //end of response
-          if (line?.length ?: 0 < 3) break
-        }
-        Log.i(TAG, response)
-        if (method == Method.UNKNOWN) {
-          Command.parseCommand(response)
-        } else {
-          val command = Command.parseResponse(method, response)
-          getSession(command.text)
-          if (command.method == Method.SETUP && protocol == Protocol.UDP) {
-            getServerPorts(command.text)
-          }
-          command
-        }
-      } catch (e: IOException) {
-        Log.e(TAG, "read error", e)
-        Command(method, cSeq, -1, "")
-      }
+  @Throws(IOException::class)
+  fun getResponse(reader: BufferedReader, method: Method = Method.UNKNOWN): Command {
+    var response = ""
+    var line: String?
+    while (reader.readLine().also { line = it } != null) {
+      response += "${line ?: ""}\n"
+      //end of response
+      if (line?.length ?: 0 < 3) break
     }
-    return Command(method, cSeq, -1, "")
+    Log.i(TAG, response)
+    return if (method == Method.UNKNOWN) {
+      commandParser.parseCommand(response)
+    } else {
+      val command = commandParser.parseResponse(method, response)
+      getSession(command.text)
+      if (command.method == Method.SETUP && protocol == Protocol.UDP) {
+        getServerPorts(command.text)
+      }
+      command
+    }
   }
 
   private fun getSession(response: String) {
