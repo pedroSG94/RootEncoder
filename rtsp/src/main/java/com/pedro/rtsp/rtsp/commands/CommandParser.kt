@@ -22,7 +22,7 @@ class CommandParser {
   }
 
   /**
-   * Command send by server/player
+   * Command send by pusher/player
    */
   fun parseCommand(commandText: String): Command {
     val method = getMethod(commandText)
