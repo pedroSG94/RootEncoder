@@ -495,8 +495,7 @@ public abstract class Camera1Base
         cameraManager.setSurfaceTexture(glInterface.getSurfaceTexture());
       }
       cameraManager.setRotation(rotation);
-      cameraManager.setCameraFacing(cameraFacing);
-      cameraManager.start(cameraFacing.ordinal(), width, height, videoEncoder.getFps());
+      cameraManager.start(cameraFacing, width, height, videoEncoder.getFps());
       onPreview = true;
     } else if (!isStreaming() && !onPreview && glInterface instanceof OffScreenGlThread) {
       // if you are using background mode startPreview only work to indicate
