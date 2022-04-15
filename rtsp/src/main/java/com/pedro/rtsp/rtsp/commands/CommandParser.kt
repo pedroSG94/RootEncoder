@@ -1,6 +1,7 @@
 package com.pedro.rtsp.rtsp.commands
 
 import android.util.Log
+import com.pedro.rtsp.rtsp.Protocol
 import java.util.regex.Pattern
 
 /**
@@ -12,6 +13,44 @@ class CommandParser {
     private const val TAG = "CommandParser"
   }
 
+  fun loadServerPorts(command: Command, protocol: Protocol, audioClientPorts: IntArray,
+    videoClientPorts: IntArray, audioServerPorts: IntArray, videoServerPorts: IntArray): Boolean {
+    var isAudio = true
+    if (command.method == Method.SETUP && protocol == Protocol.UDP) {
+      val clientPattern = Pattern.compile("client_port=([0-9]+)-([0-9]+)")
+      val clientMatcher = clientPattern.matcher(command.text)
+      if (clientMatcher.find()) {
+        val port = (clientMatcher.group(1) ?: "-1").toInt()
+        isAudio = port == audioClientPorts[0]
+      }
+
+      val rtspPattern = Pattern.compile("server_port=([0-9]+)-([0-9]+)")
+      val matcher = rtspPattern.matcher(command.text)
+      if (matcher.find()) {
+        if (isAudio) {
+          audioServerPorts[0] = matcher.group(1)?.toInt() ?: audioClientPorts[0]
+          audioServerPorts[1] = matcher.group(2)?.toInt() ?: audioClientPorts[1]
+        } else {
+          videoServerPorts[0] = matcher.group(1)?.toInt() ?: videoClientPorts[0]
+          videoServerPorts[1] = matcher.group(2)?.toInt() ?: videoClientPorts[1]
+        }
+        return true
+      }
+    }
+    return false
+  }
+
+  fun getSessionId(command: Command): String {
+    var sessionId = ""
+    val rtspPattern = Pattern.compile("Session:(\\s?\\w+)")
+    val matcher = rtspPattern.matcher(command.text)
+    if (matcher.find()) {
+      sessionId = matcher.group(1) ?: ""
+      val temp = sessionId.split(";")[0]
+      sessionId = temp.trim()
+    }
+    return sessionId
+  }
   /**
    * Response received after send a command
    */

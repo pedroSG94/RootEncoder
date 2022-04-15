@@ -128,7 +128,7 @@ open class RtspClient(private val connectCheckerRtsp: ConnectCheckerRtsp) {
     return validReason && reTries > 0
   }
 
-  fun setVideoInfo(sps: ByteBuffer?, pps: ByteBuffer?, vps: ByteBuffer?) {
+  fun setVideoInfo(sps: ByteBuffer, pps: ByteBuffer, vps: ByteBuffer?) {
     Log.i(TAG, "send sps and pps")
     commandsManager.setVideoInfo(sps, pps, vps)
     semaphore.release()

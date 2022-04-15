@@ -25,7 +25,8 @@ import com.pedro.rtsp.rtsp.commands.SdpBody.createH264Body
 import com.pedro.rtsp.rtsp.commands.SdpBody.createH265Body
 import com.pedro.rtsp.utils.AuthUtil.getMd5Hash
 import com.pedro.rtsp.utils.RtpConstants
-import com.pedro.rtsp.utils.getVideoStartCodeSize
+import com.pedro.rtsp.utils.encodeToString
+import com.pedro.rtsp.utils.getData
 import java.io.BufferedReader
 import java.io.IOException
 import java.nio.ByteBuffer
@@ -85,29 +86,10 @@ open class CommandsManager {
         / 1000) // NTP timestamp
   }
 
-  private fun getData(byteBuffer: ByteBuffer?): ByteArray? {
-    return if (byteBuffer != null) {
-      val startCodeSize = byteBuffer.getVideoStartCodeSize()
-      val bytes = ByteArray(byteBuffer.capacity() - startCodeSize)
-      byteBuffer.position(startCodeSize)
-      byteBuffer[bytes, 0, bytes.size]
-      bytes
-    } else {
-      null
-    }
-  }
-
-  private fun encodeToString(bytes: ByteArray?): String {
-    bytes?.let {
-      return Base64.encodeToString(it, 0, it.size, Base64.NO_WRAP)
-    }
-    return ""
-  }
-
-  fun setVideoInfo(sps: ByteBuffer?, pps: ByteBuffer?, vps: ByteBuffer?) {
-    this.sps = getData(sps)
-    this.pps = getData(pps)
-    this.vps = getData(vps) //H264 has no vps so if not null assume H265
+  fun setVideoInfo(sps: ByteBuffer, pps: ByteBuffer, vps: ByteBuffer?) {
+    this.sps = sps.getData()
+    this.pps = pps.getData()
+    this.vps = vps?.getData() //H264 has no vps so if not null assume H265
   }
 
   fun setAudioInfo(sampleRate: Int, isStereo: Boolean) {
@@ -139,11 +121,11 @@ open class CommandsManager {
   }
 
   private val spsString: String
-    get() = encodeToString(sps)
+    get() = sps?.encodeToString() ?: ""
   private val ppsString: String
-    get() = encodeToString(pps)
+    get() = pps?.encodeToString() ?: ""
   private val vpsString: String
-    get() = encodeToString(vps)
+    get() = vps?.encodeToString() ?: ""
 
   private fun addHeaders(): String {
     return "CSeq: ${++cSeq}\r\n" +
@@ -191,7 +173,7 @@ open class CommandsManager {
     } else {
       Log.i(TAG, "using basic auth")
       val data = "$user:$password"
-      val base64Data = Base64.encodeToString(data.toByteArray(), Base64.DEFAULT)
+      val base64Data = data.toByteArray().encodeToString(Base64.DEFAULT)
       "Basic $base64Data"
     }
   }
@@ -261,45 +243,12 @@ open class CommandsManager {
       commandParser.parseCommand(response)
     } else {
       val command = commandParser.parseResponse(method, response)
-      getSession(command.text)
+      sessionId = commandParser.getSessionId(command)
       if (command.method == Method.SETUP && protocol == Protocol.UDP) {
-        getServerPorts(command.text)
+        commandParser.loadServerPorts(command, protocol, audioClientPorts, videoClientPorts,
+          audioServerPorts, videoServerPorts)
       }
       command
-    }
-  }
-
-  private fun getSession(response: String) {
-    val rtspPattern = Pattern.compile("Session:(\\s?\\w+)")
-    val matcher = rtspPattern.matcher(response)
-    if (matcher.find()) {
-      sessionId = matcher.group(1) ?: ""
-      sessionId?.let {
-        val temp = it.split(";")[0]
-        sessionId = temp.trim()
-      }
-    }
-  }
-
-  private fun getServerPorts(response: String) {
-    var isAudio = true
-    val clientPattern = Pattern.compile("client_port=([0-9]+)-([0-9]+)")
-    val clientMatcher = clientPattern.matcher(response)
-    if (clientMatcher.find()) {
-      val port = (clientMatcher.group(1) ?: "-1").toInt()
-      isAudio = port == audioClientPorts[0]
-    }
-
-    val rtspPattern = Pattern.compile("server_port=([0-9]+)-([0-9]+)")
-    val matcher = rtspPattern.matcher(response)
-    if (matcher.find()) {
-      if (isAudio) {
-        audioServerPorts[0] = (matcher.group(1) ?: "${audioClientPorts[0]}").toInt()
-        audioServerPorts[1] = (matcher.group(2) ?: "${audioClientPorts[1]}").toInt()
-      } else {
-        videoServerPorts[0] = (matcher.group(1) ?: "${videoClientPorts[0]}").toInt()
-        videoServerPorts[1] = (matcher.group(2) ?: "${videoClientPorts[1]}").toInt()
-      }
     }
   }
 

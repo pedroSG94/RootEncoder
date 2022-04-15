@@ -1,6 +1,6 @@
 package com.pedro.rtsp.utils
 
-import junit.framework.Assert.assertEquals
+import org.junit.Assert.assertEquals
 import org.junit.Test
 
 /**

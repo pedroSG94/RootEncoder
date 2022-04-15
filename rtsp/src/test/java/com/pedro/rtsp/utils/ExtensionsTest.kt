@@ -1,7 +1,7 @@
 package com.pedro.rtsp.utils
 
-import junit.framework.Assert.assertEquals
 import org.junit.Assert.assertArrayEquals
+import org.junit.Assert.assertEquals
 import org.junit.Test
 import java.nio.ByteBuffer
 
@@ -9,6 +9,22 @@ import java.nio.ByteBuffer
  * Created by pedro on 14/4/22.
  */
 class ExtensionsTest {
+
+  @Test
+  fun `GIVEN a ByteArray WHEN encode THEN get a base64 String`() {
+    val fakeBytes = byteArrayOf(0x00, 0x00, 0x00, 0x01, 0x01, 0x00, 0x00, 0x00, 0x01, 0x01)
+    val expectedString = "AAAAAQEAAAABAQ=="
+    val result = fakeBytes.encodeToString()
+    assertEquals(expectedString, result)
+  }
+
+  @Test
+  fun `GIVEN a ByteBuffer WHEN get data THEN get bytearray without startVideoCode`() {
+    val fakeByteBuffer = ByteBuffer.wrap(byteArrayOf(0x00, 0x00, 0x00, 0x01, 0x01))
+    val expectedResult = byteArrayOf(0x01)
+    val result = fakeByteBuffer.getData()
+    assertArrayEquals(expectedResult, result)
+  }
 
   @Test
   fun `GIVEN ByteArray WHEN set long value in a position with a limit THEN get array with long put`() {
