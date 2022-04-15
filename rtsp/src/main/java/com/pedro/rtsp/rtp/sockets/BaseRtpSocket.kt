@@ -39,6 +39,7 @@ abstract class BaseRtpSocket {
     }
   }
 
+  @Throws(IOException::class)
   abstract fun setDataStream(outputStream: OutputStream, host: String)
 
   @Throws(IOException::class)

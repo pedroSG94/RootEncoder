@@ -183,9 +183,7 @@ open class RtspClient(private val connectCheckerRtsp: ConnectCheckerRtsp) {
               connectCheckerRtsp.onConnectionFailedRtsp("sps or pps is null")
               return@post
             } else {
-              rtspSender.setVideoInfo(commandsManager.sps!!,
-                commandsManager.pps!!,
-                commandsManager.vps)
+              rtspSender.setVideoInfo(commandsManager.sps!!, commandsManager.pps!!, commandsManager.vps)
             }
           }
           if (!tlsEnabled) {
