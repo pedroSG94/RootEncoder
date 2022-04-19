@@ -126,8 +126,8 @@ class TcpTunneledSocket(private val host: String, private val port: Int, private
       socket.addRequestProperty(key, value)
     }
     socket.doOutput = true
-    socket.connectTimeout = 5000
-    socket.readTimeout = 5000
+    socket.connectTimeout = timeout
+    socket.readTimeout = timeout
     return socket
   }
 }

@@ -1,5 +1,6 @@
 package com.pedro.rtmp.utils.socket
 
+import java.io.BufferedInputStream
 import java.io.InputStream
 import java.io.OutputStream
 
@@ -14,24 +15,7 @@ import java.io.OutputStream
  */
 abstract class RtpSocket {
 
-  enum class TcpProtocol {
-    TCP, TCP_SSL_TLS, TUNNELED_HTTP, TUNNELED_HTTPS
-  }
-
-  companion object {
-    fun createTcpSocket(protocol: TcpProtocol, host: String, port: Int): RtpSocket? {
-      return when (protocol) {
-        TcpProtocol.TCP -> TcpSocket(host, port, false)
-        TcpProtocol.TCP_SSL_TLS -> TcpSocket(host, port, true)
-        TcpProtocol.TUNNELED_HTTP -> TcpTunneledSocket(host, port, false)
-        TcpProtocol.TUNNELED_HTTPS -> TcpTunneledSocket(host, port, true)
-      }
-    }
-
-    fun createUdpSocket(host: String, ports: Array<Int>): RtpSocket? {
-      return null
-    }
-  }
+  protected val timeout = 5000
 
   abstract fun getOutStream(): OutputStream
   abstract fun getInputStream(): InputStream
