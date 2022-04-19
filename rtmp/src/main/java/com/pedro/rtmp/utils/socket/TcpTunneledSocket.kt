@@ -29,7 +29,7 @@ class TcpTunneledSocket(private val host: String, private val port: Int, private
 
   override fun getInputStream(): InputStream {
     synchronized(sync) {
-      while (input.available() <= 1) {
+      while (input.available() <= 1 && connected) {
         val i = index.addAndGet(1)
         val bytes = requestRead("idle/$connectionId/$i", secured)
         input = ByteArrayInputStream(bytes, 1, bytes.size)
@@ -40,6 +40,7 @@ class TcpTunneledSocket(private val host: String, private val port: Int, private
 
   override fun flush() {
     synchronized(sync) {
+      if (!connected) return
       val i = index.addAndGet(1)
       val bytes = output.toByteArray()
       output = ByteArrayOutputStream()
@@ -50,7 +51,10 @@ class TcpTunneledSocket(private val host: String, private val port: Int, private
   override fun connect() {
     synchronized(sync) {
       try {
+        //optional in few servers
         requestWrite("fcs/ident2", secured, byteArrayOf(0x00))
+      } catch (ignored: IOException) { }
+      try {
         val openResult = requestRead("open/1", secured)
         connectionId = String(openResult).trimIndent()
         requestWrite("idle/$connectionId/${index.get()}", secured, byteArrayOf(0x00))
@@ -64,18 +68,20 @@ class TcpTunneledSocket(private val host: String, private val port: Int, private
   }
 
   override fun close() {
+    Log.i(TAG, "closing tunneled socket...")
+    connected = false
     synchronized(sync) {
-      try {
-        requestWrite("close/$connectionId", secured, byteArrayOf(0x00))
-        Log.i(TAG, "Close success")
-      } catch (e: IOException) {
-        Log.e(TAG, "Close request failed: ${e.message}")
-        connected = false
-      } finally {
-        index.set(0)
-        connectionId = ""
-        connected = false
-      }
+      Thread {
+        try {
+          requestWrite("close/$connectionId", secured, byteArrayOf(0x00))
+          Log.i(TAG, "Close success")
+        } catch (e: IOException) {
+          Log.e(TAG, "Close request failed: ${e.message}")
+        } finally {
+          index.set(0)
+          connectionId = ""
+        }
+      }.start()
     }
   }
 
@@ -84,13 +90,12 @@ class TcpTunneledSocket(private val host: String, private val port: Int, private
   override fun isReachable(): Boolean = connected
 
   @Throws(IOException::class)
-  private fun requestWrite(path: String, secured: Boolean,
-    data: ByteArray) {
+  private fun requestWrite(path: String, secured: Boolean, data: ByteArray) {
     val socket = configureSocket(path, secured)
     socket.connect()
     socket.outputStream.write(data)
-    //necessary to improve speed
-    socket.inputStream.readBytes()
+    val bytes = socket.inputStream.readBytes()
+    if (bytes.size > 1) input = ByteArrayInputStream(bytes, 1, bytes.size)
     val success = socket.responseCode == HttpURLConnection.HTTP_OK
     socket.disconnect()
     if (!success) throw IOException("send packet failed: ${socket.responseMessage}")
@@ -121,7 +126,6 @@ class TcpTunneledSocket(private val host: String, private val port: Int, private
       socket.addRequestProperty(key, value)
     }
     socket.doOutput = true
-    socket.doInput = true
     socket.connectTimeout = 5000
     socket.readTimeout = 5000
     return socket

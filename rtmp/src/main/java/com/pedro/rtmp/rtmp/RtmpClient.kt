@@ -272,6 +272,7 @@ class RtmpClient(private val connectCheckerRtmp: ConnectCheckerRtmp) {
     } else {
       TcpSocket(commandsManager.host, commandsManager.port, tlsEnabled)
     }
+    this.socket = socket
     socket.connect()
     if (!socket.isConnected()) return false
     val timestamp = System.currentTimeMillis() / 1000
@@ -279,7 +280,6 @@ class RtmpClient(private val connectCheckerRtmp: ConnectCheckerRtmp) {
     if (!handshake.sendHandshake(socket)) return false
     commandsManager.timestamp = timestamp.toInt()
     commandsManager.startTs = System.nanoTime() / 1000
-    this.socket = socket
     return true
   }
 
@@ -466,7 +466,6 @@ class RtmpClient(private val connectCheckerRtmp: ConnectCheckerRtmp) {
         socket?.let { socket ->
           commandsManager.sendClose(socket)
         }
-        closeConnection()
       } catch (e: IOException) {
         Log.e(TAG, "disconnect error", e)
       }
@@ -476,7 +475,10 @@ class RtmpClient(private val connectCheckerRtmp: ConnectCheckerRtmp) {
       executor.awaitTermination(200, TimeUnit.MILLISECONDS)
       thread?.awaitTermination(100, TimeUnit.MILLISECONDS)
       thread = null
-    } catch (e: Exception) { }
+    } catch (e: Exception) {
+    } finally {
+      closeConnection()
+    }
     if (clear) {
       reTries = numRetry
       doingRetry = false
