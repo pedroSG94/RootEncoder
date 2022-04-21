@@ -634,6 +634,11 @@ public class Camera2ApiManager extends CameraDevice.StateCallback {
       if (builderInputSurface != null) {
         try {
           if (!focusModesList.isEmpty()) {
+            //cancel any existing AF trigger
+            builderInputSurface.set(CaptureRequest.CONTROL_AF_TRIGGER, CameraMetadata.CONTROL_AF_TRIGGER_CANCEL);
+            builderInputSurface.set(CaptureRequest.CONTROL_AF_MODE, CaptureRequest.CONTROL_AF_MODE_OFF);
+            cameraCaptureSession.setRepeatingRequest(builderInputSurface.build(),
+                faceDetectionEnabled ? cb : null, null);
             if (focusModesList.contains(CaptureRequest.CONTROL_AF_MODE_CONTINUOUS_PICTURE)) {
               builderInputSurface.set(CaptureRequest.CONTROL_AF_MODE,
                   CaptureRequest.CONTROL_AF_MODE_CONTINUOUS_PICTURE);
