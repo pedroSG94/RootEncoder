@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/activity_example_rtmp"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/black"
-    >
+    android:background="@color/black">
 
   <com.pedro.rtplibrary.view.AutoFitTextureView
       android:id="@+id/textureView"
@@ -13,46 +13,48 @@
       />
 
   <EditText
-      android:id="@+id/et_rtp_url"
-      android:layout_width="match_parent"
-      android:layout_height="wrap_content"
-      android:layout_margin="20dp"
-      android:gravity="center"
-      android:inputType="textUri"
       android:textColor="@color/appColor"
       android:textColorHint="@color/appColor"
-      />
-
-  <LinearLayout
+      android:inputType="textUri"
       android:layout_width="match_parent"
       android:layout_height="wrap_content"
-      android:orientation="horizontal"
-      android:layout_alignParentBottom="true"
-      android:layout_margin="20dp"
       android:gravity="center"
-      >
+      android:layout_margin="20dp"
+      android:id="@+id/et_rtp_url"
+      app:layout_constraintTop_toTopOf="parent"
+      />
 
-    <Button
-        android:text="@string/start_record"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginRight="5dp"
-        android:id="@+id/b_record"
-        />
+  <Button
+      android:text="@string/start_record"
+      android:layout_width="wrap_content"
+      android:layout_height="wrap_content"
+      android:id="@+id/b_record"
+      app:layout_constraintBottom_toBottomOf="parent"
+      app:layout_constraintStart_toStartOf="parent"
+      app:layout_constraintEnd_toStartOf="@id/b_start_stop"
+      app:layout_constraintHorizontal_chainStyle="spread"
+      android:layout_marginBottom="20dp"
+      />
 
-    <Button
-        android:text="@string/start_button"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginRight="5dp"
-        android:id="@+id/b_start_stop"
-        />
+  <Button
+      android:text="@string/start_button"
+      android:layout_width="wrap_content"
+      android:layout_height="wrap_content"
+      android:id="@+id/b_start_stop"
+      app:layout_constraintBottom_toBottomOf="parent"
+      app:layout_constraintStart_toEndOf="@id/b_record"
+      app:layout_constraintEnd_toStartOf="@id/switch_camera"
+      android:layout_marginBottom="20dp"
+      />
 
-    <Button
-        android:text="@string/switch_camera_button"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:id="@+id/switch_camera"
-        />
-  </LinearLayout>
-</RelativeLayout>
+  <Button
+      android:text="@string/switch_camera_button"
+      android:layout_width="wrap_content"
+      android:layout_height="wrap_content"
+      android:id="@+id/switch_camera"
+      app:layout_constraintBottom_toBottomOf="parent"
+      app:layout_constraintEnd_toEndOf="parent"
+      app:layout_constraintStart_toEndOf="@id/b_start_stop"
+      android:layout_marginBottom="20dp"
+      />
+</androidx.constraintlayout.widget.ConstraintLayout>
