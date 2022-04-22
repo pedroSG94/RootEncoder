@@ -6,6 +6,7 @@ import org.junit.runner.RunWith
 import org.mockito.ArgumentCaptor
 import org.mockito.Mock
 import org.mockito.junit.MockitoJUnitRunner
+import org.mockito.kotlin.argumentCaptor
 import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
 
@@ -32,9 +33,9 @@ class BitrateManagerTest {
     val value = 100L
     bitrateManager.calculateBitrate(value)
     expectedResult += value
-    val resultValue = ArgumentCaptor.forClass(Long::class.java)
+    val resultValue = argumentCaptor<Long>()
     verify(connectCheckerRtsp, times(1)).onNewBitrateRtsp(resultValue.capture())
     val marginError = 20
-    assertTrue(expectedResult - marginError <= resultValue.value && resultValue.value <= expectedResult + marginError)
+    assertTrue(expectedResult - marginError <= resultValue.firstValue && resultValue.firstValue <= expectedResult + marginError)
   }
 }
