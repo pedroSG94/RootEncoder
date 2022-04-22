@@ -93,6 +93,13 @@ public class RtspCamera2 extends Camera2Base {
     rtspClient.setProtocol(protocol);
   }
 
+  /**
+   * Must be called before connect
+   */
+  public void setOnlyVideo(Boolean onlyVideo) {
+    rtspClient.setOnlyVideo(onlyVideo);
+  }
+
   @Override
   public void resizeCache(int newSize) throws RuntimeException {
     rtspClient.resizeCache(newSize);
