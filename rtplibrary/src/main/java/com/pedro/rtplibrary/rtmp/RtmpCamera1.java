@@ -81,6 +81,13 @@ public class RtmpCamera1 extends Camera1Base {
     rtmpClient.setProfileIop(profileIop);
   }
 
+  /**
+   * Must be called before connect
+   */
+  public void setOnlyVideo(Boolean onlyVideo) {
+    rtmpClient.setOnlyVideo(onlyVideo);
+  }
+
   @Override
   public void resizeCache(int newSize) throws RuntimeException {
     rtmpClient.resizeCache(newSize);
