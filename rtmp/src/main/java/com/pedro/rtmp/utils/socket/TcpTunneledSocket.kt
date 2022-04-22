@@ -3,6 +3,7 @@ package com.pedro.rtmp.utils.socket
 import android.util.Log
 import java.io.*
 import java.net.HttpURLConnection
+import java.net.SocketTimeoutException
 import java.net.URL
 import java.util.concurrent.atomic.AtomicLong
 import javax.net.ssl.HttpsURLConnection
@@ -29,10 +30,14 @@ class TcpTunneledSocket(private val host: String, private val port: Int, private
 
   override fun getInputStream(): InputStream {
     synchronized(sync) {
+      val start = System.currentTimeMillis()
       while (input.available() <= 1 && connected) {
         val i = index.addAndGet(1)
         val bytes = requestRead("idle/$connectionId/$i", secured)
         input = ByteArrayInputStream(bytes, 1, bytes.size)
+        if (System.currentTimeMillis() - start >= timeout) {
+          throw SocketTimeoutException("couldn't receive a valid packet")
+        }
       }
     }
     return input
@@ -43,7 +48,7 @@ class TcpTunneledSocket(private val host: String, private val port: Int, private
       if (!connected) return
       val i = index.addAndGet(1)
       val bytes = output.toByteArray()
-      output = ByteArrayOutputStream()
+      output.reset()
       requestWrite("send/$connectionId/$i", secured, bytes)
     }
   }
@@ -92,24 +97,30 @@ class TcpTunneledSocket(private val host: String, private val port: Int, private
   @Throws(IOException::class)
   private fun requestWrite(path: String, secured: Boolean, data: ByteArray) {
     val socket = configureSocket(path, secured)
-    socket.connect()
-    socket.outputStream.write(data)
-    val bytes = socket.inputStream.readBytes()
-    if (bytes.size > 1) input = ByteArrayInputStream(bytes, 1, bytes.size)
-    val success = socket.responseCode == HttpURLConnection.HTTP_OK
-    socket.disconnect()
-    if (!success) throw IOException("send packet failed: ${socket.responseMessage}")
+    try {
+      socket.connect()
+      socket.outputStream.write(data)
+      val bytes = socket.inputStream.readBytes()
+      if (bytes.size > 1) input = ByteArrayInputStream(bytes, 1, bytes.size)
+      val success = socket.responseCode == HttpURLConnection.HTTP_OK
+      if (!success) throw IOException("send packet failed: ${socket.responseMessage}")
+    } finally {
+      socket.disconnect()
+    }
   }
 
   @Throws(IOException::class)
   private fun requestRead(path: String, secured: Boolean): ByteArray {
     val socket = configureSocket(path, secured)
-    socket.connect()
-    val data = socket.inputStream.readBytes()
-    val success = socket.responseCode == HttpURLConnection.HTTP_OK
-    socket.disconnect()
-    if (!success) throw IOException("receive packet failed: ${socket.responseMessage}")
-    return data
+    try {
+      socket.connect()
+      val data = socket.inputStream.readBytes()
+      val success = socket.responseCode == HttpURLConnection.HTTP_OK
+      if (!success) throw IOException("receive packet failed: ${socket.responseMessage}")
+      return data
+    } finally {
+      socket.disconnect()
+    }
   }
 
   private fun configureSocket(path: String, secured: Boolean): HttpURLConnection {
