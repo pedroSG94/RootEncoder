@@ -16,7 +16,6 @@
 
 package com.pedro.rtsp.rtcp
 
-import android.util.Log
 import com.pedro.rtsp.rtsp.Protocol
 import com.pedro.rtsp.rtsp.RtpFrame
 import com.pedro.rtsp.utils.RtpConstants
@@ -83,8 +82,10 @@ abstract class BaseSenderReport internal constructor() {
     audioBuffer.setLong(ssrcAudio, 4, 8)
   }
 
+  @Throws(IOException::class)
   abstract fun setDataStream(outputStream: OutputStream, host: String)
 
+  @Throws(IOException::class)
   fun update(rtpFrame: RtpFrame, isEnableLogs: Boolean): Boolean {
     return if (rtpFrame.channelIdentifier == RtpConstants.trackVideo) {
       updateVideo(rtpFrame, isEnableLogs)
@@ -96,6 +97,7 @@ abstract class BaseSenderReport internal constructor() {
   @Throws(IOException::class)
   abstract fun sendReport(buffer: ByteArray, rtpFrame: RtpFrame, type: String, packetCount: Long, octetCount: Long, isEnableLogs: Boolean)
 
+  @Throws(IOException::class)
   private fun updateVideo(rtpFrame: RtpFrame, isEnableLogs: Boolean): Boolean {
     videoPacketCount++
     videoOctetCount += rtpFrame.length
@@ -104,16 +106,13 @@ abstract class BaseSenderReport internal constructor() {
     if (System.currentTimeMillis() - videoTime >= interval) {
       videoTime = System.currentTimeMillis()
       setData(videoBuffer, System.nanoTime(), rtpFrame.timeStamp)
-      try {
-        sendReport(videoBuffer, rtpFrame, "Video", videoPacketCount, videoOctetCount, isEnableLogs)
-        return true
-      } catch (e: IOException) {
-        Log.e(TAG, "Error", e)
-      }
+      sendReport(videoBuffer, rtpFrame, "Video", videoPacketCount, videoOctetCount, isEnableLogs)
+      return true
     }
     return false
   }
 
+  @Throws(IOException::class)
   private fun updateAudio(rtpFrame: RtpFrame, isEnableLogs: Boolean): Boolean {
     audioPacketCount++
     audioOctetCount += rtpFrame.length
@@ -122,12 +121,8 @@ abstract class BaseSenderReport internal constructor() {
     if (System.currentTimeMillis() - audioTime >= interval) {
       audioTime = System.currentTimeMillis()
       setData(audioBuffer, System.nanoTime(), rtpFrame.timeStamp)
-      try {
-        sendReport(audioBuffer, rtpFrame, "Audio", audioPacketCount, audioOctetCount, isEnableLogs)
-        return true
-      } catch (e: IOException) {
-        Log.e(TAG, "Error", e)
-      }
+      sendReport(audioBuffer, rtpFrame, "Audio", audioPacketCount, audioOctetCount, isEnableLogs)
+      return true
     }
     return false
   }

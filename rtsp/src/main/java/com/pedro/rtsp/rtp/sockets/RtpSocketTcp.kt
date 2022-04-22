@@ -30,6 +30,7 @@ open class RtpSocketTcp : BaseRtpSocket() {
   private var outputStream: OutputStream? = null
   private val tcpHeader: ByteArray = byteArrayOf('$'.code.toByte(), 0, 0, 0)
 
+  @Throws(IOException::class)
   override fun setDataStream(outputStream: OutputStream, host: String) {
     this.outputStream = outputStream
   }

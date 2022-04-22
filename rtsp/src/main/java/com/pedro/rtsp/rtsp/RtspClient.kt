@@ -128,7 +128,7 @@ open class RtspClient(private val connectCheckerRtsp: ConnectCheckerRtsp) {
     return validReason && reTries > 0
   }
 
-  fun setVideoInfo(sps: ByteBuffer?, pps: ByteBuffer?, vps: ByteBuffer?) {
+  fun setVideoInfo(sps: ByteBuffer, pps: ByteBuffer, vps: ByteBuffer?) {
     Log.i(TAG, "send sps and pps")
     commandsManager.setVideoInfo(sps, pps, vps)
     semaphore.release()
@@ -183,9 +183,7 @@ open class RtspClient(private val connectCheckerRtsp: ConnectCheckerRtsp) {
               connectCheckerRtsp.onConnectionFailedRtsp("sps or pps is null")
               return@post
             } else {
-              rtspSender.setVideoInfo(commandsManager.sps!!,
-                commandsManager.pps!!,
-                commandsManager.vps)
+              rtspSender.setVideoInfo(commandsManager.sps!!, commandsManager.pps!!, commandsManager.vps)
             }
           }
           if (!tlsEnabled) {
@@ -197,14 +195,16 @@ open class RtspClient(private val connectCheckerRtsp: ConnectCheckerRtsp) {
             if (connectionSocket == null) throw IOException("Socket creation failed")
           }
           connectionSocket?.soTimeout = 5000
-          reader = BufferedReader(InputStreamReader(connectionSocket?.getInputStream()))
+          val reader = BufferedReader(InputStreamReader(connectionSocket?.getInputStream()))
           val outputStream = connectionSocket?.getOutputStream()
-          writer = BufferedWriter(OutputStreamWriter(outputStream))
-          writer?.write(commandsManager.createOptions())
-          writer?.flush()
+          val writer = BufferedWriter(OutputStreamWriter(outputStream))
+          this.reader = reader
+          this.writer = writer
+          writer.write(commandsManager.createOptions())
+          writer.flush()
           commandsManager.getResponse(reader, Method.OPTIONS)
-          writer?.write(commandsManager.createAnnounce())
-          writer?.flush()
+          writer.write(commandsManager.createAnnounce())
+          writer.flush()
           //check if you need credential for stream, if you need try connect with credential
           val announceResponse = commandsManager.getResponse(reader, Method.ANNOUNCE)
           when (announceResponse.status) {
@@ -218,8 +218,8 @@ open class RtspClient(private val connectCheckerRtsp: ConnectCheckerRtsp) {
                 connectCheckerRtsp.onAuthErrorRtsp()
                 return@post
               } else {
-                writer?.write(commandsManager.createAnnounceWithAuth(announceResponse.text))
-                writer?.flush()
+                writer.write(commandsManager.createAnnounceWithAuth(announceResponse.text))
+                writer.flush()
                 when (commandsManager.getResponse(reader, Method.ANNOUNCE).status) {
                   401 -> {
                     connectCheckerRtsp.onAuthErrorRtsp()
@@ -244,8 +244,8 @@ open class RtspClient(private val connectCheckerRtsp: ConnectCheckerRtsp) {
             }
           }
           if (!commandsManager.videoDisabled) {
-            writer?.write(commandsManager.createSetup(RtpConstants.trackVideo))
-            writer?.flush()
+            writer.write(commandsManager.createSetup(RtpConstants.trackVideo))
+            writer.flush()
             val setupVideoStatus = commandsManager.getResponse(reader, Method.SETUP).status
             if (setupVideoStatus != 200) {
               connectCheckerRtsp.onConnectionFailedRtsp("Error configure stream, setup video $setupVideoStatus")
@@ -253,16 +253,16 @@ open class RtspClient(private val connectCheckerRtsp: ConnectCheckerRtsp) {
             }
           }
           if (!commandsManager.audioDisabled) {
-            writer?.write(commandsManager.createSetup(RtpConstants.trackAudio))
-            writer?.flush()
+            writer.write(commandsManager.createSetup(RtpConstants.trackAudio))
+            writer.flush()
             val setupAudioStatus = commandsManager.getResponse(reader, Method.SETUP).status
             if (setupAudioStatus != 200) {
               connectCheckerRtsp.onConnectionFailedRtsp("Error configure stream, setup audio $setupAudioStatus")
               return@post
             }
           }
-          writer?.write(commandsManager.createRecord())
-          writer?.flush()
+          writer.write(commandsManager.createRecord())
+          writer.flush()
           val recordStatus = commandsManager.getResponse(reader, Method.RECORD).status
           if (recordStatus != 200) {
             connectCheckerRtsp.onConnectionFailedRtsp("Error configure stream, record $recordStatus")

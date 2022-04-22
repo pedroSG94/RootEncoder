@@ -46,7 +46,7 @@ object SdpBody {
     val sampleRateNum = AUDIO_SAMPLING_RATES.toList().indexOf(sampleRate)
     val channel = if (isStereo) 2 else 1
     val config = 2 and 0x1F shl 11 or (sampleRateNum and 0x0F shl 7) or (channel and 0x0F shl 3)
-    val payload = RtpConstants.payloadType + RtpConstants.trackAudio
+    val payload = RtpConstants.payloadType + trackAudio
     return "m=audio 0 RTP/AVP ${payload}\r\n" +
         "a=rtpmap:$payload MPEG4-GENERIC/$sampleRate/$channel\r\n" +
         "a=fmtp:$payload profile-level-id=1; mode=AAC-hbr; config=${Integer.toHexString(config)}; sizelength=13; indexlength=3; indexdeltalength=3\r\n" +
@@ -54,7 +54,7 @@ object SdpBody {
   }
 
   fun createH264Body(trackVideo: Int, sps: String, pps: String): String {
-    val payload = RtpConstants.payloadType + RtpConstants.trackVideo
+    val payload = RtpConstants.payloadType + trackVideo
     return "m=video 0 RTP/AVP $payload\r\n" +
         "a=rtpmap:$payload H264/${RtpConstants.clockVideoFrequency}\r\n" +
         "a=fmtp:$payload packetization-mode=1; sprop-parameter-sets=$sps,$pps\r\n" +
@@ -62,7 +62,7 @@ object SdpBody {
   }
 
   fun createH265Body(trackVideo: Int, sps: String, pps: String, vps: String): String {
-    val payload = RtpConstants.payloadType + RtpConstants.trackVideo
+    val payload = RtpConstants.payloadType + trackVideo
     return "m=video 0 RTP/AVP ${payload}\r\n" +
         "a=rtpmap:$payload H265/${RtpConstants.clockVideoFrequency}\r\n" +
         "a=fmtp:$payload packetization-mode=1; sprop-sps=$sps; sprop-pps=$pps; sprop-vps=$vps\r\n" +

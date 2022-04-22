@@ -16,7 +16,20 @@
 
 package com.pedro.rtsp.utils
 
+import android.util.Base64
 import java.nio.ByteBuffer
+
+fun ByteArray.encodeToString(flags: Int = Base64.NO_WRAP): String {
+  return Base64.encodeToString(this, flags)
+}
+
+fun ByteBuffer.getData(): ByteArray {
+  val startCodeSize = this.getVideoStartCodeSize()
+  val bytes = ByteArray(this.capacity() - startCodeSize)
+  this.position(startCodeSize)
+  this.get(bytes, 0, bytes.size)
+  return bytes
+}
 
 fun ByteArray.setLong(n: Long, begin: Int, end: Int) {
   var value = n

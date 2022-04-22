@@ -36,22 +36,15 @@ open class RtpSocketUdp(videoSourcePort: Int, audioSourcePort: Int) : BaseRtpSoc
   private val datagramPacket = DatagramPacket(byteArrayOf(0), 1)
 
   init {
-    try {
-      multicastSocketVideo = MulticastSocket(videoSourcePort)
-      multicastSocketVideo?.timeToLive = 64
-      multicastSocketAudio = MulticastSocket(audioSourcePort)
-      multicastSocketAudio?.timeToLive = 64
-    } catch (e: IOException) {
-      Log.e(TAG, "Error", e)
-    }
+    multicastSocketVideo = MulticastSocket(videoSourcePort)
+    multicastSocketVideo?.timeToLive = 64
+    multicastSocketAudio = MulticastSocket(audioSourcePort)
+    multicastSocketAudio?.timeToLive = 64
   }
 
+  @Throws(IOException::class)
   override fun setDataStream(outputStream: OutputStream, host: String) {
-    try {
-      datagramPacket.address = InetAddress.getByName(host)
-    } catch (e: UnknownHostException) {
-      Log.e(TAG, "Error", e)
-    }
+    datagramPacket.address = InetAddress.getByName(host)
   }
 
   @Throws(IOException::class)
