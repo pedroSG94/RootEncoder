@@ -129,7 +129,7 @@ open class RtspSender(private val connectCheckerRtsp: ConnectCheckerRtsp) : Vide
       aacPacket?.setSSRC(ssrcAudio)
       val isTcp = rtpSocket is RtpSocketTcp
 
-      while (!Thread.interrupted()) {
+      while (!Thread.interrupted() && running) {
         try {
           val rtpFrame = rtpFrameBlockingQueue.poll(1, TimeUnit.SECONDS)
           if (rtpFrame == null) {

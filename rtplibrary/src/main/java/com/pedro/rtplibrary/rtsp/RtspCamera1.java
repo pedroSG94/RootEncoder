@@ -150,6 +150,7 @@ public class RtspCamera1 extends Camera1Base {
 
   @Override
   protected void startStreamRtp(String url) {
+    rtspClient.setOnlyVideo(!audioInitialized);
     rtspClient.connect(url);
   }
 

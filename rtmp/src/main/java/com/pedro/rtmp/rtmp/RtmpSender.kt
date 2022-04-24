@@ -101,7 +101,7 @@ class RtmpSender(private val connectCheckerRtmp: ConnectCheckerRtmp,
     thread = Executors.newSingleThreadExecutor()
     running = true
     thread?.execute post@{
-      while (!Thread.interrupted()) {
+      while (!Thread.interrupted() && running) {
         try {
           val flvPacket = flvPacketBlockingQueue.poll(1, TimeUnit.SECONDS)
           if (flvPacket == null) {

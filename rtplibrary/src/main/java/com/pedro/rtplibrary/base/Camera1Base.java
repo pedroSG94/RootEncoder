@@ -87,7 +87,7 @@ public abstract class Camera1Base
   private AudioEncoder audioEncoder;
   private GlInterface glInterface;
   private boolean streaming = false;
-  private boolean audioInitialized = false;
+  protected boolean audioInitialized = false;
   private boolean onPreview = false;
   protected BaseRecordController recordController;
   private int previewWidth, previewHeight;
