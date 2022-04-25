@@ -27,9 +27,8 @@ import com.pedro.rtmp.flv.video.ProfileIop
 import com.pedro.rtmp.flv.video.VideoPacketCallback
 import com.pedro.rtmp.utils.BitrateManager
 import com.pedro.rtmp.utils.ConnectCheckerRtmp
-import java.io.OutputStream
+import com.pedro.rtmp.utils.socket.RtmpSocket
 import java.nio.ByteBuffer
-import java.util.*
 import java.util.concurrent.*
 
 /**
@@ -47,7 +46,7 @@ class RtmpSender(private val connectCheckerRtmp: ConnectCheckerRtmp,
   private var thread: ExecutorService? = null
   private var audioFramesSent: Long = 0
   private var videoFramesSent: Long = 0
-  var output: OutputStream? = null
+  var socket: RtmpSocket? = null
   var droppedAudioFrames: Long = 0
     private set
   var droppedVideoFrames: Long = 0
@@ -111,16 +110,16 @@ class RtmpSender(private val connectCheckerRtmp: ConnectCheckerRtmp,
           var size = 0
           if (flvPacket.type == FlvType.VIDEO) {
             videoFramesSent++
-            output?.let { output ->
-              size = commandsManager.sendVideoPacket(flvPacket, output)
+            socket?.let { socket ->
+              size = commandsManager.sendVideoPacket(flvPacket, socket)
               if (isEnableLogs) {
                 Log.i(TAG, "wrote Video packet, size $size")
               }
             }
           } else {
             audioFramesSent++
-            output?.let { output ->
-              size = commandsManager.sendAudioPacket(flvPacket, output)
+            socket?.let { socket ->
+              size = commandsManager.sendAudioPacket(flvPacket, socket)
               if (isEnableLogs) {
                 Log.i(TAG, "wrote Audio packet, size $size")
               }
