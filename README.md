@@ -80,6 +80,10 @@ dependencies {
 - [X] RTMPS and RTSPS.
 - [X] RTSP H265 support (Waiting FLV official packetization to add RTMP support).
 
+### Beta:
+
+- [X] RTMPT and RTMPTS (HTTP and HTTPS tunneled). Actually working but a request take so much time producing drop frames.
+
 ## Other related projects:
 
 https://github.com/pedroSG94/RTSP-Server
@@ -87,6 +91,13 @@ https://github.com/pedroSG94/RTSP-Server
 https://github.com/pedroSG94/AndroidReStreamer
 
 https://github.com/pedroSG94/Stream-USB-test
+
+### 3rd party projects:
+
+Projects related with the library developed by other users.
+Contact with user owner if you have any problem or question.
+
+https://github.com/FunnyDevs/rtmp-rtsp-stream-client-java-recordcontrollers
 
 ## Real time filters:
 
