@@ -62,8 +62,7 @@ open class TLSSocketFactory : SSLSocketFactory() {
 
   @Throws(IOException::class, UnknownHostException::class)
   override fun createSocket(host: String, port: Int, localHost: InetAddress, localPort: Int): Socket {
-    return enableTLSOnSocket(
-        internalSSLSocketFactory.createSocket(host, port, localHost, localPort))
+    return enableTLSOnSocket(internalSSLSocketFactory.createSocket(host, port, localHost, localPort))
   }
 
   @Throws(IOException::class)
@@ -73,8 +72,7 @@ open class TLSSocketFactory : SSLSocketFactory() {
 
   @Throws(IOException::class)
   override fun createSocket(address: InetAddress, port: Int, localAddress: InetAddress, localPort: Int): Socket {
-    return enableTLSOnSocket(
-        internalSSLSocketFactory.createSocket(address, port, localAddress, localPort))
+    return enableTLSOnSocket(internalSSLSocketFactory.createSocket(address, port, localAddress, localPort))
   }
 
   private fun enableTLSOnSocket(socket: Socket): Socket {

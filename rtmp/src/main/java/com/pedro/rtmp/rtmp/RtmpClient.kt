@@ -29,7 +29,7 @@ import com.pedro.rtmp.rtmp.message.control.UserControl
 import com.pedro.rtmp.utils.AuthUtil
 import com.pedro.rtmp.utils.ConnectCheckerRtmp
 import com.pedro.rtmp.utils.RtmpConfig
-import com.pedro.rtmp.utils.socket.RtpSocket
+import com.pedro.rtmp.utils.socket.RtmpSocket
 import com.pedro.rtmp.utils.socket.TcpSocket
 import com.pedro.rtmp.utils.socket.TcpTunneledSocket
 import java.io.*
@@ -49,7 +49,7 @@ class RtmpClient(private val connectCheckerRtmp: ConnectCheckerRtmp) {
   private val TAG = "RtmpClient"
   private val rtmpUrlPattern = Pattern.compile("^rtmpt?s?://([^/:]+)(?::(\\d+))*/([^/]+)/?([^*]*)$")
 
-  private var socket: RtpSocket? = null
+  private var socket: RtmpSocket? = null
   private var thread: ExecutorService? = null
   private val commandsManager = CommandsManager()
   private val rtmpSender = RtmpSender(connectCheckerRtmp, commandsManager)

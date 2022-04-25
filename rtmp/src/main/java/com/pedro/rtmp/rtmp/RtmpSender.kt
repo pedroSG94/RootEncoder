@@ -27,7 +27,7 @@ import com.pedro.rtmp.flv.video.ProfileIop
 import com.pedro.rtmp.flv.video.VideoPacketCallback
 import com.pedro.rtmp.utils.BitrateManager
 import com.pedro.rtmp.utils.ConnectCheckerRtmp
-import com.pedro.rtmp.utils.socket.RtpSocket
+import com.pedro.rtmp.utils.socket.RtmpSocket
 import java.nio.ByteBuffer
 import java.util.concurrent.*
 
@@ -46,7 +46,7 @@ class RtmpSender(private val connectCheckerRtmp: ConnectCheckerRtmp,
   private var thread: ExecutorService? = null
   private var audioFramesSent: Long = 0
   private var videoFramesSent: Long = 0
-  var socket: RtpSocket? = null
+  var socket: RtmpSocket? = null
   var droppedAudioFrames: Long = 0
     private set
   var droppedVideoFrames: Long = 0

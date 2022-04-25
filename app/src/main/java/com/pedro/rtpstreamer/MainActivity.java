@@ -49,7 +49,6 @@ import com.pedro.rtpstreamer.texturemodeexample.TextureModeRtspActivity;
 import com.pedro.rtpstreamer.utils.ActivityLink;
 import com.pedro.rtpstreamer.utils.ImageAdapter;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
