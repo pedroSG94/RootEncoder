@@ -73,7 +73,7 @@ public class SizeCalculator {
           && previewAspectRatio < 1
           && streamAspectRatio > previewAspectRatio) || (streamAspectRatio > 1f
           && previewAspectRatio < 1f)) {
-        if (mode == 0 || mode == 2) {
+        if (mode == 0) {
           yf = streamHeight * previewWidth / streamWidth;
           yo = (yf - previewHeight) / -2;
         } else {
@@ -100,16 +100,9 @@ public class SizeCalculator {
     }
   }
 
-  public static void processMatrix(int rotation, int width, int height, boolean isPreview,
-      boolean isPortrait, boolean flipStreamHorizontal, boolean flipStreamVertical, int mode,
-      float[] MVPMatrix) {
-    PointF scale;
-    if (mode == 2 || mode == 3) { // stream rotation is enabled
-      scale = getScale(rotation, width, height, isPortrait, isPreview);
-      if (!isPreview && !isPortrait) rotation += 90;
-    } else {
-      scale = new PointF(1f, 1f);
-    }
+  public static void processMatrix(int rotation, boolean flipStreamHorizontal,
+      boolean flipStreamVertical, float[] MVPMatrix) {
+    PointF scale = new PointF(1f, 1f);
 
     float xFlip = flipStreamHorizontal ? -1f : 1f;
     float yFlip = flipStreamVertical ? -1f : 1f;

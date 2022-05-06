@@ -275,6 +275,10 @@ public class VideoEncoder extends BaseEncoder implements GetCameraData {
     this.fps = fps;
   }
 
+  public void setRotation(int rotation) {
+    this.rotation = rotation;
+  }
+
   public int getFps() {
     return fps;
   }

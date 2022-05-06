@@ -65,7 +65,6 @@ public class SimpleCameraRender {
   private Surface surface;
   private int streamWidth;
   private int streamHeight;
-  private boolean isPortrait;
 
   public SimpleCameraRender() {
     Matrix.setIdentityM(MVPMatrix, 0);
@@ -102,12 +101,11 @@ public class SimpleCameraRender {
   }
 
   public void drawFrame(int width, int height, boolean keepAspectRatio, int mode, int rotation,
-      boolean isPreview, boolean flipStreamVertical, boolean flipStreamHorizontal) {
+      boolean flipStreamVertical, boolean flipStreamHorizontal) {
     GlUtil.checkGlError("drawFrame start");
     surfaceTexture.getTransformMatrix(STMatrix);
 
-    SizeCalculator.processMatrix(rotation, width, height, isPreview, isPortrait,
-        flipStreamHorizontal, flipStreamVertical, mode, MVPMatrix);
+    SizeCalculator.processMatrix(rotation, flipStreamHorizontal, flipStreamVertical, MVPMatrix);
     SizeCalculator.calculateViewPort(keepAspectRatio, mode, width, height, streamWidth,
         streamHeight);
 
@@ -140,7 +138,6 @@ public class SimpleCameraRender {
    * Initializes GL state.  Call this after the EGL surface has been created and made current.
    */
   public void initGl(Context context, int streamWidth, int streamHeight) {
-    isPortrait = CameraHelper.isPortrait(context);
     this.streamWidth = streamWidth;
     this.streamHeight = streamHeight;
     GlUtil.checkGlError("initGl start");

@@ -130,7 +130,7 @@ class GlStreamInterface(private val context: Context) : Runnable, OnFrameAvailab
           managerRender?.updateFrame()
           managerRender?.drawOffScreen()
           managerRender?.drawScreen(encoderWidth, encoderHeight, false, 0, 0,
-            true, false, false)
+              false, false)
           surfaceManager.swapBuffer()
 
           if (!filterQueue.isEmpty()) {
@@ -145,8 +145,8 @@ class GlStreamInterface(private val context: Context) : Runnable, OnFrameAvailab
               val w =  encoderWidth
               val h =  encoderHeight
               surfaceManagerEncoder.makeCurrent()
-              managerRender?.drawScreenEncoder(w, h, isPortrait, 0, streamOrientation,
-                false, false, false)
+              managerRender?.drawScreenEncoder(w, h, isPortrait, streamOrientation,
+                  false, false)
               surfaceManagerEncoder.swapBuffer()
             }
             // render preview
@@ -155,7 +155,7 @@ class GlStreamInterface(private val context: Context) : Runnable, OnFrameAvailab
               val h =  if (previewHeight == 0) encoderHeight else previewHeight
               surfaceManagerPreview.makeCurrent()
               managerRender?.drawScreenPreview(w, h, isPortrait, true, 0, previewOrientation,
-                true, false, false)
+                 false, false)
               surfaceManagerPreview.swapBuffer()
             }
           }

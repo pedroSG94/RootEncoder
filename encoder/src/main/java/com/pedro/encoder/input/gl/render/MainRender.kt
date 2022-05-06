@@ -40,23 +40,21 @@ class MainRender {
   }
 
   fun drawScreen(width: Int, height: Int, keepAspectRatio: Boolean, mode: Int, rotation: Int,
-    isPreview: Boolean, flipStreamVertical: Boolean, flipStreamHorizontal: Boolean) {
-    screenRender.draw(width, height, keepAspectRatio, mode, rotation, isPreview, flipStreamVertical,
+    flipStreamVertical: Boolean, flipStreamHorizontal: Boolean) {
+    screenRender.draw(width, height, keepAspectRatio, mode, rotation, flipStreamVertical,
       flipStreamHorizontal)
   }
 
-  fun drawScreenEncoder(width: Int, height: Int, isPortrait: Boolean,
-    mode: Int, rotation: Int, isPreview: Boolean, flipStreamVertical: Boolean,
-    flipStreamHorizontal: Boolean) {
-    screenRender.drawEncoder(width, height, isPortrait, mode, rotation, isPreview,
-      flipStreamVertical, flipStreamHorizontal)
+  fun drawScreenEncoder(width: Int, height: Int, isPortrait: Boolean, rotation: Int,
+    flipStreamVertical: Boolean, flipStreamHorizontal: Boolean) {
+    screenRender.drawEncoder(width, height, isPortrait, rotation, flipStreamVertical,
+      flipStreamHorizontal)
   }
 
   fun drawScreenPreview(width: Int, height: Int, isPortrait: Boolean, keepAspectRatio: Boolean,
-    mode: Int, rotation: Int, isPreview: Boolean, flipStreamVertical: Boolean,
-    flipStreamHorizontal: Boolean) {
+    mode: Int, rotation: Int, flipStreamVertical: Boolean, flipStreamHorizontal: Boolean) {
     screenRender.drawPreview(width, height, isPortrait, keepAspectRatio, mode, rotation,
-      isPreview, flipStreamVertical, flipStreamHorizontal)
+      flipStreamVertical, flipStreamHorizontal)
   }
 
   fun release() {

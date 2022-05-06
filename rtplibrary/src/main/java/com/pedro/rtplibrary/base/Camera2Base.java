@@ -314,13 +314,12 @@ public abstract class Camera2Base implements GetAacData, GetVideoData, GetMicrop
   public boolean prepareVideo(int width, int height, int fps, int bitrate, int iFrameInterval,
       int rotation, int avcProfile, int avcProfileLevel) {
     if (onPreview && glInterface != null && (width != previewWidth || height != previewHeight
-        || fps != videoEncoder.getFps())) {
+        || fps != videoEncoder.getFps() || rotation != videoEncoder.getRotation())) {
       stopPreview();
       onPreview = true;
     }
-    boolean result =
-        videoEncoder.prepareVideoEncoder(width, height, fps, bitrate, rotation, iFrameInterval,
-            FormatVideoEncoder.SURFACE, avcProfile, avcProfileLevel);
+    boolean result = videoEncoder.prepareVideoEncoder(width, height, fps, bitrate, rotation,
+        iFrameInterval, FormatVideoEncoder.SURFACE, avcProfile, avcProfileLevel);
     prepareCameraManager();
     return result;
   }
@@ -527,14 +526,14 @@ public abstract class Camera2Base implements GetAacData, GetVideoData, GetMicrop
       previewWidth = width;
       previewHeight = height;
       videoEncoder.setFps(fps);
+      videoEncoder.setRotation(rotation);
       if (surfaceView != null) {
         cameraManager.prepareCamera(surfaceView.getHolder().getSurface(), videoEncoder.getFps());
       } else if (textureView != null) {
         cameraManager.prepareCamera(new Surface(textureView.getSurfaceTexture()),
             videoEncoder.getFps());
       } else if (glInterface != null) {
-        boolean isPortrait = CameraHelper.isPortrait(context);
-        if (isPortrait) {
+        if (videoEncoder.getRotation() == 90 || videoEncoder.getRotation() == 270) {
           glInterface.setEncoderSize(height, width);
         } else {
           glInterface.setEncoderSize(width, height);

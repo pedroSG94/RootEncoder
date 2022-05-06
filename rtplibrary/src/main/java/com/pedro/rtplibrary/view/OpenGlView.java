@@ -182,7 +182,7 @@ public class OpenGlView extends OpenGlViewBase {
           managerRender.updateFrame();
           managerRender.drawOffScreen();
           managerRender.drawScreen(previewWidth, previewHeight, keepAspectRatio, aspectRatioMode.id, 0,
-              true, isPreviewVerticalFlip, isPreviewHorizontalFlip);
+              isPreviewVerticalFlip, isPreviewHorizontalFlip);
           surfaceManager.swapBuffer();
 
           if (!filterQueue.isEmpty()) {
@@ -199,13 +199,13 @@ public class OpenGlView extends OpenGlViewBase {
               int h = muteVideo ? 0 : encoderHeight;
               surfaceManagerEncoder.makeCurrent();
               managerRender.drawScreen(w, h, false, aspectRatioMode.id,
-                  streamRotation, false, isStreamVerticalFlip, isStreamHorizontalFlip);
+                  streamRotation, isStreamVerticalFlip, isStreamHorizontalFlip);
               surfaceManagerEncoder.swapBuffer();
             }
             if (takePhotoCallback != null && surfaceManagerPhoto.isReady()) {
               surfaceManagerPhoto.makeCurrent();
               managerRender.drawScreen(encoderWidth, encoderHeight, false, aspectRatioMode.id,
-                  streamRotation, false, isStreamVerticalFlip, isStreamHorizontalFlip);
+                  streamRotation, isStreamVerticalFlip, isStreamHorizontalFlip);
               takePhotoCallback.onTakePhoto(GlUtil.getBitmap(encoderWidth, encoderHeight));
               takePhotoCallback = null;
               surfaceManagerPhoto.swapBuffer();

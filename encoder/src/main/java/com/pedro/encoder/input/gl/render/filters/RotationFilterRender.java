@@ -127,13 +127,13 @@ public class RotationFilterRender extends BaseFilterRender {
    * @param width width of stream (prepareVideo method) if you are streaming or preview (startPreview method) if you aren't streaming.
    * @param height height of stream (prepareVideo method) if you are streaming or preview (startPreview method) if you aren't streaming.
    */
-  public void setRotationFixed(int rotation, int width, int height, Context context) {
+  public void setRotationFixed(int rotation, int width, int height, boolean isPortrait) {
     this.rotation = rotation;
     //Set rotation
     Matrix.setRotateM(rotationMatrix, 0, rotation, 0, 0, 1.0f);
     if (rotation == 90 || rotation == 270) {
       float value = (float) height / (float) width;
-      if (CameraHelper.isPortrait(context)) {
+      if (isPortrait) {
         Matrix.scaleM(rotationMatrix, 0, value, 1f, 0f);
       } else {
         Matrix.scaleM(rotationMatrix, 0, 1f, value, 0f);

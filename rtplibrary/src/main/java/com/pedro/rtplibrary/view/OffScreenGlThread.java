@@ -282,7 +282,7 @@ public class OffScreenGlThread
           surfaceManager.makeCurrent();
           managerRender.updateFrame();
           managerRender.drawOffScreen();
-          managerRender.drawScreen(encoderWidth, encoderHeight, false, 0, 0, true, isPreviewVerticalFlip, isPreviewHorizontalFlip);
+          managerRender.drawScreen(encoderWidth, encoderHeight, false, 0, 0, isPreviewVerticalFlip, isPreviewHorizontalFlip);
           surfaceManager.swapBuffer();
 
           if (!filterQueue.isEmpty()) {
@@ -299,13 +299,13 @@ public class OffScreenGlThread
               int h = muteVideo ? 0 : encoderHeight;
               surfaceManagerEncoder.makeCurrent();
               managerRender.drawScreen(w, h, false, 0,
-                  streamRotation, false, isStreamVerticalFlip, isStreamHorizontalFlip);
+                  streamRotation, isStreamVerticalFlip, isStreamHorizontalFlip);
               surfaceManagerEncoder.swapBuffer();
             }
             if (takePhotoCallback != null && surfaceManagerPhoto.isReady()) {
               surfaceManagerPhoto.makeCurrent();
               managerRender.drawScreen(encoderWidth, encoderHeight, false, 0,
-                  streamRotation, false, isStreamVerticalFlip, isStreamHorizontalFlip);
+                  streamRotation, isStreamVerticalFlip, isStreamHorizontalFlip);
               takePhotoCallback.onTakePhoto(GlUtil.getBitmap(encoderWidth, encoderHeight));
               takePhotoCallback = null;
               surfaceManagerPhoto.swapBuffer();

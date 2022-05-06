@@ -107,7 +107,7 @@ public class LightOpenGlView extends OpenGlViewBase {
         surfaceManager.makeCurrent();
         simpleCameraRender.updateFrame();
         simpleCameraRender.drawFrame(previewWidth, previewHeight, keepAspectRatio, aspectRatioMode.id,
-            0, true, isPreviewVerticalFlip, isPreviewHorizontalFlip);
+            0, isPreviewVerticalFlip, isPreviewHorizontalFlip);
         surfaceManager.swapBuffer();
 
         synchronized (sync) {
@@ -116,13 +116,13 @@ public class LightOpenGlView extends OpenGlViewBase {
             int h = muteVideo ? 0 : encoderHeight;
             surfaceManagerEncoder.makeCurrent();
             simpleCameraRender.drawFrame(w, h, false, aspectRatioMode.id,
-                streamRotation, false, isStreamVerticalFlip, isStreamHorizontalFlip);
+                streamRotation, isStreamVerticalFlip, isStreamHorizontalFlip);
             surfaceManagerEncoder.swapBuffer();
           }
           if (takePhotoCallback != null && surfaceManagerPhoto.isReady()) {
             surfaceManagerPhoto.makeCurrent();
             simpleCameraRender.drawFrame(encoderWidth, encoderHeight, false, aspectRatioMode.id,
-                streamRotation, false, isStreamVerticalFlip, isStreamHorizontalFlip);
+                streamRotation, isStreamVerticalFlip, isStreamHorizontalFlip);
             takePhotoCallback.onTakePhoto(GlUtil.getBitmap(encoderWidth, encoderHeight));
             takePhotoCallback = null;
             surfaceManagerPhoto.swapBuffer();

@@ -1,7 +1,7 @@
 // Top-level build file where you can add configuration options common to all sub-projects/modules.
 
 buildscript {
-  ext.kotlin_version = '1.6.10'
+  ext.kotlin_version = '1.6.21'
   ext.library_group = "com.github.pedroSG94"
   ext.version_code = 217
   ext.version_name = "2.1.7"
