@@ -140,7 +140,7 @@ public class ScreenRender {
 
   private void draw(int width, int height) {
     if (height > width) {
-      GLES20.glViewport(0, (height * -37f / 128).toInt(), width, height);
+      GLES20.glViewport(0, (int)((float)height * -37.0F / (float)128), width, height);
     } else {
       GLES20.glViewport(0, 0, width, height);
     }
