@@ -6,7 +6,9 @@ import android.media.MediaCodec
 import android.media.MediaFormat
 import android.media.projection.MediaProjection
 import android.os.Build
+import android.util.Range
 import android.util.Size
+import android.view.MotionEvent
 import android.view.Surface
 import android.view.SurfaceView
 import android.view.TextureView
@@ -305,6 +307,105 @@ abstract class StreamBase(context: Context, videoSource: VideoManager.Source,
   fun getCameraResolutions(source: VideoManager.Source, facing: CameraHelper.Facing): List<Size> {
     return videoManager.getCameraResolutions(source, facing)
   }
+
+  /**
+   * Set exposure to Camera1 or Camera2. Ignored with other video source.
+   *
+   * Must be called with isOnPreview, isStreaming or isRecording true or will be ignored.
+   */
+  fun setExposure(level: Int) {
+    videoManager.setExposure(level)
+  }
+
+  /**
+   * @return exposure of Camera1 or Camera2. 0 with other video source.
+   *
+   * Must be called with isOnPreview, isStreaming or isRecording true or will return 0.
+   */
+  fun getExposure(): Int = videoManager.getExposure()
+
+  /**
+   * Enable lantern using Camera1 or Camera2. Ignored with other video source.
+   *
+   * Must be called with isOnPreview, isStreaming or isRecording true or will be ignored.
+   */
+  fun enableLantern() {
+    videoManager.enableLantern()
+  }
+
+  /**
+   * Disable lantern using Camera1 or Camera2. Ignored with other video source.
+   *
+   * Must be called with isOnPreview, isStreaming or isRecording true or will be ignored.
+   */
+  fun disableLantern() {
+    videoManager.disableLantern()
+  }
+
+  /**
+   * @return lantern state using Camera1 or Camera2. False with other video source.
+   *
+   * Must be called with isOnPreview, isStreaming or isRecording true or will return false.
+   */
+  fun isLanternEnabled(): Boolean = videoManager.isLanternEnabled()
+
+  /**
+   * Enable auto focus using Camera1 or Camera2. Ignored with other video source.
+   *
+   * Must be called with isOnPreview, isStreaming or isRecording true or will be ignored.
+   */
+  fun enableAutoFocus() {
+    videoManager.enableAutoFocus()
+  }
+
+  /**
+   * Disable auto focus using Camera1 or Camera2. Ignored with other video source.
+   *
+   * Must be called with isOnPreview, isStreaming or isRecording true or will be ignored.
+   */
+  fun disableAutoFocus() {
+    videoManager.disableAutoFocus()
+  }
+
+  /**
+   * @return auto focus state using Camera1 or Camera2. False with other video source.
+   *
+   * Must be called with isOnPreview, isStreaming or isRecording true or will return false.
+   */
+  fun isAutoFocusEnabled(): Boolean = videoManager.isAutoFocusEnabled()
+
+  /**
+   * Set zoom to Camera1 or Camera2. Ignored with other video source.
+   * This method is used with onTouch event to implement zoom with gestures.
+   *
+   * Must be called with isOnPreview, isStreaming or isRecording true or will be ignored.
+   */
+  fun setZoom(event: MotionEvent) {
+    videoManager.setZoom(event)
+  }
+
+  /**
+   * Set zoom to Camera1 or Camera2. Ignored with other video source.
+   *
+   * Must be called with isOnPreview, isStreaming or isRecording true or will be ignored.
+   */
+  fun setZoom(level: Float) {
+    videoManager.setZoom(level)
+  }
+
+  /**
+   * @return zoom range (min and max) using Camera1 or Camera2. Range(0f, 0f) with other video source
+   *
+   * Must be called with isOnPreview, isStreaming or isRecording true or will return Range(0f, 0f).
+   */
+  fun getZoomRange(): Range<Float> = videoManager.getZoomRange()
+
+  /**
+   * @return current zoom using Camera1 or Camera2. 0f with other video source.
+   *
+   * Must be called with isOnPreview, isStreaming or isRecording true or will return 0f.
+   */
+  fun getZoom(): Float = videoManager.getZoom()
 
   /**
    * Change stream orientation depend of activity orientation.

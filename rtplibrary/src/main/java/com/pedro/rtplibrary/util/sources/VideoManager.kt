@@ -8,7 +8,9 @@ import android.hardware.display.DisplayManager
 import android.hardware.display.VirtualDisplay
 import android.media.projection.MediaProjection
 import android.os.Build
+import android.util.Range
 import android.util.Size
+import android.view.MotionEvent
 import android.view.Surface
 import androidx.annotation.RequiresApi
 import com.pedro.encoder.input.video.Camera1ApiManager
@@ -142,6 +144,179 @@ class VideoManager(private val context: Context, private var source: Source) {
         Source.DISABLED -> noSource.stop()
       }
     }
+  }
+
+  fun setExposure(level: Int) {
+    if (isRunning()) {
+      when (source) {
+        Source.CAMERA1 -> {
+          camera1.exposure = level
+        }
+        Source.CAMERA2 -> {
+          camera2.exposure = level
+        }
+        else -> {}
+      }
+    }
+  }
+
+  fun getExposure(): Int {
+    if (isRunning()) {
+      return when (source) {
+        Source.CAMERA1 -> {
+          camera1.exposure
+        }
+        Source.CAMERA2 -> {
+          camera2.exposure
+        }
+        else -> 0
+      }
+    }
+    return 0
+  }
+
+  fun enableLantern() {
+    if (isRunning()) {
+      when (source) {
+        Source.CAMERA1 -> {
+          camera1.enableLantern()
+        }
+        Source.CAMERA2 -> {
+          camera2.enableLantern()
+        }
+        else -> {}
+      }
+    }
+  }
+
+  fun disableLantern() {
+    if (isRunning()) {
+      when (source) {
+        Source.CAMERA1 -> {
+          camera1.disableLantern()
+        }
+        Source.CAMERA2 -> {
+          camera2.disableLantern()
+        }
+        else -> {}
+      }
+    }
+  }
+
+  fun isLanternEnabled(): Boolean {
+    if (isRunning()) {
+      return when (source) {
+        Source.CAMERA1 -> {
+          camera1.isLanternEnabled
+        }
+        Source.CAMERA2 -> {
+          camera2.isLanternEnabled
+        }
+        else -> false
+      }
+    }
+    return false
+  }
+
+  fun enableAutoFocus() {
+    if (isRunning()) {
+      when (source) {
+        Source.CAMERA1 -> {
+          camera1.enableAutoFocus()
+        }
+        Source.CAMERA2 -> {
+          camera2.enableAutoFocus()
+        }
+        else -> {}
+      }
+    }
+  }
+
+  fun disableAutoFocus() {
+    if (isRunning()) {
+      when (source) {
+        Source.CAMERA1 -> {
+          camera1.disableAutoFocus()
+        }
+        Source.CAMERA2 -> {
+          camera2.disableAutoFocus()
+        }
+        else -> {}
+      }
+    }
+  }
+
+  fun isAutoFocusEnabled(): Boolean {
+    if (isRunning()) {
+      return when (source) {
+        Source.CAMERA1 -> {
+          camera1.isAutoFocusEnabled
+        }
+        Source.CAMERA2 -> {
+          camera2.isAutoFocusEnabled
+        }
+        else -> false
+      }
+    }
+    return false
+  }
+
+  fun setZoom(event: MotionEvent) {
+    if (isRunning()) {
+      when (source) {
+        Source.CAMERA1 -> {
+          camera1.setZoom(event)
+        }
+        Source.CAMERA2 -> {
+          camera2.setZoom(event)
+        }
+        else -> {}
+      }
+    }
+  }
+
+  fun setZoom(level: Float) {
+    if (isRunning()) {
+      when (source) {
+        Source.CAMERA1 -> {
+          camera1.zoom = level.toInt()
+        }
+        Source.CAMERA2 -> {
+          camera2.zoom = level
+        }
+        else -> {}
+      }
+    }
+  }
+
+  fun getZoomRange(): Range<Float> {
+    if (isRunning()) {
+      return when (source) {
+        Source.CAMERA1 -> {
+          Range(camera1.minZoom.toFloat(), camera1.maxZoom.toFloat())
+        }
+        Source.CAMERA2 -> {
+          camera2.zoomRange
+        }
+        else -> Range(0f, 0f)
+      }
+    }
+    return Range(0f, 0f)
+  }
+
+  fun getZoom(): Float {
+    if (isRunning()) {
+      return when (source) {
+        Source.CAMERA1 -> {
+          camera1.zoom.toFloat()
+        }
+        Source.CAMERA2 -> {
+          camera2.zoom
+        }
+        else -> 0f
+      }
+    }
+    return 0f
   }
 
   fun switchCamera() {
