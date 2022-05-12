@@ -77,7 +77,7 @@ open class H265Packet(sps: ByteArray, pps: ByteArray, vps: ByteArray, private va
         videoPacketCallback.onVideoFrameCreated(rtpFrame)
       } else {
         //Set PayloadHdr (16bit type=49)
-        header[0] = 49 shl 1
+        header[0] = (49 shl 1).toByte()
         header[1] = 1
         // Set FU header
         //   +---------------+
@@ -120,7 +120,7 @@ open class H265Packet(sps: ByteArray, pps: ByteArray, vps: ByteArray, private va
   private fun setSpsPpsVps(sps: ByteArray, pps: ByteArray, vps: ByteArray) {
     stapA = ByteArray(sps.size + pps.size + 6)
     stapA?.let {
-      it[0] = 48 shl 1
+      it[0] = (48 shl 1).toByte()
       it[1] = 1
 
       // Write NALU 1 size into the array (NALU 1 is the SPS).
