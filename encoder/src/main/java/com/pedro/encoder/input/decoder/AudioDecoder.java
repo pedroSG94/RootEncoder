@@ -44,6 +44,7 @@ public class AudioDecoder extends BaseDecoder {
   public AudioDecoder(GetMicrophoneData getMicrophoneData,
       AudioDecoderInterface audioDecoderInterface, LoopFileInterface loopFileInterface) {
     super(loopFileInterface);
+    TAG = "AudioDecoder";
     this.getMicrophoneData = getMicrophoneData;
     this.audioDecoderInterface = audioDecoderInterface;
   }
@@ -155,6 +156,7 @@ public class AudioDecoder extends BaseDecoder {
       if ((bufferInfo.flags & MediaCodec.BUFFER_FLAG_END_OF_STREAM) != 0) {
         seekTime = 0;
         Log.i(TAG, "end of file out");
+        running = false;
         if (loopMode) {
           loopFileInterface.onReset(false);
         } else {

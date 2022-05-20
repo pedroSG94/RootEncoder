@@ -35,7 +35,7 @@ import java.util.Map;
 
 public abstract class BaseDecoder {
 
-  protected static final String TAG = "BaseDecoder";
+  protected static String TAG = "BaseDecoder";
   protected LoopFileInterface loopFileInterface;
   protected MediaCodec.BufferInfo bufferInfo = new MediaCodec.BufferInfo();
   protected MediaExtractor extractor;
@@ -100,6 +100,7 @@ public abstract class BaseDecoder {
   }
 
   public void start() {
+    Log.i(TAG, "start decoder");
     running = true;
     handlerThread = new HandlerThread(TAG);
     handlerThread.start();
@@ -121,6 +122,7 @@ public abstract class BaseDecoder {
   }
 
   public void stop() {
+    Log.i(TAG, "stop decoder");
     running = false;
     stopDecoder();
     if (extractor != null) {
@@ -190,6 +192,10 @@ public abstract class BaseDecoder {
 
   public void setLoopMode(boolean loopMode) {
     this.loopMode = loopMode;
+  }
+
+  public boolean isLoopMode() {
+    return loopMode;
   }
 
   public double getDuration() {

@@ -614,6 +614,9 @@ public abstract class FromFileBase
           }
           if (videoEnabled) {
             videoDecoder.stop();
+            boolean loopMode = videoDecoder.isLoopMode();
+            videoDecoder = new VideoDecoder(videoDecoderInterface, this);
+            videoDecoder.setLoopMode(loopMode);
             if (!videoDecoder.initExtractor(videoPath)) {
               throw new IOException("fail to reset video file");
             }
@@ -623,6 +626,9 @@ public abstract class FromFileBase
         } else {
           if (audioEnabled) {
             audioDecoder.stop();
+            boolean loopMode = audioDecoder.isLoopMode();
+            audioDecoder = new AudioDecoder(this, audioDecoderInterface, this);
+            audioDecoder.setLoopMode(loopMode);
             if (!audioDecoder.initExtractor(audioPath)) {
               throw new IOException("fail to reset audio file");
             }

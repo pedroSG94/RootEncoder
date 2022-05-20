@@ -36,6 +36,7 @@ public class VideoDecoder extends BaseDecoder {
   public VideoDecoder(VideoDecoderInterface videoDecoderInterface,
       LoopFileInterface loopFileInterface) {
     super(loopFileInterface);
+    TAG = "VideoDecoder";
     this.videoDecoderInterface = videoDecoderInterface;
   }
 
@@ -107,6 +108,7 @@ public class VideoDecoder extends BaseDecoder {
     if ((bufferInfo.flags & MediaCodec.BUFFER_FLAG_END_OF_STREAM) != 0) {
       seekTime = 0;
       Log.i(TAG, "end of file out");
+      running = false;
       if (loopMode) {
         loopFileInterface.onReset(true);
       } else {
