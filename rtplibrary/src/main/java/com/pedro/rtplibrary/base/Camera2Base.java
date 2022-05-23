@@ -901,7 +901,7 @@ public abstract class Camera2Base implements GetAacData, GetVideoData, GetMicrop
    * @throws CameraOpenException If the other camera doesn't support same resolution.
    */
   public void switchCamera() throws CameraOpenException {
-    if (isStreaming() || onPreview) {
+    if (isStreaming() || isRecording() || onPreview) {
       cameraManager.switchCamera();
     } else {
       cameraManager.setCameraFacing(getCameraFacing() == CameraHelper.Facing.FRONT ? CameraHelper.Facing.BACK : CameraHelper.Facing.FRONT);

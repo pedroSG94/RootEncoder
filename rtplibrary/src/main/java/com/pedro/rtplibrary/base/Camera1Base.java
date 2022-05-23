@@ -883,7 +883,7 @@ public abstract class Camera1Base
    * @throws CameraOpenException If the other camera doesn't support same resolution.
    */
   public void switchCamera() throws CameraOpenException {
-    if (isStreaming() || onPreview) {
+    if (isStreaming() || isRecording() || onPreview) {
       cameraManager.switchCamera();
     } else {
       cameraManager.setCameraFacing(getCameraFacing() ==  CameraHelper.Facing.FRONT ? CameraHelper.Facing.BACK : CameraHelper.Facing.FRONT);

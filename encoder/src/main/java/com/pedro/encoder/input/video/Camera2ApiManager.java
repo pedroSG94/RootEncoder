@@ -307,6 +307,7 @@ public class Camera2ApiManager extends CameraDevice.StateCallback {
     try {
       String cameraId = getCameraIdForFacing(cameraManager, cameraFacing);
       if (cameraId != null) {
+        facing = cameraFacing;
         this.cameraId = cameraId;
       }
     } catch (CameraAccessException e) {
