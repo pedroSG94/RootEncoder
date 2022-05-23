@@ -211,6 +211,7 @@ public class Camera1ApiManager implements Camera.PreviewCallback, Camera.FaceDet
       camera.startPreview();
       running = true;
       if (cameraCallbacks != null) {
+        cameraCallbacks.onCameraOpened();
         cameraCallbacks.onCameraChanged(facing);
       }
       Log.i(TAG, width + "X" + height);

@@ -991,6 +991,7 @@ public class Camera2ApiManager extends CameraDevice.StateCallback {
     this.cameraDevice = cameraDevice;
     startPreview(cameraDevice);
     semaphore.release();
+    if (cameraCallbacks != null) cameraCallbacks.onCameraOpened();
     Log.i(TAG, "Camera opened");
   }
 
