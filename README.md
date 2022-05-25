@@ -51,7 +51,7 @@ allprojects {
   }
 }
 dependencies {
-  implementation 'com.github.pedroSG94.rtmp-rtsp-stream-client-java:rtplibrary:2.1.8'
+  implementation 'com.github.pedroSG94.rtmp-rtsp-stream-client-java:rtplibrary:2.1.9'
 }
 
 ```
