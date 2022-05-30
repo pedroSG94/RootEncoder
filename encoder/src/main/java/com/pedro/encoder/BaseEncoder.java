@@ -47,6 +47,7 @@ public abstract class BaseEncoder implements EncoderCallback {
   private MediaCodec.Callback callback;
   private long oldTimeStamp = 0L;
   protected boolean shouldReset = true;
+  private Handler handler;
 
   public void restart() {
     start(false);
@@ -61,16 +62,19 @@ public abstract class BaseEncoder implements EncoderCallback {
     initCodec();
   }
 
-  private void initCodec() {
+  protected void setCallback() {
     handlerThread = new HandlerThread(TAG);
     handlerThread.start();
-    Handler handler = new Handler(handlerThread.getLooper());
+    handler = new Handler(handlerThread.getLooper());
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
       createAsyncCallback();
       codec.setCallback(callback, handler);
-      codec.start();
-    } else {
-      codec.start();
+    }
+  }
+
+  private void initCodec() {
+    codec.start();
+    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
       handler.post(new Runnable() {
         @Override
         public void run() {

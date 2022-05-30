@@ -150,6 +150,7 @@ public class VideoEncoder extends BaseEncoder implements GetCameraData {
         // MediaFormat.KEY_LEVEL, API > 23
         videoFormat.setInteger("level", this.avcProfileLevel);
       }
+      setCallback();
       codec.configure(videoFormat, null, null, MediaCodec.CONFIGURE_FLAG_ENCODE);
       running = false;
       if (formatVideoEncoder == FormatVideoEncoder.SURFACE

@@ -78,6 +78,7 @@ public class AudioEncoder extends BaseEncoder implements GetMicrophoneData {
       audioFormat.setInteger(MediaFormat.KEY_MAX_INPUT_SIZE, maxInputSize);
       audioFormat.setInteger(MediaFormat.KEY_AAC_PROFILE,
           MediaCodecInfo.CodecProfileLevel.AACObjectLC);
+      setCallback();
       codec.configure(audioFormat, null, null, MediaCodec.CONFIGURE_FLAG_ENCODE);
       running = false;
       Log.i(TAG, "prepared");
