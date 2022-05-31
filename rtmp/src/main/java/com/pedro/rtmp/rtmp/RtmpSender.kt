@@ -39,6 +39,7 @@ class RtmpSender(private val connectCheckerRtmp: ConnectCheckerRtmp,
 
   private var aacPacket = AacPacket(this)
   private var h264Packet = H264Packet(this)
+  @Volatile
   private var running = false
 
   @Volatile
@@ -129,7 +130,7 @@ class RtmpSender(private val connectCheckerRtmp: ConnectCheckerRtmp,
           bitrateManager.calculateBitrate(size * 8L)
         } catch (e: Exception) {
           //InterruptedException is only when you disconnect manually, you don't need report it.
-          if (e !is InterruptedException) {
+          if (e !is InterruptedException && running) {
             connectCheckerRtmp.onConnectionFailedRtmp("Error send packet, " + e.message)
             Log.e(TAG, "send error: ", e)
           }

@@ -40,6 +40,7 @@ open class RtspSender(private val connectCheckerRtsp: ConnectCheckerRtsp) : Vide
   private var aacPacket: AacPacket? = null
   private var rtpSocket: BaseRtpSocket? = null
   private var baseSenderReport: BaseSenderReport? = null
+  @Volatile
   private var running = false
 
   @Volatile
@@ -147,12 +148,12 @@ open class RtspSender(private val connectCheckerRtsp: ConnectCheckerRtsp) : Vide
           }
           if (baseSenderReport?.update(rtpFrame, isEnableLogs) == true) {
             //bytes to bits (4 is tcp header length)
-            val reportSize = if (isTcp) baseSenderReport?.PACKET_LENGTH ?: 0 + 4 else baseSenderReport?.PACKET_LENGTH ?: 0
+            val reportSize = if (isTcp) baseSenderReport?.PACKET_LENGTH ?: (0 + 4) else baseSenderReport?.PACKET_LENGTH ?: 0
             bitrateManager.calculateBitrate(reportSize * 8.toLong())
           }
         } catch (e: Exception) {
           //InterruptedException is only when you disconnect manually, you don't need report it.
-          if (e !is InterruptedException) {
+          if (e !is InterruptedException && running) {
             connectCheckerRtsp.onConnectionFailedRtsp("Error send packet, " + e.message)
             Log.e(TAG, "send error: ", e)
           }
