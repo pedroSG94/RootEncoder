@@ -401,6 +401,7 @@ public class VideoEncoder extends BaseEncoder implements GetCameraData {
     int length = csd0byteBuffer.remaining();
     byte[] csdArray = new byte[length];
     csd0byteBuffer.get(csdArray, 0, length);
+    csd0byteBuffer.rewind();
     for (int i = 0; i < csdArray.length; i++) {
       if (contBufferInitiation == 3 && csdArray[i] == 1) {
         if (vpsPosition == -1) {
