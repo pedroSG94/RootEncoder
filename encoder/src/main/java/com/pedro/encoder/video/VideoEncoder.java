@@ -361,6 +361,7 @@ public class VideoEncoder extends BaseEncoder implements GetCameraData {
   private Pair<ByteBuffer, ByteBuffer> decodeSpsPpsFromBuffer(ByteBuffer outputBuffer, int length) {
     byte[] csd = new byte[length];
     outputBuffer.get(csd, 0, length);
+    outputBuffer.rewind();
     int i = 0;
     int spsIndex = -1;
     int ppsIndex = -1;
