@@ -27,6 +27,7 @@ class AudioManager(getMicrophoneData: GetMicrophoneData, private var source: Sou
   private var isStereo = true
   private var echoCanceler = false
   private var noiseSuppressor = false
+  private var maxInputSize = 4096
 
   fun createAudioManager(sampleRate: Int, isStereo: Boolean, echoCanceler: Boolean,
     noiseSuppressor: Boolean): Boolean {
@@ -35,13 +36,16 @@ class AudioManager(getMicrophoneData: GetMicrophoneData, private var source: Sou
     this.echoCanceler = echoCanceler
     this.noiseSuppressor = noiseSuppressor
     //create microphone to confirm valid parameters
-    return microphone.createMicrophone(sampleRate, isStereo, echoCanceler, noiseSuppressor)
+    val result = microphone.createMicrophone(sampleRate, isStereo, echoCanceler, noiseSuppressor)
+    maxInputSize = microphone.maxInputSize //get default input size to keep value constant in all sources
+    return result
   }
 
   fun start() {
     if (!isRunning()) {
       when (source) {
         Source.MICROPHONE -> {
+          microphone.maxInputSize = maxInputSize
           val result = microphone.createMicrophone(sampleRate, isStereo, echoCanceler, noiseSuppressor)
           if (!result) {
             throw IllegalArgumentException("Failed to create microphone audio source")
@@ -55,6 +59,7 @@ class AudioManager(getMicrophoneData: GetMicrophoneData, private var source: Sou
                 .addMatchingUsage(AudioAttributes.USAGE_MEDIA)
                 .addMatchingUsage(AudioAttributes.USAGE_GAME)
                 .addMatchingUsage(AudioAttributes.USAGE_UNKNOWN).build()
+              microphone.maxInputSize = maxInputSize
               val result = microphone.createInternalMicrophone(config, sampleRate, isStereo,
                 echoCanceler, noiseSuppressor)
               if (!result) {
@@ -136,4 +141,8 @@ class AudioManager(getMicrophoneData: GetMicrophoneData, private var source: Sou
   }
 
   fun getMaxInputSize(): Int = microphone.maxInputSize
+
+  fun setMaxInputSize(size: Int) {
+    microphone.maxInputSize = size
+  }
 }

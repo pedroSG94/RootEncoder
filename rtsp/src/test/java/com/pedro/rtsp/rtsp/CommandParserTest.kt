@@ -77,6 +77,19 @@ class CommandParserTest {
   }
 
   @Test
+  fun `GIVEN a command with sessionId from server WHEN parse THEN get a sessionId2`() {
+    val expectedSessionId = "7d73E09a-096 a?$<>_!.,^+*%&05/()=42"
+    val serverCommand = "RECORD rtsp://192.168.0.196:80/live/pedro RTSP/1.0\r\n" +
+            "Range: npt=0.000-\r\n" +
+            "CSeq: 5\r\n" +
+            "Session: $expectedSessionId\r\n" +
+            "User-Agent: com.pedro.rtsp 2.1.7\r\n\r\n"
+    val command = Command(Method.UNKNOWN, 1, 200, serverCommand)
+    val result = commandParser.getSessionId(command)
+    assertEquals(expectedSessionId, result)
+  }
+
+  @Test
   fun `GIVEN server command string WHEN parse THEN get a command with cSeq and status`() {
     val serverCommand = "RTSP/1.0 200 OK\r\n" +
         "Server: pedroSG94 Server\r\n" +

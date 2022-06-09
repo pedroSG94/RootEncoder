@@ -31,15 +31,15 @@ public class PCMUtil {
     int lenL; // length of the longest
     int lenS; // length of the shortest
     if (len2 > len1) {
-      lenL = len1;
-      pcmL = pcm1;
-      lenS = len2;
-      pcmS = pcm2;
-    } else {
       lenL = len2;
       pcmL = pcm2;
       lenS = len1;
       pcmS = pcm1;
+    } else {
+      lenL = len1;
+      pcmL = pcm1;
+      lenS = len2;
+      pcmS = pcm2;
     }
     for (int idx = 0; idx < lenL; idx++) {
       int sample;

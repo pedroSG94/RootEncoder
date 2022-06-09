@@ -263,6 +263,17 @@ abstract class StreamBase(context: Context, videoSource: VideoManager.Source,
   }
 
   /**
+   * Set a custom size of audio buffer input.
+   * If you set 0 or less you can disable it to use library default value.
+   * Must be called before of prepareAudio method.
+   *
+   * @param size in bytes. Recommended multiple of 1024 (2048, 4096, 8196, etc)
+   */
+  fun setAudioMaxInputSize(size: Int) {
+    audioManager.setMaxInputSize(size)
+  }
+
+  /**
    * Mute microphone or internal audio.
    * Must be called after prepareAudio.
    */

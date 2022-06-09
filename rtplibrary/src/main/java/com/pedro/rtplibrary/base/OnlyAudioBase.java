@@ -302,6 +302,17 @@ public abstract class OnlyAudioBase implements GetAacData, GetMicrophoneData {
   public abstract void resetDroppedVideoFrames();
 
   /**
+   * Set a custom size of audio buffer input.
+   * If you set 0 or less you can disable it to use library default value.
+   * Must be called before of prepareAudio method.
+   *
+   * @param size in bytes. Recommended multiple of 1024 (2048, 4096, 8196, etc)
+   */
+  public void setAudioMaxInputSize(int size) {
+    microphoneManager.setMaxInputSize(size);
+  }
+
+  /**
    * Mute microphone, can be called before, while and after stream.
    */
   public void disableAudio() {
