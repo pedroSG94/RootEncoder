@@ -23,7 +23,6 @@ import android.media.AudioTrack;
 import android.media.MediaCodec;
 import android.media.MediaFormat;
 import android.os.Build;
-import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -34,7 +33,6 @@ import com.pedro.encoder.audio.GetAacData;
 import com.pedro.encoder.input.audio.GetMicrophoneData;
 import com.pedro.encoder.input.decoder.AudioDecoder;
 import com.pedro.encoder.input.decoder.AudioDecoderInterface;
-import com.pedro.encoder.input.decoder.LoopFileInterface;
 import com.pedro.encoder.input.decoder.VideoDecoder;
 import com.pedro.encoder.input.decoder.VideoDecoderInterface;
 import com.pedro.encoder.utils.CodecUtil;
@@ -65,8 +63,7 @@ import java.nio.ByteBuffer;
  */
 
 @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
-public abstract class FromFileBase
-    implements GetVideoData, GetAacData, GetMicrophoneData, LoopFileInterface {
+public abstract class FromFileBase implements GetVideoData, GetAacData, GetMicrophoneData {
 
   private static final String TAG = "FromFileBase";
 
@@ -80,10 +77,6 @@ public abstract class FromFileBase
   private VideoDecoder videoDecoder;
   private AudioDecoder audioDecoder;
 
-  private VideoDecoderInterface videoDecoderInterface;
-  private AudioDecoderInterface audioDecoderInterface;
-
-  private String videoPath, audioPath;
   protected boolean videoEnabled = false;
   private boolean audioEnabled = false;
   private final Object sync = new Object();
@@ -120,12 +113,10 @@ public abstract class FromFileBase
 
   private void init(VideoDecoderInterface videoDecoderInterface,
       AudioDecoderInterface audioDecoderInterface) {
-    this.videoDecoderInterface = videoDecoderInterface;
-    this.audioDecoderInterface = audioDecoderInterface;
     videoEncoder = new VideoEncoder(this);
     audioEncoder = new AudioEncoder(this);
-    videoDecoder = new VideoDecoder(videoDecoderInterface, this);
-    audioDecoder = new AudioDecoder(this, audioDecoderInterface, this);
+    videoDecoder = new VideoDecoder(videoDecoderInterface);
+    audioDecoder = new AudioDecoder(this, audioDecoderInterface);
     recordController = new AndroidMuxerRecordController();
   }
 
@@ -153,10 +144,9 @@ public abstract class FromFileBase
    */
   public boolean prepareVideo(String filePath, int bitRate, int rotation, int avcProfile,
       int avcProfileLevel) throws IOException {
-    videoPath = filePath;
     if (!videoDecoder.initExtractor(filePath)) return false;
     boolean result =
-        videoEncoder.prepareVideoEncoder(videoDecoder.getWidth(), videoDecoder.getHeight(), 30,
+        videoEncoder.prepareVideoEncoder(videoDecoder.getWidth(), videoDecoder.getHeight(), videoDecoder.getFps(),
             bitRate, rotation, 2, FormatVideoEncoder.SURFACE, avcProfile, avcProfileLevel);
     if (!result) return false;
     result = videoDecoder.prepareVideo(videoEncoder.getInputSurface());
@@ -180,7 +170,6 @@ public abstract class FromFileBase
    * @throws IOException Normally file not found.
    */
   public boolean prepareAudio(String filePath, int bitRate) throws IOException {
-    audioPath = filePath;
     if (!audioDecoder.initExtractor(filePath)) return false;
     audioDecoder.prepareAudio();
     boolean result = audioEncoder.prepareAudioEncoder(bitRate, audioDecoder.getSampleRate(),
@@ -312,19 +301,16 @@ public abstract class FromFileBase
     if (audioEnabled) audioDecoder.start();
   }
 
-  @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
   public void replaceView(Context context) {
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
       replaceGlInterface(new OffScreenGlThread(context));
     }
   }
 
-  @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
   public void replaceView(OpenGlView openGlView) {
     replaceGlInterface(openGlView);
   }
 
-  @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
   public void replaceView(LightOpenGlView lightOpenGlView) {
     replaceGlInterface(lightOpenGlView);
   }
@@ -332,32 +318,15 @@ public abstract class FromFileBase
   /**
    * Replace glInterface used on fly. Ignored if you use SurfaceView or TextureView
    */
-  @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
   private void replaceGlInterface(GlInterface glInterface) {
     if (this.glInterface != null && Build.VERSION.SDK_INT >= 18 && videoEnabled) {
       if (isStreaming() || isRecording()) {
-        try {
-          this.glInterface.removeMediaCodecSurface();
-          this.glInterface.stop();
-          this.glInterface = glInterface;
-          this.glInterface.init();
-          prepareGlView();
-          if (Build.VERSION.SDK_INT >= 23) {
-            videoDecoder.changeOutputSurface(this.glInterface.getSurface());
-          } else {
-            double time = videoDecoder.getTime();
-            videoDecoder.stop();
-            videoDecoder = new VideoDecoder(videoDecoderInterface, this);
-            if (!videoDecoder.initExtractor(videoPath)) {
-              throw new IOException("fail to reset video file");
-            }
-            videoDecoder.prepareVideo(this.glInterface.getSurface());
-            videoDecoder.start();
-            videoDecoder.moveTo(time);
-          }
-        } catch (IOException e) {
-          Log.e(TAG, "Error", e);
-        }
+        this.glInterface.removeMediaCodecSurface();
+        this.glInterface.stop();
+        this.glInterface = glInterface;
+        this.glInterface.init();
+        prepareGlView();
+        videoDecoder.changeOutputSurface(this.glInterface.getSurface());
       } else {
         this.glInterface = glInterface;
         this.glInterface.init();
@@ -394,7 +363,7 @@ public abstract class FromFileBase
         if (glInterface != null) {
           glInterface.addMediaCodecSurface(videoEncoder.getInputSurface());
         } else {
-          videoDecoder.reset(videoEncoder.getInputSurface());
+          videoDecoder.changeOutputSurface(videoEncoder.getInputSurface());
         }
       }
     }
@@ -601,50 +570,6 @@ public abstract class FromFileBase
   public void moveTo(double time) {
     if (videoEnabled) videoDecoder.moveTo(time);
     if (audioEnabled) audioDecoder.moveTo(time);
-  }
-
-  @Override
-  public void onReset(boolean isVideo) {
-    synchronized (sync) {
-      try {
-        if (isVideo) {
-          if (glInterface != null) {
-            glInterface.removeMediaCodecSurface();
-            glInterface.stop();
-          }
-          if (videoEnabled) {
-            videoDecoder.stop();
-            boolean loopMode = videoDecoder.isLoopMode();
-            videoDecoder = new VideoDecoder(videoDecoderInterface, this);
-            videoDecoder.setLoopMode(loopMode);
-            if (!videoDecoder.initExtractor(videoPath)) {
-              throw new IOException("fail to reset video file");
-            }
-            prepareGlView();
-            videoDecoder.start();
-          }
-        } else {
-          if (audioEnabled) {
-            audioDecoder.stop();
-            boolean loopMode = audioDecoder.isLoopMode();
-            audioDecoder = new AudioDecoder(this, audioDecoderInterface, this);
-            audioDecoder.setLoopMode(loopMode);
-            if (!audioDecoder.initExtractor(audioPath)) {
-              throw new IOException("fail to reset audio file");
-            }
-            audioDecoder.prepareAudio();
-            audioDecoder.start();
-          }
-        }
-      } catch (IOException e) {
-        Log.e(TAG, "Error", e);
-        if (isVideo) {
-          videoDecoderInterface.onVideoDecoderFinished();
-        } else {
-          audioDecoderInterface.onAudioDecoderFinished();
-        }
-      }
-    }
   }
 
   protected abstract void onSpsPpsVpsRtp(ByteBuffer sps, ByteBuffer pps, ByteBuffer vps);

@@ -23,6 +23,8 @@ import android.os.Build;
 import android.os.Bundle;
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
+
+import android.os.Handler;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.Button;
@@ -338,7 +340,16 @@ public class RtspFromFileActivity extends AppCompatActivity
 
   @Override
   public void onStopTrackingTouch(SeekBar seekBar) {
-    if (rtspFromFile.isStreaming()) rtspFromFile.moveTo(seekBar.getProgress());
+    if (rtspFromFile.isStreaming() || rtspFromFile.isRecording()) {
+      rtspFromFile.moveTo(seekBar.getProgress());
+      //re sync after move to avoid async
+      new Handler().postDelayed(new Runnable() {
+        @Override
+        public void run() {
+          rtspFromFile.reSyncFile();
+        }
+      }, 500);
+    }
     touching = false;
   }
 }

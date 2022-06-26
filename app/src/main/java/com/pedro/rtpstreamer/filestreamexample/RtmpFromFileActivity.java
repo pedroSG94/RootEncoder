@@ -23,6 +23,8 @@ import android.os.Build;
 import android.os.Bundle;
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
+
+import android.os.Handler;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.Button;
@@ -335,7 +337,16 @@ public class RtmpFromFileActivity extends AppCompatActivity
 
   @Override
   public void onStopTrackingTouch(SeekBar seekBar) {
-    if (rtmpFromFile.isStreaming()) rtmpFromFile.moveTo(seekBar.getProgress());
+    if (rtmpFromFile.isStreaming() || rtmpFromFile.isRecording()) {
+      rtmpFromFile.moveTo(seekBar.getProgress());
+      //re sync after move to avoid async
+      new Handler().postDelayed(new Runnable() {
+        @Override
+        public void run() {
+          rtmpFromFile.reSyncFile();
+        }
+      }, 500);
+    }
     touching = false;
   }
 }

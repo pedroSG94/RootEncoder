@@ -16,11 +16,9 @@
 
 package com.pedro.encoder.input.decoder;
 
-import android.media.MediaCodec;
 import android.media.MediaExtractor;
 import android.media.MediaFormat;
 import android.os.Build;
-import android.util.Log;
 import android.view.Surface;
 import java.nio.ByteBuffer;
 
@@ -29,20 +27,18 @@ import java.nio.ByteBuffer;
  */
 public class VideoDecoder extends BaseDecoder {
 
-  private VideoDecoderInterface videoDecoderInterface;
+  private final VideoDecoderInterface videoDecoderInterface;
   private int width;
   private int height;
+  private int fps;
 
-  public VideoDecoder(VideoDecoderInterface videoDecoderInterface,
-      LoopFileInterface loopFileInterface) {
-    super(loopFileInterface);
+  public VideoDecoder(VideoDecoderInterface videoDecoderInterface) {
     TAG = "VideoDecoder";
     this.videoDecoderInterface = videoDecoderInterface;
   }
 
   @Override
   protected boolean extract(MediaExtractor videoExtractor) {
-    running = false;
     for (int i = 0; i < videoExtractor.getTrackCount() && !mime.startsWith("video/"); i++) {
       mediaFormat = videoExtractor.getTrackFormat(i);
       mime = mediaFormat.getString(MediaFormat.KEY_MIME);
@@ -56,11 +52,11 @@ public class VideoDecoder extends BaseDecoder {
       width = mediaFormat.getInteger(MediaFormat.KEY_WIDTH);
       height = mediaFormat.getInteger(MediaFormat.KEY_HEIGHT);
       duration = mediaFormat.getLong(MediaFormat.KEY_DURATION);
+      fps = mediaFormat.getInteger(MediaFormat.KEY_FRAME_RATE);
       return true;
       //video decoder not supported
     } else {
       mime = "";
-      mediaFormat = null;
       return false;
     }
   }
@@ -69,59 +65,21 @@ public class VideoDecoder extends BaseDecoder {
     return prepare(surface);
   }
 
-  public void reset(Surface surface) {
-    resetCodec(surface);
+  @Override
+  protected boolean decodeOutput(ByteBuffer outputBuffer) {
+    return true;
   }
 
   @Override
-  protected void decode() {
-    ByteBuffer[] inputBuffers = codec.getInputBuffers();
-    startMs = System.currentTimeMillis();
-    while (running) {
-      int inIndex = codec.dequeueInputBuffer(10000);
-      if (inIndex >= 0) {
-        ByteBuffer buffer = inputBuffers[inIndex];
-        int sampleSize = extractor.readSampleData(buffer, 0);
-        if (sampleSize < 0) {
-          codec.queueInputBuffer(inIndex, 0, 0, 0, MediaCodec.BUFFER_FLAG_END_OF_STREAM);
-        } else {
-          codec.queueInputBuffer(inIndex, 0, sampleSize, extractor.getSampleTime(), 0);
-          extractor.advance();
-        }
-      }
-      int outIndex = codec.dequeueOutputBuffer(bufferInfo, 10000);
-      if (outIndex >= 0) {
-        long extractorTs = extractor.getSampleTime() / 1000;
-        long currentTs = System.currentTimeMillis() - startMs + seekTime;
-        if (extractorTs > currentTs) {
-          try {
-            long sleepTime = extractorTs - currentTs;
-            Thread.sleep(sleepTime);
-          } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            return;
-          }
-        }
-        codec.releaseOutputBuffer(outIndex, bufferInfo.size != 0);
-      }
-    }
-    if ((bufferInfo.flags & MediaCodec.BUFFER_FLAG_END_OF_STREAM) != 0) {
-      seekTime = 0;
-      Log.i(TAG, "end of file out");
-      running = false;
-      if (loopMode) {
-        loopFileInterface.onReset(true);
-      } else {
-        videoDecoderInterface.onVideoDecoderFinished();
-      }
-    }
+  protected void finished() {
+    videoDecoderInterface.onVideoDecoderFinished();
   }
 
   public void changeOutputSurface(Surface surface) {
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
       codec.setOutputSurface(surface);
     } else {
-      reset(surface);
+      resetCodec(surface);
     }
   }
 
@@ -131,5 +89,9 @@ public class VideoDecoder extends BaseDecoder {
 
   public int getHeight() {
     return height;
+  }
+
+  public int getFps() {
+    return fps;
   }
 }
