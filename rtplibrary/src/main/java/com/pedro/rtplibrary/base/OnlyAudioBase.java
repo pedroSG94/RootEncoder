@@ -34,7 +34,7 @@ import com.pedro.encoder.input.audio.MicrophoneManagerManual;
 import com.pedro.encoder.input.audio.MicrophoneMode;
 import com.pedro.rtplibrary.base.recording.BaseRecordController;
 import com.pedro.rtplibrary.base.recording.RecordController;
-import com.pedro.rtplibrary.util.AndroidMuxerRecordController;
+import com.pedro.rtplibrary.util.AacMuxerRecordController;
 
 import java.io.FileDescriptor;
 import java.io.IOException;
@@ -54,7 +54,7 @@ public abstract class OnlyAudioBase implements GetAacData, GetMicrophoneData {
 
   public OnlyAudioBase() {
     setMicrophoneMode(MicrophoneMode.ASYNC);
-    recordController = new AndroidMuxerRecordController();
+    recordController = new AacMuxerRecordController();
   }
 
   /**
@@ -146,7 +146,7 @@ public abstract class OnlyAudioBase implements GetAacData, GetMicrophoneData {
   }
 
   /**
-   * Starts recording an MP4 video. Needs to be called while streaming.
+   * Starts recording an AAC audio. Needs to be called while streaming.
    *
    * @param path Where file will be saved.
    * @throws IOException If initialized before a stream.
@@ -165,7 +165,7 @@ public abstract class OnlyAudioBase implements GetAacData, GetMicrophoneData {
   }
 
   /**
-   * Starts recording an MP4 video. Needs to be called while streaming.
+   * Starts recording an AAC audio. Needs to be called while streaming.
    *
    * @param fd Where the file will be saved.
    * @throws IOException If initialized before a stream.
@@ -218,8 +218,10 @@ public abstract class OnlyAudioBase implements GetAacData, GetMicrophoneData {
    * Stop stream started with @startStream.
    */
   public void stopStream() {
-    streaming = false;
-    stopStreamRtp();
+    if (streaming) {
+      streaming = false;
+      stopStreamRtp();
+    }
     if (!recordController.isRecording()) {
       microphoneManager.stop();
       audioEncoder.stop();

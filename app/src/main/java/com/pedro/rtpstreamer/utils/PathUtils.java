@@ -41,6 +41,10 @@ public class PathUtils {
     return new File(storageDir.getAbsolutePath() + "/rtmp-rtsp-stream-client-java");
   }
 
+  public static File getRecordPath(Context context) {
+    return context.getExternalFilesDir(null);
+  }
+
   public static String getPath(final Context context, final Uri uri) {
 
     // DocumentProvider
