@@ -146,7 +146,7 @@ public abstract class OnlyAudioBase implements GetAacData, GetMicrophoneData {
   }
 
   /**
-   * Starts recording an AAC audio. Needs to be called while streaming.
+   * Starts recording an AAC audio.
    *
    * @param path Where file will be saved.
    * @throws IOException If initialized before a stream.
@@ -165,7 +165,7 @@ public abstract class OnlyAudioBase implements GetAacData, GetMicrophoneData {
   }
 
   /**
-   * Starts recording an AAC audio. Needs to be called while streaming.
+   * Starts recording an AAC audio.
    *
    * @param fd Where the file will be saved.
    * @throws IOException If initialized before a stream.
@@ -185,7 +185,7 @@ public abstract class OnlyAudioBase implements GetAacData, GetMicrophoneData {
   }
 
   /**
-   * Stop record MP4 video started with @startRecord. If you don't call it file will be unreadable.
+   * Stop record AAC audio started with @startRecord. If you don't call it file will be unreadable.
    */
   @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
   public void stopRecord() {

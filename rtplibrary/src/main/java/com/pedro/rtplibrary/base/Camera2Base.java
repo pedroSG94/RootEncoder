@@ -408,7 +408,7 @@ public abstract class Camera2Base implements GetAacData, GetVideoData, GetMicrop
   }
 
   /**
-   * Starts recording an MP4 video. Needs to be called while streaming.
+   * Starts recording a MP4 video.
    *
    * @param path Where file will be saved.
    * @throws IOException If initialized before a stream.
@@ -428,7 +428,7 @@ public abstract class Camera2Base implements GetAacData, GetVideoData, GetMicrop
   }
 
   /**
-   * Starts recording an MP4 video. Needs to be called while streaming.
+   * Starts recording a MP4 video.
    *
    * @param fd Where the file will be saved.
    * @throws IOException If initialized before a stream.
