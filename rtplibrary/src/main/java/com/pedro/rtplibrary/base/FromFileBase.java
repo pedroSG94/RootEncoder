@@ -79,7 +79,6 @@ public abstract class FromFileBase implements GetVideoData, GetAacData, GetMicro
 
   protected boolean videoEnabled = false;
   private boolean audioEnabled = false;
-  private final Object sync = new Object();
   private AudioTrack audioTrackPlayer;
 
   public FromFileBase(VideoDecoderInterface videoDecoderInterface,
@@ -302,9 +301,7 @@ public abstract class FromFileBase implements GetVideoData, GetAacData, GetMicro
   }
 
   public void replaceView(Context context) {
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
-      replaceGlInterface(new OffScreenGlThread(context));
-    }
+    replaceGlInterface(new OffScreenGlThread(context));
   }
 
   public void replaceView(OpenGlView openGlView) {
@@ -319,7 +316,7 @@ public abstract class FromFileBase implements GetVideoData, GetAacData, GetMicro
    * Replace glInterface used on fly. Ignored if you use SurfaceView or TextureView
    */
   private void replaceGlInterface(GlInterface glInterface) {
-    if (this.glInterface != null && Build.VERSION.SDK_INT >= 18 && videoEnabled) {
+    if (this.glInterface != null && videoEnabled) {
       if (isStreaming() || isRecording()) {
         this.glInterface.removeMediaCodecSurface();
         this.glInterface.stop();
