@@ -318,12 +318,13 @@ public abstract class FromFileBase implements GetVideoData, GetAacData, GetMicro
   private void replaceGlInterface(GlInterface glInterface) {
     if (this.glInterface != null && videoEnabled) {
       if (isStreaming() || isRecording()) {
+        videoDecoder.pauseRender();
         this.glInterface.removeMediaCodecSurface();
         this.glInterface.stop();
         this.glInterface = glInterface;
         this.glInterface.init();
         prepareGlView();
-        videoDecoder.changeOutputSurface(this.glInterface.getSurface());
+        videoDecoder.resumeRender();
       } else {
         this.glInterface = glInterface;
         this.glInterface.init();

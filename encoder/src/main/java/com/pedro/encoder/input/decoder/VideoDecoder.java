@@ -21,6 +21,7 @@ import android.media.MediaFormat;
 import android.os.Build;
 import android.view.Surface;
 import java.nio.ByteBuffer;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * Created by pedro on 20/06/17.
@@ -93,5 +94,17 @@ public class VideoDecoder extends BaseDecoder {
 
   public int getFps() {
     return fps;
+  }
+
+  public void pauseRender() {
+    synchronized (sync) {
+      pause.set(true);
+    }
+  }
+
+  public void resumeRender() {
+    synchronized (sync) {
+      pause.set(false);
+    }
   }
 }

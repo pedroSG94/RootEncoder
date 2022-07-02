@@ -33,6 +33,7 @@ import java.io.FileDescriptor;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public abstract class BaseDecoder {
 
@@ -47,8 +48,10 @@ public abstract class BaseDecoder {
   protected boolean loopMode = false;
   private volatile long startTs = 0;
   protected long duration;
-  private final Object sync = new Object();
+  protected final Object sync = new Object();
   private volatile long lastExtractorTs = 0;
+  //Avoid decode while change output surface
+  protected AtomicBoolean pause = new AtomicBoolean(false);
 
   public boolean initExtractor(String filePath) throws IOException {
     extractor = new MediaExtractor();
@@ -219,6 +222,7 @@ public abstract class BaseDecoder {
     long accumulativeTs = 0;
     while (running) {
       synchronized (sync) {
+        if (pause.get()) continue;
         int inIndex = codec.dequeueInputBuffer(10000);
         int sampleSize = 0;
         if (inIndex >= 0) {
