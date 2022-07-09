@@ -31,34 +31,38 @@ import com.pedro.rtpstreamer.databinding.ActivityBackgroundBinding
 class BackgroundActivity : AppCompatActivity(), SurfaceHolder.Callback {
 
   private lateinit var binding: ActivityBackgroundBinding
+  private var service: RtpService? = null
 
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
     binding = ActivityBackgroundBinding.inflate(layoutInflater)
     setContentView(binding.root)
-    RtpService.init(this)
+    RtpService.observer.observe(this) {
+      service = it
+      startPreview()
+    }
+
     binding.bStartStop.setOnClickListener {
-      if (isMyServiceRunning(RtpService::class.java)) {
-        stopService(Intent(applicationContext, RtpService::class.java))
-        binding.bStartStop.setText(R.string.start_button)
+      if (service?.isStreaming() != true) {
+        if (service?.prepare() == true) {
+          service?.startStream(binding.etRtpUrl.text.toString())
+          binding.bStartStop.setText(R.string.stop_button)
+        }
       } else {
-        val intent = Intent(applicationContext, RtpService::class.java)
-        intent.putExtra("endpoint", binding.etRtpUrl.text.toString())
-        startService(intent)
-        binding.bStartStop.setText(R.string.stop_button)
+        service?.stopStream()
+        binding.bStartStop.setText(R.string.start_button)
       }
     }
     binding.surfaceView.holder.addCallback(this)
   }
 
   override fun surfaceChanged(holder: SurfaceHolder, p1: Int, p2: Int, p3: Int) {
-    RtpService.setView(binding.surfaceView)
-    RtpService.startPreview()
+    startPreview()
   }
 
   override fun surfaceDestroyed(holder: SurfaceHolder) {
-    RtpService.setView(applicationContext)
-    RtpService.stopPreview()
+    service?.setView(this)
+    if (service?.isOnPreview() == true) service?.stopPreview()
   }
 
   override fun surfaceCreated(holder: SurfaceHolder) {
@@ -67,10 +71,25 @@ class BackgroundActivity : AppCompatActivity(), SurfaceHolder.Callback {
 
   override fun onResume() {
     super.onResume()
-    if (isMyServiceRunning(RtpService::class.java)) {
+    if (!isMyServiceRunning(RtpService::class.java)) {
+      val intent = Intent(applicationContext, RtpService::class.java)
+      startService(intent)
+    }
+    if (service?.isStreaming() == true) {
       binding.bStartStop.setText(R.string.stop_button)
     } else {
       binding.bStartStop.setText(R.string.start_button)
+    }
+  }
+
+  override fun onPause() {
+    super.onPause()
+    if (!isChangingConfigurations) { //stop if no rotation activity
+      if (service?.isOnPreview() == true) service?.stopPreview()
+      if (service?.isStreaming() != true) {
+        service = null
+        stopService(Intent(applicationContext, RtpService::class.java))
+      }
     }
   }
 
@@ -83,5 +102,15 @@ class BackgroundActivity : AppCompatActivity(), SurfaceHolder.Callback {
       }
     }
     return false
+  }
+
+  private fun startPreview() {
+    if (binding.surfaceView.holder.surface.isValid) {
+      service?.setView(binding.surfaceView)
+    }
+    //check if onPreview and if surface is valid
+    if (service?.isOnPreview() != true && binding.surfaceView.holder.surface.isValid) {
+      service?.startPreview()
+    }
   }
 }

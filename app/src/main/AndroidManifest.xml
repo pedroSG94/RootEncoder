@@ -107,6 +107,7 @@
     <activity
         android:name=".backgroundexample.BackgroundActivity"
         android:label="@string/service_rtp"
+        android:screenOrientation="portrait"
         />
 
     <activity android:name=".rotation.RotationExampleActivity"

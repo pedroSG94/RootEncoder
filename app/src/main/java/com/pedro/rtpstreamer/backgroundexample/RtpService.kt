@@ -27,9 +27,9 @@ import android.os.IBinder
 import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.core.app.NotificationCompat
+import androidx.lifecycle.MutableLiveData
 import com.pedro.rtplibrary.base.Camera2Base
 import com.pedro.rtplibrary.rtmp.RtmpCamera2
-import com.pedro.rtplibrary.rtsp.RtspCamera2
 import com.pedro.rtplibrary.view.OpenGlView
 import com.pedro.rtpstreamer.R
 
@@ -40,161 +40,144 @@ import com.pedro.rtpstreamer.R
 @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
 class RtpService : Service() {
 
-  private var endpoint: String? = null
-
-  override fun onCreate() {
-    super.onCreate()
-    Log.e(TAG, "RTP service create")
-    notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-      val channel = NotificationChannel(channelId, channelId, NotificationManager.IMPORTANCE_HIGH)
-      notificationManager?.createNotificationChannel(channel)
-    }
-    keepAliveTrick()
+  companion object {
+    private const val TAG = "RtpService"
+    private const val channelId = "rtpStreamChannel"
+    private const val notifyId = 123456
+    private var notificationManager: NotificationManager? = null
+    val observer = MutableLiveData<RtpService?>()
   }
 
-  private fun keepAliveTrick() {
-    if (Build.VERSION.SDK_INT > Build.VERSION_CODES.O) {
-      val notification = NotificationCompat.Builder(this, channelId)
-          .setOngoing(true)
-          .setContentTitle("")
-          .setContentText("").build()
-      startForeground(1, notification)
-    } else {
-      startForeground(1, Notification())
-    }
-  }
+  private var camera2Base: Camera2Base? = null
 
   override fun onBind(p0: Intent?): IBinder? {
     return null
   }
 
   override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-    Log.e(TAG, "RTP service started")
-    endpoint = intent?.extras?.getString("endpoint")
-    if (endpoint != null) {
-      prepareStreamRtp()
-      startStreamRtp(endpoint!!)
-    }
+    Log.i(TAG, "RTP service started")
     return START_STICKY
   }
 
-  companion object {
-    private const val TAG = "RtpService"
-    private const val channelId = "rtpStreamChannel"
-    private const val notifyId = 123456
-    private var notificationManager: NotificationManager? = null
-    private var camera2Base: Camera2Base? = null
-    private var openGlView: OpenGlView? = null
-    private var contextApp: Context? = null
-
-    fun setView(openGlView: OpenGlView) {
-      this.openGlView = openGlView
-      camera2Base?.replaceView(openGlView)
+  override fun onCreate() {
+    super.onCreate()
+    Log.i(TAG, "$TAG create")
+    notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+      val channel = NotificationChannel(channelId, channelId, NotificationManager.IMPORTANCE_HIGH)
+      notificationManager?.createNotificationChannel(channel)
     }
-
-    fun setView(context: Context) {
-      contextApp = context
-      this.openGlView = null
-      camera2Base?.replaceView(context)
-    }
-
-    fun startPreview() {
-      camera2Base?.startPreview()
-    }
-
-    fun init(context: Context) {
-      contextApp = context
-      if (camera2Base == null) camera2Base = RtmpCamera2(context, true, connectCheckerRtp)
-    }
-
-    fun stopStream() {
-      if (camera2Base != null) {
-        if (camera2Base!!.isStreaming) camera2Base!!.stopStream()
-      }
-    }
-
-    fun stopPreview() {
-      if (camera2Base != null) {
-        if (camera2Base!!.isOnPreview) camera2Base!!.stopPreview()
-      }
-    }
-
-
-    private val connectCheckerRtp = object : ConnectCheckerRtp {
-      override fun onConnectionStartedRtp(rtpUrl: String) {
-        showNotification("Stream connection started")
-      }
-
-      override fun onConnectionSuccessRtp() {
-        showNotification("Stream started")
-        Log.e(TAG, "RTP service destroy")
-      }
-
-      override fun onNewBitrateRtp(bitrate: Long) {
-
-      }
-
-      override fun onConnectionFailedRtp(reason: String) {
-        showNotification("Stream connection failed")
-        Log.e(TAG, "RTP service destroy")
-      }
-
-      override fun onDisconnectRtp() {
-        showNotification("Stream stopped")
-      }
-
-      override fun onAuthErrorRtp() {
-        showNotification("Stream auth error")
-      }
-
-      override fun onAuthSuccessRtp() {
-        showNotification("Stream auth success")
-      }
-    }
-
-    private fun showNotification(text: String) {
-      contextApp?.let {
-        val notification = NotificationCompat.Builder(it, channelId)
-            .setSmallIcon(R.mipmap.ic_launcher)
-            .setContentTitle("RTP Stream")
-            .setContentText(text).build()
-        notificationManager?.notify(notifyId, notification)
-      }
-    }
+    keepAliveTrick()
+    camera2Base = RtmpCamera2(this, true, connectCheckerRtp)
+    observer.postValue(this)
   }
 
   override fun onDestroy() {
     super.onDestroy()
-    Log.e(TAG, "RTP service destroy")
-    stopStream()
-  }
-
-  private fun prepareStreamRtp() {
+    Log.i(TAG, "RTP service destroy")
+    stopRecord()
     stopStream()
     stopPreview()
-    if (endpoint!!.startsWith("rtmp")) {
-      camera2Base = if (openGlView == null) {
-        RtmpCamera2(baseContext, true, connectCheckerRtp)
-      } else {
-        RtmpCamera2(openGlView, connectCheckerRtp)
-      }
+    observer.postValue(null)
+  }
+
+  private fun keepAliveTrick() {
+    if (Build.VERSION.SDK_INT > Build.VERSION_CODES.O) {
+      val notification = NotificationCompat.Builder(this, channelId)
+        .setOngoing(true)
+        .setContentTitle("")
+        .setContentText("").build()
+      startForeground(1, notification)
     } else {
-      camera2Base = if (openGlView == null) {
-        RtspCamera2(baseContext, true, connectCheckerRtp)
-      } else {
-        RtspCamera2(openGlView, connectCheckerRtp)
-      }
+      startForeground(1, Notification())
     }
   }
 
-  private fun startStreamRtp(endpoint: String) {
-    if (!camera2Base!!.isStreaming) {
-      if (camera2Base!!.prepareVideo() && camera2Base!!.prepareAudio()) {
-        camera2Base!!.startStream(endpoint)
-      }
-    } else {
-      showNotification("You are already streaming :(")
+  private fun showNotification(text: String) {
+    val notification = NotificationCompat.Builder(applicationContext, channelId)
+      .setSmallIcon(R.mipmap.ic_launcher)
+      .setContentTitle("RTP Stream")
+      .setContentText(text).build()
+    notificationManager?.notify(notifyId, notification)
+  }
+
+  fun prepare(): Boolean {
+    return camera2Base?.prepareVideo() ?: false && camera2Base?.prepareAudio() ?: false
+  }
+
+  fun startPreview() {
+    camera2Base?.startPreview()
+  }
+
+  fun stopPreview() {
+    camera2Base?.stopPreview()
+  }
+
+  fun switchCamera() {
+    camera2Base?.switchCamera()
+  }
+
+  fun isStreaming(): Boolean = camera2Base?.isStreaming ?: false
+
+  fun isRecording(): Boolean = camera2Base?.isRecording ?: false
+
+  fun isOnPreview(): Boolean = camera2Base?.isOnPreview ?: false
+
+  fun startStream(endpoint: String) {
+    camera2Base?.startStream(endpoint)
+  }
+
+  fun stopStream() {
+    camera2Base?.stopStream()
+  }
+
+  fun startRecord(path: String) {
+    camera2Base?.startRecord(path) {
+      Log.i(TAG, "record state: ${it.name}")
+    }
+  }
+
+  fun stopRecord() {
+    camera2Base?.stopRecord()
+  }
+
+  fun setView(openGlView: OpenGlView) {
+    camera2Base?.replaceView(openGlView)
+  }
+
+  fun setView(context: Context) {
+    camera2Base?.replaceView(context)
+  }
+
+  private val connectCheckerRtp = object : ConnectCheckerRtp {
+    override fun onConnectionStartedRtp(rtpUrl: String) {
+      showNotification("Stream connection started")
+    }
+
+    override fun onConnectionSuccessRtp() {
+      showNotification("Stream started")
+      Log.e(TAG, "RTP service destroy")
+    }
+
+    override fun onNewBitrateRtp(bitrate: Long) {
+
+    }
+
+    override fun onConnectionFailedRtp(reason: String) {
+      showNotification("Stream connection failed")
+      Log.e(TAG, "RTP service destroy")
+    }
+
+    override fun onDisconnectRtp() {
+      showNotification("Stream stopped")
+    }
+
+    override fun onAuthErrorRtp() {
+      showNotification("Stream auth error")
+    }
+
+    override fun onAuthSuccessRtp() {
+      showNotification("Stream auth success")
     }
   }
 }
