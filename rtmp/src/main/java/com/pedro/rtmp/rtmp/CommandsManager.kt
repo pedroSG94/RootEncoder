@@ -35,13 +35,13 @@ import java.io.*
 /**
  * Created by pedro on 21/04/21.
  */
-class CommandsManager {
+abstract class CommandsManager {
 
-  private val TAG = "CommandsManager"
+  protected val TAG = "CommandsManager"
 
   val sessionHistory = CommandSessionHistory()
   var timestamp = 0
-  private var commandId = 0
+  protected var commandId = 0
   var streamId = 0
   var host = ""
   var port = 1935
@@ -57,21 +57,17 @@ class CommandsManager {
   var audioDisabled = false
   var videoDisabled = false
 
-  private var width = 640
-  private var height = 480
-  private var fps = 30
-  private var sampleRate = 44100
-  private var isStereo = true
+  protected var width = 640
+  protected var height = 480
+  var fps = 30
+  protected var sampleRate = 44100
+  protected var isStereo = true
   //Avoid write a packet in middle of other.
   private val writeSync = Any()
 
   fun setVideoResolution(width: Int, height: Int) {
     this.width = width
     this.height = height
-  }
-
-  fun setFps(fps: Int) {
-    this.fps = fps
   }
 
   fun setAudioInfo(sampleRate: Int, isStereo: Boolean) {
@@ -84,7 +80,7 @@ class CommandsManager {
     this.password = password
   }
 
-  private fun getCurrentTimestamp(): Int {
+  protected fun getCurrentTimestamp(): Int {
     return (System.currentTimeMillis() / 1000 - timestamp).toInt()
   }
 
@@ -110,31 +106,8 @@ class CommandsManager {
   fun sendConnect(auth: String, socket: RtmpSocket) {
     synchronized(writeSync) {
       val output = socket.getOutStream()
-      val connect = CommandAmf0("connect", ++commandId, getCurrentTimestamp(), streamId,
-        BasicHeader(ChunkType.TYPE_0, ChunkStreamId.OVER_CONNECTION.mark))
-      val connectInfo = AmfObject()
-      connectInfo.setProperty("app", appName + auth)
-      connectInfo.setProperty("flashVer", "FMLE/3.0 (compatible; Lavf57.56.101)")
-      connectInfo.setProperty("swfUrl", "")
-      connectInfo.setProperty("tcUrl", tcUrl + auth)
-      connectInfo.setProperty("fpad", false)
-      connectInfo.setProperty("capabilities", 239.0)
-      if (!audioDisabled) {
-        connectInfo.setProperty("audioCodecs", 3191.0)
-      }
-      if (!videoDisabled) {
-        connectInfo.setProperty("videoCodecs", 252.0)
-        connectInfo.setProperty("videoFunction", 1.0)
-      }
-      connectInfo.setProperty("pageUrl", "")
-      connectInfo.setProperty("objectEncoding", 0.0)
-      connect.addData(connectInfo)
-
-      connect.writeHeader(output)
-      connect.writeBody(output)
+      sendConnect(auth, output)
       socket.flush()
-      sessionHistory.setPacket(commandId, "connect")
-      Log.i(TAG, "send $connect")
     }
   }
 
@@ -142,35 +115,8 @@ class CommandsManager {
   fun createStream(socket: RtmpSocket) {
     synchronized(writeSync) {
       val output = socket.getOutStream()
-      val releaseStream = CommandAmf0("releaseStream", ++commandId, getCurrentTimestamp(), streamId,
-        BasicHeader(ChunkType.TYPE_0, ChunkStreamId.OVER_STREAM.mark))
-      releaseStream.addData(AmfNull())
-      releaseStream.addData(AmfString(streamName))
-
-      releaseStream.writeHeader(output)
-      releaseStream.writeBody(output)
-      sessionHistory.setPacket(commandId, "releaseStream")
-      Log.i(TAG, "send $releaseStream")
-
-      val fcPublish = CommandAmf0("FCPublish", ++commandId, getCurrentTimestamp(), streamId,
-        BasicHeader(ChunkType.TYPE_0, ChunkStreamId.OVER_STREAM.mark))
-      fcPublish.addData(AmfNull())
-      fcPublish.addData(AmfString(streamName))
-
-      fcPublish.writeHeader(output)
-      fcPublish.writeBody(output)
-      sessionHistory.setPacket(commandId, "FCPublish")
-      Log.i(TAG, "send $fcPublish")
-
-      val createStream = CommandAmf0("createStream", ++commandId, getCurrentTimestamp(), streamId,
-        BasicHeader(ChunkType.TYPE_0, ChunkStreamId.OVER_CONNECTION.mark))
-      createStream.addData(AmfNull())
-
-      createStream.writeHeader(output)
-      createStream.writeBody(output)
+      createStream(output)
       socket.flush()
-      sessionHistory.setPacket(commandId, "createStream")
-      Log.i(TAG, "send $createStream")
     }
   }
 
@@ -187,32 +133,8 @@ class CommandsManager {
   fun sendMetadata(socket: RtmpSocket) {
     synchronized(writeSync) {
       val output = socket.getOutStream()
-      val name = "@setDataFrame"
-      val metadata = DataAmf0(name, getCurrentTimestamp(), streamId)
-      metadata.addData(AmfString("onMetaData"))
-      val amfEcmaArray = AmfEcmaArray()
-      amfEcmaArray.setProperty("duration", 0.0)
-      if (!videoDisabled) {
-        amfEcmaArray.setProperty("width", width.toDouble())
-        amfEcmaArray.setProperty("height", height.toDouble())
-        amfEcmaArray.setProperty("videocodecid", 7.0)
-        amfEcmaArray.setProperty("framerate", fps.toDouble())
-        amfEcmaArray.setProperty("videodatarate", 0.0)
-      }
-      if (!audioDisabled) {
-        amfEcmaArray.setProperty("audiocodecid", 10.0)
-        amfEcmaArray.setProperty("audiosamplerate", sampleRate.toDouble())
-        amfEcmaArray.setProperty("audiosamplesize", 16.0)
-        amfEcmaArray.setProperty("audiodatarate", 0.0)
-        amfEcmaArray.setProperty("stereo", isStereo)
-      }
-      amfEcmaArray.setProperty("filesize", 0.0)
-      metadata.addData(amfEcmaArray)
-
-      metadata.writeHeader(output)
-      metadata.writeBody(output)
+      sendMetadata(output)
       socket.flush()
-      Log.i(TAG, "send $metadata")
     }
   }
 
@@ -220,18 +142,8 @@ class CommandsManager {
   fun sendPublish(socket: RtmpSocket) {
     synchronized(writeSync) {
       val output = socket.getOutStream()
-      val name = "publish"
-      val publish = CommandAmf0(name, ++commandId, getCurrentTimestamp(), streamId,
-        BasicHeader(ChunkType.TYPE_0, ChunkStreamId.OVER_STREAM.mark))
-      publish.addData(AmfNull())
-      publish.addData(AmfString(streamName))
-      publish.addData(AmfString("live"))
-
-      publish.writeHeader(output)
-      publish.writeBody(output)
+      sendPublish(output)
       socket.flush()
-      sessionHistory.setPacket(commandId, name)
-      Log.i(TAG, "send $publish")
     }
   }
 
@@ -261,15 +173,8 @@ class CommandsManager {
   fun sendClose(socket: RtmpSocket) {
     synchronized(writeSync) {
       val output = socket.getOutStream()
-      val name = "closeStream"
-      val closeStream = CommandAmf0(name, ++commandId, getCurrentTimestamp(), streamId, BasicHeader(ChunkType.TYPE_0, ChunkStreamId.OVER_STREAM.mark))
-      closeStream.addData(AmfNull())
-
-      closeStream.writeHeader(output)
-      closeStream.writeBody(output)
+      sendClose(output)
       socket.flush()
-      sessionHistory.setPacket(commandId, name)
-      Log.i(TAG, "send $closeStream")
     }
   }
 
@@ -302,6 +207,12 @@ class CommandsManager {
       return audio.header.getPacketLength() //get packet size with header included to calculate bps
     }
   }
+
+  abstract fun sendConnect(auth: String, output: OutputStream)
+  abstract fun createStream(output: OutputStream)
+  abstract fun sendMetadata(output: OutputStream)
+  abstract fun sendPublish(output: OutputStream)
+  abstract fun sendClose(output: OutputStream)
 
   fun reset() {
     startTs = 0

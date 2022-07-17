@@ -22,7 +22,51 @@ import java.io.OutputStream
 /**
  * Created by pedro on 29/04/21.
  */
-class Amf3Object: Amf3Data() {
+open class Amf3Object(private val properties: HashMap<Amf3String, Amf3Data> = LinkedHashMap()): Amf3Data() {
+
+  protected var bodySize = 0
+
+  fun getProperty(name: String): Amf3Data? {
+    properties.forEach {
+      if (it.key.value == name) {
+        return it.value
+      }
+    }
+    return null
+  }
+
+  open fun setProperty(name: String, data: String) {
+    val key = Amf3String(name)
+    val value = Amf3String(data)
+    properties[key] = value
+    bodySize += key.getSize()
+    bodySize += value.getSize() + 1
+  }
+
+  open fun setProperty(name: String, data: Boolean) {
+    val key = Amf3String(name)
+    val value = if (data) Amf3True() else Amf3False()
+    properties[key] = value
+    bodySize += key.getSize()
+    bodySize += value.getSize() + 1
+  }
+
+  open fun setProperty(name: String) {
+    val key = Amf3String(name)
+    val value = Amf3Null()
+    properties[key] = value
+    bodySize += key.getSize()
+    bodySize += value.getSize() + 1
+  }
+
+  open fun setProperty(name: String, data: Double) {
+    val key = Amf3String(name)
+    val value = Amf3Double(data)
+    properties[key] = value
+    bodySize += key.getSize()
+    bodySize += value.getSize() + 1
+  }
+
 
   override fun readBody(input: InputStream) {
     TODO("Not yet implemented")

@@ -16,15 +16,65 @@
 
 package com.pedro.rtmp.rtmp.message.data
 
+import com.pedro.rtmp.amf.v0.AmfData
+import com.pedro.rtmp.amf.v0.AmfString
 import com.pedro.rtmp.rtmp.chunk.ChunkStreamId
 import com.pedro.rtmp.rtmp.chunk.ChunkType
 import com.pedro.rtmp.rtmp.message.BasicHeader
 import com.pedro.rtmp.rtmp.message.MessageType
+import java.io.ByteArrayOutputStream
+import java.io.InputStream
 
 /**
  * Created by pedro on 21/04/21.
  */
-class DataAmf0(name: String = "", timeStamp: Int = 0, streamId: Int = 0, basicHeader: BasicHeader = BasicHeader(ChunkType.TYPE_0, ChunkStreamId.OVER_CONNECTION.mark)):
-    Data(name, timeStamp, streamId, basicHeader) {
+class DataAmf0(private val name: String = "", timeStamp: Int = 0, streamId: Int = 0, basicHeader: BasicHeader = BasicHeader(ChunkType.TYPE_0, ChunkStreamId.OVER_CONNECTION.mark)) :
+    Data(timeStamp, streamId, basicHeader) {
+  private val data: MutableList<AmfData> = mutableListOf()
+
+  init {
+    val amfString = AmfString(name)
+    bodySize += amfString.getSize() + 1
+    data.forEach {
+      bodySize += it.getSize() + 1
+    }
+  }
+
+  fun addData(amfData: AmfData) {
+    data.add(amfData)
+    bodySize += amfData.getSize() + 1
+    header.messageLength = bodySize
+  }
+
+  override fun readBody(input: InputStream) {
+    data.clear()
+    bodySize = 0
+    val amfString = AmfString()
+    amfString.readHeader(input)
+    amfString.readBody(input)
+    bodySize += amfString.getSize() + 1
+    while (bodySize < header.messageLength) {
+      val amfData = AmfData.getAmfData(input)
+      data.add(amfData)
+      bodySize += amfData.getSize() + 1
+    }
+  }
+
+  override fun storeBody(): ByteArray {
+    val byteArrayOutputStream = ByteArrayOutputStream()
+    val amfString = AmfString(name)
+    amfString.writeHeader(byteArrayOutputStream)
+    amfString.writeBody(byteArrayOutputStream)
+    data.forEach {
+      it.writeHeader(byteArrayOutputStream)
+      it.writeBody(byteArrayOutputStream)
+    }
+    return byteArrayOutputStream.toByteArray()
+  }
+
   override fun getType(): MessageType = MessageType.DATA_AMF0
+
+  override fun toString(): String {
+    return "Data(name='$name', data=$data, bodySize=$bodySize)"
+  }
 }

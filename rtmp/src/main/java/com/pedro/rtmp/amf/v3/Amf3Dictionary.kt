@@ -18,11 +18,12 @@ package com.pedro.rtmp.amf.v3
 
 import java.io.InputStream
 import java.io.OutputStream
+import java.util.LinkedHashMap
 
 /**
  * Created by pedro on 29/04/21.
  */
-class Amf3Dictionary: Amf3Data() {
+class Amf3Dictionary(private val properties: HashMap<Amf3String, Amf3Data> = LinkedHashMap()): Amf3Object(properties) {
 
   override fun readBody(input: InputStream) {
     TODO("Not yet implemented")

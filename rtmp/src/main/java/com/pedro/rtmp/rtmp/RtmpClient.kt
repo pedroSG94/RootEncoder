@@ -18,6 +18,7 @@ package com.pedro.rtmp.rtmp
 
 import android.media.MediaCodec
 import android.util.Log
+import com.pedro.rtmp.amf.AmfVersion
 import com.pedro.rtmp.amf.v0.AmfNumber
 import com.pedro.rtmp.amf.v0.AmfObject
 import com.pedro.rtmp.amf.v0.AmfString
@@ -51,7 +52,7 @@ class RtmpClient(private val connectCheckerRtmp: ConnectCheckerRtmp) {
 
   private var socket: RtmpSocket? = null
   private var thread: ExecutorService? = null
-  private val commandsManager = CommandsManager()
+  private var commandsManager: CommandsManager = CommandsManagerAmf0()
   private val rtmpSender = RtmpSender(connectCheckerRtmp, commandsManager)
 
   @Volatile
@@ -81,6 +82,15 @@ class RtmpClient(private val connectCheckerRtmp: ConnectCheckerRtmp) {
     get() = rtmpSender.getSentAudioFrames()
   val sentVideoFrames: Long
     get() = rtmpSender.getSentVideoFrames()
+
+  fun setAmfVersion(amfVersion: AmfVersion) {
+    if (!isStreaming) {
+      when (amfVersion) {
+        AmfVersion.VERSION_0 -> commandsManager = CommandsManagerAmf0()
+        AmfVersion.VERSION_3 -> commandsManager = CommandsManagerAmf3()
+      }
+    }
+  }
 
   /**
    * Check periodically if server is alive using Echo protocol.
@@ -146,7 +156,7 @@ class RtmpClient(private val connectCheckerRtmp: ConnectCheckerRtmp) {
   }
 
   fun setFps(fps: Int) {
-    commandsManager.setFps(fps)
+    commandsManager.fps = fps
   }
 
   @JvmOverloads
@@ -337,7 +347,7 @@ class RtmpClient(private val connectCheckerRtmp: ConnectCheckerRtmp) {
               }
               "createStream" -> {
                 try {
-                  commandsManager.streamId = (command.data[3] as AmfNumber).value.toInt()
+                  commandsManager.streamId = command.getStreamId()
                   commandsManager.sendPublish(socket)
                 } catch (e: ClassCastException) {
                   Log.e(TAG, "error parsing _result createStream", e)
@@ -348,7 +358,7 @@ class RtmpClient(private val connectCheckerRtmp: ConnectCheckerRtmp) {
           }
           "_error" -> {
             try {
-              val description = ((command.data[3] as AmfObject).getProperty("description") as AmfString).value
+              val description = command.getDescription()
               when (commandName) {
                 "connect" -> {
                   if (description.contains("reason=authfail") || description.contains("reason=nosuchuser")) {
@@ -398,7 +408,7 @@ class RtmpClient(private val connectCheckerRtmp: ConnectCheckerRtmp) {
           }
           "onStatus" -> {
             try {
-              when (val code = ((command.data[3] as AmfObject).getProperty("code") as AmfString).value) {
+              when (val code = command.getCode()) {
                 "NetStream.Publish.Start" -> {
                   commandsManager.sendMetadata(socket)
                   connectCheckerRtmp.onConnectionSuccessRtmp()
