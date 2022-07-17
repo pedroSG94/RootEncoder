@@ -204,8 +204,8 @@ class CommandsManager {
         amfEcmaArray.setProperty("audiosamplerate", sampleRate.toDouble())
         amfEcmaArray.setProperty("audiosamplesize", 16.0)
         amfEcmaArray.setProperty("audiodatarate", 0.0)
+        amfEcmaArray.setProperty("stereo", isStereo)
       }
-      amfEcmaArray.setProperty("stereo", isStereo)
       amfEcmaArray.setProperty("filesize", 0.0)
       metadata.addData(amfEcmaArray)
 

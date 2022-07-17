@@ -49,6 +49,7 @@ abstract class Data(private val name: String, timeStamp: Int, streamId: Int, bas
   }
 
   override fun readBody(input: InputStream) {
+    data.clear()
     bodySize = 0
     val amfString = AmfString()
     amfString.readHeader(input)
