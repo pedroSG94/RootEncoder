@@ -18,46 +18,43 @@ package com.pedro.rtmp.amf.v0
 
 import com.pedro.rtmp.utils.readUInt16
 import com.pedro.rtmp.utils.readUntil
-import com.pedro.rtmp.utils.writeUInt16
 import java.io.IOException
 import java.io.InputStream
 import java.io.OutputStream
+import java.nio.ByteBuffer
 import kotlin.jvm.Throws
 
 /**
- * Created by pedro on 8/04/21.
+ * Created by pedro on 19/07/22.
  *
- * A string encoded in UTF-8 where 2 first bytes indicate string size
+ * milliseconds from 1st Jan 1970 in UTC time zone.
+ * timeZone value is a reserved value that should be 0x0000
  */
-class AmfString(var value: String = ""): AmfData() {
-
-  private var bodySize: Int = value.toByteArray(Charsets.UTF_8).size + 2
+class AmfDate(var date: Double = System.currentTimeMillis().toDouble()): AmfData() {
 
   @Throws(IOException::class)
   override fun readBody(input: InputStream) {
-    //read value size as UInt16
-    bodySize = input.readUInt16()
-    //read value in UTF-8
-    val bytes = ByteArray(bodySize)
-    bodySize += 2
+    val bytes = ByteArray(getSize())
     input.readUntil(bytes)
-    value = String(bytes, Charsets.UTF_8)
+    val value = ByteBuffer.wrap(bytes).long
+    date = Double.Companion.fromBits(value)
+    val timeZone = byteArrayOf(0x00, 0x00)
+    input.readUntil(timeZone)
   }
 
   @Throws(IOException::class)
   override fun writeBody(output: OutputStream) {
-    //write value size as UInt16. Value size not included
-    output.writeUInt16(bodySize - 2)
-    //write value bytes in UTF-8
-    val bytes = value.toByteArray(Charsets.UTF_8)
-    output.write(bytes)
+    val byteBuffer = ByteBuffer.allocate(getSize()).putLong(date.toRawBits())
+    output.write(byteBuffer.array())
+    val timeZone = byteArrayOf(0x00, 0x00)
+    output.write(timeZone)
   }
 
-  override fun getType(): AmfType = AmfType.STRING
+  override fun getType(): AmfType = AmfType.DATE
 
-  override fun getSize(): Int = bodySize
+  override fun getSize(): Int = 0
 
   override fun toString(): String {
-    return "AmfString value: $value"
+    return "AmfUnsupported"
   }
 }

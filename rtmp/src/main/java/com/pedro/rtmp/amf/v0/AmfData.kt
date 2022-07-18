@@ -42,6 +42,10 @@ abstract class AmfData {
         AmfType.UNDEFINED -> AmfUndefined()
         AmfType.ECMA_ARRAY -> AmfEcmaArray()
         AmfType.STRICT_ARRAY -> AmfStrictArray()
+        AmfType.DATE -> AmfDate()
+        AmfType.LONG_STRING -> AmfLongString()
+        AmfType.UNSUPPORTED -> AmfUnsupported()
+        AmfType.XML_DOCUMENT -> AmfXmlDocument()
         else -> throw IOException("Unimplemented AMF data type: ${type.name}")
       }
       amfData.readBody(input)

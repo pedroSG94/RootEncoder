@@ -31,7 +31,7 @@ class CommandsManagerAmf3: CommandsManager() {
       connectInfo.setProperty("videoFunction", 1.0)
     }
     connectInfo.setProperty("pageUrl", "")
-    connectInfo.setProperty("objectEncoding", 0.0)
+    connectInfo.setProperty("objectEncoding", 3.0)
     connect.addData(connectInfo)
 
     connect.writeHeader(output)

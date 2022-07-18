@@ -16,21 +16,33 @@
 
 package com.pedro.rtmp.amf.v0
 
-/**
- * Created by pedro on 20/04/21.
- */
-enum class AmfType(val mark: Byte) {
-  NUMBER(0x00), BOOLEAN(0x01), STRING(0x02), OBJECT(0x03),
-  NULL(0x05), UNDEFINED(0x06), ECMA_ARRAY(0x08), OBJECT_END(0x09),
-  STRICT_ARRAY(0x0A), DATE(0x0B), LONG_STRING(0x0C), UNSUPPORTED(0x0D),
-  XML_DOCUMENT(0x0F),
-  /**
-   * Not implemented
-   */
-  REFERENCE(0x07), TYPED_OBJECT(0x10), AVM_PLUS_OBJECT(0x11),
+import java.io.IOException
+import java.io.InputStream
+import java.io.OutputStream
+import kotlin.jvm.Throws
 
-  /**
-   * reserved, not supported
-   */
-  MOVIE_CLIP(0x04), RECORD_SET(0x0E),
+/**
+ * Created by pedro on 19/07/22.
+ *
+ * Contain an empty body
+ */
+class AmfUnsupported: AmfData() {
+
+  @Throws(IOException::class)
+  override fun readBody(input: InputStream) {
+    //no body to read
+  }
+
+  @Throws(IOException::class)
+  override fun writeBody(output: OutputStream) {
+    //no body to write
+  }
+
+  override fun getType(): AmfType = AmfType.UNSUPPORTED
+
+  override fun getSize(): Int = 0
+
+  override fun toString(): String {
+    return "AmfUnsupported"
+  }
 }

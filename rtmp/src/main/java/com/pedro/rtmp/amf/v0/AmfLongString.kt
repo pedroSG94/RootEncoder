@@ -16,27 +16,25 @@
 
 package com.pedro.rtmp.amf.v0
 
-import com.pedro.rtmp.utils.readUInt16
-import com.pedro.rtmp.utils.readUntil
-import com.pedro.rtmp.utils.writeUInt16
+import com.pedro.rtmp.utils.*
 import java.io.IOException
 import java.io.InputStream
 import java.io.OutputStream
 import kotlin.jvm.Throws
 
 /**
- * Created by pedro on 8/04/21.
+ * Created by pedro on 19/07/22.
  *
- * A string encoded in UTF-8 where 2 first bytes indicate string size
+ * A string encoded in UTF-8 where 4 first bytes indicate string size
  */
-class AmfString(var value: String = ""): AmfData() {
+open class AmfLongString(var value: String = ""): AmfData() {
 
   private var bodySize: Int = value.toByteArray(Charsets.UTF_8).size + 2
 
   @Throws(IOException::class)
   override fun readBody(input: InputStream) {
-    //read value size as UInt16
-    bodySize = input.readUInt16()
+    //read value size as UInt32
+    bodySize = input.readUInt32()
     //read value in UTF-8
     val bytes = ByteArray(bodySize)
     bodySize += 2
@@ -46,18 +44,18 @@ class AmfString(var value: String = ""): AmfData() {
 
   @Throws(IOException::class)
   override fun writeBody(output: OutputStream) {
-    //write value size as UInt16. Value size not included
-    output.writeUInt16(bodySize - 2)
-    //write value bytes in UTF-8
     val bytes = value.toByteArray(Charsets.UTF_8)
+    //write value size as UInt32. Value size not included
+    output.writeUInt32(bodySize - 2)
+    //write value bytes in UTF-8
     output.write(bytes)
   }
 
-  override fun getType(): AmfType = AmfType.STRING
+  override fun getType(): AmfType = AmfType.LONG_STRING
 
   override fun getSize(): Int = bodySize
 
   override fun toString(): String {
-    return "AmfString value: $value"
+    return "AmfLongString value: $value"
   }
 }
