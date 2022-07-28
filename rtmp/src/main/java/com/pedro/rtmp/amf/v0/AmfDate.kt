@@ -16,7 +16,6 @@
 
 package com.pedro.rtmp.amf.v0
 
-import com.pedro.rtmp.utils.readUInt16
 import com.pedro.rtmp.utils.readUntil
 import java.io.IOException
 import java.io.InputStream
