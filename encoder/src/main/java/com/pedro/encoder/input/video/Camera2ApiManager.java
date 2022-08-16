@@ -1003,8 +1003,10 @@ public class Camera2ApiManager extends CameraDevice.StateCallback {
     imageReader = ImageReader.newInstance(width, height, format, maxImages);
     imageReader.setOnImageAvailableListener(reader -> {
       Image image = reader.acquireLatestImage();
-      listener.onImageAvailable(image);
-      image.close();
+      if (image != null) {
+        listener.onImageAvailable(image);
+        image.close();
+      }
     }, new Handler(imageThread.getLooper()));
     if (wasRunning) {
       if (textureView != null) {
