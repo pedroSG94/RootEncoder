@@ -162,7 +162,7 @@ public abstract class FromFileBase implements GetVideoData, GetAacData, GetMicro
   }
 
   /**
-   * @param filePath to video MP4 file.
+   * @param filePath to audio file.
    * @param bitRate AAC in kb.
    * @return true if success, false if you get a error (Normally because the encoder selected
    * doesn't support any configuration seated or your device hasn't a H264 encoder).
@@ -170,6 +170,22 @@ public abstract class FromFileBase implements GetVideoData, GetAacData, GetMicro
    */
   public boolean prepareAudio(String filePath, int bitRate) throws IOException {
     if (!audioDecoder.initExtractor(filePath)) return false;
+    return finishPrepareAudio(bitRate);
+  }
+
+  /**
+   * @param fileDescriptor to audio file.
+   * @param bitRate AAC in kb.
+   * @return true if success, false if you get a error (Normally because the encoder selected
+   * doesn't support any configuration seated or your device hasn't a H264 encoder).
+   * @throws IOException Normally file not found.
+   */
+  public boolean prepareAudio(FileDescriptor fileDescriptor, int bitRate) throws IOException {
+    if (!audioDecoder.initExtractor(fileDescriptor)) return false;
+    return finishPrepareAudio(bitRate);
+  }
+
+  private boolean finishPrepareAudio(int bitRate) {
     audioDecoder.prepareAudio();
     boolean result = audioEncoder.prepareAudioEncoder(bitRate, audioDecoder.getSampleRate(),
         audioDecoder.isStereo(), audioDecoder.getOutsize());
