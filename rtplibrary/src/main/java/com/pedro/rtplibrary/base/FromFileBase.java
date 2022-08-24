@@ -144,6 +144,39 @@ public abstract class FromFileBase implements GetVideoData, GetAacData, GetMicro
   public boolean prepareVideo(String filePath, int bitRate, int rotation, int avcProfile,
       int avcProfileLevel) throws IOException {
     if (!videoDecoder.initExtractor(filePath)) return false;
+    return finishPrepareVideo(bitRate, rotation, avcProfile, avcProfileLevel);
+  }
+
+  /**
+   * @param fileDescriptor to video MP4 file.
+   * @param bitRate H264 in bps.
+   * @return true if success, false if you get a error (Normally because the encoder selected
+   * doesn't support any configuration seated or your device hasn't a H264 encoder).
+   * @throws IOException Normally file not found.
+   */
+  public boolean prepareVideo(FileDescriptor fileDescriptor, int bitRate, int rotation, int avcProfile,
+      int avcProfileLevel) throws IOException {
+    if (!videoDecoder.initExtractor(fileDescriptor)) return false;
+    return finishPrepareVideo(bitRate, rotation, avcProfile, avcProfileLevel);
+  }
+
+  public boolean prepareVideo(String filePath, int bitRate, int rotation) throws IOException {
+    return prepareVideo(filePath, bitRate, rotation, -1, -1);
+  }
+
+  public boolean prepareVideo(FileDescriptor fileDescriptor, int bitRate, int rotation) throws IOException {
+    return prepareVideo(fileDescriptor, bitRate, rotation, -1, -1);
+  }
+
+  public boolean prepareVideo(String filePath) throws IOException {
+    return prepareVideo(filePath, 1200 * 1024, 0);
+  }
+
+  public boolean prepareVideo(FileDescriptor fileDescriptor) throws IOException {
+    return prepareVideo(fileDescriptor, 1200 * 1024, 0);
+  }
+
+  private boolean finishPrepareVideo(int bitRate, int rotation, int avcProfile,  int avcProfileLevel) {
     boolean result =
         videoEncoder.prepareVideoEncoder(videoDecoder.getWidth(), videoDecoder.getHeight(), videoDecoder.getFps(),
             bitRate, rotation, 2, FormatVideoEncoder.SURFACE, avcProfile, avcProfileLevel);
@@ -151,14 +184,6 @@ public abstract class FromFileBase implements GetVideoData, GetAacData, GetMicro
     result = videoDecoder.prepareVideo(videoEncoder.getInputSurface());
     videoEnabled = result;
     return result;
-  }
-
-  public boolean prepareVideo(String filePath, int bitRate, int rotation) throws IOException {
-    return prepareVideo(filePath, bitRate, rotation, -1, -1);
-  }
-
-  public boolean prepareVideo(String filePath) throws IOException {
-    return prepareVideo(filePath, 1200 * 1024, 0);
   }
 
   /**
