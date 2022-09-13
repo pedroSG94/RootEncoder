@@ -2,12 +2,12 @@ apply plugin: 'com.android.application'
 apply plugin: 'kotlin-android'
 
 android {
-  compileSdkVersion 32
+  compileSdkVersion 33
 
   defaultConfig {
     applicationId "com.pedro.rtpstreamer"
     minSdkVersion 16
-    targetSdkVersion 32
+    targetSdkVersion 33
     versionCode version_code
     versionName version_name
   }

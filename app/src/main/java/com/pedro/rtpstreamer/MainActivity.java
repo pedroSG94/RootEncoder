@@ -23,8 +23,11 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
+
+import androidx.annotation.RequiresApi;
 import androidx.core.app.ActivityCompat;
 import androidx.appcompat.app.AppCompatActivity;
+
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.GridView;
@@ -66,6 +69,12 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
       Manifest.permission.WRITE_EXTERNAL_STORAGE
   };
 
+  @RequiresApi(api = Build.VERSION_CODES.TIRAMISU)
+  private final String[] PERMISSIONS_A_13 = {
+          Manifest.permission.RECORD_AUDIO, Manifest.permission.CAMERA,
+          Manifest.permission.POST_NOTIFICATIONS
+  };
+
   @Override
   protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
@@ -77,9 +86,18 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
     list = findViewById(R.id.list);
     createList();
     setListAdapter(activities);
+    requestPermissions();
+  }
 
-    if (!hasPermissions(this, PERMISSIONS)) {
-      ActivityCompat.requestPermissions(this, PERMISSIONS, 1);
+  private void requestPermissions() {
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+      if (!hasPermissions(this)) {
+        ActivityCompat.requestPermissions(this, PERMISSIONS_A_13, 1);
+      }
+    } else {
+      if (!hasPermissions(this)) {
+        ActivityCompat.requestPermissions(this, PERMISSIONS, 1);
+      }
     }
   }
 
@@ -125,7 +143,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
 
   @Override
   public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
-    if (hasPermissions(this, PERMISSIONS)) {
+    if (hasPermissions(this)) {
       ActivityLink link = activities.get(i);
       int minSdk = link.getMinSdk();
       if (Build.VERSION.SDK_INT >= minSdk) {
@@ -158,7 +176,15 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
 
   private void showPermissionsErrorAndRequest() {
     Toast.makeText(this, "You need permissions before", Toast.LENGTH_SHORT).show();
-    ActivityCompat.requestPermissions(this, PERMISSIONS, 1);
+    requestPermissions();
+  }
+
+  private boolean hasPermissions(Context context) {
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+      return hasPermissions(context, PERMISSIONS_A_13);
+    } else {
+      return hasPermissions(context, PERMISSIONS);
+    }
   }
 
   private boolean hasPermissions(Context context, String... permissions) {
