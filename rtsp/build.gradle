@@ -23,6 +23,7 @@ android {
   publishing {
     singleVariant("release")
   }
+  namespace 'com.pedro.rtsp'
 }
 
 afterEvaluate {
