@@ -57,6 +57,7 @@ open class CommandsManager {
   var protocol: Protocol = Protocol.TCP
   var videoDisabled = false
   var audioDisabled = false
+  var recordDisabled = false
   private val commandParser = CommandParser()
 
   //For udp

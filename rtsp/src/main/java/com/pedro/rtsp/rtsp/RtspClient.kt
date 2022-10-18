@@ -110,6 +110,14 @@ open class RtspClient(private val connectCheckerRtsp: ConnectCheckerRtsp) {
     commandsManager.audioDisabled = onlyVideo
   }
 
+  /**
+   * Must be called before connect
+   */
+  fun setRecordDisabled(recordDisabled: Boolean) {
+    commandsManager.recordDisabled= recordDisabled
+  }
+
+
   fun setProtocol(protocol: Protocol) {
     commandsManager.protocol = protocol
   }
@@ -261,13 +269,17 @@ open class RtspClient(private val connectCheckerRtsp: ConnectCheckerRtsp) {
               return@post
             }
           }
-          writer.write(commandsManager.createRecord())
-          writer.flush()
-          val recordStatus = commandsManager.getResponse(reader, Method.RECORD).status
-          if (recordStatus != 200) {
-            connectCheckerRtsp.onConnectionFailedRtsp("Error configure stream, record $recordStatus")
-            return@post
+
+          if (!commandsManager.recordDisabled) {
+            writer.write(commandsManager.createRecord())
+            writer.flush()
+            val recordStatus = commandsManager.getResponse(reader, Method.RECORD).status
+            if (recordStatus != 200) {
+              connectCheckerRtsp.onConnectionFailedRtsp("Error configure stream, record $recordStatus")
+              return@post
+            }
           }
+
           outputStream?.let { out ->
             rtspSender.setDataStream(out, host)
           }
