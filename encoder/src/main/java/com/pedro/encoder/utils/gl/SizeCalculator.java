@@ -93,6 +93,15 @@ public class SizeCalculator {
           yf = streamHeight * previewWidth / streamWidth;
           yo = (yf - previewHeight) / -2;
         }
+        //aspect ratio 1:1
+      } else {
+        if (previewWidth < previewHeight) {
+          yf = xf;
+          yo = (previewHeight - xf) / 2;
+        } else {
+          xf = yf;
+          xo = (previewWidth - yf) / 2;
+        }
       }
       return new Pair<>(new Point(xo, yo), new Point(xf, yf));
     } else {
