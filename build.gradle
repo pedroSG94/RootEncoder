@@ -3,8 +3,8 @@
 buildscript {
   ext.kotlin_version = '1.7.10'
   ext.library_group = "com.github.pedroSG94"
-  ext.version_code = 220
-  ext.version_name = "2.2.0"
+  ext.version_code = 221
+  ext.version_name = "2.2.1"
 
   repositories {
     google()
