@@ -543,7 +543,7 @@ public abstract class Camera2Base implements GetAacData, GetVideoData, GetMicrop
         glInterface.setFps(videoEncoder.getFps());
         glInterface.start();
         cameraManager.prepareCamera(glInterface.getSurfaceTexture(), width, height,
-            videoEncoder.getFps());
+            videoEncoder.getFps(), cameraId);
       }
       cameraManager.openCameraId(cameraId);
       onPreview = true;

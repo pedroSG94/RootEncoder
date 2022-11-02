@@ -104,7 +104,7 @@ class VideoManager(private val context: Context, private var source: Source) {
         }
         Source.CAMERA2 -> {
           surfaceTexture.setDefaultBufferSize(width, height)
-          camera2.prepareCamera(surfaceTexture, width, height, fps)
+          camera2.prepareCamera(surfaceTexture, width, height, fps, facing)
           camera2.openCameraFacing(facing)
         }
         Source.SCREEN -> {

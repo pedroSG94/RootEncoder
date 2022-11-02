@@ -138,10 +138,22 @@ public class Camera2ApiManager extends CameraDevice.StateCallback {
   }
 
   public void prepareCamera(SurfaceTexture surfaceTexture, int width, int height, int fps) {
-    surfaceTexture.setDefaultBufferSize(width, height);
+    Size optimalResolution = Camera2ResolutionCalculator.INSTANCE.getOptimalResolution(new Size(width, height), getCameraResolutions(facing));
+    Log.i(TAG, "optimal resolution set to: " + optimalResolution.getWidth() + "x" + optimalResolution.getHeight());
+    surfaceTexture.setDefaultBufferSize(optimalResolution.getWidth(), optimalResolution.getHeight());
     this.surfaceEncoder = new Surface(surfaceTexture);
     this.fps = fps;
     prepared = true;
+  }
+
+  public void prepareCamera(SurfaceTexture surfaceTexture, int width, int height, int fps, Facing facing) {
+    this.facing = facing;
+    prepareCamera(surfaceTexture, width, height, fps);
+  }
+
+  public void prepareCamera(SurfaceTexture surfaceTexture, int width, int height, int fps, String cameraId) {
+    this.facing = getFacingByCameraId(cameraManager, cameraId);
+    prepareCamera(surfaceTexture, width, height, fps);
   }
 
   public boolean isPrepared() {
@@ -1076,6 +1088,21 @@ public class Camera2ApiManager extends CameraDevice.StateCallback {
       }
     }
     return null;
+  }
+
+  private Facing getFacingByCameraId(CameraManager cameraManager, String cameraId) {
+    try {
+      for (String id : cameraManager.getCameraIdList()) {
+        if (id.equals(cameraId)) {
+          Integer cameraFacing = cameraManager.getCameraCharacteristics(cameraId).get(CameraCharacteristics.LENS_FACING);
+          if (cameraFacing == CameraMetadata.LENS_FACING_BACK) return Facing.BACK;
+          else return Facing.FRONT;
+        }
+      }
+      return Facing.BACK;
+    } catch (CameraAccessException e) {
+      return Facing.BACK;
+    }
   }
 
   @Nullable
