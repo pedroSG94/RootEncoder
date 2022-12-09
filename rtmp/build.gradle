@@ -20,7 +20,6 @@ android {
   publishing {
     singleVariant("release")
   }
-  namespace 'com.pedro.rtmp'
 }
 
 afterEvaluate {

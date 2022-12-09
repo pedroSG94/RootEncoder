@@ -21,7 +21,6 @@ android {
   publishing {
     singleVariant("release")
   }
-  namespace 'com.pedro.rtplibrary'
 }
 
 afterEvaluate {
