@@ -475,6 +475,8 @@ class RtmpClient(private val connectCheckerRtmp: ConnectCheckerRtmp) {
         }
       } catch (e: IOException) {
         Log.e(TAG, "disconnect error", e)
+      } finally {
+        closeConnection()
       }
     }
     try {
@@ -483,8 +485,6 @@ class RtmpClient(private val connectCheckerRtmp: ConnectCheckerRtmp) {
       thread?.awaitTermination(100, TimeUnit.MILLISECONDS)
       thread = null
     } catch (e: Exception) {
-    } finally {
-      closeConnection()
     }
     if (clear) {
       reTries = numRetry
