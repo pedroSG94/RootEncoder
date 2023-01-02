@@ -59,12 +59,14 @@ class TcpSocket(private val host: String, private val port: Int, private val sec
   }
 
   override fun close() {
-    if (socket.isConnected) {
-      socket.getInputStream().close()
-      input.close()
-      output.close()
-      socket.close()
-    }
+    try {
+      if (socket.isConnected) {
+        socket.getInputStream().close()
+        input.close()
+        output.close()
+        socket.close()
+      }
+    } catch (ignored: Exception) {}
   }
 
   override fun isConnected(): Boolean = socket.isConnected
