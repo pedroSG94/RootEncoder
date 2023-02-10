@@ -219,6 +219,7 @@ abstract class CommandsManager {
     timestamp = 0
     streamId = 0
     commandId = 0
+    readChunkSize = RtmpConfig.DEFAULT_CHUNK_SIZE
     sessionHistory.reset()
   }
 }
