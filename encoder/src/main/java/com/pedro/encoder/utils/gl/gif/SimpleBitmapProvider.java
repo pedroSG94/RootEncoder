@@ -12,7 +12,7 @@ final class SimpleBitmapProvider implements GifDecoder.BitmapProvider {
 
   @Override
   public void release(Bitmap bitmap) {
-    bitmap.recycle();
+    if (!bitmap.isRecycled()) bitmap.recycle();
   }
 
   @Override

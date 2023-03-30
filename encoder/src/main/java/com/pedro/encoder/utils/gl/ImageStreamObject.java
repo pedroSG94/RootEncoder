@@ -51,7 +51,7 @@ public class ImageStreamObject extends StreamObjectBase {
 
   @Override
   public void recycle() {
-    if (imageBitmap != null) imageBitmap.recycle();
+    if (imageBitmap != null && !imageBitmap.isRecycled()) imageBitmap.recycle();
   }
 
   @Override

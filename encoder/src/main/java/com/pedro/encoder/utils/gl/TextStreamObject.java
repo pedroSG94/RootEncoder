@@ -56,7 +56,7 @@ public class TextStreamObject extends StreamObjectBase {
 
   @Override
   public void recycle() {
-    if (imageBitmap != null) imageBitmap.recycle();
+    if (imageBitmap != null && !imageBitmap.isRecycled()) imageBitmap.recycle();
   }
 
   private Bitmap textAsBitmap(String text, float textSize, int textColor, Typeface typeface) {
