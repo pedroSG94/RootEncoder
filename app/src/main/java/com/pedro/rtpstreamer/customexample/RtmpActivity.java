@@ -99,7 +99,7 @@ public class RtmpActivity extends AppCompatActivity
     SurfaceView surfaceView = findViewById(R.id.surfaceView);
     surfaceView.getHolder().addCallback(this);
     surfaceView.setOnTouchListener(this);
-    rtmpCamera1 = new RtmpCamera1(surfaceView, this);
+    rtmpCamera1 = new RtmpCamera1(surfaceView, this, "");
     prepareOptionsMenuViews();
     tvBitrate = findViewById(R.id.tv_bitrate);
     etUrl = findViewById(R.id.et_rtp_url);

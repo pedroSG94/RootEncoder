@@ -56,6 +56,7 @@ abstract class CommandsManager {
   var readChunkSize = RtmpConfig.DEFAULT_CHUNK_SIZE
   var audioDisabled = false
   var videoDisabled = false
+  var flashVer = "FMLE/3.0 (compatible; My Fit Pro Android)"
 
   protected var width = 640
   protected var height = 480

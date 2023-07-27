@@ -44,32 +44,32 @@ public class RtmpCamera1 extends Camera1Base {
 
   private final RtmpClient rtmpClient;
 
-  public RtmpCamera1(SurfaceView surfaceView, ConnectCheckerRtmp connectChecker) {
+  public RtmpCamera1(SurfaceView surfaceView, ConnectCheckerRtmp connectChecker, String appVersion) {
     super(surfaceView);
-    rtmpClient = new RtmpClient(connectChecker);
+    rtmpClient = new RtmpClient(connectChecker, appVersion);
   }
 
   public RtmpCamera1(TextureView textureView, ConnectCheckerRtmp connectChecker) {
     super(textureView);
-    rtmpClient = new RtmpClient(connectChecker);
+    rtmpClient = new RtmpClient(connectChecker, "");
   }
 
   @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
   public RtmpCamera1(OpenGlView openGlView, ConnectCheckerRtmp connectChecker) {
     super(openGlView);
-    rtmpClient = new RtmpClient(connectChecker);
+    rtmpClient = new RtmpClient(connectChecker, "");
   }
 
   @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
   public RtmpCamera1(LightOpenGlView lightOpenGlView, ConnectCheckerRtmp connectChecker) {
     super(lightOpenGlView);
-    rtmpClient = new RtmpClient(connectChecker);
+    rtmpClient = new RtmpClient(connectChecker, "");
   }
 
   @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
   public RtmpCamera1(Context context, ConnectCheckerRtmp connectChecker) {
     super(context);
-    rtmpClient = new RtmpClient(connectChecker);
+    rtmpClient = new RtmpClient(connectChecker, "");
   }
 
   /**

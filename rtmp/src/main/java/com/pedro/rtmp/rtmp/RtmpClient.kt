@@ -45,7 +45,7 @@ import java.util.regex.Pattern
 /**
  * Created by pedro on 8/04/21.
  */
-class RtmpClient(private val connectCheckerRtmp: ConnectCheckerRtmp) {
+class RtmpClient(private val connectCheckerRtmp: ConnectCheckerRtmp, var appVersion: String) {
 
   private val TAG = "RtmpClient"
   private val rtmpUrlPattern = Pattern.compile("^rtmpt?s?://([^/:]+)(?::(\\d+))*/([^/]+)/?([^*]*)$")
@@ -181,6 +181,8 @@ class RtmpClient(private val connectCheckerRtmp: ConnectCheckerRtmp) {
             "Endpoint malformed, should be: rtmp://ip:port/appname/streamname")
         return
       }
+
+      commandsManager.flashVer = "FMLE/3.0 (compatible; My Fit Pro Android/${appVersion})"
 
       commandsManager.host = rtmpMatcher.group(1) ?: ""
       val portStr = rtmpMatcher.group(2)

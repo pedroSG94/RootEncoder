@@ -18,7 +18,7 @@ class CommandsManagerAmf3: CommandsManager() {
         BasicHeader(ChunkType.TYPE_0, ChunkStreamId.OVER_CONNECTION.mark))
     val connectInfo = Amf3Object()
     connectInfo.setProperty("app", appName + auth)
-    connectInfo.setProperty("flashVer", "FMLE/3.0 (compatible; My Fit Pro Android/2.0.2)")
+    connectInfo.setProperty("flashVer", flashVer)
     connectInfo.setProperty("swfUrl", "")
     connectInfo.setProperty("tcUrl", tcUrl + auth)
     connectInfo.setProperty("fpad", false)
