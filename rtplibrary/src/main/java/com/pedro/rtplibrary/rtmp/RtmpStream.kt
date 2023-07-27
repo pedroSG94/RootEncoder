@@ -26,7 +26,7 @@ class RtmpStream(context: Context, connectCheckerRtmp: ConnectCheckerRtmp, video
   constructor(context: Context, connectCheckerRtmp: ConnectCheckerRtmp):
       this(context, connectCheckerRtmp, VideoManager.Source.CAMERA2, AudioManager.Source.MICROPHONE)
 
-  private val rtmpClient = RtmpClient(connectCheckerRtmp)
+  private val rtmpClient = RtmpClient(connectCheckerRtmp, "")
 
   /**
    * H264 profile.

@@ -54,7 +54,7 @@ public class RtmpCamera2 extends Camera2Base {
   @Deprecated
   public RtmpCamera2(SurfaceView surfaceView, ConnectCheckerRtmp connectChecker) {
     super(surfaceView);
-    rtmpClient = new RtmpClient(connectChecker);
+    rtmpClient = new RtmpClient(connectChecker, "");
   }
 
   /**
@@ -65,22 +65,22 @@ public class RtmpCamera2 extends Camera2Base {
   @Deprecated
   public RtmpCamera2(TextureView textureView, ConnectCheckerRtmp connectChecker) {
     super(textureView);
-    rtmpClient = new RtmpClient(connectChecker);
+    rtmpClient = new RtmpClient(connectChecker, "");
   }
 
   public RtmpCamera2(OpenGlView openGlView, ConnectCheckerRtmp connectChecker) {
     super(openGlView);
-    rtmpClient = new RtmpClient(connectChecker);
+    rtmpClient = new RtmpClient(connectChecker, "");
   }
 
   public RtmpCamera2(LightOpenGlView lightOpenGlView, ConnectCheckerRtmp connectChecker) {
     super(lightOpenGlView);
-    rtmpClient = new RtmpClient(connectChecker);
+    rtmpClient = new RtmpClient(connectChecker, "");
   }
 
   public RtmpCamera2(Context context, boolean useOpengl, ConnectCheckerRtmp connectChecker) {
     super(context, useOpengl);
-    rtmpClient = new RtmpClient(connectChecker);
+    rtmpClient = new RtmpClient(connectChecker, "");
   }
 
   /**

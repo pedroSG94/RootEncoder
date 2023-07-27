@@ -43,7 +43,7 @@ public class RtmpDisplay extends DisplayBase {
 
   public RtmpDisplay(Context context, boolean useOpengl, ConnectCheckerRtmp connectChecker) {
     super(context, useOpengl);
-    rtmpClient = new RtmpClient(connectChecker);
+    rtmpClient = new RtmpClient(connectChecker, "");
   }
 
   /**

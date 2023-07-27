@@ -82,7 +82,7 @@ public class MultiRtpCamera1 extends Camera1Base {
     int rtmpSize = connectCheckerRtmpList != null ? connectCheckerRtmpList.length : 0;
     rtmpClients = new RtmpClient[rtmpSize];
     for (int i = 0; i < rtmpClients.length; i++) {
-      rtmpClients[i] = new RtmpClient(connectCheckerRtmpList[i]);
+      rtmpClients[i] = new RtmpClient(connectCheckerRtmpList[i], "");
     }
     int rtspSize = connectCheckerRtspList != null ? connectCheckerRtspList.length : 0;
     rtspClients = new RtspClient[rtspSize];
@@ -97,7 +97,7 @@ public class MultiRtpCamera1 extends Camera1Base {
     int rtmpSize = connectCheckerRtmpList != null ? connectCheckerRtmpList.length : 0;
     rtmpClients = new RtmpClient[rtmpSize];
     for (int i = 0; i < rtmpClients.length; i++) {
-      rtmpClients[i] = new RtmpClient(connectCheckerRtmpList[i]);
+      rtmpClients[i] = new RtmpClient(connectCheckerRtmpList[i], "");
     }
     int rtspSize = connectCheckerRtspList != null ? connectCheckerRtspList.length : 0;
     rtspClients = new RtspClient[rtspSize];
@@ -113,7 +113,7 @@ public class MultiRtpCamera1 extends Camera1Base {
     int rtmpSize = connectCheckerRtmpList != null ? connectCheckerRtmpList.length : 0;
     rtmpClients = new RtmpClient[rtmpSize];
     for (int i = 0; i < rtmpClients.length; i++) {
-      rtmpClients[i] = new RtmpClient(connectCheckerRtmpList[i]);
+      rtmpClients[i] = new RtmpClient(connectCheckerRtmpList[i], "");
     }
     int rtspSize = connectCheckerRtspList != null ? connectCheckerRtspList.length : 0;
     rtspClients = new RtspClient[rtspSize];
@@ -129,7 +129,7 @@ public class MultiRtpCamera1 extends Camera1Base {
     int rtmpSize = connectCheckerRtmpList != null ? connectCheckerRtmpList.length : 0;
     rtmpClients = new RtmpClient[rtmpSize];
     for (int i = 0; i < rtmpClients.length; i++) {
-      rtmpClients[i] = new RtmpClient(connectCheckerRtmpList[i]);
+      rtmpClients[i] = new RtmpClient(connectCheckerRtmpList[i], "");
     }
     int rtspSize = connectCheckerRtspList != null ? connectCheckerRtspList.length : 0;
     rtspClients = new RtspClient[rtspSize];
@@ -145,7 +145,7 @@ public class MultiRtpCamera1 extends Camera1Base {
     int rtmpSize = connectCheckerRtmpList != null ? connectCheckerRtmpList.length : 0;
     rtmpClients = new RtmpClient[rtmpSize];
     for (int i = 0; i < rtmpClients.length; i++) {
-      rtmpClients[i] = new RtmpClient(connectCheckerRtmpList[i]);
+      rtmpClients[i] = new RtmpClient(connectCheckerRtmpList[i], "");
     }
     int rtspSize = connectCheckerRtspList != null ? connectCheckerRtspList.length : 0;
     rtspClients = new RtspClient[rtspSize];

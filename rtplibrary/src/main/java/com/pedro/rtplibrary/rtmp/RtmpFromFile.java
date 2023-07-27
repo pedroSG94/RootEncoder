@@ -49,25 +49,25 @@ public class RtmpFromFile extends FromFileBase {
   public RtmpFromFile(ConnectCheckerRtmp connectChecker,
       VideoDecoderInterface videoDecoderInterface, AudioDecoderInterface audioDecoderInterface) {
     super(videoDecoderInterface, audioDecoderInterface);
-    rtmpClient = new RtmpClient(connectChecker);
+    rtmpClient = new RtmpClient(connectChecker, "");
   }
 
   public RtmpFromFile(Context context, ConnectCheckerRtmp connectChecker,
       VideoDecoderInterface videoDecoderInterface, AudioDecoderInterface audioDecoderInterface) {
     super(context, videoDecoderInterface, audioDecoderInterface);
-    rtmpClient = new RtmpClient(connectChecker);
+    rtmpClient = new RtmpClient(connectChecker, "");
   }
 
   public RtmpFromFile(OpenGlView openGlView, ConnectCheckerRtmp connectChecker,
       VideoDecoderInterface videoDecoderInterface, AudioDecoderInterface audioDecoderInterface) {
     super(openGlView, videoDecoderInterface, audioDecoderInterface);
-    rtmpClient = new RtmpClient(connectChecker);
+    rtmpClient = new RtmpClient(connectChecker, "");
   }
 
   public RtmpFromFile(LightOpenGlView lightOpenGlView, ConnectCheckerRtmp connectChecker,
       VideoDecoderInterface videoDecoderInterface, AudioDecoderInterface audioDecoderInterface) {
     super(lightOpenGlView, videoDecoderInterface, audioDecoderInterface);
-    rtmpClient = new RtmpClient(connectChecker);
+    rtmpClient = new RtmpClient(connectChecker, "");
   }
 
   /**
