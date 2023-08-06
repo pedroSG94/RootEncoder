@@ -163,18 +163,14 @@ public class DisplayActivity extends AppCompatActivity
   public void onClick(View view) {
     DisplayService displayService = DisplayService.Companion.getINSTANCE();
     if (displayService != null) {
-      switch (view.getId()) {
-        case R.id.b_start_stop:
-          if (!displayService.isStreaming()) {
-            button.setText(R.string.stop_button);
-            startActivityForResult(displayService.sendIntent(), REQUEST_CODE_STREAM);
-          } else {
-            button.setText(R.string.start_button);
-            displayService.stopStream();
-          }
-          break;
-        default:
-          break;
+      if (view.getId() == R.id.b_start_stop) {
+        if (!displayService.isStreaming()) {
+          button.setText(R.string.stop_button);
+          startActivityForResult(displayService.sendIntent(), REQUEST_CODE_STREAM);
+        } else {
+          button.setText(R.string.start_button);
+          displayService.stopStream();
+        }
       }
     }
   }

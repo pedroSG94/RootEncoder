@@ -146,176 +146,175 @@ public class OpenGlRtspActivity extends AppCompatActivity
   public boolean onOptionsItemSelected(MenuItem item) {
     //Stop listener for image, text and gif stream objects.
     spriteGestureController.stopListener();
-    switch (item.getItemId()) {
-      case R.id.e_d_fxaa:
-        rtspCamera1.getGlInterface().enableAA(!rtspCamera1.getGlInterface().isAAEnabled());
-        Toast.makeText(this,
-            "FXAA " + (rtspCamera1.getGlInterface().isAAEnabled() ? "enabled" : "disabled"),
-            Toast.LENGTH_SHORT).show();
-        return true;
+    int itemId = item.getItemId();
+    if (itemId == R.id.e_d_fxaa) {
+      rtspCamera1.getGlInterface().enableAA(!rtspCamera1.getGlInterface().isAAEnabled());
+      Toast.makeText(this,
+              "FXAA " + (rtspCamera1.getGlInterface().isAAEnabled() ? "enabled" : "disabled"),
+              Toast.LENGTH_SHORT).show();
+      return true;
       //filters. NOTE: You can change filter values on fly without reset the filter.
       // Example:
       // ColorFilterRender color = new ColorFilterRender()
       // rtmpCamera1.setFilter(color);
       // color.setRGBColor(255, 0, 0); //red tint
-      case R.id.no_filter:
-        rtspCamera1.getGlInterface().setFilter(new NoFilterRender());
-        return true;
-      case R.id.analog_tv:
-        rtspCamera1.getGlInterface().setFilter(new AnalogTVFilterRender());
-        return true;
-      case R.id.android_view:
-        AndroidViewFilterRender androidViewFilterRender = new AndroidViewFilterRender();
-        androidViewFilterRender.setView(findViewById(R.id.switch_camera));
-        rtspCamera1.getGlInterface().setFilter(androidViewFilterRender);
-        return true;
-      case R.id.basic_deformation:
-        rtspCamera1.getGlInterface().setFilter(new BasicDeformationFilterRender());
-        return true;
-      case R.id.beauty:
-        rtspCamera1.getGlInterface().setFilter(new BeautyFilterRender());
-        return true;
-      case R.id.black:
-        rtspCamera1.getGlInterface().setFilter(new BlackFilterRender());
-        return true;
-      case R.id.blur:
-        rtspCamera1.getGlInterface().setFilter(new BlurFilterRender());
-        return true;
-      case R.id.brightness:
-        rtspCamera1.getGlInterface().setFilter(new BrightnessFilterRender());
-        return true;
-      case R.id.cartoon:
-        rtspCamera1.getGlInterface().setFilter(new CartoonFilterRender());
-        return true;
-      case R.id.chroma:
-        ChromaFilterRender chromaFilterRender = new ChromaFilterRender();
-        rtspCamera1.getGlInterface().setFilter(chromaFilterRender);
-        chromaFilterRender.setImage(BitmapFactory.decodeResource(getResources(), R.drawable.bg_chroma));
-        return true;
-      case R.id.circle:
-        rtspCamera1.getGlInterface().setFilter(new CircleFilterRender());
-        return true;
-      case R.id.color:
-        rtspCamera1.getGlInterface().setFilter(new ColorFilterRender());
-        return true;
-      case R.id.contrast:
-        rtspCamera1.getGlInterface().setFilter(new ContrastFilterRender());
-        return true;
-      case R.id.duotone:
-        rtspCamera1.getGlInterface().setFilter(new DuotoneFilterRender());
-        return true;
-      case R.id.early_bird:
-        rtspCamera1.getGlInterface().setFilter(new EarlyBirdFilterRender());
-        return true;
-      case R.id.edge_detection:
-        rtspCamera1.getGlInterface().setFilter(new EdgeDetectionFilterRender());
-        return true;
-      case R.id.exposure:
-        rtspCamera1.getGlInterface().setFilter(new ExposureFilterRender());
-        return true;
-      case R.id.fire:
-        rtspCamera1.getGlInterface().setFilter(new FireFilterRender());
-        return true;
-      case R.id.gamma:
-        rtspCamera1.getGlInterface().setFilter(new GammaFilterRender());
-        return true;
-      case R.id.glitch:
-        rtspCamera1.getGlInterface().setFilter(new GlitchFilterRender());
-        return true;
-      case R.id.gif:
-        setGifToStream();
-        return true;
-      case R.id.grey_scale:
-        rtspCamera1.getGlInterface().setFilter(new GreyScaleFilterRender());
-        return true;
-      case R.id.halftone_lines:
-        rtspCamera1.getGlInterface().setFilter(new HalftoneLinesFilterRender());
-        return true;
-      case R.id.image:
-        setImageToStream();
-        return true;
-      case R.id.image_70s:
-        rtspCamera1.getGlInterface().setFilter(new Image70sFilterRender());
-        return true;
-      case R.id.lamoish:
-        rtspCamera1.getGlInterface().setFilter(new LamoishFilterRender());
-        return true;
-      case R.id.money:
-        rtspCamera1.getGlInterface().setFilter(new MoneyFilterRender());
-        return true;
-      case R.id.negative:
-        rtspCamera1.getGlInterface().setFilter(new NegativeFilterRender());
-        return true;
-      case R.id.pixelated:
-        rtspCamera1.getGlInterface().setFilter(new PixelatedFilterRender());
-        return true;
-      case R.id.polygonization:
-        rtspCamera1.getGlInterface().setFilter(new PolygonizationFilterRender());
-        return true;
-      case R.id.rainbow:
-        rtspCamera1.getGlInterface().setFilter(new RainbowFilterRender());
-        return true;
-      case R.id.rgb_saturate:
-        RGBSaturationFilterRender rgbSaturationFilterRender = new RGBSaturationFilterRender();
-        rtspCamera1.getGlInterface().setFilter(rgbSaturationFilterRender);
-        //Reduce green and blue colors 20%. Red will predominate.
-        rgbSaturationFilterRender.setRGBSaturation(1f, 0.8f, 0.8f);
-        return true;
-      case R.id.ripple:
-        rtspCamera1.getGlInterface().setFilter(new RippleFilterRender());
-        return true;
-      case R.id.rotation:
-        RotationFilterRender rotationFilterRender = new RotationFilterRender();
-        rtspCamera1.getGlInterface().setFilter(rotationFilterRender);
-        rotationFilterRender.setRotation(90);
-        return true;
-      case R.id.saturation:
-        rtspCamera1.getGlInterface().setFilter(new SaturationFilterRender());
-        return true;
-      case R.id.sepia:
-        rtspCamera1.getGlInterface().setFilter(new SepiaFilterRender());
-        return true;
-      case R.id.sharpness:
-        rtspCamera1.getGlInterface().setFilter(new SharpnessFilterRender());
-        return true;
-      case R.id.snow:
-        rtspCamera1.getGlInterface().setFilter(new SnowFilterRender());
-        return true;
-      case R.id.swirl:
-        rtspCamera1.getGlInterface().setFilter(new SwirlFilterRender());
-        return true;
-      case R.id.surface_filter:
-        SurfaceFilterRender surfaceFilterRender =
-            new SurfaceFilterRender(new SurfaceFilterRender.SurfaceReadyCallback() {
-              @Override
-              public void surfaceReady(SurfaceTexture surfaceTexture) {
-                //You can render this filter with other api that draw in a surface. for example you can use VLC
-                MediaPlayer mediaPlayer =
-                    MediaPlayer.create(OpenGlRtspActivity.this, R.raw.big_bunny_240p);
-                mediaPlayer.setSurface(new Surface(surfaceTexture));
-                mediaPlayer.start();
-              }
-            });
-        rtspCamera1.getGlInterface().setFilter(surfaceFilterRender);
-        MediaPlayer mediaPlayer = MediaPlayer.create(this, R.raw.big_bunny_240p);
-        mediaPlayer.setSurface(surfaceFilterRender.getSurface());
-        mediaPlayer.start();
-        //Video is 360x240 so select a percent to keep aspect ratio (50% x 33.3% screen)
-        surfaceFilterRender.setScale(50f, 33.3f);
-        spriteGestureController.setBaseObjectFilterRender(surfaceFilterRender); //Optional
-        return true;
-      case R.id.temperature:
-        rtspCamera1.getGlInterface().setFilter(new TemperatureFilterRender());
-        return true;
-      case R.id.text:
-        setTextToStream();
-        return true;
-      case R.id.zebra:
-        rtspCamera1.getGlInterface().setFilter(new ZebraFilterRender());
-        return true;
-      default:
-        return false;
+    } else if (itemId == R.id.no_filter) {
+      rtspCamera1.getGlInterface().setFilter(new NoFilterRender());
+      return true;
+    } else if (itemId == R.id.analog_tv) {
+      rtspCamera1.getGlInterface().setFilter(new AnalogTVFilterRender());
+      return true;
+    } else if (itemId == R.id.android_view) {
+      AndroidViewFilterRender androidViewFilterRender = new AndroidViewFilterRender();
+      androidViewFilterRender.setView(findViewById(R.id.switch_camera));
+      rtspCamera1.getGlInterface().setFilter(androidViewFilterRender);
+      return true;
+    } else if (itemId == R.id.basic_deformation) {
+      rtspCamera1.getGlInterface().setFilter(new BasicDeformationFilterRender());
+      return true;
+    } else if (itemId == R.id.beauty) {
+      rtspCamera1.getGlInterface().setFilter(new BeautyFilterRender());
+      return true;
+    } else if (itemId == R.id.black) {
+      rtspCamera1.getGlInterface().setFilter(new BlackFilterRender());
+      return true;
+    } else if (itemId == R.id.blur) {
+      rtspCamera1.getGlInterface().setFilter(new BlurFilterRender());
+      return true;
+    } else if (itemId == R.id.brightness) {
+      rtspCamera1.getGlInterface().setFilter(new BrightnessFilterRender());
+      return true;
+    } else if (itemId == R.id.cartoon) {
+      rtspCamera1.getGlInterface().setFilter(new CartoonFilterRender());
+      return true;
+    } else if (itemId == R.id.chroma) {
+      ChromaFilterRender chromaFilterRender = new ChromaFilterRender();
+      rtspCamera1.getGlInterface().setFilter(chromaFilterRender);
+      chromaFilterRender.setImage(BitmapFactory.decodeResource(getResources(), R.drawable.bg_chroma));
+      return true;
+    } else if (itemId == R.id.circle) {
+      rtspCamera1.getGlInterface().setFilter(new CircleFilterRender());
+      return true;
+    } else if (itemId == R.id.color) {
+      rtspCamera1.getGlInterface().setFilter(new ColorFilterRender());
+      return true;
+    } else if (itemId == R.id.contrast) {
+      rtspCamera1.getGlInterface().setFilter(new ContrastFilterRender());
+      return true;
+    } else if (itemId == R.id.duotone) {
+      rtspCamera1.getGlInterface().setFilter(new DuotoneFilterRender());
+      return true;
+    } else if (itemId == R.id.early_bird) {
+      rtspCamera1.getGlInterface().setFilter(new EarlyBirdFilterRender());
+      return true;
+    } else if (itemId == R.id.edge_detection) {
+      rtspCamera1.getGlInterface().setFilter(new EdgeDetectionFilterRender());
+      return true;
+    } else if (itemId == R.id.exposure) {
+      rtspCamera1.getGlInterface().setFilter(new ExposureFilterRender());
+      return true;
+    } else if (itemId == R.id.fire) {
+      rtspCamera1.getGlInterface().setFilter(new FireFilterRender());
+      return true;
+    } else if (itemId == R.id.gamma) {
+      rtspCamera1.getGlInterface().setFilter(new GammaFilterRender());
+      return true;
+    } else if (itemId == R.id.glitch) {
+      rtspCamera1.getGlInterface().setFilter(new GlitchFilterRender());
+      return true;
+    } else if (itemId == R.id.gif) {
+      setGifToStream();
+      return true;
+    } else if (itemId == R.id.grey_scale) {
+      rtspCamera1.getGlInterface().setFilter(new GreyScaleFilterRender());
+      return true;
+    } else if (itemId == R.id.halftone_lines) {
+      rtspCamera1.getGlInterface().setFilter(new HalftoneLinesFilterRender());
+      return true;
+    } else if (itemId == R.id.image) {
+      setImageToStream();
+      return true;
+    } else if (itemId == R.id.image_70s) {
+      rtspCamera1.getGlInterface().setFilter(new Image70sFilterRender());
+      return true;
+    } else if (itemId == R.id.lamoish) {
+      rtspCamera1.getGlInterface().setFilter(new LamoishFilterRender());
+      return true;
+    } else if (itemId == R.id.money) {
+      rtspCamera1.getGlInterface().setFilter(new MoneyFilterRender());
+      return true;
+    } else if (itemId == R.id.negative) {
+      rtspCamera1.getGlInterface().setFilter(new NegativeFilterRender());
+      return true;
+    } else if (itemId == R.id.pixelated) {
+      rtspCamera1.getGlInterface().setFilter(new PixelatedFilterRender());
+      return true;
+    } else if (itemId == R.id.polygonization) {
+      rtspCamera1.getGlInterface().setFilter(new PolygonizationFilterRender());
+      return true;
+    } else if (itemId == R.id.rainbow) {
+      rtspCamera1.getGlInterface().setFilter(new RainbowFilterRender());
+      return true;
+    } else if (itemId == R.id.rgb_saturate) {
+      RGBSaturationFilterRender rgbSaturationFilterRender = new RGBSaturationFilterRender();
+      rtspCamera1.getGlInterface().setFilter(rgbSaturationFilterRender);
+      //Reduce green and blue colors 20%. Red will predominate.
+      rgbSaturationFilterRender.setRGBSaturation(1f, 0.8f, 0.8f);
+      return true;
+    } else if (itemId == R.id.ripple) {
+      rtspCamera1.getGlInterface().setFilter(new RippleFilterRender());
+      return true;
+    } else if (itemId == R.id.rotation) {
+      RotationFilterRender rotationFilterRender = new RotationFilterRender();
+      rtspCamera1.getGlInterface().setFilter(rotationFilterRender);
+      rotationFilterRender.setRotation(90);
+      return true;
+    } else if (itemId == R.id.saturation) {
+      rtspCamera1.getGlInterface().setFilter(new SaturationFilterRender());
+      return true;
+    } else if (itemId == R.id.sepia) {
+      rtspCamera1.getGlInterface().setFilter(new SepiaFilterRender());
+      return true;
+    } else if (itemId == R.id.sharpness) {
+      rtspCamera1.getGlInterface().setFilter(new SharpnessFilterRender());
+      return true;
+    } else if (itemId == R.id.snow) {
+      rtspCamera1.getGlInterface().setFilter(new SnowFilterRender());
+      return true;
+    } else if (itemId == R.id.swirl) {
+      rtspCamera1.getGlInterface().setFilter(new SwirlFilterRender());
+      return true;
+    } else if (itemId == R.id.surface_filter) {
+      SurfaceFilterRender surfaceFilterRender =
+              new SurfaceFilterRender(new SurfaceFilterRender.SurfaceReadyCallback() {
+                @Override
+                public void surfaceReady(SurfaceTexture surfaceTexture) {
+                  //You can render this filter with other api that draw in a surface. for example you can use VLC
+                  MediaPlayer mediaPlayer =
+                          MediaPlayer.create(OpenGlRtspActivity.this, R.raw.big_bunny_240p);
+                  mediaPlayer.setSurface(new Surface(surfaceTexture));
+                  mediaPlayer.start();
+                }
+              });
+      rtspCamera1.getGlInterface().setFilter(surfaceFilterRender);
+      MediaPlayer mediaPlayer = MediaPlayer.create(this, R.raw.big_bunny_240p);
+      mediaPlayer.setSurface(surfaceFilterRender.getSurface());
+      mediaPlayer.start();
+      //Video is 360x240 so select a percent to keep aspect ratio (50% x 33.3% screen)
+      surfaceFilterRender.setScale(50f, 33.3f);
+      spriteGestureController.setBaseObjectFilterRender(surfaceFilterRender); //Optional
+      return true;
+    } else if (itemId == R.id.temperature) {
+      rtspCamera1.getGlInterface().setFilter(new TemperatureFilterRender());
+      return true;
+    } else if (itemId == R.id.text) {
+      setTextToStream();
+      return true;
+    } else if (itemId == R.id.zebra) {
+      rtspCamera1.getGlInterface().setFilter(new ZebraFilterRender());
+      return true;
     }
+    return false;
   }
 
   private void setTextToStream() {
@@ -418,70 +417,65 @@ public class OpenGlRtspActivity extends AppCompatActivity
 
   @Override
   public void onClick(View view) {
-    switch (view.getId()) {
-      case R.id.b_start_stop:
-        if (!rtspCamera1.isStreaming()) {
-          if (rtspCamera1.isRecording()
-              || rtspCamera1.prepareAudio() && rtspCamera1.prepareVideo()) {
-            button.setText(R.string.stop_button);
-            rtspCamera1.startStream(etUrl.getText().toString());
-          } else {
-            Toast.makeText(this, "Error preparing stream, This device cant do it",
-                Toast.LENGTH_SHORT).show();
-          }
+    int id = view.getId();
+    if (id == R.id.b_start_stop) {
+      if (!rtspCamera1.isStreaming()) {
+        if (rtspCamera1.isRecording()
+                || rtspCamera1.prepareAudio() && rtspCamera1.prepareVideo()) {
+          button.setText(R.string.stop_button);
+          rtspCamera1.startStream(etUrl.getText().toString());
         } else {
-          button.setText(R.string.start_button);
-          rtspCamera1.stopStream();
+          Toast.makeText(this, "Error preparing stream, This device cant do it",
+                  Toast.LENGTH_SHORT).show();
         }
-        break;
-      case R.id.switch_camera:
+      } else {
+        button.setText(R.string.start_button);
+        rtspCamera1.stopStream();
+      }
+    } else if (id == R.id.switch_camera) {
+      try {
+        rtspCamera1.switchCamera();
+      } catch (CameraOpenException e) {
+        Toast.makeText(this, e.getMessage(), Toast.LENGTH_SHORT).show();
+      }
+    } else if (id == R.id.b_record) {
+      if (!rtspCamera1.isRecording()) {
         try {
-          rtspCamera1.switchCamera();
-        } catch (CameraOpenException e) {
-          Toast.makeText(this, e.getMessage(), Toast.LENGTH_SHORT).show();
-        }
-        break;
-      case R.id.b_record:
-        if (!rtspCamera1.isRecording()) {
-          try {
-            if (!folder.exists()) {
-              folder.mkdir();
-            }
-            SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault());
-            currentDateAndTime = sdf.format(new Date());
-            if (!rtspCamera1.isStreaming()) {
-              if (rtspCamera1.prepareAudio() && rtspCamera1.prepareVideo()) {
-                rtspCamera1.startRecord(
-                    folder.getAbsolutePath() + "/" + currentDateAndTime + ".mp4");
-                bRecord.setText(R.string.stop_record);
-                Toast.makeText(this, "Recording... ", Toast.LENGTH_SHORT).show();
-              } else {
-                Toast.makeText(this, "Error preparing stream, This device cant do it",
-                    Toast.LENGTH_SHORT).show();
-              }
-            } else {
-              rtspCamera1.startRecord(folder.getAbsolutePath() + "/" + currentDateAndTime + ".mp4");
+          if (!folder.exists()) {
+            folder.mkdir();
+          }
+          SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault());
+          currentDateAndTime = sdf.format(new Date());
+          if (!rtspCamera1.isStreaming()) {
+            if (rtspCamera1.prepareAudio() && rtspCamera1.prepareVideo()) {
+              rtspCamera1.startRecord(
+                      folder.getAbsolutePath() + "/" + currentDateAndTime + ".mp4");
               bRecord.setText(R.string.stop_record);
               Toast.makeText(this, "Recording... ", Toast.LENGTH_SHORT).show();
+            } else {
+              Toast.makeText(this, "Error preparing stream, This device cant do it",
+                      Toast.LENGTH_SHORT).show();
             }
-          } catch (IOException e) {
-            rtspCamera1.stopRecord();
-            PathUtils.updateGallery(this, folder.getAbsolutePath() + "/" + currentDateAndTime + ".mp4");
-            bRecord.setText(R.string.start_record);
-            Toast.makeText(this, e.getMessage(), Toast.LENGTH_SHORT).show();
+          } else {
+            rtspCamera1.startRecord(folder.getAbsolutePath() + "/" + currentDateAndTime + ".mp4");
+            bRecord.setText(R.string.stop_record);
+            Toast.makeText(this, "Recording... ", Toast.LENGTH_SHORT).show();
           }
-        } else {
+        } catch (IOException e) {
           rtspCamera1.stopRecord();
           PathUtils.updateGallery(this, folder.getAbsolutePath() + "/" + currentDateAndTime + ".mp4");
           bRecord.setText(R.string.start_record);
-          Toast.makeText(this,
-              "file " + currentDateAndTime + ".mp4 saved in " + folder.getAbsolutePath(),
-              Toast.LENGTH_SHORT).show();
-          currentDateAndTime = "";
+          Toast.makeText(this, e.getMessage(), Toast.LENGTH_SHORT).show();
         }
-        break;
-      default:
-        break;
+      } else {
+        rtspCamera1.stopRecord();
+        PathUtils.updateGallery(this, folder.getAbsolutePath() + "/" + currentDateAndTime + ".mp4");
+        bRecord.setText(R.string.start_record);
+        Toast.makeText(this,
+                "file " + currentDateAndTime + ".mp4 saved in " + folder.getAbsolutePath(),
+                Toast.LENGTH_SHORT).show();
+        currentDateAndTime = "";
+      }
     }
   }
 

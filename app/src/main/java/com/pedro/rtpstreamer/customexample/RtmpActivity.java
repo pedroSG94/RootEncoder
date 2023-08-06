@@ -156,11 +156,11 @@ public class RtmpActivity extends AppCompatActivity
     spResolution = (Spinner) navigationView.getMenu().findItem(R.id.sp_resolution).getActionView();
 
     ArrayAdapter<Integer> orientationAdapter =
-        new ArrayAdapter<>(this, R.layout.support_simple_spinner_dropdown_item);
+        new ArrayAdapter<>(this, android.R.layout.simple_spinner_dropdown_item);
     orientationAdapter.addAll(orientations);
 
     ArrayAdapter<String> resolutionAdapter =
-        new ArrayAdapter<>(this, R.layout.support_simple_spinner_dropdown_item);
+        new ArrayAdapter<>(this, android.R.layout.simple_spinner_dropdown_item);
     List<String> list = new ArrayList<>();
     for (Camera.Size size : rtmpCamera1.getResolutionsBack()) {
       list.add(size.width + "X" + size.height);
@@ -197,112 +197,106 @@ public class RtmpActivity extends AppCompatActivity
 
   @Override
   public boolean onOptionsItemSelected(MenuItem item) {
-    switch (item.getItemId()) {
-      case android.R.id.home:
-        if (!drawerLayout.isDrawerOpen(GravityCompat.START)) {
-          drawerLayout.openDrawer(GravityCompat.START);
-        } else {
-          drawerLayout.closeDrawer(GravityCompat.START);
-        }
-        return true;
-      case R.id.microphone:
-        if (!rtmpCamera1.isAudioMuted()) {
-          item.setIcon(getResources().getDrawable(R.drawable.icon_microphone_off));
-          rtmpCamera1.disableAudio();
-        } else {
-          item.setIcon(getResources().getDrawable(R.drawable.icon_microphone));
-          rtmpCamera1.enableAudio();
-        }
-        return true;
-      default:
-        return false;
+    int itemId = item.getItemId();
+    if (itemId == android.R.id.home) {
+      if (!drawerLayout.isDrawerOpen(GravityCompat.START)) {
+        drawerLayout.openDrawer(GravityCompat.START);
+      } else {
+        drawerLayout.closeDrawer(GravityCompat.START);
+      }
+      return true;
+    } else if (itemId == R.id.microphone) {
+      if (!rtmpCamera1.isAudioMuted()) {
+        item.setIcon(getResources().getDrawable(R.drawable.icon_microphone_off));
+        rtmpCamera1.disableAudio();
+      } else {
+        item.setIcon(getResources().getDrawable(R.drawable.icon_microphone));
+        rtmpCamera1.enableAudio();
+      }
+      return true;
     }
+    return false;
   }
 
   @Override
   public void onClick(View v) {
-    switch (v.getId()) {
-      case R.id.b_start_stop:
-        Log.d("TAG_R", "b_start_stop: ");
-        if (!rtmpCamera1.isStreaming()) {
-          bStartStop.setText(getResources().getString(R.string.stop_button));
-          String user = etWowzaUser.getText().toString();
-          String password = etWowzaPassword.getText().toString();
-          if (!user.isEmpty() && !password.isEmpty()) {
-            rtmpCamera1.setAuthorization(user, password);
-          }
-          if (rtmpCamera1.isRecording() || prepareEncoders()) {
-            rtmpCamera1.startStream(etUrl.getText().toString());
-          } else {
-            //If you see this all time when you start stream,
-            //it is because your encoder device dont support the configuration
-            //in video encoder maybe color format.
-            //If you have more encoder go to VideoEncoder or AudioEncoder class,
-            //change encoder and try
-            Toast.makeText(this, "Error preparing stream, This device cant do it",
-                Toast.LENGTH_SHORT).show();
-            bStartStop.setText(getResources().getString(R.string.start_button));
-          }
-        } else {
-          bStartStop.setText(getResources().getString(R.string.start_button));
-          rtmpCamera1.stopStream();
+    int id = v.getId();
+    if (id == R.id.b_start_stop) {
+      Log.d("TAG_R", "b_start_stop: ");
+      if (!rtmpCamera1.isStreaming()) {
+        bStartStop.setText(getResources().getString(R.string.stop_button));
+        String user = etWowzaUser.getText().toString();
+        String password = etWowzaPassword.getText().toString();
+        if (!user.isEmpty() && !password.isEmpty()) {
+          rtmpCamera1.setAuthorization(user, password);
         }
-        break;
-      case R.id.b_record:
-        Log.d("TAG_R", "b_start_stop: ");
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
-          if (!rtmpCamera1.isRecording()) {
-            try {
-              if (!folder.exists()) {
-                folder.mkdir();
-              }
-              SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault());
-              currentDateAndTime = sdf.format(new Date());
-              if (!rtmpCamera1.isStreaming()) {
-                if (prepareEncoders()) {
-                  rtmpCamera1.startRecord(
-                      folder.getAbsolutePath() + "/" + currentDateAndTime + ".mp4");
-                  bRecord.setText(R.string.stop_record);
-                  Toast.makeText(this, "Recording... ", Toast.LENGTH_SHORT).show();
-                } else {
-                  Toast.makeText(this, "Error preparing stream, This device cant do it",
-                      Toast.LENGTH_SHORT).show();
-                }
-              } else {
+        if (rtmpCamera1.isRecording() || prepareEncoders()) {
+          rtmpCamera1.startStream(etUrl.getText().toString());
+        } else {
+          //If you see this all time when you start stream,
+          //it is because your encoder device dont support the configuration
+          //in video encoder maybe color format.
+          //If you have more encoder go to VideoEncoder or AudioEncoder class,
+          //change encoder and try
+          Toast.makeText(this, "Error preparing stream, This device cant do it",
+                  Toast.LENGTH_SHORT).show();
+          bStartStop.setText(getResources().getString(R.string.start_button));
+        }
+      } else {
+        bStartStop.setText(getResources().getString(R.string.start_button));
+        rtmpCamera1.stopStream();
+      }
+    } else if (id == R.id.b_record) {
+      Log.d("TAG_R", "b_start_stop: ");
+      if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
+        if (!rtmpCamera1.isRecording()) {
+          try {
+            if (!folder.exists()) {
+              folder.mkdir();
+            }
+            SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault());
+            currentDateAndTime = sdf.format(new Date());
+            if (!rtmpCamera1.isStreaming()) {
+              if (prepareEncoders()) {
                 rtmpCamera1.startRecord(
-                    folder.getAbsolutePath() + "/" + currentDateAndTime + ".mp4");
+                        folder.getAbsolutePath() + "/" + currentDateAndTime + ".mp4");
                 bRecord.setText(R.string.stop_record);
                 Toast.makeText(this, "Recording... ", Toast.LENGTH_SHORT).show();
+              } else {
+                Toast.makeText(this, "Error preparing stream, This device cant do it",
+                        Toast.LENGTH_SHORT).show();
               }
-            } catch (IOException e) {
-              rtmpCamera1.stopRecord();
-              PathUtils.updateGallery(this, folder.getAbsolutePath() + "/" + currentDateAndTime + ".mp4");
-              bRecord.setText(R.string.start_record);
-              Toast.makeText(this, e.getMessage(), Toast.LENGTH_SHORT).show();
+            } else {
+              rtmpCamera1.startRecord(
+                      folder.getAbsolutePath() + "/" + currentDateAndTime + ".mp4");
+              bRecord.setText(R.string.stop_record);
+              Toast.makeText(this, "Recording... ", Toast.LENGTH_SHORT).show();
             }
-          } else {
+          } catch (IOException e) {
             rtmpCamera1.stopRecord();
             PathUtils.updateGallery(this, folder.getAbsolutePath() + "/" + currentDateAndTime + ".mp4");
             bRecord.setText(R.string.start_record);
-            Toast.makeText(this,
-                "file " + currentDateAndTime + ".mp4 saved in " + folder.getAbsolutePath(),
-                Toast.LENGTH_SHORT).show();
-            currentDateAndTime = "";
+            Toast.makeText(this, e.getMessage(), Toast.LENGTH_SHORT).show();
           }
         } else {
-          Toast.makeText(this, "You need min JELLY_BEAN_MR2(API 18) for do it...",
-              Toast.LENGTH_SHORT).show();
+          rtmpCamera1.stopRecord();
+          PathUtils.updateGallery(this, folder.getAbsolutePath() + "/" + currentDateAndTime + ".mp4");
+          bRecord.setText(R.string.start_record);
+          Toast.makeText(this,
+                  "file " + currentDateAndTime + ".mp4 saved in " + folder.getAbsolutePath(),
+                  Toast.LENGTH_SHORT).show();
+          currentDateAndTime = "";
         }
-        break;
-      case R.id.switch_camera:
-        try {
-          rtmpCamera1.switchCamera();
-        } catch (final CameraOpenException e) {
-          Toast.makeText(RtmpActivity.this, e.getMessage(), Toast.LENGTH_SHORT).show();
-        }
-        break;
-      default:
-        break;
+      } else {
+        Toast.makeText(this, "You need min JELLY_BEAN_MR2(API 18) for do it...",
+                Toast.LENGTH_SHORT).show();
+      }
+    } else if (id == R.id.switch_camera) {
+      try {
+        rtmpCamera1.switchCamera();
+      } catch (final CameraOpenException e) {
+        Toast.makeText(RtmpActivity.this, e.getMessage(), Toast.LENGTH_SHORT).show();
+      }
     }
   }
 

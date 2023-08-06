@@ -1,8 +1,9 @@
 apply plugin: 'com.android.library'
-apply plugin: 'kotlin-android'
+apply plugin: 'org.jetbrains.kotlin.android'
 apply plugin: 'maven-publish'
 
 android {
+  namespace "com.pedro.encoder"
   compileSdkVersion 33
 
   defaultConfig {
@@ -16,6 +17,13 @@ android {
       minifyEnabled false
       consumerProguardFiles 'proguard-rules.pro'
     }
+  }
+  compileOptions {
+    sourceCompatibility JavaVersion.VERSION_17
+    targetCompatibility JavaVersion.VERSION_17
+  }
+  kotlinOptions {
+    jvmTarget = '17'
   }
 
   publishing {
@@ -42,5 +50,4 @@ afterEvaluate {
 
 dependencies {
   api 'androidx.annotation:annotation:1.6.0'
-  implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
 }

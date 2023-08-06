@@ -1,8 +1,9 @@
 apply plugin: 'com.android.library'
-apply plugin: 'kotlin-android'
+apply plugin: 'org.jetbrains.kotlin.android'
 apply plugin: 'maven-publish'
 
 android {
+  namespace "com.pedro.rtmp"
   compileSdkVersion 33
 
   defaultConfig {
@@ -15,6 +16,13 @@ android {
     release {
       minifyEnabled false
     }
+  }
+  compileOptions {
+    sourceCompatibility JavaVersion.VERSION_17
+    targetCompatibility JavaVersion.VERSION_17
+  }
+  kotlinOptions {
+    jvmTarget = '17'
   }
 
   publishing {
@@ -40,7 +48,6 @@ afterEvaluate {
 }
 
 dependencies {
-  implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
   testImplementation "org.jetbrains.kotlin:kotlin-test-junit:$kotlin_version"
   testImplementation 'junit:junit:4.13.2'
 }

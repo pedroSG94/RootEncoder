@@ -179,93 +179,87 @@ public class RtspFromFileActivity extends AppCompatActivity
 
   @Override
   public void onClick(View view) {
-    switch (view.getId()) {
-      case R.id.b_start_stop:
-        if (!rtspFromFile.isStreaming()) {
-          try {
-            if (!rtspFromFile.isRecording()) {
-              if (prepare()) {
-                button.setText(R.string.stop_button);
-                rtspFromFile.startStream(etUrl.getText().toString());
-                seekBar.setMax(Math.max((int) rtspFromFile.getVideoDuration(),
-                    (int) rtspFromFile.getAudioDuration()));
-                updateProgress();
-              } else {
-                button.setText(R.string.start_button);
-                rtspFromFile.stopStream();
+    int id = view.getId();
+    if (id == R.id.b_start_stop) {
+      if (!rtspFromFile.isStreaming()) {
+        try {
+          if (!rtspFromFile.isRecording()) {
+            if (prepare()) {
+              button.setText(R.string.stop_button);
+              rtspFromFile.startStream(etUrl.getText().toString());
+              seekBar.setMax(Math.max((int) rtspFromFile.getVideoDuration(),
+                      (int) rtspFromFile.getAudioDuration()));
+              updateProgress();
+            } else {
+              button.setText(R.string.start_button);
+              rtspFromFile.stopStream();
                 /*This error could be 2 things.
                  Your device cant decode or encode this file or
                  the file is not supported for the library.
                 The file need has h264 video codec and acc audio codec*/
-                Toast.makeText(this, "Error: unsupported file", Toast.LENGTH_SHORT).show();
-              }
-            } else {
-              button.setText(R.string.stop_button);
-              rtspFromFile.startStream(etUrl.getText().toString());
+              Toast.makeText(this, "Error: unsupported file", Toast.LENGTH_SHORT).show();
             }
-          } catch (IOException e) {
-            //Normally this error is for file not found or read permissions
-            Toast.makeText(this, "Error: file not found", Toast.LENGTH_SHORT).show();
+          } else {
+            button.setText(R.string.stop_button);
+            rtspFromFile.startStream(etUrl.getText().toString());
           }
-        } else {
-          button.setText(R.string.start_button);
-          rtspFromFile.stopStream();
+        } catch (IOException e) {
+          //Normally this error is for file not found or read permissions
+          Toast.makeText(this, "Error: file not found", Toast.LENGTH_SHORT).show();
         }
-        break;
-      case R.id.b_select_file:
-        Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
-        intent.setType("*/*");
-        startActivityForResult(intent, 5);
-        break;
+      } else {
+        button.setText(R.string.start_button);
+        rtspFromFile.stopStream();
+      }
+    } else if (id == R.id.b_select_file) {
+      Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
+      intent.setType("*/*");
+      startActivityForResult(intent, 5);
       //sometimes async is produced when you move in file several times
-      case R.id.b_re_sync:
-        rtspFromFile.reSyncFile();
-        break;
-      case R.id.b_record:
-        if (!rtspFromFile.isRecording()) {
-          try {
-            if (!folder.exists()) {
-              folder.mkdir();
-            }
-            SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault());
-            currentDateAndTime = sdf.format(new Date());
-            if (!rtspFromFile.isStreaming()) {
-              if (prepare()) {
-                rtspFromFile.startRecord(
-                    folder.getAbsolutePath() + "/" + currentDateAndTime + ".mp4");
-                seekBar.setMax(Math.max((int) rtspFromFile.getVideoDuration(),
-                    (int) rtspFromFile.getAudioDuration()));
-                updateProgress();
-                bRecord.setText(R.string.stop_record);
-                Toast.makeText(this, "Recording... ", Toast.LENGTH_SHORT).show();
-              } else {
-                Toast.makeText(this, "Error preparing stream, This device cant do it",
-                    Toast.LENGTH_SHORT).show();
-              }
-            } else {
+    } else if (id == R.id.b_re_sync) {
+      rtspFromFile.reSyncFile();
+    } else if (id == R.id.b_record) {
+      if (!rtspFromFile.isRecording()) {
+        try {
+          if (!folder.exists()) {
+            folder.mkdir();
+          }
+          SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault());
+          currentDateAndTime = sdf.format(new Date());
+          if (!rtspFromFile.isStreaming()) {
+            if (prepare()) {
               rtspFromFile.startRecord(
-                  folder.getAbsolutePath() + "/" + currentDateAndTime + ".mp4");
+                      folder.getAbsolutePath() + "/" + currentDateAndTime + ".mp4");
+              seekBar.setMax(Math.max((int) rtspFromFile.getVideoDuration(),
+                      (int) rtspFromFile.getAudioDuration()));
+              updateProgress();
               bRecord.setText(R.string.stop_record);
               Toast.makeText(this, "Recording... ", Toast.LENGTH_SHORT).show();
+            } else {
+              Toast.makeText(this, "Error preparing stream, This device cant do it",
+                      Toast.LENGTH_SHORT).show();
             }
-          } catch (IOException e) {
-            rtspFromFile.stopRecord();
-            PathUtils.updateGallery(this, folder.getAbsolutePath() + "/" + currentDateAndTime + ".mp4");
-            bRecord.setText(R.string.start_record);
-            Toast.makeText(this, e.getMessage(), Toast.LENGTH_SHORT).show();
+          } else {
+            rtspFromFile.startRecord(
+                    folder.getAbsolutePath() + "/" + currentDateAndTime + ".mp4");
+            bRecord.setText(R.string.stop_record);
+            Toast.makeText(this, "Recording... ", Toast.LENGTH_SHORT).show();
           }
-        } else {
+        } catch (IOException e) {
           rtspFromFile.stopRecord();
           PathUtils.updateGallery(this, folder.getAbsolutePath() + "/" + currentDateAndTime + ".mp4");
           bRecord.setText(R.string.start_record);
-          Toast.makeText(this,
-              "file " + currentDateAndTime + ".mp4 saved in " + folder.getAbsolutePath(),
-              Toast.LENGTH_SHORT).show();
-          currentDateAndTime = "";
+          Toast.makeText(this, e.getMessage(), Toast.LENGTH_SHORT).show();
         }
-        break;
-      default:
-        break;
+      } else {
+        rtspFromFile.stopRecord();
+        PathUtils.updateGallery(this, folder.getAbsolutePath() + "/" + currentDateAndTime + ".mp4");
+        bRecord.setText(R.string.start_record);
+        Toast.makeText(this,
+                "file " + currentDateAndTime + ".mp4 saved in " + folder.getAbsolutePath(),
+                Toast.LENGTH_SHORT).show();
+        currentDateAndTime = "";
+      }
     }
   }
 
