@@ -18,6 +18,7 @@ package com.pedro.rtplibrary.base;
 
 import android.content.Context;
 import android.content.Intent;
+import android.hardware.display.VirtualDisplay;
 import android.media.AudioAttributes;
 import android.media.AudioPlaybackCaptureConfiguration;
 import android.media.MediaCodec;
@@ -77,6 +78,7 @@ public abstract class DisplayBase implements GetAacData, GetVideoData, GetMicrop
   private AudioEncoder audioEncoder;
   private boolean streaming = false;
   protected SurfaceView surfaceView;
+  private VirtualDisplay virtualDisplay;
   private int dpi = 320;
   private int resultCode = -1;
   private Intent data;
@@ -396,10 +398,10 @@ public abstract class DisplayBase implements GetAacData, GetVideoData, GetMicrop
     }
     if (glInterface != null && videoEncoder.getRotation() == 90
         || videoEncoder.getRotation() == 270) {
-      mediaProjection.createVirtualDisplay("Stream Display", videoEncoder.getHeight(),
+      virtualDisplay = mediaProjection.createVirtualDisplay("Stream Display", videoEncoder.getHeight(),
               videoEncoder.getWidth(), dpi, 0, surface, null, null);
     } else {
-      mediaProjection.createVirtualDisplay("Stream Display", videoEncoder.getWidth(),
+      virtualDisplay = mediaProjection.createVirtualDisplay("Stream Display", videoEncoder.getWidth(),
               videoEncoder.getHeight(), dpi, 0, surface, null, null);
     }
     if (audioInitialized) microphoneManager.start();
@@ -425,10 +427,14 @@ public abstract class DisplayBase implements GetAacData, GetVideoData, GetMicrop
       if (audioInitialized) microphoneManager.stop();
       if (mediaProjection != null) {
         mediaProjection.stop();
+        mediaProjection = null;
       }
       if (glInterface != null) {
         glInterface.removeMediaCodecSurface();
         glInterface.stop();
+      }
+      if (virtualDisplay != null) {
+        virtualDisplay.release();
       }
       videoEncoder.stop();
       audioEncoder.stop();
