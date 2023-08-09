@@ -38,8 +38,11 @@ import java.nio.ByteBuffer
  * - Rotation on realtime.
  */
 @RequiresApi(Build.VERSION_CODES.LOLLIPOP)
-abstract class StreamBase(context: Context, videoSource: VideoManager.Source,
-  audioSource: AudioManager.Source): GetVideoData, GetAacData, GetMicrophoneData {
+abstract class StreamBase(
+  context: Context,
+  videoSource: VideoManager.Source,
+  audioSource: AudioManager.Source
+): GetVideoData, GetAacData, GetMicrophoneData {
 
   //video and audio encoders
   private val videoEncoder by lazy { VideoEncoder(this) }
@@ -57,6 +60,8 @@ abstract class StreamBase(context: Context, videoSource: VideoManager.Source,
     private set
   val isRecording: Boolean
     get() = recordController.isRunning
+  val videoSource = videoManager.source
+  val audioSource = audioManager.source
 
   init {
     glInterface.init()
@@ -451,6 +456,17 @@ abstract class StreamBase(context: Context, videoSource: VideoManager.Source,
 
   fun setRecordController(recordController: BaseRecordController) {
     if (!isRecording) this.recordController = recordController
+  }
+
+  /**
+   * return surface texture that can be used to render and encode custom data. Return null if video not prepared.
+   * start and stop rendering must be managed by the user.
+   */
+  fun getSurfaceTexture(): SurfaceTexture {
+    if (videoSource != VideoManager.Source.DISABLED) {
+      throw IllegalStateException("getSurfaceTexture only available with VideoManager.Source.DISABLED")
+    }
+    return glInterface.getSurfaceTexture()
   }
 
   protected fun setVideoMime(videoMime: String) {

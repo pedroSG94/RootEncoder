@@ -23,7 +23,7 @@ import com.pedro.encoder.input.video.CameraHelper
  * A class to use camera1 or camera2 with same methods totally transparent for user.
  */
 @RequiresApi(Build.VERSION_CODES.LOLLIPOP)
-class VideoManager(private val context: Context, private var source: Source) {
+class VideoManager(private val context: Context, var source: Source) {
 
   enum class Source {
     CAMERA1, CAMERA2, SCREEN, DISABLED

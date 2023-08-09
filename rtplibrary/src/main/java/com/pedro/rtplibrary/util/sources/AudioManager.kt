@@ -12,7 +12,7 @@ import com.pedro.encoder.input.audio.MicrophoneManager
  * Created by pedro on 29/3/22.
  */
 @RequiresApi(Build.VERSION_CODES.LOLLIPOP)
-class AudioManager(getMicrophoneData: GetMicrophoneData, private var source: Source) {
+class AudioManager(getMicrophoneData: GetMicrophoneData, var source: Source) {
 
   enum class Source {
     MICROPHONE, DISABLED,

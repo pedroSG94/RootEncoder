@@ -437,11 +437,11 @@ public class Camera1ApiManager implements Camera.PreviewCallback, Camera.FaceDet
     List<Camera.Size> previewSizes;
     Camera.Size maxSize;
     if (camera != null) {
-      maxSize = getMaxEncoderSizeSupported();
+      maxSize = getMaxEncoderSizeSupported(cameraSelect);
       previewSizes = camera.getParameters().getSupportedPreviewSizes();
     } else {
       camera = Camera.open(cameraSelect);
-      maxSize = getMaxEncoderSizeSupported();
+      maxSize = getMaxEncoderSizeSupported(cameraSelect);
       previewSizes = camera.getParameters().getSupportedPreviewSizes();
       camera.release();
       camera = null;
@@ -469,12 +469,12 @@ public class Camera1ApiManager implements Camera.PreviewCallback, Camera.FaceDet
   /**
    * @return max size that device can record.
    */
-  private Camera.Size getMaxEncoderSizeSupported() {
-    if (CamcorderProfile.hasProfile(CamcorderProfile.QUALITY_2160P)) {
+  private Camera.Size getMaxEncoderSizeSupported(int cameraId) {
+    if (CamcorderProfile.hasProfile(cameraId, CamcorderProfile.QUALITY_2160P)) {
       return camera.new Size(3840, 2160);
-    } else if (CamcorderProfile.hasProfile(CamcorderProfile.QUALITY_1080P)) {
+    } else if (CamcorderProfile.hasProfile(cameraId, CamcorderProfile.QUALITY_1080P)) {
       return camera.new Size(1920, 1080);
-    } else if (CamcorderProfile.hasProfile(CamcorderProfile.QUALITY_720P)) {
+    } else if (CamcorderProfile.hasProfile(cameraId, CamcorderProfile.QUALITY_720P)) {
       return camera.new Size(1280, 720);
     } else {
       return camera.new Size(640, 480);
