@@ -29,7 +29,6 @@ import com.pedro.rtsp.utils.onMainThread
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.cancel
 import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.count
@@ -160,30 +159,26 @@ class RtspSender(private val connectCheckerRtsp: ConnectCheckerRtsp) {
             connectCheckerRtsp.onConnectionFailedRtsp("Error send packet, " + error.message)
           }
           Log.e(TAG, "send error: ", error)
-          scope.cancel()
         }
       }
     }
   }
 
-  fun stop() {
-    scope.launch {
-      queue.cancel()
-      queue = Channel(cacheSize)
-      queueFlow = queue.receiveAsFlow()
-      baseSenderReport?.reset()
-      baseSenderReport?.close()
-      rtpSocket?.close()
-      aacPacket?.reset()
-      videoPacket?.reset()
-      resetSentAudioFrames()
-      resetSentVideoFrames()
-      resetDroppedAudioFrames()
-      resetDroppedVideoFrames()
-      job?.cancelAndJoin()
-      job = null
-      scope.cancel()
-    }
+  suspend fun stop() {
+    queue.cancel()
+    queue = Channel(cacheSize)
+    queueFlow = queue.receiveAsFlow()
+    baseSenderReport?.reset()
+    baseSenderReport?.close()
+    rtpSocket?.close()
+    aacPacket?.reset()
+    videoPacket?.reset()
+    resetSentAudioFrames()
+    resetSentVideoFrames()
+    resetDroppedAudioFrames()
+    resetDroppedVideoFrames()
+    job?.cancelAndJoin()
+    job = null
   }
 
   suspend fun hasCongestion(): Boolean {

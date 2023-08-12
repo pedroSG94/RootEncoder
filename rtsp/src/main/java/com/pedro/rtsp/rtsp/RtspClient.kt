@@ -186,12 +186,9 @@ class RtspClient(private val connectCheckerRtsp: ConnectCheckerRtsp) {
             if (commandsManager.sps == null || commandsManager.pps == null) {
               Log.i(TAG, "waiting for sps and pps")
               withTimeoutOrNull(5000) {
-                Log.i(TAG, "waiting for sps and pps 2")
                 mutex.lock()
               }
-              Log.i(TAG, "waiting for sps and pps 3")
               if (commandsManager.sps == null || commandsManager.pps == null) {
-                Log.i(TAG, "waiting for sps and pps 4")
                 onMainThread {
                   connectCheckerRtsp.onConnectionFailedRtsp("sps or pps is null")
                 }
