@@ -151,29 +151,36 @@ class RtspClient(private val connectCheckerRtsp: ConnectCheckerRtsp) {
   @JvmOverloads
   fun connect(url: String?, isRetry: Boolean = false) {
     if (!isRetry) doingRetry = true
-    if (url == null) {
-      isStreaming = false
-      connectCheckerRtsp.onConnectionFailedRtsp("Endpoint malformed, should be: rtsp://ip:port/appname/streamname")
-      return
-    }
     if (!isStreaming || isRetry) {
-      this.url = url
-      connectCheckerRtsp.onConnectionStartedRtsp(url)
-      val rtspMatcher = rtspUrlPattern.matcher(url)
-      if (rtspMatcher.matches()) {
-        tlsEnabled = (rtspMatcher.group(0) ?: "").startsWith("rtsps")
-      } else {
-        isStreaming = false
-        connectCheckerRtsp.onConnectionFailedRtsp("Endpoint malformed, should be: rtsp://ip:port/appname/streamname")
-        return
-      }
-      val host = rtspMatcher.group(1) ?: ""
-      val port: Int = rtspMatcher.group(2)?.toInt() ?: if (tlsEnabled) 443 else 554
-      val streamName = if (rtspMatcher.group(4).isNullOrEmpty()) "" else "/" + rtspMatcher.group(4)
-      val path = "/" + rtspMatcher.group(3) + streamName
-
       isStreaming = true
+
       job = scope.launch {
+        if (url == null) {
+          isStreaming = false
+          onMainThread {
+            connectCheckerRtsp.onConnectionFailedRtsp("Endpoint malformed, should be: rtsp://ip:port/appname/streamname")
+          }
+          return@launch
+        }
+        this@RtspClient.url = url
+        onMainThread {
+          connectCheckerRtsp.onConnectionStartedRtsp(url)
+        }
+        val rtspMatcher = rtspUrlPattern.matcher(url)
+        if (rtspMatcher.matches()) {
+          tlsEnabled = (rtspMatcher.group(0) ?: "").startsWith("rtsps")
+        } else {
+          isStreaming = false
+          onMainThread {
+            connectCheckerRtsp.onConnectionFailedRtsp("Endpoint malformed, should be: rtsp://ip:port/appname/streamname")
+          }
+          return@launch
+        }
+        val host = rtspMatcher.group(1) ?: ""
+        val port: Int = rtspMatcher.group(2)?.toInt() ?: if (tlsEnabled) 443 else 554
+        val streamName = if (rtspMatcher.group(4).isNullOrEmpty()) "" else "/" + rtspMatcher.group(4)
+        val path = "/" + rtspMatcher.group(3) + streamName
+
         val error = runCatching {
           commandsManager.setUrl(host, port, path)
           rtspSender.setSocketsInfo(commandsManager.protocol,
