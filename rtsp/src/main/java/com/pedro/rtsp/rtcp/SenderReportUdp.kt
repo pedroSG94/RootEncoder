@@ -29,7 +29,7 @@ import java.net.UnknownHostException
 /**
  * Created by pedro on 8/11/18.
  */
-open class SenderReportUdp(videoSourcePort: Int, audioSourcePort: Int) : BaseSenderReport() {
+class SenderReportUdp(videoSourcePort: Int, audioSourcePort: Int) : BaseSenderReport() {
 
   private var multicastSocketVideo: MulticastSocket? = null
   private var multicastSocketAudio: MulticastSocket? = null

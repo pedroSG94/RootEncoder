@@ -25,7 +25,7 @@ import java.io.OutputStream
 /**
  * Created by pedro on 8/11/18.
  */
-open class SenderReportTcp : BaseSenderReport() {
+class SenderReportTcp : BaseSenderReport() {
 
   private var outputStream: OutputStream? = null
   private val tcpHeader: ByteArray = byteArrayOf('$'.code.toByte(), 0, 0, PACKET_LENGTH.toByte())

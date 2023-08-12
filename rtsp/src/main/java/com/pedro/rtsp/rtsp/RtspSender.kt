@@ -25,6 +25,20 @@ import com.pedro.rtsp.rtp.sockets.RtpSocketTcp
 import com.pedro.rtsp.utils.BitrateManager
 import com.pedro.rtsp.utils.ConnectCheckerRtsp
 import com.pedro.rtsp.utils.RtpConstants
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.consumeAsFlow
+import kotlinx.coroutines.flow.count
+import kotlinx.coroutines.flow.receiveAsFlow
+import kotlinx.coroutines.flow.toList
+import kotlinx.coroutines.isActive
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import java.io.IOException
 import java.io.OutputStream
 import java.nio.ByteBuffer
@@ -34,18 +48,21 @@ import java.util.concurrent.*
 /**
  * Created by pedro on 7/11/18.
  */
-open class RtspSender(private val connectCheckerRtsp: ConnectCheckerRtsp) : VideoPacketCallback, AudioPacketCallback {
+class RtspSender(private val connectCheckerRtsp: ConnectCheckerRtsp) {
 
   private var videoPacket: BasePacket? = null
   private var aacPacket: AacPacket? = null
   private var rtpSocket: BaseRtpSocket? = null
   private var baseSenderReport: BaseSenderReport? = null
-  @Volatile
-  private var running = false
 
-  @Volatile
-  private var rtpFrameBlockingQueue: BlockingQueue<RtpFrame> = LinkedBlockingQueue(defaultCacheSize)
-  private var thread: ExecutorService? = null
+  private val defaultCacheSize: Int
+    get() = 10 * 1024 * 1024 / RtpConstants.MTU
+  private var cacheSize = defaultCacheSize
+
+  private val scope = CoroutineScope(Dispatchers.IO)
+  private var queue = Channel<RtpFrame>(cacheSize)
+  private var queueFlow = queue.receiveAsFlow()
+
   private var audioFramesSent: Long = 0
   private var videoFramesSent: Long = 0
   var droppedAudioFrames: Long = 0
@@ -66,18 +83,12 @@ open class RtspSender(private val connectCheckerRtsp: ConnectCheckerRtsp) : Vide
   }
 
   fun setVideoInfo(sps: ByteArray, pps: ByteArray, vps: ByteArray?) {
-    videoPacket = if (vps == null) H264Packet(sps, pps, this) else H265Packet(sps, pps, vps, this)
+    videoPacket = if (vps == null) H264Packet(sps, pps) else H265Packet(sps, pps, vps)
   }
 
   fun setAudioInfo(sampleRate: Int) {
-    aacPacket = AacPacket(sampleRate, this)
+    aacPacket = AacPacket(sampleRate)
   }
-
-  /**
-   * @return number of packets
-   */
-  private val defaultCacheSize: Int
-    get() = 10 * 1024 * 1024 / RtpConstants.MTU
 
   @Throws(IOException::class)
   fun setDataStream(outputStream: OutputStream, host: String) {
@@ -94,35 +105,33 @@ open class RtspSender(private val connectCheckerRtsp: ConnectCheckerRtsp) : Vide
   }
 
   fun sendVideoFrame(h264Buffer: ByteBuffer, info: MediaCodec.BufferInfo) {
-    if (running) videoPacket?.createAndSendPacket(h264Buffer, info)
-  }
-
-  fun sendAudioFrame(aacBuffer: ByteBuffer, info: MediaCodec.BufferInfo) {
-    if (running) aacPacket?.createAndSendPacket(aacBuffer, info)
-  }
-
-  override fun onVideoFrameCreated(rtpFrame: RtpFrame) {
-    try {
-      rtpFrameBlockingQueue.add(rtpFrame)
-    } catch (e: IllegalStateException) {
-      Log.i(TAG, "Video frame discarded")
-      droppedVideoFrames++
+    if (scope.isActive) {
+      videoPacket?.createAndSendPacket(h264Buffer, info) { rtpFrame ->
+        val error = queue.trySend(rtpFrame).exceptionOrNull()
+        if (error != null) {
+          Log.i(TAG, "Video frame discarded")
+          droppedVideoFrames++
+        }
+      }
     }
   }
 
-  override fun onAudioFrameCreated(rtpFrame: RtpFrame) {
-    try {
-      rtpFrameBlockingQueue.add(rtpFrame)
-    } catch (e: IllegalStateException) {
-      Log.i(TAG, "Audio frame discarded")
-      droppedAudioFrames++
+  fun sendAudioFrame(aacBuffer: ByteBuffer, info: MediaCodec.BufferInfo) {
+    if (scope.isActive) {
+      aacPacket?.createAndSendPacket(aacBuffer, info) { rtpFrame ->
+        val error = queue.trySend(rtpFrame).exceptionOrNull()
+        if (error != null) {
+          Log.i(TAG, "Audio frame discarded")
+          droppedAudioFrames++
+        }
+      }
     }
   }
 
   fun start() {
-    thread = Executors.newSingleThreadExecutor()
-    running = true
-    thread?.execute post@{
+    queue = Channel(cacheSize)
+    queueFlow = queue.receiveAsFlow()
+    scope.launch post@{
       val ssrcVideo = Random().nextInt().toLong()
       val ssrcAudio = Random().nextInt().toLong()
       baseSenderReport?.setSSRC(ssrcVideo, ssrcAudio)
@@ -130,13 +139,8 @@ open class RtspSender(private val connectCheckerRtsp: ConnectCheckerRtsp) : Vide
       aacPacket?.setSSRC(ssrcAudio)
       val isTcp = rtpSocket is RtpSocketTcp
 
-      while (!Thread.interrupted() && running) {
-        try {
-          val rtpFrame = rtpFrameBlockingQueue.poll(1, TimeUnit.SECONDS)
-          if (rtpFrame == null) {
-            Log.i(TAG, "Skipping iteration, frame null")
-            continue
-          }
+      queueFlow.collect { rtpFrame ->
+        val error = runCatching {
           rtpSocket?.sendFrame(rtpFrame, isEnableLogs)
           //bytes to bits (4 is tcp header length)
           val packetSize = if (isTcp) rtpFrame.length + 4 else rtpFrame.length
@@ -151,26 +155,21 @@ open class RtspSender(private val connectCheckerRtsp: ConnectCheckerRtsp) : Vide
             val reportSize = if (isTcp) baseSenderReport?.PACKET_LENGTH ?: (0 + 4) else baseSenderReport?.PACKET_LENGTH ?: 0
             bitrateManager.calculateBitrate(reportSize * 8.toLong())
           }
-        } catch (e: Exception) {
-          //InterruptedException is only when you disconnect manually, you don't need report it.
-          if (e !is InterruptedException && running) {
-            connectCheckerRtsp.onConnectionFailedRtsp("Error send packet, " + e.message)
-            Log.e(TAG, "send error: ", e)
-          }
-          return@post
+        }.exceptionOrNull()
+        if (error != null) {
+          connectCheckerRtsp.onConnectionFailedRtsp("Error send packet, " + error.message)
+          Log.e(TAG, "send error: ", error)
+          scope.cancel()
         }
       }
     }
   }
 
   fun stop() {
-    running = false
-    thread?.shutdownNow()
-    try {
-      thread?.awaitTermination(100, TimeUnit.MILLISECONDS)
-    } catch (e: InterruptedException) { }
-    thread = null
-    rtpFrameBlockingQueue.clear()
+    scope.cancel()
+    queue.cancel()
+    queue = Channel(cacheSize)
+    queueFlow = queue.receiveAsFlow()
     baseSenderReport?.reset()
     baseSenderReport?.close()
     rtpSocket?.close()
@@ -182,24 +181,26 @@ open class RtspSender(private val connectCheckerRtsp: ConnectCheckerRtsp) : Vide
     resetDroppedVideoFrames()
   }
 
-  fun hasCongestion(): Boolean {
-    val size = rtpFrameBlockingQueue.size.toFloat()
-    val remaining = rtpFrameBlockingQueue.remainingCapacity().toFloat()
+  suspend fun hasCongestion(): Boolean {
+    val size = cacheSize
+    val remaining = cacheSize - queueFlow.count()
     val capacity = size + remaining
     return size >= capacity * 0.2f //more than 20% queue used. You could have congestion
   }
 
-  fun resizeCache(newSize: Int) {
-    if (newSize < rtpFrameBlockingQueue.size - rtpFrameBlockingQueue.remainingCapacity()) {
-      throw RuntimeException("Can't fit current cache inside new cache size")
+  suspend fun resizeCache(newSize: Int) {
+    val tempQueue = Channel<RtpFrame>(newSize)
+    val frames = mutableListOf<RtpFrame>()
+    this@RtspSender.queue.receiveAsFlow().toList(frames).forEach {
+      tempQueue.trySend(it)
     }
-    val tempQueue: BlockingQueue<RtpFrame> = LinkedBlockingQueue(newSize)
-    rtpFrameBlockingQueue.drainTo(tempQueue)
-    rtpFrameBlockingQueue = tempQueue
+    this@RtspSender.queue = tempQueue
+    queueFlow = this@RtspSender.queue.receiveAsFlow()
+    cacheSize = newSize
   }
 
-  fun getCacheSize(): Int {
-    return rtpFrameBlockingQueue.size
+  suspend fun getCacheSize(): Int {
+    return queueFlow.count()
   }
 
   fun getSentAudioFrames(): Long {

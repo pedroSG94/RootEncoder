@@ -37,7 +37,7 @@ import java.util.regex.Pattern
  *
  * Class to create request to server and parse response from server.
  */
-open class CommandsManager {
+class CommandsManager {
 
   var host: String? = null
     private set

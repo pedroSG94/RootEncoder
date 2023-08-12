@@ -25,7 +25,7 @@ import java.io.OutputStream
 /**
  * Created by pedro on 7/11/18.
  */
-open class RtpSocketTcp : BaseRtpSocket() {
+class RtpSocketTcp : BaseRtpSocket() {
 
   private var outputStream: OutputStream? = null
   private val tcpHeader: ByteArray = byteArrayOf('$'.code.toByte(), 0, 0, 0)

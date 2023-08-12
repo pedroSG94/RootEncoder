@@ -27,7 +27,7 @@ import javax.net.ssl.SSLSocketFactory
 /**
  * @author fkrauthan
  */
-open class TLSSocketFactory : SSLSocketFactory() {
+class TLSSocketFactory : SSLSocketFactory() {
 
   private val internalSSLSocketFactory: SSLSocketFactory
 

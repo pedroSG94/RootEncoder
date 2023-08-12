@@ -29,8 +29,12 @@ import kotlin.experimental.and
  *
  * RFC 3984
  */
-open class H264Packet(sps: ByteArray, pps: ByteArray, private val videoPacketCallback: VideoPacketCallback) : BasePacket(RtpConstants.clockVideoFrequency,
-    RtpConstants.payloadType + RtpConstants.trackVideo) {
+class H264Packet(
+  sps: ByteArray,
+  pps: ByteArray
+): BasePacket(RtpConstants.clockVideoFrequency,
+  RtpConstants.payloadType + RtpConstants.trackVideo
+) {
 
   private var stapA: ByteArray? = null
   private var sendKeyFrame = false
@@ -42,7 +46,11 @@ open class H264Packet(sps: ByteArray, pps: ByteArray, private val videoPacketCal
     setSpsPps(sps, pps)
   }
 
-  override fun createAndSendPacket(byteBuffer: ByteBuffer, bufferInfo: MediaCodec.BufferInfo) {
+  override fun createAndSendPacket(
+    byteBuffer: ByteBuffer,
+    bufferInfo: MediaCodec.BufferInfo,
+    callback: (RtpFrame) -> Unit
+  ) {
     // We read a NAL units from ByteBuffer and we send them
     // NAL units are preceded with 0x00000001
     byteBuffer.rewind()
@@ -61,7 +69,7 @@ open class H264Packet(sps: ByteArray, pps: ByteArray, private val videoPacketCal
         System.arraycopy(it, 0, buffer, RtpConstants.RTP_HEADER_LENGTH, it.size)
         updateSeq(buffer)
         val rtpFrame = RtpFrame(buffer, rtpTs, it.size + RtpConstants.RTP_HEADER_LENGTH, rtpPort, rtcpPort, channelIdentifier)
-        videoPacketCallback.onVideoFrameCreated(rtpFrame)
+        callback(rtpFrame)
         sendKeyFrame = true
       } ?: run {
         Log.i(TAG, "can't create key frame because setSpsPps was not called")
@@ -77,7 +85,7 @@ open class H264Packet(sps: ByteArray, pps: ByteArray, private val videoPacketCal
         markPacket(buffer) //mark end frame
         updateSeq(buffer)
         val rtpFrame = RtpFrame(buffer, rtpTs, buffer.size, rtpPort, rtcpPort, channelIdentifier)
-        videoPacketCallback.onVideoFrameCreated(rtpFrame)
+        callback(rtpFrame)
       } else {
         // Set FU-A header
         header[1] = header[header.size - 1] and 0x1F // FU header type
@@ -106,7 +114,7 @@ open class H264Packet(sps: ByteArray, pps: ByteArray, private val videoPacketCal
           }
           updateSeq(buffer)
           val rtpFrame = RtpFrame(buffer, rtpTs, buffer.size, rtpPort, rtcpPort, channelIdentifier)
-          videoPacketCallback.onVideoFrameCreated(rtpFrame)
+          callback(rtpFrame)
           // Switch start bit
           header[1] = header[1] and 0x7F
         }

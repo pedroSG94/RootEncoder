@@ -17,6 +17,7 @@
 package com.pedro.rtsp.rtp.packets
 
 import android.media.MediaCodec
+import com.pedro.rtsp.rtsp.RtpFrame
 import com.pedro.rtsp.utils.RtpConstants
 import com.pedro.rtsp.utils.setLong
 import java.nio.ByteBuffer
@@ -36,7 +37,11 @@ abstract class BasePacket(private val clock: Long, private val payloadType: Int)
   protected val maxPacketSize = RtpConstants.MTU - 28
   protected val TAG = "BasePacket"
 
-  abstract fun createAndSendPacket(byteBuffer: ByteBuffer, bufferInfo: MediaCodec.BufferInfo)
+  abstract fun createAndSendPacket(
+    byteBuffer: ByteBuffer,
+    bufferInfo: MediaCodec.BufferInfo,
+    callback: (RtpFrame) -> Unit
+  )
 
   fun setPorts(rtpPort: Int, rtcpPort: Int) {
     this.rtpPort = rtpPort

@@ -28,14 +28,22 @@ import kotlin.experimental.or
  *
  * RFC 3640.
  */
-open class AacPacket(sampleRate: Int, private val audioPacketCallback: AudioPacketCallback) : BasePacket(sampleRate.toLong(),
-    RtpConstants.payloadType + RtpConstants.trackAudio) {
+class AacPacket(
+  sampleRate: Int
+): BasePacket(
+  sampleRate.toLong(),
+  RtpConstants.payloadType + RtpConstants.trackAudio
+) {
 
   init {
     channelIdentifier = RtpConstants.trackAudio
   }
 
-  override fun createAndSendPacket(byteBuffer: ByteBuffer, bufferInfo: MediaCodec.BufferInfo) {
+  override fun createAndSendPacket(
+    byteBuffer: ByteBuffer,
+    bufferInfo: MediaCodec.BufferInfo,
+    callback: (RtpFrame) -> Unit
+  ) {
     val length = bufferInfo.size - byteBuffer.position()
     if (length > 0) {
       val buffer = getBuffer(length + RtpConstants.RTP_HEADER_LENGTH + 4)
@@ -59,7 +67,7 @@ open class AacPacket(sampleRate: Int, private val audioPacketCallback: AudioPack
       buffer[RtpConstants.RTP_HEADER_LENGTH + 3] = buffer[RtpConstants.RTP_HEADER_LENGTH + 3] or 0x00
       updateSeq(buffer)
       val rtpFrame = RtpFrame(buffer, rtpTs, RtpConstants.RTP_HEADER_LENGTH + length + 4, rtpPort, rtcpPort, channelIdentifier)
-      audioPacketCallback.onAudioFrameCreated(rtpFrame)
+      callback(rtpFrame)
     }
   }
 }

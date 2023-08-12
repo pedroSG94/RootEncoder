@@ -23,6 +23,7 @@ import com.pedro.rtsp.rtsp.commands.Method
 import com.pedro.rtsp.utils.ConnectCheckerRtsp
 import com.pedro.rtsp.utils.CreateSSLSocket.createSSlSocket
 import com.pedro.rtsp.utils.RtpConstants
+import kotlinx.coroutines.runBlocking
 import java.io.*
 import java.net.InetSocketAddress
 import java.net.Socket
@@ -35,7 +36,7 @@ import java.util.regex.Pattern
 /**
  * Created by pedro on 10/02/17.
  */
-open class RtspClient(private val connectCheckerRtsp: ConnectCheckerRtsp) {
+class RtspClient(private val connectCheckerRtsp: ConnectCheckerRtsp) {
 
   private val TAG = "RtspClient"
 
@@ -68,7 +69,7 @@ open class RtspClient(private val connectCheckerRtsp: ConnectCheckerRtsp) {
     get() = rtspSender.droppedVideoFrames
 
   val cacheSize: Int
-    get() = rtspSender.getCacheSize()
+    get() = runBlocking{ rtspSender.getCacheSize() }
   val sentAudioFrames: Long
     get() = rtspSender.getSentAudioFrames()
   val sentVideoFrames: Long
@@ -388,8 +389,8 @@ open class RtspClient(private val connectCheckerRtsp: ConnectCheckerRtsp) {
     }
   }
 
-  fun hasCongestion(): Boolean {
-    return rtspSender.hasCongestion()
+  fun hasCongestion(): Boolean = runBlocking {
+    rtspSender.hasCongestion()
   }
 
   @JvmOverloads
@@ -423,7 +424,7 @@ open class RtspClient(private val connectCheckerRtsp: ConnectCheckerRtsp) {
   }
 
   @Throws(RuntimeException::class)
-  fun resizeCache(newSize: Int) {
+  fun resizeCache(newSize: Int) = runBlocking {
     rtspSender.resizeCache(newSize)
   }
 
