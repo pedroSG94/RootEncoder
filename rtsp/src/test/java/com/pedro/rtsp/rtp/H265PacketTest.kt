@@ -18,17 +18,12 @@ package com.pedro.rtsp.rtp
 
 import android.media.MediaCodec
 import com.pedro.rtsp.rtp.packets.H265Packet
-import com.pedro.rtsp.rtp.packets.VideoPacketCallback
 import com.pedro.rtsp.rtsp.RtpFrame
 import com.pedro.rtsp.utils.RtpConstants
 import org.junit.Assert.*
 import org.junit.Test
 import org.junit.runner.RunWith
-import org.mockito.Mock
 import org.mockito.junit.MockitoJUnitRunner
-import org.mockito.kotlin.argumentCaptor
-import org.mockito.kotlin.times
-import org.mockito.kotlin.verify
 import java.nio.ByteBuffer
 
 /**
@@ -36,9 +31,6 @@ import java.nio.ByteBuffer
  */
 @RunWith(MockitoJUnitRunner::class)
 class H265PacketTest {
-
-  @Mock
-  private lateinit var videoPacketCallback: VideoPacketCallback
 
   @Test
   fun `GIVEN a small ByteBuffer raw h265 WHEN create a packet THEN get a RTP h265 packet`() {
@@ -55,10 +47,13 @@ class H265PacketTest {
     val fakeSps = byteArrayOf(0x00, 0x00, 0x00, 0x01, 0x02, 0x03, 0x04)
     val fakePps = byteArrayOf(0x00, 0x00, 0x00, 0x01, 0x0A, 0x0B, 0x0C)
     val fakeVps = byteArrayOf(0x00, 0x00, 0x00, 0x01, 0x0D, 0x0E, 0x0F)
-    val h265Packet = H265Packet(fakeSps, fakePps, fakeVps, videoPacketCallback)
+    val h265Packet = H265Packet(fakeSps, fakePps, fakeVps)
     h265Packet.setPorts(1, 2)
     h265Packet.setSSRC(123456789)
-    h265Packet.createAndSendPacket(ByteBuffer.wrap(fakeH265), info)
+    val frames = mutableListOf<RtpFrame>()
+    h265Packet.createAndSendPacket(ByteBuffer.wrap(fakeH265), info) {
+      frames.add(it)
+    }
 
     val expectedRtp = byteArrayOf(-128, -32, 0, 2, 0, -87, -118, -57, 7, 91, -51, 21, 5, 0).plus(fakeH265.copyOfRange(header.size, fakeH265.size))
     val expectedStapA = byteArrayOf(-128, -32, 0, 1, 0, -87, -118, -57, 7, 91, -51, 21, 96, 1, 0, 7, 0, 0, 0, 1, 2, 3, 4, 0, 7, 0, 0, 0, 1, 10, 11, 12)
@@ -67,12 +62,10 @@ class H265PacketTest {
     val expectedStapAResult = RtpFrame(expectedStapA, expectedTimeStamp, fakePps.size + fakePps.size + 6 + RtpConstants.RTP_HEADER_LENGTH, 1, 2, RtpConstants.trackVideo)
     val expectedPacketResult = RtpFrame(expectedRtp, expectedTimeStamp, expectedSize, 1, 2, RtpConstants.trackVideo)
 
-    val resultValue = argumentCaptor<RtpFrame>()
-    verify(videoPacketCallback, times(2)).onVideoFrameCreated(resultValue.capture())
-    assertNotNull(resultValue)
-    assertTrue(resultValue.allValues.size == 2)
-    assertEquals(expectedStapAResult, resultValue.firstValue)
-    assertEquals(expectedPacketResult, resultValue.secondValue)
+    assertNotEquals(0, frames.size)
+    assertTrue(frames.size == 2)
+    assertEquals(expectedStapAResult, frames[0])
+    assertEquals(expectedPacketResult, frames[1])
   }
 
   @Test
@@ -90,10 +83,13 @@ class H265PacketTest {
     val fakeSps = byteArrayOf(0x00, 0x00, 0x00, 0x01, 0x02, 0x03, 0x04)
     val fakePps = byteArrayOf(0x00, 0x00, 0x00, 0x01, 0x0A, 0x0B, 0x0C)
     val fakeVps = byteArrayOf(0x00, 0x00, 0x00, 0x01, 0x0D, 0x0E, 0x0F)
-    val h265Packet = H265Packet(fakeSps, fakePps, fakeVps, videoPacketCallback)
+    val h265Packet = H265Packet(fakeSps, fakePps, fakeVps)
     h265Packet.setPorts(1, 2)
     h265Packet.setSSRC(123456789)
-    h265Packet.createAndSendPacket(ByteBuffer.wrap(fakeH265), info)
+    val frames = mutableListOf<RtpFrame>()
+    h265Packet.createAndSendPacket(ByteBuffer.wrap(fakeH265), info) {
+      frames.add(it)
+    }
 
     val packet1Size = RtpConstants.MTU - 28 - RtpConstants.RTP_HEADER_LENGTH - 3
     val chunk1 = fakeH265.copyOfRange(header.size, header.size + packet1Size)
@@ -110,12 +106,10 @@ class H265PacketTest {
     val expectedPacketResult = RtpFrame(expectedRtp, expectedTimeStamp, expectedSize, 1, 2, RtpConstants.trackVideo)
     val expectedPacketResult2 = RtpFrame(expectedRtp2, expectedTimeStamp, expectedSize2, 1, 2, RtpConstants.trackVideo)
 
-    val resultValue = argumentCaptor<RtpFrame>()
-    verify(videoPacketCallback, times(3)).onVideoFrameCreated(resultValue.capture())
-    assertNotNull(resultValue)
-    assertTrue(resultValue.allValues.size == 3)
-    assertEquals(expectedStapAResult, resultValue.firstValue)
-    assertEquals(expectedPacketResult, resultValue.secondValue)
-    assertEquals(expectedPacketResult2, resultValue.thirdValue)
+    assertNotEquals(0, frames.size)
+    assertTrue(frames.size == 3)
+    assertEquals(expectedStapAResult, frames[0])
+    assertEquals(expectedPacketResult, frames[1])
+    assertEquals(expectedPacketResult2, frames[2])
   }
 }

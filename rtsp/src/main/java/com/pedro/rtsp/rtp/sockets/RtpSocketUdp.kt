@@ -48,7 +48,7 @@ class RtpSocketUdp(videoSourcePort: Int, audioSourcePort: Int) : BaseRtpSocket()
   }
 
   @Throws(IOException::class)
-  override fun sendFrame(rtpFrame: RtpFrame, isEnableLogs: Boolean) {
+  override suspend fun sendFrame(rtpFrame: RtpFrame, isEnableLogs: Boolean) {
     sendFrameUDP(rtpFrame, isEnableLogs)
   }
 

@@ -36,7 +36,7 @@ class RtpSocketTcp : BaseRtpSocket() {
   }
 
   @Throws(IOException::class)
-  override fun sendFrame(rtpFrame: RtpFrame, isEnableLogs: Boolean) {
+  override suspend fun sendFrame(rtpFrame: RtpFrame, isEnableLogs: Boolean) {
     sendFrameTCP(rtpFrame, isEnableLogs)
   }
 

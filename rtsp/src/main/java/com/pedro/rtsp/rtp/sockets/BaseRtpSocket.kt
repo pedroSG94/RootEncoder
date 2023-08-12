@@ -43,7 +43,7 @@ abstract class BaseRtpSocket {
   abstract fun setDataStream(outputStream: OutputStream, host: String)
 
   @Throws(IOException::class)
-  abstract fun sendFrame(rtpFrame: RtpFrame, isEnableLogs: Boolean)
+  abstract suspend fun sendFrame(rtpFrame: RtpFrame, isEnableLogs: Boolean)
 
   abstract fun close()
 }

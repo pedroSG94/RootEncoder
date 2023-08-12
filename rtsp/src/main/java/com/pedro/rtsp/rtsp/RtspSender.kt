@@ -25,20 +25,18 @@ import com.pedro.rtsp.rtp.sockets.RtpSocketTcp
 import com.pedro.rtsp.utils.BitrateManager
 import com.pedro.rtsp.utils.ConnectCheckerRtsp
 import com.pedro.rtsp.utils.RtpConstants
+import com.pedro.rtsp.utils.onMainThread
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.flow.consumeAsFlow
 import kotlinx.coroutines.flow.count
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
 import java.io.IOException
 import java.io.OutputStream
 import java.nio.ByteBuffer
@@ -59,6 +57,7 @@ class RtspSender(private val connectCheckerRtsp: ConnectCheckerRtsp) {
     get() = 10 * 1024 * 1024 / RtpConstants.MTU
   private var cacheSize = defaultCacheSize
 
+  private var job: Job? = null
   private val scope = CoroutineScope(Dispatchers.IO)
   private var queue = Channel<RtpFrame>(cacheSize)
   private var queueFlow = queue.receiveAsFlow()
@@ -131,7 +130,7 @@ class RtspSender(private val connectCheckerRtsp: ConnectCheckerRtsp) {
   fun start() {
     queue = Channel(cacheSize)
     queueFlow = queue.receiveAsFlow()
-    scope.launch post@{
+    job = scope.launch {
       val ssrcVideo = Random().nextInt().toLong()
       val ssrcAudio = Random().nextInt().toLong()
       baseSenderReport?.setSSRC(ssrcVideo, ssrcAudio)
@@ -157,7 +156,9 @@ class RtspSender(private val connectCheckerRtsp: ConnectCheckerRtsp) {
           }
         }.exceptionOrNull()
         if (error != null) {
-          connectCheckerRtsp.onConnectionFailedRtsp("Error send packet, " + error.message)
+          onMainThread {
+            connectCheckerRtsp.onConnectionFailedRtsp("Error send packet, " + error.message)
+          }
           Log.e(TAG, "send error: ", error)
           scope.cancel()
         }
@@ -166,19 +167,23 @@ class RtspSender(private val connectCheckerRtsp: ConnectCheckerRtsp) {
   }
 
   fun stop() {
-    scope.cancel()
-    queue.cancel()
-    queue = Channel(cacheSize)
-    queueFlow = queue.receiveAsFlow()
-    baseSenderReport?.reset()
-    baseSenderReport?.close()
-    rtpSocket?.close()
-    aacPacket?.reset()
-    videoPacket?.reset()
-    resetSentAudioFrames()
-    resetSentVideoFrames()
-    resetDroppedAudioFrames()
-    resetDroppedVideoFrames()
+    scope.launch {
+      queue.cancel()
+      queue = Channel(cacheSize)
+      queueFlow = queue.receiveAsFlow()
+      baseSenderReport?.reset()
+      baseSenderReport?.close()
+      rtpSocket?.close()
+      aacPacket?.reset()
+      videoPacket?.reset()
+      resetSentAudioFrames()
+      resetSentVideoFrames()
+      resetDroppedAudioFrames()
+      resetDroppedVideoFrames()
+      job?.cancelAndJoin()
+      job = null
+      scope.cancel()
+    }
   }
 
   suspend fun hasCongestion(): Boolean {

@@ -17,7 +17,10 @@
 package com.pedro.rtsp.utils
 
 import android.util.Base64
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import java.nio.ByteBuffer
+import kotlin.coroutines.CoroutineContext
 
 fun ByteArray.encodeToString(flags: Int = Base64.NO_WRAP): String {
   return Base64.encodeToString(this, flags)
@@ -51,4 +54,10 @@ fun ByteBuffer.getVideoStartCodeSize(): Int {
     startCodeSize = 3
   }
   return startCodeSize
+}
+
+suspend fun onMainThread(code: () -> Unit) {
+  withContext(Dispatchers.Main) {
+    code()
+  }
 }

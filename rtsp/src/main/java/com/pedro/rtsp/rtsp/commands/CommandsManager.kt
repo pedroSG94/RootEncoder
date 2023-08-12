@@ -236,7 +236,7 @@ class CommandsManager {
     while (reader.readLine().also { line = it } != null) {
       response += "${line ?: ""}\n"
       //end of response
-      if (line?.length ?: 0 < 3) break
+      if ((line?.length ?: 0) < 3) break
     }
     Log.i(TAG, response)
     return if (method == Method.UNKNOWN) {

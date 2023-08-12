@@ -86,7 +86,7 @@ abstract class BaseSenderReport internal constructor() {
   abstract fun setDataStream(outputStream: OutputStream, host: String)
 
   @Throws(IOException::class)
-  fun update(rtpFrame: RtpFrame, isEnableLogs: Boolean): Boolean {
+  suspend fun update(rtpFrame: RtpFrame, isEnableLogs: Boolean): Boolean {
     return if (rtpFrame.channelIdentifier == RtpConstants.trackVideo) {
       updateVideo(rtpFrame, isEnableLogs)
     } else {
@@ -95,10 +95,10 @@ abstract class BaseSenderReport internal constructor() {
   }
 
   @Throws(IOException::class)
-  abstract fun sendReport(buffer: ByteArray, rtpFrame: RtpFrame, type: String, packetCount: Long, octetCount: Long, isEnableLogs: Boolean)
+  abstract suspend fun sendReport(buffer: ByteArray, rtpFrame: RtpFrame, type: String, packetCount: Long, octetCount: Long, isEnableLogs: Boolean)
 
   @Throws(IOException::class)
-  private fun updateVideo(rtpFrame: RtpFrame, isEnableLogs: Boolean): Boolean {
+  private suspend fun updateVideo(rtpFrame: RtpFrame, isEnableLogs: Boolean): Boolean {
     videoPacketCount++
     videoOctetCount += rtpFrame.length
     videoBuffer.setLong(videoPacketCount, 20, 24)
@@ -113,7 +113,7 @@ abstract class BaseSenderReport internal constructor() {
   }
 
   @Throws(IOException::class)
-  private fun updateAudio(rtpFrame: RtpFrame, isEnableLogs: Boolean): Boolean {
+  private suspend fun updateAudio(rtpFrame: RtpFrame, isEnableLogs: Boolean): Boolean {
     audioPacketCount++
     audioOctetCount += rtpFrame.length
     audioBuffer.setLong(audioPacketCount, 20, 24)
@@ -129,11 +129,11 @@ abstract class BaseSenderReport internal constructor() {
 
   fun reset() {
     videoOctetCount = 0
-    videoPacketCount = videoOctetCount
+    videoPacketCount = 0
     audioOctetCount = 0
-    audioPacketCount = audioOctetCount
+    audioPacketCount = 0
     audioTime = 0
-    videoTime = audioTime
+    videoTime = 0
     videoBuffer.setLong(videoPacketCount, 20, 24)
     videoBuffer.setLong(videoOctetCount, 24, 28)
     audioBuffer.setLong(audioPacketCount, 20, 24)

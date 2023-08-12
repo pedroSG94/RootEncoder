@@ -48,7 +48,7 @@ class SenderReportUdp(videoSourcePort: Int, audioSourcePort: Int) : BaseSenderRe
   }
 
   @Throws(IOException::class)
-  override fun sendReport(buffer: ByteArray, rtpFrame: RtpFrame, type: String, packetCount: Long, octetCount: Long, isEnableLogs: Boolean) {
+  override suspend fun sendReport(buffer: ByteArray, rtpFrame: RtpFrame, type: String, packetCount: Long, octetCount: Long, isEnableLogs: Boolean) {
     sendReportUDP(buffer, rtpFrame.rtcpPort, type, packetCount, octetCount, isEnableLogs)
   }
 
