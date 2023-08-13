@@ -32,7 +32,6 @@ import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.withTimeoutOrNull
 import java.io.*
@@ -78,7 +77,7 @@ class RtspClient(private val connectCheckerRtsp: ConnectCheckerRtsp) {
     get() = rtspSender.droppedVideoFrames
 
   val cacheSize: Int
-    get() = runBlocking{ rtspSender.getCacheSize() }
+    get() = rtspSender.getCacheSize()
   val sentAudioFrames: Long
     get() = rtspSender.getSentAudioFrames()
   val sentVideoFrames: Long
@@ -421,8 +420,8 @@ class RtspClient(private val connectCheckerRtsp: ConnectCheckerRtsp) {
     }
   }
 
-  fun hasCongestion(): Boolean = runBlocking {
-    rtspSender.hasCongestion()
+  fun hasCongestion(): Boolean {
+    return rtspSender.hasCongestion()
   }
 
   @JvmOverloads
@@ -453,7 +452,7 @@ class RtspClient(private val connectCheckerRtsp: ConnectCheckerRtsp) {
   }
 
   @Throws(RuntimeException::class)
-  fun resizeCache(newSize: Int) = runBlocking {
+  fun resizeCache(newSize: Int) {
     rtspSender.resizeCache(newSize)
   }
 

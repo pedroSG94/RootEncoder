@@ -31,9 +31,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.flow.count
 import kotlinx.coroutines.flow.receiveAsFlow
-import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import java.io.IOException
@@ -55,6 +53,7 @@ class RtspSender(private val connectCheckerRtsp: ConnectCheckerRtsp) {
   private val defaultCacheSize: Int
     get() = 10 * 1024 * 1024 / RtpConstants.MTU
   private var cacheSize = defaultCacheSize
+  private var itemsInQueue = 0
 
   private var job: Job? = null
   private val scope = CoroutineScope(Dispatchers.IO)
@@ -109,6 +108,8 @@ class RtspSender(private val connectCheckerRtsp: ConnectCheckerRtsp) {
         if (error != null) {
           Log.i(TAG, "Video frame discarded")
           droppedVideoFrames++
+        } else {
+          itemsInQueue++
         }
       }
     }
@@ -121,6 +122,8 @@ class RtspSender(private val connectCheckerRtsp: ConnectCheckerRtsp) {
         if (error != null) {
           Log.i(TAG, "Audio frame discarded")
           droppedAudioFrames++
+        } else {
+          itemsInQueue++
         }
       }
     }
@@ -136,8 +139,8 @@ class RtspSender(private val connectCheckerRtsp: ConnectCheckerRtsp) {
       videoPacket?.setSSRC(ssrcVideo)
       aacPacket?.setSSRC(ssrcAudio)
       val isTcp = rtpSocket is RtpSocketTcp
-
       queueFlow.collect { rtpFrame ->
+        itemsInQueue--
         val error = runCatching {
           rtpSocket?.sendFrame(rtpFrame, isEnableLogs)
           //bytes to bits (4 is tcp header length)
@@ -166,6 +169,7 @@ class RtspSender(private val connectCheckerRtsp: ConnectCheckerRtsp) {
 
   suspend fun stop() {
     queue.cancel()
+    itemsInQueue = 0
     queue = Channel(cacheSize)
     queueFlow = queue.receiveAsFlow()
     baseSenderReport?.reset()
@@ -181,26 +185,26 @@ class RtspSender(private val connectCheckerRtsp: ConnectCheckerRtsp) {
     job = null
   }
 
-  suspend fun hasCongestion(): Boolean {
+  fun hasCongestion(): Boolean {
     val size = cacheSize
-    val remaining = cacheSize - queueFlow.count()
+    val remaining = cacheSize - itemsInQueue
     val capacity = size + remaining
     return size >= capacity * 0.2f //more than 20% queue used. You could have congestion
   }
 
-  suspend fun resizeCache(newSize: Int) {
-    val tempQueue = Channel<RtpFrame>(newSize)
-    val frames = mutableListOf<RtpFrame>()
-    this@RtspSender.queue.receiveAsFlow().toList(frames).forEach {
-      tempQueue.trySend(it)
+  fun resizeCache(newSize: Int) {
+    if (!scope.isActive) {
+      val tempQueue = Channel<RtpFrame>(newSize)
+      queue = tempQueue
+      queueFlow = queue.receiveAsFlow()
+      cacheSize = newSize
+    } else {
+      throw RuntimeException("resize cache while streaming is not available")
     }
-    this@RtspSender.queue = tempQueue
-    queueFlow = this@RtspSender.queue.receiveAsFlow()
-    cacheSize = newSize
   }
 
-  suspend fun getCacheSize(): Int {
-    return queueFlow.count()
+  fun getCacheSize(): Int {
+    return cacheSize
   }
 
   fun getSentAudioFrames(): Long {
