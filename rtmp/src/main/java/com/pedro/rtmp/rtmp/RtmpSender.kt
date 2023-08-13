@@ -145,6 +145,7 @@ class RtmpSender(
             connectCheckerRtmp.onConnectionFailedRtmp("Error send packet, " + error.message)
           }
           Log.e(TAG, "send error: ", error)
+          return@collect
         }
       }
     }

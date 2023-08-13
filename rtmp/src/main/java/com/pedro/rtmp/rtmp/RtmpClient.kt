@@ -53,8 +53,10 @@ class RtmpClient(private val connectCheckerRtmp: ConnectCheckerRtmp) {
   private val rtmpUrlPattern = Pattern.compile("^rtmpt?s?://([^/:]+)(?::(\\d+))*/([^/]+)/?([^*]*)$")
 
   private var socket: RtmpSocket? = null
-  private val scope = CoroutineScope(Dispatchers.IO)
+  private var scope = CoroutineScope(Dispatchers.IO)
+  private var scopeRetry = CoroutineScope(Dispatchers.IO)
   private var job: Job? = null
+  private var jobRetry: Job? = null
   private var commandsManager: CommandsManager = CommandsManagerAmf0()
   private val rtmpSender = RtmpSender(connectCheckerRtmp, commandsManager)
 
@@ -471,7 +473,7 @@ class RtmpClient(private val connectCheckerRtmp: ConnectCheckerRtmp) {
 
   @JvmOverloads
   fun reConnect(delay: Long, backupUrl: String? = null) {
-    job = scope.launch {
+    jobRetry = scopeRetry.launch {
       reTries--
       disconnect(false)
       delay(delay)
@@ -501,10 +503,15 @@ class RtmpClient(private val connectCheckerRtmp: ConnectCheckerRtmp) {
       onMainThread {
         connectCheckerRtmp.onDisconnectRtmp()
       }
-      job?.cancelAndJoin()
-      job = null
-      scope.cancel()
+      jobRetry?.cancelAndJoin()
+      jobRetry = null
+      scopeRetry.cancel()
+      scopeRetry = CoroutineScope(Dispatchers.IO)
     }
+    job?.cancelAndJoin()
+    job = null
+    scope.cancel()
+    scope = CoroutineScope(Dispatchers.IO)
     publishPermitted = false
     commandsManager.reset()
   }
