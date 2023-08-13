@@ -54,6 +54,8 @@ class RtspSender(private val connectCheckerRtsp: ConnectCheckerRtsp) {
     get() = 10 * 1024 * 1024 / RtpConstants.MTU
   private var cacheSize = defaultCacheSize
   private var itemsInQueue = 0
+  @Volatile
+  private var running = false
 
   private var job: Job? = null
   private val scope = CoroutineScope(Dispatchers.IO)
@@ -102,7 +104,7 @@ class RtspSender(private val connectCheckerRtsp: ConnectCheckerRtsp) {
   }
 
   fun sendVideoFrame(h264Buffer: ByteBuffer, info: MediaCodec.BufferInfo) {
-    if (scope.isActive) {
+    if (running) {
       videoPacket?.createAndSendPacket(h264Buffer, info) { rtpFrame ->
         val error = queue.trySend(rtpFrame).exceptionOrNull()
         if (error != null) {
@@ -116,7 +118,7 @@ class RtspSender(private val connectCheckerRtsp: ConnectCheckerRtsp) {
   }
 
   fun sendAudioFrame(aacBuffer: ByteBuffer, info: MediaCodec.BufferInfo) {
-    if (scope.isActive) {
+    if (running) {
       aacPacket?.createAndSendPacket(aacBuffer, info) { rtpFrame ->
         val error = queue.trySend(rtpFrame).exceptionOrNull()
         if (error != null) {
@@ -132,6 +134,7 @@ class RtspSender(private val connectCheckerRtsp: ConnectCheckerRtsp) {
   fun start() {
     queue = Channel(cacheSize)
     queueFlow = queue.receiveAsFlow()
+    running = true
     job = scope.launch {
       val ssrcVideo = Random().nextInt().toLong()
       val ssrcAudio = Random().nextInt().toLong()
@@ -168,6 +171,7 @@ class RtspSender(private val connectCheckerRtsp: ConnectCheckerRtsp) {
   }
 
   suspend fun stop() {
+    running = false
     queue.cancel()
     itemsInQueue = 0
     queue = Channel(cacheSize)
