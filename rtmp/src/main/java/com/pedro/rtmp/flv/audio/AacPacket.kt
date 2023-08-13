@@ -25,7 +25,7 @@ import kotlin.experimental.or
 /**
  * Created by pedro on 8/04/21.
  */
-class AacPacket(private val audioPacketCallback: AudioPacketCallback) {
+class AacPacket() {
 
   private val header = ByteArray(2)
   //first time we need send audio config
@@ -48,7 +48,11 @@ class AacPacket(private val audioPacketCallback: AudioPacketCallback) {
     this.audioSize = audioSize
   }
 
-  fun createFlvAudioPacket(byteBuffer: ByteBuffer, info: MediaCodec.BufferInfo) {
+  fun createFlvAudioPacket(
+    byteBuffer: ByteBuffer,
+    info: MediaCodec.BufferInfo,
+    callback: (FlvPacket) -> Unit
+  ) {
     //header is 2 bytes length
     //4 bits sound format, 2 bits sound rate, 1 bit sound size, 1 bit sound type
     //8 bits sound data (always 10 because we aer using aac)
@@ -78,7 +82,7 @@ class AacPacket(private val audioPacketCallback: AudioPacketCallback) {
     }
     System.arraycopy(header, 0, buffer, 0, header.size)
     val ts = info.presentationTimeUs / 1000
-    audioPacketCallback.onAudioFrameCreated(FlvPacket(buffer, ts, buffer.size, FlvType.AUDIO))
+    callback(FlvPacket(buffer, ts, buffer.size, FlvType.AUDIO))
   }
 
   fun reset() {

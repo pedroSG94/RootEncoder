@@ -19,9 +19,6 @@ package com.pedro.rtmp.rtmp
 import android.media.MediaCodec
 import android.util.Log
 import com.pedro.rtmp.amf.AmfVersion
-import com.pedro.rtmp.amf.v0.AmfNumber
-import com.pedro.rtmp.amf.v0.AmfObject
-import com.pedro.rtmp.amf.v0.AmfString
 import com.pedro.rtmp.flv.video.ProfileIop
 import com.pedro.rtmp.rtmp.message.*
 import com.pedro.rtmp.rtmp.message.command.Command
@@ -30,16 +27,21 @@ import com.pedro.rtmp.rtmp.message.control.UserControl
 import com.pedro.rtmp.utils.AuthUtil
 import com.pedro.rtmp.utils.ConnectCheckerRtmp
 import com.pedro.rtmp.utils.RtmpConfig
+import com.pedro.rtmp.utils.onMainThread
 import com.pedro.rtmp.utils.socket.RtmpSocket
 import com.pedro.rtmp.utils.socket.TcpSocket
 import com.pedro.rtmp.utils.socket.TcpTunneledSocket
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.cancelAndJoin
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
+import kotlinx.coroutines.launch
 import java.io.*
 import java.net.*
 import java.nio.ByteBuffer
-import java.util.concurrent.ExecutorService
-import java.util.concurrent.Executors
-import java.util.concurrent.ScheduledExecutorService
-import java.util.concurrent.TimeUnit
 import java.util.regex.Pattern
 
 /**
@@ -51,7 +53,10 @@ class RtmpClient(private val connectCheckerRtmp: ConnectCheckerRtmp) {
   private val rtmpUrlPattern = Pattern.compile("^rtmpt?s?://([^/:]+)(?::(\\d+))*/([^/]+)/?([^*]*)$")
 
   private var socket: RtmpSocket? = null
-  private var thread: ExecutorService? = null
+  private var scope = CoroutineScope(Dispatchers.IO)
+  private var scopeRetry = CoroutineScope(Dispatchers.IO)
+  private var job: Job? = null
+  private var jobRetry: Job? = null
   private var commandsManager: CommandsManager = CommandsManagerAmf0()
   private val rtmpSender = RtmpSender(connectCheckerRtmp, commandsManager)
 
@@ -66,8 +71,6 @@ class RtmpClient(private val connectCheckerRtmp: ConnectCheckerRtmp) {
   private var doingRetry = false
   private var numRetry = 0
   private var reTries = 0
-  private var handler: ScheduledExecutorService? = null
-  private var runnable: Runnable? = null
   private var checkServerAlive = false
   private var publishPermitted = false
 
@@ -85,9 +88,9 @@ class RtmpClient(private val connectCheckerRtmp: ConnectCheckerRtmp) {
 
   fun setAmfVersion(amfVersion: AmfVersion) {
     if (!isStreaming) {
-      when (amfVersion) {
-        AmfVersion.VERSION_0 -> commandsManager = CommandsManagerAmf0()
-        AmfVersion.VERSION_3 -> commandsManager = CommandsManagerAmf3()
+      commandsManager = when (amfVersion) {
+        AmfVersion.VERSION_0 -> CommandsManagerAmf0()
+        AmfVersion.VERSION_3 -> CommandsManagerAmf3()
       }
     }
   }
@@ -162,77 +165,89 @@ class RtmpClient(private val connectCheckerRtmp: ConnectCheckerRtmp) {
   @JvmOverloads
   fun connect(url: String?, isRetry: Boolean = false) {
     if (!isRetry) doingRetry = true
-    if (url == null) {
-      isStreaming = false
-      connectCheckerRtmp.onConnectionFailedRtmp(
-          "Endpoint malformed, should be: rtmp://ip:port/appname/streamname")
-      return
-    }
     if (!isStreaming || isRetry) {
-      this.url = url
-      connectCheckerRtmp.onConnectionStartedRtmp(url)
-      val rtmpMatcher = rtmpUrlPattern.matcher(url)
-      if (rtmpMatcher.matches()) {
-        val schema = rtmpMatcher.group(0) ?: ""
-        tunneled = schema.startsWith("rtmpt")
-        tlsEnabled = schema.startsWith("rtmps") || schema.startsWith("rtmpts")
-      } else {
-        connectCheckerRtmp.onConnectionFailedRtmp(
-            "Endpoint malformed, should be: rtmp://ip:port/appname/streamname")
-        return
-      }
+      isStreaming = true
 
-      commandsManager.host = rtmpMatcher.group(1) ?: ""
-      val portStr = rtmpMatcher.group(2)
-      val defaultPort = if (tlsEnabled) 443 else if (tunneled) 80 else 1935
-      commandsManager.port = portStr?.toInt() ?: defaultPort
-      commandsManager.appName = getAppName(rtmpMatcher.group(3) ?: "", rtmpMatcher.group(4) ?: "")
-      commandsManager.streamName = getStreamName(rtmpMatcher.group(4) ?: "")
-      commandsManager.tcUrl = getTcUrl((rtmpMatcher.group(0)
+      job = scope.launch {
+        if (url == null) {
+          isStreaming = false
+          onMainThread {
+            connectCheckerRtmp.onConnectionFailedRtmp(
+              "Endpoint malformed, should be: rtmp://ip:port/appname/streamname")
+          }
+          return@launch
+        }
+        this@RtmpClient.url = url
+        onMainThread {
+          connectCheckerRtmp.onConnectionStartedRtmp(url)
+        }
+        val rtmpMatcher = rtmpUrlPattern.matcher(url)
+        if (rtmpMatcher.matches()) {
+          val schema = rtmpMatcher.group(0) ?: ""
+          tunneled = schema.startsWith("rtmpt")
+          tlsEnabled = schema.startsWith("rtmps") || schema.startsWith("rtmpts")
+        } else {
+          onMainThread {
+            connectCheckerRtmp.onConnectionFailedRtmp(
+              "Endpoint malformed, should be: rtmp://ip:port/appname/streamname")
+          }
+          return@launch
+        }
+
+        commandsManager.host = rtmpMatcher.group(1) ?: ""
+        val portStr = rtmpMatcher.group(2)
+        val defaultPort = if (tlsEnabled) 443 else if (tunneled) 80 else 1935
+        commandsManager.port = portStr?.toInt() ?: defaultPort
+        commandsManager.appName = getAppName(rtmpMatcher.group(3) ?: "", rtmpMatcher.group(4) ?: "")
+        commandsManager.streamName = getStreamName(rtmpMatcher.group(4) ?: "")
+        commandsManager.tcUrl = getTcUrl((rtmpMatcher.group(0)
           ?: "").substring(0, (rtmpMatcher.group(0)
           ?: "").length - commandsManager.streamName.length))
 
-      isStreaming = true
-      thread = Executors.newSingleThreadExecutor()
-      thread?.execute post@{
-        try {
+        val error = runCatching {
           if (!establishConnection()) {
-            connectCheckerRtmp.onConnectionFailedRtmp("Handshake failed")
-            return@post
+            onMainThread {
+              connectCheckerRtmp.onConnectionFailedRtmp("Handshake failed")
+            }
+            return@launch
           }
-          val socket = this.socket ?: throw IOException("Invalid socket, Connection failed")
+          val socket = this@RtmpClient.socket ?: throw IOException("Invalid socket, Connection failed")
           commandsManager.sendChunkSize(socket)
           commandsManager.sendConnect("", socket)
           //read packets until you did success connection to server and you are ready to send packets
-          while (!Thread.interrupted() && !publishPermitted) {
+          while (scope.isActive && !publishPermitted) {
             //Handle all command received and send response for it.
             handleMessages()
           }
           //read packet because maybe server want send you something while streaming
           handleServerPackets()
-        } catch (e: Exception) {
-          Log.e(TAG, "connection error", e)
-          connectCheckerRtmp.onConnectionFailedRtmp("Error configure stream, ${e.message}")
-          return@post
+        }.exceptionOrNull()
+        if (error != null) {
+          Log.e(TAG, "connection error", error)
+          onMainThread {
+            connectCheckerRtmp.onConnectionFailedRtmp("Error configure stream, ${error.message}")
+          }
+          return@launch
         }
       }
     }
   }
 
-  private fun handleServerPackets() {
-    while (!Thread.interrupted() && isStreaming) {
-      try {
+  private suspend fun handleServerPackets() {
+    while (scope.isActive && isStreaming) {
+      val error = runCatching {
         if (isAlive()) {
           //ignore packet after connect if tunneled to avoid spam idle
           if (!tunneled) handleMessages()
         } else {
-          Thread.currentThread().interrupt()
-          connectCheckerRtmp.onConnectionFailedRtmp("No response from server")
+          onMainThread {
+            connectCheckerRtmp.onConnectionFailedRtmp("No response from server")
+          }
+          scope.cancel()
         }
-      } catch (ignored: SocketTimeoutException) {
-        //new packet not found
-      } catch (e: Exception) {
-        Thread.currentThread().interrupt()
+      }.exceptionOrNull()
+      if (error != null && error !is SocketTimeoutException) {
+        scope.cancel()
       }
     }
   }
@@ -294,7 +309,7 @@ class RtmpClient(private val connectCheckerRtmp: ConnectCheckerRtmp) {
    * Read all messages from server and response to it
    */
   @Throws(IOException::class)
-  private fun handleMessages() {
+  private suspend fun handleMessages() {
     var socket = this.socket ?: throw IOException("Invalid socket, Connection failed")
 
     val message = commandsManager.readMessageResponse(socket)
@@ -340,7 +355,9 @@ class RtmpClient(private val connectCheckerRtmp: ConnectCheckerRtmp) {
             when (commandName) {
               "connect" -> {
                 if (commandsManager.onAuth) {
-                  connectCheckerRtmp.onAuthSuccessRtmp()
+                  onMainThread {
+                    connectCheckerRtmp.onAuthSuccessRtmp()
+                  }
                   commandsManager.onAuth = false
                 }
                 commandsManager.createStream(socket)
@@ -362,7 +379,9 @@ class RtmpClient(private val connectCheckerRtmp: ConnectCheckerRtmp) {
               when (commandName) {
                 "connect" -> {
                   if (description.contains("reason=authfail") || description.contains("reason=nosuchuser")) {
-                    connectCheckerRtmp.onAuthErrorRtmp()
+                    onMainThread {
+                      connectCheckerRtmp.onAuthErrorRtmp()
+                    }
                   } else if (commandsManager.user != null && commandsManager.password != null &&
                       description.contains("challenge=") && description.contains("salt=") //adobe response
                       || description.contains("nonce=")) { //llnw response
@@ -395,11 +414,15 @@ class RtmpClient(private val connectCheckerRtmp: ConnectCheckerRtmp) {
                       commandsManager.sendConnect("?authmod=llnw&user=${commandsManager.user}", socket)
                     }
                   } else {
-                    connectCheckerRtmp.onAuthErrorRtmp()
+                    onMainThread {
+                      connectCheckerRtmp.onAuthErrorRtmp()
+                    }
                   }
                 }
                 else -> {
-                  connectCheckerRtmp.onConnectionFailedRtmp(description)
+                  onMainThread {
+                    connectCheckerRtmp.onConnectionFailedRtmp(description)
+                  }
                 }
               }
             } catch (e: ClassCastException) {
@@ -411,14 +434,17 @@ class RtmpClient(private val connectCheckerRtmp: ConnectCheckerRtmp) {
               when (val code = command.getCode()) {
                 "NetStream.Publish.Start" -> {
                   commandsManager.sendMetadata(socket)
-                  connectCheckerRtmp.onConnectionSuccessRtmp()
-
+                  onMainThread {
+                    connectCheckerRtmp.onConnectionSuccessRtmp()
+                  }
                   rtmpSender.socket = socket
                   rtmpSender.start()
                   publishPermitted = true
                 }
                 "NetConnection.Connect.Rejected", "NetStream.Publish.BadName" -> {
-                  connectCheckerRtmp.onConnectionFailedRtmp("onStatus: $code")
+                  onMainThread {
+                    connectCheckerRtmp.onConnectionFailedRtmp("onStatus: $code")
+                  }
                 }
                 else -> {
                   Log.i(TAG, "onStatus $code response received from ${commandName ?: "unknown command"}")
@@ -447,51 +473,45 @@ class RtmpClient(private val connectCheckerRtmp: ConnectCheckerRtmp) {
 
   @JvmOverloads
   fun reConnect(delay: Long, backupUrl: String? = null) {
-    reTries--
-    disconnect(false)
-    runnable = Runnable {
+    jobRetry = scopeRetry.launch {
+      reTries--
+      disconnect(false)
+      delay(delay)
       val reconnectUrl = backupUrl ?: url
       connect(reconnectUrl, true)
-    }
-    runnable?.let {
-      handler = Executors.newSingleThreadScheduledExecutor()
-      handler?.schedule(it, delay, TimeUnit.MILLISECONDS)
     }
   }
 
   fun disconnect() {
-    runnable?.let { handler?.shutdownNow() }
-    disconnect(true)
+    CoroutineScope(Dispatchers.IO).launch {
+      disconnect(true)
+    }
   }
 
-  private fun disconnect(clear: Boolean) {
+  private suspend fun disconnect(clear: Boolean) {
     if (isStreaming) rtmpSender.stop(clear)
-    thread?.shutdownNow()
-    val executor = Executors.newSingleThreadExecutor()
-    executor.execute post@{
-      try {
-        socket?.let { socket ->
-          commandsManager.sendClose(socket)
-        }
-      } catch (e: IOException) {
-        Log.e(TAG, "disconnect error", e)
-      } finally {
-        closeConnection()
+    runCatching {
+      socket?.let { socket ->
+        commandsManager.sendClose(socket)
       }
     }
-    try {
-      executor.shutdownNow()
-      executor.awaitTermination(200, TimeUnit.MILLISECONDS)
-      thread?.awaitTermination(100, TimeUnit.MILLISECONDS)
-      thread = null
-    } catch (e: Exception) {
-    }
+    closeConnection()
     if (clear) {
       reTries = numRetry
       doingRetry = false
       isStreaming = false
-      connectCheckerRtmp.onDisconnectRtmp()
+      onMainThread {
+        connectCheckerRtmp.onDisconnectRtmp()
+      }
+      jobRetry?.cancelAndJoin()
+      jobRetry = null
+      scopeRetry.cancel()
+      scopeRetry = CoroutineScope(Dispatchers.IO)
     }
+    job?.cancelAndJoin()
+    job = null
+    scope.cancel()
+    scope = CoroutineScope(Dispatchers.IO)
     publishPermitted = false
     commandsManager.reset()
   }
