@@ -16,12 +16,20 @@
 
 package com.pedro.rtmp.utils
 
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import java.io.InputStream
 import java.io.OutputStream
 
 /**
  * Created by pedro on 20/04/21.
  */
+
+suspend fun onMainThread(code: () -> Unit) {
+  withContext(Dispatchers.Main) {
+    code()
+  }
+}
 
 fun InputStream.readUntil(byteArray: ByteArray) {
   var bytesRead = 0

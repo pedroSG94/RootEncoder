@@ -28,7 +28,7 @@ import kotlin.experimental.and
  *
  * ISO 14496-15
  */
-class H264Packet(private val videoPacketCallback: VideoPacketCallback) {
+class H264Packet() {
 
   private val TAG = "H264Packet"
 
@@ -58,7 +58,11 @@ class H264Packet(private val videoPacketCallback: VideoPacketCallback) {
     this.pps = ppsBytes
   }
 
-  fun createFlvVideoPacket(byteBuffer: ByteBuffer, info: MediaCodec.BufferInfo) {
+  fun createFlvVideoPacket(
+    byteBuffer: ByteBuffer,
+    info: MediaCodec.BufferInfo,
+    callback: (FlvPacket) -> Unit
+  ) {
     byteBuffer.rewind()
     val ts = info.presentationTimeUs / 1000
     //header is 5 bytes length:
@@ -87,33 +91,31 @@ class H264Packet(private val videoPacketCallback: VideoPacketCallback) {
       }
 
       System.arraycopy(header, 0, buffer, 0, header.size)
-      videoPacketCallback.onVideoFrameCreated(FlvPacket(buffer, ts, buffer.size, FlvType.VIDEO))
+      callback(FlvPacket(buffer, ts, buffer.size, FlvType.VIDEO))
       configSend = true
     }
-    if (configSend){
-      val headerSize = getHeaderSize(byteBuffer)
-      if (headerSize == 0) return //invalid buffer or waiting for sps/pps
-      byteBuffer.rewind()
-      val validBuffer = removeHeader(byteBuffer, headerSize)
-      val size = validBuffer.remaining()
-      buffer = ByteArray(header.size + size + naluSize)
+    val headerSize = getHeaderSize(byteBuffer)
+    if (headerSize == 0) return //invalid buffer or waiting for sps/pps
+    byteBuffer.rewind()
+    val validBuffer = removeHeader(byteBuffer, headerSize)
+    val size = validBuffer.remaining()
+    buffer = ByteArray(header.size + size + naluSize)
 
-      val type: Int = (validBuffer.get(0) and 0x1F).toInt()
-      var nalType = VideoDataType.INTER_FRAME.value
-      if (type == VideoNalType.IDR.value || info.flags == MediaCodec.BUFFER_FLAG_KEY_FRAME) {
-        nalType = VideoDataType.KEYFRAME.value
-      } else if (type == VideoNalType.SPS.value || type == VideoNalType.PPS.value) {
-        // we don't need send it because we already do it in video config
-        return
-      }
-      header[0] = ((nalType shl 4) or VideoFormat.AVC.value).toByte()
-      header[1] = Type.NALU.value
-      writeNaluSize(buffer, header.size, size)
-      validBuffer.get(buffer, header.size + naluSize, size)
-
-      System.arraycopy(header, 0, buffer, 0, header.size)
-      videoPacketCallback.onVideoFrameCreated(FlvPacket(buffer, ts, buffer.size, FlvType.VIDEO))
+    val type: Int = (validBuffer.get(0) and 0x1F).toInt()
+    var nalType = VideoDataType.INTER_FRAME.value
+    if (type == VideoNalType.IDR.value || info.flags == MediaCodec.BUFFER_FLAG_KEY_FRAME) {
+      nalType = VideoDataType.KEYFRAME.value
+    } else if (type == VideoNalType.SPS.value || type == VideoNalType.PPS.value) {
+      // we don't need send it because we already do it in video config
+      return
     }
+    header[0] = ((nalType shl 4) or VideoFormat.AVC.value).toByte()
+    header[1] = Type.NALU.value
+    writeNaluSize(buffer, header.size, size)
+    validBuffer.get(buffer, header.size + naluSize, size)
+
+    System.arraycopy(header, 0, buffer, 0, header.size)
+    callback(FlvPacket(buffer, ts, buffer.size, FlvType.VIDEO))
   }
 
   //naluSize = UInt32

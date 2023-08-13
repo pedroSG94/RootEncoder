@@ -21,30 +21,40 @@ import android.util.Log
 import com.pedro.rtmp.flv.FlvPacket
 import com.pedro.rtmp.flv.FlvType
 import com.pedro.rtmp.flv.audio.AacPacket
-import com.pedro.rtmp.flv.audio.AudioPacketCallback
 import com.pedro.rtmp.flv.video.H264Packet
 import com.pedro.rtmp.flv.video.ProfileIop
-import com.pedro.rtmp.flv.video.VideoPacketCallback
 import com.pedro.rtmp.utils.BitrateManager
 import com.pedro.rtmp.utils.ConnectCheckerRtmp
+import com.pedro.rtmp.utils.onMainThread
 import com.pedro.rtmp.utils.socket.RtmpSocket
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.cancelAndJoin
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.flow.count
+import kotlinx.coroutines.flow.receiveAsFlow
+import kotlinx.coroutines.flow.toList
+import kotlinx.coroutines.isActive
+import kotlinx.coroutines.launch
 import java.nio.ByteBuffer
-import java.util.concurrent.*
 
 /**
  * Created by pedro on 8/04/21.
  */
-class RtmpSender(private val connectCheckerRtmp: ConnectCheckerRtmp,
-  private val commandsManager: CommandsManager) : AudioPacketCallback, VideoPacketCallback {
+class RtmpSender(
+  private val connectCheckerRtmp: ConnectCheckerRtmp,
+  private val commandsManager: CommandsManager
+) {
 
-  private var aacPacket = AacPacket(this)
-  private var h264Packet = H264Packet(this)
-  @Volatile
-  private var running = false
+  private var aacPacket = AacPacket()
+  private var h264Packet = H264Packet()
 
-  @Volatile
-  private var flvPacketBlockingQueue: BlockingQueue<FlvPacket> = LinkedBlockingQueue(60)
-  private var thread: ExecutorService? = null
+  private var cacheSize = 60
+  private var job: Job? = null
+  private val scope = CoroutineScope(Dispatchers.IO)
+  private var queue = Channel<FlvPacket>(cacheSize)
+  private var queueFlow = queue.receiveAsFlow()
   private var audioFramesSent: Long = 0
   private var videoFramesSent: Long = 0
   var socket: RtmpSocket? = null
@@ -72,42 +82,35 @@ class RtmpSender(private val connectCheckerRtmp: ConnectCheckerRtmp,
   }
 
   fun sendVideoFrame(h264Buffer: ByteBuffer, info: MediaCodec.BufferInfo) {
-    if (running) h264Packet.createFlvVideoPacket(h264Buffer, info)
-  }
-
-  fun sendAudioFrame(aacBuffer: ByteBuffer, info: MediaCodec.BufferInfo) {
-    if (running) aacPacket.createFlvAudioPacket(aacBuffer, info)
-  }
-
-  override fun onVideoFrameCreated(flvPacket: FlvPacket) {
-    try {
-      flvPacketBlockingQueue.add(flvPacket)
-    } catch (e: IllegalStateException) {
-      Log.i(TAG, "Video frame discarded")
-      droppedVideoFrames++
+    if (scope.isActive) {
+      h264Packet.createFlvVideoPacket(h264Buffer, info) { flvPacket ->
+        val error = queue.trySend(flvPacket).exceptionOrNull()
+        if (error != null) {
+          Log.i(TAG, "Video frame discarded")
+          droppedVideoFrames++
+        }
+      }
     }
   }
 
-  override fun onAudioFrameCreated(flvPacket: FlvPacket) {
-    try {
-      flvPacketBlockingQueue.add(flvPacket)
-    } catch (e: IllegalStateException) {
-      Log.i(TAG, "Audio frame discarded")
-      droppedAudioFrames++
+  fun sendAudioFrame(aacBuffer: ByteBuffer, info: MediaCodec.BufferInfo) {
+    if (scope.isActive) {
+      aacPacket.createFlvAudioPacket(aacBuffer, info) { flvPacket ->
+        val error = queue.trySend(flvPacket).exceptionOrNull()
+        if (error != null) {
+          Log.i(TAG, "Audio frame discarded")
+          droppedAudioFrames++
+        }
+      }
     }
   }
 
   fun start() {
-    thread = Executors.newSingleThreadExecutor()
-    running = true
-    thread?.execute post@{
-      while (!Thread.interrupted() && running) {
-        try {
-          val flvPacket = flvPacketBlockingQueue.poll(1, TimeUnit.SECONDS)
-          if (flvPacket == null) {
-            Log.i(TAG, "Skipping iteration, frame null")
-            continue
-          }
+    queue = Channel(cacheSize)
+    queueFlow = queue.receiveAsFlow()
+    scope.launch post@{
+      queueFlow.collect { flvPacket ->
+        val error = runCatching {
           var size = 0
           if (flvPacket.type == FlvType.VIDEO) {
             videoFramesSent++
@@ -128,52 +131,49 @@ class RtmpSender(private val connectCheckerRtmp: ConnectCheckerRtmp,
           }
           //bytes to bits
           bitrateManager.calculateBitrate(size * 8L)
-        } catch (e: Exception) {
-          //InterruptedException is only when you disconnect manually, you don't need report it.
-          if (e !is InterruptedException && running) {
-            connectCheckerRtmp.onConnectionFailedRtmp("Error send packet, " + e.message)
-            Log.e(TAG, "send error: ", e)
+        }.exceptionOrNull()
+        if (error != null) {
+          onMainThread {
+            connectCheckerRtmp.onConnectionFailedRtmp("Error send packet, " + error.message)
           }
-          return@post
+          Log.e(TAG, "send error: ", error)
         }
       }
     }
   }
 
-  fun stop(clear: Boolean = true) {
-    running = false
-    thread?.shutdownNow()
-    try {
-      thread?.awaitTermination(100, TimeUnit.MILLISECONDS)
-    } catch (e: InterruptedException) { }
-    thread = null
-    flvPacketBlockingQueue.clear()
+  suspend fun stop(clear: Boolean = true) {
+    queue.cancel()
+    queue = Channel(cacheSize)
+    queueFlow = queue.receiveAsFlow()
     aacPacket.reset()
     h264Packet.reset(clear)
     resetSentAudioFrames()
     resetSentVideoFrames()
     resetDroppedAudioFrames()
     resetDroppedVideoFrames()
+    job?.cancelAndJoin()
+    job = null
   }
 
-  fun hasCongestion(): Boolean {
-    val size = flvPacketBlockingQueue.size.toFloat()
-    val remaining = flvPacketBlockingQueue.remainingCapacity().toFloat()
+  suspend fun hasCongestion(): Boolean {
+    val size = cacheSize
+    val remaining = cacheSize - queueFlow.count()
     val capacity = size + remaining
     return size >= capacity * 0.2f //more than 20% queue used. You could have congestion
   }
 
   fun resizeCache(newSize: Int) {
-    if (newSize < flvPacketBlockingQueue.size - flvPacketBlockingQueue.remainingCapacity()) {
-      throw RuntimeException("Can't fit current cache inside new cache size")
+    if (!scope.isActive) {
+      val tempQueue = Channel<FlvPacket>(newSize)
+      queue = tempQueue
+      queueFlow = queue.receiveAsFlow()
+      cacheSize = newSize
     }
-    val tempQueue: BlockingQueue<FlvPacket> = LinkedBlockingQueue(newSize)
-    flvPacketBlockingQueue.drainTo(tempQueue)
-    flvPacketBlockingQueue = tempQueue
   }
 
   fun getCacheSize(): Int {
-    return flvPacketBlockingQueue.size
+    return cacheSize
   }
 
   fun getSentAudioFrames(): Long {

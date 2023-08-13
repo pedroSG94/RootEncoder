@@ -46,6 +46,6 @@ afterEvaluate {
 }
 
 dependencies {
-  testImplementation "org.jetbrains.kotlin:kotlin-test-junit:$kotlin_version"
+  implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.1"
   testImplementation 'junit:junit:4.13.2'
 }

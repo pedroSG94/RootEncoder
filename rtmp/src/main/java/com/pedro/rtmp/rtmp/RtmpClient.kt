@@ -19,9 +19,6 @@ package com.pedro.rtmp.rtmp
 import android.media.MediaCodec
 import android.util.Log
 import com.pedro.rtmp.amf.AmfVersion
-import com.pedro.rtmp.amf.v0.AmfNumber
-import com.pedro.rtmp.amf.v0.AmfObject
-import com.pedro.rtmp.amf.v0.AmfString
 import com.pedro.rtmp.flv.video.ProfileIop
 import com.pedro.rtmp.rtmp.message.*
 import com.pedro.rtmp.rtmp.message.command.Command
@@ -33,6 +30,7 @@ import com.pedro.rtmp.utils.RtmpConfig
 import com.pedro.rtmp.utils.socket.RtmpSocket
 import com.pedro.rtmp.utils.socket.TcpSocket
 import com.pedro.rtmp.utils.socket.TcpTunneledSocket
+import kotlinx.coroutines.runBlocking
 import java.io.*
 import java.net.*
 import java.nio.ByteBuffer
@@ -85,9 +83,9 @@ class RtmpClient(private val connectCheckerRtmp: ConnectCheckerRtmp) {
 
   fun setAmfVersion(amfVersion: AmfVersion) {
     if (!isStreaming) {
-      when (amfVersion) {
-        AmfVersion.VERSION_0 -> commandsManager = CommandsManagerAmf0()
-        AmfVersion.VERSION_3 -> commandsManager = CommandsManagerAmf3()
+      commandsManager = when (amfVersion) {
+        AmfVersion.VERSION_0 -> CommandsManagerAmf0()
+        AmfVersion.VERSION_3 -> CommandsManagerAmf3()
       }
     }
   }
@@ -464,7 +462,7 @@ class RtmpClient(private val connectCheckerRtmp: ConnectCheckerRtmp) {
     disconnect(true)
   }
 
-  private fun disconnect(clear: Boolean) {
+  private fun disconnect(clear: Boolean) = runBlocking {
     if (isStreaming) rtmpSender.stop(clear)
     thread?.shutdownNow()
     val executor = Executors.newSingleThreadExecutor()
@@ -484,8 +482,7 @@ class RtmpClient(private val connectCheckerRtmp: ConnectCheckerRtmp) {
       executor.awaitTermination(200, TimeUnit.MILLISECONDS)
       thread?.awaitTermination(100, TimeUnit.MILLISECONDS)
       thread = null
-    } catch (e: Exception) {
-    }
+    } catch (_: Exception) { }
     if (clear) {
       reTries = numRetry
       doingRetry = false
@@ -508,8 +505,8 @@ class RtmpClient(private val connectCheckerRtmp: ConnectCheckerRtmp) {
     }
   }
 
-  fun hasCongestion(): Boolean {
-    return rtmpSender.hasCongestion()
+  fun hasCongestion(): Boolean = runBlocking {
+    rtmpSender.hasCongestion()
   }
 
   fun resetSentAudioFrames() {
