@@ -165,6 +165,7 @@ class RtspSender(private val connectCheckerRtsp: ConnectCheckerRtsp) {
             connectCheckerRtsp.onConnectionFailedRtsp("Error send packet, " + error.message)
           }
           Log.e(TAG, "send error: ", error)
+          return@collect
         }
       }
     }

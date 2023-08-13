@@ -53,8 +53,10 @@ class RtspClient(private val connectCheckerRtsp: ConnectCheckerRtsp) {
   private var connectionSocket: Socket? = null
   private var reader: BufferedReader? = null
   private var writer: BufferedWriter? = null
-  private val scope = CoroutineScope(Dispatchers.IO)
+  private var scope = CoroutineScope(Dispatchers.IO)
+  private var scopeRetry = CoroutineScope(Dispatchers.IO)
   private var job: Job? = null
+  private var jobRetry: Job? = null
   private var mutex = Mutex(locked = true)
 
   @Volatile
@@ -400,12 +402,17 @@ class RtspClient(private val connectCheckerRtsp: ConnectCheckerRtsp) {
         connectCheckerRtsp.onDisconnectRtsp()
       }
       mutex = Mutex(true)
-      job?.cancelAndJoin()
-      job = null
-      scope.cancel()
+      jobRetry?.cancelAndJoin()
+      jobRetry = null
+      scopeRetry.cancel()
+      scopeRetry = CoroutineScope(Dispatchers.IO)
     } else {
       commandsManager.retryClear()
     }
+    job?.cancelAndJoin()
+    job = null
+    scope.cancel()
+    scope = CoroutineScope(Dispatchers.IO)
   }
 
   fun sendVideo(h264Buffer: ByteBuffer, info: MediaCodec.BufferInfo) {
@@ -426,7 +433,7 @@ class RtspClient(private val connectCheckerRtsp: ConnectCheckerRtsp) {
 
   @JvmOverloads
   fun reConnect(delay: Long, backupUrl: String? = null) {
-    job = scope.launch {
+    jobRetry = scopeRetry.launch {
       reTries--
       disconnect(false)
       delay(delay)
