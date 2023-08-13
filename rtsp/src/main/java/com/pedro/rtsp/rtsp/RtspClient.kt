@@ -370,7 +370,7 @@ class RtspClient(private val connectCheckerRtsp: ConnectCheckerRtsp) {
   }
 
   fun disconnect() {
-    job = scope.launch {
+    CoroutineScope(Dispatchers.IO).launch {
       disconnect(true)
     }
   }
