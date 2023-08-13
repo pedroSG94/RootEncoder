@@ -47,6 +47,8 @@ class RtmpSender(
 
   private var aacPacket = AacPacket()
   private var h264Packet = H264Packet()
+  @Volatile
+  private var running = false
 
   private var cacheSize = 60
   private var itemsInQueue = 0
@@ -82,7 +84,7 @@ class RtmpSender(
   }
 
   fun sendVideoFrame(h264Buffer: ByteBuffer, info: MediaCodec.BufferInfo) {
-    if (scope.isActive) {
+    if (running) {
       h264Packet.createFlvVideoPacket(h264Buffer, info) { flvPacket ->
         val error = queue.trySend(flvPacket).exceptionOrNull()
         if (error != null) {
@@ -96,7 +98,7 @@ class RtmpSender(
   }
 
   fun sendAudioFrame(aacBuffer: ByteBuffer, info: MediaCodec.BufferInfo) {
-    if (scope.isActive) {
+    if (running) {
       aacPacket.createFlvAudioPacket(aacBuffer, info) { flvPacket ->
         val error = queue.trySend(flvPacket).exceptionOrNull()
         if (error != null) {
@@ -112,6 +114,7 @@ class RtmpSender(
   fun start() {
     queue = Channel(cacheSize)
     queueFlow = queue.receiveAsFlow()
+    running = true
     job = scope.launch {
       queueFlow.collect { flvPacket ->
         itemsInQueue--
@@ -148,6 +151,7 @@ class RtmpSender(
   }
 
   suspend fun stop(clear: Boolean = true) {
+    running = false
     queue.cancel()
     queue = Channel(cacheSize)
     queueFlow = queue.receiveAsFlow()
