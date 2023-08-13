@@ -39,7 +39,6 @@ import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import java.io.*
 import java.net.*
 import java.nio.ByteBuffer
@@ -482,12 +481,12 @@ class RtmpClient(private val connectCheckerRtmp: ConnectCheckerRtmp) {
   }
 
   fun disconnect() {
-    job = scope.launch {
+    CoroutineScope(Dispatchers.IO).launch {
       disconnect(true)
     }
   }
 
-  private suspend fun disconnect(clear: Boolean) = runBlocking {
+  private suspend fun disconnect(clear: Boolean) {
     if (isStreaming) rtmpSender.stop(clear)
     runCatching {
       socket?.let { socket ->
