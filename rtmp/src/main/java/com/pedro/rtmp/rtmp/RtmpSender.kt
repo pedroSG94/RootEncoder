@@ -51,6 +51,8 @@ class RtmpSender(
   private var h264Packet = H264Packet()
 
   private var cacheSize = 60
+  private var itemsInQueue = 0
+
   private var job: Job? = null
   private val scope = CoroutineScope(Dispatchers.IO)
   private var queue = Channel<FlvPacket>(cacheSize)
@@ -88,6 +90,8 @@ class RtmpSender(
         if (error != null) {
           Log.i(TAG, "Video frame discarded")
           droppedVideoFrames++
+        } else {
+          itemsInQueue++
         }
       }
     }
@@ -100,6 +104,8 @@ class RtmpSender(
         if (error != null) {
           Log.i(TAG, "Audio frame discarded")
           droppedAudioFrames++
+        } else {
+          itemsInQueue++
         }
       }
     }
@@ -110,6 +116,7 @@ class RtmpSender(
     queueFlow = queue.receiveAsFlow()
     scope.launch post@{
       queueFlow.collect { flvPacket ->
+        itemsInQueue--
         val error = runCatching {
           var size = 0
           if (flvPacket.type == FlvType.VIDEO) {
@@ -156,9 +163,9 @@ class RtmpSender(
     job = null
   }
 
-  suspend fun hasCongestion(): Boolean {
+  fun hasCongestion(): Boolean {
     val size = cacheSize
-    val remaining = cacheSize - queueFlow.count()
+    val remaining = cacheSize - itemsInQueue
     val capacity = size + remaining
     return size >= capacity * 0.2f //more than 20% queue used. You could have congestion
   }
