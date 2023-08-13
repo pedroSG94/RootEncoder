@@ -32,9 +32,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.flow.count
 import kotlinx.coroutines.flow.receiveAsFlow
-import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import java.nio.ByteBuffer
@@ -114,7 +112,7 @@ class RtmpSender(
   fun start() {
     queue = Channel(cacheSize)
     queueFlow = queue.receiveAsFlow()
-    scope.launch post@{
+    job = scope.launch {
       queueFlow.collect { flvPacket ->
         itemsInQueue--
         val error = runCatching {

@@ -43,8 +43,6 @@ import kotlinx.coroutines.runBlocking
 import java.io.*
 import java.net.*
 import java.nio.ByteBuffer
-import java.util.concurrent.Executors
-import java.util.concurrent.TimeUnit
 import java.util.regex.Pattern
 
 /**
@@ -484,7 +482,7 @@ class RtmpClient(private val connectCheckerRtmp: ConnectCheckerRtmp) {
   }
 
   fun disconnect() {
-    scope.launch {
+    job = scope.launch {
       disconnect(true)
     }
   }

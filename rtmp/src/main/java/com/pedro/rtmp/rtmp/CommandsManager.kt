@@ -19,17 +19,15 @@ package com.pedro.rtmp.rtmp
 import android.util.Log
 import com.pedro.rtmp.amf.v0.*
 import com.pedro.rtmp.flv.FlvPacket
-import com.pedro.rtmp.rtmp.chunk.ChunkStreamId
-import com.pedro.rtmp.rtmp.chunk.ChunkType
 import com.pedro.rtmp.rtmp.message.*
-import com.pedro.rtmp.rtmp.message.command.CommandAmf0
 import com.pedro.rtmp.rtmp.message.control.Event
 import com.pedro.rtmp.rtmp.message.control.Type
 import com.pedro.rtmp.rtmp.message.control.UserControl
-import com.pedro.rtmp.rtmp.message.data.DataAmf0
 import com.pedro.rtmp.utils.CommandSessionHistory
 import com.pedro.rtmp.utils.RtmpConfig
 import com.pedro.rtmp.utils.socket.RtmpSocket
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import java.io.*
 
 /**
@@ -63,7 +61,7 @@ abstract class CommandsManager {
   protected var sampleRate = 44100
   protected var isStereo = true
   //Avoid write a packet in middle of other.
-  private val writeSync = Any()
+  private val writeSync = Mutex(locked = false)
 
   fun setVideoResolution(width: Int, height: Int) {
     this.width = width
@@ -85,8 +83,8 @@ abstract class CommandsManager {
   }
 
   @Throws(IOException::class)
-  fun sendChunkSize(socket: RtmpSocket) {
-    synchronized(writeSync) {
+  suspend fun sendChunkSize(socket: RtmpSocket) {
+    writeSync.withLock {
       val output = socket.getOutStream()
       if (RtmpConfig.writeChunkSize != RtmpConfig.DEFAULT_CHUNK_SIZE) {
         val chunkSize = SetChunkSize(RtmpConfig.writeChunkSize)
@@ -103,8 +101,8 @@ abstract class CommandsManager {
   }
 
   @Throws(IOException::class)
-  fun sendConnect(auth: String, socket: RtmpSocket) {
-    synchronized(writeSync) {
+  suspend fun sendConnect(auth: String, socket: RtmpSocket) {
+    writeSync.withLock {
       val output = socket.getOutStream()
       sendConnect(auth, output)
       socket.flush()
@@ -112,8 +110,8 @@ abstract class CommandsManager {
   }
 
   @Throws(IOException::class)
-  fun createStream(socket: RtmpSocket) {
-    synchronized(writeSync) {
+  suspend fun createStream(socket: RtmpSocket) {
+    writeSync.withLock {
       val output = socket.getOutStream()
       createStream(output)
       socket.flush()
@@ -130,8 +128,8 @@ abstract class CommandsManager {
   }
 
   @Throws(IOException::class)
-  fun sendMetadata(socket: RtmpSocket) {
-    synchronized(writeSync) {
+  suspend fun sendMetadata(socket: RtmpSocket) {
+    writeSync.withLock {
       val output = socket.getOutStream()
       sendMetadata(output)
       socket.flush()
@@ -139,8 +137,8 @@ abstract class CommandsManager {
   }
 
   @Throws(IOException::class)
-  fun sendPublish(socket: RtmpSocket) {
-    synchronized(writeSync) {
+  suspend fun sendPublish(socket: RtmpSocket) {
+    writeSync.withLock {
       val output = socket.getOutStream()
       sendPublish(output)
       socket.flush()
@@ -148,8 +146,8 @@ abstract class CommandsManager {
   }
 
   @Throws(IOException::class)
-  fun sendWindowAcknowledgementSize(socket: RtmpSocket) {
-    synchronized(writeSync) {
+  suspend fun sendWindowAcknowledgementSize(socket: RtmpSocket) {
+    writeSync.withLock {
       val output = socket.getOutStream()
       val windowAcknowledgementSize = WindowAcknowledgementSize(RtmpConfig.acknowledgementWindowSize, getCurrentTimestamp())
       windowAcknowledgementSize.writeHeader(output)
@@ -158,8 +156,8 @@ abstract class CommandsManager {
     }
   }
 
-  fun sendPong(event: Event, socket: RtmpSocket) {
-    synchronized(writeSync) {
+  suspend fun sendPong(event: Event, socket: RtmpSocket) {
+    writeSync.withLock {
       val output = socket.getOutStream()
       val pong = UserControl(Type.PONG_REPLY, event)
       pong.writeHeader(output)
@@ -170,8 +168,8 @@ abstract class CommandsManager {
   }
 
   @Throws(IOException::class)
-  fun sendClose(socket: RtmpSocket) {
-    synchronized(writeSync) {
+  suspend fun sendClose(socket: RtmpSocket) {
+    writeSync.withLock {
       val output = socket.getOutStream()
       sendClose(output)
       socket.flush()
@@ -179,8 +177,8 @@ abstract class CommandsManager {
   }
 
   @Throws(IOException::class)
-  fun sendVideoPacket(flvPacket: FlvPacket, socket: RtmpSocket): Int {
-    synchronized(writeSync) {
+  suspend fun sendVideoPacket(flvPacket: FlvPacket, socket: RtmpSocket): Int {
+    writeSync.withLock {
       val output = socket.getOutStream()
       if (akamaiTs) {
         flvPacket.timeStamp = ((System.nanoTime() / 1000 - startTs) / 1000)
@@ -194,8 +192,8 @@ abstract class CommandsManager {
   }
 
   @Throws(IOException::class)
-  fun sendAudioPacket(flvPacket: FlvPacket, socket: RtmpSocket): Int {
-    synchronized(writeSync) {
+  suspend fun sendAudioPacket(flvPacket: FlvPacket, socket: RtmpSocket): Int {
+    writeSync.withLock {
       val output = socket.getOutStream()
       if (akamaiTs) {
         flvPacket.timeStamp = ((System.nanoTime() / 1000 - startTs) / 1000)
