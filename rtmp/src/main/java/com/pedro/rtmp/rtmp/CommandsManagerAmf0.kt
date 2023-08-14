@@ -5,6 +5,8 @@ import com.pedro.rtmp.amf.v0.AmfEcmaArray
 import com.pedro.rtmp.amf.v0.AmfNull
 import com.pedro.rtmp.amf.v0.AmfObject
 import com.pedro.rtmp.amf.v0.AmfString
+import com.pedro.rtmp.flv.audio.AudioFormat
+import com.pedro.rtmp.flv.video.VideoFormat
 import com.pedro.rtmp.rtmp.chunk.ChunkStreamId
 import com.pedro.rtmp.rtmp.chunk.ChunkType
 import com.pedro.rtmp.rtmp.message.BasicHeader
@@ -80,12 +82,12 @@ class CommandsManagerAmf0: CommandsManager() {
     if (!videoDisabled) {
       amfEcmaArray.setProperty("width", width.toDouble())
       amfEcmaArray.setProperty("height", height.toDouble())
-      amfEcmaArray.setProperty("videocodecid", 7.0)
+      amfEcmaArray.setProperty("videocodecid", VideoFormat.AVC.value.toDouble())
       amfEcmaArray.setProperty("framerate", fps.toDouble())
       amfEcmaArray.setProperty("videodatarate", 0.0)
     }
     if (!audioDisabled) {
-      amfEcmaArray.setProperty("audiocodecid", 10.0)
+      amfEcmaArray.setProperty("audiocodecid", AudioFormat.AAC.value.toDouble())
       amfEcmaArray.setProperty("audiosamplerate", sampleRate.toDouble())
       amfEcmaArray.setProperty("audiosamplesize", 16.0)
       amfEcmaArray.setProperty("audiodatarate", 0.0)

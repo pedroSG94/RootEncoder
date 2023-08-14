@@ -22,6 +22,7 @@ import com.pedro.rtmp.flv.FlvPacket
 import com.pedro.rtmp.flv.FlvType
 import com.pedro.rtmp.flv.audio.AacPacket
 import com.pedro.rtmp.flv.video.H264Packet
+import com.pedro.rtmp.flv.video.H265Packet
 import com.pedro.rtmp.flv.video.ProfileIop
 import com.pedro.rtmp.utils.BitrateManager
 import com.pedro.rtmp.utils.ConnectCheckerRtmp
@@ -45,8 +46,10 @@ class RtmpSender(
   private val commandsManager: CommandsManager
 ) {
 
+  private var videoCodec = VideoCodec.H264
   private var aacPacket = AacPacket()
   private var h264Packet = H264Packet()
+  private var h265Packet = H265Packet()
   @Volatile
   private var running = false
 
@@ -73,6 +76,12 @@ class RtmpSender(
 
   fun setVideoInfo(sps: ByteBuffer, pps: ByteBuffer, vps: ByteBuffer?) {
     h264Packet.sendVideoInfo(sps, pps)
+    vps?.let {
+      videoCodec = VideoCodec.H265
+      h265Packet.sendVideoInfo(sps, pps, vps)
+    } ?: run {
+      videoCodec = VideoCodec.H264
+    }
   }
 
   fun setProfileIop(profileIop: ProfileIop) {
@@ -85,13 +94,25 @@ class RtmpSender(
 
   fun sendVideoFrame(h264Buffer: ByteBuffer, info: MediaCodec.BufferInfo) {
     if (running) {
-      h264Packet.createFlvVideoPacket(h264Buffer, info) { flvPacket ->
-        val error = queue.trySend(flvPacket).exceptionOrNull()
-        if (error != null) {
-          Log.i(TAG, "Video frame discarded")
-          droppedVideoFrames++
-        } else {
-          itemsInQueue++
+      if (videoCodec == VideoCodec.H265) {
+        h265Packet.createFlvVideoPacket(h264Buffer, info) { flvPacket ->
+          val error = queue.trySend(flvPacket).exceptionOrNull()
+          if (error != null) {
+            Log.i(TAG, "Video frame discarded")
+            droppedVideoFrames++
+          } else {
+            itemsInQueue++
+          }
+        }
+      } else {
+        h264Packet.createFlvVideoPacket(h264Buffer, info) { flvPacket ->
+          val error = queue.trySend(flvPacket).exceptionOrNull()
+          if (error != null) {
+            Log.i(TAG, "Video frame discarded")
+            droppedVideoFrames++
+          } else {
+            itemsInQueue++
+          }
         }
       }
     }
@@ -158,6 +179,7 @@ class RtmpSender(
     queueFlow = queue.receiveAsFlow()
     aacPacket.reset()
     h264Packet.reset(clear)
+    h265Packet.reset(clear)
     resetSentAudioFrames()
     resetSentVideoFrames()
     resetDroppedAudioFrames()

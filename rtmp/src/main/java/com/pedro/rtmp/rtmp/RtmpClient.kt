@@ -86,6 +86,12 @@ class RtmpClient(private val connectCheckerRtmp: ConnectCheckerRtmp) {
   val sentVideoFrames: Long
     get() = rtmpSender.getSentVideoFrames()
 
+  fun setVideoCodec(videoCodec: VideoCodec) {
+    if (!isStreaming) {
+      commandsManager.videoCodec = videoCodec
+    }
+  }
+
   fun setAmfVersion(amfVersion: AmfVersion) {
     if (!isStreaming) {
       commandsManager = when (amfVersion) {

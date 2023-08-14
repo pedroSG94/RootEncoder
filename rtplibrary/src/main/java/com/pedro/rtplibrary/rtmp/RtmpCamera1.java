@@ -25,8 +25,10 @@ import androidx.annotation.RequiresApi;
 import android.view.SurfaceView;
 import android.view.TextureView;
 
+import com.pedro.encoder.utils.CodecUtil;
 import com.pedro.rtmp.flv.video.ProfileIop;
 import com.pedro.rtmp.rtmp.RtmpClient;
+import com.pedro.rtmp.rtmp.VideoCodec;
 import com.pedro.rtmp.utils.ConnectCheckerRtmp;
 import com.pedro.rtplibrary.base.Camera1Base;
 import com.pedro.rtplibrary.view.LightOpenGlView;
@@ -79,6 +81,13 @@ public class RtmpCamera1 extends Camera1Base {
    */
   public void setProfileIop(ProfileIop profileIop) {
     rtmpClient.setProfileIop(profileIop);
+  }
+
+  public void setVideoCodec(VideoCodec videoCodec) {
+    recordController.setVideoMime(
+            videoCodec == VideoCodec.H265 ? CodecUtil.H265_MIME : CodecUtil.H264_MIME);
+    videoEncoder.setType(videoCodec == VideoCodec.H265 ? CodecUtil.H265_MIME : CodecUtil.H264_MIME);
+    rtmpClient.setVideoCodec(videoCodec);
   }
 
   @Override

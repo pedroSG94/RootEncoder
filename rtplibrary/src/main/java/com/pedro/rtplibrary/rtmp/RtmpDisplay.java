@@ -23,8 +23,10 @@ import android.os.Build;
 import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 
+import com.pedro.encoder.utils.CodecUtil;
 import com.pedro.rtmp.flv.video.ProfileIop;
 import com.pedro.rtmp.rtmp.RtmpClient;
+import com.pedro.rtmp.rtmp.VideoCodec;
 import com.pedro.rtmp.utils.ConnectCheckerRtmp;
 import com.pedro.rtplibrary.base.DisplayBase;
 
@@ -53,6 +55,13 @@ public class RtmpDisplay extends DisplayBase {
    */
   public void setProfileIop(ProfileIop profileIop) {
     rtmpClient.setProfileIop(profileIop);
+  }
+
+  public void setVideoCodec(VideoCodec videoCodec) {
+    recordController.setVideoMime(
+            videoCodec == VideoCodec.H265 ? CodecUtil.H265_MIME : CodecUtil.H264_MIME);
+    videoEncoder.setType(videoCodec == VideoCodec.H265 ? CodecUtil.H265_MIME : CodecUtil.H264_MIME);
+    rtmpClient.setVideoCodec(videoCodec);
   }
 
   @Override

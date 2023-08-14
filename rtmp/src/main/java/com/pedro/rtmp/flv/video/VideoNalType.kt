@@ -21,5 +21,6 @@ package com.pedro.rtmp.flv.video
  */
 enum class VideoNalType(val value: Int) {
   UNSPEC(0), SLICE(1), DPA(2), DPB(3), DPC(4), IDR(5), SEI(6),
-  SPS(7), PPS(8), AUD(9), EO_SEQ(10), EO_STREAM(11), FILL(12)
+  SPS(7), PPS(8), AUD(9), EO_SEQ(10), EO_STREAM(11), FILL(12),
+  HEVC_VPS(32), HEVC_SPS(33), HEVC_PPS(34),
 }

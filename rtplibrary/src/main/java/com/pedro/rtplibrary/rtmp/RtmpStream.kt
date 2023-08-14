@@ -4,8 +4,10 @@ import android.content.Context
 import android.media.MediaCodec
 import android.os.Build
 import androidx.annotation.RequiresApi
+import com.pedro.encoder.utils.CodecUtil
 import com.pedro.rtmp.flv.video.ProfileIop
 import com.pedro.rtmp.rtmp.RtmpClient
+import com.pedro.rtmp.rtmp.VideoCodec
 import com.pedro.rtmp.utils.ConnectCheckerRtmp
 import com.pedro.rtplibrary.base.StreamBase
 import com.pedro.rtplibrary.util.sources.AudioManager
@@ -35,6 +37,12 @@ class RtmpStream(context: Context, connectCheckerRtmp: ConnectCheckerRtmp, video
    */
   fun setProfileIop(profileIop: ProfileIop?) {
     rtmpClient.setProfileIop(profileIop!!)
+  }
+
+  fun setVideoCodec(videoCodec: VideoCodec) {
+    val mime = if (videoCodec === VideoCodec.H265) CodecUtil.H265_MIME else CodecUtil.H264_MIME
+    super.setVideoMime(mime)
+    rtmpClient.setVideoCodec(videoCodec)
   }
 
   /**

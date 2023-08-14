@@ -25,8 +25,10 @@ import androidx.annotation.RequiresApi;
 
 import com.pedro.encoder.input.decoder.AudioDecoderInterface;
 import com.pedro.encoder.input.decoder.VideoDecoderInterface;
+import com.pedro.encoder.utils.CodecUtil;
 import com.pedro.rtmp.flv.video.ProfileIop;
 import com.pedro.rtmp.rtmp.RtmpClient;
+import com.pedro.rtmp.rtmp.VideoCodec;
 import com.pedro.rtmp.utils.ConnectCheckerRtmp;
 import com.pedro.rtplibrary.base.FromFileBase;
 
@@ -77,6 +79,13 @@ public class RtmpFromFile extends FromFileBase {
    */
   public void setProfileIop(ProfileIop profileIop) {
     rtmpClient.setProfileIop(profileIop);
+  }
+
+  public void setVideoCodec(VideoCodec videoCodec) {
+    recordController.setVideoMime(
+            videoCodec == VideoCodec.H265 ? CodecUtil.H265_MIME : CodecUtil.H264_MIME);
+    videoEncoder.setType(videoCodec == VideoCodec.H265 ? CodecUtil.H265_MIME : CodecUtil.H264_MIME);
+    rtmpClient.setVideoCodec(videoCodec);
   }
 
   @Override

@@ -35,7 +35,7 @@ import java.nio.ByteBuffer
  */
 class VideoSpecificConfig(private val sps: ByteArray, private val pps: ByteArray, private val profileIop: ProfileIop) {
 
-  var size = calculateSize(sps, pps)
+  val size = calculateSize(sps, pps)
 
   fun write(buffer: ByteArray, offset: Int) {
     val data = ByteBuffer.wrap(buffer, offset, size)
