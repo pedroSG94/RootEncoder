@@ -17,80 +17,87 @@
 package com.pedro.rtmp.flv.video
 
 import java.nio.ByteBuffer
-import kotlin.experimental.and
 
 /**
  * Created by pedro on 14/08/23.
  *
- * 1 byte configuration version
- * 2 bits general profile space
- * 1 bit general tier flag
- * 5 bits general profile idc
- * 4 bytes general profile compatibility flags
- * 6 bytes general constraint indicator flags
- * 1 byte general level idc
- * 4 bits reserved (1111)
- * 12 bits min spatial segmentation idc
- * 6 bits reserved (111111)
- * 2 bits parallelism type
- * 6 bits reserved (111111)
- * 2 bits chroma format idc
- * 5 bits reserved (11111)
- * 3 bits bit depth chroma minus8
- * 2 bytes avg frame rate
- * 2 bits constant frame rate
- * 3 bits num temporal layers
- * 1 bit temporal id nested
- * 2 bits length size minus one
- * 1 byte num of arrays
+ * ISO/IEC 14496-15 8.3.3.1.2
  *
- * Arrays:
- * 1 bit array completeness
- * 1 bit reserved (0)
- * 6 bits nal unit type
- * 2 bytes num nalus
- *
- * Nalu:
- * 2 bytes nal unit length
- * n bytes of nalu content
+ * aligned(8) class HEVCDecoderConfigurationRecord {
+ *    unsigned int(8) configurationVersion = 1;
+ *    unsigned int(2) general_profile_space;
+ *    unsigned int(1) general_tier_flag;
+ *    unsigned int(5) general_profile_idc;
+ *    unsigned int(32) general_profile_compatibility_flags;
+ *    unsigned int(48) general_constraint_indicator_flags;
+ *    unsigned int(8) general_level_idc;
+ *    bit(4) reserved = ‘1111’b;
+ *    unsigned int(12) min_spatial_segmentation_idc;
+ *    bit(6) reserved = ‘111111’b;
+ *    unsigned int(2) parallelismType;
+ *    bit(6) reserved = ‘111111’b;
+ *    unsigned int(2) chroma_format_idc;
+ *    bit(5) reserved = ‘11111’b;
+ *    unsigned int(3) bit_depth_luma_minus8;
+ *    bit(5) reserved = ‘11111’b;
+ *    unsigned int(3) bit_depth_chroma_minus8;
+ *    bit(16) avgFrameRate;
+ *    bit(2) constantFrameRate;
+ *    bit(3) numTemporalLayers;
+ *    bit(1) temporalIdNested;
+ *    unsigned int(2) lengthSizeMinusOne;
+ *    unsigned int(8) numOfArrays;
+ *    for (j=0; j < numOfArrays; j++) {
+ *       bit(1) array_completeness;
+ *       unsigned int(1) reserved = 0;
+ *       unsigned int(6) NAL_unit_type;
+ *       unsigned int(16) numNalus;
+ *       for (i=0; i< numNalus; i++) {
+ *          unsigned int(16) nalUnitLength;
+ *          bit(8*nalUnitLength) nalUnit;
+ *       }
+ *    }
+ * }
  */
 class VideoSpecificConfigHEVC(
   private val sps: ByteArray,
   private val pps: ByteArray,
   private val vps: ByteArray,
-  private val profileIop: ProfileIop
 ) {
 
   val size = calculateSize(sps, pps, vps)
 
   fun write(buffer: ByteArray, offset: Int) {
     val data = ByteBuffer.wrap(buffer, offset, size)
+    data.put(0x01) //8 bits version
 
-    data.put(0x01) // version
-    data.put(ByteArray(18)) // TODO
-    data.put(0x03) // num of arrays
+    //fake header
+    val l = listOf(
+      0x01,
+      0x40, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+      0x5d, 0xf0, 0x00, 0xfc, 0xfd, 0xf8, 0xf8, 0x00, 0x00, 0x0f
+    ).map { it.toByte() }.toByteArray()
+    data.put(l)
+
+    data.put(0x03) //8 bits num of arrays
     //Arrays
-    //array sps
-    val nalTypeSps = VideoNalType.HEVC_SPS.value.toByte() and 0b00111111
-    data.put(nalTypeSps)
-    data.putShort(1.toShort())
-    data.putShort(sps.size.toShort())
-    data.put(sps)
-    //array pps
-    val nalTypePps = VideoNalType.HEVC_SPS.value.toByte() and 0b00111111
-    data.put(nalTypePps)
-    data.putShort(1.toShort())
-    data.putShort(pps.size.toShort())
-    data.put(pps)
     //array vps
-    val nalTypeVps = VideoNalType.HEVC_SPS.value.toByte() and 0b00111111
-    data.put(nalTypeVps)
-    data.putShort(1.toShort())
-    data.putShort(vps.size.toShort())
-    data.put(vps)
+    writeNaluArray(0x20, vps, data)
+    //array sps
+    writeNaluArray(0x21, sps, data)
+    //array pps
+    writeNaluArray(0x22, pps, data)
+  }
+
+  private fun writeNaluArray(type: Byte, naluByteBuffer: ByteArray, buffer: ByteBuffer) {
+    buffer.put(type)
+    buffer.put(0x00)
+    buffer.put(0x01)
+    buffer.putShort(naluByteBuffer.size.toShort())
+    buffer.put(naluByteBuffer)
   }
 
   private fun calculateSize(sps: ByteArray, pps: ByteArray, vps: ByteArray): Int {
-    return 20 + 5 + sps.size + 5 + pps.size + 5 + vps.size
+    return 23 + 5 + vps.size + 5 + sps.size + 5 + pps.size
   }
 }

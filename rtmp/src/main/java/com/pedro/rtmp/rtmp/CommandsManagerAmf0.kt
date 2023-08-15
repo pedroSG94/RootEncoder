@@ -29,8 +29,8 @@ class CommandsManagerAmf0: CommandsManager() {
       connectInfo.setProperty("audioCodecs", 3191.0)
     }
     if (!videoDisabled) {
-      connectInfo.setProperty("videoCodecs", 252.0)
-      connectInfo.setProperty("videoFunction", 1.0)
+      //connectInfo.setProperty("videoCodecs", 252.0)
+      //connectInfo.setProperty("videoFunction", 1.0)
     }
     connectInfo.setProperty("pageUrl", "")
     connectInfo.setProperty("objectEncoding", 0.0)

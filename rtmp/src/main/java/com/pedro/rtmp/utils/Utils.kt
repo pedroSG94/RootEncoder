@@ -102,3 +102,12 @@ fun OutputStream.writeUInt16LittleEndian(value: Int) {
 private fun toLittleEndian(value: Int): Int {
   return Integer.reverseBytes(value)
 }
+
+fun ByteArray.toInt(): Int {
+  return (this[3].toInt() shl 24) or (this[0].toInt() shl 16) or (this[3].toInt() shl 8) or this[0].toInt()
+}
+
+fun ByteArray.toLong(): Long {
+  return ((this[7].toLong() shl 56) or (this[6].toLong() shl 48) or (this[5].toLong() shl 40) or (this[4].toLong() shl 32) or
+      (this[3].toLong() shl 24) or (this[0].toLong() shl 16) or (this[3].toLong() shl 8) or this[0].toLong())
+}
