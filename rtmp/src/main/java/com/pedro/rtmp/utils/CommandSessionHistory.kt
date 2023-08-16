@@ -23,8 +23,10 @@ import kotlin.collections.HashMap
 /**
  * Created by pedro on 22/04/21.
  */
-class CommandSessionHistory(private val commandHistory: HashMap<Int, String> = HashMap(),
-    private val headerHistory: MutableList<RtmpHeader> = ArrayList()) {
+class CommandSessionHistory(
+  private val commandHistory: HashMap<Int, String> = HashMap(),
+  private val headerHistory: MutableList<RtmpHeader> = ArrayList()
+) {
 
   fun setReadHeader(header: RtmpHeader) {
     headerHistory.add(header)

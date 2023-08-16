@@ -29,6 +29,12 @@ abstract class Amf3Data {
   companion object {
 
     /**
+     * Table references for strings and objects
+     */
+    val stringsHistory: HashMap<Int, Amf3String> = HashMap()
+    val objectHistory: HashMap<Int, Amf3Object> = HashMap()
+
+    /**
      * Read unknown AmfData and convert it to specific class
      */
     @Throws(IOException::class)

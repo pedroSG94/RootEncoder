@@ -45,4 +45,8 @@ class Amf3Double(var value: Double = 0.0): Amf3Data() {
   override fun getType(): Amf3Type = Amf3Type.DOUBLE
 
   override fun getSize(): Int = 8
+
+  override fun toString(): String {
+    return "Amf3Double value: $value"
+  }
 }

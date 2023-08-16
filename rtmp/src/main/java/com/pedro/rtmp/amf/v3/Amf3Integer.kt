@@ -16,25 +16,36 @@
 
 package com.pedro.rtmp.amf.v3
 
+import com.pedro.rtmp.utils.getUInt29Size
+import com.pedro.rtmp.utils.readUInt29
+import com.pedro.rtmp.utils.writeUInt29
+import com.pedro.rtmp.utils.writeUInt32
 import java.io.InputStream
 import java.io.OutputStream
 
 /**
  * Created by pedro on 29/04/21.
+ *
+ * A number in U29. Unsigned 29 bits integer
  */
-class Amf3Integer: Amf3Data() {
+class Amf3Integer(var value: Int = 0): Amf3Data() {
+
+  private var bodySize = value.getUInt29Size()
 
   override fun readBody(input: InputStream) {
-    TODO("Not yet implemented")
+    this.value = input.readUInt29()
+    bodySize = value.getUInt29Size()
   }
 
   override fun writeBody(output: OutputStream) {
-    TODO("Not yet implemented")
+    output.writeUInt29(value)
   }
 
   override fun getType(): Amf3Type = Amf3Type.INTEGER
 
-  override fun getSize(): Int {
-    TODO("Not yet implemented")
+  override fun getSize(): Int = bodySize
+
+  override fun toString(): String {
+    return "Amf3Integer value: $value"
   }
 }

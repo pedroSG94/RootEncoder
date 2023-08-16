@@ -16,25 +16,52 @@
 
 package com.pedro.rtmp.amf.v3
 
+import com.pedro.rtmp.utils.getUInt29Size
+import com.pedro.rtmp.utils.readUInt29
+import com.pedro.rtmp.utils.readUntil
+import com.pedro.rtmp.utils.writeUInt29
+import com.pedro.rtmp.utils.writeUInt32
+import java.io.IOException
 import java.io.InputStream
 import java.io.OutputStream
+import kotlin.jvm.Throws
 
 /**
  * Created by pedro on 8/04/21.
  */
 class Amf3String(var value: String = ""): Amf3Data() {
 
-  override fun readBody(input: InputStream) {
-    TODO("Not yet implemented")
+  private var bodySize: Int = value.toByteArray(Charsets.UTF_8).size
+
+  init {
+    bodySize += bodySize.getUInt29Size()
   }
 
+  @Throws(IOException::class)
+  override fun readBody(input: InputStream) {
+    //read value size as UInt32
+    bodySize = input.readUInt29()
+    //read value in UTF-8
+    val bytes = ByteArray(bodySize)
+    bodySize += bodySize.getUInt29Size()
+    input.readUntil(bytes)
+    value = String(bytes, Charsets.UTF_8)
+  }
+
+  @Throws(IOException::class)
   override fun writeBody(output: OutputStream) {
-    TODO("Not yet implemented")
+    val bytes = value.toByteArray(Charsets.UTF_8)
+    //write value size as UInt32. Value size not included
+    output.writeUInt29((bodySize - 4 shl 1) or 0x01)
+    //write value bytes in UTF-8
+    output.write(bytes)
   }
 
   override fun getType(): Amf3Type = Amf3Type.STRING
 
-  override fun getSize(): Int {
-    TODO("Not yet implemented")
+  override fun getSize(): Int = bodySize
+
+  override fun toString(): String {
+    return "Amf3String value: $value"
   }
 }

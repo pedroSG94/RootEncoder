@@ -26,6 +26,19 @@ open class Amf3Object(private val properties: HashMap<Amf3String, Amf3Data> = Li
 
   protected var bodySize = 0
 
+  init {
+    properties.forEach {
+      //Get size of all elements and include in size value. + 1 because include header size
+      bodySize += it.key.getSize()
+      bodySize += it.value.getSize() + 1
+    }
+    val objectInfo = (properties.size shl 4) or (0x02 shl 2) or 0x03
+    val amf3Integer = Amf3Integer(objectInfo)
+    bodySize += amf3Integer.getSize()
+    val amf3String = Amf3String(this.javaClass.name)
+    bodySize += amf3String.getSize()
+  }
+
   fun getProperty(name: String): Amf3Data? {
     properties.forEach {
       if (it.key.value == name) {
@@ -74,18 +87,29 @@ open class Amf3Object(private val properties: HashMap<Amf3String, Amf3Data> = Li
     bodySize += value.getSize() + 1
   }
 
-
   override fun readBody(input: InputStream) {
     TODO("Not yet implemented")
   }
 
   override fun writeBody(output: OutputStream) {
-    TODO("Not yet implemented")
+    val objectInfo = (properties.size shl 4) or (0x02 shl 2) or 0x03
+    val amf3Integer = Amf3Integer(objectInfo)
+    amf3Integer.writeBody(output)
+    val amf3String = Amf3String(this.javaClass.name)
+    amf3String.writeBody(output)
+    properties.forEach {
+      it.key.writeBody(output)
+
+      it.value.writeHeader(output)
+      it.value.writeBody(output)
+    }
   }
 
   override fun getType(): Amf3Type = Amf3Type.OBJECT
 
-  override fun getSize(): Int {
-    TODO("Not yet implemented")
+  override fun getSize(): Int = bodySize
+
+  override fun toString(): String {
+    return "Amf3Object properties: $properties"
   }
 }
