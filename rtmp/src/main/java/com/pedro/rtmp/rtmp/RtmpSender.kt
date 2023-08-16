@@ -36,6 +36,7 @@ import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import java.lang.IllegalArgumentException
 import java.nio.ByteBuffer
 
 /**
@@ -46,7 +47,6 @@ class RtmpSender(
   private val commandsManager: CommandsManager
 ) {
 
-  private var videoCodec = VideoCodec.H264
   private var aacPacket = AacPacket()
   private var h264Packet = H264Packet()
   private var h265Packet = H265Packet()
@@ -67,6 +67,7 @@ class RtmpSender(
     private set
   var droppedVideoFrames: Long = 0
     private set
+  var videoCodec = VideoCodec.H264
   private val bitrateManager: BitrateManager = BitrateManager(connectCheckerRtmp)
   private var isEnableLogs = true
 
@@ -75,12 +76,11 @@ class RtmpSender(
   }
 
   fun setVideoInfo(sps: ByteBuffer, pps: ByteBuffer, vps: ByteBuffer?) {
-    h264Packet.sendVideoInfo(sps, pps)
-    vps?.let {
-      videoCodec = VideoCodec.H265
+    if (videoCodec == VideoCodec.H265) {
+      if (vps == null) throw IllegalArgumentException("vps can't be null with h265")
       h265Packet.sendVideoInfo(sps, pps, vps)
-    } ?: run {
-      videoCodec = VideoCodec.H264
+    } else {
+      h264Packet.sendVideoInfo(sps, pps)
     }
   }
 
@@ -92,27 +92,25 @@ class RtmpSender(
     aacPacket.sendAudioInfo(sampleRate, isStereo)
   }
 
+  private fun enqueueVideoFrame(flvPacket: FlvPacket) {
+    val error = queue.trySend(flvPacket).exceptionOrNull()
+    if (error != null) {
+      Log.i(TAG, "Video frame discarded")
+      droppedVideoFrames++
+    } else {
+      itemsInQueue++
+    }
+  }
+
   fun sendVideoFrame(h264Buffer: ByteBuffer, info: MediaCodec.BufferInfo) {
     if (running) {
       if (videoCodec == VideoCodec.H265) {
         h265Packet.createFlvVideoPacket(h264Buffer, info) { flvPacket ->
-          val error = queue.trySend(flvPacket).exceptionOrNull()
-          if (error != null) {
-            Log.i(TAG, "Video frame discarded")
-            droppedVideoFrames++
-          } else {
-            itemsInQueue++
-          }
+          enqueueVideoFrame(flvPacket)
         }
       } else {
         h264Packet.createFlvVideoPacket(h264Buffer, info) { flvPacket ->
-          val error = queue.trySend(flvPacket).exceptionOrNull()
-          if (error != null) {
-            Log.i(TAG, "Video frame discarded")
-            droppedVideoFrames++
-          } else {
-            itemsInQueue++
-          }
+          enqueueVideoFrame(flvPacket)
         }
       }
     }
