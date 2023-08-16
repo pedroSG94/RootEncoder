@@ -1,9 +1,11 @@
 package com.pedro.rtmp.rtmp
 
 import android.util.Log
+import com.pedro.rtmp.amf.v0.AmfData
 import com.pedro.rtmp.amf.v0.AmfEcmaArray
 import com.pedro.rtmp.amf.v0.AmfNull
 import com.pedro.rtmp.amf.v0.AmfObject
+import com.pedro.rtmp.amf.v0.AmfStrictArray
 import com.pedro.rtmp.amf.v0.AmfString
 import com.pedro.rtmp.flv.audio.AudioFormat
 import com.pedro.rtmp.flv.video.VideoFormat
@@ -29,8 +31,14 @@ class CommandsManagerAmf0: CommandsManager() {
       connectInfo.setProperty("audioCodecs", 3191.0)
     }
     if (!videoDisabled) {
-      //connectInfo.setProperty("videoCodecs", 252.0)
-      //connectInfo.setProperty("videoFunction", 1.0)
+      connectInfo.setProperty("videoCodecs", 252.0)
+      connectInfo.setProperty("videoFunction", 1.0)
+      if (videoCodec == VideoCodec.H265) {
+        val list = mutableListOf<AmfData>()
+        list.add(AmfString("hvc1"))
+        val array = AmfStrictArray(list)
+        connectInfo.setProperty("fourCcList", array)
+      }
     }
     connectInfo.setProperty("pageUrl", "")
     connectInfo.setProperty("objectEncoding", 0.0)
@@ -82,6 +90,9 @@ class CommandsManagerAmf0: CommandsManager() {
     if (!videoDisabled) {
       amfEcmaArray.setProperty("width", width.toDouble())
       amfEcmaArray.setProperty("height", height.toDouble())
+      //few servers don't support it even if it is in the standard rtmp enhanced
+      //val codecValue = if (videoCodec == VideoCodec.H265) VideoFormat.HEVC.value else VideoFormat.AVC.value
+      //amfEcmaArray.setProperty("videocodecid", codecValue.toDouble())
       amfEcmaArray.setProperty("videocodecid", VideoFormat.AVC.value.toDouble())
       amfEcmaArray.setProperty("framerate", fps.toDouble())
       amfEcmaArray.setProperty("videodatarate", 0.0)

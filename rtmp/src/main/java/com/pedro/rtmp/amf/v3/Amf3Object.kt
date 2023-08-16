@@ -51,6 +51,13 @@ open class Amf3Object(private val properties: HashMap<Amf3String, Amf3Data> = Li
     bodySize += value.getSize() + 1
   }
 
+  open fun setProperty(name: String, data: Amf3Data) {
+    val key = Amf3String(name)
+    properties[key] = data
+    bodySize += key.getSize()
+    bodySize += data.getSize() + 1
+  }
+
   open fun setProperty(name: String) {
     val key = Amf3String(name)
     val value = Amf3Null()

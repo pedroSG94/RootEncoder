@@ -16,12 +16,15 @@
 
 package com.pedro.rtmp.flv.video
 
+import com.pedro.rtmp.utils.toByteArray
 import java.nio.ByteBuffer
 
 /**
  * Created by pedro on 14/08/23.
  *
  * ISO/IEC 14496-15 8.3.3.1.2
+ *
+ * HEVCDecoderConfigurationRecord
  *
  * aligned(8) class HEVCDecoderConfigurationRecord {
  *    unsigned int(8) configurationVersion = 1;
@@ -69,15 +72,52 @@ class VideoSpecificConfigHEVC(
 
   fun write(buffer: ByteArray, offset: Int) {
     val data = ByteBuffer.wrap(buffer, offset, size)
-    data.put(0x01) //8 bits version
 
-    //fake header
-    val l = listOf(
-      0x01,
-      0x40, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-      0x5d, 0xf0, 0x00, 0xfc, 0xfd, 0xf8, 0xf8, 0x00, 0x00, 0x0f
-    ).map { it.toByte() }.toByteArray()
-    data.put(l)
+    val configurationVersion = 1
+    data.put(configurationVersion.toByte())
+
+    val spsParsed = SPSH265Parser()
+    spsParsed.parse(sps)
+
+    val generalProfileSpace = spsParsed.generalProfileSpace
+    val generalTierFlag = spsParsed.generalTierFlag
+    val generalProfileIdc = spsParsed.generalProfileIdc
+    val combined = (generalProfileSpace shl 6) or (generalTierFlag shl 5) or generalProfileIdc
+    data.put(combined.toByte())
+
+    val generalProfileCompatibilityFlags = spsParsed.generalProfileCompatibilityFlags
+    data.putInt(generalProfileCompatibilityFlags)
+
+    val generalConstraintIndicatorFlags = spsParsed.generalConstraintIndicatorFlags
+    data.put(generalConstraintIndicatorFlags.toByteArray().sliceArray(2 until Long.SIZE_BYTES))
+
+    val generalLevelIdc = spsParsed.generalLevelIdc
+    data.put(generalLevelIdc.toByte())
+
+    val minSpatialSegmentationIdc = 0 //should be extracted from VUI. It is not relevant so using 0 by default
+    data.putShort((0xf000 or minSpatialSegmentationIdc).toShort())
+
+    val parallelismType = 0
+    data.put((0xfc or parallelismType).toByte())
+
+    val chromaFormatIdc = spsParsed.chromaFormat
+    data.put((0xfc or chromaFormatIdc).toByte())
+
+    val bitDepthLumaMinus8 = spsParsed.bitDepthLumaMinus8
+    data.put((0xf8 or bitDepthLumaMinus8).toByte())
+
+    val bitDepthChromaMinus8 = spsParsed.bitDepthChromaMinus8
+    data.put((0xf8 or bitDepthChromaMinus8).toByte())
+
+    val avgFrameRate = 0
+    data.putShort(avgFrameRate.toShort())
+
+    val constantFrameRate = 0
+    val numTemporalLayers = 0
+    val temporalIdNested = 0
+    val lengthSizeMinusOne = 3 //that means that we are using nalu size of 4
+    val combined2 = (constantFrameRate shl 6) or (numTemporalLayers shl 3) or (temporalIdNested shl 2) or lengthSizeMinusOne
+    data.put(combined2.toByte())
 
     data.put(0x03) //8 bits num of arrays
     //Arrays
@@ -90,9 +130,11 @@ class VideoSpecificConfigHEVC(
   }
 
   private fun writeNaluArray(type: Byte, naluByteBuffer: ByteArray, buffer: ByteBuffer) {
-    buffer.put(type)
-    buffer.put(0x00)
-    buffer.put(0x01)
+    val arrayCompleteness = 1
+    val reserved = 0
+    buffer.put(((arrayCompleteness shl 7) or (reserved shl 6) or type.toInt()).toByte())
+    val numNalus = 1
+    buffer.putShort(numNalus.toShort())
     buffer.putShort(naluByteBuffer.size.toShort())
     buffer.put(naluByteBuffer)
   }

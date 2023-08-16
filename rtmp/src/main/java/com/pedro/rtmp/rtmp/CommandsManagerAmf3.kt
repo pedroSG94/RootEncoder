@@ -1,6 +1,11 @@
 package com.pedro.rtmp.rtmp
 
 import android.util.Log
+import com.pedro.rtmp.amf.v0.AmfData
+import com.pedro.rtmp.amf.v0.AmfStrictArray
+import com.pedro.rtmp.amf.v0.AmfString
+import com.pedro.rtmp.amf.v3.Amf3Array
+import com.pedro.rtmp.amf.v3.Amf3Data
 import com.pedro.rtmp.amf.v3.Amf3Dictionary
 import com.pedro.rtmp.amf.v3.Amf3Null
 import com.pedro.rtmp.amf.v3.Amf3Object
@@ -31,6 +36,12 @@ class CommandsManagerAmf3: CommandsManager() {
     if (!videoDisabled) {
       connectInfo.setProperty("videoCodecs", 252.0)
       connectInfo.setProperty("videoFunction", 1.0)
+      if (videoCodec == VideoCodec.H265) {
+        val list = mutableListOf<Amf3Data>()
+        list.add(Amf3String("hvc1"))
+        val array = Amf3Array(list)
+        connectInfo.setProperty("fourCcList", array)
+      }
     }
     connectInfo.setProperty("pageUrl", "")
     connectInfo.setProperty("objectEncoding", 3.0)
@@ -82,6 +93,9 @@ class CommandsManagerAmf3: CommandsManager() {
     if (!videoDisabled) {
       amfEcmaArray.setProperty("width", width.toDouble())
       amfEcmaArray.setProperty("height", height.toDouble())
+      //few servers don't support it even if it is in the standard rtmp enhanced
+      //val codecValue = if (videoCodec == VideoCodec.H265) VideoFormat.HEVC.value else VideoFormat.AVC.value
+      //amfEcmaArray.setProperty("videocodecid", codecValue.toDouble())
       amfEcmaArray.setProperty("videocodecid", VideoFormat.AVC.value.toDouble())
       amfEcmaArray.setProperty("framerate", fps.toDouble())
       amfEcmaArray.setProperty("videodatarate", 0.0)

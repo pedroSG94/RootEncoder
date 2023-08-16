@@ -16,12 +16,8 @@
 
 package com.pedro.rtmp.utils
 
-import com.pedro.rtmp.flv.video.VideoSpecificConfigHEVC
-import com.pedro.rtmp.flv.video.asd.HEVCDecoderConfigurationRecord
-import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertEquals
 import org.junit.Test
-import java.nio.ByteBuffer
 
 class AuthUtilTest {
 
@@ -40,17 +36,4 @@ class AuthUtilTest {
         assertEquals("XrY7u+Ae7tCTyyK7j1rNww==", AuthUtil.stringToMd5Base64("hello world"))
     }
 
-    @Test
-    fun asd() {
-        val vps = listOf<Byte>(64, 1, 12, 1, -1, -1, 1, 96, 0, 0, 3, 0, 0, 3, 0, 0, 3, 0, 0, 3, 0, -103, 44, 9).toByteArray()
-        val sps = listOf<Byte>(66, 1, 1, 1, 96, 0, 0, 3, 0, 0, 3, 0, 0, 3, 0, 0, 3, 0, -103, -96, 15, 8, 2, -127, 104, -76, -82, -55, 46, -26, -96, -64, -64, -64, 16).toByteArray()
-        val pps = listOf<Byte>(68, 1, -64, 102, 124, 12, -58, 64).toByteArray()
-        val config2 = VideoSpecificConfigHEVC(sps, pps, vps)
-        val data = ByteBuffer.allocate(config2.size)
-        val data2 = ByteArray(config2.size)
-        val config = HEVCDecoderConfigurationRecord.fromParameterSets(ByteBuffer.wrap(sps), ByteBuffer.wrap(pps), ByteBuffer.wrap(vps))
-        config.write(data)
-        config2.write(data2, 0)
-        assertArrayEquals(data.array(), data2)
-    }
 }

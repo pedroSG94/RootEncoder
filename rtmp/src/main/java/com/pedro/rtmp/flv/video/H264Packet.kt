@@ -82,7 +82,7 @@ class H264Packet() {
       val sps = this.sps
       val pps = this.pps
       if (sps != null && pps != null) {
-        val config = VideoSpecificConfig(sps, pps, profileIop)
+        val config = VideoSpecificConfigAVC(sps, pps, profileIop)
         buffer = ByteArray(config.size + header.size)
         config.write(buffer, header.size)
       } else {

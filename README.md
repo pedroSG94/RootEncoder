@@ -78,7 +78,8 @@ dependencies {
 - [X] Set Image, Gif or Text to stream on real time.
 - [X] OpenGL real time filters. [More info](https://github.com/pedroSG94/rtmp-rtsp-stream-client-java/wiki/Real-time-filters)
 - [X] RTMPS and RTSPS.
-- [X] RTSP H265 support (Waiting FLV official packetization to add RTMP support).
+- [X] RTSP H265 support.
+- [X] RTMP H265 support ([Using RTMP enhanced](https://github.com/veovera/enhanced-rtmp/tree/main)).
 
 ### Beta:
 

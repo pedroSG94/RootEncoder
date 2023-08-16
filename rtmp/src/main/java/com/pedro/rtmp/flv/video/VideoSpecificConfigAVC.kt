@@ -21,6 +21,10 @@ import java.nio.ByteBuffer
 /**
  * Created by pedro on 29/04/21.
  *
+ *  ISO/IEC 14496-15
+ *
+ *  AVCDecoderConfigurationRecord
+ *
  * 5 bytes sps/pps header:
  * 1 byte configurationVersion (always 1), 1 byte AVCProfileIndication, 1 byte profile_compatibility,
  * 1 byte AVCLevelIndication, 1 byte lengthSizeMinusOneWithReserved (always 0xff)
@@ -33,7 +37,7 @@ import java.nio.ByteBuffer
  * N bytes of pps:
  * pictureParameterSetNALUnit (pps data)
  */
-class VideoSpecificConfig(private val sps: ByteArray, private val pps: ByteArray, private val profileIop: ProfileIop) {
+class VideoSpecificConfigAVC(private val sps: ByteArray, private val pps: ByteArray, private val profileIop: ProfileIop) {
 
   val size = calculateSize(sps, pps)
 

@@ -82,6 +82,13 @@ open class AmfObject(private val properties: HashMap<AmfString, AmfData> = Linke
     bodySize += value.getSize() + 1
   }
 
+  open fun setProperty(name: String, data: AmfData) {
+    val key = AmfString(name)
+    properties[key] = data
+    bodySize += key.getSize()
+    bodySize += data.getSize() + 1
+  }
+
   @Throws(IOException::class)
   override fun readBody(input: InputStream) {
     properties.clear()

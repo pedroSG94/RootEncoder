@@ -26,7 +26,7 @@ import java.nio.ByteBuffer
  * Created by pedro on 14/08/23.
  *
  */
-class H265Packet() {
+class H265Packet {
 
   private val TAG = "H264Packet"
 

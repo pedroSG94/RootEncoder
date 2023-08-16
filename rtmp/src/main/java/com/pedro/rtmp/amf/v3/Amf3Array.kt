@@ -22,7 +22,7 @@ import java.io.OutputStream
 /**
  * Created by pedro on 29/04/21.
  */
-class Amf3Array: Amf3Data() {
+class Amf3Array(val items: MutableList<Amf3Data> = mutableListOf()): Amf3Data() {
 
   override fun readBody(input: InputStream) {
     TODO("Not yet implemented")

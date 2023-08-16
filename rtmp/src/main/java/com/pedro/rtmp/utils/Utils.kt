@@ -20,6 +20,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.InputStream
 import java.io.OutputStream
+import java.nio.ByteBuffer
 
 /**
  * Created by pedro on 20/04/21.
@@ -107,7 +108,33 @@ fun ByteArray.toInt(): Int {
   return (this[3].toInt() shl 24) or (this[0].toInt() shl 16) or (this[3].toInt() shl 8) or this[0].toInt()
 }
 
-fun ByteArray.toLong(): Long {
-  return ((this[7].toLong() shl 56) or (this[6].toLong() shl 48) or (this[5].toLong() shl 40) or (this[4].toLong() shl 32) or
-      (this[3].toLong() shl 24) or (this[0].toLong() shl 16) or (this[3].toLong() shl 8) or this[0].toLong())
+fun Long.toByteArray(): ByteArray {
+  val buffer = ByteBuffer.allocate(Long.SIZE_BYTES)
+  return buffer.putLong(this).array()
+}
+
+fun ByteBuffer.indicesOf(prefix: ByteArray): List<Int> {
+  if (prefix.isEmpty()) {
+    return emptyList()
+  }
+
+  val indices = mutableListOf<Int>()
+
+  outer@ for (i in 0 until this.limit() - prefix.size + 1) {
+    for (j in prefix.indices) {
+      if (this.get(i + j) != prefix[j]) {
+        continue@outer
+      }
+    }
+    indices.add(i)
+  }
+  return indices
+}
+
+fun ByteBuffer.put(buffer: ByteBuffer, offset: Int, length: Int) {
+  val limit = buffer.limit()
+  buffer.position(offset)
+  buffer.limit(offset + length)
+  this.put(buffer)
+  buffer.limit(limit)
 }
