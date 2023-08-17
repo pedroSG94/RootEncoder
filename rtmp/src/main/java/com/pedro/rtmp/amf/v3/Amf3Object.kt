@@ -30,13 +30,17 @@ open class Amf3Object(private val properties: HashMap<Amf3String, Amf3Data> = Li
     properties.forEach {
       //Get size of all elements and include in size value. + 1 because include header size
       bodySize += it.key.getSize()
-      bodySize += it.value.getSize() + 1
+      bodySize += it.value.getSize()
+      //add header size
+      if (it.value !is Amf3String) bodySize += 1
     }
-    val objectInfo = (properties.size shl 4) or (0x02 shl 2) or 0x03
+    val objectInfo = (properties.size shl 4) or 0x0B
     val amf3Integer = Amf3Integer(objectInfo)
     bodySize += amf3Integer.getSize()
-    val amf3String = Amf3String(this.javaClass.name)
-    bodySize += amf3String.getSize()
+
+    val amf3StringEmpty = Amf3String("")
+    bodySize += amf3StringEmpty.getSize()
+    bodySize += amf3StringEmpty.getSize()
   }
 
   fun getProperty(name: String): Amf3Data? {
@@ -53,7 +57,7 @@ open class Amf3Object(private val properties: HashMap<Amf3String, Amf3Data> = Li
     val value = Amf3String(data)
     properties[key] = value
     bodySize += key.getSize()
-    bodySize += value.getSize() + 1
+    bodySize += value.getSize()
   }
 
   open fun setProperty(name: String, data: Boolean) {
@@ -87,22 +91,32 @@ open class Amf3Object(private val properties: HashMap<Amf3String, Amf3Data> = Li
     bodySize += value.getSize() + 1
   }
 
+  open fun setProperty(name: String, data: Int) {
+    val key = Amf3String(name)
+    val value = Amf3Integer(data)
+    properties[key] = value
+    bodySize += key.getSize()
+    bodySize += value.getSize() + 1
+  }
+
   override fun readBody(input: InputStream) {
     TODO("Not yet implemented")
   }
 
   override fun writeBody(output: OutputStream) {
-    val objectInfo = (properties.size shl 4) or (0x02 shl 2) or 0x03
+    val objectInfo = (properties.size shl 4) or 0x0B
     val amf3Integer = Amf3Integer(objectInfo)
     amf3Integer.writeBody(output)
-    val amf3String = Amf3String(this.javaClass.name)
-    amf3String.writeBody(output)
+    val amf3StringEmpty = Amf3String("")
+    amf3StringEmpty.writeBody(output)
     properties.forEach {
       it.key.writeBody(output)
-
+    }
+    properties.forEach {
       it.value.writeHeader(output)
       it.value.writeBody(output)
     }
+    amf3StringEmpty.writeBody(output)
   }
 
   override fun getType(): Amf3Type = Amf3Type.OBJECT

@@ -32,7 +32,7 @@ suspend fun onMainThread(code: () -> Unit) {
   }
 }
 
-fun Int.getUInt29Size(): Int {
+fun Int.getU29Size(): Int {
   var size = 0
   if (this < 0 || this >= 0x200000) {
     size += 4
@@ -44,7 +44,7 @@ fun Int.getUInt29Size(): Int {
   return size
 }
 
-fun OutputStream.writeUInt29(value: Int) {
+fun OutputStream.writeU29(value: Int) {
   if (value < 0 || value >= 0x200000) {
     write(value shr 22 and 0x7F or 0x80)
     write(value shr 15 and 0x7F or 0x80)
@@ -65,7 +65,7 @@ fun InputStream.readUntil(byteArray: ByteArray) {
   }
 }
 
-fun InputStream.readUInt29(): Int {
+fun InputStream.readU29(): Int {
   val uInt = readUInt32().toUInt()
   return (uInt and (0x1FFFFFFF).toUInt()).toInt()
 }

@@ -57,7 +57,7 @@ class RtmpClient(private val connectCheckerRtmp: ConnectCheckerRtmp) {
   private var scopeRetry = CoroutineScope(Dispatchers.IO)
   private var job: Job? = null
   private var jobRetry: Job? = null
-  private var commandsManager: CommandsManager = CommandsManagerAmf0()
+  private var commandsManager: CommandsManager = CommandsManagerAmf3()
   private val rtmpSender = RtmpSender(connectCheckerRtmp, commandsManager)
 
   @Volatile

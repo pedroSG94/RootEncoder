@@ -16,11 +16,10 @@
 
 package com.pedro.rtmp.amf.v3
 
-import com.pedro.rtmp.utils.getUInt29Size
-import com.pedro.rtmp.utils.readUInt29
+import com.pedro.rtmp.utils.getU29Size
+import com.pedro.rtmp.utils.readU29
 import com.pedro.rtmp.utils.readUntil
-import com.pedro.rtmp.utils.writeUInt29
-import com.pedro.rtmp.utils.writeUInt32
+import com.pedro.rtmp.utils.writeU29
 import java.io.IOException
 import java.io.InputStream
 import java.io.OutputStream
@@ -31,30 +30,38 @@ import kotlin.jvm.Throws
  */
 class Amf3String(var value: String = ""): Amf3Data() {
 
-  private var bodySize: Int = value.toByteArray(Charsets.UTF_8).size
+  private var bodySize: Int = if (value.isEmpty()) 1 else value.toByteArray(Charsets.UTF_8).size
 
   init {
-    bodySize += bodySize.getUInt29Size()
+    if (!value.isEmpty()) {
+      bodySize += bodySize.getU29Size()
+    }
   }
 
   @Throws(IOException::class)
   override fun readBody(input: InputStream) {
     //read value size as UInt32
-    bodySize = input.readUInt29()
+    val length = input.readU29()
+    bodySize = length.getU29Size()
     //read value in UTF-8
     val bytes = ByteArray(bodySize)
-    bodySize += bodySize.getUInt29Size()
     input.readUntil(bytes)
+    bodySize += length
     value = String(bytes, Charsets.UTF_8)
   }
 
   @Throws(IOException::class)
   override fun writeBody(output: OutputStream) {
-    val bytes = value.toByteArray(Charsets.UTF_8)
-    //write value size as UInt32. Value size not included
-    output.writeUInt29((bodySize - 4 shl 1) or 0x01)
-    //write value bytes in UTF-8
-    output.write(bytes)
+    if (value.isEmpty()) {
+      output.write(0x01)
+    } else {
+      val bytes = value.toByteArray(Charsets.UTF_8)
+
+      //write value size as U29. Value size not included
+      output.writeU29((bytes.size shl 1) or 0x01)
+      //write value bytes in UTF-8
+      output.write(bytes)
+    }
   }
 
   override fun getType(): Amf3Type = Amf3Type.STRING
