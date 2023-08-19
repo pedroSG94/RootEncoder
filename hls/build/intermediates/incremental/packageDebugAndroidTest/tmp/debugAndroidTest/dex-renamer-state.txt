@@ -1,4 +1,0 @@
-#Sat Aug 19 14:43:33 CEST 2023
-base.0=/home/pedro/AndroidStudioProjects/rtmp-rtsp-stream-client-java/hls/build/intermediates/dex/debugAndroidTest/mergeDexDebugAndroidTest/classes.dex
-path.0=classes.dex
-renamed.0=classes.dex
