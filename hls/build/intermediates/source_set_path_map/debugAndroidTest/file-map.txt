@@ -1,0 +1,5 @@
+com.pedro.hls.test.hls-androidTest-0 /home/pedro/AndroidStudioProjects/rtmp-rtsp-stream-client-java/hls/build/generated/res/resValues/androidTest/debug
+com.pedro.hls.test.hls-mergeDebugAndroidTestResources-1 /home/pedro/AndroidStudioProjects/rtmp-rtsp-stream-client-java/hls/build/intermediates/incremental/debugAndroidTest/mergeDebugAndroidTestResources/merged.dir
+com.pedro.hls.test.hls-mergeDebugAndroidTestResources-2 /home/pedro/AndroidStudioProjects/rtmp-rtsp-stream-client-java/hls/build/intermediates/incremental/debugAndroidTest/mergeDebugAndroidTestResources/stripped.dir
+com.pedro.hls.test.hls-merged_res-3 /home/pedro/AndroidStudioProjects/rtmp-rtsp-stream-client-java/hls/build/intermediates/merged_res/debugAndroidTest
+com.pedro.hls.test.hls-packaged_res-4 /home/pedro/AndroidStudioProjects/rtmp-rtsp-stream-client-java/hls/build/intermediates/packaged_res/debug

@@ -1,0 +1,15 @@
+-- Merging decision tree log ---
+manifest
+ADDED from /home/pedro/AndroidStudioProjects/rtmp-rtsp-stream-client-java/hls/src/main/AndroidManifest.xml:1:1-37
+INJECTED from /home/pedro/AndroidStudioProjects/rtmp-rtsp-stream-client-java/hls/src/main/AndroidManifest.xml:1:1-37
+	package
+		ADDED from /home/pedro/AndroidStudioProjects/rtmp-rtsp-stream-client-java/hls/src/main/AndroidManifest.xml:1:11-34
+		INJECTED from /home/pedro/AndroidStudioProjects/rtmp-rtsp-stream-client-java/hls/src/main/AndroidManifest.xml
+uses-sdk
+INJECTED from /home/pedro/AndroidStudioProjects/rtmp-rtsp-stream-client-java/hls/src/main/AndroidManifest.xml reason: use-sdk injection requested
+INJECTED from /home/pedro/AndroidStudioProjects/rtmp-rtsp-stream-client-java/hls/src/main/AndroidManifest.xml
+INJECTED from /home/pedro/AndroidStudioProjects/rtmp-rtsp-stream-client-java/hls/src/main/AndroidManifest.xml
+	android:targetSdkVersion
+		INJECTED from /home/pedro/AndroidStudioProjects/rtmp-rtsp-stream-client-java/hls/src/main/AndroidManifest.xml
+	android:minSdkVersion
+		INJECTED from /home/pedro/AndroidStudioProjects/rtmp-rtsp-stream-client-java/hls/src/main/AndroidManifest.xml

@@ -59,31 +59,46 @@ dependencies {
 ## Features:
 
 - [x] Android min API 16.
+
+### Encoder:
+
 - [x] Support [camera1](https://developer.android.com/reference/android/hardware/Camera.html) and [camera2](https://developer.android.com/reference/android/hardware/camera2/package-summary.html) API
 - [x] Encoder type buffer to buffer.
 - [x] Encoder type surface to buffer.
-- [x] RTMP/RTSP auth.
 - [x] Audio noise suppressor.
 - [x] Audio echo cancellation.
 - [x] Disable/Enable video and audio while streaming.
 - [x] Switch camera while streaming.
 - [x] Change video bitrate while streaming (API 19+).
-- [X] Get upload bandwidth used.
+- [x] H264, H265 and AAC hardware/software encoding.
+- [x] Force video and audio Codec to use hardware/software encoding (Not recommended).
 - [X] Record MP4 file while streaming (API 18+).
-- [x] H264, H265 and AAC hardware encoding.
-- [x] Force H264 and AAC Codec hardware/software encoding (Not recommended).
-- [x] RTSP TCP/UDP.
-- [x] Stream from video and audio files like mp4, webm, mp3, etc (Limited by device decoders). [More info](https://github.com/pedroSG94/rtmp-rtsp-stream-client-java/wiki/Stream-from-file)
-- [x] Stream device display (API 21+).
 - [X] Set Image, Gif or Text to stream on real time.
 - [X] OpenGL real time filters. [More info](https://github.com/pedroSG94/rtmp-rtsp-stream-client-java/wiki/Real-time-filters)
-- [X] RTMPS and RTSPS.
-- [X] RTSP H265 support.
-- [X] RTMP H265 support ([Using RTMP enhanced](https://github.com/veovera/enhanced-rtmp/tree/main)).
+- [x] Stream from video and audio files like mp4, webm, mp3, etc (Limited by device decoders). [More info](https://github.com/pedroSG94/rtmp-rtsp-stream-client-java/wiki/Stream-from-file)
+- [x] Stream device screen (API 21+).
 
-### Beta:
+### RTMP:
 
-- [X] RTMPT and RTMPTS (HTTP and HTTPS tunneled). Actually working but a request take so much time producing drop frames.
+- [X] Get upload bandwidth used.
+- [x] RTSP auth (adobe and llnw).
+- [x] H264, H265 ([Using RTMP enhanced](https://github.com/veovera/enhanced-rtmp/tree/main)) and AAC support.
+- [x] RTMPS (under TLS)
+- [x] RTMPT and RTMPTS (tunneled and tunneled under TLS)
+- [x] AMF0
+- [ ] AMF3
+
+### RTSP:
+
+- [X] Get upload bandwidth used.
+- [x] RTMP auth (basic and digest).
+- [x] H264, H265 and AAC support.
+- [x] TCP/UDP.
+- [x] RTSPS.
+
+### Under develop:
+
+Currently developing HLS and after that SRT (in this order because both protocols use MPEG2-TS as packets and HLS is easier)
 
 ## Other related projects:
 
