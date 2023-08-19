@@ -36,7 +36,7 @@ class TcpSocket(private val host: String, private val port: Int, private val sec
 
   override fun getInputStream(): InputStream = input
 
-  override fun flush() {
+  override fun flush(isPacket: Boolean) {
     getOutStream().flush()
   }
 

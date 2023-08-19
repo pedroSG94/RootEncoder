@@ -41,6 +41,9 @@ class TcpTunneledSocket(private val host: String, private val port: Int, private
   private var output = ByteArrayOutputStream()
   private var input = ByteArrayInputStream(byteArrayOf())
   private val sync = Any()
+  private var storedPackets = 0
+  //send video/audio packets in packs of 10 on each HTTP request.
+  private val maxStoredPackets = 10
 
   override fun getOutStream(): OutputStream = output
 
@@ -59,13 +62,18 @@ class TcpTunneledSocket(private val host: String, private val port: Int, private
     return input
   }
 
-  override fun flush() {
+  override fun flush(isPacket: Boolean) {
     synchronized(sync) {
+      if (isPacket && storedPackets < maxStoredPackets) {
+        storedPackets++
+        return
+      }
       if (!connected) return
       val i = index.addAndGet(1)
       val bytes = output.toByteArray()
       output.reset()
       requestWrite("send/$connectionId/$i", secured, bytes)
+      storedPackets = 0
     }
   }
 
