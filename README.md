@@ -98,7 +98,7 @@ dependencies {
 
 ### Under develop:
 
-Currently developing HLS and after that SRT (in this order because both protocols use MPEG2-TS as packets and HLS is easier)
+Currently developing SRT
 
 ## Other related projects:
 
