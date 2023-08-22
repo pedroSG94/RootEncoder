@@ -21,6 +21,15 @@ import kotlinx.coroutines.withContext
 import java.io.InputStream
 import java.io.OutputStream
 
+fun Boolean.toInt(): Int {
+  return if (this) 1 else 0
+}
+
+fun Int.toBoolean(): Boolean {
+  return this == 1
+}
+
+
 fun InputStream.readUInt16(): Int {
   return read() and 0xff shl 8 or (read() and 0xff)
 }

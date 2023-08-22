@@ -16,6 +16,7 @@
 
 package com.pedro.srt.srt.packets
 
+import com.pedro.srt.srt.packets.control.ControlType
 import com.pedro.srt.utils.readUInt32
 import com.pedro.srt.utils.writeUInt32
 import java.io.IOException

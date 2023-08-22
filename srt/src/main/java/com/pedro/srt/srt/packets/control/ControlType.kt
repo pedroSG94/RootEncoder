@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.pedro.srt.srt.packets
+package com.pedro.srt.srt.packets.control
 
 import java.io.IOException
 

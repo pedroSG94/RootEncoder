@@ -17,7 +17,7 @@
 package com.pedro.srt.srt.packets.control.handshake
 
 import com.pedro.srt.srt.packets.ControlPacket
-import com.pedro.srt.srt.packets.ControlType
+import com.pedro.srt.srt.packets.control.ControlType
 import com.pedro.srt.srt.packets.control.handshake.extension.HandshakeExtension
 import com.pedro.srt.utils.Constants
 import com.pedro.srt.utils.readUInt16

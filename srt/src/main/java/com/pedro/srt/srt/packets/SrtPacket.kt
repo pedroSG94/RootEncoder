@@ -19,6 +19,7 @@ package com.pedro.srt.srt.packets
 import com.pedro.srt.srt.packets.control.Ack
 import com.pedro.srt.srt.packets.control.Ack2
 import com.pedro.srt.srt.packets.control.CongestionWarning
+import com.pedro.srt.srt.packets.control.ControlType
 import com.pedro.srt.srt.packets.control.DropReq
 import com.pedro.srt.srt.packets.control.KeepAlive
 import com.pedro.srt.srt.packets.control.Nak

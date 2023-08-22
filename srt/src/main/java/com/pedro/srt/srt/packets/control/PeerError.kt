@@ -17,7 +17,6 @@
 package com.pedro.srt.srt.packets.control
 
 import com.pedro.srt.srt.packets.ControlPacket
-import com.pedro.srt.srt.packets.ControlType
 import java.io.InputStream
 
 /**

@@ -18,7 +18,6 @@ package com.pedro.srt.srt
 
 import android.util.Log
 import com.pedro.srt.srt.packets.ControlPacket
-import com.pedro.srt.srt.packets.ControlType
 import com.pedro.srt.srt.packets.DataPacket
 import com.pedro.srt.srt.packets.SrtPacket
 import com.pedro.srt.srt.packets.control.Ack
