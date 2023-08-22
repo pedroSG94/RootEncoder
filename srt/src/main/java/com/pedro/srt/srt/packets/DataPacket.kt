@@ -18,6 +18,7 @@ package com.pedro.srt.srt.packets
 
 import com.pedro.srt.srt.packets.control.ControlType
 import com.pedro.srt.utils.readUInt32
+import com.pedro.srt.utils.readUntil
 import com.pedro.srt.utils.toBoolean
 import com.pedro.srt.utils.toInt
 import com.pedro.srt.utils.writeUInt32
@@ -35,7 +36,8 @@ class DataPacket(
   var retransmitted: Boolean = false,
   var messageNumber: Int = 0,
   var ts: Int = 0,
-  var socketId: Int = 0
+  var socketId: Int = 0,
+  var payload: ByteArray = byteArrayOf()
 ): SrtPacket() {
 
   fun writeHeader(ts: Int, socketId: Int) {
@@ -46,6 +48,7 @@ class DataPacket(
     buffer.writeUInt32(info)
     buffer.writeUInt32(ts)
     buffer.writeUInt32(socketId)
+    buffer.write(payload)
   }
 
   fun readHeader(input: InputStream) {
@@ -62,5 +65,8 @@ class DataPacket(
     messageNumber = info and 0x03FFFFFF
     ts = input.readUInt32()
     socketId = input.readUInt32()
+    val payload = ByteArray(input.available())
+    input.readUntil(payload)
+    this.payload = payload
   }
 }

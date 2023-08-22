@@ -50,6 +50,14 @@ fun OutputStream.writeUInt16(value: Int) {
   write(value)
 }
 
+fun InputStream.readUntil(byteArray: ByteArray) {
+  var bytesRead = 0
+  while (bytesRead < byteArray.size) {
+    val result = read(byteArray, bytesRead, byteArray.size - bytesRead)
+    if (result != -1) bytesRead += result
+  }
+}
+
 suspend fun onMainThread(code: () -> Unit) {
   withContext(Dispatchers.Main) {
     code()
