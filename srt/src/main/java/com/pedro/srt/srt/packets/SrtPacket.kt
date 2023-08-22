@@ -16,9 +16,11 @@
 
 package com.pedro.srt.srt.packets
 
+import com.pedro.srt.srt.packets.control.Shutdown
+import com.pedro.srt.srt.packets.control.handshake.Handshake
+import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
-import java.io.InputStream
-import java.nio.ByteBuffer
+import java.io.IOException
 
 /**
  * Created by pedro on 21/8/23.
@@ -27,19 +29,43 @@ abstract class SrtPacket {
 
   val buffer = ByteArrayOutputStream()
 
-  fun writeInt(i: Int) {
-    val b = ByteBuffer.allocate(4)
-    b.putInt(i)
-    buffer.write(b.array())
-  }
+  companion object {
 
-  fun writeShort(s: Short) {
-    val b = ByteBuffer.allocate(2)
-    b.putShort(s)
-    buffer.write(b.array())
+    @Throws(IOException::class)
+    fun getSrtPacket(buffer: ByteArray): SrtPacket {
+      val packetType = PacketType.from((buffer[0].toInt() ushr 7) and 0x01)
+      when (packetType) {
+        PacketType.DATA -> {
+          return DataPacket()
+        }
+        PacketType.CONTROL -> {
+          val headerData = buffer.sliceArray(0 until 4)
+          val type = ControlPacket.getType(ByteArrayInputStream(headerData))
+          val input = ByteArrayInputStream(buffer)
+          when (type) {
+            ControlType.HANDSHAKE -> {
+              val handshake = Handshake()
+              handshake.read(input)
+              return handshake
+            }
+            ControlType.KEEP_ALIVE -> TODO()
+            ControlType.ACK -> TODO()
+            ControlType.NAK -> TODO()
+            ControlType.CONGESTION_WARNING -> TODO()
+            ControlType.SHUTDOWN -> {
+              val shutdown = Shutdown()
+              return shutdown
+            }
+            ControlType.ACK2 -> TODO()
+            ControlType.DROP_REQ -> TODO()
+            ControlType.PEER_ERROR -> TODO()
+            ControlType.USER_DEFINED -> TODO()
+            else -> throw IOException("unknown control type: ${type.name}")
+          }
+        }
+      }
+    }
   }
-
-  fun readInt(input: InputStream) {  }
 
   fun getData(): ByteArray = buffer.toByteArray()
 }

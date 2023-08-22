@@ -16,13 +16,15 @@
 
 package com.pedro.srt.srt.packets.control
 
+import com.pedro.srt.srt.packets.ControlPacket
+import com.pedro.srt.srt.packets.ControlType
+
 /**
  * Created by pedro on 22/8/23.
  */
-enum class EncryptionType(val value: Int) {
-  NONE(0), AES128(2), AES192(3), AES256(4);
+class Ack: ControlPacket(ControlType.ACK) {
 
-  companion object {
-    infix fun from(value: Int): EncryptionType = EncryptionType.values().firstOrNull { it.value == value } ?: throw RuntimeException("unknown encryption: $value")
+  fun write() {
+
   }
 }

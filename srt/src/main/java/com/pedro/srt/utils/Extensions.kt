@@ -19,6 +19,7 @@ package com.pedro.srt.utils
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.InputStream
+import java.io.OutputStream
 
 fun InputStream.readUInt16(): Int {
   return read() and 0xff shl 8 or (read() and 0xff)
@@ -26,6 +27,18 @@ fun InputStream.readUInt16(): Int {
 
 fun InputStream.readUInt32(): Int {
   return read() and 0xff shl 24 or (read() and 0xff shl 16) or (read() and 0xff shl 8) or (read() and 0xff)
+}
+
+fun OutputStream.writeUInt32(value: Int) {
+  write(value ushr 24)
+  write(value ushr 16)
+  write(value ushr 8)
+  write(value)
+}
+
+fun OutputStream.writeUInt16(value: Int) {
+  write(value ushr 8)
+  write(value)
 }
 
 suspend fun onMainThread(code: () -> Unit) {

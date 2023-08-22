@@ -16,13 +16,15 @@
 
 package com.pedro.srt.srt.packets.control
 
+import com.pedro.srt.srt.packets.ControlPacket
+import com.pedro.srt.srt.packets.ControlType
+
 /**
  * Created by pedro on 22/8/23.
  */
-enum class HandshakeType(val value: Int) {
-  DONE(4294967293u.toInt()), AGREEMENT(4294967294u.toInt()), CONCLUSION(4294967295u.toInt()), WAVE_A_HAND(0), INDUCTION(1);
+class KeepAlive: ControlPacket(ControlType.KEEP_ALIVE) {
 
-  companion object {
-    infix fun from(value: Int): HandshakeType = HandshakeType.values().firstOrNull { it.value == value } ?: throw RuntimeException("unknown handshake type: $value")
+  fun write() {
+
   }
 }

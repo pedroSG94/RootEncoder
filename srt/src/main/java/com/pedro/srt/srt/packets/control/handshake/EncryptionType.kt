@@ -14,20 +14,17 @@
  * limitations under the License.
  */
 
-package com.pedro.srt.srt.packets
+package com.pedro.srt.srt.packets.control.handshake
 
 import java.io.IOException
 
 /**
- * Created by pedro on 21/8/23.
+ * Created by pedro on 22/8/23.
  */
-enum class ControlType(val value: Int) {
-  HANDSHAKE(0), KEEP_ALIVE(1), ACK(2), NAK(3),
-  CONGESTION_WARNING(4), SHUTDOWN(5), ACK2(6),
-  DROP_REQ(7), PEER_ERROR(8), USER_DEFINED(0x7FFF),
-  SUB_TYPE(0);
+enum class EncryptionType(val value: Int) {
+  NONE(0), AES128(2), AES192(3), AES256(4);
 
   companion object {
-    infix fun from(value: Int): ControlType = ControlType.values().firstOrNull { it.value == value } ?: throw IOException("unknown control type: $value")
+    infix fun from(value: Int): EncryptionType = EncryptionType.values().firstOrNull { it.value == value } ?: throw IOException("unknown encryption: $value")
   }
 }

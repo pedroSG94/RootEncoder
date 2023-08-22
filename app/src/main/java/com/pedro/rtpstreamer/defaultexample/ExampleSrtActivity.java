@@ -16,32 +16,18 @@
 
 package com.pedro.rtpstreamer.defaultexample;
 
-import android.os.Build;
 import android.os.Bundle;
 import android.view.SurfaceHolder;
-import android.view.SurfaceView;
 import android.view.View;
 import android.view.WindowManager;
-import android.widget.Button;
-import android.widget.EditText;
 import android.widget.Toast;
 
-import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.pedro.encoder.input.video.CameraOpenException;
-import com.pedro.rtmp.utils.ConnectCheckerRtmp;
 import com.pedro.rtplibrary.rtmp.RtmpCamera1;
 import com.pedro.rtpstreamer.R;
-import com.pedro.rtpstreamer.utils.PathUtils;
 import com.pedro.srt.srt.SrtClient;
 import com.pedro.srt.utils.ConnectCheckerSrt;
-
-import java.io.File;
-import java.io.IOException;
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.Locale;
 
 /**
  * More documentation see:
@@ -49,59 +35,35 @@ import java.util.Locale;
  * {@link RtmpCamera1}
  */
 public class ExampleSrtActivity extends AppCompatActivity
-    implements ConnectCheckerRtmp, View.OnClickListener, SurfaceHolder.Callback {
+    implements ConnectCheckerSrt, View.OnClickListener, SurfaceHolder.Callback {
 
-  private SrtClient srtClient = new SrtClient(new ConnectCheckerSrt() {
-    @Override
-    public void onConnectionStartedSrt(@NonNull String rtspUrl) {
-
-    }
-
-    @Override
-    public void onConnectionSuccessSrt() {
-
-    }
-
-    @Override
-    public void onConnectionFailedSrt(@NonNull String reason) {
-
-    }
-
-    @Override
-    public void onNewBitrateSrt(long bitrate) {
-
-    }
-
-    @Override
-    public void onDisconnectSrt() {
-
-    }
-
-    @Override
-    public void onAuthErrorSrt() {
-
-    }
-
-    @Override
-    public void onAuthSuccessSrt() {
-
-    }
-  });
+  private final SrtClient srtClient = new SrtClient(this);
 
   @Override
   protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
     getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
     setContentView(R.layout.activity_example);
-    srtClient.connect("srt://192.168.0.191:8890/live/pedro");
   }
 
   @Override
-  public void onConnectionStartedRtmp(String rtmpUrl) {
+  protected void onResume() {
+    super.onResume();
+    srtClient.connect("srt://192.168.0.191:8890/mystream1");
   }
 
   @Override
-  public void onConnectionSuccessRtmp() {
+  protected void onPause() {
+    super.onPause();
+    srtClient.disconnect();
+  }
+
+  @Override
+  public void onConnectionStartedSrt(String srtUrl) {
+  }
+
+  @Override
+  public void onConnectionSuccessSrt() {
     runOnUiThread(new Runnable() {
       @Override
       public void run() {
@@ -111,16 +73,17 @@ public class ExampleSrtActivity extends AppCompatActivity
   }
 
   @Override
-  public void onConnectionFailedRtmp(final String reason) {
+  public void onConnectionFailedSrt(final String reason) {
+    Toast.makeText(ExampleSrtActivity.this, "Connection failed: " + reason, Toast.LENGTH_SHORT).show();
   }
 
   @Override
-  public void onNewBitrateRtmp(final long bitrate) {
+  public void onNewBitrateSrt(final long bitrate) {
 
   }
 
   @Override
-  public void onDisconnectRtmp() {
+  public void onDisconnectSrt() {
     runOnUiThread(new Runnable() {
       @Override
       public void run() {
@@ -130,11 +93,11 @@ public class ExampleSrtActivity extends AppCompatActivity
   }
 
   @Override
-  public void onAuthErrorRtmp() {
+  public void onAuthErrorSrt() {
   }
 
   @Override
-  public void onAuthSuccessRtmp() {
+  public void onAuthSuccessSrt() {
     runOnUiThread(new Runnable() {
       @Override
       public void run() {

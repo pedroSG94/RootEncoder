@@ -14,15 +14,16 @@
  * limitations under the License.
  */
 
-package com.pedro.srt.srt.packets.control
+package com.pedro.srt.srt.packets.control.handshake
 
-import android.util.Log
 import com.pedro.srt.srt.packets.ControlPacket
 import com.pedro.srt.srt.packets.ControlType
+import com.pedro.srt.srt.packets.control.handshake.extension.HandshakeExtension
 import com.pedro.srt.utils.Constants
 import com.pedro.srt.utils.readUInt16
 import com.pedro.srt.utils.readUInt32
-import java.io.ByteArrayInputStream
+import com.pedro.srt.utils.writeUInt16
+import com.pedro.srt.utils.writeUInt32
 import java.io.InputStream
 
 /**
@@ -64,9 +65,9 @@ import java.io.InputStream
  *
  */
 data class Handshake(
-  private var handshakeVersion: Int = 5,
+  private var handshakeVersion: Int = 4,
   var encryption: EncryptionType = EncryptionType.NONE,
-  var extensionField: ExtensionField = ExtensionField.KM_REQ,
+  var extensionField: Int = ExtensionField.KM_REQ.value,
   var initialPacketSequence: Int = 1647295161,
   var MTU: Int = Constants.MTU,
   var flowWindowsSize: Int = 8192,
@@ -74,8 +75,6 @@ data class Handshake(
   var srtSocketId: Int = 679031891,
   var synCookie: Int = 0,
   var ipAddress: String = "0.0.0.0", //128 bits (32 bits each number)
-  var extensionType: ExtensionType? = null,
-  var extensionLength: Int? = null,
   var handshakeExtension: HandshakeExtension? = null
 ): ControlPacket(ControlType.HANDSHAKE) {
 
@@ -87,26 +86,45 @@ data class Handshake(
   }
 
   private fun writeBody() {
-    writeInt(handshakeVersion)
-    writeShort(encryption.value.toShort())
-    writeShort(extensionField.value.toShort())
-    writeInt(initialPacketSequence and 0x7FFFFFFF) //0 + 31 bits
-    writeInt(MTU)
-    writeInt(flowWindowsSize)
-    writeInt(handshakeType.value)
-    writeInt(srtSocketId)
-    writeInt(synCookie)
+    buffer.writeUInt32(handshakeVersion)
+    buffer.writeUInt16(encryption.value)
+    buffer.writeUInt16(extensionField)
+    buffer.writeUInt32(initialPacketSequence and 0x7FFFFFFF) //31 bits
+    buffer.writeUInt32(MTU)
+    buffer.writeUInt32(flowWindowsSize)
+    buffer.writeUInt32(handshakeType.value)
+    buffer.writeUInt32(srtSocketId)
+    buffer.writeUInt32(synCookie)
     writeAddress()
-    extensionType?.let { writeShort(it.value.toShort()) }
-    extensionLength?.let { writeShort(it.toShort()) }
-    handshakeExtension?.let { buffer.write(it.getData()) }
+    handshakeExtension?.let {
+      it.write()
+      buffer.write(it.getData())
+    }
   }
 
   private fun writeAddress() {
       val numbers = ipAddress.split(".").map { it.trim().toInt() }
     numbers.forEach {
-      writeInt(it)
+      buffer.writeUInt32(it)
     }
+  }
+
+  fun read(input: InputStream) {
+    super.readHeader(input)
+    readBody(input)
+  }
+
+  private fun readBody(input: InputStream) {
+    handshakeVersion = input.readUInt32()
+    encryption = EncryptionType.from(input.readUInt16())
+    extensionField = input.readUInt16()
+    initialPacketSequence = input.readUInt32() and 0x7FFFFFFF // 31 bits
+    MTU = input.readUInt32()
+    flowWindowsSize = input.readUInt32()
+    handshakeType = HandshakeType.from(input.readUInt32())
+    srtSocketId = input.readUInt32()
+    synCookie = input.readUInt32()
+    readAddress(input)
   }
 
   private fun readAddress(input: InputStream): String {
@@ -117,30 +135,7 @@ data class Handshake(
     return "$num1.$num2.$num3.$num4"
   }
 
-  fun read(buffer: ByteArray) {
-    val input = ByteArrayInputStream(buffer)
-    super.readHeader(input)
-    readBody(input)
-  }
-
-  private fun readBody(input: InputStream) {
-    handshakeVersion = input.readUInt32()
-    encryption = EncryptionType.from(input.readUInt16())
-    try {
-      extensionField = ExtensionField.from(input.readUInt16())
-    } catch (e: Exception) {
-      Log.e("Pedro", "error", e)
-    }
-    initialPacketSequence = input.readUInt32() and 0x7FFFFFFF // 31 bits
-    MTU = input.readUInt32()
-    flowWindowsSize = input.readUInt32()
-    handshakeType = HandshakeType.from(input.readUInt32())
-    srtSocketId = input.readUInt32()
-    synCookie = input.readUInt32()
-    readAddress(input)
-  }
-
   override fun toString(): String {
-    return "Handshake(typeSpecificInformation=$typeSpecificInformation, handshakeVersion=$handshakeVersion, encryption=$encryption, extensionField=$extensionField, initialPacketSequence=$initialPacketSequence, MTU=$MTU, flowWindowsSize=$flowWindowsSize, handshakeType=$handshakeType, srtSocketId=$srtSocketId, synCookie=$synCookie, ipAddress='$ipAddress', extensionType=$extensionType, extensionLength=$extensionLength, extensionPayload=${handshakeExtension.toString()})"
+    return "Handshake(handshakeVersion=$handshakeVersion, encryption=$encryption, extensionField=$extensionField, initialPacketSequence=$initialPacketSequence, MTU=$MTU, flowWindowsSize=$flowWindowsSize, handshakeType=$handshakeType, srtSocketId=$srtSocketId, synCookie=$synCookie, ipAddress='$ipAddress', handshakeExtension=$handshakeExtension)"
   }
 }

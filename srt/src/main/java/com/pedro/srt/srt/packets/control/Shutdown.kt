@@ -16,10 +16,15 @@
 
 package com.pedro.srt.srt.packets.control
 
+import com.pedro.srt.srt.packets.ControlPacket
+import com.pedro.srt.srt.packets.ControlType
+
 /**
  * Created by pedro on 22/8/23.
  */
-enum class ExtensionType(val value: Int) {
-  SRT_CMD_HS_REQ(1), SRT_CMD_HS_RSP(2), SRT_CMD_KM_REQ(3), SRT_CMD_KM_RSP(4),
-  SRT_CMD_SID(5), SRT_CMD_CONGESTION(6), SRT_CMD_FILTER(7), SRT_CMD_GROUP(8)
+class Shutdown: ControlPacket(ControlType.SHUTDOWN) {
+
+  fun write() {
+
+  }
 }

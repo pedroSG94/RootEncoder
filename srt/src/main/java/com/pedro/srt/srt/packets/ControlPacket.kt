@@ -17,6 +17,8 @@
 package com.pedro.srt.srt.packets
 
 import com.pedro.srt.utils.readUInt32
+import com.pedro.srt.utils.writeUInt32
+import java.io.IOException
 import java.io.InputStream
 
 /**
@@ -48,16 +50,32 @@ abstract class ControlPacket(
 
   protected fun writeHeader(ts: Int, socketId: Int) {
     val headerData = PacketType.CONTROL.value and 0xff shl 31 or (controlType.value and 0xff shl 16) or subtype.value
-    writeInt(headerData)
-    writeInt(typeSpecificInformation)
-    writeInt(ts)
-    writeInt(socketId)
+    buffer.writeUInt32(headerData)
+    buffer.writeUInt32(typeSpecificInformation)
+    buffer.writeUInt32(ts)
+    buffer.writeUInt32(socketId)
   }
 
   protected fun readHeader(input: InputStream) {
     val headerData = input.readUInt32()
+    val packetType = PacketType.from((headerData ushr 31) and 0x01)
+    if (packetType != PacketType.CONTROL) {
+      throw IOException("error, parsing data packet as control packet")
+    }
+    controlType = ControlType.from((headerData ushr 16) and 0xFF)
+    val subtypeValue = headerData and 0xFFFF
+    if (subtypeValue == 0) subtype = ControlType.SUB_TYPE
+    else throw IOException("unknown subtype: $subtypeValue")
+
     typeSpecificInformation = input.readUInt32()
     ts = input.readUInt32()
     socketId = input.readUInt32()
+  }
+
+  companion object {
+    fun getType(input: InputStream): ControlType {
+      val headerData = input.readUInt32()
+      return ControlType.from((headerData ushr 16) and 0xFF)
+    }
   }
 }

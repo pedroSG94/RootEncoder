@@ -16,10 +16,16 @@
 
 package com.pedro.srt.srt.packets
 
+import java.io.IOException
+
 /**
  * Created by pedro on 21/8/23.
  *
  */
 enum class PacketType(val value: Int) {
-  DATA(0), CONTROL(1)
+  DATA(0), CONTROL(1);
+
+  companion object {
+    infix fun from(value: Int): PacketType = PacketType.values().firstOrNull { it.value == value } ?: throw IOException("unknown packet type: $value")
+  }
 }

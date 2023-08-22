@@ -14,20 +14,11 @@
  * limitations under the License.
  */
 
-package com.pedro.srt.srt.packets
-
-import java.io.IOException
+package com.pedro.srt.srt.packets.control.handshake.extension
 
 /**
- * Created by pedro on 21/8/23.
+ * Created by pedro on 22/8/23.
  */
-enum class ControlType(val value: Int) {
-  HANDSHAKE(0), KEEP_ALIVE(1), ACK(2), NAK(3),
-  CONGESTION_WARNING(4), SHUTDOWN(5), ACK2(6),
-  DROP_REQ(7), PEER_ERROR(8), USER_DEFINED(0x7FFF),
-  SUB_TYPE(0);
-
-  companion object {
-    infix fun from(value: Int): ControlType = ControlType.values().firstOrNull { it.value == value } ?: throw IOException("unknown control type: $value")
-  }
+enum class ExtensionContentFlag(val value: Int) {
+  TSBPDSND(1), TSBPDRCV(2), CRYPT(4), TLPKTDROP(8), PERIODICNAK(16), REXMITFLG(32), STREAM(64), PACKET_FILTER(128)
 }

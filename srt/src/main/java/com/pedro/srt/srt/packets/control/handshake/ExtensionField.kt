@@ -14,18 +14,17 @@
  * limitations under the License.
  */
 
-package com.pedro.srt.srt.packets.control
+package com.pedro.srt.srt.packets.control.handshake
+
+import java.io.IOException
 
 /**
  * Created by pedro on 22/8/23.
  */
-data class ExtensionContent(
-  val version: Int,
-  val flags: Int,
-  val receiverDelay: Int, //milliseconds
-  val senderDelay: Int //milliseconds
-)
+enum class ExtensionField(val value: Int) {
+  HS_REQ(1), KM_REQ(2), CONFIG(4), HS_V5_MAGIC(18967);
 
-enum class ExtensionContentFlag(val value: Int) {
-  TSBPDSND(1), TSBPDRCV(2), CRYPT(4), TLPKTDROP(8), PERIODICNAK(16), REXMITFLG(32), STREAM(64), PACKET_FILTER(128)
+  companion object {
+    infix fun from(value: Int): ExtensionField = ExtensionField.values().firstOrNull { it.value == value } ?: throw IOException("unknown extension field: $value")
+  }
 }

@@ -17,23 +17,37 @@
 package com.pedro.srt.srt
 
 import android.util.Log
-import com.pedro.srt.srt.packets.control.ExtensionType
-import com.pedro.srt.srt.packets.control.Handshake
-import com.pedro.srt.srt.packets.control.HandshakeExtension
-import com.pedro.srt.srt.packets.control.HandshakeType
+import com.pedro.srt.srt.packets.ControlPacket
+import com.pedro.srt.srt.packets.ControlType
+import com.pedro.srt.srt.packets.DataPacket
+import com.pedro.srt.srt.packets.SrtPacket
+import com.pedro.srt.srt.packets.control.Ack
+import com.pedro.srt.srt.packets.control.Ack2
+import com.pedro.srt.srt.packets.control.CongestionWarning
+import com.pedro.srt.srt.packets.control.DropReq
+import com.pedro.srt.srt.packets.control.KeepAlive
+import com.pedro.srt.srt.packets.control.Nak
+import com.pedro.srt.srt.packets.control.PeerError
+import com.pedro.srt.srt.packets.control.Shutdown
+import com.pedro.srt.srt.packets.control.handshake.ExtensionField
+import com.pedro.srt.srt.packets.control.handshake.Handshake
+import com.pedro.srt.srt.packets.control.handshake.extension.HandshakeExtension
+import com.pedro.srt.srt.packets.control.handshake.HandshakeType
+import com.pedro.srt.srt.packets.control.handshake.extension.ExtensionContentFlag
 import com.pedro.srt.utils.ConnectCheckerSrt
-import com.pedro.srt.utils.Constants
+import com.pedro.srt.utils.SrtSocket
 import com.pedro.srt.utils.onMainThread
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.cancelAndJoin
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
-import java.net.DatagramPacket
-import java.net.DatagramSocket
-import java.net.InetAddress
+import java.io.IOException
+import java.net.SocketTimeoutException
 import java.util.regex.Pattern
+import kotlin.jvm.Throws
 
 /**
  * Created by pedro on 20/8/23.
@@ -42,10 +56,12 @@ class SrtClient(private val connectCheckerSrt: ConnectCheckerSrt) {
 
   private val TAG = "SrtClient"
 
-  private var socket: DatagramSocket? = null
+  private val srtSender = SrtSender()
+  private var socket: SrtSocket? = null
   private var scope = CoroutineScope(Dispatchers.IO)
   private var job: Job? = null
 
+  private var checkServerAlive = false
   @Volatile
   var isStreaming = false
     private set
@@ -74,39 +90,58 @@ class SrtClient(private val connectCheckerSrt: ConnectCheckerSrt) {
         val port: Int = rtspMatcher.group(2)?.toInt() ?: 8888
         val streamName =
           if (rtspMatcher.group(4).isNullOrEmpty()) "" else "/" + rtspMatcher.group(4)
-        val path = "/" + rtspMatcher.group(3) + streamName
+        val path = "${rtspMatcher.group(3)}$streamName".trim()
 
         val error = runCatching {
-          val address = InetAddress.getByName(host)
-          socket = DatagramSocket(port)
-          socket?.connect(address, port)
-          val startTs = (System.currentTimeMillis() / 1000).toInt()
+          socket = SrtSocket(host, port)
+          socket?.connect()
+          val startTs = (System.nanoTime() / 1000).toInt() //micro seconds
 
           val handshakeInduction = Handshake()
-          var ts = (System.currentTimeMillis() / 1000).toInt() - startTs
+          var ts = (System.nanoTime() / 1000).toInt() - startTs
           handshakeInduction.write(ts, 0)
-          val bytes1 = handshakeInduction.getData()
-          val packet1 = DatagramPacket(bytes1, bytes1.size)
-          socket?.send(packet1)
+          socket?.write(handshakeInduction)
 
-          val readCache = ByteArray(Constants.MTU)
-          val response = DatagramPacket(readCache, Constants.MTU)
-          socket?.receive(response)
-          val responseHS = Handshake()
-          responseHS.read(response.data.sliceArray(0 until response.length))
+          val responseBufferInduction = socket?.readBuffer() ?: throw IOException("read buffer failed, socket disconnected")
+          val responsePacketInduction = SrtPacket.getSrtPacket(responseBufferInduction)
+          if (responsePacketInduction is Handshake) {
+            val handshakeConclusion = responsePacketInduction.copy(
+              extensionField = ExtensionField.HS_REQ.value or ExtensionField.CONFIG.value,
+              handshakeType = HandshakeType.CONCLUSION,
+              handshakeExtension = HandshakeExtension(
+                flags = ExtensionContentFlag.TSBPDSND.value or ExtensionContentFlag.TSBPDRCV.value or
+                    ExtensionContentFlag.CRYPT.value or ExtensionContentFlag.TLPKTDROP.value or
+                    ExtensionContentFlag.PERIODICNAK.value or ExtensionContentFlag.REXMITFLG.value,
+                path = path
+              )
+            )
+            ts = (System.nanoTime() / 1000).toInt() - startTs
+            handshakeConclusion.write(ts, 0)
+            socket?.write(handshakeConclusion)
+          } else {
+            throw IOException("unexpected response type: ${responsePacketInduction.javaClass.name}")
+          }
 
-          val handshakeConclusion = responseHS.copy(
-            handshakeType = HandshakeType.CONCLUSION,
-            extensionType = ExtensionType.SRT_CMD_HS_REQ,
-            extensionLength = 3,
-            handshakeExtension = HandshakeExtension() //TODO
-          )
-          ts = (System.currentTimeMillis() / 1000).toInt() - startTs
-          handshakeConclusion.write(ts, 0)
-          val bytes = handshakeConclusion.getData()
-          val packet = DatagramPacket(bytes, bytes.size)
-          socket?.send(packet)
-
+          val responseBufferConclusion = socket?.readBuffer() ?: throw IOException("read buffer failed, socket disconnected")
+          val responsePacketConclusion = SrtPacket.getSrtPacket(responseBufferConclusion)
+          if (responsePacketConclusion is Handshake) {
+            if (responsePacketConclusion.handshakeType.value >= HandshakeType.SRT_REJ_UNKNOWN.value
+              && responsePacketConclusion.handshakeType.value <= HandshakeType.SRT_REJ_CRYPTO.value
+              ) {
+              onMainThread {
+                connectCheckerSrt.onConnectionFailedSrt("Error configure stream, ${responsePacketConclusion.handshakeType.name}")
+              }
+              return@launch
+            } else {
+              onMainThread {
+                connectCheckerSrt.onConnectionSuccessSrt()
+              }
+              srtSender.start()
+              handleServerPackets()
+            }
+          } else {
+            throw IOException("unexpected response type: ${responseBufferConclusion.javaClass.name}")
+          }
         }.exceptionOrNull()
         if (error != null) {
           Log.e(TAG, "connection error", error)
@@ -134,6 +169,83 @@ class SrtClient(private val connectCheckerSrt: ConnectCheckerSrt) {
       job = null
       scope.cancel()
       scope = CoroutineScope(Dispatchers.IO)
+    }
+  }
+
+  @Throws(IOException::class)
+  private suspend fun handleServerPackets() {
+    while (scope.isActive && isStreaming) {
+      val error = runCatching {
+        if (isAlive()) {
+          //ignore packet after connect if tunneled to avoid spam idle
+          handleMessages()
+        } else {
+          onMainThread {
+            connectCheckerSrt.onConnectionFailedSrt("No response from server")
+          }
+          scope.cancel()
+        }
+      }.exceptionOrNull()
+      if (error != null && error !is SocketTimeoutException) {
+        onMainThread {
+          connectCheckerSrt.onConnectionFailedSrt("Error handling packet, ${error.message}")
+        }
+      }
+    }
+  }
+
+  /*
+  Send a heartbeat to know if server is alive using Echo Protocol.
+  Your firewall could block it.
+ */
+  private fun isAlive(): Boolean {
+    val connected = socket?.isConnected() ?: false
+    if (!checkServerAlive) {
+      return connected
+    }
+    val reachable = socket?.isReachable() ?: false
+    return if (connected && !reachable) false else connected
+  }
+
+  @Throws(IOException::class)
+  private fun handleMessages() {
+    val responseBufferConclusion = socket?.readBuffer() ?: throw IOException("read buffer failed, socket disconnected")
+    val srtPacket = SrtPacket.getSrtPacket(responseBufferConclusion)
+    when(srtPacket) {
+      is DataPacket -> {
+        //ignore
+      }
+      is ControlPacket -> {
+        when (srtPacket) {
+          is Handshake -> {
+
+          }
+          is KeepAlive -> {
+
+          }
+          is Ack -> {
+
+          }
+          is Nak -> {
+
+          }
+          is CongestionWarning -> {
+
+          }
+          is Shutdown -> {
+
+          }
+          is Ack2 -> {
+
+          }
+          is DropReq -> {
+
+          }
+          is PeerError -> {
+
+          }
+        }
+      }
     }
   }
 }

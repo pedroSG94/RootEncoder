@@ -16,28 +16,15 @@
 
 package com.pedro.srt.srt.packets.control
 
-import com.pedro.srt.srt.packets.SrtPacket
+import com.pedro.srt.srt.packets.ControlPacket
+import com.pedro.srt.srt.packets.ControlType
 
 /**
  * Created by pedro on 22/8/23.
- *
- *
  */
-data class HandshakeExtension(
-  val content: List<ExtensionContent> = listOf()
-): SrtPacket() {
+class CongestionWarning: ControlPacket(ControlType.CONGESTION_WARNING) {
 
   fun write() {
-    content.forEach { content ->
-      writeInt(content.version)
-      writeInt(content.flags)
-      writeShort(content.receiverDelay.toShort())
-      writeShort(content.senderDelay.toShort())
-    }
-  }
-
-  fun read() {
 
   }
 }
-
