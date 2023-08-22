@@ -59,6 +59,11 @@
         android:screenOrientation="portrait"
         />
     <activity
+        android:name=".defaultexample.ExampleSrtActivity"
+        android:label="@string/default_srt"
+        android:screenOrientation="portrait"
+        />
+    <activity
         android:name=".filestreamexample.RtspFromFileActivity"
         android:label="@string/from_file_rtsp"
         android:screenOrientation="portrait"

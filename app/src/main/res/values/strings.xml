@@ -6,6 +6,7 @@
   <string name="rtmp_streamer">Custom RTMP</string>
   <string name="default_rtmp">Default RTMP</string>
   <string name="default_rtsp">Default RTSP</string>
+  <string name="default_srt">Default SRT</string>
   <string name="from_file_rtsp">From file RTSP</string>
   <string name="from_file_rtmp">From file RTMP</string>
   <string name="surface_mode_rtsp">Surface mode RTSP</string>

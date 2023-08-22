@@ -39,6 +39,7 @@ import com.pedro.rtpstreamer.customexample.RtmpActivity;
 import com.pedro.rtpstreamer.customexample.RtspActivity;
 import com.pedro.rtpstreamer.defaultexample.ExampleRtmpActivity;
 import com.pedro.rtpstreamer.defaultexample.ExampleRtspActivity;
+import com.pedro.rtpstreamer.defaultexample.ExampleSrtActivity;
 import com.pedro.rtpstreamer.displayexample.DisplayActivity;
 import com.pedro.rtpstreamer.filestreamexample.RtmpFromFileActivity;
 import com.pedro.rtpstreamer.filestreamexample.RtspFromFileActivity;
@@ -112,6 +113,8 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         getString(R.string.default_rtmp), JELLY_BEAN));
     activities.add(new ActivityLink(new Intent(this, ExampleRtspActivity.class),
         getString(R.string.default_rtsp), JELLY_BEAN));
+    activities.add(new ActivityLink(new Intent(this, ExampleSrtActivity.class),
+            getString(R.string.default_srt), JELLY_BEAN));
     activities.add(new ActivityLink(new Intent(this, RtmpFromFileActivity.class),
         getString(R.string.from_file_rtmp), JELLY_BEAN_MR2));
     activities.add(new ActivityLink(new Intent(this, RtspFromFileActivity.class),
