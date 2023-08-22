@@ -18,13 +18,23 @@ package com.pedro.srt.srt.packets.control
 
 import com.pedro.srt.srt.packets.ControlPacket
 import com.pedro.srt.srt.packets.ControlType
+import java.io.InputStream
 
 /**
  * Created by pedro on 22/8/23.
  */
-class PeerError: ControlPacket(ControlType.PEER_ERROR) {
+class PeerError(
+  var errorCode: Int = 0
+): ControlPacket(ControlType.PEER_ERROR) {
 
-  fun write() {
+  fun write(ts: Int, socketId: Int) {
+    errorCode = typeSpecificInformation
+    //control packet header (16 bytes)
+    super.writeHeader(ts, socketId)
+  }
 
+  fun read(input: InputStream) {
+    super.readHeader(input)
+    errorCode = typeSpecificInformation
   }
 }

@@ -18,13 +18,19 @@ package com.pedro.srt.srt.packets.control
 
 import com.pedro.srt.srt.packets.ControlPacket
 import com.pedro.srt.srt.packets.ControlType
+import java.io.InputStream
 
 /**
  * Created by pedro on 22/8/23.
  */
 class KeepAlive: ControlPacket(ControlType.KEEP_ALIVE) {
 
-  fun write() {
+  fun write(ts: Int, socketId: Int) {
+    //control packet header (16 bytes)
+    super.writeHeader(ts, socketId)
+  }
 
+  fun read(input: InputStream) {
+    super.readHeader(input)
   }
 }

@@ -18,13 +18,24 @@ package com.pedro.srt.srt.packets.control
 
 import com.pedro.srt.srt.packets.ControlPacket
 import com.pedro.srt.srt.packets.ControlType
+import java.io.InputStream
 
 /**
  * Created by pedro on 22/8/23.
  */
-class Ack2: ControlPacket(ControlType.ACK2) {
+class Ack2(
+  var acknowledgementNumber: Int = 0
+): ControlPacket(ControlType.ACK2) {
 
-  fun write() {
 
+  fun write(ts: Int, socketId: Int) {
+    acknowledgementNumber = typeSpecificInformation
+    //control packet header (16 bytes)
+    super.writeHeader(ts, socketId)
+  }
+
+  fun read(input: InputStream) {
+    super.readHeader(input)
+    acknowledgementNumber = typeSpecificInformation
   }
 }

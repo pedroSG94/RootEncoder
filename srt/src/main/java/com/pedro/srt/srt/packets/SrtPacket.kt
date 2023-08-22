@@ -16,6 +16,13 @@
 
 package com.pedro.srt.srt.packets
 
+import com.pedro.srt.srt.packets.control.Ack
+import com.pedro.srt.srt.packets.control.Ack2
+import com.pedro.srt.srt.packets.control.CongestionWarning
+import com.pedro.srt.srt.packets.control.DropReq
+import com.pedro.srt.srt.packets.control.KeepAlive
+import com.pedro.srt.srt.packets.control.Nak
+import com.pedro.srt.srt.packets.control.PeerError
 import com.pedro.srt.srt.packets.control.Shutdown
 import com.pedro.srt.srt.packets.control.handshake.Handshake
 import java.io.ByteArrayInputStream
@@ -48,17 +55,46 @@ abstract class SrtPacket {
               handshake.read(input)
               return handshake
             }
-            ControlType.KEEP_ALIVE -> TODO()
-            ControlType.ACK -> TODO()
-            ControlType.NAK -> TODO()
-            ControlType.CONGESTION_WARNING -> TODO()
+            ControlType.KEEP_ALIVE -> {
+              val keepAlive = KeepAlive()
+              keepAlive.read(input)
+              return keepAlive
+            }
+            ControlType.ACK -> {
+              val ack = Ack()
+              ack.read(input)
+              return ack
+            }
+            ControlType.NAK -> {
+              val nak = Nak()
+              nak.read(input)
+              return nak
+            }
+            ControlType.CONGESTION_WARNING -> {
+              val congestionWarning = CongestionWarning()
+              congestionWarning.read(input)
+              return congestionWarning
+            }
             ControlType.SHUTDOWN -> {
               val shutdown = Shutdown()
+              shutdown.read(input)
               return shutdown
             }
-            ControlType.ACK2 -> TODO()
-            ControlType.DROP_REQ -> TODO()
-            ControlType.PEER_ERROR -> TODO()
+            ControlType.ACK2 -> {
+              val ack2 = Ack2()
+              ack2.read(input)
+              return ack2
+            }
+            ControlType.DROP_REQ -> {
+              val dropReq = DropReq()
+              dropReq.read(input)
+              return dropReq
+            }
+            ControlType.PEER_ERROR -> {
+              val peerError = PeerError()
+              peerError.read(input)
+              return peerError
+            }
             ControlType.USER_DEFINED -> TODO()
             else -> throw IOException("unknown control type: ${type.name}")
           }
