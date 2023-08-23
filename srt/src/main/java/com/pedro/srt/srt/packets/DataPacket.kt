@@ -16,7 +16,8 @@
 
 package com.pedro.srt.srt.packets
 
-import com.pedro.srt.srt.packets.control.ControlType
+import com.pedro.srt.srt.packets.data.KeyBasedEncryption
+import com.pedro.srt.srt.packets.data.PacketPosition
 import com.pedro.srt.utils.readUInt32
 import com.pedro.srt.utils.readUntil
 import com.pedro.srt.utils.toBoolean
@@ -30,9 +31,9 @@ import java.io.InputStream
  */
 class DataPacket(
   var sequenceNumber: Int = 0,
-  var packetPosition: Int = 0,
+  var packetPosition: PacketPosition = PacketPosition.SINGLE,
   var order: Boolean = true,
-  var encryption: Int = 0,
+  var encryption: KeyBasedEncryption = KeyBasedEncryption.NONE,
   var retransmitted: Boolean = false,
   var messageNumber: Int = 0,
   var ts: Int = 0,
@@ -40,10 +41,10 @@ class DataPacket(
   var payload: ByteArray = byteArrayOf()
 ): SrtPacket() {
 
-  fun writeHeader(ts: Int, socketId: Int) {
+  fun write(ts: Int, socketId: Int) {
     val headerData = (PacketType.DATA.value and 0xff shl 31) or (sequenceNumber and 0x7FFFFFFF)
-    val info = (packetPosition and 0xff shl 30) or (order.toInt() and 0xff shl 29) or
-        (encryption and 0xff shl 27) or (retransmitted.toInt() and 0xff shl 26) or messageNumber
+    val info = (packetPosition.value and 0xff shl 30) or (order.toInt() and 0xff shl 29) or
+        (encryption.value and 0xff shl 27) or (retransmitted.toInt() and 0xff shl 26) or messageNumber
     buffer.writeUInt32(headerData)
     buffer.writeUInt32(info)
     buffer.writeUInt32(ts)
@@ -51,16 +52,16 @@ class DataPacket(
     buffer.write(payload)
   }
 
-  fun readHeader(input: InputStream) {
+  fun read(input: InputStream) {
     sequenceNumber = input.readUInt32()
     val packetType = PacketType.from((sequenceNumber ushr 31) and 0x01)
     if (packetType != PacketType.DATA) {
       throw IOException("error, parsing control packet as data packet")
     }
     val info = input.readUInt32()
-    packetPosition = (info ushr 30) and 0x03
+    packetPosition = PacketPosition.from((info ushr 30) and 0x03)
     order = ((info ushr 29) and 0x01).toBoolean()
-    encryption = (info ushr 28) and 0x03
+    encryption = KeyBasedEncryption.from((info ushr 28) and 0x03)
     retransmitted = ((info ushr 26) and 0x01).toBoolean()
     messageNumber = info and 0x03FFFFFF
     ts = input.readUInt32()

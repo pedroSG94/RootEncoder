@@ -36,6 +36,7 @@ import java.io.IOException
 abstract class SrtPacket {
 
   val buffer = ByteArrayOutputStream()
+  val headerSize = 16
 
   companion object {
 
