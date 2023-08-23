@@ -19,7 +19,9 @@ package com.pedro.srt.srt
 /**
  * Created by pedro on 20/8/23.
  */
-class SrtSender {
+class SrtSender(
+  private val commandManager: CommandManager
+) {
 
   fun start() {
 

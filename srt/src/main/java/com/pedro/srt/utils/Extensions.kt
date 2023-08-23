@@ -58,6 +58,19 @@ fun InputStream.readUntil(byteArray: ByteArray) {
   }
 }
 
+fun ByteArray.chunked(chunkSize: Int): List<ByteArray> {
+  val chunks = mutableListOf<ByteArray>()
+  var currentIndex = 0
+
+  while (currentIndex < this.size) {
+    val endIndex = kotlin.math.min(currentIndex + chunkSize, this.size)
+    val chunk = this.sliceArray(currentIndex until endIndex)
+    chunks.add(chunk)
+    currentIndex = endIndex
+  }
+  return chunks
+}
+
 suspend fun onMainThread(code: () -> Unit) {
   withContext(Dispatchers.Main) {
     code()

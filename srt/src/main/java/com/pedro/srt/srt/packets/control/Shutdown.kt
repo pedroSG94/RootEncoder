@@ -17,6 +17,8 @@
 package com.pedro.srt.srt.packets.control
 
 import com.pedro.srt.srt.packets.ControlPacket
+import com.pedro.srt.utils.readUInt32
+import com.pedro.srt.utils.writeUInt32
 import java.io.InputStream
 
 /**
@@ -25,11 +27,12 @@ import java.io.InputStream
 class Shutdown: ControlPacket(ControlType.SHUTDOWN) {
 
   fun write(ts: Int, socketId: Int) {
-    //control packet header (16 bytes)
     super.writeHeader(ts, socketId)
+    buffer.writeUInt32(0)
   }
 
   fun read(input: InputStream) {
     super.readHeader(input)
+    input.readUInt32()
   }
 }

@@ -32,7 +32,6 @@ class DropReq(
 
   fun write(ts: Int, socketId: Int) {
     messageNumber = typeSpecificInformation
-    //control packet header (16 bytes)
     super.writeHeader(ts, socketId)
     writeBody()
   }

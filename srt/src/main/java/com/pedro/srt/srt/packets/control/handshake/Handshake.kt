@@ -68,11 +68,11 @@ data class Handshake(
   private var handshakeVersion: Int = 4,
   var encryption: EncryptionType = EncryptionType.NONE,
   var extensionField: Int = ExtensionField.KM_REQ.value,
-  var initialPacketSequence: Int = 1647295161,
+  var initialPacketSequence: Int = 0,
   var MTU: Int = Constants.MTU,
   var flowWindowsSize: Int = 8192,
   var handshakeType: HandshakeType = HandshakeType.INDUCTION,
-  var srtSocketId: Int = 679031891,
+  var srtSocketId: Int = 0,
   var synCookie: Int = 0,
   var ipAddress: String = "0.0.0.0", //128 bits (32 bits each number)
   var handshakeExtension: HandshakeExtension? = null
@@ -133,6 +133,10 @@ data class Handshake(
     val num3 = input.readUInt32()
     val num4 = input.readUInt32()
     return "$num1.$num2.$num3.$num4"
+  }
+
+  fun isErrorType(): Boolean {
+    return (handshakeType.value >= HandshakeType.SRT_REJ_UNKNOWN.value && handshakeType.value <= HandshakeType.SRT_REJ_CRYPTO.value)
   }
 
   override fun toString(): String {

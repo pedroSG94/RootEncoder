@@ -35,7 +35,6 @@ class Ack(
 ): ControlPacket(ControlType.ACK) {
 
   fun write(ts: Int, socketId: Int) {
-    //control packet header (16 bytes)
     super.writeHeader(ts, socketId)
     writeBody()
   }

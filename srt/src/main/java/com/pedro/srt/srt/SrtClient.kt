@@ -55,7 +55,8 @@ class SrtClient(private val connectCheckerSrt: ConnectCheckerSrt) {
 
   private val TAG = "SrtClient"
 
-  private val srtSender = SrtSender()
+  private val commandManager = CommandManager()
+  private val srtSender = SrtSender(commandManager)
   private var socket: SrtSocket? = null
   private var scope = CoroutineScope(Dispatchers.IO)
   private var job: Job? = null
@@ -94,52 +95,34 @@ class SrtClient(private val connectCheckerSrt: ConnectCheckerSrt) {
         val error = runCatching {
           socket = SrtSocket(host, port)
           socket?.connect()
-          val startTs = (System.nanoTime() / 1000).toInt() //micro seconds
+          commandManager.loadStartTs()
 
-          val handshakeInduction = Handshake()
-          var ts = (System.nanoTime() / 1000).toInt() - startTs
-          handshakeInduction.write(ts, 0)
-          socket?.write(handshakeInduction)
+          commandManager.writeHandshake(socket)
+          val response = commandManager.readHandshake(socket)
+          commandManager.socketId = response.srtSocketId
+          commandManager.MTU = response.MTU
 
-          val responseBufferInduction = socket?.readBuffer() ?: throw IOException("read buffer failed, socket disconnected")
-          val responsePacketInduction = SrtPacket.getSrtPacket(responseBufferInduction)
-          if (responsePacketInduction is Handshake) {
-            val handshakeConclusion = responsePacketInduction.copy(
-              extensionField = ExtensionField.HS_REQ.value or ExtensionField.CONFIG.value,
-              handshakeType = HandshakeType.CONCLUSION,
-              handshakeExtension = HandshakeExtension(
-                flags = ExtensionContentFlag.TSBPDSND.value or ExtensionContentFlag.TSBPDRCV.value or
-                    ExtensionContentFlag.CRYPT.value or ExtensionContentFlag.TLPKTDROP.value or
-                    ExtensionContentFlag.PERIODICNAK.value or ExtensionContentFlag.REXMITFLG.value,
-                path = path
-              )
-            )
-            ts = (System.nanoTime() / 1000).toInt() - startTs
-            handshakeConclusion.write(ts, 0)
-            socket?.write(handshakeConclusion)
-          } else {
-            throw IOException("unexpected response type: ${responsePacketInduction.javaClass.name}")
-          }
-
-          val responseBufferConclusion = socket?.readBuffer() ?: throw IOException("read buffer failed, socket disconnected")
-          val responsePacketConclusion = SrtPacket.getSrtPacket(responseBufferConclusion)
-          if (responsePacketConclusion is Handshake) {
-            if (responsePacketConclusion.handshakeType.value >= HandshakeType.SRT_REJ_UNKNOWN.value
-              && responsePacketConclusion.handshakeType.value <= HandshakeType.SRT_REJ_CRYPTO.value
-              ) {
-              onMainThread {
-                connectCheckerSrt.onConnectionFailedSrt("Error configure stream, ${responsePacketConclusion.handshakeType.name}")
-              }
-              return@launch
-            } else {
-              onMainThread {
-                connectCheckerSrt.onConnectionSuccessSrt()
-              }
-              srtSender.start()
-              handleServerPackets()
+          commandManager.writeHandshake(socket, response.copy(
+            extensionField = ExtensionField.HS_REQ.value or ExtensionField.CONFIG.value,
+            handshakeType = HandshakeType.CONCLUSION,
+            handshakeExtension = HandshakeExtension(
+              flags = ExtensionContentFlag.TSBPDSND.value or ExtensionContentFlag.TSBPDRCV.value or
+                  ExtensionContentFlag.CRYPT.value or ExtensionContentFlag.TLPKTDROP.value or
+                  ExtensionContentFlag.PERIODICNAK.value or ExtensionContentFlag.REXMITFLG.value,
+              path = path
+            )))
+          val responseConclusion = commandManager.readHandshake(socket)
+          if (responseConclusion.isErrorType()) {
+            onMainThread {
+              connectCheckerSrt.onConnectionFailedSrt("Error configure stream, ${responseConclusion.handshakeType.name}")
             }
+            return@launch
           } else {
-            throw IOException("unexpected response type: ${responseBufferConclusion.javaClass.name}")
+            onMainThread {
+              connectCheckerSrt.onConnectionSuccessSrt()
+            }
+            srtSender.start()
+            handleServerPackets()
           }
         }.exceptionOrNull()
         if (error != null) {
@@ -156,6 +139,7 @@ class SrtClient(private val connectCheckerSrt: ConnectCheckerSrt) {
     CoroutineScope(Dispatchers.IO).launch {
       isStreaming = false
       val error = runCatching {
+        commandManager.writeShutdown(socket)
         socket?.close()
       }.exceptionOrNull()
       if (error != null) {
@@ -223,7 +207,7 @@ class SrtClient(private val connectCheckerSrt: ConnectCheckerSrt) {
 
           }
           is Ack -> {
-
+            commandManager.writeAck2(srtPacket.lastAcknowledgedPacketSequenceNumber, socket)
           }
           is Nak -> {
 
@@ -232,7 +216,7 @@ class SrtClient(private val connectCheckerSrt: ConnectCheckerSrt) {
 
           }
           is Shutdown -> {
-
+            disconnect()
           }
           is Ack2 -> {
 
