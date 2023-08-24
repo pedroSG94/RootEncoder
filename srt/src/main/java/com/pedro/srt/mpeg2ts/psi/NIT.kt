@@ -14,14 +14,16 @@
  * limitations under the License.
  */
 
-package com.pedro.srt.mpeg2ts
+package com.pedro.srt.mpeg2ts.psi
 
 /**
- * Created by pedro on 20/8/23.
+ * Created by pedro on 24/8/23.
  *
- * PAT (Program Association Table)
+ * NIT (Network Information Table)
  *
  * A type of PSI packet
+ *
+ * This table is undefined on ISO/IEC 13818-1
  */
-class PAT: PSI() {
+class NIT: PSI() {
 }

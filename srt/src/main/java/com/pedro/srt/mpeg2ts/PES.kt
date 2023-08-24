@@ -20,6 +20,20 @@ package com.pedro.srt.mpeg2ts
  * Created by pedro on 20/8/23.
  *
  * PES (Packetized Elementary Stream)
+ *
+ * Header (6 bytes):
+ *
+ * Packet start code prefix -> 3 bytes
+ * Stream id -> 1 byte Examples: Audio streams (0xC0-0xDF), Video streams (0xE0-0xEF) [4][5]
+ * PES Packet length -> 2 bytes
+ *
+ * Optional
+ * PES header -> variable length (length >= 3) 	not present in case of Padding stream & Private stream 2 (navigation data)
+ * Data -> Variable
  */
 class PES {
+  private val startCodePrefix: Int = 0x000001
+  private val streamId: Byte = PesType.AUDIO.value
+  private val length: Short = 0
+  private val data: ByteArray = byteArrayOf()
 }

@@ -17,15 +17,44 @@
 package com.pedro.srt.mpeg2ts.packets
 
 import android.media.MediaCodec
+import com.pedro.srt.mpeg2ts.AdaptationField
 import com.pedro.srt.mpeg2ts.MpegTsPacket
+import com.pedro.srt.mpeg2ts.PID
 import java.nio.ByteBuffer
 
 /**
  * Created by pedro on 20/8/23.
  *
  * ISO/IEC 13818-1
+ *
+ * Header (4 bytes):
+ *
+ * Sync byte -> 8 bits
+ * Transport error indicator (TEI) -> 1 bit
+ * Payload unit start indicator (PUSI) -> 1 bit
+ * Transport priority -> 1 bit
+ * PID -> 13 bits
+ * Transport scrambling control (TSC) -> 2 bits
+ * Adaptation field control -> 2 bits
+ * Continuity counter -> 4 bits
+ *
+ * Optional fields
+ * Adaptation field -> variable
+ * Payload data -> variable
  */
 abstract class BasePacket {
+
+  private val syncByte: Byte = 0x00
+  private val transportErrorIndicator: Boolean = false
+  private val payloadUnitStartIndicator: Boolean = false
+  private val transportPriority: Boolean = false
+  private val pid: Short = 0 // 13 bits
+  private val transportScramblingControl: Byte = 0 //2 bits
+  private val adaptationFieldControl: Byte = 0 //2 bits
+  private val continuityCounter: Byte = 0 //4 bits
+  //optionals
+  private val adaptationField = AdaptationField()
+  private val payload: ByteArray = byteArrayOf()
 
   abstract fun createAndSendPacket(
     byteBuffer: ByteBuffer,

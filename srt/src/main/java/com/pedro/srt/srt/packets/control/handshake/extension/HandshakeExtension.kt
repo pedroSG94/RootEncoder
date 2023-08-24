@@ -62,6 +62,7 @@ data class HandshakeExtension(
 
   /**
    * Fill array with 0 if length is not enough to fill blocks of 4 bytes
+   * and convert it to little endian 32-bits
    */
   private fun fixPathData(data: ByteArray): ByteArray {
     val mod = data.size % 4

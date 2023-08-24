@@ -26,6 +26,8 @@ import com.pedro.srt.srt.packets.data.PacketPosition
 import com.pedro.srt.utils.Constants
 import com.pedro.srt.utils.SrtSocket
 import com.pedro.srt.utils.chunked
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import java.io.IOException
 import kotlin.jvm.Throws
 
@@ -42,6 +44,8 @@ class CommandManager {
   var MTU = Constants.MTU
   var socketId = 0
   var startTS = 0L //microSeconds
+  //Avoid write a packet in middle of other.
+  private val writeSync = Mutex(locked = false)
 
   fun loadStartTs() {
     startTS = System.nanoTime() / 1000
@@ -52,9 +56,11 @@ class CommandManager {
   }
 
   @Throws(IOException::class)
-  fun writeHandshake(socket: SrtSocket?, handshake: Handshake = Handshake()) {
-    handshake.write(getTs(), 0)
-    socket?.write(handshake)
+  suspend fun writeHandshake(socket: SrtSocket?, handshake: Handshake = Handshake()) {
+    writeSync.withLock {
+      handshake.write(getTs(), 0)
+      socket?.write(handshake)
+    }
   }
 
   @Throws(IOException::class)
@@ -69,44 +75,52 @@ class CommandManager {
   }
 
   @Throws(IOException::class)
-  fun writeData(packet: MpegTsPacket, socket: SrtSocket?) {
-    val chunks = packet.buffer.chunked(MTU - SrtPacket.headerSize)
-    chunks.forEachIndexed { index, payload ->
-      val packetPosition = if (chunks.size == 1) PacketPosition.SINGLE
-      else if (index == 0) PacketPosition.FIRST
-      else if (index == chunks.size - 1) PacketPosition.LAST
-      else PacketPosition.MIDDLE
+  suspend fun writeData(packet: MpegTsPacket, socket: SrtSocket?) {
+    writeSync.withLock {
+      val chunks = packet.buffer.chunked(MTU - SrtPacket.headerSize)
+      chunks.forEachIndexed { index, payload ->
+        val packetPosition = if (chunks.size == 1) PacketPosition.SINGLE
+        else if (index == 0) PacketPosition.FIRST
+        else if (index == chunks.size - 1) PacketPosition.LAST
+        else PacketPosition.MIDDLE
 
-      val dataPacket = DataPacket(
-        packetPosition = packetPosition,
-        messageNumber = messageNumber,
-        payload = payload,
-        ts = getTs(),
-        socketId = socketId
-      )
-      writeData(dataPacket, socket)
-      messageNumber++
+        val dataPacket = DataPacket(
+          packetPosition = packetPosition,
+          messageNumber = messageNumber,
+          payload = payload,
+          ts = getTs(),
+          socketId = socketId
+        )
+        writeData(dataPacket, socket)
+        messageNumber++
+      }
     }
   }
 
   @Throws(IOException::class)
-  fun writeData(dataPacket: DataPacket, socket: SrtSocket?) {
-    dataPacket.sequenceNumber = sequenceNumber
-    socket?.write(dataPacket)
-    sequenceNumber++
+  suspend fun writeData(dataPacket: DataPacket, socket: SrtSocket?) {
+    writeSync.withLock {
+      dataPacket.sequenceNumber = sequenceNumber
+      socket?.write(dataPacket)
+      sequenceNumber++
+    }
   }
 
   @Throws(IOException::class)
-  fun writeAck2(ackSequence: Int, socket: SrtSocket?) {
-    val ack2 = Ack2(ackSequence)
-    ack2.write(getTs(), socketId)
-    socket?.write(ack2)
+  suspend fun writeAck2(ackSequence: Int, socket: SrtSocket?) {
+    writeSync.withLock {
+      val ack2 = Ack2(ackSequence)
+      ack2.write(getTs(), socketId)
+      socket?.write(ack2)
+    }
   }
 
   @Throws(IOException::class)
-  fun writeShutdown(socket: SrtSocket?) {
-    val shutdown = Shutdown()
-    shutdown.write(getTs(), socketId)
-    socket?.write(shutdown)
+  suspend fun writeShutdown(socket: SrtSocket?) {
+    writeSync.withLock {
+      val shutdown = Shutdown()
+      shutdown.write(getTs(), socketId)
+      socket?.write(shutdown)
+    }
   }
 }

@@ -16,10 +16,6 @@
 
 package com.pedro.srt.mpeg2ts
 
-/**
- * Created by pedro on 20/8/23.
- *
- * PSI (Program Specific Information)
- */
-open class PSI {
+enum class PesType(val value: Byte) {
+  AUDIO(0xC0.toByte()), VIDEO(0xE0.toByte())
 }

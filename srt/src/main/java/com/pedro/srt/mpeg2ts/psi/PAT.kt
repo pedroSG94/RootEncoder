@@ -14,14 +14,21 @@
  * limitations under the License.
  */
 
-package com.pedro.srt.mpeg2ts
+package com.pedro.srt.mpeg2ts.psi
 
 /**
- * Created by pedro on 20/8/23.
+ * Created by pedro on 24/8/23.
  *
- * NIT (Network Information Table)
+ * PAT (Program Association Table)
  *
  * A type of PSI packet
+ *
+ * Program num -> 16 bits
+ * Reserved bits -> 3 bits
+ * Program map PID -> 13 bits
  */
-class NIT {
+class PAT: PSI() {
+  private val programNum: Short = 0
+  private val reserved: Byte = 0
+  private val programMapPid: Short = 0
 }

@@ -14,14 +14,28 @@
  * limitations under the License.
  */
 
-package com.pedro.srt.mpeg2ts
+package com.pedro.srt.mpeg2ts.psi
 
 /**
  * Created by pedro on 20/8/23.
  *
- * SDT (Service Description Table)
+ * PSI (Program Specific Information)
  *
- * A type of PSI packet
+ * Header (3 bytes):
+ *
+ * Table ID -> 8 bits
+ * Section syntax indicator -> 1 bit
+ * Private bit -> 1 bit
+ * Reserved bits -> 2 bits
+ * Section length unused bits -> 2 bits
+ * Section length -> 10 bits
+ *
+ * Syntax section/Table data -> N*8 bits
  */
-class SDT: PSI() {
+abstract class PSI {
+  private val tableId: Byte = 0
+  private val sectionSyntaxIndicator: Boolean = false
+  private val reserved: Byte = 0
+  private val sectionLengthUnusedBits: Byte = 0
+  private val sectionLength: Short = 0
 }

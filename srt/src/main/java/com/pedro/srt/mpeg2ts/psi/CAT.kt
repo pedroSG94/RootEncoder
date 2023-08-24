@@ -14,14 +14,16 @@
  * limitations under the License.
  */
 
-package com.pedro.srt.mpeg2ts
+package com.pedro.srt.mpeg2ts.psi
 
 /**
- * Created by pedro on 20/8/23.
+ * Created by pedro on 24/8/23.
  *
- * PMT (Program Map Table)
+ * CAT (Conditional Access Table)
  *
  * A type of PSI packet
+ *
+ * This table is undefined on ISO/IEC 13818-1
  */
-class PMT: PSI() {
+class CAT: PSI() {
 }

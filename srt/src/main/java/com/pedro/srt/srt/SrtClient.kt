@@ -191,7 +191,7 @@ class SrtClient(private val connectCheckerSrt: ConnectCheckerSrt) {
   }
 
   @Throws(IOException::class)
-  private fun handleMessages() {
+  private suspend fun handleMessages() {
     val responseBufferConclusion = socket?.readBuffer() ?: throw IOException("read buffer failed, socket disconnected")
     val srtPacket = SrtPacket.getSrtPacket(responseBufferConclusion)
     when(srtPacket) {
