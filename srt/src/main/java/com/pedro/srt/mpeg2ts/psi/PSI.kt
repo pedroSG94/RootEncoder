@@ -16,6 +16,10 @@
 
 package com.pedro.srt.mpeg2ts.psi
 
+import com.pedro.srt.utils.toInt
+import java.nio.ByteBuffer
+import java.util.zip.CRC32
+
 /**
  * Created by pedro on 20/8/23.
  *
@@ -31,11 +35,59 @@ package com.pedro.srt.mpeg2ts.psi
  * Section length -> 10 bits
  *
  * Syntax section/Table data -> N*8 bits
+ *
+ * Table ID extension -> 16 bits
+ * Reserved bits -> 2 bits
+ * Version number -> 5 bits
+ * Current/next indicator -> 1 bit
+ * Section number -> 8 bits
+ * Last section number -> 8 bits
+ * Table data -> N*8 bits
+ * CRC32 -> 32 bits
  */
-abstract class PSI {
-  private val tableId: Byte = 0
-  private val sectionSyntaxIndicator: Boolean = false
-  private val reserved: Byte = 0
-  private val sectionLengthUnusedBits: Byte = 0
+abstract class PSI(
+  val pid: Short,
+  private val id: Byte,
+  private val idExtension: Short,
+  var version: Byte,
+  private val sectionSyntaxIndicator: Boolean = true,
+  private val privateBit: Boolean = true,
+  private val indicator: Boolean = true, //true current, false next
+  private val sectionNumber: Byte = 0,
+  private val lastSectionNumber: Byte = 0,
+) {
+
+  private val reserved = 3
+  private val sectionLengthUnusedBits = 0
   private val sectionLength: Short = 0
+
+  fun write(byteBuffer: ByteBuffer) {
+    byteBuffer.put(id)
+    val crc32InitialPosition = byteBuffer.position()
+    val combined = (sectionSyntaxIndicator.toInt() shl 15) or (privateBit.toInt() shl 14) or
+        (reserved shl 12) or (sectionLengthUnusedBits shl 10) or (sectionLength.toInt() and 0x03FF)
+    byteBuffer.putShort(combined.toShort())
+    byteBuffer.putShort(idExtension)
+    val combined2 = (reserved shl 6) or (version.toInt() shl 1) or indicator.toInt()
+    byteBuffer.put(combined2.toByte())
+    byteBuffer.put(sectionNumber)
+    byteBuffer.put(lastSectionNumber)
+    writeData(byteBuffer)
+    writeCRC(byteBuffer, crc32InitialPosition, byteBuffer.position())
+  }
+
+  /**
+   * https://en.wikipedia.org/wiki/Computation_of_cyclic_redundancy_checks#CRC-32_algorithm
+   */
+  private fun writeCRC(byteBuffer: ByteBuffer, offset: Int, size: Int): Int {
+    val crc32 = CRC32()
+    crc32.update(byteBuffer.array(), offset, size)
+    return crc32.value.toInt()
+  }
+
+  abstract fun writeData(byteBuffer: ByteBuffer)
+
+  abstract fun getTableDataSize(): Int
+
+  fun getSize(): Int = 12 + getTableDataSize()
 }

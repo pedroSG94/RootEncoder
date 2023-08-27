@@ -72,7 +72,7 @@ data class Handshake(
   var MTU: Int = Constants.MTU,
   var flowWindowsSize: Int = 8192,
   var handshakeType: HandshakeType = HandshakeType.INDUCTION,
-  var srtSocketId: Int = 0,
+  var srtSocketId: Int = 762640158,
   var synCookie: Int = 0,
   var ipAddress: String = "0.0.0.0", //128 bits (32 bits each number)
   var handshakeExtension: HandshakeExtension? = null
@@ -84,7 +84,7 @@ data class Handshake(
     //body (32 bytes + peer ip)
     writeBody()
   }
-
+  //40
   private fun writeBody() {
     buffer.writeUInt32(handshakeVersion)
     buffer.writeUInt16(encryption.value)

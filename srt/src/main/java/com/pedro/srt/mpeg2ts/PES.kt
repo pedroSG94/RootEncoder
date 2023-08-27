@@ -16,6 +16,9 @@
 
 package com.pedro.srt.mpeg2ts
 
+import java.lang.IllegalArgumentException
+import java.nio.ByteBuffer
+
 /**
  * Created by pedro on 20/8/23.
  *
@@ -24,16 +27,40 @@ package com.pedro.srt.mpeg2ts
  * Header (6 bytes):
  *
  * Packet start code prefix -> 3 bytes
- * Stream id -> 1 byte Examples: Audio streams (0xC0-0xDF), Video streams (0xE0-0xEF) [4][5]
+ * Stream id -> 1 byte Examples: Audio streams (0xC0), Video streams (0xE0)
  * PES Packet length -> 2 bytes
  *
  * Optional
  * PES header -> variable length (length >= 3) 	not present in case of Padding stream & Private stream 2 (navigation data)
  * Data -> Variable
  */
-class PES {
-  private val startCodePrefix: Int = 0x000001
-  private val streamId: Byte = PesType.AUDIO.value
-  private val length: Short = 0
+data class PES(
+  private val streamId: PesType,
   private val data: ByteArray = byteArrayOf()
+) {
+
+  init {
+    if (data.size > UShort.MAX_VALUE.toInt()) {
+      throw IllegalArgumentException("data size is too large")
+    }
+  }
+
+  companion object {
+    const val HeaderLength = 6
+  }
+
+  private val startCodePrefix: Int = 0x000001
+  private val length: Short = data.size.toShort()
+
+  fun write(buffer: ByteBuffer) {
+    writeHeader(buffer)
+    buffer.put(data)
+  }
+
+  private fun writeHeader(buffer: ByteBuffer) {
+    buffer.putInt(startCodePrefix)
+    buffer.put(streamId.value)
+    buffer.putShort(length)
+  }
+
 }

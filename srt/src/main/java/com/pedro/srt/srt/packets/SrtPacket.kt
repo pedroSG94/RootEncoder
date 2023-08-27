@@ -16,6 +16,7 @@
 
 package com.pedro.srt.srt.packets
 
+import android.util.Log
 import com.pedro.srt.srt.packets.control.Ack
 import com.pedro.srt.srt.packets.control.Ack2
 import com.pedro.srt.srt.packets.control.CongestionWarning
@@ -66,6 +67,7 @@ abstract class SrtPacket {
             ControlType.ACK -> {
               val ack = Ack()
               ack.read(input)
+              Log.e("Pedro", ack.toString())
               return ack
             }
             ControlType.NAK -> {

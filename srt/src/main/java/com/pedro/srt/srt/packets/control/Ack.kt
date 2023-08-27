@@ -63,4 +63,8 @@ class Ack(
     estimatedLinkCapacity = input.readUInt32()
     receivingRate = input.readUInt32()
   }
+
+  override fun toString(): String {
+    return "${super.toString()}, Ack(lastAcknowledgedPacketSequenceNumber=$lastAcknowledgedPacketSequenceNumber, rtt=$rtt, rttVariance=$rttVariance, availableBufferSize=$availableBufferSize, packetReceivingRate=$packetReceivingRate, estimatedLinkCapacity=$estimatedLinkCapacity, receivingRate=$receivingRate)"
+  }
 }

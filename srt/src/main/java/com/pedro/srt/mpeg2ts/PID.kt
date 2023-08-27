@@ -21,5 +21,20 @@ package com.pedro.srt.mpeg2ts
  *
  * PID (Packet Identifier)
  */
-class PID {
+object PID {
+
+  const val MIN_VALUE = 32
+  const val MAX_VALUE = 8186
+  private var lastValue: Short = MIN_VALUE.toShort()
+
+  fun generatePID(): Short {
+    val pid = lastValue
+    if (pid >= MAX_VALUE) throw RuntimeException("Illegal pid")
+    lastValue++
+    return pid
+  }
+
+  fun reset() {
+    lastValue = MIN_VALUE.toShort()
+  }
 }

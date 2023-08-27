@@ -19,7 +19,9 @@ package com.pedro.srt.mpeg2ts
 /**
  * Created by pedro on 20/8/23.
  *
+ * Contains multiple TS packets in a buffer no longer to MTU - data header size
  */
 data class MpegTsPacket(
-  val buffer: ByteArray
+  val buffer: ByteArray,
+  val isVideo: Boolean = false
 )

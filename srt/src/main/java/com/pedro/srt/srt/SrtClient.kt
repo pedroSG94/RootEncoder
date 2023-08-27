@@ -16,6 +16,7 @@
 
 package com.pedro.srt.srt
 
+import android.media.MediaCodec
 import android.util.Log
 import com.pedro.srt.srt.packets.ControlPacket
 import com.pedro.srt.srt.packets.DataPacket
@@ -45,6 +46,7 @@ import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import java.io.IOException
 import java.net.SocketTimeoutException
+import java.nio.ByteBuffer
 import java.util.regex.Pattern
 import kotlin.jvm.Throws
 
@@ -55,8 +57,8 @@ class SrtClient(private val connectCheckerSrt: ConnectCheckerSrt) {
 
   private val TAG = "SrtClient"
 
-  private val commandManager = CommandManager()
-  private val srtSender = SrtSender(commandManager)
+  private val commandsManager = CommandsManager()
+  private val srtSender = SrtSender(connectCheckerSrt, commandsManager)
   private var socket: SrtSocket? = null
   private var scope = CoroutineScope(Dispatchers.IO)
   private var job: Job? = null
@@ -68,6 +70,18 @@ class SrtClient(private val connectCheckerSrt: ConnectCheckerSrt) {
 
   private var url: String? = null
   private val srtUrlPattern = Pattern.compile("^srt://([^/:]+)(?::(\\d+))*/([^/]+)/?([^*]*)$")
+
+  val droppedAudioFrames: Long
+    get() = srtSender.droppedAudioFrames
+  val droppedVideoFrames: Long
+    get() = srtSender.droppedVideoFrames
+
+  val cacheSize: Int
+    get() = srtSender.getCacheSize()
+  val sentAudioFrames: Long
+    get() = srtSender.getSentAudioFrames()
+  val sentVideoFrames: Long
+    get() = srtSender.getSentVideoFrames()
 
   fun connect(url: String) {
     if (!isStreaming) {
@@ -95,14 +109,12 @@ class SrtClient(private val connectCheckerSrt: ConnectCheckerSrt) {
         val error = runCatching {
           socket = SrtSocket(host, port)
           socket?.connect()
-          commandManager.loadStartTs()
+          commandsManager.loadStartTs()
 
-          commandManager.writeHandshake(socket)
-          val response = commandManager.readHandshake(socket)
-          commandManager.socketId = response.srtSocketId
-          commandManager.MTU = response.MTU
+          commandsManager.writeHandshake(socket)
+          val response = commandsManager.readHandshake(socket)
 
-          commandManager.writeHandshake(socket, response.copy(
+          commandsManager.writeHandshake(socket, response.copy(
             extensionField = ExtensionField.HS_REQ.value or ExtensionField.CONFIG.value,
             handshakeType = HandshakeType.CONCLUSION,
             handshakeExtension = HandshakeExtension(
@@ -111,16 +123,20 @@ class SrtClient(private val connectCheckerSrt: ConnectCheckerSrt) {
                   ExtensionContentFlag.PERIODICNAK.value or ExtensionContentFlag.REXMITFLG.value,
               path = path
             )))
-          val responseConclusion = commandManager.readHandshake(socket)
+          val responseConclusion = commandsManager.readHandshake(socket)
           if (responseConclusion.isErrorType()) {
             onMainThread {
               connectCheckerSrt.onConnectionFailedSrt("Error configure stream, ${responseConclusion.handshakeType.name}")
             }
             return@launch
           } else {
+            commandsManager.socketId = responseConclusion.srtSocketId
+            commandsManager.MTU = responseConclusion.MTU
+            commandsManager.sequenceNumber = responseConclusion.initialPacketSequence
             onMainThread {
               connectCheckerSrt.onConnectionSuccessSrt()
             }
+            srtSender.socket = socket
             srtSender.start()
             handleServerPackets()
           }
@@ -137,9 +153,10 @@ class SrtClient(private val connectCheckerSrt: ConnectCheckerSrt) {
   }
   fun disconnect() {
     CoroutineScope(Dispatchers.IO).launch {
+      if (isStreaming) srtSender.stop()
       isStreaming = false
       val error = runCatching {
-        commandManager.writeShutdown(socket)
+        commandsManager.writeShutdown(socket)
         socket?.close()
       }.exceptionOrNull()
       if (error != null) {
@@ -207,7 +224,8 @@ class SrtClient(private val connectCheckerSrt: ConnectCheckerSrt) {
 
           }
           is Ack -> {
-            commandManager.writeAck2(srtPacket.lastAcknowledgedPacketSequenceNumber, socket)
+            Log.e("asdasd", srtPacket.toString())
+            commandsManager.writeAck2(srtPacket.typeSpecificInformation, socket)
           }
           is Nak -> {
 
@@ -219,16 +237,66 @@ class SrtClient(private val connectCheckerSrt: ConnectCheckerSrt) {
             disconnect()
           }
           is Ack2 -> {
-
+            //never should happens
           }
           is DropReq -> {
 
           }
           is PeerError -> {
-
+            disconnect()
           }
         }
       }
     }
+  }
+
+  fun setAudioInfo(sampleRate: Int, isStereo: Boolean) {
+    srtSender.setAudioInfo(sampleRate, isStereo)
+  }
+
+  fun setVideoInfo(sps: ByteBuffer, pps: ByteBuffer, vps: ByteBuffer?) {
+    Log.i(TAG, "send sps and pps")
+    srtSender.setVideoInfo(sps, pps, vps)
+  }
+
+  fun sendVideo(h264Buffer: ByteBuffer, info: MediaCodec.BufferInfo) {
+    if (!commandsManager.videoDisabled) {
+//      srtSender.sendVideoFrame(h264Buffer, info)
+    }
+  }
+
+  fun sendAudio(aacBuffer: ByteBuffer, info: MediaCodec.BufferInfo) {
+    if (!commandsManager.audioDisabled) {
+      srtSender.sendAudioFrame(aacBuffer, info)
+    }
+  }
+
+  fun hasCongestion(): Boolean {
+    return srtSender.hasCongestion()
+  }
+
+  fun resetSentAudioFrames() {
+    srtSender.resetSentAudioFrames()
+  }
+
+  fun resetSentVideoFrames() {
+    srtSender.resetSentVideoFrames()
+  }
+
+  fun resetDroppedAudioFrames() {
+    srtSender.resetDroppedAudioFrames()
+  }
+
+  fun resetDroppedVideoFrames() {
+    srtSender.resetDroppedVideoFrames()
+  }
+
+  @Throws(RuntimeException::class)
+  fun resizeCache(newSize: Int) {
+    srtSender.resizeCache(newSize)
+  }
+
+  fun setLogs(enable: Boolean) {
+    srtSender.setLogs(enable)
   }
 }

@@ -28,7 +28,7 @@ class DropReq(
   var messageNumber: Int = 0,
   var firstPacketSequenceNumber: Int = 0,
   var lastPacketSequenceNumber: Int = 0
-): ControlPacket(ControlType.DROP_REQ) {
+): ControlPacket(ControlType.DROP_REQ, typeSpecificInformation = messageNumber) {
 
   fun write(ts: Int, socketId: Int) {
     messageNumber = typeSpecificInformation

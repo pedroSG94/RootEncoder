@@ -26,7 +26,7 @@ import java.io.InputStream
  */
 class PeerError(
   var errorCode: Int = 0
-): ControlPacket(ControlType.PEER_ERROR) {
+): ControlPacket(ControlType.PEER_ERROR, typeSpecificInformation = errorCode) {
 
   fun write(ts: Int, socketId: Int) {
     errorCode = typeSpecificInformation

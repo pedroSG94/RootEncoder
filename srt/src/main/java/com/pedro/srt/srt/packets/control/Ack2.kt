@@ -26,8 +26,7 @@ import java.io.InputStream
  */
 class Ack2(
   var acknowledgementNumber: Int = 0
-): ControlPacket(ControlType.ACK2) {
-
+): ControlPacket(ControlType.ACK2, typeSpecificInformation = acknowledgementNumber) {
 
   fun write(ts: Int, socketId: Int) {
     acknowledgementNumber = typeSpecificInformation
@@ -39,5 +38,9 @@ class Ack2(
     super.readHeader(input)
     acknowledgementNumber = typeSpecificInformation
     input.readUInt32()
+  }
+
+  override fun toString(): String {
+    return "Ack2(acknowledgementNumber=$acknowledgementNumber)"
   }
 }

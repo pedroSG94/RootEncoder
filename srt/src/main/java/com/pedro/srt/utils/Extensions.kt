@@ -20,6 +20,27 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.InputStream
 import java.io.OutputStream
+import java.nio.ByteBuffer
+
+fun ByteBuffer.put48Bits(long: Long) {
+  val shiftedLong = long and 0x0000FFFFFFFFFFFFL
+  val i = (shiftedLong shr 32).toInt()
+  val s = long.toShort()
+  this.putInt(i)
+  this.putShort(s)
+}
+
+fun ByteBuffer.chunks(chunkSize: Int): List<ByteArray> {
+  val chunks = mutableListOf<ByteArray>()
+  this.flip()
+
+  while (this.remaining() > 0) {
+    val chunk = ByteArray(minOf(chunkSize, this.remaining()))
+    this.get(chunk)
+    chunks.add(chunk)
+  }
+  return chunks
+}
 
 fun Boolean.toInt(): Int {
   return if (this) 1 else 0
@@ -28,7 +49,6 @@ fun Boolean.toInt(): Int {
 fun Int.toBoolean(): Boolean {
   return this == 1
 }
-
 
 fun InputStream.readUInt16(): Int {
   return read() and 0xff shl 8 or (read() and 0xff)

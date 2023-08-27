@@ -16,6 +16,9 @@
 
 package com.pedro.srt.mpeg2ts.psi
 
+import com.pedro.srt.mpeg2ts.service.Mpeg2TsService
+import java.nio.ByteBuffer
+
 /**
  * Created by pedro on 24/8/23.
  *
@@ -27,8 +30,27 @@ package com.pedro.srt.mpeg2ts.psi
  * Reserved bits -> 3 bits
  * Program map PID -> 13 bits
  */
-class PAT: PSI() {
-  private val programNum: Short = 0
-  private val reserved: Byte = 0
-  private val programMapPid: Short = 0
+class PAT(
+  idExtension: Short,
+  version: Byte,
+  service: Mpeg2TsService
+) : PSI(
+  pid = 0,
+  id = 0x00,
+  idExtension = idExtension,
+  version = version,
+) {
+
+  private val programNum: Short = service.id
+  private val reserved: Byte = 7
+  private val programMapPid: Short = service.pcrPID ?: 0
+
+  override fun writeData(byteBuffer: ByteBuffer) {
+    byteBuffer.putShort(programNum)
+    byteBuffer.putShort(((reserved.toInt() shl 13) or programMapPid.toInt()).toShort())
+  }
+
+  override fun getTableDataSize(): Int = 4
+
+
 }

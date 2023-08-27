@@ -23,12 +23,11 @@ import com.pedro.srt.utils.writeUInt32
 /**
  * Created by pedro on 22/8/23.
  *
- *
  */
 data class HandshakeExtension(
   private val version: String = "1.4.4",
   private val flags: Int = ExtensionContentFlag.REXMITFLG.value or ExtensionContentFlag.CRYPT.value,
-  private val receiverDelay: Int = 0,
+  private val receiverDelay: Int = 120,
   private val senderDelay: Int = 0,
   private val path: String
 ): SrtPacket() {

@@ -18,6 +18,7 @@ package com.pedro.srt.mpeg2ts.packets
 
 import android.media.MediaCodec
 import com.pedro.srt.mpeg2ts.MpegTsPacket
+import com.pedro.srt.mpeg2ts.psi.PSIManager
 import java.nio.ByteBuffer
 
 /**
@@ -25,13 +26,28 @@ import java.nio.ByteBuffer
  *
  *
  */
-class H265Packet: BasePacket() {
+class H265Packet(
+  private val sizeLimit: Int,
+  psiManager: PSIManager
+): BasePacket(psiManager) {
 
   override fun createAndSendPacket(
     byteBuffer: ByteBuffer,
-    bufferInfo: MediaCodec.BufferInfo,
+    info: MediaCodec.BufferInfo,
     callback: (MpegTsPacket) -> Unit
   ) {
     TODO("Not yet implemented")
+  }
+
+  private fun generatePMTProgramDescription(): ByteArray {
+    val bytes = ByteArray(6)
+    bytes[0] = 0x05
+    bytes[1] = 0x04
+
+    bytes[2] = "H".toByte()
+    bytes[3] = "E".toByte()
+    bytes[4] = "V".toByte()
+    bytes[5] = "C".toByte()
+    return bytes
   }
 }

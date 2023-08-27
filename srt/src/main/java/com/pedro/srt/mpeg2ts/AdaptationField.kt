@@ -16,6 +16,11 @@
 
 package com.pedro.srt.mpeg2ts
 
+import com.pedro.srt.srt.packets.PacketType
+import com.pedro.srt.utils.put48Bits
+import com.pedro.srt.utils.toInt
+import java.nio.ByteBuffer
+
 /**
  * Created by pedro on 24/8/23.
  *
@@ -41,23 +46,52 @@ package com.pedro.srt.mpeg2ts
  * Adaptation extension -> variable
  * Stuffing bytes -> variable
  */
-class AdaptationField {
-    private val length: Byte = 0
-    private val discontinuityIndicator: Boolean = false
-    private val randomAccessIndicator: Boolean = false
-    private val elementaryStreamPriorityIndicator: Boolean = false
-    private val pcrFlag: Boolean = false
-    private val opcrFlag: Boolean = false
-    private val splicingPointFlag: Boolean = false
-    private val transportPrivateDataFlag: Boolean = false
-    private val adaptationFieldExtensionFlag: Boolean = false
+data class AdaptationField(
+    private val discontinuityIndicator: Boolean = false,
+    private val randomAccessIndicator: Boolean = false,
+    private val elementaryStreamPriorityIndicator: Boolean = false,
     //optionals
-    private val pcr: Long = 0L
-    private val opcr: Long = 0L
-    private val spliceCountdown: Byte = 0
-    private val transportPrivateDataLength: Byte = 0
+    private val pcr: Long? = null,
+    private val opcr: Long? = null,
+    private val spliceCountdown: Byte? = null,
+    private val transportPrivateData: ByteArray? = null,
+    private val adaptationExtension: ByteArray? = null,
+    private val stuffingBytes: ByteArray? = null,
+) {
+    private val length: Int = calculateSize()
+    private val transportPrivateDataLength: Int = transportPrivateData?.size ?: 0
+        
+    fun getData(): ByteArray {
+        val buffer = ByteBuffer.allocate(length)
+        buffer.put(length.toByte())
+        val pcrFlag = pcr != null
+        val opcrFlag = opcr != null
+        val splicingPointFlag = spliceCountdown != null
+        val transportPrivateDataFlag = transportPrivateData != null
+        val adaptationFieldExtensionFlag = adaptationExtension != null
 
-    private val transportPrivateData: ByteArray = byteArrayOf()
-    private val adaptationExtension: ByteArray = byteArrayOf()
-    private val stuffingBytes: ByteArray = byteArrayOf() //always 0xFF
+        val indicatorsAndFlags: Byte = ((discontinuityIndicator.toInt() shl 7) or
+            (randomAccessIndicator.toInt() shl 6) or
+            (elementaryStreamPriorityIndicator.toInt() shl 5) or
+            (pcrFlag.toInt() shl 4) or (opcrFlag.toInt() shl 3) or
+            (splicingPointFlag.toInt() shl 2) or
+            (transportPrivateDataFlag.toInt() shl 1) or adaptationFieldExtensionFlag.toInt()).toByte()
+
+        buffer.put(indicatorsAndFlags)
+        pcr?.let { buffer.put48Bits(it) }
+        opcr?.let { buffer.put48Bits(it) }
+        spliceCountdown?.let { buffer.put(it) }
+        transportPrivateData?.let { buffer.put(it) }
+        transportPrivateData?.let { buffer.put(it) }
+        stuffingBytes?.let { buffer.put(it) }
+        return buffer.array()
+    }
+
+    private fun calculateSize(): Int {
+        return 2 + (if (pcr != null) 6 else 0) + (if (opcr != null) 6 else 0) + 
+            (if (spliceCountdown != null) 1 else 0) +
+            (if (transportPrivateDataLength > 0) transportPrivateDataLength + 1 else 0) +
+            (adaptationExtension?.size ?: 0) + (stuffingBytes?.size ?: 0)
+    }
+    fun getSize(): Int = length
 }

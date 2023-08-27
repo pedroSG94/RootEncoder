@@ -18,8 +18,12 @@ package com.pedro.srt.mpeg2ts.packets
 
 import android.media.MediaCodec
 import com.pedro.srt.mpeg2ts.AdaptationField
+import com.pedro.srt.mpeg2ts.AdaptationFieldControl
 import com.pedro.srt.mpeg2ts.MpegTsPacket
 import com.pedro.srt.mpeg2ts.PID
+import com.pedro.srt.mpeg2ts.psi.PSIManager
+import com.pedro.srt.mpeg2ts.psi.TableToSend
+import com.pedro.srt.utils.toInt
 import java.nio.ByteBuffer
 
 /**
@@ -42,23 +46,131 @@ import java.nio.ByteBuffer
  * Adaptation field -> variable
  * Payload data -> variable
  */
-abstract class BasePacket {
+abstract class BasePacket(
+  val psiManager: PSIManager
+) {
 
-  private val syncByte: Byte = 0x00
+  var configSend = false
+  private val syncByte: Byte = 0x47
   private val transportErrorIndicator: Boolean = false
-  private val payloadUnitStartIndicator: Boolean = false
   private val transportPriority: Boolean = false
-  private val pid: Short = 0 // 13 bits
   private val transportScramblingControl: Byte = 0 //2 bits
-  private val adaptationFieldControl: Byte = 0 //2 bits
-  private val continuityCounter: Byte = 0 //4 bits
-  //optionals
-  private val adaptationField = AdaptationField()
-  private val payload: ByteArray = byteArrayOf()
+  protected val pid = PID.generatePID()
 
   abstract fun createAndSendPacket(
     byteBuffer: ByteBuffer,
-    bufferInfo: MediaCodec.BufferInfo,
+    info: MediaCodec.BufferInfo,
     callback: (MpegTsPacket) -> Unit
   )
+
+  private fun checkSendPsi(isKey: Boolean): TableToSend {
+      return psiManager.shouldSend(isKey)
+  }
+
+  protected fun writeTsHeader(
+    buffer: ByteBuffer,
+    payloadUnitStartIndicator: Boolean, //is the first chunk of the frame
+    pid: Short,
+    adaptationFieldControl: AdaptationFieldControl,
+    continuityCounter: Byte,
+    adaptationField: AdaptationField?
+  ) {
+    buffer.put(syncByte)
+    val combined: Short = ((transportErrorIndicator.toInt() shl 15)
+        or (payloadUnitStartIndicator.toInt() shl 14)
+        or (transportPriority.toInt() shl 13) or pid.toInt()).toShort()
+    buffer.putShort(combined)
+    val combined2: Byte = ((transportScramblingControl.toInt() and 0x3 shl 6)
+    or (adaptationFieldControl.value.toInt() and 0x3 shl 4) or (continuityCounter.toInt() and 0xF)).toByte()
+    buffer.put(combined2)
+    adaptationField?.getData()?.let {
+      buffer.put(it)
+    }
+  }
+
+  private fun writePat(buffer: ByteBuffer) {
+    buffer.rewind()
+    writeTsHeader(buffer, true, pid, AdaptationFieldControl.PAYLOAD, 0, null)
+    buffer.put(0x00)
+    psiManager.getPat().write(buffer)
+    fillPacket(buffer)
+  }
+
+  private fun writePmt(buffer: ByteBuffer) {
+    buffer.rewind()
+    writeTsHeader(buffer, true, pid, AdaptationFieldControl.PAYLOAD, 0, null)
+    buffer.put(0x00)
+    psiManager.getPmt().write(buffer)
+    fillPacket(buffer)
+  }
+
+  private fun writeSdt(buffer: ByteBuffer) {
+    buffer.rewind()
+    writeTsHeader(buffer, true, pid, AdaptationFieldControl.PAYLOAD, 0, null)
+    buffer.put(0x00)
+    psiManager.getSdt().write(buffer)
+    fillPacket(buffer)
+  }
+
+  protected fun checkSendTable(sizeLimit: Int, callback: (MpegTsPacket) -> Unit) {
+    val buffer = ByteBuffer.allocate(sizeLimit)
+    val tableToSend = checkSendPsi(false)
+    when (tableToSend) {
+      TableToSend.PAT_PMT -> {
+        writePat(buffer)
+        val arrayPat = buffer.duplicate().array()
+        callback(MpegTsPacket(arrayPat, false))
+
+        writePmt(buffer)
+        val arrayPmt = buffer.duplicate().array()
+        callback(MpegTsPacket(arrayPmt, false))
+      }
+      TableToSend.SDT -> {
+        writeSdt(buffer)
+        val arraySdt = buffer.duplicate().array()
+        callback(MpegTsPacket(arraySdt, false))
+      }
+      TableToSend.NONE -> {}
+      TableToSend.ALL -> {
+        writeSdt(buffer)
+        val arraySdt = buffer.duplicate().array()
+        callback(MpegTsPacket(arraySdt, false))
+        writePat(buffer)
+        val arrayPat = buffer.duplicate().array()
+        callback(MpegTsPacket(arrayPat, false))
+
+        writePmt(buffer)
+        val arrayPmt = buffer.duplicate().array()
+        callback(MpegTsPacket(arrayPmt, false))
+      }
+    }
+  }
+
+  protected fun sendConfig(sizeLimit: Int, callback: (MpegTsPacket) -> Unit) {
+    val buffer = ByteBuffer.allocate(sizeLimit)
+    writeSdt(buffer)
+    val arraySdt = buffer.duplicate().array()
+    callback(MpegTsPacket(arraySdt, false))
+    writePat(buffer)
+    val arrayPat = buffer.duplicate().array()
+    callback(MpegTsPacket(arrayPat, false))
+
+    writePmt(buffer)
+    val arrayPmt = buffer.duplicate().array()
+    callback(MpegTsPacket(arrayPmt, false))
+  }
+
+  protected fun fillPacket(buffer: ByteBuffer) {
+    while (buffer.hasRemaining()) {
+      buffer.put(0xFF.toByte())
+    }
+  }
+
+  fun getTSPacketHeaderSize() = 4
+
+  fun getTSPacketSize() = 188
+
+  fun reset() {
+    configSend = false
+  }
 }

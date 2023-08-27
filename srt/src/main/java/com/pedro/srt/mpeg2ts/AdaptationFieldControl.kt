@@ -16,7 +16,9 @@
 
 package com.pedro.srt.mpeg2ts
 
-enum class PesType(val value: Byte) {
-  AUDIO(0xC0.toByte()), VIDEO(0xE0.toByte()), METADATA(0xFC.toByte()),
-  PRIVATE_STREAM_1(0xBD.toByte()), EXTENDED_STREAM(0xFD.toByte()),
+/**
+ * Created by pedro on 25/8/23.
+ */
+enum class AdaptationFieldControl(val value: Byte) {
+  PAYLOAD(0x01), ADAPTATION(0x02), ADAPTATION_PAYLOAD(0x03), RESERVED(0x00)
 }

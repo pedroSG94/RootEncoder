@@ -16,6 +16,9 @@
 
 package com.pedro.srt.mpeg2ts.psi
 
+import com.pedro.srt.mpeg2ts.service.Mpeg2TsService
+import java.nio.ByteBuffer
+
 /**
  * Created by pedro on 24/8/23.
  *
@@ -23,5 +26,47 @@ package com.pedro.srt.mpeg2ts.psi
  *
  * A type of PSI packet
  */
-class SDT: PSI() {
+class SDT(
+  idExtension: Short,
+  version: Byte,
+  private val originalNetworkId: Short = 0xff01.toShort(),
+  private val service: Mpeg2TsService
+  ) : PSI(
+  pid = 0x0011,
+  id = 0x42,
+  idExtension = idExtension,
+  version = version,
+) {
+
+  override fun writeData(byteBuffer: ByteBuffer) {
+    byteBuffer.putShort(originalNetworkId)
+    byteBuffer.put(0b11111111.toByte())
+
+    byteBuffer.putShort(service.id)
+    byteBuffer.put(0b11111100.toByte()) // Reserved + EIT_schedule_flag + EIT_present_following_flag
+
+    val serviceDescriptorLength = 3 + service.providerName.length + service.name.length
+    val descriptorsLoopLength =
+      2 + serviceDescriptorLength // 2 = descriptor_tag + descriptor_length
+    byteBuffer.putShort(
+      ((0b1000 shl 12) // running_status - 4 -> running + free_CA_mode
+          or (descriptorsLoopLength)).toShort()
+    )
+
+    // Service descriptor
+    byteBuffer.put(0x48) // descriptor_tag
+    byteBuffer.put(serviceDescriptorLength.toByte())
+
+    byteBuffer.put(service.type)
+
+    byteBuffer.put(service.providerName.length.toByte())
+    byteBuffer.put(service.providerName.toByteArray(Charsets.UTF_8))
+
+    byteBuffer.put(service.name.length.toByte())
+    byteBuffer.put(service.name.toByteArray(Charsets.UTF_8))
+  }
+
+  override fun getTableDataSize(): Int {
+    return 13 + service.providerName.length + service.name.length
+  }
 }

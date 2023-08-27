@@ -18,18 +18,41 @@ package com.pedro.srt.mpeg2ts.packets
 
 import android.media.MediaCodec
 import com.pedro.srt.mpeg2ts.MpegTsPacket
+import com.pedro.srt.mpeg2ts.psi.PSIManager
 import java.nio.ByteBuffer
 
 /**
  * Created by pedro on 20/8/23.
  */
-class H264Packet: BasePacket() {
+class H264Packet(
+  private val sizeLimit: Int,
+  psiManager: PSIManager
+): BasePacket(psiManager) {
 
+  private val headerSize = 6
+  private val sps: ByteBuffer? = null
+  private val pps: ByteBuffer? = null
   override fun createAndSendPacket(
     byteBuffer: ByteBuffer,
-    bufferInfo: MediaCodec.BufferInfo,
+    info: MediaCodec.BufferInfo,
     callback: (MpegTsPacket) -> Unit
   ) {
-    TODO("Not yet implemented")
+    val length = info.size - info.offset
+    val buffer = ByteArray(length + headerSize)
+    writeAUD(buffer, 0)
+
+  }
+
+  fun sendVideoInfo(sps: ByteBuffer, pps: ByteBuffer) {
+
+  }
+
+  private fun writeAUD(buffer: ByteArray, offset: Int) {
+    buffer[offset] = 0x00
+    buffer[offset + 1] = 0x00
+    buffer[offset + 2] = 0x00
+    buffer[offset + 3] = 0x01
+    buffer[offset + 4] = 0x09
+    buffer[offset + 5] = 0xF0.toByte()
   }
 }

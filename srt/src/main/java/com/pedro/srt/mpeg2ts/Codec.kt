@@ -16,7 +16,9 @@
 
 package com.pedro.srt.mpeg2ts
 
-enum class PesType(val value: Byte) {
-  AUDIO(0xC0.toByte()), VIDEO(0xE0.toByte()), METADATA(0xFC.toByte()),
-  PRIVATE_STREAM_1(0xBD.toByte()), EXTENDED_STREAM(0xFD.toByte()),
+/**
+ * Created by pedro on 26/8/23.
+ */
+enum class Codec(val value: Byte) {
+  AAC(0x0F), AVC(0x1B), HEVC(0x24)
 }

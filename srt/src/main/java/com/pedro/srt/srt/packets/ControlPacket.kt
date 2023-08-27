@@ -73,6 +73,10 @@ abstract class ControlPacket(
     socketId = input.readUInt32()
   }
 
+  override fun toString(): String {
+    return "ControlPacket(controlType=$controlType, subtype=$subtype, typeSpecificInformation=$typeSpecificInformation, ts=$ts, socketId=$socketId)"
+  }
+
   companion object {
     fun getType(input: InputStream): ControlType {
       val headerData = input.readUInt32()

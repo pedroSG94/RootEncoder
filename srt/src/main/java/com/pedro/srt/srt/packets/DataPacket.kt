@@ -32,7 +32,7 @@ import java.io.InputStream
 class DataPacket(
   var sequenceNumber: Int = 0,
   var packetPosition: PacketPosition = PacketPosition.SINGLE,
-  var order: Boolean = true,
+  var order: Boolean = false,
   var encryption: KeyBasedEncryption = KeyBasedEncryption.NONE,
   var retransmitted: Boolean = false,
   var messageNumber: Int = 0,
@@ -41,10 +41,10 @@ class DataPacket(
   var payload: ByteArray = byteArrayOf()
 ): SrtPacket() {
 
-  fun write(ts: Int, socketId: Int) {
-    val headerData = (PacketType.DATA.value and 0xff shl 31) or (sequenceNumber and 0x7FFFFFFF)
-    val info = (packetPosition.value and 0xff shl 30) or (order.toInt() and 0xff shl 29) or
-        (encryption.value and 0xff shl 27) or (retransmitted.toInt() and 0xff shl 26) or messageNumber
+  fun write() {
+    val headerData = (PacketType.DATA.value shl 31) or (sequenceNumber and 0x7FFFFFFF)
+    val info = (packetPosition.value shl 30) or (order.toInt() shl 29) or
+        (encryption.value shl 27) or (retransmitted.toInt() shl 26) or messageNumber
     buffer.writeUInt32(headerData)
     buffer.writeUInt32(info)
     buffer.writeUInt32(ts)
@@ -69,5 +69,11 @@ class DataPacket(
     val payload = ByteArray(input.available())
     input.readUntil(payload)
     this.payload = payload
+  }
+
+  fun getSize(): Int = buffer.size()
+
+  override fun toString(): String {
+    return "DataPacket(sequenceNumber=$sequenceNumber, packetPosition=$packetPosition, order=$order, encryption=$encryption, retransmitted=$retransmitted, messageNumber=$messageNumber, ts=$ts, socketId=$socketId, payload=${payload.contentToString()})"
   }
 }

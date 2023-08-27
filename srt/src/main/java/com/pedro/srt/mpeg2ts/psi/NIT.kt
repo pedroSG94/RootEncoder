@@ -16,6 +16,8 @@
 
 package com.pedro.srt.mpeg2ts.psi
 
+import java.nio.ByteBuffer
+
 /**
  * Created by pedro on 24/8/23.
  *
@@ -25,5 +27,22 @@ package com.pedro.srt.mpeg2ts.psi
  *
  * This table is undefined on ISO/IEC 13818-1
  */
-class NIT: PSI() {
+class NIT(
+  id: Byte,
+  idExtension: Short,
+  version: Byte,
+) : PSI(
+  pid = 0,
+  id = id,
+  idExtension = idExtension,
+  version = version,
+) {
+
+  override fun writeData(byteBuffer: ByteBuffer) {
+    TODO("Not yet implemented")
+  }
+
+  override fun getTableDataSize(): Int {
+    TODO("Not yet implemented")
+  }
 }

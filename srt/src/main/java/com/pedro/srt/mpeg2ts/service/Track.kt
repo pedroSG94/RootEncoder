@@ -14,9 +14,16 @@
  * limitations under the License.
  */
 
-package com.pedro.srt.mpeg2ts
+package com.pedro.srt.mpeg2ts.service
 
-enum class PesType(val value: Byte) {
-  AUDIO(0xC0.toByte()), VIDEO(0xE0.toByte()), METADATA(0xFC.toByte()),
-  PRIVATE_STREAM_1(0xBD.toByte()), EXTENDED_STREAM(0xFD.toByte()),
-}
+import com.pedro.srt.mpeg2ts.Codec
+
+/**
+ * Created by pedro on 26/8/23.
+ */
+data class Track(
+  val codec: Codec,
+  val bitrate: Int,
+  val pid: Short,
+  val discontinuity: Boolean = false
+)
