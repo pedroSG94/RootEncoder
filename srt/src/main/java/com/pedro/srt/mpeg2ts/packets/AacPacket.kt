@@ -31,52 +31,57 @@ import java.nio.ByteBuffer
  * Created by pedro on 20/8/23.
  */
 class AacPacket(
-  private val sizeLimit: Int,
+  sizeLimit: Int,
   psiManager: PSIManager
 ): BasePacket(psiManager) {
 
   private val header = ByteArray(7) //ADTS header
   private var sampleRate = 44100
   private var isStereo = true
+  private val realSize = getRealSize(sizeLimit)
 
   override fun createAndSendPacket(
     byteBuffer: ByteBuffer,
     info: MediaCodec.BufferInfo,
     callback: (MpegTsPacket) -> Unit
   ) {
-
     if (!configSend) {
-      sendConfig(sizeLimit, callback)
+      sendConfig(realSize, callback)
       configSend = true
     }
-    checkSendTable(sizeLimit, callback)
-    val length = info.size - info.offset
+    checkSendTable(realSize, callback)
+    val length = info.size
     if (length < 0) return
-    val buffer = ByteBuffer.allocate(sizeLimit)
+    byteBuffer.rewind()
+    val buffer = ByteBuffer.allocate(realSize)
 
     val payload = ByteArray(length + header.size)
     writeAdts(payload, length)
     byteBuffer.get(payload, header.size, length)
     var sum = 0
     var counter = 0
-    val adaptationFieldControl = AdaptationFieldControl.PAYLOAD
-    //num of pes/psi in payload
-    val adaptationField = AdaptationField(
-      discontinuityIndicator = false,
-      randomAccessIndicator = false,
-      pcr = info.presentationTimeUs
-    )
-    writeTsHeader(buffer, true, pid, adaptationFieldControl, counter.toByte(), adaptationField)
-    val payloadSize = getTSPacketSize() - (getTSPacketHeaderSize() + adaptationField.getSize() + PES.HeaderLength)
-    val data = payload.sliceArray(sum until minOf(sum + payloadSize, payload.size))
-    val pes = PES(PesType.AUDIO, data)
-    pes.write(buffer)
-    sum += data.size
-    fillPacket(buffer)
-    val array = buffer.duplicate().array()
+    while (sum < length) {
+      val adaptationFieldControl = AdaptationFieldControl.PAYLOAD
+      //num of pes/psi in payload
+      val adaptationField = AdaptationField(
+        discontinuityIndicator = false,
+        randomAccessIndicator = false,
+        pcr = info.presentationTimeUs
+      )
+      writeTsHeader(buffer, sum == 0, pid, adaptationFieldControl, counter.toByte(), adaptationField)
+      val pesSize = getTSPacketSize() - getTSPacketHeaderSize() - adaptationField.getSize()
+      val payloadSize = pesSize - PES.HeaderLength
+      val data = payload.sliceArray(sum until minOf(sum + payloadSize, payload.size))
+      val pes = PES(PesType.AUDIO, payload.size, data)
+      pes.write(buffer, info.presentationTimeUs, pesSize)
+      sum += data.size
+      counter++
+    }
+
+    val array = ByteArray(buffer.position())
+    buffer.flip()
+    buffer.get(array)
     callback(MpegTsPacket(array, false))
-//    if (buffer.remaining() < getTSPacketSize()) {
-//    }
   }
 
   fun sendAudioInfo(sampleRate: Int, stereo: Boolean) {

@@ -83,8 +83,6 @@ class PSIManager(
   fun getPmt(): PMT = pmt
 
   fun reset() {
-    sdt.version = 0
-    pat.version = 0
     sdtCount = 0
     patCount = 0
   }

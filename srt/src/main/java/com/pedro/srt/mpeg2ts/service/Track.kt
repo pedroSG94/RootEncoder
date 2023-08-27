@@ -23,7 +23,6 @@ import com.pedro.srt.mpeg2ts.Codec
  */
 data class Track(
   val codec: Codec,
-  val bitrate: Int,
   val pid: Short,
   val discontinuity: Boolean = false
 )

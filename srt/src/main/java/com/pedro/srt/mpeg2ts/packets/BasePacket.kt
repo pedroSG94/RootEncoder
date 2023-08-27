@@ -17,6 +17,7 @@
 package com.pedro.srt.mpeg2ts.packets
 
 import android.media.MediaCodec
+import android.util.Log
 import com.pedro.srt.mpeg2ts.AdaptationField
 import com.pedro.srt.mpeg2ts.AdaptationFieldControl
 import com.pedro.srt.mpeg2ts.MpegTsPacket
@@ -89,81 +90,70 @@ abstract class BasePacket(
   }
 
   private fun writePat(buffer: ByteBuffer) {
-    buffer.rewind()
     writeTsHeader(buffer, true, pid, AdaptationFieldControl.PAYLOAD, 0, null)
-    buffer.put(0x00)
-    psiManager.getPat().write(buffer)
-    fillPacket(buffer)
+    val pat = psiManager.getPat()
+    val psiSize = getTSPacketSize() - getTSPacketHeaderSize()
+    pat.write(buffer, psiSize)
   }
 
   private fun writePmt(buffer: ByteBuffer) {
-    buffer.rewind()
     writeTsHeader(buffer, true, pid, AdaptationFieldControl.PAYLOAD, 0, null)
-    buffer.put(0x00)
-    psiManager.getPmt().write(buffer)
-    fillPacket(buffer)
+    val pmt = psiManager.getPmt()
+    val psiSize = getTSPacketSize() - getTSPacketHeaderSize()
+    pmt.write(buffer, psiSize)
   }
 
   private fun writeSdt(buffer: ByteBuffer) {
-    buffer.rewind()
     writeTsHeader(buffer, true, pid, AdaptationFieldControl.PAYLOAD, 0, null)
-    buffer.put(0x00)
-    psiManager.getSdt().write(buffer)
-    fillPacket(buffer)
+    val sdt = psiManager.getSdt()
+    val psiSize = getTSPacketSize() - getTSPacketHeaderSize()
+    sdt.write(buffer, psiSize)
   }
 
   protected fun checkSendTable(sizeLimit: Int, callback: (MpegTsPacket) -> Unit) {
     val buffer = ByteBuffer.allocate(sizeLimit)
     val tableToSend = checkSendPsi(false)
+    var config: ByteArray? = null
     when (tableToSend) {
       TableToSend.PAT_PMT -> {
         writePat(buffer)
-        val arrayPat = buffer.duplicate().array()
-        callback(MpegTsPacket(arrayPat, false))
-
         writePmt(buffer)
-        val arrayPmt = buffer.duplicate().array()
-        callback(MpegTsPacket(arrayPmt, false))
       }
       TableToSend.SDT -> {
         writeSdt(buffer)
-        val arraySdt = buffer.duplicate().array()
-        callback(MpegTsPacket(arraySdt, false))
       }
       TableToSend.NONE -> {}
       TableToSend.ALL -> {
         writeSdt(buffer)
-        val arraySdt = buffer.duplicate().array()
-        callback(MpegTsPacket(arraySdt, false))
         writePat(buffer)
-        val arrayPat = buffer.duplicate().array()
-        callback(MpegTsPacket(arrayPat, false))
-
         writePmt(buffer)
-        val arrayPmt = buffer.duplicate().array()
-        callback(MpegTsPacket(arrayPmt, false))
       }
+    }
+    if (buffer.position() > 0) {
+      config = buffer.duplicate().array().sliceArray(0 until buffer.position())
+    }
+    config?.let {
+      Log.e("Pedro", "config: ${config.size}, ${tableToSend.name}")
+      callback(MpegTsPacket(config, false))
     }
   }
 
   protected fun sendConfig(sizeLimit: Int, callback: (MpegTsPacket) -> Unit) {
     val buffer = ByteBuffer.allocate(sizeLimit)
     writeSdt(buffer)
-    val arraySdt = buffer.duplicate().array()
-    callback(MpegTsPacket(arraySdt, false))
     writePat(buffer)
-    val arrayPat = buffer.duplicate().array()
-    callback(MpegTsPacket(arrayPat, false))
-
     writePmt(buffer)
-    val arrayPmt = buffer.duplicate().array()
-    callback(MpegTsPacket(arrayPmt, false))
+    val config = buffer.array().sliceArray(0 until buffer.position())
+    Log.e("Pedro", "config: ${config.size}, ${TableToSend.ALL}")
+    callback(MpegTsPacket(config, false))
   }
 
-  protected fun fillPacket(buffer: ByteBuffer) {
-    while (buffer.hasRemaining()) {
-      buffer.put(0xFF.toByte())
+  protected fun getRealSize(limitSize: Int): Int {
+    var count = getTSPacketSize()
+    while (count <= limitSize) {
+      count += getTSPacketSize()
     }
+    return count - getTSPacketSize()
   }
 
   fun getTSPacketHeaderSize() = 4

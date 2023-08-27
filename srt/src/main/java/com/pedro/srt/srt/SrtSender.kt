@@ -47,9 +47,18 @@ class SrtSender(
   private val commandsManager: CommandsManager
 ) {
 
-  private val service = Mpeg2TsService()
-  private val psiManager = PSIManager(service)
-  private val aacPacket = AacPacket(188 * 7, psiManager)
+  private val service = Mpeg2TsService().apply {
+    addTrack(Codec.AAC)
+//    addTrack(Codec.AVC)
+  }
+  private val psiManager = PSIManager(service).apply {
+    upgradePatVersion()
+    upgradeSdtVersion()
+//    upgradePatVersion()
+//    upgradeSdtVersion()
+  }
+
+  private val aacPacket = AacPacket(commandsManager.MTU - SrtPacket.headerSize, psiManager)
   private val h264Packet = H264Packet(commandsManager.MTU - SrtPacket.headerSize, psiManager)
   @Volatile
   private var running = false
@@ -77,14 +86,10 @@ class SrtSender(
   }
 
   fun setVideoInfo(sps: ByteBuffer, pps: ByteBuffer, vps: ByteBuffer?) {
-//    service.addTrack(Codec.AVC, 0)
     h264Packet.sendVideoInfo(sps, pps)
   }
 
   fun setAudioInfo(sampleRate: Int, isStereo: Boolean) {
-    service.addTrack(Codec.AAC, 0)
-    psiManager.upgradePatVersion()
-    psiManager.upgradeSdtVersion()
     aacPacket.sendAudioInfo(sampleRate, isStereo)
   }
 
@@ -125,7 +130,6 @@ class SrtSender(
         itemsInQueue--
         val error = runCatching {
           var size = 0
-          Log.i(TAG, "tsSize: ${mpegTsPacket.buffer.size}")
           size += commandsManager.writeData(mpegTsPacket, socket)
           if (isEnableLogs) {
             if (mpegTsPacket.isVideo) {
@@ -153,7 +157,9 @@ class SrtSender(
     queue.cancel()
     queue = Channel(cacheSize)
     queueFlow = queue.receiveAsFlow()
-    //TODO reset packets if needed
+    aacPacket.reset()
+    h264Packet.reset()
+    psiManager.reset()
     resetSentAudioFrames()
     resetSentVideoFrames()
     resetDroppedAudioFrames()

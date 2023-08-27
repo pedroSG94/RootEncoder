@@ -30,10 +30,10 @@ data class Mpeg2TsService(
   var pcrPID: Short? = null,
   val tracks: MutableList<Track> = mutableListOf()
 ) {
-  fun addTrack(codec: Codec, bitrate: Int) {
+  fun addTrack(codec: Codec) {
     val pid = PID.generatePID()
     if (codec == Codec.AVC || codec == Codec.HEVC && pcrPID == null) pcrPID = pid
-    tracks.add(Track(codec, bitrate, pid))
+    tracks.add(Track(codec, pid))
   }
 
   fun clear() {

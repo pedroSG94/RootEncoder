@@ -224,7 +224,6 @@ class SrtClient(private val connectCheckerSrt: ConnectCheckerSrt) {
 
           }
           is Ack -> {
-            Log.e("asdasd", srtPacket.toString())
             commandsManager.writeAck2(srtPacket.typeSpecificInformation, socket)
           }
           is Nak -> {

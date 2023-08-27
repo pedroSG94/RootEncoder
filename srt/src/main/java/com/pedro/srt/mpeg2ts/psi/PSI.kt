@@ -61,7 +61,7 @@ abstract class PSI(
   private val sectionLengthUnusedBits = 0
   private val sectionLength: Short = 0
 
-  fun write(byteBuffer: ByteBuffer) {
+  fun write(byteBuffer: ByteBuffer, psiSize: Int) {
     byteBuffer.put(id)
     val crc32InitialPosition = byteBuffer.position()
     val combined = (sectionSyntaxIndicator.toInt() shl 15) or (privateBit.toInt() shl 14) or
@@ -73,7 +73,17 @@ abstract class PSI(
     byteBuffer.put(sectionNumber)
     byteBuffer.put(lastSectionNumber)
     writeData(byteBuffer)
-    writeCRC(byteBuffer, crc32InitialPosition, byteBuffer.position())
+    val crc32 = writeCRC(byteBuffer, crc32InitialPosition, byteBuffer.position())
+    byteBuffer.putInt(crc32)
+    fillPacket(byteBuffer, psiSize - getSize())
+  }
+
+  private fun fillPacket(buffer: ByteBuffer, size: Int) {
+    var count = 0
+    while (buffer.hasRemaining() && count < size) {
+      buffer.put(0xFF.toByte())
+      count++
+    }
   }
 
   /**

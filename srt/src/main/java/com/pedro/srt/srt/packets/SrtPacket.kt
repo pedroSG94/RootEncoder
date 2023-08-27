@@ -67,7 +67,6 @@ abstract class SrtPacket {
             ControlType.ACK -> {
               val ack = Ack()
               ack.read(input)
-              Log.e("Pedro", ack.toString())
               return ack
             }
             ControlType.NAK -> {
