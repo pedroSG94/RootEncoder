@@ -16,10 +16,10 @@
 
 package com.pedro.srt.mpeg2ts
 
-import com.pedro.srt.srt.packets.PacketType
-import com.pedro.srt.utils.put48Bits
+import com.pedro.srt.utils.Constants
 import com.pedro.srt.utils.toInt
 import java.nio.ByteBuffer
+import kotlin.math.pow
 
 /**
  * Created by pedro on 24/8/23.
@@ -63,7 +63,8 @@ data class AdaptationField(
         
     fun getData(): ByteArray {
         val buffer = ByteBuffer.allocate(length)
-        buffer.put(length.toByte())
+        //size after put length
+        buffer.put((length - 1).toByte())
         val pcrFlag = pcr != null
         val opcrFlag = opcr != null
         val splicingPointFlag = spliceCountdown != null
@@ -78,8 +79,8 @@ data class AdaptationField(
             (transportPrivateDataFlag.toInt() shl 1) or adaptationFieldExtensionFlag.toInt()).toByte()
 
         buffer.put(indicatorsAndFlags)
-        pcr?.let { buffer.put48Bits(it) }
-        opcr?.let { buffer.put48Bits(it) }
+        pcr?.let { addClockReference(buffer, it) }
+        opcr?.let { addClockReference(buffer, it) }
         spliceCountdown?.let { buffer.put(it) }
         transportPrivateData?.let { buffer.put(it) }
         transportPrivateData?.let { buffer.put(it) }
@@ -94,4 +95,24 @@ data class AdaptationField(
             (adaptationExtension?.size ?: 0) + (stuffingBytes?.size ?: 0)
     }
     fun getSize(): Int = length
+
+    private fun addClockReference(buffer: ByteBuffer, timestamp: Long) {
+        val pcrBase =
+            (Constants.SYSTEM_CLOCK_FREQ * timestamp / 1000000 /* µs -> s */ / 300) % 2.toDouble()
+                .pow(33)
+                .toLong()
+        val pcrExt = (Constants.SYSTEM_CLOCK_FREQ * timestamp / 1000000 /* µs -> s */) % 300
+
+        /**
+         * PCR Base -> 33 bits
+         * Reserved -> 6 bits (0b111111)
+         * PCR Ext -> 9 bits
+         */
+        buffer.putInt((pcrBase shr 1).toInt())
+        buffer.putShort(
+            (((pcrBase and 0x1) shl 15)
+                or (0b111111 shl 9)
+                or (pcrExt and 0x1FF)).toShort()
+        )
+    }
 }

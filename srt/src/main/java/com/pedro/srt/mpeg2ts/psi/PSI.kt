@@ -16,9 +16,9 @@
 
 package com.pedro.srt.mpeg2ts.psi
 
+import com.pedro.srt.utils.CRC32
 import com.pedro.srt.utils.toInt
 import java.nio.ByteBuffer
-import java.util.zip.CRC32
 
 /**
  * Created by pedro on 20/8/23.
@@ -51,7 +51,7 @@ abstract class PSI(
   private val idExtension: Short,
   var version: Byte,
   private val sectionSyntaxIndicator: Boolean = true,
-  private val privateBit: Boolean = true,
+  private val privateBit: Boolean = false,
   private val indicator: Boolean = true, //true current, false next
   private val sectionNumber: Byte = 0,
   private val lastSectionNumber: Byte = 0,
@@ -59,11 +59,13 @@ abstract class PSI(
 
   private val reserved = 3
   private val sectionLengthUnusedBits = 0
-  private val sectionLength: Short = 0
+  private var sectionLength: Short = 0
 
   fun write(byteBuffer: ByteBuffer, psiSize: Int) {
-    byteBuffer.put(id)
+    byteBuffer.put(0x00)
     val crc32InitialPosition = byteBuffer.position()
+    byteBuffer.put(id)
+    sectionLength = (9 + getTableDataSize()).toShort()
     val combined = (sectionSyntaxIndicator.toInt() shl 15) or (privateBit.toInt() shl 14) or
         (reserved shl 12) or (sectionLengthUnusedBits shl 10) or (sectionLength.toInt() and 0x03FF)
     byteBuffer.putShort(combined.toShort())
@@ -90,14 +92,12 @@ abstract class PSI(
    * https://en.wikipedia.org/wiki/Computation_of_cyclic_redundancy_checks#CRC-32_algorithm
    */
   private fun writeCRC(byteBuffer: ByteBuffer, offset: Int, size: Int): Int {
-    val crc32 = CRC32()
-    crc32.update(byteBuffer.array(), offset, size)
-    return crc32.value.toInt()
+    return CRC32.getCRC32(byteBuffer.array(), offset, size)
   }
 
   abstract fun writeData(byteBuffer: ByteBuffer)
 
   abstract fun getTableDataSize(): Int
 
-  fun getSize(): Int = 12 + getTableDataSize()
+  fun getSize(): Int = 13 + getTableDataSize()
 }

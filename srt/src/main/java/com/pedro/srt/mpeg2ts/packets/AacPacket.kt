@@ -59,23 +59,23 @@ class AacPacket(
     writeAdts(payload, length)
     byteBuffer.get(payload, header.size, length)
     var sum = 0
-    var counter = 0
+    var counter: Byte = 0
+    val pid = psiManager.getAudioPid()
     while (sum < length) {
-      val adaptationFieldControl = AdaptationFieldControl.PAYLOAD
-      //num of pes/psi in payload
-      val adaptationField = AdaptationField(
+      val adaptationFieldControl = if (sum == 0) AdaptationFieldControl.ADAPTATION_PAYLOAD else AdaptationFieldControl.PAYLOAD
+      val adaptationField = if (sum == 0) AdaptationField(
         discontinuityIndicator = false,
         randomAccessIndicator = false,
-        pcr = info.presentationTimeUs
-      )
-      writeTsHeader(buffer, sum == 0, pid, adaptationFieldControl, counter.toByte(), adaptationField)
-      val pesSize = getTSPacketSize() - getTSPacketHeaderSize() - adaptationField.getSize()
-      val payloadSize = pesSize - PES.HeaderLength
+        pcr = System.nanoTime() / 1000
+      ) else null
+      writeTsHeader(buffer, sum == 0, pid, adaptationFieldControl, counter, adaptationField)
+      val pesSize = getTSPacketSize() - getTSPacketHeaderSize() - (adaptationField?.getSize() ?: 0)
+      val payloadSize = pesSize - if (sum == 0) PES.HeaderLength else 0
       val data = payload.sliceArray(sum until minOf(sum + payloadSize, payload.size))
       val pes = PES(PesType.AUDIO, payload.size, data)
-      pes.write(buffer, info.presentationTimeUs, pesSize)
+      pes.write(buffer, info.presentationTimeUs, pesSize, sum == 0)
       sum += data.size
-      counter++
+      counter = ((counter + 1) and 0xF).toByte()
     }
 
     val array = ByteArray(buffer.position())

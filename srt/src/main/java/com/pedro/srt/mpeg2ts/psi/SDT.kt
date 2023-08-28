@@ -36,6 +36,7 @@ class SDT(
   id = 0x42,
   idExtension = idExtension,
   version = version,
+  privateBit = true
 ) {
 
   override fun writeData(byteBuffer: ByteBuffer) {
@@ -46,8 +47,7 @@ class SDT(
     byteBuffer.put(0b11111100.toByte()) // Reserved + EIT_schedule_flag + EIT_present_following_flag
 
     val serviceDescriptorLength = 3 + service.providerName.length + service.name.length
-    val descriptorsLoopLength =
-      2 + serviceDescriptorLength // 2 = descriptor_tag + descriptor_length
+    val descriptorsLoopLength = 2 + serviceDescriptorLength // 2 = descriptor_tag + descriptor_length
     byteBuffer.putShort(
       ((0b1000 shl 12) // running_status - 4 -> running + free_CA_mode
           or (descriptorsLoopLength)).toShort()

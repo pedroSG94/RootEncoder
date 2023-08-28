@@ -21,4 +21,5 @@ package com.pedro.srt.utils
  */
 object Constants {
   const val MTU = 1500
+  const val SYSTEM_CLOCK_FREQ = 27000000
 }

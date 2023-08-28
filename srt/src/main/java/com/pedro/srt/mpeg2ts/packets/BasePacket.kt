@@ -97,15 +97,15 @@ abstract class BasePacket(
   }
 
   private fun writePmt(buffer: ByteBuffer) {
-    writeTsHeader(buffer, true, pid, AdaptationFieldControl.PAYLOAD, 0, null)
     val pmt = psiManager.getPmt()
+    writeTsHeader(buffer, true, pmt.pid, AdaptationFieldControl.PAYLOAD, 0, null)
     val psiSize = getTSPacketSize() - getTSPacketHeaderSize()
     pmt.write(buffer, psiSize)
   }
 
   private fun writeSdt(buffer: ByteBuffer) {
-    writeTsHeader(buffer, true, pid, AdaptationFieldControl.PAYLOAD, 0, null)
     val sdt = psiManager.getSdt()
+    writeTsHeader(buffer, true, sdt.pid, AdaptationFieldControl.PAYLOAD, 0, null)
     val psiSize = getTSPacketSize() - getTSPacketHeaderSize()
     sdt.write(buffer, psiSize)
   }
@@ -113,39 +113,44 @@ abstract class BasePacket(
   protected fun checkSendTable(sizeLimit: Int, callback: (MpegTsPacket) -> Unit) {
     val buffer = ByteBuffer.allocate(sizeLimit)
     val tableToSend = checkSendPsi(false)
-    var config: ByteArray? = null
     when (tableToSend) {
       TableToSend.PAT_PMT -> {
         writePat(buffer)
+        val pat = buffer.array().sliceArray(0 until buffer.position())
+        buffer.rewind()
+        callback(MpegTsPacket(pat, false))
         writePmt(buffer)
+        val pmt = buffer.array().sliceArray(0 until buffer.position())
+        buffer.rewind()
+        callback(MpegTsPacket(pmt, false))
       }
       TableToSend.SDT -> {
         writeSdt(buffer)
+        val sdt = buffer.array().sliceArray(0 until buffer.position())
+        buffer.rewind()
+        callback(MpegTsPacket(sdt, false))
       }
       TableToSend.NONE -> {}
       TableToSend.ALL -> {
-        writeSdt(buffer)
-        writePat(buffer)
-        writePmt(buffer)
+        sendConfig(sizeLimit, callback)
       }
-    }
-    if (buffer.position() > 0) {
-      config = buffer.duplicate().array().sliceArray(0 until buffer.position())
-    }
-    config?.let {
-      Log.e("Pedro", "config: ${config.size}, ${tableToSend.name}")
-      callback(MpegTsPacket(config, false))
     }
   }
 
   protected fun sendConfig(sizeLimit: Int, callback: (MpegTsPacket) -> Unit) {
     val buffer = ByteBuffer.allocate(sizeLimit)
     writeSdt(buffer)
+    val sdt = buffer.array().sliceArray(0 until buffer.position())
+    buffer.rewind()
+    callback(MpegTsPacket(sdt, false))
     writePat(buffer)
+    val pat = buffer.array().sliceArray(0 until buffer.position())
+    buffer.rewind()
+    callback(MpegTsPacket(pat, false))
     writePmt(buffer)
-    val config = buffer.array().sliceArray(0 until buffer.position())
-    Log.e("Pedro", "config: ${config.size}, ${TableToSend.ALL}")
-    callback(MpegTsPacket(config, false))
+    val pmt = buffer.array().sliceArray(0 until buffer.position())
+    buffer.rewind()
+    callback(MpegTsPacket(pmt, false))
   }
 
   protected fun getRealSize(limitSize: Int): Int {

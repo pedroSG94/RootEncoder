@@ -32,7 +32,8 @@ data class Mpeg2TsService(
 ) {
   fun addTrack(codec: Codec) {
     val pid = PID.generatePID()
-    if (codec == Codec.AVC || codec == Codec.HEVC && pcrPID == null) pcrPID = pid
+    if (codec == Codec.AVC || codec == Codec.HEVC) pcrPID = pid
+    else if (pcrPID == null) pcrPID = pid
     tracks.add(Track(codec, pid))
   }
 

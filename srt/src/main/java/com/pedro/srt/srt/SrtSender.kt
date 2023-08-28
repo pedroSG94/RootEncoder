@@ -60,6 +60,7 @@ class SrtSender(
 
   private val aacPacket = AacPacket(commandsManager.MTU - SrtPacket.headerSize, psiManager)
   private val h264Packet = H264Packet(commandsManager.MTU - SrtPacket.headerSize, psiManager)
+
   @Volatile
   private var running = false
 
@@ -77,7 +78,7 @@ class SrtSender(
     private set
   var droppedVideoFrames: Long = 0
     private set
-//  var videoCodec = VideoCodec.H264
+  //  var videoCodec = VideoCodec.H264
   private val bitrateManager: BitrateManager = BitrateManager(connectCheckerSrt)
   private var isEnableLogs = true
 

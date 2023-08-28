@@ -24,7 +24,7 @@ import kotlin.random.Random
  * Created by pedro on 26/8/23.
  */
 class PSIManager(
-  service: Mpeg2TsService
+  private val service: Mpeg2TsService
 ) {
 
   private val idExtension = Random.nextInt(Byte.MIN_VALUE.toInt(), Byte.MAX_VALUE.toInt()).toShort()
@@ -76,6 +76,14 @@ class PSIManager(
 
   fun upgradePatVersion() {
     pat.version = (pat.version + 1.toByte()).toByte()
+  }
+
+  fun getAudioPid(): Short {
+    return service.tracks[0].pid
+  }
+
+  fun getVideoPid(): Short {
+    return service.tracks[1].pid
   }
 
   fun getSdt(): SDT = sdt

@@ -75,20 +75,21 @@ class H264Packet(
     avcData.get(payload, headerSize, length)
     var sum = 0
     var counter = 0
+    val pid = psiManager.getVideoPid()
     while (sum < length) {
-      val adaptationFieldControl = AdaptationFieldControl.PAYLOAD
+      val adaptationFieldControl = AdaptationFieldControl.ADAPTATION_PAYLOAD
       //num of pes/psi in payload
       val adaptationField = AdaptationField(
         discontinuityIndicator = false,
-        randomAccessIndicator = false,
-        pcr = info.presentationTimeUs
+        randomAccessIndicator = headerSize > 0,
+        pcr = System.nanoTime() / 1000
       )
       writeTsHeader(buffer, sum == 0, pid, adaptationFieldControl, counter.toByte(), adaptationField)
       val pesSize = getTSPacketSize() - getTSPacketHeaderSize() - adaptationField.getSize()
       val payloadSize = pesSize - PES.HeaderLength
       val data = payload.sliceArray(sum until minOf(sum + payloadSize, payload.size))
       val pes = PES(PesType.VIDEO, payload.size, data)
-      pes.write(buffer, info.presentationTimeUs, pesSize)
+      pes.write(buffer, info.presentationTimeUs, pesSize, sum == 0)
       sum += data.size
       counter++
       if (!buffer.hasRemaining()) {
