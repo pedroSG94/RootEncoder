@@ -42,6 +42,10 @@ fun ByteBuffer.chunks(chunkSize: Int): List<ByteArray> {
   return chunks
 }
 
+fun ByteBuffer.toByteArray(): ByteArray {
+  return this.array()
+}
+
 fun Boolean.toInt(): Int {
   return if (this) 1 else 0
 }

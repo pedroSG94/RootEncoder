@@ -16,7 +16,6 @@
 
 package com.pedro.srt
 
-import org.junit.Assert.assertEquals
 import org.junit.Test
 
 /**
@@ -29,8 +28,6 @@ class ExampleUnitTest {
 
   @Test
   fun addition_isCorrect() {
-    val v1 = (0.toInt() shl 6) or (1.toInt() and 0xF) or (0b11 shl 4)
-    val v2 = ((0.toInt() and 0x3 shl 6) or (0b11 and 0x3 shl 4) or (1 and 0xF))
-    assertEquals(v1, v2)
+
   }
 }

@@ -23,5 +23,5 @@ package com.pedro.srt.mpeg2ts
  */
 data class MpegTsPacket(
   val buffer: ByteArray,
-  val isVideo: Boolean = false
+  val type: MpegType
 )

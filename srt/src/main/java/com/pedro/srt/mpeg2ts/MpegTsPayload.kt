@@ -14,35 +14,13 @@
  * limitations under the License.
  */
 
-package com.pedro.srt.mpeg2ts.psi
-
-import java.nio.ByteBuffer
+package com.pedro.srt.mpeg2ts
 
 /**
- * Created by pedro on 24/8/23.
- *
- * NIT (Network Information Table)
- *
- * A type of PSI packet
- *
- * This table is undefined on ISO/IEC 13818-1
+ * Created by pedro on 28/8/23.
  */
-class NIT(
-  id: Byte,
-  idExtension: Short,
-  version: Byte,
-) : PSI(
-  pid = 0,
-  id = id,
-  idExtension = idExtension,
-  version = version,
+abstract class MpegTsPayload(
+  val pid: Int,
+  val isKeyFrame: Boolean = false
 ) {
-
-  override fun writeData(byteBuffer: ByteBuffer) {
-    TODO("Not yet implemented")
-  }
-
-  override fun getTableDataSize(): Int {
-    TODO("Not yet implemented")
-  }
 }

@@ -20,10 +20,12 @@ import android.media.MediaCodec
 import android.util.Log
 import com.pedro.srt.mpeg2ts.Codec
 import com.pedro.srt.mpeg2ts.MpegTsPacket
+import com.pedro.srt.mpeg2ts.MpegType
 import com.pedro.srt.mpeg2ts.packets.AacPacket
-import com.pedro.srt.mpeg2ts.packets.H264Packet
 import com.pedro.srt.mpeg2ts.psi.PSIManager
+import com.pedro.srt.mpeg2ts.psi.TableToSend
 import com.pedro.srt.mpeg2ts.service.Mpeg2TsService
+import com.pedro.srt.mpeg2ts.MpegTsPacketizer
 import com.pedro.srt.srt.packets.SrtPacket
 import com.pedro.srt.utils.BitrateManager
 import com.pedro.srt.utils.ConnectCheckerSrt
@@ -54,12 +56,10 @@ class SrtSender(
   private val psiManager = PSIManager(service).apply {
     upgradePatVersion()
     upgradeSdtVersion()
-//    upgradePatVersion()
-//    upgradeSdtVersion()
   }
 
+  private val mpegTsPacketizer = MpegTsPacketizer()
   private val aacPacket = AacPacket(commandsManager.MTU - SrtPacket.headerSize, psiManager)
-  private val h264Packet = H264Packet(commandsManager.MTU - SrtPacket.headerSize, psiManager)
 
   @Volatile
   private var running = false
@@ -87,7 +87,6 @@ class SrtSender(
   }
 
   fun setVideoInfo(sps: ByteBuffer, pps: ByteBuffer, vps: ByteBuffer?) {
-    h264Packet.sendVideoInfo(sps, pps)
   }
 
   fun setAudioInfo(sampleRate: Int, isStereo: Boolean) {
@@ -96,20 +95,13 @@ class SrtSender(
 
   fun sendVideoFrame(h264Buffer: ByteBuffer, info: MediaCodec.BufferInfo) {
     if (running) {
-      h264Packet.createAndSendPacket(h264Buffer, info) { mpegTsPacket ->
-        val error = queue.trySend(mpegTsPacket).exceptionOrNull()
-        if (error != null) {
-          Log.i(TAG, "Video frame discarded")
-          droppedVideoFrames++
-        } else {
-          itemsInQueue++
-        }
-      }
+
     }
   }
 
   fun sendAudioFrame(aacBuffer: ByteBuffer, info: MediaCodec.BufferInfo) {
     if (running) {
+      checkSendInfo()
       aacPacket.createAndSendPacket(aacBuffer, info) { mpegTsPacket ->
         val error = queue.trySend(mpegTsPacket).exceptionOrNull()
         if (error != null) {
@@ -127,17 +119,17 @@ class SrtSender(
     queueFlow = queue.receiveAsFlow()
     running = true
     job = scope.launch {
+      //send config
+      mpegTsPacketizer.write(listOf(psiManager.getSdt(), psiManager.getPat(), psiManager.getPmt())).forEach { b ->
+        queue.trySend(MpegTsPacket(b, MpegType.PSI)).exceptionOrNull()
+      }
       queueFlow.collect { mpegTsPacket ->
         itemsInQueue--
         val error = runCatching {
           var size = 0
           size += commandsManager.writeData(mpegTsPacket, socket)
           if (isEnableLogs) {
-            if (mpegTsPacket.isVideo) {
-              Log.i(TAG, "wrote Video packet, size $size")
-            } else {
-              Log.i(TAG, "wrote Audio packet, size $size")
-            }
+            Log.i(TAG, "wrote ${mpegTsPacket.type.name} packet, size $size")
           }
           //bytes to bits
           bitrateManager.calculateBitrate(size * 8L)
@@ -153,13 +145,32 @@ class SrtSender(
     }
   }
 
+  private fun checkSendInfo() {
+    when (psiManager.shouldSend(false)) {
+      TableToSend.PAT_PMT -> {
+        mpegTsPacketizer.write(listOf(psiManager.getPat(), psiManager.getPmt())).forEach {
+          queue.trySend(MpegTsPacket(it, MpegType.PSI)).exceptionOrNull()
+        }
+      }
+      TableToSend.SDT -> {
+        mpegTsPacketizer.write(listOf(psiManager.getSdt())).forEach {
+          queue.trySend(MpegTsPacket(it, MpegType.PSI)).exceptionOrNull()
+        }
+      }
+      TableToSend.NONE -> {}
+      TableToSend.ALL -> {
+        mpegTsPacketizer.write(listOf(psiManager.getSdt(), psiManager.getPat(), psiManager.getPmt())).forEach {
+          queue.trySend(MpegTsPacket(it, MpegType.PSI)).exceptionOrNull()
+        }
+      }
+    }
+  }
+
   suspend fun stop() {
     running = false
     queue.cancel()
     queue = Channel(cacheSize)
     queueFlow = queue.receiveAsFlow()
-    aacPacket.reset()
-    h264Packet.reset()
     psiManager.reset()
     resetSentAudioFrames()
     resetSentVideoFrames()

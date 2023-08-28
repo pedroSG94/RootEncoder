@@ -16,37 +16,16 @@
 
 package com.pedro.srt.mpeg2ts.psi
 
+import com.pedro.srt.mpeg2ts.MpegTsPayload
 import com.pedro.srt.utils.CRC32
 import com.pedro.srt.utils.toInt
 import java.nio.ByteBuffer
 
 /**
- * Created by pedro on 20/8/23.
- *
- * PSI (Program Specific Information)
- *
- * Header (3 bytes):
- *
- * Table ID -> 8 bits
- * Section syntax indicator -> 1 bit
- * Private bit -> 1 bit
- * Reserved bits -> 2 bits
- * Section length unused bits -> 2 bits
- * Section length -> 10 bits
- *
- * Syntax section/Table data -> N*8 bits
- *
- * Table ID extension -> 16 bits
- * Reserved bits -> 2 bits
- * Version number -> 5 bits
- * Current/next indicator -> 1 bit
- * Section number -> 8 bits
- * Last section number -> 8 bits
- * Table data -> N*8 bits
- * CRC32 -> 32 bits
+ * Created by pedro on 28/8/23.
  */
-abstract class PSI(
-  val pid: Short,
+abstract class Psi(
+  pid: Int,
   private val id: Byte,
   private val idExtension: Short,
   var version: Byte,
@@ -55,19 +34,19 @@ abstract class PSI(
   private val indicator: Boolean = true, //true current, false next
   private val sectionNumber: Byte = 0,
   private val lastSectionNumber: Byte = 0,
-) {
+): MpegTsPayload(pid, false) {
 
   private val reserved = 3
   private val sectionLengthUnusedBits = 0
-  private var sectionLength: Short = 0
+  private var sectionLength = 0
 
-  fun write(byteBuffer: ByteBuffer, psiSize: Int) {
+  fun write(byteBuffer: ByteBuffer) {
     byteBuffer.put(0x00)
     val crc32InitialPosition = byteBuffer.position()
     byteBuffer.put(id)
-    sectionLength = (9 + getTableDataSize()).toShort()
+    sectionLength = 9 + getTableDataSize()
     val combined = (sectionSyntaxIndicator.toInt() shl 15) or (privateBit.toInt() shl 14) or
-        (reserved shl 12) or (sectionLengthUnusedBits shl 10) or (sectionLength.toInt() and 0x03FF)
+        (reserved shl 12) or (sectionLengthUnusedBits shl 10) or (sectionLength and 0x03FF)
     byteBuffer.putShort(combined.toShort())
     byteBuffer.putShort(idExtension)
     val combined2 = (reserved shl 6) or (version.toInt() shl 1) or indicator.toInt()
@@ -77,15 +56,6 @@ abstract class PSI(
     writeData(byteBuffer)
     val crc32 = writeCRC(byteBuffer, crc32InitialPosition, byteBuffer.position())
     byteBuffer.putInt(crc32)
-    fillPacket(byteBuffer, psiSize - getSize())
-  }
-
-  private fun fillPacket(buffer: ByteBuffer, size: Int) {
-    var count = 0
-    while (buffer.hasRemaining() && count < size) {
-      buffer.put(0xFF.toByte())
-      count++
-    }
   }
 
   /**

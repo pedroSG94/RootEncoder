@@ -35,12 +35,12 @@ import java.nio.ByteBuffer
  * Program descriptors -> N*8 	When the program info length is non-zero, this is the program info length number of program descriptor bytes.
  * Elementary stream info data -> N*8
  */
-class PMT(
-  pmtPid: Short,
+class Pmt(
+  private val pmtPid: Int,
   idExtension: Short,
   version: Byte,
   private val service: Mpeg2TsService,
-) : PSI(
+) : Psi(
   pid = pmtPid,
   id = 0x02,
   idExtension = idExtension,
@@ -52,7 +52,7 @@ class PMT(
   private val programInfoLengthUnused: Byte = 0
 
   override fun writeData(byteBuffer: ByteBuffer) {
-    byteBuffer.putShort(((reserved.toInt() shl 13) or (service.pcrPID?.toInt() ?: 0)).toShort())
+    byteBuffer.putShort(((reserved.toInt() shl 13) or pmtPid).toShort())
     byteBuffer.putShort(((reserved2.toInt() shl 12) or (programInfoLengthUnused.toInt() shl 10) or 0).toShort())
 
     service.tracks.forEach { track ->

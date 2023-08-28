@@ -14,27 +14,12 @@
  * limitations under the License.
  */
 
-package com.pedro.srt.mpeg2ts
+package com.pedro.srt.mpeg2ts.psi
 
 /**
- * Created by pedro on 20/8/23.
+ * Created by pedro on 28/8/23.
  *
- * PID (Packet Identifier)
  */
-object PID {
-
-  const val MIN_VALUE = 32
-  const val MAX_VALUE = 8186
-  private var lastValue: Short = MIN_VALUE.toShort()
-
-  fun generatePID(): Short {
-    val pid = lastValue
-    if (pid >= MAX_VALUE) throw RuntimeException("Illegal pid")
-    lastValue++
-    return pid
-  }
-
-  fun reset() {
-    lastValue = MIN_VALUE.toShort()
-  }
+enum class TableToSend {
+  PAT_PMT, SDT, NONE, ALL
 }

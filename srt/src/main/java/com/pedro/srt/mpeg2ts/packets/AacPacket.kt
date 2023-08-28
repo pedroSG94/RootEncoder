@@ -17,13 +17,12 @@
 package com.pedro.srt.mpeg2ts.packets
 
 import android.media.MediaCodec
-import android.util.Log
-import com.pedro.srt.mpeg2ts.AdaptationField
-import com.pedro.srt.mpeg2ts.AdaptationFieldControl
 import com.pedro.srt.mpeg2ts.MpegTsPacket
-import com.pedro.srt.mpeg2ts.PES
+import com.pedro.srt.mpeg2ts.MpegType
 import com.pedro.srt.mpeg2ts.PesType
 import com.pedro.srt.mpeg2ts.psi.PSIManager
+import com.pedro.srt.mpeg2ts.MpegTsPacketizer
+import com.pedro.srt.mpeg2ts.Pes
 import com.pedro.srt.utils.toInt
 import java.nio.ByteBuffer
 
@@ -38,50 +37,29 @@ class AacPacket(
   private val header = ByteArray(7) //ADTS header
   private var sampleRate = 44100
   private var isStereo = true
-  private val realSize = getRealSize(sizeLimit)
+  private val mpegTsPacketizer = MpegTsPacketizer()
 
   override fun createAndSendPacket(
     byteBuffer: ByteBuffer,
     info: MediaCodec.BufferInfo,
     callback: (MpegTsPacket) -> Unit
   ) {
-    if (!configSend) {
-      sendConfig(realSize, callback)
-      configSend = true
-    }
-    checkSendTable(realSize, callback)
     val length = info.size
     if (length < 0) return
     byteBuffer.rewind()
-    val buffer = ByteBuffer.allocate(realSize)
 
     val payload = ByteArray(length + header.size)
     writeAdts(payload, length)
     byteBuffer.get(payload, header.size, length)
-    var sum = 0
-    var counter: Byte = 0
-    val pid = psiManager.getAudioPid()
-    while (sum < length) {
-      val adaptationFieldControl = if (sum == 0) AdaptationFieldControl.ADAPTATION_PAYLOAD else AdaptationFieldControl.PAYLOAD
-      val adaptationField = if (sum == 0) AdaptationField(
-        discontinuityIndicator = false,
-        randomAccessIndicator = false,
-        pcr = System.nanoTime() / 1000
-      ) else null
-      writeTsHeader(buffer, sum == 0, pid, adaptationFieldControl, counter, adaptationField)
-      val pesSize = getTSPacketSize() - getTSPacketHeaderSize() - (adaptationField?.getSize() ?: 0)
-      val payloadSize = pesSize - if (sum == 0) PES.HeaderLength else 0
-      val data = payload.sliceArray(sum until minOf(sum + payloadSize, payload.size))
-      val pes = PES(PesType.AUDIO, payload.size, data)
-      pes.write(buffer, info.presentationTimeUs, pesSize, sum == 0)
-      sum += data.size
-      counter = ((counter + 1) and 0xF).toByte()
-    }
 
-    val array = ByteArray(buffer.position())
-    buffer.flip()
-    buffer.get(array)
-    callback(MpegTsPacket(array, false))
+    val pes = Pes(psiManager.getAudioPid().toInt(), false, PesType.AUDIO, info.presentationTimeUs, ByteBuffer.wrap(payload))
+    val mpeg2tsPackets = mpegTsPacketizer.write(listOf(pes))
+    val size = mpeg2tsPackets.sumOf { it.size }
+    val buffer = ByteBuffer.allocate(size)
+    mpeg2tsPackets.forEach { b ->
+      buffer.put(b)
+    }
+    callback(MpegTsPacket(buffer.array(), MpegType.AUDIO))
   }
 
   fun sendAudioInfo(sampleRate: Int, stereo: Boolean) {

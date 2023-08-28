@@ -17,7 +17,8 @@
 package com.pedro.srt.mpeg2ts.service
 
 import com.pedro.srt.mpeg2ts.Codec
-import com.pedro.srt.mpeg2ts.PID
+import com.pedro.srt.mpeg2ts.Pid
+import com.pedro.srt.mpeg2ts.psi.Pmt
 
 /**
  * Created by pedro on 26/8/23.
@@ -27,18 +28,24 @@ data class Mpeg2TsService(
   val id: Short = 0x4698,
   val name: String = "Mpeg2TsService",
   val providerName: String = "com.pedro.srt",
-  var pcrPID: Short? = null,
+  var pmt: Pmt? = null,
   val tracks: MutableList<Track> = mutableListOf()
 ) {
+  init {
+    pmt = Pmt(
+      Pid.generatePID().toInt(),
+      idExtension = id,
+      version = 0,
+      service = this
+    )
+  }
   fun addTrack(codec: Codec) {
-    val pid = PID.generatePID()
-    if (codec == Codec.AVC || codec == Codec.HEVC) pcrPID = pid
-    else if (pcrPID == null) pcrPID = pid
+    val pid = Pid.generatePID()
+
     tracks.add(Track(codec, pid))
   }
 
   fun clear() {
     tracks.clear()
-    pcrPID = null
   }
 }

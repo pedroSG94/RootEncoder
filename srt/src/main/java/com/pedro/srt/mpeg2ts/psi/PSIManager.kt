@@ -16,7 +16,6 @@
 
 package com.pedro.srt.mpeg2ts.psi
 
-import com.pedro.srt.mpeg2ts.PID
 import com.pedro.srt.mpeg2ts.service.Mpeg2TsService
 import kotlin.random.Random
 
@@ -33,21 +32,14 @@ class PSIManager(
   private val sdtPeriod = 200
   private val patPeriod = 40
 
-  private val sdt = SDT(
+  private val sdt = Sdt(
     idExtension = idExtension,
     version = 0,
     service = service
   )
 
-  private val pat = PAT(
+  private val pat = Pat(
     idExtension = idExtension,
-    version = 0,
-    service = service
-  )
-
-  private val pmt = PMT(
-    pmtPid = PID.generatePID(),
-    idExtension = service.id,
     version = 0,
     service = service
   )
@@ -86,16 +78,12 @@ class PSIManager(
     return service.tracks[1].pid
   }
 
-  fun getSdt(): SDT = sdt
-  fun getPat(): PAT = pat
-  fun getPmt(): PMT = pmt
+  fun getSdt(): Sdt = sdt
+  fun getPat(): Pat = pat
+  fun getPmt(): Pmt = service.pmt!!
 
   fun reset() {
     sdtCount = 0
     patCount = 0
   }
-}
-
-enum class TableToSend {
-  PAT_PMT, SDT, NONE, ALL
 }

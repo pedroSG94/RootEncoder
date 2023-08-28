@@ -26,13 +26,13 @@ import java.nio.ByteBuffer
  *
  * A type of PSI packet
  */
-class SDT(
+class Sdt(
   idExtension: Short,
   version: Byte,
   private val originalNetworkId: Short = 0xff01.toShort(),
   private val service: Mpeg2TsService
-  ) : PSI(
-  pid = 0x0011,
+  ) : Psi(
+  pid = 17,
   id = 0x42,
   idExtension = idExtension,
   version = version,
