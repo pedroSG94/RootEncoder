@@ -16,6 +16,8 @@
 
 package com.pedro.srt.mpeg2ts
 
+import com.pedro.srt.srt.packets.data.PacketPosition
+
 /**
  * Created by pedro on 20/8/23.
  *
@@ -23,5 +25,6 @@ package com.pedro.srt.mpeg2ts
  */
 data class MpegTsPacket(
   val buffer: ByteArray,
-  val type: MpegType
+  val type: MpegType,
+  val packetPosition: PacketPosition
 )

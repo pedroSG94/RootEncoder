@@ -27,6 +27,7 @@ import com.pedro.srt.mpeg2ts.psi.TableToSend
 import com.pedro.srt.mpeg2ts.service.Mpeg2TsService
 import com.pedro.srt.mpeg2ts.MpegTsPacketizer
 import com.pedro.srt.srt.packets.SrtPacket
+import com.pedro.srt.srt.packets.data.PacketPosition
 import com.pedro.srt.utils.BitrateManager
 import com.pedro.srt.utils.ConnectCheckerSrt
 import com.pedro.srt.utils.SrtSocket
@@ -121,7 +122,7 @@ class SrtSender(
     job = scope.launch {
       //send config
       mpegTsPacketizer.write(listOf(psiManager.getSdt(), psiManager.getPat(), psiManager.getPmt())).forEach { b ->
-        queue.trySend(MpegTsPacket(b, MpegType.PSI)).exceptionOrNull()
+        queue.trySend(MpegTsPacket(b, MpegType.PSI, PacketPosition.SINGLE)).exceptionOrNull()
       }
       queueFlow.collect { mpegTsPacket ->
         itemsInQueue--
@@ -149,18 +150,18 @@ class SrtSender(
     when (psiManager.shouldSend(false)) {
       TableToSend.PAT_PMT -> {
         mpegTsPacketizer.write(listOf(psiManager.getPat(), psiManager.getPmt())).forEach {
-          queue.trySend(MpegTsPacket(it, MpegType.PSI)).exceptionOrNull()
+          queue.trySend(MpegTsPacket(it, MpegType.PSI, PacketPosition.SINGLE)).exceptionOrNull()
         }
       }
       TableToSend.SDT -> {
         mpegTsPacketizer.write(listOf(psiManager.getSdt())).forEach {
-          queue.trySend(MpegTsPacket(it, MpegType.PSI)).exceptionOrNull()
+          queue.trySend(MpegTsPacket(it, MpegType.PSI, PacketPosition.SINGLE)).exceptionOrNull()
         }
       }
       TableToSend.NONE -> {}
       TableToSend.ALL -> {
         mpegTsPacketizer.write(listOf(psiManager.getSdt(), psiManager.getPat(), psiManager.getPmt())).forEach {
-          queue.trySend(MpegTsPacket(it, MpegType.PSI)).exceptionOrNull()
+          queue.trySend(MpegTsPacket(it, MpegType.PSI, PacketPosition.SINGLE)).exceptionOrNull()
         }
       }
     }

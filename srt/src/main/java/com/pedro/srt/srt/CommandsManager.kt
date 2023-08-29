@@ -85,14 +85,9 @@ class CommandsManager {
   @Throws(IOException::class)
   suspend fun writeData(packet: MpegTsPacket, socket: SrtSocket?): Int {
     writeSync.withLock {
-      val packetPosition =  PacketPosition.SINGLE
-//      else if (index == 0) PacketPosition.FIRST
-//      else if (index == chunks.size - 1) PacketPosition.LAST
-//      else PacketPosition.MIDDLE
-
       val dataPacket = DataPacket(
         sequenceNumber = sequenceNumber++,
-        packetPosition = packetPosition,
+        packetPosition = packet.packetPosition,
         messageNumber = messageNumber++,
         payload = packet.buffer,
         ts = getTs(),

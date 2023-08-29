@@ -23,6 +23,7 @@ import com.pedro.srt.mpeg2ts.PesType
 import com.pedro.srt.mpeg2ts.psi.PSIManager
 import com.pedro.srt.mpeg2ts.MpegTsPacketizer
 import com.pedro.srt.mpeg2ts.Pes
+import com.pedro.srt.srt.packets.data.PacketPosition
 import com.pedro.srt.utils.toInt
 import java.nio.ByteBuffer
 
@@ -38,6 +39,7 @@ class AacPacket(
   private var sampleRate = 44100
   private var isStereo = true
   private val mpegTsPacketizer = MpegTsPacketizer()
+  private val chunkSize = sizeLimit / MpegTsPacketizer.packetSize //max number of ts packets per srtpacket
 
   override fun createAndSendPacket(
     byteBuffer: ByteBuffer,
@@ -54,12 +56,24 @@ class AacPacket(
 
     val pes = Pes(psiManager.getAudioPid().toInt(), false, PesType.AUDIO, info.presentationTimeUs, ByteBuffer.wrap(payload))
     val mpeg2tsPackets = mpegTsPacketizer.write(listOf(pes))
-    val size = mpeg2tsPackets.sumOf { it.size }
-    val buffer = ByteBuffer.allocate(size)
-    mpeg2tsPackets.forEach { b ->
-      buffer.put(b)
+    val chunked = mpeg2tsPackets.chunked(chunkSize)
+    chunked.forEachIndexed { index, chunks ->
+      val size = chunks.sumOf { it.size }
+      val buffer = ByteBuffer.allocate(size)
+      chunks.forEach {
+        buffer.put(it)
+      }
+      val packetPosition = if (index == 0 && chunked.size == 1) {
+        PacketPosition.SINGLE
+      } else if (index == 0) {
+        PacketPosition.FIRST
+      } else if (index == chunked.size - 1) {
+        PacketPosition.LAST
+      } else {
+        PacketPosition.MIDDLE
+      }
+      callback(MpegTsPacket(buffer.array(), MpegType.AUDIO, packetPosition))
     }
-    callback(MpegTsPacket(buffer.array(), MpegType.AUDIO))
   }
 
   fun sendAudioInfo(sampleRate: Int, stereo: Boolean) {

@@ -35,7 +35,7 @@ class Pes(
 
   private val headerLength = 14
 
-  private val length = headerLength - 6 + bufferData.remaining()
+  private val length = headerLength + bufferData.remaining()
   private val markerBits = 2
   private val scramblingControl = 0
   private val priority = false
@@ -44,20 +44,21 @@ class Pes(
   private val originalOrCopy = true
   private val ptsdtsIndicator = 2 //(only pts)
   private val otherFlags = 0 // ESCR flag, ES rate flag, DSM trick mode flag, Additional copy info flag, CRC flag, extension flag
-  private val pesHeaderLength = 5
+  private val pesHeaderLength = 5 //pts size
 
   fun writeHeader(buffer: ByteBuffer) {
     buffer.putShort(0)
     buffer.put(1)
     buffer.put(streamId.value)
-    val l = if (length > 0xFFFF) 0 else length
+    // - 6 because the length count after insert length in the header
+    val l = if (length > 0xFFFF) 0 else length - 6
     buffer.putShort(l.toShort())
     val info = ((markerBits shl 6) or (scramblingControl shl 4) or (priority.toInt() shl 3) or (dataAlignmentIndicator.toInt() shl 3) or (copyright.toInt() shl 3) or originalOrCopy.toInt()).toByte()
     buffer.put(info)
     val flags = ((ptsdtsIndicator shl 6) or otherFlags).toByte()
     buffer.put(flags)
     buffer.put(pesHeaderLength.toByte())
-    addTimestamp(buffer, pts, 0b0010) //four bits indicate no dts
+    addTimestamp(buffer, pts, 0b0010) //indicate no dts
   }
 
   private fun addTimestamp(buffer: ByteBuffer, timestamp: Long, fourBits: Byte) {

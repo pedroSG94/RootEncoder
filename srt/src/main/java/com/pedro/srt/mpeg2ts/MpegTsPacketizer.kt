@@ -27,7 +27,9 @@ import java.nio.ByteBuffer
  */
 class MpegTsPacketizer() {
 
-  private val packetSize = 188
+  companion object {
+    const val packetSize = 188
+  }
 
   //4 bytes header
   private fun writeHeader(buffer: ByteBuffer, startIndicator: Boolean, pid: Int, adaptationFieldControl: AdaptationFieldControl, continuity: Int) {
@@ -58,15 +60,12 @@ class MpegTsPacketizer() {
       when (mpegTsPayload) {
         is Psi -> {
           writeHeader(buffer, true, mpegTsPayload.pid, AdaptationFieldControl.PAYLOAD, continuity)
-
           val psi = mpegTsPayload
           psi.write(buffer)
           val stuffingSize = buffer.remaining()
           writeStuffingBytes(buffer, stuffingSize)
-
           packets.add(buffer.toByteArray())
         }
-
         is Pes -> {
           val pes = mpegTsPayload
           var adaptationFieldControl = AdaptationFieldControl.ADAPTATION_PAYLOAD
