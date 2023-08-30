@@ -17,6 +17,7 @@
 package com.pedro.srt.mpeg2ts
 
 import com.pedro.srt.mpeg2ts.psi.Psi
+import com.pedro.srt.utils.TimeUtils
 import com.pedro.srt.utils.toByteArray
 import com.pedro.srt.utils.toInt
 import java.nio.ByteBuffer
@@ -73,7 +74,7 @@ class MpegTsPacketizer() {
           val adaptationField = AdaptationField(
             discontinuityIndicator = false,
             randomAccessIndicator = mpegTsPayload.isKeyFrame, //only video can be true
-            pcr = System.nanoTime() / 1000
+            pcr = TimeUtils.getCurrentTimeMicro()
           )
           buffer.put(adaptationField.getData())
           pes.writeHeader(buffer)
@@ -89,7 +90,7 @@ class MpegTsPacketizer() {
             val size = minOf(data.remaining(), buffer.remaining())
             if (size < buffer.remaining()) { //last packet
               val stuffingSize = buffer.remaining() - data.remaining()
-              writeStuffingBytes(buffer, stuffingSize)
+              writeStuffingBytes(buffer, stuffingSize, true)
             }
             buffer.put(data.array(), data.position(), size)
             data.position(data.position() + size)
@@ -103,8 +104,13 @@ class MpegTsPacketizer() {
     return packets
   }
 
-  private fun writeStuffingBytes(byteBuffer: ByteBuffer, size: Int) {
-    val bytes = ByteArray(size) { 0xFF.toByte() }
+  private fun writeStuffingBytes(byteBuffer: ByteBuffer, size: Int, addHeader: Boolean = false) {
+    val fillSize = if (addHeader) size - 2 else size
+    val bytes = ByteArray(fillSize) { 0xFF.toByte() }
+    if (addHeader) {
+      byteBuffer.put((size - 1).toByte()) //this byte is not included in the size
+      byteBuffer.put(0x00)
+    }
     byteBuffer.put(bytes)
   }
 }

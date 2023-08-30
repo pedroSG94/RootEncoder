@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-package com.pedro.srt.mpeg2ts
+package com.pedro.srt.utils
 
 /**
- * Created by pedro on 28/8/23.
+ * Created by pedro on 30/8/23.
  */
-abstract class MpegTsPayload(
-  val pid: Int,
-  val isKeyFrame: Boolean = false
-)
+object TimeUtils {
+
+  fun getCurrentTimeMicro(): Long = System.nanoTime() / 1000
+}

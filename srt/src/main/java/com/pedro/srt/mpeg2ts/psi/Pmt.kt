@@ -36,14 +36,13 @@ import java.nio.ByteBuffer
  * Elementary stream info data -> N*8
  */
 class Pmt(
-  private val pmtPid: Int,
-  idExtension: Short,
+  pid: Int,
   version: Byte,
   private val service: Mpeg2TsService,
 ) : Psi(
-  pid = pmtPid,
+  pid = pid,
   id = 0x02,
-  idExtension = idExtension,
+  idExtension = service.id,
   version = version,
 ) {
 
@@ -52,13 +51,13 @@ class Pmt(
   private val programInfoLengthUnused: Byte = 0
 
   override fun writeData(byteBuffer: ByteBuffer) {
-    byteBuffer.putShort(((reserved.toInt() shl 13) or pmtPid).toShort())
+    byteBuffer.putShort(((reserved.toInt() shl 13) or (service.pcrPid ?: pid).toInt()).toShort())
     byteBuffer.putShort(((reserved2.toInt() shl 12) or (programInfoLengthUnused.toInt() shl 10) or 0).toShort())
 
     service.tracks.forEach { track ->
       byteBuffer.put(track.codec.value)
       val programDescriptor = generateProgramDescriptor(track.codec)
-      byteBuffer.putShort(((reserved.toInt() shl 13) or pid.toInt()).toShort())
+      byteBuffer.putShort(((reserved.toInt() shl 13) or track.pid.toInt()).toShort())
       byteBuffer.putShort(((reserved2.toInt() shl 12) or (programInfoLengthUnused.toInt() shl 10) or programDescriptor.size).toShort())
       byteBuffer.put(programDescriptor)
     }

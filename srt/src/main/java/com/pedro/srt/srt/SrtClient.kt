@@ -165,6 +165,7 @@ class SrtClient(private val connectCheckerSrt: ConnectCheckerSrt) {
       onMainThread {
         connectCheckerSrt.onDisconnectSrt()
       }
+      commandsManager.reset()
       job?.cancelAndJoin()
       job = null
       scope.cancel()

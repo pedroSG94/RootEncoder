@@ -26,6 +26,7 @@ import com.pedro.srt.srt.packets.control.handshake.Handshake
 import com.pedro.srt.srt.packets.data.PacketPosition
 import com.pedro.srt.utils.Constants
 import com.pedro.srt.utils.SrtSocket
+import com.pedro.srt.utils.TimeUtils
 import com.pedro.srt.utils.chunked
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -52,11 +53,11 @@ class CommandsManager {
   private val writeSync = Mutex(locked = false)
 
   fun loadStartTs() {
-    startTS = System.nanoTime() / 1000
+    startTS = TimeUtils.getCurrentTimeMicro()
   }
 
   fun getTs(): Int {
-    return (System.nanoTime() / 1000 - startTS).toInt()
+    return (TimeUtils.getCurrentTimeMicro() - startTS).toInt()
   }
 
   @Throws(IOException::class)
@@ -101,11 +102,6 @@ class CommandsManager {
   }
 
   @Throws(IOException::class)
-  fun writeData(dataPacket: DataPacket, socket: SrtSocket?) {
-
-  }
-
-  @Throws(IOException::class)
   suspend fun writeAck2(ackSequence: Int, socket: SrtSocket?) {
     writeSync.withLock {
       val ack2 = Ack2(ackSequence)
@@ -121,5 +117,13 @@ class CommandsManager {
       shutdown.write(getTs(), socketId)
       socket?.write(shutdown)
     }
+  }
+
+  fun reset() {
+    sequenceNumber = 0
+    messageNumber = 1
+    MTU = Constants.MTU
+    socketId = 0
+    startTS = 0L
   }
 }

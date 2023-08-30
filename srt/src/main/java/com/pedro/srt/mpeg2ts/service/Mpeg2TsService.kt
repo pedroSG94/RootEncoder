@@ -29,20 +29,22 @@ data class Mpeg2TsService(
   val name: String = "Mpeg2TsService",
   val providerName: String = "com.pedro.srt",
   var pmt: Pmt? = null,
-  val tracks: MutableList<Track> = mutableListOf()
+  val tracks: MutableList<Track> = mutableListOf(),
+  var pcrPid: Short? = null
 ) {
   init {
     pmt = Pmt(
       Pid.generatePID().toInt(),
-      idExtension = id,
       version = 0,
       service = this
     )
   }
+
   fun addTrack(codec: Codec) {
     val pid = Pid.generatePID()
-
     tracks.add(Track(codec, pid))
+    if (pcrPid == null) pcrPid = pid
+    else if (codec != Codec.AAC) pcrPid = pid
   }
 
   fun clear() {
