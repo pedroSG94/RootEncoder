@@ -32,13 +32,13 @@ import java.nio.ByteBuffer
  */
 class AacPacket(
   sizeLimit: Int,
-  psiManager: PSIManager
+  psiManager: PSIManager,
+  private val mpegTsPacketizer: MpegTsPacketizer
 ): BasePacket(psiManager) {
 
   private val header = ByteArray(7) //ADTS header
   private var sampleRate = 44100
   private var isStereo = true
-  private val mpegTsPacketizer = MpegTsPacketizer()
   private val chunkSize = sizeLimit / MpegTsPacketizer.packetSize //max number of ts packets per srtpacket
 
   override fun createAndSendPacket(

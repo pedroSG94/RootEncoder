@@ -32,19 +32,23 @@ data class Mpeg2TsService(
   val tracks: MutableList<Track> = mutableListOf(),
   var pcrPid: Short? = null
 ) {
-  init {
-    pmt = Pmt(
-      Pid.generatePID().toInt(),
-      version = 0,
-      service = this
-    )
-  }
 
   fun addTrack(codec: Codec) {
     val pid = Pid.generatePID()
     tracks.add(Track(codec, pid))
     if (pcrPid == null) pcrPid = pid
     else if (codec != Codec.AAC) pcrPid = pid
+    if (pmt == null) {
+      pmt = Pmt(
+        Pid.generatePID().toInt(),
+        version = 0,
+        service = this
+      )
+    } else {
+      pmt?.let {
+        it.version = (it.version + 1).toByte()
+      }
+    }
   }
 
   fun clear() {

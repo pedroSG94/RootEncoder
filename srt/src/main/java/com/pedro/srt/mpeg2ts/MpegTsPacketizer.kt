@@ -20,17 +20,20 @@ import com.pedro.srt.mpeg2ts.psi.Psi
 import com.pedro.srt.utils.TimeUtils
 import com.pedro.srt.utils.toByteArray
 import com.pedro.srt.utils.toInt
+import io.github.thibaultbee.streampack.internal.utils.or
 import java.nio.ByteBuffer
 
 /**
  * Created by pedro on 28/8/23.
  *
  */
-class MpegTsPacketizer() {
+class MpegTsPacketizer {
 
   companion object {
     const val packetSize = 188
   }
+
+  private var pesContinuity = 0
 
   //4 bytes header
   private fun writeHeader(buffer: ByteBuffer, startIndicator: Boolean, pid: Int, adaptationFieldControl: AdaptationFieldControl, continuity: Int) {
@@ -56,7 +59,7 @@ class MpegTsPacketizer() {
     payload.forEachIndexed { index, mpegTsPayload ->
       var buffer = ByteBuffer.allocate(packetSize)
       var isFirstPacket = index == 0
-      var continuity = index and 0xF
+      var continuity = 0 and 0xF
 
       when (mpegTsPayload) {
         is Psi -> {
@@ -70,7 +73,7 @@ class MpegTsPacketizer() {
         is Pes -> {
           val pes = mpegTsPayload
           var adaptationFieldControl = AdaptationFieldControl.ADAPTATION_PAYLOAD
-          writeHeader(buffer, true, mpegTsPayload.pid, adaptationFieldControl, continuity)
+          writeHeader(buffer, true, mpegTsPayload.pid, adaptationFieldControl, pesContinuity)
           val adaptationField = AdaptationField(
             discontinuityIndicator = false,
             randomAccessIndicator = mpegTsPayload.isKeyFrame, //only video can be true
@@ -85,17 +88,23 @@ class MpegTsPacketizer() {
               isFirstPacket = false
               adaptationFieldControl = AdaptationFieldControl.PAYLOAD
             } else {
-              writeHeader(buffer, false, mpegTsPayload.pid, adaptationFieldControl, continuity)
+              writeHeader(buffer, false, mpegTsPayload.pid, adaptationFieldControl, pesContinuity)
             }
             val size = minOf(data.remaining(), buffer.remaining())
             if (size < buffer.remaining()) { //last packet
               val stuffingSize = buffer.remaining() - data.remaining()
+              if (stuffingSize >= 2) {
+                //override adaptation field control to ADAPTATION_PAYLOAD
+                val byte = buffer.get(buffer.position() - 1)
+                buffer.position(buffer.position() - 1)
+                buffer.put((byte.toInt() or (1 shl 5)).toByte())
+              }
               writeStuffingBytes(buffer, stuffingSize, true)
             }
             buffer.put(data.array(), data.position(), size)
             data.position(data.position() + size)
             packets.add(buffer.toByteArray())
-            continuity = (continuity + 1) and 0xF
+            pesContinuity = (pesContinuity + 1) and 0xF
             buffer = ByteBuffer.allocate(packetSize)
           }
         }
@@ -105,12 +114,26 @@ class MpegTsPacketizer() {
   }
 
   private fun writeStuffingBytes(byteBuffer: ByteBuffer, size: Int, addHeader: Boolean = false) {
-    val fillSize = if (addHeader) size - 2 else size
-    val bytes = ByteArray(fillSize) { 0xFF.toByte() }
-    if (addHeader) {
-      byteBuffer.put((size - 1).toByte()) //this byte is not included in the size
-      byteBuffer.put(0x00)
+    when (val fillSize = if (addHeader) size - 2 else size) {
+      -1 -> {
+        byteBuffer.put((size - 1).toByte())
+      }
+      -2 -> {
+        byteBuffer.put((size - 1).toByte())
+        byteBuffer.put(0x00)
+      }
+      else -> {
+        val bytes = ByteArray(fillSize) { 0xFF.toByte() }
+        if (addHeader) {
+          byteBuffer.put((size - 1).toByte()) //this byte is not included in the size
+          byteBuffer.put(0x00)
+        }
+        byteBuffer.put(bytes)
+      }
     }
-    byteBuffer.put(bytes)
+  }
+
+  fun reset() {
+    pesContinuity = 0
   }
 }

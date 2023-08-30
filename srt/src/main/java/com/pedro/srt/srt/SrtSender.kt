@@ -60,7 +60,7 @@ class SrtSender(
   }
 
   private val mpegTsPacketizer = MpegTsPacketizer()
-  private val aacPacket = AacPacket(commandsManager.MTU - SrtPacket.headerSize, psiManager)
+  private val aacPacket = AacPacket(commandsManager.MTU - SrtPacket.headerSize, psiManager, mpegTsPacketizer)
 
   @Volatile
   private var running = false
@@ -121,7 +121,7 @@ class SrtSender(
     running = true
     job = scope.launch {
       //send config
-      mpegTsPacketizer.write(listOf(psiManager.getSdt(), psiManager.getPat(), psiManager.getPmt())).forEach { b ->
+      mpegTsPacketizer.write(listOf(psiManager.getPmt(), psiManager.getSdt(), psiManager.getPat())).forEach { b ->
         queue.trySend(MpegTsPacket(b, MpegType.PSI, PacketPosition.SINGLE)).exceptionOrNull()
       }
       queueFlow.collect { mpegTsPacket ->
@@ -149,7 +149,7 @@ class SrtSender(
   private fun checkSendInfo() {
     when (psiManager.shouldSend(false)) {
       TableToSend.PAT_PMT -> {
-        mpegTsPacketizer.write(listOf(psiManager.getPat(), psiManager.getPmt())).forEach {
+        mpegTsPacketizer.write(listOf(psiManager.getPmt(), psiManager.getPat())).forEach {
           queue.trySend(MpegTsPacket(it, MpegType.PSI, PacketPosition.SINGLE)).exceptionOrNull()
         }
       }
@@ -160,7 +160,7 @@ class SrtSender(
       }
       TableToSend.NONE -> {}
       TableToSend.ALL -> {
-        mpegTsPacketizer.write(listOf(psiManager.getSdt(), psiManager.getPat(), psiManager.getPmt())).forEach {
+        mpegTsPacketizer.write(listOf(psiManager.getPmt(), psiManager.getSdt(), psiManager.getPat())).forEach {
           queue.trySend(MpegTsPacket(it, MpegType.PSI, PacketPosition.SINGLE)).exceptionOrNull()
         }
       }
@@ -173,6 +173,7 @@ class SrtSender(
     queue = Channel(cacheSize)
     queueFlow = queue.receiveAsFlow()
     psiManager.reset()
+    mpegTsPacketizer.reset()
     resetSentAudioFrames()
     resetSentVideoFrames()
     resetDroppedAudioFrames()
