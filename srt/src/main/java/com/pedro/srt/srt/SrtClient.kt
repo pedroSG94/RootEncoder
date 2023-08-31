@@ -18,6 +18,7 @@ package com.pedro.srt.srt
 
 import android.media.MediaCodec
 import android.util.Log
+import com.pedro.srt.mpeg2ts.Codec
 import com.pedro.srt.srt.packets.ControlPacket
 import com.pedro.srt.srt.packets.DataPacket
 import com.pedro.srt.srt.packets.SrtPacket
@@ -83,6 +84,12 @@ class SrtClient(private val connectCheckerSrt: ConnectCheckerSrt) {
   val sentVideoFrames: Long
     get() = srtSender.getSentVideoFrames()
 
+  fun setVideoCodec(videoCodec: VideoCodec) {
+    if (!isStreaming) {
+      srtSender.videoCodec = if (videoCodec == VideoCodec.H265) Codec.HEVC else Codec.AVC
+    }
+  }
+
   fun connect(url: String) {
     if (!isStreaming) {
       isStreaming = true
@@ -92,19 +99,19 @@ class SrtClient(private val connectCheckerSrt: ConnectCheckerSrt) {
         onMainThread {
           connectCheckerSrt.onConnectionStartedSrt(url)
         }
-        val rtspMatcher = srtUrlPattern.matcher(url)
-        if (!rtspMatcher.matches()) {
+        val srtMatcher = srtUrlPattern.matcher(url)
+        if (!srtMatcher.matches()) {
           isStreaming = false
           onMainThread {
-            connectCheckerSrt.onConnectionFailedSrt("Endpoint malformed, should be: rtsp://ip:port/appname/streamname")
+            connectCheckerSrt.onConnectionFailedSrt("Endpoint malformed, should be: srt://ip:port/appname/streamname")
           }
           return@launch
         }
-        val host = rtspMatcher.group(1) ?: ""
-        val port: Int = rtspMatcher.group(2)?.toInt() ?: 8888
+        val host = srtMatcher.group(1) ?: ""
+        val port: Int = srtMatcher.group(2)?.toInt() ?: 8888
         val streamName =
-          if (rtspMatcher.group(4).isNullOrEmpty()) "" else "/" + rtspMatcher.group(4)
-        val path = "${rtspMatcher.group(3)}$streamName".trim()
+          if (srtMatcher.group(4).isNullOrEmpty()) "" else "/" + srtMatcher.group(4)
+        val path = "${srtMatcher.group(3)}$streamName".trim()
 
         val error = runCatching {
           socket = SrtSocket(host, port)
@@ -261,7 +268,7 @@ class SrtClient(private val connectCheckerSrt: ConnectCheckerSrt) {
 
   fun sendVideo(h264Buffer: ByteBuffer, info: MediaCodec.BufferInfo) {
     if (!commandsManager.videoDisabled) {
-//      srtSender.sendVideoFrame(h264Buffer, info)
+      srtSender.sendVideoFrame(h264Buffer, info)
     }
   }
 

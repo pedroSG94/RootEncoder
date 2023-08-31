@@ -29,12 +29,10 @@ import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.pedro.encoder.input.video.CameraOpenException;
-import com.pedro.rtmp.utils.ConnectCheckerRtmp;
 import com.pedro.rtplibrary.rtmp.RtmpCamera1;
 import com.pedro.rtplibrary.srt.SrtCamera1;
 import com.pedro.rtpstreamer.R;
 import com.pedro.rtpstreamer.utils.PathUtils;
-import com.pedro.srt.srt.SrtClient;
 import com.pedro.srt.utils.ConnectCheckerSrt;
 
 import java.io.File;
@@ -51,7 +49,7 @@ import java.util.Locale;
 public class ExampleSrtActivity extends AppCompatActivity
         implements ConnectCheckerSrt, View.OnClickListener, SurfaceHolder.Callback {
 
-  private SrtCamera1 rtmpCamera1;
+  private SrtCamera1 srtCamera1;
   private Button button;
   private Button bRecord;
   private EditText etUrl;
@@ -74,8 +72,8 @@ public class ExampleSrtActivity extends AppCompatActivity
     switchCamera.setOnClickListener(this);
     etUrl = findViewById(R.id.et_rtp_url);
     etUrl.setHint(R.string.hint_rtmp);
-    rtmpCamera1 = new SrtCamera1(surfaceView, this);
-    rtmpCamera1.setReTries(10);
+    srtCamera1 = new SrtCamera1(surfaceView, this);
+    srtCamera1.setReTries(10);
     surfaceView.getHolder().addCallback(this);
   }
 
@@ -98,13 +96,13 @@ public class ExampleSrtActivity extends AppCompatActivity
     runOnUiThread(new Runnable() {
       @Override
       public void run() {
-        if (rtmpCamera1.reTry(5000, reason, null)) {
+        if (srtCamera1.reTry(5000, reason, null)) {
           Toast.makeText(ExampleSrtActivity.this, "Retry", Toast.LENGTH_SHORT)
                   .show();
         } else {
           Toast.makeText(ExampleSrtActivity.this, "Connection failed. " + reason, Toast.LENGTH_SHORT)
                   .show();
-          rtmpCamera1.stopStream();
+          srtCamera1.stopStream();
           button.setText(R.string.start_button);
         }
       }
@@ -132,7 +130,7 @@ public class ExampleSrtActivity extends AppCompatActivity
       @Override
       public void run() {
         Toast.makeText(ExampleSrtActivity.this, "Auth error", Toast.LENGTH_SHORT).show();
-        rtmpCamera1.stopStream();
+        srtCamera1.stopStream();
         button.setText(R.string.start_button);
       }
     });
@@ -152,37 +150,37 @@ public class ExampleSrtActivity extends AppCompatActivity
   public void onClick(View view) {
     int id = view.getId();
     if (id == R.id.b_start_stop) {
-      if (!rtmpCamera1.isStreaming()) {
-        if (rtmpCamera1.isRecording()
-                || rtmpCamera1.prepareAudio() && rtmpCamera1.prepareVideo()) {
+      if (!srtCamera1.isStreaming()) {
+        if (srtCamera1.isRecording()
+                || srtCamera1.prepareAudio() && srtCamera1.prepareVideo()) {
           button.setText(R.string.stop_button);
-          rtmpCamera1.startStream("srt://192.168.0.191:8890/mystream");
+          srtCamera1.startStream("srt://192.168.0.191:8890/mystream");
         } else {
           Toast.makeText(this, "Error preparing stream, This device cant do it",
                   Toast.LENGTH_SHORT).show();
         }
       } else {
         button.setText(R.string.start_button);
-        rtmpCamera1.stopStream();
+        srtCamera1.stopStream();
       }
     } else if (id == R.id.switch_camera) {
       try {
-        rtmpCamera1.switchCamera();
+        srtCamera1.switchCamera();
       } catch (CameraOpenException e) {
         Toast.makeText(this, e.getMessage(), Toast.LENGTH_SHORT).show();
       }
     } else if (id == R.id.b_record) {
       if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
-        if (!rtmpCamera1.isRecording()) {
+        if (!srtCamera1.isRecording()) {
           try {
             if (!folder.exists()) {
               folder.mkdir();
             }
             SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault());
             currentDateAndTime = sdf.format(new Date());
-            if (!rtmpCamera1.isStreaming()) {
-              if (rtmpCamera1.prepareAudio() && rtmpCamera1.prepareVideo()) {
-                rtmpCamera1.startRecord(
+            if (!srtCamera1.isStreaming()) {
+              if (srtCamera1.prepareAudio() && srtCamera1.prepareVideo()) {
+                srtCamera1.startRecord(
                         folder.getAbsolutePath() + "/" + currentDateAndTime + ".mp4");
                 bRecord.setText(R.string.stop_record);
                 Toast.makeText(this, "Recording... ", Toast.LENGTH_SHORT).show();
@@ -191,19 +189,19 @@ public class ExampleSrtActivity extends AppCompatActivity
                         Toast.LENGTH_SHORT).show();
               }
             } else {
-              rtmpCamera1.startRecord(
+              srtCamera1.startRecord(
                       folder.getAbsolutePath() + "/" + currentDateAndTime + ".mp4");
               bRecord.setText(R.string.stop_record);
               Toast.makeText(this, "Recording... ", Toast.LENGTH_SHORT).show();
             }
           } catch (IOException e) {
-            rtmpCamera1.stopRecord();
+            srtCamera1.stopRecord();
             PathUtils.updateGallery(this, folder.getAbsolutePath() + "/" + currentDateAndTime + ".mp4");
             bRecord.setText(R.string.start_record);
             Toast.makeText(this, e.getMessage(), Toast.LENGTH_SHORT).show();
           }
         } else {
-          rtmpCamera1.stopRecord();
+          srtCamera1.stopRecord();
           PathUtils.updateGallery(this, folder.getAbsolutePath() + "/" + currentDateAndTime + ".mp4");
           bRecord.setText(R.string.start_record);
           Toast.makeText(this,
@@ -224,13 +222,13 @@ public class ExampleSrtActivity extends AppCompatActivity
 
   @Override
   public void surfaceChanged(SurfaceHolder surfaceHolder, int i, int i1, int i2) {
-    rtmpCamera1.startPreview();
+    srtCamera1.startPreview();
   }
 
   @Override
   public void surfaceDestroyed(SurfaceHolder surfaceHolder) {
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2 && rtmpCamera1.isRecording()) {
-      rtmpCamera1.stopRecord();
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2 && srtCamera1.isRecording()) {
+      srtCamera1.stopRecord();
       PathUtils.updateGallery(this, folder.getAbsolutePath() + "/" + currentDateAndTime + ".mp4");
       bRecord.setText(R.string.start_record);
       Toast.makeText(this,
@@ -238,10 +236,10 @@ public class ExampleSrtActivity extends AppCompatActivity
               Toast.LENGTH_SHORT).show();
       currentDateAndTime = "";
     }
-    if (rtmpCamera1.isStreaming()) {
-      rtmpCamera1.stopStream();
+    if (srtCamera1.isStreaming()) {
+      srtCamera1.stopStream();
       button.setText(getResources().getString(R.string.start_button));
     }
-    rtmpCamera1.stopPreview();
+    srtCamera1.stopPreview();
   }
 }

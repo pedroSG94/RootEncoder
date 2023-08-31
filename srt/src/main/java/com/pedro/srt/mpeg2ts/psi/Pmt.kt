@@ -69,10 +69,10 @@ class Pmt(
       bytes[0] = 0x05
       bytes[1] = 0x04
 
-      bytes[2] = "H".toByte()
-      bytes[3] = "E".toByte()
-      bytes[4] = "V".toByte()
-      bytes[5] = "C".toByte()
+      bytes[2] = 'H'.code.toByte()
+      bytes[3] = 'E'.code.toByte()
+      bytes[4] = 'V'.code.toByte()
+      bytes[5] = 'C'.code.toByte()
       bytes
     } else {
       byteArrayOf()

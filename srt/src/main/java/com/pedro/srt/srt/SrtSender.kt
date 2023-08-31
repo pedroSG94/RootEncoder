@@ -22,10 +22,11 @@ import com.pedro.srt.mpeg2ts.Codec
 import com.pedro.srt.mpeg2ts.MpegTsPacket
 import com.pedro.srt.mpeg2ts.MpegType
 import com.pedro.srt.mpeg2ts.packets.AacPacket
-import com.pedro.srt.mpeg2ts.psi.PSIManager
+import com.pedro.srt.mpeg2ts.psi.PsiManager
 import com.pedro.srt.mpeg2ts.psi.TableToSend
 import com.pedro.srt.mpeg2ts.service.Mpeg2TsService
 import com.pedro.srt.mpeg2ts.MpegTsPacketizer
+import com.pedro.srt.mpeg2ts.packets.H26XPacket
 import com.pedro.srt.srt.packets.SrtPacket
 import com.pedro.srt.srt.packets.data.PacketPosition
 import com.pedro.srt.utils.BitrateManager
@@ -51,16 +52,18 @@ class SrtSender(
 ) {
 
   private val service = Mpeg2TsService().apply {
+    addTrack(Codec.AVC)
     addTrack(Codec.AAC)
-//    addTrack(Codec.AVC)
   }
-  private val psiManager = PSIManager(service).apply {
+
+  private val psiManager = PsiManager(service).apply {
     upgradePatVersion()
     upgradeSdtVersion()
   }
 
   private val mpegTsPacketizer = MpegTsPacketizer()
-  private val aacPacket = AacPacket(commandsManager.MTU - SrtPacket.headerSize, psiManager, mpegTsPacketizer)
+  private val aacPacket = AacPacket(commandsManager.MTU - SrtPacket.headerSize, psiManager)
+  private val h26XPacket = H26XPacket(commandsManager.MTU - SrtPacket.headerSize, psiManager)
 
   @Volatile
   private var running = false
@@ -79,15 +82,26 @@ class SrtSender(
     private set
   var droppedVideoFrames: Long = 0
     private set
-  //  var videoCodec = VideoCodec.H264
+  var videoCodec = Codec.AVC
+    set(value) {
+      val videoTrack = service.tracks.find { it.codec != Codec.AAC }
+      videoTrack?.let {
+        service.tracks.remove(it)
+      }
+      service.addTrack(value)
+      h26XPacket.setVideoCodec(value)
+      field = value
+    }
+
   private val bitrateManager: BitrateManager = BitrateManager(connectCheckerSrt)
   private var isEnableLogs = true
 
   companion object {
-    private const val TAG = "RtmpSender"
+    private const val TAG = "SrtSender"
   }
 
   fun setVideoInfo(sps: ByteBuffer, pps: ByteBuffer, vps: ByteBuffer?) {
+    h26XPacket.sendVideoInfo(sps, pps, vps)
   }
 
   fun setAudioInfo(sampleRate: Int, isStereo: Boolean) {
@@ -96,7 +110,16 @@ class SrtSender(
 
   fun sendVideoFrame(h264Buffer: ByteBuffer, info: MediaCodec.BufferInfo) {
     if (running) {
-
+      checkSendInfo()
+      h26XPacket.createAndSendPacket(h264Buffer, info) { mpegTsPacket ->
+        val error = queue.trySend(mpegTsPacket).exceptionOrNull()
+        if (error != null) {
+          Log.i(TAG, "Video frame discarded")
+          droppedVideoFrames++
+        } else {
+          itemsInQueue++
+        }
+      }
     }
   }
 

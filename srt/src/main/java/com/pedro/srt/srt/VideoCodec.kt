@@ -14,17 +14,11 @@
  * limitations under the License.
  */
 
-package com.pedro.srt.utils
+package com.pedro.srt.srt
 
 /**
- * Created by pedro on 21/08/23.
+ * Created by pedro on 31/8/23.
  */
-interface ConnectCheckerSrt {
-  fun onConnectionStartedSrt(srtUrl: String)
-  fun onConnectionSuccessSrt()
-  fun onConnectionFailedSrt(reason: String)
-  fun onNewBitrateSrt(bitrate: Long)
-  fun onDisconnectSrt()
-  fun onAuthErrorSrt()
-  fun onAuthSuccessSrt()
+enum class VideoCodec {
+  H264, H265
 }

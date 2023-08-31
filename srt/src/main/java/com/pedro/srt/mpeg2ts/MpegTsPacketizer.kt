@@ -20,7 +20,6 @@ import com.pedro.srt.mpeg2ts.psi.Psi
 import com.pedro.srt.utils.TimeUtils
 import com.pedro.srt.utils.toByteArray
 import com.pedro.srt.utils.toInt
-import io.github.thibaultbee.streampack.internal.utils.or
 import java.nio.ByteBuffer
 
 /**
@@ -94,7 +93,7 @@ class MpegTsPacketizer {
             if (size < buffer.remaining()) { //last packet
               val stuffingSize = buffer.remaining() - data.remaining()
               if (stuffingSize >= 2) {
-                //override adaptation field control to ADAPTATION_PAYLOAD
+                //override AdaptationFieldControl.PAYLOAD to AdaptationFieldControl.ADAPTATION_PAYLOAD
                 val byte = buffer.get(buffer.position() - 1)
                 buffer.position(buffer.position() - 1)
                 buffer.put((byte.toInt() or (1 shl 5)).toByte())

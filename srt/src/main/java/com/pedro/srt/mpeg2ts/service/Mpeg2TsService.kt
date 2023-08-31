@@ -44,10 +44,6 @@ data class Mpeg2TsService(
         version = 0,
         service = this
       )
-    } else {
-      pmt?.let {
-        it.version = (it.version + 1).toByte()
-      }
     }
   }
 

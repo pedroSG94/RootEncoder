@@ -20,7 +20,7 @@ import android.media.MediaCodec
 import com.pedro.srt.mpeg2ts.MpegTsPacket
 import com.pedro.srt.mpeg2ts.MpegType
 import com.pedro.srt.mpeg2ts.PesType
-import com.pedro.srt.mpeg2ts.psi.PSIManager
+import com.pedro.srt.mpeg2ts.psi.PsiManager
 import com.pedro.srt.mpeg2ts.MpegTsPacketizer
 import com.pedro.srt.mpeg2ts.Pes
 import com.pedro.srt.srt.packets.data.PacketPosition
@@ -32,8 +32,7 @@ import java.nio.ByteBuffer
  */
 class AacPacket(
   sizeLimit: Int,
-  psiManager: PSIManager,
-  private val mpegTsPacketizer: MpegTsPacketizer
+  psiManager: PsiManager,
 ): BasePacket(psiManager) {
 
   private val header = ByteArray(7) //ADTS header
@@ -91,12 +90,12 @@ class AacPacket(
 
     val samplingFrequencyIndex = AUDIO_SAMPLING_RATES.asList().indexOf(sampleRate)
     val channelConfiguration = if (isStereo) 2 else 1
-    val frameLength = length + if (true) 7 else 9
+    val frameLength = length + 7
     b.putInt(
       (1 shl 30) // AAC-LC = 2 - minus 1
           or (samplingFrequencyIndex shl 26)
           // 0 - Private bit
-          or (channelConfiguration.toInt() shl 22)
+          or (channelConfiguration shl 22)
           // 0 - originality
           // 0 - home
           // 0 - copyright id bit

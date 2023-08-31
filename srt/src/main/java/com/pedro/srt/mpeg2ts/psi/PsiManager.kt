@@ -16,13 +16,14 @@
 
 package com.pedro.srt.mpeg2ts.psi
 
+import com.pedro.srt.mpeg2ts.Codec
 import com.pedro.srt.mpeg2ts.service.Mpeg2TsService
 import kotlin.random.Random
 
 /**
  * Created by pedro on 26/8/23.
  */
-class PSIManager(
+class PsiManager(
   private val service: Mpeg2TsService
 ) {
 
@@ -71,11 +72,11 @@ class PSIManager(
   }
 
   fun getAudioPid(): Short {
-    return service.tracks[0].pid
+    return service.tracks.find { it.codec == Codec.AAC }?.pid ?: 0
   }
 
   fun getVideoPid(): Short {
-    return service.tracks[1].pid
+    return service.tracks.find { it.codec != Codec.AAC }?.pid ?: 0
   }
 
   fun getSdt(): Sdt = sdt

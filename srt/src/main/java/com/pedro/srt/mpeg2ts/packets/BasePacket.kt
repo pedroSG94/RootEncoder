@@ -18,7 +18,8 @@ package com.pedro.srt.mpeg2ts.packets
 
 import android.media.MediaCodec
 import com.pedro.srt.mpeg2ts.MpegTsPacket
-import com.pedro.srt.mpeg2ts.psi.PSIManager
+import com.pedro.srt.mpeg2ts.MpegTsPacketizer
+import com.pedro.srt.mpeg2ts.psi.PsiManager
 import java.nio.ByteBuffer
 
 /**
@@ -42,8 +43,10 @@ import java.nio.ByteBuffer
  * Payload data -> variable
  */
 abstract class BasePacket(
-  val psiManager: PSIManager
+  val psiManager: PsiManager
 ) {
+
+  protected val mpegTsPacketizer =  MpegTsPacketizer()
 
   abstract fun createAndSendPacket(
     byteBuffer: ByteBuffer,

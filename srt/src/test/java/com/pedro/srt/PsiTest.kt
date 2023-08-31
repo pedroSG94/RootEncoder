@@ -18,8 +18,6 @@ package com.pedro.srt
 
 import com.pedro.srt.mpeg2ts.Codec
 import com.pedro.srt.mpeg2ts.MpegTsPacketizer
-import com.pedro.srt.mpeg2ts.Pes
-import com.pedro.srt.mpeg2ts.PesType
 import com.pedro.srt.mpeg2ts.Pid
 import com.pedro.srt.mpeg2ts.psi.Pat
 import com.pedro.srt.mpeg2ts.psi.Pmt
@@ -29,7 +27,6 @@ import com.pedro.srt.utils.TimeUtils
 import io.mockk.every
 import io.mockk.mockkObject
 import org.junit.After
-import org.junit.Assert
 import org.junit.Assert.assertArrayEquals
 import org.junit.Before
 import org.junit.Test
