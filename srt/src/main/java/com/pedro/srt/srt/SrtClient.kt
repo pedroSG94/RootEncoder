@@ -43,6 +43,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.cancelAndJoin
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import java.io.IOException
@@ -57,20 +58,24 @@ import kotlin.jvm.Throws
 class SrtClient(private val connectCheckerSrt: ConnectCheckerSrt) {
 
   private val TAG = "SrtClient"
+  private val srtUrlPattern = Pattern.compile("^srt://([^/:]+)(?::(\\d+))*/([^/]+)/?([^*]*)$")
 
   private val commandsManager = CommandsManager()
   private val srtSender = SrtSender(connectCheckerSrt, commandsManager)
   private var socket: SrtSocket? = null
   private var scope = CoroutineScope(Dispatchers.IO)
   private var job: Job? = null
+  private var scopeRetry = CoroutineScope(Dispatchers.IO)
+  private var jobRetry: Job? = null
 
   private var checkServerAlive = false
   @Volatile
   var isStreaming = false
     private set
-
   private var url: String? = null
-  private val srtUrlPattern = Pattern.compile("^srt://([^/:]+)(?::(\\d+))*/([^/]+)/?([^*]*)$")
+  private var doingRetry = false
+  private var numRetry = 0
+  private var reTries = 0
 
   val droppedAudioFrames: Long
     get() = srtSender.droppedAudioFrames
@@ -90,11 +95,53 @@ class SrtClient(private val connectCheckerSrt: ConnectCheckerSrt) {
     }
   }
 
-  fun connect(url: String) {
-    if (!isStreaming) {
+  /**
+   * Must be called before connect
+   */
+  fun setOnlyAudio(onlyAudio: Boolean) {
+    commandsManager.audioDisabled = false
+    commandsManager.videoDisabled = onlyAudio
+  }
+
+  /**
+   * Must be called before connect
+   */
+  fun setOnlyVideo(onlyVideo: Boolean) {
+    commandsManager.videoDisabled = false
+    commandsManager.audioDisabled = onlyVideo
+  }
+
+  /**
+   * Check periodically if server is alive using Echo protocol.
+   */
+  fun setCheckServerAlive(enabled: Boolean) {
+    checkServerAlive = enabled
+  }
+
+  fun setReTries(reTries: Int) {
+    numRetry = reTries
+    this.reTries = reTries
+  }
+
+  fun shouldRetry(reason: String): Boolean {
+    val validReason = doingRetry && !reason.contains("Endpoint malformed")
+    return validReason && reTries > 0
+  }
+
+  @JvmOverloads
+  fun connect(url: String?, isRetry: Boolean = false) {
+    if (!isRetry) doingRetry = true
+    if (!isStreaming || isRetry) {
       isStreaming = true
 
       job = scope.launch {
+        if (url == null) {
+          isStreaming = false
+          onMainThread {
+            connectCheckerSrt.onConnectionFailedSrt("Endpoint malformed, should be: rtsp://ip:port/appname/streamname")
+          }
+          return@launch
+        }
         this@SrtClient.url = url
         onMainThread {
           connectCheckerSrt.onConnectionStartedSrt(url)
@@ -158,25 +205,49 @@ class SrtClient(private val connectCheckerSrt: ConnectCheckerSrt) {
       }
     }
   }
+
   fun disconnect() {
     CoroutineScope(Dispatchers.IO).launch {
-      if (isStreaming) srtSender.stop()
+      disconnect(true)
+    }
+  }
+
+  private suspend fun disconnect(clear: Boolean) {
+    if (isStreaming) srtSender.stop()
+    val error = runCatching {
+      commandsManager.writeShutdown(socket)
+      socket?.close()
+    }.exceptionOrNull()
+    if (error != null) {
+      Log.e(TAG, "disconnect error", error)
+    }
+    if (clear) {
+      reTries = numRetry
+      doingRetry = false
       isStreaming = false
-      val error = runCatching {
-        commandsManager.writeShutdown(socket)
-        socket?.close()
-      }.exceptionOrNull()
-      if (error != null) {
-        Log.e(TAG, "disconnect error", error)
-      }
       onMainThread {
         connectCheckerSrt.onDisconnectSrt()
       }
-      commandsManager.reset()
-      job?.cancelAndJoin()
-      job = null
-      scope.cancel()
-      scope = CoroutineScope(Dispatchers.IO)
+      jobRetry?.cancelAndJoin()
+      jobRetry = null
+      scopeRetry.cancel()
+      scopeRetry = CoroutineScope(Dispatchers.IO)
+    }
+    commandsManager.reset()
+    job?.cancelAndJoin()
+    job = null
+    scope.cancel()
+    scope = CoroutineScope(Dispatchers.IO)
+  }
+
+  @JvmOverloads
+  fun reConnect(delay: Long, backupUrl: String? = null) {
+    jobRetry = scopeRetry.launch {
+      reTries--
+      disconnect(false)
+      delay(delay)
+      val reconnectUrl = backupUrl ?: url
+      connect(reconnectUrl, true)
     }
   }
 
@@ -226,7 +297,7 @@ class SrtClient(private val connectCheckerSrt: ConnectCheckerSrt) {
       is ControlPacket -> {
         when (srtPacket) {
           is Handshake -> {
-
+            //never should happens, handshake is already done
           }
           is KeepAlive -> {
 
@@ -235,7 +306,7 @@ class SrtClient(private val connectCheckerSrt: ConnectCheckerSrt) {
             commandsManager.writeAck2(srtPacket.typeSpecificInformation, socket)
           }
           is Nak -> {
-
+            //packet lost reported, we should resend it
           }
           is CongestionWarning -> {
 
@@ -250,7 +321,8 @@ class SrtClient(private val connectCheckerSrt: ConnectCheckerSrt) {
 
           }
           is PeerError -> {
-            disconnect()
+            val reason = srtPacket.errorCode
+            connectCheckerSrt.onConnectionFailedSrt("PeerError: $reason")
           }
         }
       }

@@ -35,9 +35,9 @@ import java.nio.ByteBuffer
  * Used for H264/H265
  */
 class H26XPacket(
-  sizeLimit: Int,
+  limitSize: Int,
   psiManager: PsiManager,
-): BasePacket(psiManager) {
+): BasePacket(psiManager, limitSize) {
 
   private val TAG = "H26XPacket"
 
@@ -45,7 +45,6 @@ class H26XPacket(
   private var pps: ByteBuffer? = null
   private var vps: ByteBuffer? = null
   private var codec = Codec.AVC
-  private val chunkSize = sizeLimit / MpegTsPacketizer.packetSize //max number of ts packets per srtpacket
 
   override fun createAndSendPacket(
     byteBuffer: ByteBuffer,

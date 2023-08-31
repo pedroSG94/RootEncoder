@@ -197,6 +197,8 @@ class SrtSender(
     queueFlow = queue.receiveAsFlow()
     psiManager.reset()
     mpegTsPacketizer.reset()
+    aacPacket.reset()
+    h26XPacket.reset()
     resetSentAudioFrames()
     resetSentVideoFrames()
     resetDroppedAudioFrames()

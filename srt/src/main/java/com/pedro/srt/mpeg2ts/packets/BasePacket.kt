@@ -43,14 +43,25 @@ import java.nio.ByteBuffer
  * Payload data -> variable
  */
 abstract class BasePacket(
-  val psiManager: PsiManager
+  val psiManager: PsiManager,
+  private var limitSize: Int,
 ) {
 
   protected val mpegTsPacketizer =  MpegTsPacketizer()
+  protected var chunkSize = limitSize / MpegTsPacketizer.packetSize //max number of ts packets per srtpacket
 
   abstract fun createAndSendPacket(
     byteBuffer: ByteBuffer,
     info: MediaCodec.BufferInfo,
     callback: (MpegTsPacket) -> Unit
   )
+
+  fun reset() {
+    mpegTsPacketizer.reset()
+  }
+
+  fun setLimitSize(limitSize: Int) {
+    this.limitSize = limitSize
+    chunkSize = limitSize / MpegTsPacketizer.packetSize
+  }
 }

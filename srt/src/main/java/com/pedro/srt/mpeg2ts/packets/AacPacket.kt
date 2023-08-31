@@ -31,14 +31,13 @@ import java.nio.ByteBuffer
  * Created by pedro on 20/8/23.
  */
 class AacPacket(
-  sizeLimit: Int,
+  limitSize: Int,
   psiManager: PsiManager,
-): BasePacket(psiManager) {
+): BasePacket(psiManager, limitSize) {
 
   private val header = ByteArray(7) //ADTS header
   private var sampleRate = 44100
   private var isStereo = true
-  private val chunkSize = sizeLimit / MpegTsPacketizer.packetSize //max number of ts packets per srtpacket
 
   override fun createAndSendPacket(
     byteBuffer: ByteBuffer,

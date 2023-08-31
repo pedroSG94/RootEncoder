@@ -143,13 +143,7 @@ public class SrtCamera1 extends Camera1Base {
 
   @Override
   protected void startStreamRtp(String url) {
-    if (videoEncoder.getRotation() == 90 || videoEncoder.getRotation() == 270) {
-//      srtClient.setVideoResolution(videoEncoder.getHeight(), videoEncoder.getWidth());
-    } else {
-//      srtClient.setVideoResolution(videoEncoder.getWidth(), videoEncoder.getHeight());
-    }
-//    srtClient.setFps(videoEncoder.getFps());
-//    srtClient.setOnlyVideo(!audioInitialized);
+    srtClient.setOnlyVideo(!audioInitialized);
     srtClient.connect(url);
   }
 
@@ -160,7 +154,7 @@ public class SrtCamera1 extends Camera1Base {
 
   @Override
   public void setReTries(int reTries) {
-//    srtClient.setReTries(reTries);
+    srtClient.setReTries(reTries);
   }
 
   @Override
@@ -170,7 +164,7 @@ public class SrtCamera1 extends Camera1Base {
 
   @Override
   public void reConnect(long delay, @Nullable String backupUrl) {
-//    srtClient.reConnect(delay, backupUrl);
+    srtClient.reConnect(delay, backupUrl);
   }
 
   @Override
@@ -200,6 +194,6 @@ public class SrtCamera1 extends Camera1Base {
 
   @Override
   public void setCheckServerAlive(boolean enable) {
-//    srtClient.setCheckServerAlive(enable);
+    srtClient.setCheckServerAlive(enable);
   }
 }

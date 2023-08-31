@@ -106,7 +106,8 @@ dependencies {
 
 ### Under develop:
 
-Currently developing SRT
+Currently developing SRT. Documentation:
+https://haivision.github.io/srt-rfc/draft-sharabayko-srt.html#name-handshake
 
 ## Other related projects:
 

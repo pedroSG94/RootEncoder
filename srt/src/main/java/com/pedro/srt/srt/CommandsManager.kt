@@ -31,7 +31,9 @@ import com.pedro.srt.utils.chunked
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import java.io.IOException
+import java.net.NetworkInterface
 import kotlin.jvm.Throws
+import kotlin.random.Random
 
 /**
  * Created by pedro on 23/8/23.
@@ -42,7 +44,7 @@ class CommandsManager {
   //used for packet lost
   private val packetHandlingQueue = mutableListOf<DataPacket>()
 
-  var sequenceNumber: Int = 0
+  var sequenceNumber: Int = generateInitialSequence()
   var messageNumber = 1
   var MTU = Constants.MTU
   var socketId = 0
@@ -63,8 +65,8 @@ class CommandsManager {
   @Throws(IOException::class)
   suspend fun writeHandshake(socket: SrtSocket?, handshake: Handshake = Handshake()) {
     writeSync.withLock {
-      handshake.initialPacketSequence = 1696815009
-      handshake.ipAddress = "192.168.0.132"
+      handshake.initialPacketSequence = sequenceNumber
+      handshake.ipAddress = getIPAddress()
       handshake.write(getTs(), 0)
       Log.i(TAG, handshake.toString())
       socket?.write(handshake)
@@ -86,6 +88,7 @@ class CommandsManager {
   @Throws(IOException::class)
   suspend fun writeData(packet: MpegTsPacket, socket: SrtSocket?): Int {
     writeSync.withLock {
+      if (sequenceNumber.toUInt() > 0x7FFFFFFFu) sequenceNumber = 0
       val dataPacket = DataPacket(
         sequenceNumber = sequenceNumber++,
         packetPosition = packet.packetPosition,
@@ -120,10 +123,34 @@ class CommandsManager {
   }
 
   fun reset() {
-    sequenceNumber = 0
+    sequenceNumber = generateInitialSequence()
     messageNumber = 1
     MTU = Constants.MTU
     socketId = 0
     startTS = 0L
   }
+
+  private fun generateInitialSequence(): Int {
+    return Random.nextInt(0, Int.MAX_VALUE)
+  }
+
+  private fun getIPAddress(): String {
+    val interfaces: List<NetworkInterface> = NetworkInterface.getNetworkInterfaces().toList()
+    val vpnInterfaces = interfaces.filter { it.displayName.contains("tun") }
+    val address: String by lazy { interfaces.findAddress().firstOrNull() ?: "0.0.0.0" }
+    return if (vpnInterfaces.isNotEmpty()) {
+      val vpnAddresses = vpnInterfaces.findAddress()
+      vpnAddresses.firstOrNull() ?: address
+    } else {
+      address
+    }
+  }
+
+  private fun List<NetworkInterface>.findAddress(): List<String?> = this.asSequence()
+    .map { addresses -> addresses.inetAddresses.asSequence() }
+    .flatten()
+    .filter { address -> !address.isLoopbackAddress }
+    .map { it.hostAddress }
+    .filter { address -> address?.contains(":") == false }
+    .toList()
 }
