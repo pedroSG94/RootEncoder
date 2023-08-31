@@ -48,6 +48,7 @@ import java.util.regex.Pattern
 class RtspClient(private val connectCheckerRtsp: ConnectCheckerRtsp) {
 
   private val TAG = "RtspClient"
+  private val rtspUrlPattern = Pattern.compile("^rtsps?://([^/:]+)(?::(\\d+))*/([^/]+)/?([^*]*)$")
 
   //sockets objects
   private var connectionSocket: Socket? = null
@@ -84,10 +85,6 @@ class RtspClient(private val connectCheckerRtsp: ConnectCheckerRtsp) {
     get() = rtspSender.getSentAudioFrames()
   val sentVideoFrames: Long
     get() = rtspSender.getSentVideoFrames()
-
-  companion object {
-    private val rtspUrlPattern = Pattern.compile("^rtsps?://([^/:]+)(?::(\\d+))*/([^/]+)/?([^*]*)$")
-  }
 
   /**
    * Check periodically if server is alive using Echo protocol.

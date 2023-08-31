@@ -3,7 +3,7 @@ apply plugin: 'org.jetbrains.kotlin.android'
 
 android {
   namespace "com.pedro.rtpstreamer"
-  compileSdkVersion 33
+  compileSdk 33
 
   defaultConfig {
     applicationId "com.pedro.rtpstreamer"
