@@ -95,6 +95,10 @@ class SrtClient(private val connectCheckerSrt: ConnectCheckerSrt) {
     }
   }
 
+  fun setAuthorization(user: String, password: String) {
+    TODO("unimplemented")
+  }
+
   /**
    * Must be called before connect
    */
@@ -266,9 +270,7 @@ class SrtClient(private val connectCheckerSrt: ConnectCheckerSrt) {
         }
       }.exceptionOrNull()
       if (error != null && error !is SocketTimeoutException) {
-        onMainThread {
-          connectCheckerSrt.onConnectionFailedSrt("Error handling packet, ${error.message}")
-        }
+        scope.cancel()
       }
     }
   }

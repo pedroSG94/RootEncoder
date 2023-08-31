@@ -24,7 +24,7 @@ import kotlin.random.Random
  * Created by pedro on 26/8/23.
  */
 class PsiManager(
-  private val service: Mpeg2TsService
+  private var service: Mpeg2TsService
 ) {
 
   private val idExtension = Random.nextInt(Byte.MIN_VALUE.toInt(), Byte.MAX_VALUE.toInt()).toShort()
@@ -33,13 +33,13 @@ class PsiManager(
   private val sdtPeriod = 200
   private val patPeriod = 40
 
-  private val sdt = Sdt(
+  private var sdt = Sdt(
     idExtension = idExtension,
     version = 0,
     service = service
   )
 
-  private val pat = Pat(
+  private var pat = Pat(
     idExtension = idExtension,
     version = 0,
     service = service
@@ -86,5 +86,11 @@ class PsiManager(
   fun reset() {
     sdtCount = 0
     patCount = 0
+  }
+
+  fun updateService(service: Mpeg2TsService) {
+    this.service = service
+    sdt.service = service
+    pat.service = service
   }
 }

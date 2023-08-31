@@ -133,7 +133,7 @@ public class SrtCamera1 extends Camera1Base {
 
   @Override
   public void setAuthorization(String user, String password) {
-//    srtClient.setAuthorization(user, password);
+    srtClient.setAuthorization(user, password);
   }
 
   @Override
@@ -159,7 +159,7 @@ public class SrtCamera1 extends Camera1Base {
 
   @Override
   protected boolean shouldRetry(String reason) {
-    return false;
+    return srtClient.shouldRetry(reason);
   }
 
   @Override

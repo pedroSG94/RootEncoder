@@ -30,8 +30,8 @@ class Sdt(
   idExtension: Short,
   version: Byte,
   private val originalNetworkId: Short = 0xff01.toShort(),
-  private val service: Mpeg2TsService
-  ) : Psi(
+  var service: Mpeg2TsService
+) : Psi(
   pid = 17,
   id = 0x42,
   idExtension = idExtension,

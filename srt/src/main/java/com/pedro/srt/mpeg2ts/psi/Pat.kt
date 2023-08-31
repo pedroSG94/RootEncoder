@@ -34,7 +34,7 @@ import java.nio.ByteBuffer
 class Pat(
   idExtension: Short,
   version: Byte,
-  service: Mpeg2TsService
+  var service: Mpeg2TsService
 ) : Psi(
   pid = 0,
   id = 0x00,
@@ -42,11 +42,11 @@ class Pat(
   version = version,
 ) {
 
-  private val programNum: Short = service.id
   private val reserved: Byte = 7
-  private var programMapPid: Short = (service.pmt?.pid ?: 0).toShort()
 
   override fun writeData(byteBuffer: ByteBuffer) {
+    val programNum: Short = service.id
+    val programMapPid: Short = (service.pmt?.pid ?: 0).toShort()
     byteBuffer.putShort(programNum)
     byteBuffer.putShort(((reserved.toInt() shl 13) or programMapPid.toInt()).toShort())
   }

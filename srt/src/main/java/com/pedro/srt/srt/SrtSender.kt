@@ -26,6 +26,7 @@ import com.pedro.srt.mpeg2ts.psi.PsiManager
 import com.pedro.srt.mpeg2ts.psi.TableToSend
 import com.pedro.srt.mpeg2ts.service.Mpeg2TsService
 import com.pedro.srt.mpeg2ts.MpegTsPacketizer
+import com.pedro.srt.mpeg2ts.Pid
 import com.pedro.srt.mpeg2ts.packets.H26XPacket
 import com.pedro.srt.srt.packets.SrtPacket
 import com.pedro.srt.srt.packets.data.PacketPosition
@@ -51,12 +52,9 @@ class SrtSender(
   private val commandsManager: CommandsManager
 ) {
 
-  private val service = Mpeg2TsService().apply {
-    addTrack(Codec.AVC)
-    addTrack(Codec.AAC)
-  }
+  private val service = Mpeg2TsService()
 
-  private val psiManager = PsiManager(service).apply {
+  private var psiManager = PsiManager(service).apply {
     upgradePatVersion()
     upgradeSdtVersion()
   }
@@ -100,6 +98,13 @@ class SrtSender(
     private const val TAG = "SrtSender"
   }
 
+  private fun setTrackConfig(videoEnabled: Boolean, audioEnabled: Boolean) {
+    Pid.reset()
+    if (videoEnabled) service.addTrack(videoCodec)
+    if (audioEnabled) service.addTrack(Codec.AAC)
+    psiManager.updateService(service)
+  }
+
   fun setVideoInfo(sps: ByteBuffer, pps: ByteBuffer, vps: ByteBuffer?) {
     h26XPacket.sendVideoInfo(sps, pps, vps)
   }
@@ -139,6 +144,8 @@ class SrtSender(
   }
 
   fun start() {
+    setTrackConfig(!commandsManager.videoDisabled, !commandsManager.audioDisabled)
+
     queue = Channel(cacheSize)
     queueFlow = queue.receiveAsFlow()
     running = true
@@ -196,6 +203,7 @@ class SrtSender(
     queue = Channel(cacheSize)
     queueFlow = queue.receiveAsFlow()
     psiManager.reset()
+    service.clear()
     mpegTsPacketizer.reset()
     aacPacket.reset()
     h26XPacket.reset()
