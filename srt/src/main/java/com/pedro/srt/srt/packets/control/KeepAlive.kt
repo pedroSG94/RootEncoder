@@ -35,4 +35,8 @@ class KeepAlive: ControlPacket(ControlType.KEEP_ALIVE) {
     super.readHeader(input)
     input.readUInt32()
   }
+
+  override fun toString(): String {
+    return "KeepAlive()"
+  }
 }

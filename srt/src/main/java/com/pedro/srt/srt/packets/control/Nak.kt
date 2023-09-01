@@ -60,4 +60,8 @@ class Nak(
       if (bit == 1) index = 0
     }
   }
+
+  override fun toString(): String {
+    return "Nak(cifLostList=$cifLostList)"
+  }
 }

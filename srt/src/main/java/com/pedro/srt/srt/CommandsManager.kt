@@ -23,16 +23,13 @@ import com.pedro.srt.srt.packets.SrtPacket
 import com.pedro.srt.srt.packets.control.Ack2
 import com.pedro.srt.srt.packets.control.Shutdown
 import com.pedro.srt.srt.packets.control.handshake.Handshake
-import com.pedro.srt.srt.packets.data.PacketPosition
 import com.pedro.srt.utils.Constants
 import com.pedro.srt.utils.SrtSocket
 import com.pedro.srt.utils.TimeUtils
-import com.pedro.srt.utils.chunked
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import java.io.IOException
 import java.net.NetworkInterface
-import kotlin.jvm.Throws
 import kotlin.random.Random
 
 /**

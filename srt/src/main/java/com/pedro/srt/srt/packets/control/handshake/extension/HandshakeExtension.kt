@@ -29,7 +29,7 @@ data class HandshakeExtension(
   private val flags: Int = ExtensionContentFlag.REXMITFLG.value or ExtensionContentFlag.CRYPT.value,
   private val receiverDelay: Int = 120,
   private val senderDelay: Int = 0,
-  private val path: String
+  private val path: String = ""
 ): SrtPacket() {
 
   fun write() {

@@ -32,9 +32,9 @@ import com.pedro.srt.srt.packets.control.PeerError
 import com.pedro.srt.srt.packets.control.Shutdown
 import com.pedro.srt.srt.packets.control.handshake.ExtensionField
 import com.pedro.srt.srt.packets.control.handshake.Handshake
-import com.pedro.srt.srt.packets.control.handshake.extension.HandshakeExtension
 import com.pedro.srt.srt.packets.control.handshake.HandshakeType
 import com.pedro.srt.srt.packets.control.handshake.extension.ExtensionContentFlag
+import com.pedro.srt.srt.packets.control.handshake.extension.HandshakeExtension
 import com.pedro.srt.utils.ConnectCheckerSrt
 import com.pedro.srt.utils.SrtSocket
 import com.pedro.srt.utils.onMainThread
@@ -50,7 +50,6 @@ import java.io.IOException
 import java.net.SocketTimeoutException
 import java.nio.ByteBuffer
 import java.util.regex.Pattern
-import kotlin.jvm.Throws
 
 /**
  * Created by pedro on 20/8/23.

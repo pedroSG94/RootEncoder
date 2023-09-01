@@ -14,29 +14,15 @@
  * limitations under the License.
  */
 
-package com.pedro.srt.srt.packets.control
+package com.pedro.srt
 
-import com.pedro.srt.srt.packets.ControlPacket
-import com.pedro.srt.utils.readUInt32
-import com.pedro.srt.utils.writeUInt32
-import java.io.InputStream
+import org.junit.Assert.assertEquals
 
 /**
- * Created by pedro on 22/8/23.
+ * Created by pedro on 1/9/23.
  */
-class Shutdown: ControlPacket(ControlType.SHUTDOWN) {
-
-  fun write(ts: Int, socketId: Int) {
-    super.writeHeader(ts, socketId)
-    buffer.writeUInt32(0)
-  }
-
-  fun read(input: InputStream) {
-    super.readHeader(input)
-    input.readUInt32()
-  }
-
-  override fun toString(): String {
-    return "Shutdown()"
+object Utils {
+  fun assertObjectEquals(actual: Any, expected: Any) {
+    assertEquals(actual.toString(), expected.toString())
   }
 }

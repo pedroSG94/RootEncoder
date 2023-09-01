@@ -35,4 +35,8 @@ class CongestionWarning: ControlPacket(ControlType.CONGESTION_WARNING) {
     super.readHeader(input)
     input.readUInt32()
   }
+
+  override fun toString(): String {
+    return "CongestionWarning()"
+  }
 }

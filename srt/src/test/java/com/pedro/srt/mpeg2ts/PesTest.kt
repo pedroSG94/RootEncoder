@@ -14,11 +14,8 @@
  * limitations under the License.
  */
 
-package com.pedro.srt
+package com.pedro.srt.mpeg2ts
 
-import com.pedro.srt.mpeg2ts.MpegTsPacketizer
-import com.pedro.srt.mpeg2ts.Pes
-import com.pedro.srt.mpeg2ts.PesType
 import com.pedro.srt.utils.TimeUtils
 import io.mockk.every
 import io.mockk.mockkObject

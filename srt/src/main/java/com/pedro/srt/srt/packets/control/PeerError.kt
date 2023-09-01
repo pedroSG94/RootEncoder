@@ -39,4 +39,8 @@ class PeerError(
     errorCode = typeSpecificInformation
     input.readUInt32()
   }
+
+  override fun toString(): String {
+    return "PeerError(errorCode=$errorCode)"
+  }
 }

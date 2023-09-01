@@ -51,4 +51,8 @@ class DropReq(
     firstPacketSequenceNumber = input.readUInt32() and 0x7FFFFFFF //31 bits
     lastPacketSequenceNumber = input.readUInt32() and 0x7FFFFFFF //31 bits
   }
+
+  override fun toString(): String {
+    return "DropReq(messageNumber=$messageNumber, firstPacketSequenceNumber=$firstPacketSequenceNumber, lastPacketSequenceNumber=$lastPacketSequenceNumber)"
+  }
 }
