@@ -56,8 +56,11 @@ abstract class BasePacket(
     callback: (MpegTsPacket) -> Unit
   )
 
+  abstract fun resetPacket()
+
   fun reset() {
     mpegTsPacketizer.reset()
+    resetPacket()
   }
 
   fun setLimitSize(limitSize: Int) {

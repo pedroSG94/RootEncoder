@@ -26,7 +26,9 @@ import com.pedro.srt.mpeg2ts.Pes
 import com.pedro.srt.mpeg2ts.PesType
 import com.pedro.srt.mpeg2ts.psi.PsiManager
 import com.pedro.srt.srt.packets.data.PacketPosition
+import com.pedro.srt.utils.toByteArray
 import java.nio.ByteBuffer
+import kotlin.experimental.and
 
 /**
  * Created by pedro on 20/8/23.
@@ -102,8 +104,14 @@ class H26XPacket(
     }
   }
 
+  override fun resetPacket() {
+    vps = null
+    sps = null
+    pps = null
+  }
+
   fun setVideoCodec(codec: Codec) {
-      this.codec = codec
+    this.codec = codec
   }
 
   fun sendVideoInfo(sps: ByteBuffer, pps: ByteBuffer, vps: ByteBuffer?) {
@@ -128,7 +136,7 @@ class H26XPacket(
         val vps = this.sps?.array() ?: byteArrayOf()
         val sps = this.sps?.array() ?: byteArrayOf()
         val pps = this.sps?.array() ?: byteArrayOf()
-        val keyExtraSize = if (codec == Codec.HEVC) 12 else 8 + vps.size + sps.size + pps.size
+        val keyExtraSize = (if (codec == Codec.HEVC) 12 else 8) + vps.size + sps.size + pps.size
         val validBuffer = ByteBuffer.allocate(byteBuffer.remaining() + keyExtraSize)
         val startCode = byteArrayOf(0x00, 0x00, 0x00, 0x01)
         val videoHeader = if (codec == Codec.HEVC) {
@@ -158,5 +166,14 @@ class H26XPacket(
       startCodeSize = 3
     }
     return startCodeSize
+  }
+
+  private fun getType(byteBuffer: ByteBuffer): Int {
+    val startCodeSize = getStartCodeSize(byteBuffer)
+    return if (codec == Codec.HEVC) {
+      byteBuffer.get(startCodeSize).toInt().shr(1 and 0x3f)
+    } else {
+      (byteBuffer.get(startCodeSize) and 0x1F).toInt()
+    }
   }
 }

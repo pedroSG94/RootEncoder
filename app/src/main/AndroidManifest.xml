@@ -104,6 +104,11 @@
         android:screenOrientation="portrait"
         />
     <activity
+        android:name=".openglexample.OpenGlSrtActivity"
+        android:label="@string/opengl_srt"
+        android:screenOrientation="portrait"
+        />
+    <activity
         android:name=".displayexample.DisplayActivity"
         android:label="@string/display_rtmp"
         android:screenOrientation="portrait"

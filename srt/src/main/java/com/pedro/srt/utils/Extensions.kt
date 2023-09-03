@@ -43,7 +43,13 @@ fun ByteBuffer.chunks(chunkSize: Int): List<ByteArray> {
 }
 
 fun ByteBuffer.toByteArray(): ByteArray {
-  return this.array()
+  return if (this.hasArray() && !isDirect) {
+    this.array()
+  } else {
+    val byteArray = ByteArray(this.remaining())
+    this.get(byteArray)
+    byteArray
+  }
 }
 
 fun Boolean.toInt(): Int {

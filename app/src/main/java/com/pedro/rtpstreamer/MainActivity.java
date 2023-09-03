@@ -45,6 +45,7 @@ import com.pedro.rtpstreamer.filestreamexample.RtmpFromFileActivity;
 import com.pedro.rtpstreamer.filestreamexample.RtspFromFileActivity;
 import com.pedro.rtpstreamer.openglexample.OpenGlRtmpActivity;
 import com.pedro.rtpstreamer.openglexample.OpenGlRtspActivity;
+import com.pedro.rtpstreamer.openglexample.OpenGlSrtActivity;
 import com.pedro.rtpstreamer.rotation.RotationExampleActivity;
 import com.pedro.rtpstreamer.surfacemodeexample.SurfaceModeRtmpActivity;
 import com.pedro.rtpstreamer.surfacemodeexample.SurfaceModeRtspActivity;
@@ -131,6 +132,8 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         getString(R.string.opengl_rtmp), JELLY_BEAN_MR2));
     activities.add(new ActivityLink(new Intent(this, OpenGlRtspActivity.class),
         getString(R.string.opengl_rtsp), JELLY_BEAN_MR2));
+    activities.add(new ActivityLink(new Intent(this, OpenGlSrtActivity.class),
+            getString(R.string.opengl_srt), JELLY_BEAN_MR2));
     activities.add(new ActivityLink(new Intent(this, DisplayActivity.class),
         getString(R.string.display_rtmp), LOLLIPOP));
     activities.add(new ActivityLink(new Intent(this, BackgroundActivity.class),
