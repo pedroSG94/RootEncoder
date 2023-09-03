@@ -46,10 +46,18 @@ fun ByteBuffer.toByteArray(): ByteArray {
   return if (this.hasArray() && !isDirect) {
     this.array()
   } else {
+    this.rewind()
     val byteArray = ByteArray(this.remaining())
     this.get(byteArray)
     byteArray
   }
+}
+
+fun ByteBuffer.startWith(byteArray: ByteArray): Boolean {
+  val startData = ByteArray(byteArray.size)
+  this.rewind()
+  this.get(startData)
+  return startData.contentEquals(byteArray)
 }
 
 fun Boolean.toInt(): Int {

@@ -24,6 +24,7 @@
   <string name="tv_select">Select your streamer</string>
   <string name="hint_rtsp">rtsp://yourendpoint</string>
   <string name="hint_rtmp">rtmp://yourendpoint</string>
+  <string name="hint_srt">srt://yourendpoint</string>
   <string name="start_button">Start stream</string>
   <string name="stop_button">Stop stream</string>
   <string name="switch_camera_button">Switch camera</string>

@@ -99,7 +99,7 @@ import java.util.Locale;
 /**
  * More documentation see:
  * {@link com.pedro.rtplibrary.base.Camera1Base}
- * {@link com.pedro.rtplibrary.rtmp.RtmpCamera1}
+ * {@link com.pedro.rtplibrary.srt.SrtCamera1}
  */
 @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
 public class OpenGlSrtActivity extends AppCompatActivity
@@ -130,7 +130,7 @@ public class OpenGlSrtActivity extends AppCompatActivity
     Button switchCamera = findViewById(R.id.switch_camera);
     switchCamera.setOnClickListener(this);
     etUrl = findViewById(R.id.et_rtp_url);
-    etUrl.setHint(R.string.hint_rtsp);
+    etUrl.setHint(R.string.hint_srt);
     srtCamera1 = new SrtCamera1(openGlView, this);
     openGlView.getHolder().addCallback(this);
     openGlView.setOnTouchListener(this);
@@ -156,7 +156,7 @@ public class OpenGlSrtActivity extends AppCompatActivity
       //filters. NOTE: You can change filter values on fly without reset the filter.
       // Example:
       // ColorFilterRender color = new ColorFilterRender()
-      // rtmpCamera1.setFilter(color);
+      // srtCamera1.setFilter(color);
       // color.setRGBColor(255, 0, 0); //red tint
     } else if (itemId == R.id.no_filter) {
       srtCamera1.getGlInterface().setFilter(new NoFilterRender());

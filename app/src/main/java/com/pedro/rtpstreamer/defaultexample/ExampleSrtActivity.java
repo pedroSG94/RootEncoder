@@ -29,7 +29,6 @@ import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.pedro.encoder.input.video.CameraOpenException;
-import com.pedro.rtplibrary.rtmp.RtmpCamera1;
 import com.pedro.rtplibrary.srt.SrtCamera1;
 import com.pedro.rtpstreamer.R;
 import com.pedro.rtpstreamer.utils.PathUtils;
@@ -44,7 +43,7 @@ import java.util.Locale;
 /**
  * More documentation see:
  * {@link com.pedro.rtplibrary.base.Camera1Base}
- * {@link RtmpCamera1}
+ * {@link com.pedro.rtplibrary.srt.SrtCamera1}
  */
 public class ExampleSrtActivity extends AppCompatActivity
         implements ConnectCheckerSrt, View.OnClickListener, SurfaceHolder.Callback {
@@ -71,7 +70,7 @@ public class ExampleSrtActivity extends AppCompatActivity
     Button switchCamera = findViewById(R.id.switch_camera);
     switchCamera.setOnClickListener(this);
     etUrl = findViewById(R.id.et_rtp_url);
-    etUrl.setHint(R.string.hint_rtmp);
+    etUrl.setHint(R.string.hint_srt);
     srtCamera1 = new SrtCamera1(surfaceView, this);
     srtCamera1.setReTries(10);
     surfaceView.getHolder().addCallback(this);
