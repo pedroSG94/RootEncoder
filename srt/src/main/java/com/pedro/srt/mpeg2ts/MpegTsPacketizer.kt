@@ -58,7 +58,7 @@ class MpegTsPacketizer {
     payload.forEachIndexed { index, mpegTsPayload ->
       var buffer = ByteBuffer.allocate(packetSize)
       var isFirstPacket = index == 0
-      var continuity = 0 and 0xF
+      val continuity = 0 and 0xF
 
       when (mpegTsPayload) {
         is Psi -> {
@@ -66,7 +66,7 @@ class MpegTsPacketizer {
           val psi = mpegTsPayload
           psi.write(buffer)
           val stuffingSize = buffer.remaining()
-          writeStuffingBytes(buffer, stuffingSize)
+          writeStuffingBytes(buffer, stuffingSize, false)
           packets.add(buffer.toByteArray())
         }
         is Pes -> {
@@ -92,12 +92,10 @@ class MpegTsPacketizer {
             val size = minOf(data.remaining(), buffer.remaining())
             if (size < buffer.remaining()) { //last packet
               val stuffingSize = buffer.remaining() - data.remaining()
-              if (stuffingSize >= 2) {
-                //override AdaptationFieldControl.PAYLOAD to AdaptationFieldControl.ADAPTATION_PAYLOAD
-                val byte = buffer.get(buffer.position() - 1)
-                buffer.position(buffer.position() - 1)
-                buffer.put((byte.toInt() or (1 shl 5)).toByte())
-              }
+              //override AdaptationFieldControl.PAYLOAD to AdaptationFieldControl.ADAPTATION_PAYLOAD
+              val byte = buffer.get(buffer.position() - 1)
+              buffer.position(buffer.position() - 1)
+              buffer.put((byte.toInt() or (1 shl 5)).toByte())
               writeStuffingBytes(buffer, stuffingSize, true)
             }
             buffer.put(data.array(), data.position(), size)
@@ -112,14 +110,10 @@ class MpegTsPacketizer {
     return packets
   }
 
-  private fun writeStuffingBytes(byteBuffer: ByteBuffer, size: Int, addHeader: Boolean = false) {
+  private fun writeStuffingBytes(byteBuffer: ByteBuffer, size: Int, addHeader: Boolean) {
     when (val fillSize = if (addHeader) size - 2 else size) {
       -1 -> {
-        byteBuffer.put((size - 1).toByte())
-      }
-      -2 -> {
-        byteBuffer.put((size - 1).toByte())
-        byteBuffer.put(0x00)
+        byteBuffer.put((size - 1).toByte()) //this byte is not included in the size
       }
       else -> {
         val bytes = ByteArray(fillSize) { 0xFF.toByte() }
