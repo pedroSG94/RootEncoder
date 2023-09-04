@@ -545,6 +545,7 @@ public class Camera2ApiManager extends CameraDevice.StateCallback {
     // Get the pointer's current position
     float x = event.getX(pointerIndex);
     float y = event.getY(pointerIndex);
+    if (x < 100 || y < 100) return;
 
     Rect touchRect = new Rect((int) (x - 100), (int) (y - 100),
         (int) (x + 100), (int) (y + 100));
