@@ -94,10 +94,30 @@ class CommandsManager {
         ts = getTs(),
         socketId = socketId
       )
+      packetHandlingQueue.add(dataPacket)
       dataPacket.write()
       socket?.write(dataPacket)
       Log.i(TAG, dataPacket.toString())
       return dataPacket.getSize()
+    }
+  }
+
+  @Throws(IOException::class)
+  suspend fun reSendPackets(packetsLost: MutableList<Int>, socket: SrtSocket?) {
+    writeSync.withLock {
+      val dataPackets = packetHandlingQueue.filter { packetsLost.contains(it.sequenceNumber) }
+      dataPackets.forEach { packet ->
+        packet.messageNumber = messageNumber++
+        packet.retransmitted = true
+        packet.write()
+        socket?.write(packet)
+      }
+    }
+  }
+
+  suspend fun updateHandlingQueue(lastPacketSequence: Int) {
+    writeSync.withLock {
+      packetHandlingQueue.removeAll { it.sequenceNumber < lastPacketSequence }
     }
   }
 
@@ -125,6 +145,7 @@ class CommandsManager {
     MTU = Constants.MTU
     socketId = 0
     startTS = 0L
+    packetHandlingQueue.clear()
   }
 
   private fun generateInitialSequence(): Int {

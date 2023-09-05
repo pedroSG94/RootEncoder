@@ -304,10 +304,15 @@ class SrtClient(private val connectCheckerSrt: ConnectCheckerSrt) {
 
           }
           is Ack -> {
-            commandsManager.writeAck2(srtPacket.typeSpecificInformation, socket)
+            val ackSequence = srtPacket.typeSpecificInformation
+            val lastPacketSequence = srtPacket.lastAcknowledgedPacketSequenceNumber
+            commandsManager.updateHandlingQueue(lastPacketSequence)
+            commandsManager.writeAck2(ackSequence, socket)
           }
           is Nak -> {
             //packet lost reported, we should resend it
+            val packetsLost = srtPacket.cifLostList
+            commandsManager.reSendPackets(packetsLost, socket)
           }
           is CongestionWarning -> {
 

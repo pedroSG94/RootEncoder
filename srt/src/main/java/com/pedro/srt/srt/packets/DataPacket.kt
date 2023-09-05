@@ -42,6 +42,7 @@ class DataPacket(
 ): SrtPacket() {
 
   fun write() {
+    resetBuffer()
     val headerData = (PacketType.DATA.value shl 31) or (sequenceNumber and 0x7FFFFFFF)
     val info = (packetPosition.value shl 30) or (order.toInt() shl 29) or
         (encryption.value shl 27) or (retransmitted.toInt() shl 26) or messageNumber

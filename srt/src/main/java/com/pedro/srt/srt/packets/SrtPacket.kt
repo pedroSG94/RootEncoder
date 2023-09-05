@@ -35,7 +35,7 @@ import java.io.IOException
  */
 abstract class SrtPacket {
 
-  val buffer = ByteArrayOutputStream()
+  var buffer = ByteArrayOutputStream()
 
   companion object {
 
@@ -107,4 +107,8 @@ abstract class SrtPacket {
   }
 
   fun getData(): ByteArray = buffer.toByteArray()
+
+  fun resetBuffer() {
+    buffer = ByteArrayOutputStream()
+  }
 }

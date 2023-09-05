@@ -39,25 +39,14 @@ class Nak(
   }
 
   private fun writeBody() {
-    if (cifLostList.size % 2 != 0 || cifLostList.isEmpty()) throw RuntimeException("invalid list size")
-    buffer.writeUInt32(cifLostList[0] and 0x7FFFFFFF)
-    if (cifLostList.size > 2) {
-      for (i in 1 until cifLostList.size - 1 step 2) {
-        buffer.writeUInt32((cifLostList[i] and 0x7FFFFFFF) or ((1 shl 31) and 0x01))
-        buffer.writeUInt32(cifLostList[i + 1] and 0x7FFFFFFF)
-      }
-    }
-    buffer.writeUInt32(cifLostList[cifLostList.size - 1] and 0x7FFFFFFF)
+    //TODO it was not working
   }
 
   private fun readBody(input: InputStream) {
-    var index = 0
-    while (index < 2) {
-      index++
-      val value = input.readUInt32()
-      cifLostList.add(value and 0x7FFFFFFF)
-      val bit = (value ushr 31) and 0x01
-      if (bit == 1) index = 0
+    val value = input.readUInt32()
+    cifLostList.add(value)
+    if (input.available() > 0) {
+      //TODO you need to read extra packets info
     }
   }
 
