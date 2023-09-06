@@ -20,13 +20,24 @@ import com.pedro.srt.srt.packets.ControlPacket
 import com.pedro.srt.utils.readUInt32
 import com.pedro.srt.utils.writeUInt32
 import java.io.InputStream
+import java.lang.IllegalArgumentException
 
 /**
  * Created by pedro on 22/8/23.
  */
-class Nak(
-  var cifLostList: MutableList<Int> = mutableListOf()
-): ControlPacket(ControlType.NAK) {
+class Nak: ControlPacket(ControlType.NAK) {
+
+  private val cifLostList: MutableList<Int> = mutableListOf()
+
+  fun addLostPacket(sequenceNumber: Int) {
+    cifLostList.add(sequenceNumber and 0x7FFFFFFF)
+    cifLostList.add(sequenceNumber and 0x7FFFFFFF)
+  }
+
+  fun addLostPacketsRange(minValue: Int, maxValue: Int) {
+    cifLostList.add(minValue or (1 shl 31))
+    cifLostList.add(maxValue and 0x7FFFFFFF)
+  }
 
   fun write(ts: Int, socketId: Int) {
     super.writeHeader(ts, socketId)
@@ -39,15 +50,45 @@ class Nak(
   }
 
   private fun writeBody() {
-    //TODO it was not working
+    if (cifLostList.isEmpty() || cifLostList.size % 2 != 0) throw IllegalArgumentException("empty or not pair size list not allowed")
+    cifLostList.chunked(2).forEach { range ->
+      val indicator = (range[0] shr 31) and 0x01
+      buffer.writeUInt32(range[0])
+      if (indicator == 1) {
+        buffer.writeUInt32(range[1])
+      }
+    }
   }
 
   private fun readBody(input: InputStream) {
-    val value = input.readUInt32()
-    cifLostList.add(value)
-    if (input.available() > 0) {
-      //TODO you need to read extra packets info
+    var isRange = false
+
+    while (input.available() >= 4) {
+      val value = input.readUInt32()
+      val indicator = (value shr 31) and 0x01
+      if (indicator == 0) {
+        cifLostList.add(value)
+        if (!isRange) cifLostList.add(value)
+        isRange = false
+      } else { // indicator == 1
+        cifLostList.add(value)
+        isRange = true
+      }
     }
+  }
+
+  /**
+   * Convert packets ranges to list of packets lost
+   */
+  fun getNakPacketsLostList(): List<Int> {
+    val chunks = cifLostList.chunked(2)
+    val values = mutableListOf<Int>()
+    chunks.forEach { ranges ->
+      val validMinValue = ranges[0] and 0x7FFFFFFF
+      val validMaxValue = ranges[1] and 0x7FFFFFFF
+      values.addAll((validMinValue..validMaxValue).toList())
+    }
+    return values
   }
 
   override fun toString(): String {

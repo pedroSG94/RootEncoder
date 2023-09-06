@@ -22,26 +22,6 @@ import java.io.InputStream
 import java.io.OutputStream
 import java.nio.ByteBuffer
 
-fun ByteBuffer.put48Bits(long: Long) {
-  val shiftedLong = long and 0x0000FFFFFFFFFFFFL
-  val i = (shiftedLong shr 32).toInt()
-  val s = long.toShort()
-  this.putInt(i)
-  this.putShort(s)
-}
-
-fun ByteBuffer.chunks(chunkSize: Int): List<ByteArray> {
-  val chunks = mutableListOf<ByteArray>()
-  this.flip()
-
-  while (this.remaining() > 0) {
-    val chunk = ByteArray(minOf(chunkSize, this.remaining()))
-    this.get(chunk)
-    chunks.add(chunk)
-  }
-  return chunks
-}
-
 fun ByteBuffer.toByteArray(): ByteArray {
   return if (this.hasArray() && !isDirect) {
     this.array()
@@ -94,19 +74,6 @@ fun InputStream.readUntil(byteArray: ByteArray) {
     val result = read(byteArray, bytesRead, byteArray.size - bytesRead)
     if (result != -1) bytesRead += result
   }
-}
-
-fun ByteArray.chunked(chunkSize: Int): List<ByteArray> {
-  val chunks = mutableListOf<ByteArray>()
-  var currentIndex = 0
-
-  while (currentIndex < this.size) {
-    val endIndex = kotlin.math.min(currentIndex + chunkSize, this.size)
-    val chunk = this.sliceArray(currentIndex until endIndex)
-    chunks.add(chunk)
-    currentIndex = endIndex
-  }
-  return chunks
 }
 
 suspend fun onMainThread(code: () -> Unit) {

@@ -99,9 +99,9 @@ dependencies {
 ### SRT:
 
 - [X] Get upload bandwidth used.
-- [x] H264, H265 and AAC support.
+- [X] H264, H265 and AAC support.
 - [ ] SRT auth.
-- [ ] Resend lost packets
+- [X] Resend lost packets
 - [ ] Encrypt
 
 ### Under develop:

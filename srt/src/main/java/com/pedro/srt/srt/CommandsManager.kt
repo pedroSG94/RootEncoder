@@ -103,7 +103,7 @@ class CommandsManager {
   }
 
   @Throws(IOException::class)
-  suspend fun reSendPackets(packetsLost: MutableList<Int>, socket: SrtSocket?) {
+  suspend fun reSendPackets(packetsLost: List<Int>, socket: SrtSocket?) {
     writeSync.withLock {
       val dataPackets = packetHandlingQueue.filter { packetsLost.contains(it.sequenceNumber) }
       dataPackets.forEach { packet ->
