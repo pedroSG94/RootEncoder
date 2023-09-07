@@ -25,6 +25,7 @@ public class FpsLimiter {
   private long startTS = System.currentTimeMillis();
   private long ratioF = 1000 / 30;
   private long ratio = 1000 / 30;
+  private long frameStartTS = 0;
 
   public void setFPS(int fps) {
     startTS = System.currentTimeMillis();
@@ -39,5 +40,13 @@ public class FpsLimiter {
       return false;
     }
     return true;
+  }
+
+  public void setFrameStartTs() {
+    frameStartTS = System.currentTimeMillis();
+  }
+
+  public long getSleepTime() {
+    return Math.max(0, ratioF - (System.currentTimeMillis() - frameStartTS));
   }
 }

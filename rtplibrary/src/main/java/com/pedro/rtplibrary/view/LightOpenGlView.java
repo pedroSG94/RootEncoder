@@ -101,39 +101,48 @@ public class LightOpenGlView extends OpenGlViewBase {
     surfaceManagerPhoto.release();
     surfaceManagerPhoto.eglSetup(encoderWidth, encoderHeight, surfaceManager);
     semaphore.release();
-    while (running) {
-      if (frameAvailable || forceRender) {
-        frameAvailable = false;
-        surfaceManager.makeCurrent();
-        simpleCameraRender.updateFrame();
-        simpleCameraRender.drawFrame(previewWidth, previewHeight, keepAspectRatio, aspectRatioMode.id,
-            0, isPreviewVerticalFlip, isPreviewHorizontalFlip);
-        surfaceManager.swapBuffer();
+    try {
+      while (running) {
+        fpsLimiter.setFrameStartTs();
+        if (frameAvailable || forceRender) {
+          frameAvailable = false;
+          surfaceManager.makeCurrent();
+          simpleCameraRender.updateFrame();
+          simpleCameraRender.drawFrame(previewWidth, previewHeight, keepAspectRatio, aspectRatioMode.id,
+              0, isPreviewVerticalFlip, isPreviewHorizontalFlip);
+          surfaceManager.swapBuffer();
 
-        synchronized (sync) {
-          if (surfaceManagerEncoder.isReady() && !fpsLimiter.limitFPS()) {
-            int w = muteVideo ? 0 : encoderWidth;
-            int h = muteVideo ? 0 : encoderHeight;
-            surfaceManagerEncoder.makeCurrent();
-            simpleCameraRender.drawFrame(w, h, false, aspectRatioMode.id,
-                streamRotation, isStreamVerticalFlip, isStreamHorizontalFlip);
-            surfaceManagerEncoder.swapBuffer();
-          }
-          if (takePhotoCallback != null && surfaceManagerPhoto.isReady()) {
-            surfaceManagerPhoto.makeCurrent();
-            simpleCameraRender.drawFrame(encoderWidth, encoderHeight, false, aspectRatioMode.id,
-                streamRotation, isStreamVerticalFlip, isStreamHorizontalFlip);
-            takePhotoCallback.onTakePhoto(GlUtil.getBitmap(encoderWidth, encoderHeight));
-            takePhotoCallback = null;
-            surfaceManagerPhoto.swapBuffer();
+          synchronized (sync) {
+            if (surfaceManagerEncoder.isReady() && !fpsLimiter.limitFPS()) {
+              int w = muteVideo ? 0 : encoderWidth;
+              int h = muteVideo ? 0 : encoderHeight;
+              surfaceManagerEncoder.makeCurrent();
+              simpleCameraRender.drawFrame(w, h, false, aspectRatioMode.id,
+                  streamRotation, isStreamVerticalFlip, isStreamHorizontalFlip);
+              surfaceManagerEncoder.swapBuffer();
+            }
+            if (takePhotoCallback != null && surfaceManagerPhoto.isReady()) {
+              surfaceManagerPhoto.makeCurrent();
+              simpleCameraRender.drawFrame(encoderWidth, encoderHeight, false, aspectRatioMode.id,
+                  streamRotation, isStreamVerticalFlip, isStreamHorizontalFlip);
+              takePhotoCallback.onTakePhoto(GlUtil.getBitmap(encoderWidth, encoderHeight));
+              takePhotoCallback = null;
+              surfaceManagerPhoto.swapBuffer();
+            }
           }
         }
+        synchronized (sync) {
+          sync.wait(fpsLimiter.getSleepTime());
+        }
       }
+    } catch (InterruptedException ignore) {
+      Thread.currentThread().interrupt();
+    } finally{
+      simpleCameraRender.release();
+      surfaceManagerPhoto.release();
+      surfaceManagerEncoder.release();
+      surfaceManager.release();
     }
-    simpleCameraRender.release();
-    surfaceManagerPhoto.release();
-    surfaceManagerEncoder.release();
-    surfaceManager.release();
   }
 
   @Override

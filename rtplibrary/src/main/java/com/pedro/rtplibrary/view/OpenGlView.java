@@ -176,6 +176,7 @@ public class OpenGlView extends OpenGlViewBase {
     semaphore.release();
     try {
       while (running) {
+        fpsLimiter.setFrameStartTs();
         if (frameAvailable || forceRender) {
           frameAvailable = false;
           surfaceManager.makeCurrent();
@@ -211,6 +212,9 @@ public class OpenGlView extends OpenGlViewBase {
               surfaceManagerPhoto.swapBuffer();
             }
           }
+        }
+        synchronized (sync) {
+          sync.wait(fpsLimiter.getSleepTime());
         }
       }
     } catch (InterruptedException ignore) {

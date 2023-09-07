@@ -248,17 +248,17 @@ public class OffScreenGlThread
 
   @Override
   public void stop() {
-    synchronized (sync) {
-      running = false;
-      if (thread != null) {
+    running = false;
+    if (thread != null) {
+      thread.interrupt();
+      try {
+        thread.join(100);
+      } catch (InterruptedException e) {
         thread.interrupt();
-        try {
-          thread.join(100);
-        } catch (InterruptedException e) {
-          thread.interrupt();
-        }
-        thread = null;
       }
+      thread = null;
+    }
+    synchronized (sync) {
       surfaceManagerPhoto.release();
       surfaceManagerEncoder.release();
       surfaceManager.release();
@@ -277,6 +277,7 @@ public class OffScreenGlThread
     semaphore.release();
     try {
       while (running) {
+        fpsLimiter.setFrameStartTs();
         if (frameAvailable || forceRender) {
           frameAvailable = false;
           surfaceManager.makeCurrent();
@@ -311,6 +312,9 @@ public class OffScreenGlThread
               surfaceManagerPhoto.swapBuffer();
             }
           }
+        }
+        synchronized (sync) {
+          sync.wait(fpsLimiter.getSleepTime());
         }
       }
     } catch (InterruptedException ignore) {

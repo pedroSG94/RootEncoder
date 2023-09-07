@@ -188,17 +188,17 @@ public abstract class OpenGlViewBase extends SurfaceView
 
   @Override
   public void stop() {
-    synchronized (sync) {
-      running = false;
-      if (thread != null) {
+    running = false;
+    if (thread != null) {
+      thread.interrupt();
+      try {
+        thread.join(100);
+      } catch (InterruptedException e) {
         thread.interrupt();
-        try {
-          thread.join(100);
-        } catch (InterruptedException e) {
-          thread.interrupt();
-        }
-        thread = null;
       }
+      thread = null;
+    }
+    synchronized (sync) {
       surfaceManagerPhoto.release();
       surfaceManagerEncoder.release();
       surfaceManager.release();

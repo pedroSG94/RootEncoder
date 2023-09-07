@@ -101,15 +101,15 @@ class GlStreamInterface(private val context: Context) : Runnable, OnFrameAvailab
   }
 
   fun stop() {
-    synchronized(sync) {
-      running = false
+    running = false
+    thread?.interrupt()
+    try {
+      thread?.join(100)
+    } catch (e: InterruptedException) {
       thread?.interrupt()
-      try {
-        thread?.join(100)
-      } catch (e: InterruptedException) {
-        thread?.interrupt()
-      }
-      thread = null
+    }
+    thread = null
+    synchronized(sync) {
       surfaceManagerEncoder.release()
       surfaceManager.release()
     }
@@ -124,6 +124,7 @@ class GlStreamInterface(private val context: Context) : Runnable, OnFrameAvailab
     semaphore.release()
     try {
       while (running) {
+        fpsLimiter.setFrameStartTs()
         if (frameAvailable || forceRender) {
           frameAvailable = false
           surfaceManager.makeCurrent()
@@ -159,6 +160,9 @@ class GlStreamInterface(private val context: Context) : Runnable, OnFrameAvailab
               surfaceManagerPreview.swapBuffer()
             }
           }
+        }
+        synchronized(sync) {
+          sync.wait(fpsLimiter.sleepTime)
         }
       }
     } catch (ignore: InterruptedException) {
