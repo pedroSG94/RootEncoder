@@ -20,7 +20,6 @@ import com.pedro.rtmp.utils.*
 import java.io.IOException
 import java.io.InputStream
 import java.io.OutputStream
-import kotlin.jvm.Throws
 
 /**
  * Created by pedro on 19/07/22.

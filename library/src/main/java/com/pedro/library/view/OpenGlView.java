@@ -24,6 +24,7 @@ import android.util.AttributeSet;
 import android.util.Log;
 import android.view.Surface;
 import android.view.SurfaceHolder;
+
 import androidx.annotation.RequiresApi;
 
 import com.pedro.encoder.input.gl.FilterAction;

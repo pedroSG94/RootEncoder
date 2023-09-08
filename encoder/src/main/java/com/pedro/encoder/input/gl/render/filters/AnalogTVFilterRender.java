@@ -21,13 +21,13 @@ import android.opengl.GLES20;
 import android.opengl.Matrix;
 import android.os.Build;
 
+import androidx.annotation.RequiresApi;
+
 import com.pedro.encoder.R;
 import com.pedro.encoder.utils.gl.GlUtil;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
-
-import androidx.annotation.RequiresApi;
 
 /**
  * Created by pedro on 09/09/19.

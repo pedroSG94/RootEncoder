@@ -16,6 +16,8 @@
 
 package com.pedro.library.base;
 
+import static android.content.Context.MEDIA_PROJECTION_SERVICE;
+
 import android.content.Context;
 import android.content.Intent;
 import android.hardware.display.VirtualDisplay;
@@ -33,6 +35,7 @@ import android.view.SurfaceView;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
+
 import com.pedro.encoder.Frame;
 import com.pedro.encoder.audio.AudioEncoder;
 import com.pedro.encoder.audio.GetAacData;
@@ -47,16 +50,14 @@ import com.pedro.encoder.video.GetVideoData;
 import com.pedro.encoder.video.VideoEncoder;
 import com.pedro.library.base.recording.BaseRecordController;
 import com.pedro.library.base.recording.RecordController;
-import com.pedro.library.util.FpsListener;
 import com.pedro.library.util.AndroidMuxerRecordController;
+import com.pedro.library.util.FpsListener;
 import com.pedro.library.view.GlInterface;
 import com.pedro.library.view.OffScreenGlThread;
 
 import java.io.FileDescriptor;
 import java.io.IOException;
 import java.nio.ByteBuffer;
-
-import static android.content.Context.MEDIA_PROJECTION_SERVICE;
 
 /**
  * Wrapper to stream display screen of your device and microphone.

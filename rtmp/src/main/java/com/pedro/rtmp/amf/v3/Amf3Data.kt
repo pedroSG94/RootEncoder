@@ -19,7 +19,6 @@ package com.pedro.rtmp.amf.v3
 import java.io.IOException
 import java.io.InputStream
 import java.io.OutputStream
-import kotlin.jvm.Throws
 
 /**
  * Created by pedro on 20/04/21.

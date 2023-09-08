@@ -30,11 +30,14 @@ import android.os.Handler;
 import android.os.Looper;
 import android.view.Surface;
 import android.view.View;
+
 import androidx.annotation.RequiresApi;
+
 import com.pedro.encoder.R;
 import com.pedro.encoder.input.gl.AndroidViewSprite;
 import com.pedro.encoder.utils.gl.GlUtil;
 import com.pedro.encoder.utils.gl.TranslateTo;
+
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.concurrent.ExecutorService;

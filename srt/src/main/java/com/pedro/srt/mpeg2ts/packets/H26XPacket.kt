@@ -29,7 +29,6 @@ import com.pedro.srt.srt.packets.data.PacketPosition
 import com.pedro.srt.utils.startWith
 import com.pedro.srt.utils.toByteArray
 import java.nio.ByteBuffer
-import kotlin.experimental.and
 
 /**
  * Created by pedro on 20/8/23.

@@ -32,6 +32,7 @@ import android.view.View;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
+
 import com.pedro.encoder.Frame;
 import com.pedro.encoder.audio.AudioEncoder;
 import com.pedro.encoder.audio.GetAacData;
@@ -57,6 +58,7 @@ import com.pedro.library.view.GlInterface;
 import com.pedro.library.view.LightOpenGlView;
 import com.pedro.library.view.OffScreenGlThread;
 import com.pedro.library.view.OpenGlView;
+
 import java.io.FileDescriptor;
 import java.io.IOException;
 import java.nio.ByteBuffer;

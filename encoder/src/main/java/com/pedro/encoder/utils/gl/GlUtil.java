@@ -25,7 +25,9 @@ import android.opengl.GLES11Ext;
 import android.opengl.GLES20;
 import android.os.Build;
 import android.util.Log;
+
 import androidx.annotation.RequiresApi;
+
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;

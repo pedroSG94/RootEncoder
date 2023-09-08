@@ -19,7 +19,9 @@ package com.pedro.encoder.input.gl.render.filters;
 import android.content.Context;
 import android.opengl.GLES20;
 import android.os.Build;
+
 import androidx.annotation.RequiresApi;
+
 import com.pedro.encoder.input.gl.render.BaseRenderOffScreen;
 import com.pedro.encoder.input.gl.render.RenderHandler;
 import com.pedro.encoder.utils.gl.GlUtil;

@@ -18,9 +18,11 @@ package com.pedro.encoder.input.gl;
 
 import android.graphics.PointF;
 import android.os.Build;
-import androidx.annotation.RequiresApi;
 import android.view.MotionEvent;
 import android.view.View;
+
+import androidx.annotation.RequiresApi;
+
 import com.pedro.encoder.input.gl.render.filters.AndroidViewFilterRender;
 import com.pedro.encoder.input.gl.render.filters.BaseFilterRender;
 import com.pedro.encoder.input.gl.render.filters.object.BaseObjectFilterRender;

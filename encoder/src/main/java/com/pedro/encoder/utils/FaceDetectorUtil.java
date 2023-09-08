@@ -23,6 +23,7 @@ import android.graphics.RectF;
 import android.hardware.Camera;
 import android.hardware.camera2.params.Face;
 import android.os.Build;
+
 import androidx.annotation.RequiresApi;
 
 import com.pedro.encoder.input.video.CameraHelper;

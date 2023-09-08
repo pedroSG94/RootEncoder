@@ -26,7 +26,6 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 
-
 import com.pedro.library.base.recording.BaseRecordController;
 
 import java.io.FileDescriptor;

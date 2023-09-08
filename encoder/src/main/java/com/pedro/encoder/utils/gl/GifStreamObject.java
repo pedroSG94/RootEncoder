@@ -18,7 +18,9 @@ package com.pedro.encoder.utils.gl;
 
 import android.graphics.Bitmap;
 import android.util.Log;
+
 import com.pedro.encoder.utils.gl.gif.GifDecoder;
+
 import java.io.IOException;
 import java.io.InputStream;
 

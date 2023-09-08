@@ -25,12 +25,12 @@ import android.view.TextureView;
 import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 
-import com.pedro.rtmp.flv.video.ProfileIop;
-import com.pedro.rtmp.rtmp.RtmpClient;
-import com.pedro.rtmp.utils.ConnectCheckerRtmp;
 import com.pedro.library.base.Camera2Base;
 import com.pedro.library.view.LightOpenGlView;
 import com.pedro.library.view.OpenGlView;
+import com.pedro.rtmp.flv.video.ProfileIop;
+import com.pedro.rtmp.rtmp.RtmpClient;
+import com.pedro.rtmp.utils.ConnectCheckerRtmp;
 import com.pedro.rtsp.rtsp.RtspClient;
 import com.pedro.rtsp.utils.ConnectCheckerRtsp;
 

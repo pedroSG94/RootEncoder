@@ -18,8 +18,11 @@ package com.pedro.encoder.input.gl.render.filters.object;
 
 import android.opengl.GLES20;
 import android.os.Build;
+
 import androidx.annotation.RequiresApi;
+
 import com.pedro.encoder.utils.gl.GifStreamObject;
+
 import java.io.IOException;
 import java.io.InputStream;
 

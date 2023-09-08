@@ -18,6 +18,7 @@ package com.pedro.encoder;
 
 import android.media.MediaCodec;
 import android.media.MediaFormat;
+
 import androidx.annotation.NonNull;
 
 /**

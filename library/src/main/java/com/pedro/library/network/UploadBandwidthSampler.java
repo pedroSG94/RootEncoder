@@ -16,6 +16,7 @@ import android.os.Looper;
 import android.os.Message;
 import android.os.Process;
 import android.os.SystemClock;
+
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**

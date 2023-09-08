@@ -26,8 +26,8 @@ import android.os.Build;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.util.Log;
+
 import com.pedro.encoder.Frame;
-import java.nio.ByteBuffer;
 
 /**
  * Created by pedro on 19/01/17.

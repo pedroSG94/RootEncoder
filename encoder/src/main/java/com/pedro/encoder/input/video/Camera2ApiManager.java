@@ -16,6 +16,10 @@
 
 package com.pedro.encoder.input.video;
 
+import static android.hardware.camera2.CameraMetadata.LENS_FACING_FRONT;
+import static com.pedro.encoder.input.video.CameraHelper.Facing;
+import static com.pedro.encoder.input.video.CameraHelper.getFingerSpacing;
+
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.graphics.Rect;
@@ -48,14 +52,12 @@ import android.view.TextureView;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.Semaphore;
-
-import static android.hardware.camera2.CameraMetadata.LENS_FACING_FRONT;
-import static com.pedro.encoder.input.video.CameraHelper.*;
 
 /**
  * Created by pedro on 4/03/17.

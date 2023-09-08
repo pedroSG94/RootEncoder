@@ -17,8 +17,8 @@
 package com.pedro.encoder.video;
 
 import android.media.MediaCodec;
-
 import android.media.MediaFormat;
+
 import java.nio.ByteBuffer;
 
 /**

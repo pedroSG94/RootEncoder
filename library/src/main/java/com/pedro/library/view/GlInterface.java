@@ -19,6 +19,7 @@ package com.pedro.library.view;
 import android.graphics.Point;
 import android.graphics.SurfaceTexture;
 import android.view.Surface;
+
 import com.pedro.encoder.input.gl.render.filters.BaseFilterRender;
 
 public interface GlInterface {

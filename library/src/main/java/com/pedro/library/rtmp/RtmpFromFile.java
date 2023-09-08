@@ -26,14 +26,13 @@ import androidx.annotation.RequiresApi;
 import com.pedro.encoder.input.decoder.AudioDecoderInterface;
 import com.pedro.encoder.input.decoder.VideoDecoderInterface;
 import com.pedro.encoder.utils.CodecUtil;
+import com.pedro.library.base.FromFileBase;
+import com.pedro.library.view.LightOpenGlView;
+import com.pedro.library.view.OpenGlView;
 import com.pedro.rtmp.flv.video.ProfileIop;
 import com.pedro.rtmp.rtmp.RtmpClient;
 import com.pedro.rtmp.rtmp.VideoCodec;
 import com.pedro.rtmp.utils.ConnectCheckerRtmp;
-import com.pedro.library.base.FromFileBase;
-
-import com.pedro.library.view.LightOpenGlView;
-import com.pedro.library.view.OpenGlView;
 
 import java.nio.ByteBuffer;
 

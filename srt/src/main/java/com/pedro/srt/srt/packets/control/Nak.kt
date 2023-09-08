@@ -20,7 +20,6 @@ import com.pedro.srt.srt.packets.ControlPacket
 import com.pedro.srt.utils.readUInt32
 import com.pedro.srt.utils.writeUInt32
 import java.io.InputStream
-import java.lang.IllegalArgumentException
 
 /**
  * Created by pedro on 22/8/23.

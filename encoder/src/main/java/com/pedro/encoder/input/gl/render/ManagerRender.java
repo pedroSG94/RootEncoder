@@ -20,10 +20,12 @@ import android.content.Context;
 import android.graphics.SurfaceTexture;
 import android.os.Build;
 import android.view.Surface;
+
 import androidx.annotation.RequiresApi;
 
 import com.pedro.encoder.input.gl.FilterAction;
 import com.pedro.encoder.input.gl.render.filters.BaseFilterRender;
+
 import java.util.ArrayList;
 import java.util.List;
 

@@ -20,7 +20,7 @@ import android.util.Base64
 import java.io.UnsupportedEncodingException
 import java.security.MessageDigest
 import java.security.NoSuchAlgorithmException
-import java.util.*
+import java.util.Random
 
 /**
  * Created by pedro on 27/04/21.

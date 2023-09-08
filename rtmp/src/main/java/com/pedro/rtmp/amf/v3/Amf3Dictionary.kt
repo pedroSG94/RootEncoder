@@ -18,7 +18,6 @@ package com.pedro.rtmp.amf.v3
 
 import java.io.InputStream
 import java.io.OutputStream
-import java.util.LinkedHashMap
 
 /**
  * Created by pedro on 29/04/21.

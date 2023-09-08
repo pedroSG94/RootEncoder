@@ -24,7 +24,6 @@ import java.io.OutputStream
 import java.net.DatagramPacket
 import java.net.InetAddress
 import java.net.MulticastSocket
-import java.net.UnknownHostException
 
 /**
  * Created by pedro on 7/11/18.

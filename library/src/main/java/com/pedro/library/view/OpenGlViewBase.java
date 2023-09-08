@@ -20,12 +20,14 @@ import android.content.Context;
 import android.graphics.Point;
 import android.graphics.SurfaceTexture;
 import android.os.Build;
-import androidx.annotation.RequiresApi;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.Surface;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
+
+import androidx.annotation.RequiresApi;
+
 import com.pedro.encoder.input.gl.SurfaceManager;
 import com.pedro.encoder.input.video.FpsLimiter;
 import com.pedro.library.util.Filter;

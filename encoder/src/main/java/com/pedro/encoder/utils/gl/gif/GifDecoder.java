@@ -22,9 +22,10 @@ package com.pedro.encoder.utils.gl.gif;
 import android.annotation.TargetApi;
 import android.graphics.Bitmap;
 import android.os.Build;
+import android.util.Log;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import android.util.Log;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;

@@ -19,11 +19,11 @@ package com.pedro.library.rtsp;
 import android.content.Context;
 import android.media.MediaCodec;
 import android.os.Build;
+import android.view.SurfaceView;
+import android.view.TextureView;
 
 import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
-import android.view.SurfaceView;
-import android.view.TextureView;
 
 import com.pedro.encoder.utils.CodecUtil;
 import com.pedro.library.base.Camera2Base;

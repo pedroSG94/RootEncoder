@@ -27,6 +27,7 @@ import android.os.Build;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
+
 import com.pedro.encoder.Frame;
 import com.pedro.encoder.audio.AudioEncoder;
 import com.pedro.encoder.audio.GetAacData;
@@ -41,8 +42,8 @@ import com.pedro.encoder.video.GetVideoData;
 import com.pedro.encoder.video.VideoEncoder;
 import com.pedro.library.base.recording.BaseRecordController;
 import com.pedro.library.base.recording.RecordController;
-import com.pedro.library.util.FpsListener;
 import com.pedro.library.util.AndroidMuxerRecordController;
+import com.pedro.library.util.FpsListener;
 import com.pedro.library.view.GlInterface;
 import com.pedro.library.view.LightOpenGlView;
 import com.pedro.library.view.OffScreenGlThread;
