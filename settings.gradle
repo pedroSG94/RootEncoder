@@ -1,1 +1,1 @@
-include ':app', ':rtmp', ':encoder', ':rtsp', ':rtplibrary', ':srt'
+include ':app', ':rtmp', ':encoder', ':rtsp', ':library', ':srt'

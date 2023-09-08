@@ -2,11 +2,11 @@ apply plugin: 'com.android.application'
 apply plugin: 'org.jetbrains.kotlin.android'
 
 android {
-  namespace "com.pedro.rtpstreamer"
+  namespace "com.pedro.streamer"
   compileSdk 33
 
   defaultConfig {
-    applicationId "com.pedro.rtpstreamer"
+    applicationId "com.pedro.streamer"
     minSdkVersion 16
     targetSdkVersion 33
     versionCode version_code
@@ -32,7 +32,7 @@ android {
 }
 
 dependencies {
-  implementation project(':rtplibrary')
+  implementation project(':library')
   implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
   implementation 'com.google.android.material:material:1.9.0'
 }

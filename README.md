@@ -1,4 +1,4 @@
-# rtmp-rtsp-stream-client-java
+# RootEncoder for Android
 
 [![Android Arsenal](https://img.shields.io/badge/Android%20Arsenal-rtmp%20rtsp%20stream%20client%20java-green.svg?style=true)](https://android-arsenal.com/details/1/5333)
 [![Release](https://jitpack.io/v/pedroSG94/rtmp-rtsp-stream-client-java.svg)](https://jitpack.io/#pedroSG94/rtmp-rtsp-stream-client-java)
@@ -14,7 +14,9 @@ Enterprise Grade APIs for Feeds & Chat. <a href="https://getstream.io/tutorials/
 
 </br>
 
-Library for stream in RTMP and RTSP. All code in Java.
+RootEncoder (rtmp-rtsp-stream-client-java) is a stream encoder to push video/audio to media servers using protocols RTMP, RTSP and SRT with all code written in Java/Kotlin
+
+Note: The library was renamed from rtmp-rtsp-stream-client-java to RootEncoder after add SRT protocol because the name has no sense anymore
 
 If you need a player see this project:
 
@@ -26,7 +28,7 @@ https://github.com/pedroSG94/rtmp-rtsp-stream-client-swift
 
 ## Wiki
 
-https://github.com/pedroSG94/rtmp-rtsp-stream-client-java/wiki
+https://github.com/pedroSG94/RootEncoder/wiki
 
 ## Permissions:
 
@@ -34,6 +36,7 @@ https://github.com/pedroSG94/rtmp-rtsp-stream-client-java/wiki
 <uses-permission android:name="android.permission.INTERNET" />
 <uses-permission android:name="android.permission.RECORD_AUDIO" />
 <uses-permission android:name="android.permission.CAMERA" />
+<!--Only for record video/audio-->
 <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
 <!--Optional for play store-->
 <uses-feature android:name="android.hardware.camera" android:required="false" />
@@ -44,6 +47,8 @@ https://github.com/pedroSG94/rtmp-rtsp-stream-client-java/wiki
 
 To use this library in your project with gradle add this to your build.gradle:
 
+### Version 2.2.6 or less
+
 ```gradle
 allprojects {
   repositories {
@@ -52,6 +57,19 @@ allprojects {
 }
 dependencies {
   implementation 'com.github.pedroSG94.rtmp-rtsp-stream-client-java:rtplibrary:2.2.6'
+}
+``
+
+### Version 2.2.7 or more
+
+```gradle
+allprojects {
+  repositories {
+    maven { url 'https://jitpack.io' }
+  }
+}
+dependencies {
+  implementation 'com.github.pedroSG94.RootEncoder:library:2.2.7'
 }
 
 ```
@@ -74,8 +92,8 @@ dependencies {
 - [x] Force video and audio Codec to use hardware/software encoding (Not recommended).
 - [X] Record MP4 file while streaming (API 18+).
 - [X] Set Image, Gif or Text to stream on real time.
-- [X] OpenGL real time filters. [More info](https://github.com/pedroSG94/rtmp-rtsp-stream-client-java/wiki/Real-time-filters)
-- [x] Stream from video and audio files like mp4, webm, mp3, etc (Limited by device decoders). [More info](https://github.com/pedroSG94/rtmp-rtsp-stream-client-java/wiki/Stream-from-file)
+- [X] OpenGL real time filters. [More info](https://github.com/pedroSG94/RootEncoder/wiki/Real-time-filters)
+- [x] Stream from video and audio files like mp4, webm, mp3, etc (Limited by device decoders). [More info](https://github.com/pedroSG94/RootEncoder/wiki/Stream-from-file)
 - [x] Stream device screen (API 21+).
 
 ### RTMP:
@@ -96,18 +114,16 @@ dependencies {
 - [x] TCP/UDP.
 - [x] RTSPS.
 
-### SRT:
+### SRT (beta):
 
 - [X] Get upload bandwidth used.
 - [X] H264, H265 and AAC support.
-- [ ] SRT auth.
 - [X] Resend lost packets
+- [ ] SRT auth.
 - [ ] Encrypt
 
-### Under develop:
+https://haivision.github.io/srt-rfc/draft-sharabayko-srt.html
 
-Currently developing SRT. Documentation:
-https://haivision.github.io/srt-rfc/draft-sharabayko-srt.html#name-handshake
 
 ## Other related projects:
 
@@ -129,7 +145,7 @@ https://github.com/FunnyDevs/rtmp-rtsp-stream-client-java-recordcontrollers
 ### NOTE:
 In library version 2.0.9, the filters was refactored. Check the wiki link to migrate your implementation.
 
-https://github.com/pedroSG94/rtmp-rtsp-stream-client-java/wiki/Real-time-filters
+https://github.com/pedroSG94/RootEncoder/wiki/Real-time-filters
 
 ## Use example:
 

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.pedro.rtpstreamer">
+    package="com.pedro.streamer">
 
   <uses-permission android:name="android.permission.FLASHLIGHT"/>
   <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
@@ -27,7 +27,7 @@
       android:theme="@style/AppTheme"
       >
     <activity
-        android:name=".MainActivity"
+        android:name="com.pedro.streamer.MainActivity"
         android:label="@string/app_name"
         android:screenOrientation="portrait"
         android:exported="true">
@@ -39,99 +39,99 @@
       </intent-filter>
     </activity>
     <activity
-        android:name=".customexample.RtmpActivity"
+        android:name="com.pedro.streamer.customexample.RtmpActivity"
         android:label="@string/rtmp_streamer"
         android:screenOrientation="portrait"
         />
     <activity
-        android:name=".customexample.RtspActivity"
+        android:name="com.pedro.streamer.customexample.RtspActivity"
         android:label="@string/rtsp_streamer"
         android:screenOrientation="portrait"
         />
     <activity
-        android:name=".defaultexample.ExampleRtspActivity"
+        android:name="com.pedro.streamer.defaultexample.ExampleRtspActivity"
         android:label="@string/default_rtsp"
         android:screenOrientation="portrait"
         />
     <activity
-        android:name=".defaultexample.ExampleRtmpActivity"
+        android:name="com.pedro.streamer.defaultexample.ExampleRtmpActivity"
         android:label="@string/default_rtmp"
         android:screenOrientation="portrait"
         />
     <activity
-        android:name=".defaultexample.ExampleSrtActivity"
+        android:name="com.pedro.streamer.defaultexample.ExampleSrtActivity"
         android:label="@string/default_srt"
         android:screenOrientation="portrait"
         />
     <activity
-        android:name=".filestreamexample.RtspFromFileActivity"
+        android:name="com.pedro.streamer.filestreamexample.RtspFromFileActivity"
         android:label="@string/from_file_rtsp"
         android:screenOrientation="portrait"
         />
     <activity
-        android:name=".filestreamexample.RtmpFromFileActivity"
+        android:name="com.pedro.streamer.filestreamexample.RtmpFromFileActivity"
         android:label="@string/from_file_rtmp"
         android:screenOrientation="portrait"
         />
     <activity
-        android:name=".surfacemodeexample.SurfaceModeRtspActivity"
+        android:name="com.pedro.streamer.surfacemodeexample.SurfaceModeRtspActivity"
         android:label="@string/surface_mode_rtsp"
         android:screenOrientation="portrait"
         />
     <activity
-        android:name=".surfacemodeexample.SurfaceModeRtmpActivity"
+        android:name="com.pedro.streamer.surfacemodeexample.SurfaceModeRtmpActivity"
         android:label="@string/surface_mode_rtmp"
         android:screenOrientation="portrait"
         />
     <activity
-        android:name=".texturemodeexample.TextureModeRtspActivity"
+        android:name="com.pedro.streamer.texturemodeexample.TextureModeRtspActivity"
         android:label="@string/texture_mode_rtsp"
         android:screenOrientation="portrait"
         />
     <activity
-        android:name=".texturemodeexample.TextureModeRtmpActivity"
+        android:name="com.pedro.streamer.texturemodeexample.TextureModeRtmpActivity"
         android:label="@string/texture_mode_rtmp"
         android:screenOrientation="portrait"
         />
     <activity
-        android:name=".openglexample.OpenGlRtmpActivity"
+        android:name="com.pedro.streamer.openglexample.OpenGlRtmpActivity"
         android:label="@string/opengl_rtmp"
         android:screenOrientation="portrait"
         />
     <activity
-        android:name=".openglexample.OpenGlRtspActivity"
+        android:name="com.pedro.streamer.openglexample.OpenGlRtspActivity"
         android:label="@string/opengl_rtsp"
         android:screenOrientation="portrait"
         />
     <activity
-        android:name=".openglexample.OpenGlSrtActivity"
+        android:name="com.pedro.streamer.openglexample.OpenGlSrtActivity"
         android:label="@string/opengl_srt"
         android:screenOrientation="portrait"
         />
     <activity
-        android:name=".displayexample.DisplayActivity"
+        android:name="com.pedro.streamer.displayexample.DisplayActivity"
         android:label="@string/display_rtmp"
         android:screenOrientation="portrait"
         />
     <activity
-        android:name=".backgroundexample.BackgroundActivity"
+        android:name="com.pedro.streamer.backgroundexample.BackgroundActivity"
         android:label="@string/service_rtp"
         android:screenOrientation="portrait"
         />
 
-    <activity android:name=".rotation.RotationExampleActivity"
+    <activity android:name="com.pedro.streamer.rotation.RotationExampleActivity"
         android:label="@string/rotation_rtmp"
         android:screenOrientation="fullSensor"
         />
 
-    <service android:name=".rotation.StreamService"
+    <service android:name="com.pedro.streamer.rotation.StreamService"
         android:foregroundServiceType="mediaProjection"
         />
 
-    <service android:name=".backgroundexample.RtpService"
+    <service android:name="com.pedro.streamer.backgroundexample.RtpService"
         />
 
-    <service android:name=".displayexample.DisplayService"
+    <service android:name="com.pedro.streamer.displayexample.DisplayService"
         android:foregroundServiceType="mediaProjection"
         />
   </application>

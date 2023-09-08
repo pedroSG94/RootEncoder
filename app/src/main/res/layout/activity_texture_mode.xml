@@ -12,7 +12,7 @@
       android:layout_width="match_parent"
       android:layout_height="match_parent">
 
-    <com.pedro.rtplibrary.view.AutoFitTextureView
+    <com.pedro.library.view.AutoFitTextureView
         android:id="@+id/textureView"
         android:layout_width="match_parent"
         android:layout_height="match_parent"

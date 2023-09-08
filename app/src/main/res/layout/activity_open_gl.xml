@@ -5,7 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     >
-  <com.pedro.rtplibrary.view.OpenGlView
+  <com.pedro.library.view.OpenGlView
       android:layout_width="match_parent"
       android:layout_height="match_parent"
       android:id="@+id/surfaceView"
