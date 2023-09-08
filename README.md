@@ -1,7 +1,7 @@
 # RootEncoder for Android
 
 [![Android Arsenal](https://img.shields.io/badge/Android%20Arsenal-rtmp%20rtsp%20stream%20client%20java-green.svg?style=true)](https://android-arsenal.com/details/1/5333)
-[![Release](https://jitpack.io/v/pedroSG94/rtmp-rtsp-stream-client-java.svg)](https://jitpack.io/#pedroSG94/rtmp-rtsp-stream-client-java)
+[![Release](https://jitpack.io/v/pedroSG94/RootEncoder.svg)](https://jitpack.io/#pedroSG94/RootEncoder)
 
 <p align="center">
 <strong>Sponsored with 💖 &nbsp by</strong><br />
@@ -58,7 +58,7 @@ allprojects {
 dependencies {
   implementation 'com.github.pedroSG94.rtmp-rtsp-stream-client-java:rtplibrary:2.2.6'
 }
-``
+```
 
 ### Version 2.2.7 or more
 
