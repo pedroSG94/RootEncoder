@@ -59,6 +59,11 @@
         android:screenOrientation="portrait"
         />
     <activity
+        android:name=".defaultexample.ExampleSrtActivity"
+        android:label="@string/default_srt"
+        android:screenOrientation="portrait"
+        />
+    <activity
         android:name=".filestreamexample.RtspFromFileActivity"
         android:label="@string/from_file_rtsp"
         android:screenOrientation="portrait"
@@ -96,6 +101,11 @@
     <activity
         android:name=".openglexample.OpenGlRtspActivity"
         android:label="@string/opengl_rtsp"
+        android:screenOrientation="portrait"
+        />
+    <activity
+        android:name=".openglexample.OpenGlSrtActivity"
+        android:label="@string/opengl_srt"
         android:screenOrientation="portrait"
         />
     <activity

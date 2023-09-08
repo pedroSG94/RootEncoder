@@ -96,9 +96,18 @@ dependencies {
 - [x] TCP/UDP.
 - [x] RTSPS.
 
+### SRT:
+
+- [X] Get upload bandwidth used.
+- [X] H264, H265 and AAC support.
+- [ ] SRT auth.
+- [X] Resend lost packets
+- [ ] Encrypt
+
 ### Under develop:
 
-Currently developing SRT
+Currently developing SRT. Documentation:
+https://haivision.github.io/srt-rfc/draft-sharabayko-srt.html#name-handshake
 
 ## Other related projects:
 

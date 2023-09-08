@@ -6,6 +6,7 @@
   <string name="rtmp_streamer">Custom RTMP</string>
   <string name="default_rtmp">Default RTMP</string>
   <string name="default_rtsp">Default RTSP</string>
+  <string name="default_srt">Default SRT</string>
   <string name="from_file_rtsp">From file RTSP</string>
   <string name="from_file_rtmp">From file RTMP</string>
   <string name="surface_mode_rtsp">Surface mode RTSP</string>
@@ -15,6 +16,7 @@
   <string name="display_rtmp">Display RTMP or RTSP</string>
   <string name="opengl_rtmp">OpenGl RTMP</string>
   <string name="opengl_rtsp">OpenGl RTSP</string>
+  <string name="opengl_srt">OpenGl SRT</string>
   <string name="service_rtp">Service RTP</string>
   <string name="cube_test_rtmp">Cube test RTMP</string>
   <string name="rotation_rtmp">Rotation RTMP</string>
@@ -22,6 +24,7 @@
   <string name="tv_select">Select your streamer</string>
   <string name="hint_rtsp">rtsp://yourendpoint</string>
   <string name="hint_rtmp">rtmp://yourendpoint</string>
+  <string name="hint_srt">srt://yourendpoint</string>
   <string name="start_button">Start stream</string>
   <string name="stop_button">Stop stream</string>
   <string name="switch_camera_button">Switch camera</string>
