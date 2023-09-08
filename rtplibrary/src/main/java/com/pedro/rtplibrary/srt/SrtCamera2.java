@@ -26,7 +26,7 @@ import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 
 import com.pedro.encoder.utils.CodecUtil;
-import com.pedro.rtplibrary.base.Camera1Base;
+import com.pedro.rtplibrary.base.Camera2Base;
 import com.pedro.rtplibrary.view.LightOpenGlView;
 import com.pedro.rtplibrary.view.OpenGlView;
 import com.pedro.srt.srt.SrtClient;
@@ -37,40 +37,49 @@ import java.nio.ByteBuffer;
 
 /**
  * More documentation see:
- * {@link Camera1Base}
+ * {@link Camera2Base}
  *
  * Created by pedro on 8/9/23.
  */
-
-public class SrtCamera1 extends Camera1Base {
+@RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
+public class SrtCamera2 extends Camera2Base {
 
   private final SrtClient srtClient;
 
-  public SrtCamera1(SurfaceView surfaceView, ConnectCheckerSrt connectChecker) {
+  /**
+   * @deprecated This view produce rotations problems and could be unsupported in future versions.
+   * Use {@link Camera2Base#Camera2Base(OpenGlView)} or {@link Camera2Base#Camera2Base(LightOpenGlView)}
+   * instead.
+   */
+  @Deprecated
+  public SrtCamera2(SurfaceView surfaceView, ConnectCheckerSrt connectChecker) {
     super(surfaceView);
     srtClient = new SrtClient(connectChecker);
   }
 
-  public SrtCamera1(TextureView textureView, ConnectCheckerSrt connectChecker) {
+  /**
+   * @deprecated This view produce rotations problems and could be unsupported in future versions.
+   * Use {@link Camera2Base#Camera2Base(OpenGlView)} or {@link Camera2Base#Camera2Base(LightOpenGlView)}
+   * instead.
+   */
+  @Deprecated
+  public SrtCamera2(TextureView textureView, ConnectCheckerSrt connectChecker) {
     super(textureView);
     srtClient = new SrtClient(connectChecker);
   }
 
-  @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
-  public SrtCamera1(OpenGlView openGlView, ConnectCheckerSrt connectChecker) {
+  public SrtCamera2(OpenGlView openGlView, ConnectCheckerSrt connectChecker) {
     super(openGlView);
     srtClient = new SrtClient(connectChecker);
   }
 
-  @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
-  public SrtCamera1(LightOpenGlView lightOpenGlView, ConnectCheckerSrt connectChecker) {
+  public SrtCamera2(LightOpenGlView lightOpenGlView, ConnectCheckerSrt connectChecker) {
     super(lightOpenGlView);
     srtClient = new SrtClient(connectChecker);
   }
 
-  @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
-  public SrtCamera1(Context context, ConnectCheckerSrt connectChecker) {
-    super(context);
+  public SrtCamera2(Context context, boolean useOpengl, ConnectCheckerSrt connectChecker) {
+    super(context, useOpengl);
     srtClient = new SrtClient(connectChecker);
   }
 
@@ -197,3 +206,4 @@ public class SrtCamera1 extends Camera1Base {
     srtClient.setCheckServerAlive(enable);
   }
 }
+

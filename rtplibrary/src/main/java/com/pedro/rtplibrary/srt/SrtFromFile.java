@@ -19,14 +19,14 @@ package com.pedro.rtplibrary.srt;
 import android.content.Context;
 import android.media.MediaCodec;
 import android.os.Build;
-import android.view.SurfaceView;
-import android.view.TextureView;
 
 import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 
+import com.pedro.encoder.input.decoder.AudioDecoderInterface;
+import com.pedro.encoder.input.decoder.VideoDecoderInterface;
 import com.pedro.encoder.utils.CodecUtil;
-import com.pedro.rtplibrary.base.Camera1Base;
+import com.pedro.rtplibrary.base.FromFileBase;
 import com.pedro.rtplibrary.view.LightOpenGlView;
 import com.pedro.rtplibrary.view.OpenGlView;
 import com.pedro.srt.srt.SrtClient;
@@ -37,40 +37,36 @@ import java.nio.ByteBuffer;
 
 /**
  * More documentation see:
- * {@link Camera1Base}
+ * {@link FromFileBase}
  *
  * Created by pedro on 8/9/23.
  */
-
-public class SrtCamera1 extends Camera1Base {
+@RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
+public class SrtFromFile extends FromFileBase {
 
   private final SrtClient srtClient;
 
-  public SrtCamera1(SurfaceView surfaceView, ConnectCheckerSrt connectChecker) {
-    super(surfaceView);
+  public SrtFromFile(ConnectCheckerSrt connectChecker,
+                     VideoDecoderInterface videoDecoderInterface, AudioDecoderInterface audioDecoderInterface) {
+    super(videoDecoderInterface, audioDecoderInterface);
     srtClient = new SrtClient(connectChecker);
   }
 
-  public SrtCamera1(TextureView textureView, ConnectCheckerSrt connectChecker) {
-    super(textureView);
+  public SrtFromFile(Context context, ConnectCheckerSrt connectChecker,
+                     VideoDecoderInterface videoDecoderInterface, AudioDecoderInterface audioDecoderInterface) {
+    super(context, videoDecoderInterface, audioDecoderInterface);
     srtClient = new SrtClient(connectChecker);
   }
 
-  @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
-  public SrtCamera1(OpenGlView openGlView, ConnectCheckerSrt connectChecker) {
-    super(openGlView);
+  public SrtFromFile(OpenGlView openGlView, ConnectCheckerSrt connectChecker,
+                     VideoDecoderInterface videoDecoderInterface, AudioDecoderInterface audioDecoderInterface) {
+    super(openGlView, videoDecoderInterface, audioDecoderInterface);
     srtClient = new SrtClient(connectChecker);
   }
 
-  @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
-  public SrtCamera1(LightOpenGlView lightOpenGlView, ConnectCheckerSrt connectChecker) {
-    super(lightOpenGlView);
-    srtClient = new SrtClient(connectChecker);
-  }
-
-  @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
-  public SrtCamera1(Context context, ConnectCheckerSrt connectChecker) {
-    super(context);
+  public SrtFromFile(LightOpenGlView lightOpenGlView, ConnectCheckerSrt connectChecker,
+                     VideoDecoderInterface videoDecoderInterface, AudioDecoderInterface audioDecoderInterface) {
+    super(lightOpenGlView, videoDecoderInterface, audioDecoderInterface);
     srtClient = new SrtClient(connectChecker);
   }
 
@@ -143,7 +139,6 @@ public class SrtCamera1 extends Camera1Base {
 
   @Override
   protected void startStreamRtp(String url) {
-    srtClient.setOnlyVideo(!audioInitialized);
     srtClient.connect(url);
   }
 
@@ -173,11 +168,6 @@ public class SrtCamera1 extends Camera1Base {
   }
 
   @Override
-  protected void getAacDataRtp(ByteBuffer aacBuffer, MediaCodec.BufferInfo info) {
-    srtClient.sendAudio(aacBuffer, info);
-  }
-
-  @Override
   protected void onSpsPpsVpsRtp(ByteBuffer sps, ByteBuffer pps, ByteBuffer vps) {
     srtClient.setVideoInfo(sps, pps, vps);
   }
@@ -185,6 +175,11 @@ public class SrtCamera1 extends Camera1Base {
   @Override
   protected void getH264DataRtp(ByteBuffer h264Buffer, MediaCodec.BufferInfo info) {
     srtClient.sendVideo(h264Buffer, info);
+  }
+
+  @Override
+  protected void getAacDataRtp(ByteBuffer aacBuffer, MediaCodec.BufferInfo info) {
+    srtClient.sendAudio(aacBuffer, info);
   }
 
   @Override

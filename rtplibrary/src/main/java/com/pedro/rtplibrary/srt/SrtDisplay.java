@@ -19,16 +19,12 @@ package com.pedro.rtplibrary.srt;
 import android.content.Context;
 import android.media.MediaCodec;
 import android.os.Build;
-import android.view.SurfaceView;
-import android.view.TextureView;
 
 import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 
 import com.pedro.encoder.utils.CodecUtil;
-import com.pedro.rtplibrary.base.Camera1Base;
-import com.pedro.rtplibrary.view.LightOpenGlView;
-import com.pedro.rtplibrary.view.OpenGlView;
+import com.pedro.rtplibrary.base.DisplayBase;
 import com.pedro.srt.srt.SrtClient;
 import com.pedro.srt.srt.VideoCodec;
 import com.pedro.srt.utils.ConnectCheckerSrt;
@@ -37,163 +33,139 @@ import java.nio.ByteBuffer;
 
 /**
  * More documentation see:
- * {@link Camera1Base}
+ * {@link DisplayBase}
  *
  * Created by pedro on 8/9/23.
  */
+@RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
+public class SrtDisplay extends DisplayBase {
 
-public class SrtCamera1 extends Camera1Base {
+  private final SrtClient rtmpClient;
 
-  private final SrtClient srtClient;
-
-  public SrtCamera1(SurfaceView surfaceView, ConnectCheckerSrt connectChecker) {
-    super(surfaceView);
-    srtClient = new SrtClient(connectChecker);
-  }
-
-  public SrtCamera1(TextureView textureView, ConnectCheckerSrt connectChecker) {
-    super(textureView);
-    srtClient = new SrtClient(connectChecker);
-  }
-
-  @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
-  public SrtCamera1(OpenGlView openGlView, ConnectCheckerSrt connectChecker) {
-    super(openGlView);
-    srtClient = new SrtClient(connectChecker);
-  }
-
-  @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
-  public SrtCamera1(LightOpenGlView lightOpenGlView, ConnectCheckerSrt connectChecker) {
-    super(lightOpenGlView);
-    srtClient = new SrtClient(connectChecker);
-  }
-
-  @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
-  public SrtCamera1(Context context, ConnectCheckerSrt connectChecker) {
-    super(context);
-    srtClient = new SrtClient(connectChecker);
+  public SrtDisplay(Context context, boolean useOpengl, ConnectCheckerSrt connectChecker) {
+    super(context, useOpengl);
+    rtmpClient = new SrtClient(connectChecker);
   }
 
   public void setVideoCodec(VideoCodec videoCodec) {
     recordController.setVideoMime(
             videoCodec == VideoCodec.H265 ? CodecUtil.H265_MIME : CodecUtil.H264_MIME);
     videoEncoder.setType(videoCodec == VideoCodec.H265 ? CodecUtil.H265_MIME : CodecUtil.H264_MIME);
-    srtClient.setVideoCodec(videoCodec);
+    rtmpClient.setVideoCodec(videoCodec);
   }
 
   @Override
   public void resizeCache(int newSize) throws RuntimeException {
-    srtClient.resizeCache(newSize);
+    rtmpClient.resizeCache(newSize);
   }
 
   @Override
   public int getCacheSize() {
-    return srtClient.getCacheSize();
+    return rtmpClient.getCacheSize();
   }
 
   @Override
   public long getSentAudioFrames() {
-    return srtClient.getSentAudioFrames();
+    return rtmpClient.getSentAudioFrames();
   }
 
   @Override
   public long getSentVideoFrames() {
-    return srtClient.getSentVideoFrames();
+    return rtmpClient.getSentVideoFrames();
   }
 
   @Override
   public long getDroppedAudioFrames() {
-    return srtClient.getDroppedAudioFrames();
+    return rtmpClient.getDroppedAudioFrames();
   }
 
   @Override
   public long getDroppedVideoFrames() {
-    return srtClient.getDroppedVideoFrames();
+    return rtmpClient.getDroppedVideoFrames();
   }
 
   @Override
   public void resetSentAudioFrames() {
-    srtClient.resetSentAudioFrames();
+    rtmpClient.resetSentAudioFrames();
   }
 
   @Override
   public void resetSentVideoFrames() {
-    srtClient.resetSentVideoFrames();
+    rtmpClient.resetSentVideoFrames();
   }
 
   @Override
   public void resetDroppedAudioFrames() {
-    srtClient.resetDroppedAudioFrames();
+    rtmpClient.resetDroppedAudioFrames();
   }
 
   @Override
   public void resetDroppedVideoFrames() {
-    srtClient.resetDroppedVideoFrames();
+    rtmpClient.resetDroppedVideoFrames();
   }
 
   @Override
   public void setAuthorization(String user, String password) {
-    srtClient.setAuthorization(user, password);
+    rtmpClient.setAuthorization(user, password);
   }
 
   @Override
   protected void prepareAudioRtp(boolean isStereo, int sampleRate) {
-    srtClient.setAudioInfo(sampleRate, isStereo);
+    rtmpClient.setAudioInfo(sampleRate, isStereo);
   }
 
   @Override
   protected void startStreamRtp(String url) {
-    srtClient.setOnlyVideo(!audioInitialized);
-    srtClient.connect(url);
+    rtmpClient.connect(url);
   }
 
   @Override
   protected void stopStreamRtp() {
-    srtClient.disconnect();
+    rtmpClient.disconnect();
   }
 
   @Override
   public void setReTries(int reTries) {
-    srtClient.setReTries(reTries);
+    rtmpClient.setReTries(reTries);
   }
 
   @Override
   protected boolean shouldRetry(String reason) {
-    return srtClient.shouldRetry(reason);
+    return rtmpClient.shouldRetry(reason);
   }
 
   @Override
   public void reConnect(long delay, @Nullable String backupUrl) {
-    srtClient.reConnect(delay, backupUrl);
+    rtmpClient.reConnect(delay, backupUrl);
   }
 
   @Override
   public boolean hasCongestion() {
-    return srtClient.hasCongestion();
+    return rtmpClient.hasCongestion();
   }
 
   @Override
   protected void getAacDataRtp(ByteBuffer aacBuffer, MediaCodec.BufferInfo info) {
-    srtClient.sendAudio(aacBuffer, info);
+    rtmpClient.sendAudio(aacBuffer, info);
   }
 
   @Override
   protected void onSpsPpsVpsRtp(ByteBuffer sps, ByteBuffer pps, ByteBuffer vps) {
-    srtClient.setVideoInfo(sps, pps, vps);
+    rtmpClient.setVideoInfo(sps, pps, vps);
   }
 
   @Override
   protected void getH264DataRtp(ByteBuffer h264Buffer, MediaCodec.BufferInfo info) {
-    srtClient.sendVideo(h264Buffer, info);
+    rtmpClient.sendVideo(h264Buffer, info);
   }
 
   @Override
   public void setLogs(boolean enable) {
-    srtClient.setLogs(enable);
+    rtmpClient.setLogs(enable);
   }
 
   @Override
   public void setCheckServerAlive(boolean enable) {
-    srtClient.setCheckServerAlive(enable);
+    rtmpClient.setCheckServerAlive(enable);
   }
 }

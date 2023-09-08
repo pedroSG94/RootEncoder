@@ -94,7 +94,7 @@ class SrtClient(private val connectCheckerSrt: ConnectCheckerSrt) {
     }
   }
 
-  fun setAuthorization(user: String, password: String) {
+  fun setAuthorization(user: String?, password: String?) {
     TODO("unimplemented")
   }
 
