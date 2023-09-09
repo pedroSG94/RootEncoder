@@ -17,6 +17,7 @@
 package com.pedro.srt
 
 import org.junit.Assert.assertEquals
+import org.mockito.MockedStatic
 
 /**
  * Created by pedro on 1/9/23.
@@ -24,5 +25,18 @@ import org.junit.Assert.assertEquals
 object Utils {
   fun assertObjectEquals(actual: Any, expected: Any) {
     assertEquals(actual.toString(), expected.toString())
+  }
+
+  fun useStatics(statics: List<MockedStatic<out Any>>, callback: () -> Unit) {
+    val list = statics.toMutableList()
+    if (list.isEmpty()) callback()
+    else if (list.size == 1) {
+      list[0].use {
+        callback()
+      }
+    } else {
+      val value = list.removeAt(0)
+      value.use { useStatics(list, callback) }
+    }
   }
 }

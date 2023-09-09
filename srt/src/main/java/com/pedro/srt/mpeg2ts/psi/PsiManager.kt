@@ -30,8 +30,10 @@ class PsiManager(
   private val idExtension = Random.nextInt(Byte.MIN_VALUE.toInt(), Byte.MAX_VALUE.toInt()).toShort()
   private var sdtCount = 0
   private var patCount = 0
-  private val sdtPeriod = 200
-  private val patPeriod = 40
+  companion object {
+    const val sdtPeriod = 200
+    const val patPeriod = 40
+  }
 
   private var sdt = Sdt(
     idExtension = idExtension,

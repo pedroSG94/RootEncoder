@@ -21,5 +21,6 @@ package com.pedro.srt.utils
  */
 object TimeUtils {
 
+  @JvmStatic
   fun getCurrentTimeMicro(): Long = System.nanoTime() / 1000
 }

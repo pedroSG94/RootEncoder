@@ -98,7 +98,7 @@ abstract class SrtPacket {
               peerError.read(input)
               return peerError
             }
-            ControlType.USER_DEFINED -> TODO()
+            ControlType.USER_DEFINED -> throw IOException("user defined type is not allowed")
             else -> throw IOException("unknown control type: ${type.name}")
           }
         }

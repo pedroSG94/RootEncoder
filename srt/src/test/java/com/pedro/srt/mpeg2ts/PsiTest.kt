@@ -16,17 +16,17 @@
 
 package com.pedro.srt.mpeg2ts
 
+import com.pedro.srt.Utils
 import com.pedro.srt.mpeg2ts.psi.Pat
 import com.pedro.srt.mpeg2ts.psi.Pmt
 import com.pedro.srt.mpeg2ts.psi.Sdt
 import com.pedro.srt.mpeg2ts.service.Mpeg2TsService
 import com.pedro.srt.utils.TimeUtils
-import io.mockk.every
-import io.mockk.mockkObject
 import org.junit.After
 import org.junit.Assert.assertArrayEquals
 import org.junit.Before
 import org.junit.Test
+import org.mockito.Mockito
 import java.nio.ByteBuffer
 
 /**
@@ -35,13 +35,13 @@ import java.nio.ByteBuffer
 class PsiTest {
 
   private val service = Mpeg2TsService()
+  private val timeUtilsMock = Mockito.mockStatic(TimeUtils::class.java)
+  private val pidMock = Mockito.mockStatic(Pid::class.java)
 
   @Before
   fun setup() {
-    mockkObject(TimeUtils)
-    every { TimeUtils.getCurrentTimeMicro() }.returns(700000)
-    mockkObject(Pid)
-    every { Pid.generatePID() }.returns(Pid.MIN_VALUE.toShort())
+    timeUtilsMock.`when`<Long>(TimeUtils::getCurrentTimeMicro).thenReturn(700000)
+    pidMock.`when`<Short>(Pid::generatePID).thenReturn(Pid.MIN_VALUE.toShort())
   }
 
   @After
@@ -51,53 +51,59 @@ class PsiTest {
 
   @Test
   fun `GIVEN a sdt table WHEN create mpegts packet with that table THEN get expected buffer`() {
-    val expected = ByteBuffer.wrap(
-      byteArrayOf(71, 64, 17, 16, 0, 66, -16, 49, 0, 1, -63, 0, 0, -1, 1, -1, 70, -104, -4, -128, 32, 72, 30, 1, 13, 99, 111, 109, 46, 112, 101, 100, 114, 111, 46, 115, 114, 116, 14, 77, 112, 101, 103, 50, 84, 115, 83, 101, 114, 118, 105, 99, 101, 72, 33, 81, -10, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1)
-    )
-    val mpegTsPacketizer = MpegTsPacketizer()
-    val sdt = Sdt(1, 0, service = service)
-    val mpeg2tsPackets = mpegTsPacketizer.write(listOf(sdt))
-    val chunked = mpeg2tsPackets
-    val size = chunked.sumOf { it.size }
-    val buffer = ByteBuffer.allocate(size)
-    chunked.forEach {
-      buffer.put(it)
+    Utils.useStatics(listOf(timeUtilsMock, pidMock)) {
+      val expected = ByteBuffer.wrap(
+        byteArrayOf(71, 64, 17, 16, 0, 66, -16, 49, 0, 1, -63, 0, 0, -1, 1, -1, 70, -104, -4, -128, 32, 72, 30, 1, 13, 99, 111, 109, 46, 112, 101, 100, 114, 111, 46, 115, 114, 116, 14, 77, 112, 101, 103, 50, 84, 115, 83, 101, 114, 118, 105, 99, 101, 72, 33, 81, -10, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1)
+      )
+      val mpegTsPacketizer = MpegTsPacketizer()
+      val sdt = Sdt(1, 0, service = service)
+      val mpeg2tsPackets = mpegTsPacketizer.write(listOf(sdt))
+      val chunked = mpeg2tsPackets
+      val size = chunked.sumOf { it.size }
+      val buffer = ByteBuffer.allocate(size)
+      chunked.forEach {
+        buffer.put(it)
+      }
+      assertArrayEquals(expected.array(), buffer.array())
     }
-    assertArrayEquals(expected.array(), buffer.array())
   }
 
   @Test
   fun `GIVEN a pmt table WHEN create mpegts packet with that table THEN get expected buffer`() {
-    service.addTrack(Codec.AAC)
-    val expected = ByteBuffer.wrap(
-      byteArrayOf(71, 64, 32, 16, 0, 2, -80, 18, 70, -104, -63, 0, 0, -32, 32, -16, 0, 15, -32, 32, -16, 0, 121, -48, -32, -74, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1)
-    )
-    val mpegTsPacketizer = MpegTsPacketizer()
-    val pmt = Pmt(32, 0, service = service)
-    val mpeg2tsPackets = mpegTsPacketizer.write(listOf(pmt))
-    val chunked = mpeg2tsPackets
-    val size = chunked.sumOf { it.size }
-    val buffer = ByteBuffer.allocate(size)
-    chunked.forEach {
-      buffer.put(it)
+    Utils.useStatics(listOf(timeUtilsMock, pidMock)) {
+      service.addTrack(Codec.AAC)
+      val expected = ByteBuffer.wrap(
+        byteArrayOf(71, 64, 32, 16, 0, 2, -80, 18, 70, -104, -63, 0, 0, -32, 32, -16, 0, 15, -32, 32, -16, 0, 121, -48, -32, -74, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1)
+      )
+      val mpegTsPacketizer = MpegTsPacketizer()
+      val pmt = Pmt(32, 0, service = service)
+      val mpeg2tsPackets = mpegTsPacketizer.write(listOf(pmt))
+      val chunked = mpeg2tsPackets
+      val size = chunked.sumOf { it.size }
+      val buffer = ByteBuffer.allocate(size)
+      chunked.forEach {
+        buffer.put(it)
+      }
+      assertArrayEquals(expected.array(), buffer.array())
     }
-    assertArrayEquals(expected.array(), buffer.array())
   }
 
   @Test
   fun `GIVEN a pat table WHEN create mpegts packet with that table THEN get expected buffer`() {
-    val expected = ByteBuffer.wrap(
-      byteArrayOf(71, 64, 0, 16, 0, 0, -80, 13, 1, 0, -61, 0, 0, 70, -104, -32, 0, -30, -46, -114, -23, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1)
-    )
-    val mpegTsPacketizer = MpegTsPacketizer()
-    val pat = Pat(256, 1, service = service)
-    val mpeg2tsPackets = mpegTsPacketizer.write(listOf(pat))
-    val chunked = mpeg2tsPackets
-    val size = chunked.sumOf { it.size }
-    val buffer = ByteBuffer.allocate(size)
-    chunked.forEach {
-      buffer.put(it)
+    Utils.useStatics(listOf(timeUtilsMock, pidMock)) {
+      val expected = ByteBuffer.wrap(
+        byteArrayOf(71, 64, 0, 16, 0, 0, -80, 13, 1, 0, -61, 0, 0, 70, -104, -32, 0, -30, -46, -114, -23, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1)
+      )
+      val mpegTsPacketizer = MpegTsPacketizer()
+      val pat = Pat(256, 1, service = service)
+      val mpeg2tsPackets = mpegTsPacketizer.write(listOf(pat))
+      val chunked = mpeg2tsPackets
+      val size = chunked.sumOf { it.size }
+      val buffer = ByteBuffer.allocate(size)
+      chunked.forEach {
+        buffer.put(it)
+      }
+      assertArrayEquals(expected.array(), buffer.array())
     }
-    assertArrayEquals(expected.array(), buffer.array())
   }
 }

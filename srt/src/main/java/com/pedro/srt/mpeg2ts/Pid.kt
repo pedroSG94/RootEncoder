@@ -27,6 +27,7 @@ object Pid {
   const val MAX_VALUE = 8186
   private var lastValue: Short = MIN_VALUE.toShort()
 
+  @JvmStatic
   fun generatePID(): Short {
     val pid = lastValue
     if (pid >= MAX_VALUE) throw RuntimeException("Illegal pid")
@@ -34,6 +35,7 @@ object Pid {
     return pid
   }
 
+  @JvmStatic
   fun reset() {
     lastValue = MIN_VALUE.toShort()
   }

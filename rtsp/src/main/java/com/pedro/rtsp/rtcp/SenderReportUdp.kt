@@ -28,16 +28,18 @@ import java.net.MulticastSocket
 /**
  * Created by pedro on 8/11/18.
  */
-class SenderReportUdp(videoSourcePort: Int, audioSourcePort: Int) : BaseSenderReport() {
-
-  private var multicastSocketVideo: MulticastSocket? = null
+class SenderReportUdp(
+  videoSourcePort: Int, audioSourcePort: Int,
+  private var multicastSocketVideo: MulticastSocket? = null,
   private var multicastSocketAudio: MulticastSocket? = null
+) : BaseSenderReport() {
+
   private val datagramPacket = DatagramPacket(byteArrayOf(0), 1)
 
   init {
-    multicastSocketVideo = MulticastSocket(videoSourcePort)
+    if (multicastSocketVideo == null) multicastSocketVideo = MulticastSocket(videoSourcePort)
     multicastSocketVideo?.timeToLive = 64
-    multicastSocketAudio = MulticastSocket(audioSourcePort)
+    if (multicastSocketAudio == null) multicastSocketAudio = MulticastSocket(audioSourcePort)
     multicastSocketAudio?.timeToLive = 64
   }
 
