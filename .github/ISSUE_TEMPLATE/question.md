@@ -1,5 +1,5 @@
 ---
-name: Question issue template
+name: Question
 about: Describe the quesiton here.
 title: ''
 labels: ''
