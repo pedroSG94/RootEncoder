@@ -14,10 +14,8 @@
  * limitations under the License.
  */
 
-package com.pedro.srt
+package com.pedro.rtmp.utils
 
-import com.pedro.srt.utils.BitrateManager
-import com.pedro.srt.utils.ConnectCheckerSrt
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -35,11 +33,11 @@ import org.mockito.kotlin.verify
 class BitrateManagerTest {
 
   @Mock
-  private lateinit var connectCheckerSrt: ConnectCheckerSrt
+  private lateinit var connectCheckerRtmp: ConnectCheckerRtmp
 
   @Test
   fun `WHEN set multiple values THEN return total of values each second`() {
-    val bitrateManager = BitrateManager(connectCheckerSrt)
+    val bitrateManager = BitrateManager(connectCheckerRtmp)
     val fakeValues = arrayOf(100L, 200L, 300L, 400L, 500L)
     var expectedResult = 0L
     fakeValues.forEach {
@@ -51,7 +49,7 @@ class BitrateManagerTest {
     bitrateManager.calculateBitrate(value)
     expectedResult += value
     val resultValue = argumentCaptor<Long>()
-    verify(connectCheckerSrt, times(1)).onNewBitrateSrt(resultValue.capture())
+    verify(connectCheckerRtmp, times(1)).onNewBitrateRtmp(resultValue.capture())
     val marginError = 20
     assertTrue(expectedResult - marginError <= resultValue.firstValue && resultValue.firstValue <= expectedResult + marginError)
   }

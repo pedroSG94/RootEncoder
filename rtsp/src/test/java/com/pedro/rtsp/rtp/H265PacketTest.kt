@@ -20,16 +20,15 @@ import android.media.MediaCodec
 import com.pedro.rtsp.rtp.packets.H265Packet
 import com.pedro.rtsp.rtsp.RtpFrame
 import com.pedro.rtsp.utils.RtpConstants
-import org.junit.Assert.*
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNotEquals
+import org.junit.Assert.assertTrue
 import org.junit.Test
-import org.junit.runner.RunWith
-import org.mockito.junit.MockitoJUnitRunner
 import java.nio.ByteBuffer
 
 /**
  * Created by pedro on 15/4/22.
  */
-@RunWith(MockitoJUnitRunner::class)
 class H265PacketTest {
 
   @Test

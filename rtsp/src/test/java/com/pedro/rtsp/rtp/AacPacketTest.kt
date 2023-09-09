@@ -22,14 +22,11 @@ import com.pedro.rtsp.rtsp.RtpFrame
 import com.pedro.rtsp.utils.RtpConstants
 import junit.framework.TestCase.assertEquals
 import org.junit.Test
-import org.junit.runner.RunWith
-import org.mockito.junit.MockitoJUnitRunner
 import java.nio.ByteBuffer
 
 /**
  * Created by pedro on 15/4/22.
  */
-@RunWith(MockitoJUnitRunner::class)
 class AacPacketTest {
 
   @Test
