@@ -1,6 +1,5 @@
 package com.pedro.rtmp.amf
 
-import com.pedro.rtmp.amf.v0.AmfBoolean
 import com.pedro.rtmp.amf.v0.AmfData
 import com.pedro.rtmp.amf.v0.AmfDate
 import org.junit.Assert.assertArrayEquals

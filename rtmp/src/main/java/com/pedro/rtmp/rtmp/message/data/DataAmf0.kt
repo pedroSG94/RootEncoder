@@ -28,8 +28,9 @@ import java.io.InputStream
 /**
  * Created by pedro on 21/04/21.
  */
-class DataAmf0(private val name: String = "", timeStamp: Int = 0, streamId: Int = 0, basicHeader: BasicHeader = BasicHeader(ChunkType.TYPE_0, ChunkStreamId.OVER_CONNECTION.mark)) :
+class DataAmf0(private var name: String = "", timeStamp: Int = 0, streamId: Int = 0, basicHeader: BasicHeader = BasicHeader(ChunkType.TYPE_0, ChunkStreamId.OVER_CONNECTION.mark)) :
     Data(timeStamp, streamId, basicHeader) {
+
   private val data: MutableList<AmfData> = mutableListOf()
 
   init {
@@ -52,6 +53,7 @@ class DataAmf0(private val name: String = "", timeStamp: Int = 0, streamId: Int 
     val amfString = AmfString()
     amfString.readHeader(input)
     amfString.readBody(input)
+    name = amfString.value
     bodySize += amfString.getSize() + 1
     while (bodySize < header.messageLength) {
       val amfData = AmfData.getAmfData(input)

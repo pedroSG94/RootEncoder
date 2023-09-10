@@ -18,6 +18,7 @@ package com.pedro.rtmp.rtmp.message
 
 import com.pedro.rtmp.rtmp.chunk.ChunkStreamId
 import com.pedro.rtmp.rtmp.chunk.ChunkType
+import com.pedro.rtmp.utils.RtmpConfig
 import com.pedro.rtmp.utils.readUInt32
 import com.pedro.rtmp.utils.writeUInt32
 import java.io.ByteArrayOutputStream
@@ -26,7 +27,7 @@ import java.io.InputStream
 /**
  * Created by pedro on 21/04/21.
  */
-class SetChunkSize(var chunkSize: Int = 128):
+class SetChunkSize(var chunkSize: Int = RtmpConfig.DEFAULT_CHUNK_SIZE):
     RtmpMessage(BasicHeader(ChunkType.TYPE_0, ChunkStreamId.PROTOCOL_CONTROL.mark)) {
 
   override fun readBody(input: InputStream) {

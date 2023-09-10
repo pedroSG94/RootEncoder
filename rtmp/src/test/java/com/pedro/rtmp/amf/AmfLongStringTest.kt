@@ -2,7 +2,6 @@ package com.pedro.rtmp.amf
 
 import com.pedro.rtmp.amf.v0.AmfData
 import com.pedro.rtmp.amf.v0.AmfLongString
-import com.pedro.rtmp.amf.v0.AmfString
 import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue

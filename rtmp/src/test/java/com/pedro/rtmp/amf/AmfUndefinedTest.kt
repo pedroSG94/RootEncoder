@@ -1,9 +1,7 @@
 package com.pedro.rtmp.amf
 
 import com.pedro.rtmp.amf.v0.AmfData
-import com.pedro.rtmp.amf.v0.AmfNull
 import com.pedro.rtmp.amf.v0.AmfUndefined
-import org.junit.Assert
 import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test

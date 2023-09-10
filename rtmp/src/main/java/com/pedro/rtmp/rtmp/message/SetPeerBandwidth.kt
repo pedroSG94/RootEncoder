@@ -49,7 +49,7 @@ class SetPeerBandwidth(private var acknowledgementWindowSize: Int = 0, private v
 
   override fun getType(): MessageType = MessageType.SET_PEER_BANDWIDTH
 
-  override fun getSize(): Int = 9
+  override fun getSize(): Int = 5
 
   override fun toString(): String {
     return "SetPeerBandwidth(acknowledgementWindowSize=$acknowledgementWindowSize, type=$type)"
