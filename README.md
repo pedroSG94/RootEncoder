@@ -148,6 +148,12 @@ In library version 2.0.9, the filters was refactored. Check the wiki link to mig
 
 https://github.com/pedroSG94/RootEncoder/wiki/Real-time-filters
 
+## Looking for sponsors
+
+This library need sponsors to get new devices or pay platforms to test and debug errors. Any donation or sponsor is welcome!
+If you are interested. You can contact me by email or donate directly on [Github](https://github.com/sponsors/pedroSG94) or [Paypal](https://www.paypal.com/paypalme/pedroSG94)
+Thank you!
+
 ## Use example:
 
 This code is a basic example.
