@@ -25,6 +25,7 @@ import com.pedro.rtsp.rtsp.commands.SdpBody.createH264Body
 import com.pedro.rtsp.rtsp.commands.SdpBody.createH265Body
 import com.pedro.rtsp.utils.AuthUtil.getMd5Hash
 import com.pedro.rtsp.utils.RtpConstants
+import com.pedro.rtsp.utils.TimeUtils
 import com.pedro.rtsp.utils.encodeToString
 import com.pedro.rtsp.utils.getData
 import java.io.BufferedReader
@@ -81,7 +82,7 @@ class CommandsManager {
   }
 
   init {
-    val uptime = System.currentTimeMillis()
+    val uptime = TimeUtils.getCurrentTimeMillis()
     timeStamp = uptime / 1000 shl 32 and ((uptime - uptime / 1000 * 1000 shr 32)
         / 1000) // NTP timestamp
   }

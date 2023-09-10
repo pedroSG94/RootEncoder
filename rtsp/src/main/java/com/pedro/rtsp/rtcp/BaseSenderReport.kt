@@ -19,6 +19,7 @@ package com.pedro.rtsp.rtcp
 import com.pedro.rtsp.rtsp.Protocol
 import com.pedro.rtsp.rtsp.RtpFrame
 import com.pedro.rtsp.utils.RtpConstants
+import com.pedro.rtsp.utils.TimeUtils
 import com.pedro.rtsp.utils.setLong
 import java.io.IOException
 import java.io.OutputStream
@@ -103,9 +104,9 @@ abstract class BaseSenderReport internal constructor() {
     videoOctetCount += rtpFrame.length
     videoBuffer.setLong(videoPacketCount, 20, 24)
     videoBuffer.setLong(videoOctetCount, 24, 28)
-    if (System.currentTimeMillis() - videoTime >= interval) {
-      videoTime = System.currentTimeMillis()
-      setData(videoBuffer, System.nanoTime(), rtpFrame.timeStamp)
+    if (TimeUtils.getCurrentTimeMillis() - videoTime >= interval) {
+      videoTime = TimeUtils.getCurrentTimeMillis()
+      setData(videoBuffer, TimeUtils.getCurrentTimeNano(), rtpFrame.timeStamp)
       sendReport(videoBuffer, rtpFrame, "Video", videoPacketCount, videoOctetCount, isEnableLogs)
       return true
     }
@@ -118,9 +119,9 @@ abstract class BaseSenderReport internal constructor() {
     audioOctetCount += rtpFrame.length
     audioBuffer.setLong(audioPacketCount, 20, 24)
     audioBuffer.setLong(audioOctetCount, 24, 28)
-    if (System.currentTimeMillis() - audioTime >= interval) {
-      audioTime = System.currentTimeMillis()
-      setData(audioBuffer, System.nanoTime(), rtpFrame.timeStamp)
+    if (TimeUtils.getCurrentTimeMillis() - audioTime >= interval) {
+      audioTime = TimeUtils.getCurrentTimeMillis()
+      setData(audioBuffer, TimeUtils.getCurrentTimeNano(), rtpFrame.timeStamp)
       sendReport(audioBuffer, rtpFrame, "Audio", audioPacketCount, audioOctetCount, isEnableLogs)
       return true
     }
