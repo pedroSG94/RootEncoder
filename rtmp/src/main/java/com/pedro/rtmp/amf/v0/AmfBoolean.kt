@@ -25,7 +25,7 @@ import java.io.OutputStream
  *
  * Only 1 byte of size where 0 is false and another value is true
  */
-class AmfBoolean(private var value: Boolean = false): AmfData() {
+class AmfBoolean(var value: Boolean = false): AmfData() {
 
   @Throws(IOException::class)
   override fun readBody(input: InputStream) {

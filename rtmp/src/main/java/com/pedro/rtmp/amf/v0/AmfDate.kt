@@ -32,7 +32,7 @@ class AmfDate(var date: Double = System.currentTimeMillis().toDouble()): AmfData
 
   @Throws(IOException::class)
   override fun readBody(input: InputStream) {
-    val bytes = ByteArray(getSize())
+    val bytes = ByteArray(getSize() - 2)
     input.readUntil(bytes)
     val value = ByteBuffer.wrap(bytes).long
     date = Double.Companion.fromBits(value)
@@ -42,7 +42,7 @@ class AmfDate(var date: Double = System.currentTimeMillis().toDouble()): AmfData
 
   @Throws(IOException::class)
   override fun writeBody(output: OutputStream) {
-    val byteBuffer = ByteBuffer.allocate(getSize()).putLong(date.toRawBits())
+    val byteBuffer = ByteBuffer.allocate(getSize() - 2).putLong(date.toRawBits())
     output.write(byteBuffer.array())
     val timeZone = byteArrayOf(0x00, 0x00)
     output.write(timeZone)
@@ -50,7 +50,7 @@ class AmfDate(var date: Double = System.currentTimeMillis().toDouble()): AmfData
 
   override fun getType(): AmfType = AmfType.DATE
 
-  override fun getSize(): Int = 0
+  override fun getSize(): Int = 10
 
   override fun toString(): String {
     return "AmfUnsupported"

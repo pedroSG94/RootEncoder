@@ -26,7 +26,7 @@ import java.io.OutputStream
  *
  * A Map of others amf packets where key is an AmfString and value could be any amf packet
  */
-open class AmfObject(private val properties: HashMap<AmfString, AmfData> = LinkedHashMap()): AmfData() {
+open class AmfObject(private val properties: LinkedHashMap<AmfString, AmfData> = LinkedHashMap()): AmfData() {
 
   protected var bodySize = 0
 
@@ -87,6 +87,8 @@ open class AmfObject(private val properties: HashMap<AmfString, AmfData> = Linke
     bodySize += key.getSize()
     bodySize += data.getSize() + 1
   }
+
+  fun getProperties() = properties
 
   @Throws(IOException::class)
   override fun readBody(input: InputStream) {

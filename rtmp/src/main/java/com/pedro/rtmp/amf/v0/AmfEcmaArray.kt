@@ -27,7 +27,7 @@ import java.io.OutputStream
  *
  * Exactly the same that AmfObject but start with an UInt32 that indicate the number of lines in Map
  */
-class AmfEcmaArray(private val properties: HashMap<AmfString, AmfData> = LinkedHashMap()): AmfObject(properties) {
+class AmfEcmaArray(private val properties: LinkedHashMap<AmfString, AmfData> = LinkedHashMap()): AmfObject(properties) {
 
   var length = 0
 
