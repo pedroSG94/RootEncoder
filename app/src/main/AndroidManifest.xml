@@ -17,6 +17,10 @@
   <!--Optional for play store-->
   <uses-feature android:name="android.hardware.camera" android:required="false" />
   <uses-feature android:name="android.hardware.camera.autofocus" android:required="false" />
+  <!--  Android 14 background compatibility-->
+  <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MICROPHONE"/>
+  <uses-permission android:name="android.permission.FOREGROUND_SERVICE_CAMERA"/>
+  <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PROJECTION"/>
 
   <application
       android:requestLegacyExternalStorage="true"
@@ -125,10 +129,11 @@
         />
 
     <service android:name="com.pedro.streamer.rotation.StreamService"
-        android:foregroundServiceType="mediaProjection"
+        android:foregroundServiceType="mediaProjection|camera|microphone"
         />
 
     <service android:name="com.pedro.streamer.backgroundexample.RtpService"
+        android:foregroundServiceType="camera|microphone"
         />
 
     <service android:name="com.pedro.streamer.displayexample.DisplayService"

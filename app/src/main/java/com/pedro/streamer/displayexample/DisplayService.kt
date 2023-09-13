@@ -48,7 +48,6 @@ class DisplayService : Service() {
       val channel = NotificationChannel(channelId, channelId, NotificationManager.IMPORTANCE_HIGH)
       notificationManager?.createNotificationChannel(channel)
     }
-    keepAliveTrick()
   }
 
   private fun keepAliveTrick() {
@@ -151,6 +150,7 @@ class DisplayService : Service() {
   }
 
   fun prepareStreamRtp(endpoint: String, resultCode: Int, data: Intent) {
+    keepAliveTrick()
     stopStream()
     if (endpoint.startsWith("rtmp")) {
       displayBase = RtmpDisplay(baseContext, true, connectCheckerRtp)

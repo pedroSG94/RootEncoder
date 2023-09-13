@@ -3,12 +3,12 @@ apply plugin: 'org.jetbrains.kotlin.android'
 
 android {
   namespace "com.pedro.streamer"
-  compileSdk 33
+  compileSdk 34
 
   defaultConfig {
     applicationId "com.pedro.streamer"
     minSdkVersion 16
-    targetSdkVersion 33
+    targetSdkVersion 34
     versionCode version_code
     versionName version_name
   }

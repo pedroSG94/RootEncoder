@@ -234,7 +234,8 @@ public abstract class DisplayBase implements GetAacData, GetVideoData, GetMicrop
     if (mediaProjection == null) {
       mediaProjection = mediaProjectionManager.getMediaProjection(resultCode, data);
     }
-
+    MediaProjection.Callback mediaProjectionCallback = new MediaProjection.Callback() { };
+    mediaProjection.registerCallback(mediaProjectionCallback, null);
     AudioPlaybackCaptureConfiguration config =
         new AudioPlaybackCaptureConfiguration.Builder(mediaProjection).addMatchingUsage(
             AudioAttributes.USAGE_MEDIA)
@@ -397,13 +398,16 @@ public abstract class DisplayBase implements GetAacData, GetVideoData, GetMicrop
     if (mediaProjection == null) {
       mediaProjection = mediaProjectionManager.getMediaProjection(resultCode, data);
     }
+    MediaProjection.Callback mediaProjectionCallback = new MediaProjection.Callback() { };
+    mediaProjection.registerCallback(mediaProjectionCallback, null);
+    VirtualDisplay.Callback callback = new VirtualDisplay.Callback() { };
     if (glInterface != null && videoEncoder.getRotation() == 90
         || videoEncoder.getRotation() == 270) {
       virtualDisplay = mediaProjection.createVirtualDisplay("Stream Display", videoEncoder.getHeight(),
-              videoEncoder.getWidth(), dpi, 0, surface, null, null);
+          videoEncoder.getWidth(), dpi, 0, surface, callback, null);
     } else {
       virtualDisplay = mediaProjection.createVirtualDisplay("Stream Display", videoEncoder.getWidth(),
-              videoEncoder.getHeight(), dpi, 0, surface, null, null);
+              videoEncoder.getHeight(), dpi, 0, surface, callback, null);
     }
     if (audioInitialized) microphoneManager.start();
   }

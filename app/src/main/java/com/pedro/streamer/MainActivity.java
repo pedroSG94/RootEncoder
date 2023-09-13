@@ -18,12 +18,15 @@ package com.pedro.streamer;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
+import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.media.projection.MediaProjectionManager;
 import android.os.Build;
 import android.os.Bundle;
 
+import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 import androidx.core.app.ActivityCompat;
 import androidx.appcompat.app.AppCompatActivity;
@@ -151,15 +154,32 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
   public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
     if (hasPermissions(this)) {
       ActivityLink link = activities.get(i);
-      int minSdk = link.getMinSdk();
-      if (Build.VERSION.SDK_INT >= minSdk) {
-        startActivity(link.getIntent());
-        overridePendingTransition(R.transition.slide_in, R.transition.slide_out);
+      if (link.getLabel().equals(getString(R.string.rotation_rtmp)) && Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+        MediaProjectionManager mediaProjectionManager = (MediaProjectionManager) getSystemService(MEDIA_PROJECTION_SERVICE);
+        Intent intent = mediaProjectionManager.createScreenCaptureIntent();
+        startActivityForResult(intent, 0);
       } else {
-        showMinSdkError(minSdk);
+        int minSdk = link.getMinSdk();
+        if (Build.VERSION.SDK_INT >= minSdk) {
+          startActivity(link.getIntent());
+          overridePendingTransition(R.transition.slide_in, R.transition.slide_out);
+        } else {
+          showMinSdkError(minSdk);
+        }
       }
     } else {
       showPermissionsErrorAndRequest();
+    }
+  }
+
+  @Override
+  protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+    super.onActivityResult(requestCode, resultCode, data);
+    if (data != null && (requestCode == 0 && resultCode == Activity.RESULT_OK) && Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+      ActivityLink link = new ActivityLink(new Intent(this, RotationExampleActivity.class),
+          getString(R.string.rotation_rtmp), LOLLIPOP);
+      startActivity(link.getIntent());
+      overridePendingTransition(R.transition.slide_in, R.transition.slide_out);
     }
   }
 

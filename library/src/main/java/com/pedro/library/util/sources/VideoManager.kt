@@ -119,9 +119,13 @@ class VideoManager(private val context: Context, var source: Source) {
           if (shouldRotate) {
             surfaceTexture.setDefaultBufferSize(height, width)
           }
+          val mediaProjectionCallback = object : MediaProjection.Callback() {}
+          mediaProjection?.registerCallback(mediaProjectionCallback, null)
+
+          val callback = object : VirtualDisplay.Callback() {}
           virtualDisplay = mediaProjection?.createVirtualDisplay("VideoManagerScreen",
             displayWidth, displayHeight, dpi, flags,
-            Surface(surfaceTexture), null, null)
+            Surface(surfaceTexture), callback, null)
         }
         Source.DISABLED -> noSource.start()
       }
@@ -353,7 +357,7 @@ class VideoManager(private val context: Context, var source: Source) {
           } else {
             camera1.previewSizeBack
           }
-          mapCamera1Resolutions(resolutions)
+          mapCamera1Resolutions(resolutions, false)
         }
         Source.CAMERA2 -> {
           val resolutions = if (facing == CameraHelper.Facing.FRONT) {
@@ -380,7 +384,7 @@ class VideoManager(private val context: Context, var source: Source) {
         val resolutions = if (facing == CameraHelper.Facing.BACK) {
           camera1.previewSizeBack
         } else camera1.previewSizeFront
-        return mapCamera1Resolutions(resolutions).contains(size)
+        return mapCamera1Resolutions(resolutions, shouldRotate).find { it.width == size.width && it.height == size.height } != null
       }
       Source.CAMERA2 -> {
         val size = Size(width, height)
@@ -407,5 +411,7 @@ class VideoManager(private val context: Context, var source: Source) {
   }
 
   @Suppress("DEPRECATION")
-  private fun mapCamera1Resolutions(resolutions: List<Camera.Size>) = resolutions.map { Size(it.width, it.height) }
+  private fun mapCamera1Resolutions(resolutions: List<Camera.Size>, shouldRotate: Boolean) = resolutions.map {
+    if (shouldRotate) Size(it.height, it.width) else Size(it.width, it.height)
+  }
 }

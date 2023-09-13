@@ -1,5 +1,6 @@
 package com.pedro.library.util.sources
 
+import android.hardware.display.VirtualDisplay
 import android.media.AudioAttributes
 import android.media.AudioPlaybackCaptureConfiguration
 import android.media.projection.MediaProjection
@@ -54,6 +55,8 @@ class AudioManager(getMicrophoneData: GetMicrophoneData, var source: Source) {
         }
         Source.INTERNAL -> {
           if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            val mediaProjectionCallback = object : MediaProjection.Callback() {}
+            mediaProjection?.registerCallback(mediaProjectionCallback, null)
             mediaProjection?.let {
               val config = AudioPlaybackCaptureConfiguration.Builder(it)
                 .addMatchingUsage(AudioAttributes.USAGE_MEDIA)
