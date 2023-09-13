@@ -162,7 +162,8 @@ class GlStreamInterface(private val context: Context) : Runnable, OnFrameAvailab
           }
         }
         synchronized(sync) {
-          sync.wait(fpsLimiter.sleepTime)
+          val sleep = fpsLimiter.sleepTime
+          if (sleep > 0) sync.wait(sleep)
         }
       }
     } catch (ignore: InterruptedException) {

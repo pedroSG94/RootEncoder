@@ -315,7 +315,8 @@ public class OffScreenGlThread
           }
         }
         synchronized (sync) {
-          sync.wait(fpsLimiter.getSleepTime());
+          long sleep = fpsLimiter.getSleepTime();
+          if (sleep > 0) sync.wait(sleep);
         }
       }
     } catch (InterruptedException ignore) {
