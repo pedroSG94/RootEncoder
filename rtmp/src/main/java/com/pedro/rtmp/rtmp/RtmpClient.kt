@@ -426,6 +426,9 @@ class RtmpClient(private val connectCheckerRtmp: ConnectCheckerRtmp) {
                     }
                   }
                 }
+                "releaseStream" -> { //we can ignore this error. Few servers fail if this stream is not in use
+                  Log.e(TAG, "releaseStream failed: $description")
+                }
                 else -> {
                   onMainThread {
                     connectCheckerRtmp.onConnectionFailedRtmp(description)
