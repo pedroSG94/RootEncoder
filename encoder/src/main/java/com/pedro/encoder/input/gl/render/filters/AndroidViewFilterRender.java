@@ -292,6 +292,14 @@ public class AndroidViewFilterRender extends BaseFilterRender {
             });
           }
         }
+        else {
+          // not rendering, no need to try again immediately
+          try {
+            Thread.sleep(10);
+          } catch (InterruptedException e) {
+
+          }
+        }
       }
     });
   }
