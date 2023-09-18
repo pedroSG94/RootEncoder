@@ -52,6 +52,11 @@ public abstract class BaseEncoder implements EncoderCallback {
   protected boolean shouldReset = true;
   protected boolean prepared = false;
   private Handler handler;
+  private EncoderErrorCallback encoderErrorCallback;
+
+  public void setEncoderErrorCallback(EncoderErrorCallback encoderErrorCallback) {
+    this.encoderErrorCallback = encoderErrorCallback;
+  }
 
   public void restart() {
     start(false);
@@ -86,7 +91,7 @@ public abstract class BaseEncoder implements EncoderCallback {
             getDataFromEncoder();
           } catch (IllegalStateException e) {
             Log.i(TAG, "Encoding error", e);
-            reloadCodec();
+            reloadCodec(e);
           }
         }
       });
@@ -108,8 +113,12 @@ public abstract class BaseEncoder implements EncoderCallback {
     }
   }
 
-  private void reloadCodec() {
+  private void reloadCodec(IllegalStateException e) {
     //Sometimes encoder crash, we will try recover it. Reset encoder a time if crash
+    EncoderErrorCallback callback = encoderErrorCallback;
+    if (callback != null) {
+      shouldReset = callback.onEncodeError(TAG, e);
+    }
     if (shouldReset) {
       Log.e(TAG, "Encoder crashed, trying to recover it");
       reset();
@@ -254,7 +263,7 @@ public abstract class BaseEncoder implements EncoderCallback {
           inputAvailable(mediaCodec, inBufferIndex);
         } catch (IllegalStateException e) {
           Log.i(TAG, "Encoding error", e);
-          reloadCodec();
+          reloadCodec(e);
         }
       }
 
@@ -265,13 +274,15 @@ public abstract class BaseEncoder implements EncoderCallback {
           outputAvailable(mediaCodec, outBufferIndex, bufferInfo);
         } catch (IllegalStateException e) {
           Log.i(TAG, "Encoding error", e);
-          reloadCodec();
+          reloadCodec(e);
         }
       }
 
       @Override
       public void onError(@NonNull MediaCodec mediaCodec, @NonNull MediaCodec.CodecException e) {
         Log.e(TAG, "Error", e);
+        EncoderErrorCallback callback = encoderErrorCallback;
+        if (callback != null) callback.onCodecError(TAG, e);
       }
 
       @Override

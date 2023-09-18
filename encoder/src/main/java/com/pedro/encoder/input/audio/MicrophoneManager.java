@@ -97,7 +97,7 @@ public class MicrophoneManager {
       if (noiseSuppressor) audioPostProcessEffect.enableNoiseSuppressor();
       String chl = (isStereo) ? "Stereo" : "Mono";
       if (audioRecord.getState() != AudioRecord.STATE_INITIALIZED) {
-        throw new IllegalArgumentException("Some parameters specified is not valid");
+        throw new IllegalArgumentException("Some parameters specified are not valid");
       }
       Log.i(TAG, "Microphone created, " + sampleRate + "hz, " + chl);
       created = true;
@@ -138,7 +138,7 @@ public class MicrophoneManager {
         if (noiseSuppressor) audioPostProcessEffect.enableNoiseSuppressor();
         String chl = (isStereo) ? "Stereo" : "Mono";
         if (audioRecord.getState() != AudioRecord.STATE_INITIALIZED) {
-          throw new IllegalArgumentException("Some parameters specified is not valid");
+          throw new IllegalArgumentException("Some parameters specified are not valid");
         }
         Log.i(TAG, "Internal microphone created, " + sampleRate + "hz, " + chl);
         created = true;
@@ -164,14 +164,11 @@ public class MicrophoneManager {
     handlerThread = new HandlerThread(TAG);
     handlerThread.start();
     Handler handler = new Handler(handlerThread.getLooper());
-    handler.post(new Runnable() {
-      @Override
-      public void run() {
-        while (running) {
-          Frame frame = read();
-          if (frame != null) {
-            getMicrophoneData.inputPCMData(frame);
-          }
+    handler.post(() -> {
+      while (running) {
+        Frame frame = read();
+        if (frame != null) {
+          getMicrophoneData.inputPCMData(frame);
         }
       }
     });
@@ -183,8 +180,7 @@ public class MicrophoneManager {
       running = true;
       Log.i(TAG, "Microphone started");
     } else {
-      Log.e(TAG, "Error starting, microphone was stopped or not created, "
-          + "use createMicrophone() before start()");
+      throw new IllegalStateException("Error starting, microphone was stopped or not created, use createMicrophone() before start()");
     }
   }
 

@@ -13,6 +13,7 @@ import android.view.Surface
 import android.view.SurfaceView
 import android.view.TextureView
 import androidx.annotation.RequiresApi
+import com.pedro.encoder.EncoderErrorCallback
 import com.pedro.encoder.Frame
 import com.pedro.encoder.audio.AudioEncoder
 import com.pedro.encoder.audio.GetAacData
@@ -265,6 +266,15 @@ abstract class StreamBase(
    */
   fun changeAudioSourceDisabled() {
     audioManager.changeAudioSourceDisabled()
+  }
+
+  /**
+   * Set a callback to know errors related with Video/Audio encoders
+   * @param encoderErrorCallback callback to use, null to remove
+   */
+  fun setEncoderErrorCallback(encoderErrorCallback: EncoderErrorCallback?) {
+    videoEncoder.setEncoderErrorCallback(encoderErrorCallback)
+    audioEncoder.setEncoderErrorCallback(encoderErrorCallback)
   }
 
   /**

@@ -28,6 +28,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 
+import com.pedro.encoder.EncoderErrorCallback;
 import com.pedro.encoder.Frame;
 import com.pedro.encoder.audio.AudioEncoder;
 import com.pedro.encoder.audio.GetAacData;
@@ -223,6 +224,15 @@ public abstract class FromFileBase implements GetVideoData, GetAacData, GetMicro
   public boolean isAudioDeviceEnabled() {
     return audioTrackPlayer != null
         && audioTrackPlayer.getPlayState() == AudioTrack.PLAYSTATE_PLAYING;
+  }
+
+  /**
+   * Set a callback to know errors related with Video/Audio encoders
+   * @param encoderErrorCallback callback to use, null to remove
+   */
+  public void setEncoderErrorCallback(EncoderErrorCallback encoderErrorCallback) {
+    videoEncoder.setEncoderErrorCallback(encoderErrorCallback);
+    audioEncoder.setEncoderErrorCallback(encoderErrorCallback);
   }
 
   public void playAudioDevice() {
