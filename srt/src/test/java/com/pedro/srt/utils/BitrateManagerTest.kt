@@ -14,10 +14,11 @@
  * limitations under the License.
  */
 
-package com.pedro.rtmp.utils
+package com.pedro.srt.utils
 
-import com.pedro.rtmp.MainDispatcherRule
-import com.pedro.rtmp.Utils
+import com.pedro.srt.MainDispatcherRule
+import com.pedro.srt.Utils
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.test.runTest
 import org.junit.After
 import org.junit.Assert.assertTrue
@@ -42,7 +43,7 @@ class BitrateManagerTest {
   @get:Rule
   val mainDispatcherRule = MainDispatcherRule()
   @Mock
-  private lateinit var connectCheckerRtmp: ConnectCheckerRtmp
+  private lateinit var connectCheckerSrt: ConnectCheckerSrt
   private val timeUtilsMocked = Mockito.mockStatic(TimeUtils::class.java)
   private var fakeTime = 7502849023L
 
@@ -59,7 +60,7 @@ class BitrateManagerTest {
   @Test
   fun `WHEN set multiple values THEN return total of values each second`() = runTest {
     Utils.useStatics(listOf(timeUtilsMocked)) {
-      val bitrateManager = BitrateManager(connectCheckerRtmp)
+      val bitrateManager = BitrateManager(connectCheckerSrt)
       val fakeValues = arrayOf(100L, 200L, 300L, 400L, 500L)
       var expectedResult = 0L
       fakeValues.forEach {
@@ -71,7 +72,7 @@ class BitrateManagerTest {
       bitrateManager.calculateBitrate(value)
       expectedResult += value
       val resultValue = argumentCaptor<Long>()
-      verify(connectCheckerRtmp, times(1)).onNewBitrateRtmp(resultValue.capture())
+      verify(connectCheckerSrt, times(1)).onNewBitrateSrt(resultValue.capture())
       val marginError = 20
       assertTrue(expectedResult - marginError <= resultValue.firstValue && resultValue.firstValue <= expectedResult + marginError)
     }

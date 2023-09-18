@@ -27,7 +27,7 @@ object Utils {
     assertEquals(actual.toString(), expected.toString())
   }
 
-  fun useStatics(statics: List<MockedStatic<out Any>>, callback: () -> Unit) {
+  suspend fun useStatics(statics: List<MockedStatic<out Any>>, callback: suspend () -> Unit) {
     val list = statics.toMutableList()
     if (list.isEmpty()) callback()
     else if (list.size == 1) {

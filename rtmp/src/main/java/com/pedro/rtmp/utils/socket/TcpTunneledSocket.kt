@@ -17,6 +17,7 @@
 package com.pedro.rtmp.utils.socket
 
 import android.util.Log
+import com.pedro.rtmp.utils.TimeUtils
 import java.io.*
 import java.net.HttpURLConnection
 import java.net.SocketTimeoutException
@@ -49,12 +50,12 @@ class TcpTunneledSocket(private val host: String, private val port: Int, private
 
   override fun getInputStream(): InputStream {
     synchronized(sync) {
-      val start = System.currentTimeMillis()
+      val start = TimeUtils.getCurrentTimeMillis()
       while (input.available() <= 1 && connected) {
         val i = index.addAndGet(1)
         val bytes = requestRead("idle/$connectionId/$i", secured)
         input = ByteArrayInputStream(bytes, 1, bytes.size)
-        if (System.currentTimeMillis() - start >= timeout) {
+        if (TimeUtils.getCurrentTimeMillis() - start >= timeout) {
           throw SocketTimeoutException("couldn't receive a valid packet")
         }
       }

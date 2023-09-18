@@ -18,6 +18,7 @@ package com.pedro.srt.mpeg2ts
 
 import com.pedro.srt.Utils
 import com.pedro.srt.utils.TimeUtils
+import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertArrayEquals
 import org.junit.Before
 import org.junit.Test
@@ -38,7 +39,7 @@ class PesTest {
   }
 
   @Test
-  fun `GIVEN a fake aac buffer WHEN create a mpegts packet with pes packet THEN get the expected buffer`() {
+  fun `GIVEN a fake aac buffer WHEN create a mpegts packet with pes packet THEN get the expected buffer`() = runTest {
     Utils.useStatics(listOf(timeUtilsMock)) {
       val data = ByteBuffer.wrap(
         ByteArray(188) { 0xAA.toByte() }

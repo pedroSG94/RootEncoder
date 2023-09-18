@@ -22,6 +22,7 @@ import com.pedro.srt.mpeg2ts.psi.Pmt
 import com.pedro.srt.mpeg2ts.psi.Sdt
 import com.pedro.srt.mpeg2ts.service.Mpeg2TsService
 import com.pedro.srt.utils.TimeUtils
+import kotlinx.coroutines.test.runTest
 import org.junit.After
 import org.junit.Assert.assertArrayEquals
 import org.junit.Before
@@ -50,7 +51,7 @@ class PsiTest {
   }
 
   @Test
-  fun `GIVEN a sdt table WHEN create mpegts packet with that table THEN get expected buffer`() {
+  fun `GIVEN a sdt table WHEN create mpegts packet with that table THEN get expected buffer`() = runTest {
     Utils.useStatics(listOf(timeUtilsMock, pidMock)) {
       val expected = ByteBuffer.wrap(
         byteArrayOf(71, 64, 17, 16, 0, 66, -16, 49, 0, 1, -63, 0, 0, -1, 1, -1, 70, -104, -4, -128, 32, 72, 30, 1, 13, 99, 111, 109, 46, 112, 101, 100, 114, 111, 46, 115, 114, 116, 14, 77, 112, 101, 103, 50, 84, 115, 83, 101, 114, 118, 105, 99, 101, 72, 33, 81, -10, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1)
@@ -69,7 +70,7 @@ class PsiTest {
   }
 
   @Test
-  fun `GIVEN a pmt table WHEN create mpegts packet with that table THEN get expected buffer`() {
+  fun `GIVEN a pmt table WHEN create mpegts packet with that table THEN get expected buffer`() = runTest {
     Utils.useStatics(listOf(timeUtilsMock, pidMock)) {
       service.addTrack(Codec.AAC)
       val expected = ByteBuffer.wrap(
@@ -89,7 +90,7 @@ class PsiTest {
   }
 
   @Test
-  fun `GIVEN a pat table WHEN create mpegts packet with that table THEN get expected buffer`() {
+  fun `GIVEN a pat table WHEN create mpegts packet with that table THEN get expected buffer`() = runTest {
     Utils.useStatics(listOf(timeUtilsMock, pidMock)) {
       val expected = ByteBuffer.wrap(
         byteArrayOf(71, 64, 0, 16, 0, 0, -80, 13, 1, 0, -61, 0, 0, 70, -104, -32, 0, -30, -46, -114, -23, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1)

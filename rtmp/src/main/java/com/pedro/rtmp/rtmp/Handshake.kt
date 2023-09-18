@@ -17,6 +17,7 @@
 package com.pedro.rtmp.rtmp
 
 import android.util.Log
+import com.pedro.rtmp.utils.TimeUtils
 import com.pedro.rtmp.utils.readUntil
 import com.pedro.rtmp.utils.socket.RtmpSocket
 import java.io.IOException
@@ -102,7 +103,7 @@ class Handshake {
     Log.i(TAG, "writing C1")
     val c1 = ByteArray(handshakeSize)
 
-    timestampC1 = (System.currentTimeMillis() / 1000).toInt()
+    timestampC1 = (TimeUtils.getCurrentTimeMillis() / 1000).toInt()
     Log.i(TAG, "writing time $timestampC1 to c1")
     val timestampData = ByteArray(4)
     timestampData[0] = (timestampC1 ushr 24).toByte()

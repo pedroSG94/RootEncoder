@@ -24,16 +24,16 @@ package com.pedro.rtmp.utils
 open class BitrateManager(private val connectCheckerRtmp: ConnectCheckerRtmp) {
 
   private var bitrate: Long = 0
-  private var timeStamp = System.currentTimeMillis()
+  private var timeStamp = TimeUtils.getCurrentTimeMillis()
 
   suspend fun calculateBitrate(size: Long) {
     bitrate += size
-    val timeDiff = System.currentTimeMillis() - timeStamp
+    val timeDiff = TimeUtils.getCurrentTimeMillis() - timeStamp
     if (timeDiff >= 1000) {
       onMainThread {
         connectCheckerRtmp.onNewBitrateRtmp((bitrate / (timeDiff / 1000f)).toLong())
       }
-      timeStamp = System.currentTimeMillis()
+      timeStamp = TimeUtils.getCurrentTimeMillis()
       bitrate = 0
     }
   }

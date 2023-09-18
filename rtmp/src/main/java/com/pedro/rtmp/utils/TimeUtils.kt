@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.pedro.srt.utils
+package com.pedro.rtmp.utils
 
 /**
  * Created by pedro on 30/8/23.
@@ -22,8 +22,8 @@ package com.pedro.srt.utils
 object TimeUtils {
 
   @JvmStatic
-  fun getCurrentTimeMicro(): Long = System.nanoTime() / 1000
+  fun getCurrentTimeMillis(): Long = System.currentTimeMillis()
 
   @JvmStatic
-  fun getCurrentTimeMillis(): Long = System.currentTimeMillis()
+  fun getCurrentTimeNano(): Long = System.nanoTime()
 }

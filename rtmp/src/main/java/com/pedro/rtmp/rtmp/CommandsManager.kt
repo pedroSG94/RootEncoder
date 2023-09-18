@@ -25,6 +25,7 @@ import com.pedro.rtmp.rtmp.message.control.Type
 import com.pedro.rtmp.rtmp.message.control.UserControl
 import com.pedro.rtmp.utils.CommandSessionHistory
 import com.pedro.rtmp.utils.RtmpConfig
+import com.pedro.rtmp.utils.TimeUtils
 import com.pedro.rtmp.utils.socket.RtmpSocket
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -80,7 +81,7 @@ abstract class CommandsManager {
   }
 
   protected fun getCurrentTimestamp(): Int {
-    return (System.currentTimeMillis() / 1000 - timestamp).toInt()
+    return (TimeUtils.getCurrentTimeMillis() / 1000 - timestamp).toInt()
   }
 
   @Throws(IOException::class)
@@ -182,7 +183,7 @@ abstract class CommandsManager {
     writeSync.withLock {
       val output = socket.getOutStream()
       if (akamaiTs) {
-        flvPacket.timeStamp = ((System.nanoTime() / 1000 - startTs) / 1000)
+        flvPacket.timeStamp = ((TimeUtils.getCurrentTimeNano() / 1000 - startTs) / 1000)
       }
       val video = Video(flvPacket, streamId)
       video.writeHeader(output)
@@ -197,7 +198,7 @@ abstract class CommandsManager {
     writeSync.withLock {
       val output = socket.getOutStream()
       if (akamaiTs) {
-        flvPacket.timeStamp = ((System.nanoTime() / 1000 - startTs) / 1000)
+        flvPacket.timeStamp = ((TimeUtils.getCurrentTimeNano() / 1000 - startTs) / 1000)
       }
       val audio = Audio(flvPacket, streamId)
       audio.writeHeader(output)

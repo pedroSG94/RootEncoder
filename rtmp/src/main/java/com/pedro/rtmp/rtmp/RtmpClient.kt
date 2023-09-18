@@ -27,6 +27,7 @@ import com.pedro.rtmp.rtmp.message.control.UserControl
 import com.pedro.rtmp.utils.AuthUtil
 import com.pedro.rtmp.utils.ConnectCheckerRtmp
 import com.pedro.rtmp.utils.RtmpConfig
+import com.pedro.rtmp.utils.TimeUtils
 import com.pedro.rtmp.utils.onMainThread
 import com.pedro.rtmp.utils.socket.RtmpSocket
 import com.pedro.rtmp.utils.socket.TcpSocket
@@ -304,11 +305,11 @@ class RtmpClient(private val connectCheckerRtmp: ConnectCheckerRtmp) {
     this.socket = socket
     socket.connect()
     if (!socket.isConnected()) return false
-    val timestamp = System.currentTimeMillis() / 1000
+    val timestamp = TimeUtils.getCurrentTimeMillis() / 1000
     val handshake = Handshake()
     if (!handshake.sendHandshake(socket)) return false
     commandsManager.timestamp = timestamp.toInt()
-    commandsManager.startTs = System.nanoTime() / 1000
+    commandsManager.startTs = TimeUtils.getCurrentTimeNano() / 1000
     return true
   }
 
