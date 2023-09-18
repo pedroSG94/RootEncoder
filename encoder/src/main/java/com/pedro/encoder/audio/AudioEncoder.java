@@ -85,6 +85,7 @@ public class AudioEncoder extends BaseEncoder implements GetMicrophoneData {
       codec.configure(audioFormat, null, null, MediaCodec.CONFIGURE_FLAG_ENCODE);
       running = false;
       Log.i(TAG, "prepared");
+      prepared = true;
       return true;
     } catch (Exception e) {
       Log.e(TAG, "Create AudioEncoder failed.", e);

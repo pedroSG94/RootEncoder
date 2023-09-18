@@ -26,12 +26,13 @@ open class BitrateManager(private val connectCheckerRtmp: ConnectCheckerRtmp) {
   private var bitrate: Long = 0
   private var timeStamp = System.currentTimeMillis()
 
-  @Synchronized
-  fun calculateBitrate(size: Long) {
+  suspend fun calculateBitrate(size: Long) {
     bitrate += size
     val timeDiff = System.currentTimeMillis() - timeStamp
     if (timeDiff >= 1000) {
-      connectCheckerRtmp.onNewBitrateRtmp((bitrate / (timeDiff / 1000f)).toLong())
+      onMainThread {
+        connectCheckerRtmp.onNewBitrateRtmp((bitrate / (timeDiff / 1000f)).toLong())
+      }
       timeStamp = System.currentTimeMillis()
       bitrate = 0
     }

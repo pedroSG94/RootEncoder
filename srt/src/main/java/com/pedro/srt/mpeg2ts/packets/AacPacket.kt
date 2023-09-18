@@ -48,7 +48,7 @@ class AacPacket(
     byteBuffer.rewind()
 
     val payload = ByteArray(length + header.size)
-    writeAdts(payload, length)
+    writeAdts(payload, payload.size, 0)
     byteBuffer.get(payload, header.size, length)
 
     val pes = Pes(psiManager.getAudioPid().toInt(), false, PesType.AUDIO, info.presentationTimeUs, ByteBuffer.wrap(payload))
@@ -83,32 +83,24 @@ class AacPacket(
     this.isStereo = stereo
   }
 
-  private fun writeAdts(buffer: ByteArray, length: Int) {
-    val b = ByteBuffer.allocate(header.size)
-    b.putShort((
-      (0xFFF shl 4)
-          or (0b000 shl 1) // MPEG-4 + Layer
-          or (true.toInt())).toShort()
-    )
+  private fun writeAdts(buffer: ByteArray, length: Int, offset: Int) {
+    val type = 2 //AAC-LC
+    val channels = if (isStereo) 2 else 1
+    val frequency = getFrequency()
+    buffer[offset] = 0xFF.toByte()
+    buffer[offset + 1] = 0xF9.toByte()
+    buffer[offset + 2] = (((type - 1) shl 6) or (frequency shl 2) or (channels shr 2)).toByte()
+    buffer[offset + 3] = (((channels and 3) shl 6) or (length shr 11)).toByte()
+    buffer[offset + 4] = ((length and 0x7FF) shr 3).toByte()
+    buffer[offset + 5] = (((length and 7) shl 5).toByte()).plus(0x1F).toByte()
+    buffer[offset + 6] = 0xFC.toByte()
+  }
 
-    val samplingFrequencyIndex = AUDIO_SAMPLING_RATES.asList().indexOf(sampleRate)
-    val channelConfiguration = if (isStereo) 2 else 1
-    val frameLength = length + 7
-    b.putInt(
-      (1 shl 30) // AAC-LC = 2 - minus 1
-          or (samplingFrequencyIndex shl 26)
-          // 0 - Private bit
-          or (channelConfiguration shl 22)
-          // 0 - originality
-          // 0 - home
-          // 0 - copyright id bit
-          // 0 - copyright id start
-          or (frameLength shl 5)
-          or (0b11111) // Buffer fullness 0x7FF for variable bitrate
-    )
-    b.put(0b11111100.toByte()) // Buffer fullness 0x7FF for variable bitrate
-    b.rewind()
-    b.get(buffer, 0, header.size)
+  private fun getFrequency(): Int {
+    var frequency = AUDIO_SAMPLING_RATES.indexOf(sampleRate)
+    //sane check, if samplerate not found using default 44100
+    if (frequency == -1) frequency = 4
+    return frequency
   }
 
   private val AUDIO_SAMPLING_RATES = intArrayOf(

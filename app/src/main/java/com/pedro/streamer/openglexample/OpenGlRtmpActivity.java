@@ -352,25 +352,15 @@ public class OpenGlRtmpActivity extends AppCompatActivity
 
   @Override
   public void onConnectionSuccessRtmp() {
-    runOnUiThread(new Runnable() {
-      @Override
-      public void run() {
-        Toast.makeText(OpenGlRtmpActivity.this, "Connection success", Toast.LENGTH_SHORT).show();
-      }
-    });
+    Toast.makeText(OpenGlRtmpActivity.this, "Connection success", Toast.LENGTH_SHORT).show();
   }
 
   @Override
   public void onConnectionFailedRtmp(final String reason) {
-    runOnUiThread(new Runnable() {
-      @Override
-      public void run() {
-        Toast.makeText(OpenGlRtmpActivity.this, "Connection failed. " + reason, Toast.LENGTH_SHORT)
-            .show();
-        rtmpCamera1.stopStream();
-        button.setText(R.string.start_button);
-      }
-    });
+    Toast.makeText(OpenGlRtmpActivity.this, "Connection failed. " + reason, Toast.LENGTH_SHORT)
+        .show();
+    rtmpCamera1.stopStream();
+    button.setText(R.string.start_button);
   }
 
   @Override
@@ -380,32 +370,17 @@ public class OpenGlRtmpActivity extends AppCompatActivity
 
   @Override
   public void onDisconnectRtmp() {
-    runOnUiThread(new Runnable() {
-      @Override
-      public void run() {
-        Toast.makeText(OpenGlRtmpActivity.this, "Disconnected", Toast.LENGTH_SHORT).show();
-      }
-    });
+    Toast.makeText(OpenGlRtmpActivity.this, "Disconnected", Toast.LENGTH_SHORT).show();
   }
 
   @Override
   public void onAuthErrorRtmp() {
-    runOnUiThread(new Runnable() {
-      @Override
-      public void run() {
-        Toast.makeText(OpenGlRtmpActivity.this, "Auth error", Toast.LENGTH_SHORT).show();
-      }
-    });
+    Toast.makeText(OpenGlRtmpActivity.this, "Auth error", Toast.LENGTH_SHORT).show();
   }
 
   @Override
   public void onAuthSuccessRtmp() {
-    runOnUiThread(new Runnable() {
-      @Override
-      public void run() {
-        Toast.makeText(OpenGlRtmpActivity.this, "Auth success", Toast.LENGTH_SHORT).show();
-      }
-    });
+    Toast.makeText(OpenGlRtmpActivity.this, "Auth success", Toast.LENGTH_SHORT).show();
   }
 
   @Override

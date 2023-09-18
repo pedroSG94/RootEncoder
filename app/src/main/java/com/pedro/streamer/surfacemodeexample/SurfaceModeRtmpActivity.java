@@ -82,31 +82,19 @@ public class SurfaceModeRtmpActivity extends AppCompatActivity
 
   @Override
   public void onConnectionSuccessRtmp() {
-    runOnUiThread(new Runnable() {
-      @Override
-      public void run() {
-        Toast.makeText(SurfaceModeRtmpActivity.this, "Connection success", Toast.LENGTH_SHORT)
-            .show();
-      }
-    });
+    Toast.makeText(SurfaceModeRtmpActivity.this, "Connection success", Toast.LENGTH_SHORT).show();
   }
 
   @Override
   public void onConnectionFailedRtmp(final String reason) {
-    runOnUiThread(new Runnable() {
-      @Override
-      public void run() {
-        //Wait 5s and retry connect stream
-        if (rtmpCamera2.reTry(5000, reason, null)) {
-          Toast.makeText(SurfaceModeRtmpActivity.this, "Retry", Toast.LENGTH_SHORT)
-              .show();
-        } else {
-          Toast.makeText(SurfaceModeRtmpActivity.this, "Connection failed. " + reason, Toast.LENGTH_SHORT).show();
-          rtmpCamera2.stopStream();
-          button.setText(R.string.start_button);
-        }
-      }
-    });
+    if (rtmpCamera2.reTry(5000, reason, null)) {
+      Toast.makeText(SurfaceModeRtmpActivity.this, "Retry", Toast.LENGTH_SHORT)
+          .show();
+    } else {
+      Toast.makeText(SurfaceModeRtmpActivity.this, "Connection failed. " + reason, Toast.LENGTH_SHORT).show();
+      rtmpCamera2.stopStream();
+      button.setText(R.string.start_button);
+    }
   }
 
   @Override
@@ -116,32 +104,17 @@ public class SurfaceModeRtmpActivity extends AppCompatActivity
 
   @Override
   public void onDisconnectRtmp() {
-    runOnUiThread(new Runnable() {
-      @Override
-      public void run() {
-        Toast.makeText(SurfaceModeRtmpActivity.this, "Disconnected", Toast.LENGTH_SHORT).show();
-      }
-    });
+    Toast.makeText(SurfaceModeRtmpActivity.this, "Disconnected", Toast.LENGTH_SHORT).show();
   }
 
   @Override
   public void onAuthErrorRtmp() {
-    runOnUiThread(new Runnable() {
-      @Override
-      public void run() {
-        Toast.makeText(SurfaceModeRtmpActivity.this, "Auth error", Toast.LENGTH_SHORT).show();
-      }
-    });
+    Toast.makeText(SurfaceModeRtmpActivity.this, "Auth error", Toast.LENGTH_SHORT).show();
   }
 
   @Override
   public void onAuthSuccessRtmp() {
-    runOnUiThread(new Runnable() {
-      @Override
-      public void run() {
-        Toast.makeText(SurfaceModeRtmpActivity.this, "Auth success", Toast.LENGTH_SHORT).show();
-      }
-    });
+    Toast.makeText(SurfaceModeRtmpActivity.this, "Auth success", Toast.LENGTH_SHORT).show();
   }
 
   @Override

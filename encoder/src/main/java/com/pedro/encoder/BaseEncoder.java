@@ -50,6 +50,7 @@ public abstract class BaseEncoder implements EncoderCallback {
   private MediaCodec.Callback callback;
   private long oldTimeStamp = 0L;
   protected boolean shouldReset = true;
+  protected boolean prepared = false;
   private Handler handler;
 
   public void restart() {
@@ -58,6 +59,7 @@ public abstract class BaseEncoder implements EncoderCallback {
   }
 
   public void start() {
+    if (!prepared) throw new IllegalStateException(TAG + " not prepared yet. You must call prepare method before start it");
     if (presentTimeUs == 0) {
       presentTimeUs = System.nanoTime() / 1000;
     }
@@ -78,16 +80,13 @@ public abstract class BaseEncoder implements EncoderCallback {
   private void initCodec() {
     codec.start();
     if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
-      handler.post(new Runnable() {
-        @Override
-        public void run() {
-          while (running) {
-            try {
-              getDataFromEncoder();
-            } catch (IllegalStateException e) {
-              Log.i(TAG, "Encoding error", e);
-              reloadCodec();
-            }
+      handler.post(() -> {
+        while (running) {
+          try {
+            getDataFromEncoder();
+          } catch (IllegalStateException e) {
+            Log.i(TAG, "Encoding error", e);
+            reloadCodec();
           }
         }
       });
@@ -154,6 +153,7 @@ public abstract class BaseEncoder implements EncoderCallback {
     } catch (IllegalStateException | NullPointerException e) {
       codec = null;
     }
+    prepared = false;
     oldTimeStamp = 0L;
   }
 

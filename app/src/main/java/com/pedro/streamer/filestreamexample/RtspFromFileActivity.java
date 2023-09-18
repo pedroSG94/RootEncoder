@@ -111,25 +111,15 @@ public class RtspFromFileActivity extends AppCompatActivity
 
   @Override
   public void onConnectionSuccessRtsp() {
-    runOnUiThread(new Runnable() {
-      @Override
-      public void run() {
-        Toast.makeText(RtspFromFileActivity.this, "Connection success", Toast.LENGTH_SHORT).show();
-      }
-    });
+    Toast.makeText(RtspFromFileActivity.this, "Connection success", Toast.LENGTH_SHORT).show();
   }
 
   @Override
   public void onConnectionFailedRtsp(final String reason) {
-    runOnUiThread(new Runnable() {
-      @Override
-      public void run() {
-        Toast.makeText(RtspFromFileActivity.this, "Connection failed. " + reason,
-            Toast.LENGTH_SHORT).show();
-        rtspFromFile.stopStream();
-        button.setText(R.string.start_button);
-      }
-    });
+    Toast.makeText(RtspFromFileActivity.this, "Connection failed. " + reason,
+        Toast.LENGTH_SHORT).show();
+    rtspFromFile.stopStream();
+    button.setText(R.string.start_button);
   }
 
   @Override
@@ -139,32 +129,17 @@ public class RtspFromFileActivity extends AppCompatActivity
 
   @Override
   public void onDisconnectRtsp() {
-    runOnUiThread(new Runnable() {
-      @Override
-      public void run() {
-        Toast.makeText(RtspFromFileActivity.this, "Disconnected", Toast.LENGTH_SHORT).show();
-      }
-    });
+    Toast.makeText(RtspFromFileActivity.this, "Disconnected", Toast.LENGTH_SHORT).show();
   }
 
   @Override
   public void onAuthErrorRtsp() {
-    runOnUiThread(new Runnable() {
-      @Override
-      public void run() {
-        Toast.makeText(RtspFromFileActivity.this, "Auth error", Toast.LENGTH_SHORT).show();
-      }
-    });
+    Toast.makeText(RtspFromFileActivity.this, "Auth error", Toast.LENGTH_SHORT).show();
   }
 
   @Override
   public void onAuthSuccessRtsp() {
-    runOnUiThread(new Runnable() {
-      @Override
-      public void run() {
-        Toast.makeText(RtspFromFileActivity.this, "Auth success", Toast.LENGTH_SHORT).show();
-      }
-    });
+    Toast.makeText(RtspFromFileActivity.this, "Auth success", Toast.LENGTH_SHORT).show();
   }
 
   @Override

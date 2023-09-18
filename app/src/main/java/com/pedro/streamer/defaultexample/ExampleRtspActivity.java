@@ -82,30 +82,20 @@ public class ExampleRtspActivity extends AppCompatActivity
 
   @Override
   public void onConnectionSuccessRtsp() {
-    runOnUiThread(new Runnable() {
-      @Override
-      public void run() {
-        Toast.makeText(ExampleRtspActivity.this, "Connection success", Toast.LENGTH_SHORT).show();
-      }
-    });
+    Toast.makeText(ExampleRtspActivity.this, "Connection success", Toast.LENGTH_SHORT).show();
   }
 
   @Override
   public void onConnectionFailedRtsp(final String reason) {
-    runOnUiThread(new Runnable() {
-      @Override
-      public void run() {
-        if (rtspCamera1.reTry(5000, reason, null)) {
-          Toast.makeText(ExampleRtspActivity.this, "Retry", Toast.LENGTH_SHORT)
-              .show();
-        } else {
-          Toast.makeText(ExampleRtspActivity.this, "Connection failed. " + reason, Toast.LENGTH_SHORT)
-              .show();
-          rtspCamera1.stopStream();
-          button.setText(R.string.start_button);
-        }
-      }
-    });
+    if (rtspCamera1.reTry(5000, reason, null)) {
+      Toast.makeText(ExampleRtspActivity.this, "Retry", Toast.LENGTH_SHORT)
+          .show();
+    } else {
+      Toast.makeText(ExampleRtspActivity.this, "Connection failed. " + reason, Toast.LENGTH_SHORT)
+          .show();
+      rtspCamera1.stopStream();
+      button.setText(R.string.start_button);
+    }
   }
 
   @Override
@@ -115,34 +105,19 @@ public class ExampleRtspActivity extends AppCompatActivity
 
   @Override
   public void onDisconnectRtsp() {
-    runOnUiThread(new Runnable() {
-      @Override
-      public void run() {
-        Toast.makeText(ExampleRtspActivity.this, "Disconnected", Toast.LENGTH_SHORT).show();
-      }
-    });
+    Toast.makeText(ExampleRtspActivity.this, "Disconnected", Toast.LENGTH_SHORT).show();
   }
 
   @Override
   public void onAuthErrorRtsp() {
-    runOnUiThread(new Runnable() {
-      @Override
-      public void run() {
-        Toast.makeText(ExampleRtspActivity.this, "Auth error", Toast.LENGTH_SHORT).show();
-        rtspCamera1.stopStream();
-        button.setText(R.string.start_button);
-      }
-    });
+    Toast.makeText(ExampleRtspActivity.this, "Auth error", Toast.LENGTH_SHORT).show();
+    rtspCamera1.stopStream();
+    button.setText(R.string.start_button);
   }
 
   @Override
   public void onAuthSuccessRtsp() {
-    runOnUiThread(new Runnable() {
-      @Override
-      public void run() {
-        Toast.makeText(ExampleRtspActivity.this, "Auth success", Toast.LENGTH_SHORT).show();
-      }
-    });
+    Toast.makeText(ExampleRtspActivity.this, "Auth success", Toast.LENGTH_SHORT).show();
   }
 
   @Override

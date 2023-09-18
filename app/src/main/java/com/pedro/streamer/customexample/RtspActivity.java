@@ -337,97 +337,67 @@ public class RtspActivity extends AppCompatActivity
 
   @Override
   public void onConnectionSuccessRtsp() {
-    runOnUiThread(new Runnable() {
-      @Override
-      public void run() {
-        Toast.makeText(RtspActivity.this, "Connection success", Toast.LENGTH_SHORT).show();
-      }
-    });
+    Toast.makeText(RtspActivity.this, "Connection success", Toast.LENGTH_SHORT).show();
   }
 
   @Override
   public void onConnectionFailedRtsp(final String reason) {
-    runOnUiThread(new Runnable() {
-      @Override
-      public void run() {
-        Toast.makeText(RtspActivity.this, "Connection failed. " + reason, Toast.LENGTH_SHORT)
-            .show();
-        rtspCamera1.stopStream();
-        bStartStop.setText(getResources().getString(R.string.start_button));
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2
-            && rtspCamera1.isRecording()) {
-          rtspCamera1.stopRecord();
-          PathUtils.updateGallery(getApplicationContext(), folder.getAbsolutePath() + "/" + currentDateAndTime + ".mp4");
-          bRecord.setText(R.string.start_record);
-          Toast.makeText(RtspActivity.this,
-              "file " + currentDateAndTime + ".mp4 saved in " + folder.getAbsolutePath(),
-              Toast.LENGTH_SHORT).show();
-          currentDateAndTime = "";
-        }
-      }
-    });
+    Toast.makeText(RtspActivity.this, "Connection failed. " + reason, Toast.LENGTH_SHORT)
+        .show();
+    rtspCamera1.stopStream();
+    bStartStop.setText(getResources().getString(R.string.start_button));
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2
+        && rtspCamera1.isRecording()) {
+      rtspCamera1.stopRecord();
+      PathUtils.updateGallery(getApplicationContext(), folder.getAbsolutePath() + "/" + currentDateAndTime + ".mp4");
+      bRecord.setText(R.string.start_record);
+      Toast.makeText(RtspActivity.this,
+          "file " + currentDateAndTime + ".mp4 saved in " + folder.getAbsolutePath(),
+          Toast.LENGTH_SHORT).show();
+      currentDateAndTime = "";
+    }
   }
 
   @Override
   public void onNewBitrateRtsp(final long bitrate) {
-    runOnUiThread(new Runnable() {
-      @Override
-      public void run() {
-        tvBitrate.setText(bitrate + " bps");
-      }
-    });
+    tvBitrate.setText(bitrate + " bps");
   }
 
   @Override
   public void onDisconnectRtsp() {
-    runOnUiThread(new Runnable() {
-      @Override
-      public void run() {
-        Toast.makeText(RtspActivity.this, "Disconnected", Toast.LENGTH_SHORT).show();
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2
-            && rtspCamera1.isRecording()) {
-          rtspCamera1.stopRecord();
-          PathUtils.updateGallery(getApplicationContext(), folder.getAbsolutePath() + "/" + currentDateAndTime + ".mp4");
-          bRecord.setText(R.string.start_record);
-          Toast.makeText(RtspActivity.this,
-              "file " + currentDateAndTime + ".mp4 saved in " + folder.getAbsolutePath(),
-              Toast.LENGTH_SHORT).show();
-          currentDateAndTime = "";
-        }
-      }
-    });
+    Toast.makeText(RtspActivity.this, "Disconnected", Toast.LENGTH_SHORT).show();
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2
+        && rtspCamera1.isRecording()) {
+      rtspCamera1.stopRecord();
+      PathUtils.updateGallery(getApplicationContext(), folder.getAbsolutePath() + "/" + currentDateAndTime + ".mp4");
+      bRecord.setText(R.string.start_record);
+      Toast.makeText(RtspActivity.this,
+          "file " + currentDateAndTime + ".mp4 saved in " + folder.getAbsolutePath(),
+          Toast.LENGTH_SHORT).show();
+      currentDateAndTime = "";
+    }
   }
 
   @Override
   public void onAuthErrorRtsp() {
-    runOnUiThread(new Runnable() {
-      @Override
-      public void run() {
-        bStartStop.setText(getResources().getString(R.string.start_button));
-        rtspCamera1.stopStream();
-        Toast.makeText(RtspActivity.this, "Auth error", Toast.LENGTH_SHORT).show();
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2
-            && rtspCamera1.isRecording()) {
-          rtspCamera1.stopRecord();
-          PathUtils.updateGallery(getApplicationContext(), folder.getAbsolutePath() + "/" + currentDateAndTime + ".mp4");
-          bRecord.setText(R.string.start_record);
-          Toast.makeText(RtspActivity.this,
-              "file " + currentDateAndTime + ".mp4 saved in " + folder.getAbsolutePath(),
-              Toast.LENGTH_SHORT).show();
-          currentDateAndTime = "";
-        }
-      }
-    });
+    bStartStop.setText(getResources().getString(R.string.start_button));
+    rtspCamera1.stopStream();
+    Toast.makeText(RtspActivity.this, "Auth error", Toast.LENGTH_SHORT).show();
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2
+        && rtspCamera1.isRecording()) {
+      rtspCamera1.stopRecord();
+      PathUtils.updateGallery(getApplicationContext(), folder.getAbsolutePath() + "/" + currentDateAndTime + ".mp4");
+      bRecord.setText(R.string.start_record);
+      Toast.makeText(RtspActivity.this,
+          "file " + currentDateAndTime + ".mp4 saved in " + folder.getAbsolutePath(),
+          Toast.LENGTH_SHORT).show();
+      currentDateAndTime = "";
+    }
   }
 
   @Override
   public void onAuthSuccessRtsp() {
-    runOnUiThread(new Runnable() {
-      @Override
-      public void run() {
-        Toast.makeText(RtspActivity.this, "Auth success", Toast.LENGTH_SHORT).show();
-      }
-    });
+    Toast.makeText(RtspActivity.this, "Auth success", Toast.LENGTH_SHORT).show();
   }
 
   @Override

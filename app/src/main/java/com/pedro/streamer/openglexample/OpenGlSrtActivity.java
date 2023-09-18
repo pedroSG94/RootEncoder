@@ -359,25 +359,15 @@ public class OpenGlSrtActivity extends AppCompatActivity
 
   @Override
   public void onConnectionSuccessSrt() {
-    runOnUiThread(new Runnable() {
-      @Override
-      public void run() {
-        Toast.makeText(OpenGlSrtActivity.this, "Connection success", Toast.LENGTH_SHORT).show();
-      }
-    });
+    Toast.makeText(OpenGlSrtActivity.this, "Connection success", Toast.LENGTH_SHORT).show();
   }
 
   @Override
   public void onConnectionFailedSrt(final String reason) {
-    runOnUiThread(new Runnable() {
-      @Override
-      public void run() {
-        Toast.makeText(OpenGlSrtActivity.this, "Connection failed. " + reason, Toast.LENGTH_SHORT)
-            .show();
-        srtCamera1.stopStream();
-        button.setText(R.string.start_button);
-      }
-    });
+    Toast.makeText(OpenGlSrtActivity.this, "Connection failed. " + reason, Toast.LENGTH_SHORT)
+        .show();
+    srtCamera1.stopStream();
+    button.setText(R.string.start_button);
   }
 
   @Override
@@ -387,32 +377,17 @@ public class OpenGlSrtActivity extends AppCompatActivity
 
   @Override
   public void onDisconnectSrt() {
-    runOnUiThread(new Runnable() {
-      @Override
-      public void run() {
-        Toast.makeText(OpenGlSrtActivity.this, "Disconnected", Toast.LENGTH_SHORT).show();
-      }
-    });
+    Toast.makeText(OpenGlSrtActivity.this, "Disconnected", Toast.LENGTH_SHORT).show();
   }
 
   @Override
   public void onAuthErrorSrt() {
-    runOnUiThread(new Runnable() {
-      @Override
-      public void run() {
-        Toast.makeText(OpenGlSrtActivity.this, "Auth error", Toast.LENGTH_SHORT).show();
-      }
-    });
+    Toast.makeText(OpenGlSrtActivity.this, "Auth error", Toast.LENGTH_SHORT).show();
   }
 
   @Override
   public void onAuthSuccessSrt() {
-    runOnUiThread(new Runnable() {
-      @Override
-      public void run() {
-        Toast.makeText(OpenGlSrtActivity.this, "Auth success", Toast.LENGTH_SHORT).show();
-      }
-    });
+    Toast.makeText(OpenGlSrtActivity.this, "Auth success", Toast.LENGTH_SHORT).show();
   }
 
   @Override

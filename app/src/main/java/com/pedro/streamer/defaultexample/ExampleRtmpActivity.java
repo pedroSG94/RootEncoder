@@ -80,30 +80,20 @@ public class ExampleRtmpActivity extends AppCompatActivity
 
   @Override
   public void onConnectionSuccessRtmp() {
-    runOnUiThread(new Runnable() {
-      @Override
-      public void run() {
-        Toast.makeText(ExampleRtmpActivity.this, "Connection success", Toast.LENGTH_SHORT).show();
-      }
-    });
+    Toast.makeText(ExampleRtmpActivity.this, "Connection success", Toast.LENGTH_SHORT).show();
   }
 
   @Override
   public void onConnectionFailedRtmp(final String reason) {
-    runOnUiThread(new Runnable() {
-      @Override
-      public void run() {
-        if (rtmpCamera1.reTry(5000, reason, null)) {
-          Toast.makeText(ExampleRtmpActivity.this, "Retry", Toast.LENGTH_SHORT)
-              .show();
-        } else {
-          Toast.makeText(ExampleRtmpActivity.this, "Connection failed. " + reason, Toast.LENGTH_SHORT)
-              .show();
-          rtmpCamera1.stopStream();
-          button.setText(R.string.start_button);
-        }
-      }
-    });
+    if (rtmpCamera1.reTry(5000, reason, null)) {
+      Toast.makeText(ExampleRtmpActivity.this, "Retry", Toast.LENGTH_SHORT)
+          .show();
+    } else {
+      Toast.makeText(ExampleRtmpActivity.this, "Connection failed. " + reason, Toast.LENGTH_SHORT)
+          .show();
+      rtmpCamera1.stopStream();
+      button.setText(R.string.start_button);
+    }
   }
 
   @Override
@@ -113,34 +103,19 @@ public class ExampleRtmpActivity extends AppCompatActivity
 
   @Override
   public void onDisconnectRtmp() {
-    runOnUiThread(new Runnable() {
-      @Override
-      public void run() {
-        Toast.makeText(ExampleRtmpActivity.this, "Disconnected", Toast.LENGTH_SHORT).show();
-      }
-    });
+    Toast.makeText(ExampleRtmpActivity.this, "Disconnected", Toast.LENGTH_SHORT).show();
   }
 
   @Override
   public void onAuthErrorRtmp() {
-    runOnUiThread(new Runnable() {
-      @Override
-      public void run() {
-        Toast.makeText(ExampleRtmpActivity.this, "Auth error", Toast.LENGTH_SHORT).show();
-        rtmpCamera1.stopStream();
-        button.setText(R.string.start_button);
-      }
-    });
+    Toast.makeText(ExampleRtmpActivity.this, "Auth error", Toast.LENGTH_SHORT).show();
+    rtmpCamera1.stopStream();
+    button.setText(R.string.start_button);
   }
 
   @Override
   public void onAuthSuccessRtmp() {
-    runOnUiThread(new Runnable() {
-      @Override
-      public void run() {
-        Toast.makeText(ExampleRtmpActivity.this, "Auth success", Toast.LENGTH_SHORT).show();
-      }
-    });
+    Toast.makeText(ExampleRtmpActivity.this, "Auth success", Toast.LENGTH_SHORT).show();
   }
 
   @Override

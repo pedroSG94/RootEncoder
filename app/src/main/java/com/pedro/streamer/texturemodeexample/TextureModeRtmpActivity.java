@@ -83,26 +83,15 @@ public class TextureModeRtmpActivity extends AppCompatActivity
 
   @Override
   public void onConnectionSuccessRtmp() {
-    runOnUiThread(new Runnable() {
-      @Override
-      public void run() {
-        Toast.makeText(TextureModeRtmpActivity.this, "Connection success", Toast.LENGTH_SHORT)
-            .show();
-      }
-    });
+    Toast.makeText(TextureModeRtmpActivity.this, "Connection success", Toast.LENGTH_SHORT).show();
   }
 
   @Override
   public void onConnectionFailedRtmp(final String reason) {
-    runOnUiThread(new Runnable() {
-      @Override
-      public void run() {
-        Toast.makeText(TextureModeRtmpActivity.this, "Connection failed. " + reason,
-            Toast.LENGTH_SHORT).show();
-        rtmpCamera2.stopStream();
-        button.setText(R.string.start_button);
-      }
-    });
+    Toast.makeText(TextureModeRtmpActivity.this, "Connection failed. " + reason,
+        Toast.LENGTH_SHORT).show();
+    rtmpCamera2.stopStream();
+    button.setText(R.string.start_button);
   }
 
   @Override
@@ -112,32 +101,17 @@ public class TextureModeRtmpActivity extends AppCompatActivity
 
   @Override
   public void onDisconnectRtmp() {
-    runOnUiThread(new Runnable() {
-      @Override
-      public void run() {
-        Toast.makeText(TextureModeRtmpActivity.this, "Disconnected", Toast.LENGTH_SHORT).show();
-      }
-    });
+    Toast.makeText(TextureModeRtmpActivity.this, "Disconnected", Toast.LENGTH_SHORT).show();
   }
 
   @Override
   public void onAuthErrorRtmp() {
-    runOnUiThread(new Runnable() {
-      @Override
-      public void run() {
-        Toast.makeText(TextureModeRtmpActivity.this, "Auth error", Toast.LENGTH_SHORT).show();
-      }
-    });
+    Toast.makeText(TextureModeRtmpActivity.this, "Auth error", Toast.LENGTH_SHORT).show();
   }
 
   @Override
   public void onAuthSuccessRtmp() {
-    runOnUiThread(new Runnable() {
-      @Override
-      public void run() {
-        Toast.makeText(TextureModeRtmpActivity.this, "Auth success", Toast.LENGTH_SHORT).show();
-      }
-    });
+    Toast.makeText(TextureModeRtmpActivity.this, "Auth success", Toast.LENGTH_SHORT).show();
   }
 
   @Override

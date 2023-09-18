@@ -320,85 +320,55 @@ public class RtmpActivity extends AppCompatActivity
 
   @Override
   public void onConnectionSuccessRtmp() {
-    runOnUiThread(new Runnable() {
-      @Override
-      public void run() {
-        Toast.makeText(RtmpActivity.this, "Connection success", Toast.LENGTH_SHORT).show();
-      }
-    });
+    Toast.makeText(RtmpActivity.this, "Connection success", Toast.LENGTH_SHORT).show();
   }
 
   @Override
   public void onConnectionFailedRtmp(final String reason) {
-    runOnUiThread(new Runnable() {
-      @Override
-      public void run() {
-        Toast.makeText(RtmpActivity.this, "Connection failed. " + reason, Toast.LENGTH_SHORT)
-            .show();
-        rtmpCamera1.stopStream();
-        bStartStop.setText(getResources().getString(R.string.start_button));
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2
-            && rtmpCamera1.isRecording()) {
-          rtmpCamera1.stopRecord();
-          PathUtils.updateGallery(getApplicationContext(), folder.getAbsolutePath() + "/" + currentDateAndTime + ".mp4");
-          bRecord.setText(R.string.start_record);
-          Toast.makeText(RtmpActivity.this,
-              "file " + currentDateAndTime + ".mp4 saved in " + folder.getAbsolutePath(),
-              Toast.LENGTH_SHORT).show();
-          currentDateAndTime = "";
-        }
-      }
-    });
+    Toast.makeText(RtmpActivity.this, "Connection failed. " + reason, Toast.LENGTH_SHORT)
+        .show();
+    rtmpCamera1.stopStream();
+    bStartStop.setText(getResources().getString(R.string.start_button));
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2
+        && rtmpCamera1.isRecording()) {
+      rtmpCamera1.stopRecord();
+      PathUtils.updateGallery(getApplicationContext(), folder.getAbsolutePath() + "/" + currentDateAndTime + ".mp4");
+      bRecord.setText(R.string.start_record);
+      Toast.makeText(RtmpActivity.this,
+          "file " + currentDateAndTime + ".mp4 saved in " + folder.getAbsolutePath(),
+          Toast.LENGTH_SHORT).show();
+      currentDateAndTime = "";
+    }
   }
 
   @Override
   public void onNewBitrateRtmp(final long bitrate) {
-    runOnUiThread(new Runnable() {
-      @Override
-      public void run() {
-        tvBitrate.setText(bitrate + " bps");
-      }
-    });
+    tvBitrate.setText(bitrate + " bps");
   }
 
   @Override
   public void onDisconnectRtmp() {
-    runOnUiThread(new Runnable() {
-      @Override
-      public void run() {
-        Toast.makeText(RtmpActivity.this, "Disconnected", Toast.LENGTH_SHORT).show();
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2
-            && rtmpCamera1.isRecording()) {
-          rtmpCamera1.stopRecord();
-          PathUtils.updateGallery(getApplicationContext(), folder.getAbsolutePath() + "/" + currentDateAndTime + ".mp4");
-          bRecord.setText(R.string.start_record);
-          Toast.makeText(RtmpActivity.this,
-              "file " + currentDateAndTime + ".mp4 saved in " + folder.getAbsolutePath(),
-              Toast.LENGTH_SHORT).show();
-          currentDateAndTime = "";
-        }
-      }
-    });
+    Toast.makeText(RtmpActivity.this, "Disconnected", Toast.LENGTH_SHORT).show();
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2
+        && rtmpCamera1.isRecording()) {
+      rtmpCamera1.stopRecord();
+      PathUtils.updateGallery(getApplicationContext(), folder.getAbsolutePath() + "/" + currentDateAndTime + ".mp4");
+      bRecord.setText(R.string.start_record);
+      Toast.makeText(RtmpActivity.this,
+          "file " + currentDateAndTime + ".mp4 saved in " + folder.getAbsolutePath(),
+          Toast.LENGTH_SHORT).show();
+      currentDateAndTime = "";
+    }
   }
 
   @Override
   public void onAuthErrorRtmp() {
-    runOnUiThread(new Runnable() {
-      @Override
-      public void run() {
-        Toast.makeText(RtmpActivity.this, "Auth error", Toast.LENGTH_SHORT).show();
-      }
-    });
+    Toast.makeText(RtmpActivity.this, "Auth error", Toast.LENGTH_SHORT).show();
   }
 
   @Override
   public void onAuthSuccessRtmp() {
-    runOnUiThread(new Runnable() {
-      @Override
-      public void run() {
-        Toast.makeText(RtmpActivity.this, "Auth success", Toast.LENGTH_SHORT).show();
-      }
-    });
+    Toast.makeText(RtmpActivity.this, "Auth success", Toast.LENGTH_SHORT).show();
   }
 
   @Override

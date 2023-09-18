@@ -159,6 +159,7 @@ public class VideoEncoder extends BaseEncoder implements GetCameraData {
         inputSurface = codec.createInputSurface();
       }
       Log.i(TAG, "prepared");
+      prepared = true;
       return true;
     } catch (Exception e) {
       Log.e(TAG, "Create VideoEncoder failed.", e);

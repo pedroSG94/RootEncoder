@@ -82,30 +82,20 @@ public class ExampleSrtActivity extends AppCompatActivity
 
   @Override
   public void onConnectionSuccessSrt() {
-    runOnUiThread(new Runnable() {
-      @Override
-      public void run() {
-        Toast.makeText(ExampleSrtActivity.this, "Connection success", Toast.LENGTH_SHORT).show();
-      }
-    });
+    Toast.makeText(ExampleSrtActivity.this, "Connection success", Toast.LENGTH_SHORT).show();
   }
 
   @Override
   public void onConnectionFailedSrt(final String reason) {
-    runOnUiThread(new Runnable() {
-      @Override
-      public void run() {
-        if (srtCamera1.reTry(5000, reason, null)) {
-          Toast.makeText(ExampleSrtActivity.this, "Retry", Toast.LENGTH_SHORT)
-                  .show();
-        } else {
-          Toast.makeText(ExampleSrtActivity.this, "Connection failed. " + reason, Toast.LENGTH_SHORT)
-                  .show();
-          srtCamera1.stopStream();
-          button.setText(R.string.start_button);
-        }
-      }
-    });
+    if (srtCamera1.reTry(5000, reason, null)) {
+      Toast.makeText(ExampleSrtActivity.this, "Retry", Toast.LENGTH_SHORT)
+          .show();
+    } else {
+      Toast.makeText(ExampleSrtActivity.this, "Connection failed. " + reason, Toast.LENGTH_SHORT)
+          .show();
+      srtCamera1.stopStream();
+      button.setText(R.string.start_button);
+    }
   }
 
   @Override
@@ -115,34 +105,19 @@ public class ExampleSrtActivity extends AppCompatActivity
 
   @Override
   public void onDisconnectSrt() {
-    runOnUiThread(new Runnable() {
-      @Override
-      public void run() {
-        Toast.makeText(ExampleSrtActivity.this, "Disconnected", Toast.LENGTH_SHORT).show();
-      }
-    });
+    Toast.makeText(ExampleSrtActivity.this, "Disconnected", Toast.LENGTH_SHORT).show();
   }
 
   @Override
   public void onAuthErrorSrt() {
-    runOnUiThread(new Runnable() {
-      @Override
-      public void run() {
-        Toast.makeText(ExampleSrtActivity.this, "Auth error", Toast.LENGTH_SHORT).show();
-        srtCamera1.stopStream();
-        button.setText(R.string.start_button);
-      }
-    });
+    Toast.makeText(ExampleSrtActivity.this, "Auth error", Toast.LENGTH_SHORT).show();
+    srtCamera1.stopStream();
+    button.setText(R.string.start_button);
   }
 
   @Override
   public void onAuthSuccessSrt() {
-    runOnUiThread(new Runnable() {
-      @Override
-      public void run() {
-        Toast.makeText(ExampleSrtActivity.this, "Auth success", Toast.LENGTH_SHORT).show();
-      }
-    });
+    Toast.makeText(ExampleSrtActivity.this, "Auth success", Toast.LENGTH_SHORT).show();
   }
 
   @Override
