@@ -13,13 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package com.pedro.encoder.input.audio
 
-package com.pedro.encoder.input.audio;
-
-public class NoAudioEffect extends CustomAudioEffect {
-
-  @Override
-  public byte[] process(byte[] pcmBuffer) {
-    return pcmBuffer;
+class NoAudioEffect : CustomAudioEffect() {
+  override fun process(pcmBuffer: ByteArray): ByteArray {
+    return pcmBuffer
   }
 }

@@ -92,8 +92,8 @@ class RtmpSender(
   }
 
   private fun enqueueVideoFrame(flvPacket: FlvPacket) {
-    val error = queue.trySend(flvPacket).exceptionOrNull()
-    if (error != null) {
+    val result = queue.trySend(flvPacket)
+    if (!result.isSuccess) {
       Log.i(TAG, "Video frame discarded")
       droppedVideoFrames++
     } else {
@@ -118,8 +118,8 @@ class RtmpSender(
   fun sendAudioFrame(aacBuffer: ByteBuffer, info: MediaCodec.BufferInfo) {
     if (running) {
       aacPacket.createFlvAudioPacket(aacBuffer, info) { flvPacket ->
-        val error = queue.trySend(flvPacket).exceptionOrNull()
-        if (error != null) {
+        val result = queue.trySend(flvPacket)
+        if (!result.isSuccess) {
           Log.i(TAG, "Audio frame discarded")
           droppedAudioFrames++
         } else {
@@ -172,6 +172,7 @@ class RtmpSender(
   suspend fun stop(clear: Boolean = true) {
     running = false
     queue.cancel()
+    itemsInQueue = 0
     queue = Channel(cacheSize)
     queueFlow = queue.receiveAsFlow()
     aacPacket.reset()

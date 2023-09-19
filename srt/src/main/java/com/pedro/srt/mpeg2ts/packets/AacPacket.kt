@@ -41,7 +41,7 @@ class AacPacket(
   override fun createAndSendPacket(
     byteBuffer: ByteBuffer,
     info: MediaCodec.BufferInfo,
-    callback: (MpegTsPacket) -> Unit
+    callback: (List<MpegTsPacket>) -> Unit
   ) {
     val length = info.size
     if (length < 0) return
@@ -54,6 +54,7 @@ class AacPacket(
     val pes = Pes(psiManager.getAudioPid().toInt(), false, PesType.AUDIO, info.presentationTimeUs, ByteBuffer.wrap(payload))
     val mpeg2tsPackets = mpegTsPacketizer.write(listOf(pes))
     val chunked = mpeg2tsPackets.chunked(chunkSize)
+    val packets = mutableListOf<MpegTsPacket>()
     chunked.forEachIndexed { index, chunks ->
       val size = chunks.sumOf { it.size }
       val buffer = ByteBuffer.allocate(size)
@@ -69,8 +70,9 @@ class AacPacket(
       } else {
         PacketPosition.MIDDLE
       }
-      callback(MpegTsPacket(buffer.array(), MpegType.AUDIO, packetPosition))
+      packets.add(MpegTsPacket(buffer.array(), MpegType.AUDIO, packetPosition))
     }
+    callback(packets)
   }
 
   override fun resetPacket() {

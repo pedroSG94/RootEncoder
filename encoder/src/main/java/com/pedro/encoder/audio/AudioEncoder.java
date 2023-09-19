@@ -137,7 +137,7 @@ public class AudioEncoder extends BaseEncoder implements GetMicrophoneData {
       pts = 1000000 * bytesRead / 2 / channels / sampleRate;
       bytesRead += frame.getSize();
     } else {
-      pts = System.nanoTime() / 1000 - presentTimeUs;
+      pts = Math.max(0, frame.getTimeStamp() - presentTimeUs);
     }
     return pts;
   }

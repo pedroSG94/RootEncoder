@@ -106,8 +106,8 @@ class RtspSender(private val connectCheckerRtsp: ConnectCheckerRtsp) {
   fun sendVideoFrame(h264Buffer: ByteBuffer, info: MediaCodec.BufferInfo) {
     if (running) {
       videoPacket?.createAndSendPacket(h264Buffer, info) { rtpFrame ->
-        val error = queue.trySend(rtpFrame).exceptionOrNull()
-        if (error != null) {
+        val result = queue.trySend(rtpFrame)
+        if (!result.isSuccess) {
           Log.i(TAG, "Video frame discarded")
           droppedVideoFrames++
         } else {
@@ -120,8 +120,8 @@ class RtspSender(private val connectCheckerRtsp: ConnectCheckerRtsp) {
   fun sendAudioFrame(aacBuffer: ByteBuffer, info: MediaCodec.BufferInfo) {
     if (running) {
       aacPacket?.createAndSendPacket(aacBuffer, info) { rtpFrame ->
-        val error = queue.trySend(rtpFrame).exceptionOrNull()
-        if (error != null) {
+        val result = queue.trySend(rtpFrame)
+        if (!result.isSuccess) {
           Log.i(TAG, "Audio frame discarded")
           droppedAudioFrames++
         } else {

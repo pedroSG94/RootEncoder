@@ -459,7 +459,7 @@ public class VideoEncoder extends BaseEncoder implements GetCameraData {
 
   @Override
   protected long calculatePts(Frame frame, long presentTimeUs) {
-    return System.nanoTime() / 1000 - presentTimeUs;
+    return Math.max(0, frame.getTimeStamp() - presentTimeUs);
   }
 
   @Override

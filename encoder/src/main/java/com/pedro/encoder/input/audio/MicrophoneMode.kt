@@ -13,9 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package com.pedro.encoder.input.audio
 
-package com.pedro.encoder.input.audio;
-
-public enum MicrophoneMode {
+enum class MicrophoneMode {
   SYNC, ASYNC, BUFFER
 }

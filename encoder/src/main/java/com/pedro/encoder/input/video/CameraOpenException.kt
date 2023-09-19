@@ -13,9 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package com.pedro.encoder.input.video
 
-package com.pedro.encoder;
-
-public interface GetFrame {
-  Frame getInputFrame();
-}
+/**
+ * Created by pedro on 12/04/17.
+ */
+class CameraOpenException(message: String) : RuntimeException(message)

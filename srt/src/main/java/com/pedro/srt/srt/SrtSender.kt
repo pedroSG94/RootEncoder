@@ -43,6 +43,7 @@ import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import java.nio.ByteBuffer
+import java.util.concurrent.atomic.AtomicInteger
 
 /**
  * Created by pedro on 20/8/23.
@@ -71,7 +72,7 @@ class SrtSender(
 
   private var job: Job? = null
   private val scope = CoroutineScope(Dispatchers.IO)
-  private var queue = Channel<MpegTsPacket>(cacheSize)
+  private var queue = Channel<List<MpegTsPacket>>(cacheSize)
   private var queueFlow = queue.receiveAsFlow()
   private var audioFramesSent: Long = 0
   private var videoFramesSent: Long = 0
@@ -116,9 +117,9 @@ class SrtSender(
   fun sendVideoFrame(h264Buffer: ByteBuffer, info: MediaCodec.BufferInfo) {
     if (running) {
       checkSendInfo()
-      h26XPacket.createAndSendPacket(h264Buffer, info) { mpegTsPacket ->
-        val error = queue.trySend(mpegTsPacket).exceptionOrNull()
-        if (error != null) {
+      h26XPacket.createAndSendPacket(h264Buffer, info) { mpegTsPackets ->
+        val result = queue.trySend(mpegTsPackets)
+        if (!result.isSuccess) {
           Log.i(TAG, "Video frame discarded")
           droppedVideoFrames++
         } else {
@@ -131,9 +132,9 @@ class SrtSender(
   fun sendAudioFrame(aacBuffer: ByteBuffer, info: MediaCodec.BufferInfo) {
     if (running) {
       checkSendInfo()
-      aacPacket.createAndSendPacket(aacBuffer, info) { mpegTsPacket ->
-        val error = queue.trySend(mpegTsPacket).exceptionOrNull()
-        if (error != null) {
+      aacPacket.createAndSendPacket(aacBuffer, info) { mpegTsPackets ->
+        val result = queue.trySend(mpegTsPackets)
+        if (!result.isSuccess) {
           Log.i(TAG, "Audio frame discarded")
           droppedAudioFrames++
         } else {
@@ -151,19 +152,22 @@ class SrtSender(
     running = true
     job = scope.launch {
       //send config
-      mpegTsPacketizer.write(listOf(psiManager.getPmt(), psiManager.getSdt(), psiManager.getPat())).forEach { b ->
-        queue.trySend(MpegTsPacket(b, MpegType.PSI, PacketPosition.SINGLE)).exceptionOrNull()
+      val psiPackets = mpegTsPacketizer.write(listOf(psiManager.getPmt(), psiManager.getSdt(), psiManager.getPat())).map { b ->
+        MpegTsPacket(b, MpegType.PSI, PacketPosition.SINGLE)
       }
-      queueFlow.collect { mpegTsPacket ->
+      queue.trySend(psiPackets)
+      queueFlow.collect { mpegTsPackets ->
         itemsInQueue--
         val error = runCatching {
-          var size = 0
-          size += commandsManager.writeData(mpegTsPacket, socket)
-          if (isEnableLogs) {
-            Log.i(TAG, "wrote ${mpegTsPacket.type.name} packet, size $size")
+          mpegTsPackets.forEach { mpegTsPacket ->
+            var size = 0
+            size += commandsManager.writeData(mpegTsPacket, socket)
+            if (isEnableLogs) {
+              Log.i(TAG, "wrote ${mpegTsPacket.type.name} packet, size $size")
+            }
+            //bytes to bits
+            bitrateManager.calculateBitrate(size * 8L)
           }
-          //bytes to bits
-          bitrateManager.calculateBitrate(size * 8L)
         }.exceptionOrNull()
         if (error != null) {
           onMainThread {
@@ -179,20 +183,23 @@ class SrtSender(
   private fun checkSendInfo() {
     when (psiManager.shouldSend(false)) {
       TableToSend.PAT_PMT -> {
-        mpegTsPacketizer.write(listOf(psiManager.getPmt(), psiManager.getPat())).forEach {
-          queue.trySend(MpegTsPacket(it, MpegType.PSI, PacketPosition.SINGLE)).exceptionOrNull()
+        val psiPackets = mpegTsPacketizer.write(listOf(psiManager.getPmt(), psiManager.getPat())).map { b ->
+          MpegTsPacket(b, MpegType.PSI, PacketPosition.SINGLE)
         }
+        queue.trySend(psiPackets)
       }
       TableToSend.SDT -> {
-        mpegTsPacketizer.write(listOf(psiManager.getSdt())).forEach {
-          queue.trySend(MpegTsPacket(it, MpegType.PSI, PacketPosition.SINGLE)).exceptionOrNull()
+        val psiPackets = mpegTsPacketizer.write(listOf(psiManager.getSdt())).map { b ->
+          MpegTsPacket(b, MpegType.PSI, PacketPosition.SINGLE)
         }
+        queue.trySend(psiPackets)
       }
       TableToSend.NONE -> {}
       TableToSend.ALL -> {
-        mpegTsPacketizer.write(listOf(psiManager.getPmt(), psiManager.getSdt(), psiManager.getPat())).forEach {
-          queue.trySend(MpegTsPacket(it, MpegType.PSI, PacketPosition.SINGLE)).exceptionOrNull()
+        val psiPackets = mpegTsPacketizer.write(listOf(psiManager.getPmt(), psiManager.getSdt(), psiManager.getPat())).map { b ->
+          MpegTsPacket(b, MpegType.PSI, PacketPosition.SINGLE)
         }
+        queue.trySend(psiPackets)
       }
     }
   }
@@ -200,6 +207,7 @@ class SrtSender(
   suspend fun stop() {
     running = false
     queue.cancel()
+    itemsInQueue = 0
     queue = Channel(cacheSize)
     queueFlow = queue.receiveAsFlow()
     psiManager.reset()
@@ -224,7 +232,7 @@ class SrtSender(
 
   fun resizeCache(newSize: Int) {
     if (!scope.isActive) {
-      val tempQueue = Channel<MpegTsPacket>(newSize)
+      val tempQueue = Channel<List<MpegTsPacket>>(newSize)
       queue = tempQueue
       queueFlow = queue.receiveAsFlow()
       cacheSize = newSize

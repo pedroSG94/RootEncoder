@@ -13,12 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package com.pedro.encoder.video
 
-package com.pedro.encoder.input.video;
+import android.media.MediaCodec
+import android.media.MediaFormat
+import java.nio.ByteBuffer
 
-public interface CameraCallbacks {
-  void onCameraChanged(CameraHelper.Facing facing);
-  void onCameraError(String error);
-  void onCameraOpened();
-  void onCameraDisconnected();
+/**
+ * Created by pedro on 20/01/17.
+ */
+interface GetVideoData {
+  fun onSpsPpsVps(sps: ByteBuffer, pps: ByteBuffer, vps: ByteBuffer?)
+  fun getVideoData(h264Buffer: ByteBuffer, info: MediaCodec.BufferInfo)
+  fun onVideoFormat(mediaFormat: MediaFormat)
 }

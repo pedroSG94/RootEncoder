@@ -13,14 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package com.pedro.encoder.input.audio
 
-package com.pedro.encoder.input.audio;
+import com.pedro.encoder.Frame
 
-public abstract class CustomAudioEffect {
-
-  /**
-   * @param pcmBuffer buffer obtained directly from the microphone.
-   * @return it must be of same size that pcmBuffer parameter.
-   */
-  public abstract byte[] process(byte[] pcmBuffer);
+/**
+ * Created by pedro on 19/01/17.
+ */
+interface GetMicrophoneData {
+  fun inputPCMData(frame: Frame)
 }

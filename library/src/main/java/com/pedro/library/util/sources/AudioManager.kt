@@ -1,6 +1,5 @@
 package com.pedro.library.util.sources
 
-import android.hardware.display.VirtualDisplay
 import android.media.AudioAttributes
 import android.media.AudioPlaybackCaptureConfiguration
 import android.media.projection.MediaProjection

@@ -13,23 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package com.pedro.encoder
 
-package com.pedro.encoder.video;
-
-import android.media.MediaCodec;
-import android.media.MediaFormat;
-
-import java.nio.ByteBuffer;
+import android.media.MediaCodec
+import android.media.MediaFormat
 
 /**
- * Created by pedro on 20/01/17.
+ * Created by pedro on 18/09/19.
  */
+interface EncoderCallback {
+  @Throws(IllegalStateException::class)
+  fun inputAvailable(mediaCodec: MediaCodec, inBufferIndex: Int)
 
-public interface GetVideoData {
+  @Throws(IllegalStateException::class)
+  fun outputAvailable(mediaCodec: MediaCodec, outBufferIndex: Int, bufferInfo: MediaCodec.BufferInfo)
 
-  void onSpsPpsVps(ByteBuffer sps, ByteBuffer pps, ByteBuffer vps);
-
-  void getVideoData(ByteBuffer h264Buffer, MediaCodec.BufferInfo info);
-
-  void onVideoFormat(MediaFormat mediaFormat);
+  fun formatChanged(mediaCodec: MediaCodec, mediaFormat: MediaFormat)
 }

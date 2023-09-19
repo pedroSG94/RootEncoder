@@ -53,7 +53,7 @@ abstract class BasePacket(
   abstract fun createAndSendPacket(
     byteBuffer: ByteBuffer,
     info: MediaCodec.BufferInfo,
-    callback: (MpegTsPacket) -> Unit
+    callback: (List<MpegTsPacket>) -> Unit
   )
 
   abstract fun resetPacket()

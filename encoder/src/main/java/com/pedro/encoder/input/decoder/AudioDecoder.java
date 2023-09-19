@@ -88,11 +88,12 @@ public class AudioDecoder extends BaseDecoder {
 
   @Override
   protected boolean decodeOutput(ByteBuffer outputBuffer) {
+    long timeStamp = System.nanoTime() / 1000;
     //This buffer is PCM data
     if (muted) {
       outputBuffer.get(pcmBufferMuted, 0,
               Math.min(outputBuffer.remaining(), pcmBufferMuted.length));
-      getMicrophoneData.inputPCMData(new Frame(pcmBufferMuted, 0, pcmBufferMuted.length));
+      getMicrophoneData.inputPCMData(new Frame(pcmBufferMuted, 0, pcmBufferMuted.length, timeStamp));
     } else {
       if (pcmBuffer.length < outputBuffer.remaining()) {
         pcmBuffer = new byte[outputBuffer.remaining()];
@@ -100,9 +101,9 @@ public class AudioDecoder extends BaseDecoder {
       outputBuffer.get(pcmBuffer, 0, Math.min(outputBuffer.remaining(), pcmBuffer.length));
       if (channels > 2) { //downgrade to stereo
         byte[] bufferStereo = PCMUtil.pcmToStereo(pcmBuffer, channels);
-        getMicrophoneData.inputPCMData(new Frame(bufferStereo, 0, bufferStereo.length));
+        getMicrophoneData.inputPCMData(new Frame(bufferStereo, 0, bufferStereo.length, timeStamp));
       } else {
-        getMicrophoneData.inputPCMData(new Frame(pcmBuffer, 0, pcmBuffer.length));
+        getMicrophoneData.inputPCMData(new Frame(pcmBuffer, 0, pcmBuffer.length, timeStamp));
       }
     }
     return false;

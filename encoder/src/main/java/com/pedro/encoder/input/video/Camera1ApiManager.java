@@ -217,7 +217,7 @@ public class Camera1ApiManager implements Camera.PreviewCallback, Camera.FaceDet
       }
       Log.i(TAG, width + "X" + height);
     } catch (IOException e) {
-      if (cameraCallbacks != null) cameraCallbacks.onCameraError(e.getMessage());
+      if (cameraCallbacks != null) cameraCallbacks.onCameraError("Error: " + e.getMessage());
       Log.e(TAG, "Error", e);
     }
   }
@@ -397,7 +397,8 @@ public class Camera1ApiManager implements Camera.PreviewCallback, Camera.FaceDet
 
   @Override
   public void onPreviewFrame(byte[] data, Camera camera) {
-    getCameraData.inputYUVData(new Frame(data, rotation, facing == CameraHelper.Facing.FRONT && isPortrait, imageFormat));
+    long timeStamp = System.nanoTime() / 1000;
+    getCameraData.inputYUVData(new Frame(data, rotation, facing == CameraHelper.Facing.FRONT && isPortrait, imageFormat, timeStamp));
     camera.addCallbackBuffer(yuvBuffer);
   }
 

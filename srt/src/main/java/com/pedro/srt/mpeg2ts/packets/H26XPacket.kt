@@ -51,7 +51,7 @@ class H26XPacket(
   override fun createAndSendPacket(
     byteBuffer: ByteBuffer,
     info: MediaCodec.BufferInfo,
-    callback: (MpegTsPacket) -> Unit
+    callback: (List<MpegTsPacket>) -> Unit
   ) {
     val length = info.size
     if (length < 0) return
@@ -86,6 +86,7 @@ class H26XPacket(
     val pes = Pes(psiManager.getVideoPid().toInt(), isKeyFrame, PesType.VIDEO, info.presentationTimeUs, ByteBuffer.wrap(payload))
     val mpeg2tsPackets = mpegTsPacketizer.write(listOf(pes))
     val chunked = mpeg2tsPackets.chunked(chunkSize)
+    val packets = mutableListOf<MpegTsPacket>()
     chunked.forEachIndexed { index, chunks ->
       val size = chunks.sumOf { it.size }
       val buffer = ByteBuffer.allocate(size)
@@ -101,8 +102,9 @@ class H26XPacket(
       } else {
         PacketPosition.MIDDLE
       }
-      callback(MpegTsPacket(buffer.array(), MpegType.VIDEO, packetPosition))
+      packets.add(MpegTsPacket(buffer.array(), MpegType.VIDEO, packetPosition))
     }
+    callback(packets)
   }
 
   override fun resetPacket() {

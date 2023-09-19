@@ -13,16 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package com.pedro.encoder.input.audio
 
-package com.pedro.encoder.input.video;
-
-/**
- * Created by pedro on 12/04/17.
- */
-
-public class CameraOpenException extends RuntimeException {
-
-  public CameraOpenException(String message) {
-    super(message);
-  }
+abstract class CustomAudioEffect {
+  /**
+   * @param pcmBuffer buffer obtained directly from the microphone.
+   * @return it must be of same size that pcmBuffer parameter.
+   */
+  abstract fun process(pcmBuffer: ByteArray): ByteArray
 }

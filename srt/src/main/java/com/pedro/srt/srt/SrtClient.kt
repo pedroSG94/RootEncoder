@@ -318,7 +318,9 @@ class SrtClient(private val connectCheckerSrt: ConnectCheckerSrt) {
 
           }
           is Shutdown -> {
-            disconnect()
+            onMainThread {
+              connectCheckerSrt.onConnectionFailedSrt("Shutdown received from server")
+            }
           }
           is Ack2 -> {
             //never should happens

@@ -13,23 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package com.pedro.encoder.input.video
 
-package com.pedro.encoder;
-
-import android.media.MediaCodec;
-import android.media.MediaFormat;
-
-import androidx.annotation.NonNull;
+import com.pedro.encoder.Frame
 
 /**
- * Created by pedro on 18/09/19.
+ * Created by pedro on 20/01/17.
  */
-public interface EncoderCallback {
-  void inputAvailable(@NonNull MediaCodec mediaCodec, int inBufferIndex)
-      throws IllegalStateException;
-
-  void outputAvailable(@NonNull MediaCodec mediaCodec, int outBufferIndex,
-      @NonNull MediaCodec.BufferInfo bufferInfo) throws IllegalStateException;
-
-  void formatChanged(@NonNull MediaCodec mediaCodec, @NonNull MediaFormat mediaFormat);
+interface GetCameraData {
+  fun inputYUVData(frame: Frame)
 }

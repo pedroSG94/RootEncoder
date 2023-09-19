@@ -13,16 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package com.pedro.encoder.input.video
 
-package com.pedro.encoder.input.video;
+import com.pedro.encoder.input.video.CameraHelper.Facing
 
-import com.pedro.encoder.Frame;
-
-/**
- * Created by pedro on 20/01/17.
- */
-
-public interface GetCameraData {
-
-  void inputYUVData(Frame frame);
+interface CameraCallbacks {
+  fun onCameraChanged(facing: Facing)
+  fun onCameraError(error: String)
+  fun onCameraOpened()
+  fun onCameraDisconnected()
 }

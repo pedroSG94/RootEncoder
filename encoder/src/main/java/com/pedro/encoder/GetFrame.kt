@@ -13,16 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package com.pedro.encoder
 
-package com.pedro.encoder.input.audio;
-
-import com.pedro.encoder.Frame;
-
-/**
- * Created by pedro on 19/01/17.
- */
-
-public interface GetMicrophoneData {
-
-  void inputPCMData(Frame frame);
+interface GetFrame {
+  fun getInputFrame(): Frame
 }
