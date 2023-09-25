@@ -68,6 +68,7 @@ class SrtSender(
   private var running = false
 
   private var cacheSize = 60
+  @Volatile
   private var itemsInQueue = 0
 
   private var job: Job? = null

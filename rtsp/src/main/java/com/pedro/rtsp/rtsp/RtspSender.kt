@@ -53,6 +53,7 @@ class RtspSender(private val connectCheckerRtsp: ConnectCheckerRtsp) {
   private val defaultCacheSize: Int
     get() = 10 * 1024 * 1024 / RtpConstants.MTU
   private var cacheSize = defaultCacheSize
+  @Volatile
   private var itemsInQueue = 0
   @Volatile
   private var running = false
