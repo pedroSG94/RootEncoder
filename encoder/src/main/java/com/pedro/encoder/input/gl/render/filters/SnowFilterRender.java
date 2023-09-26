@@ -57,12 +57,10 @@ public class SnowFilterRender extends BaseFilterRender {
   private int uSTMatrixHandle = -1;
   private int uSamplerHandle = -1;
   private int uTimeHandle = -1;
-  private int uSnowHandle = -1;
+  private int uResolutionHandle = -1;
 
-  private long START_TIME = System.currentTimeMillis();
-  private TextureLoader textureLoader = new TextureLoader();
-  private StreamObjectBase streamObjectBase;
-  private int[] snowTextureId = new int[] { -1 };
+  private final long START_TIME = System.currentTimeMillis();
+  private float speed = 1f;
 
   public SnowFilterRender() {
     squareVertex = ByteBuffer.allocateDirect(squareVertexDataFilter.length * FLOAT_SIZE_BYTES)
@@ -85,11 +83,7 @@ public class SnowFilterRender extends BaseFilterRender {
     uSTMatrixHandle = GLES20.glGetUniformLocation(program, "uSTMatrix");
     uSamplerHandle = GLES20.glGetUniformLocation(program, "uSampler");
     uTimeHandle = GLES20.glGetUniformLocation(program, "uTime");
-    uSnowHandle = GLES20.glGetUniformLocation(program, "uSnow");
-    Bitmap snowBitmap = BitmapFactory.decodeResource(context.getResources(), R.drawable.snow_flakes);
-    streamObjectBase = new ImageStreamObject();
-    ((ImageStreamObject) streamObjectBase).load(snowBitmap);
-    snowTextureId = textureLoader.load(streamObjectBase.getBitmaps());
+    uResolutionHandle = GLES20.glGetUniformLocation(program, "uResolution");
   }
 
   @Override
@@ -108,28 +102,24 @@ public class SnowFilterRender extends BaseFilterRender {
 
     GLES20.glUniformMatrix4fv(uMVPMatrixHandle, 1, false, MVPMatrix, 0);
     GLES20.glUniformMatrix4fv(uSTMatrixHandle, 1, false, STMatrix, 0);
+    GLES20.glUniform2f(uResolutionHandle, getWidth(), getHeight());
     float time = ((float) (System.currentTimeMillis() - START_TIME)) / 1000f;
-    if (time >= 2) START_TIME += 2000;
-    GLES20.glUniform1f(uTimeHandle, time);
+    GLES20.glUniform1f(uTimeHandle, time * speed);
 
     GLES20.glUniform1i(uSamplerHandle, 4);
     GLES20.glActiveTexture(GLES20.GL_TEXTURE4);
     GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, previousTexId);
-
-    GLES20.glUniform1i(uSnowHandle, 5);
-    GLES20.glActiveTexture(GLES20.GL_TEXTURE5);
-    GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, snowTextureId[0]);
   }
 
   @Override
   public void release() {
     GLES20.glDeleteProgram(program);
-    releaseTextureId();
-    if (streamObjectBase != null) streamObjectBase.recycle();
   }
 
-  private void releaseTextureId() {
-    if (snowTextureId != null) GLES20.glDeleteTextures(1, snowTextureId, 0);
-    snowTextureId = new int[] { -1 };
+  /**
+   * @param value fall speed, default 1.0f
+   */
+  public void setSpeed(float value) {
+    this.speed = value;
   }
 }
