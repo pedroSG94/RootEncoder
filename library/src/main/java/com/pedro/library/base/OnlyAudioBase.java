@@ -47,7 +47,7 @@ import java.nio.ByteBuffer;
  *
  * Created by pedro on 10/07/18.
  */
-public abstract class OnlyAudioBase implements GetAacData, GetMicrophoneData {
+public abstract class OnlyAudioBase {
 
   protected BaseRecordController recordController;
   private MicrophoneManager microphoneManager;
@@ -70,18 +70,18 @@ public abstract class OnlyAudioBase implements GetAacData, GetMicrophoneData {
     switch (microphoneMode) {
       case SYNC:
         microphoneManager = new MicrophoneManagerManual();
-        audioEncoder = new AudioEncoder(this);
+        audioEncoder = new AudioEncoder(getAacData);
         audioEncoder.setGetFrame(((MicrophoneManagerManual) microphoneManager).getGetFrame());
         audioEncoder.setTsModeBuffer(false);
         break;
       case ASYNC:
-        microphoneManager = new MicrophoneManager(this);
-        audioEncoder = new AudioEncoder(this);
+        microphoneManager = new MicrophoneManager(getMicrophoneData);
+        audioEncoder = new AudioEncoder(getAacData);
         audioEncoder.setTsModeBuffer(false);
         break;
       case BUFFER:
-        microphoneManager = new MicrophoneManager(this);
-        audioEncoder = new AudioEncoder(this);
+        microphoneManager = new MicrophoneManager(getMicrophoneData);
+        audioEncoder = new AudioEncoder(getAacData);
         audioEncoder.setTsModeBuffer(true);
         break;
     }
@@ -358,24 +358,6 @@ public abstract class OnlyAudioBase implements GetAacData, GetMicrophoneData {
 
   protected abstract void getAacDataRtp(ByteBuffer aacBuffer, MediaCodec.BufferInfo info);
 
-  @Override
-  public void getAacData(ByteBuffer aacBuffer, MediaCodec.BufferInfo info) {
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
-      recordController.recordAudio(aacBuffer, info);
-    }
-    if (streaming) getAacDataRtp(aacBuffer, info);
-  }
-
-  @Override
-  public void inputPCMData(Frame frame) {
-    audioEncoder.inputPCMData(frame);
-  }
-
-  @Override
-  public void onAudioFormat(MediaFormat mediaFormat) {
-    recordController.setAudioFormat(mediaFormat, true);
-  }
-
   public void setRecordController(BaseRecordController recordController) {
     if (!isRecording()) this.recordController = recordController;
   }
@@ -383,4 +365,23 @@ public abstract class OnlyAudioBase implements GetAacData, GetMicrophoneData {
   public abstract void setLogs(boolean enable);
 
   public abstract void setCheckServerAlive(boolean enable);
+
+  private final GetMicrophoneData getMicrophoneData = frame -> {
+    audioEncoder.inputPCMData(frame);
+  };
+
+  private final GetAacData getAacData = new GetAacData() {
+    @Override
+    public void getAacData(@NonNull ByteBuffer aacBuffer, @NonNull MediaCodec.BufferInfo info) {
+      if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
+        recordController.recordAudio(aacBuffer, info);
+      }
+      if (streaming) getAacDataRtp(aacBuffer, info);
+    }
+
+    @Override
+    public void onAudioFormat(@NonNull MediaFormat mediaFormat) {
+      recordController.setAudioFormat(mediaFormat, true);
+    }
+  };
 }

@@ -19,6 +19,7 @@ import com.pedro.encoder.audio.AudioEncoder
 import com.pedro.encoder.audio.GetAacData
 import com.pedro.encoder.input.audio.GetMicrophoneData
 import com.pedro.encoder.input.video.CameraHelper
+import com.pedro.encoder.input.video.GetCameraData
 import com.pedro.encoder.video.FormatVideoEncoder
 import com.pedro.encoder.video.GetVideoData
 import com.pedro.encoder.video.VideoEncoder
@@ -43,16 +44,16 @@ abstract class StreamBase(
   context: Context,
   videoSource: VideoManager.Source,
   audioSource: AudioManager.Source
-): GetVideoData, GetAacData, GetMicrophoneData {
+) {
 
   //video and audio encoders
-  private val videoEncoder by lazy { VideoEncoder(this) }
-  private val audioEncoder by lazy { AudioEncoder(this) }
+  private val videoEncoder by lazy { VideoEncoder(getVideoData) }
+  private val audioEncoder by lazy { AudioEncoder(getAacData) }
   //video render
   private val glInterface = GlStreamInterface(context)
   //video and audio sources
   private val videoManager = VideoManager(context, videoSource)
-  private val audioManager by lazy { AudioManager(this, audioSource) }
+  private val audioManager by lazy { AudioManager(getMicrophoneData, audioSource) }
   //video/audio record
   private var recordController: BaseRecordController = AndroidMuxerRecordController()
   var isStreaming = false
@@ -513,30 +514,36 @@ abstract class StreamBase(
     return videoEncoder.prepareVideoEncoder() && audioEncoder.prepareAudioEncoder()
   }
 
-  override fun inputPCMData(frame: Frame) {
-    audioEncoder.inputPCMData(frame)
+  private val getMicrophoneData = object: GetMicrophoneData {
+    override fun inputPCMData(frame: Frame) {
+      audioEncoder.inputPCMData(frame)
+    }
   }
 
-  override fun onVideoFormat(mediaFormat: MediaFormat) {
-    recordController.setVideoFormat(mediaFormat)
+  private val getAacData: GetAacData = object : GetAacData {
+    override fun getAacData(aacBuffer: ByteBuffer, info: MediaCodec.BufferInfo) {
+      getAacDataRtp(aacBuffer, info)
+      recordController.recordAudio(aacBuffer, info)
+    }
+
+    override fun onAudioFormat(mediaFormat: MediaFormat) {
+      recordController.setAudioFormat(mediaFormat)
+    }
   }
 
-  override fun onAudioFormat(mediaFormat: MediaFormat) {
-    recordController.setAudioFormat(mediaFormat)
-  }
+  private val getVideoData: GetVideoData = object : GetVideoData {
+    override fun onSpsPpsVps(sps: ByteBuffer, pps: ByteBuffer, vps: ByteBuffer?) {
+      onSpsPpsVpsRtp(sps.duplicate(), pps.duplicate(), vps?.duplicate())
+    }
 
-  override fun onSpsPpsVps(sps: ByteBuffer, pps: ByteBuffer, vps: ByteBuffer?) {
-    onSpsPpsVpsRtp(sps.duplicate(), pps.duplicate(), vps?.duplicate())
-  }
+    override fun getVideoData(h264Buffer: ByteBuffer, info: MediaCodec.BufferInfo) {
+      getH264DataRtp(h264Buffer, info)
+      recordController.recordVideo(h264Buffer, info)
+    }
 
-  override fun getVideoData(h264Buffer: ByteBuffer, info: MediaCodec.BufferInfo) {
-    getH264DataRtp(h264Buffer, info)
-    recordController.recordVideo(h264Buffer, info)
-  }
-
-  override fun getAacData(aacBuffer: ByteBuffer, info: MediaCodec.BufferInfo) {
-    getAacDataRtp(aacBuffer, info)
-    recordController.recordAudio(aacBuffer, info)
+    override fun onVideoFormat(mediaFormat: MediaFormat) {
+      recordController.setVideoFormat(mediaFormat)
+    }
   }
 
   protected abstract fun audioInfo(sampleRate: Int, isStereo: Boolean)

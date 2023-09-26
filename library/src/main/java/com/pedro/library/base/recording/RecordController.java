@@ -18,7 +18,7 @@ public interface RecordController {
     void recordVideo(ByteBuffer videoBuffer, MediaCodec.BufferInfo videoInfo);
     void recordAudio(ByteBuffer audioBuffer, MediaCodec.BufferInfo audioInfo);
     void setVideoFormat(MediaFormat videoFormat, boolean isOnlyVideo);
-    void setAudioFormat(MediaFormat audioFormat, boolean isOnlyVideo);
+    void setAudioFormat(MediaFormat audioFormat, boolean isOnlyAudio);
     void resetFormats();
 
     interface Listener {

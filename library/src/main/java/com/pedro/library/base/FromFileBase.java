@@ -65,7 +65,7 @@ import java.nio.ByteBuffer;
  */
 
 @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
-public abstract class FromFileBase implements GetVideoData, GetAacData, GetMicrophoneData {
+public abstract class FromFileBase {
 
   private static final String TAG = "FromFileBase";
 
@@ -114,10 +114,10 @@ public abstract class FromFileBase implements GetVideoData, GetAacData, GetMicro
 
   private void init(VideoDecoderInterface videoDecoderInterface,
       AudioDecoderInterface audioDecoderInterface) {
-    videoEncoder = new VideoEncoder(this);
-    audioEncoder = new AudioEncoder(this);
+    videoEncoder = new VideoEncoder(getVideoData);
+    audioEncoder = new AudioEncoder(getAacData);
     videoDecoder = new VideoDecoder(videoDecoderInterface);
-    audioDecoder = new AudioDecoder(this, audioDecoderInterface);
+    audioDecoder = new AudioDecoder(getMicrophoneData, audioDecoderInterface);
     recordController = new AndroidMuxerRecordController();
   }
 
@@ -624,45 +624,9 @@ public abstract class FromFileBase implements GetVideoData, GetAacData, GetMicro
 
   protected abstract void onSpsPpsVpsRtp(ByteBuffer sps, ByteBuffer pps, ByteBuffer vps);
 
-  @Override
-  public void onSpsPpsVps(ByteBuffer sps, ByteBuffer pps, ByteBuffer vps) {
-    onSpsPpsVpsRtp(sps.duplicate(), pps.duplicate(), vps != null ? vps.duplicate() : null);
-  }
-
   protected abstract void getH264DataRtp(ByteBuffer h264Buffer, MediaCodec.BufferInfo info);
 
-  @Override
-  public void getVideoData(ByteBuffer h264Buffer, MediaCodec.BufferInfo info) {
-    fpsListener.calculateFps();
-    recordController.recordVideo(h264Buffer, info);
-    if (streaming) getH264DataRtp(h264Buffer, info);
-  }
-
-  @Override
-  public void onVideoFormat(MediaFormat mediaFormat) {
-    recordController.setVideoFormat(mediaFormat, !audioEnabled);
-  }
-
   protected abstract void getAacDataRtp(ByteBuffer aacBuffer, MediaCodec.BufferInfo info);
-
-  @Override
-  public void getAacData(ByteBuffer aacBuffer, MediaCodec.BufferInfo info) {
-    recordController.recordAudio(aacBuffer, info);
-    if (streaming) getAacDataRtp(aacBuffer, info);
-  }
-
-  @Override
-  public void onAudioFormat(MediaFormat mediaFormat) {
-    recordController.setAudioFormat(mediaFormat, !videoEnabled);
-  }
-
-  @Override
-  public void inputPCMData(Frame frame) {
-    if (audioTrackPlayer != null) {
-      audioTrackPlayer.write(frame.getBuffer(), frame.getOffset(), frame.getSize());
-    }
-    audioEncoder.inputPCMData(frame);
-  }
 
   public void setRecordController(BaseRecordController recordController) {
     if (!isRecording()) this.recordController = recordController;
@@ -671,4 +635,43 @@ public abstract class FromFileBase implements GetVideoData, GetAacData, GetMicro
   public abstract void setLogs(boolean enable);
 
   public abstract void setCheckServerAlive(boolean enable);
+
+  private final GetMicrophoneData getMicrophoneData = frame -> {
+    if (audioTrackPlayer != null) {
+      audioTrackPlayer.write(frame.getBuffer(), frame.getOffset(), frame.getSize());
+    }
+    audioEncoder.inputPCMData(frame);
+  };
+
+  private final GetAacData getAacData = new GetAacData() {
+    @Override
+    public void getAacData(@NonNull ByteBuffer aacBuffer, @NonNull MediaCodec.BufferInfo info) {
+      recordController.recordAudio(aacBuffer, info);
+      if (streaming) getAacDataRtp(aacBuffer, info);
+    }
+
+    @Override
+    public void onAudioFormat(@NonNull MediaFormat mediaFormat) {
+      recordController.setAudioFormat(mediaFormat, !videoEnabled);
+    }
+  };
+
+  private final GetVideoData getVideoData = new GetVideoData() {
+    @Override
+    public void onSpsPpsVps(@NonNull ByteBuffer sps, @NonNull ByteBuffer pps, @Nullable ByteBuffer vps) {
+      onSpsPpsVpsRtp(sps.duplicate(), pps.duplicate(), vps != null ? vps.duplicate() : null);
+    }
+
+    @Override
+    public void getVideoData(@NonNull ByteBuffer h264Buffer, @NonNull MediaCodec.BufferInfo info) {
+      fpsListener.calculateFps();
+      recordController.recordVideo(h264Buffer, info);
+      if (streaming) getH264DataRtp(h264Buffer, info);
+    }
+
+    @Override
+    public void onVideoFormat(@NonNull MediaFormat mediaFormat) {
+      recordController.setVideoFormat(mediaFormat, !audioEnabled);
+    }
+  };
 }

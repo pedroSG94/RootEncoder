@@ -78,8 +78,7 @@ import java.util.List;
  * Created by pedro on 7/07/17.
  */
 
-public abstract class Camera1Base
-    implements GetAacData, GetCameraData, GetVideoData, GetMicrophoneData {
+public abstract class Camera1Base {
 
   private static final String TAG = "Camera1Base";
 
@@ -98,13 +97,13 @@ public abstract class Camera1Base
 
   public Camera1Base(SurfaceView surfaceView) {
     context = surfaceView.getContext();
-    cameraManager = new Camera1ApiManager(surfaceView, this);
+    cameraManager = new Camera1ApiManager(surfaceView, getCameraData);
     init();
   }
 
   public Camera1Base(TextureView textureView) {
     context = textureView.getContext();
-    cameraManager = new Camera1ApiManager(textureView, this);
+    cameraManager = new Camera1ApiManager(textureView, getCameraData);
     init();
   }
 
@@ -136,7 +135,7 @@ public abstract class Camera1Base
   }
 
   private void init() {
-    videoEncoder = new VideoEncoder(this);
+    videoEncoder = new VideoEncoder(getVideoData);
     setMicrophoneMode(MicrophoneMode.ASYNC);
     recordController = new AndroidMuxerRecordController();
   }
@@ -152,18 +151,18 @@ public abstract class Camera1Base
     switch (microphoneMode) {
       case SYNC:
         microphoneManager = new MicrophoneManagerManual();
-        audioEncoder = new AudioEncoder(this);
+        audioEncoder = new AudioEncoder(getAacData);
         audioEncoder.setGetFrame(((MicrophoneManagerManual) microphoneManager).getGetFrame());
         audioEncoder.setTsModeBuffer(false);
         break;
       case ASYNC:
-        microphoneManager = new MicrophoneManager(this);
-        audioEncoder = new AudioEncoder(this);
+        microphoneManager = new MicrophoneManager(getMicrophoneData);
+        audioEncoder = new AudioEncoder(getAacData);
         audioEncoder.setTsModeBuffer(false);
         break;
       case BUFFER:
-        microphoneManager = new MicrophoneManager(this);
-        audioEncoder = new AudioEncoder(this);
+        microphoneManager = new MicrophoneManager(getMicrophoneData);
+        audioEncoder = new AudioEncoder(getAacData);
         audioEncoder.setTsModeBuffer(true);
         break;
     }
@@ -1010,51 +1009,9 @@ public abstract class Camera1Base
 
   protected abstract void getAacDataRtp(ByteBuffer aacBuffer, MediaCodec.BufferInfo info);
 
-  @Override
-  public void getAacData(ByteBuffer aacBuffer, MediaCodec.BufferInfo info) {
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
-      recordController.recordAudio(aacBuffer, info);
-    }
-    if (streaming) getAacDataRtp(aacBuffer, info);
-  }
-
   protected abstract void onSpsPpsVpsRtp(ByteBuffer sps, ByteBuffer pps, ByteBuffer vps);
 
-  @Override
-  public void onSpsPpsVps(ByteBuffer sps, ByteBuffer pps, ByteBuffer vps) {
-    onSpsPpsVpsRtp(sps.duplicate(), pps.duplicate(), vps != null ? vps.duplicate() : null);
-  }
-
   protected abstract void getH264DataRtp(ByteBuffer h264Buffer, MediaCodec.BufferInfo info);
-
-  @Override
-  public void getVideoData(ByteBuffer h264Buffer, MediaCodec.BufferInfo info) {
-    fpsListener.calculateFps();
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
-      recordController.recordVideo(h264Buffer, info);
-    }
-    if (streaming) getH264DataRtp(h264Buffer, info);
-  }
-
-  @Override
-  public void inputPCMData(Frame frame) {
-    audioEncoder.inputPCMData(frame);
-  }
-
-  @Override
-  public void inputYUVData(Frame frame) {
-    videoEncoder.inputYUVData(frame);
-  }
-
-  @Override
-  public void onVideoFormat(MediaFormat mediaFormat) {
-    recordController.setVideoFormat(mediaFormat, !audioInitialized);
-  }
-
-  @Override
-  public void onAudioFormat(MediaFormat mediaFormat) {
-    recordController.setAudioFormat(mediaFormat);
-  }
 
   public void setRecordController(BaseRecordController recordController) {
     if (!isRecording()) this.recordController = recordController;
@@ -1063,4 +1020,48 @@ public abstract class Camera1Base
   public abstract void setLogs(boolean enable);
 
   public abstract void setCheckServerAlive(boolean enable);
+
+  private final GetCameraData getCameraData = frame -> {
+    videoEncoder.inputYUVData(frame);
+  };
+
+  private final GetMicrophoneData getMicrophoneData = frame -> {
+    audioEncoder.inputPCMData(frame);
+  };
+
+  private final GetAacData getAacData = new GetAacData() {
+    @Override
+    public void getAacData(@NonNull ByteBuffer aacBuffer, @NonNull MediaCodec.BufferInfo info) {
+      if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
+        recordController.recordAudio(aacBuffer, info);
+      }
+      if (streaming) getAacDataRtp(aacBuffer, info);
+    }
+
+    @Override
+    public void onAudioFormat(@NonNull MediaFormat mediaFormat) {
+      recordController.setAudioFormat(mediaFormat);
+    }
+  };
+
+  private final GetVideoData getVideoData = new GetVideoData() {
+    @Override
+    public void onSpsPpsVps(@NonNull ByteBuffer sps, @NonNull ByteBuffer pps, @Nullable ByteBuffer vps) {
+      onSpsPpsVpsRtp(sps.duplicate(), pps.duplicate(), vps != null ? vps.duplicate() : null);
+    }
+
+    @Override
+    public void getVideoData(@NonNull ByteBuffer h264Buffer, @NonNull MediaCodec.BufferInfo info) {
+      fpsListener.calculateFps();
+      if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
+        recordController.recordVideo(h264Buffer, info);
+      }
+      if (streaming) getH264DataRtp(h264Buffer, info);
+    }
+
+    @Override
+    public void onVideoFormat(@NonNull MediaFormat mediaFormat) {
+      recordController.setVideoFormat(mediaFormat, !audioInitialized);
+    }
+  };
 }
