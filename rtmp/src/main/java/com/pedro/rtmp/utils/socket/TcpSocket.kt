@@ -18,6 +18,7 @@ package com.pedro.rtmp.utils.socket
 
 import com.pedro.rtmp.utils.TLSSocketFactory
 import java.io.BufferedInputStream
+import java.io.BufferedOutputStream
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import java.io.IOException
@@ -34,8 +35,8 @@ import java.security.GeneralSecurityException
 class TcpSocket(private val host: String, private val port: Int, private val secured: Boolean): RtmpSocket() {
 
   private var socket: Socket = Socket()
-  private var input: BufferedInputStream = BufferedInputStream(ByteArrayInputStream(byteArrayOf()))
-  private var output: OutputStream = ByteArrayOutputStream()
+  private var input = ByteArrayInputStream(byteArrayOf()).buffered()
+  private var output = ByteArrayOutputStream().buffered()
 
   override fun getOutStream(): OutputStream = output
 
@@ -58,8 +59,8 @@ class TcpSocket(private val host: String, private val port: Int, private val sec
       val socketAddress: SocketAddress = InetSocketAddress(host, port)
       socket.connect(socketAddress, timeout)
     }
-    output = socket.getOutputStream()
-    input = BufferedInputStream(socket.getInputStream())
+    output = socket.getOutputStream().buffered()
+    input = socket.getInputStream().buffered()
     socket.soTimeout = timeout
   }
 

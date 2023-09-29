@@ -52,7 +52,7 @@ class RtmpSender(
   @Volatile
   private var running = false
 
-  private var cacheSize = 60
+  private var cacheSize = 200
   @Volatile
   private var itemsInQueue = 0
 
