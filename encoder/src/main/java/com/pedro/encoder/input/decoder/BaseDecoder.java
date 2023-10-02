@@ -217,8 +217,6 @@ public abstract class BaseDecoder {
   protected abstract void finished();
 
   private void decode() {
-    ByteBuffer[] inputBuffers = codec.getInputBuffers();
-    ByteBuffer[] outputBuffers = codec.getOutputBuffers();
     startTs = System.nanoTime() / 1000;
     long sleepTime = 0;
     long accumulativeTs = 0;
@@ -228,8 +226,13 @@ public abstract class BaseDecoder {
         int inIndex = codec.dequeueInputBuffer(10000);
         int sampleSize = 0;
         if (inIndex >= 0) {
-          ByteBuffer buffer = inputBuffers[inIndex];
-          sampleSize = extractor.readSampleData(buffer, 0);
+          ByteBuffer input;
+          if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            input = codec.getInputBuffer(inIndex);
+          } else {
+            input = codec.getInputBuffers()[inIndex];
+          }
+          sampleSize = extractor.readSampleData(input, 0);
 
           long ts = System.nanoTime() / 1000 - startTs;
           long extractorTs = extractor.getSampleTime();
@@ -248,7 +251,13 @@ public abstract class BaseDecoder {
         int outIndex = codec.dequeueOutputBuffer(bufferInfo, 10000);
         if (outIndex >= 0) {
           if (!sleep(sleepTime / 1000)) return;
-          boolean render = decodeOutput(outputBuffers[outIndex]);
+          ByteBuffer output;
+          if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            output = codec.getOutputBuffer(outIndex);
+          } else {
+            output = codec.getOutputBuffers()[outIndex];
+          }
+          boolean render = decodeOutput(output);
           codec.releaseOutputBuffer(outIndex, render && bufferInfo.size != 0);
         } else if ((bufferInfo.flags & MediaCodec.BUFFER_FLAG_END_OF_STREAM) != 0 || sampleSize < 0) {
           Log.i(TAG, "end of file");
