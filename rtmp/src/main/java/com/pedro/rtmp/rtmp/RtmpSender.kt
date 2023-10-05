@@ -28,6 +28,7 @@ import com.pedro.rtmp.utils.BitrateManager
 import com.pedro.rtmp.utils.ConnectCheckerRtmp
 import com.pedro.rtmp.utils.onMainThread
 import com.pedro.rtmp.utils.socket.RtmpSocket
+import com.pedro.rtmp.utils.trySend
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -53,13 +54,12 @@ class RtmpSender(
   private var h265Packet = H265Packet()
   @Volatile
   private var running = false
-
   private var cacheSize = 200
 
   private var job: Job? = null
   private val scope = CoroutineScope(Dispatchers.IO)
   @Volatile
-  private var flvPacketBlockingQueue: BlockingQueue<FlvPacket> = LinkedBlockingQueue(cacheSize)
+  private var queue: BlockingQueue<FlvPacket> = LinkedBlockingQueue(cacheSize)
   private var audioFramesSent: Long = 0
   private var videoFramesSent: Long = 0
   var socket: RtmpSocket? = null
@@ -93,9 +93,8 @@ class RtmpSender(
   }
 
   private fun enqueueVideoFrame(flvPacket: FlvPacket) {
-    try {
-      flvPacketBlockingQueue.add(flvPacket)
-    } catch (e: IllegalStateException) {
+    val result = queue.trySend(flvPacket)
+    if (!result) {
       Log.i(TAG, "Video frame discarded")
       droppedVideoFrames++
     }
@@ -118,9 +117,8 @@ class RtmpSender(
   fun sendAudioFrame(aacBuffer: ByteBuffer, info: MediaCodec.BufferInfo) {
     if (running) {
       aacPacket.createFlvAudioPacket(aacBuffer, info) { flvPacket ->
-        try {
-          flvPacketBlockingQueue.add(flvPacket)
-        } catch (e: IllegalStateException) {
+        val result = queue.trySend(flvPacket)
+        if (!result) {
           Log.i(TAG, "Audio frame discarded")
           droppedAudioFrames++
         }
@@ -129,12 +127,13 @@ class RtmpSender(
   }
 
   fun start() {
+    queue.clear()
     running = true
     job = scope.launch {
       while (scope.isActive && running) {
         val error = runCatching {
           val flvPacket = runInterruptible {
-            flvPacketBlockingQueue.poll(1, TimeUnit.SECONDS)
+            queue.poll(1, TimeUnit.SECONDS)
           }
           if (flvPacket == null) {
             Log.i(TAG, "Skipping iteration, frame null")
@@ -183,23 +182,23 @@ class RtmpSender(
     resetDroppedVideoFrames()
     job?.cancelAndJoin()
     job = null
-    flvPacketBlockingQueue.clear()
+    queue.clear()
   }
 
   fun hasCongestion(): Boolean {
-    val size = flvPacketBlockingQueue.size.toFloat()
-    val remaining = flvPacketBlockingQueue.remainingCapacity().toFloat()
+    val size = queue.size.toFloat()
+    val remaining = queue.remainingCapacity().toFloat()
     val capacity = size + remaining
     return size >= capacity * 0.2f //more than 20% queue used. You could have congestion
   }
 
   fun resizeCache(newSize: Int) {
-    if (newSize < flvPacketBlockingQueue.size - flvPacketBlockingQueue.remainingCapacity()) {
+    if (newSize < queue.size - queue.remainingCapacity()) {
       throw RuntimeException("Can't fit current cache inside new cache size")
     }
     val tempQueue: BlockingQueue<FlvPacket> = LinkedBlockingQueue(newSize)
-    flvPacketBlockingQueue.drainTo(tempQueue)
-    flvPacketBlockingQueue = tempQueue
+    queue.drainTo(tempQueue)
+    queue = tempQueue
   }
 
   fun getCacheSize(): Int {

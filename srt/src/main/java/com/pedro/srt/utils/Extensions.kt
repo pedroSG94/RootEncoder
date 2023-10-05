@@ -21,6 +21,16 @@ import kotlinx.coroutines.withContext
 import java.io.InputStream
 import java.io.OutputStream
 import java.nio.ByteBuffer
+import java.util.concurrent.BlockingQueue
+
+inline infix fun <reified T: Any> BlockingQueue<T>.trySend(item: T): Boolean {
+  return try {
+    this.add(item)
+    true
+  } catch (e: IllegalStateException) {
+    false
+  }
+}
 
 fun ByteBuffer.toByteArray(): ByteArray {
   return if (this.hasArray() && !isDirect) {

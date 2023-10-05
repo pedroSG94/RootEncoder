@@ -26,6 +26,7 @@ import com.pedro.rtsp.utils.BitrateManager
 import com.pedro.rtsp.utils.ConnectCheckerRtsp
 import com.pedro.rtsp.utils.RtpConstants
 import com.pedro.rtsp.utils.onMainThread
+import com.pedro.rtsp.utils.trySend
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -34,6 +35,7 @@ import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runInterruptible
 import java.io.IOException
 import java.io.OutputStream
 import java.nio.ByteBuffer
@@ -54,14 +56,12 @@ class RtspSender(private val connectCheckerRtsp: ConnectCheckerRtsp) {
     get() = 10 * 1024 * 1024 / RtpConstants.MTU
   private var cacheSize = defaultCacheSize
   @Volatile
-  private var itemsInQueue = 0
-  @Volatile
   private var running = false
 
   private var job: Job? = null
   private val scope = CoroutineScope(Dispatchers.IO)
-  private var queue = Channel<RtpFrame>(cacheSize)
-  private var queueFlow = queue.receiveAsFlow()
+  @Volatile
+  private var queue: BlockingQueue<RtpFrame> = LinkedBlockingQueue(cacheSize)
 
   private var audioFramesSent: Long = 0
   private var videoFramesSent: Long = 0
@@ -108,11 +108,9 @@ class RtspSender(private val connectCheckerRtsp: ConnectCheckerRtsp) {
     if (running) {
       videoPacket?.createAndSendPacket(h264Buffer, info) { rtpFrame ->
         val result = queue.trySend(rtpFrame)
-        if (!result.isSuccess) {
+        if (!result) {
           Log.i(TAG, "Video frame discarded")
           droppedVideoFrames++
-        } else {
-          itemsInQueue++
         }
       }
     }
@@ -122,19 +120,16 @@ class RtspSender(private val connectCheckerRtsp: ConnectCheckerRtsp) {
     if (running) {
       aacPacket?.createAndSendPacket(aacBuffer, info) { rtpFrame ->
         val result = queue.trySend(rtpFrame)
-        if (!result.isSuccess) {
+        if (!result) {
           Log.i(TAG, "Audio frame discarded")
           droppedAudioFrames++
-        } else {
-          itemsInQueue++
         }
       }
     }
   }
 
   fun start() {
-    queue = Channel(cacheSize)
-    queueFlow = queue.receiveAsFlow()
+    queue.clear()
     running = true
     job = scope.launch {
       val ssrcVideo = Random().nextInt().toLong()
@@ -143,30 +138,34 @@ class RtspSender(private val connectCheckerRtsp: ConnectCheckerRtsp) {
       videoPacket?.setSSRC(ssrcVideo)
       aacPacket?.setSSRC(ssrcAudio)
       val isTcp = rtpSocket is RtpSocketTcp
-      queueFlow.collect { rtpFrame ->
-        itemsInQueue--
+      while (scope.isActive && running) {
         val error = runCatching {
-          rtpSocket?.sendFrame(rtpFrame, isEnableLogs)
-          //bytes to bits (4 is tcp header length)
-          val packetSize = if (isTcp) rtpFrame.length + 4 else rtpFrame.length
-          bitrateManager.calculateBitrate(packetSize * 8.toLong())
-          if (rtpFrame.isVideoFrame()) {
-            videoFramesSent++
-          } else {
-            audioFramesSent++
+          val rtpFrame = runInterruptible {
+            queue.poll(1, TimeUnit.SECONDS)
           }
-          if (baseSenderReport?.update(rtpFrame, isEnableLogs) == true) {
+          if (rtpFrame != null) {
+            rtpSocket?.sendFrame(rtpFrame, isEnableLogs)
             //bytes to bits (4 is tcp header length)
-            val reportSize = if (isTcp) baseSenderReport?.PACKET_LENGTH ?: (0 + 4) else baseSenderReport?.PACKET_LENGTH ?: 0
-            bitrateManager.calculateBitrate(reportSize * 8.toLong())
+            val packetSize = if (isTcp) rtpFrame.length + 4 else rtpFrame.length
+            bitrateManager.calculateBitrate(packetSize * 8.toLong())
+            if (rtpFrame.isVideoFrame()) {
+              videoFramesSent++
+            } else {
+              audioFramesSent++
+            }
+            if (baseSenderReport?.update(rtpFrame, isEnableLogs) == true) {
+              //bytes to bits (4 is tcp header length)
+              val reportSize = if (isTcp) baseSenderReport?.PACKET_LENGTH ?: (0 + 4) else baseSenderReport?.PACKET_LENGTH ?: 0
+              bitrateManager.calculateBitrate(reportSize * 8.toLong())
+            }
           }
         }.exceptionOrNull()
         if (error != null) {
           onMainThread {
-            connectCheckerRtsp.onConnectionFailedRtsp("Error send packet, " + error.message)
+            connectCheckerRtsp.onConnectionFailedRtsp("Error send packet, ${error.message}")
           }
           Log.e(TAG, "send error: ", error)
-          return@collect
+          return@launch
         }
       }
     }
@@ -174,10 +173,6 @@ class RtspSender(private val connectCheckerRtsp: ConnectCheckerRtsp) {
 
   suspend fun stop() {
     running = false
-    queue.cancel()
-    itemsInQueue = 0
-    queue = Channel(cacheSize)
-    queueFlow = queue.receiveAsFlow()
     baseSenderReport?.reset()
     baseSenderReport?.close()
     rtpSocket?.close()
@@ -189,24 +184,23 @@ class RtspSender(private val connectCheckerRtsp: ConnectCheckerRtsp) {
     resetDroppedVideoFrames()
     job?.cancelAndJoin()
     job = null
+    queue.clear()
   }
 
   fun hasCongestion(): Boolean {
-    val size = cacheSize
-    val remaining = cacheSize - itemsInQueue
+    val size = queue.size.toFloat()
+    val remaining = queue.remainingCapacity().toFloat()
     val capacity = size + remaining
     return size >= capacity * 0.2f //more than 20% queue used. You could have congestion
   }
 
   fun resizeCache(newSize: Int) {
-    if (!scope.isActive) {
-      val tempQueue = Channel<RtpFrame>(newSize)
-      queue = tempQueue
-      queueFlow = queue.receiveAsFlow()
-      cacheSize = newSize
-    } else {
-      throw RuntimeException("resize cache while streaming is not available")
+    if (newSize < queue.size - queue.remainingCapacity()) {
+      throw RuntimeException("Can't fit current cache inside new cache size")
     }
+    val tempQueue: BlockingQueue<RtpFrame> = LinkedBlockingQueue(newSize)
+    queue.drainTo(tempQueue)
+    queue = tempQueue
   }
 
   fun getCacheSize(): Int {
