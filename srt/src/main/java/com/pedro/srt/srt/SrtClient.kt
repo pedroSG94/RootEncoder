@@ -141,7 +141,7 @@ class SrtClient(private val connectCheckerSrt: ConnectCheckerSrt) {
         if (url == null) {
           isStreaming = false
           onMainThread {
-            connectCheckerSrt.onConnectionFailedSrt("Endpoint malformed, should be: rtsp://ip:port/appname/streamname")
+            connectCheckerSrt.onConnectionFailedSrt("Endpoint malformed, should be: srt://ip:port/streamid")
           }
           return@launch
         }
@@ -153,7 +153,7 @@ class SrtClient(private val connectCheckerSrt: ConnectCheckerSrt) {
         if (!srtMatcher.matches()) {
           isStreaming = false
           onMainThread {
-            connectCheckerSrt.onConnectionFailedSrt("Endpoint malformed, should be: srt://ip:port/appname/streamname")
+            connectCheckerSrt.onConnectionFailedSrt("Endpoint malformed, should be: srt://ip:port/streamid")
           }
           return@launch
         }
