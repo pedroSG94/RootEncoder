@@ -21,10 +21,20 @@ import kotlinx.coroutines.withContext
 import java.io.InputStream
 import java.io.OutputStream
 import java.nio.ByteBuffer
+import java.util.concurrent.BlockingQueue
 
 /**
  * Created by pedro on 20/04/21.
  */
+
+inline infix fun <reified T: Any> BlockingQueue<T>.trySend(item: T): Boolean {
+  return try {
+    this.add(item)
+    true
+  } catch (e: IllegalStateException) {
+    false
+  }
+}
 
 suspend fun onMainThread(code: () -> Unit) {
   withContext(Dispatchers.Main) {

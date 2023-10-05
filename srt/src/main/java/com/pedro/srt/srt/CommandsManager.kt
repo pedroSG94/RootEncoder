@@ -97,7 +97,6 @@ class CommandsManager {
       packetHandlingQueue.add(dataPacket)
       dataPacket.write()
       socket?.write(dataPacket)
-      Log.i(TAG, dataPacket.toString())
       return dataPacket.getSize()
     }
   }

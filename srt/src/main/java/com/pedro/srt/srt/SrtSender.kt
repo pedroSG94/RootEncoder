@@ -34,6 +34,7 @@ import com.pedro.srt.utils.BitrateManager
 import com.pedro.srt.utils.ConnectCheckerSrt
 import com.pedro.srt.utils.SrtSocket
 import com.pedro.srt.utils.onMainThread
+import com.pedro.srt.utils.trySend
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -42,7 +43,11 @@ import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runInterruptible
 import java.nio.ByteBuffer
+import java.util.concurrent.BlockingQueue
+import java.util.concurrent.LinkedBlockingQueue
+import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicInteger
 
 /**
@@ -66,15 +71,12 @@ class SrtSender(
 
   @Volatile
   private var running = false
-
-  private var cacheSize = 60
-  @Volatile
-  private var itemsInQueue = 0
+  private var cacheSize = 200
 
   private var job: Job? = null
   private val scope = CoroutineScope(Dispatchers.IO)
-  private var queue = Channel<List<MpegTsPacket>>(cacheSize)
-  private var queueFlow = queue.receiveAsFlow()
+  @Volatile
+  private var queue: BlockingQueue<List<MpegTsPacket>> = LinkedBlockingQueue(cacheSize)
   private var audioFramesSent: Long = 0
   private var videoFramesSent: Long = 0
   var socket: SrtSocket? = null
@@ -120,11 +122,9 @@ class SrtSender(
       checkSendInfo()
       h26XPacket.createAndSendPacket(h264Buffer, info) { mpegTsPackets ->
         val result = queue.trySend(mpegTsPackets)
-        if (!result.isSuccess) {
+        if (!result) {
           Log.i(TAG, "Video frame discarded")
           droppedVideoFrames++
-        } else {
-          itemsInQueue++
         }
       }
     }
@@ -135,21 +135,17 @@ class SrtSender(
       checkSendInfo()
       aacPacket.createAndSendPacket(aacBuffer, info) { mpegTsPackets ->
         val result = queue.trySend(mpegTsPackets)
-        if (!result.isSuccess) {
+        if (!result) {
           Log.i(TAG, "Audio frame discarded")
           droppedAudioFrames++
-        } else {
-          itemsInQueue++
         }
       }
     }
   }
 
   fun start() {
+    queue.clear()
     setTrackConfig(!commandsManager.videoDisabled, !commandsManager.audioDisabled)
-
-    queue = Channel(cacheSize)
-    queueFlow = queue.receiveAsFlow()
     running = true
     job = scope.launch {
       //send config
@@ -157,9 +153,11 @@ class SrtSender(
         MpegTsPacket(b, MpegType.PSI, PacketPosition.SINGLE)
       }
       queue.trySend(psiPackets)
-      queueFlow.collect { mpegTsPackets ->
-        itemsInQueue--
+      while (scope.isActive && running) {
         val error = runCatching {
+          val mpegTsPackets = runInterruptible {
+            queue.poll(1, TimeUnit.SECONDS)
+          }
           mpegTsPackets.forEach { mpegTsPacket ->
             var size = 0
             size += commandsManager.writeData(mpegTsPacket, socket)
@@ -175,7 +173,7 @@ class SrtSender(
             connectCheckerSrt.onConnectionFailedSrt("Error send packet, " + error.message)
           }
           Log.e(TAG, "send error: ", error)
-          return@collect
+          return@launch
         }
       }
     }
@@ -207,10 +205,6 @@ class SrtSender(
 
   suspend fun stop() {
     running = false
-    queue.cancel()
-    itemsInQueue = 0
-    queue = Channel(cacheSize)
-    queueFlow = queue.receiveAsFlow()
     psiManager.reset()
     service.clear()
     mpegTsPacketizer.reset()
@@ -222,22 +216,23 @@ class SrtSender(
     resetDroppedVideoFrames()
     job?.cancelAndJoin()
     job = null
+    queue.clear()
   }
 
   fun hasCongestion(): Boolean {
-    val size = cacheSize
-    val remaining = cacheSize - itemsInQueue
+    val size = queue.size.toFloat()
+    val remaining = queue.remainingCapacity().toFloat()
     val capacity = size + remaining
     return size >= capacity * 0.2f //more than 20% queue used. You could have congestion
   }
 
   fun resizeCache(newSize: Int) {
-    if (!scope.isActive) {
-      val tempQueue = Channel<List<MpegTsPacket>>(newSize)
-      queue = tempQueue
-      queueFlow = queue.receiveAsFlow()
-      cacheSize = newSize
+    if (newSize < queue.size - queue.remainingCapacity()) {
+      throw RuntimeException("Can't fit current cache inside new cache size")
     }
+    val tempQueue: BlockingQueue<List<MpegTsPacket>> = LinkedBlockingQueue(newSize)
+    queue.drainTo(tempQueue)
+    queue = tempQueue
   }
 
   fun getCacheSize(): Int {
