@@ -33,7 +33,7 @@ class HandshakeTest {
 
   @Test
   fun `GIVEN a handshake packet WHEN write packet in a buffer THEN get expected buffer`() {
-    val expectedData = byteArrayOf(-128, 0, 0, 0, 0, 0, 0, 0, 0, 0, 9, -60, 0, 0, 0, 64, 0, 0, 0, 4, 0, 0, 0, 5, 0, 0, 0, 0, 0, 0, 5, -36, 0, 0, 32, 0, -1, -1, -1, -1, 45, 116, -9, 30, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 3, 0, 1, 4, 4, 0, 0, 0, 63, 0, 120, 0, 0, 0, 5, 0, 3, 108, 98, 117, 112, 58, 104, 115, 105, 116, 115, 101, 116)
+    val expectedData = byteArrayOf(-128, 0, 0, 0, 0, 0, 0, 0, 0, 0, 9, -60, 0, 0, 0, 64, 0, 0, 0, 4, 0, 0, 0, 5, 0, 0, 0, 0, 0, 0, 5, -36, 0, 0, 32, 0, -1, -1, -1, -1, 45, 116, -9, 30, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 3, 0, 1, 4, 4, 0, 0, 0, 63, 0, 120, 0, 0, 0, 5, 0, 1, 116, 115, 101, 116)
     val handshake = Handshake(
       extensionField = ExtensionField.HS_REQ.value or ExtensionField.CONFIG.value,
       handshakeType = HandshakeType.CONCLUSION,
