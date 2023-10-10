@@ -53,6 +53,9 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 
+import com.pedro.encoder.input.video.facedetector.FaceDetectorCallback;
+import com.pedro.encoder.input.video.facedetector.UtilsKt;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -81,7 +84,7 @@ public class Camera2ApiManager extends CameraDevice.StateCallback {
   private SurfaceView surfaceView;
   private TextureView textureView;
   private Surface surfaceEncoder; //input surfaceEncoder from videoEncoder
-  private CameraManager cameraManager;
+  private final CameraManager cameraManager;
   private Handler cameraHandler;
   private CameraCaptureSession cameraCaptureSession;
   private boolean prepared = false;
@@ -98,11 +101,6 @@ public class Camera2ApiManager extends CameraDevice.StateCallback {
   private int fps = 30;
   private final Semaphore semaphore = new Semaphore(0);
   private CameraCallbacks cameraCallbacks;
-
-  //Face detector
-  public interface FaceDetectorCallback {
-    void onGetFaces(Face[] faces, Rect scaleSensor, int sensorOrientation);
-  }
 
   public interface ImageCallback {
     void onImageAvailable(Image image);
@@ -787,8 +785,8 @@ public class Camera2ApiManager extends CameraDevice.StateCallback {
         public void onCaptureCompleted(@NonNull CameraCaptureSession session,
             @NonNull CaptureRequest request, @NonNull TotalCaptureResult result) {
           Face[] faces = result.get(CaptureResult.STATISTICS_FACES);
-          if (faceDetectorCallback != null) {
-            faceDetectorCallback.onGetFaces(faces, faceSensorScale, sensorOrientation);
+          if (faceDetectorCallback != null && faces != null) {
+            faceDetectorCallback.onGetFaces(UtilsKt.mapCamera2Faces(faces), faceSensorScale, sensorOrientation);
           }
         }
       };
@@ -1008,7 +1006,7 @@ public class Camera2ApiManager extends CameraDevice.StateCallback {
     running = false;
   }
 
-  public void addImageListener(int width, int height, int format, int maxImages, ImageCallback listener) {
+  public void addImageListener(int width, int height, int format, int maxImages, boolean autoClose, ImageCallback listener) {
     boolean wasRunning = running;
     closeCamera(false);
     if (wasRunning) closeCamera(false);
@@ -1020,7 +1018,7 @@ public class Camera2ApiManager extends CameraDevice.StateCallback {
       Image image = reader.acquireLatestImage();
       if (image != null) {
         listener.onImageAvailable(image);
-        image.close();
+        if (autoClose) image.close();
       }
     }, new Handler(imageThread.getLooper()));
     if (wasRunning) {

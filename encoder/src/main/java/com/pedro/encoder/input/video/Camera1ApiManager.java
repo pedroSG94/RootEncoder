@@ -30,6 +30,8 @@ import android.view.TextureView;
 import android.view.View;
 
 import com.pedro.encoder.Frame;
+import com.pedro.encoder.input.video.facedetector.FaceDetectorCallback;
+import com.pedro.encoder.input.video.facedetector.UtilsKt;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -78,11 +80,6 @@ public class Camera1ApiManager implements Camera.PreviewCallback, Camera.FaceDet
   private float distance;
   private CameraCallbacks cameraCallbacks;
   private final int focusAreaSize = 100;
-
-  //Face detector
-  public interface FaceDetectorCallback {
-    void onGetFaces(Camera.Face[] faces, Rect scaleSensor, int sensorOrientation);
-  }
 
   private final int sensorOrientation = 0;
   //Value obtained from Camera.Face documentation api about bounds
@@ -734,7 +731,7 @@ public class Camera1ApiManager implements Camera.PreviewCallback, Camera.FaceDet
 
   @Override
   public void onFaceDetection(Camera.Face[] faces, Camera camera) {
-    if (faceDetectorCallback != null) faceDetectorCallback.onGetFaces(faces, faceSensorScale, sensorOrientation);
+    if (faceDetectorCallback != null) faceDetectorCallback.onGetFaces(UtilsKt.mapCamera1Faces(faces), faceSensorScale, sensorOrientation);
   }
 
   private Rect calculateFocusArea(float x, float y, float previewWidth, float previewHeight) {

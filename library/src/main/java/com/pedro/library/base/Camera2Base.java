@@ -36,7 +36,6 @@ import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 
 import com.pedro.encoder.EncoderErrorCallback;
-import com.pedro.encoder.Frame;
 import com.pedro.encoder.audio.AudioEncoder;
 import com.pedro.encoder.audio.GetAacData;
 import com.pedro.encoder.input.audio.CustomAudioEffect;
@@ -48,6 +47,7 @@ import com.pedro.encoder.input.video.Camera2ApiManager;
 import com.pedro.encoder.input.video.CameraCallbacks;
 import com.pedro.encoder.input.video.CameraHelper;
 import com.pedro.encoder.input.video.CameraOpenException;
+import com.pedro.encoder.input.video.facedetector.FaceDetectorCallback;
 import com.pedro.encoder.utils.CodecUtil;
 import com.pedro.encoder.video.FormatVideoEncoder;
 import com.pedro.encoder.video.GetVideoData;
@@ -211,7 +211,7 @@ public abstract class Camera2Base {
   /**
    * @return true if success, false if fail (not supported or called before start camera)
    */
-  public boolean enableFaceDetection(Camera2ApiManager.FaceDetectorCallback faceDetectorCallback) {
+  public boolean enableFaceDetection(FaceDetectorCallback faceDetectorCallback) {
     return cameraManager.enableFaceDetection(faceDetectorCallback);
   }
 
@@ -1035,7 +1035,11 @@ public abstract class Camera2Base {
   }
 
   public void addImageListener(int width, int height, int format, int maxImages, Camera2ApiManager.ImageCallback listener) {
-    cameraManager.addImageListener(width, height, format, maxImages, listener);
+    cameraManager.addImageListener(width, height, format, maxImages, true, listener);
+  }
+
+  public void addImageListener(int width, int height, int format, int maxImages, boolean autoClose, Camera2ApiManager.ImageCallback listener) {
+    cameraManager.addImageListener(width, height, format, maxImages, autoClose, listener);
   }
 
   public void addImageListener(int format, int maxImages, Camera2ApiManager.ImageCallback listener) {
