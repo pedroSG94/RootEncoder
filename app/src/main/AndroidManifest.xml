@@ -22,6 +22,7 @@
   <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PROJECTION"/>
 
   <application
+      android:name=".App"
       android:requestLegacyExternalStorage="true"
       android:usesCleartextTraffic="true"
       android:allowBackup="true"

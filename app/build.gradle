@@ -11,6 +11,7 @@ android {
     targetSdkVersion 34
     versionCode version_code
     versionName version_name
+    multiDexEnabled true
   }
   buildTypes {
     release {
@@ -35,4 +36,5 @@ dependencies {
   implementation project(':library')
   implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
   implementation 'com.google.android.material:material:1.10.0'
+  implementation "androidx.multidex:multidex:2.0.1"
 }
