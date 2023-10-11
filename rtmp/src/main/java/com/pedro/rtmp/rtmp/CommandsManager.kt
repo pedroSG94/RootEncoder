@@ -55,6 +55,8 @@ abstract class CommandsManager {
   var readChunkSize = RtmpConfig.DEFAULT_CHUNK_SIZE
   var audioDisabled = false
   var videoDisabled = false
+  private var bytesRead = 0
+  private var acknowledgementSequence = 0
 
   protected var width = 640
   protected var height = 480
@@ -126,6 +128,7 @@ abstract class CommandsManager {
     val message = RtmpMessage.getRtmpMessage(input, readChunkSize, sessionHistory)
     sessionHistory.setReadHeader(message.header)
     Log.i(TAG, "read $message")
+    bytesRead += message.header.getPacketLength()
     return message
   }
 
@@ -178,6 +181,21 @@ abstract class CommandsManager {
     }
   }
 
+  suspend fun checkAndSendAcknowledgement(socket: RtmpSocket) {
+    writeSync.withLock {
+      if (bytesRead >= RtmpConfig.acknowledgementWindowSize) {
+        acknowledgementSequence += bytesRead
+        bytesRead -= RtmpConfig.acknowledgementWindowSize
+        val output = socket.getOutStream()
+        val acknowledgement = Acknowledgement(acknowledgementSequence)
+        acknowledgement.writeHeader(output)
+        acknowledgement.writeBody(output)
+        output.flush()
+        Log.i(TAG, "send $acknowledgement")
+      }
+    }
+  }
+
   @Throws(IOException::class)
   suspend fun sendVideoPacket(flvPacket: FlvPacket, socket: RtmpSocket): Int {
     writeSync.withLock {
@@ -221,5 +239,7 @@ abstract class CommandsManager {
     commandId = 0
     readChunkSize = RtmpConfig.DEFAULT_CHUNK_SIZE
     sessionHistory.reset()
+    acknowledgementSequence = 0
+    bytesRead = 0
   }
 }

@@ -22,5 +22,5 @@ package com.pedro.rtmp.utils
 object RtmpConfig {
   const val DEFAULT_CHUNK_SIZE = 128
   var writeChunkSize = DEFAULT_CHUNK_SIZE
-  var acknowledgementWindowSize = 0
+  var acknowledgementWindowSize = Int.MAX_VALUE
 }

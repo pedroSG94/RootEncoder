@@ -321,6 +321,7 @@ class RtmpClient(private val connectCheckerRtmp: ConnectCheckerRtmp) {
     var socket = this.socket ?: throw IOException("Invalid socket, Connection failed")
 
     val message = commandsManager.readMessageResponse(socket)
+    commandsManager.checkAndSendAcknowledgement(socket)
     when (message.getType()) {
       MessageType.SET_CHUNK_SIZE -> {
         val setChunkSize = message as SetChunkSize
