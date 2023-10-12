@@ -1,4 +1,4 @@
-package com.pedro.library.util.client
+package com.pedro.library.util.streamclient
 
 import com.pedro.rtsp.rtsp.Protocol
 import com.pedro.rtsp.rtsp.RtspClient
@@ -6,7 +6,10 @@ import com.pedro.rtsp.rtsp.RtspClient
 /**
  * Created by pedro on 12/10/23.
  */
-class RtspStreamClient(private val rtspClient: RtspClient): StreamBaseClient() {
+class RtspStreamClient(
+  private val rtspClient: RtspClient,
+  streamClientListener: StreamClientListener?
+): StreamBaseClient(streamClientListener) {
 
 
   /**

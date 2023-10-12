@@ -20,12 +20,12 @@ import android.content.Context;
 import android.media.MediaCodec;
 import android.os.Build;
 
-import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 
 import com.pedro.encoder.utils.CodecUtil;
 import com.pedro.library.base.DisplayBase;
-import com.pedro.library.util.client.SrtStreamClient;
+import com.pedro.library.util.streamclient.SrtStreamClient;
+import com.pedro.library.util.streamclient.StreamClientListener;
 import com.pedro.srt.srt.SrtClient;
 import com.pedro.srt.srt.VideoCodec;
 import com.pedro.srt.utils.ConnectCheckerSrt;
@@ -39,7 +39,7 @@ import java.nio.ByteBuffer;
  * Created by pedro on 8/9/23.
  */
 @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
-public class SrtDisplay extends DisplayBase {
+public class SrtDisplay extends DisplayBase implements StreamClientListener {
 
   private final SrtClient srtClient;
   private final SrtStreamClient streamClient;
@@ -47,7 +47,7 @@ public class SrtDisplay extends DisplayBase {
   public SrtDisplay(Context context, boolean useOpengl, ConnectCheckerSrt connectChecker) {
     super(context, useOpengl);
     srtClient = new SrtClient(connectChecker);
-    streamClient = new SrtStreamClient(srtClient);
+    streamClient = new SrtStreamClient(srtClient, this);
   }
 
   public void setVideoCodec(VideoCodec videoCodec) {
@@ -91,17 +91,8 @@ public class SrtDisplay extends DisplayBase {
     srtClient.sendVideo(h264Buffer, info);
   }
 
-  /**
-   * Retries to connect with the given delay. You can pass an optional backupUrl
-   * if you'd like to connect to your backup server instead of the original one.
-   * Given backupUrl replaces the original one.
-   */
-  public boolean reTry(long delay, String reason, @Nullable String backupUrl) {
-    boolean result = streamClient.shouldRetry(reason);
-    if (result) {
-      requestKeyFrame();
-      streamClient.reConnect(delay, backupUrl);
-    }
-    return result;
+  @Override
+  public void onRequestKeyframe() {
+    requestKeyFrame();
   }
 }

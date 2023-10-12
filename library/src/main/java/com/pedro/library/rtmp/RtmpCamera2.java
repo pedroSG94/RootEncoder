@@ -22,15 +22,14 @@ import android.os.Build;
 import android.view.SurfaceView;
 import android.view.TextureView;
 
-import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 
 import com.pedro.encoder.utils.CodecUtil;
 import com.pedro.library.base.Camera2Base;
-import com.pedro.library.util.client.RtmpStreamClient;
+import com.pedro.library.util.streamclient.RtmpStreamClient;
+import com.pedro.library.util.streamclient.StreamClientListener;
 import com.pedro.library.view.LightOpenGlView;
 import com.pedro.library.view.OpenGlView;
-import com.pedro.rtmp.flv.video.ProfileIop;
 import com.pedro.rtmp.rtmp.RtmpClient;
 import com.pedro.rtmp.rtmp.VideoCodec;
 import com.pedro.rtmp.utils.ConnectCheckerRtmp;
@@ -44,7 +43,7 @@ import java.nio.ByteBuffer;
  * Created by pedro on 6/07/17.
  */
 @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
-public class RtmpCamera2 extends Camera2Base {
+public class RtmpCamera2 extends Camera2Base implements StreamClientListener {
 
   private final RtmpClient rtmpClient;
   private final RtmpStreamClient streamClient;
@@ -58,7 +57,7 @@ public class RtmpCamera2 extends Camera2Base {
   public RtmpCamera2(SurfaceView surfaceView, ConnectCheckerRtmp connectChecker) {
     super(surfaceView);
     rtmpClient = new RtmpClient(connectChecker);
-    streamClient = new RtmpStreamClient(rtmpClient);
+    streamClient = new RtmpStreamClient(rtmpClient, this);
   }
 
   /**
@@ -70,25 +69,25 @@ public class RtmpCamera2 extends Camera2Base {
   public RtmpCamera2(TextureView textureView, ConnectCheckerRtmp connectChecker) {
     super(textureView);
     rtmpClient = new RtmpClient(connectChecker);
-    streamClient = new RtmpStreamClient(rtmpClient);
+    streamClient = new RtmpStreamClient(rtmpClient, this);
   }
 
   public RtmpCamera2(OpenGlView openGlView, ConnectCheckerRtmp connectChecker) {
     super(openGlView);
     rtmpClient = new RtmpClient(connectChecker);
-    streamClient = new RtmpStreamClient(rtmpClient);
+    streamClient = new RtmpStreamClient(rtmpClient, this);
   }
 
   public RtmpCamera2(LightOpenGlView lightOpenGlView, ConnectCheckerRtmp connectChecker) {
     super(lightOpenGlView);
     rtmpClient = new RtmpClient(connectChecker);
-    streamClient = new RtmpStreamClient(rtmpClient);
+    streamClient = new RtmpStreamClient(rtmpClient, this);
   }
 
   public RtmpCamera2(Context context, boolean useOpengl, ConnectCheckerRtmp connectChecker) {
     super(context, useOpengl);
     rtmpClient = new RtmpClient(connectChecker);
-    streamClient = new RtmpStreamClient(rtmpClient);
+    streamClient = new RtmpStreamClient(rtmpClient, this);
   }
 
   public RtmpStreamClient getStreamClient() {
@@ -139,18 +138,9 @@ public class RtmpCamera2 extends Camera2Base {
     rtmpClient.sendVideo(h264Buffer, info);
   }
 
-  /**
-   * Retries to connect with the given delay. You can pass an optional backupUrl
-   * if you'd like to connect to your backup server instead of the original one.
-   * Given backupUrl replaces the original one.
-   */
-  public boolean reTry(long delay, String reason, @Nullable String backupUrl) {
-    boolean result = streamClient.shouldRetry(reason);
-    if (result) {
-      requestKeyFrame();
-      streamClient.reConnect(delay, backupUrl);
-    }
-    return result;
+  @Override
+  public void onRequestKeyframe() {
+    requestKeyFrame();
   }
 }
 

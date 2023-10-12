@@ -87,7 +87,7 @@ public class SurfaceModeRtmpActivity extends AppCompatActivity
 
   @Override
   public void onConnectionFailedRtmp(final String reason) {
-    if (rtmpCamera2.reTry(5000, reason, null)) {
+    if (rtmpCamera2.getStreamClient().reTry(5000, reason, null)) {
       Toast.makeText(SurfaceModeRtmpActivity.this, "Retry", Toast.LENGTH_SHORT)
           .show();
     } else {

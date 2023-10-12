@@ -91,7 +91,7 @@ public class SurfaceModeRtspActivity extends AppCompatActivity
   @Override
   public void onConnectionFailedRtsp(final String reason) {
     //Wait 5s and retry connect stream
-    if (rtspCamera2.reTry(5000, reason, null)) {
+    if (rtspCamera2.getStreamClient().reTry(5000, reason, null)) {
       Toast.makeText(SurfaceModeRtspActivity.this, "Retry", Toast.LENGTH_SHORT)
           .show();
     } else {

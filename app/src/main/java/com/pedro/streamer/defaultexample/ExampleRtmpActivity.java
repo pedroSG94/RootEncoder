@@ -85,7 +85,7 @@ public class ExampleRtmpActivity extends AppCompatActivity
 
   @Override
   public void onConnectionFailedRtmp(final String reason) {
-    if (rtmpCamera1.reTry(5000, reason, null)) {
+    if (rtmpCamera1.getStreamClient().reTry(5000, reason, null)) {
       Toast.makeText(ExampleRtmpActivity.this, "Retry", Toast.LENGTH_SHORT)
           .show();
     } else {

@@ -20,17 +20,16 @@ import android.content.Context;
 import android.media.MediaCodec;
 import android.os.Build;
 
-import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 
 import com.pedro.encoder.input.decoder.AudioDecoderInterface;
 import com.pedro.encoder.input.decoder.VideoDecoderInterface;
 import com.pedro.encoder.utils.CodecUtil;
 import com.pedro.library.base.FromFileBase;
-import com.pedro.library.util.client.RtmpStreamClient;
+import com.pedro.library.util.streamclient.RtmpStreamClient;
+import com.pedro.library.util.streamclient.StreamClientListener;
 import com.pedro.library.view.LightOpenGlView;
 import com.pedro.library.view.OpenGlView;
-import com.pedro.rtmp.flv.video.ProfileIop;
 import com.pedro.rtmp.rtmp.RtmpClient;
 import com.pedro.rtmp.rtmp.VideoCodec;
 import com.pedro.rtmp.utils.ConnectCheckerRtmp;
@@ -44,7 +43,7 @@ import java.nio.ByteBuffer;
  * Created by pedro on 26/06/17.
  */
 @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
-public class RtmpFromFile extends FromFileBase {
+public class RtmpFromFile extends FromFileBase implements StreamClientListener {
 
   private final RtmpClient rtmpClient;
   private final RtmpStreamClient streamClient;
@@ -53,28 +52,28 @@ public class RtmpFromFile extends FromFileBase {
       VideoDecoderInterface videoDecoderInterface, AudioDecoderInterface audioDecoderInterface) {
     super(videoDecoderInterface, audioDecoderInterface);
     rtmpClient = new RtmpClient(connectChecker);
-    streamClient = new RtmpStreamClient(rtmpClient);
+    streamClient = new RtmpStreamClient(rtmpClient, this);
   }
 
   public RtmpFromFile(Context context, ConnectCheckerRtmp connectChecker,
       VideoDecoderInterface videoDecoderInterface, AudioDecoderInterface audioDecoderInterface) {
     super(context, videoDecoderInterface, audioDecoderInterface);
     rtmpClient = new RtmpClient(connectChecker);
-    streamClient = new RtmpStreamClient(rtmpClient);
+    streamClient = new RtmpStreamClient(rtmpClient, this);
   }
 
   public RtmpFromFile(OpenGlView openGlView, ConnectCheckerRtmp connectChecker,
       VideoDecoderInterface videoDecoderInterface, AudioDecoderInterface audioDecoderInterface) {
     super(openGlView, videoDecoderInterface, audioDecoderInterface);
     rtmpClient = new RtmpClient(connectChecker);
-    streamClient = new RtmpStreamClient(rtmpClient);
+    streamClient = new RtmpStreamClient(rtmpClient, this);
   }
 
   public RtmpFromFile(LightOpenGlView lightOpenGlView, ConnectCheckerRtmp connectChecker,
       VideoDecoderInterface videoDecoderInterface, AudioDecoderInterface audioDecoderInterface) {
     super(lightOpenGlView, videoDecoderInterface, audioDecoderInterface);
     rtmpClient = new RtmpClient(connectChecker);
-    streamClient = new RtmpStreamClient(rtmpClient);
+    streamClient = new RtmpStreamClient(rtmpClient, this);
   }
 
   public RtmpStreamClient getStreamClient() {
@@ -124,17 +123,8 @@ public class RtmpFromFile extends FromFileBase {
     rtmpClient.sendAudio(aacBuffer, info);
   }
 
-  /**
-   * Retries to connect with the given delay. You can pass an optional backupUrl
-   * if you'd like to connect to your backup server instead of the original one.
-   * Given backupUrl replaces the original one.
-   */
-  public boolean reTry(long delay, String reason, @Nullable String backupUrl) {
-    boolean result = streamClient.shouldRetry(reason);
-    if (result) {
-      requestKeyFrame();
-      streamClient.reConnect(delay, backupUrl);
-    }
-    return result;
+  @Override
+  public void onRequestKeyframe() {
+    requestKeyFrame();
   }
 }

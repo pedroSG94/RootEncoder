@@ -21,9 +21,7 @@ import android.media.MediaCodec;
 import androidx.annotation.Nullable;
 
 import com.pedro.library.base.OnlyAudioBase;
-import com.pedro.library.util.client.RtmpStreamClient;
-import com.pedro.library.util.client.RtspStreamClient;
-import com.pedro.rtsp.rtsp.Protocol;
+import com.pedro.library.util.streamclient.RtspStreamClient;
 import com.pedro.rtsp.rtsp.RtspClient;
 import com.pedro.rtsp.utils.ConnectCheckerRtsp;
 
@@ -44,7 +42,7 @@ public class RtspOnlyAudio extends OnlyAudioBase {
     super();
     rtspClient = new RtspClient(connectCheckerRtsp);
     rtspClient.setOnlyAudio(true);
-    streamClient = new RtspStreamClient(rtspClient);
+    streamClient = new RtspStreamClient(rtspClient, null);
   }
 
   public RtspStreamClient getStreamClient() {

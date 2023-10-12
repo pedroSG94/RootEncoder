@@ -1,4 +1,4 @@
-package com.pedro.library.util.client
+package com.pedro.library.util.streamclient
 
 import com.pedro.rtmp.flv.video.ProfileIop
 import com.pedro.rtmp.rtmp.RtmpClient
@@ -6,7 +6,10 @@ import com.pedro.rtmp.rtmp.RtmpClient
 /**
  * Created by pedro on 12/10/23.
  */
-class RtmpStreamClient(private val rtmpClient: RtmpClient): StreamBaseClient() {
+class RtmpStreamClient(
+  private val rtmpClient: RtmpClient, 
+  streamClientListener: StreamClientListener?
+): StreamBaseClient(streamClientListener) {
 
   /**
    * H264 profile.

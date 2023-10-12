@@ -21,7 +21,7 @@ import android.media.MediaCodec;
 import androidx.annotation.Nullable;
 
 import com.pedro.library.base.OnlyAudioBase;
-import com.pedro.library.util.client.RtmpStreamClient;
+import com.pedro.library.util.streamclient.RtmpStreamClient;
 import com.pedro.rtmp.rtmp.RtmpClient;
 import com.pedro.rtmp.utils.ConnectCheckerRtmp;
 
@@ -42,7 +42,7 @@ public class RtmpOnlyAudio extends OnlyAudioBase {
     super();
     rtmpClient = new RtmpClient(connectChecker);
     rtmpClient.setOnlyAudio(true);
-    streamClient = new RtmpStreamClient(rtmpClient);
+    streamClient = new RtmpStreamClient(rtmpClient, null);
   }
 
   public RtmpStreamClient getStreamClient() {

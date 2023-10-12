@@ -87,7 +87,7 @@ public class ExampleRtspActivity extends AppCompatActivity
 
   @Override
   public void onConnectionFailedRtsp(final String reason) {
-    if (rtspCamera1.reTry(5000, reason, null)) {
+    if (rtspCamera1.getStreamClient().reTry(5000, reason, null)) {
       Toast.makeText(ExampleRtspActivity.this, "Retry", Toast.LENGTH_SHORT)
           .show();
     } else {

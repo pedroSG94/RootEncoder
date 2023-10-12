@@ -6,11 +6,10 @@ import android.os.Build
 import androidx.annotation.RequiresApi
 import com.pedro.encoder.utils.CodecUtil
 import com.pedro.library.base.StreamBase
-import com.pedro.library.util.client.RtspStreamClient
-import com.pedro.library.util.client.SrtStreamClient
 import com.pedro.library.util.sources.AudioManager
 import com.pedro.library.util.sources.VideoManager
-import com.pedro.rtsp.rtsp.Protocol
+import com.pedro.library.util.streamclient.RtspStreamClient
+import com.pedro.library.util.streamclient.StreamClientListener
 import com.pedro.rtsp.rtsp.RtspClient
 import com.pedro.rtsp.rtsp.VideoCodec
 import com.pedro.rtsp.utils.ConnectCheckerRtsp
@@ -24,11 +23,13 @@ import java.nio.ByteBuffer
  */
 
 @RequiresApi(Build.VERSION_CODES.LOLLIPOP)
-class RtspStream(context: Context, connectCheckerRtsp: ConnectCheckerRtsp, videoSource: VideoManager.Source,
-  audioSource: AudioManager.Source): StreamBase(context, videoSource, audioSource) {
+class RtspStream(
+  context: Context, connectCheckerRtsp: ConnectCheckerRtsp, videoSource: VideoManager.Source,
+  audioSource: AudioManager.Source
+): StreamBase(context, videoSource, audioSource), StreamClientListener {
 
   private val rtspClient = RtspClient(connectCheckerRtsp)
-  val streamClient = RtspStreamClient(rtspClient)
+  val streamClient = RtspStreamClient(rtspClient, this)
 
   constructor(context: Context, connectCheckerRtsp: ConnectCheckerRtsp):
       this(context, connectCheckerRtsp, VideoManager.Source.CAMERA2, AudioManager.Source.MICROPHONE)
@@ -62,18 +63,7 @@ class RtspStream(context: Context, connectCheckerRtsp: ConnectCheckerRtsp, video
     rtspClient.sendAudio(aacBuffer, info)
   }
 
-  /**
-   * Retries to connect with the given delay. You can pass an optional backupUrl
-   * if you'd like to connect to your backup server instead of the original one.
-   * Given backupUrl replaces the original one.
-   */
-  @JvmOverloads
-  fun reTry(delay: Long, reason: String, backupUrl: String? = null): Boolean {
-    val result = streamClient.shouldRetry(reason)
-    if (result) {
-      requestKeyframe()
-      streamClient.reConnect(delay, backupUrl)
-    }
-    return result
+  override fun onRequestKeyframe() {
+    requestKeyframe()
   }
 }

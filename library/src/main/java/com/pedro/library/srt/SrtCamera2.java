@@ -22,12 +22,12 @@ import android.os.Build;
 import android.view.SurfaceView;
 import android.view.TextureView;
 
-import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 
 import com.pedro.encoder.utils.CodecUtil;
 import com.pedro.library.base.Camera2Base;
-import com.pedro.library.util.client.SrtStreamClient;
+import com.pedro.library.util.streamclient.SrtStreamClient;
+import com.pedro.library.util.streamclient.StreamClientListener;
 import com.pedro.library.view.LightOpenGlView;
 import com.pedro.library.view.OpenGlView;
 import com.pedro.srt.srt.SrtClient;
@@ -43,7 +43,7 @@ import java.nio.ByteBuffer;
  * Created by pedro on 8/9/23.
  */
 @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
-public class SrtCamera2 extends Camera2Base {
+public class SrtCamera2 extends Camera2Base implements StreamClientListener {
 
   private final SrtClient srtClient;
   private final SrtStreamClient streamClient;
@@ -57,7 +57,7 @@ public class SrtCamera2 extends Camera2Base {
   public SrtCamera2(SurfaceView surfaceView, ConnectCheckerSrt connectChecker) {
     super(surfaceView);
     srtClient = new SrtClient(connectChecker);
-    streamClient = new SrtStreamClient(srtClient);
+    streamClient = new SrtStreamClient(srtClient, this);
   }
 
   /**
@@ -69,25 +69,25 @@ public class SrtCamera2 extends Camera2Base {
   public SrtCamera2(TextureView textureView, ConnectCheckerSrt connectChecker) {
     super(textureView);
     srtClient = new SrtClient(connectChecker);
-    streamClient = new SrtStreamClient(srtClient);
+    streamClient = new SrtStreamClient(srtClient, this);
   }
 
   public SrtCamera2(OpenGlView openGlView, ConnectCheckerSrt connectChecker) {
     super(openGlView);
     srtClient = new SrtClient(connectChecker);
-    streamClient = new SrtStreamClient(srtClient);
+    streamClient = new SrtStreamClient(srtClient, this);
   }
 
   public SrtCamera2(LightOpenGlView lightOpenGlView, ConnectCheckerSrt connectChecker) {
     super(lightOpenGlView);
     srtClient = new SrtClient(connectChecker);
-    streamClient = new SrtStreamClient(srtClient);
+    streamClient = new SrtStreamClient(srtClient, this);
   }
 
   public SrtCamera2(Context context, boolean useOpengl, ConnectCheckerSrt connectChecker) {
     super(context, useOpengl);
     srtClient = new SrtClient(connectChecker);
-    streamClient = new SrtStreamClient(srtClient);
+    streamClient = new SrtStreamClient(srtClient, this);
   }
 
   public SrtStreamClient getStreamClient() {
@@ -132,18 +132,9 @@ public class SrtCamera2 extends Camera2Base {
     srtClient.sendVideo(h264Buffer, info);
   }
 
-  /**
-   * Retries to connect with the given delay. You can pass an optional backupUrl
-   * if you'd like to connect to your backup server instead of the original one.
-   * Given backupUrl replaces the original one.
-   */
-  public boolean reTry(long delay, String reason, @Nullable String backupUrl) {
-    boolean result = streamClient.shouldRetry(reason);
-    if (result) {
-      requestKeyFrame();
-      streamClient.reConnect(delay, backupUrl);
-    }
-    return result;
+  @Override
+  public void onRequestKeyframe() {
+    requestKeyFrame();
   }
 }
 

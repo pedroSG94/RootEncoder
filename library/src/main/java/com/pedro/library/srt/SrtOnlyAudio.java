@@ -21,7 +21,7 @@ import android.media.MediaCodec;
 import androidx.annotation.Nullable;
 
 import com.pedro.library.base.OnlyAudioBase;
-import com.pedro.library.util.client.SrtStreamClient;
+import com.pedro.library.util.streamclient.SrtStreamClient;
 import com.pedro.srt.srt.SrtClient;
 import com.pedro.srt.utils.ConnectCheckerSrt;
 
@@ -42,7 +42,7 @@ public class SrtOnlyAudio extends OnlyAudioBase {
     super();
     srtClient = new SrtClient(connectChecker);
     srtClient.setOnlyAudio(true);
-    streamClient = new SrtStreamClient(srtClient);
+    streamClient = new SrtStreamClient(srtClient, null);
   }
 
   public SrtStreamClient getStreamClient() {

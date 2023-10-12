@@ -87,7 +87,7 @@ public class ExampleSrtActivity extends AppCompatActivity
 
   @Override
   public void onConnectionFailedSrt(final String reason) {
-    if (srtCamera1.reTry(5000, reason, null)) {
+    if (srtCamera1.getStreamClient().reTry(5000, reason, null)) {
       Toast.makeText(ExampleSrtActivity.this, "Retry", Toast.LENGTH_SHORT)
           .show();
     } else {

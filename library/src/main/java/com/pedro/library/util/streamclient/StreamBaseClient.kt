@@ -1,9 +1,26 @@
-package com.pedro.library.util.client
+package com.pedro.library.util.streamclient
 
 /**
  * Created by pedro on 12/10/23.
  */
-abstract class StreamBaseClient {
+abstract class StreamBaseClient(
+  private val streamClientListener: StreamClientListener?
+) {
+
+  /**
+   * Retries to connect with the given delay. You can pass an optional backupUrl
+   * if you'd like to connect to your backup server instead of the original one.
+   * Given backupUrl replaces the original one.
+   */
+  @JvmOverloads
+  fun reTry(delay: Long, reason: String, backupUrl: String? = null): Boolean {
+    val result = shouldRetry(reason)
+    if (result) {
+      streamClientListener?.onRequestKeyframe()
+      reConnect(delay, backupUrl)
+    }
+    return result
+  }
 
   /**
    *

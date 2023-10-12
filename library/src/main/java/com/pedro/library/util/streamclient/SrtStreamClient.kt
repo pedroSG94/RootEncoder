@@ -1,11 +1,14 @@
-package com.pedro.library.util.client
+package com.pedro.library.util.streamclient
 
 import com.pedro.srt.srt.SrtClient
 
 /**
  * Created by pedro on 12/10/23.
  */
-class SrtStreamClient(private val srtClient: SrtClient): StreamBaseClient() {
+class SrtStreamClient(
+  private val srtClient: SrtClient,
+  streamClientListener: StreamClientListener?
+): StreamBaseClient(streamClientListener) {
 
   override fun setAuthorization(user: String?, password: String?) {
     srtClient.setAuthorization(user, password)

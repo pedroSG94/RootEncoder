@@ -20,14 +20,12 @@ import android.content.Context;
 import android.media.MediaCodec;
 import android.os.Build;
 
-import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 
 import com.pedro.encoder.utils.CodecUtil;
 import com.pedro.library.base.DisplayBase;
-import com.pedro.library.util.client.RtmpStreamClient;
-import com.pedro.library.util.client.StreamBaseClient;
-import com.pedro.rtmp.flv.video.ProfileIop;
+import com.pedro.library.util.streamclient.RtmpStreamClient;
+import com.pedro.library.util.streamclient.StreamClientListener;
 import com.pedro.rtmp.rtmp.RtmpClient;
 import com.pedro.rtmp.rtmp.VideoCodec;
 import com.pedro.rtmp.utils.ConnectCheckerRtmp;
@@ -41,7 +39,7 @@ import java.nio.ByteBuffer;
  * Created by pedro on 9/08/17.
  */
 @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
-public class RtmpDisplay extends DisplayBase {
+public class RtmpDisplay extends DisplayBase implements StreamClientListener {
 
   private final RtmpClient rtmpClient;
   private final RtmpStreamClient streamClient;
@@ -49,7 +47,7 @@ public class RtmpDisplay extends DisplayBase {
   public RtmpDisplay(Context context, boolean useOpengl, ConnectCheckerRtmp connectChecker) {
     super(context, useOpengl);
     rtmpClient = new RtmpClient(connectChecker);
-    streamClient = new RtmpStreamClient(rtmpClient);
+    streamClient = new RtmpStreamClient(rtmpClient, this);
   }
 
   public RtmpStreamClient getStreamClient() {
@@ -99,18 +97,8 @@ public class RtmpDisplay extends DisplayBase {
     rtmpClient.sendVideo(h264Buffer, info);
   }
 
-
-  /**
-   * Retries to connect with the given delay. You can pass an optional backupUrl
-   * if you'd like to connect to your backup server instead of the original one.
-   * Given backupUrl replaces the original one.
-   */
-  public boolean reTry(long delay, String reason, @Nullable String backupUrl) {
-    boolean result = streamClient.shouldRetry(reason);
-    if (result) {
-      requestKeyFrame();
-      streamClient.reConnect(delay, backupUrl);
-    }
-    return result;
+  @Override
+  public void onRequestKeyframe() {
+    requestKeyFrame();
   }
 }

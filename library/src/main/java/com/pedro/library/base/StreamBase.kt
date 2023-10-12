@@ -19,7 +19,6 @@ import com.pedro.encoder.audio.AudioEncoder
 import com.pedro.encoder.audio.GetAacData
 import com.pedro.encoder.input.audio.GetMicrophoneData
 import com.pedro.encoder.input.video.CameraHelper
-import com.pedro.encoder.input.video.GetCameraData
 import com.pedro.encoder.video.FormatVideoEncoder
 import com.pedro.encoder.video.GetVideoData
 import com.pedro.encoder.video.VideoEncoder

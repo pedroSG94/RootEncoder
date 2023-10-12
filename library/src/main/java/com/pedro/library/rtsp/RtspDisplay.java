@@ -20,13 +20,12 @@ import android.content.Context;
 import android.media.MediaCodec;
 import android.os.Build;
 
-import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 
 import com.pedro.encoder.utils.CodecUtil;
 import com.pedro.library.base.DisplayBase;
-import com.pedro.library.util.client.RtspStreamClient;
-import com.pedro.rtsp.rtsp.Protocol;
+import com.pedro.library.util.streamclient.RtspStreamClient;
+import com.pedro.library.util.streamclient.StreamClientListener;
 import com.pedro.rtsp.rtsp.RtspClient;
 import com.pedro.rtsp.rtsp.VideoCodec;
 import com.pedro.rtsp.utils.ConnectCheckerRtsp;
@@ -40,7 +39,7 @@ import java.nio.ByteBuffer;
  * Created by pedro on 9/08/17.
  */
 @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
-public class RtspDisplay extends DisplayBase {
+public class RtspDisplay extends DisplayBase implements StreamClientListener {
 
   private final RtspClient rtspClient;
   private final RtspStreamClient streamClient;
@@ -48,7 +47,7 @@ public class RtspDisplay extends DisplayBase {
   public RtspDisplay(Context context, boolean useOpengl, ConnectCheckerRtsp connectCheckerRtsp) {
     super(context, useOpengl);
     rtspClient = new RtspClient(connectCheckerRtsp);
-    streamClient = new RtspStreamClient(rtspClient);
+    streamClient = new RtspStreamClient(rtspClient, this);
   }
 
   public RtspStreamClient getStreamClient() {
@@ -91,17 +90,8 @@ public class RtspDisplay extends DisplayBase {
     rtspClient.sendVideo(h264Buffer, info);
   }
 
-  /**
-   * Retries to connect with the given delay. You can pass an optional backupUrl
-   * if you'd like to connect to your backup server instead of the original one.
-   * Given backupUrl replaces the original one.
-   */
-  public boolean reTry(long delay, String reason, @Nullable String backupUrl) {
-    boolean result = streamClient.shouldRetry(reason);
-    if (result) {
-      requestKeyFrame();
-      streamClient.reConnect(delay, backupUrl);
-    }
-    return result;
+  @Override
+  public void onRequestKeyframe() {
+    requestKeyFrame();
   }
 }

@@ -22,16 +22,14 @@ import android.os.Build;
 import android.view.SurfaceView;
 import android.view.TextureView;
 
-import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 
 import com.pedro.encoder.utils.CodecUtil;
 import com.pedro.library.base.Camera1Base;
-import com.pedro.library.util.client.RtmpStreamClient;
-import com.pedro.library.util.client.RtspStreamClient;
+import com.pedro.library.util.streamclient.RtspStreamClient;
+import com.pedro.library.util.streamclient.StreamClientListener;
 import com.pedro.library.view.LightOpenGlView;
 import com.pedro.library.view.OpenGlView;
-import com.pedro.rtsp.rtsp.Protocol;
 import com.pedro.rtsp.rtsp.RtspClient;
 import com.pedro.rtsp.rtsp.VideoCodec;
 import com.pedro.rtsp.utils.ConnectCheckerRtsp;
@@ -45,7 +43,7 @@ import java.nio.ByteBuffer;
  * Created by pedro on 10/02/17.
  */
 
-public class RtspCamera1 extends Camera1Base {
+public class RtspCamera1 extends Camera1Base implements StreamClientListener {
 
   private final RtspClient rtspClient;
   private final RtspStreamClient streamClient;
@@ -53,34 +51,34 @@ public class RtspCamera1 extends Camera1Base {
   public RtspCamera1(SurfaceView surfaceView, ConnectCheckerRtsp connectCheckerRtsp) {
     super(surfaceView);
     rtspClient = new RtspClient(connectCheckerRtsp);
-    streamClient = new RtspStreamClient(rtspClient);
+    streamClient = new RtspStreamClient(rtspClient, this);
   }
 
   public RtspCamera1(TextureView textureView, ConnectCheckerRtsp connectCheckerRtsp) {
     super(textureView);
     rtspClient = new RtspClient(connectCheckerRtsp);
-    streamClient = new RtspStreamClient(rtspClient);
+    streamClient = new RtspStreamClient(rtspClient, this);
   }
 
   @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
   public RtspCamera1(OpenGlView openGlView, ConnectCheckerRtsp connectCheckerRtsp) {
     super(openGlView);
     rtspClient = new RtspClient(connectCheckerRtsp);
-    streamClient = new RtspStreamClient(rtspClient);
+    streamClient = new RtspStreamClient(rtspClient, this);
   }
 
   @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
   public RtspCamera1(LightOpenGlView lightOpenGlView, ConnectCheckerRtsp connectCheckerRtsp) {
     super(lightOpenGlView);
     rtspClient = new RtspClient(connectCheckerRtsp);
-    streamClient = new RtspStreamClient(rtspClient);
+    streamClient = new RtspStreamClient(rtspClient, this);
   }
 
   @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
   public RtspCamera1(Context context, ConnectCheckerRtsp connectCheckerRtsp) {
     super(context);
     rtspClient = new RtspClient(connectCheckerRtsp);
-    streamClient = new RtspStreamClient(rtspClient);
+    streamClient = new RtspStreamClient(rtspClient, this);
   }
 
   public RtspStreamClient getStreamClient() {
@@ -125,17 +123,8 @@ public class RtspCamera1 extends Camera1Base {
     rtspClient.sendVideo(h264Buffer, info);
   }
 
-  /**
-   * Retries to connect with the given delay. You can pass an optional backupUrl
-   * if you'd like to connect to your backup server instead of the original one.
-   * Given backupUrl replaces the original one.
-   */
-  public boolean reTry(long delay, String reason, @Nullable String backupUrl) {
-    boolean result = streamClient.shouldRetry(reason);
-    if (result) {
-      requestKeyFrame();
-      streamClient.reConnect(delay, backupUrl);
-    }
-    return result;
+  @Override
+  public void onRequestKeyframe() {
+    requestKeyFrame();
   }
 }
