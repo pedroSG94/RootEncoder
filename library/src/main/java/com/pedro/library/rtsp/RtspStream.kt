@@ -26,10 +26,15 @@ import java.nio.ByteBuffer
 class RtspStream(
   context: Context, connectCheckerRtsp: ConnectCheckerRtsp, videoSource: VideoManager.Source,
   audioSource: AudioManager.Source
-): StreamBase(context, videoSource, audioSource), StreamClientListener {
+): StreamBase(context, videoSource, audioSource) {
 
   private val rtspClient = RtspClient(connectCheckerRtsp)
-  val streamClient = RtspStreamClient(rtspClient, this)
+  private val streamClientListener = object: StreamClientListener {
+    override fun onRequestKeyframe() {
+      requestKeyframe()
+    }
+  }
+  val streamClient = RtspStreamClient(rtspClient, streamClientListener)
 
   constructor(context: Context, connectCheckerRtsp: ConnectCheckerRtsp):
       this(context, connectCheckerRtsp, VideoManager.Source.CAMERA2, AudioManager.Source.MICROPHONE)
@@ -61,9 +66,5 @@ class RtspStream(
 
   override fun getAacDataRtp(aacBuffer: ByteBuffer, info: MediaCodec.BufferInfo) {
     rtspClient.sendAudio(aacBuffer, info)
-  }
-
-  override fun onRequestKeyframe() {
-    requestKeyframe()
   }
 }

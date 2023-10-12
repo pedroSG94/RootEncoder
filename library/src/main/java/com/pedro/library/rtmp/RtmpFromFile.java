@@ -43,37 +43,38 @@ import java.nio.ByteBuffer;
  * Created by pedro on 26/06/17.
  */
 @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
-public class RtmpFromFile extends FromFileBase implements StreamClientListener {
+public class RtmpFromFile extends FromFileBase {
 
   private final RtmpClient rtmpClient;
   private final RtmpStreamClient streamClient;
+  private final StreamClientListener streamClientListener = this::requestKeyFrame;
 
   public RtmpFromFile(ConnectCheckerRtmp connectChecker,
       VideoDecoderInterface videoDecoderInterface, AudioDecoderInterface audioDecoderInterface) {
     super(videoDecoderInterface, audioDecoderInterface);
     rtmpClient = new RtmpClient(connectChecker);
-    streamClient = new RtmpStreamClient(rtmpClient, this);
+    streamClient = new RtmpStreamClient(rtmpClient, streamClientListener);
   }
 
   public RtmpFromFile(Context context, ConnectCheckerRtmp connectChecker,
       VideoDecoderInterface videoDecoderInterface, AudioDecoderInterface audioDecoderInterface) {
     super(context, videoDecoderInterface, audioDecoderInterface);
     rtmpClient = new RtmpClient(connectChecker);
-    streamClient = new RtmpStreamClient(rtmpClient, this);
+    streamClient = new RtmpStreamClient(rtmpClient, streamClientListener);
   }
 
   public RtmpFromFile(OpenGlView openGlView, ConnectCheckerRtmp connectChecker,
       VideoDecoderInterface videoDecoderInterface, AudioDecoderInterface audioDecoderInterface) {
     super(openGlView, videoDecoderInterface, audioDecoderInterface);
     rtmpClient = new RtmpClient(connectChecker);
-    streamClient = new RtmpStreamClient(rtmpClient, this);
+    streamClient = new RtmpStreamClient(rtmpClient, streamClientListener);
   }
 
   public RtmpFromFile(LightOpenGlView lightOpenGlView, ConnectCheckerRtmp connectChecker,
       VideoDecoderInterface videoDecoderInterface, AudioDecoderInterface audioDecoderInterface) {
     super(lightOpenGlView, videoDecoderInterface, audioDecoderInterface);
     rtmpClient = new RtmpClient(connectChecker);
-    streamClient = new RtmpStreamClient(rtmpClient, this);
+    streamClient = new RtmpStreamClient(rtmpClient, streamClientListener);
   }
 
   public RtmpStreamClient getStreamClient() {
@@ -121,10 +122,5 @@ public class RtmpFromFile extends FromFileBase implements StreamClientListener {
   @Override
   protected void getAacDataRtp(ByteBuffer aacBuffer, MediaCodec.BufferInfo info) {
     rtmpClient.sendAudio(aacBuffer, info);
-  }
-
-  @Override
-  public void onRequestKeyframe() {
-    requestKeyFrame();
   }
 }

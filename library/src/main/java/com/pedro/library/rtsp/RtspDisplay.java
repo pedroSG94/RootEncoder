@@ -39,15 +39,16 @@ import java.nio.ByteBuffer;
  * Created by pedro on 9/08/17.
  */
 @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
-public class RtspDisplay extends DisplayBase implements StreamClientListener {
+public class RtspDisplay extends DisplayBase {
 
   private final RtspClient rtspClient;
   private final RtspStreamClient streamClient;
+  private final StreamClientListener streamClientListener = this::requestKeyFrame;
 
   public RtspDisplay(Context context, boolean useOpengl, ConnectCheckerRtsp connectCheckerRtsp) {
     super(context, useOpengl);
     rtspClient = new RtspClient(connectCheckerRtsp);
-    streamClient = new RtspStreamClient(rtspClient, this);
+    streamClient = new RtspStreamClient(rtspClient, streamClientListener);
   }
 
   public RtspStreamClient getStreamClient() {
@@ -88,10 +89,5 @@ public class RtspDisplay extends DisplayBase implements StreamClientListener {
   @Override
   protected void getH264DataRtp(ByteBuffer h264Buffer, MediaCodec.BufferInfo info) {
     rtspClient.sendVideo(h264Buffer, info);
-  }
-
-  @Override
-  public void onRequestKeyframe() {
-    requestKeyFrame();
   }
 }

@@ -43,10 +43,11 @@ import java.nio.ByteBuffer;
  * Created by pedro on 8/9/23.
  */
 @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
-public class SrtCamera2 extends Camera2Base implements StreamClientListener {
+public class SrtCamera2 extends Camera2Base {
 
   private final SrtClient srtClient;
   private final SrtStreamClient streamClient;
+  private final StreamClientListener streamClientListener = this::requestKeyFrame;
 
   /**
    * @deprecated This view produce rotations problems and could be unsupported in future versions.
@@ -57,7 +58,7 @@ public class SrtCamera2 extends Camera2Base implements StreamClientListener {
   public SrtCamera2(SurfaceView surfaceView, ConnectCheckerSrt connectChecker) {
     super(surfaceView);
     srtClient = new SrtClient(connectChecker);
-    streamClient = new SrtStreamClient(srtClient, this);
+    streamClient = new SrtStreamClient(srtClient, streamClientListener);
   }
 
   /**
@@ -69,25 +70,25 @@ public class SrtCamera2 extends Camera2Base implements StreamClientListener {
   public SrtCamera2(TextureView textureView, ConnectCheckerSrt connectChecker) {
     super(textureView);
     srtClient = new SrtClient(connectChecker);
-    streamClient = new SrtStreamClient(srtClient, this);
+    streamClient = new SrtStreamClient(srtClient, streamClientListener);
   }
 
   public SrtCamera2(OpenGlView openGlView, ConnectCheckerSrt connectChecker) {
     super(openGlView);
     srtClient = new SrtClient(connectChecker);
-    streamClient = new SrtStreamClient(srtClient, this);
+    streamClient = new SrtStreamClient(srtClient, streamClientListener);
   }
 
   public SrtCamera2(LightOpenGlView lightOpenGlView, ConnectCheckerSrt connectChecker) {
     super(lightOpenGlView);
     srtClient = new SrtClient(connectChecker);
-    streamClient = new SrtStreamClient(srtClient, this);
+    streamClient = new SrtStreamClient(srtClient, streamClientListener);
   }
 
   public SrtCamera2(Context context, boolean useOpengl, ConnectCheckerSrt connectChecker) {
     super(context, useOpengl);
     srtClient = new SrtClient(connectChecker);
-    streamClient = new SrtStreamClient(srtClient, this);
+    streamClient = new SrtStreamClient(srtClient, streamClientListener);
   }
 
   public SrtStreamClient getStreamClient() {
@@ -130,11 +131,6 @@ public class SrtCamera2 extends Camera2Base implements StreamClientListener {
   @Override
   protected void getH264DataRtp(ByteBuffer h264Buffer, MediaCodec.BufferInfo info) {
     srtClient.sendVideo(h264Buffer, info);
-  }
-
-  @Override
-  public void onRequestKeyframe() {
-    requestKeyFrame();
   }
 }
 

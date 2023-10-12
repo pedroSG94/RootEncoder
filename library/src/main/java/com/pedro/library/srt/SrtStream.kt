@@ -42,10 +42,15 @@ import java.nio.ByteBuffer
 class SrtStream(
   context: Context, connectCheckerRtmp: ConnectCheckerSrt, videoSource: VideoManager.Source,
   audioSource: AudioManager.Source
-): StreamBase(context, videoSource, audioSource), StreamClientListener {
+): StreamBase(context, videoSource, audioSource) {
 
   private val srtClient = SrtClient(connectCheckerRtmp)
-  val streamClient = SrtStreamClient(srtClient, this)
+  private val streamClientListener = object: StreamClientListener {
+    override fun onRequestKeyframe() {
+      requestKeyframe()
+    }
+  }
+  val streamClient = SrtStreamClient(srtClient, streamClientListener)
 
   constructor(context: Context, connectCheckerRtmp: ConnectCheckerSrt):
       this(context, connectCheckerRtmp, VideoManager.Source.CAMERA2, AudioManager.Source.MICROPHONE)
@@ -78,9 +83,5 @@ class SrtStream(
 
   override fun getAacDataRtp(aacBuffer: ByteBuffer, info: MediaCodec.BufferInfo) {
     srtClient.sendAudio(aacBuffer, info)
-  }
-
-  override fun onRequestKeyframe() {
-    requestKeyframe()
   }
 }

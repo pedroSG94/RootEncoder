@@ -43,37 +43,38 @@ import java.nio.ByteBuffer;
  * Created by pedro on 8/9/23.
  */
 @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
-public class SrtFromFile extends FromFileBase implements StreamClientListener {
+public class SrtFromFile extends FromFileBase {
 
   private final SrtClient srtClient;
   private final SrtStreamClient streamClient;
+  private final StreamClientListener streamClientListener = this::requestKeyFrame;
 
   public SrtFromFile(ConnectCheckerSrt connectChecker,
                      VideoDecoderInterface videoDecoderInterface, AudioDecoderInterface audioDecoderInterface) {
     super(videoDecoderInterface, audioDecoderInterface);
     srtClient = new SrtClient(connectChecker);
-    streamClient = new SrtStreamClient(srtClient, this);
+    streamClient = new SrtStreamClient(srtClient, streamClientListener);
   }
 
   public SrtFromFile(Context context, ConnectCheckerSrt connectChecker,
                      VideoDecoderInterface videoDecoderInterface, AudioDecoderInterface audioDecoderInterface) {
     super(context, videoDecoderInterface, audioDecoderInterface);
     srtClient = new SrtClient(connectChecker);
-    streamClient = new SrtStreamClient(srtClient, this);
+    streamClient = new SrtStreamClient(srtClient, streamClientListener);
   }
 
   public SrtFromFile(OpenGlView openGlView, ConnectCheckerSrt connectChecker,
                      VideoDecoderInterface videoDecoderInterface, AudioDecoderInterface audioDecoderInterface) {
     super(openGlView, videoDecoderInterface, audioDecoderInterface);
     srtClient = new SrtClient(connectChecker);
-    streamClient = new SrtStreamClient(srtClient, this);
+    streamClient = new SrtStreamClient(srtClient, streamClientListener);
   }
 
   public SrtFromFile(LightOpenGlView lightOpenGlView, ConnectCheckerSrt connectChecker,
                      VideoDecoderInterface videoDecoderInterface, AudioDecoderInterface audioDecoderInterface) {
     super(lightOpenGlView, videoDecoderInterface, audioDecoderInterface);
     srtClient = new SrtClient(connectChecker);
-    streamClient = new SrtStreamClient(srtClient, this);
+    streamClient = new SrtStreamClient(srtClient, streamClientListener);
   }
 
   public void setVideoCodec(VideoCodec videoCodec) {
@@ -115,10 +116,5 @@ public class SrtFromFile extends FromFileBase implements StreamClientListener {
   @Override
   protected void getAacDataRtp(ByteBuffer aacBuffer, MediaCodec.BufferInfo info) {
     srtClient.sendAudio(aacBuffer, info);
-  }
-
-  @Override
-  public void onRequestKeyframe() {
-    requestKeyFrame();
   }
 }

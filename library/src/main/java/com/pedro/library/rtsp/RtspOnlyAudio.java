@@ -68,17 +68,4 @@ public class RtspOnlyAudio extends OnlyAudioBase {
   protected void getAacDataRtp(ByteBuffer aacBuffer, MediaCodec.BufferInfo info) {
     rtspClient.sendAudio(aacBuffer, info);
   }
-
-  /**
-   * Retries to connect with the given delay. You can pass an optional backupUrl
-   * if you'd like to connect to your backup server instead of the original one.
-   * Given backupUrl replaces the original one.
-   */
-  public boolean reTry(long delay, String reason, @Nullable String backupUrl) {
-    boolean result = streamClient.shouldRetry(reason);
-    if (result) {
-      streamClient.reConnect(delay, backupUrl);
-    }
-    return result;
-  }
 }

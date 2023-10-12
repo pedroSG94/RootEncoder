@@ -43,37 +43,38 @@ import java.nio.ByteBuffer;
  * Created by pedro on 4/06/17.
  */
 @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
-public class RtspFromFile extends FromFileBase implements StreamClientListener {
+public class RtspFromFile extends FromFileBase {
 
   private final RtspClient rtspClient;
   private final RtspStreamClient streamClient;
+  private final StreamClientListener streamClientListener = this::requestKeyFrame;
 
   public RtspFromFile(ConnectCheckerRtsp connectCheckerRtsp,
       VideoDecoderInterface videoDecoderInterface, AudioDecoderInterface audioDecoderInterface) {
     super(videoDecoderInterface, audioDecoderInterface);
     rtspClient = new RtspClient(connectCheckerRtsp);
-    streamClient = new RtspStreamClient(rtspClient, this);
+    streamClient = new RtspStreamClient(rtspClient, streamClientListener);
   }
 
   public RtspFromFile(Context context, ConnectCheckerRtsp connectCheckerRtsp,
       VideoDecoderInterface videoDecoderInterface, AudioDecoderInterface audioDecoderInterface) {
     super(context, videoDecoderInterface, audioDecoderInterface);
     rtspClient = new RtspClient(connectCheckerRtsp);
-    streamClient = new RtspStreamClient(rtspClient, this);
+    streamClient = new RtspStreamClient(rtspClient, streamClientListener);
   }
 
   public RtspFromFile(OpenGlView openGlView, ConnectCheckerRtsp connectCheckerRtsp,
       VideoDecoderInterface videoDecoderInterface, AudioDecoderInterface audioDecoderInterface) {
     super(openGlView, videoDecoderInterface, audioDecoderInterface);
     rtspClient = new RtspClient(connectCheckerRtsp);
-    streamClient = new RtspStreamClient(rtspClient, this);
+    streamClient = new RtspStreamClient(rtspClient, streamClientListener);
   }
 
   public RtspFromFile(LightOpenGlView lightOpenGlView, ConnectCheckerRtsp connectCheckerRtsp,
       VideoDecoderInterface videoDecoderInterface, AudioDecoderInterface audioDecoderInterface) {
     super(lightOpenGlView, videoDecoderInterface, audioDecoderInterface);
     rtspClient = new RtspClient(connectCheckerRtsp);
-    streamClient = new RtspStreamClient(rtspClient, this);
+    streamClient = new RtspStreamClient(rtspClient, streamClientListener);
   }
 
   public RtspStreamClient getStreamClient() {
@@ -115,11 +116,6 @@ public class RtspFromFile extends FromFileBase implements StreamClientListener {
   @Override
   protected void getAacDataRtp(ByteBuffer aacBuffer, MediaCodec.BufferInfo info) {
     rtspClient.sendAudio(aacBuffer, info);
-  }
-
-  @Override
-  public void onRequestKeyframe() {
-    requestKeyFrame();
   }
 }
 

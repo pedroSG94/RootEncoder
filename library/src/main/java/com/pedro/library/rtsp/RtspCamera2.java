@@ -43,10 +43,11 @@ import java.nio.ByteBuffer;
  * Created by pedro on 4/06/17.
  */
 @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
-public class RtspCamera2 extends Camera2Base implements StreamClientListener {
+public class RtspCamera2 extends Camera2Base {
 
   private final RtspClient rtspClient;
   private final RtspStreamClient streamClient;
+  private final StreamClientListener streamClientListener = this::requestKeyFrame;
 
   /**
    * @deprecated This view produce rotations problems and could be unsupported in future versions.
@@ -57,7 +58,7 @@ public class RtspCamera2 extends Camera2Base implements StreamClientListener {
   public RtspCamera2(SurfaceView surfaceView, ConnectCheckerRtsp connectCheckerRtsp) {
     super(surfaceView);
     rtspClient = new RtspClient(connectCheckerRtsp);
-    streamClient = new RtspStreamClient(rtspClient, this);
+    streamClient = new RtspStreamClient(rtspClient, streamClientListener);
   }
 
   /**
@@ -69,25 +70,25 @@ public class RtspCamera2 extends Camera2Base implements StreamClientListener {
   public RtspCamera2(TextureView textureView, ConnectCheckerRtsp connectCheckerRtsp) {
     super(textureView);
     rtspClient = new RtspClient(connectCheckerRtsp);
-    streamClient = new RtspStreamClient(rtspClient, this);
+    streamClient = new RtspStreamClient(rtspClient, streamClientListener);
   }
 
   public RtspCamera2(OpenGlView openGlView, ConnectCheckerRtsp connectCheckerRtsp) {
     super(openGlView);
     rtspClient = new RtspClient(connectCheckerRtsp);
-    streamClient = new RtspStreamClient(rtspClient, this);
+    streamClient = new RtspStreamClient(rtspClient, streamClientListener);
   }
 
   public RtspCamera2(LightOpenGlView lightOpenGlView, ConnectCheckerRtsp connectCheckerRtsp) {
     super(lightOpenGlView);
     rtspClient = new RtspClient(connectCheckerRtsp);
-    streamClient = new RtspStreamClient(rtspClient, this);
+    streamClient = new RtspStreamClient(rtspClient, streamClientListener);
   }
 
   public RtspCamera2(Context context, boolean useOpengl, ConnectCheckerRtsp connectCheckerRtsp) {
     super(context, useOpengl);
     rtspClient = new RtspClient(connectCheckerRtsp);
-    streamClient = new RtspStreamClient(rtspClient, this);
+    streamClient = new RtspStreamClient(rtspClient, streamClientListener);
   }
 
   public RtspStreamClient getStreamClient() {
@@ -129,11 +130,6 @@ public class RtspCamera2 extends Camera2Base implements StreamClientListener {
   @Override
   protected void getH264DataRtp(ByteBuffer h264Buffer, MediaCodec.BufferInfo info) {
     rtspClient.sendVideo(h264Buffer, info);
-  }
-
-  @Override
-  public void onRequestKeyframe() {
-    requestKeyFrame();
   }
 }
 

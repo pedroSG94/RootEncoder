@@ -43,42 +43,43 @@ import java.nio.ByteBuffer;
  * Created by pedro on 10/02/17.
  */
 
-public class RtspCamera1 extends Camera1Base implements StreamClientListener {
+public class RtspCamera1 extends Camera1Base {
 
   private final RtspClient rtspClient;
   private final RtspStreamClient streamClient;
+  private final StreamClientListener streamClientListener = this::requestKeyFrame;
 
   public RtspCamera1(SurfaceView surfaceView, ConnectCheckerRtsp connectCheckerRtsp) {
     super(surfaceView);
     rtspClient = new RtspClient(connectCheckerRtsp);
-    streamClient = new RtspStreamClient(rtspClient, this);
+    streamClient = new RtspStreamClient(rtspClient, streamClientListener);
   }
 
   public RtspCamera1(TextureView textureView, ConnectCheckerRtsp connectCheckerRtsp) {
     super(textureView);
     rtspClient = new RtspClient(connectCheckerRtsp);
-    streamClient = new RtspStreamClient(rtspClient, this);
+    streamClient = new RtspStreamClient(rtspClient, streamClientListener);
   }
 
   @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
   public RtspCamera1(OpenGlView openGlView, ConnectCheckerRtsp connectCheckerRtsp) {
     super(openGlView);
     rtspClient = new RtspClient(connectCheckerRtsp);
-    streamClient = new RtspStreamClient(rtspClient, this);
+    streamClient = new RtspStreamClient(rtspClient, streamClientListener);
   }
 
   @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
   public RtspCamera1(LightOpenGlView lightOpenGlView, ConnectCheckerRtsp connectCheckerRtsp) {
     super(lightOpenGlView);
     rtspClient = new RtspClient(connectCheckerRtsp);
-    streamClient = new RtspStreamClient(rtspClient, this);
+    streamClient = new RtspStreamClient(rtspClient, streamClientListener);
   }
 
   @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
   public RtspCamera1(Context context, ConnectCheckerRtsp connectCheckerRtsp) {
     super(context);
     rtspClient = new RtspClient(connectCheckerRtsp);
-    streamClient = new RtspStreamClient(rtspClient, this);
+    streamClient = new RtspStreamClient(rtspClient, streamClientListener);
   }
 
   public RtspStreamClient getStreamClient() {
@@ -121,10 +122,5 @@ public class RtspCamera1 extends Camera1Base implements StreamClientListener {
   @Override
   protected void getH264DataRtp(ByteBuffer h264Buffer, MediaCodec.BufferInfo info) {
     rtspClient.sendVideo(h264Buffer, info);
-  }
-
-  @Override
-  public void onRequestKeyframe() {
-    requestKeyFrame();
   }
 }

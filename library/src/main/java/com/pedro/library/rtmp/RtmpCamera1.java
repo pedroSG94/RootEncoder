@@ -43,42 +43,43 @@ import java.nio.ByteBuffer;
  * Created by pedro on 25/01/17.
  */
 
-public class RtmpCamera1 extends Camera1Base implements StreamClientListener {
+public class RtmpCamera1 extends Camera1Base {
 
   private final RtmpClient rtmpClient;
   private final RtmpStreamClient streamClient;
+  private final StreamClientListener streamClientListener = this::requestKeyFrame;
 
   public RtmpCamera1(SurfaceView surfaceView, ConnectCheckerRtmp connectChecker) {
     super(surfaceView);
     rtmpClient = new RtmpClient(connectChecker);
-    streamClient = new RtmpStreamClient(rtmpClient, this);
+    streamClient = new RtmpStreamClient(rtmpClient, streamClientListener);
   }
 
   public RtmpCamera1(TextureView textureView, ConnectCheckerRtmp connectChecker) {
     super(textureView);
     rtmpClient = new RtmpClient(connectChecker);
-    streamClient = new RtmpStreamClient(rtmpClient, this);
+    streamClient = new RtmpStreamClient(rtmpClient, streamClientListener);
   }
 
   @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
   public RtmpCamera1(OpenGlView openGlView, ConnectCheckerRtmp connectChecker) {
     super(openGlView);
     rtmpClient = new RtmpClient(connectChecker);
-    streamClient = new RtmpStreamClient(rtmpClient, this);
+    streamClient = new RtmpStreamClient(rtmpClient, streamClientListener);
   }
 
   @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
   public RtmpCamera1(LightOpenGlView lightOpenGlView, ConnectCheckerRtmp connectChecker) {
     super(lightOpenGlView);
     rtmpClient = new RtmpClient(connectChecker);
-    streamClient = new RtmpStreamClient(rtmpClient, this);
+    streamClient = new RtmpStreamClient(rtmpClient, streamClientListener);
   }
 
   @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
   public RtmpCamera1(Context context, ConnectCheckerRtmp connectChecker) {
     super(context);
     rtmpClient = new RtmpClient(connectChecker);
-    streamClient = new RtmpStreamClient(rtmpClient, this);
+    streamClient = new RtmpStreamClient(rtmpClient, streamClientListener);
   }
 
   public RtmpStreamClient getStreamClient() {
@@ -127,10 +128,5 @@ public class RtmpCamera1 extends Camera1Base implements StreamClientListener {
   @Override
   protected void getH264DataRtp(ByteBuffer h264Buffer, MediaCodec.BufferInfo info) {
     rtmpClient.sendVideo(h264Buffer, info);
-  }
-
-  @Override
-  public void onRequestKeyframe() {
-    requestKeyFrame();
   }
 }
