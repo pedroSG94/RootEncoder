@@ -27,6 +27,7 @@ import androidx.annotation.RequiresApi;
 
 import com.pedro.encoder.utils.CodecUtil;
 import com.pedro.library.base.Camera2Base;
+import com.pedro.library.util.client.SrtStreamClient;
 import com.pedro.library.view.LightOpenGlView;
 import com.pedro.library.view.OpenGlView;
 import com.pedro.srt.srt.SrtClient;
@@ -45,6 +46,7 @@ import java.nio.ByteBuffer;
 public class SrtCamera2 extends Camera2Base {
 
   private final SrtClient srtClient;
+  private final SrtStreamClient streamClient;
 
   /**
    * @deprecated This view produce rotations problems and could be unsupported in future versions.
@@ -55,6 +57,7 @@ public class SrtCamera2 extends Camera2Base {
   public SrtCamera2(SurfaceView surfaceView, ConnectCheckerSrt connectChecker) {
     super(surfaceView);
     srtClient = new SrtClient(connectChecker);
+    streamClient = new SrtStreamClient(srtClient);
   }
 
   /**
@@ -66,21 +69,29 @@ public class SrtCamera2 extends Camera2Base {
   public SrtCamera2(TextureView textureView, ConnectCheckerSrt connectChecker) {
     super(textureView);
     srtClient = new SrtClient(connectChecker);
+    streamClient = new SrtStreamClient(srtClient);
   }
 
   public SrtCamera2(OpenGlView openGlView, ConnectCheckerSrt connectChecker) {
     super(openGlView);
     srtClient = new SrtClient(connectChecker);
+    streamClient = new SrtStreamClient(srtClient);
   }
 
   public SrtCamera2(LightOpenGlView lightOpenGlView, ConnectCheckerSrt connectChecker) {
     super(lightOpenGlView);
     srtClient = new SrtClient(connectChecker);
+    streamClient = new SrtStreamClient(srtClient);
   }
 
   public SrtCamera2(Context context, boolean useOpengl, ConnectCheckerSrt connectChecker) {
     super(context, useOpengl);
     srtClient = new SrtClient(connectChecker);
+    streamClient = new SrtStreamClient(srtClient);
+  }
+
+  public SrtStreamClient getStreamClient() {
+    return streamClient;
   }
 
   public void setVideoCodec(VideoCodec videoCodec) {
@@ -88,61 +99,6 @@ public class SrtCamera2 extends Camera2Base {
             videoCodec == VideoCodec.H265 ? CodecUtil.H265_MIME : CodecUtil.H264_MIME);
     videoEncoder.setType(videoCodec == VideoCodec.H265 ? CodecUtil.H265_MIME : CodecUtil.H264_MIME);
     srtClient.setVideoCodec(videoCodec);
-  }
-
-  @Override
-  public void resizeCache(int newSize) throws RuntimeException {
-    srtClient.resizeCache(newSize);
-  }
-
-  @Override
-  public int getCacheSize() {
-    return srtClient.getCacheSize();
-  }
-
-  @Override
-  public long getSentAudioFrames() {
-    return srtClient.getSentAudioFrames();
-  }
-
-  @Override
-  public long getSentVideoFrames() {
-    return srtClient.getSentVideoFrames();
-  }
-
-  @Override
-  public long getDroppedAudioFrames() {
-    return srtClient.getDroppedAudioFrames();
-  }
-
-  @Override
-  public long getDroppedVideoFrames() {
-    return srtClient.getDroppedVideoFrames();
-  }
-
-  @Override
-  public void resetSentAudioFrames() {
-    srtClient.resetSentAudioFrames();
-  }
-
-  @Override
-  public void resetSentVideoFrames() {
-    srtClient.resetSentVideoFrames();
-  }
-
-  @Override
-  public void resetDroppedAudioFrames() {
-    srtClient.resetDroppedAudioFrames();
-  }
-
-  @Override
-  public void resetDroppedVideoFrames() {
-    srtClient.resetDroppedVideoFrames();
-  }
-
-  @Override
-  public void setAuthorization(String user, String password) {
-    srtClient.setAuthorization(user, password);
   }
 
   @Override
@@ -162,26 +118,6 @@ public class SrtCamera2 extends Camera2Base {
   }
 
   @Override
-  public void setReTries(int reTries) {
-    srtClient.setReTries(reTries);
-  }
-
-  @Override
-  protected boolean shouldRetry(String reason) {
-    return srtClient.shouldRetry(reason);
-  }
-
-  @Override
-  public void reConnect(long delay, @Nullable String backupUrl) {
-    srtClient.reConnect(delay, backupUrl);
-  }
-
-  @Override
-  public boolean hasCongestion() {
-    return srtClient.hasCongestion();
-  }
-
-  @Override
   protected void getAacDataRtp(ByteBuffer aacBuffer, MediaCodec.BufferInfo info) {
     srtClient.sendAudio(aacBuffer, info);
   }
@@ -196,14 +132,18 @@ public class SrtCamera2 extends Camera2Base {
     srtClient.sendVideo(h264Buffer, info);
   }
 
-  @Override
-  public void setLogs(boolean enable) {
-    srtClient.setLogs(enable);
-  }
-
-  @Override
-  public void setCheckServerAlive(boolean enable) {
-    srtClient.setCheckServerAlive(enable);
+  /**
+   * Retries to connect with the given delay. You can pass an optional backupUrl
+   * if you'd like to connect to your backup server instead of the original one.
+   * Given backupUrl replaces the original one.
+   */
+  public boolean reTry(long delay, String reason, @Nullable String backupUrl) {
+    boolean result = streamClient.shouldRetry(reason);
+    if (result) {
+      requestKeyFrame();
+      streamClient.reConnect(delay, backupUrl);
+    }
+    return result;
   }
 }
 

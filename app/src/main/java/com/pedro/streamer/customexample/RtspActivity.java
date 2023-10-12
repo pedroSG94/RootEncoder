@@ -229,14 +229,14 @@ public class RtspActivity extends AppCompatActivity
       if (!rtspCamera1.isStreaming()) {
         bStartStop.setText(getResources().getString(R.string.stop_button));
         if (rbTcp.isChecked()) {
-          rtspCamera1.setProtocol(Protocol.TCP);
+          rtspCamera1.getStreamClient().setProtocol(Protocol.TCP);
         } else {
-          rtspCamera1.setProtocol(Protocol.UDP);
+          rtspCamera1.getStreamClient().setProtocol(Protocol.UDP);
         }
         String user = etWowzaUser.getText().toString();
         String password = etWowzaPassword.getText().toString();
         if (!user.isEmpty() && !password.isEmpty()) {
-          rtspCamera1.setAuthorization(user, password);
+          rtspCamera1.getStreamClient().setAuthorization(user, password);
         }
         if (rtspCamera1.isRecording() || prepareEncoders()) {
           rtspCamera1.startStream(etUrl.getText().toString());

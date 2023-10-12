@@ -27,6 +27,7 @@ import androidx.annotation.RequiresApi;
 
 import com.pedro.encoder.utils.CodecUtil;
 import com.pedro.library.base.Camera2Base;
+import com.pedro.library.util.client.RtspStreamClient;
 import com.pedro.library.view.LightOpenGlView;
 import com.pedro.library.view.OpenGlView;
 import com.pedro.rtsp.rtsp.Protocol;
@@ -46,6 +47,7 @@ import java.nio.ByteBuffer;
 public class RtspCamera2 extends Camera2Base {
 
   private final RtspClient rtspClient;
+  private final RtspStreamClient streamClient;
 
   /**
    * @deprecated This view produce rotations problems and could be unsupported in future versions.
@@ -56,6 +58,7 @@ public class RtspCamera2 extends Camera2Base {
   public RtspCamera2(SurfaceView surfaceView, ConnectCheckerRtsp connectCheckerRtsp) {
     super(surfaceView);
     rtspClient = new RtspClient(connectCheckerRtsp);
+    streamClient = new RtspStreamClient(rtspClient);
   }
 
   /**
@@ -67,91 +70,35 @@ public class RtspCamera2 extends Camera2Base {
   public RtspCamera2(TextureView textureView, ConnectCheckerRtsp connectCheckerRtsp) {
     super(textureView);
     rtspClient = new RtspClient(connectCheckerRtsp);
+    streamClient = new RtspStreamClient(rtspClient);
   }
 
   public RtspCamera2(OpenGlView openGlView, ConnectCheckerRtsp connectCheckerRtsp) {
     super(openGlView);
     rtspClient = new RtspClient(connectCheckerRtsp);
+    streamClient = new RtspStreamClient(rtspClient);
   }
 
   public RtspCamera2(LightOpenGlView lightOpenGlView, ConnectCheckerRtsp connectCheckerRtsp) {
     super(lightOpenGlView);
     rtspClient = new RtspClient(connectCheckerRtsp);
+    streamClient = new RtspStreamClient(rtspClient);
   }
 
   public RtspCamera2(Context context, boolean useOpengl, ConnectCheckerRtsp connectCheckerRtsp) {
     super(context, useOpengl);
     rtspClient = new RtspClient(connectCheckerRtsp);
+    streamClient = new RtspStreamClient(rtspClient);
   }
 
-  /**
-   * Internet protocol used.
-   *
-   * @param protocol Could be Protocol.TCP or Protocol.UDP.
-   */
-  public void setProtocol(Protocol protocol) {
-    rtspClient.setProtocol(protocol);
-  }
-
-  @Override
-  public void resizeCache(int newSize) throws RuntimeException {
-    rtspClient.resizeCache(newSize);
-  }
-
-  @Override
-  public int getCacheSize() {
-    return rtspClient.getCacheSize();
-  }
-
-  @Override
-  public long getSentAudioFrames() {
-    return rtspClient.getSentAudioFrames();
-  }
-
-  @Override
-  public long getSentVideoFrames() {
-    return rtspClient.getSentVideoFrames();
-  }
-
-  @Override
-  public long getDroppedAudioFrames() {
-    return rtspClient.getDroppedAudioFrames();
-  }
-
-  @Override
-  public long getDroppedVideoFrames() {
-    return rtspClient.getDroppedVideoFrames();
-  }
-
-  @Override
-  public void resetSentAudioFrames() {
-    rtspClient.resetSentAudioFrames();
-  }
-
-  @Override
-  public void resetSentVideoFrames() {
-    rtspClient.resetSentVideoFrames();
-  }
-
-  @Override
-  public void resetDroppedAudioFrames() {
-    rtspClient.resetDroppedAudioFrames();
-  }
-
-  @Override
-  public void resetDroppedVideoFrames() {
-    rtspClient.resetDroppedVideoFrames();
+  public RtspStreamClient getStreamClient() {
+    return streamClient;
   }
 
   public void setVideoCodec(VideoCodec videoCodec) {
     recordController.setVideoMime(
         videoCodec == VideoCodec.H265 ? CodecUtil.H265_MIME : CodecUtil.H264_MIME);
     videoEncoder.setType(videoCodec == VideoCodec.H265 ? CodecUtil.H265_MIME : CodecUtil.H264_MIME);
-  }
-
-  @Override
-  public void setAuthorization(String user, String password) {
-    rtspClient.setAuthorization(user, password);
   }
 
   @Override
@@ -171,26 +118,6 @@ public class RtspCamera2 extends Camera2Base {
   }
 
   @Override
-  public void setReTries(int reTries) {
-    rtspClient.setReTries(reTries);
-  }
-
-  @Override
-  protected boolean shouldRetry(String reason) {
-    return rtspClient.shouldRetry(reason);
-  }
-
-  @Override
-  public void reConnect(long delay, @Nullable String backupUrl) {
-    rtspClient.reConnect(delay, backupUrl);
-  }
-
-  @Override
-  public boolean hasCongestion() {
-    return rtspClient.hasCongestion();
-  }
-
-  @Override
   protected void getAacDataRtp(ByteBuffer aacBuffer, MediaCodec.BufferInfo info) {
     rtspClient.sendAudio(aacBuffer, info);
   }
@@ -205,14 +132,19 @@ public class RtspCamera2 extends Camera2Base {
     rtspClient.sendVideo(h264Buffer, info);
   }
 
-  @Override
-  public void setLogs(boolean enable) {
-    rtspClient.setLogs(enable);
+  /**
+   * Retries to connect with the given delay. You can pass an optional backupUrl
+   * if you'd like to connect to your backup server instead of the original one.
+   * Given backupUrl replaces the original one.
+   */
+  public boolean reTry(long delay, String reason, @Nullable String backupUrl) {
+    boolean result = streamClient.shouldRetry(reason);
+    if (result) {
+      requestKeyFrame();
+      streamClient.reConnect(delay, backupUrl);
+    }
+    return result;
   }
 
-  @Override
-  public void setCheckServerAlive(boolean enable) {
-    rtspClient.setCheckServerAlive(enable);
-  }
 }
 

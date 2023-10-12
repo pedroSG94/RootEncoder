@@ -72,7 +72,7 @@ public class SurfaceModeRtmpActivity extends AppCompatActivity
     etUrl = findViewById(R.id.et_rtp_url);
     etUrl.setHint(R.string.hint_rtmp);
     rtmpCamera2 = new RtmpCamera2(surfaceView, this);
-    rtmpCamera2.setReTries(10);
+    rtmpCamera2.getStreamClient().setReTries(10);
     surfaceView.getHolder().addCallback(this);
   }
 

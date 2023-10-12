@@ -72,7 +72,7 @@ public class ExampleSrtActivity extends AppCompatActivity
     etUrl = findViewById(R.id.et_rtp_url);
     etUrl.setHint(R.string.hint_srt);
     srtCamera1 = new SrtCamera1(surfaceView, this);
-    srtCamera1.setReTries(10);
+    srtCamera1.getStreamClient().setReTries(10);
     surfaceView.getHolder().addCallback(this);
   }
 

@@ -6,6 +6,8 @@ import android.os.Build
 import androidx.annotation.RequiresApi
 import com.pedro.encoder.utils.CodecUtil
 import com.pedro.library.base.StreamBase
+import com.pedro.library.util.client.RtspStreamClient
+import com.pedro.library.util.client.SrtStreamClient
 import com.pedro.library.util.sources.AudioManager
 import com.pedro.library.util.sources.VideoManager
 import com.pedro.rtsp.rtsp.Protocol
@@ -25,19 +27,11 @@ import java.nio.ByteBuffer
 class RtspStream(context: Context, connectCheckerRtsp: ConnectCheckerRtsp, videoSource: VideoManager.Source,
   audioSource: AudioManager.Source): StreamBase(context, videoSource, audioSource) {
 
+  private val rtspClient = RtspClient(connectCheckerRtsp)
+  val streamClient = RtspStreamClient(rtspClient)
+
   constructor(context: Context, connectCheckerRtsp: ConnectCheckerRtsp):
       this(context, connectCheckerRtsp, VideoManager.Source.CAMERA2, AudioManager.Source.MICROPHONE)
-
-  private val rtspClient = RtspClient(connectCheckerRtsp)
-
-  /**
-   * Internet protocol used.
-   *
-   * @param protocol Could be Protocol.TCP or Protocol.UDP.
-   */
-  fun setProtocol(protocol: Protocol?) {
-    rtspClient.setProtocol(protocol!!)
-  }
 
   fun setVideoCodec(videoCodec: VideoCodec) {
     val mime = if (videoCodec === VideoCodec.H265) CodecUtil.H265_MIME else CodecUtil.H264_MIME
@@ -56,10 +50,6 @@ class RtspStream(context: Context, connectCheckerRtsp: ConnectCheckerRtsp, video
     rtspClient.disconnect()
   }
 
-  override fun setAuthorization(user: String?, password: String?) {
-    rtspClient.setAuthorization(user, password)
-  }
-
   override fun onSpsPpsVpsRtp(sps: ByteBuffer, pps: ByteBuffer, vps: ByteBuffer?) {
     rtspClient.setVideoInfo(sps, pps, vps)
   }
@@ -72,53 +62,18 @@ class RtspStream(context: Context, connectCheckerRtsp: ConnectCheckerRtsp, video
     rtspClient.sendAudio(aacBuffer, info)
   }
 
-  override fun setReTries(reTries: Int) {
-    rtspClient.setReTries(reTries)
-  }
-
-  override fun shouldRetry(reason: String): Boolean = rtspClient.shouldRetry(reason)
-
-  override fun reConnect(delay: Long, backupUrl: String?) {
-    rtspClient.reConnect(delay, backupUrl)
-  }
-
-  override fun hasCongestion(): Boolean = rtspClient.hasCongestion()
-
-  override fun setLogs(enabled: Boolean) {
-    rtspClient.setLogs(enabled)
-  }
-
-  override fun setCheckServerAlive(enabled: Boolean) {
-    rtspClient.setCheckServerAlive(enabled)
-  }
-
-  override fun resizeCache(newSize: Int) {
-    rtspClient.resizeCache(newSize)
-  }
-
-  override fun getCacheSize(): Int = rtspClient.cacheSize
-
-  override fun getSentAudioFrames(): Long = rtspClient.sentAudioFrames
-
-  override fun getSentVideoFrames(): Long = rtspClient.sentVideoFrames
-
-  override fun getDroppedAudioFrames(): Long = rtspClient.droppedAudioFrames
-
-  override fun getDroppedVideoFrames(): Long = rtspClient.droppedVideoFrames
-
-  override fun resetSentAudioFrames() {
-    rtspClient.resetSentAudioFrames()
-  }
-
-  override fun resetSentVideoFrames() {
-    rtspClient.resetSentVideoFrames()
-  }
-
-  override fun resetDroppedAudioFrames() {
-    rtspClient.resetDroppedAudioFrames()
-  }
-
-  override fun resetDroppedVideoFrames() {
-    rtspClient.resetDroppedVideoFrames()
+  /**
+   * Retries to connect with the given delay. You can pass an optional backupUrl
+   * if you'd like to connect to your backup server instead of the original one.
+   * Given backupUrl replaces the original one.
+   */
+  @JvmOverloads
+  fun reTry(delay: Long, reason: String, backupUrl: String? = null): Boolean {
+    val result = streamClient.shouldRetry(reason)
+    if (result) {
+      requestKeyframe()
+      streamClient.reConnect(delay, backupUrl)
+    }
+    return result
   }
 }

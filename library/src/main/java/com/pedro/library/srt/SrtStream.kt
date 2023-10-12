@@ -22,6 +22,7 @@ import android.os.Build
 import androidx.annotation.RequiresApi
 import com.pedro.encoder.utils.CodecUtil
 import com.pedro.library.base.StreamBase
+import com.pedro.library.util.client.SrtStreamClient
 import com.pedro.library.util.sources.AudioManager
 import com.pedro.library.util.sources.VideoManager
 import com.pedro.srt.srt.SrtClient
@@ -40,10 +41,11 @@ import java.nio.ByteBuffer
 class SrtStream(context: Context, connectCheckerRtmp: ConnectCheckerSrt, videoSource: VideoManager.Source,
                 audioSource: AudioManager.Source): StreamBase(context, videoSource, audioSource) {
 
+  private val srtClient = SrtClient(connectCheckerRtmp)
+  val streamClient = SrtStreamClient(srtClient)
+
   constructor(context: Context, connectCheckerRtmp: ConnectCheckerSrt):
       this(context, connectCheckerRtmp, VideoManager.Source.CAMERA2, AudioManager.Source.MICROPHONE)
-
-  private val srtClient = SrtClient(connectCheckerRtmp)
 
   fun setVideoCodec(videoCodec: VideoCodec) {
     val mime = if (videoCodec === VideoCodec.H265) CodecUtil.H265_MIME else CodecUtil.H264_MIME
@@ -63,10 +65,6 @@ class SrtStream(context: Context, connectCheckerRtmp: ConnectCheckerSrt, videoSo
     srtClient.disconnect()
   }
 
-  override fun setAuthorization(user: String?, password: String?) {
-    srtClient.setAuthorization(user, password)
-  }
-
   override fun onSpsPpsVpsRtp(sps: ByteBuffer, pps: ByteBuffer, vps: ByteBuffer?) {
     srtClient.setVideoInfo(sps, pps, vps)
   }
@@ -79,53 +77,18 @@ class SrtStream(context: Context, connectCheckerRtmp: ConnectCheckerSrt, videoSo
     srtClient.sendAudio(aacBuffer, info)
   }
 
-  override fun setReTries(reTries: Int) {
-    srtClient.setReTries(reTries)
-  }
-
-  override fun shouldRetry(reason: String): Boolean = srtClient.shouldRetry(reason)
-
-  override fun reConnect(delay: Long, backupUrl: String?) {
-    srtClient.reConnect(delay, backupUrl)
-  }
-
-  override fun hasCongestion(): Boolean = srtClient.hasCongestion()
-
-  override fun setLogs(enabled: Boolean) {
-    srtClient.setLogs(enabled)
-  }
-
-  override fun setCheckServerAlive(enabled: Boolean) {
-    srtClient.setCheckServerAlive(enabled)
-  }
-
-  override fun resizeCache(newSize: Int) {
-    srtClient.resizeCache(newSize)
-  }
-
-  override fun getCacheSize(): Int = srtClient.cacheSize
-
-  override fun getSentAudioFrames(): Long = srtClient.sentAudioFrames
-
-  override fun getSentVideoFrames(): Long = srtClient.sentVideoFrames
-
-  override fun getDroppedAudioFrames(): Long = srtClient.droppedAudioFrames
-
-  override fun getDroppedVideoFrames(): Long = srtClient.droppedVideoFrames
-
-  override fun resetSentAudioFrames() {
-    srtClient.resetSentAudioFrames()
-  }
-
-  override fun resetSentVideoFrames() {
-    srtClient.resetSentVideoFrames()
-  }
-
-  override fun resetDroppedAudioFrames() {
-    srtClient.resetDroppedAudioFrames()
-  }
-
-  override fun resetDroppedVideoFrames() {
-    srtClient.resetDroppedVideoFrames()
+  /**
+   * Retries to connect with the given delay. You can pass an optional backupUrl
+   * if you'd like to connect to your backup server instead of the original one.
+   * Given backupUrl replaces the original one.
+   */
+  @JvmOverloads
+  fun reTry(delay: Long, reason: String, backupUrl: String? = null): Boolean {
+    val result = streamClient.shouldRetry(reason)
+    if (result) {
+      requestKeyframe()
+      streamClient.reConnect(delay, backupUrl)
+    }
+    return result
   }
 }
