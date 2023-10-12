@@ -182,6 +182,10 @@ public class RtspFromFile extends FromFileBase {
     return rtspClient.hasCongestion(percentUsed);
   }
 
+  public void clearCache() {
+    rtspClient.clearCache();
+  }
+
   @Override
   protected void onSpsPpsVpsRtp(ByteBuffer sps, ByteBuffer pps, ByteBuffer vps) {
     rtspClient.setVideoInfo(sps, pps, vps);

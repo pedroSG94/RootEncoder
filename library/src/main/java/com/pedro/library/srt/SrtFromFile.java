@@ -172,6 +172,10 @@ public class SrtFromFile extends FromFileBase {
     return srtClient.hasCongestion(percentUsed);
   }
 
+  public void clearCache() {
+    srtClient.clearCache();
+  }
+
   @Override
   protected void onSpsPpsVpsRtp(ByteBuffer sps, ByteBuffer pps, ByteBuffer vps) {
     srtClient.setVideoInfo(sps, pps, vps);

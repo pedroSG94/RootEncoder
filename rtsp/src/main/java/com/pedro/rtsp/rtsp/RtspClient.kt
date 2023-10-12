@@ -464,4 +464,8 @@ class RtspClient(private val connectCheckerRtsp: ConnectCheckerRtsp) {
   fun setLogs(enable: Boolean) {
     rtspSender.setLogs(enable)
   }
+
+  fun clearCache() {
+    rtspSender.clearCache()
+  }
 }

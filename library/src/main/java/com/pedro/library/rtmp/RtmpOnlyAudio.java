@@ -164,6 +164,10 @@ public class RtmpOnlyAudio extends OnlyAudioBase {
     return rtmpClient.hasCongestion(percentUsed);
   }
 
+  public void clearCache() {
+    rtmpClient.clearCache();
+  }
+
   @Override
   protected void getAacDataRtp(ByteBuffer aacBuffer, MediaCodec.BufferInfo info) {
     rtmpClient.sendAudio(aacBuffer, info);

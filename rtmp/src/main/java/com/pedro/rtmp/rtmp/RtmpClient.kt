@@ -570,4 +570,8 @@ class RtmpClient(private val connectCheckerRtmp: ConnectCheckerRtmp) {
   fun setLogs(enable: Boolean) {
     rtmpSender.setLogs(enable)
   }
+
+  fun clearCache() {
+    rtmpSender.clearCache()
+  }
 }

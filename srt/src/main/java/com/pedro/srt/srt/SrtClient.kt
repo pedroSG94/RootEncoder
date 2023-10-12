@@ -388,4 +388,8 @@ class SrtClient(private val connectCheckerSrt: ConnectCheckerSrt) {
   fun setLogs(enable: Boolean) {
     srtSender.setLogs(enable)
   }
+
+  fun clearCache() {
+    srtSender.clearCache()
+  }
 }

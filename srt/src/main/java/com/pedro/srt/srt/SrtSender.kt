@@ -241,6 +241,10 @@ class SrtSender(
     return cacheSize
   }
 
+  fun clearCache() {
+    queue.clear()
+  }
+
   fun getSentAudioFrames(): Long {
     return audioFramesSent
   }

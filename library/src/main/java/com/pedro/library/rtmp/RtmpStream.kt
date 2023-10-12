@@ -117,6 +117,10 @@ class RtmpStream(context: Context, connectCheckerRtmp: ConnectCheckerRtmp, video
 
   override fun hasCongestion(percentUsed: Float): Boolean = rtmpClient.hasCongestion(percentUsed)
 
+  fun clearCache() {
+    rtmpClient.clearCache()
+  }
+
   override fun setLogs(enabled: Boolean) {
     rtmpClient.setLogs(enabled)
   }

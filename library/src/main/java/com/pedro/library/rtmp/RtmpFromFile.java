@@ -215,6 +215,10 @@ public class RtmpFromFile extends FromFileBase {
     return rtmpClient.hasCongestion(percentUsed);
   }
 
+  public void clearCache() {
+    rtmpClient.clearCache();
+  }
+
   @Override
   protected void onSpsPpsVpsRtp(ByteBuffer sps, ByteBuffer pps, ByteBuffer vps) {
     rtmpClient.setVideoInfo(sps, pps, vps);

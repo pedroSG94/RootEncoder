@@ -369,6 +369,14 @@ public class MultiRtpOnlyAudio extends OnlyAudioBase {
     }
   }
 
+  public void clearCache(RtpType rtpType, int index) {
+    if (rtpType == RtpType.RTMP) {
+      rtmpClients[index].clearCache();
+    } else {
+      rtspClients[index].clearCache();
+    }
+  }
+
   @Override
   public boolean hasCongestion() {
     return false;

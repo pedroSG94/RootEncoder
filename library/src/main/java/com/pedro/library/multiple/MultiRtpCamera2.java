@@ -447,6 +447,14 @@ public class MultiRtpCamera2 extends Camera2Base {
     }
   }
 
+  public void clearCache(RtpType rtpType, int index) {
+    if (rtpType == RtpType.RTMP) {
+      rtmpClients[index].clearCache();
+    } else {
+      rtspClients[index].clearCache();
+    }
+  }
+
   @Override
   public boolean hasCongestion() {
     return false;

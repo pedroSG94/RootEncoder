@@ -187,6 +187,10 @@ public class RtmpDisplay extends DisplayBase {
     return rtmpClient.hasCongestion();
   }
 
+  public void clearCache() {
+    rtmpClient.clearCache();
+  }
+
   @Override
   public boolean hasCongestion(float percentUsed) {
     return rtmpClient.hasCongestion(percentUsed);

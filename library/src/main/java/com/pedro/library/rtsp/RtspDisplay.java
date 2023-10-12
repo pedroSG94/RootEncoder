@@ -158,6 +158,10 @@ public class RtspDisplay extends DisplayBase {
     return rtspClient.hasCongestion(percentUsed);
   }
 
+  public void clearCache() {
+    rtspClient.clearCache();
+  }
+
   @Override
   protected void getAacDataRtp(ByteBuffer aacBuffer, MediaCodec.BufferInfo info) {
     rtspClient.sendAudio(aacBuffer, info);

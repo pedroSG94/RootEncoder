@@ -93,6 +93,10 @@ class SrtStream(context: Context, connectCheckerRtmp: ConnectCheckerSrt, videoSo
 
   override fun hasCongestion(percentUsed: Float): Boolean = srtClient.hasCongestion(percentUsed)
 
+  fun clearCache() {
+    srtClient.clearCache()
+  }
+
   override fun setLogs(enabled: Boolean) {
     srtClient.setLogs(enabled)
   }

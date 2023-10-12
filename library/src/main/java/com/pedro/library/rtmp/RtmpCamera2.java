@@ -229,6 +229,10 @@ public class RtmpCamera2 extends Camera2Base {
     return rtmpClient.hasCongestion(percentUsed);
   }
 
+  public void clearCache() {
+    rtmpClient.clearCache();
+  }
+
   @Override
   protected void getAacDataRtp(ByteBuffer aacBuffer, MediaCodec.BufferInfo info) {
     rtmpClient.sendAudio(aacBuffer, info);

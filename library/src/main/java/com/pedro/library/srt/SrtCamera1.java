@@ -177,6 +177,10 @@ public class SrtCamera1 extends Camera1Base {
     return srtClient.hasCongestion(percentUsed);
   }
 
+  public void clearCache() {
+    srtClient.clearCache();
+  }
+
   @Override
   protected void getAacDataRtp(ByteBuffer aacBuffer, MediaCodec.BufferInfo info) {
     srtClient.sendAudio(aacBuffer, info);
