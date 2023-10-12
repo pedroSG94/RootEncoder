@@ -225,6 +225,11 @@ public class RtmpCamera2 extends Camera2Base {
   }
 
   @Override
+  public boolean hasCongestion(float percentUsed) {
+    return rtmpClient.hasCongestion(percentUsed);
+  }
+
+  @Override
   protected void getAacDataRtp(ByteBuffer aacBuffer, MediaCodec.BufferInfo info) {
     rtmpClient.sendAudio(aacBuffer, info);
   }

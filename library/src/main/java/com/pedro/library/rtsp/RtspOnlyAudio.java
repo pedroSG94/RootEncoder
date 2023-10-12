@@ -143,6 +143,11 @@ public class RtspOnlyAudio extends OnlyAudioBase {
   }
 
   @Override
+  public boolean hasCongestion(float percentUsed) {
+    return rtspClient.hasCongestion(percentUsed);
+  }
+
+  @Override
   protected void getAacDataRtp(ByteBuffer aacBuffer, MediaCodec.BufferInfo info) {
     rtspClient.sendAudio(aacBuffer, info);
   }

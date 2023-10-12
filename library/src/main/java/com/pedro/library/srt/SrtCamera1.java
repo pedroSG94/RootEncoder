@@ -173,6 +173,11 @@ public class SrtCamera1 extends Camera1Base {
   }
 
   @Override
+  public boolean hasCongestion(float percentUsed) {
+    return srtClient.hasCongestion(percentUsed);
+  }
+
+  @Override
   protected void getAacDataRtp(ByteBuffer aacBuffer, MediaCodec.BufferInfo info) {
     srtClient.sendAudio(aacBuffer, info);
   }

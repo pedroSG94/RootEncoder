@@ -168,6 +168,11 @@ public class SrtFromFile extends FromFileBase {
   }
 
   @Override
+  public boolean hasCongestion(float percentUsed) {
+    return srtClient.hasCongestion(percentUsed);
+  }
+
+  @Override
   protected void onSpsPpsVpsRtp(ByteBuffer sps, ByteBuffer pps, ByteBuffer vps) {
     srtClient.setVideoInfo(sps, pps, vps);
   }

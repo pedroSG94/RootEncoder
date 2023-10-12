@@ -361,8 +361,21 @@ public class MultiRtpOnlyAudio extends OnlyAudioBase {
     }
   }
 
+  public boolean hasCongestion(RtpType rtpType, int index, int percentUsed) {
+    if (rtpType == RtpType.RTMP) {
+      return rtmpClients[index].hasCongestion(percentUsed);
+    } else {
+      return rtspClients[index].hasCongestion(percentUsed);
+    }
+  }
+
   @Override
   public boolean hasCongestion() {
+    return false;
+  }
+
+  @Override
+  public boolean hasCongestion(float percentUsed) {
     return false;
   }
 

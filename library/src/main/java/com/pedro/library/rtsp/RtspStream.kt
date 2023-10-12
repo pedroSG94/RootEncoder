@@ -83,6 +83,8 @@ class RtspStream(context: Context, connectCheckerRtsp: ConnectCheckerRtsp, video
   }
 
   override fun hasCongestion(): Boolean = rtspClient.hasCongestion()
+  
+  override fun hasCongestion(percentUsed: Float): Boolean = rtspClient.hasCongestion(percentUsed)
 
   override fun setLogs(enabled: Boolean) {
     rtspClient.setLogs(enabled)

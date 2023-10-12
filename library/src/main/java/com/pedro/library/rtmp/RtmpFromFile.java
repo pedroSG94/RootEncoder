@@ -211,6 +211,11 @@ public class RtmpFromFile extends FromFileBase {
   }
 
   @Override
+  public boolean hasCongestion(float percentUsed) {
+    return rtmpClient.hasCongestion(percentUsed);
+  }
+
+  @Override
   protected void onSpsPpsVpsRtp(ByteBuffer sps, ByteBuffer pps, ByteBuffer vps) {
     rtmpClient.setVideoInfo(sps, pps, vps);
   }

@@ -752,6 +752,8 @@ public abstract class Camera2Base {
   //cache control
   public abstract boolean hasCongestion();
 
+  public abstract boolean hasCongestion(float percentUsed);
+
   public abstract void resizeCache(int newSize) throws RuntimeException;
 
   public abstract int getCacheSize();

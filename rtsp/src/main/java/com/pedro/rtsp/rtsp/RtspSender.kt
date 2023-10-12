@@ -187,11 +187,13 @@ class RtspSender(private val connectCheckerRtsp: ConnectCheckerRtsp) {
     queue.clear()
   }
 
-  fun hasCongestion(): Boolean {
+  @Throws(IllegalArgumentException::class)
+  fun hasCongestion(percentUsed: Float = 20f): Boolean {
+    if (percentUsed < 0 || percentUsed > 100) throw IllegalArgumentException("the value must be in range 0 to 100")
     val size = queue.size.toFloat()
     val remaining = queue.remainingCapacity().toFloat()
     val capacity = size + remaining
-    return size >= capacity * 0.2f //more than 20% queue used. You could have congestion
+    return size >= capacity * (percentUsed / 100f)
   }
 
   fun resizeCache(newSize: Int) {

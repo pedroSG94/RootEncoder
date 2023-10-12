@@ -557,6 +557,7 @@ abstract class StreamBase(
   protected abstract fun reConnect(delay: Long, backupUrl: String?)
   abstract fun setReTries(reTries: Int)
   abstract fun hasCongestion(): Boolean
+  abstract fun hasCongestion(percentUsed: Float = 20f): Boolean
   abstract fun setLogs(enabled: Boolean)
   abstract fun setCheckServerAlive(enabled: Boolean)
   @Throws(RuntimeException::class)

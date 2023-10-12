@@ -423,8 +423,10 @@ class RtspClient(private val connectCheckerRtsp: ConnectCheckerRtsp) {
     }
   }
 
-  fun hasCongestion(): Boolean {
-    return rtspSender.hasCongestion()
+  @JvmOverloads
+  @Throws(IllegalArgumentException::class)
+  fun hasCongestion(percentUsed: Float = 20f): Boolean {
+    return rtspSender.hasCongestion(percentUsed)
   }
 
   @JvmOverloads
