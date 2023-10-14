@@ -59,8 +59,6 @@ class RtmpStreamClient(
     rtmpClient.reConnect(delay, backupUrl)
   }
 
-  override fun hasCongestion(): Boolean = hasCongestion(20f)
-
   override fun hasCongestion(percentUsed: Float): Boolean = rtmpClient.hasCongestion(percentUsed)
 
   override fun setLogs(enabled: Boolean) {

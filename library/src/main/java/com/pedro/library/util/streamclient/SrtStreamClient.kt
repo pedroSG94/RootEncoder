@@ -24,8 +24,6 @@ class SrtStreamClient(
     srtClient.reConnect(delay, backupUrl)
   }
 
-  override fun hasCongestion(): Boolean = srtClient.hasCongestion()
-
   override fun hasCongestion(percentUsed: Float): Boolean = srtClient.hasCongestion(percentUsed)
 
   override fun setLogs(enabled: Boolean) {

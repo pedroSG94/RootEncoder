@@ -35,8 +35,6 @@ class RtspStreamClient(
     rtspClient.reConnect(delay, backupUrl)
   }
 
-  override fun hasCongestion(): Boolean = rtspClient.hasCongestion()
-
   override fun hasCongestion(percentUsed: Float): Boolean = rtspClient.hasCongestion(percentUsed)
 
   override fun setLogs(enabled: Boolean) {

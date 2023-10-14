@@ -34,7 +34,7 @@ abstract class StreamBaseClient(
   protected abstract fun shouldRetry(reason: String): Boolean
   protected abstract fun reConnect(delay: Long, backupUrl: String?)
   abstract fun setReTries(reTries: Int)
-  abstract fun hasCongestion(): Boolean
+  fun hasCongestion(): Boolean = hasCongestion(20f)
   abstract fun hasCongestion(percentUsed: Float): Boolean
   abstract fun setLogs(enabled: Boolean)
   abstract fun setCheckServerAlive(enabled: Boolean)
