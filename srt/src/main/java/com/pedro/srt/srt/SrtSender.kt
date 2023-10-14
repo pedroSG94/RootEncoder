@@ -38,8 +38,10 @@ import com.pedro.srt.utils.trySend
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.async
 import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
@@ -153,6 +155,15 @@ class SrtSender(
         MpegTsPacket(b, MpegType.PSI, PacketPosition.SINGLE)
       }
       queue.trySend(psiPackets)
+      var bytesSend = 0L
+      val bitrateTask = async {
+        while (scope.isActive && running) {
+          //bytes to bits
+          bitrateManager.calculateBitrate(bytesSend * 8)
+          bytesSend = 0
+          delay(timeMillis = 1000)
+        }
+      }
       while (scope.isActive && running) {
         val error = runCatching {
           val mpegTsPackets = runInterruptible {
@@ -164,8 +175,7 @@ class SrtSender(
             if (isEnableLogs) {
               Log.i(TAG, "wrote ${mpegTsPacket.type.name} packet, size $size")
             }
-            //bytes to bits
-            bitrateManager.calculateBitrate(size * 8L)
+            bytesSend += size
           }
         }.exceptionOrNull()
         if (error != null) {
