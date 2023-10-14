@@ -72,7 +72,7 @@ public class ExampleRtspActivity extends AppCompatActivity
     etUrl = findViewById(R.id.et_rtp_url);
     etUrl.setHint(R.string.hint_rtsp);
     rtspCamera1 = new RtspCamera1(surfaceView, this);
-    rtspCamera1.setReTries(10);
+    rtspCamera1.getStreamClient().setReTries(10);
     surfaceView.getHolder().addCallback(this);
   }
 
@@ -87,7 +87,7 @@ public class ExampleRtspActivity extends AppCompatActivity
 
   @Override
   public void onConnectionFailedRtsp(final String reason) {
-    if (rtspCamera1.reTry(5000, reason, null)) {
+    if (rtspCamera1.getStreamClient().reTry(5000, reason, null)) {
       Toast.makeText(ExampleRtspActivity.this, "Retry", Toast.LENGTH_SHORT)
           .show();
     } else {

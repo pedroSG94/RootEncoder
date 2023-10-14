@@ -179,7 +179,6 @@ public class MultiRtpCamera1 extends Camera1Base {
     }
   }
 
-  @Override
   public void resizeCache(int newSize) throws RuntimeException {
     for (RtmpClient rtmpClient: rtmpClients) {
       rtmpClient.resizeCache(newSize);
@@ -197,12 +196,6 @@ public class MultiRtpCamera1 extends Camera1Base {
     }
   }
 
-  @Override
-  public int getCacheSize() {
-    return 0;
-  }
-
-  @Override
   public long getSentAudioFrames() {
     long number = 0;
     for (RtmpClient rtmpClient: rtmpClients) {
@@ -214,7 +207,6 @@ public class MultiRtpCamera1 extends Camera1Base {
     return number;
   }
 
-  @Override
   public long getSentVideoFrames() {
     long number = 0;
     for (RtmpClient rtmpClient: rtmpClients) {
@@ -226,7 +218,6 @@ public class MultiRtpCamera1 extends Camera1Base {
     return number;
   }
 
-  @Override
   public long getDroppedAudioFrames() {
     long number = 0;
     for (RtmpClient rtmpClient: rtmpClients) {
@@ -238,7 +229,6 @@ public class MultiRtpCamera1 extends Camera1Base {
     return number;
   }
 
-  @Override
   public long getDroppedVideoFrames() {
     long number = 0;
     for (RtmpClient rtmpClient: rtmpClients) {
@@ -250,7 +240,6 @@ public class MultiRtpCamera1 extends Camera1Base {
     return number;
   }
 
-  @Override
   public void resetSentAudioFrames() {
     for (RtmpClient rtmpClient: rtmpClients) {
       rtmpClient.resetSentAudioFrames();
@@ -260,7 +249,6 @@ public class MultiRtpCamera1 extends Camera1Base {
     }
   }
 
-  @Override
   public void resetSentVideoFrames() {
     for (RtmpClient rtmpClient: rtmpClients) {
       rtmpClient.resetSentVideoFrames();
@@ -270,7 +258,6 @@ public class MultiRtpCamera1 extends Camera1Base {
     }
   }
 
-  @Override
   public void resetDroppedAudioFrames() {
     for (RtmpClient rtmpClient: rtmpClients) {
       rtmpClient.resetDroppedAudioFrames();
@@ -280,7 +267,6 @@ public class MultiRtpCamera1 extends Camera1Base {
     }
   }
 
-  @Override
   public void resetDroppedVideoFrames() {
     for (RtmpClient rtmpClient: rtmpClients) {
       rtmpClient.resetDroppedVideoFrames();
@@ -298,7 +284,6 @@ public class MultiRtpCamera1 extends Camera1Base {
     }
   }
 
-  @Override
   public void setAuthorization(String user, String password) {
     for (RtmpClient rtmpClient: rtmpClients) {
       rtmpClient.setAuthorization(user, password);
@@ -393,7 +378,6 @@ public class MultiRtpCamera1 extends Camera1Base {
   protected void stopStreamRtp() {
   }
 
-  @Override
   public void setReTries(int reTries) {
     for (RtmpClient rtmpClient: rtmpClients) {
       rtmpClient.setReTries(reTries);
@@ -421,27 +405,12 @@ public class MultiRtpCamera1 extends Camera1Base {
     return result;
   }
 
-  @Override
-  protected boolean shouldRetry(String reason) {
-    return false;
-  }
-
-  @Override
-  protected void reConnect(long delay, @Nullable String backupUrl) {
-
-  }
-
   public boolean hasCongestion(RtpType rtpType, int index) {
     if (rtpType == RtpType.RTMP) {
       return rtmpClients[index].hasCongestion();
     } else {
       return rtspClients[index].hasCongestion();
     }
-  }
-
-  @Override
-  public boolean hasCongestion() {
-    return false;
   }
 
   @Override
@@ -474,7 +443,6 @@ public class MultiRtpCamera1 extends Camera1Base {
     }
   }
 
-  @Override
   public void setLogs(boolean enable) {
     for (RtmpClient rtmpClient: rtmpClients) {
       rtmpClient.setLogs(enable);
@@ -484,7 +452,6 @@ public class MultiRtpCamera1 extends Camera1Base {
     }
   }
 
-  @Override
   public void setCheckServerAlive(boolean enable) {
     for (RtmpClient rtmpClient: rtmpClients) {
       rtmpClient.setCheckServerAlive(enable);

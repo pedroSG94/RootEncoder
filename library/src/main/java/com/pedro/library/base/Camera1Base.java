@@ -262,14 +262,6 @@ public abstract class Camera1Base {
   }
 
   /**
-   * Basic auth developed to work with Wowza. No tested with other server
-   *
-   * @param user auth.
-   * @param password auth.
-   */
-  public abstract void setAuthorization(String user, String password);
-
-  /**
    * Call this method before use @startStream. If not you will do a stream without video. NOTE:
    * Rotation with encoder is silence ignored in some devices.
    *
@@ -781,53 +773,6 @@ public abstract class Camera1Base {
   }
 
   /**
-   * Retries to connect with the given delay. You can pass an optional backupUrl
-   * if you'd like to connect to your backup server instead of the original one.
-   * Given backupUrl replaces the original one.
-   */
-  public boolean reTry(long delay, String reason, @Nullable String backupUrl) {
-    boolean result = shouldRetry(reason);
-    if (result) {
-      requestKeyFrame();
-      reConnect(delay, backupUrl);
-    }
-    return result;
-  }
-
-  public boolean reTry(long delay, String reason) {
-    return reTry(delay, reason, null);
-  }
-
-  protected abstract boolean shouldRetry(String reason);
-
-  public abstract void setReTries(int reTries);
-
-  protected abstract void reConnect(long delay, @Nullable String backupUrl);
-
-  //cache control
-  public abstract boolean hasCongestion();
-
-  public abstract void resizeCache(int newSize) throws RuntimeException;
-
-  public abstract int getCacheSize();
-
-  public abstract long getSentAudioFrames();
-
-  public abstract long getSentVideoFrames();
-
-  public abstract long getDroppedAudioFrames();
-
-  public abstract long getDroppedVideoFrames();
-
-  public abstract void resetSentAudioFrames();
-
-  public abstract void resetSentVideoFrames();
-
-  public abstract void resetDroppedAudioFrames();
-
-  public abstract void resetDroppedVideoFrames();
-
-  /**
    * Get supported preview resolutions of back camera in px.
    *
    * @return list of preview resolutions supported by back camera
@@ -1016,10 +961,6 @@ public abstract class Camera1Base {
   public void setRecordController(BaseRecordController recordController) {
     if (!isRecording()) this.recordController = recordController;
   }
-
-  public abstract void setLogs(boolean enable);
-
-  public abstract void setCheckServerAlive(boolean enable);
 
   private final GetCameraData getCameraData = frame -> {
     videoEncoder.inputYUVData(frame);

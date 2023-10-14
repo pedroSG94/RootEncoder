@@ -19,7 +19,6 @@ import com.pedro.encoder.audio.AudioEncoder
 import com.pedro.encoder.audio.GetAacData
 import com.pedro.encoder.input.audio.GetMicrophoneData
 import com.pedro.encoder.input.video.CameraHelper
-import com.pedro.encoder.input.video.GetCameraData
 import com.pedro.encoder.video.FormatVideoEncoder
 import com.pedro.encoder.video.GetVideoData
 import com.pedro.encoder.video.VideoEncoder
@@ -112,9 +111,14 @@ abstract class StreamBase(
     isStreaming = true
     rtpStartStream(endPoint)
     if (!isRecording) startSources()
-    else videoEncoder.requestKeyframe()
+    else requestKeyframe()
   }
 
+  fun requestKeyframe() {
+    if (videoEncoder.isRunning) {
+      videoEncoder.requestKeyframe()
+    }
+  }
   /**
    * Stop stream.
    *
@@ -141,7 +145,7 @@ abstract class StreamBase(
   fun startRecord(path: String, listener: RecordController.Listener) {
     recordController.startRecord(path, listener)
     if (!isStreaming) startSources()
-    else videoEncoder.requestKeyframe()
+    else requestKeyframe()
   }
 
   /**
@@ -444,21 +448,6 @@ abstract class StreamBase(
   }
 
   /**
-   * Retries to connect with the given delay. You can pass an optional backupUrl
-   * if you'd like to connect to your backup server instead of the original one.
-   * Given backupUrl replaces the original one.
-   */
-  @JvmOverloads
-  fun reTry(delay: Long, reason: String, backupUrl: String? = null): Boolean {
-    val result = shouldRetry(reason)
-    if (result) {
-      videoEncoder.requestKeyframe()
-      reConnect(delay, backupUrl)
-    }
-    return result
-  }
-
-  /**
    * Get glInterface used to render video.
    * This is useful to send filters to stream.
    * Must be called after prepareVideo.
@@ -549,25 +538,7 @@ abstract class StreamBase(
   protected abstract fun audioInfo(sampleRate: Int, isStereo: Boolean)
   protected abstract fun rtpStartStream(endPoint: String)
   protected abstract fun rtpStopStream()
-  protected abstract fun setAuthorization(user: String?, password: String?)
   protected abstract fun onSpsPpsVpsRtp(sps: ByteBuffer, pps: ByteBuffer, vps: ByteBuffer?)
   protected abstract fun getH264DataRtp(h264Buffer: ByteBuffer, info: MediaCodec.BufferInfo)
   protected abstract fun getAacDataRtp(aacBuffer: ByteBuffer, info: MediaCodec.BufferInfo)
-  protected abstract fun shouldRetry(reason: String): Boolean
-  protected abstract fun reConnect(delay: Long, backupUrl: String?)
-  abstract fun setReTries(reTries: Int)
-  abstract fun hasCongestion(): Boolean
-  abstract fun setLogs(enabled: Boolean)
-  abstract fun setCheckServerAlive(enabled: Boolean)
-  @Throws(RuntimeException::class)
-  abstract fun resizeCache(newSize: Int)
-  abstract fun getCacheSize(): Int
-  abstract fun getSentAudioFrames(): Long
-  abstract fun getSentVideoFrames(): Long
-  abstract fun getDroppedAudioFrames(): Long
-  abstract fun getDroppedVideoFrames(): Long
-  abstract fun resetSentAudioFrames()
-  abstract fun resetSentVideoFrames()
-  abstract fun resetDroppedAudioFrames()
-  abstract fun resetDroppedVideoFrames()
 }

@@ -20,12 +20,12 @@ import android.content.Context;
 import android.media.MediaCodec;
 import android.os.Build;
 
-import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 
 import com.pedro.encoder.utils.CodecUtil;
 import com.pedro.library.base.DisplayBase;
-import com.pedro.rtmp.flv.video.ProfileIop;
+import com.pedro.library.util.streamclient.RtmpStreamClient;
+import com.pedro.library.util.streamclient.StreamClientListener;
 import com.pedro.rtmp.rtmp.RtmpClient;
 import com.pedro.rtmp.rtmp.VideoCodec;
 import com.pedro.rtmp.utils.ConnectCheckerRtmp;
@@ -42,19 +42,17 @@ import java.nio.ByteBuffer;
 public class RtmpDisplay extends DisplayBase {
 
   private final RtmpClient rtmpClient;
+  private final RtmpStreamClient streamClient;
+  private final StreamClientListener streamClientListener = this::requestKeyFrame;
 
   public RtmpDisplay(Context context, boolean useOpengl, ConnectCheckerRtmp connectChecker) {
     super(context, useOpengl);
     rtmpClient = new RtmpClient(connectChecker);
+    streamClient = new RtmpStreamClient(rtmpClient, streamClientListener);
   }
 
-  /**
-   * H264 profile.
-   *
-   * @param profileIop Could be ProfileIop.BASELINE or ProfileIop.CONSTRAINED
-   */
-  public void setProfileIop(ProfileIop profileIop) {
-    rtmpClient.setProfileIop(profileIop);
+  public RtmpStreamClient getStreamClient() {
+    return streamClient;
   }
 
   public void setVideoCodec(VideoCodec videoCodec) {
@@ -62,88 +60,6 @@ public class RtmpDisplay extends DisplayBase {
             videoCodec == VideoCodec.H265 ? CodecUtil.H265_MIME : CodecUtil.H264_MIME);
     videoEncoder.setType(videoCodec == VideoCodec.H265 ? CodecUtil.H265_MIME : CodecUtil.H264_MIME);
     rtmpClient.setVideoCodec(videoCodec);
-  }
-
-  @Override
-  public void resizeCache(int newSize) throws RuntimeException {
-    rtmpClient.resizeCache(newSize);
-  }
-
-  @Override
-  public int getCacheSize() {
-    return rtmpClient.getCacheSize();
-  }
-
-  @Override
-  public long getSentAudioFrames() {
-    return rtmpClient.getSentAudioFrames();
-  }
-
-  @Override
-  public long getSentVideoFrames() {
-    return rtmpClient.getSentVideoFrames();
-  }
-
-  @Override
-  public long getDroppedAudioFrames() {
-    return rtmpClient.getDroppedAudioFrames();
-  }
-
-  @Override
-  public long getDroppedVideoFrames() {
-    return rtmpClient.getDroppedVideoFrames();
-  }
-
-  @Override
-  public void resetSentAudioFrames() {
-    rtmpClient.resetSentAudioFrames();
-  }
-
-  @Override
-  public void resetSentVideoFrames() {
-    rtmpClient.resetSentVideoFrames();
-  }
-
-  @Override
-  public void resetDroppedAudioFrames() {
-    rtmpClient.resetDroppedAudioFrames();
-  }
-
-  @Override
-  public void resetDroppedVideoFrames() {
-    rtmpClient.resetDroppedVideoFrames();
-  }
-
-  @Override
-  public void setAuthorization(String user, String password) {
-    rtmpClient.setAuthorization(user, password);
-  }
-
-  /**
-   * Some Livestream hosts use Akamai auth that requires RTMP packets to be sent with increasing
-   * timestamp order regardless of packet type.
-   * Necessary with Servers like Dacast.
-   * More info here:
-   * https://learn.akamai.com/en-us/webhelp/media-services-live/media-services-live-encoder-compatibility-testing-and-qualification-guide-v4.0/GUID-F941C88B-9128-4BF4-A81B-C2E5CFD35BBF.html
-   */
-  public void forceAkamaiTs(boolean enabled) {
-    rtmpClient.forceAkamaiTs(enabled);
-  }
-
-  /**
-   * Must be called before start stream.
-   *
-   * Default value 128
-   * Range value: 1 to 16777215.
-   *
-   * The most common values example: 128, 4096, 65535
-   *
-   * @param chunkSize packet's chunk size send to server
-   */
-  public void setWriteChunkSize(int chunkSize) {
-    if (!isStreaming()) {
-      rtmpClient.setWriteChunkSize(chunkSize);
-    }
   }
 
   @Override
@@ -168,26 +84,6 @@ public class RtmpDisplay extends DisplayBase {
   }
 
   @Override
-  public void setReTries(int reTries) {
-    rtmpClient.setReTries(reTries);
-  }
-
-  @Override
-  protected boolean shouldRetry(String reason) {
-    return rtmpClient.shouldRetry(reason);
-  }
-
-  @Override
-  public void reConnect(long delay, @Nullable String backupUrl) {
-    rtmpClient.reConnect(delay, backupUrl);
-  }
-
-  @Override
-  public boolean hasCongestion() {
-    return rtmpClient.hasCongestion();
-  }
-
-  @Override
   protected void getAacDataRtp(ByteBuffer aacBuffer, MediaCodec.BufferInfo info) {
     rtmpClient.sendAudio(aacBuffer, info);
   }
@@ -200,15 +96,5 @@ public class RtmpDisplay extends DisplayBase {
   @Override
   protected void getH264DataRtp(ByteBuffer h264Buffer, MediaCodec.BufferInfo info) {
     rtmpClient.sendVideo(h264Buffer, info);
-  }
-
-  @Override
-  public void setLogs(boolean enable) {
-    rtmpClient.setLogs(enable);
-  }
-
-  @Override
-  public void setCheckServerAlive(boolean enable) {
-    rtmpClient.setCheckServerAlive(enable);
   }
 }

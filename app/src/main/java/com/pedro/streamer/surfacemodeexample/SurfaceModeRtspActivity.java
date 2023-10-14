@@ -75,7 +75,7 @@ public class SurfaceModeRtspActivity extends AppCompatActivity
     etUrl = findViewById(R.id.et_rtp_url);
     etUrl.setHint(R.string.hint_rtsp);
     rtspCamera2 = new RtspCamera2(surfaceView, this);
-    rtspCamera2.setReTries(10);
+    rtspCamera2.getStreamClient().setReTries(10);
     surfaceView.getHolder().addCallback(this);
   }
 
@@ -91,7 +91,7 @@ public class SurfaceModeRtspActivity extends AppCompatActivity
   @Override
   public void onConnectionFailedRtsp(final String reason) {
     //Wait 5s and retry connect stream
-    if (rtspCamera2.reTry(5000, reason, null)) {
+    if (rtspCamera2.getStreamClient().reTry(5000, reason, null)) {
       Toast.makeText(SurfaceModeRtspActivity.this, "Retry", Toast.LENGTH_SHORT)
           .show();
     } else {

@@ -37,7 +37,6 @@ import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 
 import com.pedro.encoder.EncoderErrorCallback;
-import com.pedro.encoder.Frame;
 import com.pedro.encoder.audio.AudioEncoder;
 import com.pedro.encoder.audio.GetAacData;
 import com.pedro.encoder.input.audio.CustomAudioEffect;
@@ -146,14 +145,6 @@ public abstract class DisplayBase {
   public void setFpsListener(FpsListener.Callback callback) {
     fpsListener.setCallback(callback);
   }
-
-  /**
-   * Basic auth developed to work with Wowza. No tested with other server
-   *
-   * @param user auth.
-   * @param password auth.
-   */
-  public abstract void setAuthorization(String user, String password);
 
   /**
    * Call this method before use @startStream. If not you will do a stream without video.
@@ -458,53 +449,6 @@ public abstract class DisplayBase {
     }
   }
 
-  /**
-   * Retries to connect with the given delay. You can pass an optional backupUrl
-   * if you'd like to connect to your backup server instead of the original one.
-   * Given backupUrl replaces the original one.
-   */
-  public boolean reTry(long delay, String reason, @Nullable String backupUrl) {
-    boolean result = shouldRetry(reason);
-    if (result) {
-      requestKeyFrame();
-      reConnect(delay, backupUrl);
-    }
-    return result;
-  }
-
-  public boolean reTry(long delay, String reason) {
-    return reTry(delay, reason, null);
-  }
-
-  protected abstract boolean shouldRetry(String reason);
-
-  public abstract void setReTries(int reTries);
-
-  protected abstract void reConnect(long delay, @Nullable String backupUrl);
-
-  //cache control
-  public abstract boolean hasCongestion();
-
-  public abstract void resizeCache(int newSize) throws RuntimeException;
-
-  public abstract int getCacheSize();
-
-  public abstract long getSentAudioFrames();
-
-  public abstract long getSentVideoFrames();
-
-  public abstract long getDroppedAudioFrames();
-
-  public abstract long getDroppedVideoFrames();
-
-  public abstract void resetSentAudioFrames();
-
-  public abstract void resetSentVideoFrames();
-
-  public abstract void resetDroppedAudioFrames();
-
-  public abstract void resetDroppedVideoFrames();
-
   public GlInterface getGlInterface() {
     if (glInterface != null) {
       return glInterface;
@@ -621,10 +565,6 @@ public abstract class DisplayBase {
   public void setRecordController(BaseRecordController recordController) {
     if (!isRecording()) this.recordController = recordController;
   }
-
-  public abstract void setLogs(boolean enable);
-
-  public abstract void setCheckServerAlive(boolean enable);
 
   private final GetMicrophoneData getMicrophoneData = frame -> {
     audioEncoder.inputPCMData(frame);

@@ -72,7 +72,7 @@ public class ExampleSrtActivity extends AppCompatActivity
     etUrl = findViewById(R.id.et_rtp_url);
     etUrl.setHint(R.string.hint_srt);
     srtCamera1 = new SrtCamera1(surfaceView, this);
-    srtCamera1.setReTries(10);
+    srtCamera1.getStreamClient().setReTries(10);
     surfaceView.getHolder().addCallback(this);
   }
 
@@ -87,7 +87,7 @@ public class ExampleSrtActivity extends AppCompatActivity
 
   @Override
   public void onConnectionFailedSrt(final String reason) {
-    if (srtCamera1.reTry(5000, reason, null)) {
+    if (srtCamera1.getStreamClient().reTry(5000, reason, null)) {
       Toast.makeText(ExampleSrtActivity.this, "Retry", Toast.LENGTH_SHORT)
           .show();
     } else {

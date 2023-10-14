@@ -131,7 +131,9 @@ class RtmpClient(private val connectCheckerRtmp: ConnectCheckerRtmp) {
   }
 
   fun setWriteChunkSize(chunkSize: Int) {
-    RtmpConfig.writeChunkSize = chunkSize
+    if (!isStreaming) {
+      RtmpConfig.writeChunkSize = chunkSize
+    }
   }
 
   fun setAuthorization(user: String?, password: String?) {

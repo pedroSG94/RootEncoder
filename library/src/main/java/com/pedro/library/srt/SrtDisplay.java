@@ -20,11 +20,12 @@ import android.content.Context;
 import android.media.MediaCodec;
 import android.os.Build;
 
-import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 
 import com.pedro.encoder.utils.CodecUtil;
 import com.pedro.library.base.DisplayBase;
+import com.pedro.library.util.streamclient.SrtStreamClient;
+import com.pedro.library.util.streamclient.StreamClientListener;
 import com.pedro.srt.srt.SrtClient;
 import com.pedro.srt.srt.VideoCodec;
 import com.pedro.srt.utils.ConnectCheckerSrt;
@@ -40,132 +41,54 @@ import java.nio.ByteBuffer;
 @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
 public class SrtDisplay extends DisplayBase {
 
-  private final SrtClient rtmpClient;
+  private final SrtClient srtClient;
+  private final SrtStreamClient streamClient;
+  private final StreamClientListener streamClientListener = this::requestKeyFrame;
 
   public SrtDisplay(Context context, boolean useOpengl, ConnectCheckerSrt connectChecker) {
     super(context, useOpengl);
-    rtmpClient = new SrtClient(connectChecker);
+    srtClient = new SrtClient(connectChecker);
+    streamClient = new SrtStreamClient(srtClient, streamClientListener);
   }
 
   public void setVideoCodec(VideoCodec videoCodec) {
     recordController.setVideoMime(
             videoCodec == VideoCodec.H265 ? CodecUtil.H265_MIME : CodecUtil.H264_MIME);
     videoEncoder.setType(videoCodec == VideoCodec.H265 ? CodecUtil.H265_MIME : CodecUtil.H264_MIME);
-    rtmpClient.setVideoCodec(videoCodec);
+    srtClient.setVideoCodec(videoCodec);
   }
 
-  @Override
-  public void resizeCache(int newSize) throws RuntimeException {
-    rtmpClient.resizeCache(newSize);
-  }
-
-  @Override
-  public int getCacheSize() {
-    return rtmpClient.getCacheSize();
-  }
-
-  @Override
-  public long getSentAudioFrames() {
-    return rtmpClient.getSentAudioFrames();
-  }
-
-  @Override
-  public long getSentVideoFrames() {
-    return rtmpClient.getSentVideoFrames();
-  }
-
-  @Override
-  public long getDroppedAudioFrames() {
-    return rtmpClient.getDroppedAudioFrames();
-  }
-
-  @Override
-  public long getDroppedVideoFrames() {
-    return rtmpClient.getDroppedVideoFrames();
-  }
-
-  @Override
-  public void resetSentAudioFrames() {
-    rtmpClient.resetSentAudioFrames();
-  }
-
-  @Override
-  public void resetSentVideoFrames() {
-    rtmpClient.resetSentVideoFrames();
-  }
-
-  @Override
-  public void resetDroppedAudioFrames() {
-    rtmpClient.resetDroppedAudioFrames();
-  }
-
-  @Override
-  public void resetDroppedVideoFrames() {
-    rtmpClient.resetDroppedVideoFrames();
-  }
-
-  @Override
-  public void setAuthorization(String user, String password) {
-    rtmpClient.setAuthorization(user, password);
+  public SrtStreamClient getStreamClient() {
+    return streamClient;
   }
 
   @Override
   protected void prepareAudioRtp(boolean isStereo, int sampleRate) {
-    rtmpClient.setAudioInfo(sampleRate, isStereo);
+    srtClient.setAudioInfo(sampleRate, isStereo);
   }
 
   @Override
   protected void startStreamRtp(String url) {
-    rtmpClient.connect(url);
+    srtClient.connect(url);
   }
 
   @Override
   protected void stopStreamRtp() {
-    rtmpClient.disconnect();
-  }
-
-  @Override
-  public void setReTries(int reTries) {
-    rtmpClient.setReTries(reTries);
-  }
-
-  @Override
-  protected boolean shouldRetry(String reason) {
-    return rtmpClient.shouldRetry(reason);
-  }
-
-  @Override
-  public void reConnect(long delay, @Nullable String backupUrl) {
-    rtmpClient.reConnect(delay, backupUrl);
-  }
-
-  @Override
-  public boolean hasCongestion() {
-    return rtmpClient.hasCongestion();
+    srtClient.disconnect();
   }
 
   @Override
   protected void getAacDataRtp(ByteBuffer aacBuffer, MediaCodec.BufferInfo info) {
-    rtmpClient.sendAudio(aacBuffer, info);
+    srtClient.sendAudio(aacBuffer, info);
   }
 
   @Override
   protected void onSpsPpsVpsRtp(ByteBuffer sps, ByteBuffer pps, ByteBuffer vps) {
-    rtmpClient.setVideoInfo(sps, pps, vps);
+    srtClient.setVideoInfo(sps, pps, vps);
   }
 
   @Override
   protected void getH264DataRtp(ByteBuffer h264Buffer, MediaCodec.BufferInfo info) {
-    rtmpClient.sendVideo(h264Buffer, info);
-  }
-
-  @Override
-  public void setLogs(boolean enable) {
-    rtmpClient.setLogs(enable);
-  }
-
-  @Override
-  public void setCheckServerAlive(boolean enable) {
-    rtmpClient.setCheckServerAlive(enable);
+    srtClient.sendVideo(h264Buffer, info);
   }
 }

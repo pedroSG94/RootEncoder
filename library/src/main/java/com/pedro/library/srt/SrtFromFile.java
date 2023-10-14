@@ -20,13 +20,14 @@ import android.content.Context;
 import android.media.MediaCodec;
 import android.os.Build;
 
-import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 
 import com.pedro.encoder.input.decoder.AudioDecoderInterface;
 import com.pedro.encoder.input.decoder.VideoDecoderInterface;
 import com.pedro.encoder.utils.CodecUtil;
 import com.pedro.library.base.FromFileBase;
+import com.pedro.library.util.streamclient.SrtStreamClient;
+import com.pedro.library.util.streamclient.StreamClientListener;
 import com.pedro.library.view.LightOpenGlView;
 import com.pedro.library.view.OpenGlView;
 import com.pedro.srt.srt.SrtClient;
@@ -45,29 +46,35 @@ import java.nio.ByteBuffer;
 public class SrtFromFile extends FromFileBase {
 
   private final SrtClient srtClient;
+  private final SrtStreamClient streamClient;
+  private final StreamClientListener streamClientListener = this::requestKeyFrame;
 
   public SrtFromFile(ConnectCheckerSrt connectChecker,
                      VideoDecoderInterface videoDecoderInterface, AudioDecoderInterface audioDecoderInterface) {
     super(videoDecoderInterface, audioDecoderInterface);
     srtClient = new SrtClient(connectChecker);
+    streamClient = new SrtStreamClient(srtClient, streamClientListener);
   }
 
   public SrtFromFile(Context context, ConnectCheckerSrt connectChecker,
                      VideoDecoderInterface videoDecoderInterface, AudioDecoderInterface audioDecoderInterface) {
     super(context, videoDecoderInterface, audioDecoderInterface);
     srtClient = new SrtClient(connectChecker);
+    streamClient = new SrtStreamClient(srtClient, streamClientListener);
   }
 
   public SrtFromFile(OpenGlView openGlView, ConnectCheckerSrt connectChecker,
                      VideoDecoderInterface videoDecoderInterface, AudioDecoderInterface audioDecoderInterface) {
     super(openGlView, videoDecoderInterface, audioDecoderInterface);
     srtClient = new SrtClient(connectChecker);
+    streamClient = new SrtStreamClient(srtClient, streamClientListener);
   }
 
   public SrtFromFile(LightOpenGlView lightOpenGlView, ConnectCheckerSrt connectChecker,
                      VideoDecoderInterface videoDecoderInterface, AudioDecoderInterface audioDecoderInterface) {
     super(lightOpenGlView, videoDecoderInterface, audioDecoderInterface);
     srtClient = new SrtClient(connectChecker);
+    streamClient = new SrtStreamClient(srtClient, streamClientListener);
   }
 
   public void setVideoCodec(VideoCodec videoCodec) {
@@ -77,59 +84,8 @@ public class SrtFromFile extends FromFileBase {
     srtClient.setVideoCodec(videoCodec);
   }
 
-  @Override
-  public void resizeCache(int newSize) throws RuntimeException {
-    srtClient.resizeCache(newSize);
-  }
-
-  @Override
-  public int getCacheSize() {
-    return srtClient.getCacheSize();
-  }
-
-  @Override
-  public long getSentAudioFrames() {
-    return srtClient.getSentAudioFrames();
-  }
-
-  @Override
-  public long getSentVideoFrames() {
-    return srtClient.getSentVideoFrames();
-  }
-
-  @Override
-  public long getDroppedAudioFrames() {
-    return srtClient.getDroppedAudioFrames();
-  }
-
-  @Override
-  public long getDroppedVideoFrames() {
-    return srtClient.getDroppedVideoFrames();
-  }
-
-  @Override
-  public void resetSentAudioFrames() {
-    srtClient.resetSentAudioFrames();
-  }
-
-  @Override
-  public void resetSentVideoFrames() {
-    srtClient.resetSentVideoFrames();
-  }
-
-  @Override
-  public void resetDroppedAudioFrames() {
-    srtClient.resetDroppedAudioFrames();
-  }
-
-  @Override
-  public void resetDroppedVideoFrames() {
-    srtClient.resetDroppedVideoFrames();
-  }
-
-  @Override
-  public void setAuthorization(String user, String password) {
-    srtClient.setAuthorization(user, password);
+  public SrtStreamClient getStreamClient() {
+    return streamClient;
   }
 
   @Override
@@ -148,26 +104,6 @@ public class SrtFromFile extends FromFileBase {
   }
 
   @Override
-  public void setReTries(int reTries) {
-    srtClient.setReTries(reTries);
-  }
-
-  @Override
-  protected boolean shouldRetry(String reason) {
-    return srtClient.shouldRetry(reason);
-  }
-
-  @Override
-  public void reConnect(long delay, @Nullable String backupUrl) {
-    srtClient.reConnect(delay, backupUrl);
-  }
-
-  @Override
-  public boolean hasCongestion() {
-    return srtClient.hasCongestion();
-  }
-
-  @Override
   protected void onSpsPpsVpsRtp(ByteBuffer sps, ByteBuffer pps, ByteBuffer vps) {
     srtClient.setVideoInfo(sps, pps, vps);
   }
@@ -180,15 +116,5 @@ public class SrtFromFile extends FromFileBase {
   @Override
   protected void getAacDataRtp(ByteBuffer aacBuffer, MediaCodec.BufferInfo info) {
     srtClient.sendAudio(aacBuffer, info);
-  }
-
-  @Override
-  public void setLogs(boolean enable) {
-    srtClient.setLogs(enable);
-  }
-
-  @Override
-  public void setCheckServerAlive(boolean enable) {
-    srtClient.setCheckServerAlive(enable);
   }
 }
