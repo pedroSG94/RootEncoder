@@ -20,11 +20,12 @@ import android.content.Context;
 import android.media.MediaCodec;
 import android.os.Build;
 
-import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 
 import com.pedro.encoder.utils.CodecUtil;
 import com.pedro.library.base.DisplayBase;
+import com.pedro.library.util.streamclient.SrtStreamClient;
+import com.pedro.library.util.streamclient.StreamClientListener;
 import com.pedro.srt.srt.SrtClient;
 import com.pedro.srt.srt.VideoCodec;
 import com.pedro.srt.utils.ConnectCheckerSrt;
@@ -41,10 +42,13 @@ import java.nio.ByteBuffer;
 public class SrtDisplay extends DisplayBase {
 
   private final SrtClient srtClient;
+  private final SrtStreamClient streamClient;
+  private final StreamClientListener streamClientListener = this::requestKeyFrame;
 
   public SrtDisplay(Context context, boolean useOpengl, ConnectCheckerSrt connectChecker) {
     super(context, useOpengl);
     srtClient = new SrtClient(connectChecker);
+    streamClient = new SrtStreamClient(srtClient, streamClientListener);
   }
 
   public void setVideoCodec(VideoCodec videoCodec) {
@@ -54,59 +58,8 @@ public class SrtDisplay extends DisplayBase {
     srtClient.setVideoCodec(videoCodec);
   }
 
-  @Override
-  public void resizeCache(int newSize) throws RuntimeException {
-    srtClient.resizeCache(newSize);
-  }
-
-  @Override
-  public int getCacheSize() {
-    return srtClient.getCacheSize();
-  }
-
-  @Override
-  public long getSentAudioFrames() {
-    return srtClient.getSentAudioFrames();
-  }
-
-  @Override
-  public long getSentVideoFrames() {
-    return srtClient.getSentVideoFrames();
-  }
-
-  @Override
-  public long getDroppedAudioFrames() {
-    return srtClient.getDroppedAudioFrames();
-  }
-
-  @Override
-  public long getDroppedVideoFrames() {
-    return srtClient.getDroppedVideoFrames();
-  }
-
-  @Override
-  public void resetSentAudioFrames() {
-    srtClient.resetSentAudioFrames();
-  }
-
-  @Override
-  public void resetSentVideoFrames() {
-    srtClient.resetSentVideoFrames();
-  }
-
-  @Override
-  public void resetDroppedAudioFrames() {
-    srtClient.resetDroppedAudioFrames();
-  }
-
-  @Override
-  public void resetDroppedVideoFrames() {
-    srtClient.resetDroppedVideoFrames();
-  }
-
-  @Override
-  public void setAuthorization(String user, String password) {
-    srtClient.setAuthorization(user, password);
+  public SrtStreamClient getStreamClient() {
+    return streamClient;
   }
 
   @Override
@@ -125,35 +78,6 @@ public class SrtDisplay extends DisplayBase {
   }
 
   @Override
-  public void setReTries(int reTries) {
-    srtClient.setReTries(reTries);
-  }
-
-  @Override
-  protected boolean shouldRetry(String reason) {
-    return srtClient.shouldRetry(reason);
-  }
-
-  @Override
-  public void reConnect(long delay, @Nullable String backupUrl) {
-    srtClient.reConnect(delay, backupUrl);
-  }
-
-  @Override
-  public boolean hasCongestion() {
-    return srtClient.hasCongestion();
-  }
-
-  @Override
-  public boolean hasCongestion(float percentUsed) {
-    return srtClient.hasCongestion(percentUsed);
-  }
-
-  public void clearCache() {
-    srtClient.clearCache();
-  }
-
-  @Override
   protected void getAacDataRtp(ByteBuffer aacBuffer, MediaCodec.BufferInfo info) {
     srtClient.sendAudio(aacBuffer, info);
   }
@@ -166,15 +90,5 @@ public class SrtDisplay extends DisplayBase {
   @Override
   protected void getH264DataRtp(ByteBuffer h264Buffer, MediaCodec.BufferInfo info) {
     srtClient.sendVideo(h264Buffer, info);
-  }
-
-  @Override
-  public void setLogs(boolean enable) {
-    srtClient.setLogs(enable);
-  }
-
-  @Override
-  public void setCheckServerAlive(boolean enable) {
-    srtClient.setCheckServerAlive(enable);
   }
 }

@@ -70,7 +70,7 @@ public class ExampleRtmpActivity extends AppCompatActivity
     etUrl = findViewById(R.id.et_rtp_url);
     etUrl.setHint(R.string.hint_rtmp);
     rtmpCamera1 = new RtmpCamera1(surfaceView, this);
-    rtmpCamera1.setReTries(10);
+    rtmpCamera1.getStreamClient().setReTries(10);
     surfaceView.getHolder().addCallback(this);
   }
 
@@ -85,7 +85,7 @@ public class ExampleRtmpActivity extends AppCompatActivity
 
   @Override
   public void onConnectionFailedRtmp(final String reason) {
-    if (rtmpCamera1.reTry(5000, reason, null)) {
+    if (rtmpCamera1.getStreamClient().reTry(5000, reason, null)) {
       Toast.makeText(ExampleRtmpActivity.this, "Retry", Toast.LENGTH_SHORT)
           .show();
     } else {

@@ -228,7 +228,7 @@ public class RtmpActivity extends AppCompatActivity
         String user = etWowzaUser.getText().toString();
         String password = etWowzaPassword.getText().toString();
         if (!user.isEmpty() && !password.isEmpty()) {
-          rtmpCamera1.setAuthorization(user, password);
+          rtmpCamera1.getStreamClient().setAuthorization(user, password);
         }
         if (rtmpCamera1.isRecording() || prepareEncoders()) {
           rtmpCamera1.startStream(etUrl.getText().toString());

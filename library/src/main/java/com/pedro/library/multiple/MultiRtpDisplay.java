@@ -126,7 +126,6 @@ public class MultiRtpDisplay extends DisplayBase {
     }
   }
 
-  @Override
   public void setAuthorization(String user, String password) {
     for (RtmpClient rtmpClient : rtmpClients) {
       rtmpClient.setAuthorization(user, password);
@@ -226,12 +225,6 @@ public class MultiRtpDisplay extends DisplayBase {
     return result;
   }
 
-  @Override
-  protected boolean shouldRetry(String reason) {
-    return false;
-  }
-
-  @Override
   public void setReTries(int reTries) {
     for (RtmpClient rtmpClient : rtmpClients) {
       rtmpClient.setReTries(reTries);
@@ -241,10 +234,6 @@ public class MultiRtpDisplay extends DisplayBase {
     }
   }
 
-  @Override
-  protected void reConnect(long delay, @Nullable String backupUrl) {
-
-  }
 
   public boolean hasCongestion(RtpType rtpType, int index) {
     if (rtpType == RtpType.RTMP) {
@@ -252,32 +241,6 @@ public class MultiRtpDisplay extends DisplayBase {
     } else {
       return rtspClients[index].hasCongestion();
     }
-  }
-
-  public boolean hasCongestion(RtpType rtpType, int index, int percentUsed) {
-    if (rtpType == RtpType.RTMP) {
-      return rtmpClients[index].hasCongestion(percentUsed);
-    } else {
-      return rtspClients[index].hasCongestion(percentUsed);
-    }
-  }
-
-  public void clearCache(RtpType rtpType, int index) {
-    if (rtpType == RtpType.RTMP) {
-      rtmpClients[index].clearCache();
-    } else {
-      rtspClients[index].clearCache();
-    }
-  }
-
-  @Override
-  public boolean hasCongestion() {
-    return false;
-  }
-
-  @Override
-  public boolean hasCongestion(float percentUsed) {
-    return false;
   }
 
   public void resizeCache(RtpType rtpType, int index, int newSize) {
@@ -288,11 +251,6 @@ public class MultiRtpDisplay extends DisplayBase {
     }
   }
 
-  @Override
-  public void resizeCache(int newSize) throws RuntimeException {
-
-  }
-
   public int getCacheSize(RtpType rtpType, int index) {
     if (rtpType == RtpType.RTMP) {
       return rtmpClients[index].getCacheSize();
@@ -301,12 +259,6 @@ public class MultiRtpDisplay extends DisplayBase {
     }
   }
 
-  @Override
-  public int getCacheSize() {
-    return 0;
-  }
-
-  @Override
   public long getSentAudioFrames() {
     long number = 0;
     for (RtmpClient rtmpClient : rtmpClients) {
@@ -318,7 +270,6 @@ public class MultiRtpDisplay extends DisplayBase {
     return number;
   }
 
-  @Override
   public long getSentVideoFrames() {
     long number = 0;
     for (RtmpClient rtmpClient : rtmpClients) {
@@ -330,7 +281,6 @@ public class MultiRtpDisplay extends DisplayBase {
     return number;
   }
 
-  @Override
   public long getDroppedAudioFrames() {
     long number = 0;
     for (RtmpClient rtmpClient : rtmpClients) {
@@ -342,7 +292,6 @@ public class MultiRtpDisplay extends DisplayBase {
     return number;
   }
 
-  @Override
   public long getDroppedVideoFrames() {
     long number = 0;
     for (RtmpClient rtmpClient : rtmpClients) {
@@ -354,7 +303,6 @@ public class MultiRtpDisplay extends DisplayBase {
     return number;
   }
 
-  @Override
   public void resetSentAudioFrames() {
     for (RtmpClient rtmpClient : rtmpClients) {
       rtmpClient.resetSentAudioFrames();
@@ -364,7 +312,6 @@ public class MultiRtpDisplay extends DisplayBase {
     }
   }
 
-  @Override
   public void resetSentVideoFrames() {
     for (RtmpClient rtmpClient : rtmpClients) {
       rtmpClient.resetSentVideoFrames();
@@ -374,7 +321,6 @@ public class MultiRtpDisplay extends DisplayBase {
     }
   }
 
-  @Override
   public void resetDroppedAudioFrames() {
     for (RtmpClient rtmpClient : rtmpClients) {
       rtmpClient.resetDroppedAudioFrames();
@@ -384,7 +330,6 @@ public class MultiRtpDisplay extends DisplayBase {
     }
   }
 
-  @Override
   public void resetDroppedVideoFrames() {
     for (RtmpClient rtmpClient : rtmpClients) {
       rtmpClient.resetDroppedVideoFrames();
@@ -424,7 +369,6 @@ public class MultiRtpDisplay extends DisplayBase {
     }
   }
 
-  @Override
   public void setLogs(boolean enable) {
     for (RtmpClient rtmpClient : rtmpClients) {
       rtmpClient.setLogs(enable);
@@ -434,7 +378,6 @@ public class MultiRtpDisplay extends DisplayBase {
     }
   }
 
-  @Override
   public void setCheckServerAlive(boolean enable) {
     for (RtmpClient rtmpClient: rtmpClients) {
       rtmpClient.setCheckServerAlive(enable);
