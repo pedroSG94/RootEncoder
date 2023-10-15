@@ -30,8 +30,10 @@ import com.pedro.rtsp.utils.trySend
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.async
 import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
@@ -138,6 +140,15 @@ class RtspSender(private val connectCheckerRtsp: ConnectCheckerRtsp) {
       videoPacket?.setSSRC(ssrcVideo)
       aacPacket?.setSSRC(ssrcAudio)
       val isTcp = rtpSocket is RtpSocketTcp
+      var bytesSend = 0L
+      val bitrateTask = async {
+        while (scope.isActive && running) {
+          //bytes to bits
+          bitrateManager.calculateBitrate(bytesSend * 8)
+          bytesSend = 0
+          delay(timeMillis = 1000)
+        }
+      }
       while (scope.isActive && running) {
         val error = runCatching {
           val rtpFrame = runInterruptible {
@@ -145,18 +156,18 @@ class RtspSender(private val connectCheckerRtsp: ConnectCheckerRtsp) {
           }
           if (rtpFrame != null) {
             rtpSocket?.sendFrame(rtpFrame, isEnableLogs)
-            //bytes to bits (4 is tcp header length)
+            //4 is tcp header length
             val packetSize = if (isTcp) rtpFrame.length + 4 else rtpFrame.length
-            bitrateManager.calculateBitrate(packetSize * 8.toLong())
+            bytesSend += packetSize
             if (rtpFrame.isVideoFrame()) {
               videoFramesSent++
             } else {
               audioFramesSent++
             }
             if (baseSenderReport?.update(rtpFrame, isEnableLogs) == true) {
-              //bytes to bits (4 is tcp header length)
+              //4 is tcp header length
               val reportSize = if (isTcp) baseSenderReport?.PACKET_LENGTH ?: (0 + 4) else baseSenderReport?.PACKET_LENGTH ?: 0
-              bitrateManager.calculateBitrate(reportSize * 8.toLong())
+              bytesSend += reportSize
             }
           }
         }.exceptionOrNull()
@@ -187,11 +198,13 @@ class RtspSender(private val connectCheckerRtsp: ConnectCheckerRtsp) {
     queue.clear()
   }
 
-  fun hasCongestion(): Boolean {
+  @Throws(IllegalArgumentException::class)
+  fun hasCongestion(percentUsed: Float = 20f): Boolean {
+    if (percentUsed < 0 || percentUsed > 100) throw IllegalArgumentException("the value must be in range 0 to 100")
     val size = queue.size.toFloat()
     val remaining = queue.remainingCapacity().toFloat()
     val capacity = size + remaining
-    return size >= capacity * 0.2f //more than 20% queue used. You could have congestion
+    return size >= capacity * (percentUsed / 100f)
   }
 
   fun resizeCache(newSize: Int) {
@@ -205,6 +218,10 @@ class RtspSender(private val connectCheckerRtsp: ConnectCheckerRtsp) {
 
   fun getCacheSize(): Int {
     return cacheSize
+  }
+
+  fun clearCache() {
+    queue.clear()
   }
 
   fun getSentAudioFrames(): Long {

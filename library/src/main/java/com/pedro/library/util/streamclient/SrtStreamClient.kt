@@ -24,7 +24,7 @@ class SrtStreamClient(
     srtClient.reConnect(delay, backupUrl)
   }
 
-  override fun hasCongestion(): Boolean = srtClient.hasCongestion()
+  override fun hasCongestion(percentUsed: Float): Boolean = srtClient.hasCongestion(percentUsed)
 
   override fun setLogs(enabled: Boolean) {
     srtClient.setLogs(enabled)
@@ -36,6 +36,10 @@ class SrtStreamClient(
 
   override fun resizeCache(newSize: Int) {
     srtClient.resizeCache(newSize)
+  }
+
+  override fun clearCache() {
+    srtClient.clearCache()
   }
 
   override fun getCacheSize(): Int = srtClient.cacheSize

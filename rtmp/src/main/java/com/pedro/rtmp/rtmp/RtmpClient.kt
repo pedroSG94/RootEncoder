@@ -542,8 +542,10 @@ class RtmpClient(private val connectCheckerRtmp: ConnectCheckerRtmp) {
     }
   }
 
-  fun hasCongestion(): Boolean {
-    return rtmpSender.hasCongestion()
+  @JvmOverloads
+  @Throws(IllegalArgumentException::class)
+  fun hasCongestion(percentUsed: Float = 20f): Boolean {
+    return rtmpSender.hasCongestion(percentUsed)
   }
 
   fun resetSentAudioFrames() {
@@ -569,5 +571,9 @@ class RtmpClient(private val connectCheckerRtmp: ConnectCheckerRtmp) {
 
   fun setLogs(enable: Boolean) {
     rtmpSender.setLogs(enable)
+  }
+
+  fun clearCache() {
+    rtmpSender.clearCache()
   }
 }

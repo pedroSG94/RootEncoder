@@ -32,7 +32,9 @@ import com.pedro.rtmp.utils.trySend
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.async
 import kotlinx.coroutines.cancelAndJoin
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runInterruptible
@@ -130,6 +132,15 @@ class RtmpSender(
     queue.clear()
     running = true
     job = scope.launch {
+      var bytesSend = 0L
+      val bitrateTask = async {
+        while (scope.isActive && running) {
+          //bytes to bits
+          bitrateManager.calculateBitrate(bytesSend * 8)
+          bytesSend = 0
+          delay(timeMillis = 1000)
+        }
+      }
       while (scope.isActive && running) {
         val error = runCatching {
           val flvPacket = runInterruptible {
@@ -156,8 +167,7 @@ class RtmpSender(
                 }
               }
             }
-            //bytes to bits
-            bitrateManager.calculateBitrate(size * 8L)
+            bytesSend += size
           }
         }.exceptionOrNull()
         if (error != null) {
@@ -185,11 +195,13 @@ class RtmpSender(
     queue.clear()
   }
 
-  fun hasCongestion(): Boolean {
+  @Throws(IllegalArgumentException::class)
+  fun hasCongestion(percentUsed: Float = 20f): Boolean {
+    if (percentUsed < 0 || percentUsed > 100) throw IllegalArgumentException("the value must be in range 0 to 100")
     val size = queue.size.toFloat()
     val remaining = queue.remainingCapacity().toFloat()
     val capacity = size + remaining
-    return size >= capacity * 0.2f //more than 20% queue used. You could have congestion
+    return size >= capacity * (percentUsed / 100f)
   }
 
   fun resizeCache(newSize: Int) {
@@ -203,6 +215,10 @@ class RtmpSender(
 
   fun getCacheSize(): Int {
     return cacheSize
+  }
+
+  fun clearCache() {
+    queue.clear()
   }
 
   fun getSentAudioFrames(): Long {

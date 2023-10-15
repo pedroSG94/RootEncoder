@@ -358,8 +358,10 @@ class SrtClient(private val connectCheckerSrt: ConnectCheckerSrt) {
     }
   }
 
-  fun hasCongestion(): Boolean {
-    return srtSender.hasCongestion()
+  @JvmOverloads
+  @Throws(IllegalArgumentException::class)
+  fun hasCongestion(percentUsed: Float = 20f): Boolean {
+    return srtSender.hasCongestion(percentUsed)
   }
 
   fun resetSentAudioFrames() {
@@ -385,5 +387,9 @@ class SrtClient(private val connectCheckerSrt: ConnectCheckerSrt) {
 
   fun setLogs(enable: Boolean) {
     srtSender.setLogs(enable)
+  }
+
+  fun clearCache() {
+    srtSender.clearCache()
   }
 }

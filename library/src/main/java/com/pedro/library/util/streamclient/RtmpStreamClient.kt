@@ -59,7 +59,7 @@ class RtmpStreamClient(
     rtmpClient.reConnect(delay, backupUrl)
   }
 
-  override fun hasCongestion(): Boolean = rtmpClient.hasCongestion()
+  override fun hasCongestion(percentUsed: Float): Boolean = rtmpClient.hasCongestion(percentUsed)
 
   override fun setLogs(enabled: Boolean) {
     rtmpClient.setLogs(enabled)
@@ -71,6 +71,10 @@ class RtmpStreamClient(
 
   override fun resizeCache(newSize: Int) {
     rtmpClient.resizeCache(newSize)
+  }
+
+  override fun clearCache() {
+    rtmpClient.clearCache()
   }
 
   override fun getCacheSize(): Int = rtmpClient.cacheSize

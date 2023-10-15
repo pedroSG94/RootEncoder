@@ -45,6 +45,11 @@ abstract class StreamBase(
   audioSource: AudioManager.Source
 ) {
 
+  private val getMicrophoneData = object: GetMicrophoneData {
+    override fun inputPCMData(frame: Frame) {
+      audioEncoder.inputPCMData(frame)
+    }
+  }
   //video and audio encoders
   private val videoEncoder by lazy { VideoEncoder(getVideoData) }
   private val audioEncoder by lazy { AudioEncoder(getAacData) }
@@ -145,7 +150,7 @@ abstract class StreamBase(
   fun startRecord(path: String, listener: RecordController.Listener) {
     recordController.startRecord(path, listener)
     if (!isStreaming) startSources()
-    else requestKeyframe()
+    else videoEncoder.requestKeyframe()
   }
 
   /**
@@ -501,12 +506,6 @@ abstract class StreamBase(
 
   private fun prepareEncoders(): Boolean {
     return videoEncoder.prepareVideoEncoder() && audioEncoder.prepareAudioEncoder()
-  }
-
-  private val getMicrophoneData = object: GetMicrophoneData {
-    override fun inputPCMData(frame: Frame) {
-      audioEncoder.inputPCMData(frame)
-    }
   }
 
   private val getAacData: GetAacData = object : GetAacData {
