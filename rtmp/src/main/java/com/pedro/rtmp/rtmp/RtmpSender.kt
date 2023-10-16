@@ -217,6 +217,8 @@ class RtmpSender(
     return cacheSize
   }
 
+  fun getItemsInCache(): Int = queue.size
+
   fun clearCache() {
     queue.clear()
   }

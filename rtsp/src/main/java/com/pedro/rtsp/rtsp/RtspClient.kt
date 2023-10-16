@@ -468,4 +468,6 @@ class RtspClient(private val connectCheckerRtsp: ConnectCheckerRtsp) {
   fun clearCache() {
     rtspSender.clearCache()
   }
+
+  fun getItemsInCache(): Int = rtspSender.getItemsInCache()
 }

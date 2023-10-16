@@ -55,6 +55,8 @@ class RtspStreamClient(
 
   override fun getCacheSize(): Int = rtspClient.cacheSize
 
+  override fun getItemsInCache(): Int = rtspClient.getItemsInCache()
+
   override fun getSentAudioFrames(): Long = rtspClient.sentAudioFrames
 
   override fun getSentVideoFrames(): Long = rtspClient.sentVideoFrames
@@ -77,5 +79,13 @@ class RtspStreamClient(
 
   override fun resetDroppedVideoFrames() {
     rtspClient.resetDroppedVideoFrames()
+  }
+
+  override fun setOnlyAudio(onlyAudio: Boolean) {
+    rtspClient.setOnlyAudio(onlyAudio)
+  }
+
+  override fun setOnlyVideo(onlyVideo: Boolean) {
+    rtspClient.setOnlyVideo(onlyVideo)
   }
 }

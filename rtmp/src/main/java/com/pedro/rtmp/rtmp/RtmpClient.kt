@@ -576,4 +576,6 @@ class RtmpClient(private val connectCheckerRtmp: ConnectCheckerRtmp) {
   fun clearCache() {
     rtmpSender.clearCache()
   }
+
+  fun getItemsInCache(): Int = rtmpSender.getItemsInCache()
 }
