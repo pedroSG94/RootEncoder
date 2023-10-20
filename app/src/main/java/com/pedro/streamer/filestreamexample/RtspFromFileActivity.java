@@ -19,6 +19,7 @@ package com.pedro.streamer.filestreamexample;
 import android.content.Intent;
 import android.graphics.Color;
 import android.graphics.PorterDuff;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import androidx.annotation.RequiresApi;
@@ -62,7 +63,7 @@ public class RtspFromFileActivity extends AppCompatActivity
   private SeekBar seekBar;
   private EditText etUrl;
   private TextView tvFile;
-  private String filePath = "";
+  private Uri filePath;
   private boolean touching = false;
 
   private String currentDateAndTime = "";
@@ -146,9 +147,11 @@ public class RtspFromFileActivity extends AppCompatActivity
   protected void onActivityResult(int requestCode, int resultCode, Intent data) {
     super.onActivityResult(requestCode, resultCode, data);
     if (requestCode == 5 && data != null) {
-      filePath = PathUtils.getPath(this, data.getData());
-      Toast.makeText(this, filePath, Toast.LENGTH_SHORT).show();
-      tvFile.setText(filePath);
+      filePath = data.getData();
+      if (filePath != null) {
+        Toast.makeText(this, filePath.getPath(), Toast.LENGTH_SHORT).show();
+        tvFile.setText(filePath.getPath());
+      }
     }
   }
 
@@ -239,8 +242,8 @@ public class RtspFromFileActivity extends AppCompatActivity
   }
 
   private boolean prepare() throws IOException {
-    boolean result = rtspFromFile.prepareVideo(filePath);
-    result |= rtspFromFile.prepareAudio(filePath);
+    boolean result = rtspFromFile.prepareVideo(getApplicationContext(), filePath);
+    result |= rtspFromFile.prepareAudio(getApplicationContext(), filePath);
     return result;
   }
 

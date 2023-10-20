@@ -19,6 +19,7 @@ package com.pedro.streamer.filestreamexample;
 import android.content.Intent;
 import android.graphics.Color;
 import android.graphics.PorterDuff;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import androidx.annotation.RequiresApi;
@@ -59,7 +60,7 @@ public class RtmpFromFileActivity extends AppCompatActivity
   private SeekBar seekBar;
   private EditText etUrl;
   private TextView tvFile;
-  private String filePath = "";
+  private Uri filePath;
   private boolean touching = false;
 
   private String currentDateAndTime = "";
@@ -143,9 +144,11 @@ public class RtmpFromFileActivity extends AppCompatActivity
   protected void onActivityResult(int requestCode, int resultCode, Intent data) {
     super.onActivityResult(requestCode, resultCode, data);
     if (requestCode == 5 && data != null) {
-      filePath = PathUtils.getPath(this, data.getData());
-      Toast.makeText(this, filePath, Toast.LENGTH_SHORT).show();
-      tvFile.setText(filePath);
+      filePath = data.getData();
+      if (filePath != null) {
+        Toast.makeText(this, filePath.getPath(), Toast.LENGTH_SHORT).show();
+        tvFile.setText(filePath.getPath());
+      }
     }
   }
 
@@ -157,6 +160,7 @@ public class RtmpFromFileActivity extends AppCompatActivity
         try {
           if (!rtmpFromFile.isRecording()) {
             if (prepare()) {
+              rtmpFromFile.setLoopMode(true);
               button.setText(R.string.stop_button);
               rtmpFromFile.startStream(etUrl.getText().toString());
               seekBar.setMax(Math.max((int) rtmpFromFile.getVideoDuration(),
@@ -236,8 +240,8 @@ public class RtmpFromFileActivity extends AppCompatActivity
   }
 
   private boolean prepare() throws IOException {
-    boolean result = rtmpFromFile.prepareVideo(filePath);
-    result |= rtmpFromFile.prepareAudio(filePath);
+    boolean result = rtmpFromFile.prepareVideo(getApplicationContext(), filePath);
+    result |= rtmpFromFile.prepareAudio(getApplicationContext(), filePath);
     return result;
   }
 

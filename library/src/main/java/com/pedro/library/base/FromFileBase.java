@@ -22,7 +22,9 @@ import android.media.AudioManager;
 import android.media.AudioTrack;
 import android.media.MediaCodec;
 import android.media.MediaFormat;
+import android.net.Uri;
 import android.os.Build;
+import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -153,6 +155,19 @@ public abstract class FromFileBase {
     return finishPrepareVideo(bitRate, rotation, avcProfile, avcProfileLevel);
   }
 
+  /**
+   * @param uri Uri to video MP4 file.
+   * @param bitRate H264 in bps.
+   * @return true if success, false if you get a error (Normally because the encoder selected
+   * doesn't support any configuration seated or your device hasn't a H264 encoder).
+   * @throws IOException Normally file not found.
+   */
+  public boolean prepareVideo(Context context, Uri uri, int bitRate, int rotation, int avcProfile,
+                              int avcProfileLevel) throws IOException {
+    if (!videoDecoder.initExtractor(context, uri, null)) return false;
+    return finishPrepareVideo(bitRate, rotation, avcProfile, avcProfileLevel);
+  }
+
   public boolean prepareVideo(String filePath, int bitRate, int rotation) throws IOException {
     return prepareVideo(filePath, bitRate, rotation, -1, -1);
   }
@@ -163,6 +178,14 @@ public abstract class FromFileBase {
 
   public boolean prepareVideo(String filePath) throws IOException {
     return prepareVideo(filePath, 1200 * 1024, 0);
+  }
+
+  public boolean prepareVideo(Context context, Uri uri, int bitRate, int rotation) throws IOException {
+    return prepareVideo(context, uri, bitRate, rotation, -1, -1);
+  }
+
+  public boolean prepareVideo(Context context, Uri uri) throws IOException {
+    return prepareVideo(context, uri, 1200 * 1024, 0);
   }
 
   public boolean prepareVideo(FileDescriptor fileDescriptor) throws IOException {
@@ -200,6 +223,18 @@ public abstract class FromFileBase {
    */
   public boolean prepareAudio(FileDescriptor fileDescriptor, int bitRate) throws IOException {
     if (!audioDecoder.initExtractor(fileDescriptor)) return false;
+    return finishPrepareAudio(bitRate);
+  }
+
+  /**
+   * @param uri Uri to audio file.
+   * @param bitRate AAC in kb.
+   * @return true if success, false if you get a error (Normally because the encoder selected
+   * doesn't support any configuration seated or your device hasn't a H264 encoder).
+   * @throws IOException Normally file not found.
+   */
+  public boolean prepareAudio(Context context, Uri uri, int bitRate) throws IOException {
+    if (!audioDecoder.initExtractor(context, uri, null)) return false;
     return finishPrepareAudio(bitRate);
   }
 
@@ -251,6 +286,10 @@ public abstract class FromFileBase {
 
   public boolean prepareAudio(String filePath) throws IOException {
     return prepareAudio(filePath, 64 * 1024);
+  }
+
+  public boolean prepareAudio(Context context, Uri uri) throws IOException {
+    return prepareAudio(context, uri, 64 * 1024);
   }
 
   protected abstract void prepareAudioRtp(boolean isStereo, int sampleRate);
