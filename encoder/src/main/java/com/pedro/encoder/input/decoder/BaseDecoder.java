@@ -55,6 +55,11 @@ public abstract class BaseDecoder {
   //Avoid decode while change output surface
   protected AtomicBoolean pause = new AtomicBoolean(false);
   protected volatile boolean looped = false;
+  private final DecoderInterface decoderInterface;
+
+  public BaseDecoder(DecoderInterface decoderInterface) {
+    this.decoderInterface = decoderInterface;
+  }
 
   public boolean initExtractor(String filePath) throws IOException {
     extractor = new MediaExtractor();
@@ -242,6 +247,7 @@ public abstract class BaseDecoder {
             moveTo(0);
             continue;
           } else {
+            decoderInterface.onLoop();
             looped = false;
           }
         }
@@ -281,8 +287,8 @@ public abstract class BaseDecoder {
           }
           boolean render = decodeOutput(output);
           codec.releaseOutputBuffer(outIndex, render && bufferInfo.size != 0);
-          double reamingTime = getDuration() - getTime();
-          if (reamingTime < 1 && loopMode) {
+          boolean finished = extractor.getSampleTime() < 0;
+          if (finished && loopMode) {
             moveTo(0);
             looped = true;
           }

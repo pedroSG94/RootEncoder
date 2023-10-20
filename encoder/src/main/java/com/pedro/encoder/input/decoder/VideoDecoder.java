@@ -33,7 +33,8 @@ public class VideoDecoder extends BaseDecoder {
   private int height;
   private int fps;
 
-  public VideoDecoder(VideoDecoderInterface videoDecoderInterface) {
+  public VideoDecoder(VideoDecoderInterface videoDecoderInterface, DecoderInterface decoderInterface) {
+    super(decoderInterface);
     TAG = "VideoDecoder";
     this.videoDecoderInterface = videoDecoderInterface;
   }
