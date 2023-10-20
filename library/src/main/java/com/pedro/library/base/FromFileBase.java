@@ -653,6 +653,7 @@ public abstract class FromFileBase {
       recordController.setVideoFormat(mediaFormat, !audioEnabled);
     }
   };
+
   private final DecoderInterface decoderInterface = new DecoderInterface() {
 
     private int trackFinished = 0;

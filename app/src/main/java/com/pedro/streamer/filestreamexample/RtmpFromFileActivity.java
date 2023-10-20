@@ -160,7 +160,6 @@ public class RtmpFromFileActivity extends AppCompatActivity
         try {
           if (!rtmpFromFile.isRecording()) {
             if (prepare()) {
-              rtmpFromFile.setLoopMode(true);
               button.setText(R.string.stop_button);
               rtmpFromFile.startStream(etUrl.getText().toString());
               seekBar.setMax(Math.max((int) rtmpFromFile.getVideoDuration(),
