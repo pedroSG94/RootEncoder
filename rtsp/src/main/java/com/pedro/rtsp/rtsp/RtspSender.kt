@@ -220,6 +220,8 @@ class RtspSender(private val connectCheckerRtsp: ConnectCheckerRtsp) {
     return cacheSize
   }
 
+  fun getItemsInCache(): Int = queue.size
+
   fun clearCache() {
     queue.clear()
   }

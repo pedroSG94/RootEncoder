@@ -44,6 +44,8 @@ class SrtStreamClient(
 
   override fun getCacheSize(): Int = srtClient.cacheSize
 
+  override fun getItemsInCache(): Int = srtClient.getItemsInCache()
+
   override fun getSentAudioFrames(): Long = srtClient.sentAudioFrames
 
   override fun getSentVideoFrames(): Long = srtClient.sentVideoFrames
@@ -66,5 +68,13 @@ class SrtStreamClient(
 
   override fun resetDroppedVideoFrames() {
     srtClient.resetDroppedVideoFrames()
+  }
+
+  override fun setOnlyAudio(onlyAudio: Boolean) {
+    srtClient.setOnlyAudio(onlyAudio)
+  }
+
+  override fun setOnlyVideo(onlyVideo: Boolean) {
+    srtClient.setOnlyVideo(onlyVideo)
   }
 }

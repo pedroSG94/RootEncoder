@@ -392,4 +392,6 @@ class SrtClient(private val connectCheckerSrt: ConnectCheckerSrt) {
   fun clearCache() {
     srtSender.clearCache()
   }
+
+  fun getItemsInCache(): Int = srtSender.getItemsInCache()
 }

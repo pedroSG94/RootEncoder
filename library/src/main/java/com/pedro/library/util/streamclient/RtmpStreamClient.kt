@@ -79,6 +79,8 @@ class RtmpStreamClient(
 
   override fun getCacheSize(): Int = rtmpClient.cacheSize
 
+  override fun getItemsInCache(): Int = rtmpClient.getItemsInCache()
+
   override fun getSentAudioFrames(): Long = rtmpClient.sentAudioFrames
 
   override fun getSentVideoFrames(): Long = rtmpClient.sentVideoFrames
@@ -101,5 +103,13 @@ class RtmpStreamClient(
 
   override fun resetDroppedVideoFrames() {
     rtmpClient.resetDroppedVideoFrames()
+  }
+
+  override fun setOnlyAudio(onlyAudio: Boolean) {
+    rtmpClient.setOnlyAudio(onlyAudio)
+  }
+
+  override fun setOnlyVideo(onlyVideo: Boolean) {
+    rtmpClient.setOnlyVideo(onlyVideo)
   }
 }
