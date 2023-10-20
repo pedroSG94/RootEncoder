@@ -99,14 +99,9 @@ public abstract class BaseDecoder {
     extractor.setDataSource(fileDescriptor, offset, length);
     return extract(extractor);
   }
-  Context context;
-  Uri uri;
-  Map<String, String> headers;
+
   public boolean initExtractor(Context context, Uri uri, Map<String, String> headers)
       throws IOException {
-    this.context = context;
-    this.uri = uri;
-    this.headers = headers;
     extractor = new MediaExtractor();
     extractor.setDataSource(context, uri, headers);
     return extract(extractor);
