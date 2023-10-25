@@ -1,0 +1,449 @@
+<!doctype html>
+<html class="no-js">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1" charset="UTF-8">
+    <title>RtmpStreamClient</title>
+<link href="../../../images/logo-icon.svg" rel="icon" type="image/svg">    <script>var pathToRoot = "../../../";</script>
+    <script>document.documentElement.classList.replace("no-js","js");</script>
+    <script>const storage = localStorage.getItem("dokka-dark-mode")
+    if (storage == null) {
+        const osDarkSchemePreferred = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
+        if (osDarkSchemePreferred === true) {
+            document.getElementsByTagName("html")[0].classList.add("theme-dark")
+        }
+    } else {
+        const savedDarkMode = JSON.parse(storage)
+        if(savedDarkMode === true) {
+            document.getElementsByTagName("html")[0].classList.add("theme-dark")
+        }
+    }
+    </script>
+<script type="text/javascript" src="https://unpkg.com/kotlin-playground@1/dist/playground.min.js" async></script>
+<script type="text/javascript" src="../../../scripts/sourceset_dependencies.js" async></script>
+<link href="../../../styles/style.css" rel="Stylesheet">
+<link href="../../../styles/main.css" rel="Stylesheet">
+<link href="../../../styles/prism.css" rel="Stylesheet">
+<link href="../../../styles/logo-styles.css" rel="Stylesheet">
+<link href="../../../styles/font-jb-sans-auto.css" rel="Stylesheet">
+<script type="text/javascript" src="../../../scripts/clipboard.js" async></script>
+<script type="text/javascript" src="../../../scripts/navigation-loader.js" async></script>
+<script type="text/javascript" src="../../../scripts/platform-content-handler.js" async></script>
+<script type="text/javascript" src="../../../scripts/main.js" defer></script>
+<script type="text/javascript" src="../../../scripts/prism.js" async></script>
+<script type="text/javascript" src="../../../scripts/symbol-parameters-wrapper_deferred.js" defer></script></head>
+<body>
+    <div class="root">
+<nav class="navigation" id="navigation-wrapper">
+    <div class="navigation--inner">
+        <div class="navigation-title">
+            <button class="menu-toggle" id="menu-toggle" type="button">toggle menu</button>
+            <div class="library-name">
+<a class="library-name--link" href="../../../index.html">
+                            RootEncoder
+                    </a>            </div>
+            <div class="library-version">
+            </div>
+        </div>
+        <div class="filter-section" id="filter-section">
+                <button class="platform-tag platform-selector jvm-like" data-active="" data-filter=":library:dokkaHtmlPartial/release">androidJvm</button>
+        </div>
+    </div>
+    <div class="navigation-controls">
+        <button class="navigation-controls--btn navigation-controls--theme" id="theme-toggle-button" type="button">switch theme</button>
+        <div class="navigation-controls--btn navigation-controls--search" id="searchBar" role="button">search in API</div>
+    </div>
+</nav>
+        <div id="container">
+            <div class="sidebar" id="leftColumn">
+                <div class="sidebar--inner" id="sideMenu"></div>
+            </div>
+            <div id="main">
+<div class="main-content" data-page-type="classlike" id="content" pageids="library::com.pedro.library.util.streamclient/RtmpStreamClient///PointingToDeclaration//794302154">
+  <div class="breadcrumbs"><a href="../../index.html">library</a><span class="delimiter">/</span><a href="../index.html">com.pedro.library.util.streamclient</a><span class="delimiter">/</span><span class="current">RtmpStreamClient</span></div>
+  <div class="cover ">
+    <h1 class="cover"><span>Rtmp</span><wbr><span>Stream</span><wbr><span><span>Client</span></span></h1>
+    <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":library:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword">class </span><a href="index.html">RtmpStreamClient</a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">rtmpClient<span class="token operator">: </span><a href="../../../rtmp/com.pedro.rtmp.rtmp/-rtmp-client/index.html">RtmpClient</a><span class="token punctuation">, </span></span><span class="parameter ">streamClientListener<span class="token operator">: </span><a href="../-stream-client-listener/index.html">StreamClientListener</a><span class="token operator">?</span></span></span><span class="token punctuation">)</span> : <a href="../-stream-base-client/index.html">StreamBaseClient</a></div><p class="paragraph">Created by pedro on 12/10/23.</p></div></div>
+  </div>
+  <div class="tabbedcontent">
+    <div class="tabs-section" tabs-section="tabs-section"><button class="section-tab" data-active="" data-togglable="CONSTRUCTOR,TYPE,PROPERTY,FUNCTION">Members</button></div>
+    <div class="tabs-section-body">
+      <div data-togglable="CONSTRUCTOR">
+        <h2 class="">Constructors</h2>
+        <div class="table"><a data-name="528762213%2FConstructors%2F794302154" anchor-label="RtmpStreamClient" id="528762213%2FConstructors%2F794302154" data-filterable-set=":library:dokkaHtmlPartial/release"></a>
+          <div class="table-row" data-togglable="CONSTRUCTOR" data-filterable-current=":library:dokkaHtmlPartial/release" data-filterable-set=":library:dokkaHtmlPartial/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-rtmp-stream-client.html"><span>Rtmp</span><wbr><span>Stream</span><wbr><span><span>Client</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="528762213%2FConstructors%2F794302154"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":library:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword">constructor</span><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">rtmpClient<span class="token operator">: </span><a href="../../../rtmp/com.pedro.rtmp.rtmp/-rtmp-client/index.html">RtmpClient</a><span class="token punctuation">, </span></span><span class="parameter ">streamClientListener<span class="token operator">: </span><a href="../-stream-client-listener/index.html">StreamClientListener</a><span class="token operator">?</span></span></span><span class="token punctuation">)</span></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div data-togglable="FUNCTION">
+        <h2 class="">Functions</h2>
+        <div class="table"><a data-name="152421379%2FFunctions%2F794302154" anchor-label="clearCache" id="152421379%2FFunctions%2F794302154" data-filterable-set=":library:dokkaHtmlPartial/release"></a>
+          <div class="table-row" data-filterable-current=":library:dokkaHtmlPartial/release" data-filterable-set=":library:dokkaHtmlPartial/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="clear-cache.html"><span>clear</span><wbr><span><span>Cache</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="152421379%2FFunctions%2F794302154"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":library:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">fun </span><a href="clear-cache.html"><span class="token function">clearCache</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-688576225%2FFunctions%2F794302154" anchor-label="forceAkamaiTs" id="-688576225%2FFunctions%2F794302154" data-filterable-set=":library:dokkaHtmlPartial/release"></a>
+          <div class="table-row" data-filterable-current=":library:dokkaHtmlPartial/release" data-filterable-set=":library:dokkaHtmlPartial/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="force-akamai-ts.html"><span>force</span><wbr><span>Akamai</span><wbr><span><span>Ts</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-688576225%2FFunctions%2F794302154"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":library:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword"></span><span class="token keyword">fun </span><a href="force-akamai-ts.html"><span class="token function">forceAkamaiTs</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">enabled<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-boolean/index.html">Boolean</a></span></span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Some Livestream hosts use Akamai auth that requires RTMP packets to be sent with increasing timestamp order regardless of packet type. Necessary with Servers like Dacast. More info here: https://learn.akamai.com/en-us/webhelp/media-services-live/media-services-live-encoder-compatibility-testing-and-qualification-guide-v4.0/GUID-F941C88B-9128-4BF4-A81B-C2E5CFD35BBF.html</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-647019125%2FFunctions%2F794302154" anchor-label="getCacheSize" id="-647019125%2FFunctions%2F794302154" data-filterable-set=":library:dokkaHtmlPartial/release"></a>
+          <div class="table-row" data-filterable-current=":library:dokkaHtmlPartial/release" data-filterable-set=":library:dokkaHtmlPartial/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="get-cache-size.html"><span>get</span><wbr><span>Cache</span><wbr><span><span>Size</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-647019125%2FFunctions%2F794302154"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":library:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">fun </span><a href="get-cache-size.html"><span class="token function">getCacheSize</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-int/index.html">Int</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-804135152%2FFunctions%2F794302154" anchor-label="getDroppedAudioFrames" id="-804135152%2FFunctions%2F794302154" data-filterable-set=":library:dokkaHtmlPartial/release"></a>
+          <div class="table-row" data-filterable-current=":library:dokkaHtmlPartial/release" data-filterable-set=":library:dokkaHtmlPartial/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="get-dropped-audio-frames.html"><span>get</span><wbr><span>Dropped</span><wbr><span>Audio</span><wbr><span><span>Frames</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-804135152%2FFunctions%2F794302154"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":library:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">fun </span><a href="get-dropped-audio-frames.html"><span class="token function">getDroppedAudioFrames</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-long/index.html">Long</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1883663925%2FFunctions%2F794302154" anchor-label="getDroppedVideoFrames" id="-1883663925%2FFunctions%2F794302154" data-filterable-set=":library:dokkaHtmlPartial/release"></a>
+          <div class="table-row" data-filterable-current=":library:dokkaHtmlPartial/release" data-filterable-set=":library:dokkaHtmlPartial/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="get-dropped-video-frames.html"><span>get</span><wbr><span>Dropped</span><wbr><span>Video</span><wbr><span><span>Frames</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1883663925%2FFunctions%2F794302154"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":library:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">fun </span><a href="get-dropped-video-frames.html"><span class="token function">getDroppedVideoFrames</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-long/index.html">Long</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-520211409%2FFunctions%2F794302154" anchor-label="getItemsInCache" id="-520211409%2FFunctions%2F794302154" data-filterable-set=":library:dokkaHtmlPartial/release"></a>
+          <div class="table-row" data-filterable-current=":library:dokkaHtmlPartial/release" data-filterable-set=":library:dokkaHtmlPartial/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="get-items-in-cache.html"><span>get</span><wbr><span>Items</span><wbr><span>In</span><wbr><span><span>Cache</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-520211409%2FFunctions%2F794302154"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":library:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">fun </span><a href="get-items-in-cache.html"><span class="token function">getItemsInCache</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-int/index.html">Int</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1413895466%2FFunctions%2F794302154" anchor-label="getSentAudioFrames" id="1413895466%2FFunctions%2F794302154" data-filterable-set=":library:dokkaHtmlPartial/release"></a>
+          <div class="table-row" data-filterable-current=":library:dokkaHtmlPartial/release" data-filterable-set=":library:dokkaHtmlPartial/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="get-sent-audio-frames.html"><span>get</span><wbr><span>Sent</span><wbr><span>Audio</span><wbr><span><span>Frames</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1413895466%2FFunctions%2F794302154"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":library:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">fun </span><a href="get-sent-audio-frames.html"><span class="token function">getSentAudioFrames</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-long/index.html">Long</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="334366693%2FFunctions%2F794302154" anchor-label="getSentVideoFrames" id="334366693%2FFunctions%2F794302154" data-filterable-set=":library:dokkaHtmlPartial/release"></a>
+          <div class="table-row" data-filterable-current=":library:dokkaHtmlPartial/release" data-filterable-set=":library:dokkaHtmlPartial/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="get-sent-video-frames.html"><span>get</span><wbr><span>Sent</span><wbr><span>Video</span><wbr><span><span>Frames</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="334366693%2FFunctions%2F794302154"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":library:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">fun </span><a href="get-sent-video-frames.html"><span class="token function">getSentVideoFrames</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-long/index.html">Long</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="2060043151%2FFunctions%2F794302154" anchor-label="hasCongestion" id="2060043151%2FFunctions%2F794302154" data-filterable-set=":library:dokkaHtmlPartial/release"></a>
+          <div class="table-row" data-filterable-current=":library:dokkaHtmlPartial/release" data-filterable-set=":library:dokkaHtmlPartial/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="has-congestion.html"><span>has</span><wbr><span><span>Congestion</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="2060043151%2FFunctions%2F794302154"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":library:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">fun </span><a href="has-congestion.html"><span class="token function">hasCongestion</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">percentUsed<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-float/index.html">Float</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-boolean/index.html">Boolean</a></div><div class="symbol monospace"><span class="token keyword"></span><span class="token keyword">fun </span><a href="../-stream-base-client/has-congestion.html"><span class="token function">hasCongestion</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-boolean/index.html">Boolean</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-862490057%2FFunctions%2F794302154" anchor-label="resetDroppedAudioFrames" id="-862490057%2FFunctions%2F794302154" data-filterable-set=":library:dokkaHtmlPartial/release"></a>
+          <div class="table-row" data-filterable-current=":library:dokkaHtmlPartial/release" data-filterable-set=":library:dokkaHtmlPartial/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="reset-dropped-audio-frames.html"><span>reset</span><wbr><span>Dropped</span><wbr><span>Audio</span><wbr><span><span>Frames</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-862490057%2FFunctions%2F794302154"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":library:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">fun </span><a href="reset-dropped-audio-frames.html"><span class="token function">resetDroppedAudioFrames</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1942018830%2FFunctions%2F794302154" anchor-label="resetDroppedVideoFrames" id="-1942018830%2FFunctions%2F794302154" data-filterable-set=":library:dokkaHtmlPartial/release"></a>
+          <div class="table-row" data-filterable-current=":library:dokkaHtmlPartial/release" data-filterable-set=":library:dokkaHtmlPartial/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="reset-dropped-video-frames.html"><span>reset</span><wbr><span>Dropped</span><wbr><span>Video</span><wbr><span><span>Frames</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1942018830%2FFunctions%2F794302154"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":library:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">fun </span><a href="reset-dropped-video-frames.html"><span class="token function">resetDroppedVideoFrames</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-443880605%2FFunctions%2F794302154" anchor-label="resetSentAudioFrames" id="-443880605%2FFunctions%2F794302154" data-filterable-set=":library:dokkaHtmlPartial/release"></a>
+          <div class="table-row" data-filterable-current=":library:dokkaHtmlPartial/release" data-filterable-set=":library:dokkaHtmlPartial/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="reset-sent-audio-frames.html"><span>reset</span><wbr><span>Sent</span><wbr><span>Audio</span><wbr><span><span>Frames</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-443880605%2FFunctions%2F794302154"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":library:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">fun </span><a href="reset-sent-audio-frames.html"><span class="token function">resetSentAudioFrames</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1523409378%2FFunctions%2F794302154" anchor-label="resetSentVideoFrames" id="-1523409378%2FFunctions%2F794302154" data-filterable-set=":library:dokkaHtmlPartial/release"></a>
+          <div class="table-row" data-filterable-current=":library:dokkaHtmlPartial/release" data-filterable-set=":library:dokkaHtmlPartial/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="reset-sent-video-frames.html"><span>reset</span><wbr><span>Sent</span><wbr><span>Video</span><wbr><span><span>Frames</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1523409378%2FFunctions%2F794302154"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":library:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">fun </span><a href="reset-sent-video-frames.html"><span class="token function">resetSentVideoFrames</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1460469646%2FFunctions%2F794302154" anchor-label="resizeCache" id="-1460469646%2FFunctions%2F794302154" data-filterable-set=":library:dokkaHtmlPartial/release"></a>
+          <div class="table-row" data-filterable-current=":library:dokkaHtmlPartial/release" data-filterable-set=":library:dokkaHtmlPartial/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="resize-cache.html"><span>resize</span><wbr><span><span>Cache</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1460469646%2FFunctions%2F794302154"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":library:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">fun </span><a href="resize-cache.html"><span class="token function">resizeCache</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">newSize<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-int/index.html">Int</a></span></span><span class="token punctuation">)</span></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="347101774%2FFunctions%2F794302154" anchor-label="reTry" id="347101774%2FFunctions%2F794302154" data-filterable-set=":library:dokkaHtmlPartial/release"></a>
+          <div class="table-row" data-filterable-current=":library:dokkaHtmlPartial/release" data-filterable-set=":library:dokkaHtmlPartial/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="../-stream-base-client/re-try.html"><span>re</span><wbr><span><span>Try</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="347101774%2FFunctions%2F794302154"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":library:dokkaHtmlPartial/release"><div class="symbol monospace"><div class="block"><div class="block"><span class="token annotation builtin">@</span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin.jvm/-jvm-overloads/index.html"><span class="token annotation builtin">JvmOverloads</span></a></div></div><span class="token keyword"></span><span class="token keyword">fun </span><a href="../-stream-base-client/re-try.html"><span class="token function">reTry</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">delay<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-long/index.html">Long</a><span class="token punctuation">, </span></span><span class="parameter ">reason<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html">String</a><span class="token punctuation">, </span></span><span class="parameter ">backupUrl<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html">String</a><span class="token operator">?</span><span class="token operator"> = </span>null</span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-boolean/index.html">Boolean</a></div><div class="brief "><p class="paragraph">Retries to connect with the given delay. You can pass an optional backupUrl if you'd like to connect to your backup server instead of the original one. Given backupUrl replaces the original one.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-607197698%2FFunctions%2F794302154" anchor-label="setAuthorization" id="-607197698%2FFunctions%2F794302154" data-filterable-set=":library:dokkaHtmlPartial/release"></a>
+          <div class="table-row" data-filterable-current=":library:dokkaHtmlPartial/release" data-filterable-set=":library:dokkaHtmlPartial/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="set-authorization.html"><span>set</span><wbr><span><span>Authorization</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-607197698%2FFunctions%2F794302154"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":library:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">fun </span><a href="set-authorization.html"><span class="token function">setAuthorization</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">user<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html">String</a><span class="token operator">?</span><span class="token punctuation">, </span></span><span class="parameter ">password<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html">String</a><span class="token operator">?</span></span></span><span class="token punctuation">)</span></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="2003842019%2FFunctions%2F794302154" anchor-label="setCheckServerAlive" id="2003842019%2FFunctions%2F794302154" data-filterable-set=":library:dokkaHtmlPartial/release"></a>
+          <div class="table-row" data-filterable-current=":library:dokkaHtmlPartial/release" data-filterable-set=":library:dokkaHtmlPartial/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="set-check-server-alive.html"><span>set</span><wbr><span>Check</span><wbr><span>Server</span><wbr><span><span>Alive</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="2003842019%2FFunctions%2F794302154"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":library:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">fun </span><a href="set-check-server-alive.html"><span class="token function">setCheckServerAlive</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">enabled<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-boolean/index.html">Boolean</a></span></span><span class="token punctuation">)</span></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1488707786%2FFunctions%2F794302154" anchor-label="setLogs" id="-1488707786%2FFunctions%2F794302154" data-filterable-set=":library:dokkaHtmlPartial/release"></a>
+          <div class="table-row" data-filterable-current=":library:dokkaHtmlPartial/release" data-filterable-set=":library:dokkaHtmlPartial/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="set-logs.html"><span>set</span><wbr><span><span>Logs</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1488707786%2FFunctions%2F794302154"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":library:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">fun </span><a href="set-logs.html"><span class="token function">setLogs</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">enabled<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-boolean/index.html">Boolean</a></span></span><span class="token punctuation">)</span></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1392203733%2FFunctions%2F794302154" anchor-label="setOnlyAudio" id="1392203733%2FFunctions%2F794302154" data-filterable-set=":library:dokkaHtmlPartial/release"></a>
+          <div class="table-row" data-filterable-current=":library:dokkaHtmlPartial/release" data-filterable-set=":library:dokkaHtmlPartial/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="set-only-audio.html"><span>set</span><wbr><span>Only</span><wbr><span><span>Audio</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1392203733%2FFunctions%2F794302154"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":library:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">fun </span><a href="set-only-audio.html"><span class="token function">setOnlyAudio</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">onlyAudio<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-boolean/index.html">Boolean</a></span></span><span class="token punctuation">)</span></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1590566800%2FFunctions%2F794302154" anchor-label="setOnlyVideo" id="1590566800%2FFunctions%2F794302154" data-filterable-set=":library:dokkaHtmlPartial/release"></a>
+          <div class="table-row" data-filterable-current=":library:dokkaHtmlPartial/release" data-filterable-set=":library:dokkaHtmlPartial/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="set-only-video.html"><span>set</span><wbr><span>Only</span><wbr><span><span>Video</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1590566800%2FFunctions%2F794302154"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":library:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">fun </span><a href="set-only-video.html"><span class="token function">setOnlyVideo</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">onlyVideo<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-boolean/index.html">Boolean</a></span></span><span class="token punctuation">)</span></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1628129524%2FFunctions%2F794302154" anchor-label="setProfileIop" id="-1628129524%2FFunctions%2F794302154" data-filterable-set=":library:dokkaHtmlPartial/release"></a>
+          <div class="table-row" data-filterable-current=":library:dokkaHtmlPartial/release" data-filterable-set=":library:dokkaHtmlPartial/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="set-profile-iop.html"><span>set</span><wbr><span>Profile</span><wbr><span><span>Iop</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1628129524%2FFunctions%2F794302154"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":library:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword"></span><span class="token keyword">fun </span><a href="set-profile-iop.html"><span class="token function">setProfileIop</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">profileIop<span class="token operator">: </span><a href="../../../rtmp/com.pedro.rtmp.flv.video/-profile-iop/index.html">ProfileIop</a><span class="token operator">?</span></span></span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">H264 profile.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-983957934%2FFunctions%2F794302154" anchor-label="setReTries" id="-983957934%2FFunctions%2F794302154" data-filterable-set=":library:dokkaHtmlPartial/release"></a>
+          <div class="table-row" data-filterable-current=":library:dokkaHtmlPartial/release" data-filterable-set=":library:dokkaHtmlPartial/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="set-re-tries.html"><span>set</span><wbr><span>Re</span><wbr><span><span>Tries</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-983957934%2FFunctions%2F794302154"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":library:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">fun </span><a href="set-re-tries.html"><span class="token function">setReTries</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">reTries<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-int/index.html">Int</a></span></span><span class="token punctuation">)</span></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="728612111%2FFunctions%2F794302154" anchor-label="setWriteChunkSize" id="728612111%2FFunctions%2F794302154" data-filterable-set=":library:dokkaHtmlPartial/release"></a>
+          <div class="table-row" data-filterable-current=":library:dokkaHtmlPartial/release" data-filterable-set=":library:dokkaHtmlPartial/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="set-write-chunk-size.html"><span>set</span><wbr><span>Write</span><wbr><span>Chunk</span><wbr><span><span>Size</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="728612111%2FFunctions%2F794302154"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":library:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword"></span><span class="token keyword">fun </span><a href="set-write-chunk-size.html"><span class="token function">setWriteChunkSize</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">chunkSize<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-int/index.html">Int</a></span></span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Must be called before start stream or will be ignored.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      <div class="footer">
+        <span class="go-to-top-icon"><a href="#content" id="go-to-top-link"></a></span><span>© 2023 Copyright</span><span class="pull-right"><span>Generated by </span><a href="https://github.com/Kotlin/dokka"><span>dokka</span><span class="padded-icon"></span></a></span>
+      </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
+

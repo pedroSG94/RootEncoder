@@ -11,6 +11,7 @@ com.pedro.encoder.input.gl.render
 com.pedro.encoder.input.gl.render.filters
 com.pedro.encoder.input.gl.render.filters.object
 com.pedro.encoder.input.video
+com.pedro.encoder.input.video.facedetector
 com.pedro.encoder.utils
 com.pedro.encoder.utils.gl
 com.pedro.encoder.utils.gl.gif
@@ -26,6 +27,7 @@ com.pedro.library.rtsp
 com.pedro.library.srt
 com.pedro.library.util
 com.pedro.library.util.sources
+com.pedro.library.util.streamclient
 com.pedro.library.view
 module:rtmp
 com.pedro.rtmp.amf
