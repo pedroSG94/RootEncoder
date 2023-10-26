@@ -22,6 +22,7 @@ import android.opengl.GLES11Ext;
 import android.opengl.GLES20;
 import android.opengl.Matrix;
 import android.os.Build;
+import android.util.Log;
 import android.view.Surface;
 
 import androidx.annotation.RequiresApi;
@@ -40,9 +41,11 @@ import java.nio.ByteOrder;
 @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
 public class CameraRender extends BaseRenderOffScreen {
 
-  private int[] textureID = new int[1];
-  private float[] rotationMatrix = new float[16];
-  private float[] scaleMatrix = new float[16];
+  private final String TAG = "CameraRender";
+
+  private final int[] textureID = new int[1];
+  private final float[] rotationMatrix = new float[16];
+  private final float[] scaleMatrix = new float[16];
 
   private int program = -1;
   private int uMVPMatrixHandle = -1;
@@ -131,7 +134,12 @@ public class CameraRender extends BaseRenderOffScreen {
   }
 
   public void updateTexImage() {
-    surfaceTexture.updateTexImage();
+    try {
+      //runtime error could be ignored
+      surfaceTexture.updateTexImage();
+    } catch (RuntimeException e) {
+      Log.e(TAG, "error", e);
+    }
   }
 
   public SurfaceTexture getSurfaceTexture() {
