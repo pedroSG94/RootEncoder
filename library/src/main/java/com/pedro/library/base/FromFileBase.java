@@ -485,8 +485,8 @@ public abstract class FromFileBase {
    * @param loopMode true in loop, false stop stream when video finish.
    */
   public void setLoopMode(boolean loopMode) {
-    if (videoEnabled) videoDecoder.setLoopMode(loopMode);
-    if (audioEnabled) audioDecoder.setLoopMode(loopMode);
+    videoDecoder.setLoopMode(loopMode);
+    audioDecoder.setLoopMode(loopMode);
   }
 
   public void reSyncFile() {

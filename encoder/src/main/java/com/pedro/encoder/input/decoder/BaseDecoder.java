@@ -255,13 +255,17 @@ public abstract class BaseDecoder {
           } else {
             input = codec.getInputBuffers()[inIndex];
           }
+          if (input == null) continue;
           sampleSize = extractor.readSampleData(input, 0);
 
           long ts = System.nanoTime() / 1000 - startTs;
           long extractorTs = extractor.getSampleTime();
           accumulativeTs += extractorTs - lastExtractorTs;
           lastExtractorTs = extractor.getSampleTime();
-          if (accumulativeTs > ts) sleepTime = accumulativeTs - ts;
+
+          if (accumulativeTs > ts) sleepTime = (accumulativeTs - ts) / 1000;
+          else sleepTime = 0;
+
           if (sampleSize < 0) {
             if (!loopMode) {
               codec.queueInputBuffer(inIndex, 0, 0, 0, MediaCodec.BUFFER_FLAG_END_OF_STREAM);
@@ -273,7 +277,7 @@ public abstract class BaseDecoder {
         }
         int outIndex = codec.dequeueOutputBuffer(bufferInfo, 10000);
         if (outIndex >= 0) {
-          if (!sleep(sleepTime / 1000)) return;
+          if (!sleep(sleepTime)) return;
           ByteBuffer output;
           if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             output = codec.getOutputBuffer(outIndex);
