@@ -17,8 +17,6 @@
 package com.pedro.rtmp.utils.socket
 
 import com.pedro.rtmp.utils.TLSSocketFactory
-import java.io.BufferedInputStream
-import java.io.BufferedOutputStream
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import java.io.IOException

@@ -1,7 +1,6 @@
 package com.pedro.encoder
 
 import android.media.MediaCodec
-import java.lang.IllegalStateException
 
 /**
  * Created by pedro on 18/9/23.

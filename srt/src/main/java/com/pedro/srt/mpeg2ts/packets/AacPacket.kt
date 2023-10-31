@@ -23,7 +23,6 @@ import com.pedro.srt.mpeg2ts.Pes
 import com.pedro.srt.mpeg2ts.PesType
 import com.pedro.srt.mpeg2ts.psi.PsiManager
 import com.pedro.srt.srt.packets.data.PacketPosition
-import com.pedro.srt.utils.toInt
 import java.nio.ByteBuffer
 
 /**
