@@ -51,6 +51,7 @@ public class RtspDisplay extends DisplayBase {
     streamClient = new RtspStreamClient(rtspClient, streamClientListener);
   }
 
+  @Override
   public RtspStreamClient getStreamClient() {
     return streamClient;
   }

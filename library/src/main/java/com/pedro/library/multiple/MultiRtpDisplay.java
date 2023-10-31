@@ -24,6 +24,7 @@ import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 
 import com.pedro.library.base.DisplayBase;
+import com.pedro.library.util.streamclient.StreamBaseClient;
 import com.pedro.rtmp.flv.video.ProfileIop;
 import com.pedro.rtmp.rtmp.RtmpClient;
 import com.pedro.rtmp.utils.ConnectCheckerRtmp;
@@ -367,6 +368,11 @@ public class MultiRtpDisplay extends DisplayBase {
     for (RtspClient rtspClient : rtspClients) {
       rtspClient.sendVideo(h264Buffer.duplicate(), info);
     }
+  }
+
+  @Override
+  public StreamBaseClient getStreamClient() {
+    return null;
   }
 
   public void setLogs(boolean enable) {

@@ -34,7 +34,7 @@ class RtspStream(
       requestKeyframe()
     }
   }
-  val streamClient = RtspStreamClient(rtspClient, streamClientListener)
+  override fun getStreamClient(): RtspStreamClient = RtspStreamClient(rtspClient, streamClientListener)
 
   constructor(context: Context, connectCheckerRtsp: ConnectCheckerRtsp):
       this(context, connectCheckerRtsp, VideoManager.Source.CAMERA2, AudioManager.Source.MICROPHONE)

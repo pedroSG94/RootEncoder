@@ -58,6 +58,7 @@ class StreamService: Service(), ConnectCheckerRtmp {
     }
     keepAliveTrick()
     rtmpCamera = RtmpStream(applicationContext, this)
+
     sensorRotationManager = SensorRotationManager(applicationContext) {
       //0 = portrait, 90 = landscape, 180 = reverse portrait, 270 = reverse landscape
       if (currentOrientation != it) {

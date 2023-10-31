@@ -43,6 +43,7 @@ public class RtspOnlyAudio extends OnlyAudioBase {
     streamClient = new RtspStreamClient(rtspClient, null);
   }
 
+  @Override
   public RtspStreamClient getStreamClient() {
     return streamClient;
   }

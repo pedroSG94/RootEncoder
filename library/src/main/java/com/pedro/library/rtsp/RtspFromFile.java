@@ -77,6 +77,7 @@ public class RtspFromFile extends FromFileBase {
     streamClient = new RtspStreamClient(rtspClient, streamClientListener);
   }
 
+  @Override
   public RtspStreamClient getStreamClient() {
     return streamClient;
   }

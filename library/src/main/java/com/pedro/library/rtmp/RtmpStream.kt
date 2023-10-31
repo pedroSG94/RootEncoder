@@ -34,7 +34,7 @@ class RtmpStream(
       requestKeyframe()
     }
   }
-  val streamClient = RtmpStreamClient(rtmpClient, streamClientListener)
+  override fun getStreamClient(): RtmpStreamClient = RtmpStreamClient(rtmpClient, streamClientListener)
 
   constructor(context: Context, connectCheckerRtmp: ConnectCheckerRtmp):
       this(context, connectCheckerRtmp, VideoManager.Source.CAMERA2, AudioManager.Source.MICROPHONE)

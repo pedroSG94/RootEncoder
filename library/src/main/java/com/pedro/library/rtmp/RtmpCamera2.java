@@ -91,6 +91,7 @@ public class RtmpCamera2 extends Camera2Base {
     streamClient = new RtmpStreamClient(rtmpClient, streamClientListener);
   }
 
+  @Override
   public RtmpStreamClient getStreamClient() {
     return streamClient;
   }

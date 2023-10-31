@@ -26,6 +26,7 @@ import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 
 import com.pedro.library.base.Camera2Base;
+import com.pedro.library.util.streamclient.StreamBaseClient;
 import com.pedro.library.view.LightOpenGlView;
 import com.pedro.library.view.OpenGlView;
 import com.pedro.rtmp.flv.video.ProfileIop;
@@ -441,6 +442,11 @@ public class MultiRtpCamera2 extends Camera2Base {
     for (RtspClient rtspClient: rtspClients) {
       rtspClient.sendVideo(h264Buffer.duplicate(), info);
     }
+  }
+
+  @Override
+  public StreamBaseClient getStreamClient() {
+    return null;
   }
 
   public void setLogs(boolean enable) {

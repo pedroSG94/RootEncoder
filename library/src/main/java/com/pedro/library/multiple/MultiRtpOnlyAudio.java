@@ -21,6 +21,7 @@ import android.media.MediaCodec;
 import androidx.annotation.Nullable;
 
 import com.pedro.library.base.OnlyAudioBase;
+import com.pedro.library.util.streamclient.StreamBaseClient;
 import com.pedro.rtmp.flv.video.ProfileIop;
 import com.pedro.rtmp.rtmp.RtmpClient;
 import com.pedro.rtmp.utils.ConnectCheckerRtmp;
@@ -343,6 +344,11 @@ public class MultiRtpOnlyAudio extends OnlyAudioBase {
     for (RtspClient rtspClient: rtspClients) {
       rtspClient.sendAudio(aacBuffer.duplicate(), info);
     }
+  }
+
+  @Override
+  public StreamBaseClient getStreamClient() {
+    return null;
   }
 
   public void setLogs(boolean enable) {

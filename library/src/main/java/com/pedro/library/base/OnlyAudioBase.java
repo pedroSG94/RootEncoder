@@ -36,6 +36,7 @@ import com.pedro.encoder.input.audio.MicrophoneMode;
 import com.pedro.library.base.recording.BaseRecordController;
 import com.pedro.library.base.recording.RecordController;
 import com.pedro.library.util.AacMuxerRecordController;
+import com.pedro.library.util.streamclient.StreamBaseClient;
 
 import java.io.FileDescriptor;
 import java.io.IOException;
@@ -325,4 +326,6 @@ public abstract class OnlyAudioBase {
       recordController.setAudioFormat(mediaFormat, true);
     }
   };
+
+  public abstract StreamBaseClient getStreamClient();
 }

@@ -55,6 +55,8 @@ import com.pedro.library.base.recording.BaseRecordController;
 import com.pedro.library.base.recording.RecordController;
 import com.pedro.library.util.AndroidMuxerRecordController;
 import com.pedro.library.util.FpsListener;
+import com.pedro.library.util.streamclient.RtmpStreamClient;
+import com.pedro.library.util.streamclient.StreamBaseClient;
 import com.pedro.library.view.GlInterface;
 import com.pedro.library.view.LightOpenGlView;
 import com.pedro.library.view.OffScreenGlThread;
@@ -1005,4 +1007,6 @@ public abstract class Camera1Base {
       recordController.setVideoFormat(mediaFormat, !audioInitialized);
     }
   };
+
+  public abstract StreamBaseClient getStreamClient();
 }

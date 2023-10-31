@@ -84,6 +84,7 @@ public class SrtFromFile extends FromFileBase {
     srtClient.setVideoCodec(videoCodec);
   }
 
+  @Override
   public SrtStreamClient getStreamClient() {
     return streamClient;
   }

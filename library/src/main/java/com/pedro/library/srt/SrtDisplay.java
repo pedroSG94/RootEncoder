@@ -58,6 +58,7 @@ public class SrtDisplay extends DisplayBase {
     srtClient.setVideoCodec(videoCodec);
   }
 
+  @Override
   public SrtStreamClient getStreamClient() {
     return streamClient;
   }

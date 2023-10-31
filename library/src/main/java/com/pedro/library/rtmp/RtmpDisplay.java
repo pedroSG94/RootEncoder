@@ -51,6 +51,7 @@ public class RtmpDisplay extends DisplayBase {
     streamClient = new RtmpStreamClient(rtmpClient, streamClientListener);
   }
 
+  @Override
   public RtmpStreamClient getStreamClient() {
     return streamClient;
   }

@@ -50,7 +50,7 @@ class SrtStream(
       requestKeyframe()
     }
   }
-  val streamClient = SrtStreamClient(srtClient, streamClientListener)
+  override fun getStreamClient(): SrtStreamClient = SrtStreamClient(srtClient, streamClientListener)
 
   constructor(context: Context, connectCheckerRtmp: ConnectCheckerSrt):
       this(context, connectCheckerRtmp, VideoManager.Source.CAMERA2, AudioManager.Source.MICROPHONE)

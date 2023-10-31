@@ -77,6 +77,7 @@ public class RtmpFromFile extends FromFileBase {
     streamClient = new RtmpStreamClient(rtmpClient, streamClientListener);
   }
 
+  @Override
   public RtmpStreamClient getStreamClient() {
     return streamClient;
   }

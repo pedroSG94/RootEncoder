@@ -91,6 +91,7 @@ public class RtspCamera2 extends Camera2Base {
     streamClient = new RtspStreamClient(rtspClient, streamClientListener);
   }
 
+  @Override
   public RtspStreamClient getStreamClient() {
     return streamClient;
   }

@@ -43,6 +43,7 @@ public class RtmpOnlyAudio extends OnlyAudioBase {
     streamClient = new RtmpStreamClient(rtmpClient, null);
   }
 
+  @Override
   public RtmpStreamClient getStreamClient() {
     return streamClient;
   }

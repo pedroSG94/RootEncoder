@@ -43,6 +43,7 @@ public class SrtOnlyAudio extends OnlyAudioBase {
     streamClient = new SrtStreamClient(srtClient, null);
   }
 
+  @Override
   public SrtStreamClient getStreamClient() {
     return streamClient;
   }

@@ -82,6 +82,7 @@ public class SrtCamera1 extends Camera1Base {
     streamClient = new SrtStreamClient(srtClient, streamClientListener);
   }
 
+  @Override
   public SrtStreamClient getStreamClient() {
     return streamClient;
   }
