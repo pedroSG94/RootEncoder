@@ -19,12 +19,14 @@ import com.pedro.encoder.audio.AudioEncoder
 import com.pedro.encoder.audio.GetAacData
 import com.pedro.encoder.input.audio.GetMicrophoneData
 import com.pedro.encoder.input.video.CameraHelper
+import com.pedro.encoder.utils.CodecUtil
 import com.pedro.encoder.video.FormatVideoEncoder
 import com.pedro.encoder.video.GetVideoData
 import com.pedro.encoder.video.VideoEncoder
 import com.pedro.library.base.recording.BaseRecordController
 import com.pedro.library.base.recording.RecordController
 import com.pedro.library.util.AndroidMuxerRecordController
+import com.pedro.library.util.VideoCodec
 import com.pedro.library.util.sources.AudioManager
 import com.pedro.library.util.sources.VideoManager
 import com.pedro.library.util.streamclient.StreamBaseClient
@@ -543,4 +545,14 @@ abstract class StreamBase(
   protected abstract fun getAacDataRtp(aacBuffer: ByteBuffer, info: MediaCodec.BufferInfo)
 
   abstract fun getStreamClient(): StreamBaseClient
+
+  fun setVideoCodec(codec: VideoCodec) {
+    recordController.setVideoMime(
+      if (codec === VideoCodec.H265) CodecUtil.H265_MIME else CodecUtil.H264_MIME
+    )
+    videoEncoder.type = if (codec === VideoCodec.H265) CodecUtil.H265_MIME else CodecUtil.H264_MIME
+    setVideoCodecImp(codec)
+  }
+
+  protected abstract fun setVideoCodecImp(codec: VideoCodec)
 }

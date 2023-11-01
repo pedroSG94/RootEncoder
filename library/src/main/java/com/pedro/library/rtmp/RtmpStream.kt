@@ -4,14 +4,13 @@ import android.content.Context
 import android.media.MediaCodec
 import android.os.Build
 import androidx.annotation.RequiresApi
-import com.pedro.encoder.utils.CodecUtil
 import com.pedro.library.base.StreamBase
+import com.pedro.library.util.VideoCodec
 import com.pedro.library.util.sources.AudioManager
 import com.pedro.library.util.sources.VideoManager
 import com.pedro.library.util.streamclient.RtmpStreamClient
 import com.pedro.library.util.streamclient.StreamClientListener
 import com.pedro.rtmp.rtmp.RtmpClient
-import com.pedro.rtmp.rtmp.VideoCodec
 import com.pedro.rtmp.utils.ConnectCheckerRtmp
 import java.nio.ByteBuffer
 
@@ -39,10 +38,8 @@ class RtmpStream(
   constructor(context: Context, connectCheckerRtmp: ConnectCheckerRtmp):
       this(context, connectCheckerRtmp, VideoManager.Source.CAMERA2, AudioManager.Source.MICROPHONE)
 
-  fun setVideoCodec(videoCodec: VideoCodec) {
-    val mime = if (videoCodec === VideoCodec.H265) CodecUtil.H265_MIME else CodecUtil.H264_MIME
-    super.setVideoMime(mime)
-    rtmpClient.setVideoCodec(videoCodec)
+  override fun setVideoCodecImp(codec: VideoCodec) {
+    rtmpClient.setVideoCodec(if (codec === VideoCodec.H264) com.pedro.rtmp.rtmp.VideoCodec.H264 else com.pedro.rtmp.rtmp.VideoCodec.H265)
   }
 
   override fun audioInfo(sampleRate: Int, isStereo: Boolean) {

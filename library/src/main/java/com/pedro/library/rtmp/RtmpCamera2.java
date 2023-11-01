@@ -24,14 +24,13 @@ import android.view.TextureView;
 
 import androidx.annotation.RequiresApi;
 
-import com.pedro.encoder.utils.CodecUtil;
 import com.pedro.library.base.Camera2Base;
+import com.pedro.library.util.VideoCodec;
 import com.pedro.library.util.streamclient.RtmpStreamClient;
 import com.pedro.library.util.streamclient.StreamClientListener;
 import com.pedro.library.view.LightOpenGlView;
 import com.pedro.library.view.OpenGlView;
 import com.pedro.rtmp.rtmp.RtmpClient;
-import com.pedro.rtmp.rtmp.VideoCodec;
 import com.pedro.rtmp.utils.ConnectCheckerRtmp;
 
 import java.nio.ByteBuffer;
@@ -96,11 +95,9 @@ public class RtmpCamera2 extends Camera2Base {
     return streamClient;
   }
 
-  public void setVideoCodec(VideoCodec videoCodec) {
-    recordController.setVideoMime(
-            videoCodec == VideoCodec.H265 ? CodecUtil.H265_MIME : CodecUtil.H264_MIME);
-    videoEncoder.setType(videoCodec == VideoCodec.H265 ? CodecUtil.H265_MIME : CodecUtil.H264_MIME);
-    rtmpClient.setVideoCodec(videoCodec);
+  @Override
+  protected void setVideoCodecImp(VideoCodec codec) {
+    rtmpClient.setVideoCodec(codec == VideoCodec.H264 ? com.pedro.rtmp.rtmp.VideoCodec.H264 : com.pedro.rtmp.rtmp.VideoCodec.H265);
   }
 
   @Override

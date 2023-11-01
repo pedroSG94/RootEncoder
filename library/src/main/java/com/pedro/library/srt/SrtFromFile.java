@@ -24,14 +24,13 @@ import androidx.annotation.RequiresApi;
 
 import com.pedro.encoder.input.decoder.AudioDecoderInterface;
 import com.pedro.encoder.input.decoder.VideoDecoderInterface;
-import com.pedro.encoder.utils.CodecUtil;
 import com.pedro.library.base.FromFileBase;
+import com.pedro.library.util.VideoCodec;
 import com.pedro.library.util.streamclient.SrtStreamClient;
 import com.pedro.library.util.streamclient.StreamClientListener;
 import com.pedro.library.view.LightOpenGlView;
 import com.pedro.library.view.OpenGlView;
 import com.pedro.srt.srt.SrtClient;
-import com.pedro.srt.srt.VideoCodec;
 import com.pedro.srt.utils.ConnectCheckerSrt;
 
 import java.nio.ByteBuffer;
@@ -77,11 +76,9 @@ public class SrtFromFile extends FromFileBase {
     streamClient = new SrtStreamClient(srtClient, streamClientListener);
   }
 
-  public void setVideoCodec(VideoCodec videoCodec) {
-    recordController.setVideoMime(
-            videoCodec == VideoCodec.H265 ? CodecUtil.H265_MIME : CodecUtil.H264_MIME);
-    videoEncoder.setType(videoCodec == VideoCodec.H265 ? CodecUtil.H265_MIME : CodecUtil.H264_MIME);
-    srtClient.setVideoCodec(videoCodec);
+  @Override
+  protected void setVideoCodecImp(VideoCodec codec) {
+    srtClient.setVideoCodec(codec == VideoCodec.H264 ? com.pedro.srt.srt.VideoCodec.H264 : com.pedro.srt.srt.VideoCodec.H265);
   }
 
   @Override

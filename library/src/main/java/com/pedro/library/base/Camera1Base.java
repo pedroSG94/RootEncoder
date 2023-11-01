@@ -55,7 +55,7 @@ import com.pedro.library.base.recording.BaseRecordController;
 import com.pedro.library.base.recording.RecordController;
 import com.pedro.library.util.AndroidMuxerRecordController;
 import com.pedro.library.util.FpsListener;
-import com.pedro.library.util.streamclient.RtmpStreamClient;
+import com.pedro.library.util.VideoCodec;
 import com.pedro.library.util.streamclient.StreamBaseClient;
 import com.pedro.library.view.GlInterface;
 import com.pedro.library.view.LightOpenGlView;
@@ -1009,4 +1009,13 @@ public abstract class Camera1Base {
   };
 
   public abstract StreamBaseClient getStreamClient();
+
+  public void setVideoCodec(VideoCodec codec) {
+    recordController.setVideoMime(
+        codec == VideoCodec.H265 ? CodecUtil.H265_MIME : CodecUtil.H264_MIME);
+    videoEncoder.setType(codec == VideoCodec.H265 ? CodecUtil.H265_MIME : CodecUtil.H264_MIME);
+    setVideoCodecImp(codec);
+  }
+
+  protected abstract void setVideoCodecImp(VideoCodec codec);
 }

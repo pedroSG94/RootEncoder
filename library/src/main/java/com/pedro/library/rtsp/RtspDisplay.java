@@ -22,12 +22,11 @@ import android.os.Build;
 
 import androidx.annotation.RequiresApi;
 
-import com.pedro.encoder.utils.CodecUtil;
 import com.pedro.library.base.DisplayBase;
+import com.pedro.library.util.VideoCodec;
 import com.pedro.library.util.streamclient.RtspStreamClient;
 import com.pedro.library.util.streamclient.StreamClientListener;
 import com.pedro.rtsp.rtsp.RtspClient;
-import com.pedro.rtsp.rtsp.VideoCodec;
 import com.pedro.rtsp.utils.ConnectCheckerRtsp;
 
 import java.nio.ByteBuffer;
@@ -56,10 +55,9 @@ public class RtspDisplay extends DisplayBase {
     return streamClient;
   }
 
-  public void setVideoCodec(VideoCodec videoCodec) {
-    recordController.setVideoMime(
-        videoCodec == VideoCodec.H265 ? CodecUtil.H265_MIME : CodecUtil.H264_MIME);
-    videoEncoder.setType(videoCodec == VideoCodec.H265 ? CodecUtil.H265_MIME : CodecUtil.H264_MIME);
+  @Override
+  protected void setVideoCodecImp(VideoCodec codec) {
+    rtspClient.setVideoCodec(codec == VideoCodec.H264 ? com.pedro.rtsp.rtsp.VideoCodec.H264 : com.pedro.rtsp.rtsp.VideoCodec.H265);
   }
 
   @Override

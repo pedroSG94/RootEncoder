@@ -20,6 +20,7 @@ import android.util.Base64
 import android.util.Log
 import com.pedro.rtsp.BuildConfig
 import com.pedro.rtsp.rtsp.Protocol
+import com.pedro.rtsp.rtsp.VideoCodec
 import com.pedro.rtsp.rtsp.commands.SdpBody.createAacBody
 import com.pedro.rtsp.rtsp.commands.SdpBody.createH264Body
 import com.pedro.rtsp.rtsp.commands.SdpBody.createH265Body
@@ -59,7 +60,7 @@ open class CommandsManager {
   var videoDisabled = false
   var audioDisabled = false
   private val commandParser = CommandParser()
-
+  private var codec: VideoCodec = VideoCodec.H264
   //For udp
   val audioClientPorts = intArrayOf(5000, 5001)
   val videoClientPorts = intArrayOf(5002, 5003)
@@ -87,10 +88,18 @@ open class CommandsManager {
         / 1000) // NTP timestamp
   }
 
+  fun setCodec(codec: VideoCodec) {
+    this.codec = codec
+  }
+
+  fun videoInfoReady(): Boolean {
+    return sps != null && pps != null && if (codec == VideoCodec.H264) true else vps != null
+  }
+
   fun setVideoInfo(sps: ByteBuffer, pps: ByteBuffer, vps: ByteBuffer?) {
     this.sps = sps.getData()
     this.pps = pps.getData()
-    this.vps = vps?.getData() //H264 has no vps so if not null assume H265
+    this.vps = vps?.getData()
   }
 
   fun setAudioInfo(sampleRate: Int, isStereo: Boolean) {
@@ -138,7 +147,7 @@ open class CommandsManager {
   private fun createBody(): String {
     var videoBody = ""
     if (!videoDisabled) {
-      videoBody = if (vps == null) {
+      videoBody = if (codec == VideoCodec.H264) {
         createH264Body(RtpConstants.trackVideo, spsString, ppsString)
       } else {
         createH265Body(RtpConstants.trackVideo, spsString, ppsString, vpsString)

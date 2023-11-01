@@ -146,6 +146,10 @@ class RtspClient(private val connectCheckerRtsp: ConnectCheckerRtsp) {
     commandsManager.setAudioInfo(sampleRate, isStereo)
   }
 
+  fun setVideoCodec(codec: VideoCodec) {
+    commandsManager.setCodec(codec)
+  }
+
   @JvmOverloads
   fun connect(url: String?, isRetry: Boolean = false) {
     if (!isRetry) doingRetry = true
@@ -188,12 +192,12 @@ class RtspClient(private val connectCheckerRtsp: ConnectCheckerRtsp) {
             rtspSender.setAudioInfo(commandsManager.sampleRate)
           }
           if (!commandsManager.videoDisabled) {
-            if (commandsManager.sps == null || commandsManager.pps == null) {
+            if (!commandsManager.videoInfoReady()) {
               Log.i(TAG, "waiting for sps and pps")
               withTimeoutOrNull(5000) {
                 mutex.lock()
               }
-              if (commandsManager.sps == null || commandsManager.pps == null) {
+              if (!commandsManager.videoInfoReady()) {
                 onMainThread {
                   connectCheckerRtsp.onConnectionFailedRtsp("sps or pps is null")
                 }

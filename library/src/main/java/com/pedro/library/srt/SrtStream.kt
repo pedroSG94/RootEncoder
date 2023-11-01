@@ -20,14 +20,13 @@ import android.content.Context
 import android.media.MediaCodec
 import android.os.Build
 import androidx.annotation.RequiresApi
-import com.pedro.encoder.utils.CodecUtil
 import com.pedro.library.base.StreamBase
+import com.pedro.library.util.VideoCodec
 import com.pedro.library.util.sources.AudioManager
 import com.pedro.library.util.sources.VideoManager
 import com.pedro.library.util.streamclient.SrtStreamClient
 import com.pedro.library.util.streamclient.StreamClientListener
 import com.pedro.srt.srt.SrtClient
-import com.pedro.srt.srt.VideoCodec
 import com.pedro.srt.utils.ConnectCheckerSrt
 import java.nio.ByteBuffer
 
@@ -55,10 +54,8 @@ class SrtStream(
   constructor(context: Context, connectCheckerRtmp: ConnectCheckerSrt):
       this(context, connectCheckerRtmp, VideoManager.Source.CAMERA2, AudioManager.Source.MICROPHONE)
 
-  fun setVideoCodec(videoCodec: VideoCodec) {
-    val mime = if (videoCodec === VideoCodec.H265) CodecUtil.H265_MIME else CodecUtil.H264_MIME
-    super.setVideoMime(mime)
-    srtClient.setVideoCodec(videoCodec)
+  override fun setVideoCodecImp(codec: VideoCodec) {
+    srtClient.setVideoCodec(if (codec === VideoCodec.H264) com.pedro.srt.srt.VideoCodec.H264 else com.pedro.srt.srt.VideoCodec.H265)
   }
 
   override fun audioInfo(sampleRate: Int, isStereo: Boolean) {
