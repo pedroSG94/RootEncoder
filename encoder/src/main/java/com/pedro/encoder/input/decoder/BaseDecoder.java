@@ -229,6 +229,7 @@ public abstract class BaseDecoder {
 
   private void decode() {
     if (startTs == 0) {
+      moveTo(0); //make sure that we are on the start
       startTs = System.nanoTime() / 1000;
     }
     long sleepTime = 0;
@@ -287,13 +288,15 @@ public abstract class BaseDecoder {
           boolean render = decodeOutput(output);
           codec.releaseOutputBuffer(outIndex, render && bufferInfo.size != 0);
           boolean finished = extractor.getSampleTime() < 0;
-          if (finished && loopMode) {
-            moveTo(0);
-            looped = true;
+          if (finished) {
+            if (loopMode) {
+              moveTo(0);
+              looped = true;
+            } else {
+              Log.i(TAG, "end of file");
+              finished();
+            }
           }
-        } else if ((bufferInfo.flags & MediaCodec.BUFFER_FLAG_END_OF_STREAM) != 0 || sampleSize < 0) {
-          Log.i(TAG, "end of file");
-          finished();
         }
       }
     }
