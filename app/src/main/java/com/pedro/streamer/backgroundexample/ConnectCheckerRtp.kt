@@ -18,12 +18,13 @@ package com.pedro.streamer.backgroundexample
 
 import com.pedro.rtmp.utils.ConnectCheckerRtmp
 import com.pedro.rtsp.utils.ConnectCheckerRtsp
+import com.pedro.srt.utils.ConnectCheckerSrt
 
 /**
  * (Only working in kotlin)
  * Mix both connect interfaces to support RTMP and RTSP in service with same code.
  */
-interface ConnectCheckerRtp: ConnectCheckerRtmp, ConnectCheckerRtsp {
+interface ConnectCheckerRtp: ConnectCheckerRtmp, ConnectCheckerRtsp, ConnectCheckerSrt {
 
   /**
    * Commons
@@ -101,6 +102,37 @@ interface ConnectCheckerRtp: ConnectCheckerRtmp, ConnectCheckerRtsp {
   }
 
   override fun onAuthSuccessRtsp() {
+    onAuthSuccessRtp()
+  }
+
+  /**
+   * SRT
+   */
+  override fun onConnectionStartedSrt(srtUrl: String) {
+    onConnectionStartedRtp(srtUrl)
+  }
+
+  override fun onConnectionSuccessSrt() {
+    onConnectionSuccessRtp()
+  }
+
+  override fun onConnectionFailedSrt(reason: String) {
+    onConnectionFailedRtp(reason)
+  }
+
+  override fun onNewBitrateSrt(bitrate: Long) {
+    onNewBitrateRtp(bitrate)
+  }
+
+  override fun onDisconnectSrt() {
+    onDisconnectRtp()
+  }
+
+  override fun onAuthErrorSrt() {
+    onAuthErrorRtp()
+  }
+
+  override fun onAuthSuccessSrt() {
     onAuthSuccessRtp()
   }
 }

@@ -30,6 +30,8 @@ import androidx.core.app.NotificationCompat
 import androidx.lifecycle.MutableLiveData
 import com.pedro.library.base.Camera2Base
 import com.pedro.library.rtmp.RtmpCamera2
+import com.pedro.library.rtsp.RtspCamera2
+import com.pedro.library.srt.SrtCamera2
 import com.pedro.library.view.OpenGlView
 import com.pedro.streamer.R
 
@@ -101,7 +103,14 @@ class RtpService : Service() {
     notificationManager?.notify(notifyId, notification)
   }
 
-  fun prepare(): Boolean {
+  fun prepare(endpoint: String): Boolean {
+    if (endpoint.startsWith("rtmp")) {
+      camera2Base = RtmpCamera2(this, true, connectCheckerRtp)
+    } else if (endpoint.startsWith("rtsp")){
+      camera2Base = RtspCamera2(this, true, connectCheckerRtp)
+    } else {
+      camera2Base = SrtCamera2(this, true, connectCheckerRtp)
+    }
     return camera2Base?.prepareVideo() ?: false && camera2Base?.prepareAudio() ?: false
   }
 

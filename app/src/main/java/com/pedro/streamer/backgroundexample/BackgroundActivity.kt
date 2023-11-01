@@ -44,8 +44,11 @@ class BackgroundActivity : AppCompatActivity(), SurfaceHolder.Callback {
 
     binding.bStartStop.setOnClickListener {
       if (service?.isStreaming() != true) {
-        if (service?.prepare() == true) {
-          service?.startStream(binding.etRtpUrl.text.toString())
+        service?.stopPreview()
+        val endpoint = binding.etRtpUrl.text.toString()
+        if (service?.prepare(endpoint) == true) {
+          startPreview()
+          service?.startStream(endpoint)
           binding.bStartStop.setText(R.string.stop_button)
         }
       } else {
