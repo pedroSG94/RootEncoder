@@ -84,8 +84,9 @@
       android:layout_width="wrap_content"
       android:layout_height="wrap_content"
       android:id="@+id/tv_file"
-      android:layout_above="@+id/b_select_file"
-      android:layout_centerHorizontal="true"
+      app:layout_constraintBottom_toTopOf="@id/b_select_file"
+      app:layout_constraintLeft_toLeftOf="parent"
+      app:layout_constraintRight_toRightOf="parent"
       android:textColor="@color/appColor"
       android:layout_margin="10dp"
       />
