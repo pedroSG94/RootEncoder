@@ -68,7 +68,7 @@ public class VideoDecoder extends BaseDecoder {
   }
 
   @Override
-  protected boolean decodeOutput(ByteBuffer outputBuffer) {
+  protected boolean decodeOutput(ByteBuffer outputBuffer, long timeStamp) {
     return true;
   }
 
