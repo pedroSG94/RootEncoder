@@ -84,11 +84,12 @@ abstract class StreamBase(
    */
   @JvmOverloads
   fun prepareVideo(width: Int, height: Int, bitrate: Int, fps: Int = 30, iFrameInterval: Int = 2,
-    avcProfile: Int = -1, avcProfileLevel: Int = -1): Boolean {
+    rotation: Int = 0, avcProfile: Int = -1, avcProfileLevel: Int = -1): Boolean {
     val videoResult = videoManager.createVideoManager(width, height, fps)
     if (videoResult) {
-      glInterface.setEncoderSize(width, height)
-      return videoEncoder.prepareVideoEncoder(width, height, fps, bitrate, 0,
+      if (rotation == 90 || rotation == 270) glInterface.setEncoderSize(height, width)
+      else glInterface.setEncoderSize(width, height) //0, 180
+      return videoEncoder.prepareVideoEncoder(width, height, fps, bitrate, rotation,
         iFrameInterval, FormatVideoEncoder.SURFACE, avcProfile, avcProfileLevel)
     }
     return videoResult
