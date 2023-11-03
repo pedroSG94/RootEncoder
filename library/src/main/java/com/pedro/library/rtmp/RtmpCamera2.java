@@ -24,6 +24,7 @@ import android.view.TextureView;
 
 import androidx.annotation.RequiresApi;
 
+import com.pedro.common.ConnectChecker;
 import com.pedro.library.base.Camera2Base;
 import com.pedro.library.util.VideoCodec;
 import com.pedro.library.util.streamclient.RtmpStreamClient;
@@ -31,7 +32,6 @@ import com.pedro.library.util.streamclient.StreamClientListener;
 import com.pedro.library.view.LightOpenGlView;
 import com.pedro.library.view.OpenGlView;
 import com.pedro.rtmp.rtmp.RtmpClient;
-import com.pedro.rtmp.utils.ConnectCheckerRtmp;
 
 import java.nio.ByteBuffer;
 
@@ -54,7 +54,7 @@ public class RtmpCamera2 extends Camera2Base {
    * instead.
    */
   @Deprecated
-  public RtmpCamera2(SurfaceView surfaceView, ConnectCheckerRtmp connectChecker) {
+  public RtmpCamera2(SurfaceView surfaceView, ConnectChecker connectChecker) {
     super(surfaceView);
     rtmpClient = new RtmpClient(connectChecker);
     streamClient = new RtmpStreamClient(rtmpClient, streamClientListener);
@@ -66,25 +66,25 @@ public class RtmpCamera2 extends Camera2Base {
    * instead.
    */
   @Deprecated
-  public RtmpCamera2(TextureView textureView, ConnectCheckerRtmp connectChecker) {
+  public RtmpCamera2(TextureView textureView, ConnectChecker connectChecker) {
     super(textureView);
     rtmpClient = new RtmpClient(connectChecker);
     streamClient = new RtmpStreamClient(rtmpClient, streamClientListener);
   }
 
-  public RtmpCamera2(OpenGlView openGlView, ConnectCheckerRtmp connectChecker) {
+  public RtmpCamera2(OpenGlView openGlView, ConnectChecker connectChecker) {
     super(openGlView);
     rtmpClient = new RtmpClient(connectChecker);
     streamClient = new RtmpStreamClient(rtmpClient, streamClientListener);
   }
 
-  public RtmpCamera2(LightOpenGlView lightOpenGlView, ConnectCheckerRtmp connectChecker) {
+  public RtmpCamera2(LightOpenGlView lightOpenGlView, ConnectChecker connectChecker) {
     super(lightOpenGlView);
     rtmpClient = new RtmpClient(connectChecker);
     streamClient = new RtmpStreamClient(rtmpClient, streamClientListener);
   }
 
-  public RtmpCamera2(Context context, boolean useOpengl, ConnectCheckerRtmp connectChecker) {
+  public RtmpCamera2(Context context, boolean useOpengl, ConnectChecker connectChecker) {
     super(context, useOpengl);
     rtmpClient = new RtmpClient(connectChecker);
     streamClient = new RtmpStreamClient(rtmpClient, streamClientListener);

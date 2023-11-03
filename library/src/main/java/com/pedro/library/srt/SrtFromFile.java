@@ -22,6 +22,7 @@ import android.os.Build;
 
 import androidx.annotation.RequiresApi;
 
+import com.pedro.common.ConnectChecker;
 import com.pedro.encoder.input.decoder.AudioDecoderInterface;
 import com.pedro.encoder.input.decoder.VideoDecoderInterface;
 import com.pedro.library.base.FromFileBase;
@@ -31,7 +32,6 @@ import com.pedro.library.util.streamclient.StreamClientListener;
 import com.pedro.library.view.LightOpenGlView;
 import com.pedro.library.view.OpenGlView;
 import com.pedro.srt.srt.SrtClient;
-import com.pedro.srt.utils.ConnectCheckerSrt;
 
 import java.nio.ByteBuffer;
 
@@ -48,28 +48,28 @@ public class SrtFromFile extends FromFileBase {
   private final SrtStreamClient streamClient;
   private final StreamClientListener streamClientListener = this::requestKeyFrame;
 
-  public SrtFromFile(ConnectCheckerSrt connectChecker,
+  public SrtFromFile(ConnectChecker connectChecker,
                      VideoDecoderInterface videoDecoderInterface, AudioDecoderInterface audioDecoderInterface) {
     super(videoDecoderInterface, audioDecoderInterface);
     srtClient = new SrtClient(connectChecker);
     streamClient = new SrtStreamClient(srtClient, streamClientListener);
   }
 
-  public SrtFromFile(Context context, ConnectCheckerSrt connectChecker,
+  public SrtFromFile(Context context, ConnectChecker connectChecker,
                      VideoDecoderInterface videoDecoderInterface, AudioDecoderInterface audioDecoderInterface) {
     super(context, videoDecoderInterface, audioDecoderInterface);
     srtClient = new SrtClient(connectChecker);
     streamClient = new SrtStreamClient(srtClient, streamClientListener);
   }
 
-  public SrtFromFile(OpenGlView openGlView, ConnectCheckerSrt connectChecker,
+  public SrtFromFile(OpenGlView openGlView, ConnectChecker connectChecker,
                      VideoDecoderInterface videoDecoderInterface, AudioDecoderInterface audioDecoderInterface) {
     super(openGlView, videoDecoderInterface, audioDecoderInterface);
     srtClient = new SrtClient(connectChecker);
     streamClient = new SrtStreamClient(srtClient, streamClientListener);
   }
 
-  public SrtFromFile(LightOpenGlView lightOpenGlView, ConnectCheckerSrt connectChecker,
+  public SrtFromFile(LightOpenGlView lightOpenGlView, ConnectChecker connectChecker,
                      VideoDecoderInterface videoDecoderInterface, AudioDecoderInterface audioDecoderInterface) {
     super(lightOpenGlView, videoDecoderInterface, audioDecoderInterface);
     srtClient = new SrtClient(connectChecker);

@@ -32,8 +32,12 @@ import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
+
+import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
+
+import com.pedro.common.ConnectChecker;
 import com.pedro.encoder.input.gl.SpriteGestureController;
 import com.pedro.encoder.input.gl.render.filters.AnalogTVFilterRender;
 import com.pedro.encoder.input.gl.render.filters.AndroidViewFilterRender;
@@ -80,7 +84,6 @@ import com.pedro.encoder.input.gl.render.filters.object.SurfaceFilterRender;
 import com.pedro.encoder.input.gl.render.filters.object.TextObjectFilterRender;
 import com.pedro.encoder.input.video.CameraOpenException;
 import com.pedro.encoder.utils.gl.TranslateTo;
-import com.pedro.rtmp.utils.ConnectCheckerRtmp;
 import com.pedro.library.rtmp.RtmpCamera1;
 import com.pedro.library.view.OpenGlView;
 import com.pedro.streamer.R;
@@ -99,7 +102,7 @@ import java.util.Locale;
  */
 @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
 public class OpenGlRtmpActivity extends AppCompatActivity
-    implements ConnectCheckerRtmp, View.OnClickListener, SurfaceHolder.Callback,
+    implements ConnectChecker, View.OnClickListener, SurfaceHolder.Callback,
     View.OnTouchListener {
 
   private RtmpCamera1 rtmpCamera1;
@@ -347,16 +350,16 @@ public class OpenGlRtmpActivity extends AppCompatActivity
   }
 
   @Override
-  public void onConnectionStartedRtmp(String rtmpUrl) {
+  public void onConnectionStarted(@NonNull String url) {
   }
 
   @Override
-  public void onConnectionSuccessRtmp() {
+  public void onConnectionSuccess() {
     Toast.makeText(OpenGlRtmpActivity.this, "Connection success", Toast.LENGTH_SHORT).show();
   }
 
   @Override
-  public void onConnectionFailedRtmp(final String reason) {
+  public void onConnectionFailed(@NonNull final String reason) {
     Toast.makeText(OpenGlRtmpActivity.this, "Connection failed. " + reason, Toast.LENGTH_SHORT)
         .show();
     rtmpCamera1.stopStream();
@@ -364,22 +367,22 @@ public class OpenGlRtmpActivity extends AppCompatActivity
   }
 
   @Override
-  public void onNewBitrateRtmp(long bitrate) {
+  public void onNewBitrate(long bitrate) {
 
   }
 
   @Override
-  public void onDisconnectRtmp() {
+  public void onDisconnect() {
     Toast.makeText(OpenGlRtmpActivity.this, "Disconnected", Toast.LENGTH_SHORT).show();
   }
 
   @Override
-  public void onAuthErrorRtmp() {
+  public void onAuthError() {
     Toast.makeText(OpenGlRtmpActivity.this, "Auth error", Toast.LENGTH_SHORT).show();
   }
 
   @Override
-  public void onAuthSuccessRtmp() {
+  public void onAuthSuccess() {
     Toast.makeText(OpenGlRtmpActivity.this, "Auth success", Toast.LENGTH_SHORT).show();
   }
 

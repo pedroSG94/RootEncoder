@@ -14,7 +14,7 @@ import android.view.SurfaceView
 import androidx.annotation.RequiresApi
 import androidx.core.app.NotificationCompat
 import androidx.lifecycle.MutableLiveData
-import com.pedro.rtmp.utils.ConnectCheckerRtmp
+import com.pedro.common.ConnectChecker
 import com.pedro.library.rtmp.RtmpStream
 import com.pedro.library.util.SensorRotationManager
 import com.pedro.library.util.sources.VideoManager
@@ -24,7 +24,7 @@ import com.pedro.streamer.R
  * Created by pedro on 22/3/22.
  */
 @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
-class StreamService: Service(), ConnectCheckerRtmp {
+class StreamService: Service(), ConnectChecker {
 
   companion object {
     private const val TAG = "StreamService"
@@ -166,31 +166,31 @@ class StreamService: Service(), ConnectCheckerRtmp {
     rtmpCamera?.changeAudioSourceInternal(mediaProjection)
   }
 
-  override fun onConnectionStartedRtmp(rtmpUrl: String) {
+  override fun onConnectionStarted(url: String) {
     showNotification("Stream connection started")
   }
 
-  override fun onConnectionSuccessRtmp() {
+  override fun onConnectionSuccess() {
     showNotification("Stream started")
   }
 
-  override fun onNewBitrateRtmp(bitrate: Long) {
+  override fun onNewBitrate(bitrate: Long) {
 
   }
 
-  override fun onConnectionFailedRtmp(reason: String) {
+  override fun onConnectionFailed(reason: String) {
     showNotification("Stream connection failed")
   }
 
-  override fun onDisconnectRtmp() {
+  override fun onDisconnect() {
     showNotification("Stream stopped")
   }
 
-  override fun onAuthErrorRtmp() {
+  override fun onAuthError() {
     showNotification("Stream auth error")
   }
 
-  override fun onAuthSuccessRtmp() {
+  override fun onAuthSuccess() {
     showNotification("Stream auth success")
   }
 }

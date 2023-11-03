@@ -19,6 +19,8 @@ package com.pedro.streamer.texturemodeexample;
 import android.graphics.SurfaceTexture;
 import android.os.Build;
 import android.os.Bundle;
+
+import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 import android.view.TextureView;
@@ -27,8 +29,9 @@ import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
+
+import com.pedro.common.ConnectChecker;
 import com.pedro.encoder.input.video.CameraOpenException;
-import com.pedro.rtmp.utils.ConnectCheckerRtmp;
 import com.pedro.streamer.R;
 import com.pedro.library.rtmp.RtmpCamera2;
 import com.pedro.library.view.AutoFitTextureView;
@@ -47,7 +50,7 @@ import java.util.Locale;
  */
 @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
 public class TextureModeRtmpActivity extends AppCompatActivity
-    implements ConnectCheckerRtmp, View.OnClickListener, TextureView.SurfaceTextureListener {
+    implements ConnectChecker, View.OnClickListener, TextureView.SurfaceTextureListener {
 
   private RtmpCamera2 rtmpCamera2;
   private AutoFitTextureView textureView;
@@ -78,16 +81,16 @@ public class TextureModeRtmpActivity extends AppCompatActivity
   }
 
   @Override
-  public void onConnectionStartedRtmp(String rtmpUrl) {
+  public void onConnectionStarted(@NonNull String url) {
   }
 
   @Override
-  public void onConnectionSuccessRtmp() {
+  public void onConnectionSuccess() {
     Toast.makeText(TextureModeRtmpActivity.this, "Connection success", Toast.LENGTH_SHORT).show();
   }
 
   @Override
-  public void onConnectionFailedRtmp(final String reason) {
+  public void onConnectionFailed(@NonNull final String reason) {
     Toast.makeText(TextureModeRtmpActivity.this, "Connection failed. " + reason,
         Toast.LENGTH_SHORT).show();
     rtmpCamera2.stopStream();
@@ -95,22 +98,22 @@ public class TextureModeRtmpActivity extends AppCompatActivity
   }
 
   @Override
-  public void onNewBitrateRtmp(long bitrate) {
+  public void onNewBitrate(long bitrate) {
 
   }
 
   @Override
-  public void onDisconnectRtmp() {
+  public void onDisconnect() {
     Toast.makeText(TextureModeRtmpActivity.this, "Disconnected", Toast.LENGTH_SHORT).show();
   }
 
   @Override
-  public void onAuthErrorRtmp() {
+  public void onAuthError() {
     Toast.makeText(TextureModeRtmpActivity.this, "Auth error", Toast.LENGTH_SHORT).show();
   }
 
   @Override
-  public void onAuthSuccessRtmp() {
+  public void onAuthSuccess() {
     Toast.makeText(TextureModeRtmpActivity.this, "Auth success", Toast.LENGTH_SHORT).show();
   }
 

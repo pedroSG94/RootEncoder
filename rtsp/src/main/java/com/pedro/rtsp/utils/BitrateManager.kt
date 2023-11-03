@@ -16,12 +16,14 @@
 
 package com.pedro.rtsp.utils
 
+import com.pedro.common.ConnectChecker
+
 /**
  * Created by pedro on 10/07/19.
  *
  * Calculate video and audio bitrate per second
  */
-class BitrateManager(private val connectCheckerRtsp: ConnectCheckerRtsp) {
+class BitrateManager(private val connectChecker: ConnectChecker) {
 
   private var bitrate: Long = 0
   private var timeStamp = TimeUtils.getCurrentTimeMillis()
@@ -31,7 +33,7 @@ class BitrateManager(private val connectCheckerRtsp: ConnectCheckerRtsp) {
     val timeDiff = TimeUtils.getCurrentTimeMillis() - timeStamp
     if (timeDiff >= 1000) {
       onMainThread {
-        connectCheckerRtsp.onNewBitrateRtsp((bitrate / (timeDiff / 1000f)).toLong())
+        connectChecker.onNewBitrate((bitrate / (timeDiff / 1000f)).toLong())
       }
       timeStamp = TimeUtils.getCurrentTimeMillis()
       bitrate = 0

@@ -26,13 +26,14 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.pedro.common.ConnectChecker;
 import com.pedro.encoder.input.video.CameraOpenException;
 import com.pedro.library.srt.SrtCamera1;
 import com.pedro.streamer.R;
 import com.pedro.streamer.utils.PathUtils;
-import com.pedro.srt.utils.ConnectCheckerSrt;
 
 import java.io.File;
 import java.io.IOException;
@@ -46,7 +47,7 @@ import java.util.Locale;
  * {@link com.pedro.library.srt.SrtCamera1}
  */
 public class ExampleSrtActivity extends AppCompatActivity
-        implements ConnectCheckerSrt, View.OnClickListener, SurfaceHolder.Callback {
+        implements ConnectChecker, View.OnClickListener, SurfaceHolder.Callback {
 
   private SrtCamera1 srtCamera1;
   private Button button;
@@ -77,16 +78,16 @@ public class ExampleSrtActivity extends AppCompatActivity
   }
 
   @Override
-  public void onConnectionStartedSrt(String srtUrl) {
+  public void onConnectionStarted(@NonNull String url) {
   }
 
   @Override
-  public void onConnectionSuccessSrt() {
+  public void onConnectionSuccess() {
     Toast.makeText(ExampleSrtActivity.this, "Connection success", Toast.LENGTH_SHORT).show();
   }
 
   @Override
-  public void onConnectionFailedSrt(final String reason) {
+  public void onConnectionFailed(@NonNull final String reason) {
     if (srtCamera1.getStreamClient().reTry(5000, reason, null)) {
       Toast.makeText(ExampleSrtActivity.this, "Retry", Toast.LENGTH_SHORT)
           .show();
@@ -99,24 +100,24 @@ public class ExampleSrtActivity extends AppCompatActivity
   }
 
   @Override
-  public void onNewBitrateSrt(final long bitrate) {
+  public void onNewBitrate(final long bitrate) {
 
   }
 
   @Override
-  public void onDisconnectSrt() {
+  public void onDisconnect() {
     Toast.makeText(ExampleSrtActivity.this, "Disconnected", Toast.LENGTH_SHORT).show();
   }
 
   @Override
-  public void onAuthErrorSrt() {
+  public void onAuthError() {
     Toast.makeText(ExampleSrtActivity.this, "Auth error", Toast.LENGTH_SHORT).show();
     srtCamera1.stopStream();
     button.setText(R.string.start_button);
   }
 
   @Override
-  public void onAuthSuccessSrt() {
+  public void onAuthSuccess() {
     Toast.makeText(ExampleSrtActivity.this, "Auth success", Toast.LENGTH_SHORT).show();
   }
 

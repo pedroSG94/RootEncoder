@@ -26,11 +26,11 @@ import android.os.IBinder
 import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.core.app.NotificationCompat
+import com.pedro.common.ConnectChecker
 import com.pedro.library.base.DisplayBase
 import com.pedro.library.rtmp.RtmpDisplay
 import com.pedro.library.rtsp.RtspDisplay
 import com.pedro.streamer.R
-import com.pedro.streamer.backgroundexample.ConnectCheckerRtp
 
 
 /**
@@ -66,7 +66,7 @@ class DisplayService : Service() {
   override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
     INSTANCE = this
     Log.i(TAG, "RTP Display service started")
-    displayBase = RtmpDisplay(baseContext, true, connectCheckerRtp)
+    displayBase = RtmpDisplay(baseContext, true, connectChecker)
     displayBase?.glInterface?.setForceRender(true)
     return START_STICKY
   }
@@ -100,34 +100,34 @@ class DisplayService : Service() {
     }
   }
 
-  private val connectCheckerRtp = object : ConnectCheckerRtp {
-
-    override fun onConnectionStartedRtp(rtpUrl: String) {
+  private val connectChecker = object : ConnectChecker {
+    override fun onConnectionStarted(url: String) {
+      showNotification("Stream connection started")
     }
 
-    override fun onConnectionSuccessRtp() {
+    override fun onConnectionSuccess() {
       showNotification("Stream started")
-      Log.i(TAG, "RTP service destroy")
+      Log.e(TAG, "RTP service destroy")
     }
 
-    override fun onNewBitrateRtp(bitrate: Long) {
+    override fun onNewBitrate(bitrate: Long) {
 
     }
 
-    override fun onConnectionFailedRtp(reason: String) {
+    override fun onConnectionFailed(reason: String) {
       showNotification("Stream connection failed")
-      Log.i(TAG, "RTP service destroy")
+      Log.e(TAG, "RTP service destroy")
     }
 
-    override fun onDisconnectRtp() {
+    override fun onDisconnect() {
       showNotification("Stream stopped")
     }
 
-    override fun onAuthErrorRtp() {
+    override fun onAuthError() {
       showNotification("Stream auth error")
     }
 
-    override fun onAuthSuccessRtp() {
+    override fun onAuthSuccess() {
       showNotification("Stream auth success")
     }
   }
@@ -153,10 +153,10 @@ class DisplayService : Service() {
     keepAliveTrick()
     stopStream()
     if (endpoint.startsWith("rtmp")) {
-      displayBase = RtmpDisplay(baseContext, true, connectCheckerRtp)
+      displayBase = RtmpDisplay(baseContext, true, connectChecker)
       displayBase?.setIntentResult(resultCode, data)
     } else {
-      displayBase = RtspDisplay(baseContext, true, connectCheckerRtp)
+      displayBase = RtspDisplay(baseContext, true, connectChecker)
       displayBase?.setIntentResult(resultCode, data)
     }
     displayBase?.glInterface?.setForceRender(true)

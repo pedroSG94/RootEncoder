@@ -18,6 +18,7 @@ package com.pedro.srt.srt
 
 import android.media.MediaCodec
 import android.util.Log
+import com.pedro.common.ConnectChecker
 import com.pedro.srt.mpeg2ts.Codec
 import com.pedro.srt.srt.packets.ControlPacket
 import com.pedro.srt.srt.packets.DataPacket
@@ -35,7 +36,6 @@ import com.pedro.srt.srt.packets.control.handshake.Handshake
 import com.pedro.srt.srt.packets.control.handshake.HandshakeType
 import com.pedro.srt.srt.packets.control.handshake.extension.ExtensionContentFlag
 import com.pedro.srt.srt.packets.control.handshake.extension.HandshakeExtension
-import com.pedro.srt.utils.ConnectCheckerSrt
 import com.pedro.srt.utils.SrtSocket
 import com.pedro.srt.utils.onMainThread
 import kotlinx.coroutines.CoroutineScope
@@ -54,13 +54,13 @@ import java.util.regex.Pattern
 /**
  * Created by pedro on 20/8/23.
  */
-class SrtClient(private val connectCheckerSrt: ConnectCheckerSrt) {
+class SrtClient(private val connectChecker: ConnectChecker) {
 
   private val TAG = "SrtClient"
   private val srtUrlPattern = Pattern.compile("^srt://([^/:]+)(?::(\\d+))*/([^/]+)/?([^*]*)$")
 
   private val commandsManager = CommandsManager()
-  private val srtSender = SrtSender(connectCheckerSrt, commandsManager)
+  private val srtSender = SrtSender(connectChecker, commandsManager)
   private var socket: SrtSocket? = null
   private var scope = CoroutineScope(Dispatchers.IO)
   private var job: Job? = null
@@ -141,19 +141,19 @@ class SrtClient(private val connectCheckerSrt: ConnectCheckerSrt) {
         if (url == null) {
           isStreaming = false
           onMainThread {
-            connectCheckerSrt.onConnectionFailedSrt("Endpoint malformed, should be: srt://ip:port/streamid")
+            connectChecker.onConnectionFailed("Endpoint malformed, should be: srt://ip:port/streamid")
           }
           return@launch
         }
         this@SrtClient.url = url
         onMainThread {
-          connectCheckerSrt.onConnectionStartedSrt(url)
+          connectChecker.onConnectionStarted(url)
         }
         val srtMatcher = srtUrlPattern.matcher(url)
         if (!srtMatcher.matches()) {
           isStreaming = false
           onMainThread {
-            connectCheckerSrt.onConnectionFailedSrt("Endpoint malformed, should be: srt://ip:port/streamid")
+            connectChecker.onConnectionFailed("Endpoint malformed, should be: srt://ip:port/streamid")
           }
           return@launch
         }
@@ -183,7 +183,7 @@ class SrtClient(private val connectCheckerSrt: ConnectCheckerSrt) {
           val responseConclusion = commandsManager.readHandshake(socket)
           if (responseConclusion.isErrorType()) {
             onMainThread {
-              connectCheckerSrt.onConnectionFailedSrt("Error configure stream, ${responseConclusion.handshakeType.name}")
+              connectChecker.onConnectionFailed("Error configure stream, ${responseConclusion.handshakeType.name}")
             }
             return@launch
           } else {
@@ -191,7 +191,7 @@ class SrtClient(private val connectCheckerSrt: ConnectCheckerSrt) {
             commandsManager.MTU = responseConclusion.MTU
             commandsManager.sequenceNumber = responseConclusion.initialPacketSequence
             onMainThread {
-              connectCheckerSrt.onConnectionSuccessSrt()
+              connectChecker.onConnectionSuccess()
             }
             srtSender.socket = socket
             srtSender.start()
@@ -201,7 +201,7 @@ class SrtClient(private val connectCheckerSrt: ConnectCheckerSrt) {
         if (error != null) {
           Log.e(TAG, "connection error", error)
           onMainThread {
-            connectCheckerSrt.onConnectionFailedSrt("Error configure stream, ${error.message}")
+            connectChecker.onConnectionFailed("Error configure stream, ${error.message}")
           }
           return@launch
         }
@@ -229,7 +229,7 @@ class SrtClient(private val connectCheckerSrt: ConnectCheckerSrt) {
       doingRetry = false
       isStreaming = false
       onMainThread {
-        connectCheckerSrt.onDisconnectSrt()
+        connectChecker.onDisconnect()
       }
       jobRetry?.cancelAndJoin()
       jobRetry = null
@@ -263,7 +263,7 @@ class SrtClient(private val connectCheckerSrt: ConnectCheckerSrt) {
           handleMessages()
         } else {
           onMainThread {
-            connectCheckerSrt.onConnectionFailedSrt("No response from server")
+            connectChecker.onConnectionFailed("No response from server")
           }
           scope.cancel()
         }
@@ -319,7 +319,7 @@ class SrtClient(private val connectCheckerSrt: ConnectCheckerSrt) {
           }
           is Shutdown -> {
             onMainThread {
-              connectCheckerSrt.onConnectionFailedSrt("Shutdown received from server")
+              connectChecker.onConnectionFailed("Shutdown received from server")
             }
           }
           is Ack2 -> {
@@ -330,7 +330,7 @@ class SrtClient(private val connectCheckerSrt: ConnectCheckerSrt) {
           }
           is PeerError -> {
             val reason = srtPacket.errorCode
-            connectCheckerSrt.onConnectionFailedSrt("PeerError: $reason")
+            connectChecker.onConnectionFailed("PeerError: $reason")
           }
         }
       }

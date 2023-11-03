@@ -18,10 +18,10 @@ package com.pedro.library.rtmp;
 
 import android.media.MediaCodec;
 
+import com.pedro.common.ConnectChecker;
 import com.pedro.library.base.OnlyAudioBase;
 import com.pedro.library.util.streamclient.RtmpStreamClient;
 import com.pedro.rtmp.rtmp.RtmpClient;
-import com.pedro.rtmp.utils.ConnectCheckerRtmp;
 
 import java.nio.ByteBuffer;
 
@@ -36,7 +36,7 @@ public class RtmpOnlyAudio extends OnlyAudioBase {
   private final RtmpClient rtmpClient;
   private final RtmpStreamClient streamClient;
 
-  public RtmpOnlyAudio(ConnectCheckerRtmp connectChecker) {
+  public RtmpOnlyAudio(ConnectChecker connectChecker) {
     super();
     rtmpClient = new RtmpClient(connectChecker);
     rtmpClient.setOnlyAudio(true);

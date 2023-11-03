@@ -22,6 +22,8 @@ import android.graphics.PorterDuff;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+
+import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -33,12 +35,13 @@ import android.widget.EditText;
 import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import com.pedro.common.ConnectChecker;
 import com.pedro.encoder.input.decoder.AudioDecoderInterface;
 import com.pedro.encoder.input.decoder.VideoDecoderInterface;
 import com.pedro.library.rtsp.RtspFromFile;
 import com.pedro.streamer.R;
 import com.pedro.streamer.utils.PathUtils;
-import com.pedro.rtsp.utils.ConnectCheckerRtsp;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -55,7 +58,7 @@ import java.util.Locale;
  */
 @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
 public class RtspFromFileActivity extends AppCompatActivity
-    implements ConnectCheckerRtsp, View.OnClickListener, VideoDecoderInterface,
+    implements ConnectChecker, View.OnClickListener, VideoDecoderInterface,
     AudioDecoderInterface, SeekBar.OnSeekBarChangeListener {
 
   private RtspFromFile rtspFromFile;
@@ -107,16 +110,16 @@ public class RtspFromFileActivity extends AppCompatActivity
   }
 
   @Override
-  public void onConnectionStartedRtsp(@NotNull String rtspUrl) {
+  public void onConnectionStarted(@NotNull String url) {
   }
 
   @Override
-  public void onConnectionSuccessRtsp() {
+  public void onConnectionSuccess() {
     Toast.makeText(RtspFromFileActivity.this, "Connection success", Toast.LENGTH_SHORT).show();
   }
 
   @Override
-  public void onConnectionFailedRtsp(final String reason) {
+  public void onConnectionFailed(@NonNull final String reason) {
     Toast.makeText(RtspFromFileActivity.this, "Connection failed. " + reason,
         Toast.LENGTH_SHORT).show();
     rtspFromFile.stopStream();
@@ -124,22 +127,22 @@ public class RtspFromFileActivity extends AppCompatActivity
   }
 
   @Override
-  public void onNewBitrateRtsp(long bitrate) {
+  public void onNewBitrate(long bitrate) {
 
   }
 
   @Override
-  public void onDisconnectRtsp() {
+  public void onDisconnect() {
     Toast.makeText(RtspFromFileActivity.this, "Disconnected", Toast.LENGTH_SHORT).show();
   }
 
   @Override
-  public void onAuthErrorRtsp() {
+  public void onAuthError() {
     Toast.makeText(RtspFromFileActivity.this, "Auth error", Toast.LENGTH_SHORT).show();
   }
 
   @Override
-  public void onAuthSuccessRtsp() {
+  public void onAuthSuccess() {
     Toast.makeText(RtspFromFileActivity.this, "Auth success", Toast.LENGTH_SHORT).show();
   }
 

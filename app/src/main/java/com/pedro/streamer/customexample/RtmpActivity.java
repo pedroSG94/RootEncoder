@@ -37,6 +37,7 @@ import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.ActionBarDrawerToggle;
 import androidx.appcompat.app.AppCompatActivity;
@@ -44,9 +45,9 @@ import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 
 import com.google.android.material.navigation.NavigationView;
+import com.pedro.common.ConnectChecker;
 import com.pedro.encoder.input.video.CameraHelper;
 import com.pedro.encoder.input.video.CameraOpenException;
-import com.pedro.rtmp.utils.ConnectCheckerRtmp;
 import com.pedro.library.rtmp.RtmpCamera1;
 import com.pedro.streamer.R;
 import com.pedro.streamer.utils.PathUtils;
@@ -65,7 +66,7 @@ import java.util.Locale;
  * {@link com.pedro.library.rtmp.RtmpCamera1}
  */
 public class RtmpActivity extends AppCompatActivity
-    implements Button.OnClickListener, ConnectCheckerRtmp, SurfaceHolder.Callback,
+    implements Button.OnClickListener, ConnectChecker, SurfaceHolder.Callback,
     View.OnTouchListener {
 
   private Integer[] orientations = new Integer[] { 0, 90, 180, 270 };
@@ -315,16 +316,16 @@ public class RtmpActivity extends AppCompatActivity
   }
 
   @Override
-  public void onConnectionStartedRtmp(String rtmpUrl) {
+  public void onConnectionStarted(@NonNull String url) {
   }
 
   @Override
-  public void onConnectionSuccessRtmp() {
+  public void onConnectionSuccess() {
     Toast.makeText(RtmpActivity.this, "Connection success", Toast.LENGTH_SHORT).show();
   }
 
   @Override
-  public void onConnectionFailedRtmp(final String reason) {
+  public void onConnectionFailed(@NonNull final String reason) {
     Toast.makeText(RtmpActivity.this, "Connection failed. " + reason, Toast.LENGTH_SHORT)
         .show();
     rtmpCamera1.stopStream();
@@ -342,12 +343,12 @@ public class RtmpActivity extends AppCompatActivity
   }
 
   @Override
-  public void onNewBitrateRtmp(final long bitrate) {
+  public void onNewBitrate(final long bitrate) {
     tvBitrate.setText(bitrate + " bps");
   }
 
   @Override
-  public void onDisconnectRtmp() {
+  public void onDisconnect() {
     Toast.makeText(RtmpActivity.this, "Disconnected", Toast.LENGTH_SHORT).show();
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2
         && rtmpCamera1.isRecording()) {
@@ -362,12 +363,12 @@ public class RtmpActivity extends AppCompatActivity
   }
 
   @Override
-  public void onAuthErrorRtmp() {
+  public void onAuthError() {
     Toast.makeText(RtmpActivity.this, "Auth error", Toast.LENGTH_SHORT).show();
   }
 
   @Override
-  public void onAuthSuccessRtmp() {
+  public void onAuthSuccess() {
     Toast.makeText(RtmpActivity.this, "Auth success", Toast.LENGTH_SHORT).show();
   }
 

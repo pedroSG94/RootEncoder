@@ -16,12 +16,14 @@
 
 package com.pedro.srt.utils
 
+import com.pedro.common.ConnectChecker
+
 /**
  * Created by pedro on 8/04/21.
  *
  * Calculate video and audio bitrate per second
  */
-open class BitrateManager(private val connectCheckerSrt: ConnectCheckerSrt) {
+open class BitrateManager(private val connectChecker: ConnectChecker) {
 
   private var bitrate: Long = 0
   private var timeStamp = TimeUtils.getCurrentTimeMillis()
@@ -31,7 +33,7 @@ open class BitrateManager(private val connectCheckerSrt: ConnectCheckerSrt) {
     val timeDiff = TimeUtils.getCurrentTimeMillis() - timeStamp
     if (timeDiff >= 1000) {
       onMainThread {
-        connectCheckerSrt.onNewBitrateSrt((bitrate / (timeDiff / 1000f)).toLong())
+        connectChecker.onNewBitrate((bitrate / (timeDiff / 1000f)).toLong())
       }
       timeStamp = TimeUtils.getCurrentTimeMillis()
       bitrate = 0

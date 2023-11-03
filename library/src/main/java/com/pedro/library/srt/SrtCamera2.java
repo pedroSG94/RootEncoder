@@ -24,6 +24,7 @@ import android.view.TextureView;
 
 import androidx.annotation.RequiresApi;
 
+import com.pedro.common.ConnectChecker;
 import com.pedro.library.base.Camera2Base;
 import com.pedro.library.util.VideoCodec;
 import com.pedro.library.util.streamclient.SrtStreamClient;
@@ -31,7 +32,6 @@ import com.pedro.library.util.streamclient.StreamClientListener;
 import com.pedro.library.view.LightOpenGlView;
 import com.pedro.library.view.OpenGlView;
 import com.pedro.srt.srt.SrtClient;
-import com.pedro.srt.utils.ConnectCheckerSrt;
 
 import java.nio.ByteBuffer;
 
@@ -54,7 +54,7 @@ public class SrtCamera2 extends Camera2Base {
    * instead.
    */
   @Deprecated
-  public SrtCamera2(SurfaceView surfaceView, ConnectCheckerSrt connectChecker) {
+  public SrtCamera2(SurfaceView surfaceView, ConnectChecker connectChecker) {
     super(surfaceView);
     srtClient = new SrtClient(connectChecker);
     streamClient = new SrtStreamClient(srtClient, streamClientListener);
@@ -66,25 +66,25 @@ public class SrtCamera2 extends Camera2Base {
    * instead.
    */
   @Deprecated
-  public SrtCamera2(TextureView textureView, ConnectCheckerSrt connectChecker) {
+  public SrtCamera2(TextureView textureView, ConnectChecker connectChecker) {
     super(textureView);
     srtClient = new SrtClient(connectChecker);
     streamClient = new SrtStreamClient(srtClient, streamClientListener);
   }
 
-  public SrtCamera2(OpenGlView openGlView, ConnectCheckerSrt connectChecker) {
+  public SrtCamera2(OpenGlView openGlView, ConnectChecker connectChecker) {
     super(openGlView);
     srtClient = new SrtClient(connectChecker);
     streamClient = new SrtStreamClient(srtClient, streamClientListener);
   }
 
-  public SrtCamera2(LightOpenGlView lightOpenGlView, ConnectCheckerSrt connectChecker) {
+  public SrtCamera2(LightOpenGlView lightOpenGlView, ConnectChecker connectChecker) {
     super(lightOpenGlView);
     srtClient = new SrtClient(connectChecker);
     streamClient = new SrtStreamClient(srtClient, streamClientListener);
   }
 
-  public SrtCamera2(Context context, boolean useOpengl, ConnectCheckerSrt connectChecker) {
+  public SrtCamera2(Context context, boolean useOpengl, ConnectChecker connectChecker) {
     super(context, useOpengl);
     srtClient = new SrtClient(connectChecker);
     streamClient = new SrtStreamClient(srtClient, streamClientListener);

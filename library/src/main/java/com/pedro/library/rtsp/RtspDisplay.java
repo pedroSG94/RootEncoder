@@ -22,12 +22,12 @@ import android.os.Build;
 
 import androidx.annotation.RequiresApi;
 
+import com.pedro.common.ConnectChecker;
 import com.pedro.library.base.DisplayBase;
 import com.pedro.library.util.VideoCodec;
 import com.pedro.library.util.streamclient.RtspStreamClient;
 import com.pedro.library.util.streamclient.StreamClientListener;
 import com.pedro.rtsp.rtsp.RtspClient;
-import com.pedro.rtsp.utils.ConnectCheckerRtsp;
 
 import java.nio.ByteBuffer;
 
@@ -44,9 +44,9 @@ public class RtspDisplay extends DisplayBase {
   private final RtspStreamClient streamClient;
   private final StreamClientListener streamClientListener = this::requestKeyFrame;
 
-  public RtspDisplay(Context context, boolean useOpengl, ConnectCheckerRtsp connectCheckerRtsp) {
+  public RtspDisplay(Context context, boolean useOpengl, ConnectChecker connectChecker) {
     super(context, useOpengl);
-    rtspClient = new RtspClient(connectCheckerRtsp);
+    rtspClient = new RtspClient(connectChecker);
     streamClient = new RtspStreamClient(rtspClient, streamClientListener);
   }
 

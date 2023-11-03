@@ -24,6 +24,7 @@ import android.view.TextureView;
 
 import androidx.annotation.RequiresApi;
 
+import com.pedro.common.ConnectChecker;
 import com.pedro.library.base.Camera1Base;
 import com.pedro.library.util.VideoCodec;
 import com.pedro.library.util.streamclient.RtspStreamClient;
@@ -31,7 +32,6 @@ import com.pedro.library.util.streamclient.StreamClientListener;
 import com.pedro.library.view.LightOpenGlView;
 import com.pedro.library.view.OpenGlView;
 import com.pedro.rtsp.rtsp.RtspClient;
-import com.pedro.rtsp.utils.ConnectCheckerRtsp;
 
 import java.nio.ByteBuffer;
 
@@ -48,36 +48,36 @@ public class RtspCamera1 extends Camera1Base {
   private final RtspStreamClient streamClient;
   private final StreamClientListener streamClientListener = this::requestKeyFrame;
 
-  public RtspCamera1(SurfaceView surfaceView, ConnectCheckerRtsp connectCheckerRtsp) {
+  public RtspCamera1(SurfaceView surfaceView, ConnectChecker connectChecker) {
     super(surfaceView);
-    rtspClient = new RtspClient(connectCheckerRtsp);
+    rtspClient = new RtspClient(connectChecker);
     streamClient = new RtspStreamClient(rtspClient, streamClientListener);
   }
 
-  public RtspCamera1(TextureView textureView, ConnectCheckerRtsp connectCheckerRtsp) {
+  public RtspCamera1(TextureView textureView, ConnectChecker connectChecker) {
     super(textureView);
-    rtspClient = new RtspClient(connectCheckerRtsp);
+    rtspClient = new RtspClient(connectChecker);
     streamClient = new RtspStreamClient(rtspClient, streamClientListener);
   }
 
   @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
-  public RtspCamera1(OpenGlView openGlView, ConnectCheckerRtsp connectCheckerRtsp) {
+  public RtspCamera1(OpenGlView openGlView, ConnectChecker connectChecker) {
     super(openGlView);
-    rtspClient = new RtspClient(connectCheckerRtsp);
+    rtspClient = new RtspClient(connectChecker);
     streamClient = new RtspStreamClient(rtspClient, streamClientListener);
   }
 
   @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
-  public RtspCamera1(LightOpenGlView lightOpenGlView, ConnectCheckerRtsp connectCheckerRtsp) {
+  public RtspCamera1(LightOpenGlView lightOpenGlView, ConnectChecker connectChecker) {
     super(lightOpenGlView);
-    rtspClient = new RtspClient(connectCheckerRtsp);
+    rtspClient = new RtspClient(connectChecker);
     streamClient = new RtspStreamClient(rtspClient, streamClientListener);
   }
 
   @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
-  public RtspCamera1(Context context, ConnectCheckerRtsp connectCheckerRtsp) {
+  public RtspCamera1(Context context, ConnectChecker connectChecker) {
     super(context);
-    rtspClient = new RtspClient(connectCheckerRtsp);
+    rtspClient = new RtspClient(connectChecker);
     streamClient = new RtspStreamClient(rtspClient, streamClientListener);
   }
 

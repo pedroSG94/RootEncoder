@@ -25,10 +25,13 @@ import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
+
+import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
+
+import com.pedro.common.ConnectChecker;
 import com.pedro.encoder.input.video.CameraOpenException;
-import com.pedro.rtmp.utils.ConnectCheckerRtmp;
 import com.pedro.library.rtmp.RtmpCamera2;
 import com.pedro.streamer.R;
 import com.pedro.streamer.utils.PathUtils;
@@ -46,7 +49,7 @@ import java.util.Locale;
  */
 @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
 public class SurfaceModeRtmpActivity extends AppCompatActivity
-    implements ConnectCheckerRtmp, View.OnClickListener, SurfaceHolder.Callback {
+    implements ConnectChecker, View.OnClickListener, SurfaceHolder.Callback {
 
   private RtmpCamera2 rtmpCamera2;
   private Button button;
@@ -77,16 +80,16 @@ public class SurfaceModeRtmpActivity extends AppCompatActivity
   }
 
   @Override
-  public void onConnectionStartedRtmp(String rtmpUrl) {
+  public void onConnectionStarted(@NonNull String url) {
   }
 
   @Override
-  public void onConnectionSuccessRtmp() {
+  public void onConnectionSuccess() {
     Toast.makeText(SurfaceModeRtmpActivity.this, "Connection success", Toast.LENGTH_SHORT).show();
   }
 
   @Override
-  public void onConnectionFailedRtmp(final String reason) {
+  public void onConnectionFailed(@NonNull final String reason) {
     if (rtmpCamera2.getStreamClient().reTry(5000, reason, null)) {
       Toast.makeText(SurfaceModeRtmpActivity.this, "Retry", Toast.LENGTH_SHORT)
           .show();
@@ -98,22 +101,22 @@ public class SurfaceModeRtmpActivity extends AppCompatActivity
   }
 
   @Override
-  public void onNewBitrateRtmp(long bitrate) {
+  public void onNewBitrate(long bitrate) {
 
   }
 
   @Override
-  public void onDisconnectRtmp() {
+  public void onDisconnect() {
     Toast.makeText(SurfaceModeRtmpActivity.this, "Disconnected", Toast.LENGTH_SHORT).show();
   }
 
   @Override
-  public void onAuthErrorRtmp() {
+  public void onAuthError() {
     Toast.makeText(SurfaceModeRtmpActivity.this, "Auth error", Toast.LENGTH_SHORT).show();
   }
 
   @Override
-  public void onAuthSuccessRtmp() {
+  public void onAuthSuccess() {
     Toast.makeText(SurfaceModeRtmpActivity.this, "Auth success", Toast.LENGTH_SHORT).show();
   }
 

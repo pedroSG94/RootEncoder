@@ -23,14 +23,13 @@ import android.os.Build;
 import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 
+import com.pedro.common.ConnectChecker;
 import com.pedro.library.base.DisplayBase;
 import com.pedro.library.util.VideoCodec;
 import com.pedro.library.util.streamclient.StreamBaseClient;
 import com.pedro.rtmp.flv.video.ProfileIop;
 import com.pedro.rtmp.rtmp.RtmpClient;
-import com.pedro.rtmp.utils.ConnectCheckerRtmp;
 import com.pedro.rtsp.rtsp.RtspClient;
-import com.pedro.rtsp.utils.ConnectCheckerRtsp;
 
 import java.nio.ByteBuffer;
 
@@ -75,8 +74,8 @@ public class MultiRtpDisplay extends DisplayBase {
   private final RtmpClient[] rtmpClients;
   private final RtspClient[] rtspClients;
 
-  public MultiRtpDisplay(Context context, boolean useOpenGL, ConnectCheckerRtmp[] connectCheckerRtmpList,
-      ConnectCheckerRtsp[] connectCheckerRtspList) {
+  public MultiRtpDisplay(Context context, boolean useOpenGL, ConnectChecker[] connectCheckerRtmpList,
+      ConnectChecker[] connectCheckerRtspList) {
     super(context, useOpenGL);
     int rtmpSize = connectCheckerRtmpList != null ? connectCheckerRtmpList.length : 0;
     rtmpClients = new RtmpClient[rtmpSize];

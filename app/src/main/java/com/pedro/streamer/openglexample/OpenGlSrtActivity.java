@@ -33,9 +33,11 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.pedro.common.ConnectChecker;
 import com.pedro.encoder.input.gl.SpriteGestureController;
 import com.pedro.encoder.input.gl.render.filters.AnalogTVFilterRender;
 import com.pedro.encoder.input.gl.render.filters.AndroidViewFilterRender;
@@ -86,7 +88,6 @@ import com.pedro.library.srt.SrtCamera1;
 import com.pedro.library.view.OpenGlView;
 import com.pedro.streamer.R;
 import com.pedro.streamer.utils.PathUtils;
-import com.pedro.srt.utils.ConnectCheckerSrt;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -103,7 +104,7 @@ import java.util.Locale;
  */
 @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
 public class OpenGlSrtActivity extends AppCompatActivity
-    implements ConnectCheckerSrt, View.OnClickListener, SurfaceHolder.Callback,
+    implements ConnectChecker, View.OnClickListener, SurfaceHolder.Callback,
     View.OnTouchListener {
 
   private SrtCamera1 srtCamera1;
@@ -354,16 +355,16 @@ public class OpenGlSrtActivity extends AppCompatActivity
   }
 
   @Override
-  public void onConnectionStartedSrt(@NotNull String srtUrl) {
+  public void onConnectionStarted(@NotNull String url) {
   }
 
   @Override
-  public void onConnectionSuccessSrt() {
+  public void onConnectionSuccess() {
     Toast.makeText(OpenGlSrtActivity.this, "Connection success", Toast.LENGTH_SHORT).show();
   }
 
   @Override
-  public void onConnectionFailedSrt(final String reason) {
+  public void onConnectionFailed(@NonNull final String reason) {
     Toast.makeText(OpenGlSrtActivity.this, "Connection failed. " + reason, Toast.LENGTH_SHORT)
         .show();
     srtCamera1.stopStream();
@@ -371,22 +372,22 @@ public class OpenGlSrtActivity extends AppCompatActivity
   }
 
   @Override
-  public void onNewBitrateSrt(long bitrate) {
+  public void onNewBitrate(long bitrate) {
 
   }
 
   @Override
-  public void onDisconnectSrt() {
+  public void onDisconnect() {
     Toast.makeText(OpenGlSrtActivity.this, "Disconnected", Toast.LENGTH_SHORT).show();
   }
 
   @Override
-  public void onAuthErrorSrt() {
+  public void onAuthError() {
     Toast.makeText(OpenGlSrtActivity.this, "Auth error", Toast.LENGTH_SHORT).show();
   }
 
   @Override
-  public void onAuthSuccessSrt() {
+  public void onAuthSuccess() {
     Toast.makeText(OpenGlSrtActivity.this, "Auth success", Toast.LENGTH_SHORT).show();
   }
 

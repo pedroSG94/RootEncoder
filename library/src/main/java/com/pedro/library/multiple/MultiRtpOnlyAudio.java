@@ -20,13 +20,12 @@ import android.media.MediaCodec;
 
 import androidx.annotation.Nullable;
 
+import com.pedro.common.ConnectChecker;
 import com.pedro.library.base.OnlyAudioBase;
 import com.pedro.library.util.streamclient.StreamBaseClient;
 import com.pedro.rtmp.flv.video.ProfileIop;
 import com.pedro.rtmp.rtmp.RtmpClient;
-import com.pedro.rtmp.utils.ConnectCheckerRtmp;
 import com.pedro.rtsp.rtsp.RtspClient;
-import com.pedro.rtsp.utils.ConnectCheckerRtsp;
 
 import java.nio.ByteBuffer;
 
@@ -68,8 +67,8 @@ public class MultiRtpOnlyAudio extends OnlyAudioBase {
   private final RtmpClient[] rtmpClients;
   private final RtspClient[] rtspClients;
 
-  public MultiRtpOnlyAudio(ConnectCheckerRtmp[] connectCheckerRtmpList,
-      ConnectCheckerRtsp[] connectCheckerRtspList) {
+  public MultiRtpOnlyAudio(ConnectChecker[] connectCheckerRtmpList,
+                           ConnectChecker[] connectCheckerRtspList) {
     super();
     int rtmpSize = connectCheckerRtmpList != null ? connectCheckerRtmpList.length : 0;
     rtmpClients = new RtmpClient[rtmpSize];

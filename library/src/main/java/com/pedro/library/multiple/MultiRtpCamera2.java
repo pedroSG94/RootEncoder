@@ -25,6 +25,7 @@ import android.view.TextureView;
 import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 
+import com.pedro.common.ConnectChecker;
 import com.pedro.library.base.Camera2Base;
 import com.pedro.library.util.VideoCodec;
 import com.pedro.library.util.streamclient.StreamBaseClient;
@@ -32,9 +33,7 @@ import com.pedro.library.view.LightOpenGlView;
 import com.pedro.library.view.OpenGlView;
 import com.pedro.rtmp.flv.video.ProfileIop;
 import com.pedro.rtmp.rtmp.RtmpClient;
-import com.pedro.rtmp.utils.ConnectCheckerRtmp;
 import com.pedro.rtsp.rtsp.RtspClient;
-import com.pedro.rtsp.utils.ConnectCheckerRtsp;
 
 import java.nio.ByteBuffer;
 
@@ -80,8 +79,8 @@ public class MultiRtpCamera2 extends Camera2Base {
   private final RtspClient[] rtspClients;
 
   @Deprecated
-  public MultiRtpCamera2(SurfaceView surfaceView, ConnectCheckerRtmp[] connectCheckerRtmpList,
-      ConnectCheckerRtsp[] connectCheckerRtspList) {
+  public MultiRtpCamera2(SurfaceView surfaceView, ConnectChecker[] connectCheckerRtmpList,
+      ConnectChecker[] connectCheckerRtspList) {
     super(surfaceView);
     int rtmpSize = connectCheckerRtmpList != null ? connectCheckerRtmpList.length : 0;
     rtmpClients = new RtmpClient[rtmpSize];
@@ -96,8 +95,8 @@ public class MultiRtpCamera2 extends Camera2Base {
   }
 
   @Deprecated
-  public MultiRtpCamera2(TextureView textureView, ConnectCheckerRtmp[] connectCheckerRtmpList,
-      ConnectCheckerRtsp[] connectCheckerRtspList) {
+  public MultiRtpCamera2(TextureView textureView, ConnectChecker[] connectCheckerRtmpList,
+      ConnectChecker[] connectCheckerRtspList) {
     super(textureView);
     int rtmpSize = connectCheckerRtmpList != null ? connectCheckerRtmpList.length : 0;
     rtmpClients = new RtmpClient[rtmpSize];
@@ -111,8 +110,8 @@ public class MultiRtpCamera2 extends Camera2Base {
     }
   }
 
-  public MultiRtpCamera2(OpenGlView openGlView, ConnectCheckerRtmp[] connectCheckerRtmpList,
-      ConnectCheckerRtsp[] connectCheckerRtspList) {
+  public MultiRtpCamera2(OpenGlView openGlView, ConnectChecker[] connectCheckerRtmpList,
+      ConnectChecker[] connectCheckerRtspList) {
     super(openGlView);
     int rtmpSize = connectCheckerRtmpList != null ? connectCheckerRtmpList.length : 0;
     rtmpClients = new RtmpClient[rtmpSize];
@@ -126,8 +125,8 @@ public class MultiRtpCamera2 extends Camera2Base {
     }
   }
 
-  public MultiRtpCamera2(LightOpenGlView lightOpenGlView, ConnectCheckerRtmp[] connectCheckerRtmpList,
-      ConnectCheckerRtsp[] connectCheckerRtspList) {
+  public MultiRtpCamera2(LightOpenGlView lightOpenGlView, ConnectChecker[] connectCheckerRtmpList,
+      ConnectChecker[] connectCheckerRtspList) {
     super(lightOpenGlView);
     int rtmpSize = connectCheckerRtmpList != null ? connectCheckerRtmpList.length : 0;
     rtmpClients = new RtmpClient[rtmpSize];
@@ -141,8 +140,8 @@ public class MultiRtpCamera2 extends Camera2Base {
     }
   }
 
-  public MultiRtpCamera2(Context context, boolean useOpengl, ConnectCheckerRtmp[] connectCheckerRtmpList,
-      ConnectCheckerRtsp[] connectCheckerRtspList) {
+  public MultiRtpCamera2(Context context, boolean useOpengl, ConnectChecker[] connectCheckerRtmpList,
+      ConnectChecker[] connectCheckerRtspList) {
     super(context, useOpengl);
     int rtmpSize = connectCheckerRtmpList != null ? connectCheckerRtmpList.length : 0;
     rtmpClients = new RtmpClient[rtmpSize];

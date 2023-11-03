@@ -18,6 +18,7 @@ package com.pedro.rtmp.rtmp
 
 import android.media.MediaCodec
 import android.util.Log
+import com.pedro.common.ConnectChecker
 import com.pedro.rtmp.amf.AmfVersion
 import com.pedro.rtmp.flv.video.ProfileIop
 import com.pedro.rtmp.rtmp.message.*
@@ -25,7 +26,6 @@ import com.pedro.rtmp.rtmp.message.command.Command
 import com.pedro.rtmp.rtmp.message.control.Type
 import com.pedro.rtmp.rtmp.message.control.UserControl
 import com.pedro.rtmp.utils.AuthUtil
-import com.pedro.rtmp.utils.ConnectCheckerRtmp
 import com.pedro.rtmp.utils.RtmpConfig
 import com.pedro.rtmp.utils.TimeUtils
 import com.pedro.rtmp.utils.onMainThread
@@ -48,7 +48,7 @@ import java.util.regex.Pattern
 /**
  * Created by pedro on 8/04/21.
  */
-class RtmpClient(private val connectCheckerRtmp: ConnectCheckerRtmp) {
+class RtmpClient(private val connectChecker: ConnectChecker) {
 
   private val TAG = "RtmpClient"
   private val rtmpUrlPattern = Pattern.compile("^rtmpt?s?://([^/:]+)(?::(\\d+))*/([^/]+)/?([^*]*)$")
@@ -59,7 +59,7 @@ class RtmpClient(private val connectCheckerRtmp: ConnectCheckerRtmp) {
   private var job: Job? = null
   private var jobRetry: Job? = null
   private var commandsManager: CommandsManager = CommandsManagerAmf0()
-  private val rtmpSender = RtmpSender(connectCheckerRtmp, commandsManager)
+  private val rtmpSender = RtmpSender(connectChecker, commandsManager)
 
   @Volatile
   var isStreaming = false
@@ -182,14 +182,14 @@ class RtmpClient(private val connectCheckerRtmp: ConnectCheckerRtmp) {
         if (url == null) {
           isStreaming = false
           onMainThread {
-            connectCheckerRtmp.onConnectionFailedRtmp(
+            connectChecker.onConnectionFailed(
               "Endpoint malformed, should be: rtmp://ip:port/appname/streamname")
           }
           return@launch
         }
         this@RtmpClient.url = url
         onMainThread {
-          connectCheckerRtmp.onConnectionStartedRtmp(url)
+          connectChecker.onConnectionStarted(url)
         }
         val rtmpMatcher = rtmpUrlPattern.matcher(url)
         if (rtmpMatcher.matches()) {
@@ -198,7 +198,7 @@ class RtmpClient(private val connectCheckerRtmp: ConnectCheckerRtmp) {
           tlsEnabled = schema.startsWith("rtmps") || schema.startsWith("rtmpts")
         } else {
           onMainThread {
-            connectCheckerRtmp.onConnectionFailedRtmp(
+            connectChecker.onConnectionFailed(
               "Endpoint malformed, should be: rtmp://ip:port/appname/streamname")
           }
           return@launch
@@ -217,7 +217,7 @@ class RtmpClient(private val connectCheckerRtmp: ConnectCheckerRtmp) {
         val error = runCatching {
           if (!establishConnection()) {
             onMainThread {
-              connectCheckerRtmp.onConnectionFailedRtmp("Handshake failed")
+              connectChecker.onConnectionFailed("Handshake failed")
             }
             return@launch
           }
@@ -235,7 +235,7 @@ class RtmpClient(private val connectCheckerRtmp: ConnectCheckerRtmp) {
         if (error != null) {
           Log.e(TAG, "connection error", error)
           onMainThread {
-            connectCheckerRtmp.onConnectionFailedRtmp("Error configure stream, ${error.message}")
+            connectChecker.onConnectionFailed("Error configure stream, ${error.message}")
           }
           return@launch
         }
@@ -251,7 +251,7 @@ class RtmpClient(private val connectCheckerRtmp: ConnectCheckerRtmp) {
           if (!tunneled) handleMessages()
         } else {
           onMainThread {
-            connectCheckerRtmp.onConnectionFailedRtmp("No response from server")
+            connectChecker.onConnectionFailed("No response from server")
           }
           scope.cancel()
         }
@@ -367,7 +367,7 @@ class RtmpClient(private val connectCheckerRtmp: ConnectCheckerRtmp) {
               "connect" -> {
                 if (commandsManager.onAuth) {
                   onMainThread {
-                    connectCheckerRtmp.onAuthSuccessRtmp()
+                    connectChecker.onAuthSuccess()
                   }
                   commandsManager.onAuth = false
                 }
@@ -391,7 +391,7 @@ class RtmpClient(private val connectCheckerRtmp: ConnectCheckerRtmp) {
                 "connect" -> {
                   if (description.contains("reason=authfail") || description.contains("reason=nosuchuser")) {
                     onMainThread {
-                      connectCheckerRtmp.onAuthErrorRtmp()
+                      connectChecker.onAuthError()
                     }
                   } else if (commandsManager.user != null && commandsManager.password != null &&
                       description.contains("challenge=") && description.contains("salt=") //adobe response
@@ -426,7 +426,7 @@ class RtmpClient(private val connectCheckerRtmp: ConnectCheckerRtmp) {
                     }
                   } else {
                     onMainThread {
-                      connectCheckerRtmp.onAuthErrorRtmp()
+                      connectChecker.onAuthError()
                     }
                   }
                 }
@@ -435,7 +435,7 @@ class RtmpClient(private val connectCheckerRtmp: ConnectCheckerRtmp) {
                 }
                 else -> {
                   onMainThread {
-                    connectCheckerRtmp.onConnectionFailedRtmp(description)
+                    connectChecker.onConnectionFailed(description)
                   }
                 }
               }
@@ -449,7 +449,7 @@ class RtmpClient(private val connectCheckerRtmp: ConnectCheckerRtmp) {
                 "NetStream.Publish.Start" -> {
                   commandsManager.sendMetadata(socket)
                   onMainThread {
-                    connectCheckerRtmp.onConnectionSuccessRtmp()
+                    connectChecker.onConnectionSuccess()
                   }
                   rtmpSender.socket = socket
                   rtmpSender.start()
@@ -457,7 +457,7 @@ class RtmpClient(private val connectCheckerRtmp: ConnectCheckerRtmp) {
                 }
                 "NetConnection.Connect.Rejected", "NetStream.Publish.BadName" -> {
                   onMainThread {
-                    connectCheckerRtmp.onConnectionFailedRtmp("onStatus: $code")
+                    connectChecker.onConnectionFailed("onStatus: $code")
                   }
                 }
                 else -> {
@@ -515,7 +515,7 @@ class RtmpClient(private val connectCheckerRtmp: ConnectCheckerRtmp) {
       doingRetry = false
       isStreaming = false
       onMainThread {
-        connectCheckerRtmp.onDisconnectRtmp()
+        connectChecker.onDisconnect()
       }
       jobRetry?.cancelAndJoin()
       jobRetry = null

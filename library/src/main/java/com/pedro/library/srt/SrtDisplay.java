@@ -22,12 +22,12 @@ import android.os.Build;
 
 import androidx.annotation.RequiresApi;
 
+import com.pedro.common.ConnectChecker;
 import com.pedro.library.base.DisplayBase;
 import com.pedro.library.util.VideoCodec;
 import com.pedro.library.util.streamclient.SrtStreamClient;
 import com.pedro.library.util.streamclient.StreamClientListener;
 import com.pedro.srt.srt.SrtClient;
-import com.pedro.srt.utils.ConnectCheckerSrt;
 
 import java.nio.ByteBuffer;
 
@@ -44,7 +44,7 @@ public class SrtDisplay extends DisplayBase {
   private final SrtStreamClient streamClient;
   private final StreamClientListener streamClientListener = this::requestKeyFrame;
 
-  public SrtDisplay(Context context, boolean useOpengl, ConnectCheckerSrt connectChecker) {
+  public SrtDisplay(Context context, boolean useOpengl, ConnectChecker connectChecker) {
     super(context, useOpengl);
     srtClient = new SrtClient(connectChecker);
     streamClient = new SrtStreamClient(srtClient, streamClientListener);

@@ -18,6 +18,7 @@ package com.pedro.rtmp.rtmp
 
 import android.media.MediaCodec
 import android.util.Log
+import com.pedro.common.ConnectChecker
 import com.pedro.rtmp.flv.FlvPacket
 import com.pedro.rtmp.flv.FlvType
 import com.pedro.rtmp.flv.audio.AacPacket
@@ -25,7 +26,6 @@ import com.pedro.rtmp.flv.video.H264Packet
 import com.pedro.rtmp.flv.video.H265Packet
 import com.pedro.rtmp.flv.video.ProfileIop
 import com.pedro.rtmp.utils.BitrateManager
-import com.pedro.rtmp.utils.ConnectCheckerRtmp
 import com.pedro.rtmp.utils.onMainThread
 import com.pedro.rtmp.utils.socket.RtmpSocket
 import com.pedro.rtmp.utils.trySend
@@ -47,7 +47,7 @@ import java.util.concurrent.TimeUnit
  * Created by pedro on 8/04/21.
  */
 class RtmpSender(
-  private val connectCheckerRtmp: ConnectCheckerRtmp,
+  private val connectChecker: ConnectChecker,
   private val commandsManager: CommandsManager
 ) {
 
@@ -70,7 +70,7 @@ class RtmpSender(
   var droppedVideoFrames: Long = 0
     private set
   var videoCodec = VideoCodec.H264
-  private val bitrateManager: BitrateManager = BitrateManager(connectCheckerRtmp)
+  private val bitrateManager: BitrateManager = BitrateManager(connectChecker)
   private var isEnableLogs = true
 
   companion object {
@@ -172,7 +172,7 @@ class RtmpSender(
         }.exceptionOrNull()
         if (error != null) {
           onMainThread {
-            connectCheckerRtmp.onConnectionFailedRtmp("Error send packet, " + error.message)
+            connectChecker.onConnectionFailed("Error send packet, " + error.message)
           }
           Log.e(TAG, "send error: ", error)
           return@launch
