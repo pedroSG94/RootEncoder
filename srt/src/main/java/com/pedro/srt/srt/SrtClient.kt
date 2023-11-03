@@ -216,14 +216,11 @@ class SrtClient(private val connectCheckerSrt: ConnectCheckerSrt) {
   }
 
   private suspend fun disconnect(clear: Boolean) {
-    if (isStreaming) srtSender.stop()
-    val error = runCatching {
+    if (isStreaming) srtSender.stop(clear)
+    runCatching {
       commandsManager.writeShutdown(socket)
-      socket?.close()
-    }.exceptionOrNull()
-    if (error != null) {
-      Log.e(TAG, "disconnect error", error)
     }
+    socket?.close()
     if (clear) {
       reTries = numRetry
       doingRetry = false

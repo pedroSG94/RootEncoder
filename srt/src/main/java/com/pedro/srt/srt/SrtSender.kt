@@ -210,13 +210,13 @@ class SrtSender(
     }
   }
 
-  suspend fun stop() {
+  suspend fun stop(clear: Boolean) {
     running = false
     psiManager.reset()
     service.clear()
     mpegTsPacketizer.reset()
-    aacPacket.reset()
-    h26XPacket.reset()
+    aacPacket.reset(clear)
+    h26XPacket.reset(clear)
     resetSentAudioFrames()
     resetSentVideoFrames()
     resetDroppedAudioFrames()

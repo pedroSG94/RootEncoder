@@ -107,10 +107,12 @@ class H26XPacket(
     callback(packets)
   }
 
-  override fun resetPacket() {
-    vps = null
-    sps = null
-    pps = null
+  override fun resetPacket(resetInfo: Boolean) {
+    if (resetInfo) {
+      vps = null
+      sps = null
+      pps = null
+    }
     configSend = false
   }
 
