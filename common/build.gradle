@@ -1,6 +1,8 @@
 plugins {
     id 'com.android.library'
     id 'org.jetbrains.kotlin.android'
+    id 'maven-publish'
+    id 'org.jetbrains.dokka'
 }
 
 android {
@@ -23,6 +25,27 @@ android {
     }
     kotlinOptions {
         jvmTarget = '17'
+    }
+
+    publishing {
+        singleVariant("release")
+    }
+}
+
+afterEvaluate {
+    publishing {
+        publications {
+            // Creates a Maven publication called "release".
+            release(MavenPublication) {
+                // Applies the component for the release build variant.
+                from components.release
+
+                // You can then customize attributes of the publication as shown below.
+                groupId = "$library_group"
+                artifactId = "common"
+                version = "$version_name"
+            }
+        }
     }
 }
 
