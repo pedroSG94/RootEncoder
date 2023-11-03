@@ -14,16 +14,15 @@
  * limitations under the License.
  */
 
-package com.pedro.rtsp.utils
+package com.pedro.common
 
-import com.pedro.common.ConnectChecker
 
 /**
- * Created by pedro on 10/07/19.
+ * Created by pedro on 8/04/21.
  *
  * Calculate video and audio bitrate per second
  */
-class BitrateManager(private val connectChecker: ConnectChecker) {
+open class BitrateManager(private val connectChecker: ConnectChecker) {
 
   private var bitrate: Long = 0
   private var timeStamp = TimeUtils.getCurrentTimeMillis()

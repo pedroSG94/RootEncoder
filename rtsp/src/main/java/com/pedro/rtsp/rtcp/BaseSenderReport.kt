@@ -16,10 +16,10 @@
 
 package com.pedro.rtsp.rtcp
 
+import com.pedro.common.TimeUtils
 import com.pedro.rtsp.rtsp.Protocol
 import com.pedro.rtsp.rtsp.RtpFrame
 import com.pedro.rtsp.utils.RtpConstants
-import com.pedro.rtsp.utils.TimeUtils
 import com.pedro.rtsp.utils.setLong
 import java.io.IOException
 import java.io.OutputStream

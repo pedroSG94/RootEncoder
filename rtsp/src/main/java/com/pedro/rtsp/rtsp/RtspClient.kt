@@ -19,11 +19,11 @@ package com.pedro.rtsp.rtsp
 import android.media.MediaCodec
 import android.util.Log
 import com.pedro.common.ConnectChecker
+import com.pedro.common.onMainThread
 import com.pedro.rtsp.rtsp.commands.CommandsManager
 import com.pedro.rtsp.rtsp.commands.Method
 import com.pedro.rtsp.utils.CreateSSLSocket.createSSlSocket
 import com.pedro.rtsp.utils.RtpConstants
-import com.pedro.rtsp.utils.onMainThread
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job

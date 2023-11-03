@@ -16,7 +16,7 @@
 
 package com.pedro.rtmp.amf.v0
 
-import com.pedro.rtmp.utils.TimeUtils
+import com.pedro.common.TimeUtils
 import com.pedro.rtmp.utils.readUntil
 import java.io.IOException
 import java.io.InputStream

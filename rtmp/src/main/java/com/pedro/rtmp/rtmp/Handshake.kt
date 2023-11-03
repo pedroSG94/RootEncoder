@@ -17,7 +17,7 @@
 package com.pedro.rtmp.rtmp
 
 import android.util.Log
-import com.pedro.rtmp.utils.TimeUtils
+import com.pedro.common.TimeUtils
 import com.pedro.rtmp.utils.readUntil
 import com.pedro.rtmp.utils.socket.RtmpSocket
 import java.io.IOException

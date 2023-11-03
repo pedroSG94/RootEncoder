@@ -1,4 +1,4 @@
-package com.pedro.rtsp
+package com.pedro.common.util
 
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi

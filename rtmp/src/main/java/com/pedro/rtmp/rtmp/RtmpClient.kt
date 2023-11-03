@@ -19,6 +19,8 @@ package com.pedro.rtmp.rtmp
 import android.media.MediaCodec
 import android.util.Log
 import com.pedro.common.ConnectChecker
+import com.pedro.common.TimeUtils
+import com.pedro.common.onMainThread
 import com.pedro.rtmp.amf.AmfVersion
 import com.pedro.rtmp.flv.video.ProfileIop
 import com.pedro.rtmp.rtmp.message.*
@@ -27,8 +29,6 @@ import com.pedro.rtmp.rtmp.message.control.Type
 import com.pedro.rtmp.rtmp.message.control.UserControl
 import com.pedro.rtmp.utils.AuthUtil
 import com.pedro.rtmp.utils.RtmpConfig
-import com.pedro.rtmp.utils.TimeUtils
-import com.pedro.rtmp.utils.onMainThread
 import com.pedro.rtmp.utils.socket.RtmpSocket
 import com.pedro.rtmp.utils.socket.TcpSocket
 import com.pedro.rtmp.utils.socket.TcpTunneledSocket

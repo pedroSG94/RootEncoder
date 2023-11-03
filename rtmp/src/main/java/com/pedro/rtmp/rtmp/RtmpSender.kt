@@ -18,15 +18,15 @@ package com.pedro.rtmp.rtmp
 
 import android.media.MediaCodec
 import android.util.Log
+import com.pedro.common.BitrateManager
 import com.pedro.common.ConnectChecker
+import com.pedro.common.onMainThread
 import com.pedro.rtmp.flv.FlvPacket
 import com.pedro.rtmp.flv.FlvType
 import com.pedro.rtmp.flv.audio.AacPacket
 import com.pedro.rtmp.flv.video.H264Packet
 import com.pedro.rtmp.flv.video.H265Packet
 import com.pedro.rtmp.flv.video.ProfileIop
-import com.pedro.rtmp.utils.BitrateManager
-import com.pedro.rtmp.utils.onMainThread
 import com.pedro.rtmp.utils.socket.RtmpSocket
 import com.pedro.rtmp.utils.trySend
 import kotlinx.coroutines.CoroutineScope

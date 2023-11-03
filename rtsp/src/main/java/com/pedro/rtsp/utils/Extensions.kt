@@ -64,9 +64,3 @@ fun ByteBuffer.getVideoStartCodeSize(): Int {
   }
   return startCodeSize
 }
-
-suspend fun onMainThread(code: () -> Unit) {
-  withContext(Dispatchers.Main) {
-    code()
-  }
-}

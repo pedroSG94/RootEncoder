@@ -16,8 +16,8 @@
 
 package com.pedro.srt.mpeg2ts
 
+import com.pedro.common.TimeUtils
 import com.pedro.srt.mpeg2ts.psi.Psi
-import com.pedro.srt.utils.TimeUtils
 import com.pedro.srt.utils.toByteArray
 import com.pedro.srt.utils.toInt
 import java.nio.ByteBuffer

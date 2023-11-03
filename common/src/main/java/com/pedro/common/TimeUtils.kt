@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.pedro.rtsp.utils
+package com.pedro.common
 
 /**
  * Created by pedro on 30/8/23.

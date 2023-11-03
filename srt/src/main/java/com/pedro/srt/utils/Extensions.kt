@@ -85,9 +85,3 @@ fun InputStream.readUntil(byteArray: ByteArray) {
     if (result != -1) bytesRead += result
   }
 }
-
-suspend fun onMainThread(code: () -> Unit) {
-  withContext(Dispatchers.Main) {
-    code()
-  }
-}

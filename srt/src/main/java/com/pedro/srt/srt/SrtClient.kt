@@ -19,6 +19,7 @@ package com.pedro.srt.srt
 import android.media.MediaCodec
 import android.util.Log
 import com.pedro.common.ConnectChecker
+import com.pedro.common.onMainThread
 import com.pedro.srt.mpeg2ts.Codec
 import com.pedro.srt.srt.packets.ControlPacket
 import com.pedro.srt.srt.packets.DataPacket
@@ -37,7 +38,6 @@ import com.pedro.srt.srt.packets.control.handshake.HandshakeType
 import com.pedro.srt.srt.packets.control.handshake.extension.ExtensionContentFlag
 import com.pedro.srt.srt.packets.control.handshake.extension.HandshakeExtension
 import com.pedro.srt.utils.SrtSocket
-import com.pedro.srt.utils.onMainThread
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job

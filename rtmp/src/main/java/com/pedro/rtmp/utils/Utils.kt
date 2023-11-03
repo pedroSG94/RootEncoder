@@ -36,12 +36,6 @@ inline infix fun <reified T: Any> BlockingQueue<T>.trySend(item: T): Boolean {
   }
 }
 
-suspend fun onMainThread(code: () -> Unit) {
-  withContext(Dispatchers.Main) {
-    code()
-  }
-}
-
 fun InputStream.readUntil(byteArray: ByteArray) {
   var bytesRead = 0
   while (bytesRead < byteArray.size) {

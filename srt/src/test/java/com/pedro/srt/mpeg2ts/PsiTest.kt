@@ -16,12 +16,12 @@
 
 package com.pedro.srt.mpeg2ts
 
+import com.pedro.common.TimeUtils
 import com.pedro.srt.Utils
 import com.pedro.srt.mpeg2ts.psi.Pat
 import com.pedro.srt.mpeg2ts.psi.Pmt
 import com.pedro.srt.mpeg2ts.psi.Sdt
 import com.pedro.srt.mpeg2ts.service.Mpeg2TsService
-import com.pedro.srt.utils.TimeUtils
 import kotlinx.coroutines.test.runTest
 import org.junit.After
 import org.junit.Assert.assertArrayEquals

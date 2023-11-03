@@ -17,7 +17,7 @@
 package com.pedro.rtmp.utils.socket
 
 import android.util.Log
-import com.pedro.rtmp.utils.TimeUtils
+import com.pedro.common.TimeUtils
 import java.io.*
 import java.net.HttpURLConnection
 import java.net.SocketTimeoutException
