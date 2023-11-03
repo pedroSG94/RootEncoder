@@ -21,6 +21,7 @@ import android.util.Log
 import com.pedro.common.BitrateManager
 import com.pedro.common.ConnectChecker
 import com.pedro.common.onMainThread
+import com.pedro.common.trySend
 import com.pedro.srt.mpeg2ts.Codec
 import com.pedro.srt.mpeg2ts.MpegTsPacket
 import com.pedro.srt.mpeg2ts.MpegTsPacketizer
@@ -34,7 +35,6 @@ import com.pedro.srt.mpeg2ts.service.Mpeg2TsService
 import com.pedro.srt.srt.packets.SrtPacket
 import com.pedro.srt.srt.packets.data.PacketPosition
 import com.pedro.srt.utils.SrtSocket
-import com.pedro.srt.utils.trySend
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job

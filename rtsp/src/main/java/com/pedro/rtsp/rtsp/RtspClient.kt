@@ -19,10 +19,10 @@ package com.pedro.rtsp.rtsp
 import android.media.MediaCodec
 import android.util.Log
 import com.pedro.common.ConnectChecker
+import com.pedro.common.TLSSocketFactory
 import com.pedro.common.onMainThread
 import com.pedro.rtsp.rtsp.commands.CommandsManager
 import com.pedro.rtsp.rtsp.commands.Method
-import com.pedro.rtsp.utils.CreateSSLSocket.createSSlSocket
 import com.pedro.rtsp.utils.RtpConstants
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -40,6 +40,7 @@ import java.net.Socket
 import java.net.SocketAddress
 import java.net.SocketTimeoutException
 import java.nio.ByteBuffer
+import java.security.GeneralSecurityException
 import java.util.regex.Pattern
 
 /**
@@ -211,8 +212,12 @@ class RtspClient(private val connectChecker: ConnectChecker) {
             val socketAddress: SocketAddress = InetSocketAddress(host, port)
             connectionSocket?.connect(socketAddress, 5000)
           } else {
-            connectionSocket = createSSlSocket(host, port)
-            if (connectionSocket == null) throw IOException("Socket creation failed")
+            try {
+              val socketFactory = TLSSocketFactory()
+              connectionSocket = socketFactory.createSocket(host, port)
+            } catch (e: GeneralSecurityException) {
+              throw IOException("Create SSL socket failed: ${e.message}")
+            }
           }
           connectionSocket?.soTimeout = 5000
           val reader = BufferedReader(InputStreamReader(connectionSocket?.getInputStream()))

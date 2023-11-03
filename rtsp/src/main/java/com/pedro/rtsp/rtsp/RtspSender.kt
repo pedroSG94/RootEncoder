@@ -21,12 +21,12 @@ import android.util.Log
 import com.pedro.common.BitrateManager
 import com.pedro.common.ConnectChecker
 import com.pedro.common.onMainThread
+import com.pedro.common.trySend
 import com.pedro.rtsp.rtcp.BaseSenderReport
 import com.pedro.rtsp.rtp.packets.*
 import com.pedro.rtsp.rtp.sockets.BaseRtpSocket
 import com.pedro.rtsp.rtp.sockets.RtpSocketTcp
 import com.pedro.rtsp.utils.RtpConstants
-import com.pedro.rtsp.utils.trySend
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job

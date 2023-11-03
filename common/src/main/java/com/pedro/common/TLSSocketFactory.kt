@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.pedro.rtmp.utils
+package com.pedro.common
 
 import java.io.IOException
 import java.net.InetAddress
