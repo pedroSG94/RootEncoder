@@ -67,40 +67,25 @@ public class SizeCalculator {
       int yo = 0;
       int xf = previewWidth;
       int yf = previewHeight;
-      if ((streamAspectRatio > 1f
-          && previewAspectRatio > 1f
-          && streamAspectRatio > previewAspectRatio) || (streamAspectRatio < 1f
-          && previewAspectRatio < 1
-          && streamAspectRatio > previewAspectRatio) || (streamAspectRatio > 1f
-          && previewAspectRatio < 1f)) {
-        if (mode == 0) {
+      if ((previewAspectRatio > 1f && streamAspectRatio > previewAspectRatio) ||
+          (streamAspectRatio < 1f && previewAspectRatio < 1 && streamAspectRatio > previewAspectRatio) ||
+          (streamAspectRatio > 1f && previewAspectRatio < 1f)) {
+        if (mode == 0) { //adjust
           yf = streamHeight * previewWidth / streamWidth;
           yo = (yf - previewHeight) / -2;
-        } else {
+        } else { //fill
           xf = streamWidth * previewHeight / streamHeight;
           xo = (xf - previewWidth) / -2;
         }
-      } else if ((streamAspectRatio > 1f
-          && previewAspectRatio > 1f
-          && streamAspectRatio < previewAspectRatio) || (streamAspectRatio < 1f
-          && previewAspectRatio < 1f
-          && streamAspectRatio < previewAspectRatio) || (streamAspectRatio < 1f
-          && previewAspectRatio > 1f)) {
-        if (mode == 0 || mode == 2) {
+      } else if ((streamAspectRatio > 1f && previewAspectRatio > 1f && streamAspectRatio < previewAspectRatio) ||
+          (previewAspectRatio < 1f && streamAspectRatio < previewAspectRatio) ||
+          (streamAspectRatio < 1f && previewAspectRatio > 1f)) {
+        if (mode == 0 || mode == 2) { //adjust
           xf = streamWidth * previewHeight / streamHeight;
           xo = (xf - previewWidth) / -2;
-        } else {
+        } else { //fill
           yf = streamHeight * previewWidth / streamWidth;
           yo = (yf - previewHeight) / -2;
-        }
-        //aspect ratio 1:1
-      } else {
-        if (previewWidth < previewHeight) {
-          yf = xf;
-          yo = (previewHeight - xf) / 2;
-        } else {
-          xf = yf;
-          xo = (previewWidth - yf) / 2;
         }
       }
       return new Pair<>(new Point(xo, yo), new Point(xf, yf));
