@@ -48,40 +48,28 @@ public class OffScreenGlThread
   private Thread thread = null;
   private boolean frameAvailable = false;
   private boolean running = true;
-  private boolean initialized = false;
-
   private final SurfaceManager surfaceManagerPhoto = new SurfaceManager();
   private final SurfaceManager surfaceManager = new SurfaceManager();
   private final SurfaceManager surfaceManagerEncoder = new SurfaceManager();
 
-  private ManagerRender managerRender = null;
+  private final ManagerRender managerRender = new ManagerRender();
 
   private final Semaphore semaphore = new Semaphore(0);
   private final BlockingQueue<Filter> filterQueue = new LinkedBlockingQueue<>();
   private final Object sync = new Object();
   private int encoderWidth, encoderHeight;
-  private boolean loadAA = false;
   private int streamRotation;
   private boolean muteVideo = false;
   protected boolean isPreviewHorizontalFlip = false;
   protected boolean isPreviewVerticalFlip = false;
   private boolean isStreamHorizontalFlip = false;
   private boolean isStreamVerticalFlip = false;
-
-  private boolean AAEnabled = false;
   private final FpsLimiter fpsLimiter = new FpsLimiter();
   private TakePhotoCallback takePhotoCallback;
   private boolean forceRender = false;
 
   public OffScreenGlThread(Context context) {
     this.context = context;
-  }
-
-  @Override
-  public void init() {
-    if (!initialized) managerRender = new ManagerRender();
-    managerRender.setCameraFlip(false, false);
-    initialized = true;
   }
 
   @Override
@@ -198,8 +186,7 @@ public class OffScreenGlThread
 
   @Override
   public void enableAA(boolean AAEnabled) {
-    this.AAEnabled = AAEnabled;
-    loadAA = true;
+    managerRender.enableAA(true);
   }
 
   @Override
@@ -234,7 +221,7 @@ public class OffScreenGlThread
 
   @Override
   public boolean isAAEnabled() {
-    return managerRender != null && managerRender.isAAEnabled();
+    return managerRender.isAAEnabled();
   }
 
   @Override
@@ -290,9 +277,6 @@ public class OffScreenGlThread
           if (!filterQueue.isEmpty()) {
             Filter filter = filterQueue.take();
             managerRender.setFilterAction(filter.getFilterAction(), filter.getPosition(), filter.getBaseFilterRender());
-          } else if (loadAA) {
-            managerRender.enableAA(AAEnabled);
-            loadAA = false;
           }
 
           synchronized (sync) {

@@ -50,8 +50,6 @@ public abstract class OpenGlViewBase extends SurfaceView
   protected Thread thread = null;
   protected boolean frameAvailable = false;
   protected boolean running = false;
-  protected boolean initialized = false;
-
   protected final SurfaceManager surfaceManagerPhoto = new SurfaceManager();
   protected final SurfaceManager surfaceManager = new SurfaceManager();
   protected final SurfaceManager surfaceManagerEncoder = new SurfaceManager();
@@ -127,9 +125,6 @@ public abstract class OpenGlViewBase extends SurfaceView
   }
 
   @Override
-  public abstract void init();
-
-  @Override
   public abstract SurfaceTexture getSurfaceTexture();
 
   @Override
@@ -149,10 +144,8 @@ public abstract class OpenGlViewBase extends SurfaceView
   public void addMediaCodecSurface(Surface surface) {
     synchronized (sync) {
       if (surfaceManager.isReady()) {
-        surfaceManagerPhoto.release();
         surfaceManagerEncoder.release();
         surfaceManagerEncoder.eglSetup(surface, surfaceManager);
-        surfaceManagerPhoto.eglSetup(encoderWidth, encoderHeight, surfaceManagerEncoder);
       }
     }
   }
@@ -160,9 +153,7 @@ public abstract class OpenGlViewBase extends SurfaceView
   @Override
   public void removeMediaCodecSurface() {
     synchronized (sync) {
-      surfaceManagerPhoto.release();
       surfaceManagerEncoder.release();
-      surfaceManagerPhoto.eglSetup(encoderWidth, encoderHeight, surfaceManager);
     }
   }
 

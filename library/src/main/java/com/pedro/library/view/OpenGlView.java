@@ -41,13 +41,9 @@ import com.pedro.library.util.Filter;
 @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
 public class OpenGlView extends OpenGlViewBase {
 
-  private ManagerRender managerRender = null;
-  private boolean loadAA = false;
-
-  private boolean AAEnabled = false;
+  private final ManagerRender managerRender = new ManagerRender();
   private boolean keepAspectRatio = false;
   private AspectRatioMode aspectRatioMode = AspectRatioMode.Adjust;
-  private boolean isFlipHorizontal = false, isFlipVertical = false;
 
   public OpenGlView(Context context) {
     super(context);
@@ -59,20 +55,15 @@ public class OpenGlView extends OpenGlViewBase {
     try {
       keepAspectRatio = typedArray.getBoolean(R.styleable.OpenGlView_keepAspectRatio, false);
       aspectRatioMode = AspectRatioMode.fromId(typedArray.getInt(R.styleable.OpenGlView_aspectRatioMode, 0));
-      AAEnabled = typedArray.getBoolean(R.styleable.OpenGlView_AAEnabled, false);
+      boolean AAEnabled = typedArray.getBoolean(R.styleable.OpenGlView_AAEnabled, false);
       ManagerRender.numFilters = typedArray.getInt(R.styleable.OpenGlView_numFilters, 0);
-      isFlipHorizontal = typedArray.getBoolean(R.styleable.OpenGlView_isFlipHorizontal, false);
-      isFlipVertical = typedArray.getBoolean(R.styleable.OpenGlView_isFlipVertical, false);
+      boolean isFlipHorizontal = typedArray.getBoolean(R.styleable.OpenGlView_isFlipHorizontal, false);
+      boolean isFlipVertical = typedArray.getBoolean(R.styleable.OpenGlView_isFlipVertical, false);
+      managerRender.setCameraFlip(isFlipHorizontal, isFlipVertical);
+      managerRender.enableAA(AAEnabled);
     } finally {
       typedArray.recycle();
     }
-  }
-
-  @Override
-  public void init() {
-    if (!initialized) managerRender = new ManagerRender();
-    managerRender.setCameraFlip(isFlipHorizontal, isFlipVertical);
-    initialized = true;
   }
 
   @Override
@@ -127,8 +118,7 @@ public class OpenGlView extends OpenGlViewBase {
 
   @Override
   public void enableAA(boolean AAEnabled) {
-    this.AAEnabled = AAEnabled;
-    loadAA = true;
+    managerRender.enableAA(AAEnabled);
   }
 
   @Override
@@ -190,9 +180,6 @@ public class OpenGlView extends OpenGlViewBase {
           if (!filterQueue.isEmpty()) {
             Filter filter = filterQueue.take();
             managerRender.setFilterAction(filter.getFilterAction(), filter.getPosition(), filter.getBaseFilterRender());
-          } else if (loadAA) {
-            managerRender.enableAA(AAEnabled);
-            loadAA = false;
           }
 
           synchronized (sync) {

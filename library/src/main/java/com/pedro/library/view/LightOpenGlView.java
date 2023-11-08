@@ -41,10 +41,9 @@ import com.pedro.library.R;
 @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
 public class LightOpenGlView extends OpenGlViewBase {
 
-  private SimpleCameraRender simpleCameraRender = null;
+  private final SimpleCameraRender simpleCameraRender = new SimpleCameraRender();
   private boolean keepAspectRatio = false;
   private AspectRatioMode aspectRatioMode = AspectRatioMode.Adjust;
-  private boolean isFlipHorizontal = false, isFlipVertical = false;
 
   public LightOpenGlView(Context context) {
     super(context);
@@ -56,18 +55,12 @@ public class LightOpenGlView extends OpenGlViewBase {
     try {
       keepAspectRatio = typedArray.getBoolean(R.styleable.LightOpenGlView_keepAspectRatio, false);
       aspectRatioMode = AspectRatioMode.fromId(typedArray.getInt(R.styleable.OpenGlView_aspectRatioMode, 0));
-      isFlipHorizontal = typedArray.getBoolean(R.styleable.LightOpenGlView_isFlipHorizontal, false);
-      isFlipVertical = typedArray.getBoolean(R.styleable.LightOpenGlView_isFlipVertical, false);
+      boolean isFlipHorizontal = typedArray.getBoolean(R.styleable.LightOpenGlView_isFlipHorizontal, false);
+      boolean isFlipVertical = typedArray.getBoolean(R.styleable.LightOpenGlView_isFlipVertical, false);
+      simpleCameraRender.setFlip(isFlipHorizontal, isFlipVertical);
     } finally {
       typedArray.recycle();
     }
-  }
-
-  @Override
-  public void init() {
-    if (!initialized) simpleCameraRender = new SimpleCameraRender();
-    simpleCameraRender.setFlip(isFlipHorizontal, isFlipVertical);
-    initialized = true;
   }
 
   public boolean isKeepAspectRatio() {

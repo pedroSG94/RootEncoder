@@ -17,8 +17,8 @@ class RtspStreamClient(
    *
    * @param protocol Could be Protocol.TCP or Protocol.UDP.
    */
-  fun setProtocol(protocol: Protocol?) {
-    rtspClient.setProtocol(protocol!!)
+  fun setProtocol(protocol: Protocol) {
+    rtspClient.setProtocol(protocol)
   }
 
   override fun setAuthorization(user: String?, password: String?) {

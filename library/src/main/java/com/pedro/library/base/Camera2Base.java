@@ -127,14 +127,12 @@ public abstract class Camera2Base {
   public Camera2Base(OpenGlView openGlView) {
     context = openGlView.getContext();
     glInterface = openGlView;
-    glInterface.init();
     init(context);
   }
 
   public Camera2Base(LightOpenGlView lightOpenGlView) {
     this.context = lightOpenGlView.getContext();
     glInterface = lightOpenGlView;
-    glInterface.init();
     init(context);
   }
 
@@ -142,7 +140,6 @@ public abstract class Camera2Base {
     this.context = context;
     if (useOpengl) {
       glInterface = new OffScreenGlThread(context);
-      glInterface.init();
     }
     isBackground = true;
     init(context);
@@ -489,7 +486,6 @@ public abstract class Camera2Base {
         this.glInterface.removeMediaCodecSurface();
         this.glInterface.stop();
         this.glInterface = glInterface;
-        this.glInterface.init();
         this.glInterface.setEncoderSize(size.x, size.y);
         this.glInterface.setRotation(videoEncoder.getRotation() == 0 ? 270 : videoEncoder.getRotation() - 90);
         this.glInterface.start();
@@ -501,7 +497,6 @@ public abstract class Camera2Base {
         cameraManager.openLastCamera();
       } else {
         this.glInterface = glInterface;
-        this.glInterface.init();
       }
     }
   }
