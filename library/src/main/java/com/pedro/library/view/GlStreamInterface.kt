@@ -13,6 +13,7 @@ import com.pedro.encoder.input.gl.render.MainRender
 import com.pedro.encoder.input.gl.render.filters.BaseFilterRender
 import com.pedro.encoder.input.video.CameraHelper
 import com.pedro.encoder.input.video.FpsLimiter
+import com.pedro.encoder.utils.gl.AspectRatioMode
 import com.pedro.encoder.utils.gl.GlUtil
 import com.pedro.library.util.Filter
 import java.util.concurrent.BlockingQueue
@@ -52,6 +53,7 @@ class GlStreamInterface(private val context: Context) : Runnable, OnFrameAvailab
   private var isPreviewVerticalFlip = false
   private var isStreamHorizontalFlip = false
   private var isStreamVerticalFlip = false
+  private var aspectRatioMode = AspectRatioMode.Adjust
 
   override fun setEncoderSize(width: Int, height: Int) {
     encoderWidth = width
@@ -149,7 +151,7 @@ class GlStreamInterface(private val context: Context) : Runnable, OnFrameAvailab
           surfaceManager.makeCurrent()
           managerRender.updateFrame()
           managerRender.drawOffScreen()
-          managerRender.drawScreen(encoderWidth, encoderHeight, false, 0, 0,
+          managerRender.drawScreen(encoderWidth, encoderHeight, AspectRatioMode.NONE, 0,
             flipStreamVertical = false, flipStreamHorizontal = false)
           surfaceManager.swapBuffer()
 
@@ -172,7 +174,7 @@ class GlStreamInterface(private val context: Context) : Runnable, OnFrameAvailab
             //render surface photo if request photo
             if (takePhotoCallback != null && surfaceManagerPhoto.isReady) {
               surfaceManagerPhoto.makeCurrent()
-              managerRender.drawScreen(encoderWidth, encoderHeight, false, 0,
+              managerRender.drawScreen(encoderWidth, encoderHeight, AspectRatioMode.NONE,
                 streamOrientation, isStreamVerticalFlip, isStreamHorizontalFlip)
               takePhotoCallback?.onTakePhoto(GlUtil.getBitmap(encoderWidth, encoderHeight))
               takePhotoCallback = null
@@ -183,7 +185,7 @@ class GlStreamInterface(private val context: Context) : Runnable, OnFrameAvailab
               val w =  if (previewWidth == 0) encoderWidth else previewWidth
               val h =  if (previewHeight == 0) encoderHeight else previewHeight
               surfaceManagerPreview.makeCurrent()
-              managerRender.drawScreenPreview(w, h, isPortrait, true, 0, previewOrientation,
+              managerRender.drawScreenPreview(w, h, isPortrait, aspectRatioMode, previewOrientation,
                 isPreviewVerticalFlip, isPreviewHorizontalFlip)
               surfaceManagerPreview.swapBuffer()
             }
@@ -300,5 +302,9 @@ class GlStreamInterface(private val context: Context) : Runnable, OnFrameAvailab
 
   override fun setFilter(baseFilterRender: BaseFilterRender?) {
     filterQueue.add(Filter(FilterAction.SET, 0, baseFilterRender))
+  }
+
+  fun setAspectRatioMode(aspectRatioMode: AspectRatioMode) {
+    this.aspectRatioMode = aspectRatioMode
   }
 }

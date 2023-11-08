@@ -25,6 +25,7 @@ import androidx.annotation.RequiresApi;
 
 import com.pedro.encoder.input.gl.FilterAction;
 import com.pedro.encoder.input.gl.render.filters.BaseFilterRender;
+import com.pedro.encoder.utils.gl.AspectRatioMode;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -73,9 +74,9 @@ public class ManagerRender {
     for (BaseFilterRender baseFilterRender : filterRenders) baseFilterRender.draw();
   }
 
-  public void drawScreen(int width, int height, boolean keepAspectRatio, int mode, int rotation,
+  public void drawScreen(int width, int height, AspectRatioMode mode, int rotation,
       boolean flipStreamVertical, boolean flipStreamHorizontal) {
-    screenRender.draw(width, height, keepAspectRatio, mode, rotation, flipStreamVertical,
+    screenRender.draw(width, height, mode, rotation, flipStreamVertical,
         flipStreamHorizontal);
   }
 

@@ -30,6 +30,7 @@ import androidx.annotation.RequiresApi;
 import com.pedro.encoder.input.gl.FilterAction;
 import com.pedro.encoder.input.gl.render.ManagerRender;
 import com.pedro.encoder.input.gl.render.filters.BaseFilterRender;
+import com.pedro.encoder.utils.gl.AspectRatioMode;
 import com.pedro.encoder.utils.gl.GlUtil;
 import com.pedro.library.R;
 import com.pedro.library.util.Filter;
@@ -42,7 +43,6 @@ import com.pedro.library.util.Filter;
 public class OpenGlView extends OpenGlViewBase {
 
   private final ManagerRender managerRender = new ManagerRender();
-  private boolean keepAspectRatio = false;
   private AspectRatioMode aspectRatioMode = AspectRatioMode.Adjust;
 
   public OpenGlView(Context context) {
@@ -53,8 +53,7 @@ public class OpenGlView extends OpenGlViewBase {
     super(context, attrs);
     TypedArray typedArray = context.obtainStyledAttributes(attrs, R.styleable.OpenGlView);
     try {
-      keepAspectRatio = typedArray.getBoolean(R.styleable.OpenGlView_keepAspectRatio, false);
-      aspectRatioMode = AspectRatioMode.fromId(typedArray.getInt(R.styleable.OpenGlView_aspectRatioMode, 0));
+      aspectRatioMode = AspectRatioMode.Companion.fromId(typedArray.getInt(R.styleable.OpenGlView_aspectRatioMode, AspectRatioMode.NONE.ordinal()));
       boolean AAEnabled = typedArray.getBoolean(R.styleable.OpenGlView_AAEnabled, false);
       ManagerRender.numFilters = typedArray.getInt(R.styleable.OpenGlView_numFilters, 0);
       boolean isFlipHorizontal = typedArray.getBoolean(R.styleable.OpenGlView_isFlipHorizontal, false);
@@ -126,16 +125,8 @@ public class OpenGlView extends OpenGlViewBase {
     managerRender.setCameraRotation(rotation);
   }
 
-  public boolean isKeepAspectRatio() {
-    return keepAspectRatio;
-  }
-
   public void setAspectRatioMode(AspectRatioMode aspectRatioMode) {
     this.aspectRatioMode = aspectRatioMode;
-  }
-
-  public void setKeepAspectRatio(boolean keepAspectRatio) {
-    this.keepAspectRatio = keepAspectRatio;
   }
 
   public void setCameraFlip(boolean isFlipHorizontal, boolean isFlipVertical) {
@@ -173,7 +164,7 @@ public class OpenGlView extends OpenGlViewBase {
           surfaceManager.makeCurrent();
           managerRender.updateFrame();
           managerRender.drawOffScreen();
-          managerRender.drawScreen(previewWidth, previewHeight, keepAspectRatio, aspectRatioMode.id, 0,
+          managerRender.drawScreen(previewWidth, previewHeight, aspectRatioMode, 0,
               isPreviewVerticalFlip, isPreviewHorizontalFlip);
           surfaceManager.swapBuffer();
 
@@ -187,13 +178,13 @@ public class OpenGlView extends OpenGlViewBase {
               int w = muteVideo ? 0 : encoderWidth;
               int h = muteVideo ? 0 : encoderHeight;
               surfaceManagerEncoder.makeCurrent();
-              managerRender.drawScreen(w, h, false, aspectRatioMode.id,
+              managerRender.drawScreen(w, h, aspectRatioMode,
                   streamRotation, isStreamVerticalFlip, isStreamHorizontalFlip);
               surfaceManagerEncoder.swapBuffer();
             }
             if (takePhotoCallback != null && surfaceManagerPhoto.isReady()) {
               surfaceManagerPhoto.makeCurrent();
-              managerRender.drawScreen(encoderWidth, encoderHeight, false, aspectRatioMode.id,
+              managerRender.drawScreen(encoderWidth, encoderHeight, aspectRatioMode,
                   streamRotation, isStreamVerticalFlip, isStreamHorizontalFlip);
               takePhotoCallback.onTakePhoto(GlUtil.getBitmap(encoderWidth, encoderHeight));
               takePhotoCallback = null;

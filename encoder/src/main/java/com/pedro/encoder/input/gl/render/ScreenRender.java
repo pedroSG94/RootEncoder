@@ -24,6 +24,7 @@ import android.os.Build;
 import androidx.annotation.RequiresApi;
 
 import com.pedro.encoder.R;
+import com.pedro.encoder.utils.gl.AspectRatioMode;
 import com.pedro.encoder.utils.gl.GlUtil;
 import com.pedro.encoder.utils.gl.SizeCalculator;
 
@@ -93,12 +94,12 @@ public class ScreenRender {
     GlUtil.checkGlError("initGl end");
   }
 
-  public void draw(int width, int height, boolean keepAspectRatio, int mode, int rotation,
+  public void draw(int width, int height, AspectRatioMode mode, int rotation,
       boolean flipStreamVertical, boolean flipStreamHorizontal) {
     GlUtil.checkGlError("drawScreen start");
 
     SizeCalculator.processMatrix(rotation, flipStreamHorizontal, flipStreamVertical, MVPMatrix);
-    SizeCalculator.calculateViewPort(keepAspectRatio, mode, width, height, streamWidth,
+    SizeCalculator.calculateViewPort(mode, width, height, streamWidth,
         streamHeight);
 
     draw(width, height);
@@ -114,8 +115,8 @@ public class ScreenRender {
     draw(width, height);
   }
 
-  public void drawPreview(int width, int height, boolean isPortrait, boolean keepAspectRatio,
-      int mode, int rotation, boolean flipStreamVertical, boolean flipStreamHorizontal) {
+  public void drawPreview(int width, int height, boolean isPortrait,
+      AspectRatioMode mode, int rotation, boolean flipStreamVertical, boolean flipStreamHorizontal) {
     GlUtil.checkGlError("drawScreen start");
 
     SizeCalculator.processMatrix(rotation, flipStreamHorizontal, flipStreamVertical, MVPMatrix);
@@ -129,7 +130,7 @@ public class ScreenRender {
       w = isPortrait ? streamWidth : streamHeight;
       h = isPortrait ? streamHeight : streamWidth;
     }
-    SizeCalculator.calculateViewPort(keepAspectRatio, mode, width, height, w, h);
+    SizeCalculator.calculateViewPort(mode, width, height, w, h);
 
     draw(width, height);
   }
