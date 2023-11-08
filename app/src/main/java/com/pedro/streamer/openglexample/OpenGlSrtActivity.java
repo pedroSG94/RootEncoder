@@ -398,7 +398,7 @@ public class OpenGlSrtActivity extends AppCompatActivity
         if (srtCamera1.isRecording()
                 || srtCamera1.prepareAudio() && srtCamera1.prepareVideo()) {
           button.setText(R.string.stop_button);
-          srtCamera1.startStream(etUrl.getText().toString());
+          srtCamera1.startStream("srt://192.168.0.191:9999/srt://192.168.0.191:9999/app/stream");
         } else {
           Toast.makeText(this, "Error preparing stream, This device cant do it",
                   Toast.LENGTH_SHORT).show();

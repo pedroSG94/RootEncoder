@@ -25,6 +25,7 @@ import com.pedro.srt.utils.readUInt32
 import com.pedro.srt.utils.writeUInt16
 import com.pedro.srt.utils.writeUInt32
 import java.io.InputStream
+import java.net.InetAddress
 
 /**
  * Created by pedro on 21/8/23.
@@ -103,9 +104,15 @@ data class Handshake(
   }
 
   private fun writeAddress() {
-      val numbers = ipAddress.split(".").map { it.trim().toInt() }
-    numbers.forEach {
-      buffer.writeUInt32(it)
+    val address = InetAddress.getByName(ipAddress)
+    val bytes = address.address.toList().chunked(4).map { it.reversed() }
+    bytes.forEach {
+      buffer.write(it.toByteArray())
+    }
+    if (bytes.size == 1) { //ipv4
+      buffer.writeUInt32(0)
+      buffer.writeUInt32(0)
+      buffer.writeUInt32(0)
     }
   }
 
