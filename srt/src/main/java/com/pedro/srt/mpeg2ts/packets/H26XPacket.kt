@@ -77,7 +77,7 @@ class H26XPacket(
         return
       }
     }
-
+    if (!isKeyFrame && !configSend) return //start with keyframe
     byteBuffer.rewind()
     val validBuffer = fixHeader(byteBuffer, isKeyFrame)
     val payload = ByteArray(validBuffer.remaining())

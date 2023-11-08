@@ -17,6 +17,7 @@
 package com.pedro.srt.mpeg2ts
 
 import com.pedro.srt.mpeg2ts.psi.Psi
+import com.pedro.srt.mpeg2ts.psi.PsiManager
 import com.pedro.srt.utils.TimeUtils
 import com.pedro.srt.utils.toByteArray
 import com.pedro.srt.utils.toInt
@@ -26,7 +27,7 @@ import java.nio.ByteBuffer
  * Created by pedro on 28/8/23.
  *
  */
-class MpegTsPacketizer {
+class MpegTsPacketizer(private val psiManager: PsiManager) {
 
   companion object {
     const val packetSize = 188
@@ -63,25 +64,25 @@ class MpegTsPacketizer {
       when (mpegTsPayload) {
         is Psi -> {
           writeHeader(buffer, true, mpegTsPayload.pid, AdaptationFieldControl.PAYLOAD, continuity)
-          val psi = mpegTsPayload
-          psi.write(buffer)
+          mpegTsPayload.write(buffer)
           val stuffingSize = buffer.remaining()
           writeStuffingBytes(buffer, stuffingSize, false)
           packets.add(buffer.toByteArray())
         }
         is Pes -> {
-          val pes = mpegTsPayload
           var adaptationFieldControl = AdaptationFieldControl.ADAPTATION_PAYLOAD
           writeHeader(buffer, true, mpegTsPayload.pid, adaptationFieldControl, pesContinuity)
+          val isAudio = psiManager.getAudioPid().toInt() == mpegTsPayload.pid
+          val pcr = if (isAudio) null else TimeUtils.getCurrentTimeMicro()
           val adaptationField = AdaptationField(
             discontinuityIndicator = false,
             randomAccessIndicator = mpegTsPayload.isKeyFrame, //only video can be true
-            pcr = TimeUtils.getCurrentTimeMicro()
+            pcr = pcr
           )
           buffer.put(adaptationField.getData())
-          pes.writeHeader(buffer)
+          mpegTsPayload.writeHeader(buffer)
 
-          val data = pes.bufferData
+          val data = mpegTsPayload.bufferData
           while (data.hasRemaining()) {
             if (isFirstPacket) {
               isFirstPacket = false

@@ -59,12 +59,12 @@ class SrtSender(
 
   private val service = Mpeg2TsService()
 
-  private var psiManager = PsiManager(service).apply {
+  private val psiManager = PsiManager(service).apply {
     upgradePatVersion()
     upgradeSdtVersion()
   }
 
-  private val mpegTsPacketizer = MpegTsPacketizer()
+  private val mpegTsPacketizer = MpegTsPacketizer(psiManager)
   private val aacPacket = AacPacket(commandsManager.MTU - SrtPacket.headerSize, psiManager)
   private val h26XPacket = H26XPacket(commandsManager.MTU - SrtPacket.headerSize, psiManager)
 

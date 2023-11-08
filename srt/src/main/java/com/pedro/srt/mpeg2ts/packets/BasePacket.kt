@@ -47,7 +47,7 @@ abstract class BasePacket(
   private var limitSize: Int,
 ) {
 
-  protected val mpegTsPacketizer =  MpegTsPacketizer()
+  protected val mpegTsPacketizer =  MpegTsPacketizer(psiManager)
   protected var chunkSize = limitSize / MpegTsPacketizer.packetSize //max number of ts packets per srtpacket
 
   abstract fun createAndSendPacket(
