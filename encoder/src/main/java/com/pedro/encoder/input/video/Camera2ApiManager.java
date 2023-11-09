@@ -368,6 +368,24 @@ public class Camera2ApiManager extends CameraDevice.StateCallback {
     }
   }
 
+  public Size[] getCameraResolutions(String cameraId) {
+    try {
+      CameraCharacteristics characteristics = getCharacteristicsForId(cameraManager, cameraId);
+      if (characteristics == null) {
+        return new Size[0];
+      }
+
+      StreamConfigurationMap streamConfigurationMap =
+          characteristics.get(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP);
+      if (streamConfigurationMap == null) return new Size[0];
+      Size[] outputSizes = streamConfigurationMap.getOutputSizes(SurfaceTexture.class);
+      return outputSizes != null ? outputSizes : new Size[0];
+    } catch (CameraAccessException | NullPointerException e) {
+      Log.e(TAG, "Error", e);
+      return new Size[0];
+    }
+  }
+
   @Nullable
   public CameraCharacteristics getCameraCharacteristics() {
     try {
@@ -1119,6 +1137,12 @@ public class Camera2ApiManager extends CameraDevice.StateCallback {
   private CameraCharacteristics getCharacteristicsForFacing(CameraManager cameraManager,
       CameraHelper.Facing facing) throws CameraAccessException {
     String cameraId = getCameraIdForFacing(cameraManager, facing);
+    return getCharacteristicsForId(cameraManager, cameraId);
+  }
+
+  @Nullable
+  private CameraCharacteristics getCharacteristicsForId(CameraManager cameraManager,
+      String cameraId) throws CameraAccessException {
     return cameraId != null ? cameraManager.getCameraCharacteristics(cameraId) : null;
   }
 

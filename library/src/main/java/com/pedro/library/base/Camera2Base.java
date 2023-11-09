@@ -715,21 +715,30 @@ public abstract class Camera2Base {
   }
 
   /**
-   * Get supported preview resolutions of back camera in px.
+   * Get supported resolutions of back camera in px.
    *
-   * @return list of preview resolutions supported by back camera
+   * @return list of resolutions supported by back camera
    */
   public List<Size> getResolutionsBack() {
     return Arrays.asList(cameraManager.getCameraResolutionsBack());
   }
 
   /**
-   * Get supported preview resolutions of front camera in px.
+   * Get supported resolutions of front camera in px.
    *
-   * @return list of preview resolutions supported by front camera
+   * @return list of resolutions supported by front camera
    */
   public List<Size> getResolutionsFront() {
     return Arrays.asList(cameraManager.getCameraResolutionsFront());
+  }
+
+  /**
+   * Get supported resolutions of cameraId in px.
+   *
+   * @return list of resolutions supported by cameraId
+   */
+  public List<Size> getResolutions(String cameraId) {
+    return Arrays.asList(cameraManager.getCameraResolutions(cameraId));
   }
 
   public List<Range<Integer>> getSupportedFps() {
