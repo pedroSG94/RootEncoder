@@ -89,7 +89,6 @@ class SrtSender(
       videoTrack?.let {
         service.tracks.remove(it)
       }
-      service.addTrack(value)
       h26XPacket.setVideoCodec(value)
       field = value
     }
@@ -103,8 +102,9 @@ class SrtSender(
 
   private fun setTrackConfig(videoEnabled: Boolean, audioEnabled: Boolean) {
     Pid.reset()
-    if (videoEnabled) service.addTrack(videoCodec)
     if (audioEnabled) service.addTrack(Codec.AAC)
+    if (videoEnabled) service.addTrack(videoCodec)
+    service.generatePmt()
     psiManager.updateService(service)
   }
 
