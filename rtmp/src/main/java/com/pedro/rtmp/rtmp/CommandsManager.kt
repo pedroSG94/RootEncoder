@@ -18,6 +18,7 @@ package com.pedro.rtmp.rtmp
 
 import android.util.Log
 import com.pedro.common.TimeUtils
+import com.pedro.common.VideoCodec
 import com.pedro.rtmp.amf.v0.*
 import com.pedro.rtmp.flv.FlvPacket
 import com.pedro.rtmp.rtmp.message.*

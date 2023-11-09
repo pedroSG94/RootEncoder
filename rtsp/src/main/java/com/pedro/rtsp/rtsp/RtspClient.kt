@@ -19,7 +19,9 @@ package com.pedro.rtsp.rtsp
 import android.media.MediaCodec
 import android.util.Log
 import com.pedro.common.ConnectChecker
+import com.pedro.common.StreamClient
 import com.pedro.common.TLSSocketFactory
+import com.pedro.common.VideoCodec
 import com.pedro.common.onMainThread
 import com.pedro.rtsp.rtsp.commands.CommandsManager
 import com.pedro.rtsp.rtsp.commands.Method
@@ -46,10 +48,14 @@ import java.util.regex.Pattern
 /**
  * Created by pedro on 10/02/17.
  */
-class RtspClient(private val connectChecker: ConnectChecker) {
+class RtspClient(private val connectChecker: ConnectChecker) : StreamClient {
 
   private val TAG = "RtspClient"
-  private val rtspUrlPattern = Pattern.compile("^rtsps?://([^/:]+)(?::(\\d+))*/([^/]+)/?([^*]*)$")
+
+  companion object {
+    @JvmStatic
+    val urlPattern: Pattern = Pattern.compile("^rtsps?://([^/:]+)(?::(\\d+))*/([^/]+)/?([^*]*)$")
+  }
 
   //sockets objects
   private var connectionSocket: Socket? = null
@@ -75,29 +81,29 @@ class RtspClient(private val connectChecker: ConnectChecker) {
   private var reTries = 0
   private var checkServerAlive = false
 
-  val droppedAudioFrames: Long
+  override val droppedAudioFrames: Long
     get() = rtspSender.droppedAudioFrames
-  val droppedVideoFrames: Long
+  override val droppedVideoFrames: Long
     get() = rtspSender.droppedVideoFrames
 
-  val cacheSize: Int
+  override val cacheSize: Int
     get() = rtspSender.getCacheSize()
-  val sentAudioFrames: Long
+  override val sentAudioFrames: Long
     get() = rtspSender.getSentAudioFrames()
-  val sentVideoFrames: Long
+  override val sentVideoFrames: Long
     get() = rtspSender.getSentVideoFrames()
 
   /**
    * Check periodically if server is alive using Echo protocol.
    */
-  fun setCheckServerAlive(enabled: Boolean) {
+  override fun setCheckServerAlive(enabled: Boolean) {
     checkServerAlive = enabled
   }
 
   /**
    * Must be called before connect
    */
-  fun setOnlyAudio(onlyAudio: Boolean) {
+  override fun setOnlyAudio(onlyAudio: Boolean) {
     if (onlyAudio) {
       RtpConstants.trackAudio = 0
       RtpConstants.trackVideo = 1
@@ -112,7 +118,7 @@ class RtspClient(private val connectChecker: ConnectChecker) {
   /**
    * Must be called before connect
    */
-  fun setOnlyVideo(onlyVideo: Boolean) {
+  override fun setOnlyVideo(onlyVideo: Boolean) {
     RtpConstants.trackVideo = 0
     RtpConstants.trackAudio = 1
     commandsManager.videoDisabled = false
@@ -123,36 +129,39 @@ class RtspClient(private val connectChecker: ConnectChecker) {
     commandsManager.protocol = protocol
   }
 
-  fun setAuthorization(user: String?, password: String?) {
+  override fun setAuthorization(user: String?, password: String?) {
     commandsManager.setAuth(user, password)
   }
 
-  fun setReTries(reTries: Int) {
+  override fun setReTries(reTries: Int) {
     numRetry = reTries
     this.reTries = reTries
   }
 
-  fun shouldRetry(reason: String): Boolean {
+  override fun shouldRetry(reason: String): Boolean {
     val validReason = doingRetry && !reason.contains("Endpoint malformed")
     return validReason && reTries > 0
   }
 
-  fun setVideoInfo(sps: ByteBuffer, pps: ByteBuffer, vps: ByteBuffer?) {
+  override fun setVideoInfo(sps: ByteBuffer, pps: ByteBuffer, vps: ByteBuffer?) {
     Log.i(TAG, "send sps and pps")
     commandsManager.setVideoInfo(sps, pps, vps)
     if (mutex.isLocked) runCatching { mutex.unlock() }
   }
 
-  fun setAudioInfo(sampleRate: Int, isStereo: Boolean) {
+  override fun setAudioInfo(sampleRate: Int, isStereo: Boolean) {
     commandsManager.setAudioInfo(sampleRate, isStereo)
   }
 
-  fun setVideoCodec(codec: VideoCodec) {
-    commandsManager.setCodec(codec)
+  override fun setVideoCodec(videoCodec: VideoCodec) {
+    commandsManager.setCodec(videoCodec)
   }
 
-  @JvmOverloads
-  fun connect(url: String?, isRetry: Boolean = false) {
+  override fun connect(url: String?) {
+    connect(url, false)
+  }
+
+  override fun connect(url: String?, isRetry: Boolean) {
     if (!isRetry) doingRetry = true
     if (!isStreaming || isRetry) {
       isStreaming = true
@@ -169,7 +178,7 @@ class RtspClient(private val connectChecker: ConnectChecker) {
         onMainThread {
           connectChecker.onConnectionStarted(url)
         }
-        val rtspMatcher = rtspUrlPattern.matcher(url)
+        val rtspMatcher = urlPattern.matcher(url)
         if (rtspMatcher.matches()) {
           tlsEnabled = (rtspMatcher.group(0) ?: "").startsWith("rtsps")
         } else {
@@ -376,7 +385,7 @@ class RtspClient(private val connectChecker: ConnectChecker) {
     return if (connected && !reachable) false else connected
   }
 
-  fun disconnect() {
+  override fun disconnect() {
     CoroutineScope(Dispatchers.IO).launch {
       disconnect(true)
     }
@@ -420,26 +429,33 @@ class RtspClient(private val connectChecker: ConnectChecker) {
     scope = CoroutineScope(Dispatchers.IO)
   }
 
-  fun sendVideo(h264Buffer: ByteBuffer, info: MediaCodec.BufferInfo) {
+  override fun sendVideo(h264Buffer: ByteBuffer, info: MediaCodec.BufferInfo) {
     if (!commandsManager.videoDisabled) {
       rtspSender.sendVideoFrame(h264Buffer, info)
     }
   }
 
-  fun sendAudio(aacBuffer: ByteBuffer, info: MediaCodec.BufferInfo) {
+  override fun sendAudio(aacBuffer: ByteBuffer, info: MediaCodec.BufferInfo) {
     if (!commandsManager.audioDisabled) {
       rtspSender.sendAudioFrame(aacBuffer, info)
     }
   }
 
-  @JvmOverloads
   @Throws(IllegalArgumentException::class)
-  fun hasCongestion(percentUsed: Float = 20f): Boolean {
+  override fun hasCongestion(): Boolean {
+    return hasCongestion(20f)
+  }
+
+  @Throws(IllegalArgumentException::class)
+  override fun hasCongestion(percentUsed: Float): Boolean {
     return rtspSender.hasCongestion(percentUsed)
   }
 
-  @JvmOverloads
-  fun reConnect(delay: Long, backupUrl: String? = null) {
+  override fun reConnect(delay: Long) {
+    reConnect(delay, null)
+  }
+
+  override fun reConnect(delay: Long, backupUrl: String?) {
     jobRetry = scopeRetry.launch {
       reTries--
       disconnect(false)
@@ -449,34 +465,34 @@ class RtspClient(private val connectChecker: ConnectChecker) {
     }
   }
 
-  fun resetSentAudioFrames() {
+  override fun resetSentAudioFrames() {
     rtspSender.resetSentAudioFrames()
   }
 
-  fun resetSentVideoFrames() {
+  override fun resetSentVideoFrames() {
     rtspSender.resetSentVideoFrames()
   }
 
-  fun resetDroppedAudioFrames() {
+  override fun resetDroppedAudioFrames() {
     rtspSender.resetDroppedAudioFrames()
   }
 
-  fun resetDroppedVideoFrames() {
+  override fun resetDroppedVideoFrames() {
     rtspSender.resetDroppedVideoFrames()
   }
 
   @Throws(RuntimeException::class)
-  fun resizeCache(newSize: Int) {
+  override fun resizeCache(newSize: Int) {
     rtspSender.resizeCache(newSize)
   }
 
-  fun setLogs(enable: Boolean) {
+  override fun setLogs(enable: Boolean) {
     rtspSender.setLogs(enable)
   }
 
-  fun clearCache() {
+  override fun clearCache() {
     rtspSender.clearCache()
   }
 
-  fun getItemsInCache(): Int = rtspSender.getItemsInCache()
+  override fun getItemsInCache(): Int = rtspSender.getItemsInCache()
 }

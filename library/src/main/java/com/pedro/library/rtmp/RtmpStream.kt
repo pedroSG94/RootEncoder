@@ -5,8 +5,8 @@ import android.media.MediaCodec
 import android.os.Build
 import androidx.annotation.RequiresApi
 import com.pedro.common.ConnectChecker
+import com.pedro.common.VideoCodec
 import com.pedro.library.base.StreamBase
-import com.pedro.library.util.VideoCodec
 import com.pedro.library.util.sources.AudioManager
 import com.pedro.library.util.sources.VideoManager
 import com.pedro.library.util.streamclient.RtmpStreamClient
@@ -39,7 +39,7 @@ class RtmpStream(
       this(context, connectChecker, VideoManager.Source.CAMERA2, AudioManager.Source.MICROPHONE)
 
   override fun setVideoCodecImp(codec: VideoCodec) {
-    rtmpClient.setVideoCodec(if (codec === VideoCodec.H264) com.pedro.rtmp.rtmp.VideoCodec.H264 else com.pedro.rtmp.rtmp.VideoCodec.H265)
+    rtmpClient.setVideoCodec(codec)
   }
 
   override fun audioInfo(sampleRate: Int, isStereo: Boolean) {

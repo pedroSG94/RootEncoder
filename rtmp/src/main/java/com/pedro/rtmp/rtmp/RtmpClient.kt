@@ -19,7 +19,9 @@ package com.pedro.rtmp.rtmp
 import android.media.MediaCodec
 import android.util.Log
 import com.pedro.common.ConnectChecker
+import com.pedro.common.StreamClient
 import com.pedro.common.TimeUtils
+import com.pedro.common.VideoCodec
 import com.pedro.common.onMainThread
 import com.pedro.rtmp.amf.AmfVersion
 import com.pedro.rtmp.flv.video.ProfileIop
@@ -48,10 +50,14 @@ import java.util.regex.Pattern
 /**
  * Created by pedro on 8/04/21.
  */
-class RtmpClient(private val connectChecker: ConnectChecker) {
+class RtmpClient(private val connectChecker: ConnectChecker) : StreamClient {
 
   private val TAG = "RtmpClient"
-  private val rtmpUrlPattern = Pattern.compile("^rtmpt?s?://([^/:]+)(?::(\\d+))*/([^/]+)/?([^*]*)$")
+
+  companion object {
+    @JvmStatic
+    val urlPattern: Pattern = Pattern.compile("^rtmpt?s?://([^/:]+)(?::(\\d+))*/([^/]+)/?([^*]*)$")
+  }
 
   private var socket: RtmpSocket? = null
   private var scope = CoroutineScope(Dispatchers.IO)
@@ -75,19 +81,19 @@ class RtmpClient(private val connectChecker: ConnectChecker) {
   private var checkServerAlive = false
   private var publishPermitted = false
 
-  val droppedAudioFrames: Long
+  override val droppedAudioFrames: Long
     get() = rtmpSender.droppedAudioFrames
-  val droppedVideoFrames: Long
+  override val droppedVideoFrames: Long
     get() = rtmpSender.droppedVideoFrames
 
-  val cacheSize: Int
+  override val cacheSize: Int
     get() = rtmpSender.getCacheSize()
-  val sentAudioFrames: Long
+  override val sentAudioFrames: Long
     get() = rtmpSender.getSentAudioFrames()
-  val sentVideoFrames: Long
+  override val sentVideoFrames: Long
     get() = rtmpSender.getSentVideoFrames()
 
-  fun setVideoCodec(videoCodec: VideoCodec) {
+  override fun setVideoCodec(videoCodec: VideoCodec) {
     if (!isStreaming) {
       commandsManager.videoCodec = videoCodec
       rtmpSender.videoCodec = videoCodec
@@ -106,14 +112,14 @@ class RtmpClient(private val connectChecker: ConnectChecker) {
   /**
    * Check periodically if server is alive using Echo protocol.
    */
-  fun setCheckServerAlive(enabled: Boolean) {
+  override fun setCheckServerAlive(enabled: Boolean) {
     checkServerAlive = enabled
   }
 
   /**
    * Must be called before connect
    */
-  fun setOnlyAudio(onlyAudio: Boolean) {
+  override fun setOnlyAudio(onlyAudio: Boolean) {
     commandsManager.audioDisabled = false
     commandsManager.videoDisabled = onlyAudio
   }
@@ -121,7 +127,7 @@ class RtmpClient(private val connectChecker: ConnectChecker) {
   /**
    * Must be called before connect
    */
-  fun setOnlyVideo(onlyVideo: Boolean) {
+  override fun setOnlyVideo(onlyVideo: Boolean) {
     commandsManager.videoDisabled = false
     commandsManager.audioDisabled = onlyVideo
   }
@@ -136,26 +142,26 @@ class RtmpClient(private val connectChecker: ConnectChecker) {
     }
   }
 
-  fun setAuthorization(user: String?, password: String?) {
+  override fun setAuthorization(user: String?, password: String?) {
     commandsManager.setAuth(user, password)
   }
 
-  fun setReTries(reTries: Int) {
+  override fun setReTries(reTries: Int) {
     numRetry = reTries
     this.reTries = reTries
   }
 
-  fun shouldRetry(reason: String): Boolean {
+  override fun shouldRetry(reason: String): Boolean {
     val validReason = doingRetry && !reason.contains("Endpoint malformed")
     return validReason && reTries > 0
   }
 
-  fun setAudioInfo(sampleRate: Int, isStereo: Boolean) {
+  override fun setAudioInfo(sampleRate: Int, isStereo: Boolean) {
     commandsManager.setAudioInfo(sampleRate, isStereo)
     rtmpSender.setAudioInfo(sampleRate, isStereo)
   }
 
-  fun setVideoInfo(sps: ByteBuffer, pps: ByteBuffer, vps: ByteBuffer?) {
+  override fun setVideoInfo(sps: ByteBuffer, pps: ByteBuffer, vps: ByteBuffer?) {
     Log.i(TAG, "send sps and pps")
     rtmpSender.setVideoInfo(sps, pps, vps)
   }
@@ -172,8 +178,11 @@ class RtmpClient(private val connectChecker: ConnectChecker) {
     commandsManager.fps = fps
   }
 
-  @JvmOverloads
-  fun connect(url: String?, isRetry: Boolean = false) {
+  override fun connect(url: String?) {
+    connect(url, false)
+  }
+
+  override fun connect(url: String?, isRetry: Boolean) {
     if (!isRetry) doingRetry = true
     if (!isStreaming || isRetry) {
       isStreaming = true
@@ -183,7 +192,8 @@ class RtmpClient(private val connectChecker: ConnectChecker) {
           isStreaming = false
           onMainThread {
             connectChecker.onConnectionFailed(
-              "Endpoint malformed, should be: rtmp://ip:port/appname/streamname")
+              "Endpoint malformed, should be: rtmp://ip:port/appname/streamname"
+            )
           }
           return@launch
         }
@@ -191,7 +201,7 @@ class RtmpClient(private val connectChecker: ConnectChecker) {
         onMainThread {
           connectChecker.onConnectionStarted(url)
         }
-        val rtmpMatcher = rtmpUrlPattern.matcher(url)
+        val rtmpMatcher = urlPattern.matcher(url)
         if (rtmpMatcher.matches()) {
           val schema = rtmpMatcher.group(0) ?: ""
           tunneled = schema.startsWith("rtmpt")
@@ -485,8 +495,11 @@ class RtmpClient(private val connectChecker: ConnectChecker) {
     commandsManager.reset()
   }
 
-  @JvmOverloads
-  fun reConnect(delay: Long, backupUrl: String? = null) {
+  override fun reConnect(delay: Long) {
+    reConnect(delay, null)
+  }
+
+  override fun reConnect(delay: Long, backupUrl: String?) {
     jobRetry = scopeRetry.launch {
       reTries--
       disconnect(false)
@@ -496,7 +509,7 @@ class RtmpClient(private val connectChecker: ConnectChecker) {
     }
   }
 
-  fun disconnect() {
+  override fun disconnect() {
     CoroutineScope(Dispatchers.IO).launch {
       disconnect(true)
     }
@@ -530,52 +543,56 @@ class RtmpClient(private val connectChecker: ConnectChecker) {
     commandsManager.reset()
   }
 
-  fun sendVideo(h264Buffer: ByteBuffer, info: MediaCodec.BufferInfo) {
+  override fun sendVideo(h264Buffer: ByteBuffer, info: MediaCodec.BufferInfo) {
     if (!commandsManager.videoDisabled) {
       rtmpSender.sendVideoFrame(h264Buffer, info)
     }
   }
 
-  fun sendAudio(aacBuffer: ByteBuffer, info: MediaCodec.BufferInfo) {
+  override fun sendAudio(aacBuffer: ByteBuffer, info: MediaCodec.BufferInfo) {
     if (!commandsManager.audioDisabled) {
       rtmpSender.sendAudioFrame(aacBuffer, info)
     }
   }
 
-  @JvmOverloads
   @Throws(IllegalArgumentException::class)
-  fun hasCongestion(percentUsed: Float = 20f): Boolean {
+  override fun hasCongestion(): Boolean {
+    return hasCongestion(20f)
+  }
+
+  @Throws(IllegalArgumentException::class)
+  override fun hasCongestion(percentUsed: Float): Boolean {
     return rtmpSender.hasCongestion(percentUsed)
   }
 
-  fun resetSentAudioFrames() {
+  override fun resetSentAudioFrames() {
     rtmpSender.resetSentAudioFrames()
   }
 
-  fun resetSentVideoFrames() {
+  override fun resetSentVideoFrames() {
     rtmpSender.resetSentVideoFrames()
   }
 
-  fun resetDroppedAudioFrames() {
+  override fun resetDroppedAudioFrames() {
     rtmpSender.resetDroppedAudioFrames()
   }
 
-  fun resetDroppedVideoFrames() {
+  override fun resetDroppedVideoFrames() {
     rtmpSender.resetDroppedVideoFrames()
   }
 
   @Throws(RuntimeException::class)
-  fun resizeCache(newSize: Int) {
+  override fun resizeCache(newSize: Int) {
     rtmpSender.resizeCache(newSize)
   }
 
-  fun setLogs(enable: Boolean) {
+  override fun setLogs(enable: Boolean) {
     rtmpSender.setLogs(enable)
   }
 
-  fun clearCache() {
+  override fun clearCache() {
     rtmpSender.clearCache()
   }
 
-  fun getItemsInCache(): Int = rtmpSender.getItemsInCache()
+  override fun getItemsInCache(): Int = rtmpSender.getItemsInCache()
 }

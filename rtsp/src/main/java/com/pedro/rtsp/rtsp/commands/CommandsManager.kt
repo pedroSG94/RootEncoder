@@ -19,9 +19,9 @@ package com.pedro.rtsp.rtsp.commands
 import android.util.Base64
 import android.util.Log
 import com.pedro.common.TimeUtils
+import com.pedro.common.VideoCodec
 import com.pedro.rtsp.BuildConfig
 import com.pedro.rtsp.rtsp.Protocol
-import com.pedro.rtsp.rtsp.VideoCodec
 import com.pedro.rtsp.rtsp.commands.SdpBody.createAacBody
 import com.pedro.rtsp.rtsp.commands.SdpBody.createH264Body
 import com.pedro.rtsp.rtsp.commands.SdpBody.createH265Body
