@@ -69,10 +69,6 @@ class SrtSender(
   private val aacPacket = AacPacket(limitSize, psiManager)
   private val h26XPacket = H26XPacket(limitSize, psiManager)
 
-  init {
-    Log.e("Pedro", "limit: $limitSize")
-  }
-
   @Volatile
   private var running = false
   private var cacheSize = 200
