@@ -57,10 +57,11 @@ class MpegTsPacketizer(private val psiManager: PsiManager) {
    */
   fun write(payload: List<MpegTsPayload>, increasePsiContinuity: Boolean = false): List<ByteArray> {
     val packets = mutableListOf<ByteArray>()
+    if (increasePsiContinuity) psiContinuity = (psiContinuity + 1) and 0xF
+
     payload.forEachIndexed { index, mpegTsPayload ->
       var buffer = ByteBuffer.allocate(packetSize)
       var isFirstPacket = index == 0
-      if (increasePsiContinuity) psiContinuity = (psiContinuity + 1) and 0xF
 
       when (mpegTsPayload) {
         is Psi -> {

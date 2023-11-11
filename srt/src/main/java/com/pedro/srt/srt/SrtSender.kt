@@ -124,7 +124,8 @@ class SrtSender(
   fun sendVideoFrame(h264Buffer: ByteBuffer, info: MediaCodec.BufferInfo) {
     if (running) {
       h26XPacket.createAndSendPacket(h264Buffer, info) { mpegTsPackets ->
-        checkSendInfo(mpegTsPackets[0].isKey)
+        val isKey = mpegTsPackets[0].isKey
+        checkSendInfo(isKey)
         val result = queue.trySend(mpegTsPackets)
         if (!result) {
           Log.i(TAG, "Video frame discarded")
@@ -137,7 +138,7 @@ class SrtSender(
   fun sendAudioFrame(aacBuffer: ByteBuffer, info: MediaCodec.BufferInfo) {
     if (running) {
       aacPacket.createAndSendPacket(aacBuffer, info) { mpegTsPackets ->
-        checkSendInfo(mpegTsPackets[0].isKey)
+        checkSendInfo()
         val result = queue.trySend(mpegTsPackets)
         if (!result) {
           Log.i(TAG, "Audio frame discarded")

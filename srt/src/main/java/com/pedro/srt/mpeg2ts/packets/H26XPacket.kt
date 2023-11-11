@@ -25,7 +25,6 @@ import com.pedro.srt.mpeg2ts.MpegType
 import com.pedro.srt.mpeg2ts.Pes
 import com.pedro.srt.mpeg2ts.PesType
 import com.pedro.srt.mpeg2ts.psi.PsiManager
-import com.pedro.srt.srt.VideoCodec
 import com.pedro.srt.srt.packets.data.PacketPosition
 import com.pedro.srt.utils.startWith
 import com.pedro.srt.utils.toByteArray
@@ -78,10 +77,6 @@ class H26XPacket(
         return
       }
     }
-    if (!isKeyFrame && !configSend) {
-      Log.e("Pedro", "wait key")
-      return
-    } //start with keyframe
     byteBuffer.rewind()
     val validBuffer = fixHeader(byteBuffer, isKeyFrame)
     val payload = ByteArray(validBuffer.remaining())
@@ -97,15 +92,7 @@ class H26XPacket(
       chunks.forEach {
         buffer.put(it)
       }
-      val packetPosition = if (index == 0 && chunked.size == 1) {
-        PacketPosition.SINGLE
-      } else if (index == 0) {
-        PacketPosition.FIRST
-      } else if (index == chunked.size - 1) {
-        PacketPosition.LAST
-      } else {
-        PacketPosition.MIDDLE
-      }
+      val packetPosition = PacketPosition.SINGLE
       packets.add(MpegTsPacket(buffer.array(), MpegType.VIDEO, packetPosition, isKeyFrame))
     }
     callback(packets)
@@ -152,8 +139,14 @@ class H26XPacket(
       val videoHeader = vps.plus(sps).plus(pps)
       val validBuffer = ByteBuffer.allocate(audSize + videoHeader.size + noHeaderBuffer.remaining())
       validBuffer.putInt(0x00000001)
-      validBuffer.put(0x09.toByte())
-      validBuffer.put(0xf0.toByte())
+      if (codec == Codec.AVC) {
+        validBuffer.put(0x09.toByte())
+        validBuffer.put(0xf0.toByte())
+      } else {
+        validBuffer.put(0x46.toByte())
+        validBuffer.put(0x01.toByte())
+        validBuffer.put(0x50.toByte())
+      }
       validBuffer.put(videoHeader)
       validBuffer.put(noHeaderBuffer.toByteArray())
       validBuffer.rewind()

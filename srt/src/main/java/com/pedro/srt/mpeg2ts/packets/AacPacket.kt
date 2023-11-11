@@ -60,15 +60,7 @@ class AacPacket(
       chunks.forEach {
         buffer.put(it)
       }
-      val packetPosition = if (index == 0 && chunked.size == 1) {
-        PacketPosition.SINGLE
-      } else if (index == 0) {
-        PacketPosition.FIRST
-      } else if (index == chunked.size - 1) {
-        PacketPosition.LAST
-      } else {
-        PacketPosition.MIDDLE
-      }
+      val packetPosition = PacketPosition.SINGLE
       packets.add(MpegTsPacket(buffer.array(), MpegType.AUDIO, packetPosition, false))
     }
     callback(packets)

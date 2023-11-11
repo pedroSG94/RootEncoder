@@ -132,7 +132,6 @@ public class OpenGlSrtActivity extends AppCompatActivity
     etUrl = findViewById(R.id.et_rtp_url);
     etUrl.setHint(R.string.hint_srt);
     srtCamera1 = new SrtCamera1(openGlView, this);
-    srtCamera1.getStreamClient().setOnlyVideo(true);
     openGlView.getHolder().addCallback(this);
     openGlView.setOnTouchListener(this);
   }
@@ -360,7 +359,6 @@ public class OpenGlSrtActivity extends AppCompatActivity
 
   @Override
   public void onConnectionSuccessSrt() {
-    srtCamera1.requestKeyFrame();
     Toast.makeText(OpenGlSrtActivity.this, "Connection success", Toast.LENGTH_SHORT).show();
   }
 
@@ -400,7 +398,7 @@ public class OpenGlSrtActivity extends AppCompatActivity
         if (srtCamera1.isRecording()
                 || srtCamera1.prepareAudio() && srtCamera1.prepareVideo()) {
           button.setText(R.string.stop_button);
-          srtCamera1.startStream("srt://192.168.0.191:9999/srt://192.168.0.191:9999/app/stream");
+          srtCamera1.startStream(etUrl.getText().toString());
         } else {
           Toast.makeText(this, "Error preparing stream, This device cant do it",
                   Toast.LENGTH_SHORT).show();
