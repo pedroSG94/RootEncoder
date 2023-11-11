@@ -132,6 +132,7 @@ public class OpenGlSrtActivity extends AppCompatActivity
     etUrl = findViewById(R.id.et_rtp_url);
     etUrl.setHint(R.string.hint_srt);
     srtCamera1 = new SrtCamera1(openGlView, this);
+    srtCamera1.getStreamClient().setOnlyVideo(true);
     openGlView.getHolder().addCallback(this);
     openGlView.setOnTouchListener(this);
   }
@@ -359,6 +360,7 @@ public class OpenGlSrtActivity extends AppCompatActivity
 
   @Override
   public void onConnectionSuccessSrt() {
+    srtCamera1.requestKeyFrame();
     Toast.makeText(OpenGlSrtActivity.this, "Connection success", Toast.LENGTH_SHORT).show();
   }
 

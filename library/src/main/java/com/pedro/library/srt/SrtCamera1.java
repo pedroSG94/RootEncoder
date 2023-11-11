@@ -99,6 +99,7 @@ public class SrtCamera1 extends Camera1Base {
   @Override
   protected void startStreamRtp(String url) {
     srtClient.connect(url);
+    requestKeyFrame();
   }
 
   @Override

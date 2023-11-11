@@ -69,7 +69,7 @@ class AacPacket(
       } else {
         PacketPosition.MIDDLE
       }
-      packets.add(MpegTsPacket(buffer.array(), MpegType.AUDIO, packetPosition))
+      packets.add(MpegTsPacket(buffer.array(), MpegType.AUDIO, packetPosition, false))
     }
     callback(packets)
   }

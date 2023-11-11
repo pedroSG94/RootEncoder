@@ -34,6 +34,7 @@ class MpegTsPacketizer(private val psiManager: PsiManager) {
   }
 
   private var pesContinuity = 0
+  private var psiContinuity = 0
 
   //4 bytes header
   private fun writeHeader(buffer: ByteBuffer, startIndicator: Boolean, pid: Int, adaptationFieldControl: AdaptationFieldControl, continuity: Int) {
@@ -54,16 +55,16 @@ class MpegTsPacketizer(private val psiManager: PsiManager) {
   /**
    * return a list of mpeg2ts packets
    */
-  fun write(payload: List<MpegTsPayload>): List<ByteArray> {
+  fun write(payload: List<MpegTsPayload>, increasePsiContinuity: Boolean = false): List<ByteArray> {
     val packets = mutableListOf<ByteArray>()
     payload.forEachIndexed { index, mpegTsPayload ->
       var buffer = ByteBuffer.allocate(packetSize)
       var isFirstPacket = index == 0
-      val continuity = 0 and 0xF
+      if (increasePsiContinuity) psiContinuity = (psiContinuity + 1) and 0xF
 
       when (mpegTsPayload) {
         is Psi -> {
-          writeHeader(buffer, true, mpegTsPayload.pid, AdaptationFieldControl.PAYLOAD, continuity)
+          writeHeader(buffer, true, mpegTsPayload.pid, AdaptationFieldControl.PAYLOAD, psiContinuity)
           mpegTsPayload.write(buffer)
           val stuffingSize = buffer.remaining()
           writeStuffingBytes(buffer, stuffingSize, false)
@@ -129,5 +130,6 @@ class MpegTsPacketizer(private val psiManager: PsiManager) {
 
   fun reset() {
     pesContinuity = 0
+    psiContinuity = 0
   }
 }
