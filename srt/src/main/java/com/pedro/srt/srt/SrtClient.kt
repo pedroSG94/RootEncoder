@@ -19,7 +19,6 @@ package com.pedro.srt.srt
 import android.media.MediaCodec
 import android.util.Log
 import com.pedro.common.ConnectChecker
-import com.pedro.common.StreamClient
 import com.pedro.common.VideoCodec
 import com.pedro.common.onMainThread
 import com.pedro.srt.mpeg2ts.Codec
@@ -56,7 +55,7 @@ import java.util.regex.Pattern
 /**
  * Created by pedro on 20/8/23.
  */
-class SrtClient(private val connectChecker: ConnectChecker) : StreamClient {
+class SrtClient(private val connectChecker: ConnectChecker) {
 
   private val TAG = "SrtClient"
 
@@ -82,32 +81,32 @@ class SrtClient(private val connectChecker: ConnectChecker) : StreamClient {
   private var numRetry = 0
   private var reTries = 0
 
-  override val droppedAudioFrames: Long
+  val droppedAudioFrames: Long
     get() = srtSender.droppedAudioFrames
-  override val droppedVideoFrames: Long
+  val droppedVideoFrames: Long
     get() = srtSender.droppedVideoFrames
 
-  override val cacheSize: Int
+  val cacheSize: Int
     get() = srtSender.getCacheSize()
-  override val sentAudioFrames: Long
+  val sentAudioFrames: Long
     get() = srtSender.getSentAudioFrames()
-  override val sentVideoFrames: Long
+  val sentVideoFrames: Long
     get() = srtSender.getSentVideoFrames()
 
-  override fun setVideoCodec(videoCodec: VideoCodec) {
+  fun setVideoCodec(videoCodec: VideoCodec) {
     if (!isStreaming) {
       srtSender.videoCodec = if (videoCodec == VideoCodec.H265) Codec.HEVC else Codec.AVC
     }
   }
 
-  override fun setAuthorization(user: String?, password: String?) {
+  fun setAuthorization(user: String?, password: String?) {
     TODO("unimplemented")
   }
 
   /**
    * Must be called before connect
    */
-  override fun setOnlyAudio(onlyAudio: Boolean) {
+  fun setOnlyAudio(onlyAudio: Boolean) {
     commandsManager.audioDisabled = false
     commandsManager.videoDisabled = onlyAudio
   }
@@ -115,7 +114,7 @@ class SrtClient(private val connectChecker: ConnectChecker) : StreamClient {
   /**
    * Must be called before connect
    */
-  override fun setOnlyVideo(onlyVideo: Boolean) {
+  fun setOnlyVideo(onlyVideo: Boolean) {
     commandsManager.videoDisabled = false
     commandsManager.audioDisabled = onlyVideo
   }
@@ -123,25 +122,22 @@ class SrtClient(private val connectChecker: ConnectChecker) : StreamClient {
   /**
    * Check periodically if server is alive using Echo protocol.
    */
-  override fun setCheckServerAlive(enabled: Boolean) {
+  fun setCheckServerAlive(enabled: Boolean) {
     checkServerAlive = enabled
   }
 
-  override fun setReTries(reTries: Int) {
+  fun setReTries(reTries: Int) {
     numRetry = reTries
     this.reTries = reTries
   }
 
-  override fun shouldRetry(reason: String): Boolean {
+  fun shouldRetry(reason: String): Boolean {
     val validReason = doingRetry && !reason.contains("Endpoint malformed")
     return validReason && reTries > 0
   }
 
-  override fun connect(url: String?) {
-    connect(url, false)
-  }
-
-  override fun connect(url: String?, isRetry: Boolean) {
+  @JvmOverloads
+  fun connect(url: String?, isRetry: Boolean = false) {
     if (!isRetry) doingRetry = true
     if (!isStreaming || isRetry) {
       isStreaming = true
@@ -218,7 +214,7 @@ class SrtClient(private val connectChecker: ConnectChecker) : StreamClient {
     }
   }
 
-  override fun disconnect() {
+  fun disconnect() {
     CoroutineScope(Dispatchers.IO).launch {
       disconnect(true)
     }
@@ -252,11 +248,11 @@ class SrtClient(private val connectChecker: ConnectChecker) : StreamClient {
     scope = CoroutineScope(Dispatchers.IO)
   }
 
-  override fun reConnect(delay: Long) {
+  fun reConnect(delay: Long) {
     reConnect(delay, null)
   }
 
-  override fun reConnect(delay: Long, backupUrl: String?) {
+  fun reConnect(delay: Long, backupUrl: String?) {
     jobRetry = scopeRetry.launch {
       reTries--
       disconnect(false)
@@ -349,65 +345,65 @@ class SrtClient(private val connectChecker: ConnectChecker) : StreamClient {
     }
   }
 
-  override fun setAudioInfo(sampleRate: Int, isStereo: Boolean) {
+  fun setAudioInfo(sampleRate: Int, isStereo: Boolean) {
     srtSender.setAudioInfo(sampleRate, isStereo)
   }
 
-  override fun setVideoInfo(sps: ByteBuffer, pps: ByteBuffer, vps: ByteBuffer?) {
+  fun setVideoInfo(sps: ByteBuffer, pps: ByteBuffer, vps: ByteBuffer?) {
     Log.i(TAG, "send sps and pps")
     srtSender.setVideoInfo(sps, pps, vps)
   }
 
-  override fun sendVideo(h264Buffer: ByteBuffer, info: MediaCodec.BufferInfo) {
+  fun sendVideo(h264Buffer: ByteBuffer, info: MediaCodec.BufferInfo) {
     if (!commandsManager.videoDisabled) {
       srtSender.sendVideoFrame(h264Buffer, info)
     }
   }
 
-  override fun sendAudio(aacBuffer: ByteBuffer, info: MediaCodec.BufferInfo) {
+  fun sendAudio(aacBuffer: ByteBuffer, info: MediaCodec.BufferInfo) {
     if (!commandsManager.audioDisabled) {
       srtSender.sendAudioFrame(aacBuffer, info)
     }
   }
 
   @Throws(IllegalArgumentException::class)
-  override fun hasCongestion(): Boolean {
+  fun hasCongestion(): Boolean {
     return hasCongestion(20f)
   }
 
   @Throws(IllegalArgumentException::class)
-  override fun hasCongestion(percentUsed: Float): Boolean {
+  fun hasCongestion(percentUsed: Float): Boolean {
     return srtSender.hasCongestion(percentUsed)
   }
 
-  override fun resetSentAudioFrames() {
+  fun resetSentAudioFrames() {
     srtSender.resetSentAudioFrames()
   }
 
-  override fun resetSentVideoFrames() {
+  fun resetSentVideoFrames() {
     srtSender.resetSentVideoFrames()
   }
 
-  override fun resetDroppedAudioFrames() {
+  fun resetDroppedAudioFrames() {
     srtSender.resetDroppedAudioFrames()
   }
 
-  override fun resetDroppedVideoFrames() {
+  fun resetDroppedVideoFrames() {
     srtSender.resetDroppedVideoFrames()
   }
 
   @Throws(RuntimeException::class)
-  override fun resizeCache(newSize: Int) {
+  fun resizeCache(newSize: Int) {
     srtSender.resizeCache(newSize)
   }
 
-  override fun setLogs(enable: Boolean) {
+  fun setLogs(enable: Boolean) {
     srtSender.setLogs(enable)
   }
 
-  override fun clearCache() {
+  fun clearCache() {
     srtSender.clearCache()
   }
 
-  override fun getItemsInCache(): Int = srtSender.getItemsInCache()
+  fun getItemsInCache(): Int = srtSender.getItemsInCache()
 }

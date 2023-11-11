@@ -112,7 +112,7 @@
         android:screenOrientation="portrait" />
     <activity
         android:name="com.pedro.streamer.openglexample.OpenGlGenericActivity"
-        android:label="@string/opengl_srt"
+        android:label="@string/opengl_generic"
         android:screenOrientation="portrait" />
     <activity
         android:name="com.pedro.streamer.displayexample.DisplayActivity"

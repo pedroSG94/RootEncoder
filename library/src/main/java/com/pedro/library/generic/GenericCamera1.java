@@ -16,6 +16,7 @@
 
 package com.pedro.library.generic;
 
+import android.content.Context;
 import android.media.MediaCodec;
 import android.os.Build;
 import android.view.SurfaceView;
@@ -24,13 +25,15 @@ import android.view.TextureView;
 import androidx.annotation.RequiresApi;
 
 import com.pedro.common.ConnectChecker;
-import com.pedro.common.StreamClient;
 import com.pedro.common.VideoCodec;
 import com.pedro.library.base.Camera1Base;
-import com.pedro.library.util.streamclient.StreamBaseClient;
+import com.pedro.library.util.streamclient.GenericStreamClient;
+import com.pedro.library.util.streamclient.RtmpStreamClient;
+import com.pedro.library.util.streamclient.RtspStreamClient;
+import com.pedro.library.util.streamclient.SrtStreamClient;
+import com.pedro.library.util.streamclient.StreamClientListener;
 import com.pedro.library.view.LightOpenGlView;
 import com.pedro.library.view.OpenGlView;
-import com.pedro.rtmp.flv.video.ProfileIop;
 import com.pedro.rtmp.rtmp.RtmpClient;
 import com.pedro.rtsp.rtsp.RtspClient;
 import com.pedro.srt.srt.SrtClient;
@@ -45,227 +48,158 @@ import java.nio.ByteBuffer;
 @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
 public class GenericCamera1 extends Camera1Base {
 
-  private StreamClient client;
-  private ConnectChecker connectChecker;
-  private int reTries = -1; // default: not yet set
-  private int audioSampleRate = -1; // default: not yet set
-  private boolean isStereo = true;
-  private boolean logsEnabled = false;
-  private boolean checkServerAlive = false;
-  private VideoCodec codec;
-  private boolean isForceAkamaiTs = false;
-  private ByteBuffer sps;
-  private ByteBuffer pps;
-  private ByteBuffer vps;
+  private enum ClientType { NONE, RTMP, RTSP, SRT};
+
+  private final static String TAG = "GenericCamera1";
+  private final RtmpClient rtmpClient;
+  private final RtspClient rtspClient;
+  private final SrtClient srtClient;
+  private final GenericStreamClient streamClient;
+  private GenericCamera1.ClientType connectedType = GenericCamera1.ClientType.NONE;
+  private final StreamClientListener streamClientListener = this::requestKeyFrame;
+
 
   @Deprecated
-  public GenericCamera1(SurfaceView surfaceView, ConnectChecker checker) {
+  public GenericCamera1(SurfaceView surfaceView, ConnectChecker connectChecker) {
     super(surfaceView);
-    connectChecker = checker;
+    rtmpClient = new RtmpClient(connectChecker);
+    rtspClient = new RtspClient(connectChecker);
+    srtClient = new SrtClient(connectChecker);
+    streamClient = new GenericStreamClient(
+            new RtmpStreamClient(rtmpClient, streamClientListener),
+            new RtspStreamClient(rtspClient, streamClientListener),
+            new SrtStreamClient(srtClient, streamClientListener),
+            streamClientListener);
   }
 
   @Deprecated
-  public GenericCamera1(TextureView textureView, ConnectChecker checker) {
+  public GenericCamera1(TextureView textureView, ConnectChecker connectChecker) {
     super(textureView);
-    connectChecker = checker;
-  }
+    rtmpClient = new RtmpClient(connectChecker);
+    rtspClient = new RtspClient(connectChecker);
+    srtClient = new SrtClient(connectChecker);
+    streamClient = new GenericStreamClient(
+            new RtmpStreamClient(rtmpClient, streamClientListener),
+            new RtspStreamClient(rtspClient, streamClientListener),
+            new SrtStreamClient(srtClient, streamClientListener),
+            streamClientListener);  }
 
-  public GenericCamera1(OpenGlView openGlView, ConnectChecker checker) {
+  public GenericCamera1(OpenGlView openGlView, ConnectChecker connectChecker) {
     super(openGlView);
-    connectChecker = checker;
-
+    rtmpClient = new RtmpClient(connectChecker);
+    rtspClient = new RtspClient(connectChecker);
+    srtClient = new SrtClient(connectChecker);
+    streamClient = new GenericStreamClient(
+            new RtmpStreamClient(rtmpClient, streamClientListener),
+            new RtspStreamClient(rtspClient, streamClientListener),
+            new SrtStreamClient(srtClient, streamClientListener),
+            streamClientListener);
   }
 
-  public GenericCamera1(LightOpenGlView lightOpenGlView, ConnectChecker checker) {
+  public GenericCamera1(LightOpenGlView lightOpenGlView, ConnectChecker connectChecker) {
     super(lightOpenGlView);
-    connectChecker = checker;
+    rtmpClient = new RtmpClient(connectChecker);
+    rtspClient = new RtspClient(connectChecker);
+    srtClient = new SrtClient(connectChecker);
+    streamClient = new GenericStreamClient(
+            new RtmpStreamClient(rtmpClient, streamClientListener),
+            new RtspStreamClient(rtspClient, streamClientListener),
+            new SrtStreamClient(srtClient, streamClientListener),
+            streamClientListener);  }
+
+  @Override
+  public GenericStreamClient getStreamClient() {
+    return streamClient;
   }
 
-
-  /**
-   * H264 profile.
-   *
-   * @param profileIop Could be ProfileIop.BASELINE or ProfileIop.CONSTRAINED
-   */
-  public void setProfileIop(ProfileIop profileIop) {
-    if (client instanceof RtmpClient) {
-      ((RtmpClient) client).setProfileIop(profileIop);
-    }
-  }
-
-  public void resizeCache(int newSize) throws RuntimeException {
-    client.resizeCache(newSize);
-  }
-
-  public int getCacheSize() {
-    return client.getCacheSize();
-  }
-
-  public long getSentAudioFrames() {
-    return client.getSentAudioFrames();
-  }
-
-  public long getSentVideoFrames() {
-    return client.getSentVideoFrames();
-  }
-
-  public long getDroppedAudioFrames() {
-    return client.getDroppedAudioFrames();
-  }
-
-  public long getDroppedVideoFrames() {
-    return client.getDroppedVideoFrames();
-  }
-
-  public void resetSentAudioFrames() {
-    client.resetSentAudioFrames();
-  }
-
-  public void resetSentVideoFrames() {
-    client.resetSentVideoFrames();
-  }
-
-  public void resetDroppedAudioFrames() {
-    client.resetDroppedAudioFrames();
-  }
-
-  public void resetDroppedVideoFrames() {
-    client.resetDroppedVideoFrames();
-  }
-
-  public void setAuthorization(String user, String password) {
-    client.setAuthorization(user, password);
-  }
-
-  /**
-   * Some Livestream hosts use Akamai auth that requires RTMP packets to be sent with increasing
-   * timestamp order regardless of packet type.
-   * Necessary with Servers like Dacast.
-   * More info here:
-   * https://learn.akamai.com/en-us/webhelp/media-services-live/media-services-live-encoder-compatibility-testing-and-qualification-guide-v4.0/GUID-F941C88B-9128-4BF4-A81B-C2E5CFD35BBF.html
-   */
-  public void forceAkamaiTs(boolean enabled) {
-    this.isForceAkamaiTs = enabled;
-    if (client != null) {
-      if (client instanceof RtmpClient) {
-        ((RtmpClient) client).forceAkamaiTs(enabled);
-      }
-    }
+  @Override
+  protected void setVideoCodecImp(VideoCodec codec) {
+    rtmpClient.setVideoCodec(codec);
+    rtspClient.setVideoCodec(codec);
+    srtClient.setVideoCodec(codec);
   }
 
   @Override
   protected void prepareAudioRtp(boolean isStereo, int sampleRate) {
-    this.audioSampleRate = sampleRate;
-    this.isStereo = isStereo;
-    if (client != null) {
-      client.setAudioInfo(sampleRate, isStereo);
-    }
+    rtmpClient.setAudioInfo(sampleRate, isStereo);
+    rtspClient.setAudioInfo(sampleRate, isStereo);
+    srtClient.setAudioInfo(sampleRate, isStereo);
   }
 
   @Override
   protected void startStreamRtp(String url) {
-    // always create a new client, so we do not have to check if it is the same protocol
-    client = createClient(url);
-    client.setOnlyVideo(!audioInitialized);
-    client.connect(url);
+    streamClient.connecting(url);
+    if (RtmpClient.getUrlPattern().matcher(url).matches()) {
+      connectedType = ClientType.RTMP;
+      startStreamRtpRtmp(url);
+    } else if (RtspClient.getUrlPattern().matcher(url).matches()) {
+      connectedType = ClientType.RTSP;
+      startStreamRtpRtsp(url);
+    } else {
+      // catch all here, to let it handle improper URLs
+      connectedType = ClientType.SRT;
+      startStreamRtpSrt(url);
+    }
+  }
+
+  private void startStreamRtpRtmp(String url) {
+    if (videoEncoder.getRotation() == 90 || videoEncoder.getRotation() == 270) {
+      rtmpClient.setVideoResolution(videoEncoder.getHeight(), videoEncoder.getWidth());
+    } else {
+      rtmpClient.setVideoResolution(videoEncoder.getWidth(), videoEncoder.getHeight());
+    }
+    rtmpClient.setFps(videoEncoder.getFps());
+    rtmpClient.setOnlyVideo(!audioInitialized);
+    rtmpClient.connect(url);
+  }
+
+  private void startStreamRtpRtsp(String url) {
+    rtspClient.setOnlyVideo(!audioInitialized);
+    rtspClient.connect(url);
+  }
+
+  private void startStreamRtpSrt(String url) {
+    srtClient.setOnlyVideo(!audioInitialized);
+    srtClient.connect(url);
   }
 
   @Override
   protected void stopStreamRtp() {
-    if (client != null) {
-      client.disconnect();
-    }
-  }
-
-  public void setReTries(int reTries) {
-    this.reTries = reTries;
-    if (client != null) {
-      client.setReTries(reTries);
-    }
-  }
-
-  public boolean hasCongestion() {
-    if (client != null) {
-      return client.hasCongestion();
-    } else {
-      return false;
+    switch (connectedType) {
+      case RTMP: rtmpClient.disconnect(); break;
+      case RTSP: rtspClient.disconnect(); break;
+      case SRT: srtClient.disconnect(); break;
+      default:
     }
   }
 
   @Override
   protected void getAacDataRtp(ByteBuffer aacBuffer, MediaCodec.BufferInfo info) {
-    // should only be called after connect, so client should never be null
-    client.sendAudio(aacBuffer.duplicate(), info);
+    switch (connectedType) {
+      case RTMP: rtmpClient.sendAudio(aacBuffer, info); break;
+      case RTSP: rtspClient.sendAudio(aacBuffer, info); break;
+      case SRT: srtClient.sendAudio(aacBuffer, info); break;
+      default:
+    }
   }
 
   @Override
   protected void onSpsPpsVpsRtp(ByteBuffer sps, ByteBuffer pps, ByteBuffer vps) {
-    this.sps = sps;
-    this.pps = pps;
-    this.vps = vps;
-    if (client != null) {
-      client.setVideoInfo(sps, pps, vps);
+    switch (connectedType) {
+      case RTMP: rtmpClient.setVideoInfo(sps, pps, vps); break;
+      case RTSP: rtspClient.setVideoInfo(sps, pps, vps); break;
+      case SRT: srtClient.setVideoInfo(sps, pps, vps); break;
+      default:
     }
   }
 
   @Override
   protected void getH264DataRtp(ByteBuffer h264Buffer, MediaCodec.BufferInfo info) {
-    client.sendVideo(h264Buffer.duplicate(), info);
-  }
-
-  @Override
-  public StreamBaseClient getStreamClient() {
-    return null;
-  }
-
-  @Override
-  protected void setVideoCodecImp(VideoCodec codec) {
-    if (client != null) {
-      client.setVideoCodec(codec);
+    switch (connectedType) {
+      case RTMP: rtmpClient.sendVideo(h264Buffer, info); break;
+      case RTSP: rtspClient.sendVideo(h264Buffer, info); break;
+      case SRT: srtClient.sendVideo(h264Buffer, info); break;
+      default:
     }
-    this.codec = codec;
-  }
-
-  public void setLogs(boolean enable) {
-    logsEnabled = enable;
-    if (client != null) {
-      client.setLogs(enable);
-    }
-  }
-
-  public void setCheckServerAlive(boolean enable) {
-    if (client != null) {
-      client.setCheckServerAlive(enable);
-    }
-    checkServerAlive = enable;
-  }
-
-  private StreamClient createClient(String url) {
-    StreamClient client;
-    if (RtmpClient.getUrlPattern().matcher(url).matches()) {
-      client = new RtmpClient(connectChecker);
-    } else if (RtspClient.getUrlPattern().matcher(url).matches()) {
-      client = new RtspClient(connectChecker);
-    } else if (SrtClient.getUrlPattern().matcher(url).matches()) {
-      client = new SrtClient(connectChecker);
-    } else {
-      client = new SrtClient(connectChecker); // this will fail later
-    }
-    // set all properties that have been requested earlier
-    if (reTries >= 0) {
-      client.setReTries(reTries);
-    }
-    if (audioSampleRate >= 0) {
-      client.setAudioInfo(audioSampleRate, isStereo);
-    }
-    client.setCheckServerAlive(checkServerAlive);
-    client.setLogs(logsEnabled);
-    if (codec != null) {
-      client.setVideoCodec(codec);
-    }
-    if (sps != null) {
-      client.setVideoInfo(sps, pps, vps);
-    }
-    return client;
   }
 }
