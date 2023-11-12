@@ -18,7 +18,6 @@ package com.pedro.srt.utils
 
 import com.pedro.srt.MainDispatcherRule
 import com.pedro.srt.Utils
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.test.runTest
 import org.junit.After
 import org.junit.Assert.assertTrue
