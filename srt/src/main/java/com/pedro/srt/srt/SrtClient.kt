@@ -30,6 +30,7 @@ import com.pedro.srt.srt.packets.control.KeepAlive
 import com.pedro.srt.srt.packets.control.Nak
 import com.pedro.srt.srt.packets.control.PeerError
 import com.pedro.srt.srt.packets.control.Shutdown
+import com.pedro.srt.srt.packets.control.handshake.EncryptionType
 import com.pedro.srt.srt.packets.control.handshake.ExtensionField
 import com.pedro.srt.srt.packets.control.handshake.Handshake
 import com.pedro.srt.srt.packets.control.handshake.HandshakeType
@@ -96,6 +97,16 @@ class SrtClient(private val connectCheckerSrt: ConnectCheckerSrt) {
 
   fun setAuthorization(user: String?, password: String?) {
     TODO("unimplemented")
+  }
+
+  /**
+   * Set passphrase for encrypt. Use empty value to disable it.
+   */
+  fun setPassphrase(passphrase: String, type: EncryptionType) {
+    if (passphrase.length < 10 || passphrase.length > 79) {
+      throw IllegalArgumentException("passphrase must between 10 and 79 length")
+    }
+    commandsManager.setPassphrase(passphrase, type)
   }
 
   /**

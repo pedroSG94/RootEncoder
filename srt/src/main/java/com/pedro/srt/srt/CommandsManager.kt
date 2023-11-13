@@ -22,8 +22,10 @@ import com.pedro.srt.srt.packets.DataPacket
 import com.pedro.srt.srt.packets.SrtPacket
 import com.pedro.srt.srt.packets.control.Ack2
 import com.pedro.srt.srt.packets.control.Shutdown
+import com.pedro.srt.srt.packets.control.handshake.EncryptionType
 import com.pedro.srt.srt.packets.control.handshake.Handshake
 import com.pedro.srt.utils.Constants
+import com.pedro.srt.utils.EncryptionUtil
 import com.pedro.srt.utils.SrtSocket
 import com.pedro.srt.utils.TimeUtils
 import kotlinx.coroutines.sync.Mutex
@@ -51,6 +53,13 @@ class CommandsManager {
   var host = ""
   //Avoid write a packet in middle of other.
   private val writeSync = Mutex(locked = false)
+  private var encryptor: EncryptionUtil? = null
+
+  fun setPassphrase(passphrase: String, type: EncryptionType) {
+    encryptor = if (type == EncryptionType.AES192) throw IllegalArgumentException("AES_192 is unsupported in Android, use AES128 or AES256")
+    else if (passphrase.isEmpty()) null
+    else EncryptionUtil(type, passphrase)
+  }
 
   fun loadStartTs() {
     startTS = TimeUtils.getCurrentTimeMicro()
@@ -63,6 +72,7 @@ class CommandsManager {
   @Throws(IOException::class)
   suspend fun writeHandshake(socket: SrtSocket?, handshake: Handshake = Handshake()) {
     writeSync.withLock {
+      handshake.encryption = encryptor?.type ?: EncryptionType.NONE
       handshake.initialPacketSequence = sequenceNumber
       handshake.ipAddress = host
       handshake.write(getTs(), 0)
@@ -91,7 +101,7 @@ class CommandsManager {
         sequenceNumber = sequenceNumber++,
         packetPosition = packet.packetPosition,
         messageNumber = messageNumber++,
-        payload = packet.buffer,
+        payload = encryptor?.encrypt(packet.buffer) ?: packet.buffer,
         ts = getTs(),
         socketId = socketId
       )
