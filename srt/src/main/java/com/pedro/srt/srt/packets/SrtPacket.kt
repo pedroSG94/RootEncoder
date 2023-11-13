@@ -39,7 +39,7 @@ abstract class SrtPacket {
 
   companion object {
 
-    val headerSize = 16
+    const val headerSize = 16
 
     @Throws(IOException::class)
     fun getSrtPacket(buffer: ByteArray): SrtPacket {

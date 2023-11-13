@@ -77,7 +77,6 @@ class H26XPacket(
         return
       }
     }
-
     byteBuffer.rewind()
     val validBuffer = fixHeader(byteBuffer, isKeyFrame)
     val payload = ByteArray(validBuffer.remaining())
@@ -93,16 +92,8 @@ class H26XPacket(
       chunks.forEach {
         buffer.put(it)
       }
-      val packetPosition = if (index == 0 && chunked.size == 1) {
-        PacketPosition.SINGLE
-      } else if (index == 0) {
-        PacketPosition.FIRST
-      } else if (index == chunked.size - 1) {
-        PacketPosition.LAST
-      } else {
-        PacketPosition.MIDDLE
-      }
-      packets.add(MpegTsPacket(buffer.array(), MpegType.VIDEO, packetPosition))
+      val packetPosition = PacketPosition.SINGLE
+      packets.add(MpegTsPacket(buffer.array(), MpegType.VIDEO, packetPosition, isKeyFrame))
     }
     callback(packets)
   }
@@ -140,13 +131,22 @@ class H26XPacket(
       bufferWithPrefix.put(noHeaderBuffer)
       noHeaderBuffer = bufferWithPrefix
     }
-    return if (isKeyFrame && !configSend) { //add video info to first keyframe
+    return if (isKeyFrame) { //add video info to first keyframe
       val vps = this.vps ?: byteArrayOf()
       val sps = this.sps ?: byteArrayOf()
       val pps = this.pps ?: byteArrayOf()
-      val keyExtraSize = vps.size + sps.size + pps.size
-      val validBuffer = ByteBuffer.allocate(noHeaderBuffer.remaining() + keyExtraSize)
+      val audSize = if (codec == Codec.AVC) 6 else 7
       val videoHeader = vps.plus(sps).plus(pps)
+      val validBuffer = ByteBuffer.allocate(audSize + videoHeader.size + noHeaderBuffer.remaining())
+      validBuffer.putInt(0x00000001)
+      if (codec == Codec.AVC) {
+        validBuffer.put(0x09.toByte())
+        validBuffer.put(0xf0.toByte())
+      } else {
+        validBuffer.put(0x46.toByte())
+        validBuffer.put(0x01.toByte())
+        validBuffer.put(0x50.toByte())
+      }
       validBuffer.put(videoHeader)
       validBuffer.put(noHeaderBuffer.toByteArray())
       validBuffer.rewind()

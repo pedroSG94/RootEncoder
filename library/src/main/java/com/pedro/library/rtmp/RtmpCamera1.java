@@ -104,7 +104,6 @@ public class RtmpCamera1 extends Camera1Base {
       rtmpClient.setVideoResolution(videoEncoder.getWidth(), videoEncoder.getHeight());
     }
     rtmpClient.setFps(videoEncoder.getFps());
-    rtmpClient.setOnlyVideo(!audioInitialized);
     rtmpClient.connect(url);
   }
 

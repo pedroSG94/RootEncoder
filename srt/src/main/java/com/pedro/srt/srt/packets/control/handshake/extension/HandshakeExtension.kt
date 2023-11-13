@@ -25,7 +25,7 @@ import com.pedro.srt.utils.writeUInt32
  *
  */
 data class HandshakeExtension(
-  private val version: String = "1.4.4",
+  private val version: String = "1.5.3",
   private val flags: Int = ExtensionContentFlag.REXMITFLG.value or ExtensionContentFlag.CRYPT.value,
   private val receiverDelay: Int = 120,
   private val senderDelay: Int = 0,

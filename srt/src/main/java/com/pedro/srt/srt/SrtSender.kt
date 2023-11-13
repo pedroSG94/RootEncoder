@@ -59,14 +59,14 @@ class SrtSender(
 
   private val service = Mpeg2TsService()
 
-  private var psiManager = PsiManager(service).apply {
+  private val psiManager = PsiManager(service).apply {
     upgradePatVersion()
     upgradeSdtVersion()
   }
-
-  private val mpegTsPacketizer = MpegTsPacketizer()
-  private val aacPacket = AacPacket(commandsManager.MTU - SrtPacket.headerSize, psiManager)
-  private val h26XPacket = H26XPacket(commandsManager.MTU - SrtPacket.headerSize, psiManager)
+  private val limitSize = commandsManager.MTU - SrtPacket.headerSize
+  private val mpegTsPacketizer = MpegTsPacketizer(psiManager)
+  private val aacPacket = AacPacket(limitSize, psiManager)
+  private val h26XPacket = H26XPacket(limitSize, psiManager)
 
   @Volatile
   private var running = false
@@ -89,7 +89,6 @@ class SrtSender(
       videoTrack?.let {
         service.tracks.remove(it)
       }
-      service.addTrack(value)
       h26XPacket.setVideoCodec(value)
       field = value
     }
@@ -103,8 +102,9 @@ class SrtSender(
 
   private fun setTrackConfig(videoEnabled: Boolean, audioEnabled: Boolean) {
     Pid.reset()
-    if (videoEnabled) service.addTrack(videoCodec)
     if (audioEnabled) service.addTrack(Codec.AAC)
+    if (videoEnabled) service.addTrack(videoCodec)
+    service.generatePmt()
     psiManager.updateService(service)
   }
 
@@ -118,8 +118,9 @@ class SrtSender(
 
   fun sendVideoFrame(h264Buffer: ByteBuffer, info: MediaCodec.BufferInfo) {
     if (running) {
-      checkSendInfo()
       h26XPacket.createAndSendPacket(h264Buffer, info) { mpegTsPackets ->
+        val isKey = mpegTsPackets[0].isKey
+        checkSendInfo(isKey)
         val result = queue.trySend(mpegTsPackets)
         if (!result) {
           Log.i(TAG, "Video frame discarded")
@@ -131,8 +132,8 @@ class SrtSender(
 
   fun sendAudioFrame(aacBuffer: ByteBuffer, info: MediaCodec.BufferInfo) {
     if (running) {
-      checkSendInfo()
       aacPacket.createAndSendPacket(aacBuffer, info) { mpegTsPackets ->
+        checkSendInfo()
         val result = queue.trySend(mpegTsPackets)
         if (!result) {
           Log.i(TAG, "Audio frame discarded")
@@ -149,7 +150,7 @@ class SrtSender(
     job = scope.launch {
       //send config
       val psiPackets = mpegTsPacketizer.write(listOf(psiManager.getPmt(), psiManager.getSdt(), psiManager.getPat())).map { b ->
-        MpegTsPacket(b, MpegType.PSI, PacketPosition.SINGLE)
+        MpegTsPacket(b, MpegType.PSI, PacketPosition.SINGLE, isKey = false)
       }
       queue.trySend(psiPackets)
       var bytesSend = 0L
@@ -186,24 +187,24 @@ class SrtSender(
     }
   }
 
-  private fun checkSendInfo() {
-    when (psiManager.shouldSend(false)) {
+  private fun checkSendInfo(isKey: Boolean = false) {
+    when (psiManager.shouldSend(isKey)) {
       TableToSend.PAT_PMT -> {
-        val psiPackets = mpegTsPacketizer.write(listOf(psiManager.getPmt(), psiManager.getPat())).map { b ->
-          MpegTsPacket(b, MpegType.PSI, PacketPosition.SINGLE)
+        val psiPackets = mpegTsPacketizer.write(listOf(psiManager.getPat(), psiManager.getPmt()), increasePsiContinuity = true).map { b ->
+          MpegTsPacket(b, MpegType.PSI, PacketPosition.SINGLE, isKey = false)
         }
         queue.trySend(psiPackets)
       }
       TableToSend.SDT -> {
-        val psiPackets = mpegTsPacketizer.write(listOf(psiManager.getSdt())).map { b ->
-          MpegTsPacket(b, MpegType.PSI, PacketPosition.SINGLE)
+        val psiPackets = mpegTsPacketizer.write(listOf(psiManager.getSdt()), increasePsiContinuity = true).map { b ->
+          MpegTsPacket(b, MpegType.PSI, PacketPosition.SINGLE, isKey = false)
         }
         queue.trySend(psiPackets)
       }
       TableToSend.NONE -> {}
       TableToSend.ALL -> {
-        val psiPackets = mpegTsPacketizer.write(listOf(psiManager.getPmt(), psiManager.getSdt(), psiManager.getPat())).map { b ->
-          MpegTsPacket(b, MpegType.PSI, PacketPosition.SINGLE)
+        val psiPackets = mpegTsPacketizer.write(listOf(psiManager.getPmt(), psiManager.getSdt(), psiManager.getPat()), increasePsiContinuity = true).map { b ->
+          MpegTsPacket(b, MpegType.PSI, PacketPosition.SINGLE, isKey = false)
         }
         queue.trySend(psiPackets)
       }

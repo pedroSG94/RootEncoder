@@ -107,7 +107,6 @@ public class SrtCamera2 extends Camera2Base {
 
   @Override
   protected void startStreamRtp(String url) {
-    srtClient.setOnlyVideo(!audioInitialized);
     srtClient.connect(url);
   }
 

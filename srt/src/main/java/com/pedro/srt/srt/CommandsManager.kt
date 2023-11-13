@@ -48,6 +48,7 @@ class CommandsManager {
   var startTS = 0L //microSeconds
   var audioDisabled = false
   var videoDisabled = false
+  var host = ""
   //Avoid write a packet in middle of other.
   private val writeSync = Mutex(locked = false)
 
@@ -63,7 +64,7 @@ class CommandsManager {
   suspend fun writeHandshake(socket: SrtSocket?, handshake: Handshake = Handshake()) {
     writeSync.withLock {
       handshake.initialPacketSequence = sequenceNumber
-      handshake.ipAddress = getIPAddress()
+      handshake.ipAddress = host
       handshake.write(getTs(), 0)
       Log.i(TAG, handshake.toString())
       socket?.write(handshake)
@@ -144,23 +145,12 @@ class CommandsManager {
     MTU = Constants.MTU
     socketId = 0
     startTS = 0L
+    host = ""
     packetHandlingQueue.clear()
   }
 
   private fun generateInitialSequence(): Int {
     return Random.nextInt(0, Int.MAX_VALUE)
-  }
-
-  private fun getIPAddress(): String {
-    val interfaces: List<NetworkInterface> = NetworkInterface.getNetworkInterfaces().toList()
-    val vpnInterfaces = interfaces.filter { it.displayName.contains("tun") }
-    val address: String by lazy { interfaces.findAddress().firstOrNull() ?: "0.0.0.0" }
-    return if (vpnInterfaces.isNotEmpty()) {
-      val vpnAddresses = vpnInterfaces.findAddress()
-      vpnAddresses.firstOrNull() ?: address
-    } else {
-      address
-    }
   }
 
   private fun List<NetworkInterface>.findAddress(): List<String?> = this.asSequence()

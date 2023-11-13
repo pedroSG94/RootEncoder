@@ -162,6 +162,7 @@ class SrtClient(private val connectCheckerSrt: ConnectCheckerSrt) {
         val streamName =
           if (srtMatcher.group(4).isNullOrEmpty()) "" else "/" + srtMatcher.group(4)
         val path = "${srtMatcher.group(3)}$streamName".trim()
+        commandsManager.host = host
 
         val error = runCatching {
           socket = SrtSocket(host, port)
