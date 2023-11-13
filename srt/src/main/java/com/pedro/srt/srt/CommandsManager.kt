@@ -24,6 +24,8 @@ import com.pedro.srt.srt.packets.control.Ack2
 import com.pedro.srt.srt.packets.control.Shutdown
 import com.pedro.srt.srt.packets.control.handshake.EncryptionType
 import com.pedro.srt.srt.packets.control.handshake.Handshake
+import com.pedro.srt.srt.packets.control.handshake.extension.EncryptInfo
+import com.pedro.srt.srt.packets.data.KeyBasedEncryption
 import com.pedro.srt.utils.Constants
 import com.pedro.srt.utils.EncryptionUtil
 import com.pedro.srt.utils.SrtSocket
@@ -31,7 +33,6 @@ import com.pedro.srt.utils.TimeUtils
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import java.io.IOException
-import java.net.NetworkInterface
 import kotlin.random.Random
 
 /**
@@ -56,9 +57,13 @@ class CommandsManager {
   private var encryptor: EncryptionUtil? = null
 
   fun setPassphrase(passphrase: String, type: EncryptionType) {
-    encryptor = if (type == EncryptionType.AES192) throw IllegalArgumentException("AES_192 is unsupported in Android, use AES128 or AES256")
+    encryptor = if (type == EncryptionType.AES192) throw IllegalArgumentException("AES_192 is unsupported in Android, use AES_128 or AES_256")
     else if (passphrase.isEmpty()) null
     else EncryptionUtil(type, passphrase)
+  }
+
+  fun getEncryptInfo(): EncryptInfo? {
+    return encryptor?.getEncryptInfo()
   }
 
   fun loadStartTs() {
@@ -98,6 +103,7 @@ class CommandsManager {
     writeSync.withLock {
       if (sequenceNumber.toUInt() > 0x7FFFFFFFu) sequenceNumber = 0
       val dataPacket = DataPacket(
+        encryption = if (encryptor != null) KeyBasedEncryption.PAIR_KEY else KeyBasedEncryption.NONE,
         sequenceNumber = sequenceNumber++,
         packetPosition = packet.packetPosition,
         messageNumber = messageNumber++,
@@ -162,12 +168,4 @@ class CommandsManager {
   private fun generateInitialSequence(): Int {
     return Random.nextInt(0, Int.MAX_VALUE)
   }
-
-  private fun List<NetworkInterface>.findAddress(): List<String?> = this.asSequence()
-    .map { addresses -> addresses.inetAddresses.asSequence() }
-    .flatten()
-    .filter { address -> !address.isLoopbackAddress }
-    .map { it.hostAddress }
-    .filter { address -> address?.contains(":") == false }
-    .toList()
 }

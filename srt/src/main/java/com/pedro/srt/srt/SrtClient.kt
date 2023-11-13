@@ -190,7 +190,8 @@ class SrtClient(private val connectCheckerSrt: ConnectCheckerSrt) {
               flags = ExtensionContentFlag.TSBPDSND.value or ExtensionContentFlag.TSBPDRCV.value or
                   ExtensionContentFlag.CRYPT.value or ExtensionContentFlag.TLPKTDROP.value or
                   ExtensionContentFlag.PERIODICNAK.value or ExtensionContentFlag.REXMITFLG.value,
-              path = path
+              path = path,
+              encryptInfo = commandsManager.getEncryptInfo()
             )))
           val responseConclusion = commandsManager.readHandshake(socket)
           if (responseConclusion.isErrorType()) {

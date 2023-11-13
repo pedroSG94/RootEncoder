@@ -29,7 +29,8 @@ data class HandshakeExtension(
   private val flags: Int = ExtensionContentFlag.REXMITFLG.value or ExtensionContentFlag.CRYPT.value,
   private val receiverDelay: Int = 120,
   private val senderDelay: Int = 0,
-  private val path: String = ""
+  private val path: String = "",
+  private val encryptInfo: EncryptInfo? = null
 ): SrtPacket() {
 
   fun write() {
@@ -45,6 +46,15 @@ data class HandshakeExtension(
     val data = fixPathData(path.toByteArray(Charsets.UTF_8))
     buffer.writeUInt16(data.size / 4)
     buffer.write(data)
+    //encrypted info
+    val info = encryptInfo
+    if (info != null) {
+      buffer.writeUInt16(ExtensionType.SRT_CMD_KM_REQ.value)
+      val keyMaterialMessage = KeyMaterialMessage(info.keyBasedEncryption, info.cipher, info.salt, info.key)
+      val encryptedData = keyMaterialMessage.getData()
+      buffer.writeUInt16(encryptedData.size / 4)
+      buffer.write(encryptedData)
+    }
   }
 
   private fun getVersionData(version: String): ByteArray {

@@ -84,6 +84,7 @@ import com.pedro.encoder.input.video.CameraOpenException;
 import com.pedro.encoder.utils.gl.TranslateTo;
 import com.pedro.library.srt.SrtCamera1;
 import com.pedro.library.view.OpenGlView;
+import com.pedro.srt.srt.packets.control.handshake.EncryptionType;
 import com.pedro.streamer.R;
 import com.pedro.streamer.utils.PathUtils;
 import com.pedro.srt.utils.ConnectCheckerSrt;
@@ -132,6 +133,7 @@ public class OpenGlSrtActivity extends AppCompatActivity
     etUrl = findViewById(R.id.et_rtp_url);
     etUrl.setHint(R.string.hint_srt);
     srtCamera1 = new SrtCamera1(openGlView, this);
+    srtCamera1.getStreamClient().setPassphrase("test123456789", EncryptionType.AES128);
     openGlView.getHolder().addCallback(this);
     openGlView.setOnTouchListener(this);
   }
