@@ -17,6 +17,7 @@
 package com.pedro.srt.srt.packets.control.handshake.extension
 
 import com.pedro.srt.srt.packets.SrtPacket
+import com.pedro.srt.utils.EncryptInfo
 import com.pedro.srt.utils.writeUInt16
 import com.pedro.srt.utils.writeUInt32
 
@@ -47,10 +48,9 @@ data class HandshakeExtension(
     buffer.writeUInt16(data.size / 4)
     buffer.write(data)
     //encrypted info
-    val info = encryptInfo
-    if (info != null) {
+    if (encryptInfo != null) {
       buffer.writeUInt16(ExtensionType.SRT_CMD_KM_REQ.value)
-      val keyMaterialMessage = KeyMaterialMessage(info.keyBasedEncryption, info.cipher, info.salt, info.key)
+      val keyMaterialMessage = KeyMaterialMessage(encryptInfo)
       val encryptedData = keyMaterialMessage.getData()
       buffer.writeUInt16(encryptedData.size / 4)
       buffer.write(encryptedData)

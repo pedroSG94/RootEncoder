@@ -1,5 +1,6 @@
-package com.pedro.srt.srt.packets.control.handshake.extension
+package com.pedro.srt.utils
 
+import com.pedro.srt.srt.packets.control.handshake.extension.CipherType
 import com.pedro.srt.srt.packets.data.KeyBasedEncryption
 
 /**
@@ -9,5 +10,6 @@ data class EncryptInfo(
   val keyBasedEncryption: KeyBasedEncryption,
   val cipher: CipherType,
   val salt: ByteArray,
-  val key: ByteArray
+  val key: ByteArray,
+  val keyLength: Int
 )

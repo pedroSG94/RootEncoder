@@ -120,8 +120,8 @@ dependencies {
 - [X] Get upload bandwidth used.
 - [X] H264, H265 and AAC support.
 - [X] Resend lost packets
+- [X] Encrypt (AES128, AES192 and AES256)
 - [ ] SRT auth.
-- [ ] Encrypt
 
 https://haivision.github.io/srt-rfc/draft-sharabayko-srt.html
 

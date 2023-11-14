@@ -2,13 +2,15 @@ package com.pedro.srt.utils
 
 import com.pedro.srt.srt.packets.control.handshake.EncryptionType
 import com.pedro.srt.srt.packets.control.handshake.extension.CipherType
-import com.pedro.srt.srt.packets.control.handshake.extension.EncryptInfo
 import com.pedro.srt.srt.packets.data.KeyBasedEncryption
+import java.nio.ByteBuffer
 import java.security.SecureRandom
 import javax.crypto.Cipher
 import javax.crypto.SecretKeyFactory
+import javax.crypto.spec.IvParameterSpec
 import javax.crypto.spec.PBEKeySpec
 import javax.crypto.spec.SecretKeySpec
+import kotlin.experimental.xor
 
 /**
  * Created by pedro on 12/11/23.
@@ -17,57 +19,69 @@ import javax.crypto.spec.SecretKeySpec
  */
 class EncryptionUtil(val type: EncryptionType, passphrase: String) {
 
-  private val cipher: Cipher
-  private val iterations = 2048 //reduce the number for performance but this make it less secure
-  private var salt = ByteArray(16) //this is the only salt size accepted by SRT
+  //only pair is developed, odd is not supported for now
+  private val keyBasedEncryption = KeyBasedEncryption.PAIR_KEY
+  private val cipherType = CipherType.CTR
+  private val salt: ByteArray
+  private val sek: ByteArray
+  private val keyLength: Int = when (type) {
+    EncryptionType.NONE -> 0
+    EncryptionType.AES128 -> 16
+    EncryptionType.AES192 -> 24
+    EncryptionType.AES256 -> 32
+  }
   private var keyData = byteArrayOf()
 
   init {
-    val keyLength = when (type) {
-      EncryptionType.NONE -> 0
-      EncryptionType.AES128 -> 128
-      EncryptionType.AES192 -> 192
-      EncryptionType.AES256 -> 256
-    }
-    cipher = Cipher.getInstance("AES/CTR/NoPadding")
-    salt = generateRandomBytes(16)
-    val sek = generateRandomBytes(32)
-    val kek = generatePBKDF2Key(passphrase, salt, iterations, keyLength)
-
-    val secretKeySpec = SecretKeySpec(kek, "AES")
-    cipher.init(Cipher.WRAP_MODE, secretKeySpec)
-    keyData = cipher.wrap(SecretKeySpec(sek, "AES"))
-    cipher.init(Cipher.ENCRYPT_MODE, secretKeySpec)
+    salt = generateSecureRandomBytes(16)
+    sek = generateSecureRandomBytes(keyLength)
+    val kek = calculateKEK(passphrase, salt, keyLength)
+    keyData = wrapKey(kek, sek)
   }
 
-  fun encrypt(bytes: ByteArray): ByteArray {
+  fun encrypt(bytes: ByteArray, sequence: Int): ByteArray {
+    val ctr = ByteArray(16)
+    ByteBuffer.wrap(ctr, 10, 4).putInt(sequence)
+    for (i in 0 until 14) ctr[i] = (ctr[i] xor salt[i])
+
+    val block = SecretKeySpec(sek, "AES")
+    val cipher = Cipher.getInstance("AES/CTR/NoPadding")
+    cipher.init(Cipher.ENCRYPT_MODE, block, IvParameterSpec(ctr))
     return cipher.doFinal(bytes)
-  }
-
-  fun encrypt(bytes: ByteArray, offset: Int, length: Int): ByteArray {
-    return cipher.doFinal(bytes, offset, length)
   }
 
   fun getEncryptInfo(): EncryptInfo {
     return EncryptInfo(
-      keyBasedEncryption = KeyBasedEncryption.PAIR_KEY,
-      cipher = CipherType.CTR,
+      keyBasedEncryption = keyBasedEncryption,
+      cipher = cipherType,
       salt = salt,
-      key = keyData
+      key = keyData,
+      keyLength = keyLength
     )
   }
 
-  private fun generateRandomBytes(length: Int): ByteArray {
+  private fun generateSecureRandomBytes(length: Int): ByteArray {
     val secureRandom = SecureRandom()
     val randomBytes = ByteArray(length)
     secureRandom.nextBytes(randomBytes)
     return randomBytes
   }
 
-  private fun generatePBKDF2Key(passphrase: String, salt: ByteArray, iterations: Int, keyLength: Int): ByteArray {
-    val factory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256")
-    val spec = PBEKeySpec(passphrase.toCharArray(), salt, iterations, keyLength)
-    val tmp = factory.generateSecret(spec)
-    return tmp.encoded
+  /**
+   * Wrap key RFC 3394
+   */
+  private fun wrapKey(kek: ByteArray, keyToWrap: ByteArray): ByteArray {
+    val cipher = Cipher.getInstance("AESWrap")
+    val secretKek = SecretKeySpec(kek, "AES")
+    cipher.init(Cipher.WRAP_MODE, secretKek)
+    val secret = SecretKeySpec(keyToWrap, "AES")
+    return cipher.wrap(secret)
+  }
+
+  /**
+   * generate Pbkdf2 key
+   */
+  private fun calculateKEK(passphrase: String, salt: ByteArray, keyLength: Int): ByteArray {
+    return SecretKeyFactory.getInstance("PBKDF2WithHmacSHA1").generateSecret(PBEKeySpec(passphrase.toCharArray(), salt.sliceArray(8 until salt.size), 2048, keyLength * 8)).encoded
   }
 }

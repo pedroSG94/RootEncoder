@@ -21,10 +21,11 @@ import com.pedro.srt.mpeg2ts.MpegTsPacket
 import com.pedro.srt.srt.packets.DataPacket
 import com.pedro.srt.srt.packets.SrtPacket
 import com.pedro.srt.srt.packets.control.Ack2
+import com.pedro.srt.srt.packets.control.KeepAlive
 import com.pedro.srt.srt.packets.control.Shutdown
 import com.pedro.srt.srt.packets.control.handshake.EncryptionType
 import com.pedro.srt.srt.packets.control.handshake.Handshake
-import com.pedro.srt.srt.packets.control.handshake.extension.EncryptInfo
+import com.pedro.srt.utils.EncryptInfo
 import com.pedro.srt.srt.packets.data.KeyBasedEncryption
 import com.pedro.srt.utils.Constants
 import com.pedro.srt.utils.EncryptionUtil
@@ -57,13 +58,15 @@ class CommandsManager {
   private var encryptor: EncryptionUtil? = null
 
   fun setPassphrase(passphrase: String, type: EncryptionType) {
-    encryptor = if (type == EncryptionType.AES192) throw IllegalArgumentException("AES_192 is unsupported in Android, use AES_128 or AES_256")
-    else if (passphrase.isEmpty()) null
-    else EncryptionUtil(type, passphrase)
+    encryptor = if (passphrase.isEmpty() || type == EncryptionType.NONE) null else EncryptionUtil(type, passphrase)
   }
 
   fun getEncryptInfo(): EncryptInfo? {
     return encryptor?.getEncryptInfo()
+  }
+
+  fun getEncryptType(): EncryptionType {
+    return encryptor?.type ?: EncryptionType.NONE
   }
 
   fun loadStartTs() {
@@ -77,7 +80,6 @@ class CommandsManager {
   @Throws(IOException::class)
   suspend fun writeHandshake(socket: SrtSocket?, handshake: Handshake = Handshake()) {
     writeSync.withLock {
-      handshake.encryption = encryptor?.type ?: EncryptionType.NONE
       handshake.initialPacketSequence = sequenceNumber
       handshake.ipAddress = host
       handshake.write(getTs(), 0)
@@ -104,13 +106,14 @@ class CommandsManager {
       if (sequenceNumber.toUInt() > 0x7FFFFFFFu) sequenceNumber = 0
       val dataPacket = DataPacket(
         encryption = if (encryptor != null) KeyBasedEncryption.PAIR_KEY else KeyBasedEncryption.NONE,
-        sequenceNumber = sequenceNumber++,
+        sequenceNumber = sequenceNumber,
         packetPosition = packet.packetPosition,
         messageNumber = messageNumber++,
-        payload = encryptor?.encrypt(packet.buffer) ?: packet.buffer,
+        payload = encryptor?.encrypt(packet.buffer, sequenceNumber) ?: packet.buffer,
         ts = getTs(),
         socketId = socketId
       )
+      sequenceNumber++
       packetHandlingQueue.add(dataPacket)
       dataPacket.write()
       socket?.write(dataPacket)
@@ -152,6 +155,15 @@ class CommandsManager {
       val shutdown = Shutdown()
       shutdown.write(getTs(), socketId)
       socket?.write(shutdown)
+    }
+  }
+
+  @Throws(IOException::class)
+  suspend fun writeKeepAlive(socket: SrtSocket?) {
+    writeSync.withLock {
+      val keepAlive = KeepAlive()
+      keepAlive.write(getTs(), socketId)
+      socket?.write(keepAlive)
     }
   }
 
