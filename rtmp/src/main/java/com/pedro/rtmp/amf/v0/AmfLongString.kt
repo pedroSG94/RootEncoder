@@ -28,7 +28,7 @@ import java.io.OutputStream
  */
 open class AmfLongString(var value: String = ""): AmfData() {
 
-  private var bodySize: Int = value.toByteArray(Charsets.UTF_8).size + 2
+  private var bodySize: Int = value.toByteArray(Charsets.UTF_8).size + 4
 
   @Throws(IOException::class)
   override fun readBody(input: InputStream) {
@@ -36,7 +36,7 @@ open class AmfLongString(var value: String = ""): AmfData() {
     bodySize = input.readUInt32()
     //read value in UTF-8
     val bytes = ByteArray(bodySize)
-    bodySize += 2
+    bodySize += 4
     input.readUntil(bytes)
     value = String(bytes, Charsets.UTF_8)
   }
@@ -45,7 +45,7 @@ open class AmfLongString(var value: String = ""): AmfData() {
   override fun writeBody(output: OutputStream) {
     val bytes = value.toByteArray(Charsets.UTF_8)
     //write value size as UInt32. Value size not included
-    output.writeUInt32(bodySize - 2)
+    output.writeUInt32(bodySize - 4)
     //write value bytes in UTF-8
     output.write(bytes)
   }

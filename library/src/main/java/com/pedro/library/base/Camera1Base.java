@@ -770,18 +770,18 @@ public abstract class Camera1Base {
   }
 
   /**
-   * Get supported preview resolutions of back camera in px.
+   * Get supported resolutions of back camera in px.
    *
-   * @return list of preview resolutions supported by back camera
+   * @return list of resolutions supported by back camera
    */
   public List<Camera.Size> getResolutionsBack() {
     return cameraManager.getPreviewSizeBack();
   }
 
   /**
-   * Get supported preview resolutions of front camera in px.
+   * Get supported resolutions of front camera in px.
    *
-   * @return list of preview resolutions supported by front camera
+   * @return list of resolutions supported by front camera
    */
   public List<Camera.Size> getResolutionsFront() {
     return cameraManager.getPreviewSizeFront();
