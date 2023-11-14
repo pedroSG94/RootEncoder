@@ -21,15 +21,19 @@ import com.pedro.srt.mpeg2ts.MpegTsPacket
 import com.pedro.srt.srt.packets.DataPacket
 import com.pedro.srt.srt.packets.SrtPacket
 import com.pedro.srt.srt.packets.control.Ack2
+import com.pedro.srt.srt.packets.control.KeepAlive
 import com.pedro.srt.srt.packets.control.Shutdown
+import com.pedro.srt.srt.packets.control.handshake.EncryptionType
 import com.pedro.srt.srt.packets.control.handshake.Handshake
+import com.pedro.srt.utils.EncryptInfo
+import com.pedro.srt.srt.packets.data.KeyBasedEncryption
 import com.pedro.srt.utils.Constants
+import com.pedro.srt.utils.EncryptionUtil
 import com.pedro.srt.utils.SrtSocket
 import com.pedro.srt.utils.TimeUtils
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import java.io.IOException
-import java.net.NetworkInterface
 import kotlin.random.Random
 
 /**
@@ -51,6 +55,19 @@ class CommandsManager {
   var host = ""
   //Avoid write a packet in middle of other.
   private val writeSync = Mutex(locked = false)
+  private var encryptor: EncryptionUtil? = null
+
+  fun setPassphrase(passphrase: String, type: EncryptionType) {
+    encryptor = if (passphrase.isEmpty() || type == EncryptionType.NONE) null else EncryptionUtil(type, passphrase)
+  }
+
+  fun getEncryptInfo(): EncryptInfo? {
+    return encryptor?.getEncryptInfo()
+  }
+
+  fun getEncryptType(): EncryptionType {
+    return encryptor?.type ?: EncryptionType.NONE
+  }
 
   fun loadStartTs() {
     startTS = TimeUtils.getCurrentTimeMicro()
@@ -88,13 +105,15 @@ class CommandsManager {
     writeSync.withLock {
       if (sequenceNumber.toUInt() > 0x7FFFFFFFu) sequenceNumber = 0
       val dataPacket = DataPacket(
-        sequenceNumber = sequenceNumber++,
+        encryption = if (encryptor != null) KeyBasedEncryption.PAIR_KEY else KeyBasedEncryption.NONE,
+        sequenceNumber = sequenceNumber,
         packetPosition = packet.packetPosition,
         messageNumber = messageNumber++,
-        payload = packet.buffer,
+        payload = encryptor?.encrypt(packet.buffer, sequenceNumber) ?: packet.buffer,
         ts = getTs(),
         socketId = socketId
       )
+      sequenceNumber++
       packetHandlingQueue.add(dataPacket)
       dataPacket.write()
       socket?.write(dataPacket)
@@ -139,6 +158,15 @@ class CommandsManager {
     }
   }
 
+  @Throws(IOException::class)
+  suspend fun writeKeepAlive(socket: SrtSocket?) {
+    writeSync.withLock {
+      val keepAlive = KeepAlive()
+      keepAlive.write(getTs(), socketId)
+      socket?.write(keepAlive)
+    }
+  }
+
   fun reset() {
     sequenceNumber = generateInitialSequence()
     messageNumber = 1
@@ -152,12 +180,4 @@ class CommandsManager {
   private fun generateInitialSequence(): Int {
     return Random.nextInt(0, Int.MAX_VALUE)
   }
-
-  private fun List<NetworkInterface>.findAddress(): List<String?> = this.asSequence()
-    .map { addresses -> addresses.inetAddresses.asSequence() }
-    .flatten()
-    .filter { address -> !address.isLoopbackAddress }
-    .map { it.hostAddress }
-    .filter { address -> address?.contains(":") == false }
-    .toList()
 }

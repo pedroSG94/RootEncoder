@@ -30,6 +30,7 @@ import com.pedro.srt.srt.packets.control.KeepAlive
 import com.pedro.srt.srt.packets.control.Nak
 import com.pedro.srt.srt.packets.control.PeerError
 import com.pedro.srt.srt.packets.control.Shutdown
+import com.pedro.srt.srt.packets.control.handshake.EncryptionType
 import com.pedro.srt.srt.packets.control.handshake.ExtensionField
 import com.pedro.srt.srt.packets.control.handshake.Handshake
 import com.pedro.srt.srt.packets.control.handshake.HandshakeType
@@ -96,6 +97,18 @@ class SrtClient(private val connectCheckerSrt: ConnectCheckerSrt) {
 
   fun setAuthorization(user: String?, password: String?) {
     TODO("unimplemented")
+  }
+
+  /**
+   * Set passphrase for encrypt. Use empty value to disable it.
+   */
+  fun setPassphrase(passphrase: String, type: EncryptionType) {
+    if (!isStreaming) {
+      if (passphrase.length < 10 || passphrase.length > 79) {
+        throw IllegalArgumentException("passphrase must between 10 and 79 length")
+      }
+      commandsManager.setPassphrase(passphrase, type)
+    }
   }
 
   /**
@@ -173,13 +186,15 @@ class SrtClient(private val connectCheckerSrt: ConnectCheckerSrt) {
           val response = commandsManager.readHandshake(socket)
 
           commandsManager.writeHandshake(socket, response.copy(
+            encryption = commandsManager.getEncryptType(),
             extensionField = ExtensionField.HS_REQ.value or ExtensionField.CONFIG.value,
             handshakeType = HandshakeType.CONCLUSION,
             handshakeExtension = HandshakeExtension(
               flags = ExtensionContentFlag.TSBPDSND.value or ExtensionContentFlag.TSBPDRCV.value or
                   ExtensionContentFlag.CRYPT.value or ExtensionContentFlag.TLPKTDROP.value or
                   ExtensionContentFlag.PERIODICNAK.value or ExtensionContentFlag.REXMITFLG.value,
-              path = path
+              path = path,
+              encryptInfo = commandsManager.getEncryptInfo()
             )))
           val responseConclusion = commandsManager.readHandshake(socket)
           if (responseConclusion.isErrorType()) {
@@ -299,7 +314,7 @@ class SrtClient(private val connectCheckerSrt: ConnectCheckerSrt) {
             //never should happens, handshake is already done
           }
           is KeepAlive -> {
-
+            commandsManager.writeKeepAlive(socket)
           }
           is Ack -> {
             val ackSequence = srtPacket.typeSpecificInformation
