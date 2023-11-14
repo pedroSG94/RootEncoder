@@ -23,7 +23,6 @@ class EncryptionUtil(val type: EncryptionType, passphrase: String) {
   private val keyBasedEncryption = KeyBasedEncryption.PAIR_KEY
   private val cipherType = CipherType.CTR
   private val salt: ByteArray
-  private val sek: ByteArray
   private val keyLength: Int = when (type) {
     EncryptionType.NONE -> 0
     EncryptionType.AES128 -> 16
@@ -31,12 +30,15 @@ class EncryptionUtil(val type: EncryptionType, passphrase: String) {
     EncryptionType.AES256 -> 32
   }
   private var keyData = byteArrayOf()
+  private val block: SecretKeySpec
+  private val cipher = Cipher.getInstance("AES/CTR/NoPadding")
 
   init {
     salt = generateSecureRandomBytes(16)
-    sek = generateSecureRandomBytes(keyLength)
+    val sek = generateSecureRandomBytes(keyLength)
     val kek = calculateKEK(passphrase, salt, keyLength)
     keyData = wrapKey(kek, sek)
+    block = SecretKeySpec(sek, "AES")
   }
 
   fun encrypt(bytes: ByteArray, sequence: Int): ByteArray {
@@ -44,8 +46,6 @@ class EncryptionUtil(val type: EncryptionType, passphrase: String) {
     ByteBuffer.wrap(ctr, 10, 4).putInt(sequence)
     for (i in 0 until 14) ctr[i] = (ctr[i] xor salt[i])
 
-    val block = SecretKeySpec(sek, "AES")
-    val cipher = Cipher.getInstance("AES/CTR/NoPadding")
     cipher.init(Cipher.ENCRYPT_MODE, block, IvParameterSpec(ctr))
     return cipher.doFinal(bytes)
   }
