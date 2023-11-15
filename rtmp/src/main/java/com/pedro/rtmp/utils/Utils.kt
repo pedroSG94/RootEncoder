@@ -16,6 +16,7 @@
 
 package com.pedro.rtmp.utils
 
+import android.media.MediaCodec
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.InputStream
@@ -26,6 +27,14 @@ import java.util.concurrent.BlockingQueue
 /**
  * Created by pedro on 20/04/21.
  */
+
+fun ByteBuffer.removeInfo(info: MediaCodec.BufferInfo): ByteBuffer {
+  try {
+    position(info.offset)
+    limit(info.size)
+  } catch (ignored: Exception) { }
+  return slice()
+}
 
 inline infix fun <reified T: Any> BlockingQueue<T>.trySend(item: T): Boolean {
   return try {

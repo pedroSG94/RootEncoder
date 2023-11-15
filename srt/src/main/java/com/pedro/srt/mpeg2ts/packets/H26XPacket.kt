@@ -26,6 +26,7 @@ import com.pedro.srt.mpeg2ts.Pes
 import com.pedro.srt.mpeg2ts.PesType
 import com.pedro.srt.mpeg2ts.psi.PsiManager
 import com.pedro.srt.srt.packets.data.PacketPosition
+import com.pedro.srt.utils.removeInfo
 import com.pedro.srt.utils.startWith
 import com.pedro.srt.utils.toByteArray
 import java.nio.ByteBuffer
@@ -53,7 +54,8 @@ class H26XPacket(
     info: MediaCodec.BufferInfo,
     callback: (List<MpegTsPacket>) -> Unit
   ) {
-    val length = info.size
+    val fixedBuffer = byteBuffer.removeInfo(info)
+    val length = fixedBuffer.remaining()
     if (length < 0) return
     val isKeyFrame = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
       info.flags == MediaCodec.BUFFER_FLAG_KEY_FRAME
@@ -77,8 +79,7 @@ class H26XPacket(
         return
       }
     }
-    byteBuffer.rewind()
-    val validBuffer = fixHeader(byteBuffer, isKeyFrame)
+    val validBuffer = fixHeader(fixedBuffer, isKeyFrame)
     val payload = ByteArray(validBuffer.remaining())
     validBuffer.get(payload, 0, validBuffer.remaining())
 

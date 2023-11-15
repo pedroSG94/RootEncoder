@@ -21,6 +21,7 @@ import android.util.Log
 import com.pedro.rtsp.rtsp.RtpFrame
 import com.pedro.rtsp.utils.RtpConstants
 import com.pedro.rtsp.utils.getVideoStartCodeSize
+import com.pedro.rtsp.utils.removeInfo
 import java.nio.ByteBuffer
 import kotlin.experimental.and
 
@@ -51,15 +52,15 @@ class H264Packet(
     bufferInfo: MediaCodec.BufferInfo,
     callback: (RtpFrame) -> Unit
   ) {
+    val fixedBuffer = byteBuffer.removeInfo(bufferInfo)
     // We read a NAL units from ByteBuffer and we send them
     // NAL units are preceded with 0x00000001
-    byteBuffer.rewind()
-    val header = ByteArray(getHeaderSize(byteBuffer) + 1)
+    val header = ByteArray(getHeaderSize(fixedBuffer) + 1)
     if (header.size == 1) return //invalid buffer or waiting for sps/pps
-    byteBuffer.rewind()
-    byteBuffer.get(header, 0, header.size)
+    fixedBuffer.rewind()
+    fixedBuffer.get(header, 0, header.size)
     val ts = bufferInfo.presentationTimeUs * 1000L
-    val naluLength = bufferInfo.size - byteBuffer.position()
+    val naluLength = fixedBuffer.remaining()
     val type: Int = (header[header.size - 1] and 0x1F).toInt()
     if (type == RtpConstants.IDR || bufferInfo.flags == MediaCodec.BUFFER_FLAG_KEY_FRAME) {
       stapA?.let {
@@ -80,7 +81,7 @@ class H264Packet(
       if (naluLength <= maxPacketSize - RtpConstants.RTP_HEADER_LENGTH - 1) {
         val buffer = getBuffer(naluLength + RtpConstants.RTP_HEADER_LENGTH + 1)
         buffer[RtpConstants.RTP_HEADER_LENGTH] = header[header.size - 1]
-        byteBuffer.get(buffer, RtpConstants.RTP_HEADER_LENGTH + 1, naluLength)
+        fixedBuffer.get(buffer, RtpConstants.RTP_HEADER_LENGTH + 1, naluLength)
         val rtpTs = updateTimeStamp(buffer, ts)
         markPacket(buffer) //mark end frame
         updateSeq(buffer)
@@ -98,13 +99,13 @@ class H264Packet(
           val length = if (naluLength - sum > maxPacketSize - RtpConstants.RTP_HEADER_LENGTH - 2) {
             maxPacketSize - RtpConstants.RTP_HEADER_LENGTH - 2
           } else {
-            bufferInfo.size - byteBuffer.position()
+            fixedBuffer.remaining()
           }
           val buffer = getBuffer(length + RtpConstants.RTP_HEADER_LENGTH + 2)
           buffer[RtpConstants.RTP_HEADER_LENGTH] = header[0]
           buffer[RtpConstants.RTP_HEADER_LENGTH + 1] = header[1]
           val rtpTs = updateTimeStamp(buffer, ts)
-          byteBuffer.get(buffer, RtpConstants.RTP_HEADER_LENGTH + 2, length)
+          fixedBuffer.get(buffer, RtpConstants.RTP_HEADER_LENGTH + 2, length)
           sum += length
           // Last packet before next NAL
           if (sum >= naluLength) {

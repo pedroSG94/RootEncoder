@@ -23,6 +23,7 @@ import com.pedro.srt.mpeg2ts.Pes
 import com.pedro.srt.mpeg2ts.PesType
 import com.pedro.srt.mpeg2ts.psi.PsiManager
 import com.pedro.srt.srt.packets.data.PacketPosition
+import com.pedro.srt.utils.removeInfo
 import java.nio.ByteBuffer
 
 /**
@@ -42,13 +43,13 @@ class AacPacket(
     info: MediaCodec.BufferInfo,
     callback: (List<MpegTsPacket>) -> Unit
   ) {
-    val length = info.size
+    val fixedBuffer = byteBuffer.removeInfo(info)
+    val length = fixedBuffer.remaining()
     if (length < 0) return
-    byteBuffer.rewind()
 
     val payload = ByteArray(length + header.size)
     writeAdts(payload, payload.size, 0)
-    byteBuffer.get(payload, header.size, length)
+    fixedBuffer.get(payload, header.size, length)
 
     val pes = Pes(psiManager.getAudioPid().toInt(), false, PesType.AUDIO, info.presentationTimeUs, ByteBuffer.wrap(payload))
     val mpeg2tsPackets = mpegTsPacketizer.write(listOf(pes))
