@@ -22,8 +22,8 @@ class ExtensionTest {
     info.flags = 0
 
     val result = buffer.removeInfo(info)
-    assertEquals(buffer.remaining() - offset - minusLimit, result.remaining())
+    assertEquals(buffer.capacity() - offset - minusLimit, result.remaining())
     assertEquals(offset.toByte(), result.get(0))
-    assertEquals((buffer.remaining() - 1 - minusLimit).toByte(), result.get(result.remaining() - 1))
+    assertEquals((buffer.capacity() - 1 - minusLimit).toByte(), result.get(result.remaining() - 1))
   }
 }
