@@ -16,12 +16,20 @@
 
 package com.pedro.srt.utils
 
+import android.media.MediaCodec
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.InputStream
 import java.io.OutputStream
 import java.nio.ByteBuffer
 import java.util.concurrent.BlockingQueue
+import kotlin.math.min
+
+fun ByteBuffer.removeInfo(info: MediaCodec.BufferInfo): ByteBuffer {
+  if (info.offset >= 0) position(min(capacity(), info.offset))
+  limit(min(capacity(), info.size))
+  return slice()
+}
 
 inline infix fun <reified T: Any> BlockingQueue<T>.trySend(item: T): Boolean {
   return try {

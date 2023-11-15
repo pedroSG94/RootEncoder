@@ -19,6 +19,7 @@ package com.pedro.rtsp.rtp.packets
 import android.media.MediaCodec
 import com.pedro.rtsp.rtsp.RtpFrame
 import com.pedro.rtsp.utils.RtpConstants
+import com.pedro.rtsp.utils.removeInfo
 import java.nio.ByteBuffer
 import kotlin.experimental.and
 import kotlin.experimental.or
@@ -44,10 +45,11 @@ class AacPacket(
     bufferInfo: MediaCodec.BufferInfo,
     callback: (RtpFrame) -> Unit
   ) {
-    val length = bufferInfo.size - byteBuffer.position()
+    val fixedBuffer = byteBuffer.removeInfo(bufferInfo)
+    val length = fixedBuffer.remaining()
     if (length > 0) {
       val buffer = getBuffer(length + RtpConstants.RTP_HEADER_LENGTH + 4)
-      byteBuffer.get(buffer, RtpConstants.RTP_HEADER_LENGTH + 4, length)
+      fixedBuffer.get(buffer, RtpConstants.RTP_HEADER_LENGTH + 4, length)
       val ts = bufferInfo.presentationTimeUs * 1000
       markPacket(buffer)
       val rtpTs = updateTimeStamp(buffer, ts)

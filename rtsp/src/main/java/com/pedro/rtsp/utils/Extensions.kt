@@ -16,11 +16,20 @@
 
 package com.pedro.rtsp.utils
 
+import android.media.MediaCodec
 import android.util.Base64
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.nio.ByteBuffer
 import java.util.concurrent.BlockingQueue
+
+fun ByteBuffer.removeInfo(info: MediaCodec.BufferInfo): ByteBuffer {
+  try {
+    position(info.offset)
+    limit(info.size)
+  } catch (ignored: Exception) { }
+  return slice()
+}
 
 inline infix fun <reified T: Any> BlockingQueue<T>.trySend(item: T): Boolean {
   return try {
