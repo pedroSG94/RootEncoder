@@ -51,10 +51,7 @@ class RtspClient(private val connectChecker: ConnectChecker) {
 
   private val TAG = "RtspClient"
 
-  companion object {
-    @JvmStatic
-    val urlPattern: Pattern = Pattern.compile("^rtsps?://([^/:]+)(?::(\\d+))*/([^/]+)/?([^*]*)$")
-  }
+  private val urlPattern: Pattern = Pattern.compile("^rtsps?://([^/:]+)(?::(\\d+))*/([^/]+)/?([^*]*)$")
 
   //sockets objects
   private var connectionSocket: Socket? = null
