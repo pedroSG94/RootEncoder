@@ -53,10 +53,7 @@ class RtmpClient(private val connectChecker: ConnectChecker) {
 
   private val TAG = "RtmpClient"
 
-  companion object {
-    @JvmStatic
-    val urlPattern: Pattern = Pattern.compile("^rtmpt?s?://([^/:]+)(?::(\\d+))*/([^/]+)/?([^*]*)$")
-  }
+  private val urlPattern: Pattern = Pattern.compile("^rtmpt?s?://([^/:]+)(?::(\\d+))*/([^/]+)/?([^*]*)$")
 
   private var socket: RtmpSocket? = null
   private var scope = CoroutineScope(Dispatchers.IO)

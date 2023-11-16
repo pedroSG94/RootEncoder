@@ -59,10 +59,7 @@ class SrtClient(private val connectChecker: ConnectChecker) {
 
   private val TAG = "SrtClient"
 
-  companion object {
-    @JvmStatic
-    val urlPattern: Pattern = Pattern.compile("^srt://([^/:]+)(?::(\\d+))*/([^/]+)/?([^*]*)$")
-  }
+  private val urlPattern: Pattern = Pattern.compile("^srt://([^/:]+)(?::(\\d+))*/([^/]+)/?([^*]*)$")
 
   private val commandsManager = CommandsManager()
   private val srtSender = SrtSender(connectChecker, commandsManager)

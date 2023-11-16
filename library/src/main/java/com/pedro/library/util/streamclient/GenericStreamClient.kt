@@ -1,9 +1,7 @@
 package com.pedro.library.util.streamclient
 
 import com.pedro.rtmp.flv.video.ProfileIop
-import com.pedro.rtmp.rtmp.RtmpClient
-import com.pedro.rtsp.rtsp.RtspClient
-import com.pedro.srt.srt.SrtClient
+import com.pedro.rtsp.rtsp.Protocol
 
 /**
  * Created by pedro on 12/10/23.
@@ -16,13 +14,23 @@ class GenericStreamClient(
 ): StreamBaseClient(streamClientListener) {
 
   private var connectedStreamClient : StreamBaseClient? = null
+
+  /**
+   * Internet protocol used.
+   *
+   * @param protocol Could be Protocol.TCP or Protocol.UDP.
+   */
+  fun setProtocol(protocol: Protocol) {
+    rtspClient.setProtocol(protocol)
+  }
+
   /**
    * H264 profile.
    *
    * @param profileIop Could be ProfileIop.BASELINE or ProfileIop.CONSTRAINED
    */
-  fun setProfileIop(profileIop: ProfileIop?) {
-    rtmpClient.setProfileIop(profileIop!!)
+  fun setProfileIop(profileIop: ProfileIop) {
+    rtmpClient.setProfileIop(profileIop)
   }
 
   /**
@@ -62,13 +70,13 @@ class GenericStreamClient(
     srtClient.setReTries(reTries)
   }
 
-  override fun shouldRetry(reason: String): Boolean = connectedStreamClient?.shouldRetry(reason)?:false
+  override fun shouldRetry(reason: String): Boolean = connectedStreamClient?.shouldRetry(reason) ?: false
 
   override fun reConnect(delay: Long, backupUrl: String?) {
     connectedStreamClient?.reConnect(delay, backupUrl)
   }
 
-  override fun hasCongestion(percentUsed: Float): Boolean = connectedStreamClient?.hasCongestion(percentUsed)?:false
+  override fun hasCongestion(percentUsed: Float): Boolean = connectedStreamClient?.hasCongestion(percentUsed) ?: false
 
   override fun setLogs(enabled: Boolean) {
     rtmpClient.setLogs(enabled)
@@ -94,17 +102,17 @@ class GenericStreamClient(
     srtClient.clearCache()
   }
 
-  override fun getCacheSize(): Int = connectedStreamClient?.getCacheSize()?:0
+  override fun getCacheSize(): Int = connectedStreamClient?.getCacheSize() ?: 0
 
-  override fun getItemsInCache(): Int = connectedStreamClient?.getItemsInCache()?:0
+  override fun getItemsInCache(): Int = connectedStreamClient?.getItemsInCache() ?: 0
 
-  override fun getSentAudioFrames(): Long = connectedStreamClient?.getSentAudioFrames()?:0
+  override fun getSentAudioFrames(): Long = connectedStreamClient?.getSentAudioFrames() ?: 0
 
-  override fun getSentVideoFrames(): Long = connectedStreamClient?.getSentVideoFrames()?:0
+  override fun getSentVideoFrames(): Long = connectedStreamClient?.getSentVideoFrames() ?: 0
 
-  override fun getDroppedAudioFrames(): Long = connectedStreamClient?.getDroppedAudioFrames()?:0
+  override fun getDroppedAudioFrames(): Long = connectedStreamClient?.getDroppedAudioFrames() ?: 0
 
-  override fun getDroppedVideoFrames(): Long = connectedStreamClient?.getDroppedVideoFrames()?:0
+  override fun getDroppedVideoFrames(): Long = connectedStreamClient?.getDroppedVideoFrames() ?: 0
 
   override fun resetSentAudioFrames() {
     rtmpClient.resetSentAudioFrames()
@@ -142,12 +150,12 @@ class GenericStreamClient(
 
   fun connecting(url: String) {
     connectedStreamClient =
-      if (RtmpClient.urlPattern.matcher(url).matches()) {
+      if (url.startsWith("rtmp", ignoreCase = true)) {
         rtmpClient
-      } else if (RtspClient.urlPattern.matcher(url).matches()) {
+      } else if (url.startsWith("rtsp", ignoreCase = true)) {
         rtspClient
-      } else {
+      } else if (url.startsWith("srt", ignoreCase = true)){
         srtClient
-      }
+      } else null
   }
 }

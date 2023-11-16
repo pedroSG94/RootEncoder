@@ -48,16 +48,14 @@ import java.nio.ByteBuffer;
 @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
 public class GenericCamera1 extends Camera1Base {
 
-  private enum ClientType { NONE, RTMP, RTSP, SRT};
-
   private final static String TAG = "GenericCamera1";
-  private final RtmpClient rtmpClient;
-  private final RtspClient rtspClient;
-  private final SrtClient srtClient;
-  private final GenericStreamClient streamClient;
-  private GenericCamera1.ClientType connectedType = GenericCamera1.ClientType.NONE;
+  private RtmpClient rtmpClient;
+  private RtspClient rtspClient;
+  private SrtClient srtClient;
+  private GenericStreamClient streamClient;
+  private ClientType connectedType = ClientType.NONE;
   private final StreamClientListener streamClientListener = this::requestKeyFrame;
-
+  private ConnectChecker connectChecker;
 
   @Deprecated
   public GenericCamera1(SurfaceView surfaceView, ConnectChecker connectChecker) {
@@ -75,37 +73,35 @@ public class GenericCamera1 extends Camera1Base {
   @Deprecated
   public GenericCamera1(TextureView textureView, ConnectChecker connectChecker) {
     super(textureView);
-    rtmpClient = new RtmpClient(connectChecker);
-    rtspClient = new RtspClient(connectChecker);
-    srtClient = new SrtClient(connectChecker);
-    streamClient = new GenericStreamClient(
-            new RtmpStreamClient(rtmpClient, streamClientListener),
-            new RtspStreamClient(rtspClient, streamClientListener),
-            new SrtStreamClient(srtClient, streamClientListener),
-            streamClientListener);  }
+    init(connectChecker);
+  }
 
   public GenericCamera1(OpenGlView openGlView, ConnectChecker connectChecker) {
     super(openGlView);
-    rtmpClient = new RtmpClient(connectChecker);
-    rtspClient = new RtspClient(connectChecker);
-    srtClient = new SrtClient(connectChecker);
-    streamClient = new GenericStreamClient(
-            new RtmpStreamClient(rtmpClient, streamClientListener),
-            new RtspStreamClient(rtspClient, streamClientListener),
-            new SrtStreamClient(srtClient, streamClientListener),
-            streamClientListener);
+    init(connectChecker);
   }
 
   public GenericCamera1(LightOpenGlView lightOpenGlView, ConnectChecker connectChecker) {
     super(lightOpenGlView);
+    init(connectChecker);
+  }
+
+  public GenericCamera1(Context context, ConnectChecker connectChecker) {
+    super(context);
+    init(connectChecker);
+  }
+
+  private void init(ConnectChecker connectChecker) {
+    this.connectChecker = connectChecker;
     rtmpClient = new RtmpClient(connectChecker);
     rtspClient = new RtspClient(connectChecker);
     srtClient = new SrtClient(connectChecker);
     streamClient = new GenericStreamClient(
-            new RtmpStreamClient(rtmpClient, streamClientListener),
-            new RtspStreamClient(rtspClient, streamClientListener),
-            new SrtStreamClient(srtClient, streamClientListener),
-            streamClientListener);  }
+        new RtmpStreamClient(rtmpClient, streamClientListener),
+        new RtspStreamClient(rtspClient, streamClientListener),
+        new SrtStreamClient(srtClient, streamClientListener),
+        streamClientListener);
+  }
 
   @Override
   public GenericStreamClient getStreamClient() {
@@ -129,16 +125,17 @@ public class GenericCamera1 extends Camera1Base {
   @Override
   protected void startStreamRtp(String url) {
     streamClient.connecting(url);
-    if (RtmpClient.getUrlPattern().matcher(url).matches()) {
+    if (url.toLowerCase().startsWith("rtmp")) {
       connectedType = ClientType.RTMP;
       startStreamRtpRtmp(url);
-    } else if (RtspClient.getUrlPattern().matcher(url).matches()) {
+    } else if (url.toLowerCase().startsWith("rtsp")) {
       connectedType = ClientType.RTSP;
       startStreamRtpRtsp(url);
-    } else {
-      // catch all here, to let it handle improper URLs
+    } else if (url.toLowerCase().startsWith("srt")){
       connectedType = ClientType.SRT;
       startStreamRtpSrt(url);
+    } else {
+      connectChecker.onConnectionFailed("unsupported protocol, only support rtmp, rtsp and srt");
     }
   }
 
@@ -166,40 +163,41 @@ public class GenericCamera1 extends Camera1Base {
   @Override
   protected void stopStreamRtp() {
     switch (connectedType) {
-      case RTMP: rtmpClient.disconnect(); break;
-      case RTSP: rtspClient.disconnect(); break;
-      case SRT: srtClient.disconnect(); break;
-      default:
+      case RTMP -> rtmpClient.disconnect();
+      case RTSP -> rtspClient.disconnect();
+      case SRT -> srtClient.disconnect();
+      default -> {}
     }
+    connectedType = ClientType.NONE;
   }
 
   @Override
   protected void getAacDataRtp(ByteBuffer aacBuffer, MediaCodec.BufferInfo info) {
     switch (connectedType) {
-      case RTMP: rtmpClient.sendAudio(aacBuffer, info); break;
-      case RTSP: rtspClient.sendAudio(aacBuffer, info); break;
-      case SRT: srtClient.sendAudio(aacBuffer, info); break;
-      default:
+      case RTMP -> rtmpClient.sendAudio(aacBuffer, info);
+      case RTSP -> rtspClient.sendAudio(aacBuffer, info);
+      case SRT -> srtClient.sendAudio(aacBuffer, info);
+      default -> {}
     }
   }
 
   @Override
   protected void onSpsPpsVpsRtp(ByteBuffer sps, ByteBuffer pps, ByteBuffer vps) {
     switch (connectedType) {
-      case RTMP: rtmpClient.setVideoInfo(sps, pps, vps); break;
-      case RTSP: rtspClient.setVideoInfo(sps, pps, vps); break;
-      case SRT: srtClient.setVideoInfo(sps, pps, vps); break;
-      default:
+      case RTMP -> rtmpClient.setVideoInfo(sps, pps, vps);
+      case RTSP -> rtspClient.setVideoInfo(sps, pps, vps);
+      case SRT -> srtClient.setVideoInfo(sps, pps, vps);
+      default -> {}
     }
   }
 
   @Override
   protected void getH264DataRtp(ByteBuffer h264Buffer, MediaCodec.BufferInfo info) {
     switch (connectedType) {
-      case RTMP: rtmpClient.sendVideo(h264Buffer, info); break;
-      case RTSP: rtspClient.sendVideo(h264Buffer, info); break;
-      case SRT: srtClient.sendVideo(h264Buffer, info); break;
-      default:
+      case RTMP -> rtmpClient.sendVideo(h264Buffer, info);
+      case RTSP -> rtspClient.sendVideo(h264Buffer, info);
+      case SRT -> srtClient.sendVideo(h264Buffer, info);
+      default -> {}
     }
   }
 }
