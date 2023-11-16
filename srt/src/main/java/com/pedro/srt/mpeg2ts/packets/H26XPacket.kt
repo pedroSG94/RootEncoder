@@ -19,6 +19,7 @@ package com.pedro.srt.mpeg2ts.packets
 import android.media.MediaCodec
 import android.os.Build
 import android.util.Log
+import com.pedro.common.removeInfo
 import com.pedro.srt.mpeg2ts.Codec
 import com.pedro.srt.mpeg2ts.MpegTsPacket
 import com.pedro.srt.mpeg2ts.MpegType
@@ -53,7 +54,8 @@ class H26XPacket(
     info: MediaCodec.BufferInfo,
     callback: (List<MpegTsPacket>) -> Unit
   ) {
-    val length = info.size
+    val fixedBuffer = byteBuffer.removeInfo(info)
+    val length = fixedBuffer.remaining()
     if (length < 0) return
     val isKeyFrame = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
       info.flags == MediaCodec.BUFFER_FLAG_KEY_FRAME
@@ -77,8 +79,7 @@ class H26XPacket(
         return
       }
     }
-    byteBuffer.rewind()
-    val validBuffer = fixHeader(byteBuffer, isKeyFrame)
+    val validBuffer = fixHeader(fixedBuffer, isKeyFrame)
     val payload = ByteArray(validBuffer.remaining())
     validBuffer.get(payload, 0, validBuffer.remaining())
 

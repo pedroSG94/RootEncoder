@@ -19,7 +19,6 @@ package com.pedro.rtsp.utils
 import android.util.Base64
 import java.nio.ByteBuffer
 
-
 fun ByteArray.encodeToString(flags: Int = Base64.NO_WRAP): String {
   return Base64.encodeToString(this, flags)
 }

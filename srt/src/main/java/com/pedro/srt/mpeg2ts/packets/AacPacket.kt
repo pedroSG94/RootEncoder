@@ -17,6 +17,7 @@
 package com.pedro.srt.mpeg2ts.packets
 
 import android.media.MediaCodec
+import com.pedro.common.removeInfo
 import com.pedro.srt.mpeg2ts.MpegTsPacket
 import com.pedro.srt.mpeg2ts.MpegType
 import com.pedro.srt.mpeg2ts.Pes
@@ -42,13 +43,13 @@ class AacPacket(
     info: MediaCodec.BufferInfo,
     callback: (List<MpegTsPacket>) -> Unit
   ) {
-    val length = info.size
+    val fixedBuffer = byteBuffer.removeInfo(info)
+    val length = fixedBuffer.remaining()
     if (length < 0) return
-    byteBuffer.rewind()
 
     val payload = ByteArray(length + header.size)
     writeAdts(payload, payload.size, 0)
-    byteBuffer.get(payload, header.size, length)
+    fixedBuffer.get(payload, header.size, length)
 
     val pes = Pes(psiManager.getAudioPid().toInt(), false, PesType.AUDIO, info.presentationTimeUs, ByteBuffer.wrap(payload))
     val mpeg2tsPackets = mpegTsPacketizer.write(listOf(pes))

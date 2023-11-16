@@ -17,6 +17,7 @@
 package com.pedro.rtmp.flv.audio
 
 import android.media.MediaCodec
+import com.pedro.common.removeInfo
 import com.pedro.rtmp.flv.FlvPacket
 import com.pedro.rtmp.flv.FlvType
 import java.nio.ByteBuffer
@@ -25,7 +26,7 @@ import kotlin.experimental.or
 /**
  * Created by pedro on 8/04/21.
  */
-class AacPacket() {
+class AacPacket {
 
   private val header = ByteArray(2)
   //first time we need send audio config
@@ -53,6 +54,7 @@ class AacPacket() {
     info: MediaCodec.BufferInfo,
     callback: (FlvPacket) -> Unit
   ) {
+    val fixedBuffer = byteBuffer.removeInfo(info)
     //header is 2 bytes length
     //4 bits sound format, 2 bits sound rate, 1 bit sound size, 1 bit sound type
     //8 bits sound data (always 10 because we aer using aac)
@@ -76,9 +78,8 @@ class AacPacket() {
       configSend = true
     } else {
       header[1] = Type.RAW.mark
-      buffer = ByteArray(info.size - info.offset + header.size)
-
-      byteBuffer.get(buffer, header.size, info.size - info.offset)
+      buffer = ByteArray(fixedBuffer.remaining() + header.size)
+      fixedBuffer.get(buffer, header.size, fixedBuffer.remaining())
     }
     System.arraycopy(header, 0, buffer, 0, header.size)
     val ts = info.presentationTimeUs / 1000

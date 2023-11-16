@@ -24,7 +24,6 @@ import java.nio.ByteBuffer
  * Created by pedro on 20/04/21.
  */
 
-
 fun InputStream.readUntil(byteArray: ByteArray) {
   var bytesRead = 0
   while (bytesRead < byteArray.size) {

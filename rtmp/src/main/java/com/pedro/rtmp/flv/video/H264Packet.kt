@@ -18,6 +18,7 @@ package com.pedro.rtmp.flv.video
 
 import android.media.MediaCodec
 import android.util.Log
+import com.pedro.common.removeInfo
 import com.pedro.rtmp.flv.FlvPacket
 import com.pedro.rtmp.flv.FlvType
 import java.nio.ByteBuffer
@@ -63,7 +64,7 @@ class H264Packet() {
     info: MediaCodec.BufferInfo,
     callback: (FlvPacket) -> Unit
   ) {
-    byteBuffer.rewind()
+    val fixedBuffer = byteBuffer.removeInfo(info)
     val ts = info.presentationTimeUs / 1000
     //header is 5 bytes length:
     //4 bits FrameType, 4 bits CodecID
@@ -94,10 +95,10 @@ class H264Packet() {
       callback(FlvPacket(buffer, ts, buffer.size, FlvType.VIDEO))
       configSend = true
     }
-    val headerSize = getHeaderSize(byteBuffer)
+    val headerSize = getHeaderSize(fixedBuffer)
     if (headerSize == 0) return //invalid buffer or waiting for sps/pps
-    byteBuffer.rewind()
-    val validBuffer = removeHeader(byteBuffer, headerSize)
+    fixedBuffer.rewind()
+    val validBuffer = removeHeader(fixedBuffer, headerSize)
     val size = validBuffer.remaining()
     buffer = ByteArray(header.size + size + naluSize)
 
