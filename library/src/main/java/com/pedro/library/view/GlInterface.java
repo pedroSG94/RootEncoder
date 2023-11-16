@@ -25,11 +25,6 @@ import com.pedro.encoder.input.gl.render.filters.BaseFilterRender;
 public interface GlInterface {
 
   /**
-   * Initialize necessary classes.
-   */
-  void init();
-
-  /**
    * Set video encoder size use to Opengl
    * @param width video encoder width in px
    * @param height video encoder height in px

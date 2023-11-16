@@ -7,6 +7,7 @@ import android.view.Surface
 import androidx.annotation.RequiresApi
 import com.pedro.encoder.input.gl.FilterAction
 import com.pedro.encoder.input.gl.render.filters.BaseFilterRender
+import com.pedro.encoder.utils.gl.AspectRatioMode
 
 /**
  * Created by pedro on 20/3/22.
@@ -39,9 +40,9 @@ class MainRender {
     for (baseFilterRender in filterRenders) baseFilterRender.draw()
   }
 
-  fun drawScreen(width: Int, height: Int, keepAspectRatio: Boolean, mode: Int, rotation: Int,
+  fun drawScreen(width: Int, height: Int, mode: AspectRatioMode, rotation: Int,
     flipStreamVertical: Boolean, flipStreamHorizontal: Boolean) {
-    screenRender.draw(width, height, keepAspectRatio, mode, rotation, flipStreamVertical,
+    screenRender.draw(width, height, mode, rotation, flipStreamVertical,
       flipStreamHorizontal)
   }
 
@@ -51,10 +52,9 @@ class MainRender {
       flipStreamHorizontal)
   }
 
-  fun drawScreenPreview(width: Int, height: Int, isPortrait: Boolean, keepAspectRatio: Boolean,
-    mode: Int, rotation: Int, flipStreamVertical: Boolean, flipStreamHorizontal: Boolean) {
-    screenRender.drawPreview(width, height, isPortrait, keepAspectRatio, mode, rotation,
-      flipStreamVertical, flipStreamHorizontal)
+  fun drawScreenPreview(width: Int, height: Int, isPortrait: Boolean,
+    mode: AspectRatioMode, rotation: Int, flipStreamVertical: Boolean, flipStreamHorizontal: Boolean) {
+    screenRender.drawPreview(width, height, isPortrait, mode, rotation, flipStreamVertical, flipStreamHorizontal)
   }
 
   fun release() {

@@ -28,6 +28,7 @@ import androidx.annotation.RequiresApi;
 
 import com.pedro.encoder.R;
 import com.pedro.encoder.input.video.CameraHelper;
+import com.pedro.encoder.utils.gl.AspectRatioMode;
 import com.pedro.encoder.utils.gl.GlUtil;
 import com.pedro.encoder.utils.gl.SizeCalculator;
 
@@ -103,13 +104,13 @@ public class SimpleCameraRender {
     surfaceTexture.updateTexImage();
   }
 
-  public void drawFrame(int width, int height, boolean keepAspectRatio, int mode, int rotation,
+  public void drawFrame(int width, int height, AspectRatioMode mode, int rotation,
       boolean flipStreamVertical, boolean flipStreamHorizontal) {
     GlUtil.checkGlError("drawFrame start");
     surfaceTexture.getTransformMatrix(STMatrix);
 
     SizeCalculator.processMatrix(rotation, flipStreamHorizontal, flipStreamVertical, MVPMatrix);
-    SizeCalculator.calculateViewPort(keepAspectRatio, mode, width, height, streamWidth,
+    SizeCalculator.calculateViewPort(mode, width, height, streamWidth,
         streamHeight);
 
     GLES20.glClearColor(0.0f, 0.0f, 0.0f, 1.0f);

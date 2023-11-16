@@ -97,21 +97,18 @@ public abstract class FromFileBase {
   public FromFileBase(Context context, VideoDecoderInterface videoDecoderInterface,
       AudioDecoderInterface audioDecoderInterface) {
     glInterface = new OffScreenGlThread(context);
-    glInterface.init();
     init(videoDecoderInterface, audioDecoderInterface);
   }
 
   public FromFileBase(OpenGlView openGlView, VideoDecoderInterface videoDecoderInterface,
       AudioDecoderInterface audioDecoderInterface) {
     glInterface = openGlView;
-    glInterface.init();
     init(videoDecoderInterface, audioDecoderInterface);
   }
 
   public FromFileBase(LightOpenGlView lightOpenGlView, VideoDecoderInterface videoDecoderInterface,
       AudioDecoderInterface audioDecoderInterface) {
     glInterface = lightOpenGlView;
-    glInterface.init();
     init(videoDecoderInterface, audioDecoderInterface);
   }
 
@@ -406,12 +403,10 @@ public abstract class FromFileBase {
         this.glInterface.removeMediaCodecSurface();
         this.glInterface.stop();
         this.glInterface = glInterface;
-        this.glInterface.init();
         prepareGlView();
         videoDecoder.resumeRender();
       } else {
         this.glInterface = glInterface;
-        this.glInterface.init();
       }
     }
   }

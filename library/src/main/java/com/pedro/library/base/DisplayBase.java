@@ -92,7 +92,6 @@ public abstract class DisplayBase {
   public DisplayBase(Context context, boolean useOpengl) {
     if (useOpengl) {
       glInterface = new OffScreenGlThread(context);
-      glInterface.init();
     }
     mediaProjectionManager =
         ((MediaProjectionManager) context.getSystemService(MEDIA_PROJECTION_SERVICE));

@@ -113,7 +113,6 @@ public abstract class Camera1Base {
   public Camera1Base(OpenGlView openGlView) {
     context = openGlView.getContext();
     this.glInterface = openGlView;
-    this.glInterface.init();
     cameraManager = new Camera1ApiManager(glInterface.getSurfaceTexture(), context);
     init();
   }
@@ -122,7 +121,6 @@ public abstract class Camera1Base {
   public Camera1Base(LightOpenGlView lightOpenGlView) {
     context = lightOpenGlView.getContext();
     this.glInterface = lightOpenGlView;
-    this.glInterface.init();
     cameraManager = new Camera1ApiManager(glInterface.getSurfaceTexture(), context);
     init();
   }
@@ -131,7 +129,6 @@ public abstract class Camera1Base {
   public Camera1Base(Context context) {
     this.context = context;
     glInterface = new OffScreenGlThread(context);
-    glInterface.init();
     cameraManager = new Camera1ApiManager(glInterface.getSurfaceTexture(), context);
     init();
   }
@@ -455,7 +452,6 @@ public abstract class Camera1Base {
         this.glInterface.removeMediaCodecSurface();
         this.glInterface.stop();
         this.glInterface = glInterface;
-        this.glInterface.init();
         this.glInterface.setEncoderSize(size.x, size.y);
         this.glInterface.setRotation(0);
         this.glInterface.start();
@@ -468,7 +464,6 @@ public abstract class Camera1Base {
             videoEncoder.getFps());
       } else {
         this.glInterface = glInterface;
-        this.glInterface.init();
       }
     }
   }
@@ -775,18 +770,18 @@ public abstract class Camera1Base {
   }
 
   /**
-   * Get supported preview resolutions of back camera in px.
+   * Get supported resolutions of back camera in px.
    *
-   * @return list of preview resolutions supported by back camera
+   * @return list of resolutions supported by back camera
    */
   public List<Camera.Size> getResolutionsBack() {
     return cameraManager.getPreviewSizeBack();
   }
 
   /**
-   * Get supported preview resolutions of front camera in px.
+   * Get supported resolutions of front camera in px.
    *
-   * @return list of preview resolutions supported by front camera
+   * @return list of resolutions supported by front camera
    */
   public List<Camera.Size> getResolutionsFront() {
     return cameraManager.getPreviewSizeFront();

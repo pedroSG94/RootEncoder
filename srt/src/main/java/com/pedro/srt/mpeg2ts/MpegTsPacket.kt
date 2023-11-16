@@ -26,5 +26,6 @@ import com.pedro.srt.srt.packets.data.PacketPosition
 data class MpegTsPacket(
   val buffer: ByteArray,
   val type: MpegType,
-  val packetPosition: PacketPosition
+  val packetPosition: PacketPosition,
+  val isKey: Boolean
 )

@@ -110,8 +110,8 @@ class VideoManager(private val context: Context, var source: Source) {
         Source.SCREEN -> {
           val dpi = context.resources.displayMetrics.densityDpi
           var flags = DisplayManager.VIRTUAL_DISPLAY_FLAG_AUTO_MIRROR
-          val VIRTUAL_DISPLAY_FLAG_ROTATES_WITH_CONTENT = 128
-          flags += VIRTUAL_DISPLAY_FLAG_ROTATES_WITH_CONTENT
+          val virtualDisplayFlagRotatesWithContent = 128
+          flags += virtualDisplayFlagRotatesWithContent
           //Adapt MediaProjection render to stream resolution
           val shouldRotate = width > height
           val displayWidth = if (shouldRotate) height else width

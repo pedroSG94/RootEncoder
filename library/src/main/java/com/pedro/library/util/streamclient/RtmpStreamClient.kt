@@ -16,8 +16,8 @@ class RtmpStreamClient(
    *
    * @param profileIop Could be ProfileIop.BASELINE or ProfileIop.CONSTRAINED
    */
-  fun setProfileIop(profileIop: ProfileIop?) {
-    rtmpClient.setProfileIop(profileIop!!)
+  fun setProfileIop(profileIop: ProfileIop) {
+    rtmpClient.setProfileIop(profileIop)
   }
 
   /**

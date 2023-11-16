@@ -1,7 +1,6 @@
 package com.pedro.srt.srt.control
 
 import com.pedro.srt.srt.packets.ControlPacket
-import com.pedro.srt.srt.packets.DataPacket
 import com.pedro.srt.srt.packets.control.ControlType
 import com.pedro.srt.srt.packets.control.Shutdown
 import org.junit.Assert.assertEquals

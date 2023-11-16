@@ -38,6 +38,9 @@ data class Mpeg2TsService(
     tracks.add(Track(codec, pid))
     if (pcrPid == null) pcrPid = pid
     else if (codec != Codec.AAC) pcrPid = pid
+  }
+
+  fun generatePmt() {
     if (pmt == null) {
       pmt = Pmt(
         Pid.generatePID().toInt(),

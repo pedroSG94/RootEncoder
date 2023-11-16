@@ -1,6 +1,7 @@
 package com.pedro.library.util.streamclient
 
 import com.pedro.srt.srt.SrtClient
+import com.pedro.srt.srt.packets.control.handshake.EncryptionType
 
 /**
  * Created by pedro on 12/10/23.
@@ -9,6 +10,13 @@ class SrtStreamClient(
   private val srtClient: SrtClient,
   streamClientListener: StreamClientListener?
 ): StreamBaseClient(streamClientListener) {
+
+  /**
+   * Set passphrase for encrypt. Use empty value to disable it.
+   */
+  fun setPassphrase(passphrase: String, type: EncryptionType) {
+    srtClient.setPassphrase(passphrase, type)
+  }
 
   override fun setAuthorization(user: String?, password: String?) {
     srtClient.setAuthorization(user, password)

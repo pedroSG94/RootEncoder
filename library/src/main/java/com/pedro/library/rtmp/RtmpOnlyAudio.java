@@ -39,8 +39,8 @@ public class RtmpOnlyAudio extends OnlyAudioBase {
   public RtmpOnlyAudio(ConnectChecker connectChecker) {
     super();
     rtmpClient = new RtmpClient(connectChecker);
-    rtmpClient.setOnlyAudio(true);
     streamClient = new RtmpStreamClient(rtmpClient, null);
+    streamClient.setOnlyAudio(true);
   }
 
   @Override

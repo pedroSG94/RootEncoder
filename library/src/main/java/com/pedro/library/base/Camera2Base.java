@@ -127,14 +127,12 @@ public abstract class Camera2Base {
   public Camera2Base(OpenGlView openGlView) {
     context = openGlView.getContext();
     glInterface = openGlView;
-    glInterface.init();
     init(context);
   }
 
   public Camera2Base(LightOpenGlView lightOpenGlView) {
     this.context = lightOpenGlView.getContext();
     glInterface = lightOpenGlView;
-    glInterface.init();
     init(context);
   }
 
@@ -142,7 +140,6 @@ public abstract class Camera2Base {
     this.context = context;
     if (useOpengl) {
       glInterface = new OffScreenGlThread(context);
-      glInterface.init();
     }
     isBackground = true;
     init(context);
@@ -489,7 +486,6 @@ public abstract class Camera2Base {
         this.glInterface.removeMediaCodecSurface();
         this.glInterface.stop();
         this.glInterface = glInterface;
-        this.glInterface.init();
         this.glInterface.setEncoderSize(size.x, size.y);
         this.glInterface.setRotation(videoEncoder.getRotation() == 0 ? 270 : videoEncoder.getRotation() - 90);
         this.glInterface.start();
@@ -501,7 +497,6 @@ public abstract class Camera2Base {
         cameraManager.openLastCamera();
       } else {
         this.glInterface = glInterface;
-        this.glInterface.init();
       }
     }
   }
@@ -720,21 +715,30 @@ public abstract class Camera2Base {
   }
 
   /**
-   * Get supported preview resolutions of back camera in px.
+   * Get supported resolutions of back camera in px.
    *
-   * @return list of preview resolutions supported by back camera
+   * @return list of resolutions supported by back camera
    */
   public List<Size> getResolutionsBack() {
     return Arrays.asList(cameraManager.getCameraResolutionsBack());
   }
 
   /**
-   * Get supported preview resolutions of front camera in px.
+   * Get supported resolutions of front camera in px.
    *
-   * @return list of preview resolutions supported by front camera
+   * @return list of resolutions supported by front camera
    */
   public List<Size> getResolutionsFront() {
     return Arrays.asList(cameraManager.getCameraResolutionsFront());
+  }
+
+  /**
+   * Get supported resolutions of cameraId in px.
+   *
+   * @return list of resolutions supported by cameraId
+   */
+  public List<Size> getResolutions(String cameraId) {
+    return Arrays.asList(cameraManager.getCameraResolutions(cameraId));
   }
 
   public List<Range<Integer>> getSupportedFps() {

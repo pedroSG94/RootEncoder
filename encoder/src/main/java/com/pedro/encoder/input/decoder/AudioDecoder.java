@@ -88,8 +88,7 @@ public class AudioDecoder extends BaseDecoder {
   }
 
   @Override
-  protected boolean decodeOutput(ByteBuffer outputBuffer) {
-    long timeStamp = System.nanoTime() / 1000;
+  protected boolean decodeOutput(ByteBuffer outputBuffer, long timeStamp) {
     //This buffer is PCM data
     if (muted) {
       outputBuffer.get(pcmBufferMuted, 0,

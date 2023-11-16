@@ -13,25 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package com.pedro.encoder.utils.gl
 
-package com.pedro.library.view;
+enum class AspectRatioMode {
+  Adjust, Fill, NONE;
 
-public enum AspectRatioMode {
-    Adjust(0),
-    Fill(1),
-    AdjustRotate(2),
-    FillRotate(3);
-
-    int id;
-
-    AspectRatioMode(int id) {
-        this.id = id;
+  companion object {
+    fun fromId(id: Int): AspectRatioMode {
+      return AspectRatioMode.values().find { id == it.ordinal } ?: NONE
     }
-
-    static AspectRatioMode fromId(int id) {
-        for (AspectRatioMode mode : values()) {
-            if (mode.id == id) return mode;
-        }
-        throw new IllegalArgumentException();
-    }
+  }
 }

@@ -29,15 +29,18 @@ class SrtSocket(private val host: String, private val port: Int) {
   private val TAG = "SrtSocket"
   private var socket: DatagramSocket? = null
   private var packetSize = Constants.MTU
+  private val timeout = 5000
 
   fun connect() {
     val address = InetAddress.getByName(host)
     socket = DatagramSocket()
     socket?.connect(address, port)
+    socket?.soTimeout = timeout
   }
 
   fun close() {
     if (socket?.isClosed == false) {
+      socket?.disconnect()
       socket?.close()
       socket = null
     }

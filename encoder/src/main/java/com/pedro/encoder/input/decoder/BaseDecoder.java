@@ -223,7 +223,7 @@ public abstract class BaseDecoder {
 
   protected abstract boolean extract(MediaExtractor extractor);
 
-  protected abstract boolean decodeOutput(ByteBuffer outputBuffer);
+  protected abstract boolean decodeOutput(ByteBuffer outputBuffer, long timeStamp);
 
   protected abstract void finished();
 
@@ -248,7 +248,8 @@ public abstract class BaseDecoder {
           }
         }
         int inIndex = codec.dequeueInputBuffer(10000);
-        int sampleSize = 0;
+        int sampleSize;
+        long timeStamp = System.nanoTime() / 1000;
         if (inIndex >= 0) {
           ByteBuffer input;
           if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
@@ -285,7 +286,7 @@ public abstract class BaseDecoder {
           } else {
             output = codec.getOutputBuffers()[outIndex];
           }
-          boolean render = decodeOutput(output);
+          boolean render = decodeOutput(output, timeStamp);
           codec.releaseOutputBuffer(outIndex, render && bufferInfo.size != 0);
           boolean finished = extractor.getSampleTime() < 0;
           if (finished) {

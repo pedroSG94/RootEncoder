@@ -60,23 +60,17 @@ class AacPacket(
       chunks.forEach {
         buffer.put(it)
       }
-      val packetPosition = if (index == 0 && chunked.size == 1) {
-        PacketPosition.SINGLE
-      } else if (index == 0) {
-        PacketPosition.FIRST
-      } else if (index == chunked.size - 1) {
-        PacketPosition.LAST
-      } else {
-        PacketPosition.MIDDLE
-      }
-      packets.add(MpegTsPacket(buffer.array(), MpegType.AUDIO, packetPosition))
+      val packetPosition = PacketPosition.SINGLE
+      packets.add(MpegTsPacket(buffer.array(), MpegType.AUDIO, packetPosition, false))
     }
     callback(packets)
   }
 
-  override fun resetPacket() {
-    sampleRate = 44100
-    isStereo = true
+  override fun resetPacket(resetInfo: Boolean) {
+    if (resetInfo) {
+      sampleRate = 44100
+      isStereo = true
+    }
   }
 
   fun sendAudioInfo(sampleRate: Int, stereo: Boolean) {

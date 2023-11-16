@@ -72,10 +72,6 @@ abstract class StreamBase(
   val videoSource = videoManager.source
   val audioSource = audioManager.source
 
-  init {
-    glInterface.init()
-  }
-
   /**
    * Necessary only one time before start preview, stream or record.
    * If you want change values stop preview, stream and record is necessary.
@@ -92,7 +88,7 @@ abstract class StreamBase(
       return videoEncoder.prepareVideoEncoder(width, height, fps, bitrate, rotation,
         iFrameInterval, FormatVideoEncoder.SURFACE, avcProfile, avcProfileLevel)
     }
-    return videoResult
+    return false
   }
 
   /**
@@ -108,7 +104,7 @@ abstract class StreamBase(
     if (audioResult) {
       return audioEncoder.prepareAudioEncoder(bitrate, sampleRate, isStereo, audioManager.getMaxInputSize())
     }
-    return audioResult
+    return false
   }
 
   /**

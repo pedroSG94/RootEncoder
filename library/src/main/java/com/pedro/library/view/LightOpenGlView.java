@@ -29,6 +29,7 @@ import androidx.annotation.RequiresApi;
 
 import com.pedro.encoder.input.gl.render.SimpleCameraRender;
 import com.pedro.encoder.input.gl.render.filters.BaseFilterRender;
+import com.pedro.encoder.utils.gl.AspectRatioMode;
 import com.pedro.encoder.utils.gl.GlUtil;
 import com.pedro.library.R;
 
@@ -41,10 +42,8 @@ import com.pedro.library.R;
 @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
 public class LightOpenGlView extends OpenGlViewBase {
 
-  private SimpleCameraRender simpleCameraRender = null;
-  private boolean keepAspectRatio = false;
+  private final SimpleCameraRender simpleCameraRender = new SimpleCameraRender();
   private AspectRatioMode aspectRatioMode = AspectRatioMode.Adjust;
-  private boolean isFlipHorizontal = false, isFlipVertical = false;
 
   public LightOpenGlView(Context context) {
     super(context);
@@ -54,32 +53,17 @@ public class LightOpenGlView extends OpenGlViewBase {
     super(context, attrs);
     TypedArray typedArray = context.obtainStyledAttributes(attrs, R.styleable.LightOpenGlView);
     try {
-      keepAspectRatio = typedArray.getBoolean(R.styleable.LightOpenGlView_keepAspectRatio, false);
-      aspectRatioMode = AspectRatioMode.fromId(typedArray.getInt(R.styleable.OpenGlView_aspectRatioMode, 0));
-      isFlipHorizontal = typedArray.getBoolean(R.styleable.LightOpenGlView_isFlipHorizontal, false);
-      isFlipVertical = typedArray.getBoolean(R.styleable.LightOpenGlView_isFlipVertical, false);
+      aspectRatioMode = AspectRatioMode.Companion.fromId(typedArray.getInt(R.styleable.OpenGlView_aspectRatioMode, AspectRatioMode.NONE.ordinal()));
+      boolean isFlipHorizontal = typedArray.getBoolean(R.styleable.LightOpenGlView_isFlipHorizontal, false);
+      boolean isFlipVertical = typedArray.getBoolean(R.styleable.LightOpenGlView_isFlipVertical, false);
+      simpleCameraRender.setFlip(isFlipHorizontal, isFlipVertical);
     } finally {
       typedArray.recycle();
     }
   }
 
-  @Override
-  public void init() {
-    if (!initialized) simpleCameraRender = new SimpleCameraRender();
-    simpleCameraRender.setFlip(isFlipHorizontal, isFlipVertical);
-    initialized = true;
-  }
-
-  public boolean isKeepAspectRatio() {
-    return keepAspectRatio;
-  }
-
   public void setAspectRatioMode(AspectRatioMode aspectRatioMode) {
     this.aspectRatioMode = aspectRatioMode;
-  }
-
-  public void setKeepAspectRatio(boolean keepAspectRatio) {
-    this.keepAspectRatio = keepAspectRatio;
   }
 
   public void setCameraFlip(boolean isFlipHorizontal, boolean isFlipVertical) {
@@ -110,7 +94,7 @@ public class LightOpenGlView extends OpenGlViewBase {
           frameAvailable = false;
           surfaceManager.makeCurrent();
           simpleCameraRender.updateFrame();
-          simpleCameraRender.drawFrame(previewWidth, previewHeight, keepAspectRatio, aspectRatioMode.id,
+          simpleCameraRender.drawFrame(previewWidth, previewHeight, aspectRatioMode,
               0, isPreviewVerticalFlip, isPreviewHorizontalFlip);
           surfaceManager.swapBuffer();
 
@@ -119,13 +103,13 @@ public class LightOpenGlView extends OpenGlViewBase {
               int w = muteVideo ? 0 : encoderWidth;
               int h = muteVideo ? 0 : encoderHeight;
               surfaceManagerEncoder.makeCurrent();
-              simpleCameraRender.drawFrame(w, h, false, aspectRatioMode.id,
+              simpleCameraRender.drawFrame(w, h, aspectRatioMode,
                   streamRotation, isStreamVerticalFlip, isStreamHorizontalFlip);
               surfaceManagerEncoder.swapBuffer();
             }
             if (takePhotoCallback != null && surfaceManagerPhoto.isReady()) {
               surfaceManagerPhoto.makeCurrent();
-              simpleCameraRender.drawFrame(encoderWidth, encoderHeight, false, aspectRatioMode.id,
+              simpleCameraRender.drawFrame(encoderWidth, encoderHeight, aspectRatioMode,
                   streamRotation, isStreamVerticalFlip, isStreamHorizontalFlip);
               takePhotoCallback.onTakePhoto(GlUtil.getBitmap(encoderWidth, encoderHeight));
               takePhotoCallback = null;

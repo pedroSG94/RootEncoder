@@ -39,8 +39,8 @@ public class SrtOnlyAudio extends OnlyAudioBase {
   public SrtOnlyAudio(ConnectChecker connectChecker) {
     super();
     srtClient = new SrtClient(connectChecker);
-    srtClient.setOnlyAudio(true);
     streamClient = new SrtStreamClient(srtClient, null);
+    streamClient.setOnlyAudio(true);
   }
 
   @Override
