@@ -18,6 +18,7 @@ package com.pedro.library.util.streamclient
 
 import com.pedro.rtmp.flv.video.ProfileIop
 import com.pedro.rtsp.rtsp.Protocol
+import com.pedro.srt.srt.packets.control.handshake.EncryptionType
 
 /**
  * Created by pedro on 12/10/23.
@@ -30,6 +31,13 @@ class GenericStreamClient(
 ): StreamBaseClient(streamClientListener) {
 
   private var connectedStreamClient : StreamBaseClient? = null
+
+  /**
+   * Set passphrase for encrypt. Use empty value to disable it.
+   */
+  fun setPassphrase(passphrase: String, type: EncryptionType) {
+    srtClient.setPassphrase(passphrase, type)
+  }
 
   /**
    * Internet protocol used.
