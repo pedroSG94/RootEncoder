@@ -146,17 +146,14 @@ public class GenericCamera1 extends Camera1Base {
       rtmpClient.setVideoResolution(videoEncoder.getWidth(), videoEncoder.getHeight());
     }
     rtmpClient.setFps(videoEncoder.getFps());
-    rtmpClient.setOnlyVideo(!audioInitialized);
     rtmpClient.connect(url);
   }
 
   private void startStreamRtpRtsp(String url) {
-    rtspClient.setOnlyVideo(!audioInitialized);
     rtspClient.connect(url);
   }
 
   private void startStreamRtpSrt(String url) {
-    srtClient.setOnlyVideo(!audioInitialized);
     srtClient.connect(url);
   }
 
