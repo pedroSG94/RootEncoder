@@ -17,6 +17,7 @@
   <string name="opengl_rtmp">OpenGl RTMP</string>
   <string name="opengl_rtsp">OpenGl RTSP</string>
   <string name="opengl_srt">OpenGl SRT</string>
+  <string name="opengl_generic">OpenGl Generic</string>
   <string name="service_rtp">Service RTP</string>
   <string name="cube_test_rtmp">Cube test RTMP</string>
   <string name="rotation_rtmp">Rotation RTMP</string>

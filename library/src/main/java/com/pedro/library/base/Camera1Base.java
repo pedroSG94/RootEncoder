@@ -33,6 +33,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 
+import com.pedro.common.VideoCodec;
 import com.pedro.encoder.EncoderErrorCallback;
 import com.pedro.encoder.audio.AudioEncoder;
 import com.pedro.encoder.audio.GetAacData;
@@ -55,7 +56,6 @@ import com.pedro.library.base.recording.BaseRecordController;
 import com.pedro.library.base.recording.RecordController;
 import com.pedro.library.util.AndroidMuxerRecordController;
 import com.pedro.library.util.FpsListener;
-import com.pedro.library.util.VideoCodec;
 import com.pedro.library.util.streamclient.StreamBaseClient;
 import com.pedro.library.view.GlInterface;
 import com.pedro.library.view.LightOpenGlView;

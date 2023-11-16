@@ -16,6 +16,10 @@
 
 package com.pedro.streamer;
 
+import static android.os.Build.VERSION_CODES.JELLY_BEAN;
+import static android.os.Build.VERSION_CODES.JELLY_BEAN_MR2;
+import static android.os.Build.VERSION_CODES.LOLLIPOP;
+
 import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.Activity;
@@ -25,17 +29,16 @@ import android.content.pm.PackageManager;
 import android.media.projection.MediaProjectionManager;
 import android.os.Build;
 import android.os.Bundle;
-
-import androidx.annotation.Nullable;
-import androidx.annotation.RequiresApi;
-import androidx.core.app.ActivityCompat;
-import androidx.appcompat.app.AppCompatActivity;
-
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.GridView;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import androidx.annotation.Nullable;
+import androidx.annotation.RequiresApi;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
 
 import com.pedro.streamer.backgroundexample.BackgroundActivity;
 import com.pedro.streamer.customexample.RtmpActivity;
@@ -46,6 +49,7 @@ import com.pedro.streamer.defaultexample.ExampleSrtActivity;
 import com.pedro.streamer.displayexample.DisplayActivity;
 import com.pedro.streamer.filestreamexample.RtmpFromFileActivity;
 import com.pedro.streamer.filestreamexample.RtspFromFileActivity;
+import com.pedro.streamer.openglexample.OpenGlGenericActivity;
 import com.pedro.streamer.openglexample.OpenGlRtmpActivity;
 import com.pedro.streamer.openglexample.OpenGlRtspActivity;
 import com.pedro.streamer.openglexample.OpenGlSrtActivity;
@@ -59,10 +63,6 @@ import com.pedro.streamer.utils.ImageAdapter;
 
 import java.util.ArrayList;
 import java.util.List;
-
-import static android.os.Build.VERSION_CODES.JELLY_BEAN;
-import static android.os.Build.VERSION_CODES.JELLY_BEAN_MR2;
-import static android.os.Build.VERSION_CODES.LOLLIPOP;
 
 public class MainActivity extends AppCompatActivity implements AdapterView.OnItemClickListener {
 
@@ -127,22 +127,24 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         getString(R.string.surface_mode_rtmp), LOLLIPOP));
     activities.add(new ActivityLink(new Intent(this, SurfaceModeRtspActivity.class),
         getString(R.string.surface_mode_rtsp), LOLLIPOP));
-    activities.add(new ActivityLink(new Intent(this, TextureModeRtmpActivity.class),
-        getString(R.string.texture_mode_rtmp), LOLLIPOP));
-    activities.add(new ActivityLink(new Intent(this, TextureModeRtspActivity.class),
-        getString(R.string.texture_mode_rtsp), LOLLIPOP));
-    activities.add(new ActivityLink(new Intent(this, OpenGlRtmpActivity.class),
-        getString(R.string.opengl_rtmp), JELLY_BEAN_MR2));
-    activities.add(new ActivityLink(new Intent(this, OpenGlRtspActivity.class),
-        getString(R.string.opengl_rtsp), JELLY_BEAN_MR2));
-    activities.add(new ActivityLink(new Intent(this, OpenGlSrtActivity.class),
-            getString(R.string.opengl_srt), JELLY_BEAN_MR2));
-    activities.add(new ActivityLink(new Intent(this, DisplayActivity.class),
-        getString(R.string.display_rtmp), LOLLIPOP));
-    activities.add(new ActivityLink(new Intent(this, BackgroundActivity.class),
-        getString(R.string.service_rtp), LOLLIPOP));
-    activities.add(new ActivityLink(new Intent(this, RotationExampleActivity.class),
-        getString(R.string.rotation_rtmp), LOLLIPOP));
+      activities.add(new ActivityLink(new Intent(this, TextureModeRtmpActivity.class),
+              getString(R.string.texture_mode_rtmp), LOLLIPOP));
+      activities.add(new ActivityLink(new Intent(this, TextureModeRtspActivity.class),
+              getString(R.string.texture_mode_rtsp), LOLLIPOP));
+      activities.add(new ActivityLink(new Intent(this, OpenGlRtmpActivity.class),
+              getString(R.string.opengl_rtmp), JELLY_BEAN_MR2));
+      activities.add(new ActivityLink(new Intent(this, OpenGlRtspActivity.class),
+              getString(R.string.opengl_rtsp), JELLY_BEAN_MR2));
+      activities.add(new ActivityLink(new Intent(this, OpenGlSrtActivity.class),
+              getString(R.string.opengl_srt), JELLY_BEAN_MR2));
+      activities.add(new ActivityLink(new Intent(this, OpenGlGenericActivity.class),
+              getString(R.string.opengl_generic), JELLY_BEAN_MR2));
+      activities.add(new ActivityLink(new Intent(this, DisplayActivity.class),
+              getString(R.string.display_rtmp), LOLLIPOP));
+      activities.add(new ActivityLink(new Intent(this, BackgroundActivity.class),
+              getString(R.string.service_rtp), LOLLIPOP));
+      activities.add(new ActivityLink(new Intent(this, RotationExampleActivity.class),
+              getString(R.string.rotation_rtmp), LOLLIPOP));
   }
 
   private void setListAdapter(List<ActivityLink> activities) {

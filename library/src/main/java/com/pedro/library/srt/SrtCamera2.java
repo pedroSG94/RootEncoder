@@ -25,8 +25,8 @@ import android.view.TextureView;
 import androidx.annotation.RequiresApi;
 
 import com.pedro.common.ConnectChecker;
+import com.pedro.common.VideoCodec;
 import com.pedro.library.base.Camera2Base;
-import com.pedro.library.util.VideoCodec;
 import com.pedro.library.util.streamclient.SrtStreamClient;
 import com.pedro.library.util.streamclient.StreamClientListener;
 import com.pedro.library.view.LightOpenGlView;
@@ -97,7 +97,7 @@ public class SrtCamera2 extends Camera2Base {
 
   @Override
   protected void setVideoCodecImp(VideoCodec codec) {
-    srtClient.setVideoCodec(codec == VideoCodec.H264 ? com.pedro.srt.srt.VideoCodec.H264 : com.pedro.srt.srt.VideoCodec.H265);
+      srtClient.setVideoCodec(codec);
   }
 
   @Override

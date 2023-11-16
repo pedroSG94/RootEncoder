@@ -1,6 +1,7 @@
 package com.pedro.rtmp.rtmp
 
 import android.util.Log
+import com.pedro.common.VideoCodec
 import com.pedro.rtmp.amf.v0.AmfData
 import com.pedro.rtmp.amf.v0.AmfEcmaArray
 import com.pedro.rtmp.amf.v0.AmfNull

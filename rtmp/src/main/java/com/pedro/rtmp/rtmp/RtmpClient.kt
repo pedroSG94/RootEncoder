@@ -20,6 +20,7 @@ import android.media.MediaCodec
 import android.util.Log
 import com.pedro.common.ConnectChecker
 import com.pedro.common.TimeUtils
+import com.pedro.common.VideoCodec
 import com.pedro.common.onMainThread
 import com.pedro.rtmp.amf.AmfVersion
 import com.pedro.rtmp.flv.video.ProfileIop
@@ -51,7 +52,11 @@ import java.util.regex.Pattern
 class RtmpClient(private val connectChecker: ConnectChecker) {
 
   private val TAG = "RtmpClient"
-  private val rtmpUrlPattern = Pattern.compile("^rtmpt?s?://([^/:]+)(?::(\\d+))*/([^/]+)/?([^*]*)$")
+
+  companion object {
+    @JvmStatic
+    val urlPattern: Pattern = Pattern.compile("^rtmpt?s?://([^/:]+)(?::(\\d+))*/([^/]+)/?([^*]*)$")
+  }
 
   private var socket: RtmpSocket? = null
   private var scope = CoroutineScope(Dispatchers.IO)
@@ -172,8 +177,11 @@ class RtmpClient(private val connectChecker: ConnectChecker) {
     commandsManager.fps = fps
   }
 
-  @JvmOverloads
-  fun connect(url: String?, isRetry: Boolean = false) {
+  fun connect(url: String?) {
+    connect(url, false)
+  }
+
+  fun connect(url: String?, isRetry: Boolean) {
     if (!isRetry) doingRetry = true
     if (!isStreaming || isRetry) {
       isStreaming = true
@@ -183,7 +191,8 @@ class RtmpClient(private val connectChecker: ConnectChecker) {
           isStreaming = false
           onMainThread {
             connectChecker.onConnectionFailed(
-              "Endpoint malformed, should be: rtmp://ip:port/appname/streamname")
+              "Endpoint malformed, should be: rtmp://ip:port/appname/streamname"
+            )
           }
           return@launch
         }
@@ -191,7 +200,7 @@ class RtmpClient(private val connectChecker: ConnectChecker) {
         onMainThread {
           connectChecker.onConnectionStarted(url)
         }
-        val rtmpMatcher = rtmpUrlPattern.matcher(url)
+        val rtmpMatcher = urlPattern.matcher(url)
         if (rtmpMatcher.matches()) {
           val schema = rtmpMatcher.group(0) ?: ""
           tunneled = schema.startsWith("rtmpt")
@@ -480,7 +489,7 @@ class RtmpClient(private val connectChecker: ConnectChecker) {
     }
   }
 
-  private fun closeConnection() {
+  fun closeConnection() {
     socket?.close()
     commandsManager.reset()
   }

@@ -19,6 +19,7 @@ package com.pedro.srt.srt
 import android.media.MediaCodec
 import android.util.Log
 import com.pedro.common.ConnectChecker
+import com.pedro.common.VideoCodec
 import com.pedro.common.onMainThread
 import com.pedro.srt.mpeg2ts.Codec
 import com.pedro.srt.srt.packets.ControlPacket
@@ -57,7 +58,11 @@ import java.util.regex.Pattern
 class SrtClient(private val connectChecker: ConnectChecker) {
 
   private val TAG = "SrtClient"
-  private val srtUrlPattern = Pattern.compile("^srt://([^/:]+)(?::(\\d+))*/([^/]+)/?([^*]*)$")
+
+  companion object {
+    @JvmStatic
+    val urlPattern: Pattern = Pattern.compile("^srt://([^/:]+)(?::(\\d+))*/([^/]+)/?([^*]*)$")
+  }
 
   private val commandsManager = CommandsManager()
   private val srtSender = SrtSender(connectChecker, commandsManager)
@@ -149,7 +154,7 @@ class SrtClient(private val connectChecker: ConnectChecker) {
         onMainThread {
           connectChecker.onConnectionStarted(url)
         }
-        val srtMatcher = srtUrlPattern.matcher(url)
+        val srtMatcher = urlPattern.matcher(url)
         if (!srtMatcher.matches()) {
           isStreaming = false
           onMainThread {
@@ -243,8 +248,11 @@ class SrtClient(private val connectChecker: ConnectChecker) {
     scope = CoroutineScope(Dispatchers.IO)
   }
 
-  @JvmOverloads
-  fun reConnect(delay: Long, backupUrl: String? = null) {
+  fun reConnect(delay: Long) {
+    reConnect(delay, null)
+  }
+
+  fun reConnect(delay: Long, backupUrl: String?) {
     jobRetry = scopeRetry.launch {
       reTries--
       disconnect(false)
@@ -358,9 +366,13 @@ class SrtClient(private val connectChecker: ConnectChecker) {
     }
   }
 
-  @JvmOverloads
   @Throws(IllegalArgumentException::class)
-  fun hasCongestion(percentUsed: Float = 20f): Boolean {
+  fun hasCongestion(): Boolean {
+    return hasCongestion(20f)
+  }
+
+  @Throws(IllegalArgumentException::class)
+  fun hasCongestion(percentUsed: Float): Boolean {
     return srtSender.hasCongestion(percentUsed)
   }
 

@@ -20,6 +20,7 @@ import android.media.MediaCodec
 import android.util.Log
 import com.pedro.common.ConnectChecker
 import com.pedro.common.TLSSocketFactory
+import com.pedro.common.VideoCodec
 import com.pedro.common.onMainThread
 import com.pedro.rtsp.rtsp.commands.CommandsManager
 import com.pedro.rtsp.rtsp.commands.Method
@@ -49,7 +50,11 @@ import java.util.regex.Pattern
 class RtspClient(private val connectChecker: ConnectChecker) {
 
   private val TAG = "RtspClient"
-  private val rtspUrlPattern = Pattern.compile("^rtsps?://([^/:]+)(?::(\\d+))*/([^/]+)/?([^*]*)$")
+
+  companion object {
+    @JvmStatic
+    val urlPattern: Pattern = Pattern.compile("^rtsps?://([^/:]+)(?::(\\d+))*/([^/]+)/?([^*]*)$")
+  }
 
   //sockets objects
   private var connectionSocket: Socket? = null
@@ -147,12 +152,15 @@ class RtspClient(private val connectChecker: ConnectChecker) {
     commandsManager.setAudioInfo(sampleRate, isStereo)
   }
 
-  fun setVideoCodec(codec: VideoCodec) {
-    commandsManager.setCodec(codec)
+  fun setVideoCodec(videoCodec: VideoCodec) {
+    commandsManager.setCodec(videoCodec)
   }
 
-  @JvmOverloads
-  fun connect(url: String?, isRetry: Boolean = false) {
+  fun connect(url: String?) {
+    connect(url, false)
+  }
+
+  fun connect(url: String?, isRetry: Boolean) {
     if (!isRetry) doingRetry = true
     if (!isStreaming || isRetry) {
       isStreaming = true
@@ -169,7 +177,7 @@ class RtspClient(private val connectChecker: ConnectChecker) {
         onMainThread {
           connectChecker.onConnectionStarted(url)
         }
-        val rtspMatcher = rtspUrlPattern.matcher(url)
+        val rtspMatcher = urlPattern.matcher(url)
         if (rtspMatcher.matches()) {
           tlsEnabled = (rtspMatcher.group(0) ?: "").startsWith("rtsps")
         } else {

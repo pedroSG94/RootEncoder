@@ -23,10 +23,10 @@ import android.os.Build;
 import androidx.annotation.RequiresApi;
 
 import com.pedro.common.ConnectChecker;
+import com.pedro.common.VideoCodec;
 import com.pedro.encoder.input.decoder.AudioDecoderInterface;
 import com.pedro.encoder.input.decoder.VideoDecoderInterface;
 import com.pedro.library.base.FromFileBase;
-import com.pedro.library.util.VideoCodec;
 import com.pedro.library.util.streamclient.SrtStreamClient;
 import com.pedro.library.util.streamclient.StreamClientListener;
 import com.pedro.library.view.LightOpenGlView;
@@ -78,7 +78,7 @@ public class SrtFromFile extends FromFileBase {
 
   @Override
   protected void setVideoCodecImp(VideoCodec codec) {
-    srtClient.setVideoCodec(codec == VideoCodec.H264 ? com.pedro.srt.srt.VideoCodec.H264 : com.pedro.srt.srt.VideoCodec.H265);
+    srtClient.setVideoCodec(codec);
   }
 
   @Override

@@ -20,6 +20,7 @@ import android.media.MediaCodec
 import android.util.Log
 import com.pedro.common.BitrateManager
 import com.pedro.common.ConnectChecker
+import com.pedro.common.VideoCodec
 import com.pedro.common.onMainThread
 import com.pedro.common.trySend
 import com.pedro.rtmp.flv.FlvPacket

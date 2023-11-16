@@ -31,8 +31,8 @@ abstract class StreamBaseClient(
    * @param password auth.
    */
   abstract fun setAuthorization(user: String?, password: String?)
-  protected abstract fun shouldRetry(reason: String): Boolean
-  protected abstract fun reConnect(delay: Long, backupUrl: String?)
+  abstract fun shouldRetry(reason: String): Boolean
+  abstract fun reConnect(delay: Long, backupUrl: String?)
   abstract fun setReTries(reTries: Int)
   fun hasCongestion(): Boolean = hasCongestion(20f)
   abstract fun hasCongestion(percentUsed: Float): Boolean

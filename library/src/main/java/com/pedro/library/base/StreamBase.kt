@@ -13,6 +13,7 @@ import android.view.Surface
 import android.view.SurfaceView
 import android.view.TextureView
 import androidx.annotation.RequiresApi
+import com.pedro.common.VideoCodec
 import com.pedro.encoder.EncoderErrorCallback
 import com.pedro.encoder.Frame
 import com.pedro.encoder.audio.AudioEncoder
@@ -26,7 +27,6 @@ import com.pedro.encoder.video.VideoEncoder
 import com.pedro.library.base.recording.BaseRecordController
 import com.pedro.library.base.recording.RecordController
 import com.pedro.library.util.AndroidMuxerRecordController
-import com.pedro.library.util.VideoCodec
 import com.pedro.library.util.sources.AudioManager
 import com.pedro.library.util.sources.VideoManager
 import com.pedro.library.util.streamclient.StreamBaseClient

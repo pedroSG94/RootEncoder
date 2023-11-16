@@ -26,8 +26,8 @@ import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 
 import com.pedro.common.ConnectChecker;
+import com.pedro.common.VideoCodec;
 import com.pedro.library.base.Camera1Base;
-import com.pedro.library.util.VideoCodec;
 import com.pedro.library.util.streamclient.StreamBaseClient;
 import com.pedro.library.view.LightOpenGlView;
 import com.pedro.library.view.OpenGlView;
@@ -452,10 +452,10 @@ public class MultiRtpCamera1 extends Camera1Base {
   @Override
   protected void setVideoCodecImp(VideoCodec codec) {
     for (RtmpClient rtmpClient: rtmpClients) {
-      rtmpClient.setVideoCodec(codec == VideoCodec.H264 ? com.pedro.rtmp.rtmp.VideoCodec.H264 : com.pedro.rtmp.rtmp.VideoCodec.H265);
+        rtmpClient.setVideoCodec(codec);
     }
     for (RtspClient rtspClient: rtspClients) {
-      rtspClient.setVideoCodec(codec == VideoCodec.H264 ? com.pedro.rtsp.rtsp.VideoCodec.H264 : com.pedro.rtsp.rtsp.VideoCodec.H265);
+        rtspClient.setVideoCodec(codec);
     }
   }
 
