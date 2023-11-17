@@ -86,17 +86,17 @@ class GenericStream(
 
   override fun rtpStartStream(endPoint: String) {
     streamClient.connecting(endPoint)
-    if (endPoint.lowercase(Locale.getDefault()).startsWith("rtmp")) {
+    if (endPoint.startsWith("rtmp", ignoreCase = true)) {
       connectedType = ClientType.RTMP
       startStreamRtpRtmp(endPoint)
-    } else if (endPoint.lowercase(Locale.getDefault()).startsWith("rtsp")) {
+    } else if (endPoint.startsWith("rtsp", ignoreCase = true)) {
       connectedType = ClientType.RTSP
       startStreamRtpRtsp(endPoint)
-    } else if (endPoint.lowercase(Locale.getDefault()).startsWith("srt")) {
+    } else if (endPoint.startsWith("srt", ignoreCase = true)) {
       connectedType = ClientType.SRT
       startStreamRtpSrt(endPoint)
     } else {
-      connectChecker.onConnectionFailed("unsupported protocol, only support rtmp, rtsp and srt")
+      connectChecker.onConnectionFailed("unsupported protocol. Only support rtmp, rtsp and srt")
     }
   }
 

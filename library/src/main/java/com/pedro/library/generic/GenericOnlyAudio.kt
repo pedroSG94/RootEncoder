@@ -66,17 +66,17 @@ class GenericOnlyAudio(private val connectChecker: ConnectChecker): OnlyAudioBas
 
   override fun startStreamRtp(url: String) {
     streamClient.connecting(url)
-    if (url.lowercase(Locale.getDefault()).startsWith("rtmp")) {
+    if (url.startsWith("rtmp", ignoreCase = true)) {
       connectedType = ClientType.RTMP
       startStreamRtpRtmp(url)
-    } else if (url.lowercase(Locale.getDefault()).startsWith("rtsp")) {
+    } else if (url.startsWith("rtsp", ignoreCase = true)) {
       connectedType = ClientType.RTSP
       startStreamRtpRtsp(url)
-    } else if (url.lowercase(Locale.getDefault()).startsWith("srt")) {
+    } else if (url.startsWith("srt", ignoreCase = true)) {
       connectedType = ClientType.SRT
       startStreamRtpSrt(url)
     } else {
-      connectChecker.onConnectionFailed("unsupported protocol, only support rtmp, rtsp and srt")
+      connectChecker.onConnectionFailed("unsupported protocol. Only support rtmp, rtsp and srt")
     }
   }
 

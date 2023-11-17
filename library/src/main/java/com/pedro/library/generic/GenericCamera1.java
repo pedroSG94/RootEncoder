@@ -134,7 +134,7 @@ public class GenericCamera1 extends Camera1Base {
       connectedType = ClientType.SRT;
       startStreamRtpSrt(url);
     } else {
-      connectChecker.onConnectionFailed("unsupported protocol, only support rtmp, rtsp and srt");
+      connectChecker.onConnectionFailed("unsupported protocol. Only support rtmp, rtsp and srt");
     }
   }
 
