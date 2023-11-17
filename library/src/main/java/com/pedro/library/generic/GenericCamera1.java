@@ -59,14 +59,7 @@ public class GenericCamera1 extends Camera1Base {
   @Deprecated
   public GenericCamera1(SurfaceView surfaceView, ConnectChecker connectChecker) {
     super(surfaceView);
-    rtmpClient = new RtmpClient(connectChecker);
-    rtspClient = new RtspClient(connectChecker);
-    srtClient = new SrtClient(connectChecker);
-    streamClient = new GenericStreamClient(
-            new RtmpStreamClient(rtmpClient, streamClientListener),
-            new RtspStreamClient(rtspClient, streamClientListener),
-            new SrtStreamClient(srtClient, streamClientListener),
-            streamClientListener);
+    init(connectChecker);
   }
 
   @Deprecated
