@@ -35,15 +35,12 @@ import com.pedro.rtmp.rtmp.RtmpClient
 import com.pedro.rtsp.rtsp.RtspClient
 import com.pedro.srt.srt.SrtClient
 import java.nio.ByteBuffer
-import java.util.Locale
 
 /**
- * Created by Ernovation on 9/11/21.
- *
  *
  * Experiment class.
  */
-@RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
+@RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
 class GenericFromFile: FromFileBase {
 
   private val streamClientListener = object: StreamClientListener {
@@ -52,42 +49,50 @@ class GenericFromFile: FromFileBase {
     }
   }
   private lateinit var connectChecker: ConnectChecker
-  private val rtmpClient = RtmpClient(connectChecker)
-  private val rtspClient = RtspClient(connectChecker)
-  private val srtClient = SrtClient(connectChecker)
-  private val streamClient = GenericStreamClient(
-    RtmpStreamClient(rtmpClient, streamClientListener),
-    RtspStreamClient(rtspClient, streamClientListener),
-    SrtStreamClient(srtClient, streamClientListener)
-  )
+  private lateinit var rtmpClient: RtmpClient
+  private lateinit var rtspClient: RtspClient
+  private lateinit var srtClient: SrtClient
+  private lateinit var streamClient: GenericStreamClient
   private var connectedType = ClientType.NONE
 
   constructor(
     openGlView: OpenGlView, connectChecker: ConnectChecker,
     videoDecoderInterface: VideoDecoderInterface, audioDecoderInterface: AudioDecoderInterface
   ) : super(openGlView, videoDecoderInterface, audioDecoderInterface) {
-    this.connectChecker = connectChecker
+    init(connectChecker)
   }
 
   constructor(
     lightOpenGlView: LightOpenGlView, connectChecker: ConnectChecker,
     videoDecoderInterface: VideoDecoderInterface?, audioDecoderInterface: AudioDecoderInterface
   ) : super(lightOpenGlView, videoDecoderInterface, audioDecoderInterface) {
-    this.connectChecker = connectChecker
+    init(connectChecker)
   }
 
   constructor(
     context: Context, connectChecker: ConnectChecker,
     videoDecoderInterface: VideoDecoderInterface, audioDecoderInterface: AudioDecoderInterface
   ) : super(context, videoDecoderInterface, audioDecoderInterface) {
-    this.connectChecker = connectChecker
+    init(connectChecker)
   }
 
   constructor(
     connectChecker: ConnectChecker,
     videoDecoderInterface: VideoDecoderInterface, audioDecoderInterface: AudioDecoderInterface
   ) : super(videoDecoderInterface, audioDecoderInterface) {
+    init(connectChecker)
+  }
+
+  private fun init(connectChecker: ConnectChecker) {
     this.connectChecker = connectChecker
+    rtmpClient = RtmpClient(connectChecker)
+    rtspClient = RtspClient(connectChecker)
+    srtClient = SrtClient(connectChecker)
+    streamClient = GenericStreamClient(
+      RtmpStreamClient(rtmpClient, streamClientListener),
+      RtspStreamClient(rtspClient, streamClientListener),
+      SrtStreamClient(srtClient, streamClientListener)
+    )
   }
 
   override fun getStreamClient(): GenericStreamClient = streamClient
