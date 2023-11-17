@@ -98,8 +98,8 @@ public class GenericCamera1 extends Camera1Base {
     streamClient = new GenericStreamClient(
         new RtmpStreamClient(rtmpClient, streamClientListener),
         new RtspStreamClient(rtspClient, streamClientListener),
-        new SrtStreamClient(srtClient, streamClientListener),
-        streamClientListener);
+        new SrtStreamClient(srtClient, streamClientListener)
+    );
   }
 
   @Override

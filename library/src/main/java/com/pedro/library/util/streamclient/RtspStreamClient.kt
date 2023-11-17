@@ -24,8 +24,8 @@ import com.pedro.rtsp.rtsp.RtspClient
  */
 class RtspStreamClient(
   private val rtspClient: RtspClient,
-  streamClientListener: StreamClientListener?
-): StreamBaseClient(streamClientListener) {
+  private val streamClientListener: StreamClientListener?
+): StreamBaseClient() {
 
 
   /**
@@ -45,10 +45,13 @@ class RtspStreamClient(
     rtspClient.setReTries(reTries)
   }
 
-  override fun shouldRetry(reason: String): Boolean = rtspClient.shouldRetry(reason)
-
-  override fun reConnect(delay: Long, backupUrl: String?) {
-    rtspClient.reConnect(delay, backupUrl)
+  override fun reTry(delay: Long, reason: String, backupUrl: String?): Boolean {
+    val result = rtspClient.shouldRetry(reason)
+    if (result) {
+      streamClientListener?.onRequestKeyframe()
+      rtspClient.reConnect(delay, backupUrl)
+    }
+    return result
   }
 
   override fun hasCongestion(percentUsed: Float): Boolean = rtspClient.hasCongestion(percentUsed)

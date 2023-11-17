@@ -40,17 +40,13 @@ import java.util.Locale
 @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
 class GenericOnlyAudio(private val connectChecker: ConnectChecker): OnlyAudioBase() {
 
-  private val streamClientListener = object: StreamClientListener {
-    override fun onRequestKeyframe() {}
-  }
   private val rtmpClient = RtmpClient(connectChecker)
   private val rtspClient = RtspClient(connectChecker)
   private val srtClient = SrtClient(connectChecker)
   private val streamClient = GenericStreamClient(
-    RtmpStreamClient(rtmpClient, streamClientListener),
-    RtspStreamClient(rtspClient, streamClientListener),
-    SrtStreamClient(srtClient, streamClientListener),
-    streamClientListener
+    RtmpStreamClient(rtmpClient, null),
+    RtspStreamClient(rtspClient, null),
+    SrtStreamClient(srtClient, null)
   ).apply {
     setOnlyAudio(true)
   }

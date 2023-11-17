@@ -24,8 +24,8 @@ import com.pedro.rtmp.rtmp.RtmpClient
  */
 class RtmpStreamClient(
   private val rtmpClient: RtmpClient, 
-  streamClientListener: StreamClientListener?
-): StreamBaseClient(streamClientListener) {
+  private val streamClientListener: StreamClientListener?
+): StreamBaseClient() {
 
   /**
    * H264 profile.
@@ -61,18 +61,21 @@ class RtmpStreamClient(
     rtmpClient.setWriteChunkSize(chunkSize)
   }
 
+  override fun reTry(delay: Long, reason: String, backupUrl: String?): Boolean {
+    val result = rtmpClient.shouldRetry(reason)
+    if (result) {
+      streamClientListener?.onRequestKeyframe()
+      rtmpClient.reConnect(delay, backupUrl)
+    }
+    return result
+  }
+
   override fun setAuthorization(user: String?, password: String?) {
     rtmpClient.setAuthorization(user, password)
   }
 
   override fun setReTries(reTries: Int) {
     rtmpClient.setReTries(reTries)
-  }
-
-  override fun shouldRetry(reason: String): Boolean = rtmpClient.shouldRetry(reason)
-
-  override fun reConnect(delay: Long, backupUrl: String?) {
-    rtmpClient.reConnect(delay, backupUrl)
   }
 
   override fun hasCongestion(percentUsed: Float): Boolean = rtmpClient.hasCongestion(percentUsed)

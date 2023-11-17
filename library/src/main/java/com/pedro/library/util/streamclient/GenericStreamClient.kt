@@ -27,8 +27,7 @@ class GenericStreamClient(
   private val rtmpClient: RtmpStreamClient,
   private val rtspClient: RtspStreamClient,
   private val srtClient: SrtStreamClient,
-  streamClientListener: StreamClientListener?
-): StreamBaseClient(streamClientListener) {
+): StreamBaseClient() {
 
   private var connectedStreamClient : StreamBaseClient? = null
 
@@ -94,10 +93,8 @@ class GenericStreamClient(
     srtClient.setReTries(reTries)
   }
 
-  override fun shouldRetry(reason: String): Boolean = connectedStreamClient?.shouldRetry(reason) ?: false
-
-  override fun reConnect(delay: Long, backupUrl: String?) {
-    connectedStreamClient?.reConnect(delay, backupUrl)
+  override fun reTry(delay: Long, reason: String, backupUrl: String?): Boolean {
+    return connectedStreamClient?.reTry(delay, reason, backupUrl) ?: false
   }
 
   override fun hasCongestion(percentUsed: Float): Boolean = connectedStreamClient?.hasCongestion(percentUsed) ?: false

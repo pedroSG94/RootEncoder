@@ -24,8 +24,8 @@ import com.pedro.srt.srt.packets.control.handshake.EncryptionType
  */
 class SrtStreamClient(
   private val srtClient: SrtClient,
-  streamClientListener: StreamClientListener?
-): StreamBaseClient(streamClientListener) {
+  private val streamClientListener: StreamClientListener?
+): StreamBaseClient() {
 
   /**
    * Set passphrase for encrypt. Use empty value to disable it.
@@ -42,10 +42,13 @@ class SrtStreamClient(
     srtClient.setReTries(reTries)
   }
 
-  override fun shouldRetry(reason: String): Boolean = srtClient.shouldRetry(reason)
-
-  override fun reConnect(delay: Long, backupUrl: String?) {
-    srtClient.reConnect(delay, backupUrl)
+  override fun reTry(delay: Long, reason: String, backupUrl: String?): Boolean {
+    val result = srtClient.shouldRetry(reason)
+    if (result) {
+      streamClientListener?.onRequestKeyframe()
+      srtClient.reConnect(delay, backupUrl)
+    }
+    return result
   }
 
   override fun hasCongestion(percentUsed: Float): Boolean = srtClient.hasCongestion(percentUsed)

@@ -62,8 +62,7 @@ class GenericStream(
   private val streamClient = GenericStreamClient(
     RtmpStreamClient(rtmpClient, streamClientListener),
     RtspStreamClient(rtspClient, streamClientListener),
-    SrtStreamClient(srtClient, streamClientListener),
-    streamClientListener
+    SrtStreamClient(srtClient, streamClientListener)
   )
   private var connectedType = ClientType.NONE
 
