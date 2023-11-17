@@ -48,7 +48,6 @@ import java.nio.ByteBuffer;
 @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
 public class GenericCamera1 extends Camera1Base {
 
-  private final static String TAG = "GenericCamera1";
   private RtmpClient rtmpClient;
   private RtspClient rtspClient;
   private SrtClient srtClient;
