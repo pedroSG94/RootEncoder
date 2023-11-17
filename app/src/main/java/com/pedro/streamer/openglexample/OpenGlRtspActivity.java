@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2021 pedroSG94.
+ * Copyright (C) 2023 pedroSG94.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,6 +33,7 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 
+import com.pedro.common.ConnectChecker;
 import com.pedro.encoder.input.gl.SpriteGestureController;
 import com.pedro.encoder.input.gl.render.filters.AnalogTVFilterRender;
 import com.pedro.encoder.input.gl.render.filters.AndroidViewFilterRender;
@@ -83,7 +84,6 @@ import com.pedro.library.rtsp.RtspCamera1;
 import com.pedro.library.view.OpenGlView;
 import com.pedro.streamer.R;
 import com.pedro.streamer.utils.PathUtils;
-import com.pedro.rtsp.utils.ConnectCheckerRtsp;
 
 import java.io.File;
 import java.io.IOException;
@@ -91,6 +91,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -103,7 +104,7 @@ import org.jetbrains.annotations.NotNull;
  */
 @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
 public class OpenGlRtspActivity extends AppCompatActivity
-    implements ConnectCheckerRtsp, View.OnClickListener, SurfaceHolder.Callback,
+    implements ConnectChecker, View.OnClickListener, SurfaceHolder.Callback,
     View.OnTouchListener {
 
   private RtspCamera1 rtspCamera1;
@@ -354,16 +355,16 @@ public class OpenGlRtspActivity extends AppCompatActivity
   }
 
   @Override
-  public void onConnectionStartedRtsp(@NotNull String rtspUrl) {
+  public void onConnectionStarted(@NotNull String url) {
   }
 
   @Override
-  public void onConnectionSuccessRtsp() {
+  public void onConnectionSuccess() {
     Toast.makeText(OpenGlRtspActivity.this, "Connection success", Toast.LENGTH_SHORT).show();
   }
 
   @Override
-  public void onConnectionFailedRtsp(final String reason) {
+  public void onConnectionFailed(@NonNull final String reason) {
     Toast.makeText(OpenGlRtspActivity.this, "Connection failed. " + reason, Toast.LENGTH_SHORT)
         .show();
     rtspCamera1.stopStream();
@@ -371,22 +372,22 @@ public class OpenGlRtspActivity extends AppCompatActivity
   }
 
   @Override
-  public void onNewBitrateRtsp(long bitrate) {
+  public void onNewBitrate(long bitrate) {
 
   }
 
   @Override
-  public void onDisconnectRtsp() {
+  public void onDisconnect() {
     Toast.makeText(OpenGlRtspActivity.this, "Disconnected", Toast.LENGTH_SHORT).show();
   }
 
   @Override
-  public void onAuthErrorRtsp() {
+  public void onAuthError() {
     Toast.makeText(OpenGlRtspActivity.this, "Auth error", Toast.LENGTH_SHORT).show();
   }
 
   @Override
-  public void onAuthSuccessRtsp() {
+  public void onAuthSuccess() {
     Toast.makeText(OpenGlRtspActivity.this, "Auth success", Toast.LENGTH_SHORT).show();
   }
 

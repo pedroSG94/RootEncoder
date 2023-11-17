@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2021 pedroSG94.
+ * Copyright (C) 2023 pedroSG94.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,14 +23,13 @@ import android.os.Build;
 import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 
+import com.pedro.common.ConnectChecker;
+import com.pedro.common.VideoCodec;
 import com.pedro.library.base.DisplayBase;
-import com.pedro.library.util.VideoCodec;
 import com.pedro.library.util.streamclient.StreamBaseClient;
 import com.pedro.rtmp.flv.video.ProfileIop;
 import com.pedro.rtmp.rtmp.RtmpClient;
-import com.pedro.rtmp.utils.ConnectCheckerRtmp;
 import com.pedro.rtsp.rtsp.RtspClient;
-import com.pedro.rtsp.utils.ConnectCheckerRtsp;
 
 import java.nio.ByteBuffer;
 
@@ -75,8 +74,8 @@ public class MultiRtpDisplay extends DisplayBase {
   private final RtmpClient[] rtmpClients;
   private final RtspClient[] rtspClients;
 
-  public MultiRtpDisplay(Context context, boolean useOpenGL, ConnectCheckerRtmp[] connectCheckerRtmpList,
-      ConnectCheckerRtsp[] connectCheckerRtspList) {
+  public MultiRtpDisplay(Context context, boolean useOpenGL, ConnectChecker[] connectCheckerRtmpList,
+      ConnectChecker[] connectCheckerRtspList) {
     super(context, useOpenGL);
     int rtmpSize = connectCheckerRtmpList != null ? connectCheckerRtmpList.length : 0;
     rtmpClients = new RtmpClient[rtmpSize];
@@ -379,10 +378,10 @@ public class MultiRtpDisplay extends DisplayBase {
   @Override
   protected void setVideoCodecImp(VideoCodec codec) {
     for (RtmpClient rtmpClient: rtmpClients) {
-      rtmpClient.setVideoCodec(codec == VideoCodec.H264 ? com.pedro.rtmp.rtmp.VideoCodec.H264 : com.pedro.rtmp.rtmp.VideoCodec.H265);
+        rtmpClient.setVideoCodec(codec);
     }
     for (RtspClient rtspClient: rtspClients) {
-      rtspClient.setVideoCodec(codec == VideoCodec.H264 ? com.pedro.rtsp.rtsp.VideoCodec.H264 : com.pedro.rtsp.rtsp.VideoCodec.H265);
+        rtspClient.setVideoCodec(codec);
     }
   }
 

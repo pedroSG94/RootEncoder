@@ -17,13 +17,13 @@
 package com.pedro.srt.mpeg2ts.packets
 
 import android.media.MediaCodec
+import com.pedro.common.removeInfo
 import com.pedro.srt.mpeg2ts.MpegTsPacket
 import com.pedro.srt.mpeg2ts.MpegType
 import com.pedro.srt.mpeg2ts.Pes
 import com.pedro.srt.mpeg2ts.PesType
 import com.pedro.srt.mpeg2ts.psi.PsiManager
 import com.pedro.srt.srt.packets.data.PacketPosition
-import com.pedro.srt.utils.removeInfo
 import java.nio.ByteBuffer
 
 /**

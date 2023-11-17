@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2021 pedroSG94.
+ * Copyright (C) 2023 pedroSG94.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,29 +16,8 @@
 
 package com.pedro.rtsp.utils
 
-import android.media.MediaCodec
 import android.util.Base64
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
 import java.nio.ByteBuffer
-import java.util.concurrent.BlockingQueue
-
-fun ByteBuffer.removeInfo(info: MediaCodec.BufferInfo): ByteBuffer {
-  try {
-    position(info.offset)
-    limit(info.size)
-  } catch (ignored: Exception) { }
-  return slice()
-}
-
-inline infix fun <reified T: Any> BlockingQueue<T>.trySend(item: T): Boolean {
-  return try {
-    this.add(item)
-    true
-  } catch (e: IllegalStateException) {
-    false
-  }
-}
 
 fun ByteArray.encodeToString(flags: Int = Base64.NO_WRAP): String {
   return Base64.encodeToString(this, flags)
@@ -72,10 +51,4 @@ fun ByteBuffer.getVideoStartCodeSize(): Int {
     startCodeSize = 3
   }
   return startCodeSize
-}
-
-suspend fun onMainThread(code: () -> Unit) {
-  withContext(Dispatchers.Main) {
-    code()
-  }
 }

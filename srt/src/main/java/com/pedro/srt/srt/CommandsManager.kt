@@ -17,6 +17,7 @@
 package com.pedro.srt.srt
 
 import android.util.Log
+import com.pedro.common.TimeUtils
 import com.pedro.srt.mpeg2ts.MpegTsPacket
 import com.pedro.srt.srt.packets.DataPacket
 import com.pedro.srt.srt.packets.SrtPacket
@@ -30,7 +31,6 @@ import com.pedro.srt.srt.packets.data.KeyBasedEncryption
 import com.pedro.srt.utils.Constants
 import com.pedro.srt.utils.EncryptionUtil
 import com.pedro.srt.utils.SrtSocket
-import com.pedro.srt.utils.TimeUtils
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import java.io.IOException

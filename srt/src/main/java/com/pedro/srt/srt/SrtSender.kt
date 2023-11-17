@@ -18,6 +18,10 @@ package com.pedro.srt.srt
 
 import android.media.MediaCodec
 import android.util.Log
+import com.pedro.common.BitrateManager
+import com.pedro.common.ConnectChecker
+import com.pedro.common.onMainThread
+import com.pedro.common.trySend
 import com.pedro.srt.mpeg2ts.Codec
 import com.pedro.srt.mpeg2ts.MpegTsPacket
 import com.pedro.srt.mpeg2ts.MpegTsPacketizer
@@ -30,11 +34,7 @@ import com.pedro.srt.mpeg2ts.psi.TableToSend
 import com.pedro.srt.mpeg2ts.service.Mpeg2TsService
 import com.pedro.srt.srt.packets.SrtPacket
 import com.pedro.srt.srt.packets.data.PacketPosition
-import com.pedro.srt.utils.BitrateManager
-import com.pedro.srt.utils.ConnectCheckerSrt
 import com.pedro.srt.utils.SrtSocket
-import com.pedro.srt.utils.onMainThread
-import com.pedro.srt.utils.trySend
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -53,7 +53,7 @@ import java.util.concurrent.TimeUnit
  * Created by pedro on 20/8/23.
  */
 class SrtSender(
-  private val connectCheckerSrt: ConnectCheckerSrt,
+  private val connectChecker: ConnectChecker,
   private val commandsManager: CommandsManager
 ) {
 
@@ -93,7 +93,7 @@ class SrtSender(
       field = value
     }
 
-  private val bitrateManager: BitrateManager = BitrateManager(connectCheckerSrt)
+  private val bitrateManager: BitrateManager = BitrateManager(connectChecker)
   private var isEnableLogs = true
 
   companion object {
@@ -178,7 +178,7 @@ class SrtSender(
         }.exceptionOrNull()
         if (error != null) {
           onMainThread {
-            connectCheckerSrt.onConnectionFailedSrt("Error send packet, " + error.message)
+            connectChecker.onConnectionFailed("Error send packet, " + error.message)
           }
           Log.e(TAG, "send error: ", error)
           return@launch

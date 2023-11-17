@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2021 pedroSG94.
+ * Copyright (C) 2023 pedroSG94.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,16 +22,16 @@ import android.os.Build;
 
 import androidx.annotation.RequiresApi;
 
+import com.pedro.common.ConnectChecker;
+import com.pedro.common.VideoCodec;
 import com.pedro.encoder.input.decoder.AudioDecoderInterface;
 import com.pedro.encoder.input.decoder.VideoDecoderInterface;
 import com.pedro.library.base.FromFileBase;
-import com.pedro.library.util.VideoCodec;
 import com.pedro.library.util.streamclient.RtmpStreamClient;
 import com.pedro.library.util.streamclient.StreamClientListener;
 import com.pedro.library.view.LightOpenGlView;
 import com.pedro.library.view.OpenGlView;
 import com.pedro.rtmp.rtmp.RtmpClient;
-import com.pedro.rtmp.utils.ConnectCheckerRtmp;
 
 import java.nio.ByteBuffer;
 
@@ -48,28 +48,28 @@ public class RtmpFromFile extends FromFileBase {
   private final RtmpStreamClient streamClient;
   private final StreamClientListener streamClientListener = this::requestKeyFrame;
 
-  public RtmpFromFile(ConnectCheckerRtmp connectChecker,
-      VideoDecoderInterface videoDecoderInterface, AudioDecoderInterface audioDecoderInterface) {
+  public RtmpFromFile(ConnectChecker connectChecker,
+                      VideoDecoderInterface videoDecoderInterface, AudioDecoderInterface audioDecoderInterface) {
     super(videoDecoderInterface, audioDecoderInterface);
     rtmpClient = new RtmpClient(connectChecker);
     streamClient = new RtmpStreamClient(rtmpClient, streamClientListener);
   }
 
-  public RtmpFromFile(Context context, ConnectCheckerRtmp connectChecker,
+  public RtmpFromFile(Context context, ConnectChecker connectChecker,
       VideoDecoderInterface videoDecoderInterface, AudioDecoderInterface audioDecoderInterface) {
     super(context, videoDecoderInterface, audioDecoderInterface);
     rtmpClient = new RtmpClient(connectChecker);
     streamClient = new RtmpStreamClient(rtmpClient, streamClientListener);
   }
 
-  public RtmpFromFile(OpenGlView openGlView, ConnectCheckerRtmp connectChecker,
+  public RtmpFromFile(OpenGlView openGlView, ConnectChecker connectChecker,
       VideoDecoderInterface videoDecoderInterface, AudioDecoderInterface audioDecoderInterface) {
     super(openGlView, videoDecoderInterface, audioDecoderInterface);
     rtmpClient = new RtmpClient(connectChecker);
     streamClient = new RtmpStreamClient(rtmpClient, streamClientListener);
   }
 
-  public RtmpFromFile(LightOpenGlView lightOpenGlView, ConnectCheckerRtmp connectChecker,
+  public RtmpFromFile(LightOpenGlView lightOpenGlView, ConnectChecker connectChecker,
       VideoDecoderInterface videoDecoderInterface, AudioDecoderInterface audioDecoderInterface) {
     super(lightOpenGlView, videoDecoderInterface, audioDecoderInterface);
     rtmpClient = new RtmpClient(connectChecker);
@@ -83,7 +83,7 @@ public class RtmpFromFile extends FromFileBase {
 
   @Override
   protected void setVideoCodecImp(VideoCodec codec) {
-    rtmpClient.setVideoCodec(codec == VideoCodec.H264 ? com.pedro.rtmp.rtmp.VideoCodec.H264 : com.pedro.rtmp.rtmp.VideoCodec.H265);
+      rtmpClient.setVideoCodec(codec);
   }
 
   @Override

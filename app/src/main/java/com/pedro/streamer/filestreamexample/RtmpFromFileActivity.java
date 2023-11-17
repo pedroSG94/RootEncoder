@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2021 pedroSG94.
+ * Copyright (C) 2023 pedroSG94.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,6 +22,8 @@ import android.graphics.PorterDuff;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+
+import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -33,9 +35,10 @@ import android.widget.EditText;
 import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import com.pedro.common.ConnectChecker;
 import com.pedro.encoder.input.decoder.AudioDecoderInterface;
 import com.pedro.encoder.input.decoder.VideoDecoderInterface;
-import com.pedro.rtmp.utils.ConnectCheckerRtmp;
 import com.pedro.library.rtmp.RtmpFromFile;
 import com.pedro.streamer.R;
 import com.pedro.streamer.utils.PathUtils;
@@ -52,7 +55,7 @@ import java.util.Locale;
  */
 @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
 public class RtmpFromFileActivity extends AppCompatActivity
-    implements ConnectCheckerRtmp, View.OnClickListener, VideoDecoderInterface,
+    implements ConnectChecker, View.OnClickListener, VideoDecoderInterface,
     AudioDecoderInterface, SeekBar.OnSeekBarChangeListener {
 
   private RtmpFromFile rtmpFromFile;
@@ -104,16 +107,16 @@ public class RtmpFromFileActivity extends AppCompatActivity
   }
 
   @Override
-  public void onConnectionStartedRtmp(String rtmpUrl) {
+  public void onConnectionStarted(@NonNull String url) {
   }
 
   @Override
-  public void onConnectionSuccessRtmp() {
+  public void onConnectionSuccess() {
     Toast.makeText(RtmpFromFileActivity.this, "Connection success", Toast.LENGTH_SHORT).show();
   }
 
   @Override
-  public void onConnectionFailedRtmp(final String reason) {
+  public void onConnectionFailed(@NonNull final String reason) {
     Toast.makeText(RtmpFromFileActivity.this, "Connection failed. " + reason,
         Toast.LENGTH_SHORT).show();
     rtmpFromFile.stopStream();
@@ -121,22 +124,22 @@ public class RtmpFromFileActivity extends AppCompatActivity
   }
 
   @Override
-  public void onNewBitrateRtmp(long bitrate) {
+  public void onNewBitrate(long bitrate) {
 
   }
 
   @Override
-  public void onDisconnectRtmp() {
+  public void onDisconnect() {
     Toast.makeText(RtmpFromFileActivity.this, "Disconnected", Toast.LENGTH_SHORT).show();
   }
 
   @Override
-  public void onAuthErrorRtmp() {
+  public void onAuthError() {
     Toast.makeText(RtmpFromFileActivity.this, "Auth error", Toast.LENGTH_SHORT).show();
   }
 
   @Override
-  public void onAuthSuccessRtmp() {
+  public void onAuthSuccess() {
     Toast.makeText(RtmpFromFileActivity.this, "Auth success", Toast.LENGTH_SHORT).show();
   }
 

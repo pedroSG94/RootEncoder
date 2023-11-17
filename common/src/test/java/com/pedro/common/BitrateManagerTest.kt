@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2021 pedroSG94.
+ * Copyright (C) 2023 pedroSG94.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-package com.pedro.rtmp.utils
+package com.pedro.common
 
-import com.pedro.rtmp.MainDispatcherRule
-import com.pedro.rtmp.Utils
+import com.pedro.common.util.MainDispatcherRule
+import com.pedro.common.util.Utils
 import kotlinx.coroutines.test.runTest
 import org.junit.After
 import org.junit.Assert.assertTrue
@@ -42,7 +42,7 @@ class BitrateManagerTest {
   @get:Rule
   val mainDispatcherRule = MainDispatcherRule()
   @Mock
-  private lateinit var connectCheckerRtmp: ConnectCheckerRtmp
+  private lateinit var connectChecker: ConnectChecker
   private val timeUtilsMocked = Mockito.mockStatic(TimeUtils::class.java)
   private var fakeTime = 7502849023L
 
@@ -59,7 +59,7 @@ class BitrateManagerTest {
   @Test
   fun `WHEN set multiple values THEN return total of values each second`() = runTest {
     Utils.useStatics(listOf(timeUtilsMocked)) {
-      val bitrateManager = BitrateManager(connectCheckerRtmp)
+      val bitrateManager = BitrateManager(connectChecker)
       val fakeValues = arrayOf(100L, 200L, 300L, 400L, 500L)
       var expectedResult = 0L
       fakeValues.forEach {
@@ -71,7 +71,7 @@ class BitrateManagerTest {
       bitrateManager.calculateBitrate(value)
       expectedResult += value
       val resultValue = argumentCaptor<Long>()
-      verify(connectCheckerRtmp, times(1)).onNewBitrateRtmp(resultValue.capture())
+      verify(connectChecker, times(1)).onNewBitrate(resultValue.capture())
       val marginError = 20
       assertTrue(expectedResult - marginError <= resultValue.firstValue && resultValue.firstValue <= expectedResult + marginError)
     }

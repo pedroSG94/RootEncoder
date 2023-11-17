@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2021 pedroSG94.
+ * Copyright (C) 2023 pedroSG94.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,15 +18,15 @@ package com.pedro.rtsp.rtsp.commands
 
 import android.util.Base64
 import android.util.Log
+import com.pedro.common.TimeUtils
+import com.pedro.common.VideoCodec
 import com.pedro.rtsp.BuildConfig
 import com.pedro.rtsp.rtsp.Protocol
-import com.pedro.rtsp.rtsp.VideoCodec
 import com.pedro.rtsp.rtsp.commands.SdpBody.createAacBody
 import com.pedro.rtsp.rtsp.commands.SdpBody.createH264Body
 import com.pedro.rtsp.rtsp.commands.SdpBody.createH265Body
 import com.pedro.rtsp.utils.AuthUtil.getMd5Hash
 import com.pedro.rtsp.utils.RtpConstants
-import com.pedro.rtsp.utils.TimeUtils
 import com.pedro.rtsp.utils.encodeToString
 import com.pedro.rtsp.utils.getData
 import java.io.BufferedReader

@@ -105,23 +105,23 @@
     <activity
         android:name="com.pedro.streamer.openglexample.OpenGlRtspActivity"
         android:label="@string/opengl_rtsp"
-        android:screenOrientation="portrait"
-        />
+        android:screenOrientation="portrait" />
     <activity
         android:name="com.pedro.streamer.openglexample.OpenGlSrtActivity"
         android:label="@string/opengl_srt"
-        android:screenOrientation="portrait"
-        />
+        android:screenOrientation="portrait" />
+    <activity
+        android:name="com.pedro.streamer.openglexample.OpenGlGenericActivity"
+        android:label="@string/opengl_generic"
+        android:screenOrientation="portrait" />
     <activity
         android:name="com.pedro.streamer.displayexample.DisplayActivity"
         android:label="@string/display_rtmp"
-        android:screenOrientation="portrait"
-        />
+        android:screenOrientation="portrait" />
     <activity
         android:name="com.pedro.streamer.backgroundexample.BackgroundActivity"
         android:label="@string/service_rtp"
-        android:screenOrientation="portrait"
-        />
+        android:screenOrientation="portrait" />
 
     <activity android:name="com.pedro.streamer.rotation.RotationExampleActivity"
         android:label="@string/rotation_rtmp"

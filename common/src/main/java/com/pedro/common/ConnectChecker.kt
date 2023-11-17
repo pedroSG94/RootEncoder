@@ -14,16 +14,17 @@
  * limitations under the License.
  */
 
-package com.pedro.srt.utils
+package com.pedro.common
 
 /**
- * Created by pedro on 30/8/23.
+ * Created by pedro on 21/08/23.
  */
-object TimeUtils {
-
-  @JvmStatic
-  fun getCurrentTimeMicro(): Long = System.nanoTime() / 1000
-
-  @JvmStatic
-  fun getCurrentTimeMillis(): Long = System.currentTimeMillis()
+interface ConnectChecker {
+  fun onConnectionStarted(url: String)
+  fun onConnectionSuccess()
+  fun onConnectionFailed(reason: String)
+  fun onNewBitrate(bitrate: Long)
+  fun onDisconnect()
+  fun onAuthError()
+  fun onAuthSuccess()
 }

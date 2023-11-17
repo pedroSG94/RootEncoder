@@ -52,4 +52,5 @@ dependencies {
   api project(':rtmp')
   api project(':rtsp')
   api project(':srt')
+  api project(':common')
 }

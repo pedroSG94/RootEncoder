@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2021 pedroSG94.
+ * Copyright (C) 2023 pedroSG94.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,9 +18,9 @@ package com.pedro.rtmp.flv.video
 
 import android.media.MediaCodec
 import android.util.Log
+import com.pedro.common.removeInfo
 import com.pedro.rtmp.flv.FlvPacket
 import com.pedro.rtmp.flv.FlvType
-import com.pedro.rtmp.utils.removeInfo
 import java.nio.ByteBuffer
 import kotlin.experimental.and
 

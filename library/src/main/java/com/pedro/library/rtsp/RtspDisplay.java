@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2021 pedroSG94.
+ * Copyright (C) 2023 pedroSG94.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,12 +22,12 @@ import android.os.Build;
 
 import androidx.annotation.RequiresApi;
 
+import com.pedro.common.ConnectChecker;
+import com.pedro.common.VideoCodec;
 import com.pedro.library.base.DisplayBase;
-import com.pedro.library.util.VideoCodec;
 import com.pedro.library.util.streamclient.RtspStreamClient;
 import com.pedro.library.util.streamclient.StreamClientListener;
 import com.pedro.rtsp.rtsp.RtspClient;
-import com.pedro.rtsp.utils.ConnectCheckerRtsp;
 
 import java.nio.ByteBuffer;
 
@@ -44,9 +44,9 @@ public class RtspDisplay extends DisplayBase {
   private final RtspStreamClient streamClient;
   private final StreamClientListener streamClientListener = this::requestKeyFrame;
 
-  public RtspDisplay(Context context, boolean useOpengl, ConnectCheckerRtsp connectCheckerRtsp) {
+  public RtspDisplay(Context context, boolean useOpengl, ConnectChecker connectChecker) {
     super(context, useOpengl);
-    rtspClient = new RtspClient(connectCheckerRtsp);
+    rtspClient = new RtspClient(connectChecker);
     streamClient = new RtspStreamClient(rtspClient, streamClientListener);
   }
 
@@ -57,7 +57,7 @@ public class RtspDisplay extends DisplayBase {
 
   @Override
   protected void setVideoCodecImp(VideoCodec codec) {
-    rtspClient.setVideoCodec(codec == VideoCodec.H264 ? com.pedro.rtsp.rtsp.VideoCodec.H264 : com.pedro.rtsp.rtsp.VideoCodec.H265);
+      rtspClient.setVideoCodec(codec);
   }
 
   @Override

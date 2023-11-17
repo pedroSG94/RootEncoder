@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2021 pedroSG94.
+ * Copyright (C) 2023 pedroSG94.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,10 +18,10 @@ package com.pedro.library.rtsp;
 
 import android.media.MediaCodec;
 
+import com.pedro.common.ConnectChecker;
 import com.pedro.library.base.OnlyAudioBase;
 import com.pedro.library.util.streamclient.RtspStreamClient;
 import com.pedro.rtsp.rtsp.RtspClient;
-import com.pedro.rtsp.utils.ConnectCheckerRtsp;
 
 import java.nio.ByteBuffer;
 
@@ -36,11 +36,11 @@ public class RtspOnlyAudio extends OnlyAudioBase {
   private final RtspClient rtspClient;
   private final RtspStreamClient streamClient;
 
-  public RtspOnlyAudio(ConnectCheckerRtsp connectCheckerRtsp) {
+  public RtspOnlyAudio(ConnectChecker connectChecker) {
     super();
-    rtspClient = new RtspClient(connectCheckerRtsp);
+    rtspClient = new RtspClient(connectChecker);
+    rtspClient.setOnlyAudio(true);
     streamClient = new RtspStreamClient(rtspClient, null);
-    streamClient.setOnlyAudio(true);
   }
 
   @Override

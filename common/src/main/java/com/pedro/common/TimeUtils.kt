@@ -14,11 +14,19 @@
  * limitations under the License.
  */
 
-package com.pedro.srt.srt
+package com.pedro.common
 
 /**
- * Created by pedro on 31/8/23.
+ * Created by pedro on 30/8/23.
  */
-enum class VideoCodec {
-  H264, H265
+object TimeUtils {
+
+  @JvmStatic
+  fun getCurrentTimeMicro(): Long = System.nanoTime() / 1000
+
+  @JvmStatic
+  fun getCurrentTimeMillis(): Long = System.currentTimeMillis()
+
+  @JvmStatic
+  fun getCurrentTimeNano(): Long = System.nanoTime()
 }

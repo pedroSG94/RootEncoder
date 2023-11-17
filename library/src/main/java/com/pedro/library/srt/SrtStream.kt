@@ -20,14 +20,14 @@ import android.content.Context
 import android.media.MediaCodec
 import android.os.Build
 import androidx.annotation.RequiresApi
+import com.pedro.common.ConnectChecker
+import com.pedro.common.VideoCodec
 import com.pedro.library.base.StreamBase
-import com.pedro.library.util.VideoCodec
 import com.pedro.library.util.sources.AudioManager
 import com.pedro.library.util.sources.VideoManager
 import com.pedro.library.util.streamclient.SrtStreamClient
 import com.pedro.library.util.streamclient.StreamClientListener
 import com.pedro.srt.srt.SrtClient
-import com.pedro.srt.utils.ConnectCheckerSrt
 import java.nio.ByteBuffer
 
 /**
@@ -39,11 +39,11 @@ import java.nio.ByteBuffer
 
 @RequiresApi(Build.VERSION_CODES.LOLLIPOP)
 class SrtStream(
-  context: Context, connectCheckerRtmp: ConnectCheckerSrt, videoSource: VideoManager.Source,
+  context: Context, connectChecker: ConnectChecker, videoSource: VideoManager.Source,
   audioSource: AudioManager.Source
 ): StreamBase(context, videoSource, audioSource) {
 
-  private val srtClient = SrtClient(connectCheckerRtmp)
+  private val srtClient = SrtClient(connectChecker)
   private val streamClientListener = object: StreamClientListener {
     override fun onRequestKeyframe() {
       requestKeyframe()
@@ -51,11 +51,11 @@ class SrtStream(
   }
   override fun getStreamClient(): SrtStreamClient = SrtStreamClient(srtClient, streamClientListener)
 
-  constructor(context: Context, connectCheckerRtmp: ConnectCheckerSrt):
-      this(context, connectCheckerRtmp, VideoManager.Source.CAMERA2, AudioManager.Source.MICROPHONE)
+  constructor(context: Context, connectChecker: ConnectChecker):
+      this(context, connectChecker, VideoManager.Source.CAMERA2, AudioManager.Source.MICROPHONE)
 
   override fun setVideoCodecImp(codec: VideoCodec) {
-    srtClient.setVideoCodec(if (codec === VideoCodec.H264) com.pedro.srt.srt.VideoCodec.H264 else com.pedro.srt.srt.VideoCodec.H265)
+      srtClient.setVideoCodec(codec)
   }
 
   override fun audioInfo(sampleRate: Int, isStereo: Boolean) {

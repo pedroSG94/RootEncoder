@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2021 pedroSG94.
+ * Copyright (C) 2023 pedroSG94.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,14 +24,14 @@ import android.view.TextureView;
 
 import androidx.annotation.RequiresApi;
 
+import com.pedro.common.ConnectChecker;
+import com.pedro.common.VideoCodec;
 import com.pedro.library.base.Camera2Base;
-import com.pedro.library.util.VideoCodec;
 import com.pedro.library.util.streamclient.RtspStreamClient;
 import com.pedro.library.util.streamclient.StreamClientListener;
 import com.pedro.library.view.LightOpenGlView;
 import com.pedro.library.view.OpenGlView;
 import com.pedro.rtsp.rtsp.RtspClient;
-import com.pedro.rtsp.utils.ConnectCheckerRtsp;
 
 import java.nio.ByteBuffer;
 
@@ -54,9 +54,9 @@ public class RtspCamera2 extends Camera2Base {
    * instead.
    */
   @Deprecated
-  public RtspCamera2(SurfaceView surfaceView, ConnectCheckerRtsp connectCheckerRtsp) {
+  public RtspCamera2(SurfaceView surfaceView, ConnectChecker connectChecker) {
     super(surfaceView);
-    rtspClient = new RtspClient(connectCheckerRtsp);
+    rtspClient = new RtspClient(connectChecker);
     streamClient = new RtspStreamClient(rtspClient, streamClientListener);
   }
 
@@ -66,27 +66,27 @@ public class RtspCamera2 extends Camera2Base {
    * instead.
    */
   @Deprecated
-  public RtspCamera2(TextureView textureView, ConnectCheckerRtsp connectCheckerRtsp) {
+  public RtspCamera2(TextureView textureView, ConnectChecker connectChecker) {
     super(textureView);
-    rtspClient = new RtspClient(connectCheckerRtsp);
+    rtspClient = new RtspClient(connectChecker);
     streamClient = new RtspStreamClient(rtspClient, streamClientListener);
   }
 
-  public RtspCamera2(OpenGlView openGlView, ConnectCheckerRtsp connectCheckerRtsp) {
+  public RtspCamera2(OpenGlView openGlView, ConnectChecker connectChecker) {
     super(openGlView);
-    rtspClient = new RtspClient(connectCheckerRtsp);
+    rtspClient = new RtspClient(connectChecker);
     streamClient = new RtspStreamClient(rtspClient, streamClientListener);
   }
 
-  public RtspCamera2(LightOpenGlView lightOpenGlView, ConnectCheckerRtsp connectCheckerRtsp) {
+  public RtspCamera2(LightOpenGlView lightOpenGlView, ConnectChecker connectChecker) {
     super(lightOpenGlView);
-    rtspClient = new RtspClient(connectCheckerRtsp);
+    rtspClient = new RtspClient(connectChecker);
     streamClient = new RtspStreamClient(rtspClient, streamClientListener);
   }
 
-  public RtspCamera2(Context context, boolean useOpengl, ConnectCheckerRtsp connectCheckerRtsp) {
+  public RtspCamera2(Context context, boolean useOpengl, ConnectChecker connectChecker) {
     super(context, useOpengl);
-    rtspClient = new RtspClient(connectCheckerRtsp);
+    rtspClient = new RtspClient(connectChecker);
     streamClient = new RtspStreamClient(rtspClient, streamClientListener);
   }
 
@@ -97,7 +97,7 @@ public class RtspCamera2 extends Camera2Base {
 
   @Override
   protected void setVideoCodecImp(VideoCodec codec) {
-    rtspClient.setVideoCodec(codec == VideoCodec.H264 ? com.pedro.rtsp.rtsp.VideoCodec.H264 : com.pedro.rtsp.rtsp.VideoCodec.H265);
+      rtspClient.setVideoCodec(codec);
   }
 
   @Override

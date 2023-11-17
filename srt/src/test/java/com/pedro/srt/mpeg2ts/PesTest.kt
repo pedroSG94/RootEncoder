@@ -19,7 +19,7 @@ package com.pedro.srt.mpeg2ts
 import com.pedro.srt.Utils
 import com.pedro.srt.mpeg2ts.psi.PsiManager
 import com.pedro.srt.mpeg2ts.service.Mpeg2TsService
-import com.pedro.srt.utils.TimeUtils
+import com.pedro.common.TimeUtils
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertArrayEquals
 import org.junit.Before

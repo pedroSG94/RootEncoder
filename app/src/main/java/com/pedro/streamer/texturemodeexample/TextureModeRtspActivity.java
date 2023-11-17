@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2021 pedroSG94.
+ * Copyright (C) 2023 pedroSG94.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,8 @@ package com.pedro.streamer.texturemodeexample;
 import android.graphics.SurfaceTexture;
 import android.os.Build;
 import android.os.Bundle;
+
+import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 import android.view.TextureView;
@@ -27,12 +29,13 @@ import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
+
+import com.pedro.common.ConnectChecker;
 import com.pedro.encoder.input.video.CameraOpenException;
 import com.pedro.streamer.R;
 import com.pedro.library.rtsp.RtspCamera2;
 import com.pedro.library.view.AutoFitTextureView;
 import com.pedro.streamer.utils.PathUtils;
-import com.pedro.rtsp.utils.ConnectCheckerRtsp;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -49,7 +52,7 @@ import java.util.Locale;
  */
 @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
 public class TextureModeRtspActivity extends AppCompatActivity
-    implements ConnectCheckerRtsp, View.OnClickListener, TextureView.SurfaceTextureListener {
+    implements ConnectChecker, View.OnClickListener, TextureView.SurfaceTextureListener {
 
   private RtspCamera2 rtspCamera2;
   private AutoFitTextureView textureView;
@@ -80,16 +83,16 @@ public class TextureModeRtspActivity extends AppCompatActivity
   }
 
   @Override
-  public void onConnectionStartedRtsp(@NotNull String rtspUrl) {
+  public void onConnectionStarted(@NotNull String url) {
   }
 
   @Override
-  public void onConnectionSuccessRtsp() {
+  public void onConnectionSuccess() {
     Toast.makeText(TextureModeRtspActivity.this, "Connection success", Toast.LENGTH_SHORT).show();
   }
 
   @Override
-  public void onConnectionFailedRtsp(final String reason) {
+  public void onConnectionFailed(@NonNull final String reason) {
     Toast.makeText(TextureModeRtspActivity.this, "Connection failed. " + reason,
         Toast.LENGTH_SHORT).show();
     rtspCamera2.stopStream();
@@ -97,22 +100,22 @@ public class TextureModeRtspActivity extends AppCompatActivity
   }
 
   @Override
-  public void onNewBitrateRtsp(long bitrate) {
+  public void onNewBitrate(long bitrate) {
 
   }
 
   @Override
-  public void onDisconnectRtsp() {
+  public void onDisconnect() {
     Toast.makeText(TextureModeRtspActivity.this, "Disconnected", Toast.LENGTH_SHORT).show();
   }
 
   @Override
-  public void onAuthErrorRtsp() {
+  public void onAuthError() {
     Toast.makeText(TextureModeRtspActivity.this, "Auth error", Toast.LENGTH_SHORT).show();
   }
 
   @Override
-  public void onAuthSuccessRtsp() {
+  public void onAuthSuccess() {
     Toast.makeText(TextureModeRtspActivity.this, "Auth success", Toast.LENGTH_SHORT).show();
   }
 

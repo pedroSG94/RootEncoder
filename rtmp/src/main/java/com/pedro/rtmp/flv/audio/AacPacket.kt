@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2021 pedroSG94.
+ * Copyright (C) 2023 pedroSG94.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,16 +17,16 @@
 package com.pedro.rtmp.flv.audio
 
 import android.media.MediaCodec
+import com.pedro.common.removeInfo
 import com.pedro.rtmp.flv.FlvPacket
 import com.pedro.rtmp.flv.FlvType
-import com.pedro.rtmp.utils.removeInfo
 import java.nio.ByteBuffer
 import kotlin.experimental.or
 
 /**
  * Created by pedro on 8/04/21.
  */
-class AacPacket() {
+class AacPacket {
 
   private val header = ByteArray(2)
   //first time we need send audio config

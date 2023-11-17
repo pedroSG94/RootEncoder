@@ -14,19 +14,25 @@
  * limitations under the License.
  */
 
-package com.pedro.rtsp.utils
+package com.pedro.common.util
+
+import org.mockito.MockedStatic
 
 /**
- * Created by pedro on 30/8/23.
+ * Created by pedro on 1/9/23.
  */
-object TimeUtils {
+object Utils {
 
-  @JvmStatic
-  fun getCurrentTimeMicro(): Long = System.nanoTime() / 1000
-
-  @JvmStatic
-  fun getCurrentTimeMillis(): Long = System.currentTimeMillis()
-
-  @JvmStatic
-  fun getCurrentTimeNano(): Long = System.nanoTime()
+  suspend fun useStatics(statics: List<MockedStatic<out Any>>, callback: suspend () -> Unit) {
+    val list = statics.toMutableList()
+    if (list.isEmpty()) callback()
+    else if (list.size == 1) {
+      list[0].use {
+        callback()
+      }
+    } else {
+      val value = list.removeAt(0)
+      value.use { useStatics(list, callback) }
+    }
+  }
 }

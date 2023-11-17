@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2021 pedroSG94.
+ * Copyright (C) 2023 pedroSG94.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,17 +14,8 @@
  * limitations under the License.
  */
 
-package com.pedro.rtmp.utils
+package com.pedro.library.generic
 
-/**
- * Created by pedro on 8/04/21.
- */
-interface ConnectCheckerRtmp {
-  fun onConnectionStartedRtmp(rtmpUrl: String)
-  fun onConnectionSuccessRtmp()
-  fun onConnectionFailedRtmp(reason: String)
-  fun onNewBitrateRtmp(bitrate: Long)
-  fun onDisconnectRtmp()
-  fun onAuthErrorRtmp()
-  fun onAuthSuccessRtmp()
+internal enum class ClientType {
+  NONE, RTMP, RTSP, SRT
 }

@@ -1,17 +1,33 @@
+/*
+ * Copyright (C) 2023 pedroSG94.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package com.pedro.library.rtmp
 
 import android.content.Context
 import android.media.MediaCodec
 import android.os.Build
 import androidx.annotation.RequiresApi
+import com.pedro.common.ConnectChecker
+import com.pedro.common.VideoCodec
 import com.pedro.library.base.StreamBase
-import com.pedro.library.util.VideoCodec
 import com.pedro.library.util.sources.AudioManager
 import com.pedro.library.util.sources.VideoManager
 import com.pedro.library.util.streamclient.RtmpStreamClient
 import com.pedro.library.util.streamclient.StreamClientListener
 import com.pedro.rtmp.rtmp.RtmpClient
-import com.pedro.rtmp.utils.ConnectCheckerRtmp
 import java.nio.ByteBuffer
 
 /**
@@ -23,11 +39,11 @@ import java.nio.ByteBuffer
 
 @RequiresApi(Build.VERSION_CODES.LOLLIPOP)
 class RtmpStream(
-  context: Context, connectCheckerRtmp: ConnectCheckerRtmp, videoSource: VideoManager.Source,
+  context: Context, connectChecker: ConnectChecker, videoSource: VideoManager.Source,
   audioSource: AudioManager.Source
 ): StreamBase(context, videoSource, audioSource) {
 
-  private val rtmpClient = RtmpClient(connectCheckerRtmp)
+  private val rtmpClient = RtmpClient(connectChecker)
   private val streamClientListener = object: StreamClientListener {
     override fun onRequestKeyframe() {
       requestKeyframe()
@@ -35,11 +51,11 @@ class RtmpStream(
   }
   override fun getStreamClient(): RtmpStreamClient = RtmpStreamClient(rtmpClient, streamClientListener)
 
-  constructor(context: Context, connectCheckerRtmp: ConnectCheckerRtmp):
-      this(context, connectCheckerRtmp, VideoManager.Source.CAMERA2, AudioManager.Source.MICROPHONE)
+  constructor(context: Context, connectChecker: ConnectChecker):
+      this(context, connectChecker, VideoManager.Source.CAMERA2, AudioManager.Source.MICROPHONE)
 
   override fun setVideoCodecImp(codec: VideoCodec) {
-    rtmpClient.setVideoCodec(if (codec === VideoCodec.H264) com.pedro.rtmp.rtmp.VideoCodec.H264 else com.pedro.rtmp.rtmp.VideoCodec.H265)
+    rtmpClient.setVideoCodec(codec)
   }
 
   override fun audioInfo(sampleRate: Int, isStereo: Boolean) {

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2021 pedroSG94.
+ * Copyright (C) 2023 pedroSG94.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,14 +24,14 @@ import android.view.TextureView;
 
 import androidx.annotation.RequiresApi;
 
+import com.pedro.common.ConnectChecker;
+import com.pedro.common.VideoCodec;
 import com.pedro.library.base.Camera1Base;
-import com.pedro.library.util.VideoCodec;
 import com.pedro.library.util.streamclient.RtmpStreamClient;
 import com.pedro.library.util.streamclient.StreamClientListener;
 import com.pedro.library.view.LightOpenGlView;
 import com.pedro.library.view.OpenGlView;
 import com.pedro.rtmp.rtmp.RtmpClient;
-import com.pedro.rtmp.utils.ConnectCheckerRtmp;
 
 import java.nio.ByteBuffer;
 
@@ -48,34 +48,34 @@ public class RtmpCamera1 extends Camera1Base {
   private final RtmpStreamClient streamClient;
   private final StreamClientListener streamClientListener = this::requestKeyFrame;
 
-  public RtmpCamera1(SurfaceView surfaceView, ConnectCheckerRtmp connectChecker) {
+  public RtmpCamera1(SurfaceView surfaceView, ConnectChecker connectChecker) {
     super(surfaceView);
     rtmpClient = new RtmpClient(connectChecker);
     streamClient = new RtmpStreamClient(rtmpClient, streamClientListener);
   }
 
-  public RtmpCamera1(TextureView textureView, ConnectCheckerRtmp connectChecker) {
+  public RtmpCamera1(TextureView textureView, ConnectChecker connectChecker) {
     super(textureView);
     rtmpClient = new RtmpClient(connectChecker);
     streamClient = new RtmpStreamClient(rtmpClient, streamClientListener);
   }
 
   @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
-  public RtmpCamera1(OpenGlView openGlView, ConnectCheckerRtmp connectChecker) {
+  public RtmpCamera1(OpenGlView openGlView, ConnectChecker connectChecker) {
     super(openGlView);
     rtmpClient = new RtmpClient(connectChecker);
     streamClient = new RtmpStreamClient(rtmpClient, streamClientListener);
   }
 
   @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
-  public RtmpCamera1(LightOpenGlView lightOpenGlView, ConnectCheckerRtmp connectChecker) {
+  public RtmpCamera1(LightOpenGlView lightOpenGlView, ConnectChecker connectChecker) {
     super(lightOpenGlView);
     rtmpClient = new RtmpClient(connectChecker);
     streamClient = new RtmpStreamClient(rtmpClient, streamClientListener);
   }
 
   @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
-  public RtmpCamera1(Context context, ConnectCheckerRtmp connectChecker) {
+  public RtmpCamera1(Context context, ConnectChecker connectChecker) {
     super(context);
     rtmpClient = new RtmpClient(connectChecker);
     streamClient = new RtmpStreamClient(rtmpClient, streamClientListener);
@@ -88,7 +88,7 @@ public class RtmpCamera1 extends Camera1Base {
 
   @Override
   protected void setVideoCodecImp(VideoCodec codec) {
-    rtmpClient.setVideoCodec(codec == VideoCodec.H264 ? com.pedro.rtmp.rtmp.VideoCodec.H264 : com.pedro.rtmp.rtmp.VideoCodec.H265);
+      rtmpClient.setVideoCodec(codec);
   }
 
   @Override

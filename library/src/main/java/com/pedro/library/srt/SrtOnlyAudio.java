@@ -18,10 +18,10 @@ package com.pedro.library.srt;
 
 import android.media.MediaCodec;
 
+import com.pedro.common.ConnectChecker;
 import com.pedro.library.base.OnlyAudioBase;
 import com.pedro.library.util.streamclient.SrtStreamClient;
 import com.pedro.srt.srt.SrtClient;
-import com.pedro.srt.utils.ConnectCheckerSrt;
 
 import java.nio.ByteBuffer;
 
@@ -36,7 +36,7 @@ public class SrtOnlyAudio extends OnlyAudioBase {
   private final SrtClient srtClient;
   private final SrtStreamClient streamClient;
 
-  public SrtOnlyAudio(ConnectCheckerSrt connectChecker) {
+  public SrtOnlyAudio(ConnectChecker connectChecker) {
     super();
     srtClient = new SrtClient(connectChecker);
     streamClient = new SrtStreamClient(srtClient, null);

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2021 pedroSG94.
+ * Copyright (C) 2023 pedroSG94.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,8 +18,6 @@ package com.pedro.streamer.surfacemodeexample;
 
 import android.os.Build;
 import android.os.Bundle;
-import androidx.annotation.RequiresApi;
-import androidx.appcompat.app.AppCompatActivity;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.View;
@@ -28,11 +26,15 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.RequiresApi;
+import androidx.appcompat.app.AppCompatActivity;
+
+import com.pedro.common.ConnectChecker;
 import com.pedro.encoder.input.video.CameraOpenException;
 import com.pedro.library.rtsp.RtspCamera2;
 import com.pedro.streamer.R;
 import com.pedro.streamer.utils.PathUtils;
-import com.pedro.rtsp.utils.ConnectCheckerRtsp;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -49,7 +51,7 @@ import java.util.Locale;
  */
 @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
 public class SurfaceModeRtspActivity extends AppCompatActivity
-    implements ConnectCheckerRtsp, View.OnClickListener, SurfaceHolder.Callback {
+    implements ConnectChecker, View.OnClickListener, SurfaceHolder.Callback {
 
   private RtspCamera2 rtspCamera2;
   private Button button;
@@ -80,16 +82,16 @@ public class SurfaceModeRtspActivity extends AppCompatActivity
   }
 
   @Override
-  public void onConnectionStartedRtsp(@NotNull String rtspUrl) {
+  public void onConnectionStarted(@NotNull String url) {
   }
 
   @Override
-  public void onConnectionSuccessRtsp() {
+  public void onConnectionSuccess() {
     Toast.makeText(SurfaceModeRtspActivity.this, "Connection success", Toast.LENGTH_SHORT).show();
   }
 
   @Override
-  public void onConnectionFailedRtsp(final String reason) {
+  public void onConnectionFailed(@NonNull final String reason) {
     //Wait 5s and retry connect stream
     if (rtspCamera2.getStreamClient().reTry(5000, reason, null)) {
       Toast.makeText(SurfaceModeRtspActivity.this, "Retry", Toast.LENGTH_SHORT)
@@ -102,22 +104,22 @@ public class SurfaceModeRtspActivity extends AppCompatActivity
   }
 
   @Override
-  public void onNewBitrateRtsp(long bitrate) {
+  public void onNewBitrate(long bitrate) {
 
   }
 
   @Override
-  public void onDisconnectRtsp() {
+  public void onDisconnect() {
     Toast.makeText(SurfaceModeRtspActivity.this, "Disconnected", Toast.LENGTH_SHORT).show();
   }
 
   @Override
-  public void onAuthErrorRtsp() {
+  public void onAuthError() {
     Toast.makeText(SurfaceModeRtspActivity.this, "Auth error", Toast.LENGTH_SHORT).show();
   }
 
   @Override
-  public void onAuthSuccessRtsp() {
+  public void onAuthSuccess() {
     Toast.makeText(SurfaceModeRtspActivity.this, "Auth success", Toast.LENGTH_SHORT).show();
   }
 

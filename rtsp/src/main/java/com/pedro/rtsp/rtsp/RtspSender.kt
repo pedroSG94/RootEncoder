@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2021 pedroSG94.
+ * Copyright (C) 2023 pedroSG94.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,15 +18,15 @@ package com.pedro.rtsp.rtsp
 
 import android.media.MediaCodec
 import android.util.Log
+import com.pedro.common.BitrateManager
+import com.pedro.common.ConnectChecker
+import com.pedro.common.onMainThread
+import com.pedro.common.trySend
 import com.pedro.rtsp.rtcp.BaseSenderReport
 import com.pedro.rtsp.rtp.packets.*
 import com.pedro.rtsp.rtp.sockets.BaseRtpSocket
 import com.pedro.rtsp.rtp.sockets.RtpSocketTcp
-import com.pedro.rtsp.utils.BitrateManager
-import com.pedro.rtsp.utils.ConnectCheckerRtsp
 import com.pedro.rtsp.utils.RtpConstants
-import com.pedro.rtsp.utils.onMainThread
-import com.pedro.rtsp.utils.trySend
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -45,7 +45,7 @@ import java.util.concurrent.*
 /**
  * Created by pedro on 7/11/18.
  */
-class RtspSender(private val connectCheckerRtsp: ConnectCheckerRtsp) {
+class RtspSender(private val connectChecker: ConnectChecker) {
 
   private var videoPacket: BasePacket? = null
   private var aacPacket: AacPacket? = null
@@ -69,7 +69,7 @@ class RtspSender(private val connectCheckerRtsp: ConnectCheckerRtsp) {
     private set
   var droppedVideoFrames: Long = 0
     private set
-  private val bitrateManager: BitrateManager = BitrateManager(connectCheckerRtsp)
+  private val bitrateManager: BitrateManager = BitrateManager(connectChecker)
   private var isEnableLogs = true
 
   companion object {
@@ -171,7 +171,7 @@ class RtspSender(private val connectCheckerRtsp: ConnectCheckerRtsp) {
         }.exceptionOrNull()
         if (error != null) {
           onMainThread {
-            connectCheckerRtsp.onConnectionFailedRtsp("Error send packet, ${error.message}")
+            connectChecker.onConnectionFailed("Error send packet, ${error.message}")
           }
           Log.e(TAG, "send error: ", error)
           return@launch

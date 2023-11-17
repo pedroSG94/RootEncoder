@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2021 pedroSG94.
+ * Copyright (C) 2023 pedroSG94.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,12 +22,12 @@ import android.os.Build;
 
 import androidx.annotation.RequiresApi;
 
+import com.pedro.common.ConnectChecker;
+import com.pedro.common.VideoCodec;
 import com.pedro.library.base.DisplayBase;
-import com.pedro.library.util.VideoCodec;
 import com.pedro.library.util.streamclient.RtmpStreamClient;
 import com.pedro.library.util.streamclient.StreamClientListener;
 import com.pedro.rtmp.rtmp.RtmpClient;
-import com.pedro.rtmp.utils.ConnectCheckerRtmp;
 
 import java.nio.ByteBuffer;
 
@@ -44,7 +44,7 @@ public class RtmpDisplay extends DisplayBase {
   private final RtmpStreamClient streamClient;
   private final StreamClientListener streamClientListener = this::requestKeyFrame;
 
-  public RtmpDisplay(Context context, boolean useOpengl, ConnectCheckerRtmp connectChecker) {
+  public RtmpDisplay(Context context, boolean useOpengl, ConnectChecker connectChecker) {
     super(context, useOpengl);
     rtmpClient = new RtmpClient(connectChecker);
     streamClient = new RtmpStreamClient(rtmpClient, streamClientListener);
@@ -57,7 +57,7 @@ public class RtmpDisplay extends DisplayBase {
 
   @Override
   protected void setVideoCodecImp(VideoCodec codec) {
-    rtmpClient.setVideoCodec(codec == VideoCodec.H264 ? com.pedro.rtmp.rtmp.VideoCodec.H264 : com.pedro.rtmp.rtmp.VideoCodec.H265);
+    rtmpClient.setVideoCodec(codec);
   }
 
   @Override

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2021 pedroSG94.
+ * Copyright (C) 2023 pedroSG94.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,12 +25,15 @@ import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
+
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+
+import com.pedro.common.ConnectChecker;
 import com.pedro.encoder.input.video.CameraOpenException;
 import com.pedro.library.rtsp.RtspCamera1;
 import com.pedro.streamer.R;
 import com.pedro.streamer.utils.PathUtils;
-import com.pedro.rtsp.utils.ConnectCheckerRtsp;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -46,7 +49,7 @@ import java.util.Locale;
  * {@link com.pedro.library.rtsp.RtspCamera1}
  */
 public class ExampleRtspActivity extends AppCompatActivity
-    implements ConnectCheckerRtsp, View.OnClickListener, SurfaceHolder.Callback {
+    implements ConnectChecker, View.OnClickListener, SurfaceHolder.Callback {
 
   private RtspCamera1 rtspCamera1;
   private Button button;
@@ -77,16 +80,16 @@ public class ExampleRtspActivity extends AppCompatActivity
   }
 
   @Override
-  public void onConnectionStartedRtsp(@NotNull String rtspUrl) {
+  public void onConnectionStarted(@NotNull String url) {
   }
 
   @Override
-  public void onConnectionSuccessRtsp() {
+  public void onConnectionSuccess() {
     Toast.makeText(ExampleRtspActivity.this, "Connection success", Toast.LENGTH_SHORT).show();
   }
 
   @Override
-  public void onConnectionFailedRtsp(final String reason) {
+  public void onConnectionFailed(@NonNull final String reason) {
     if (rtspCamera1.getStreamClient().reTry(5000, reason, null)) {
       Toast.makeText(ExampleRtspActivity.this, "Retry", Toast.LENGTH_SHORT)
           .show();
@@ -99,24 +102,24 @@ public class ExampleRtspActivity extends AppCompatActivity
   }
 
   @Override
-  public void onNewBitrateRtsp(final long bitrate) {
+  public void onNewBitrate(final long bitrate) {
 
   }
 
   @Override
-  public void onDisconnectRtsp() {
+  public void onDisconnect() {
     Toast.makeText(ExampleRtspActivity.this, "Disconnected", Toast.LENGTH_SHORT).show();
   }
 
   @Override
-  public void onAuthErrorRtsp() {
+  public void onAuthError() {
     Toast.makeText(ExampleRtspActivity.this, "Auth error", Toast.LENGTH_SHORT).show();
     rtspCamera1.stopStream();
     button.setText(R.string.start_button);
   }
 
   @Override
-  public void onAuthSuccessRtsp() {
+  public void onAuthSuccess() {
     Toast.makeText(ExampleRtspActivity.this, "Auth success", Toast.LENGTH_SHORT).show();
   }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022 pedroSG94.
+ * Copyright (C) 2023 pedroSG94.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,7 @@
 package com.pedro.rtmp.utils.socket
 
 import android.util.Log
-import com.pedro.rtmp.utils.TimeUtils
+import com.pedro.common.TimeUtils
 import java.io.*
 import java.net.HttpURLConnection
 import java.net.SocketTimeoutException

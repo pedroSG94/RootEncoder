@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2021 pedroSG94.
+ * Copyright (C) 2023 pedroSG94.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,19 +35,21 @@ import android.widget.RadioGroup;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.ActionBarDrawerToggle;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 import com.google.android.material.navigation.NavigationView;
+import com.pedro.common.ConnectChecker;
 import com.pedro.encoder.input.video.CameraHelper;
 import com.pedro.encoder.input.video.CameraOpenException;
 import com.pedro.library.rtsp.RtspCamera1;
 import com.pedro.streamer.R;
 import com.pedro.streamer.utils.PathUtils;
 import com.pedro.rtsp.rtsp.Protocol;
-import com.pedro.rtsp.utils.ConnectCheckerRtsp;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -65,7 +67,7 @@ import java.util.Locale;
  * {@link com.pedro.library.rtsp.RtspCamera1}
  */
 public class RtspActivity extends AppCompatActivity
-    implements Button.OnClickListener, ConnectCheckerRtsp, SurfaceHolder.Callback,
+    implements Button.OnClickListener, ConnectChecker, SurfaceHolder.Callback,
     View.OnTouchListener {
 
   private Integer[] orientations = new Integer[] { 0, 90, 180, 270 };
@@ -332,16 +334,16 @@ public class RtspActivity extends AppCompatActivity
   }
 
   @Override
-  public void onConnectionStartedRtsp(@NotNull String rtspUrl) {
+  public void onConnectionStarted(@NotNull String rtspUrl) {
   }
 
   @Override
-  public void onConnectionSuccessRtsp() {
+  public void onConnectionSuccess() {
     Toast.makeText(RtspActivity.this, "Connection success", Toast.LENGTH_SHORT).show();
   }
 
   @Override
-  public void onConnectionFailedRtsp(final String reason) {
+  public void onConnectionFailed(@NonNull final String reason) {
     Toast.makeText(RtspActivity.this, "Connection failed. " + reason, Toast.LENGTH_SHORT)
         .show();
     rtspCamera1.stopStream();
@@ -359,12 +361,12 @@ public class RtspActivity extends AppCompatActivity
   }
 
   @Override
-  public void onNewBitrateRtsp(final long bitrate) {
+  public void onNewBitrate(final long bitrate) {
     tvBitrate.setText(bitrate + " bps");
   }
 
   @Override
-  public void onDisconnectRtsp() {
+  public void onDisconnect() {
     Toast.makeText(RtspActivity.this, "Disconnected", Toast.LENGTH_SHORT).show();
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2
         && rtspCamera1.isRecording()) {
@@ -379,7 +381,7 @@ public class RtspActivity extends AppCompatActivity
   }
 
   @Override
-  public void onAuthErrorRtsp() {
+  public void onAuthError() {
     bStartStop.setText(getResources().getString(R.string.start_button));
     rtspCamera1.stopStream();
     Toast.makeText(RtspActivity.this, "Auth error", Toast.LENGTH_SHORT).show();
@@ -396,7 +398,7 @@ public class RtspActivity extends AppCompatActivity
   }
 
   @Override
-  public void onAuthSuccessRtsp() {
+  public void onAuthSuccess() {
     Toast.makeText(RtspActivity.this, "Auth success", Toast.LENGTH_SHORT).show();
   }
 

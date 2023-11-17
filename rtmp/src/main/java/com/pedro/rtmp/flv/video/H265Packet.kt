@@ -18,9 +18,9 @@ package com.pedro.rtmp.flv.video
 
 import android.media.MediaCodec
 import android.util.Log
+import com.pedro.common.removeInfo
 import com.pedro.rtmp.flv.FlvPacket
 import com.pedro.rtmp.flv.FlvType
-import com.pedro.rtmp.utils.removeInfo
 import java.nio.ByteBuffer
 
 /**

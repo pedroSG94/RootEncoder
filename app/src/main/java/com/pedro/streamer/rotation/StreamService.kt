@@ -1,3 +1,19 @@
+/*
+ * Copyright (C) 2023 pedroSG94.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package com.pedro.streamer.rotation
 
 import android.app.Notification
@@ -14,7 +30,7 @@ import android.view.SurfaceView
 import androidx.annotation.RequiresApi
 import androidx.core.app.NotificationCompat
 import androidx.lifecycle.MutableLiveData
-import com.pedro.rtmp.utils.ConnectCheckerRtmp
+import com.pedro.common.ConnectChecker
 import com.pedro.library.rtmp.RtmpStream
 import com.pedro.library.util.SensorRotationManager
 import com.pedro.library.util.sources.VideoManager
@@ -24,7 +40,7 @@ import com.pedro.streamer.R
  * Created by pedro on 22/3/22.
  */
 @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
-class StreamService: Service(), ConnectCheckerRtmp {
+class StreamService: Service(), ConnectChecker {
 
   companion object {
     private const val TAG = "StreamService"
@@ -166,31 +182,31 @@ class StreamService: Service(), ConnectCheckerRtmp {
     rtmpCamera?.changeAudioSourceInternal(mediaProjection)
   }
 
-  override fun onConnectionStartedRtmp(rtmpUrl: String) {
+  override fun onConnectionStarted(url: String) {
     showNotification("Stream connection started")
   }
 
-  override fun onConnectionSuccessRtmp() {
+  override fun onConnectionSuccess() {
     showNotification("Stream started")
   }
 
-  override fun onNewBitrateRtmp(bitrate: Long) {
+  override fun onNewBitrate(bitrate: Long) {
 
   }
 
-  override fun onConnectionFailedRtmp(reason: String) {
+  override fun onConnectionFailed(reason: String) {
     showNotification("Stream connection failed")
   }
 
-  override fun onDisconnectRtmp() {
+  override fun onDisconnect() {
     showNotification("Stream stopped")
   }
 
-  override fun onAuthErrorRtmp() {
+  override fun onAuthError() {
     showNotification("Stream auth error")
   }
 
-  override fun onAuthSuccessRtmp() {
+  override fun onAuthSuccess() {
     showNotification("Stream auth success")
   }
 }

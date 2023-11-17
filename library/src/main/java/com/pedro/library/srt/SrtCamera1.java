@@ -24,14 +24,14 @@ import android.view.TextureView;
 
 import androidx.annotation.RequiresApi;
 
+import com.pedro.common.ConnectChecker;
+import com.pedro.common.VideoCodec;
 import com.pedro.library.base.Camera1Base;
-import com.pedro.library.util.VideoCodec;
 import com.pedro.library.util.streamclient.SrtStreamClient;
 import com.pedro.library.util.streamclient.StreamClientListener;
 import com.pedro.library.view.LightOpenGlView;
 import com.pedro.library.view.OpenGlView;
 import com.pedro.srt.srt.SrtClient;
-import com.pedro.srt.utils.ConnectCheckerSrt;
 
 import java.nio.ByteBuffer;
 
@@ -48,34 +48,34 @@ public class SrtCamera1 extends Camera1Base {
   private final SrtStreamClient streamClient;
   private final StreamClientListener streamClientListener = this::requestKeyFrame;
 
-  public SrtCamera1(SurfaceView surfaceView, ConnectCheckerSrt connectChecker) {
+  public SrtCamera1(SurfaceView surfaceView, ConnectChecker connectChecker) {
     super(surfaceView);
     srtClient = new SrtClient(connectChecker);
     streamClient = new SrtStreamClient(srtClient, streamClientListener);
   }
 
-  public SrtCamera1(TextureView textureView, ConnectCheckerSrt connectChecker) {
+  public SrtCamera1(TextureView textureView, ConnectChecker connectChecker) {
     super(textureView);
     srtClient = new SrtClient(connectChecker);
     streamClient = new SrtStreamClient(srtClient, streamClientListener);
   }
 
   @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
-  public SrtCamera1(OpenGlView openGlView, ConnectCheckerSrt connectChecker) {
+  public SrtCamera1(OpenGlView openGlView, ConnectChecker connectChecker) {
     super(openGlView);
     srtClient = new SrtClient(connectChecker);
     streamClient = new SrtStreamClient(srtClient, streamClientListener);
   }
 
   @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
-  public SrtCamera1(LightOpenGlView lightOpenGlView, ConnectCheckerSrt connectChecker) {
+  public SrtCamera1(LightOpenGlView lightOpenGlView, ConnectChecker connectChecker) {
     super(lightOpenGlView);
     srtClient = new SrtClient(connectChecker);
     streamClient = new SrtStreamClient(srtClient, streamClientListener);
   }
 
   @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
-  public SrtCamera1(Context context, ConnectCheckerSrt connectChecker) {
+  public SrtCamera1(Context context, ConnectChecker connectChecker) {
     super(context);
     srtClient = new SrtClient(connectChecker);
     streamClient = new SrtStreamClient(srtClient, streamClientListener);
@@ -88,7 +88,7 @@ public class SrtCamera1 extends Camera1Base {
 
   @Override
   protected void setVideoCodecImp(VideoCodec codec) {
-    srtClient.setVideoCodec(codec == VideoCodec.H264 ? com.pedro.srt.srt.VideoCodec.H264 : com.pedro.srt.srt.VideoCodec.H265);
+      srtClient.setVideoCodec(codec);
   }
 
   @Override
