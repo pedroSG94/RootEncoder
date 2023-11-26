@@ -177,6 +177,14 @@ abstract public class BaseObjectFilterRender extends BaseFilterRender {
     return sprite.getTranslation();
   }
 
+  public void setRotation(int angle) {
+    sprite.setRotation(angle);
+  }
+
+  public int getRotation() {
+    return sprite.getRotation();
+  }
+
   public void setDefaultScale(int streamWidth, int streamHeight) {
     sprite.scale(streamObject.getWidth() * 100 / streamWidth,
         streamObject.getHeight() * 100 / streamHeight);

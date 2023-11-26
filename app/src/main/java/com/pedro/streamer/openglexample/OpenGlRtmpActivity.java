@@ -328,9 +328,12 @@ public class OpenGlRtmpActivity extends AppCompatActivity
     rtmpCamera1.getGlInterface().setFilter(imageObjectFilterRender);
     imageObjectFilterRender.setImage(
         BitmapFactory.decodeResource(getResources(), R.mipmap.ic_launcher));
-    imageObjectFilterRender.setDefaultScale(rtmpCamera1.getStreamWidth(),
-        rtmpCamera1.getStreamHeight());
-    imageObjectFilterRender.setPosition(TranslateTo.RIGHT);
+//    imageObjectFilterRender.setDefaultScale(rtmpCamera1.getStreamWidth(),
+//        rtmpCamera1.getStreamHeight());
+//    imageObjectFilterRender.setPosition(TranslateTo.RIGHT);
+    imageObjectFilterRender.setRotation(90);
+    imageObjectFilterRender.setScale(50, 50);
+    imageObjectFilterRender.setPosition(0, 50);
     spriteGestureController.setBaseObjectFilterRender(imageObjectFilterRender); //Optional
     spriteGestureController.setPreventMoveOutside(false); //Optional
   }
