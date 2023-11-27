@@ -192,7 +192,7 @@ public class Sprite {
     topLeft.x += positionX;
     topLeft.y += positionY;
 
-    PointF center = new PointF((position.x + scale.x) / 200f, (position.y + scale.y) / 200f);
+    PointF center = new PointF(0.5f, 0.5f);
     bottomLeft = rotatePoint(bottomLeft, center, rotation);
     bottomRight = rotatePoint(bottomRight, center, rotation);
     topLeft = rotatePoint(topLeft, center, rotation);
@@ -209,8 +209,8 @@ public class Sprite {
     float angle = rotation % 360;
     if (angle > 180) angle -= 360;
     double A = angle * Math.PI / 180;
-    float cosA = (float)Math.cos(A);
-    float sinA = (float)Math.sin(A);
+    float cosA = (float) Math.cos(A);
+    float sinA = (float) Math.sin(A);
     float x = point.x - center.x;
     float y = point.y - center.y;
     float rotationX = x * cosA - y * sinA;
