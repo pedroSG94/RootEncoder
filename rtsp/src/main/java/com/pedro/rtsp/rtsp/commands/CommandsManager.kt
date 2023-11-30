@@ -18,6 +18,7 @@ package com.pedro.rtsp.rtsp.commands
 
 import android.util.Base64
 import android.util.Log
+import com.pedro.common.AudioCodec
 import com.pedro.common.TimeUtils
 import com.pedro.common.VideoCodec
 import com.pedro.rtsp.BuildConfig
@@ -60,7 +61,8 @@ open class CommandsManager {
   var videoDisabled = false
   var audioDisabled = false
   private val commandParser = CommandParser()
-  private var codec: VideoCodec = VideoCodec.H264
+  private var videoCodec: VideoCodec = VideoCodec.H264
+  private var audioCodec: AudioCodec = AudioCodec.AAC
   //For udp
   val audioClientPorts = intArrayOf(5000, 5001)
   val videoClientPorts = intArrayOf(5002, 5003)
@@ -88,12 +90,12 @@ open class CommandsManager {
         / 1000) // NTP timestamp
   }
 
-  fun setCodec(codec: VideoCodec) {
-    this.codec = codec
+  fun setVideoCodec(codec: VideoCodec) {
+    this.videoCodec = codec
   }
 
   fun videoInfoReady(): Boolean {
-    return sps != null && pps != null && if (codec == VideoCodec.H264) true else vps != null
+    return sps != null && pps != null && if (videoCodec == VideoCodec.H264) true else vps != null
   }
 
   fun setVideoInfo(sps: ByteBuffer, pps: ByteBuffer, vps: ByteBuffer?) {
@@ -147,7 +149,7 @@ open class CommandsManager {
   private fun createBody(): String {
     var videoBody = ""
     if (!videoDisabled) {
-      videoBody = if (codec == VideoCodec.H264) {
+      videoBody = if (videoCodec == VideoCodec.H264) {
         createH264Body(RtpConstants.trackVideo, spsString, ppsString)
       } else {
         createH265Body(RtpConstants.trackVideo, spsString, ppsString, vpsString)
@@ -155,7 +157,12 @@ open class CommandsManager {
     }
     var audioBody = ""
     if (!audioDisabled) {
-      audioBody = createAacBody(RtpConstants.trackAudio, sampleRate, isStereo)
+      audioBody = if (audioCodec == AudioCodec.G711) {
+        SdpBody.createG711Body(RtpConstants.trackAudio, sampleRate, isStereo)
+      } else {
+        createAacBody(RtpConstants.trackAudio, sampleRate, isStereo)
+      }
+
     }
     return "v=0\r\n" +
         "o=- $timeStamp $timeStamp IN IP4 127.0.0.1\r\n" +
