@@ -62,12 +62,13 @@ abstract public class BaseObjectFilterRender extends BaseFilterRender {
   private int uObjectHandle = -1;
   protected int uAlphaHandle = -1;
 
-  private FloatBuffer squareVertexObject;
+  protected int fragment = R.raw.object_fragment;
+  private final FloatBuffer squareVertexObject;
 
   protected int[] streamObjectTextureId = new int[] { -1 };
   protected TextureLoader textureLoader = new TextureLoader();
   protected StreamObjectBase streamObject;
-  private Sprite sprite;
+  private final Sprite sprite = new Sprite();
   protected float alpha = 1f;
   protected boolean shouldLoad = false;
 
@@ -76,7 +77,6 @@ abstract public class BaseObjectFilterRender extends BaseFilterRender {
         .order(ByteOrder.nativeOrder())
         .asFloatBuffer();
     squareVertex.put(squareVertexDataFilter).position(0);
-    sprite = new Sprite();
     float[] vertices = sprite.getTransformedVertices();
     squareVertexObject = ByteBuffer.allocateDirect(vertices.length * FLOAT_SIZE_BYTES)
         .order(ByteOrder.nativeOrder())
@@ -89,7 +89,7 @@ abstract public class BaseObjectFilterRender extends BaseFilterRender {
   @Override
   protected void initGlFilter(Context context) {
     String vertexShader = GlUtil.getStringFromRaw(context, R.raw.object_vertex);
-    String fragmentShader = GlUtil.getStringFromRaw(context, R.raw.object_fragment);
+    String fragmentShader = GlUtil.getStringFromRaw(context, fragment);
 
     program = GlUtil.createProgram(vertexShader, fragmentShader);
     aPositionHandle = GLES20.glGetAttribLocation(program, "aPosition");
@@ -175,6 +175,14 @@ abstract public class BaseObjectFilterRender extends BaseFilterRender {
 
   public PointF getPosition() {
     return sprite.getTranslation();
+  }
+
+  public void setRotation(int angle) {
+    sprite.setRotation(angle);
+  }
+
+  public int getRotation() {
+    return sprite.getRotation();
   }
 
   public void setDefaultScale(int streamWidth, int streamHeight) {
