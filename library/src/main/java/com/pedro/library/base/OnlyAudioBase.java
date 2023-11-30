@@ -25,6 +25,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 
+import com.pedro.common.AudioCodec;
 import com.pedro.encoder.EncoderErrorCallback;
 import com.pedro.encoder.audio.AudioEncoder;
 import com.pedro.encoder.audio.GetAacData;
@@ -102,7 +103,7 @@ public abstract class OnlyAudioBase {
     microphoneManager.setCustomAudioEffect(customAudioEffect);
   }
 
-  protected abstract void prepareAudioRtp(boolean isStereo, int sampleRate);
+  protected abstract void prepareAudioRtp(boolean isStereo, int sampleRate, AudioCodec audioCodec);
 
   /**
    * Call this method before use @startStream. If not you will do a stream without audio.
@@ -117,23 +118,23 @@ public abstract class OnlyAudioBase {
    * doesn't support any configuration seated or your device hasn't a AAC encoder).
    */
   public boolean prepareAudio(int audioSource, int bitrate, int sampleRate, boolean isStereo, boolean echoCanceler,
-      boolean noiseSuppressor) {
+      boolean noiseSuppressor, AudioCodec audioCodec) {
     if (!microphoneManager.createMicrophone(audioSource, sampleRate, isStereo, echoCanceler, noiseSuppressor)) {
       return false;
     }
-    prepareAudioRtp(isStereo, sampleRate);
+    prepareAudioRtp(isStereo, sampleRate, audioCodec);
     return audioEncoder.prepareAudioEncoder(bitrate, sampleRate, isStereo,
         microphoneManager.getMaxInputSize());
   }
 
   public boolean prepareAudio(int bitrate, int sampleRate, boolean isStereo, boolean echoCanceler,
-      boolean noiseSuppressor) {
+      boolean noiseSuppressor, AudioCodec audioCodec) {
     return prepareAudio(MediaRecorder.AudioSource.DEFAULT, bitrate, sampleRate, isStereo, echoCanceler,
-        noiseSuppressor);
+        noiseSuppressor, audioCodec);
   }
 
-  public boolean prepareAudio(int bitrate, int sampleRate, boolean isStereo) {
-    return prepareAudio(bitrate, sampleRate, isStereo, false, false);
+  public boolean prepareAudio(int bitrate, int sampleRate, boolean isStereo, AudioCodec audioCodec) {
+    return prepareAudio(bitrate, sampleRate, isStereo, false, false, audioCodec);
   }
 
   /**
@@ -144,7 +145,7 @@ public abstract class OnlyAudioBase {
    * doesn't support any configuration seated or your device hasn't a AAC encoder).
    */
   public boolean prepareAudio() {
-    return prepareAudio(64 * 1024, 32000, true, false, false);
+    return prepareAudio(64 * 1024, 32000, true, false, false, AudioCodec.AAC);
   }
 
   /**

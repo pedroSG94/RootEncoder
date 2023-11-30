@@ -45,6 +45,7 @@ import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 
 import com.google.android.material.navigation.NavigationView;
+import com.pedro.common.AudioCodec;
 import com.pedro.common.ConnectChecker;
 import com.pedro.encoder.input.video.CameraHelper;
 import com.pedro.encoder.input.video.CameraOpenException;
@@ -312,7 +313,7 @@ public class RtmpActivity extends AppCompatActivity
         Integer.parseInt(etAudioBitrate.getText().toString()) * 1024,
         Integer.parseInt(etSampleRate.getText().toString()),
         rgChannel.getCheckedRadioButtonId() == R.id.rb_stereo, cbEchoCanceler.isChecked(),
-        cbNoiseSuppressor.isChecked());
+        cbNoiseSuppressor.isChecked(), AudioCodec.AAC);
   }
 
   @Override

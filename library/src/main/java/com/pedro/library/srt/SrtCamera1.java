@@ -24,6 +24,7 @@ import android.view.TextureView;
 
 import androidx.annotation.RequiresApi;
 
+import com.pedro.common.AudioCodec;
 import com.pedro.common.ConnectChecker;
 import com.pedro.common.VideoCodec;
 import com.pedro.library.base.Camera1Base;
@@ -92,7 +93,7 @@ public class SrtCamera1 extends Camera1Base {
   }
 
   @Override
-  protected void prepareAudioRtp(boolean isStereo, int sampleRate) {
+  protected void prepareAudioRtp(boolean isStereo, int sampleRate, AudioCodec audioCodec) {
     srtClient.setAudioInfo(sampleRate, isStereo);
   }
 

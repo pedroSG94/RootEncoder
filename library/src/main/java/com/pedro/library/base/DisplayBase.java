@@ -36,6 +36,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 
+import com.pedro.common.AudioCodec;
 import com.pedro.common.VideoCodec;
 import com.pedro.encoder.EncoderErrorCallback;
 import com.pedro.encoder.audio.AudioEncoder;
@@ -186,7 +187,7 @@ public abstract class DisplayBase {
     return prepareVideo(width, height, 30, bitrate, 0, 320);
   }
 
-  protected abstract void prepareAudioRtp(boolean isStereo, int sampleRate);
+  protected abstract void prepareAudioRtp(boolean isStereo, int sampleRate, AudioCodec audioCodec);
 
   /**
    * Call this method before use @startStream. If not you will do a stream without audio.
@@ -201,24 +202,24 @@ public abstract class DisplayBase {
    * doesn't support any configuration seated or your device hasn't a AAC encoder).
    */
   public boolean prepareAudio(int audioSource, int bitrate, int sampleRate, boolean isStereo, boolean echoCanceler,
-      boolean noiseSuppressor) {
+      boolean noiseSuppressor, AudioCodec audioCodec) {
     if (!microphoneManager.createMicrophone(audioSource, sampleRate, isStereo, echoCanceler, noiseSuppressor)) {
       return false;
     }
-    prepareAudioRtp(isStereo, sampleRate);
+    prepareAudioRtp(isStereo, sampleRate, audioCodec);
     audioInitialized = audioEncoder.prepareAudioEncoder(bitrate, sampleRate, isStereo,
         microphoneManager.getMaxInputSize());
     return audioInitialized;
   }
 
   public boolean prepareAudio(int bitrate, int sampleRate, boolean isStereo, boolean echoCanceler,
-      boolean noiseSuppressor) {
+      boolean noiseSuppressor, AudioCodec audioCodec) {
     return prepareAudio(MediaRecorder.AudioSource.DEFAULT, bitrate, sampleRate, isStereo, echoCanceler,
-        noiseSuppressor);
+        noiseSuppressor, audioCodec);
   }
 
-  public boolean prepareAudio(int bitrate, int sampleRate, boolean isStereo) {
-    return prepareAudio(bitrate, sampleRate, isStereo, false, false);
+  public boolean prepareAudio(int bitrate, int sampleRate, boolean isStereo, AudioCodec audioCodec) {
+    return prepareAudio(bitrate, sampleRate, isStereo, false, false, audioCodec);
   }
 
   /**
@@ -232,7 +233,7 @@ public abstract class DisplayBase {
    */
   @RequiresApi(api = Build.VERSION_CODES.Q)
   public boolean prepareInternalAudio(int bitrate, int sampleRate, boolean isStereo,
-      boolean echoCanceler, boolean noiseSuppressor) {
+      boolean echoCanceler, boolean noiseSuppressor, AudioCodec audioCodec) {
     if (mediaProjection == null) {
       mediaProjection = mediaProjectionManager.getMediaProjection(resultCode, data);
     }
@@ -248,15 +249,15 @@ public abstract class DisplayBase {
         noiseSuppressor)) {
       return false;
     }
-    prepareAudioRtp(isStereo, sampleRate);
+    prepareAudioRtp(isStereo, sampleRate, audioCodec);
     audioInitialized = audioEncoder.prepareAudioEncoder(bitrate, sampleRate, isStereo,
         microphoneManager.getMaxInputSize());
     return audioInitialized;
   }
 
   @RequiresApi(api = Build.VERSION_CODES.Q)
-  public boolean prepareInternalAudio(int bitrate, int sampleRate, boolean isStereo) {
-    return prepareInternalAudio(bitrate, sampleRate, isStereo, false, false);
+  public boolean prepareInternalAudio(int bitrate, int sampleRate, boolean isStereo, AudioCodec audioCodec) {
+    return prepareInternalAudio(bitrate, sampleRate, isStereo, false, false, audioCodec);
   }
 
   /**
@@ -280,12 +281,12 @@ public abstract class DisplayBase {
    * doesn't support any configuration seated or your device hasn't a AAC encoder).
    */
   public boolean prepareAudio() {
-    return prepareAudio(64 * 1024, 32000, true, false, false);
+    return prepareAudio(64 * 1024, 32000, true, false, false, AudioCodec.AAC);
   }
 
   @RequiresApi(api = Build.VERSION_CODES.Q)
   public boolean prepareInternalAudio() {
-    return prepareInternalAudio(64 * 1024, 32000, true);
+    return prepareInternalAudio(64 * 1024, 32000, true, AudioCodec.AAC);
   }
 
   /**

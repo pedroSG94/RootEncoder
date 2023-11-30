@@ -18,6 +18,7 @@ package com.pedro.library.srt;
 
 import android.media.MediaCodec;
 
+import com.pedro.common.AudioCodec;
 import com.pedro.common.ConnectChecker;
 import com.pedro.library.base.OnlyAudioBase;
 import com.pedro.library.util.streamclient.SrtStreamClient;
@@ -49,7 +50,7 @@ public class SrtOnlyAudio extends OnlyAudioBase {
   }
 
   @Override
-  protected void prepareAudioRtp(boolean isStereo, int sampleRate) {
+  protected void prepareAudioRtp(boolean isStereo, int sampleRate, AudioCodec audioCodec) {
     srtClient.setAudioInfo(sampleRate, isStereo);
   }
 

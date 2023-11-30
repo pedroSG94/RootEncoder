@@ -35,6 +35,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 
+import com.pedro.common.AudioCodec;
 import com.pedro.common.VideoCodec;
 import com.pedro.encoder.EncoderErrorCallback;
 import com.pedro.encoder.audio.AudioEncoder;
@@ -343,7 +344,7 @@ public abstract class Camera2Base {
     return prepareVideo(width, height, 30, bitrate, 2, rotation);
   }
 
-  protected abstract void prepareAudioRtp(boolean isStereo, int sampleRate);
+  protected abstract void prepareAudioRtp(boolean isStereo, int sampleRate, AudioCodec audioCodec);
 
   /**
    * Call this method before use @startStream. If not you will do a stream without audio.
@@ -358,24 +359,24 @@ public abstract class Camera2Base {
    * doesn't support any configuration seated or your device hasn't a AAC encoder).
    */
   public boolean prepareAudio(int audioSource, int bitrate, int sampleRate, boolean isStereo, boolean echoCanceler,
-      boolean noiseSuppressor) {
+      boolean noiseSuppressor, AudioCodec audioCode) {
     if (!microphoneManager.createMicrophone(audioSource, sampleRate, isStereo, echoCanceler, noiseSuppressor)) {
       return false;
     }
-    prepareAudioRtp(isStereo, sampleRate);
+    prepareAudioRtp(isStereo, sampleRate, audioCode);
     audioInitialized = audioEncoder.prepareAudioEncoder(bitrate, sampleRate, isStereo,
         microphoneManager.getMaxInputSize());
     return audioInitialized;
   }
 
   public boolean prepareAudio(int bitrate, int sampleRate, boolean isStereo, boolean echoCanceler,
-      boolean noiseSuppressor) {
+      boolean noiseSuppressor, AudioCodec audioCode) {
     return prepareAudio(MediaRecorder.AudioSource.DEFAULT, bitrate, sampleRate, isStereo, echoCanceler,
-        noiseSuppressor);
+        noiseSuppressor, audioCode);
   }
 
-  public boolean prepareAudio(int bitrate, int sampleRate, boolean isStereo) {
-    return prepareAudio(bitrate, sampleRate, isStereo, false, false);
+  public boolean prepareAudio(int bitrate, int sampleRate, boolean isStereo, AudioCodec audioCode) {
+    return prepareAudio(bitrate, sampleRate, isStereo, false, false, audioCode);
   }
 
   /**
@@ -397,7 +398,7 @@ public abstract class Camera2Base {
    * doesn't support any configuration seated or your device hasn't a AAC encoder).
    */
   public boolean prepareAudio() {
-    return prepareAudio(64 * 1024, 32000, true, false, false);
+    return prepareAudio(64 * 1024, 32000, true, false, false, AudioCodec.AAC);
   }
 
   /**

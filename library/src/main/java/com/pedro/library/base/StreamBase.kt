@@ -29,6 +29,7 @@ import android.view.Surface
 import android.view.SurfaceView
 import android.view.TextureView
 import androidx.annotation.RequiresApi
+import com.pedro.common.AudioCodec
 import com.pedro.common.VideoCodec
 import com.pedro.encoder.EncoderErrorCallback
 import com.pedro.encoder.Frame
@@ -550,7 +551,7 @@ abstract class StreamBase(
     }
   }
 
-  protected abstract fun audioInfo(sampleRate: Int, isStereo: Boolean)
+  protected abstract fun audioInfo(sampleRate: Int, isStereo: Boolean, audioCodec: AudioCodec)
   protected abstract fun rtpStartStream(endPoint: String)
   protected abstract fun rtpStopStream()
   protected abstract fun onSpsPpsVpsRtp(sps: ByteBuffer, pps: ByteBuffer, vps: ByteBuffer?)

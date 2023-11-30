@@ -19,6 +19,7 @@ import android.content.Context
 import android.media.MediaCodec
 import android.os.Build
 import androidx.annotation.RequiresApi
+import com.pedro.common.AudioCodec
 import com.pedro.common.ConnectChecker
 import com.pedro.common.VideoCodec
 import com.pedro.library.base.DisplayBase
@@ -66,9 +67,9 @@ class GenericDisplay(
     srtClient.setVideoCodec(codec)
   }
 
-  override fun prepareAudioRtp(isStereo: Boolean, sampleRate: Int) {
+  override fun prepareAudioRtp(isStereo: Boolean, sampleRate: Int, audioCodec: AudioCodec) {
     rtmpClient.setAudioInfo(sampleRate, isStereo)
-    rtspClient.setAudioInfo(sampleRate, isStereo)
+    rtspClient.setAudioInfo(sampleRate, isStereo, audioCodec)
     srtClient.setAudioInfo(sampleRate, isStereo)
   }
 
