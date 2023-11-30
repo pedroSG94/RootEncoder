@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 pedroSG94.
+ * Copyright (C) 2021 pedroSG94.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,26 +14,11 @@
  * limitations under the License.
  */
 
-package com.pedro.rtsp.utils
+package com.pedro.common
 
 /**
- * Created by pedro on 19/02/17.
+ * Created by pedro on 28/11/18.
  */
-object RtpConstants {
-
-  @JvmField
-  val lock = Any()
-  var trackAudio = 1
-  var trackVideo = 0
-  const val clockVideoFrequency = 90000L
-  const val RTP_HEADER_LENGTH = 12
-  const val MTU = 1500
-  const val payloadType = 96
-  const val payloadTypeForG711 = 0 // 0表示 pcmu, https://blog.csdn.net/hiwubihe/article/details/84569152,
-  //H264 IDR
-  const val IDR = 5
-
-  //H265 IDR
-  const val IDR_N_LP = 20
-  const val IDR_W_DLP = 19
+enum class AudioCodec {
+  G711, AAC
 }
