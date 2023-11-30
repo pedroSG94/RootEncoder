@@ -62,7 +62,7 @@ open class CommandsManager {
   var audioDisabled = false
   private val commandParser = CommandParser()
   private var videoCodec: VideoCodec = VideoCodec.H264
-  private var audioCodec: AudioCodec = AudioCodec.AAC
+  var audioCodec: AudioCodec = AudioCodec.AAC
   //For udp
   val audioClientPorts = intArrayOf(5000, 5001)
   val videoClientPorts = intArrayOf(5002, 5003)
@@ -107,8 +107,13 @@ open class CommandsManager {
   fun setAudioInfo(sampleRate: Int, isStereo: Boolean) {
     this.isStereo = isStereo
     this.sampleRate = sampleRate
+    this.audioCodec = AudioCodec.AAC
   }
-
+  fun setAudioInfo(sampleRate: Int, isStereo: Boolean, audioCodec: AudioCodec) {
+    this.isStereo = isStereo
+    this.sampleRate = sampleRate
+    this.audioCodec = audioCodec
+  }
   fun setAuth(user: String?, password: String?) {
     this.user = user
     this.password = password
