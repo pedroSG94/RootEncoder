@@ -22,6 +22,7 @@ import android.os.Build;
 
 import androidx.annotation.RequiresApi;
 
+import com.pedro.common.AudioCodec;
 import com.pedro.common.ConnectChecker;
 import com.pedro.common.VideoCodec;
 import com.pedro.library.base.DisplayBase;
@@ -61,8 +62,8 @@ public class RtspDisplay extends DisplayBase {
   }
 
   @Override
-  protected void prepareAudioRtp(boolean isStereo, int sampleRate) {
-    rtspClient.setAudioInfo(sampleRate, isStereo);
+  protected void prepareAudioRtp(boolean isStereo, int sampleRate, AudioCodec audioCodec) {
+    rtspClient.setAudioInfo(sampleRate, isStereo, audioCodec);
   }
 
   @Override

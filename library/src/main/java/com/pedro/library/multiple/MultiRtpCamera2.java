@@ -25,6 +25,7 @@ import android.view.TextureView;
 import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 
+import com.pedro.common.AudioCodec;
 import com.pedro.common.ConnectChecker;
 import com.pedro.common.VideoCodec;
 import com.pedro.library.base.Camera2Base;
@@ -308,12 +309,12 @@ public class MultiRtpCamera2 extends Camera2Base {
   }
 
   @Override
-  protected void prepareAudioRtp(boolean isStereo, int sampleRate) {
+  protected void prepareAudioRtp(boolean isStereo, int sampleRate, AudioCodec audioCodec) {
     for (RtmpClient rtmpClient: rtmpClients) {
       rtmpClient.setAudioInfo(sampleRate, isStereo);
     }
     for (RtspClient rtspClient: rtspClients) {
-      rtspClient.setAudioInfo(sampleRate, isStereo);
+      rtspClient.setAudioInfo(sampleRate, isStereo, audioCodec);
     }
   }
 

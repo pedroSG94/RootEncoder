@@ -18,6 +18,7 @@ package com.pedro.rtmp.rtmp
 
 import android.media.MediaCodec
 import android.util.Log
+import com.pedro.common.AudioCodec
 import com.pedro.common.ConnectChecker
 import com.pedro.common.TimeUtils
 import com.pedro.common.VideoCodec

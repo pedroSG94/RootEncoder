@@ -18,6 +18,7 @@ package com.pedro.library.rtmp;
 
 import android.media.MediaCodec;
 
+import com.pedro.common.AudioCodec;
 import com.pedro.common.ConnectChecker;
 import com.pedro.library.base.OnlyAudioBase;
 import com.pedro.library.util.streamclient.RtmpStreamClient;
@@ -49,7 +50,7 @@ public class RtmpOnlyAudio extends OnlyAudioBase {
   }
 
   @Override
-  protected void prepareAudioRtp(boolean isStereo, int sampleRate) {
+  protected void prepareAudioRtp(boolean isStereo, int sampleRate, AudioCodec audioCodec) {
     rtmpClient.setAudioInfo(sampleRate, isStereo);
   }
 
