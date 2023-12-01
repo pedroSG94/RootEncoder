@@ -29,6 +29,7 @@ import android.view.Surface
 import android.view.SurfaceView
 import android.view.TextureView
 import androidx.annotation.RequiresApi
+import com.pedro.common.AudioCodec
 import com.pedro.common.VideoCodec
 import com.pedro.encoder.EncoderErrorCallback
 import com.pedro.encoder.Frame
@@ -555,10 +556,17 @@ abstract class StreamBase(
   abstract fun getStreamClient(): StreamBaseClient
 
   fun setVideoCodec(codec: VideoCodec) {
-    recordController.setVideoCodec(codec)
-    videoEncoder.type = if (codec === VideoCodec.H265) CodecUtil.H265_MIME else CodecUtil.H264_MIME
     setVideoCodecImp(codec)
+    recordController.setVideoCodec(codec)
+    videoEncoder.type = if (codec == VideoCodec.H265) CodecUtil.H265_MIME else CodecUtil.H264_MIME
+  }
+
+  fun setAudioCodec(codec: AudioCodec) {
+    setAudioCodecImp(codec)
+    recordController.setAudioCodec(codec)
+    audioEncoder.type = if (codec == AudioCodec.G711) CodecUtil.G711_MIME else CodecUtil.AAC_MIME
   }
 
   protected abstract fun setVideoCodecImp(codec: VideoCodec)
+  protected abstract fun setAudioCodecImp(codec: AudioCodec)
 }

@@ -25,6 +25,8 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 
+import com.pedro.common.AudioCodec;
+import com.pedro.common.VideoCodec;
 import com.pedro.encoder.EncoderErrorCallback;
 import com.pedro.encoder.audio.AudioEncoder;
 import com.pedro.encoder.audio.GetAacData;
@@ -33,6 +35,7 @@ import com.pedro.encoder.input.audio.GetMicrophoneData;
 import com.pedro.encoder.input.audio.MicrophoneManager;
 import com.pedro.encoder.input.audio.MicrophoneManagerManual;
 import com.pedro.encoder.input.audio.MicrophoneMode;
+import com.pedro.encoder.utils.CodecUtil;
 import com.pedro.library.base.recording.BaseRecordController;
 import com.pedro.library.base.recording.RecordController;
 import com.pedro.library.util.AacMuxerRecordController;
@@ -328,4 +331,12 @@ public abstract class OnlyAudioBase {
   };
 
   public abstract StreamBaseClient getStreamClient();
+
+  public void setAudioCodec(AudioCodec codec) {
+    setAudioCodecImp(codec);
+    recordController.setAudioCodec(codec);
+    audioEncoder.setType(codec == AudioCodec.G711 ? CodecUtil.G711_MIME : CodecUtil.AAC_MIME);
+  }
+
+  protected abstract void setAudioCodecImp(AudioCodec codec);
 }

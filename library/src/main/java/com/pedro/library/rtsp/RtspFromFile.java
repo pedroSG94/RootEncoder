@@ -22,6 +22,7 @@ import android.os.Build;
 
 import androidx.annotation.RequiresApi;
 
+import com.pedro.common.AudioCodec;
 import com.pedro.common.ConnectChecker;
 import com.pedro.common.VideoCodec;
 import com.pedro.encoder.input.decoder.AudioDecoderInterface;
@@ -84,6 +85,11 @@ public class RtspFromFile extends FromFileBase {
   @Override
   protected void setVideoCodecImp(VideoCodec codec) {
       rtspClient.setVideoCodec(codec);
+  }
+
+  @Override
+  protected void setAudioCodecImp(AudioCodec codec) {
+    rtspClient.setAudioCodec(codec);
   }
 
   @Override

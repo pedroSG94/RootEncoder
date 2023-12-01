@@ -18,6 +18,7 @@ package com.pedro.library.srt;
 
 import android.media.MediaCodec;
 
+import com.pedro.common.AudioCodec;
 import com.pedro.common.ConnectChecker;
 import com.pedro.library.base.OnlyAudioBase;
 import com.pedro.library.util.streamclient.SrtStreamClient;
@@ -46,6 +47,11 @@ public class SrtOnlyAudio extends OnlyAudioBase {
   @Override
   public SrtStreamClient getStreamClient() {
     return streamClient;
+  }
+
+  @Override
+  protected void setAudioCodecImp(AudioCodec codec) {
+    if (codec != AudioCodec.AAC) throw new IllegalArgumentException("Unsupported codec: " + codec.name());
   }
 
   @Override

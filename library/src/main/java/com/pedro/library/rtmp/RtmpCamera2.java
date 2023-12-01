@@ -24,6 +24,7 @@ import android.view.TextureView;
 
 import androidx.annotation.RequiresApi;
 
+import com.pedro.common.AudioCodec;
 import com.pedro.common.ConnectChecker;
 import com.pedro.common.VideoCodec;
 import com.pedro.library.base.Camera2Base;
@@ -98,6 +99,11 @@ public class RtmpCamera2 extends Camera2Base {
   @Override
   protected void setVideoCodecImp(VideoCodec codec) {
     rtmpClient.setVideoCodec(codec);
+  }
+
+  @Override
+  protected void setAudioCodecImp(AudioCodec codec) {
+    if (codec != AudioCodec.AAC) throw new IllegalArgumentException("Unsupported codec: " + codec.name());
   }
 
   @Override

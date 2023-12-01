@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2021 pedroSG94.
+ * Copyright (C) 2023 pedroSG94.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,6 @@
 
 package com.pedro.common
 
-/**
- * Created by pedro on 28/11/18.
- */
 enum class AudioCodec {
   G711, AAC
 }

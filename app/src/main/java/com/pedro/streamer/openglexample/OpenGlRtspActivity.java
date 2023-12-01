@@ -134,7 +134,6 @@ public class OpenGlRtspActivity extends AppCompatActivity
     etUrl = findViewById(R.id.et_rtp_url);
     etUrl.setHint(R.string.hint_rtsp);
     rtspCamera1 = new RtspCamera1(openGlView, this);
-    rtspCamera1.setAudioCodec(AudioCodec.G711);
     openGlView.getHolder().addCallback(this);
     openGlView.setOnTouchListener(this);
   }

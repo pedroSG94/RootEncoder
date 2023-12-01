@@ -22,7 +22,6 @@ import com.pedro.rtsp.utils.RtpConstants
 import java.nio.ByteBuffer
 
 /**
- * Created by pedro on 27/11/18.
  *
  * RFC 7655.
  */
@@ -45,7 +44,7 @@ class G711Packet(
     val length = bufferInfo.size - byteBuffer.position()
     if (length > 0) {
       val buffer = getBuffer(length + RtpConstants.RTP_HEADER_LENGTH)
-      byteBuffer.get(buffer, RtpConstants.RTP_HEADER_LENGTH , length)
+      byteBuffer.get(buffer, RtpConstants.RTP_HEADER_LENGTH, length)
       val ts = bufferInfo.presentationTimeUs * 1000
       markPacket(buffer)
       val rtpTs = updateTimeStamp(buffer, ts)

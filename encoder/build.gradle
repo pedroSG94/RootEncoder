@@ -48,5 +48,6 @@ afterEvaluate {
 }
 
 dependencies {
+  testImplementation 'junit:junit:4.13.2'
   api 'androidx.annotation:annotation:1.7.0'
 }
