@@ -43,14 +43,20 @@ class G711Packet(
   ) {
     val length = bufferInfo.size - byteBuffer.position()
     if (length > 0) {
-      val buffer = getBuffer(length + RtpConstants.RTP_HEADER_LENGTH)
-      byteBuffer.get(buffer, RtpConstants.RTP_HEADER_LENGTH, length)
-      val ts = bufferInfo.presentationTimeUs * 1000
-      markPacket(buffer)
-      val rtpTs = updateTimeStamp(buffer, ts)
-      updateSeq(buffer)
-      val rtpFrame = RtpFrame(buffer, rtpTs, RtpConstants.RTP_HEADER_LENGTH + length , rtpPort, rtcpPort, channelIdentifier)
-      callback(rtpFrame)
+      val maxPayload = maxPacketSize - RtpConstants.RTP_HEADER_LENGTH
+      var sum = 0
+      while (sum < length) {
+        val size = if (length - sum < maxPayload) length - sum else maxPayload
+        val buffer = getBuffer(size + RtpConstants.RTP_HEADER_LENGTH)
+        byteBuffer.get(buffer, RtpConstants.RTP_HEADER_LENGTH, size)
+        val ts = bufferInfo.presentationTimeUs * 1000
+        markPacket(buffer)
+        val rtpTs = updateTimeStamp(buffer, ts)
+        updateSeq(buffer)
+        val rtpFrame = RtpFrame(buffer, rtpTs, RtpConstants.RTP_HEADER_LENGTH + size , rtpPort, rtcpPort, channelIdentifier)
+        sum += size
+        callback(rtpFrame)
+      }
     }
   }
 }
