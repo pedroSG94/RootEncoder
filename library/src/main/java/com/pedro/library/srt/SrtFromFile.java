@@ -22,7 +22,6 @@ import android.os.Build;
 
 import androidx.annotation.RequiresApi;
 
-import com.pedro.common.AudioCodec;
 import com.pedro.common.ConnectChecker;
 import com.pedro.common.VideoCodec;
 import com.pedro.encoder.input.decoder.AudioDecoderInterface;
@@ -88,7 +87,7 @@ public class SrtFromFile extends FromFileBase {
   }
 
   @Override
-  protected void prepareAudioRtp(boolean isStereo, int sampleRate, AudioCodec audioCodec) {
+  protected void prepareAudioRtp(boolean isStereo, int sampleRate) {
     srtClient.setAudioInfo(sampleRate, isStereo);
   }
 

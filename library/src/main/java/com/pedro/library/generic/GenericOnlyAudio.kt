@@ -16,16 +16,12 @@
 package com.pedro.library.generic
 
 import android.media.MediaCodec
-import android.os.Build
-import androidx.annotation.RequiresApi
-import com.pedro.common.AudioCodec
 import com.pedro.common.ConnectChecker
 import com.pedro.library.base.OnlyAudioBase
 import com.pedro.library.util.streamclient.GenericStreamClient
 import com.pedro.library.util.streamclient.RtmpStreamClient
 import com.pedro.library.util.streamclient.RtspStreamClient
 import com.pedro.library.util.streamclient.SrtStreamClient
-import com.pedro.library.util.streamclient.StreamClientListener
 import com.pedro.rtmp.rtmp.RtmpClient
 import com.pedro.rtsp.rtsp.RtspClient
 import com.pedro.srt.srt.SrtClient
@@ -51,9 +47,9 @@ class GenericOnlyAudio(private val connectChecker: ConnectChecker): OnlyAudioBas
 
   override fun getStreamClient(): GenericStreamClient = streamClient
 
-  override fun prepareAudioRtp(isStereo: Boolean, sampleRate: Int, audioCodec: AudioCodec) {
+  override fun prepareAudioRtp(isStereo: Boolean, sampleRate: Int) {
     rtmpClient.setAudioInfo(sampleRate, isStereo)
-    rtspClient.setAudioInfo(sampleRate, isStereo, audioCodec)
+    rtspClient.setAudioInfo(sampleRate, isStereo)
     srtClient.setAudioInfo(sampleRate, isStereo)
   }
 

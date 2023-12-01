@@ -146,8 +146,8 @@ class RtspClient(private val connectChecker: ConnectChecker) {
     if (mutex.isLocked) runCatching { mutex.unlock() }
   }
 
-  fun setAudioInfo(sampleRate: Int, isStereo: Boolean, audioCodec: AudioCodec) {
-    commandsManager.setAudioInfo(sampleRate, isStereo, audioCodec)
+  fun setAudioInfo(sampleRate: Int, isStereo: Boolean) {
+    commandsManager.setAudioInfo(sampleRate, isStereo)
   }
 
   fun setVideoCodec(videoCodec: VideoCodec) {

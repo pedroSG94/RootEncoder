@@ -29,7 +29,6 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 
-import com.pedro.common.AudioCodec;
 import com.pedro.common.VideoCodec;
 import com.pedro.encoder.EncoderErrorCallback;
 import com.pedro.encoder.audio.AudioEncoder;
@@ -242,7 +241,7 @@ public abstract class FromFileBase {
     audioDecoder.prepareAudio();
     boolean result = audioEncoder.prepareAudioEncoder(bitRate, audioDecoder.getSampleRate(),
         audioDecoder.isStereo(), audioDecoder.getOutsize());
-    prepareAudioRtp(audioDecoder.isStereo(), audioDecoder.getSampleRate(), AudioCodec.AAC);
+    prepareAudioRtp(audioDecoder.isStereo(), audioDecoder.getSampleRate());
     audioEnabled = result;
     return result;
   }
@@ -292,7 +291,7 @@ public abstract class FromFileBase {
     return prepareAudio(context, uri, 64 * 1024);
   }
 
-  protected abstract void prepareAudioRtp(boolean isStereo, int sampleRate, AudioCodec audioCodec);
+  protected abstract void prepareAudioRtp(boolean isStereo, int sampleRate);
 
   /**
    * @param forceVideo force type codec used. FIRST_COMPATIBLE_FOUND, SOFTWARE, HARDWARE

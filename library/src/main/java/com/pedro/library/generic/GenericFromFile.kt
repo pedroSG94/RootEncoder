@@ -104,9 +104,9 @@ class GenericFromFile: FromFileBase {
     srtClient.setVideoCodec(codec)
   }
 
-  override fun prepareAudioRtp(isStereo: Boolean, sampleRate: Int, audioCodec: AudioCodec) {
+  override fun prepareAudioRtp(isStereo: Boolean, sampleRate: Int) {
     rtmpClient.setAudioInfo(sampleRate, isStereo)
-    rtspClient.setAudioInfo(sampleRate, isStereo, audioCodec)
+    rtspClient.setAudioInfo(sampleRate, isStereo)
     srtClient.setAudioInfo(sampleRate, isStereo)
   }
 

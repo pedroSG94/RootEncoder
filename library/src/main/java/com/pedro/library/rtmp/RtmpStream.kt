@@ -20,7 +20,6 @@ import android.content.Context
 import android.media.MediaCodec
 import android.os.Build
 import androidx.annotation.RequiresApi
-import com.pedro.common.AudioCodec
 import com.pedro.common.ConnectChecker
 import com.pedro.common.VideoCodec
 import com.pedro.library.base.StreamBase
@@ -59,7 +58,7 @@ class RtmpStream(
     rtmpClient.setVideoCodec(codec)
   }
 
-  override fun audioInfo(sampleRate: Int, isStereo: Boolean, audioCodec: AudioCodec) {
+  override fun audioInfo(sampleRate: Int, isStereo: Boolean) {
     rtmpClient.setAudioInfo(sampleRate, isStereo)
   }
 

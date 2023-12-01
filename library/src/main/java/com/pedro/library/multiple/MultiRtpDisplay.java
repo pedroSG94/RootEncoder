@@ -138,12 +138,12 @@ public class MultiRtpDisplay extends DisplayBase {
   }
 
   @Override
-  protected void prepareAudioRtp(boolean isStereo, int sampleRate, AudioCodec audioCodec) {
+  protected void prepareAudioRtp(boolean isStereo, int sampleRate) {
     for (RtmpClient rtmpClient : rtmpClients) {
       rtmpClient.setAudioInfo(sampleRate, isStereo);
     }
     for (RtspClient rtspClient : rtspClients) {
-      rtspClient.setAudioInfo(sampleRate, isStereo, audioCodec);
+      rtspClient.setAudioInfo(sampleRate, isStereo);
     }
   }
 
