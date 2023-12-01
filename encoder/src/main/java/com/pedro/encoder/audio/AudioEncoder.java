@@ -65,16 +65,16 @@ public class AudioEncoder extends BaseEncoder implements GetMicrophoneData {
     this.maxInputSize = maxInputSize;
     this.isStereo = isStereo;
     isBufferMode = true;
-    //we don't need to encode PCM buffer because it is already G711
-    if (type.equals(CodecUtil.G711_MIME)) {
-      setCallback();
-      running = false;
-      Log.i(TAG, "prepared");
-      prepared = true;
-      return true;
-    }
 
     try {
+      if (type.equals(CodecUtil.G711_MIME)) {
+        g711Codec.configure(sampleRate, isStereo ? 2 : 1);
+        setCallback();
+        running = false;
+        Log.i(TAG, "prepared");
+        prepared = true;
+        return true;
+      }
       MediaCodecInfo encoder = chooseEncoder(type);
       if (encoder != null) {
         Log.i(TAG, "Encoder selected " + encoder.getName());

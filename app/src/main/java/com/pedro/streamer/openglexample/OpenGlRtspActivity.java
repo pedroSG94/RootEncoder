@@ -33,6 +33,7 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 
+import com.pedro.common.AudioCodec;
 import com.pedro.common.ConnectChecker;
 import com.pedro.encoder.input.gl.SpriteGestureController;
 import com.pedro.encoder.input.gl.render.filters.AnalogTVFilterRender;
@@ -133,6 +134,7 @@ public class OpenGlRtspActivity extends AppCompatActivity
     etUrl = findViewById(R.id.et_rtp_url);
     etUrl.setHint(R.string.hint_rtsp);
     rtspCamera1 = new RtspCamera1(openGlView, this);
+    rtspCamera1.setAudioCodec(AudioCodec.G711);
     openGlView.getHolder().addCallback(this);
     openGlView.setOnTouchListener(this);
   }

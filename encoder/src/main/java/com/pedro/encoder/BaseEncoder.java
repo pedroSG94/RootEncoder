@@ -27,6 +27,7 @@ import android.util.Log;
 import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
 
+import com.pedro.encoder.audio.G711Codec;
 import com.pedro.encoder.utils.CodecUtil;
 
 import java.nio.ByteBuffer;
@@ -39,6 +40,7 @@ import java.util.concurrent.BlockingQueue;
 public abstract class BaseEncoder implements EncoderCallback {
 
   protected String TAG = "BaseEncoder";
+  protected final G711Codec g711Codec = new G711Codec();
   private final MediaCodec.BufferInfo bufferInfo = new MediaCodec.BufferInfo();
   private HandlerThread handlerThread;
   protected BlockingQueue<Frame> queue = new ArrayBlockingQueue<>(80);
@@ -310,9 +312,10 @@ public abstract class BaseEncoder implements EncoderCallback {
     try {
       Frame frame = getInputFrame();
       while (frame == null) frame = getInputFrame();
-      ByteBuffer buffer = ByteBuffer.wrap(frame.getBuffer(), frame.getOffset(), frame.getSize());
-      bufferInfo.presentationTimeUs = calculatePts(frame, presentTimeUs);;
-      bufferInfo.size = frame.getSize();
+      byte[] data = g711Codec.encode(frame.getBuffer(), frame.getOffset(), frame.getSize());
+      ByteBuffer buffer = ByteBuffer.wrap(data, 0, data.length);
+      bufferInfo.presentationTimeUs = calculatePts(frame, presentTimeUs);
+      bufferInfo.size = data.length;
       bufferInfo.offset = 0;
       sendBuffer(buffer, bufferInfo);
     } catch (InterruptedException e) {

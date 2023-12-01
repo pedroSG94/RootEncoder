@@ -24,7 +24,7 @@ import java.nio.ByteBuffer
 /**
  * Created by pedro on 27/11/18.
  *
- * RFC 3640.
+ * RFC 7655.
  */
 class G711Packet(
   sampleRate: Int
@@ -44,7 +44,6 @@ class G711Packet(
   ) {
     val length = bufferInfo.size - byteBuffer.position()
     if (length > 0) {
-//      RtpConstants.MTU
       val buffer = getBuffer(length + RtpConstants.RTP_HEADER_LENGTH)
       byteBuffer.get(buffer, RtpConstants.RTP_HEADER_LENGTH , length)
       val ts = bufferInfo.presentationTimeUs * 1000
