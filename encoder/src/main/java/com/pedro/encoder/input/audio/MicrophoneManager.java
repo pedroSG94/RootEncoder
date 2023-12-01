@@ -39,7 +39,7 @@ public class MicrophoneManager {
   private final String TAG = "MicrophoneManager";
   private final int DEFAULT_BUFFER_SIZE = 2048;
   private int BUFFER_SIZE = 0;
-  private int CUSTOM_BUFFER_SIZE = 0;
+  private int CUSTOM_BUFFER_SIZE = 1024;
   protected AudioRecord audioRecord;
   private final GetMicrophoneData getMicrophoneData;
   protected byte[] pcmBuffer = new byte[BUFFER_SIZE];

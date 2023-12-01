@@ -53,9 +53,18 @@ public abstract class BaseEncoder implements EncoderCallback {
   protected boolean prepared = false;
   private Handler handler;
   private EncoderErrorCallback encoderErrorCallback;
+  protected String type;
 
   public void setEncoderErrorCallback(EncoderErrorCallback encoderErrorCallback) {
     this.encoderErrorCallback = encoderErrorCallback;
+  }
+
+  public String getType() {
+    return type;
+  }
+
+  public void setType(String type) {
+    this.type = type;
   }
 
   public void restart() {
@@ -76,15 +85,15 @@ public abstract class BaseEncoder implements EncoderCallback {
     handlerThread = new HandlerThread(TAG);
     handlerThread.start();
     handler = new Handler(handlerThread.getLooper());
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && !type.equals(CodecUtil.G711_MIME)) {
       createAsyncCallback();
       codec.setCallback(callback, handler);
     }
   }
 
   private void initCodec() {
-    codec.start();
-    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
+    if (!type.equals(CodecUtil.G711_MIME)) codec.start();
+    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M || type.equals(CodecUtil.G711_MIME)) {
       handler.post(() -> {
         while (running) {
           try {
@@ -169,6 +178,10 @@ public abstract class BaseEncoder implements EncoderCallback {
   protected abstract MediaCodecInfo chooseEncoder(String mime);
 
   protected void getDataFromEncoder() throws IllegalStateException {
+    if (type.equals(CodecUtil.G711_MIME)) {
+      processG711();
+      return;
+    }
     if (isBufferMode) {
       int inBufferIndex = codec.dequeueInputBuffer(0);
       if (inBufferIndex >= 0) {
@@ -291,5 +304,21 @@ public abstract class BaseEncoder implements EncoderCallback {
         formatChanged(mediaCodec, mediaFormat);
       }
     };
+  }
+
+  private void processG711() {
+    try {
+      Frame frame = getInputFrame();
+      while (frame == null) frame = getInputFrame();
+      ByteBuffer buffer = ByteBuffer.wrap(frame.getBuffer(), frame.getOffset(), frame.getSize());
+      bufferInfo.presentationTimeUs = calculatePts(frame, presentTimeUs);;
+      bufferInfo.size = frame.getSize();
+      bufferInfo.offset = 0;
+      sendBuffer(buffer, bufferInfo);
+    } catch (InterruptedException e) {
+      Thread.currentThread().interrupt();
+    } catch (NullPointerException | IndexOutOfBoundsException e) {
+      Log.i(TAG, "Encoding error", e);
+    }
   }
 }

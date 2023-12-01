@@ -51,6 +51,7 @@ public class AudioEncoder extends BaseEncoder implements GetMicrophoneData {
 
   public AudioEncoder(GetAacData getAacData) {
     this.getAacData = getAacData;
+    type = CodecUtil.AAC_MIME;
     TAG = "AudioEncoder";
   }
 
@@ -64,8 +65,17 @@ public class AudioEncoder extends BaseEncoder implements GetMicrophoneData {
     this.maxInputSize = maxInputSize;
     this.isStereo = isStereo;
     isBufferMode = true;
+    //we don't need to encode PCM buffer because it is already G711
+    if (type.equals(CodecUtil.G711_MIME)) {
+      setCallback();
+      running = false;
+      Log.i(TAG, "prepared");
+      prepared = true;
+      return true;
+    }
+
     try {
-      MediaCodecInfo encoder = chooseEncoder(CodecUtil.AAC_MIME);
+      MediaCodecInfo encoder = chooseEncoder(type);
       if (encoder != null) {
         Log.i(TAG, "Encoder selected " + encoder.getName());
         codec = MediaCodec.createByCodecName(encoder.getName());
@@ -76,7 +86,7 @@ public class AudioEncoder extends BaseEncoder implements GetMicrophoneData {
 
       int channelCount = (isStereo) ? 2 : 1;
       MediaFormat audioFormat =
-          MediaFormat.createAudioFormat(CodecUtil.AAC_MIME, sampleRate, channelCount);
+          MediaFormat.createAudioFormat(type, sampleRate, channelCount);
       audioFormat.setInteger(MediaFormat.KEY_BIT_RATE, bitRate);
       audioFormat.setInteger(MediaFormat.KEY_MAX_INPUT_SIZE, maxInputSize);
       audioFormat.setInteger(MediaFormat.KEY_AAC_PROFILE,

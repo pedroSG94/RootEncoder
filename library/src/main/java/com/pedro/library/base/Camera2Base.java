@@ -1062,8 +1062,7 @@ public abstract class Camera2Base {
   public abstract StreamBaseClient getStreamClient();
 
   public void setVideoCodec(VideoCodec codec) {
-    recordController.setVideoMime(
-        codec == VideoCodec.H265 ? CodecUtil.H265_MIME : CodecUtil.H264_MIME);
+    recordController.setVideoCodec(codec);
     videoEncoder.setType(codec == VideoCodec.H265 ? CodecUtil.H265_MIME : CodecUtil.H264_MIME);
     setVideoCodecImp(codec);
   }

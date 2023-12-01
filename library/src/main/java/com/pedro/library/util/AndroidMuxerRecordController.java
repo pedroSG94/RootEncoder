@@ -26,6 +26,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 
+import com.pedro.common.AudioCodec;
 import com.pedro.library.base.recording.BaseRecordController;
 
 import java.io.FileDescriptor;
@@ -46,6 +47,7 @@ public class AndroidMuxerRecordController extends BaseRecordController {
   @Override
   @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
   public void startRecord(@NonNull String path, @Nullable Listener listener) throws IOException {
+    if (audioCodec == AudioCodec.G711) throw new IOException("Unsupported AudioCodec: " + audioCodec.name());
     mediaMuxer = new MediaMuxer(path, MediaMuxer.OutputFormat.MUXER_OUTPUT_MPEG_4);
     this.listener = listener;
     status = Status.STARTED;
@@ -56,6 +58,7 @@ public class AndroidMuxerRecordController extends BaseRecordController {
   @Override
   @RequiresApi(api = Build.VERSION_CODES.O)
   public void startRecord(@NonNull FileDescriptor fd, @Nullable Listener listener) throws IOException {
+    if (audioCodec == AudioCodec.G711) throw new IOException("Unsupported AudioCodec: " + audioCodec.name());
     mediaMuxer = new MediaMuxer(fd, MediaMuxer.OutputFormat.MUXER_OUTPUT_MPEG_4);
     this.listener = listener;
     status = Status.STARTED;

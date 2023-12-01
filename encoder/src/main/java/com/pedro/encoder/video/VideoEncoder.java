@@ -64,13 +64,13 @@ public class VideoEncoder extends BaseEncoder implements GetCameraData {
   private int iFrameInterval = 2;
   //for disable video
   private final FpsLimiter fpsLimiter = new FpsLimiter();
-  private String type = CodecUtil.H264_MIME;
   private FormatVideoEncoder formatVideoEncoder = FormatVideoEncoder.YUV420Dynamical;
   private int avcProfile = -1;
   private int avcProfileLevel = -1;
 
   public VideoEncoder(GetVideoData getVideoData) {
     this.getVideoData = getVideoData;
+    type = CodecUtil.H264_MIME;
     TAG = "VideoEncoder";
   }
 
@@ -287,14 +287,6 @@ public class VideoEncoder extends BaseEncoder implements GetCameraData {
 
   public int getBitRate() {
     return bitRate;
-  }
-
-  public String getType() {
-    return type;
-  }
-
-  public void setType(String type) {
-    this.type = type;
   }
 
   @Override

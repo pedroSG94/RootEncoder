@@ -490,11 +490,6 @@ abstract class StreamBase(
     return glInterface.getSurfaceTexture()
   }
 
-  protected fun setVideoMime(videoMime: String) {
-    recordController.setVideoMime(videoMime)
-    videoEncoder.type = videoMime
-  }
-
   protected fun getVideoResolution() = Size(videoEncoder.width, videoEncoder.height)
 
   protected fun getVideoFps() = videoEncoder.fps
@@ -560,9 +555,7 @@ abstract class StreamBase(
   abstract fun getStreamClient(): StreamBaseClient
 
   fun setVideoCodec(codec: VideoCodec) {
-    recordController.setVideoMime(
-      if (codec === VideoCodec.H265) CodecUtil.H265_MIME else CodecUtil.H264_MIME
-    )
+    recordController.setVideoCodec(codec)
     videoEncoder.type = if (codec === VideoCodec.H265) CodecUtil.H265_MIME else CodecUtil.H264_MIME
     setVideoCodecImp(codec)
   }

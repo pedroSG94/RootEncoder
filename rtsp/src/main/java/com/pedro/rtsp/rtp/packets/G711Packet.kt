@@ -20,8 +20,6 @@ import android.media.MediaCodec
 import com.pedro.rtsp.rtsp.RtpFrame
 import com.pedro.rtsp.utils.RtpConstants
 import java.nio.ByteBuffer
-import kotlin.experimental.and
-import kotlin.experimental.or
 
 /**
  * Created by pedro on 27/11/18.
@@ -32,7 +30,7 @@ class G711Packet(
   sampleRate: Int
 ): BasePacket(
   sampleRate.toLong(),
-  RtpConstants.payloadTypeForG711  //0表示 pcmu, https://blog.csdn.net/hiwubihe/article/details/84569152,
+  RtpConstants.payloadTypeG711
 ) {
 
   init {
@@ -46,7 +44,8 @@ class G711Packet(
   ) {
     val length = bufferInfo.size - byteBuffer.position()
     if (length > 0) {
-      val buffer = getBuffer(length + RtpConstants.RTP_HEADER_LENGTH )
+//      RtpConstants.MTU
+      val buffer = getBuffer(length + RtpConstants.RTP_HEADER_LENGTH)
       byteBuffer.get(buffer, RtpConstants.RTP_HEADER_LENGTH , length)
       val ts = bufferInfo.presentationTimeUs * 1000
       markPacket(buffer)

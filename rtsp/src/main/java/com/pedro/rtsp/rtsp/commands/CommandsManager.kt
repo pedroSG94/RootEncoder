@@ -107,13 +107,8 @@ open class CommandsManager {
   fun setAudioInfo(sampleRate: Int, isStereo: Boolean) {
     this.isStereo = isStereo
     this.sampleRate = sampleRate
-    this.audioCodec = AudioCodec.AAC
   }
-  fun setAudioInfo(sampleRate: Int, isStereo: Boolean, audioCodec: AudioCodec) {
-    this.isStereo = isStereo
-    this.sampleRate = sampleRate
-    this.audioCodec = audioCodec
-  }
+
   fun setAuth(user: String?, password: String?) {
     this.user = user
     this.password = password
@@ -167,7 +162,6 @@ open class CommandsManager {
       } else {
         createAacBody(RtpConstants.trackAudio, sampleRate, isStereo)
       }
-
     }
     return "v=0\r\n" +
         "o=- $timeStamp $timeStamp IN IP4 127.0.0.1\r\n" +
