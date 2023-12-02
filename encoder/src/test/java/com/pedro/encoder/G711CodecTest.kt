@@ -29,11 +29,19 @@ class G711CodecTest {
 
   @Test
   fun `test encode audio PCM to G711`() {
-    val buffer  = ByteArray(256) { 0x05 }
-    val expectedBuffer = byteArrayOf(
-      87, 87, 87, 87, 87, 87, 87, 87, 87, 87, 87, 87, 87, 87, 87, 87, 87, 87, 87, 87, 87, 87, 87, 87, 87, 87, 87, 87, 87, 87, 87, 87, 87, 87, 87, 87, 87, 87, 87, 87, 87, 87, 87, 87, 87, 87, 87, 87, 87, 87, 87, 87, 87, 87, 87, 87, 87, 87, 87, 87, 87, 87, 87, 87, 87, 87, 87, 87, 87, 87, 87, 87, 87, 87, 87, 87, 87, 87, 87, 87, 87, 87, 87, 87, 87, 87, 87, 87, 87, 87, 87, 87, 87, 87, 87, 87, 87, 87, 87, 87, 87, 87, 87, 87, 87, 87, 87, 87, 87, 87, 87, 87, 87, 87, 87, 87, 87, 87, 87, 87, 87, 87, 87, 87, 87, 87, 87, 87
-    )
-    val result = encoder.encode(buffer, 0, buffer.size)
-    assertArrayEquals(expectedBuffer, result)
+    val bufferPCM = byteArrayOf(24, 48, 64, 88)
+    val bufferG711 = byteArrayOf(-67, -93)
+
+    val result = encoder.encode(bufferPCM, 0, bufferPCM.size)
+    assertArrayEquals(bufferG711, result)
+  }
+
+  @Test
+  fun `test decode audio G711 to PCM`() {
+    val bufferPCM = byteArrayOf(0, 49, 0, 90)
+    val bufferG711 = byteArrayOf(-67, -93)
+
+    val result = encoder.decode(bufferG711, 0, bufferG711.size)
+    assertArrayEquals(bufferPCM, result)
   }
 }

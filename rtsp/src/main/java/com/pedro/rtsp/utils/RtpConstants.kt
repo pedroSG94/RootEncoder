@@ -29,8 +29,8 @@ object RtpConstants {
   const val RTP_HEADER_LENGTH = 12
   const val MTU = 1500
   const val payloadType = 96
-  //pcmu, https://blog.csdn.net/hiwubihe/article/details/84569152
-  const val payloadTypeG711 = 0
+  //PCMA, https://blog.csdn.net/hiwubihe/article/details/84569152
+  const val payloadTypeG711 = 8
   //H264 IDR
   const val IDR = 5
 
