@@ -111,7 +111,7 @@ dependencies {
 
 - [X] Get upload bandwidth used.
 - [x] RTMP auth (basic and digest).
-- [x] H264, H265 and AAC support.
+- [x] H264, H265, AAC and G711 support.
 - [x] TCP/UDP.
 - [x] RTSPS.
 
