@@ -25,6 +25,7 @@ import android.view.TextureView;
 import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 
+import com.pedro.common.AudioCodec;
 import com.pedro.common.ConnectChecker;
 import com.pedro.common.VideoCodec;
 import com.pedro.library.base.Camera1Base;
@@ -456,6 +457,13 @@ public class MultiRtpCamera1 extends Camera1Base {
     }
     for (RtspClient rtspClient: rtspClients) {
         rtspClient.setVideoCodec(codec);
+    }
+  }
+
+  @Override
+  protected void setAudioCodecImp(AudioCodec codec) {
+    for (RtspClient rtspClient: rtspClients) {
+      rtspClient.setAudioCodec(codec);
     }
   }
 

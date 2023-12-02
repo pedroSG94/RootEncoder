@@ -19,6 +19,8 @@ package com.pedro.library.base.recording;
 import android.media.MediaCodec;
 import android.media.MediaFormat;
 
+import com.pedro.common.AudioCodec;
+import com.pedro.common.VideoCodec;
 import com.pedro.encoder.utils.CodecUtil;
 import com.pedro.rtsp.utils.RtpConstants;
 
@@ -27,7 +29,8 @@ import java.nio.ByteBuffer;
 public abstract class BaseRecordController implements RecordController {
 
     protected Status status = Status.STOPPED;
-    protected String videoMime = CodecUtil.H264_MIME;
+    protected VideoCodec videoCodec = VideoCodec.H264;
+    protected AudioCodec audioCodec = AudioCodec.AAC;
     protected long pauseMoment = 0;
     protected long pauseTime = 0;
     protected Listener listener;
@@ -38,8 +41,12 @@ public abstract class BaseRecordController implements RecordController {
     protected boolean isOnlyAudio = false;
     protected boolean isOnlyVideo = false;
 
-    public void setVideoMime(String videoMime) {
-        this.videoMime = videoMime;
+    public void setVideoCodec(VideoCodec videoCodec) {
+        this.videoCodec = videoCodec;
+    }
+
+    public void setAudioCodec(AudioCodec audioCodec) {
+        this.audioCodec = audioCodec;
     }
 
     public boolean isRunning() {
@@ -76,10 +83,10 @@ public abstract class BaseRecordController implements RecordController {
     protected boolean isKeyFrame(ByteBuffer videoBuffer) {
         byte[] header = new byte[5];
         videoBuffer.duplicate().get(header, 0, header.length);
-        if (videoMime.equals(CodecUtil.H264_MIME) && (header[4] & 0x1F) == RtpConstants.IDR) {  //h264
+        if (videoCodec == VideoCodec.H264 && (header[4] & 0x1F) == RtpConstants.IDR) {  //h264
             return true;
         } else { //h265
-            return videoMime.equals(CodecUtil.H265_MIME)
+            return videoCodec == VideoCodec.H265
                     && ((header[4] >> 1) & 0x3f) == RtpConstants.IDR_W_DLP
                     || ((header[4] >> 1) & 0x3f) == RtpConstants.IDR_N_LP;
         }

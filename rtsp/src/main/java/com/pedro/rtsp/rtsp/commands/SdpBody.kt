@@ -42,6 +42,14 @@ object SdpBody {
       -1,  // 14
       -1)
 
+  fun createG711Body(trackAudio: Int, sampleRate: Int, isStereo: Boolean): String {
+    val channel = if (isStereo) 2 else 1
+    val payload = RtpConstants.payloadTypeG711
+    return "m=audio 0 RTP/AVP ${payload}\r\n" +
+        "a=rtpmap:$payload PCMA/$sampleRate/$channel\r\n" +
+        "a=control:streamid=$trackAudio\r\n"
+  }
+
   fun createAacBody(trackAudio: Int, sampleRate: Int, isStereo: Boolean): String {
     val sampleRateNum = AUDIO_SAMPLING_RATES.toList().indexOf(sampleRate)
     val channel = if (isStereo) 2 else 1

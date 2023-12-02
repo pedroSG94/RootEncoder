@@ -37,6 +37,7 @@ public class CodecUtil {
   public static final String H264_MIME = "video/avc";
   public static final String H265_MIME = "video/hevc";
   public static final String AAC_MIME = "audio/mp4a-latm";
+  public static final String G711_MIME = "audio/pcm_alaw";
   public static final String VORBIS_MIME = "audio/ogg";
   public static final String OPUS_MIME = "audio/opus";
 

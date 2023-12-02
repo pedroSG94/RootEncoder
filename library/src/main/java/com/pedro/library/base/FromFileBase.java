@@ -29,6 +29,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 
+import com.pedro.common.AudioCodec;
 import com.pedro.common.VideoCodec;
 import com.pedro.encoder.EncoderErrorCallback;
 import com.pedro.encoder.audio.AudioEncoder;
@@ -671,11 +672,17 @@ public abstract class FromFileBase {
   public abstract StreamBaseClient getStreamClient();
 
   public void setVideoCodec(VideoCodec codec) {
-    recordController.setVideoMime(
-        codec == VideoCodec.H265 ? CodecUtil.H265_MIME : CodecUtil.H264_MIME);
-    videoEncoder.setType(codec == VideoCodec.H265 ? CodecUtil.H265_MIME : CodecUtil.H264_MIME);
     setVideoCodecImp(codec);
+    recordController.setVideoCodec(codec);
+    videoEncoder.setType(codec == VideoCodec.H265 ? CodecUtil.H265_MIME : CodecUtil.H264_MIME);
+  }
+
+  public void setAudioCodec(AudioCodec codec) {
+    setAudioCodecImp(codec);
+    recordController.setAudioCodec(codec);
+    audioEncoder.setType(codec == AudioCodec.G711 ? CodecUtil.G711_MIME : CodecUtil.AAC_MIME);
   }
 
   protected abstract void setVideoCodecImp(VideoCodec codec);
+  protected abstract void setAudioCodecImp(AudioCodec codec);
 }

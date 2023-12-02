@@ -20,6 +20,7 @@ import android.media.MediaCodec;
 
 import androidx.annotation.Nullable;
 
+import com.pedro.common.AudioCodec;
 import com.pedro.common.ConnectChecker;
 import com.pedro.library.base.OnlyAudioBase;
 import com.pedro.library.util.streamclient.StreamBaseClient;
@@ -348,6 +349,13 @@ public class MultiRtpOnlyAudio extends OnlyAudioBase {
   @Override
   public StreamBaseClient getStreamClient() {
     return null;
+  }
+
+  @Override
+  protected void setAudioCodecImp(AudioCodec codec) {
+    for (RtspClient rtspClient: rtspClients) {
+      rtspClient.setAudioCodec(codec);
+    }
   }
 
   public void setLogs(boolean enable) {

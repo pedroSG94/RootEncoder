@@ -24,6 +24,7 @@ import android.view.TextureView;
 
 import androidx.annotation.RequiresApi;
 
+import com.pedro.common.AudioCodec;
 import com.pedro.common.ConnectChecker;
 import com.pedro.common.VideoCodec;
 import com.pedro.library.base.Camera2Base;
@@ -105,6 +106,11 @@ public class GenericCamera2 extends Camera2Base {
     rtmpClient.setVideoCodec(codec);
     rtspClient.setVideoCodec(codec);
     srtClient.setVideoCodec(codec);
+  }
+
+  @Override
+  protected void setAudioCodecImp(AudioCodec codec) {
+    rtspClient.setAudioCodec(codec);
   }
 
   @Override

@@ -18,6 +18,7 @@ package com.pedro.rtsp.rtsp
 
 import android.media.MediaCodec
 import android.util.Log
+import com.pedro.common.AudioCodec
 import com.pedro.common.ConnectChecker
 import com.pedro.common.TLSSocketFactory
 import com.pedro.common.VideoCodec
@@ -150,7 +151,11 @@ class RtspClient(private val connectChecker: ConnectChecker) {
   }
 
   fun setVideoCodec(videoCodec: VideoCodec) {
-    commandsManager.setCodec(videoCodec)
+    commandsManager.setVideoCodec(videoCodec)
+  }
+
+  fun setAudioCodec(audioCodec: AudioCodec) {
+    commandsManager.audioCodec = audioCodec
   }
 
   fun connect(url: String?) {
@@ -195,7 +200,7 @@ class RtspClient(private val connectChecker: ConnectChecker) {
             commandsManager.videoClientPorts,
             commandsManager.audioClientPorts)
           if (!commandsManager.audioDisabled) {
-            rtspSender.setAudioInfo(commandsManager.sampleRate)
+            rtspSender.setAudioInfo(commandsManager.sampleRate, commandsManager.audioCodec)
           }
           if (!commandsManager.videoDisabled) {
             if (!commandsManager.videoInfoReady()) {

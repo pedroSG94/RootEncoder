@@ -18,6 +18,7 @@ package com.pedro.rtsp.rtsp
 
 import android.media.MediaCodec
 import android.util.Log
+import com.pedro.common.AudioCodec
 import com.pedro.common.BitrateManager
 import com.pedro.common.ConnectChecker
 import com.pedro.common.onMainThread
@@ -48,7 +49,7 @@ import java.util.concurrent.*
 class RtspSender(private val connectChecker: ConnectChecker) {
 
   private var videoPacket: BasePacket? = null
-  private var aacPacket: AacPacket? = null
+  private var audioPacket: BasePacket? = null
   private var rtpSocket: BaseRtpSocket? = null
   private var baseSenderReport: BaseSenderReport? = null
 
@@ -86,8 +87,8 @@ class RtspSender(private val connectChecker: ConnectChecker) {
     videoPacket = if (vps == null) H264Packet(sps, pps) else H265Packet(sps, pps, vps)
   }
 
-  fun setAudioInfo(sampleRate: Int) {
-    aacPacket = AacPacket(sampleRate)
+  fun setAudioInfo(sampleRate: Int, audioCodec: AudioCodec) {
+    audioPacket = if (audioCodec == AudioCodec.G711) G711Packet(sampleRate) else AacPacket(sampleRate)
   }
 
   @Throws(IOException::class)
@@ -101,7 +102,7 @@ class RtspSender(private val connectChecker: ConnectChecker) {
   }
 
   fun setAudioPorts(rtpPort: Int, rtcpPort: Int) {
-    aacPacket?.setPorts(rtpPort, rtcpPort)
+    audioPacket?.setPorts(rtpPort, rtcpPort)
   }
 
   fun sendVideoFrame(h264Buffer: ByteBuffer, info: MediaCodec.BufferInfo) {
@@ -118,7 +119,7 @@ class RtspSender(private val connectChecker: ConnectChecker) {
 
   fun sendAudioFrame(aacBuffer: ByteBuffer, info: MediaCodec.BufferInfo) {
     if (running) {
-      aacPacket?.createAndSendPacket(aacBuffer, info) { rtpFrame ->
+      audioPacket?.createAndSendPacket(aacBuffer, info) { rtpFrame ->
         val result = queue.trySend(rtpFrame)
         if (!result) {
           Log.i(TAG, "Audio frame discarded")
@@ -136,7 +137,7 @@ class RtspSender(private val connectChecker: ConnectChecker) {
       val ssrcAudio = Random().nextInt().toLong()
       baseSenderReport?.setSSRC(ssrcVideo, ssrcAudio)
       videoPacket?.setSSRC(ssrcVideo)
-      aacPacket?.setSSRC(ssrcAudio)
+      audioPacket?.setSSRC(ssrcAudio)
       val isTcp = rtpSocket is RtpSocketTcp
       var bytesSend = 0L
       val bitrateTask = async {
@@ -185,7 +186,7 @@ class RtspSender(private val connectChecker: ConnectChecker) {
     baseSenderReport?.reset()
     baseSenderReport?.close()
     rtpSocket?.close()
-    aacPacket?.reset()
+    audioPacket?.reset()
     videoPacket?.reset()
     resetSentAudioFrames()
     resetSentVideoFrames()

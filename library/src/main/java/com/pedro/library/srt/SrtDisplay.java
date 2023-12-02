@@ -22,6 +22,7 @@ import android.os.Build;
 
 import androidx.annotation.RequiresApi;
 
+import com.pedro.common.AudioCodec;
 import com.pedro.common.ConnectChecker;
 import com.pedro.common.VideoCodec;
 import com.pedro.library.base.DisplayBase;
@@ -53,6 +54,11 @@ public class SrtDisplay extends DisplayBase {
   @Override
   protected void setVideoCodecImp(VideoCodec codec) {
     srtClient.setVideoCodec(codec);
+  }
+
+  @Override
+  protected void setAudioCodecImp(AudioCodec codec) {
+    if (codec != AudioCodec.AAC) throw new IllegalArgumentException("Unsupported codec: " + codec.name());
   }
 
   @Override

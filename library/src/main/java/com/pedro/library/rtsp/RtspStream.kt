@@ -20,6 +20,7 @@ import android.content.Context
 import android.media.MediaCodec
 import android.os.Build
 import androidx.annotation.RequiresApi
+import com.pedro.common.AudioCodec
 import com.pedro.common.ConnectChecker
 import com.pedro.common.VideoCodec
 import com.pedro.library.base.StreamBase
@@ -56,6 +57,10 @@ class RtspStream(
 
   override fun setVideoCodecImp(codec: VideoCodec) {
       rtspClient.setVideoCodec(codec)
+  }
+
+  override fun setAudioCodecImp(codec: AudioCodec) {
+    rtspClient.setAudioCodec(codec)
   }
 
   override fun audioInfo(sampleRate: Int, isStereo: Boolean) {

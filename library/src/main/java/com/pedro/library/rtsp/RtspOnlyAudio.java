@@ -18,6 +18,7 @@ package com.pedro.library.rtsp;
 
 import android.media.MediaCodec;
 
+import com.pedro.common.AudioCodec;
 import com.pedro.common.ConnectChecker;
 import com.pedro.library.base.OnlyAudioBase;
 import com.pedro.library.util.streamclient.RtspStreamClient;
@@ -46,6 +47,11 @@ public class RtspOnlyAudio extends OnlyAudioBase {
   @Override
   public RtspStreamClient getStreamClient() {
     return streamClient;
+  }
+
+  @Override
+  protected void setAudioCodecImp(AudioCodec codec) {
+    rtspClient.setAudioCodec(codec);
   }
 
   @Override
