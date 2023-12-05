@@ -9,7 +9,7 @@ buildscript {
 
   ext.coroutines_version = "1.7.3"
   ext.junit_version = "4.13.2"
-  ext.mockito_version = "5.1.0"
+  ext.mockito_version = "5.2.1"
 
   repositories {
     google()
