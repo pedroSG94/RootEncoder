@@ -19,43 +19,30 @@ package com.pedro.rtmp.flv.video
 import android.media.MediaCodec
 import android.util.Log
 import com.pedro.common.removeInfo
+import com.pedro.common.toByteArray
 import com.pedro.rtmp.flv.FlvPacket
 import com.pedro.rtmp.flv.FlvType
 import java.nio.ByteBuffer
 
 /**
- * Created by pedro on 14/08/23.
+ * Created by pedro on 05/12/23.
  *
  */
-class H265Packet {
+class Av1Packet {
 
-  private val TAG = "H265Packet"
+  private val TAG = "AV1Packet"
 
   private val header = ByteArray(8)
   private val naluSize = 4
   //first time we need send video config
   private var configSend = false
 
-  private var sps: ByteArray? = null
-  private var pps: ByteArray? = null
-  private var vps: ByteArray? = null
+  private var av1ConfigurationRecord: ByteArray? = null
   var profileIop = ProfileIop.BASELINE
 
-  fun sendVideoInfo(sps: ByteBuffer, pps: ByteBuffer, vps: ByteBuffer) {
-    val mSps = removeHeader(sps)
-    val mPps = removeHeader(pps)
-    val mVps = removeHeader(vps)
-
-    val spsBytes = ByteArray(mSps.remaining())
-    val ppsBytes = ByteArray(mPps.remaining())
-    val vpsBytes = ByteArray(mVps.remaining())
-    mSps.get(spsBytes, 0, spsBytes.size)
-    mPps.get(ppsBytes, 0, ppsBytes.size)
-    mVps.get(vpsBytes, 0, vpsBytes.size)
-
-    this.sps = spsBytes
-    this.pps = ppsBytes
-    this.vps = vpsBytes
+  fun sendVideoInfo(av1ConfigurationRecord: ByteBuffer) {
+    val mAv1ConfigurationRecord = removeHeader(av1ConfigurationRecord)
+    this.av1ConfigurationRecord = mAv1ConfigurationRecord.toByteArray()
   }
 
   fun createFlvVideoPacket(
@@ -65,12 +52,13 @@ class H265Packet {
   ) {
     val fixedBuffer = byteBuffer.removeInfo(info)
     val ts = info.presentationTimeUs / 1000
+
     //header is 8 bytes length:
     //mark first byte as extended header (0b10000000)
     //4 bits data type, 4 bits packet type
-    //4 bytes extended codec type (in this case hevc)
+    //4 bytes extended codec type (in this case av01)
     //3 bytes CompositionTime, the cts.
-    val codec = VideoFormat.HEVC.value // { "h", "v", "c", "1" }
+    val codec = VideoFormat.AV1.value // { "a", "v", "0", "1" }
     header[1] = (codec shr 24).toByte()
     header[2] = (codec shr 16).toByte()
     header[3] = (codec shr 8).toByte()
@@ -85,13 +73,12 @@ class H265Packet {
     if (!configSend) {
       //avoid send cts on sequence start
       header[0] = (0b10000000 or (VideoDataType.KEYFRAME.value shl 4) or FourCCPacketType.SEQUENCE_START.value).toByte()
-      val sps = this.sps
-      val pps = this.pps
-      val vps = this.vps
-      if (sps != null && pps != null && vps != null) {
-        val config = VideoSpecificConfigHEVC(sps, pps, vps)
+      val sps = this.av1ConfigurationRecord
+      if (sps != null) {
+        val config = sps
         buffer = ByteArray(config.size + header.size - ctsLength)
-        config.write(buffer, header.size - ctsLength)
+        val b = ByteBuffer.wrap(buffer, header.size - ctsLength, sps.size)
+        b.put(sps)
       } else {
         Log.e(TAG, "waiting for a valid sps and pps")
         return
@@ -110,9 +97,9 @@ class H265Packet {
 
     val type: Int = validBuffer.get(0).toInt().shr(1 and 0x3f)
     var nalType = VideoDataType.INTER_FRAME.value
-    if (type == VideoNalType.IDR_N_LP.value || type == VideoNalType.IDR_W_DLP.value || info.flags == MediaCodec.BUFFER_FLAG_KEY_FRAME) {
+    if (type == VideoNalType.KEY.value || info.flags == MediaCodec.BUFFER_FLAG_KEY_FRAME) {
       nalType = VideoDataType.KEYFRAME.value
-    } else if (type == VideoNalType.HEVC_VPS.value || type == VideoNalType.HEVC_SPS.value || type == VideoNalType.HEVC_PPS.value) {
+    } else if (type == VideoNalType.CONFIG.value) {
       // we don't need send it because we already do it in video config
       return
     }
@@ -141,21 +128,19 @@ class H265Packet {
   private fun getHeaderSize(byteBuffer: ByteBuffer): Int {
     if (byteBuffer.remaining() < 4) return 0
 
-    val sps = this.sps
-    val pps = this.pps
-    val vps = this.vps
-    if (sps != null && pps != null && vps != null) {
+    val av1ConfigurationRecord = this.av1ConfigurationRecord
+    if (av1ConfigurationRecord != null) {
       val startCodeSize = getStartCodeSize(byteBuffer)
       if (startCodeSize == 0) return 0
       val startCode = ByteArray(startCodeSize) { 0x00 }
       startCode[startCodeSize - 1] = 0x01
-      val avcHeader = startCode.plus(vps).plus(startCode).plus(sps).plus(startCode).plus(pps).plus(startCode)
-      if (byteBuffer.remaining() < avcHeader.size) return startCodeSize
+      val avHeader = startCode.plus(av1ConfigurationRecord)
+      if (byteBuffer.remaining() < avHeader.size) return startCodeSize
 
-      val possibleAvcHeader = ByteArray(avcHeader.size)
+      val possibleAvcHeader = ByteArray(avHeader.size)
       byteBuffer.get(possibleAvcHeader, 0, possibleAvcHeader.size)
-      return if (avcHeader.contentEquals(possibleAvcHeader)) {
-        avcHeader.size
+      return if (avHeader.contentEquals(possibleAvcHeader)) {
+        avHeader.size
       } else {
         startCodeSize
       }
@@ -179,9 +164,7 @@ class H265Packet {
 
   fun reset(resetInfo: Boolean = true) {
     if (resetInfo) {
-      sps = null
-      pps = null
-      vps = null
+      av1ConfigurationRecord = null
     }
     configSend = false
   }

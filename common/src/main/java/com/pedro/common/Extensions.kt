@@ -26,6 +26,17 @@ import java.util.concurrent.BlockingQueue
  * Created by pedro on 3/11/23.
  */
 
+fun ByteBuffer.toByteArray(): ByteArray {
+  return if (this.hasArray() && !isDirect) {
+    this.array()
+  } else {
+    this.rewind()
+    val byteArray = ByteArray(this.remaining())
+    this.get(byteArray)
+    byteArray
+  }
+}
+
 fun ByteBuffer.removeInfo(info: MediaCodec.BufferInfo): ByteBuffer {
   try {
     position(info.offset)

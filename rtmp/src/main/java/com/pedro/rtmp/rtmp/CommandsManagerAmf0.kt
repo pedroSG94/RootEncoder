@@ -55,6 +55,11 @@ class CommandsManagerAmf0: CommandsManager() {
         list.add(AmfString("hvc1"))
         val array = AmfStrictArray(list)
         connectInfo.setProperty("fourCcList", array)
+      } else if (videoCodec == VideoCodec.AV1) {
+        val list = mutableListOf<AmfData>()
+        list.add(AmfString("av01"))
+        val array = AmfStrictArray(list)
+        connectInfo.setProperty("fourCcList", array)
       }
     }
     connectInfo.setProperty("pageUrl", "")
@@ -108,9 +113,12 @@ class CommandsManagerAmf0: CommandsManager() {
       amfEcmaArray.setProperty("width", width.toDouble())
       amfEcmaArray.setProperty("height", height.toDouble())
       //few servers don't support it even if it is in the standard rtmp enhanced
-      //val codecValue = if (videoCodec == VideoCodec.H265) VideoFormat.HEVC.value else VideoFormat.AVC.value
-      //amfEcmaArray.setProperty("videocodecid", codecValue.toDouble())
-      amfEcmaArray.setProperty("videocodecid", VideoFormat.AVC.value.toDouble())
+      val codecValue = when (videoCodec) {
+        VideoCodec.H264 -> VideoFormat.AVC.value
+        VideoCodec.H265 -> VideoFormat.HEVC.value
+        VideoCodec.AV1 -> VideoFormat.AV1.value
+      }
+      amfEcmaArray.setProperty("videocodecid", codecValue.toDouble())
       amfEcmaArray.setProperty("framerate", fps.toDouble())
       amfEcmaArray.setProperty("videodatarate", 0.0)
     }

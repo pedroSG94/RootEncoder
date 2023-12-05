@@ -26,6 +26,7 @@ import com.pedro.common.trySend
 import com.pedro.rtmp.flv.FlvPacket
 import com.pedro.rtmp.flv.FlvType
 import com.pedro.rtmp.flv.audio.AacPacket
+import com.pedro.rtmp.flv.video.Av1Packet
 import com.pedro.rtmp.flv.video.H264Packet
 import com.pedro.rtmp.flv.video.H265Packet
 import com.pedro.rtmp.flv.video.ProfileIop
@@ -55,6 +56,7 @@ class RtmpSender(
   private var aacPacket = AacPacket()
   private var h264Packet = H264Packet()
   private var h265Packet = H265Packet()
+  private var av1Packet = Av1Packet()
   @Volatile
   private var running = false
   private var cacheSize = 200
@@ -83,7 +85,7 @@ class RtmpSender(
       if (vps == null || pps == null) throw IllegalArgumentException("pps or vps can't be null with h265")
       h265Packet.sendVideoInfo(sps, pps, vps)
     } else if (videoCodec == VideoCodec.AV1) {
-      //TODO send info to av1 packet
+      av1Packet.sendVideoInfo(sps)
     } else {
       if (pps == null) throw IllegalArgumentException("pps can't be null with h264")
       h264Packet.sendVideoInfo(sps, pps)
@@ -108,7 +110,11 @@ class RtmpSender(
 
   fun sendVideoFrame(h264Buffer: ByteBuffer, info: MediaCodec.BufferInfo) {
     if (running) {
-      if (videoCodec == VideoCodec.H265) {
+      if (videoCodec == VideoCodec.AV1) {
+        av1Packet.createFlvVideoPacket(h264Buffer, info) { flvPacket ->
+          enqueueVideoFrame(flvPacket)
+        }
+      } else if (videoCodec == VideoCodec.H265) {
         h265Packet.createFlvVideoPacket(h264Buffer, info) { flvPacket ->
           enqueueVideoFrame(flvPacket)
         }

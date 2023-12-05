@@ -20,6 +20,7 @@ import android.media.MediaCodec
 import android.os.Build
 import android.util.Log
 import com.pedro.common.removeInfo
+import com.pedro.common.toByteArray
 import com.pedro.srt.mpeg2ts.Codec
 import com.pedro.srt.mpeg2ts.MpegTsPacket
 import com.pedro.srt.mpeg2ts.MpegType
@@ -28,7 +29,6 @@ import com.pedro.srt.mpeg2ts.PesType
 import com.pedro.srt.mpeg2ts.psi.PsiManager
 import com.pedro.srt.srt.packets.data.PacketPosition
 import com.pedro.srt.utils.startWith
-import com.pedro.srt.utils.toByteArray
 import java.nio.ByteBuffer
 
 /**
