@@ -587,8 +587,8 @@ public abstract class DisplayBase {
 
   private final GetVideoData getVideoData = new GetVideoData() {
     @Override
-    public void onSpsPpsVps(@NonNull ByteBuffer sps, @NonNull ByteBuffer pps, @Nullable ByteBuffer vps) {
-      onSpsPpsVpsRtp(sps.duplicate(), pps.duplicate(), vps != null ? vps.duplicate() : null);
+    public void onSpsPpsVps(@NonNull ByteBuffer sps, @Nullable ByteBuffer pps, @Nullable ByteBuffer vps) {
+      onSpsPpsVpsRtp(sps.duplicate(),  pps != null ? pps.duplicate(): null, vps != null ? vps.duplicate() : null);
     }
 
     @Override

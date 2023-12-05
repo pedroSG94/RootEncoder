@@ -17,5 +17,5 @@
 package com.pedro.common
 
 enum class VideoCodec {
-    H264, H265
+    H264, H265, AV1
 }

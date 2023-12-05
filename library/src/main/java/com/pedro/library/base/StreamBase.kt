@@ -532,8 +532,8 @@ abstract class StreamBase(
   }
 
   private val getVideoData: GetVideoData = object : GetVideoData {
-    override fun onSpsPpsVps(sps: ByteBuffer, pps: ByteBuffer, vps: ByteBuffer?) {
-      onSpsPpsVpsRtp(sps.duplicate(), pps.duplicate(), vps?.duplicate())
+    override fun onSpsPpsVps(sps: ByteBuffer, pps: ByteBuffer?, vps: ByteBuffer?) {
+      onSpsPpsVpsRtp(sps.duplicate(), pps?.duplicate(), vps?.duplicate())
     }
 
     override fun getVideoData(h264Buffer: ByteBuffer, info: MediaCodec.BufferInfo) {
@@ -549,7 +549,7 @@ abstract class StreamBase(
   protected abstract fun audioInfo(sampleRate: Int, isStereo: Boolean)
   protected abstract fun rtpStartStream(endPoint: String)
   protected abstract fun rtpStopStream()
-  protected abstract fun onSpsPpsVpsRtp(sps: ByteBuffer, pps: ByteBuffer, vps: ByteBuffer?)
+  protected abstract fun onSpsPpsVpsRtp(sps: ByteBuffer, pps: ByteBuffer?, vps: ByteBuffer?)
   protected abstract fun getH264DataRtp(h264Buffer: ByteBuffer, info: MediaCodec.BufferInfo)
   protected abstract fun getAacDataRtp(aacBuffer: ByteBuffer, info: MediaCodec.BufferInfo)
 

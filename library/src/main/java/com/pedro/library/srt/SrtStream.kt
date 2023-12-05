@@ -75,8 +75,8 @@ class SrtStream(
     srtClient.disconnect()
   }
 
-  override fun onSpsPpsVpsRtp(sps: ByteBuffer, pps: ByteBuffer, vps: ByteBuffer?) {
-    srtClient.setVideoInfo(sps, pps, vps)
+  override fun onSpsPpsVpsRtp(sps: ByteBuffer, pps: ByteBuffer?, vps: ByteBuffer?) {
+    srtClient.setVideoInfo(sps, pps!!, vps)
   }
 
   override fun getH264DataRtp(h264Buffer: ByteBuffer, info: MediaCodec.BufferInfo) {

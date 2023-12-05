@@ -98,9 +98,9 @@ open class CommandsManager {
     return sps != null && pps != null && if (videoCodec == VideoCodec.H264) true else vps != null
   }
 
-  fun setVideoInfo(sps: ByteBuffer, pps: ByteBuffer, vps: ByteBuffer?) {
+  fun setVideoInfo(sps: ByteBuffer, pps: ByteBuffer?, vps: ByteBuffer?) {
     this.sps = sps.getData()
-    this.pps = pps.getData()
+    this.pps = pps?.getData()
     this.vps = vps?.getData()
   }
 

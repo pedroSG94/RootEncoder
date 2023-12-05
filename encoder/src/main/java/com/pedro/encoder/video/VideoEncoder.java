@@ -297,8 +297,12 @@ public class VideoEncoder extends BaseEncoder implements GetCameraData {
   }
 
   private void sendSPSandPPS(MediaFormat mediaFormat) {
-    //H265
-    if (type.equals(CodecUtil.H265_MIME)) {
+    //AV1
+    if (type.equals(CodecUtil.AV1_MIME)) {
+      ByteBuffer bufferInfo = mediaFormat.getByteBuffer("csd-0");
+      getVideoData.onSpsPpsVps(bufferInfo, null, null);
+      //H265
+    } else if (type.equals(CodecUtil.H265_MIME)) {
       List<ByteBuffer> byteBufferList = extractVpsSpsPpsFromH265(mediaFormat.getByteBuffer("csd-0"));
       oldSps = byteBufferList.get(1);
       oldPps = byteBufferList.get(2);
@@ -430,6 +434,15 @@ public class VideoEncoder extends BaseEncoder implements GetCameraData {
     return byteBufferList;
   }
 
+  /**
+   *
+   * @param buffer key frame
+   * @return av1 configuration record data
+   */
+  private ByteBuffer extractAv1ConfigurationRecord(ByteBuffer buffer) {
+    return null;
+  }
+
   @Override
   protected Frame getInputFrame() throws InterruptedException {
     Frame frame = queue.take();
@@ -484,7 +497,7 @@ public class VideoEncoder extends BaseEncoder implements GetCameraData {
       }
     } else if (!spsPpsSetted && type.equals(CodecUtil.H265_MIME)) {
       Log.i(TAG, "formatChanged not called, doing manual vps/sps/pps extraction...");
-      List<ByteBuffer> byteBufferList = extractVpsSpsPpsFromH265(byteBuffer);
+      List<ByteBuffer> byteBufferList = extractVpsSpsPpsFromH265(byteBuffer.duplicate());
       if (byteBufferList.size() == 3) {
         Log.i(TAG, "manual vps/sps/pps extraction success");
         oldSps = byteBufferList.get(1);
@@ -494,6 +507,15 @@ public class VideoEncoder extends BaseEncoder implements GetCameraData {
         spsPpsSetted = true;
       } else {
         Log.e(TAG, "manual vps/sps/pps extraction failed");
+      }
+    } else if (!spsPpsSetted && type.equals(CodecUtil.AV1_MIME)) {
+      Log.i(TAG, "formatChanged not called, doing manual av1 extraction...");
+      ByteBuffer av1ConfigurationRecord = extractAv1ConfigurationRecord(byteBuffer.duplicate());
+      if (av1ConfigurationRecord != null) {
+        getVideoData.onSpsPpsVps(av1ConfigurationRecord, null, null);
+        spsPpsSetted = true;
+      } else {
+        Log.e(TAG, "manual av1 extraction failed");
       }
     }
     if (formatVideoEncoder == FormatVideoEncoder.SURFACE) {

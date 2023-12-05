@@ -83,7 +83,10 @@ public abstract class BaseRecordController implements RecordController {
     protected boolean isKeyFrame(ByteBuffer videoBuffer) {
         byte[] header = new byte[5];
         videoBuffer.duplicate().get(header, 0, header.length);
-        if (videoCodec == VideoCodec.H264 && (header[4] & 0x1F) == RtpConstants.IDR) {  //h264
+        if (videoCodec == VideoCodec.AV1) {
+            //TODO find the way to check it
+            return false;
+        } else if (videoCodec == VideoCodec.H264 && (header[4] & 0x1F) == RtpConstants.IDR) {  //h264
             return true;
         } else { //h265
             return videoCodec == VideoCodec.H265

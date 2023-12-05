@@ -78,11 +78,14 @@ class RtmpSender(
     private const val TAG = "RtmpSender"
   }
 
-  fun setVideoInfo(sps: ByteBuffer, pps: ByteBuffer, vps: ByteBuffer?) {
+  fun setVideoInfo(sps: ByteBuffer, pps: ByteBuffer?, vps: ByteBuffer?) {
     if (videoCodec == VideoCodec.H265) {
-      if (vps == null) throw IllegalArgumentException("vps can't be null with h265")
+      if (vps == null || pps == null) throw IllegalArgumentException("pps or vps can't be null with h265")
       h265Packet.sendVideoInfo(sps, pps, vps)
+    } else if (videoCodec == VideoCodec.AV1) {
+      //TODO send info to av1 packet
     } else {
+      if (pps == null) throw IllegalArgumentException("pps can't be null with h264")
       h264Packet.sendVideoInfo(sps, pps)
     }
   }
