@@ -909,6 +909,9 @@ public abstract class Camera1Base {
    */
   public void setLimitFPSOnFly(int fps) {
     videoEncoder.setFps(fps);
+    if (glInterface != null) {
+      glInterface.setFps(fps);
+    }
   }
 
   /**
