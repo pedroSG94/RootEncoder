@@ -33,7 +33,6 @@ class Av1Packet {
   private val TAG = "AV1Packet"
 
   private val header = ByteArray(8)
-  private val naluSize = 4
   //first time we need send video config
   private var configSend = false
 
@@ -41,8 +40,7 @@ class Av1Packet {
   var profileIop = ProfileIop.BASELINE
 
   fun sendVideoInfo(av1ConfigurationRecord: ByteBuffer) {
-    val mAv1ConfigurationRecord = removeHeader(av1ConfigurationRecord)
-    this.av1ConfigurationRecord = mAv1ConfigurationRecord.toByteArray()
+    this.av1ConfigurationRecord = av1ConfigurationRecord.toByteArray().reversedArray()
   }
 
   fun createFlvVideoPacket(
@@ -50,7 +48,7 @@ class Av1Packet {
     info: MediaCodec.BufferInfo,
     callback: (FlvPacket) -> Unit
   ) {
-    val fixedBuffer = byteBuffer.removeInfo(info)
+    val fixedBuffer = byteBuffer.duplicate().removeInfo(info)
     val ts = info.presentationTimeUs / 1000
 
     //header is 8 bytes length:
@@ -73,14 +71,14 @@ class Av1Packet {
     if (!configSend) {
       //avoid send cts on sequence start
       header[0] = (0b10000000 or (VideoDataType.KEYFRAME.value shl 4) or FourCCPacketType.SEQUENCE_START.value).toByte()
-      val sps = this.av1ConfigurationRecord
-      if (sps != null) {
-        val config = sps
+      val av1ConfigurationRecord = this.av1ConfigurationRecord
+      if (av1ConfigurationRecord != null) {
+        val config = av1ConfigurationRecord
         buffer = ByteArray(config.size + header.size - ctsLength)
-        val b = ByteBuffer.wrap(buffer, header.size - ctsLength, sps.size)
-        b.put(sps)
+        val b = ByteBuffer.wrap(buffer, header.size - ctsLength, av1ConfigurationRecord.size)
+        b.put(av1ConfigurationRecord)
       } else {
-        Log.e(TAG, "waiting for a valid sps and pps")
+        Log.e(TAG, "waiting for a valid av1ConfigurationRecord")
         return
       }
 
@@ -88,14 +86,11 @@ class Av1Packet {
       callback(FlvPacket(buffer, ts, buffer.size, FlvType.VIDEO))
       configSend = true
     }
-    val headerSize = getHeaderSize(fixedBuffer)
-    if (headerSize == 0) return //invalid buffer or waiting for sps/pps
     fixedBuffer.rewind()
-    val validBuffer = removeHeader(fixedBuffer, headerSize)
-    val size = validBuffer.remaining()
-    buffer = ByteArray(header.size + size + naluSize)
+    val size = fixedBuffer.remaining()
+    buffer = ByteArray(header.size + size)
 
-    val type: Int = validBuffer.get(0).toInt().shr(1 and 0x3f)
+    val type: Int = fixedBuffer.get(0).toInt().shr(1 and 0x3f)
     var nalType = VideoDataType.INTER_FRAME.value
     if (type == VideoNalType.KEY.value || info.flags == MediaCodec.BUFFER_FLAG_KEY_FRAME) {
       nalType = VideoDataType.KEYFRAME.value
@@ -104,62 +99,10 @@ class Av1Packet {
       return
     }
     header[0] = (0b10000000 or (nalType shl 4) or FourCCPacketType.CODED_FRAMES.value).toByte()
-    writeNaluSize(buffer, header.size, size)
-    validBuffer.get(buffer, header.size + naluSize, size)
+    fixedBuffer.get(buffer, header.size, size)
 
     System.arraycopy(header, 0, buffer, 0, header.size)
     callback(FlvPacket(buffer, ts, buffer.size, FlvType.VIDEO))
-  }
-
-  //naluSize = UInt32
-  private fun writeNaluSize(buffer: ByteArray, offset: Int, size: Int) {
-    buffer[offset] = (size ushr 24).toByte()
-    buffer[offset + 1] = (size ushr 16).toByte()
-    buffer[offset + 2] = (size ushr 8).toByte()
-    buffer[offset + 3] = size.toByte()
-  }
-
-  private fun removeHeader(byteBuffer: ByteBuffer, size: Int = -1): ByteBuffer {
-    val position = if (size == -1) getStartCodeSize(byteBuffer) else size
-    byteBuffer.position(position)
-    return byteBuffer.slice()
-  }
-
-  private fun getHeaderSize(byteBuffer: ByteBuffer): Int {
-    if (byteBuffer.remaining() < 4) return 0
-
-    val av1ConfigurationRecord = this.av1ConfigurationRecord
-    if (av1ConfigurationRecord != null) {
-      val startCodeSize = getStartCodeSize(byteBuffer)
-      if (startCodeSize == 0) return 0
-      val startCode = ByteArray(startCodeSize) { 0x00 }
-      startCode[startCodeSize - 1] = 0x01
-      val avHeader = startCode.plus(av1ConfigurationRecord)
-      if (byteBuffer.remaining() < avHeader.size) return startCodeSize
-
-      val possibleAvcHeader = ByteArray(avHeader.size)
-      byteBuffer.get(possibleAvcHeader, 0, possibleAvcHeader.size)
-      return if (avHeader.contentEquals(possibleAvcHeader)) {
-        avHeader.size
-      } else {
-        startCodeSize
-      }
-    }
-    return 0
-  }
-
-  private fun getStartCodeSize(byteBuffer: ByteBuffer): Int {
-    var startCodeSize = 0
-    if (byteBuffer.get(0).toInt() == 0x00 && byteBuffer.get(1).toInt() == 0x00
-      && byteBuffer.get(2).toInt() == 0x00 && byteBuffer.get(3).toInt() == 0x01) {
-      //match 00 00 00 01
-      startCodeSize = 4
-    } else if (byteBuffer.get(0).toInt() == 0x00 && byteBuffer.get(1).toInt() == 0x00
-      && byteBuffer.get(2).toInt() == 0x01) {
-      //match 00 00 01
-      startCodeSize = 3
-    }
-    return startCodeSize
   }
 
   fun reset(resetInfo: Boolean = true) {
