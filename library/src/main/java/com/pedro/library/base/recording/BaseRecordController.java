@@ -82,6 +82,7 @@ public abstract class BaseRecordController implements RecordController {
 
     protected boolean isKeyFrame(ByteBuffer videoBuffer) {
         byte[] header = new byte[5];
+        if (videoBuffer.remaining() < header.length) return false;
         videoBuffer.duplicate().get(header, 0, header.length);
         if (videoCodec == VideoCodec.AV1) {
             //TODO find the way to check it

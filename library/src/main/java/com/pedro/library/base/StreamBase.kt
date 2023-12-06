@@ -558,7 +558,12 @@ abstract class StreamBase(
   fun setVideoCodec(codec: VideoCodec) {
     setVideoCodecImp(codec)
     recordController.setVideoCodec(codec)
-    videoEncoder.type = if (codec == VideoCodec.H265) CodecUtil.H265_MIME else CodecUtil.H264_MIME
+    val type = when (codec) {
+      VideoCodec.H264 -> CodecUtil.H264_MIME
+      VideoCodec.H265 -> CodecUtil.H265_MIME
+      VideoCodec.AV1 -> CodecUtil.AV1_MIME
+    }
+    videoEncoder.type = type
   }
 
   fun setAudioCodec(codec: AudioCodec) {

@@ -609,7 +609,12 @@ public abstract class DisplayBase {
   public void setVideoCodec(VideoCodec codec) {
     setVideoCodecImp(codec);
     recordController.setVideoCodec(codec);
-    videoEncoder.setType(codec == VideoCodec.H265 ? CodecUtil.H265_MIME : CodecUtil.H264_MIME);
+    String type = switch (codec) {
+      case H264 -> CodecUtil.H264_MIME;
+      case H265 -> CodecUtil.H265_MIME;
+      case AV1 -> CodecUtil.AV1_MIME;
+    };
+    videoEncoder.setType(type);
   }
 
   public void setAudioCodec(AudioCodec codec) {
