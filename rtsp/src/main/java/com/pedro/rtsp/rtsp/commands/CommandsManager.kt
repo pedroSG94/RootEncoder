@@ -23,6 +23,7 @@ import com.pedro.common.TimeUtils
 import com.pedro.common.VideoCodec
 import com.pedro.rtsp.BuildConfig
 import com.pedro.rtsp.rtsp.Protocol
+import com.pedro.rtsp.rtsp.commands.SdpBody.createAV1Body
 import com.pedro.rtsp.rtsp.commands.SdpBody.createAacBody
 import com.pedro.rtsp.rtsp.commands.SdpBody.createH264Body
 import com.pedro.rtsp.rtsp.commands.SdpBody.createH265Body
@@ -95,7 +96,11 @@ open class CommandsManager {
   }
 
   fun videoInfoReady(): Boolean {
-    return sps != null && pps != null && if (videoCodec == VideoCodec.H264) true else vps != null
+    return when (videoCodec) {
+      VideoCodec.H264 -> sps != null && pps != null
+      VideoCodec.H265 -> sps != null && pps != null && vps != null
+      VideoCodec.AV1 -> sps != null
+    }
   }
 
   fun setVideoInfo(sps: ByteBuffer, pps: ByteBuffer?, vps: ByteBuffer?) {
@@ -149,10 +154,16 @@ open class CommandsManager {
   private fun createBody(): String {
     var videoBody = ""
     if (!videoDisabled) {
-      videoBody = if (videoCodec == VideoCodec.H264) {
-        createH264Body(RtpConstants.trackVideo, spsString, ppsString)
-      } else {
-        createH265Body(RtpConstants.trackVideo, spsString, ppsString, vpsString)
+      videoBody = when (videoCodec) {
+        VideoCodec.H264 -> {
+          createH264Body(RtpConstants.trackVideo, spsString, ppsString)
+        }
+        VideoCodec.H265 -> {
+          createH265Body(RtpConstants.trackVideo, spsString, ppsString, vpsString)
+        }
+        else -> {
+          createAV1Body(RtpConstants.trackVideo)
+        }
       }
     }
     var audioBody = ""

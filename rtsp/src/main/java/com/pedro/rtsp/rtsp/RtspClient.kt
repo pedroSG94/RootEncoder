@@ -215,7 +215,7 @@ class RtspClient(private val connectChecker: ConnectChecker) {
                 return@launch
               }
             }
-            rtspSender.setVideoInfo(commandsManager.sps!!, commandsManager.pps!!, commandsManager.vps)
+            rtspSender.setVideoInfo(commandsManager.sps!!, commandsManager.pps, commandsManager.vps)
           }
           if (!tlsEnabled) {
             connectionSocket = Socket()
