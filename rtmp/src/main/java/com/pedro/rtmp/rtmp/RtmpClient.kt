@@ -23,7 +23,6 @@ import com.pedro.common.TimeUtils
 import com.pedro.common.VideoCodec
 import com.pedro.common.onMainThread
 import com.pedro.rtmp.amf.AmfVersion
-import com.pedro.rtmp.flv.video.ProfileIop
 import com.pedro.rtmp.rtmp.message.*
 import com.pedro.rtmp.rtmp.message.command.Command
 import com.pedro.rtmp.rtmp.message.control.Type
@@ -160,10 +159,6 @@ class RtmpClient(private val connectChecker: ConnectChecker) {
   fun setVideoInfo(sps: ByteBuffer, pps: ByteBuffer, vps: ByteBuffer?) {
     Log.i(TAG, "send sps and pps")
     rtmpSender.setVideoInfo(sps, pps, vps)
-  }
-
-  fun setProfileIop(profileIop: ProfileIop) {
-    rtmpSender.setProfileIop(profileIop)
   }
 
   fun setVideoResolution(width: Int, height: Int) {

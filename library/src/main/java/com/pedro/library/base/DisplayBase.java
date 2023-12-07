@@ -160,15 +160,17 @@ public abstract class DisplayBase {
    * encoder.
    * NOTE: Rotation with encoder is silence ignored in some devices.
    * @param dpi of your screen device.
+   * @param profile codec value from MediaCodecInfo.CodecProfileLevel class
+   * @param level codec value from MediaCodecInfo.CodecProfileLevel class
    * @return true if success, false if you get a error (Normally because the encoder selected
    * doesn't support any configuration seated or your device hasn't a H264 encoder).
    */
   public boolean prepareVideo(int width, int height, int fps, int bitrate, int rotation, int dpi,
-      int avcProfile, int avcProfileLevel, int iFrameInterval) {
+      int profile, int level, int iFrameInterval) {
     this.dpi = dpi;
     boolean result =
         videoEncoder.prepareVideoEncoder(width, height, fps, bitrate, rotation, iFrameInterval,
-            FormatVideoEncoder.SURFACE, avcProfile, avcProfileLevel);
+            FormatVideoEncoder.SURFACE, profile, level);
     if (glInterface != null) {
       if (rotation == 90 || rotation == 270) {
         glInterface.setEncoderSize(videoEncoder.getHeight(), videoEncoder.getWidth());

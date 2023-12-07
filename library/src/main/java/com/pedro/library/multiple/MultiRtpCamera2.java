@@ -32,7 +32,6 @@ import com.pedro.library.base.Camera2Base;
 import com.pedro.library.util.streamclient.StreamBaseClient;
 import com.pedro.library.view.LightOpenGlView;
 import com.pedro.library.view.OpenGlView;
-import com.pedro.rtmp.flv.video.ProfileIop;
 import com.pedro.rtmp.rtmp.RtmpClient;
 import com.pedro.rtsp.rtsp.RtspClient;
 
@@ -162,15 +161,6 @@ public class MultiRtpCamera2 extends Camera2Base {
     } else {
       return rtspClients[index].isStreaming();
     }
-  }
-
-  /**
-   * H264 profile.
-   *
-   * @param profileIop Could be ProfileIop.BASELINE or ProfileIop.CONSTRAINED
-   */
-  public void setProfileIop(ProfileIop profileIop, int index) {
-    rtmpClients[index].setProfileIop(profileIop);
   }
 
   public void resizeCache(RtpType rtpType, int index, int newSize) {

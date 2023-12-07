@@ -270,13 +270,15 @@ public abstract class Camera1Base {
    * @param fps frames per second of the stream.
    * @param bitrate H264 in bps.
    * @param rotation could be 90, 180, 270 or 0. You should use CameraHelper.getCameraOrientation
+   * @param profile codec value from MediaCodecInfo.CodecProfileLevel class
+   * @param level codec value from MediaCodecInfo.CodecProfileLevel class
    * with SurfaceView or TextureView and 0 with OpenGlView or LightOpenGlView. NOTE: Rotation with
    * encoder is silence ignored in some devices.
    * @return true if success, false if you get a error (Normally because the encoder selected
    * doesn't support any configuration seated or your device hasn't a H264 encoder).
    */
   public boolean prepareVideo(int width, int height, int fps, int bitrate, int iFrameInterval,
-      int rotation, int avcProfile, int avcProfileLevel) {
+      int rotation, int profile, int level) {
     if (onPreview && width != previewWidth || height != previewHeight
         || fps != videoEncoder.getFps() || rotation != videoEncoder.getRotation()) {
       stopPreview();
@@ -285,7 +287,7 @@ public abstract class Camera1Base {
     FormatVideoEncoder formatVideoEncoder =
         glInterface == null ? FormatVideoEncoder.YUV420Dynamical : FormatVideoEncoder.SURFACE;
     return videoEncoder.prepareVideoEncoder(width, height, fps, bitrate, rotation, iFrameInterval,
-        formatVideoEncoder, avcProfile, avcProfileLevel);
+        formatVideoEncoder, profile, level);
   }
 
   /**

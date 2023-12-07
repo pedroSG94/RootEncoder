@@ -93,17 +93,20 @@ abstract class StreamBase(
    * Necessary only one time before start preview, stream or record.
    * If you want change values stop preview, stream and record is necessary.
    *
+   * @param profile codec value from MediaCodecInfo.CodecProfileLevel class
+   * @param level codec value from MediaCodecInfo.CodecProfileLevel class
+   *
    * @return True if success, False if failed
    */
   @JvmOverloads
   fun prepareVideo(width: Int, height: Int, bitrate: Int, fps: Int = 30, iFrameInterval: Int = 2,
-    rotation: Int = 0, avcProfile: Int = -1, avcProfileLevel: Int = -1): Boolean {
+    rotation: Int = 0, profile: Int = -1, level: Int = -1): Boolean {
     val videoResult = videoManager.createVideoManager(width, height, fps)
     if (videoResult) {
       if (rotation == 90 || rotation == 270) glInterface.setEncoderSize(height, width)
       else glInterface.setEncoderSize(width, height) //0, 180
       return videoEncoder.prepareVideoEncoder(width, height, fps, bitrate, rotation,
-        iFrameInterval, FormatVideoEncoder.SURFACE, avcProfile, avcProfileLevel)
+        iFrameInterval, FormatVideoEncoder.SURFACE, profile, level)
     }
     return false
   }

@@ -28,7 +28,6 @@ import com.pedro.rtmp.flv.FlvType
 import com.pedro.rtmp.flv.audio.AacPacket
 import com.pedro.rtmp.flv.video.H264Packet
 import com.pedro.rtmp.flv.video.H265Packet
-import com.pedro.rtmp.flv.video.ProfileIop
 import com.pedro.rtmp.utils.socket.RtmpSocket
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -85,10 +84,6 @@ class RtmpSender(
     } else {
       h264Packet.sendVideoInfo(sps, pps)
     }
-  }
-
-  fun setProfileIop(profileIop: ProfileIop) {
-    h264Packet.profileIop = profileIop
   }
 
   fun setAudioInfo(sampleRate: Int, isStereo: Boolean) {
