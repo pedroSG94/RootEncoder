@@ -37,7 +37,6 @@ class Av1Packet {
   private var configSend = false
 
   private var av1ConfigurationRecord: ByteArray? = null
-  var profileIop = ProfileIop.BASELINE
 
   fun sendVideoInfo(av1ConfigurationRecord: ByteBuffer) {
     this.av1ConfigurationRecord = av1ConfigurationRecord.toByteArray().reversedArray()
