@@ -132,40 +132,46 @@ public abstract class FromFileBase {
   /**
    * @param filePath to video MP4 file.
    * @param bitRate H264 in bps.
+   * @param profile codec value from MediaCodecInfo.CodecProfileLevel class
+   * @param level codec value from MediaCodecInfo.CodecProfileLevel class
    * @return true if success, false if you get a error (Normally because the encoder selected
    * doesn't support any configuration seated or your device hasn't a H264 encoder).
    * @throws IOException Normally file not found.
    */
-  public boolean prepareVideo(String filePath, int bitRate, int rotation, int avcProfile,
-      int avcProfileLevel) throws IOException {
+  public boolean prepareVideo(String filePath, int bitRate, int rotation, int profile,
+      int level) throws IOException {
     if (!videoDecoder.initExtractor(filePath)) return false;
-    return finishPrepareVideo(bitRate, rotation, avcProfile, avcProfileLevel);
+    return finishPrepareVideo(bitRate, rotation, profile, level);
   }
 
   /**
    * @param fileDescriptor to video MP4 file.
    * @param bitRate H264 in bps.
+   * @param profile codec value from MediaCodecInfo.CodecProfileLevel class
+   * @param level codec value from MediaCodecInfo.CodecProfileLevel class
    * @return true if success, false if you get a error (Normally because the encoder selected
    * doesn't support any configuration seated or your device hasn't a H264 encoder).
    * @throws IOException Normally file not found.
    */
-  public boolean prepareVideo(FileDescriptor fileDescriptor, int bitRate, int rotation, int avcProfile,
-      int avcProfileLevel) throws IOException {
+  public boolean prepareVideo(FileDescriptor fileDescriptor, int bitRate, int rotation, int profile,
+      int level) throws IOException {
     if (!videoDecoder.initExtractor(fileDescriptor)) return false;
-    return finishPrepareVideo(bitRate, rotation, avcProfile, avcProfileLevel);
+    return finishPrepareVideo(bitRate, rotation, profile, level);
   }
 
   /**
    * @param uri Uri to video MP4 file.
    * @param bitRate H264 in bps.
+   * @param profile codec value from MediaCodecInfo.CodecProfileLevel class
+   * @param level codec value from MediaCodecInfo.CodecProfileLevel class
    * @return true if success, false if you get a error (Normally because the encoder selected
    * doesn't support any configuration seated or your device hasn't a H264 encoder).
    * @throws IOException Normally file not found.
    */
-  public boolean prepareVideo(Context context, Uri uri, int bitRate, int rotation, int avcProfile,
-                              int avcProfileLevel) throws IOException {
+  public boolean prepareVideo(Context context, Uri uri, int bitRate, int rotation, int profile,
+      int level) throws IOException {
     if (!videoDecoder.initExtractor(context, uri, null)) return false;
-    return finishPrepareVideo(bitRate, rotation, avcProfile, avcProfileLevel);
+    return finishPrepareVideo(bitRate, rotation, profile, level);
   }
 
   public boolean prepareVideo(String filePath, int bitRate, int rotation) throws IOException {
@@ -192,10 +198,9 @@ public abstract class FromFileBase {
     return prepareVideo(fileDescriptor, 1200 * 1024, 0);
   }
 
-  private boolean finishPrepareVideo(int bitRate, int rotation, int avcProfile,  int avcProfileLevel) {
-    boolean result =
-        videoEncoder.prepareVideoEncoder(videoDecoder.getWidth(), videoDecoder.getHeight(), videoDecoder.getFps(),
-            bitRate, rotation, 2, FormatVideoEncoder.SURFACE, avcProfile, avcProfileLevel);
+  private boolean finishPrepareVideo(int bitRate, int rotation, int profile,  int level) {
+    boolean result = videoEncoder.prepareVideoEncoder(videoDecoder.getWidth(), videoDecoder.getHeight(), videoDecoder.getFps(),
+            bitRate, rotation, 2, FormatVideoEncoder.SURFACE, profile, level);
     if (!result) return false;
     result = videoDecoder.prepareVideo(videoEncoder.getInputSurface());
     videoEnabled = result;
@@ -533,6 +538,9 @@ public abstract class FromFileBase {
    */
   public void setLimitFPSOnFly(int fps) {
     videoEncoder.setFps(fps);
+    if (glInterface != null) {
+      glInterface.setFps(fps);
+    }
   }
 
   /**

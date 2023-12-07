@@ -40,7 +40,7 @@ class VideoConfigTest {
     val pps = byteArrayOf(104, -18, 13, -117)
     val expectedConfig = byteArrayOf(1, 100, 0, 30, -1, -31, 0, 17, 103, 100, 0, 30, -84, -76, 15, 2, -115, 53, 2, 2, 2, 7, -117, 23, 8, 1, 0, 4, 104, -18, 13, -117)
 
-    val config = VideoSpecificConfigAVC(sps, pps, profileIop = ProfileIop.BASELINE)
+    val config = VideoSpecificConfigAVC(sps, pps)
     val data = ByteArray(config.size)
     config.write(data, 0)
     println(data.contentToString())

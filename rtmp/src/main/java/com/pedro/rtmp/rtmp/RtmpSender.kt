@@ -29,7 +29,6 @@ import com.pedro.rtmp.flv.audio.AacPacket
 import com.pedro.rtmp.flv.video.Av1Packet
 import com.pedro.rtmp.flv.video.H264Packet
 import com.pedro.rtmp.flv.video.H265Packet
-import com.pedro.rtmp.flv.video.ProfileIop
 import com.pedro.rtmp.utils.socket.RtmpSocket
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -90,10 +89,6 @@ class RtmpSender(
       if (pps == null) throw IllegalArgumentException("pps can't be null with h264")
       h264Packet.sendVideoInfo(sps, pps)
     }
-  }
-
-  fun setProfileIop(profileIop: ProfileIop) {
-    h264Packet.profileIop = profileIop
   }
 
   fun setAudioInfo(sampleRate: Int, isStereo: Boolean) {

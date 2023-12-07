@@ -39,7 +39,6 @@ class H265Packet {
   private var sps: ByteArray? = null
   private var pps: ByteArray? = null
   private var vps: ByteArray? = null
-  var profileIop = ProfileIop.BASELINE
 
   fun sendVideoInfo(sps: ByteBuffer, pps: ByteBuffer, vps: ByteBuffer) {
     val mSps = removeHeader(sps)

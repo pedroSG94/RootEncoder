@@ -16,7 +16,6 @@
 
 package com.pedro.library.util.streamclient
 
-import com.pedro.rtmp.flv.video.ProfileIop
 import com.pedro.rtsp.rtsp.Protocol
 import com.pedro.srt.srt.packets.control.handshake.EncryptionType
 
@@ -45,15 +44,6 @@ class GenericStreamClient(
    */
   fun setProtocol(protocol: Protocol) {
     rtspClient.setProtocol(protocol)
-  }
-
-  /**
-   * H264 profile.
-   *
-   * @param profileIop Could be ProfileIop.BASELINE or ProfileIop.CONSTRAINED
-   */
-  fun setProfileIop(profileIop: ProfileIop) {
-    rtmpClient.setProfileIop(profileIop)
   }
 
   /**

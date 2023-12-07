@@ -24,7 +24,6 @@ import com.pedro.common.AudioCodec;
 import com.pedro.common.ConnectChecker;
 import com.pedro.library.base.OnlyAudioBase;
 import com.pedro.library.util.streamclient.StreamBaseClient;
-import com.pedro.rtmp.flv.video.ProfileIop;
 import com.pedro.rtmp.rtmp.RtmpClient;
 import com.pedro.rtsp.rtsp.RtspClient;
 
@@ -91,15 +90,6 @@ public class MultiRtpOnlyAudio extends OnlyAudioBase {
     } else {
       return rtspClients[index].isStreaming();
     }
-  }
-
-  /**
-   * H264 profile.
-   *
-   * @param profileIop Could be ProfileIop.BASELINE or ProfileIop.CONSTRAINED
-   */
-  public void setProfileIop(ProfileIop profileIop, int index) {
-    rtmpClients[index].setProfileIop(profileIop);
   }
 
   public void resizeCache(RtpType rtpType, int index, int newSize) {

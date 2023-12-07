@@ -37,7 +37,7 @@ import java.nio.ByteBuffer
  * N bytes of pps:
  * pictureParameterSetNALUnit (pps data)
  */
-class VideoSpecificConfigAVC(private val sps: ByteArray, private val pps: ByteArray, private val profileIop: ProfileIop) {
+class VideoSpecificConfigAVC(private val sps: ByteArray, private val pps: ByteArray) {
 
   val size = calculateSize(sps, pps)
 
@@ -47,7 +47,8 @@ class VideoSpecificConfigAVC(private val sps: ByteArray, private val pps: ByteAr
     data.put(0x01)
     val profileIdc = sps[1]
     data.put(profileIdc)
-    data.put(profileIop.value)
+    val profileCompatibility = sps[2]
+    data.put(profileCompatibility)
     val levelIdc = sps[3]
     data.put(levelIdc)
     data.put(0xff.toByte())

@@ -65,8 +65,8 @@ public class VideoEncoder extends BaseEncoder implements GetCameraData {
   //for disable video
   private final FpsLimiter fpsLimiter = new FpsLimiter();
   private FormatVideoEncoder formatVideoEncoder = FormatVideoEncoder.YUV420Dynamical;
-  private int avcProfile = -1;
-  private int avcProfileLevel = -1;
+  private int profile = -1;
+  private int level = -1;
 
   public VideoEncoder(GetVideoData getVideoData) {
     this.getVideoData = getVideoData;
@@ -84,8 +84,8 @@ public class VideoEncoder extends BaseEncoder implements GetCameraData {
    * Prepare encoder with custom parameters
    */
   public boolean prepareVideoEncoder(int width, int height, int fps, int bitRate, int rotation,
-      int iFrameInterval, FormatVideoEncoder formatVideoEncoder, int avcProfile,
-      int avcProfileLevel) {
+      int iFrameInterval, FormatVideoEncoder formatVideoEncoder, int profile,
+      int level) {
     this.width = width;
     this.height = height;
     this.fps = fps;
@@ -93,8 +93,8 @@ public class VideoEncoder extends BaseEncoder implements GetCameraData {
     this.rotation = rotation;
     this.iFrameInterval = iFrameInterval;
     this.formatVideoEncoder = formatVideoEncoder;
-    this.avcProfile = avcProfile;
-    this.avcProfileLevel = avcProfileLevel;
+    this.profile = profile;
+    this.level = level;
     isBufferMode = true;
     MediaCodecInfo encoder = chooseEncoder(type);
     try {
@@ -142,13 +142,13 @@ public class VideoEncoder extends BaseEncoder implements GetCameraData {
       // Removed because this is ignored by most encoders, producing different results on different devices
       //  videoFormat.setInteger(MediaFormat.KEY_ROTATION, rotation);
 
-      if (this.avcProfile > 0) {
+      if (this.profile > 0) {
         // MediaFormat.KEY_PROFILE, API > 21
-        videoFormat.setInteger("profile", this.avcProfile);
+        videoFormat.setInteger("profile", this.profile);
       }
-      if (this.avcProfileLevel > 0) {
+      if (this.level > 0) {
         // MediaFormat.KEY_LEVEL, API > 23
-        videoFormat.setInteger("level", this.avcProfileLevel);
+        videoFormat.setInteger("level", this.level);
       }
       setCallback();
       codec.configure(videoFormat, null, null, MediaCodec.CONFIGURE_FLAG_ENCODE);
@@ -197,7 +197,7 @@ public class VideoEncoder extends BaseEncoder implements GetCameraData {
   public void reset() {
     stop(false);
     prepareVideoEncoder(width, height, fps, bitRate, rotation, iFrameInterval, formatVideoEncoder,
-        avcProfile, avcProfileLevel);
+        profile, level);
     restart();
   }
 
@@ -217,7 +217,7 @@ public class VideoEncoder extends BaseEncoder implements GetCameraData {
    */
   public boolean prepareVideoEncoder() {
     return prepareVideoEncoder(width, height, fps, bitRate, rotation, iFrameInterval,
-        formatVideoEncoder, avcProfile, avcProfileLevel);
+        formatVideoEncoder, profile, level);
   }
 
   @RequiresApi(api = Build.VERSION_CODES.KITKAT)

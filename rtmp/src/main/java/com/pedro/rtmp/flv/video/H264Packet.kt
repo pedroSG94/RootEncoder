@@ -40,7 +40,6 @@ class H264Packet() {
 
   private var sps: ByteArray? = null
   private var pps: ByteArray? = null
-  var profileIop = ProfileIop.BASELINE
 
   enum class Type(val value: Byte) {
     SEQUENCE(0x00), NALU(0x01), EO_SEQ(0x02)
@@ -83,7 +82,7 @@ class H264Packet() {
       val sps = this.sps
       val pps = this.pps
       if (sps != null && pps != null) {
-        val config = VideoSpecificConfigAVC(sps, pps, profileIop)
+        val config = VideoSpecificConfigAVC(sps, pps)
         buffer = ByteArray(config.size + header.size)
         config.write(buffer, header.size)
       } else {

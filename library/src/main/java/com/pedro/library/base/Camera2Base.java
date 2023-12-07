@@ -309,20 +309,22 @@ public abstract class Camera2Base {
    * @param fps frames per second of the stream.
    * @param bitrate H264 in bps.
    * @param rotation could be 90, 180, 270 or 0 (Normally 0 if you are streaming in landscape or 90
+   * @param profile codec value from MediaCodecInfo.CodecProfileLevel class
+   * @param level codec value from MediaCodecInfo.CodecProfileLevel class
    * if you are streaming in Portrait). This only affect to stream result. NOTE: Rotation with
    * encoder is silence ignored in some devices.
    * @return true if success, false if you get a error (Normally because the encoder selected
    * doesn't support any configuration seated or your device hasn't a H264 encoder).
    */
   public boolean prepareVideo(int width, int height, int fps, int bitrate, int iFrameInterval,
-      int rotation, int avcProfile, int avcProfileLevel) {
+      int rotation, int profile, int level) {
     if (onPreview && glInterface != null && (width != previewWidth || height != previewHeight
         || fps != videoEncoder.getFps() || rotation != videoEncoder.getRotation())) {
       stopPreview();
       onPreview = true;
     }
     boolean result = videoEncoder.prepareVideoEncoder(width, height, fps, bitrate, rotation,
-        iFrameInterval, FormatVideoEncoder.SURFACE, avcProfile, avcProfileLevel);
+        iFrameInterval, FormatVideoEncoder.SURFACE, profile, level);
     prepareCameraManager();
     return result;
   }
@@ -954,6 +956,9 @@ public abstract class Camera2Base {
    */
   public void setLimitFPSOnFly(int fps) {
     videoEncoder.setFps(fps);
+    if (glInterface != null) {
+      glInterface.setFps(fps);
+    }
   }
 
   /**

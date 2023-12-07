@@ -16,7 +16,6 @@
 
 package com.pedro.library.util.streamclient
 
-import com.pedro.rtmp.flv.video.ProfileIop
 import com.pedro.rtmp.rtmp.RtmpClient
 
 /**
@@ -26,15 +25,6 @@ class RtmpStreamClient(
   private val rtmpClient: RtmpClient, 
   private val streamClientListener: StreamClientListener?
 ): StreamBaseClient() {
-
-  /**
-   * H264 profile.
-   *
-   * @param profileIop Could be ProfileIop.BASELINE or ProfileIop.CONSTRAINED
-   */
-  fun setProfileIop(profileIop: ProfileIop) {
-    rtmpClient.setProfileIop(profileIop)
-  }
 
   /**
    * Some Livestream hosts use Akamai auth that requires RTMP packets to be sent with increasing
