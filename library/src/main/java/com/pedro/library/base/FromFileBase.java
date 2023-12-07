@@ -538,6 +538,9 @@ public abstract class FromFileBase {
    */
   public void setLimitFPSOnFly(int fps) {
     videoEncoder.setFps(fps);
+    if (glInterface != null) {
+      glInterface.setFps(fps);
+    }
   }
 
   /**
