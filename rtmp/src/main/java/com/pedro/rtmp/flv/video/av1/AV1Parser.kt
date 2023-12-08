@@ -44,20 +44,45 @@ package com.pedro.rtmp.flv.video.av1
 class AV1Parser {
 
   fun getObuType(header: Byte): ObuType {
-    val value = header.toInt() and 0b10000111
+    val value = ((header.toInt() and 0x7F) and 0xF8) ushr 3
     return ObuType.values().firstOrNull { it.value == value } ?: ObuType.RESERVED
   }
 
   fun getObus(av1Data: ByteArray): List<Obu> {
-
-    return listOf()
+    val obuList = mutableListOf<Obu>()
+    var index = 0
+    while (index < av1Data.size) {
+      val header = readHeader(av1Data, index)
+      index += header.size
+      val leb128Value = readLeb128(av1Data, index)
+      val length = av1Data.sliceArray(index until index + leb128Value.second)
+      index += length.size
+      val data = av1Data.sliceArray(index until index + leb128Value.first.toInt())
+      index += data.size
+      val obu = Obu(header, length, data)
+      obuList.add(obu)
+    }
+    return obuList
   }
 
-  fun writeLeb128(length: Long): ByteArray {
-    return byteArrayOf()
+  private fun readHeader(av1Data: ByteArray, offset: Int): ByteArray {
+    val header = mutableListOf<Byte>()
+    val info = av1Data[offset]
+    header.add(info)
+    val containExtended = ((info.toInt() ushr 2) and 0x01) == 1
+    if (containExtended) header.add(av1Data[offset + 1])
+    return header.toByteArray()
   }
 
-  fun readLeb128(data: ByteArray): Long {
-    return 0
+  private fun readLeb128(data: ByteArray, offset: Int): Pair<Long, Int> {
+    var result: Long = 0
+    var index = 0
+    var b: Byte
+    do {
+      b = data[offset + index]
+      result = result or ((b.toLong() and 0x7F) shl (index * 7))
+      index++
+    } while (b.toInt() and 0x80 != 0)
+    return Pair(result, index)
   }
 }
