@@ -22,6 +22,8 @@ import com.pedro.common.removeInfo
 import com.pedro.common.toByteArray
 import com.pedro.rtmp.flv.FlvPacket
 import com.pedro.rtmp.flv.FlvType
+import com.pedro.rtmp.flv.video.av1.AV1Parser
+import com.pedro.rtmp.flv.video.av1.ObuType
 import java.nio.ByteBuffer
 
 /**
@@ -32,14 +34,15 @@ class Av1Packet {
 
   private val TAG = "AV1Packet"
 
-  private val header = ByteArray(8)
+  private val parser = AV1Parser()
+  private val header = ByteArray(5)
   //first time we need send video config
   private var configSend = false
 
   private var av1ConfigurationRecord: ByteArray? = null
 
   fun sendVideoInfo(av1ConfigurationRecord: ByteBuffer) {
-    this.av1ConfigurationRecord = av1ConfigurationRecord.toByteArray().reversedArray()
+    this.av1ConfigurationRecord = av1ConfigurationRecord.toByteArray()
   }
 
   fun createFlvVideoPacket(
@@ -47,7 +50,7 @@ class Av1Packet {
     info: MediaCodec.BufferInfo,
     callback: (FlvPacket) -> Unit
   ) {
-    val fixedBuffer = byteBuffer.duplicate().removeInfo(info)
+    var fixedBuffer = byteBuffer.duplicate().removeInfo(info)
     val ts = info.presentationTimeUs / 1000
 
     //header is 8 bytes length:
@@ -60,11 +63,6 @@ class Av1Packet {
     header[2] = (codec shr 16).toByte()
     header[3] = (codec shr 8).toByte()
     header[4] = codec.toByte()
-    val cts = 0
-    val ctsLength = 3
-    header[5] = (cts shr 16).toByte()
-    header[6] = (cts shr 8).toByte()
-    header[7] = cts.toByte()
 
     var buffer: ByteArray
     if (!configSend) {
@@ -72,30 +70,34 @@ class Av1Packet {
       header[0] = (0b10000000 or (VideoDataType.KEYFRAME.value shl 4) or FourCCPacketType.SEQUENCE_START.value).toByte()
       val av1ConfigurationRecord = this.av1ConfigurationRecord
       if (av1ConfigurationRecord != null) {
-        val config = av1ConfigurationRecord
-        buffer = ByteArray(config.size + header.size - ctsLength)
-        val b = ByteBuffer.wrap(buffer, header.size - ctsLength, av1ConfigurationRecord.size)
-        b.put(av1ConfigurationRecord)
+        //TODO replace this for a real one (OBU_SEQUENCE_HEADER)
+        val keyframeObu = byteArrayOf(0x0a, 0x0d, 0x00, 0x00, 0x00, 0x24, 0x4f, 0x7e, 0x7f, 0x00, 0x68, 0x83.toByte(), 0x00, 0x83.toByte(), 0x02)
+        val config = av1ConfigurationRecord.plus(keyframeObu)
+        buffer = ByteArray(config.size + header.size)
+        val b = ByteBuffer.wrap(buffer, header.size, config.size)
+        b.put(config)
       } else {
         Log.e(TAG, "waiting for a valid av1ConfigurationRecord")
         return
       }
 
-      System.arraycopy(header, 0, buffer, 0, header.size - ctsLength)
+      System.arraycopy(header, 0, buffer, 0, header.size)
       callback(FlvPacket(buffer, ts, buffer.size, FlvType.VIDEO))
       configSend = true
     }
+    //remove temporal delimitered OBU if found on start
+    if (parser.getObuType(fixedBuffer.get(0)) == ObuType.TEMPORAL_DELIMITER) {
+      fixedBuffer.position(2)
+      fixedBuffer = fixedBuffer.slice()
+    }
+
     fixedBuffer.rewind()
     val size = fixedBuffer.remaining()
     buffer = ByteArray(header.size + size)
 
-    val type: Int = fixedBuffer.get(0).toInt().shr(1 and 0x3f)
     var nalType = VideoDataType.INTER_FRAME.value
-    if (type == VideoNalType.KEY.value || info.flags == MediaCodec.BUFFER_FLAG_KEY_FRAME) {
+    if (info.flags == MediaCodec.BUFFER_FLAG_KEY_FRAME) {
       nalType = VideoDataType.KEYFRAME.value
-    } else if (type == VideoNalType.CONFIG.value) {
-      // we don't need send it because we already do it in video config
-      return
     }
     header[0] = (0b10000000 or (nalType shl 4) or FourCCPacketType.CODED_FRAMES.value).toByte()
     fixedBuffer.get(buffer, header.size, size)
