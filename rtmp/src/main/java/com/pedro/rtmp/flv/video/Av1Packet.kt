@@ -22,8 +22,8 @@ import com.pedro.common.removeInfo
 import com.pedro.common.toByteArray
 import com.pedro.rtmp.flv.FlvPacket
 import com.pedro.rtmp.flv.FlvType
-import com.pedro.rtmp.flv.video.av1.AV1Parser
-import com.pedro.rtmp.flv.video.av1.ObuType
+import com.pedro.common.av1.AV1Parser
+import com.pedro.common.av1.ObuType
 import java.nio.ByteBuffer
 
 /**

@@ -14,17 +14,21 @@
  * limitations under the License.
  */
 
-package com.pedro.rtmp.flv.video.av1
+package com.pedro.common.av1
 
 /**
  * Created by pedro on 8/12/23.
  */
-data class Obu(
-  val header: ByteArray, //header and optional extension header
-  val leb128: ByteArray?, //this is the length value encoded in leb128 mode
-  val data: ByteArray
-) {
-  fun getFullData(): ByteArray {
-    return header.plus(leb128 ?: byteArrayOf()).plus(data)
-  }
+enum class ObuType(val value: Int) {
+  RESERVED(0),
+  SEQUENCE_HEADER(1),
+  TEMPORAL_DELIMITER(2),
+  FRAME_HEADER(3),
+  TILE_GROUP(4),
+  METADATA(5),
+  FRAME(6),
+  REDUNDANT_FRAME_HEADER(7),
+  TILE_LIST(8),
+  //9-14 Reserved
+  PADDING(15)
 }

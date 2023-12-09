@@ -19,7 +19,9 @@ package com.pedro.rtmp.flv.video.av1
 /**
  * Created by pedro on 8/12/23.
  */
-class VideoSpecificConfigAV1 {
+class VideoSpecificConfigAV1(private val sequenceObu: ByteArray) {
+
+  val size = 4 + sequenceObu.size
 
   fun write(buffer: ByteArray, offset: Int) {
 
