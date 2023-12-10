@@ -52,7 +52,7 @@ import java.nio.ByteBuffer
  * Input:
  * 0a 0d 00 00 00 24 4f 7e 7f 00 68 83 00 83 02
  * Result:
- * 81 02 0c 00 0a 0d 00 00 00 24 4f 7e 7f 00 68 83 00 83 02
+ * 81 04 0c 00 0a 0d 00 00 00 24 4f 7e 7f 00 68 83 00 83 02
  *
  */
 class VideoSpecificConfigAV1(private val sequenceObu: ByteArray) {
@@ -136,7 +136,7 @@ class VideoSpecificConfigAV1(private val sequenceObu: ByteArray) {
     index += 4
     val frameHeightBitsMinus1 = bitBuffer.getBits(index, 4)
     index += 4
-    index += frameWidthBitsMinus1 + frameHeightBitsMinus1
+    index += frameWidthBitsMinus1 + 1 + frameHeightBitsMinus1 + 1
     var frameIdNumbersPresentFlag = 0
     if (reducedStillPictureHeader != 1) {
       frameIdNumbersPresentFlag = bitBuffer.getBits(index, 1)
@@ -234,10 +234,9 @@ class VideoSpecificConfigAV1(private val sequenceObu: ByteArray) {
         }
       }
     }
-    if (monochrome != 1) index += 1
+    index += 1
     //finish config color
     index += 1
-
     val data = ByteBuffer.wrap(buffer, offset, size)
     data.put(0x81.toByte()) //marker and version
     data.put(((seqProfile shl 5) or seqLevelIdx).toByte())

@@ -71,7 +71,6 @@ class Av1Packet {
         val config = VideoSpecificConfigAV1(obuSequence)
         buffer = ByteArray(config.size + header.size)
         config.write(buffer, header.size)
-
       } else {
         Log.e(TAG, "waiting for a valid av1ConfigurationRecord")
         return
