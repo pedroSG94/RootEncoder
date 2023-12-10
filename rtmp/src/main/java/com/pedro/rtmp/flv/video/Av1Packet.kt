@@ -38,11 +38,10 @@ class Av1Packet {
   private val header = ByteArray(5)
   //first time we need send video config
   private var configSend = false
+  private var obuSequence: ByteArray? = null
 
-  private var av1ConfigurationRecord: ByteArray? = null
-
-  fun sendVideoInfo(av1ConfigurationRecord: ByteBuffer) {
-    this.av1ConfigurationRecord = av1ConfigurationRecord.toByteArray()
+  fun sendVideoInfo(obuSequence: ByteBuffer) {
+    this.obuSequence = obuSequence.toByteArray()
   }
 
   fun createFlvVideoPacket(
@@ -51,7 +50,6 @@ class Av1Packet {
     callback: (FlvPacket) -> Unit
   ) {
     var fixedBuffer = byteBuffer.duplicate().removeInfo(info)
-    val isKeyframe = info.flags == MediaCodec.BUFFER_FLAG_KEY_FRAME
     val ts = info.presentationTimeUs / 1000
 
     //header is 8 bytes length:
@@ -66,16 +64,14 @@ class Av1Packet {
     header[4] = codec.toByte()
 
     var buffer: ByteArray
-    if (!configSend && isKeyframe) {
+    if (!configSend) {
       header[0] = (0b10000000 or (VideoDataType.KEYFRAME.value shl 4) or FourCCPacketType.SEQUENCE_START.value).toByte()
-      val av1ConfigurationRecord = this.av1ConfigurationRecord
-      if (av1ConfigurationRecord != null) {
-        val obus = parser.getObus(fixedBuffer.duplicate().toByteArray())
-        val sequenceObu = obus.find { parser.getObuType(it.header[0]) == ObuType.SEQUENCE_HEADER }?.getFullData() ?: byteArrayOf()
-        val config = av1ConfigurationRecord.plus(sequenceObu)
+      val obuSequence = this.obuSequence
+      if (obuSequence != null) {
+        val config = VideoSpecificConfigAV1(obuSequence)
         buffer = ByteArray(config.size + header.size)
-        val b = ByteBuffer.wrap(buffer, header.size, config.size)
-        b.put(config)
+        config.write(buffer, header.size)
+
       } else {
         Log.e(TAG, "waiting for a valid av1ConfigurationRecord")
         return
@@ -95,8 +91,7 @@ class Av1Packet {
     val size = fixedBuffer.remaining()
     buffer = ByteArray(header.size + size)
 
-    var nalType = VideoDataType.INTER_FRAME.value
-    if (isKeyframe) nalType = VideoDataType.KEYFRAME.value
+    val nalType = if (info.flags == MediaCodec.BUFFER_FLAG_KEY_FRAME) VideoDataType.KEYFRAME.value else VideoDataType.INTER_FRAME.value
     header[0] = (0b10000000 or (nalType shl 4) or FourCCPacketType.CODED_FRAMES.value).toByte()
     fixedBuffer.get(buffer, header.size, size)
 
@@ -106,7 +101,7 @@ class Av1Packet {
 
   fun reset(resetInfo: Boolean = true) {
     if (resetInfo) {
-      av1ConfigurationRecord = null
+      obuSequence = null
     }
     configSend = false
   }

@@ -14,16 +14,19 @@
  * limitations under the License.
  */
 
-package com.pedro.rtmp.flv.video.av1
+package com.pedro.common
+
+import org.junit.Test
 
 /**
- * Created by pedro on 8/12/23.
+ * Created by pedro on 10/12/23.
  */
-class VideoSpecificConfigAV1(private val sequenceObu: ByteArray) {
+class BitBufferTest {
 
-  val size = 4 + sequenceObu.size
-
-  fun write(buffer: ByteArray, offset: Int) {
-
+  @Test
+  fun checkGetBits() {
+    val buffer = byteArrayOf(0x00, 0x01, 0x02, 0x03, 0x04)
+    val bitBuffer = BitBuffer(buffer)
+    val result = bitBuffer.getBits(30, 5)
   }
 }
