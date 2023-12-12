@@ -88,6 +88,7 @@ import com.pedro.library.rtmp.RtmpCamera1;
 import com.pedro.library.view.OpenGlView;
 import com.pedro.streamer.R;
 import com.pedro.streamer.utils.PathUtils;
+import com.pedro.streamer.utils.ScreenOrientation;
 
 import java.io.File;
 import java.io.IOException;
@@ -363,6 +364,7 @@ public class OpenGlRtmpActivity extends AppCompatActivity
     Toast.makeText(OpenGlRtmpActivity.this, "Connection failed. " + reason, Toast.LENGTH_SHORT)
         .show();
     rtmpCamera1.stopStream();
+    ScreenOrientation.INSTANCE.unlockScreen(this);
     button.setText(R.string.start_button);
   }
 
@@ -395,6 +397,7 @@ public class OpenGlRtmpActivity extends AppCompatActivity
                 || rtmpCamera1.prepareAudio() && rtmpCamera1.prepareVideo()) {
           button.setText(R.string.stop_button);
           rtmpCamera1.startStream(etUrl.getText().toString());
+          ScreenOrientation.INSTANCE.lockScreen(this);
         } else {
           Toast.makeText(this, "Error preparing stream, This device cant do it",
                   Toast.LENGTH_SHORT).show();
@@ -402,6 +405,7 @@ public class OpenGlRtmpActivity extends AppCompatActivity
       } else {
         button.setText(R.string.start_button);
         rtmpCamera1.stopStream();
+        ScreenOrientation.INSTANCE.unlockScreen(this);
       }
     } else if (id == R.id.switch_camera) {
       try {
@@ -421,6 +425,7 @@ public class OpenGlRtmpActivity extends AppCompatActivity
             if (rtmpCamera1.prepareAudio() && rtmpCamera1.prepareVideo()) {
               rtmpCamera1.startRecord(
                       folder.getAbsolutePath() + "/" + currentDateAndTime + ".mp4");
+              ScreenOrientation.INSTANCE.lockScreen(this);
               bRecord.setText(R.string.stop_record);
               Toast.makeText(this, "Recording... ", Toast.LENGTH_SHORT).show();
             } else {
@@ -429,17 +434,20 @@ public class OpenGlRtmpActivity extends AppCompatActivity
             }
           } else {
             rtmpCamera1.startRecord(folder.getAbsolutePath() + "/" + currentDateAndTime + ".mp4");
+            ScreenOrientation.INSTANCE.lockScreen(this);
             bRecord.setText(R.string.stop_record);
             Toast.makeText(this, "Recording... ", Toast.LENGTH_SHORT).show();
           }
         } catch (IOException e) {
           rtmpCamera1.stopRecord();
+          ScreenOrientation.INSTANCE.unlockScreen(this);
           PathUtils.updateGallery(this, folder.getAbsolutePath() + "/" + currentDateAndTime + ".mp4");
           bRecord.setText(R.string.start_record);
           Toast.makeText(this, e.getMessage(), Toast.LENGTH_SHORT).show();
         }
       } else {
         rtmpCamera1.stopRecord();
+        ScreenOrientation.INSTANCE.unlockScreen(this);
         PathUtils.updateGallery(this, folder.getAbsolutePath() + "/" + currentDateAndTime + ".mp4");
         bRecord.setText(R.string.start_record);
         Toast.makeText(this,
@@ -475,6 +483,7 @@ public class OpenGlRtmpActivity extends AppCompatActivity
       rtmpCamera1.stopStream();
       button.setText(getResources().getString(R.string.start_button));
     }
+    ScreenOrientation.INSTANCE.unlockScreen(this);
     rtmpCamera1.stopPreview();
   }
 

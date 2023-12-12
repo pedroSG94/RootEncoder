@@ -34,6 +34,7 @@ import com.pedro.encoder.input.video.CameraOpenException;
 import com.pedro.library.srt.SrtCamera1;
 import com.pedro.streamer.R;
 import com.pedro.streamer.utils.PathUtils;
+import com.pedro.streamer.utils.ScreenOrientation;
 
 import java.io.File;
 import java.io.IOException;
@@ -95,6 +96,7 @@ public class ExampleSrtActivity extends AppCompatActivity
       Toast.makeText(ExampleSrtActivity.this, "Connection failed. " + reason, Toast.LENGTH_SHORT)
           .show();
       srtCamera1.stopStream();
+      ScreenOrientation.INSTANCE.unlockScreen(this);
       button.setText(R.string.start_button);
     }
   }
@@ -113,6 +115,7 @@ public class ExampleSrtActivity extends AppCompatActivity
   public void onAuthError() {
     Toast.makeText(ExampleSrtActivity.this, "Auth error", Toast.LENGTH_SHORT).show();
     srtCamera1.stopStream();
+    ScreenOrientation.INSTANCE.unlockScreen(this);
     button.setText(R.string.start_button);
   }
 
@@ -130,6 +133,7 @@ public class ExampleSrtActivity extends AppCompatActivity
                 || srtCamera1.prepareAudio() && srtCamera1.prepareVideo()) {
           button.setText(R.string.stop_button);
           srtCamera1.startStream(etUrl.getText().toString());
+          ScreenOrientation.INSTANCE.lockScreen(this);
         } else {
           Toast.makeText(this, "Error preparing stream, This device cant do it",
                   Toast.LENGTH_SHORT).show();
@@ -137,6 +141,7 @@ public class ExampleSrtActivity extends AppCompatActivity
       } else {
         button.setText(R.string.start_button);
         srtCamera1.stopStream();
+        ScreenOrientation.INSTANCE.unlockScreen(this);
       }
     } else if (id == R.id.switch_camera) {
       try {
@@ -157,6 +162,7 @@ public class ExampleSrtActivity extends AppCompatActivity
               if (srtCamera1.prepareAudio() && srtCamera1.prepareVideo()) {
                 srtCamera1.startRecord(
                         folder.getAbsolutePath() + "/" + currentDateAndTime + ".mp4");
+                ScreenOrientation.INSTANCE.lockScreen(this);
                 bRecord.setText(R.string.stop_record);
                 Toast.makeText(this, "Recording... ", Toast.LENGTH_SHORT).show();
               } else {
@@ -166,17 +172,20 @@ public class ExampleSrtActivity extends AppCompatActivity
             } else {
               srtCamera1.startRecord(
                       folder.getAbsolutePath() + "/" + currentDateAndTime + ".mp4");
+              ScreenOrientation.INSTANCE.lockScreen(this);
               bRecord.setText(R.string.stop_record);
               Toast.makeText(this, "Recording... ", Toast.LENGTH_SHORT).show();
             }
           } catch (IOException e) {
             srtCamera1.stopRecord();
+            ScreenOrientation.INSTANCE.unlockScreen(this);
             PathUtils.updateGallery(this, folder.getAbsolutePath() + "/" + currentDateAndTime + ".mp4");
             bRecord.setText(R.string.start_record);
             Toast.makeText(this, e.getMessage(), Toast.LENGTH_SHORT).show();
           }
         } else {
           srtCamera1.stopRecord();
+          ScreenOrientation.INSTANCE.unlockScreen(this);
           PathUtils.updateGallery(this, folder.getAbsolutePath() + "/" + currentDateAndTime + ".mp4");
           bRecord.setText(R.string.start_record);
           Toast.makeText(this,
@@ -215,6 +224,7 @@ public class ExampleSrtActivity extends AppCompatActivity
       srtCamera1.stopStream();
       button.setText(getResources().getString(R.string.start_button));
     }
+    ScreenOrientation.INSTANCE.unlockScreen(this);
     srtCamera1.stopPreview();
   }
 }

@@ -36,6 +36,7 @@ import com.pedro.streamer.R;
 import com.pedro.library.rtsp.RtspCamera2;
 import com.pedro.library.view.AutoFitTextureView;
 import com.pedro.streamer.utils.PathUtils;
+import com.pedro.streamer.utils.ScreenOrientation;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -96,6 +97,7 @@ public class TextureModeRtspActivity extends AppCompatActivity
     Toast.makeText(TextureModeRtspActivity.this, "Connection failed. " + reason,
         Toast.LENGTH_SHORT).show();
     rtspCamera2.stopStream();
+    ScreenOrientation.INSTANCE.unlockScreen(this);
     button.setText(R.string.start_button);
   }
 
@@ -128,6 +130,7 @@ public class TextureModeRtspActivity extends AppCompatActivity
                 || rtspCamera2.prepareAudio() && rtspCamera2.prepareVideo()) {
           button.setText(R.string.stop_button);
           rtspCamera2.startStream(etUrl.getText().toString());
+          ScreenOrientation.INSTANCE.lockScreen(this);
         } else {
           Toast.makeText(this, "Error preparing stream, This device cant do it",
                   Toast.LENGTH_SHORT).show();
@@ -135,6 +138,7 @@ public class TextureModeRtspActivity extends AppCompatActivity
       } else {
         button.setText(R.string.start_button);
         rtspCamera2.stopStream();
+        ScreenOrientation.INSTANCE.unlockScreen(this);
       }
     } else if (id == R.id.switch_camera) {
       try {
@@ -154,6 +158,7 @@ public class TextureModeRtspActivity extends AppCompatActivity
             if (rtspCamera2.prepareAudio() && rtspCamera2.prepareVideo()) {
               rtspCamera2.startRecord(
                       folder.getAbsolutePath() + "/" + currentDateAndTime + ".mp4");
+              ScreenOrientation.INSTANCE.lockScreen(this);
               bRecord.setText(R.string.stop_record);
               Toast.makeText(this, "Recording... ", Toast.LENGTH_SHORT).show();
             } else {
@@ -162,17 +167,20 @@ public class TextureModeRtspActivity extends AppCompatActivity
             }
           } else {
             rtspCamera2.startRecord(folder.getAbsolutePath() + "/" + currentDateAndTime + ".mp4");
+            ScreenOrientation.INSTANCE.lockScreen(this);
             bRecord.setText(R.string.stop_record);
             Toast.makeText(this, "Recording... ", Toast.LENGTH_SHORT).show();
           }
         } catch (IOException e) {
           rtspCamera2.stopRecord();
+          ScreenOrientation.INSTANCE.unlockScreen(this);
           PathUtils.updateGallery(this, folder.getAbsolutePath() + "/" + currentDateAndTime + ".mp4");
           bRecord.setText(R.string.start_record);
           Toast.makeText(this, e.getMessage(), Toast.LENGTH_SHORT).show();
         }
       } else {
         rtspCamera2.stopRecord();
+        ScreenOrientation.INSTANCE.unlockScreen(this);
         PathUtils.updateGallery(this, folder.getAbsolutePath() + "/" + currentDateAndTime + ".mp4");
         bRecord.setText(R.string.start_record);
         Toast.makeText(this,
@@ -208,6 +216,7 @@ public class TextureModeRtspActivity extends AppCompatActivity
       rtspCamera2.stopStream();
       button.setText(getResources().getString(R.string.start_button));
     }
+    ScreenOrientation.INSTANCE.unlockScreen(this);
     rtspCamera2.stopPreview();
     return true;
   }

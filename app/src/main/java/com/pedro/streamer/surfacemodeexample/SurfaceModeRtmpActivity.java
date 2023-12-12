@@ -35,6 +35,7 @@ import com.pedro.encoder.input.video.CameraOpenException;
 import com.pedro.library.rtmp.RtmpCamera2;
 import com.pedro.streamer.R;
 import com.pedro.streamer.utils.PathUtils;
+import com.pedro.streamer.utils.ScreenOrientation;
 
 import java.io.File;
 import java.io.IOException;
@@ -96,6 +97,7 @@ public class SurfaceModeRtmpActivity extends AppCompatActivity
     } else {
       Toast.makeText(SurfaceModeRtmpActivity.this, "Connection failed. " + reason, Toast.LENGTH_SHORT).show();
       rtmpCamera2.stopStream();
+      ScreenOrientation.INSTANCE.unlockScreen(this);
       button.setText(R.string.start_button);
     }
   }
@@ -136,6 +138,7 @@ public class SurfaceModeRtmpActivity extends AppCompatActivity
       } else {
         button.setText(R.string.start_button);
         rtmpCamera2.stopStream();
+        ScreenOrientation.INSTANCE.unlockScreen(this);
       }
     } else if (id == R.id.switch_camera) {
       try {
@@ -168,12 +171,14 @@ public class SurfaceModeRtmpActivity extends AppCompatActivity
           }
         } catch (IOException e) {
           rtmpCamera2.stopRecord();
+          ScreenOrientation.INSTANCE.unlockScreen(this);
           PathUtils.updateGallery(this, folder.getAbsolutePath() + "/" + currentDateAndTime + ".mp4");
           bRecord.setText(R.string.start_record);
           Toast.makeText(this, e.getMessage(), Toast.LENGTH_SHORT).show();
         }
       } else {
         rtmpCamera2.stopRecord();
+        ScreenOrientation.INSTANCE.unlockScreen(this);
         PathUtils.updateGallery(this, folder.getAbsolutePath() + "/" + currentDateAndTime + ".mp4");
         bRecord.setText(R.string.start_record);
         Toast.makeText(this,
@@ -209,6 +214,7 @@ public class SurfaceModeRtmpActivity extends AppCompatActivity
       rtmpCamera2.stopStream();
       button.setText(getResources().getString(R.string.start_button));
     }
+    ScreenOrientation.INSTANCE.unlockScreen(this);
     rtmpCamera2.stopPreview();
   }
 }
