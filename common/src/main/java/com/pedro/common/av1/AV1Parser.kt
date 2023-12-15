@@ -16,6 +16,8 @@
 
 package com.pedro.common.av1
 
+import kotlin.experimental.or
+
 /**
  * Created by pedro on 8/12/23.
  *
@@ -84,5 +86,19 @@ class AV1Parser {
       index++
     } while (b.toInt() and 0x80 != 0)
     return Pair(result, index)
+  }
+
+  fun writeLeb128(length: Long) : ByteArray {
+    val result = mutableListOf<Byte>()
+    var remainingValue = length
+    do {
+      var byte = (remainingValue and 0x7F).toByte()
+      remainingValue = remainingValue ushr 7
+      if (remainingValue != 0L) {
+        byte = (byte or 0x80.toByte())
+      }
+      result.add(byte)
+    } while (remainingValue != 0L)
+    return result.toByteArray()
   }
 }

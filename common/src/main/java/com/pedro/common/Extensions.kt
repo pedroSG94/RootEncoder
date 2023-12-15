@@ -17,6 +17,7 @@
 package com.pedro.common
 
 import android.media.MediaCodec
+import android.os.Build
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.nio.ByteBuffer
@@ -25,6 +26,14 @@ import java.util.concurrent.BlockingQueue
 /**
  * Created by pedro on 3/11/23.
  */
+
+fun MediaCodec.BufferInfo.isKeyframe(): Boolean {
+  return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+    this.flags == MediaCodec.BUFFER_FLAG_KEY_FRAME
+  } else {
+    this.flags == MediaCodec.BUFFER_FLAG_SYNC_FRAME
+  }
+}
 
 fun ByteBuffer.toByteArray(): ByteArray {
   return if (this.hasArray() && !isDirect) {

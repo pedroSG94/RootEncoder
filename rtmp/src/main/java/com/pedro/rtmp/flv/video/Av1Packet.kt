@@ -24,6 +24,7 @@ import com.pedro.rtmp.flv.FlvPacket
 import com.pedro.rtmp.flv.FlvType
 import com.pedro.common.av1.AV1Parser
 import com.pedro.common.av1.ObuType
+import com.pedro.common.isKeyframe
 import java.nio.ByteBuffer
 
 /**
@@ -90,7 +91,7 @@ class Av1Packet {
     val size = fixedBuffer.remaining()
     buffer = ByteArray(header.size + size)
 
-    val nalType = if (info.flags == MediaCodec.BUFFER_FLAG_KEY_FRAME) VideoDataType.KEYFRAME.value else VideoDataType.INTER_FRAME.value
+    val nalType = if (info.isKeyframe()) VideoDataType.KEYFRAME.value else VideoDataType.INTER_FRAME.value
     header[0] = (0b10000000 or (nalType shl 4) or FourCCPacketType.CODED_FRAMES.value).toByte()
     fixedBuffer.get(buffer, header.size, size)
 

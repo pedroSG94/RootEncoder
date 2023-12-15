@@ -18,6 +18,7 @@ package com.pedro.rtmp.flv.video
 
 import android.media.MediaCodec
 import android.util.Log
+import com.pedro.common.isKeyframe
 import com.pedro.common.removeInfo
 import com.pedro.rtmp.flv.FlvPacket
 import com.pedro.rtmp.flv.FlvType
@@ -103,7 +104,7 @@ class H264Packet() {
 
     val type: Int = (validBuffer.get(0) and 0x1F).toInt()
     var nalType = VideoDataType.INTER_FRAME.value
-    if (type == VideoNalType.IDR.value || info.flags == MediaCodec.BUFFER_FLAG_KEY_FRAME) {
+    if (type == VideoNalType.IDR.value || info.isKeyframe()) {
       nalType = VideoDataType.KEYFRAME.value
     } else if (type == VideoNalType.SPS.value || type == VideoNalType.PPS.value) {
       // we don't need send it because we already do it in video config

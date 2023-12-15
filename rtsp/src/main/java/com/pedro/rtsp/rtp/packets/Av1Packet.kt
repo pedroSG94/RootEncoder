@@ -17,7 +17,11 @@
 package com.pedro.rtsp.rtp.packets
 
 import android.media.MediaCodec
+import com.pedro.common.av1.AV1Parser
+import com.pedro.common.av1.ObuType
+import com.pedro.common.isKeyframe
 import com.pedro.common.removeInfo
+import com.pedro.common.toByteArray
 import com.pedro.rtsp.rtsp.RtpFrame
 import com.pedro.rtsp.utils.RtpConstants
 import java.nio.ByteBuffer
@@ -28,11 +32,19 @@ import kotlin.experimental.and
  *
  * AV1 has no RFC specification so we are using the official implementation from aomediacodec:
  * https://aomediacodec.github.io/av1-rtp-spec/
+ *
+ * AV1 Aggregation Header
+ *  0 1 2 3 4 5 6 7
+ * +-+-+-+-+-+-+-+-+
+ * |Z|Y| W |N|-|-|-|
+ * +-+-+-+-+-+-+-+-+
  */
 class Av1Packet(sps: ByteArray) : BasePacket(
   RtpConstants.clockVideoFrequency,
   RtpConstants.payloadType + RtpConstants.trackVideo
 ) {
+
+  private val parser = AV1Parser()
 
   init {
     channelIdentifier = RtpConstants.trackVideo
@@ -43,67 +55,72 @@ class Av1Packet(sps: ByteArray) : BasePacket(
     bufferInfo: MediaCodec.BufferInfo,
     callback: (RtpFrame) -> Unit
   ) {
-    val fixedBuffer = byteBuffer.removeInfo(bufferInfo)
-    // We read a NAL units from ByteBuffer and we send them
-    // NAL units are preceded with 0x00000001
-    val header = ByteArray(6)
-    fixedBuffer.get(header, 0, 6)
+    var fixedBuffer = byteBuffer.removeInfo(bufferInfo)
+    //remove temporal delimitered OBU if found on start
+    if (parser.getObuType(fixedBuffer.get(0)) == ObuType.TEMPORAL_DELIMITER) {
+      fixedBuffer.position(2)
+      fixedBuffer = fixedBuffer.slice()
+    }
+    val obuList = parser.getObus(fixedBuffer.duplicate().toByteArray())
     val ts = bufferInfo.presentationTimeUs * 1000L
-    val naluLength = fixedBuffer.remaining()
-    val type: Int = header[4].toInt().shr(1 and 0x3f)
-    // Small NAL unit => Single NAL unit
-    if (naluLength <= maxPacketSize - RtpConstants.RTP_HEADER_LENGTH - 2) {
-      val buffer = getBuffer(naluLength + RtpConstants.RTP_HEADER_LENGTH + 2)
-      //Set PayloadHdr (exact copy of nal unit header)
-      buffer[RtpConstants.RTP_HEADER_LENGTH] = header[4]
-      buffer[RtpConstants.RTP_HEADER_LENGTH + 1] = header[5]
-      fixedBuffer.get(buffer, RtpConstants.RTP_HEADER_LENGTH + 2, naluLength)
+    if (obuList.isEmpty()) return
+    var data = byteArrayOf()
+    obuList.forEachIndexed { index, obu ->
+      val obuData = obu.getFullData()
+      data = if (index == obuList.size - 1) {
+        data.plus(obuData)
+      } else {
+        data.plus(parser.writeLeb128(obuData.size.toLong()).plus(obuData))
+      }
+    }
+    fixedBuffer = ByteBuffer.wrap(data)
+    val size = fixedBuffer.remaining()
+
+    //small packet
+    if (size <= maxPacketSize - RtpConstants.RTP_HEADER_LENGTH - 1) {
+      val buffer = getBuffer(size + RtpConstants.RTP_HEADER_LENGTH + 1)
+      buffer[RtpConstants.RTP_HEADER_LENGTH] = generateAv1AggregationHeader(bufferInfo.isKeyframe(), true, true, obuList.size)
+      fixedBuffer.get(buffer, RtpConstants.RTP_HEADER_LENGTH + 1, size)
       val rtpTs = updateTimeStamp(buffer, ts)
       markPacket(buffer) //mark end frame
       updateSeq(buffer)
       val rtpFrame = RtpFrame(buffer, rtpTs, buffer.size, rtpPort, rtcpPort, channelIdentifier)
       callback(rtpFrame)
     } else {
-      //Set PayloadHdr (16bit type=49)
-      header[0] = (49 shl 1).toByte()
-      header[1] = 1
-      // Set FU header
-      //   +---------------+
-      //   |0|1|2|3|4|5|6|7|
-      //   +-+-+-+-+-+-+-+-+
-      //   |S|E|  FuType   |
-      //   +---------------+
-      header[2] = type.toByte() // FU header type
-      header[2] = header[2].plus(0x80).toByte() // Start bit
+      //large packet
       var sum = 0
-      while (sum < naluLength) {
-        val length = if (naluLength - sum > maxPacketSize - RtpConstants.RTP_HEADER_LENGTH - 3) {
-          maxPacketSize - RtpConstants.RTP_HEADER_LENGTH - 3
+      while (sum < size) {
+        val isFirstPacket = sum == 0
+        var isLastPacket = false
+        val length = if (size - sum > maxPacketSize - RtpConstants.RTP_HEADER_LENGTH - 1) {
+          maxPacketSize - RtpConstants.RTP_HEADER_LENGTH - 1
         } else {
           fixedBuffer.remaining()
         }
-        val buffer = getBuffer(length + RtpConstants.RTP_HEADER_LENGTH + 3)
-        buffer[RtpConstants.RTP_HEADER_LENGTH] = header[0]
-        buffer[RtpConstants.RTP_HEADER_LENGTH + 1] = header[1]
-        buffer[RtpConstants.RTP_HEADER_LENGTH + 2] = header[2]
+        val buffer = getBuffer(length + RtpConstants.RTP_HEADER_LENGTH + 1)
         val rtpTs = updateTimeStamp(buffer, ts)
-        fixedBuffer.get(buffer, RtpConstants.RTP_HEADER_LENGTH + 3, length)
+        fixedBuffer.get(buffer, RtpConstants.RTP_HEADER_LENGTH + 1, length)
         sum += length
         // Last packet before next NAL
-        if (sum >= naluLength) {
-          // End bit on
-          buffer[RtpConstants.RTP_HEADER_LENGTH + 2] = buffer[RtpConstants.RTP_HEADER_LENGTH + 2].plus(0x40).toByte()
+        if (sum >= size) {
+          isLastPacket = true
           markPacket(buffer) //mark end frame
         }
+        buffer[RtpConstants.RTP_HEADER_LENGTH] = generateAv1AggregationHeader(bufferInfo.isKeyframe(), isFirstPacket, isLastPacket, obuList.size)
         updateSeq(buffer)
         val rtpFrame = RtpFrame(buffer, rtpTs, buffer.size, rtpPort, rtcpPort, channelIdentifier)
         callback(rtpFrame)
-        // Switch start bit
-        header[2] = header[2] and 0x7F
       }
     }
   }
 
+  private fun generateAv1AggregationHeader(isKeyFrame: Boolean, isFirstPacket: Boolean, isLastPacket: Boolean, numObu: Int): Byte {
+    val z = if (isFirstPacket) 0 else 1
+    val y = if (isLastPacket) 0 else 1
+    val w = numObu
+    val n = if (isKeyFrame && isFirstPacket) 1 else 0
+    return ((z shl 7) or (y shl 6) or (w shl 4) or (n shl 3) or 0).toByte()
+  }
   override fun reset() {
     super.reset()
   }

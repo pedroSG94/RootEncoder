@@ -89,7 +89,8 @@ public class SrtCamera1 extends Camera1Base {
 
   @Override
   protected void setVideoCodecImp(VideoCodec codec) {
-      srtClient.setVideoCodec(codec);
+    if (codec == VideoCodec.AV1) throw new IllegalArgumentException("Unsupported codec: " + codec.name());
+    srtClient.setVideoCodec(codec);
   }
 
   @Override
