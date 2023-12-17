@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2021 pedroSG94.
+ * Copyright (C) 2023 pedroSG94.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,6 +24,7 @@ import java.nio.ByteBuffer
 /**
  *
  * RFC 7655.
+ * Valid for G711A and G711U
  */
 class G711Packet(
   sampleRate: Int

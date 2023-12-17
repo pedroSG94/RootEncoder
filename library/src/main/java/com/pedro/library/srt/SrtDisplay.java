@@ -53,6 +53,7 @@ public class SrtDisplay extends DisplayBase {
 
   @Override
   protected void setVideoCodecImp(VideoCodec codec) {
+    if (codec == VideoCodec.AV1) throw new IllegalArgumentException("Unsupported codec: " + codec.name());
     srtClient.setVideoCodec(codec);
   }
 

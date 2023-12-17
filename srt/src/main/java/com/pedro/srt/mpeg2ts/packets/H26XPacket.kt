@@ -19,7 +19,9 @@ package com.pedro.srt.mpeg2ts.packets
 import android.media.MediaCodec
 import android.os.Build
 import android.util.Log
+import com.pedro.common.isKeyframe
 import com.pedro.common.removeInfo
+import com.pedro.common.toByteArray
 import com.pedro.srt.mpeg2ts.Codec
 import com.pedro.srt.mpeg2ts.MpegTsPacket
 import com.pedro.srt.mpeg2ts.MpegType
@@ -28,7 +30,6 @@ import com.pedro.srt.mpeg2ts.PesType
 import com.pedro.srt.mpeg2ts.psi.PsiManager
 import com.pedro.srt.srt.packets.data.PacketPosition
 import com.pedro.srt.utils.startWith
-import com.pedro.srt.utils.toByteArray
 import java.nio.ByteBuffer
 
 /**
@@ -57,11 +58,7 @@ class H26XPacket(
     val fixedBuffer = byteBuffer.removeInfo(info)
     val length = fixedBuffer.remaining()
     if (length < 0) return
-    val isKeyFrame = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-      info.flags == MediaCodec.BUFFER_FLAG_KEY_FRAME
-    } else {
-      info.flags == MediaCodec.BUFFER_FLAG_SYNC_FRAME
-    }
+    val isKeyFrame = info.isKeyframe()
 
     if (codec == Codec.HEVC) {
       val sps = this.sps

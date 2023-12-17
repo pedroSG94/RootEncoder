@@ -45,6 +45,22 @@ class SdpBodyTest {
   }
 
   @Test
+  fun `GIVEN g711 info WHEN create g711 body THEN get expected string`() {
+    val track = 1
+    val sampleRate = 8000
+    val channels = 1
+
+    val expectedType = "PCMA/$sampleRate/$channels"
+    val expectedPayload = "a=rtpmap:${RtpConstants.payloadTypeG711}"
+    val expectedTrack = "a=control:streamid=${track}"
+
+    val result = SdpBody.createG711Body(track, sampleRate, channels == 2)
+    assertTrue(result.contains(expectedType))
+    assertTrue(result.contains(expectedPayload))
+    assertTrue(result.contains(expectedTrack))
+  }
+
+  @Test
   fun `GIVEN h264 info WHEN create h264 body THEN get expected string`() {
     val track = 1
     val sps = "abcd1234"
@@ -77,6 +93,20 @@ class SdpBodyTest {
     val result = SdpBody.createH265Body(track, sps, pps, vps)
     assertTrue(result.contains(expectedType))
     assertTrue(result.contains(expectedConfig))
+    assertTrue(result.contains(expectedPayload))
+    assertTrue(result.contains(expectedTrack))
+  }
+
+  @Test
+  fun `GIVEN AV1 info WHEN create AV1 body THEN get expected string`() {
+    val track = 1
+
+    val expectedType = "AV1/${RtpConstants.clockVideoFrequency}"
+    val expectedPayload = "a=rtpmap:${RtpConstants.payloadType + track}"
+    val expectedTrack = "a=control:streamid=${track}"
+
+    val result = SdpBody.createAV1Body(track)
+    assertTrue(result.contains(expectedType))
     assertTrue(result.contains(expectedPayload))
     assertTrue(result.contains(expectedTrack))
   }

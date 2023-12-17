@@ -56,6 +56,7 @@ class SrtStream(
       this(context, connectChecker, VideoManager.Source.CAMERA2, AudioManager.Source.MICROPHONE)
 
   override fun setVideoCodecImp(codec: VideoCodec) {
+    require(codec != VideoCodec.AV1) { "Unsupported codec: ${codec.name}" }
     srtClient.setVideoCodec(codec)
   }
 
@@ -75,8 +76,8 @@ class SrtStream(
     srtClient.disconnect()
   }
 
-  override fun onSpsPpsVpsRtp(sps: ByteBuffer, pps: ByteBuffer, vps: ByteBuffer?) {
-    srtClient.setVideoInfo(sps, pps, vps)
+  override fun onSpsPpsVpsRtp(sps: ByteBuffer, pps: ByteBuffer?, vps: ByteBuffer?) {
+    srtClient.setVideoInfo(sps, pps!!, vps)
   }
 
   override fun getH264DataRtp(h264Buffer: ByteBuffer, info: MediaCodec.BufferInfo) {

@@ -14,8 +14,21 @@
  * limitations under the License.
  */
 
-package com.pedro.common
+package com.pedro.common.av1
 
-enum class VideoCodec {
-    H264, H265, AV1
+/**
+ * Created by pedro on 8/12/23.
+ */
+enum class ObuType(val value: Int) {
+  RESERVED(0),
+  SEQUENCE_HEADER(1),
+  TEMPORAL_DELIMITER(2),
+  FRAME_HEADER(3),
+  TILE_GROUP(4),
+  METADATA(5),
+  FRAME(6),
+  REDUNDANT_FRAME_HEADER(7),
+  TILE_LIST(8),
+  //9-14 Reserved
+  PADDING(15)
 }

@@ -140,7 +140,7 @@ class RtspClient(private val connectChecker: ConnectChecker) {
     return validReason && reTries > 0
   }
 
-  fun setVideoInfo(sps: ByteBuffer, pps: ByteBuffer, vps: ByteBuffer?) {
+  fun setVideoInfo(sps: ByteBuffer, pps: ByteBuffer?, vps: ByteBuffer?) {
     Log.i(TAG, "send sps and pps")
     commandsManager.setVideoInfo(sps, pps, vps)
     if (mutex.isLocked) runCatching { mutex.unlock() }
@@ -215,7 +215,7 @@ class RtspClient(private val connectChecker: ConnectChecker) {
                 return@launch
               }
             }
-            rtspSender.setVideoInfo(commandsManager.sps!!, commandsManager.pps!!, commandsManager.vps)
+            rtspSender.setVideoInfo(commandsManager.sps!!, commandsManager.pps, commandsManager.vps)
           }
           if (!tlsEnabled) {
             connectionSocket = Socket()

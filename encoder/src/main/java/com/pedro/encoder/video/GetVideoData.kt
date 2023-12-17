@@ -23,7 +23,7 @@ import java.nio.ByteBuffer
  * Created by pedro on 20/01/17.
  */
 interface GetVideoData {
-  fun onSpsPpsVps(sps: ByteBuffer, pps: ByteBuffer, vps: ByteBuffer?)
+  fun onSpsPpsVps(sps: ByteBuffer, pps: ByteBuffer?, vps: ByteBuffer?)
   fun getVideoData(h264Buffer: ByteBuffer, info: MediaCodec.BufferInfo)
   fun onVideoFormat(mediaFormat: MediaFormat)
 }

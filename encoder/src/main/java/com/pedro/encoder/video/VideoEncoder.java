@@ -29,6 +29,9 @@ import android.view.Surface;
 import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
 
+import com.pedro.common.av1.Av1Parser;
+import com.pedro.common.av1.Obu;
+import com.pedro.common.av1.ObuType;
 import com.pedro.encoder.BaseEncoder;
 import com.pedro.encoder.Frame;
 import com.pedro.encoder.input.video.FpsLimiter;
@@ -296,20 +299,31 @@ public class VideoEncoder extends BaseEncoder implements GetCameraData {
     }
   }
 
-  private void sendSPSandPPS(MediaFormat mediaFormat) {
-    //H265
-    if (type.equals(CodecUtil.H265_MIME)) {
+  private boolean sendSPSandPPS(MediaFormat mediaFormat) {
+    //AV1
+    if (type.equals(CodecUtil.AV1_MIME)) {
+      ByteBuffer bufferInfo = mediaFormat.getByteBuffer("csd-0");
+      //we need an av1ConfigurationRecord with sequenceObu to work
+      if (bufferInfo != null && bufferInfo.remaining() > 4) {
+        getVideoData.onSpsPpsVps(bufferInfo, null, null);
+        return true;
+      }
+      return false;
+      //H265
+    } else if (type.equals(CodecUtil.H265_MIME)) {
       List<ByteBuffer> byteBufferList = extractVpsSpsPpsFromH265(mediaFormat.getByteBuffer("csd-0"));
       oldSps = byteBufferList.get(1);
       oldPps = byteBufferList.get(2);
       oldVps = byteBufferList.get(0);
       getVideoData.onSpsPpsVps(oldSps, oldPps, oldVps);
+      return true;
       //H264
     } else {
       oldSps = mediaFormat.getByteBuffer("csd-0");
       oldPps = mediaFormat.getByteBuffer("csd-1");
       oldVps = null;
       getVideoData.onSpsPpsVps(oldSps, oldPps, oldVps);
+      return true;
     }
   }
 
@@ -430,6 +444,26 @@ public class VideoEncoder extends BaseEncoder implements GetCameraData {
     return byteBufferList;
   }
 
+  /**
+   *
+   * @param buffer key frame
+   * @return av1 ObuSequence
+   */
+  private ByteBuffer extractObuSequence(ByteBuffer buffer, MediaCodec.BufferInfo bufferInfo) {
+    //we can only extract info from keyframes
+    if (bufferInfo.flags != MediaCodec.BUFFER_FLAG_KEY_FRAME) return null;
+    byte[] av1Data = new byte[buffer.remaining()];
+    buffer.get(av1Data);
+    Av1Parser av1Parser = new Av1Parser();
+    List<Obu> obuList = av1Parser.getObus(av1Data);
+    for (Obu obu: obuList) {
+      if (av1Parser.getObuType(obu.getHeader()[0]) == ObuType.SEQUENCE_HEADER) {
+        return ByteBuffer.wrap(obu.getFullData());
+      }
+    }
+    return null;
+  }
+
   @Override
   protected Frame getInputFrame() throws InterruptedException {
     Frame frame = queue.take();
@@ -457,8 +491,7 @@ public class VideoEncoder extends BaseEncoder implements GetCameraData {
   @Override
   public void formatChanged(@NonNull MediaCodec mediaCodec, @NonNull MediaFormat mediaFormat) {
     getVideoData.onVideoFormat(mediaFormat);
-    sendSPSandPPS(mediaFormat);
-    spsPpsSetted = true;
+    spsPpsSetted = sendSPSandPPS(mediaFormat);
   }
 
   @Override
@@ -484,7 +517,7 @@ public class VideoEncoder extends BaseEncoder implements GetCameraData {
       }
     } else if (!spsPpsSetted && type.equals(CodecUtil.H265_MIME)) {
       Log.i(TAG, "formatChanged not called, doing manual vps/sps/pps extraction...");
-      List<ByteBuffer> byteBufferList = extractVpsSpsPpsFromH265(byteBuffer);
+      List<ByteBuffer> byteBufferList = extractVpsSpsPpsFromH265(byteBuffer.duplicate());
       if (byteBufferList.size() == 3) {
         Log.i(TAG, "manual vps/sps/pps extraction success");
         oldSps = byteBufferList.get(1);
@@ -494,6 +527,15 @@ public class VideoEncoder extends BaseEncoder implements GetCameraData {
         spsPpsSetted = true;
       } else {
         Log.e(TAG, "manual vps/sps/pps extraction failed");
+      }
+    } else if (!spsPpsSetted && type.equals(CodecUtil.AV1_MIME)) {
+      Log.i(TAG, "formatChanged not called, doing manual av1 extraction...");
+      ByteBuffer obuSequence = extractObuSequence(byteBuffer.duplicate(), bufferInfo);
+      if (obuSequence != null) {
+        getVideoData.onSpsPpsVps(obuSequence, null, null);
+        spsPpsSetted = true;
+      } else {
+        Log.e(TAG, "manual av1 extraction failed");
       }
     }
     if (formatVideoEncoder == FormatVideoEncoder.SURFACE) {

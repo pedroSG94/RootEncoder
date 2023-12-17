@@ -61,6 +61,14 @@ object SdpBody {
         "a=control:streamid=$trackAudio\r\n"
   }
 
+  fun createAV1Body(trackVideo: Int): String {
+    val payload = RtpConstants.payloadType + trackVideo
+    return "m=video 0 RTP/AVP $payload\r\n" +
+        "a=rtpmap:$payload AV1/${RtpConstants.clockVideoFrequency}\r\n" +
+        "a=fmtp:$payload profile=0; level-idx=0;\r\n" +
+        "a=control:streamid=$trackVideo\r\n"
+  }
+
   fun createH264Body(trackVideo: Int, sps: String, pps: String): String {
     val payload = RtpConstants.payloadType + trackVideo
     return "m=video 0 RTP/AVP $payload\r\n" +

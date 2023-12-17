@@ -78,7 +78,7 @@ class RtmpStream(
     rtmpClient.disconnect()
   }
 
-  override fun onSpsPpsVpsRtp(sps: ByteBuffer, pps: ByteBuffer, vps: ByteBuffer?) {
+  override fun onSpsPpsVpsRtp(sps: ByteBuffer, pps: ByteBuffer?, vps: ByteBuffer?) {
     rtmpClient.setVideoInfo(sps, pps, vps)
   }
 
