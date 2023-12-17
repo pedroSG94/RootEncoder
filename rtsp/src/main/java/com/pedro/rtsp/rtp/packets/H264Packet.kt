@@ -18,6 +18,7 @@ package com.pedro.rtsp.rtp.packets
 
 import android.media.MediaCodec
 import android.util.Log
+import com.pedro.common.isKeyframe
 import com.pedro.common.removeInfo
 import com.pedro.rtsp.rtsp.RtpFrame
 import com.pedro.rtsp.utils.RtpConstants
@@ -62,7 +63,7 @@ class H264Packet(
     val ts = bufferInfo.presentationTimeUs * 1000L
     val naluLength = fixedBuffer.remaining()
     val type: Int = (header[header.size - 1] and 0x1F).toInt()
-    if (type == RtpConstants.IDR || bufferInfo.flags == MediaCodec.BUFFER_FLAG_KEY_FRAME) {
+    if (type == RtpConstants.IDR || bufferInfo.isKeyframe()) {
       stapA?.let {
         val buffer = getBuffer(it.size + RtpConstants.RTP_HEADER_LENGTH)
         val rtpTs = updateTimeStamp(buffer, ts)

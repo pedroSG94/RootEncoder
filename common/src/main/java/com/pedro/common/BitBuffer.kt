@@ -16,6 +16,26 @@
 
 package com.pedro.common
 
-enum class VideoCodec {
-    H264, H265, AV1
+/**
+ * Created by pedro on 9/12/23.
+ *
+ */
+class BitBuffer(private val buffer: ByteArray) {
+
+  fun getBits(offset: Int, size: Int): Int {
+    val startIndex = offset / 8
+    val startBit = offset % 8
+    var result = 0
+    var bitNum = startBit
+
+    for (i in 0 until size) {
+      val nextByte = (startBit + i) % 8 < startBit
+      val currentIndex = startIndex + if (nextByte) 1 else 0
+      val currentBit = (startBit + i) % 8
+      val bitValue = (buffer[currentIndex].toInt() ushr 7 - currentBit) and 0x01
+      result = (result shl 1) or bitValue
+      bitNum++
+    }
+    return result
+  }
 }
