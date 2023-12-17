@@ -25,7 +25,6 @@ import com.pedro.common.toByteArray
 import com.pedro.rtsp.rtsp.RtpFrame
 import com.pedro.rtsp.utils.RtpConstants
 import java.nio.ByteBuffer
-import kotlin.experimental.and
 
 /**
  * Created by pedro on 28/11/18.
@@ -39,7 +38,7 @@ import kotlin.experimental.and
  * |Z|Y| W |N|-|-|-|
  * +-+-+-+-+-+-+-+-+
  */
-class Av1Packet(sps: ByteArray) : BasePacket(
+class Av1Packet: BasePacket(
   RtpConstants.clockVideoFrequency,
   RtpConstants.payloadType + RtpConstants.trackVideo
 ) {
@@ -75,43 +74,34 @@ class Av1Packet(sps: ByteArray) : BasePacket(
     }
     fixedBuffer = ByteBuffer.wrap(data)
     val size = fixedBuffer.remaining()
-
-    //small packet
-    if (size <= maxPacketSize - RtpConstants.RTP_HEADER_LENGTH - 1) {
-      val buffer = getBuffer(size + RtpConstants.RTP_HEADER_LENGTH + 1)
-      buffer[RtpConstants.RTP_HEADER_LENGTH] = generateAv1AggregationHeader(bufferInfo.isKeyframe(), true, true, obuList.size)
-      fixedBuffer.get(buffer, RtpConstants.RTP_HEADER_LENGTH + 1, size)
+    var sum = 0
+    while (sum < size) {
+      val isFirstPacket = sum == 0
+      var isLastPacket = false
+      val length = if (size - sum > maxPacketSize - RtpConstants.RTP_HEADER_LENGTH - 1) {
+        maxPacketSize - RtpConstants.RTP_HEADER_LENGTH - 1
+      } else {
+        fixedBuffer.remaining()
+      }
+      val buffer = getBuffer(length + RtpConstants.RTP_HEADER_LENGTH + 1)
       val rtpTs = updateTimeStamp(buffer, ts)
-      markPacket(buffer) //mark end frame
+      fixedBuffer.get(buffer, RtpConstants.RTP_HEADER_LENGTH + 1, length)
+      sum += length
+      // Last packet before next NAL
+      if (sum >= size) {
+        isLastPacket = true
+        markPacket(buffer) //mark end frame
+      }
+      val oSize = if (isFirstPacket) obuList.size else 1
+      buffer[RtpConstants.RTP_HEADER_LENGTH] = generateAv1AggregationHeader(bufferInfo.isKeyframe(), isFirstPacket, isLastPacket, oSize)
       updateSeq(buffer)
       val rtpFrame = RtpFrame(buffer, rtpTs, buffer.size, rtpPort, rtcpPort, channelIdentifier)
       callback(rtpFrame)
-    } else {
-      //large packet
-      var sum = 0
-      while (sum < size) {
-        val isFirstPacket = sum == 0
-        var isLastPacket = false
-        val length = if (size - sum > maxPacketSize - RtpConstants.RTP_HEADER_LENGTH - 1) {
-          maxPacketSize - RtpConstants.RTP_HEADER_LENGTH - 1
-        } else {
-          fixedBuffer.remaining()
-        }
-        val buffer = getBuffer(length + RtpConstants.RTP_HEADER_LENGTH + 1)
-        val rtpTs = updateTimeStamp(buffer, ts)
-        fixedBuffer.get(buffer, RtpConstants.RTP_HEADER_LENGTH + 1, length)
-        sum += length
-        // Last packet before next NAL
-        if (sum >= size) {
-          isLastPacket = true
-          markPacket(buffer) //mark end frame
-        }
-        buffer[RtpConstants.RTP_HEADER_LENGTH] = generateAv1AggregationHeader(bufferInfo.isKeyframe(), isFirstPacket, isLastPacket, obuList.size)
-        updateSeq(buffer)
-        val rtpFrame = RtpFrame(buffer, rtpTs, buffer.size, rtpPort, rtcpPort, channelIdentifier)
-        callback(rtpFrame)
-      }
     }
+  }
+
+  override fun reset() {
+    super.reset()
   }
 
   private fun generateAv1AggregationHeader(isKeyFrame: Boolean, isFirstPacket: Boolean, isLastPacket: Boolean, numObu: Int): Byte {
@@ -121,7 +111,5 @@ class Av1Packet(sps: ByteArray) : BasePacket(
     val n = if (isKeyFrame && isFirstPacket) 1 else 0
     return ((z shl 7) or (y shl 6) or (w shl 4) or (n shl 3) or 0).toByte()
   }
-  override fun reset() {
-    super.reset()
-  }
+
 }

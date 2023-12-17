@@ -85,7 +85,7 @@ class RtspSender(private val connectChecker: ConnectChecker) {
 
   fun setVideoInfo(sps: ByteArray, pps: ByteArray?, vps: ByteArray?) {
     videoPacket = when {
-      vps == null && pps == null -> Av1Packet(sps)
+      vps == null && pps == null -> Av1Packet()
       vps == null && pps != null -> H264Packet(sps, pps)
       vps != null && pps != null -> H265Packet()
       else -> H264Packet(sps, byteArrayOf())

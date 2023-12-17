@@ -83,7 +83,6 @@ import com.pedro.encoder.input.video.CameraOpenException;
 import com.pedro.encoder.utils.gl.TranslateTo;
 import com.pedro.library.rtsp.RtspCamera1;
 import com.pedro.library.view.OpenGlView;
-import com.pedro.rtsp.rtsp.Protocol;
 import com.pedro.streamer.R;
 import com.pedro.streamer.utils.PathUtils;
 
@@ -136,8 +135,6 @@ public class OpenGlRtspActivity extends AppCompatActivity
     etUrl.setHint(R.string.hint_rtsp);
     rtspCamera1 = new RtspCamera1(openGlView, this);
     rtspCamera1.setVideoCodec(VideoCodec.AV1);
-    rtspCamera1.getStreamClient().setProtocol(Protocol.UDP);
-    rtspCamera1.getStreamClient().setOnlyVideo(true);
     openGlView.getHolder().addCallback(this);
     openGlView.setOnTouchListener(this);
   }
