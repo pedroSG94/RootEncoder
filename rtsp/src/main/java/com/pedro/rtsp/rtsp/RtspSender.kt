@@ -83,8 +83,13 @@ class RtspSender(private val connectChecker: ConnectChecker) {
     baseSenderReport = BaseSenderReport.getInstance(protocol, videoSourcePorts[1], audioSourcePorts[1])
   }
 
-  fun setVideoInfo(sps: ByteArray, pps: ByteArray, vps: ByteArray?) {
-    videoPacket = if (vps == null) H264Packet(sps, pps) else H265Packet()
+  fun setVideoInfo(sps: ByteArray, pps: ByteArray?, vps: ByteArray?) {
+    videoPacket = when {
+      vps == null && pps == null -> Av1Packet()
+      vps == null && pps != null -> H264Packet(sps, pps)
+      vps != null && pps != null -> H265Packet()
+      else -> H264Packet(sps, byteArrayOf())
+    }
   }
 
   fun setAudioInfo(sampleRate: Int, audioCodec: AudioCodec) {

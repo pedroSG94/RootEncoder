@@ -592,8 +592,8 @@ public abstract class DisplayBase {
 
   private final GetVideoData getVideoData = new GetVideoData() {
     @Override
-    public void onSpsPpsVps(@NonNull ByteBuffer sps, @NonNull ByteBuffer pps, @Nullable ByteBuffer vps) {
-      onSpsPpsVpsRtp(sps.duplicate(), pps.duplicate(), vps != null ? vps.duplicate() : null);
+    public void onSpsPpsVps(@NonNull ByteBuffer sps, @Nullable ByteBuffer pps, @Nullable ByteBuffer vps) {
+      onSpsPpsVpsRtp(sps.duplicate(),  pps != null ? pps.duplicate(): null, vps != null ? vps.duplicate() : null);
     }
 
     @Override
@@ -614,7 +614,12 @@ public abstract class DisplayBase {
   public void setVideoCodec(VideoCodec codec) {
     setVideoCodecImp(codec);
     recordController.setVideoCodec(codec);
-    videoEncoder.setType(codec == VideoCodec.H265 ? CodecUtil.H265_MIME : CodecUtil.H264_MIME);
+    String type = switch (codec) {
+      case H264 -> CodecUtil.H264_MIME;
+      case H265 -> CodecUtil.H265_MIME;
+      case AV1 -> CodecUtil.AV1_MIME;
+    };
+    videoEncoder.setType(type);
   }
 
   public void setAudioCodec(AudioCodec codec) {

@@ -156,7 +156,7 @@ class RtmpClient(private val connectChecker: ConnectChecker) {
     rtmpSender.setAudioInfo(sampleRate, isStereo)
   }
 
-  fun setVideoInfo(sps: ByteBuffer, pps: ByteBuffer, vps: ByteBuffer?) {
+  fun setVideoInfo(sps: ByteBuffer, pps: ByteBuffer?, vps: ByteBuffer?) {
     Log.i(TAG, "send sps and pps")
     rtmpSender.setVideoInfo(sps, pps, vps)
   }
