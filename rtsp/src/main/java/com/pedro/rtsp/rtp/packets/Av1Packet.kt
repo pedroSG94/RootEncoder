@@ -17,7 +17,7 @@
 package com.pedro.rtsp.rtp.packets
 
 import android.media.MediaCodec
-import com.pedro.common.av1.AV1Parser
+import com.pedro.common.av1.Av1Parser
 import com.pedro.common.av1.ObuType
 import com.pedro.common.isKeyframe
 import com.pedro.common.removeInfo
@@ -43,7 +43,7 @@ class Av1Packet: BasePacket(
   RtpConstants.payloadType + RtpConstants.trackVideo
 ) {
 
-  private val parser = AV1Parser()
+  private val parser = Av1Parser()
 
   init {
     channelIdentifier = RtpConstants.trackVideo

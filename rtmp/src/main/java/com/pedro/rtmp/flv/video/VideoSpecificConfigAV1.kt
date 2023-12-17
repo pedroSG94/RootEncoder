@@ -17,7 +17,7 @@
 package com.pedro.rtmp.flv.video
 
 import com.pedro.common.BitBuffer
-import com.pedro.common.av1.AV1Parser
+import com.pedro.common.av1.Av1Parser
 import java.nio.ByteBuffer
 
 /**
@@ -47,17 +47,10 @@ import java.nio.ByteBuffer
  *   unsigned int(8) configOBUs[];
  * }
  *
- * Example:
- *
- * Input:
- * 0a 0d 00 00 00 24 4f 7e 7f 00 68 83 00 83 02
- * Result:
- * 81 04 0c 00 0a 0d 00 00 00 24 4f 7e 7f 00 68 83 00 83 02
- *
  */
 class VideoSpecificConfigAV1(private val sequenceObu: ByteArray) {
 
-  private val av1Parser = AV1Parser()
+  private val av1Parser = Av1Parser()
   val size = 4 + sequenceObu.size
 
   fun write(buffer: ByteArray, offset: Int) {

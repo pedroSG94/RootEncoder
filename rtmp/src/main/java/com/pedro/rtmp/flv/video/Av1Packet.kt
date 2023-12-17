@@ -22,7 +22,7 @@ import com.pedro.common.removeInfo
 import com.pedro.common.toByteArray
 import com.pedro.rtmp.flv.FlvPacket
 import com.pedro.rtmp.flv.FlvType
-import com.pedro.common.av1.AV1Parser
+import com.pedro.common.av1.Av1Parser
 import com.pedro.common.av1.ObuType
 import com.pedro.common.isKeyframe
 import java.nio.ByteBuffer
@@ -35,7 +35,7 @@ class Av1Packet {
 
   private val TAG = "AV1Packet"
 
-  private val parser = AV1Parser()
+  private val parser = Av1Parser()
   private val header = ByteArray(5)
   //first time we need send video config
   private var configSend = false

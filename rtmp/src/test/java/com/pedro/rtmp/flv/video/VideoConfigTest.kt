@@ -43,7 +43,17 @@ class VideoConfigTest {
     val config = VideoSpecificConfigAVC(sps, pps)
     val data = ByteArray(config.size)
     config.write(data, 0)
-    println(data.contentToString())
+    assertArrayEquals(expectedConfig, data)
+  }
+
+  @Test
+  fun `GIVEN obu sequence WHEN create a video config THEN return a bytearray with the config`() {
+    val obuSequence = byteArrayOf(0x0a, 0x0d, 0x00, 0x00, 0x00, 0x24, 0x4f, 0x7e, 0x7f, 0x00, 0x68, 0x83.toByte(), 0x00, 0x83.toByte(), 0x02)
+    val expectedConfig = byteArrayOf(0x81.toByte(), 0x04, 0x0c, 0x00, 0x0a, 0x0d, 0x00, 0x00, 0x00, 0x24, 0x4f, 0x7e, 0x7f, 0x00, 0x68, 0x83.toByte(), 0x00, 0x83.toByte(), 0x02)
+
+    val config = VideoSpecificConfigAV1(obuSequence)
+    val data = ByteArray(config.size)
+    config.write(data, 0)
     assertArrayEquals(expectedConfig, data)
   }
 }

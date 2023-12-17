@@ -43,7 +43,7 @@ import kotlin.experimental.or
  * - data length (optional depend of header) -> 1 to 8 bytes in leb128
  * - data
  */
-class AV1Parser {
+class Av1Parser {
 
   fun getObuType(header: Byte): ObuType {
     val value = ((header.toInt() and 0x7F) and 0xF8) ushr 3

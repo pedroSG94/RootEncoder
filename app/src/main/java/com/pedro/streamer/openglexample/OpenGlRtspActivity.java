@@ -34,7 +34,6 @@ import android.widget.EditText;
 import android.widget.Toast;
 
 import com.pedro.common.ConnectChecker;
-import com.pedro.common.VideoCodec;
 import com.pedro.encoder.input.gl.SpriteGestureController;
 import com.pedro.encoder.input.gl.render.filters.AnalogTVFilterRender;
 import com.pedro.encoder.input.gl.render.filters.AndroidViewFilterRender;
@@ -134,7 +133,6 @@ public class OpenGlRtspActivity extends AppCompatActivity
     etUrl = findViewById(R.id.et_rtp_url);
     etUrl.setHint(R.string.hint_rtsp);
     rtspCamera1 = new RtspCamera1(openGlView, this);
-    rtspCamera1.setVideoCodec(VideoCodec.AV1);
     openGlView.getHolder().addCallback(this);
     openGlView.setOnTouchListener(this);
   }

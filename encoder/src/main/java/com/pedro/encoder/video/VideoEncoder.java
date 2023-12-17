@@ -29,7 +29,7 @@ import android.view.Surface;
 import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
 
-import com.pedro.common.av1.AV1Parser;
+import com.pedro.common.av1.Av1Parser;
 import com.pedro.common.av1.Obu;
 import com.pedro.common.av1.ObuType;
 import com.pedro.encoder.BaseEncoder;
@@ -454,7 +454,7 @@ public class VideoEncoder extends BaseEncoder implements GetCameraData {
     if (bufferInfo.flags != MediaCodec.BUFFER_FLAG_KEY_FRAME) return null;
     byte[] av1Data = new byte[buffer.remaining()];
     buffer.get(av1Data);
-    AV1Parser av1Parser = new AV1Parser();
+    Av1Parser av1Parser = new Av1Parser();
     List<Obu> obuList = av1Parser.getObus(av1Data);
     for (Obu obu: obuList) {
       if (av1Parser.getObuType(obu.getHeader()[0]) == ObuType.SEQUENCE_HEADER) {
