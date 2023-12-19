@@ -144,32 +144,32 @@ public class LightOpenGlView extends OpenGlViewBase {
 
   @Override
   public void setFilter(int filterPosition, BaseFilterRender baseFilterRender) {
-
+    throw new RuntimeException("Filters are not allowed when using LightOpenGlView. Replace it with OpenGlView to enable the use of filters");
   }
 
   @Override
   public void addFilter(BaseFilterRender baseFilterRender) {
-
+    throw new RuntimeException("Filters are not allowed when using LightOpenGlView. Replace it with OpenGlView to enable the use of filters");
   }
 
   @Override
   public void addFilter(int filterPosition, BaseFilterRender baseFilterRender) {
-
+    throw new RuntimeException("Filters are not allowed when using LightOpenGlView. Replace it with OpenGlView to enable the use of filters");
   }
 
   @Override
   public void clearFilters() {
-
+    throw new RuntimeException("Filters are not allowed when using LightOpenGlView. Replace it with OpenGlView to enable the use of filters");
   }
 
   @Override
   public void removeFilter(int filterPosition) {
-
+    throw new RuntimeException("Filters are not allowed when using LightOpenGlView. Replace it with OpenGlView to enable the use of filters");
   }
 
   @Override
   public void removeFilter(BaseFilterRender baseFilterRender) {
-
+    throw new RuntimeException("Filters are not allowed when using LightOpenGlView. Replace it with OpenGlView to enable the use of filters");
   }
 
   @Override
@@ -184,7 +184,7 @@ public class LightOpenGlView extends OpenGlViewBase {
 
   @Override
   public void enableAA(boolean AAEnabled) {
-
+    throw new RuntimeException("AA are not allowed when using LightOpenGlView. Replace it with OpenGlView to enable the use of AA");
   }
 
   @Override
