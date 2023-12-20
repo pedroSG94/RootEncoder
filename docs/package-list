@@ -1,6 +1,9 @@
 $dokka.format:html-v1
 $dokka.linkExtension:html
 
+module:common
+com.pedro.common
+com.pedro.common.av1
 module:encoder
 com.pedro.encoder
 com.pedro.encoder.audio
@@ -20,6 +23,7 @@ com.pedro.encoder.video
 module:library
 com.pedro.library.base
 com.pedro.library.base.recording
+com.pedro.library.generic
 com.pedro.library.multiple
 com.pedro.library.network
 com.pedro.library.rtmp
