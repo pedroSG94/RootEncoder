@@ -66,7 +66,7 @@ abstract class CommandsManager {
   protected var sampleRate = 44100
   protected var isStereo = true
   var videoCodec = VideoCodec.H264
-  var audioCodec = AudioCodec.G711
+  var audioCodec = AudioCodec.AAC
   //Avoid write a packet in middle of other.
   private val writeSync = Mutex(locked = false)
 
