@@ -17,6 +17,7 @@
 package com.pedro.rtmp.rtmp
 
 import android.util.Log
+import com.pedro.common.AudioCodec
 import com.pedro.common.TimeUtils
 import com.pedro.common.VideoCodec
 import com.pedro.rtmp.amf.v0.*
@@ -65,6 +66,7 @@ abstract class CommandsManager {
   protected var sampleRate = 44100
   protected var isStereo = true
   var videoCodec = VideoCodec.H264
+  var audioCodec = AudioCodec.G711
   //Avoid write a packet in middle of other.
   private val writeSync = Mutex(locked = false)
 

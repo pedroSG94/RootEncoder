@@ -14,21 +14,27 @@
  * limitations under the License.
  */
 
-package com.pedro.rtmp.flv.video
+package com.pedro.rtmp.flv.video.packet
 
 import android.media.MediaCodec
 import android.util.Log
 import com.pedro.common.isKeyframe
 import com.pedro.common.removeInfo
+import com.pedro.rtmp.flv.BasePacket
 import com.pedro.rtmp.flv.FlvPacket
 import com.pedro.rtmp.flv.FlvType
+import com.pedro.rtmp.flv.video.FourCCPacketType
+import com.pedro.rtmp.flv.video.VideoDataType
+import com.pedro.rtmp.flv.video.VideoFormat
+import com.pedro.rtmp.flv.video.VideoNalType
+import com.pedro.rtmp.flv.video.config.VideoSpecificConfigHEVC
 import java.nio.ByteBuffer
 
 /**
  * Created by pedro on 14/08/23.
  *
  */
-class H265Packet {
+class H265Packet: BasePacket() {
 
   private val TAG = "H265Packet"
 
@@ -58,7 +64,7 @@ class H265Packet {
     this.vps = vpsBytes
   }
 
-  fun createFlvVideoPacket(
+  override fun createFlvPacket(
     byteBuffer: ByteBuffer,
     info: MediaCodec.BufferInfo,
     callback: (FlvPacket) -> Unit
@@ -177,7 +183,7 @@ class H265Packet {
     return startCodeSize
   }
 
-  fun reset(resetInfo: Boolean = true) {
+  override fun reset(resetInfo: Boolean) {
     if (resetInfo) {
       sps = null
       pps = null

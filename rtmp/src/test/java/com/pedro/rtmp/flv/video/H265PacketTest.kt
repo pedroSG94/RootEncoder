@@ -19,6 +19,7 @@ package com.pedro.rtmp.flv.video
 import android.media.MediaCodec
 import com.pedro.rtmp.flv.FlvPacket
 import com.pedro.rtmp.flv.FlvType
+import com.pedro.rtmp.flv.video.packet.H265Packet
 import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertEquals
 import org.junit.Test
@@ -50,7 +51,7 @@ class H265PacketTest {
     h265Packet.sendVideoInfo(ByteBuffer.wrap(sps), ByteBuffer.wrap(pps), ByteBuffer.wrap(vps))
 
     val frames = mutableListOf<FlvPacket>()
-    h265Packet.createFlvVideoPacket(ByteBuffer.wrap(fakeH264), info) { flvPacket ->
+    h265Packet.createFlvPacket(ByteBuffer.wrap(fakeH264), info) { flvPacket ->
       assertEquals(FlvType.VIDEO, flvPacket.type)
       frames.add(flvPacket)
     }

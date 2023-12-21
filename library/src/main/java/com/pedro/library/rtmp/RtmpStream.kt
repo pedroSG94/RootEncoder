@@ -60,7 +60,7 @@ class RtmpStream(
   }
 
   override fun setAudioCodecImp(codec: AudioCodec) {
-    require(codec == AudioCodec.AAC) { "Unsupported codec: ${codec.name}" }
+    rtmpClient.setAudioCodec(codec)
   }
 
   override fun audioInfo(sampleRate: Int, isStereo: Boolean) {

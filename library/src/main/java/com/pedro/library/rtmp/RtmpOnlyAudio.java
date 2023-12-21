@@ -51,7 +51,7 @@ public class RtmpOnlyAudio extends OnlyAudioBase {
 
   @Override
   protected void setAudioCodecImp(AudioCodec codec) {
-    if (codec != AudioCodec.AAC) throw new IllegalArgumentException("Unsupported codec: " + codec.name());
+    rtmpClient.setAudioCodec(codec);
   }
 
   @Override

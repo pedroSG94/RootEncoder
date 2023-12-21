@@ -14,19 +14,26 @@
  * limitations under the License.
  */
 
-package com.pedro.rtmp.flv.audio
+package com.pedro.rtmp.flv.audio.packet
 
 import android.media.MediaCodec
 import com.pedro.common.removeInfo
+import com.pedro.rtmp.flv.BasePacket
 import com.pedro.rtmp.flv.FlvPacket
 import com.pedro.rtmp.flv.FlvType
+import com.pedro.rtmp.flv.audio.AudioFormat
+import com.pedro.rtmp.flv.audio.AudioObjectType
+import com.pedro.rtmp.flv.audio.AudioSize
+import com.pedro.rtmp.flv.audio.AudioSoundRate
+import com.pedro.rtmp.flv.audio.AudioSoundType
+import com.pedro.rtmp.flv.audio.config.AudioSpecificConfig
 import java.nio.ByteBuffer
 import kotlin.experimental.or
 
 /**
  * Created by pedro on 8/04/21.
  */
-class AacPacket {
+class AacPacket: BasePacket() {
 
   private val header = ByteArray(2)
   //first time we need send audio config
@@ -49,7 +56,7 @@ class AacPacket {
     this.audioSize = audioSize
   }
 
-  fun createFlvAudioPacket(
+  override fun createFlvPacket(
     byteBuffer: ByteBuffer,
     info: MediaCodec.BufferInfo,
     callback: (FlvPacket) -> Unit
@@ -57,9 +64,8 @@ class AacPacket {
     val fixedBuffer = byteBuffer.removeInfo(info)
     //header is 2 bytes length
     //4 bits sound format, 2 bits sound rate, 1 bit sound size, 1 bit sound type
-    //8 bits sound data (always 10 because we aer using aac)
-    header[0] = if (isStereo) AudioSoundType.STEREO.value else AudioSoundType.MONO.value
-    header[0] = header[0] or (audioSize.value shl 1).toByte()
+    //8 bits sound data (always 10 because we are using aac)
+    val type = if (isStereo) AudioSoundType.STEREO.value else AudioSoundType.MONO.value
     val soundRate = when (sampleRate) {
       44100 -> AudioSoundRate.SR_44_1K
       22050 -> AudioSoundRate.SR_22K
@@ -67,8 +73,7 @@ class AacPacket {
       5500 -> AudioSoundRate.SR_5_5K
       else -> AudioSoundRate.SR_44_1K
     }
-    header[0] = header[0] or (soundRate.value shl 2).toByte()
-    header[0] = header[0] or (AudioFormat.AAC.value shl 4).toByte()
+    header[0] = type or (audioSize.value shl 1).toByte() or (soundRate.value shl 2).toByte() or (AudioFormat.AAC.value shl 4).toByte()
     val buffer: ByteArray
     if (!configSend) {
       val config = AudioSpecificConfig(objectType.value, sampleRate, if (isStereo) 2 else 1)
@@ -86,7 +91,12 @@ class AacPacket {
     callback(FlvPacket(buffer, ts, buffer.size, FlvType.AUDIO))
   }
 
-  fun reset() {
+  override fun reset(resetInfo: Boolean) {
+    if (resetInfo) {
+      sampleRate = 44100
+      isStereo = true
+      audioSize = AudioSize.SND_16_BIT
+    }
     configSend = false
   }
 }

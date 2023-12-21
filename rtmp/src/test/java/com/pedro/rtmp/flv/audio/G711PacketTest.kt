@@ -18,18 +18,18 @@ package com.pedro.rtmp.flv.audio
 
 import android.media.MediaCodec
 import com.pedro.rtmp.flv.FlvType
-import com.pedro.rtmp.flv.audio.packet.AacPacket
-import org.junit.Assert.assertEquals
+import com.pedro.rtmp.flv.audio.packet.G711Packet
+import junit.framework.TestCase.assertEquals
 import org.junit.Test
 import java.nio.ByteBuffer
 
 /**
- * Created by pedro on 9/9/23.
+ * Created by pedro on 21/12/23.
  */
-class AacPacketTest {
+class G711PacketTest {
 
   @Test
-  fun `GIVEN a aac buffer WHEN call create a aac packet 2 times THEN return config and expected buffer`() {
+  fun `GIVEN a G711 buffer WHEN call create a G711 packet THEN expected buffer`() {
     val timestamp = 123456789L
     val buffer = ByteArray(256) { 0x00 }
     val info = MediaCodec.BufferInfo()
@@ -37,18 +37,12 @@ class AacPacketTest {
     info.offset = 0
     info.size = buffer.size
     info.flags = 1
-    val aacPacket = AacPacket()
-    aacPacket.sendAudioInfo(32000, true)
-    aacPacket.createFlvPacket(ByteBuffer.wrap(buffer), info) { flvPacket ->
+    val g711Packet = G711Packet()
+    g711Packet.sendAudioInfo()
+    g711Packet.createFlvPacket(ByteBuffer.wrap(buffer), info) { flvPacket ->
       assertEquals(FlvType.AUDIO, flvPacket.type)
-      assertEquals((-81).toByte(), flvPacket.buffer[0])
-      assertEquals(AacPacket.Type.SEQUENCE.mark, flvPacket.buffer[1])
-    }
-    aacPacket.createFlvPacket(ByteBuffer.wrap(buffer), info) { flvPacket ->
-      assertEquals(FlvType.AUDIO, flvPacket.type)
-      assertEquals((-81).toByte(), flvPacket.buffer[0])
-      assertEquals(AacPacket.Type.RAW.mark, flvPacket.buffer[1])
-      assertEquals(buffer.size + 2, flvPacket.length)
+      assertEquals(0x72, flvPacket.buffer[0])
+      assertEquals(buffer.size + 1, flvPacket.length)
     }
   }
 }

@@ -16,12 +16,14 @@
 
 package com.pedro.rtmp.flv
 
+import android.media.MediaCodec
+import java.nio.ByteBuffer
+
 /**
- * Created by pedro on 8/04/21.
+ * Created by pedro on 21/12/23.
  */
-data class FlvPacket(
-  val buffer: ByteArray = byteArrayOf(),
-  var timeStamp: Long = 0,
-  val length: Int = 0,
-  val type: FlvType = FlvType.AUDIO
-)
+abstract class BasePacket {
+
+  abstract fun createFlvPacket(byteBuffer: ByteBuffer, info: MediaCodec.BufferInfo, callback: (FlvPacket) -> Unit)
+  abstract fun reset(resetInfo: Boolean = true)
+}

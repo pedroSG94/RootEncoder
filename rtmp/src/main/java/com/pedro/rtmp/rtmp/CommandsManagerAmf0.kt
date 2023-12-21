@@ -17,6 +17,7 @@
 package com.pedro.rtmp.rtmp
 
 import android.util.Log
+import com.pedro.common.AudioCodec
 import com.pedro.common.VideoCodec
 import com.pedro.rtmp.amf.v0.AmfData
 import com.pedro.rtmp.amf.v0.AmfEcmaArray
@@ -40,16 +41,8 @@ class CommandsManagerAmf0: CommandsManager() {
     val connectInfo = AmfObject()
     connectInfo.setProperty("app", appName + auth)
     connectInfo.setProperty("flashVer", "FMLE/3.0 (compatible; Lavf57.56.101)")
-    connectInfo.setProperty("swfUrl", "")
     connectInfo.setProperty("tcUrl", tcUrl + auth)
-    connectInfo.setProperty("fpad", false)
-    connectInfo.setProperty("capabilities", 239.0)
-    if (!audioDisabled) {
-      connectInfo.setProperty("audioCodecs", 3191.0)
-    }
     if (!videoDisabled) {
-      connectInfo.setProperty("videoCodecs", 252.0)
-      connectInfo.setProperty("videoFunction", 1.0)
       if (videoCodec == VideoCodec.H265) {
         val list = mutableListOf<AmfData>()
         list.add(AmfString("hvc1"))
@@ -62,7 +55,6 @@ class CommandsManagerAmf0: CommandsManager() {
         connectInfo.setProperty("fourCcList", array)
       }
     }
-    connectInfo.setProperty("pageUrl", "")
     connectInfo.setProperty("objectEncoding", 0.0)
     connect.addData(connectInfo)
 
@@ -123,7 +115,11 @@ class CommandsManagerAmf0: CommandsManager() {
       amfEcmaArray.setProperty("videodatarate", 0.0)
     }
     if (!audioDisabled) {
-      amfEcmaArray.setProperty("audiocodecid", AudioFormat.AAC.value.toDouble())
+      val codecValue = when (audioCodec) {
+        AudioCodec.G711 -> AudioFormat.G711_A.value
+        AudioCodec.AAC -> AudioFormat.AAC.value
+      }
+      amfEcmaArray.setProperty("audiocodecid", codecValue.toDouble())
       amfEcmaArray.setProperty("audiosamplerate", sampleRate.toDouble())
       amfEcmaArray.setProperty("audiosamplesize", 16.0)
       amfEcmaArray.setProperty("audiodatarate", 0.0)

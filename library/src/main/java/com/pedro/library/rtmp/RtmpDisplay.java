@@ -63,7 +63,7 @@ public class RtmpDisplay extends DisplayBase {
 
   @Override
   protected void setAudioCodecImp(AudioCodec codec) {
-    if (codec != AudioCodec.AAC) throw new IllegalArgumentException("Unsupported codec: " + codec.name());
+    rtmpClient.setAudioCodec(codec);
   }
 
   @Override

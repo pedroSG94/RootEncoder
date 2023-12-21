@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.pedro.rtmp.flv.video
+package com.pedro.rtmp.flv.video.config
 
 import com.pedro.rtmp.utils.toByteArray
 import java.nio.ByteBuffer

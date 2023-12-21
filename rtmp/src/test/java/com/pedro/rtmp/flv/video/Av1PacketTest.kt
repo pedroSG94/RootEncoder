@@ -19,6 +19,7 @@ package com.pedro.rtmp.flv.video
 import android.media.MediaCodec
 import com.pedro.rtmp.flv.FlvPacket
 import com.pedro.rtmp.flv.FlvType
+import com.pedro.rtmp.flv.video.packet.Av1Packet
 import junit.framework.TestCase.assertEquals
 import org.junit.Assert.assertArrayEquals
 import org.junit.Test
@@ -45,7 +46,7 @@ class Av1PacketTest {
     val frames = mutableListOf<FlvPacket>()
     val av1Packet = Av1Packet()
     av1Packet.sendVideoInfo(ByteBuffer.wrap(av1data))
-    av1Packet.createFlvVideoPacket(ByteBuffer.wrap(av1data), info) { flvPacket ->
+    av1Packet.createFlvPacket(ByteBuffer.wrap(av1data), info) { flvPacket ->
       assertEquals(FlvType.VIDEO, flvPacket.type)
       frames.add(flvPacket)
     }
