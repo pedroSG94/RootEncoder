@@ -16,6 +16,7 @@
 
 package com.pedro.rtmp.flv.audio
 
+import com.pedro.rtmp.flv.audio.config.AudioSpecificConfig
 import org.junit.Assert.assertArrayEquals
 import org.junit.Test
 

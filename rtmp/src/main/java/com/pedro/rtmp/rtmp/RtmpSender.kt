@@ -18,17 +18,20 @@ package com.pedro.rtmp.rtmp
 
 import android.media.MediaCodec
 import android.util.Log
+import com.pedro.common.AudioCodec
 import com.pedro.common.BitrateManager
 import com.pedro.common.ConnectChecker
 import com.pedro.common.VideoCodec
 import com.pedro.common.onMainThread
 import com.pedro.common.trySend
+import com.pedro.rtmp.flv.BasePacket
 import com.pedro.rtmp.flv.FlvPacket
 import com.pedro.rtmp.flv.FlvType
-import com.pedro.rtmp.flv.audio.AacPacket
-import com.pedro.rtmp.flv.video.Av1Packet
-import com.pedro.rtmp.flv.video.H264Packet
-import com.pedro.rtmp.flv.video.H265Packet
+import com.pedro.rtmp.flv.audio.packet.AacPacket
+import com.pedro.rtmp.flv.audio.packet.G711Packet
+import com.pedro.rtmp.flv.video.packet.Av1Packet
+import com.pedro.rtmp.flv.video.packet.H264Packet
+import com.pedro.rtmp.flv.video.packet.H265Packet
 import com.pedro.rtmp.utils.socket.RtmpSocket
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -52,10 +55,8 @@ class RtmpSender(
   private val commandsManager: CommandsManager
 ) {
 
-  private var aacPacket = AacPacket()
-  private var h264Packet = H264Packet()
-  private var h265Packet = H265Packet()
-  private var av1Packet = Av1Packet()
+  private var audioPacket: BasePacket = AacPacket()
+  private var videoPacket: BasePacket = H264Packet()
   @Volatile
   private var running = false
   private var cacheSize = 200
@@ -72,6 +73,7 @@ class RtmpSender(
   var droppedVideoFrames: Long = 0
     private set
   var videoCodec = VideoCodec.H264
+  var audioCodec = AudioCodec.AAC
   private val bitrateManager: BitrateManager = BitrateManager(connectChecker)
   private var isEnableLogs = true
 
@@ -80,42 +82,44 @@ class RtmpSender(
   }
 
   fun setVideoInfo(sps: ByteBuffer, pps: ByteBuffer?, vps: ByteBuffer?) {
-    if (videoCodec == VideoCodec.H265) {
-      if (vps == null || pps == null) throw IllegalArgumentException("pps or vps can't be null with h265")
-      h265Packet.sendVideoInfo(sps, pps, vps)
-    } else if (videoCodec == VideoCodec.AV1) {
-      av1Packet.sendVideoInfo(sps)
-    } else {
-      if (pps == null) throw IllegalArgumentException("pps can't be null with h264")
-      h264Packet.sendVideoInfo(sps, pps)
+    when (videoCodec) {
+      VideoCodec.H265 -> {
+        if (vps == null || pps == null) throw IllegalArgumentException("pps or vps can't be null with h265")
+        videoPacket = H265Packet()
+        (videoPacket as H265Packet).sendVideoInfo(sps, pps, vps)
+      }
+      VideoCodec.AV1 -> {
+        videoPacket = Av1Packet()
+        (videoPacket as Av1Packet).sendVideoInfo(sps)
+      }
+      else -> {
+        if (pps == null) throw IllegalArgumentException("pps can't be null with h264")
+        videoPacket = H264Packet()
+        (videoPacket as H264Packet).sendVideoInfo(sps, pps)
+      }
     }
   }
 
   fun setAudioInfo(sampleRate: Int, isStereo: Boolean) {
-    aacPacket.sendAudioInfo(sampleRate, isStereo)
-  }
-
-  private fun enqueueVideoFrame(flvPacket: FlvPacket) {
-    val result = queue.trySend(flvPacket)
-    if (!result) {
-      Log.i(TAG, "Video frame discarded")
-      droppedVideoFrames++
+    when (audioCodec) {
+      AudioCodec.G711 -> {
+        audioPacket = G711Packet()
+        (audioPacket as G711Packet).sendAudioInfo(sampleRate, isStereo)
+      }
+      AudioCodec.AAC -> {
+        audioPacket = AacPacket()
+        (audioPacket as AacPacket).sendAudioInfo(sampleRate, isStereo)
+      }
     }
   }
 
   fun sendVideoFrame(h264Buffer: ByteBuffer, info: MediaCodec.BufferInfo) {
     if (running) {
-      if (videoCodec == VideoCodec.AV1) {
-        av1Packet.createFlvVideoPacket(h264Buffer, info) { flvPacket ->
-          enqueueVideoFrame(flvPacket)
-        }
-      } else if (videoCodec == VideoCodec.H265) {
-        h265Packet.createFlvVideoPacket(h264Buffer, info) { flvPacket ->
-          enqueueVideoFrame(flvPacket)
-        }
-      } else {
-        h264Packet.createFlvVideoPacket(h264Buffer, info) { flvPacket ->
-          enqueueVideoFrame(flvPacket)
+      videoPacket.createFlvPacket(h264Buffer, info) { flvPacket ->
+        val result = queue.trySend(flvPacket)
+        if (!result) {
+          Log.i(TAG, "Video frame discarded")
+          droppedVideoFrames++
         }
       }
     }
@@ -123,7 +127,7 @@ class RtmpSender(
 
   fun sendAudioFrame(aacBuffer: ByteBuffer, info: MediaCodec.BufferInfo) {
     if (running) {
-      aacPacket.createFlvAudioPacket(aacBuffer, info) { flvPacket ->
+      audioPacket.createFlvPacket(aacBuffer, info) { flvPacket ->
         val result = queue.trySend(flvPacket)
         if (!result) {
           Log.i(TAG, "Audio frame discarded")
@@ -188,9 +192,8 @@ class RtmpSender(
 
   suspend fun stop(clear: Boolean = true) {
     running = false
-    aacPacket.reset()
-    h264Packet.reset(clear)
-    h265Packet.reset(clear)
+    audioPacket.reset(clear)
+    videoPacket.reset(clear)
     resetSentAudioFrames()
     resetSentVideoFrames()
     resetDroppedAudioFrames()

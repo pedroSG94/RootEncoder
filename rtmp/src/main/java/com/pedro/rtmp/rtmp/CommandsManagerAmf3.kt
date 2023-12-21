@@ -18,6 +18,9 @@ package com.pedro.rtmp.rtmp
 
 import android.util.Log
 import com.pedro.common.VideoCodec
+import com.pedro.rtmp.amf.v0.AmfData
+import com.pedro.rtmp.amf.v0.AmfStrictArray
+import com.pedro.rtmp.amf.v0.AmfString
 import com.pedro.rtmp.amf.v3.Amf3Array
 import com.pedro.rtmp.amf.v3.Amf3Data
 import com.pedro.rtmp.amf.v3.Amf3Dictionary
@@ -40,24 +43,20 @@ class CommandsManagerAmf3: CommandsManager() {
     val connectInfo = Amf3Object()
     connectInfo.setProperty("app", appName + auth)
     connectInfo.setProperty("flashVer", "FMLE/3.0 (compatible; Lavf57.56.101)")
-    connectInfo.setProperty("swfUrl", "")
     connectInfo.setProperty("tcUrl", tcUrl + auth)
-    connectInfo.setProperty("fpad", false)
-    connectInfo.setProperty("capabilities", 239.0)
-    if (!audioDisabled) {
-      connectInfo.setProperty("audioCodecs", 3191.0)
-    }
     if (!videoDisabled) {
-      connectInfo.setProperty("videoCodecs", 252.0)
-      connectInfo.setProperty("videoFunction", 1.0)
       if (videoCodec == VideoCodec.H265) {
         val list = mutableListOf<Amf3Data>()
         list.add(Amf3String("hvc1"))
         val array = Amf3Array(list)
         connectInfo.setProperty("fourCcList", array)
+      } else if (videoCodec == VideoCodec.AV1) {
+        val list = mutableListOf<Amf3Data>()
+        list.add(Amf3String("av01"))
+        val array = Amf3Array(list)
+        connectInfo.setProperty("fourCcList", array)
       }
     }
-    connectInfo.setProperty("pageUrl", "")
     connectInfo.setProperty("objectEncoding", 3.0)
     connect.addData(connectInfo)
 

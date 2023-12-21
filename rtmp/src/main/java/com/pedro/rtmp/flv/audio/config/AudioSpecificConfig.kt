@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.pedro.rtmp.flv.audio
+package com.pedro.rtmp.flv.audio.config
 
 /**
  * Created by pedro on 29/04/21.

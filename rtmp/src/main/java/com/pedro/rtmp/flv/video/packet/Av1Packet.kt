@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.pedro.rtmp.flv.video
+package com.pedro.rtmp.flv.video.packet
 
 import android.media.MediaCodec
 import android.util.Log
@@ -25,13 +25,18 @@ import com.pedro.rtmp.flv.FlvType
 import com.pedro.common.av1.Av1Parser
 import com.pedro.common.av1.ObuType
 import com.pedro.common.isKeyframe
+import com.pedro.rtmp.flv.BasePacket
+import com.pedro.rtmp.flv.video.FourCCPacketType
+import com.pedro.rtmp.flv.video.VideoDataType
+import com.pedro.rtmp.flv.video.VideoFormat
+import com.pedro.rtmp.flv.video.config.VideoSpecificConfigAV1
 import java.nio.ByteBuffer
 
 /**
  * Created by pedro on 05/12/23.
  *
  */
-class Av1Packet {
+class Av1Packet: BasePacket() {
 
   private val TAG = "AV1Packet"
 
@@ -45,7 +50,7 @@ class Av1Packet {
     this.obuSequence = obuSequence.toByteArray()
   }
 
-  fun createFlvVideoPacket(
+  override fun createFlvPacket(
     byteBuffer: ByteBuffer,
     info: MediaCodec.BufferInfo,
     callback: (FlvPacket) -> Unit
@@ -99,7 +104,7 @@ class Av1Packet {
     callback(FlvPacket(buffer, ts, buffer.size, FlvType.VIDEO))
   }
 
-  fun reset(resetInfo: Boolean = true) {
+  override fun reset(resetInfo: Boolean) {
     if (resetInfo) {
       obuSequence = null
     }

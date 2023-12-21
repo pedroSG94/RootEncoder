@@ -18,6 +18,7 @@ package com.pedro.rtmp.flv.audio
 
 import android.media.MediaCodec
 import com.pedro.rtmp.flv.FlvType
+import com.pedro.rtmp.flv.audio.packet.AacPacket
 import org.junit.Assert.assertEquals
 import org.junit.Test
 import java.nio.ByteBuffer

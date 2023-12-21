@@ -14,19 +14,26 @@
  * limitations under the License.
  */
 
-package com.pedro.rtmp.flv.audio
+package com.pedro.rtmp.flv.audio.packet
 
 import android.media.MediaCodec
 import com.pedro.common.removeInfo
+import com.pedro.rtmp.flv.BasePacket
 import com.pedro.rtmp.flv.FlvPacket
 import com.pedro.rtmp.flv.FlvType
+import com.pedro.rtmp.flv.audio.AudioFormat
+import com.pedro.rtmp.flv.audio.AudioObjectType
+import com.pedro.rtmp.flv.audio.AudioSize
+import com.pedro.rtmp.flv.audio.AudioSoundRate
+import com.pedro.rtmp.flv.audio.AudioSoundType
+import com.pedro.rtmp.flv.audio.config.AudioSpecificConfig
 import java.nio.ByteBuffer
 import kotlin.experimental.or
 
 /**
  * Created by pedro on 8/04/21.
  */
-class AacPacket {
+class AacPacket: BasePacket() {
 
   private val header = ByteArray(2)
   //first time we need send audio config
@@ -49,7 +56,7 @@ class AacPacket {
     this.audioSize = audioSize
   }
 
-  fun createFlvAudioPacket(
+  override fun createFlvPacket(
     byteBuffer: ByteBuffer,
     info: MediaCodec.BufferInfo,
     callback: (FlvPacket) -> Unit
@@ -86,7 +93,12 @@ class AacPacket {
     callback(FlvPacket(buffer, ts, buffer.size, FlvType.AUDIO))
   }
 
-  fun reset() {
+  override fun reset(resetInfo: Boolean) {
+    if (resetInfo) {
+      sampleRate = 44100
+      isStereo = true
+      audioSize = AudioSize.SND_16_BIT
+    }
     configSend = false
   }
 }

@@ -14,14 +14,19 @@
  * limitations under the License.
  */
 
-package com.pedro.rtmp.flv.video
+package com.pedro.rtmp.flv.video.packet
 
 import android.media.MediaCodec
 import android.util.Log
 import com.pedro.common.isKeyframe
 import com.pedro.common.removeInfo
+import com.pedro.rtmp.flv.BasePacket
 import com.pedro.rtmp.flv.FlvPacket
 import com.pedro.rtmp.flv.FlvType
+import com.pedro.rtmp.flv.video.VideoDataType
+import com.pedro.rtmp.flv.video.VideoFormat
+import com.pedro.rtmp.flv.video.VideoNalType
+import com.pedro.rtmp.flv.video.config.VideoSpecificConfigAVC
 import java.nio.ByteBuffer
 import kotlin.experimental.and
 
@@ -30,7 +35,7 @@ import kotlin.experimental.and
  *
  * ISO 14496-15
  */
-class H264Packet() {
+class H264Packet: BasePacket() {
 
   private val TAG = "H264Packet"
 
@@ -59,7 +64,7 @@ class H264Packet() {
     this.pps = ppsBytes
   }
 
-  fun createFlvVideoPacket(
+  override fun createFlvPacket(
     byteBuffer: ByteBuffer,
     info: MediaCodec.BufferInfo,
     callback: (FlvPacket) -> Unit
@@ -171,7 +176,7 @@ class H264Packet() {
     return startCodeSize
   }
 
-  fun reset(resetInfo: Boolean = true) {
+  override fun reset(resetInfo: Boolean) {
     if (resetInfo) {
       sps = null
       pps = null

@@ -16,6 +16,9 @@
 
 package com.pedro.rtmp.flv.video
 
+import com.pedro.rtmp.flv.video.config.VideoSpecificConfigAV1
+import com.pedro.rtmp.flv.video.config.VideoSpecificConfigAVC
+import com.pedro.rtmp.flv.video.config.VideoSpecificConfigHEVC
 import org.junit.Assert.assertArrayEquals
 import org.junit.Test
 

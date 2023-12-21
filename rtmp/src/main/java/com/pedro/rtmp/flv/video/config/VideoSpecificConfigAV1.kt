@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.pedro.rtmp.flv.video
+package com.pedro.rtmp.flv.video.config
 
 import com.pedro.common.BitBuffer
 import com.pedro.common.av1.Av1Parser
