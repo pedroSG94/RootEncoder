@@ -35,17 +35,10 @@ import kotlin.experimental.or
 class G711Packet: BasePacket() {
 
   private val header = ByteArray(1)
-  //first time we need send audio config
-  private var configSend = false
-
-  private var sampleRate = 44100
-  private var isStereo = true
   //In microphone we are using always 16bits pcm encoding. Change me if needed
   private var audioSize = AudioSize.SND_16_BIT
 
-  fun sendAudioInfo(sampleRate: Int, isStereo: Boolean, audioSize: AudioSize = AudioSize.SND_16_BIT) {
-    this.sampleRate = sampleRate
-    this.isStereo = isStereo
+  fun sendAudioInfo(audioSize: AudioSize = AudioSize.SND_16_BIT) {
     this.audioSize = audioSize
   }
 
@@ -55,20 +48,11 @@ class G711Packet: BasePacket() {
     callback: (FlvPacket) -> Unit
   ) {
     val fixedBuffer = byteBuffer.removeInfo(info)
-    //header is 2 bytes length
+    //header is 1 byte length
     //4 bits sound format, 2 bits sound rate, 1 bit sound size, 1 bit sound type
-    //8 bits sound data (always 10 because we aer using aac)
-    header[0] = if (isStereo) AudioSoundType.STEREO.value else AudioSoundType.MONO.value
-    header[0] = header[0] or (audioSize.value shl 1).toByte()
-    val soundRate = when (sampleRate) {
-      44100 -> AudioSoundRate.SR_44_1K
-      22050 -> AudioSoundRate.SR_22K
-      11025 -> AudioSoundRate.SR_11K
-      5500 -> AudioSoundRate.SR_5_5K
-      else -> AudioSoundRate.SR_44_1K
-    }
-    header[0] = header[0] or (soundRate.value shl 2).toByte()
-    header[0] = header[0] or (AudioFormat.G711_A.value shl 4).toByte()
+    //sound rate should be ignored because G711 only support 8k so we are using 5_5k by default
+    header[0] = AudioSoundType.MONO.value or (audioSize.value shl 1).toByte() or
+        (AudioSoundRate.SR_5_5K.value shl 2).toByte() or (AudioFormat.G711_A.value shl 4).toByte()
     val buffer = ByteArray(fixedBuffer.remaining() + header.size)
     fixedBuffer.get(buffer, header.size, fixedBuffer.remaining())
     System.arraycopy(header, 0, buffer, 0, header.size)
@@ -78,10 +62,7 @@ class G711Packet: BasePacket() {
 
   override fun reset(resetInfo: Boolean) {
     if (resetInfo) {
-      sampleRate = 44100
-      isStereo = true
       audioSize = AudioSize.SND_16_BIT
     }
-    configSend = false
   }
 }

@@ -64,9 +64,8 @@ class AacPacket: BasePacket() {
     val fixedBuffer = byteBuffer.removeInfo(info)
     //header is 2 bytes length
     //4 bits sound format, 2 bits sound rate, 1 bit sound size, 1 bit sound type
-    //8 bits sound data (always 10 because we aer using aac)
-    header[0] = if (isStereo) AudioSoundType.STEREO.value else AudioSoundType.MONO.value
-    header[0] = header[0] or (audioSize.value shl 1).toByte()
+    //8 bits sound data (always 10 because we are using aac)
+    val type = if (isStereo) AudioSoundType.STEREO.value else AudioSoundType.MONO.value
     val soundRate = when (sampleRate) {
       44100 -> AudioSoundRate.SR_44_1K
       22050 -> AudioSoundRate.SR_22K
@@ -74,8 +73,7 @@ class AacPacket: BasePacket() {
       5500 -> AudioSoundRate.SR_5_5K
       else -> AudioSoundRate.SR_44_1K
     }
-    header[0] = header[0] or (soundRate.value shl 2).toByte()
-    header[0] = header[0] or (AudioFormat.AAC.value shl 4).toByte()
+    header[0] = type or (audioSize.value shl 1).toByte() or (soundRate.value shl 2).toByte() or (AudioFormat.AAC.value shl 4).toByte()
     val buffer: ByteArray
     if (!configSend) {
       val config = AudioSpecificConfig(objectType.value, sampleRate, if (isStereo) 2 else 1)

@@ -51,7 +51,7 @@ class H265PacketTest {
     h265Packet.sendVideoInfo(ByteBuffer.wrap(sps), ByteBuffer.wrap(pps), ByteBuffer.wrap(vps))
 
     val frames = mutableListOf<FlvPacket>()
-    h265Packet.createFlvVideoPacket(ByteBuffer.wrap(fakeH264), info) { flvPacket ->
+    h265Packet.createFlvPacket(ByteBuffer.wrap(fakeH264), info) { flvPacket ->
       assertEquals(FlvType.VIDEO, flvPacket.type)
       frames.add(flvPacket)
     }

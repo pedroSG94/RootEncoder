@@ -46,7 +46,7 @@ class Av1PacketTest {
     val frames = mutableListOf<FlvPacket>()
     val av1Packet = Av1Packet()
     av1Packet.sendVideoInfo(ByteBuffer.wrap(av1data))
-    av1Packet.createFlvVideoPacket(ByteBuffer.wrap(av1data), info) { flvPacket ->
+    av1Packet.createFlvPacket(ByteBuffer.wrap(av1data), info) { flvPacket ->
       assertEquals(FlvType.VIDEO, flvPacket.type)
       frames.add(flvPacket)
     }

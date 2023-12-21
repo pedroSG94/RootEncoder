@@ -104,7 +104,7 @@ class RtmpSender(
     when (audioCodec) {
       AudioCodec.G711 -> {
         audioPacket = G711Packet()
-        (audioPacket as G711Packet).sendAudioInfo(sampleRate, isStereo)
+        (audioPacket as G711Packet).sendAudioInfo()
       }
       AudioCodec.AAC -> {
         audioPacket = AacPacket()
