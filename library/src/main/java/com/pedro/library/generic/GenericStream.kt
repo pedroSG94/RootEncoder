@@ -72,13 +72,21 @@ class GenericStream(
   override fun getStreamClient(): GenericStreamClient = streamClient
 
   override fun setVideoCodecImp(codec: VideoCodec) {
+    if (codec != VideoCodec.H264 && codec != VideoCodec.H265) {
+      throw IllegalArgumentException("Unsupported codec: ${codec.name}. Generic only support video ${VideoCodec.H264.name} and ${VideoCodec.H265.name}")
+    }
     rtmpClient.setVideoCodec(codec)
     rtspClient.setVideoCodec(codec)
     srtClient.setVideoCodec(codec)
   }
 
   override fun setAudioCodecImp(codec: AudioCodec) {
+    if (codec != AudioCodec.AAC) {
+      throw IllegalArgumentException("Unsupported codec: ${codec.name}. Generic only support audio ${AudioCodec.AAC.name}")
+    }
+    rtmpClient.setAudioCodec(codec)
     rtspClient.setAudioCodec(codec)
+    srtClient.setAudioCodec(codec)
   }
 
   override fun audioInfo(sampleRate: Int, isStereo: Boolean) {

@@ -92,6 +92,7 @@ class SrtSender(
       h26XPacket.setVideoCodec(value)
       field = value
     }
+  var audioCodec = Codec.AAC
 
   private val bitrateManager: BitrateManager = BitrateManager(connectChecker)
   private var isEnableLogs = true
@@ -102,7 +103,7 @@ class SrtSender(
 
   private fun setTrackConfig(videoEnabled: Boolean, audioEnabled: Boolean) {
     Pid.reset()
-    if (audioEnabled) service.addTrack(Codec.AAC)
+    if (audioEnabled) service.addTrack(audioCodec)
     if (videoEnabled) service.addTrack(videoCodec)
     service.generatePmt()
     psiManager.updateService(service)

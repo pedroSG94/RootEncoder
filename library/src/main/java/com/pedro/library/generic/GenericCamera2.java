@@ -103,6 +103,9 @@ public class GenericCamera2 extends Camera2Base {
 
   @Override
   protected void setVideoCodecImp(VideoCodec codec) {
+    if (codec != VideoCodec.H264 && codec != VideoCodec.H265) {
+      throw new IllegalArgumentException("Unsupported codec: " + codec.name() + ". Generic only support video " + VideoCodec.H264.name() + " and " + VideoCodec.H265.name());
+    }
     rtmpClient.setVideoCodec(codec);
     rtspClient.setVideoCodec(codec);
     srtClient.setVideoCodec(codec);
@@ -110,7 +113,12 @@ public class GenericCamera2 extends Camera2Base {
 
   @Override
   protected void setAudioCodecImp(AudioCodec codec) {
+    if (codec != AudioCodec.AAC) {
+      throw new IllegalArgumentException("Unsupported codec: " + codec.name() + ". Generic only support audio " + AudioCodec.AAC.name());
+    }
+    rtmpClient.setAudioCodec(codec);
     rtspClient.setAudioCodec(codec);
+    srtClient.setAudioCodec(codec);
   }
 
   @Override

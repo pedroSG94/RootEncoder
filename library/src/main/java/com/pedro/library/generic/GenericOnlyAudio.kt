@@ -49,7 +49,12 @@ class GenericOnlyAudio(private val connectChecker: ConnectChecker): OnlyAudioBas
   override fun getStreamClient(): GenericStreamClient = streamClient
 
   override fun setAudioCodecImp(codec: AudioCodec) {
+    if (codec != AudioCodec.AAC) {
+      throw IllegalArgumentException("Unsupported codec: ${codec.name}. Generic only support audio ${AudioCodec.AAC.name}")
+    }
+    rtmpClient.setAudioCodec(codec)
     rtspClient.setAudioCodec(codec)
+    srtClient.setAudioCodec(codec)
   }
 
   override fun prepareAudioRtp(isStereo: Boolean, sampleRate: Int) {

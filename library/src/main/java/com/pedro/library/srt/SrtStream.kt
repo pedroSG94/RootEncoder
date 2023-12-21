@@ -56,12 +56,11 @@ class SrtStream(
       this(context, connectChecker, VideoManager.Source.CAMERA2, AudioManager.Source.MICROPHONE)
 
   override fun setVideoCodecImp(codec: VideoCodec) {
-    require(codec != VideoCodec.AV1) { "Unsupported codec: ${codec.name}" }
     srtClient.setVideoCodec(codec)
   }
 
   override fun setAudioCodecImp(codec: AudioCodec) {
-    require(codec == AudioCodec.AAC) { "Unsupported codec: ${codec.name}" }
+    srtClient.setAudioCodec(codec)
   }
 
   override fun audioInfo(sampleRate: Int, isStereo: Boolean) {

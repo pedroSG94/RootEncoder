@@ -18,6 +18,7 @@ package com.pedro.srt.srt
 
 import android.media.MediaCodec
 import android.util.Log
+import com.pedro.common.AudioCodec
 import com.pedro.common.ConnectChecker
 import com.pedro.common.VideoCodec
 import com.pedro.common.onMainThread
@@ -93,7 +94,20 @@ class SrtClient(private val connectChecker: ConnectChecker) {
 
   fun setVideoCodec(videoCodec: VideoCodec) {
     if (!isStreaming) {
-      srtSender.videoCodec = if (videoCodec == VideoCodec.H265) Codec.HEVC else Codec.AVC
+      srtSender.videoCodec = when (videoCodec) {
+        VideoCodec.H264 -> Codec.AVC
+        VideoCodec.H265 -> Codec.HEVC
+        else -> throw IllegalArgumentException("Unsupported codec: ${videoCodec.name}")
+      }
+    }
+  }
+
+  fun setAudioCodec(audioCodec: AudioCodec) {
+    if (!isStreaming) {
+      srtSender.audioCodec = when (audioCodec) {
+        AudioCodec.AAC -> Codec.AAC
+        else -> throw IllegalArgumentException("Unsupported codec: ${audioCodec.name}")
+      }
     }
   }
 
