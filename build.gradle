@@ -2,7 +2,7 @@
 apply plugin: 'org.jetbrains.dokka'
 
 buildscript {
-  ext.kotlin_version = '1.9.21'
+  ext.kotlin_version = '1.9.22'
   ext.library_group = "com.github.pedroSG94"
   ext.version_code = 233
   ext.version_name = "2.3.3"
