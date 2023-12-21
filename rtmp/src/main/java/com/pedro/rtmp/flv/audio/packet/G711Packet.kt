@@ -26,7 +26,6 @@ import com.pedro.rtmp.flv.audio.AudioObjectType
 import com.pedro.rtmp.flv.audio.AudioSize
 import com.pedro.rtmp.flv.audio.AudioSoundRate
 import com.pedro.rtmp.flv.audio.AudioSoundType
-import com.pedro.rtmp.flv.audio.config.AudioSpecificConfig
 import java.nio.ByteBuffer
 import kotlin.experimental.or
 
@@ -35,7 +34,7 @@ import kotlin.experimental.or
  */
 class G711Packet: BasePacket() {
 
-  private val header = ByteArray(2)
+  private val header = ByteArray(1)
   //first time we need send audio config
   private var configSend = false
 
@@ -43,12 +42,6 @@ class G711Packet: BasePacket() {
   private var isStereo = true
   //In microphone we are using always 16bits pcm encoding. Change me if needed
   private var audioSize = AudioSize.SND_16_BIT
-  //In encoder we are using always AAC LC. Change me if needed
-  private val objectType = AudioObjectType.AAC_LC
-
-  enum class Type(val mark: Byte) {
-    SEQUENCE(0x00), RAW(0x01)
-  }
 
   fun sendAudioInfo(sampleRate: Int, isStereo: Boolean, audioSize: AudioSize = AudioSize.SND_16_BIT) {
     this.sampleRate = sampleRate
@@ -76,18 +69,8 @@ class G711Packet: BasePacket() {
     }
     header[0] = header[0] or (soundRate.value shl 2).toByte()
     header[0] = header[0] or (AudioFormat.G711_A.value shl 4).toByte()
-    val buffer: ByteArray
-    if (!configSend) {
-      val config = AudioSpecificConfig(objectType.value, sampleRate, if (isStereo) 2 else 1)
-      buffer = ByteArray(config.size + header.size)
-      header[1] = Type.SEQUENCE.mark
-      config.write(buffer, header.size)
-      configSend = true
-    } else {
-      header[1] = Type.RAW.mark
-      buffer = ByteArray(fixedBuffer.remaining() + header.size)
-      fixedBuffer.get(buffer, header.size, fixedBuffer.remaining())
-    }
+    val buffer = ByteArray(fixedBuffer.remaining() + header.size)
+    fixedBuffer.get(buffer, header.size, fixedBuffer.remaining())
     System.arraycopy(header, 0, buffer, 0, header.size)
     val ts = info.presentationTimeUs / 1000
     callback(FlvPacket(buffer, ts, buffer.size, FlvType.AUDIO))

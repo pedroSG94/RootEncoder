@@ -103,7 +103,7 @@ public class RtmpCamera2 extends Camera2Base {
 
   @Override
   protected void setAudioCodecImp(AudioCodec codec) {
-    if (codec != AudioCodec.AAC) throw new IllegalArgumentException("Unsupported codec: " + codec.name());
+    rtmpClient.setAudioCodec(codec);
   }
 
   @Override

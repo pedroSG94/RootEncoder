@@ -89,7 +89,7 @@ public class RtmpFromFile extends FromFileBase {
 
   @Override
   protected void setAudioCodecImp(AudioCodec codec) {
-    if (codec != AudioCodec.AAC) throw new IllegalArgumentException("Unsupported codec: " + codec.name());
+    rtmpClient.setAudioCodec(codec);
   }
 
   @Override
