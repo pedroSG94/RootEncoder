@@ -151,11 +151,15 @@ class RtspClient(private val connectChecker: ConnectChecker) {
   }
 
   fun setVideoCodec(videoCodec: VideoCodec) {
-    commandsManager.setVideoCodec(videoCodec)
+    if (!isStreaming) {
+      commandsManager.setVideoCodec(videoCodec)
+    }
   }
 
   fun setAudioCodec(audioCodec: AudioCodec) {
-    commandsManager.audioCodec = audioCodec
+    if (!isStreaming) {
+      commandsManager.audioCodec = audioCodec
+    }
   }
 
   fun connect(url: String?) {
