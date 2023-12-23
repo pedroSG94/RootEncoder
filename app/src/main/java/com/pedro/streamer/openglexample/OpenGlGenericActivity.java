@@ -131,7 +131,7 @@ public class OpenGlGenericActivity extends AppCompatActivity
         Button switchCamera = findViewById(R.id.switch_camera);
         switchCamera.setOnClickListener(this);
         etUrl = findViewById(R.id.et_rtp_url);
-        etUrl.setHint(R.string.hint_rtmp);
+        etUrl.setHint(R.string.hint_protocol);
         genericCamera1 = new GenericCamera1(openGlView, this);
         openGlView.getHolder().addCallback(this);
         openGlView.setOnTouchListener(this);

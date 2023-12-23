@@ -109,7 +109,7 @@ class SrtSender(
     psiManager.updateService(service)
   }
 
-  fun setVideoInfo(sps: ByteBuffer, pps: ByteBuffer, vps: ByteBuffer?) {
+  fun setVideoInfo(sps: ByteBuffer, pps: ByteBuffer?, vps: ByteBuffer?) {
     h26XPacket.sendVideoInfo(sps, pps, vps)
   }
 

@@ -186,12 +186,9 @@ public class GenericCamera2 extends Camera2Base {
 
   @Override
   protected void onSpsPpsVpsRtp(ByteBuffer sps, ByteBuffer pps, ByteBuffer vps) {
-    switch (connectedType) {
-      case RTMP -> rtmpClient.setVideoInfo(sps, pps, vps);
-      case RTSP -> rtspClient.setVideoInfo(sps, pps, vps);
-      case SRT -> srtClient.setVideoInfo(sps, pps, vps);
-      default -> {}
-    }
+    rtmpClient.setVideoInfo(sps, pps, vps);
+    rtspClient.setVideoInfo(sps, pps, vps);
+    srtClient.setVideoInfo(sps, pps, vps);
   }
 
   @Override

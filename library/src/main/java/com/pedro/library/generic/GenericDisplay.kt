@@ -138,13 +138,10 @@ class GenericDisplay(
     }
   }
 
-  override fun onSpsPpsVpsRtp(sps: ByteBuffer, pps: ByteBuffer, vps: ByteBuffer?) {
-    when (connectedType) {
-      ClientType.RTMP -> rtmpClient.setVideoInfo(sps, pps, vps)
-      ClientType.RTSP -> rtspClient.setVideoInfo(sps, pps, vps)
-      ClientType.SRT -> srtClient.setVideoInfo(sps, pps, vps)
-      else -> {}
-    }
+  override fun onSpsPpsVpsRtp(sps: ByteBuffer, pps: ByteBuffer?, vps: ByteBuffer?) {
+    rtmpClient.setVideoInfo(sps, pps, vps)
+    rtspClient.setVideoInfo(sps, pps, vps)
+    srtClient.setVideoInfo(sps, pps, vps)
   }
 
   override fun getH264DataRtp(h264Buffer: ByteBuffer, info: MediaCodec.BufferInfo) {

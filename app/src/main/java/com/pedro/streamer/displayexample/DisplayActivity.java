@@ -55,7 +55,7 @@ public class DisplayActivity extends AppCompatActivity
     button = findViewById(R.id.b_start_stop);
     button.setOnClickListener(this);
     etUrl = findViewById(R.id.et_rtp_url);
-    etUrl.setHint(R.string.hint_rtmp);
+    etUrl.setHint(R.string.hint_protocol);
     DisplayService displayService = DisplayService.Companion.getINSTANCE();
     //No streaming/recording start service
     if (displayService == null) {
@@ -125,8 +125,8 @@ public class DisplayActivity extends AppCompatActivity
         || requestCode == REQUEST_CODE_RECORD && resultCode == Activity.RESULT_OK)) {
       DisplayService displayService = DisplayService.Companion.getINSTANCE();
       if (displayService != null) {
-        String endpoint =  etUrl.getText().toString();
-        displayService.prepareStreamRtp(endpoint, resultCode, data);
+        String endpoint = etUrl.getText().toString();
+        displayService.prepareStreamRtp(resultCode, data);
         displayService.startStreamRtp(endpoint);
       }
     } else {

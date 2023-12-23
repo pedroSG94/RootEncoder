@@ -114,4 +114,5 @@
   <string name="camera2">Camera2</string>
   <string name="screen">Screen</string>
   <string name="internal">Internal</string>
+  <string name="hint_protocol">protocol://yourendpoint</string>
 </resources>

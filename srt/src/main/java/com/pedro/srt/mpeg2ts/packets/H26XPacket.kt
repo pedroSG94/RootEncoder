@@ -109,9 +109,9 @@ class H26XPacket(
     this.codec = codec
   }
 
-  fun sendVideoInfo(sps: ByteBuffer, pps: ByteBuffer, vps: ByteBuffer?) {
+  fun sendVideoInfo(sps: ByteBuffer, pps: ByteBuffer?, vps: ByteBuffer?) {
     this.sps = getVideoInfoData(sps)
-    this.pps = getVideoInfoData(pps)
+    this.pps = if (pps != null) getVideoInfoData(pps) else null
     this.vps = if (vps != null) getVideoInfoData(vps) else null
   }
 

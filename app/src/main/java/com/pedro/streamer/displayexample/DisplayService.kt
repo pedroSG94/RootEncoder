@@ -27,9 +27,7 @@ import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.core.app.NotificationCompat
 import com.pedro.common.ConnectChecker
-import com.pedro.library.base.DisplayBase
-import com.pedro.library.rtmp.RtmpDisplay
-import com.pedro.library.rtsp.RtspDisplay
+import com.pedro.library.generic.GenericDisplay
 import com.pedro.streamer.R
 
 
@@ -37,17 +35,19 @@ import com.pedro.streamer.R
  * Basic RTMP/RTSP service streaming implementation with camera2
  */
 @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
-class DisplayService : Service() {
+class DisplayService: Service(), ConnectChecker {
 
   override fun onCreate() {
     super.onCreate()
-    INSTANCE = this
     Log.i(TAG, "RTP Display service create")
     notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
       val channel = NotificationChannel(channelId, channelId, NotificationManager.IMPORTANCE_HIGH)
       notificationManager?.createNotificationChannel(channel)
     }
+    genericDisplay = GenericDisplay(baseContext, true, this)
+    genericDisplay.glInterface?.setForceRender(true)
+    INSTANCE = this
   }
 
   private fun keepAliveTrick() {
@@ -64,10 +64,7 @@ class DisplayService : Service() {
   }
 
   override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-    INSTANCE = this
     Log.i(TAG, "RTP Display service started")
-    displayBase = RtmpDisplay(baseContext, true, connectChecker)
-    displayBase?.glInterface?.setForceRender(true)
     return START_STICKY
   }
 
@@ -79,56 +76,24 @@ class DisplayService : Service() {
   }
 
   private var notificationManager: NotificationManager? = null
-  private var displayBase: DisplayBase? = null
+  private lateinit var genericDisplay: GenericDisplay
 
   fun sendIntent(): Intent? {
-    return displayBase?.sendIntent()
+    return genericDisplay.sendIntent()
   }
 
   fun isStreaming(): Boolean {
-    return displayBase?.isStreaming ?: false
+    return genericDisplay.isStreaming
   }
 
   fun isRecording(): Boolean {
-    return displayBase?.isRecording ?: false
+    return genericDisplay.isRecording
   }
 
   fun stopStream() {
-    if (displayBase?.isStreaming == true) {
-      displayBase?.stopStream()
+    if (genericDisplay.isStreaming) {
+      genericDisplay.stopStream()
       notificationManager?.cancel(notifyId)
-    }
-  }
-
-  private val connectChecker = object : ConnectChecker {
-    override fun onConnectionStarted(url: String) {
-      showNotification("Stream connection started")
-    }
-
-    override fun onConnectionSuccess() {
-      showNotification("Stream started")
-      Log.e(TAG, "RTP service destroy")
-    }
-
-    override fun onNewBitrate(bitrate: Long) {
-
-    }
-
-    override fun onConnectionFailed(reason: String) {
-      showNotification("Stream connection failed")
-      Log.e(TAG, "RTP service destroy")
-    }
-
-    override fun onDisconnect() {
-      showNotification("Stream stopped")
-    }
-
-    override fun onAuthError() {
-      showNotification("Stream auth error")
-    }
-
-    override fun onAuthSuccess() {
-      showNotification("Stream auth success")
     }
   }
 
@@ -149,26 +114,49 @@ class DisplayService : Service() {
     INSTANCE = null
   }
 
-  fun prepareStreamRtp(endpoint: String, resultCode: Int, data: Intent) {
+  fun prepareStreamRtp(resultCode: Int, data: Intent) {
     keepAliveTrick()
     stopStream()
-    if (endpoint.startsWith("rtmp")) {
-      displayBase = RtmpDisplay(baseContext, true, connectChecker)
-      displayBase?.setIntentResult(resultCode, data)
-    } else {
-      displayBase = RtspDisplay(baseContext, true, connectChecker)
-      displayBase?.setIntentResult(resultCode, data)
-    }
-    displayBase?.glInterface?.setForceRender(true)
+    genericDisplay.setIntentResult(resultCode, data)
   }
 
   fun startStreamRtp(endpoint: String) {
-    if (displayBase?.isStreaming != true) {
-      if (displayBase?.prepareVideo() == true && displayBase?.prepareAudio() == true) {
-        displayBase?.startStream(endpoint)
+    if (!genericDisplay.isStreaming) {
+      if (genericDisplay.prepareVideo() && genericDisplay.prepareAudio()) {
+        genericDisplay.startStream(endpoint)
       }
     } else {
       showNotification("You are already streaming :(")
     }
+  }
+
+  override fun onConnectionStarted(url: String) {
+    showNotification("Stream connection started")
+  }
+
+  override fun onConnectionSuccess() {
+    showNotification("Stream started")
+    Log.e(TAG, "RTP service destroy")
+  }
+
+  override fun onNewBitrate(bitrate: Long) {
+
+  }
+
+  override fun onConnectionFailed(reason: String) {
+    showNotification("Stream connection failed")
+    Log.e(TAG, "RTP service destroy")
+  }
+
+  override fun onDisconnect() {
+    showNotification("Stream stopped")
+  }
+
+  override fun onAuthError() {
+    showNotification("Stream auth error")
+  }
+
+  override fun onAuthSuccess() {
+    showNotification("Stream auth success")
   }
 }

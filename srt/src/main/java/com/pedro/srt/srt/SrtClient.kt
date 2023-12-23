@@ -373,7 +373,7 @@ class SrtClient(private val connectChecker: ConnectChecker) {
     srtSender.setAudioInfo(sampleRate, isStereo)
   }
 
-  fun setVideoInfo(sps: ByteBuffer, pps: ByteBuffer, vps: ByteBuffer?) {
+  fun setVideoInfo(sps: ByteBuffer, pps: ByteBuffer?, vps: ByteBuffer?) {
     Log.i(TAG, "send sps and pps")
     srtSender.setVideoInfo(sps, pps, vps)
   }

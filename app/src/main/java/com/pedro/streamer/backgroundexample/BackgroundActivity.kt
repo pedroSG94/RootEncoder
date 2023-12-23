@@ -24,6 +24,7 @@ import android.os.Bundle
 import android.view.SurfaceHolder
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
+import com.pedro.encoder.utils.gl.AspectRatioMode
 import com.pedro.streamer.R
 import com.pedro.streamer.databinding.ActivityBackgroundBinding
 
@@ -37,6 +38,7 @@ class BackgroundActivity : AppCompatActivity(), SurfaceHolder.Callback {
     super.onCreate(savedInstanceState)
     binding = ActivityBackgroundBinding.inflate(layoutInflater)
     setContentView(binding.root)
+    binding.etRtpUrl.setHint(R.string.hint_protocol)
     RtpService.observer.observe(this) {
       service = it
       startPreview()
@@ -46,7 +48,7 @@ class BackgroundActivity : AppCompatActivity(), SurfaceHolder.Callback {
       if (service?.isStreaming() != true) {
         service?.stopPreview()
         val endpoint = binding.etRtpUrl.text.toString()
-        if (service?.prepare(endpoint) == true) {
+        if (service?.prepare() == true) {
           startPreview()
           service?.startStream(endpoint)
           binding.bStartStop.setText(R.string.stop_button)
@@ -109,6 +111,7 @@ class BackgroundActivity : AppCompatActivity(), SurfaceHolder.Callback {
 
   private fun startPreview() {
     if (binding.surfaceView.holder.surface.isValid) {
+      binding.surfaceView.setAspectRatioMode(AspectRatioMode.Adjust)
       service?.setView(binding.surfaceView)
     }
     //check if onPreview and if surface is valid
