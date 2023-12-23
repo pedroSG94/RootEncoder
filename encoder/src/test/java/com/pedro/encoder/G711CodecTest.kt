@@ -18,6 +18,7 @@ package com.pedro.encoder
 
 import com.pedro.encoder.audio.G711Codec
 import org.junit.Assert.assertArrayEquals
+import org.junit.Assert.assertEquals
 import org.junit.Test
 
 /**
@@ -25,23 +26,25 @@ import org.junit.Test
  */
 class G711CodecTest {
 
-  private val encoder = G711Codec()
+  private val codec = G711Codec()
 
   @Test
-  fun `test encode audio PCM to G711`() {
+  fun `WHEN encode audio PCM to G711 THEN get expected g711 buffer`() {
     val bufferPCM = byteArrayOf(24, 48, 64, 88)
     val bufferG711 = byteArrayOf(-67, -93)
 
-    val result = encoder.encode(bufferPCM, 0, bufferPCM.size)
+    val result = codec.encode(bufferPCM, 0, bufferPCM.size)
+    assertEquals(bufferG711.size, result.size)
     assertArrayEquals(bufferG711, result)
   }
 
   @Test
-  fun `test decode audio G711 to PCM`() {
+  fun `WHEN decode audio G711 to PCM THEN get expected pcm buffer`() {
     val bufferPCM = byteArrayOf(0, 49, 0, 90)
     val bufferG711 = byteArrayOf(-67, -93)
 
-    val result = encoder.decode(bufferG711, 0, bufferG711.size)
+    val result = codec.decode(bufferG711, 0, bufferG711.size)
+    assertEquals(bufferPCM.size, result.size)
     assertArrayEquals(bufferPCM, result)
   }
 }
