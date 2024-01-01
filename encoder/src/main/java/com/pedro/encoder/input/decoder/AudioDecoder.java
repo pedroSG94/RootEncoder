@@ -119,8 +119,8 @@ public class AudioDecoder extends BaseDecoder {
    * Get max output size to set max input size in encoder.
    */
   public int getOutsize() {
-    if (!(mime.equals(CodecUtil.AAC_MIME) || mime.equals(CodecUtil.OPUS_MIME) || mime.equals(
-        CodecUtil.VORBIS_MIME))) {
+    if (!(mime.equals(CodecUtil.AAC_MIME) || mime.equals(CodecUtil.OPUS_MIME)
+        || mime.equals(CodecUtil.VORBIS_MIME) || mime.equals(CodecUtil.G711_MIME))) {
       Log.i(TAG, "fixing input size");
       try {
         if (running) {
