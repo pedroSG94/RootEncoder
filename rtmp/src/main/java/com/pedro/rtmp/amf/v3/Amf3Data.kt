@@ -50,7 +50,7 @@ abstract class Amf3Data {
     }
 
     fun getMark3Type(type: Int): Amf3Type {
-      return Amf3Type.values().find { it.mark.toInt() == type } ?: Amf3Type.STRING
+      return Amf3Type.entries.find { it.mark.toInt() == type } ?: Amf3Type.STRING
     }
   }
 

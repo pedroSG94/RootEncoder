@@ -52,7 +52,7 @@ abstract class AmfData {
     }
 
     fun getMarkType(type: Int): AmfType {
-      return AmfType.values().find { it.mark.toInt() == type } ?: AmfType.STRING
+      return AmfType.entries.find { it.mark.toInt() == type } ?: AmfType.STRING
     }
   }
 

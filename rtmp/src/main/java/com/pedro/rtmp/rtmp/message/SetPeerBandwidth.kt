@@ -37,7 +37,7 @@ class SetPeerBandwidth(private var acknowledgementWindowSize: Int = 0, private v
   override fun readBody(input: InputStream) {
     acknowledgementWindowSize = input.readUInt32()
     val t = input.read().toByte()
-    type = Type.values().find { it.mark == t } ?: throw IOException("Unknown bandwidth type: $t")
+    type = Type.entries.find { it.mark == t } ?: throw IOException("Unknown bandwidth type: $t")
   }
 
   override fun storeBody(): ByteArray {

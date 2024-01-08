@@ -40,7 +40,7 @@ class UserControl(var type: Type = Type.PING_REQUEST, var event: Event = Event(-
   override fun readBody(input: InputStream) {
     bodySize = 0
     val t = input.readUInt16()
-    type = Type.values().find { it.mark.toInt() == t } ?: throw IOException("unknown user control type: $t")
+    type = Type.entries.find { it.mark.toInt() == t } ?: throw IOException("unknown user control type: $t")
     bodySize += 2
     val data = input.readUInt32()
     bodySize += 4

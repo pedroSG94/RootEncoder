@@ -20,7 +20,7 @@ enum class AspectRatioMode {
 
   companion object {
     fun fromId(id: Int): AspectRatioMode {
-      return AspectRatioMode.values().find { id == it.ordinal } ?: NONE
+      return entries.find { id == it.ordinal } ?: NONE
     }
   }
 }

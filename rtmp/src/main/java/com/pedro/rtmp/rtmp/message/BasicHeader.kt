@@ -62,7 +62,7 @@ class BasicHeader(val chunkType: ChunkType, val chunkStreamId: Int) {
     fun parseBasicHeader(input: InputStream): BasicHeader {
       val byte = input.read().toByte()
       val chunkTypeValue = 0xff and byte.toInt() ushr 6
-      val chunkType = ChunkType.values().find { it.mark.toInt() == chunkTypeValue } ?: throw IOException("Unknown chunk type value: $chunkTypeValue")
+      val chunkType = ChunkType.entries.find { it.mark.toInt() == chunkTypeValue } ?: throw IOException("Unknown chunk type value: $chunkTypeValue")
       var chunkStreamIdValue = (byte and 0x3F).toInt()
       if (chunkStreamIdValue > 63) throw IOException("Unknown chunk stream id value: $chunkStreamIdValue")
       if (chunkStreamIdValue == 0) { //Basic header 2 bytes

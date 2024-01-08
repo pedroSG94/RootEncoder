@@ -25,6 +25,6 @@ enum class EncryptionType(val value: Int) {
   NONE(0), AES128(2), AES192(3), AES256(4);
 
   companion object {
-    infix fun from(value: Int): EncryptionType = EncryptionType.values().firstOrNull { it.value == value } ?: throw IOException("unknown encryption: $value")
+    infix fun from(value: Int): EncryptionType = entries.firstOrNull { it.value == value } ?: throw IOException("unknown encryption: $value")
   }
 }
