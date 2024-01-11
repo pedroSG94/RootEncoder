@@ -21,9 +21,17 @@ import android.graphics.SurfaceTexture
 /**
  * Created by pedro on 11/1/24.
  */
-interface VideoSource {
-  fun create(width: Int, height: Int, fps: Int): Boolean
-  fun start(surfaceTexture: SurfaceTexture)
-  fun stop()
-  fun isRunning(): Boolean
+abstract class VideoSource {
+
+  var surfaceTexture: SurfaceTexture? = null
+  var created = false
+  var width = 0
+  var height = 0
+  var fps = 0
+
+  abstract fun create(width: Int, height: Int, fps: Int): Boolean
+  abstract fun start(surfaceTexture: SurfaceTexture)
+  abstract fun stop()
+  abstract fun release()
+  abstract fun isRunning(): Boolean
 }

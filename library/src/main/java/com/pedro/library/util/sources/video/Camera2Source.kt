@@ -29,20 +29,18 @@ import com.pedro.encoder.input.video.CameraHelper
  * Created by pedro on 11/1/24.
  */
 @RequiresApi(Build.VERSION_CODES.LOLLIPOP)
-class Camera2Source(context: Context): VideoSource {
+class Camera2Source(context: Context): VideoSource() {
 
   private val camera = Camera2ApiManager(context)
-  private var surfaceTexture: SurfaceTexture? = null
   private var facing = CameraHelper.Facing.BACK
-  private var width = 0
-  private var height = 0
-  private var fps = 0
 
   override fun create(width: Int, height: Int, fps: Int): Boolean {
     this.width = width
     this.height = height
     this.fps = fps
-    return checkResolutionSupported(width, height)
+    val result = checkResolutionSupported(width, height)
+    if (result) created = true
+    return result
   }
 
   override fun start(surfaceTexture: SurfaceTexture) {
@@ -57,6 +55,8 @@ class Camera2Source(context: Context): VideoSource {
   override fun stop() {
     if (isRunning()) camera.closeCamera()
   }
+
+  override fun release() {}
 
   override fun isRunning(): Boolean = camera.isRunning
 
@@ -79,6 +79,20 @@ class Camera2Source(context: Context): VideoSource {
       val minWidth = widthList.minOrNull() ?: 0
       val minHeight = heightList.minOrNull() ?: 0
       size.width in minWidth..maxWidth && size.height in minHeight..maxHeight
+    }
+  }
+
+  fun switchCamera() {
+    facing = if (facing == CameraHelper.Facing.BACK) {
+      CameraHelper.Facing.FRONT
+    } else {
+      CameraHelper.Facing.BACK
+    }
+    if (isRunning()) {
+      stop()
+      surfaceTexture?.let {
+        start(it)
+      }
     }
   }
 }

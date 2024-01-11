@@ -29,21 +29,17 @@ import androidx.annotation.RequiresApi
  * Created by pedro on 11/1/24.
  */
 @RequiresApi(Build.VERSION_CODES.LOLLIPOP)
-class ScreenSource(private val context: Context): VideoSource {
+class ScreenSource(private val context: Context, private val mediaProjection: MediaProjection): VideoSource() {
 
-  private var mediaProjection: MediaProjection? = null
   private var virtualDisplay: VirtualDisplay? = null
-
-  private var surfaceTexture: SurfaceTexture? = null
-  private var width = 0
-  private var height = 0
-  private var fps = 0
 
   override fun create(width: Int, height: Int, fps: Int): Boolean {
     this.width = width
     this.height = height
     this.fps = fps
-    return checkResolutionSupported(width, height)
+    val result = checkResolutionSupported(width, height)
+    if (result) created = true
+    return result
   }
 
   override fun start(surfaceTexture: SurfaceTexture) {
@@ -61,10 +57,10 @@ class ScreenSource(private val context: Context): VideoSource {
         surfaceTexture.setDefaultBufferSize(height, width)
       }
       val mediaProjectionCallback = object : MediaProjection.Callback() {}
-      mediaProjection?.registerCallback(mediaProjectionCallback, null)
+      mediaProjection.registerCallback(mediaProjectionCallback, null)
 
       val callback = object : VirtualDisplay.Callback() {}
-      virtualDisplay = mediaProjection?.createVirtualDisplay("ScreenSource",
+      virtualDisplay = mediaProjection.createVirtualDisplay("ScreenSource",
         displayWidth, displayHeight, dpi, flags,
         Surface(surfaceTexture), callback, null)
     }
@@ -77,11 +73,11 @@ class ScreenSource(private val context: Context): VideoSource {
     }
   }
 
-  override fun isRunning(): Boolean = virtualDisplay != null
-
-  fun setMediaProjection(mediaProjection: MediaProjection) {
-    this.mediaProjection = mediaProjection
+  override fun release() {
+    mediaProjection.stop()
   }
+
+  override fun isRunning(): Boolean = virtualDisplay != null
 
   private fun checkResolutionSupported(width: Int, height: Int): Boolean {
     if (width % 2 != 0 || height % 2 != 0) {

@@ -24,25 +24,24 @@ import android.util.Size
 import androidx.annotation.RequiresApi
 import com.pedro.encoder.input.video.Camera1ApiManager
 import com.pedro.encoder.input.video.CameraHelper
+import com.pedro.library.util.sources.VideoManager
 
 /**
  * Created by pedro on 11/1/24.
  */
 @RequiresApi(Build.VERSION_CODES.LOLLIPOP)
-class Camera1Source(context: Context): VideoSource {
+class Camera1Source(context: Context): VideoSource() {
 
   private val camera = Camera1ApiManager(null, context)
-  private var surfaceTexture: SurfaceTexture? = null
   private var facing = CameraHelper.Facing.BACK
-  private var width = 0
-  private var height = 0
-  private var fps = 0
 
   override fun create(width: Int, height: Int, fps: Int): Boolean {
     this.width = width
     this.height = height
     this.fps = fps
-    return checkResolutionSupported(width, height)
+    val result = checkResolutionSupported(width, height)
+    if (result) created = true
+    return result
   }
 
   override fun start(surfaceTexture: SurfaceTexture) {
@@ -58,6 +57,8 @@ class Camera1Source(context: Context): VideoSource {
   override fun stop() {
     if (isRunning()) camera.stop()
   }
+
+  override fun release() {}
 
   override fun isRunning(): Boolean = camera.isRunning
 
@@ -78,5 +79,19 @@ class Camera1Source(context: Context): VideoSource {
   @Suppress("DEPRECATION")
   private fun mapCamera1Resolutions(resolutions: List<Camera.Size>, shouldRotate: Boolean) = resolutions.map {
     if (shouldRotate) Size(it.height, it.width) else Size(it.width, it.height)
+  }
+
+  fun switchCamera() {
+    facing = if (facing == CameraHelper.Facing.BACK) {
+      CameraHelper.Facing.FRONT
+    } else {
+      CameraHelper.Facing.BACK
+    }
+    if (isRunning()) {
+      stop()
+      surfaceTexture?.let {
+        start(it)
+      }
+    }
   }
 }

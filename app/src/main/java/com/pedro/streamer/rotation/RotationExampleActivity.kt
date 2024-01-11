@@ -30,6 +30,9 @@ import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import com.pedro.library.util.sources.VideoManager
+import com.pedro.library.util.sources.video.Camera1Source
+import com.pedro.library.util.sources.video.Camera2Source
+import com.pedro.library.util.sources.video.ScreenSource
 import com.pedro.streamer.R
 import com.pedro.streamer.databinding.ActivityExampleBinding
 import com.pedro.streamer.utils.PathUtils
@@ -100,10 +103,10 @@ class RotationExampleActivity: AppCompatActivity(), SurfaceHolder.Callback {
   override fun onOptionsItemSelected(item: MenuItem): Boolean {
     when (item.itemId) {
       R.id.video_source_camera1 -> {
-        service?.changeVideoSourceCamera(VideoManager.Source.CAMERA1)
+        service?.changeVideoSource(Camera1Source(applicationContext))
       }
       R.id.video_source_camera2 -> {
-        service?.changeVideoSourceCamera(VideoManager.Source.CAMERA2)
+        service?.changeVideoSource(Camera2Source(applicationContext))
       }
       R.id.video_source_screen -> {
         askingMediaProjection = true
@@ -134,7 +137,9 @@ class RotationExampleActivity: AppCompatActivity(), SurfaceHolder.Callback {
     if (data != null && resultCode == RESULT_OK) {
       if (requestCode == REQUEST_CODE_SCREEN_VIDEO) {
         askingMediaProjection = false
-        service?.changeVideoSourceScreen(this, resultCode, data)
+        val mediaProjectionManager = applicationContext.getSystemService(MEDIA_PROJECTION_SERVICE) as MediaProjectionManager
+        val mediaProjection = mediaProjectionManager.getMediaProjection(resultCode, data)
+        service?.changeVideoSource(ScreenSource(applicationContext, mediaProjection))
       } else if (requestCode == REQUEST_CODE_INTERNAL_AUDIO && Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
         askingMediaProjection = false
         service?.changeAudioSourceInternal(this, resultCode, data)

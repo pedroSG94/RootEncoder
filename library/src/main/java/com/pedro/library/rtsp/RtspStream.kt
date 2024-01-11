@@ -26,6 +26,8 @@ import com.pedro.common.VideoCodec
 import com.pedro.library.base.StreamBase
 import com.pedro.library.util.sources.AudioManager
 import com.pedro.library.util.sources.VideoManager
+import com.pedro.library.util.sources.video.Camera2Source
+import com.pedro.library.util.sources.video.VideoSource
 import com.pedro.library.util.streamclient.RtspStreamClient
 import com.pedro.library.util.streamclient.StreamClientListener
 import com.pedro.rtsp.rtsp.RtspClient
@@ -40,7 +42,7 @@ import java.nio.ByteBuffer
 
 @RequiresApi(Build.VERSION_CODES.LOLLIPOP)
 class RtspStream(
-  context: Context, connectChecker: ConnectChecker, videoSource: VideoManager.Source,
+  context: Context, connectChecker: ConnectChecker, videoSource: VideoSource,
   audioSource: AudioManager.Source
 ): StreamBase(context, videoSource, audioSource) {
 
@@ -53,7 +55,7 @@ class RtspStream(
   override fun getStreamClient(): RtspStreamClient = RtspStreamClient(rtspClient, streamClientListener)
 
   constructor(context: Context, connectChecker: ConnectChecker):
-      this(context, connectChecker, VideoManager.Source.CAMERA2, AudioManager.Source.MICROPHONE)
+      this(context, connectChecker, Camera2Source(context), AudioManager.Source.MICROPHONE)
 
   override fun setVideoCodecImp(codec: VideoCodec) {
       rtspClient.setVideoCodec(codec)

@@ -22,9 +22,7 @@ import android.media.MediaCodec
 import android.media.MediaFormat
 import android.media.projection.MediaProjection
 import android.os.Build
-import android.util.Range
 import android.util.Size
-import android.view.MotionEvent
 import android.view.Surface
 import android.view.SurfaceView
 import android.view.TextureView
@@ -36,7 +34,6 @@ import com.pedro.encoder.Frame
 import com.pedro.encoder.audio.AudioEncoder
 import com.pedro.encoder.audio.GetAacData
 import com.pedro.encoder.input.audio.GetMicrophoneData
-import com.pedro.encoder.input.video.CameraHelper
 import com.pedro.encoder.utils.CodecUtil
 import com.pedro.encoder.video.FormatVideoEncoder
 import com.pedro.encoder.video.GetVideoData
@@ -45,7 +42,8 @@ import com.pedro.library.base.recording.BaseRecordController
 import com.pedro.library.base.recording.RecordController
 import com.pedro.library.util.AndroidMuxerRecordController
 import com.pedro.library.util.sources.AudioManager
-import com.pedro.library.util.sources.VideoManager
+import com.pedro.library.util.sources.video.NoVideoSource
+import com.pedro.library.util.sources.video.VideoSource
 import com.pedro.library.util.streamclient.StreamBaseClient
 import com.pedro.library.view.GlStreamInterface
 import java.nio.ByteBuffer
@@ -61,7 +59,7 @@ import java.nio.ByteBuffer
 @RequiresApi(Build.VERSION_CODES.LOLLIPOP)
 abstract class StreamBase(
   context: Context,
-  videoSource: VideoManager.Source,
+  private var vSource: VideoSource,
   audioSource: AudioManager.Source
 ) {
 
@@ -76,7 +74,6 @@ abstract class StreamBase(
   //video render
   private val glInterface = GlStreamInterface(context)
   //video and audio sources
-  private val videoManager = VideoManager(context, videoSource)
   private val audioManager by lazy { AudioManager(getMicrophoneData, audioSource) }
   //video/audio record
   private var recordController: BaseRecordController = AndroidMuxerRecordController()
@@ -86,7 +83,8 @@ abstract class StreamBase(
     private set
   val isRecording: Boolean
     get() = recordController.isRunning
-  val videoSource = videoManager.source
+  var videoSource: VideoSource = vSource
+    private set
   val audioSource = audioManager.source
 
   /**
@@ -101,7 +99,7 @@ abstract class StreamBase(
   @JvmOverloads
   fun prepareVideo(width: Int, height: Int, bitrate: Int, fps: Int = 30, iFrameInterval: Int = 2,
     rotation: Int = 0, profile: Int = -1, level: Int = -1): Boolean {
-    val videoResult = videoManager.createVideoManager(width, height, fps)
+    val videoResult = videoSource.create(width, height, fps)
     if (videoResult) {
       if (rotation == 90 || rotation == 270) glInterface.setEncoderSize(height, width)
       else glInterface.setEncoderSize(width, height) //0, 180
@@ -220,8 +218,8 @@ abstract class StreamBase(
     if (!surface.isValid) throw IllegalArgumentException("Make sure the Surface is valid")
     isOnPreview = true
     if (!glInterface.running) glInterface.start()
-    if (!videoManager.isRunning()) {
-      videoManager.start(glInterface.getSurfaceTexture())
+    if (!videoSource.isRunning()) {
+      videoSource.start(glInterface.surfaceTexture)
     }
     glInterface.attachPreview(surface)
     glInterface.setPreviewResolution(width, height)
@@ -233,7 +231,7 @@ abstract class StreamBase(
    */
   fun stopPreview() {
     isOnPreview = false
-    if (!isStreaming && !isRecording) videoManager.stop()
+    if (!isStreaming && !isRecording) videoSource.stop()
     glInterface.deAttachPreview()
     if (!isStreaming && !isRecording) glInterface.stop()
   }
@@ -242,31 +240,16 @@ abstract class StreamBase(
    * Change video source to Camera1 or Camera2.
    * Must be called after prepareVideo.
    */
-  fun changeVideoSourceCamera(source: VideoManager.Source) {
-    glInterface.setForceRender(false)
-    videoManager.changeSourceCamera(source)
-  }
-
-  /**
-   * Change video source to Screen.
-   * Must be called after prepareVideo.
-   */
-  fun changeVideoSourceScreen(mediaProjection: MediaProjection) {
-    glInterface.setForceRender(true)
-    videoManager.changeSourceScreen(mediaProjection)
-  }
-
-  /**
-   * Disable video stopping process video frames from video source.
-   * You can return to camera/screen video using changeVideoSourceCamera/changeVideoSourceScreen
-   *
-   * @NOTE:
-   * This isn't recommended because it isn't supported in all servers/players.
-   * Use BlackFilterRender to send only black images is recommended.
-   */
-  fun changeVideoSourceDisabled() {
-    glInterface.setForceRender(false)
-    videoManager.changeVideoSourceDisabled()
+  fun changeVideoSource(source: VideoSource) {
+    val wasRunning = this.videoSource.isRunning()
+    val wasCreated = this.videoSource.created
+    this.videoSource.stop()
+    this.videoSource.release()
+    this.videoSource.surfaceTexture?.let {
+      if (wasCreated) source.create(this.videoSource.width, this.videoSource.height, this.videoSource.fps)
+      if (wasRunning) source.start(it)
+      this.videoSource = source
+    }
   }
 
   /**
@@ -341,129 +324,6 @@ abstract class StreamBase(
   fun isMuted(): Boolean = audioManager.isMuted()
 
   /**
-   * Switch between front or back camera if using Camera1 or Camera2.
-   * Must be called after prepareVideo.
-   */
-  fun switchCamera() {
-    videoManager.switchCamera()
-  }
-
-  /**
-   * get if using front or back camera with Camera1 or Camera2.
-   * Must be called after prepareVideo.
-   */
-  fun getCameraFacing(): CameraHelper.Facing = videoManager.getCameraFacing()
-
-  /**
-   * Get camera resolutions.
-   *
-   * @param source select camera source (Camera1 or Camera2) of the required resolutions.
-   * @param facing indicate if resolutions provide from front camera or back camera.
-   */
-  fun getCameraResolutions(source: VideoManager.Source, facing: CameraHelper.Facing): List<Size> {
-    return videoManager.getCameraResolutions(source, facing)
-  }
-
-  /**
-   * Set exposure to Camera1 or Camera2. Ignored with other video source.
-   *
-   * Must be called with isOnPreview, isStreaming or isRecording true or will be ignored.
-   */
-  fun setExposure(level: Int) {
-    videoManager.setExposure(level)
-  }
-
-  /**
-   * @return exposure of Camera1 or Camera2. 0 with other video source.
-   *
-   * Must be called with isOnPreview, isStreaming or isRecording true or will return 0.
-   */
-  fun getExposure(): Int = videoManager.getExposure()
-
-  /**
-   * Enable lantern using Camera1 or Camera2. Ignored with other video source.
-   *
-   * Must be called with isOnPreview, isStreaming or isRecording true or will be ignored.
-   */
-  fun enableLantern() {
-    videoManager.enableLantern()
-  }
-
-  /**
-   * Disable lantern using Camera1 or Camera2. Ignored with other video source.
-   *
-   * Must be called with isOnPreview, isStreaming or isRecording true or will be ignored.
-   */
-  fun disableLantern() {
-    videoManager.disableLantern()
-  }
-
-  /**
-   * @return lantern state using Camera1 or Camera2. False with other video source.
-   *
-   * Must be called with isOnPreview, isStreaming or isRecording true or will return false.
-   */
-  fun isLanternEnabled(): Boolean = videoManager.isLanternEnabled()
-
-  /**
-   * Enable auto focus using Camera1 or Camera2. Ignored with other video source.
-   *
-   * Must be called with isOnPreview, isStreaming or isRecording true or will be ignored.
-   */
-  fun enableAutoFocus() {
-    videoManager.enableAutoFocus()
-  }
-
-  /**
-   * Disable auto focus using Camera1 or Camera2. Ignored with other video source.
-   *
-   * Must be called with isOnPreview, isStreaming or isRecording true or will be ignored.
-   */
-  fun disableAutoFocus() {
-    videoManager.disableAutoFocus()
-  }
-
-  /**
-   * @return auto focus state using Camera1 or Camera2. False with other video source.
-   *
-   * Must be called with isOnPreview, isStreaming or isRecording true or will return false.
-   */
-  fun isAutoFocusEnabled(): Boolean = videoManager.isAutoFocusEnabled()
-
-  /**
-   * Set zoom to Camera1 or Camera2. Ignored with other video source.
-   * This method is used with onTouch event to implement zoom with gestures.
-   *
-   * Must be called with isOnPreview, isStreaming or isRecording true or will be ignored.
-   */
-  fun setZoom(event: MotionEvent) {
-    videoManager.setZoom(event)
-  }
-
-  /**
-   * Set zoom to Camera1 or Camera2. Ignored with other video source.
-   *
-   * Must be called with isOnPreview, isStreaming or isRecording true or will be ignored.
-   */
-  fun setZoom(level: Float) {
-    videoManager.setZoom(level)
-  }
-
-  /**
-   * @return zoom range (min and max) using Camera1 or Camera2. Range(0f, 0f) with other video source
-   *
-   * Must be called with isOnPreview, isStreaming or isRecording true or will return Range(0f, 0f).
-   */
-  fun getZoomRange(): Range<Float> = videoManager.getZoomRange()
-
-  /**
-   * @return current zoom using Camera1 or Camera2. 0f with other video source.
-   *
-   * Must be called with isOnPreview, isStreaming or isRecording true or will return 0f.
-   */
-  fun getZoom(): Float = videoManager.getZoom()
-
-  /**
    * Change stream orientation depend of activity orientation.
    * This method affect ro preview and stream.
    * Must be called after prepareVideo.
@@ -488,10 +348,10 @@ abstract class StreamBase(
    * start and stop rendering must be managed by the user.
    */
   fun getSurfaceTexture(): SurfaceTexture {
-    if (videoSource != VideoManager.Source.DISABLED) {
+    if (videoSource !is NoVideoSource) {
       throw IllegalStateException("getSurfaceTexture only available with VideoManager.Source.DISABLED")
     }
-    return glInterface.getSurfaceTexture()
+    return glInterface.surfaceTexture
   }
 
   protected fun getVideoResolution() = Size(videoEncoder.width, videoEncoder.height)
@@ -500,8 +360,8 @@ abstract class StreamBase(
 
   private fun startSources() {
     if (!glInterface.running) glInterface.start()
-    if (!videoManager.isRunning()) {
-      videoManager.start(glInterface.getSurfaceTexture())
+    if (!videoSource.isRunning()) {
+      videoSource.start(glInterface.surfaceTexture)
     }
     audioManager.start()
     videoEncoder.start()
@@ -510,7 +370,7 @@ abstract class StreamBase(
   }
 
   private fun stopSources() {
-    if (!isOnPreview) videoManager.stop()
+    if (!isOnPreview) videoSource.stop()
     audioManager.stop()
     videoEncoder.stop()
     audioEncoder.stop()

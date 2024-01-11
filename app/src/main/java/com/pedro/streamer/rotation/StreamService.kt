@@ -34,6 +34,9 @@ import com.pedro.common.ConnectChecker
 import com.pedro.library.rtmp.RtmpStream
 import com.pedro.library.util.SensorRotationManager
 import com.pedro.library.util.sources.VideoManager
+import com.pedro.library.util.sources.video.Camera1Source
+import com.pedro.library.util.sources.video.Camera2Source
+import com.pedro.library.util.sources.video.VideoSource
 import com.pedro.streamer.R
 
 /**
@@ -134,7 +137,14 @@ class StreamService: Service(), ConnectChecker {
   }
 
   fun switchCamera() {
-    rtmpCamera?.switchCamera()
+    when (val source = rtmpCamera?.videoSource) {
+      is Camera1Source -> {
+        source.switchCamera()
+      }
+      is Camera2Source -> {
+        source.switchCamera()
+      }
+    }
   }
 
   fun isStreaming(): Boolean = rtmpCamera?.isStreaming ?: false
@@ -161,14 +171,8 @@ class StreamService: Service(), ConnectChecker {
     rtmpCamera?.stopRecord()
   }
 
-  fun changeVideoSourceCamera(source: VideoManager.Source) {
-    rtmpCamera?.changeVideoSourceCamera(source)
-  }
-
-  fun changeVideoSourceScreen(context: Context, resultCode: Int, data: Intent) {
-    val mediaProjectionManager = context.applicationContext.getSystemService(MEDIA_PROJECTION_SERVICE) as MediaProjectionManager
-    val mediaProjection = mediaProjectionManager.getMediaProjection(resultCode, data)
-    rtmpCamera?.changeVideoSourceScreen(mediaProjection)
+  fun changeVideoSource(source: VideoSource) {
+    rtmpCamera?.changeVideoSource(source)
   }
 
   fun changeAudioSourceMicrophone() {

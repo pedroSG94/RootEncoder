@@ -24,21 +24,25 @@ import androidx.annotation.RequiresApi
  * Created by pedro on 11/1/24.
  */
 @RequiresApi(Build.VERSION_CODES.LOLLIPOP)
-class NoVideoSource: VideoSource {
+class NoVideoSource: VideoSource() {
 
   private var running = false
 
   override fun create(width: Int, height: Int, fps: Int): Boolean {
+    created = true
     return true
   }
 
   override fun start(surfaceTexture: SurfaceTexture) {
+    this.surfaceTexture = surfaceTexture
     if (!isRunning()) running = true
   }
 
   override fun stop() {
     if (isRunning()) running = false
   }
+
+  override fun release() {}
 
   override fun isRunning(): Boolean = running
 }
