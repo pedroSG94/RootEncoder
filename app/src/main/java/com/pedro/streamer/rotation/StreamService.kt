@@ -34,6 +34,7 @@ import com.pedro.common.ConnectChecker
 import com.pedro.library.rtmp.RtmpStream
 import com.pedro.library.util.SensorRotationManager
 import com.pedro.library.util.sources.VideoManager
+import com.pedro.library.util.sources.audio.AudioSource
 import com.pedro.library.util.sources.video.Camera1Source
 import com.pedro.library.util.sources.video.Camera2Source
 import com.pedro.library.util.sources.video.VideoSource
@@ -175,15 +176,8 @@ class StreamService: Service(), ConnectChecker {
     rtmpCamera?.changeVideoSource(source)
   }
 
-  fun changeAudioSourceMicrophone() {
-    rtmpCamera?.changeAudioSourceMicrophone()
-  }
-
-  @RequiresApi(Build.VERSION_CODES.Q)
-  fun changeAudioSourceInternal(context: Context, resultCode: Int, data: Intent) {
-    val mediaProjectionManager = context.applicationContext.getSystemService(MEDIA_PROJECTION_SERVICE) as MediaProjectionManager
-    val mediaProjection = mediaProjectionManager.getMediaProjection(resultCode, data)
-    rtmpCamera?.changeAudioSourceInternal(mediaProjection)
+  fun changeAudioSource(source: AudioSource) {
+    rtmpCamera?.changeAudioSource(source)
   }
 
   override fun onConnectionStarted(url: String) {

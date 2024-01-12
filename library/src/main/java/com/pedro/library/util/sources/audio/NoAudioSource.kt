@@ -16,25 +16,35 @@
 
 package com.pedro.library.util.sources.audio
 
+import android.os.Build
+import androidx.annotation.RequiresApi
 import com.pedro.encoder.input.audio.GetMicrophoneData
 
 /**
  * Created by pedro on 11/1/24.
  */
-abstract class AudioSource {
+@RequiresApi(Build.VERSION_CODES.LOLLIPOP)
+class NoAudioSource: AudioSource() {
 
-  protected var getMicrophoneData: GetMicrophoneData? = null
-  var created = false
-  var sampleRate = 0
-  var isStereo = true
-  var echoCanceler = false
-  var noiseSuppressor = false
+  private var running = false
 
-  abstract fun create(sampleRate: Int, isStereo: Boolean, echoCanceler: Boolean, noiseSuppressor: Boolean): Boolean
-  abstract fun start(getMicrophoneData: GetMicrophoneData)
-  abstract fun stop()
-  abstract fun isRunning(): Boolean
-  abstract fun release()
-  abstract fun getMaxInputSize(): Int
-  abstract fun setMaxInputSize(size: Int)
+  override fun create(sampleRate: Int, isStereo: Boolean, echoCanceler: Boolean, noiseSuppressor: Boolean): Boolean {
+    created = true
+    return true
+  }
+
+  override fun start(getMicrophoneData: GetMicrophoneData) {
+    if (!isRunning()) running = true
+  }
+
+  override fun stop() {
+    if (isRunning()) running = false
+  }
+
+  override fun release() {}
+
+  override fun isRunning(): Boolean = running
+  override fun getMaxInputSize(): Int = 0
+
+  override fun setMaxInputSize(size: Int) {}
 }

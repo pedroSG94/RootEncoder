@@ -30,6 +30,8 @@ import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import com.pedro.library.util.sources.VideoManager
+import com.pedro.library.util.sources.audio.InternalSource
+import com.pedro.library.util.sources.audio.MicrophoneSource
 import com.pedro.library.util.sources.video.Camera1Source
 import com.pedro.library.util.sources.video.Camera2Source
 import com.pedro.library.util.sources.video.ScreenSource
@@ -115,7 +117,7 @@ class RotationExampleActivity: AppCompatActivity(), SurfaceHolder.Callback {
         startActivityForResult(intent, REQUEST_CODE_SCREEN_VIDEO)
       }
       R.id.audio_source_microphone -> {
-        service?.changeAudioSourceMicrophone()
+        service?.changeAudioSource(MicrophoneSource())
       }
       R.id.audio_source_internal -> {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
@@ -135,14 +137,14 @@ class RotationExampleActivity: AppCompatActivity(), SurfaceHolder.Callback {
   override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
     super.onActivityResult(requestCode, resultCode, data)
     if (data != null && resultCode == RESULT_OK) {
+      val mediaProjectionManager = applicationContext.getSystemService(MEDIA_PROJECTION_SERVICE) as MediaProjectionManager
+      val mediaProjection = mediaProjectionManager.getMediaProjection(resultCode, data)
       if (requestCode == REQUEST_CODE_SCREEN_VIDEO) {
         askingMediaProjection = false
-        val mediaProjectionManager = applicationContext.getSystemService(MEDIA_PROJECTION_SERVICE) as MediaProjectionManager
-        val mediaProjection = mediaProjectionManager.getMediaProjection(resultCode, data)
         service?.changeVideoSource(ScreenSource(applicationContext, mediaProjection))
       } else if (requestCode == REQUEST_CODE_INTERNAL_AUDIO && Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
         askingMediaProjection = false
-        service?.changeAudioSourceInternal(this, resultCode, data)
+        service?.changeAudioSource(InternalSource(mediaProjection))
       }
     }
   }

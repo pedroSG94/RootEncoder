@@ -41,7 +41,7 @@ import com.pedro.encoder.video.VideoEncoder
 import com.pedro.library.base.recording.BaseRecordController
 import com.pedro.library.base.recording.RecordController
 import com.pedro.library.util.AndroidMuxerRecordController
-import com.pedro.library.util.sources.AudioManager
+import com.pedro.library.util.sources.audio.AudioSource
 import com.pedro.library.util.sources.video.NoVideoSource
 import com.pedro.library.util.sources.video.VideoSource
 import com.pedro.library.util.streamclient.StreamBaseClient
@@ -59,8 +59,8 @@ import java.nio.ByteBuffer
 @RequiresApi(Build.VERSION_CODES.LOLLIPOP)
 abstract class StreamBase(
   context: Context,
-  private var vSource: VideoSource,
-  audioSource: AudioManager.Source
+  vSource: VideoSource,
+  aSource: AudioSource
 ) {
 
   private val getMicrophoneData = object: GetMicrophoneData {
@@ -73,8 +73,6 @@ abstract class StreamBase(
   private val audioEncoder by lazy { AudioEncoder(getAacData) }
   //video render
   private val glInterface = GlStreamInterface(context)
-  //video and audio sources
-  private val audioManager by lazy { AudioManager(getMicrophoneData, audioSource) }
   //video/audio record
   private var recordController: BaseRecordController = AndroidMuxerRecordController()
   var isStreaming = false
@@ -85,7 +83,8 @@ abstract class StreamBase(
     get() = recordController.isRunning
   var videoSource: VideoSource = vSource
     private set
-  val audioSource = audioManager.source
+  var audioSource: AudioSource = aSource
+    private set
 
   /**
    * Necessary only one time before start preview, stream or record.
@@ -118,9 +117,9 @@ abstract class StreamBase(
   @JvmOverloads
   fun prepareAudio(sampleRate: Int, isStereo: Boolean, bitrate: Int, echoCanceler: Boolean = false,
     noiseSuppressor: Boolean = false): Boolean {
-    val audioResult = audioManager.createAudioManager(sampleRate, isStereo, echoCanceler, noiseSuppressor)
+    val audioResult = audioSource.create(sampleRate, isStereo, echoCanceler, noiseSuppressor)
     if (audioResult) {
-      return audioEncoder.prepareAudioEncoder(bitrate, sampleRate, isStereo, audioManager.getMaxInputSize())
+      return audioEncoder.prepareAudioEncoder(bitrate, sampleRate, isStereo, audioSource.getMaxInputSize())
     }
     return false
   }
@@ -241,44 +240,32 @@ abstract class StreamBase(
    * Must be called after prepareVideo.
    */
   fun changeVideoSource(source: VideoSource) {
-    val wasRunning = this.videoSource.isRunning()
-    val wasCreated = this.videoSource.created
-    this.videoSource.stop()
-    this.videoSource.release()
-    this.videoSource.surfaceTexture?.let {
-      if (wasCreated) source.create(this.videoSource.width, this.videoSource.height, this.videoSource.fps)
+    val wasRunning = videoSource.isRunning()
+    val wasCreated = videoSource.created
+    videoSource.stop()
+    videoSource.release()
+    videoSource.surfaceTexture?.let {
+      if (wasCreated) source.create(videoSource.width, videoSource.height, videoSource.fps)
       if (wasRunning) source.start(it)
-      this.videoSource = source
+      videoSource = source
     }
   }
 
   /**
-   * Change audio source to Microphone.
+   * Change audio source.
    * Must be called after prepareAudio.
    */
-  fun changeAudioSourceMicrophone() {
-    audioManager.changeSourceMicrophone()
-  }
+  fun changeAudioSource(source: AudioSource) {
+    val wasRunning = audioSource.isRunning()
+    val wasCreated = audioSource.created
+    audioSource.stop()
+    audioSource.release()
+    if (wasCreated) source.create(audioSource.sampleRate, audioSource.isStereo, audioSource.echoCanceler, audioSource.noiseSuppressor)
+    if (wasRunning) source.start(getMicrophoneData)
+    audioSource = source
+    videoSource.surfaceTexture?.let {
 
-  /**
-   * Change audio source to Internal.
-   * Must be called after prepareAudio.
-   */
-  @RequiresApi(Build.VERSION_CODES.Q)
-  fun changeAudioSourceInternal(mediaProjection: MediaProjection) {
-    audioManager.changeSourceInternal(mediaProjection)
-  }
-
-  /**
-   * Disable audio stopping process audio frames from audio source.
-   * You can return to microphone/internal audio using changeAudioSourceMicrophone/changeAudioSourceInternal
-   *
-   * @NOTE:
-   * This isn't recommended because it isn't supported in all servers/players.
-   * Use mute and unMute to send empty audio is recommended
-   */
-  fun changeAudioSourceDisabled() {
-    audioManager.changeAudioSourceDisabled()
+    }
   }
 
   /**
@@ -289,39 +276,6 @@ abstract class StreamBase(
     videoEncoder.setEncoderErrorCallback(encoderErrorCallback)
     audioEncoder.setEncoderErrorCallback(encoderErrorCallback)
   }
-
-  /**
-   * Set a custom size of audio buffer input.
-   * If you set 0 or less you can disable it to use library default value.
-   * Must be called before of prepareAudio method.
-   *
-   * @param size in bytes. Recommended multiple of 1024 (2048, 4096, 8196, etc)
-   */
-  fun setAudioMaxInputSize(size: Int) {
-    audioManager.setMaxInputSize(size)
-  }
-
-  /**
-   * Mute microphone or internal audio.
-   * Must be called after prepareAudio.
-   */
-  fun mute() {
-    audioManager.mute()
-  }
-
-  /**
-   * Mute microphone or internal audio.
-   * Must be called after prepareAudio.
-   */
-  fun unMute() {
-    audioManager.unMute()
-  }
-
-  /**
-   * Check if microphone or internal audio is muted.
-   * Must be called after prepareAudio.
-   */
-  fun isMuted(): Boolean = audioManager.isMuted()
 
   /**
    * Change stream orientation depend of activity orientation.
@@ -363,7 +317,7 @@ abstract class StreamBase(
     if (!videoSource.isRunning()) {
       videoSource.start(glInterface.surfaceTexture)
     }
-    audioManager.start()
+    audioSource.start(getMicrophoneData)
     videoEncoder.start()
     audioEncoder.start()
     glInterface.addMediaCodecSurface(videoEncoder.inputSurface)
@@ -371,7 +325,7 @@ abstract class StreamBase(
 
   private fun stopSources() {
     if (!isOnPreview) videoSource.stop()
-    audioManager.stop()
+    audioSource.stop()
     videoEncoder.stop()
     audioEncoder.stop()
     glInterface.removeMediaCodecSurface()

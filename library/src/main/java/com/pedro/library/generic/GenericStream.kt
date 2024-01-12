@@ -24,8 +24,8 @@ import com.pedro.common.AudioCodec
 import com.pedro.common.ConnectChecker
 import com.pedro.common.VideoCodec
 import com.pedro.library.base.StreamBase
-import com.pedro.library.util.sources.AudioManager
-import com.pedro.library.util.sources.VideoManager
+import com.pedro.library.util.sources.audio.AudioSource
+import com.pedro.library.util.sources.audio.MicrophoneSource
 import com.pedro.library.util.sources.video.Camera2Source
 import com.pedro.library.util.sources.video.VideoSource
 import com.pedro.library.util.streamclient.GenericStreamClient
@@ -50,7 +50,7 @@ class GenericStream(
   context: Context,
   private val connectChecker: ConnectChecker,
   videoSource: VideoSource,
-  audioSource: AudioManager.Source
+  audioSource: AudioSource
 ): StreamBase(context, videoSource, audioSource) {
 
   private val streamClientListener = object: StreamClientListener {
@@ -69,7 +69,7 @@ class GenericStream(
   private var connectedType = ClientType.NONE
 
   constructor(context: Context, connectChecker: ConnectChecker):
-      this(context, connectChecker, Camera2Source(context), AudioManager.Source.MICROPHONE)
+      this(context, connectChecker, Camera2Source(context), MicrophoneSource())
 
   override fun getStreamClient(): GenericStreamClient = streamClient
 
