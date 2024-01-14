@@ -53,8 +53,8 @@ class GenericStreamClient(
    * More info here:
    * https://learn.akamai.com/en-us/webhelp/media-services-live/media-services-live-encoder-compatibility-testing-and-qualification-guide-v4.0/GUID-F941C88B-9128-4BF4-A81B-C2E5CFD35BBF.html
    */
-  fun forceAkamaiTs(enabled: Boolean) {
-    rtmpClient.forceAkamaiTs(enabled)
+  fun forceIncrementalTs(enabled: Boolean) {
+    rtmpClient.forceIncrementalTs(enabled)
   }
 
   /**
