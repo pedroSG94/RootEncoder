@@ -135,8 +135,8 @@ class RtmpClient(private val connectChecker: ConnectChecker) {
     commandsManager.audioDisabled = onlyVideo
   }
 
-  fun forceAkamaiTs(enabled: Boolean) {
-    commandsManager.akamaiTs = enabled
+  fun forceIncrementalTs(enabled: Boolean) {
+    commandsManager.incrementalTs = enabled
   }
 
   fun setWriteChunkSize(chunkSize: Int) {

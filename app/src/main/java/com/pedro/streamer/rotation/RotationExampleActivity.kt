@@ -138,11 +138,10 @@ class RotationExampleActivity: AppCompatActivity(), SurfaceHolder.Callback {
     if (data != null && resultCode == RESULT_OK) {
       val mediaProjectionManager = applicationContext.getSystemService(MEDIA_PROJECTION_SERVICE) as MediaProjectionManager
       val mediaProjection = mediaProjectionManager.getMediaProjection(resultCode, data)
+      askingMediaProjection = false
       if (requestCode == REQUEST_CODE_SCREEN_VIDEO) {
-        askingMediaProjection = false
         service?.changeVideoSource(ScreenSource(applicationContext, mediaProjection))
       } else if (requestCode == REQUEST_CODE_INTERNAL_AUDIO && Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-        askingMediaProjection = false
         service?.changeAudioSource(InternalSource(mediaProjection))
       }
     }

@@ -104,9 +104,9 @@ public class MultiRtpDisplay extends DisplayBase {
    * More info here:
    * https://learn.akamai.com/en-us/webhelp/media-services-live/media-services-live-encoder-compatibility-testing-and-qualification-guide-v4.0/GUID-F941C88B-9128-4BF4-A81B-C2E5CFD35BBF.html
    */
-  public void forceAkamaiTs(boolean enabled) {
+  public void forceIncrementalTs(boolean enabled) {
     for (RtmpClient rtmpClient : rtmpClients) {
-      rtmpClient.forceAkamaiTs(enabled);
+      rtmpClient.forceIncrementalTs(enabled);
     }
   }
 
