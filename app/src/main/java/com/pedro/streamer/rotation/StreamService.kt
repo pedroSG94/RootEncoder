@@ -22,7 +22,6 @@ import android.app.NotificationManager
 import android.app.Service
 import android.content.Context
 import android.content.Intent
-import android.media.projection.MediaProjectionManager
 import android.os.Build
 import android.os.IBinder
 import android.util.Log
@@ -33,7 +32,10 @@ import androidx.lifecycle.MutableLiveData
 import com.pedro.common.ConnectChecker
 import com.pedro.library.rtmp.RtmpStream
 import com.pedro.library.util.SensorRotationManager
-import com.pedro.library.util.sources.VideoManager
+import com.pedro.library.util.sources.audio.AudioSource
+import com.pedro.library.util.sources.video.Camera1Source
+import com.pedro.library.util.sources.video.Camera2Source
+import com.pedro.library.util.sources.video.VideoSource
 import com.pedro.streamer.R
 
 /**
@@ -134,7 +136,14 @@ class StreamService: Service(), ConnectChecker {
   }
 
   fun switchCamera() {
-    rtmpCamera?.switchCamera()
+    when (val source = rtmpCamera?.videoSource) {
+      is Camera1Source -> {
+        source.switchCamera()
+      }
+      is Camera2Source -> {
+        source.switchCamera()
+      }
+    }
   }
 
   fun isStreaming(): Boolean = rtmpCamera?.isStreaming ?: false
@@ -161,25 +170,12 @@ class StreamService: Service(), ConnectChecker {
     rtmpCamera?.stopRecord()
   }
 
-  fun changeVideoSourceCamera(source: VideoManager.Source) {
-    rtmpCamera?.changeVideoSourceCamera(source)
+  fun changeVideoSource(source: VideoSource) {
+    rtmpCamera?.changeVideoSource(source)
   }
 
-  fun changeVideoSourceScreen(context: Context, resultCode: Int, data: Intent) {
-    val mediaProjectionManager = context.applicationContext.getSystemService(MEDIA_PROJECTION_SERVICE) as MediaProjectionManager
-    val mediaProjection = mediaProjectionManager.getMediaProjection(resultCode, data)
-    rtmpCamera?.changeVideoSourceScreen(mediaProjection)
-  }
-
-  fun changeAudioSourceMicrophone() {
-    rtmpCamera?.changeAudioSourceMicrophone()
-  }
-
-  @RequiresApi(Build.VERSION_CODES.Q)
-  fun changeAudioSourceInternal(context: Context, resultCode: Int, data: Intent) {
-    val mediaProjectionManager = context.applicationContext.getSystemService(MEDIA_PROJECTION_SERVICE) as MediaProjectionManager
-    val mediaProjection = mediaProjectionManager.getMediaProjection(resultCode, data)
-    rtmpCamera?.changeAudioSourceInternal(mediaProjection)
+  fun changeAudioSource(source: AudioSource) {
+    rtmpCamera?.changeAudioSource(source)
   }
 
   override fun onConnectionStarted(url: String) {

@@ -24,8 +24,10 @@ import com.pedro.common.AudioCodec
 import com.pedro.common.ConnectChecker
 import com.pedro.common.VideoCodec
 import com.pedro.library.base.StreamBase
-import com.pedro.library.util.sources.AudioManager
-import com.pedro.library.util.sources.VideoManager
+import com.pedro.library.util.sources.audio.AudioSource
+import com.pedro.library.util.sources.audio.MicrophoneSource
+import com.pedro.library.util.sources.video.Camera2Source
+import com.pedro.library.util.sources.video.VideoSource
 import com.pedro.library.util.streamclient.SrtStreamClient
 import com.pedro.library.util.streamclient.StreamClientListener
 import com.pedro.srt.srt.SrtClient
@@ -40,8 +42,8 @@ import java.nio.ByteBuffer
 
 @RequiresApi(Build.VERSION_CODES.LOLLIPOP)
 class SrtStream(
-  context: Context, connectChecker: ConnectChecker, videoSource: VideoManager.Source,
-  audioSource: AudioManager.Source
+  context: Context, connectChecker: ConnectChecker, videoSource: VideoSource,
+  audioSource: AudioSource
 ): StreamBase(context, videoSource, audioSource) {
 
   private val srtClient = SrtClient(connectChecker)
@@ -53,7 +55,7 @@ class SrtStream(
   override fun getStreamClient(): SrtStreamClient = SrtStreamClient(srtClient, streamClientListener)
 
   constructor(context: Context, connectChecker: ConnectChecker):
-      this(context, connectChecker, VideoManager.Source.CAMERA2, AudioManager.Source.MICROPHONE)
+      this(context, connectChecker, Camera2Source(context), MicrophoneSource())
 
   override fun setVideoCodecImp(codec: VideoCodec) {
     srtClient.setVideoCodec(codec)

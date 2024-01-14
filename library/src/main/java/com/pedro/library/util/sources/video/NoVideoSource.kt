@@ -14,22 +14,35 @@
  * limitations under the License.
  */
 
-package com.pedro.library.util.sources
+package com.pedro.library.util.sources.video
+
+import android.graphics.SurfaceTexture
+import android.os.Build
+import androidx.annotation.RequiresApi
 
 /**
- * Created by pedro on 29/3/22.
+ * Created by pedro on 11/1/24.
  */
-class NoSource {
+@RequiresApi(Build.VERSION_CODES.LOLLIPOP)
+class NoVideoSource: VideoSource() {
 
   private var running = false
 
-  fun start() {
-    running = true
+  override fun create(width: Int, height: Int, fps: Int): Boolean {
+    created = true
+    return true
   }
 
-  fun stop() {
-    running = false
+  override fun start(surfaceTexture: SurfaceTexture) {
+    this.surfaceTexture = surfaceTexture
+    if (!isRunning()) running = true
   }
 
-  fun isRunning(): Boolean = running
+  override fun stop() {
+    if (isRunning()) running = false
+  }
+
+  override fun release() {}
+
+  override fun isRunning(): Boolean = running
 }
