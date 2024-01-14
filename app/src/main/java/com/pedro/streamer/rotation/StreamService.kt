@@ -22,7 +22,6 @@ import android.app.NotificationManager
 import android.app.Service
 import android.content.Context
 import android.content.Intent
-import android.media.projection.MediaProjectionManager
 import android.os.Build
 import android.os.IBinder
 import android.util.Log
@@ -33,7 +32,6 @@ import androidx.lifecycle.MutableLiveData
 import com.pedro.common.ConnectChecker
 import com.pedro.library.rtmp.RtmpStream
 import com.pedro.library.util.SensorRotationManager
-import com.pedro.library.util.sources.VideoManager
 import com.pedro.library.util.sources.audio.AudioSource
 import com.pedro.library.util.sources.video.Camera1Source
 import com.pedro.library.util.sources.video.Camera2Source

@@ -29,7 +29,6 @@ import android.view.WindowManager
 import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
-import com.pedro.library.util.sources.VideoManager
 import com.pedro.library.util.sources.audio.InternalSource
 import com.pedro.library.util.sources.audio.MicrophoneSource
 import com.pedro.library.util.sources.video.Camera1Source

@@ -20,7 +20,6 @@ import android.content.Context
 import android.graphics.SurfaceTexture
 import android.media.MediaCodec
 import android.media.MediaFormat
-import android.media.projection.MediaProjection
 import android.os.Build
 import android.util.Size
 import android.view.Surface

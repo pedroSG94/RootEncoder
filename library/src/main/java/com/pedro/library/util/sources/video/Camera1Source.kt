@@ -20,11 +20,12 @@ import android.content.Context
 import android.graphics.SurfaceTexture
 import android.hardware.Camera
 import android.os.Build
+import android.util.Range
 import android.util.Size
+import android.view.MotionEvent
 import androidx.annotation.RequiresApi
 import com.pedro.encoder.input.video.Camera1ApiManager
 import com.pedro.encoder.input.video.CameraHelper
-import com.pedro.library.util.sources.VideoManager
 
 /**
  * Created by pedro on 11/1/24.
@@ -94,4 +95,64 @@ class Camera1Source(context: Context): VideoSource() {
       }
     }
   }
+
+  fun getCameraFacing(): CameraHelper.Facing = facing
+
+  fun getCameraResolutions(facing: CameraHelper.Facing): List<Size> {
+    val resolutions = if (facing == CameraHelper.Facing.FRONT) {
+      camera.previewSizeFront
+    } else {
+      camera.previewSizeBack
+    }
+    return mapCamera1Resolutions(resolutions, false)
+  }
+
+  fun setExposure(level: Int) {
+    if (isRunning()) camera.exposure = level
+  }
+
+  fun getExposure(): Int {
+    return if (isRunning()) camera.exposure
+    else 0
+  }
+
+  fun enableLantern() {
+    if (isRunning()) camera.enableLantern()
+  }
+
+  fun disableLantern() {
+    if (isRunning()) camera.disableLantern()
+  }
+
+  fun isLanternEnabled(): Boolean {
+    return if (isRunning()) camera.isLanternEnabled
+    else false
+  }
+
+  fun enableAutoFocus() {
+    if (isRunning()) {
+      camera.enableAutoFocus()
+    }
+  }
+
+  fun disableAutoFocus() {
+    if (isRunning()) camera.disableAutoFocus()
+  }
+
+  fun isAutoFocusEnabled(): Boolean {
+    return if (isRunning()) camera.isAutoFocusEnabled
+    else false
+  }
+
+  fun setZoom(event: MotionEvent) {
+    if (isRunning()) camera.setZoom(event)
+  }
+
+  fun setZoom(level: Int) {
+    if (isRunning()) camera.zoom = level
+  }
+
+  fun getZoomRange(): Range<Int> = Range(camera.minZoom, camera.maxZoom)
+
+  fun getZoom(): Int = camera.zoom
 }

@@ -69,4 +69,14 @@ class MicrophoneSource: AudioSource(), GetMicrophoneData {
   override fun inputPCMData(frame: Frame) {
     getMicrophoneData?.inputPCMData(frame)
   }
+
+  fun mute() {
+    microphone.mute()
+  }
+
+  fun unMute() {
+    microphone.unMute()
+  }
+
+  fun isMuted(): Boolean = microphone.isMuted
 }
