@@ -75,22 +75,6 @@
         android:screenOrientation="portrait"
         />
     <activity
-        android:name="com.pedro.streamer.surfacemodeexample.SurfaceModeRtspActivity"
-        android:label="@string/surface_mode_rtsp"
-        />
-    <activity
-        android:name="com.pedro.streamer.surfacemodeexample.SurfaceModeRtmpActivity"
-        android:label="@string/surface_mode_rtmp"
-        />
-    <activity
-        android:name="com.pedro.streamer.texturemodeexample.TextureModeRtspActivity"
-        android:label="@string/texture_mode_rtsp"
-        />
-    <activity
-        android:name="com.pedro.streamer.texturemodeexample.TextureModeRtmpActivity"
-        android:label="@string/texture_mode_rtmp"
-        />
-    <activity
         android:name="com.pedro.streamer.openglexample.OpenGlRtmpActivity"
         android:label="@string/opengl_rtmp"
         />
