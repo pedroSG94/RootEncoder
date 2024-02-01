@@ -22,6 +22,7 @@ import android.graphics.SurfaceTexture;
 import android.media.MediaPlayer;
 import android.os.Build;
 import android.os.Bundle;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.MotionEvent;
@@ -165,8 +166,17 @@ public class OpenGlRtmpActivity extends AppCompatActivity
       rtmpCamera1.getGlInterface().setFilter(new AnalogTVFilterRender());
       return true;
     } else if (itemId == R.id.android_view) {
+      View view = LayoutInflater.from(this).inflate(R.layout.layout_android_filter, null);
+      //Get root view to know max width and max height in the XML layout
+      View root = findViewById(R.id.activity_example_rtmp);
+      int sizeSpecWidth = View.MeasureSpec.makeMeasureSpec(root.getWidth(), View.MeasureSpec.EXACTLY);
+      int sizeSpecHeight = View.MeasureSpec.makeMeasureSpec(root.getHeight(), View.MeasureSpec.EXACTLY);
+      //Set view size to allow rendering
+      view.measure(sizeSpecWidth, sizeSpecHeight);
+      view.layout(0, 0, view.getMeasuredWidth(), view.getMeasuredHeight());
+
       AndroidViewFilterRender androidViewFilterRender = new AndroidViewFilterRender();
-      androidViewFilterRender.setView(findViewById(R.id.switch_camera));
+      androidViewFilterRender.setView(view);
       rtmpCamera1.getGlInterface().setFilter(androidViewFilterRender);
       return true;
     } else if (itemId == R.id.basic_deformation) {
