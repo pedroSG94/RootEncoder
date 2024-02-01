@@ -17,14 +17,16 @@
 package com.pedro.jcsample.screen
 
 import android.content.Context
+import android.content.res.Configuration
 import android.media.AudioManager
-import android.view.SoundEffectConstants
 import android.view.SurfaceView
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -35,6 +37,8 @@ import androidx.compose.material.icons.outlined.Cameraswitch
 import androidx.compose.material.icons.outlined.Videocam
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -45,10 +49,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.hapticfeedback.HapticFeedback
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.pedro.jcsample.MainState
 import com.pedro.jcsample.components.CircleButton
 import com.pedro.jcsample.components.DefaultDisabled
 import com.pedro.jcsample.components.DefaultEnabled
@@ -66,78 +72,159 @@ fun MainScreen(
   onStop: (SurfaceView) -> Unit = {},
   recordClick: () -> Unit = {},
   streamClick: () -> Unit = {},
-  switchClick: () -> Unit = {}
+  switchClick: () -> Unit = {},
+  onTextChanged: (String) -> Unit = {},
+  mainState: MainState
 ) {
-  val haptic = LocalHapticFeedback.current
-  val context = LocalContext.current
+  val configuration = LocalConfiguration.current
+
   Box(
     modifier = modifier.fillMaxSize(),
-    contentAlignment = Alignment.BottomCenter
+    contentAlignment = if (configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) Alignment.CenterEnd else Alignment.BottomCenter
   ) {
     StreamView(
       modifier = Modifier.fillMaxSize(),
       onCreate = onStart,
       onDestroy = onStop
     )
-    Row(
-      modifier = Modifier
-        .fillMaxWidth()
+    Box(
+      modifier = modifier
+        .fillMaxSize()
         .padding(16.dp),
-      verticalAlignment = Alignment.CenterVertically,
-      horizontalArrangement = Arrangement.SpaceEvenly
+      contentAlignment = Alignment.TopCenter
     ) {
-      var recording by remember { mutableStateOf(false) }
-      var streaming by remember { mutableStateOf(false) }
-      CircleButton(
-        modifier = Modifier.size(56.dp), enabled = recording,
-        enabledIcon = {
-          DefaultEnabled()
+      var url by remember { mutableStateOf(mainState.url) }
+
+      TextField(
+        value = url, 
+        onValueChange = {
+          url = it
+          onTextChanged(url)
         },
-        disabledIcon = {
-          Icon(
-            modifier = Modifier.fillMaxSize(),
-            imageVector = Icons.Outlined.Videocam,
-            contentDescription = "circle button",
-            tint = Color.White
-          )
-        },
-        onClick = {
-          clickEffect(haptic, context)
-          recording = !recording
-        }
+        placeholder = { Text(text = "protocol://ip:port/appName/streamName") }
       )
-      CircleButton(
-        modifier = Modifier.size(80.dp), enabled = streaming,
-        enabledIcon = {
-          DefaultEnabled()
-        },
-        disabledIcon = {
-          DefaultDisabled()
-        },
-        onClick = {
-          clickEffect(haptic, context)
-          streaming = !streaming
-        }
-      )
-      IconButton(
+    }
+    if (configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) {
+      Column(
         modifier = Modifier
-          .size(56.dp)
-          .background(Color.Transparent, shape = CircleShape)
-          .border(2.dp, Color.White, CircleShape)
-          .padding(8.dp),
-        onClick = {
-          clickEffect(haptic, context)
-          switchClick()
-        }
+          .fillMaxHeight()
+          .padding(16.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.SpaceEvenly
       ) {
-        Icon(
-          modifier = Modifier.fillMaxSize(),
-          imageVector = Icons.Outlined.Cameraswitch,
-          contentDescription = "switch camera",
-          tint = Color.White
-        )
+        ButtonsLayout(recordClick, streamClick, switchClick, mainState)
+      }
+    } else {
+      Row(
+        modifier = Modifier
+          .fillMaxWidth()
+          .padding(16.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceEvenly
+      ) {
+        ButtonsLayout(recordClick, streamClick, switchClick, mainState)
       }
     }
+  }
+}
+
+@Composable
+fun ButtonsLayout(
+  recordClick: () -> Unit,
+  streamClick: () -> Unit,
+  switchClick: () -> Unit,
+  mainState: MainState
+) {
+  val configuration = LocalConfiguration.current
+
+  if (configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) {
+    SwitchButton { switchClick() }
+  } else {
+    RecordButton(enabled = mainState.recording) { recordClick() }
+  }
+  StreamButton(enabled = mainState.streaming) { streamClick() }
+  if (configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) {
+    RecordButton(enabled = mainState.recording) { recordClick() }
+  } else {
+    SwitchButton { switchClick() }
+  }
+}
+
+@Composable
+fun StreamButton(
+  enabled: Boolean,
+  onClick: () -> Unit
+) {
+  val haptic = LocalHapticFeedback.current
+  val context = LocalContext.current
+
+  CircleButton(
+    modifier = Modifier.size(80.dp), enabled = enabled,
+    enabledIcon = {
+      DefaultEnabled()
+    },
+    disabledIcon = {
+      DefaultDisabled()
+    },
+    onClick = {
+      clickEffect(haptic, context)
+      onClick()
+    }
+  )
+}
+
+@Composable
+fun RecordButton(
+  enabled: Boolean,
+  onClick: () -> Unit
+) {
+  val haptic = LocalHapticFeedback.current
+  val context = LocalContext.current
+
+  CircleButton(
+    modifier = Modifier.size(56.dp), enabled = enabled,
+    enabledIcon = {
+      DefaultEnabled()
+    },
+    disabledIcon = {
+      Icon(
+        modifier = Modifier.fillMaxSize(),
+        imageVector = Icons.Outlined.Videocam,
+        contentDescription = "record button",
+        tint = Color.White
+      )
+    },
+    onClick = {
+      clickEffect(haptic, context)
+      onClick()
+    }
+  )
+}
+
+@Composable
+fun SwitchButton(
+  onClick: () -> Unit
+) {
+  val haptic = LocalHapticFeedback.current
+  val context = LocalContext.current
+
+  IconButton(
+    modifier = Modifier
+      .size(56.dp)
+      .background(Color.Transparent, shape = CircleShape)
+      .border(2.dp, Color.White, CircleShape)
+      .padding(8.dp),
+    onClick = {
+      clickEffect(haptic, context)
+      onClick()
+    }
+  ) {
+    Icon(
+      modifier = Modifier.fillMaxSize(),
+      imageVector = Icons.Outlined.Cameraswitch,
+      contentDescription = "switch camera",
+      tint = Color.White
+    )
   }
 }
 
@@ -151,6 +238,6 @@ private fun clickEffect(haptic: HapticFeedback, context: Context) {
 @Composable
 fun MainScreenPreview() {
   RootEncoderTheme {
-    MainScreen()
+    MainScreen(mainState = MainState(recording = false, streaming = false, url = ""))
   }
 }
