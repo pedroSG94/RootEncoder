@@ -16,6 +16,9 @@
 
 package com.pedro.jcsample.screen
 
+import android.content.Context
+import android.media.AudioManager
+import android.view.SoundEffectConstants
 import android.view.SurfaceView
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -40,6 +43,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.hapticfeedback.HapticFeedback
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.pedro.jcsample.components.CircleButton
@@ -61,6 +68,8 @@ fun MainScreen(
   streamClick: () -> Unit = {},
   switchClick: () -> Unit = {}
 ) {
+  val haptic = LocalHapticFeedback.current
+  val context = LocalContext.current
   Box(
     modifier = modifier.fillMaxSize(),
     contentAlignment = Alignment.BottomCenter
@@ -93,6 +102,7 @@ fun MainScreen(
           )
         },
         onClick = {
+          clickEffect(haptic, context)
           recording = !recording
         }
       )
@@ -105,6 +115,7 @@ fun MainScreen(
           DefaultDisabled()
         },
         onClick = {
+          clickEffect(haptic, context)
           streaming = !streaming
         }
       )
@@ -115,6 +126,7 @@ fun MainScreen(
           .border(2.dp, Color.White, CircleShape)
           .padding(8.dp),
         onClick = {
+          clickEffect(haptic, context)
           switchClick()
         }
       ) {
@@ -127,6 +139,12 @@ fun MainScreen(
       }
     }
   }
+}
+
+private fun clickEffect(haptic: HapticFeedback, context: Context) {
+  val audioManager = context.getSystemService(Context.AUDIO_SERVICE) as AudioManager
+  audioManager.playSoundEffect(AudioManager.FX_KEY_CLICK,1.0f)
+  haptic.performHapticFeedback(HapticFeedbackType.LongPress)
 }
 
 @Preview(showBackground = true)
