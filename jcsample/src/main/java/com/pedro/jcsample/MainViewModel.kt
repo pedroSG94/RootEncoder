@@ -118,6 +118,7 @@ class MainViewModel(context: Context): ViewModel() {
   }
 
   fun prepare(): Boolean {
+    if (genericStream.isOnPreview || genericStream.isRecording || genericStream.isStreaming) return true
     return genericStream.prepareVideo(640, 480, 1_200_000) && genericStream.prepareAudio(32000, true, 128_000)
   }
 
