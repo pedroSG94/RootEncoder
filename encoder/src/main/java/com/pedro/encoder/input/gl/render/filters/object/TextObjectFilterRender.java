@@ -16,6 +16,7 @@
 
 package com.pedro.encoder.input.gl.render.filters.object;
 
+import android.graphics.Color;
 import android.graphics.Typeface;
 import android.opengl.GLES20;
 import android.os.Build;
@@ -51,7 +52,7 @@ public class TextObjectFilterRender extends BaseObjectFilterRender {
   }
 
   public void setText(String text, float textSize, int textColor) {
-    setText(text, textSize, textColor, 0, null);
+    setText(text, textSize, textColor, Color.TRANSPARENT, null);
   }
 
   public void setText(String text, float textSize, int textColor, int backgroundColor) {
@@ -59,7 +60,7 @@ public class TextObjectFilterRender extends BaseObjectFilterRender {
   }
 
   public void setText(String text, float textSize, int textColor, Typeface typeface) {
-    setText(text, textSize, textColor, 0, typeface);
+    setText(text, textSize, textColor, Color.TRANSPARENT, typeface);
   }
 
   public void setText(String text, float textSize, int textColor, int backgroundColor, Typeface typeface) {
