@@ -16,6 +16,7 @@
 
 package com.pedro.encoder.input.gl.render.filters.object;
 
+import android.graphics.Color;
 import android.graphics.Typeface;
 import android.opengl.GLES20;
 import android.os.Build;
@@ -34,6 +35,7 @@ public class TextObjectFilterRender extends BaseObjectFilterRender {
   private String text;
   private float textSize;
   private int textColor;
+  private int backgroundColor;
   private Typeface typeface;
 
   public TextObjectFilterRender() {
@@ -50,31 +52,40 @@ public class TextObjectFilterRender extends BaseObjectFilterRender {
   }
 
   public void setText(String text, float textSize, int textColor) {
-    setText(text, textSize, textColor, null);
+    setText(text, textSize, textColor, Color.TRANSPARENT, null);
+  }
+
+  public void setText(String text, float textSize, int textColor, int backgroundColor) {
+    setText(text, textSize, textColor, backgroundColor, null);
   }
 
   public void setText(String text, float textSize, int textColor, Typeface typeface) {
+    setText(text, textSize, textColor, Color.TRANSPARENT, typeface);
+  }
+
+  public void setText(String text, float textSize, int textColor, int backgroundColor, Typeface typeface) {
     this.text = text;
     this.textSize = textSize;
     this.textColor = textColor;
+    this.backgroundColor = backgroundColor;
     this.typeface = typeface;
-    ((TextStreamObject) streamObject).load(text, textSize, textColor, typeface);
+    ((TextStreamObject) streamObject).load(text, textSize, textColor, backgroundColor, typeface);
     shouldLoad = true;
   }
 
   public void addText(String text) {
-    setText(this.text + text, textSize, textColor, typeface);
+    setText(this.text + text, textSize, textColor, backgroundColor, typeface);
   }
 
   public void updateColor(int textColor) {
-    setText(this.text + text, textSize, textColor, typeface);
+    setText(this.text + text, textSize, textColor, backgroundColor, typeface);
   }
 
   public void updateTypeface(Typeface typeface) {
-    setText(this.text + text, textSize, textColor, typeface);
+    setText(this.text + text, textSize, textColor, backgroundColor, typeface);
   }
 
   public void updateTextSize(float textSize) {
-    setText(this.text + text, textSize, textColor, typeface);
+    setText(this.text + text, textSize, textColor, backgroundColor, typeface);
   }
 }
