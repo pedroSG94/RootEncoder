@@ -334,7 +334,12 @@ public abstract class OnlyAudioBase {
   public void setAudioCodec(AudioCodec codec) {
     setAudioCodecImp(codec);
     recordController.setAudioCodec(codec);
-    audioEncoder.setType(codec == AudioCodec.G711 ? CodecUtil.G711_MIME : CodecUtil.AAC_MIME);
+    String type = switch (codec) {
+      case G711 -> CodecUtil.G711_MIME;
+      case AAC -> CodecUtil.AAC_MIME;
+      case OPUS -> CodecUtil.OPUS_MIME;
+    };
+    audioEncoder.setType(type);
   }
 
   protected abstract void setAudioCodecImp(AudioCodec codec);

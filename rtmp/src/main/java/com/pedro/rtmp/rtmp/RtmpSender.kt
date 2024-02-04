@@ -110,6 +110,9 @@ class RtmpSender(
         audioPacket = AacPacket()
         (audioPacket as AacPacket).sendAudioInfo(sampleRate, isStereo)
       }
+      AudioCodec.OPUS -> {
+        throw IllegalArgumentException("Unsupported codec: ${audioCodec.name}")
+      }
     }
   }
 
