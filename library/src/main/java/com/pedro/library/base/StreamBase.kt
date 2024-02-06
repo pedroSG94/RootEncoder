@@ -97,6 +97,9 @@ abstract class StreamBase(
   @JvmOverloads
   fun prepareVideo(width: Int, height: Int, bitrate: Int, fps: Int = 30, iFrameInterval: Int = 2,
     rotation: Int = 0, profile: Int = -1, level: Int = -1): Boolean {
+    if (isStreaming || isRecording || isOnPreview) {
+      throw IllegalStateException("Stream, record and preview must be stopped before prepareVideo")
+    }
     val videoResult = videoSource.create(width, height, fps)
     if (videoResult) {
       if (rotation == 90 || rotation == 270) glInterface.setEncoderSize(height, width)
@@ -116,6 +119,9 @@ abstract class StreamBase(
   @JvmOverloads
   fun prepareAudio(sampleRate: Int, isStereo: Boolean, bitrate: Int, echoCanceler: Boolean = false,
     noiseSuppressor: Boolean = false): Boolean {
+    if (isStreaming || isRecording) {
+      throw IllegalStateException("Stream and record must be stopped before prepareAudio")
+    }
     val audioResult = audioSource.create(sampleRate, isStereo, echoCanceler, noiseSuppressor)
     if (audioResult) {
       return audioEncoder.prepareAudioEncoder(bitrate, sampleRate, isStereo, audioSource.getMaxInputSize())
@@ -129,6 +135,7 @@ abstract class StreamBase(
    * Must be called after prepareVideo and prepareAudio
    */
   fun startStream(endPoint: String) {
+    if (isStreaming) throw IllegalStateException("Stream already started, stopStream before startStream again")
     isStreaming = true
     rtpStartStream(endPoint)
     if (!isRecording) startSources()
@@ -140,6 +147,16 @@ abstract class StreamBase(
       videoEncoder.requestKeyframe()
     }
   }
+
+  /**
+   * Set video bitrate in bits per second while streaming.
+   *
+   * @param bitrate in bits per second.
+   */
+  fun setVideoBitrateOnFly(bitrate: Int) {
+    videoEncoder.setVideoBitrateOnFly(bitrate)
+  }
+
   /**
    * Stop stream.
    *
@@ -164,6 +181,7 @@ abstract class StreamBase(
    * Must be called after prepareVideo and prepareAudio.
    */
   fun startRecord(path: String, listener: RecordController.Listener) {
+    if (isRecording) throw IllegalStateException("Record already started, stopRecord before startRecord again")
     recordController.startRecord(path, listener)
     if (!isStreaming) startSources()
     else videoEncoder.requestKeyframe()
@@ -214,6 +232,7 @@ abstract class StreamBase(
    */
   fun startPreview(surface: Surface, width: Int, height: Int) {
     if (!surface.isValid) throw IllegalArgumentException("Make sure the Surface is valid")
+    if (isOnPreview) throw IllegalStateException("Preview already started, stopPreview before startPreview again")
     isOnPreview = true
     if (!glInterface.running) glInterface.start()
     if (!videoSource.isRunning()) {
