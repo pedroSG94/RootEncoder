@@ -365,12 +365,12 @@ public abstract class Camera1Base {
   }
 
   /**
-   * @param forceVideo force type codec used. FIRST_COMPATIBLE_FOUND, SOFTWARE, HARDWARE
-   * @param forceAudio force type codec used. FIRST_COMPATIBLE_FOUND, SOFTWARE, HARDWARE
+   * @param codecTypeVideo force type codec used. FIRST_COMPATIBLE_FOUND, SOFTWARE, HARDWARE
+   * @param codecTypeAudio force type codec used. FIRST_COMPATIBLE_FOUND, SOFTWARE, HARDWARE
    */
-  public void setForce(CodecUtil.Force forceVideo, CodecUtil.Force forceAudio) {
-    videoEncoder.setForce(forceVideo);
-    audioEncoder.setForce(forceAudio);
+  public void forceCodecType(CodecUtil.CodecType codecTypeVideo, CodecUtil.CodecType codecTypeAudio) {
+    videoEncoder.forceCodecType(codecTypeVideo);
+    audioEncoder.forceCodecType(codecTypeAudio);
   }
 
   /**

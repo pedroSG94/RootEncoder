@@ -104,6 +104,13 @@ public abstract class OnlyAudioBase {
     microphoneManager.setCustomAudioEffect(customAudioEffect);
   }
 
+  /**
+   * @param codecTypeAudio force type codec used. FIRST_COMPATIBLE_FOUND, SOFTWARE, HARDWARE
+   */
+  public void forceCodecType(CodecUtil.CodecType codecTypeAudio) {
+    audioEncoder.forceCodecType(codecTypeAudio);
+  }
+
   protected abstract void prepareAudioRtp(boolean isStereo, int sampleRate);
 
   /**

@@ -30,7 +30,8 @@ com.pedro.library.rtmp
 com.pedro.library.rtsp
 com.pedro.library.srt
 com.pedro.library.util
-com.pedro.library.util.sources
+com.pedro.library.util.sources.audio
+com.pedro.library.util.sources.video
 com.pedro.library.util.streamclient
 com.pedro.library.view
 module:rtmp
@@ -39,7 +40,11 @@ com.pedro.rtmp.amf.v0
 com.pedro.rtmp.amf.v3
 com.pedro.rtmp.flv
 com.pedro.rtmp.flv.audio
+com.pedro.rtmp.flv.audio.config
+com.pedro.rtmp.flv.audio.packet
 com.pedro.rtmp.flv.video
+com.pedro.rtmp.flv.video.config
+com.pedro.rtmp.flv.video.packet
 com.pedro.rtmp.rtmp
 com.pedro.rtmp.rtmp.chunk
 com.pedro.rtmp.rtmp.message

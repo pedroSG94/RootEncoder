@@ -300,11 +300,12 @@ public abstract class FromFileBase {
   protected abstract void prepareAudioRtp(boolean isStereo, int sampleRate);
 
   /**
-   * @param forceVideo force type codec used. FIRST_COMPATIBLE_FOUND, SOFTWARE, HARDWARE
+   * @param codecTypeVideo force type codec used. FIRST_COMPATIBLE_FOUND, SOFTWARE, HARDWARE
+   * @param codecTypeAudio force type codec used. FIRST_COMPATIBLE_FOUND, SOFTWARE, HARDWARE
    */
-  public void setForce(CodecUtil.Force forceVideo, CodecUtil.Force forceAudio) {
-    if (videoEnabled) videoEncoder.setForce(forceVideo);
-    if (audioEnabled) audioEncoder.setForce(forceAudio);
+  public void forceCodecType(CodecUtil.CodecType codecTypeVideo, CodecUtil.CodecType codecTypeAudio) {
+    if (videoEnabled) videoEncoder.forceCodecType(codecTypeVideo);
+    if (audioEnabled) audioEncoder.forceCodecType(codecTypeAudio);
   }
 
   /**

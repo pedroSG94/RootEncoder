@@ -158,6 +158,15 @@ abstract class StreamBase(
   }
 
   /**
+   * @param codecTypeVideo force type codec used. FIRST_COMPATIBLE_FOUND, SOFTWARE, HARDWARE
+   * @param codecTypeAudio force type codec used. FIRST_COMPATIBLE_FOUND, SOFTWARE, HARDWARE
+   */
+  fun forceCodecType(codecTypeVideo: CodecUtil.CodecType, codecTypeAudio: CodecUtil.CodecType) {
+    videoEncoder.forceCodecType(codecTypeVideo)
+    audioEncoder.forceCodecType(codecTypeAudio)
+  }
+
+  /**
    * Stop stream.
    *
    * @return True if encoders prepared successfully with previous parameters. False other way

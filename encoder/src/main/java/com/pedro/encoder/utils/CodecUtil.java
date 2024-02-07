@@ -42,7 +42,7 @@ public class CodecUtil {
   public static final String VORBIS_MIME = "audio/ogg";
   public static final String OPUS_MIME = "audio/opus";
 
-  public enum Force {
+  public enum CodecType {
     FIRST_COMPATIBLE_FOUND, SOFTWARE, HARDWARE
   }
 
