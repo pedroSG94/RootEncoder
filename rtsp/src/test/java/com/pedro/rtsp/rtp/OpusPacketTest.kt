@@ -47,7 +47,7 @@ class OpusPacketTest {
       frames.add(it)
     }
 
-    val expectedRtp = byteArrayOf(-128, -120, 0, 1, 0, 15, 18, 6, 7, 91, -51, 21).plus(fakeOpus)
+    val expectedRtp = byteArrayOf(-128, -31, 0, 1, 0, 15, 18, 6, 7, 91, -51, 21).plus(fakeOpus)
     val expectedTimeStamp = 987654L
     val expectedSize = RtpConstants.RTP_HEADER_LENGTH + info.size
     val packetResult = RtpFrame(expectedRtp, expectedTimeStamp, expectedSize, 1, 2, RtpConstants.trackAudio)
