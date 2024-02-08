@@ -60,6 +60,8 @@ public class AudioEncoder extends BaseEncoder implements GetMicrophoneData {
    */
   public boolean prepareAudioEncoder(int bitRate, int sampleRate, boolean isStereo,
       int maxInputSize) {
+    if (prepared) stop();
+
     this.bitRate = bitRate;
     this.sampleRate = sampleRate;
     this.maxInputSize = maxInputSize;
