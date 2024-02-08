@@ -26,11 +26,17 @@ import java.net.InetSocketAddress
 import java.net.Socket
 import java.net.SocketAddress
 import java.security.GeneralSecurityException
+import javax.net.ssl.TrustManager
 
 /**
  * Created by pedro on 5/4/22.
  */
-class TcpSocket(private val host: String, private val port: Int, private val secured: Boolean): RtmpSocket() {
+class TcpSocket(
+  private val host: String,
+  private val port: Int,
+  private val secured: Boolean,
+  private val certificates: Array<TrustManager>?
+): RtmpSocket() {
 
   private var socket: Socket = Socket()
   private var input = ByteArrayInputStream(byteArrayOf()).buffered()
@@ -47,7 +53,7 @@ class TcpSocket(private val host: String, private val port: Int, private val sec
   override fun connect() {
     if (secured) {
       try {
-        val socketFactory = TLSSocketFactory()
+        val socketFactory = TLSSocketFactory(certificates)
         socket = socketFactory.createSocket(host, port)
       } catch (e: GeneralSecurityException) {
         throw IOException("Create SSL socket failed: ${e.message}")

@@ -20,20 +20,25 @@ import java.io.IOException
 import java.net.InetAddress
 import java.net.Socket
 import java.net.UnknownHostException
+import java.security.SecureRandom
 import javax.net.ssl.SSLContext
 import javax.net.ssl.SSLSocket
 import javax.net.ssl.SSLSocketFactory
+import javax.net.ssl.TrustManager
 
 /**
  * @author fkrauthan
  */
-open class TLSSocketFactory : SSLSocketFactory() {
+open class TLSSocketFactory(
+  trustManagers: Array<TrustManager>? = null
+): SSLSocketFactory() {
 
   private val internalSSLSocketFactory: SSLSocketFactory
 
   init {
     val context = SSLContext.getInstance("TLS")
-    context.init(null, null, null)
+    val secureRandom = if (trustManagers != null) SecureRandom() else null
+    context.init(null, trustManagers, secureRandom)
     internalSSLSocketFactory = context.socketFactory
   }
 

@@ -18,6 +18,7 @@ package com.pedro.library.util.streamclient
 
 import com.pedro.rtsp.rtsp.Protocol
 import com.pedro.srt.srt.packets.control.handshake.EncryptionType
+import javax.net.ssl.TrustManager
 
 /**
  * Created by pedro on 12/10/23.
@@ -29,6 +30,14 @@ class GenericStreamClient(
 ): StreamBaseClient() {
 
   private var connectedStreamClient : StreamBaseClient? = null
+
+  /**
+   * Add certificates for TLS connection
+   */
+  fun addCertificates(certificates: Array<TrustManager>?) {
+    rtmpClient.addCertificates(certificates)
+    rtspClient.addCertificates(certificates)
+  }
 
   /**
    * Set passphrase for encrypt. Use empty value to disable it.
