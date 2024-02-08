@@ -28,7 +28,9 @@ import com.pedro.srt.mpeg2ts.MpegTsPacketizer
 import com.pedro.srt.mpeg2ts.MpegType
 import com.pedro.srt.mpeg2ts.Pid
 import com.pedro.srt.mpeg2ts.packets.AacPacket
+import com.pedro.srt.mpeg2ts.packets.BasePacket
 import com.pedro.srt.mpeg2ts.packets.H26XPacket
+import com.pedro.srt.mpeg2ts.packets.OpusPacket
 import com.pedro.srt.mpeg2ts.psi.PsiManager
 import com.pedro.srt.mpeg2ts.psi.TableToSend
 import com.pedro.srt.mpeg2ts.service.Mpeg2TsService
@@ -65,7 +67,7 @@ class SrtSender(
   }
   private val limitSize = commandsManager.MTU - SrtPacket.headerSize
   private val mpegTsPacketizer = MpegTsPacketizer(psiManager)
-  private val aacPacket = AacPacket(limitSize, psiManager)
+  private var audioPacket: BasePacket = AacPacket(limitSize, psiManager)
   private val h26XPacket = H26XPacket(limitSize, psiManager)
 
   @Volatile
@@ -85,7 +87,7 @@ class SrtSender(
     private set
   var videoCodec = Codec.AVC
     set(value) {
-      val videoTrack = service.tracks.find { it.codec != Codec.AAC }
+      val videoTrack = service.tracks.find { it.codec != Codec.AAC && it.codec != Codec.OPUS }
       videoTrack?.let {
         service.tracks.remove(it)
       }
@@ -93,6 +95,14 @@ class SrtSender(
       field = value
     }
   var audioCodec = Codec.AAC
+    set(value) {
+      audioPacket = if (value == Codec.OPUS) {
+        OpusPacket(limitSize, psiManager)
+      } else {
+        AacPacket(limitSize, psiManager)
+      }
+      field = value
+    }
 
   private val bitrateManager: BitrateManager = BitrateManager(connectChecker)
   private var isEnableLogs = true
@@ -106,6 +116,9 @@ class SrtSender(
     if (audioEnabled) service.addTrack(audioCodec)
     if (videoEnabled) service.addTrack(videoCodec)
     service.generatePmt()
+    val sampleRate = (audioPacket as? AacPacket)?.sampleRate ?: (audioPacket as? OpusPacket)?.sampleRate ?: 32000
+    val isStereo = (audioPacket as? AacPacket)?.isStereo ?: (audioPacket as? OpusPacket)?.isStereo ?: true
+    service.setAudioConfig(sampleRate, isStereo)
     psiManager.updateService(service)
   }
 
@@ -114,7 +127,8 @@ class SrtSender(
   }
 
   fun setAudioInfo(sampleRate: Int, isStereo: Boolean) {
-    aacPacket.sendAudioInfo(sampleRate, isStereo)
+    (audioPacket as? AacPacket)?.sendAudioInfo(sampleRate, isStereo)
+    (audioPacket as? OpusPacket)?.sendAudioInfo(sampleRate, isStereo)
   }
 
   fun sendVideoFrame(h264Buffer: ByteBuffer, info: MediaCodec.BufferInfo) {
@@ -133,7 +147,7 @@ class SrtSender(
 
   fun sendAudioFrame(aacBuffer: ByteBuffer, info: MediaCodec.BufferInfo) {
     if (running) {
-      aacPacket.createAndSendPacket(aacBuffer, info) { mpegTsPackets ->
+      audioPacket.createAndSendPacket(aacBuffer, info) { mpegTsPackets ->
         checkSendInfo()
         val result = queue.trySend(mpegTsPackets)
         if (!result) {
@@ -217,7 +231,7 @@ class SrtSender(
     psiManager.reset()
     service.clear()
     mpegTsPacketizer.reset()
-    aacPacket.reset(clear)
+    audioPacket.reset(clear)
     h26XPacket.reset(clear)
     resetSentAudioFrames()
     resetSentVideoFrames()

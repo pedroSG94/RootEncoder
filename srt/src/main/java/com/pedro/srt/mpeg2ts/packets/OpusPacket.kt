@@ -29,13 +29,12 @@ import java.nio.ByteBuffer
 /**
  * Created by pedro on 20/8/23.
  */
-class AacPacket(
+class OpusPacket(
   limitSize: Int,
   psiManager: PsiManager,
 ): BasePacket(psiManager, limitSize) {
 
-  private val header = ByteArray(7) //ADTS header
-  var sampleRate = 44100
+  var sampleRate = 48000
   var isStereo = true
 
   override fun createAndSendPacket(
@@ -47,9 +46,8 @@ class AacPacket(
     val length = fixedBuffer.remaining()
     if (length < 0) return
 
-    val payload = ByteArray(length + header.size)
-    writeAdts(payload, payload.size, 0)
-    fixedBuffer.get(payload, header.size, length)
+    val payload = ByteArray(length)
+    fixedBuffer.get(payload, 0, length)
 
     val pes = Pes(psiManager.getAudioPid().toInt(), false, PesType.AUDIO, info.presentationTimeUs, ByteBuffer.wrap(payload))
     val mpeg2tsPackets = mpegTsPacketizer.write(listOf(pes))
@@ -69,7 +67,7 @@ class AacPacket(
 
   override fun resetPacket(resetInfo: Boolean) {
     if (resetInfo) {
-      sampleRate = 44100
+      sampleRate = 48000
       isStereo = true
     }
   }
@@ -78,42 +76,4 @@ class AacPacket(
     this.sampleRate = sampleRate
     this.isStereo = stereo
   }
-
-  private fun writeAdts(buffer: ByteArray, length: Int, offset: Int) {
-    val type = 2 //AAC-LC
-    val channels = if (isStereo) 2 else 1
-    val frequency = getFrequency()
-    buffer[offset] = 0xFF.toByte()
-    buffer[offset + 1] = 0xF9.toByte()
-    buffer[offset + 2] = (((type - 1) shl 6) or (frequency shl 2) or (channels shr 2)).toByte()
-    buffer[offset + 3] = (((channels and 3) shl 6) or (length shr 11)).toByte()
-    buffer[offset + 4] = ((length and 0x7FF) shr 3).toByte()
-    buffer[offset + 5] = (((length and 7) shl 5).toByte()).plus(0x1F).toByte()
-    buffer[offset + 6] = 0xFC.toByte()
-  }
-
-  private fun getFrequency(): Int {
-    var frequency = AUDIO_SAMPLING_RATES.indexOf(sampleRate)
-    //sane check, if samplerate not found using default 44100
-    if (frequency == -1) frequency = 4
-    return frequency
-  }
-
-  private val AUDIO_SAMPLING_RATES = intArrayOf(
-    96000,  // 0
-    88200,  // 1
-    64000,  // 2
-    48000,  // 3
-    44100,  // 4
-    32000,  // 5
-    24000,  // 6
-    22050,  // 7
-    16000,  // 8
-    12000,  // 9
-    11025,  // 10
-    8000,  // 11
-    7350,  // 12
-    -1,  // 13
-    -1,  // 14
-    -1)
 }

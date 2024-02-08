@@ -106,6 +106,7 @@ class SrtClient(private val connectChecker: ConnectChecker) {
     if (!isStreaming) {
       srtSender.audioCodec = when (audioCodec) {
         AudioCodec.AAC -> Codec.AAC
+        AudioCodec.OPUS -> Codec.OPUS
         else -> throw IllegalArgumentException("Unsupported codec: ${audioCodec.name}")
       }
     }
