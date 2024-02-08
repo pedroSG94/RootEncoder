@@ -27,6 +27,22 @@ import org.junit.Test
 class SdpBodyTest {
 
   @Test
+  fun `GIVEN opus info WHEN create opus body THEN get expected string`() {
+    val track = 1
+    val sampleRate = 44100
+    val channels = 2
+
+    val expectedType = "OPUS/$sampleRate/$channels"
+    val expectedPayload = "a=rtpmap:${RtpConstants.payloadType + track}"
+    val expectedTrack = "a=control:streamid=${track}"
+
+    val result = SdpBody.createOpusBody(track, sampleRate, channels == 2)
+    assertTrue(result.contains(expectedType))
+    assertTrue(result.contains(expectedPayload))
+    assertTrue(result.contains(expectedTrack))
+  }
+
+  @Test
   fun `GIVEN aac info WHEN create aac body THEN get expected string`() {
     val track = 1
     val sampleRate = 44100

@@ -93,7 +93,11 @@ class RtspSender(private val connectChecker: ConnectChecker) {
   }
 
   fun setAudioInfo(sampleRate: Int, audioCodec: AudioCodec) {
-    audioPacket = if (audioCodec == AudioCodec.G711) G711Packet(sampleRate) else AacPacket(sampleRate)
+    audioPacket = when (audioCodec) {
+      AudioCodec.G711 -> G711Packet(sampleRate)
+      AudioCodec.AAC -> AacPacket(sampleRate)
+      AudioCodec.OPUS -> OpusPacket(sampleRate)
+    }
   }
 
   @Throws(IOException::class)
