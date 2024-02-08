@@ -45,6 +45,7 @@ import java.io.*
 import java.net.*
 import java.nio.ByteBuffer
 import java.util.regex.Pattern
+import javax.net.ssl.TrustManager
 
 /**
  * Created by pedro on 8/04/21.
@@ -69,6 +70,7 @@ class RtmpClient(private val connectChecker: ConnectChecker) {
 
   private var url: String? = null
   private var tlsEnabled = false
+  private var certificates: Array<TrustManager>? = null
   private var tunneled = false
 
   private var doingRetry = false
@@ -88,6 +90,13 @@ class RtmpClient(private val connectChecker: ConnectChecker) {
     get() = rtmpSender.getSentAudioFrames()
   val sentVideoFrames: Long
     get() = rtmpSender.getSentVideoFrames()
+
+  /**
+   * Add certificates for TLS connection
+   */
+  fun addCertificates(certificates: Array<TrustManager>?) {
+    this.certificates = certificates
+  }
 
   fun setVideoCodec(videoCodec: VideoCodec) {
     if (!isStreaming) {
@@ -311,7 +320,7 @@ class RtmpClient(private val connectChecker: ConnectChecker) {
     val socket = if (tunneled) {
       TcpTunneledSocket(commandsManager.host, commandsManager.port, tlsEnabled)
     } else {
-      TcpSocket(commandsManager.host, commandsManager.port, tlsEnabled)
+      TcpSocket(commandsManager.host, commandsManager.port, tlsEnabled, certificates)
     }
     this.socket = socket
     socket.connect()

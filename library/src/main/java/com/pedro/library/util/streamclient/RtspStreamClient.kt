@@ -18,6 +18,7 @@ package com.pedro.library.util.streamclient
 
 import com.pedro.rtsp.rtsp.Protocol
 import com.pedro.rtsp.rtsp.RtspClient
+import javax.net.ssl.TrustManager
 
 /**
  * Created by pedro on 12/10/23.
@@ -27,6 +28,12 @@ class RtspStreamClient(
   private val streamClientListener: StreamClientListener?
 ): StreamBaseClient() {
 
+  /**
+   * Add certificates for TLS connection
+   */
+  fun addCertificates(certificates: Array<TrustManager>?) {
+    rtspClient.addCertificates(certificates)
+  }
 
   /**
    * Internet protocol used.

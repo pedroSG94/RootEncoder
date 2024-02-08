@@ -17,6 +17,7 @@
 package com.pedro.library.util.streamclient
 
 import com.pedro.rtmp.rtmp.RtmpClient
+import javax.net.ssl.TrustManager
 
 /**
  * Created by pedro on 12/10/23.
@@ -25,6 +26,13 @@ class RtmpStreamClient(
   private val rtmpClient: RtmpClient, 
   private val streamClientListener: StreamClientListener?
 ): StreamBaseClient() {
+
+  /**
+   * Add certificates for TLS connection
+   */
+  fun addCertificates(certificates: Array<TrustManager>?) {
+    rtmpClient.addCertificates(certificates)
+  }
 
   /**
    * Some Livestream hosts use Akamai auth that requires RTMP packets to be sent with increasing
