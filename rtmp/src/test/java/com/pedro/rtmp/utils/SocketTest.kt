@@ -23,7 +23,7 @@ class SocketTest {
 
     @Test
     fun `check tcp socket error with socket not connected`() {
-        val socket = TcpSocket("127.0.0.1", 1935, false)
+        val socket = TcpSocket("127.0.0.1", 1935, false, null)
         socket.getOutStream().write(0)
         socket.getInputStream()
         socket.close()
