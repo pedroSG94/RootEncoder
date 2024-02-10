@@ -12,10 +12,6 @@ plugins {
   id("org.jetbrains.dokka") version "1.9.10"
 }
 
-subprojects {
-  apply(plugin = "org.jetbrains.dokka")
-}
-
 tasks.register("clean") {
   delete(rootProject.buildDir)
 }

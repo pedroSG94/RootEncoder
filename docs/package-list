@@ -1,16 +1,6 @@
 $dokka.format:html-v1
 $dokka.linkExtension:html
 
-module:app
-com.pedro.streamer
-com.pedro.streamer.backgroundexample
-com.pedro.streamer.customexample
-com.pedro.streamer.defaultexample
-com.pedro.streamer.displayexample
-com.pedro.streamer.filestreamexample
-com.pedro.streamer.openglexample
-com.pedro.streamer.rotation
-com.pedro.streamer.utils
 module:common
 com.pedro.common
 com.pedro.common.av1
