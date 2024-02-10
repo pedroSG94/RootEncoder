@@ -1,1 +1,0 @@
-include ':app', ':rtmp', ':encoder', ':rtsp', ':library', ':srt', ':common'
