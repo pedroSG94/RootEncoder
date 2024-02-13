@@ -24,6 +24,7 @@ import com.pedro.srt.mpeg2ts.Pes
 import com.pedro.srt.mpeg2ts.PesType
 import com.pedro.srt.mpeg2ts.psi.PsiManager
 import com.pedro.srt.srt.packets.data.PacketPosition
+import com.pedro.srt.utils.toByteArray
 import java.nio.ByteBuffer
 
 /**
@@ -46,10 +47,11 @@ class OpusPacket(
     val length = fixedBuffer.remaining()
     if (length < 0) return
 
+    val header = createControlHeader(length)
     val payload = ByteArray(length)
     fixedBuffer.get(payload, 0, length)
 
-    val pes = Pes(psiManager.getAudioPid().toInt(), false, PesType.AUDIO, info.presentationTimeUs, ByteBuffer.wrap(payload))
+    val pes = Pes(psiManager.getAudioPid().toInt(), false, PesType.PRIVATE_STREAM_1, info.presentationTimeUs, ByteBuffer.wrap(payload), extraHeader = header)
     val mpeg2tsPackets = mpegTsPacketizer.write(listOf(pes))
     val chunked = mpeg2tsPackets.chunked(chunkSize)
     val packets = mutableListOf<MpegTsPacket>()
@@ -75,5 +77,19 @@ class OpusPacket(
   fun sendAudioInfo(sampleRate: Int, stereo: Boolean) {
     this.sampleRate = sampleRate
     this.isStereo = stereo
+  }
+
+  private fun createControlHeader(payloadLength: Int): ByteArray {
+    val bytes = payloadLength.toByteArray()
+    val header = ByteArray(2 + bytes.size)
+    //header prefix
+    header[0] = 0xFF.toByte()
+    header[1] = 0xC0.toByte()
+    //start_trim_flag 1b
+    //end_trim_flag 1b
+    //control_extension_flag 1b
+    //Reserved 2b
+    System.arraycopy(bytes, 0, header, 2, bytes.size)
+    return header
   }
 }

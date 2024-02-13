@@ -361,7 +361,7 @@ public abstract class Camera1Base {
    * doesn't support any configuration seated or your device hasn't a AAC encoder).
    */
   public boolean prepareAudio() {
-    return prepareAudio(64 * 1024, 32000, true, false, false);
+    return prepareAudio(64 * 1024, 48000, true, false, false);
   }
 
   /**

@@ -30,7 +30,8 @@ class Pes(
   isKeyFrame: Boolean,
   private val streamId: PesType,
   private val pts: Long,
-  val bufferData: ByteBuffer
+  val bufferData: ByteBuffer,
+  private val extraHeader: ByteArray? = null,
 ): MpegTsPayload(pid, isKeyFrame) {
 
   private val headerLength = 14
@@ -47,6 +48,7 @@ class Pes(
   private val pesHeaderLength = 5 //pts size
 
   fun writeHeader(buffer: ByteBuffer) {
+    extraHeader?.let { buffer.put(it) } //used for Opus control header
     buffer.putShort(0)
     buffer.put(1)
     buffer.put(streamId.value)

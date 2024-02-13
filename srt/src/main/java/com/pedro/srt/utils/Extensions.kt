@@ -63,3 +63,14 @@ fun InputStream.readUntil(byteArray: ByteArray) {
     if (result != -1) bytesRead += result
   }
 }
+
+fun Int.toByteArray(): ByteArray {
+  val bytes = mutableListOf<Byte>()
+  var remainingValue = this
+  while (remainingValue >= 255) {
+    bytes.add(0xFF.toByte())
+    remainingValue -= 255
+  }
+  if (remainingValue > 0) bytes.add(remainingValue.toByte())
+  return bytes.toByteArray()
+}
