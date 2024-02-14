@@ -47,9 +47,9 @@ afterEvaluate {
                 from(components["release"])
 
                 // You can then customize attributes of the publication as shown below.
-                groupId = "$libraryGroup"
+                groupId = libraryGroup
                 artifactId = "common"
-                version = "$vName"
+                version = vName
             }
         }
     }
