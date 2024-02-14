@@ -94,6 +94,7 @@ class StreamService: Service(), ConnectChecker {
     stopRecord()
     stopStream()
     stopPreview()
+    rtmpCamera?.release()
     sensorRotationManager?.stop()
     prepared = false
     observer.postValue(null)
