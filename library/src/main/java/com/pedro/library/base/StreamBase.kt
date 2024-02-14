@@ -360,6 +360,14 @@ abstract class StreamBase(
     if (!isRecording) recordController.resetFormats()
   }
 
+  fun release() {
+    if (isStreaming) stopStream()
+    if (isRecording) stopRecord()
+    if (isOnPreview) stopPreview()
+    stopSources()
+    videoSource.release()
+  }
+
   private fun prepareEncoders(): Boolean {
     return videoEncoder.prepareVideoEncoder() && audioEncoder.prepareAudioEncoder()
   }

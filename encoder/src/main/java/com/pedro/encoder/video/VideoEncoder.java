@@ -89,6 +89,8 @@ public class VideoEncoder extends BaseEncoder implements GetCameraData {
   public boolean prepareVideoEncoder(int width, int height, int fps, int bitRate, int rotation,
       int iFrameInterval, FormatVideoEncoder formatVideoEncoder, int profile,
       int level) {
+    if (prepared) stop();
+
     this.width = width;
     this.height = height;
     this.fps = fps;
