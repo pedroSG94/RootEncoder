@@ -124,6 +124,7 @@ abstract class StreamBase(
     }
     val audioResult = audioSource.create(sampleRate, isStereo, echoCanceler, noiseSuppressor)
     if (audioResult) {
+      audioInfo(sampleRate, isStereo)
       return audioEncoder.prepareAudioEncoder(bitrate, sampleRate, isStereo, audioSource.getMaxInputSize())
     }
     return false
