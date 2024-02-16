@@ -272,11 +272,9 @@ abstract class StreamBase(
     val wasCreated = videoSource.created
     videoSource.stop()
     videoSource.release()
-    videoSource.surfaceTexture?.let {
-      if (wasCreated) source.create(videoSource.width, videoSource.height, videoSource.fps)
-      if (wasRunning) source.start(it)
-      videoSource = source
-    }
+    if (wasCreated) source.create(videoEncoder.width, videoEncoder.height, videoEncoder.fps)
+    if (wasRunning) source.start(glInterface.surfaceTexture)
+    videoSource = source
   }
 
   /**

@@ -61,6 +61,7 @@ class GlStreamInterface(private val context: Context) : Runnable, OnFrameAvailab
   private var previewHeight = 0
   private var previewOrientation = 0
   private var isPortrait = false
+  private var orientationForced = OrientationForced.NONE
   private val fpsLimiter = FpsLimiter()
   private val filterQueue: BlockingQueue<Filter> = LinkedBlockingQueue()
   private var forceRender = false
@@ -178,12 +179,17 @@ class GlStreamInterface(private val context: Context) : Runnable, OnFrameAvailab
 
           synchronized(sync) {
             val limitFps = fpsLimiter.limitFPS()
+            val orientation = when (orientationForced) {
+              OrientationForced.PORTRAIT -> true
+              OrientationForced.LANDSCAPE -> false
+              OrientationForced.NONE -> isPortrait
+            }
             // render VideoEncoder (stream and record)
             if (surfaceManagerEncoder.isReady && !limitFps) {
               val w = if (muteVideo) 0 else encoderWidth
               val h = if (muteVideo) 0 else encoderHeight
               surfaceManagerEncoder.makeCurrent()
-              managerRender.drawScreenEncoder(w, h, isPortrait, streamOrientation,
+              managerRender.drawScreenEncoder(w, h, orientation, streamOrientation,
                 isStreamVerticalFlip, isStreamHorizontalFlip)
               surfaceManagerEncoder.swapBuffer()
             }
@@ -201,7 +207,7 @@ class GlStreamInterface(private val context: Context) : Runnable, OnFrameAvailab
               val w =  if (previewWidth == 0) encoderWidth else previewWidth
               val h =  if (previewHeight == 0) encoderHeight else previewHeight
               surfaceManagerPreview.makeCurrent()
-              managerRender.drawScreenPreview(w, h, isPortrait, aspectRatioMode, previewOrientation,
+              managerRender.drawScreenPreview(w, h, orientation, aspectRatioMode, previewOrientation,
                 isPreviewVerticalFlip, isPreviewHorizontalFlip)
               surfaceManagerPreview.swapBuffer()
             }
@@ -227,6 +233,10 @@ class GlStreamInterface(private val context: Context) : Runnable, OnFrameAvailab
       frameAvailable = true
       sync.notifyAll()
     }
+  }
+
+  fun forceOrientation(forced: OrientationForced) {
+    this.orientationForced = forced
   }
 
   fun attachPreview(surface: Surface) {

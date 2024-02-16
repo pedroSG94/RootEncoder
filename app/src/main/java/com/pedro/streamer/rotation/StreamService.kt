@@ -144,6 +144,9 @@ class StreamService: Service(), ConnectChecker {
       is Camera2Source -> {
         source.switchCamera()
       }
+      is CameraXSource -> {
+        source.switchCamera()
+      }
     }
   }
 
