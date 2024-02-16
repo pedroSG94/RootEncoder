@@ -16,7 +16,6 @@
 
 package com.pedro.rtsp.rtsp.commands
 
-import android.util.Base64
 import android.util.Log
 import com.pedro.common.AudioCodec
 import com.pedro.common.TimeUtils
@@ -200,7 +199,7 @@ open class CommandsManager {
     } else {
       Log.i(TAG, "using basic auth")
       val data = "$user:$password"
-      val base64Data = data.toByteArray().encodeToString(Base64.DEFAULT)
+      val base64Data = data.toByteArray().encodeToString()
       "Basic $base64Data"
     }
   }

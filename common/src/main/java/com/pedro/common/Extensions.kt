@@ -68,3 +68,7 @@ suspend fun onMainThread(code: () -> Unit) {
     code()
   }
 }
+
+fun ByteArray.bytesToHex(): String {
+  return joinToString("") { "%02x".format(it) }
+}
