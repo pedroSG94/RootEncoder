@@ -108,6 +108,7 @@
   <string name="audio_source">Audio source</string>
   <string name="camera1">Camera1</string>
   <string name="camera2">Camera2</string>
+  <string name="camerax">CameraX</string>
   <string name="screen">Screen</string>
   <string name="internal">Internal</string>
   <string name="hint_protocol">protocol://yourendpoint</string>
