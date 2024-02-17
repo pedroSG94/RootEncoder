@@ -40,13 +40,13 @@ public class Log {
   }
 
   private static int println(String tag, String message, Throwable throwable) {
-    System.out.println("" + tag + ": " + message);
+    System.out.println(tag + ": " + message);
     if (throwable != null) throwable.printStackTrace();
     return 0;
   }
 
   private static int printlnError(String tag, String message, Throwable throwable) {
-    System.err.println("" + tag + ": " + message);
+    System.err.println(tag + ": " + message);
     if (throwable != null) throwable.printStackTrace();
     return 0;
   }
