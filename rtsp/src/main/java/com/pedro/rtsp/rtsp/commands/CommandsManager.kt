@@ -173,7 +173,7 @@ open class CommandsManager {
       audioBody = when (audioCodec) {
         AudioCodec.G711 -> createG711Body(RtpConstants.trackAudio, sampleRate, isStereo)
         AudioCodec.AAC -> createAacBody(RtpConstants.trackAudio, sampleRate, isStereo)
-        AudioCodec.OPUS -> createOpusBody(RtpConstants.trackAudio, sampleRate, isStereo)
+        AudioCodec.OPUS -> createOpusBody(RtpConstants.trackAudio)
       }
     }
     return "v=0\r\n" +
