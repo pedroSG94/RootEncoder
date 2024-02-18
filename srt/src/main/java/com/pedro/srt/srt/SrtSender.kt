@@ -87,7 +87,7 @@ class SrtSender(
     private set
   var videoCodec = Codec.AVC
     set(value) {
-      val videoTrack = service.tracks.find { it.codec != Codec.AAC && it.codec != Codec.OPUS }
+      val videoTrack = service.tracks.find { !it.codec.isAudio() }
       videoTrack?.let {
         service.tracks.remove(it)
       }

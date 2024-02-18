@@ -37,7 +37,7 @@ data class Mpeg2TsService(
     val pid = Pid.generatePID()
     tracks.add(Track(codec, pid))
     if (pcrPid == null) pcrPid = pid
-    else if (codec != Codec.AAC && codec != Codec.OPUS) pcrPid = pid
+    else if (!codec.isAudio()) pcrPid = pid
   }
 
   fun generatePmt() {
