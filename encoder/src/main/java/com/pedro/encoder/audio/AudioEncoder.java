@@ -60,6 +60,8 @@ public class AudioEncoder extends BaseEncoder implements GetMicrophoneData {
    */
   public boolean prepareAudioEncoder(int bitRate, int sampleRate, boolean isStereo,
       int maxInputSize) {
+    if (prepared) stop();
+
     this.bitRate = bitRate;
     this.sampleRate = sampleRate;
     this.maxInputSize = maxInputSize;
@@ -178,9 +180,9 @@ public class AudioEncoder extends BaseEncoder implements GetMicrophoneData {
   @Override
   protected MediaCodecInfo chooseEncoder(String mime) {
     List<MediaCodecInfo> mediaCodecInfoList;
-    if (force == CodecUtil.Force.HARDWARE) {
+    if (codecType == CodecUtil.CodecType.HARDWARE) {
       mediaCodecInfoList = CodecUtil.getAllHardwareEncoders(CodecUtil.AAC_MIME);
-    } else if (force == CodecUtil.Force.SOFTWARE) {
+    } else if (codecType == CodecUtil.CodecType.SOFTWARE) {
       mediaCodecInfoList = CodecUtil.getAllSoftwareEncoders(CodecUtil.AAC_MIME);
     } else {
       //Priority: hardware > software

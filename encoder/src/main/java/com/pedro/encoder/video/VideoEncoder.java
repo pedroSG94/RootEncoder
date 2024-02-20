@@ -89,6 +89,8 @@ public class VideoEncoder extends BaseEncoder implements GetCameraData {
   public boolean prepareVideoEncoder(int width, int height, int fps, int bitRate, int rotation,
       int iFrameInterval, FormatVideoEncoder formatVideoEncoder, int profile,
       int level) {
+    if (prepared) stop();
+
     this.width = width;
     this.height = height;
     this.fps = fps;
@@ -333,9 +335,9 @@ public class VideoEncoder extends BaseEncoder implements GetCameraData {
   @Override
   protected MediaCodecInfo chooseEncoder(String mime) {
     List<MediaCodecInfo> mediaCodecInfoList;
-    if (force == CodecUtil.Force.HARDWARE) {
+    if (codecType == CodecUtil.CodecType.HARDWARE) {
       mediaCodecInfoList = CodecUtil.getAllHardwareEncoders(mime, true);
-    } else if (force == CodecUtil.Force.SOFTWARE) {
+    } else if (codecType == CodecUtil.CodecType.SOFTWARE) {
       mediaCodecInfoList = CodecUtil.getAllSoftwareEncoders(mime, true);
     } else {
       //Priority: hardware CBR > hardware > software CBR > software

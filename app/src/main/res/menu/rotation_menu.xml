@@ -12,6 +12,10 @@
                 android:id="@+id/video_source_camera2"
                 />
             <item
+                android:title="@string/camerax"
+                android:id="@+id/video_source_camerax"
+                />
+            <item
                 android:title="@string/screen"
                 android:id="@+id/video_source_screen"
                 />

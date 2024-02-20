@@ -94,6 +94,7 @@ class StreamService: Service(), ConnectChecker {
     stopRecord()
     stopStream()
     stopPreview()
+    rtmpCamera?.release()
     sensorRotationManager?.stop()
     prepared = false
     observer.postValue(null)
@@ -141,6 +142,9 @@ class StreamService: Service(), ConnectChecker {
         source.switchCamera()
       }
       is Camera2Source -> {
+        source.switchCamera()
+      }
+      is CameraXSource -> {
         source.switchCamera()
       }
     }

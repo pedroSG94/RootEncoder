@@ -44,6 +44,7 @@ import java.net.SocketTimeoutException
 import java.nio.ByteBuffer
 import java.security.GeneralSecurityException
 import java.util.regex.Pattern
+import javax.net.ssl.TrustManager
 
 /**
  * Created by pedro on 10/02/17.
@@ -70,9 +71,10 @@ class RtspClient(private val connectChecker: ConnectChecker) {
 
   //for secure transport
   private var tlsEnabled = false
-  private val rtspSender: RtspSender = RtspSender(connectChecker)
-  private var url: String? = null
+  private var certificates: Array<TrustManager>? = null
   private val commandsManager: CommandsManager = CommandsManager()
+  private val rtspSender: RtspSender = RtspSender(connectChecker, commandsManager)
+  private var url: String? = null
   private var doingRetry = false
   private var numRetry = 0
   private var reTries = 0
@@ -89,6 +91,13 @@ class RtspClient(private val connectChecker: ConnectChecker) {
     get() = rtspSender.getSentAudioFrames()
   val sentVideoFrames: Long
     get() = rtspSender.getSentVideoFrames()
+
+  /**
+   * Add certificates for TLS connection
+   */
+  fun addCertificates(certificates: Array<TrustManager>?) {
+    this.certificates = certificates
+  }
 
   /**
    * Check periodically if server is alive using Echo protocol.
@@ -152,7 +161,7 @@ class RtspClient(private val connectChecker: ConnectChecker) {
 
   fun setVideoCodec(videoCodec: VideoCodec) {
     if (!isStreaming) {
-      commandsManager.setVideoCodec(videoCodec)
+      commandsManager.videoCodec = videoCodec
     }
   }
 
@@ -204,7 +213,7 @@ class RtspClient(private val connectChecker: ConnectChecker) {
             commandsManager.videoClientPorts,
             commandsManager.audioClientPorts)
           if (!commandsManager.audioDisabled) {
-            rtspSender.setAudioInfo(commandsManager.sampleRate, commandsManager.audioCodec)
+            rtspSender.setAudioInfo(commandsManager.sampleRate)
           }
           if (!commandsManager.videoDisabled) {
             if (!commandsManager.videoInfoReady()) {
@@ -227,7 +236,7 @@ class RtspClient(private val connectChecker: ConnectChecker) {
             connectionSocket?.connect(socketAddress, 5000)
           } else {
             try {
-              val socketFactory = TLSSocketFactory()
+              val socketFactory = TLSSocketFactory(certificates)
               connectionSocket = socketFactory.createSocket(host, port)
             } catch (e: GeneralSecurityException) {
               throw IOException("Create SSL socket failed: ${e.message}")

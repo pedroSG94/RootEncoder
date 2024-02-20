@@ -109,6 +109,9 @@ class RotationExampleActivity: AppCompatActivity(), SurfaceHolder.Callback {
       R.id.video_source_camera2 -> {
         service?.changeVideoSource(Camera2Source(applicationContext))
       }
+      R.id.video_source_camerax -> {
+        service?.changeVideoSource(CameraXSource(applicationContext))
+      }
       R.id.video_source_screen -> {
         askingMediaProjection = true
         val mediaProjectionManager = getSystemService(MEDIA_PROJECTION_SERVICE) as MediaProjectionManager

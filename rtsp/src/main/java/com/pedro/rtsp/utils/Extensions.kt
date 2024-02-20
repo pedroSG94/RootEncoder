@@ -16,11 +16,13 @@
 
 package com.pedro.rtsp.utils
 
-import android.util.Base64
 import java.nio.ByteBuffer
+import kotlin.io.encoding.Base64
+import kotlin.io.encoding.ExperimentalEncodingApi
 
-fun ByteArray.encodeToString(flags: Int = Base64.NO_WRAP): String {
-  return Base64.encodeToString(this, flags)
+@OptIn(ExperimentalEncodingApi::class)
+fun ByteArray.encodeToString(): String {
+  return Base64.encode(this)
 }
 
 fun ByteBuffer.getData(): ByteArray {

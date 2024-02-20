@@ -18,6 +18,7 @@ package com.pedro.srt.srt
 
 import android.media.MediaCodec
 import android.util.Log
+import com.pedro.common.AudioCodec
 import com.pedro.common.BitrateManager
 import com.pedro.common.ConnectChecker
 import com.pedro.common.onMainThread
@@ -37,6 +38,7 @@ import com.pedro.srt.mpeg2ts.service.Mpeg2TsService
 import com.pedro.srt.srt.packets.SrtPacket
 import com.pedro.srt.srt.packets.data.PacketPosition
 import com.pedro.srt.utils.SrtSocket
+import com.pedro.srt.utils.toCodec
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -85,24 +87,6 @@ class SrtSender(
     private set
   var droppedVideoFrames: Long = 0
     private set
-  var videoCodec = Codec.AVC
-    set(value) {
-      val videoTrack = service.tracks.find { !it.codec.isAudio() }
-      videoTrack?.let {
-        service.tracks.remove(it)
-      }
-      h26XPacket.setVideoCodec(value)
-      field = value
-    }
-  var audioCodec = Codec.AAC
-    set(value) {
-      audioPacket = if (value == Codec.OPUS) {
-        OpusPacket(limitSize, psiManager)
-      } else {
-        AacPacket(limitSize, psiManager)
-      }
-      field = value
-    }
 
   private val bitrateManager: BitrateManager = BitrateManager(connectChecker)
   private var isEnableLogs = true
@@ -113,8 +97,8 @@ class SrtSender(
 
   private fun setTrackConfig(videoEnabled: Boolean, audioEnabled: Boolean) {
     Pid.reset()
-    if (audioEnabled) service.addTrack(audioCodec)
-    if (videoEnabled) service.addTrack(videoCodec)
+    if (audioEnabled) service.addTrack(commandsManager.audioCodec.toCodec())
+    if (videoEnabled) service.addTrack(commandsManager.videoCodec.toCodec())
     service.generatePmt()
     val sampleRate = (audioPacket as? AacPacket)?.sampleRate ?: (audioPacket as? OpusPacket)?.sampleRate ?: 32000
     val isStereo = (audioPacket as? AacPacket)?.isStereo ?: (audioPacket as? OpusPacket)?.isStereo ?: true
@@ -123,12 +107,28 @@ class SrtSender(
   }
 
   fun setVideoInfo(sps: ByteBuffer, pps: ByteBuffer?, vps: ByteBuffer?) {
+    val videoTrack = service.tracks.find { !it.codec.isAudio() }
+    videoTrack?.let {
+      service.tracks.remove(it)
+    }
+    h26XPacket.setVideoCodec(commandsManager.videoCodec.toCodec())
     h26XPacket.sendVideoInfo(sps, pps, vps)
   }
 
   fun setAudioInfo(sampleRate: Int, isStereo: Boolean) {
-    (audioPacket as? AacPacket)?.sendAudioInfo(sampleRate, isStereo)
-    (audioPacket as? OpusPacket)?.sendAudioInfo(sampleRate, isStereo)
+    when (commandsManager.audioCodec) {
+      AudioCodec.AAC -> {
+        audioPacket = AacPacket(limitSize, psiManager)
+        (audioPacket as? AacPacket)?.sendAudioInfo(sampleRate, isStereo)
+      }
+      AudioCodec.OPUS -> {
+        audioPacket = OpusPacket(limitSize, psiManager)
+        (audioPacket as? OpusPacket)?.sendAudioInfo(sampleRate, isStereo)
+      }
+      AudioCodec.G711 -> {
+        throw IllegalArgumentException("Unsupported codec: ${commandsManager.audioCodec.name}")
+      }
+    }
   }
 
   fun sendVideoFrame(h264Buffer: ByteBuffer, info: MediaCodec.BufferInfo) {

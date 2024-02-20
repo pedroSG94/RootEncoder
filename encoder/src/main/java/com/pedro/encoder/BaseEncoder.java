@@ -48,7 +48,7 @@ public abstract class BaseEncoder implements EncoderCallback {
   protected static long presentTimeUs;
   protected volatile boolean running = false;
   protected boolean isBufferMode = true;
-  protected CodecUtil.Force force = CodecUtil.Force.FIRST_COMPATIBLE_FOUND;
+  protected CodecUtil.CodecType codecType = CodecUtil.CodecType.FIRST_COMPATIBLE_FOUND;
   private MediaCodec.Callback callback;
   private long oldTimeStamp = 0L;
   protected boolean shouldReset = true;
@@ -237,8 +237,8 @@ public abstract class BaseEncoder implements EncoderCallback {
     mediaCodec.releaseOutputBuffer(outBufferIndex, false);
   }
 
-  public void setForce(CodecUtil.Force force) {
-    this.force = force;
+  public void forceCodecType(CodecUtil.CodecType codecType) {
+    this.codecType = codecType;
   }
 
   public boolean isRunning() {

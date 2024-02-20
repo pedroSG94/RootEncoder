@@ -21,12 +21,14 @@ import android.util.Log
 import com.pedro.common.AudioCodec
 import com.pedro.common.BitrateManager
 import com.pedro.common.ConnectChecker
+import com.pedro.common.VideoCodec
 import com.pedro.common.onMainThread
 import com.pedro.common.trySend
 import com.pedro.rtsp.rtcp.BaseSenderReport
 import com.pedro.rtsp.rtp.packets.*
 import com.pedro.rtsp.rtp.sockets.BaseRtpSocket
 import com.pedro.rtsp.rtp.sockets.RtpSocketTcp
+import com.pedro.rtsp.rtsp.commands.CommandsManager
 import com.pedro.rtsp.utils.RtpConstants
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -46,7 +48,10 @@ import java.util.concurrent.*
 /**
  * Created by pedro on 7/11/18.
  */
-class RtspSender(private val connectChecker: ConnectChecker) {
+class RtspSender(
+  private val connectChecker: ConnectChecker,
+  private val commandsManager: CommandsManager
+) {
 
   private var videoPacket: BasePacket? = null
   private var audioPacket: BasePacket? = null
@@ -84,16 +89,21 @@ class RtspSender(private val connectChecker: ConnectChecker) {
   }
 
   fun setVideoInfo(sps: ByteArray, pps: ByteArray?, vps: ByteArray?) {
-    videoPacket = when {
-      vps == null && pps == null -> Av1Packet()
-      vps == null && pps != null -> H264Packet(sps, pps)
-      vps != null && pps != null -> H265Packet()
-      else -> H264Packet(sps, byteArrayOf())
+    videoPacket = when (commandsManager.videoCodec) {
+      VideoCodec.H264 -> {
+        if (pps == null) throw IllegalArgumentException("pps can't be null with h264")
+        H264Packet(sps, pps)
+      }
+      VideoCodec.H265 -> {
+        if (vps == null || pps == null) throw IllegalArgumentException("pps or vps can't be null with h265")
+        H265Packet()
+      }
+      VideoCodec.AV1 -> Av1Packet()
     }
   }
 
-  fun setAudioInfo(sampleRate: Int, audioCodec: AudioCodec) {
-    audioPacket = when (audioCodec) {
+  fun setAudioInfo(sampleRate: Int) {
+    audioPacket = when (commandsManager.audioCodec) {
       AudioCodec.G711 -> G711Packet(sampleRate)
       AudioCodec.AAC -> AacPacket(sampleRate)
       AudioCodec.OPUS -> OpusPacket(sampleRate)

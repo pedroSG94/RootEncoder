@@ -94,20 +94,18 @@ class SrtClient(private val connectChecker: ConnectChecker) {
 
   fun setVideoCodec(videoCodec: VideoCodec) {
     if (!isStreaming) {
-      srtSender.videoCodec = when (videoCodec) {
-        VideoCodec.H264 -> Codec.AVC
-        VideoCodec.H265 -> Codec.HEVC
-        else -> throw IllegalArgumentException("Unsupported codec: ${videoCodec.name}")
+      commandsManager.videoCodec = when (videoCodec) {
+        VideoCodec.AV1 -> throw IllegalArgumentException("Unsupported codec: ${videoCodec.name}")
+        else -> videoCodec
       }
     }
   }
 
   fun setAudioCodec(audioCodec: AudioCodec) {
     if (!isStreaming) {
-      srtSender.audioCodec = when (audioCodec) {
-        AudioCodec.AAC -> Codec.AAC
-        AudioCodec.OPUS -> Codec.OPUS
-        else -> throw IllegalArgumentException("Unsupported codec: ${audioCodec.name}")
+      commandsManager.audioCodec = when (audioCodec) {
+        AudioCodec.G711 -> throw IllegalArgumentException("Unsupported codec: ${audioCodec.name}")
+        else -> audioCodec
       }
     }
   }
