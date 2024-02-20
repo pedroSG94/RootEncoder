@@ -50,8 +50,12 @@ data class Mpeg2TsService(
     }
   }
 
-  fun clear() {
+  fun clearTracks() {
     tracks.clear()
+  }
+
+  fun clear() {
+    clearTracks()
     pmt = null
     pcrPid = null
   }
