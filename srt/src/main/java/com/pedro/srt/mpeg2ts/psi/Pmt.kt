@@ -49,8 +49,6 @@ class Pmt(
   private val reserved: Byte = 7
   private val reserved2: Byte = 15
   private val programInfoLengthUnused: Byte = 0
-  private var sampleRate = 48000
-  private var isStereo = true
 
   override fun writeData(byteBuffer: ByteBuffer) {
     byteBuffer.putShort(((reserved.toInt() shl 13) or (service.pcrPid ?: pid).toInt()).toShort())
@@ -91,18 +89,13 @@ class Pmt(
         bytes[6] = 0x7F
         bytes[7] = 0x02
         bytes[8] = 0x80.toByte()
-        bytes[9] = if (isStereo) 2 else 1
+        bytes[9] = 2
         bytes
       }
       else -> {
         byteArrayOf()
       }
     }
-  }
-
-  fun setAudioConfig(sampleRate: Int, isStereo: Boolean) {
-    this.sampleRate = sampleRate
-    this.isStereo = isStereo
   }
 
   override fun getTableDataSize(): Int {

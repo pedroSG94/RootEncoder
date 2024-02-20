@@ -97,20 +97,14 @@ class SrtSender(
 
   private fun setTrackConfig(videoEnabled: Boolean, audioEnabled: Boolean) {
     Pid.reset()
+    service.clearTracks()
     if (audioEnabled) service.addTrack(commandsManager.audioCodec.toCodec())
     if (videoEnabled) service.addTrack(commandsManager.videoCodec.toCodec())
     service.generatePmt()
-    val sampleRate = (audioPacket as? AacPacket)?.sampleRate ?: (audioPacket as? OpusPacket)?.sampleRate ?: 32000
-    val isStereo = (audioPacket as? AacPacket)?.isStereo ?: (audioPacket as? OpusPacket)?.isStereo ?: true
-    service.setAudioConfig(sampleRate, isStereo)
     psiManager.updateService(service)
   }
 
   fun setVideoInfo(sps: ByteBuffer, pps: ByteBuffer?, vps: ByteBuffer?) {
-    val videoTrack = service.tracks.find { !it.codec.isAudio() }
-    videoTrack?.let {
-      service.tracks.remove(it)
-    }
     h26XPacket.setVideoCodec(commandsManager.videoCodec.toCodec())
     h26XPacket.sendVideoInfo(sps, pps, vps)
   }

@@ -50,12 +50,12 @@ data class Mpeg2TsService(
     }
   }
 
-  fun setAudioConfig(sampleRate: Int, isStereo: Boolean) {
-    pmt?.setAudioConfig(sampleRate, isStereo)
+  fun clearTracks() {
+    tracks.clear()
   }
 
   fun clear() {
-    tracks.clear()
+    clearTracks()
     pmt = null
     pcrPid = null
   }
