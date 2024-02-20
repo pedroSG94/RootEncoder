@@ -30,7 +30,7 @@ class Pes(
   isKeyFrame: Boolean,
   private val streamId: PesType,
   private val pts: Long,
-  val bufferData: ByteBuffer,
+  val bufferData: ByteBuffer
 ): MpegTsPayload(pid, isKeyFrame) {
 
   private val headerLength = 14

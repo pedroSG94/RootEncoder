@@ -88,6 +88,7 @@ fun VideoCodec.toCodec(): Codec {
 fun AudioCodec.toCodec(): Codec {
   return when (this) {
     AudioCodec.AAC -> Codec.AAC
+    AudioCodec.OPUS -> Codec.OPUS
     else -> throw IllegalArgumentException("Unsupported codec: $name")
   }
 }
