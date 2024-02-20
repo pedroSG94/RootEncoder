@@ -72,9 +72,9 @@ class RtspClient(private val connectChecker: ConnectChecker) {
   //for secure transport
   private var tlsEnabled = false
   private var certificates: Array<TrustManager>? = null
-  private val rtspSender: RtspSender = RtspSender(connectChecker)
-  private var url: String? = null
   private val commandsManager: CommandsManager = CommandsManager()
+  private val rtspSender: RtspSender = RtspSender(connectChecker, commandsManager)
+  private var url: String? = null
   private var doingRetry = false
   private var numRetry = 0
   private var reTries = 0
@@ -161,7 +161,7 @@ class RtspClient(private val connectChecker: ConnectChecker) {
 
   fun setVideoCodec(videoCodec: VideoCodec) {
     if (!isStreaming) {
-      commandsManager.setVideoCodec(videoCodec)
+      commandsManager.videoCodec = videoCodec
     }
   }
 
@@ -213,7 +213,7 @@ class RtspClient(private val connectChecker: ConnectChecker) {
             commandsManager.videoClientPorts,
             commandsManager.audioClientPorts)
           if (!commandsManager.audioDisabled) {
-            rtspSender.setAudioInfo(commandsManager.sampleRate, commandsManager.audioCodec)
+            rtspSender.setAudioInfo(commandsManager.sampleRate)
           }
           if (!commandsManager.videoDisabled) {
             if (!commandsManager.videoInfoReady()) {

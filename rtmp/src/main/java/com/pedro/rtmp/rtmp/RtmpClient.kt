@@ -101,14 +101,12 @@ class RtmpClient(private val connectChecker: ConnectChecker) {
   fun setVideoCodec(videoCodec: VideoCodec) {
     if (!isStreaming) {
       commandsManager.videoCodec = videoCodec
-      rtmpSender.videoCodec = videoCodec
     }
   }
 
   fun setAudioCodec(audioCodec: AudioCodec) {
     if (!isStreaming) {
       commandsManager.audioCodec = audioCodec
-      rtmpSender.audioCodec = audioCodec
     }
   }
 

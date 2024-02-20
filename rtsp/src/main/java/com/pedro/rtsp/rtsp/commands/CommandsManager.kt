@@ -61,8 +61,8 @@ open class CommandsManager {
   var videoDisabled = false
   var audioDisabled = false
   private val commandParser = CommandParser()
-  private var videoCodec: VideoCodec = VideoCodec.H264
-  var audioCodec: AudioCodec = AudioCodec.AAC
+  var videoCodec = VideoCodec.H264
+  var audioCodec = AudioCodec.AAC
   //For udp
   val audioClientPorts = intArrayOf(5000, 5001)
   val videoClientPorts = intArrayOf(5002, 5003)
@@ -88,10 +88,6 @@ open class CommandsManager {
     val uptime = TimeUtils.getCurrentTimeMillis()
     timeStamp = uptime / 1000 shl 32 and ((uptime - uptime / 1000 * 1000 shr 32)
         / 1000) // NTP timestamp
-  }
-
-  fun setVideoCodec(codec: VideoCodec) {
-    this.videoCodec = codec
   }
 
   fun videoInfoReady(): Boolean {
