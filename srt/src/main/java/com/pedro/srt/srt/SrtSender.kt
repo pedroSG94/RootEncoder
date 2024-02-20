@@ -35,6 +35,7 @@ import com.pedro.srt.mpeg2ts.service.Mpeg2TsService
 import com.pedro.srt.srt.packets.SrtPacket
 import com.pedro.srt.srt.packets.data.PacketPosition
 import com.pedro.srt.utils.SrtSocket
+import com.pedro.srt.utils.toCodec
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -83,16 +84,6 @@ class SrtSender(
     private set
   var droppedVideoFrames: Long = 0
     private set
-  var videoCodec = Codec.AVC
-    set(value) {
-      val videoTrack = service.tracks.find { it.codec != Codec.AAC }
-      videoTrack?.let {
-        service.tracks.remove(it)
-      }
-      h26XPacket.setVideoCodec(value)
-      field = value
-    }
-  var audioCodec = Codec.AAC
 
   private val bitrateManager: BitrateManager = BitrateManager(connectChecker)
   private var isEnableLogs = true
@@ -103,13 +94,18 @@ class SrtSender(
 
   private fun setTrackConfig(videoEnabled: Boolean, audioEnabled: Boolean) {
     Pid.reset()
-    if (audioEnabled) service.addTrack(audioCodec)
-    if (videoEnabled) service.addTrack(videoCodec)
+    if (audioEnabled) service.addTrack(commandsManager.audioCodec.toCodec())
+    if (videoEnabled) service.addTrack(commandsManager.videoCodec.toCodec())
     service.generatePmt()
     psiManager.updateService(service)
   }
 
   fun setVideoInfo(sps: ByteBuffer, pps: ByteBuffer?, vps: ByteBuffer?) {
+    val videoTrack = service.tracks.find { !it.codec.isAudio() }
+    videoTrack?.let {
+      service.tracks.remove(it)
+    }
+    h26XPacket.setVideoCodec(commandsManager.videoCodec.toCodec())
     h26XPacket.sendVideoInfo(sps, pps, vps)
   }
 

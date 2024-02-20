@@ -16,11 +16,13 @@
 
 package com.pedro.rtmp.utils
 
-import android.util.Base64
+import com.pedro.common.bytesToHex
 import java.io.UnsupportedEncodingException
 import java.security.MessageDigest
 import java.security.NoSuchAlgorithmException
 import java.util.Random
+import kotlin.io.encoding.Base64
+import kotlin.io.encoding.ExperimentalEncodingApi
 
 /**
  * Created by pedro on 27/04/21.
@@ -104,12 +106,13 @@ object AuthUtil {
     return opaque
   }
 
+  @OptIn(ExperimentalEncodingApi::class)
   fun stringToMd5Base64(s: String): String {
     try {
       val md = MessageDigest.getInstance("MD5")
       md.update(s.toByteArray())
       val md5hash = md.digest()
-      return Base64.encodeToString(md5hash, Base64.NO_WRAP)
+      return Base64.encode(md5hash)
     } catch (ignore: Exception) { }
     return ""
   }
@@ -133,14 +136,10 @@ object AuthUtil {
     val md: MessageDigest
     try {
       md = MessageDigest.getInstance("MD5")
-      return bytesToHex(md.digest(buffer.toByteArray()))
+      return md.digest(buffer.toByteArray()).bytesToHex()
     } catch (ignore: NoSuchAlgorithmException) {
     } catch (ignore: UnsupportedEncodingException) {
     }
     return ""
-  }
-
-  fun bytesToHex(bytes: ByteArray): String {
-    return bytes.joinToString("") { "%02x".format(it) }
   }
 }

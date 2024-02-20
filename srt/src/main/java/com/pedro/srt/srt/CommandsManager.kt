@@ -17,7 +17,9 @@
 package com.pedro.srt.srt
 
 import android.util.Log
+import com.pedro.common.AudioCodec
 import com.pedro.common.TimeUtils
+import com.pedro.common.VideoCodec
 import com.pedro.srt.mpeg2ts.MpegTsPacket
 import com.pedro.srt.srt.packets.DataPacket
 import com.pedro.srt.srt.packets.SrtPacket
@@ -56,6 +58,8 @@ class CommandsManager {
   //Avoid write a packet in middle of other.
   private val writeSync = Mutex(locked = false)
   private var encryptor: EncryptionUtil? = null
+  var videoCodec = VideoCodec.H264
+  var audioCodec = AudioCodec.AAC
 
   fun setPassphrase(passphrase: String, type: EncryptionType) {
     encryptor = if (passphrase.isEmpty() || type == EncryptionType.NONE) null else EncryptionUtil(type, passphrase)

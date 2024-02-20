@@ -72,8 +72,6 @@ class RtmpSender(
     private set
   var droppedVideoFrames: Long = 0
     private set
-  var videoCodec = VideoCodec.H264
-  var audioCodec = AudioCodec.AAC
   private val bitrateManager: BitrateManager = BitrateManager(connectChecker)
   private var isEnableLogs = true
 
@@ -82,7 +80,7 @@ class RtmpSender(
   }
 
   fun setVideoInfo(sps: ByteBuffer, pps: ByteBuffer?, vps: ByteBuffer?) {
-    when (videoCodec) {
+    when (commandsManager.videoCodec) {
       VideoCodec.H265 -> {
         if (vps == null || pps == null) throw IllegalArgumentException("pps or vps can't be null with h265")
         videoPacket = H265Packet()
@@ -101,7 +99,7 @@ class RtmpSender(
   }
 
   fun setAudioInfo(sampleRate: Int, isStereo: Boolean) {
-    when (audioCodec) {
+    when (commandsManager.audioCodec) {
       AudioCodec.G711 -> {
         audioPacket = G711Packet()
         (audioPacket as G711Packet).sendAudioInfo()

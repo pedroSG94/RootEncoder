@@ -16,6 +16,9 @@
 
 package com.pedro.srt.utils
 
+import com.pedro.common.AudioCodec
+import com.pedro.common.VideoCodec
+import com.pedro.srt.mpeg2ts.Codec
 import java.io.InputStream
 import java.io.OutputStream
 import java.nio.ByteBuffer
@@ -61,5 +64,20 @@ fun InputStream.readUntil(byteArray: ByteArray) {
   while (bytesRead < byteArray.size) {
     val result = read(byteArray, bytesRead, byteArray.size - bytesRead)
     if (result != -1) bytesRead += result
+  }
+}
+
+fun VideoCodec.toCodec(): Codec {
+  return when (this) {
+    VideoCodec.H264 -> Codec.AVC
+    VideoCodec.H265 -> Codec.HEVC
+    else -> throw IllegalArgumentException("Unsupported codec: $name")
+  }
+}
+
+fun AudioCodec.toCodec(): Codec {
+  return when (this) {
+    AudioCodec.AAC -> Codec.AAC
+    else -> throw IllegalArgumentException("Unsupported codec: $name")
   }
 }

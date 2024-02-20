@@ -16,7 +16,6 @@
 
 package com.pedro.rtsp.rtsp.commands
 
-import android.util.Base64
 import android.util.Log
 import com.pedro.common.AudioCodec
 import com.pedro.common.TimeUtils
@@ -62,8 +61,8 @@ open class CommandsManager {
   var videoDisabled = false
   var audioDisabled = false
   private val commandParser = CommandParser()
-  private var videoCodec: VideoCodec = VideoCodec.H264
-  var audioCodec: AudioCodec = AudioCodec.AAC
+  var videoCodec = VideoCodec.H264
+  var audioCodec = AudioCodec.AAC
   //For udp
   val audioClientPorts = intArrayOf(5000, 5001)
   val videoClientPorts = intArrayOf(5002, 5003)
@@ -89,10 +88,6 @@ open class CommandsManager {
     val uptime = TimeUtils.getCurrentTimeMillis()
     timeStamp = uptime / 1000 shl 32 and ((uptime - uptime / 1000 * 1000 shr 32)
         / 1000) // NTP timestamp
-  }
-
-  fun setVideoCodec(codec: VideoCodec) {
-    this.videoCodec = codec
   }
 
   fun videoInfoReady(): Boolean {
@@ -200,7 +195,7 @@ open class CommandsManager {
     } else {
       Log.i(TAG, "using basic auth")
       val data = "$user:$password"
-      val base64Data = data.toByteArray().encodeToString(Base64.DEFAULT)
+      val base64Data = data.toByteArray().encodeToString()
       "Basic $base64Data"
     }
   }

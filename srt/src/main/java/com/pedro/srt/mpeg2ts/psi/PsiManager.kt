@@ -74,11 +74,11 @@ class PsiManager(
   }
 
   fun getAudioPid(): Short {
-    return service.tracks.find { it.codec == Codec.AAC }?.pid ?: 0
+    return service.tracks.find { it.codec.isAudio() }?.pid ?: 0
   }
 
   fun getVideoPid(): Short {
-    return service.tracks.find { it.codec != Codec.AAC }?.pid ?: 0
+    return service.tracks.find { !it.codec.isAudio() }?.pid ?: 0
   }
 
   fun getSdt(): Sdt = sdt
