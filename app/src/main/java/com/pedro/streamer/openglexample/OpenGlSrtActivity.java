@@ -137,7 +137,6 @@ public class OpenGlSrtActivity extends AppCompatActivity
     etUrl.setHint(R.string.hint_srt);
     srtCamera1 = new SrtCamera1(openGlView, this);
     srtCamera1.setAudioCodec(AudioCodec.OPUS);
-    srtCamera1.getStreamClient().setOnlyAudio(true);
     openGlView.getHolder().addCallback(this);
     openGlView.setOnTouchListener(this);
   }
