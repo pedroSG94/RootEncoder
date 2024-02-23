@@ -118,7 +118,7 @@ dependencies {
 ### SRT (beta):
 
 - [X] Get upload bandwidth used.
-- [X] H264, H265 and AAC support.
+- [X] H264, H265, AAC and OPUS support.
 - [X] Resend lost packets
 - [X] Encrypt (AES128, AES192 and AES256)
 - [ ] SRT auth.
