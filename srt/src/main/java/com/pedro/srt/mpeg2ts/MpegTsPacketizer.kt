@@ -75,7 +75,7 @@ class MpegTsPacketizer(private val psiManager: PsiManager) {
           var adaptationFieldControl = AdaptationFieldControl.ADAPTATION_PAYLOAD
           writeHeader(buffer, true, mpegTsPayload.pid, adaptationFieldControl, pesContinuity)
           val isAudio = psiManager.getAudioPid().toInt() == mpegTsPayload.pid
-          val pcr = if (isAudio) null else TimeUtils.getCurrentTimeMicro()
+          val pcr = if (isAudio && !mpegTsPayload.isKeyFrame) null else TimeUtils.getCurrentTimeMicro()
           val adaptationField = AdaptationField(
             discontinuityIndicator = false,
             randomAccessIndicator = mpegTsPayload.isKeyFrame, //only video can be true

@@ -77,7 +77,7 @@ class Pmt(
         bytes
       }
       Codec.OPUS -> {
-        val bytes = ByteArray(10)
+        val bytes = ByteArray(16)
         bytes[0] = 0x05
         bytes[1] = 0x04
 
@@ -90,6 +90,14 @@ class Pmt(
         bytes[7] = 0x02
         bytes[8] = 0x80.toByte()
         bytes[9] = 2
+
+        bytes[10] = 0x0A
+        bytes[11] = 0x04
+        bytes[12] = 0x75
+        bytes[13] = 0x6E
+        bytes[14] = 0x64
+        bytes[15] = 0x00
+
         bytes
       }
       else -> {
@@ -103,7 +111,7 @@ class Pmt(
     service.tracks.forEach { track ->
       size += 5
       if (track.codec == Codec.HEVC) size += 6
-      else if (track.codec == Codec.OPUS) size += 10
+      else if (track.codec == Codec.OPUS) size += 16
     }
     return size
   }

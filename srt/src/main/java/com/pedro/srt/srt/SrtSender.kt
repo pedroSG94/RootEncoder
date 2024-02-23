@@ -142,7 +142,8 @@ class SrtSender(
   fun sendAudioFrame(aacBuffer: ByteBuffer, info: MediaCodec.BufferInfo) {
     if (running) {
       audioPacket.createAndSendPacket(aacBuffer, info) { mpegTsPackets ->
-        checkSendInfo()
+        val isKey = mpegTsPackets[0].isKey
+        checkSendInfo(isKey)
         val result = queue.trySend(mpegTsPackets)
         if (!result) {
           Log.i(TAG, "Audio frame discarded")
