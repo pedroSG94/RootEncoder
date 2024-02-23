@@ -66,6 +66,7 @@ fun InputStream.readUntil(byteArray: ByteArray) {
     if (result != -1) bytesRead += result
   }
 }
+
 fun Int.toByteArray(): ByteArray {
   val bytes = mutableListOf<Byte>()
   var remainingValue = this

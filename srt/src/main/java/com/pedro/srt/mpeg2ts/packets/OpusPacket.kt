@@ -35,9 +35,6 @@ class OpusPacket(
   psiManager: PsiManager,
 ): BasePacket(psiManager, limitSize) {
 
-  var sampleRate = 48000
-  var isStereo = true
-
   override fun createAndSendPacket(
     byteBuffer: ByteBuffer,
     info: MediaCodec.BufferInfo,
@@ -68,17 +65,7 @@ class OpusPacket(
     callback(packets)
   }
 
-  override fun resetPacket(resetInfo: Boolean) {
-    if (resetInfo) {
-      sampleRate = 48000
-      isStereo = true
-    }
-  }
-
-  fun sendAudioInfo(sampleRate: Int, stereo: Boolean) {
-    this.sampleRate = sampleRate
-    this.isStereo = stereo
-  }
+  override fun resetPacket(resetInfo: Boolean) { }
 
   private fun createControlHeader(payloadLength: Int): ByteArray {
     val bytes = payloadLength.toByteArray()

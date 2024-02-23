@@ -117,7 +117,6 @@ class SrtSender(
       }
       AudioCodec.OPUS -> {
         audioPacket = OpusPacket(limitSize, psiManager)
-        (audioPacket as? OpusPacket)?.sendAudioInfo(sampleRate, isStereo)
       }
       AudioCodec.G711 -> {
         throw IllegalArgumentException("Unsupported codec: ${commandsManager.audioCodec.name}")

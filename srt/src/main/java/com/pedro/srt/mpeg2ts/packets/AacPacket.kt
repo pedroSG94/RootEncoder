@@ -35,8 +35,8 @@ class AacPacket(
 ): BasePacket(psiManager, limitSize) {
 
   private val header = ByteArray(7) //ADTS header
-  var sampleRate = 44100
-  var isStereo = true
+  private var sampleRate = 44100
+  private var isStereo = true
 
   override fun createAndSendPacket(
     byteBuffer: ByteBuffer,

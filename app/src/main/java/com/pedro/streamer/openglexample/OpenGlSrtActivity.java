@@ -38,7 +38,6 @@ import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.pedro.common.AudioCodec;
 import com.pedro.common.ConnectChecker;
 import com.pedro.encoder.input.gl.SpriteGestureController;
 import com.pedro.encoder.input.gl.render.filters.AnalogTVFilterRender;
@@ -136,7 +135,6 @@ public class OpenGlSrtActivity extends AppCompatActivity
     etUrl = findViewById(R.id.et_rtp_url);
     etUrl.setHint(R.string.hint_srt);
     srtCamera1 = new SrtCamera1(openGlView, this);
-    srtCamera1.setAudioCodec(AudioCodec.OPUS);
     openGlView.getHolder().addCallback(this);
     openGlView.setOnTouchListener(this);
   }
