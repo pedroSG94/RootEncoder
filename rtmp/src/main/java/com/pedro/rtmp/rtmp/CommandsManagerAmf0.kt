@@ -118,6 +118,7 @@ class CommandsManagerAmf0: CommandsManager() {
       val codecValue = when (audioCodec) {
         AudioCodec.G711 -> AudioFormat.G711_A.value
         AudioCodec.AAC -> AudioFormat.AAC.value
+        AudioCodec.OPUS -> throw IllegalArgumentException("Unsupported codec: ${audioCodec.name}")
       }
       amfEcmaArray.setProperty("audiocodecid", codecValue.toDouble())
       amfEcmaArray.setProperty("audiosamplerate", sampleRate.toDouble())

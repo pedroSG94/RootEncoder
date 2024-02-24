@@ -420,7 +420,12 @@ abstract class StreamBase(
   fun setAudioCodec(codec: AudioCodec) {
     setAudioCodecImp(codec)
     recordController.setAudioCodec(codec)
-    audioEncoder.type = if (codec == AudioCodec.G711) CodecUtil.G711_MIME else CodecUtil.AAC_MIME
+    val type = when (codec) {
+      AudioCodec.G711 -> CodecUtil.G711_MIME
+      AudioCodec.AAC -> CodecUtil.AAC_MIME
+      AudioCodec.OPUS -> CodecUtil.OPUS_MIME
+    }
+    audioEncoder.type = type
   }
 
   protected abstract fun setVideoCodecImp(codec: VideoCodec)

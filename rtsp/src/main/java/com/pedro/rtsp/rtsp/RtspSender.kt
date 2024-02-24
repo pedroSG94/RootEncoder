@@ -106,6 +106,7 @@ class RtspSender(
     audioPacket = when (commandsManager.audioCodec) {
       AudioCodec.G711 -> G711Packet(sampleRate)
       AudioCodec.AAC -> AacPacket(sampleRate)
+      AudioCodec.OPUS -> OpusPacket(sampleRate)
     }
   }
 

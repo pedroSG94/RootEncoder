@@ -87,8 +87,7 @@ public class AudioEncoder extends BaseEncoder implements GetMicrophoneData {
       }
 
       int channelCount = (isStereo) ? 2 : 1;
-      MediaFormat audioFormat =
-          MediaFormat.createAudioFormat(type, sampleRate, channelCount);
+      MediaFormat audioFormat = MediaFormat.createAudioFormat(type, sampleRate, channelCount);
       audioFormat.setInteger(MediaFormat.KEY_BIT_RATE, bitRate);
       audioFormat.setInteger(MediaFormat.KEY_MAX_INPUT_SIZE, maxInputSize);
       audioFormat.setInteger(MediaFormat.KEY_AAC_PROFILE,
@@ -187,7 +186,7 @@ public class AudioEncoder extends BaseEncoder implements GetMicrophoneData {
       mediaCodecInfoList = CodecUtil.getAllSoftwareEncoders(CodecUtil.AAC_MIME);
     } else {
       //Priority: hardware > software
-      mediaCodecInfoList = CodecUtil.getAllEncoders(CodecUtil.AAC_MIME, true);
+      mediaCodecInfoList = CodecUtil.getAllEncoders(mime, true);
     }
 
     Log.i(TAG, mediaCodecInfoList.size() + " encoders found");

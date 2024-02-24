@@ -18,6 +18,7 @@ package com.pedro.srt.srt
 
 import android.media.MediaCodec
 import android.util.Log
+import com.pedro.common.AudioCodec
 import com.pedro.common.BitrateManager
 import com.pedro.common.ConnectChecker
 import com.pedro.common.onMainThread
@@ -28,7 +29,9 @@ import com.pedro.srt.mpeg2ts.MpegTsPacketizer
 import com.pedro.srt.mpeg2ts.MpegType
 import com.pedro.srt.mpeg2ts.Pid
 import com.pedro.srt.mpeg2ts.packets.AacPacket
+import com.pedro.srt.mpeg2ts.packets.BasePacket
 import com.pedro.srt.mpeg2ts.packets.H26XPacket
+import com.pedro.srt.mpeg2ts.packets.OpusPacket
 import com.pedro.srt.mpeg2ts.psi.PsiManager
 import com.pedro.srt.mpeg2ts.psi.TableToSend
 import com.pedro.srt.mpeg2ts.service.Mpeg2TsService
@@ -66,7 +69,7 @@ class SrtSender(
   }
   private val limitSize = commandsManager.MTU - SrtPacket.headerSize
   private val mpegTsPacketizer = MpegTsPacketizer(psiManager)
-  private val aacPacket = AacPacket(limitSize, psiManager)
+  private var audioPacket: BasePacket = AacPacket(limitSize, psiManager)
   private val h26XPacket = H26XPacket(limitSize, psiManager)
 
   @Volatile
@@ -107,7 +110,18 @@ class SrtSender(
   }
 
   fun setAudioInfo(sampleRate: Int, isStereo: Boolean) {
-    aacPacket.sendAudioInfo(sampleRate, isStereo)
+    when (commandsManager.audioCodec) {
+      AudioCodec.AAC -> {
+        audioPacket = AacPacket(limitSize, psiManager)
+        (audioPacket as? AacPacket)?.sendAudioInfo(sampleRate, isStereo)
+      }
+      AudioCodec.OPUS -> {
+        audioPacket = OpusPacket(limitSize, psiManager)
+      }
+      AudioCodec.G711 -> {
+        throw IllegalArgumentException("Unsupported codec: ${commandsManager.audioCodec.name}")
+      }
+    }
   }
 
   fun sendVideoFrame(h264Buffer: ByteBuffer, info: MediaCodec.BufferInfo) {
@@ -126,8 +140,9 @@ class SrtSender(
 
   fun sendAudioFrame(aacBuffer: ByteBuffer, info: MediaCodec.BufferInfo) {
     if (running) {
-      aacPacket.createAndSendPacket(aacBuffer, info) { mpegTsPackets ->
-        checkSendInfo()
+      audioPacket.createAndSendPacket(aacBuffer, info) { mpegTsPackets ->
+        val isKey = mpegTsPackets[0].isKey
+        checkSendInfo(isKey)
         val result = queue.trySend(mpegTsPackets)
         if (!result) {
           Log.i(TAG, "Audio frame discarded")
@@ -210,7 +225,7 @@ class SrtSender(
     psiManager.reset()
     service.clear()
     mpegTsPacketizer.reset()
-    aacPacket.reset(clear)
+    audioPacket.reset(clear)
     h26XPacket.reset(clear)
     resetSentAudioFrames()
     resetSentVideoFrames()

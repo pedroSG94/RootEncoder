@@ -101,7 +101,7 @@ dependencies {
 
 - [X] Get upload bandwidth used.
 - [x] RTSP auth (adobe and llnw).
-- [x] H264, AV1, H265 ([Using RTMP enhanced](https://github.com/veovera/enhanced-rtmp/tree/main)), AAC and G711 support.
+- [x] AV1, H265 ([Using RTMP enhanced](https://github.com/veovera/enhanced-rtmp/tree/main)), H264, AAC and G711 support.
 - [x] RTMPS (under TLS)
 - [x] RTMPT and RTMPTS (tunneled and tunneled under TLS)
 - [x] AMF0
@@ -111,14 +111,14 @@ dependencies {
 
 - [X] Get upload bandwidth used.
 - [x] RTMP auth (basic and digest).
-- [x] AV1, H264, H265, AAC and G711 support.
+- [x] AV1, H264, H265, AAC, G711 and OPUS support.
 - [x] TCP/UDP.
 - [x] RTSPS.
 
 ### SRT (beta):
 
 - [X] Get upload bandwidth used.
-- [X] H264, H265 and AAC support.
+- [X] H264, H265, AAC and OPUS support.
 - [X] Resend lost packets
 - [X] Encrypt (AES128, AES192 and AES256)
 - [ ] SRT auth.

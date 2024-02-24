@@ -67,6 +67,17 @@ fun InputStream.readUntil(byteArray: ByteArray) {
   }
 }
 
+fun Int.toByteArray(): ByteArray {
+  val bytes = mutableListOf<Byte>()
+  var remainingValue = this
+  while (remainingValue >= 255) {
+    bytes.add(0xFF.toByte())
+    remainingValue -= 255
+  }
+  if (remainingValue > 0) bytes.add(remainingValue.toByte())
+  return bytes.toByteArray()
+}
+
 fun VideoCodec.toCodec(): Codec {
   return when (this) {
     VideoCodec.H264 -> Codec.AVC
@@ -78,6 +89,7 @@ fun VideoCodec.toCodec(): Codec {
 fun AudioCodec.toCodec(): Codec {
   return when (this) {
     AudioCodec.AAC -> Codec.AAC
+    AudioCodec.OPUS -> Codec.OPUS
     else -> throw IllegalArgumentException("Unsupported codec: $name")
   }
 }

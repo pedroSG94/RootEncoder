@@ -24,8 +24,10 @@ import com.pedro.rtsp.BuildConfig
 import com.pedro.rtsp.rtsp.Protocol
 import com.pedro.rtsp.rtsp.commands.SdpBody.createAV1Body
 import com.pedro.rtsp.rtsp.commands.SdpBody.createAacBody
+import com.pedro.rtsp.rtsp.commands.SdpBody.createG711Body
 import com.pedro.rtsp.rtsp.commands.SdpBody.createH264Body
 import com.pedro.rtsp.rtsp.commands.SdpBody.createH265Body
+import com.pedro.rtsp.rtsp.commands.SdpBody.createOpusBody
 import com.pedro.rtsp.utils.AuthUtil.getMd5Hash
 import com.pedro.rtsp.utils.RtpConstants
 import com.pedro.rtsp.utils.encodeToString
@@ -156,17 +158,17 @@ open class CommandsManager {
         VideoCodec.H265 -> {
           createH265Body(RtpConstants.trackVideo, spsString, ppsString, vpsString)
         }
-        else -> {
+        VideoCodec.AV1 -> {
           createAV1Body(RtpConstants.trackVideo)
         }
       }
     }
     var audioBody = ""
     if (!audioDisabled) {
-      audioBody = if (audioCodec == AudioCodec.G711) {
-        SdpBody.createG711Body(RtpConstants.trackAudio, sampleRate, isStereo)
-      } else {
-        createAacBody(RtpConstants.trackAudio, sampleRate, isStereo)
+      audioBody = when (audioCodec) {
+        AudioCodec.G711 -> createG711Body(RtpConstants.trackAudio, sampleRate, isStereo)
+        AudioCodec.AAC -> createAacBody(RtpConstants.trackAudio, sampleRate, isStereo)
+        AudioCodec.OPUS -> createOpusBody(RtpConstants.trackAudio)
       }
     }
     return "v=0\r\n" +
