@@ -70,13 +70,14 @@ class OpusPacket(
   private fun createControlHeader(payloadLength: Int): ByteArray {
     val bytes = payloadLength.toByteArray()
     val header = ByteArray(2 + bytes.size)
-//    //header prefix
+    //header prefix 11b, 0x3ff
+    //start_trim_flag 1b, disabled set to 0
+    //end_trim_flag 1b, disabled set to 0
+    //control_extension_flag 1b, disabled set to 0
+    //Reserved 2b, always 0
     header[0] = 0x7F.toByte()
     header[1] = 0xe0.toByte()
-//    //start_trim_flag 1b
-//    //end_trim_flag 1b
-//    //control_extension_flag 1b
-//    //Reserved 2b
+
     System.arraycopy(bytes, 0, header, 2, bytes.size)
     return header
   }

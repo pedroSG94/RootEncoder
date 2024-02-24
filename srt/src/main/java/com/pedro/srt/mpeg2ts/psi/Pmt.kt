@@ -89,8 +89,7 @@ class Pmt(
         bytes[6] = 0x7F
         bytes[7] = 0x02
         bytes[8] = 0x80.toByte()
-        bytes[9] = 2
-
+        bytes[9] = 2 //channels, always stereo
         bytes
       }
       else -> {
