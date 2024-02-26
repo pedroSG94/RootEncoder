@@ -70,7 +70,7 @@ allprojects {
   }
 }
 dependencies {
-  implementation 'com.github.pedroSG94.RootEncoder:library:2.3.5'
+  implementation 'com.github.pedroSG94.RootEncoder:library:2.3.6'
 }
 
 ```
@@ -89,7 +89,7 @@ dependencies {
 - [x] Disable/Enable video and audio while streaming.
 - [x] Switch camera while streaming.
 - [x] Change video bitrate while streaming (API 19+).
-- [x] AV1, H264, H265, G711 and AAC hardware/software encoding.
+- [x] AV1, H264, H265, G711, AAC and OPUS hardware/software encoding.
 - [x] Force video and audio Codec to use hardware/software encoding (Not recommended).
 - [X] Record MP4 file while streaming (API 18+).
 - [X] Set Image, Gif or Text to stream on real time.
