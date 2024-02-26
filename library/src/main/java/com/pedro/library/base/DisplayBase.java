@@ -89,6 +89,7 @@ public abstract class DisplayBase {
   private MediaProjection.Callback mediaProjectionCallback = new MediaProjection.Callback() { };
   protected BaseRecordController recordController;
   private final FpsListener fpsListener = new FpsListener();
+  private boolean videoInitialized = false;
   private boolean audioInitialized = false;
 
   public DisplayBase(Context context, boolean useOpengl) {
@@ -169,7 +170,7 @@ public abstract class DisplayBase {
   public boolean prepareVideo(int width, int height, int fps, int bitrate, int rotation, int dpi,
       int profile, int level, int iFrameInterval) {
     this.dpi = dpi;
-    boolean result =
+    videoInitialized =
         videoEncoder.prepareVideoEncoder(width, height, fps, bitrate, rotation, iFrameInterval,
             FormatVideoEncoder.SURFACE, profile, level);
     if (glInterface != null) {
@@ -179,7 +180,7 @@ public abstract class DisplayBase {
         glInterface.setEncoderSize(videoEncoder.getWidth(), videoEncoder.getHeight());
       }
     }
-    return result;
+    return videoInitialized;
   }
 
   public boolean prepareVideo(int width, int height, int fps, int bitrate, int rotation, int dpi) {
@@ -367,7 +368,12 @@ public abstract class DisplayBase {
   }
 
   public void setMediaProjectionCallback(MediaProjection.Callback mediaProjectionCallback) {
-    this.mediaProjectionCallback = mediaProjectionCallback;
+    if (videoInitialized || audioInitialized) {
+      throw new RuntimeException("You need to set MediaProjection callback before prepareVideo and prepareAudio");
+    }
+    this.mediaProjectionCallback = mediaProjectionCallback != null
+            ? mediaProjectionCallback
+            : new MediaProjection.Callback() { };
   }
 
   /**
