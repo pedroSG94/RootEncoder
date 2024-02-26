@@ -86,8 +86,10 @@ public abstract class DisplayBase {
   private int dpi = 320;
   private int resultCode = -1;
   private Intent data;
+  private MediaProjection.Callback mediaProjectionCallback = new MediaProjection.Callback() { };
   protected BaseRecordController recordController;
   private final FpsListener fpsListener = new FpsListener();
+  private boolean videoInitialized = false;
   private boolean audioInitialized = false;
 
   public DisplayBase(Context context, boolean useOpengl) {
@@ -168,7 +170,7 @@ public abstract class DisplayBase {
   public boolean prepareVideo(int width, int height, int fps, int bitrate, int rotation, int dpi,
       int profile, int level, int iFrameInterval) {
     this.dpi = dpi;
-    boolean result =
+    videoInitialized =
         videoEncoder.prepareVideoEncoder(width, height, fps, bitrate, rotation, iFrameInterval,
             FormatVideoEncoder.SURFACE, profile, level);
     if (glInterface != null) {
@@ -178,7 +180,7 @@ public abstract class DisplayBase {
         glInterface.setEncoderSize(videoEncoder.getWidth(), videoEncoder.getHeight());
       }
     }
-    return result;
+    return videoInitialized;
   }
 
   public boolean prepareVideo(int width, int height, int fps, int bitrate, int rotation, int dpi) {
@@ -239,7 +241,6 @@ public abstract class DisplayBase {
     if (mediaProjection == null) {
       mediaProjection = mediaProjectionManager.getMediaProjection(resultCode, data);
     }
-    MediaProjection.Callback mediaProjectionCallback = new MediaProjection.Callback() { };
     mediaProjection.registerCallback(mediaProjectionCallback, null);
     AudioPlaybackCaptureConfiguration config =
         new AudioPlaybackCaptureConfiguration.Builder(mediaProjection).addMatchingUsage(
@@ -310,7 +311,7 @@ public abstract class DisplayBase {
       throws IOException {
     recordController.startRecord(path, listener);
     if (!streaming) {
-      startEncoders(resultCode, data);
+      startEncoders(resultCode, data, mediaProjectionCallback);
     } else if (videoEncoder.isRunning()) {
       requestKeyFrame();
     }
@@ -331,7 +332,7 @@ public abstract class DisplayBase {
       @Nullable RecordController.Listener listener) throws IOException {
     recordController.startRecord(fd, listener);
     if (!streaming) {
-      startEncoders(resultCode, data);
+      startEncoders(resultCode, data, mediaProjectionCallback);
     } else if (videoEncoder.isRunning()) {
       requestKeyFrame();
     }
@@ -366,6 +367,15 @@ public abstract class DisplayBase {
     this.data = data;
   }
 
+  public void setMediaProjectionCallback(MediaProjection.Callback mediaProjectionCallback) {
+    if (videoInitialized || audioInitialized) {
+      throw new RuntimeException("You need to set MediaProjection callback before prepareVideo and prepareAudio");
+    }
+    this.mediaProjectionCallback = mediaProjectionCallback != null
+            ? mediaProjectionCallback
+            : new MediaProjection.Callback() { };
+  }
+
   /**
    * Need be called after @prepareVideo or/and @prepareAudio.
    *
@@ -380,14 +390,14 @@ public abstract class DisplayBase {
   public void startStream(String url) {
     streaming = true;
     if (!recordController.isRunning()) {
-      startEncoders(resultCode, data);
+      startEncoders(resultCode, data, mediaProjectionCallback);
     } else {
       requestKeyFrame();
     }
     startStreamRtp(url);
   }
 
-  private void startEncoders(int resultCode, Intent data) {
+  private void startEncoders(int resultCode, Intent data, MediaProjection.Callback mediaProjectionCallback) {
     if (data == null) {
       throw new RuntimeException("You need send intent data before startRecord or startStream");
     }
@@ -403,7 +413,6 @@ public abstract class DisplayBase {
     if (mediaProjection == null) {
       mediaProjection = mediaProjectionManager.getMediaProjection(resultCode, data);
     }
-    MediaProjection.Callback mediaProjectionCallback = new MediaProjection.Callback() { };
     mediaProjection.registerCallback(mediaProjectionCallback, null);
     VirtualDisplay.Callback callback = new VirtualDisplay.Callback() { };
     if (glInterface != null && videoEncoder.getRotation() == 90
