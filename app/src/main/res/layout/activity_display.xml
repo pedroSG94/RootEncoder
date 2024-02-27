@@ -12,6 +12,7 @@
       />
 
   <EditText
+      android:hint="@string/hint_protocol"
       android:textColor="@color/appColor"
       android:textColorHint="@color/appColor"
       android:inputType="textUri"

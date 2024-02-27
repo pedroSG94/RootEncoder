@@ -55,7 +55,6 @@ public class DisplayActivity extends AppCompatActivity
     button = findViewById(R.id.b_start_stop);
     button.setOnClickListener(this);
     etUrl = findViewById(R.id.et_rtp_url);
-    etUrl.setHint(R.string.hint_protocol);
     DisplayService displayService = DisplayService.Companion.getINSTANCE();
     //No streaming/recording start service
     if (displayService == null) {

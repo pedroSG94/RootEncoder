@@ -24,6 +24,7 @@ import android.view.View;
 import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -31,12 +32,11 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.pedro.common.ConnectChecker;
 import com.pedro.encoder.input.video.CameraOpenException;
-import com.pedro.library.rtsp.RtspCamera1;
+import com.pedro.library.base.recording.RecordController;
+import com.pedro.library.generic.GenericCamera1;
 import com.pedro.streamer.R;
 import com.pedro.streamer.utils.PathUtils;
 import com.pedro.streamer.utils.ScreenOrientation;
-
-import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.io.IOException;
@@ -47,14 +47,14 @@ import java.util.Locale;
 /**
  * More documentation see:
  * {@link com.pedro.library.base.Camera1Base}
- * {@link com.pedro.library.rtsp.RtspCamera1}
+ * {@link com.pedro.library.rtmp.RtmpCamera1}
  */
-public class ExampleRtspActivity extends AppCompatActivity
+public class OldApiActivity extends AppCompatActivity
     implements ConnectChecker, View.OnClickListener, SurfaceHolder.Callback {
 
-  private RtspCamera1 rtspCamera1;
-  private Button button;
-  private Button bRecord;
+  private GenericCamera1 rtmpCamera1;
+  private ImageView button;
+  private ImageView bRecord;
   private EditText etUrl;
 
   private String currentDateAndTime = "";
@@ -71,35 +71,34 @@ public class ExampleRtspActivity extends AppCompatActivity
     button.setOnClickListener(this);
     bRecord = findViewById(R.id.b_record);
     bRecord.setOnClickListener(this);
-    Button switchCamera = findViewById(R.id.switch_camera);
+    ImageView switchCamera = findViewById(R.id.switch_camera);
     switchCamera.setOnClickListener(this);
     etUrl = findViewById(R.id.et_rtp_url);
-    etUrl.setHint(R.string.hint_rtsp);
-    rtspCamera1 = new RtspCamera1(surfaceView, this);
-    rtspCamera1.getStreamClient().setReTries(10);
+    rtmpCamera1 = new GenericCamera1(surfaceView, this);
+    rtmpCamera1.getStreamClient().setReTries(10);
     surfaceView.getHolder().addCallback(this);
   }
 
   @Override
-  public void onConnectionStarted(@NotNull String url) {
+  public void onConnectionStarted(@NonNull String url) {
   }
 
   @Override
   public void onConnectionSuccess() {
-    Toast.makeText(ExampleRtspActivity.this, "Connection success", Toast.LENGTH_SHORT).show();
+    Toast.makeText(OldApiActivity.this, "Connection success", Toast.LENGTH_SHORT).show();
   }
 
   @Override
   public void onConnectionFailed(@NonNull final String reason) {
-    if (rtspCamera1.getStreamClient().reTry(5000, reason, null)) {
-      Toast.makeText(ExampleRtspActivity.this, "Retry", Toast.LENGTH_SHORT)
+    if (rtmpCamera1.getStreamClient().reTry(5000, reason, null)) {
+      Toast.makeText(OldApiActivity.this, "Retry", Toast.LENGTH_SHORT)
           .show();
     } else {
-      Toast.makeText(ExampleRtspActivity.this, "Connection failed. " + reason, Toast.LENGTH_SHORT)
+      Toast.makeText(OldApiActivity.this, "Connection failed. " + reason, Toast.LENGTH_SHORT)
           .show();
-      rtspCamera1.stopStream();
+      rtmpCamera1.stopStream();
       ScreenOrientation.INSTANCE.unlockScreen(this);
-      button.setText(R.string.start_button);
+      button.setImageResource(R.drawable.stream_icon);
     }
   }
 
@@ -110,86 +109,91 @@ public class ExampleRtspActivity extends AppCompatActivity
 
   @Override
   public void onDisconnect() {
-    Toast.makeText(ExampleRtspActivity.this, "Disconnected", Toast.LENGTH_SHORT).show();
+    Toast.makeText(OldApiActivity.this, "Disconnected", Toast.LENGTH_SHORT).show();
   }
 
   @Override
   public void onAuthError() {
-    Toast.makeText(ExampleRtspActivity.this, "Auth error", Toast.LENGTH_SHORT).show();
-    rtspCamera1.stopStream();
+    Toast.makeText(OldApiActivity.this, "Auth error", Toast.LENGTH_SHORT).show();
+    rtmpCamera1.stopStream();
     ScreenOrientation.INSTANCE.unlockScreen(this);
-    button.setText(R.string.start_button);
+    button.setImageResource(R.drawable.stream_icon);
   }
 
   @Override
   public void onAuthSuccess() {
-    Toast.makeText(ExampleRtspActivity.this, "Auth success", Toast.LENGTH_SHORT).show();
+    Toast.makeText(OldApiActivity.this, "Auth success", Toast.LENGTH_SHORT).show();
   }
 
   @Override
   public void onClick(View view) {
     int id = view.getId();
     if (id == R.id.b_start_stop) {
-      if (!rtspCamera1.isStreaming()) {
-        if (rtspCamera1.isRecording()
-                || rtspCamera1.prepareAudio() && rtspCamera1.prepareVideo()) {
-          button.setText(R.string.stop_button);
-          rtspCamera1.startStream(etUrl.getText().toString());
+      if (!rtmpCamera1.isStreaming()) {
+        if (rtmpCamera1.isRecording()
+                || rtmpCamera1.prepareAudio() && rtmpCamera1.prepareVideo()) {
+          button.setImageResource(R.drawable.stream_stop_icon);
+          rtmpCamera1.startStream(etUrl.getText().toString());
           ScreenOrientation.INSTANCE.lockScreen(this);
         } else {
           Toast.makeText(this, "Error preparing stream, This device cant do it",
                   Toast.LENGTH_SHORT).show();
         }
       } else {
-        button.setText(R.string.start_button);
-        rtspCamera1.stopStream();
+        button.setImageResource(R.drawable.stream_icon);
+        rtmpCamera1.stopStream();
         ScreenOrientation.INSTANCE.unlockScreen(this);
       }
     } else if (id == R.id.switch_camera) {
       try {
-        rtspCamera1.switchCamera();
+        rtmpCamera1.switchCamera();
       } catch (CameraOpenException e) {
         Toast.makeText(this, e.getMessage(), Toast.LENGTH_SHORT).show();
       }
     } else if (id == R.id.b_record) {
       if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
-        if (!rtspCamera1.isRecording()) {
+        if (!rtmpCamera1.isRecording()) {
           try {
             if (!folder.exists()) {
               folder.mkdir();
             }
             SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault());
             currentDateAndTime = sdf.format(new Date());
-            if (!rtspCamera1.isStreaming()) {
-              if (rtspCamera1.prepareAudio() && rtspCamera1.prepareVideo()) {
-                rtspCamera1.startRecord(
-                        folder.getAbsolutePath() + "/" + currentDateAndTime + ".mp4");
+            if (!rtmpCamera1.isStreaming()) {
+              if (rtmpCamera1.prepareAudio() && rtmpCamera1.prepareVideo()) {
+                rtmpCamera1.startRecord(
+                    folder.getAbsolutePath() + "/" + currentDateAndTime + ".mp4",
+                    status -> {
+                      if (status == RecordController.Status.RECORDING) {
+                        bRecord.setBackgroundResource(R.drawable.stop_icon);
+                      }
+                    });
                 ScreenOrientation.INSTANCE.lockScreen(this);
-                bRecord.setText(R.string.stop_record);
+                bRecord.setBackgroundResource(R.drawable.pause_icon);
                 Toast.makeText(this, "Recording... ", Toast.LENGTH_SHORT).show();
               } else {
                 Toast.makeText(this, "Error preparing stream, This device cant do it",
                         Toast.LENGTH_SHORT).show();
               }
             } else {
-              rtspCamera1.startRecord(
+              rtmpCamera1.startRecord(
                       folder.getAbsolutePath() + "/" + currentDateAndTime + ".mp4");
               ScreenOrientation.INSTANCE.lockScreen(this);
-              bRecord.setText(R.string.stop_record);
+              bRecord.setBackgroundResource(R.drawable.stop_icon);
               Toast.makeText(this, "Recording... ", Toast.LENGTH_SHORT).show();
             }
           } catch (IOException e) {
-            rtspCamera1.stopRecord();
+            rtmpCamera1.stopRecord();
             ScreenOrientation.INSTANCE.unlockScreen(this);
             PathUtils.updateGallery(this, folder.getAbsolutePath() + "/" + currentDateAndTime + ".mp4");
-            bRecord.setText(R.string.start_record);
+            bRecord.setBackgroundResource(R.drawable.record_icon);
             Toast.makeText(this, e.getMessage(), Toast.LENGTH_SHORT).show();
           }
         } else {
-          rtspCamera1.stopRecord();
+          rtmpCamera1.stopRecord();
           ScreenOrientation.INSTANCE.unlockScreen(this);
           PathUtils.updateGallery(this, folder.getAbsolutePath() + "/" + currentDateAndTime + ".mp4");
-          bRecord.setText(R.string.start_record);
+          bRecord.setBackgroundResource(R.drawable.record_icon);
           Toast.makeText(this,
                   "file " + currentDateAndTime + ".mp4 saved in " + folder.getAbsolutePath(),
                   Toast.LENGTH_SHORT).show();
@@ -208,25 +212,25 @@ public class ExampleRtspActivity extends AppCompatActivity
 
   @Override
   public void surfaceChanged(SurfaceHolder surfaceHolder, int i, int i1, int i2) {
-    rtspCamera1.startPreview();
+    rtmpCamera1.startPreview();
   }
 
   @Override
   public void surfaceDestroyed(SurfaceHolder surfaceHolder) {
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2 && rtspCamera1.isRecording()) {
-      rtspCamera1.stopRecord();
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2 && rtmpCamera1.isRecording()) {
+      rtmpCamera1.stopRecord();
       PathUtils.updateGallery(this, folder.getAbsolutePath() + "/" + currentDateAndTime + ".mp4");
-      bRecord.setText(R.string.start_record);
+      bRecord.setBackgroundResource(R.drawable.record_icon);
       Toast.makeText(this,
           "file " + currentDateAndTime + ".mp4 saved in " + folder.getAbsolutePath(),
           Toast.LENGTH_SHORT).show();
       currentDateAndTime = "";
     }
-    if (rtspCamera1.isStreaming()) {
-      rtspCamera1.stopStream();
-      button.setText(getResources().getString(R.string.start_button));
+    if (rtmpCamera1.isStreaming()) {
+      rtmpCamera1.stopStream();
+      button.setImageResource(R.drawable.stream_icon);
     }
     ScreenOrientation.INSTANCE.unlockScreen(this);
-    rtspCamera1.stopPreview();
+    rtmpCamera1.stopPreview();
   }
 }

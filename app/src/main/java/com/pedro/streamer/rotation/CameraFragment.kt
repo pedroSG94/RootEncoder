@@ -27,12 +27,13 @@ import android.view.SurfaceHolder
 import android.view.SurfaceView
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Button
 import android.widget.EditText
+import android.widget.ImageView
 import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.fragment.app.Fragment
 import com.pedro.common.ConnectChecker
+import com.pedro.library.base.recording.RecordController
 import com.pedro.library.generic.GenericStream
 import com.pedro.library.util.sources.video.Camera1Source
 import com.pedro.library.util.sources.video.Camera2Source
@@ -54,6 +55,7 @@ class CameraFragment: Fragment(), ConnectChecker {
 
   val genericStream: GenericStream by lazy { GenericStream(requireContext(), this) }
   private lateinit var surfaceView: SurfaceView
+  private lateinit var bStartStop: ImageView
   private val width = 640
   private val height = 480
   private val vBitrate = 1200 * 1000
@@ -67,11 +69,10 @@ class CameraFragment: Fragment(), ConnectChecker {
     inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
   ): View? {
     val view = inflater.inflate(R.layout.activity_example, container, false)
-    val bStartStop = view.findViewById<Button>(R.id.b_start_stop)
-    val bRecord = view.findViewById<Button>(R.id.b_record)
-    val bSwitchCamera = view.findViewById<Button>(R.id.switch_camera)
+    bStartStop = view.findViewById(R.id.b_start_stop)
+    val bRecord = view.findViewById<ImageView>(R.id.b_record)
+    val bSwitchCamera = view.findViewById<ImageView>(R.id.switch_camera)
     val etUrl = view.findViewById<EditText>(R.id.et_rtp_url)
-    etUrl.setHint(R.string.hint_protocol)
 
     surfaceView = view.findViewById(R.id.surfaceView)
     (activity as? RotationExampleActivity)?.let {
@@ -95,10 +96,10 @@ class CameraFragment: Fragment(), ConnectChecker {
     bStartStop.setOnClickListener {
       if (!genericStream.isStreaming) {
         genericStream.startStream(etUrl.text.toString())
-        bStartStop.setText(R.string.stop_button)
+        bStartStop.setImageResource(R.drawable.stream_stop_icon)
       } else {
         genericStream.stopStream()
-        bStartStop.setText(R.string.start_button)
+        bStartStop.setImageResource(R.drawable.stream_icon)
       }
     }
     bRecord.setOnClickListener {
@@ -107,13 +108,15 @@ class CameraFragment: Fragment(), ConnectChecker {
         if (!folder.exists()) folder.mkdir()
         val sdf = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault())
         val fileName = sdf.format(Date())
-        genericStream.startRecord("${folder.absolutePath}/$fileName.mp4") { listener ->
-
+        genericStream.startRecord("${folder.absolutePath}/$fileName.mp4") { status ->
+          if (status == RecordController.Status.RECORDING) {
+            bRecord.setImageResource(R.drawable.stop_icon)
+          }
         }
-        bRecord.setText(R.string.stop_record)
+        bRecord.setImageResource(R.drawable.pause_icon)
       } else {
         genericStream.stopRecord()
-        bRecord.setText(R.string.start_record)
+        bRecord.setImageResource(R.drawable.record_icon)
       }
     }
     bSwitchCamera.setOnClickListener {
@@ -173,6 +176,7 @@ class CameraFragment: Fragment(), ConnectChecker {
           .show()
       } else {
         genericStream.stopStream()
+        bStartStop.setImageResource(R.drawable.stream_icon)
         Toast.makeText(requireContext(), "Failed: $reason", Toast.LENGTH_LONG).show()
       }
     }
@@ -186,6 +190,11 @@ class CameraFragment: Fragment(), ConnectChecker {
   }
 
   override fun onAuthError() {
+    Handler(Looper.getMainLooper()).post {
+      genericStream.stopStream()
+      bStartStop.setImageResource(R.drawable.stream_icon)
+      Toast.makeText(requireContext(), "Auth error", Toast.LENGTH_LONG).show()
+    }
   }
 
   override fun onAuthSuccess() {

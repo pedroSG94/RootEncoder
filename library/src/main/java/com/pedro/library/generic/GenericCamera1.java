@@ -46,7 +46,6 @@ import java.nio.ByteBuffer;
  * <p>
  * Experiment class.
  */
-@RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
 public class GenericCamera1 extends Camera1Base {
 
   private RtmpClient rtmpClient;
@@ -57,28 +56,29 @@ public class GenericCamera1 extends Camera1Base {
   private final StreamClientListener streamClientListener = this::requestKeyFrame;
   private ConnectChecker connectChecker;
 
-  @Deprecated
   public GenericCamera1(SurfaceView surfaceView, ConnectChecker connectChecker) {
     super(surfaceView);
     init(connectChecker);
   }
 
-  @Deprecated
   public GenericCamera1(TextureView textureView, ConnectChecker connectChecker) {
     super(textureView);
     init(connectChecker);
   }
 
+  @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
   public GenericCamera1(OpenGlView openGlView, ConnectChecker connectChecker) {
     super(openGlView);
     init(connectChecker);
   }
 
+  @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
   public GenericCamera1(LightOpenGlView lightOpenGlView, ConnectChecker connectChecker) {
     super(lightOpenGlView);
     init(connectChecker);
   }
 
+  @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
   public GenericCamera1(Context context, ConnectChecker connectChecker) {
     super(context);
     init(connectChecker);

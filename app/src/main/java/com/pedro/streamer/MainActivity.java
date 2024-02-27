@@ -26,7 +26,6 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.media.projection.MediaProjectionManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.view.View;
@@ -40,19 +39,9 @@ import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 
-import com.pedro.streamer.backgroundexample.BackgroundActivity;
-import com.pedro.streamer.customexample.RtmpActivity;
-import com.pedro.streamer.customexample.RtspActivity;
-import com.pedro.streamer.defaultexample.ExampleRtmpActivity;
-import com.pedro.streamer.defaultexample.ExampleRtspActivity;
-import com.pedro.streamer.defaultexample.ExampleSrtActivity;
+import com.pedro.streamer.defaultexample.OldApiActivity;
 import com.pedro.streamer.displayexample.DisplayActivity;
-import com.pedro.streamer.filestreamexample.RtmpFromFileActivity;
-import com.pedro.streamer.filestreamexample.RtspFromFileActivity;
-import com.pedro.streamer.openglexample.OpenGlGenericActivity;
-import com.pedro.streamer.openglexample.OpenGlRtmpActivity;
-import com.pedro.streamer.openglexample.OpenGlRtspActivity;
-import com.pedro.streamer.openglexample.OpenGlSrtActivity;
+import com.pedro.streamer.filestreamexample.FromFileActivity;
 import com.pedro.streamer.rotation.RotationExampleActivity;
 import com.pedro.streamer.utils.ActivityLink;
 import com.pedro.streamer.utils.ImageAdapter;
@@ -105,32 +94,12 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
   @SuppressLint("NewApi")
   private void createList() {
     activities = new ArrayList<>();
-    activities.add(new ActivityLink(new Intent(this, RtmpActivity.class),
-        getString(R.string.rtmp_streamer), JELLY_BEAN));
-    activities.add(new ActivityLink(new Intent(this, RtspActivity.class),
-        getString(R.string.rtsp_streamer), JELLY_BEAN));
-    activities.add(new ActivityLink(new Intent(this, ExampleRtmpActivity.class),
-        getString(R.string.default_rtmp), JELLY_BEAN));
-    activities.add(new ActivityLink(new Intent(this, ExampleRtspActivity.class),
-        getString(R.string.default_rtsp), JELLY_BEAN));
-    activities.add(new ActivityLink(new Intent(this, ExampleSrtActivity.class),
-            getString(R.string.default_srt), JELLY_BEAN));
-    activities.add(new ActivityLink(new Intent(this, RtmpFromFileActivity.class),
-        getString(R.string.from_file_rtmp), JELLY_BEAN_MR2));
-    activities.add(new ActivityLink(new Intent(this, RtspFromFileActivity.class),
-        getString(R.string.from_file_rtsp), JELLY_BEAN_MR2));
-      activities.add(new ActivityLink(new Intent(this, OpenGlRtmpActivity.class),
-              getString(R.string.opengl_rtmp), JELLY_BEAN_MR2));
-      activities.add(new ActivityLink(new Intent(this, OpenGlRtspActivity.class),
-              getString(R.string.opengl_rtsp), JELLY_BEAN_MR2));
-      activities.add(new ActivityLink(new Intent(this, OpenGlSrtActivity.class),
-              getString(R.string.opengl_srt), JELLY_BEAN_MR2));
-      activities.add(new ActivityLink(new Intent(this, OpenGlGenericActivity.class),
-              getString(R.string.opengl_generic), JELLY_BEAN_MR2));
+    activities.add(new ActivityLink(new Intent(this, OldApiActivity.class),
+        getString(R.string.old_api), JELLY_BEAN));
+    activities.add(new ActivityLink(new Intent(this, FromFileActivity.class),
+        getString(R.string.from_file), JELLY_BEAN_MR2));
       activities.add(new ActivityLink(new Intent(this, DisplayActivity.class),
-              getString(R.string.display_rtmp), LOLLIPOP));
-      activities.add(new ActivityLink(new Intent(this, BackgroundActivity.class),
-              getString(R.string.service_rtp), LOLLIPOP));
+              getString(R.string.display), LOLLIPOP));
       activities.add(new ActivityLink(new Intent(this, RotationExampleActivity.class),
               getString(R.string.rotation_rtmp), LOLLIPOP));
   }
