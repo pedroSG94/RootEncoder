@@ -145,11 +145,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
     if (hasPermissions(this)) {
       ActivityLink link = activities.get(i);
       int minSdk = link.getMinSdk();
-      if (link.getLabel().equals(getString(R.string.rotation_rtmp)) && Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-        MediaProjectionManager mediaProjectionManager = (MediaProjectionManager) getSystemService(MEDIA_PROJECTION_SERVICE);
-        Intent intent = mediaProjectionManager.createScreenCaptureIntent();
-        startActivityForResult(intent, 0);
-      } else if (Build.VERSION.SDK_INT >= minSdk) {
+      if (Build.VERSION.SDK_INT >= minSdk) {
         startActivity(link.getIntent());
         overridePendingTransition(R.transition.slide_in, R.transition.slide_out);
       } else {

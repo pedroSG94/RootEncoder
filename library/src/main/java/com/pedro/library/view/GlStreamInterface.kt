@@ -242,7 +242,6 @@ class GlStreamInterface(private val context: Context) : Runnable, OnFrameAvailab
   fun attachPreview(surface: Surface) {
     synchronized(sync) {
       if (surfaceManager.isReady) {
-        isPortrait = CameraHelper.isPortrait(context)
         surfaceManagerPreview.release()
         surfaceManagerPreview.eglSetup(surface, surfaceManager)
       }
@@ -259,7 +258,8 @@ class GlStreamInterface(private val context: Context) : Runnable, OnFrameAvailab
     this.streamOrientation = orientation
   }
 
-  fun setPreviewResolution(width: Int, height: Int) {
+  fun setPreviewResolution(width: Int, height: Int, isPortrait: Boolean = CameraHelper.isPortrait(context)) {
+    this.isPortrait = isPortrait
     this.previewWidth = width
     this.previewHeight = height
   }

@@ -102,10 +102,7 @@
     <activity android:name="com.pedro.streamer.rotation.RotationExampleActivity"
         android:label="@string/rotation_rtmp"
         android:screenOrientation="fullSensor"
-        />
-
-    <service android:name="com.pedro.streamer.rotation.StreamService"
-        android:foregroundServiceType="mediaProjection|camera|microphone"
+        android:configChanges="orientation|screenSize"
         />
 
     <service android:name="com.pedro.streamer.backgroundexample.RtpService"
