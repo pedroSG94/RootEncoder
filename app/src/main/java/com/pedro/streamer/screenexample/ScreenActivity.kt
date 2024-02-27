@@ -18,7 +18,8 @@ package com.pedro.streamer.screenexample
 import android.content.Intent
 import android.os.Build
 import android.os.Bundle
-import android.view.View
+import android.os.Handler
+import android.os.Looper
 import android.view.WindowManager
 import android.widget.EditText
 import android.widget.ImageView
@@ -28,7 +29,6 @@ import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import com.pedro.common.ConnectChecker
 import com.pedro.streamer.R
-import com.pedro.streamer.screenexample.ScreenService.Companion.INSTANCE
 
 /**
  * More documentation see:
@@ -36,7 +36,7 @@ import com.pedro.streamer.screenexample.ScreenService.Companion.INSTANCE
  * [com.pedro.library.rtmp.RtmpDisplay]
  */
 @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
-class ScreenActivity : AppCompatActivity(), ConnectChecker, View.OnClickListener {
+class ScreenActivity : AppCompatActivity(), ConnectChecker {
 
   private lateinit var button: ImageView
   private lateinit var etUrl: EditText
@@ -44,11 +44,11 @@ class ScreenActivity : AppCompatActivity(), ConnectChecker, View.OnClickListener
   private val activityResultContract = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
     val data = result.data
     if (data != null && result.resultCode == RESULT_OK) {
-      val displayService = INSTANCE
-      if (displayService != null) {
+      val screenService = ScreenService.INSTANCE
+      if (screenService != null) {
         val endpoint = etUrl.text.toString()
-        displayService.prepareStreamRtp(result.resultCode, data)
-        displayService.startStreamRtp(endpoint)
+        screenService.prepareStream(result.resultCode, data)
+        screenService.startStream(endpoint)
       }
     } else {
       Toast.makeText(this, "No permissions available", Toast.LENGTH_SHORT).show()
@@ -61,41 +61,60 @@ class ScreenActivity : AppCompatActivity(), ConnectChecker, View.OnClickListener
     window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
     setContentView(R.layout.activity_display)
     button = findViewById(R.id.b_start_stop)
-    button.setOnClickListener(this)
     etUrl = findViewById(R.id.et_rtp_url)
-    val displayService = INSTANCE
+    val screenService = ScreenService.INSTANCE
     //No streaming/recording start service
-    if (displayService == null) {
+    if (screenService == null) {
       startService(Intent(this, ScreenService::class.java))
     }
-    if (displayService != null && displayService.isStreaming()) {
+    if (screenService != null && screenService.isStreaming()) {
       button.setImageResource(R.drawable.stream_stop_icon)
     } else {
       button.setImageResource(R.drawable.stream_icon)
+    }
+    button.setOnClickListener {
+      val service = ScreenService.INSTANCE
+      if (service != null) {
+        service.setCallback(this)
+        if (!service.isStreaming()) {
+          button.setImageResource(R.drawable.stream_stop_icon)
+          activityResultContract.launch(service.sendIntent())
+        } else {
+          stopStream()
+        }
+      }
     }
   }
 
   override fun onDestroy() {
     super.onDestroy()
-    val displayService = INSTANCE
-    if (displayService != null && !displayService.isStreaming() && !displayService.isRecording()) {
+    val screenService = ScreenService.INSTANCE
+    if (screenService != null && !screenService.isStreaming() && !screenService.isRecording()) {
+      screenService.setCallback(null)
       activityResultContract.unregister()
       //stop service only if no streaming or recording
       stopService(Intent(this, ScreenService::class.java))
     }
   }
 
+  private fun stopStream() {
+    val screenService = ScreenService.INSTANCE
+    screenService?.stopStream()
+    button.setImageResource(R.drawable.stream_icon)
+  }
+
   override fun onConnectionStarted(url: String) {}
+
   override fun onConnectionSuccess() {
-    Toast.makeText(this@ScreenActivity, "Connection success", Toast.LENGTH_SHORT).show()
+    Toast.makeText(this@ScreenActivity, "Connected", Toast.LENGTH_SHORT).show()
   }
 
   override fun onConnectionFailed(reason: String) {
-    Toast.makeText(this@ScreenActivity, "Connection failed. $reason", Toast.LENGTH_SHORT)
-      .show()
-    val displayService = INSTANCE
-    displayService?.stopStream()
-    button.setImageResource(R.drawable.stream_icon)
+    Handler(Looper.getMainLooper()).post {
+      stopStream()
+      Toast.makeText(this@ScreenActivity, "Failed: $reason", Toast.LENGTH_LONG)
+        .show()
+    }
   }
 
   override fun onNewBitrate(bitrate: Long) {}
@@ -104,27 +123,13 @@ class ScreenActivity : AppCompatActivity(), ConnectChecker, View.OnClickListener
   }
 
   override fun onAuthError() {
-    Toast.makeText(this@ScreenActivity, "Auth error", Toast.LENGTH_SHORT).show()
+    Handler(Looper.getMainLooper()).post {
+      stopStream()
+      Toast.makeText(this@ScreenActivity, "Auth error", Toast.LENGTH_LONG).show()
+    }
   }
 
   override fun onAuthSuccess() {
     Toast.makeText(this@ScreenActivity, "Auth success", Toast.LENGTH_SHORT).show()
-  }
-
-  override fun onClick(view: View) {
-    val displayService = INSTANCE
-    if (displayService != null) {
-      if (view.id == R.id.b_start_stop) {
-        if (!displayService.isStreaming()) {
-          displayService.sendIntent()?.let { intent ->
-            button.setImageResource(R.drawable.stream_stop_icon)
-            activityResultContract.launch(intent)
-          }
-        } else {
-          button.setImageResource(R.drawable.stream_icon)
-          displayService.stopStream()
-        }
-      }
-    }
   }
 }
