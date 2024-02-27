@@ -51,7 +51,7 @@
         />
 
     <activity
-        android:name="com.pedro.streamer.displayexample.DisplayActivity"
+        android:name="com.pedro.streamer.screenexample.ScreenActivity"
         android:label="@string/display"
         android:screenOrientation="portrait" />
 
@@ -61,7 +61,7 @@
         android:configChanges="orientation|screenSize"
         />
 
-    <service android:name="com.pedro.streamer.displayexample.DisplayService"
+    <service android:name="com.pedro.streamer.screenexample.ScreenService"
         android:foregroundServiceType="mediaProjection"
         />
   </application>

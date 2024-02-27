@@ -40,7 +40,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 
 import com.pedro.streamer.defaultexample.OldApiActivity;
-import com.pedro.streamer.displayexample.DisplayActivity;
+import com.pedro.streamer.screenexample.ScreenActivity;
 import com.pedro.streamer.filestreamexample.FromFileActivity;
 import com.pedro.streamer.rotation.RotationExampleActivity;
 import com.pedro.streamer.utils.ActivityLink;
@@ -98,7 +98,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         getString(R.string.old_api), JELLY_BEAN));
     activities.add(new ActivityLink(new Intent(this, FromFileActivity.class),
         getString(R.string.from_file), JELLY_BEAN_MR2));
-      activities.add(new ActivityLink(new Intent(this, DisplayActivity.class),
+      activities.add(new ActivityLink(new Intent(this, ScreenActivity.class),
               getString(R.string.display), LOLLIPOP));
       activities.add(new ActivityLink(new Intent(this, RotationExampleActivity.class),
               getString(R.string.rotation_rtmp), LOLLIPOP));

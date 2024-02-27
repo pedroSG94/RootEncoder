@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.pedro.streamer.displayexample
+package com.pedro.streamer.screenexample
 
 import android.app.NotificationChannel
 import android.app.NotificationManager
@@ -35,7 +35,7 @@ import com.pedro.streamer.R
  * Basic RTMP/RTSP service streaming implementation with camera2
  */
 @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
-class DisplayService: Service(), ConnectChecker {
+class ScreenService: Service(), ConnectChecker {
 
   override fun onCreate() {
     super.onCreate()
@@ -72,7 +72,7 @@ class DisplayService: Service(), ConnectChecker {
     private const val TAG = "DisplayService"
     private const val channelId = "rtpDisplayStreamChannel"
     const val notifyId = 123456
-    var INSTANCE: DisplayService? = null
+    var INSTANCE: ScreenService? = null
   }
 
   private var notificationManager: NotificationManager? = null
