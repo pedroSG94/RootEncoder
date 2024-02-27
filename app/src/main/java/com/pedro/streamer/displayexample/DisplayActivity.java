@@ -20,15 +20,15 @@ import android.app.Activity;
 import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
+import android.view.View;
+import android.view.WindowManager;
+import android.widget.EditText;
+import android.widget.ImageView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
-import android.view.View;
-import android.view.WindowManager;
-import android.widget.Button;
-import android.widget.EditText;
-import android.widget.Toast;
 
 import com.pedro.common.ConnectChecker;
 import com.pedro.streamer.R;
@@ -42,7 +42,7 @@ import com.pedro.streamer.R;
 public class DisplayActivity extends AppCompatActivity
     implements ConnectChecker, View.OnClickListener {
 
-  private Button button;
+  private ImageView button;
   private EditText etUrl;
   private final int REQUEST_CODE_STREAM = 179; //random num
   private final int REQUEST_CODE_RECORD = 180; //random num
@@ -61,9 +61,9 @@ public class DisplayActivity extends AppCompatActivity
       startService(new Intent(this, DisplayService.class));
     }
     if (displayService != null && displayService.isStreaming()) {
-      button.setText(R.string.stop_button);
+      button.setImageResource(R.drawable.stream_stop_icon);
     } else {
-      button.setText(R.string.start_button);
+      button.setImageResource(R.drawable.stream_icon);
     }
   }
 
@@ -94,7 +94,7 @@ public class DisplayActivity extends AppCompatActivity
     if (displayService != null) {
       displayService.stopStream();
     }
-    button.setText(R.string.start_button);
+    button.setImageResource(R.drawable.stream_icon);
   }
 
   @Override
@@ -130,7 +130,7 @@ public class DisplayActivity extends AppCompatActivity
       }
     } else {
       Toast.makeText(this, "No permissions available", Toast.LENGTH_SHORT).show();
-      button.setText(R.string.start_button);
+      button.setImageResource(R.drawable.stream_icon);
     }
   }
 
@@ -140,10 +140,10 @@ public class DisplayActivity extends AppCompatActivity
     if (displayService != null) {
       if (view.getId() == R.id.b_start_stop) {
         if (!displayService.isStreaming()) {
-          button.setText(R.string.stop_button);
+          button.setImageResource(R.drawable.stream_stop_icon);
           startActivityForResult(displayService.sendIntent(), REQUEST_CODE_STREAM);
         } else {
-          button.setText(R.string.start_button);
+          button.setImageResource(R.drawable.stream_icon);
           displayService.stopStream();
         }
       }

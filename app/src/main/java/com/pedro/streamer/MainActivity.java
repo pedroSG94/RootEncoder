@@ -113,9 +113,9 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
   public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
     if (hasPermissions(this)) {
       ActivityLink link = activities.get(i);
-      int minSdk = link.getMinSdk();
+      int minSdk = link.minSdk;
       if (Build.VERSION.SDK_INT >= minSdk) {
-        startActivity(link.getIntent());
+        startActivity(link.intent);
         overridePendingTransition(R.transition.slide_in, R.transition.slide_out);
       } else {
         showMinSdkError(minSdk);
@@ -131,7 +131,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
     if (data != null && (requestCode == 0 && resultCode == Activity.RESULT_OK) && Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
       ActivityLink link = new ActivityLink(new Intent(this, RotationExampleActivity.class),
           getString(R.string.rotation_rtmp), LOLLIPOP);
-      startActivity(link.getIntent());
+      startActivity(link.intent);
       overridePendingTransition(R.transition.slide_in, R.transition.slide_out);
     }
   }
