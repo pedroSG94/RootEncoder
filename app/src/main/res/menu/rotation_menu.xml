@@ -24,6 +24,18 @@
                 />
         </menu>
     </item>
+    <item android:title="@string/orientation">
+        <menu>
+            <item
+                android:title="@string/horizontal"
+                android:id="@+id/orientation_horizontal"
+                />
+            <item
+                android:title="@string/vertical"
+                android:id="@+id/orientation_vertical"
+                />
+        </menu>
+    </item>
     <item
         android:title="@string/filters"
         >

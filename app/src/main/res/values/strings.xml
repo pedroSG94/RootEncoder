@@ -112,4 +112,6 @@
   <string name="screen">Screen</string>
   <string name="internal">Internal</string>
   <string name="hint_protocol">protocol://yourendpoint</string>
+    <string name="horizontal">Horizontal</string>
+  <string name="vertical">Vertical</string>
 </resources>

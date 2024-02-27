@@ -66,6 +66,12 @@ class RotationExampleActivity : AppCompatActivity(), OnTouchListener {
       R.id.audio_source_microphone -> {
         cameraFragment.genericStream.changeAudioSource(MicrophoneSource())
       }
+      R.id.orientation_horizontal -> {
+        cameraFragment.setOrientationMode(false)
+      }
+      R.id.orientation_vertical -> {
+        cameraFragment.setOrientationMode(true)
+      }
       else -> return filterMenu.onOptionsItemSelected(item, cameraFragment.genericStream.getGlInterface())
     }
     return super.onOptionsItemSelected(item)

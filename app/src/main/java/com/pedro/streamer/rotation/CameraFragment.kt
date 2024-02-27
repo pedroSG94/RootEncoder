@@ -53,6 +53,14 @@ class CameraFragment: Fragment(), ConnectChecker {
   }
 
   val genericStream: GenericStream by lazy { GenericStream(requireContext(), this) }
+  private lateinit var surfaceView: SurfaceView
+  private val width = 640
+  private val height = 480
+  private val vBitrate = 1200 * 1000
+  private var rotation = 0
+  private val sampleRate = 32000
+  private val isStereo = true
+  private val aBitrate = 128 * 1000
 
   @SuppressLint("ClickableViewAccessibility")
   override fun onCreateView(
@@ -65,7 +73,7 @@ class CameraFragment: Fragment(), ConnectChecker {
     val etUrl = view.findViewById<EditText>(R.id.et_rtp_url)
     etUrl.setHint(R.string.hint_protocol)
 
-    val surfaceView = view.findViewById<SurfaceView>(R.id.surfaceView)
+    surfaceView = view.findViewById(R.id.surfaceView)
     (activity as? RotationExampleActivity)?.let {
       surfaceView.setOnTouchListener(it)
     }
@@ -118,15 +126,27 @@ class CameraFragment: Fragment(), ConnectChecker {
     return view
   }
 
+  fun setOrientationMode(isVertical: Boolean) {
+    val wasOnPreview = genericStream.isOnPreview
+    genericStream.release()
+    rotation = if (isVertical) 90 else 0
+    prepare()
+    if (wasOnPreview) genericStream.startPreview(surfaceView)
+  }
+
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
-    val prepared = genericStream.prepareVideo(640, 480, 1200 * 1000) &&
-        genericStream.prepareAudio(32000, true, 128 * 1000)
+    prepare()
+    genericStream.getStreamClient().setReTries(10)
+  }
+
+  private fun prepare() {
+    val prepared = genericStream.prepareVideo(width, height, vBitrate, rotation = rotation) &&
+        genericStream.prepareAudio(sampleRate, isStereo, aBitrate)
     if (!prepared) {
       Toast.makeText(requireContext(), "Audio or Video configuration failed", Toast.LENGTH_LONG).show()
       activity?.finish()
     }
-    genericStream.getStreamClient().setReTries(10)
   }
 
   override fun onDestroy() {
@@ -136,24 +156,7 @@ class CameraFragment: Fragment(), ConnectChecker {
 
   override fun onConfigurationChanged(newConfig: Configuration) {
     super.onConfigurationChanged(newConfig)
-    val isReversed = newConfig.layoutDirection == Configuration.SCREENLAYOUT_LONG_YES
-    when (newConfig.orientation) {
-      Configuration.ORIENTATION_LANDSCAPE -> {
-        if (isReversed) {
-          genericStream.setOrientation(90)
-        } else {
-          genericStream.setOrientation(270)
-        }
-      }
-      Configuration.ORIENTATION_PORTRAIT -> {
-        if (isReversed) {
-          genericStream.setOrientation(180)
-        } else {
-          genericStream.setOrientation(0)
-        }
-      }
-      else -> {}
-    }
+    genericStream.setConfig(newConfig)
   }
 
   override fun onConnectionStarted(url: String) {

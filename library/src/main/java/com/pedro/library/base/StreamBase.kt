@@ -17,6 +17,7 @@
 package com.pedro.library.base
 
 import android.content.Context
+import android.content.res.Configuration
 import android.graphics.SurfaceTexture
 import android.media.MediaCodec
 import android.media.MediaFormat
@@ -310,6 +311,27 @@ abstract class StreamBase(
    */
   fun setOrientation(orientation: Int) {
     glInterface.setCameraOrientation(orientation)
+  }
+
+  fun setConfig(config: Configuration) {
+    val isReversed = config.layoutDirection == Configuration.SCREENLAYOUT_LONG_YES
+    when (config.orientation) {
+      Configuration.ORIENTATION_LANDSCAPE -> {
+        if (isReversed) {
+          setOrientation(90)
+        } else {
+          setOrientation(270)
+        }
+      }
+      Configuration.ORIENTATION_PORTRAIT -> {
+        if (isReversed) {
+          setOrientation(180)
+        } else {
+          setOrientation(0)
+        }
+      }
+      else -> {}
+    }
   }
 
   /**
