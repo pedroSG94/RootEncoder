@@ -69,6 +69,7 @@ public class SimpleCameraRender {
   private Surface surface;
   private int streamWidth;
   private int streamHeight;
+  private boolean isReady = false;
 
   public SimpleCameraRender() {
     Matrix.setIdentityM(MVPMatrix, 0);
@@ -86,6 +87,10 @@ public class SimpleCameraRender {
     Matrix.setIdentityM(rotationMatrix, 0);
     Matrix.rotateM(rotationMatrix, 0, rotation, 0f, 0f, -1f);
     update();
+  }
+
+  public boolean isReady() {
+    return isReady;
   }
 
   public int getTextureId() {
@@ -162,9 +167,11 @@ public class SimpleCameraRender {
     surfaceTexture.setDefaultBufferSize(streamWidth, streamHeight);
     surface = new Surface(surfaceTexture);
     GlUtil.checkGlError("initGl end");
+    isReady = true;
   }
 
   public void release() {
+    isReady = false;
     GLES20.glDeleteProgram(program);
     surfaceTexture.release();
     surface.release();

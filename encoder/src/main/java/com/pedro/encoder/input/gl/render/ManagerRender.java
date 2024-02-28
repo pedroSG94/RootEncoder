@@ -49,6 +49,7 @@ public class ManagerRender {
   private int previewWidth;
   private int previewHeight;
   private Context context;
+  private boolean isReady = false;
 
   public ManagerRender() {
     filterRenders = new ArrayList<>();
@@ -67,6 +68,7 @@ public class ManagerRender {
     screenRender.setStreamSize(encoderWidth, encoderHeight);
     screenRender.setTexId(cameraRender.getTexId());
     screenRender.initGl(context);
+    isReady = true;
   }
 
   public void drawOffScreen() {
@@ -81,10 +83,15 @@ public class ManagerRender {
   }
 
   public void release() {
+    isReady = false;
     cameraRender.release();
     for (BaseFilterRender baseFilterRender : filterRenders) baseFilterRender.release();
     filterRenders.clear();
     screenRender.release();
+  }
+
+  public boolean isReady() {
+    return isReady;
   }
 
   public void enableAA(boolean AAEnabled) {

@@ -38,6 +38,7 @@ class MainRender {
   private var previewHeight = 0
   private var context: Context? = null
   private var filterRenders: MutableList<BaseFilterRender> = ArrayList()
+  var isReady = false
 
   fun initGl(context: Context, encoderWidth: Int, encoderHeight: Int, previewWidth: Int, previewHeight: Int) {
     this.context = context
@@ -49,6 +50,7 @@ class MainRender {
     screenRender.setStreamSize(encoderWidth, encoderHeight)
     screenRender.setTexId(cameraRender.texId)
     screenRender.initGl(context)
+    isReady = true
   }
 
   fun drawOffScreen() {
@@ -74,6 +76,7 @@ class MainRender {
   }
 
   fun release() {
+    isReady = false
     cameraRender.release()
     for (baseFilterRender in filterRenders) baseFilterRender.release()
     filterRenders.clear()

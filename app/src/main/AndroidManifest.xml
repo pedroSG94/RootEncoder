@@ -29,7 +29,6 @@
     <activity
         android:name="com.pedro.streamer.MainActivity"
         android:label="@string/app_name"
-        android:screenOrientation="portrait"
         android:exported="true">
       <intent-filter>
         <action android:name="android.intent.action.VIEW"/>
@@ -53,7 +52,7 @@
     <activity
         android:name="com.pedro.streamer.screenexample.ScreenActivity"
         android:label="@string/display"
-        android:screenOrientation="portrait" />
+        />
 
     <activity android:name="com.pedro.streamer.rotation.RotationExampleActivity"
         android:label="@string/rotation_rtmp"

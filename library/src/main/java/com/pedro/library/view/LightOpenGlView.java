@@ -99,7 +99,7 @@ public class LightOpenGlView extends OpenGlViewBase {
           surfaceManager.swapBuffer();
 
           synchronized (sync) {
-            if (surfaceManagerEncoder.isReady() && !fpsLimiter.limitFPS()) {
+            if (surfaceManagerEncoder.isReady() && simpleCameraRender.isReady() && !fpsLimiter.limitFPS()) {
               int w = muteVideo ? 0 : encoderWidth;
               int h = muteVideo ? 0 : encoderHeight;
               surfaceManagerEncoder.makeCurrent();
@@ -107,7 +107,7 @@ public class LightOpenGlView extends OpenGlViewBase {
                   streamRotation, isStreamVerticalFlip, isStreamHorizontalFlip);
               surfaceManagerEncoder.swapBuffer();
             }
-            if (takePhotoCallback != null && surfaceManagerPhoto.isReady()) {
+            if (takePhotoCallback != null && surfaceManagerPhoto.isReady() && simpleCameraRender.isReady()) {
               surfaceManagerPhoto.makeCurrent();
               simpleCameraRender.drawFrame(encoderWidth, encoderHeight, aspectRatioMode,
                   streamRotation, isStreamVerticalFlip, isStreamHorizontalFlip);

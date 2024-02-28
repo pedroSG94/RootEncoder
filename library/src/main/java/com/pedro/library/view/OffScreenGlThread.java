@@ -281,7 +281,7 @@ public class OffScreenGlThread
           }
 
           synchronized (sync) {
-            if (surfaceManagerEncoder.isReady() && !fpsLimiter.limitFPS()) {
+            if (surfaceManagerEncoder.isReady() && managerRender.isReady() && !fpsLimiter.limitFPS()) {
               int w = muteVideo ? 0 : encoderWidth;
               int h = muteVideo ? 0 : encoderHeight;
               surfaceManagerEncoder.makeCurrent();
@@ -289,7 +289,7 @@ public class OffScreenGlThread
                   streamRotation, isStreamVerticalFlip, isStreamHorizontalFlip);
               surfaceManagerEncoder.swapBuffer();
             }
-            if (takePhotoCallback != null && surfaceManagerPhoto.isReady()) {
+            if (takePhotoCallback != null && surfaceManagerPhoto.isReady() && managerRender.isReady()) {
               surfaceManagerPhoto.makeCurrent();
               managerRender.drawScreen(encoderWidth, encoderHeight, AspectRatioMode.NONE,
                   streamRotation, isStreamVerticalFlip, isStreamHorizontalFlip);
