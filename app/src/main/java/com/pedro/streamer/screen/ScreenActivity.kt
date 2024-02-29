@@ -110,11 +110,9 @@ class ScreenActivity : AppCompatActivity(), ConnectChecker {
   }
 
   override fun onConnectionFailed(reason: String) {
-    Handler(Looper.getMainLooper()).post {
-      stopStream()
-      Toast.makeText(this@ScreenActivity, "Failed: $reason", Toast.LENGTH_LONG)
-        .show()
-    }
+    stopStream()
+    Toast.makeText(this@ScreenActivity, "Failed: $reason", Toast.LENGTH_LONG)
+      .show()
   }
 
   override fun onNewBitrate(bitrate: Long) {}

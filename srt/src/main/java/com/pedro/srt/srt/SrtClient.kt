@@ -361,7 +361,9 @@ class SrtClient(private val connectChecker: ConnectChecker) {
           }
           is PeerError -> {
             val reason = srtPacket.errorCode
-            connectChecker.onConnectionFailed("PeerError: $reason")
+            onMainThread {
+              connectChecker.onConnectionFailed("PeerError: $reason")
+            }
           }
         }
       }

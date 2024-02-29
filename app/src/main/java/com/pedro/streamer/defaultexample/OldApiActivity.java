@@ -22,7 +22,6 @@ import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.View;
 import android.view.WindowManager;
-import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.Toast;
@@ -56,7 +55,6 @@ public class OldApiActivity extends AppCompatActivity
   private ImageView button;
   private ImageView bRecord;
   private EditText etUrl;
-
   private String currentDateAndTime = "";
   private File folder;
 
@@ -75,7 +73,6 @@ public class OldApiActivity extends AppCompatActivity
     switchCamera.setOnClickListener(this);
     etUrl = findViewById(R.id.et_rtp_url);
     rtmpCamera1 = new GenericCamera1(surfaceView, this);
-    rtmpCamera1.getStreamClient().setReTries(10);
     surfaceView.getHolder().addCallback(this);
   }
 
@@ -90,16 +87,11 @@ public class OldApiActivity extends AppCompatActivity
 
   @Override
   public void onConnectionFailed(@NonNull final String reason) {
-    if (rtmpCamera1.getStreamClient().reTry(5000, reason, null)) {
-      Toast.makeText(OldApiActivity.this, "Retry", Toast.LENGTH_SHORT)
-          .show();
-    } else {
-      Toast.makeText(OldApiActivity.this, "Connection failed. " + reason, Toast.LENGTH_SHORT)
-          .show();
-      rtmpCamera1.stopStream();
-      ScreenOrientation.INSTANCE.unlockScreen(this);
-      button.setImageResource(R.drawable.stream_icon);
-    }
+    Toast.makeText(OldApiActivity.this, "Connection failed. " + reason, Toast.LENGTH_SHORT)
+        .show();
+    rtmpCamera1.stopStream();
+    ScreenOrientation.INSTANCE.unlockScreen(this);
+    button.setImageResource(R.drawable.stream_icon);
   }
 
   @Override

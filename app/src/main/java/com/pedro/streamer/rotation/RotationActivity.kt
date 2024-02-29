@@ -36,7 +36,7 @@ import com.pedro.streamer.utils.FilterMenu
  * Created by pedro on 22/3/22.
  */
 @RequiresApi(Build.VERSION_CODES.LOLLIPOP)
-class RotationExampleActivity : AppCompatActivity(), OnTouchListener {
+class RotationActivity : AppCompatActivity(), OnTouchListener {
 
   private val cameraFragment = CameraFragment.getInstance()
   private val filterMenu: FilterMenu by lazy { FilterMenu(this) }

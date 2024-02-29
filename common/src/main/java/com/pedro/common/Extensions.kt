@@ -18,6 +18,8 @@ package com.pedro.common
 
 import android.media.MediaCodec
 import android.os.Build
+import android.os.Handler
+import android.os.Looper
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.nio.ByteBuffer
@@ -67,6 +69,10 @@ suspend fun onMainThread(code: () -> Unit) {
   withContext(Dispatchers.Main) {
     code()
   }
+}
+
+fun onMainThreadHandler(code: () -> Unit) {
+  Handler(Looper.getMainLooper()).post(code)
 }
 
 fun ByteArray.bytesToHex(): String {

@@ -31,7 +31,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import com.pedro.streamer.defaultexample.OldApiActivity
 import com.pedro.streamer.file.FromFileActivity
-import com.pedro.streamer.rotation.RotationExampleActivity
+import com.pedro.streamer.rotation.RotationActivity
 import com.pedro.streamer.screen.ScreenActivity
 import com.pedro.streamer.utils.ActivityLink
 import com.pedro.streamer.utils.ImageAdapter
@@ -99,7 +99,7 @@ class MainActivity : AppCompatActivity() {
     )
     activities.add(
       ActivityLink(
-        Intent(this, RotationExampleActivity::class.java),
+        Intent(this, RotationActivity::class.java),
         getString(R.string.rotation_rtmp), VERSION_CODES.LOLLIPOP
       )
     )

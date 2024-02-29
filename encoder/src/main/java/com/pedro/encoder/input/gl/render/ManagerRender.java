@@ -49,7 +49,7 @@ public class ManagerRender {
   private int previewWidth;
   private int previewHeight;
   private Context context;
-  private boolean isReady = false;
+  private volatile boolean isReady = false;
 
   public ManagerRender() {
     filterRenders = new ArrayList<>();

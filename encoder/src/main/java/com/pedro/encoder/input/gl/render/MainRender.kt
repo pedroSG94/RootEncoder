@@ -38,6 +38,7 @@ class MainRender {
   private var previewHeight = 0
   private var context: Context? = null
   private var filterRenders: MutableList<BaseFilterRender> = ArrayList()
+  @Volatile
   var isReady = false
 
   fun initGl(context: Context, encoderWidth: Int, encoderHeight: Int, previewWidth: Int, previewHeight: Int) {

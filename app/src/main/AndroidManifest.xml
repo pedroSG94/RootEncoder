@@ -54,7 +54,7 @@
         android:label="@string/display"
         />
 
-    <activity android:name="com.pedro.streamer.rotation.RotationExampleActivity"
+    <activity android:name="com.pedro.streamer.rotation.RotationActivity"
         android:label="@string/rotation_rtmp"
         android:screenOrientation="fullSensor"
         android:configChanges="orientation|screenSize"

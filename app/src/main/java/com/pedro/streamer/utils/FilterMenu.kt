@@ -21,7 +21,6 @@ import android.graphics.BitmapFactory
 import android.graphics.Color
 import android.media.MediaPlayer
 import android.os.Build
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.MenuItem
 import android.view.Surface

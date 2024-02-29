@@ -76,7 +76,7 @@ class CameraFragment: Fragment(), ConnectChecker {
     val etUrl = view.findViewById<EditText>(R.id.et_rtp_url)
 
     surfaceView = view.findViewById(R.id.surfaceView)
-    (activity as? RotationExampleActivity)?.let {
+    (activity as? RotationActivity)?.let {
       surfaceView.setOnTouchListener(it)
     }
     surfaceView.holder.addCallback(object: SurfaceHolder.Callback {
@@ -172,15 +172,13 @@ class CameraFragment: Fragment(), ConnectChecker {
   }
 
   override fun onConnectionFailed(reason: String) {
-    Handler(Looper.getMainLooper()).post {
-      if (genericStream.getStreamClient().reTry(5000, reason, null)) {
-        Toast.makeText(requireContext(), "Retry", Toast.LENGTH_SHORT)
-          .show()
-      } else {
-        genericStream.stopStream()
-        bStartStop.setImageResource(R.drawable.stream_icon)
-        Toast.makeText(requireContext(), "Failed: $reason", Toast.LENGTH_LONG).show()
-      }
+    if (genericStream.getStreamClient().reTry(5000, reason, null)) {
+      Toast.makeText(requireContext(), "Retry", Toast.LENGTH_SHORT)
+        .show()
+    } else {
+      genericStream.stopStream()
+      bStartStop.setImageResource(R.drawable.stream_icon)
+      Toast.makeText(requireContext(), "Failed: $reason", Toast.LENGTH_LONG).show()
     }
   }
 

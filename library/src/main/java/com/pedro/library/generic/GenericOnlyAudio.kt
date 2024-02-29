@@ -18,6 +18,7 @@ package com.pedro.library.generic
 import android.media.MediaCodec
 import com.pedro.common.AudioCodec
 import com.pedro.common.ConnectChecker
+import com.pedro.common.onMainThreadHandler
 import com.pedro.library.base.OnlyAudioBase
 import com.pedro.library.util.streamclient.GenericStreamClient
 import com.pedro.library.util.streamclient.RtmpStreamClient
@@ -28,10 +29,6 @@ import com.pedro.rtsp.rtsp.RtspClient
 import com.pedro.srt.srt.SrtClient
 import java.nio.ByteBuffer
 
-/**
- *
- * Experiment class.
- */
 class GenericOnlyAudio(private val connectChecker: ConnectChecker): OnlyAudioBase() {
 
   private val rtmpClient = RtmpClient(connectChecker)
@@ -75,7 +72,9 @@ class GenericOnlyAudio(private val connectChecker: ConnectChecker): OnlyAudioBas
       connectedType = ClientType.SRT
       startStreamRtpSrt(url)
     } else {
-      connectChecker.onConnectionFailed("unsupported protocol. Only support rtmp, rtsp and srt")
+      onMainThreadHandler {
+        connectChecker.onConnectionFailed("Unsupported protocol. Only support rtmp, rtsp and srt")
+      }
     }
   }
 

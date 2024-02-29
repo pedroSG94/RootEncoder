@@ -13,69 +13,86 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package com.pedro.library.generic
 
 import android.content.Context
 import android.media.MediaCodec
 import android.os.Build
+import android.view.SurfaceView
+import android.view.TextureView
 import androidx.annotation.RequiresApi
 import com.pedro.common.AudioCodec
 import com.pedro.common.ConnectChecker
 import com.pedro.common.VideoCodec
 import com.pedro.common.onMainThreadHandler
-import com.pedro.library.base.StreamBase
-import com.pedro.library.util.sources.audio.AudioSource
-import com.pedro.library.util.sources.audio.MicrophoneSource
-import com.pedro.library.util.sources.video.Camera2Source
-import com.pedro.library.util.sources.video.VideoSource
+import com.pedro.library.base.Camera2Base
 import com.pedro.library.util.streamclient.GenericStreamClient
 import com.pedro.library.util.streamclient.RtmpStreamClient
 import com.pedro.library.util.streamclient.RtspStreamClient
 import com.pedro.library.util.streamclient.SrtStreamClient
 import com.pedro.library.util.streamclient.StreamClientListener
+import com.pedro.library.view.OpenGlView
 import com.pedro.rtmp.rtmp.RtmpClient
 import com.pedro.rtsp.rtsp.RtspClient
 import com.pedro.srt.srt.SrtClient
 import java.nio.ByteBuffer
+import java.util.Locale
 
 /**
- * Created by pedro on 14/3/22.
+ * Created by Ernovation on 9/11/21.
  *
- * If you use VideoManager.Source.SCREEN/AudioManager.Source.INTERNAL. Call
- * changeVideoSourceScreen/changeAudioSourceInternal is necessary to start it.
  */
-@RequiresApi(Build.VERSION_CODES.LOLLIPOP)
-class GenericStream(
-  context: Context,
-  private val connectChecker: ConnectChecker,
-  videoSource: VideoSource,
-  audioSource: AudioSource
-): StreamBase(context, videoSource, audioSource) {
+@RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
+class GenericCamera2: Camera2Base {
 
   private val streamClientListener = object: StreamClientListener {
     override fun onRequestKeyframe() {
-      requestKeyframe()
+      requestKeyFrame()
     }
   }
-  private val rtmpClient = RtmpClient(connectChecker)
-  private val rtspClient = RtspClient(connectChecker)
-  private val srtClient = SrtClient(connectChecker)
-  private val streamClient = GenericStreamClient(
-    RtmpStreamClient(rtmpClient, streamClientListener),
-    RtspStreamClient(rtspClient, streamClientListener),
-    SrtStreamClient(srtClient, streamClientListener)
-  )
+  private lateinit var rtmpClient: RtmpClient
+  private lateinit var rtspClient: RtspClient
+  private lateinit var srtClient: SrtClient
+  private lateinit var streamClient: GenericStreamClient
+  private lateinit var connectChecker: ConnectChecker
   private var connectedType = ClientType.NONE
 
-  constructor(context: Context, connectChecker: ConnectChecker):
-      this(context, connectChecker, Camera2Source(context), MicrophoneSource())
+  @Deprecated("This view produce rotations problems and could be unsupported in future versions")
+  constructor(surfaceView: SurfaceView, connectChecker: ConnectChecker) : super(surfaceView) {
+    init(connectChecker)
+  }
 
-  override fun getStreamClient(): GenericStreamClient = streamClient
+  @Deprecated("This view produce rotations problems and could be unsupported in future versions")
+  constructor(textureView: TextureView, connectChecker: ConnectChecker) : super(textureView) {
+    init(connectChecker)
+  }
+
+  constructor(openGlView: OpenGlView, connectChecker: ConnectChecker) : super(openGlView) {
+    init(connectChecker)
+  }
+
+  constructor(context: Context, useOpenGl: Boolean, connectChecker: ConnectChecker) : super(context, useOpenGl) {
+    init(connectChecker)
+  }
+
+  private fun init(connectChecker: ConnectChecker) {
+    this.connectChecker = connectChecker
+    rtspClient = RtspClient(connectChecker)
+    srtClient = SrtClient(connectChecker)
+    streamClient = GenericStreamClient(
+      RtmpStreamClient(rtmpClient, streamClientListener),
+      RtspStreamClient(rtspClient, streamClientListener),
+      SrtStreamClient(srtClient, streamClientListener)
+    )
+  }
+
+  override fun getStreamClient(): GenericStreamClient {
+    return streamClient
+  }
 
   override fun setVideoCodecImp(codec: VideoCodec) {
-    if (codec != VideoCodec.H264 && codec != VideoCodec.H265) {
-      throw IllegalArgumentException("Unsupported codec: ${codec.name}. Generic only support video ${VideoCodec.H264.name} and ${VideoCodec.H265.name}")
+    require(!(codec != VideoCodec.H264 && codec != VideoCodec.H265)) {
+      "Unsupported codec: " + codec.name + ". Generic only support video " + VideoCodec.H264.name + " and " + VideoCodec.H265.name
     }
     rtmpClient.setVideoCodec(codec)
     rtspClient.setVideoCodec(codec)
@@ -83,31 +100,31 @@ class GenericStream(
   }
 
   override fun setAudioCodecImp(codec: AudioCodec) {
-    if (codec != AudioCodec.AAC) {
-      throw IllegalArgumentException("Unsupported codec: ${codec.name}. Generic only support audio ${AudioCodec.AAC.name}")
+    require(codec == AudioCodec.AAC) {
+      "Unsupported codec: " + codec.name + ". Generic only support audio " + AudioCodec.AAC.name
     }
     rtmpClient.setAudioCodec(codec)
     rtspClient.setAudioCodec(codec)
     srtClient.setAudioCodec(codec)
   }
 
-  override fun audioInfo(sampleRate: Int, isStereo: Boolean) {
+  override fun prepareAudioRtp(isStereo: Boolean, sampleRate: Int) {
     rtmpClient.setAudioInfo(sampleRate, isStereo)
     rtspClient.setAudioInfo(sampleRate, isStereo)
     srtClient.setAudioInfo(sampleRate, isStereo)
   }
 
-  override fun rtpStartStream(endPoint: String) {
-    streamClient.connecting(endPoint)
-    if (endPoint.startsWith("rtmp", ignoreCase = true)) {
+  override fun startStreamRtp(url: String) {
+    streamClient.connecting(url)
+    if (url.lowercase(Locale.getDefault()).startsWith("rtmp")) {
       connectedType = ClientType.RTMP
-      startStreamRtpRtmp(endPoint)
-    } else if (endPoint.startsWith("rtsp", ignoreCase = true)) {
+      startStreamRtpRtmp(url)
+    } else if (url.lowercase(Locale.getDefault()).startsWith("rtsp")) {
       connectedType = ClientType.RTSP
-      startStreamRtpRtsp(endPoint)
-    } else if (endPoint.startsWith("srt", ignoreCase = true)) {
+      startStreamRtpRtsp(url)
+    } else if (url.lowercase(Locale.getDefault()).startsWith("srt")) {
       connectedType = ClientType.SRT
-      startStreamRtpSrt(endPoint)
+      startStreamRtpSrt(url)
     } else {
       onMainThreadHandler {
         connectChecker.onConnectionFailed("Unsupported protocol. Only support rtmp, rtsp and srt")
@@ -115,22 +132,25 @@ class GenericStream(
     }
   }
 
-  private fun startStreamRtpRtmp(endPoint: String) {
-    val resolution = super.getVideoResolution()
-    rtmpClient.setVideoResolution(resolution.width, resolution.height)
-    rtmpClient.setFps(super.getVideoFps())
-    rtmpClient.connect(endPoint)
+  private fun startStreamRtpRtmp(url: String) {
+    if (videoEncoder.rotation == 90 || videoEncoder.rotation == 270) {
+      rtmpClient.setVideoResolution(videoEncoder.height, videoEncoder.width)
+    } else {
+      rtmpClient.setVideoResolution(videoEncoder.width, videoEncoder.height)
+    }
+    rtmpClient.setFps(videoEncoder.fps)
+    rtmpClient.connect(url)
   }
 
-  private fun startStreamRtpRtsp(endPoint: String) {
-    rtspClient.connect(endPoint)
+  private fun startStreamRtpRtsp(url: String) {
+    rtspClient.connect(url)
   }
 
-  private fun startStreamRtpSrt(endPoint: String) {
-    srtClient.connect(endPoint)
+  private fun startStreamRtpSrt(url: String) {
+    srtClient.connect(url)
   }
 
-  override fun rtpStopStream() {
+  override fun stopStreamRtp() {
     when (connectedType) {
       ClientType.RTMP -> rtmpClient.disconnect()
       ClientType.RTSP -> rtspClient.disconnect()
@@ -149,7 +169,7 @@ class GenericStream(
     }
   }
 
-  override fun onSpsPpsVpsRtp(sps: ByteBuffer, pps: ByteBuffer?, vps: ByteBuffer?) {
+  override fun onSpsPpsVpsRtp(sps: ByteBuffer, pps: ByteBuffer, vps: ByteBuffer) {
     rtmpClient.setVideoInfo(sps, pps, vps)
     rtspClient.setVideoInfo(sps, pps, vps)
     srtClient.setVideoInfo(sps, pps, vps)
