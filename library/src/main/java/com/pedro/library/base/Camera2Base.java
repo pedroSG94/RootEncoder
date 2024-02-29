@@ -60,7 +60,6 @@ import com.pedro.library.util.AndroidMuxerRecordController;
 import com.pedro.library.util.FpsListener;
 import com.pedro.library.util.streamclient.StreamBaseClient;
 import com.pedro.library.view.GlInterface;
-import com.pedro.library.view.LightOpenGlView;
 import com.pedro.library.view.OffScreenGlThread;
 import com.pedro.library.view.OpenGlView;
 
@@ -103,7 +102,7 @@ public abstract class Camera2Base {
 
   /**
    * @deprecated This view produce rotations problems and could be unsupported in future versions.
-   * Use {@link Camera2Base#Camera2Base(OpenGlView)} or {@link Camera2Base#Camera2Base(LightOpenGlView)}
+   * Use {@link Camera2Base#Camera2Base(OpenGlView)}
    * instead.
    */
   @Deprecated
@@ -115,7 +114,7 @@ public abstract class Camera2Base {
 
   /**
    * @deprecated This view produce rotations problems and could be unsupported in future versions.
-   * Use {@link Camera2Base#Camera2Base(OpenGlView)} or {@link Camera2Base#Camera2Base(LightOpenGlView)}
+   * Use {@link Camera2Base#Camera2Base(OpenGlView)}
    * instead.
    */
   @Deprecated
@@ -128,12 +127,6 @@ public abstract class Camera2Base {
   public Camera2Base(OpenGlView openGlView) {
     context = openGlView.getContext();
     glInterface = openGlView;
-    init(context);
-  }
-
-  public Camera2Base(LightOpenGlView lightOpenGlView) {
-    this.context = lightOpenGlView.getContext();
-    glInterface = lightOpenGlView;
     init(context);
   }
 
@@ -470,11 +463,6 @@ public abstract class Camera2Base {
   public void replaceView(OpenGlView openGlView) {
     isBackground = false;
     replaceGlInterface(openGlView);
-  }
-
-  public void replaceView(LightOpenGlView lightOpenGlView) {
-    isBackground = false;
-    replaceGlInterface(lightOpenGlView);
   }
 
   /**

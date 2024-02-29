@@ -30,7 +30,6 @@ import com.pedro.library.util.streamclient.RtmpStreamClient
 import com.pedro.library.util.streamclient.RtspStreamClient
 import com.pedro.library.util.streamclient.SrtStreamClient
 import com.pedro.library.util.streamclient.StreamClientListener
-import com.pedro.library.view.LightOpenGlView
 import com.pedro.library.view.OpenGlView
 import com.pedro.rtmp.rtmp.RtmpClient
 import com.pedro.rtsp.rtsp.RtspClient
@@ -60,13 +59,6 @@ class GenericFromFile: FromFileBase {
     openGlView: OpenGlView, connectChecker: ConnectChecker,
     videoDecoderInterface: VideoDecoderInterface, audioDecoderInterface: AudioDecoderInterface
   ) : super(openGlView, videoDecoderInterface, audioDecoderInterface) {
-    init(connectChecker)
-  }
-
-  constructor(
-    lightOpenGlView: LightOpenGlView, connectChecker: ConnectChecker,
-    videoDecoderInterface: VideoDecoderInterface?, audioDecoderInterface: AudioDecoderInterface
-  ) : super(lightOpenGlView, videoDecoderInterface, audioDecoderInterface) {
     init(connectChecker)
   }
 

@@ -30,7 +30,6 @@ import com.pedro.encoder.input.decoder.VideoDecoderInterface;
 import com.pedro.library.base.FromFileBase;
 import com.pedro.library.util.streamclient.RtspStreamClient;
 import com.pedro.library.util.streamclient.StreamClientListener;
-import com.pedro.library.view.LightOpenGlView;
 import com.pedro.library.view.OpenGlView;
 import com.pedro.rtsp.rtsp.RtspClient;
 
@@ -66,13 +65,6 @@ public class RtspFromFile extends FromFileBase {
   public RtspFromFile(OpenGlView openGlView, ConnectChecker connectChecker,
       VideoDecoderInterface videoDecoderInterface, AudioDecoderInterface audioDecoderInterface) {
     super(openGlView, videoDecoderInterface, audioDecoderInterface);
-    rtspClient = new RtspClient(connectChecker);
-    streamClient = new RtspStreamClient(rtspClient, streamClientListener);
-  }
-
-  public RtspFromFile(LightOpenGlView lightOpenGlView, ConnectChecker connectChecker,
-      VideoDecoderInterface videoDecoderInterface, AudioDecoderInterface audioDecoderInterface) {
-    super(lightOpenGlView, videoDecoderInterface, audioDecoderInterface);
     rtspClient = new RtspClient(connectChecker);
     streamClient = new RtspStreamClient(rtspClient, streamClientListener);
   }

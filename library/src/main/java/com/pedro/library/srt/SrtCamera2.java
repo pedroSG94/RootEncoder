@@ -30,7 +30,6 @@ import com.pedro.common.VideoCodec;
 import com.pedro.library.base.Camera2Base;
 import com.pedro.library.util.streamclient.SrtStreamClient;
 import com.pedro.library.util.streamclient.StreamClientListener;
-import com.pedro.library.view.LightOpenGlView;
 import com.pedro.library.view.OpenGlView;
 import com.pedro.srt.srt.SrtClient;
 
@@ -51,7 +50,7 @@ public class SrtCamera2 extends Camera2Base {
 
   /**
    * @deprecated This view produce rotations problems and could be unsupported in future versions.
-   * Use {@link Camera2Base#Camera2Base(OpenGlView)} or {@link Camera2Base#Camera2Base(LightOpenGlView)}
+   * Use {@link Camera2Base#Camera2Base(OpenGlView)}
    * instead.
    */
   @Deprecated
@@ -63,7 +62,7 @@ public class SrtCamera2 extends Camera2Base {
 
   /**
    * @deprecated This view produce rotations problems and could be unsupported in future versions.
-   * Use {@link Camera2Base#Camera2Base(OpenGlView)} or {@link Camera2Base#Camera2Base(LightOpenGlView)}
+   * Use {@link Camera2Base#Camera2Base(OpenGlView)}
    * instead.
    */
   @Deprecated
@@ -75,12 +74,6 @@ public class SrtCamera2 extends Camera2Base {
 
   public SrtCamera2(OpenGlView openGlView, ConnectChecker connectChecker) {
     super(openGlView);
-    srtClient = new SrtClient(connectChecker);
-    streamClient = new SrtStreamClient(srtClient, streamClientListener);
-  }
-
-  public SrtCamera2(LightOpenGlView lightOpenGlView, ConnectChecker connectChecker) {
-    super(lightOpenGlView);
     srtClient = new SrtClient(connectChecker);
     streamClient = new SrtStreamClient(srtClient, streamClientListener);
   }

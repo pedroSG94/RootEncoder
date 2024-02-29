@@ -30,7 +30,6 @@ import com.pedro.encoder.input.decoder.VideoDecoderInterface;
 import com.pedro.library.base.FromFileBase;
 import com.pedro.library.util.streamclient.SrtStreamClient;
 import com.pedro.library.util.streamclient.StreamClientListener;
-import com.pedro.library.view.LightOpenGlView;
 import com.pedro.library.view.OpenGlView;
 import com.pedro.srt.srt.SrtClient;
 
@@ -66,13 +65,6 @@ public class SrtFromFile extends FromFileBase {
   public SrtFromFile(OpenGlView openGlView, ConnectChecker connectChecker,
                      VideoDecoderInterface videoDecoderInterface, AudioDecoderInterface audioDecoderInterface) {
     super(openGlView, videoDecoderInterface, audioDecoderInterface);
-    srtClient = new SrtClient(connectChecker);
-    streamClient = new SrtStreamClient(srtClient, streamClientListener);
-  }
-
-  public SrtFromFile(LightOpenGlView lightOpenGlView, ConnectChecker connectChecker,
-                     VideoDecoderInterface videoDecoderInterface, AudioDecoderInterface audioDecoderInterface) {
-    super(lightOpenGlView, videoDecoderInterface, audioDecoderInterface);
     srtClient = new SrtClient(connectChecker);
     streamClient = new SrtStreamClient(srtClient, streamClientListener);
   }

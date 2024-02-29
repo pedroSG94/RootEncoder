@@ -30,7 +30,6 @@ import com.pedro.common.VideoCodec;
 import com.pedro.library.base.Camera2Base;
 import com.pedro.library.util.streamclient.RtmpStreamClient;
 import com.pedro.library.util.streamclient.StreamClientListener;
-import com.pedro.library.view.LightOpenGlView;
 import com.pedro.library.view.OpenGlView;
 import com.pedro.rtmp.rtmp.RtmpClient;
 
@@ -51,7 +50,7 @@ public class RtmpCamera2 extends Camera2Base {
 
   /**
    * @deprecated This view produce rotations problems and could be unsupported in future versions.
-   * Use {@link Camera2Base#Camera2Base(OpenGlView)} or {@link Camera2Base#Camera2Base(LightOpenGlView)}
+   * Use {@link Camera2Base#Camera2Base(OpenGlView)}
    * instead.
    */
   @Deprecated
@@ -63,7 +62,7 @@ public class RtmpCamera2 extends Camera2Base {
 
   /**
    * @deprecated This view produce rotations problems and could be unsupported in future versions.
-   * Use {@link Camera2Base#Camera2Base(OpenGlView)} or {@link Camera2Base#Camera2Base(LightOpenGlView)}
+   * Use {@link Camera2Base#Camera2Base(OpenGlView)}
    * instead.
    */
   @Deprecated
@@ -75,12 +74,6 @@ public class RtmpCamera2 extends Camera2Base {
 
   public RtmpCamera2(OpenGlView openGlView, ConnectChecker connectChecker) {
     super(openGlView);
-    rtmpClient = new RtmpClient(connectChecker);
-    streamClient = new RtmpStreamClient(rtmpClient, streamClientListener);
-  }
-
-  public RtmpCamera2(LightOpenGlView lightOpenGlView, ConnectChecker connectChecker) {
-    super(lightOpenGlView);
     rtmpClient = new RtmpClient(connectChecker);
     streamClient = new RtmpStreamClient(rtmpClient, streamClientListener);
   }

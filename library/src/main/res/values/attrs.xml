@@ -20,10 +20,4 @@
     <attr name="isFlipHorizontal"/>
     <attr name="isFlipVertical"/>
   </declare-styleable>
-
-  <declare-styleable name="LightOpenGlView">
-    <attr name="aspectRatioMode"/>
-    <attr name="isFlipHorizontal"/>
-    <attr name="isFlipVertical"/>
-  </declare-styleable>
 </resources>

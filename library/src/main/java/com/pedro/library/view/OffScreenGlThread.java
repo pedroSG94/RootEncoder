@@ -269,15 +269,17 @@ public class OffScreenGlThread
         fpsLimiter.setFrameStartTs();
         if (frameAvailable || forceRender) {
           frameAvailable = false;
-          surfaceManager.makeCurrent();
-          managerRender.updateFrame();
-          managerRender.drawOffScreen();
-          managerRender.drawScreen(encoderWidth, encoderHeight, AspectRatioMode.NONE, 0, isPreviewVerticalFlip, isPreviewHorizontalFlip);
-          surfaceManager.swapBuffer();
+          synchronized (sync) {
+            surfaceManager.makeCurrent();
+            managerRender.updateFrame();
+            managerRender.drawOffScreen();
+            managerRender.drawScreen(encoderWidth, encoderHeight, AspectRatioMode.NONE, 0, isPreviewVerticalFlip, isPreviewHorizontalFlip);
+            surfaceManager.swapBuffer();
 
-          if (!filterQueue.isEmpty()) {
-            Filter filter = filterQueue.take();
-            managerRender.setFilterAction(filter.getFilterAction(), filter.getPosition(), filter.getBaseFilterRender());
+            if (!filterQueue.isEmpty() && managerRender.isReady()) {
+              Filter filter = filterQueue.take();
+              managerRender.setFilterAction(filter.getFilterAction(), filter.getPosition(), filter.getBaseFilterRender());
+            }
           }
 
           synchronized (sync) {

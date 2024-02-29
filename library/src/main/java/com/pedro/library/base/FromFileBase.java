@@ -50,7 +50,6 @@ import com.pedro.library.util.AndroidMuxerRecordController;
 import com.pedro.library.util.FpsListener;
 import com.pedro.library.util.streamclient.StreamBaseClient;
 import com.pedro.library.view.GlInterface;
-import com.pedro.library.view.LightOpenGlView;
 import com.pedro.library.view.OffScreenGlThread;
 import com.pedro.library.view.OpenGlView;
 
@@ -104,12 +103,6 @@ public abstract class FromFileBase {
   public FromFileBase(OpenGlView openGlView, VideoDecoderInterface videoDecoderInterface,
       AudioDecoderInterface audioDecoderInterface) {
     glInterface = openGlView;
-    init(videoDecoderInterface, audioDecoderInterface);
-  }
-
-  public FromFileBase(LightOpenGlView lightOpenGlView, VideoDecoderInterface videoDecoderInterface,
-      AudioDecoderInterface audioDecoderInterface) {
-    glInterface = lightOpenGlView;
     init(videoDecoderInterface, audioDecoderInterface);
   }
 
@@ -394,10 +387,6 @@ public abstract class FromFileBase {
 
   public void replaceView(OpenGlView openGlView) {
     replaceGlInterface(openGlView);
-  }
-
-  public void replaceView(LightOpenGlView lightOpenGlView) {
-    replaceGlInterface(lightOpenGlView);
   }
 
   /**

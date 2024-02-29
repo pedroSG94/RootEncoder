@@ -30,7 +30,6 @@ import com.pedro.common.ConnectChecker;
 import com.pedro.common.VideoCodec;
 import com.pedro.library.base.Camera2Base;
 import com.pedro.library.util.streamclient.StreamBaseClient;
-import com.pedro.library.view.LightOpenGlView;
 import com.pedro.library.view.OpenGlView;
 import com.pedro.rtmp.rtmp.RtmpClient;
 import com.pedro.rtsp.rtsp.RtspClient;
@@ -113,21 +112,6 @@ public class MultiRtpCamera2 extends Camera2Base {
   public MultiRtpCamera2(OpenGlView openGlView, ConnectChecker[] connectCheckerRtmpList,
       ConnectChecker[] connectCheckerRtspList) {
     super(openGlView);
-    int rtmpSize = connectCheckerRtmpList != null ? connectCheckerRtmpList.length : 0;
-    rtmpClients = new RtmpClient[rtmpSize];
-    for (int i = 0; i < rtmpClients.length; i++) {
-      rtmpClients[i] = new RtmpClient(connectCheckerRtmpList[i]);
-    }
-    int rtspSize = connectCheckerRtspList != null ? connectCheckerRtspList.length : 0;
-    rtspClients = new RtspClient[rtspSize];
-    for (int i = 0; i < rtspClients.length; i++) {
-      rtspClients[i] = new RtspClient(connectCheckerRtspList[i]);
-    }
-  }
-
-  public MultiRtpCamera2(LightOpenGlView lightOpenGlView, ConnectChecker[] connectCheckerRtmpList,
-      ConnectChecker[] connectCheckerRtspList) {
-    super(lightOpenGlView);
     int rtmpSize = connectCheckerRtmpList != null ? connectCheckerRtmpList.length : 0;
     rtmpClients = new RtmpClient[rtmpSize];
     for (int i = 0; i < rtmpClients.length; i++) {

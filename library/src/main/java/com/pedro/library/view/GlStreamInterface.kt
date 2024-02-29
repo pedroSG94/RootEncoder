@@ -40,7 +40,7 @@ import java.util.concurrent.Semaphore
  * Created by pedro on 14/3/22.
  */
 @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
-class GlStreamInterface(
+class GlStreamInterface @JvmOverloads constructor(
   private val context: Context,
   private val readSurface: Surface? = null
 ): Runnable, OnFrameAvailableListener, GlInterface {
@@ -177,7 +177,7 @@ class GlStreamInterface(
                 flipStreamVertical = false, flipStreamHorizontal = false)
               surfaceManager.swapBuffer()
             }
-            if (!filterQueue.isEmpty()) {
+            if (!filterQueue.isEmpty() && managerRender.isReady) {
               val filter = filterQueue.take()
               managerRender.setFilterAction(filter.filterAction, filter.position, filter.baseFilterRender)
             }
@@ -264,6 +264,7 @@ class GlStreamInterface(
     this.streamOrientation = orientation
   }
 
+  @JvmOverloads
   fun setPreviewResolution(width: Int, height: Int, isPortrait: Boolean = CameraHelper.isPortrait(context)) {
     this.isPortrait = isPortrait
     this.previewWidth = width

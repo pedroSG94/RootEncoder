@@ -59,7 +59,6 @@ import com.pedro.library.util.AndroidMuxerRecordController;
 import com.pedro.library.util.FpsListener;
 import com.pedro.library.util.streamclient.StreamBaseClient;
 import com.pedro.library.view.GlInterface;
-import com.pedro.library.view.LightOpenGlView;
 import com.pedro.library.view.OffScreenGlThread;
 import com.pedro.library.view.OpenGlView;
 
@@ -114,14 +113,6 @@ public abstract class Camera1Base {
   public Camera1Base(OpenGlView openGlView) {
     context = openGlView.getContext();
     this.glInterface = openGlView;
-    cameraManager = new Camera1ApiManager(glInterface.getSurfaceTexture(), context);
-    init();
-  }
-
-  @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
-  public Camera1Base(LightOpenGlView lightOpenGlView) {
-    context = lightOpenGlView.getContext();
-    this.glInterface = lightOpenGlView;
     cameraManager = new Camera1ApiManager(glInterface.getSurfaceTexture(), context);
     init();
   }
@@ -436,11 +427,6 @@ public abstract class Camera1Base {
   @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
   public void replaceView(OpenGlView openGlView) {
     replaceGlInterface(openGlView);
-  }
-
-  @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
-  public void replaceView(LightOpenGlView lightOpenGlView) {
-    replaceGlInterface(lightOpenGlView);
   }
 
   /**

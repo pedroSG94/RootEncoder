@@ -33,7 +33,6 @@ import com.pedro.library.util.streamclient.RtmpStreamClient;
 import com.pedro.library.util.streamclient.RtspStreamClient;
 import com.pedro.library.util.streamclient.SrtStreamClient;
 import com.pedro.library.util.streamclient.StreamClientListener;
-import com.pedro.library.view.LightOpenGlView;
 import com.pedro.library.view.OpenGlView;
 import com.pedro.rtmp.rtmp.RtmpClient;
 import com.pedro.rtsp.rtsp.RtspClient;
@@ -71,11 +70,6 @@ public class GenericCamera2 extends Camera2Base {
 
   public GenericCamera2(OpenGlView openGlView, ConnectChecker connectChecker) {
     super(openGlView);
-    init(connectChecker);
-  }
-
-  public GenericCamera2(LightOpenGlView lightOpenGlView, ConnectChecker connectChecker) {
-    super(lightOpenGlView);
     init(connectChecker);
   }
 
