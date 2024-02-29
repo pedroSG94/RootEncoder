@@ -1,10 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/activity_example_rtmp"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:background="@color/black"
-    >
+    android:layout_height="match_parent">
+
+  <com.pedro.library.view.OpenGlView
+      android:layout_width="match_parent"
+      android:layout_height="match_parent"
+      android:id="@+id/surfaceView"
+      app:aspectRatioMode="adjust"
+      />
 
   <EditText
       android:hint="@string/hint_protocol"
@@ -19,75 +25,71 @@
       app:layout_constraintTop_toTopOf="parent"
       />
 
-  <Button
-      android:text="@string/start_record"
-      android:layout_width="wrap_content"
-      android:layout_height="wrap_content"
-      android:id="@+id/b_record"
-      app:layout_constraintBottom_toBottomOf="parent"
-      app:layout_constraintStart_toStartOf="parent"
-      app:layout_constraintEnd_toStartOf="@id/b_start_stop"
-      android:layout_marginBottom="20dp"
-      />
-
-  <Button
-      android:text="@string/start_button"
-      android:layout_width="wrap_content"
-      android:layout_height="wrap_content"
-      android:id="@+id/b_start_stop"
-      app:layout_constraintBottom_toBottomOf="parent"
-      app:layout_constraintEnd_toEndOf="parent"
-      app:layout_constraintStart_toEndOf="@id/b_record"
-      android:layout_marginBottom="20dp"
-      />
-
-  <Button
-      android:text="@string/select_file"
-      android:layout_width="wrap_content"
-      android:layout_height="wrap_content"
-      android:id="@+id/b_select_file"
-      android:layout_above="@+id/seek_bar"
-      app:layout_constraintStart_toEndOf="@id/b_re_sync"
-      app:layout_constraintBottom_toTopOf="@id/seek_bar"
-      app:layout_constraintEnd_toEndOf="parent"
-      android:layout_marginBottom="20dp"
-      android:layout_marginEnd="20dp"
-      android:layout_marginRight="20dp" />
-
-  <Button
-      android:text="@string/resync_file"
-      android:layout_width="wrap_content"
-      android:layout_height="wrap_content"
-      android:layout_above="@+id/seek_bar"
-      android:id="@+id/b_re_sync"
-      app:layout_constraintStart_toStartOf="parent"
-      app:layout_constraintBottom_toTopOf="@id/seek_bar"
-      app:layout_constraintEnd_toStartOf="@id/b_select_file"
-      app:layout_constraintHorizontal_chainStyle="spread_inside"
-      android:layout_marginStart="20dp"
-      android:layout_marginBottom="20dp"
-      android:layout_marginLeft="20dp" />
-
-  <SeekBar
-      style="?android:attr/progressBarStyleHorizontal"
+  <LinearLayout
       android:layout_width="match_parent"
       android:layout_height="wrap_content"
-      android:layout_centerHorizontal="true"
-      android:id="@+id/seek_bar"
-      app:layout_constraintBottom_toTopOf="@id/b_record"
-      android:layout_marginBottom="20dp"
-      android:layout_marginStart="20dp"
-      android:layout_marginEnd="20dp"
-      />
+      android:orientation="horizontal"
+      app:layout_constraintBottom_toTopOf="@+id/cl_buttons"
+      android:gravity="center"
+      android:layout_margin="16dp"
+      >
+    <ImageView
+        android:src="@drawable/sync_icon"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:id="@+id/b_re_sync"
+        android:layout_marginEnd="16dp"
+        android:layout_marginRight="16dp" />
 
-  <TextView
-      android:layout_width="wrap_content"
+    <SeekBar
+        style="?android:attr/progressBarStyleHorizontal"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:id="@+id/seek_bar"
+        />
+  </LinearLayout>
+
+  <androidx.constraintlayout.widget.ConstraintLayout
+      android:id="@+id/cl_buttons"
+      android:layout_width="match_parent"
       android:layout_height="wrap_content"
-      android:id="@+id/tv_file"
-      app:layout_constraintBottom_toTopOf="@id/b_select_file"
-      app:layout_constraintLeft_toLeftOf="parent"
-      app:layout_constraintRight_toRightOf="parent"
-      android:textColor="@color/appColor"
-      android:layout_margin="10dp"
-      />
+      app:layout_constraintBottom_toBottomOf="parent"
+      android:layout_margin="16dp"
+      >
+    <ImageView
+        android:src="@drawable/record_icon"
+        android:layout_width="64dp"
+        android:layout_height="64dp"
+        android:id="@+id/b_record"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toStartOf="@id/b_start_stop"
+        app:layout_constraintHorizontal_chainStyle="spread"
+        />
+
+    <ImageView
+        android:src="@drawable/stream_icon"
+        android:layout_width="98dp"
+        android:layout_height="98dp"
+        android:id="@+id/b_start_stop"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toEndOf="@id/b_record"
+        app:layout_constraintEnd_toStartOf="@id/select_file"
+        />
+
+    <ImageView
+        android:src="@drawable/file_search_icon"
+        android:layout_width="64dp"
+        android:layout_height="64dp"
+        android:id="@+id/select_file"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@id/b_start_stop"
+        />
+  </androidx.constraintlayout.widget.ConstraintLayout>
+
 </androidx.constraintlayout.widget.ConstraintLayout>

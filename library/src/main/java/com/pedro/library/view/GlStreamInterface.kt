@@ -40,7 +40,10 @@ import java.util.concurrent.Semaphore
  * Created by pedro on 14/3/22.
  */
 @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
-class GlStreamInterface(private val context: Context) : Runnable, OnFrameAvailableListener, GlInterface {
+class GlStreamInterface(
+  private val context: Context,
+  private val readSurface: Surface? = null
+): Runnable, OnFrameAvailableListener, GlInterface {
 
   private var thread: Thread? = null
   private var frameAvailable = false
@@ -153,7 +156,7 @@ class GlStreamInterface(private val context: Context) : Runnable, OnFrameAvailab
 
   override fun run() {
     surfaceManager.release()
-    surfaceManager.eglSetup()
+    surfaceManager.eglSetup(readSurface)
     surfaceManager.makeCurrent()
     managerRender.initGl(context, encoderWidth, encoderHeight, encoderWidth, encoderHeight)
     managerRender.getSurfaceTexture().setOnFrameAvailableListener(this)
@@ -165,16 +168,19 @@ class GlStreamInterface(private val context: Context) : Runnable, OnFrameAvailab
         fpsLimiter.setFrameStartTs()
         if (frameAvailable || forceRender) {
           frameAvailable = false
-          surfaceManager.makeCurrent()
-          managerRender.updateFrame()
-          managerRender.drawOffScreen()
-          managerRender.drawScreen(encoderWidth, encoderHeight, AspectRatioMode.NONE, 0,
-            flipStreamVertical = false, flipStreamHorizontal = false)
-          surfaceManager.swapBuffer()
-
-          if (!filterQueue.isEmpty()) {
-            val filter = filterQueue.take()
-            managerRender.setFilterAction(filter.filterAction, filter.position, filter.baseFilterRender)
+          synchronized(sync) {
+            if (surfaceManager.isReady && managerRender.isReady) {
+              surfaceManager.makeCurrent()
+              managerRender.updateFrame()
+              managerRender.drawOffScreen()
+              managerRender.drawScreen(encoderWidth, encoderHeight, AspectRatioMode.NONE, 0,
+                flipStreamVertical = false, flipStreamHorizontal = false)
+              surfaceManager.swapBuffer()
+            }
+            if (!filterQueue.isEmpty()) {
+              val filter = filterQueue.take()
+              managerRender.setFilterAction(filter.filterAction, filter.position, filter.baseFilterRender)
+            }
           }
 
           synchronized(sync) {

@@ -32,6 +32,7 @@ import android.view.View;
 import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -59,10 +60,10 @@ public class FromFileActivity extends AppCompatActivity
     AudioDecoderInterface, SeekBar.OnSeekBarChangeListener {
 
   private GenericFromFile genericFromFile;
-  private Button button, bSelectFile, bReSync, bRecord;
+  private ImageView button, bSelectFile, bReSync, bRecord;
   private SeekBar seekBar;
   private EditText etUrl;
-  private TextView tvFile;
+//  private TextView tvFile;
   private Uri filePath;
   private boolean touching = false;
 
@@ -76,7 +77,7 @@ public class FromFileActivity extends AppCompatActivity
     setContentView(R.layout.activity_from_file);
     folder = PathUtils.getRecordPath();
     button = findViewById(R.id.b_start_stop);
-    bSelectFile = findViewById(R.id.b_select_file);
+    bSelectFile = findViewById(R.id.select_file);
     button.setOnClickListener(this);
     bSelectFile.setOnClickListener(this);
     bReSync = findViewById(R.id.b_re_sync);
@@ -86,7 +87,7 @@ public class FromFileActivity extends AppCompatActivity
     etUrl = findViewById(R.id.et_rtp_url);
     seekBar = findViewById(R.id.seek_bar);
     seekBar.getProgressDrawable().setColorFilter(Color.RED, PorterDuff.Mode.SRC_IN);
-    tvFile = findViewById(R.id.tv_file);
+//    tvFile = findViewById(R.id.tv_file);
     genericFromFile = new GenericFromFile(this, this, this);
     seekBar.setOnSeekBarChangeListener(this);
   }
@@ -97,11 +98,11 @@ public class FromFileActivity extends AppCompatActivity
     if (genericFromFile.isRecording()) {
       genericFromFile.stopRecord();
       PathUtils.updateGallery(this, folder.getAbsolutePath() + "/" + currentDateAndTime + ".mp4");
-      bRecord.setText(R.string.start_record);
+      bRecord.setImageResource(R.drawable.record_icon);
     }
     if (genericFromFile.isStreaming()) {
       genericFromFile.stopStream();
-      button.setText(getResources().getString(R.string.start_button));
+      button.setImageResource(R.drawable.stream_icon);
     }
   }
 
@@ -119,7 +120,7 @@ public class FromFileActivity extends AppCompatActivity
     Toast.makeText(FromFileActivity.this, "Connection failed. " + reason,
         Toast.LENGTH_SHORT).show();
     genericFromFile.stopStream();
-    button.setText(R.string.start_button);
+    button.setImageResource(R.drawable.stream_icon);
   }
 
   @Override
@@ -149,7 +150,7 @@ public class FromFileActivity extends AppCompatActivity
       filePath = data.getData();
       if (filePath != null) {
         Toast.makeText(this, filePath.getPath(), Toast.LENGTH_SHORT).show();
-        tvFile.setText(filePath.getPath());
+//        tvFile.setText(filePath.getPath());
       }
     }
   }
@@ -162,13 +163,13 @@ public class FromFileActivity extends AppCompatActivity
         try {
           if (!genericFromFile.isRecording()) {
             if (prepare()) {
-              button.setText(R.string.stop_button);
+              button.setImageResource(R.drawable.stream_stop_icon);
               genericFromFile.startStream(etUrl.getText().toString());
               seekBar.setMax(Math.max((int) genericFromFile.getVideoDuration(),
                       (int) genericFromFile.getAudioDuration()));
               updateProgress();
             } else {
-              button.setText(R.string.start_button);
+              button.setImageResource(R.drawable.stream_icon);
               genericFromFile.stopStream();
                 /*This error could be 2 things.
                  Your device cant decode or encode this file or
@@ -177,7 +178,7 @@ public class FromFileActivity extends AppCompatActivity
               Toast.makeText(this, "Error: unsupported file", Toast.LENGTH_SHORT).show();
             }
           } else {
-            button.setText(R.string.stop_button);
+            button.setImageResource(R.drawable.stream_stop_icon);
             genericFromFile.startStream(etUrl.getText().toString());
           }
         } catch (IOException e) {
@@ -185,10 +186,10 @@ public class FromFileActivity extends AppCompatActivity
           Toast.makeText(this, "Error: file not found", Toast.LENGTH_SHORT).show();
         }
       } else {
-        button.setText(R.string.start_button);
+        button.setImageResource(R.drawable.stream_icon);
         genericFromFile.stopStream();
       }
-    } else if (id == R.id.b_select_file) {
+    } else if (id == R.id.select_file) {
       Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
       intent.setType("*/*");
       startActivityForResult(intent, 5);
@@ -210,7 +211,7 @@ public class FromFileActivity extends AppCompatActivity
               seekBar.setMax(Math.max((int) genericFromFile.getVideoDuration(),
                       (int) genericFromFile.getAudioDuration()));
               updateProgress();
-              bRecord.setText(R.string.stop_record);
+              bRecord.setImageResource(R.drawable.stop_icon);
               Toast.makeText(this, "Recording... ", Toast.LENGTH_SHORT).show();
             } else {
               Toast.makeText(this, "Error preparing stream, This device cant do it",
@@ -219,19 +220,19 @@ public class FromFileActivity extends AppCompatActivity
           } else {
             genericFromFile.startRecord(
                     folder.getAbsolutePath() + "/" + currentDateAndTime + ".mp4");
-            bRecord.setText(R.string.stop_record);
+            bRecord.setImageResource(R.drawable.stop_icon);
             Toast.makeText(this, "Recording... ", Toast.LENGTH_SHORT).show();
           }
         } catch (IOException e) {
           genericFromFile.stopRecord();
           PathUtils.updateGallery(this, folder.getAbsolutePath() + "/" + currentDateAndTime + ".mp4");
-          bRecord.setText(R.string.start_record);
+          bRecord.setImageResource(R.drawable.record_icon);
           Toast.makeText(this, e.getMessage(), Toast.LENGTH_SHORT).show();
         }
       } else {
         genericFromFile.stopRecord();
         PathUtils.updateGallery(this, folder.getAbsolutePath() + "/" + currentDateAndTime + ".mp4");
-        bRecord.setText(R.string.start_record);
+        bRecord.setImageResource(R.drawable.record_icon);
         Toast.makeText(this,
                 "file " + currentDateAndTime + ".mp4 saved in " + folder.getAbsolutePath(),
                 Toast.LENGTH_SHORT).show();
@@ -241,6 +242,7 @@ public class FromFileActivity extends AppCompatActivity
   }
 
   private boolean prepare() throws IOException {
+    if (filePath == null) return false;
     boolean result = genericFromFile.prepareVideo(getApplicationContext(), filePath);
     result |= genericFromFile.prepareAudio(getApplicationContext(), filePath);
     return result;
@@ -278,14 +280,14 @@ public class FromFileActivity extends AppCompatActivity
         if (genericFromFile.isRecording()) {
           genericFromFile.stopRecord();
           PathUtils.updateGallery(getApplicationContext(), folder.getAbsolutePath() + "/" + currentDateAndTime + ".mp4");
-          bRecord.setText(R.string.start_record);
+          bRecord.setImageResource(R.drawable.record_icon);
           Toast.makeText(FromFileActivity.this,
               "file " + currentDateAndTime + ".mp4 saved in " + folder.getAbsolutePath(),
               Toast.LENGTH_SHORT).show();
           currentDateAndTime = "";
         }
         if (genericFromFile.isStreaming()) {
-          button.setText(R.string.start_button);
+          button.setImageResource(R.drawable.stream_icon);
           Toast.makeText(FromFileActivity.this, "Video stream finished", Toast.LENGTH_SHORT)
               .show();
           genericFromFile.stopStream();
