@@ -44,13 +44,13 @@
         />
 
     <activity
-        android:name="com.pedro.streamer.filestreamexample.FromFileActivity"
+        android:name="com.pedro.streamer.file.FromFileActivity"
         android:label="@string/from_file"
         android:screenOrientation="portrait"
         />
 
     <activity
-        android:name="com.pedro.streamer.screenexample.ScreenActivity"
+        android:name="com.pedro.streamer.screen.ScreenActivity"
         android:label="@string/display"
         />
 
@@ -60,7 +60,7 @@
         android:configChanges="orientation|screenSize"
         />
 
-    <service android:name="com.pedro.streamer.screenexample.ScreenService"
+    <service android:name="com.pedro.streamer.screen.ScreenService"
         android:foregroundServiceType="mediaProjection"
         />
   </application>

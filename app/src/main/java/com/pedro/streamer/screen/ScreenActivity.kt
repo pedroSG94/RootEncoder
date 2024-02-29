@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.pedro.streamer.screenexample
+package com.pedro.streamer.screen
 
 import android.content.Intent
 import android.os.Build

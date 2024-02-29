@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.pedro.streamer.screenexample
+package com.pedro.streamer.screen
 
 import android.app.NotificationChannel
 import android.app.NotificationManager

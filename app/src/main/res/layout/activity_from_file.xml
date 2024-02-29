@@ -25,7 +25,19 @@
       app:layout_constraintTop_toTopOf="parent"
       />
 
+  <TextView
+      android:id="@+id/tv_file_name"
+      android:layout_width="wrap_content"
+      android:layout_height="wrap_content"
+      app:layout_constraintBottom_toTopOf="@+id/ll_media_bar"
+      app:layout_constraintEnd_toEndOf="parent"
+      android:layout_marginEnd="24dp"
+      android:layout_marginRight="24dp"
+      android:textColor="@color/appColor"
+      />
+
   <LinearLayout
+      android:id="@+id/ll_media_bar"
       android:layout_width="match_parent"
       android:layout_height="wrap_content"
       android:orientation="horizontal"

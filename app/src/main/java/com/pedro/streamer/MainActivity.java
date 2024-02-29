@@ -40,8 +40,8 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 
 import com.pedro.streamer.defaultexample.OldApiActivity;
-import com.pedro.streamer.screenexample.ScreenActivity;
-import com.pedro.streamer.filestreamexample.FromFileActivity;
+import com.pedro.streamer.screen.ScreenActivity;
+import com.pedro.streamer.file.FromFileActivity;
 import com.pedro.streamer.rotation.RotationExampleActivity;
 import com.pedro.streamer.utils.ActivityLink;
 import com.pedro.streamer.utils.ImageAdapter;

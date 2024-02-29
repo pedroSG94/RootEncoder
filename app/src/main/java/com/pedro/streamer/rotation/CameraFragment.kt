@@ -63,6 +63,7 @@ class CameraFragment: Fragment(), ConnectChecker {
   private val sampleRate = 32000
   private val isStereo = true
   private val aBitrate = 128 * 1000
+  private var recordPath = ""
 
   @SuppressLint("ClickableViewAccessibility")
   override fun onCreateView(
@@ -107,8 +108,8 @@ class CameraFragment: Fragment(), ConnectChecker {
         val folder = PathUtils.getRecordPath()
         if (!folder.exists()) folder.mkdir()
         val sdf = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault())
-        val fileName = sdf.format(Date())
-        genericStream.startRecord("${folder.absolutePath}/$fileName.mp4") { status ->
+        recordPath = "${folder.absolutePath}/${sdf.format(Date())}.mp4"
+        genericStream.startRecord(recordPath) { status ->
           if (status == RecordController.Status.RECORDING) {
             bRecord.setImageResource(R.drawable.stop_icon)
           }
@@ -117,6 +118,7 @@ class CameraFragment: Fragment(), ConnectChecker {
       } else {
         genericStream.stopRecord()
         bRecord.setImageResource(R.drawable.record_icon)
+        PathUtils.updateGallery(requireContext(), recordPath)
       }
     }
     bSwitchCamera.setOnClickListener {
