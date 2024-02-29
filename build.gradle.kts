@@ -7,7 +7,7 @@ val junitVersion by rootProject.extra { "4.13.2" }
 val mockitoVersion by rootProject.extra { "5.2.1" }
 
 plugins {
-  id("com.android.application") version "8.2.2" apply false
+  id("com.android.application") version "8.3.0" apply false
   id("org.jetbrains.kotlin.android") version "1.9.22" apply false
   id("org.jetbrains.dokka") version "1.9.10" apply true
 }
