@@ -48,7 +48,7 @@ public abstract class OpenGlViewBase extends SurfaceView
   public final static String TAG = "OpenGlViewBase";
 
   protected Thread thread = null;
-  protected boolean frameAvailable = false;
+  protected volatile boolean frameAvailable = false;
   protected boolean running = false;
   protected final SurfaceManager surfaceManagerPhoto = new SurfaceManager();
   protected final SurfaceManager surfaceManager = new SurfaceManager();
@@ -200,8 +200,8 @@ public abstract class OpenGlViewBase extends SurfaceView
 
   @Override
   public void onFrameAvailable(SurfaceTexture surfaceTexture) {
+    frameAvailable = true;
     synchronized (sync) {
-      frameAvailable = true;
       sync.notifyAll();
     }
   }
