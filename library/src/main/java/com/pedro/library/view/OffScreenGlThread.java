@@ -47,7 +47,7 @@ public class OffScreenGlThread
 
   private final Context context;
   private Thread thread = null;
-  private boolean frameAvailable = false;
+  private volatile boolean frameAvailable = false;
   private boolean running = true;
   private final SurfaceManager surfaceManagerPhoto = new SurfaceManager();
   private final SurfaceManager surfaceManager = new SurfaceManager();
@@ -301,7 +301,7 @@ public class OffScreenGlThread
         }
         synchronized (sync) {
           long sleep = fpsLimiter.getSleepTime();
-          if (sleep > 0) sync.wait(sleep);
+          if (sleep > 0 && !frameAvailable) sync.wait(sleep);
         }
       }
     } catch (InterruptedException ignore) {
@@ -316,8 +316,8 @@ public class OffScreenGlThread
 
   @Override
   public void onFrameAvailable(SurfaceTexture surfaceTexture) {
+    frameAvailable = true;
     synchronized (sync) {
-      frameAvailable = true;
       sync.notifyAll();
     }
   }

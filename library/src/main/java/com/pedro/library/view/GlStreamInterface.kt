@@ -43,6 +43,7 @@ import java.util.concurrent.Semaphore
 class GlStreamInterface(private val context: Context) : Runnable, OnFrameAvailableListener, GlInterface {
 
   private var thread: Thread? = null
+  @Volatile
   private var frameAvailable = false
   private var takePhotoCallback: TakePhotoCallback? = null
   var running = false
@@ -215,7 +216,7 @@ class GlStreamInterface(private val context: Context) : Runnable, OnFrameAvailab
         }
         synchronized(sync) {
           val sleep = fpsLimiter.sleepTime
-          if (sleep > 0) sync.wait(sleep)
+          if (sleep > 0 && !frameAvailable) sync.wait(sleep)
         }
       }
     } catch (ignore: InterruptedException) {
@@ -229,8 +230,8 @@ class GlStreamInterface(private val context: Context) : Runnable, OnFrameAvailab
   }
 
   override fun onFrameAvailable(surfaceTexture: SurfaceTexture?) {
+    frameAvailable = true
     synchronized(sync) {
-      frameAvailable = true
       sync.notifyAll()
     }
   }
