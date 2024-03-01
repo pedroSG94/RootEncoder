@@ -25,6 +25,7 @@ import android.widget.ImageView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.pedro.common.ConnectChecker
+import com.pedro.encoder.input.video.CameraHelper
 import com.pedro.encoder.input.video.CameraOpenException
 import com.pedro.library.base.recording.RecordController
 import com.pedro.library.generic.GenericCamera1
@@ -110,7 +111,16 @@ class OldApiActivity : AppCompatActivity(), ConnectChecker, TextureView.SurfaceT
   }
 
   private fun prepare(): Boolean {
-    return genericCamera1.prepareAudio() && genericCamera1.prepareVideo()
+    val prepared = genericCamera1.prepareAudio() && genericCamera1.prepareVideo()
+    adaptPreview()
+    return prepared
+  }
+
+  private fun adaptPreview() {
+    val isPortrait = CameraHelper.isPortrait(this)
+    val w = if (isPortrait) genericCamera1.streamHeight else genericCamera1.streamWidth
+    val h = if (isPortrait) genericCamera1.streamWidth else genericCamera1.streamHeight
+    autoFitTextureView.setAspectRatio(w, h)
   }
 
   override fun onConnectionStarted(url: String) {}
@@ -144,7 +154,10 @@ class OldApiActivity : AppCompatActivity(), ConnectChecker, TextureView.SurfaceT
   }
 
   override fun onSurfaceTextureAvailable(surface: SurfaceTexture, width: Int, height: Int) {
-    if (!genericCamera1.isOnPreview) genericCamera1.startPreview()
+    if (!genericCamera1.isOnPreview) {
+      genericCamera1.startPreview()
+      adaptPreview()
+    }
   }
 
   override fun onSurfaceTextureSizeChanged(surface: SurfaceTexture, width: Int, height: Int) {
