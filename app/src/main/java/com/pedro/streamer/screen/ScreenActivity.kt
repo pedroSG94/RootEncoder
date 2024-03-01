@@ -18,17 +18,15 @@ package com.pedro.streamer.screen
 import android.content.Intent
 import android.os.Build
 import android.os.Bundle
-import android.os.Handler
-import android.os.Looper
 import android.view.WindowManager
 import android.widget.EditText
 import android.widget.ImageView
-import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import com.pedro.common.ConnectChecker
 import com.pedro.streamer.R
+import com.pedro.streamer.utils.toast
 
 /**
  * More documentation see:
@@ -51,7 +49,7 @@ class ScreenActivity : AppCompatActivity(), ConnectChecker {
         screenService.startStream(endpoint)
       }
     } else {
-      Toast.makeText(this, "No permissions available", Toast.LENGTH_SHORT).show()
+      toast("No permissions available")
       button.setImageResource(R.drawable.stream_icon)
     }
   }
@@ -106,28 +104,25 @@ class ScreenActivity : AppCompatActivity(), ConnectChecker {
   override fun onConnectionStarted(url: String) {}
 
   override fun onConnectionSuccess() {
-    Toast.makeText(this@ScreenActivity, "Connected", Toast.LENGTH_SHORT).show()
+    toast("Connected")
   }
 
   override fun onConnectionFailed(reason: String) {
     stopStream()
-    Toast.makeText(this@ScreenActivity, "Failed: $reason", Toast.LENGTH_LONG)
-      .show()
+    toast("Failed: $reason")
   }
 
   override fun onNewBitrate(bitrate: Long) {}
   override fun onDisconnect() {
-    Toast.makeText(this@ScreenActivity, "Disconnected", Toast.LENGTH_SHORT).show()
+    toast("Disconnected")
   }
 
   override fun onAuthError() {
-    Handler(Looper.getMainLooper()).post {
-      stopStream()
-      Toast.makeText(this@ScreenActivity, "Auth error", Toast.LENGTH_LONG).show()
-    }
+    stopStream()
+    toast("Auth error")
   }
 
   override fun onAuthSuccess() {
-    Toast.makeText(this@ScreenActivity, "Auth success", Toast.LENGTH_SHORT).show()
+    toast("Auth success")
   }
 }

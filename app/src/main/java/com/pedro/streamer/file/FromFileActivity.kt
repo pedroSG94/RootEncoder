@@ -28,7 +28,6 @@ import android.widget.ImageView
 import android.widget.SeekBar
 import android.widget.SeekBar.OnSeekBarChangeListener
 import android.widget.TextView
-import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
@@ -40,6 +39,7 @@ import com.pedro.library.generic.GenericFromFile
 import com.pedro.library.view.OpenGlView
 import com.pedro.streamer.R
 import com.pedro.streamer.utils.PathUtils
+import com.pedro.streamer.utils.toast
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -106,7 +106,7 @@ class FromFileActivity : AppCompatActivity(), ConnectChecker,
         bStream.setImageResource(R.drawable.stream_stop_icon)
         updateProgress()
       } else {
-        Toast.makeText(this, "Error preparing stream, This device cant do it", Toast.LENGTH_SHORT).show()
+        toast("Error preparing stream, This device cant do it")
       }
     }
 
@@ -129,7 +129,7 @@ class FromFileActivity : AppCompatActivity(), ConnectChecker,
         bRecord.setImageResource(R.drawable.pause_icon)
         updateProgress()
       } else {
-        Toast.makeText(this, "Error preparing stream, This device cant do it", Toast.LENGTH_SHORT).show()
+        toast("Error preparing stream, This device cant do it")
       }
     }
 
@@ -166,29 +166,28 @@ class FromFileActivity : AppCompatActivity(), ConnectChecker,
   override fun onConnectionStarted(url: String) {}
 
   override fun onConnectionSuccess() {
-    Toast.makeText(this@FromFileActivity, "Connection success", Toast.LENGTH_SHORT).show()
+    toast("Connected")
   }
 
   override fun onConnectionFailed(reason: String) {
-    Toast.makeText(
-      this@FromFileActivity, "Connection failed. $reason",
-      Toast.LENGTH_SHORT
-    ).show()
     genericFromFile.stopStream()
     bStream.setImageResource(R.drawable.stream_icon)
+    toast("Failed: $reason")
   }
 
   override fun onNewBitrate(bitrate: Long) {}
   override fun onDisconnect() {
-    Toast.makeText(this@FromFileActivity, "Disconnected", Toast.LENGTH_SHORT).show()
+    toast("Disconnected")
   }
 
   override fun onAuthError() {
-    Toast.makeText(this@FromFileActivity, "Auth error", Toast.LENGTH_SHORT).show()
+    toast("Auth error")
+    genericFromFile.stopStream()
+    bStream.setImageResource(R.drawable.stream_icon)
   }
 
   override fun onAuthSuccess() {
-    Toast.makeText(this@FromFileActivity, "Auth success", Toast.LENGTH_SHORT).show()
+    toast("Auth success")
   }
 
   @Throws(IOException::class)

@@ -20,8 +20,6 @@ import android.annotation.SuppressLint
 import android.content.res.Configuration
 import android.os.Build
 import android.os.Bundle
-import android.os.Handler
-import android.os.Looper
 import android.view.LayoutInflater
 import android.view.SurfaceHolder
 import android.view.SurfaceView
@@ -29,7 +27,6 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.EditText
 import android.widget.ImageView
-import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.fragment.app.Fragment
 import com.pedro.common.ConnectChecker
@@ -39,6 +36,7 @@ import com.pedro.library.util.sources.video.Camera1Source
 import com.pedro.library.util.sources.video.Camera2Source
 import com.pedro.streamer.R
 import com.pedro.streamer.utils.PathUtils
+import com.pedro.streamer.utils.toast
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -149,7 +147,7 @@ class CameraFragment: Fragment(), ConnectChecker {
     val prepared = genericStream.prepareVideo(width, height, vBitrate, rotation = rotation) &&
         genericStream.prepareAudio(sampleRate, isStereo, aBitrate)
     if (!prepared) {
-      Toast.makeText(requireContext(), "Audio or Video configuration failed", Toast.LENGTH_LONG).show()
+      toast("Audio or Video configuration failed")
       activity?.finish()
     }
   }
@@ -168,17 +166,16 @@ class CameraFragment: Fragment(), ConnectChecker {
   }
 
   override fun onConnectionSuccess() {
-    Toast.makeText(requireContext(), "Connected", Toast.LENGTH_SHORT).show()
+    toast("Connected")
   }
 
   override fun onConnectionFailed(reason: String) {
     if (genericStream.getStreamClient().reTry(5000, reason, null)) {
-      Toast.makeText(requireContext(), "Retry", Toast.LENGTH_SHORT)
-        .show()
+      toast("Retry")
     } else {
       genericStream.stopStream()
       bStartStop.setImageResource(R.drawable.stream_icon)
-      Toast.makeText(requireContext(), "Failed: $reason", Toast.LENGTH_LONG).show()
+      toast("Failed: $reason")
     }
   }
 
@@ -186,18 +183,16 @@ class CameraFragment: Fragment(), ConnectChecker {
   }
 
   override fun onDisconnect() {
-    Toast.makeText(requireContext(), "Disconnected", Toast.LENGTH_SHORT).show()
+    toast("Disconnected")
   }
 
   override fun onAuthError() {
-    Handler(Looper.getMainLooper()).post {
-      genericStream.stopStream()
-      bStartStop.setImageResource(R.drawable.stream_icon)
-      Toast.makeText(requireContext(), "Auth error", Toast.LENGTH_LONG).show()
-    }
+    genericStream.stopStream()
+    bStartStop.setImageResource(R.drawable.stream_icon)
+    toast("Auth error")
   }
 
   override fun onAuthSuccess() {
-    Toast.makeText(requireContext(), "Auth Failed", Toast.LENGTH_LONG).show()
+    toast("Auth success")
   }
 }

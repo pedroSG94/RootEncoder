@@ -77,6 +77,7 @@ class GenericCamera2: Camera2Base {
 
   private fun init(connectChecker: ConnectChecker) {
     this.connectChecker = connectChecker
+    rtmpClient = RtmpClient(connectChecker)
     rtspClient = RtspClient(connectChecker)
     srtClient = SrtClient(connectChecker)
     streamClient = GenericStreamClient(

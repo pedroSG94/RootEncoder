@@ -26,7 +26,6 @@ import android.os.Bundle
 import android.widget.AdapterView.OnItemClickListener
 import android.widget.GridView
 import android.widget.TextView
-import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import com.pedro.streamer.defaultexample.OldApiActivity
@@ -35,6 +34,7 @@ import com.pedro.streamer.rotation.RotationActivity
 import com.pedro.streamer.screen.ScreenActivity
 import com.pedro.streamer.utils.ActivityLink
 import com.pedro.streamer.utils.ImageAdapter
+import com.pedro.streamer.utils.toast
 
 class MainActivity : AppCompatActivity() {
 
@@ -130,11 +130,11 @@ class MainActivity : AppCompatActivity() {
       VERSION_CODES.LOLLIPOP -> "LOLLIPOP"
       else -> "JELLY_BEAN"
     }
-    Toast.makeText(this, "You need min Android $named (API $minSdk )", Toast.LENGTH_SHORT).show()
+    toast("You need min Android $named (API $minSdk)")
   }
 
   private fun showPermissionsErrorAndRequest() {
-    Toast.makeText(this, "You need permissions before", Toast.LENGTH_SHORT).show()
+    toast("You need permissions before")
     requestPermissions()
   }
 
