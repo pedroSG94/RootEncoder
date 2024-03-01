@@ -67,7 +67,7 @@ class CameraFragment: Fragment(), ConnectChecker {
   override fun onCreateView(
     inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
   ): View? {
-    val view = inflater.inflate(R.layout.activity_example, container, false)
+    val view = inflater.inflate(R.layout.fragment_camera, container, false)
     bStartStop = view.findViewById(R.id.b_start_stop)
     val bRecord = view.findViewById<ImageView>(R.id.b_record)
     val bSwitchCamera = view.findViewById<ImageView>(R.id.switch_camera)

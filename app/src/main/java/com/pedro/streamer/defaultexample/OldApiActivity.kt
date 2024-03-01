@@ -15,10 +15,10 @@
  */
 package com.pedro.streamer.defaultexample
 
+import android.graphics.SurfaceTexture
 import android.os.Build
 import android.os.Bundle
-import android.view.SurfaceHolder
-import android.view.SurfaceView
+import android.view.TextureView
 import android.view.WindowManager
 import android.widget.EditText
 import android.widget.ImageView
@@ -28,6 +28,7 @@ import com.pedro.common.ConnectChecker
 import com.pedro.encoder.input.video.CameraOpenException
 import com.pedro.library.base.recording.RecordController
 import com.pedro.library.generic.GenericCamera1
+import com.pedro.library.view.AutoFitTextureView
 import com.pedro.streamer.R
 import com.pedro.streamer.utils.PathUtils
 import com.pedro.streamer.utils.ScreenOrientation.lockScreen
@@ -42,32 +43,33 @@ import java.util.Locale
  * [com.pedro.library.base.Camera1Base]
  * [com.pedro.library.rtmp.RtmpCamera1]
  */
-class OldApiActivity : AppCompatActivity(), ConnectChecker, SurfaceHolder.Callback {
+class OldApiActivity : AppCompatActivity(), ConnectChecker, TextureView.SurfaceTextureListener {
 
-  private lateinit var rtmpCamera1: GenericCamera1
+  private lateinit var genericCamera1: GenericCamera1
   private lateinit var bStream: ImageView
   private lateinit var bRecord: ImageView
   private lateinit var etUrl: EditText
+  private lateinit var autoFitTextureView: AutoFitTextureView
   private var recordPath = ""
 
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
     window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
-    setContentView(R.layout.activity_example)
+    setContentView(R.layout.activity_old_api)
     bStream = findViewById(R.id.b_start_stop)
     bRecord = findViewById(R.id.b_record)
     etUrl = findViewById(R.id.et_rtp_url)
+    autoFitTextureView = findViewById(R.id.surfaceView)
     val switchCamera = findViewById<ImageView>(R.id.switch_camera)
-    val surfaceView = findViewById<SurfaceView>(R.id.surfaceView)
-    rtmpCamera1 = GenericCamera1(surfaceView, this)
+    genericCamera1 = GenericCamera1(autoFitTextureView, this)
     bStream.setOnClickListener {
-      if (rtmpCamera1.isStreaming) {
+      if (genericCamera1.isStreaming) {
         bStream.setImageResource(R.drawable.stream_icon)
-        rtmpCamera1.stopStream()
+        genericCamera1.stopStream()
         unlockScreen(this)
-      } else if (rtmpCamera1.isRecording || prepare()) {
+      } else if (genericCamera1.isRecording || prepare()) {
         bStream.setImageResource(R.drawable.stream_stop_icon)
-        rtmpCamera1.startStream(etUrl.text.toString())
+        genericCamera1.startStream(etUrl.text.toString())
         lockScreen(this)
       } else {
         toast("Error preparing stream, This device cant do it")
@@ -75,16 +77,16 @@ class OldApiActivity : AppCompatActivity(), ConnectChecker, SurfaceHolder.Callba
     }
     bRecord.setOnClickListener {
       if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
-        if (rtmpCamera1.isRecording) {
-          rtmpCamera1.stopRecord()
+        if (genericCamera1.isRecording) {
+          genericCamera1.stopRecord()
           bRecord.setImageResource(R.drawable.record_icon)
           PathUtils.updateGallery(this, recordPath)
-        } else if (rtmpCamera1.isStreaming || prepare()) {
+        } else if (genericCamera1.isStreaming || prepare()) {
           val folder = PathUtils.getRecordPath()
           if (!folder.exists()) folder.mkdir()
           val sdf = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault())
           recordPath = "${folder.absolutePath}/${sdf.format(Date())}.mp4"
-          rtmpCamera1.startRecord(recordPath) { status ->
+          genericCamera1.startRecord(recordPath) { status ->
             if (status == RecordController.Status.RECORDING) {
               bRecord.setImageResource(R.drawable.stop_icon)
             }
@@ -99,16 +101,16 @@ class OldApiActivity : AppCompatActivity(), ConnectChecker, SurfaceHolder.Callba
     }
     switchCamera.setOnClickListener {
       try {
-        rtmpCamera1.switchCamera()
+        genericCamera1.switchCamera()
       } catch (e: CameraOpenException) {
         Toast.makeText(this, e.message, Toast.LENGTH_SHORT).show()
       }
     }
-    surfaceView.holder.addCallback(this)
+    autoFitTextureView.surfaceTextureListener = this
   }
 
   private fun prepare(): Boolean {
-    return rtmpCamera1.prepareAudio() && rtmpCamera1.prepareVideo()
+    return genericCamera1.prepareAudio() && genericCamera1.prepareVideo()
   }
 
   override fun onConnectionStarted(url: String) {}
@@ -119,7 +121,7 @@ class OldApiActivity : AppCompatActivity(), ConnectChecker, SurfaceHolder.Callba
 
   override fun onConnectionFailed(reason: String) {
     toast("Failed: $reason")
-    rtmpCamera1.stopStream()
+    genericCamera1.stopStream()
     unlockScreen(this)
     bStream.setImageResource(R.drawable.stream_icon)
   }
@@ -132,7 +134,7 @@ class OldApiActivity : AppCompatActivity(), ConnectChecker, SurfaceHolder.Callba
 
   override fun onAuthError() {
     toast("Auth error")
-    rtmpCamera1.stopStream()
+    genericCamera1.stopStream()
     bStream.setImageResource(R.drawable.stream_icon)
     unlockScreen(this)
   }
@@ -141,23 +143,28 @@ class OldApiActivity : AppCompatActivity(), ConnectChecker, SurfaceHolder.Callba
     toast("Auth success")
   }
 
-  override fun surfaceCreated(surfaceHolder: SurfaceHolder) {}
-
-  override fun surfaceChanged(surfaceHolder: SurfaceHolder, i: Int, i1: Int, i2: Int) {
-    if (!rtmpCamera1.isOnPreview) rtmpCamera1.startPreview()
+  override fun onSurfaceTextureAvailable(surface: SurfaceTexture, width: Int, height: Int) {
+    if (!genericCamera1.isOnPreview) genericCamera1.startPreview()
   }
 
-  override fun surfaceDestroyed(surfaceHolder: SurfaceHolder) {
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2 && rtmpCamera1.isRecording) {
-      rtmpCamera1.stopRecord()
+  override fun onSurfaceTextureSizeChanged(surface: SurfaceTexture, width: Int, height: Int) {
+
+  }
+
+  override fun onSurfaceTextureDestroyed(surface: SurfaceTexture): Boolean {
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2 && genericCamera1.isRecording) {
+      genericCamera1.stopRecord()
       bRecord.setBackgroundResource(R.drawable.record_icon)
       PathUtils.updateGallery(this, recordPath)
     }
-    if (rtmpCamera1.isStreaming) {
-      rtmpCamera1.stopStream()
+    if (genericCamera1.isStreaming) {
+      genericCamera1.stopStream()
       bStream.setImageResource(R.drawable.stream_icon)
     }
-    if (rtmpCamera1.isOnPreview) rtmpCamera1.stopPreview()
+    if (genericCamera1.isOnPreview) genericCamera1.stopPreview()
     unlockScreen(this)
+    return true
   }
+
+  override fun onSurfaceTextureUpdated(surface: SurfaceTexture) {}
 }
