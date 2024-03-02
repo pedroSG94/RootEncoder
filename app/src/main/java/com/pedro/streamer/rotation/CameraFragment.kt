@@ -48,11 +48,11 @@ import java.util.Locale
  *
  * Check Menu to use filters, video and audio sources, and orientation
  *
- * Orientation vertical means that you want stream with vertical resolution
- * (with = 640, height = 480 and rotation = 90) The stream/record result will be 480x640 resolution
- *
  * Orientation horizontal (by default) means that you want stream with vertical resolution
  * (with = 640, height = 480 and rotation = 0) The stream/record result will be 640x480 resolution
+ *
+ * Orientation vertical means that you want stream with vertical resolution
+ * (with = 640, height = 480 and rotation = 90) The stream/record result will be 480x640 resolution
  *
  * More documentation see:
  * [com.pedro.library.base.StreamBase]

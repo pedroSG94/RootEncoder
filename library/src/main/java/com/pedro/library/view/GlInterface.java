@@ -123,6 +123,14 @@ public interface GlInterface {
   void setRotation(int rotation);
 
   /**
+   * Force stream to work with fps selected in prepareVideo method. Must be called before prepareVideo.
+   * This is not recommend because could produce fps problems.
+   *
+   * @param fps value > 0 to enable, value <= 0 to disable, disabled by default.
+   */
+  void forceFpsLimit(int fps);
+
+  /**
    * @param rotation change stream rotation on fly. No effect to preview
    */
   void setStreamRotation(int rotation);

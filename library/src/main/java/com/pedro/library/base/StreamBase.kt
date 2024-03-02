@@ -160,6 +160,18 @@ abstract class StreamBase(
   }
 
   /**
+   * Force stream to work with fps selected in prepareVideo method. Must be called before prepareVideo.
+   * This is not recommend because could produce fps problems.
+   *
+   * @param enabled true to enabled, false to disable, disabled by default.
+   */
+  fun forceFpsLimit(enabled: Boolean) {
+    val fps = if (enabled) videoEncoder.fps else 0
+    videoEncoder.setForceFps(fps)
+    glInterface.forceFpsLimit(fps)
+  }
+
+  /**
    * @param codecTypeVideo force type codec used. FIRST_COMPATIBLE_FOUND, SOFTWARE, HARDWARE
    * @param codecTypeAudio force type codec used. FIRST_COMPATIBLE_FOUND, SOFTWARE, HARDWARE
    */

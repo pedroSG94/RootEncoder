@@ -520,6 +520,18 @@ public abstract class FromFileBase {
   }
 
   /**
+   * Force stream to work with fps selected in prepareVideo method. Must be called before prepareVideo.
+   * This is not recommend because could produce fps problems.
+   *
+   * @param enabled true to enabled, false to disable, disabled by default.
+   */
+  public void forceFpsLimit(boolean enabled) {
+    int fps = enabled ? videoEncoder.getFps() : 0;
+    videoEncoder.setForceFps(fps);
+    if (glInterface != null) glInterface.forceFpsLimit(fps);
+  }
+
+  /**
    * Get stream state.
    *
    * @return true if streaming, false if not streaming.

@@ -178,9 +178,6 @@ public class VideoEncoder extends BaseEncoder implements GetCameraData {
     forceKey = false;
     shouldReset = resetTs;
     spsPpsSetted = false;
-    if (resetTs) {
-      fpsLimiter.setFPS(fps);
-    }
     if (formatVideoEncoder != FormatVideoEncoder.SURFACE) {
       YUVUtil.preAllocateBuffers(width * height * 3 / 2);
     }
@@ -292,6 +289,10 @@ public class VideoEncoder extends BaseEncoder implements GetCameraData {
 
   public int getBitRate() {
     return bitRate;
+  }
+
+  public void setForceFps(int fps) {
+    fpsLimiter.setFPS(fps);
   }
 
   @Override

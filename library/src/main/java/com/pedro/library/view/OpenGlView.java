@@ -34,6 +34,7 @@ import com.pedro.encoder.input.gl.FilterAction;
 import com.pedro.encoder.input.gl.SurfaceManager;
 import com.pedro.encoder.input.gl.render.MainRender;
 import com.pedro.encoder.input.gl.render.filters.BaseFilterRender;
+import com.pedro.encoder.input.video.FpsLimiter;
 import com.pedro.encoder.utils.gl.AspectRatioMode;
 import com.pedro.encoder.utils.gl.GlUtil;
 import com.pedro.library.R;
@@ -69,6 +70,7 @@ public class OpenGlView extends SurfaceView
   private boolean isStreamVerticalFlip = false;
   private AspectRatioMode aspectRatioMode = AspectRatioMode.Adjust;
   private ExecutorService executor = null;
+  private FpsLimiter fpsLimiter = new FpsLimiter();
 
   public OpenGlView(Context context) {
     super(context);
@@ -142,6 +144,11 @@ public class OpenGlView extends SurfaceView
   @Override
   public void setRotation(int rotation) {
     mainRender.setCameraRotation(rotation);
+  }
+
+  @Override
+  public void forceFpsLimit(int fps) {
+    fpsLimiter.setFPS(fps);
   }
 
   public void setAspectRatioMode(AspectRatioMode aspectRatioMode) {
@@ -304,7 +311,7 @@ public class OpenGlView extends SurfaceView
 
   @Override
   public void onFrameAvailable(SurfaceTexture surfaceTexture) {
-    if (!running) return;
+    if (!running || fpsLimiter.limitFPS()) return;
     ExecutorService executor = this.executor;
     if (executor == null) return;
     executor.execute(this::draw);

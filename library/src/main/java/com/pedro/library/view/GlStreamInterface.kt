@@ -29,6 +29,7 @@ import com.pedro.encoder.input.gl.SurfaceManager
 import com.pedro.encoder.input.gl.render.MainRender
 import com.pedro.encoder.input.gl.render.filters.BaseFilterRender
 import com.pedro.encoder.input.video.CameraHelper
+import com.pedro.encoder.input.video.FpsLimiter
 import com.pedro.encoder.utils.gl.AspectRatioMode
 import com.pedro.encoder.utils.gl.GlUtil
 import com.pedro.library.util.Filter
@@ -68,6 +69,7 @@ class GlStreamInterface(private val context: Context): OnFrameAvailableListener,
   private var isStreamVerticalFlip = false
   private var aspectRatioMode = AspectRatioMode.Adjust
   private var executor: ExecutorService? = null
+  private val fpsLimiter = FpsLimiter()
 
   override fun setEncoderSize(width: Int, height: Int) {
     encoderWidth = width
@@ -190,7 +192,7 @@ class GlStreamInterface(private val context: Context): OnFrameAvailableListener,
   }
 
   override fun onFrameAvailable(surfaceTexture: SurfaceTexture?) {
-    if (!running) return
+    if (!running || fpsLimiter.limitFPS()) return
     executor?.execute { draw() }
   }
 
@@ -261,6 +263,10 @@ class GlStreamInterface(private val context: Context): OnFrameAvailableListener,
 
   override fun setRotation(rotation: Int) {
     mainRender.setCameraRotation(rotation);
+  }
+
+  override fun forceFpsLimit(fps: Int) {
+    fpsLimiter.setFPS(fps)
   }
 
   override fun setIsStreamHorizontalFlip(flip: Boolean) {
