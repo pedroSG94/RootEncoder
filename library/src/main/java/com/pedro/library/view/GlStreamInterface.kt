@@ -274,7 +274,7 @@ class GlStreamInterface(private val context: Context): OnFrameAvailableListener,
   }
 
   override fun setRotation(rotation: Int) {
-    mainRender.setCameraRotation(rotation);
+    mainRender.setCameraRotation(rotation)
   }
 
   override fun forceFpsLimit(fps: Int) {

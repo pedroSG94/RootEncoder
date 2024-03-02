@@ -39,6 +39,7 @@ import com.pedro.library.generic.GenericFromFile
 import com.pedro.library.view.OpenGlView
 import com.pedro.streamer.R
 import com.pedro.streamer.utils.PathUtils
+import com.pedro.streamer.utils.ScreenOrientation
 import com.pedro.streamer.utils.toast
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -109,10 +110,12 @@ class FromFileActivity : AppCompatActivity(), ConnectChecker,
       if (genericFromFile.isStreaming) {
         genericFromFile.stopStream()
         bStream.setImageResource(R.drawable.stream_icon)
+        if (!genericFromFile.isRecording) ScreenOrientation.unlockScreen(this)
       } else if (genericFromFile.isRecording || prepare()) {
         if (!genericFromFile.isAudioDeviceEnabled) genericFromFile.playAudioDevice()
         genericFromFile.startStream(etUrl.text.toString())
         bStream.setImageResource(R.drawable.stream_stop_icon)
+        ScreenOrientation.lockScreen(this)
         updateProgress()
       } else {
         toast("Error preparing stream, This device cant do it")
@@ -124,18 +127,20 @@ class FromFileActivity : AppCompatActivity(), ConnectChecker,
         genericFromFile.stopRecord()
         bRecord.setImageResource(R.drawable.record_icon)
         PathUtils.updateGallery(this, recordPath)
+        if (!genericFromFile.isStreaming) ScreenOrientation.unlockScreen(this)
       } else if (genericFromFile.isStreaming || prepare()) {
         if (!genericFromFile.isAudioDeviceEnabled) genericFromFile.playAudioDevice()
         val folder = PathUtils.getRecordPath()
         if (!folder.exists()) folder.mkdir()
         val sdf = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault())
         recordPath = "${folder.absolutePath}/${sdf.format(Date())}.mp4"
+        bRecord.setImageResource(R.drawable.pause_icon)
         genericFromFile.startRecord(recordPath) { status ->
           if (status == RecordController.Status.RECORDING) {
             bRecord.setImageResource(R.drawable.stop_icon)
           }
         }
-        bRecord.setImageResource(R.drawable.pause_icon)
+        ScreenOrientation.lockScreen(this)
         updateProgress()
       } else {
         toast("Error preparing stream, This device cant do it")
@@ -165,6 +170,7 @@ class FromFileActivity : AppCompatActivity(), ConnectChecker,
       genericFromFile.stopStream()
       bStream.setImageResource(R.drawable.stream_icon)
     }
+    ScreenOrientation.unlockScreen(this)
   }
 
   override fun onDestroy() {
@@ -179,9 +185,10 @@ class FromFileActivity : AppCompatActivity(), ConnectChecker,
   }
 
   override fun onConnectionFailed(reason: String) {
+    toast("Failed: $reason")
     genericFromFile.stopStream()
     bStream.setImageResource(R.drawable.stream_icon)
-    toast("Failed: $reason")
+    if (!genericFromFile.isRecording) ScreenOrientation.unlockScreen(this)
   }
 
   override fun onNewBitrate(bitrate: Long) {}
@@ -194,6 +201,7 @@ class FromFileActivity : AppCompatActivity(), ConnectChecker,
     toast("Auth error")
     genericFromFile.stopStream()
     bStream.setImageResource(R.drawable.stream_icon)
+    if (!genericFromFile.isRecording) ScreenOrientation.unlockScreen(this)
   }
 
   override fun onAuthSuccess() {

@@ -39,14 +39,13 @@
     </activity>
 
     <activity
-        android:name="com.pedro.streamer.defaultexample.OldApiActivity"
+        android:name="com.pedro.streamer.oldapi.OldApiActivity"
         android:label="@string/old_api"
         />
 
     <activity
         android:name="com.pedro.streamer.file.FromFileActivity"
         android:label="@string/from_file"
-        android:screenOrientation="portrait"
         />
 
     <activity

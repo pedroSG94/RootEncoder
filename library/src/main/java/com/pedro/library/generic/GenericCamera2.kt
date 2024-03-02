@@ -170,7 +170,7 @@ class GenericCamera2: Camera2Base {
     }
   }
 
-  override fun onSpsPpsVpsRtp(sps: ByteBuffer, pps: ByteBuffer, vps: ByteBuffer) {
+  override fun onSpsPpsVpsRtp(sps: ByteBuffer, pps: ByteBuffer?, vps: ByteBuffer?) {
     rtmpClient.setVideoInfo(sps, pps, vps)
     rtspClient.setVideoInfo(sps, pps, vps)
     srtClient.setVideoInfo(sps, pps, vps)

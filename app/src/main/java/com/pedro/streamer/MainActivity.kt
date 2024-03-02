@@ -28,7 +28,7 @@ import android.widget.GridView
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
-import com.pedro.streamer.defaultexample.OldApiActivity
+import com.pedro.streamer.oldapi.OldApiActivity
 import com.pedro.streamer.file.FromFileActivity
 import com.pedro.streamer.rotation.RotationActivity
 import com.pedro.streamer.screen.ScreenActivity

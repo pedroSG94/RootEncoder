@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.pedro.streamer.defaultexample
+package com.pedro.streamer.oldapi
 
 import android.graphics.SurfaceTexture
 import android.os.Build
@@ -32,8 +32,7 @@ import com.pedro.library.generic.GenericCamera1
 import com.pedro.library.view.AutoFitTextureView
 import com.pedro.streamer.R
 import com.pedro.streamer.utils.PathUtils
-import com.pedro.streamer.utils.ScreenOrientation.lockScreen
-import com.pedro.streamer.utils.ScreenOrientation.unlockScreen
+import com.pedro.streamer.utils.ScreenOrientation
 import com.pedro.streamer.utils.toast
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -77,11 +76,11 @@ class OldApiActivity : AppCompatActivity(), ConnectChecker, TextureView.SurfaceT
       if (genericCamera1.isStreaming) {
         bStream.setImageResource(R.drawable.stream_icon)
         genericCamera1.stopStream()
-        unlockScreen(this)
+        if (!genericCamera1.isRecording) ScreenOrientation.unlockScreen(this)
       } else if (genericCamera1.isRecording || prepare()) {
         bStream.setImageResource(R.drawable.stream_stop_icon)
         genericCamera1.startStream(etUrl.text.toString())
-        lockScreen(this)
+        ScreenOrientation.lockScreen(this)
       } else {
         toast("Error preparing stream, This device cant do it")
       }
@@ -92,17 +91,19 @@ class OldApiActivity : AppCompatActivity(), ConnectChecker, TextureView.SurfaceT
           genericCamera1.stopRecord()
           bRecord.setImageResource(R.drawable.record_icon)
           PathUtils.updateGallery(this, recordPath)
+          if (!genericCamera1.isStreaming) ScreenOrientation.unlockScreen(this)
         } else if (genericCamera1.isStreaming || prepare()) {
           val folder = PathUtils.getRecordPath()
           if (!folder.exists()) folder.mkdir()
           val sdf = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault())
           recordPath = "${folder.absolutePath}/${sdf.format(Date())}.mp4"
+          bRecord.setImageResource(R.drawable.pause_icon)
           genericCamera1.startRecord(recordPath) { status ->
             if (status == RecordController.Status.RECORDING) {
               bRecord.setImageResource(R.drawable.stop_icon)
             }
           }
-          bRecord.setImageResource(R.drawable.pause_icon)
+          ScreenOrientation.lockScreen(this)
         } else {
           toast("Error preparing stream, This device cant do it")
         }
@@ -142,7 +143,7 @@ class OldApiActivity : AppCompatActivity(), ConnectChecker, TextureView.SurfaceT
   override fun onConnectionFailed(reason: String) {
     toast("Failed: $reason")
     genericCamera1.stopStream()
-    unlockScreen(this)
+    if (!genericCamera1.isRecording) ScreenOrientation.unlockScreen(this)
     bStream.setImageResource(R.drawable.stream_icon)
   }
 
@@ -156,7 +157,7 @@ class OldApiActivity : AppCompatActivity(), ConnectChecker, TextureView.SurfaceT
     toast("Auth error")
     genericCamera1.stopStream()
     bStream.setImageResource(R.drawable.stream_icon)
-    unlockScreen(this)
+    if (!genericCamera1.isRecording) ScreenOrientation.unlockScreen(this)
   }
 
   override fun onAuthSuccess() {
@@ -185,7 +186,7 @@ class OldApiActivity : AppCompatActivity(), ConnectChecker, TextureView.SurfaceT
       bStream.setImageResource(R.drawable.stream_icon)
     }
     if (genericCamera1.isOnPreview) genericCamera1.stopPreview()
-    unlockScreen(this)
+    ScreenOrientation.unlockScreen(this)
     return true
   }
 
