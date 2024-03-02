@@ -60,7 +60,7 @@ import com.pedro.library.util.AndroidMuxerRecordController;
 import com.pedro.library.util.FpsListener;
 import com.pedro.library.util.streamclient.StreamBaseClient;
 import com.pedro.library.view.GlInterface;
-import com.pedro.library.view.OffScreenGlThread;
+import com.pedro.library.view.GlStreamInterface;
 import com.pedro.library.view.OpenGlView;
 
 import java.io.FileDescriptor;
@@ -133,7 +133,7 @@ public abstract class Camera2Base {
   public Camera2Base(Context context, boolean useOpengl) {
     this.context = context;
     if (useOpengl) {
-      glInterface = new OffScreenGlThread(context);
+      glInterface = new GlStreamInterface(context);
     }
     isBackground = true;
     init(context);
@@ -457,7 +457,7 @@ public abstract class Camera2Base {
 
   public void replaceView(Context context) {
     isBackground = true;
-    replaceGlInterface(new OffScreenGlThread(context));
+    replaceGlInterface(new GlStreamInterface(context));
   }
 
   public void replaceView(OpenGlView openGlView) {
@@ -685,7 +685,7 @@ public abstract class Camera2Base {
       if (audioInitialized) microphoneManager.stop();
       if (glInterface != null) {
         glInterface.removeMediaCodecSurface();
-        if (glInterface instanceof OffScreenGlThread) {
+        if (glInterface instanceof GlStreamInterface) {
           glInterface.stop();
           cameraManager.closeCamera();
         }

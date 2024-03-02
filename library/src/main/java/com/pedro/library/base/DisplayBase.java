@@ -56,7 +56,7 @@ import com.pedro.library.util.AndroidMuxerRecordController;
 import com.pedro.library.util.FpsListener;
 import com.pedro.library.util.streamclient.StreamBaseClient;
 import com.pedro.library.view.GlInterface;
-import com.pedro.library.view.OffScreenGlThread;
+import com.pedro.library.view.GlStreamInterface;
 
 import java.io.FileDescriptor;
 import java.io.IOException;
@@ -74,7 +74,7 @@ import java.nio.ByteBuffer;
 @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
 public abstract class DisplayBase {
 
-  private OffScreenGlThread glInterface;
+  private GlInterface glInterface;
   private MediaProjection mediaProjection;
   private final MediaProjectionManager mediaProjectionManager;
   protected VideoEncoder videoEncoder;
@@ -94,7 +94,7 @@ public abstract class DisplayBase {
 
   public DisplayBase(Context context, boolean useOpengl) {
     if (useOpengl) {
-      glInterface = new OffScreenGlThread(context);
+      glInterface = new GlStreamInterface(context);
     }
     mediaProjectionManager =
         ((MediaProjectionManager) context.getSystemService(MEDIA_PROJECTION_SERVICE));

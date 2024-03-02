@@ -59,7 +59,7 @@ import com.pedro.library.util.AndroidMuxerRecordController;
 import com.pedro.library.util.FpsListener;
 import com.pedro.library.util.streamclient.StreamBaseClient;
 import com.pedro.library.view.GlInterface;
-import com.pedro.library.view.OffScreenGlThread;
+import com.pedro.library.view.GlStreamInterface;
 import com.pedro.library.view.OpenGlView;
 
 import java.io.FileDescriptor;
@@ -120,7 +120,7 @@ public abstract class Camera1Base {
   @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
   public Camera1Base(Context context) {
     this.context = context;
-    glInterface = new OffScreenGlThread(context);
+    glInterface = new GlStreamInterface(context);
     cameraManager = new Camera1ApiManager(glInterface.getSurfaceTexture(), context);
     init();
   }
@@ -420,7 +420,7 @@ public abstract class Camera1Base {
   @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
   public void replaceView(Context context) {
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
-      replaceGlInterface(new OffScreenGlThread(context));
+      replaceGlInterface(new GlStreamInterface(context));
     }
   }
 
@@ -469,7 +469,7 @@ public abstract class Camera1Base {
    */
   public void startPreview(CameraHelper.Facing cameraFacing, int width, int height, int fps, int rotation) {
     if (!isStreaming() && !onPreview) {
-      if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2 && (glInterface instanceof OffScreenGlThread)) {
+      if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2 && (glInterface instanceof GlStreamInterface)) {
         // if you are using background mode startPreview only work to indicate
         // that you want start with front or back camera
         cameraManager.setCameraFacing(cameraFacing);
@@ -509,7 +509,7 @@ public abstract class Camera1Base {
    */
   public void startPreview(int cameraId, int width, int height, int fps, int rotation) {
     if (!isStreaming() && !onPreview) {
-      if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2 && (glInterface instanceof OffScreenGlThread)) {
+      if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2 && (glInterface instanceof GlStreamInterface)) {
         // if you are using background mode startPreview only work to indicate
         // that you want start with front or back camera
         cameraManager.setCameraSelect(cameraId);
@@ -580,7 +580,7 @@ public abstract class Camera1Base {
    */
   public void stopPreview() {
     if (!isStreaming() && !isRecording() && onPreview) {
-      if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2 && (glInterface instanceof OffScreenGlThread)) {
+      if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2 && (glInterface instanceof GlStreamInterface)) {
         return;
       }
       if (glInterface != null && Build.VERSION.SDK_INT >= 18) {
@@ -747,7 +747,7 @@ public abstract class Camera1Base {
       if (audioInitialized) microphoneManager.stop();
       if (glInterface != null && Build.VERSION.SDK_INT >= 18) {
         glInterface.removeMediaCodecSurface();
-        if (glInterface instanceof OffScreenGlThread) {
+        if (glInterface instanceof GlStreamInterface) {
           glInterface.stop();
           cameraManager.stop();
           onPreview = false;
