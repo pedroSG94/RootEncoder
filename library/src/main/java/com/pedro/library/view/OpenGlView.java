@@ -22,7 +22,6 @@ import android.graphics.Point;
 import android.graphics.SurfaceTexture;
 import android.os.Build;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.view.Surface;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
@@ -33,7 +32,7 @@ import androidx.annotation.RequiresApi;
 import com.pedro.common.ExtensionsKt;
 import com.pedro.encoder.input.gl.FilterAction;
 import com.pedro.encoder.input.gl.SurfaceManager;
-import com.pedro.encoder.input.gl.render.ManagerRender;
+import com.pedro.encoder.input.gl.render.MainRender;
 import com.pedro.encoder.input.gl.render.filters.BaseFilterRender;
 import com.pedro.encoder.utils.gl.AspectRatioMode;
 import com.pedro.encoder.utils.gl.GlUtil;
@@ -53,10 +52,8 @@ import java.util.concurrent.LinkedBlockingQueue;
 public class OpenGlView extends SurfaceView
     implements GlInterface, SurfaceTexture.OnFrameAvailableListener, SurfaceHolder.Callback {
 
-  public final static String TAG = "OpenGlViewBase";
-
-  private boolean running = false;
-  private final ManagerRender managerRender = new ManagerRender();
+  private volatile boolean running = false;
+  private final MainRender mainRender = new MainRender();
   private final SurfaceManager surfaceManagerPhoto = new SurfaceManager();
   private final SurfaceManager surfaceManager = new SurfaceManager();
   private final SurfaceManager surfaceManagerEncoder = new SurfaceManager();
@@ -84,11 +81,10 @@ public class OpenGlView extends SurfaceView
     try {
       aspectRatioMode = AspectRatioMode.Companion.fromId(typedArray.getInt(R.styleable.OpenGlView_aspectRatioMode, AspectRatioMode.NONE.ordinal()));
       boolean AAEnabled = typedArray.getBoolean(R.styleable.OpenGlView_AAEnabled, false);
-      ManagerRender.numFilters = typedArray.getInt(R.styleable.OpenGlView_numFilters, 0);
       boolean isFlipHorizontal = typedArray.getBoolean(R.styleable.OpenGlView_isFlipHorizontal, false);
       boolean isFlipVertical = typedArray.getBoolean(R.styleable.OpenGlView_isFlipVertical, false);
-      managerRender.setCameraFlip(isFlipHorizontal, isFlipVertical);
-      managerRender.enableAA(AAEnabled);
+      mainRender.setCameraFlip(isFlipHorizontal, isFlipVertical);
+      mainRender.enableAA(AAEnabled);
     } finally {
       typedArray.recycle();
     }
@@ -97,12 +93,12 @@ public class OpenGlView extends SurfaceView
 
   @Override
   public SurfaceTexture getSurfaceTexture() {
-    return managerRender.getSurfaceTexture();
+    return mainRender.getSurfaceTexture();
   }
 
   @Override
   public Surface getSurface() {
-    return managerRender.getSurface();
+    return mainRender.getSurface();
   }
 
   @Override
@@ -137,7 +133,7 @@ public class OpenGlView extends SurfaceView
 
   @Override
   public int filtersCount() {
-    return managerRender.filtersCount();
+    return mainRender.filtersCount();
   }
 
   @Override
@@ -147,12 +143,12 @@ public class OpenGlView extends SurfaceView
 
   @Override
   public void enableAA(boolean AAEnabled) {
-    managerRender.enableAA(AAEnabled);
+    mainRender.enableAA(AAEnabled);
   }
 
   @Override
   public void setRotation(int rotation) {
-    managerRender.setCameraRotation(rotation);
+    mainRender.setCameraRotation(rotation);
   }
 
   public void setAspectRatioMode(AspectRatioMode aspectRatioMode) {
@@ -160,12 +156,12 @@ public class OpenGlView extends SurfaceView
   }
 
   public void setCameraFlip(boolean isFlipHorizontal, boolean isFlipVertical) {
-    managerRender.setCameraFlip(isFlipHorizontal, isFlipVertical);
+    mainRender.setCameraFlip(isFlipHorizontal, isFlipVertical);
   }
 
   @Override
   public boolean isAAEnabled() {
-    return managerRender != null && managerRender.isAAEnabled();
+    return mainRender.isAAEnabled();
   }
 
   @Override
@@ -225,32 +221,34 @@ public class OpenGlView extends SurfaceView
   }
 
   private void draw() {
-    surfaceManager.makeCurrent();
-    managerRender.updateFrame();
-    managerRender.drawOffScreen();
-    managerRender.drawScreen(previewWidth, previewHeight, aspectRatioMode, 0,
-        isPreviewVerticalFlip, isPreviewHorizontalFlip);
-    surfaceManager.swapBuffer();
+    if (surfaceManager.isReady() && mainRender.isReady()) {
+      surfaceManager.makeCurrent();
+      mainRender.updateFrame();
+      mainRender.drawOffScreen();
+      mainRender.drawScreen(previewWidth, previewHeight, aspectRatioMode, 0,
+          isPreviewVerticalFlip, isPreviewHorizontalFlip);
+      surfaceManager.swapBuffer();
+    }
 
-    if (!filterQueue.isEmpty() && managerRender.isReady()) {
+    if (!filterQueue.isEmpty() && mainRender.isReady()) {
       try {
         Filter filter = filterQueue.take();
-        managerRender.setFilterAction(filter.getFilterAction(), filter.getPosition(), filter.getBaseFilterRender());
+        mainRender.setFilterAction(filter.getFilterAction(), filter.getPosition(), filter.getBaseFilterRender());
       } catch (InterruptedException e) {
         Thread.currentThread().interrupt();
       }
     }
-    if (surfaceManagerEncoder.isReady() && managerRender.isReady()) {
+    if (surfaceManagerEncoder.isReady() && mainRender.isReady()) {
       int w = muteVideo ? 0 : encoderWidth;
       int h = muteVideo ? 0 : encoderHeight;
       surfaceManagerEncoder.makeCurrent();
-      managerRender.drawScreen(w, h, aspectRatioMode,
+      mainRender.drawScreen(w, h, aspectRatioMode,
           streamRotation, isStreamVerticalFlip, isStreamHorizontalFlip);
       surfaceManagerEncoder.swapBuffer();
     }
-    if (takePhotoCallback != null && surfaceManagerPhoto.isReady() && managerRender.isReady()) {
+    if (takePhotoCallback != null && surfaceManagerPhoto.isReady() && mainRender.isReady()) {
       surfaceManagerPhoto.makeCurrent();
-      managerRender.drawScreen(encoderWidth, encoderHeight, aspectRatioMode,
+      mainRender.drawScreen(encoderWidth, encoderHeight, aspectRatioMode,
           streamRotation, isStreamVerticalFlip, isStreamHorizontalFlip);
       takePhotoCallback.onTakePhoto(GlUtil.getBitmap(encoderWidth, encoderHeight));
       takePhotoCallback = null;
@@ -294,11 +292,11 @@ public class OpenGlView extends SurfaceView
       surfaceManager.release();
       surfaceManager.eglSetup(getHolder().getSurface());
       surfaceManager.makeCurrent();
-      managerRender.initGl(getContext(), encoderWidth, encoderHeight, encoderWidth, encoderHeight);
+      mainRender.initGl(getContext(), encoderWidth, encoderHeight, encoderWidth, encoderHeight);
       surfaceManagerPhoto.release();
       surfaceManagerPhoto.eglSetup(encoderWidth, encoderHeight, surfaceManager);
       running = true;
-      managerRender.getSurfaceTexture().setOnFrameAvailableListener(this);
+      mainRender.getSurfaceTexture().setOnFrameAvailableListener(this);
       return null;
     });
   }
@@ -330,10 +328,9 @@ public class OpenGlView extends SurfaceView
 
   @Override
   public void surfaceChanged(@NonNull SurfaceHolder holder, int format, int width, int height) {
-    Log.i(TAG, "size: " + width + "x" + height);
     this.previewWidth = width;
     this.previewHeight = height;
-    if (managerRender != null) managerRender.setPreviewSize(previewWidth, previewHeight);
+    mainRender.setPreviewSize(previewWidth, previewHeight);
   }
 
   @Override

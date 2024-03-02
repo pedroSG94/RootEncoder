@@ -1,9 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-  <attr name="isFlipHorizontal"
-      format="boolean"/>
-  <attr name="isFlipVertical"
-      format="boolean"/>
 <!--  FILL, ADJUST, NONE-->
   <attr name="aspectRatioMode" format="enum">
     <enum name="adjust" value="0"/>
@@ -12,12 +8,9 @@
   </attr>
 
   <declare-styleable name="OpenGlView">
-    <attr name="AAEnabled"
-        format="boolean"/>
-    <attr name="numFilters"
-        format="integer"/>
+    <attr name="AAEnabled" format="boolean"/>
     <attr name="aspectRatioMode"/>
-    <attr name="isFlipHorizontal"/>
-    <attr name="isFlipVertical"/>
+    <attr name="isFlipHorizontal" format="boolean"/>
+    <attr name="isFlipVertical" format="boolean"/>
   </declare-styleable>
 </resources>

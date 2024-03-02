@@ -44,13 +44,14 @@ import java.util.concurrent.LinkedBlockingQueue
 class GlStreamInterface(private val context: Context): OnFrameAvailableListener, GlInterface {
 
   private var takePhotoCallback: TakePhotoCallback? = null
+  @Volatile
   var running = false
     private set
   private val surfaceManager = SurfaceManager()
   private val surfaceManagerEncoder = SurfaceManager()
   private val surfaceManagerPhoto = SurfaceManager()
   private val surfaceManagerPreview = SurfaceManager()
-  private val managerRender = MainRender()
+  private val mainRender = MainRender()
   private var encoderWidth = 0
   private var encoderHeight = 0
   private var streamOrientation = 0
@@ -88,11 +89,11 @@ class GlStreamInterface(private val context: Context): OnFrameAvailableListener,
   override fun isVideoMuted(): Boolean = muteVideo
 
   override fun getSurfaceTexture(): SurfaceTexture {
-    return managerRender.getSurfaceTexture()
+    return mainRender.getSurfaceTexture()
   }
 
   override fun getSurface(): Surface {
-    return managerRender.getSurface()
+    return mainRender.getSurface()
   }
 
   override fun addMediaCodecSurface(surface: Surface) {
@@ -120,11 +121,11 @@ class GlStreamInterface(private val context: Context): OnFrameAvailableListener,
       surfaceManager.release()
       surfaceManager.eglSetup()
       surfaceManager.makeCurrent()
-      managerRender.initGl(context, encoderWidth, encoderHeight, encoderWidth, encoderHeight)
+      mainRender.initGl(context, encoderWidth, encoderHeight, encoderWidth, encoderHeight)
       surfaceManagerPhoto.release()
       surfaceManagerPhoto.eglSetup(encoderWidth, encoderHeight, surfaceManager)
       running = true
-      managerRender.getSurfaceTexture().setOnFrameAvailableListener(this)
+      mainRender.getSurfaceTexture().setOnFrameAvailableListener(this)
     }
   }
 
@@ -138,17 +139,17 @@ class GlStreamInterface(private val context: Context): OnFrameAvailableListener,
   }
 
   private fun draw() {
-    surfaceManager.makeCurrent()
-    managerRender.updateFrame()
-    managerRender.drawOffScreen()
-    managerRender.drawScreen(encoderWidth, encoderHeight, AspectRatioMode.NONE, 0,
-      flipStreamVertical = false, flipStreamHorizontal = false)
-    surfaceManager.swapBuffer()
+    if (surfaceManager.isReady && mainRender.isReady) {
+      surfaceManager.makeCurrent()
+      mainRender.updateFrame()
+      mainRender.drawOffScreen()
+      surfaceManager.swapBuffer()
+    }
 
-    if (!filterQueue.isEmpty()) {
+    if (!filterQueue.isEmpty() && mainRender.isReady) {
       try {
         val filter = filterQueue.take()
-        managerRender.setFilterAction(filter.filterAction, filter.position, filter.baseFilterRender)
+        mainRender.setFilterAction(filter.filterAction, filter.position, filter.baseFilterRender)
       } catch (e: InterruptedException) {
         Thread.currentThread().interrupt()
       }
@@ -160,29 +161,29 @@ class GlStreamInterface(private val context: Context): OnFrameAvailableListener,
       OrientationForced.NONE -> isPortrait
     }
     // render VideoEncoder (stream and record)
-    if (surfaceManagerEncoder.isReady) {
+    if (surfaceManagerEncoder.isReady && mainRender.isReady) {
       val w = if (muteVideo) 0 else encoderWidth
       val h = if (muteVideo) 0 else encoderHeight
       surfaceManagerEncoder.makeCurrent()
-      managerRender.drawScreenEncoder(w, h, orientation, streamOrientation,
+      mainRender.drawScreenEncoder(w, h, orientation, streamOrientation,
         isStreamVerticalFlip, isStreamHorizontalFlip)
       surfaceManagerEncoder.swapBuffer()
     }
     //render surface photo if request photo
-    if (takePhotoCallback != null && surfaceManagerPhoto.isReady) {
+    if (takePhotoCallback != null && surfaceManagerPhoto.isReady && mainRender.isReady) {
       surfaceManagerPhoto.makeCurrent()
-      managerRender.drawScreen(encoderWidth, encoderHeight, AspectRatioMode.NONE,
+      mainRender.drawScreen(encoderWidth, encoderHeight, AspectRatioMode.NONE,
         streamOrientation, isStreamVerticalFlip, isStreamHorizontalFlip)
       takePhotoCallback?.onTakePhoto(GlUtil.getBitmap(encoderWidth, encoderHeight))
       takePhotoCallback = null
       surfaceManagerPhoto.swapBuffer()
     }
     // render preview
-    if (surfaceManagerPreview.isReady) {
+    if (surfaceManagerPreview.isReady && mainRender.isReady) {
       val w =  if (previewWidth == 0) encoderWidth else previewWidth
       val h =  if (previewHeight == 0) encoderHeight else previewHeight
       surfaceManagerPreview.makeCurrent()
-      managerRender.drawScreenPreview(w, h, orientation, aspectRatioMode, previewOrientation,
+      mainRender.drawScreenPreview(w, h, orientation, aspectRatioMode, previewOrientation,
         isPreviewVerticalFlip, isPreviewHorizontalFlip)
       surfaceManagerPreview.swapBuffer()
     }
@@ -227,7 +228,7 @@ class GlStreamInterface(private val context: Context): OnFrameAvailableListener,
   }
 
   fun setCameraOrientation(orientation: Int) {
-    managerRender.setCameraRotation(orientation)
+    mainRender.setCameraRotation(orientation)
   }
 
   override fun setFilter(filterPosition: Int, baseFilterRender: BaseFilterRender?) {
@@ -255,15 +256,15 @@ class GlStreamInterface(private val context: Context): OnFrameAvailableListener,
   }
 
   override fun filtersCount(): Int {
-    return managerRender.filtersCount()
+    return mainRender.filtersCount()
   }
 
   override fun enableAA(aaEnabled: Boolean) {
-    managerRender.enableAA(aaEnabled)
+    mainRender.enableAA(aaEnabled)
   }
 
   override fun setRotation(rotation: Int) {
-    managerRender.setCameraRotation(rotation);
+    mainRender.setCameraRotation(rotation);
   }
 
   override fun setIsStreamHorizontalFlip(flip: Boolean) {
@@ -282,7 +283,7 @@ class GlStreamInterface(private val context: Context): OnFrameAvailableListener,
     isPreviewVerticalFlip = flip
   }
 
-  override fun isAAEnabled(): Boolean = managerRender.isAAEnabled()
+  override fun isAAEnabled(): Boolean = mainRender.isAAEnabled()
 
   override fun setFilter(baseFilterRender: BaseFilterRender?) {
     filterQueue.add(Filter(FilterAction.SET, 0, baseFilterRender))
