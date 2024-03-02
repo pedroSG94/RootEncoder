@@ -1,30 +1,17 @@
 <resources>
   <string name="app_name">RootEncoder streamer</string>
   <string name="version">Version: %1$s</string>
-
+  <!--Activities-->
   <string name="old_api">Old API (16 – 20)</string>
   <string name="from_file">From file</string>
   <string name="display">Screen</string>
   <string name="rotation_rtmp">Rotation RTMP\n(include filters)</string>
   <string name="tv_select">Select your streamer</string>
   <string name="hint_protocol">protocol://yourendpoint</string>
-  <string name="start_button">Start stream</string>
-  <string name="stop_button">Stop stream</string>
-  <string name="switch_camera_button">Switch camera</string>
-  <string name="select_file">Select file</string>
-  <string name="start_record">Start record</string>
-  <string name="stop_record">Stop record</string>
-  <string name="resync_file">ReSync file</string>
-  <!--menu-->
-  <string name="microphone">Microphone</string>
-  <string name="filters">Filters</string>
-  <string name="clear">Clear</string>
+  <!--filters-->
   <string name="grey_scale">Grey scale</string>
   <string name="negative">Negative</string>
   <string name="sepia">Sepia</string>
-  <string name="aqua">Aqua</string>
-  <string name="posterize">Posterize</string>
-  <!--filters-->
   <string name="no_filter">No filter</string>
   <string name="analog_tv">Analog TV</string>
   <string name="android_view">Android view</string>
@@ -65,37 +52,16 @@
   <string name="temperature">Temperature</string>
   <string name="text">Text</string>
   <string name="zebra">Zebra</string>
-  <!--drawer-->
-  <string name="drawer_title">Options</string>
-  <string name="protocols">Protocol</string>
-  <string name="tcp">TCP</string>
-  <string name="udp">UDP</string>
-  <string name="video">Video</string>
-  <string name="audio">Audio</string>
-  <string name="resolution">Resolution</string>
-  <string name="video_bitrate">Bitrate (on fly)</string>
-  <string name="audio_bitrate">Bitrate</string>
-  <string name="fps">FPS</string>
+  <!--Menu-->
+  <string name="filters">Filters</string>
   <string name="orientation">Orientation</string>
-  <string name="hardware_rotation">Hardware rotation</string>
-  <string name="samplerate">SampleRate</string>
-  <string name="channel">Channel</string>
-  <string name="stereo">Stereo</string>
-  <string name="mono">Mono</string>
-  <string name="echo_canceler">Echo canceler</string>
-  <string name="camera">Camera</string>
-  <string name="auth">Auth</string>
-  <string name="user">User</string>
-  <string name="password">Password</string>
-  <string name="noise_suppressor">Noise suppressor</string>
-  <string name="video_source">Video source</string>
+  <string name="horizontal">Horizontal</string>
+  <string name="vertical">Vertical</string>
   <string name="audio_source">Audio source</string>
+  <string name="microphone">Microphone</string>
+  <string name="video_source">Video source</string>
   <string name="camera1">Camera1</string>
   <string name="camera2">Camera2</string>
   <string name="camerax">CameraX</string>
-  <string name="screen">Screen</string>
-  <string name="internal">Internal</string>
 
-  <string name="horizontal">Horizontal</string>
-  <string name="vertical">Vertical</string>
 </resources>
