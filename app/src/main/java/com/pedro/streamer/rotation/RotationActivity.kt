@@ -30,6 +30,7 @@ import com.pedro.library.util.sources.video.Camera1Source
 import com.pedro.library.util.sources.video.Camera2Source
 import com.pedro.streamer.R
 import com.pedro.streamer.utils.FilterMenu
+import com.pedro.streamer.utils.toast
 
 
 /**
@@ -53,26 +54,30 @@ class RotationActivity : AppCompatActivity(), OnTouchListener {
   }
 
   override fun onOptionsItemSelected(item: MenuItem): Boolean {
-    when (item.itemId) {
-      R.id.video_source_camera1 -> {
-        cameraFragment.genericStream.changeVideoSource(Camera1Source(applicationContext))
+    try {
+      when (item.itemId) {
+        R.id.video_source_camera1 -> {
+          cameraFragment.genericStream.changeVideoSource(Camera1Source(applicationContext))
+        }
+        R.id.video_source_camera2 -> {
+          cameraFragment.genericStream.changeVideoSource(Camera2Source(applicationContext))
+        }
+        R.id.video_source_camerax -> {
+          cameraFragment.genericStream.changeVideoSource(CameraXSource(applicationContext))
+        }
+        R.id.audio_source_microphone -> {
+          cameraFragment.genericStream.changeAudioSource(MicrophoneSource())
+        }
+        R.id.orientation_horizontal -> {
+          cameraFragment.setOrientationMode(false)
+        }
+        R.id.orientation_vertical -> {
+          cameraFragment.setOrientationMode(true)
+        }
+        else -> return filterMenu.onOptionsItemSelected(item, cameraFragment.genericStream.getGlInterface())
       }
-      R.id.video_source_camera2 -> {
-        cameraFragment.genericStream.changeVideoSource(Camera2Source(applicationContext))
-      }
-      R.id.video_source_camerax -> {
-        cameraFragment.genericStream.changeVideoSource(CameraXSource(applicationContext))
-      }
-      R.id.audio_source_microphone -> {
-        cameraFragment.genericStream.changeAudioSource(MicrophoneSource())
-      }
-      R.id.orientation_horizontal -> {
-        cameraFragment.setOrientationMode(false)
-      }
-      R.id.orientation_vertical -> {
-        cameraFragment.setOrientationMode(true)
-      }
-      else -> return filterMenu.onOptionsItemSelected(item, cameraFragment.genericStream.getGlInterface())
+    } catch (e: IllegalArgumentException) {
+      toast("Change source error: ${e.message}")
     }
     return super.onOptionsItemSelected(item)
   }

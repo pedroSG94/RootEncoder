@@ -95,8 +95,10 @@ abstract class StreamBase(
    * @param profile codec value from MediaCodecInfo.CodecProfileLevel class
    * @param level codec value from MediaCodecInfo.CodecProfileLevel class
    *
+   * @throws IllegalArgumentException if current video parameters are not supported by the VideoSource
    * @return True if success, False if failed
    */
+  @Throws(IllegalArgumentException::class)
   @JvmOverloads
   fun prepareVideo(width: Int, height: Int, bitrate: Int, fps: Int = 30, iFrameInterval: Int = 2,
     rotation: Int = 0, profile: Int = -1, level: Int = -1): Boolean {
@@ -117,8 +119,10 @@ abstract class StreamBase(
    * Necessary only one time before start stream or record.
    * If you want change values stop stream and record is necessary.
    *
+   * @throws IllegalArgumentException if current video parameters are not supported by the AudioSource
    * @return True if success, False if failed
    */
+  @Throws(IllegalArgumentException::class)
   @JvmOverloads
   fun prepareAudio(sampleRate: Int, isStereo: Boolean, bitrate: Int, echoCanceler: Boolean = false,
     noiseSuppressor: Boolean = false): Boolean {
@@ -281,7 +285,10 @@ abstract class StreamBase(
   /**
    * Change video source to Camera1 or Camera2.
    * Must be called after prepareVideo.
+   *
+   * @throws IllegalArgumentException if current video parameters are not supported by the VideoSource
    */
+  @Throws(IllegalArgumentException::class)
   fun changeVideoSource(source: VideoSource) {
     val wasRunning = videoSource.isRunning()
     val wasCreated = videoSource.created
@@ -295,7 +302,10 @@ abstract class StreamBase(
   /**
    * Change audio source.
    * Must be called after prepareAudio.
+   *
+   * @throws IllegalArgumentException if current video parameters are not supported by the AudioSource
    */
+  @Throws(IllegalArgumentException::class)
   fun changeAudioSource(source: AudioSource) {
     val wasRunning = audioSource.isRunning()
     val wasCreated = audioSource.created
