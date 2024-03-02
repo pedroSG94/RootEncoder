@@ -50,8 +50,7 @@ import com.pedro.library.util.AndroidMuxerRecordController;
 import com.pedro.library.util.FpsListener;
 import com.pedro.library.util.streamclient.StreamBaseClient;
 import com.pedro.library.view.GlInterface;
-import com.pedro.library.view.LightOpenGlView;
-import com.pedro.library.view.OffScreenGlThread;
+import com.pedro.library.view.GlStreamInterface;
 import com.pedro.library.view.OpenGlView;
 
 import java.io.FileDescriptor;
@@ -97,19 +96,13 @@ public abstract class FromFileBase {
    */
   public FromFileBase(Context context, VideoDecoderInterface videoDecoderInterface,
       AudioDecoderInterface audioDecoderInterface) {
-    glInterface = new OffScreenGlThread(context);
+    glInterface = new GlStreamInterface(context);
     init(videoDecoderInterface, audioDecoderInterface);
   }
 
   public FromFileBase(OpenGlView openGlView, VideoDecoderInterface videoDecoderInterface,
       AudioDecoderInterface audioDecoderInterface) {
     glInterface = openGlView;
-    init(videoDecoderInterface, audioDecoderInterface);
-  }
-
-  public FromFileBase(LightOpenGlView lightOpenGlView, VideoDecoderInterface videoDecoderInterface,
-      AudioDecoderInterface audioDecoderInterface) {
-    glInterface = lightOpenGlView;
     init(videoDecoderInterface, audioDecoderInterface);
   }
 
@@ -389,15 +382,11 @@ public abstract class FromFileBase {
   }
 
   public void replaceView(Context context) {
-    replaceGlInterface(new OffScreenGlThread(context));
+    replaceGlInterface(new GlStreamInterface(context));
   }
 
   public void replaceView(OpenGlView openGlView) {
     replaceGlInterface(openGlView);
-  }
-
-  public void replaceView(LightOpenGlView lightOpenGlView) {
-    replaceGlInterface(lightOpenGlView);
   }
 
   /**
@@ -420,7 +409,6 @@ public abstract class FromFileBase {
 
   private void prepareGlView() {
     if (glInterface != null) {
-      glInterface.setFps(videoEncoder.getFps());
       if (videoEncoder.getRotation() == 90 || videoEncoder.getRotation() == 270) {
         glInterface.setEncoderSize(videoEncoder.getHeight(), videoEncoder.getWidth());
       } else {
@@ -532,16 +520,15 @@ public abstract class FromFileBase {
   }
 
   /**
-   * Set limit FPS while stream. This will be override when you call to prepareVideo method.
-   * This could produce a change in iFrameInterval.
+   * Force stream to work with fps selected in prepareVideo method. Must be called before prepareVideo.
+   * This is not recommend because could produce fps problems.
    *
-   * @param fps frames per second
+   * @param enabled true to enabled, false to disable, disabled by default.
    */
-  public void setLimitFPSOnFly(int fps) {
-    videoEncoder.setFps(fps);
-    if (glInterface != null) {
-      glInterface.setFps(fps);
-    }
+  public void forceFpsLimit(boolean enabled) {
+    int fps = enabled ? videoEncoder.getFps() : 0;
+    videoEncoder.setForceFps(fps);
+    if (glInterface != null) glInterface.forceFpsLimit(fps);
   }
 
   /**

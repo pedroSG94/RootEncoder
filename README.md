@@ -25,7 +25,7 @@ https://github.com/pedroSG94/vlc-example-streamplayer
 
 ## iOS version (under develop):
 
-https://github.com/pedroSG94/rtmp-rtsp-stream-client-swift
+https://github.com/pedroSG94/RootEncoder-iOS
 
 ## Wiki
 
@@ -37,11 +37,6 @@ https://github.com/pedroSG94/RootEncoder/wiki
 <uses-permission android:name="android.permission.INTERNET" />
 <uses-permission android:name="android.permission.RECORD_AUDIO" />
 <uses-permission android:name="android.permission.CAMERA" />
-<!--Only for record video/audio-->
-<uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
-<!--Optional for play store-->
-<uses-feature android:name="android.hardware.camera" android:required="false" />
-<uses-feature android:name="android.hardware.camera.autofocus" android:required="false" />
 ```
 
 ## Compile
@@ -70,7 +65,7 @@ allprojects {
   }
 }
 dependencies {
-  implementation 'com.github.pedroSG94.RootEncoder:library:2.3.6'
+  implementation 'com.github.pedroSG94.RootEncoder:library:2.3.7'
 }
 
 ```
@@ -154,75 +149,25 @@ This library need sponsors to get new devices or pay platforms to test and debug
 If you are interested. You can contact me by email or donate directly on [Github](https://github.com/sponsors/pedroSG94) or [Paypal](https://www.paypal.com/paypalme/pedroSG94)
 Thank you!
 
-## Use example:
+## Use examples:
 
-This code is a basic example.
-I recommend you go to Activities in app module and see all examples.
+### Rotation example
 
-### RTMP:
+This is the recommend way to use the library. 
+This example support screen rotation, stream orientation (vertical, horizontal) filters and change video/audio sources on fly:
+https://github.com/pedroSG94/RootEncoder/tree/master/app/src/main/java/com/pedro/streamer/rotation
 
-```java
+### Screen example
 
-//default
+Example to stream using Screen as video source using a service to stream in background:
+https://github.com/pedroSG94/RootEncoder/tree/master/app/src/main/java/com/pedro/streamer/screen
 
-//create builder
-RtmpCamera1 rtmpCamera1 = new RtmpCamera1(openGlView, connectCheckerRtmp);
-//start stream
-if (rtmpCamera1.prepareAudio() && rtmpCamera1.prepareVideo()) {
-  rtmpCamera1.startStream("rtmp://yourEndPoint");
-} else {
- /**This device cant init encoders, this could be for 2 reasons: The encoder selected doesnt support any configuration setted or your device hasnt a H264 or AAC encoder (in this case you can see log error valid encoder not found)*/
-}
-//stop stream
-rtmpCamera1.stopStream();
+### From file example
 
-//with params
+Code example to stream using a video file as video/audio source:
+https://github.com/pedroSG94/RootEncoder/tree/master/app/src/main/java/com/pedro/streamer/file
 
-//create builder
-RtmpCamera1 rtmpCamera1 = new RtmpCamera1(openGlView, connectCheckerRtmp);
-//start stream
-if (rtmpCamera1.prepareAudio(int bitrate, int sampleRate, boolean isStereo, boolean echoCanceler,
-      boolean noiseSuppressor) && rtmpCamera1.prepareVideo(int width, int height, int fps, int bitrate, int rotation)) {
-  rtmpCamera1.startStream("rtmp://yourEndPoint");
-} else {
- /**This device cant init encoders, this could be for 2 reasons: The encoder selected doesnt support any configuration setted or your device hasnt a H264 or AAC encoder (in this case you can see log error valid encoder not found)*/
-}
-//stop stream
-rtmpCamera1.stopStream();
+### Old Api example
 
-```
-
-### RTSP:
-
-```java
-
-//default
-
-//create builder
-//by default TCP protocol.
-RtspCamera1 rtspCamera1 = new RtspCamera1(openGlView, connectCheckerRtsp);
-//start stream
-if (rtspCamera1.prepareAudio() && rtspCamera1.prepareVideo()) {
-  rtspCamera1.startStream("rtsp://yourEndPoint");
-} else {
- /**This device cant init encoders, this could be for 2 reasons: The encoder selected doesnt support any configuration setted or your device hasnt a H264 or AAC encoder (in this case you can see log error valid encoder not found)*/
-}
-//stop stream
-rtspCamera1.stopStream();
-
-//with params
-
-//create builder
-RtspCamera1 rtspCamera1 = new RtspCamera1(openGlView, connectCheckerRtsp);
-rtspCamera1.setProtocol(protocol);
-//start stream
-if (rtspCamera1.prepareAudio(int bitrate, int sampleRate, boolean isStereo, boolean echoCanceler,
-      boolean noiseSuppressor) && rtspCamera1.prepareVideo(int width, int height, int fps, int bitrate, int rotation)) {
-  rtspCamera1.startStream("rtsp://yourEndPoint");
-} else {
- /**This device cant init encoders, this could be for 2 reasons: The encoder selected doesnt support any configuration setted or your device hasnt a H264 or AAC encoder (in this case you can see log error valid encoder not found)*/
-}
-//stop stream
-rtspCamera1.stopStream();
-
-```
+Code example for low API devices (Android API 16+):
+https://github.com/pedroSG94/RootEncoder/tree/master/app/src/main/java/com/pedro/streamer/oldapi

@@ -1,5 +1,6 @@
 val libraryGroup: String by rootProject.extra
 val vName: String by rootProject.extra
+val coroutinesVersion: String by rootProject.extra
 
 plugins {
   id("com.android.library")
@@ -52,6 +53,7 @@ afterEvaluate {
 }
 
 dependencies {
+  implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:$coroutinesVersion")
   api(project(":encoder"))
   api(project(":rtmp"))
   api(project(":rtsp"))

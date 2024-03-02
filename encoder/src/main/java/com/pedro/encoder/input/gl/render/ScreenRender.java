@@ -48,11 +48,10 @@ public class ScreenRender {
       1f, 1f, 0f, 1f, 1f, //top right
   };
 
-  private FloatBuffer squareVertex;
+  private final FloatBuffer squareVertex;
 
-  private float[] MVPMatrix = new float[16];
-  private float[] STMatrix = new float[16];
-  private boolean AAEnabled = false;  //FXAA enable/disable
+  private final float[] MVPMatrix = new float[16];
+  private final float[] STMatrix = new float[16];
 
   private int texId;
 
@@ -62,9 +61,6 @@ public class ScreenRender {
   private int aPositionHandle = -1;
   private int aTextureHandle = -1;
   private int uSamplerHandle = -1;
-  private int uResolutionHandle = -1;
-  private int uAAEnabledHandle = -1;
-
   private int streamWidth;
   private int streamHeight;
 
@@ -81,7 +77,7 @@ public class ScreenRender {
   public void initGl(Context context) {
     GlUtil.checkGlError("initGl start");
     String vertexShader = GlUtil.getStringFromRaw(context, R.raw.simple_vertex);
-    String fragmentShader = GlUtil.getStringFromRaw(context, R.raw.fxaa);
+    String fragmentShader = GlUtil.getStringFromRaw(context, R.raw.screen_fragment);
 
     program = GlUtil.createProgram(vertexShader, fragmentShader);
     aPositionHandle = GLES20.glGetAttribLocation(program, "aPosition");
@@ -89,8 +85,6 @@ public class ScreenRender {
     uMVPMatrixHandle = GLES20.glGetUniformLocation(program, "uMVPMatrix");
     uSTMatrixHandle = GLES20.glGetUniformLocation(program, "uSTMatrix");
     uSamplerHandle = GLES20.glGetUniformLocation(program, "uSampler");
-    uResolutionHandle = GLES20.glGetUniformLocation(program, "uResolution");
-    uAAEnabledHandle = GLES20.glGetUniformLocation(program, "uAAEnabled");
     GlUtil.checkGlError("initGl end");
   }
 
@@ -99,10 +93,9 @@ public class ScreenRender {
     GlUtil.checkGlError("drawScreen start");
 
     SizeCalculator.processMatrix(rotation, flipStreamHorizontal, flipStreamVertical, MVPMatrix);
-    SizeCalculator.calculateViewPort(mode, width, height, streamWidth,
-        streamHeight);
+    SizeCalculator.calculateViewPort(mode, width, height, streamWidth, streamHeight);
 
-    draw(width, height);
+    draw();
   }
 
   public void drawEncoder(int width, int height, boolean isPortrait, int rotation,
@@ -112,7 +105,7 @@ public class ScreenRender {
     SizeCalculator.processMatrix(rotation, flipStreamHorizontal, flipStreamVertical, MVPMatrix);
     SizeCalculator.calculateViewPortEncoder(width, height, isPortrait);
 
-    draw(width, height);
+    draw();
   }
 
   public void drawPreview(int width, int height, boolean isPortrait,
@@ -132,10 +125,10 @@ public class ScreenRender {
     }
     SizeCalculator.calculateViewPort(mode, width, height, w, h);
 
-    draw(width, height);
+    draw();
   }
 
-  private void draw(int width, int height) {
+  private void draw() {
     GLES20.glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
     GLES20.glClear(GLES20.GL_DEPTH_BUFFER_BIT | GLES20.GL_COLOR_BUFFER_BIT);
 
@@ -153,8 +146,6 @@ public class ScreenRender {
 
     GLES20.glUniformMatrix4fv(uMVPMatrixHandle, 1, false, MVPMatrix, 0);
     GLES20.glUniformMatrix4fv(uSTMatrixHandle, 1, false, STMatrix, 0);
-    GLES20.glUniform2f(uResolutionHandle, width, height);
-    GLES20.glUniform1f(uAAEnabledHandle, AAEnabled ? 1f : 0f);
 
     GLES20.glUniform1i(uSamplerHandle, 5);
     GLES20.glActiveTexture(GLES20.GL_TEXTURE5);
@@ -171,14 +162,6 @@ public class ScreenRender {
 
   public void setTexId(int texId) {
     this.texId = texId;
-  }
-
-  public void setAAEnabled(boolean AAEnabled) {
-    this.AAEnabled = AAEnabled;
-  }
-
-  public boolean isAAEnabled() {
-    return AAEnabled;
   }
 
   public void setStreamSize(int streamWidth, int streamHeight) {

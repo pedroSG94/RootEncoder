@@ -2,10 +2,6 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
   <uses-permission android:name="android.permission.FLASHLIGHT"/>
-  <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
-  <!--some devices need read permission to create folders or files-->
-  <uses-permission android:name="android.permission.READ_INTERNAL_STORAGE"/>
-  <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
   <uses-permission android:name="android.permission.INTERNET"/>
   <uses-permission android:name="android.permission.RECORD_AUDIO"/>
   <uses-permission android:name="android.permission.CAMERA"/>
@@ -33,7 +29,6 @@
     <activity
         android:name="com.pedro.streamer.MainActivity"
         android:label="@string/app_name"
-        android:screenOrientation="portrait"
         android:exported="true">
       <intent-filter>
         <action android:name="android.intent.action.VIEW"/>
@@ -42,77 +37,29 @@
         <category android:name="android.intent.category.LAUNCHER"/>
       </intent-filter>
     </activity>
-    <activity
-        android:name="com.pedro.streamer.customexample.RtmpActivity"
-        android:label="@string/rtmp_streamer"
-        android:screenOrientation="portrait"
-        />
-    <activity
-        android:name="com.pedro.streamer.customexample.RtspActivity"
-        android:label="@string/rtsp_streamer"
-        android:screenOrientation="portrait"
-        />
-    <activity
-        android:name="com.pedro.streamer.defaultexample.ExampleRtspActivity"
-        android:label="@string/default_rtsp"
-        />
-    <activity
-        android:name="com.pedro.streamer.defaultexample.ExampleRtmpActivity"
-        android:label="@string/default_rtmp"
-        />
-    <activity
-        android:name="com.pedro.streamer.defaultexample.ExampleSrtActivity"
-        android:label="@string/default_srt"
-        />
-    <activity
-        android:name="com.pedro.streamer.filestreamexample.RtspFromFileActivity"
-        android:label="@string/from_file_rtsp"
-        android:screenOrientation="portrait"
-        />
-    <activity
-        android:name="com.pedro.streamer.filestreamexample.RtmpFromFileActivity"
-        android:label="@string/from_file_rtmp"
-        android:screenOrientation="portrait"
-        />
-    <activity
-        android:name="com.pedro.streamer.openglexample.OpenGlRtmpActivity"
-        android:label="@string/opengl_rtmp"
-        />
-    <activity
-        android:name="com.pedro.streamer.openglexample.OpenGlRtspActivity"
-        android:label="@string/opengl_rtsp"
-        />
-    <activity
-        android:name="com.pedro.streamer.openglexample.OpenGlSrtActivity"
-        android:label="@string/opengl_srt"
-        />
-    <activity
-        android:name="com.pedro.streamer.openglexample.OpenGlGenericActivity"
-        android:label="@string/opengl_generic"
-        />
-    <activity
-        android:name="com.pedro.streamer.displayexample.DisplayActivity"
-        android:label="@string/display_rtmp"
-        android:screenOrientation="portrait" />
-    <activity
-        android:name="com.pedro.streamer.backgroundexample.BackgroundActivity"
-        android:label="@string/service_rtp"
-        android:screenOrientation="portrait" />
 
-    <activity android:name="com.pedro.streamer.rotation.RotationExampleActivity"
+    <activity
+        android:name="com.pedro.streamer.oldapi.OldApiActivity"
+        android:label="@string/old_api"
+        />
+
+    <activity
+        android:name="com.pedro.streamer.file.FromFileActivity"
+        android:label="@string/from_file"
+        />
+
+    <activity
+        android:name="com.pedro.streamer.screen.ScreenActivity"
+        android:label="@string/display"
+        />
+
+    <activity android:name="com.pedro.streamer.rotation.RotationActivity"
         android:label="@string/rotation_rtmp"
         android:screenOrientation="fullSensor"
+        android:configChanges="orientation|screenSize"
         />
 
-    <service android:name="com.pedro.streamer.rotation.StreamService"
-        android:foregroundServiceType="mediaProjection|camera|microphone"
-        />
-
-    <service android:name="com.pedro.streamer.backgroundexample.RtpService"
-        android:foregroundServiceType="camera|microphone"
-        />
-
-    <service android:name="com.pedro.streamer.displayexample.DisplayService"
+    <service android:name="com.pedro.streamer.screen.ScreenService"
         android:foregroundServiceType="mediaProjection"
         />
   </application>

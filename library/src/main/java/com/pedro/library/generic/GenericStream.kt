@@ -23,6 +23,7 @@ import androidx.annotation.RequiresApi
 import com.pedro.common.AudioCodec
 import com.pedro.common.ConnectChecker
 import com.pedro.common.VideoCodec
+import com.pedro.common.onMainThreadHandler
 import com.pedro.library.base.StreamBase
 import com.pedro.library.util.sources.audio.AudioSource
 import com.pedro.library.util.sources.audio.MicrophoneSource
@@ -44,7 +45,6 @@ import java.nio.ByteBuffer
  * If you use VideoManager.Source.SCREEN/AudioManager.Source.INTERNAL. Call
  * changeVideoSourceScreen/changeAudioSourceInternal is necessary to start it.
  */
-
 @RequiresApi(Build.VERSION_CODES.LOLLIPOP)
 class GenericStream(
   context: Context,
@@ -109,7 +109,9 @@ class GenericStream(
       connectedType = ClientType.SRT
       startStreamRtpSrt(endPoint)
     } else {
-      connectChecker.onConnectionFailed("unsupported protocol. Only support rtmp, rtsp and srt")
+      onMainThreadHandler {
+        connectChecker.onConnectionFailed("Unsupported protocol. Only support rtmp, rtsp and srt")
+      }
     }
   }
 

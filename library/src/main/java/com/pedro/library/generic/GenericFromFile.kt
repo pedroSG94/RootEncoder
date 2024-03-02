@@ -22,6 +22,7 @@ import androidx.annotation.RequiresApi
 import com.pedro.common.AudioCodec
 import com.pedro.common.ConnectChecker
 import com.pedro.common.VideoCodec
+import com.pedro.common.onMainThreadHandler
 import com.pedro.encoder.input.decoder.AudioDecoderInterface
 import com.pedro.encoder.input.decoder.VideoDecoderInterface
 import com.pedro.library.base.FromFileBase
@@ -30,17 +31,12 @@ import com.pedro.library.util.streamclient.RtmpStreamClient
 import com.pedro.library.util.streamclient.RtspStreamClient
 import com.pedro.library.util.streamclient.SrtStreamClient
 import com.pedro.library.util.streamclient.StreamClientListener
-import com.pedro.library.view.LightOpenGlView
 import com.pedro.library.view.OpenGlView
 import com.pedro.rtmp.rtmp.RtmpClient
 import com.pedro.rtsp.rtsp.RtspClient
 import com.pedro.srt.srt.SrtClient
 import java.nio.ByteBuffer
 
-/**
- *
- * Experiment class.
- */
 @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
 class GenericFromFile: FromFileBase {
 
@@ -60,13 +56,6 @@ class GenericFromFile: FromFileBase {
     openGlView: OpenGlView, connectChecker: ConnectChecker,
     videoDecoderInterface: VideoDecoderInterface, audioDecoderInterface: AudioDecoderInterface
   ) : super(openGlView, videoDecoderInterface, audioDecoderInterface) {
-    init(connectChecker)
-  }
-
-  constructor(
-    lightOpenGlView: LightOpenGlView, connectChecker: ConnectChecker,
-    videoDecoderInterface: VideoDecoderInterface?, audioDecoderInterface: AudioDecoderInterface
-  ) : super(lightOpenGlView, videoDecoderInterface, audioDecoderInterface) {
     init(connectChecker)
   }
 
@@ -134,7 +123,9 @@ class GenericFromFile: FromFileBase {
       connectedType = ClientType.SRT
       startStreamRtpSrt(url)
     } else {
-      connectChecker.onConnectionFailed("unsupported protocol. Only support rtmp, rtsp and srt")
+      onMainThreadHandler {
+        connectChecker.onConnectionFailed("Unsupported protocol. Only support rtmp, rtsp and srt")
+      }
     }
   }
 

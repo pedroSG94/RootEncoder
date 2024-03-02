@@ -30,7 +30,6 @@ import com.pedro.common.VideoCodec;
 import com.pedro.library.base.Camera1Base;
 import com.pedro.library.util.streamclient.SrtStreamClient;
 import com.pedro.library.util.streamclient.StreamClientListener;
-import com.pedro.library.view.LightOpenGlView;
 import com.pedro.library.view.OpenGlView;
 import com.pedro.srt.srt.SrtClient;
 
@@ -64,13 +63,6 @@ public class SrtCamera1 extends Camera1Base {
   @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
   public SrtCamera1(OpenGlView openGlView, ConnectChecker connectChecker) {
     super(openGlView);
-    srtClient = new SrtClient(connectChecker);
-    streamClient = new SrtStreamClient(srtClient, streamClientListener);
-  }
-
-  @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
-  public SrtCamera1(LightOpenGlView lightOpenGlView, ConnectChecker connectChecker) {
-    super(lightOpenGlView);
     srtClient = new SrtClient(connectChecker);
     streamClient = new SrtStreamClient(srtClient, streamClientListener);
   }

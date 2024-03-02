@@ -18,10 +18,13 @@ package com.pedro.common
 
 import android.media.MediaCodec
 import android.os.Build
+import android.os.Handler
+import android.os.Looper
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.nio.ByteBuffer
 import java.util.concurrent.BlockingQueue
+import java.util.concurrent.ExecutorService
 
 /**
  * Created by pedro on 3/11/23.
@@ -69,6 +72,14 @@ suspend fun onMainThread(code: () -> Unit) {
   }
 }
 
+fun onMainThreadHandler(code: () -> Unit) {
+  Handler(Looper.getMainLooper()).post(code)
+}
+
 fun ByteArray.bytesToHex(): String {
   return joinToString("") { "%02x".format(it) }
+}
+
+fun ExecutorService.secureSubmit(code: () -> Unit) {
+  try { submit { code() }.get() } catch (ignored: Exception) {}
 }

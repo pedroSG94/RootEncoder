@@ -1,7 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<!--inpuType="number" not used because keyboard can jump to other view and crash-->
-<EditText xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="100dp"
-    android:layout_height="wrap_content"
-    android:digits="1234567890"
-    />

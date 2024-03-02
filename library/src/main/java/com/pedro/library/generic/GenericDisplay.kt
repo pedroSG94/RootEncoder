@@ -22,6 +22,7 @@ import androidx.annotation.RequiresApi
 import com.pedro.common.AudioCodec
 import com.pedro.common.ConnectChecker
 import com.pedro.common.VideoCodec
+import com.pedro.common.onMainThreadHandler
 import com.pedro.library.base.DisplayBase
 import com.pedro.library.util.streamclient.GenericStreamClient
 import com.pedro.library.util.streamclient.RtmpStreamClient
@@ -33,10 +34,6 @@ import com.pedro.rtsp.rtsp.RtspClient
 import com.pedro.srt.srt.SrtClient
 import java.nio.ByteBuffer
 
-/**
- *
- * Experiment class.
- */
 @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
 class GenericDisplay(
   context: Context,
@@ -97,7 +94,9 @@ class GenericDisplay(
       connectedType = ClientType.SRT
       startStreamRtpSrt(url)
     } else {
-      connectChecker.onConnectionFailed("unsupported protocol. Only support rtmp, rtsp and srt")
+      onMainThreadHandler {
+        connectChecker.onConnectionFailed("Unsupported protocol. Only support rtmp, rtsp and srt")
+      }
     }
   }
 

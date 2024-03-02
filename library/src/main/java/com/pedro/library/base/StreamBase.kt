@@ -17,6 +17,7 @@
 package com.pedro.library.base
 
 import android.content.Context
+import android.content.res.Configuration
 import android.graphics.SurfaceTexture
 import android.media.MediaCodec
 import android.media.MediaFormat
@@ -40,6 +41,7 @@ import com.pedro.encoder.video.VideoEncoder
 import com.pedro.library.base.recording.BaseRecordController
 import com.pedro.library.base.recording.RecordController
 import com.pedro.library.util.AndroidMuxerRecordController
+import com.pedro.library.util.FpsListener
 import com.pedro.library.util.sources.audio.AudioSource
 import com.pedro.library.util.sources.video.NoVideoSource
 import com.pedro.library.util.sources.video.VideoSource
@@ -74,6 +76,7 @@ abstract class StreamBase(
   private val glInterface = GlStreamInterface(context)
   //video/audio record
   private var recordController: BaseRecordController = AndroidMuxerRecordController()
+  private val fpsListener = FpsListener()
   var isStreaming = false
     private set
   var isOnPreview = false
@@ -156,6 +159,18 @@ abstract class StreamBase(
    */
   fun setVideoBitrateOnFly(bitrate: Int) {
     videoEncoder.setVideoBitrateOnFly(bitrate)
+  }
+
+  /**
+   * Force stream to work with fps selected in prepareVideo method. Must be called before prepareVideo.
+   * This is not recommend because could produce fps problems.
+   *
+   * @param enabled true to enabled, false to disable, disabled by default.
+   */
+  fun forceFpsLimit(enabled: Boolean) {
+    val fps = if (enabled) videoEncoder.fps else 0
+    videoEncoder.setForceFps(fps)
+    glInterface.forceFpsLimit(fps)
   }
 
   /**
@@ -304,12 +319,40 @@ abstract class StreamBase(
   }
 
   /**
+   * @param callback get fps while record or stream
+   */
+  fun setFpsListener(callback: FpsListener.Callback?) {
+    fpsListener.setCallback(callback)
+  }
+
+  /**
    * Change stream orientation depend of activity orientation.
    * This method affect ro preview and stream.
    * Must be called after prepareVideo.
    */
   fun setOrientation(orientation: Int) {
     glInterface.setCameraOrientation(orientation)
+  }
+
+  fun setConfig(config: Configuration) {
+    val isReversed = config.layoutDirection == Configuration.SCREENLAYOUT_LONG_YES
+    when (config.orientation) {
+      Configuration.ORIENTATION_LANDSCAPE -> {
+        if (isReversed) {
+          setOrientation(90)
+        } else {
+          setOrientation(270)
+        }
+      }
+      Configuration.ORIENTATION_PORTRAIT -> {
+        if (isReversed) {
+          setOrientation(180)
+        } else {
+          setOrientation(0)
+        }
+      }
+      else -> {}
+    }
   }
 
   /**
@@ -388,6 +431,7 @@ abstract class StreamBase(
     }
 
     override fun getVideoData(h264Buffer: ByteBuffer, info: MediaCodec.BufferInfo) {
+      fpsListener.calculateFps()
       getH264DataRtp(h264Buffer, info)
       recordController.recordVideo(h264Buffer, info)
     }

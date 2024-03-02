@@ -60,8 +60,7 @@ import com.pedro.library.util.AndroidMuxerRecordController;
 import com.pedro.library.util.FpsListener;
 import com.pedro.library.util.streamclient.StreamBaseClient;
 import com.pedro.library.view.GlInterface;
-import com.pedro.library.view.LightOpenGlView;
-import com.pedro.library.view.OffScreenGlThread;
+import com.pedro.library.view.GlStreamInterface;
 import com.pedro.library.view.OpenGlView;
 
 import java.io.FileDescriptor;
@@ -103,7 +102,7 @@ public abstract class Camera2Base {
 
   /**
    * @deprecated This view produce rotations problems and could be unsupported in future versions.
-   * Use {@link Camera2Base#Camera2Base(OpenGlView)} or {@link Camera2Base#Camera2Base(LightOpenGlView)}
+   * Use {@link Camera2Base#Camera2Base(OpenGlView)}
    * instead.
    */
   @Deprecated
@@ -115,7 +114,7 @@ public abstract class Camera2Base {
 
   /**
    * @deprecated This view produce rotations problems and could be unsupported in future versions.
-   * Use {@link Camera2Base#Camera2Base(OpenGlView)} or {@link Camera2Base#Camera2Base(LightOpenGlView)}
+   * Use {@link Camera2Base#Camera2Base(OpenGlView)}
    * instead.
    */
   @Deprecated
@@ -131,16 +130,10 @@ public abstract class Camera2Base {
     init(context);
   }
 
-  public Camera2Base(LightOpenGlView lightOpenGlView) {
-    this.context = lightOpenGlView.getContext();
-    glInterface = lightOpenGlView;
-    init(context);
-  }
-
   public Camera2Base(Context context, boolean useOpengl) {
     this.context = context;
     if (useOpengl) {
-      glInterface = new OffScreenGlThread(context);
+      glInterface = new GlStreamInterface(context);
     }
     isBackground = true;
     init(context);
@@ -464,17 +457,12 @@ public abstract class Camera2Base {
 
   public void replaceView(Context context) {
     isBackground = true;
-    replaceGlInterface(new OffScreenGlThread(context));
+    replaceGlInterface(new GlStreamInterface(context));
   }
 
   public void replaceView(OpenGlView openGlView) {
     isBackground = false;
     replaceGlInterface(openGlView);
-  }
-
-  public void replaceView(LightOpenGlView lightOpenGlView) {
-    isBackground = false;
-    replaceGlInterface(lightOpenGlView);
   }
 
   /**
@@ -542,7 +530,6 @@ public abstract class Camera2Base {
           glInterface.setEncoderSize(width, height);
         }
         glInterface.setRotation(rotation == 0 ? 270 : rotation - 90);
-        glInterface.setFps(videoEncoder.getFps());
         glInterface.start();
         cameraManager.prepareCamera(glInterface.getSurfaceTexture(), width, height,
             videoEncoder.getFps(), cameraId);
@@ -664,7 +651,6 @@ public abstract class Camera2Base {
 
   private void prepareGlView() {
     if (glInterface != null) {
-      glInterface.setFps(videoEncoder.getFps());
       if (videoEncoder.getRotation() == 90 || videoEncoder.getRotation() == 270) {
         glInterface.setEncoderSize(videoEncoder.getHeight(), videoEncoder.getWidth());
       } else {
@@ -699,7 +685,7 @@ public abstract class Camera2Base {
       if (audioInitialized) microphoneManager.stop();
       if (glInterface != null) {
         glInterface.removeMediaCodecSurface();
-        if (glInterface instanceof OffScreenGlThread) {
+        if (glInterface instanceof GlStreamInterface) {
           glInterface.stop();
           cameraManager.closeCamera();
         }
@@ -949,16 +935,15 @@ public abstract class Camera2Base {
   }
 
   /**
-   * Set limit FPS while stream. This will be override when you call to prepareVideo method. This
-   * could produce a change in iFrameInterval.
+   * Force stream to work with fps selected in prepareVideo method. Must be called before prepareVideo.
+   * This is not recommend because could produce fps problems.
    *
-   * @param fps frames per second
+   * @param enabled true to enabled, false to disable, disabled by default.
    */
-  public void setLimitFPSOnFly(int fps) {
-    videoEncoder.setFps(fps);
-    if (glInterface != null) {
-      glInterface.setFps(fps);
-    }
+  public void forceFpsLimit(boolean enabled) {
+    int fps = enabled ? videoEncoder.getFps() : 0;
+    videoEncoder.setForceFps(fps);
+    if (glInterface != null) glInterface.forceFpsLimit(fps);
   }
 
   /**

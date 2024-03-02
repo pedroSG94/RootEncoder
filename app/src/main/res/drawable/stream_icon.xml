@@ -1,0 +1,29 @@
+<!--
+  ~ Copyright (C) 2023 pedroSG94.
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~ http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="800dp"
+    android:height="800dp"
+    android:viewportWidth="64"
+    android:viewportHeight="64">
+  <path
+      android:pathData="M32.142,56.043C38.322,55.983 44.44,53.424 48.839,49.076C54.063,43.913 56.754,36.273 55.816,28.98C54.207,16.481 43.933,8 31.988,8C22.913,8 14.092,13.677 10.224,21.909C7.262,28.212 7.256,35.82 10.224,42.134C14.065,50.308 22.741,55.955 31.834,56.043C31.937,56.043 32.039,56.043 32.142,56.043ZM31.859,52.039C22.629,51.95 14.018,44.813 12.306,35.662C11.099,29.21 13.377,22.228 18.124,17.646C23.667,12.296 32.377,10.504 39.62,13.537C46.101,16.25 50.951,22.55 51.845,29.491C52.611,35.441 50.476,41.676 46.28,45.971C42.6,49.738 37.439,51.988 32.117,52.039C32.031,52.04 31.945,52.04 31.859,52.039Z"
+      android:fillColor="#ffffff"
+      android:fillType="nonZero"/>
+  <path
+      android:pathData="M31.991,32m-16.961,0a16.961,16.961 0,1 1,33.922 0a16.961,16.961 0,1 1,-33.922 0"
+      android:fillColor="#ffffff"/>
+</vector>

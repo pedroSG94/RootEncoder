@@ -56,7 +56,7 @@ import com.pedro.library.util.AndroidMuxerRecordController;
 import com.pedro.library.util.FpsListener;
 import com.pedro.library.util.streamclient.StreamBaseClient;
 import com.pedro.library.view.GlInterface;
-import com.pedro.library.view.OffScreenGlThread;
+import com.pedro.library.view.GlStreamInterface;
 
 import java.io.FileDescriptor;
 import java.io.IOException;
@@ -74,7 +74,7 @@ import java.nio.ByteBuffer;
 @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
 public abstract class DisplayBase {
 
-  private OffScreenGlThread glInterface;
+  private GlInterface glInterface;
   private MediaProjection mediaProjection;
   private final MediaProjectionManager mediaProjectionManager;
   protected VideoEncoder videoEncoder;
@@ -94,7 +94,7 @@ public abstract class DisplayBase {
 
   public DisplayBase(Context context, boolean useOpengl) {
     if (useOpengl) {
-      glInterface = new OffScreenGlThread(context);
+      glInterface = new GlStreamInterface(context);
     }
     mediaProjectionManager =
         ((MediaProjectionManager) context.getSystemService(MEDIA_PROJECTION_SERVICE));
@@ -404,7 +404,6 @@ public abstract class DisplayBase {
     videoEncoder.start();
     if (audioInitialized) audioEncoder.start();
     if (glInterface != null) {
-      glInterface.setFps(videoEncoder.getFps());
       glInterface.start();
       glInterface.addMediaCodecSurface(videoEncoder.getInputSurface());
     }
@@ -530,16 +529,15 @@ public abstract class DisplayBase {
   }
 
   /**
-   * Set limit FPS while stream. This will be override when you call to prepareVideo method.
-   * This could produce a change in iFrameInterval.
+   * Force stream to work with fps selected in prepareVideo method. Must be called before prepareVideo.
+   * This is not recommend because could produce fps problems.
    *
-   * @param fps frames per second
+   * @param enabled true to enabled, false to disable, disabled by default.
    */
-  public void setLimitFPSOnFly(int fps) {
-    videoEncoder.setFps(fps);
-    if (glInterface != null) {
-      glInterface.setFps(fps);
-    }
+  public void forceFpsLimit(boolean enabled) {
+    int fps = enabled ? videoEncoder.getFps() : 0;
+    videoEncoder.setForceFps(fps);
+    if (glInterface != null) glInterface.forceFpsLimit(fps);
   }
 
   /**

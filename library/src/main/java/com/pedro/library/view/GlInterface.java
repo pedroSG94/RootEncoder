@@ -119,15 +119,16 @@ public interface GlInterface {
    * @param baseFilterRender filter to set.
    */
   void setFilter(BaseFilterRender baseFilterRender);
-  
-  /**
-   * Enable or disable Anti aliasing (This method use FXAA).
-   *
-   * @param AAEnabled true is AA enabled, false is AA disabled. False by default.
-   */
-  void enableAA(boolean AAEnabled);
 
   void setRotation(int rotation);
+
+  /**
+   * Force stream to work with fps selected in prepareVideo method. Must be called before prepareVideo.
+   * This is not recommend because could produce fps problems.
+   *
+   * @param fps value > 0 to enable, value <= 0 to disable, disabled by default.
+   */
+  void forceFpsLimit(int fps);
 
   /**
    * @param rotation change stream rotation on fly. No effect to preview
@@ -155,12 +156,6 @@ public interface GlInterface {
   void setIsPreviewVerticalFlip(boolean flip);
 
   /**
-   * Get Anti alias is enabled.
-   * @return true is enabled, false is disabled.
-   */
-  boolean isAAEnabled();
-
-  /**
    * INTERNAL METHOD.
    *
    * Start Opengl rendering.
@@ -175,8 +170,6 @@ public interface GlInterface {
    */
   void stop();
 
-  void setFps(int fps);
-
   /**
    * This produce send black image all time.
    * This affect to stream and record result.
@@ -188,9 +181,18 @@ public interface GlInterface {
   boolean isVideoMuted();
 
   /**
-   * @param force render last frame.
+   * @param enabled render last frame.
+   * @param fps number fps you want force to render, 5 by default
    * This is useful with Display mode to continue producing video frames.
    * Not recommendable in others modes.
    */
-  void setForceRender(boolean force);
+  void setForceRender(boolean enabled, int fps);
+
+  /**
+   * @param enabled render last frame.
+   * Render 5 fps by default.
+   * This is useful with Display mode to continue producing video frames.
+   * Not recommendable in others modes.
+   */
+  void setForceRender(boolean enabled);
 }
