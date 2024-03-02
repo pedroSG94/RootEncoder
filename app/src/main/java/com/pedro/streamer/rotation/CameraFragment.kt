@@ -165,8 +165,12 @@ class CameraFragment: Fragment(), ConnectChecker {
   }
 
   private fun prepare() {
-    val prepared = genericStream.prepareVideo(width, height, vBitrate, rotation = rotation) &&
-        genericStream.prepareAudio(sampleRate, isStereo, aBitrate)
+    val prepared = try {
+      genericStream.prepareVideo(width, height, vBitrate, rotation = rotation) &&
+          genericStream.prepareAudio(sampleRate, isStereo, aBitrate)
+    } catch (e: IllegalArgumentException) {
+      false
+    }
     if (!prepared) {
       toast("Audio or Video configuration failed")
       activity?.finish()

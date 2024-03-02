@@ -34,8 +34,11 @@ class MicrophoneSource: AudioSource(), GetMicrophoneData {
     this.noiseSuppressor = noiseSuppressor
     //create microphone to confirm valid parameters
     val result = microphone.createMicrophone(sampleRate, isStereo, echoCanceler, noiseSuppressor)
-    if (result) created = true
-    return result
+    if (!result) {
+      throw IllegalArgumentException("Some parameters specified are not valid");
+    }
+    created = true
+    return true
   }
 
   override fun start(getMicrophoneData: GetMicrophoneData) {

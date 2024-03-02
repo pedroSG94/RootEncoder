@@ -42,7 +42,10 @@ class VideoFileSource(
     this.width = width
     this.height = height
     this.fps = fps
-    videoDecoder.initExtractor(context, path, null)
+    val result = videoDecoder.initExtractor(context, path, null)
+    if (!result) {
+      throw IllegalArgumentException("Video file track not found")
+    }
     created = true
     return true
   }

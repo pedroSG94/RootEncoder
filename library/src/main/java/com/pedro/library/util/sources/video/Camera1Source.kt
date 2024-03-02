@@ -41,8 +41,11 @@ class Camera1Source(context: Context): VideoSource() {
     this.height = height
     this.fps = fps
     val result = checkResolutionSupported(width, height)
-    if (result) created = true
-    return result
+    if (!result) {
+      throw IllegalArgumentException("Unsupported resolution: ${width}x$height")
+    }
+    created = true
+    return true
   }
 
   override fun start(surfaceTexture: SurfaceTexture) {

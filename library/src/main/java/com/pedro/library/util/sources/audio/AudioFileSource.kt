@@ -44,12 +44,15 @@ class AudioFileSource(
     this.echoCanceler = echoCanceler
     this.noiseSuppressor = noiseSuppressor
     //create microphone to confirm valid parameters
-    audioDecoder.initExtractor(context, path, null)
+    val result = audioDecoder.initExtractor(context, path, null)
+    if (!result) {
+      throw IllegalArgumentException("Audio file track not found")
+    }
     if (audioDecoder.sampleRate != sampleRate) {
       throw IllegalArgumentException("Audio file sample rate (${audioDecoder.sampleRate}) is different than the configured: $sampleRate")
     }
     if (audioDecoder.isStereo != isStereo) {
-      throw IllegalArgumentException("Audio file channels (${audioDecoder.isStereo}) are different than the configured: $isStereo")
+      throw IllegalArgumentException("Audio file isStereo (${audioDecoder.isStereo}) is different than the configured: $isStereo")
     }
     created = true
     return true

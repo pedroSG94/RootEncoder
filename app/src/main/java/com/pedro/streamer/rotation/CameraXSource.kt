@@ -53,24 +53,20 @@ class CameraXSource(
   private var facing = CameraSelector.LENS_FACING_BACK
 
   override fun create(width: Int, height: Int, fps: Int): Boolean {
-    try {
-      preview = Preview.Builder()
-        .setTargetFrameRate(Range(fps, fps))
-        .setResolutionSelector(
-          ResolutionSelector.Builder()
-            .setResolutionStrategy(
-              ResolutionStrategy(
-                Size(width, height),
-                ResolutionStrategy.FALLBACK_RULE_NONE
-              )
-            ).build()
-        ).build()
-      lifecycleRegistry.handleLifecycleEvent(Lifecycle.Event.ON_CREATE)
-      created = true
-      return true
-    } catch (e: IllegalArgumentException) {
-      return false
-    }
+    preview = Preview.Builder()
+      .setTargetFrameRate(Range(fps, fps))
+      .setResolutionSelector(
+        ResolutionSelector.Builder()
+          .setResolutionStrategy(
+            ResolutionStrategy(
+              Size(width, height),
+              ResolutionStrategy.FALLBACK_RULE_NONE
+            )
+          ).build()
+      ).build()
+    lifecycleRegistry.handleLifecycleEvent(Lifecycle.Event.ON_CREATE)
+    created = true
+    return true
   }
 
   override fun start(surfaceTexture: SurfaceTexture) {
