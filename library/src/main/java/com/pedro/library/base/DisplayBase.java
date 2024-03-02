@@ -404,7 +404,6 @@ public abstract class DisplayBase {
     videoEncoder.start();
     if (audioInitialized) audioEncoder.start();
     if (glInterface != null) {
-      glInterface.setFps(videoEncoder.getFps());
       glInterface.start();
       glInterface.addMediaCodecSurface(videoEncoder.getInputSurface());
     }
@@ -527,19 +526,6 @@ public abstract class DisplayBase {
    */
   public void setVideoBitrateOnFly(int bitrate) {
     videoEncoder.setVideoBitrateOnFly(bitrate);
-  }
-
-  /**
-   * Set limit FPS while stream. This will be override when you call to prepareVideo method.
-   * This could produce a change in iFrameInterval.
-   *
-   * @param fps frames per second
-   */
-  public void setLimitFPSOnFly(int fps) {
-    videoEncoder.setFps(fps);
-    if (glInterface != null) {
-      glInterface.setFps(fps);
-    }
   }
 
   /**

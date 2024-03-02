@@ -486,7 +486,6 @@ public abstract class Camera1Base {
           glInterface.setEncoderSize(width, height);
         }
         glInterface.setRotation(0);
-        glInterface.setFps(fps);
         glInterface.start();
         cameraManager.setSurfaceTexture(glInterface.getSurfaceTexture());
       }
@@ -527,7 +526,6 @@ public abstract class Camera1Base {
           glInterface.setEncoderSize(width, height);
         }
         glInterface.setRotation(0);
-        glInterface.setFps(fps);
         glInterface.start();
         cameraManager.setSurfaceTexture(glInterface.getSurfaceTexture());
       }
@@ -718,7 +716,6 @@ public abstract class Camera1Base {
 
   private void prepareGlView() {
     if (glInterface != null && Build.VERSION.SDK_INT >= 18) {
-      glInterface.setFps(videoEncoder.getFps());
       if (videoEncoder.getRotation() == 90 || videoEncoder.getRotation() == 270) {
         glInterface.setEncoderSize(videoEncoder.getHeight(), videoEncoder.getWidth());
       } else {
@@ -891,19 +888,6 @@ public abstract class Camera1Base {
   @RequiresApi(api = Build.VERSION_CODES.KITKAT)
   public void setVideoBitrateOnFly(int bitrate) {
     videoEncoder.setVideoBitrateOnFly(bitrate);
-  }
-
-  /**
-   * Set limit FPS while stream. This will be override when you call to prepareVideo method. This
-   * could produce a change in iFrameInterval.
-   *
-   * @param fps frames per second
-   */
-  public void setLimitFPSOnFly(int fps) {
-    videoEncoder.setFps(fps);
-    if (glInterface != null) {
-      glInterface.setFps(fps);
-    }
   }
 
   /**

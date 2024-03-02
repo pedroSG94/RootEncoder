@@ -24,6 +24,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.nio.ByteBuffer
 import java.util.concurrent.BlockingQueue
+import java.util.concurrent.ExecutorService
 
 /**
  * Created by pedro on 3/11/23.
@@ -77,4 +78,8 @@ fun onMainThreadHandler(code: () -> Unit) {
 
 fun ByteArray.bytesToHex(): String {
   return joinToString("") { "%02x".format(it) }
+}
+
+fun ExecutorService.secureSubmit(code: () -> Unit) {
+  try { submit { code() } } catch (ignored: Exception) {}
 }

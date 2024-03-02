@@ -409,7 +409,6 @@ public abstract class FromFileBase {
 
   private void prepareGlView() {
     if (glInterface != null) {
-      glInterface.setFps(videoEncoder.getFps());
       if (videoEncoder.getRotation() == 90 || videoEncoder.getRotation() == 270) {
         glInterface.setEncoderSize(videoEncoder.getHeight(), videoEncoder.getWidth());
       } else {
@@ -518,19 +517,6 @@ public abstract class FromFileBase {
   @RequiresApi(api = Build.VERSION_CODES.KITKAT)
   public void setVideoBitrateOnFly(int bitrate) {
     videoEncoder.setVideoBitrateOnFly(bitrate);
-  }
-
-  /**
-   * Set limit FPS while stream. This will be override when you call to prepareVideo method.
-   * This could produce a change in iFrameInterval.
-   *
-   * @param fps frames per second
-   */
-  public void setLimitFPSOnFly(int fps) {
-    videoEncoder.setFps(fps);
-    if (glInterface != null) {
-      glInterface.setFps(fps);
-    }
   }
 
   /**

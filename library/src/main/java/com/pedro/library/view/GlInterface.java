@@ -175,8 +175,6 @@ public interface GlInterface {
    */
   void stop();
 
-  void setFps(int fps);
-
   /**
    * This produce send black image all time.
    * This affect to stream and record result.
@@ -186,11 +184,4 @@ public interface GlInterface {
   void unMuteVideo();
 
   boolean isVideoMuted();
-
-  /**
-   * @param force render last frame.
-   * This is useful with Display mode to continue producing video frames.
-   * Not recommendable in others modes.
-   */
-  void setForceRender(boolean force);
 }

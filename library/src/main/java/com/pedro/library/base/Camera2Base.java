@@ -530,7 +530,6 @@ public abstract class Camera2Base {
           glInterface.setEncoderSize(width, height);
         }
         glInterface.setRotation(rotation == 0 ? 270 : rotation - 90);
-        glInterface.setFps(videoEncoder.getFps());
         glInterface.start();
         cameraManager.prepareCamera(glInterface.getSurfaceTexture(), width, height,
             videoEncoder.getFps(), cameraId);
@@ -652,7 +651,6 @@ public abstract class Camera2Base {
 
   private void prepareGlView() {
     if (glInterface != null) {
-      glInterface.setFps(videoEncoder.getFps());
       if (videoEncoder.getRotation() == 90 || videoEncoder.getRotation() == 270) {
         glInterface.setEncoderSize(videoEncoder.getHeight(), videoEncoder.getWidth());
       } else {
@@ -934,19 +932,6 @@ public abstract class Camera2Base {
    */
   public void setVideoBitrateOnFly(int bitrate) {
     videoEncoder.setVideoBitrateOnFly(bitrate);
-  }
-
-  /**
-   * Set limit FPS while stream. This will be override when you call to prepareVideo method. This
-   * could produce a change in iFrameInterval.
-   *
-   * @param fps frames per second
-   */
-  public void setLimitFPSOnFly(int fps) {
-    videoEncoder.setFps(fps);
-    if (glInterface != null) {
-      glInterface.setFps(fps);
-    }
   }
 
   /**
