@@ -42,7 +42,28 @@ import java.util.Date
 import java.util.Locale
 
 /**
- * Created by pedro on 27/2/24.
+ * Example code to stream using StreamBase. This is the recommend way to use the library.
+ * Necessary API 21+
+ * This mode allow you stream using custom Video/Audio sources, attach a preview or not dynamically, support device rotation, etc.
+ *
+ * Check Menu to use filters, video and audio sources, and orientation
+ *
+ * Orientation vertical means that you want stream with vertical resolution
+ * (with = 640, height = 480 and rotation = 90) The stream/record result will be 480x640 resolution
+ *
+ * Orientation horizontal (by default) means that you want stream with vertical resolution
+ * (with = 640, height = 480 and rotation = 0) The stream/record result will be 640x480 resolution
+ *
+ * More documentation see:
+ * [com.pedro.library.base.StreamBase]
+ * Support RTMP, RTSP and SRT with commons features
+ * [com.pedro.library.generic.GenericStream]
+ * Support RTSP with all RTSP features
+ * [com.pedro.library.rtsp.RtspStream]
+ * Support RTMP with all RTMP features
+ * [com.pedro.library.rtmp.RtmpStream]
+ * Support SRT with all SRT features
+ * [com.pedro.library.srt.SrtStream]
  */
 @RequiresApi(Build.VERSION_CODES.LOLLIPOP)
 class CameraFragment: Fragment(), ConnectChecker {

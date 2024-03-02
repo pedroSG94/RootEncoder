@@ -40,9 +40,19 @@ import java.util.Date
 import java.util.Locale
 
 /**
+ * Example code for devices using API 16-20.
+ * If you are using API 18+ you can replace AutoFitTextureView to OpenGlView and use OpenGl features
+ *
  * More documentation see:
  * [com.pedro.library.base.Camera1Base]
+ * Support RTMP, RTSP and SRT with commons features
+ * [com.pedro.library.generic.GenericCamera1]
+ * Support RTSP with all RTSP features
+ * [com.pedro.library.rtsp.RtspCamera1]
+ * Support RTMP with all RTMP features
  * [com.pedro.library.rtmp.RtmpCamera1]
+ * Support SRT with all SRT features
+ * [com.pedro.library.srt.SrtCamera1]
  */
 class OldApiActivity : AppCompatActivity(), ConnectChecker, TextureView.SurfaceTextureListener {
 

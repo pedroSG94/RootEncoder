@@ -29,9 +29,19 @@ import com.pedro.streamer.R
 import com.pedro.streamer.utils.toast
 
 /**
+ * Example code to stream the device screen.
+ * Necessary API 21+
+ *
  * More documentation see:
  * [com.pedro.library.base.DisplayBase]
+ * Support RTMP, RTSP and SRT with commons features
+ * [com.pedro.library.generic.GenericDisplay]
+ * Support RTSP with all RTSP features
+ * [com.pedro.library.rtsp.RtspDisplay]
+ * Support RTMP with all RTMP features
  * [com.pedro.library.rtmp.RtmpDisplay]
+ * Support SRT with all SRT features
+ * [com.pedro.library.srt.SrtDisplay]
  */
 @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
 class ScreenActivity : AppCompatActivity(), ConnectChecker {

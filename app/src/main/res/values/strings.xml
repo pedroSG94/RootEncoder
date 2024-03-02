@@ -5,7 +5,7 @@
   <string name="old_api">Old API (16 – 20)</string>
   <string name="from_file">From file</string>
   <string name="display">Screen</string>
-  <string name="rotation_rtmp">Rotation RTMP\n(include filters)</string>
+  <string name="rotation_rtmp">Rotation\n(include filters)</string>
   <string name="tv_select">Select your streamer</string>
   <string name="hint_protocol">protocol://yourendpoint</string>
   <!--filters-->

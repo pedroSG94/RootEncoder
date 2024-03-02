@@ -52,15 +52,25 @@ import java.util.Locale
 import kotlin.math.max
 
 /**
+ * Example code to stream using a file.
+ * Necessary API 18+
+ *
  * More documentation see:
  * [com.pedro.library.base.FromFileBase]
+ * Support RTMP, RTSP and SRT with commons features
+ * [com.pedro.library.generic.GenericFromFile]
+ * Support RTSP with all RTSP features
+ * [com.pedro.library.rtsp.RtspFromFile]
+ * Support RTMP with all RTMP features
  * [com.pedro.library.rtmp.RtmpFromFile]
+ * Support SRT with all SRT features
+ * [com.pedro.library.srt.SrtFromFile]
  */
 @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
 class FromFileActivity : AppCompatActivity(), ConnectChecker,
   VideoDecoderInterface, AudioDecoderInterface, OnSeekBarChangeListener {
 
-    private lateinit var genericFromFile: GenericFromFile
+  private lateinit var genericFromFile: GenericFromFile
   private lateinit var bStream: ImageView
   private lateinit var bSelectFile: ImageView
   private lateinit var bReSync: ImageView
@@ -70,7 +80,6 @@ class FromFileActivity : AppCompatActivity(), ConnectChecker,
   private lateinit var tvFileName: TextView
   private lateinit var openGlView: OpenGlView
 
-  //  private TextView tvFile;
   private var filePath: Uri? = null
   private var recordPath = ""
   private var touching = false
@@ -176,6 +185,7 @@ class FromFileActivity : AppCompatActivity(), ConnectChecker,
   }
 
   override fun onNewBitrate(bitrate: Long) {}
+
   override fun onDisconnect() {
     toast("Disconnected")
   }
