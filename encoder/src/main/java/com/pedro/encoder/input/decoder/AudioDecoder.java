@@ -33,7 +33,7 @@ import java.nio.ByteBuffer;
 public class AudioDecoder extends BaseDecoder {
 
   private final AudioDecoderInterface audioDecoderInterface;
-  private final GetMicrophoneData getMicrophoneData;
+  private GetMicrophoneData getMicrophoneData;
   private int sampleRate;
   private boolean isStereo;
   private int channels = 1;
@@ -90,6 +90,8 @@ public class AudioDecoder extends BaseDecoder {
   @Override
   protected boolean decodeOutput(ByteBuffer outputBuffer, long timeStamp) {
     //This buffer is PCM data
+    GetMicrophoneData getMicrophoneData = this.getMicrophoneData;
+    if (getMicrophoneData == null) return false;
     if (muted) {
       outputBuffer.get(pcmBufferMuted, 0,
               Math.min(outputBuffer.remaining(), pcmBufferMuted.length));
@@ -161,5 +163,14 @@ public class AudioDecoder extends BaseDecoder {
 
   public boolean isStereo() {
     return isStereo;
+  }
+
+  public int getSize() {
+    return size;
+  }
+
+  public void setGetMicrophoneData(GetMicrophoneData getMicrophoneData) {
+    if (running) return;
+    this.getMicrophoneData = getMicrophoneData;
   }
 }

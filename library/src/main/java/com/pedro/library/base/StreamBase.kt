@@ -285,9 +285,9 @@ abstract class StreamBase(
   fun changeVideoSource(source: VideoSource) {
     val wasRunning = videoSource.isRunning()
     val wasCreated = videoSource.created
+    if (wasCreated) source.create(videoEncoder.width, videoEncoder.height, videoEncoder.fps)
     videoSource.stop()
     videoSource.release()
-    if (wasCreated) source.create(videoEncoder.width, videoEncoder.height, videoEncoder.fps)
     if (wasRunning) source.start(glInterface.surfaceTexture)
     videoSource = source
   }
@@ -299,14 +299,11 @@ abstract class StreamBase(
   fun changeAudioSource(source: AudioSource) {
     val wasRunning = audioSource.isRunning()
     val wasCreated = audioSource.created
+    if (wasCreated) source.create(audioSource.sampleRate, audioSource.isStereo, audioSource.echoCanceler, audioSource.noiseSuppressor)
     audioSource.stop()
     audioSource.release()
-    if (wasCreated) source.create(audioSource.sampleRate, audioSource.isStereo, audioSource.echoCanceler, audioSource.noiseSuppressor)
     if (wasRunning) source.start(getMicrophoneData)
     audioSource = source
-    videoSource.surfaceTexture?.let {
-
-    }
   }
 
   /**
