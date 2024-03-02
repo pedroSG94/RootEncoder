@@ -26,6 +26,7 @@ import android.view.MotionEvent
 import androidx.annotation.RequiresApi
 import com.pedro.encoder.input.video.Camera2ApiManager
 import com.pedro.encoder.input.video.CameraHelper
+import com.pedro.encoder.input.video.facedetector.FaceDetectorCallback
 
 /**
  * Created by pedro on 11/1/24.
@@ -117,8 +118,7 @@ class Camera2Source(context: Context): VideoSource() {
   }
 
   fun getExposure(): Int {
-    return if (isRunning()) camera.exposure
-    else 0
+    return if (isRunning()) camera.exposure else 0
   }
 
   fun enableLantern() {
@@ -130,8 +130,7 @@ class Camera2Source(context: Context): VideoSource() {
   }
 
   fun isLanternEnabled(): Boolean {
-    return if (isRunning()) camera.isLanternEnabled
-    else false
+    return if (isRunning()) camera.isLanternEnabled else false
   }
 
   fun enableAutoFocus() {
@@ -145,8 +144,11 @@ class Camera2Source(context: Context): VideoSource() {
   }
 
   fun isAutoFocusEnabled(): Boolean {
-    return if (isRunning()) camera.isAutoFocusEnabled
-    else false
+    return if (isRunning()) camera.isAutoFocusEnabled else false
+  }
+
+  fun tapToFocus(event: MotionEvent) {
+    camera.tapToFocus(event)
   }
 
   fun setZoom(event: MotionEvent) {
@@ -160,4 +162,41 @@ class Camera2Source(context: Context): VideoSource() {
   fun getZoomRange(): Range<Float> = camera.zoomRange
 
   fun getZoom(): Float = camera.zoom
+
+  fun enableFaceDetection(callback: FaceDetectorCallback): Boolean {
+    return if (isRunning()) camera.enableFaceDetection(callback) else false
+  }
+
+  fun disableFaceDetection() {
+    if (isRunning()) camera.disableFaceDetection()
+  }
+
+  fun isFaceDetectionEnabled() = camera.isFaceDetectionEnabled
+
+  fun camerasAvailable(): Array<String>? = camera.camerasAvailable
+
+  fun openCameraId(id: String) {
+    if (isRunning()) stop()
+    camera.openCameraId(id)
+  }
+
+  fun enableOpticalVideoStabilization(): Boolean {
+    return if (isRunning()) camera.enableOpticalVideoStabilization() else false
+  }
+
+  fun disableOpticalVideoStabilization() {
+    if (isRunning()) camera.disableOpticalVideoStabilization()
+  }
+
+  fun isOpticalVideoStabilizationEnabled() = camera.isOpticalStabilizationEnabled
+
+  fun enableVideoStabilization(): Boolean {
+    return if (isRunning()) camera.enableVideoStabilization() else false
+  }
+
+  fun disableVideoStabilization() {
+    if (isRunning()) camera.disableVideoStabilization()
+  }
+
+  fun isVideoStabilizationEnabled() = camera.isVideoStabilizationEnabled
 }

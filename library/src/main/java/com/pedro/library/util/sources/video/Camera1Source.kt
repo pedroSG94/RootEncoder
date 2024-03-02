@@ -23,9 +23,11 @@ import android.os.Build
 import android.util.Range
 import android.util.Size
 import android.view.MotionEvent
+import android.view.View
 import androidx.annotation.RequiresApi
 import com.pedro.encoder.input.video.Camera1ApiManager
 import com.pedro.encoder.input.video.CameraHelper
+import com.pedro.encoder.input.video.facedetector.FaceDetectorCallback
 
 /**
  * Created by pedro on 11/1/24.
@@ -115,8 +117,7 @@ class Camera1Source(context: Context): VideoSource() {
   }
 
   fun getExposure(): Int {
-    return if (isRunning()) camera.exposure
-    else 0
+    return if (isRunning()) camera.exposure else 0
   }
 
   fun enableLantern() {
@@ -128,8 +129,7 @@ class Camera1Source(context: Context): VideoSource() {
   }
 
   fun isLanternEnabled(): Boolean {
-    return if (isRunning()) camera.isLanternEnabled
-    else false
+    return if (isRunning()) camera.isLanternEnabled else false
   }
 
   fun enableAutoFocus() {
@@ -143,8 +143,11 @@ class Camera1Source(context: Context): VideoSource() {
   }
 
   fun isAutoFocusEnabled(): Boolean {
-    return if (isRunning()) camera.isAutoFocusEnabled
-    else false
+    return if (isRunning()) camera.isAutoFocusEnabled else false
+  }
+
+  fun tapToFocus(view: View, event: MotionEvent) {
+    camera.tapToFocus(view, event)
   }
 
   fun setZoom(event: MotionEvent) {
@@ -158,4 +161,28 @@ class Camera1Source(context: Context): VideoSource() {
   fun getZoomRange(): Range<Int> = Range(camera.minZoom, camera.maxZoom)
 
   fun getZoom(): Int = camera.zoom
+
+  fun enableFaceDetection(callback: FaceDetectorCallback): Boolean {
+    return if (isRunning()) camera.enableFaceDetection(callback) else false
+  }
+
+  fun disableFaceDetection() {
+    if (isRunning()) camera.disableFaceDetection()
+  }
+
+  fun isFaceDetectionEnabled() = camera.isFaceDetectionEnabled
+
+  fun openCameraId(id: Int) {
+    camera.switchCamera(id)
+  }
+
+  fun enableVideoStabilization(): Boolean {
+    return if (isRunning()) camera.enableVideoStabilization() else false
+  }
+
+  fun disableVideoStabilization() {
+    if (isRunning()) camera.disableVideoStabilization()
+  }
+
+  fun isVideoStabilizationEnabled() = camera.isVideoStabilizationEnabled
 }
