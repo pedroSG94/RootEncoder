@@ -71,7 +71,10 @@ class ScreenService: Service(), ConnectChecker {
       val channel = NotificationChannel(channelId, channelId, NotificationManager.IMPORTANCE_HIGH)
       notificationManager?.createNotificationChannel(channel)
     }
-    genericStream = GenericStream(baseContext, this, NoVideoSource(), MicrophoneSource())
+    genericStream = GenericStream(baseContext, this, NoVideoSource(), MicrophoneSource()).apply {
+      //This is important to keep a constant fps because media projection only produce fps if the screen change
+      getGlInterface().setForceRender(true, 15)
+    }
     prepared = genericStream.prepareVideo(width, height, vBitrate, rotation = rotation) &&
       genericStream.prepareAudio(sampleRate, isStereo, aBitrate)
     INSTANCE = this

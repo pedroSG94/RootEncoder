@@ -179,4 +179,20 @@ public interface GlInterface {
   void unMuteVideo();
 
   boolean isVideoMuted();
+
+  /**
+   * @param enabled render last frame.
+   * @param fps number fps you want force to render, 5 by default
+   * This is useful with Display mode to continue producing video frames.
+   * Not recommendable in others modes.
+   */
+  void setForceRender(boolean enabled, int fps);
+
+  /**
+   * @param enabled render last frame.
+   * Render 5 fps by default.
+   * This is useful with Display mode to continue producing video frames.
+   * Not recommendable in others modes.
+   */
+  void setForceRender(boolean enabled);
 }

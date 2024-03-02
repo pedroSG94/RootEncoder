@@ -70,7 +70,8 @@ public class OpenGlView extends SurfaceView
   private boolean isStreamVerticalFlip = false;
   private AspectRatioMode aspectRatioMode = AspectRatioMode.Adjust;
   private ExecutorService executor = null;
-  private FpsLimiter fpsLimiter = new FpsLimiter();
+  private final FpsLimiter fpsLimiter = new FpsLimiter();
+  private ForceRenderer forceRenderer = new ForceRenderer();
 
   public OpenGlView(Context context) {
     super(context);
@@ -200,6 +201,16 @@ public class OpenGlView extends SurfaceView
   }
 
   @Override
+  public void setForceRender(boolean enabled, int fps) {
+    forceRenderer.setEnabled(enabled, fps);
+  }
+
+  @Override
+  public void setForceRender(boolean enabled) {
+    setForceRender(enabled, 5);
+  }
+
+  @Override
   public void setEncoderSize(int width, int height) {
     this.encoderWidth = width;
     this.encoderHeight = height;
@@ -292,6 +303,12 @@ public class OpenGlView extends SurfaceView
       surfaceManagerPhoto.eglSetup(encoderWidth, encoderHeight, surfaceManager);
       running = true;
       mainRender.getSurfaceTexture().setOnFrameAvailableListener(this);
+      forceRenderer.start(() -> {
+        ExecutorService ex = this.executor;
+        if (ex == null) return null;
+        ex.execute(() -> onFrameAvailable(mainRender.getSurfaceTexture()));
+        return null;
+      });
       return null;
     });
   }
@@ -299,6 +316,7 @@ public class OpenGlView extends SurfaceView
   @Override
   public void stop() {
     running = false;
+    forceRenderer.stop();
     ExecutorService executor = this.executor;
     if (executor != null) {
       executor.shutdownNow();
@@ -314,6 +332,7 @@ public class OpenGlView extends SurfaceView
     if (!running || fpsLimiter.limitFPS()) return;
     ExecutorService executor = this.executor;
     if (executor == null) return;
+    forceRenderer.frameAvailable();
     executor.execute(this::draw);
   }
 

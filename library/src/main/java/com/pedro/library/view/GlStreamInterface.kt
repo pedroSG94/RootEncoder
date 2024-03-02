@@ -70,6 +70,7 @@ class GlStreamInterface(private val context: Context): OnFrameAvailableListener,
   private var aspectRatioMode = AspectRatioMode.Adjust
   private var executor: ExecutorService? = null
   private val fpsLimiter = FpsLimiter()
+  private val forceRender = ForceRenderer()
 
   override fun setEncoderSize(width: Int, height: Int) {
     encoderWidth = width
@@ -89,6 +90,14 @@ class GlStreamInterface(private val context: Context): OnFrameAvailableListener,
   }
 
   override fun isVideoMuted(): Boolean = muteVideo
+
+  override fun setForceRender(enabled: Boolean, fps: Int) {
+    forceRender.setEnabled(enabled, fps)
+  }
+
+  override fun setForceRender(enabled: Boolean) {
+    setForceRender(enabled, 5)
+  }
 
   override fun getSurfaceTexture(): SurfaceTexture {
     return mainRender.getSurfaceTexture()
@@ -128,11 +137,13 @@ class GlStreamInterface(private val context: Context): OnFrameAvailableListener,
       surfaceManagerPhoto.eglSetup(encoderWidth, encoderHeight, surfaceManager)
       running = true
       mainRender.getSurfaceTexture().setOnFrameAvailableListener(this)
+      forceRender.start { onFrameAvailable(mainRender.getSurfaceTexture()) }
     }
   }
 
   override fun stop() {
     running = false
+    forceRender.stop()
     executor?.shutdownNow()
     executor = null
     surfaceManagerPhoto.release()
@@ -193,6 +204,7 @@ class GlStreamInterface(private val context: Context): OnFrameAvailableListener,
 
   override fun onFrameAvailable(surfaceTexture: SurfaceTexture?) {
     if (!running || fpsLimiter.limitFPS()) return
+    forceRender.frameAvailable()
     executor?.execute { draw() }
   }
 
