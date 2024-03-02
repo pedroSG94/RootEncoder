@@ -113,7 +113,7 @@ public abstract class Camera1Base {
   public Camera1Base(OpenGlView openGlView) {
     context = openGlView.getContext();
     this.glInterface = openGlView;
-    cameraManager = new Camera1ApiManager(glInterface.getSurfaceTexture(), context);
+    cameraManager = new Camera1ApiManager(null, context);
     init();
   }
 
@@ -121,7 +121,7 @@ public abstract class Camera1Base {
   public Camera1Base(Context context) {
     this.context = context;
     glInterface = new GlStreamInterface(context);
-    cameraManager = new Camera1ApiManager(glInterface.getSurfaceTexture(), context);
+    cameraManager = new Camera1ApiManager(null, context);
     init();
   }
 
