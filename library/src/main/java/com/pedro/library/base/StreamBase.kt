@@ -41,6 +41,7 @@ import com.pedro.encoder.video.VideoEncoder
 import com.pedro.library.base.recording.BaseRecordController
 import com.pedro.library.base.recording.RecordController
 import com.pedro.library.util.AndroidMuxerRecordController
+import com.pedro.library.util.FpsListener
 import com.pedro.library.util.sources.audio.AudioSource
 import com.pedro.library.util.sources.video.NoVideoSource
 import com.pedro.library.util.sources.video.VideoSource
@@ -75,6 +76,7 @@ abstract class StreamBase(
   private val glInterface = GlStreamInterface(context)
   //video/audio record
   private var recordController: BaseRecordController = AndroidMuxerRecordController()
+  private val fpsListener = FpsListener()
   var isStreaming = false
     private set
   var isOnPreview = false
@@ -317,6 +319,13 @@ abstract class StreamBase(
   }
 
   /**
+   * @param callback get fps while record or stream
+   */
+  fun setFpsListener(callback: FpsListener.Callback?) {
+    fpsListener.setCallback(callback)
+  }
+
+  /**
    * Change stream orientation depend of activity orientation.
    * This method affect ro preview and stream.
    * Must be called after prepareVideo.
@@ -422,6 +431,7 @@ abstract class StreamBase(
     }
 
     override fun getVideoData(h264Buffer: ByteBuffer, info: MediaCodec.BufferInfo) {
+      fpsListener.calculateFps()
       getH264DataRtp(h264Buffer, info)
       recordController.recordVideo(h264Buffer, info)
     }

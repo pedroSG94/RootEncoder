@@ -22,6 +22,8 @@ import android.hardware.display.DisplayManager
 import android.hardware.display.VirtualDisplay
 import android.media.projection.MediaProjection
 import android.os.Build
+import android.os.Handler
+import android.os.HandlerThread
 import android.view.Surface
 import androidx.annotation.RequiresApi
 
@@ -32,6 +34,7 @@ import androidx.annotation.RequiresApi
 class ScreenSource(private val context: Context, private val mediaProjection: MediaProjection): VideoSource() {
 
   private var virtualDisplay: VirtualDisplay? = null
+  private val handlerThread = HandlerThread("ScreenSource")
 
   override fun create(width: Int, height: Int, fps: Int): Boolean {
     this.width = width
@@ -46,9 +49,7 @@ class ScreenSource(private val context: Context, private val mediaProjection: Me
     this.surfaceTexture = surfaceTexture
     if (!isRunning()) {
       val dpi = context.resources.displayMetrics.densityDpi
-      var flags = DisplayManager.VIRTUAL_DISPLAY_FLAG_AUTO_MIRROR
-      val virtualDisplayFlagRotatesWithContent = 128
-      flags += virtualDisplayFlagRotatesWithContent
+      val flags = DisplayManager.VIRTUAL_DISPLAY_FLAG_AUTO_MIRROR
       //Adapt MediaProjection render to stream resolution
       val shouldRotate = width > height
       val displayWidth = if (shouldRotate) height else width
@@ -56,13 +57,15 @@ class ScreenSource(private val context: Context, private val mediaProjection: Me
       if (shouldRotate) {
         surfaceTexture.setDefaultBufferSize(height, width)
       }
+      handlerThread.start()
       val mediaProjectionCallback = object : MediaProjection.Callback() {}
-      mediaProjection.registerCallback(mediaProjectionCallback, null)
+      mediaProjection.registerCallback(mediaProjectionCallback, Handler(handlerThread.looper))
 
       val callback = object : VirtualDisplay.Callback() {}
       virtualDisplay = mediaProjection.createVirtualDisplay("ScreenSource",
         displayWidth, displayHeight, dpi, flags,
-        Surface(surfaceTexture), callback, null)
+        Surface(surfaceTexture), callback, Handler(handlerThread.looper)
+      )
     }
   }
 
@@ -70,6 +73,7 @@ class ScreenSource(private val context: Context, private val mediaProjection: Me
     if (isRunning()) {
       virtualDisplay?.release()
       virtualDisplay = null
+      handlerThread.quitSafely()
     }
   }
 
