@@ -17,6 +17,7 @@
 package com.pedro.streamer.utils
 
 import android.app.Activity
+import android.app.Service
 import android.widget.Toast
 import androidx.fragment.app.Fragment
 
@@ -30,4 +31,8 @@ fun Activity.toast(message: String, duration: Int = Toast.LENGTH_SHORT) {
 
 fun Fragment.toast(message: String, duration: Int = Toast.LENGTH_SHORT) {
   Toast.makeText(requireContext(), message, duration).show()
+}
+
+fun Service.toast(message: String, duration: Int = Toast.LENGTH_SHORT) {
+  Toast.makeText(this, message, duration).show()
 }

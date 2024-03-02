@@ -33,6 +33,7 @@ import com.pedro.library.util.sources.audio.MicrophoneSource
 import com.pedro.library.util.sources.video.NoVideoSource
 import com.pedro.library.util.sources.video.ScreenSource
 import com.pedro.streamer.R
+import com.pedro.streamer.utils.toast
 
 
 /**
@@ -75,9 +76,14 @@ class ScreenService: Service(), ConnectChecker {
       //This is important to keep a constant fps because media projection only produce fps if the screen change
       getGlInterface().setForceRender(true, 15)
     }
-    prepared = genericStream.prepareVideo(width, height, vBitrate, rotation = rotation) &&
-      genericStream.prepareAudio(sampleRate, isStereo, aBitrate)
-    INSTANCE = this
+    prepared = try {
+      genericStream.prepareVideo(width, height, vBitrate, rotation = rotation) &&
+          genericStream.prepareAudio(sampleRate, isStereo, aBitrate)
+    } catch (e: IllegalArgumentException) {
+      false
+    }
+    if (prepared) INSTANCE = this
+    else toast("Invalid audio or video parameters, prepare failed")
   }
 
   private fun keepAliveTrick() {
@@ -128,12 +134,17 @@ class ScreenService: Service(), ConnectChecker {
     INSTANCE = null
   }
 
-  fun prepareStream(resultCode: Int, data: Intent) {
+  fun prepareStream(resultCode: Int, data: Intent): Boolean {
     keepAliveTrick()
     stopStream()
     val mediaProjection = mediaProjectionManager.getMediaProjection(resultCode, data)
     val screenSource = ScreenSource(applicationContext, mediaProjection)
-    genericStream.changeVideoSource(screenSource)
+    return try {
+      genericStream.changeVideoSource(screenSource)
+      true
+    } catch (ignored: IllegalArgumentException) {
+      false
+    }
   }
 
   fun startStream(endpoint: String) {

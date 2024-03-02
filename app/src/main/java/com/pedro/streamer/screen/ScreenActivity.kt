@@ -55,8 +55,11 @@ class ScreenActivity : AppCompatActivity(), ConnectChecker {
       val screenService = ScreenService.INSTANCE
       if (screenService != null) {
         val endpoint = etUrl.text.toString()
-        screenService.prepareStream(result.resultCode, data)
-        screenService.startStream(endpoint)
+        if (screenService.prepareStream(result.resultCode, data)) {
+          screenService.startStream(endpoint)
+        } else {
+          toast("Prepare stream failed")
+        }
       }
     } else {
       toast("No permissions available")
