@@ -22,7 +22,6 @@ import android.graphics.SurfaceTexture
 import android.media.MediaCodec
 import android.media.MediaFormat
 import android.os.Build
-import android.util.Log
 import android.util.Size
 import android.view.Surface
 import android.view.SurfaceView
@@ -77,11 +76,7 @@ abstract class StreamBase(
   private val glInterface = GlStreamInterface(context)
   //video/audio record
   private var recordController: BaseRecordController = AndroidMuxerRecordController()
-  private val fpsListener = FpsListener().apply {
-    setCallback {
-      Log.e("Pedro", "fps: $it")
-    }
-  }
+  private val fpsListener = FpsListener()
   var isStreaming = false
     private set
   var isOnPreview = false
