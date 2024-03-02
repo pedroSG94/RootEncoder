@@ -20,6 +20,8 @@ import android.media.AudioAttributes
 import android.media.AudioPlaybackCaptureConfiguration
 import android.media.projection.MediaProjection
 import android.os.Build
+import android.os.Handler
+import android.os.HandlerThread
 import androidx.annotation.RequiresApi
 import com.pedro.encoder.Frame
 import com.pedro.encoder.input.audio.GetMicrophoneData
@@ -32,6 +34,7 @@ import com.pedro.encoder.input.audio.MicrophoneManager
 class InternalSource(private val mediaProjection: MediaProjection): AudioSource(), GetMicrophoneData {
 
   private val microphone = MicrophoneManager(this)
+  private val handlerThread = HandlerThread("InternalSource")
 
   override fun create(sampleRate: Int, isStereo: Boolean, echoCanceler: Boolean, noiseSuppressor: Boolean): Boolean {
     this.sampleRate = sampleRate
@@ -52,7 +55,8 @@ class InternalSource(private val mediaProjection: MediaProjection): AudioSource(
     if (!isRunning()) {
       if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
         val mediaProjectionCallback = object : MediaProjection.Callback() {}
-        mediaProjection.registerCallback(mediaProjectionCallback, null)
+        handlerThread.start()
+        mediaProjection.registerCallback(mediaProjectionCallback, Handler(handlerThread.looper))
         val config = AudioPlaybackCaptureConfiguration.Builder(mediaProjection)
           .addMatchingUsage(AudioAttributes.USAGE_MEDIA)
           .addMatchingUsage(AudioAttributes.USAGE_GAME)
@@ -73,6 +77,7 @@ class InternalSource(private val mediaProjection: MediaProjection): AudioSource(
     if (isRunning()) {
       this.getMicrophoneData = null
       microphone.stop()
+      handlerThread.quitSafely()
     }
   }
 
