@@ -119,13 +119,6 @@ public interface GlInterface {
    * @param baseFilterRender filter to set.
    */
   void setFilter(BaseFilterRender baseFilterRender);
-  
-  /**
-   * Enable or disable Anti aliasing (This method use FXAA).
-   *
-   * @param AAEnabled true is AA enabled, false is AA disabled. False by default.
-   */
-  void enableAA(boolean AAEnabled);
 
   void setRotation(int rotation);
 
@@ -153,12 +146,6 @@ public interface GlInterface {
    * When true, flips only the preview vertically
    */
   void setIsPreviewVerticalFlip(boolean flip);
-
-  /**
-   * Get Anti alias is enabled.
-   * @return true is enabled, false is disabled.
-   */
-  boolean isAAEnabled();
 
   /**
    * INTERNAL METHOD.

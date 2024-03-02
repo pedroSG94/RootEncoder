@@ -167,14 +167,6 @@ class MainRender {
     }
   }
 
-  fun enableAA(AAEnabled: Boolean) {
-    screenRender.isAAEnabled = AAEnabled
-  }
-
-  fun isAAEnabled(): Boolean {
-    return screenRender.isAAEnabled
-  }
-
   fun updateFrame() {
     cameraRender.updateTexImage()
   }

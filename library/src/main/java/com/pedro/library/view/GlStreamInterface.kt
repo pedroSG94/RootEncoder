@@ -259,10 +259,6 @@ class GlStreamInterface(private val context: Context): OnFrameAvailableListener,
     return mainRender.filtersCount()
   }
 
-  override fun enableAA(aaEnabled: Boolean) {
-    mainRender.enableAA(aaEnabled)
-  }
-
   override fun setRotation(rotation: Int) {
     mainRender.setCameraRotation(rotation);
   }
@@ -282,8 +278,6 @@ class GlStreamInterface(private val context: Context): OnFrameAvailableListener,
   override fun setIsPreviewVerticalFlip(flip: Boolean) {
     isPreviewVerticalFlip = flip
   }
-
-  override fun isAAEnabled(): Boolean = mainRender.isAAEnabled()
 
   override fun setFilter(baseFilterRender: BaseFilterRender?) {
     filterQueue.add(Filter(FilterAction.SET, 0, baseFilterRender))

@@ -24,8 +24,6 @@
   <string name="sepia">Sepia</string>
   <string name="aqua">Aqua</string>
   <string name="posterize">Posterize</string>
-  <!--gl menu-->
-  <string name="enable_disable_fxaa">enable/disable FXAA</string>
   <!--filters-->
   <string name="no_filter">No filter</string>
   <string name="analog_tv">Analog TV</string>

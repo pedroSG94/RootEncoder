@@ -8,7 +8,6 @@
   </attr>
 
   <declare-styleable name="OpenGlView">
-    <attr name="AAEnabled" format="boolean"/>
     <attr name="aspectRatioMode"/>
     <attr name="isFlipHorizontal" format="boolean"/>
     <attr name="isFlipVertical" format="boolean"/>

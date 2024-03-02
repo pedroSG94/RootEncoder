@@ -80,11 +80,9 @@ public class OpenGlView extends SurfaceView
     TypedArray typedArray = context.obtainStyledAttributes(attrs, R.styleable.OpenGlView);
     try {
       aspectRatioMode = AspectRatioMode.Companion.fromId(typedArray.getInt(R.styleable.OpenGlView_aspectRatioMode, AspectRatioMode.NONE.ordinal()));
-      boolean AAEnabled = typedArray.getBoolean(R.styleable.OpenGlView_AAEnabled, false);
       boolean isFlipHorizontal = typedArray.getBoolean(R.styleable.OpenGlView_isFlipHorizontal, false);
       boolean isFlipVertical = typedArray.getBoolean(R.styleable.OpenGlView_isFlipVertical, false);
       mainRender.setCameraFlip(isFlipHorizontal, isFlipVertical);
-      mainRender.enableAA(AAEnabled);
     } finally {
       typedArray.recycle();
     }
@@ -142,11 +140,6 @@ public class OpenGlView extends SurfaceView
   }
 
   @Override
-  public void enableAA(boolean AAEnabled) {
-    mainRender.enableAA(AAEnabled);
-  }
-
-  @Override
   public void setRotation(int rotation) {
     mainRender.setCameraRotation(rotation);
   }
@@ -157,11 +150,6 @@ public class OpenGlView extends SurfaceView
 
   public void setCameraFlip(boolean isFlipHorizontal, boolean isFlipVertical) {
     mainRender.setCameraFlip(isFlipHorizontal, isFlipVertical);
-  }
-
-  @Override
-  public boolean isAAEnabled() {
-    return mainRender.isAAEnabled();
   }
 
   @Override
