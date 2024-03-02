@@ -36,6 +36,7 @@ import com.pedro.encoder.input.decoder.AudioDecoderInterface
 import com.pedro.encoder.input.decoder.VideoDecoderInterface
 import com.pedro.library.base.recording.RecordController
 import com.pedro.library.generic.GenericFromFile
+import com.pedro.library.view.OpenGlView
 import com.pedro.streamer.R
 import com.pedro.streamer.utils.PathUtils
 import com.pedro.streamer.utils.toast

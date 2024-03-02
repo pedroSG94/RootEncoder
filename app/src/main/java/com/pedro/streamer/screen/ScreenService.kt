@@ -74,7 +74,6 @@ class ScreenService: Service(), ConnectChecker {
     genericStream = GenericStream(baseContext, this, NoVideoSource(), MicrophoneSource())
     prepared = genericStream.prepareVideo(width, height, vBitrate, rotation = rotation) &&
       genericStream.prepareAudio(sampleRate, isStereo, aBitrate)
-    genericStream.getGlInterface().setForceRender(true)
     INSTANCE = this
   }
 

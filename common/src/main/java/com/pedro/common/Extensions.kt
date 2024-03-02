@@ -81,5 +81,5 @@ fun ByteArray.bytesToHex(): String {
 }
 
 fun ExecutorService.secureSubmit(code: () -> Unit) {
-  try { submit { code() } } catch (ignored: Exception) {}
+  try { submit { code() }.get() } catch (ignored: Exception) {}
 }

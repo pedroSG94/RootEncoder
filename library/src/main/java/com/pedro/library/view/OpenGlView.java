@@ -292,7 +292,7 @@ public class OpenGlView extends SurfaceView
     if (executor == null) return;
     ExtensionsKt.secureSubmit(executor, () -> {
       surfaceManager.release();
-      surfaceManager.eglSetup();
+      surfaceManager.eglSetup(getHolder().getSurface());
       surfaceManager.makeCurrent();
       managerRender.initGl(getContext(), encoderWidth, encoderHeight, encoderWidth, encoderHeight);
       surfaceManagerPhoto.release();
