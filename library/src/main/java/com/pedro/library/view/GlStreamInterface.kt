@@ -23,6 +23,7 @@ import android.graphics.SurfaceTexture.OnFrameAvailableListener
 import android.os.Build
 import android.view.Surface
 import androidx.annotation.RequiresApi
+import com.pedro.common.secureSubmit
 import com.pedro.encoder.input.gl.FilterAction
 import com.pedro.encoder.input.gl.SurfaceManager
 import com.pedro.encoder.input.gl.render.MainRender
@@ -33,18 +34,16 @@ import com.pedro.encoder.utils.gl.AspectRatioMode
 import com.pedro.encoder.utils.gl.GlUtil
 import com.pedro.library.util.Filter
 import java.util.concurrent.BlockingQueue
+import java.util.concurrent.ExecutorService
+import java.util.concurrent.Executors
 import java.util.concurrent.LinkedBlockingQueue
-import java.util.concurrent.Semaphore
 
 /**
  * Created by pedro on 14/3/22.
  */
 @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
-class GlStreamInterface(private val context: Context) : Runnable, OnFrameAvailableListener, GlInterface {
+class GlStreamInterface(private val context: Context): OnFrameAvailableListener, GlInterface {
 
-  private var thread: Thread? = null
-  @Volatile
-  private var frameAvailable = false
   private var takePhotoCallback: TakePhotoCallback? = null
   var running = false
     private set
@@ -53,8 +52,6 @@ class GlStreamInterface(private val context: Context) : Runnable, OnFrameAvailab
   private val surfaceManagerPhoto = SurfaceManager()
   private val surfaceManagerPreview = SurfaceManager()
   private val managerRender = MainRender()
-  private val semaphore = Semaphore(0)
-  private val sync = Object()
   private var encoderWidth = 0
   private var encoderHeight = 0
   private var streamOrientation = 0
@@ -72,6 +69,7 @@ class GlStreamInterface(private val context: Context) : Runnable, OnFrameAvailab
   private var isStreamHorizontalFlip = false
   private var isStreamVerticalFlip = false
   private var aspectRatioMode = AspectRatioMode.Adjust
+  private var executor: ExecutorService? = null
 
   override fun setEncoderSize(width: Int, height: Int) {
     encoderWidth = width
@@ -109,7 +107,7 @@ class GlStreamInterface(private val context: Context) : Runnable, OnFrameAvailab
   }
 
   override fun addMediaCodecSurface(surface: Surface) {
-    synchronized(sync) {
+    executor?.secureSubmit {
       if (surfaceManager.isReady) {
         surfaceManagerEncoder.release()
         surfaceManagerEncoder.eglSetup(surface, surfaceManager)
@@ -118,7 +116,7 @@ class GlStreamInterface(private val context: Context) : Runnable, OnFrameAvailab
   }
 
   override fun removeMediaCodecSurface() {
-    synchronized(sync) {
+    executor?.secureSubmit {
       surfaceManagerEncoder.release()
     }
   }
@@ -128,112 +126,79 @@ class GlStreamInterface(private val context: Context) : Runnable, OnFrameAvailab
   }
 
   override fun start() {
-    synchronized(sync) {
-      thread = Thread(this)
+    executor = Executors.newSingleThreadExecutor()
+    executor?.secureSubmit {
+      surfaceManager.release()
+      surfaceManager.eglSetup()
+      surfaceManager.makeCurrent()
+      managerRender.initGl(context, encoderWidth, encoderHeight, encoderWidth, encoderHeight)
+      managerRender.getSurfaceTexture().setOnFrameAvailableListener(this)
+      surfaceManagerPhoto.release()
+      surfaceManagerPhoto.eglSetup(encoderWidth, encoderHeight, surfaceManager)
       running = true
-      thread?.start()
-      semaphore.acquireUninterruptibly()
     }
   }
 
   override fun stop() {
     running = false
-    thread?.interrupt()
-    try {
-      thread?.join(100)
-    } catch (e: InterruptedException) {
-      thread?.interrupt()
-    }
-    thread = null
-    synchronized(sync) {
-      surfaceManagerPhoto.release()
-      surfaceManagerEncoder.release()
-      surfaceManager.release()
-    }
+    executor?.shutdownNow()
+    executor = null
+    surfaceManagerPhoto.release()
+    surfaceManagerEncoder.release()
+    surfaceManager.release()
   }
 
-  override fun run() {
-    surfaceManager.release()
-    surfaceManager.eglSetup()
+  private fun draw() {
     surfaceManager.makeCurrent()
-    managerRender.initGl(context, encoderWidth, encoderHeight, encoderWidth, encoderHeight)
-    managerRender.getSurfaceTexture().setOnFrameAvailableListener(this)
-    surfaceManagerPhoto.release()
-    surfaceManagerPhoto.eglSetup(encoderWidth, encoderHeight, surfaceManager)
-    semaphore.release()
-    try {
-      while (running) {
-        fpsLimiter.setFrameStartTs()
-        if (frameAvailable || forceRender) {
-          frameAvailable = false
-          surfaceManager.makeCurrent()
-          managerRender.updateFrame()
-          managerRender.drawOffScreen()
-          managerRender.drawScreen(encoderWidth, encoderHeight, AspectRatioMode.NONE, 0,
-            flipStreamVertical = false, flipStreamHorizontal = false)
-          surfaceManager.swapBuffer()
+    managerRender.updateFrame()
+    managerRender.drawOffScreen()
+    managerRender.drawScreen(encoderWidth, encoderHeight, AspectRatioMode.NONE, 0,
+      flipStreamVertical = false, flipStreamHorizontal = false)
+    surfaceManager.swapBuffer()
 
-          if (!filterQueue.isEmpty()) {
-            val filter = filterQueue.take()
-            managerRender.setFilterAction(filter.filterAction, filter.position, filter.baseFilterRender)
-          }
+    if (!filterQueue.isEmpty()) {
+      val filter = filterQueue.take()
+      managerRender.setFilterAction(filter.filterAction, filter.position, filter.baseFilterRender)
+    }
 
-          synchronized(sync) {
-            val limitFps = fpsLimiter.limitFPS()
-            val orientation = when (orientationForced) {
-              OrientationForced.PORTRAIT -> true
-              OrientationForced.LANDSCAPE -> false
-              OrientationForced.NONE -> isPortrait
-            }
-            // render VideoEncoder (stream and record)
-            if (surfaceManagerEncoder.isReady && !limitFps) {
-              val w = if (muteVideo) 0 else encoderWidth
-              val h = if (muteVideo) 0 else encoderHeight
-              surfaceManagerEncoder.makeCurrent()
-              managerRender.drawScreenEncoder(w, h, orientation, streamOrientation,
-                isStreamVerticalFlip, isStreamHorizontalFlip)
-              surfaceManagerEncoder.swapBuffer()
-            }
-            //render surface photo if request photo
-            if (takePhotoCallback != null && surfaceManagerPhoto.isReady) {
-              surfaceManagerPhoto.makeCurrent()
-              managerRender.drawScreen(encoderWidth, encoderHeight, AspectRatioMode.NONE,
-                streamOrientation, isStreamVerticalFlip, isStreamHorizontalFlip)
-              takePhotoCallback?.onTakePhoto(GlUtil.getBitmap(encoderWidth, encoderHeight))
-              takePhotoCallback = null
-              surfaceManagerPhoto.swapBuffer()
-            }
-            // render preview
-            if (surfaceManagerPreview.isReady && !limitFps) {
-              val w =  if (previewWidth == 0) encoderWidth else previewWidth
-              val h =  if (previewHeight == 0) encoderHeight else previewHeight
-              surfaceManagerPreview.makeCurrent()
-              managerRender.drawScreenPreview(w, h, orientation, aspectRatioMode, previewOrientation,
-                isPreviewVerticalFlip, isPreviewHorizontalFlip)
-              surfaceManagerPreview.swapBuffer()
-            }
-          }
-        }
-        synchronized(sync) {
-          val sleep = fpsLimiter.sleepTime
-          if (sleep > 0 && !frameAvailable) sync.wait(sleep)
-        }
-      }
-    } catch (ignore: InterruptedException) {
-      Thread.currentThread().interrupt()
-    } finally {
-      managerRender.release()
-      surfaceManagerPhoto.release()
-      surfaceManagerEncoder.release()
-      surfaceManager.release()
+    val limitFps = fpsLimiter.limitFPS()
+    val orientation = when (orientationForced) {
+      OrientationForced.PORTRAIT -> true
+      OrientationForced.LANDSCAPE -> false
+      OrientationForced.NONE -> isPortrait
+    }
+    // render VideoEncoder (stream and record)
+    if (surfaceManagerEncoder.isReady && !limitFps) {
+      val w = if (muteVideo) 0 else encoderWidth
+      val h = if (muteVideo) 0 else encoderHeight
+      surfaceManagerEncoder.makeCurrent()
+      managerRender.drawScreenEncoder(w, h, orientation, streamOrientation,
+        isStreamVerticalFlip, isStreamHorizontalFlip)
+      surfaceManagerEncoder.swapBuffer()
+    }
+    //render surface photo if request photo
+    if (takePhotoCallback != null && surfaceManagerPhoto.isReady) {
+      surfaceManagerPhoto.makeCurrent()
+      managerRender.drawScreen(encoderWidth, encoderHeight, AspectRatioMode.NONE,
+        streamOrientation, isStreamVerticalFlip, isStreamHorizontalFlip)
+      takePhotoCallback?.onTakePhoto(GlUtil.getBitmap(encoderWidth, encoderHeight))
+      takePhotoCallback = null
+      surfaceManagerPhoto.swapBuffer()
+    }
+    // render preview
+    if (surfaceManagerPreview.isReady && !limitFps) {
+      val w =  if (previewWidth == 0) encoderWidth else previewWidth
+      val h =  if (previewHeight == 0) encoderHeight else previewHeight
+      surfaceManagerPreview.makeCurrent()
+      managerRender.drawScreenPreview(w, h, orientation, aspectRatioMode, previewOrientation,
+        isPreviewVerticalFlip, isPreviewHorizontalFlip)
+      surfaceManagerPreview.swapBuffer()
     }
   }
 
   override fun onFrameAvailable(surfaceTexture: SurfaceTexture?) {
-    frameAvailable = true
-    synchronized(sync) {
-      sync.notifyAll()
-    }
+    if (!running) return
+    executor?.execute { draw() }
   }
 
   fun forceOrientation(forced: OrientationForced) {
@@ -241,7 +206,7 @@ class GlStreamInterface(private val context: Context) : Runnable, OnFrameAvailab
   }
 
   fun attachPreview(surface: Surface) {
-    synchronized(sync) {
+    executor?.secureSubmit {
       if (surfaceManager.isReady) {
         isPortrait = CameraHelper.isPortrait(context)
         surfaceManagerPreview.release()
@@ -251,7 +216,7 @@ class GlStreamInterface(private val context: Context) : Runnable, OnFrameAvailab
   }
 
   fun deAttachPreview() {
-    synchronized(sync) {
+    executor?.secureSubmit {
       surfaceManagerPreview.release()
     }
   }
