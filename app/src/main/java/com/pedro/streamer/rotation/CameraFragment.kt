@@ -21,6 +21,7 @@ import android.content.res.Configuration
 import android.os.Build
 import android.os.Bundle
 import android.view.LayoutInflater
+import android.view.OrientationEventListener
 import android.view.SurfaceHolder
 import android.view.SurfaceView
 import android.view.View
@@ -83,6 +84,13 @@ class CameraFragment: Fragment(), ConnectChecker {
   private val isStereo = true
   private val aBitrate = 128 * 1000
   private var recordPath = ""
+
+  private val orientationEventListener by lazy { object: OrientationEventListener(requireContext()) {
+      override fun onOrientationChanged(orientation: Int) {
+        genericStream.setConfig(resources.configuration, requireContext())
+      }
+    }
+  }
 
   @SuppressLint("ClickableViewAccessibility")
   override fun onCreateView(
@@ -147,7 +155,6 @@ class CameraFragment: Fragment(), ConnectChecker {
         is CameraXSource -> source.switchCamera()
       }
     }
-    genericStream.setConfig(resources.configuration, requireContext())
     return view
   }
 
@@ -183,9 +190,14 @@ class CameraFragment: Fragment(), ConnectChecker {
     genericStream.release()
   }
 
-  override fun onConfigurationChanged(newConfig: Configuration) {
-    super.onConfigurationChanged(newConfig)
-    genericStream.setConfig(newConfig, requireContext())
+  override fun onResume() {
+    super.onResume()
+    orientationEventListener.enable()
+  }
+
+  override fun onPause() {
+    super.onPause()
+    orientationEventListener.disable()
   }
 
   override fun onConnectionStarted(url: String) {
