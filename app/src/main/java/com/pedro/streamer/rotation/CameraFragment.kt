@@ -147,6 +147,7 @@ class CameraFragment: Fragment(), ConnectChecker {
         is CameraXSource -> source.switchCamera()
       }
     }
+    genericStream.setConfig(resources.configuration)
     return view
   }
 
