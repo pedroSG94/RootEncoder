@@ -34,6 +34,7 @@ import com.pedro.encoder.Frame
 import com.pedro.encoder.audio.AudioEncoder
 import com.pedro.encoder.audio.GetAacData
 import com.pedro.encoder.input.audio.GetMicrophoneData
+import com.pedro.encoder.input.video.CameraHelper
 import com.pedro.encoder.utils.CodecUtil
 import com.pedro.encoder.video.FormatVideoEncoder
 import com.pedro.encoder.video.GetVideoData
@@ -48,6 +49,7 @@ import com.pedro.library.util.sources.video.VideoSource
 import com.pedro.library.util.streamclient.StreamBaseClient
 import com.pedro.library.view.GlStreamInterface
 import java.nio.ByteBuffer
+
 
 /**
  * Created by pedro on 21/2/22.
@@ -341,8 +343,9 @@ abstract class StreamBase(
     glInterface.setCameraOrientation(orientation)
   }
 
-  fun setConfig(config: Configuration) {
-    val isReversed = config.layoutDirection == Configuration.SCREENLAYOUT_LONG_YES
+  fun setConfig(config: Configuration, context: Context) {
+    val orientation = CameraHelper.getCameraOrientation(context)
+    val isReversed = orientation == 180 || orientation == 270
     when (config.orientation) {
       Configuration.ORIENTATION_LANDSCAPE -> {
         if (isReversed) {

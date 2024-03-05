@@ -78,7 +78,7 @@ class CameraFragment: Fragment(), ConnectChecker {
   private val width = 640
   private val height = 480
   private val vBitrate = 1200 * 1000
-  private var rotation = 0
+  private var rotation = 90
   private val sampleRate = 32000
   private val isStereo = true
   private val aBitrate = 128 * 1000
@@ -147,7 +147,7 @@ class CameraFragment: Fragment(), ConnectChecker {
         is CameraXSource -> source.switchCamera()
       }
     }
-    genericStream.setConfig(resources.configuration)
+    genericStream.setConfig(resources.configuration, requireContext())
     return view
   }
 
@@ -185,7 +185,7 @@ class CameraFragment: Fragment(), ConnectChecker {
 
   override fun onConfigurationChanged(newConfig: Configuration) {
     super.onConfigurationChanged(newConfig)
-    genericStream.setConfig(newConfig)
+    genericStream.setConfig(newConfig, requireContext())
   }
 
   override fun onConnectionStarted(url: String) {
