@@ -34,7 +34,6 @@ import com.pedro.srt.mpeg2ts.packets.OpusPacket
 import com.pedro.srt.mpeg2ts.psi.PsiManager
 import com.pedro.srt.mpeg2ts.psi.TableToSend
 import com.pedro.srt.mpeg2ts.service.Mpeg2TsService
-import com.pedro.srt.srt.packets.SrtPacket
 import com.pedro.srt.srt.packets.data.PacketPosition
 import com.pedro.srt.utils.Constants
 import com.pedro.srt.utils.toCodec
@@ -67,7 +66,7 @@ class UdpSender(
     upgradePatVersion()
     upgradeSdtVersion()
   }
-  private val limitSize = Constants.MTU - SrtPacket.headerSize
+  private val limitSize = Constants.MTU
   private val mpegTsPacketizer = MpegTsPacketizer(psiManager)
   private var audioPacket: BasePacket = AacPacket(limitSize, psiManager)
   private val h26XPacket = H26XPacket(limitSize, psiManager)
@@ -158,7 +157,9 @@ class UdpSender(
     running = true
     job = scope.launch {
       //send config
-      val psiPackets = mpegTsPacketizer.write(listOf(psiManager.getPmt(), psiManager.getSdt(), psiManager.getPat())).map { b ->
+      val psiList = mutableListOf(psiManager.getSdt(), psiManager.getPat())
+      psiManager.getPmt()?.let { psiList.add(0, it) }
+      val psiPackets = mpegTsPacketizer.write(psiList).map { b ->
         MpegTsPacket(b, MpegType.PSI, PacketPosition.SINGLE, isKey = false)
       }
       queue.trySend(psiPackets)
@@ -197,9 +198,10 @@ class UdpSender(
   }
 
   private fun checkSendInfo(isKey: Boolean = false) {
+    val pmt = psiManager.getPmt() ?: return
     when (psiManager.shouldSend(isKey)) {
       TableToSend.PAT_PMT -> {
-        val psiPackets = mpegTsPacketizer.write(listOf(psiManager.getPat(), psiManager.getPmt()), increasePsiContinuity = true).map { b ->
+        val psiPackets = mpegTsPacketizer.write(listOf(psiManager.getPat(), pmt), increasePsiContinuity = true).map { b ->
           MpegTsPacket(b, MpegType.PSI, PacketPosition.SINGLE, isKey = false)
         }
         queue.trySend(psiPackets)
@@ -212,7 +214,7 @@ class UdpSender(
       }
       TableToSend.NONE -> {}
       TableToSend.ALL -> {
-        val psiPackets = mpegTsPacketizer.write(listOf(psiManager.getPmt(), psiManager.getSdt(), psiManager.getPat()), increasePsiContinuity = true).map { b ->
+        val psiPackets = mpegTsPacketizer.write(listOf(pmt, psiManager.getSdt(), psiManager.getPat()), increasePsiContinuity = true).map { b ->
           MpegTsPacket(b, MpegType.PSI, PacketPosition.SINGLE, isKey = false)
         }
         queue.trySend(psiPackets)

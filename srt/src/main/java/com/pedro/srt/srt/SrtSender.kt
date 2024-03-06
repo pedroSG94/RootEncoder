@@ -158,7 +158,9 @@ class SrtSender(
     running = true
     job = scope.launch {
       //send config
-      val psiPackets = mpegTsPacketizer.write(listOf(psiManager.getPmt(), psiManager.getSdt(), psiManager.getPat())).map { b ->
+      val psiList = mutableListOf(psiManager.getSdt(), psiManager.getPat())
+      psiManager.getPmt()?.let { psiList.add(0, it) }
+      val psiPackets = mpegTsPacketizer.write(psiList).map { b ->
         MpegTsPacket(b, MpegType.PSI, PacketPosition.SINGLE, isKey = false)
       }
       queue.trySend(psiPackets)
@@ -197,9 +199,10 @@ class SrtSender(
   }
 
   private fun checkSendInfo(isKey: Boolean = false) {
+    val pmt = psiManager.getPmt() ?: return
     when (psiManager.shouldSend(isKey)) {
       TableToSend.PAT_PMT -> {
-        val psiPackets = mpegTsPacketizer.write(listOf(psiManager.getPat(), psiManager.getPmt()), increasePsiContinuity = true).map { b ->
+        val psiPackets = mpegTsPacketizer.write(listOf(psiManager.getPat(), pmt), increasePsiContinuity = true).map { b ->
           MpegTsPacket(b, MpegType.PSI, PacketPosition.SINGLE, isKey = false)
         }
         queue.trySend(psiPackets)
@@ -212,7 +215,7 @@ class SrtSender(
       }
       TableToSend.NONE -> {}
       TableToSend.ALL -> {
-        val psiPackets = mpegTsPacketizer.write(listOf(psiManager.getPmt(), psiManager.getSdt(), psiManager.getPat()), increasePsiContinuity = true).map { b ->
+        val psiPackets = mpegTsPacketizer.write(listOf(pmt, psiManager.getSdt(), psiManager.getPat()), increasePsiContinuity = true).map { b ->
           MpegTsPacket(b, MpegType.PSI, PacketPosition.SINGLE, isKey = false)
         }
         queue.trySend(psiPackets)

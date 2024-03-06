@@ -16,7 +16,6 @@
 
 package com.pedro.srt.mpeg2ts.psi
 
-import com.pedro.srt.mpeg2ts.Codec
 import com.pedro.srt.mpeg2ts.service.Mpeg2TsService
 import kotlin.random.Random
 
@@ -83,7 +82,7 @@ class PsiManager(
 
   fun getSdt(): Sdt = sdt
   fun getPat(): Pat = pat
-  fun getPmt(): Pmt = service.pmt!!
+  fun getPmt(): Pmt? = service.pmt
 
   fun reset() {
     sdtCount = 0

@@ -17,7 +17,7 @@
 package com.pedro.udp.utils
 
 import com.pedro.srt.mpeg2ts.MpegTsPacket
-import com.pedro.srt.utils.Constants
+import com.pedro.srt.mpeg2ts.MpegTsPacketizer
 import java.net.DatagramPacket
 import java.net.DatagramSocket
 import java.net.InetAddress
@@ -29,14 +29,14 @@ import java.net.MulticastSocket
 class UdpSocket(private val host: String, private val type: UdpType, private val port: Int) {
 
   private var socket: DatagramSocket? = null
-  private var packetSize = Constants.MTU
+  private var packetSize = MpegTsPacketizer.packetSize
   private val timeout = 5000
 
   fun connect() {
     val address = InetAddress.getByName(host)
     socket = when (type) {
       UdpType.UNICAST -> DatagramSocket()
-      UdpType.MULTICAST -> MulticastSocket().apply { timeToLive = 13 }
+      UdpType.MULTICAST -> MulticastSocket()
       UdpType.BROADCAST -> DatagramSocket().apply { broadcast = true }
     }
     socket?.connect(address, port)
@@ -68,5 +68,12 @@ class UdpSocket(private val host: String, private val type: UdpType, private val
     val udpPacket = DatagramPacket(buffer, buffer.size)
     socket?.send(udpPacket)
     return buffer.size
+  }
+
+  fun readBuffer(): ByteArray {
+    val buffer = ByteArray(packetSize)
+    val udpPacket = DatagramPacket(buffer, buffer.size)
+    socket?.receive(udpPacket)
+    return udpPacket.data.sliceArray(0 until udpPacket.length)
   }
 }
