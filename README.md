@@ -118,6 +118,13 @@ dependencies {
 - [X] Encrypt (AES128, AES192 and AES256)
 - [ ] SRT auth.
 
+### UDP (beta):
+
+- [X] Get upload bandwidth used.
+- [X] H264, H265, AAC and OPUS support.
+- [X] Unicast, Multicast and Broadcast support.
+- [X] MPEG-TS support.
+
 https://haivision.github.io/srt-rfc/draft-sharabayko-srt.html
 
 

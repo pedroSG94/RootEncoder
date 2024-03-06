@@ -16,4 +16,4 @@ dependencyResolutionManagement {
 }
 
 rootProject.name = "RootEncoder"
-include(":app", ":rtmp", ":encoder", ":rtsp", ":library", ":srt", ":common")
+include(":app", ":rtmp", ":encoder", ":rtsp", ":library", ":srt", ":udp", ":common")

@@ -24,9 +24,11 @@ import com.pedro.library.util.streamclient.GenericStreamClient
 import com.pedro.library.util.streamclient.RtmpStreamClient
 import com.pedro.library.util.streamclient.RtspStreamClient
 import com.pedro.library.util.streamclient.SrtStreamClient
+import com.pedro.library.util.streamclient.UdpStreamClient
 import com.pedro.rtmp.rtmp.RtmpClient
 import com.pedro.rtsp.rtsp.RtspClient
 import com.pedro.srt.srt.SrtClient
+import com.pedro.udp.UdpClient
 import java.nio.ByteBuffer
 
 class GenericOnlyAudio(private val connectChecker: ConnectChecker): OnlyAudioBase() {
@@ -34,10 +36,12 @@ class GenericOnlyAudio(private val connectChecker: ConnectChecker): OnlyAudioBas
   private val rtmpClient = RtmpClient(connectChecker)
   private val rtspClient = RtspClient(connectChecker)
   private val srtClient = SrtClient(connectChecker)
+  private val udpClient = UdpClient(connectChecker)
   private val streamClient = GenericStreamClient(
     RtmpStreamClient(rtmpClient, null),
     RtspStreamClient(rtspClient, null),
-    SrtStreamClient(srtClient, null)
+    SrtStreamClient(srtClient, null),
+    UdpStreamClient(udpClient, null)
   ).apply {
     setOnlyAudio(true)
   }
@@ -52,25 +56,30 @@ class GenericOnlyAudio(private val connectChecker: ConnectChecker): OnlyAudioBas
     rtmpClient.setAudioCodec(codec)
     rtspClient.setAudioCodec(codec)
     srtClient.setAudioCodec(codec)
+    udpClient.setAudioCodec(codec)
   }
 
   override fun prepareAudioRtp(isStereo: Boolean, sampleRate: Int) {
     rtmpClient.setAudioInfo(sampleRate, isStereo)
     rtspClient.setAudioInfo(sampleRate, isStereo)
     srtClient.setAudioInfo(sampleRate, isStereo)
+    udpClient.setAudioInfo(sampleRate, isStereo)
   }
 
   override fun startStreamRtp(url: String) {
     streamClient.connecting(url)
     if (url.startsWith("rtmp", ignoreCase = true)) {
       connectedType = ClientType.RTMP
-      startStreamRtpRtmp(url)
+      rtmpClient.connect(url)
     } else if (url.startsWith("rtsp", ignoreCase = true)) {
       connectedType = ClientType.RTSP
-      startStreamRtpRtsp(url)
+      rtspClient.connect(url)
     } else if (url.startsWith("srt", ignoreCase = true)) {
       connectedType = ClientType.SRT
-      startStreamRtpSrt(url)
+      srtClient.connect(url)
+    } else if (url.startsWith("udp", ignoreCase = true)) {
+      connectedType = ClientType.UDP
+      udpClient.connect(url)
     } else {
       onMainThreadHandler {
         connectChecker.onConnectionFailed("Unsupported protocol. Only support rtmp, rtsp and srt")
@@ -78,23 +87,12 @@ class GenericOnlyAudio(private val connectChecker: ConnectChecker): OnlyAudioBas
     }
   }
 
-  private fun startStreamRtpRtmp(url: String) {
-    rtmpClient.connect(url)
-  }
-
-  private fun startStreamRtpRtsp(url: String) {
-    rtspClient.connect(url)
-  }
-
-  private fun startStreamRtpSrt(url: String) {
-    srtClient.connect(url)
-  }
-
   override fun stopStreamRtp() {
     when (connectedType) {
       ClientType.RTMP -> rtmpClient.disconnect()
       ClientType.RTSP -> rtspClient.disconnect()
       ClientType.SRT -> srtClient.disconnect()
+      ClientType.UDP -> udpClient.disconnect()
       else -> {}
     }
     connectedType = ClientType.NONE
@@ -105,6 +103,7 @@ class GenericOnlyAudio(private val connectChecker: ConnectChecker): OnlyAudioBas
       ClientType.RTMP -> rtmpClient.sendAudio(aacBuffer, info)
       ClientType.RTSP -> rtspClient.sendAudio(aacBuffer, info)
       ClientType.SRT -> srtClient.sendAudio(aacBuffer, info)
+      ClientType.UDP -> udpClient.sendAudio(aacBuffer, info)
       else -> {}
     }
   }

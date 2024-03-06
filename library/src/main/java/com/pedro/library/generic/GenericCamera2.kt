@@ -31,10 +31,12 @@ import com.pedro.library.util.streamclient.RtmpStreamClient
 import com.pedro.library.util.streamclient.RtspStreamClient
 import com.pedro.library.util.streamclient.SrtStreamClient
 import com.pedro.library.util.streamclient.StreamClientListener
+import com.pedro.library.util.streamclient.UdpStreamClient
 import com.pedro.library.view.OpenGlView
 import com.pedro.rtmp.rtmp.RtmpClient
 import com.pedro.rtsp.rtsp.RtspClient
 import com.pedro.srt.srt.SrtClient
+import com.pedro.udp.UdpClient
 import java.nio.ByteBuffer
 import java.util.Locale
 
@@ -53,6 +55,7 @@ class GenericCamera2: Camera2Base {
   private lateinit var rtmpClient: RtmpClient
   private lateinit var rtspClient: RtspClient
   private lateinit var srtClient: SrtClient
+  private lateinit var udpClient: UdpClient
   private lateinit var streamClient: GenericStreamClient
   private lateinit var connectChecker: ConnectChecker
   private var connectedType = ClientType.NONE
@@ -80,10 +83,12 @@ class GenericCamera2: Camera2Base {
     rtmpClient = RtmpClient(connectChecker)
     rtspClient = RtspClient(connectChecker)
     srtClient = SrtClient(connectChecker)
+    udpClient = UdpClient(connectChecker)
     streamClient = GenericStreamClient(
       RtmpStreamClient(rtmpClient, streamClientListener),
       RtspStreamClient(rtspClient, streamClientListener),
-      SrtStreamClient(srtClient, streamClientListener)
+      SrtStreamClient(srtClient, streamClientListener),
+      UdpStreamClient(udpClient, streamClientListener),
     )
   }
 
@@ -98,6 +103,7 @@ class GenericCamera2: Camera2Base {
     rtmpClient.setVideoCodec(codec)
     rtspClient.setVideoCodec(codec)
     srtClient.setVideoCodec(codec)
+    udpClient.setVideoCodec(codec)
   }
 
   override fun setAudioCodecImp(codec: AudioCodec) {
@@ -107,25 +113,36 @@ class GenericCamera2: Camera2Base {
     rtmpClient.setAudioCodec(codec)
     rtspClient.setAudioCodec(codec)
     srtClient.setAudioCodec(codec)
+    udpClient.setAudioCodec(codec)
   }
 
   override fun prepareAudioRtp(isStereo: Boolean, sampleRate: Int) {
     rtmpClient.setAudioInfo(sampleRate, isStereo)
     rtspClient.setAudioInfo(sampleRate, isStereo)
     srtClient.setAudioInfo(sampleRate, isStereo)
+    udpClient.setAudioInfo(sampleRate, isStereo)
   }
 
   override fun startStreamRtp(url: String) {
     streamClient.connecting(url)
     if (url.lowercase(Locale.getDefault()).startsWith("rtmp")) {
       connectedType = ClientType.RTMP
-      startStreamRtpRtmp(url)
+      if (videoEncoder.rotation == 90 || videoEncoder.rotation == 270) {
+        rtmpClient.setVideoResolution(videoEncoder.height, videoEncoder.width)
+      } else {
+        rtmpClient.setVideoResolution(videoEncoder.width, videoEncoder.height)
+      }
+      rtmpClient.setFps(videoEncoder.fps)
+      rtmpClient.connect(url)
     } else if (url.lowercase(Locale.getDefault()).startsWith("rtsp")) {
       connectedType = ClientType.RTSP
-      startStreamRtpRtsp(url)
+      rtspClient.connect(url)
     } else if (url.lowercase(Locale.getDefault()).startsWith("srt")) {
       connectedType = ClientType.SRT
-      startStreamRtpSrt(url)
+      srtClient.connect(url)
+    } else if (url.lowercase(Locale.getDefault()).startsWith("udp")) {
+      connectedType = ClientType.UDP
+      udpClient.connect(url)
     } else {
       onMainThreadHandler {
         connectChecker.onConnectionFailed("Unsupported protocol. Only support rtmp, rtsp and srt")
@@ -133,29 +150,12 @@ class GenericCamera2: Camera2Base {
     }
   }
 
-  private fun startStreamRtpRtmp(url: String) {
-    if (videoEncoder.rotation == 90 || videoEncoder.rotation == 270) {
-      rtmpClient.setVideoResolution(videoEncoder.height, videoEncoder.width)
-    } else {
-      rtmpClient.setVideoResolution(videoEncoder.width, videoEncoder.height)
-    }
-    rtmpClient.setFps(videoEncoder.fps)
-    rtmpClient.connect(url)
-  }
-
-  private fun startStreamRtpRtsp(url: String) {
-    rtspClient.connect(url)
-  }
-
-  private fun startStreamRtpSrt(url: String) {
-    srtClient.connect(url)
-  }
-
   override fun stopStreamRtp() {
     when (connectedType) {
       ClientType.RTMP -> rtmpClient.disconnect()
       ClientType.RTSP -> rtspClient.disconnect()
       ClientType.SRT -> srtClient.disconnect()
+      ClientType.UDP -> udpClient.disconnect()
       else -> {}
     }
     connectedType = ClientType.NONE
@@ -166,6 +166,7 @@ class GenericCamera2: Camera2Base {
       ClientType.RTMP -> rtmpClient.sendAudio(aacBuffer, info)
       ClientType.RTSP -> rtspClient.sendAudio(aacBuffer, info)
       ClientType.SRT -> srtClient.sendAudio(aacBuffer, info)
+      ClientType.UDP -> udpClient.sendAudio(aacBuffer, info)
       else -> {}
     }
   }
@@ -174,6 +175,7 @@ class GenericCamera2: Camera2Base {
     rtmpClient.setVideoInfo(sps, pps, vps)
     rtspClient.setVideoInfo(sps, pps, vps)
     srtClient.setVideoInfo(sps, pps, vps)
+    udpClient.setVideoInfo(sps, pps, vps)
   }
 
   override fun getH264DataRtp(h264Buffer: ByteBuffer, info: MediaCodec.BufferInfo) {
@@ -181,6 +183,7 @@ class GenericCamera2: Camera2Base {
       ClientType.RTMP -> rtmpClient.sendVideo(h264Buffer, info)
       ClientType.RTSP -> rtspClient.sendVideo(h264Buffer, info)
       ClientType.SRT -> srtClient.sendVideo(h264Buffer, info)
+      ClientType.UDP -> udpClient.sendVideo(h264Buffer, info)
       else -> {}
     }
   }

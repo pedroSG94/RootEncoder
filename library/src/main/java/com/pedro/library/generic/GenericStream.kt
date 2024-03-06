@@ -34,9 +34,11 @@ import com.pedro.library.util.streamclient.RtmpStreamClient
 import com.pedro.library.util.streamclient.RtspStreamClient
 import com.pedro.library.util.streamclient.SrtStreamClient
 import com.pedro.library.util.streamclient.StreamClientListener
+import com.pedro.library.util.streamclient.UdpStreamClient
 import com.pedro.rtmp.rtmp.RtmpClient
 import com.pedro.rtsp.rtsp.RtspClient
 import com.pedro.srt.srt.SrtClient
+import com.pedro.udp.UdpClient
 import java.nio.ByteBuffer
 
 /**
@@ -61,10 +63,12 @@ class GenericStream(
   private val rtmpClient = RtmpClient(connectChecker)
   private val rtspClient = RtspClient(connectChecker)
   private val srtClient = SrtClient(connectChecker)
+  private val udpClient = UdpClient(connectChecker)
   private val streamClient = GenericStreamClient(
     RtmpStreamClient(rtmpClient, streamClientListener),
     RtspStreamClient(rtspClient, streamClientListener),
-    SrtStreamClient(srtClient, streamClientListener)
+    SrtStreamClient(srtClient, streamClientListener),
+    UdpStreamClient(udpClient, streamClientListener)
   )
   private var connectedType = ClientType.NONE
 
@@ -80,6 +84,7 @@ class GenericStream(
     rtmpClient.setVideoCodec(codec)
     rtspClient.setVideoCodec(codec)
     srtClient.setVideoCodec(codec)
+    udpClient.setVideoCodec(codec)
   }
 
   override fun setAudioCodecImp(codec: AudioCodec) {
@@ -89,12 +94,14 @@ class GenericStream(
     rtmpClient.setAudioCodec(codec)
     rtspClient.setAudioCodec(codec)
     srtClient.setAudioCodec(codec)
+    udpClient.setAudioCodec(codec)
   }
 
   override fun audioInfo(sampleRate: Int, isStereo: Boolean) {
     rtmpClient.setAudioInfo(sampleRate, isStereo)
     rtspClient.setAudioInfo(sampleRate, isStereo)
     srtClient.setAudioInfo(sampleRate, isStereo)
+    udpClient.setAudioInfo(sampleRate, isStereo)
   }
 
   override fun rtpStartStream(endPoint: String) {
@@ -108,6 +115,9 @@ class GenericStream(
     } else if (endPoint.startsWith("srt", ignoreCase = true)) {
       connectedType = ClientType.SRT
       startStreamRtpSrt(endPoint)
+    } else if (endPoint.startsWith("udp", ignoreCase = true)) {
+      connectedType = ClientType.UDP
+      startStreamRtpUdp(endPoint)
     } else {
       onMainThreadHandler {
         connectChecker.onConnectionFailed("Unsupported protocol. Only support rtmp, rtsp and srt")
@@ -130,11 +140,16 @@ class GenericStream(
     srtClient.connect(endPoint)
   }
 
+  private fun startStreamRtpUdp(endPoint: String) {
+    udpClient.connect(endPoint)
+  }
+
   override fun rtpStopStream() {
     when (connectedType) {
       ClientType.RTMP -> rtmpClient.disconnect()
       ClientType.RTSP -> rtspClient.disconnect()
       ClientType.SRT -> srtClient.disconnect()
+      ClientType.UDP -> udpClient.disconnect()
       else -> {}
     }
     connectedType = ClientType.NONE
@@ -145,6 +160,7 @@ class GenericStream(
       ClientType.RTMP -> rtmpClient.sendAudio(aacBuffer, info)
       ClientType.RTSP -> rtspClient.sendAudio(aacBuffer, info)
       ClientType.SRT -> srtClient.sendAudio(aacBuffer, info)
+      ClientType.UDP -> udpClient.sendAudio(aacBuffer, info)
       else -> {}
     }
   }
@@ -153,6 +169,7 @@ class GenericStream(
     rtmpClient.setVideoInfo(sps, pps, vps)
     rtspClient.setVideoInfo(sps, pps, vps)
     srtClient.setVideoInfo(sps, pps, vps)
+    udpClient.setVideoInfo(sps, pps, vps)
   }
 
   override fun getH264DataRtp(h264Buffer: ByteBuffer, info: MediaCodec.BufferInfo) {
@@ -160,6 +177,7 @@ class GenericStream(
       ClientType.RTMP -> rtmpClient.sendVideo(h264Buffer, info)
       ClientType.RTSP -> rtspClient.sendVideo(h264Buffer, info)
       ClientType.SRT -> srtClient.sendVideo(h264Buffer, info)
+      ClientType.UDP -> udpClient.sendVideo(h264Buffer, info)
       else -> {}
     }
   }
