@@ -34,10 +34,12 @@ import com.pedro.encoder.input.video.FpsLimiter
 import com.pedro.encoder.utils.gl.AspectRatioMode
 import com.pedro.encoder.utils.gl.GlUtil
 import com.pedro.library.util.Filter
+import com.pedro.library.util.SensorRotationManager
 import java.util.concurrent.BlockingQueue
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 import java.util.concurrent.LinkedBlockingQueue
+
 
 /**
  * Created by pedro on 14/3/22.
@@ -72,6 +74,10 @@ class GlStreamInterface(private val context: Context): OnFrameAvailableListener,
   private var executor: ExecutorService? = null
   private val fpsLimiter = FpsLimiter()
   private val forceRender = ForceRenderer()
+  var autoHandleOrientation = false
+  private val sensorRotationManager = SensorRotationManager(context, true) {
+    if (autoHandleOrientation) setCameraOrientation(it)
+  }
 
   override fun setEncoderSize(width: Int, height: Int) {
     encoderWidth = width
@@ -139,12 +145,14 @@ class GlStreamInterface(private val context: Context): OnFrameAvailableListener,
       running = true
       mainRender.getSurfaceTexture().setOnFrameAvailableListener(this)
       forceRender.start { onFrameAvailable(mainRender.getSurfaceTexture()) }
+      if (autoHandleOrientation) sensorRotationManager.start()
     }
   }
 
   override fun stop() {
     running = false
     forceRender.stop()
+    sensorRotationManager.stop()
     executor?.shutdownNow()
     executor = null
     surfaceManagerPhoto.release()

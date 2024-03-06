@@ -17,7 +17,6 @@
 package com.pedro.library.base
 
 import android.content.Context
-import android.content.res.Configuration
 import android.graphics.SurfaceTexture
 import android.media.MediaCodec
 import android.media.MediaFormat
@@ -34,7 +33,6 @@ import com.pedro.encoder.Frame
 import com.pedro.encoder.audio.AudioEncoder
 import com.pedro.encoder.audio.GetAacData
 import com.pedro.encoder.input.audio.GetMicrophoneData
-import com.pedro.encoder.input.video.CameraHelper
 import com.pedro.encoder.utils.CodecUtil
 import com.pedro.encoder.video.FormatVideoEncoder
 import com.pedro.encoder.video.GetVideoData
@@ -336,33 +334,11 @@ abstract class StreamBase(
 
   /**
    * Change stream orientation depend of activity orientation.
-   * This method affect ro preview and stream.
+   * This method affect to preview and stream.
    * Must be called after prepareVideo.
    */
   fun setOrientation(orientation: Int) {
     glInterface.setCameraOrientation(orientation)
-  }
-
-  fun setConfig(config: Configuration, context: Context) {
-    val orientation = CameraHelper.getCameraOrientation(context)
-    val isReversed = orientation == 180 || orientation == 270
-    when (config.orientation) {
-      Configuration.ORIENTATION_LANDSCAPE -> {
-        if (isReversed) {
-          setOrientation(90)
-        } else {
-          setOrientation(270)
-        }
-      }
-      Configuration.ORIENTATION_PORTRAIT -> {
-        if (isReversed) {
-          setOrientation(180)
-        } else {
-          setOrientation(0)
-        }
-      }
-      else -> {}
-    }
   }
 
   /**

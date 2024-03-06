@@ -23,27 +23,36 @@ import android.view.OrientationEventListener;
 public class SensorRotationManager {
 
   private final OrientationEventListener listener;
+  private int currentOrientation = -1;
 
   public interface RotationChangedListener {
     void onRotationChanged(int rotation);
   }
 
-  public SensorRotationManager(Context context, final RotationChangedListener rotationListener) {
+  public SensorRotationManager(Context context, boolean avoidDuplicated, final RotationChangedListener rotationListener) {
     this.listener = new OrientationEventListener(context, SensorManager.SENSOR_DELAY_NORMAL) {
       @Override
       public void onOrientationChanged(int sensorOrientation) {
         final int rotation = ((sensorOrientation + 45) / 90) % 4;
         final int rotationDegrees = rotation * 90;
+        if (avoidDuplicated) {
+          if (currentOrientation == rotationDegrees) return;
+          currentOrientation = rotationDegrees;
+        }
         rotationListener.onRotationChanged(rotationDegrees);
       }
     };
   }
 
   public void start() {
-    if (listener.canDetectOrientation()) listener.enable();
+    if (listener.canDetectOrientation()) {
+      currentOrientation = -1;
+      listener.enable();
+    }
   }
 
   public void stop() {
     listener.disable();
+    currentOrientation = -1;
   }
 }
