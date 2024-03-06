@@ -41,7 +41,7 @@ class UdpClient(private val connectChecker: ConnectChecker) {
 
   private val TAG = "UdpClient"
 
-  private val urlPattern: Pattern = Pattern.compile("^udp://([^/:]+)(?::(\\d+))*")
+  private val urlPattern: Pattern = Pattern.compile("^udp://([^/:]+)(?::(\\d+))*/?")
 
   private val commandManager = CommandManager()
   private val udpSender = UdpSender(connectChecker, commandManager)
