@@ -36,10 +36,9 @@ class UdpSocket(private val host: String, private val type: UdpType, private val
     val address = InetAddress.getByName(host)
     socket = when (type) {
       UdpType.UNICAST -> DatagramSocket()
-      UdpType.MULTICAST -> MulticastSocket()
+      UdpType.MULTICAST -> MulticastSocket().apply { timeToLive = 13 }
       UdpType.BROADCAST -> DatagramSocket().apply { broadcast = true }
     }
-    socket = DatagramSocket()
     socket?.connect(address, port)
     socket?.soTimeout = timeout
   }
