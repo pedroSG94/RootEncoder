@@ -20,6 +20,8 @@ import android.graphics.Point;
 import android.graphics.SurfaceTexture;
 import android.view.Surface;
 
+import androidx.annotation.NonNull;
+
 import com.pedro.encoder.input.gl.render.filters.BaseFilterRender;
 
 public interface GlInterface {
@@ -70,7 +72,7 @@ public interface GlInterface {
    * @param filterPosition filter position
    * @param baseFilterRender filter to set
    */
-  void setFilter(int filterPosition, BaseFilterRender baseFilterRender);
+  void setFilter(int filterPosition, @NonNull BaseFilterRender baseFilterRender);
 
   /**
    * Appends the specified filter to the end.
@@ -78,7 +80,7 @@ public interface GlInterface {
    *
    * @param baseFilterRender filter to add
    */
-  void addFilter(BaseFilterRender baseFilterRender);
+  void addFilter(@NonNull BaseFilterRender baseFilterRender);
 
   /**
    * Inserts the specified filter at the specified position.
@@ -87,7 +89,7 @@ public interface GlInterface {
    * @param filterPosition filter position
    * @param baseFilterRender filter to set
    */
-  void addFilter(int filterPosition, BaseFilterRender baseFilterRender);
+  void addFilter(int filterPosition, @NonNull BaseFilterRender baseFilterRender);
 
   /**
    * Remove all filters
@@ -106,7 +108,7 @@ public interface GlInterface {
    *
    * @param baseFilterRender filter to remove
    */
-  void removeFilter(BaseFilterRender baseFilterRender);
+  void removeFilter(@NonNull BaseFilterRender baseFilterRender);
   /**
    * @return number of filters
    */
@@ -118,7 +120,7 @@ public interface GlInterface {
    *
    * @param baseFilterRender filter to set.
    */
-  void setFilter(BaseFilterRender baseFilterRender);
+  void setFilter(@NonNull BaseFilterRender baseFilterRender);
 
   void setRotation(int rotation);
 
@@ -157,7 +159,6 @@ public interface GlInterface {
 
   /**
    * INTERNAL METHOD.
-   *
    * Start Opengl rendering.
    *
    */
@@ -165,7 +166,6 @@ public interface GlInterface {
 
   /**
    * INTERNAL METHOD.
-   *
    * Stop Opengl rendering.
    */
   void stop();

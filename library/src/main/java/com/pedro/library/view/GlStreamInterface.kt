@@ -28,6 +28,7 @@ import com.pedro.encoder.input.gl.FilterAction
 import com.pedro.encoder.input.gl.SurfaceManager
 import com.pedro.encoder.input.gl.render.MainRender
 import com.pedro.encoder.input.gl.render.filters.BaseFilterRender
+import com.pedro.encoder.input.gl.render.filters.NoFilterRender
 import com.pedro.encoder.input.video.CameraHelper
 import com.pedro.encoder.input.video.FpsLimiter
 import com.pedro.encoder.utils.gl.AspectRatioMode
@@ -245,27 +246,27 @@ class GlStreamInterface(private val context: Context): OnFrameAvailableListener,
     mainRender.setCameraRotation(orientation)
   }
 
-  override fun setFilter(filterPosition: Int, baseFilterRender: BaseFilterRender?) {
+  override fun setFilter(filterPosition: Int, baseFilterRender: BaseFilterRender) {
     filterQueue.add(Filter(FilterAction.SET_INDEX, filterPosition, baseFilterRender))
   }
 
-  override fun addFilter(baseFilterRender: BaseFilterRender?) {
+  override fun addFilter(baseFilterRender: BaseFilterRender) {
     filterQueue.add(Filter(FilterAction.ADD, 0, baseFilterRender))
   }
 
-  override fun addFilter(filterPosition: Int, baseFilterRender: BaseFilterRender?) {
+  override fun addFilter(filterPosition: Int, baseFilterRender: BaseFilterRender) {
     filterQueue.add(Filter(FilterAction.ADD_INDEX, filterPosition, baseFilterRender))
   }
 
   override fun clearFilters() {
-    filterQueue.add(Filter(FilterAction.CLEAR, 0, null))
+    filterQueue.add(Filter(FilterAction.CLEAR, 0, NoFilterRender()))
   }
 
   override fun removeFilter(filterPosition: Int) {
-    filterQueue.add(Filter(FilterAction.REMOVE_INDEX, filterPosition, null))
+    filterQueue.add(Filter(FilterAction.REMOVE_INDEX, filterPosition, NoFilterRender()))
   }
 
-  override fun removeFilter(baseFilterRender: BaseFilterRender?) {
+  override fun removeFilter(baseFilterRender: BaseFilterRender) {
     filterQueue.add(Filter(FilterAction.REMOVE, 0, baseFilterRender))
   }
 
@@ -297,7 +298,7 @@ class GlStreamInterface(private val context: Context): OnFrameAvailableListener,
     isPreviewVerticalFlip = flip
   }
 
-  override fun setFilter(baseFilterRender: BaseFilterRender?) {
+  override fun setFilter(baseFilterRender: BaseFilterRender) {
     filterQueue.add(Filter(FilterAction.SET, 0, baseFilterRender))
   }
 

@@ -34,6 +34,7 @@ import com.pedro.encoder.input.gl.FilterAction;
 import com.pedro.encoder.input.gl.SurfaceManager;
 import com.pedro.encoder.input.gl.render.MainRender;
 import com.pedro.encoder.input.gl.render.filters.BaseFilterRender;
+import com.pedro.encoder.input.gl.render.filters.NoFilterRender;
 import com.pedro.encoder.input.video.FpsLimiter;
 import com.pedro.encoder.utils.gl.AspectRatioMode;
 import com.pedro.encoder.utils.gl.GlUtil;
@@ -71,7 +72,7 @@ public class OpenGlView extends SurfaceView
   private AspectRatioMode aspectRatioMode = AspectRatioMode.Adjust;
   private ExecutorService executor = null;
   private final FpsLimiter fpsLimiter = new FpsLimiter();
-  private ForceRenderer forceRenderer = new ForceRenderer();
+  private final ForceRenderer forceRenderer = new ForceRenderer();
 
   public OpenGlView(Context context) {
     super(context);
@@ -103,32 +104,32 @@ public class OpenGlView extends SurfaceView
   }
 
   @Override
-  public void setFilter(int filterPosition, BaseFilterRender baseFilterRender) {
+  public void setFilter(int filterPosition, @NonNull BaseFilterRender baseFilterRender) {
     filterQueue.add(new Filter(FilterAction.SET_INDEX, filterPosition, baseFilterRender));
   }
 
   @Override
-  public void addFilter(BaseFilterRender baseFilterRender) {
+  public void addFilter(@NonNull BaseFilterRender baseFilterRender) {
     filterQueue.add(new Filter(FilterAction.ADD, 0, baseFilterRender));
   }
 
   @Override
-  public void addFilter(int filterPosition, BaseFilterRender baseFilterRender) {
+  public void addFilter(int filterPosition, @NonNull BaseFilterRender baseFilterRender) {
     filterQueue.add(new Filter(FilterAction.ADD_INDEX, filterPosition, baseFilterRender));
   }
 
   @Override
   public void clearFilters() {
-    filterQueue.add(new Filter(FilterAction.CLEAR, 0, null));
+    filterQueue.add(new Filter(FilterAction.CLEAR, 0, new NoFilterRender()));
   }
 
   @Override
   public void removeFilter(int filterPosition) {
-    filterQueue.add(new Filter(FilterAction.REMOVE_INDEX, filterPosition, null));
+    filterQueue.add(new Filter(FilterAction.REMOVE_INDEX, filterPosition, new NoFilterRender()));
   }
 
   @Override
-  public void removeFilter(BaseFilterRender baseFilterRender) {
+  public void removeFilter(@NonNull BaseFilterRender baseFilterRender) {
     filterQueue.add(new Filter(FilterAction.REMOVE, 0, baseFilterRender));
   }
 
@@ -138,7 +139,7 @@ public class OpenGlView extends SurfaceView
   }
 
   @Override
-  public void setFilter(BaseFilterRender baseFilterRender) {
+  public void setFilter(@NonNull BaseFilterRender baseFilterRender) {
     filterQueue.add(new Filter(FilterAction.SET, 0, baseFilterRender));
   }
 
@@ -239,7 +240,7 @@ public class OpenGlView extends SurfaceView
     if (!filterQueue.isEmpty() && mainRender.isReady()) {
       try {
         Filter filter = filterQueue.take();
-        mainRender.setFilterAction(filter.getFilterAction(), filter.getPosition(), filter.getBaseFilterRender());
+        mainRender.setFilterAction(filter.filterAction, filter.position, filter.baseFilterRender);
       } catch (InterruptedException e) {
         Thread.currentThread().interrupt();
       }

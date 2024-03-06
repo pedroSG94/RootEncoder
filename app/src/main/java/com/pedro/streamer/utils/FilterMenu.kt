@@ -88,7 +88,7 @@ class FilterMenu(private val context: Context) {
     spriteGestureController.stopListener()
     when (item.itemId) {
       R.id.no_filter -> {
-        glInterface.setFilter(NoFilterRender())
+        glInterface.clearFilters()
         return true
       }
       R.id.analog_tv -> {

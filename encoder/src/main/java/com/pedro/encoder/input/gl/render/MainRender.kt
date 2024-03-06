@@ -140,7 +140,7 @@ class MainRender {
     screenRender.setTexId(texId)
   }
 
-  fun setFilterAction(filterAction: FilterAction?, position: Int, baseFilterRender: BaseFilterRender) {
+  fun setFilterAction(filterAction: FilterAction, position: Int, baseFilterRender: BaseFilterRender) {
     when (filterAction) {
       FilterAction.SET -> if (filterRenders.size > 0) {
         setFilter(position, baseFilterRender)
@@ -153,7 +153,6 @@ class MainRender {
       FilterAction.CLEAR -> clearFilters()
       FilterAction.REMOVE -> removeFilter(baseFilterRender)
       FilterAction.REMOVE_INDEX -> removeFilter(position)
-      else -> {}
     }
   }
 
