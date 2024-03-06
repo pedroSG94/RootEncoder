@@ -144,7 +144,9 @@ class UdpClient(private val connectChecker: ConnectChecker) {
         val host = srtMatcher.group(1) ?: ""
         val port: Int? = srtMatcher.group(2)?.toInt()
         if (port == null) {
-          connectChecker.onConnectionFailed("Endpoint malformed, port is required")
+          onMainThread {
+            connectChecker.onConnectionFailed("Endpoint malformed, port is required")
+          }
           return@launch
         }
         commandManager.host = host

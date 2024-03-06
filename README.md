@@ -123,7 +123,7 @@ dependencies {
 - [X] Get upload bandwidth used.
 - [X] H264, H265, AAC and OPUS support.
 - [X] Unicast, Multicast and Broadcast support.
-- [X] MPEG-TS support.
+- [X] MPEG2-TS support.
 
 https://haivision.github.io/srt-rfc/draft-sharabayko-srt.html
 
