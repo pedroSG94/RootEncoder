@@ -24,9 +24,10 @@ enum class UdpType {
 
   companion object {
     fun getTypeByHost(host: String): UdpType {
-      return when {
-        host.startsWith("224.") -> MULTICAST
-        host.startsWith("255.") -> BROADCAST
+      val firstNumber = host.split(".")[0].toIntOrNull()
+      return when (firstNumber) {
+        in 224..239 -> MULTICAST
+        255 -> BROADCAST
         else -> UNICAST
       }
     }
