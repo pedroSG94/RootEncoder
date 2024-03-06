@@ -93,6 +93,10 @@
                 android:title="@string/contrast"
                 />
             <item
+                android:id="@+id/crop"
+                android:title="@string/crop"
+                />
+            <item
                 android:id="@+id/duotone"
                 android:title="@string/duotone"
                 />

@@ -77,7 +77,7 @@ public class ScreenRender {
   public void initGl(Context context) {
     GlUtil.checkGlError("initGl start");
     String vertexShader = GlUtil.getStringFromRaw(context, R.raw.simple_vertex);
-    String fragmentShader = GlUtil.getStringFromRaw(context, R.raw.screen_fragment);
+    String fragmentShader = GlUtil.getStringFromRaw(context, R.raw.simple_fragment);
 
     program = GlUtil.createProgram(vertexShader, fragmentShader);
     aPositionHandle = GLES20.glGetAttribLocation(program, "aPosition");

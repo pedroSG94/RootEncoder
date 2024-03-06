@@ -39,6 +39,7 @@ import com.pedro.encoder.input.gl.render.filters.ChromaFilterRender
 import com.pedro.encoder.input.gl.render.filters.CircleFilterRender
 import com.pedro.encoder.input.gl.render.filters.ColorFilterRender
 import com.pedro.encoder.input.gl.render.filters.ContrastFilterRender
+import com.pedro.encoder.input.gl.render.filters.CropFilterRender
 import com.pedro.encoder.input.gl.render.filters.DuotoneFilterRender
 import com.pedro.encoder.input.gl.render.filters.EarlyBirdFilterRender
 import com.pedro.encoder.input.gl.render.filters.EdgeDetectionFilterRender
@@ -52,7 +53,6 @@ import com.pedro.encoder.input.gl.render.filters.Image70sFilterRender
 import com.pedro.encoder.input.gl.render.filters.LamoishFilterRender
 import com.pedro.encoder.input.gl.render.filters.MoneyFilterRender
 import com.pedro.encoder.input.gl.render.filters.NegativeFilterRender
-import com.pedro.encoder.input.gl.render.filters.NoFilterRender
 import com.pedro.encoder.input.gl.render.filters.PixelatedFilterRender
 import com.pedro.encoder.input.gl.render.filters.PolygonizationFilterRender
 import com.pedro.encoder.input.gl.render.filters.RGBSaturationFilterRender
@@ -151,6 +151,13 @@ class FilterMenu(private val context: Context) {
       }
       R.id.contrast -> {
         glInterface.setFilter(ContrastFilterRender())
+        return true
+      }
+      R.id.crop -> {
+        glInterface.setFilter(CropFilterRender().apply {
+          //crop center of the image with 40% of width and 40% of height
+          setCropArea(30f, 30f, 40f, 40f)
+        })
         return true
       }
       R.id.duotone -> {
