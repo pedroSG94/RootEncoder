@@ -116,10 +116,6 @@ public class PixelatedFilterRender extends BaseFilterRender {
   public void setPixelated(float pixelated) {
     if (pixelated > 1.0f) {
       this.pixelated = 1.0f;
-    } else if (pixelated < 0.0f) {
-      this.pixelated = 0.0f;
-    } else {
-      this.pixelated = pixelated;
-    }
+    } else this.pixelated = Math.max(pixelated, 0.0f);
   }
 }

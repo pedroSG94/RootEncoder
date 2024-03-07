@@ -157,6 +157,10 @@
                 android:title="@string/negative"
                 />
             <item
+                android:id="@+id/noise"
+                android:title="@string/noise"
+                />
+            <item
                 android:id="@+id/pixelated"
                 android:title="@string/pixelated"
                 />

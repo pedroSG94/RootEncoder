@@ -11,6 +11,7 @@
   <!--filters-->
   <string name="grey_scale">Grey scale</string>
   <string name="negative">Negative</string>
+  <string name="noise">Noise</string>
   <string name="sepia">Sepia</string>
   <string name="no_filter">No filter</string>
   <string name="analog_tv">Analog TV</string>

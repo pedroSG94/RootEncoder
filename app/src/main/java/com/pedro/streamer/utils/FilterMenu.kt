@@ -53,6 +53,7 @@ import com.pedro.encoder.input.gl.render.filters.Image70sFilterRender
 import com.pedro.encoder.input.gl.render.filters.LamoishFilterRender
 import com.pedro.encoder.input.gl.render.filters.MoneyFilterRender
 import com.pedro.encoder.input.gl.render.filters.NegativeFilterRender
+import com.pedro.encoder.input.gl.render.filters.NoiseFilterRender
 import com.pedro.encoder.input.gl.render.filters.PixelatedFilterRender
 import com.pedro.encoder.input.gl.render.filters.PolygonizationFilterRender
 import com.pedro.encoder.input.gl.render.filters.RGBSaturationFilterRender
@@ -233,6 +234,10 @@ class FilterMenu(private val context: Context) {
       }
       R.id.negative -> {
         glInterface.setFilter(NegativeFilterRender())
+        return true
+      }
+      R.id.noise -> {
+        glInterface.setFilter(NoiseFilterRender())
         return true
       }
       R.id.pixelated -> {

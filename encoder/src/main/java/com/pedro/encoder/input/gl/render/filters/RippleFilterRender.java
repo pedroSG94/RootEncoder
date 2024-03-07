@@ -113,4 +113,12 @@ public class RippleFilterRender extends BaseFilterRender {
   public void release() {
     GLES20.glDeleteProgram(program);
   }
+
+  public void setSpeed(float speed) {
+    this.speed = speed;
+  }
+
+  public float getSpeed() {
+    return speed;
+  }
 }

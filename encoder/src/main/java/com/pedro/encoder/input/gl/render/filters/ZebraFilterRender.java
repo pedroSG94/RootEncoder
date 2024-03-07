@@ -97,7 +97,7 @@ public class ZebraFilterRender extends BaseFilterRender {
 
     GLES20.glUniformMatrix4fv(uMVPMatrixHandle, 1, false, MVPMatrix, 0);
     GLES20.glUniformMatrix4fv(uSTMatrixHandle, 1, false, STMatrix, 0);
-    float time = ((float) (System.currentTimeMillis() - START_TIME)) / 1000.0f;
+    float time = ((float) (System.currentTimeMillis() - START_TIME)) / 1000f;
     GLES20.glUniform1f(uTimeHandle, time);
     GLES20.glUniform1f(uLevelsHandle, levels);
     GLES20.glUniform1i(uSamplerHandle, 4);
