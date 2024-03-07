@@ -25,6 +25,7 @@
   <string name="circle">Circle</string>
   <string name="color">Color</string>
   <string name="contrast">Contrast</string>
+  <string name="crop">Crop</string>
   <string name="duotone">Duotone</string>
   <string name="earlybird">EarlyBird</string>
   <string name="edge_detection">Edge detection</string>
