@@ -32,6 +32,8 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import com.pedro.common.ConnectChecker
+import com.pedro.common.ConnectCheckerEvent
+import com.pedro.common.StreamEvent
 import com.pedro.encoder.input.decoder.AudioDecoderInterface
 import com.pedro.encoder.input.decoder.VideoDecoderInterface
 import com.pedro.library.base.recording.RecordController
@@ -68,7 +70,7 @@ import kotlin.math.max
  * [com.pedro.library.srt.SrtFromFile]
  */
 @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
-class FromFileActivity : AppCompatActivity(), ConnectChecker,
+class FromFileActivity : AppCompatActivity(), ConnectCheckerEvent,
   VideoDecoderInterface, AudioDecoderInterface, OnSeekBarChangeListener {
 
   private lateinit var genericFromFile: GenericFromFile
@@ -178,34 +180,23 @@ class FromFileActivity : AppCompatActivity(), ConnectChecker,
     activityResult.unregister()
   }
 
-  override fun onConnectionStarted(url: String) {}
-
-  override fun onConnectionSuccess() {
-    toast("Connected")
-  }
-
-  override fun onConnectionFailed(reason: String) {
-    toast("Failed: $reason")
-    genericFromFile.stopStream()
-    bStream.setImageResource(R.drawable.stream_icon)
-    if (!genericFromFile.isRecording) ScreenOrientation.unlockScreen(this)
-  }
-
-  override fun onNewBitrate(bitrate: Long) {}
-
-  override fun onDisconnect() {
-    toast("Disconnected")
-  }
-
-  override fun onAuthError() {
-    toast("Auth error")
-    genericFromFile.stopStream()
-    bStream.setImageResource(R.drawable.stream_icon)
-    if (!genericFromFile.isRecording) ScreenOrientation.unlockScreen(this)
-  }
-
-  override fun onAuthSuccess() {
-    toast("Auth success")
+  override fun onStreamEvent(event: StreamEvent, message: String) {
+    when (event) {
+      StreamEvent.STARTED, StreamEvent.NEW_BITRATE -> return
+      StreamEvent.FAILED -> {
+        genericFromFile.stopStream()
+        bStream.setImageResource(R.drawable.stream_icon)
+        if (!genericFromFile.isRecording) ScreenOrientation.unlockScreen(this)
+        toast("${event.name}: $message")
+      }
+      StreamEvent.AUTH_ERROR ->  {
+        genericFromFile.stopStream()
+        bStream.setImageResource(R.drawable.stream_icon)
+        if (!genericFromFile.isRecording) ScreenOrientation.unlockScreen(this)
+        toast(event.name)
+      }
+      else -> toast(event.name)
+    }
   }
 
   @Throws(IOException::class)

@@ -25,6 +25,8 @@ import android.widget.ImageView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.pedro.common.ConnectChecker
+import com.pedro.common.ConnectCheckerEvent
+import com.pedro.common.StreamEvent
 import com.pedro.encoder.input.video.CameraHelper
 import com.pedro.encoder.input.video.CameraOpenException
 import com.pedro.library.base.recording.RecordController
@@ -53,7 +55,7 @@ import java.util.Locale
  * Support SRT with all SRT features
  * [com.pedro.library.srt.SrtCamera1]
  */
-class OldApiActivity : AppCompatActivity(), ConnectChecker, TextureView.SurfaceTextureListener {
+class OldApiActivity : AppCompatActivity(), ConnectCheckerEvent, TextureView.SurfaceTextureListener {
 
   private lateinit var genericCamera1: GenericCamera1
   private lateinit var bStream: ImageView
@@ -134,34 +136,23 @@ class OldApiActivity : AppCompatActivity(), ConnectChecker, TextureView.SurfaceT
     autoFitTextureView.setAspectRatio(w, h)
   }
 
-  override fun onConnectionStarted(url: String) {}
-
-  override fun onConnectionSuccess() {
-    toast("Connected")
-  }
-
-  override fun onConnectionFailed(reason: String) {
-    toast("Failed: $reason")
-    genericCamera1.stopStream()
-    if (!genericCamera1.isRecording) ScreenOrientation.unlockScreen(this)
-    bStream.setImageResource(R.drawable.stream_icon)
-  }
-
-  override fun onNewBitrate(bitrate: Long) {}
-
-  override fun onDisconnect() {
-    toast("Disconnected")
-  }
-
-  override fun onAuthError() {
-    toast("Auth error")
-    genericCamera1.stopStream()
-    bStream.setImageResource(R.drawable.stream_icon)
-    if (!genericCamera1.isRecording) ScreenOrientation.unlockScreen(this)
-  }
-
-  override fun onAuthSuccess() {
-    toast("Auth success")
+  override fun onStreamEvent(event: StreamEvent, message: String) {
+    when (event) {
+      StreamEvent.STARTED, StreamEvent.NEW_BITRATE -> return
+      StreamEvent.FAILED -> {
+        genericCamera1.stopStream()
+        if (!genericCamera1.isRecording) ScreenOrientation.unlockScreen(this)
+        bStream.setImageResource(R.drawable.stream_icon)
+        toast("${event.name}: $message")
+      }
+      StreamEvent.AUTH_ERROR ->  {
+        genericCamera1.stopStream()
+        bStream.setImageResource(R.drawable.stream_icon)
+        if (!genericCamera1.isRecording) ScreenOrientation.unlockScreen(this)
+        toast(event.name)
+      }
+      else -> toast(event.name)
+    }
   }
 
   override fun onSurfaceTextureAvailable(surface: SurfaceTexture, width: Int, height: Int) {

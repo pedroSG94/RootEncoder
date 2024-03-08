@@ -28,7 +28,8 @@ import android.widget.EditText
 import android.widget.ImageView
 import androidx.annotation.RequiresApi
 import androidx.fragment.app.Fragment
-import com.pedro.common.ConnectChecker
+import com.pedro.common.ConnectCheckerEvent
+import com.pedro.common.StreamEvent
 import com.pedro.library.base.recording.RecordController
 import com.pedro.library.generic.GenericStream
 import com.pedro.library.util.sources.video.Camera1Source
@@ -65,7 +66,7 @@ import java.util.Locale
  * [com.pedro.library.srt.SrtStream]
  */
 @RequiresApi(Build.VERSION_CODES.LOLLIPOP)
-class CameraFragment: Fragment(), ConnectChecker {
+class CameraFragment: Fragment(), ConnectCheckerEvent {
 
   companion object {
     fun getInstance(): CameraFragment = CameraFragment()
@@ -185,37 +186,24 @@ class CameraFragment: Fragment(), ConnectChecker {
     genericStream.release()
   }
 
-  override fun onConnectionStarted(url: String) {
-  }
-
-  override fun onConnectionSuccess() {
-    toast("Connected")
-  }
-
-  override fun onConnectionFailed(reason: String) {
-    if (genericStream.getStreamClient().reTry(5000, reason, null)) {
-      toast("Retry")
-    } else {
-      genericStream.stopStream()
-      bStartStop.setImageResource(R.drawable.stream_icon)
-      toast("Failed: $reason")
+  override fun onStreamEvent(event: StreamEvent, message: String) {
+    when (event) {
+      StreamEvent.STARTED, StreamEvent.NEW_BITRATE -> return
+      StreamEvent.FAILED -> {
+        if (genericStream.getStreamClient().reTry(5000, message, null)) {
+          toast("Retry")
+        } else {
+          genericStream.stopStream()
+          bStartStop.setImageResource(R.drawable.stream_icon)
+          toast("${event.name}: $message")
+        }
+      }
+      StreamEvent.AUTH_ERROR ->  {
+        genericStream.stopStream()
+        bStartStop.setImageResource(R.drawable.stream_icon)
+        toast(event.name)
+      }
+      else -> toast(event.name)
     }
-  }
-
-  override fun onNewBitrate(bitrate: Long) {
-  }
-
-  override fun onDisconnect() {
-    toast("Disconnected")
-  }
-
-  override fun onAuthError() {
-    genericStream.stopStream()
-    bStartStop.setImageResource(R.drawable.stream_icon)
-    toast("Auth error")
-  }
-
-  override fun onAuthSuccess() {
-    toast("Auth success")
   }
 }

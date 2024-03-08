@@ -25,6 +25,8 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import com.pedro.common.ConnectChecker
+import com.pedro.common.ConnectCheckerEvent
+import com.pedro.common.StreamEvent
 import com.pedro.streamer.R
 import com.pedro.streamer.utils.toast
 
@@ -44,7 +46,7 @@ import com.pedro.streamer.utils.toast
  * [com.pedro.library.srt.SrtDisplay]
  */
 @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
-class ScreenActivity : AppCompatActivity(), ConnectChecker {
+class ScreenActivity : AppCompatActivity(), ConnectCheckerEvent {
 
   private lateinit var button: ImageView
   private lateinit var etUrl: EditText
@@ -114,28 +116,18 @@ class ScreenActivity : AppCompatActivity(), ConnectChecker {
     button.setImageResource(R.drawable.stream_icon)
   }
 
-  override fun onConnectionStarted(url: String) {}
-
-  override fun onConnectionSuccess() {
-    toast("Connected")
-  }
-
-  override fun onConnectionFailed(reason: String) {
-    stopStream()
-    toast("Failed: $reason")
-  }
-
-  override fun onNewBitrate(bitrate: Long) {}
-  override fun onDisconnect() {
-    toast("Disconnected")
-  }
-
-  override fun onAuthError() {
-    stopStream()
-    toast("Auth error")
-  }
-
-  override fun onAuthSuccess() {
-    toast("Auth success")
+  override fun onStreamEvent(event: StreamEvent, message: String) {
+    when (event) {
+      StreamEvent.STARTED, StreamEvent.NEW_BITRATE -> return
+      StreamEvent.FAILED -> {
+        stopStream()
+        toast("${event.name}: $message")
+      }
+      StreamEvent.AUTH_ERROR ->  {
+        stopStream()
+        toast(event.name)
+      }
+      else -> toast(event.name)
+    }
   }
 }
