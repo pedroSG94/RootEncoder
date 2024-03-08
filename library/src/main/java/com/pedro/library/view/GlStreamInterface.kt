@@ -158,6 +158,7 @@ class GlStreamInterface(private val context: Context): OnFrameAvailableListener,
     surfaceManagerPhoto.release()
     surfaceManagerEncoder.release()
     surfaceManager.release()
+    mainRender.release()
   }
 
   private fun draw() {

@@ -326,6 +326,7 @@ public class OpenGlView extends SurfaceView
     surfaceManagerPhoto.release();
     surfaceManagerEncoder.release();
     surfaceManager.release();
+    mainRender.release();
   }
 
   @Override
