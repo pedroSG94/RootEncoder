@@ -19,9 +19,6 @@ RootEncoder (rtmp-rtsp-stream-client-java) is a stream encoder to push video/aud
 
 Note: The library was renamed from rtmp-rtsp-stream-client-java to RootEncoder after add SRT protocol because the name has no sense anymore
 
-If you need a player see this project:
-
-https://github.com/pedroSG94/vlc-example-streamplayer
 
 ## iOS version (under develop):
 
@@ -118,6 +115,8 @@ dependencies {
 - [X] Encrypt (AES128, AES192 and AES256)
 - [ ] SRT auth.
 
+https://haivision.github.io/srt-rfc/draft-sharabayko-srt.html
+
 ### UDP (beta):
 
 - [X] Get upload bandwidth used.
@@ -125,16 +124,10 @@ dependencies {
 - [X] Unicast, Multicast and Broadcast support.
 - [X] MPEG2-TS support.
 
-https://haivision.github.io/srt-rfc/draft-sharabayko-srt.html
-
 
 ## Other related projects:
 
 https://github.com/pedroSG94/RTSP-Server
-
-https://github.com/pedroSG94/AndroidReStreamer
-
-https://github.com/pedroSG94/Stream-USB-test
 
 ### 3rd party projects:
 
