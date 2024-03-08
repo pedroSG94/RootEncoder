@@ -27,6 +27,7 @@ class GenericStreamClient(
   private val rtmpClient: RtmpStreamClient,
   private val rtspClient: RtspStreamClient,
   private val srtClient: SrtStreamClient,
+  private val udpClient: UdpStreamClient,
 ): StreamBaseClient() {
 
   private var connectedStreamClient : StreamBaseClient? = null
@@ -90,6 +91,7 @@ class GenericStreamClient(
     rtmpClient.setReTries(reTries)
     rtspClient.setReTries(reTries)
     srtClient.setReTries(reTries)
+    udpClient.setReTries(reTries)
   }
 
   override fun reTry(delay: Long, reason: String, backupUrl: String?): Boolean {
@@ -102,6 +104,7 @@ class GenericStreamClient(
     rtmpClient.setLogs(enabled)
     rtspClient.setLogs(enabled)
     srtClient.setLogs(enabled)
+    udpClient.setLogs(enabled)
   }
 
   override fun setCheckServerAlive(enabled: Boolean) {
@@ -114,12 +117,14 @@ class GenericStreamClient(
     rtmpClient.resizeCache(newSize)
     rtspClient.resizeCache(newSize)
     srtClient.resizeCache(newSize)
+    udpClient.resizeCache(newSize)
   }
 
   override fun clearCache() {
     rtmpClient.clearCache()
     rtspClient.clearCache()
     srtClient.clearCache()
+    udpClient.clearCache()
   }
 
   override fun getCacheSize(): Int = connectedStreamClient?.getCacheSize() ?: 0
@@ -138,34 +143,42 @@ class GenericStreamClient(
     rtmpClient.resetSentAudioFrames()
     rtspClient.resetSentAudioFrames()
     srtClient.resetSentAudioFrames()
+    udpClient.resetSentAudioFrames()
   }
 
   override fun resetSentVideoFrames() {
     rtmpClient.resetSentVideoFrames()
     rtspClient.resetSentVideoFrames()
     srtClient.resetSentVideoFrames()
+    udpClient.resetSentVideoFrames()
   }
 
   override fun resetDroppedAudioFrames() {
     rtmpClient.resetDroppedAudioFrames()
+    rtspClient.resetDroppedAudioFrames()
+    srtClient.resetDroppedAudioFrames()
+    udpClient.resetDroppedAudioFrames()
   }
 
   override fun resetDroppedVideoFrames() {
     rtmpClient.resetDroppedVideoFrames()
     rtspClient.resetDroppedVideoFrames()
     srtClient.resetDroppedVideoFrames()
+    udpClient.resetDroppedVideoFrames()
   }
 
   override fun setOnlyAudio(onlyAudio: Boolean) {
     rtmpClient.setOnlyAudio(onlyAudio)
     rtspClient.setOnlyAudio(onlyAudio)
     srtClient.setOnlyAudio(onlyAudio)
+    udpClient.setOnlyAudio(onlyAudio)
   }
 
   override fun setOnlyVideo(onlyVideo: Boolean) {
     rtmpClient.setOnlyVideo(onlyVideo)
     rtspClient.setOnlyVideo(onlyVideo)
     srtClient.setOnlyVideo(onlyVideo)
+    udpClient.setOnlyVideo(onlyVideo)
   }
 
   fun connecting(url: String) {
@@ -176,6 +189,8 @@ class GenericStreamClient(
         rtspClient
       } else if (url.startsWith("srt", ignoreCase = true)){
         srtClient
+      } else if (url.startsWith("udp", ignoreCase = true)){
+        udpClient
       } else null
   }
 }

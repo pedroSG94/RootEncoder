@@ -14,8 +14,22 @@
  * limitations under the License.
  */
 
-package com.pedro.library.generic
+package com.pedro.udp.utils
 
-internal enum class ClientType {
-  NONE, RTMP, RTSP, SRT, UDP
+/**
+ * Created by pedro on 6/3/24.
+ */
+enum class UdpType {
+  UNICAST, MULTICAST, BROADCAST;
+
+  companion object {
+    fun getTypeByHost(host: String): UdpType {
+      val firstNumber = host.split(".")[0].toIntOrNull()
+      return when (firstNumber) {
+        in 224..239 -> MULTICAST
+        255 -> BROADCAST
+        else -> UNICAST
+      }
+    }
+  }
 }

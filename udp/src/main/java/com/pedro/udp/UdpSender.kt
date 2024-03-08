@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.pedro.srt.srt
+package com.pedro.udp
 
 import android.media.MediaCodec
 import android.util.Log
@@ -23,7 +23,6 @@ import com.pedro.common.BitrateManager
 import com.pedro.common.ConnectChecker
 import com.pedro.common.onMainThread
 import com.pedro.common.trySend
-import com.pedro.srt.mpeg2ts.Codec
 import com.pedro.srt.mpeg2ts.MpegTsPacket
 import com.pedro.srt.mpeg2ts.MpegTsPacketizer
 import com.pedro.srt.mpeg2ts.MpegType
@@ -35,10 +34,10 @@ import com.pedro.srt.mpeg2ts.packets.OpusPacket
 import com.pedro.srt.mpeg2ts.psi.PsiManager
 import com.pedro.srt.mpeg2ts.psi.TableToSend
 import com.pedro.srt.mpeg2ts.service.Mpeg2TsService
-import com.pedro.srt.srt.packets.SrtPacket
 import com.pedro.srt.srt.packets.data.PacketPosition
-import com.pedro.srt.utils.SrtSocket
+import com.pedro.srt.utils.Constants
 import com.pedro.srt.utils.toCodec
+import com.pedro.udp.utils.UdpSocket
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -54,11 +53,11 @@ import java.util.concurrent.LinkedBlockingQueue
 import java.util.concurrent.TimeUnit
 
 /**
- * Created by pedro on 20/8/23.
+ * Created by pedro on 6/3/24.
  */
-class SrtSender(
+class UdpSender(
   private val connectChecker: ConnectChecker,
-  private val commandsManager: CommandsManager
+  private val commandManager: CommandManager
 ) {
 
   private val service = Mpeg2TsService()
@@ -67,7 +66,7 @@ class SrtSender(
     upgradePatVersion()
     upgradeSdtVersion()
   }
-  private val limitSize = commandsManager.MTU - SrtPacket.headerSize
+  private val limitSize = Constants.MTU
   private val mpegTsPacketizer = MpegTsPacketizer(psiManager)
   private var audioPacket: BasePacket = AacPacket(limitSize, psiManager)
   private val h26XPacket = H26XPacket(limitSize, psiManager)
@@ -82,7 +81,7 @@ class SrtSender(
   private var queue: BlockingQueue<List<MpegTsPacket>> = LinkedBlockingQueue(cacheSize)
   private var audioFramesSent: Long = 0
   private var videoFramesSent: Long = 0
-  var socket: SrtSocket? = null
+  var socket: UdpSocket? = null
   var droppedAudioFrames: Long = 0
     private set
   var droppedVideoFrames: Long = 0
@@ -98,19 +97,19 @@ class SrtSender(
   private fun setTrackConfig(videoEnabled: Boolean, audioEnabled: Boolean) {
     Pid.reset()
     service.clearTracks()
-    if (audioEnabled) service.addTrack(commandsManager.audioCodec.toCodec())
-    if (videoEnabled) service.addTrack(commandsManager.videoCodec.toCodec())
+    if (audioEnabled) service.addTrack(commandManager.audioCodec.toCodec())
+    if (videoEnabled) service.addTrack(commandManager.videoCodec.toCodec())
     service.generatePmt()
     psiManager.updateService(service)
   }
 
   fun setVideoInfo(sps: ByteBuffer, pps: ByteBuffer?, vps: ByteBuffer?) {
-    h26XPacket.setVideoCodec(commandsManager.videoCodec.toCodec())
+    h26XPacket.setVideoCodec(commandManager.videoCodec.toCodec())
     h26XPacket.sendVideoInfo(sps, pps, vps)
   }
 
   fun setAudioInfo(sampleRate: Int, isStereo: Boolean) {
-    when (commandsManager.audioCodec) {
+    when (commandManager.audioCodec) {
       AudioCodec.AAC -> {
         audioPacket = AacPacket(limitSize, psiManager)
         (audioPacket as? AacPacket)?.sendAudioInfo(sampleRate, isStereo)
@@ -119,7 +118,7 @@ class SrtSender(
         audioPacket = OpusPacket(limitSize, psiManager)
       }
       AudioCodec.G711 -> {
-        throw IllegalArgumentException("Unsupported codec: ${commandsManager.audioCodec.name}")
+        throw IllegalArgumentException("Unsupported codec: ${commandManager.audioCodec.name}")
       }
     }
   }
@@ -154,7 +153,7 @@ class SrtSender(
 
   fun start() {
     queue.clear()
-    setTrackConfig(!commandsManager.videoDisabled, !commandsManager.audioDisabled)
+    setTrackConfig(!commandManager.videoDisabled, !commandManager.audioDisabled)
     running = true
     job = scope.launch {
       //send config
@@ -180,7 +179,7 @@ class SrtSender(
           }
           mpegTsPackets.forEach { mpegTsPacket ->
             var size = 0
-            size += commandsManager.writeData(mpegTsPacket, socket)
+            size += commandManager.writeData(mpegTsPacket, socket)
             if (isEnableLogs) {
               Log.i(TAG, "wrote ${mpegTsPacket.type.name} packet, size $size")
             }

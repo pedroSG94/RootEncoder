@@ -1,6 +1,8 @@
 val libraryGroup: String by rootProject.extra
 val vName: String by rootProject.extra
 val coroutinesVersion: String by rootProject.extra
+val junitVersion: String by rootProject.extra
+val mockitoVersion: String by rootProject.extra
 
 plugins {
   id("com.android.library")
@@ -10,7 +12,7 @@ plugins {
 }
 
 android {
-  namespace = "com.pedro.library"
+  namespace = "com.pedro.udp"
   compileSdk = 34
 
   defaultConfig {
@@ -45,7 +47,7 @@ afterEvaluate {
 
         // You can then customize attributes of the publication as shown below.
         groupId = libraryGroup
-        artifactId = "library"
+        artifactId = "udp"
         version = vName
       }
     }
@@ -54,10 +56,9 @@ afterEvaluate {
 
 dependencies {
   implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:$coroutinesVersion")
-  api(project(":encoder"))
-  api(project(":rtmp"))
-  api(project(":rtsp"))
-  api(project(":srt"))
-  api(project(":udp"))
+  testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:$coroutinesVersion")
+  testImplementation("junit:junit:$junitVersion")
+  testImplementation("org.mockito.kotlin:mockito-kotlin:$mockitoVersion")
+  implementation(project(":srt"))
   api(project(":common"))
 }
