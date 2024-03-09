@@ -31,15 +31,11 @@ class PsiManager(
   private var service: Mpeg2TsService
 ) {
   companion object {
-    const val interval = 200 //ms
-    const val sdtPeriod = 200
-    const val patPeriod = 40
+    const val INTERVAL = 100 //ms
   }
 
   private val idExtension = Random.nextInt(Byte.MIN_VALUE.toInt(), Byte.MAX_VALUE.toInt()).toShort()
   private var lastTime = 0L
-  private var sdtCount = sdtPeriod
-  private var patCount = patPeriod
 
   private var sdt = Sdt(
     idExtension = idExtension,
@@ -54,59 +50,16 @@ class PsiManager(
   )
 
   fun checkSendInfo(isKey: Boolean = false, mpegTsPacketizer: MpegTsPacketizer): List<MpegTsPacket> {
-    val pmt = getPmt() ?: return arrayListOf()
-    return when (shouldSend(isKey)) {
-      TableToSend.PAT_PMT -> {
-        val psiPackets = mpegTsPacketizer.write(listOf(getPat(), pmt), increasePsiContinuity = true).map { b ->
-          MpegTsPacket(b, MpegType.PSI, PacketPosition.SINGLE, isKey = false)
-        }
-        psiPackets
+    val pmt = service.pmt ?: return arrayListOf()
+    val currentTime = TimeUtils.getCurrentTimeMillis()
+    if (isKey || TimeUtils.getCurrentTimeMillis() - lastTime >= INTERVAL) {
+      lastTime = currentTime
+      val psiPackets = mpegTsPacketizer.write(listOf(getPat(), pmt, getSdt()), increasePsiContinuity = true).map { b ->
+        MpegTsPacket(b, MpegType.PSI, PacketPosition.SINGLE, isKey = false)
       }
-      TableToSend.SDT -> {
-        val psiPackets = mpegTsPacketizer.write(listOf(getSdt()), increasePsiContinuity = true).map { b ->
-          MpegTsPacket(b, MpegType.PSI, PacketPosition.SINGLE, isKey = false)
-        }
-        psiPackets
-      }
-      TableToSend.NONE -> arrayListOf()
-      TableToSend.ALL -> {
-        val psiPackets = mpegTsPacketizer.write(listOf(getPat(), pmt, getSdt()), increasePsiContinuity = true).map { b ->
-          MpegTsPacket(b, MpegType.PSI, PacketPosition.SINGLE, isKey = false)
-        }
-        psiPackets
-      }
+      return psiPackets
     }
-  }
-
-//  fun checkSendInfo(isKey: Boolean = false, mpegTsPacketizer: MpegTsPacketizer): List<MpegTsPacket> {
-//    val pmt = getPmt() ?: return arrayListOf()
-//    val currentTime = TimeUtils.getCurrentTimeMillis()
-//    if (isKey || TimeUtils.getCurrentTimeMillis() - lastTime >= interval) {
-//      lastTime = currentTime
-//      val psiPackets = mpegTsPacketizer.write(listOf(getPat(), pmt, getSdt()), increasePsiContinuity = true).map { b ->
-//        MpegTsPacket(b, MpegType.PSI, PacketPosition.SINGLE, isKey = false)
-//      }
-//      return psiPackets
-//    }
-//    return arrayListOf()
-//  }
-
-  private fun shouldSend(isKey: Boolean = false): TableToSend {
-    var value = TableToSend.NONE
-    if (sdtCount >= sdtPeriod && patCount >= patPeriod) {
-      value = TableToSend.ALL
-      sdtCount = 0
-      patCount = 0
-    } else if (patCount >= patPeriod || isKey) {
-      value = TableToSend.PAT_PMT
-      patCount = 0
-    } else if (sdtCount >= sdtPeriod) {
-      value = TableToSend.SDT
-      sdtCount = 0
-    }
-    sdtCount++
-    patCount++
-    return value
+    return arrayListOf()
   }
 
   fun upgradeSdtVersion() {
@@ -127,12 +80,9 @@ class PsiManager(
 
   fun getSdt(): Sdt = sdt
   fun getPat(): Pat = pat
-  fun getPmt(): Pmt? = service.pmt
 
   fun reset() {
     lastTime = 0
-    sdtCount = 0
-    patCount = 0
   }
 
   fun updateService(service: Mpeg2TsService) {
