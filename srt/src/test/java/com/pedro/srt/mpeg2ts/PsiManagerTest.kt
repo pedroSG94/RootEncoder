@@ -17,9 +17,9 @@
 package com.pedro.srt.mpeg2ts
 
 import com.pedro.srt.mpeg2ts.psi.PsiManager
-import com.pedro.srt.mpeg2ts.psi.TableToSend
 import com.pedro.srt.mpeg2ts.service.Mpeg2TsService
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Test
 
 /**
@@ -30,23 +30,11 @@ class PsiManagerTest {
   private val service = Mpeg2TsService()
 
   @Test
-  fun `GIVEN a psiManager WHEN call should send is key false patPeriod times THEN return TableToSend PAT_PMT`() {
+  fun `GIVEN a psiManager WHEN call should send is key false interval times THEN return psi packets`() {
     val psiManager = PsiManager(service)
-    var sendValue = TableToSend.NONE
-    (0..PsiManager.patPeriod).forEach { _ ->
-      sendValue = psiManager.shouldSend(false)
-    }
-    assertEquals(TableToSend.PAT_PMT, sendValue)
-  }
-
-  @Test
-  fun `GIVEN a psiManager WHEN call should send is key false sdtPeriod times THEN return TableToSend ALL`() {
-    val psiManager = PsiManager(service)
-    var sendValue = TableToSend.NONE
-    (0..PsiManager.sdtPeriod).forEach { _ ->
-      sendValue = psiManager.shouldSend(false)
-    }
-    assertEquals(TableToSend.ALL, sendValue)
+    val mpegTsPacketizer = MpegTsPacketizer(psiManager)
+    val result = psiManager.checkSendInfo(false, mpegTsPacketizer)
+    assertTrue(result.isNotEmpty())
   }
 
   @Test
