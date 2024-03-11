@@ -31,6 +31,7 @@ class PsiManagerTest {
 
   @Test
   fun `GIVEN a psiManager WHEN call should send is key false interval times THEN return psi packets`() {
+    service.generatePmt()
     val psiManager = PsiManager(service)
     val mpegTsPacketizer = MpegTsPacketizer(psiManager)
     val result = psiManager.checkSendInfo(false, mpegTsPacketizer)
