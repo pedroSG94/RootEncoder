@@ -150,13 +150,13 @@ class RtspSender(
 
   fun start() {
     queue.clear()
+    val ssrcVideo = Random().nextInt().toLong()
+    val ssrcAudio = Random().nextInt().toLong()
+    baseSenderReport?.setSSRC(ssrcVideo, ssrcAudio)
+    videoPacket?.setSSRC(ssrcVideo)
+    audioPacket?.setSSRC(ssrcAudio)
     running = true
     job = scope.launch {
-      val ssrcVideo = Random().nextInt().toLong()
-      val ssrcAudio = Random().nextInt().toLong()
-      baseSenderReport?.setSSRC(ssrcVideo, ssrcAudio)
-      videoPacket?.setSSRC(ssrcVideo)
-      audioPacket?.setSSRC(ssrcAudio)
       val isTcp = rtpSocket is RtpSocketTcp
       var bytesSend = 0L
       val bitrateTask = async {
