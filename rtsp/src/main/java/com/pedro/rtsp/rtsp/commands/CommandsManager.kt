@@ -20,7 +20,6 @@ import android.util.Log
 import com.pedro.common.AudioCodec
 import com.pedro.common.TimeUtils
 import com.pedro.common.VideoCodec
-import com.pedro.rtsp.BuildConfig
 import com.pedro.rtsp.rtsp.Protocol
 import com.pedro.rtsp.rtsp.commands.SdpBody.createAV1Body
 import com.pedro.rtsp.rtsp.commands.SdpBody.createAacBody
@@ -143,7 +142,6 @@ open class CommandsManager {
 
   private fun addHeaders(): String {
     return "CSeq: ${++cSeq}\r\n" +
-        "User-Agent: ${BuildConfig.LIBRARY_PACKAGE_NAME} ${BuildConfig.VERSION_NAME}\r\n" +
         (if (sessionId == null) "" else "Session: $sessionId\r\n") +
         (if (authorization == null) "" else "Authorization: $authorization\r\n")
   }

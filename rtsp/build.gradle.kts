@@ -1,5 +1,4 @@
 val libraryGroup: String by rootProject.extra
-val vCode: Int by rootProject.extra
 val vName: String by rootProject.extra
 val coroutinesVersion: String by rootProject.extra
 val junitVersion: String by rootProject.extra
@@ -19,8 +18,6 @@ android {
   defaultConfig {
     minSdk = 16
     lint.targetSdk = 34
-    buildConfigField("int", "VERSION_CODE", "$vCode")
-    buildConfigField("String", "VERSION_NAME", "\"${vName}\"")
   }
   buildTypes {
     release {

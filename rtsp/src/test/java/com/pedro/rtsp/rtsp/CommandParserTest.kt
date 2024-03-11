@@ -16,7 +16,6 @@
 
 package com.pedro.rtsp.rtsp
 
-import com.pedro.rtsp.BuildConfig
 import com.pedro.rtsp.rtsp.commands.Command
 import com.pedro.rtsp.rtsp.commands.CommandParser
 import com.pedro.rtsp.rtsp.commands.Method
@@ -105,7 +104,6 @@ class CommandParserTest {
   fun `GIVEN pusher or player command string WHEN parse THEN get a command with cSeq and method`() {
     val pusherCommand = "OPTIONS rtsp://192.168.1.132:554/live/pedro RTSP/1.0\r\n" +
         "CSeq: 1\r\n" +
-        "User-Agent: ${BuildConfig.LIBRARY_PACKAGE_NAME} ${BuildConfig.VERSION_NAME}\r\n" +
         "\r\n"
     val command = commandParser.parseCommand(pusherCommand)
     val expectedCommand = Command(Method.OPTIONS, 1, -1, pusherCommand)
