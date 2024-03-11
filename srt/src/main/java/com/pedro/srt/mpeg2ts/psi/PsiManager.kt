@@ -16,7 +16,12 @@
 
 package com.pedro.srt.mpeg2ts.psi
 
+import com.pedro.common.TimeUtils
+import com.pedro.srt.mpeg2ts.MpegTsPacket
+import com.pedro.srt.mpeg2ts.MpegTsPacketizer
+import com.pedro.srt.mpeg2ts.MpegType
 import com.pedro.srt.mpeg2ts.service.Mpeg2TsService
+import com.pedro.srt.srt.packets.data.PacketPosition
 import kotlin.random.Random
 
 /**
@@ -25,43 +30,36 @@ import kotlin.random.Random
 class PsiManager(
   private var service: Mpeg2TsService
 ) {
-
-  private val idExtension = Random.nextInt(Byte.MIN_VALUE.toInt(), Byte.MAX_VALUE.toInt()).toShort()
-  private var sdtCount = 0
-  private var patCount = 0
   companion object {
-    const val sdtPeriod = 200
-    const val patPeriod = 40
+    const val INTERVAL = 100 //ms
   }
 
-  private var sdt = Sdt(
+  private val idExtension = Random.nextInt(Byte.MIN_VALUE.toInt(), Byte.MAX_VALUE.toInt()).toShort()
+  private var lastTime = 0L
+
+  val sdt = Sdt(
     idExtension = idExtension,
     version = 0,
     service = service
   )
 
-  private var pat = Pat(
+  val pat = Pat(
     idExtension = idExtension,
     version = 0,
     service = service
   )
 
-  fun shouldSend(isKey: Boolean = false): TableToSend {
-    var value = TableToSend.NONE
-    if (sdtCount >= sdtPeriod && patCount >= patPeriod) {
-      value = TableToSend.ALL
-      sdtCount = 0
-      patCount = 0
-    } else if (patCount >= patPeriod || isKey) {
-      value = TableToSend.PAT_PMT
-      patCount = 0
-    } else if (sdtCount >= sdtPeriod) {
-      value = TableToSend.SDT
-      sdtCount = 0
+  fun checkSendInfo(isKey: Boolean = false, mpegTsPacketizer: MpegTsPacketizer): List<MpegTsPacket> {
+    val pmt = service.pmt ?: return arrayListOf()
+    val currentTime = TimeUtils.getCurrentTimeMillis()
+    if (isKey || TimeUtils.getCurrentTimeMillis() - lastTime >= INTERVAL) {
+      lastTime = currentTime
+      val psiPackets = mpegTsPacketizer.write(listOf(pat, pmt, sdt), increasePsiContinuity = true).map { b ->
+        MpegTsPacket(b, MpegType.PSI, PacketPosition.SINGLE, isKey = false)
+      }
+      return psiPackets
     }
-    sdtCount++
-    patCount++
-    return value
+    return arrayListOf()
   }
 
   fun upgradeSdtVersion() {
@@ -80,13 +78,8 @@ class PsiManager(
     return service.tracks.find { !it.codec.isAudio() }?.pid ?: 0
   }
 
-  fun getSdt(): Sdt = sdt
-  fun getPat(): Pat = pat
-  fun getPmt(): Pmt? = service.pmt
-
   fun reset() {
-    sdtCount = 0
-    patCount = 0
+    lastTime = 0
   }
 
   fun updateService(service: Mpeg2TsService) {
