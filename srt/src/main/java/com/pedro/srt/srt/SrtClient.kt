@@ -22,7 +22,6 @@ import com.pedro.common.AudioCodec
 import com.pedro.common.ConnectChecker
 import com.pedro.common.VideoCodec
 import com.pedro.common.onMainThread
-import com.pedro.srt.mpeg2ts.Codec
 import com.pedro.srt.srt.packets.ControlPacket
 import com.pedro.srt.srt.packets.DataPacket
 import com.pedro.srt.srt.packets.SrtPacket
@@ -321,8 +320,7 @@ class SrtClient(private val connectChecker: ConnectChecker) {
   @Throws(IOException::class)
   private suspend fun handleMessages() {
     val responseBufferConclusion = socket?.readBuffer() ?: throw IOException("read buffer failed, socket disconnected")
-    val srtPacket = SrtPacket.getSrtPacket(responseBufferConclusion)
-    when(srtPacket) {
+    when(val srtPacket = SrtPacket.getSrtPacket(responseBufferConclusion)) {
       is DataPacket -> {
         //ignore
       }
