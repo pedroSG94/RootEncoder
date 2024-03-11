@@ -1,9 +1,5 @@
-val libraryGroup = "com.github.pedroSG94"
-val vCode = 240
-val vName = "2.4.0"
-val coroutinesVersion = "1.7.3"
-val junitVersion = "4.13.2"
-val mockitoVersion = "5.2.1"
+val vCode: Int by rootProject.extra
+val vName: String by rootProject.extra
 
 plugins {
   id("com.android.application")
