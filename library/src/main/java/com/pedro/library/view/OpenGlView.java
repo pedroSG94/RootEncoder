@@ -263,6 +263,14 @@ public class OpenGlView extends SurfaceView
     }
   }
 
+  private void render(boolean forced) {
+    if (!running || fpsLimiter.limitFPS()) return;
+    ExecutorService executor = this.executor;
+    if (executor == null) return;
+    if (!forced) forceRenderer.frameAvailable();
+    executor.execute(this::draw);
+  }
+
   @Override
   public void addMediaCodecSurface(Surface surface) {
     ExecutorService executor = this.executor;
@@ -307,7 +315,7 @@ public class OpenGlView extends SurfaceView
       forceRenderer.start(() -> {
         ExecutorService ex = this.executor;
         if (ex == null) return null;
-        ex.execute(() -> onFrameAvailable(mainRender.getSurfaceTexture()));
+        ex.execute(() -> render(true));
         return null;
       });
       return null;
@@ -317,25 +325,23 @@ public class OpenGlView extends SurfaceView
   @Override
   public void stop() {
     running = false;
-    forceRenderer.stop();
     ExecutorService executor = this.executor;
-    if (executor != null) {
+    if (executor == null) return;
+    ExtensionsKt.secureSubmit(executor, () -> {
+      forceRenderer.stop();
+      surfaceManagerPhoto.release();
+      surfaceManagerEncoder.release();
+      surfaceManager.release();
+      mainRender.release();
       executor.shutdownNow();
       this.executor = null;
-    }
-    surfaceManagerPhoto.release();
-    surfaceManagerEncoder.release();
-    surfaceManager.release();
-    mainRender.release();
+      return null;
+    });
   }
 
   @Override
   public void onFrameAvailable(SurfaceTexture surfaceTexture) {
-    if (!running || fpsLimiter.limitFPS()) return;
-    ExecutorService executor = this.executor;
-    if (executor == null) return;
-    forceRenderer.frameAvailable();
-    executor.execute(this::draw);
+    render(false);
   }
 
   @Override

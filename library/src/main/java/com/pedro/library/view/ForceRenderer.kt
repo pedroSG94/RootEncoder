@@ -41,7 +41,7 @@ class ForceRenderer {
   fun setEnabled(enabled: Boolean, fps: Int) {
     this.enabled = enabled
     if (fps <= 0) this.enabled = false
-    this.fps = fps.toLong() * 2
+    this.fps = fps.toLong()
   }
 
   fun start(callback: () -> Unit) {
