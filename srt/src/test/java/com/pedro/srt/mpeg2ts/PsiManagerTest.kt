@@ -43,8 +43,8 @@ class PsiManagerTest {
     val psiManager = PsiManager(service)
     psiManager.upgradePatVersion()
     psiManager.upgradeSdtVersion()
-    assertEquals(0x01.toByte(), psiManager.getPat().version)
-    assertEquals(0x01.toByte(), psiManager.getSdt().version)
+    assertEquals(0x01.toByte(), psiManager.pat.version)
+    assertEquals(0x01.toByte(), psiManager.sdt.version)
   }
 
   @Test
@@ -53,7 +53,7 @@ class PsiManagerTest {
     val name = "name updated"
     val serviceUpdated = service.copy(name = name)
     psiManager.updateService(serviceUpdated)
-    assertEquals(name, psiManager.getPat().service.name)
-    assertEquals(name, psiManager.getSdt().service.name)
+    assertEquals(name, psiManager.pat.service.name)
+    assertEquals(name, psiManager.sdt.service.name)
   }
 }

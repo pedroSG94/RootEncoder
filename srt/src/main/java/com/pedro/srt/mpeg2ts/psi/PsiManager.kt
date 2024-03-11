@@ -37,13 +37,13 @@ class PsiManager(
   private val idExtension = Random.nextInt(Byte.MIN_VALUE.toInt(), Byte.MAX_VALUE.toInt()).toShort()
   private var lastTime = 0L
 
-  private var sdt = Sdt(
+  val sdt = Sdt(
     idExtension = idExtension,
     version = 0,
     service = service
   )
 
-  private var pat = Pat(
+  val pat = Pat(
     idExtension = idExtension,
     version = 0,
     service = service
@@ -54,7 +54,7 @@ class PsiManager(
     val currentTime = TimeUtils.getCurrentTimeMillis()
     if (isKey || TimeUtils.getCurrentTimeMillis() - lastTime >= INTERVAL) {
       lastTime = currentTime
-      val psiPackets = mpegTsPacketizer.write(listOf(getPat(), pmt, getSdt()), increasePsiContinuity = true).map { b ->
+      val psiPackets = mpegTsPacketizer.write(listOf(pat, pmt, sdt), increasePsiContinuity = true).map { b ->
         MpegTsPacket(b, MpegType.PSI, PacketPosition.SINGLE, isKey = false)
       }
       return psiPackets
@@ -77,9 +77,6 @@ class PsiManager(
   fun getVideoPid(): Short {
     return service.tracks.find { !it.codec.isAudio() }?.pid ?: 0
   }
-
-  fun getSdt(): Sdt = sdt
-  fun getPat(): Pat = pat
 
   fun reset() {
     lastTime = 0
