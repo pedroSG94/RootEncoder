@@ -656,7 +656,7 @@ public abstract class Camera2Base {
       }
       glInterface.setRotation(rotation == 0 ? 270 : rotation - 90);
       if (!glInterface.isRunning()) glInterface.start();
-      if (videoEncoder.getInputSurface() != null) {
+      if (videoEncoder.getInputSurface() != null && videoEncoder.isRunning()) {
         glInterface.addMediaCodecSurface(videoEncoder.getInputSurface());
       }
       cameraManager.prepareCamera(glInterface.getSurfaceTexture(), videoEncoder.getWidth(),

@@ -712,7 +712,7 @@ public abstract class Camera1Base {
       }
       glInterface.setRotation(0);
       if (!glInterface.isRunning()) glInterface.start();
-      if (videoEncoder.getInputSurface() != null) {
+      if (videoEncoder.getInputSurface() != null && videoEncoder.isRunning()) {
         glInterface.addMediaCodecSurface(videoEncoder.getInputSurface());
       }
       cameraManager.setSurfaceTexture(glInterface.getSurfaceTexture());
