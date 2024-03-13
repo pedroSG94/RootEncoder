@@ -180,6 +180,7 @@ class GlStreamInterface(private val context: Context): OnFrameAvailableListener,
         mainRender.setFilterAction(filter.filterAction, filter.position, filter.baseFilterRender)
       } catch (e: InterruptedException) {
         Thread.currentThread().interrupt()
+        return
       }
     }
 

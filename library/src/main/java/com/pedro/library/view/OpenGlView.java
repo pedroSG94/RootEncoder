@@ -246,6 +246,7 @@ public class OpenGlView extends SurfaceView
         mainRender.setFilterAction(filter.filterAction, filter.position, filter.baseFilterRender);
       } catch (InterruptedException e) {
         Thread.currentThread().interrupt();
+        return;
       }
     }
     if (surfaceManagerEncoder.isReady() && mainRender.isReady()) {
