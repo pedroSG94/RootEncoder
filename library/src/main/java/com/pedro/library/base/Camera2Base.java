@@ -314,7 +314,6 @@ public abstract class Camera2Base {
     if (onPreview && glInterface != null && (width != previewWidth || height != previewHeight
         || fps != videoEncoder.getFps() || rotation != videoEncoder.getRotation())) {
       stopPreview();
-      onPreview = true;
     }
     boolean result = videoEncoder.prepareVideoEncoder(width, height, fps, bitrate, rotation,
         iFrameInterval, FormatVideoEncoder.SURFACE, profile, level);

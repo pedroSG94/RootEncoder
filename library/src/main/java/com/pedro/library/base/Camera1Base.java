@@ -273,7 +273,6 @@ public abstract class Camera1Base {
     if (onPreview && width != previewWidth || height != previewHeight
         || fps != videoEncoder.getFps() || rotation != videoEncoder.getRotation()) {
       stopPreview();
-      onPreview = true;
     }
     FormatVideoEncoder formatVideoEncoder =
         glInterface == null ? FormatVideoEncoder.YUV420Dynamical : FormatVideoEncoder.SURFACE;
