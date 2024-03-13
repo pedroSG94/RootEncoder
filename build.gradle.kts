@@ -1,7 +1,7 @@
 // Top-level build file where you can add configuration options common to all sub-projects/modules.
 val libraryGroup by rootProject.extra { "com.github.pedroSG94" }
-val vCode by rootProject.extra { 241 }
-val vName by rootProject.extra { "2.4.1" }
+val vCode by rootProject.extra { 242 }
+val vName by rootProject.extra { "2.4.2" }
 val coroutinesVersion by rootProject.extra { "1.7.3" }
 val junitVersion by rootProject.extra { "4.13.2" }
 val mockitoVersion by rootProject.extra { "5.2.1" }

@@ -62,7 +62,7 @@ allprojects {
   }
 }
 dependencies {
-  implementation 'com.github.pedroSG94.RootEncoder:library:2.4.1'
+  implementation 'com.github.pedroSG94.RootEncoder:library:2.4.2'
 }
 
 ```

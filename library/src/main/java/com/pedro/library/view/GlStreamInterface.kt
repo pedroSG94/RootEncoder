@@ -146,7 +146,7 @@ class GlStreamInterface(private val context: Context): OnFrameAvailableListener,
       surfaceManagerPhoto.eglSetup(encoderWidth, encoderHeight, surfaceManager)
       running = true
       mainRender.getSurfaceTexture().setOnFrameAvailableListener(this)
-      forceRender.start { draw(true) }
+      forceRender.start { executor?.execute { draw(true) } }
       if (autoHandleOrientation) sensorRotationManager.start()
     }
   }
