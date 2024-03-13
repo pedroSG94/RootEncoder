@@ -92,11 +92,6 @@ class AacPacket: BasePacket() {
   }
 
   override fun reset(resetInfo: Boolean) {
-    if (resetInfo) {
-      sampleRate = 44100
-      isStereo = true
-      audioSize = AudioSize.SND_16_BIT
-    }
     configSend = false
   }
 }

@@ -61,8 +61,5 @@ class G711Packet: BasePacket() {
   }
 
   override fun reset(resetInfo: Boolean) {
-    if (resetInfo) {
-      audioSize = AudioSize.SND_16_BIT
-    }
   }
 }
