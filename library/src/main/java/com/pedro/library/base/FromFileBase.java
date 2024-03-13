@@ -409,10 +409,17 @@ public abstract class FromFileBase {
 
   private void prepareGlView() {
     if (glInterface != null) {
+      int w = videoEncoder.getWidth();
+      int h = videoEncoder.getHeight();
+      boolean isPortrait = false;
       if (videoEncoder.getRotation() == 90 || videoEncoder.getRotation() == 270) {
-        glInterface.setEncoderSize(videoEncoder.getHeight(), videoEncoder.getWidth());
-      } else {
-        glInterface.setEncoderSize(videoEncoder.getWidth(), videoEncoder.getHeight());
+        h = videoEncoder.getWidth();
+        w = videoEncoder.getHeight();
+        isPortrait = true;
+      }
+      glInterface.setEncoderSize(w, h);
+      if (glInterface instanceof GlStreamInterface) {
+        ((GlStreamInterface) glInterface).setPreviewResolution(w, h, isPortrait);
       }
       glInterface.setRotation(0);
       glInterface.start();

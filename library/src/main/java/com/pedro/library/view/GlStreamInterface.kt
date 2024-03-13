@@ -106,6 +106,8 @@ class GlStreamInterface(private val context: Context): OnFrameAvailableListener,
     setForceRender(enabled, 5)
   }
 
+  override fun isRunning(): Boolean = running
+
   override fun getSurfaceTexture(): SurfaceTexture {
     return mainRender.getSurfaceTexture()
   }

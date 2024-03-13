@@ -174,10 +174,17 @@ public abstract class DisplayBase {
         videoEncoder.prepareVideoEncoder(width, height, fps, bitrate, rotation, iFrameInterval,
             FormatVideoEncoder.SURFACE, profile, level);
     if (glInterface != null) {
+      int w = width;
+      int h = height;
+      boolean isPortrait = false;
       if (rotation == 90 || rotation == 270) {
-        glInterface.setEncoderSize(videoEncoder.getHeight(), videoEncoder.getWidth());
-      } else {
-        glInterface.setEncoderSize(videoEncoder.getWidth(), videoEncoder.getHeight());
+        h = width;
+        w = height;
+        isPortrait = true;
+      }
+      glInterface.setEncoderSize(w, h);
+      if (glInterface instanceof GlStreamInterface) {
+        ((GlStreamInterface) glInterface).setPreviewResolution(w, h, isPortrait);
       }
     }
     return videoInitialized;

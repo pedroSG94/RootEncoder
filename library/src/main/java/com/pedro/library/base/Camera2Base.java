@@ -477,14 +477,14 @@ public abstract class Camera2Base {
         this.glInterface.removeMediaCodecSurface();
         this.glInterface.stop();
         this.glInterface = glInterface;
-        this.glInterface.setEncoderSize(size.x, size.y);
-        this.glInterface.setRotation(videoEncoder.getRotation() == 0 ? 270 : videoEncoder.getRotation() - 90);
-        this.glInterface.start();
-        if (isStreaming() || isRecording()) {
-          this.glInterface.addMediaCodecSurface(videoEncoder.getInputSurface());
+        int w = size.x;
+        int h = size.y;
+        int rotation = videoEncoder.getRotation();
+        if (rotation == 90 || rotation == 270) {
+          h = size.x;
+          w = size.y;
         }
-        cameraManager.prepareCamera(this.glInterface.getSurfaceTexture(), videoEncoder.getWidth(),
-            videoEncoder.getHeight(), videoEncoder.getFps());
+        prepareGlView(w, h, rotation);
         cameraManager.openLastCamera();
       } else {
         this.glInterface = glInterface;
@@ -524,15 +524,7 @@ public abstract class Camera2Base {
         cameraManager.prepareCamera(new Surface(textureView.getSurfaceTexture()),
             videoEncoder.getFps());
       } else if (glInterface != null) {
-        if (videoEncoder.getRotation() == 90 || videoEncoder.getRotation() == 270) {
-          glInterface.setEncoderSize(height, width);
-        } else {
-          glInterface.setEncoderSize(width, height);
-        }
-        glInterface.setRotation(rotation == 0 ? 270 : rotation - 90);
-        glInterface.start();
-        cameraManager.prepareCamera(glInterface.getSurfaceTexture(), width, height,
-            videoEncoder.getFps(), cameraId);
+        prepareGlView(width, height, rotation);
       }
       cameraManager.openCameraId(cameraId);
       onPreview = true;
@@ -634,7 +626,7 @@ public abstract class Camera2Base {
   private void startEncoders() {
     videoEncoder.start();
     if (audioInitialized) audioEncoder.start();
-    prepareGlView();
+    prepareGlView(videoEncoder.getWidth(), videoEncoder.getHeight(), videoEncoder.getRotation());
     if (audioInitialized) microphoneManager.start();
     if (glInterface == null && !cameraManager.isRunning() && videoEncoder.getWidth() != previewWidth
         || videoEncoder.getHeight() != previewHeight) {
@@ -649,19 +641,22 @@ public abstract class Camera2Base {
     }
   }
 
-  private void prepareGlView() {
+  private void prepareGlView(int width, int height, int rotation) {
     if (glInterface != null) {
-      if (videoEncoder.getRotation() == 90 || videoEncoder.getRotation() == 270) {
-        glInterface.setEncoderSize(videoEncoder.getHeight(), videoEncoder.getWidth());
-      } else {
-        glInterface.setEncoderSize(videoEncoder.getWidth(), videoEncoder.getHeight());
+      int w = width;
+      int h = height;
+      boolean isPortrait = false;
+      if (rotation == 90 || rotation == 270) {
+        h = width;
+        w = height;
+        isPortrait = true;
       }
-      int rotation = videoEncoder.getRotation();
+      glInterface.setEncoderSize(w, h);
+      if (glInterface instanceof GlStreamInterface) {
+        ((GlStreamInterface) glInterface).setPreviewResolution(w, h, isPortrait);
+      }
       glInterface.setRotation(rotation == 0 ? 270 : rotation - 90);
-      if (!cameraManager.isRunning() && videoEncoder.getWidth() != previewWidth
-          || videoEncoder.getHeight() != previewHeight) {
-        glInterface.start();
-      }
+      if (!glInterface.isRunning()) glInterface.start();
       if (videoEncoder.getInputSurface() != null) {
         glInterface.addMediaCodecSurface(videoEncoder.getInputSurface());
       }

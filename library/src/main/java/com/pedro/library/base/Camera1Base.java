@@ -441,14 +441,15 @@ public abstract class Camera1Base {
         this.glInterface.removeMediaCodecSurface();
         this.glInterface.stop();
         this.glInterface = glInterface;
-        this.glInterface.setEncoderSize(size.x, size.y);
-        this.glInterface.setRotation(0);
-        this.glInterface.start();
-        if (isStreaming() || isRecording()) {
-          this.glInterface.addMediaCodecSurface(videoEncoder.getInputSurface());
+        int w = size.x;
+        int h = size.y;
+        int rotation = videoEncoder.getRotation();
+        if (rotation == 90 || rotation == 270) {
+          h = size.x;
+          w = size.y;
         }
-        cameraManager.setSurfaceTexture(glInterface.getSurfaceTexture());
-        cameraManager.setRotation(videoEncoder.getRotation());
+        prepareGlView(w, h, rotation);
+        cameraManager.setRotation(rotation);
         cameraManager.start(videoEncoder.getWidth(), videoEncoder.getHeight(),
             videoEncoder.getFps());
       } else {
@@ -479,16 +480,7 @@ public abstract class Camera1Base {
       previewHeight = height;
       videoEncoder.setFps(fps);
       videoEncoder.setRotation(rotation);
-      if (glInterface != null && Build.VERSION.SDK_INT >= 18) {
-        if (videoEncoder.getRotation() == 90 || videoEncoder.getRotation() == 270) {
-          glInterface.setEncoderSize(height, width);
-        } else {
-          glInterface.setEncoderSize(width, height);
-        }
-        glInterface.setRotation(0);
-        glInterface.start();
-        cameraManager.setSurfaceTexture(glInterface.getSurfaceTexture());
-      }
+      prepareGlView(width, height, rotation);
       cameraManager.setRotation(rotation);
       cameraManager.start(cameraFacing, width, height, videoEncoder.getFps());
       onPreview = true;
@@ -519,16 +511,7 @@ public abstract class Camera1Base {
       previewHeight = height;
       videoEncoder.setFps(fps);
       videoEncoder.setRotation(rotation);
-      if (glInterface != null && Build.VERSION.SDK_INT >= 18) {
-        if (videoEncoder.getRotation() == 90 || videoEncoder.getRotation() == 270) {
-          glInterface.setEncoderSize(height, width);
-        } else {
-          glInterface.setEncoderSize(width, height);
-        }
-        glInterface.setRotation(0);
-        glInterface.start();
-        cameraManager.setSurfaceTexture(glInterface.getSurfaceTexture());
-      }
+      prepareGlView(width, height, rotation);
       cameraManager.setRotation(rotation);
       cameraManager.start(cameraId, width, height, videoEncoder.getFps());
       onPreview = true;
@@ -688,7 +671,7 @@ public abstract class Camera1Base {
   private void startEncoders() {
     videoEncoder.start();
     if (audioInitialized) audioEncoder.start();
-    prepareGlView();
+    prepareGlView(videoEncoder.getWidth(), videoEncoder.getHeight(), videoEncoder.getRotation());
     if (audioInitialized) microphoneManager.start();
     cameraManager.setRotation(videoEncoder.getRotation());
     if (!cameraManager.isRunning() && videoEncoder.getWidth() != previewWidth
@@ -714,18 +697,22 @@ public abstract class Camera1Base {
     }
   }
 
-  private void prepareGlView() {
+  private void prepareGlView(int width, int height, int rotation) {
     if (glInterface != null && Build.VERSION.SDK_INT >= 18) {
-      if (videoEncoder.getRotation() == 90 || videoEncoder.getRotation() == 270) {
-        glInterface.setEncoderSize(videoEncoder.getHeight(), videoEncoder.getWidth());
-      } else {
-        glInterface.setEncoderSize(videoEncoder.getWidth(), videoEncoder.getHeight());
+      int w = width;
+      int h = height;
+      boolean isPortrait = false;
+      if (rotation == 90 || rotation == 270) {
+        h = width;
+        w = height;
+        isPortrait = true;
+      }
+      glInterface.setEncoderSize(w, h);
+      if (glInterface instanceof GlStreamInterface) {
+        ((GlStreamInterface) glInterface).setPreviewResolution(w, h, isPortrait);
       }
       glInterface.setRotation(0);
-      if (!cameraManager.isRunning() && videoEncoder.getWidth() != previewWidth
-          || videoEncoder.getHeight() != previewHeight) {
-        glInterface.start();
-      }
+      if (!glInterface.isRunning()) glInterface.start();
       if (videoEncoder.getInputSurface() != null) {
         glInterface.addMediaCodecSurface(videoEncoder.getInputSurface());
       }

@@ -195,4 +195,6 @@ public interface GlInterface {
    * Not recommendable in others modes.
    */
   void setForceRender(boolean enabled);
+
+  boolean isRunning();
 }
