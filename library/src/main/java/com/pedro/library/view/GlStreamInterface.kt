@@ -144,7 +144,7 @@ class GlStreamInterface(private val context: Context): OnFrameAvailableListener,
       surfaceManagerPhoto.eglSetup(encoderWidth, encoderHeight, surfaceManager)
       running = true
       mainRender.getSurfaceTexture().setOnFrameAvailableListener(this)
-      forceRender.start { render(true) }
+      forceRender.start { draw(true) }
       if (autoHandleOrientation) sensorRotationManager.start()
     }
   }
@@ -163,7 +163,10 @@ class GlStreamInterface(private val context: Context): OnFrameAvailableListener,
     }
   }
 
-  private fun draw() {
+  private fun draw(forced: Boolean) {
+    if (!running || fpsLimiter.limitFPS()) return
+    if (!forced) forceRender.frameAvailable()
+
     if (surfaceManager.isReady && mainRender.isReady) {
       surfaceManager.makeCurrent()
       mainRender.updateFrame()
@@ -214,14 +217,8 @@ class GlStreamInterface(private val context: Context): OnFrameAvailableListener,
     }
   }
 
-  private fun render(forced: Boolean) {
-    if (!running || fpsLimiter.limitFPS()) return
-    if (!forced) forceRender.frameAvailable()
-    executor?.execute { draw() }
-  }
-
   override fun onFrameAvailable(surfaceTexture: SurfaceTexture?) {
-    render(false)
+    executor?.execute { draw(false) }
   }
 
   fun forceOrientation(forced: OrientationForced) {

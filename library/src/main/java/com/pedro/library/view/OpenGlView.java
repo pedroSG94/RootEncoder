@@ -227,7 +227,10 @@ public class OpenGlView extends SurfaceView
     this.takePhotoCallback = takePhotoCallback;
   }
 
-  private void draw() {
+  private void draw(boolean forced) {
+    if (!running || fpsLimiter.limitFPS()) return;
+    if (!forced) forceRenderer.frameAvailable();
+
     if (surfaceManager.isReady() && mainRender.isReady()) {
       surfaceManager.makeCurrent();
       mainRender.updateFrame();
@@ -261,14 +264,6 @@ public class OpenGlView extends SurfaceView
       takePhotoCallback = null;
       surfaceManagerPhoto.swapBuffer();
     }
-  }
-
-  private void render(boolean forced) {
-    if (!running || fpsLimiter.limitFPS()) return;
-    ExecutorService executor = this.executor;
-    if (executor == null) return;
-    if (!forced) forceRenderer.frameAvailable();
-    executor.execute(this::draw);
   }
 
   @Override
@@ -315,7 +310,7 @@ public class OpenGlView extends SurfaceView
       forceRenderer.start(() -> {
         ExecutorService ex = this.executor;
         if (ex == null) return null;
-        ex.execute(() -> render(true));
+        ex.execute(() -> draw(true));
         return null;
       });
       return null;
@@ -341,7 +336,9 @@ public class OpenGlView extends SurfaceView
 
   @Override
   public void onFrameAvailable(SurfaceTexture surfaceTexture) {
-    render(false);
+    ExecutorService ex = this.executor;
+    if (ex == null) return;
+    ex.execute(() -> draw(false));
   }
 
   @Override
