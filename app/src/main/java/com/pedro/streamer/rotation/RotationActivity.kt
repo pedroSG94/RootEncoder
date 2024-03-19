@@ -16,6 +16,7 @@
 
 package com.pedro.streamer.rotation
 
+import android.graphics.BitmapFactory
 import android.os.Build
 import android.os.Bundle
 import android.view.Menu
@@ -64,6 +65,10 @@ class RotationActivity : AppCompatActivity(), OnTouchListener {
         }
         R.id.video_source_camerax -> {
           cameraFragment.genericStream.changeVideoSource(CameraXSource(applicationContext))
+        }
+        R.id.video_source_bitmap -> {
+          val bitmap = BitmapFactory.decodeResource(resources, R.mipmap.ic_launcher)
+          cameraFragment.genericStream.changeVideoSource(BitmapSource(bitmap))
         }
         R.id.audio_source_microphone -> {
           cameraFragment.genericStream.changeAudioSource(MicrophoneSource())
