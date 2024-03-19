@@ -52,7 +52,7 @@ class CameraXSource(
   private var preview = Preview.Builder().build()
   private var facing = CameraSelector.LENS_FACING_BACK
 
-  override fun create(width: Int, height: Int, fps: Int): Boolean {
+  override fun create(width: Int, height: Int, fps: Int, rotation: Int): Boolean {
     preview = Preview.Builder()
       .setTargetFrameRate(Range(fps, fps))
       .setResolutionSelector(
@@ -65,7 +65,6 @@ class CameraXSource(
           ).build()
       ).build()
     lifecycleRegistry.handleLifecycleEvent(Lifecycle.Event.ON_CREATE)
-    created = true
     return true
   }
 

@@ -29,7 +29,6 @@ class NoAudioSource: AudioSource() {
   private var running = false
 
   override fun create(sampleRate: Int, isStereo: Boolean, echoCanceler: Boolean, noiseSuppressor: Boolean): Boolean {
-    created = true
     return true
   }
 

@@ -31,40 +31,39 @@ import androidx.annotation.RequiresApi
  * Created by pedro on 11/1/24.
  */
 @RequiresApi(Build.VERSION_CODES.LOLLIPOP)
-class ScreenSource(private val context: Context, private val mediaProjection: MediaProjection): VideoSource() {
+class ScreenSource @JvmOverloads constructor(
+  context: Context,
+  private val mediaProjection: MediaProjection,
+  mediaProjectionCallback: MediaProjection.Callback? = null,
+  virtualDisplayCallback: VirtualDisplay.Callback? = null
+): VideoSource() {
 
   private var virtualDisplay: VirtualDisplay? = null
   private val handlerThread = HandlerThread("ScreenSource")
+  private val mediaProjectionCallback = mediaProjectionCallback ?: object : MediaProjection.Callback() {}
+  private val virtualDisplayCallback = virtualDisplayCallback ?: object : VirtualDisplay.Callback() {}
+  private val dpi = context.resources.displayMetrics.densityDpi
 
-  override fun create(width: Int, height: Int, fps: Int): Boolean {
-    this.width = width
-    this.height = height
-    this.fps = fps
-    val result = checkResolutionSupported(width, height)
-    if (result) created = true
-    return result
+  override fun create(width: Int, height: Int, fps: Int, rotation: Int): Boolean {
+    return checkResolutionSupported(width, height)
   }
 
   override fun start(surfaceTexture: SurfaceTexture) {
     this.surfaceTexture = surfaceTexture
     if (!isRunning()) {
-      val dpi = context.resources.displayMetrics.densityDpi
       val flags = DisplayManager.VIRTUAL_DISPLAY_FLAG_AUTO_MIRROR
       //Adapt MediaProjection render to stream resolution
-      val shouldRotate = width > height
+      val shouldRotate = rotation == 90 || rotation == 270
       val displayWidth = if (shouldRotate) height else width
       val displayHeight = if (shouldRotate) width else height
       if (shouldRotate) {
         surfaceTexture.setDefaultBufferSize(height, width)
       }
       handlerThread.start()
-      val mediaProjectionCallback = object : MediaProjection.Callback() {}
       mediaProjection.registerCallback(mediaProjectionCallback, Handler(handlerThread.looper))
-
-      val callback = object : VirtualDisplay.Callback() {}
       virtualDisplay = mediaProjection.createVirtualDisplay("ScreenSource",
         displayWidth, displayHeight, dpi, flags,
-        Surface(surfaceTexture), callback, Handler(handlerThread.looper)
+        Surface(surfaceTexture), virtualDisplayCallback, Handler(handlerThread.looper)
       )
     }
   }
@@ -78,6 +77,7 @@ class ScreenSource(private val context: Context, private val mediaProjection: Me
   }
 
   override fun release() {
+    mediaProjection.unregisterCallback(mediaProjectionCallback)
     mediaProjection.stop()
   }
 
@@ -88,5 +88,9 @@ class ScreenSource(private val context: Context, private val mediaProjection: Me
       throw IllegalArgumentException("width and height values must be divisible by 2")
     }
     return true
+  }
+
+  fun resize(width: Int, height: Int) {
+    virtualDisplay?.resize(width, height, dpi)
   }
 }
