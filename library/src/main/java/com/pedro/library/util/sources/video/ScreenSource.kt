@@ -35,6 +35,9 @@ class ScreenSource(private val context: Context, private val mediaProjection: Me
 
   private var virtualDisplay: VirtualDisplay? = null
   private val handlerThread = HandlerThread("ScreenSource")
+  private val mediaProjectionCallback = object : MediaProjection.Callback() {}
+  private val virtualDisplayCallback = object : VirtualDisplay.Callback() {}
+  private val dpi = context.resources.displayMetrics.densityDpi
 
   override fun create(width: Int, height: Int, fps: Int, rotation: Int): Boolean {
     return checkResolutionSupported(width, height)
@@ -43,7 +46,6 @@ class ScreenSource(private val context: Context, private val mediaProjection: Me
   override fun start(surfaceTexture: SurfaceTexture) {
     this.surfaceTexture = surfaceTexture
     if (!isRunning()) {
-      val dpi = context.resources.displayMetrics.densityDpi
       val flags = DisplayManager.VIRTUAL_DISPLAY_FLAG_AUTO_MIRROR
       //Adapt MediaProjection render to stream resolution
       val shouldRotate = rotation == 90 || rotation == 270
@@ -53,13 +55,10 @@ class ScreenSource(private val context: Context, private val mediaProjection: Me
         surfaceTexture.setDefaultBufferSize(height, width)
       }
       handlerThread.start()
-      val mediaProjectionCallback = object : MediaProjection.Callback() {}
       mediaProjection.registerCallback(mediaProjectionCallback, Handler(handlerThread.looper))
-
-      val callback = object : VirtualDisplay.Callback() {}
       virtualDisplay = mediaProjection.createVirtualDisplay("ScreenSource",
         displayWidth, displayHeight, dpi, flags,
-        Surface(surfaceTexture), callback, Handler(handlerThread.looper)
+        Surface(surfaceTexture), virtualDisplayCallback, Handler(handlerThread.looper)
       )
     }
   }
@@ -73,6 +72,7 @@ class ScreenSource(private val context: Context, private val mediaProjection: Me
   }
 
   override fun release() {
+    mediaProjection.unregisterCallback(mediaProjectionCallback)
     mediaProjection.stop()
   }
 
@@ -83,5 +83,9 @@ class ScreenSource(private val context: Context, private val mediaProjection: Me
       throw IllegalArgumentException("width and height values must be divisible by 2")
     }
     return true
+  }
+
+  fun resize(width: Int, height: Int) {
+    virtualDisplay?.resize(width, height, dpi)
   }
 }
