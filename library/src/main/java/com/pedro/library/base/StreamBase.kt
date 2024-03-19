@@ -105,7 +105,7 @@ abstract class StreamBase(
     if (isStreaming || isRecording || isOnPreview) {
       throw IllegalStateException("Stream, record and preview must be stopped before prepareVideo")
     }
-    val videoResult = videoSource.create(width, height, fps)
+    val videoResult = videoSource.init(width, height, fps, rotation)
     if (videoResult) {
       if (rotation == 90 || rotation == 270) glInterface.setEncoderSize(height, width)
       else glInterface.setEncoderSize(width, height) //0, 180
@@ -129,7 +129,7 @@ abstract class StreamBase(
     if (isStreaming || isRecording) {
       throw IllegalStateException("Stream and record must be stopped before prepareAudio")
     }
-    val audioResult = audioSource.create(sampleRate, isStereo, echoCanceler, noiseSuppressor)
+    val audioResult = audioSource.init(sampleRate, isStereo, echoCanceler, noiseSuppressor)
     if (audioResult) {
       audioInfo(sampleRate, isStereo)
       return audioEncoder.prepareAudioEncoder(bitrate, sampleRate, isStereo, audioSource.getMaxInputSize())
@@ -292,7 +292,7 @@ abstract class StreamBase(
   fun changeVideoSource(source: VideoSource) {
     val wasRunning = videoSource.isRunning()
     val wasCreated = videoSource.created
-    if (wasCreated) source.create(videoEncoder.width, videoEncoder.height, videoEncoder.fps)
+    if (wasCreated) source.init(videoEncoder.width, videoEncoder.height, videoEncoder.fps, videoEncoder.rotation)
     videoSource.stop()
     videoSource.release()
     if (wasRunning) source.start(glInterface.surfaceTexture)
@@ -309,7 +309,7 @@ abstract class StreamBase(
   fun changeAudioSource(source: AudioSource) {
     val wasRunning = audioSource.isRunning()
     val wasCreated = audioSource.created
-    if (wasCreated) source.create(audioSource.sampleRate, audioSource.isStereo, audioSource.echoCanceler, audioSource.noiseSuppressor)
+    if (wasCreated) source.init(audioSource.sampleRate, audioSource.isStereo, audioSource.echoCanceler, audioSource.noiseSuppressor)
     audioSource.stop()
     audioSource.release()
     if (wasRunning) source.start(getMicrophoneData)

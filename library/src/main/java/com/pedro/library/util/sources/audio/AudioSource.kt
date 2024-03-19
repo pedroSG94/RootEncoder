@@ -30,7 +30,16 @@ abstract class AudioSource {
   var echoCanceler = false
   var noiseSuppressor = false
 
-  abstract fun create(sampleRate: Int, isStereo: Boolean, echoCanceler: Boolean, noiseSuppressor: Boolean): Boolean
+  fun init(sampleRate: Int, isStereo: Boolean, echoCanceler: Boolean, noiseSuppressor: Boolean): Boolean {
+    this.sampleRate = sampleRate
+    this.isStereo = isStereo
+    this.echoCanceler = echoCanceler
+    this.noiseSuppressor = noiseSuppressor
+    created = create(sampleRate, isStereo, echoCanceler, noiseSuppressor)
+    return created
+  }
+
+  protected abstract fun create(sampleRate: Int, isStereo: Boolean, echoCanceler: Boolean, noiseSuppressor: Boolean): Boolean
   abstract fun start(getMicrophoneData: GetMicrophoneData)
   abstract fun stop()
   abstract fun isRunning(): Boolean

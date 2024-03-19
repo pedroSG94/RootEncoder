@@ -28,8 +28,7 @@ class NoVideoSource: VideoSource() {
 
   private var running = false
 
-  override fun create(width: Int, height: Int, fps: Int): Boolean {
-    created = true
+  override fun create(width: Int, height: Int, fps: Int, rotation: Int): Boolean {
     return true
   }
 

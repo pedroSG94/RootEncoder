@@ -36,13 +36,8 @@ class ScreenSource(private val context: Context, private val mediaProjection: Me
   private var virtualDisplay: VirtualDisplay? = null
   private val handlerThread = HandlerThread("ScreenSource")
 
-  override fun create(width: Int, height: Int, fps: Int): Boolean {
-    this.width = width
-    this.height = height
-    this.fps = fps
-    val result = checkResolutionSupported(width, height)
-    if (result) created = true
-    return result
+  override fun create(width: Int, height: Int, fps: Int, rotation: Int): Boolean {
+    return checkResolutionSupported(width, height)
   }
 
   override fun start(surfaceTexture: SurfaceTexture) {
@@ -51,7 +46,7 @@ class ScreenSource(private val context: Context, private val mediaProjection: Me
       val dpi = context.resources.displayMetrics.densityDpi
       val flags = DisplayManager.VIRTUAL_DISPLAY_FLAG_AUTO_MIRROR
       //Adapt MediaProjection render to stream resolution
-      val shouldRotate = width > height
+      val shouldRotate = rotation == 90 || rotation == 270
       val displayWidth = if (shouldRotate) height else width
       val displayHeight = if (shouldRotate) width else height
       if (shouldRotate) {

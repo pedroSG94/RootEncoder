@@ -38,15 +38,11 @@ class VideoFileSource(
     }
   }).apply { isLoopMode = true }
 
-  override fun create(width: Int, height: Int, fps: Int): Boolean {
-    this.width = width
-    this.height = height
-    this.fps = fps
+  override fun create(width: Int, height: Int, fps: Int, rotation: Int): Boolean {
     val result = videoDecoder.initExtractor(context, path, null)
     if (!result) {
       throw IllegalArgumentException("Video file track not found")
     }
-    created = true
     return true
   }
 

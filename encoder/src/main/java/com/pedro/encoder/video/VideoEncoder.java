@@ -118,7 +118,7 @@ public class VideoEncoder extends BaseEncoder implements GetCameraData {
         return false;
       }
       MediaFormat videoFormat;
-      //if you dont use mediacodec rotation you need swap width and height in rotation 90 or 270
+      //if you don't use mediacodec rotation you need swap width and height in rotation 90 or 270
       // for correct encoding resolution
       String resolution;
       if ((rotation == 90 || rotation == 270)) {

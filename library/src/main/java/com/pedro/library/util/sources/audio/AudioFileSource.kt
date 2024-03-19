@@ -39,11 +39,7 @@ class AudioFileSource(
   }).apply { isLoopMode = true }
 
   override fun create(sampleRate: Int, isStereo: Boolean, echoCanceler: Boolean, noiseSuppressor: Boolean): Boolean {
-    this.sampleRate = sampleRate
-    this.isStereo = isStereo
-    this.echoCanceler = echoCanceler
-    this.noiseSuppressor = noiseSuppressor
-    //create microphone to confirm valid parameters
+    //create extractor to confirm valid parameters
     val result = audioDecoder.initExtractor(context, path, null)
     if (!result) {
       throw IllegalArgumentException("Audio file track not found")
@@ -54,7 +50,6 @@ class AudioFileSource(
     if (audioDecoder.isStereo != isStereo) {
       throw IllegalArgumentException("Audio file isStereo (${audioDecoder.isStereo}) is different than the configured: $isStereo")
     }
-    created = true
     return true
   }
 

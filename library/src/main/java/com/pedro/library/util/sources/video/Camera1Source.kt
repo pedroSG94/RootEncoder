@@ -38,15 +38,11 @@ class Camera1Source(context: Context): VideoSource() {
   private val camera = Camera1ApiManager(null, context)
   private var facing = CameraHelper.Facing.BACK
 
-  override fun create(width: Int, height: Int, fps: Int): Boolean {
-    this.width = width
-    this.height = height
-    this.fps = fps
+  override fun create(width: Int, height: Int, fps: Int, rotation: Int): Boolean {
     val result = checkResolutionSupported(width, height)
     if (!result) {
       throw IllegalArgumentException("Unsupported resolution: ${width}x$height")
     }
-    created = true
     return true
   }
 

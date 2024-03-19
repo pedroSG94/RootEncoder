@@ -28,8 +28,18 @@ abstract class VideoSource {
   var width = 0
   var height = 0
   var fps = 0
+  var rotation = 0
 
-  abstract fun create(width: Int, height: Int, fps: Int): Boolean
+  fun init(width: Int, height: Int, fps: Int, rotation: Int): Boolean {
+    this.width = width
+    this.height = height
+    this.fps = fps
+    this.rotation = rotation
+    created = create(width, height, fps, rotation)
+    return created
+  }
+  
+  protected abstract fun create(width: Int, height: Int, fps: Int, rotation: Int): Boolean
   abstract fun start(surfaceTexture: SurfaceTexture)
   abstract fun stop()
   abstract fun release()
