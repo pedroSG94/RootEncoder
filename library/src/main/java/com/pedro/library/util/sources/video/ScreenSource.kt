@@ -31,12 +31,17 @@ import androidx.annotation.RequiresApi
  * Created by pedro on 11/1/24.
  */
 @RequiresApi(Build.VERSION_CODES.LOLLIPOP)
-class ScreenSource(private val context: Context, private val mediaProjection: MediaProjection): VideoSource() {
+class ScreenSource @JvmOverloads constructor(
+  context: Context,
+  private val mediaProjection: MediaProjection,
+  mediaProjectionCallback: MediaProjection.Callback? = null,
+  virtualDisplayCallback: VirtualDisplay.Callback? = null
+): VideoSource() {
 
   private var virtualDisplay: VirtualDisplay? = null
   private val handlerThread = HandlerThread("ScreenSource")
-  private val mediaProjectionCallback = object : MediaProjection.Callback() {}
-  private val virtualDisplayCallback = object : VirtualDisplay.Callback() {}
+  private val mediaProjectionCallback = mediaProjectionCallback ?: object : MediaProjection.Callback() {}
+  private val virtualDisplayCallback = virtualDisplayCallback ?: object : VirtualDisplay.Callback() {}
   private val dpi = context.resources.displayMetrics.densityDpi
 
   override fun create(width: Int, height: Int, fps: Int, rotation: Int): Boolean {
