@@ -36,5 +36,6 @@ object PathUtils {
   @JvmStatic
   fun updateGallery(context: Context, path: String) {
     context.sendBroadcast(Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE, Uri.fromFile(File(path))))
+    context.toast("Video saved at: $path")
   }
 }
