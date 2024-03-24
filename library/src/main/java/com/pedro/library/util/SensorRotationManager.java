@@ -19,6 +19,7 @@ package com.pedro.library.util;
 import android.content.Context;
 import android.hardware.SensorManager;
 import android.view.OrientationEventListener;
+import com.pedro.encoder.input.video.CameraHelper;
 
 public class SensorRotationManager {
 
@@ -29,7 +30,12 @@ public class SensorRotationManager {
     void onRotationChanged(int rotation);
   }
 
-  public SensorRotationManager(Context context, boolean avoidDuplicated, final RotationChangedListener rotationListener) {
+  public SensorRotationManager(
+      Context context,
+      boolean avoidDuplicated,
+      boolean followUI,
+      final RotationChangedListener rotationListener
+  ) {
     this.listener = new OrientationEventListener(context, SensorManager.SENSOR_DELAY_NORMAL) {
       @Override
       public void onOrientationChanged(int sensorOrientation) {
@@ -37,8 +43,12 @@ public class SensorRotationManager {
         final int rotationDegrees = rotation * 90;
         if (avoidDuplicated) {
           if (currentOrientation == rotationDegrees) return;
-          currentOrientation = rotationDegrees;
         }
+        if (followUI) {
+          int uiOrientation = getUiOrientation(context);
+          if (uiOrientation != rotationDegrees) return;
+        }
+        currentOrientation = rotationDegrees;
         rotationListener.onRotationChanged(rotationDegrees);
       }
     };
@@ -54,5 +64,10 @@ public class SensorRotationManager {
   public void stop() {
     listener.disable();
     currentOrientation = -1;
+  }
+
+  private int getUiOrientation(Context context) {
+    int orientation = CameraHelper.getCameraOrientation(context);
+    return orientation == 0 ? 270 : orientation - 90;
   }
 }

@@ -75,7 +75,7 @@ class GlStreamInterface(private val context: Context): OnFrameAvailableListener,
   private val fpsLimiter = FpsLimiter()
   private val forceRender = ForceRenderer()
   var autoHandleOrientation = false
-  private val sensorRotationManager = SensorRotationManager(context, true) {
+  private val sensorRotationManager = SensorRotationManager(context, true, true) {
     if (autoHandleOrientation) setCameraOrientation(it)
   }
 
