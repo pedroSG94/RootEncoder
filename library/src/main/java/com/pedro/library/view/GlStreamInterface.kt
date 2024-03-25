@@ -75,8 +75,11 @@ class GlStreamInterface(private val context: Context): OnFrameAvailableListener,
   private val fpsLimiter = FpsLimiter()
   private val forceRender = ForceRenderer()
   var autoHandleOrientation = false
-  private val sensorRotationManager = SensorRotationManager(context, true, true) {
-    if (autoHandleOrientation) setCameraOrientation(it)
+  private val sensorRotationManager = SensorRotationManager(context, true, true) { orientation, isPortrait ->
+    if (autoHandleOrientation) {
+      setCameraOrientation(orientation)
+      this.isPortrait = isPortrait
+    }
   }
 
   override fun setEncoderSize(width: Int, height: Int) {
@@ -247,10 +250,13 @@ class GlStreamInterface(private val context: Context): OnFrameAvailableListener,
     this.streamOrientation = orientation
   }
 
-  fun setPreviewResolution(width: Int, height: Int, isPortrait: Boolean = CameraHelper.isPortrait(context)) {
-    this.isPortrait = isPortrait
+  fun setPreviewResolution(width: Int, height: Int) {
     this.previewWidth = width
     this.previewHeight = height
+  }
+
+  fun setIsPortrait(isPortrait: Boolean) {
+    this.isPortrait = isPortrait
   }
 
   fun setPreviewRotation(orientation: Int) {

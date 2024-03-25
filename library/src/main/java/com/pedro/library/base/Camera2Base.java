@@ -652,7 +652,8 @@ public abstract class Camera2Base {
       }
       glInterface.setEncoderSize(w, h);
       if (glInterface instanceof GlStreamInterface) {
-        ((GlStreamInterface) glInterface).setPreviewResolution(w, h, isPortrait);
+        ((GlStreamInterface) glInterface).setPreviewResolution(w, h);
+        ((GlStreamInterface) glInterface).setIsPortrait(isPortrait);
       }
       glInterface.setRotation(rotation == 0 ? 270 : rotation - 90);
       if (!glInterface.isRunning()) glInterface.start();

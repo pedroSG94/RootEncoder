@@ -419,7 +419,8 @@ public abstract class FromFileBase {
       }
       glInterface.setEncoderSize(w, h);
       if (glInterface instanceof GlStreamInterface) {
-        ((GlStreamInterface) glInterface).setPreviewResolution(w, h, isPortrait);
+        ((GlStreamInterface) glInterface).setPreviewResolution(w, h);
+        ((GlStreamInterface) glInterface).setIsPortrait(isPortrait);
       }
       glInterface.setRotation(0);
       glInterface.start();

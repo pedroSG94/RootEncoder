@@ -184,7 +184,8 @@ public abstract class DisplayBase {
       }
       glInterface.setEncoderSize(w, h);
       if (glInterface instanceof GlStreamInterface) {
-        ((GlStreamInterface) glInterface).setPreviewResolution(w, h, isPortrait);
+        ((GlStreamInterface) glInterface).setPreviewResolution(w, h);
+        ((GlStreamInterface) glInterface).setIsPortrait(isPortrait);
       }
     }
     return videoInitialized;

@@ -27,7 +27,7 @@ public class SensorRotationManager {
   private int currentOrientation = -1;
 
   public interface RotationChangedListener {
-    void onRotationChanged(int rotation);
+    void onRotationChanged(int rotation, boolean isPortrait);
   }
 
   public SensorRotationManager(
@@ -49,7 +49,8 @@ public class SensorRotationManager {
           if (uiOrientation != rotationDegrees) return;
         }
         currentOrientation = rotationDegrees;
-        rotationListener.onRotationChanged(rotationDegrees);
+        boolean isPortrait = rotationDegrees == 0 || rotationDegrees == 180;
+        rotationListener.onRotationChanged(rotationDegrees, isPortrait);
       }
     };
   }
