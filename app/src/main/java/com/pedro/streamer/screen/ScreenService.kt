@@ -58,7 +58,7 @@ class ScreenService: Service(), ConnectChecker {
   private val width = 640
   private val height = 480
   private val vBitrate = 1200 * 1000
-  private var rotation = 0
+  private var rotation = 0 //0 for landscape or 90 for portrait
   private val sampleRate = 32000
   private val isStereo = true
   private val aBitrate = 128 * 1000
@@ -140,6 +140,10 @@ class ScreenService: Service(), ConnectChecker {
     val mediaProjection = mediaProjectionManager.getMediaProjection(resultCode, data)
     val screenSource = ScreenSource(applicationContext, mediaProjection)
     return try {
+      //ScreenSource need use always setCameraOrientation(0) because the MediaProjection handle orientation.
+      //You also need remove autoHandleOrientation if you are using it.
+      //You need to call it after prepareVideo to override the default value.
+      genericStream.getGlInterface().setCameraOrientation(0)
       genericStream.changeVideoSource(screenSource)
       true
     } catch (ignored: IllegalArgumentException) {
