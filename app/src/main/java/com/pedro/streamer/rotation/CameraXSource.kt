@@ -51,6 +51,7 @@ class CameraXSource(
   private var camera: Camera? = null
   private var preview = Preview.Builder().build()
   private var facing = CameraSelector.LENS_FACING_BACK
+  private var surface: Surface? = null
 
   override fun create(width: Int, height: Int, fps: Int, rotation: Int): Boolean {
     preview = Preview.Builder()
@@ -78,8 +79,10 @@ class CameraXSource(
           .build()
 
         preview.setSurfaceProvider {
-          it.provideSurface(Surface(surfaceTexture), Executors.newSingleThreadExecutor()) {
+          val surface = Surface(surfaceTexture)
+          it.provideSurface(surface, Executors.newSingleThreadExecutor()) {
           }
+          this.surface = surface
         }
         camera = cameraProvider.bindToLifecycle(this, cameraSelector, preview)
       } catch (e: ExecutionException) {
@@ -94,7 +97,8 @@ class CameraXSource(
     camera?.let {
       cameraProvider.unbindAll()
       camera = null
-      surfaceTexture = null
+      surface?.release()
+      surface = null
     }
   }
 
