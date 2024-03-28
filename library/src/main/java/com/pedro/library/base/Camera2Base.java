@@ -627,10 +627,7 @@ public abstract class Camera2Base {
     if (audioInitialized) audioEncoder.start();
     prepareGlView(videoEncoder.getWidth(), videoEncoder.getHeight(), videoEncoder.getRotation());
     if (audioInitialized) microphoneManager.start();
-    if (glInterface == null && !cameraManager.isRunning() && videoEncoder.getWidth() != previewWidth
-        || videoEncoder.getHeight() != previewHeight) {
-      cameraManager.openLastCamera();
-    }
+    if (!cameraManager.isRunning()) cameraManager.openLastCamera();
     onPreview = true;
   }
 
@@ -914,8 +911,7 @@ public abstract class Camera2Base {
     } else if (surfaceView != null) {
       cameraManager.prepareCamera(surfaceView, videoEncoder.getInputSurface(),
           videoEncoder.getFps());
-    } else if (glInterface != null) {
-    } else {
+    } else if (glInterface == null) {
       cameraManager.prepareCamera(videoEncoder.getInputSurface(), videoEncoder.getFps());
     }
   }

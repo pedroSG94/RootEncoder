@@ -673,8 +673,7 @@ public abstract class Camera1Base {
     prepareGlView(videoEncoder.getWidth(), videoEncoder.getHeight(), videoEncoder.getRotation());
     if (audioInitialized) microphoneManager.start();
     cameraManager.setRotation(videoEncoder.getRotation());
-    if (!cameraManager.isRunning() && videoEncoder.getWidth() != previewWidth
-        || videoEncoder.getHeight() != previewHeight) {
+    if (!cameraManager.isRunning()) {
       cameraManager.start(videoEncoder.getWidth(), videoEncoder.getHeight(), videoEncoder.getFps());
     }
     onPreview = true;
