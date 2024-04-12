@@ -21,7 +21,6 @@ import android.media.MediaFormat;
 
 import com.pedro.common.AudioCodec;
 import com.pedro.common.VideoCodec;
-import com.pedro.encoder.utils.CodecUtil;
 import com.pedro.rtsp.utils.RtpConstants;
 
 import java.nio.ByteBuffer;
