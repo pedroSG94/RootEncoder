@@ -19,6 +19,7 @@ package com.pedro.library.util;
 import android.content.Context;
 import android.hardware.SensorManager;
 import android.view.OrientationEventListener;
+
 import com.pedro.encoder.input.video.CameraHelper;
 
 public class SensorRotationManager {

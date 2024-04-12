@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.pedro.library.udp
+package com.pedro.library.rtsp
 
 import android.content.Context
 import android.media.MediaCodec
@@ -23,59 +23,59 @@ import com.pedro.common.AudioCodec
 import com.pedro.common.ConnectChecker
 import com.pedro.common.VideoCodec
 import com.pedro.library.base.DisplayBase
+import com.pedro.library.util.streamclient.RtspStreamClient
 import com.pedro.library.util.streamclient.StreamClientListener
-import com.pedro.library.util.streamclient.UdpStreamClient
-import com.pedro.udp.UdpClient
+import com.pedro.rtsp.rtsp.RtspClient
 import java.nio.ByteBuffer
 
 /**
  * More documentation see:
- * [DisplayBase]
+ * [com.pedro.library.base.DisplayBase]
  *
- * Created by pedro on 6/3/24.
+ * Created by pedro on 9/08/17.
  */
 @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
-class UdpDisplay(context: Context, useOpengl: Boolean, connectChecker: ConnectChecker): DisplayBase(context, useOpengl) {
+class RtspDisplay(context: Context, useOpengl: Boolean, connectChecker: ConnectChecker): DisplayBase(context, useOpengl) {
 
   private val streamClientListener = object: StreamClientListener {
     override fun onRequestKeyframe() {
       requestKeyFrame()
     }
   }
-  private val udpClient = UdpClient(connectChecker)
-  private val streamClient = UdpStreamClient(udpClient, streamClientListener)
+  private val rtspClient = RtspClient(connectChecker)
+  private val streamClient = RtspStreamClient(rtspClient, streamClientListener)
 
   override fun setVideoCodecImp(codec: VideoCodec) {
-    udpClient.setVideoCodec(codec)
+    rtspClient.setVideoCodec(codec)
   }
 
   override fun setAudioCodecImp(codec: AudioCodec) {
-    udpClient.setAudioCodec(codec)
+    rtspClient.setAudioCodec(codec)
   }
 
-  override fun getStreamClient(): UdpStreamClient = streamClient
+  override fun getStreamClient(): RtspStreamClient = streamClient
 
   override fun prepareAudioRtp(isStereo: Boolean, sampleRate: Int) {
-    udpClient.setAudioInfo(sampleRate, isStereo)
+    rtspClient.setAudioInfo(sampleRate, isStereo)
   }
 
   override fun startStreamRtp(url: String) {
-    udpClient.connect(url)
+    rtspClient.connect(url)
   }
 
   override fun stopStreamRtp() {
-    udpClient.disconnect()
+    rtspClient.disconnect()
   }
 
   override fun getAacDataRtp(aacBuffer: ByteBuffer, info: MediaCodec.BufferInfo) {
-    udpClient.sendAudio(aacBuffer, info)
+    rtspClient.sendAudio(aacBuffer, info)
   }
 
   override fun onSpsPpsVpsRtp(sps: ByteBuffer, pps: ByteBuffer?, vps: ByteBuffer?) {
-    udpClient.setVideoInfo(sps, pps, vps)
+    rtspClient.setVideoInfo(sps, pps, vps)
   }
 
   override fun getH264DataRtp(h264Buffer: ByteBuffer, info: MediaCodec.BufferInfo) {
-    udpClient.sendVideo(h264Buffer, info)
+    rtspClient.sendVideo(h264Buffer, info)
   }
 }

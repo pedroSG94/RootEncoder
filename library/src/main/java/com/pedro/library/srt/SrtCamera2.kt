@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.pedro.library.udp
+package com.pedro.library.srt
 
 import android.content.Context
 import android.media.MediaCodec
@@ -22,60 +22,75 @@ import androidx.annotation.RequiresApi
 import com.pedro.common.AudioCodec
 import com.pedro.common.ConnectChecker
 import com.pedro.common.VideoCodec
-import com.pedro.library.base.DisplayBase
+import com.pedro.library.base.Camera2Base
+import com.pedro.library.util.streamclient.SrtStreamClient
 import com.pedro.library.util.streamclient.StreamClientListener
-import com.pedro.library.util.streamclient.UdpStreamClient
-import com.pedro.udp.UdpClient
+import com.pedro.library.view.OpenGlView
+import com.pedro.srt.srt.SrtClient
 import java.nio.ByteBuffer
 
 /**
  * More documentation see:
- * [DisplayBase]
+ * [Camera2Base]
  *
- * Created by pedro on 6/3/24.
+ * Created by pedro on 8/9/23.
  */
 @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
-class UdpDisplay(context: Context, useOpengl: Boolean, connectChecker: ConnectChecker): DisplayBase(context, useOpengl) {
+class SrtCamera2 : Camera2Base {
 
   private val streamClientListener = object: StreamClientListener {
     override fun onRequestKeyframe() {
       requestKeyFrame()
     }
   }
-  private val udpClient = UdpClient(connectChecker)
-  private val streamClient = UdpStreamClient(udpClient, streamClientListener)
+  private lateinit var srtClient: SrtClient
+  private lateinit var streamClient: SrtStreamClient
+
+  constructor(openGlView: OpenGlView, connectChecker: ConnectChecker): super(openGlView) {
+    init(connectChecker)
+  }
+
+  constructor(context: Context, useOpengl: Boolean, connectChecker: ConnectChecker): super(
+    context, useOpengl) {
+    init(connectChecker)
+  }
+
+  private fun init(connectChecker: ConnectChecker) {
+    srtClient = SrtClient(connectChecker)
+    streamClient = SrtStreamClient(srtClient, streamClientListener)
+  }
+
+  override fun getStreamClient(): SrtStreamClient = streamClient
 
   override fun setVideoCodecImp(codec: VideoCodec) {
-    udpClient.setVideoCodec(codec)
+    srtClient.setVideoCodec(codec)
   }
 
   override fun setAudioCodecImp(codec: AudioCodec) {
-    udpClient.setAudioCodec(codec)
+    srtClient.setAudioCodec(codec)
   }
 
-  override fun getStreamClient(): UdpStreamClient = streamClient
-
   override fun prepareAudioRtp(isStereo: Boolean, sampleRate: Int) {
-    udpClient.setAudioInfo(sampleRate, isStereo)
+    srtClient.setAudioInfo(sampleRate, isStereo)
   }
 
   override fun startStreamRtp(url: String) {
-    udpClient.connect(url)
+    srtClient.connect(url)
   }
 
   override fun stopStreamRtp() {
-    udpClient.disconnect()
+    srtClient.disconnect()
   }
 
   override fun getAacDataRtp(aacBuffer: ByteBuffer, info: MediaCodec.BufferInfo) {
-    udpClient.sendAudio(aacBuffer, info)
+    srtClient.sendAudio(aacBuffer, info)
   }
 
   override fun onSpsPpsVpsRtp(sps: ByteBuffer, pps: ByteBuffer?, vps: ByteBuffer?) {
-    udpClient.setVideoInfo(sps, pps, vps)
+    srtClient.setVideoInfo(sps, pps, vps)
   }
 
   override fun getH264DataRtp(h264Buffer: ByteBuffer, info: MediaCodec.BufferInfo) {
-    udpClient.sendVideo(h264Buffer, info)
+    srtClient.sendVideo(h264Buffer, info)
   }
 }
