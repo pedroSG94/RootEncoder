@@ -25,10 +25,10 @@ com.pedro.library.base
 com.pedro.library.base.recording
 com.pedro.library.generic
 com.pedro.library.multiple
-com.pedro.library.network
 com.pedro.library.rtmp
 com.pedro.library.rtsp
 com.pedro.library.srt
+com.pedro.library.udp
 com.pedro.library.util
 com.pedro.library.util.sources.audio
 com.pedro.library.util.sources.video
@@ -73,3 +73,6 @@ com.pedro.srt.srt.packets.control.handshake
 com.pedro.srt.srt.packets.control.handshake.extension
 com.pedro.srt.srt.packets.data
 com.pedro.srt.utils
+module:udp
+com.pedro.udp
+com.pedro.udp.utils
