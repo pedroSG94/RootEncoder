@@ -19,8 +19,14 @@ package com.pedro.streamer.utils
 import android.app.Activity
 import android.app.Service
 import android.content.Context
+import android.text.SpannableString
+import android.text.style.ForegroundColorSpan
+import android.view.MenuItem
 import android.widget.Toast
+import androidx.annotation.ColorRes
+import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
+
 
 /**
  * Created by pedro on 1/3/24.
@@ -40,4 +46,10 @@ fun Service.toast(message: String, duration: Int = Toast.LENGTH_SHORT) {
 
 fun Context.toast(message: String, duration: Int = Toast.LENGTH_SHORT) {
   Toast.makeText(this, message, duration).show()
+}
+
+fun MenuItem.setColor(context: Context, @ColorRes color: Int) {
+  val spannableString = SpannableString(title.toString())
+  spannableString.setSpan(ForegroundColorSpan(ContextCompat.getColor(context, color)), 0, spannableString.length, 0)
+  title = spannableString
 }

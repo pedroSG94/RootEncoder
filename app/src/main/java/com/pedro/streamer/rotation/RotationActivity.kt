@@ -31,6 +31,7 @@ import com.pedro.library.util.sources.video.Camera1Source
 import com.pedro.library.util.sources.video.Camera2Source
 import com.pedro.streamer.R
 import com.pedro.streamer.utils.FilterMenu
+import com.pedro.streamer.utils.setColor
 import com.pedro.streamer.utils.toast
 
 
@@ -42,6 +43,10 @@ class RotationActivity : AppCompatActivity(), OnTouchListener {
 
   private val cameraFragment = CameraFragment.getInstance()
   private val filterMenu: FilterMenu by lazy { FilterMenu(this) }
+  private var currentVideoSource: MenuItem? = null
+  private var currentAudioSource: MenuItem? = null
+  private var currentOrientation: MenuItem? = null
+  private var currentFilter: MenuItem? = null
 
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
@@ -51,6 +56,14 @@ class RotationActivity : AppCompatActivity(), OnTouchListener {
 
   override fun onCreateOptionsMenu(menu: Menu): Boolean {
     menuInflater.inflate(R.menu.rotation_menu, menu)
+    val defaultVideoSource = menu.findItem(R.id.video_source_camera2)
+    val defaultAudioSource = menu.findItem(R.id.audio_source_microphone)
+    val defaultOrientation = menu.findItem(R.id.orientation_horizontal)
+    val defaultFilter = menu.findItem(R.id.no_filter)
+    currentVideoSource = updateMenuColor(currentVideoSource, defaultVideoSource)
+    currentAudioSource = updateMenuColor(currentAudioSource, defaultAudioSource)
+    currentOrientation = updateMenuColor(currentOrientation, defaultOrientation)
+    currentFilter = updateMenuColor(currentFilter, defaultFilter)
     return true
   }
 
@@ -58,28 +71,39 @@ class RotationActivity : AppCompatActivity(), OnTouchListener {
     try {
       when (item.itemId) {
         R.id.video_source_camera1 -> {
+          currentVideoSource = updateMenuColor(currentVideoSource, item)
           cameraFragment.genericStream.changeVideoSource(Camera1Source(applicationContext))
         }
         R.id.video_source_camera2 -> {
+          currentVideoSource = updateMenuColor(currentVideoSource, item)
           cameraFragment.genericStream.changeVideoSource(Camera2Source(applicationContext))
         }
         R.id.video_source_camerax -> {
+          currentVideoSource = updateMenuColor(currentVideoSource, item)
           cameraFragment.genericStream.changeVideoSource(CameraXSource(applicationContext))
         }
         R.id.video_source_bitmap -> {
+          currentVideoSource = updateMenuColor(currentVideoSource, item)
           val bitmap = BitmapFactory.decodeResource(resources, R.mipmap.ic_launcher)
           cameraFragment.genericStream.changeVideoSource(BitmapSource(bitmap))
         }
         R.id.audio_source_microphone -> {
+          currentAudioSource = updateMenuColor(currentAudioSource, item)
           cameraFragment.genericStream.changeAudioSource(MicrophoneSource())
         }
         R.id.orientation_horizontal -> {
+          currentOrientation = updateMenuColor(currentOrientation, item)
           cameraFragment.setOrientationMode(false)
         }
         R.id.orientation_vertical -> {
+          currentOrientation = updateMenuColor(currentOrientation, item)
           cameraFragment.setOrientationMode(true)
         }
-        else -> return filterMenu.onOptionsItemSelected(item, cameraFragment.genericStream.getGlInterface())
+        else -> {
+          val result = filterMenu.onOptionsItemSelected(item, cameraFragment.genericStream.getGlInterface())
+          if (result) currentFilter = updateMenuColor(currentFilter, item)
+          return result
+        }
       }
     } catch (e: IllegalArgumentException) {
       toast("Change source error: ${e.message}")
@@ -94,5 +118,11 @@ class RotationActivity : AppCompatActivity(), OnTouchListener {
       return true
     }
     return false
+  }
+
+  private fun updateMenuColor(currentItem: MenuItem?, item: MenuItem): MenuItem {
+    currentItem?.setColor(this, R.color.black)
+    item.setColor(this, R.color.appColor)
+    return item
   }
 }
