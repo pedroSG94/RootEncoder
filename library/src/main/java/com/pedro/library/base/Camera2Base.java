@@ -216,6 +216,10 @@ public abstract class Camera2Base {
     return cameraManager.isFaceDetectionEnabled();
   }
 
+  public String[] getCameraIdsForWideAngle() {
+    return cameraManager.getCameraIdsForWideAngle();
+  }
+
   /**
    * Enable EIS video stabilization
    * Warning: Turning both OIS and EIS modes on may produce undesirable interaction, so it is recommended not to enable both at the same time.

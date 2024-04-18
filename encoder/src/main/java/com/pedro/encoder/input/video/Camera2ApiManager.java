@@ -44,6 +44,7 @@ import android.os.HandlerThread;
 import android.util.Log;
 import android.util.Range;
 import android.util.Size;
+import android.util.SizeF;
 import android.view.MotionEvent;
 import android.view.Surface;
 import android.view.SurfaceView;
@@ -289,6 +290,28 @@ public class Camera2ApiManager extends CameraDevice.StateCallback {
     }
   }
 
+  public String[] getCameraIdsForWideAngle() {
+    List<String> ids = new ArrayList<>();
+    for (String cameraId : getCamerasAvailable()) {
+      CameraCharacteristics characteristics = getCameraCharacteristics(cameraId);
+      if (characteristics == null) continue;
+      float[] focalLength = characteristics.get(CameraCharacteristics.LENS_INFO_AVAILABLE_FOCAL_LENGTHS);
+      SizeF sensor = characteristics.get(CameraCharacteristics.SENSOR_INFO_PHYSICAL_SIZE);
+      if (focalLength == null || focalLength.length == 0 || sensor == null) continue;
+      float sensorWidth = sensor.getWidth();
+      float sensorHeight = sensor.getHeight();
+      float sensorSize = (float) Math.sqrt(sensorWidth * sensorWidth + sensorHeight * sensorHeight);
+      for (float focal : focalLength) {
+        float effectiveFocalLength = focal * (43.27f / sensorSize);
+        if (effectiveFocalLength >= 12f && effectiveFocalLength <= 16f) {
+          ids.add(cameraId);
+          break;
+        }
+      }
+    }
+    return ids.toArray(new String[0]);
+  }
+
   public int getLevelSupported() {
     try {
       CameraCharacteristics characteristics = getCameraCharacteristics();
@@ -387,13 +410,18 @@ public class Camera2ApiManager extends CameraDevice.StateCallback {
   }
 
   @Nullable
-  public CameraCharacteristics getCameraCharacteristics() {
+  public CameraCharacteristics getCameraCharacteristics(String cameraId) {
     try {
       return cameraId != null ? cameraManager.getCameraCharacteristics(cameraId) : null;
     } catch (CameraAccessException e) {
       Log.e(TAG, "Error", e);
       return null;
     }
+  }
+
+  @Nullable
+  public CameraCharacteristics getCameraCharacteristics() {
+    return getCameraCharacteristics(cameraId);
   }
 
   public boolean enableVideoStabilization() {

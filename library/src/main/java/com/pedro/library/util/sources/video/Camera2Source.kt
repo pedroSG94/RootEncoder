@@ -171,6 +171,8 @@ class Camera2Source(context: Context): VideoSource() {
 
   fun camerasAvailable(): Array<String>? = camera.camerasAvailable
 
+  fun getCameraIdsForWideAngle(): Array<String> = camera.getCameraIdsForWideAngle()
+
   fun openCameraId(id: String) {
     if (isRunning()) stop()
     camera.openCameraId(id)
