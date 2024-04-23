@@ -24,6 +24,7 @@ import androidx.annotation.RequiresApi
 import com.pedro.encoder.input.gl.FilterAction
 import com.pedro.encoder.input.gl.render.filters.BaseFilterRender
 import com.pedro.encoder.utils.gl.AspectRatioMode
+import java.util.concurrent.atomic.AtomicBoolean
 
 /**
  * Created by pedro on 20/3/22.
@@ -38,8 +39,7 @@ class MainRender {
   private var previewHeight = 0
   private var context: Context? = null
   private var filterRenders: MutableList<BaseFilterRender> = ArrayList()
-  @Volatile
-  var isReady = false
+  private val running = AtomicBoolean(false)
 
   fun initGl(context: Context, encoderWidth: Int, encoderHeight: Int, previewWidth: Int, previewHeight: Int) {
     this.context = context
@@ -51,8 +51,10 @@ class MainRender {
     screenRender.setStreamSize(encoderWidth, encoderHeight)
     screenRender.setTexId(cameraRender.texId)
     screenRender.initGl(context)
-    isReady = true
+    running.set(true)
   }
+
+  fun isReady(): Boolean = running.get()
 
   fun drawOffScreen() {
     cameraRender.draw()
@@ -77,7 +79,7 @@ class MainRender {
   }
 
   fun release() {
-    isReady = false
+    running.set(false)
     cameraRender.release()
     for (baseFilterRender in filterRenders) baseFilterRender.release()
     filterRenders.clear()

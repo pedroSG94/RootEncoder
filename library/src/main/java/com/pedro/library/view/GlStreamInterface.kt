@@ -38,6 +38,7 @@ import java.util.concurrent.BlockingQueue
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 import java.util.concurrent.LinkedBlockingQueue
+import java.util.concurrent.atomic.AtomicBoolean
 
 
 /**
@@ -47,9 +48,7 @@ import java.util.concurrent.LinkedBlockingQueue
 class GlStreamInterface(private val context: Context): OnFrameAvailableListener, GlInterface {
 
   private var takePhotoCallback: TakePhotoCallback? = null
-  @Volatile
-  var running = false
-    private set
+  private val running = AtomicBoolean(false)
   private val surfaceManager = SurfaceManager()
   private val surfaceManagerEncoder = SurfaceManager()
   private val surfaceManagerPhoto = SurfaceManager()
@@ -108,7 +107,7 @@ class GlStreamInterface(private val context: Context): OnFrameAvailableListener,
     setForceRender(enabled, 5)
   }
 
-  override fun isRunning(): Boolean = running
+  override fun isRunning(): Boolean = running.get()
 
   override fun getSurfaceTexture(): SurfaceTexture {
     return mainRender.getSurfaceTexture()
@@ -146,7 +145,7 @@ class GlStreamInterface(private val context: Context): OnFrameAvailableListener,
       mainRender.initGl(context, encoderWidth, encoderHeight, encoderWidth, encoderHeight)
       surfaceManagerPhoto.release()
       surfaceManagerPhoto.eglSetup(encoderWidth, encoderHeight, surfaceManager)
-      running = true
+      running.set(true)
       mainRender.getSurfaceTexture().setOnFrameAvailableListener(this)
       forceRender.start { executor?.execute { draw(true) } }
       if (autoHandleOrientation) sensorRotationManager.start()
@@ -154,7 +153,7 @@ class GlStreamInterface(private val context: Context): OnFrameAvailableListener,
   }
 
   override fun stop() {
-    running = false
+    running.set(false)
     executor?.secureSubmit {
       forceRender.stop()
       sensorRotationManager.stop()
@@ -168,17 +167,17 @@ class GlStreamInterface(private val context: Context): OnFrameAvailableListener,
   }
 
   private fun draw(forced: Boolean) {
-    if (!running || fpsLimiter.limitFPS()) return
+    if (!isRunning || fpsLimiter.limitFPS()) return
     if (!forced) forceRender.frameAvailable()
 
-    if (surfaceManager.isReady && mainRender.isReady) {
+    if (surfaceManager.isReady && mainRender.isReady()) {
       surfaceManager.makeCurrent()
       mainRender.updateFrame()
       mainRender.drawOffScreen()
       surfaceManager.swapBuffer()
     }
 
-    if (!filterQueue.isEmpty() && mainRender.isReady) {
+    if (!filterQueue.isEmpty() && mainRender.isReady()) {
       try {
         val filter = filterQueue.take()
         mainRender.setFilterAction(filter.filterAction, filter.position, filter.baseFilterRender)
@@ -194,7 +193,7 @@ class GlStreamInterface(private val context: Context): OnFrameAvailableListener,
       OrientationForced.NONE -> isPortrait
     }
     // render VideoEncoder (stream and record)
-    if (surfaceManagerEncoder.isReady && mainRender.isReady) {
+    if (surfaceManagerEncoder.isReady && mainRender.isReady()) {
       val w = if (muteVideo) 0 else encoderWidth
       val h = if (muteVideo) 0 else encoderHeight
       surfaceManagerEncoder.makeCurrent()
@@ -203,7 +202,7 @@ class GlStreamInterface(private val context: Context): OnFrameAvailableListener,
       surfaceManagerEncoder.swapBuffer()
     }
     //render surface photo if request photo
-    if (takePhotoCallback != null && surfaceManagerPhoto.isReady && mainRender.isReady) {
+    if (takePhotoCallback != null && surfaceManagerPhoto.isReady && mainRender.isReady()) {
       surfaceManagerPhoto.makeCurrent()
       mainRender.drawScreen(encoderWidth, encoderHeight, AspectRatioMode.NONE,
         streamOrientation, isStreamVerticalFlip, isStreamHorizontalFlip)
@@ -212,7 +211,7 @@ class GlStreamInterface(private val context: Context): OnFrameAvailableListener,
       surfaceManagerPhoto.swapBuffer()
     }
     // render preview
-    if (surfaceManagerPreview.isReady && mainRender.isReady) {
+    if (surfaceManagerPreview.isReady && mainRender.isReady()) {
       val w =  if (previewWidth == 0) encoderWidth else previewWidth
       val h =  if (previewHeight == 0) encoderHeight else previewHeight
       surfaceManagerPreview.makeCurrent()
@@ -223,6 +222,7 @@ class GlStreamInterface(private val context: Context): OnFrameAvailableListener,
   }
 
   override fun onFrameAvailable(surfaceTexture: SurfaceTexture?) {
+    if (!isRunning) return
     executor?.execute { draw(false) }
   }
 
