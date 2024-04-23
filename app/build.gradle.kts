@@ -42,7 +42,7 @@ dependencies {
   implementation("com.google.android.material:material:1.11.0")
   implementation("androidx.multidex:multidex:2.0.1")
 
-  val cameraxVersion = "1.3.2"
+  val cameraxVersion = "1.3.3"
   implementation("androidx.camera:camera-core:$cameraxVersion")
   implementation("androidx.camera:camera-camera2:$cameraxVersion")
   implementation("androidx.camera:camera-lifecycle:$cameraxVersion")
