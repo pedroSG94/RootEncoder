@@ -21,7 +21,6 @@ import android.graphics.Point
 import android.graphics.SurfaceTexture
 import android.graphics.SurfaceTexture.OnFrameAvailableListener
 import android.os.Build
-import android.util.Log
 import android.view.Surface
 import androidx.annotation.RequiresApi
 import com.pedro.common.secureSubmit
@@ -119,7 +118,6 @@ class GlStreamInterface(private val context: Context): OnFrameAvailableListener,
   }
 
   override fun addMediaCodecSurface(surface: Surface) {
-    Log.e("Pedro", "addMediaCodecSurface")
     executor?.secureSubmit {
       if (surfaceManager.isReady) {
         surfaceManagerEncoder.release()
@@ -129,7 +127,6 @@ class GlStreamInterface(private val context: Context): OnFrameAvailableListener,
   }
 
   override fun removeMediaCodecSurface() {
-    Log.e("Pedro", "removeMediaCodecSurface")
     executor?.secureSubmit {
       surfaceManagerEncoder.release()
     }
@@ -140,7 +137,6 @@ class GlStreamInterface(private val context: Context): OnFrameAvailableListener,
   }
 
   override fun start() {
-    Log.e("Pedro", "start glInterface")
     executor = Executors.newSingleThreadExecutor()
     executor?.secureSubmit {
       surfaceManager.release()
@@ -157,7 +153,6 @@ class GlStreamInterface(private val context: Context): OnFrameAvailableListener,
   }
 
   override fun stop() {
-    Log.e("Pedro", "stop glInterface")
     running.set(false)
     executor?.secureSubmit {
       forceRender.stop()
@@ -172,7 +167,6 @@ class GlStreamInterface(private val context: Context): OnFrameAvailableListener,
   }
 
   private fun draw(forced: Boolean) {
-    Log.e("Pedro", "id: ${Thread.currentThread().id}, name: ${Thread.currentThread().name}")
     if (!isRunning || fpsLimiter.limitFPS()) return
     if (!forced) forceRender.frameAvailable()
 
