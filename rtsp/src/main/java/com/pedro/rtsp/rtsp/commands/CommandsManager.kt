@@ -20,6 +20,7 @@ import android.util.Log
 import com.pedro.common.AudioCodec
 import com.pedro.common.TimeUtils
 import com.pedro.common.VideoCodec
+import com.pedro.common.getMd5Hash
 import com.pedro.rtsp.rtsp.Protocol
 import com.pedro.rtsp.rtsp.commands.SdpBody.createAV1Body
 import com.pedro.rtsp.rtsp.commands.SdpBody.createAacBody
@@ -27,7 +28,6 @@ import com.pedro.rtsp.rtsp.commands.SdpBody.createG711Body
 import com.pedro.rtsp.rtsp.commands.SdpBody.createH264Body
 import com.pedro.rtsp.rtsp.commands.SdpBody.createH265Body
 import com.pedro.rtsp.rtsp.commands.SdpBody.createOpusBody
-import com.pedro.rtsp.utils.AuthUtil.getMd5Hash
 import com.pedro.rtsp.utils.RtpConstants
 import com.pedro.rtsp.utils.encodeToString
 import com.pedro.rtsp.utils.getData
@@ -187,9 +187,9 @@ open class CommandsManager {
       Log.i(TAG, "using digest auth")
       val realm = matcher.group(1)
       val nonce = matcher.group(2)
-      val hash1 = getMd5Hash("$user:$realm:$password")
-      val hash2 = getMd5Hash("ANNOUNCE:rtsp://$host:$port$path")
-      val hash3 = getMd5Hash("$hash1:$nonce:$hash2")
+      val hash1 = "$user:$realm:$password".getMd5Hash()
+      val hash2 = "ANNOUNCE:rtsp://$host:$port$path".getMd5Hash()
+      val hash3 = "$hash1:$nonce:$hash2".getMd5Hash()
       "Digest username=\"$user\", realm=\"$realm\", nonce=\"$nonce\", uri=\"rtsp://$host:$port$path\", response=\"$hash3\""
       //basic auth
     } else {

@@ -52,4 +52,12 @@ class ExtensionTest {
     val expectedHex = numbersToHex.values.reduce { acc, s -> acc + s }
     assertEquals(expectedHex, testBytes.bytesToHex())
   }
+
+  @Test
+  fun `GIVEN String WHEN generate hash THEN return a MD5 hash String`() {
+    val fakeBuffer = "hello world"
+    val expectedResult = "5eb63bbbe01eeed093cb22bb8f5acdc3"
+    val md5Hash = fakeBuffer.getMd5Hash()
+    assertEquals(expectedResult, md5Hash)
+  }
 }

@@ -16,10 +16,8 @@
 
 package com.pedro.rtmp.utils
 
-import com.pedro.common.bytesToHex
-import java.io.UnsupportedEncodingException
+import com.pedro.common.getMd5Hash
 import java.security.MessageDigest
-import java.security.NoSuchAlgorithmException
 import java.util.Random
 import kotlin.io.encoding.Base64
 import kotlin.io.encoding.ExperimentalEncodingApi
@@ -64,47 +62,17 @@ object AuthUtil {
     val queryPos = path.indexOf("?")
     if (queryPos >= 0) path = path.substring(0, queryPos)
     if (!path.contains("/")) path += "/_definst_"
-    val hash1 = getMd5Hash("$user:$realm:$password")
-    val hash2 = getMd5Hash("$method:/$path")
-    val hash3 = getMd5Hash("$hash1:$nonce:$ncHex:$cNonce:$qop:$hash2")
+    val hash1 = "$user:$realm:$password".getMd5Hash()
+    val hash2 = "$method:/$path".getMd5Hash()
+    val hash3 = "$hash1:$nonce:$ncHex:$cNonce:$qop:$hash2".getMd5Hash()
     return "?authmod=$authMod&user=$user&nonce=$nonce&cnonce=$cNonce&nc=$ncHex&response=$hash3"
   }
 
-  fun getSalt(description: String): String {
-    var salt = ""
-    val data = description.split("&").toTypedArray()
-    for (s in data) {
-      if (s.contains("salt=")) {
-        salt = s.substring(5)
-        break
-      }
-    }
-    return salt
-  }
+  fun getSalt(description: String): String = findDescriptionValue("salt=", description)
 
-  fun getChallenge(description: String): String {
-    var challenge = ""
-    val data = description.split("&").toTypedArray()
-    for (s in data) {
-      if (s.contains("challenge=")) {
-        challenge = s.substring(10)
-        break
-      }
-    }
-    return challenge
-  }
+  fun getChallenge(description: String): String = findDescriptionValue("challenge=", description)
 
-  fun getOpaque(description: String): String {
-    var opaque = ""
-    val data = description.split("&").toTypedArray()
-    for (s in data) {
-      if (s.contains("opaque=")) {
-        opaque = s.substring(7)
-        break
-      }
-    }
-    return opaque
-  }
+  fun getOpaque(description: String): String = findDescriptionValue("opaque=", description)
 
   @OptIn(ExperimentalEncodingApi::class)
   fun stringToMd5Base64(s: String): String {
@@ -120,25 +88,14 @@ object AuthUtil {
   /**
    * Limelight auth utils
    */
-  fun getNonce(description: String): String {
-    var nonce = ""
+  fun getNonce(description: String): String = findDescriptionValue("nonce=", description)
+
+  private fun findDescriptionValue(value: String, description: String): String {
     val data = description.split("&").toTypedArray()
     for (s in data) {
-      if (s.contains("nonce=")) {
-        nonce = s.substring(6)
-        break
+      if (s.contains(value)) {
+        return s.substring(value.length)
       }
-    }
-    return nonce
-  }
-
-  fun getMd5Hash(buffer: String): String {
-    val md: MessageDigest
-    try {
-      md = MessageDigest.getInstance("MD5")
-      return md.digest(buffer.toByteArray()).bytesToHex()
-    } catch (ignore: NoSuchAlgorithmException) {
-    } catch (ignore: UnsupportedEncodingException) {
     }
     return ""
   }

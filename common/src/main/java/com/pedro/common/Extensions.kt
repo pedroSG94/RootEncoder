@@ -22,7 +22,10 @@ import android.os.Handler
 import android.os.Looper
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import java.io.UnsupportedEncodingException
 import java.nio.ByteBuffer
+import java.security.MessageDigest
+import java.security.NoSuchAlgorithmException
 import java.util.concurrent.BlockingQueue
 import java.util.concurrent.ExecutorService
 
@@ -82,4 +85,15 @@ fun ByteArray.bytesToHex(): String {
 
 fun ExecutorService.secureSubmit(code: () -> Unit) {
   try { submit { code() }.get() } catch (ignored: Exception) {}
+}
+
+fun String.getMd5Hash(): String {
+  val md: MessageDigest
+  try {
+    md = MessageDigest.getInstance("MD5")
+    return md.digest(toByteArray()).bytesToHex()
+  } catch (ignore: NoSuchAlgorithmException) {
+  } catch (ignore: UnsupportedEncodingException) {
+  }
+  return ""
 }
