@@ -266,7 +266,7 @@ abstract class StreamBase(
     if (!surface.isValid) throw IllegalArgumentException("Make sure the Surface is valid")
     if (isOnPreview) throw IllegalStateException("Preview already started, stopPreview before startPreview again")
     isOnPreview = true
-    if (!glInterface.running) glInterface.start()
+    if (!glInterface.isRunning) glInterface.start()
     if (!videoSource.isRunning()) {
       videoSource.start(glInterface.surfaceTexture)
     }
@@ -371,7 +371,7 @@ abstract class StreamBase(
   protected fun getVideoFps() = videoEncoder.fps
 
   private fun startSources() {
-    if (!glInterface.running) glInterface.start()
+    if (!glInterface.isRunning) glInterface.start()
     if (!videoSource.isRunning()) {
       videoSource.start(glInterface.surfaceTexture)
     }
@@ -384,10 +384,10 @@ abstract class StreamBase(
   private fun stopSources() {
     if (!isOnPreview) videoSource.stop()
     audioSource.stop()
-    videoEncoder.stop()
-    audioEncoder.stop()
     glInterface.removeMediaCodecSurface()
     if (!isOnPreview) glInterface.stop()
+    videoEncoder.stop()
+    audioEncoder.stop()
     if (!isRecording) recordController.resetFormats()
   }
 

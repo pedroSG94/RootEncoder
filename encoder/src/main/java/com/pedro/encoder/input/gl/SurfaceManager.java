@@ -30,6 +30,8 @@ import androidx.annotation.RequiresApi;
 
 import com.pedro.encoder.utils.gl.GlUtil;
 
+import java.util.concurrent.atomic.AtomicBoolean;
+
 /**
  * Created by pedro on 9/09/17.
  */
@@ -44,10 +46,10 @@ public class SurfaceManager {
   private EGLContext eglContext = EGL14.EGL_NO_CONTEXT;
   private EGLSurface eglSurface = EGL14.EGL_NO_SURFACE;
   private EGLDisplay eglDisplay = EGL14.EGL_NO_DISPLAY;
-  private volatile boolean isReady = false;
+  private final AtomicBoolean isReady = new AtomicBoolean(false);
 
   public boolean isReady() {
-    return isReady;
+    return isReady.get();
   }
 
   public void makeCurrent() {
@@ -74,7 +76,7 @@ public class SurfaceManager {
    * Prepares EGL.  We want a GLES 2.0 context and a surface that supports recording.
    */
   public void eglSetup(int width, int height, Surface surface, EGLContext eglSharedContext) {
-    if (isReady) {
+    if (isReady()) {
       Log.e(TAG, "already ready, ignored");
       return;
     }
@@ -155,7 +157,7 @@ public class SurfaceManager {
       eglSurface = EGL14.eglCreateWindowSurface(eglDisplay, configs[0], surface, surfaceAttribs, 0);
     }
     GlUtil.checkEglError("eglCreateWindowSurface");
-    isReady = true;
+    isReady.set(true);
     Log.i(TAG, "GL initialized");
   }
 
@@ -194,10 +196,10 @@ public class SurfaceManager {
       eglDisplay = EGL14.EGL_NO_DISPLAY;
       eglContext = EGL14.EGL_NO_CONTEXT;
       eglSurface = EGL14.EGL_NO_SURFACE;
-      isReady = false;
     } else {
       Log.e(TAG, "GL already released");
     }
+    isReady.set(false);
   }
 
   public EGLContext getEglContext() {

@@ -45,6 +45,7 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * Created by pedro on 10/03/18.
@@ -54,7 +55,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 public class OpenGlView extends SurfaceView
     implements GlInterface, SurfaceTexture.OnFrameAvailableListener, SurfaceHolder.Callback {
 
-  private volatile boolean running = false;
+  private AtomicBoolean running = new AtomicBoolean(false);
   private final MainRender mainRender = new MainRender();
   private final SurfaceManager surfaceManagerPhoto = new SurfaceManager();
   private final SurfaceManager surfaceManager = new SurfaceManager();
@@ -213,7 +214,7 @@ public class OpenGlView extends SurfaceView
 
   @Override
   public boolean isRunning() {
-    return running;
+    return running.get();
   }
 
   @Override
@@ -233,7 +234,7 @@ public class OpenGlView extends SurfaceView
   }
 
   private void draw(boolean forced) {
-    if (!running || fpsLimiter.limitFPS()) return;
+    if (!isRunning() || fpsLimiter.limitFPS()) return;
     if (!forced) forceRenderer.frameAvailable();
 
     if (surfaceManager.isReady() && mainRender.isReady()) {
@@ -311,7 +312,7 @@ public class OpenGlView extends SurfaceView
       mainRender.initGl(getContext(), encoderWidth, encoderHeight, encoderWidth, encoderHeight);
       surfaceManagerPhoto.release();
       surfaceManagerPhoto.eglSetup(encoderWidth, encoderHeight, surfaceManager);
-      running = true;
+      running.set(true);
       mainRender.getSurfaceTexture().setOnFrameAvailableListener(this);
       forceRenderer.start(() -> {
         ExecutorService ex = this.executor;
@@ -325,7 +326,7 @@ public class OpenGlView extends SurfaceView
 
   @Override
   public void stop() {
-    running = false;
+    running.set(false);
     ExecutorService executor = this.executor;
     if (executor == null) return;
     ExtensionsKt.secureSubmit(executor, () -> {
@@ -342,6 +343,7 @@ public class OpenGlView extends SurfaceView
 
   @Override
   public void onFrameAvailable(SurfaceTexture surfaceTexture) {
+    if (!isRunning()) return;
     ExecutorService ex = this.executor;
     if (ex == null) return;
     ex.execute(() -> draw(false));
