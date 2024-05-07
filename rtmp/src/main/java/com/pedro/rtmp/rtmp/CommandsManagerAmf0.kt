@@ -40,7 +40,7 @@ class CommandsManagerAmf0: CommandsManager() {
         BasicHeader(ChunkType.TYPE_0, ChunkStreamId.OVER_CONNECTION.mark))
     val connectInfo = AmfObject()
     connectInfo.setProperty("app", appName + auth)
-    connectInfo.setProperty("flashVer", "FMLE/3.0 (compatible; Lavf57.56.101)")
+    connectInfo.setProperty("flashVer", flashVer)
     connectInfo.setProperty("tcUrl", tcUrl + auth)
     if (!videoDisabled) {
       if (videoCodec == VideoCodec.H265) {

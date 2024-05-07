@@ -187,6 +187,10 @@ class RtmpClient(private val connectChecker: ConnectChecker) {
     commandsManager.fps = fps
   }
 
+  fun setFlashVer(flashVer: String) {
+    commandsManager.flashVer = flashVer
+  }
+
   fun connect(url: String?) {
     connect(url, false)
   }

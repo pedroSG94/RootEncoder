@@ -49,6 +49,7 @@ abstract class CommandsManager {
   var appName = ""
   var streamName = ""
   var tcUrl = ""
+  var flashVer: String = "FMLE/3.0 (compatible; Lavf57.56.101)"
   var user: String? = null
   var password: String? = null
   var onAuth = false
@@ -83,6 +84,10 @@ abstract class CommandsManager {
   fun setAuth(user: String?, password: String?) {
     this.user = user
     this.password = password
+  }
+
+  fun setFlashVer(flashVer: String) {
+    this.flashVer = flashVer
   }
 
   protected fun getCurrentTimestamp(): Int {
