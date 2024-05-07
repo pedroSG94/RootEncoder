@@ -33,6 +33,16 @@ class GenericStreamClient(
   private var connectedStreamClient : StreamBaseClient? = null
 
   /**
+   * Must be called before start stream or will be ignored.
+   *
+   * Set flash version used in connect command.
+   * Default value FMLE/3.0 (compatible; Lavf57.56.101)
+   */
+  fun setFlashVersion(flashVersion: String) {
+    rtmpClient.setFlashVersion(flashVersion)
+  }
+
+  /**
    * Add certificates for TLS connection
    */
   fun addCertificates(certificates: Array<TrustManager>?) {

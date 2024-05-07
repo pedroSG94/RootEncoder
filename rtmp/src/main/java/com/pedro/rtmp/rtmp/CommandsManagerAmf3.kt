@@ -18,9 +18,6 @@ package com.pedro.rtmp.rtmp
 
 import android.util.Log
 import com.pedro.common.VideoCodec
-import com.pedro.rtmp.amf.v0.AmfData
-import com.pedro.rtmp.amf.v0.AmfStrictArray
-import com.pedro.rtmp.amf.v0.AmfString
 import com.pedro.rtmp.amf.v3.Amf3Array
 import com.pedro.rtmp.amf.v3.Amf3Data
 import com.pedro.rtmp.amf.v3.Amf3Dictionary
@@ -42,7 +39,7 @@ class CommandsManagerAmf3: CommandsManager() {
         BasicHeader(ChunkType.TYPE_0, ChunkStreamId.OVER_CONNECTION.mark))
     val connectInfo = Amf3Object()
     connectInfo.setProperty("app", appName + auth)
-    connectInfo.setProperty("flashVer", flashVer)
+    connectInfo.setProperty("flashVer", flashVersion)
     connectInfo.setProperty("tcUrl", tcUrl + auth)
     if (!videoDisabled) {
       if (videoCodec == VideoCodec.H265) {
