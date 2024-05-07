@@ -118,6 +118,5 @@ class CameraXSource(
     }
   }
 
-  override val lifecycle: Lifecycle
-    get() = lifecycleRegistry
+  override fun getLifecycle(): Lifecycle = lifecycleRegistry
 }
