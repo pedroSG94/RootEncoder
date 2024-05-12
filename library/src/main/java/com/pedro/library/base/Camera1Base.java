@@ -468,7 +468,7 @@ public abstract class Camera1Base {
    * com.pedro.encoder.input.video.CameraHelper#getCameraOrientation(Context)}
    */
   public void startPreview(CameraHelper.Facing cameraFacing, int width, int height, int fps, int rotation) {
-    if (!isStreaming() && !onPreview) {
+    if (!onPreview) {
       if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2 && (glInterface instanceof GlStreamInterface)) {
         // if you are using background mode startPreview only work to indicate
         // that you want start with front or back camera
@@ -561,7 +561,7 @@ public abstract class Camera1Base {
    * @stopStream to release camera properly if you will close activity.
    */
   public void stopPreview() {
-    if (!isStreaming() && !isRecording() && onPreview) {
+    if (onPreview) {
       if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2 && (glInterface instanceof GlStreamInterface)) {
         return;
       }
