@@ -512,7 +512,7 @@ public abstract class Camera2Base {
   }
 
   public void startPreview(String cameraId, int width, int height, int fps, int rotation) {
-    if (!isStreaming() && !onPreview && !isBackground) {
+    if (!onPreview && !isBackground) {
       previewWidth = width;
       previewHeight = height;
       videoEncoder.setFps(fps);
@@ -577,7 +577,18 @@ public abstract class Camera2Base {
    * @stopStream to release camera properly if you will close activity.
    */
   public void stopPreview() {
-    if (!isStreaming() && !isRecording() && onPreview && !isBackground) {
+    if (!isStreaming() && !isRecording() && !isBackground) {
+      stopCamera();
+    } else {
+      Log.e(TAG, "Streaming or preview stopped, ignored");
+    }
+  }
+
+  /**
+   * Similar to stopPreview but you can do it while streaming or recording.
+   */
+  public void stopCamera() {
+    if (onPreview) {
       if (glInterface != null) {
         glInterface.stop();
       }
@@ -586,7 +597,7 @@ public abstract class Camera2Base {
       previewWidth = 0;
       previewHeight = 0;
     } else {
-      Log.e(TAG, "Streaming or preview stopped, ignored");
+      Log.e(TAG, "Preview stopped, ignored");
     }
   }
 
