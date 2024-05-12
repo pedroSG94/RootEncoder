@@ -142,8 +142,8 @@ open class CommandsManager {
 
   private fun addHeaders(): String {
     return "CSeq: ${++cSeq}\r\n" +
-        (if (sessionId == null) "" else "Session: $sessionId\r\n") +
-        (if (authorization == null) "" else "Authorization: $authorization\r\n")
+        (if (sessionId.isNullOrEmpty()) "" else "Session: $sessionId\r\n") +
+        (if (authorization.isNullOrEmpty()) "" else "Authorization: $authorization\r\n")
   }
 
   private fun createBody(): String {
