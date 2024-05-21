@@ -54,6 +54,6 @@ afterEvaluate {
 
 dependencies {
   testImplementation("junit:junit:$junitVersion")
-  api("androidx.annotation:annotation:1.7.1")
+  api("androidx.annotation:annotation:1.8.0")
   api(project(":common"))
 }
