@@ -33,6 +33,7 @@ import java.util.concurrent.ExecutorService
  * Created by pedro on 3/11/23.
  */
 
+@Suppress("DEPRECATION")
 fun MediaCodec.BufferInfo.isKeyframe(): Boolean {
   return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
     this.flags == MediaCodec.BUFFER_FLAG_KEY_FRAME

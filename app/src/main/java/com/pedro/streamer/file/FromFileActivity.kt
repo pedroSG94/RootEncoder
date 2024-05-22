@@ -16,7 +16,6 @@
 package com.pedro.streamer.file
 
 import android.graphics.Color
-import android.graphics.PorterDuff
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
@@ -40,6 +39,7 @@ import com.pedro.library.view.OpenGlView
 import com.pedro.streamer.R
 import com.pedro.streamer.utils.PathUtils
 import com.pedro.streamer.utils.ScreenOrientation
+import com.pedro.streamer.utils.setColorFilter
 import com.pedro.streamer.utils.toast
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -155,7 +155,7 @@ class FromFileActivity : AppCompatActivity(), ConnectChecker,
       genericFromFile.reSyncFile()
     }
 
-    seekBar.progressDrawable.setColorFilter(Color.RED, PorterDuff.Mode.SRC_IN)
+    seekBar.progressDrawable.setColorFilter(Color.RED)
     seekBar.setOnSeekBarChangeListener(this)
   }
 

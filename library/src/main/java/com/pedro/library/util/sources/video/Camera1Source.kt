@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+@file:Suppress("DEPRECATION")
+
 package com.pedro.library.util.sources.video
 
 import android.content.Context

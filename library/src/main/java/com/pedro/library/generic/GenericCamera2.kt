@@ -18,8 +18,6 @@ package com.pedro.library.generic
 import android.content.Context
 import android.media.MediaCodec
 import android.os.Build
-import android.view.SurfaceView
-import android.view.TextureView
 import androidx.annotation.RequiresApi
 import com.pedro.common.AudioCodec
 import com.pedro.common.ConnectChecker
@@ -59,16 +57,6 @@ class GenericCamera2: Camera2Base {
   private lateinit var streamClient: GenericStreamClient
   private lateinit var connectChecker: ConnectChecker
   private var connectedType = ClientType.NONE
-
-  @Deprecated("This view produce rotations problems and could be unsupported in future versions")
-  constructor(surfaceView: SurfaceView, connectChecker: ConnectChecker) : super(surfaceView) {
-    init(connectChecker)
-  }
-
-  @Deprecated("This view produce rotations problems and could be unsupported in future versions")
-  constructor(textureView: TextureView, connectChecker: ConnectChecker) : super(textureView) {
-    init(connectChecker)
-  }
 
   constructor(openGlView: OpenGlView, connectChecker: ConnectChecker) : super(openGlView) {
     init(connectChecker)

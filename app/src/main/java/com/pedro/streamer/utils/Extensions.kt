@@ -19,10 +19,17 @@ package com.pedro.streamer.utils
 import android.app.Activity
 import android.app.Service
 import android.content.Context
+import android.graphics.BlendMode
+import android.graphics.BlendModeColorFilter
+import android.graphics.Color
+import android.graphics.PorterDuff
+import android.graphics.drawable.Drawable
+import android.os.Build
 import android.text.SpannableString
 import android.text.style.ForegroundColorSpan
 import android.view.MenuItem
 import android.widget.Toast
+import androidx.annotation.ColorInt
 import androidx.annotation.ColorRes
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
@@ -52,4 +59,13 @@ fun MenuItem.setColor(context: Context, @ColorRes color: Int) {
   val spannableString = SpannableString(title.toString())
   spannableString.setSpan(ForegroundColorSpan(ContextCompat.getColor(context, color)), 0, spannableString.length, 0)
   title = spannableString
+}
+
+@Suppress("DEPRECATION")
+fun Drawable.setColorFilter(@ColorInt color: Int) {
+  if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+    colorFilter = BlendModeColorFilter(color, BlendMode.SRC_IN)
+  } else {
+    setColorFilter(color, PorterDuff.Mode.SRC_IN)
+  }
 }

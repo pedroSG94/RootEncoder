@@ -16,8 +16,7 @@
 package com.pedro.streamer.utils
 
 import android.content.Context
-import android.content.Intent
-import android.net.Uri
+import android.media.MediaScannerConnection
 import android.os.Environment
 import java.io.File
 
@@ -35,7 +34,7 @@ object PathUtils {
 
   @JvmStatic
   fun updateGallery(context: Context, path: String) {
-    context.sendBroadcast(Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE, Uri.fromFile(File(path))))
+    MediaScannerConnection.scanFile(context, arrayOf(path), null, null)
     context.toast("Video saved at: $path")
   }
 }
