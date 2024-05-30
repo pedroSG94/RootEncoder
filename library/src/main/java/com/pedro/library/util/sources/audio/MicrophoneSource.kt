@@ -16,6 +16,7 @@
 
 package com.pedro.library.util.sources.audio
 
+import android.media.MediaRecorder
 import com.pedro.encoder.Frame
 import com.pedro.encoder.input.audio.GetMicrophoneData
 import com.pedro.encoder.input.audio.MicrophoneManager
@@ -23,13 +24,15 @@ import com.pedro.encoder.input.audio.MicrophoneManager
 /**
  * Created by pedro on 12/1/24.
  */
-class MicrophoneSource: AudioSource(), GetMicrophoneData {
+class MicrophoneSource(
+  var audioSource: Int = MediaRecorder.AudioSource.DEFAULT
+): AudioSource(), GetMicrophoneData {
 
   private val microphone = MicrophoneManager(this)
 
   override fun create(sampleRate: Int, isStereo: Boolean, echoCanceler: Boolean, noiseSuppressor: Boolean): Boolean {
     //create microphone to confirm valid parameters
-    val result = microphone.createMicrophone(sampleRate, isStereo, echoCanceler, noiseSuppressor)
+    val result = microphone.createMicrophone(audioSource, sampleRate, isStereo, echoCanceler, noiseSuppressor)
     if (!result) {
       throw IllegalArgumentException("Some parameters specified are not valid");
     }
@@ -39,7 +42,7 @@ class MicrophoneSource: AudioSource(), GetMicrophoneData {
   override fun start(getMicrophoneData: GetMicrophoneData) {
     this.getMicrophoneData = getMicrophoneData
     if (!isRunning()) {
-      val result = microphone.createMicrophone(sampleRate, isStereo, echoCanceler, noiseSuppressor)
+      val result = microphone.createMicrophone(audioSource, sampleRate, isStereo, echoCanceler, noiseSuppressor)
       if (!result) {
         throw IllegalArgumentException("Failed to create microphone audio source")
       }
