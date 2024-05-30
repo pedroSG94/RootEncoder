@@ -28,6 +28,7 @@ import androidx.annotation.RequiresApi;
 
 import com.pedro.common.AudioCodec;
 import com.pedro.common.BitrateManager;
+import com.pedro.common.ExtensionsKt;
 import com.pedro.library.base.recording.BaseRecordController;
 
 import java.io.FileDescriptor;
@@ -146,7 +147,7 @@ public class AacMuxerRecordController extends BaseRecordController {
                 byte[] data = new byte[byteBuffer.remaining()];
                 byteBuffer.get(data);
                 outputStream.write(data);
-                if (bitrateManager != null) bitrateManager.calculateBitrate(info.size * 8L);
+                if (bitrateManager != null) bitrateManager.calculateBitrate(info.size * 8L, ExtensionsKt.getSuspendContext());
             }
         } catch (Exception e) {
             if (listener != null) listener.onError(e);

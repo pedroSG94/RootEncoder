@@ -28,6 +28,7 @@ import java.security.MessageDigest
 import java.security.NoSuchAlgorithmException
 import java.util.concurrent.BlockingQueue
 import java.util.concurrent.ExecutorService
+import kotlin.coroutines.Continuation
 
 /**
  * Created by pedro on 3/11/23.
@@ -97,4 +98,11 @@ fun String.getMd5Hash(): String {
   } catch (ignore: UnsupportedEncodingException) {
   }
   return ""
+}
+
+fun getSuspendContext(): Continuation<Unit> {
+  return object : Continuation<Unit> {
+    override val context = Dispatchers.IO
+    override fun resumeWith(result: Result<Unit>) {}
+  }
 }
