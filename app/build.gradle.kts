@@ -39,6 +39,7 @@ android {
 dependencies {
   implementation(project(":library"))
   implementation("androidx.constraintlayout:constraintlayout:2.1.4")
+  //noinspection GradleDependency, version 1.7.0 need min sdk 21
   implementation("androidx.appcompat:appcompat:1.6.1")
   implementation("androidx.multidex:multidex:2.0.1")
 

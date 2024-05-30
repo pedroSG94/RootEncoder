@@ -27,6 +27,7 @@ import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 
 import com.pedro.common.AudioCodec;
+import com.pedro.common.BitrateManager;
 import com.pedro.library.base.recording.BaseRecordController;
 
 import java.io.FileDescriptor;
@@ -40,7 +41,6 @@ import java.nio.ByteBuffer;
  */
 public class AndroidMuxerRecordController extends BaseRecordController {
 
-  private static final String TAG = "AndroidRecordController";
   private MediaMuxer mediaMuxer;
   private MediaFormat videoFormat, audioFormat;
 
@@ -53,7 +53,12 @@ public class AndroidMuxerRecordController extends BaseRecordController {
     mediaMuxer = new MediaMuxer(path, MediaMuxer.OutputFormat.MUXER_OUTPUT_MPEG_4);
     this.listener = listener;
     status = Status.STARTED;
-    if (listener != null) listener.onStatusChange(status);
+    if (listener != null) {
+      bitrateManager = new BitrateManager(listener);
+      listener.onStatusChange(status);
+    } else {
+      bitrateManager = null;
+    }
     if (isOnlyAudio && audioFormat != null) init();
   }
 
@@ -66,7 +71,12 @@ public class AndroidMuxerRecordController extends BaseRecordController {
     mediaMuxer = new MediaMuxer(fd, MediaMuxer.OutputFormat.MUXER_OUTPUT_MPEG_4);
     this.listener = listener;
     status = Status.STARTED;
-    if(listener != null) listener.onStatusChange(status);
+    if (listener != null) {
+      bitrateManager = new BitrateManager(listener);
+      listener.onStatusChange(status);
+    } else {
+      bitrateManager = null;
+    }
     if(isOnlyAudio && audioFormat != null) init();
   }
 
@@ -151,8 +161,9 @@ public class AndroidMuxerRecordController extends BaseRecordController {
   private void write(int track, ByteBuffer byteBuffer, MediaCodec.BufferInfo info) {
     try {
       mediaMuxer.writeSampleData(track, byteBuffer, info);
-    } catch (IllegalStateException | IllegalArgumentException e) {
-      Log.i(TAG, "Write error", e);
+      if (bitrateManager != null) bitrateManager.calculateBitrate(info.size * 8L);
+    } catch (Exception e) {
+      if (listener != null) listener.onError(e);
     }
   }
 }

@@ -20,12 +20,15 @@ import android.media.MediaCodec;
 import android.media.MediaFormat;
 
 import com.pedro.common.AudioCodec;
+import com.pedro.common.BitrateManager;
 import com.pedro.common.VideoCodec;
 import com.pedro.rtsp.utils.RtpConstants;
 
 import java.nio.ByteBuffer;
 
 public abstract class BaseRecordController implements RecordController {
+
+    protected static final String TAG = "RecordController";
 
     protected Status status = Status.STOPPED;
     protected VideoCodec videoCodec = VideoCodec.H264;
@@ -39,6 +42,7 @@ public abstract class BaseRecordController implements RecordController {
     protected final MediaCodec.BufferInfo audioInfo = new MediaCodec.BufferInfo();
     protected boolean isOnlyAudio = false;
     protected boolean isOnlyVideo = false;
+    protected BitrateManager bitrateManager;
 
     public void setVideoCodec(VideoCodec videoCodec) {
         this.videoCodec = videoCodec;

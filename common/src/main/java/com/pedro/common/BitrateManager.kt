@@ -22,18 +22,17 @@ package com.pedro.common
  *
  * Calculate video and audio bitrate per second
  */
-open class BitrateManager(private val connectChecker: ConnectChecker) {
+open class BitrateManager(private val bitrateChecker: BitrateChecker) {
 
   private var bitrate: Long = 0
   private var timeStamp = TimeUtils.getCurrentTimeMillis()
 
-  suspend fun calculateBitrate(size: Long) {
+  fun calculateBitrate(size: Long) {
     bitrate += size
     val timeDiff = TimeUtils.getCurrentTimeMillis() - timeStamp
     if (timeDiff >= 1000) {
-      onMainThread {
-        connectChecker.onNewBitrate((bitrate / (timeDiff / 1000f)).toLong())
-      }
+      val value = (bitrate / (timeDiff / 1000f)).toLong()
+      onMainThreadHandler { bitrateChecker.onNewBitrate(value) }
       timeStamp = TimeUtils.getCurrentTimeMillis()
       bitrate = 0
     }

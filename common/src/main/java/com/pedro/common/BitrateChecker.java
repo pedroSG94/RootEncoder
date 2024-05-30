@@ -14,16 +14,11 @@
  * limitations under the License.
  */
 
-package com.pedro.common
+package com.pedro.common;
 
 /**
- * Created by pedro on 21/08/23.
+ * Created by pedro on 30/5/24.
  */
-interface ConnectChecker: BitrateChecker {
-  fun onConnectionStarted(url: String)
-  fun onConnectionSuccess()
-  fun onConnectionFailed(reason: String)
-  fun onDisconnect()
-  fun onAuthError()
-  fun onAuthSuccess()
+public interface BitrateChecker {
+  default void onNewBitrate(long bitrate) {}
 }

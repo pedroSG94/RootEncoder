@@ -16,11 +16,16 @@
 
 package com.pedro.library.base.recording;
 
+import static com.pedro.library.base.recording.BaseRecordController.TAG;
+
 import android.media.MediaCodec;
 import android.media.MediaFormat;
+import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+
+import com.pedro.common.BitrateChecker;
 
 import java.io.FileDescriptor;
 import java.io.IOException;
@@ -37,8 +42,11 @@ public interface RecordController {
     void setAudioFormat(MediaFormat audioFormat, boolean isOnlyAudio);
     void resetFormats();
 
-    interface Listener {
+    interface Listener extends BitrateChecker {
         void onStatusChange(Status status);
+        default void onError(Exception e) {
+            Log.i(TAG, "Write error", e);
+        }
     }
 
     enum Status {

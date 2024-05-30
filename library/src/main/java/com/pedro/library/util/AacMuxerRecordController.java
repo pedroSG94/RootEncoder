@@ -27,6 +27,7 @@ import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 
 import com.pedro.common.AudioCodec;
+import com.pedro.common.BitrateManager;
 import com.pedro.library.base.recording.BaseRecordController;
 
 import java.io.FileDescriptor;
@@ -41,7 +42,6 @@ import java.util.Arrays;
  */
 public class AacMuxerRecordController extends BaseRecordController {
 
-    private static final String TAG = "AacMuxRecordController";
     private OutputStream outputStream;
     private final Integer[] AudioSampleRates = new Integer[] {
             96000,  // 0
@@ -71,7 +71,12 @@ public class AacMuxerRecordController extends BaseRecordController {
         outputStream = new FileOutputStream(path);
         this.listener = listener;
         status = Status.STARTED;
-        if (listener != null) listener.onStatusChange(status);
+        if (listener != null) {
+            bitrateManager = new BitrateManager(listener);
+            listener.onStatusChange(status);
+        } else {
+            bitrateManager = null;
+        }
         if (sampleRate != -1 && channels != -1) init();
     }
 
@@ -141,9 +146,10 @@ public class AacMuxerRecordController extends BaseRecordController {
                 byte[] data = new byte[byteBuffer.remaining()];
                 byteBuffer.get(data);
                 outputStream.write(data);
+                if (bitrateManager != null) bitrateManager.calculateBitrate(info.size * 8L);
             }
-        } catch (IllegalStateException | IllegalArgumentException | IOException e) {
-            Log.i(TAG, "Write error", e);
+        } catch (Exception e) {
+            if (listener != null) listener.onError(e);
         }
     }
 

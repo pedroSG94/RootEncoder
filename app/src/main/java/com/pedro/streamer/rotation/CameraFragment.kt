@@ -202,8 +202,7 @@ class CameraFragment: Fragment(), ConnectChecker {
     }
   }
 
-  override fun onNewBitrate(bitrate: Long) {
-  }
+  override fun onNewBitrate(bitrate: Long) {}
 
   override fun onDisconnect() {
     toast("Disconnected")
