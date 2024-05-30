@@ -28,6 +28,7 @@ import androidx.annotation.RequiresApi;
 
 import com.pedro.common.AudioCodec;
 import com.pedro.common.BitrateManager;
+import com.pedro.common.ExtensionsKt;
 import com.pedro.library.base.recording.BaseRecordController;
 
 import java.io.FileDescriptor;
@@ -161,7 +162,7 @@ public class AndroidMuxerRecordController extends BaseRecordController {
   private void write(int track, ByteBuffer byteBuffer, MediaCodec.BufferInfo info) {
     try {
       mediaMuxer.writeSampleData(track, byteBuffer, info);
-      if (bitrateManager != null) bitrateManager.calculateBitrate(info.size * 8L);
+      if (bitrateManager != null) bitrateManager.calculateBitrate(info.size * 8L, ExtensionsKt.getSuspendContext());
     } catch (Exception e) {
       if (listener != null) listener.onError(e);
     }

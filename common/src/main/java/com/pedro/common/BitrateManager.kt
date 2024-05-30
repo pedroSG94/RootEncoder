@@ -27,12 +27,12 @@ open class BitrateManager(private val bitrateChecker: BitrateChecker) {
   private var bitrate: Long = 0
   private var timeStamp = TimeUtils.getCurrentTimeMillis()
 
-  fun calculateBitrate(size: Long) {
+  suspend fun calculateBitrate(size: Long) {
     bitrate += size
     val timeDiff = TimeUtils.getCurrentTimeMillis() - timeStamp
     if (timeDiff >= 1000) {
       val value = (bitrate / (timeDiff / 1000f)).toLong()
-      onMainThreadHandler { bitrateChecker.onNewBitrate(value) }
+      onMainThread { bitrateChecker.onNewBitrate(value) }
       timeStamp = TimeUtils.getCurrentTimeMillis()
       bitrate = 0
     }
