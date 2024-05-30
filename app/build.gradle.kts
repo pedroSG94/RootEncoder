@@ -2,8 +2,8 @@ val vCode: Int by rootProject.extra
 val vName: String by rootProject.extra
 
 plugins {
-  id("com.android.application")
-  id("org.jetbrains.kotlin.android")
+  alias(libs.plugins.android.application)
+  alias(libs.plugins.jetbrains.kotlin)
 }
 
 android {
@@ -38,13 +38,11 @@ android {
 
 dependencies {
   implementation(project(":library"))
-  implementation("androidx.constraintlayout:constraintlayout:2.1.4")
-  //noinspection GradleDependency, version 1.7.0 need min sdk 21
-  implementation("androidx.appcompat:appcompat:1.6.1")
-  implementation("androidx.multidex:multidex:2.0.1")
+  implementation(libs.androidx.constraintlayout)
+  implementation(libs.androidx.appcompat)
+  implementation(libs.androidx.multidex)
 
-  val cameraxVersion = "1.3.3"
-  implementation("androidx.camera:camera-core:$cameraxVersion")
-  implementation("androidx.camera:camera-camera2:$cameraxVersion")
-  implementation("androidx.camera:camera-lifecycle:$cameraxVersion")
+  implementation(libs.androidx.camera.core)
+  implementation(libs.androidx.camera.camera2)
+  implementation(libs.androidx.camera.lifecycle)
 }

@@ -1,14 +1,11 @@
 val libraryGroup: String by rootProject.extra
 val vName: String by rootProject.extra
-val coroutinesVersion: String by rootProject.extra
-val junitVersion: String by rootProject.extra
-val mockitoVersion: String by rootProject.extra
 
 plugins {
-  id("com.android.library")
-  id("org.jetbrains.kotlin.android")
+  alias(libs.plugins.android.library)
+  alias(libs.plugins.jetbrains.kotlin)
   id("maven-publish")
-  id("org.jetbrains.dokka")
+  alias(libs.plugins.jetbrains.dokka)
 }
 
 android {
@@ -55,9 +52,9 @@ afterEvaluate {
 }
 
 dependencies {
-  implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:$coroutinesVersion")
-  testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:$coroutinesVersion")
-  testImplementation("junit:junit:$junitVersion")
-  testImplementation("org.mockito.kotlin:mockito-kotlin:$mockitoVersion")
+  implementation(libs.kotlinx.coroutines.android)
+  testImplementation(libs.kotlinx.coroutines.test)
+  testImplementation(libs.junit)
+  testImplementation(libs.mockito.kotlin)
   api(project(":common"))
 }

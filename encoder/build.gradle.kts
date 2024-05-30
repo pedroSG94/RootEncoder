@@ -1,12 +1,11 @@
 val libraryGroup: String by rootProject.extra
 val vName: String by rootProject.extra
-val junitVersion: String by rootProject.extra
 
 plugins {
-  id("com.android.library")
-  id("org.jetbrains.kotlin.android")
+  alias(libs.plugins.android.library)
+  alias(libs.plugins.jetbrains.kotlin)
   id("maven-publish")
-  id("org.jetbrains.dokka")
+  alias(libs.plugins.jetbrains.dokka)
 }
 
 android {
@@ -53,7 +52,7 @@ afterEvaluate {
 }
 
 dependencies {
-  testImplementation("junit:junit:$junitVersion")
-  api("androidx.annotation:annotation:1.8.0")
+  testImplementation(libs.junit)
+  api(libs.androidx.annotation)
   api(project(":common"))
 }
