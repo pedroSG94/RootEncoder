@@ -1,6 +1,3 @@
-val vCode: Int by rootProject.extra
-val vName: String by rootProject.extra
-
 plugins {
   alias(libs.plugins.android.application)
   alias(libs.plugins.jetbrains.kotlin)
@@ -14,8 +11,8 @@ android {
     applicationId = "com.pedro.streamer"
     minSdk = 16
     targetSdk = 34
-    versionCode = vCode
-    versionName = vName
+    versionCode = libs.versions.versionCode.get().toInt()
+    versionName = libs.versions.versionName.get()
     multiDexEnabled = true
   }
   buildTypes {
@@ -41,8 +38,5 @@ dependencies {
   implementation(libs.androidx.constraintlayout)
   implementation(libs.androidx.appcompat)
   implementation(libs.androidx.multidex)
-
-  implementation(libs.androidx.camera.core)
-  implementation(libs.androidx.camera.camera2)
-  implementation(libs.androidx.camera.lifecycle)
+  implementation(libs.bundles.androidx.camera)
 }

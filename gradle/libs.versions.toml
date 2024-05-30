@@ -1,4 +1,8 @@
 [versions]
+libraryGroup = "com.github.pedroSG94"
+versionCode = "245"
+versionName = "2.4.5"
+
 #plugins versions
 agp = "8.4.1"
 kotlin = "2.0.0"
@@ -18,8 +22,8 @@ mockito = "5.2.1"
 [libraries]
 androidx-annotation = { module = "androidx.annotation:annotation", version.ref = "annotation" }
 androidx-appcompat = { module = "androidx.appcompat:appcompat", version.ref = "appcompat" }
-androidx-camera-camera2 = { module = "androidx.camera:camera-camera2", version.ref = "camerax" }
 androidx-camera-core = { module = "androidx.camera:camera-core", version.ref = "camerax" }
+androidx-camera-camera2 = { module = "androidx.camera:camera-camera2", version.ref = "camerax" }
 androidx-camera-lifecycle = { module = "androidx.camera:camera-lifecycle", version.ref = "camerax" }
 androidx-constraintlayout = { module = "androidx.constraintlayout:constraintlayout", version.ref = "constraintlayout" }
 androidx-multidex = { module = "androidx.multidex:multidex", version.ref = "multidex" }
@@ -31,5 +35,9 @@ mockito-kotlin = { module = "org.mockito.kotlin:mockito-kotlin", version.ref = "
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
 android-library = { id = "com.android.library", version.ref = "agp" }
+maven-publish = { id = "maven-publish", version.ref = "agp" }
 jetbrains-kotlin = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 jetbrains-dokka = { id = "org.jetbrains.dokka", version.ref = "dokka" }
+
+[bundles]
+androidx-camera = ["androidx-camera-core", "androidx-camera-camera2", "androidx-camera-lifecycle"]

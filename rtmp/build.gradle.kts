@@ -1,10 +1,7 @@
-val libraryGroup: String by rootProject.extra
-val vName: String by rootProject.extra
-
 plugins {
   alias(libs.plugins.android.library)
   alias(libs.plugins.jetbrains.kotlin)
-  id("maven-publish")
+  id(libs.plugins.maven.publish.get().pluginId)
   alias(libs.plugins.jetbrains.dokka)
 }
 
@@ -43,9 +40,9 @@ afterEvaluate {
         from(components["release"])
 
         // You can then customize attributes of the publication as shown below.
-        groupId = libraryGroup
+        groupId = libs.versions.libraryGroup.get()
         artifactId = "rtmp"
-        version = vName
+        version = libs.versions.versionName.get()
       }
     }
   }
