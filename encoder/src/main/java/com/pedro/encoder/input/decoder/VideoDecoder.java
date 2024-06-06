@@ -16,10 +16,11 @@
 
 package com.pedro.encoder.input.decoder;
 
-import android.media.MediaExtractor;
 import android.media.MediaFormat;
 import android.os.Build;
 import android.view.Surface;
+
+import com.pedro.encoder.input.decoder.extractor.MultiMediaExtractor;
 
 import java.nio.ByteBuffer;
 
@@ -40,17 +41,11 @@ public class VideoDecoder extends BaseDecoder {
   }
 
   @Override
-  protected boolean extract(MediaExtractor videoExtractor) {
-    for (int i = 0; i < videoExtractor.getTrackCount() && !mime.startsWith("video/"); i++) {
-      mediaFormat = videoExtractor.getTrackFormat(i);
-      mime = mediaFormat.getString(MediaFormat.KEY_MIME);
-      if (mime.startsWith("video/")) {
-        videoExtractor.selectTrack(i);
-      } else {
-        mediaFormat = null;
-      }
-    }
+  protected boolean extract(MultiMediaExtractor videoExtractor) {
+    videoExtractor.selectTrack("video/");
+    mediaFormat = videoExtractor.getMediaFormat();
     if (mediaFormat != null) {
+      mime = mediaFormat.getString(MediaFormat.KEY_MIME);
       width = mediaFormat.getInteger(MediaFormat.KEY_WIDTH);
       height = mediaFormat.getInteger(MediaFormat.KEY_HEIGHT);
       duration = mediaFormat.getLong(MediaFormat.KEY_DURATION);

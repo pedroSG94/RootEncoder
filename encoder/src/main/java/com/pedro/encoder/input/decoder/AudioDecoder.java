@@ -16,12 +16,12 @@
 
 package com.pedro.encoder.input.decoder;
 
-import android.media.MediaExtractor;
 import android.media.MediaFormat;
 import android.util.Log;
 
 import com.pedro.encoder.Frame;
 import com.pedro.encoder.input.audio.GetMicrophoneData;
+import com.pedro.encoder.input.decoder.extractor.MultiMediaExtractor;
 import com.pedro.encoder.utils.CodecUtil;
 import com.pedro.encoder.utils.PCMUtil;
 
@@ -51,22 +51,16 @@ public class AudioDecoder extends BaseDecoder {
   }
 
   @Override
-  protected boolean extract(MediaExtractor audioExtractor) {
+  protected boolean extract(MultiMediaExtractor audioExtractor) {
     size = 2048;
-    for (int i = 0; i < audioExtractor.getTrackCount() && !mime.startsWith("audio/"); i++) {
-      mediaFormat = audioExtractor.getTrackFormat(i);
-      mime = mediaFormat.getString(MediaFormat.KEY_MIME);
-      if (mime.startsWith("audio/")) {
-        audioExtractor.selectTrack(i);
-      } else {
-        mediaFormat = null;
-      }
-    }
+    audioExtractor.selectTrack("audio/");
+    mediaFormat = audioExtractor.getMediaFormat();
     if (mediaFormat != null) {
+      mime = mediaFormat.getString(MediaFormat.KEY_MIME);
       channels = mediaFormat.getInteger(MediaFormat.KEY_CHANNEL_COUNT);
       isStereo = channels >= 2;
       sampleRate = mediaFormat.getInteger(MediaFormat.KEY_SAMPLE_RATE);
-      duration = mediaFormat.getLong(MediaFormat.KEY_DURATION);
+      duration = audioExtractor.getTotalDuration();
       fixBuffer();
       return true;
       //audio decoder not supported

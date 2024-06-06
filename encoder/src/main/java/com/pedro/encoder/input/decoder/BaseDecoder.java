@@ -31,9 +31,13 @@ import android.view.Surface;
 
 import androidx.annotation.RequiresApi;
 
+import com.pedro.encoder.input.decoder.extractor.MultiMediaExtractor;
+
 import java.io.FileDescriptor;
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -41,7 +45,7 @@ public abstract class BaseDecoder {
 
   protected String TAG = "BaseDecoder";
   protected MediaCodec.BufferInfo bufferInfo = new MediaCodec.BufferInfo();
-  protected MediaExtractor extractor;
+  protected MultiMediaExtractor extractor;
   protected MediaCodec codec;
   protected volatile boolean running = false;
   protected MediaFormat mediaFormat;
@@ -62,48 +66,52 @@ public abstract class BaseDecoder {
   }
 
   public boolean initExtractor(String filePath) throws IOException {
-    extractor = new MediaExtractor();
-    extractor.setDataSource(filePath);
+    extractor = new MultiMediaExtractor();
+    extractor.setDataSource(List.of(filePath));
     return extract(extractor);
   }
 
   public boolean initExtractor(FileDescriptor fileDescriptor) throws IOException {
-    extractor = new MediaExtractor();
-    extractor.setDataSource(fileDescriptor);
+    extractor = new MultiMediaExtractor();
+    extractor.setDataSource1(List.of(fileDescriptor));
     return extract(extractor);
   }
 
   @RequiresApi(api = Build.VERSION_CODES.N)
   public boolean initExtractor(AssetFileDescriptor assetFileDescriptor) throws IOException {
-    extractor = new MediaExtractor();
-    extractor.setDataSource(assetFileDescriptor);
+    extractor = new MultiMediaExtractor();
+    extractor.setDataSource2(List.of(assetFileDescriptor));
     return extract(extractor);
   }
 
   @RequiresApi(api = Build.VERSION_CODES.M)
   public boolean initExtractor(MediaDataSource mediaDataSource) throws IOException {
-    extractor = new MediaExtractor();
-    extractor.setDataSource(mediaDataSource);
+    extractor = new MultiMediaExtractor();
+    extractor.setDataSource3(List.of(mediaDataSource));
     return extract(extractor);
   }
 
   public boolean initExtractor(String filePath, Map<String, String> headers) throws IOException {
-    extractor = new MediaExtractor();
-    extractor.setDataSource(filePath, headers);
+    extractor = new MultiMediaExtractor();
+    List<Map<String, String>> h = new ArrayList<>();
+    h.add(headers);
+    extractor.setDataSource4(List.of(filePath), h);
     return extract(extractor);
   }
 
   public boolean initExtractor(FileDescriptor fileDescriptor, long offset, long length)
       throws IOException {
-    extractor = new MediaExtractor();
-    extractor.setDataSource(fileDescriptor, offset, length);
+    extractor = new MultiMediaExtractor();
+    extractor.setDataSource5(List.of(fileDescriptor), List.of(offset), List.of(length));
     return extract(extractor);
   }
 
   public boolean initExtractor(Context context, Uri uri, Map<String, String> headers)
       throws IOException {
-    extractor = new MediaExtractor();
-    extractor.setDataSource(context, uri, headers);
+    extractor = new MultiMediaExtractor();
+    List<Map<String, String>> h = new ArrayList<>();
+    h.add(headers);
+    extractor.setDataSource6(context, List.of(uri), h);
     return extract(extractor);
   }
 
@@ -168,9 +176,7 @@ public abstract class BaseDecoder {
     if (clearTs) startTs = 0;
     if (handlerThread != null) {
       if (handlerThread.getLooper() != null) {
-        if (handlerThread.getLooper().getThread() != null) {
-          handlerThread.getLooper().getThread().interrupt();
-        }
+        handlerThread.getLooper().getThread().interrupt();
         handlerThread.getLooper().quit();
       }
       handlerThread.quit();
@@ -197,7 +203,6 @@ public abstract class BaseDecoder {
   public void moveTo(double time) {
     synchronized (sync) {
       extractor.seekTo((long) (time * 10E5), MediaExtractor.SEEK_TO_PREVIOUS_SYNC);
-      lastExtractorTs = extractor.getSampleTime();
     }
   }
 
@@ -215,13 +220,13 @@ public abstract class BaseDecoder {
 
   public double getTime() {
     if (running) {
-      return extractor.getSampleTime() / 10E5;
+      return extractor.getTime() / 10E5;
     } else {
       return 0;
     }
   }
 
-  protected abstract boolean extract(MediaExtractor extractor);
+  protected abstract boolean extract(MultiMediaExtractor extractor);
 
   protected abstract boolean decodeOutput(ByteBuffer outputBuffer, long timeStamp);
 
@@ -233,13 +238,12 @@ public abstract class BaseDecoder {
       startTs = System.nanoTime() / 1000;
     }
     long sleepTime = 0;
-    long accumulativeTs = 0;
+    long renderTime = 0;
     while (running) {
       synchronized (sync) {
         if (pause.get()) continue;
         if (looped) {
-          double time = getTime();
-          if (time > 0) {
+          if (extractor.isLastFrame()) {
             moveTo(0);
             continue;
           } else {
@@ -248,7 +252,6 @@ public abstract class BaseDecoder {
           }
         }
         int inIndex = codec.dequeueInputBuffer(10000);
-        int sampleSize;
         long timeStamp = System.nanoTime() / 1000;
         if (inIndex >= 0) {
           ByteBuffer input;
@@ -258,15 +261,10 @@ public abstract class BaseDecoder {
             input = codec.getInputBuffers()[inIndex];
           }
           if (input == null) continue;
-          sampleSize = extractor.readSampleData(input, 0);
+          int sampleSize = extractor.readSampleData(input, 0);
 
           long ts = System.nanoTime() / 1000 - startTs;
-          long extractorTs = extractor.getSampleTime();
-          accumulativeTs += extractorTs - lastExtractorTs;
-          lastExtractorTs = extractor.getSampleTime();
-
-          if (accumulativeTs > ts) sleepTime = (accumulativeTs - ts) / 1000;
-          else sleepTime = 0;
+          sleepTime = extractor.getSleepTime(1f, renderTime) / 1000;
 
           if (sampleSize < 0) {
             if (!loopMode) {
@@ -274,7 +272,6 @@ public abstract class BaseDecoder {
             }
           } else {
             codec.queueInputBuffer(inIndex, 0, sampleSize, ts + sleepTime, 0);
-            extractor.advance();
           }
         }
         int outIndex = codec.dequeueOutputBuffer(bufferInfo, 10000);
@@ -288,7 +285,7 @@ public abstract class BaseDecoder {
           }
           boolean render = decodeOutput(output, timeStamp);
           codec.releaseOutputBuffer(outIndex, render && bufferInfo.size != 0);
-          boolean finished = extractor.getSampleTime() < 0;
+          boolean finished = extractor.isLastFrame();
           if (finished) {
             if (loopMode) {
               moveTo(0);
@@ -298,6 +295,7 @@ public abstract class BaseDecoder {
               finished();
             }
           }
+          renderTime = System.nanoTime() / 1000 - timeStamp;
         }
       }
     }
