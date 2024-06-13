@@ -81,13 +81,15 @@ class FromFileActivity : AppCompatActivity(), ConnectChecker,
   private lateinit var tvFileName: TextView
   private lateinit var openGlView: OpenGlView
 
-  private var filePath: Uri? = null
+  private var filePath: MutableList<Uri> = mutableListOf()
   private var recordPath = ""
   private var touching = false
 
   private val activityResult = registerForActivityResult(ActivityResultContracts.GetContent()) { uri ->
-    filePath = uri
-    tvFileName.text = (uri?.path ?: "").split("/").last()
+    uri?.let {
+      filePath.add(uri)
+      tvFileName.text = (uri.path ?: "").split("/").last()
+    }
   }
 
   override fun onCreate(savedInstanceState: Bundle?) {
@@ -210,9 +212,10 @@ class FromFileActivity : AppCompatActivity(), ConnectChecker,
 
   @Throws(IOException::class)
   private fun prepare(): Boolean {
-    if (filePath == null) return false
+    if (filePath.isEmpty()) return false
     var result = genericFromFile.prepareVideo(applicationContext, filePath)
     result = result or genericFromFile.prepareAudio(applicationContext, filePath)
+    filePath.clear()
     return result
   }
 

@@ -38,12 +38,11 @@ class MultiMediaExtractor {
 
   private val mediaExtractors = mutableListOf<MediaExtractor>()
   private var currentExtractor = 0
-  private var timeBefore = 0L
-  private var timeAfter = 0L
-  private var currentTime = 0L
   var mediaFormat: MediaFormat? = null
     private set
   private var totalDuration = 0L
+  private var accumulativeSampleTime = 0L
+  private var sampleTime = 0L
 
   @Throws(IOException::class)
   fun setDataSource(path: List<String>) {
@@ -102,52 +101,59 @@ class MultiMediaExtractor {
   }
 
   @Throws(IOException::class)
-  fun setDataSource6(context: Context, uris: List<Uri>, headers: List<Map<String, String>?>) {
+  fun setDataSource6(context: Context, uris: List<Uri>, headers: List<Map<String, String>?>?) {
     uris.forEachIndexed { index, uri ->
       val mediaExtractor = MediaExtractor()
-      mediaExtractor.setDataSource(context, uri, headers[index])
+      mediaExtractor.setDataSource(context, uri, headers?.get(index))
       mediaExtractors.add(mediaExtractor)
     }
   }
 
   fun readSampleData(buffer: ByteBuffer, offset: Int): Int {
-    timeBefore = mediaExtractors[currentExtractor].sampleTime
     val result = mediaExtractors[currentExtractor].readSampleData(buffer, offset)
-    if (currentExtractor < mediaExtractors.size - 1 && result < 0) {
+    val time = mediaExtractors[currentExtractor].sampleTime
+    if (currentExtractor < mediaExtractors.size - 1 && (result < 0 || time < 0)) {
       currentExtractor++
       mediaExtractors[currentExtractor].seekTo(0, MediaExtractor.SEEK_TO_CLOSEST_SYNC)
       return readSampleData(buffer, offset)
     }
+    sampleTime = time + accumulativeSampleTime
     mediaExtractors[currentExtractor].advance()
-    timeAfter = mediaExtractors[currentExtractor].sampleTime
     return result
   }
 
   fun seekTo(time: Long, mode: Int = MediaExtractor.SEEK_TO_CLOSEST_SYNC) {
-    mediaExtractors[currentExtractor].seekTo(time, mode)
+    if (time == 0L) {
+      currentExtractor = 0
+      accumulativeSampleTime = 0L
+      sampleTime = 0L
+      mediaExtractors.forEach { it.seekTo(0, MediaExtractor.SEEK_TO_CLOSEST_SYNC) }
+    } else {
+      mediaExtractors[currentExtractor].seekTo(time, mode)
+    }
   }
 
-
-  fun getSleepTime(speed: Float = 1f, loopTime: Float): Long {
-    val time = ((timeAfter - timeBefore - loopTime) / speed).toLong()
-    currentTime += time
-    return max(0, time)
+  fun getSampleTime(): Long {
+    return sampleTime
   }
 
   fun isLastFrame(): Boolean {
     return currentExtractor == mediaExtractors.size - 1 && mediaExtractors[currentExtractor].sampleTime < 0
   }
 
-  fun getTime(): Long {
-    return currentTime
+  fun shouldReset(lastTs: Long): Boolean {
+    val result = mediaExtractors[currentExtractor].sampleTime < 0
+    if (result) accumulativeSampleTime += lastTs
+    return result
   }
 
   fun release() {
     mediaExtractors.forEach { it.release() }
     mediaExtractors.clear()
     mediaFormat = null
-    currentTime = 0L
     totalDuration = 0L
+    accumulativeSampleTime = 0L
+    sampleTime = 0L
   }
 
   fun selectTrack(type: String) {

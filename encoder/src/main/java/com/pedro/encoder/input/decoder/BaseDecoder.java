@@ -65,6 +65,12 @@ public abstract class BaseDecoder {
     this.decoderInterface = decoderInterface;
   }
 
+  public boolean initExtractor(List<String> filePath) throws IOException {
+    extractor = new MultiMediaExtractor();
+    extractor.setDataSource(filePath);
+    return extract(extractor);
+  }
+
   public boolean initExtractor(String filePath) throws IOException {
     extractor = new MultiMediaExtractor();
     extractor.setDataSource(List.of(filePath));
@@ -112,6 +118,13 @@ public abstract class BaseDecoder {
     List<Map<String, String>> h = new ArrayList<>();
     h.add(headers);
     extractor.setDataSource6(context, List.of(uri), h);
+    return extract(extractor);
+  }
+
+  public boolean initExtractor(Context context, List<Uri> uri, List<Map<String, String>> headers)
+      throws IOException {
+    extractor = new MultiMediaExtractor();
+    extractor.setDataSource6(context, uri, headers);
     return extract(extractor);
   }
 
@@ -220,7 +233,8 @@ public abstract class BaseDecoder {
 
   public double getTime() {
     if (running) {
-      return extractor.getTime() / 10E5;
+      long ts = System.nanoTime() / 1000 - startTs;
+      return ts / 10E5;
     } else {
       return 0;
     }
@@ -238,7 +252,7 @@ public abstract class BaseDecoder {
       startTs = System.nanoTime() / 1000;
     }
     long sleepTime = 0;
-    long renderTime = 0;
+    long accumulativeTs = 0;
     while (running) {
       synchronized (sync) {
         if (pause.get()) continue;
@@ -251,6 +265,7 @@ public abstract class BaseDecoder {
             looped = false;
           }
         }
+        extractor.shouldReset(lastExtractorTs + sleepTime);
         int inIndex = codec.dequeueInputBuffer(10000);
         long timeStamp = System.nanoTime() / 1000;
         if (inIndex >= 0) {
@@ -264,7 +279,12 @@ public abstract class BaseDecoder {
           int sampleSize = extractor.readSampleData(input, 0);
 
           long ts = System.nanoTime() / 1000 - startTs;
-          sleepTime = extractor.getSleepTime(1f, renderTime) / 1000;
+          long extractorTs = extractor.getSampleTime();
+          accumulativeTs += extractorTs - lastExtractorTs;
+          lastExtractorTs = extractorTs;
+
+          if (accumulativeTs > ts) sleepTime = (accumulativeTs - ts) / 1000;
+          else sleepTime = 0;
 
           if (sampleSize < 0) {
             if (!loopMode) {
@@ -295,7 +315,6 @@ public abstract class BaseDecoder {
               finished();
             }
           }
-          renderTime = System.nanoTime() / 1000 - timeStamp;
         }
       }
     }

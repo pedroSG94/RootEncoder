@@ -56,6 +56,7 @@ import com.pedro.library.view.OpenGlView;
 import java.io.FileDescriptor;
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.util.List;
 
 /**
  * Wrapper to stream a MP4 file with H264 video codec. Only Video is streamed, no Audio.
@@ -167,6 +168,12 @@ public abstract class FromFileBase {
     return finishPrepareVideo(bitRate, rotation, profile, level);
   }
 
+  public boolean prepareVideo(Context context, List<Uri> uri, int bitRate, int rotation, int profile,
+                              int level) throws IOException {
+    if (!videoDecoder.initExtractor(context, uri, null)) return false;
+    return finishPrepareVideo(bitRate, rotation, profile, level);
+  }
+
   public boolean prepareVideo(String filePath, int bitRate, int rotation) throws IOException {
     return prepareVideo(filePath, bitRate, rotation, -1, -1);
   }
@@ -183,7 +190,15 @@ public abstract class FromFileBase {
     return prepareVideo(context, uri, bitRate, rotation, -1, -1);
   }
 
+  public boolean prepareVideo(Context context, List<Uri> uri, int bitRate, int rotation) throws IOException {
+    return prepareVideo(context, uri, bitRate, rotation, -1, -1);
+  }
+
   public boolean prepareVideo(Context context, Uri uri) throws IOException {
+    return prepareVideo(context, uri, 1200 * 1024, 0);
+  }
+
+  public boolean prepareVideo(Context context, List<Uri> uri) throws IOException {
     return prepareVideo(context, uri, 1200 * 1024, 0);
   }
 
@@ -232,6 +247,11 @@ public abstract class FromFileBase {
    * @throws IOException Normally file not found.
    */
   public boolean prepareAudio(Context context, Uri uri, int bitRate) throws IOException {
+    if (!audioDecoder.initExtractor(context, uri, null)) return false;
+    return finishPrepareAudio(bitRate);
+  }
+
+  public boolean prepareAudio(Context context, List<Uri> uri, int bitRate) throws IOException {
     if (!audioDecoder.initExtractor(context, uri, null)) return false;
     return finishPrepareAudio(bitRate);
   }
@@ -287,6 +307,10 @@ public abstract class FromFileBase {
   }
 
   public boolean prepareAudio(Context context, Uri uri) throws IOException {
+    return prepareAudio(context, uri, 64 * 1024);
+  }
+
+  public boolean prepareAudio(Context context, List<Uri> uri) throws IOException {
     return prepareAudio(context, uri, 64 * 1024);
   }
 
