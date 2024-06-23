@@ -17,6 +17,7 @@
 package com.pedro.streamer.rotation
 
 import android.graphics.BitmapFactory
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.view.Menu
@@ -24,11 +25,14 @@ import android.view.MenuItem
 import android.view.MotionEvent
 import android.view.View
 import android.view.View.OnTouchListener
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import com.pedro.library.util.sources.audio.MicrophoneSource
+import com.pedro.library.util.sources.audio.MultiAudioFileSource
 import com.pedro.library.util.sources.video.Camera1Source
 import com.pedro.library.util.sources.video.Camera2Source
+import com.pedro.library.util.sources.video.MultiVideoFileSource
 import com.pedro.streamer.R
 import com.pedro.streamer.utils.FilterMenu
 import com.pedro.streamer.utils.setColor
@@ -67,6 +71,11 @@ class RotationActivity : AppCompatActivity(), OnTouchListener {
     return true
   }
 
+  private val files = mutableListOf<Uri>()
+  private val activityResult = registerForActivityResult(ActivityResultContracts.GetContent()) { uri ->
+    uri?.let { files.add(uri) }
+  }
+
   override fun onOptionsItemSelected(item: MenuItem): Boolean {
     try {
       when (item.itemId) {
@@ -79,13 +88,20 @@ class RotationActivity : AppCompatActivity(), OnTouchListener {
           cameraFragment.genericStream.changeVideoSource(Camera2Source(applicationContext))
         }
         R.id.video_source_camerax -> {
-          currentVideoSource = updateMenuColor(currentVideoSource, item)
-          cameraFragment.genericStream.changeVideoSource(CameraXSource(applicationContext))
+          activityResult.launch("*/*")
+
+//          currentVideoSource = updateMenuColor(currentVideoSource, item)
+//          cameraFragment.genericStream.changeVideoSource(CameraXSource(applicationContext))
         }
         R.id.video_source_bitmap -> {
-          currentVideoSource = updateMenuColor(currentVideoSource, item)
-          val bitmap = BitmapFactory.decodeResource(resources, R.mipmap.ic_launcher)
-          cameraFragment.genericStream.changeVideoSource(BitmapSource(bitmap))
+          val multiVideoFileSource = MultiVideoFileSource(applicationContext, files)
+          val multiAudioFileSource = MultiAudioFileSource(applicationContext, files)
+          cameraFragment.genericStream.changeVideoSource(multiVideoFileSource)
+          cameraFragment.genericStream.changeAudioSource(multiAudioFileSource)
+
+//          currentVideoSource = updateMenuColor(currentVideoSource, item)
+//          val bitmap = BitmapFactory.decodeResource(resources, R.mipmap.ic_launcher)
+//          cameraFragment.genericStream.changeVideoSource(BitmapSource(bitmap))
         }
         R.id.audio_source_microphone -> {
           currentAudioSource = updateMenuColor(currentAudioSource, item)
@@ -124,5 +140,10 @@ class RotationActivity : AppCompatActivity(), OnTouchListener {
     currentItem?.setColor(this, R.color.black)
     item.setColor(this, R.color.appColor)
     return item
+  }
+
+  override fun onDestroy() {
+    super.onDestroy()
+    activityResult.unregister()
   }
 }
