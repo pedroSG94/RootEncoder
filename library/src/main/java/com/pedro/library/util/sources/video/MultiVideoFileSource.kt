@@ -30,7 +30,8 @@ import com.pedro.encoder.input.decoder.VideoDecoderInterface
  */
 class MultiVideoFileSource(
   private val context: Context,
-  private val path: List<Uri>
+  private val path: List<Uri>,
+  private var loopMode: Boolean = false
 ): VideoSource() {
 
   private var running = false
@@ -39,15 +40,16 @@ class MultiVideoFileSource(
 
   private val videoDecoderInterface = VideoDecoderInterface {
     decoders[currentDecoder].stop()
+    if (!loopMode && currentDecoder == decoders.size - 1) {
+      return@VideoDecoderInterface
+    }
     currentDecoder = if (currentDecoder == decoders.size - 1) 0 else currentDecoder + 1
     decoders[currentDecoder].initExtractor(context, path[currentDecoder], null)
     decoders[currentDecoder].prepareVideo(Surface(surfaceTexture))
     decoders[currentDecoder].start()
   }
   private val decoderInterface: DecoderInterface = object: DecoderInterface {
-    override fun onLoop() {
-
-    }
+    override fun onLoop() { }
   }
 
   override fun create(width: Int, height: Int, fps: Int, rotation: Int): Boolean {
@@ -85,8 +87,30 @@ class MultiVideoFileSource(
   }
 
   override fun release() {
-    currentDecoder = 0
+    if (running) stop()
   }
 
   override fun isRunning(): Boolean = running
+
+  fun moveTo(time: Double, fileIndex: Int = currentDecoder) {
+    decoders[fileIndex].moveTo(time)
+  }
+
+  fun getCurrentUsedFile() = currentDecoder
+
+  fun getDuration(fileIndex: Int = currentDecoder) = decoders[fileIndex].duration
+
+  fun getTime(fileIndex: Int = currentDecoder) = decoders[fileIndex].time
+
+  fun setLoopMode(enabled: Boolean) {
+    this.loopMode = enabled
+  }
+
+  fun pauseRender() {
+    decoders[currentDecoder].pauseRender()
+  }
+
+  fun resumeRender() {
+    decoders[currentDecoder].resumeRender()
+  }
 }

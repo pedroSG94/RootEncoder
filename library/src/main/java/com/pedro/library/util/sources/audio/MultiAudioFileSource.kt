@@ -17,6 +17,9 @@
 package com.pedro.library.util.sources.audio
 
 import android.content.Context
+import android.media.AudioFormat
+import android.media.AudioManager
+import android.media.AudioTrack
 import android.net.Uri
 import com.pedro.encoder.Frame
 import com.pedro.encoder.input.audio.GetMicrophoneData
@@ -30,15 +33,21 @@ import com.pedro.encoder.input.decoder.DecoderInterface
  */
 class MultiAudioFileSource(
   private val context: Context,
-  private val path: List<Uri>
+  private val path: List<Uri>,
+  private var loopMode: Boolean = false
 ): AudioSource(), GetMicrophoneData {
 
   private var running = false
   private var currentDecoder = 0
   private val decoders = mutableListOf<AudioDecoder>()
+  private var muted = false
+  private var audioTrackPlayer: AudioTrack? = null
 
-  private val videoDecoderInterface = AudioDecoderInterface {
+  private val audioDecoderInterface = AudioDecoderInterface {
     decoders[currentDecoder].stop()
+    if (!loopMode && currentDecoder == decoders.size - 1) {
+      return@AudioDecoderInterface
+    }
     currentDecoder = if (currentDecoder == decoders.size - 1) 0 else currentDecoder + 1
     decoders[currentDecoder].initExtractor(context, path[currentDecoder], null)
     decoders[currentDecoder].prepareAudio()
@@ -56,7 +65,7 @@ class MultiAudioFileSource(
   ): Boolean {
     if (path.isEmpty()) throw IllegalArgumentException("empty list of files is not allowed")
     path.forEach {
-      val decoder = AudioDecoder(this, videoDecoderInterface, decoderInterface)
+      val decoder = AudioDecoder(this, audioDecoderInterface, decoderInterface)
       val result = decoder.initExtractor(context, it, null)
       if (!result) {
         throw IllegalArgumentException("Audio file track not found")
@@ -90,12 +99,64 @@ class MultiAudioFileSource(
   override fun isRunning(): Boolean = running
 
   override fun release() {
-    currentDecoder = 0
+    if (running) stop()
   }
 
   override fun getMaxInputSize(): Int = decoders[0].size
   override fun setMaxInputSize(size: Int) { }
   override fun inputPCMData(frame: Frame) {
+    audioTrackPlayer?.write(frame.buffer, frame.offset, frame.size)
     getMicrophoneData?.inputPCMData(frame)
+  }
+
+  fun moveTo(time: Double, fileIndex: Int = currentDecoder) {
+    decoders[fileIndex].moveTo(time)
+  }
+
+  fun getCurrentUsedFile() = currentDecoder
+
+  fun getDuration(fileIndex: Int = currentDecoder) = decoders[fileIndex].duration
+
+  fun getTime(fileIndex: Int = currentDecoder) = decoders[fileIndex].time
+
+  fun setLoopMode(enabled: Boolean) {
+    this.loopMode = enabled
+  }
+
+  fun isMuted(): Boolean = muted
+
+  fun mute() {
+    decoders.forEach { it.mute() }
+    muted = true
+  }
+
+  fun unMute() {
+    decoders.forEach { it.unMute() }
+    muted = false
+  }
+
+  fun playAudioDevice() {
+    if (isAudioDeviceEnabled()) {
+      audioTrackPlayer?.stop()
+      audioTrackPlayer = null
+    }
+    val channel = if (isStereo) AudioFormat.CHANNEL_OUT_STEREO else AudioFormat.CHANNEL_OUT_MONO
+    val buffSize = AudioTrack.getMinBufferSize(sampleRate, channel, AudioFormat.ENCODING_PCM_16BIT)
+    audioTrackPlayer = AudioTrack(
+        AudioManager.STREAM_MUSIC, sampleRate, channel,
+        AudioFormat.ENCODING_PCM_16BIT, buffSize, AudioTrack.MODE_STREAM
+    )
+    audioTrackPlayer?.play()
+  }
+
+  fun stopAudioDevice() {
+    if (isAudioDeviceEnabled()) {
+      audioTrackPlayer?.stop()
+      audioTrackPlayer = null
+    }
+  }
+
+  fun isAudioDeviceEnabled(): Boolean {
+    return (audioTrackPlayer != null && audioTrackPlayer?.playState == AudioTrack.PLAYSTATE_PLAYING)
   }
 }
