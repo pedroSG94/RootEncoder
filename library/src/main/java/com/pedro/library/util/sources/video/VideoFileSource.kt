@@ -29,11 +29,14 @@ import com.pedro.encoder.input.decoder.VideoDecoder
 class VideoFileSource(
   private val context: Context,
   private val path: Uri,
-  loopMode: Boolean = true
+  loopMode: Boolean = true,
+  onFinish: () -> Unit = {}
 ): VideoSource() {
 
   private var running = false
-  private val videoDecoder = VideoDecoder({  }, object: DecoderInterface {
+  private val videoDecoder = VideoDecoder({
+    onFinish()
+  }, object: DecoderInterface {
     override fun onLoop() {
 
     }

@@ -16,7 +16,6 @@
 
 package com.pedro.streamer.rotation
 
-import android.graphics.BitmapFactory
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
@@ -81,6 +80,25 @@ class RotationActivity : AppCompatActivity(), OnTouchListener {
     uri?.let { files.add(uri) }
   }
 
+  private val finished: () -> Unit = {
+    index += 1
+    if (index >= files.size) index = 0
+    test()
+  }
+
+  private var index = 0
+
+  private fun test() {
+    val audioFileSource = AudioFileSource(applicationContext, files[index], loopMode = false, onFinish = finished)
+    val videoFileSource = VideoFileSource(applicationContext, files[index], loopMode = false, onFinish = finished)
+    cameraFragment.genericStream.changeVideoSource(videoFileSource)
+    cameraFragment.genericStream.changeAudioSource(audioFileSource)
+    Handler(Looper.getMainLooper()).postDelayed({
+      audioFileSource.playAudioDevice()
+      audioFileSource.moveTo(videoFileSource.getTime())
+    }, 3000)
+  }
+
   override fun onOptionsItemSelected(item: MenuItem): Boolean {
     try {
       when (item.itemId) {
@@ -99,21 +117,7 @@ class RotationActivity : AppCompatActivity(), OnTouchListener {
 //          cameraFragment.genericStream.changeVideoSource(CameraXSource(applicationContext))
         }
         R.id.video_source_bitmap -> {
-          val multiVideoFileSource = MultiVideoFileSource(applicationContext, files)
-          val multiAudioFileSource = MultiAudioFileSource(applicationContext, files)
-//          val multiAudioFileSource = AudioFileSource(applicationContext, files[0])
-//          val multiVideoFileSource = VideoFileSource(applicationContext, files[0])
-          cameraFragment.genericStream.changeVideoSource(multiVideoFileSource)
-          cameraFragment.genericStream.changeAudioSource(multiAudioFileSource)
-
-          Handler(Looper.getMainLooper()).postDelayed({
-            multiAudioFileSource.playAudioDevice()
-            multiAudioFileSource.moveTo(multiVideoFileSource.getTime())
-          }, 3000)
-
-//          currentVideoSource = updateMenuColor(currentVideoSource, item)
-//          val bitmap = BitmapFactory.decodeResource(resources, R.mipmap.ic_launcher)
-//          cameraFragment.genericStream.changeVideoSource(BitmapSource(bitmap))
+          test()
         }
         R.id.audio_source_microphone -> {
           currentAudioSource = updateMenuColor(currentAudioSource, item)

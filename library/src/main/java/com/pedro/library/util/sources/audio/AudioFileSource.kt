@@ -32,16 +32,20 @@ import com.pedro.encoder.input.decoder.DecoderInterface
 class AudioFileSource(
   private val context: Context,
   private val path: Uri,
-  loopMode: Boolean = true
+  loopMode: Boolean = true,
+  onFinish: () -> Unit = {}
 ): AudioSource(), GetMicrophoneData {
 
   private var running = false
-  private val audioDecoder = AudioDecoder(this, {}, object: DecoderInterface {
+  private val audioDecoder = AudioDecoder(this, {
+    onFinish()
+  }, object: DecoderInterface {
     override fun onLoop() {
 
     }
   })
   private var audioTrackPlayer: AudioTrack? = null
+  private var playingAudio = false
 
   init {
     setLoopMode(loopMode)
@@ -67,6 +71,10 @@ class AudioFileSource(
     audioDecoder.prepareAudio()
     audioDecoder.start()
     running = true
+    if (playingAudio) {
+      stopAudioDevice()
+      playAudioDevice()
+    }
   }
 
   override fun stop() {
@@ -112,6 +120,8 @@ class AudioFileSource(
   }
 
   fun playAudioDevice() {
+    playingAudio = true
+    if (!running) return
     if (isAudioDeviceEnabled()) {
       audioTrackPlayer?.stop()
       audioTrackPlayer = null
@@ -126,6 +136,7 @@ class AudioFileSource(
   }
 
   fun stopAudioDevice() {
+    playingAudio = false
     if (isAudioDeviceEnabled()) {
       audioTrackPlayer?.stop()
       audioTrackPlayer = null
