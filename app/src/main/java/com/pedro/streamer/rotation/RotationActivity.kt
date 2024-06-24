@@ -20,6 +20,9 @@ import android.graphics.BitmapFactory
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
+import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import android.view.MotionEvent
@@ -28,11 +31,13 @@ import android.view.View.OnTouchListener
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
+import com.pedro.library.util.sources.audio.AudioFileSource
 import com.pedro.library.util.sources.audio.MicrophoneSource
 import com.pedro.library.util.sources.audio.MultiAudioFileSource
 import com.pedro.library.util.sources.video.Camera1Source
 import com.pedro.library.util.sources.video.Camera2Source
 import com.pedro.library.util.sources.video.MultiVideoFileSource
+import com.pedro.library.util.sources.video.VideoFileSource
 import com.pedro.streamer.R
 import com.pedro.streamer.utils.FilterMenu
 import com.pedro.streamer.utils.setColor
@@ -94,10 +99,16 @@ class RotationActivity : AppCompatActivity(), OnTouchListener {
 //          cameraFragment.genericStream.changeVideoSource(CameraXSource(applicationContext))
         }
         R.id.video_source_bitmap -> {
-          val multiVideoFileSource = MultiVideoFileSource(applicationContext, files)
-          val multiAudioFileSource = MultiAudioFileSource(applicationContext, files)
+//          val multiVideoFileSource = MultiVideoFileSource(applicationContext, files)
+//          val multiAudioFileSource = MultiAudioFileSource(applicationContext, files)
+          val multiAudioFileSource = AudioFileSource(applicationContext, files[0])
+          val multiVideoFileSource = VideoFileSource(applicationContext, files[0])
           cameraFragment.genericStream.changeVideoSource(multiVideoFileSource)
           cameraFragment.genericStream.changeAudioSource(multiAudioFileSource)
+
+          Handler(Looper.getMainLooper()).postDelayed({
+            multiAudioFileSource.playAudioDevice()
+          }, 3000)
 
 //          currentVideoSource = updateMenuColor(currentVideoSource, item)
 //          val bitmap = BitmapFactory.decodeResource(resources, R.mipmap.ic_launcher)
@@ -122,6 +133,7 @@ class RotationActivity : AppCompatActivity(), OnTouchListener {
         }
       }
     } catch (e: IllegalArgumentException) {
+      Log.e("Pedro", "error", e)
       toast("Change source error: ${e.message}")
     }
     return super.onOptionsItemSelected(item)

@@ -74,6 +74,12 @@ class MultiAudioFileSource(
     }
     val mySampleRate = decoders[0].sampleRate
     val myIsStereo = decoders[0].isStereo
+    if (mySampleRate != sampleRate) {
+      throw IllegalArgumentException("Audio file sample rate ($mySampleRate) is different than the configured: $sampleRate")
+    }
+    if (myIsStereo != isStereo) {
+      throw IllegalArgumentException("Audio file isStereo ($myIsStereo) is different than the configured: $isStereo")
+    }
     decoders.forEach {
       if (mySampleRate != it.sampleRate || myIsStereo != it.isStereo) {
         throw IllegalArgumentException("All audio files must contain the same sampleRate and channels")
@@ -156,7 +162,5 @@ class MultiAudioFileSource(
     }
   }
 
-  fun isAudioDeviceEnabled(): Boolean {
-    return (audioTrackPlayer != null && audioTrackPlayer?.playState == AudioTrack.PLAYSTATE_PLAYING)
-  }
+  fun isAudioDeviceEnabled(): Boolean = audioTrackPlayer?.playState == AudioTrack.PLAYSTATE_PLAYING
 }
