@@ -99,15 +99,16 @@ class RotationActivity : AppCompatActivity(), OnTouchListener {
 //          cameraFragment.genericStream.changeVideoSource(CameraXSource(applicationContext))
         }
         R.id.video_source_bitmap -> {
-//          val multiVideoFileSource = MultiVideoFileSource(applicationContext, files)
-//          val multiAudioFileSource = MultiAudioFileSource(applicationContext, files)
-          val multiAudioFileSource = AudioFileSource(applicationContext, files[0])
-          val multiVideoFileSource = VideoFileSource(applicationContext, files[0])
+          val multiVideoFileSource = MultiVideoFileSource(applicationContext, files)
+          val multiAudioFileSource = MultiAudioFileSource(applicationContext, files)
+//          val multiAudioFileSource = AudioFileSource(applicationContext, files[0])
+//          val multiVideoFileSource = VideoFileSource(applicationContext, files[0])
           cameraFragment.genericStream.changeVideoSource(multiVideoFileSource)
           cameraFragment.genericStream.changeAudioSource(multiAudioFileSource)
 
           Handler(Looper.getMainLooper()).postDelayed({
             multiAudioFileSource.playAudioDevice()
+            multiAudioFileSource.moveTo(multiVideoFileSource.getTime())
           }, 3000)
 
 //          currentVideoSource = updateMenuColor(currentVideoSource, item)

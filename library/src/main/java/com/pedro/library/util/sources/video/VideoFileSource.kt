@@ -62,7 +62,9 @@ class VideoFileSource(
     videoDecoder.stop()
   }
 
-  override fun release() {}
+  override fun release() {
+    if (running) stop()
+  }
 
   override fun isRunning(): Boolean = running
 

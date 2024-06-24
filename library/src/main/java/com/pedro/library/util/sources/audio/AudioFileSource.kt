@@ -36,7 +36,7 @@ class AudioFileSource(
 ): AudioSource(), GetMicrophoneData {
 
   private var running = false
-  private val audioDecoder = AudioDecoder(null, {}, object: DecoderInterface {
+  private val audioDecoder = AudioDecoder(this, {}, object: DecoderInterface {
     override fun onLoop() {
 
     }
@@ -64,7 +64,6 @@ class AudioFileSource(
 
   override fun start(getMicrophoneData: GetMicrophoneData) {
     this.getMicrophoneData = getMicrophoneData
-    audioDecoder.setGetMicrophoneData(getMicrophoneData)
     audioDecoder.prepareAudio()
     audioDecoder.start()
     running = true
@@ -77,7 +76,9 @@ class AudioFileSource(
 
   override fun isRunning(): Boolean = running
 
-  override fun release() {}
+  override fun release() {
+    if (running) stop()
+  }
 
   override fun getMaxInputSize(): Int = audioDecoder.size
 
