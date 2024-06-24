@@ -31,7 +31,7 @@ import com.pedro.encoder.input.decoder.VideoDecoderInterface
 class MultiVideoFileSource(
   private val context: Context,
   private val path: List<Uri>,
-  private var loopMode: Boolean = false
+  private var loopMode: Boolean = true
 ): VideoSource() {
 
   private var running = false
