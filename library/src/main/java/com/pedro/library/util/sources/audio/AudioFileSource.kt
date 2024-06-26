@@ -35,16 +35,24 @@ class AudioFileSource(
   private val path: Uri,
   loopMode: Boolean = true,
   onFinish: (isLoop: Boolean) -> Unit = {}
-): AudioSource(), GetMicrophoneData {
+): AudioSource() {
 
-  private var running = false
-  private val audioDecoder = AudioDecoder(this, {
+  private val getMicrophoneDataCallback = object: GetMicrophoneData {
+    override fun inputPCMData(frame: Frame) {
+      audioTrackPlayer?.write(frame.buffer, frame.offset, frame.size)
+      getMicrophoneData?.inputPCMData(frame)
+    }
+  }
+  private val audioDecoderInterface: () -> Unit = {
     onFinish(false)
-  }, object: DecoderInterface {
+  }
+  private val decoderInterface = object: DecoderInterface {
     override fun onLoop() {
       onFinish(true)
     }
-  })
+  }
+  private var running = false
+  private var audioDecoder = AudioDecoder(getMicrophoneDataCallback, audioDecoderInterface, decoderInterface)
   private var audioTrackPlayer: AudioTrack? = null
   private var playingAudio = false
 
@@ -93,11 +101,6 @@ class AudioFileSource(
 
   override fun setMaxInputSize(size: Int) { }
 
-  override fun inputPCMData(frame: Frame) {
-    audioTrackPlayer?.write(frame.buffer, frame.offset, frame.size)
-    getMicrophoneData?.inputPCMData(frame)
-  }
-
   fun mute() {
     audioDecoder.mute()
   }
@@ -125,10 +128,12 @@ class AudioFileSource(
     val sampleRate = audioDecoder.sampleRate
     val isStereo = audioDecoder.isStereo
     val wasRunning = audioDecoder.isRunning
-    audioDecoder.stop()
+    val audioDecoder = AudioDecoder(getMicrophoneData, audioDecoderInterface, decoderInterface)
     if (!audioDecoder.initExtractor(context, uri, null)) throw IOException("Extraction failed")
     if (sampleRate != audioDecoder.sampleRate) throw IOException("SampleRate must be the same that the previous file")
     if (isStereo != audioDecoder.isStereo) throw IOException("Channels must be the same that the previous file")
+    this.audioDecoder.stop()
+    this.audioDecoder = audioDecoder
     if (wasRunning) {
       audioDecoder.prepareAudio()
       audioDecoder.start()

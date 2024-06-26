@@ -34,14 +34,16 @@ class VideoFileSource(
   onFinish: (isLoop: Boolean) -> Unit = {}
 ): VideoSource() {
 
-  private var running = false
-  private val videoDecoder = VideoDecoder({
+  private val videoDecoderInterface: () -> Unit = {
     onFinish(false)
-  }, object: DecoderInterface {
+  }
+  private val decoderInterface = object: DecoderInterface {
     override fun onLoop() {
       onFinish(true)
     }
-  })
+  }
+  private var running = false
+  private var videoDecoder = VideoDecoder(videoDecoderInterface, decoderInterface)
 
   init {
     setLoopMode(loopMode)
@@ -90,9 +92,11 @@ class VideoFileSource(
     val width = videoDecoder.width
     val height = videoDecoder.height
     val wasRunning = videoDecoder.isRunning
-    videoDecoder.stop()
+    val videoDecoder = VideoDecoder(videoDecoderInterface, decoderInterface)
     if (!videoDecoder.initExtractor(context, uri, null)) throw IOException("Extraction failed")
     if (width != videoDecoder.width || height != videoDecoder.height) throw IOException("Resolution must be the same that the previous file")
+    this.videoDecoder.stop()
+    this.videoDecoder = videoDecoder
     if (wasRunning) {
       videoDecoder.prepareVideo(Surface(surfaceTexture))
       videoDecoder.start()

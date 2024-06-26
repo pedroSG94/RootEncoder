@@ -37,6 +37,7 @@ import com.pedro.encoder.audio.GetAacData;
 import com.pedro.encoder.input.audio.GetMicrophoneData;
 import com.pedro.encoder.input.decoder.AudioDecoder;
 import com.pedro.encoder.input.decoder.AudioDecoderInterface;
+import com.pedro.encoder.input.decoder.BaseDecoder;
 import com.pedro.encoder.input.decoder.DecoderInterface;
 import com.pedro.encoder.input.decoder.VideoDecoder;
 import com.pedro.encoder.input.decoder.VideoDecoderInterface;
@@ -48,6 +49,7 @@ import com.pedro.library.base.recording.BaseRecordController;
 import com.pedro.library.base.recording.RecordController;
 import com.pedro.library.util.AndroidMuxerRecordController;
 import com.pedro.library.util.FpsListener;
+import com.pedro.library.util.IORunnable;
 import com.pedro.library.util.streamclient.StreamBaseClient;
 import com.pedro.library.view.GlInterface;
 import com.pedro.library.view.GlStreamInterface;
@@ -85,6 +87,8 @@ public abstract class FromFileBase {
   protected boolean videoEnabled = false;
   private boolean audioEnabled = false;
   private AudioTrack audioTrackPlayer;
+  private VideoDecoderInterface videoDecoderInterface;
+  private AudioDecoderInterface audioDecoderInterface;
 
   public FromFileBase(VideoDecoderInterface videoDecoderInterface,
       AudioDecoderInterface audioDecoderInterface) {
@@ -108,6 +112,8 @@ public abstract class FromFileBase {
 
   private void init(VideoDecoderInterface videoDecoderInterface,
       AudioDecoderInterface audioDecoderInterface) {
+    this.videoDecoderInterface = videoDecoderInterface;
+    this.audioDecoderInterface = audioDecoderInterface;
     videoEncoder = new VideoEncoder(getVideoData);
     audioEncoder = new AudioEncoder(getAacData);
     videoDecoder = new VideoDecoder(videoDecoderInterface, decoderInterface);
@@ -425,7 +431,7 @@ public abstract class FromFileBase {
       glInterface.setRotation(0);
       glInterface.start();
       if (videoEncoder.getInputSurface() != null) {
-        videoDecoder.changeOutputSurface(this.glInterface.getSurface());
+        videoDecoder.changeOutputSurface(glInterface.getSurface());
         glInterface.addMediaCodecSurface(videoEncoder.getInputSurface());
       }
     }
@@ -598,72 +604,66 @@ public abstract class FromFileBase {
   }
 
   public void replaceAudioFile(String filePath) throws IOException {
-    int sampleRate = audioDecoder.getSampleRate();
-    boolean isStereo = audioDecoder.isStereo();
-    boolean wasRunning = audioDecoder.isRunning();
-    audioDecoder.stop();
-    if (!audioDecoder.initExtractor(filePath)) throw new IOException("Extraction failed");
-    if (sampleRate != audioDecoder.getSampleRate()) throw new IOException("SampleRate must be the same that the previous file");
-    if (isStereo != audioDecoder.isStereo()) throw new IOException("Channels must be the same that the previous file");
-    audioDecoder.prepareAudio();
-    if (wasRunning) audioDecoder.start();
+    resetAudioDecoder((BaseDecoder decoder) -> {
+      if (!decoder.initExtractor(filePath)) throw new IOException("Extraction failed");
+    });
   }
 
   public void replaceAudioFile(Context context, Uri uri) throws IOException {
-    int sampleRate = audioDecoder.getSampleRate();
-    boolean isStereo = audioDecoder.isStereo();
-    boolean wasRunning = audioDecoder.isRunning();
-    audioDecoder.stop();
-    if (!audioDecoder.initExtractor(context, uri, null)) throw new IOException("Extraction failed");
-    if (sampleRate != audioDecoder.getSampleRate()) throw new IOException("SampleRate must be the same that the previous file");
-    if (isStereo != audioDecoder.isStereo()) throw new IOException("Channels must be the same that the previous file");
-    audioDecoder.prepareAudio();
-    if (wasRunning) audioDecoder.start();
+    resetAudioDecoder((BaseDecoder decoder) -> {
+      if (!decoder.initExtractor(context, uri, null)) throw new IOException("Extraction failed");
+    });
   }
 
   public void replaceAudioFile(FileDescriptor fileDescriptor) throws IOException {
-    int sampleRate = audioDecoder.getSampleRate();
-    boolean isStereo = audioDecoder.isStereo();
-    boolean wasRunning = audioDecoder.isRunning();
-    audioDecoder.stop();
-    if (!audioDecoder.initExtractor(fileDescriptor)) throw new IOException("Extraction failed");
-    if (sampleRate != audioDecoder.getSampleRate()) throw new IOException("SampleRate must be the same that the previous file");
-    if (isStereo != audioDecoder.isStereo()) throw new IOException("Channels must be the same that the previous file");
-    audioDecoder.prepareAudio();
-    if (wasRunning) audioDecoder.start();
+    resetAudioDecoder((BaseDecoder decoder) -> {
+      if (!decoder.initExtractor(fileDescriptor)) throw new IOException("Extraction failed");
+    });
   }
 
   public void replaceVideoFile(String filePath) throws IOException {
-    int width = videoDecoder.getWidth();
-    int height = videoDecoder.getHeight();
-    boolean wasRunning = videoDecoder.isRunning();
-    videoDecoder.stop();
-    if (!videoDecoder.initExtractor(filePath)) throw new IOException("Extraction failed");
-    if (width != videoDecoder.getWidth() || height != videoDecoder.getHeight()) throw new IOException("Resolution must be the same that the previous file");
-    videoDecoder.prepareVideo(videoEncoder.getInputSurface());
-    if (wasRunning) videoDecoder.start();
+    resetVideoDecoder((BaseDecoder decoder) -> {
+      if (!decoder.initExtractor(filePath)) throw new IOException("Extraction failed");
+    });
   }
 
   public void replaceVideoFile(Context context, Uri uri) throws IOException {
-    int width = videoDecoder.getWidth();
-    int height = videoDecoder.getHeight();
-    boolean wasRunning = videoDecoder.isRunning();
-    videoDecoder.stop();
-    if (!videoDecoder.initExtractor(context, uri, null)) throw new IOException("Extraction failed");
-    if (width != videoDecoder.getWidth() || height != videoDecoder.getHeight()) throw new IOException("Resolution must be the same that the previous file");
-    videoDecoder.prepareVideo(videoEncoder.getInputSurface());
-    if (wasRunning) videoDecoder.start();
+    resetVideoDecoder((BaseDecoder decoder) -> {
+      if (!decoder.initExtractor(context, uri, null)) throw new IOException("Extraction failed");
+    });
   }
 
   public void replaceVideoFile(FileDescriptor fileDescriptor) throws IOException {
+    resetVideoDecoder((BaseDecoder decoder) -> {
+      if (!decoder.initExtractor(fileDescriptor)) throw new IOException("Extraction failed");
+    });
+  }
+
+  private void resetVideoDecoder(IORunnable runnable) throws IOException {
     int width = videoDecoder.getWidth();
     int height = videoDecoder.getHeight();
     boolean wasRunning = videoDecoder.isRunning();
-    videoDecoder.stop();
-    if (!videoDecoder.initExtractor(fileDescriptor)) throw new IOException("Extraction failed");
+    VideoDecoder videoDecoder = new VideoDecoder(videoDecoderInterface, decoderInterface);
+    runnable.run(videoDecoder);
     if (width != videoDecoder.getWidth() || height != videoDecoder.getHeight()) throw new IOException("Resolution must be the same that the previous file");
-    videoDecoder.prepareVideo(videoEncoder.getInputSurface());
+    this.videoDecoder.stop();
+    this.videoDecoder = videoDecoder;
+    videoDecoder.prepareVideo(glInterface.getSurface());
     if (wasRunning) videoDecoder.start();
+  }
+
+  private void resetAudioDecoder(IORunnable runnable) throws IOException {
+    int sampleRate = audioDecoder.getSampleRate();
+    boolean isStereo = audioDecoder.isStereo();
+    boolean wasRunning = audioDecoder.isRunning();
+    AudioDecoder audioDecoder = new AudioDecoder(getMicrophoneData, audioDecoderInterface, decoderInterface);
+    runnable.run(audioDecoder);
+    if (sampleRate != audioDecoder.getSampleRate()) throw new IOException("SampleRate must be the same that the previous file");
+    if (isStereo != audioDecoder.isStereo()) throw new IOException("Channels must be the same that the previous file");
+    this.audioDecoder.stop();
+    this.audioDecoder = audioDecoder;
+    audioDecoder.prepareAudio();
+    if (wasRunning) audioDecoder.start();
   }
 
   /**
