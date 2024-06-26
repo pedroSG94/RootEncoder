@@ -40,20 +40,8 @@ https://github.com/pedroSG94/RootEncoder/wiki
 
 To use this library in your project with gradle add this to your build.gradle:
 
-### Version 2.2.6 or less
-
-```gradle
-allprojects {
-  repositories {
-    maven { url 'https://jitpack.io' }
-  }
-}
-dependencies {
-  implementation 'com.github.pedroSG94.RootEncoder:rtplibrary:2.2.6'
-}
-```
-
-### Version 2.2.7 or more
+<details open>
+<summary>Last version</summary>
 
 ```gradle
 allprojects {
@@ -66,6 +54,24 @@ dependencies {
 }
 
 ```
+
+</details>
+
+<details close>
+<summary>Old versions (2.2.6 or less)</summary>
+
+```gradle
+allprojects {
+  repositories {
+    maven { url 'https://jitpack.io' }
+  }
+}
+dependencies {
+  implementation 'com.github.pedroSG94.RootEncoder:rtplibrary:2.2.6'
+}
+```
+
+</details>
 
 ## Features:
 

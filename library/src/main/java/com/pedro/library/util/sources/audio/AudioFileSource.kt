@@ -17,6 +17,9 @@
 package com.pedro.library.util.sources.audio
 
 import android.content.Context
+import android.media.AudioFormat
+import android.media.AudioManager
+import android.media.AudioTrack
 import android.net.Uri
 import com.pedro.encoder.Frame
 import com.pedro.encoder.input.audio.GetMicrophoneData
@@ -28,15 +31,25 @@ import com.pedro.encoder.input.decoder.DecoderInterface
  */
 class AudioFileSource(
   private val context: Context,
-  private val path: Uri
+  private val path: Uri,
+  loopMode: Boolean = true,
+  onFinish: (isLoop: Boolean) -> Unit = {}
 ): AudioSource(), GetMicrophoneData {
 
   private var running = false
-  private val audioDecoder = AudioDecoder(null, {}, object: DecoderInterface {
+  private val audioDecoder = AudioDecoder(this, {
+    onFinish(false)
+  }, object: DecoderInterface {
     override fun onLoop() {
-
+      onFinish(true)
     }
-  }).apply { isLoopMode = true }
+  })
+  private var audioTrackPlayer: AudioTrack? = null
+  private var playingAudio = false
+
+  init {
+    setLoopMode(loopMode)
+  }
 
   override fun create(sampleRate: Int, isStereo: Boolean, echoCanceler: Boolean, noiseSuppressor: Boolean): Boolean {
     //create extractor to confirm valid parameters
@@ -55,10 +68,13 @@ class AudioFileSource(
 
   override fun start(getMicrophoneData: GetMicrophoneData) {
     this.getMicrophoneData = getMicrophoneData
-    audioDecoder.setGetMicrophoneData(getMicrophoneData)
     audioDecoder.prepareAudio()
     audioDecoder.start()
     running = true
+    if (playingAudio) {
+      stopAudioDevice()
+      playAudioDevice()
+    }
   }
 
   override fun stop() {
@@ -68,13 +84,16 @@ class AudioFileSource(
 
   override fun isRunning(): Boolean = running
 
-  override fun release() {}
+  override fun release() {
+    if (running) stop()
+  }
 
   override fun getMaxInputSize(): Int = audioDecoder.size
 
   override fun setMaxInputSize(size: Int) { }
 
   override fun inputPCMData(frame: Frame) {
+    audioTrackPlayer?.write(frame.buffer, frame.offset, frame.size)
     getMicrophoneData?.inputPCMData(frame)
   }
 
@@ -91,4 +110,38 @@ class AudioFileSource(
   fun moveTo(time: Double) {
     audioDecoder.moveTo(time)
   }
+
+  fun getDuration() = audioDecoder.duration
+
+  fun getTime() = audioDecoder.time
+
+  fun setLoopMode(enabled: Boolean) {
+    audioDecoder.isLoopMode = enabled
+  }
+
+  fun playAudioDevice() {
+    playingAudio = true
+    if (!running) return
+    if (isAudioDeviceEnabled()) {
+      audioTrackPlayer?.stop()
+      audioTrackPlayer = null
+    }
+    val channel = if (isStereo) AudioFormat.CHANNEL_OUT_STEREO else AudioFormat.CHANNEL_OUT_MONO
+    val buffSize = AudioTrack.getMinBufferSize(sampleRate, channel, AudioFormat.ENCODING_PCM_16BIT)
+    audioTrackPlayer = AudioTrack(
+      AudioManager.STREAM_MUSIC, sampleRate, channel,
+      AudioFormat.ENCODING_PCM_16BIT, buffSize, AudioTrack.MODE_STREAM
+    )
+    audioTrackPlayer?.play()
+  }
+
+  fun stopAudioDevice() {
+    playingAudio = false
+    if (isAudioDeviceEnabled()) {
+      audioTrackPlayer?.stop()
+      audioTrackPlayer = null
+    }
+  }
+
+  fun isAudioDeviceEnabled(): Boolean = audioTrackPlayer?.playState == AudioTrack.PLAYSTATE_PLAYING
 }

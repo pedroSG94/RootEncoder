@@ -30,8 +30,10 @@ import com.pedro.encoder.input.audio.MicrophoneManager
 /**
  * Created by pedro on 12/1/24.
  */
+typealias InternalSource = InternalAudioSource
+
 @RequiresApi(Build.VERSION_CODES.Q)
-class InternalSource(private val mediaProjection: MediaProjection): AudioSource(), GetMicrophoneData {
+class InternalAudioSource(private val mediaProjection: MediaProjection): AudioSource(), GetMicrophoneData {
 
   private val microphone = MicrophoneManager(this)
   private val handlerThread = HandlerThread("InternalSource")

@@ -28,15 +28,23 @@ import com.pedro.encoder.input.decoder.VideoDecoder
  */
 class VideoFileSource(
   private val context: Context,
-  private val path: Uri
+  private val path: Uri,
+  loopMode: Boolean = true,
+  onFinish: (isLoop: Boolean) -> Unit = {}
 ): VideoSource() {
 
   private var running = false
-  private val videoDecoder = VideoDecoder({  }, object: DecoderInterface {
+  private val videoDecoder = VideoDecoder({
+    onFinish(false)
+  }, object: DecoderInterface {
     override fun onLoop() {
-
+      onFinish(true)
     }
-  }).apply { isLoopMode = true }
+  })
+
+  init {
+    setLoopMode(loopMode)
+  }
 
   override fun create(width: Int, height: Int, fps: Int, rotation: Int): Boolean {
     val result = videoDecoder.initExtractor(context, path, null)
@@ -57,11 +65,21 @@ class VideoFileSource(
     videoDecoder.stop()
   }
 
-  override fun release() {}
+  override fun release() {
+    if (running) stop()
+  }
 
   override fun isRunning(): Boolean = running
 
   fun moveTo(time: Double) {
     videoDecoder.moveTo(time)
+  }
+
+  fun getDuration() = videoDecoder.duration
+
+  fun getTime() = videoDecoder.time
+
+  fun setLoopMode(enabled: Boolean) {
+    videoDecoder.isLoopMode = enabled
   }
 }

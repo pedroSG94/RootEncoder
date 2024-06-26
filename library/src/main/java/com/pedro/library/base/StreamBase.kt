@@ -235,6 +235,20 @@ abstract class StreamBase(
   }
 
   /**
+   * Pause record. Ignored if you are not recording.
+   */
+  fun pauseRecord() {
+    recordController.pauseRecord()
+  }
+
+  /**
+   * Resume record. Ignored if you are not recording and in pause mode.
+   */
+  fun resumeRecord() {
+    recordController.resumeRecord()
+  }
+
+  /**
    * Start preview in the selected TextureView.
    * Must be called after prepareVideo.
    */
