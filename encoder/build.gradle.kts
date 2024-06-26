@@ -1,12 +1,8 @@
-val libraryGroup: String by rootProject.extra
-val vName: String by rootProject.extra
-val junitVersion: String by rootProject.extra
-
 plugins {
-  id("com.android.library")
-  id("org.jetbrains.kotlin.android")
-  id("maven-publish")
-  id("org.jetbrains.dokka")
+  alias(libs.plugins.android.library)
+  alias(libs.plugins.jetbrains.kotlin)
+  id(libs.plugins.maven.publish.get().pluginId)
+  alias(libs.plugins.jetbrains.dokka)
 }
 
 android {
@@ -44,16 +40,16 @@ afterEvaluate {
         from(components["release"])
 
         // You can then customize attributes of the publication as shown below.
-        groupId = libraryGroup
+        groupId = libs.versions.libraryGroup.get()
         artifactId = "encoder"
-        version = vName
+        version = libs.versions.versionName.get()
       }
     }
   }
 }
 
 dependencies {
-  testImplementation("junit:junit:$junitVersion")
-  api("androidx.annotation:annotation:1.8.0")
+  testImplementation(libs.junit)
+  api(libs.androidx.annotation)
   api(project(":common"))
 }

@@ -1,14 +1,8 @@
-val libraryGroup: String by rootProject.extra
-val vName: String by rootProject.extra
-val coroutinesVersion: String by rootProject.extra
-val junitVersion: String by rootProject.extra
-val mockitoVersion: String by rootProject.extra
-
 plugins {
-    id("com.android.library")
-    id("org.jetbrains.kotlin.android")
-    id("maven-publish")
-    id("org.jetbrains.dokka")
+    alias(libs.plugins.android.library)
+    alias(libs.plugins.jetbrains.kotlin)
+    id(libs.plugins.maven.publish.get().pluginId)
+    alias(libs.plugins.jetbrains.dokka)
 }
 
 android {
@@ -46,18 +40,18 @@ afterEvaluate {
                 from(components["release"])
 
                 // You can then customize attributes of the publication as shown below.
-                groupId = libraryGroup
+                groupId = libs.versions.libraryGroup.get()
                 artifactId = "srt"
-                version = vName
+                version = libs.versions.versionName.get()
             }
         }
     }
 }
 
 dependencies {
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:$coroutinesVersion")
-    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:$coroutinesVersion")
-    testImplementation("junit:junit:$junitVersion")
-    testImplementation("org.mockito.kotlin:mockito-kotlin:$mockitoVersion")
+    implementation(libs.kotlinx.coroutines.android)
+    testImplementation(libs.kotlinx.coroutines.test)
+    testImplementation(libs.junit)
+    testImplementation(libs.mockito.kotlin)
     api(project(":common"))
 }
