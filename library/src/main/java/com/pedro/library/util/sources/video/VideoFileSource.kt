@@ -22,6 +22,7 @@ import android.net.Uri
 import android.view.Surface
 import com.pedro.encoder.input.decoder.DecoderInterface
 import com.pedro.encoder.input.decoder.VideoDecoder
+import java.io.IOException
 
 /**
  * Created by pedro on 2/3/24.
@@ -55,6 +56,7 @@ class VideoFileSource(
   }
 
   override fun start(surfaceTexture: SurfaceTexture) {
+    this.surfaceTexture = surfaceTexture
     videoDecoder.prepareVideo(Surface(surfaceTexture))
     videoDecoder.start()
     running = true
@@ -81,5 +83,19 @@ class VideoFileSource(
 
   fun setLoopMode(enabled: Boolean) {
     videoDecoder.isLoopMode = enabled
+  }
+
+  @Throws(IOException::class)
+  fun replaceFile(context: Context, uri: Uri) {
+    val width = videoDecoder.width
+    val height = videoDecoder.height
+    val wasRunning = videoDecoder.isRunning
+    videoDecoder.stop()
+    if (!videoDecoder.initExtractor(context, uri, null)) throw IOException("Extraction failed")
+    if (width != videoDecoder.width || height != videoDecoder.height) throw IOException("Resolution must be the same that the previous file")
+    if (wasRunning) {
+      videoDecoder.prepareVideo(Surface(surfaceTexture))
+      videoDecoder.start()
+    }
   }
 }

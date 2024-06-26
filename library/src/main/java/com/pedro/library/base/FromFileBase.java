@@ -597,6 +597,75 @@ public abstract class FromFileBase {
     return audioDecoder.getDuration();
   }
 
+  public void replaceAudioFile(String filePath) throws IOException {
+    int sampleRate = audioDecoder.getSampleRate();
+    boolean isStereo = audioDecoder.isStereo();
+    boolean wasRunning = audioDecoder.isRunning();
+    audioDecoder.stop();
+    if (!audioDecoder.initExtractor(filePath)) throw new IOException("Extraction failed");
+    if (sampleRate != audioDecoder.getSampleRate()) throw new IOException("SampleRate must be the same that the previous file");
+    if (isStereo != audioDecoder.isStereo()) throw new IOException("Channels must be the same that the previous file");
+    audioDecoder.prepareAudio();
+    if (wasRunning) audioDecoder.start();
+  }
+
+  public void replaceAudioFile(Context context, Uri uri) throws IOException {
+    int sampleRate = audioDecoder.getSampleRate();
+    boolean isStereo = audioDecoder.isStereo();
+    boolean wasRunning = audioDecoder.isRunning();
+    audioDecoder.stop();
+    if (!audioDecoder.initExtractor(context, uri, null)) throw new IOException("Extraction failed");
+    if (sampleRate != audioDecoder.getSampleRate()) throw new IOException("SampleRate must be the same that the previous file");
+    if (isStereo != audioDecoder.isStereo()) throw new IOException("Channels must be the same that the previous file");
+    audioDecoder.prepareAudio();
+    if (wasRunning) audioDecoder.start();
+  }
+
+  public void replaceAudioFile(FileDescriptor fileDescriptor) throws IOException {
+    int sampleRate = audioDecoder.getSampleRate();
+    boolean isStereo = audioDecoder.isStereo();
+    boolean wasRunning = audioDecoder.isRunning();
+    audioDecoder.stop();
+    if (!audioDecoder.initExtractor(fileDescriptor)) throw new IOException("Extraction failed");
+    if (sampleRate != audioDecoder.getSampleRate()) throw new IOException("SampleRate must be the same that the previous file");
+    if (isStereo != audioDecoder.isStereo()) throw new IOException("Channels must be the same that the previous file");
+    audioDecoder.prepareAudio();
+    if (wasRunning) audioDecoder.start();
+  }
+
+  public void replaceVideoFile(String filePath) throws IOException {
+    int width = videoDecoder.getWidth();
+    int height = videoDecoder.getHeight();
+    boolean wasRunning = videoDecoder.isRunning();
+    videoDecoder.stop();
+    if (!videoDecoder.initExtractor(filePath)) throw new IOException("Extraction failed");
+    if (width != videoDecoder.getWidth() || height != videoDecoder.getHeight()) throw new IOException("Resolution must be the same that the previous file");
+    videoDecoder.prepareVideo(videoEncoder.getInputSurface());
+    if (wasRunning) videoDecoder.start();
+  }
+
+  public void replaceVideoFile(Context context, Uri uri) throws IOException {
+    int width = videoDecoder.getWidth();
+    int height = videoDecoder.getHeight();
+    boolean wasRunning = videoDecoder.isRunning();
+    videoDecoder.stop();
+    if (!videoDecoder.initExtractor(context, uri, null)) throw new IOException("Extraction failed");
+    if (width != videoDecoder.getWidth() || height != videoDecoder.getHeight()) throw new IOException("Resolution must be the same that the previous file");
+    videoDecoder.prepareVideo(videoEncoder.getInputSurface());
+    if (wasRunning) videoDecoder.start();
+  }
+
+  public void replaceVideoFile(FileDescriptor fileDescriptor) throws IOException {
+    int width = videoDecoder.getWidth();
+    int height = videoDecoder.getHeight();
+    boolean wasRunning = videoDecoder.isRunning();
+    videoDecoder.stop();
+    if (!videoDecoder.initExtractor(fileDescriptor)) throw new IOException("Extraction failed");
+    if (width != videoDecoder.getWidth() || height != videoDecoder.getHeight()) throw new IOException("Resolution must be the same that the previous file");
+    videoDecoder.prepareVideo(videoEncoder.getInputSurface());
+    if (wasRunning) videoDecoder.start();
+  }
+
   /**
    * Working but it is too slow. You need wait few seconds after call it to continue :(
    *

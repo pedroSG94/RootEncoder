@@ -221,6 +221,10 @@ public abstract class BaseDecoder {
     }
   }
 
+  public boolean isRunning() {
+    return running;
+  }
+
   protected abstract boolean extract(MediaExtractor extractor);
 
   protected abstract boolean decodeOutput(ByteBuffer outputBuffer, long timeStamp);

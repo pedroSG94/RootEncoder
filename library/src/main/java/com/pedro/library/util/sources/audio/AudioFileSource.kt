@@ -25,6 +25,7 @@ import com.pedro.encoder.Frame
 import com.pedro.encoder.input.audio.GetMicrophoneData
 import com.pedro.encoder.input.decoder.AudioDecoder
 import com.pedro.encoder.input.decoder.DecoderInterface
+import java.io.IOException
 
 /**
  * Created by pedro on 12/1/24.
@@ -117,6 +118,21 @@ class AudioFileSource(
 
   fun setLoopMode(enabled: Boolean) {
     audioDecoder.isLoopMode = enabled
+  }
+
+  @Throws(IOException::class)
+  fun replaceFile(context: Context, uri: Uri) {
+    val sampleRate = audioDecoder.sampleRate
+    val isStereo = audioDecoder.isStereo
+    val wasRunning = audioDecoder.isRunning
+    audioDecoder.stop()
+    if (!audioDecoder.initExtractor(context, uri, null)) throw IOException("Extraction failed")
+    if (sampleRate != audioDecoder.sampleRate) throw IOException("SampleRate must be the same that the previous file")
+    if (isStereo != audioDecoder.isStereo) throw IOException("Channels must be the same that the previous file")
+    if (wasRunning) {
+      audioDecoder.prepareAudio()
+      audioDecoder.start()
+    }
   }
 
   fun playAudioDevice() {
