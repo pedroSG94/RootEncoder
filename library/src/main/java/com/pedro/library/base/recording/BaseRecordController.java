@@ -43,6 +43,7 @@ public abstract class BaseRecordController implements RecordController {
     protected boolean isOnlyAudio = false;
     protected boolean isOnlyVideo = false;
     protected BitrateManager bitrateManager;
+    protected long startTs = 0;
 
     public void setVideoCodec(VideoCodec videoCodec) {
         this.videoCodec = videoCodec;
@@ -101,10 +102,11 @@ public abstract class BaseRecordController implements RecordController {
 
     //We can't reuse info because could produce stream issues
     protected void updateFormat(MediaCodec.BufferInfo newInfo, MediaCodec.BufferInfo oldInfo) {
+        if (startTs <= 0) startTs = oldInfo.presentationTimeUs;
         newInfo.flags = oldInfo.flags;
         newInfo.offset = oldInfo.offset;
         newInfo.size = oldInfo.size;
-        newInfo.presentationTimeUs = oldInfo.presentationTimeUs - pauseTime;
+        newInfo.presentationTimeUs = oldInfo.presentationTimeUs - startTs - pauseTime;
     }
 
     public void setVideoFormat(MediaFormat videoFormat) {
