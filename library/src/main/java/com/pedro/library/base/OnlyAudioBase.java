@@ -241,7 +241,8 @@ public abstract class OnlyAudioBase {
   }
 
   private void startEncoders() {
-    audioEncoder.start();
+    long startTs = System.nanoTime() / 1000;
+    audioEncoder.start(startTs);
     microphoneManager.start();
   }
 

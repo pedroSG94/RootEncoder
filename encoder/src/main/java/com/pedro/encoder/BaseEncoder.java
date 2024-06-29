@@ -45,7 +45,7 @@ public abstract class BaseEncoder implements EncoderCallback {
   private HandlerThread handlerThread;
   protected BlockingQueue<Frame> queue = new ArrayBlockingQueue<>(80);
   protected MediaCodec codec;
-  protected static long presentTimeUs;
+  protected long presentTimeUs;
   protected volatile boolean running = false;
   protected boolean isBufferMode = true;
   protected CodecUtil.CodecType codecType = CodecUtil.CodecType.FIRST_COMPATIBLE_FOUND;
@@ -74,13 +74,15 @@ public abstract class BaseEncoder implements EncoderCallback {
     initCodec();
   }
 
-  public void start() {
+  public void start(long startTs) {
     if (!prepared) throw new IllegalStateException(TAG + " not prepared yet. You must call prepare method before start it");
-    if (presentTimeUs == 0) {
-      presentTimeUs = System.nanoTime() / 1000;
-    }
+    presentTimeUs = startTs;
     start(true);
     initCodec();
+  }
+
+  public void start() {
+    start(System.nanoTime() / 1000);
   }
 
   protected void setCallback() {

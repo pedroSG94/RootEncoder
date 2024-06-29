@@ -390,8 +390,9 @@ abstract class StreamBase(
       videoSource.start(glInterface.surfaceTexture)
     }
     audioSource.start(getMicrophoneData)
-    videoEncoder.start()
-    audioEncoder.start()
+    val startTs = System.nanoTime() / 1000
+    videoEncoder.start(startTs)
+    audioEncoder.start(startTs)
     glInterface.addMediaCodecSurface(videoEncoder.inputSurface)
   }
 
