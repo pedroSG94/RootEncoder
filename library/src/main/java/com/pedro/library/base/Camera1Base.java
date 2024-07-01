@@ -679,8 +679,9 @@ public abstract class Camera1Base {
   }
 
   private void startEncoders() {
-    videoEncoder.start();
-    if (audioInitialized) audioEncoder.start();
+    long startTs = System.nanoTime() / 1000;
+    videoEncoder.start(startTs);
+    if (audioInitialized) audioEncoder.start(startTs);
     prepareGlView(videoEncoder.getWidth(), videoEncoder.getHeight(), videoEncoder.getRotation());
     if (audioInitialized) microphoneManager.start();
     cameraManager.setRotation(videoEncoder.getRotation());

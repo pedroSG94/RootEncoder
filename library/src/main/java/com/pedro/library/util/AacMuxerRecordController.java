@@ -96,6 +96,7 @@ public class AacMuxerRecordController extends BaseRecordController {
         pauseTime = 0;
         sampleRate = -1;
         channels = -1;
+        startTs = 0;
         if (listener != null) listener.onStatusChange(status);
     }
 

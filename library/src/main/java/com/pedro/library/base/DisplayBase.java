@@ -409,8 +409,9 @@ public abstract class DisplayBase {
     if (data == null) {
       throw new RuntimeException("You need send intent data before startRecord or startStream");
     }
-    videoEncoder.start();
-    if (audioInitialized) audioEncoder.start();
+    long startTs = System.nanoTime() / 1000;
+    videoEncoder.start(startTs);
+    if (audioInitialized) audioEncoder.start(startTs);
     if (glInterface != null) {
       glInterface.start();
       glInterface.addMediaCodecSurface(videoEncoder.getInputSurface());

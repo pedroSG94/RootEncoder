@@ -379,9 +379,10 @@ public abstract class FromFileBase {
   }
 
   private void startEncoders() {
-    if (videoEnabled) videoEncoder.start();
+    long startTs = System.nanoTime() / 1000;
+    if (videoEnabled) videoEncoder.start(startTs);
     if (audioTrackPlayer != null) audioTrackPlayer.play();
-    if (audioEnabled) audioEncoder.start();
+    if (audioEnabled) audioEncoder.start(startTs);
     if (videoEnabled) prepareGlView();
     if (videoEnabled) videoDecoder.start();
     if (audioEnabled) audioDecoder.start();

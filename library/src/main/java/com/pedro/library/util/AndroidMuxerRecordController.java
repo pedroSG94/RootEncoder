@@ -97,6 +97,7 @@ public class AndroidMuxerRecordController extends BaseRecordController {
     mediaMuxer = null;
     pauseMoment = 0;
     pauseTime = 0;
+    startTs = 0;
     if (listener != null) listener.onStatusChange(status);
   }
 
