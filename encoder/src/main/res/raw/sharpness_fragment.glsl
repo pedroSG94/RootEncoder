@@ -1,31 +1,17 @@
 precision mediump float;
 
 uniform sampler2D uSampler;
-uniform vec2 uStepSize;
+uniform vec2 uResolution;
 uniform float uSharpness;
 
 varying vec2 vTextureCoord;
 
 void main() {
-  vec3 nbr_color = vec3(0.0, 0.0, 0.0);
-  vec2 coord;
-  vec4 color = texture2D(uSampler, vTextureCoord);
+  vec4 up = texture2D(uSampler, (vTextureCoord + vec2(0, 1) / uResolution));
+  vec4 left = texture2D(uSampler, (vTextureCoord + vec2(-1, 0) / uResolution));
+  vec4 center = texture2D(uSampler, vTextureCoord);
+  vec4 right = texture2D(uSampler, (vTextureCoord + vec2(1, 0) / uResolution));
+  vec4 down = texture2D(uSampler, (vTextureCoord + vec2(0, -1) / uResolution));
 
-  coord.x = vTextureCoord.x - 0.5 * uStepSize.x;
-  coord.y = vTextureCoord.y - uStepSize.y;
-  nbr_color += texture2D(uSampler, coord).rgb - color.rgb;
-
-  coord.x = vTextureCoord.x - uStepSize.x;
-  coord.y = vTextureCoord.y + 0.5 * uStepSize.y;
-  nbr_color += texture2D(uSampler, coord).rgb - color.rgb;
-
-  coord.x = vTextureCoord.x + uStepSize.x;
-  coord.y = vTextureCoord.y - 0.5 * uStepSize.y;
-  nbr_color += texture2D(uSampler, coord).rgb - color.rgb;
-
-  coord.x = vTextureCoord.x + uStepSize.x;
-  coord.y = vTextureCoord.y + 0.5 * uStepSize.y;
-  nbr_color += texture2D(uSampler, coord).rgb - color.rgb;
-
-  gl_FragColor = vec4(color.rgb - 2.0 * uSharpness * nbr_color, color.a);
+  gl_FragColor = (1.0 + 4.0 * uSharpness) * center - uSharpness * (up + left + right + down);
 }
