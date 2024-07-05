@@ -149,6 +149,7 @@ class RtspSender(
   }
 
   fun start() {
+    bitrateManager.reset()
     queue.clear()
     val ssrcVideo = Random().nextInt().toLong()
     val ssrcAudio = Random().nextInt().toLong()

@@ -26,6 +26,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.EditText
 import android.widget.ImageView
+import android.widget.TextView
 import androidx.annotation.RequiresApi
 import androidx.fragment.app.Fragment
 import com.pedro.common.ConnectChecker
@@ -78,6 +79,7 @@ class CameraFragment: Fragment(), ConnectChecker {
   }
   private lateinit var surfaceView: SurfaceView
   private lateinit var bStartStop: ImageView
+  private lateinit var txtBitrate: TextView
   private val width = 640
   private val height = 480
   private val vBitrate = 1200 * 1000
@@ -96,6 +98,8 @@ class CameraFragment: Fragment(), ConnectChecker {
     val bRecord = view.findViewById<ImageView>(R.id.b_record)
     val bSwitchCamera = view.findViewById<ImageView>(R.id.switch_camera)
     val etUrl = view.findViewById<EditText>(R.id.et_rtp_url)
+
+    txtBitrate = view.findViewById(R.id.txt_bitrate)
 
     surfaceView = view.findViewById(R.id.surfaceView)
     (activity as? RotationActivity)?.let {
@@ -202,9 +206,12 @@ class CameraFragment: Fragment(), ConnectChecker {
     }
   }
 
-  override fun onNewBitrate(bitrate: Long) {}
+  override fun onNewBitrate(bitrate: Long) {
+    txtBitrate.text = String.format("%.1f mb/s", bitrate / 1000f / 1000f)
+  }
 
   override fun onDisconnect() {
+    txtBitrate.text = String()
     toast("Disconnected")
   }
 

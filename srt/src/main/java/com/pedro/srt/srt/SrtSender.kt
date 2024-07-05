@@ -145,6 +145,7 @@ class SrtSender(
   }
 
   fun start() {
+    bitrateManager.reset()
     queue.clear()
     setTrackConfig(!commandsManager.videoDisabled, !commandsManager.audioDisabled)
     running = true

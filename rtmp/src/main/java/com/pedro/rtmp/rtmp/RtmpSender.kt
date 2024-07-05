@@ -139,6 +139,7 @@ class RtmpSender(
   }
 
   fun start() {
+    bitrateManager.reset()
     queue.clear()
     running = true
     job = scope.launch {

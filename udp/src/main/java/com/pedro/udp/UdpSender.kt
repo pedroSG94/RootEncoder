@@ -145,6 +145,7 @@ class UdpSender(
   }
 
   fun start() {
+    bitrateManager.reset()
     queue.clear()
     setTrackConfig(!commandManager.videoDisabled, !commandManager.audioDisabled)
     running = true

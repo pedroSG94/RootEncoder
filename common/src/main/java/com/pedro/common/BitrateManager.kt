@@ -19,22 +19,33 @@ package com.pedro.common
 
 /**
  * Created by pedro on 8/04/21.
+ * Improved by perotom on 7/05/24.
  *
- * Calculate video and audio bitrate per second
+ * Calculate video and audio bitrate per second based on an exponential moving average.
  */
 open class BitrateManager(private val bitrateChecker: BitrateChecker) {
 
-  private var bitrate: Long = 0
+  private var bitrate = 0L
+  private var bitrateOld = 0L
+  private val exponentialFactor: Float = 0.5f
   private var timeStamp = TimeUtils.getCurrentTimeMillis()
 
   suspend fun calculateBitrate(size: Long) {
     bitrate += size
     val timeDiff = TimeUtils.getCurrentTimeMillis() - timeStamp
     if (timeDiff >= 1000) {
-      val value = (bitrate / (timeDiff / 1000f)).toLong()
-      onMainThread { bitrateChecker.onNewBitrate(value) }
+      val currentValue = (bitrate / (timeDiff / 1000f)).toLong()
+      if (bitrateOld == 0L) { bitrateOld = currentValue }
+      bitrateOld = (bitrateOld + exponentialFactor * (currentValue - bitrateOld)).toLong()
+      onMainThread { bitrateChecker.onNewBitrate(bitrateOld) }
       timeStamp = TimeUtils.getCurrentTimeMillis()
       bitrate = 0
     }
   }
+
+  fun reset() {
+    bitrate = 0
+    bitrateOld = 0
+  }
+
 }
