@@ -75,6 +75,7 @@ class CameraFragment: Fragment(), ConnectChecker {
   val genericStream: GenericStream by lazy {
     GenericStream(requireContext(), this).apply {
       getGlInterface().autoHandleOrientation = true
+      getStreamClient().setBitrateExponentialFactor(0.5f)
     }
   }
   private lateinit var surfaceView: SurfaceView
@@ -100,7 +101,6 @@ class CameraFragment: Fragment(), ConnectChecker {
     val etUrl = view.findViewById<EditText>(R.id.et_rtp_url)
 
     txtBitrate = view.findViewById(R.id.txt_bitrate)
-
     surfaceView = view.findViewById(R.id.surfaceView)
     (activity as? RotationActivity)?.let {
       surfaceView.setOnTouchListener(it)
@@ -207,7 +207,7 @@ class CameraFragment: Fragment(), ConnectChecker {
   }
 
   override fun onNewBitrate(bitrate: Long) {
-    txtBitrate.text = String.format("%.1f mb/s", bitrate / 1000f / 1000f)
+    txtBitrate.text = String.format(Locale.getDefault(), "%.1f mb/s", bitrate / 1000_000f)
   }
 
   override fun onDisconnect() {

@@ -264,4 +264,10 @@ class UdpSender(
   fun setLogs(enable: Boolean) {
     isEnableLogs = enable
   }
+
+  fun setBitrateExponentialFactor(factor: Float) {
+    bitrateManager.exponentialFactor = factor
+  }
+
+  fun getBitrateExponentialFactor() = bitrateManager.exponentialFactor
 }

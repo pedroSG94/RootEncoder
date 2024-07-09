@@ -27,7 +27,7 @@ open class BitrateManager(private val bitrateChecker: BitrateChecker) {
 
   private var bitrate = 0L
   private var bitrateOld = 0L
-  private val exponentialFactor: Float = 0.5f
+  var exponentialFactor: Float = 1f
   private var timeStamp = TimeUtils.getCurrentTimeMillis()
 
   suspend fun calculateBitrate(size: Long) {
@@ -47,5 +47,4 @@ open class BitrateManager(private val bitrateChecker: BitrateChecker) {
     bitrate = 0
     bitrateOld = 0
   }
-
 }

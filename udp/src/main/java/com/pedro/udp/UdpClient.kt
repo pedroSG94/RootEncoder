@@ -276,4 +276,17 @@ class UdpClient(private val connectChecker: ConnectChecker) {
   }
 
   fun getItemsInCache(): Int = udpSender.getItemsInCache()
+
+  /**
+   * @param factor values from 0.1f to 1f
+   * Set an exponential factor to the bitrate calculation to avoid bitrate spikes
+   */
+  fun setBitrateExponentialFactor(factor: Float) {
+    udpSender.setBitrateExponentialFactor(factor)
+  }
+
+  /**
+   * Get the exponential factor used to calculate the bitrate. Default 1f
+   */
+  fun getBitrateExponentialFactor() = udpSender.getBitrateExponentialFactor()
 }

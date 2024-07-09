@@ -59,4 +59,15 @@ abstract class StreamBaseClient {
   abstract fun resetDroppedVideoFrames()
   abstract fun setOnlyAudio(onlyAudio: Boolean)
   abstract fun setOnlyVideo(onlyVideo: Boolean)
+
+  /**
+   * @param factor values from 0.1f to 1f
+   * Set an exponential factor to the bitrate calculation to avoid bitrate spikes
+   */
+  abstract fun setBitrateExponentialFactor(factor: Float)
+
+  /**
+   * Get the exponential factor used to calculate the bitrate. Default 1f
+   */
+  abstract fun getBitrateExponentialFactor(): Float
 }

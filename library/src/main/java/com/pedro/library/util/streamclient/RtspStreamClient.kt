@@ -114,4 +114,17 @@ class RtspStreamClient(
   override fun setOnlyVideo(onlyVideo: Boolean) {
     rtspClient.setOnlyVideo(onlyVideo)
   }
+
+  /**
+   * @param factor values from 0.1f to 1f
+   * Set an exponential factor to the bitrate calculation to avoid bitrate spikes
+   */
+  override fun setBitrateExponentialFactor(factor: Float) {
+    rtspClient.setBitrateExponentialFactor(factor)
+  }
+
+  /**
+   * Get the exponential factor used to calculate the bitrate. Default 1f
+   */
+  override fun getBitrateExponentialFactor() = rtspClient.getBitrateExponentialFactor()
 }
