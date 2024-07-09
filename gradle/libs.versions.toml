@@ -1,7 +1,7 @@
 [versions]
 libraryGroup = "com.github.pedroSG94"
-versionCode = "245"
-versionName = "2.4.5"
+versionCode = "246"
+versionName = "2.4.6"
 
 #plugins versions
 agp = "8.5.0"
