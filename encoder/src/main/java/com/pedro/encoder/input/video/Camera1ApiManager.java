@@ -585,18 +585,16 @@ public class Camera1ApiManager implements Camera.PreviewCallback, Camera.FaceDet
     }
   }
   
-  private Camera.AutoFocusCallback autoFocusTakePictureCallback = new Camera.AutoFocusCallback() {
-    @Override
-    public void onAutoFocus(boolean success, Camera camera) {
-      if (success) {
-        Log.i(TAG, "tapToFocus success");
-      } else {
-        Log.e(TAG, "tapToFocus failed");
-      }
+  private final Camera.AutoFocusCallback autoFocusTakePictureCallback = (success, camera) -> {
+    if (success) {
+      Log.i(TAG, "tapToFocus success");
+    } else {
+      Log.e(TAG, "tapToFocus failed");
     }
   };
 
-  public void tapToFocus(View view, MotionEvent event) {
+  public boolean tapToFocus(View view, MotionEvent event) {
+    boolean result = false;
     if (camera != null && camera.getParameters() != null) {
       Camera.Parameters parameters = camera.getParameters();
       if (parameters.getMaxNumMeteringAreas() > 0) {
@@ -607,15 +605,19 @@ public class Camera1ApiManager implements Camera.PreviewCallback, Camera.FaceDet
         parameters.setFocusAreas(meteringAreas);
         try {
           camera.setParameters(parameters);
+          autoFocusEnabled = true;
+          result = true;
         }catch (Exception e) {
           Log.i(TAG, "tapToFocus error: " + e.getMessage());
         }
       }
       camera.autoFocus(autoFocusTakePictureCallback);
     }
+    return result;
   }
 
-  public void enableAutoFocus() {
+  public boolean enableAutoFocus() {
+    boolean result = false;
     if (camera != null) {
       Camera.Parameters parameters = camera.getParameters();
       List<String> supportedFocusModes = parameters.getSupportedFocusModes();
@@ -632,10 +634,13 @@ public class Camera1ApiManager implements Camera.PreviewCallback, Camera.FaceDet
         }
       }
       camera.setParameters(parameters);
+      result = autoFocusEnabled;
     }
+    return result;
   }
 
-  public void disableAutoFocus() {
+  public boolean disableAutoFocus() {
+    boolean result = false;
     if (camera != null) {
       Camera.Parameters parameters = camera.getParameters();
       List<String> supportedFocusModes = parameters.getSupportedFocusModes();
@@ -648,7 +653,9 @@ public class Camera1ApiManager implements Camera.PreviewCallback, Camera.FaceDet
       }
       autoFocusEnabled = false;
       camera.setParameters(parameters);
+      result = true;
     }
+    return result;
   }
 
   public boolean isAutoFocusEnabled() {

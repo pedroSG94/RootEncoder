@@ -278,12 +278,12 @@ public abstract class Camera2Base {
     return cameraManager.isLanternSupported();
   }
 
-  public void enableAutoFocus() {
-    cameraManager.enableAutoFocus();
+  public boolean enableAutoFocus() {
+    return cameraManager.enableAutoFocus();
   }
 
-  public void disableAutoFocus() {
-    cameraManager.disableAutoFocus();
+  public boolean disableAutoFocus() {
+    return cameraManager.disableAutoFocus();
   }
 
   public boolean isAutoFocusEnabled() {
@@ -904,8 +904,8 @@ public abstract class Camera2Base {
     return cameraManager.getMinExposure();
   }
 
-  public void tapToFocus(MotionEvent event) {
-    cameraManager.tapToFocus(event);
+  public boolean tapToFocus(MotionEvent event) {
+    return cameraManager.tapToFocus(event);
   }
 
   public GlInterface getGlInterface() {

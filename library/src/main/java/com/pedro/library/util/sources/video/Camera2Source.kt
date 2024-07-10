@@ -129,22 +129,22 @@ class Camera2Source(context: Context): VideoSource() {
     return if (isRunning()) camera.isLanternEnabled else false
   }
 
-  fun enableAutoFocus() {
-    if (isRunning()) {
-      camera.enableAutoFocus()
-    }
+  fun enableAutoFocus(): Boolean {
+    if (isRunning()) return camera.enableAutoFocus()
+    return false
   }
 
-  fun disableAutoFocus() {
-    if (isRunning()) camera.disableAutoFocus()
+  fun disableAutoFocus(): Boolean {
+    if (isRunning()) return camera.disableAutoFocus()
+    return false
   }
 
   fun isAutoFocusEnabled(): Boolean {
     return if (isRunning()) camera.isAutoFocusEnabled else false
   }
 
-  fun tapToFocus(event: MotionEvent) {
-    camera.tapToFocus(event)
+  fun tapToFocus(event: MotionEvent): Boolean {
+    return camera.tapToFocus(event)
   }
 
   fun setZoom(event: MotionEvent) {
