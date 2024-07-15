@@ -55,12 +55,13 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public class OpenGlView extends SurfaceView
     implements GlInterface, SurfaceTexture.OnFrameAvailableListener, SurfaceHolder.Callback {
 
-  private AtomicBoolean running = new AtomicBoolean(false);
+  private final AtomicBoolean running = new AtomicBoolean(false);
   private final MainRender mainRender = new MainRender();
   private final SurfaceManager surfaceManagerPhoto = new SurfaceManager();
   private final SurfaceManager surfaceManager = new SurfaceManager();
   private final SurfaceManager surfaceManagerEncoder = new SurfaceManager();
   private final BlockingQueue<Filter> filterQueue = new LinkedBlockingQueue<>();
+  private final LinkedBlockingQueue<Runnable> threadQueue = new LinkedBlockingQueue<>();
   private int previewWidth, previewHeight;
   private int encoderWidth, encoderHeight;
   private TakePhotoCallback takePhotoCallback;
@@ -290,6 +291,7 @@ public class OpenGlView extends SurfaceView
 
   @Override
   public void removeMediaCodecSurface() {
+    threadQueue.clear();
     ExecutorService executor = this.executor;
     if (executor == null) return;
     ExtensionsKt.secureSubmit(executor, () -> {
@@ -302,9 +304,8 @@ public class OpenGlView extends SurfaceView
 
   @Override
   public void start() {
-    executor = Executors.newSingleThreadExecutor();
+    executor = ExtensionsKt.newSingleThreadExecutor(threadQueue);
     ExecutorService executor = this.executor;
-    if (executor == null) return;
     ExtensionsKt.secureSubmit(executor, () -> {
       surfaceManager.release();
       surfaceManager.eglSetup(getHolder().getSurface());
@@ -327,6 +328,7 @@ public class OpenGlView extends SurfaceView
   @Override
   public void stop() {
     running.set(false);
+    threadQueue.clear();
     ExecutorService executor = this.executor;
     if (executor == null) return;
     ExtensionsKt.secureSubmit(executor, () -> {
@@ -335,10 +337,10 @@ public class OpenGlView extends SurfaceView
       surfaceManagerEncoder.release();
       surfaceManager.release();
       mainRender.release();
-      executor.shutdownNow();
-      this.executor = null;
       return null;
     });
+    executor.shutdownNow();
+    this.executor = null;
   }
 
   @Override

@@ -28,6 +28,9 @@ import java.security.MessageDigest
 import java.security.NoSuchAlgorithmException
 import java.util.concurrent.BlockingQueue
 import java.util.concurrent.ExecutorService
+import java.util.concurrent.LinkedBlockingQueue
+import java.util.concurrent.ThreadPoolExecutor
+import java.util.concurrent.TimeUnit
 import kotlin.coroutines.Continuation
 
 /**
@@ -85,8 +88,12 @@ fun ByteArray.bytesToHex(): String {
   return joinToString("") { "%02x".format(it) }
 }
 
-fun ExecutorService.secureSubmit(code: () -> Unit) {
-  try { submit { code() }.get() } catch (ignored: Exception) {}
+@JvmOverloads
+fun ExecutorService.secureSubmit(timeout: Long = 1000, code: () -> Unit) {
+  try {
+    if (isTerminated || isShutdown) return
+    submit { code() }.get(timeout, TimeUnit.MILLISECONDS)
+  } catch (ignored: Exception) {}
 }
 
 fun String.getMd5Hash(): String {
@@ -98,6 +105,10 @@ fun String.getMd5Hash(): String {
   } catch (ignore: UnsupportedEncodingException) {
   }
   return ""
+}
+
+fun newSingleThreadExecutor(queue: LinkedBlockingQueue<Runnable>): ExecutorService {
+  return ThreadPoolExecutor(1, 1, 0L, TimeUnit.MILLISECONDS, queue)
 }
 
 fun getSuspendContext(): Continuation<Unit> {

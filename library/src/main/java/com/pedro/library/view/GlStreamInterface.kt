@@ -23,6 +23,7 @@ import android.graphics.SurfaceTexture.OnFrameAvailableListener
 import android.os.Build
 import android.view.Surface
 import androidx.annotation.RequiresApi
+import com.pedro.common.newSingleThreadExecutor
 import com.pedro.common.secureSubmit
 import com.pedro.encoder.input.gl.FilterAction
 import com.pedro.encoder.input.gl.SurfaceManager
@@ -63,6 +64,7 @@ class GlStreamInterface(private val context: Context): OnFrameAvailableListener,
   private var isPortrait = false
   private var orientationForced = OrientationForced.NONE
   private val filterQueue: BlockingQueue<Filter> = LinkedBlockingQueue()
+  private val threadQueue = LinkedBlockingQueue<Runnable>()
   private var muteVideo = false
   private var isPreviewHorizontalFlip: Boolean = false
   private var isPreviewVerticalFlip = false
@@ -127,6 +129,7 @@ class GlStreamInterface(private val context: Context): OnFrameAvailableListener,
   }
 
   override fun removeMediaCodecSurface() {
+    threadQueue.clear()
     executor?.secureSubmit {
       surfaceManagerEncoder.release()
     }
@@ -137,7 +140,7 @@ class GlStreamInterface(private val context: Context): OnFrameAvailableListener,
   }
 
   override fun start() {
-    executor = Executors.newSingleThreadExecutor()
+    executor = newSingleThreadExecutor(threadQueue)
     executor?.secureSubmit {
       surfaceManager.release()
       surfaceManager.eglSetup()
@@ -154,6 +157,7 @@ class GlStreamInterface(private val context: Context): OnFrameAvailableListener,
 
   override fun stop() {
     running.set(false)
+    threadQueue.clear()
     executor?.secureSubmit {
       forceRender.stop()
       sensorRotationManager.stop()
@@ -161,9 +165,9 @@ class GlStreamInterface(private val context: Context): OnFrameAvailableListener,
       surfaceManagerEncoder.release()
       surfaceManager.release()
       mainRender.release()
-      executor?.shutdownNow()
-      executor = null
     }
+    executor?.shutdownNow()
+    executor = null
   }
 
   private fun draw(forced: Boolean) {
