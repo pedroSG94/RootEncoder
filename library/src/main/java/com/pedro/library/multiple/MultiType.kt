@@ -13,12 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-package com.pedro.library.multiple;
+package com.pedro.library.multiple
 
 /**
  * Created by pedro on 21/5/21.
  */
-public enum RtpType {
-  RTMP, RTSP
+enum class MultiType {
+    RTMP, RTSP
 }
