@@ -19,5 +19,5 @@ package com.pedro.library.multiple
  * Created by pedro on 21/5/21.
  */
 enum class MultiType {
-    RTMP, RTSP
+    RTMP, RTSP, SRT, UDP
 }

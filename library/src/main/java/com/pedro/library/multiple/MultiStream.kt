@@ -30,11 +30,15 @@ import com.pedro.library.util.sources.video.Camera2Source
 import com.pedro.library.util.sources.video.VideoSource
 import com.pedro.library.util.streamclient.RtmpStreamClient
 import com.pedro.library.util.streamclient.RtspStreamClient
+import com.pedro.library.util.streamclient.SrtStreamClient
 import com.pedro.library.util.streamclient.StreamBaseClient
 import com.pedro.library.util.streamclient.StreamClientListener
+import com.pedro.library.util.streamclient.UdpStreamClient
 import com.pedro.library.view.OpenGlView
 import com.pedro.rtmp.rtmp.RtmpClient
 import com.pedro.rtsp.rtsp.RtspClient
+import com.pedro.srt.srt.SrtClient
+import com.pedro.udp.UdpClient
 import java.nio.ByteBuffer
 
 /**
@@ -75,6 +79,8 @@ class MultiStream(
     context: Context,
     connectCheckerRtmpList: Array<ConnectChecker>?,
     connectCheckerRtspList: Array<ConnectChecker>?,
+    connectCheckerSrtList: Array<ConnectChecker>?,
+    connectCheckerUdpList: Array<ConnectChecker>?,
     videoSource: VideoSource, audioSource: AudioSource
 ): StreamBase(context, videoSource, audioSource) {
 
@@ -85,14 +91,20 @@ class MultiStream(
     }
     private val rtmpClients = ArrayList<RtmpClient>()
     private val rtspClients = ArrayList<RtspClient>()
+    private val srtClients = ArrayList<SrtClient>()
+    private val udpClients = ArrayList<UdpClient>()
     private val rtmpStreamClients = ArrayList<RtmpStreamClient>()
     private val rtspStreamClients = ArrayList<RtspStreamClient>()
+    private val srtStreamClients = ArrayList<SrtStreamClient>()
+    private val udpStreamClients = ArrayList<UdpStreamClient>()
 
     constructor(
         context: Context,
         connectCheckerRtmpList: Array<ConnectChecker>?,
         connectCheckerRtspList: Array<ConnectChecker>?,
-    ): this(context, connectCheckerRtmpList, connectCheckerRtspList, Camera2Source(context), MicrophoneSource())
+        connectCheckerSrtList: Array<ConnectChecker>?,
+        connectCheckerUdpList: Array<ConnectChecker>?
+    ): this(context, connectCheckerRtmpList, connectCheckerRtspList, connectCheckerSrtList, connectCheckerUdpList, Camera2Source(context), MicrophoneSource())
 
     init {
         connectCheckerRtmpList?.forEach {
@@ -105,12 +117,24 @@ class MultiStream(
             rtspClients.add(client)
             rtspStreamClients.add(RtspStreamClient(client, streamClientListener))
         }
+        connectCheckerSrtList?.forEach {
+            val client = SrtClient(it)
+            srtClients.add(client)
+            srtStreamClients.add(SrtStreamClient(client, streamClientListener))
+        }
+        connectCheckerUdpList?.forEach {
+            val client = UdpClient(it)
+            udpClients.add(client)
+            udpStreamClients.add(UdpStreamClient(client, streamClientListener))
+        }
     }
 
     fun getStreamClient(type: MultiType, index: Int): StreamBaseClient {
         return when (type) {
             MultiType.RTMP -> rtmpStreamClients[index]
             MultiType.RTSP -> rtspStreamClients[index]
+            MultiType.SRT -> srtStreamClients[index]
+            MultiType.UDP -> udpStreamClients[index]
         }
     }
 
@@ -125,6 +149,12 @@ class MultiStream(
         for (rtspClient in rtspClients) {
             rtspClient.setVideoCodec(codec)
         }
+        for (srtClient in srtClients) {
+            srtClient.setVideoCodec(codec)
+        }
+        for (udpClient in udpClients) {
+            udpClient.setVideoCodec(codec)
+        }
     }
 
     override fun setAudioCodecImp(codec: AudioCodec) {
@@ -133,6 +163,12 @@ class MultiStream(
         }
         for (rtspClient in rtspClients) {
             rtspClient.setAudioCodec(codec)
+        }
+        for (srtClient in srtClients) {
+            srtClient.setAudioCodec(codec)
+        }
+        for (udpClient in udpClients) {
+            udpClient.setAudioCodec(codec)
         }
     }
 
@@ -150,14 +186,29 @@ class MultiStream(
                 break
             }
         }
+        for (srtClient in srtClients) {
+            if (srtClient.isStreaming) {
+                shouldStarEncoder = false
+                break
+            }
+        }
+        for (udpClient in udpClients) {
+            if (udpClient.isStreaming) {
+                shouldStarEncoder = false
+                break
+            }
+        }
         if (shouldStarEncoder) super.startStream("")
-        if (type == MultiType.RTMP) {
-            val resolution = super.getVideoResolution()
-            rtmpClients[index].setVideoResolution(resolution.width, resolution.height)
-            rtmpClients[index].setFps(super.getVideoFps())
-            rtmpClients[index].connect(endPoint)
-        } else {
-            rtspClients[index].connect(endPoint)
+        when (type) {
+            MultiType.RTMP -> {
+                val resolution = super.getVideoResolution()
+                rtmpClients[index].setVideoResolution(resolution.width, resolution.height)
+                rtmpClients[index].setFps(super.getVideoFps())
+                rtmpClients[index].connect(endPoint)
+            }
+            MultiType.RTSP -> rtspClients[index].connect(endPoint)
+            MultiType.SRT -> srtClients[index].connect(endPoint)
+            MultiType.UDP -> udpClients[index].connect(endPoint)
         }
     }
 
@@ -178,10 +229,23 @@ class MultiStream(
                 break
             }
         }
-        if (type == MultiType.RTMP) {
-            rtmpClients[index].disconnect()
-        } else {
-            rtspClients[index].disconnect()
+        for (srtClient in srtClients) {
+            if (srtClient.isStreaming) {
+                shouldStopEncoder = false
+                break
+            }
+        }
+        for (udpClient in udpClients) {
+            if (udpClient.isStreaming) {
+                shouldStopEncoder = false
+                break
+            }
+        }
+        when (type) {
+            MultiType.RTMP -> rtmpClients[index].disconnect()
+            MultiType.RTSP -> rtspClients[index].disconnect()
+            MultiType.SRT -> srtClients[index].disconnect()
+            MultiType.UDP -> udpClients[index].disconnect()
         }
         if (shouldStopEncoder) super.stopStream()
     }
@@ -196,6 +260,12 @@ class MultiStream(
         for (rtspClient in rtspClients) {
             rtspClient.setAudioInfo(sampleRate, isStereo)
         }
+        for (srtClient in srtClients) {
+            srtClient.setAudioInfo(sampleRate, isStereo)
+        }
+        for (udpClient in udpClients) {
+            udpClient.setAudioInfo(sampleRate, isStereo)
+        }
     }
 
     override fun getAacDataRtp(aacBuffer: ByteBuffer, info: MediaCodec.BufferInfo) {
@@ -204,6 +274,12 @@ class MultiStream(
         }
         for (rtspClient in rtspClients) {
             rtspClient.sendAudio(aacBuffer.duplicate(), info)
+        }
+        for (srtClient in srtClients) {
+            srtClient.sendAudio(aacBuffer.duplicate(), info)
+        }
+        for (udpClient in udpClients) {
+            udpClient.sendAudio(aacBuffer.duplicate(), info)
         }
     }
 
@@ -214,6 +290,12 @@ class MultiStream(
         for (rtspClient in rtspClients) {
             rtspClient.setVideoInfo(sps.duplicate(), pps?.duplicate(), vps?.duplicate())
         }
+        for (srtClient in srtClients) {
+            srtClient.setVideoInfo(sps.duplicate(), pps?.duplicate(), vps?.duplicate())
+        }
+        for (udpClient in udpClients) {
+            udpClient.setVideoInfo(sps.duplicate(), pps?.duplicate(), vps?.duplicate())
+        }
     }
 
     override fun getH264DataRtp(h264Buffer: ByteBuffer, info: MediaCodec.BufferInfo) {
@@ -222,6 +304,12 @@ class MultiStream(
         }
         for (rtspClient in rtspClients) {
             rtspClient.sendVideo(h264Buffer.duplicate(), info)
+        }
+        for (srtClient in srtClients) {
+            srtClient.sendVideo(h264Buffer.duplicate(), info)
+        }
+        for (udpClient in udpClients) {
+            udpClient.sendVideo(h264Buffer.duplicate(), info)
         }
     }
 }
