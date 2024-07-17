@@ -72,7 +72,9 @@ import java.nio.ByteBuffer
 class MultiDisplay(
     context: Context, useOpenGL: Boolean,
     connectCheckerRtmpList: Array<ConnectChecker>?,
-    connectCheckerRtspList: Array<ConnectChecker>?
+    connectCheckerRtspList: Array<ConnectChecker>?,
+    connectCheckerSrtList: Array<ConnectChecker>?,
+    connectCheckerUdpList: Array<ConnectChecker>?
 ) : DisplayBase(context, useOpenGL) {
 
     private val streamClientListener = object: StreamClientListener {
@@ -90,6 +92,10 @@ class MultiDisplay(
     private val udpStreamClients = ArrayList<UdpStreamClient>()
 
     init {
+        if (connectCheckerRtmpList.isNullOrEmpty() && connectCheckerRtspList.isNullOrEmpty()
+            && connectCheckerSrtList.isNullOrEmpty() && connectCheckerUdpList.isNullOrEmpty()) {
+            throw IllegalArgumentException("You need set at least one ConnectChecker interface")
+        }
         connectCheckerRtmpList?.forEach {
             val client = RtmpClient(it)
             rtmpClients.add(client)
@@ -99,6 +105,16 @@ class MultiDisplay(
             val client = RtspClient(it)
             rtspClients.add(client)
             rtspStreamClients.add(RtspStreamClient(client, streamClientListener))
+        }
+        connectCheckerSrtList?.forEach {
+            val client = SrtClient(it)
+            srtClients.add(client)
+            srtStreamClients.add(SrtStreamClient(client, streamClientListener))
+        }
+        connectCheckerUdpList?.forEach {
+            val client = UdpClient(it)
+            udpClients.add(client)
+            udpStreamClients.add(UdpStreamClient(client, streamClientListener))
         }
     }
 
@@ -116,33 +132,17 @@ class MultiDisplay(
     }
 
     override fun setVideoCodecImp(codec: VideoCodec) {
-        for (rtmpClient in rtmpClients) {
-            rtmpClient.setVideoCodec(codec)
-        }
-        for (rtspClient in rtspClients) {
-            rtspClient.setVideoCodec(codec)
-        }
-        for (srtClient in srtClients) {
-            srtClient.setVideoCodec(codec)
-        }
-        for (udpClient in udpClients) {
-            udpClient.setVideoCodec(codec)
-        }
+        for (rtmpClient in rtmpClients) rtmpClient.setVideoCodec(codec)
+        for (rtspClient in rtspClients) rtspClient.setVideoCodec(codec)
+        for (srtClient in srtClients) srtClient.setVideoCodec(codec)
+        for (udpClient in udpClients) udpClient.setVideoCodec(codec)
     }
 
     override fun setAudioCodecImp(codec: AudioCodec) {
-        for (rtmpClient in rtmpClients) {
-            rtmpClient.setAudioCodec(codec)
-        }
-        for (rtspClient in rtspClients) {
-            rtspClient.setAudioCodec(codec)
-        }
-        for (srtClient in srtClients) {
-            srtClient.setAudioCodec(codec)
-        }
-        for (udpClient in udpClients) {
-            udpClient.setAudioCodec(codec)
-        }
+        for (rtmpClient in rtmpClients) rtmpClient.setAudioCodec(codec)
+        for (rtspClient in rtspClients) rtspClient.setAudioCodec(codec)
+        for (srtClient in srtClients) srtClient.setAudioCodec(codec)
+        for (udpClient in udpClients) udpClient.setAudioCodec(codec)
     }
 
     fun startStream(type: MultiType, index: Int, url: String?) {
@@ -230,62 +230,30 @@ class MultiDisplay(
     }
 
     override fun prepareAudioRtp(isStereo: Boolean, sampleRate: Int) {
-        for (rtmpClient in rtmpClients) {
-            rtmpClient.setAudioInfo(sampleRate, isStereo)
-        }
-        for (rtspClient in rtspClients) {
-            rtspClient.setAudioInfo(sampleRate, isStereo)
-        }
-        for (srtClient in srtClients) {
-            srtClient.setAudioInfo(sampleRate, isStereo)
-        }
-        for (udpClient in udpClients) {
-            udpClient.setAudioInfo(sampleRate, isStereo)
-        }
+        for (rtmpClient in rtmpClients) rtmpClient.setAudioInfo(sampleRate, isStereo)
+        for (rtspClient in rtspClients) rtspClient.setAudioInfo(sampleRate, isStereo)
+        for (srtClient in srtClients) srtClient.setAudioInfo(sampleRate, isStereo)
+        for (udpClient in udpClients) udpClient.setAudioInfo(sampleRate, isStereo)
     }
 
     override fun getAacDataRtp(aacBuffer: ByteBuffer, info: MediaCodec.BufferInfo) {
-        for (rtmpClient in rtmpClients) {
-            rtmpClient.sendAudio(aacBuffer.duplicate(), info)
-        }
-        for (rtspClient in rtspClients) {
-            rtspClient.sendAudio(aacBuffer.duplicate(), info)
-        }
-        for (srtClient in srtClients) {
-            srtClient.sendAudio(aacBuffer.duplicate(), info)
-        }
-        for (udpClient in udpClients) {
-            udpClient.sendAudio(aacBuffer.duplicate(), info)
-        }
+        for (rtmpClient in rtmpClients) rtmpClient.sendAudio(aacBuffer.duplicate(), info)
+        for (rtspClient in rtspClients) rtspClient.sendAudio(aacBuffer.duplicate(), info)
+        for (srtClient in srtClients) srtClient.sendAudio(aacBuffer.duplicate(), info)
+        for (udpClient in udpClients) udpClient.sendAudio(aacBuffer.duplicate(), info)
     }
 
     override fun onSpsPpsVpsRtp(sps: ByteBuffer, pps: ByteBuffer?, vps: ByteBuffer?) {
-        for (rtmpClient in rtmpClients) {
-            rtmpClient.setVideoInfo(sps.duplicate(), pps?.duplicate(), vps?.duplicate())
-        }
-        for (rtspClient in rtspClients) {
-            rtspClient.setVideoInfo(sps.duplicate(), pps?.duplicate(), vps?.duplicate())
-        }
-        for (srtClient in srtClients) {
-            srtClient.setVideoInfo(sps.duplicate(), pps?.duplicate(), vps?.duplicate())
-        }
-        for (udpClient in udpClients) {
-            udpClient.setVideoInfo(sps.duplicate(), pps?.duplicate(), vps?.duplicate())
-        }
+        for (rtmpClient in rtmpClients) rtmpClient.setVideoInfo(sps.duplicate(), pps?.duplicate(), vps?.duplicate())
+        for (rtspClient in rtspClients) rtspClient.setVideoInfo(sps.duplicate(), pps?.duplicate(), vps?.duplicate())
+        for (srtClient in srtClients) srtClient.setVideoInfo(sps.duplicate(), pps?.duplicate(), vps?.duplicate())
+        for (udpClient in udpClients) udpClient.setVideoInfo(sps.duplicate(), pps?.duplicate(), vps?.duplicate())
     }
 
     override fun getH264DataRtp(h264Buffer: ByteBuffer, info: MediaCodec.BufferInfo) {
-        for (rtmpClient in rtmpClients) {
-            rtmpClient.sendVideo(h264Buffer.duplicate(), info)
-        }
-        for (rtspClient in rtspClients) {
-            rtspClient.sendVideo(h264Buffer.duplicate(), info)
-        }
-        for (srtClient in srtClients) {
-            srtClient.sendVideo(h264Buffer.duplicate(), info)
-        }
-        for (udpClient in udpClients) {
-            udpClient.sendVideo(h264Buffer.duplicate(), info)
-        }
+        for (rtmpClient in rtmpClients) rtmpClient.sendVideo(h264Buffer.duplicate(), info)
+        for (rtspClient in rtspClients) rtspClient.sendVideo(h264Buffer.duplicate(), info)
+        for (srtClient in srtClients) srtClient.sendVideo(h264Buffer.duplicate(), info)
+        for (udpClient in udpClients) udpClient.sendVideo(h264Buffer.duplicate(), info)
     }
 }

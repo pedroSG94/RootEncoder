@@ -79,6 +79,10 @@ class MultiOnlyAudio(
     private val udpStreamClients = ArrayList<UdpStreamClient>()
 
     init {
+        if (connectCheckerRtmpList.isNullOrEmpty() && connectCheckerRtspList.isNullOrEmpty()
+            && connectCheckerSrtList.isNullOrEmpty() && connectCheckerUdpList.isNullOrEmpty()) {
+            throw IllegalArgumentException("You need set at least one ConnectChecker interface")
+        }
         connectCheckerRtmpList?.forEach {
             val client = RtmpClient(it).apply { setOnlyAudio(true) }
             rtmpClients.add(client)
@@ -115,18 +119,10 @@ class MultiOnlyAudio(
     }
 
     override fun setAudioCodecImp(codec: AudioCodec) {
-        for (rtmpClient in rtmpClients) {
-            rtmpClient.setAudioCodec(codec)
-        }
-        for (rtspClient in rtspClients) {
-            rtspClient.setAudioCodec(codec)
-        }
-        for (srtClient in srtClients) {
-            srtClient.setAudioCodec(codec)
-        }
-        for (udpClient in udpClients) {
-            udpClient.setAudioCodec(codec)
-        }
+        for (rtmpClient in rtmpClients) rtmpClient.setAudioCodec(codec)
+        for (rtspClient in rtspClients) rtspClient.setAudioCodec(codec)
+        for (srtClient in srtClients) srtClient.setAudioCodec(codec)
+        for (udpClient in udpClients) udpClient.setAudioCodec(codec)
     }
 
     fun startStream(type: MultiType, index: Int, url: String?) {
@@ -206,32 +202,16 @@ class MultiOnlyAudio(
     }
 
     override fun prepareAudioRtp(isStereo: Boolean, sampleRate: Int) {
-        for (rtmpClient in rtmpClients) {
-            rtmpClient.setAudioInfo(sampleRate, isStereo)
-        }
-        for (rtspClient in rtspClients) {
-            rtspClient.setAudioInfo(sampleRate, isStereo)
-        }
-        for (srtClient in srtClients) {
-            srtClient.setAudioInfo(sampleRate, isStereo)
-        }
-        for (udpClient in udpClients) {
-            udpClient.setAudioInfo(sampleRate, isStereo)
-        }
+        for (rtmpClient in rtmpClients) rtmpClient.setAudioInfo(sampleRate, isStereo)
+        for (rtspClient in rtspClients) rtspClient.setAudioInfo(sampleRate, isStereo)
+        for (srtClient in srtClients) srtClient.setAudioInfo(sampleRate, isStereo)
+        for (udpClient in udpClients) udpClient.setAudioInfo(sampleRate, isStereo)
     }
 
     override fun getAacDataRtp(aacBuffer: ByteBuffer, info: MediaCodec.BufferInfo) {
-        for (rtmpClient in rtmpClients) {
-            rtmpClient.sendAudio(aacBuffer.duplicate(), info)
-        }
-        for (rtspClient in rtspClients) {
-            rtspClient.sendAudio(aacBuffer.duplicate(), info)
-        }
-        for (srtClient in srtClients) {
-            srtClient.sendAudio(aacBuffer.duplicate(), info)
-        }
-        for (udpClient in udpClients) {
-            udpClient.sendAudio(aacBuffer.duplicate(), info)
-        }
+        for (rtmpClient in rtmpClients) rtmpClient.sendAudio(aacBuffer.duplicate(), info)
+        for (rtspClient in rtspClients) rtspClient.sendAudio(aacBuffer.duplicate(), info)
+        for (srtClient in srtClients) srtClient.sendAudio(aacBuffer.duplicate(), info)
+        for (udpClient in udpClients) udpClient.sendAudio(aacBuffer.duplicate(), info)
     }
 }
