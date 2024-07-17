@@ -1,0 +1,1263 @@
+<!doctype html>
+<html class="no-js">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1" charset="UTF-8">
+    <title>MultiCamera2</title>
+<link href="../../../images/logo-icon.svg" rel="icon" type="image/svg">    <script>var pathToRoot = "../../../";</script>
+    <script>document.documentElement.classList.replace("no-js","js");</script>
+    <script>const storage = localStorage.getItem("dokka-dark-mode")
+    if (storage == null) {
+        const osDarkSchemePreferred = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
+        if (osDarkSchemePreferred === true) {
+            document.getElementsByTagName("html")[0].classList.add("theme-dark")
+        }
+    } else {
+        const savedDarkMode = JSON.parse(storage)
+        if(savedDarkMode === true) {
+            document.getElementsByTagName("html")[0].classList.add("theme-dark")
+        }
+    }
+    </script>
+<script type="text/javascript" src="https://unpkg.com/kotlin-playground@1/dist/playground.min.js" async></script>
+<script type="text/javascript" src="../../../scripts/sourceset_dependencies.js" async></script>
+<link href="../../../styles/style.css" rel="Stylesheet">
+<link href="../../../styles/main.css" rel="Stylesheet">
+<link href="../../../styles/prism.css" rel="Stylesheet">
+<link href="../../../styles/logo-styles.css" rel="Stylesheet">
+<link href="../../../styles/font-jb-sans-auto.css" rel="Stylesheet">
+<script type="text/javascript" src="../../../scripts/clipboard.js" async></script>
+<script type="text/javascript" src="../../../scripts/navigation-loader.js" async></script>
+<script type="text/javascript" src="../../../scripts/platform-content-handler.js" async></script>
+<script type="text/javascript" src="../../../scripts/main.js" defer></script>
+<script type="text/javascript" src="../../../scripts/prism.js" async></script>
+<script type="text/javascript" src="../../../scripts/symbol-parameters-wrapper_deferred.js" defer></script></head>
+<body>
+    <div class="root">
+<nav class="navigation" id="navigation-wrapper">
+    <div class="navigation--inner">
+        <div class="navigation-title">
+            <button class="menu-toggle" id="menu-toggle" type="button">toggle menu</button>
+            <div class="library-name">
+<a class="library-name--link" href="../../../index.html">
+                            RootEncoder
+                    </a>            </div>
+            <div class="library-version">
+            </div>
+        </div>
+        <div class="filter-section" id="filter-section">
+                <button class="platform-tag platform-selector jvm-like" data-active="" data-filter=":library:dokkaHtmlPartial/release">androidJvm</button>
+        </div>
+    </div>
+    <div class="navigation-controls">
+        <button class="navigation-controls--btn navigation-controls--theme" id="theme-toggle-button" type="button">switch theme</button>
+        <div class="navigation-controls--btn navigation-controls--search" id="searchBar" role="button">search in API</div>
+    </div>
+</nav>
+        <div id="container">
+            <div class="sidebar" id="leftColumn">
+                <div class="sidebar--inner" id="sideMenu"></div>
+            </div>
+            <div id="main">
+<div class="main-content" data-page-type="classlike" id="content" pageids="library::com.pedro.library.multiple/MultiCamera2///PointingToDeclaration//794302154">
+  <div class="breadcrumbs"><a href="../../index.html">library</a><span class="delimiter">/</span><a href="../index.html">com.pedro.library.multiple</a><span class="delimiter">/</span><span class="current">MultiCamera2</span></div>
+  <div class="cover ">
+    <h1 class="cover"><span>Multi</span><wbr><span><span>Camera2</span></span></h1>
+    <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":library:dokkaHtmlPartial/release"><div class="symbol monospace"><div class="block"><div class="block"><span class="token annotation builtin">@</span><a href="https://developer.android.com/reference/kotlin/androidx/annotation/RequiresApi.html"><span class="token annotation builtin">RequiresApi</span></a><span class="token punctuation">(</span><span>api<span class="token operator"> = </span><span class="breakable-word"><span class="token constant">21</span></span></span><wbr><span class="token punctuation">)</span></div></div><span class="token keyword">class </span><a href="index.html">MultiCamera2</a> : <a href="../../com.pedro.library.base/-camera2-base/index.html">Camera2Base</a></div><p class="paragraph">Created by pedro on 21/5/21.</p><p class="paragraph">Experiment class.</p><p class="paragraph">Support multiple streams in rtmp and rtsp at same time. You must set the same number of ConnectChecker that you want use.</p><p class="paragraph">For example. 2 RTMP and 1 RTSP: stream1, stream2, stream3 (stream1 and stream2 are ConnectChecker for RTMP. stream3 is ConnectChecker for RTSP)</p><p class="paragraph">MultiCamera2 multiCamera2 = new MultiCamera2(openGlView, new ConnectChecker[]{ stream1, stream2 }, new ConnectChecker[]{ stream3 });</p><p class="paragraph">You can set an empty array or null if you don't want use a protocol new MultiCamera2(openGlView, new ConnectChecker[]{ stream1, stream2 }, null); //RTSP protocol is not used</p><p class="paragraph">In order to use start, stop and other calls you must send type of stream and index to execute it. Example (using previous example interfaces):</p><p class="paragraph">multiCamera2.startStream(MultiType.RTMP, 1, endpoint); //stream2 is started multiCamera2.stopStream(MultiType.RTSP, 0); //stream3 is stopped multiCamera2.getStreamClient(MultiType.RTMP, 0).retry(delay, reason, backupUrl) //retry stream1</p><p class="paragraph">NOTE: If you call this methods nothing is executed:</p><p class="paragraph">multiCamera2.startStream(endpoint); multiCamera2.stopStream();</p><p class="paragraph">The rest of methods without MultiType and index means that you will execute that command in all streams. Read class code if you need info about any method.</p></div></div>
+  </div>
+  <div class="tabbedcontent">
+    <div class="tabs-section" tabs-section="tabs-section"><button class="section-tab" data-active="" data-togglable="CONSTRUCTOR,TYPE,PROPERTY,FUNCTION">Members</button></div>
+    <div class="tabs-section-body">
+      <div data-togglable="CONSTRUCTOR">
+        <h2 class="">Constructors</h2>
+        <div class="table"><a data-name="1398856760%2FConstructors%2F794302154" anchor-label="MultiCamera2" id="1398856760%2FConstructors%2F794302154" data-filterable-set=":library:dokkaHtmlPartial/release"></a>
+          <div class="table-row" data-togglable="CONSTRUCTOR" data-filterable-current=":library:dokkaHtmlPartial/release" data-filterable-set=":library:dokkaHtmlPartial/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-multi-camera2.html"><span>Multi</span><wbr><span><span>Camera2</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1398856760%2FConstructors%2F794302154"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":library:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword">constructor</span><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">openGlView<span class="token operator">: </span><a href="../../com.pedro.library.view/-open-gl-view/index.html">OpenGlView</a><span class="token punctuation">, </span></span><span class="parameter ">connectCheckerRtmpList<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-array/index.html">Array</a><span class="token operator">&lt;</span><a href="../../../common/com.pedro.common/-connect-checker/index.html">ConnectChecker</a><span class="token operator">&gt;</span><span class="token operator">?</span><span class="token punctuation">, </span></span><span class="parameter ">connectCheckerRtspList<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-array/index.html">Array</a><span class="token operator">&lt;</span><a href="../../../common/com.pedro.common/-connect-checker/index.html">ConnectChecker</a><span class="token operator">&gt;</span><span class="token operator">?</span><span class="token punctuation">, </span></span><span class="parameter ">connectCheckerSrtList<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-array/index.html">Array</a><span class="token operator">&lt;</span><a href="../../../common/com.pedro.common/-connect-checker/index.html">ConnectChecker</a><span class="token operator">&gt;</span><span class="token operator">?</span><span class="token punctuation">, </span></span><span class="parameter ">connectCheckerUdpList<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-array/index.html">Array</a><span class="token operator">&lt;</span><a href="../../../common/com.pedro.common/-connect-checker/index.html">ConnectChecker</a><span class="token operator">&gt;</span><span class="token operator">?</span></span></span><span class="token punctuation">)</span></div><div class="symbol monospace"><span class="token keyword">constructor</span><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">context<span class="token operator">: </span><a href="https://developer.android.com/reference/kotlin/android/content/Context.html">Context</a><span class="token punctuation">, </span></span><span class="parameter ">useOpengl<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-boolean/index.html">Boolean</a><span class="token punctuation">, </span></span><span class="parameter ">connectCheckerRtmpList<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-array/index.html">Array</a><span class="token operator">&lt;</span><a href="../../../common/com.pedro.common/-connect-checker/index.html">ConnectChecker</a><span class="token operator">&gt;</span><span class="token operator">?</span><span class="token punctuation">, </span></span><span class="parameter ">connectCheckerRtspList<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-array/index.html">Array</a><span class="token operator">&lt;</span><a href="../../../common/com.pedro.common/-connect-checker/index.html">ConnectChecker</a><span class="token operator">&gt;</span><span class="token operator">?</span><span class="token punctuation">, </span></span><span class="parameter ">connectCheckerSrtList<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-array/index.html">Array</a><span class="token operator">&lt;</span><a href="../../../common/com.pedro.common/-connect-checker/index.html">ConnectChecker</a><span class="token operator">&gt;</span><span class="token operator">?</span><span class="token punctuation">, </span></span><span class="parameter ">connectCheckerUdpList<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-array/index.html">Array</a><span class="token operator">&lt;</span><a href="../../../common/com.pedro.common/-connect-checker/index.html">ConnectChecker</a><span class="token operator">&gt;</span><span class="token operator">?</span></span></span><span class="token punctuation">)</span></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div data-togglable="PROPERTY">
+        <h2 class="">Properties</h2>
+        <div class="table"><a data-name="-782767210%2FProperties%2F794302154" anchor-label="glInterface" id="-782767210%2FProperties%2F794302154" data-filterable-set=":library:dokkaHtmlPartial/release"></a>
+          <div class="table-row" data-filterable-current=":library:dokkaHtmlPartial/release" data-filterable-set=":library:dokkaHtmlPartial/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="../../com.pedro.library.base/-camera2-base/gl-interface.html"><span>gl</span><wbr><span><span>Interface</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-782767210%2FProperties%2F794302154"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":library:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword">val </span><a href="../../com.pedro.library.base/-camera2-base/gl-interface.html">glInterface</a><span class="token operator">: </span><a href="../../com.pedro.library.view/-gl-interface/index.html">GlInterface</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="919884129%2FProperties%2F794302154" anchor-label="onPreview" id="919884129%2FProperties%2F794302154" data-filterable-set=":library:dokkaHtmlPartial/release"></a>
+          <div class="table-row" data-filterable-current=":library:dokkaHtmlPartial/release" data-filterable-set=":library:dokkaHtmlPartial/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="../../com.pedro.library.udp/-udp-camera2/index.html#919884129%2FProperties%2F794302154"><span>on</span><wbr><span><span>Preview</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="919884129%2FProperties%2F794302154"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":library:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword">val </span><a href="../../com.pedro.library.udp/-udp-camera2/index.html#919884129%2FProperties%2F794302154">onPreview</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-boolean/index.html">Boolean</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1799698424%2FProperties%2F794302154" anchor-label="streaming" id="-1799698424%2FProperties%2F794302154" data-filterable-set=":library:dokkaHtmlPartial/release"></a>
+          <div class="table-row" data-filterable-current=":library:dokkaHtmlPartial/release" data-filterable-set=":library:dokkaHtmlPartial/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="../../com.pedro.library.udp/-udp-camera2/index.html#-1799698424%2FProperties%2F794302154"><span><span>streaming</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1799698424%2FProperties%2F794302154"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":library:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword">val </span><a href="../../com.pedro.library.udp/-udp-camera2/index.html#-1799698424%2FProperties%2F794302154">streaming</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-boolean/index.html">Boolean</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div data-togglable="FUNCTION">
+        <h2 class="">Functions</h2>
+        <div class="table"><a data-name="-96640304%2FFunctions%2F794302154" anchor-label="addImageListener" id="-96640304%2FFunctions%2F794302154" data-filterable-set=":library:dokkaHtmlPartial/release"></a>
+          <div class="table-row" data-filterable-current=":library:dokkaHtmlPartial/release" data-filterable-set=":library:dokkaHtmlPartial/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="../../com.pedro.library.udp/-udp-camera2/index.html#-717852826%2FFunctions%2F794302154"><span>add</span><wbr><span>Image</span><wbr><span><span>Listener</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-96640304%2FFunctions%2F794302154"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":library:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">fun </span><a href="../../com.pedro.library.udp/-udp-camera2/index.html#-717852826%2FFunctions%2F794302154"><span class="token function">addImageListener</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">format<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-int/index.html">Int</a><span class="token punctuation">, </span></span><span class="parameter ">maxImages<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-int/index.html">Int</a><span class="token punctuation">, </span></span><span class="parameter ">listener<span class="token operator">: </span><a href="../../../encoder/com.pedro.encoder.input.video/-camera2-api-manager/-image-callback/index.html">Camera2ApiManager.ImageCallback</a></span></span><span class="token punctuation">)</span></div><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">fun </span><a href="../../com.pedro.library.udp/-udp-camera2/index.html#-1165854842%2FFunctions%2F794302154"><span class="token function">addImageListener</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">width<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-int/index.html">Int</a><span class="token punctuation">, </span></span><span class="parameter ">height<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-int/index.html">Int</a><span class="token punctuation">, </span></span><span class="parameter ">format<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-int/index.html">Int</a><span class="token punctuation">, </span></span><span class="parameter ">maxImages<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-int/index.html">Int</a><span class="token punctuation">, </span></span><span class="parameter ">listener<span class="token operator">: </span><a href="../../../encoder/com.pedro.encoder.input.video/-camera2-api-manager/-image-callback/index.html">Camera2ApiManager.ImageCallback</a></span></span><span class="token punctuation">)</span></div><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">fun </span><a href="../../com.pedro.library.udp/-udp-camera2/index.html#-745213968%2FFunctions%2F794302154"><span class="token function">addImageListener</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">width<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-int/index.html">Int</a><span class="token punctuation">, </span></span><span class="parameter ">height<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-int/index.html">Int</a><span class="token punctuation">, </span></span><span class="parameter ">format<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-int/index.html">Int</a><span class="token punctuation">, </span></span><span class="parameter ">maxImages<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-int/index.html">Int</a><span class="token punctuation">, </span></span><span class="parameter ">autoClose<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-boolean/index.html">Boolean</a><span class="token punctuation">, </span></span><span class="parameter ">listener<span class="token operator">: </span><a href="../../../encoder/com.pedro.encoder.input.video/-camera2-api-manager/-image-callback/index.html">Camera2ApiManager.ImageCallback</a></span></span><span class="token punctuation">)</span></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1534365662%2FFunctions%2F794302154" anchor-label="disableAudio" id="-1534365662%2FFunctions%2F794302154" data-filterable-set=":library:dokkaHtmlPartial/release"></a>
+          <div class="table-row" data-filterable-current=":library:dokkaHtmlPartial/release" data-filterable-set=":library:dokkaHtmlPartial/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="../../com.pedro.library.base/-camera2-base/disable-audio.html"><span>disable</span><wbr><span><span>Audio</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1534365662%2FFunctions%2F794302154"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":library:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">fun </span><a href="../../com.pedro.library.base/-camera2-base/disable-audio.html"><span class="token function">disableAudio</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Mute microphone, can be called before, while and after stream.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1229772143%2FFunctions%2F794302154" anchor-label="disableAutoFocus" id="1229772143%2FFunctions%2F794302154" data-filterable-set=":library:dokkaHtmlPartial/release"></a>
+          <div class="table-row" data-filterable-current=":library:dokkaHtmlPartial/release" data-filterable-set=":library:dokkaHtmlPartial/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="../../com.pedro.library.base/-camera2-base/disable-auto-focus.html"><span>disable</span><wbr><span>Auto</span><wbr><span><span>Focus</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1229772143%2FFunctions%2F794302154"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":library:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">fun </span><a href="../../com.pedro.library.base/-camera2-base/disable-auto-focus.html"><span class="token function">disableAutoFocus</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-boolean/index.html">Boolean</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1419158672%2FFunctions%2F794302154" anchor-label="disableFaceDetection" id="1419158672%2FFunctions%2F794302154" data-filterable-set=":library:dokkaHtmlPartial/release"></a>
+          <div class="table-row" data-filterable-current=":library:dokkaHtmlPartial/release" data-filterable-set=":library:dokkaHtmlPartial/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="../../com.pedro.library.base/-camera2-base/disable-face-detection.html"><span>disable</span><wbr><span>Face</span><wbr><span><span>Detection</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1419158672%2FFunctions%2F794302154"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":library:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">fun </span><a href="../../com.pedro.library.base/-camera2-base/disable-face-detection.html"><span class="token function">disableFaceDetection</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1255445070%2FFunctions%2F794302154" anchor-label="disableLantern" id="-1255445070%2FFunctions%2F794302154" data-filterable-set=":library:dokkaHtmlPartial/release"></a>
+          <div class="table-row" data-filterable-current=":library:dokkaHtmlPartial/release" data-filterable-set=":library:dokkaHtmlPartial/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="../../com.pedro.library.base/-camera2-base/disable-lantern.html"><span>disable</span><wbr><span><span>Lantern</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1255445070%2FFunctions%2F794302154"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":library:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">fun </span><a href="../../com.pedro.library.base/-camera2-base/disable-lantern.html"><span class="token function">disableLantern</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-485990404%2FFunctions%2F794302154" anchor-label="disableOpticalVideoStabilization" id="-485990404%2FFunctions%2F794302154" data-filterable-set=":library:dokkaHtmlPartial/release"></a>
+          <div class="table-row" data-filterable-current=":library:dokkaHtmlPartial/release" data-filterable-set=":library:dokkaHtmlPartial/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="../../com.pedro.library.base/-camera2-base/disable-optical-video-stabilization.html"><span>disable</span><wbr><span>Optical</span><wbr><span>Video</span><wbr><span><span>Stabilization</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-485990404%2FFunctions%2F794302154"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":library:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">fun </span><a href="../../com.pedro.library.base/-camera2-base/disable-optical-video-stabilization.html"><span class="token function">disableOpticalVideoStabilization</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1916596354%2FFunctions%2F794302154" anchor-label="disableVideoStabilization" id="-1916596354%2FFunctions%2F794302154" data-filterable-set=":library:dokkaHtmlPartial/release"></a>
+          <div class="table-row" data-filterable-current=":library:dokkaHtmlPartial/release" data-filterable-set=":library:dokkaHtmlPartial/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="../../com.pedro.library.base/-camera2-base/disable-video-stabilization.html"><span>disable</span><wbr><span>Video</span><wbr><span><span>Stabilization</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1916596354%2FFunctions%2F794302154"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":library:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">fun </span><a href="../../com.pedro.library.base/-camera2-base/disable-video-stabilization.html"><span class="token function">disableVideoStabilization</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-782314953%2FFunctions%2F794302154" anchor-label="enableAudio" id="-782314953%2FFunctions%2F794302154" data-filterable-set=":library:dokkaHtmlPartial/release"></a>
+          <div class="table-row" data-filterable-current=":library:dokkaHtmlPartial/release" data-filterable-set=":library:dokkaHtmlPartial/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="../../com.pedro.library.base/-camera2-base/enable-audio.html"><span>enable</span><wbr><span><span>Audio</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-782314953%2FFunctions%2F794302154"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":library:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">fun </span><a href="../../com.pedro.library.base/-camera2-base/enable-audio.html"><span class="token function">enableAudio</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Enable a muted microphone, can be called before, while and after stream.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="986129668%2FFunctions%2F794302154" anchor-label="enableAutoFocus" id="986129668%2FFunctions%2F794302154" data-filterable-set=":library:dokkaHtmlPartial/release"></a>
+          <div class="table-row" data-filterable-current=":library:dokkaHtmlPartial/release" data-filterable-set=":library:dokkaHtmlPartial/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="../../com.pedro.library.base/-camera2-base/enable-auto-focus.html"><span>enable</span><wbr><span>Auto</span><wbr><span><span>Focus</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="986129668%2FFunctions%2F794302154"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":library:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">fun </span><a href="../../com.pedro.library.base/-camera2-base/enable-auto-focus.html"><span class="token function">enableAutoFocus</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-boolean/index.html">Boolean</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-231312670%2FFunctions%2F794302154" anchor-label="enableFaceDetection" id="-231312670%2FFunctions%2F794302154" data-filterable-set=":library:dokkaHtmlPartial/release"></a>
+          <div class="table-row" data-filterable-current=":library:dokkaHtmlPartial/release" data-filterable-set=":library:dokkaHtmlPartial/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="../../com.pedro.library.udp/-udp-camera2/index.html#-231312670%2FFunctions%2F794302154"><span>enable</span><wbr><span>Face</span><wbr><span><span>Detection</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-231312670%2FFunctions%2F794302154"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":library:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">fun </span><a href="../../com.pedro.library.udp/-udp-camera2/index.html#-231312670%2FFunctions%2F794302154"><span class="token function">enableFaceDetection</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">faceDetectorCallback<span class="token operator">: </span><a href="../../../encoder/com.pedro.encoder.input.video.facedetector/-face-detector-callback/index.html">FaceDetectorCallback</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-boolean/index.html">Boolean</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-89219449%2FFunctions%2F794302154" anchor-label="enableLantern" id="-89219449%2FFunctions%2F794302154" data-filterable-set=":library:dokkaHtmlPartial/release"></a>
+          <div class="table-row" data-filterable-current=":library:dokkaHtmlPartial/release" data-filterable-set=":library:dokkaHtmlPartial/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="../../com.pedro.library.base/-camera2-base/enable-lantern.html"><span>enable</span><wbr><span><span>Lantern</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-89219449%2FFunctions%2F794302154"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":library:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">fun </span><a href="../../com.pedro.library.base/-camera2-base/enable-lantern.html"><span class="token function">enableLantern</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-18684527%2FFunctions%2F794302154" anchor-label="enableOpticalVideoStabilization" id="-18684527%2FFunctions%2F794302154" data-filterable-set=":library:dokkaHtmlPartial/release"></a>
+          <div class="table-row" data-filterable-current=":library:dokkaHtmlPartial/release" data-filterable-set=":library:dokkaHtmlPartial/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="../../com.pedro.library.base/-camera2-base/enable-optical-video-stabilization.html"><span>enable</span><wbr><span>Optical</span><wbr><span>Video</span><wbr><span><span>Stabilization</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-18684527%2FFunctions%2F794302154"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":library:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">fun </span><a href="../../com.pedro.library.base/-camera2-base/enable-optical-video-stabilization.html"><span class="token function">enableOpticalVideoStabilization</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-boolean/index.html">Boolean</a></div><div class="brief "><p class="paragraph">Enable OIS video stabilization Warning: Turning both OIS and EIS modes on may produce undesirable interaction, so it is recommended not to enable both at the same time.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="2117105545%2FFunctions%2F794302154" anchor-label="enableVideoStabilization" id="2117105545%2FFunctions%2F794302154" data-filterable-set=":library:dokkaHtmlPartial/release"></a>
+          <div class="table-row" data-filterable-current=":library:dokkaHtmlPartial/release" data-filterable-set=":library:dokkaHtmlPartial/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="../../com.pedro.library.base/-camera2-base/enable-video-stabilization.html"><span>enable</span><wbr><span>Video</span><wbr><span><span>Stabilization</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="2117105545%2FFunctions%2F794302154"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":library:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">fun </span><a href="../../com.pedro.library.base/-camera2-base/enable-video-stabilization.html"><span class="token function">enableVideoStabilization</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-boolean/index.html">Boolean</a></div><div class="brief "><p class="paragraph">Enable EIS video stabilization Warning: Turning both OIS and EIS modes on may produce undesirable interaction, so it is recommended not to enable both at the same time.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-459937598%2FFunctions%2F794302154" anchor-label="forceCodecType" id="-459937598%2FFunctions%2F794302154" data-filterable-set=":library:dokkaHtmlPartial/release"></a>
+          <div class="table-row" data-filterable-current=":library:dokkaHtmlPartial/release" data-filterable-set=":library:dokkaHtmlPartial/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="../../com.pedro.library.udp/-udp-camera2/index.html#-459937598%2FFunctions%2F794302154"><span>force</span><wbr><span>Codec</span><wbr><span><span>Type</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-459937598%2FFunctions%2F794302154"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":library:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">fun </span><a href="../../com.pedro.library.udp/-udp-camera2/index.html#-459937598%2FFunctions%2F794302154"><span class="token function">forceCodecType</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">codecTypeVideo<span class="token operator">: </span><a href="../../../encoder/com.pedro.encoder.utils/-codec-util/-codec-type/index.html">CodecUtil.CodecType</a><span class="token punctuation">, </span></span><span class="parameter ">codecTypeAudio<span class="token operator">: </span><a href="../../../encoder/com.pedro.encoder.utils/-codec-util/-codec-type/index.html">CodecUtil.CodecType</a></span></span><span class="token punctuation">)</span></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1583544946%2FFunctions%2F794302154" anchor-label="forceFpsLimit" id="1583544946%2FFunctions%2F794302154" data-filterable-set=":library:dokkaHtmlPartial/release"></a>
+          <div class="table-row" data-filterable-current=":library:dokkaHtmlPartial/release" data-filterable-set=":library:dokkaHtmlPartial/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="../../com.pedro.library.udp/-udp-camera2/index.html#1583544946%2FFunctions%2F794302154"><span>force</span><wbr><span>Fps</span><wbr><span><span>Limit</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1583544946%2FFunctions%2F794302154"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":library:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">fun </span><a href="../../com.pedro.library.udp/-udp-camera2/index.html#1583544946%2FFunctions%2F794302154"><span class="token function">forceFpsLimit</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">enabled<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-boolean/index.html">Boolean</a></span></span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Force stream to work with fps selected in prepareVideo method. Must be called before prepareVideo. This is not recommend because could produce fps problems.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="175541145%2FFunctions%2F794302154" anchor-label="getBitrate" id="175541145%2FFunctions%2F794302154" data-filterable-set=":library:dokkaHtmlPartial/release"></a>
+          <div class="table-row" data-filterable-current=":library:dokkaHtmlPartial/release" data-filterable-set=":library:dokkaHtmlPartial/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="../../com.pedro.library.base/-camera2-base/get-bitrate.html"><span>get</span><wbr><span><span>Bitrate</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="175541145%2FFunctions%2F794302154"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":library:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">fun </span><a href="../../com.pedro.library.base/-camera2-base/get-bitrate.html"><span class="token function">getBitrate</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-int/index.html">Int</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1307541069%2FFunctions%2F794302154" anchor-label="getCameraCharacteristics" id="-1307541069%2FFunctions%2F794302154" data-filterable-set=":library:dokkaHtmlPartial/release"></a>
+          <div class="table-row" data-filterable-current=":library:dokkaHtmlPartial/release" data-filterable-set=":library:dokkaHtmlPartial/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="../../com.pedro.library.base/-camera2-base/get-camera-characteristics.html"><span>get</span><wbr><span>Camera</span><wbr><span><span>Characteristics</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1307541069%2FFunctions%2F794302154"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":library:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">fun </span><a href="../../com.pedro.library.base/-camera2-base/get-camera-characteristics.html"><span class="token function">getCameraCharacteristics</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://developer.android.com/reference/kotlin/android/hardware/camera2/CameraCharacteristics.html">CameraCharacteristics</a></div><div class="brief "><p class="paragraph">Get supported properties of the camera</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1310609355%2FFunctions%2F794302154" anchor-label="getCameraFacing" id="-1310609355%2FFunctions%2F794302154" data-filterable-set=":library:dokkaHtmlPartial/release"></a>
+          <div class="table-row" data-filterable-current=":library:dokkaHtmlPartial/release" data-filterable-set=":library:dokkaHtmlPartial/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="../../com.pedro.library.base/-camera2-base/get-camera-facing.html"><span>get</span><wbr><span>Camera</span><wbr><span><span>Facing</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1310609355%2FFunctions%2F794302154"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":library:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">fun </span><a href="../../com.pedro.library.base/-camera2-base/get-camera-facing.html"><span class="token function">getCameraFacing</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">: </span><a href="../../../encoder/com.pedro.encoder.input.video/-camera-helper/-facing/index.html">CameraHelper.Facing</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="759664409%2FFunctions%2F794302154" anchor-label="getCamerasAvailable" id="759664409%2FFunctions%2F794302154" data-filterable-set=":library:dokkaHtmlPartial/release"></a>
+          <div class="table-row" data-filterable-current=":library:dokkaHtmlPartial/release" data-filterable-set=":library:dokkaHtmlPartial/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="../../com.pedro.library.base/-camera2-base/get-cameras-available.html"><span>get</span><wbr><span>Cameras</span><wbr><span><span>Available</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="759664409%2FFunctions%2F794302154"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":library:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">fun </span><a href="../../com.pedro.library.base/-camera2-base/get-cameras-available.html"><span class="token function">getCamerasAvailable</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-array/index.html">Array</a><span class="token operator">&lt;</span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html">String</a><span class="token operator">&gt;</span></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1746027277%2FFunctions%2F794302154" anchor-label="getExposure" id="1746027277%2FFunctions%2F794302154" data-filterable-set=":library:dokkaHtmlPartial/release"></a>
+          <div class="table-row" data-filterable-current=":library:dokkaHtmlPartial/release" data-filterable-set=":library:dokkaHtmlPartial/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="../../com.pedro.library.base/-camera2-base/get-exposure.html"><span>get</span><wbr><span><span>Exposure</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1746027277%2FFunctions%2F794302154"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":library:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">fun </span><a href="../../com.pedro.library.base/-camera2-base/get-exposure.html"><span class="token function">getExposure</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-int/index.html">Int</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1157610053%2FFunctions%2F794302154" anchor-label="getMaxExposure" id="-1157610053%2FFunctions%2F794302154" data-filterable-set=":library:dokkaHtmlPartial/release"></a>
+          <div class="table-row" data-filterable-current=":library:dokkaHtmlPartial/release" data-filterable-set=":library:dokkaHtmlPartial/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="../../com.pedro.library.base/-camera2-base/get-max-exposure.html"><span>get</span><wbr><span>Max</span><wbr><span><span>Exposure</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1157610053%2FFunctions%2F794302154"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":library:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">fun </span><a href="../../com.pedro.library.base/-camera2-base/get-max-exposure.html"><span class="token function">getMaxExposure</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-int/index.html">Int</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1903650163%2FFunctions%2F794302154" anchor-label="getMinExposure" id="-1903650163%2FFunctions%2F794302154" data-filterable-set=":library:dokkaHtmlPartial/release"></a>
+          <div class="table-row" data-filterable-current=":library:dokkaHtmlPartial/release" data-filterable-set=":library:dokkaHtmlPartial/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="../../com.pedro.library.base/-camera2-base/get-min-exposure.html"><span>get</span><wbr><span>Min</span><wbr><span><span>Exposure</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1903650163%2FFunctions%2F794302154"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":library:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">fun </span><a href="../../com.pedro.library.base/-camera2-base/get-min-exposure.html"><span class="token function">getMinExposure</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-int/index.html">Int</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1502933452%2FFunctions%2F794302154" anchor-label="getOpticalZooms" id="1502933452%2FFunctions%2F794302154" data-filterable-set=":library:dokkaHtmlPartial/release"></a>
+          <div class="table-row" data-filterable-current=":library:dokkaHtmlPartial/release" data-filterable-set=":library:dokkaHtmlPartial/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="../../com.pedro.library.base/-camera2-base/get-optical-zooms.html"><span>get</span><wbr><span>Optical</span><wbr><span><span>Zooms</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1502933452%2FFunctions%2F794302154"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":library:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">fun </span><a href="../../com.pedro.library.base/-camera2-base/get-optical-zooms.html"><span class="token function">getOpticalZooms</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-float-array/index.html">FloatArray</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1802546289%2FFunctions%2F794302154" anchor-label="getRecordStatus" id="1802546289%2FFunctions%2F794302154" data-filterable-set=":library:dokkaHtmlPartial/release"></a>
+          <div class="table-row" data-filterable-current=":library:dokkaHtmlPartial/release" data-filterable-set=":library:dokkaHtmlPartial/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="../../com.pedro.library.base/-camera2-base/get-record-status.html"><span>get</span><wbr><span>Record</span><wbr><span><span>Status</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1802546289%2FFunctions%2F794302154"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":library:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">fun </span><a href="../../com.pedro.library.base/-camera2-base/get-record-status.html"><span class="token function">getRecordStatus</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">: </span><a href="../../com.pedro.library.base.recording/-record-controller/-status/index.html">RecordController.Status</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1664614171%2FFunctions%2F794302154" anchor-label="getResolutions" id="-1664614171%2FFunctions%2F794302154" data-filterable-set=":library:dokkaHtmlPartial/release"></a>
+          <div class="table-row" data-filterable-current=":library:dokkaHtmlPartial/release" data-filterable-set=":library:dokkaHtmlPartial/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="../../com.pedro.library.udp/-udp-camera2/index.html#-1664614171%2FFunctions%2F794302154"><span>get</span><wbr><span><span>Resolutions</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1664614171%2FFunctions%2F794302154"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":library:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">fun </span><a href="../../com.pedro.library.udp/-udp-camera2/index.html#-1664614171%2FFunctions%2F794302154"><span class="token function">getResolutions</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">cameraId<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html">String</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin.collections/-mutable-list/index.html">MutableList</a><span class="token operator">&lt;</span><a href="https://developer.android.com/reference/kotlin/android/util/Size.html">Size</a><span class="token operator">&gt;</span></div><div class="brief "><p class="paragraph">Get supported resolutions of cameraId in px.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="761762392%2FFunctions%2F794302154" anchor-label="getResolutionsBack" id="761762392%2FFunctions%2F794302154" data-filterable-set=":library:dokkaHtmlPartial/release"></a>
+          <div class="table-row" data-filterable-current=":library:dokkaHtmlPartial/release" data-filterable-set=":library:dokkaHtmlPartial/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="../../com.pedro.library.base/-camera2-base/get-resolutions-back.html"><span>get</span><wbr><span>Resolutions</span><wbr><span><span>Back</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="761762392%2FFunctions%2F794302154"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":library:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">fun </span><a href="../../com.pedro.library.base/-camera2-base/get-resolutions-back.html"><span class="token function">getResolutionsBack</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin.collections/-mutable-list/index.html">MutableList</a><span class="token operator">&lt;</span><a href="https://developer.android.com/reference/kotlin/android/util/Size.html">Size</a><span class="token operator">&gt;</span></div><div class="brief "><p class="paragraph">Get supported resolutions of back camera in px.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1786800046%2FFunctions%2F794302154" anchor-label="getResolutionsFront" id="-1786800046%2FFunctions%2F794302154" data-filterable-set=":library:dokkaHtmlPartial/release"></a>
+          <div class="table-row" data-filterable-current=":library:dokkaHtmlPartial/release" data-filterable-set=":library:dokkaHtmlPartial/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="../../com.pedro.library.base/-camera2-base/get-resolutions-front.html"><span>get</span><wbr><span>Resolutions</span><wbr><span><span>Front</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1786800046%2FFunctions%2F794302154"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":library:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">fun </span><a href="../../com.pedro.library.base/-camera2-base/get-resolutions-front.html"><span class="token function">getResolutionsFront</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin.collections/-mutable-list/index.html">MutableList</a><span class="token operator">&lt;</span><a href="https://developer.android.com/reference/kotlin/android/util/Size.html">Size</a><span class="token operator">&gt;</span></div><div class="brief "><p class="paragraph">Get supported resolutions of front camera in px.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1880840417%2FFunctions%2F794302154" anchor-label="getResolutionValue" id="1880840417%2FFunctions%2F794302154" data-filterable-set=":library:dokkaHtmlPartial/release"></a>
+          <div class="table-row" data-filterable-current=":library:dokkaHtmlPartial/release" data-filterable-set=":library:dokkaHtmlPartial/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="../../com.pedro.library.base/-camera2-base/get-resolution-value.html"><span>get</span><wbr><span>Resolution</span><wbr><span><span>Value</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1880840417%2FFunctions%2F794302154"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":library:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">fun </span><a href="../../com.pedro.library.base/-camera2-base/get-resolution-value.html"><span class="token function">getResolutionValue</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-int/index.html">Int</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1839648500%2FFunctions%2F794302154" anchor-label="getStreamClient" id="-1839648500%2FFunctions%2F794302154" data-filterable-set=":library:dokkaHtmlPartial/release"></a>
+          <div class="table-row" data-filterable-current=":library:dokkaHtmlPartial/release" data-filterable-set=":library:dokkaHtmlPartial/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="get-stream-client.html"><span>get</span><wbr><span>Stream</span><wbr><span><span>Client</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1839648500%2FFunctions%2F794302154"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":library:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">fun </span><a href="get-stream-client.html"><span class="token function">getStreamClient</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">: </span><a href="../../com.pedro.library.util.streamclient/-stream-base-client/index.html">StreamBaseClient</a></div><div class="symbol monospace"><span class="token keyword">fun </span><a href="get-stream-client.html"><span class="token function">getStreamClient</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">type<span class="token operator">: </span><a href="../-multi-type/index.html">MultiType</a><span class="token punctuation">, </span></span><span class="parameter ">index<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-int/index.html">Int</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="../../com.pedro.library.util.streamclient/-stream-base-client/index.html">StreamBaseClient</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1725974579%2FFunctions%2F794302154" anchor-label="getStreamHeight" id="-1725974579%2FFunctions%2F794302154" data-filterable-set=":library:dokkaHtmlPartial/release"></a>
+          <div class="table-row" data-filterable-current=":library:dokkaHtmlPartial/release" data-filterable-set=":library:dokkaHtmlPartial/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="../../com.pedro.library.base/-camera2-base/get-stream-height.html"><span>get</span><wbr><span>Stream</span><wbr><span><span>Height</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1725974579%2FFunctions%2F794302154"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":library:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">fun </span><a href="../../com.pedro.library.base/-camera2-base/get-stream-height.html"><span class="token function">getStreamHeight</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-int/index.html">Int</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1262993792%2FFunctions%2F794302154" anchor-label="getStreamWidth" id="-1262993792%2FFunctions%2F794302154" data-filterable-set=":library:dokkaHtmlPartial/release"></a>
+          <div class="table-row" data-filterable-current=":library:dokkaHtmlPartial/release" data-filterable-set=":library:dokkaHtmlPartial/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="../../com.pedro.library.base/-camera2-base/get-stream-width.html"><span>get</span><wbr><span>Stream</span><wbr><span><span>Width</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1262993792%2FFunctions%2F794302154"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":library:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">fun </span><a href="../../com.pedro.library.base/-camera2-base/get-stream-width.html"><span class="token function">getStreamWidth</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-int/index.html">Int</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1364526834%2FFunctions%2F794302154" anchor-label="getSupportedFps" id="-1364526834%2FFunctions%2F794302154" data-filterable-set=":library:dokkaHtmlPartial/release"></a>
+          <div class="table-row" data-filterable-current=":library:dokkaHtmlPartial/release" data-filterable-set=":library:dokkaHtmlPartial/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="../../com.pedro.library.base/-camera2-base/get-supported-fps.html"><span>get</span><wbr><span>Supported</span><wbr><span><span>Fps</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1364526834%2FFunctions%2F794302154"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":library:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">fun </span><a href="../../com.pedro.library.base/-camera2-base/get-supported-fps.html"><span class="token function">getSupportedFps</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin.collections/-mutable-list/index.html">MutableList</a><span class="token operator">&lt;</span><a href="https://developer.android.com/reference/kotlin/android/util/Range.html">Range</a><span class="token operator">&lt;</span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-int/index.html">Int</a><span class="token operator">&gt;</span><span class="token operator">&gt;</span></div><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">fun </span><a href="../../com.pedro.library.udp/-udp-camera2/index.html#1012094689%2FFunctions%2F794302154"><span class="token function">getSupportedFps</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">size<span class="token operator">: </span><a href="https://developer.android.com/reference/kotlin/android/util/Size.html">Size</a><span class="token punctuation">, </span></span><span class="parameter ">facing<span class="token operator">: </span><a href="../../../encoder/com.pedro.encoder.input.video/-camera-helper/-facing/index.html">CameraHelper.Facing</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin.collections/-mutable-list/index.html">MutableList</a><span class="token operator">&lt;</span><a href="https://developer.android.com/reference/kotlin/android/util/Range.html">Range</a><span class="token operator">&lt;</span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-int/index.html">Int</a><span class="token operator">&gt;</span><span class="token operator">&gt;</span></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1783983425%2FFunctions%2F794302154" anchor-label="getZoom" id="1783983425%2FFunctions%2F794302154" data-filterable-set=":library:dokkaHtmlPartial/release"></a>
+          <div class="table-row" data-filterable-current=":library:dokkaHtmlPartial/release" data-filterable-set=":library:dokkaHtmlPartial/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="../../com.pedro.library.base/-camera2-base/get-zoom.html"><span>get</span><wbr><span><span>Zoom</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1783983425%2FFunctions%2F794302154"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":library:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">fun </span><a href="../../com.pedro.library.base/-camera2-base/get-zoom.html"><span class="token function">getZoom</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-float/index.html">Float</a></div><div class="brief "><p class="paragraph">Return current zoom level</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="563113532%2FFunctions%2F794302154" anchor-label="getZoomRange" id="563113532%2FFunctions%2F794302154" data-filterable-set=":library:dokkaHtmlPartial/release"></a>
+          <div class="table-row" data-filterable-current=":library:dokkaHtmlPartial/release" data-filterable-set=":library:dokkaHtmlPartial/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="../../com.pedro.library.base/-camera2-base/get-zoom-range.html"><span>get</span><wbr><span>Zoom</span><wbr><span><span>Range</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="563113532%2FFunctions%2F794302154"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":library:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">fun </span><a href="../../com.pedro.library.base/-camera2-base/get-zoom-range.html"><span class="token function">getZoomRange</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://developer.android.com/reference/kotlin/android/util/Range.html">Range</a><span class="token operator">&lt;</span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-float/index.html">Float</a><span class="token operator">&gt;</span></div><div class="brief "><p class="paragraph">Return zoom level range</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1858807023%2FFunctions%2F794302154" anchor-label="isAudioMuted" id="-1858807023%2FFunctions%2F794302154" data-filterable-set=":library:dokkaHtmlPartial/release"></a>
+          <div class="table-row" data-filterable-current=":library:dokkaHtmlPartial/release" data-filterable-set=":library:dokkaHtmlPartial/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="../../com.pedro.library.base/-camera2-base/is-audio-muted.html"><span>is</span><wbr><span>Audio</span><wbr><span><span>Muted</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1858807023%2FFunctions%2F794302154"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":library:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">fun </span><a href="../../com.pedro.library.base/-camera2-base/is-audio-muted.html"><span class="token function">isAudioMuted</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-boolean/index.html">Boolean</a></div><div class="brief "><p class="paragraph">Get mute state of microphone.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="774724174%2FFunctions%2F794302154" anchor-label="isAutoFocusEnabled" id="774724174%2FFunctions%2F794302154" data-filterable-set=":library:dokkaHtmlPartial/release"></a>
+          <div class="table-row" data-filterable-current=":library:dokkaHtmlPartial/release" data-filterable-set=":library:dokkaHtmlPartial/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="../../com.pedro.library.base/-camera2-base/is-auto-focus-enabled.html"><span>is</span><wbr><span>Auto</span><wbr><span>Focus</span><wbr><span><span>Enabled</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="774724174%2FFunctions%2F794302154"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":library:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">fun </span><a href="../../com.pedro.library.base/-camera2-base/is-auto-focus-enabled.html"><span class="token function">isAutoFocusEnabled</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-boolean/index.html">Boolean</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="627544589%2FFunctions%2F794302154" anchor-label="isFaceDetectionEnabled" id="627544589%2FFunctions%2F794302154" data-filterable-set=":library:dokkaHtmlPartial/release"></a>
+          <div class="table-row" data-filterable-current=":library:dokkaHtmlPartial/release" data-filterable-set=":library:dokkaHtmlPartial/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="../../com.pedro.library.base/-camera2-base/is-face-detection-enabled.html"><span>is</span><wbr><span>Face</span><wbr><span>Detection</span><wbr><span><span>Enabled</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="627544589%2FFunctions%2F794302154"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":library:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">fun </span><a href="../../com.pedro.library.base/-camera2-base/is-face-detection-enabled.html"><span class="token function">isFaceDetectionEnabled</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-boolean/index.html">Boolean</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1017415418%2FFunctions%2F794302154" anchor-label="isFrontCamera" id="-1017415418%2FFunctions%2F794302154" data-filterable-set=":library:dokkaHtmlPartial/release"></a>
+          <div class="table-row" data-filterable-current=":library:dokkaHtmlPartial/release" data-filterable-set=":library:dokkaHtmlPartial/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="../../com.pedro.library.base/-camera2-base/is-front-camera.html"><span>is</span><wbr><span>Front</span><wbr><span><span>Camera</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1017415418%2FFunctions%2F794302154"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":library:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">fun </span><a href="../../com.pedro.library.base/-camera2-base/is-front-camera.html"><span class="token function"><strike>isFrontCamera</strike></span></a><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-boolean/index.html">Boolean</a></div><div class="brief "><p class="paragraph">Use getCameraFacing instead</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1248383403%2FFunctions%2F794302154" anchor-label="isLanternEnabled" id="1248383403%2FFunctions%2F794302154" data-filterable-set=":library:dokkaHtmlPartial/release"></a>
+          <div class="table-row" data-filterable-current=":library:dokkaHtmlPartial/release" data-filterable-set=":library:dokkaHtmlPartial/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="../../com.pedro.library.base/-camera2-base/is-lantern-enabled.html"><span>is</span><wbr><span>Lantern</span><wbr><span><span>Enabled</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1248383403%2FFunctions%2F794302154"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":library:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">fun </span><a href="../../com.pedro.library.base/-camera2-base/is-lantern-enabled.html"><span class="token function">isLanternEnabled</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-boolean/index.html">Boolean</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-787757794%2FFunctions%2F794302154" anchor-label="isLanternSupported" id="-787757794%2FFunctions%2F794302154" data-filterable-set=":library:dokkaHtmlPartial/release"></a>
+          <div class="table-row" data-filterable-current=":library:dokkaHtmlPartial/release" data-filterable-set=":library:dokkaHtmlPartial/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="../../com.pedro.library.base/-camera2-base/is-lantern-supported.html"><span>is</span><wbr><span>Lantern</span><wbr><span><span>Supported</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-787757794%2FFunctions%2F794302154"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":library:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">fun </span><a href="../../com.pedro.library.base/-camera2-base/is-lantern-supported.html"><span class="token function">isLanternSupported</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-boolean/index.html">Boolean</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1658929375%2FFunctions%2F794302154" anchor-label="isOpticalVideoStabilizationEnabled" id="-1658929375%2FFunctions%2F794302154" data-filterable-set=":library:dokkaHtmlPartial/release"></a>
+          <div class="table-row" data-filterable-current=":library:dokkaHtmlPartial/release" data-filterable-set=":library:dokkaHtmlPartial/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="../../com.pedro.library.base/-camera2-base/is-optical-video-stabilization-enabled.html"><span>is</span><wbr><span>Optical</span><wbr><span>Video</span><wbr><span>Stabilization</span><wbr><span><span>Enabled</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1658929375%2FFunctions%2F794302154"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":library:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">fun </span><a href="../../com.pedro.library.base/-camera2-base/is-optical-video-stabilization-enabled.html"><span class="token function">isOpticalVideoStabilizationEnabled</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-boolean/index.html">Boolean</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1220130589%2FFunctions%2F794302154" anchor-label="isRecording" id="-1220130589%2FFunctions%2F794302154" data-filterable-set=":library:dokkaHtmlPartial/release"></a>
+          <div class="table-row" data-filterable-current=":library:dokkaHtmlPartial/release" data-filterable-set=":library:dokkaHtmlPartial/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="../../com.pedro.library.base/-camera2-base/is-recording.html"><span>is</span><wbr><span><span>Recording</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1220130589%2FFunctions%2F794302154"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":library:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">fun </span><a href="../../com.pedro.library.base/-camera2-base/is-recording.html"><span class="token function">isRecording</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-boolean/index.html">Boolean</a></div><div class="brief "><p class="paragraph">Get record state.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-235268905%2FFunctions%2F794302154" anchor-label="isVideoStabilizationEnabled" id="-235268905%2FFunctions%2F794302154" data-filterable-set=":library:dokkaHtmlPartial/release"></a>
+          <div class="table-row" data-filterable-current=":library:dokkaHtmlPartial/release" data-filterable-set=":library:dokkaHtmlPartial/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="../../com.pedro.library.base/-camera2-base/is-video-stabilization-enabled.html"><span>is</span><wbr><span>Video</span><wbr><span>Stabilization</span><wbr><span><span>Enabled</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-235268905%2FFunctions%2F794302154"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":library:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">fun </span><a href="../../com.pedro.library.base/-camera2-base/is-video-stabilization-enabled.html"><span class="token function">isVideoStabilizationEnabled</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-boolean/index.html">Boolean</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-344778013%2FFunctions%2F794302154" anchor-label="pauseRecord" id="-344778013%2FFunctions%2F794302154" data-filterable-set=":library:dokkaHtmlPartial/release"></a>
+          <div class="table-row" data-filterable-current=":library:dokkaHtmlPartial/release" data-filterable-set=":library:dokkaHtmlPartial/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="../../com.pedro.library.base/-camera2-base/pause-record.html"><span>pause</span><wbr><span><span>Record</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-344778013%2FFunctions%2F794302154"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":library:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">fun </span><a href="../../com.pedro.library.base/-camera2-base/pause-record.html"><span class="token function">pauseRecord</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1865937500%2FFunctions%2F794302154" anchor-label="prepareAudio" id="1865937500%2FFunctions%2F794302154" data-filterable-set=":library:dokkaHtmlPartial/release"></a>
+          <div class="table-row" data-filterable-current=":library:dokkaHtmlPartial/release" data-filterable-set=":library:dokkaHtmlPartial/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="../../com.pedro.library.base/-camera2-base/prepare-audio.html"><span>prepare</span><wbr><span><span>Audio</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1865937500%2FFunctions%2F794302154"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":library:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">fun </span><a href="../../com.pedro.library.base/-camera2-base/prepare-audio.html"><span class="token function">prepareAudio</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-boolean/index.html">Boolean</a></div><div class="brief "><p class="paragraph">Same to call: prepareAudio(64 * 1024, 32000, true, false, false);</p></div><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">fun </span><a href="../../com.pedro.library.udp/-udp-camera2/index.html#1545203238%2FFunctions%2F794302154"><span class="token function">prepareAudio</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">bitrate<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-int/index.html">Int</a><span class="token punctuation">, </span></span><span class="parameter ">sampleRate<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-int/index.html">Int</a><span class="token punctuation">, </span></span><span class="parameter ">isStereo<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-boolean/index.html">Boolean</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-boolean/index.html">Boolean</a></div><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">fun </span><a href="../../com.pedro.library.udp/-udp-camera2/index.html#489762598%2FFunctions%2F794302154"><span class="token function">prepareAudio</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">bitrate<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-int/index.html">Int</a><span class="token punctuation">, </span></span><span class="parameter ">sampleRate<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-int/index.html">Int</a><span class="token punctuation">, </span></span><span class="parameter ">isStereo<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-boolean/index.html">Boolean</a><span class="token punctuation">, </span></span><span class="parameter ">echoCanceler<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-boolean/index.html">Boolean</a><span class="token punctuation">, </span></span><span class="parameter ">noiseSuppressor<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-boolean/index.html">Boolean</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-boolean/index.html">Boolean</a></div><br><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">fun </span><a href="../../com.pedro.library.udp/-udp-camera2/index.html#-976808603%2FFunctions%2F794302154"><span class="token function">prepareAudio</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">audioSource<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-int/index.html">Int</a><span class="token punctuation">, </span></span><span class="parameter ">bitrate<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-int/index.html">Int</a><span class="token punctuation">, </span></span><span class="parameter ">sampleRate<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-int/index.html">Int</a><span class="token punctuation">, </span></span><span class="parameter ">isStereo<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-boolean/index.html">Boolean</a><span class="token punctuation">, </span></span><span class="parameter ">echoCanceler<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-boolean/index.html">Boolean</a><span class="token punctuation">, </span></span><span class="parameter ">noiseSuppressor<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-boolean/index.html">Boolean</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-boolean/index.html">Boolean</a></div><div class="brief "><p class="paragraph">Call this method before use @startStream. If not you will do a stream without audio.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-470473544%2FFunctions%2F794302154" anchor-label="prepareVideo" id="-470473544%2FFunctions%2F794302154" data-filterable-set=":library:dokkaHtmlPartial/release"></a>
+          <div class="table-row" data-filterable-current=":library:dokkaHtmlPartial/release" data-filterable-set=":library:dokkaHtmlPartial/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="../../com.pedro.library.base/-camera2-base/prepare-video.html"><span>prepare</span><wbr><span><span>Video</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-470473544%2FFunctions%2F794302154"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":library:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">fun </span><a href="../../com.pedro.library.base/-camera2-base/prepare-video.html"><span class="token function">prepareVideo</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-boolean/index.html">Boolean</a></div><div class="brief "><p class="paragraph">Same to call: isHardwareRotation = true; if (openGlVIew) isHardwareRotation = false; prepareVideo(640, 480, 30, 1200 * 1024, isHardwareRotation, 90);</p></div><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">fun </span><a href="../../com.pedro.library.udp/-udp-camera2/index.html#-1456928774%2FFunctions%2F794302154"><span class="token function">prepareVideo</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">width<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-int/index.html">Int</a><span class="token punctuation">, </span></span><span class="parameter ">height<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-int/index.html">Int</a><span class="token punctuation">, </span></span><span class="parameter ">bitrate<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-int/index.html">Int</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-boolean/index.html">Boolean</a></div><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">fun </span><a href="../../com.pedro.library.udp/-udp-camera2/index.html#1240194243%2FFunctions%2F794302154"><span class="token function">prepareVideo</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">width<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-int/index.html">Int</a><span class="token punctuation">, </span></span><span class="parameter ">height<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-int/index.html">Int</a><span class="token punctuation">, </span></span><span class="parameter ">fps<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-int/index.html">Int</a><span class="token punctuation">, </span></span><span class="parameter ">bitrate<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-int/index.html">Int</a><span class="token punctuation">, </span></span><span class="parameter ">iFrameInterval<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-int/index.html">Int</a><span class="token punctuation">, </span></span><span class="parameter ">rotation<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-int/index.html">Int</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-boolean/index.html">Boolean</a></div><br><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">fun </span><a href="../../com.pedro.library.udp/-udp-camera2/index.html#-1736547238%2FFunctions%2F794302154"><span class="token function">prepareVideo</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">width<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-int/index.html">Int</a><span class="token punctuation">, </span></span><span class="parameter ">height<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-int/index.html">Int</a><span class="token punctuation">, </span></span><span class="parameter ">fps<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-int/index.html">Int</a><span class="token punctuation">, </span></span><span class="parameter ">bitrate<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-int/index.html">Int</a><span class="token punctuation">, </span></span><span class="parameter ">rotation<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-int/index.html">Int</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-boolean/index.html">Boolean</a></div><div class="brief "><p class="paragraph">backward compatibility reason</p></div><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">fun </span><a href="../../com.pedro.library.udp/-udp-camera2/index.html#-1348760477%2FFunctions%2F794302154"><span class="token function">prepareVideo</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">width<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-int/index.html">Int</a><span class="token punctuation">, </span></span><span class="parameter ">height<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-int/index.html">Int</a><span class="token punctuation">, </span></span><span class="parameter ">fps<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-int/index.html">Int</a><span class="token punctuation">, </span></span><span class="parameter ">bitrate<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-int/index.html">Int</a><span class="token punctuation">, </span></span><span class="parameter ">iFrameInterval<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-int/index.html">Int</a><span class="token punctuation">, </span></span><span class="parameter ">rotation<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-int/index.html">Int</a><span class="token punctuation">, </span></span><span class="parameter ">profile<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-int/index.html">Int</a><span class="token punctuation">, </span></span><span class="parameter ">level<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-int/index.html">Int</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-boolean/index.html">Boolean</a></div><div class="brief "><p class="paragraph">Call this method before use @startStream. If not you will do a stream without video.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="169240383%2FFunctions%2F794302154" anchor-label="removeImageListener" id="169240383%2FFunctions%2F794302154" data-filterable-set=":library:dokkaHtmlPartial/release"></a>
+          <div class="table-row" data-filterable-current=":library:dokkaHtmlPartial/release" data-filterable-set=":library:dokkaHtmlPartial/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="../../com.pedro.library.base/-camera2-base/remove-image-listener.html"><span>remove</span><wbr><span>Image</span><wbr><span><span>Listener</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="169240383%2FFunctions%2F794302154"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":library:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">fun </span><a href="../../com.pedro.library.base/-camera2-base/remove-image-listener.html"><span class="token function">removeImageListener</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1751647968%2FFunctions%2F794302154" anchor-label="replaceView" id="1751647968%2FFunctions%2F794302154" data-filterable-set=":library:dokkaHtmlPartial/release"></a>
+          <div class="table-row" data-filterable-current=":library:dokkaHtmlPartial/release" data-filterable-set=":library:dokkaHtmlPartial/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="../../com.pedro.library.udp/-udp-camera2/index.html#-2101897066%2FFunctions%2F794302154"><span>replace</span><wbr><span><span>View</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1751647968%2FFunctions%2F794302154"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":library:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">fun </span><a href="../../com.pedro.library.udp/-udp-camera2/index.html#-2101897066%2FFunctions%2F794302154"><span class="token function">replaceView</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">context<span class="token operator">: </span><a href="https://developer.android.com/reference/kotlin/android/content/Context.html">Context</a></span></span><span class="token punctuation">)</span></div><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">fun </span><a href="../../com.pedro.library.udp/-udp-camera2/index.html#547772502%2FFunctions%2F794302154"><span class="token function">replaceView</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">openGlView<span class="token operator">: </span><a href="../../com.pedro.library.view/-open-gl-view/index.html">OpenGlView</a></span></span><span class="token punctuation">)</span></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1491601139%2FFunctions%2F794302154" anchor-label="requestKeyFrame" id="-1491601139%2FFunctions%2F794302154" data-filterable-set=":library:dokkaHtmlPartial/release"></a>
+          <div class="table-row" data-filterable-current=":library:dokkaHtmlPartial/release" data-filterable-set=":library:dokkaHtmlPartial/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="../../com.pedro.library.base/-camera2-base/request-key-frame.html"><span>request</span><wbr><span>Key</span><wbr><span><span>Frame</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1491601139%2FFunctions%2F794302154"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":library:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">fun </span><a href="../../com.pedro.library.base/-camera2-base/request-key-frame.html"><span class="token function">requestKeyFrame</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1208766738%2FFunctions%2F794302154" anchor-label="resumeRecord" id="1208766738%2FFunctions%2F794302154" data-filterable-set=":library:dokkaHtmlPartial/release"></a>
+          <div class="table-row" data-filterable-current=":library:dokkaHtmlPartial/release" data-filterable-set=":library:dokkaHtmlPartial/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="../../com.pedro.library.base/-camera2-base/resume-record.html"><span>resume</span><wbr><span><span>Record</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1208766738%2FFunctions%2F794302154"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":library:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">fun </span><a href="../../com.pedro.library.base/-camera2-base/resume-record.html"><span class="token function">resumeRecord</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-601394522%2FFunctions%2F794302154" anchor-label="setAudioCodec" id="-601394522%2FFunctions%2F794302154" data-filterable-set=":library:dokkaHtmlPartial/release"></a>
+          <div class="table-row" data-filterable-current=":library:dokkaHtmlPartial/release" data-filterable-set=":library:dokkaHtmlPartial/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="../../com.pedro.library.udp/-udp-camera2/index.html#-601394522%2FFunctions%2F794302154"><span>set</span><wbr><span>Audio</span><wbr><span><span>Codec</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-601394522%2FFunctions%2F794302154"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":library:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">fun </span><a href="../../com.pedro.library.udp/-udp-camera2/index.html#-601394522%2FFunctions%2F794302154"><span class="token function">setAudioCodec</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">codec<span class="token operator">: </span><a href="../../../common/com.pedro.common/-audio-codec/index.html">AudioCodec</a></span></span><span class="token punctuation">)</span></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1537847725%2FFunctions%2F794302154" anchor-label="setAudioMaxInputSize" id="-1537847725%2FFunctions%2F794302154" data-filterable-set=":library:dokkaHtmlPartial/release"></a>
+          <div class="table-row" data-filterable-current=":library:dokkaHtmlPartial/release" data-filterable-set=":library:dokkaHtmlPartial/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="../../com.pedro.library.udp/-udp-camera2/index.html#-1537847725%2FFunctions%2F794302154"><span>set</span><wbr><span>Audio</span><wbr><span>Max</span><wbr><span>Input</span><wbr><span><span>Size</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1537847725%2FFunctions%2F794302154"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":library:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">fun </span><a href="../../com.pedro.library.udp/-udp-camera2/index.html#-1537847725%2FFunctions%2F794302154"><span class="token function">setAudioMaxInputSize</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">size<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-int/index.html">Int</a></span></span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Set a custom size of audio buffer input. If you set 0 or less you can disable it to use library default value. Must be called before of prepareAudio method.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="144939912%2FFunctions%2F794302154" anchor-label="setCameraCallbacks" id="144939912%2FFunctions%2F794302154" data-filterable-set=":library:dokkaHtmlPartial/release"></a>
+          <div class="table-row" data-filterable-current=":library:dokkaHtmlPartial/release" data-filterable-set=":library:dokkaHtmlPartial/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="../../com.pedro.library.udp/-udp-camera2/index.html#144939912%2FFunctions%2F794302154"><span>set</span><wbr><span>Camera</span><wbr><span><span>Callbacks</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="144939912%2FFunctions%2F794302154"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":library:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">fun </span><a href="../../com.pedro.library.udp/-udp-camera2/index.html#144939912%2FFunctions%2F794302154"><span class="token function">setCameraCallbacks</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">callbacks<span class="token operator">: </span><a href="../../../encoder/com.pedro.encoder.input.video/-camera-callbacks/index.html">CameraCallbacks</a></span></span><span class="token punctuation">)</span></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="695742509%2FFunctions%2F794302154" anchor-label="setCustomAudioEffect" id="695742509%2FFunctions%2F794302154" data-filterable-set=":library:dokkaHtmlPartial/release"></a>
+          <div class="table-row" data-filterable-current=":library:dokkaHtmlPartial/release" data-filterable-set=":library:dokkaHtmlPartial/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="../../com.pedro.library.udp/-udp-camera2/index.html#695742509%2FFunctions%2F794302154"><span>set</span><wbr><span>Custom</span><wbr><span>Audio</span><wbr><span><span>Effect</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="695742509%2FFunctions%2F794302154"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":library:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">fun </span><a href="../../com.pedro.library.udp/-udp-camera2/index.html#695742509%2FFunctions%2F794302154"><span class="token function">setCustomAudioEffect</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">customAudioEffect<span class="token operator">: </span><a href="../../../encoder/com.pedro.encoder.input.audio/-custom-audio-effect/index.html">CustomAudioEffect</a></span></span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Set an audio effect modifying microphone's PCM buffer.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="902354117%2FFunctions%2F794302154" anchor-label="setEncoderErrorCallback" id="902354117%2FFunctions%2F794302154" data-filterable-set=":library:dokkaHtmlPartial/release"></a>
+          <div class="table-row" data-filterable-current=":library:dokkaHtmlPartial/release" data-filterable-set=":library:dokkaHtmlPartial/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="../../com.pedro.library.udp/-udp-camera2/index.html#902354117%2FFunctions%2F794302154"><span>set</span><wbr><span>Encoder</span><wbr><span>Error</span><wbr><span><span>Callback</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="902354117%2FFunctions%2F794302154"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":library:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">fun </span><a href="../../com.pedro.library.udp/-udp-camera2/index.html#902354117%2FFunctions%2F794302154"><span class="token function">setEncoderErrorCallback</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">encoderErrorCallback<span class="token operator">: </span><a href="../../../encoder/com.pedro.encoder/-encoder-error-callback/index.html">EncoderErrorCallback</a></span></span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Set a callback to know errors related with Video/Audio encoders</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-726125601%2FFunctions%2F794302154" anchor-label="setExposure" id="-726125601%2FFunctions%2F794302154" data-filterable-set=":library:dokkaHtmlPartial/release"></a>
+          <div class="table-row" data-filterable-current=":library:dokkaHtmlPartial/release" data-filterable-set=":library:dokkaHtmlPartial/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="../../com.pedro.library.udp/-udp-camera2/index.html#-726125601%2FFunctions%2F794302154"><span>set</span><wbr><span><span>Exposure</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-726125601%2FFunctions%2F794302154"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":library:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">fun </span><a href="../../com.pedro.library.udp/-udp-camera2/index.html#-726125601%2FFunctions%2F794302154"><span class="token function">setExposure</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">value<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-int/index.html">Int</a></span></span><span class="token punctuation">)</span></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="862280054%2FFunctions%2F794302154" anchor-label="setFocusDistance" id="862280054%2FFunctions%2F794302154" data-filterable-set=":library:dokkaHtmlPartial/release"></a>
+          <div class="table-row" data-filterable-current=":library:dokkaHtmlPartial/release" data-filterable-set=":library:dokkaHtmlPartial/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="../../com.pedro.library.udp/-udp-camera2/index.html#862280054%2FFunctions%2F794302154"><span>set</span><wbr><span>Focus</span><wbr><span><span>Distance</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="862280054%2FFunctions%2F794302154"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":library:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">fun </span><a href="../../com.pedro.library.udp/-udp-camera2/index.html#862280054%2FFunctions%2F794302154"><span class="token function">setFocusDistance</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">distance<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-float/index.html">Float</a></span></span><span class="token punctuation">)</span></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1394092685%2FFunctions%2F794302154" anchor-label="setFpsListener" id="1394092685%2FFunctions%2F794302154" data-filterable-set=":library:dokkaHtmlPartial/release"></a>
+          <div class="table-row" data-filterable-current=":library:dokkaHtmlPartial/release" data-filterable-set=":library:dokkaHtmlPartial/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="../../com.pedro.library.udp/-udp-camera2/index.html#1394092685%2FFunctions%2F794302154"><span>set</span><wbr><span>Fps</span><wbr><span><span>Listener</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1394092685%2FFunctions%2F794302154"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":library:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">fun </span><a href="../../com.pedro.library.udp/-udp-camera2/index.html#1394092685%2FFunctions%2F794302154"><span class="token function">setFpsListener</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">callback<span class="token operator">: </span><a href="../../com.pedro.library.util/-fps-listener/-callback/index.html">FpsListener.Callback</a></span></span><span class="token punctuation">)</span></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1790612625%2FFunctions%2F794302154" anchor-label="setMicrophoneMode" id="1790612625%2FFunctions%2F794302154" data-filterable-set=":library:dokkaHtmlPartial/release"></a>
+          <div class="table-row" data-filterable-current=":library:dokkaHtmlPartial/release" data-filterable-set=":library:dokkaHtmlPartial/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="../../com.pedro.library.udp/-udp-camera2/index.html#1790612625%2FFunctions%2F794302154"><span>set</span><wbr><span>Microphone</span><wbr><span><span>Mode</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1790612625%2FFunctions%2F794302154"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":library:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">fun </span><a href="../../com.pedro.library.udp/-udp-camera2/index.html#1790612625%2FFunctions%2F794302154"><span class="token function">setMicrophoneMode</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">microphoneMode<span class="token operator">: </span><a href="../../../encoder/com.pedro.encoder.input.audio/-microphone-mode/index.html">MicrophoneMode</a></span></span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Must be called before prepareAudio.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="811651704%2FFunctions%2F794302154" anchor-label="setOpticalZoom" id="811651704%2FFunctions%2F794302154" data-filterable-set=":library:dokkaHtmlPartial/release"></a>
+          <div class="table-row" data-filterable-current=":library:dokkaHtmlPartial/release" data-filterable-set=":library:dokkaHtmlPartial/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="../../com.pedro.library.udp/-udp-camera2/index.html#811651704%2FFunctions%2F794302154"><span>set</span><wbr><span>Optical</span><wbr><span><span>Zoom</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="811651704%2FFunctions%2F794302154"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":library:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">fun </span><a href="../../com.pedro.library.udp/-udp-camera2/index.html#811651704%2FFunctions%2F794302154"><span class="token function">setOpticalZoom</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">level<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-float/index.html">Float</a></span></span><span class="token punctuation">)</span></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1958312975%2FFunctions%2F794302154" anchor-label="setRecordController" id="-1958312975%2FFunctions%2F794302154" data-filterable-set=":library:dokkaHtmlPartial/release"></a>
+          <div class="table-row" data-filterable-current=":library:dokkaHtmlPartial/release" data-filterable-set=":library:dokkaHtmlPartial/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="../../com.pedro.library.udp/-udp-camera2/index.html#-1958312975%2FFunctions%2F794302154"><span>set</span><wbr><span>Record</span><wbr><span><span>Controller</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1958312975%2FFunctions%2F794302154"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":library:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">fun </span><a href="../../com.pedro.library.udp/-udp-camera2/index.html#-1958312975%2FFunctions%2F794302154"><span class="token function">setRecordController</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">recordController<span class="token operator">: </span><a href="../../com.pedro.library.base.recording/-base-record-controller/index.html">BaseRecordController</a></span></span><span class="token punctuation">)</span></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-909967794%2FFunctions%2F794302154" anchor-label="setVideoBitrateOnFly" id="-909967794%2FFunctions%2F794302154" data-filterable-set=":library:dokkaHtmlPartial/release"></a>
+          <div class="table-row" data-filterable-current=":library:dokkaHtmlPartial/release" data-filterable-set=":library:dokkaHtmlPartial/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="../../com.pedro.library.udp/-udp-camera2/index.html#-909967794%2FFunctions%2F794302154"><span>set</span><wbr><span>Video</span><wbr><span>Bitrate</span><wbr><span>On</span><wbr><span><span>Fly</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-909967794%2FFunctions%2F794302154"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":library:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">fun </span><a href="../../com.pedro.library.udp/-udp-camera2/index.html#-909967794%2FFunctions%2F794302154"><span class="token function">setVideoBitrateOnFly</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">bitrate<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-int/index.html">Int</a></span></span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Set video bitrate of H264 in bits per second while stream.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-223829818%2FFunctions%2F794302154" anchor-label="setVideoCodec" id="-223829818%2FFunctions%2F794302154" data-filterable-set=":library:dokkaHtmlPartial/release"></a>
+          <div class="table-row" data-filterable-current=":library:dokkaHtmlPartial/release" data-filterable-set=":library:dokkaHtmlPartial/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="../../com.pedro.library.udp/-udp-camera2/index.html#-223829818%2FFunctions%2F794302154"><span>set</span><wbr><span>Video</span><wbr><span><span>Codec</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-223829818%2FFunctions%2F794302154"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":library:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">fun </span><a href="../../com.pedro.library.udp/-udp-camera2/index.html#-223829818%2FFunctions%2F794302154"><span class="token function">setVideoCodec</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">codec<span class="token operator">: </span><a href="../../../common/com.pedro.common/-video-codec/index.html">VideoCodec</a></span></span><span class="token punctuation">)</span></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1991337207%2FFunctions%2F794302154" anchor-label="setZoom" id="1991337207%2FFunctions%2F794302154" data-filterable-set=":library:dokkaHtmlPartial/release"></a>
+          <div class="table-row" data-filterable-current=":library:dokkaHtmlPartial/release" data-filterable-set=":library:dokkaHtmlPartial/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="../../com.pedro.library.udp/-udp-camera2/index.html#-669403589%2FFunctions%2F794302154"><span>set</span><wbr><span><span>Zoom</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1991337207%2FFunctions%2F794302154"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":library:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">fun </span><a href="../../com.pedro.library.udp/-udp-camera2/index.html#-669403589%2FFunctions%2F794302154"><span class="token function">setZoom</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">event<span class="token operator">: </span><a href="https://developer.android.com/reference/kotlin/android/view/MotionEvent.html">MotionEvent</a></span></span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Set zoomIn or zoomOut to camera.</p></div><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">fun </span><a href="../../com.pedro.library.udp/-udp-camera2/index.html#-1173528122%2FFunctions%2F794302154"><span class="token function">setZoom</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">level<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-float/index.html">Float</a></span></span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Set zoomIn or zoomOut to camera. Use this method if you use a zoom slider.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1949246402%2FFunctions%2F794302154" anchor-label="startPreview" id="1949246402%2FFunctions%2F794302154" data-filterable-set=":library:dokkaHtmlPartial/release"></a>
+          <div class="table-row" data-filterable-current=":library:dokkaHtmlPartial/release" data-filterable-set=":library:dokkaHtmlPartial/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="../../com.pedro.library.base/-camera2-base/start-preview.html"><span>start</span><wbr><span><span>Preview</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1949246402%2FFunctions%2F794302154"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":library:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">fun </span><a href="../../com.pedro.library.base/-camera2-base/start-preview.html"><span class="token function">startPreview</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span></div><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">fun </span><a href="../../com.pedro.library.udp/-udp-camera2/index.html#-2128077893%2FFunctions%2F794302154"><span class="token function">startPreview</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">cameraFacing<span class="token operator">: </span><a href="../../../encoder/com.pedro.encoder.input.video/-camera-helper/-facing/index.html">CameraHelper.Facing</a></span></span><span class="token punctuation">)</span></div><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">fun </span><a href="../../com.pedro.library.udp/-udp-camera2/index.html#-890205862%2FFunctions%2F794302154"><span class="token function">startPreview</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">cameraId<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html">String</a></span></span><span class="token punctuation">)</span></div><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">fun </span><a href="../../com.pedro.library.udp/-udp-camera2/index.html#1965649602%2FFunctions%2F794302154"><span class="token function">startPreview</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">cameraFacing<span class="token operator">: </span><a href="../../../encoder/com.pedro.encoder.input.video/-camera-helper/-facing/index.html">CameraHelper.Facing</a><span class="token punctuation">, </span></span><span class="parameter ">rotation<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-int/index.html">Int</a></span></span><span class="token punctuation">)</span></div><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">fun </span><a href="../../com.pedro.library.udp/-udp-camera2/index.html#-1204889771%2FFunctions%2F794302154"><span class="token function">startPreview</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">width<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-int/index.html">Int</a><span class="token punctuation">, </span></span><span class="parameter ">height<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-int/index.html">Int</a></span></span><span class="token punctuation">)</span></div><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">fun </span><a href="../../com.pedro.library.udp/-udp-camera2/index.html#690001859%2FFunctions%2F794302154"><span class="token function">startPreview</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">cameraId<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html">String</a><span class="token punctuation">, </span></span><span class="parameter ">rotation<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-int/index.html">Int</a></span></span><span class="token punctuation">)</span></div><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">fun </span><a href="../../com.pedro.library.udp/-udp-camera2/index.html#1963049307%2FFunctions%2F794302154"><span class="token function">startPreview</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">cameraFacing<span class="token operator">: </span><a href="../../../encoder/com.pedro.encoder.input.video/-camera-helper/-facing/index.html">CameraHelper.Facing</a><span class="token punctuation">, </span></span><span class="parameter ">width<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-int/index.html">Int</a><span class="token punctuation">, </span></span><span class="parameter ">height<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-int/index.html">Int</a></span></span><span class="token punctuation">)</span></div><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">fun </span><a href="../../com.pedro.library.udp/-udp-camera2/index.html#-338125382%2FFunctions%2F794302154"><span class="token function">startPreview</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">cameraId<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html">String</a><span class="token punctuation">, </span></span><span class="parameter ">width<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-int/index.html">Int</a><span class="token punctuation">, </span></span><span class="parameter ">height<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-int/index.html">Int</a></span></span><span class="token punctuation">)</span></div><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">fun </span><a href="../../com.pedro.library.udp/-udp-camera2/index.html#508429602%2FFunctions%2F794302154"><span class="token function">startPreview</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">cameraFacing<span class="token operator">: </span><a href="../../../encoder/com.pedro.encoder.input.video/-camera-helper/-facing/index.html">CameraHelper.Facing</a><span class="token punctuation">, </span></span><span class="parameter ">width<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-int/index.html">Int</a><span class="token punctuation">, </span></span><span class="parameter ">height<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-int/index.html">Int</a><span class="token punctuation">, </span></span><span class="parameter ">rotation<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-int/index.html">Int</a></span></span><span class="token punctuation">)</span></div><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">fun </span><a href="../../com.pedro.library.udp/-udp-camera2/index.html#-1430124701%2FFunctions%2F794302154"><span class="token function">startPreview</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">cameraId<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html">String</a><span class="token punctuation">, </span></span><span class="parameter ">width<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-int/index.html">Int</a><span class="token punctuation">, </span></span><span class="parameter ">height<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-int/index.html">Int</a><span class="token punctuation">, </span></span><span class="parameter ">rotation<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-int/index.html">Int</a></span></span><span class="token punctuation">)</span></div><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">fun </span><a href="../../com.pedro.library.udp/-udp-camera2/index.html#-1588385254%2FFunctions%2F794302154"><span class="token function">startPreview</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">cameraId<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html">String</a><span class="token punctuation">, </span></span><span class="parameter ">width<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-int/index.html">Int</a><span class="token punctuation">, </span></span><span class="parameter ">height<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-int/index.html">Int</a><span class="token punctuation">, </span></span><span class="parameter ">fps<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-int/index.html">Int</a><span class="token punctuation">, </span></span><span class="parameter ">rotation<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-int/index.html">Int</a></span></span><span class="token punctuation">)</span></div><br><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">fun </span><a href="../../com.pedro.library.udp/-udp-camera2/index.html#1726050043%2FFunctions%2F794302154"><span class="token function">startPreview</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">cameraFacing<span class="token operator">: </span><a href="../../../encoder/com.pedro.encoder.input.video/-camera-helper/-facing/index.html">CameraHelper.Facing</a><span class="token punctuation">, </span></span><span class="parameter ">width<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-int/index.html">Int</a><span class="token punctuation">, </span></span><span class="parameter ">height<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-int/index.html">Int</a><span class="token punctuation">, </span></span><span class="parameter ">fps<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-int/index.html">Int</a><span class="token punctuation">, </span></span><span class="parameter ">rotation<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-int/index.html">Int</a></span></span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Start camera preview. Ignored, if stream or preview is started.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1852202670%2FFunctions%2F794302154" anchor-label="startRecord" id="1852202670%2FFunctions%2F794302154" data-filterable-set=":library:dokkaHtmlPartial/release"></a>
+          <div class="table-row" data-filterable-current=":library:dokkaHtmlPartial/release" data-filterable-set=":library:dokkaHtmlPartial/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="../../com.pedro.library.udp/-udp-camera2/index.html#-291316880%2FFunctions%2F794302154"><span>start</span><wbr><span><span>Record</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1852202670%2FFunctions%2F794302154"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":library:dokkaHtmlPartial/release"><div class="symbol monospace"><div class="block"><div class="block"><span class="token annotation builtin">@</span><a href="https://developer.android.com/reference/kotlin/androidx/annotation/RequiresApi.html"><span class="token annotation builtin">RequiresApi</span></a><span class="token punctuation">(</span><span>api<span class="token operator"> = </span><span class="breakable-word"><span class="token constant">26</span></span></span><wbr><span class="token punctuation">)</span></div></div><span class="token keyword">open </span><span class="token keyword">fun </span><a href="../../com.pedro.library.udp/-udp-camera2/index.html#-291316880%2FFunctions%2F794302154"><span class="token function">startRecord</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter "><span><span class="token annotation builtin">@</span><a href="https://developer.android.com/reference/kotlin/androidx/annotation/NonNull.html"><span class="token annotation builtin">NonNull</span></a>&nbsp;</span>fd<span class="token operator">: </span><a href="https://developer.android.com/reference/kotlin/java/io/FileDescriptor.html">FileDescriptor</a></span></span><span class="token punctuation">)</span></div><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">fun </span><a href="../../com.pedro.library.udp/-udp-camera2/index.html#1572645741%2FFunctions%2F794302154"><span class="token function">startRecord</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter "><span><span class="token annotation builtin">@</span><a href="https://developer.android.com/reference/kotlin/androidx/annotation/NonNull.html"><span class="token annotation builtin">NonNull</span></a>&nbsp;</span>path<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html">String</a></span></span><span class="token punctuation">)</span></div><br><div class="symbol monospace"><div class="block"><div class="block"><span class="token annotation builtin">@</span><a href="https://developer.android.com/reference/kotlin/androidx/annotation/RequiresApi.html"><span class="token annotation builtin">RequiresApi</span></a><span class="token punctuation">(</span><span>api<span class="token operator"> = </span><span class="breakable-word"><span class="token constant">26</span></span></span><wbr><span class="token punctuation">)</span></div></div><span class="token keyword">open </span><span class="token keyword">fun </span><a href="../../com.pedro.library.udp/-udp-camera2/index.html#-128994415%2FFunctions%2F794302154"><span class="token function">startRecord</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter "><span><span class="token annotation builtin">@</span><a href="https://developer.android.com/reference/kotlin/androidx/annotation/NonNull.html"><span class="token annotation builtin">NonNull</span></a>&nbsp;</span>fd<span class="token operator">: </span><a href="https://developer.android.com/reference/kotlin/java/io/FileDescriptor.html">FileDescriptor</a><span class="token punctuation">, </span></span><span class="parameter "><span><span class="token annotation builtin">@</span><a href="https://developer.android.com/reference/kotlin/androidx/annotation/Nullable.html"><span class="token annotation builtin">Nullable</span></a>&nbsp;</span>listener<span class="token operator">: </span><a href="../../com.pedro.library.base.recording/-record-controller/-listener/index.html">RecordController.Listener</a><span class="token operator">?</span></span></span><span class="token punctuation">)</span></div><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">fun </span><a href="../../com.pedro.library.udp/-udp-camera2/index.html#-152002034%2FFunctions%2F794302154"><span class="token function">startRecord</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter "><span><span class="token annotation builtin">@</span><a href="https://developer.android.com/reference/kotlin/androidx/annotation/NonNull.html"><span class="token annotation builtin">NonNull</span></a>&nbsp;</span>path<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html">String</a><span class="token punctuation">, </span></span><span class="parameter "><span><span class="token annotation builtin">@</span><a href="https://developer.android.com/reference/kotlin/androidx/annotation/Nullable.html"><span class="token annotation builtin">Nullable</span></a>&nbsp;</span>listener<span class="token operator">: </span><a href="../../com.pedro.library.base.recording/-record-controller/-listener/index.html">RecordController.Listener</a><span class="token operator">?</span></span></span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Starts recording a MP4 video.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1600645741%2FFunctions%2F794302154" anchor-label="startStream" id="-1600645741%2FFunctions%2F794302154" data-filterable-set=":library:dokkaHtmlPartial/release"></a>
+          <div class="table-row" data-filterable-current=":library:dokkaHtmlPartial/release" data-filterable-set=":library:dokkaHtmlPartial/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="../../com.pedro.library.udp/-udp-camera2/index.html#-935939236%2FFunctions%2F794302154"><span>start</span><wbr><span><span>Stream</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1600645741%2FFunctions%2F794302154"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":library:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">fun </span><a href="../../com.pedro.library.udp/-udp-camera2/index.html#-935939236%2FFunctions%2F794302154"><span class="token function">startStream</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">url<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html">String</a></span></span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Need be called after @prepareVideo or/and @prepareAudio. This method override resolution of</p></div><div class="symbol monospace"><span class="token keyword">fun </span><a href="start-stream.html"><span class="token function">startStream</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">type<span class="token operator">: </span><a href="../-multi-type/index.html">MultiType</a><span class="token punctuation">, </span></span><span class="parameter ">index<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-int/index.html">Int</a><span class="token punctuation">, </span></span><span class="parameter ">url<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html">String</a><span class="token operator">?</span></span></span><span class="token punctuation">)</span></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-521598456%2FFunctions%2F794302154" anchor-label="startStreamAndRecord" id="-521598456%2FFunctions%2F794302154" data-filterable-set=":library:dokkaHtmlPartial/release"></a>
+          <div class="table-row" data-filterable-current=":library:dokkaHtmlPartial/release" data-filterable-set=":library:dokkaHtmlPartial/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="../../com.pedro.library.udp/-udp-camera2/index.html#444861279%2FFunctions%2F794302154"><span>start</span><wbr><span>Stream</span><wbr><span>And</span><wbr><span><span>Record</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-521598456%2FFunctions%2F794302154"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":library:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">fun </span><a href="../../com.pedro.library.udp/-udp-camera2/index.html#444861279%2FFunctions%2F794302154"><span class="token function">startStreamAndRecord</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">url<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html">String</a><span class="token punctuation">, </span></span><span class="parameter ">path<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html">String</a></span></span><span class="token punctuation">)</span></div><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">fun </span><a href="../../com.pedro.library.udp/-udp-camera2/index.html#-535010237%2FFunctions%2F794302154"><span class="token function">startStreamAndRecord</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">url<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html">String</a><span class="token punctuation">, </span></span><span class="parameter ">path<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html">String</a><span class="token punctuation">, </span></span><span class="parameter ">listener<span class="token operator">: </span><a href="../../com.pedro.library.base.recording/-record-controller/-listener/index.html">RecordController.Listener</a></span></span><span class="token punctuation">)</span></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-935356663%2FFunctions%2F794302154" anchor-label="stopCamera" id="-935356663%2FFunctions%2F794302154" data-filterable-set=":library:dokkaHtmlPartial/release"></a>
+          <div class="table-row" data-filterable-current=":library:dokkaHtmlPartial/release" data-filterable-set=":library:dokkaHtmlPartial/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="../../com.pedro.library.base/-camera2-base/stop-camera.html"><span>stop</span><wbr><span><span>Camera</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-935356663%2FFunctions%2F794302154"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":library:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">fun </span><a href="../../com.pedro.library.base/-camera2-base/stop-camera.html"><span class="token function">stopCamera</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Similar to stopPreview but you can do it while streaming or recording.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="422582340%2FFunctions%2F794302154" anchor-label="stopPreview" id="422582340%2FFunctions%2F794302154" data-filterable-set=":library:dokkaHtmlPartial/release"></a>
+          <div class="table-row" data-filterable-current=":library:dokkaHtmlPartial/release" data-filterable-set=":library:dokkaHtmlPartial/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="../../com.pedro.library.base/-camera2-base/stop-preview.html"><span>stop</span><wbr><span><span>Preview</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="422582340%2FFunctions%2F794302154"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":library:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">fun </span><a href="../../com.pedro.library.base/-camera2-base/stop-preview.html"><span class="token function">stopPreview</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Stop camera preview. Ignored if streaming or already stopped. You need call it after</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-718448803%2FFunctions%2F794302154" anchor-label="stopRecord" id="-718448803%2FFunctions%2F794302154" data-filterable-set=":library:dokkaHtmlPartial/release"></a>
+          <div class="table-row" data-filterable-current=":library:dokkaHtmlPartial/release" data-filterable-set=":library:dokkaHtmlPartial/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="../../com.pedro.library.base/-camera2-base/stop-record.html"><span>stop</span><wbr><span><span>Record</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-718448803%2FFunctions%2F794302154"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":library:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">fun </span><a href="../../com.pedro.library.base/-camera2-base/stop-record.html"><span class="token function">stopRecord</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Stop record MP4 video started with @startRecord. If you don't call it file will be unreadable.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-2134996711%2FFunctions%2F794302154" anchor-label="stopStream" id="-2134996711%2FFunctions%2F794302154" data-filterable-set=":library:dokkaHtmlPartial/release"></a>
+          <div class="table-row" data-filterable-current=":library:dokkaHtmlPartial/release" data-filterable-set=":library:dokkaHtmlPartial/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="../../com.pedro.library.base/-camera2-base/stop-stream.html"><span>stop</span><wbr><span><span>Stream</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-2134996711%2FFunctions%2F794302154"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":library:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">fun </span><a href="../../com.pedro.library.base/-camera2-base/stop-stream.html"><span class="token function">stopStream</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Stop stream started with @startStream.</p></div><div class="symbol monospace"><span class="token keyword">fun </span><a href="stop-stream.html"><span class="token function">stopStream</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">type<span class="token operator">: </span><a href="../-multi-type/index.html">MultiType</a><span class="token punctuation">, </span></span><span class="parameter ">index<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-int/index.html">Int</a></span></span><span class="token punctuation">)</span></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1728649758%2FFunctions%2F794302154" anchor-label="switchCamera" id="-1728649758%2FFunctions%2F794302154" data-filterable-set=":library:dokkaHtmlPartial/release"></a>
+          <div class="table-row" data-filterable-current=":library:dokkaHtmlPartial/release" data-filterable-set=":library:dokkaHtmlPartial/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="../../com.pedro.library.base/-camera2-base/switch-camera.html"><span>switch</span><wbr><span><span>Camera</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1728649758%2FFunctions%2F794302154"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":library:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">fun </span><a href="../../com.pedro.library.base/-camera2-base/switch-camera.html"><span class="token function">switchCamera</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Switch camera used. Can be called anytime</p></div><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">fun </span><a href="../../com.pedro.library.udp/-udp-camera2/index.html#65791373%2FFunctions%2F794302154"><span class="token function">switchCamera</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">cameraId<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html">String</a></span></span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Choose a specific camera to use. Can be called anytime.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="188003772%2FFunctions%2F794302154" anchor-label="tapToFocus" id="188003772%2FFunctions%2F794302154" data-filterable-set=":library:dokkaHtmlPartial/release"></a>
+          <div class="table-row" data-filterable-current=":library:dokkaHtmlPartial/release" data-filterable-set=":library:dokkaHtmlPartial/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="../../com.pedro.library.udp/-udp-camera2/index.html#188003772%2FFunctions%2F794302154"><span>tap</span><wbr><span>To</span><wbr><span><span>Focus</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="188003772%2FFunctions%2F794302154"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":library:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">fun </span><a href="../../com.pedro.library.udp/-udp-camera2/index.html#188003772%2FFunctions%2F794302154"><span class="token function">tapToFocus</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">event<span class="token operator">: </span><a href="https://developer.android.com/reference/kotlin/android/view/MotionEvent.html">MotionEvent</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-boolean/index.html">Boolean</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      <div class="footer">
+        <span class="go-to-top-icon"><a href="#content" id="go-to-top-link"></a></span><span>© 2024 Copyright</span><span class="pull-right"><span>Generated by </span><a href="https://github.com/Kotlin/dokka"><span>dokka</span><span class="padded-icon"></span></a></span>
+      </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
+
