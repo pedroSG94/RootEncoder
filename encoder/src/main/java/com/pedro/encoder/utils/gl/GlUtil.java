@@ -49,11 +49,10 @@ public class GlUtil {
     GLES20.glCompileShader(shader);
     int[] compiled = new int[1];
     GLES20.glGetShaderiv(shader, GLES20.GL_COMPILE_STATUS, compiled, 0);
-    if (compiled[0] == 0) {
-      Log.e(TAG, "Could not compile shader " + shaderType + ":");
-      Log.e(TAG, " " + GLES20.glGetShaderInfoLog(shader));
+    if (compiled[0] == GLES20.GL_FALSE) {
+      String message = "Could not compile shader " + shaderType + ": " + GLES20.glGetShaderInfoLog(shader);
       GLES20.glDeleteShader(shader);
-      shader = 0;
+      throw new RuntimeException(message);
     }
     return shader;
   }
@@ -81,10 +80,9 @@ public class GlUtil {
     int[] linkStatus = new int[1];
     GLES20.glGetProgramiv(program, GLES20.GL_LINK_STATUS, linkStatus, 0);
     if (linkStatus[0] != GLES20.GL_TRUE) {
-      Log.e(TAG, "Could not link program: ");
-      Log.e(TAG, GLES20.glGetProgramInfoLog(program));
+      String message = "Could not link program: " + GLES20.glGetProgramInfoLog(program);
       GLES20.glDeleteProgram(program);
-      program = 0;
+      throw new RuntimeException(message);
     }
     return program;
   }
@@ -133,7 +131,7 @@ public class GlUtil {
       str = baos.toString();
       is.close();
     } catch (IOException e) {
-      str = "";
+      throw new RuntimeException("Read shader from disk failed: " + e.getMessage());
     }
     return str;
   }
