@@ -40,8 +40,6 @@ import java.nio.ByteBuffer;
 @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
 public class GlUtil {
 
-  private static final String TAG = "GlUtil";
-
   public static int loadShader(int shaderType, String source) {
     int shader = GLES20.glCreateShader(shaderType);
     checkGlError("glCreateShader type=" + shaderType);
@@ -59,19 +57,11 @@ public class GlUtil {
 
   public static int createProgram(String vertexSource, String fragmentSource) {
     int vertexShader = loadShader(GLES20.GL_VERTEX_SHADER, vertexSource);
-    if (vertexShader == 0) {
-      return 0;
-    }
     int pixelShader = loadShader(GLES20.GL_FRAGMENT_SHADER, fragmentSource);
-    if (pixelShader == 0) {
-      return 0;
-    }
 
     int program = GLES20.glCreateProgram();
     checkGlError("glCreateProgram");
-    if (program == 0) {
-      Log.e(TAG, "Could not create program");
-    }
+    if (program == 0) throw new RuntimeException("Could not create program");
     GLES20.glAttachShader(program, vertexShader);
     checkGlError("glAttachShader");
     GLES20.glAttachShader(program, pixelShader);
