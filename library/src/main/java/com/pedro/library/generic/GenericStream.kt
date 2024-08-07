@@ -108,40 +108,24 @@ class GenericStream(
     streamClient.connecting(endPoint)
     if (endPoint.startsWith("rtmp", ignoreCase = true)) {
       connectedType = ClientType.RTMP
-      startStreamRtpRtmp(endPoint)
+      val resolution = super.getVideoResolution()
+      rtmpClient.setVideoResolution(resolution.width, resolution.height)
+      rtmpClient.setFps(super.getVideoFps())
+      rtmpClient.connect(endPoint)
     } else if (endPoint.startsWith("rtsp", ignoreCase = true)) {
       connectedType = ClientType.RTSP
-      startStreamRtpRtsp(endPoint)
+      rtspClient.connect(endPoint)
     } else if (endPoint.startsWith("srt", ignoreCase = true)) {
       connectedType = ClientType.SRT
-      startStreamRtpSrt(endPoint)
+      srtClient.connect(endPoint)
     } else if (endPoint.startsWith("udp", ignoreCase = true)) {
       connectedType = ClientType.UDP
-      startStreamRtpUdp(endPoint)
+      udpClient.connect(endPoint)
     } else {
       onMainThreadHandler {
         connectChecker.onConnectionFailed("Unsupported protocol. Only support rtmp, rtsp and srt")
       }
     }
-  }
-
-  private fun startStreamRtpRtmp(endPoint: String) {
-    val resolution = super.getVideoResolution()
-    rtmpClient.setVideoResolution(resolution.width, resolution.height)
-    rtmpClient.setFps(super.getVideoFps())
-    rtmpClient.connect(endPoint)
-  }
-
-  private fun startStreamRtpRtsp(endPoint: String) {
-    rtspClient.connect(endPoint)
-  }
-
-  private fun startStreamRtpSrt(endPoint: String) {
-    srtClient.connect(endPoint)
-  }
-
-  private fun startStreamRtpUdp(endPoint: String) {
-    udpClient.connect(endPoint)
   }
 
   override fun stopStreamImp() {
