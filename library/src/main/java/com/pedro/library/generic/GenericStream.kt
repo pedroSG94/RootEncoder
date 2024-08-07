@@ -97,27 +97,30 @@ class GenericStream(
     udpClient.setAudioCodec(codec)
   }
 
-  override fun audioInfo(sampleRate: Int, isStereo: Boolean) {
+  override fun onAudioInfoImp(sampleRate: Int, isStereo: Boolean) {
     rtmpClient.setAudioInfo(sampleRate, isStereo)
     rtspClient.setAudioInfo(sampleRate, isStereo)
     srtClient.setAudioInfo(sampleRate, isStereo)
     udpClient.setAudioInfo(sampleRate, isStereo)
   }
 
-  override fun rtpStartStream(endPoint: String) {
+  override fun startStreamImp(endPoint: String) {
     streamClient.connecting(endPoint)
     if (endPoint.startsWith("rtmp", ignoreCase = true)) {
       connectedType = ClientType.RTMP
-      startStreamRtpRtmp(endPoint)
+      val resolution = super.getVideoResolution()
+      rtmpClient.setVideoResolution(resolution.width, resolution.height)
+      rtmpClient.setFps(super.getVideoFps())
+      rtmpClient.connect(endPoint)
     } else if (endPoint.startsWith("rtsp", ignoreCase = true)) {
       connectedType = ClientType.RTSP
-      startStreamRtpRtsp(endPoint)
+      rtspClient.connect(endPoint)
     } else if (endPoint.startsWith("srt", ignoreCase = true)) {
       connectedType = ClientType.SRT
-      startStreamRtpSrt(endPoint)
+      srtClient.connect(endPoint)
     } else if (endPoint.startsWith("udp", ignoreCase = true)) {
       connectedType = ClientType.UDP
-      startStreamRtpUdp(endPoint)
+      udpClient.connect(endPoint)
     } else {
       onMainThreadHandler {
         connectChecker.onConnectionFailed("Unsupported protocol. Only support rtmp, rtsp and srt")
@@ -125,26 +128,7 @@ class GenericStream(
     }
   }
 
-  private fun startStreamRtpRtmp(endPoint: String) {
-    val resolution = super.getVideoResolution()
-    rtmpClient.setVideoResolution(resolution.width, resolution.height)
-    rtmpClient.setFps(super.getVideoFps())
-    rtmpClient.connect(endPoint)
-  }
-
-  private fun startStreamRtpRtsp(endPoint: String) {
-    rtspClient.connect(endPoint)
-  }
-
-  private fun startStreamRtpSrt(endPoint: String) {
-    srtClient.connect(endPoint)
-  }
-
-  private fun startStreamRtpUdp(endPoint: String) {
-    udpClient.connect(endPoint)
-  }
-
-  override fun rtpStopStream() {
+  override fun stopStreamImp() {
     when (connectedType) {
       ClientType.RTMP -> rtmpClient.disconnect()
       ClientType.RTSP -> rtspClient.disconnect()
@@ -155,29 +139,29 @@ class GenericStream(
     connectedType = ClientType.NONE
   }
 
-  override fun getAacDataRtp(aacBuffer: ByteBuffer, info: MediaCodec.BufferInfo) {
+  override fun getAudioDataImp(audioBuffer: ByteBuffer, info: MediaCodec.BufferInfo) {
     when (connectedType) {
-      ClientType.RTMP -> rtmpClient.sendAudio(aacBuffer, info)
-      ClientType.RTSP -> rtspClient.sendAudio(aacBuffer, info)
-      ClientType.SRT -> srtClient.sendAudio(aacBuffer, info)
-      ClientType.UDP -> udpClient.sendAudio(aacBuffer, info)
+      ClientType.RTMP -> rtmpClient.sendAudio(audioBuffer, info)
+      ClientType.RTSP -> rtspClient.sendAudio(audioBuffer, info)
+      ClientType.SRT -> srtClient.sendAudio(audioBuffer, info)
+      ClientType.UDP -> udpClient.sendAudio(audioBuffer, info)
       else -> {}
     }
   }
 
-  override fun onSpsPpsVpsRtp(sps: ByteBuffer, pps: ByteBuffer?, vps: ByteBuffer?) {
+  override fun onVideoInfoImp(sps: ByteBuffer, pps: ByteBuffer?, vps: ByteBuffer?) {
     rtmpClient.setVideoInfo(sps, pps, vps)
     rtspClient.setVideoInfo(sps, pps, vps)
     srtClient.setVideoInfo(sps, pps, vps)
     udpClient.setVideoInfo(sps, pps, vps)
   }
 
-  override fun getH264DataRtp(h264Buffer: ByteBuffer, info: MediaCodec.BufferInfo) {
+  override fun getVideoDataImp(videoBuffer: ByteBuffer, info: MediaCodec.BufferInfo) {
     when (connectedType) {
-      ClientType.RTMP -> rtmpClient.sendVideo(h264Buffer, info)
-      ClientType.RTSP -> rtspClient.sendVideo(h264Buffer, info)
-      ClientType.SRT -> srtClient.sendVideo(h264Buffer, info)
-      ClientType.UDP -> udpClient.sendVideo(h264Buffer, info)
+      ClientType.RTMP -> rtmpClient.sendVideo(videoBuffer, info)
+      ClientType.RTSP -> rtspClient.sendVideo(videoBuffer, info)
+      ClientType.SRT -> srtClient.sendVideo(videoBuffer, info)
+      ClientType.UDP -> udpClient.sendVideo(videoBuffer, info)
       else -> {}
     }
   }

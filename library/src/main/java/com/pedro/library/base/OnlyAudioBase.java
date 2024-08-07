@@ -28,7 +28,7 @@ import androidx.annotation.RequiresApi;
 import com.pedro.common.AudioCodec;
 import com.pedro.encoder.EncoderErrorCallback;
 import com.pedro.encoder.audio.AudioEncoder;
-import com.pedro.encoder.audio.GetAacData;
+import com.pedro.encoder.audio.GetAudioData;
 import com.pedro.encoder.input.audio.CustomAudioEffect;
 import com.pedro.encoder.input.audio.GetMicrophoneData;
 import com.pedro.encoder.input.audio.MicrophoneManager;
@@ -72,18 +72,18 @@ public abstract class OnlyAudioBase {
     switch (microphoneMode) {
       case SYNC:
         microphoneManager = new MicrophoneManagerManual();
-        audioEncoder = new AudioEncoder(getAacData);
+        audioEncoder = new AudioEncoder(getAudioData);
         audioEncoder.setGetFrame(((MicrophoneManagerManual) microphoneManager).getGetFrame());
         audioEncoder.setTsModeBuffer(false);
         break;
       case ASYNC:
         microphoneManager = new MicrophoneManager(getMicrophoneData);
-        audioEncoder = new AudioEncoder(getAacData);
+        audioEncoder = new AudioEncoder(getAudioData);
         audioEncoder.setTsModeBuffer(false);
         break;
       case BUFFER:
         microphoneManager = new MicrophoneManager(getMicrophoneData);
-        audioEncoder = new AudioEncoder(getAacData);
+        audioEncoder = new AudioEncoder(getAudioData);
         audioEncoder.setTsModeBuffer(true);
         break;
     }
@@ -111,7 +111,7 @@ public abstract class OnlyAudioBase {
     audioEncoder.forceCodecType(codecTypeAudio);
   }
 
-  protected abstract void prepareAudioRtp(boolean isStereo, int sampleRate);
+  protected abstract void onAudioInfoImp(boolean isStereo, int sampleRate);
 
   /**
    * Call this method before use @startStream. If not you will do a stream without audio.
@@ -130,7 +130,7 @@ public abstract class OnlyAudioBase {
     if (!microphoneManager.createMicrophone(audioSource, sampleRate, isStereo, echoCanceler, noiseSuppressor)) {
       return false;
     }
-    prepareAudioRtp(isStereo, sampleRate);
+    onAudioInfoImp(isStereo, sampleRate);
     return audioEncoder.prepareAudioEncoder(bitrate, sampleRate, isStereo,
         microphoneManager.getMaxInputSize());
   }
@@ -204,7 +204,7 @@ public abstract class OnlyAudioBase {
     if (!streaming) stopStream();
   }
 
-  protected abstract void startStreamRtp(String url);
+  protected abstract void startStreamImp(String url);
 
   /**
    * Need be called after @prepareVideo or/and @prepareAudio.
@@ -222,7 +222,7 @@ public abstract class OnlyAudioBase {
     if (!recordController.isRunning()) {
       startEncoders();
     }
-    startStreamRtp(url);
+    startStreamImp(url);
   }
 
   /**
@@ -231,7 +231,7 @@ public abstract class OnlyAudioBase {
   public void stopStream() {
     if (streaming) {
       streaming = false;
-      stopStreamRtp();
+      stopStreamImp();
     }
     if (!recordController.isRecording()) {
       microphoneManager.stop();
@@ -246,7 +246,7 @@ public abstract class OnlyAudioBase {
     microphoneManager.start();
   }
 
-  protected abstract void stopStreamRtp();
+  protected abstract void stopStreamImp();
 
   /**
    * Get record state.
@@ -312,7 +312,7 @@ public abstract class OnlyAudioBase {
     return streaming;
   }
 
-  protected abstract void getAacDataRtp(ByteBuffer aacBuffer, MediaCodec.BufferInfo info);
+  protected abstract void getAudioDataImp(ByteBuffer audioBuffer, MediaCodec.BufferInfo info);
 
   public void setRecordController(BaseRecordController recordController) {
     if (!isRecording()) this.recordController = recordController;
@@ -322,13 +322,13 @@ public abstract class OnlyAudioBase {
     audioEncoder.inputPCMData(frame);
   };
 
-  private final GetAacData getAacData = new GetAacData() {
+  private final GetAudioData getAudioData = new GetAudioData() {
     @Override
-    public void getAacData(@NonNull ByteBuffer aacBuffer, @NonNull MediaCodec.BufferInfo info) {
+    public void getAudioData(@NonNull ByteBuffer audioBuffer, @NonNull MediaCodec.BufferInfo info) {
       if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
-        recordController.recordAudio(aacBuffer, info);
+        recordController.recordAudio(audioBuffer, info);
       }
-      if (streaming) getAacDataRtp(aacBuffer, info);
+      if (streaming) getAudioDataImp(audioBuffer, info);
     }
 
     @Override

@@ -40,19 +40,19 @@ class SrtOnlyAudio(connectChecker: ConnectChecker) : OnlyAudioBase() {
     srtClient.setAudioCodec(codec)
   }
 
-  override fun prepareAudioRtp(isStereo: Boolean, sampleRate: Int) {
+  override fun onAudioInfoImp(isStereo: Boolean, sampleRate: Int) {
     srtClient.setAudioInfo(sampleRate, isStereo)
   }
 
-  override fun startStreamRtp(url: String) {
+  override fun startStreamImp(url: String) {
     srtClient.connect(url)
   }
 
-  override fun stopStreamRtp() {
+  override fun stopStreamImp() {
     srtClient.disconnect()
   }
 
-  override fun getAacDataRtp(aacBuffer: ByteBuffer, info: MediaCodec.BufferInfo) {
-    srtClient.sendAudio(aacBuffer, info)
+  override fun getAudioDataImp(audioBuffer: ByteBuffer, info: MediaCodec.BufferInfo) {
+    srtClient.sendAudio(audioBuffer, info)
   }
 }

@@ -59,14 +59,14 @@ class GenericOnlyAudio(private val connectChecker: ConnectChecker): OnlyAudioBas
     udpClient.setAudioCodec(codec)
   }
 
-  override fun prepareAudioRtp(isStereo: Boolean, sampleRate: Int) {
+  override fun onAudioInfoImp(isStereo: Boolean, sampleRate: Int) {
     rtmpClient.setAudioInfo(sampleRate, isStereo)
     rtspClient.setAudioInfo(sampleRate, isStereo)
     srtClient.setAudioInfo(sampleRate, isStereo)
     udpClient.setAudioInfo(sampleRate, isStereo)
   }
 
-  override fun startStreamRtp(url: String) {
+  override fun startStreamImp(url: String) {
     streamClient.connecting(url)
     if (url.startsWith("rtmp", ignoreCase = true)) {
       connectedType = ClientType.RTMP
@@ -87,7 +87,7 @@ class GenericOnlyAudio(private val connectChecker: ConnectChecker): OnlyAudioBas
     }
   }
 
-  override fun stopStreamRtp() {
+  override fun stopStreamImp() {
     when (connectedType) {
       ClientType.RTMP -> rtmpClient.disconnect()
       ClientType.RTSP -> rtspClient.disconnect()
@@ -98,12 +98,12 @@ class GenericOnlyAudio(private val connectChecker: ConnectChecker): OnlyAudioBas
     connectedType = ClientType.NONE
   }
 
-  override fun getAacDataRtp(aacBuffer: ByteBuffer, info: MediaCodec.BufferInfo) {
+  override fun getAudioDataImp(audioBuffer: ByteBuffer, info: MediaCodec.BufferInfo) {
     when (connectedType) {
-      ClientType.RTMP -> rtmpClient.sendAudio(aacBuffer, info)
-      ClientType.RTSP -> rtspClient.sendAudio(aacBuffer, info)
-      ClientType.SRT -> srtClient.sendAudio(aacBuffer, info)
-      ClientType.UDP -> udpClient.sendAudio(aacBuffer, info)
+      ClientType.RTMP -> rtmpClient.sendAudio(audioBuffer, info)
+      ClientType.RTSP -> rtspClient.sendAudio(audioBuffer, info)
+      ClientType.SRT -> srtClient.sendAudio(audioBuffer, info)
+      ClientType.UDP -> udpClient.sendAudio(audioBuffer, info)
       else -> {}
     }
   }

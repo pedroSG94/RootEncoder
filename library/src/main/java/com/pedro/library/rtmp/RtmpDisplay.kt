@@ -55,11 +55,11 @@ class RtmpDisplay(context: Context, useOpengl: Boolean, connectChecker: ConnectC
 
   override fun getStreamClient(): RtmpStreamClient = streamClient
 
-  override fun prepareAudioRtp(isStereo: Boolean, sampleRate: Int) {
+  override fun onAudioInfoImp(isStereo: Boolean, sampleRate: Int) {
     rtmpClient.setAudioInfo(sampleRate, isStereo)
   }
 
-  override fun startStreamRtp(url: String) {
+  override fun startStreamImp(url: String) {
     if (videoEncoder.rotation == 90 || videoEncoder.rotation == 270) {
       rtmpClient.setVideoResolution(videoEncoder.height, videoEncoder.width)
     } else {
@@ -69,19 +69,19 @@ class RtmpDisplay(context: Context, useOpengl: Boolean, connectChecker: ConnectC
     rtmpClient.connect(url)
   }
 
-  override fun stopStreamRtp() {
+  override fun stopStreamImp() {
     rtmpClient.disconnect()
   }
 
-  override fun getAacDataRtp(aacBuffer: ByteBuffer, info: MediaCodec.BufferInfo) {
-    rtmpClient.sendAudio(aacBuffer, info)
+  override fun getAudioDataImp(audioBuffer: ByteBuffer, info: MediaCodec.BufferInfo) {
+    rtmpClient.sendAudio(audioBuffer, info)
   }
 
-  override fun onSpsPpsVpsRtp(sps: ByteBuffer, pps: ByteBuffer?, vps: ByteBuffer?) {
+  override fun onVideoInfoImp(sps: ByteBuffer, pps: ByteBuffer?, vps: ByteBuffer?) {
     rtmpClient.setVideoInfo(sps, pps, vps)
   }
 
-  override fun getH264DataRtp(h264Buffer: ByteBuffer, info: MediaCodec.BufferInfo) {
-    rtmpClient.sendVideo(h264Buffer, info)
+  override fun getVideoDataImp(videoBuffer: ByteBuffer, info: MediaCodec.BufferInfo) {
+    rtmpClient.sendVideo(videoBuffer, info)
   }
 }

@@ -22,7 +22,7 @@ import java.nio.ByteBuffer
 /**
  * Created by pedro on 19/01/17.
  */
-interface GetAacData {
-  fun getAacData(aacBuffer: ByteBuffer, info: MediaCodec.BufferInfo)
+interface GetAudioData {
+  fun getAudioData(audioBuffer: ByteBuffer, info: MediaCodec.BufferInfo)
   fun onAudioFormat(mediaFormat: MediaFormat)
 }

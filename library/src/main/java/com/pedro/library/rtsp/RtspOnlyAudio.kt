@@ -40,19 +40,19 @@ class RtspOnlyAudio(connectChecker: ConnectChecker) : OnlyAudioBase() {
     rtspClient.setAudioCodec(codec)
   }
 
-  override fun prepareAudioRtp(isStereo: Boolean, sampleRate: Int) {
+  override fun onAudioInfoImp(isStereo: Boolean, sampleRate: Int) {
     rtspClient.setAudioInfo(sampleRate, isStereo)
   }
 
-  override fun startStreamRtp(url: String) {
+  override fun startStreamImp(url: String) {
     rtspClient.connect(url)
   }
 
-  override fun stopStreamRtp() {
+  override fun stopStreamImp() {
     rtspClient.disconnect()
   }
 
-  override fun getAacDataRtp(aacBuffer: ByteBuffer, info: MediaCodec.BufferInfo) {
-    rtspClient.sendAudio(aacBuffer, info)
+  override fun getAudioDataImp(audioBuffer: ByteBuffer, info: MediaCodec.BufferInfo) {
+    rtspClient.sendAudio(audioBuffer, info)
   }
 }
