@@ -244,7 +244,7 @@ public class VideoEncoder extends BaseEncoder implements GetCameraData {
         bundle.putInt(MediaCodec.PARAMETER_KEY_REQUEST_SYNC_FRAME, 0);
         try {
           codec.setParameters(bundle);
-          getVideoData.onSpsPpsVps(oldSps, oldPps, oldVps);
+          getVideoData.onVideoInfo(oldSps, oldPps, oldVps);
         } catch (IllegalStateException e) {
           Log.e(TAG, "encoder need be running", e);
         }
@@ -308,7 +308,7 @@ public class VideoEncoder extends BaseEncoder implements GetCameraData {
       ByteBuffer bufferInfo = mediaFormat.getByteBuffer("csd-0");
       //we need an av1ConfigurationRecord with sequenceObu to work
       if (bufferInfo != null && bufferInfo.remaining() > 4) {
-        getVideoData.onSpsPpsVps(bufferInfo, null, null);
+        getVideoData.onVideoInfo(bufferInfo, null, null);
         return true;
       }
       return false;
@@ -318,14 +318,14 @@ public class VideoEncoder extends BaseEncoder implements GetCameraData {
       oldSps = byteBufferList.get(1);
       oldPps = byteBufferList.get(2);
       oldVps = byteBufferList.get(0);
-      getVideoData.onSpsPpsVps(oldSps, oldPps, oldVps);
+      getVideoData.onVideoInfo(oldSps, oldPps, oldVps);
       return true;
       //H264
     } else {
       oldSps = mediaFormat.getByteBuffer("csd-0");
       oldPps = mediaFormat.getByteBuffer("csd-1");
       oldVps = null;
-      getVideoData.onSpsPpsVps(oldSps, oldPps, oldVps);
+      getVideoData.onVideoInfo(oldSps, oldPps, oldVps);
       return true;
     }
   }
@@ -513,7 +513,7 @@ public class VideoEncoder extends BaseEncoder implements GetCameraData {
         oldSps = buffers.first;
         oldPps = buffers.second;
         oldVps = null;
-        getVideoData.onSpsPpsVps(oldSps, oldPps, oldVps);
+        getVideoData.onVideoInfo(oldSps, oldPps, oldVps);
         spsPpsSetted = true;
       } else {
         Log.e(TAG, "manual sps/pps extraction failed");
@@ -526,7 +526,7 @@ public class VideoEncoder extends BaseEncoder implements GetCameraData {
         oldSps = byteBufferList.get(1);
         oldPps = byteBufferList.get(2);
         oldVps = byteBufferList.get(0);
-        getVideoData.onSpsPpsVps(oldSps, oldPps, oldVps);
+        getVideoData.onVideoInfo(oldSps, oldPps, oldVps);
         spsPpsSetted = true;
       } else {
         Log.e(TAG, "manual vps/sps/pps extraction failed");
@@ -535,7 +535,7 @@ public class VideoEncoder extends BaseEncoder implements GetCameraData {
       Log.i(TAG, "formatChanged not called, doing manual av1 extraction...");
       ByteBuffer obuSequence = extractObuSequence(byteBuffer.duplicate(), bufferInfo);
       if (obuSequence != null) {
-        getVideoData.onSpsPpsVps(obuSequence, null, null);
+        getVideoData.onVideoInfo(obuSequence, null, null);
         spsPpsSetted = true;
       } else {
         Log.e(TAG, "manual av1 extraction failed");

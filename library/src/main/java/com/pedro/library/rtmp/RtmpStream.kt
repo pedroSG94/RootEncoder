@@ -65,30 +65,30 @@ class RtmpStream(
     rtmpClient.setAudioCodec(codec)
   }
 
-  override fun audioInfo(sampleRate: Int, isStereo: Boolean) {
+  override fun onAudioInfoImp(sampleRate: Int, isStereo: Boolean) {
     rtmpClient.setAudioInfo(sampleRate, isStereo)
   }
 
-  override fun rtpStartStream(endPoint: String) {
+  override fun startStreamImp(endPoint: String) {
     val resolution = super.getVideoResolution()
     rtmpClient.setVideoResolution(resolution.width, resolution.height)
     rtmpClient.setFps(super.getVideoFps())
     rtmpClient.connect(endPoint)
   }
 
-  override fun rtpStopStream() {
+  override fun stopStreamImp() {
     rtmpClient.disconnect()
   }
 
-  override fun onSpsPpsVpsRtp(sps: ByteBuffer, pps: ByteBuffer?, vps: ByteBuffer?) {
+  override fun onVideoInfoImp(sps: ByteBuffer, pps: ByteBuffer?, vps: ByteBuffer?) {
     rtmpClient.setVideoInfo(sps, pps, vps)
   }
 
-  override fun getH264DataRtp(h264Buffer: ByteBuffer, info: MediaCodec.BufferInfo) {
-    rtmpClient.sendVideo(h264Buffer, info)
+  override fun getVideoDataImp(videoBuffer: ByteBuffer, info: MediaCodec.BufferInfo) {
+    rtmpClient.sendVideo(videoBuffer, info)
   }
 
-  override fun getAacDataRtp(aacBuffer: ByteBuffer, info: MediaCodec.BufferInfo) {
-    rtmpClient.sendAudio(aacBuffer, info)
+  override fun getAudioDataImp(audioBuffer: ByteBuffer, info: MediaCodec.BufferInfo) {
+    rtmpClient.sendAudio(audioBuffer, info)
   }
 }

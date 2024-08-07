@@ -40,19 +40,19 @@ class RtmpOnlyAudio(connectChecker: ConnectChecker) : OnlyAudioBase() {
     rtmpClient.setAudioCodec(codec)
   }
 
-  override fun prepareAudioRtp(isStereo: Boolean, sampleRate: Int) {
+  override fun onAudioInfoImp(isStereo: Boolean, sampleRate: Int) {
     rtmpClient.setAudioInfo(sampleRate, isStereo)
   }
 
-  override fun startStreamRtp(url: String) {
+  override fun startStreamImp(url: String) {
     rtmpClient.connect(url)
   }
 
-  override fun stopStreamRtp() {
+  override fun stopStreamImp() {
     rtmpClient.disconnect()
   }
 
-  override fun getAacDataRtp(aacBuffer: ByteBuffer, info: MediaCodec.BufferInfo) {
-    rtmpClient.sendAudio(aacBuffer, info)
+  override fun getAudioDataImp(audioBuffer: ByteBuffer, info: MediaCodec.BufferInfo) {
+    rtmpClient.sendAudio(audioBuffer, info)
   }
 }

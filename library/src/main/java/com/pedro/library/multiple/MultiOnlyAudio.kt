@@ -160,7 +160,7 @@ class MultiOnlyAudio(
         }
     }
 
-    override fun startStreamRtp(url: String) {
+    override fun startStreamImp(url: String) {
     }
 
     fun stopStream(type: MultiType, index: Int) {
@@ -198,20 +198,20 @@ class MultiOnlyAudio(
         if (shouldStopEncoder) super.stopStream()
     }
 
-    override fun stopStreamRtp() {
+    override fun stopStreamImp() {
     }
 
-    override fun prepareAudioRtp(isStereo: Boolean, sampleRate: Int) {
+    override fun onAudioInfoImp(isStereo: Boolean, sampleRate: Int) {
         for (rtmpClient in rtmpClients) rtmpClient.setAudioInfo(sampleRate, isStereo)
         for (rtspClient in rtspClients) rtspClient.setAudioInfo(sampleRate, isStereo)
         for (srtClient in srtClients) srtClient.setAudioInfo(sampleRate, isStereo)
         for (udpClient in udpClients) udpClient.setAudioInfo(sampleRate, isStereo)
     }
 
-    override fun getAacDataRtp(aacBuffer: ByteBuffer, info: MediaCodec.BufferInfo) {
-        for (rtmpClient in rtmpClients) rtmpClient.sendAudio(aacBuffer.duplicate(), info)
-        for (rtspClient in rtspClients) rtspClient.sendAudio(aacBuffer.duplicate(), info)
-        for (srtClient in srtClients) srtClient.sendAudio(aacBuffer.duplicate(), info)
-        for (udpClient in udpClients) udpClient.sendAudio(aacBuffer.duplicate(), info)
+    override fun getAudioDataImp(audioBuffer: ByteBuffer, info: MediaCodec.BufferInfo) {
+        for (rtmpClient in rtmpClients) rtmpClient.sendAudio(audioBuffer.duplicate(), info)
+        for (rtspClient in rtspClients) rtspClient.sendAudio(audioBuffer.duplicate(), info)
+        for (srtClient in srtClients) srtClient.sendAudio(audioBuffer.duplicate(), info)
+        for (udpClient in udpClients) udpClient.sendAudio(audioBuffer.duplicate(), info)
     }
 }

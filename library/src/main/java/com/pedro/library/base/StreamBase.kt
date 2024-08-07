@@ -31,7 +31,7 @@ import com.pedro.common.VideoCodec
 import com.pedro.encoder.EncoderErrorCallback
 import com.pedro.encoder.Frame
 import com.pedro.encoder.audio.AudioEncoder
-import com.pedro.encoder.audio.GetAacData
+import com.pedro.encoder.audio.GetAudioData
 import com.pedro.encoder.input.audio.GetMicrophoneData
 import com.pedro.encoder.utils.CodecUtil
 import com.pedro.encoder.video.FormatVideoEncoder
@@ -134,7 +134,7 @@ abstract class StreamBase(
     }
     val audioResult = audioSource.init(sampleRate, isStereo, echoCanceler, noiseSuppressor)
     if (audioResult) {
-      audioInfo(sampleRate, isStereo)
+      onAudioInfoImp(sampleRate, isStereo)
       return audioEncoder.prepareAudioEncoder(bitrate, sampleRate, isStereo, audioSource.getMaxInputSize())
     }
     return false
@@ -148,7 +148,7 @@ abstract class StreamBase(
   fun startStream(endPoint: String) {
     if (isStreaming) throw IllegalStateException("Stream already started, stopStream before startStream again")
     isStreaming = true
-    rtpStartStream(endPoint)
+    startStreamImp(endPoint)
     if (!isRecording) startSources()
     else requestKeyframe()
   }
@@ -199,7 +199,7 @@ abstract class StreamBase(
    */
   fun stopStream(): Boolean {
     isStreaming = false
-    rtpStopStream()
+    stopStreamImp()
     if (!isRecording) {
       stopSources()
       return prepareEncoders()
@@ -418,10 +418,10 @@ abstract class StreamBase(
     return videoEncoder.prepareVideoEncoder() && audioEncoder.prepareAudioEncoder()
   }
 
-  private val getAacData: GetAacData = object : GetAacData {
-    override fun getAacData(aacBuffer: ByteBuffer, info: MediaCodec.BufferInfo) {
-      getAacDataRtp(aacBuffer, info)
-      recordController.recordAudio(aacBuffer, info)
+  private val getAacData: GetAudioData = object : GetAudioData {
+    override fun getAudioData(audioBuffer: ByteBuffer, info: MediaCodec.BufferInfo) {
+      getAudioDataImp(audioBuffer, info)
+      recordController.recordAudio(audioBuffer, info)
     }
 
     override fun onAudioFormat(mediaFormat: MediaFormat) {
@@ -430,14 +430,14 @@ abstract class StreamBase(
   }
 
   private val getVideoData: GetVideoData = object : GetVideoData {
-    override fun onSpsPpsVps(sps: ByteBuffer, pps: ByteBuffer?, vps: ByteBuffer?) {
-      onSpsPpsVpsRtp(sps.duplicate(), pps?.duplicate(), vps?.duplicate())
+    override fun onVideoInfo(sps: ByteBuffer, pps: ByteBuffer?, vps: ByteBuffer?) {
+      onVideoInfoImp(sps.duplicate(), pps?.duplicate(), vps?.duplicate())
     }
 
-    override fun getVideoData(h264Buffer: ByteBuffer, info: MediaCodec.BufferInfo) {
+    override fun getVideoData(videoBuffer: ByteBuffer, info: MediaCodec.BufferInfo) {
       fpsListener.calculateFps()
-      getH264DataRtp(h264Buffer, info)
-      recordController.recordVideo(h264Buffer, info)
+      getVideoDataImp(videoBuffer, info)
+      recordController.recordVideo(videoBuffer, info)
     }
 
     override fun onVideoFormat(mediaFormat: MediaFormat) {
@@ -445,12 +445,12 @@ abstract class StreamBase(
     }
   }
 
-  protected abstract fun audioInfo(sampleRate: Int, isStereo: Boolean)
-  protected abstract fun rtpStartStream(endPoint: String)
-  protected abstract fun rtpStopStream()
-  protected abstract fun onSpsPpsVpsRtp(sps: ByteBuffer, pps: ByteBuffer?, vps: ByteBuffer?)
-  protected abstract fun getH264DataRtp(h264Buffer: ByteBuffer, info: MediaCodec.BufferInfo)
-  protected abstract fun getAacDataRtp(aacBuffer: ByteBuffer, info: MediaCodec.BufferInfo)
+  protected abstract fun onAudioInfoImp(sampleRate: Int, isStereo: Boolean)
+  protected abstract fun startStreamImp(endPoint: String)
+  protected abstract fun stopStreamImp()
+  protected abstract fun onVideoInfoImp(sps: ByteBuffer, pps: ByteBuffer?, vps: ByteBuffer?)
+  protected abstract fun getVideoDataImp(videoBuffer: ByteBuffer, info: MediaCodec.BufferInfo)
+  protected abstract fun getAudioDataImp(audioBuffer: ByteBuffer, info: MediaCodec.BufferInfo)
 
   abstract fun getStreamClient(): StreamBaseClient
 

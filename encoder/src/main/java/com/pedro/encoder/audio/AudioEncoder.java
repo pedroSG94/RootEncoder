@@ -40,7 +40,7 @@ import java.util.List;
 
 public class AudioEncoder extends BaseEncoder implements GetMicrophoneData {
 
-  private final GetAacData getAacData;
+  private final GetAudioData getAudioData;
   private int bitRate = 64 * 1024;  //in kbps
   private int sampleRate = 32000; //in hz
   private int maxInputSize = 0;
@@ -49,8 +49,8 @@ public class AudioEncoder extends BaseEncoder implements GetMicrophoneData {
   private long bytesRead = 0;
   private boolean tsModeBuffer = false;
 
-  public AudioEncoder(GetAacData getAacData) {
-    this.getAacData = getAacData;
+  public AudioEncoder(GetAudioData getAudioData) {
+    this.getAudioData = getAudioData;
     type = CodecUtil.AAC_MIME;
     TAG = "AudioEncoder";
   }
@@ -162,7 +162,7 @@ public class AudioEncoder extends BaseEncoder implements GetMicrophoneData {
   @Override
   protected void sendBuffer(@NonNull ByteBuffer byteBuffer,
       @NonNull MediaCodec.BufferInfo bufferInfo) {
-    getAacData.getAacData(byteBuffer, bufferInfo);
+    getAudioData.getAudioData(byteBuffer, bufferInfo);
   }
 
   /**
@@ -210,6 +210,6 @@ public class AudioEncoder extends BaseEncoder implements GetMicrophoneData {
 
   @Override
   public void formatChanged(@NonNull MediaCodec mediaCodec, @NonNull MediaFormat mediaFormat) {
-    getAacData.onAudioFormat(mediaFormat);
+    getAudioData.onAudioFormat(mediaFormat);
   }
 }

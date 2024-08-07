@@ -65,27 +65,27 @@ class RtspStream(
     rtspClient.setAudioCodec(codec)
   }
 
-  override fun audioInfo(sampleRate: Int, isStereo: Boolean) {
+  override fun onAudioInfoImp(sampleRate: Int, isStereo: Boolean) {
     rtspClient.setAudioInfo(sampleRate, isStereo)
   }
 
-  override fun rtpStartStream(endPoint: String) {
+  override fun startStreamImp(endPoint: String) {
     rtspClient.connect(endPoint)
   }
 
-  override fun rtpStopStream() {
+  override fun stopStreamImp() {
     rtspClient.disconnect()
   }
 
-  override fun onSpsPpsVpsRtp(sps: ByteBuffer, pps: ByteBuffer?, vps: ByteBuffer?) {
+  override fun onVideoInfoImp(sps: ByteBuffer, pps: ByteBuffer?, vps: ByteBuffer?) {
     rtspClient.setVideoInfo(sps, pps, vps)
   }
 
-  override fun getH264DataRtp(h264Buffer: ByteBuffer, info: MediaCodec.BufferInfo) {
-    rtspClient.sendVideo(h264Buffer, info)
+  override fun getVideoDataImp(videoBuffer: ByteBuffer, info: MediaCodec.BufferInfo) {
+    rtspClient.sendVideo(videoBuffer, info)
   }
 
-  override fun getAacDataRtp(aacBuffer: ByteBuffer, info: MediaCodec.BufferInfo) {
-    rtspClient.sendAudio(aacBuffer, info)
+  override fun getAudioDataImp(audioBuffer: ByteBuffer, info: MediaCodec.BufferInfo) {
+    rtspClient.sendAudio(audioBuffer, info)
   }
 }

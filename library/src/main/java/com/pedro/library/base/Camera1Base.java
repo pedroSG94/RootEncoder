@@ -37,7 +37,7 @@ import com.pedro.common.AudioCodec;
 import com.pedro.common.VideoCodec;
 import com.pedro.encoder.EncoderErrorCallback;
 import com.pedro.encoder.audio.AudioEncoder;
-import com.pedro.encoder.audio.GetAacData;
+import com.pedro.encoder.audio.GetAudioData;
 import com.pedro.encoder.input.audio.CustomAudioEffect;
 import com.pedro.encoder.input.audio.GetMicrophoneData;
 import com.pedro.encoder.input.audio.MicrophoneManager;
@@ -142,18 +142,18 @@ public abstract class Camera1Base {
     switch (microphoneMode) {
       case SYNC:
         microphoneManager = new MicrophoneManagerManual();
-        audioEncoder = new AudioEncoder(getAacData);
+        audioEncoder = new AudioEncoder(getAudioData);
         audioEncoder.setGetFrame(((MicrophoneManagerManual) microphoneManager).getGetFrame());
         audioEncoder.setTsModeBuffer(false);
         break;
       case ASYNC:
         microphoneManager = new MicrophoneManager(getMicrophoneData);
-        audioEncoder = new AudioEncoder(getAacData);
+        audioEncoder = new AudioEncoder(getAudioData);
         audioEncoder.setTsModeBuffer(false);
         break;
       case BUFFER:
         microphoneManager = new MicrophoneManager(getMicrophoneData);
-        audioEncoder = new AudioEncoder(getAacData);
+        audioEncoder = new AudioEncoder(getAudioData);
         audioEncoder.setTsModeBuffer(true);
         break;
     }
@@ -297,7 +297,7 @@ public abstract class Camera1Base {
     return prepareVideo(width, height, 30, bitrate, 2, rotation);
   }
 
-  protected abstract void prepareAudioRtp(boolean isStereo, int sampleRate);
+  protected abstract void onAudioInfoImp(boolean isStereo, int sampleRate);
 
   /**
    * Call this method before use @startStream. If not you will do a stream without audio.
@@ -316,7 +316,7 @@ public abstract class Camera1Base {
      if (!microphoneManager.createMicrophone(audioSource, sampleRate, isStereo, echoCanceler, noiseSuppressor)) {
        return false;
      }
-    prepareAudioRtp(isStereo, sampleRate);
+    onAudioInfoImp(isStereo, sampleRate);
     audioInitialized = audioEncoder.prepareAudioEncoder(bitrate, sampleRate, isStereo,
         microphoneManager.getMaxInputSize());
     return audioInitialized;
@@ -655,7 +655,7 @@ public abstract class Camera1Base {
     startStreamAndRecord(url, path, null);
   }
 
-  protected abstract void startStreamRtp(String url);
+  protected abstract void startStreamImp(String url);
 
   /**
    * Need be called after @prepareVideo or/and @prepareAudio. This method override resolution of
@@ -674,7 +674,7 @@ public abstract class Camera1Base {
     } else {
       requestKeyFrame();
     }
-    startStreamRtp(url);
+    startStreamImp(url);
     onPreview = true;
   }
 
@@ -731,7 +731,7 @@ public abstract class Camera1Base {
     }
   }
 
-  protected abstract void stopStreamRtp();
+  protected abstract void stopStreamImp();
 
   /**
    * Stop stream started with @startStream.
@@ -739,7 +739,7 @@ public abstract class Camera1Base {
   public void stopStream() {
     if (streaming) {
       streaming = false;
-      stopStreamRtp();
+      stopStreamImp();
     }
     if (!recordController.isRecording()) {
       if (audioInitialized) microphoneManager.stop();
@@ -939,11 +939,11 @@ public abstract class Camera1Base {
     return recordController.getStatus();
   }
 
-  protected abstract void getAacDataRtp(ByteBuffer aacBuffer, MediaCodec.BufferInfo info);
+  protected abstract void getAudioDataImp(ByteBuffer audioBuffer, MediaCodec.BufferInfo info);
 
-  protected abstract void onSpsPpsVpsRtp(ByteBuffer sps, ByteBuffer pps, ByteBuffer vps);
+  protected abstract void onVideoInfoImp(ByteBuffer sps, ByteBuffer pps, ByteBuffer vps);
 
-  protected abstract void getH264DataRtp(ByteBuffer h264Buffer, MediaCodec.BufferInfo info);
+  protected abstract void getVideoDataImp(ByteBuffer videoBuffer, MediaCodec.BufferInfo info);
 
   public void setRecordController(BaseRecordController recordController) {
     if (!isRecording()) this.recordController = recordController;
@@ -957,13 +957,13 @@ public abstract class Camera1Base {
     audioEncoder.inputPCMData(frame);
   };
 
-  private final GetAacData getAacData = new GetAacData() {
+  private final GetAudioData getAudioData = new GetAudioData() {
     @Override
-    public void getAacData(@NonNull ByteBuffer aacBuffer, @NonNull MediaCodec.BufferInfo info) {
+    public void getAudioData(@NonNull ByteBuffer audioBuffer, @NonNull MediaCodec.BufferInfo info) {
       if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
-        recordController.recordAudio(aacBuffer, info);
+        recordController.recordAudio(audioBuffer, info);
       }
-      if (streaming) getAacDataRtp(aacBuffer, info);
+      if (streaming) getAudioDataImp(audioBuffer, info);
     }
 
     @Override
@@ -974,17 +974,17 @@ public abstract class Camera1Base {
 
   private final GetVideoData getVideoData = new GetVideoData() {
     @Override
-    public void onSpsPpsVps(@NonNull ByteBuffer sps, @Nullable ByteBuffer pps, @Nullable ByteBuffer vps) {
-      onSpsPpsVpsRtp(sps.duplicate(), pps != null ? pps.duplicate(): null, vps != null ? vps.duplicate() : null);
+    public void onVideoInfo(@NonNull ByteBuffer sps, @Nullable ByteBuffer pps, @Nullable ByteBuffer vps) {
+      onVideoInfoImp(sps.duplicate(), pps != null ? pps.duplicate(): null, vps != null ? vps.duplicate() : null);
     }
 
     @Override
-    public void getVideoData(@NonNull ByteBuffer h264Buffer, @NonNull MediaCodec.BufferInfo info) {
+    public void getVideoData(@NonNull ByteBuffer videoBuffer, @NonNull MediaCodec.BufferInfo info) {
       fpsListener.calculateFps();
       if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
-        recordController.recordVideo(h264Buffer, info);
+        recordController.recordVideo(videoBuffer, info);
       }
-      if (streaming) getH264DataRtp(h264Buffer, info);
+      if (streaming) getVideoDataImp(videoBuffer, info);
     }
 
     @Override
