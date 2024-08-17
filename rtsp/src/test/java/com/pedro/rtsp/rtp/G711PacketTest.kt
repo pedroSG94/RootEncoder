@@ -45,7 +45,7 @@ class G711PacketTest {
     g711Packet.setSSRC(123456789)
     val frames = mutableListOf<RtpFrame>()
     g711Packet.createAndSendPacket(ByteBuffer.wrap(fakeG711), info) {
-      frames.add(it)
+      frames.addAll(it)
     }
 
     val expectedRtp = byteArrayOf(-128, -120, 0, 1, 0, 15, 18, 6, 7, 91, -51, 21).plus(fakeG711)

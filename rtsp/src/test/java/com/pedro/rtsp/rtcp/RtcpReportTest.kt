@@ -72,7 +72,7 @@ class RtcpReportTest {
 
       (0..10).forEach { value ->
         val frame = if (value % 2 == 0) fakeFrameVideo else fakeFrameAudio
-        senderReportTcp.update(frame, false)
+        senderReportTcp.update(frame)
       }
       val resultValue = argumentCaptor<ByteArray>()
       withContext(Dispatchers.IO) {
@@ -81,7 +81,7 @@ class RtcpReportTest {
       fakeTime += 3_000 //wait until next interval
       (0..10).forEach { value ->
         val frame = if (value % 2 == 0) fakeFrameVideo else fakeFrameAudio
-        senderReportTcp.update(frame, false)
+        senderReportTcp.update(frame)
       }
       withContext(Dispatchers.IO) {
         verify(outputMocked, times((4))).write(resultValue.capture())
@@ -99,7 +99,7 @@ class RtcpReportTest {
       val fakeFrameAudio = RtpFrame(byteArrayOf(0x00, 0x00, 0x00), 0, 3, 0, 0, RtpConstants.trackAudio)
       (0..10).forEach { value ->
         val frame = if (value % 2 == 0) fakeFrameVideo else fakeFrameAudio
-        senderReportUdp.update(frame, false)
+        senderReportUdp.update(frame)
       }
       val resultValue = argumentCaptor<DatagramPacket>()
       withContext(Dispatchers.IO) {
@@ -108,7 +108,7 @@ class RtcpReportTest {
       fakeTime += 3_000 //wait until next interval
       (0..10).forEach { value ->
         val frame = if (value % 2 == 0) fakeFrameVideo else fakeFrameAudio
-        senderReportUdp.update(frame, false)
+        senderReportUdp.update(frame)
       }
       withContext(Dispatchers.IO) {
         verify(multicastSocketMocked, times((4))).send(resultValue.capture())

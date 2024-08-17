@@ -54,7 +54,7 @@ class RtpSocketTest {
     val fakeFrameAudio = RtpFrame(byteArrayOf(0x00, 0x00, 0x00), 0, 3, 0, 0, RtpConstants.trackAudio)
     (0 until 10).forEach { value ->
       val frame = if (value % 2 == 0) fakeFrameVideo else fakeFrameAudio
-      senderReportTcp.sendFrame(frame, false)
+      senderReportTcp.sendFrame(frame)
     }
     val resultValue = argumentCaptor<ByteArray>()
     withContext(Dispatchers.IO) {
@@ -70,7 +70,7 @@ class RtpSocketTest {
     val fakeFrameAudio = RtpFrame(byteArrayOf(0x00, 0x00, 0x00), 0, 3, 0, 0, RtpConstants.trackAudio)
     (0 until 10).forEach { value ->
       val frame = if (value % 2 == 0) fakeFrameVideo else fakeFrameAudio
-      senderReportUdp.sendFrame(frame, false)
+      senderReportUdp.sendFrame(frame)
     }
     val resultValue = argumentCaptor<DatagramPacket>()
     withContext(Dispatchers.IO) {

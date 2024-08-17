@@ -44,7 +44,7 @@ class OpusPacketTest {
     opusPacket.setSSRC(123456789)
     val frames = mutableListOf<RtpFrame>()
     opusPacket.createAndSendPacket(ByteBuffer.wrap(fakeOpus), info) {
-      frames.add(it)
+      frames.addAll(it)
     }
 
     val expectedRtp = byteArrayOf(-128, -31, 0, 1, 0, 15, 18, 6, 7, 91, -51, 21).plus(fakeOpus)

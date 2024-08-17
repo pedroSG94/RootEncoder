@@ -47,8 +47,8 @@ class Av1PacketTest {
     val av1Packet = Av1Packet()
     av1Packet.setPorts(1, 2)
     av1Packet.setSSRC(123456789)
-    av1Packet.createAndSendPacket(ByteBuffer.wrap(av1data), info) { rtpFrame ->
-      frames.add(rtpFrame)
+    av1Packet.createAndSendPacket(ByteBuffer.wrap(av1data), info) { rtpFrames ->
+      frames.addAll(rtpFrames)
     }
 
     val expectedRtp = byteArrayOf(-128, -32, 0, 1, 0, -87, -118, -57, 7, 91, -51, 21, 24).plus(av1data)

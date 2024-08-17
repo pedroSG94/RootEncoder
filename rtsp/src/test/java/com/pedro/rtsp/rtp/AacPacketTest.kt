@@ -44,7 +44,7 @@ class AacPacketTest {
     aacPacket.setSSRC(123456789)
     val frames = mutableListOf<RtpFrame>()
     aacPacket.createAndSendPacket(ByteBuffer.wrap(fakeAac), info) {
-      frames.add(it)
+      frames.addAll(it)
     }
 
     val expectedRtp = byteArrayOf(-128, -31, 0, 1, 0, 83, 19, 92, 7, 91, -51, 21, 0, 16, 9, 96).plus(fakeAac)

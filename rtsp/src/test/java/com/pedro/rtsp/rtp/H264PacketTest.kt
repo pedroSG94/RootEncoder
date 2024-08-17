@@ -50,7 +50,7 @@ class H264PacketTest {
     h264Packet.setSSRC(123456789)
     val frames = mutableListOf<RtpFrame>()
     h264Packet.createAndSendPacket(ByteBuffer.wrap(fakeH264), info) {
-      frames.add(it)
+      frames.addAll(it)
     }
 
     val expectedRtp = byteArrayOf(-128, -32, 0, 2, 0, -87, -118, -57, 7, 91, -51, 21, 5).plus(fakeH264.copyOfRange(header.size, fakeH264.size))
@@ -85,7 +85,7 @@ class H264PacketTest {
     h264Packet.setSSRC(123456789)
     val frames = mutableListOf<RtpFrame>()
     h264Packet.createAndSendPacket(ByteBuffer.wrap(fakeH264), info) {
-      frames.add(it)
+      frames.addAll(it)
     }
 
     val packet1Size = RtpConstants.MTU - 28 - RtpConstants.RTP_HEADER_LENGTH - 2
