@@ -58,16 +58,14 @@ class RtspSender(
   private var rtpSocket: BaseRtpSocket? = null
   private var baseSenderReport: BaseSenderReport? = null
 
-  private val defaultCacheSize: Int
-    get() = 10 * 1024 * 1024 / RtpConstants.MTU
-  private var cacheSize = defaultCacheSize
+  private var cacheSize = 200
   @Volatile
   private var running = false
 
   private var job: Job? = null
   private val scope = CoroutineScope(Dispatchers.IO)
   @Volatile
-  private var queue: BlockingQueue<RtpFrame> = LinkedBlockingQueue(cacheSize)
+  private var queue: BlockingQueue<List<RtpFrame>> = LinkedBlockingQueue(cacheSize)
 
   private var audioFramesSent: Long = 0
   private var videoFramesSent: Long = 0
@@ -170,24 +168,33 @@ class RtspSender(
       }
       while (scope.isActive && running) {
         val error = runCatching {
-          val rtpFrame = runInterruptible {
+          val frames = runInterruptible {
             queue.poll(1, TimeUnit.SECONDS)
           }
-          if (rtpFrame != null) {
-            rtpSocket?.sendFrame(rtpFrame, isEnableLogs)
+          var size = 0
+          var isVideo = false
+          frames?.forEach { rtpFrame ->
+            rtpSocket?.sendFrame(rtpFrame)
             //4 is tcp header length
             val packetSize = if (isTcp) rtpFrame.length + 4 else rtpFrame.length
             bytesSend += packetSize
-            if (rtpFrame.isVideoFrame()) {
+            size += packetSize
+            isVideo = rtpFrame.isVideoFrame()
+            if (isVideo) {
               videoFramesSent++
             } else {
               audioFramesSent++
             }
-            if (baseSenderReport?.update(rtpFrame, isEnableLogs) == true) {
+            if (baseSenderReport?.update(rtpFrame) == true) {
               //4 is tcp header length
-              val reportSize = if (isTcp) baseSenderReport?.PACKET_LENGTH ?: (0 + 4) else baseSenderReport?.PACKET_LENGTH ?: 0
+              val reportSize = if (isTcp) RtpConstants.REPORT_PACKET_LENGTH + 4 else RtpConstants.REPORT_PACKET_LENGTH
               bytesSend += reportSize
+              if (isEnableLogs) Log.i(TAG, "wrote report")
             }
+          }
+          if (isEnableLogs) {
+            val type = if (isVideo) "Video" else "Audio"
+            Log.i(TAG, "wrote $type packet, size $size")
           }
         }.exceptionOrNull()
         if (error != null) {
@@ -230,7 +237,7 @@ class RtspSender(
     if (newSize < queue.size - queue.remainingCapacity()) {
       throw RuntimeException("Can't fit current cache inside new cache size")
     }
-    val tempQueue: BlockingQueue<RtpFrame> = LinkedBlockingQueue(newSize)
+    val tempQueue: BlockingQueue<List<RtpFrame>> = LinkedBlockingQueue(newSize)
     queue.drainTo(tempQueue)
     queue = tempQueue
   }

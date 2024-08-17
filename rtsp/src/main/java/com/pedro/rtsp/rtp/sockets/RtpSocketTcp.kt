@@ -16,7 +16,6 @@
 
 package com.pedro.rtsp.rtp.sockets
 
-import android.util.Log
 import com.pedro.rtsp.rtsp.RtpFrame
 import com.pedro.rtsp.utils.RtpConstants
 import java.io.IOException
@@ -36,14 +35,14 @@ class RtpSocketTcp : BaseRtpSocket() {
   }
 
   @Throws(IOException::class)
-  override suspend fun sendFrame(rtpFrame: RtpFrame, isEnableLogs: Boolean) {
-    sendFrameTCP(rtpFrame, isEnableLogs)
+  override suspend fun sendFrame(rtpFrame: RtpFrame) {
+    sendFrameTCP(rtpFrame)
   }
 
   override fun close() {}
 
   @Throws(IOException::class)
-  private fun sendFrameTCP(rtpFrame: RtpFrame, isEnableLogs: Boolean) {
+  private fun sendFrameTCP(rtpFrame: RtpFrame) {
     synchronized(RtpConstants.lock) {
       val len = rtpFrame.length
       tcpHeader[1] = (2 * rtpFrame.channelIdentifier).toByte()
@@ -52,9 +51,6 @@ class RtpSocketTcp : BaseRtpSocket() {
       outputStream?.write(tcpHeader)
       outputStream?.write(rtpFrame.buffer, 0, len)
       outputStream?.flush()
-      if (isEnableLogs) {
-        Log.i(TAG, "wrote packet: ${(if (rtpFrame.isVideoFrame()) "Video" else "Audio")}, size: ${len + tcpHeader.size}")
-      }
     }
   }
 }

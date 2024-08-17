@@ -41,7 +41,7 @@ class H265Packet: BasePacket(
   override fun createAndSendPacket(
     byteBuffer: ByteBuffer,
     bufferInfo: MediaCodec.BufferInfo,
-    callback: (RtpFrame) -> Unit
+    callback: (List<RtpFrame>) -> Unit
   ) {
     val fixedBuffer = byteBuffer.removeInfo(bufferInfo)
     // We read a NAL units from ByteBuffer and we send them
@@ -52,6 +52,7 @@ class H265Packet: BasePacket(
     val ts = bufferInfo.presentationTimeUs * 1000L
     val naluLength = fixedBuffer.remaining()
     val type: Int = header[header.size - 2].toInt().shr(1 and 0x3f)
+    val frames = mutableListOf<RtpFrame>()
     // Small NAL unit => Single NAL unit
     if (naluLength <= maxPacketSize - RtpConstants.RTP_HEADER_LENGTH - 2) {
       val buffer = getBuffer(naluLength + RtpConstants.RTP_HEADER_LENGTH + 2)
@@ -63,7 +64,7 @@ class H265Packet: BasePacket(
       markPacket(buffer) //mark end frame
       updateSeq(buffer)
       val rtpFrame = RtpFrame(buffer, rtpTs, buffer.size, rtpPort, rtcpPort, channelIdentifier)
-      callback(rtpFrame)
+      frames.add(rtpFrame)
     } else {
       //Set PayloadHdr (16bit type=49)
       header[0] = (49 shl 1).toByte()
@@ -98,11 +99,12 @@ class H265Packet: BasePacket(
         }
         updateSeq(buffer)
         val rtpFrame = RtpFrame(buffer, rtpTs, buffer.size, rtpPort, rtcpPort, channelIdentifier)
-        callback(rtpFrame)
+        frames.add(rtpFrame)
         // Switch start bit
         header[2] = header[2] and 0x7F
       }
     }
+    callback(frames)
   }
 
   override fun reset() {

@@ -26,8 +26,6 @@ import java.io.OutputStream
  */
 abstract class BaseRtpSocket {
 
-  protected val TAG = "BaseRtpSocket"
-
   companion object {
     @JvmStatic
     fun getInstance(protocol: Protocol, videoSourcePort: Int, audioSourcePort: Int): BaseRtpSocket {
@@ -43,7 +41,7 @@ abstract class BaseRtpSocket {
   abstract fun setDataStream(outputStream: OutputStream, host: String)
 
   @Throws(IOException::class)
-  abstract suspend fun sendFrame(rtpFrame: RtpFrame, isEnableLogs: Boolean)
+  abstract suspend fun sendFrame(rtpFrame: RtpFrame)
 
   abstract fun close()
 }

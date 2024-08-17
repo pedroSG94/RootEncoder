@@ -16,7 +16,6 @@
 
 package com.pedro.rtsp.rtcp
 
-import android.util.Log
 import com.pedro.rtsp.rtsp.RtpFrame
 import com.pedro.rtsp.utils.RtpConstants
 import java.io.IOException
@@ -49,8 +48,8 @@ class SenderReportUdp(
   }
 
   @Throws(IOException::class)
-  override suspend fun sendReport(buffer: ByteArray, rtpFrame: RtpFrame, type: String, packetCount: Long, octetCount: Long, isEnableLogs: Boolean) {
-    sendReportUDP(buffer, rtpFrame.rtcpPort, type, packetCount, octetCount, isEnableLogs)
+  override suspend fun sendReport(buffer: ByteArray, rtpFrame: RtpFrame) {
+    sendReportUDP(buffer, rtpFrame.rtcpPort, rtpFrame.isVideoFrame())
   }
 
   override fun close() {
@@ -59,18 +58,15 @@ class SenderReportUdp(
   }
 
   @Throws(IOException::class)
-  private fun sendReportUDP(buffer: ByteArray, port: Int, type: String, packet: Long, octet: Long, isEnableLogs: Boolean) {
+  private fun sendReportUDP(buffer: ByteArray, port: Int, isVideo: Boolean) {
     synchronized(RtpConstants.lock) {
       datagramPacket.data = buffer
       datagramPacket.port = port
-      datagramPacket.length = PACKET_LENGTH
-      if (type == "Video") {
+      datagramPacket.length = RtpConstants.REPORT_PACKET_LENGTH
+      if (isVideo) {
         multicastSocketVideo?.send(datagramPacket)
       } else {
         multicastSocketAudio?.send(datagramPacket)
-      }
-      if (isEnableLogs) {
-        Log.i(TAG, "wrote report: $type, port: $port, packets: $packet, octet: $octet")
       }
     }
   }

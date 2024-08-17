@@ -52,7 +52,7 @@ class Av1Packet: BasePacket(
   override fun createAndSendPacket(
     byteBuffer: ByteBuffer,
     bufferInfo: MediaCodec.BufferInfo,
-    callback: (RtpFrame) -> Unit
+    callback: (List<RtpFrame>) -> Unit
   ) {
     var fixedBuffer = byteBuffer.removeInfo(bufferInfo)
     //remove temporal delimitered OBU if found on start
@@ -75,6 +75,7 @@ class Av1Packet: BasePacket(
     fixedBuffer = ByteBuffer.wrap(data)
     val size = fixedBuffer.remaining()
     var sum = 0
+    val frames = mutableListOf<RtpFrame>()
     while (sum < size) {
       val isFirstPacket = sum == 0
       var isLastPacket = false
@@ -96,8 +97,9 @@ class Av1Packet: BasePacket(
       buffer[RtpConstants.RTP_HEADER_LENGTH] = generateAv1AggregationHeader(bufferInfo.isKeyframe(), isFirstPacket, isLastPacket, oSize)
       updateSeq(buffer)
       val rtpFrame = RtpFrame(buffer, rtpTs, buffer.size, rtpPort, rtcpPort, channelIdentifier)
-      callback(rtpFrame)
+      frames.add(rtpFrame)
     }
+    callback(frames)
   }
 
   override fun reset() {

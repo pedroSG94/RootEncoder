@@ -38,8 +38,6 @@ abstract class BaseSenderReport internal constructor() {
   private var videoOctetCount = 0L
   private var audioPacketCount = 0L
   private var audioOctetCount = 0L
-  val PACKET_LENGTH = 28
-  protected val TAG = "BaseSenderReport"
 
   companion object {
     @JvmStatic
@@ -68,8 +66,8 @@ abstract class BaseSenderReport internal constructor() {
     audioBuffer[1] = 200.toByte()
 
     /* Byte 2,3          ->  Length		                     */
-    videoBuffer.setLong(PACKET_LENGTH / 4 - 1L, 2, 4)
-    audioBuffer.setLong(PACKET_LENGTH / 4 - 1L, 2, 4)
+    videoBuffer.setLong(RtpConstants.REPORT_PACKET_LENGTH / 4 - 1L, 2, 4)
+    audioBuffer.setLong(RtpConstants.REPORT_PACKET_LENGTH / 4 - 1L, 2, 4)
     /* Byte 4,5,6,7      ->  SSRC                            */
     /* Byte 8,9,10,11    ->  NTP timestamp hb				 */
     /* Byte 12,13,14,15  ->  NTP timestamp lb				 */
@@ -87,19 +85,19 @@ abstract class BaseSenderReport internal constructor() {
   abstract fun setDataStream(outputStream: OutputStream, host: String)
 
   @Throws(IOException::class)
-  suspend fun update(rtpFrame: RtpFrame, isEnableLogs: Boolean): Boolean {
+  suspend fun update(rtpFrame: RtpFrame): Boolean {
     return if (rtpFrame.channelIdentifier == RtpConstants.trackVideo) {
-      updateVideo(rtpFrame, isEnableLogs)
+      updateVideo(rtpFrame)
     } else {
-      updateAudio(rtpFrame, isEnableLogs)
+      updateAudio(rtpFrame)
     }
   }
 
   @Throws(IOException::class)
-  abstract suspend fun sendReport(buffer: ByteArray, rtpFrame: RtpFrame, type: String, packetCount: Long, octetCount: Long, isEnableLogs: Boolean)
+  abstract suspend fun sendReport(buffer: ByteArray, rtpFrame: RtpFrame)
 
   @Throws(IOException::class)
-  private suspend fun updateVideo(rtpFrame: RtpFrame, isEnableLogs: Boolean): Boolean {
+  private suspend fun updateVideo(rtpFrame: RtpFrame): Boolean {
     videoPacketCount++
     videoOctetCount += rtpFrame.length
     videoBuffer.setLong(videoPacketCount, 20, 24)
@@ -107,14 +105,14 @@ abstract class BaseSenderReport internal constructor() {
     if (TimeUtils.getCurrentTimeMillis() - videoTime >= interval) {
       videoTime = TimeUtils.getCurrentTimeMillis()
       setData(videoBuffer, TimeUtils.getCurrentTimeNano(), rtpFrame.timeStamp)
-      sendReport(videoBuffer, rtpFrame, "Video", videoPacketCount, videoOctetCount, isEnableLogs)
+      sendReport(videoBuffer, rtpFrame)
       return true
     }
     return false
   }
 
   @Throws(IOException::class)
-  private suspend fun updateAudio(rtpFrame: RtpFrame, isEnableLogs: Boolean): Boolean {
+  private suspend fun updateAudio(rtpFrame: RtpFrame): Boolean {
     audioPacketCount++
     audioOctetCount += rtpFrame.length
     audioBuffer.setLong(audioPacketCount, 20, 24)
@@ -122,7 +120,7 @@ abstract class BaseSenderReport internal constructor() {
     if (TimeUtils.getCurrentTimeMillis() - audioTime >= interval) {
       audioTime = TimeUtils.getCurrentTimeMillis()
       setData(audioBuffer, TimeUtils.getCurrentTimeNano(), rtpFrame.timeStamp)
-      sendReport(audioBuffer, rtpFrame, "Audio", audioPacketCount, audioOctetCount, isEnableLogs)
+      sendReport(audioBuffer, rtpFrame)
       return true
     }
     return false

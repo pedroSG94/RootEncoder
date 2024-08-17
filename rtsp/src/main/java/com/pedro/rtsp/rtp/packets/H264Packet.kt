@@ -51,7 +51,7 @@ class H264Packet(
   override fun createAndSendPacket(
     byteBuffer: ByteBuffer,
     bufferInfo: MediaCodec.BufferInfo,
-    callback: (RtpFrame) -> Unit
+    callback: (List<RtpFrame>) -> Unit
   ) {
     val fixedBuffer = byteBuffer.removeInfo(bufferInfo)
     // We read a NAL units from ByteBuffer and we send them
@@ -63,6 +63,7 @@ class H264Packet(
     val ts = bufferInfo.presentationTimeUs * 1000L
     val naluLength = fixedBuffer.remaining()
     val type: Int = (header[header.size - 1] and 0x1F).toInt()
+    val frames = mutableListOf<RtpFrame>()
     if (type == RtpConstants.IDR || bufferInfo.isKeyframe()) {
       stapA?.let {
         val buffer = getBuffer(it.size + RtpConstants.RTP_HEADER_LENGTH)
@@ -71,7 +72,7 @@ class H264Packet(
         System.arraycopy(it, 0, buffer, RtpConstants.RTP_HEADER_LENGTH, it.size)
         updateSeq(buffer)
         val rtpFrame = RtpFrame(buffer, rtpTs, it.size + RtpConstants.RTP_HEADER_LENGTH, rtpPort, rtcpPort, channelIdentifier)
-        callback(rtpFrame)
+        frames.add(rtpFrame)
         sendKeyFrame = true
       } ?: run {
         Log.i(TAG, "can't create key frame because setSpsPps was not called")
@@ -87,7 +88,7 @@ class H264Packet(
         markPacket(buffer) //mark end frame
         updateSeq(buffer)
         val rtpFrame = RtpFrame(buffer, rtpTs, buffer.size, rtpPort, rtcpPort, channelIdentifier)
-        callback(rtpFrame)
+        frames.add(rtpFrame)
       } else {
         // Set FU-A header
         header[1] = header[header.size - 1] and 0x1F // FU header type
@@ -116,7 +117,7 @@ class H264Packet(
           }
           updateSeq(buffer)
           val rtpFrame = RtpFrame(buffer, rtpTs, buffer.size, rtpPort, rtcpPort, channelIdentifier)
-          callback(rtpFrame)
+          frames.add(rtpFrame)
           // Switch start bit
           header[1] = header[1] and 0x7F
         }
@@ -124,6 +125,7 @@ class H264Packet(
     } else {
       Log.i(TAG, "waiting for keyframe")
     }
+    callback(frames)
   }
 
   private fun setSpsPps(sps: ByteArray, pps: ByteArray) {

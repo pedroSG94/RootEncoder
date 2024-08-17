@@ -40,12 +40,13 @@ class G711Packet(
   override fun createAndSendPacket(
     byteBuffer: ByteBuffer,
     bufferInfo: MediaCodec.BufferInfo,
-    callback: (RtpFrame) -> Unit
+    callback: (List<RtpFrame>) -> Unit
   ) {
     val length = bufferInfo.size - byteBuffer.position()
     val maxPayload = maxPacketSize - RtpConstants.RTP_HEADER_LENGTH
     val ts = bufferInfo.presentationTimeUs * 1000
     var sum = 0
+    val frames = mutableListOf<RtpFrame>()
     while (sum < length) {
       val size = if (length - sum < maxPayload) length - sum else maxPayload
       val buffer = getBuffer(size + RtpConstants.RTP_HEADER_LENGTH)
@@ -55,7 +56,8 @@ class G711Packet(
       updateSeq(buffer)
       val rtpFrame = RtpFrame(buffer, rtpTs, RtpConstants.RTP_HEADER_LENGTH + size , rtpPort, rtcpPort, channelIdentifier)
       sum += size
-      callback(rtpFrame)
+      frames.add(rtpFrame)
     }
+    callback(frames)
   }
 }

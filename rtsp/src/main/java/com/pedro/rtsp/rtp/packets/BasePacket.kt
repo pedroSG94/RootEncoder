@@ -40,7 +40,7 @@ abstract class BasePacket(private val clock: Long, private val payloadType: Int)
   abstract fun createAndSendPacket(
     byteBuffer: ByteBuffer,
     bufferInfo: MediaCodec.BufferInfo,
-    callback: (RtpFrame) -> Unit
+    callback: (List<RtpFrame>) -> Unit
   )
 
   fun setPorts(rtpPort: Int, rtcpPort: Int) {
