@@ -25,6 +25,8 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import com.pedro.common.ConnectChecker
+import com.pedro.library.util.sources.audio.InternalAudioSource
+import com.pedro.library.util.sources.audio.MicrophoneSource
 import com.pedro.streamer.R
 import com.pedro.streamer.utils.toast
 
@@ -47,6 +49,7 @@ import com.pedro.streamer.utils.toast
 class ScreenActivity : AppCompatActivity(), ConnectChecker {
 
   private lateinit var button: ImageView
+  private lateinit var toggleAudio: ImageView
   private lateinit var etUrl: EditText
 
   private val activityResultContract = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
@@ -73,6 +76,21 @@ class ScreenActivity : AppCompatActivity(), ConnectChecker {
     setContentView(R.layout.activity_display)
     button = findViewById(R.id.b_start_stop)
     etUrl = findViewById(R.id.et_rtp_url)
+    toggleAudio = findViewById(R.id.b_toggleAudio)
+    toggleAudio.setOnClickListener {
+      val service = ScreenService.INSTANCE
+      when (service?.toggleAudioSource()) {
+        is InternalAudioSource -> {
+          toggleAudio.setImageResource(R.drawable.microphone_off_icon)
+          toast("Using internal audio source")
+        }
+        is MicrophoneSource -> {
+          toggleAudio.setImageResource(R.drawable.microphone_icon)
+          toast("Using microphone audio source")
+        }
+        else -> {}
+      }
+    }
     val screenService = ScreenService.INSTANCE
     //No streaming/recording start service
     if (screenService == null) {

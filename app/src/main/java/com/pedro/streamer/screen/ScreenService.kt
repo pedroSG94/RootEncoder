@@ -30,6 +30,8 @@ import androidx.annotation.RequiresApi
 import androidx.core.app.NotificationCompat
 import com.pedro.common.ConnectChecker
 import com.pedro.library.generic.GenericStream
+import com.pedro.library.util.sources.audio.AudioSource
+import com.pedro.library.util.sources.audio.InternalAudioSource
 import com.pedro.library.util.sources.audio.MicrophoneSource
 import com.pedro.library.util.sources.video.NoVideoSource
 import com.pedro.library.util.sources.video.ScreenSource
@@ -136,11 +138,14 @@ class ScreenService: Service(), ConnectChecker {
     INSTANCE = null
     //release stream and media projection properly
     genericStream.release()
+    mediaProjection?.stop()
+    mediaProjection = null
   }
 
   fun prepareStream(resultCode: Int, data: Intent): Boolean {
     keepAliveTrick()
     stopStream()
+    mediaProjection?.stop()
     val mediaProjection = mediaProjectionManager.getMediaProjection(resultCode, data)
     this.mediaProjection = mediaProjection
     val screenSource = ScreenSource(applicationContext, mediaProjection)
@@ -154,6 +159,19 @@ class ScreenService: Service(), ConnectChecker {
     } catch (ignored: IllegalArgumentException) {
       false
     }
+  }
+
+  fun toggleAudioSource(): AudioSource {
+      if (genericStream.audioSource is InternalAudioSource) {
+        genericStream.changeAudioSource(MicrophoneSource())
+      } else {
+        mediaProjection?.let {
+          if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            genericStream.changeAudioSource(InternalAudioSource(it))
+          }
+        }
+      }
+    return genericStream.audioSource
   }
 
   fun startStream(endpoint: String) {
