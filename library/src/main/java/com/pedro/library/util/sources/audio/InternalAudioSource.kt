@@ -26,6 +26,7 @@ import androidx.annotation.RequiresApi
 import com.pedro.encoder.Frame
 import com.pedro.encoder.input.audio.GetMicrophoneData
 import com.pedro.encoder.input.audio.MicrophoneManager
+import com.pedro.library.util.sources.MediaProjectionInstance
 
 /**
  * Created by pedro on 12/1/24.
@@ -34,13 +35,18 @@ typealias InternalSource = InternalAudioSource
 
 @RequiresApi(Build.VERSION_CODES.Q)
 class InternalAudioSource(
-  private val mediaProjection: MediaProjection,
+  mediaProjection: MediaProjection,
   mediaProjectionCallback: MediaProjection.Callback? = null,
 ): AudioSource(), GetMicrophoneData {
 
   private val microphone = MicrophoneManager(this)
   private val handlerThread = HandlerThread("InternalSource")
   private val mediaProjectionCallback = mediaProjectionCallback ?: object : MediaProjection.Callback() {}
+  private val mediaProjectionHandler = MediaProjectionInstance.mediaProjectionHandler
+
+  init {
+    mediaProjectionHandler.mediaProjection = mediaProjection
+  }
 
   override fun create(sampleRate: Int, isStereo: Boolean, echoCanceler: Boolean, noiseSuppressor: Boolean): Boolean {
     //create microphone to confirm valid parameters
@@ -56,8 +62,8 @@ class InternalAudioSource(
     if (!isRunning()) {
       if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
         handlerThread.start()
-        mediaProjection.registerCallback(mediaProjectionCallback, Handler(handlerThread.looper))
-        val config = AudioPlaybackCaptureConfiguration.Builder(mediaProjection)
+        mediaProjectionHandler.registerCallback(mediaProjectionCallback, Handler(handlerThread.looper))
+        val config = AudioPlaybackCaptureConfiguration.Builder(mediaProjectionHandler.mediaProjection!!)
           .addMatchingUsage(AudioAttributes.USAGE_MEDIA)
           .addMatchingUsage(AudioAttributes.USAGE_GAME)
           .addMatchingUsage(AudioAttributes.USAGE_UNKNOWN).build()
@@ -66,6 +72,7 @@ class InternalAudioSource(
         if (!result) {
           throw IllegalArgumentException("Failed to create internal audio source")
         }
+        mediaProjectionHandler.start()
       } else {
         throw IllegalStateException("Using internal audio in a invalid Android version. Android 10+ is necessary")
       }
@@ -84,7 +91,8 @@ class InternalAudioSource(
   override fun isRunning(): Boolean = microphone.isRunning
 
   override fun release() {
-    mediaProjection.unregisterCallback(mediaProjectionCallback)
+    mediaProjectionHandler.unregisterCallback(mediaProjectionCallback)
+    mediaProjectionHandler.stop()
   }
 
   override fun getMaxInputSize(): Int = microphone.maxInputSize

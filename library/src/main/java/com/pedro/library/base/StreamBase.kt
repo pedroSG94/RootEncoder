@@ -412,6 +412,7 @@ abstract class StreamBase(
     if (isOnPreview) stopPreview()
     stopSources()
     videoSource.release()
+    audioSource.release()
   }
 
   private fun prepareEncoders(): Boolean {

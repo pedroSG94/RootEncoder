@@ -136,8 +136,6 @@ class ScreenService: Service(), ConnectChecker {
     INSTANCE = null
     //release stream and media projection properly
     genericStream.release()
-    mediaProjection?.stop()
-    mediaProjection = null
   }
 
   fun prepareStream(resultCode: Int, data: Intent): Boolean {

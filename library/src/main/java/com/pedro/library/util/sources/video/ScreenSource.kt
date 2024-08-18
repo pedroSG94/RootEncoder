@@ -26,6 +26,8 @@ import android.os.Handler
 import android.os.HandlerThread
 import android.view.Surface
 import androidx.annotation.RequiresApi
+import com.pedro.library.util.sources.MediaProjectionHandler
+import com.pedro.library.util.sources.MediaProjectionInstance
 
 /**
  * Created by pedro on 11/1/24.
@@ -33,7 +35,7 @@ import androidx.annotation.RequiresApi
 @RequiresApi(Build.VERSION_CODES.LOLLIPOP)
 class ScreenSource @JvmOverloads constructor(
   context: Context,
-  private val mediaProjection: MediaProjection,
+  mediaProjection: MediaProjection,
   mediaProjectionCallback: MediaProjection.Callback? = null,
   virtualDisplayCallback: VirtualDisplay.Callback? = null
 ): VideoSource() {
@@ -43,6 +45,11 @@ class ScreenSource @JvmOverloads constructor(
   private val mediaProjectionCallback = mediaProjectionCallback ?: object : MediaProjection.Callback() {}
   private val virtualDisplayCallback = virtualDisplayCallback ?: object : VirtualDisplay.Callback() {}
   private val dpi = context.resources.displayMetrics.densityDpi
+  private val mediaProjectionHandler = MediaProjectionInstance.mediaProjectionHandler
+
+  init {
+    mediaProjectionHandler.mediaProjection = mediaProjection
+  }
 
   override fun create(width: Int, height: Int, fps: Int, rotation: Int): Boolean {
     return checkResolutionSupported(width, height)
@@ -60,11 +67,15 @@ class ScreenSource @JvmOverloads constructor(
         surfaceTexture.setDefaultBufferSize(height, width)
       }
       handlerThread.start()
-      mediaProjection.registerCallback(mediaProjectionCallback, Handler(handlerThread.looper))
-      virtualDisplay = mediaProjection.createVirtualDisplay("ScreenSource",
+      mediaProjectionHandler.registerCallback(mediaProjectionCallback, Handler(handlerThread.looper))
+      virtualDisplay = mediaProjectionHandler.createVirtualDisplay("ScreenSource",
         displayWidth, displayHeight, dpi, flags,
         Surface(surfaceTexture), virtualDisplayCallback, Handler(handlerThread.looper)
       )
+      if (virtualDisplay == null) {
+        throw IllegalArgumentException("Failed to create internal virtual display")
+      }
+      mediaProjectionHandler.start()
     }
   }
 
@@ -77,7 +88,8 @@ class ScreenSource @JvmOverloads constructor(
   }
 
   override fun release() {
-    mediaProjection.unregisterCallback(mediaProjectionCallback)
+    mediaProjectionHandler.unregisterCallback(mediaProjectionCallback)
+    mediaProjectionHandler.stop()
   }
 
   override fun isRunning(): Boolean = virtualDisplay != null
