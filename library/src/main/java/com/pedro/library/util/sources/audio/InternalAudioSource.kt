@@ -33,10 +33,14 @@ import com.pedro.encoder.input.audio.MicrophoneManager
 typealias InternalSource = InternalAudioSource
 
 @RequiresApi(Build.VERSION_CODES.Q)
-class InternalAudioSource(private val mediaProjection: MediaProjection): AudioSource(), GetMicrophoneData {
+class InternalAudioSource(
+  private val mediaProjection: MediaProjection,
+  mediaProjectionCallback: MediaProjection.Callback? = null,
+): AudioSource(), GetMicrophoneData {
 
   private val microphone = MicrophoneManager(this)
   private val handlerThread = HandlerThread("InternalSource")
+  private val mediaProjectionCallback = mediaProjectionCallback ?: object : MediaProjection.Callback() {}
 
   override fun create(sampleRate: Int, isStereo: Boolean, echoCanceler: Boolean, noiseSuppressor: Boolean): Boolean {
     //create microphone to confirm valid parameters
@@ -51,7 +55,6 @@ class InternalAudioSource(private val mediaProjection: MediaProjection): AudioSo
     this.getMicrophoneData = getMicrophoneData
     if (!isRunning()) {
       if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-        val mediaProjectionCallback = object : MediaProjection.Callback() {}
         handlerThread.start()
         mediaProjection.registerCallback(mediaProjectionCallback, Handler(handlerThread.looper))
         val config = AudioPlaybackCaptureConfiguration.Builder(mediaProjection)
@@ -81,7 +84,7 @@ class InternalAudioSource(private val mediaProjection: MediaProjection): AudioSo
   override fun isRunning(): Boolean = microphone.isRunning
 
   override fun release() {
-    mediaProjection.stop()
+    mediaProjection.unregisterCallback(mediaProjectionCallback)
   }
 
   override fun getMaxInputSize(): Int = microphone.maxInputSize

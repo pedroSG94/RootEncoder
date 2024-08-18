@@ -21,6 +21,7 @@ import android.app.NotificationManager
 import android.app.Service
 import android.content.Context
 import android.content.Intent
+import android.media.projection.MediaProjection
 import android.media.projection.MediaProjectionManager
 import android.os.Build
 import android.os.IBinder
@@ -29,6 +30,7 @@ import androidx.annotation.RequiresApi
 import androidx.core.app.NotificationCompat
 import com.pedro.common.ConnectChecker
 import com.pedro.library.generic.GenericStream
+import com.pedro.library.util.sources.audio.InternalAudioSource
 import com.pedro.library.util.sources.audio.MicrophoneSource
 import com.pedro.library.util.sources.video.NoVideoSource
 import com.pedro.library.util.sources.video.ScreenSource
@@ -51,6 +53,7 @@ class ScreenService: Service(), ConnectChecker {
 
   private var notificationManager: NotificationManager? = null
   private lateinit var genericStream: GenericStream
+  private var mediaProjection: MediaProjection? = null
   private val mediaProjectionManager: MediaProjectionManager by lazy {
     applicationContext.getSystemService(MEDIA_PROJECTION_SERVICE) as MediaProjectionManager
   }
@@ -132,12 +135,17 @@ class ScreenService: Service(), ConnectChecker {
     Log.i(TAG, "RTP Display service destroy")
     stopStream()
     INSTANCE = null
+    //release stream and media projection properly
+    genericStream.release()
+    mediaProjection?.stop()
+    mediaProjection = null
   }
 
   fun prepareStream(resultCode: Int, data: Intent): Boolean {
     keepAliveTrick()
     stopStream()
     val mediaProjection = mediaProjectionManager.getMediaProjection(resultCode, data)
+    this.mediaProjection = mediaProjection
     val screenSource = ScreenSource(applicationContext, mediaProjection)
     return try {
       //ScreenSource need use always setCameraOrientation(0) because the MediaProjection handle orientation.

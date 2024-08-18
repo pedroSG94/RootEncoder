@@ -78,7 +78,6 @@ class ScreenSource @JvmOverloads constructor(
 
   override fun release() {
     mediaProjection.unregisterCallback(mediaProjectionCallback)
-    mediaProjection.stop()
   }
 
   override fun isRunning(): Boolean = virtualDisplay != null
