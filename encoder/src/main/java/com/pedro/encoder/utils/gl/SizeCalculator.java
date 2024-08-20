@@ -68,7 +68,7 @@ public class SizeCalculator {
       int xf = previewWidth;
       int yf = previewHeight;
       if ((previewAspectRatio > 1f && streamAspectRatio > previewAspectRatio) ||
-          (streamAspectRatio <= 1f && previewAspectRatio <= 1 && streamAspectRatio > previewAspectRatio) ||
+          (streamAspectRatio <= 1f && previewAspectRatio <= 1f && streamAspectRatio > previewAspectRatio) ||
           (streamAspectRatio > 1f && previewAspectRatio < 1f)) {
         if (mode == AspectRatioMode.Adjust) {
           yf = streamHeight * previewWidth / streamWidth;
