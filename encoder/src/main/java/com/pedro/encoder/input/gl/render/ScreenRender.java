@@ -24,6 +24,7 @@ import android.os.Build;
 import androidx.annotation.RequiresApi;
 
 import com.pedro.encoder.R;
+import com.pedro.encoder.utils.ViewPort;
 import com.pedro.encoder.utils.gl.AspectRatioMode;
 import com.pedro.encoder.utils.gl.GlUtil;
 import com.pedro.encoder.utils.gl.SizeCalculator;
@@ -31,6 +32,8 @@ import com.pedro.encoder.utils.gl.SizeCalculator;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.FloatBuffer;
+
+import kotlin.Pair;
 
 /**
  * Created by pedro on 29/01/18.
@@ -92,8 +95,9 @@ public class ScreenRender {
       boolean flipStreamVertical, boolean flipStreamHorizontal) {
     GlUtil.checkGlError("drawScreen start");
 
-    SizeCalculator.processMatrix(rotation, flipStreamHorizontal, flipStreamVertical, MVPMatrix);
-    SizeCalculator.calculateViewPort(mode, width, height, streamWidth, streamHeight);
+    updateMatrix(rotation, SizeCalculator.calculateFlip(flipStreamHorizontal, flipStreamVertical), MVPMatrix);
+    ViewPort viewport = SizeCalculator.calculateViewPort(mode, width, height, streamWidth, streamHeight);
+    GLES20.glViewport(viewport.getX(), viewport.getY(), viewport.getWidth(), viewport.getHeight());
 
     draw();
   }
@@ -102,8 +106,9 @@ public class ScreenRender {
       boolean flipStreamVertical, boolean flipStreamHorizontal) {
     GlUtil.checkGlError("drawScreen start");
 
-    SizeCalculator.processMatrix(rotation, flipStreamHorizontal, flipStreamVertical, MVPMatrix);
-    SizeCalculator.calculateViewPortEncoder(width, height, isPortrait);
+    updateMatrix(rotation, SizeCalculator.calculateFlip(flipStreamHorizontal, flipStreamVertical), MVPMatrix);
+    ViewPort viewport = SizeCalculator.calculateViewPortEncoder(width, height, isPortrait);
+    GLES20.glViewport(viewport.getX(), viewport.getY(), viewport.getWidth(), viewport.getHeight());
 
     draw();
   }
@@ -112,7 +117,7 @@ public class ScreenRender {
       AspectRatioMode mode, int rotation, boolean flipStreamVertical, boolean flipStreamHorizontal) {
     GlUtil.checkGlError("drawScreen start");
 
-    SizeCalculator.processMatrix(rotation, flipStreamHorizontal, flipStreamVertical, MVPMatrix);
+    updateMatrix(rotation, SizeCalculator.calculateFlip(flipStreamHorizontal, flipStreamVertical), MVPMatrix);
     float factor = (float) streamWidth / (float) streamHeight;
     int w;
     int h;
@@ -123,7 +128,8 @@ public class ScreenRender {
       w = isPortrait ? streamWidth : streamHeight;
       h = isPortrait ? streamHeight : streamWidth;
     }
-    SizeCalculator.calculateViewPort(mode, width, height, w, h);
+    ViewPort viewport = SizeCalculator.calculateViewPort(mode, width, height, w, h);
+    GLES20.glViewport(viewport.getX(), viewport.getY(), viewport.getWidth(), viewport.getHeight());
 
     draw();
   }
@@ -167,5 +173,11 @@ public class ScreenRender {
   public void setStreamSize(int streamWidth, int streamHeight) {
     this.streamWidth = streamWidth;
     this.streamHeight = streamHeight;
+  }
+
+  private void updateMatrix(int rotation, Pair<Float, Float> scale, float[] MVPMatrix) {
+    Matrix.setIdentityM(MVPMatrix, 0);
+    Matrix.scaleM(MVPMatrix, 0, scale.getFirst(), scale.getSecond(), 1f);
+    Matrix.rotateM(MVPMatrix, 0, rotation, 0f, 0f, -1f);
   }
 }
