@@ -21,6 +21,7 @@ import android.app.NotificationManager
 import android.app.Service
 import android.content.Context
 import android.content.Intent
+import android.media.MediaCodec
 import android.media.projection.MediaProjection
 import android.media.projection.MediaProjectionManager
 import android.os.Build
@@ -29,6 +30,7 @@ import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.core.app.NotificationCompat
 import com.pedro.common.ConnectChecker
+import com.pedro.encoder.EncoderErrorCallback
 import com.pedro.library.generic.GenericStream
 import com.pedro.library.util.sources.audio.AudioSource
 import com.pedro.library.util.sources.audio.InternalAudioSource
@@ -79,6 +81,13 @@ class ScreenService: Service(), ConnectChecker {
     genericStream = GenericStream(baseContext, this, NoVideoSource(), MicrophoneSource()).apply {
       //This is important to keep a constant fps because media projection only produce fps if the screen change
       getGlInterface().setForceRender(true, 15)
+      setEncoderErrorCallback(object: EncoderErrorCallback {
+        override fun onCodecError(type: String, e: MediaCodec.CodecException) {
+          if (type.startsWith("video")) {
+            resetVideoEncoder()
+          }
+        }
+      })
     }
     prepared = try {
       genericStream.prepareVideo(width, height, vBitrate, rotation = rotation) &&

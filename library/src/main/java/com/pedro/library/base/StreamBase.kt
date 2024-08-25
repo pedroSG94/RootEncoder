@@ -415,6 +415,12 @@ abstract class StreamBase(
     audioSource.release()
   }
 
+  fun resetVideoEncoder() {
+    glInterface.removeMediaCodecSurface()
+    videoEncoder.reset()
+    glInterface.addMediaCodecSurface(videoEncoder.inputSurface)
+  }
+
   private fun prepareEncoders(): Boolean {
     return videoEncoder.prepareVideoEncoder() && audioEncoder.prepareAudioEncoder()
   }

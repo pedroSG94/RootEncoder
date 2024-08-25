@@ -17,6 +17,7 @@
 package com.pedro.streamer.rotation
 
 import android.annotation.SuppressLint
+import android.media.MediaCodec
 import android.os.Build
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -30,6 +31,7 @@ import android.widget.TextView
 import androidx.annotation.RequiresApi
 import androidx.fragment.app.Fragment
 import com.pedro.common.ConnectChecker
+import com.pedro.encoder.EncoderErrorCallback
 import com.pedro.library.base.recording.RecordController
 import com.pedro.library.generic.GenericStream
 import com.pedro.library.util.sources.video.Camera1Source
@@ -76,6 +78,13 @@ class CameraFragment: Fragment(), ConnectChecker {
     GenericStream(requireContext(), this).apply {
       getGlInterface().autoHandleOrientation = true
       getStreamClient().setBitrateExponentialFactor(0.5f)
+      setEncoderErrorCallback(object: EncoderErrorCallback {
+        override fun onCodecError(type: String, e: MediaCodec.CodecException) {
+          if (type.startsWith("video")) {
+            resetVideoEncoder()
+          }
+        }
+      })
     }
   }
   private lateinit var surfaceView: SurfaceView
