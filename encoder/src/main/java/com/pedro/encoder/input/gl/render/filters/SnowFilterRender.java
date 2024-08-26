@@ -52,10 +52,16 @@ public class SnowFilterRender extends BaseFilterRender {
   private int uSTMatrixHandle = -1;
   private int uSamplerHandle = -1;
   private int uTimeHandle = -1;
-  private int uResolutionHandle = -1;
+  private int uLayersHandle = -1;
+  private int uDepthHandle = -1;
+  private int uWidthHandle = -1;
+  private int uSpeedHandle = -1;
 
   private final long START_TIME = System.currentTimeMillis();
-  private float speed = 1f;
+  private float layers = 5f;
+  private float depth = 0.5f;
+  private float width = 0.6f;
+  private float speed = 0.6f;
 
   public SnowFilterRender() {
     squareVertex = ByteBuffer.allocateDirect(squareVertexDataFilter.length * FLOAT_SIZE_BYTES)
@@ -78,7 +84,10 @@ public class SnowFilterRender extends BaseFilterRender {
     uSTMatrixHandle = GLES20.glGetUniformLocation(program, "uSTMatrix");
     uSamplerHandle = GLES20.glGetUniformLocation(program, "uSampler");
     uTimeHandle = GLES20.glGetUniformLocation(program, "uTime");
-    uResolutionHandle = GLES20.glGetUniformLocation(program, "uResolution");
+    uLayersHandle = GLES20.glGetUniformLocation(program, "uLayers");
+    uDepthHandle = GLES20.glGetUniformLocation(program, "uDepth");
+    uWidthHandle = GLES20.glGetUniformLocation(program, "uWidth");
+    uSpeedHandle = GLES20.glGetUniformLocation(program, "uSpeed");
   }
 
   @Override
@@ -97,9 +106,12 @@ public class SnowFilterRender extends BaseFilterRender {
 
     GLES20.glUniformMatrix4fv(uMVPMatrixHandle, 1, false, MVPMatrix, 0);
     GLES20.glUniformMatrix4fv(uSTMatrixHandle, 1, false, STMatrix, 0);
-    GLES20.glUniform2f(uResolutionHandle, getWidth(), getHeight());
     float time = ((float) (System.currentTimeMillis() - START_TIME)) / 1000f;
-    GLES20.glUniform1f(uTimeHandle, time * speed);
+    GLES20.glUniform1f(uTimeHandle, time);
+    GLES20.glUniform1f(uLayersHandle, layers);
+    GLES20.glUniform1f(uDepthHandle, depth);
+    GLES20.glUniform1f(uWidthHandle, width);
+    GLES20.glUniform1f(uSpeedHandle, speed);
 
     GLES20.glUniform1i(uSamplerHandle, 4);
     GLES20.glActiveTexture(GLES20.GL_TEXTURE4);
@@ -112,9 +124,21 @@ public class SnowFilterRender extends BaseFilterRender {
   }
 
   /**
-   * @param value fall speed, default 1.0f
+   * @param value fall speed, default 0.6f
    */
   public void setSpeed(float value) {
     this.speed = value;
+  }
+
+  public void setDepth(float depth) {
+    this.depth = depth;
+  }
+
+  public void setLayers(float layers) {
+    this.layers = layers;
+  }
+
+  public void setSnowWidth(float width) {
+    this.width = width;
   }
 }
