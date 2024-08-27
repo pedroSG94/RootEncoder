@@ -46,6 +46,7 @@ class H265Packet: BasePacket() {
   private var sps: ByteArray? = null
   private var pps: ByteArray? = null
   private var vps: ByteArray? = null
+  private var readyToSend = false
 
   fun sendVideoInfo(sps: ByteBuffer, pps: ByteBuffer, vps: ByteBuffer) {
     val mSps = removeHeader(sps)
@@ -69,6 +70,11 @@ class H265Packet: BasePacket() {
     info: MediaCodec.BufferInfo,
     callback: (FlvPacket) -> Unit
   ) {
+    if (!readyToSend && !info.isKeyframe()) {
+      return
+    }
+    readyToSend = true
+
     val fixedBuffer = byteBuffer.removeInfo(info)
     val ts = info.presentationTimeUs / 1000
     //header is 8 bytes length:
@@ -190,5 +196,6 @@ class H265Packet: BasePacket() {
       vps = null
     }
     configSend = false
+    readyToSend = false
   }
 }

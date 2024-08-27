@@ -46,6 +46,7 @@ class H264Packet: BasePacket() {
 
   private var sps: ByteArray? = null
   private var pps: ByteArray? = null
+  private var readyToSend = false
 
   enum class Type(val value: Byte) {
     SEQUENCE(0x00), NALU(0x01), EO_SEQ(0x02)
@@ -69,6 +70,11 @@ class H264Packet: BasePacket() {
     info: MediaCodec.BufferInfo,
     callback: (FlvPacket) -> Unit
   ) {
+    if (!readyToSend && !info.isKeyframe()) {
+      return
+    }
+    readyToSend = true
+
     val fixedBuffer = byteBuffer.removeInfo(info)
     val ts = info.presentationTimeUs / 1000
     //header is 5 bytes length:
@@ -182,5 +188,6 @@ class H264Packet: BasePacket() {
       pps = null
     }
     configSend = false
+    readyToSend = false
   }
 }
