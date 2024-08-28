@@ -167,9 +167,9 @@ class Camera2Source(context: Context): VideoSource() {
     if (isRunning()) camera.disableFaceDetection()
   }
 
-  fun isFaceDetectionEnabled() = camera.isFaceDetectionEnabled
+  fun isFaceDetectionEnabled() = camera.isFaceDetectionEnabled()
 
-  fun camerasAvailable(): Array<String>? = camera.camerasAvailable
+  fun camerasAvailable(): Array<String> = camera.camerasAvailable
 
   fun openCameraId(id: String) {
     if (isRunning()) stop()
