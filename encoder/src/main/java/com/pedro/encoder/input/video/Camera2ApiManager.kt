@@ -19,7 +19,6 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.Rect
 import android.graphics.SurfaceTexture
-import android.hardware.camera2.CameraAccessException
 import android.hardware.camera2.CameraCaptureSession
 import android.hardware.camera2.CameraCharacteristics
 import android.hardware.camera2.CameraDevice
@@ -29,6 +28,8 @@ import android.hardware.camera2.CaptureRequest
 import android.hardware.camera2.CaptureResult
 import android.hardware.camera2.TotalCaptureResult
 import android.hardware.camera2.params.MeteringRectangle
+import android.hardware.camera2.params.OutputConfiguration
+import android.hardware.camera2.params.SessionConfiguration
 import android.media.Image
 import android.media.ImageReader
 import android.os.Build
@@ -39,20 +40,16 @@ import android.util.Range
 import android.util.Size
 import android.view.MotionEvent
 import android.view.Surface
-import android.view.SurfaceView
-import android.view.TextureView
 import androidx.annotation.RequiresApi
 import com.pedro.common.secureGet
 import com.pedro.encoder.input.video.Camera2ResolutionCalculator.getOptimalResolution
 import com.pedro.encoder.input.video.CameraHelper.Facing
 import com.pedro.encoder.input.video.facedetector.FaceDetectorCallback
 import com.pedro.encoder.input.video.facedetector.mapCamera2Faces
-import java.util.Arrays
-import java.util.Collections
+import java.util.concurrent.Executors
 import java.util.concurrent.Semaphore
 import kotlin.math.abs
 import kotlin.math.max
-import kotlin.math.min
 
 /**
  * Created by pedro on 4/03/17.
@@ -73,8 +70,6 @@ class Camera2ApiManager(context: Context) : CameraDevice.StateCallback() {
     private val TAG = "Camera2ApiManager"
 
     private var cameraDevice: CameraDevice? = null
-    private var surfaceView: SurfaceView? = null
-    private var textureView: TextureView? = null
     private var surfaceEncoder: Surface? = null //input surfaceEncoder from videoEncoder
     private val cameraManager = context.getSystemService(Context.CAMERA_SERVICE) as CameraManager
     private var cameraHandler: Handler? = null
@@ -115,20 +110,6 @@ class Camera2ApiManager(context: Context) : CameraDevice.StateCallback() {
         cameraId = try { getCameraIdForFacing(Facing.BACK) } catch (e: Exception) { "0" }
     }
 
-    fun prepareCamera(surfaceView: SurfaceView?, surface: Surface?, fps: Int) {
-        this.surfaceView = surfaceView
-        this.surfaceEncoder = surface
-        this.fps = fps
-        isPrepared = true
-    }
-
-    fun prepareCamera(textureView: TextureView?, surface: Surface?, fps: Int) {
-        this.textureView = textureView
-        this.surfaceEncoder = surface
-        this.fps = fps
-        isPrepared = true
-    }
-
     fun prepareCamera(surface: Surface?, fps: Int) {
         this.surfaceEncoder = surface
         this.fps = fps
@@ -156,39 +137,31 @@ class Camera2ApiManager(context: Context) : CameraDevice.StateCallback() {
 
     private fun startPreview(cameraDevice: CameraDevice) {
         try {
-            val listSurfaces: MutableList<Surface> = ArrayList()
-            val preview = addPreviewSurface()
-            if (preview != null) listSurfaces.add(preview)
-            surfaceEncoder?.let { if (it != preview)listSurfaces.add(it) }
+            val listSurfaces = mutableListOf<Surface>()
+            surfaceEncoder?.let { listSurfaces.add(it) }
             imageReader?.let { listSurfaces.add(it.surface) }
-            cameraDevice.createCaptureSession(
+            val captureRequest = drawSurface(cameraDevice, listSurfaces)
+            createCaptureSession(
+                cameraDevice,
                 listSurfaces,
-                object : CameraCaptureSession.StateCallback() {
-                    override fun onConfigured(cameraCaptureSession: CameraCaptureSession) {
-                        this@Camera2ApiManager.cameraCaptureSession = cameraCaptureSession
-                        try {
-                            val captureRequest = drawSurface(listSurfaces)
-                            if (captureRequest != null) {
-                                cameraCaptureSession.setRepeatingRequest(
-                                    captureRequest,
-                                    if (faceDetectionEnabled) cb else null, cameraHandler
-                                )
-                                Log.i(TAG, "Camera configured")
-                            } else {
-                                Log.e(TAG, "Error, captureRequest is null")
-                            }
-                        } catch (e: IllegalStateException) {
-                            reOpenCamera(cameraId)
-                        } catch (e: Exception) {
-                            Log.e(TAG, "Error", e)
-                        }
+                onConfigured = {
+                    cameraCaptureSession = it
+                    try {
+                        it.setRepeatingRequest(
+                            captureRequest,
+                            if (faceDetectionEnabled) cb else null, cameraHandler
+                        )
+                    } catch (e: IllegalStateException) {
+                        reOpenCamera(cameraId)
+                    } catch (e: Exception) {
+                        cameraCallbacks?.onCameraError("Create capture session failed: " + e.message)
+                        Log.e(TAG, "Error", e)
                     }
-
-                    override fun onConfigureFailed(cameraCaptureSession: CameraCaptureSession) {
-                        cameraCaptureSession.close()
-                        cameraCallbacks?.onCameraError("Configuration failed")
-                        Log.e(TAG, "Configuration failed")
-                    }
+                },
+                onConfiguredFailed = {
+                    it.close()
+                    cameraCallbacks?.onCameraError("Configuration failed")
+                    Log.e(TAG, "Configuration failed")
                 },
                 cameraHandler
             )
@@ -200,30 +173,14 @@ class Camera2ApiManager(context: Context) : CameraDevice.StateCallback() {
         }
     }
 
-    private fun addPreviewSurface(): Surface? {
-        var surface: Surface? = null
-        if (surfaceView != null) {
-            surface = surfaceView?.holder?.surface
-        } else if (textureView != null) {
-            val texture = textureView?.surfaceTexture
-            texture?.let { surface = Surface(it) }
-        }
-        return surface
-    }
-
-    private fun drawSurface(surfaces: List<Surface>): CaptureRequest? {
-        try {
-            val cameraDevice = this.cameraDevice ?: return null
-            val builderInputSurface = cameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_PREVIEW)
-            for (surface in surfaces) builderInputSurface.addTarget(surface)
-            builderInputSurface.set(CaptureRequest.CONTROL_MODE, CameraMetadata.CONTROL_MODE_AUTO)
-            adaptFpsRange(fps, builderInputSurface)
-            this.builderInputSurface = builderInputSurface
-            return builderInputSurface.build()
-        } catch (e: Exception) {
-            Log.e(TAG, "Error", e)
-            return null
-        }
+    @Throws(IllegalStateException::class, Exception::class)
+    private fun drawSurface(cameraDevice: CameraDevice, surfaces: List<Surface>): CaptureRequest {
+        val builderInputSurface = cameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_PREVIEW)
+        for (surface in surfaces) builderInputSurface.addTarget(surface)
+        builderInputSurface.set(CaptureRequest.CONTROL_MODE, CameraMetadata.CONTROL_MODE_AUTO)
+        adaptFpsRange(fps, builderInputSurface)
+        this.builderInputSurface = builderInputSurface
+        return builderInputSurface.build()
     }
 
     private fun adaptFpsRange(expectedFps: Int, builderInputSurface: CaptureRequest.Builder) {
@@ -538,11 +495,9 @@ class Camera2ApiManager(context: Context) : CameraDevice.StateCallback() {
         val supportedFocusModes = characteristics.secureGet(CameraCharacteristics.CONTROL_AF_AVAILABLE_MODES) ?: return false
         val builderInputSurface = this.builderInputSurface ?: return false
         val cameraCaptureSession = this.cameraCaptureSession ?: return false
-        val focusModesList: MutableList<Int> = ArrayList()
-        for (i in supportedFocusModes) focusModesList.add(i)
 
         try {
-            if (focusModesList.isNotEmpty()) {
+            if (supportedFocusModes.isNotEmpty()) {
                 //cancel any existing AF trigger
                 builderInputSurface.set(CaptureRequest.CONTROL_AF_TRIGGER, CameraMetadata.CONTROL_AF_TRIGGER_CANCEL)
                 builderInputSurface.set(CaptureRequest.CONTROL_AF_MODE, CaptureRequest.CONTROL_AF_MODE_OFF)
@@ -550,14 +505,14 @@ class Camera2ApiManager(context: Context) : CameraDevice.StateCallback() {
                     builderInputSurface.build(),
                     if (faceDetectionEnabled) cb else null, null
                 )
-                if (focusModesList.contains(CaptureRequest.CONTROL_AF_MODE_CONTINUOUS_PICTURE)) {
+                if (supportedFocusModes.contains(CaptureRequest.CONTROL_AF_MODE_CONTINUOUS_PICTURE)) {
                     builderInputSurface.set(CaptureRequest.CONTROL_AF_MODE, CaptureRequest.CONTROL_AF_MODE_CONTINUOUS_PICTURE)
                     isAutoFocusEnabled = true
-                } else if (focusModesList.contains(CaptureRequest.CONTROL_AF_MODE_AUTO)) {
+                } else if (supportedFocusModes.contains(CaptureRequest.CONTROL_AF_MODE_AUTO)) {
                     builderInputSurface.set(CaptureRequest.CONTROL_AF_MODE, CaptureRequest.CONTROL_AF_MODE_AUTO)
                     isAutoFocusEnabled = true
                 } else {
-                    builderInputSurface.set(CaptureRequest.CONTROL_AF_MODE, focusModesList[0])
+                    builderInputSurface.set(CaptureRequest.CONTROL_AF_MODE, supportedFocusModes[0])
                     isAutoFocusEnabled = false
                 }
                 cameraCaptureSession.setRepeatingRequest(
@@ -605,11 +560,9 @@ class Camera2ApiManager(context: Context) : CameraDevice.StateCallback() {
         val fd = characteristics.secureGet(CameraCharacteristics.STATISTICS_INFO_AVAILABLE_FACE_DETECT_MODES) ?: return false
         val maxFD = characteristics.secureGet(CameraCharacteristics.STATISTICS_INFO_MAX_FACE_COUNT) ?: return false
         if (fd.isEmpty() || maxFD <= 0) return false
-        val fdList: MutableList<Int> = ArrayList()
-        for (face in fd) fdList.add(face)
         this.faceDetectorCallback = faceDetectorCallback
         faceDetectionEnabled = true
-        faceDetectionMode = Collections.max(fdList)
+        faceDetectionMode = fd.toList().max()
         if (faceDetectionEnabled) {
             builderInputSurface.set(CaptureRequest.STATISTICS_FACE_DETECT_MODE, faceDetectionMode)
         }
@@ -646,13 +599,12 @@ class Camera2ApiManager(context: Context) : CameraDevice.StateCallback() {
         }
     }
 
-    private val cb: CameraCaptureSession.CaptureCallback =
-        object : CameraCaptureSession.CaptureCallback() {
-            override fun onCaptureCompleted(session: CameraCaptureSession, request: CaptureRequest, result: TotalCaptureResult) {
-                val faces = result.get(CaptureResult.STATISTICS_FACES) ?: return
-                faceDetectorCallback?.onGetFaces(mapCamera2Faces(faces), faceSensorScale, sensorOrientation)
-            }
+    private val cb: CameraCaptureSession.CaptureCallback = object : CameraCaptureSession.CaptureCallback() {
+        override fun onCaptureCompleted(session: CameraCaptureSession, request: CaptureRequest, result: TotalCaptureResult) {
+            val faces = result.get(CaptureResult.STATISTICS_FACES) ?: return
+            faceDetectorCallback?.onGetFaces(mapCamera2Faces(faces), faceSensorScale, sensorOrientation)
         }
+    }
 
     @SuppressLint("MissingPermission")
     fun openCameraId(cameraId: String) {
@@ -696,13 +648,7 @@ class Camera2ApiManager(context: Context) : CameraDevice.StateCallback() {
     fun reOpenCamera(cameraId: String) {
         if (cameraDevice != null) {
             closeCamera(false)
-            if (textureView != null) {
-                prepareCamera(textureView, surfaceEncoder, fps)
-            } else if (surfaceView != null) {
-                prepareCamera(surfaceView, surfaceEncoder, fps)
-            } else {
-                prepareCamera(surfaceEncoder, fps)
-            }
+            prepareCamera(surfaceEncoder, fps)
             openCameraId(cameraId)
         }
     }
@@ -728,10 +674,8 @@ class Camera2ApiManager(context: Context) : CameraDevice.StateCallback() {
             val characteristics = cameraCharacteristics ?: return
             val builderInputSurface = this.builderInputSurface ?: return
             val cameraCaptureSession = this.cameraCaptureSession ?: return
-
             val l = level.coerceIn(zoomRange.lower, zoomRange.upper)
             try {
-
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R && levelSupported != CameraMetadata.INFO_SUPPORTED_HARDWARE_LEVEL_LEGACY) {
                     builderInputSurface.set(CaptureRequest.CONTROL_ZOOM_RATIO, l)
                 } else {
@@ -758,9 +702,9 @@ class Camera2ApiManager(context: Context) : CameraDevice.StateCallback() {
             }
         }
 
-    fun getOpticalZooms(): FloatArray {
-        val characteristics = cameraCharacteristics ?: return FloatArray(0)
-        return characteristics.secureGet(CameraCharacteristics.LENS_INFO_AVAILABLE_FOCAL_LENGTHS) ?: FloatArray(0)
+    fun getOpticalZooms(): Array<Float> {
+        val characteristics = cameraCharacteristics ?: return arrayOf()
+        return characteristics.secureGet(CameraCharacteristics.LENS_INFO_AVAILABLE_FOCAL_LENGTHS)?.toTypedArray() ?: arrayOf()
     }
 
     fun setOpticalZoom(level: Float) {
@@ -801,15 +745,6 @@ class Camera2ApiManager(context: Context) : CameraDevice.StateCallback() {
         try {
             cameraCaptureSession.stopRepeating()
             surfaceEncoder = null
-            val preview = addPreviewSurface()
-            if (preview != null) {
-                val captureRequest = drawSurface(listOf(preview))
-                if (captureRequest != null) {
-                    cameraCaptureSession.setRepeatingRequest(captureRequest, null, cameraHandler)
-                }
-            } else {
-                Log.e(TAG, "preview surface is null")
-            }
         } catch (e: Exception) {
             Log.e(TAG, "Error", e)
         }
@@ -849,13 +784,7 @@ class Camera2ApiManager(context: Context) : CameraDevice.StateCallback() {
             }
         }, Handler(imageThread.looper))
         if (wasRunning) {
-            if (textureView != null) {
-                prepareCamera(textureView, surfaceEncoder, fps)
-            } else if (surfaceView != null) {
-                prepareCamera(surfaceView, surfaceEncoder, fps)
-            } else {
-                prepareCamera(surfaceEncoder, fps)
-            }
+            prepareCamera(surfaceEncoder, fps)
             openLastCamera()
         }
         this.imageReader = imageReader
@@ -867,13 +796,7 @@ class Camera2ApiManager(context: Context) : CameraDevice.StateCallback() {
         if (wasRunning) closeCamera(false)
         imageReader.close()
         if (wasRunning) {
-            if (textureView != null) {
-                prepareCamera(textureView, surfaceEncoder, fps)
-            } else if (surfaceView != null) {
-                prepareCamera(surfaceView, surfaceEncoder, fps)
-            } else {
-                prepareCamera(surfaceEncoder, fps)
-            }
+            prepareCamera(surfaceEncoder, fps)
             openLastCamera()
         }
         this.imageReader = null
@@ -927,6 +850,37 @@ class Camera2ApiManager(context: Context) : CameraDevice.StateCallback() {
             return Facing.BACK
         } catch (e: Exception) {
             return Facing.BACK
+        }
+    }
+
+    @Suppress("DEPRECATION")
+    @RequiresApi(Build.VERSION_CODES.LOLLIPOP)
+    private fun createCaptureSession(
+        cameraDevice: CameraDevice,
+        surfaces: List<Surface>,
+        onConfigured: (CameraCaptureSession) -> Unit,
+        onConfiguredFailed: (CameraCaptureSession) -> Unit,
+        handler: Handler?
+    ) {
+        val callback = object: CameraCaptureSession.StateCallback() {
+            override fun onConfigured(cameraCaptureSession: CameraCaptureSession) {
+                onConfigured(cameraCaptureSession)
+            }
+
+            override fun onConfigureFailed(cameraCaptureSession: CameraCaptureSession) {
+                onConfiguredFailed(cameraCaptureSession)
+            }
+        }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+            val config = SessionConfiguration(
+                SessionConfiguration.SESSION_REGULAR,
+                surfaces.map { OutputConfiguration(it) },
+                Executors.newSingleThreadExecutor(),
+                callback
+            )
+            cameraDevice.createCaptureSession(config)
+        } else {
+            cameraDevice.createCaptureSession(surfaces, callback, handler)
         }
     }
 }

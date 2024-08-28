@@ -50,8 +50,7 @@ class SrtCamera2 : Camera2Base {
     init(connectChecker)
   }
 
-  constructor(context: Context, useOpengl: Boolean, connectChecker: ConnectChecker): super(
-    context, useOpengl) {
+  constructor(context: Context, connectChecker: ConnectChecker): super(context) {
     init(connectChecker)
   }
 

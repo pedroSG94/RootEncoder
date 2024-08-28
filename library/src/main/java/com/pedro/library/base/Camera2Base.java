@@ -27,9 +27,6 @@ import android.util.Log;
 import android.util.Range;
 import android.util.Size;
 import android.view.MotionEvent;
-import android.view.Surface;
-import android.view.SurfaceView;
-import android.view.TextureView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -90,8 +87,6 @@ public abstract class Camera2Base {
   private MicrophoneManager microphoneManager;
   private AudioEncoder audioEncoder;
   private boolean streaming = false;
-  private SurfaceView surfaceView;
-  private TextureView textureView;
   private GlInterface glInterface;
   protected boolean audioInitialized = false;
   private boolean onPreview = false;
@@ -100,41 +95,15 @@ public abstract class Camera2Base {
   private int previewWidth, previewHeight;
   private final FpsListener fpsListener = new FpsListener();
 
-  /**
-   * @deprecated This view produce rotations problems and could be unsupported in future versions.
-   * Use {@link Camera2Base#Camera2Base(OpenGlView)}
-   * instead.
-   */
-  @Deprecated
-  public Camera2Base(SurfaceView surfaceView) {
-    this.surfaceView = surfaceView;
-    this.context = surfaceView.getContext();
-    init(context);
-  }
-
-  /**
-   * @deprecated This view produce rotations problems and could be unsupported in future versions.
-   * Use {@link Camera2Base#Camera2Base(OpenGlView)}
-   * instead.
-   */
-  @Deprecated
-  public Camera2Base(TextureView textureView) {
-    this.textureView = textureView;
-    this.context = textureView.getContext();
-    init(context);
-  }
-
   public Camera2Base(OpenGlView openGlView) {
     context = openGlView.getContext();
     glInterface = openGlView;
     init(context);
   }
 
-  public Camera2Base(Context context, boolean useOpengl) {
+  public Camera2Base(Context context) {
     this.context = context;
-    if (useOpengl) {
-      glInterface = new GlStreamInterface(context);
-    }
+    glInterface = new GlStreamInterface(context);
     isBackground = true;
     init(context);
   }
@@ -311,14 +280,12 @@ public abstract class Camera2Base {
    */
   public boolean prepareVideo(int width, int height, int fps, int bitrate, int iFrameInterval,
       int rotation, int profile, int level) {
-    if (onPreview && glInterface != null && (width != previewWidth || height != previewHeight
+    if (onPreview && (width != previewWidth || height != previewHeight
         || fps != videoEncoder.getFps() || rotation != videoEncoder.getRotation())) {
       stopPreview();
     }
-    boolean result = videoEncoder.prepareVideoEncoder(width, height, fps, bitrate, rotation,
+    return videoEncoder.prepareVideoEncoder(width, height, fps, bitrate, rotation,
         iFrameInterval, FormatVideoEncoder.SURFACE, profile, level);
-    prepareCameraManager();
-    return result;
   }
 
   public boolean prepareVideo(int width, int height, int fps, int bitrate, int iFrameInterval,
@@ -469,25 +436,23 @@ public abstract class Camera2Base {
    * OpenGl.
    */
   private void replaceGlInterface(GlInterface glInterface) {
-    if (this.glInterface != null && Build.VERSION.SDK_INT >= 18) {
-      if (isStreaming() || isRecording() || isOnPreview()) {
-        Point size = this.glInterface.getEncoderSize();
-        cameraManager.closeCamera();
-        this.glInterface.removeMediaCodecSurface();
-        this.glInterface.stop();
-        this.glInterface = glInterface;
-        int w = size.x;
-        int h = size.y;
-        int rotation = videoEncoder.getRotation();
-        if (rotation == 90 || rotation == 270) {
-          h = size.x;
-          w = size.y;
-        }
-        prepareGlView(w, h, rotation);
-        cameraManager.openLastCamera();
-      } else {
-        this.glInterface = glInterface;
+    if (isStreaming() || isRecording() || isOnPreview()) {
+      Point size = this.glInterface.getEncoderSize();
+      cameraManager.closeCamera();
+      this.glInterface.removeMediaCodecSurface();
+      this.glInterface.stop();
+      this.glInterface = glInterface;
+      int w = size.x;
+      int h = size.y;
+      int rotation = videoEncoder.getRotation();
+      if (rotation == 90 || rotation == 270) {
+        h = size.x;
+        w = size.y;
       }
+      prepareGlView(w, h, rotation);
+      cameraManager.openLastCamera();
+    } else {
+      this.glInterface = glInterface;
     }
   }
 
@@ -517,14 +482,7 @@ public abstract class Camera2Base {
       previewHeight = height;
       videoEncoder.setFps(fps);
       videoEncoder.setRotation(rotation);
-      if (surfaceView != null) {
-        cameraManager.prepareCamera(surfaceView.getHolder().getSurface(), videoEncoder.getFps());
-      } else if (textureView != null) {
-        cameraManager.prepareCamera(new Surface(textureView.getSurfaceTexture()),
-            videoEncoder.getFps());
-      } else if (glInterface != null) {
-        prepareGlView(width, height, rotation);
-      }
+      prepareGlView(width, height, rotation);
       cameraManager.openCameraId(cameraId);
       onPreview = true;
     } else if (!isStreaming() && !onPreview && isBackground) {
@@ -589,9 +547,7 @@ public abstract class Camera2Base {
    */
   public void stopCamera() {
     if (onPreview) {
-      if (glInterface != null) {
-        glInterface.stop();
-      }
+      glInterface.stop();
       cameraManager.closeCamera();
       onPreview = false;
       previewWidth = 0;
@@ -650,28 +606,26 @@ public abstract class Camera2Base {
   }
 
   private void prepareGlView(int width, int height, int rotation) {
-    if (glInterface != null) {
-      int w = width;
-      int h = height;
-      boolean isPortrait = false;
-      if (rotation == 90 || rotation == 270) {
-        h = width;
-        w = height;
-        isPortrait = true;
-      }
-      glInterface.setEncoderSize(w, h);
-      if (glInterface instanceof GlStreamInterface glStreamInterface) {
-        glStreamInterface.setPreviewResolution(w, h);
-        glStreamInterface.setIsPortrait(isPortrait);
-      }
-      glInterface.setRotation(rotation == 0 ? 270 : rotation - 90);
-      if (!glInterface.isRunning()) glInterface.start();
-      if (videoEncoder.getInputSurface() != null && videoEncoder.isRunning()) {
-        glInterface.addMediaCodecSurface(videoEncoder.getInputSurface());
-      }
-      cameraManager.prepareCamera(glInterface.getSurfaceTexture(), videoEncoder.getWidth(),
-          videoEncoder.getHeight(), videoEncoder.getFps());
+    int w = width;
+    int h = height;
+    boolean isPortrait = false;
+    if (rotation == 90 || rotation == 270) {
+      h = width;
+      w = height;
+      isPortrait = true;
     }
+    glInterface.setEncoderSize(w, h);
+    if (glInterface instanceof GlStreamInterface glStreamInterface) {
+      glStreamInterface.setPreviewResolution(w, h);
+      glStreamInterface.setIsPortrait(isPortrait);
+    }
+    glInterface.setRotation(rotation == 0 ? 270 : rotation - 90);
+    if (!glInterface.isRunning()) glInterface.start();
+    if (videoEncoder.getInputSurface() != null && videoEncoder.isRunning()) {
+      glInterface.addMediaCodecSurface(videoEncoder.getInputSurface());
+    }
+    cameraManager.prepareCamera(glInterface.getSurfaceTexture(), videoEncoder.getWidth(),
+        videoEncoder.getHeight(), videoEncoder.getFps());
   }
 
   protected abstract void stopStreamImp();
@@ -687,19 +641,10 @@ public abstract class Camera2Base {
     if (!recordController.isRecording()) {
       onPreview = !isBackground;
       if (audioInitialized) microphoneManager.stop();
-      if (glInterface != null) {
-        glInterface.removeMediaCodecSurface();
-        if (glInterface instanceof GlStreamInterface) {
-          glInterface.stop();
-          cameraManager.closeCamera();
-        }
-      } else {
-        if (isBackground) {
-          cameraManager.closeCamera();
-          onPreview = false;
-        } else {
-          cameraManager.stopRepeatingEncoder();
-        }
+      glInterface.removeMediaCodecSurface();
+      if (glInterface instanceof GlStreamInterface) {
+        glInterface.stop();
+        cameraManager.closeCamera();
       }
       videoEncoder.stop();
       if (audioInitialized) audioEncoder.stop();
@@ -827,7 +772,7 @@ public abstract class Camera2Base {
    * @Experimental
    * @return optical zoom values available
    */
-  public float[] getOpticalZooms() {
+  public Float[] getOpticalZooms() {
     return cameraManager.getOpticalZooms();
   }
 
@@ -909,23 +854,7 @@ public abstract class Camera2Base {
   }
 
   public GlInterface getGlInterface() {
-    if (glInterface != null) {
-      return glInterface;
-    } else {
-      throw new RuntimeException("You can't do it. You are not using Opengl");
-    }
-  }
-
-  private void prepareCameraManager() {
-    if (textureView != null) {
-      cameraManager.prepareCamera(textureView, videoEncoder.getInputSurface(),
-          videoEncoder.getFps());
-    } else if (surfaceView != null) {
-      cameraManager.prepareCamera(surfaceView, videoEncoder.getInputSurface(),
-          videoEncoder.getFps());
-    } else if (glInterface == null) {
-      cameraManager.prepareCamera(videoEncoder.getInputSurface(), videoEncoder.getFps());
-    }
+    return glInterface;
   }
 
   /**
@@ -946,7 +875,7 @@ public abstract class Camera2Base {
   public void forceFpsLimit(boolean enabled) {
     int fps = enabled ? videoEncoder.getFps() : 0;
     videoEncoder.setForceFps(fps);
-    if (glInterface != null) glInterface.forceFpsLimit(fps);
+    glInterface.forceFpsLimit(fps);
   }
 
   /**
