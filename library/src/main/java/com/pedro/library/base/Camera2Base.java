@@ -263,6 +263,10 @@ public abstract class Camera2Base {
     cameraManager.setFocusDistance(distance);
   }
 
+  public String getCurrentCameraId() {
+    return cameraManager.getCurrentCameraId();
+  }
+
   /**
    * Call this method before use @startStream. If not you will do a stream without video.
    *

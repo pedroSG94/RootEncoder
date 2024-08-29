@@ -171,6 +171,8 @@ class Camera2Source(context: Context): VideoSource() {
 
   fun camerasAvailable(): Array<String> = camera.camerasAvailable
 
+  fun getCurrentCameraId() = camera.getCurrentCameraId()
+
   fun openCameraId(id: String) {
     if (isRunning()) stop()
     camera.openCameraId(id)

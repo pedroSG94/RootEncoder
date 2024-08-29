@@ -343,6 +343,8 @@ class Camera2ApiManager(context: Context) : CameraDevice.StateCallback() {
         }
     }
 
+    fun getCurrentCameraId()  = cameraId
+
     var exposure: Int
         get() {
             val builderInputSurface = this.builderInputSurface ?: return 0
