@@ -97,12 +97,12 @@ class MultiCamera2 : Camera2Base {
     }
 
     constructor(
-        context: Context, useOpengl: Boolean,
+        context: Context,
         connectCheckerRtmpList: Array<ConnectChecker>?,
         connectCheckerRtspList: Array<ConnectChecker>?,
         connectCheckerSrtList: Array<ConnectChecker>?,
         connectCheckerUdpList: Array<ConnectChecker>?
-    ) : super(context, useOpengl) {
+    ) : super(context) {
         initialize(connectCheckerRtmpList, connectCheckerRtspList, connectCheckerSrtList, connectCheckerUdpList)
     }
 

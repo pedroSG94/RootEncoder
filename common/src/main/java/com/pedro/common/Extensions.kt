@@ -16,10 +16,13 @@
 
 package com.pedro.common
 
+import android.hardware.camera2.CameraCharacteristics
+import android.hardware.camera2.CaptureRequest
 import android.media.MediaCodec
 import android.os.Build
 import android.os.Handler
 import android.os.Looper
+import androidx.annotation.RequiresApi
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.UnsupportedEncodingException
@@ -116,4 +119,14 @@ fun getSuspendContext(): Continuation<Unit> {
     override val context = Dispatchers.IO
     override fun resumeWith(result: Result<Unit>) {}
   }
+}
+
+@RequiresApi(Build.VERSION_CODES.LOLLIPOP)
+fun <T> CameraCharacteristics.secureGet(key: CameraCharacteristics.Key<T>): T? {
+  return try { get(key) } catch (e: IllegalArgumentException) { null }
+}
+
+@RequiresApi(Build.VERSION_CODES.LOLLIPOP)
+fun <T> CaptureRequest.Builder.secureGet(key: CaptureRequest.Key<T>): T? {
+  return try { get(key) } catch (e: IllegalArgumentException) { null }
 }

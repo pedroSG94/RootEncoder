@@ -62,7 +62,7 @@ class GenericCamera2: Camera2Base {
     init(connectChecker)
   }
 
-  constructor(context: Context, useOpenGl: Boolean, connectChecker: ConnectChecker) : super(context, useOpenGl) {
+  constructor(context: Context, connectChecker: ConnectChecker) : super(context) {
     init(connectChecker)
   }
 
