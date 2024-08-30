@@ -17,6 +17,7 @@
 package com.pedro.encoder.input.audio;
 
 import android.annotation.SuppressLint;
+import android.media.AudioDeviceInfo;
 import android.media.AudioFormat;
 import android.media.AudioPlaybackCaptureConfiguration;
 import android.media.AudioRecord;
@@ -26,6 +27,8 @@ import android.os.Build;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.util.Log;
+
+import androidx.annotation.RequiresApi;
 
 import com.pedro.encoder.Frame;
 
@@ -183,6 +186,15 @@ public class MicrophoneManager {
     } else {
       throw new IllegalStateException("Error starting, microphone was stopped or not created, use createMicrophone() before start()");
     }
+  }
+
+  @RequiresApi(api = Build.VERSION_CODES.M)
+  public boolean setPreferredDevice(AudioDeviceInfo deviceInfo){
+    if(audioRecord == null) {
+      Log.w(TAG, "audioRecord not created");
+      return false;
+    }
+    return audioRecord.setPreferredDevice(deviceInfo);
   }
 
   public void mute() {
