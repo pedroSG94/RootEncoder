@@ -312,6 +312,10 @@ public abstract class OnlyAudioBase {
     return streaming;
   }
 
+  public boolean resetAudioEncoder() {
+    return audioEncoder.reset();
+  }
+
   protected abstract void getAudioDataImp(ByteBuffer audioBuffer, MediaCodec.BufferInfo info);
 
   public void setRecordController(BaseRecordController recordController) {

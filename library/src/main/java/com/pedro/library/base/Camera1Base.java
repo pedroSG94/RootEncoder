@@ -252,6 +252,22 @@ public abstract class Camera1Base {
     return cameraManager.isAutoFocusEnabled();
   }
 
+  public boolean resetVideoEncoder() {
+    if (glInterface != null) {
+      glInterface.removeMediaCodecSurface();
+      boolean result = videoEncoder.reset();
+      if (!result) return false;
+      glInterface.addMediaCodecSurface(videoEncoder.getInputSurface());
+      return true;
+    } else {
+      return videoEncoder.reset();
+    }
+  }
+
+  public boolean resetAudioEncoder() {
+    return audioEncoder.reset();
+  }
+
   /**
    * Call this method before use @startStream. If not you will do a stream without video. NOTE:
    * Rotation with encoder is silence ignored in some devices.

@@ -294,6 +294,18 @@ public abstract class Camera2Base {
     cameraManager.setFocusDistance(distance);
   }
 
+  public boolean resetVideoEncoder() {
+    glInterface.removeMediaCodecSurface();
+    boolean result = videoEncoder.reset();
+    if (!result) return false;
+    glInterface.addMediaCodecSurface(videoEncoder.getInputSurface());
+    return true;
+  }
+
+  public boolean resetAudioEncoder() {
+    return audioEncoder.reset();
+  }
+
   /**
    * Call this method before use @startStream. If not you will do a stream without video.
    *

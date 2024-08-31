@@ -78,13 +78,6 @@ class CameraFragment: Fragment(), ConnectChecker {
     GenericStream(requireContext(), this).apply {
       getGlInterface().autoHandleOrientation = true
       getStreamClient().setBitrateExponentialFactor(0.5f)
-      setEncoderErrorCallback(object: EncoderErrorCallback {
-        override fun onCodecError(type: String, e: MediaCodec.CodecException) {
-          if (type.startsWith("video")) {
-            resetVideoEncoder()
-          }
-        }
-      })
     }
   }
   private lateinit var surfaceView: SurfaceView

@@ -56,6 +56,7 @@ public abstract class BaseEncoder implements EncoderCallback {
   private Handler handler;
   private EncoderErrorCallback encoderErrorCallback;
   protected String type;
+  protected CodecUtil.CodecTypeError typeError;
 
   public void setEncoderErrorCallback(EncoderErrorCallback encoderErrorCallback) {
     this.encoderErrorCallback = encoderErrorCallback;
@@ -112,7 +113,7 @@ public abstract class BaseEncoder implements EncoderCallback {
     running = true;
   }
 
-  public abstract void reset();
+  public abstract boolean reset();
 
   public abstract void start(boolean resetTs);
 
@@ -130,10 +131,10 @@ public abstract class BaseEncoder implements EncoderCallback {
     //Sometimes encoder crash, we will try recover it. Reset encoder a time if crash
     EncoderErrorCallback callback = encoderErrorCallback;
     if (callback != null) {
-      shouldReset = callback.onEncodeError(TAG, e);
+      shouldReset = callback.onEncodeError(typeError, e);
     }
     if (shouldReset) {
-      Log.e(TAG, "Encoder crashed, trying to recover it");
+      Log.e(typeError.name(), "Encoder crashed, trying to recover it");
       reset();
     }
   }
@@ -299,7 +300,7 @@ public abstract class BaseEncoder implements EncoderCallback {
       public void onError(@NonNull MediaCodec mediaCodec, @NonNull MediaCodec.CodecException e) {
         Log.e(TAG, "Error", e);
         EncoderErrorCallback callback = encoderErrorCallback;
-        if (callback != null) callback.onCodecError(TAG, e);
+        if (callback != null) callback.onCodecError(typeError, e);
       }
 
       @Override

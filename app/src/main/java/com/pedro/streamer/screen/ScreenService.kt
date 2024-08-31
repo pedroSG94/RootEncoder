@@ -81,13 +81,6 @@ class ScreenService: Service(), ConnectChecker {
     genericStream = GenericStream(baseContext, this, NoVideoSource(), MicrophoneSource()).apply {
       //This is important to keep a constant fps because media projection only produce fps if the screen change
       getGlInterface().setForceRender(true, 15)
-      setEncoderErrorCallback(object: EncoderErrorCallback {
-        override fun onCodecError(type: String, e: MediaCodec.CodecException) {
-          if (type.startsWith("video")) {
-            resetVideoEncoder()
-          }
-        }
-      })
     }
     prepared = try {
       genericStream.prepareVideo(width, height, vBitrate, rotation = rotation) &&
