@@ -51,6 +51,7 @@ public class AudioEncoder extends BaseEncoder implements GetMicrophoneData {
 
   public AudioEncoder(GetAudioData getAudioData) {
     this.getAudioData = getAudioData;
+    typeError = CodecUtil.CodecTypeError.AUDIO_CODEC;
     type = CodecUtil.AAC_MIME;
     TAG = "AudioEncoder";
   }
@@ -129,10 +130,12 @@ public class AudioEncoder extends BaseEncoder implements GetMicrophoneData {
   }
 
   @Override
-  public void reset() {
+  public boolean reset() {
     stop(false);
-    prepareAudioEncoder(bitRate, sampleRate, isStereo, maxInputSize);
+    boolean result = prepareAudioEncoder(bitRate, sampleRate, isStereo, maxInputSize);
+    if (!result) return false;
     restart();
+    return true;
   }
 
   @Override

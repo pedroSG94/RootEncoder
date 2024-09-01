@@ -546,6 +546,24 @@ public abstract class FromFileBase {
     if (glInterface != null) glInterface.forceFpsLimit(fps);
   }
 
+  public boolean resetVideoEncoder() {
+    if (glInterface != null) {
+      glInterface.removeMediaCodecSurface();
+      boolean result = videoEncoder.reset();
+      if (!result) return false;
+      glInterface.addMediaCodecSurface(videoEncoder.getInputSurface());
+    } else {
+      boolean result = videoEncoder.reset();
+      if (!result) return false;
+      if (videoDecoder.isRunning()) videoDecoder.changeOutputSurface(videoEncoder.getInputSurface());
+    }
+    return true;
+  }
+
+  public boolean resetAudioEncoder() {
+    return audioEncoder.reset();
+  }
+
   /**
    * Get stream state.
    *

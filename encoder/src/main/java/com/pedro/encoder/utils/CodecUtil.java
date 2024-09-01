@@ -46,6 +46,10 @@ public class CodecUtil {
     FIRST_COMPATIBLE_FOUND, SOFTWARE, HARDWARE
   }
 
+  public enum CodecTypeError {
+    VIDEO_CODEC, AUDIO_CODEC
+  }
+
   public static List<String> showAllCodecsInfo() {
     List<MediaCodecInfo> mediaCodecInfoList = getAllCodecs(false);
     List<String> infos = new ArrayList<>();

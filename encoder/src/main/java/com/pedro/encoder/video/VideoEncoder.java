@@ -73,6 +73,7 @@ public class VideoEncoder extends BaseEncoder implements GetCameraData {
 
   public VideoEncoder(GetVideoData getVideoData) {
     this.getVideoData = getVideoData;
+    typeError = CodecUtil.CodecTypeError.VIDEO_CODEC;
     type = CodecUtil.H264_MIME;
     TAG = "VideoEncoder";
   }
@@ -196,11 +197,13 @@ public class VideoEncoder extends BaseEncoder implements GetCameraData {
   }
 
   @Override
-  public void reset() {
+  public boolean reset() {
     stop(false);
-    prepareVideoEncoder(width, height, fps, bitRate, rotation, iFrameInterval, formatVideoEncoder,
+    boolean result = prepareVideoEncoder(width, height, fps, bitRate, rotation, iFrameInterval, formatVideoEncoder,
         profile, level);
+    if (!result) return false;
     restart();
+    return true;
   }
 
   private FormatVideoEncoder chooseColorDynamically(MediaCodecInfo mediaCodecInfo) {
