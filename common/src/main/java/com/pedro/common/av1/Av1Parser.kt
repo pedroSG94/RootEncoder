@@ -47,7 +47,7 @@ class Av1Parser {
 
   fun getObuType(header: Byte): ObuType {
     val value = ((header.toInt() and 0x7F) and 0xF8) ushr 3
-    return ObuType.entries.firstOrNull { it.value == value } ?: ObuType.RESERVED
+    return ObuType.values().firstOrNull { it.value == value } ?: ObuType.RESERVED
   }
 
   fun getObus(av1Data: ByteArray): List<Obu> {

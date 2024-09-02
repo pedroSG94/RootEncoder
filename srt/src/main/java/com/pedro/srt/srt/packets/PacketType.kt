@@ -26,6 +26,6 @@ enum class PacketType(val value: Int) {
   DATA(0), CONTROL(1);
 
   companion object {
-    infix fun from(value: Int): PacketType = entries.firstOrNull { it.value == value } ?: throw IOException("unknown packet type: $value")
+    infix fun from(value: Int): PacketType = values().firstOrNull { it.value == value } ?: throw IOException("unknown packet type: $value")
   }
 }

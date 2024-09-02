@@ -28,6 +28,6 @@ enum class ControlType(val value: Int) {
   SUB_TYPE(0);
 
   companion object {
-    infix fun from(value: Int): ControlType = entries.firstOrNull { it.value == value } ?: throw IOException("unknown control type: $value")
+    infix fun from(value: Int): ControlType = values().firstOrNull { it.value == value } ?: throw IOException("unknown control type: $value")
   }
 }

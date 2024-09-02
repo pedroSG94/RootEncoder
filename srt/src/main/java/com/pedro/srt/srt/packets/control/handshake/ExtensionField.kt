@@ -25,6 +25,6 @@ enum class ExtensionField(val value: Int) {
   HS_REQ(1), KM_REQ(2), CONFIG(4), HS_V5_MAGIC(18967);
 
   companion object {
-    infix fun from(value: Int): ExtensionField = entries.firstOrNull { it.value == value } ?: throw IOException("unknown extension field: $value")
+    infix fun from(value: Int): ExtensionField = values().firstOrNull { it.value == value } ?: throw IOException("unknown extension field: $value")
   }
 }

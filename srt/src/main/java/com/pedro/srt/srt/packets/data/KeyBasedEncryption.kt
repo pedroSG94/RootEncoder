@@ -25,6 +25,6 @@ enum class KeyBasedEncryption(val value: Int) {
   NONE(0), PAIR_KEY(1), ODD_KEY(2);
 
   companion object {
-    infix fun from(value: Int): KeyBasedEncryption = entries.firstOrNull { it.value == value } ?: throw IOException("unknown key based encryption: $value")
+    infix fun from(value: Int): KeyBasedEncryption = values().firstOrNull { it.value == value } ?: throw IOException("unknown key based encryption: $value")
   }
 }
