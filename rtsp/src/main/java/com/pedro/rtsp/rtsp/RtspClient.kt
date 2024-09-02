@@ -21,6 +21,7 @@ import android.util.Log
 import com.pedro.common.AudioCodec
 import com.pedro.common.ConnectChecker
 import com.pedro.common.TLSSocketFactory
+import com.pedro.common.UrlParser
 import com.pedro.common.VideoCodec
 import com.pedro.common.onMainThread
 import com.pedro.rtsp.rtsp.commands.CommandsManager
@@ -41,9 +42,9 @@ import java.net.InetSocketAddress
 import java.net.Socket
 import java.net.SocketAddress
 import java.net.SocketTimeoutException
+import java.net.URISyntaxException
 import java.nio.ByteBuffer
 import java.security.GeneralSecurityException
-import java.util.regex.Pattern
 import javax.net.ssl.TrustManager
 
 /**
@@ -53,7 +54,7 @@ class RtspClient(private val connectChecker: ConnectChecker) {
 
   private val TAG = "RtspClient"
 
-  private val urlPattern: Pattern = Pattern.compile("^rtsps?://([^/:]+)(?::(\\d+))*/([^/]+)/?([^*]*)$")
+  private val validSchemes = arrayOf("rtsp", "rtsps")
 
   //sockets objects
   private var connectionSocket: Socket? = null
@@ -192,23 +193,34 @@ class RtspClient(private val connectChecker: ConnectChecker) {
         onMainThread {
           connectChecker.onConnectionStarted(url)
         }
-        val rtspMatcher = urlPattern.matcher(url)
-        if (rtspMatcher.matches()) {
-          tlsEnabled = (rtspMatcher.group(0) ?: "").startsWith("rtsps")
-        } else {
+
+        val urlParser = try {
+          UrlParser.parse(url, validSchemes)
+        } catch (e: URISyntaxException) {
           isStreaming = false
           onMainThread {
             connectChecker.onConnectionFailed("Endpoint malformed, should be: rtsp://ip:port/appname/streamname")
           }
           return@launch
         }
-        val host = rtspMatcher.group(1) ?: ""
-        val port: Int = rtspMatcher.group(2)?.toInt() ?: if (tlsEnabled) 443 else 554
-        val streamName = if (rtspMatcher.group(4).isNullOrEmpty()) "" else "/" + rtspMatcher.group(4)
-        val path = "/" + rtspMatcher.group(3) + streamName
+
+        tlsEnabled = urlParser.scheme.endsWith("s")
+        val host = urlParser.host
+        val port = urlParser.port ?: if (tlsEnabled) 443 else 554
+        val path = urlParser.getFullPath()
+        if (path.isEmpty()) {
+          isStreaming = false
+          onMainThread {
+            connectChecker.onConnectionFailed("Endpoint malformed, should be: rtsp://ip:port/appname/streamname")
+          }
+          return@launch
+        }
+        val user = urlParser.getAuthUser()
+        val password = urlParser.getAuthPassword()
+        if (user != null && password != null) setAuthorization(user, password)
 
         val error = runCatching {
-          commandsManager.setUrl(host, port, path)
+          commandsManager.setUrl(host, port, "/$path")
           rtspSender.setSocketsInfo(commandsManager.protocol,
             commandsManager.videoClientPorts,
             commandsManager.audioClientPorts)

@@ -21,6 +21,7 @@ import android.util.Log
 import com.pedro.common.AudioCodec
 import com.pedro.common.ConnectChecker
 import com.pedro.common.TimeUtils
+import com.pedro.common.UrlParser
 import com.pedro.common.VideoCodec
 import com.pedro.common.onMainThread
 import com.pedro.rtmp.amf.AmfVersion
@@ -44,7 +45,6 @@ import kotlinx.coroutines.launch
 import java.io.*
 import java.net.*
 import java.nio.ByteBuffer
-import java.util.regex.Pattern
 import javax.net.ssl.TrustManager
 
 /**
@@ -54,7 +54,7 @@ class RtmpClient(private val connectChecker: ConnectChecker) {
 
   private val TAG = "RtmpClient"
 
-  private val urlPattern: Pattern = Pattern.compile("^rtmpt?s?://([^/:]+)(?::(\\d+))*/([^/]+)/?([^*]*)$")
+  private val validSchemes = arrayOf("rtmp", "rtmps", "rtmpt", "rtmpts")
 
   private var socket: RtmpSocket? = null
   private var scope = CoroutineScope(Dispatchers.IO)
@@ -214,12 +214,11 @@ class RtmpClient(private val connectChecker: ConnectChecker) {
         onMainThread {
           connectChecker.onConnectionStarted(url)
         }
-        val rtmpMatcher = urlPattern.matcher(url)
-        if (rtmpMatcher.matches()) {
-          val schema = rtmpMatcher.group(0) ?: ""
-          tunneled = schema.startsWith("rtmpt")
-          tlsEnabled = schema.startsWith("rtmps") || schema.startsWith("rtmpts")
-        } else {
+
+        val urlParser = try {
+          UrlParser.parse(url, validSchemes)
+        } catch (e: URISyntaxException) {
+          isStreaming = false
           onMainThread {
             connectChecker.onConnectionFailed(
               "Endpoint malformed, should be: rtmp://ip:port/appname/streamname")
@@ -227,15 +226,26 @@ class RtmpClient(private val connectChecker: ConnectChecker) {
           return@launch
         }
 
-        commandsManager.host = rtmpMatcher.group(1) ?: ""
-        val portStr = rtmpMatcher.group(2)
+        tunneled = urlParser.scheme.startsWith("rtmpt")
+        tlsEnabled = urlParser.scheme.endsWith("s")
+        commandsManager.host = urlParser.host
         val defaultPort = if (tlsEnabled) 443 else if (tunneled) 80 else 1935
-        commandsManager.port = portStr?.toInt() ?: defaultPort
-        commandsManager.appName = getAppName(rtmpMatcher.group(3) ?: "", rtmpMatcher.group(4) ?: "")
-        commandsManager.streamName = getStreamName(rtmpMatcher.group(4) ?: "")
-        commandsManager.tcUrl = getTcUrl((rtmpMatcher.group(0)
-          ?: "").substring(0, (rtmpMatcher.group(0)
-          ?: "").length - commandsManager.streamName.length))
+        commandsManager.port = urlParser.port ?: defaultPort
+        commandsManager.appName = urlParser.getAppName()
+        commandsManager.streamName = urlParser.getStreamName()
+        commandsManager.tcUrl = urlParser.getTcUrl()
+        if (commandsManager.appName.isEmpty()) {
+          isStreaming = false
+          onMainThread {
+            connectChecker.onConnectionFailed(
+              "Endpoint malformed, should be: rtmp://ip:port/appname/streamname")
+          }
+          return@launch
+        }
+
+        val user = urlParser.getAuthUser()
+        val password = urlParser.getAuthPassword()
+        if (user != null && password != null) setAuthorization(user, password)
 
         val error = runCatching {
           if (!establishConnection()) {
@@ -294,30 +304,6 @@ class RtmpClient(private val connectChecker: ConnectChecker) {
     if (!checkServerAlive) return connected
     val reachable = socket?.isReachable() ?: false
     return if (connected && !reachable) false else connected
-  }
-
-  private fun getAppName(app: String, name: String): String {
-    return if (!name.contains("/")) {
-      app
-    } else {
-      app + "/" + name.substring(0, name.indexOf("/"))
-    }
-  }
-
-  private fun getStreamName(name: String): String {
-    return if (!name.contains("/")) {
-      name
-    } else {
-      name.substring(name.indexOf("/") + 1)
-    }
-  }
-
-  private fun getTcUrl(url: String): String {
-    return if (url.endsWith("/")) {
-      url.substring(0, url.length - 1)
-    } else {
-      url
-    }
   }
 
   @Throws(IOException::class)
