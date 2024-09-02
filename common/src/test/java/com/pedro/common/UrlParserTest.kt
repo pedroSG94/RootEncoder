@@ -22,6 +22,15 @@ class UrlParserTest {
       assertEquals("fake", urlParser.getStreamName())
       assertEquals("rtmp://localhost:1935/live?test", urlParser.getTcUrl())
 
+      val url0 = "rtmp://192.168.238.182:1935/live/100044?userId=100044&roomTitle=123123&roomCover=http://192.168.238.182/xxxx.png"
+      val urlParser0 = UrlParser.parse(url0, arrayOf("rtmp"))
+      assertEquals("rtmp", urlParser0.scheme)
+      assertEquals("192.168.238.182", urlParser0.host)
+      assertEquals(1935, urlParser0.port)
+      assertEquals("live", urlParser0.getAppName())
+      assertEquals("100044?userId=100044&roomTitle=123123&roomCover=http://192.168.238.182/xxxx.png", urlParser0.getStreamName())
+      assertEquals("rtmp://192.168.238.182:1935/live", urlParser0.getTcUrl())
+
       val url1 = "rtmp://user:pass@localhost:1935/live?test/fake"
       val urlParser1 = UrlParser.parse(url1, arrayOf("rtmp"))
       assertEquals("rtmp", urlParser1.scheme)

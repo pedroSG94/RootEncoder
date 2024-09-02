@@ -52,15 +52,7 @@ class UrlParser private constructor(
     auth = uri.userInfo
   }
 
-  fun getQuery(key: String): String? {
-    val queries = query?.split("&") ?: return null
-    val map = HashMap<String, String>()
-    queries.forEach { entry ->
-      val data = entry.split(Pattern.compile("="), 2)
-      if (data.size == 2) map[data[0]] = data[1]
-    }
-    return map[key]
-  }
+  fun getQuery(key: String): String? = getAllQueries()[key]
 
   fun getAuthUser(): String? {
     val userInfo = auth?.split(":") ?: return null
@@ -78,7 +70,13 @@ class UrlParser private constructor(
     return when (indexes.size) {
       0 -> fullPath
       1 -> fullPath.substring(0, indexes[0])
-      else -> fullPath.substring(0, indexes[1])
+      else -> {
+        if (getAllQueries().isEmpty()) {
+          fullPath.substring(0, indexes[1])
+        } else {
+          fullPath.substring(0, indexes[0])
+        }
+      }
     }
   }
 
@@ -97,5 +95,15 @@ class UrlParser private constructor(
       return url.removePrefix("$scheme://$host$port").removePrefix("/")
     }
     return fullPath
+  }
+
+  private fun getAllQueries(): Map<String, String> {
+    val queries = query?.split("&") ?: emptyList()
+    val map = HashMap<String, String>()
+    queries.forEach { entry ->
+      val data = entry.split(Pattern.compile("="), 2)
+      if (data.size == 2) map[data[0]] = data[1]
+    }
+    return map
   }
 }
