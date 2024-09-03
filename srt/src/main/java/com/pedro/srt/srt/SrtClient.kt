@@ -20,6 +20,7 @@ import android.media.MediaCodec
 import android.util.Log
 import com.pedro.common.AudioCodec
 import com.pedro.common.ConnectChecker
+import com.pedro.common.UrlParser
 import com.pedro.common.VideoCodec
 import com.pedro.common.onMainThread
 import com.pedro.srt.srt.packets.ControlPacket
@@ -50,8 +51,8 @@ import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import java.io.IOException
 import java.net.SocketTimeoutException
+import java.net.URISyntaxException
 import java.nio.ByteBuffer
-import java.util.regex.Pattern
 
 /**
  * Created by pedro on 20/8/23.
@@ -60,7 +61,7 @@ class SrtClient(private val connectChecker: ConnectChecker) {
 
   private val TAG = "SrtClient"
 
-  private val urlPattern: Pattern = Pattern.compile("^srt://([^/:]+)(?::(\\d+))*/([^/]+)/?([^*]*)$")
+  private val validSchemes = arrayOf("srt")
 
   private val commandsManager = CommandsManager()
   private val srtSender = SrtSender(connectChecker, commandsManager)
@@ -176,19 +177,27 @@ class SrtClient(private val connectChecker: ConnectChecker) {
         onMainThread {
           connectChecker.onConnectionStarted(url)
         }
-        val srtMatcher = urlPattern.matcher(url)
-        if (!srtMatcher.matches()) {
+
+        val urlParser = try {
+          UrlParser.parse(url, validSchemes)
+        } catch (e: URISyntaxException) {
           isStreaming = false
           onMainThread {
             connectChecker.onConnectionFailed("Endpoint malformed, should be: srt://ip:port/streamid")
           }
           return@launch
         }
-        val host = srtMatcher.group(1) ?: ""
-        val port: Int = srtMatcher.group(2)?.toInt() ?: 8888
-        val streamName =
-          if (srtMatcher.group(4).isNullOrEmpty()) "" else "/" + srtMatcher.group(4)
-        val path = "${srtMatcher.group(3)}$streamName".trim()
+
+        val host = urlParser.host
+        val port = urlParser.port ?: 8888
+        val path = urlParser.getQuery("streamid") ?: urlParser.getFullPath()
+        if (path.isEmpty()) {
+          isStreaming = false
+          onMainThread {
+            connectChecker.onConnectionFailed("Endpoint malformed, should be: srt://ip:port/streamid")
+          }
+          return@launch
+        }
         commandsManager.host = host
 
         val error = runCatching {
