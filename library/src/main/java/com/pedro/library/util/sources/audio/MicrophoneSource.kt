@@ -16,7 +16,10 @@
 
 package com.pedro.library.util.sources.audio
 
+import android.media.AudioDeviceInfo
 import android.media.MediaRecorder
+import android.os.Build
+import androidx.annotation.RequiresApi
 import com.pedro.encoder.Frame
 import com.pedro.encoder.input.audio.GetMicrophoneData
 import com.pedro.encoder.input.audio.MicrophoneManager
@@ -25,10 +28,11 @@ import com.pedro.encoder.input.audio.MicrophoneManager
  * Created by pedro on 12/1/24.
  */
 class MicrophoneSource(
-  var audioSource: Int = MediaRecorder.AudioSource.DEFAULT
+  var audioSource: Int = MediaRecorder.AudioSource.DEFAULT,
 ): AudioSource(), GetMicrophoneData {
 
   private val microphone = MicrophoneManager(this)
+  private var preferredDevice: AudioDeviceInfo? = null
 
   override fun create(sampleRate: Int, isStereo: Boolean, echoCanceler: Boolean, noiseSuppressor: Boolean): Boolean {
     //create microphone to confirm valid parameters
@@ -39,12 +43,21 @@ class MicrophoneSource(
     return true
   }
 
+  @RequiresApi(api = Build.VERSION_CODES.M)
+  fun setPreferredDevice(deviceInfo: AudioDeviceInfo?): Boolean {
+    preferredDevice = deviceInfo
+    return microphone.setPreferredDevice(deviceInfo)
+  }
+
   override fun start(getMicrophoneData: GetMicrophoneData) {
     this.getMicrophoneData = getMicrophoneData
     if (!isRunning()) {
       val result = microphone.createMicrophone(audioSource, sampleRate, isStereo, echoCanceler, noiseSuppressor)
       if (!result) {
         throw IllegalArgumentException("Failed to create microphone audio source")
+      }
+      if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+        microphone.setPreferredDevice(preferredDevice)
       }
       microphone.start()
     }
