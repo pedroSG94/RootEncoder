@@ -47,6 +47,7 @@ public class MicrophoneManager {
   private final GetMicrophoneData getMicrophoneData;
   protected byte[] pcmBuffer = new byte[BUFFER_SIZE];
   protected byte[] pcmBufferMuted = new byte[BUFFER_SIZE];
+  byte[] pcmVolumeBuffer = new byte[BUFFER_SIZE];
   protected boolean running = false;
   private boolean created = false;
   //default parameters for microphone
@@ -57,6 +58,7 @@ public class MicrophoneManager {
   private AudioPostProcessEffect audioPostProcessEffect;
   protected HandlerThread handlerThread;
   protected CustomAudioEffect customAudioEffect = new NoAudioEffect();
+  public float volume = 1f;
 
   public MicrophoneManager(GetMicrophoneData getMicrophoneData) {
     this.getMicrophoneData = getMicrophoneData;
@@ -215,11 +217,11 @@ public class MicrophoneManager {
   protected Frame read() {
     long timeStamp = System.nanoTime() / 1000;
     int size = audioRecord.read(pcmBuffer, 0, pcmBuffer.length);
-    if (size < 0){
+    if (size < 0) {
       Log.e(TAG, "read error: " + size);
       return null;
     }
-    return new Frame(muted ? pcmBufferMuted : customAudioEffect.process(pcmBuffer), 0, size, timeStamp);
+    return new Frame(muted ? pcmBufferMuted : customAudioEffect.process(adjustVolume(pcmBuffer, volume)), 0, size, timeStamp);
   }
 
   /**
@@ -258,8 +260,23 @@ public class MicrophoneManager {
       int minSize = AudioRecord.getMinBufferSize(sampleRate, channel, audioFormat);
       BUFFER_SIZE = Math.max(minSize, DEFAULT_BUFFER_SIZE);
       pcmBuffer = new byte[BUFFER_SIZE];
+      pcmVolumeBuffer = new byte[BUFFER_SIZE];
       pcmBufferMuted = new byte[BUFFER_SIZE];
     }
+  }
+
+  private byte[] adjustVolume(byte[] audioSamples, float volume) {
+    for (int i = 0; i < pcmVolumeBuffer.length; i+=2) {
+      short buf1 = audioSamples[i+1];
+      short buf2 = audioSamples[i];
+      buf1 = (short) ((buf1 & 0xff) << 8);
+      buf2 = (short) (buf2 & 0xff);
+      short res= (short) (buf1 | buf2);
+      res = (short) (res * volume);
+      pcmVolumeBuffer[i] = (byte) res;
+      pcmVolumeBuffer[i+1] = (byte) (res >> 8);
+    }
+    return pcmVolumeBuffer;
   }
 
   public int getMaxInputSize() {

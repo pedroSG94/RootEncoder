@@ -61,7 +61,7 @@
         tools:ignore="DiscouragedApi" />
 
     <service android:name="com.pedro.streamer.screen.ScreenService"
-        android:foregroundServiceType="mediaProjection"
+        android:foregroundServiceType="mediaProjection|microphone|camera"
         />
   </application>
 

@@ -30,6 +30,7 @@ import androidx.annotation.RequiresApi
 import androidx.core.app.NotificationCompat
 import com.pedro.common.ConnectChecker
 import com.pedro.library.generic.GenericStream
+import com.pedro.library.util.sources.audio.AudioMixSource
 import com.pedro.library.util.sources.audio.AudioSource
 import com.pedro.library.util.sources.audio.InternalAudioSource
 import com.pedro.library.util.sources.audio.MicrophoneSource
@@ -63,8 +64,8 @@ class ScreenService: Service(), ConnectChecker {
   private val height = 480
   private val vBitrate = 1200 * 1000
   private var rotation = 0 //0 for landscape or 90 for portrait
-  private val sampleRate = 32000
-  private val isStereo = true
+  private val sampleRate = 44100
+  private val isStereo = false
   private val aBitrate = 128 * 1000
   private var prepared = false
 
@@ -155,6 +156,9 @@ class ScreenService: Service(), ConnectChecker {
       //You need to call it after prepareVideo to override the default value.
       genericStream.getGlInterface().setCameraOrientation(0)
       genericStream.changeVideoSource(screenSource)
+      if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+        genericStream.changeAudioSource(AudioMixSource(MicrophoneSource(), InternalAudioSource(mediaProjection)))
+      }
       true
     } catch (ignored: IllegalArgumentException) {
       false
