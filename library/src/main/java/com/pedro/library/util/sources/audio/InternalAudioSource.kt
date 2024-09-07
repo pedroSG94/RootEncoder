@@ -24,6 +24,7 @@ import android.os.Handler
 import android.os.HandlerThread
 import androidx.annotation.RequiresApi
 import com.pedro.encoder.Frame
+import com.pedro.encoder.input.audio.CustomAudioEffect
 import com.pedro.encoder.input.audio.GetMicrophoneData
 import com.pedro.encoder.input.audio.MicrophoneManager
 import com.pedro.library.util.sources.MediaProjectionHandler
@@ -115,4 +116,8 @@ class InternalAudioSource(
   }
 
   fun isMuted(): Boolean = microphone.isMuted
+
+  fun setAudioEffect(effect: CustomAudioEffect) {
+    microphone.setCustomAudioEffect(effect)
+  }
 }
