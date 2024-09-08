@@ -64,8 +64,8 @@ class ScreenService: Service(), ConnectChecker {
   private val height = 480
   private val vBitrate = 1200 * 1000
   private var rotation = 0 //0 for landscape or 90 for portrait
-  private val sampleRate = 44100
-  private val isStereo = false
+  private val sampleRate = 32000
+  private val isStereo = true
   private val aBitrate = 128 * 1000
   private var prepared = false
 
