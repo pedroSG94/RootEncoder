@@ -1,46 +1,86 @@
+/*
+ *
+ *  * Copyright (C) 2024 pedroSG94.
+ *  *
+ *  * Licensed under the Apache License, Version 2.0 (the "License");
+ *  * you may not use this file except in compliance with the License.
+ *  * You may obtain a copy of the License at
+ *  *
+ *  * http://www.apache.org/licenses/LICENSE-2.0
+ *  *
+ *  * Unless required by applicable law or agreed to in writing, software
+ *  * distributed under the License is distributed on an "AS IS" BASIS,
+ *  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  * See the License for the specific language governing permissions and
+ *  * limitations under the License.
+ *
+ */
+
 package com.pedro.library.util.sources.audio
 
+import android.media.projection.MediaProjection
+import android.os.Build
+import androidx.annotation.RequiresApi
 import com.pedro.common.trySend
 import com.pedro.encoder.Frame
 import com.pedro.encoder.input.audio.GetMicrophoneData
+import com.pedro.encoder.input.audio.MicrophoneManager
+import com.pedro.encoder.input.audio.VolumeEffect
 import com.pedro.encoder.utils.PCMUtil
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runInterruptible
 import java.util.concurrent.BlockingQueue
 import java.util.concurrent.LinkedBlockingQueue
 import java.util.concurrent.TimeUnit
-import kotlin.math.min
 
+@RequiresApi(Build.VERSION_CODES.Q)
 class AudioMixSource(
-    private val source1: AudioSource,
-    private val source2: AudioSource
+    mediaProjection: MediaProjection
 ): AudioSource() {
 
+    private val microphone = MicrophoneSource()
+    private val internal = InternalAudioSource(mediaProjection).apply {
+        setAudioEffect(VolumeEffect().apply {
+            volume = 1f
+        })
+    }
     private val scope = CoroutineScope(Dispatchers.IO)
     private val queue1: BlockingQueue<Frame> = LinkedBlockingQueue(500)
     private val queue2: BlockingQueue<Frame> = LinkedBlockingQueue(500)
     private var running = false
+    //We need read with a higher buffer to get enough time to mix it
+    private val inputSize = 8192
 
     override fun create(sampleRate: Int, isStereo: Boolean, echoCanceler: Boolean, noiseSuppressor: Boolean): Boolean {
-        return source1.init(sampleRate, isStereo, echoCanceler, noiseSuppressor) && source2.init(sampleRate, isStereo, echoCanceler, noiseSuppressor)
+        return microphone.init(sampleRate, isStereo, echoCanceler, noiseSuppressor) && internal.init(sampleRate, isStereo, echoCanceler, noiseSuppressor)
     }
 
     override fun start(getMicrophoneData: GetMicrophoneData) {
         this.getMicrophoneData = getMicrophoneData
         if (!isRunning()) {
-            source1.start(callback1)
-            source2.start(callback2)
+            microphone.start(callback1)
+            internal.start(callback2)
             running = true
             scope.launch {
+                val min = Byte.MIN_VALUE.toInt()
+                val max = Byte.MAX_VALUE.toInt()
+
                 while (running) {
                     runCatching {
-                        val frame1 = runInterruptible { queue1.poll(1, TimeUnit.SECONDS) }
-                        val frame2 = runInterruptible { queue2.poll(1, TimeUnit.SECONDS) }
-                        val ts = min(frame1.timeStamp, frame2.timeStamp)
-                        val buffer = PCMUtil.mixPCM(frame1.buffer, frame2.buffer)
-                        getMicrophoneData.inputPCMData(Frame(buffer, 0, buffer.size, ts))
+                        val frame1 = async { runInterruptible { queue1.poll(1, TimeUnit.SECONDS) } }
+                        val frame2 = async { runInterruptible { queue2.poll(1, TimeUnit.SECONDS) } }
+                        val buffer = ByteArray(inputSize)
+                        val r = awaitAll(frame1, frame2)
+                        val b1 = r[0].buffer
+                        val b2 = r[1].buffer
+                        for (i in buffer.indices) {
+                            buffer[i] = (b1[i] + b2[i]).coerceIn(min, max).toByte()
+                        }
+                        getMicrophoneData.inputPCMData(Frame(buffer, 0, buffer.size, r[0].timeStamp))
                     }.exceptionOrNull()
                 }
             }
@@ -50,24 +90,24 @@ class AudioMixSource(
     override fun stop() {
         if (isRunning()) {
             getMicrophoneData = null
-            source1.stop()
-            source2.stop()
+            microphone.stop()
+            internal.stop()
             running = false
         }
     }
 
     override fun release() {
-        source1.release()
-        source2.release()
+        microphone.release()
+        internal.release()
     }
 
     override fun isRunning(): Boolean = running
 
-    override fun getMaxInputSize(): Int = source1.getMaxInputSize() + source2.getMaxInputSize() / 2
+    override fun getMaxInputSize(): Int = microphone.getMaxInputSize() + internal.getMaxInputSize() / 2
 
     override fun setMaxInputSize(size: Int) {
-        source1.setMaxInputSize(size)
-        source2.setMaxInputSize(size)
+        microphone.setMaxInputSize(size)
+        internal.setMaxInputSize(size)
     }
 
     private val callback1 = object: GetMicrophoneData {
