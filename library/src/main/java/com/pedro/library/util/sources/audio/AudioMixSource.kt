@@ -23,10 +23,9 @@ import android.os.Build
 import androidx.annotation.RequiresApi
 import com.pedro.common.trySend
 import com.pedro.encoder.Frame
+import com.pedro.encoder.audio.AudioEncoder
 import com.pedro.encoder.input.audio.GetMicrophoneData
-import com.pedro.encoder.input.audio.MicrophoneManager
 import com.pedro.encoder.input.audio.VolumeEffect
-import com.pedro.encoder.utils.PCMUtil
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
@@ -42,18 +41,17 @@ class AudioMixSource(
     mediaProjection: MediaProjection
 ): AudioSource() {
 
-    private val microphone = MicrophoneSource()
-    private val internal = InternalAudioSource(mediaProjection).apply {
-        setAudioEffect(VolumeEffect().apply {
-            volume = 1f
-        })
-    }
+    private val microphoneVolumeEffect = VolumeEffect()
+    private val internalVolumeEffect = VolumeEffect()
+    private val microphone = MicrophoneSource().apply { setAudioEffect(microphoneVolumeEffect) }
+    private val internal = InternalAudioSource(mediaProjection).apply { setAudioEffect(internalVolumeEffect) }
+
     private val scope = CoroutineScope(Dispatchers.IO)
     private val queue1: BlockingQueue<Frame> = LinkedBlockingQueue(500)
     private val queue2: BlockingQueue<Frame> = LinkedBlockingQueue(500)
     private var running = false
     //We need read with a higher buffer to get enough time to mix it
-    private val inputSize = 8192
+    private val inputSize = AudioEncoder.inputSize
 
     override fun create(sampleRate: Int, isStereo: Boolean, echoCanceler: Boolean, noiseSuppressor: Boolean): Boolean {
         return microphone.init(sampleRate, isStereo, echoCanceler, noiseSuppressor) && internal.init(sampleRate, isStereo, echoCanceler, noiseSuppressor)
@@ -73,14 +71,16 @@ class AudioMixSource(
                     runCatching {
                         val frame1 = async { runInterruptible { queue1.poll(1, TimeUnit.SECONDS) } }
                         val frame2 = async { runInterruptible { queue2.poll(1, TimeUnit.SECONDS) } }
-                        val buffer = ByteArray(inputSize)
                         val r = awaitAll(frame1, frame2)
-                        val b1 = r[0].buffer
-                        val b2 = r[1].buffer
-                        for (i in buffer.indices) {
-                            buffer[i] = (b1[i] + b2[i]).coerceIn(min, max).toByte()
+                        async {
+                            val b1 = r[0].buffer
+                            val b2 = r[1].buffer
+                            val buffer = ByteArray(inputSize)
+                            for (i in buffer.indices) {
+                                buffer[i] = (b1[i] + b2[i]).coerceIn(min, max).toByte()
+                            }
+                            getMicrophoneData.inputPCMData(Frame(buffer, 0, buffer.size, r[0].timeStamp))
                         }
-                        getMicrophoneData.inputPCMData(Frame(buffer, 0, buffer.size, r[0].timeStamp))
                     }.exceptionOrNull()
                 }
             }
@@ -103,13 +103,6 @@ class AudioMixSource(
 
     override fun isRunning(): Boolean = running
 
-    override fun getMaxInputSize(): Int = microphone.getMaxInputSize() + internal.getMaxInputSize() / 2
-
-    override fun setMaxInputSize(size: Int) {
-        microphone.setMaxInputSize(size)
-        internal.setMaxInputSize(size)
-    }
-
     private val callback1 = object: GetMicrophoneData {
         override fun inputPCMData(frame: Frame) {
             queue1.trySend(frame)
@@ -121,4 +114,12 @@ class AudioMixSource(
             queue2.trySend(frame)
         }
     }
+
+    var microphoneVolume: Float
+        set(value) { microphoneVolumeEffect.volume = value }
+        get() = microphoneVolumeEffect.volume
+
+    var internalVolume: Float
+        set(value) { internalVolumeEffect.volume = value }
+        get() = internalVolumeEffect.volume
 }

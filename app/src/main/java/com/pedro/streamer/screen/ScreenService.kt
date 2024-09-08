@@ -64,8 +64,8 @@ class ScreenService: Service(), ConnectChecker {
   private val height = 480
   private val vBitrate = 1200 * 1000
   private var rotation = 0 //0 for landscape or 90 for portrait
-  private val sampleRate = 32000
-  private val isStereo = true
+  private val sampleRate = 44100
+  private val isStereo = false
   private val aBitrate = 128 * 1000
   private var prepared = false
 
@@ -83,7 +83,7 @@ class ScreenService: Service(), ConnectChecker {
     }
     prepared = try {
       genericStream.prepareVideo(width, height, vBitrate, rotation = rotation) &&
-          genericStream.prepareAudio(sampleRate, isStereo, aBitrate)
+          genericStream.prepareAudio(sampleRate, isStereo, aBitrate, true, true)
     } catch (e: IllegalArgumentException) {
       false
     }
@@ -157,7 +157,9 @@ class ScreenService: Service(), ConnectChecker {
       genericStream.getGlInterface().setCameraOrientation(0)
       genericStream.changeVideoSource(screenSource)
       if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-        genericStream.changeAudioSource(AudioMixSource(mediaProjection))
+        genericStream.changeAudioSource(AudioMixSource(mediaProjection).apply {
+          microphoneVolume = 2f
+        })
       }
       true
     } catch (ignored: IllegalArgumentException) {

@@ -131,8 +131,7 @@ public abstract class OnlyAudioBase {
       return false;
     }
     onAudioInfoImp(isStereo, sampleRate);
-    return audioEncoder.prepareAudioEncoder(bitrate, sampleRate, isStereo,
-        microphoneManager.getMaxInputSize());
+    return audioEncoder.prepareAudioEncoder(bitrate, sampleRate, isStereo);
   }
 
   public boolean prepareAudio(int bitrate, int sampleRate, boolean isStereo, boolean echoCanceler,
@@ -267,17 +266,6 @@ public abstract class OnlyAudioBase {
 
   public RecordController.Status getRecordStatus() {
     return recordController.getStatus();
-  }
-
-  /**
-   * Set a custom size of audio buffer input.
-   * If you set 0 or less you can disable it to use library default value.
-   * Must be called before of prepareAudio method.
-   *
-   * @param size in bytes. Recommended multiple of 1024 (2048, 4096, 8196, etc)
-   */
-  public void setAudioMaxInputSize(int size) {
-    microphoneManager.setMaxInputSize(size);
   }
 
   /**

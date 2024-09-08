@@ -43,7 +43,4 @@ class NoAudioSource: AudioSource() {
   override fun release() {}
 
   override fun isRunning(): Boolean = running
-  override fun getMaxInputSize(): Int = 0
-
-  override fun setMaxInputSize(size: Int) {}
 }

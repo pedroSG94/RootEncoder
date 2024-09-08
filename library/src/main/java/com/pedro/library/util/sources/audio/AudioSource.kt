@@ -44,6 +44,4 @@ abstract class AudioSource {
   abstract fun stop()
   abstract fun isRunning(): Boolean
   abstract fun release()
-  abstract fun getMaxInputSize(): Int
-  abstract fun setMaxInputSize(size: Int)
 }

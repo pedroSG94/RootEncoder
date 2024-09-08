@@ -333,8 +333,7 @@ public abstract class Camera1Base {
        return false;
      }
     onAudioInfoImp(isStereo, sampleRate);
-    audioInitialized = audioEncoder.prepareAudioEncoder(bitrate, sampleRate, isStereo,
-        microphoneManager.getMaxInputSize());
+    audioInitialized = audioEncoder.prepareAudioEncoder(bitrate, sampleRate, isStereo);
     return audioInitialized;
   }
 
@@ -793,17 +792,6 @@ public abstract class Camera1Base {
 
   public List<int[]> getSupportedFps() {
     return cameraManager.getSupportedFps();
-  }
-
-  /**
-   * Set a custom size of audio buffer input.
-   * If you set 0 or less you can disable it to use library default value.
-   * Must be called before of prepareAudio method.
-   *
-   * @param size in bytes. Recommended multiple of 1024 (2048, 4096, 8196, etc)
-   */
-  public void setAudioMaxInputSize(int size) {
-    microphoneManager.setMaxInputSize(size);
   }
 
   /**
