@@ -134,6 +134,8 @@ https://haivision.github.io/srt-rfc/draft-sharabayko-srt.html
 ## Other related projects:
 
 https://github.com/pedroSG94/RTSP-Server
+Support UVC camera (use rotation example and change the video source on fly using the menu):
+https://github.com/pedroSG94/RootEncoder/tree/feature/usb-camera
 
 ### 3rd party projects:
 
