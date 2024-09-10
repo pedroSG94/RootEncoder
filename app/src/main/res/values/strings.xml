@@ -65,6 +65,7 @@
   <string name="camera1">Camera1</string>
   <string name="camera2">Camera2</string>
   <string name="camerax">CameraX</string>
+  <string name="camera_uvc">CameraUVC</string>
   <string name="bitmap">Bitmap</string>
 
 </resources>
