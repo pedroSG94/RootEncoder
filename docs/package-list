@@ -30,6 +30,7 @@ com.pedro.library.rtsp
 com.pedro.library.srt
 com.pedro.library.udp
 com.pedro.library.util
+com.pedro.library.util.sources
 com.pedro.library.util.sources.audio
 com.pedro.library.util.sources.video
 com.pedro.library.util.streamclient
