@@ -784,6 +784,10 @@ public abstract class Camera2Base {
         cameraManager.setZoom(event);
     }
 
+    public void setZoom(MotionEvent event, float delta) {
+        cameraManager.setZoom(event, delta);
+    }
+
     /**
      * @Experimental
      * @return optical zoom values available
