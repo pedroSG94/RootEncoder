@@ -723,23 +723,16 @@ class Camera2ApiManager(context: Context) : CameraDevice.StateCallback() {
         }
     }
 
-    fun setZoom(event: MotionEvent) {
-        val currentFingerSpacing: Float
-        if (event.pointerCount > 1) {
-            currentFingerSpacing = CameraHelper.getFingerSpacing(event)
-            val delta = 0.1f
-            if (fingerSpacing != 0f) {
-                var newLevel = zoomLevel
-                if (currentFingerSpacing > fingerSpacing) {
-                    newLevel += delta
-                } else if (currentFingerSpacing < fingerSpacing) {
-                    newLevel -= delta
-                }
-                //This method avoid out of range
-                zoomLevel = newLevel
-            }
-            fingerSpacing = currentFingerSpacing
+    @JvmOverloads
+    fun setZoom(event: MotionEvent, delta: Float = 0.1f) {
+        if (event.pointerCount < 2 || event.action != MotionEvent.ACTION_MOVE) return
+        val currentFingerSpacing = CameraHelper.getFingerSpacing(event)
+        if (currentFingerSpacing > fingerSpacing) {
+            zoom += delta
+        } else if (currentFingerSpacing < fingerSpacing) {
+            zoom -= delta
         }
+        fingerSpacing = currentFingerSpacing
     }
 
     fun stopRepeatingEncoder() {
