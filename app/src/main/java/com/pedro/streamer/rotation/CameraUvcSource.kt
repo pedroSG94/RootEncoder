@@ -20,15 +20,21 @@ package com.pedro.streamer.rotation
 
 import android.graphics.SurfaceTexture
 import android.hardware.usb.UsbDevice
+import android.os.Build
 import android.view.Surface
+import androidx.annotation.RequiresApi
 import com.herohan.uvcapp.CameraHelper
 import com.herohan.uvcapp.ICameraHelper
+import com.pedro.encoder.input.video.Camera2ResolutionCalculator
 import com.pedro.library.util.sources.video.VideoSource
+import com.serenegiant.usb.Size
+import kotlin.math.abs
 
 
 /**
  * Created by pedro on 10/9/24.
  */
+@RequiresApi(Build.VERSION_CODES.LOLLIPOP)
 class CameraUvcSource: VideoSource() {
 
   private var cameraHelper: ICameraHelper? = null
@@ -72,6 +78,8 @@ class CameraUvcSource: VideoSource() {
 
     override fun onCameraOpen(device: UsbDevice) {
       cameraHelper?.startPreview()
+      val resolution = getOptimalResolution()
+      if (resolution != null) cameraHelper?.previewSize = resolution
       surface?.let { cameraHelper?.addSurface(it, false) }
     }
 
@@ -84,5 +92,13 @@ class CameraUvcSource: VideoSource() {
     override fun onDetach(device: UsbDevice) {}
 
     override fun onCancel(device: UsbDevice) {}
+  }
+
+  private fun getOptimalResolution(): Size? {
+    val supportedSizes = cameraHelper?.supportedSizeList ?: return null
+    val supportedResolutions = supportedSizes.map { android.util.Size(it.width, it.height) }.toTypedArray()
+    val resolution = Camera2ResolutionCalculator.getOptimalResolution(android.util.Size(width, height), supportedResolutions)
+    val validSizes = supportedSizes.filter { it.width == resolution.width && it.height == resolution.height }
+    return validSizes.minByOrNull { abs(fps - it.fps) }
   }
 }
