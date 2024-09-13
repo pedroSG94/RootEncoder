@@ -97,10 +97,6 @@ class AudioFileSource(
     if (running) stop()
   }
 
-  override fun getMaxInputSize(): Int = audioDecoder.size
-
-  override fun setMaxInputSize(size: Int) { }
-
   fun mute() {
     audioDecoder.mute()
   }

@@ -24,8 +24,10 @@ import android.os.Handler
 import android.os.HandlerThread
 import androidx.annotation.RequiresApi
 import com.pedro.encoder.Frame
+import com.pedro.encoder.input.audio.CustomAudioEffect
 import com.pedro.encoder.input.audio.GetMicrophoneData
 import com.pedro.encoder.input.audio.MicrophoneManager
+import com.pedro.encoder.input.audio.VolumeEffect
 import com.pedro.library.util.sources.MediaProjectionHandler
 
 /**
@@ -40,7 +42,8 @@ class InternalAudioSource(
 ): AudioSource(), GetMicrophoneData {
 
   private val TAG = "InternalAudioSource"
-  private val microphone = MicrophoneManager(this)
+  private val internalVolumeEffect = VolumeEffect()
+  private val microphone = MicrophoneManager(this).apply { setCustomAudioEffect(internalVolumeEffect) }
   private var handlerThread = HandlerThread(TAG)
   private val mediaProjectionCallback = mediaProjectionCallback ?: object : MediaProjection.Callback() {}
 
@@ -96,12 +99,6 @@ class InternalAudioSource(
     MediaProjectionHandler.mediaProjection?.unregisterCallback(mediaProjectionCallback)
   }
 
-  override fun getMaxInputSize(): Int = microphone.maxInputSize
-
-  override fun setMaxInputSize(size: Int) {
-    microphone.maxInputSize = size
-  }
-
   override fun inputPCMData(frame: Frame) {
     getMicrophoneData?.inputPCMData(frame)
   }
@@ -115,4 +112,12 @@ class InternalAudioSource(
   }
 
   fun isMuted(): Boolean = microphone.isMuted
+
+  fun setAudioEffect(effect: CustomAudioEffect) {
+    microphone.setCustomAudioEffect(effect)
+  }
+
+  var internalVolume: Float
+    set(value) { internalVolumeEffect.volume = value }
+    get() = internalVolumeEffect.volume
 }

@@ -19,7 +19,6 @@ package com.pedro.streamer.rotation
 import android.graphics.Bitmap
 import android.graphics.Paint
 import android.graphics.SurfaceTexture
-import android.util.Log
 import android.view.Surface
 import androidx.core.graphics.scale
 import com.pedro.library.util.sources.video.VideoSource
