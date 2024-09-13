@@ -36,8 +36,19 @@ import java.util.concurrent.BlockingQueue
 import java.util.concurrent.LinkedBlockingQueue
 import java.util.concurrent.TimeUnit
 
+/**
+ * Mix microphone and internal audio sources in one source to allow send both at the same time.
+ * NOTES:
+ * Recommended configure prepareAudio with:
+ *             echoCanceler = true,
+ *             noiseSuppressor = true
+ * This is to avoid echo in microphone track.
+ *
+ * Recommended increase microphone volume to 2f,
+ * because the internal audio normally is higher and you can't hear audio track properly
+ */
 @RequiresApi(Build.VERSION_CODES.Q)
-class AudioMixSource(
+class MixAudioSource(
     mediaProjection: MediaProjection
 ): AudioSource() {
 
@@ -47,8 +58,8 @@ class AudioMixSource(
     private val internal = InternalAudioSource(mediaProjection).apply { setAudioEffect(internalVolumeEffect) }
 
     private val scope = CoroutineScope(Dispatchers.IO)
-    private val queue1: BlockingQueue<Frame> = LinkedBlockingQueue(500)
-    private val queue2: BlockingQueue<Frame> = LinkedBlockingQueue(500)
+    private val microphoneQueue: BlockingQueue<Frame> = LinkedBlockingQueue(500)
+    private val internalQueue: BlockingQueue<Frame> = LinkedBlockingQueue(500)
     private var running = false
     //We need read with a higher buffer to get enough time to mix it
     private val inputSize = AudioEncoder.inputSize
@@ -60,6 +71,8 @@ class AudioMixSource(
     override fun start(getMicrophoneData: GetMicrophoneData) {
         this.getMicrophoneData = getMicrophoneData
         if (!isRunning()) {
+            microphoneQueue.clear()
+            internalQueue.clear()
             microphone.start(callback1)
             internal.start(callback2)
             running = true
@@ -69,17 +82,17 @@ class AudioMixSource(
 
                 while (running) {
                     runCatching {
-                        val frame1 = async { runInterruptible { queue1.poll(1, TimeUnit.SECONDS) } }
-                        val frame2 = async { runInterruptible { queue2.poll(1, TimeUnit.SECONDS) } }
+                        val frame1 = async { runInterruptible { microphoneQueue.poll(1, TimeUnit.SECONDS) } }
+                        val frame2 = async { runInterruptible { internalQueue.poll(1, TimeUnit.SECONDS) } }
                         val r = awaitAll(frame1, frame2)
                         async {
-                            val b1 = r[0].buffer
-                            val b2 = r[1].buffer
-                            val buffer = ByteArray(inputSize)
-                            for (i in buffer.indices) {
-                                buffer[i] = (b1[i] + b2[i]).coerceIn(min, max).toByte()
+                            val microphoneBuffer = r[0]?.buffer ?: return@async
+                            val internalBuffer = r[1]?.buffer ?: return@async
+                            val mixBuffer = ByteArray(inputSize)
+                            for (i in mixBuffer.indices) { //mix buffers with same config
+                                mixBuffer[i] = (microphoneBuffer[i] + internalBuffer[i]).coerceIn(min, max).toByte()
                             }
-                            getMicrophoneData.inputPCMData(Frame(buffer, 0, buffer.size, r[0].timeStamp))
+                            getMicrophoneData.inputPCMData(Frame(mixBuffer, 0, mixBuffer.size, r[0].timeStamp))
                         }
                     }.exceptionOrNull()
                 }
@@ -105,13 +118,13 @@ class AudioMixSource(
 
     private val callback1 = object: GetMicrophoneData {
         override fun inputPCMData(frame: Frame) {
-            queue1.trySend(frame)
+            microphoneQueue.trySend(frame)
         }
     }
 
     private val callback2 = object: GetMicrophoneData {
         override fun inputPCMData(frame: Frame) {
-            queue2.trySend(frame)
+            internalQueue.trySend(frame)
         }
     }
 
@@ -122,4 +135,24 @@ class AudioMixSource(
     var internalVolume: Float
         set(value) { internalVolumeEffect.volume = value }
         get() = internalVolumeEffect.volume
+
+    fun muteMicrophone() {
+        microphone.mute()
+    }
+
+    fun unMuteMicrophone() {
+        microphone.unMute()
+    }
+
+    fun isMicrophoneMuted(): Boolean = microphone.isMuted()
+
+    fun muteInternalAudio() {
+        internal.mute()
+    }
+
+    fun unMuteInternalAudio() {
+        internal.unMute()
+    }
+
+    fun isInternalAudioMuted(): Boolean = internal.isMuted()
 }

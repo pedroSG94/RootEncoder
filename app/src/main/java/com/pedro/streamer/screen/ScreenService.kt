@@ -29,15 +29,20 @@ import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.core.app.NotificationCompat
 import com.pedro.common.ConnectChecker
+import com.pedro.library.base.recording.RecordController
 import com.pedro.library.generic.GenericStream
-import com.pedro.library.util.sources.audio.AudioMixSource
+import com.pedro.library.util.sources.audio.MixAudioSource
 import com.pedro.library.util.sources.audio.AudioSource
 import com.pedro.library.util.sources.audio.InternalAudioSource
 import com.pedro.library.util.sources.audio.MicrophoneSource
 import com.pedro.library.util.sources.video.NoVideoSource
 import com.pedro.library.util.sources.video.ScreenSource
 import com.pedro.streamer.R
+import com.pedro.streamer.utils.PathUtils
 import com.pedro.streamer.utils.toast
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 
 /**
@@ -68,6 +73,8 @@ class ScreenService: Service(), ConnectChecker {
   private val isStereo = true
   private val aBitrate = 128 * 1000
   private var prepared = false
+  private var recordPath = ""
+  private var selectedAudioSource: Int = R.id.audio_source_microphone
 
   override fun onCreate() {
     super.onCreate()
@@ -83,7 +90,10 @@ class ScreenService: Service(), ConnectChecker {
     }
     prepared = try {
       genericStream.prepareVideo(width, height, vBitrate, rotation = rotation) &&
-          genericStream.prepareAudio(sampleRate, isStereo, aBitrate, true, true)
+          genericStream.prepareAudio(sampleRate, isStereo, aBitrate,
+            echoCanceler = true,
+            noiseSuppressor = true
+          )
     } catch (e: IllegalArgumentException) {
       false
     }
@@ -156,28 +166,63 @@ class ScreenService: Service(), ConnectChecker {
       //You need to call it after prepareVideo to override the default value.
       genericStream.getGlInterface().setCameraOrientation(0)
       genericStream.changeVideoSource(screenSource)
-      if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-        genericStream.changeAudioSource(AudioMixSource(mediaProjection).apply {
-          microphoneVolume = 2f
-        })
-      }
+      toggleAudioSource(selectedAudioSource)
       true
     } catch (ignored: IllegalArgumentException) {
       false
     }
   }
 
-  fun toggleAudioSource(): AudioSource {
-      if (genericStream.audioSource is InternalAudioSource) {
+  fun getCurrentAudioSource(): AudioSource = genericStream.audioSource
+
+  fun toggleAudioSource(itemId: Int) {
+    when (itemId) {
+      R.id.audio_source_microphone -> {
+        selectedAudioSource = R.id.audio_source_microphone
+        if (genericStream.audioSource is MicrophoneSource) return
         genericStream.changeAudioSource(MicrophoneSource())
-      } else {
-        mediaProjection?.let {
-          if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            genericStream.changeAudioSource(InternalAudioSource(it))
-          }
+      }
+      R.id.audio_source_internal -> {
+        selectedAudioSource = R.id.audio_source_internal
+        if (genericStream.audioSource is InternalAudioSource) return
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+          mediaProjection?.let { genericStream.changeAudioSource(InternalAudioSource(it)) }
+        } else {
+          throw IllegalArgumentException("You need min API 29+")
         }
       }
-    return genericStream.audioSource
+      R.id.audio_source_mix -> {
+        selectedAudioSource = R.id.audio_source_mix
+        if (genericStream.audioSource is MixAudioSource) return
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+          mediaProjection?.let { genericStream.changeAudioSource(MixAudioSource(it).apply {
+            //Using audio mix the internal audio volume is higher than microphone. Increase microphone fix it.
+            microphoneVolume = 2f
+          }) }
+        } else {
+          throw IllegalArgumentException("You need min API 29+")
+        }
+      }
+    }
+  }
+
+  fun toggleRecord(state: (RecordController.Status) -> Unit) {
+    if (!genericStream.isRecording) {
+      val folder = PathUtils.getRecordPath()
+      if (!folder.exists()) folder.mkdir()
+      val sdf = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault())
+      recordPath = "${folder.absolutePath}/${sdf.format(Date())}.mp4"
+      genericStream.startRecord(recordPath) { status ->
+        if (status == RecordController.Status.RECORDING) {
+          state(RecordController.Status.RECORDING)
+        }
+      }
+      state(RecordController.Status.STARTED)
+    } else {
+      genericStream.stopRecord()
+      state(RecordController.Status.STOPPED)
+      PathUtils.updateGallery(this, recordPath)
+    }
   }
 
   fun startStream(endpoint: String) {

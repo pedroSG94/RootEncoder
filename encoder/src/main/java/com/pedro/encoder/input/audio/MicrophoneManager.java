@@ -41,11 +41,10 @@ import com.pedro.encoder.audio.AudioEncoder;
 public class MicrophoneManager {
 
   private final String TAG = "MicrophoneManager";
-  private int BUFFER_SIZE = 0;
   protected AudioRecord audioRecord;
   private final GetMicrophoneData getMicrophoneData;
-  protected byte[] pcmBuffer = new byte[BUFFER_SIZE];
-  protected byte[] pcmBufferMuted = new byte[BUFFER_SIZE];
+  protected byte[] pcmBuffer = new byte[AudioEncoder.inputSize];
+  protected byte[] pcmBufferMuted = new byte[AudioEncoder.inputSize];
   protected boolean running = false;
   private boolean created = false;
   //default parameters for microphone
@@ -251,9 +250,9 @@ public class MicrophoneManager {
    */
   private void getPcmBufferSize(int sampleRate, int channel) {
     int minSize = AudioRecord.getMinBufferSize(sampleRate, channel, audioFormat);
-    BUFFER_SIZE = Math.max(minSize, AudioEncoder.inputSize);
-    pcmBuffer = new byte[BUFFER_SIZE];
-    pcmBufferMuted = new byte[BUFFER_SIZE];
+    int bufferSize = Math.max(minSize, AudioEncoder.inputSize);
+    pcmBuffer = new byte[bufferSize];
+    pcmBufferMuted = new byte[bufferSize];
   }
 
   public int getSampleRate() {
