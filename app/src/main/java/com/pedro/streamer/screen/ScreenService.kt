@@ -53,8 +53,8 @@ class ScreenService: Service(), ConnectChecker {
 
   companion object {
     private const val TAG = "DisplayService"
-    private const val channelId = "rtpDisplayStreamChannel"
-    const val notifyId = 123456
+    private const val CHANNEL_ID = "DisplayStreamChannel"
+    const val NOTIFY_ID = 123456
     var INSTANCE: ScreenService? = null
   }
 
@@ -81,7 +81,7 @@ class ScreenService: Service(), ConnectChecker {
     Log.i(TAG, "RTP Display service create")
     notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-      val channel = NotificationChannel(channelId, channelId, NotificationManager.IMPORTANCE_HIGH)
+      val channel = NotificationChannel(CHANNEL_ID, CHANNEL_ID, NotificationManager.IMPORTANCE_HIGH)
       notificationManager?.createNotificationChannel(channel)
     }
     genericStream = GenericStream(baseContext, this, NoVideoSource(), MicrophoneSource()).apply {
@@ -102,7 +102,7 @@ class ScreenService: Service(), ConnectChecker {
   }
 
   private fun keepAliveTrick() {
-    val notification = NotificationCompat.Builder(this, channelId)
+    val notification = NotificationCompat.Builder(this, CHANNEL_ID)
       .setSmallIcon(R.drawable.notification_icon)
       .setSilent(true)
       .setOngoing(false)
@@ -134,7 +134,7 @@ class ScreenService: Service(), ConnectChecker {
   fun stopStream() {
     if (genericStream.isStreaming) {
       genericStream.stopStream()
-      notificationManager?.cancel(notifyId)
+      notificationManager?.cancel(NOTIFY_ID)
     }
   }
 

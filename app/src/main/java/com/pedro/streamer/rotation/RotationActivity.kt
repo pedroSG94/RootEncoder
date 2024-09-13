@@ -16,6 +16,7 @@
 
 package com.pedro.streamer.rotation
 
+import android.annotation.SuppressLint
 import android.graphics.BitmapFactory
 import android.os.Build
 import android.os.Bundle
@@ -31,7 +32,6 @@ import com.pedro.library.util.sources.video.Camera1Source
 import com.pedro.library.util.sources.video.Camera2Source
 import com.pedro.streamer.R
 import com.pedro.streamer.utils.FilterMenu
-import com.pedro.streamer.utils.setColor
 import com.pedro.streamer.utils.toast
 import com.pedro.streamer.utils.updateMenuColor
 
@@ -112,6 +112,7 @@ class RotationActivity : AppCompatActivity(), OnTouchListener {
     return super.onOptionsItemSelected(item)
   }
 
+  @SuppressLint("ClickableViewAccessibility")
   override fun onTouch(view: View, motionEvent: MotionEvent): Boolean {
     if (filterMenu.spriteGestureController.spriteTouched(view, motionEvent)) {
       filterMenu.spriteGestureController.moveSprite(view, motionEvent)
