@@ -61,6 +61,8 @@
   <string name="vertical">Vertical</string>
   <string name="audio_source">Audio source</string>
   <string name="microphone">Microphone</string>
+  <string name="internal">Internal Audio</string>
+  <string name="mix">Mix audio</string>
   <string name="video_source">Video source</string>
   <string name="camera1">Camera1</string>
   <string name="camera2">Camera2</string>

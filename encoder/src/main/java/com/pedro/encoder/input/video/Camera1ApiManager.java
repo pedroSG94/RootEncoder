@@ -277,6 +277,7 @@ public class Camera1ApiManager implements Camera.PreviewCallback, Camera.FaceDet
   public int getMinZoom() { return 0; }
 
   public void setZoom(MotionEvent event) {
+    if (event.getPointerCount() < 2 || event.getAction() != MotionEvent.ACTION_MOVE) return;
     try {
       if (camera != null && running && camera.getParameters() != null && camera.getParameters()
           .isZoomSupported()) {
