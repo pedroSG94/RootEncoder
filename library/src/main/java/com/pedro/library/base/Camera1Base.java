@@ -621,6 +621,10 @@ public abstract class Camera1Base {
     cameraManager.setZoom(event);
   }
 
+  public void setZoom(MotionEvent event, int delta) {
+    cameraManager.setZoom(event, delta);
+  }
+
   /**
    * Set zoomIn or zoomOut to camera.
    * Use this method if you use a zoom slider.

@@ -148,8 +148,9 @@ class Camera1Source(context: Context): VideoSource() {
     return camera.tapToFocus(view, event)
   }
 
-  fun setZoom(event: MotionEvent) {
-    if (isRunning()) camera.setZoom(event)
+  @JvmOverloads
+  fun setZoom(event: MotionEvent, delta: Int = 1) {
+    if (isRunning()) camera.setZoom(event, delta)
   }
 
   fun setZoom(level: Int) {
