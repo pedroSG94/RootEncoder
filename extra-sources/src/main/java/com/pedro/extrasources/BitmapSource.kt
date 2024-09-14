@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.pedro.streamer.rotation
+package com.pedro.extrasources
 
 import android.graphics.Bitmap
 import android.graphics.Paint

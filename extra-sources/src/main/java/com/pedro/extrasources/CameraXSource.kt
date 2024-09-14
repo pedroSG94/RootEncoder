@@ -14,15 +14,13 @@
  * limitations under the License.
  */
 
-package com.pedro.streamer.rotation
+package com.pedro.extrasources
 
 import android.content.Context
 import android.graphics.SurfaceTexture
-import android.os.Build
 import android.util.Range
 import android.util.Size
 import android.view.Surface
-import androidx.annotation.RequiresApi
 import androidx.camera.core.Camera
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.Preview
@@ -40,7 +38,6 @@ import java.util.concurrent.Executors
 /**
  * Created by pedro on 16/2/24.
  */
-@RequiresApi(Build.VERSION_CODES.LOLLIPOP)
 class CameraXSource(
   private val context: Context,
 ): VideoSource(), LifecycleOwner {
@@ -118,5 +115,5 @@ class CameraXSource(
     }
   }
 
-  override fun getLifecycle(): Lifecycle = lifecycleRegistry
+  override val lifecycle: Lifecycle = lifecycleRegistry
 }
