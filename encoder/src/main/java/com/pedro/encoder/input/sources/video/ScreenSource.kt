@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.pedro.library.util.sources.video
+package com.pedro.encoder.input.sources.video
 
 import android.content.Context
 import android.graphics.SurfaceTexture
@@ -26,7 +26,7 @@ import android.os.Handler
 import android.os.HandlerThread
 import android.view.Surface
 import androidx.annotation.RequiresApi
-import com.pedro.library.util.sources.MediaProjectionHandler
+import com.pedro.encoder.input.sources.MediaProjectionHandler
 
 /**
  * Created by pedro on 11/1/24.

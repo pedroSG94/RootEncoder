@@ -21,7 +21,7 @@ import android.graphics.Paint
 import android.graphics.SurfaceTexture
 import android.view.Surface
 import androidx.core.graphics.scale
-import com.pedro.library.util.sources.video.VideoSource
+import com.pedro.encoder.input.sources.video.VideoSource
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel

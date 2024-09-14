@@ -14,25 +14,26 @@
  * limitations under the License.
  */
 
-package com.pedro.library.util.sources.audio
+package com.pedro.encoder.input.sources.video
 
+import android.graphics.SurfaceTexture
 import android.os.Build
 import androidx.annotation.RequiresApi
-import com.pedro.encoder.input.audio.GetMicrophoneData
 
 /**
  * Created by pedro on 11/1/24.
  */
 @RequiresApi(Build.VERSION_CODES.LOLLIPOP)
-class NoAudioSource: AudioSource() {
+class NoVideoSource: VideoSource() {
 
   private var running = false
 
-  override fun create(sampleRate: Int, isStereo: Boolean, echoCanceler: Boolean, noiseSuppressor: Boolean): Boolean {
+  override fun create(width: Int, height: Int, fps: Int, rotation: Int): Boolean {
     return true
   }
 
-  override fun start(getMicrophoneData: GetMicrophoneData) {
+  override fun start(surfaceTexture: SurfaceTexture) {
+    this.surfaceTexture = surfaceTexture
     if (!isRunning()) running = true
   }
 

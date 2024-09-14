@@ -24,10 +24,10 @@ import com.pedro.common.AudioCodec
 import com.pedro.common.ConnectChecker
 import com.pedro.common.VideoCodec
 import com.pedro.library.base.StreamBase
-import com.pedro.library.util.sources.audio.AudioSource
-import com.pedro.library.util.sources.audio.MicrophoneSource
-import com.pedro.library.util.sources.video.Camera2Source
-import com.pedro.library.util.sources.video.VideoSource
+import com.pedro.encoder.input.sources.audio.AudioSource
+import com.pedro.encoder.input.sources.audio.MicrophoneSource
+import com.pedro.encoder.input.sources.video.Camera2Source
+import com.pedro.encoder.input.sources.video.VideoSource
 import com.pedro.library.util.streamclient.RtspStreamClient
 import com.pedro.library.util.streamclient.StreamClientListener
 import com.pedro.rtsp.rtsp.RtspClient
@@ -42,8 +42,8 @@ import java.nio.ByteBuffer
 
 @RequiresApi(Build.VERSION_CODES.LOLLIPOP)
 class RtspStream(
-  context: Context, connectChecker: ConnectChecker, videoSource: VideoSource,
-  audioSource: AudioSource
+    context: Context, connectChecker: ConnectChecker, videoSource: VideoSource,
+    audioSource: AudioSource
 ): StreamBase(context, videoSource, audioSource) {
 
   private val rtspClient = RtspClient(connectChecker)

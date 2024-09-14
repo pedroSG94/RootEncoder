@@ -27,9 +27,9 @@ import android.view.View
 import android.view.View.OnTouchListener
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
-import com.pedro.library.util.sources.audio.MicrophoneSource
-import com.pedro.library.util.sources.video.Camera1Source
-import com.pedro.library.util.sources.video.Camera2Source
+import com.pedro.encoder.input.sources.audio.MicrophoneSource
+import com.pedro.encoder.input.sources.video.Camera1Source
+import com.pedro.encoder.input.sources.video.Camera2Source
 import com.pedro.streamer.R
 import com.pedro.streamer.utils.FilterMenu
 import com.pedro.streamer.utils.toast

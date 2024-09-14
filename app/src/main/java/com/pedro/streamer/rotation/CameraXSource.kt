@@ -33,7 +33,7 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.LifecycleRegistry
-import com.pedro.library.util.sources.video.VideoSource
+import com.pedro.encoder.input.sources.video.VideoSource
 import java.util.concurrent.ExecutionException
 import java.util.concurrent.Executors
 

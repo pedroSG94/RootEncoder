@@ -16,7 +16,7 @@
  *
  */
 
-package com.pedro.library.util.sources.audio
+package com.pedro.encoder.input.sources.audio
 
 import android.media.projection.MediaProjection
 import android.os.Build

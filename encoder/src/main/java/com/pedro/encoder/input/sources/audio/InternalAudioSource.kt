@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.pedro.library.util.sources.audio
+package com.pedro.encoder.input.sources.audio
 
 import android.media.AudioAttributes
 import android.media.AudioPlaybackCaptureConfiguration
@@ -28,7 +28,7 @@ import com.pedro.encoder.input.audio.CustomAudioEffect
 import com.pedro.encoder.input.audio.GetMicrophoneData
 import com.pedro.encoder.input.audio.MicrophoneManager
 import com.pedro.encoder.input.audio.VolumeEffect
-import com.pedro.library.util.sources.MediaProjectionHandler
+import com.pedro.encoder.input.sources.MediaProjectionHandler
 
 /**
  * Created by pedro on 12/1/24.

@@ -30,6 +30,7 @@ import com.pedro.encoder.input.gl.SurfaceManager
 import com.pedro.encoder.input.gl.render.MainRender
 import com.pedro.encoder.input.gl.render.filters.BaseFilterRender
 import com.pedro.encoder.input.gl.render.filters.NoFilterRender
+import com.pedro.encoder.input.sources.OrientationForced
 import com.pedro.encoder.input.video.FpsLimiter
 import com.pedro.encoder.utils.gl.AspectRatioMode
 import com.pedro.encoder.utils.gl.GlUtil
@@ -37,7 +38,6 @@ import com.pedro.library.util.Filter
 import com.pedro.library.util.SensorRotationManager
 import java.util.concurrent.BlockingQueue
 import java.util.concurrent.ExecutorService
-import java.util.concurrent.Executors
 import java.util.concurrent.LinkedBlockingQueue
 import java.util.concurrent.atomic.AtomicBoolean
 
