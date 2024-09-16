@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.pedro.library.util.sources.audio
+package com.pedro.encoder.input.sources.audio
 
 import android.media.AudioDeviceInfo
 import android.media.MediaRecorder

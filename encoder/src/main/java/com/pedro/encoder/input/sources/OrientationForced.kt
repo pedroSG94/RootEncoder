@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.pedro.library.view
+package com.pedro.encoder.input.sources
 
 /**
  * Created by pedro on 16/2/24.

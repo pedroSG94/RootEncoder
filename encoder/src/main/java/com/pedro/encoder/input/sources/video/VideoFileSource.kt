@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.pedro.library.util.sources.video
+package com.pedro.encoder.input.sources.video
 
 import android.content.Context
 import android.graphics.SurfaceTexture
@@ -22,6 +22,7 @@ import android.net.Uri
 import android.view.Surface
 import com.pedro.encoder.input.decoder.DecoderInterface
 import com.pedro.encoder.input.decoder.VideoDecoder
+import com.pedro.encoder.input.sources.OrientationForced
 import java.io.IOException
 
 /**
@@ -74,6 +75,8 @@ class VideoFileSource(
   }
 
   override fun isRunning(): Boolean = running
+
+  override fun getOrientationConfig(): OrientationForced = OrientationForced.LANDSCAPE
 
   fun moveTo(time: Double) {
     videoDecoder.moveTo(time)

@@ -16,8 +16,10 @@
  *
  */
 
-package com.pedro.library.util.sources.audio
+package com.pedro.encoder.input.sources.audio
 
+import android.media.AudioDeviceInfo
+import android.media.MediaRecorder
 import android.media.projection.MediaProjection
 import android.os.Build
 import androidx.annotation.RequiresApi
@@ -45,21 +47,31 @@ import java.util.concurrent.TimeUnit
  * This is to avoid echo in microphone track.
  *
  * Recommended increase microphone volume to 2f,
- * because the internal audio normally is higher and you can't hear audio track properly
+ * because the internal audio normally is higher and you can't hear audio track properly.
+ *
+ * Tested in 2 devices (Android 12 and Android 14). This could change depend of the model or not, I'm not sure:
+ * MediaRecorder.AudioSource.DEFAULT, MediaRecorder.AudioSource.MIC -> If other app open the microphone you receive buffers with silence from the microphone until the other app release the microphone (maybe you need close the app).
+ * MediaRecorder.AudioSource.CAMCORDER -> Block the access to microphone to others apps. Others apps can't instantiate the microphone.
+ * MediaRecorder.AudioSource.VOICE_COMMUNICATION -> Block the access to microphone to others apps. Others apps can instantiate the microphone but receive buffers with silence from the microphone.
  */
 @RequiresApi(Build.VERSION_CODES.Q)
 class MixAudioSource(
-    mediaProjection: MediaProjection
+    mediaProjection: MediaProjection,
+    microphoneAudioSource: Int = MediaRecorder.AudioSource.DEFAULT
 ): AudioSource() {
 
     private val microphoneVolumeEffect = VolumeEffect()
     private val internalVolumeEffect = VolumeEffect()
-    private val microphone = MicrophoneSource().apply { setAudioEffect(microphoneVolumeEffect) }
-    private val internal = InternalAudioSource(mediaProjection).apply { setAudioEffect(internalVolumeEffect) }
+    private val microphone = MicrophoneSource(audioSource = microphoneAudioSource).apply {
+        setAudioEffect(microphoneVolumeEffect)
+    }
+    private val internal = InternalAudioSource(mediaProjection).apply {
+        setAudioEffect(internalVolumeEffect)
+    }
 
     private val scope = CoroutineScope(Dispatchers.IO)
-    private val microphoneQueue: BlockingQueue<Frame> = LinkedBlockingQueue(500)
-    private val internalQueue: BlockingQueue<Frame> = LinkedBlockingQueue(500)
+    private val microphoneQueue: BlockingQueue<Frame> = LinkedBlockingQueue(2)
+    private val internalQueue: BlockingQueue<Frame> = LinkedBlockingQueue(2)
     private var running = false
     //We need read with a higher buffer to get enough time to mix it
     private val inputSize = AudioEncoder.inputSize
@@ -73,8 +85,8 @@ class MixAudioSource(
         if (!isRunning()) {
             microphoneQueue.clear()
             internalQueue.clear()
-            microphone.start(callback1)
-            internal.start(callback2)
+            microphone.start(microphoneCallback)
+            internal.start(internalCallback)
             running = true
             scope.launch {
                 val min = Byte.MIN_VALUE.toInt()
@@ -82,17 +94,17 @@ class MixAudioSource(
 
                 while (running) {
                     runCatching {
-                        val frame1 = async { runInterruptible { microphoneQueue.poll(1, TimeUnit.SECONDS) } }
-                        val frame2 = async { runInterruptible { internalQueue.poll(1, TimeUnit.SECONDS) } }
-                        val r = awaitAll(frame1, frame2)
+                        val microphoneFrame = async { runInterruptible { microphoneQueue.poll(1, TimeUnit.SECONDS) } }
+                        val internalFrame = async { runInterruptible { internalQueue.poll(1, TimeUnit.SECONDS) } }
+                        val result = awaitAll(microphoneFrame, internalFrame)
                         async {
-                            val microphoneBuffer = r[0]?.buffer ?: return@async
-                            val internalBuffer = r[1]?.buffer ?: return@async
+                            val microphoneBuffer = result[0]?.buffer ?: return@async
+                            val internalBuffer = result[1]?.buffer ?: return@async
                             val mixBuffer = ByteArray(inputSize)
                             for (i in mixBuffer.indices) { //mix buffers with same config
                                 mixBuffer[i] = (microphoneBuffer[i] + internalBuffer[i]).coerceIn(min, max).toByte()
                             }
-                            getMicrophoneData.inputPCMData(Frame(mixBuffer, 0, mixBuffer.size, r[0].timeStamp))
+                            getMicrophoneData.inputPCMData(Frame(mixBuffer, 0, mixBuffer.size, result[0].timeStamp))
                         }
                     }.exceptionOrNull()
                 }
@@ -116,13 +128,13 @@ class MixAudioSource(
 
     override fun isRunning(): Boolean = running
 
-    private val callback1 = object: GetMicrophoneData {
+    private val microphoneCallback = object: GetMicrophoneData {
         override fun inputPCMData(frame: Frame) {
             microphoneQueue.trySend(frame)
         }
     }
 
-    private val callback2 = object: GetMicrophoneData {
+    private val internalCallback = object: GetMicrophoneData {
         override fun inputPCMData(frame: Frame) {
             internalQueue.trySend(frame)
         }
@@ -155,4 +167,8 @@ class MixAudioSource(
     }
 
     fun isInternalAudioMuted(): Boolean = internal.isMuted()
+
+    fun setMicrophonePreferredDevice(deviceInfo: AudioDeviceInfo?) {
+        microphone.setPreferredDevice(deviceInfo)
+    }
 }

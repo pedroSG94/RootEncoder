@@ -16,7 +16,7 @@
 
 @file:Suppress("DEPRECATION")
 
-package com.pedro.library.util.sources.video
+package com.pedro.encoder.input.sources.video
 
 import android.content.Context
 import android.graphics.SurfaceTexture

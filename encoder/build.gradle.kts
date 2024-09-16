@@ -49,6 +49,7 @@ afterEvaluate {
 }
 
 dependencies {
+  implementation(libs.kotlinx.coroutines.android)
   testImplementation(libs.junit)
   api(libs.androidx.annotation)
   api(project(":common"))

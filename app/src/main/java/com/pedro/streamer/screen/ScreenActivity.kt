@@ -28,9 +28,9 @@ import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import com.pedro.common.ConnectChecker
 import com.pedro.library.base.recording.RecordController
-import com.pedro.library.util.sources.audio.MixAudioSource
-import com.pedro.library.util.sources.audio.InternalAudioSource
-import com.pedro.library.util.sources.audio.MicrophoneSource
+import com.pedro.encoder.input.sources.audio.MixAudioSource
+import com.pedro.encoder.input.sources.audio.InternalAudioSource
+import com.pedro.encoder.input.sources.audio.MicrophoneSource
 import com.pedro.streamer.R
 import com.pedro.streamer.utils.toast
 import com.pedro.streamer.utils.updateMenuColor

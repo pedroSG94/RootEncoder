@@ -18,6 +18,7 @@ annotation = "1.8.2"
 coroutines = "1.9.0"
 junit = "4.13.2"
 mockito = "5.4.0"
+uvcandroid = "1.0.7"
 
 [libraries]
 androidx-annotation = { module = "androidx.annotation:annotation", version.ref = "annotation" }
@@ -31,6 +32,7 @@ junit = { module = "junit:junit", version.ref = "junit" }
 kotlinx-coroutines-android = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-android", version.ref = "coroutines" }
 kotlinx-coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test", version.ref = "coroutines" }
 mockito-kotlin = { module = "org.mockito.kotlin:mockito-kotlin", version.ref = "mockito" }
+uvcandroid = { module = "com.herohan:UVCAndroid", version.ref = "uvcandroid" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

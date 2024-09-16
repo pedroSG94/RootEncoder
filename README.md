@@ -51,6 +51,8 @@ allprojects {
 }
 dependencies {
   implementation 'com.github.pedroSG94.RootEncoder:library:2.5.0'
+  //Optional, allow use BitmapSource, CameraXSource and CameraUvcSource 
+  implementation 'com.github.pedroSG94.RootEncoder:extra-sources:2.5.0'
 }
 
 ```
@@ -76,6 +78,7 @@ dependencies {
 ## Features:
 
 - [x] Android min API 16.
+- [x] Extra video sources minAPI 21+ (BitmapSource, CameraXSource and CameraUvcSource) 
 
 ### Encoder:
 
@@ -134,8 +137,6 @@ https://haivision.github.io/srt-rfc/draft-sharabayko-srt.html
 ## Other related projects:
 
 https://github.com/pedroSG94/RTSP-Server
-
-[Support UVC camera (use rotation example and change the video source on fly using the menu):](https://github.com/pedroSG94/RootEncoder/tree/feature/usb-camera)
 
 ### 3rd party projects:
 

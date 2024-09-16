@@ -1,4 +1,4 @@
-package com.pedro.library.util.sources
+package com.pedro.encoder.input.sources
 
 import android.media.projection.MediaProjection
 

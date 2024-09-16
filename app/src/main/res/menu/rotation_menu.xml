@@ -15,6 +15,10 @@
                 android:id="@+id/video_source_camerax"
                 />
             <item
+                android:title="@string/camera_uvc"
+                android:id="@+id/video_source_camera_uvc"
+                />
+            <item
                 android:title="@string/bitmap"
                 android:id="@+id/video_source_bitmap"
                 />
