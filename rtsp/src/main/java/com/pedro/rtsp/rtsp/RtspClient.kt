@@ -420,8 +420,10 @@ class RtspClient(private val connectChecker: ConnectChecker) {
   private suspend fun disconnect(clear: Boolean) {
     if (isStreaming) rtspSender.stop()
     val error = runCatching {
-      writer?.write(commandsManager.createTeardown())
-      writer?.flush()
+      withTimeoutOrNull(100) {
+        writer?.write(commandsManager.createTeardown())
+        writer?.flush()
+      }
       connectionSocket?.close()
       reader?.close()
       reader = null

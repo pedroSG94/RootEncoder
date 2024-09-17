@@ -49,6 +49,7 @@ import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withTimeoutOrNull
 import java.io.IOException
 import java.net.SocketTimeoutException
 import java.net.URISyntaxException
@@ -257,7 +258,9 @@ class SrtClient(private val connectChecker: ConnectChecker) {
   private suspend fun disconnect(clear: Boolean) {
     if (isStreaming) srtSender.stop(clear)
     runCatching {
-      commandsManager.writeShutdown(socket)
+      withTimeoutOrNull(100) {
+        commandsManager.writeShutdown(socket)
+      }
     }
     socket?.close()
     if (clear) {

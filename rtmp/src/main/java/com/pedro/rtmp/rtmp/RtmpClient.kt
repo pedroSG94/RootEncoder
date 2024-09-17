@@ -42,6 +42,7 @@ import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withTimeoutOrNull
 import java.io.*
 import java.net.*
 import java.nio.ByteBuffer
@@ -515,8 +516,8 @@ class RtmpClient(private val connectChecker: ConnectChecker) {
   private suspend fun disconnect(clear: Boolean) {
     if (isStreaming) rtmpSender.stop(clear)
     runCatching {
-      socket?.let { socket ->
-        commandsManager.sendClose(socket)
+      withTimeoutOrNull(100) {
+        socket?.let { commandsManager.sendClose(it) }
       }
     }
     closeConnection()
