@@ -75,7 +75,7 @@ class Handshake {
   private var timestampC1 = 0
 
   @Throws(IOException::class)
-  fun sendHandshake(socket: RtmpSocket): Boolean {
+  suspend fun sendHandshake(socket: RtmpSocket): Boolean {
     var output = socket.getOutStream()
     writeC0(output)
     val c1 = writeC1(output)

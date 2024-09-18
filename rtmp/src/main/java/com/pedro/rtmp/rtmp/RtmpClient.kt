@@ -308,7 +308,7 @@ class RtmpClient(private val connectChecker: ConnectChecker) {
   }
 
   @Throws(IOException::class)
-  private fun establishConnection(): Boolean {
+  private suspend fun establishConnection(): Boolean {
     val socket = if (tunneled) {
       TcpTunneledSocket(commandsManager.host, commandsManager.port, tlsEnabled)
     } else {
