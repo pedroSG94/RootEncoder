@@ -18,6 +18,7 @@ package com.pedro.rtmp.rtmp.message
 
 import com.pedro.rtmp.rtmp.chunk.ChunkType
 import com.pedro.rtmp.utils.*
+import com.pedro.rtmp.utils.socket.RtmpSocket
 import java.io.IOException
 import java.io.InputStream
 import java.io.OutputStream
@@ -41,7 +42,7 @@ class RtmpHeader(var basicHeader: BasicHeader) {
      * Check ChunkType class to know header structure
      */
     @Throws(IOException::class)
-    fun readHeader(input: InputStream, commandSessionHistory: CommandSessionHistory,
+    suspend fun readHeader(input: RtmpSocket, commandSessionHistory: CommandSessionHistory,
       timestamp: Int = 0): RtmpHeader {
       val basicHeader = BasicHeader.parseBasicHeader(input)
       var timeStamp = timestamp
@@ -108,7 +109,7 @@ class RtmpHeader(var basicHeader: BasicHeader) {
   }
 
   @Throws(IOException::class)
-  fun writeHeader(output: OutputStream) {
+  suspend fun writeHeader(output: RtmpSocket) {
     writeHeader(basicHeader, output)
   }
 
@@ -116,7 +117,7 @@ class RtmpHeader(var basicHeader: BasicHeader) {
    * Check ChunkType class to know header structure
    */
   @Throws(IOException::class)
-  fun writeHeader(basicHeader: BasicHeader, output: OutputStream) {
+  suspend fun writeHeader(basicHeader: BasicHeader, output: RtmpSocket) {
     // Write basic header byte
     output.write((basicHeader.chunkType.mark.toInt() shl 6) or basicHeader.chunkStreamId)
     when (basicHeader.chunkType) {

@@ -32,10 +32,11 @@ import com.pedro.rtmp.rtmp.chunk.ChunkType
 import com.pedro.rtmp.rtmp.message.BasicHeader
 import com.pedro.rtmp.rtmp.message.command.CommandAmf0
 import com.pedro.rtmp.rtmp.message.data.DataAmf0
+import com.pedro.rtmp.utils.socket.RtmpSocket
 import java.io.OutputStream
 
 class CommandsManagerAmf0: CommandsManager() {
-  override fun sendConnect(auth: String, output: OutputStream) {
+  override suspend fun sendConnectImp(auth: String, output: RtmpSocket) {
     val connect = CommandAmf0("connect", ++commandId, getCurrentTimestamp(), streamId,
         BasicHeader(ChunkType.TYPE_0, ChunkStreamId.OVER_CONNECTION.mark))
     val connectInfo = AmfObject()
@@ -64,7 +65,7 @@ class CommandsManagerAmf0: CommandsManager() {
     Log.i(TAG, "send $connect")
   }
 
-  override fun createStream(output: OutputStream) {
+  override suspend fun createStreamImp(output: RtmpSocket) {
     val releaseStream = CommandAmf0("releaseStream", ++commandId, getCurrentTimestamp(), streamId,
         BasicHeader(ChunkType.TYPE_0, ChunkStreamId.OVER_STREAM.mark))
     releaseStream.addData(AmfNull())
@@ -95,7 +96,7 @@ class CommandsManagerAmf0: CommandsManager() {
     Log.i(TAG, "send $createStream")
   }
 
-  override fun sendMetadata(output: OutputStream) {
+  override suspend fun sendMetadataImp(output: RtmpSocket) {
     val name = "@setDataFrame"
     val metadata = DataAmf0(name, getCurrentTimestamp(), streamId)
     metadata.addData(AmfString("onMetaData"))
@@ -134,7 +135,7 @@ class CommandsManagerAmf0: CommandsManager() {
     Log.i(TAG, "send $metadata")
   }
 
-  override fun sendPublish(output: OutputStream) {
+  override suspend fun sendPublishImp(output: RtmpSocket) {
     val name = "publish"
     val publish = CommandAmf0(name, ++commandId, getCurrentTimestamp(), streamId,
         BasicHeader(ChunkType.TYPE_0, ChunkStreamId.OVER_STREAM.mark))
@@ -148,7 +149,7 @@ class CommandsManagerAmf0: CommandsManager() {
     Log.i(TAG, "send $publish")
   }
 
-  override fun sendClose(output: OutputStream) {
+  override suspend fun sendCloseImp(output: RtmpSocket) {
     val name = "closeStream"
     val closeStream = CommandAmf0(name, ++commandId, getCurrentTimestamp(), streamId, BasicHeader(ChunkType.TYPE_0, ChunkStreamId.OVER_STREAM.mark))
     closeStream.addData(AmfNull())

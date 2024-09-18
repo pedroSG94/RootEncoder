@@ -27,6 +27,7 @@ import com.pedro.rtmp.rtmp.message.shared.SharedObjectAmf3
 import com.pedro.rtmp.utils.CommandSessionHistory
 import com.pedro.rtmp.utils.RtmpConfig
 import com.pedro.rtmp.utils.readUntil
+import com.pedro.rtmp.utils.socket.RtmpSocket
 import java.io.*
 
 /**
@@ -46,7 +47,7 @@ abstract class RtmpMessage(basicHeader: BasicHeader) {
     private const val TAG = "RtmpMessage"
 
     @Throws(IOException::class)
-    fun getRtmpMessage(input: InputStream, chunkSize: Int,
+    suspend fun getRtmpMessage(input: RtmpSocket, chunkSize: Int,
       commandSessionHistory: CommandSessionHistory): RtmpMessage {
       val header = RtmpHeader.readHeader(input, commandSessionHistory)
       val rtmpMessage = when (header.messageType) {
@@ -72,9 +73,11 @@ abstract class RtmpMessage(basicHeader: BasicHeader) {
       val bodyInput = if (header.messageLength > chunkSize) {
         getInputWithoutChunks(input, header, chunkSize, commandSessionHistory)
       } else {
-        input
+        val buffer = ByteArray(header.messageLength)
+        input.readUntil(buffer)
+        buffer
       }
-      rtmpMessage.readBody(bodyInput)
+      rtmpMessage.readBody(ByteArrayInputStream(bodyInput))
       return rtmpMessage
     }
 
@@ -82,8 +85,8 @@ abstract class RtmpMessage(basicHeader: BasicHeader) {
       return MessageType.entries.find { it.mark.toInt() == type } ?: throw IOException("Unknown rtmp message type: $type")
     }
 
-    private fun getInputWithoutChunks(input: InputStream, header: RtmpHeader, chunkSize: Int,
-      commandSessionHistory: CommandSessionHistory): InputStream {
+    private suspend fun getInputWithoutChunks(input: RtmpSocket, header: RtmpHeader, chunkSize: Int,
+      commandSessionHistory: CommandSessionHistory): ByteArray {
       val packetStore = ByteArrayOutputStream()
       var bytesRead = 0
       while (bytesRead < header.messageLength) {
@@ -101,7 +104,7 @@ abstract class RtmpMessage(basicHeader: BasicHeader) {
         bytesRead += chunk.size
         packetStore.write(chunk)
       }
-      return ByteArrayInputStream(packetStore.toByteArray())
+      return packetStore.toByteArray()
     }
   }
 
@@ -114,12 +117,12 @@ abstract class RtmpMessage(basicHeader: BasicHeader) {
   }
 
   @Throws(IOException::class)
-  fun writeHeader(output: OutputStream) {
+  suspend fun writeHeader(output: RtmpSocket) {
     header.writeHeader(output)
   }
 
   @Throws(IOException::class)
-  fun writeBody(output: OutputStream) {
+  suspend fun writeBody(output: RtmpSocket) {
     val chunkSize = RtmpConfig.writeChunkSize
     val bytes = storeBody()
     var pos = 0

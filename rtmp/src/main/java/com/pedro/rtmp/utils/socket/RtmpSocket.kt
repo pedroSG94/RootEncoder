@@ -16,9 +16,6 @@
 
 package com.pedro.rtmp.utils.socket
 
-import java.io.InputStream
-import java.io.OutputStream
-
 /**
  * Created by pedro on 5/4/22.
  * Socket implementation that accept:
@@ -30,13 +27,25 @@ import java.io.OutputStream
  */
 abstract class RtmpSocket {
 
-  protected val timeout = 5000
+  protected val timeout = 5000L
 
-  abstract fun getOutStream(): OutputStream
-  abstract fun getInputStream(): InputStream
   abstract suspend fun flush(isPacket: Boolean = false)
-  abstract fun connect()
-  abstract fun close()
+  abstract suspend fun connect()
+  abstract suspend fun close()
   abstract fun isConnected(): Boolean
   abstract fun isReachable(): Boolean
+
+  abstract suspend fun write(b: Int)
+  abstract suspend fun writeUInt16(b: Int)
+  abstract suspend fun writeUInt24(b: Int)
+  abstract suspend fun writeUInt32(b: Int)
+  abstract suspend fun writeUInt32LittleEndian(b: Int)
+  abstract suspend fun write(b: ByteArray)
+  abstract suspend fun write(b: ByteArray, offset: Int, size: Int)
+  abstract suspend fun read(): Int
+  abstract suspend fun readUInt16(): Int
+  abstract suspend fun readUInt24(): Int
+  abstract suspend fun readUInt32(): Int
+  abstract suspend fun readUInt32LittleEndian(): Int
+  abstract suspend fun readUntil(b: ByteArray)
 }

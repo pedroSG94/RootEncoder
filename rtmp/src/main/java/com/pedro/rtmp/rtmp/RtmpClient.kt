@@ -491,7 +491,7 @@ class RtmpClient(private val connectChecker: ConnectChecker) {
     }
   }
 
-  fun closeConnection() {
+  suspend fun closeConnection() {
     socket?.close()
     commandsManager.reset()
   }

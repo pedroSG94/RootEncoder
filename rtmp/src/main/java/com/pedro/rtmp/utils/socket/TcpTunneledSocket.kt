@@ -48,22 +48,22 @@ class TcpTunneledSocket(private val host: String, private val port: Int, private
   //send video/audio packets in packs of 10 on each HTTP request.
   private val maxStoredPackets = 10
 
-  override fun getOutStream(): OutputStream = output
-
-  override fun getInputStream(): InputStream {
-    synchronized(sync) {
-      val start = TimeUtils.getCurrentTimeMillis()
-      while (input.available() <= 1 && connected) {
-        val i = index.addAndGet(1)
-        val bytes = requestRead("idle/$connectionId/$i", secured)
-        input = ByteArrayInputStream(bytes, 1, bytes.size)
-        if (TimeUtils.getCurrentTimeMillis() - start >= timeout) {
-          throw SocketTimeoutException("couldn't receive a valid packet")
-        }
-      }
-    }
-    return input
-  }
+//  override fun getOutStream(): OutputStream = output
+//
+//  override fun getInputStream(): InputStream {
+//    synchronized(sync) {
+//      val start = TimeUtils.getCurrentTimeMillis()
+//      while (input.available() <= 1 && connected) {
+//        val i = index.addAndGet(1)
+//        val bytes = requestRead("idle/$connectionId/$i", secured)
+//        input = ByteArrayInputStream(bytes, 1, bytes.size)
+//        if (TimeUtils.getCurrentTimeMillis() - start >= timeout) {
+//          throw SocketTimeoutException("couldn't receive a valid packet")
+//        }
+//      }
+//    }
+//    return input
+//  }
 
   override suspend fun flush(isPacket: Boolean) = withContext(Dispatchers.IO) {
     synchronized(sync) {
@@ -80,7 +80,7 @@ class TcpTunneledSocket(private val host: String, private val port: Int, private
     }
   }
 
-  override fun connect() {
+  override suspend fun connect() {
     synchronized(sync) {
       try {
         //optional in few servers
@@ -99,7 +99,7 @@ class TcpTunneledSocket(private val host: String, private val port: Int, private
     }
   }
 
-  override fun close() {
+  override suspend fun close() {
     Log.i(TAG, "closing tunneled socket...")
     connected = false
     synchronized(sync) {
@@ -120,6 +120,57 @@ class TcpTunneledSocket(private val host: String, private val port: Int, private
   override fun isConnected(): Boolean = connected
 
   override fun isReachable(): Boolean = connected
+  override suspend fun write(b: Int) {
+    TODO("Not yet implemented")
+  }
+
+  override suspend fun write(b: ByteArray) {
+    TODO("Not yet implemented")
+  }
+
+  override suspend fun write(b: ByteArray, offset: Int, size: Int) {
+    TODO("Not yet implemented")
+  }
+
+  override suspend fun writeUInt16(b: Int) {
+    TODO("Not yet implemented")
+  }
+
+  override suspend fun writeUInt24(b: Int) {
+    TODO("Not yet implemented")
+  }
+
+  override suspend fun writeUInt32(b: Int) {
+    TODO("Not yet implemented")
+  }
+
+  override suspend fun writeUInt32LittleEndian(b: Int) {
+    TODO("Not yet implemented")
+  }
+
+  override suspend fun read(): Int {
+    TODO("Not yet implemented")
+  }
+
+  override suspend fun readUInt16(): Int {
+    TODO("Not yet implemented")
+  }
+
+  override suspend fun readUInt24(): Int {
+    TODO("Not yet implemented")
+  }
+
+  override suspend fun readUInt32(): Int {
+    TODO("Not yet implemented")
+  }
+
+  override suspend fun readUInt32LittleEndian(): Int {
+    TODO("Not yet implemented")
+  }
+
+  override suspend fun readUntil(b: ByteArray) {
+    TODO("Not yet implemented")
+  }
 
   @Throws(IOException::class)
   private fun requestWrite(path: String, secured: Boolean, data: ByteArray) {
@@ -164,8 +215,8 @@ class TcpTunneledSocket(private val host: String, private val port: Int, private
       socket.addRequestProperty(key, value)
     }
     socket.doOutput = true
-    socket.connectTimeout = timeout
-    socket.readTimeout = timeout
+    socket.connectTimeout = timeout.toInt()
+    socket.readTimeout = timeout.toInt()
     return socket
   }
 }

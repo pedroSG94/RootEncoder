@@ -16,19 +16,24 @@
 
 package com.pedro.rtmp.utils.socket
 
-import com.pedro.common.TLSSocketFactory
+import io.ktor.network.selector.SelectorManager
+import io.ktor.network.sockets.Socket
+import io.ktor.network.sockets.aSocket
+import io.ktor.network.sockets.isClosed
+import io.ktor.network.sockets.openReadChannel
+import io.ktor.network.sockets.openWriteChannel
+import io.ktor.network.tls.tls
+import io.ktor.utils.io.ByteReadChannel
+import io.ktor.utils.io.ByteWriteChannel
+import io.ktor.utils.io.readFully
+import io.ktor.utils.io.writeByte
+import io.ktor.utils.io.writeFully
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.withContext
-import java.io.ByteArrayInputStream
-import java.io.ByteArrayOutputStream
 import java.io.IOException
-import java.io.InputStream
-import java.io.OutputStream
-import java.net.InetSocketAddress
-import java.net.Socket
-import java.net.SocketAddress
-import java.security.GeneralSecurityException
 import javax.net.ssl.TrustManager
+import kotlin.coroutines.coroutineContext
 
 /**
  * Created by pedro on 5/4/22.
@@ -40,48 +45,102 @@ class TcpSocket(
   private val certificates: Array<TrustManager>?
 ): RtmpSocket() {
 
-  private var socket: Socket = Socket()
-  private var input = ByteArrayInputStream(byteArrayOf()).buffered()
-  private var output: OutputStream = ByteArrayOutputStream()
+  private var selectorManager = SelectorManager(Dispatchers.IO)
+  private var socket: Socket? = null
+  private var input: ByteReadChannel? = null
+  private var output: ByteWriteChannel? = null
 
-  override fun getOutStream(): OutputStream = output
-
-  override fun getInputStream(): InputStream = input
-
-  override suspend fun flush(isPacket: Boolean) = withContext(Dispatchers.IO) {
-    getOutStream().flush()
+  override suspend fun flush(isPacket: Boolean) {
+    output?.flush()
   }
 
-  override fun connect() {
-    if (secured) {
-      try {
-        val socketFactory = TLSSocketFactory(certificates)
-        socket = socketFactory.createSocket(host, port)
-      } catch (e: GeneralSecurityException) {
-        throw IOException("Create SSL socket failed: ${e.message}")
+  override suspend fun connect() {
+    selectorManager = SelectorManager(Dispatchers.IO)
+    val builder = aSocket(selectorManager).tcp()
+    val socket = if (secured) {
+      builder.connect(host, port) { socketTimeout = timeout }.tls(
+        coroutineContext = coroutineContext
+      ) {
+        //TODO certificates
       }
     } else {
-      socket = Socket()
-      val socketAddress: SocketAddress = InetSocketAddress(host, port)
-      socket.connect(socketAddress, timeout)
+      builder.connect(host, port) { socketTimeout = timeout }
     }
-    output = socket.getOutputStream()
-    input = socket.getInputStream().buffered()
-    socket.soTimeout = timeout
+    this.socket = socket
+    input = socket.openReadChannel()
+    output = socket.openWriteChannel(autoFlush = false)
   }
 
-  override fun close() {
+  override suspend fun close() = withContext(Dispatchers.IO) {
     try {
-      if (socket.isConnected) {
-        socket.getInputStream().close()
-        input.close()
-        output.close()
-        socket.close()
-      }
+      input = null
+      output = null
+      socket?.close()
+      selectorManager.close()
     } catch (ignored: Exception) {}
   }
 
-  override fun isConnected(): Boolean = socket.isConnected
+  override fun isConnected(): Boolean = socket?.isClosed != true
 
-  override fun isReachable(): Boolean = socket.inetAddress?.isReachable(5000) ?: false
+  override fun isReachable(): Boolean = socket?.isActive == true
+  override suspend fun write(b: Int) {
+    output?.writeByte(b)
+  }
+
+  override suspend fun write(b: ByteArray) {
+    output?.writeFully(b)
+  }
+
+  override suspend fun write(b: ByteArray, offset: Int, size: Int) {
+    output?.writeFully(b, offset, size)
+  }
+
+  override suspend fun writeUInt16(b: Int) {
+    output?.writeByte(b ushr 8)
+    output?.writeByte(b)
+  }
+
+  override suspend fun writeUInt24(b: Int) {
+    output?.writeByte(b ushr 16)
+    output?.writeByte(b ushr 8)
+    output?.writeByte(b)
+  }
+
+  override suspend fun writeUInt32(b: Int) {
+    output?.writeByte(b ushr 24)
+    output?.writeByte(b ushr 16)
+    output?.writeByte(b ushr 8)
+    output?.writeByte(b)
+  }
+
+  override suspend fun writeUInt32LittleEndian(b: Int) {
+    output?.writeByte(b)
+    output?.writeByte(b ushr 8)
+    output?.writeByte(b ushr 16)
+    output?.writeByte(b ushr 24)
+  }
+
+  override suspend fun read(): Int {
+    return input?.readByte()?.toInt() ?: throw IOException("read with socket closed")
+  }
+
+  override suspend fun readUInt16(): Int {
+    return read() and 0xff shl 8 or (read() and 0xff)
+  }
+
+  override suspend fun readUInt24(): Int {
+    return read() and 0xff shl 16 or (read() and 0xff shl 8) or (read() and 0xff)
+  }
+
+  override suspend fun readUInt32(): Int {
+    return read() and 0xff shl 24 or (read() and 0xff shl 16) or (read() and 0xff shl 8) or (read() and 0xff)
+  }
+
+  override suspend fun readUInt32LittleEndian(): Int {
+    return Integer.reverseBytes(readUInt32())
+  }
+
+  override suspend fun readUntil(b: ByteArray) {
+    return input?.readFully(b) ?: throw IOException("read with socket closed")
+  }
 }

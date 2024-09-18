@@ -49,6 +49,8 @@ afterEvaluate {
 }
 
 dependencies {
+  implementation("io.ktor:ktor-network:2.3.12")
+  implementation("io.ktor:ktor-network-tls:2.3.12")
   implementation(libs.kotlinx.coroutines.android)
   testImplementation(libs.kotlinx.coroutines.test)
   testImplementation(libs.junit)

@@ -76,30 +76,26 @@ class Handshake {
 
   @Throws(IOException::class)
   suspend fun sendHandshake(socket: RtmpSocket): Boolean {
-    var output = socket.getOutStream()
-    writeC0(output)
-    val c1 = writeC1(output)
+    writeC0(socket)
+    val c1 = writeC1(socket)
     socket.flush()
-    var input = socket.getInputStream()
-    readS0(input)
-    val s1 = readS1(input)
-    output = socket.getOutStream()
-    writeC2(output, s1)
+    readS0(socket)
+    val s1 = readS1(socket)
+    writeC2(socket, s1)
     socket.flush()
-    input = socket.getInputStream()
-    readS2(input, c1)
+    readS2(socket, c1)
     return true
   }
 
   @Throws(IOException::class)
-  private fun writeC0(output: OutputStream) {
+  private suspend fun writeC0(output: RtmpSocket) {
     Log.i(TAG, "writing C0")
     output.write(protocolVersion)
     Log.i(TAG, "C0 write successful")
   }
 
   @Throws(IOException::class)
-  private fun writeC1(output: OutputStream): ByteArray {
+  private suspend fun writeC1(output: RtmpSocket): ByteArray {
     Log.i(TAG, "writing C1")
     val c1 = ByteArray(handshakeSize)
 
@@ -131,14 +127,14 @@ class Handshake {
   }
 
   @Throws(IOException::class)
-  private fun writeC2(output: OutputStream, s1: ByteArray) {
+  private suspend fun writeC2(output: RtmpSocket, s1: ByteArray) {
     Log.i(TAG, "writing C2")
     output.write(s1)
     Log.i(TAG, "C2 write successful")
   }
 
   @Throws(IOException::class)
-  private fun readS0(input: InputStream): ByteArray {
+  private suspend fun readS0(input: RtmpSocket): ByteArray {
     Log.i(TAG, "reading S0")
     val response = input.read()
     if (response == protocolVersion || response == 72) {
@@ -150,7 +146,7 @@ class Handshake {
   }
 
   @Throws(IOException::class)
-  private fun readS1(input: InputStream): ByteArray {
+  private suspend fun readS1(input: RtmpSocket): ByteArray {
     Log.i(TAG, "reading S1")
     val s1 = ByteArray(handshakeSize)
     input.readUntil(s1)
@@ -159,7 +155,7 @@ class Handshake {
   }
 
   @Throws(IOException::class)
-  private fun readS2(input: InputStream, c1: ByteArray): ByteArray {
+  private suspend fun readS2(input: RtmpSocket, c1: ByteArray): ByteArray {
     Log.i(TAG, "reading S2")
     val s2 = ByteArray(handshakeSize)
     input.readUntil(s2)

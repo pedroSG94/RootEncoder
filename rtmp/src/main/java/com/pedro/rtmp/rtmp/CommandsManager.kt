@@ -93,13 +93,12 @@ abstract class CommandsManager {
   @Throws(IOException::class)
   suspend fun sendChunkSize(socket: RtmpSocket) {
     writeSync.withLock {
-      val output = socket.getOutStream()
       if (RtmpConfig.writeChunkSize != RtmpConfig.DEFAULT_CHUNK_SIZE) {
         val chunkSize = SetChunkSize(RtmpConfig.writeChunkSize)
         chunkSize.header.timeStamp = getCurrentTimestamp()
         chunkSize.header.messageStreamId = streamId
-        chunkSize.writeHeader(output)
-        chunkSize.writeBody(output)
+        chunkSize.writeHeader(socket)
+        chunkSize.writeBody(socket)
         socket.flush()
         Log.i(TAG, "send $chunkSize")
       } else {
@@ -111,8 +110,7 @@ abstract class CommandsManager {
   @Throws(IOException::class)
   suspend fun sendConnect(auth: String, socket: RtmpSocket) {
     writeSync.withLock {
-      val output = socket.getOutStream()
-      sendConnect(auth, output)
+      sendConnectImp(auth, socket)
       socket.flush()
     }
   }
@@ -120,16 +118,14 @@ abstract class CommandsManager {
   @Throws(IOException::class)
   suspend fun createStream(socket: RtmpSocket) {
     writeSync.withLock {
-      val output = socket.getOutStream()
-      createStream(output)
+      createStreamImp(socket)
       socket.flush()
     }
   }
 
   @Throws(IOException::class)
-  fun readMessageResponse(socket: RtmpSocket): RtmpMessage {
-    val input = socket.getInputStream()
-    val message = RtmpMessage.getRtmpMessage(input, readChunkSize, sessionHistory)
+  suspend fun readMessageResponse(socket: RtmpSocket): RtmpMessage {
+    val message = RtmpMessage.getRtmpMessage(socket, readChunkSize, sessionHistory)
     sessionHistory.setReadHeader(message.header)
     Log.i(TAG, "read $message")
     bytesRead += message.header.getPacketLength()
@@ -139,8 +135,7 @@ abstract class CommandsManager {
   @Throws(IOException::class)
   suspend fun sendMetadata(socket: RtmpSocket) {
     writeSync.withLock {
-      val output = socket.getOutStream()
-      sendMetadata(output)
+      sendMetadataImp(socket)
       socket.flush()
     }
   }
@@ -148,8 +143,7 @@ abstract class CommandsManager {
   @Throws(IOException::class)
   suspend fun sendPublish(socket: RtmpSocket) {
     writeSync.withLock {
-      val output = socket.getOutStream()
-      sendPublish(output)
+      sendPublishImp(socket)
       socket.flush()
     }
   }
@@ -157,20 +151,18 @@ abstract class CommandsManager {
   @Throws(IOException::class)
   suspend fun sendWindowAcknowledgementSize(socket: RtmpSocket) {
     writeSync.withLock {
-      val output = socket.getOutStream()
       val windowAcknowledgementSize = WindowAcknowledgementSize(RtmpConfig.acknowledgementWindowSize, getCurrentTimestamp())
-      windowAcknowledgementSize.writeHeader(output)
-      windowAcknowledgementSize.writeBody(output)
+      windowAcknowledgementSize.writeHeader(socket)
+      windowAcknowledgementSize.writeBody(socket)
       socket.flush()
     }
   }
 
   suspend fun sendPong(event: Event, socket: RtmpSocket) {
     writeSync.withLock {
-      val output = socket.getOutStream()
       val pong = UserControl(Type.PONG_REPLY, event)
-      pong.writeHeader(output)
-      pong.writeBody(output)
+      pong.writeHeader(socket)
+      pong.writeBody(socket)
       socket.flush()
       Log.i(TAG, "send pong")
     }
@@ -179,8 +171,7 @@ abstract class CommandsManager {
   @Throws(IOException::class)
   suspend fun sendClose(socket: RtmpSocket) {
     writeSync.withLock {
-      val output = socket.getOutStream()
-      sendClose(output)
+      sendCloseImp(socket)
       socket.flush()
     }
   }
@@ -190,11 +181,10 @@ abstract class CommandsManager {
       if (bytesRead >= RtmpConfig.acknowledgementWindowSize) {
         acknowledgementSequence += bytesRead
         bytesRead -= RtmpConfig.acknowledgementWindowSize
-        val output = socket.getOutStream()
         val acknowledgement = Acknowledgement(acknowledgementSequence)
-        acknowledgement.writeHeader(output)
-        acknowledgement.writeBody(output)
-        output.flush()
+        acknowledgement.writeHeader(socket)
+        acknowledgement.writeBody(socket)
+        socket.flush()
         Log.i(TAG, "send $acknowledgement")
       }
     }
@@ -203,13 +193,12 @@ abstract class CommandsManager {
   @Throws(IOException::class)
   suspend fun sendVideoPacket(flvPacket: FlvPacket, socket: RtmpSocket): Int {
     writeSync.withLock {
-      val output = socket.getOutStream()
       if (incrementalTs) {
         flvPacket.timeStamp = ((TimeUtils.getCurrentTimeNano() / 1000 - startTs) / 1000)
       }
       val video = Video(flvPacket, streamId)
-      video.writeHeader(output)
-      video.writeBody(output)
+      video.writeHeader(socket)
+      video.writeBody(socket)
       socket.flush(true)
       return video.header.getPacketLength() //get packet size with header included to calculate bps
     }
@@ -218,23 +207,22 @@ abstract class CommandsManager {
   @Throws(IOException::class)
   suspend fun sendAudioPacket(flvPacket: FlvPacket, socket: RtmpSocket): Int {
     writeSync.withLock {
-      val output = socket.getOutStream()
       if (incrementalTs) {
         flvPacket.timeStamp = ((TimeUtils.getCurrentTimeNano() / 1000 - startTs) / 1000)
       }
       val audio = Audio(flvPacket, streamId)
-      audio.writeHeader(output)
-      audio.writeBody(output)
+      audio.writeHeader(socket)
+      audio.writeBody(socket)
       socket.flush(true)
       return audio.header.getPacketLength() //get packet size with header included to calculate bps
     }
   }
 
-  abstract fun sendConnect(auth: String, output: OutputStream)
-  abstract fun createStream(output: OutputStream)
-  abstract fun sendMetadata(output: OutputStream)
-  abstract fun sendPublish(output: OutputStream)
-  abstract fun sendClose(output: OutputStream)
+  abstract suspend fun sendConnectImp(auth: String, output: RtmpSocket)
+  abstract suspend fun createStreamImp(output: RtmpSocket)
+  abstract suspend fun sendMetadataImp(output: RtmpSocket)
+  abstract suspend fun sendPublishImp(output: RtmpSocket)
+  abstract suspend fun sendCloseImp(output: RtmpSocket)
 
   fun reset() {
     startTs = 0
