@@ -18,6 +18,8 @@ package com.pedro.rtmp.utils.socket
 
 import android.util.Log
 import com.pedro.common.TimeUtils
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import java.io.*
 import java.net.HttpURLConnection
 import java.net.SocketTimeoutException
@@ -63,13 +65,13 @@ class TcpTunneledSocket(private val host: String, private val port: Int, private
     return input
   }
 
-  override fun flush(isPacket: Boolean) {
+  override suspend fun flush(isPacket: Boolean) = withContext(Dispatchers.IO) {
     synchronized(sync) {
       if (isPacket && storedPackets < maxStoredPackets) {
         storedPackets++
-        return
+        return@withContext
       }
-      if (!connected) return
+      if (!connected) return@withContext
       val i = index.addAndGet(1)
       val bytes = output.toByteArray()
       output.reset()

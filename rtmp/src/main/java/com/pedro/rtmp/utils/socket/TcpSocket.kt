@@ -17,6 +17,8 @@
 package com.pedro.rtmp.utils.socket
 
 import com.pedro.common.TLSSocketFactory
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import java.io.IOException
@@ -40,13 +42,13 @@ class TcpSocket(
 
   private var socket: Socket = Socket()
   private var input = ByteArrayInputStream(byteArrayOf()).buffered()
-  private var output = ByteArrayOutputStream().buffered()
+  private var output: OutputStream = ByteArrayOutputStream()
 
   override fun getOutStream(): OutputStream = output
 
   override fun getInputStream(): InputStream = input
 
-  override fun flush(isPacket: Boolean) {
+  override suspend fun flush(isPacket: Boolean) = withContext(Dispatchers.IO) {
     getOutStream().flush()
   }
 
@@ -63,7 +65,7 @@ class TcpSocket(
       val socketAddress: SocketAddress = InetSocketAddress(host, port)
       socket.connect(socketAddress, timeout)
     }
-    output = socket.getOutputStream().buffered()
+    output = socket.getOutputStream()
     input = socket.getInputStream().buffered()
     socket.soTimeout = timeout
   }

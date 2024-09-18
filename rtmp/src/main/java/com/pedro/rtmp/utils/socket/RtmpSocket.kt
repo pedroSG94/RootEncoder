@@ -34,7 +34,7 @@ abstract class RtmpSocket {
 
   abstract fun getOutStream(): OutputStream
   abstract fun getInputStream(): InputStream
-  abstract fun flush(isPacket: Boolean = false)
+  abstract suspend fun flush(isPacket: Boolean = false)
   abstract fun connect()
   abstract fun close()
   abstract fun isConnected(): Boolean
