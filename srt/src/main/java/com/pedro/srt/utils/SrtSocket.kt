@@ -34,20 +34,14 @@ class SrtSocket(host: String, port: Int) {
     socket.close()
   }
 
-  fun isConnected(): Boolean {
-    return socket.isConnected()
-  }
+  fun isConnected() = socket.isConnected()
 
-  fun isReachable(): Boolean {
-    return socket.isReachable()
-  }
+  fun isReachable() = socket.isReachable()
 
   suspend fun write(srtPacket: SrtPacket) {
     val buffer = srtPacket.getData()
     socket.writePacket(buffer)
   }
 
-  suspend fun readBuffer(): ByteArray {
-    return socket.readPacket()
-  }
+  suspend fun readBuffer() = socket.readPacket()
 }

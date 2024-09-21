@@ -31,11 +31,11 @@ import io.ktor.utils.io.core.readBytes
  * Created by pedro on 22/9/24.
  */
 class UdpStreamSocket(
-  private val host: String,
-  private val port: Int,
+  host: String,
+  port: Int,
   private val sourcePort: Int? = null,
-  private val broadcastMode: Boolean = false,
-  private val receiveSize: Int? = null
+  private val receiveSize: Int? = null,
+  private val broadcastMode: Boolean = false
 ): StreamSocket(host, port) {
 
   private val address = InetSocketAddress(host, port)
@@ -45,7 +45,7 @@ class UdpStreamSocket(
 
   override suspend fun buildSocketConfigAndConnect(selectorManager: SelectorManager): ReadWriteSocket {
     val builder = aSocket(selectorManager).udp()
-    val localAddress = if (sourcePort == null) null else InetSocketAddress("localhost", sourcePort)
+    val localAddress = if (sourcePort == null) null else InetSocketAddress("0.0.0.0", sourcePort)
     return builder.connect(
       remoteAddress = address,
       localAddress = localAddress
