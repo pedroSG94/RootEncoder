@@ -1,10 +1,10 @@
 [versions]
 libraryGroup = "com.github.pedroSG94"
-versionCode = "250"
-versionName = "2.5.0"
+versionCode = "251"
+versionName = "2.5.1"
 
 #plugins versions
-agp = "8.6.0"
+agp = "8.6.1"
 kotlin = "2.0.20"
 dokka = "1.9.20"
 
