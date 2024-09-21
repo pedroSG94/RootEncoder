@@ -16,58 +16,38 @@
 
 package com.pedro.srt.utils
 
+import com.pedro.common.socket.UdpStreamSocket
 import com.pedro.srt.srt.packets.SrtPacket
-import java.net.DatagramPacket
-import java.net.DatagramSocket
-import java.net.InetAddress
 
 /**
  * Created by pedro on 22/8/23.
  */
-class SrtSocket(private val host: String, private val port: Int) {
+class SrtSocket(host: String, port: Int) {
 
-  private val TAG = "SrtSocket"
-  private var socket: DatagramSocket? = null
-  private var packetSize = Constants.MTU
-  private val timeout = 5000
+  private val socket = UdpStreamSocket(host, port, receiveSize = Constants.MTU)
 
-  fun connect() {
-    val address = InetAddress.getByName(host)
-    socket = DatagramSocket()
-    socket?.connect(address, port)
-    socket?.soTimeout = timeout
+  suspend fun connect() {
+    socket.connect()
   }
 
-  fun close() {
-    if (socket?.isClosed == false) {
-      socket?.disconnect()
-      socket?.close()
-      socket = null
-    }
+  suspend fun close() {
+    socket.close()
   }
 
   fun isConnected(): Boolean {
-    return socket?.isConnected ?: false
+    return socket.isConnected()
   }
 
   fun isReachable(): Boolean {
-    return socket?.inetAddress?.isReachable(5000) ?: false
+    return socket.isReachable()
   }
 
-  fun setPacketSize(size: Int) {
-    packetSize = size
-  }
-
-  fun write(srtPacket: SrtPacket) {
+  suspend fun write(srtPacket: SrtPacket) {
     val buffer = srtPacket.getData()
-    val udpPacket = DatagramPacket(buffer, buffer.size)
-    socket?.send(udpPacket)
+    socket.writePacket(buffer)
   }
 
-  fun readBuffer(): ByteArray {
-    val buffer = ByteArray(packetSize)
-    val udpPacket = DatagramPacket(buffer, buffer.size)
-    socket?.receive(udpPacket)
-    return udpPacket.data.sliceArray(0 until udpPacket.length)
+  suspend fun readBuffer(): ByteArray {
+    return socket.readPacket()
   }
 }

@@ -39,7 +39,7 @@ import java.net.MulticastSocket
  * Created by pedro on 9/9/23.
  */
 @RunWith(MockitoJUnitRunner::class)
-class RtpSocketTest {
+class RtpStreamSocketTest {
 
   @Mock
   private lateinit var multicastSocketMocked: MulticastSocket

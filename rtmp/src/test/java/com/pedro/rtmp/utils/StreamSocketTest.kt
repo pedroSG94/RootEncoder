@@ -19,7 +19,7 @@ package com.pedro.rtmp.utils
 import com.pedro.rtmp.utils.socket.TcpSocket
 import org.junit.Test
 
-class SocketTest {
+class StreamSocketTest {
 
     @Test
     fun `check tcp socket error with socket not connected`() {
