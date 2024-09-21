@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:title="@string/audio_source">
+        <menu>
+            <item
+                android:title="@string/microphone"
+                android:id="@+id/audio_source_microphone"
+                />
+            <item
+                android:title="@string/internal"
+                android:id="@+id/audio_source_internal"
+                />
+            <item
+                android:title="@string/mix"
+                android:id="@+id/audio_source_mix"
+                />
+        </menu>
+    </item>
+</menu>

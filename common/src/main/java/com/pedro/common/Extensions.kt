@@ -130,3 +130,9 @@ fun <T> CameraCharacteristics.secureGet(key: CameraCharacteristics.Key<T>): T? {
 fun <T> CaptureRequest.Builder.secureGet(key: CaptureRequest.Key<T>): T? {
   return try { get(key) } catch (e: IllegalArgumentException) { null }
 }
+
+fun String.getIndexes(char: Char): Array<Int> {
+  val indexes = mutableListOf<Int>()
+  forEachIndexed { index, c -> if (c == char) indexes.add(index) }
+  return indexes.toTypedArray()
+}

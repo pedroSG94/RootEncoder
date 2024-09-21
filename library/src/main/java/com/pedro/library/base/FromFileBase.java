@@ -245,7 +245,7 @@ public abstract class FromFileBase {
   private boolean finishPrepareAudio(int bitRate) {
     audioDecoder.prepareAudio();
     boolean result = audioEncoder.prepareAudioEncoder(bitRate, audioDecoder.getSampleRate(),
-        audioDecoder.isStereo(), audioDecoder.getOutsize());
+        audioDecoder.isStereo());
     onAudioInfoImp(audioDecoder.isStereo(), audioDecoder.getSampleRate());
     audioEnabled = result;
     return result;

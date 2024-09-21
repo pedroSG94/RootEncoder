@@ -21,7 +21,6 @@ import android.app.Service
 import android.content.Context
 import android.graphics.BlendMode
 import android.graphics.BlendModeColorFilter
-import android.graphics.Color
 import android.graphics.PorterDuff
 import android.graphics.drawable.Drawable
 import android.os.Build
@@ -33,6 +32,7 @@ import androidx.annotation.ColorInt
 import androidx.annotation.ColorRes
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
+import com.pedro.streamer.R
 
 
 /**
@@ -68,4 +68,10 @@ fun Drawable.setColorFilter(@ColorInt color: Int) {
   } else {
     setColorFilter(color, PorterDuff.Mode.SRC_IN)
   }
+}
+
+fun MenuItem.updateMenuColor(context: Context, currentItem: MenuItem?): MenuItem {
+  currentItem?.setColor(context, R.color.black)
+  setColor(context, R.color.appColor)
+  return this
 }

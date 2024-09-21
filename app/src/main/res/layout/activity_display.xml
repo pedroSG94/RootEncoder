@@ -30,6 +30,19 @@
       app:layout_constraintBottom_toBottomOf="parent"
       android:layout_margin="16dp"
       >
+
+    <ImageView
+        android:src="@drawable/record_icon"
+        android:layout_width="64dp"
+        android:layout_height="64dp"
+        android:id="@+id/b_record"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toStartOf="@id/b_start_stop"
+        app:layout_constraintHorizontal_chainStyle="spread"
+        />
+
   <ImageView
       android:src="@drawable/stream_icon"
       android:layout_width="98dp"
@@ -38,17 +51,6 @@
       app:layout_constraintBottom_toBottomOf="parent"
       app:layout_constraintEnd_toEndOf="parent"
       app:layout_constraintStart_toStartOf="parent"
-      />
-
-  <ImageView
-      android:src="@drawable/microphone_icon"
-      android:layout_width="64dp"
-      android:layout_height="64dp"
-      android:id="@+id/b_toggleAudio"
-      app:layout_constraintTop_toTopOf="parent"
-      app:layout_constraintBottom_toBottomOf="parent"
-      app:layout_constraintEnd_toEndOf="parent"
-      app:layout_constraintStart_toEndOf="@id/b_start_stop"
       />
   </androidx.constraintlayout.widget.ConstraintLayout>
 </androidx.constraintlayout.widget.ConstraintLayout>

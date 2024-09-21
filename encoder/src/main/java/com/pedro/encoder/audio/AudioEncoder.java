@@ -43,7 +43,7 @@ public class AudioEncoder extends BaseEncoder implements GetMicrophoneData {
   private final GetAudioData getAudioData;
   private int bitRate = 64 * 1024;  //in kbps
   private int sampleRate = 32000; //in hz
-  private int maxInputSize = 0;
+  public static final int inputSize = 8192;
   private boolean isStereo = true;
   private GetFrame getFrame;
   private long bytesRead = 0;
@@ -59,13 +59,11 @@ public class AudioEncoder extends BaseEncoder implements GetMicrophoneData {
   /**
    * Prepare encoder with custom parameters
    */
-  public boolean prepareAudioEncoder(int bitRate, int sampleRate, boolean isStereo,
-      int maxInputSize) {
+  public boolean prepareAudioEncoder(int bitRate, int sampleRate, boolean isStereo) {
     if (prepared) stop();
 
     this.bitRate = bitRate;
     this.sampleRate = sampleRate;
-    this.maxInputSize = maxInputSize;
     this.isStereo = isStereo;
     isBufferMode = true;
 
@@ -90,7 +88,7 @@ public class AudioEncoder extends BaseEncoder implements GetMicrophoneData {
       int channelCount = (isStereo) ? 2 : 1;
       MediaFormat audioFormat = MediaFormat.createAudioFormat(type, sampleRate, channelCount);
       audioFormat.setInteger(MediaFormat.KEY_BIT_RATE, bitRate);
-      audioFormat.setInteger(MediaFormat.KEY_MAX_INPUT_SIZE, maxInputSize);
+      audioFormat.setInteger(MediaFormat.KEY_MAX_INPUT_SIZE, inputSize);
       audioFormat.setInteger(MediaFormat.KEY_AAC_PROFILE,
           MediaCodecInfo.CodecProfileLevel.AACObjectLC);
       setCallback();
@@ -114,7 +112,7 @@ public class AudioEncoder extends BaseEncoder implements GetMicrophoneData {
    * Prepare encoder with default parameters
    */
   public boolean prepareAudioEncoder() {
-    return prepareAudioEncoder(bitRate, sampleRate, isStereo, maxInputSize);
+    return prepareAudioEncoder(bitRate, sampleRate, isStereo);
   }
 
   @Override
@@ -132,7 +130,7 @@ public class AudioEncoder extends BaseEncoder implements GetMicrophoneData {
   @Override
   public boolean reset() {
     stop(false);
-    boolean result = prepareAudioEncoder(bitRate, sampleRate, isStereo, maxInputSize);
+    boolean result = prepareAudioEncoder(bitRate, sampleRate, isStereo);
     if (!result) return false;
     restart();
     return true;

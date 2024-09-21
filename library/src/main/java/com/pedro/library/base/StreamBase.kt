@@ -41,9 +41,9 @@ import com.pedro.library.base.recording.BaseRecordController
 import com.pedro.library.base.recording.RecordController
 import com.pedro.library.util.AndroidMuxerRecordController
 import com.pedro.library.util.FpsListener
-import com.pedro.library.util.sources.audio.AudioSource
-import com.pedro.library.util.sources.video.NoVideoSource
-import com.pedro.library.util.sources.video.VideoSource
+import com.pedro.encoder.input.sources.audio.AudioSource
+import com.pedro.encoder.input.sources.video.NoVideoSource
+import com.pedro.encoder.input.sources.video.VideoSource
 import com.pedro.library.util.streamclient.StreamBaseClient
 import com.pedro.library.view.GlStreamInterface
 import java.nio.ByteBuffer
@@ -59,9 +59,9 @@ import java.nio.ByteBuffer
  */
 @RequiresApi(Build.VERSION_CODES.LOLLIPOP)
 abstract class StreamBase(
-  context: Context,
-  vSource: VideoSource,
-  aSource: AudioSource
+    context: Context,
+    vSource: VideoSource,
+    aSource: AudioSource
 ) {
 
   private val getMicrophoneData = object: GetMicrophoneData {
@@ -112,6 +112,7 @@ abstract class StreamBase(
       val isPortrait = rotation == 90 || rotation == 270
       glInterface.setIsPortrait(isPortrait)
       glInterface.setCameraOrientation(if (rotation == 0) 270 else rotation - 90)
+      glInterface.forceOrientation(videoSource.getOrientationConfig())
       return videoEncoder.prepareVideoEncoder(width, height, fps, bitrate, rotation,
         iFrameInterval, FormatVideoEncoder.SURFACE, profile, level)
     }
@@ -135,7 +136,7 @@ abstract class StreamBase(
     val audioResult = audioSource.init(sampleRate, isStereo, echoCanceler, noiseSuppressor)
     if (audioResult) {
       onAudioInfoImp(sampleRate, isStereo)
-      return audioEncoder.prepareAudioEncoder(bitrate, sampleRate, isStereo, audioSource.getMaxInputSize())
+      return audioEncoder.prepareAudioEncoder(bitrate, sampleRate, isStereo)
     }
     return false
   }
@@ -313,6 +314,7 @@ abstract class StreamBase(
     videoSource.stop()
     videoSource.release()
     if (wasRunning) source.start(glInterface.surfaceTexture)
+    glInterface.forceOrientation(source.getOrientationConfig())
     videoSource = source
   }
 

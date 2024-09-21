@@ -1,10 +1,10 @@
 [versions]
 libraryGroup = "com.github.pedroSG94"
-versionCode = "250"
-versionName = "2.5.0"
+versionCode = "251"
+versionName = "2.5.1"
 
 #plugins versions
-agp = "8.5.2"
+agp = "8.6.1"
 kotlin = "1.8.22"
 dokka = "1.9.20"
 
@@ -15,9 +15,10 @@ constraintlayout = "2.1.4"
 camerax = "1.3.4"
 multidex = "2.0.1"
 annotation = "1.8.2"
-coroutines = "1.8.1"
+coroutines = "1.9.0"
 junit = "4.13.2"
 mockito = "5.4.0"
+uvcandroid = "1.0.7"
 
 [libraries]
 androidx-annotation = { module = "androidx.annotation:annotation", version.ref = "annotation" }
@@ -31,6 +32,7 @@ junit = { module = "junit:junit", version.ref = "junit" }
 kotlinx-coroutines-android = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-android", version.ref = "coroutines" }
 kotlinx-coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test", version.ref = "coroutines" }
 mockito-kotlin = { module = "org.mockito.kotlin:mockito-kotlin", version.ref = "mockito" }
+uvcandroid = { module = "com.herohan:UVCAndroid", version.ref = "uvcandroid" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

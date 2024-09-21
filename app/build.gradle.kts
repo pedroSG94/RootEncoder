@@ -35,8 +35,8 @@ android {
 
 dependencies {
   implementation(project(":library"))
+  implementation(project(":extra-sources"))
   implementation(libs.androidx.constraintlayout)
   implementation(libs.androidx.appcompat)
   implementation(libs.androidx.multidex)
-  implementation(libs.bundles.androidx.camera)
 }

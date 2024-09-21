@@ -13,6 +13,9 @@ com.pedro.encoder.input.gl
 com.pedro.encoder.input.gl.render
 com.pedro.encoder.input.gl.render.filters
 com.pedro.encoder.input.gl.render.filters.object
+com.pedro.encoder.input.sources
+com.pedro.encoder.input.sources.audio
+com.pedro.encoder.input.sources.video
 com.pedro.encoder.input.video
 com.pedro.encoder.input.video.facedetector
 com.pedro.encoder.utils
@@ -20,6 +23,8 @@ com.pedro.encoder.utils.gl
 com.pedro.encoder.utils.gl.gif
 com.pedro.encoder.utils.yuv
 com.pedro.encoder.video
+module:extra-sources
+com.pedro.extrasources
 module:library
 com.pedro.library.base
 com.pedro.library.base.recording
@@ -30,8 +35,6 @@ com.pedro.library.rtsp
 com.pedro.library.srt
 com.pedro.library.udp
 com.pedro.library.util
-com.pedro.library.util.sources.audio
-com.pedro.library.util.sources.video
 com.pedro.library.util.streamclient
 com.pedro.library.view
 module:rtmp
