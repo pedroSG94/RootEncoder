@@ -71,7 +71,7 @@ class RtmpClient(private val connectChecker: ConnectChecker) {
 
   private var url: String? = null
   private var tlsEnabled = false
-  private var certificates: Array<TrustManager>? = null
+  private var certificates: TrustManager? = null
   private var tunneled = false
 
   private var doingRetry = false
@@ -95,7 +95,7 @@ class RtmpClient(private val connectChecker: ConnectChecker) {
   /**
    * Add certificates for TLS connection
    */
-  fun addCertificates(certificates: Array<TrustManager>?) {
+  fun addCertificates(certificates: TrustManager?) {
     this.certificates = certificates
   }
 
@@ -308,7 +308,7 @@ class RtmpClient(private val connectChecker: ConnectChecker) {
   }
 
   @Throws(IOException::class)
-  private fun establishConnection(): Boolean {
+  private suspend fun establishConnection(): Boolean {
     val socket = if (tunneled) {
       TcpTunneledSocket(commandsManager.host, commandsManager.port, tlsEnabled)
     } else {
@@ -491,7 +491,7 @@ class RtmpClient(private val connectChecker: ConnectChecker) {
     }
   }
 
-  fun closeConnection() {
+  suspend fun closeConnection() {
     socket?.close()
     commandsManager.reset()
   }
