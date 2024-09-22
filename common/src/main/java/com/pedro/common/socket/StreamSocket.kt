@@ -21,17 +21,8 @@ package com.pedro.common.socket
 import io.ktor.network.selector.SelectorManager
 import io.ktor.network.sockets.ReadWriteSocket
 import io.ktor.network.sockets.isClosed
-import io.ktor.network.sockets.openReadChannel
-import io.ktor.network.sockets.openWriteChannel
-import io.ktor.utils.io.ByteReadChannel
-import io.ktor.utils.io.ByteWriteChannel
-import io.ktor.utils.io.readFully
-import io.ktor.utils.io.writeByte
-import io.ktor.utils.io.writeFully
-import io.ktor.utils.io.writeStringUtf8
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import java.io.IOException
 import java.net.InetAddress
 import java.net.InetSocketAddress
 

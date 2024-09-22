@@ -108,10 +108,7 @@ class TcpStreamSocket(
   }
 
   suspend fun writeUInt32LittleEndian(b: Int) {
-    output?.writeByte(b)
-    output?.writeByte(b ushr 8)
-    output?.writeByte(b ushr 16)
-    output?.writeByte(b ushr 24)
+    writeUInt32(Integer.reverseBytes(b))
   }
 
   suspend fun read(): Int {
