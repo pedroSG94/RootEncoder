@@ -30,8 +30,8 @@ import java.io.IOException
 abstract class BaseSenderReport internal constructor() {
 
   private val interval: Long = 3000
-  private val videoBuffer = ByteArray(RtpConstants.MTU)
-  private val audioBuffer = ByteArray(RtpConstants.MTU)
+  private val videoBuffer = ByteArray(RtpConstants.REPORT_PACKET_LENGTH)
+  private val audioBuffer = ByteArray(RtpConstants.REPORT_PACKET_LENGTH)
   private var videoTime: Long = 0
   private var audioTime: Long = 0
   private var videoPacketCount = 0L

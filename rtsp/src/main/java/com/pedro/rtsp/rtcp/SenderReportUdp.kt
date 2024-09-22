@@ -19,6 +19,7 @@ package com.pedro.rtsp.rtcp
 import com.pedro.common.socket.TcpStreamSocket
 import com.pedro.common.socket.UdpStreamSocket
 import com.pedro.rtsp.rtsp.RtpFrame
+import com.pedro.rtsp.utils.RtpConstants
 import java.io.IOException
 
 /**
@@ -31,10 +32,10 @@ class SenderReportUdp(
 ) : BaseSenderReport() {
 
   private val videoSocket = UdpStreamSocket(
-    host, videoServerPort, videoSourcePort
+    host, videoServerPort, videoSourcePort, receiveSize = RtpConstants.REPORT_PACKET_LENGTH
   )
   private val audioSocket = UdpStreamSocket(
-    host, audioServerPort, audioSourcePort
+    host, audioServerPort, audioSourcePort, receiveSize = RtpConstants.REPORT_PACKET_LENGTH
   )
 
   @Throws(IOException::class)
@@ -54,7 +55,7 @@ class SenderReportUdp(
   }
 
   @Throws(IOException::class)
-  private suspend fun sendReportUDP(buffer: ByteArray,isVideo: Boolean) {
+  private suspend fun sendReportUDP(buffer: ByteArray, isVideo: Boolean) {
     if (isVideo) {
       videoSocket.writePacket(buffer)
     } else {

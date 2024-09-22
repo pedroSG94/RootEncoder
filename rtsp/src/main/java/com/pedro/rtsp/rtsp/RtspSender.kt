@@ -81,7 +81,7 @@ class RtspSender(
   }
 
   @Throws(IOException::class)
-  suspend fun setSocketsInfo(
+  fun setSocketsInfo(
     protocol: Protocol, host: String,
     videoSourcePorts: IntArray, audioSourcePorts: IntArray,
     videoServerPorts: IntArray, audioServerPorts: IntArray,

@@ -377,7 +377,7 @@ class RtspClient(private val connectChecker: ConnectChecker) {
     Send a heartbeat to know if server is alive using Echo Protocol.
     Your firewall could block it.
    */
-  private suspend fun isAlive(): Boolean {
+  private fun isAlive(): Boolean {
     val connected = socket?.isConnected() ?: false
     if (!checkServerAlive) return connected
     val reachable = socket?.isReachable() ?: false

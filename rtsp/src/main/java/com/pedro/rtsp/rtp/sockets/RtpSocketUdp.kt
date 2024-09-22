@@ -19,6 +19,7 @@ package com.pedro.rtsp.rtp.sockets
 import com.pedro.common.socket.TcpStreamSocket
 import com.pedro.common.socket.UdpStreamSocket
 import com.pedro.rtsp.rtsp.RtpFrame
+import com.pedro.rtsp.utils.RtpConstants
 import java.io.IOException
 
 /**
@@ -31,10 +32,10 @@ class RtpSocketUdp(
 ) : BaseRtpSocket() {
 
   private val videoSocket = UdpStreamSocket(
-    host, videoServerPort, videoSourcePort
+    host, videoServerPort, videoSourcePort, receiveSize = RtpConstants.MTU
   )
   private val audioSocket = UdpStreamSocket(
-    host, audioServerPort, audioSourcePort
+    host, audioServerPort, audioSourcePort, receiveSize = RtpConstants.MTU
   )
 
   @Throws(IOException::class)
