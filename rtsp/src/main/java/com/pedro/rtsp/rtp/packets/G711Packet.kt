@@ -54,7 +54,7 @@ class G711Packet(
       markPacket(buffer)
       val rtpTs = updateTimeStamp(buffer, ts)
       updateSeq(buffer)
-      val rtpFrame = RtpFrame(buffer, rtpTs, RtpConstants.RTP_HEADER_LENGTH + size , rtpPort, rtcpPort, channelIdentifier)
+      val rtpFrame = RtpFrame(buffer, rtpTs, RtpConstants.RTP_HEADER_LENGTH + size , channelIdentifier)
       sum += size
       frames.add(rtpFrame)
     }

@@ -53,7 +53,6 @@ abstract class StreamSocket(
   suspend fun connect() {
     selectorManager = SelectorManager(Dispatchers.IO)
     val socket = buildSocketConfigAndConnect(selectorManager)
-
     address = InetSocketAddress(host, port).address
     this.socket = socket
   }
@@ -70,5 +69,4 @@ abstract class StreamSocket(
   fun isConnected(): Boolean = socket?.isClosed != true
 
   fun isReachable(): Boolean = address?.isReachable(5000) ?: false
-
 }

@@ -49,7 +49,7 @@ class RtpStreamSocketTest {
   @Test
   fun `GIVEN multiple video or audio rtp frames WHEN update rtcp tcp send THEN send only 1 of video and 1 of audio each 3 seconds`() = runTest {
     val senderReportTcp = BaseRtpSocket.getInstance(Protocol.TCP, 0, 1)
-    senderReportTcp.setDataStream(outputMocked, "127.0.0.1")
+    senderReportTcp.setSocket(outputMocked, "127.0.0.1")
     val fakeFrameVideo = RtpFrame(byteArrayOf(0x00, 0x00, 0x00), 0, 3, 0, 0, RtpConstants.trackVideo)
     val fakeFrameAudio = RtpFrame(byteArrayOf(0x00, 0x00, 0x00), 0, 3, 0, 0, RtpConstants.trackAudio)
     (0 until 10).forEach { value ->
@@ -65,7 +65,7 @@ class RtpStreamSocketTest {
   @Test
   fun `GIVEN multiple video or audio rtp frames WHEN update rtcp udp send THEN send only 1 of video and 1 of audio each 3 seconds`() = runTest {
     val senderReportUdp = RtpSocketUdp(11111, 11112, multicastSocketMocked, multicastSocketMocked)
-    senderReportUdp.setDataStream(outputMocked, "127.0.0.1")
+    senderReportUdp.setSocket(outputMocked, "127.0.0.1")
     val fakeFrameVideo = RtpFrame(byteArrayOf(0x00, 0x00, 0x00), 0, 3, 0, 0, RtpConstants.trackVideo)
     val fakeFrameAudio = RtpFrame(byteArrayOf(0x00, 0x00, 0x00), 0, 3, 0, 0, RtpConstants.trackAudio)
     (0 until 10).forEach { value ->

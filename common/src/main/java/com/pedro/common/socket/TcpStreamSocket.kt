@@ -21,15 +21,14 @@ package com.pedro.common.socket
 import io.ktor.network.selector.SelectorManager
 import io.ktor.network.sockets.InetSocketAddress
 import io.ktor.network.sockets.ReadWriteSocket
-import io.ktor.network.sockets.Socket
 import io.ktor.network.sockets.aSocket
 import io.ktor.network.sockets.openReadChannel
 import io.ktor.network.sockets.openWriteChannel
-import io.ktor.network.tls.CertificateAndKey
 import io.ktor.network.tls.tls
 import io.ktor.utils.io.ByteReadChannel
 import io.ktor.utils.io.ByteWriteChannel
 import io.ktor.utils.io.readFully
+import io.ktor.utils.io.readUTF8Line
 import io.ktor.utils.io.writeByte
 import io.ktor.utils.io.writeFully
 import io.ktor.utils.io.writeStringUtf8
@@ -44,8 +43,8 @@ import kotlin.coroutines.coroutineContext
 class TcpStreamSocket(
   private val host: String,
   private val port: Int,
-  private val secured: Boolean,
-  private val certificate: TrustManager
+  private val secured: Boolean = false,
+  private val certificate: TrustManager? = null
 ): StreamSocket(host, port) {
 
   private val timeout = 5000L
@@ -139,12 +138,12 @@ class TcpStreamSocket(
     return input?.readFully(b) ?: throw IOException("read with socket closed")
   }
 
-  suspend fun readString(): String {
-    val limit = input?.availableForRead ?: throw IOException("read with socket closed")
-    return input?.readUTF8Line(limit) ?: throw IOException("read with socket closed")
+  suspend fun readLine(): String? {
+    val input = input ?: throw IOException("read with socket closed")
+    return input.readUTF8Line()
   }
 
-  suspend fun writeString(string: String) {
+  suspend fun write(string: String) {
     output?.writeStringUtf8(string)
   }
 }

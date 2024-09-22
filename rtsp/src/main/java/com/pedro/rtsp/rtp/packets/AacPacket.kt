@@ -72,7 +72,7 @@ class AacPacket(
       buffer[RtpConstants.RTP_HEADER_LENGTH + 3] = buffer[RtpConstants.RTP_HEADER_LENGTH + 3] and 0xF8.toByte()
       buffer[RtpConstants.RTP_HEADER_LENGTH + 3] = buffer[RtpConstants.RTP_HEADER_LENGTH + 3] or 0x00
       updateSeq(buffer)
-      val rtpFrame = RtpFrame(buffer, rtpTs, RtpConstants.RTP_HEADER_LENGTH + size + 4, rtpPort, rtcpPort, channelIdentifier)
+      val rtpFrame = RtpFrame(buffer, rtpTs, RtpConstants.RTP_HEADER_LENGTH + size + 4, channelIdentifier)
       sum += size
       frames.add(rtpFrame)
     }

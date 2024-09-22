@@ -16,10 +16,10 @@
 
 package com.pedro.rtsp.rtp.sockets
 
+import com.pedro.common.socket.TcpStreamSocket
 import com.pedro.rtsp.rtsp.Protocol
 import com.pedro.rtsp.rtsp.RtpFrame
 import java.io.IOException
-import java.io.OutputStream
 
 /**
  * Created by pedro on 7/11/18.
@@ -28,20 +28,24 @@ abstract class BaseRtpSocket {
 
   companion object {
     @JvmStatic
-    fun getInstance(protocol: Protocol, videoSourcePort: Int, audioSourcePort: Int): BaseRtpSocket {
+    fun getInstance(
+      protocol: Protocol, host: String,
+      videoSourcePort: Int, audioSourcePort: Int,
+      videoServerPort: Int, audioServerPort: Int,
+    ): BaseRtpSocket {
       return if (protocol === Protocol.TCP) {
         RtpSocketTcp()
       } else {
-        RtpSocketUdp(videoSourcePort, audioSourcePort)
+        RtpSocketUdp(host, videoSourcePort, audioSourcePort, videoServerPort, audioServerPort)
       }
     }
   }
 
   @Throws(IOException::class)
-  abstract fun setDataStream(outputStream: OutputStream, host: String)
+  abstract suspend fun setSocket(socket: TcpStreamSocket)
 
   @Throws(IOException::class)
   abstract suspend fun sendFrame(rtpFrame: RtpFrame)
 
-  abstract fun close()
+  abstract suspend fun close()
 }

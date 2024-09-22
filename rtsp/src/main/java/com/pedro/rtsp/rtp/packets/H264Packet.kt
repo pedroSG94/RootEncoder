@@ -71,7 +71,7 @@ class H264Packet(
         markPacket(buffer) //mark end frame
         System.arraycopy(it, 0, buffer, RtpConstants.RTP_HEADER_LENGTH, it.size)
         updateSeq(buffer)
-        val rtpFrame = RtpFrame(buffer, rtpTs, it.size + RtpConstants.RTP_HEADER_LENGTH, rtpPort, rtcpPort, channelIdentifier)
+        val rtpFrame = RtpFrame(buffer, rtpTs, it.size + RtpConstants.RTP_HEADER_LENGTH, channelIdentifier)
         frames.add(rtpFrame)
         sendKeyFrame = true
       } ?: run {
@@ -87,7 +87,7 @@ class H264Packet(
         val rtpTs = updateTimeStamp(buffer, ts)
         markPacket(buffer) //mark end frame
         updateSeq(buffer)
-        val rtpFrame = RtpFrame(buffer, rtpTs, buffer.size, rtpPort, rtcpPort, channelIdentifier)
+        val rtpFrame = RtpFrame(buffer, rtpTs, buffer.size, channelIdentifier)
         frames.add(rtpFrame)
       } else {
         // Set FU-A header
@@ -116,7 +116,7 @@ class H264Packet(
             markPacket(buffer) //mark end frame
           }
           updateSeq(buffer)
-          val rtpFrame = RtpFrame(buffer, rtpTs, buffer.size, rtpPort, rtcpPort, channelIdentifier)
+          val rtpFrame = RtpFrame(buffer, rtpTs, buffer.size, channelIdentifier)
           frames.add(rtpFrame)
           // Switch start bit
           header[1] = header[1] and 0x7F
