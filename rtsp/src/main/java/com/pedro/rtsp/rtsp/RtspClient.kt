@@ -66,7 +66,7 @@ class RtspClient(private val connectChecker: ConnectChecker) {
 
   //for secure transport
   private var tlsEnabled = false
-  private var certificates: Array<TrustManager>? = null
+  private var certificates: TrustManager? = null
   private val commandsManager: CommandsManager = CommandsManager()
   private val rtspSender: RtspSender = RtspSender(connectChecker, commandsManager)
   private var url: String? = null
@@ -90,7 +90,7 @@ class RtspClient(private val connectChecker: ConnectChecker) {
   /**
    * Add certificates for TLS connection
    */
-  fun addCertificates(certificates: Array<TrustManager>?) {
+  fun addCertificates(certificates: TrustManager?) {
     this.certificates = certificates
   }
 
@@ -240,7 +240,7 @@ class RtspClient(private val connectChecker: ConnectChecker) {
             }
             rtspSender.setVideoInfo(commandsManager.sps!!, commandsManager.pps, commandsManager.vps)
           }
-          val socket = TcpStreamSocket(host, port, tlsEnabled)
+          val socket = TcpStreamSocket(host, port, tlsEnabled, certificates)
           this@RtspClient.socket = socket
           socket.connect()
           socket.write(commandsManager.createOptions())
