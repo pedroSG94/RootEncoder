@@ -22,7 +22,7 @@ package com.pedro.common
  * Created by pedro on 23/9/24.
  */
 enum class ConnectionFailed {
-  ENDPOINT_MALFORMED, REFUSED, CLOSED_BY_SERVER, NO_INTERNET, UNKNOWN;
+  ENDPOINT_MALFORMED, TIMEOUT, REFUSED, CLOSED_BY_SERVER, NO_INTERNET, UNKNOWN;
 
   companion object {
     fun parse(reason: String): ConnectionFailed {
@@ -38,6 +38,11 @@ enum class ConnectionFailed {
         REFUSED
       } else if (reason.contains("endpoint malformed", ignoreCase = true)) {
         ENDPOINT_MALFORMED
+      } else if (
+        reason.contains("timeout", ignoreCase = true) ||
+        reason.contains("timed out", ignoreCase = true)
+      ) {
+        TIMEOUT
       } else {
         UNKNOWN
       }
