@@ -55,6 +55,7 @@ public class MicrophoneManager {
   private AudioPostProcessEffect audioPostProcessEffect;
   protected HandlerThread handlerThread;
   protected CustomAudioEffect customAudioEffect = new NoAudioEffect();
+  private long timeStamp = 0;
 
   public MicrophoneManager(GetMicrophoneData getMicrophoneData) {
     this.getMicrophoneData = getMicrophoneData;
@@ -162,6 +163,7 @@ public class MicrophoneManager {
    * Start record and get data
    */
   public synchronized void start() {
+    timeStamp = 0;
     init();
     handlerThread = new HandlerThread(TAG);
     handlerThread.start();
@@ -211,8 +213,10 @@ public class MicrophoneManager {
    * @return Object with size and PCM buffer data
    */
   protected Frame read() {
-    long timeStamp = System.nanoTime() / 1000;
+    if (timeStamp == 0) timeStamp = System.nanoTime() / 1000;
     int size = audioRecord.read(pcmBuffer, 0, pcmBuffer.length);
+    int channels = channel == AudioFormat.CHANNEL_IN_STEREO ? 2 : 1;
+    timeStamp += (long) size / sampleRate / channels;
     if (size < 0) {
       Log.e(TAG, "read error: " + size);
       return null;
@@ -242,6 +246,7 @@ public class MicrophoneManager {
     if (audioPostProcessEffect != null) {
       audioPostProcessEffect.release();
     }
+    timeStamp = 0;
     Log.i(TAG, "Microphone stopped");
   }
 
