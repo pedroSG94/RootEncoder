@@ -17,8 +17,10 @@
 package com.pedro.rtsp.rtp.sockets
 
 import com.pedro.common.socket.TcpStreamSocket
+import com.pedro.common.socket.UdpStreamSocket
 import com.pedro.rtsp.rtsp.Protocol
 import com.pedro.rtsp.rtsp.RtpFrame
+import com.pedro.rtsp.utils.RtpConstants
 import java.io.IOException
 
 /**
@@ -36,7 +38,13 @@ abstract class BaseRtpSocket {
       return if (protocol === Protocol.TCP) {
         RtpSocketTcp()
       } else {
-        RtpSocketUdp(host, videoSourcePort, audioSourcePort, videoServerPort, audioServerPort)
+        val videoSocket = UdpStreamSocket(
+          host, videoServerPort, videoSourcePort, receiveSize = RtpConstants.MTU
+        )
+        val audioSocket = UdpStreamSocket(
+          host, audioServerPort, audioSourcePort, receiveSize = RtpConstants.MTU
+        )
+        RtpSocketUdp(videoSocket, audioSocket)
       }
     }
   }

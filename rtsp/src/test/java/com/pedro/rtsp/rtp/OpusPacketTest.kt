@@ -40,7 +40,6 @@ class OpusPacketTest {
     info.size = fakeOpus.size
     info.flags = 1
     val opusPacket = OpusPacket(8000)
-    opusPacket.setPorts(1, 2)
     opusPacket.setSSRC(123456789)
     val frames = mutableListOf<RtpFrame>()
     opusPacket.createAndSendPacket(ByteBuffer.wrap(fakeOpus), info) {
@@ -50,7 +49,7 @@ class OpusPacketTest {
     val expectedRtp = byteArrayOf(-128, -31, 0, 1, 0, 15, 18, 6, 7, 91, -51, 21).plus(fakeOpus)
     val expectedTimeStamp = 987654L
     val expectedSize = RtpConstants.RTP_HEADER_LENGTH + info.size
-    val packetResult = RtpFrame(expectedRtp, expectedTimeStamp, expectedSize, 1, 2, RtpConstants.trackAudio)
+    val packetResult = RtpFrame(expectedRtp, expectedTimeStamp, expectedSize, RtpConstants.trackAudio)
     assertEquals(1, frames.size)
     assertEquals(packetResult, frames[0])
   }

@@ -19,24 +19,15 @@ package com.pedro.rtsp.rtcp
 import com.pedro.common.socket.TcpStreamSocket
 import com.pedro.common.socket.UdpStreamSocket
 import com.pedro.rtsp.rtsp.RtpFrame
-import com.pedro.rtsp.utils.RtpConstants
 import java.io.IOException
 
 /**
  * Created by pedro on 8/11/18.
  */
 class SenderReportUdp(
-  host: String,
-  videoSourcePort: Int, audioSourcePort: Int,
-  videoServerPort: Int, audioServerPort: Int,
+  private val videoSocket: UdpStreamSocket,
+  private val audioSocket: UdpStreamSocket,
 ) : BaseSenderReport() {
-
-  private val videoSocket = UdpStreamSocket(
-    host, videoServerPort, videoSourcePort, receiveSize = RtpConstants.REPORT_PACKET_LENGTH
-  )
-  private val audioSocket = UdpStreamSocket(
-    host, audioServerPort, audioSourcePort, receiveSize = RtpConstants.REPORT_PACKET_LENGTH
-  )
 
   @Throws(IOException::class)
   override suspend fun setSocket(socket: TcpStreamSocket) {

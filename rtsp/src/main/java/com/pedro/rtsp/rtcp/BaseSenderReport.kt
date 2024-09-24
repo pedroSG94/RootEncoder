@@ -18,6 +18,7 @@ package com.pedro.rtsp.rtcp
 
 import com.pedro.common.TimeUtils
 import com.pedro.common.socket.TcpStreamSocket
+import com.pedro.common.socket.UdpStreamSocket
 import com.pedro.rtsp.rtsp.Protocol
 import com.pedro.rtsp.rtsp.RtpFrame
 import com.pedro.rtsp.utils.RtpConstants
@@ -49,7 +50,13 @@ abstract class BaseSenderReport internal constructor() {
       return if (protocol === Protocol.TCP) {
         SenderReportTcp()
       } else {
-        SenderReportUdp(host, videoSourcePort, audioSourcePort, videoServerPort, audioServerPort)
+        val videoSocket = UdpStreamSocket(
+          host, videoServerPort, videoSourcePort, receiveSize = RtpConstants.REPORT_PACKET_LENGTH
+        )
+        val audioSocket = UdpStreamSocket(
+          host, audioServerPort, audioSourcePort, receiveSize = RtpConstants.REPORT_PACKET_LENGTH
+        )
+        SenderReportUdp(videoSocket, audioSocket)
       }
     }
   }
