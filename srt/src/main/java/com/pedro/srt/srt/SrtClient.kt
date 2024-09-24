@@ -312,7 +312,7 @@ class SrtClient(private val connectChecker: ConnectChecker) {
           scope.cancel()
         }
       }.exceptionOrNull()
-      if (ConnectionFailed.parse(error?.validMessage() ?: "") != ConnectionFailed.TIMEOUT) {
+      if (error != null && ConnectionFailed.parse(error.validMessage()) != ConnectionFailed.TIMEOUT) {
         scope.cancel()
       }
     }
