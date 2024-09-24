@@ -32,7 +32,7 @@ import io.ktor.utils.io.readUTF8Line
 import io.ktor.utils.io.writeByte
 import io.ktor.utils.io.writeFully
 import io.ktor.utils.io.writeStringUtf8
-import java.io.IOException
+import java.net.ConnectException
 import java.security.SecureRandom
 import javax.net.ssl.TrustManager
 import kotlin.coroutines.coroutineContext
@@ -112,7 +112,8 @@ class TcpStreamSocket(
   }
 
   suspend fun read(): Int {
-    return input?.readByte()?.toInt() ?: throw IOException("read with socket closed")
+    val input = input ?: throw ConnectException("Read with socket closed, broken pipe")
+    return input.readByte().toInt()
   }
 
   suspend fun readUInt16(): Int {
@@ -132,11 +133,12 @@ class TcpStreamSocket(
   }
 
   suspend fun readUntil(b: ByteArray) {
-    return input?.readFully(b) ?: throw IOException("read with socket closed")
+    val input = input ?: throw ConnectException("Read with socket closed, broken pipe")
+    return input.readFully(b)
   }
 
   suspend fun readLine(): String? {
-    val input = input ?: throw IOException("read with socket closed")
+    val input = input ?: throw ConnectException("Read with socket closed, broken pipe")
     return input.readUTF8Line()
   }
 

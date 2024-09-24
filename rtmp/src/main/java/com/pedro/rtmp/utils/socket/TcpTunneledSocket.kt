@@ -83,7 +83,7 @@ class TcpTunneledSocket(private val host: String, private val port: Int, private
       val bytes = socket.inputStream.readBytes()
       if (bytes.size > 1) input = ByteArrayInputStream(bytes, 1, bytes.size)
       val success = socket.responseCode == HttpURLConnection.HTTP_OK
-      if (!success) throw IOException("send packet failed: ${socket.responseMessage}")
+      if (!success) throw IOException("send packet failed: ${socket.responseMessage}, broken pipe")
     } finally {
       socket.disconnect()
     }
@@ -96,7 +96,7 @@ class TcpTunneledSocket(private val host: String, private val port: Int, private
       socket.connect()
       val data = socket.inputStream.readBytes()
       val success = socket.responseCode == HttpURLConnection.HTTP_OK
-      if (!success) throw IOException("receive packet failed: ${socket.responseMessage}")
+      if (!success) throw IOException("receive packet failed: ${socket.responseMessage}, broken pipe")
       return data
     } finally {
       socket.disconnect()

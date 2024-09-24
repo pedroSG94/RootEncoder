@@ -20,10 +20,12 @@ import android.media.MediaCodec
 import android.util.Log
 import com.pedro.common.AudioCodec
 import com.pedro.common.ConnectChecker
+import com.pedro.common.ConnectionFailed
 import com.pedro.common.UrlParser
 import com.pedro.common.VideoCodec
 import com.pedro.common.onMainThread
 import com.pedro.common.socket.TcpStreamSocket
+import com.pedro.common.validMessage
 import com.pedro.rtsp.rtsp.commands.CommandsManager
 import com.pedro.rtsp.rtsp.commands.Method
 import com.pedro.rtsp.utils.RtpConstants
@@ -38,7 +40,6 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.withTimeoutOrNull
 import java.io.*
-import java.net.SocketTimeoutException
 import java.net.URISyntaxException
 import java.nio.ByteBuffer
 import javax.net.ssl.TrustManager
@@ -340,7 +341,7 @@ class RtspClient(private val connectChecker: ConnectChecker) {
         if (error != null) {
           Log.e(TAG, "connection error", error)
           onMainThread {
-            connectChecker.onConnectionFailed("Error configure stream, ${error.message}")
+            connectChecker.onConnectionFailed("Error configure stream, ${error.validMessage()}")
           }
           return@launch
         }
@@ -367,7 +368,7 @@ class RtspClient(private val connectChecker: ConnectChecker) {
           scope.cancel()
         }
       }.exceptionOrNull()
-      if (error != null && error !is SocketTimeoutException) {
+      if (ConnectionFailed.parse(error?.validMessage() ?: "") != ConnectionFailed.TIMEOUT) {
         scope.cancel()
       }
     }

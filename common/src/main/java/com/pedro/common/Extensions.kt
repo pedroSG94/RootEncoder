@@ -136,3 +136,7 @@ fun String.getIndexes(char: Char): Array<Int> {
   forEachIndexed { index, c -> if (c == char) indexes.add(index) }
   return indexes.toTypedArray()
 }
+
+fun Throwable.validMessage(): String {
+  return (message ?: "").ifEmpty { javaClass.simpleName }
+}

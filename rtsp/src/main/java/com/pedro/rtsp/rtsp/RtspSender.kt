@@ -25,6 +25,7 @@ import com.pedro.common.VideoCodec
 import com.pedro.common.onMainThread
 import com.pedro.common.socket.TcpStreamSocket
 import com.pedro.common.trySend
+import com.pedro.common.validMessage
 import com.pedro.rtsp.rtcp.BaseSenderReport
 import com.pedro.rtsp.rtp.packets.*
 import com.pedro.rtsp.rtp.sockets.BaseRtpSocket
@@ -195,7 +196,7 @@ class RtspSender(
         }.exceptionOrNull()
         if (error != null) {
           onMainThread {
-            connectChecker.onConnectionFailed("Error send packet, ${error.message}")
+            connectChecker.onConnectionFailed("Error send packet, ${error.validMessage()}")
           }
           Log.e(TAG, "send error: ", error)
           return@launch
