@@ -23,6 +23,7 @@ import com.pedro.common.ConnectChecker
 import com.pedro.common.UrlParser
 import com.pedro.common.VideoCodec
 import com.pedro.common.onMainThread
+import com.pedro.common.validMessage
 import com.pedro.udp.utils.UdpSocket
 import com.pedro.udp.utils.UdpType
 import kotlinx.coroutines.CoroutineScope
@@ -169,7 +170,7 @@ class UdpClient(private val connectChecker: ConnectChecker) {
         if (error != null) {
           Log.e(TAG, "connection error", error)
           onMainThread {
-            connectChecker.onConnectionFailed("Error configure stream, ${error.message}")
+            connectChecker.onConnectionFailed("Error configure stream, ${error.validMessage()}")
           }
           return@launch
         }

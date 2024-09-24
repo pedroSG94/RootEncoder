@@ -93,7 +93,7 @@ class CommandsManager {
   }
 
   @Throws(IOException::class)
-  fun readHandshake(socket: SrtSocket?): Handshake {
+  suspend fun readHandshake(socket: SrtSocket?): Handshake {
     val handshakeBuffer = socket?.readBuffer() ?: throw IOException("read buffer failed, socket disconnected")
     val handshake = SrtPacket.getSrtPacket(handshakeBuffer)
     if (handshake is Handshake) {

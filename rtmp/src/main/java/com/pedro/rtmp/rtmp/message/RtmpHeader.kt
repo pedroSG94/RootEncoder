@@ -18,6 +18,7 @@ package com.pedro.rtmp.rtmp.message
 
 import com.pedro.rtmp.rtmp.chunk.ChunkType
 import com.pedro.rtmp.utils.*
+import com.pedro.rtmp.utils.socket.RtmpSocket
 import java.io.IOException
 import java.io.InputStream
 import java.io.OutputStream
@@ -41,9 +42,9 @@ class RtmpHeader(var basicHeader: BasicHeader) {
      * Check ChunkType class to know header structure
      */
     @Throws(IOException::class)
-    fun readHeader(input: InputStream, commandSessionHistory: CommandSessionHistory,
+    suspend fun readHeader(socket: RtmpSocket, commandSessionHistory: CommandSessionHistory,
       timestamp: Int = 0): RtmpHeader {
-      val basicHeader = BasicHeader.parseBasicHeader(input)
+      val basicHeader = BasicHeader.parseBasicHeader(socket)
       var timeStamp = timestamp
       var messageLength = 0
       var messageType: MessageType? = null
@@ -51,25 +52,25 @@ class RtmpHeader(var basicHeader: BasicHeader) {
       val lastHeader = commandSessionHistory.getLastReadHeader(basicHeader.chunkStreamId)
       when (basicHeader.chunkType) {
         ChunkType.TYPE_0 -> {
-          timeStamp = input.readUInt24()
-          messageLength = input.readUInt24()
-          messageType = RtmpMessage.getMarkType(input.read())
-          messageStreamId = input.readUInt32LittleEndian()
+          timeStamp = socket.readUInt24()
+          messageLength = socket.readUInt24()
+          messageType = RtmpMessage.getMarkType(socket.read())
+          messageStreamId = socket.readUInt32LittleEndian()
           //extended timestamp
           if (timeStamp >= 0xffffff) {
-            timeStamp = input.readUInt32()
+            timeStamp = socket.readUInt32()
           }
         }
         ChunkType.TYPE_1 -> {
           if (lastHeader != null) {
             messageStreamId = lastHeader.messageStreamId
           }
-          timeStamp = input.readUInt24()
-          messageLength = input.readUInt24()
-          messageType = RtmpMessage.getMarkType(input.read())
+          timeStamp = socket.readUInt24()
+          messageLength = socket.readUInt24()
+          messageType = RtmpMessage.getMarkType(socket.read())
           //extended timestamp
           if (timeStamp >= 0xffffff) {
-            timeStamp = input.readUInt32()
+            timeStamp = socket.readUInt32()
           }
         }
         ChunkType.TYPE_2 -> {
@@ -78,10 +79,10 @@ class RtmpHeader(var basicHeader: BasicHeader) {
             messageType = lastHeader.messageType
             messageStreamId = lastHeader.messageStreamId
           }
-          timeStamp = input.readUInt24()
+          timeStamp = socket.readUInt24()
           //extended timestamp
           if (timeStamp >= 0xffffff) {
-            timeStamp = input.readUInt32()
+            timeStamp = socket.readUInt32()
           }
         }
         ChunkType.TYPE_3 -> {
@@ -93,7 +94,7 @@ class RtmpHeader(var basicHeader: BasicHeader) {
           }
           //extended timestamp
           if (timeStamp >= 0xffffff) {
-            timeStamp = input.readUInt32()
+            timeStamp = socket.readUInt32()
           }
           //No header to read
         }
@@ -108,52 +109,51 @@ class RtmpHeader(var basicHeader: BasicHeader) {
   }
 
   @Throws(IOException::class)
-  fun writeHeader(output: OutputStream) {
-    writeHeader(basicHeader, output)
+  suspend fun writeHeader(socket: RtmpSocket) {
+    writeHeader(basicHeader, socket)
   }
 
   /**
    * Check ChunkType class to know header structure
    */
-  @Throws(IOException::class)
-  fun writeHeader(basicHeader: BasicHeader, output: OutputStream) {
+  suspend fun writeHeader(basicHeader: BasicHeader, socket: RtmpSocket) {
     // Write basic header byte
-    output.write((basicHeader.chunkType.mark.toInt() shl 6) or basicHeader.chunkStreamId)
+    socket.write((basicHeader.chunkType.mark.toInt() shl 6) or basicHeader.chunkStreamId)
     when (basicHeader.chunkType) {
       ChunkType.TYPE_0 -> {
-        output.writeUInt24(min(timeStamp, 0xffffff))
-        output.writeUInt24(messageLength)
+        socket.writeUInt24(min(timeStamp, 0xffffff))
+        socket.writeUInt24(messageLength)
         messageType?.let { messageType ->
-          output.write(messageType.mark.toInt())
+          socket.write(messageType.mark.toInt())
         }
-        output.writeUInt32LittleEndian(messageStreamId)
+        socket.writeUInt32LittleEndian(messageStreamId)
         //extended timestamp
         if (timeStamp > 0xffffff) {
-          output.writeUInt32(timeStamp)
+          socket.writeUInt32(timeStamp)
         }
       }
       ChunkType.TYPE_1 -> {
-        output.writeUInt24(min(timeStamp, 0xffffff))
-        output.writeUInt24(messageLength)
+        socket.writeUInt24(min(timeStamp, 0xffffff))
+        socket.writeUInt24(messageLength)
         messageType?.let { messageType ->
-          output.write(messageType.mark.toInt())
+          socket.write(messageType.mark.toInt())
         }
         //extended timestamp
         if (timeStamp > 0xffffff) {
-          output.writeUInt32(timeStamp)
+          socket.writeUInt32(timeStamp)
         }
       }
       ChunkType.TYPE_2 -> {
-        output.writeUInt24(min(timeStamp, 0xffffff))
+        socket.writeUInt24(min(timeStamp, 0xffffff))
         //extended timestamp
         if (timeStamp > 0xffffff) {
-          output.writeUInt32(timeStamp)
+          socket.writeUInt32(timeStamp)
         }
       }
       ChunkType.TYPE_3 -> {
         //extended timestamp
         if (timeStamp > 0xffffff) {
-          output.writeUInt32(timeStamp)
+          socket.writeUInt32(timeStamp)
         }
       }
     }

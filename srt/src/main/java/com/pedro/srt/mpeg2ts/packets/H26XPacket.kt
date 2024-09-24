@@ -17,7 +17,6 @@
 package com.pedro.srt.mpeg2ts.packets
 
 import android.media.MediaCodec
-import android.os.Build
 import android.util.Log
 import com.pedro.common.isKeyframe
 import com.pedro.common.removeInfo

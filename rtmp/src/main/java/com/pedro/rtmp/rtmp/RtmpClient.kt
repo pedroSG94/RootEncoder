@@ -20,10 +20,12 @@ import android.media.MediaCodec
 import android.util.Log
 import com.pedro.common.AudioCodec
 import com.pedro.common.ConnectChecker
+import com.pedro.common.ConnectionFailed
 import com.pedro.common.TimeUtils
 import com.pedro.common.UrlParser
 import com.pedro.common.VideoCodec
 import com.pedro.common.onMainThread
+import com.pedro.common.validMessage
 import com.pedro.rtmp.amf.AmfVersion
 import com.pedro.rtmp.rtmp.message.*
 import com.pedro.rtmp.rtmp.message.command.Command
@@ -71,7 +73,7 @@ class RtmpClient(private val connectChecker: ConnectChecker) {
 
   private var url: String? = null
   private var tlsEnabled = false
-  private var certificates: Array<TrustManager>? = null
+  private var certificates: TrustManager? = null
   private var tunneled = false
 
   private var doingRetry = false
@@ -95,7 +97,7 @@ class RtmpClient(private val connectChecker: ConnectChecker) {
   /**
    * Add certificates for TLS connection
    */
-  fun addCertificates(certificates: Array<TrustManager>?) {
+  fun addCertificates(certificates: TrustManager?) {
     this.certificates = certificates
   }
 
@@ -269,7 +271,7 @@ class RtmpClient(private val connectChecker: ConnectChecker) {
         if (error != null) {
           Log.e(TAG, "connection error", error)
           onMainThread {
-            connectChecker.onConnectionFailed("Error configure stream, ${error.message}")
+            connectChecker.onConnectionFailed("Error configure stream, ${error.validMessage()}")
           }
           return@launch
         }
@@ -281,6 +283,7 @@ class RtmpClient(private val connectChecker: ConnectChecker) {
     while (scope.isActive && isStreaming) {
       val error = runCatching {
         if (isAlive()) {
+          delay(2000)
           //ignore packet after connect if tunneled to avoid spam idle
           if (!tunneled) handleMessages()
         } else {
@@ -290,7 +293,7 @@ class RtmpClient(private val connectChecker: ConnectChecker) {
           scope.cancel()
         }
       }.exceptionOrNull()
-      if (error != null && error !is SocketTimeoutException) {
+      if (error != null && ConnectionFailed.parse(error.validMessage()) != ConnectionFailed.TIMEOUT) {
         scope.cancel()
       }
     }
@@ -308,7 +311,7 @@ class RtmpClient(private val connectChecker: ConnectChecker) {
   }
 
   @Throws(IOException::class)
-  private fun establishConnection(): Boolean {
+  private suspend fun establishConnection(): Boolean {
     val socket = if (tunneled) {
       TcpTunneledSocket(commandsManager.host, commandsManager.port, tlsEnabled)
     } else {
@@ -491,7 +494,7 @@ class RtmpClient(private val connectChecker: ConnectChecker) {
     }
   }
 
-  fun closeConnection() {
+  private suspend fun closeConnection() {
     socket?.close()
     commandsManager.reset()
   }

@@ -30,8 +30,6 @@ import kotlin.experimental.or
 abstract class BasePacket(private val clock: Long, private val payloadType: Int) {
 
   protected var channelIdentifier: Int = 0
-  protected var rtpPort = 0
-  protected var rtcpPort = 0
   private var seq = 0L
   private var ssrc = 0L
   protected val maxPacketSize = RtpConstants.MTU - 28
@@ -42,11 +40,6 @@ abstract class BasePacket(private val clock: Long, private val payloadType: Int)
     bufferInfo: MediaCodec.BufferInfo,
     callback: (List<RtpFrame>) -> Unit
   )
-
-  fun setPorts(rtpPort: Int, rtcpPort: Int) {
-    this.rtpPort = rtpPort
-    this.rtcpPort = rtcpPort
-  }
 
   open fun reset() {
     seq = 0

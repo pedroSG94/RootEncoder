@@ -21,6 +21,7 @@ import com.pedro.common.AudioCodec
 import com.pedro.common.TimeUtils
 import com.pedro.common.VideoCodec
 import com.pedro.common.getMd5Hash
+import com.pedro.common.socket.TcpStreamSocket
 import com.pedro.rtsp.rtsp.Protocol
 import com.pedro.rtsp.rtsp.commands.SdpBody.createAV1Body
 import com.pedro.rtsp.rtsp.commands.SdpBody.createAacBody
@@ -31,7 +32,6 @@ import com.pedro.rtsp.rtsp.commands.SdpBody.createOpusBody
 import com.pedro.rtsp.utils.RtpConstants
 import com.pedro.rtsp.utils.encodeToString
 import com.pedro.rtsp.utils.getData
-import java.io.BufferedReader
 import java.io.IOException
 import java.nio.ByteBuffer
 import java.util.regex.Pattern
@@ -252,10 +252,10 @@ open class CommandsManager {
   }
 
   @Throws(IOException::class)
-  fun getResponse(reader: BufferedReader, method: Method = Method.UNKNOWN): Command {
+  suspend fun getResponse(socket: TcpStreamSocket, method: Method = Method.UNKNOWN): Command {
     var response = ""
     var line: String?
-    while (reader.readLine().also { line = it } != null) {
+    while (socket.readLine().also { line = it } != null) {
       response += "${line ?: ""}\n"
       //end of response
       if ((line?.length ?: 0) < 3) break

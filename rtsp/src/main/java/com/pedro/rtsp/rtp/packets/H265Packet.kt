@@ -63,7 +63,7 @@ class H265Packet: BasePacket(
       val rtpTs = updateTimeStamp(buffer, ts)
       markPacket(buffer) //mark end frame
       updateSeq(buffer)
-      val rtpFrame = RtpFrame(buffer, rtpTs, buffer.size, rtpPort, rtcpPort, channelIdentifier)
+      val rtpFrame = RtpFrame(buffer, rtpTs, buffer.size, channelIdentifier)
       frames.add(rtpFrame)
     } else {
       //Set PayloadHdr (16bit type=49)
@@ -98,7 +98,7 @@ class H265Packet: BasePacket(
           markPacket(buffer) //mark end frame
         }
         updateSeq(buffer)
-        val rtpFrame = RtpFrame(buffer, rtpTs, buffer.size, rtpPort, rtcpPort, channelIdentifier)
+        val rtpFrame = RtpFrame(buffer, rtpTs, buffer.size, channelIdentifier)
         frames.add(rtpFrame)
         // Switch start bit
         header[2] = header[2] and 0x7F

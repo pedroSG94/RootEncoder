@@ -41,7 +41,6 @@ class G711PacketTest {
     info.size = fakeG711.size
     info.flags = 1
     val g711Packet = G711Packet(8000)
-    g711Packet.setPorts(1, 2)
     g711Packet.setSSRC(123456789)
     val frames = mutableListOf<RtpFrame>()
     g711Packet.createAndSendPacket(ByteBuffer.wrap(fakeG711), info) {
@@ -51,7 +50,7 @@ class G711PacketTest {
     val expectedRtp = byteArrayOf(-128, -120, 0, 1, 0, 15, 18, 6, 7, 91, -51, 21).plus(fakeG711)
     val expectedTimeStamp = 987654L
     val expectedSize = RtpConstants.RTP_HEADER_LENGTH + info.size
-    val packetResult = RtpFrame(expectedRtp, expectedTimeStamp, expectedSize, 1, 2, RtpConstants.trackAudio)
+    val packetResult = RtpFrame(expectedRtp, expectedTimeStamp, expectedSize, RtpConstants.trackAudio)
     assertEquals(1, frames.size)
     assertEquals(packetResult, frames[0])
   }

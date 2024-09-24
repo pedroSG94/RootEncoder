@@ -24,6 +24,7 @@ import com.pedro.common.ConnectChecker
 import com.pedro.common.VideoCodec
 import com.pedro.common.onMainThread
 import com.pedro.common.trySend
+import com.pedro.common.validMessage
 import com.pedro.rtmp.flv.BasePacket
 import com.pedro.rtmp.flv.FlvPacket
 import com.pedro.rtmp.flv.FlvType
@@ -183,7 +184,7 @@ class RtmpSender(
         }.exceptionOrNull()
         if (error != null) {
           onMainThread {
-            connectChecker.onConnectionFailed("Error send packet, " + error.message)
+            connectChecker.onConnectionFailed("Error send packet, ${error.validMessage()}")
           }
           Log.e(TAG, "send error: ", error)
           return@launch

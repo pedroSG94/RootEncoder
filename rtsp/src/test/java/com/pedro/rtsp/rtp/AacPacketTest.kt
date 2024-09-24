@@ -40,7 +40,6 @@ class AacPacketTest {
     info.size = fakeAac.size
     info.flags = 1
     val aacPacket = AacPacket(44100)
-    aacPacket.setPorts(1, 2)
     aacPacket.setSSRC(123456789)
     val frames = mutableListOf<RtpFrame>()
     aacPacket.createAndSendPacket(ByteBuffer.wrap(fakeAac), info) {
@@ -50,7 +49,7 @@ class AacPacketTest {
     val expectedRtp = byteArrayOf(-128, -31, 0, 1, 0, 83, 19, 92, 7, 91, -51, 21, 0, 16, 9, 96).plus(fakeAac)
     val expectedTimeStamp = 5444444L
     val expectedSize = RtpConstants.RTP_HEADER_LENGTH + info.size + 4
-    val packetResult = RtpFrame(expectedRtp, expectedTimeStamp, expectedSize, 1, 2, RtpConstants.trackAudio)
+    val packetResult = RtpFrame(expectedRtp, expectedTimeStamp, expectedSize, RtpConstants.trackAudio)
     assertEquals(1, frames.size)
     assertEquals(packetResult, frames[0])
   }

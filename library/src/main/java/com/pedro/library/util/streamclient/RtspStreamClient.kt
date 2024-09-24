@@ -31,7 +31,7 @@ class RtspStreamClient(
   /**
    * Add certificates for TLS connection
    */
-  fun addCertificates(certificates: Array<TrustManager>?) {
+  fun addCertificates(certificates: TrustManager?) {
     rtspClient.addCertificates(certificates)
   }
 

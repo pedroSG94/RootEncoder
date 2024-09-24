@@ -23,7 +23,9 @@ import com.pedro.common.BitrateManager
 import com.pedro.common.ConnectChecker
 import com.pedro.common.VideoCodec
 import com.pedro.common.onMainThread
+import com.pedro.common.socket.TcpStreamSocket
 import com.pedro.common.trySend
+import com.pedro.common.validMessage
 import com.pedro.rtsp.rtcp.BaseSenderReport
 import com.pedro.rtsp.rtp.packets.*
 import com.pedro.rtsp.rtp.sockets.BaseRtpSocket
@@ -40,7 +42,6 @@ import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runInterruptible
 import java.io.IOException
-import java.io.OutputStream
 import java.nio.ByteBuffer
 import java.util.*
 import java.util.concurrent.*
@@ -81,9 +82,13 @@ class RtspSender(
   }
 
   @Throws(IOException::class)
-  fun setSocketsInfo(protocol: Protocol, videoSourcePorts: IntArray, audioSourcePorts: IntArray) {
-    rtpSocket = BaseRtpSocket.getInstance(protocol, videoSourcePorts[0], audioSourcePorts[0])
-    baseSenderReport = BaseSenderReport.getInstance(protocol, videoSourcePorts[1], audioSourcePorts[1])
+  fun setSocketsInfo(
+    protocol: Protocol, host: String,
+    videoSourcePorts: IntArray, audioSourcePorts: IntArray,
+    videoServerPorts: IntArray, audioServerPorts: IntArray,
+  ) {
+    rtpSocket = BaseRtpSocket.getInstance(protocol, host, videoSourcePorts[0], audioSourcePorts[0], videoServerPorts[0], audioServerPorts[0])
+    baseSenderReport = BaseSenderReport.getInstance(protocol, host, videoSourcePorts[1], audioSourcePorts[1], videoServerPorts[1], audioServerPorts[1])
   }
 
   fun setVideoInfo(sps: ByteArray, pps: ByteArray?, vps: ByteArray?) {
@@ -109,17 +114,9 @@ class RtspSender(
   }
 
   @Throws(IOException::class)
-  fun setDataStream(outputStream: OutputStream, host: String) {
-    rtpSocket?.setDataStream(outputStream, host)
-    baseSenderReport?.setDataStream(outputStream, host)
-  }
-
-  fun setVideoPorts(rtpPort: Int, rtcpPort: Int) {
-    videoPacket?.setPorts(rtpPort, rtcpPort)
-  }
-
-  fun setAudioPorts(rtpPort: Int, rtcpPort: Int) {
-    audioPacket?.setPorts(rtpPort, rtcpPort)
+  suspend fun setSocket(socket: TcpStreamSocket) {
+    rtpSocket?.setSocket(socket)
+    baseSenderReport?.setSocket(socket)
   }
 
   fun sendVideoFrame(h264Buffer: ByteBuffer, info: MediaCodec.BufferInfo) {
@@ -199,7 +196,7 @@ class RtspSender(
         }.exceptionOrNull()
         if (error != null) {
           onMainThread {
-            connectChecker.onConnectionFailed("Error send packet, ${error.message}")
+            connectChecker.onConnectionFailed("Error send packet, ${error.validMessage()}")
           }
           Log.e(TAG, "send error: ", error)
           return@launch

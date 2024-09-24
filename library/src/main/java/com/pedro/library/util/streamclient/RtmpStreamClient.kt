@@ -40,7 +40,7 @@ class RtmpStreamClient(
   /**
    * Add certificates for TLS connection
    */
-  fun addCertificates(certificates: Array<TrustManager>?) {
+  fun addCertificates(certificates: TrustManager?) {
     rtmpClient.addCertificates(certificates)
   }
 
