@@ -30,9 +30,13 @@ import com.pedro.common.AudioCodec
 import com.pedro.common.VideoCodec
 import com.pedro.encoder.EncoderErrorCallback
 import com.pedro.encoder.Frame
+import com.pedro.encoder.TimestampMode
 import com.pedro.encoder.audio.AudioEncoder
 import com.pedro.encoder.audio.GetAudioData
 import com.pedro.encoder.input.audio.GetMicrophoneData
+import com.pedro.encoder.input.sources.audio.AudioSource
+import com.pedro.encoder.input.sources.video.NoVideoSource
+import com.pedro.encoder.input.sources.video.VideoSource
 import com.pedro.encoder.utils.CodecUtil
 import com.pedro.encoder.video.FormatVideoEncoder
 import com.pedro.encoder.video.GetVideoData
@@ -41,9 +45,6 @@ import com.pedro.library.base.recording.BaseRecordController
 import com.pedro.library.base.recording.RecordController
 import com.pedro.library.util.AndroidMuxerRecordController
 import com.pedro.library.util.FpsListener
-import com.pedro.encoder.input.sources.audio.AudioSource
-import com.pedro.encoder.input.sources.video.NoVideoSource
-import com.pedro.encoder.input.sources.video.VideoSource
 import com.pedro.library.util.streamclient.StreamBaseClient
 import com.pedro.library.view.GlStreamInterface
 import java.nio.ByteBuffer
@@ -333,6 +334,15 @@ abstract class StreamBase(
     audioSource.release()
     if (wasRunning) source.start(getMicrophoneData)
     audioSource = source
+  }
+
+  /**
+   * Set the mode to calculate timestamp. By default CLOCK.
+   * Must be called before startRecord/startStream or it will be ignored.
+   */
+  fun setTimestampMode(timestampModeVideo: TimestampMode, timestampModeAudio: TimestampMode) {
+    videoEncoder.setTimestampMode(timestampModeVideo)
+    audioEncoder.setTimestampMode(timestampModeAudio)
   }
 
   /**

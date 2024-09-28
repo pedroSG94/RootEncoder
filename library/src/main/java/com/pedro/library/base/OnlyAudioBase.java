@@ -27,13 +27,12 @@ import androidx.annotation.RequiresApi;
 
 import com.pedro.common.AudioCodec;
 import com.pedro.encoder.EncoderErrorCallback;
+import com.pedro.encoder.TimestampMode;
 import com.pedro.encoder.audio.AudioEncoder;
 import com.pedro.encoder.audio.GetAudioData;
 import com.pedro.encoder.input.audio.CustomAudioEffect;
 import com.pedro.encoder.input.audio.GetMicrophoneData;
 import com.pedro.encoder.input.audio.MicrophoneManager;
-import com.pedro.encoder.input.audio.MicrophoneManagerManual;
-import com.pedro.encoder.input.audio.MicrophoneMode;
 import com.pedro.encoder.utils.CodecUtil;
 import com.pedro.library.base.recording.BaseRecordController;
 import com.pedro.library.base.recording.RecordController;
@@ -52,41 +51,22 @@ import java.nio.ByteBuffer;
 public abstract class OnlyAudioBase {
 
   protected BaseRecordController recordController;
-  private MicrophoneManager microphoneManager;
+  private final MicrophoneManager microphoneManager;
   private AudioEncoder audioEncoder;
   private boolean streaming = false;
 
   public OnlyAudioBase() {
-    setMicrophoneMode(MicrophoneMode.ASYNC);
+    microphoneManager = new MicrophoneManager(getMicrophoneData);
+    audioEncoder = new AudioEncoder(getAudioData);
     recordController = new AacMuxerRecordController();
   }
 
   /**
-   * Must be called before prepareAudio.
-   *
-   * @param microphoneMode mode to work accord to audioEncoder. By default ASYNC:
-   * SYNC using same thread. This mode could solve choppy audio or audio frame discarded.
-   * ASYNC using other thread.
+   * Set the mode to calculate timestamp. By default CLOCK.
+   * Must be called before startRecord/startStream or it will be ignored.
    */
-  public void setMicrophoneMode(MicrophoneMode microphoneMode) {
-    switch (microphoneMode) {
-      case SYNC:
-        microphoneManager = new MicrophoneManagerManual();
-        audioEncoder = new AudioEncoder(getAudioData);
-        audioEncoder.setGetFrame(((MicrophoneManagerManual) microphoneManager).getGetFrame());
-        audioEncoder.setTsModeBuffer(false);
-        break;
-      case ASYNC:
-        microphoneManager = new MicrophoneManager(getMicrophoneData);
-        audioEncoder = new AudioEncoder(getAudioData);
-        audioEncoder.setTsModeBuffer(false);
-        break;
-      case BUFFER:
-        microphoneManager = new MicrophoneManager(getMicrophoneData);
-        audioEncoder = new AudioEncoder(getAudioData);
-        audioEncoder.setTsModeBuffer(true);
-        break;
-    }
+  public void setTimestampMode(TimestampMode timestampModeAudio) {
+    audioEncoder.setTimestampMode(timestampModeAudio);
   }
 
   /**

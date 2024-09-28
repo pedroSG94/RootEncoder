@@ -26,6 +26,7 @@ import androidx.annotation.NonNull;
 import com.pedro.encoder.BaseEncoder;
 import com.pedro.encoder.Frame;
 import com.pedro.encoder.GetFrame;
+import com.pedro.encoder.TimestampMode;
 import com.pedro.encoder.input.audio.GetMicrophoneData;
 import com.pedro.encoder.utils.CodecUtil;
 
@@ -46,8 +47,7 @@ public class AudioEncoder extends BaseEncoder implements GetMicrophoneData {
   public static final int inputSize = 8192;
   private boolean isStereo = true;
   private GetFrame getFrame;
-  private long bytesRead = 0;
-  private boolean tsModeBuffer = false;
+  private float tsBuffer = 0;
 
   public AudioEncoder(GetAudioData getAudioData) {
     this.getAudioData = getAudioData;
@@ -117,13 +117,14 @@ public class AudioEncoder extends BaseEncoder implements GetMicrophoneData {
 
   @Override
   public void start(boolean resetTs) {
+    if (resetTs) tsBuffer = 0;
     shouldReset = resetTs;
     Log.i(TAG, "started");
   }
 
   @Override
   protected void stopImp() {
-    bytesRead = 0;
+    tsBuffer = 0;
     Log.i(TAG, "stopped");
   }
 
@@ -144,12 +145,12 @@ public class AudioEncoder extends BaseEncoder implements GetMicrophoneData {
   @Override
   protected long calculatePts(Frame frame, long presentTimeUs) {
     long pts;
-    if (tsModeBuffer) {
-      int channels = isStereo ? 2 : 1;
-      pts = 1000000 * bytesRead / 2 / channels / sampleRate;
-      bytesRead += frame.getSize();
-    } else {
+    if (timestampMode == TimestampMode.CLOCK) {
       pts = Math.max(0, frame.getTimeStamp() - presentTimeUs);
+    } else {
+      int channels = isStereo ? 2 : 1;
+      tsBuffer += (long) ((frame.getSize() / (channels * 2f) / sampleRate) * 1_000_000f);
+      pts = (long) tsBuffer;
     }
     return pts;
   }
@@ -197,16 +198,6 @@ public class AudioEncoder extends BaseEncoder implements GetMicrophoneData {
 
   public void setSampleRate(int sampleRate) {
     this.sampleRate = sampleRate;
-  }
-
-  public boolean isTsModeBuffer() {
-    return tsModeBuffer;
-  }
-
-  public void setTsModeBuffer(boolean tsModeBuffer) {
-    if (!isRunning()) {
-      this.tsModeBuffer = tsModeBuffer;
-    }
   }
 
   @Override

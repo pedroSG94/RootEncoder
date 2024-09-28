@@ -57,6 +57,7 @@ public abstract class BaseEncoder implements EncoderCallback {
   private EncoderErrorCallback encoderErrorCallback;
   protected String type;
   protected CodecUtil.CodecTypeError typeError;
+  protected TimestampMode timestampMode = TimestampMode.CLOCK;
 
   public void setEncoderErrorCallback(EncoderErrorCallback encoderErrorCallback) {
     this.encoderErrorCallback = encoderErrorCallback;
@@ -68,6 +69,11 @@ public abstract class BaseEncoder implements EncoderCallback {
 
   public void setType(String type) {
     this.type = type;
+  }
+
+  public void setTimestampMode(TimestampMode timestampMode) {
+    if (isRunning()) return;
+    this.timestampMode = timestampMode;
   }
 
   public void restart() {
