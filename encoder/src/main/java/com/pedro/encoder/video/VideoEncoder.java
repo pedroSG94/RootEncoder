@@ -196,7 +196,6 @@ public class VideoEncoder extends BaseEncoder implements GetCameraData {
     oldSps = null;
     oldPps = null;
     oldVps = null;
-    firstTimestamp = 0;
     Log.i(TAG, "stopped");
   }
 

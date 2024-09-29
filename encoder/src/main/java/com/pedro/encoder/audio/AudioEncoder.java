@@ -124,7 +124,6 @@ public class AudioEncoder extends BaseEncoder implements GetMicrophoneData {
 
   @Override
   protected void stopImp() {
-    tsBuffer = 0;
     Log.i(TAG, "stopped");
   }
 
