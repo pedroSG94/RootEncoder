@@ -16,12 +16,14 @@ class UrlParser private constructor(
     @Throws(URISyntaxException::class)
     fun parse(endpoint: String, requiredProtocol: Array<String>): UrlParser {
       val uri = URI(endpoint)
-      if (!requiredProtocol.contains(uri.scheme.trim())) {
+      if (uri.scheme != null && !requiredProtocol.contains(uri.scheme.trim())) {
         throw URISyntaxException(endpoint, "Invalid protocol: ${uri.scheme}")
       }
       if (uri.userInfo != null && !uri.userInfo.contains(":")) {
         throw URISyntaxException(endpoint, "Invalid auth. Auth must contain ':'")
       }
+      if (uri.host == null) throw URISyntaxException(endpoint, "Invalid host: ${uri.host}")
+      if (uri.path == null) throw URISyntaxException(endpoint, "Invalid path: ${uri.host}")
       return UrlParser(uri, endpoint)
     }
   }
