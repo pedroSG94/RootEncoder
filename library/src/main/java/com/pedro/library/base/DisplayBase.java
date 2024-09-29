@@ -30,7 +30,6 @@ import android.media.projection.MediaProjection;
 import android.media.projection.MediaProjectionManager;
 import android.os.Build;
 import android.view.Surface;
-import android.view.SurfaceView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -39,13 +38,12 @@ import androidx.annotation.RequiresApi;
 import com.pedro.common.AudioCodec;
 import com.pedro.common.VideoCodec;
 import com.pedro.encoder.EncoderErrorCallback;
+import com.pedro.encoder.TimestampMode;
 import com.pedro.encoder.audio.AudioEncoder;
 import com.pedro.encoder.audio.GetAudioData;
 import com.pedro.encoder.input.audio.CustomAudioEffect;
 import com.pedro.encoder.input.audio.GetMicrophoneData;
 import com.pedro.encoder.input.audio.MicrophoneManager;
-import com.pedro.encoder.input.audio.MicrophoneManagerManual;
-import com.pedro.encoder.input.audio.MicrophoneMode;
 import com.pedro.encoder.utils.CodecUtil;
 import com.pedro.encoder.video.FormatVideoEncoder;
 import com.pedro.encoder.video.GetVideoData;
@@ -78,10 +76,9 @@ public abstract class DisplayBase {
   private MediaProjection mediaProjection;
   private final MediaProjectionManager mediaProjectionManager;
   protected VideoEncoder videoEncoder;
-  private MicrophoneManager microphoneManager;
+  private final MicrophoneManager microphoneManager;
   private AudioEncoder audioEncoder;
   private boolean streaming = false;
-  protected SurfaceView surfaceView;
   private VirtualDisplay virtualDisplay;
   private int dpi = 320;
   private int resultCode = -1;
@@ -98,33 +95,19 @@ public abstract class DisplayBase {
     }
     mediaProjectionManager =
         ((MediaProjectionManager) context.getSystemService(MEDIA_PROJECTION_SERVICE));
-    this.surfaceView = null;
+    microphoneManager = new MicrophoneManager(getMicrophoneData);
     videoEncoder = new VideoEncoder(getVideoData);
     audioEncoder = new AudioEncoder(getAudioData);
-    //Necessary use same thread to read input buffer and encode it with internal audio or audio is choppy.
-    setMicrophoneMode(MicrophoneMode.SYNC);
     recordController = new AndroidMuxerRecordController();
   }
 
   /**
-   * Must be called before prepareAudio.
-   *
-   * @param microphoneMode mode to work accord to audioEncoder. By default SYNC:
-   * SYNC using same thread. This mode could solve choppy audio or audio frame discarded.
-   * ASYNC using other thread.
+   * Set the mode to calculate timestamp. By default CLOCK.
+   * Must be called before startRecord/startStream or it will be ignored.
    */
-  public void setMicrophoneMode(MicrophoneMode microphoneMode) {
-    switch (microphoneMode) {
-      case SYNC:
-        microphoneManager = new MicrophoneManagerManual();
-        audioEncoder = new AudioEncoder(getAudioData);
-        audioEncoder.setGetFrame(((MicrophoneManagerManual) microphoneManager).getGetFrame());
-        break;
-      case ASYNC:
-        microphoneManager = new MicrophoneManager(getMicrophoneData);
-        audioEncoder = new AudioEncoder(getAudioData);
-        break;
-    }
+  public void setTimestampMode(TimestampMode timestampModeVideo, TimestampMode timestampModeAudio) {
+    videoEncoder.setTimestampMode(timestampModeVideo);
+    audioEncoder.setTimestampMode(timestampModeAudio);
   }
 
   /**
