@@ -189,6 +189,7 @@ class RtspSender(
               if (isEnableLogs) Log.i(TAG, "wrote report")
             }
           }
+          rtpSocket?.flush()
           if (isEnableLogs) {
             val type = if (isVideo) "Video" else "Audio"
             Log.i(TAG, "wrote $type packet, size $size")

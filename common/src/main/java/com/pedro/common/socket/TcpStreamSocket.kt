@@ -90,21 +90,15 @@ class TcpStreamSocket(
   }
 
   suspend fun writeUInt16(b: Int) {
-    output?.writeByte(b ushr 8)
-    output?.writeByte(b)
+    write(byteArrayOf((b ushr 8).toByte(), b.toByte()))
   }
 
   suspend fun writeUInt24(b: Int) {
-    output?.writeByte(b ushr 16)
-    output?.writeByte(b ushr 8)
-    output?.writeByte(b)
+    write(byteArrayOf((b ushr 16).toByte(), (b ushr 8).toByte(), b.toByte()))
   }
 
   suspend fun writeUInt32(b: Int) {
-    output?.writeByte(b ushr 24)
-    output?.writeByte(b ushr 16)
-    output?.writeByte(b ushr 8)
-    output?.writeByte(b)
+    write(byteArrayOf((b ushr 24).toByte(), (b ushr 16).toByte(), (b ushr 8).toByte(), b.toByte()))
   }
 
   suspend fun writeUInt32LittleEndian(b: Int) {
@@ -117,15 +111,21 @@ class TcpStreamSocket(
   }
 
   suspend fun readUInt16(): Int {
-    return read() and 0xff shl 8 or (read() and 0xff)
+    val b = ByteArray(2)
+    readUntil(b)
+    return b[0].toInt() and 0xff shl 8 or (b[1].toInt() and 0xff)
   }
 
   suspend fun readUInt24(): Int {
-    return read() and 0xff shl 16 or (read() and 0xff shl 8) or (read() and 0xff)
+    val b = ByteArray(3)
+    readUntil(b)
+    return b[0].toInt() and 0xff shl 16 or (b[1].toInt() and 0xff shl 8) or (b[2].toInt() and 0xff)
   }
 
   suspend fun readUInt32(): Int {
-    return read() and 0xff shl 24 or (read() and 0xff shl 16) or (read() and 0xff shl 8) or (read() and 0xff)
+    val b = ByteArray(4)
+    readUntil(b)
+    return b[0].toInt() and 0xff shl 24 or (b[1].toInt() and 0xff shl 16) or (b[2].toInt() and 0xff shl 8) or (b[3].toInt() and 0xff)
   }
 
   suspend fun readUInt32LittleEndian(): Int {

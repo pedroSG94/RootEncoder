@@ -104,7 +104,7 @@ class H265Packet: BasePacket(
         header[2] = header[2] and 0x7F
       }
     }
-    callback(frames)
+    if (frames.isNotEmpty()) callback(frames)
   }
 
   override fun reset() {

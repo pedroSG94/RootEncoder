@@ -55,5 +55,7 @@ abstract class BaseRtpSocket {
   @Throws(IOException::class)
   abstract suspend fun sendFrame(rtpFrame: RtpFrame)
 
+  abstract suspend fun flush()
+
   abstract suspend fun close()
 }

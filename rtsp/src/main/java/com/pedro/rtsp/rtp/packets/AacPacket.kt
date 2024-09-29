@@ -76,6 +76,6 @@ class AacPacket(
       sum += size
       frames.add(rtpFrame)
     }
-    callback(frames)
+    if (frames.isNotEmpty()) callback(frames)
   }
 }

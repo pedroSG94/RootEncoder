@@ -40,6 +40,8 @@ class RtpSocketUdp(
     sendFrameUDP(rtpFrame)
   }
 
+  override suspend fun flush() { }
+
   override suspend fun close() {
     videoSocket.close()
     audioSocket.close()

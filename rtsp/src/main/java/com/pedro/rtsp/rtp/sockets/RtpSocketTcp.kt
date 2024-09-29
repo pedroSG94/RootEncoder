@@ -38,6 +38,10 @@ class RtpSocketTcp : BaseRtpSocket() {
     sendFrameTCP(rtpFrame)
   }
 
+  override suspend fun flush() {
+    socket?.flush()
+  }
+
   override suspend fun close() {}
 
   @Throws(IOException::class)
@@ -48,6 +52,5 @@ class RtpSocketTcp : BaseRtpSocket() {
     tcpHeader[3] = (len and 0xFF).toByte()
     socket?.write(tcpHeader)
     socket?.write(rtpFrame.buffer, 0, len)
-    socket?.flush()
   }
 }

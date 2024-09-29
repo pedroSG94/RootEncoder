@@ -125,7 +125,7 @@ class H264Packet(
     } else {
       Log.i(TAG, "waiting for keyframe")
     }
-    callback(frames)
+    if (frames.isNotEmpty()) callback(frames)
   }
 
   private fun setSpsPps(sps: ByteArray, pps: ByteArray) {

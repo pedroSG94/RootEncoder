@@ -99,7 +99,7 @@ class Av1Packet: BasePacket(
       val rtpFrame = RtpFrame(buffer, rtpTs, buffer.size, channelIdentifier)
       frames.add(rtpFrame)
     }
-    callback(frames)
+    if (frames.isNotEmpty()) callback(frames)
   }
 
   override fun reset() {
