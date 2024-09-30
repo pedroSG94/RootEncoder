@@ -16,7 +16,6 @@
 
 package com.pedro.rtmp.flv.audio
 
-import android.media.MediaCodec
 import com.pedro.common.frame.MediaFrame
 import com.pedro.rtmp.flv.FlvType
 import com.pedro.rtmp.flv.audio.packet.G711Packet

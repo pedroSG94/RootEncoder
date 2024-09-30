@@ -16,7 +16,6 @@
 
 package com.pedro.rtmp.flv.video
 
-import android.media.MediaCodec
 import com.pedro.common.frame.MediaFrame
 import com.pedro.rtmp.flv.FlvPacket
 import com.pedro.rtmp.flv.FlvType

@@ -16,12 +16,7 @@
 
 package com.pedro.srt.mpeg2ts.psi
 
-import com.pedro.common.TimeUtils
-import com.pedro.srt.mpeg2ts.MpegTsPacket
-import com.pedro.srt.mpeg2ts.MpegTsPacketizer
-import com.pedro.srt.mpeg2ts.MpegType
 import com.pedro.srt.mpeg2ts.service.Mpeg2TsService
-import com.pedro.srt.srt.packets.data.PacketPosition
 import kotlin.random.Random
 
 /**

@@ -16,7 +16,6 @@
 
 package com.pedro.srt.mpeg2ts.packets
 
-import android.media.MediaCodec
 import com.pedro.common.frame.MediaFrame
 import com.pedro.srt.mpeg2ts.MpegTsPacket
 import com.pedro.srt.mpeg2ts.MpegTsPacketizer

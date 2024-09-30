@@ -19,7 +19,6 @@ package com.pedro.rtmp.rtmp.message
 import com.pedro.rtmp.rtmp.chunk.ChunkType
 import com.pedro.rtmp.utils.socket.RtmpSocket
 import java.io.IOException
-import java.io.InputStream
 import kotlin.experimental.and
 
 /**

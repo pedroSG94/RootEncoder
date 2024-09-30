@@ -16,7 +16,6 @@
 
 package com.pedro.rtsp.rtp
 
-import android.media.MediaCodec
 import com.pedro.common.frame.MediaFrame
 import com.pedro.rtsp.rtp.packets.H265Packet
 import com.pedro.rtsp.rtsp.RtpFrame
