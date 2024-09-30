@@ -32,7 +32,6 @@ import com.pedro.srt.mpeg2ts.packets.BasePacket
 import com.pedro.srt.mpeg2ts.packets.H26XPacket
 import com.pedro.srt.mpeg2ts.packets.OpusPacket
 import com.pedro.srt.mpeg2ts.psi.PsiManager
-import com.pedro.srt.mpeg2ts.psi.TableToSend
 import com.pedro.srt.mpeg2ts.service.Mpeg2TsService
 import com.pedro.srt.srt.packets.data.PacketPosition
 import com.pedro.srt.utils.Constants
