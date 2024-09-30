@@ -16,7 +16,12 @@
 
 package com.pedro.srt.mpeg2ts.psi
 
+import com.pedro.srt.mpeg2ts.MpegTsPacket
+import com.pedro.srt.mpeg2ts.MpegTsPacketizer
+import com.pedro.srt.mpeg2ts.MpegTsPayload
+import com.pedro.srt.mpeg2ts.MpegType
 import com.pedro.srt.mpeg2ts.service.Mpeg2TsService
+import com.pedro.srt.srt.packets.data.PacketPosition
 import kotlin.random.Random
 
 /**
@@ -29,6 +34,7 @@ class PsiManager(
   private val idExtension = Random.nextInt(Byte.MIN_VALUE.toInt(), Byte.MAX_VALUE.toInt()).toShort()
   private var sdtCount = 0
   private var patCount = 0
+
   companion object {
     const val sdtPeriod = 200
     const val patPeriod = 40
@@ -46,22 +52,25 @@ class PsiManager(
     service = service
   )
 
-  fun shouldSend(isKey: Boolean = false): TableToSend {
-    var value = TableToSend.NONE
+  fun checkSendInfo(isKey: Boolean = false, mpegTsPacketizer: MpegTsPacketizer): List<MpegTsPacket> {
+    val pmt = service.pmt ?: return arrayListOf()
+    val psiPackets = mutableListOf<MpegTsPayload>()
     if (sdtCount >= sdtPeriod && patCount >= patPeriod) {
-      value = TableToSend.ALL
+      psiPackets.addAll(listOf(pmt, sdt, pat))
       sdtCount = 0
       patCount = 0
     } else if (patCount >= patPeriod || isKey) {
-      value = TableToSend.PAT_PMT
+      psiPackets.addAll(listOf(pat, pmt))
       patCount = 0
     } else if (sdtCount >= sdtPeriod) {
-      value = TableToSend.SDT
+      psiPackets.add(sdt)
       sdtCount = 0
     }
     sdtCount++
     patCount++
-    return value
+    return mpegTsPacketizer.write(psiPackets, increasePsiContinuity = true).map { b ->
+      MpegTsPacket(b, MpegType.PSI, PacketPosition.SINGLE, isKey = false)
+    }
   }
 
   fun upgradeSdtVersion() {
