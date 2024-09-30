@@ -229,15 +229,15 @@ class UdpClient(private val connectChecker: ConnectChecker) {
     udpSender.setVideoInfo(sps, pps, vps)
   }
 
-  fun sendVideo(h264Buffer: ByteBuffer, info: MediaCodec.BufferInfo) {
+  fun sendVideo(videoBuffer: ByteBuffer, info: MediaCodec.BufferInfo) {
     if (!commandManager.videoDisabled) {
-      udpSender.sendVideoFrame(h264Buffer, info)
+      udpSender.sendVideoFrame(videoBuffer, info)
     }
   }
 
-  fun sendAudio(aacBuffer: ByteBuffer, info: MediaCodec.BufferInfo) {
+  fun sendAudio(audioBuffer: ByteBuffer, info: MediaCodec.BufferInfo) {
     if (!commandManager.audioDisabled) {
-      udpSender.sendAudioFrame(aacBuffer, info)
+      udpSender.sendAudioFrame(audioBuffer, info)
     }
   }
 

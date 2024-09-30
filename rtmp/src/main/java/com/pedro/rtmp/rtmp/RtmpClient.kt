@@ -544,15 +544,15 @@ class RtmpClient(private val connectChecker: ConnectChecker) {
     commandsManager.reset()
   }
 
-  fun sendVideo(h264Buffer: ByteBuffer, info: MediaCodec.BufferInfo) {
+  fun sendVideo(videoBuffer: ByteBuffer, info: MediaCodec.BufferInfo) {
     if (!commandsManager.videoDisabled) {
-      rtmpSender.sendVideoFrame(h264Buffer, info)
+      rtmpSender.sendVideoFrame(videoBuffer, info)
     }
   }
 
-  fun sendAudio(aacBuffer: ByteBuffer, info: MediaCodec.BufferInfo) {
+  fun sendAudio(audioBuffer: ByteBuffer, info: MediaCodec.BufferInfo) {
     if (!commandsManager.audioDisabled) {
-      rtmpSender.sendAudioFrame(aacBuffer, info)
+      rtmpSender.sendAudioFrame(audioBuffer, info)
     }
   }
 

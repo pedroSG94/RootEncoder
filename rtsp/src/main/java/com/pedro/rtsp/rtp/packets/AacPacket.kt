@@ -29,15 +29,17 @@ import kotlin.experimental.or
  *
  * RFC 3640.
  */
-class AacPacket(
-  sampleRate: Int
-): BasePacket(
-  sampleRate.toLong(),
+class AacPacket: BasePacket(
+  0,
   RtpConstants.payloadType + RtpConstants.trackAudio
 ) {
 
   init {
     channelIdentifier = RtpConstants.trackAudio
+  }
+
+  fun setAudioInfo(sampleRate: Int) {
+    setClock(sampleRate.toLong())
   }
 
   override fun createAndSendPacket(

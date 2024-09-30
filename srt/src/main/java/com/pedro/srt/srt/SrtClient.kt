@@ -391,15 +391,15 @@ class SrtClient(private val connectChecker: ConnectChecker) {
     srtSender.setVideoInfo(sps, pps, vps)
   }
 
-  fun sendVideo(h264Buffer: ByteBuffer, info: MediaCodec.BufferInfo) {
+  fun sendVideo(videoBuffer: ByteBuffer, info: MediaCodec.BufferInfo) {
     if (!commandsManager.videoDisabled) {
-      srtSender.sendVideoFrame(h264Buffer, info)
+      srtSender.sendVideoFrame(videoBuffer, info)
     }
   }
 
-  fun sendAudio(aacBuffer: ByteBuffer, info: MediaCodec.BufferInfo) {
+  fun sendAudio(audioBuffer: ByteBuffer, info: MediaCodec.BufferInfo) {
     if (!commandsManager.audioDisabled) {
-      srtSender.sendAudioFrame(aacBuffer, info)
+      srtSender.sendAudioFrame(audioBuffer, info)
     }
   }
 

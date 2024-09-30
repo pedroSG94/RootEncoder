@@ -22,6 +22,8 @@ import com.pedro.common.AudioCodec
 import com.pedro.common.BitrateManager
 import com.pedro.common.ConnectChecker
 import com.pedro.common.VideoCodec
+import com.pedro.common.frame.MediaFrame
+import com.pedro.common.frame.MediaFrameType
 import com.pedro.common.onMainThread
 import com.pedro.common.trySend
 import com.pedro.common.validMessage
@@ -65,7 +67,7 @@ class RtmpSender(
   private var job: Job? = null
   private val scope = CoroutineScope(Dispatchers.IO)
   @Volatile
-  private var queue: BlockingQueue<FlvPacket> = LinkedBlockingQueue(cacheSize)
+  private var queue: BlockingQueue<MediaFrame> = LinkedBlockingQueue(cacheSize)
   private var audioFramesSent: Long = 0
   private var videoFramesSent: Long = 0
   var socket: RtmpSocket? = null
@@ -81,60 +83,47 @@ class RtmpSender(
   }
 
   fun setVideoInfo(sps: ByteBuffer, pps: ByteBuffer?, vps: ByteBuffer?) {
-    when (commandsManager.videoCodec) {
+    videoPacket = when (commandsManager.videoCodec) {
       VideoCodec.H265 -> {
         if (vps == null || pps == null) throw IllegalArgumentException("pps or vps can't be null with h265")
-        videoPacket = H265Packet()
-        (videoPacket as H265Packet).sendVideoInfo(sps, pps, vps)
+        H265Packet().apply { sendVideoInfo(sps, pps, vps) }
       }
       VideoCodec.AV1 -> {
-        videoPacket = Av1Packet()
-        (videoPacket as Av1Packet).sendVideoInfo(sps)
+        Av1Packet().apply { sendVideoInfo(sps) }
       }
       else -> {
         if (pps == null) throw IllegalArgumentException("pps can't be null with h264")
-        videoPacket = H264Packet()
-        (videoPacket as H264Packet).sendVideoInfo(sps, pps)
+        H264Packet().apply { sendVideoInfo(sps, pps) }
       }
     }
   }
 
   fun setAudioInfo(sampleRate: Int, isStereo: Boolean) {
-    when (commandsManager.audioCodec) {
-      AudioCodec.G711 -> {
-        audioPacket = G711Packet()
-        (audioPacket as G711Packet).sendAudioInfo()
-      }
-      AudioCodec.AAC -> {
-        audioPacket = AacPacket()
-        (audioPacket as AacPacket).sendAudioInfo(sampleRate, isStereo)
-      }
+    audioPacket = when (commandsManager.audioCodec) {
+      AudioCodec.G711 -> G711Packet().apply { sendAudioInfo() }
+      AudioCodec.AAC -> AacPacket().apply { sendAudioInfo(sampleRate, isStereo) }
       AudioCodec.OPUS -> {
         throw IllegalArgumentException("Unsupported codec: ${commandsManager.audioCodec.name}")
       }
     }
   }
 
-  fun sendVideoFrame(h264Buffer: ByteBuffer, info: MediaCodec.BufferInfo) {
+  fun sendVideoFrame(videoBuffer: ByteBuffer, info: MediaCodec.BufferInfo) {
     if (running) {
-      videoPacket.createFlvPacket(h264Buffer, info) { flvPacket ->
-        val result = queue.trySend(flvPacket)
-        if (!result) {
-          Log.i(TAG, "Video frame discarded")
-          droppedVideoFrames++
-        }
+      val result = queue.trySend(MediaFrame(videoBuffer, info, MediaFrameType.VIDEO))
+      if (!result) {
+        Log.i(TAG, "Video frame discarded")
+        droppedVideoFrames++
       }
     }
   }
 
-  fun sendAudioFrame(aacBuffer: ByteBuffer, info: MediaCodec.BufferInfo) {
+  fun sendAudioFrame(audioBuffer: ByteBuffer, info: MediaCodec.BufferInfo) {
     if (running) {
-      audioPacket.createFlvPacket(aacBuffer, info) { flvPacket ->
-        val result = queue.trySend(flvPacket)
-        if (!result) {
-          Log.i(TAG, "Audio frame discarded")
-          droppedAudioFrames++
-        }
+      val result = queue.trySend(MediaFrame(audioBuffer, info, MediaFrameType.AUDIO))
+      if (!result) {
+        Log.i(TAG, "Audio frame discarded")
+        droppedAudioFrames++
       }
     }
   }
@@ -155,12 +144,9 @@ class RtmpSender(
       }
       while (scope.isActive && running) {
         val error = runCatching {
-          val flvPacket = runInterruptible {
-            queue.poll(1, TimeUnit.SECONDS)
-          }
-          if (flvPacket == null) {
-            Log.i(TAG, "Skipping iteration, frame null")
-          } else {
+          val mediaFrame = runInterruptible { queue.poll(1, TimeUnit.SECONDS) }
+          val flvPacket = getFlvPacket(mediaFrame)
+          flvPacket?.let {
             var size = 0
             if (flvPacket.type == FlvType.VIDEO) {
               videoFramesSent++
@@ -206,6 +192,24 @@ class RtmpSender(
     queue.clear()
   }
 
+  private fun getFlvPacket(mediaFrame: MediaFrame?): FlvPacket? {
+    if (mediaFrame == null) return null
+    var flvPacket: FlvPacket? = null
+    when (mediaFrame.type) {
+      MediaFrameType.VIDEO -> {
+        videoPacket.createFlvPacket(mediaFrame.data, mediaFrame.info) { packet ->
+          flvPacket = packet
+        }
+      }
+      MediaFrameType.AUDIO -> {
+        audioPacket.createFlvPacket(mediaFrame.data, mediaFrame.info) { packet ->
+          flvPacket = packet
+        }
+      }
+    }
+    return flvPacket
+  }
+
   @Throws(IllegalArgumentException::class)
   fun hasCongestion(percentUsed: Float = 20f): Boolean {
     if (percentUsed < 0 || percentUsed > 100) throw IllegalArgumentException("the value must be in range 0 to 100")
@@ -219,7 +223,7 @@ class RtmpSender(
     if (newSize < queue.size - queue.remainingCapacity()) {
       throw RuntimeException("Can't fit current cache inside new cache size")
     }
-    val tempQueue: BlockingQueue<FlvPacket> = LinkedBlockingQueue(newSize)
+    val tempQueue: BlockingQueue<MediaFrame> = LinkedBlockingQueue(newSize)
     queue.drainTo(tempQueue)
     queue = tempQueue
   }

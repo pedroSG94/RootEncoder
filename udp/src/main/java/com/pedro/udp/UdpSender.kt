@@ -21,6 +21,8 @@ import android.util.Log
 import com.pedro.common.AudioCodec
 import com.pedro.common.BitrateManager
 import com.pedro.common.ConnectChecker
+import com.pedro.common.frame.MediaFrame
+import com.pedro.common.frame.MediaFrameType
 import com.pedro.common.onMainThread
 import com.pedro.common.trySend
 import com.pedro.common.validMessage
@@ -67,7 +69,7 @@ class UdpSender(
   private val limitSize = Constants.MTU
   private val mpegTsPacketizer = MpegTsPacketizer(psiManager)
   private var audioPacket: BasePacket = AacPacket(limitSize, psiManager)
-  private val h26XPacket = H26XPacket(limitSize, psiManager)
+  private val videoPacket = H26XPacket(limitSize, psiManager)
 
   @Volatile
   private var running = false
@@ -76,7 +78,7 @@ class UdpSender(
   private var job: Job? = null
   private val scope = CoroutineScope(Dispatchers.IO)
   @Volatile
-  private var queue: BlockingQueue<List<MpegTsPacket>> = LinkedBlockingQueue(cacheSize)
+  private var queue: BlockingQueue<MediaFrame> = LinkedBlockingQueue(cacheSize)
   private var audioFramesSent: Long = 0
   private var videoFramesSent: Long = 0
   var socket: UdpSocket? = null
@@ -102,45 +104,36 @@ class UdpSender(
   }
 
   fun setVideoInfo(sps: ByteBuffer, pps: ByteBuffer?, vps: ByteBuffer?) {
-    h26XPacket.setVideoCodec(commandManager.videoCodec.toCodec())
-    h26XPacket.sendVideoInfo(sps, pps, vps)
+    videoPacket.setVideoCodec(commandManager.videoCodec.toCodec())
+    videoPacket.sendVideoInfo(sps, pps, vps)
   }
 
   fun setAudioInfo(sampleRate: Int, isStereo: Boolean) {
-    when (commandManager.audioCodec) {
-      AudioCodec.AAC -> {
-        audioPacket = AacPacket(limitSize, psiManager)
-        (audioPacket as? AacPacket)?.sendAudioInfo(sampleRate, isStereo)
-      }
-      AudioCodec.OPUS -> {
-        audioPacket = OpusPacket(limitSize, psiManager)
-      }
+    audioPacket = when (commandManager.audioCodec) {
+      AudioCodec.AAC -> AacPacket(limitSize, psiManager).apply { sendAudioInfo(sampleRate, isStereo) }
+      AudioCodec.OPUS -> OpusPacket(limitSize, psiManager)
       AudioCodec.G711 -> {
         throw IllegalArgumentException("Unsupported codec: ${commandManager.audioCodec.name}")
       }
     }
   }
 
-  fun sendVideoFrame(h264Buffer: ByteBuffer, info: MediaCodec.BufferInfo) {
+  fun sendVideoFrame(videoBuffer: ByteBuffer, info: MediaCodec.BufferInfo) {
     if (running) {
-      h26XPacket.createAndSendPacket(h264Buffer, info) { mpegTsPackets ->
-        val result = queue.trySend(mpegTsPackets)
-        if (!result) {
-          Log.i(TAG, "Video frame discarded")
-          droppedVideoFrames++
-        }
+      val result = queue.trySend(MediaFrame(videoBuffer, info, MediaFrameType.VIDEO))
+      if (!result) {
+        Log.i(TAG, "Video frame discarded")
+        droppedVideoFrames++
       }
     }
   }
 
-  fun sendAudioFrame(aacBuffer: ByteBuffer, info: MediaCodec.BufferInfo) {
+  fun sendAudioFrame(audioBuffer: ByteBuffer, info: MediaCodec.BufferInfo) {
     if (running) {
-      audioPacket.createAndSendPacket(aacBuffer, info) { mpegTsPackets ->
-        val result = queue.trySend(mpegTsPackets)
-        if (!result) {
-          Log.i(TAG, "Audio frame discarded")
-          droppedAudioFrames++
-        }
+      val result = queue.trySend(MediaFrame(audioBuffer, info, MediaFrameType.AUDIO))
+      if (!result) {
+        Log.i(TAG, "Audio frame discarded")
+        droppedAudioFrames++
       }
     }
   }
@@ -162,13 +155,14 @@ class UdpSender(
       }
       while (scope.isActive && running) {
         val error = runCatching {
-          val mpegTsPackets = runInterruptible {
-            queue.poll(1, TimeUnit.SECONDS)
+          val mediaFrame = runInterruptible { queue.poll(1, TimeUnit.SECONDS) }
+          val mpegTsPackets = getMpegTsPackets(mediaFrame)
+          mpegTsPackets?.let {
+            val isKey = mpegTsPackets[0].isKey
+            val psiPackets = psiManager.checkSendInfo(isKey, mpegTsPacketizer)
+            bytesSend += sendPackets(psiPackets)
+            bytesSend += sendPackets(mpegTsPackets)
           }
-          val isKey = mpegTsPackets[0].isKey
-          val psiPackets = psiManager.checkSendInfo(isKey, mpegTsPacketizer)
-          bytesSend += sendPackets(psiPackets)
-          bytesSend += sendPackets(mpegTsPackets)
         }.exceptionOrNull()
         if (error != null) {
           onMainThread {
@@ -200,7 +194,7 @@ class UdpSender(
     service.clear()
     mpegTsPacketizer.reset()
     audioPacket.reset(clear)
-    h26XPacket.reset(clear)
+    videoPacket.reset(clear)
     resetSentAudioFrames()
     resetSentVideoFrames()
     resetDroppedAudioFrames()
@@ -208,6 +202,24 @@ class UdpSender(
     job?.cancelAndJoin()
     job = null
     queue.clear()
+  }
+
+  private fun getMpegTsPackets(mediaFrame: MediaFrame?): List<MpegTsPacket>? {
+    if (mediaFrame == null) return null
+    var mpegTsPackets: List<MpegTsPacket>? = null
+    when (mediaFrame.type) {
+      MediaFrameType.VIDEO -> {
+        videoPacket.createAndSendPacket(mediaFrame.data, mediaFrame.info) { packets ->
+          mpegTsPackets = packets
+        }
+      }
+      MediaFrameType.AUDIO -> {
+        audioPacket.createAndSendPacket(mediaFrame.data, mediaFrame.info) { packets ->
+          mpegTsPackets = packets
+        }
+      }
+    }
+    return mpegTsPackets
   }
 
   @Throws(IllegalArgumentException::class)
@@ -223,7 +235,7 @@ class UdpSender(
     if (newSize < queue.size - queue.remainingCapacity()) {
       throw RuntimeException("Can't fit current cache inside new cache size")
     }
-    val tempQueue: BlockingQueue<List<MpegTsPacket>> = LinkedBlockingQueue(newSize)
+    val tempQueue: BlockingQueue<MediaFrame> = LinkedBlockingQueue(newSize)
     queue.drainTo(tempQueue)
     queue = tempQueue
   }

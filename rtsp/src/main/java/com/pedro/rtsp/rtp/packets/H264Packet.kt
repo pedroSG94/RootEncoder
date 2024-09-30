@@ -31,10 +31,7 @@ import kotlin.experimental.and
  *
  * RFC 3984
  */
-class H264Packet(
-  sps: ByteArray,
-  pps: ByteArray
-): BasePacket(RtpConstants.clockVideoFrequency,
+class H264Packet: BasePacket(RtpConstants.clockVideoFrequency,
   RtpConstants.payloadType + RtpConstants.trackVideo
 ) {
 
@@ -45,6 +42,9 @@ class H264Packet(
 
   init {
     channelIdentifier = RtpConstants.trackVideo
+  }
+
+  fun sendVideoInfo(sps: ByteArray, pps: ByteArray) {
     setSpsPps(sps, pps)
   }
 

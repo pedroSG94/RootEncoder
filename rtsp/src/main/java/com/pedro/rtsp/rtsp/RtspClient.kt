@@ -427,15 +427,15 @@ class RtspClient(private val connectChecker: ConnectChecker) {
     scope = CoroutineScope(Dispatchers.IO)
   }
 
-  fun sendVideo(h264Buffer: ByteBuffer, info: MediaCodec.BufferInfo) {
+  fun sendVideo(videoBuffer: ByteBuffer, info: MediaCodec.BufferInfo) {
     if (!commandsManager.videoDisabled) {
-      rtspSender.sendVideoFrame(h264Buffer, info)
+      rtspSender.sendVideoFrame(videoBuffer, info)
     }
   }
 
-  fun sendAudio(aacBuffer: ByteBuffer, info: MediaCodec.BufferInfo) {
+  fun sendAudio(audioBuffer: ByteBuffer, info: MediaCodec.BufferInfo) {
     if (!commandsManager.audioDisabled) {
-      rtspSender.sendAudioFrame(aacBuffer, info)
+      rtspSender.sendAudioFrame(audioBuffer, info)
     }
   }
 

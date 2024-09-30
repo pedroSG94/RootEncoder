@@ -21,7 +21,9 @@ import android.util.Log
 import com.pedro.common.AudioCodec
 import com.pedro.common.BitrateManager
 import com.pedro.common.ConnectChecker
+import com.pedro.common.frame.MediaFrame
 import com.pedro.common.VideoCodec
+import com.pedro.common.frame.MediaFrameType
 import com.pedro.common.onMainThread
 import com.pedro.common.socket.TcpStreamSocket
 import com.pedro.common.trySend
@@ -54,8 +56,8 @@ class RtspSender(
   private val commandsManager: CommandsManager
 ) {
 
-  private var videoPacket: BasePacket? = null
-  private var audioPacket: BasePacket? = null
+  private var videoPacket: BasePacket = H264Packet()
+  private var audioPacket: BasePacket = AacPacket()
   private var rtpSocket: BaseRtpSocket? = null
   private var baseSenderReport: BaseSenderReport? = null
 
@@ -66,7 +68,7 @@ class RtspSender(
   private var job: Job? = null
   private val scope = CoroutineScope(Dispatchers.IO)
   @Volatile
-  private var queue: BlockingQueue<List<RtpFrame>> = LinkedBlockingQueue(cacheSize)
+  private var queue: BlockingQueue<MediaFrame> = LinkedBlockingQueue(cacheSize)
 
   private var audioFramesSent: Long = 0
   private var videoFramesSent: Long = 0
@@ -95,7 +97,7 @@ class RtspSender(
     videoPacket = when (commandsManager.videoCodec) {
       VideoCodec.H264 -> {
         if (pps == null) throw IllegalArgumentException("pps can't be null with h264")
-        H264Packet(sps, pps)
+        H264Packet().apply { sendVideoInfo(sps, pps) }
       }
       VideoCodec.H265 -> {
         if (vps == null || pps == null) throw IllegalArgumentException("pps or vps can't be null with h265")
@@ -107,9 +109,9 @@ class RtspSender(
 
   fun setAudioInfo(sampleRate: Int) {
     audioPacket = when (commandsManager.audioCodec) {
-      AudioCodec.G711 -> G711Packet(sampleRate)
-      AudioCodec.AAC -> AacPacket(sampleRate)
-      AudioCodec.OPUS -> OpusPacket(sampleRate)
+      AudioCodec.G711 -> G711Packet().apply { setAudioInfo(sampleRate) }
+      AudioCodec.AAC -> AacPacket().apply { setAudioInfo(sampleRate) }
+      AudioCodec.OPUS -> OpusPacket().apply { setAudioInfo(sampleRate) }
     }
   }
 
@@ -119,26 +121,22 @@ class RtspSender(
     baseSenderReport?.setSocket(socket)
   }
 
-  fun sendVideoFrame(h264Buffer: ByteBuffer, info: MediaCodec.BufferInfo) {
+  fun sendVideoFrame(videoBuffer: ByteBuffer, info: MediaCodec.BufferInfo) {
     if (running) {
-      videoPacket?.createAndSendPacket(h264Buffer, info) { rtpFrame ->
-        val result = queue.trySend(rtpFrame)
-        if (!result) {
-          Log.i(TAG, "Video frame discarded")
-          droppedVideoFrames++
-        }
+      val result = queue.trySend(MediaFrame(videoBuffer, info, MediaFrameType.VIDEO))
+      if (!result) {
+        Log.i(TAG, "Video frame discarded")
+        droppedVideoFrames++
       }
     }
   }
 
-  fun sendAudioFrame(aacBuffer: ByteBuffer, info: MediaCodec.BufferInfo) {
+  fun sendAudioFrame(audioBuffer: ByteBuffer, info: MediaCodec.BufferInfo) {
     if (running) {
-      audioPacket?.createAndSendPacket(aacBuffer, info) { rtpFrame ->
-        val result = queue.trySend(rtpFrame)
-        if (!result) {
-          Log.i(TAG, "Audio frame discarded")
-          droppedAudioFrames++
-        }
+      val result = queue.trySend(MediaFrame(audioBuffer, info, MediaFrameType.AUDIO))
+      if (!result) {
+        Log.i(TAG, "Audio frame discarded")
+        droppedAudioFrames++
       }
     }
   }
@@ -149,8 +147,8 @@ class RtspSender(
     val ssrcVideo = Random().nextInt().toLong()
     val ssrcAudio = Random().nextInt().toLong()
     baseSenderReport?.setSSRC(ssrcVideo, ssrcAudio)
-    videoPacket?.setSSRC(ssrcVideo)
-    audioPacket?.setSSRC(ssrcAudio)
+    videoPacket.setSSRC(ssrcVideo)
+    audioPacket.setSSRC(ssrcAudio)
     running = true
     job = scope.launch {
       val isTcp = rtpSocket is RtpSocketTcp
@@ -165,12 +163,11 @@ class RtspSender(
       }
       while (scope.isActive && running) {
         val error = runCatching {
-          val frames = runInterruptible {
-            queue.poll(1, TimeUnit.SECONDS)
-          }
+          val mediaFrame = runInterruptible { queue.poll(1, TimeUnit.SECONDS) }
+          val rtpFrames = getRtpPackets(mediaFrame)
           var size = 0
           var isVideo = false
-          frames?.forEach { rtpFrame ->
+          rtpFrames?.forEach { rtpFrame ->
             rtpSocket?.sendFrame(rtpFrame)
             //4 is tcp header length
             val packetSize = if (isTcp) rtpFrame.length + 4 else rtpFrame.length
@@ -211,8 +208,8 @@ class RtspSender(
     baseSenderReport?.reset()
     baseSenderReport?.close()
     rtpSocket?.close()
-    audioPacket?.reset()
-    videoPacket?.reset()
+    audioPacket.reset()
+    videoPacket.reset()
     resetSentAudioFrames()
     resetSentVideoFrames()
     resetDroppedAudioFrames()
@@ -220,6 +217,24 @@ class RtspSender(
     job?.cancelAndJoin()
     job = null
     queue.clear()
+  }
+
+  private fun getRtpPackets(mediaFrame: MediaFrame?): List<RtpFrame>? {
+    if (mediaFrame == null) return null
+    var rtpPackets: List<RtpFrame>? = null
+    when (mediaFrame.type) {
+      MediaFrameType.VIDEO -> {
+        videoPacket.createAndSendPacket(mediaFrame.data, mediaFrame.info) { packets ->
+          rtpPackets = packets
+        }
+      }
+      MediaFrameType.AUDIO -> {
+        audioPacket.createAndSendPacket(mediaFrame.data, mediaFrame.info) { packets ->
+          rtpPackets = packets
+        }
+      }
+    }
+    return rtpPackets
   }
 
   @Throws(IllegalArgumentException::class)
@@ -235,7 +250,7 @@ class RtspSender(
     if (newSize < queue.size - queue.remainingCapacity()) {
       throw RuntimeException("Can't fit current cache inside new cache size")
     }
-    val tempQueue: BlockingQueue<List<RtpFrame>> = LinkedBlockingQueue(newSize)
+    val tempQueue: BlockingQueue<MediaFrame> = LinkedBlockingQueue(newSize)
     queue.drainTo(tempQueue)
     queue = tempQueue
   }

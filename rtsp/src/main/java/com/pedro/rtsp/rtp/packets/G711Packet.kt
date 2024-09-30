@@ -26,15 +26,17 @@ import java.nio.ByteBuffer
  * RFC 7655.
  * Valid for G711A and G711U
  */
-class G711Packet(
-  sampleRate: Int
-): BasePacket(
-  sampleRate.toLong(),
+class G711Packet: BasePacket(
+  0,
   RtpConstants.payloadTypeG711
 ) {
 
   init {
     channelIdentifier = RtpConstants.trackAudio
+  }
+
+  fun setAudioInfo(sampleRate: Int) {
+    setClock(sampleRate.toLong())
   }
 
   override fun createAndSendPacket(

@@ -26,15 +26,17 @@ import java.nio.ByteBuffer
  *
  * RFC 7587.
  */
-class OpusPacket(
-  sampleRate: Int
-): BasePacket(
-  sampleRate.toLong(),
+class OpusPacket: BasePacket(
+  0,
   RtpConstants.payloadType + RtpConstants.trackAudio
 ) {
 
   init {
     channelIdentifier = RtpConstants.trackAudio
+  }
+
+  fun setAudioInfo(sampleRate: Int) {
+    setClock(sampleRate.toLong())
   }
 
   override fun createAndSendPacket(
