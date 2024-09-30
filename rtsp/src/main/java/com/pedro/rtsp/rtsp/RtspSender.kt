@@ -16,14 +16,12 @@
 
 package com.pedro.rtsp.rtsp
 
-import android.media.MediaCodec
 import android.util.Log
 import com.pedro.common.AudioCodec
 import com.pedro.common.BitrateManager
 import com.pedro.common.ConnectChecker
-import com.pedro.common.frame.MediaFrame
 import com.pedro.common.VideoCodec
-import com.pedro.common.frame.MediaFrameType
+import com.pedro.common.frame.MediaFrame
 import com.pedro.common.onMainThread
 import com.pedro.common.socket.TcpStreamSocket
 import com.pedro.common.trySend
@@ -121,9 +119,9 @@ class RtspSender(
     baseSenderReport?.setSocket(socket)
   }
 
-  fun sendVideoFrame(videoBuffer: ByteBuffer, info: MediaCodec.BufferInfo) {
+  fun sendVideoFrame(videoBuffer: ByteBuffer, info: MediaFrame.Info) {
     if (running) {
-      val result = queue.trySend(MediaFrame(videoBuffer, info, MediaFrameType.VIDEO))
+      val result = queue.trySend(MediaFrame(videoBuffer, info, MediaFrame.Type.VIDEO))
       if (!result) {
         Log.i(TAG, "Video frame discarded")
         droppedVideoFrames++
@@ -131,9 +129,9 @@ class RtspSender(
     }
   }
 
-  fun sendAudioFrame(audioBuffer: ByteBuffer, info: MediaCodec.BufferInfo) {
+  fun sendAudioFrame(audioBuffer: ByteBuffer, info: MediaFrame.Info) {
     if (running) {
-      val result = queue.trySend(MediaFrame(audioBuffer, info, MediaFrameType.AUDIO))
+      val result = queue.trySend(MediaFrame(audioBuffer, info, MediaFrame.Type.AUDIO))
       if (!result) {
         Log.i(TAG, "Audio frame discarded")
         droppedAudioFrames++
@@ -223,12 +221,12 @@ class RtspSender(
     if (mediaFrame == null) return null
     var rtpPackets: List<RtpFrame>? = null
     when (mediaFrame.type) {
-      MediaFrameType.VIDEO -> {
+      MediaFrame.Type.VIDEO -> {
         videoPacket.createAndSendPacket(mediaFrame.data, mediaFrame.info) { packets ->
           rtpPackets = packets
         }
       }
-      MediaFrameType.AUDIO -> {
+      MediaFrame.Type.AUDIO -> {
         audioPacket.createAndSendPacket(mediaFrame.data, mediaFrame.info) { packets ->
           rtpPackets = packets
         }

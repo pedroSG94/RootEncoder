@@ -16,9 +16,9 @@
 
 package com.pedro.rtsp.rtp.packets
 
-import android.media.MediaCodec
 import com.pedro.common.av1.Av1Parser
 import com.pedro.common.av1.ObuType
+import com.pedro.common.frame.MediaFrame
 import com.pedro.common.isKeyframe
 import com.pedro.common.removeInfo
 import com.pedro.common.toByteArray
@@ -51,7 +51,7 @@ class Av1Packet: BasePacket(
 
   override fun createAndSendPacket(
     byteBuffer: ByteBuffer,
-    bufferInfo: MediaCodec.BufferInfo,
+    bufferInfo: MediaFrame.Info,
     callback: (List<RtpFrame>) -> Unit
   ) {
     var fixedBuffer = byteBuffer.removeInfo(bufferInfo)
@@ -61,7 +61,7 @@ class Av1Packet: BasePacket(
       fixedBuffer = fixedBuffer.slice()
     }
     val obuList = parser.getObus(fixedBuffer.duplicate().toByteArray())
-    val ts = bufferInfo.presentationTimeUs * 1000L
+    val ts = bufferInfo.timestamp * 1000L
     if (obuList.isEmpty()) return
     var data = byteArrayOf()
     obuList.forEachIndexed { index, obu ->

@@ -16,7 +16,7 @@
 
 package com.pedro.rtsp.rtp.packets
 
-import android.media.MediaCodec
+import com.pedro.common.frame.MediaFrame
 import com.pedro.common.removeInfo
 import com.pedro.rtsp.rtsp.RtpFrame
 import com.pedro.rtsp.utils.RtpConstants
@@ -40,7 +40,7 @@ class H265Packet: BasePacket(
 
   override fun createAndSendPacket(
     byteBuffer: ByteBuffer,
-    bufferInfo: MediaCodec.BufferInfo,
+    bufferInfo: MediaFrame.Info,
     callback: (List<RtpFrame>) -> Unit
   ) {
     val fixedBuffer = byteBuffer.removeInfo(bufferInfo)
@@ -49,7 +49,7 @@ class H265Packet: BasePacket(
     val header = ByteArray(fixedBuffer.getVideoStartCodeSize() + 2)
     if (header.size == 2) return //invalid buffer or waiting for sps/pps/vps
     fixedBuffer.get(header, 0, header.size)
-    val ts = bufferInfo.presentationTimeUs * 1000L
+    val ts = bufferInfo.timestamp * 1000L
     val naluLength = fixedBuffer.remaining()
     val type: Int = header[header.size - 2].toInt().shr(1 and 0x3f)
     val frames = mutableListOf<RtpFrame>()

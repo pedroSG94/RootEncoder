@@ -23,6 +23,7 @@ import android.os.Build
 import android.os.Handler
 import android.os.Looper
 import androidx.annotation.RequiresApi
+import com.pedro.common.frame.MediaFrame
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.UnsupportedEncodingException
@@ -41,7 +42,7 @@ import kotlin.coroutines.Continuation
  */
 
 @Suppress("DEPRECATION")
-fun MediaCodec.BufferInfo.isKeyframe(): Boolean {
+fun MediaFrame.Info.isKeyframe(): Boolean {
   return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
     this.flags == MediaCodec.BUFFER_FLAG_KEY_FRAME
   } else {
@@ -60,7 +61,7 @@ fun ByteBuffer.toByteArray(): ByteArray {
   }
 }
 
-fun ByteBuffer.removeInfo(info: MediaCodec.BufferInfo): ByteBuffer {
+fun ByteBuffer.removeInfo(info: MediaFrame.Info): ByteBuffer {
   try {
     position(info.offset)
     limit(info.size)
@@ -140,3 +141,5 @@ fun String.getIndexes(char: Char): Array<Int> {
 fun Throwable.validMessage(): String {
   return (message ?: "").ifEmpty { javaClass.simpleName }
 }
+
+fun MediaCodec.BufferInfo.toMediaFrameInfo() = MediaFrame.Info(offset, size, presentationTimeUs, flags)

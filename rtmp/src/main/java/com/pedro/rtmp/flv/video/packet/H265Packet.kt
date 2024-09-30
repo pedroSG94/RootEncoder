@@ -16,8 +16,8 @@
 
 package com.pedro.rtmp.flv.video.packet
 
-import android.media.MediaCodec
 import android.util.Log
+import com.pedro.common.frame.MediaFrame
 import com.pedro.common.isKeyframe
 import com.pedro.common.removeInfo
 import com.pedro.rtmp.flv.BasePacket
@@ -64,13 +64,13 @@ class H265Packet: BasePacket() {
     this.vps = vpsBytes
   }
 
-  override fun createFlvPacket(
+  override suspend fun createFlvPacket(
     byteBuffer: ByteBuffer,
-    info: MediaCodec.BufferInfo,
-    callback: (FlvPacket) -> Unit
+    info: MediaFrame.Info,
+    callback: suspend (FlvPacket) -> Unit
   ) {
     val fixedBuffer = byteBuffer.removeInfo(info)
-    val ts = info.presentationTimeUs / 1000
+    val ts = info.timestamp / 1000
     //header is 8 bytes length:
     //mark first byte as extended header (0b10000000)
     //4 bits data type, 4 bits packet type
@@ -87,6 +87,7 @@ class H265Packet: BasePacket() {
     header[6] = (cts shr 8).toByte()
     header[7] = cts.toByte()
 
+    val packets = mutableListOf<FlvPacket>()
     var buffer: ByteArray
     if (!configSend) {
       //avoid send cts on sequence start

@@ -16,7 +16,7 @@
 
 package com.pedro.rtmp.flv
 
-import android.media.MediaCodec
+import com.pedro.common.frame.MediaFrame
 import java.nio.ByteBuffer
 
 /**
@@ -24,6 +24,6 @@ import java.nio.ByteBuffer
  */
 abstract class BasePacket {
 
-  abstract fun createFlvPacket(byteBuffer: ByteBuffer, info: MediaCodec.BufferInfo, callback: (FlvPacket) -> Unit)
+  abstract suspend fun createFlvPacket(byteBuffer: ByteBuffer, info: MediaFrame.Info, callback: suspend (FlvPacket) -> Unit)
   abstract fun reset(resetInfo: Boolean = true)
 }

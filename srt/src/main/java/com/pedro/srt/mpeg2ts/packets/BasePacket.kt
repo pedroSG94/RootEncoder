@@ -17,6 +17,7 @@
 package com.pedro.srt.mpeg2ts.packets
 
 import android.media.MediaCodec
+import com.pedro.common.frame.MediaFrame
 import com.pedro.srt.mpeg2ts.MpegTsPacket
 import com.pedro.srt.mpeg2ts.MpegTsPacketizer
 import com.pedro.srt.mpeg2ts.psi.PsiManager
@@ -52,7 +53,7 @@ abstract class BasePacket(
 
   abstract fun createAndSendPacket(
     byteBuffer: ByteBuffer,
-    info: MediaCodec.BufferInfo,
+    info: MediaFrame.Info,
     callback: (List<MpegTsPacket>) -> Unit
   )
 

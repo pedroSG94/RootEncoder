@@ -16,16 +16,16 @@
 
 package com.pedro.rtmp.flv.video.packet
 
-import android.media.MediaCodec
 import android.util.Log
-import com.pedro.common.removeInfo
-import com.pedro.common.toByteArray
-import com.pedro.rtmp.flv.FlvPacket
-import com.pedro.rtmp.flv.FlvType
 import com.pedro.common.av1.Av1Parser
 import com.pedro.common.av1.ObuType
+import com.pedro.common.frame.MediaFrame
 import com.pedro.common.isKeyframe
+import com.pedro.common.removeInfo
+import com.pedro.common.toByteArray
 import com.pedro.rtmp.flv.BasePacket
+import com.pedro.rtmp.flv.FlvPacket
+import com.pedro.rtmp.flv.FlvType
 import com.pedro.rtmp.flv.video.FourCCPacketType
 import com.pedro.rtmp.flv.video.VideoDataType
 import com.pedro.rtmp.flv.video.VideoFormat
@@ -50,13 +50,13 @@ class Av1Packet: BasePacket() {
     this.obuSequence = obuSequence.toByteArray()
   }
 
-  override fun createFlvPacket(
+  override suspend fun createFlvPacket(
     byteBuffer: ByteBuffer,
-    info: MediaCodec.BufferInfo,
-    callback: (FlvPacket) -> Unit
+    info: MediaFrame.Info,
+    callback: suspend (FlvPacket) -> Unit
   ) {
     var fixedBuffer = byteBuffer.duplicate().removeInfo(info)
-    val ts = info.presentationTimeUs / 1000
+    val ts = info.timestamp / 1000
 
     //header is 8 bytes length:
     //mark first byte as extended header (0b10000000)

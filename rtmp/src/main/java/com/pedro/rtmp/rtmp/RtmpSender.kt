@@ -16,14 +16,12 @@
 
 package com.pedro.rtmp.rtmp
 
-import android.media.MediaCodec
 import android.util.Log
 import com.pedro.common.AudioCodec
 import com.pedro.common.BitrateManager
 import com.pedro.common.ConnectChecker
 import com.pedro.common.VideoCodec
 import com.pedro.common.frame.MediaFrame
-import com.pedro.common.frame.MediaFrameType
 import com.pedro.common.onMainThread
 import com.pedro.common.trySend
 import com.pedro.common.validMessage
@@ -108,9 +106,9 @@ class RtmpSender(
     }
   }
 
-  fun sendVideoFrame(videoBuffer: ByteBuffer, info: MediaCodec.BufferInfo) {
+  fun sendVideoFrame(videoBuffer: ByteBuffer, info: MediaFrame.Info) {
     if (running) {
-      val result = queue.trySend(MediaFrame(videoBuffer, info, MediaFrameType.VIDEO))
+      val result = queue.trySend(MediaFrame(videoBuffer, info, MediaFrame.Type.VIDEO))
       if (!result) {
         Log.i(TAG, "Video frame discarded")
         droppedVideoFrames++
@@ -118,9 +116,9 @@ class RtmpSender(
     }
   }
 
-  fun sendAudioFrame(audioBuffer: ByteBuffer, info: MediaCodec.BufferInfo) {
+  fun sendAudioFrame(audioBuffer: ByteBuffer, info: MediaFrame.Info) {
     if (running) {
-      val result = queue.trySend(MediaFrame(audioBuffer, info, MediaFrameType.AUDIO))
+      val result = queue.trySend(MediaFrame(audioBuffer, info, MediaFrame.Type.AUDIO))
       if (!result) {
         Log.i(TAG, "Audio frame discarded")
         droppedAudioFrames++
@@ -145,8 +143,7 @@ class RtmpSender(
       while (scope.isActive && running) {
         val error = runCatching {
           val mediaFrame = runInterruptible { queue.poll(1, TimeUnit.SECONDS) }
-          val flvPacket = getFlvPacket(mediaFrame)
-          flvPacket?.let {
+          getFlvPacket(mediaFrame) { flvPacket ->
             var size = 0
             if (flvPacket.type == FlvType.VIDEO) {
               videoFramesSent++
@@ -192,22 +189,20 @@ class RtmpSender(
     queue.clear()
   }
 
-  private fun getFlvPacket(mediaFrame: MediaFrame?): FlvPacket? {
-    if (mediaFrame == null) return null
-    var flvPacket: FlvPacket? = null
+  private suspend fun getFlvPacket(mediaFrame: MediaFrame?, callback: suspend (FlvPacket) -> Unit) {
+    if (mediaFrame == null) return
     when (mediaFrame.type) {
-      MediaFrameType.VIDEO -> {
-        videoPacket.createFlvPacket(mediaFrame.data, mediaFrame.info) { packet ->
-          flvPacket = packet
+      MediaFrame.Type.VIDEO -> {
+        videoPacket.createFlvPacket(mediaFrame.data, mediaFrame.info) {
+          callback(it)
         }
       }
-      MediaFrameType.AUDIO -> {
-        audioPacket.createFlvPacket(mediaFrame.data, mediaFrame.info) { packet ->
-          flvPacket = packet
+      MediaFrame.Type.AUDIO -> {
+        audioPacket.createFlvPacket(mediaFrame.data, mediaFrame.info) {
+          callback(it)
         }
       }
     }
-    return flvPacket
   }
 
   @Throws(IllegalArgumentException::class)

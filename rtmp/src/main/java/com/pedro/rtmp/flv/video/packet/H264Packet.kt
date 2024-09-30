@@ -16,8 +16,8 @@
 
 package com.pedro.rtmp.flv.video.packet
 
-import android.media.MediaCodec
 import android.util.Log
+import com.pedro.common.frame.MediaFrame
 import com.pedro.common.isKeyframe
 import com.pedro.common.removeInfo
 import com.pedro.rtmp.flv.BasePacket
@@ -64,13 +64,13 @@ class H264Packet: BasePacket() {
     this.pps = ppsBytes
   }
 
-  override fun createFlvPacket(
+  override suspend fun createFlvPacket(
     byteBuffer: ByteBuffer,
-    info: MediaCodec.BufferInfo,
-    callback: (FlvPacket) -> Unit
+    info: MediaFrame.Info,
+    callback: suspend (FlvPacket) -> Unit
   ) {
     val fixedBuffer = byteBuffer.removeInfo(info)
-    val ts = info.presentationTimeUs / 1000
+    val ts = info.timestamp / 1000
     //header is 5 bytes length:
     //4 bits FrameType, 4 bits CodecID
     //1 byte AVCPacketType

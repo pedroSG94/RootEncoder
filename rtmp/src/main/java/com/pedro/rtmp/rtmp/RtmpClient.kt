@@ -25,6 +25,7 @@ import com.pedro.common.TimeUtils
 import com.pedro.common.UrlParser
 import com.pedro.common.VideoCodec
 import com.pedro.common.onMainThread
+import com.pedro.common.toMediaFrameInfo
 import com.pedro.common.validMessage
 import com.pedro.rtmp.amf.AmfVersion
 import com.pedro.rtmp.rtmp.message.*
@@ -546,13 +547,13 @@ class RtmpClient(private val connectChecker: ConnectChecker) {
 
   fun sendVideo(videoBuffer: ByteBuffer, info: MediaCodec.BufferInfo) {
     if (!commandsManager.videoDisabled) {
-      rtmpSender.sendVideoFrame(videoBuffer, info)
+      rtmpSender.sendVideoFrame(videoBuffer, info.toMediaFrameInfo())
     }
   }
 
   fun sendAudio(audioBuffer: ByteBuffer, info: MediaCodec.BufferInfo) {
     if (!commandsManager.audioDisabled) {
-      rtmpSender.sendAudioFrame(audioBuffer, info)
+      rtmpSender.sendAudioFrame(audioBuffer, info.toMediaFrameInfo())
     }
   }
 

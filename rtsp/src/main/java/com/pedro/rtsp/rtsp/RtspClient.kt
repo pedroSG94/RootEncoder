@@ -25,6 +25,7 @@ import com.pedro.common.UrlParser
 import com.pedro.common.VideoCodec
 import com.pedro.common.onMainThread
 import com.pedro.common.socket.TcpStreamSocket
+import com.pedro.common.toMediaFrameInfo
 import com.pedro.common.validMessage
 import com.pedro.rtsp.rtsp.commands.CommandsManager
 import com.pedro.rtsp.rtsp.commands.Method
@@ -429,13 +430,13 @@ class RtspClient(private val connectChecker: ConnectChecker) {
 
   fun sendVideo(videoBuffer: ByteBuffer, info: MediaCodec.BufferInfo) {
     if (!commandsManager.videoDisabled) {
-      rtspSender.sendVideoFrame(videoBuffer, info)
+      rtspSender.sendVideoFrame(videoBuffer, info.toMediaFrameInfo())
     }
   }
 
   fun sendAudio(audioBuffer: ByteBuffer, info: MediaCodec.BufferInfo) {
     if (!commandsManager.audioDisabled) {
-      rtspSender.sendAudioFrame(audioBuffer, info)
+      rtspSender.sendAudioFrame(audioBuffer, info.toMediaFrameInfo())
     }
   }
 

@@ -16,7 +16,7 @@
 
 package com.pedro.rtsp.rtp.packets
 
-import android.media.MediaCodec
+import com.pedro.common.frame.MediaFrame
 import com.pedro.common.removeInfo
 import com.pedro.rtsp.rtsp.RtpFrame
 import com.pedro.rtsp.utils.RtpConstants
@@ -44,13 +44,13 @@ class AacPacket: BasePacket(
 
   override fun createAndSendPacket(
     byteBuffer: ByteBuffer,
-    bufferInfo: MediaCodec.BufferInfo,
+    bufferInfo: MediaFrame.Info,
     callback: (List<RtpFrame>) -> Unit
   ) {
     val fixedBuffer = byteBuffer.removeInfo(bufferInfo)
     val length = fixedBuffer.remaining()
     val maxPayload = maxPacketSize - (RtpConstants.RTP_HEADER_LENGTH + 4)
-    val ts = bufferInfo.presentationTimeUs * 1000
+    val ts = bufferInfo.timestamp * 1000
     var sum = 0
     val frames = mutableListOf<RtpFrame>()
     while (sum < length) {

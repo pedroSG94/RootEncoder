@@ -16,13 +16,11 @@
 
 package com.pedro.udp
 
-import android.media.MediaCodec
 import android.util.Log
 import com.pedro.common.AudioCodec
 import com.pedro.common.BitrateManager
 import com.pedro.common.ConnectChecker
 import com.pedro.common.frame.MediaFrame
-import com.pedro.common.frame.MediaFrameType
 import com.pedro.common.onMainThread
 import com.pedro.common.trySend
 import com.pedro.common.validMessage
@@ -118,9 +116,9 @@ class UdpSender(
     }
   }
 
-  fun sendVideoFrame(videoBuffer: ByteBuffer, info: MediaCodec.BufferInfo) {
+  fun sendVideoFrame(videoBuffer: ByteBuffer, info: MediaFrame.Info) {
     if (running) {
-      val result = queue.trySend(MediaFrame(videoBuffer, info, MediaFrameType.VIDEO))
+      val result = queue.trySend(MediaFrame(videoBuffer, info, MediaFrame.Type.VIDEO))
       if (!result) {
         Log.i(TAG, "Video frame discarded")
         droppedVideoFrames++
@@ -128,9 +126,9 @@ class UdpSender(
     }
   }
 
-  fun sendAudioFrame(audioBuffer: ByteBuffer, info: MediaCodec.BufferInfo) {
+  fun sendAudioFrame(audioBuffer: ByteBuffer, info: MediaFrame.Info) {
     if (running) {
-      val result = queue.trySend(MediaFrame(audioBuffer, info, MediaFrameType.AUDIO))
+      val result = queue.trySend(MediaFrame(audioBuffer, info, MediaFrame.Type.AUDIO))
       if (!result) {
         Log.i(TAG, "Audio frame discarded")
         droppedAudioFrames++
@@ -208,12 +206,12 @@ class UdpSender(
     if (mediaFrame == null) return null
     var mpegTsPackets: List<MpegTsPacket>? = null
     when (mediaFrame.type) {
-      MediaFrameType.VIDEO -> {
+      MediaFrame.Type.VIDEO -> {
         videoPacket.createAndSendPacket(mediaFrame.data, mediaFrame.info) { packets ->
           mpegTsPackets = packets
         }
       }
-      MediaFrameType.AUDIO -> {
+      MediaFrame.Type.AUDIO -> {
         audioPacket.createAndSendPacket(mediaFrame.data, mediaFrame.info) { packets ->
           mpegTsPackets = packets
         }

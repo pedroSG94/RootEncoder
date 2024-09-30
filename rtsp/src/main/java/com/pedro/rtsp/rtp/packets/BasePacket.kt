@@ -17,6 +17,7 @@
 package com.pedro.rtsp.rtp.packets
 
 import android.media.MediaCodec
+import com.pedro.common.frame.MediaFrame
 import com.pedro.rtsp.rtsp.RtpFrame
 import com.pedro.rtsp.utils.RtpConstants
 import com.pedro.rtsp.utils.setLong
@@ -37,7 +38,7 @@ abstract class BasePacket(private var clock: Long, private val payloadType: Int)
 
   abstract fun createAndSendPacket(
     byteBuffer: ByteBuffer,
-    bufferInfo: MediaCodec.BufferInfo,
+    bufferInfo: MediaFrame.Info,
     callback: (List<RtpFrame>) -> Unit
   )
 
