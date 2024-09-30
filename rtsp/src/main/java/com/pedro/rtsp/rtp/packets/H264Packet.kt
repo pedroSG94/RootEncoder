@@ -132,7 +132,6 @@ class H264Packet: BasePacket(RtpConstants.clockVideoFrequency,
   private fun setSpsPps(sps: ByteArray, pps: ByteArray) {
     this.sps = sps
     this.pps = pps
-    Log.e("Pedro", "sps: ${sps.size}, pps: ${pps.size}")
     stapA = ByteArray(sps.size + pps.size + 5)
     stapA?.let {
       // STAP-A NAL header is 24
