@@ -17,10 +17,12 @@
 package com.pedro.rtsp.rtp
 
 import android.media.MediaCodec
+import com.pedro.common.frame.MediaFrame
 import com.pedro.rtsp.rtp.packets.OpusPacket
 import com.pedro.rtsp.rtsp.RtpFrame
 import com.pedro.rtsp.utils.RtpConstants
 import junit.framework.TestCase.assertEquals
+import kotlinx.coroutines.test.runTest
 import org.junit.Test
 import java.nio.ByteBuffer
 
@@ -30,16 +32,12 @@ import java.nio.ByteBuffer
 class OpusPacketTest {
 
   @Test
-  fun `GIVEN opus data WHEN create rtp packet THEN get expected packet`() {
+  fun `GIVEN opus data WHEN create rtp packet THEN get expected packet`() = runTest {
     val timestamp = 123456789L
     val fakeOpus = ByteArray(30) { 0x05 }
 
-    val info = MediaCodec.BufferInfo()
-    info.presentationTimeUs = timestamp
-    info.offset = 0
-    info.size = fakeOpus.size
-    info.flags = 1
-    val opusPacket = OpusPacket(8000)
+    val info = MediaFrame.Info(0, fakeOpus.size, timestamp, 1)
+    val opusPacket = OpusPacket().apply { setAudioInfo(8000) }
     opusPacket.setSSRC(123456789)
     val frames = mutableListOf<RtpFrame>()
     opusPacket.createAndSendPacket(ByteBuffer.wrap(fakeOpus), info) {

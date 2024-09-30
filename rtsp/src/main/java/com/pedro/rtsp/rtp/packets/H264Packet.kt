@@ -20,9 +20,9 @@ import android.util.Log
 import com.pedro.common.frame.MediaFrame
 import com.pedro.common.isKeyframe
 import com.pedro.common.removeInfo
+import com.pedro.common.toByteArray
 import com.pedro.rtsp.rtsp.RtpFrame
 import com.pedro.rtsp.utils.RtpConstants
-import com.pedro.rtsp.utils.getData
 import com.pedro.rtsp.utils.getVideoStartCodeSize
 import java.nio.ByteBuffer
 import kotlin.experimental.and
@@ -46,7 +46,7 @@ class H264Packet: BasePacket(RtpConstants.clockVideoFrequency,
   }
 
   fun sendVideoInfo(sps: ByteBuffer, pps: ByteBuffer) {
-    setSpsPps(sps.getData(), pps.getData())
+    setSpsPps(sps.toByteArray(), pps.toByteArray())
   }
 
   override suspend fun createAndSendPacket(
@@ -132,6 +132,7 @@ class H264Packet: BasePacket(RtpConstants.clockVideoFrequency,
   private fun setSpsPps(sps: ByteArray, pps: ByteArray) {
     this.sps = sps
     this.pps = pps
+    Log.e("Pedro", "sps: ${sps.size}, pps: ${pps.size}")
     stapA = ByteArray(sps.size + pps.size + 5)
     stapA?.let {
       // STAP-A NAL header is 24

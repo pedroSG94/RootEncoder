@@ -17,10 +17,12 @@
 package com.pedro.rtmp.flv.video
 
 import android.media.MediaCodec
+import com.pedro.common.frame.MediaFrame
 import com.pedro.rtmp.flv.FlvPacket
 import com.pedro.rtmp.flv.FlvType
 import com.pedro.rtmp.flv.video.packet.Av1Packet
 import junit.framework.TestCase.assertEquals
+import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertArrayEquals
 import org.junit.Test
 import java.nio.ByteBuffer
@@ -31,17 +33,13 @@ import java.nio.ByteBuffer
 class Av1PacketTest {
 
   @Test
-  fun `GIVEN av1data WHEN create flv packet THEN get expected FlvPacket`() {
+  fun `GIVEN av1data WHEN create flv packet THEN get expected FlvPacket`() = runTest {
     val timestamp = 123456789L
     val av1data = byteArrayOf(0x0a, 0x0d, 0x00, 0x00, 0x00, 0x24, 0x4f, 0x7e, 0x7f, 0x00, 0x68, 0x83.toByte(), 0x00, 0x83.toByte(), 0x02)
     val expectedConfig = byteArrayOf(-112, 97, 118, 48, 49, -127, 4, 12, 0, 10, 13, 0, 0, 0, 36, 79, 126, 127, 0, 104, -125, 0, -125, 2)
     val expectedFlvPacket = byteArrayOf(-111, 97, 118, 48, 49, 10, 13, 0, 0, 0, 36, 79, 126, 127, 0, 104, -125, 0, -125, 2)
 
-    val info = MediaCodec.BufferInfo()
-    info.presentationTimeUs = timestamp
-    info.offset = 0
-    info.size = av1data.size
-    info.flags = 1
+    val info = MediaFrame.Info(0, av1data.size, timestamp, 1)
 
     val frames = mutableListOf<FlvPacket>()
     val av1Packet = Av1Packet()

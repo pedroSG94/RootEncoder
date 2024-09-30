@@ -16,14 +16,12 @@
 
 package com.pedro.rtsp.rtp
 
-import android.media.MediaCodec
+import com.pedro.common.frame.MediaFrame
 import com.pedro.rtsp.rtp.packets.Av1Packet
 import com.pedro.rtsp.rtsp.RtpFrame
 import com.pedro.rtsp.utils.RtpConstants
-import junit.framework.TestCase
 import junit.framework.TestCase.assertEquals
-import org.junit.Assert
-import org.junit.Assert.assertArrayEquals
+import kotlinx.coroutines.test.runTest
 import org.junit.Test
 import java.nio.ByteBuffer
 
@@ -33,15 +31,11 @@ import java.nio.ByteBuffer
 class Av1PacketTest {
 
   @Test
-  fun `GIVEN av1data WHEN create rtp packet THEN get expected packet`() {
+  fun `GIVEN av1data WHEN create rtp packet THEN get expected packet`() = runTest {
     val timestamp = 123456789L
     val av1data = byteArrayOf(0x0a, 0x0d, 0x00, 0x00, 0x00, 0x24, 0x4f, 0x7e, 0x7f, 0x00, 0x68, 0x83.toByte(), 0x00, 0x83.toByte(), 0x02)
 
-    val info = MediaCodec.BufferInfo()
-    info.presentationTimeUs = timestamp
-    info.offset = 0
-    info.size = av1data.size
-    info.flags = 1
+    val info = MediaFrame.Info(0, av1data.size, timestamp, 1)
 
     val frames = mutableListOf<RtpFrame>()
     val av1Packet = Av1Packet()

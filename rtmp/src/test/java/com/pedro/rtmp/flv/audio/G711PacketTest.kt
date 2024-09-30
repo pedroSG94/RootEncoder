@@ -17,9 +17,11 @@
 package com.pedro.rtmp.flv.audio
 
 import android.media.MediaCodec
+import com.pedro.common.frame.MediaFrame
 import com.pedro.rtmp.flv.FlvType
 import com.pedro.rtmp.flv.audio.packet.G711Packet
 import junit.framework.TestCase.assertEquals
+import kotlinx.coroutines.test.runTest
 import org.junit.Test
 import java.nio.ByteBuffer
 
@@ -29,14 +31,10 @@ import java.nio.ByteBuffer
 class G711PacketTest {
 
   @Test
-  fun `GIVEN a G711 buffer WHEN call create a G711 packet THEN expected buffer`() {
+  fun `GIVEN a G711 buffer WHEN call create a G711 packet THEN expected buffer`() = runTest {
     val timestamp = 123456789L
     val buffer = ByteArray(256) { 0x00 }
-    val info = MediaCodec.BufferInfo()
-    info.presentationTimeUs = timestamp
-    info.offset = 0
-    info.size = buffer.size
-    info.flags = 1
+    val info = MediaFrame.Info(0, buffer.size, timestamp, 1)
     val g711Packet = G711Packet()
     g711Packet.sendAudioInfo()
     g711Packet.createFlvPacket(ByteBuffer.wrap(buffer), info) { flvPacket ->
