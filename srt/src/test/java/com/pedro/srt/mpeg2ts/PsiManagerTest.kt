@@ -34,7 +34,7 @@ class PsiManagerTest {
   private val mpegTsPacketizer = MpegTsPacketizer(psiManager)
 
   @Test
-  fun `GIVEN a psiManager WHEN call should send is key false patPeriod times THEN return TableToSend PAT_PMT`() {
+  fun `GIVEN a psiManager WHEN call should send is key false patPeriod times THEN return PAT and PMT packets`() {
     val psiManager = PsiManager(service)
     var packets = listOf<MpegTsPacket>()
     (0..PsiManager.patPeriod).forEach { _ ->
@@ -44,7 +44,7 @@ class PsiManagerTest {
   }
 
   @Test
-  fun `GIVEN a psiManager WHEN call should send is key false sdtPeriod times THEN return TableToSend ALL`() {
+  fun `GIVEN a psiManager WHEN call should send is key false sdtPeriod times THEN return PMT, SDT and PAT packets`() {
     val psiManager = PsiManager(service)
     var packets = listOf<MpegTsPacket>()
     (0..PsiManager.sdtPeriod).forEach { _ ->
