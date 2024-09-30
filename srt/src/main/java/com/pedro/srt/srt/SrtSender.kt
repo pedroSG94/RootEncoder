@@ -116,22 +116,17 @@ class SrtSender(
     }
   }
 
-  fun sendVideoFrame(videoBuffer: ByteBuffer, info: MediaFrame.Info) {
-    if (running) {
-      val result = queue.trySend(MediaFrame(videoBuffer, info, MediaFrame.Type.VIDEO))
-      if (!result) {
-        Log.i(TAG, "Video frame discarded")
-        droppedVideoFrames++
-      }
-    }
-  }
-
-  fun sendAudioFrame(audioBuffer: ByteBuffer, info: MediaFrame.Info) {
-    if (running) {
-      val result = queue.trySend(MediaFrame(audioBuffer, info, MediaFrame.Type.AUDIO))
-      if (!result) {
-        Log.i(TAG, "Audio frame discarded")
-        droppedAudioFrames++
+  fun sendMediaFrame(mediaFrame: MediaFrame) {
+    if (running && !queue.trySend(mediaFrame)) {
+      when (mediaFrame.type) {
+        MediaFrame.Type.VIDEO -> {
+          Log.i(TAG, "Video frame discarded")
+          droppedVideoFrames++
+        }
+        MediaFrame.Type.AUDIO -> {
+          Log.i(TAG, "Audio frame discarded")
+          droppedAudioFrames++
+        }
       }
     }
   }
@@ -154,8 +149,7 @@ class SrtSender(
       while (scope.isActive && running) {
         val error = runCatching {
           val mediaFrame = runInterruptible { queue.poll(1, TimeUnit.SECONDS) }
-          val mpegTsPackets = getMpegTsPackets(mediaFrame)
-          mpegTsPackets?.let {
+          getMpegTsPackets(mediaFrame) { mpegTsPackets ->
             val isKey = mpegTsPackets[0].isKey
             val psiPackets = psiManager.checkSendInfo(isKey, mpegTsPacketizer)
             bytesSend += sendPackets(psiPackets)
@@ -202,22 +196,20 @@ class SrtSender(
     queue.clear()
   }
 
-  private fun getMpegTsPackets(mediaFrame: MediaFrame?): List<MpegTsPacket>? {
-    if (mediaFrame == null) return null
-    var mpegTsPackets: List<MpegTsPacket>? = null
+  private suspend fun getMpegTsPackets(mediaFrame: MediaFrame?, callback: suspend (List<MpegTsPacket>) -> Unit) {
+    if (mediaFrame == null) return
     when (mediaFrame.type) {
       MediaFrame.Type.VIDEO -> {
         videoPacket.createAndSendPacket(mediaFrame.data, mediaFrame.info) { packets ->
-          mpegTsPackets = packets
+          callback(packets)
         }
       }
       MediaFrame.Type.AUDIO -> {
         audioPacket.createAndSendPacket(mediaFrame.data, mediaFrame.info) { packets ->
-          mpegTsPackets = packets
+          callback(packets)
         }
       }
     }
-    return mpegTsPackets
   }
 
   @Throws(IllegalArgumentException::class)

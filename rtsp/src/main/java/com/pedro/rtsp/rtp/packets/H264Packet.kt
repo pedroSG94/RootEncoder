@@ -48,10 +48,10 @@ class H264Packet: BasePacket(RtpConstants.clockVideoFrequency,
     setSpsPps(sps, pps)
   }
 
-  override fun createAndSendPacket(
+  override suspend fun createAndSendPacket(
     byteBuffer: ByteBuffer,
     bufferInfo: MediaFrame.Info,
-    callback: (List<RtpFrame>) -> Unit
+    callback: suspend (List<RtpFrame>) -> Unit
   ) {
     val fixedBuffer = byteBuffer.removeInfo(bufferInfo)
     // We read a NAL units from ByteBuffer and we send them

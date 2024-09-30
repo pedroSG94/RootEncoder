@@ -106,22 +106,17 @@ class RtmpSender(
     }
   }
 
-  fun sendVideoFrame(videoBuffer: ByteBuffer, info: MediaFrame.Info) {
-    if (running) {
-      val result = queue.trySend(MediaFrame(videoBuffer, info, MediaFrame.Type.VIDEO))
-      if (!result) {
-        Log.i(TAG, "Video frame discarded")
-        droppedVideoFrames++
-      }
-    }
-  }
-
-  fun sendAudioFrame(audioBuffer: ByteBuffer, info: MediaFrame.Info) {
-    if (running) {
-      val result = queue.trySend(MediaFrame(audioBuffer, info, MediaFrame.Type.AUDIO))
-      if (!result) {
-        Log.i(TAG, "Audio frame discarded")
-        droppedAudioFrames++
+  fun sendMediaFrame(mediaFrame: MediaFrame) {
+    if (running && !queue.trySend(mediaFrame)) {
+      when (mediaFrame.type) {
+        MediaFrame.Type.VIDEO -> {
+          Log.i(TAG, "Video frame discarded")
+          droppedVideoFrames++
+        }
+        MediaFrame.Type.AUDIO -> {
+          Log.i(TAG, "Audio frame discarded")
+          droppedAudioFrames++
+        }
       }
     }
   }

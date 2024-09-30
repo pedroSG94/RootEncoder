@@ -39,10 +39,10 @@ class OpusPacket: BasePacket(
     setClock(sampleRate.toLong())
   }
 
-  override fun createAndSendPacket(
+  override suspend fun createAndSendPacket(
     byteBuffer: ByteBuffer,
     bufferInfo: MediaFrame.Info,
-    callback: (List<RtpFrame>) -> Unit
+    callback: suspend (List<RtpFrame>) -> Unit
   ) {
     val length = bufferInfo.size - byteBuffer.position()
     val maxPayload = maxPacketSize - RtpConstants.RTP_HEADER_LENGTH

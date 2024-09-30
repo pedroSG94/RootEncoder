@@ -143,3 +143,5 @@ fun Throwable.validMessage(): String {
 }
 
 fun MediaCodec.BufferInfo.toMediaFrameInfo() = MediaFrame.Info(offset, size, presentationTimeUs, flags)
+
+fun ByteBuffer.clone(): ByteBuffer = ByteBuffer.wrap(toByteArray())

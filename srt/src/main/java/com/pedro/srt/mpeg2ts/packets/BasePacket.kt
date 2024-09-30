@@ -51,10 +51,10 @@ abstract class BasePacket(
   protected val mpegTsPacketizer =  MpegTsPacketizer(psiManager)
   protected var chunkSize = limitSize / MpegTsPacketizer.packetSize //max number of ts packets per srtpacket
 
-  abstract fun createAndSendPacket(
+  abstract suspend fun createAndSendPacket(
     byteBuffer: ByteBuffer,
     info: MediaFrame.Info,
-    callback: (List<MpegTsPacket>) -> Unit
+    callback: suspend (List<MpegTsPacket>) -> Unit
   )
 
   abstract fun resetPacket(resetInfo: Boolean)

@@ -42,10 +42,10 @@ class AacPacket: BasePacket(
     setClock(sampleRate.toLong())
   }
 
-  override fun createAndSendPacket(
+  override suspend fun createAndSendPacket(
     byteBuffer: ByteBuffer,
     bufferInfo: MediaFrame.Info,
-    callback: (List<RtpFrame>) -> Unit
+    callback: suspend (List<RtpFrame>) -> Unit
   ) {
     val fixedBuffer = byteBuffer.removeInfo(bufferInfo)
     val length = fixedBuffer.remaining()

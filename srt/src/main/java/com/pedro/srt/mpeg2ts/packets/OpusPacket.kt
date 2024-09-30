@@ -36,10 +36,10 @@ class OpusPacket(
   psiManager: PsiManager,
 ): BasePacket(psiManager, limitSize) {
 
-  override fun createAndSendPacket(
+  override suspend fun createAndSendPacket(
     byteBuffer: ByteBuffer,
     info: MediaFrame.Info,
-    callback: (List<MpegTsPacket>) -> Unit
+    callback: suspend (List<MpegTsPacket>) -> Unit
   ) {
     val fixedBuffer = byteBuffer.removeInfo(info)
     val length = fixedBuffer.remaining()

@@ -49,10 +49,10 @@ class H26XPacket(
   private var codec = Codec.AVC
   private var configSend = false
 
-  override fun createAndSendPacket(
+  override suspend fun createAndSendPacket(
     byteBuffer: ByteBuffer,
     info: MediaFrame.Info,
-    callback: (List<MpegTsPacket>) -> Unit
+    callback: suspend (List<MpegTsPacket>) -> Unit
   ) {
     val fixedBuffer = byteBuffer.removeInfo(info)
     val length = fixedBuffer.remaining()

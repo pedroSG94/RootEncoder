@@ -49,10 +49,10 @@ class Av1Packet: BasePacket(
     channelIdentifier = RtpConstants.trackVideo
   }
 
-  override fun createAndSendPacket(
+  override suspend fun createAndSendPacket(
     byteBuffer: ByteBuffer,
     bufferInfo: MediaFrame.Info,
-    callback: (List<RtpFrame>) -> Unit
+    callback: suspend (List<RtpFrame>) -> Unit
   ) {
     var fixedBuffer = byteBuffer.removeInfo(bufferInfo)
     //remove temporal delimitered OBU if found on start
