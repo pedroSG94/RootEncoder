@@ -67,12 +67,7 @@ class AacPacket(
     if (packets.isNotEmpty()) callback(packets)
   }
 
-  override fun resetPacket(resetInfo: Boolean) {
-    if (resetInfo) {
-      sampleRate = 44100
-      isStereo = true
-    }
-  }
+  override fun resetPacket(resetInfo: Boolean) { }
 
   fun sendAudioInfo(sampleRate: Int, stereo: Boolean) {
     this.sampleRate = sampleRate

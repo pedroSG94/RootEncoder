@@ -32,8 +32,10 @@ import com.pedro.srt.mpeg2ts.packets.BasePacket
 import com.pedro.srt.mpeg2ts.packets.H26XPacket
 import com.pedro.srt.mpeg2ts.packets.OpusPacket
 import com.pedro.srt.mpeg2ts.psi.PsiManager
+import com.pedro.srt.mpeg2ts.psi.TableToSend
 import com.pedro.srt.mpeg2ts.service.Mpeg2TsService
 import com.pedro.srt.srt.packets.SrtPacket
+import com.pedro.srt.srt.packets.data.PacketPosition
 import com.pedro.srt.utils.SrtSocket
 import com.pedro.srt.utils.toCodec
 import kotlinx.coroutines.isActive
@@ -50,7 +52,6 @@ class SrtSender(
 ): BaseSender(connectChecker, "SrtSender") {
 
   private val service = Mpeg2TsService()
-
   private val psiManager = PsiManager(service).apply {
     upgradePatVersion()
     upgradeSdtVersion()
@@ -87,15 +88,20 @@ class SrtSender(
 
   override suspend fun onRun() {
     setTrackConfig(!commandsManager.videoDisabled, !commandsManager.audioDisabled)
+    //send config
+    val psiList = mutableListOf(psiManager.getSdt(), psiManager.getPat())
+    psiManager.getPmt()?.let { psiList.add(0, it) }
+    val psiPacketsConfig = mpegTsPacketizer.write(psiList).map { b ->
+      MpegTsPacket(b, MpegType.PSI, PacketPosition.SINGLE, isKey = false)
+    }
+    sendPackets(psiPacketsConfig, MpegType.PSI)
     while (scope.isActive && running) {
       val error = runCatching {
         val mediaFrame = runInterruptible { queue.poll(1, TimeUnit.SECONDS) }
         getMpegTsPackets(mediaFrame) { mpegTsPackets ->
-          val firstPacket = mpegTsPackets[0]
-          val isKey = firstPacket.isKey
-          val psiPackets = psiManager.checkSendInfo(isKey, mpegTsPacketizer)
-          bytesSend += sendPackets(psiPackets, MpegType.PSI)
-          bytesSend += sendPackets(mpegTsPackets, firstPacket.type)
+          if (mpegTsPackets.isNotEmpty()) {
+            bytesSend += sendPackets(mpegTsPackets, mpegTsPackets[0].type)
+          }
         }
       }.exceptionOrNull()
       if (error != null) {
@@ -136,13 +142,42 @@ class SrtSender(
     when (mediaFrame.type) {
       MediaFrame.Type.VIDEO -> {
         videoPacket.createAndSendPacket(mediaFrame.data, mediaFrame.info) { packets ->
+          val isKey = packets[0].isKey
+          checkSendInfo(isKey, callback)
           callback(packets)
         }
       }
       MediaFrame.Type.AUDIO -> {
         audioPacket.createAndSendPacket(mediaFrame.data, mediaFrame.info) { packets ->
+          val isKey = packets[0].isKey
+          checkSendInfo(isKey, callback)
           callback(packets)
         }
+      }
+    }
+  }
+
+  private suspend fun checkSendInfo(isKey: Boolean = false, callback: suspend (List<MpegTsPacket>) -> Unit) {
+    val pmt = psiManager.getPmt() ?: return
+    when (psiManager.shouldSend(isKey)) {
+      TableToSend.PAT_PMT -> {
+        val psiPackets = mpegTsPacketizer.write(listOf(psiManager.getPat(), pmt), increasePsiContinuity = true).map { b ->
+          MpegTsPacket(b, MpegType.PSI, PacketPosition.SINGLE, isKey = false)
+        }
+        callback(psiPackets)
+      }
+      TableToSend.SDT -> {
+        val psiPackets = mpegTsPacketizer.write(listOf(psiManager.getSdt()), increasePsiContinuity = true).map { b ->
+          MpegTsPacket(b, MpegType.PSI, PacketPosition.SINGLE, isKey = false)
+        }
+        callback(psiPackets)
+      }
+      TableToSend.NONE -> {}
+      TableToSend.ALL -> {
+        val psiPackets = mpegTsPacketizer.write(listOf(pmt, psiManager.getSdt(), psiManager.getPat()), increasePsiContinuity = true).map { b ->
+          MpegTsPacket(b, MpegType.PSI, PacketPosition.SINGLE, isKey = false)
+        }
+        callback(psiPackets)
       }
     }
   }
