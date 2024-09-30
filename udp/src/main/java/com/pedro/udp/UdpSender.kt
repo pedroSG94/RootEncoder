@@ -25,6 +25,7 @@ import com.pedro.common.onMainThread
 import com.pedro.common.validMessage
 import com.pedro.srt.mpeg2ts.MpegTsPacket
 import com.pedro.srt.mpeg2ts.MpegTsPacketizer
+import com.pedro.srt.mpeg2ts.MpegType
 import com.pedro.srt.mpeg2ts.Pid
 import com.pedro.srt.mpeg2ts.packets.AacPacket
 import com.pedro.srt.mpeg2ts.packets.BasePacket
@@ -89,10 +90,11 @@ class UdpSender(
       val error = runCatching {
         val mediaFrame = runInterruptible { queue.poll(1, TimeUnit.SECONDS) }
         getMpegTsPackets(mediaFrame) { mpegTsPackets ->
-          val isKey = mpegTsPackets[0].isKey
+          val firstPacket = mpegTsPackets[0]
+          val isKey = firstPacket.isKey
           val psiPackets = psiManager.checkSendInfo(isKey, mpegTsPacketizer)
-          bytesSend += sendPackets(psiPackets)
-          bytesSend += sendPackets(mpegTsPackets)
+          bytesSend += sendPackets(psiPackets, MpegType.PSI)
+          bytesSend += sendPackets(mpegTsPackets, firstPacket.type)
         }
       }.exceptionOrNull()
       if (error != null) {
@@ -114,15 +116,16 @@ class UdpSender(
     videoPacket.reset(clear)
   }
 
-  private suspend fun sendPackets(packets: List<MpegTsPacket>): Long {
+  private suspend fun sendPackets(packets: List<MpegTsPacket>, type: MpegType): Long {
+    if (packets.isEmpty()) return 0
     var bytesSend = 0L
     packets.forEach { mpegTsPacket ->
       var size = 0
       size += commandManager.writeData(mpegTsPacket, socket)
-      if (isEnableLogs) {
-        Log.i(TAG, "wrote ${mpegTsPacket.type.name} packet, size $size")
-      }
       bytesSend += size
+    }
+    if (isEnableLogs) {
+      Log.i(TAG, "wrote ${type.name} packet, size $bytesSend")
     }
     return bytesSend
   }

@@ -63,7 +63,7 @@ class OpusPacket(
       val packetPosition = PacketPosition.SINGLE
       packets.add(MpegTsPacket(buffer.array(), MpegType.AUDIO, packetPosition, true))
     }
-    callback(packets)
+    if (packets.isNotEmpty()) callback(packets)
   }
 
   override fun resetPacket(resetInfo: Boolean) { }

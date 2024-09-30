@@ -83,9 +83,9 @@ class CameraFragment: Fragment(), ConnectChecker {
   private lateinit var surfaceView: SurfaceView
   private lateinit var bStartStop: ImageView
   private lateinit var txtBitrate: TextView
-  private val width = 3840
-  private val height = 2160
-  private val vBitrate = 20000 * 1000
+  private val width = 640
+  private val height = 480
+  private val vBitrate = 1200 * 1000
   private var rotation = 0
   private val sampleRate = 32000
   private val isStereo = true

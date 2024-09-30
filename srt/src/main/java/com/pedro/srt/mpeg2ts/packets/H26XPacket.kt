@@ -92,7 +92,7 @@ class H26XPacket(
       val packetPosition = PacketPosition.SINGLE
       packets.add(MpegTsPacket(buffer.array(), MpegType.VIDEO, packetPosition, isKeyFrame))
     }
-    callback(packets)
+    if (packets.isNotEmpty()) callback(packets)
   }
 
   override fun resetPacket(resetInfo: Boolean) {
