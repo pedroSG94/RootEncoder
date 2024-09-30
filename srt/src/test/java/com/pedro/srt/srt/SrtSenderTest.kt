@@ -67,6 +67,8 @@ class SrtSenderTest {
         srtSender.sendMediaFrame(videoFrame)
         srtSender.sendMediaFrame(audioFrame)
         latch.await(1000, TimeUnit.MILLISECONDS)
+        srtSender.stop()
+
         assertEquals(1692, output.toByteArray().size)
     }
 }
