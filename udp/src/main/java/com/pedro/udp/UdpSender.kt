@@ -35,12 +35,8 @@ import com.pedro.srt.mpeg2ts.service.Mpeg2TsService
 import com.pedro.srt.utils.Constants
 import com.pedro.srt.utils.toCodec
 import com.pedro.udp.utils.UdpSocket
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.async
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.runInterruptible
-import kotlinx.coroutines.withContext
 import java.nio.ByteBuffer
 import java.util.concurrent.TimeUnit
 
@@ -87,17 +83,8 @@ class UdpSender(
     }
   }
 
-  override suspend fun onRun() = withContext(Dispatchers.IO) {
+  override suspend fun onRun() {
     setTrackConfig(!commandManager.videoDisabled, !commandManager.audioDisabled)
-    var bytesSend = 0L
-    val bitrateTask = async {
-      while (scope.isActive && running) {
-        //bytes to bits
-        bitrateManager.calculateBitrate(bytesSend * 8)
-        bytesSend = 0
-        delay(timeMillis = 1000)
-      }
-    }
     while (scope.isActive && running) {
       val error = runCatching {
         val mediaFrame = runInterruptible { queue.poll(1, TimeUnit.SECONDS) }
@@ -113,7 +100,8 @@ class UdpSender(
           connectChecker.onConnectionFailed("Error send packet, ${error.validMessage()}")
         }
         Log.e(TAG, "send error: ", error)
-        return@withContext
+        running = false
+        return
       }
     }
   }

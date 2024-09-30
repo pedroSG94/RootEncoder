@@ -31,12 +31,8 @@ import com.pedro.rtsp.rtp.sockets.BaseRtpSocket
 import com.pedro.rtsp.rtp.sockets.RtpSocketTcp
 import com.pedro.rtsp.rtsp.commands.CommandsManager
 import com.pedro.rtsp.utils.RtpConstants
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.async
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.runInterruptible
-import kotlinx.coroutines.withContext
 import java.io.IOException
 import java.nio.ByteBuffer
 import java.util.*
@@ -93,22 +89,13 @@ class RtspSender(
     }
   }
 
-  override suspend fun onRun() = withContext(Dispatchers.IO) {
+  override suspend fun onRun() {
     val ssrcVideo = Random().nextInt().toLong()
     val ssrcAudio = Random().nextInt().toLong()
     baseSenderReport?.setSSRC(ssrcVideo, ssrcAudio)
     videoPacket.setSSRC(ssrcVideo)
     audioPacket.setSSRC(ssrcAudio)
     val isTcp = rtpSocket is RtpSocketTcp
-    var bytesSend = 0L
-    val bitrateTask = async {
-      while (scope.isActive && running) {
-        //bytes to bits
-        bitrateManager.calculateBitrate(bytesSend * 8)
-        bytesSend = 0
-        delay(timeMillis = 1000)
-      }
-    }
     while (scope.isActive && running) {
       val error = runCatching {
         val mediaFrame = runInterruptible { queue.poll(1, TimeUnit.SECONDS) }
@@ -146,7 +133,8 @@ class RtspSender(
           connectChecker.onConnectionFailed("Error send packet, ${error.validMessage()}")
         }
         Log.e(TAG, "send error: ", error)
-        return@withContext
+        running = false
+        return
       }
     }
   }

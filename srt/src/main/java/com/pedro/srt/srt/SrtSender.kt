@@ -35,12 +35,8 @@ import com.pedro.srt.mpeg2ts.service.Mpeg2TsService
 import com.pedro.srt.srt.packets.SrtPacket
 import com.pedro.srt.utils.SrtSocket
 import com.pedro.srt.utils.toCodec
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.async
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.runInterruptible
-import kotlinx.coroutines.withContext
 import java.nio.ByteBuffer
 import java.util.concurrent.TimeUnit
 
@@ -88,17 +84,8 @@ class SrtSender(
     }
   }
 
-  override suspend fun onRun() = withContext(Dispatchers.IO) {
+  override suspend fun onRun() {
     setTrackConfig(!commandsManager.videoDisabled, !commandsManager.audioDisabled)
-    var bytesSend = 0L
-    val bitrateTask = async {
-      while (scope.isActive && running) {
-        //bytes to bits
-        bitrateManager.calculateBitrate(bytesSend * 8)
-        bytesSend = 0
-        delay(timeMillis = 1000)
-      }
-    }
     while (scope.isActive && running) {
       val error = runCatching {
         val mediaFrame = runInterruptible { queue.poll(1, TimeUnit.SECONDS) }
@@ -114,7 +101,8 @@ class SrtSender(
           connectChecker.onConnectionFailed("Error send packet, ${error.validMessage()}")
         }
         Log.e(TAG, "send error: ", error)
-        return@withContext
+        running = false
+        return
       }
     }
   }

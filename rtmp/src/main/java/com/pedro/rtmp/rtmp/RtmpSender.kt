@@ -33,12 +33,8 @@ import com.pedro.rtmp.flv.video.packet.Av1Packet
 import com.pedro.rtmp.flv.video.packet.H264Packet
 import com.pedro.rtmp.flv.video.packet.H265Packet
 import com.pedro.rtmp.utils.socket.RtmpSocket
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.async
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.runInterruptible
-import kotlinx.coroutines.withContext
 import java.nio.ByteBuffer
 import java.util.concurrent.TimeUnit
 
@@ -80,16 +76,7 @@ class RtmpSender(
     }
   }
 
-  override suspend fun onRun() = withContext(Dispatchers.IO) {
-    var bytesSend = 0L
-    val bitrateTask = async {
-      while (scope.isActive && running) {
-        //bytes to bits
-        bitrateManager.calculateBitrate(bytesSend * 8)
-        bytesSend = 0
-        delay(timeMillis = 1000)
-      }
-    }
+  override suspend fun onRun() {
     while (scope.isActive && running) {
       val error = runCatching {
         val mediaFrame = runInterruptible { queue.poll(1, TimeUnit.SECONDS) }
@@ -120,7 +107,8 @@ class RtmpSender(
           connectChecker.onConnectionFailed("Error send packet, ${error.validMessage()}")
         }
         Log.e(TAG, "send error: ", error)
-        return@withContext
+        running = false
+        return
       }
     }
   }

@@ -8,7 +8,10 @@ import com.pedro.common.trySend
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.async
 import kotlinx.coroutines.cancelAndJoin
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import java.nio.ByteBuffer
 import java.util.concurrent.BlockingQueue
@@ -34,6 +37,8 @@ abstract class BaseSender(
     protected var isEnableLogs = true
     private var job: Job? = null
     protected val scope = CoroutineScope(Dispatchers.IO)
+    @Volatile
+    protected var bytesSend = 0L
 
     abstract fun setVideoInfo(sps: ByteBuffer, pps: ByteBuffer?, vps: ByteBuffer?)
     abstract fun setAudioInfo(sampleRate: Int, isStereo: Boolean)
@@ -59,7 +64,17 @@ abstract class BaseSender(
         bitrateManager.reset()
         queue.clear()
         running = true
-        scope.launch { onRun() }
+        scope.launch {
+            val bitrateTask = async {
+                while (scope.isActive && running) {
+                    //bytes to bits
+                    bitrateManager.calculateBitrate(bytesSend * 8)
+                    bytesSend = 0
+                    delay(timeMillis = 1000)
+                }
+            }
+            onRun()
+        }
     }
 
     suspend fun stop(clear: Boolean = true) {
