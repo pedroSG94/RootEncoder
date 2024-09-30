@@ -22,6 +22,7 @@ import com.pedro.common.isKeyframe
 import com.pedro.common.removeInfo
 import com.pedro.rtsp.rtsp.RtpFrame
 import com.pedro.rtsp.utils.RtpConstants
+import com.pedro.rtsp.utils.getData
 import com.pedro.rtsp.utils.getVideoStartCodeSize
 import java.nio.ByteBuffer
 import kotlin.experimental.and
@@ -44,8 +45,8 @@ class H264Packet: BasePacket(RtpConstants.clockVideoFrequency,
     channelIdentifier = RtpConstants.trackVideo
   }
 
-  fun sendVideoInfo(sps: ByteArray, pps: ByteArray) {
-    setSpsPps(sps, pps)
+  fun sendVideoInfo(sps: ByteBuffer, pps: ByteBuffer) {
+    setSpsPps(sps.getData(), pps.getData())
   }
 
   override suspend fun createAndSendPacket(

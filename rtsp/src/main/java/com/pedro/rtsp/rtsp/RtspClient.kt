@@ -227,7 +227,7 @@ class RtspClient(private val connectChecker: ConnectChecker) {
             commandsManager.audioServerPorts
             )
           if (!commandsManager.audioDisabled) {
-            rtspSender.setAudioInfo(commandsManager.sampleRate)
+            rtspSender.setAudioInfo(commandsManager.sampleRate, commandsManager.isStereo)
           }
           if (!commandsManager.videoDisabled) {
             if (!commandsManager.videoInfoReady()) {

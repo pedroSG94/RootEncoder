@@ -4,8 +4,8 @@ import java.nio.ByteBuffer
 
 data class MediaFrame(
     val data: ByteBuffer,
-    val info: MediaFrame.Info,
-    val type: MediaFrame.Type
+    val info: Info,
+    val type: Type
 ) {
     data class Info(
         val offset: Int,

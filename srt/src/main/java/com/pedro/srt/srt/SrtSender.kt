@@ -18,11 +18,10 @@ package com.pedro.srt.srt
 
 import android.util.Log
 import com.pedro.common.AudioCodec
-import com.pedro.common.BitrateManager
 import com.pedro.common.ConnectChecker
+import com.pedro.common.base.BaseSender
 import com.pedro.common.frame.MediaFrame
 import com.pedro.common.onMainThread
-import com.pedro.common.trySend
 import com.pedro.common.validMessage
 import com.pedro.srt.mpeg2ts.MpegTsPacket
 import com.pedro.srt.mpeg2ts.MpegTsPacketizer
@@ -36,27 +35,22 @@ import com.pedro.srt.mpeg2ts.service.Mpeg2TsService
 import com.pedro.srt.srt.packets.SrtPacket
 import com.pedro.srt.utils.SrtSocket
 import com.pedro.srt.utils.toCodec
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
-import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.runInterruptible
+import kotlinx.coroutines.withContext
 import java.nio.ByteBuffer
-import java.util.concurrent.BlockingQueue
-import java.util.concurrent.LinkedBlockingQueue
 import java.util.concurrent.TimeUnit
 
 /**
  * Created by pedro on 20/8/23.
  */
 class SrtSender(
-  private val connectChecker: ConnectChecker,
+  connectChecker: ConnectChecker,
   private val commandsManager: CommandsManager
-) {
+): BaseSender(connectChecker, "SrtSender") {
 
   private val service = Mpeg2TsService()
 
@@ -68,29 +62,7 @@ class SrtSender(
   private val mpegTsPacketizer = MpegTsPacketizer(psiManager)
   private var audioPacket: BasePacket = AacPacket(limitSize, psiManager)
   private val videoPacket = H26XPacket(limitSize, psiManager)
-
-  @Volatile
-  private var running = false
-  private var cacheSize = 200
-
-  private var job: Job? = null
-  private val scope = CoroutineScope(Dispatchers.IO)
-  @Volatile
-  private var queue: BlockingQueue<MediaFrame> = LinkedBlockingQueue(cacheSize)
-  private var audioFramesSent: Long = 0
-  private var videoFramesSent: Long = 0
   var socket: SrtSocket? = null
-  var droppedAudioFrames: Long = 0
-    private set
-  var droppedVideoFrames: Long = 0
-    private set
-
-  private val bitrateManager: BitrateManager = BitrateManager(connectChecker)
-  private var isEnableLogs = true
-
-  companion object {
-    private const val TAG = "SrtSender"
-  }
 
   private fun setTrackConfig(videoEnabled: Boolean, audioEnabled: Boolean) {
     Pid.reset()
@@ -101,12 +73,12 @@ class SrtSender(
     psiManager.updateService(service)
   }
 
-  fun setVideoInfo(sps: ByteBuffer, pps: ByteBuffer?, vps: ByteBuffer?) {
+  override fun setVideoInfo(sps: ByteBuffer, pps: ByteBuffer?, vps: ByteBuffer?) {
     videoPacket.setVideoCodec(commandsManager.videoCodec.toCodec())
     videoPacket.sendVideoInfo(sps, pps, vps)
   }
 
-  fun setAudioInfo(sampleRate: Int, isStereo: Boolean) {
+  override fun setAudioInfo(sampleRate: Int, isStereo: Boolean) {
     audioPacket = when (commandsManager.audioCodec) {
       AudioCodec.AAC -> AacPacket(limitSize, psiManager).apply { sendAudioInfo(sampleRate, isStereo) }
       AudioCodec.OPUS -> OpusPacket(limitSize, psiManager)
@@ -116,55 +88,43 @@ class SrtSender(
     }
   }
 
-  fun sendMediaFrame(mediaFrame: MediaFrame) {
-    if (running && !queue.trySend(mediaFrame)) {
-      when (mediaFrame.type) {
-        MediaFrame.Type.VIDEO -> {
-          Log.i(TAG, "Video frame discarded")
-          droppedVideoFrames++
+  override suspend fun onRun() = withContext(Dispatchers.IO) {
+    setTrackConfig(!commandsManager.videoDisabled, !commandsManager.audioDisabled)
+    var bytesSend = 0L
+    val bitrateTask = async {
+      while (scope.isActive && running) {
+        //bytes to bits
+        bitrateManager.calculateBitrate(bytesSend * 8)
+        bytesSend = 0
+        delay(timeMillis = 1000)
+      }
+    }
+    while (scope.isActive && running) {
+      val error = runCatching {
+        val mediaFrame = runInterruptible { queue.poll(1, TimeUnit.SECONDS) }
+        getMpegTsPackets(mediaFrame) { mpegTsPackets ->
+          val isKey = mpegTsPackets[0].isKey
+          val psiPackets = psiManager.checkSendInfo(isKey, mpegTsPacketizer)
+          bytesSend += sendPackets(psiPackets)
+          bytesSend += sendPackets(mpegTsPackets)
         }
-        MediaFrame.Type.AUDIO -> {
-          Log.i(TAG, "Audio frame discarded")
-          droppedAudioFrames++
+      }.exceptionOrNull()
+      if (error != null) {
+        onMainThread {
+          connectChecker.onConnectionFailed("Error send packet, ${error.validMessage()}")
         }
+        Log.e(TAG, "send error: ", error)
+        return@withContext
       }
     }
   }
 
-  fun start() {
-    bitrateManager.reset()
-    queue.clear()
-    setTrackConfig(!commandsManager.videoDisabled, !commandsManager.audioDisabled)
-    running = true
-    job = scope.launch {
-      var bytesSend = 0L
-      val bitrateTask = async {
-        while (scope.isActive && running) {
-          //bytes to bits
-          bitrateManager.calculateBitrate(bytesSend * 8)
-          bytesSend = 0
-          delay(timeMillis = 1000)
-        }
-      }
-      while (scope.isActive && running) {
-        val error = runCatching {
-          val mediaFrame = runInterruptible { queue.poll(1, TimeUnit.SECONDS) }
-          getMpegTsPackets(mediaFrame) { mpegTsPackets ->
-            val isKey = mpegTsPackets[0].isKey
-            val psiPackets = psiManager.checkSendInfo(isKey, mpegTsPacketizer)
-            bytesSend += sendPackets(psiPackets)
-            bytesSend += sendPackets(mpegTsPackets)
-          }
-        }.exceptionOrNull()
-        if (error != null) {
-          onMainThread {
-            connectChecker.onConnectionFailed("Error send packet, ${error.validMessage()}")
-          }
-          Log.e(TAG, "send error: ", error)
-          return@launch
-        }
-      }
-    }
+  override suspend fun stopImp(clear: Boolean) {
+    psiManager.reset()
+    service.clear()
+    mpegTsPacketizer.reset()
+    audioPacket.reset(clear)
+    videoPacket.reset(clear)
   }
 
   private suspend fun sendPackets(packets: List<MpegTsPacket>): Long {
@@ -178,22 +138,6 @@ class SrtSender(
       bytesSend += size
     }
     return bytesSend
-  }
-
-  suspend fun stop(clear: Boolean) {
-    running = false
-    psiManager.reset()
-    service.clear()
-    mpegTsPacketizer.reset()
-    audioPacket.reset(clear)
-    videoPacket.reset(clear)
-    resetSentAudioFrames()
-    resetSentVideoFrames()
-    resetDroppedAudioFrames()
-    resetDroppedVideoFrames()
-    job?.cancelAndJoin()
-    job = null
-    queue.clear()
   }
 
   private suspend fun getMpegTsPackets(mediaFrame: MediaFrame?, callback: suspend (List<MpegTsPacket>) -> Unit) {
@@ -211,66 +155,4 @@ class SrtSender(
       }
     }
   }
-
-  @Throws(IllegalArgumentException::class)
-  fun hasCongestion(percentUsed: Float = 20f): Boolean {
-    if (percentUsed < 0 || percentUsed > 100) throw IllegalArgumentException("the value must be in range 0 to 100")
-    val size = queue.size.toFloat()
-    val remaining = queue.remainingCapacity().toFloat()
-    val capacity = size + remaining
-    return size >= capacity * (percentUsed / 100f)
-  }
-
-  fun resizeCache(newSize: Int) {
-    if (newSize < queue.size - queue.remainingCapacity()) {
-      throw RuntimeException("Can't fit current cache inside new cache size")
-    }
-    val tempQueue: BlockingQueue<MediaFrame> = LinkedBlockingQueue(newSize)
-    queue.drainTo(tempQueue)
-    queue = tempQueue
-  }
-
-  fun getCacheSize(): Int {
-    return cacheSize
-  }
-
-  fun getItemsInCache(): Int = queue.size
-
-  fun clearCache() {
-    queue.clear()
-  }
-
-  fun getSentAudioFrames(): Long {
-    return audioFramesSent
-  }
-
-  fun getSentVideoFrames(): Long {
-    return videoFramesSent
-  }
-
-  fun resetSentAudioFrames() {
-    audioFramesSent = 0
-  }
-
-  fun resetSentVideoFrames() {
-    videoFramesSent = 0
-  }
-
-  fun resetDroppedAudioFrames() {
-    droppedAudioFrames = 0
-  }
-
-  fun resetDroppedVideoFrames() {
-    droppedVideoFrames = 0
-  }
-
-  fun setLogs(enable: Boolean) {
-    isEnableLogs = enable
-  }
-
-  fun setBitrateExponentialFactor(factor: Float) {
-    bitrateManager.exponentialFactor = factor
-  }
-
-  fun getBitrateExponentialFactor() = bitrateManager.exponentialFactor
 }
