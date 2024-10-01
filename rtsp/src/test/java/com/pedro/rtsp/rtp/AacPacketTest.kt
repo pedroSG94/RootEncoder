@@ -16,11 +16,12 @@
 
 package com.pedro.rtsp.rtp
 
-import android.media.MediaCodec
+import com.pedro.common.frame.MediaFrame
 import com.pedro.rtsp.rtp.packets.AacPacket
 import com.pedro.rtsp.rtsp.RtpFrame
 import com.pedro.rtsp.utils.RtpConstants
 import junit.framework.TestCase.assertEquals
+import kotlinx.coroutines.test.runTest
 import org.junit.Test
 import java.nio.ByteBuffer
 
@@ -30,16 +31,12 @@ import java.nio.ByteBuffer
 class AacPacketTest {
 
   @Test
-  fun `GIVEN a ByteBuffer raw aac WHEN create a packet THEN get a RTP aac packet`() {
+  fun `GIVEN a ByteBuffer raw aac WHEN create a packet THEN get a RTP aac packet`() = runTest {
     val timestamp = 123456789L
     val fakeAac = ByteArray(300) { 0x00 }
 
-    val info = MediaCodec.BufferInfo()
-    info.presentationTimeUs = timestamp
-    info.offset = 0
-    info.size = fakeAac.size
-    info.flags = 1
-    val aacPacket = AacPacket(44100)
+    val info = MediaFrame.Info(0, fakeAac.size, timestamp, false)
+    val aacPacket = AacPacket().apply { setAudioInfo(44100) }
     aacPacket.setSSRC(123456789)
     val frames = mutableListOf<RtpFrame>()
     aacPacket.createAndSendPacket(ByteBuffer.wrap(fakeAac), info) {

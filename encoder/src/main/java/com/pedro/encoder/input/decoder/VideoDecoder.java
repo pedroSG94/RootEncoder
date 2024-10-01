@@ -21,6 +21,7 @@ import android.media.MediaFormat;
 import android.os.Build;
 import android.view.Surface;
 
+import com.pedro.common.ExtensionsKt;
 import java.nio.ByteBuffer;
 
 /**
@@ -51,10 +52,15 @@ public class VideoDecoder extends BaseDecoder {
       }
     }
     if (mediaFormat != null) {
-      width = mediaFormat.getInteger(MediaFormat.KEY_WIDTH);
-      height = mediaFormat.getInteger(MediaFormat.KEY_HEIGHT);
-      duration = mediaFormat.getLong(MediaFormat.KEY_DURATION);
-      fps = mediaFormat.getInteger(MediaFormat.KEY_FRAME_RATE);
+      final Integer width = ExtensionsKt.getIntegerSafe(mediaFormat, MediaFormat.KEY_WIDTH);
+      final Integer height = ExtensionsKt.getIntegerSafe(mediaFormat, MediaFormat.KEY_HEIGHT);
+      final Long duration = ExtensionsKt.getLongSafe(mediaFormat, MediaFormat.KEY_DURATION);
+      final Integer fps = ExtensionsKt.getIntegerSafe(mediaFormat, MediaFormat.KEY_FRAME_RATE);
+      if (width == null || height == null) return false;
+      this.width = width;
+      this.height = height;
+      this.duration = duration != null ? duration : -1;
+      this.fps = fps != null ? fps : 30;
       return true;
       //video decoder not supported
     } else {

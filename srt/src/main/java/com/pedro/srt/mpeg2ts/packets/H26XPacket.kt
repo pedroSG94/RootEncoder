@@ -16,8 +16,8 @@
 
 package com.pedro.srt.mpeg2ts.packets
 
-import android.media.MediaCodec
 import android.util.Log
+import com.pedro.common.frame.MediaFrame
 import com.pedro.common.isKeyframe
 import com.pedro.common.removeInfo
 import com.pedro.common.toByteArray
@@ -49,15 +49,15 @@ class H26XPacket(
   private var codec = Codec.AVC
   private var configSend = false
 
-  override fun createAndSendPacket(
+  override suspend fun createAndSendPacket(
     byteBuffer: ByteBuffer,
-    info: MediaCodec.BufferInfo,
-    callback: (List<MpegTsPacket>) -> Unit
+    info: MediaFrame.Info,
+    callback: suspend (List<MpegTsPacket>) -> Unit
   ) {
     val fixedBuffer = byteBuffer.removeInfo(info)
     val length = fixedBuffer.remaining()
     if (length < 0) return
-    val isKeyFrame = info.isKeyframe()
+    val isKeyFrame = info.isKeyFrame
 
     if (codec == Codec.HEVC) {
       val sps = this.sps
@@ -79,7 +79,7 @@ class H26XPacket(
     val payload = ByteArray(validBuffer.remaining())
     validBuffer.get(payload, 0, validBuffer.remaining())
 
-    val pes = Pes(psiManager.getVideoPid().toInt(), isKeyFrame, PesType.VIDEO, info.presentationTimeUs, ByteBuffer.wrap(payload))
+    val pes = Pes(psiManager.getVideoPid().toInt(), isKeyFrame, PesType.VIDEO, info.timestamp, ByteBuffer.wrap(payload))
     val mpeg2tsPackets = mpegTsPacketizer.write(listOf(pes))
     val chunked = mpeg2tsPackets.chunked(chunkSize)
     val packets = mutableListOf<MpegTsPacket>()
@@ -92,7 +92,7 @@ class H26XPacket(
       val packetPosition = PacketPosition.SINGLE
       packets.add(MpegTsPacket(buffer.array(), MpegType.VIDEO, packetPosition, isKeyFrame))
     }
-    callback(packets)
+    if (packets.isNotEmpty()) callback(packets)
   }
 
   override fun resetPacket(resetInfo: Boolean) {

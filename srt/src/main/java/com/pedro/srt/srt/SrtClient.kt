@@ -23,7 +23,10 @@ import com.pedro.common.ConnectChecker
 import com.pedro.common.ConnectionFailed
 import com.pedro.common.UrlParser
 import com.pedro.common.VideoCodec
+import com.pedro.common.clone
+import com.pedro.common.frame.MediaFrame
 import com.pedro.common.onMainThread
+import com.pedro.common.toMediaFrameInfo
 import com.pedro.common.validMessage
 import com.pedro.srt.srt.packets.ControlPacket
 import com.pedro.srt.srt.packets.DataPacket
@@ -391,15 +394,15 @@ class SrtClient(private val connectChecker: ConnectChecker) {
     srtSender.setVideoInfo(sps, pps, vps)
   }
 
-  fun sendVideo(h264Buffer: ByteBuffer, info: MediaCodec.BufferInfo) {
+  fun sendVideo(videoBuffer: ByteBuffer, info: MediaCodec.BufferInfo) {
     if (!commandsManager.videoDisabled) {
-      srtSender.sendVideoFrame(h264Buffer, info)
+      srtSender.sendMediaFrame(MediaFrame(videoBuffer.clone(), info.toMediaFrameInfo(), MediaFrame.Type.VIDEO))
     }
   }
 
-  fun sendAudio(aacBuffer: ByteBuffer, info: MediaCodec.BufferInfo) {
+  fun sendAudio(audioBuffer: ByteBuffer, info: MediaCodec.BufferInfo) {
     if (!commandsManager.audioDisabled) {
-      srtSender.sendAudioFrame(aacBuffer, info)
+      srtSender.sendMediaFrame(MediaFrame(audioBuffer.clone(), info.toMediaFrameInfo(), MediaFrame.Type.AUDIO))
     }
   }
 

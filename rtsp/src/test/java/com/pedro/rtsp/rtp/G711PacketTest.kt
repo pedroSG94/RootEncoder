@@ -16,12 +16,12 @@
 
 package com.pedro.rtsp.rtp
 
-import android.media.MediaCodec
+import com.pedro.common.frame.MediaFrame
 import com.pedro.rtsp.rtp.packets.G711Packet
 import com.pedro.rtsp.rtsp.RtpFrame
 import com.pedro.rtsp.utils.RtpConstants
-import junit.framework.TestCase
 import junit.framework.TestCase.assertEquals
+import kotlinx.coroutines.test.runTest
 import org.junit.Test
 import java.nio.ByteBuffer
 
@@ -31,16 +31,12 @@ import java.nio.ByteBuffer
 class G711PacketTest {
 
   @Test
-  fun `GIVEN g711 data WHEN create rtp packet THEN get expected packet`() {
+  fun `GIVEN g711 data WHEN create rtp packet THEN get expected packet`() = runTest {
     val timestamp = 123456789L
     val fakeG711 = ByteArray(30) { 0x05 }
 
-    val info = MediaCodec.BufferInfo()
-    info.presentationTimeUs = timestamp
-    info.offset = 0
-    info.size = fakeG711.size
-    info.flags = 1
-    val g711Packet = G711Packet(8000)
+    val info = MediaFrame.Info(0, fakeG711.size, timestamp, false)
+    val g711Packet = G711Packet().apply { setAudioInfo(8000) }
     g711Packet.setSSRC(123456789)
     val frames = mutableListOf<RtpFrame>()
     g711Packet.createAndSendPacket(ByteBuffer.wrap(fakeG711), info) {

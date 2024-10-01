@@ -20,8 +20,6 @@ import com.pedro.rtmp.rtmp.chunk.ChunkType
 import com.pedro.rtmp.utils.*
 import com.pedro.rtmp.utils.socket.RtmpSocket
 import java.io.IOException
-import java.io.InputStream
-import java.io.OutputStream
 import kotlin.math.min
 
 /**

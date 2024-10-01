@@ -16,7 +16,7 @@
 
 package com.pedro.rtsp.rtp.packets
 
-import android.media.MediaCodec
+import com.pedro.common.frame.MediaFrame
 import com.pedro.common.removeInfo
 import com.pedro.rtsp.rtsp.RtpFrame
 import com.pedro.rtsp.utils.RtpConstants
@@ -29,10 +29,8 @@ import kotlin.experimental.or
  *
  * RFC 3640.
  */
-class AacPacket(
-  sampleRate: Int
-): BasePacket(
-  sampleRate.toLong(),
+class AacPacket: BasePacket(
+  0,
   RtpConstants.payloadType + RtpConstants.trackAudio
 ) {
 
@@ -40,15 +38,19 @@ class AacPacket(
     channelIdentifier = RtpConstants.trackAudio
   }
 
-  override fun createAndSendPacket(
+  fun setAudioInfo(sampleRate: Int) {
+    setClock(sampleRate.toLong())
+  }
+
+  override suspend fun createAndSendPacket(
     byteBuffer: ByteBuffer,
-    bufferInfo: MediaCodec.BufferInfo,
-    callback: (List<RtpFrame>) -> Unit
+    bufferInfo: MediaFrame.Info,
+    callback: suspend (List<RtpFrame>) -> Unit
   ) {
     val fixedBuffer = byteBuffer.removeInfo(bufferInfo)
     val length = fixedBuffer.remaining()
     val maxPayload = maxPacketSize - (RtpConstants.RTP_HEADER_LENGTH + 4)
-    val ts = bufferInfo.presentationTimeUs * 1000
+    val ts = bufferInfo.timestamp * 1000
     var sum = 0
     val frames = mutableListOf<RtpFrame>()
     while (sum < length) {

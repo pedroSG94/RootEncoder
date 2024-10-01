@@ -16,7 +16,7 @@
 
 package com.pedro.rtsp.rtp.packets
 
-import android.media.MediaCodec
+import com.pedro.common.frame.MediaFrame
 import com.pedro.rtsp.rtsp.RtpFrame
 import com.pedro.rtsp.utils.RtpConstants
 import com.pedro.rtsp.utils.setLong
@@ -27,7 +27,7 @@ import kotlin.experimental.or
 /**
  * Created by pedro on 27/11/18.
  */
-abstract class BasePacket(private val clock: Long, private val payloadType: Int) {
+abstract class BasePacket(private var clock: Long, private val payloadType: Int) {
 
   protected var channelIdentifier: Int = 0
   private var seq = 0L
@@ -35,10 +35,10 @@ abstract class BasePacket(private val clock: Long, private val payloadType: Int)
   protected val maxPacketSize = RtpConstants.MTU - 28
   protected val TAG = "BasePacket"
 
-  abstract fun createAndSendPacket(
+  abstract suspend fun createAndSendPacket(
     byteBuffer: ByteBuffer,
-    bufferInfo: MediaCodec.BufferInfo,
-    callback: (List<RtpFrame>) -> Unit
+    bufferInfo: MediaFrame.Info,
+    callback: suspend (List<RtpFrame>) -> Unit
   )
 
   open fun reset() {
@@ -48,6 +48,10 @@ abstract class BasePacket(private val clock: Long, private val payloadType: Int)
 
   fun setSSRC(ssrc: Long) {
     this.ssrc = ssrc
+  }
+
+  protected fun setClock(clock: Long) {
+    this.clock = clock
   }
 
   protected fun getBuffer(size: Int): ByteArray {

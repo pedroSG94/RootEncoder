@@ -16,9 +16,10 @@
 
 package com.pedro.rtmp.flv.audio
 
-import android.media.MediaCodec
+import com.pedro.common.frame.MediaFrame
 import com.pedro.rtmp.flv.FlvType
 import com.pedro.rtmp.flv.audio.packet.AacPacket
+import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Test
 import java.nio.ByteBuffer
@@ -29,14 +30,10 @@ import java.nio.ByteBuffer
 class AacPacketTest {
 
   @Test
-  fun `GIVEN a aac buffer WHEN call create a aac packet 2 times THEN return config and expected buffer`() {
+  fun `GIVEN a aac buffer WHEN call create a aac packet 2 times THEN return config and expected buffer`() = runTest {
     val timestamp = 123456789L
     val buffer = ByteArray(256) { 0x00 }
-    val info = MediaCodec.BufferInfo()
-    info.presentationTimeUs = timestamp
-    info.offset = 0
-    info.size = buffer.size
-    info.flags = 1
+    val info = MediaFrame.Info(0, buffer.size, timestamp, false)
     val aacPacket = AacPacket()
     aacPacket.sendAudioInfo(32000, true)
     aacPacket.createFlvPacket(ByteBuffer.wrap(buffer), info) { flvPacket ->

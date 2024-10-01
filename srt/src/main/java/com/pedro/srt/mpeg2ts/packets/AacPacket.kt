@@ -16,7 +16,7 @@
 
 package com.pedro.srt.mpeg2ts.packets
 
-import android.media.MediaCodec
+import com.pedro.common.frame.MediaFrame
 import com.pedro.common.removeInfo
 import com.pedro.srt.mpeg2ts.MpegTsPacket
 import com.pedro.srt.mpeg2ts.MpegType
@@ -38,10 +38,10 @@ class AacPacket(
   private var sampleRate = 44100
   private var isStereo = true
 
-  override fun createAndSendPacket(
+  override suspend fun createAndSendPacket(
     byteBuffer: ByteBuffer,
-    info: MediaCodec.BufferInfo,
-    callback: (List<MpegTsPacket>) -> Unit
+    info: MediaFrame.Info,
+    callback: suspend (List<MpegTsPacket>) -> Unit
   ) {
     val fixedBuffer = byteBuffer.removeInfo(info)
     val length = fixedBuffer.remaining()
@@ -51,7 +51,7 @@ class AacPacket(
     writeAdts(payload, payload.size, 0)
     fixedBuffer.get(payload, header.size, length)
 
-    val pes = Pes(psiManager.getAudioPid().toInt(), false, PesType.AUDIO, info.presentationTimeUs, ByteBuffer.wrap(payload))
+    val pes = Pes(psiManager.getAudioPid().toInt(), false, PesType.AUDIO, info.timestamp, ByteBuffer.wrap(payload))
     val mpeg2tsPackets = mpegTsPacketizer.write(listOf(pes))
     val chunked = mpeg2tsPackets.chunked(chunkSize)
     val packets = mutableListOf<MpegTsPacket>()
@@ -64,15 +64,10 @@ class AacPacket(
       val packetPosition = PacketPosition.SINGLE
       packets.add(MpegTsPacket(buffer.array(), MpegType.AUDIO, packetPosition, false))
     }
-    callback(packets)
+    if (packets.isNotEmpty()) callback(packets)
   }
 
-  override fun resetPacket(resetInfo: Boolean) {
-    if (resetInfo) {
-      sampleRate = 44100
-      isStereo = true
-    }
-  }
+  override fun resetPacket(resetInfo: Boolean) { }
 
   fun sendAudioInfo(sampleRate: Int, stereo: Boolean) {
     this.sampleRate = sampleRate

@@ -16,10 +16,11 @@
 
 package com.pedro.rtsp.rtp
 
-import android.media.MediaCodec
+import com.pedro.common.frame.MediaFrame
 import com.pedro.rtsp.rtp.packets.H264Packet
 import com.pedro.rtsp.rtsp.RtpFrame
 import com.pedro.rtsp.utils.RtpConstants
+import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotEquals
 import org.junit.Assert.assertTrue
@@ -32,20 +33,15 @@ import java.nio.ByteBuffer
 class H264PacketTest {
 
   @Test
-  fun `GIVEN a small ByteBuffer raw h264 WHEN create a packet THEN get a RTP h264 packet`() {
+  fun `GIVEN a small ByteBuffer raw h264 WHEN create a packet THEN get a RTP h264 packet`() = runTest {
     val timestamp = 123456789L
     val header = byteArrayOf(0x00, 0x00, 0x00, 0x01, 0x05)
     val fakeH264 = header.plus(ByteArray(300) { 0x00 })
 
-    val info = MediaCodec.BufferInfo()
-    info.presentationTimeUs = timestamp
-    info.offset = 0
-    info.size = fakeH264.size
-    info.flags = 1
-
+    val info = MediaFrame.Info(0, fakeH264.size, timestamp, true)
     val fakeSps = byteArrayOf(0x00, 0x00, 0x00, 0x01, 0x02, 0x03, 0x04)
     val fakePps = byteArrayOf(0x00, 0x00, 0x00, 0x01, 0x0A, 0x0B, 0x0C)
-    val h264Packet = H264Packet(fakeSps, fakePps)
+    val h264Packet = H264Packet().apply { sendVideoInfo(ByteBuffer.wrap(fakeSps), ByteBuffer.wrap(fakePps)) }
     h264Packet.setSSRC(123456789)
     val frames = mutableListOf<RtpFrame>()
     h264Packet.createAndSendPacket(ByteBuffer.wrap(fakeH264), info) {
@@ -66,20 +62,15 @@ class H264PacketTest {
   }
 
   @Test
-  fun `GIVEN a big ByteBuffer raw h264 WHEN create a packet THEN get a RTP h264 packet`() {
+  fun `GIVEN a big ByteBuffer raw h264 WHEN create a packet THEN get a RTP h264 packet`() = runTest {
     val timestamp = 123456789L
     val header = byteArrayOf(0x00, 0x00, 0x00, 0x01, 0x05)
     val fakeH264 = header.plus(ByteArray(2500) { 0x00 })
 
-    val info = MediaCodec.BufferInfo()
-    info.presentationTimeUs = timestamp
-    info.offset = 0
-    info.size = fakeH264.size
-    info.flags = 1
-
+    val info = MediaFrame.Info(0, fakeH264.size, timestamp, true)
     val fakeSps = byteArrayOf(0x00, 0x00, 0x00, 0x01, 0x02, 0x03, 0x04)
     val fakePps = byteArrayOf(0x00, 0x00, 0x00, 0x01, 0x0A, 0x0B, 0x0C)
-    val h264Packet = H264Packet(fakeSps, fakePps)
+    val h264Packet = H264Packet().apply { sendVideoInfo(ByteBuffer.wrap(fakeSps), ByteBuffer.wrap(fakePps)) }
     h264Packet.setSSRC(123456789)
     val frames = mutableListOf<RtpFrame>()
     h264Packet.createAndSendPacket(ByteBuffer.wrap(fakeH264), info) {

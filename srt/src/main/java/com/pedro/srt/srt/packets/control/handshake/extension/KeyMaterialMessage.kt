@@ -16,7 +16,6 @@
 
 package com.pedro.srt.srt.packets.control.handshake.extension
 
-import com.pedro.srt.srt.packets.data.KeyBasedEncryption
 import com.pedro.srt.utils.EncryptInfo
 import com.pedro.srt.utils.writeUInt16
 import com.pedro.srt.utils.writeUInt32

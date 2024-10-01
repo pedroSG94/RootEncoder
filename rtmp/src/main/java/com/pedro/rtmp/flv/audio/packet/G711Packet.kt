@@ -16,13 +16,12 @@
 
 package com.pedro.rtmp.flv.audio.packet
 
-import android.media.MediaCodec
+import com.pedro.common.frame.MediaFrame
 import com.pedro.common.removeInfo
 import com.pedro.rtmp.flv.BasePacket
 import com.pedro.rtmp.flv.FlvPacket
 import com.pedro.rtmp.flv.FlvType
 import com.pedro.rtmp.flv.audio.AudioFormat
-import com.pedro.rtmp.flv.audio.AudioObjectType
 import com.pedro.rtmp.flv.audio.AudioSize
 import com.pedro.rtmp.flv.audio.AudioSoundRate
 import com.pedro.rtmp.flv.audio.AudioSoundType
@@ -42,10 +41,10 @@ class G711Packet: BasePacket() {
     this.audioSize = audioSize
   }
 
-  override fun createFlvPacket(
+  override suspend fun createFlvPacket(
     byteBuffer: ByteBuffer,
-    info: MediaCodec.BufferInfo,
-    callback: (FlvPacket) -> Unit
+    info: MediaFrame.Info,
+    callback: suspend (FlvPacket) -> Unit
   ) {
     val fixedBuffer = byteBuffer.removeInfo(info)
     //header is 1 byte length
@@ -56,7 +55,7 @@ class G711Packet: BasePacket() {
     val buffer = ByteArray(fixedBuffer.remaining() + header.size)
     fixedBuffer.get(buffer, header.size, fixedBuffer.remaining())
     System.arraycopy(header, 0, buffer, 0, header.size)
-    val ts = info.presentationTimeUs / 1000
+    val ts = info.timestamp / 1000
     callback(FlvPacket(buffer, ts, buffer.size, FlvType.AUDIO))
   }
 

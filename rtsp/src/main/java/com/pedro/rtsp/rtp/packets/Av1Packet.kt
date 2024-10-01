@@ -16,9 +16,9 @@
 
 package com.pedro.rtsp.rtp.packets
 
-import android.media.MediaCodec
 import com.pedro.common.av1.Av1Parser
 import com.pedro.common.av1.ObuType
+import com.pedro.common.frame.MediaFrame
 import com.pedro.common.isKeyframe
 import com.pedro.common.removeInfo
 import com.pedro.common.toByteArray
@@ -49,10 +49,10 @@ class Av1Packet: BasePacket(
     channelIdentifier = RtpConstants.trackVideo
   }
 
-  override fun createAndSendPacket(
+  override suspend fun createAndSendPacket(
     byteBuffer: ByteBuffer,
-    bufferInfo: MediaCodec.BufferInfo,
-    callback: (List<RtpFrame>) -> Unit
+    bufferInfo: MediaFrame.Info,
+    callback: suspend (List<RtpFrame>) -> Unit
   ) {
     var fixedBuffer = byteBuffer.removeInfo(bufferInfo)
     //remove temporal delimitered OBU if found on start
@@ -61,7 +61,7 @@ class Av1Packet: BasePacket(
       fixedBuffer = fixedBuffer.slice()
     }
     val obuList = parser.getObus(fixedBuffer.duplicate().toByteArray())
-    val ts = bufferInfo.presentationTimeUs * 1000L
+    val ts = bufferInfo.timestamp * 1000L
     if (obuList.isEmpty()) return
     var data = byteArrayOf()
     obuList.forEachIndexed { index, obu ->
@@ -94,7 +94,7 @@ class Av1Packet: BasePacket(
         markPacket(buffer) //mark end frame
       }
       val oSize = if (isFirstPacket) obuList.size else 1
-      buffer[RtpConstants.RTP_HEADER_LENGTH] = generateAv1AggregationHeader(bufferInfo.isKeyframe(), isFirstPacket, isLastPacket, oSize)
+      buffer[RtpConstants.RTP_HEADER_LENGTH] = generateAv1AggregationHeader(bufferInfo.isKeyFrame, isFirstPacket, isLastPacket, oSize)
       updateSeq(buffer)
       val rtpFrame = RtpFrame(buffer, rtpTs, buffer.size, channelIdentifier)
       frames.add(rtpFrame)

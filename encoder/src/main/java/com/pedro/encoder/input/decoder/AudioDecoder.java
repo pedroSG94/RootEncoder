@@ -20,6 +20,7 @@ import android.media.MediaExtractor;
 import android.media.MediaFormat;
 import android.util.Log;
 
+import com.pedro.common.ExtensionsKt;
 import com.pedro.encoder.Frame;
 import com.pedro.encoder.input.audio.GetMicrophoneData;
 import com.pedro.encoder.utils.CodecUtil;
@@ -63,10 +64,14 @@ public class AudioDecoder extends BaseDecoder {
       }
     }
     if (mediaFormat != null) {
-      channels = mediaFormat.getInteger(MediaFormat.KEY_CHANNEL_COUNT);
+      final Integer channels = ExtensionsKt.getIntegerSafe(mediaFormat, MediaFormat.KEY_CHANNEL_COUNT);
+      final Integer sampleRate = ExtensionsKt.getIntegerSafe(mediaFormat, MediaFormat.KEY_SAMPLE_RATE);
+      final Long duration = ExtensionsKt.getLongSafe(mediaFormat, MediaFormat.KEY_DURATION);
+      if (channels == null || sampleRate == null) return false;
+      this.channels = channels;
       isStereo = channels >= 2;
-      sampleRate = mediaFormat.getInteger(MediaFormat.KEY_SAMPLE_RATE);
-      duration = mediaFormat.getLong(MediaFormat.KEY_DURATION);
+      this.sampleRate = sampleRate;
+      this.duration = duration != null ? duration : -1;
       fixBuffer();
       return true;
       //audio decoder not supported

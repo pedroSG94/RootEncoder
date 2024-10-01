@@ -23,8 +23,11 @@ import com.pedro.common.ConnectChecker
 import com.pedro.common.ConnectionFailed
 import com.pedro.common.UrlParser
 import com.pedro.common.VideoCodec
+import com.pedro.common.clone
+import com.pedro.common.frame.MediaFrame
 import com.pedro.common.onMainThread
 import com.pedro.common.socket.TcpStreamSocket
+import com.pedro.common.toMediaFrameInfo
 import com.pedro.common.validMessage
 import com.pedro.rtsp.rtsp.commands.CommandsManager
 import com.pedro.rtsp.rtsp.commands.Method
@@ -224,7 +227,7 @@ class RtspClient(private val connectChecker: ConnectChecker) {
             commandsManager.audioServerPorts
             )
           if (!commandsManager.audioDisabled) {
-            rtspSender.setAudioInfo(commandsManager.sampleRate)
+            rtspSender.setAudioInfo(commandsManager.sampleRate, commandsManager.isStereo)
           }
           if (!commandsManager.videoDisabled) {
             if (!commandsManager.videoInfoReady()) {
@@ -427,15 +430,15 @@ class RtspClient(private val connectChecker: ConnectChecker) {
     scope = CoroutineScope(Dispatchers.IO)
   }
 
-  fun sendVideo(h264Buffer: ByteBuffer, info: MediaCodec.BufferInfo) {
+  fun sendVideo(videoBuffer: ByteBuffer, info: MediaCodec.BufferInfo) {
     if (!commandsManager.videoDisabled) {
-      rtspSender.sendVideoFrame(h264Buffer, info)
+      rtspSender.sendMediaFrame(MediaFrame(videoBuffer.clone(), info.toMediaFrameInfo(), MediaFrame.Type.VIDEO))
     }
   }
 
-  fun sendAudio(aacBuffer: ByteBuffer, info: MediaCodec.BufferInfo) {
+  fun sendAudio(audioBuffer: ByteBuffer, info: MediaCodec.BufferInfo) {
     if (!commandsManager.audioDisabled) {
-      rtspSender.sendAudioFrame(aacBuffer, info)
+      rtspSender.sendMediaFrame(MediaFrame(audioBuffer.clone(), info.toMediaFrameInfo(), MediaFrame.Type.AUDIO))
     }
   }
 

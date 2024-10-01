@@ -16,7 +16,7 @@
 
 package com.pedro.rtsp.rtp.packets
 
-import android.media.MediaCodec
+import com.pedro.common.frame.MediaFrame
 import com.pedro.rtsp.rtsp.RtpFrame
 import com.pedro.rtsp.utils.RtpConstants
 import java.nio.ByteBuffer
@@ -26,10 +26,8 @@ import java.nio.ByteBuffer
  *
  * RFC 7587.
  */
-class OpusPacket(
-  sampleRate: Int
-): BasePacket(
-  sampleRate.toLong(),
+class OpusPacket: BasePacket(
+  0,
   RtpConstants.payloadType + RtpConstants.trackAudio
 ) {
 
@@ -37,14 +35,18 @@ class OpusPacket(
     channelIdentifier = RtpConstants.trackAudio
   }
 
-  override fun createAndSendPacket(
+  fun setAudioInfo(sampleRate: Int) {
+    setClock(sampleRate.toLong())
+  }
+
+  override suspend fun createAndSendPacket(
     byteBuffer: ByteBuffer,
-    bufferInfo: MediaCodec.BufferInfo,
-    callback: (List<RtpFrame>) -> Unit
+    bufferInfo: MediaFrame.Info,
+    callback: suspend (List<RtpFrame>) -> Unit
   ) {
     val length = bufferInfo.size - byteBuffer.position()
     val maxPayload = maxPacketSize - RtpConstants.RTP_HEADER_LENGTH
-    val ts = bufferInfo.presentationTimeUs * 1000
+    val ts = bufferInfo.timestamp * 1000
     var sum = 0
     val frames = mutableListOf<RtpFrame>()
     while (sum < length) {

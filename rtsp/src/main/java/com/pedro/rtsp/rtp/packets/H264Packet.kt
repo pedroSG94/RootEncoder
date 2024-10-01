@@ -16,10 +16,11 @@
 
 package com.pedro.rtsp.rtp.packets
 
-import android.media.MediaCodec
 import android.util.Log
+import com.pedro.common.frame.MediaFrame
 import com.pedro.common.isKeyframe
 import com.pedro.common.removeInfo
+import com.pedro.common.toByteArray
 import com.pedro.rtsp.rtsp.RtpFrame
 import com.pedro.rtsp.utils.RtpConstants
 import com.pedro.rtsp.utils.getVideoStartCodeSize
@@ -31,10 +32,7 @@ import kotlin.experimental.and
  *
  * RFC 3984
  */
-class H264Packet(
-  sps: ByteArray,
-  pps: ByteArray
-): BasePacket(RtpConstants.clockVideoFrequency,
+class H264Packet: BasePacket(RtpConstants.clockVideoFrequency,
   RtpConstants.payloadType + RtpConstants.trackVideo
 ) {
 
@@ -45,13 +43,16 @@ class H264Packet(
 
   init {
     channelIdentifier = RtpConstants.trackVideo
-    setSpsPps(sps, pps)
   }
 
-  override fun createAndSendPacket(
+  fun sendVideoInfo(sps: ByteBuffer, pps: ByteBuffer) {
+    setSpsPps(sps.toByteArray(), pps.toByteArray())
+  }
+
+  override suspend fun createAndSendPacket(
     byteBuffer: ByteBuffer,
-    bufferInfo: MediaCodec.BufferInfo,
-    callback: (List<RtpFrame>) -> Unit
+    bufferInfo: MediaFrame.Info,
+    callback: suspend (List<RtpFrame>) -> Unit
   ) {
     val fixedBuffer = byteBuffer.removeInfo(bufferInfo)
     // We read a NAL units from ByteBuffer and we send them
@@ -60,11 +61,11 @@ class H264Packet(
     if (header.size == 1) return //invalid buffer or waiting for sps/pps
     fixedBuffer.rewind()
     fixedBuffer.get(header, 0, header.size)
-    val ts = bufferInfo.presentationTimeUs * 1000L
+    val ts = bufferInfo.timestamp * 1000L
     val naluLength = fixedBuffer.remaining()
     val type: Int = (header[header.size - 1] and 0x1F).toInt()
     val frames = mutableListOf<RtpFrame>()
-    if (type == RtpConstants.IDR || bufferInfo.isKeyframe()) {
+    if (type == RtpConstants.IDR || bufferInfo.isKeyFrame) {
       stapA?.let {
         val buffer = getBuffer(it.size + RtpConstants.RTP_HEADER_LENGTH)
         val rtpTs = updateTimeStamp(buffer, ts)

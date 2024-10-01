@@ -19,10 +19,12 @@ package com.pedro.common
 import android.hardware.camera2.CameraCharacteristics
 import android.hardware.camera2.CaptureRequest
 import android.media.MediaCodec
+import android.media.MediaFormat
 import android.os.Build
 import android.os.Handler
 import android.os.Looper
 import androidx.annotation.RequiresApi
+import com.pedro.common.frame.MediaFrame
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.UnsupportedEncodingException
@@ -60,7 +62,7 @@ fun ByteBuffer.toByteArray(): ByteArray {
   }
 }
 
-fun ByteBuffer.removeInfo(info: MediaCodec.BufferInfo): ByteBuffer {
+fun ByteBuffer.removeInfo(info: MediaFrame.Info): ByteBuffer {
   try {
     position(info.offset)
     limit(info.size)
@@ -139,4 +141,16 @@ fun String.getIndexes(char: Char): Array<Int> {
 
 fun Throwable.validMessage(): String {
   return (message ?: "").ifEmpty { javaClass.simpleName }
+}
+
+fun MediaCodec.BufferInfo.toMediaFrameInfo() = MediaFrame.Info(offset, size, presentationTimeUs, isKeyframe())
+
+fun ByteBuffer.clone(): ByteBuffer = ByteBuffer.wrap(toByteArray())
+
+fun MediaFormat.getIntegerSafe(name: String): Int? {
+  return try { getInteger(name) } catch (e: Exception) { null }
+}
+
+fun MediaFormat.getLongSafe(name: String): Long? {
+  return try { getLong(name) } catch (e: Exception) { null }
 }

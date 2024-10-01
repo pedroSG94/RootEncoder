@@ -619,14 +619,14 @@ public abstract class FromFileBase {
   }
 
   /**
-   * @return return duration in seconds. 0 if no streaming
+   * @return return duration in seconds. 0 if no streaming, -1 if can't extract it from file
    */
   public double getVideoDuration() {
     return videoDecoder.getDuration();
   }
 
   /**
-   * @return return duration in seconds. 0 if no streaming
+   * @return return duration in seconds. 0 if no streaming, -1 if can't extract it from file
    */
   public double getAudioDuration() {
     return audioDecoder.getDuration();
