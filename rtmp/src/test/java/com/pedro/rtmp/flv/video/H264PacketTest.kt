@@ -43,10 +43,10 @@ class H264PacketTest {
     val h264Packet = H264Packet()
     val sps = byteArrayOf(103, 100, 0, 30, -84, -76, 15, 2, -115, 53, 2, 2, 2, 7, -117, 23, 8)
     val pps = byteArrayOf(104, -18, 13, -117)
-
+    val mediaFrame = MediaFrame(ByteBuffer.wrap(fakeH264), info, MediaFrame.Type.VIDEO)
     h264Packet.sendVideoInfo(ByteBuffer.wrap(sps), ByteBuffer.wrap(pps))
     val frames = mutableListOf<FlvPacket>()
-    h264Packet.createFlvPacket(ByteBuffer.wrap(fakeH264), info) { flvPacket ->
+    h264Packet.createFlvPacket(mediaFrame) { flvPacket ->
       assertEquals(FlvType.VIDEO, flvPacket.type)
       frames.add(flvPacket)
     }

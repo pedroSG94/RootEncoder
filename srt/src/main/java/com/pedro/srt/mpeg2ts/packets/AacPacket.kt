@@ -39,11 +39,10 @@ class AacPacket(
   private var isStereo = true
 
   override suspend fun createAndSendPacket(
-    byteBuffer: ByteBuffer,
-    info: MediaFrame.Info,
+    mediaFrame: MediaFrame,
     callback: suspend (List<MpegTsPacket>) -> Unit
   ) {
-    val fixedBuffer = byteBuffer.removeInfo(info)
+    val fixedBuffer = mediaFrame.data.removeInfo(mediaFrame.info)
     val length = fixedBuffer.remaining()
     if (length < 0) return
 
@@ -51,7 +50,7 @@ class AacPacket(
     writeAdts(payload, payload.size, 0)
     fixedBuffer.get(payload, header.size, length)
 
-    val pes = Pes(psiManager.getAudioPid().toInt(), false, PesType.AUDIO, info.timestamp, ByteBuffer.wrap(payload))
+    val pes = Pes(psiManager.getAudioPid().toInt(), false, PesType.AUDIO, mediaFrame.info.timestamp, ByteBuffer.wrap(payload))
     val mpeg2tsPackets = mpegTsPacketizer.write(listOf(pes))
     val chunked = mpeg2tsPackets.chunked(chunkSize)
     val packets = mutableListOf<MpegTsPacket>()

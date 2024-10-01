@@ -34,9 +34,10 @@ class G711PacketTest {
     val timestamp = 123456789L
     val buffer = ByteArray(256) { 0x00 }
     val info = MediaFrame.Info(0, buffer.size, timestamp, false)
+    val mediaFrame = MediaFrame(ByteBuffer.wrap(buffer), info, MediaFrame.Type.AUDIO)
     val g711Packet = G711Packet()
     g711Packet.sendAudioInfo()
-    g711Packet.createFlvPacket(ByteBuffer.wrap(buffer), info) { flvPacket ->
+    g711Packet.createFlvPacket(mediaFrame) { flvPacket ->
       assertEquals(FlvType.AUDIO, flvPacket.type)
       assertEquals(0x72, flvPacket.buffer[0])
       assertEquals(buffer.size + 1, flvPacket.length)

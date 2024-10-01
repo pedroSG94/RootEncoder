@@ -39,13 +39,11 @@ class H265PacketTest {
     val fakeH265 = header.plus(ByteArray(300) { 0x00 })
 
     val info = MediaFrame.Info(0, fakeH265.size, timestamp, true)
-
+    val mediaFrame = MediaFrame(ByteBuffer.wrap(fakeH265), info, MediaFrame.Type.VIDEO)
     val h265Packet = H265Packet()
     h265Packet.setSSRC(123456789)
     val frames = mutableListOf<RtpFrame>()
-    h265Packet.createAndSendPacket(ByteBuffer.wrap(fakeH265), info) {
-      frames.addAll(it)
-    }
+    h265Packet.createAndSendPacket(mediaFrame) { frames.addAll(it) }
 
     val expectedRtp = byteArrayOf(-128, -32, 0, 1, 0, -87, -118, -57, 7, 91, -51, 21, 5, 0).plus(fakeH265.copyOfRange(header.size, fakeH265.size))
     val expectedTimeStamp = 11111111L
@@ -64,12 +62,11 @@ class H265PacketTest {
     val fakeH265 = header.plus(ByteArray(2500) { 0x00 })
 
     val info = MediaFrame.Info(0, fakeH265.size, timestamp, true)
+    val mediaFrame = MediaFrame(ByteBuffer.wrap(fakeH265), info, MediaFrame.Type.VIDEO)
     val h265Packet = H265Packet()
     h265Packet.setSSRC(123456789)
     val frames = mutableListOf<RtpFrame>()
-    h265Packet.createAndSendPacket(ByteBuffer.wrap(fakeH265), info) {
-      frames.addAll(it)
-    }
+    h265Packet.createAndSendPacket(mediaFrame) { frames.addAll(it) }
 
     val packet1Size = RtpConstants.MTU - 28 - RtpConstants.RTP_HEADER_LENGTH - 3
     val chunk1 = fakeH265.copyOfRange(header.size, header.size + packet1Size)

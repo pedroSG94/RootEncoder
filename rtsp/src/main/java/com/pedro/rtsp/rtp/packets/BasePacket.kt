@@ -20,7 +20,6 @@ import com.pedro.common.frame.MediaFrame
 import com.pedro.rtsp.rtsp.RtpFrame
 import com.pedro.rtsp.utils.RtpConstants
 import com.pedro.rtsp.utils.setLong
-import java.nio.ByteBuffer
 import kotlin.experimental.and
 import kotlin.experimental.or
 
@@ -36,8 +35,7 @@ abstract class BasePacket(private var clock: Long, private val payloadType: Int)
   protected val TAG = "BasePacket"
 
   abstract suspend fun createAndSendPacket(
-    byteBuffer: ByteBuffer,
-    bufferInfo: MediaFrame.Info,
+    mediaFrame: MediaFrame,
     callback: suspend (List<RtpFrame>) -> Unit
   )
 

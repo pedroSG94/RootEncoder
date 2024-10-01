@@ -121,16 +121,8 @@ class RtmpSender(
   private suspend fun getFlvPacket(mediaFrame: MediaFrame?, callback: suspend (FlvPacket) -> Unit) {
     if (mediaFrame == null) return
     when (mediaFrame.type) {
-      MediaFrame.Type.VIDEO -> {
-        videoPacket.createFlvPacket(mediaFrame.data, mediaFrame.info) {
-          callback(it)
-        }
-      }
-      MediaFrame.Type.AUDIO -> {
-        audioPacket.createFlvPacket(mediaFrame.data, mediaFrame.info) {
-          callback(it)
-        }
-      }
+      MediaFrame.Type.VIDEO -> videoPacket.createFlvPacket(mediaFrame) { callback(it) }
+      MediaFrame.Type.AUDIO -> audioPacket.createFlvPacket(mediaFrame) { callback(it) }
     }
   }
 }

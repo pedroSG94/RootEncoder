@@ -20,7 +20,6 @@ import com.pedro.common.frame.MediaFrame
 import com.pedro.srt.mpeg2ts.MpegTsPacket
 import com.pedro.srt.mpeg2ts.MpegTsPacketizer
 import com.pedro.srt.mpeg2ts.psi.PsiManager
-import java.nio.ByteBuffer
 
 /**
  * Created by pedro on 20/8/23.
@@ -51,8 +50,7 @@ abstract class BasePacket(
   protected var chunkSize = limitSize / MpegTsPacketizer.packetSize //max number of ts packets per srtpacket
 
   abstract suspend fun createAndSendPacket(
-    byteBuffer: ByteBuffer,
-    info: MediaFrame.Info,
+    mediaFrame: MediaFrame,
     callback: suspend (List<MpegTsPacket>) -> Unit
   )
 

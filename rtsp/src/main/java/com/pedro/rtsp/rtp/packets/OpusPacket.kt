@@ -19,7 +19,6 @@ package com.pedro.rtsp.rtp.packets
 import com.pedro.common.frame.MediaFrame
 import com.pedro.rtsp.rtsp.RtpFrame
 import com.pedro.rtsp.utils.RtpConstants
-import java.nio.ByteBuffer
 
 /**
  * Created by pedro on 8/2/24.
@@ -40,19 +39,18 @@ class OpusPacket: BasePacket(
   }
 
   override suspend fun createAndSendPacket(
-    byteBuffer: ByteBuffer,
-    bufferInfo: MediaFrame.Info,
+    mediaFrame: MediaFrame,
     callback: suspend (List<RtpFrame>) -> Unit
   ) {
-    val length = bufferInfo.size - byteBuffer.position()
+    val length = mediaFrame.info.size - mediaFrame.data.position()
     val maxPayload = maxPacketSize - RtpConstants.RTP_HEADER_LENGTH
-    val ts = bufferInfo.timestamp * 1000
+    val ts = mediaFrame.info.timestamp * 1000
     var sum = 0
     val frames = mutableListOf<RtpFrame>()
     while (sum < length) {
       val size = if (length - sum < maxPayload) length - sum else maxPayload
       val buffer = getBuffer(size + RtpConstants.RTP_HEADER_LENGTH)
-      byteBuffer.get(buffer, RtpConstants.RTP_HEADER_LENGTH, size)
+      mediaFrame.data.get(buffer, RtpConstants.RTP_HEADER_LENGTH, size)
       markPacket(buffer)
       val rtpTs = updateTimeStamp(buffer, ts)
       updateSeq(buffer)

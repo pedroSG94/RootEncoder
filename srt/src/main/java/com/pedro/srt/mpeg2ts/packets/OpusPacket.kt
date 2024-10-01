@@ -36,11 +36,10 @@ class OpusPacket(
 ): BasePacket(psiManager, limitSize) {
 
   override suspend fun createAndSendPacket(
-    byteBuffer: ByteBuffer,
-    info: MediaFrame.Info,
+    mediaFrame: MediaFrame,
     callback: suspend (List<MpegTsPacket>) -> Unit
   ) {
-    val fixedBuffer = byteBuffer.removeInfo(info)
+    val fixedBuffer = mediaFrame.data.removeInfo(mediaFrame.info)
     val length = fixedBuffer.remaining()
     if (length < 0) return
 
@@ -49,7 +48,7 @@ class OpusPacket(
     fixedBuffer.get(payload, header.size, length)
     System.arraycopy(header, 0, payload, 0, header.size)
 
-    val pes = Pes(psiManager.getAudioPid().toInt(), true, PesType.PRIVATE_STREAM_1, info.timestamp, ByteBuffer.wrap(payload))
+    val pes = Pes(psiManager.getAudioPid().toInt(), true, PesType.PRIVATE_STREAM_1, mediaFrame.info.timestamp, ByteBuffer.wrap(payload))
     val mpeg2tsPackets = mpegTsPacketizer.write(listOf(pes))
     val chunked = mpeg2tsPackets.chunked(chunkSize)
     val packets = mutableListOf<MpegTsPacket>()

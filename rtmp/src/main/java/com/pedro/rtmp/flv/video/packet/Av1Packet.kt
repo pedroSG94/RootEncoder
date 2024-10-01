@@ -20,7 +20,6 @@ import android.util.Log
 import com.pedro.common.av1.Av1Parser
 import com.pedro.common.av1.ObuType
 import com.pedro.common.frame.MediaFrame
-import com.pedro.common.isKeyframe
 import com.pedro.common.removeInfo
 import com.pedro.common.toByteArray
 import com.pedro.rtmp.flv.BasePacket
@@ -51,12 +50,11 @@ class Av1Packet: BasePacket() {
   }
 
   override suspend fun createFlvPacket(
-    byteBuffer: ByteBuffer,
-    info: MediaFrame.Info,
+    mediaFrame: MediaFrame,
     callback: suspend (FlvPacket) -> Unit
   ) {
-    var fixedBuffer = byteBuffer.duplicate().removeInfo(info)
-    val ts = info.timestamp / 1000
+    var fixedBuffer = mediaFrame.data.duplicate().removeInfo(mediaFrame.info)
+    val ts = mediaFrame.info.timestamp / 1000
 
     //header is 8 bytes length:
     //mark first byte as extended header (0b10000000)
@@ -96,7 +94,7 @@ class Av1Packet: BasePacket() {
     val size = fixedBuffer.remaining()
     buffer = ByteArray(header.size + size)
 
-    val nalType = if (info.isKeyFrame) VideoDataType.KEYFRAME.value else VideoDataType.INTER_FRAME.value
+    val nalType = if (mediaFrame.info.isKeyFrame) VideoDataType.KEYFRAME.value else VideoDataType.INTER_FRAME.value
     header[0] = (0b10000000 or (nalType shl 4) or FourCCPacketType.CODED_FRAMES.value).toByte()
     fixedBuffer.get(buffer, header.size, size)
 

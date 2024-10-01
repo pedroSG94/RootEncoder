@@ -17,13 +17,12 @@
 package com.pedro.rtmp.flv
 
 import com.pedro.common.frame.MediaFrame
-import java.nio.ByteBuffer
 
 /**
  * Created by pedro on 21/12/23.
  */
 abstract class BasePacket {
 
-  abstract suspend fun createFlvPacket(byteBuffer: ByteBuffer, info: MediaFrame.Info, callback: suspend (FlvPacket) -> Unit)
+  abstract suspend fun createFlvPacket(mediaFrame: MediaFrame, callback: suspend (FlvPacket) -> Unit)
   abstract fun reset(resetInfo: Boolean = true)
 }

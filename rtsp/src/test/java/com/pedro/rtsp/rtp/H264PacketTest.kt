@@ -41,12 +41,11 @@ class H264PacketTest {
     val info = MediaFrame.Info(0, fakeH264.size, timestamp, true)
     val fakeSps = byteArrayOf(0x00, 0x00, 0x00, 0x01, 0x02, 0x03, 0x04)
     val fakePps = byteArrayOf(0x00, 0x00, 0x00, 0x01, 0x0A, 0x0B, 0x0C)
+    val mediaFrame = MediaFrame(ByteBuffer.wrap(fakeH264), info, MediaFrame.Type.VIDEO)
     val h264Packet = H264Packet().apply { sendVideoInfo(ByteBuffer.wrap(fakeSps), ByteBuffer.wrap(fakePps)) }
     h264Packet.setSSRC(123456789)
     val frames = mutableListOf<RtpFrame>()
-    h264Packet.createAndSendPacket(ByteBuffer.wrap(fakeH264), info) {
-      frames.addAll(it)
-    }
+    h264Packet.createAndSendPacket(mediaFrame) { frames.addAll(it) }
 
     val expectedRtp = byteArrayOf(-128, -32, 0, 2, 0, -87, -118, -57, 7, 91, -51, 21, 5).plus(fakeH264.copyOfRange(header.size, fakeH264.size))
     val expectedStapA = byteArrayOf(-128, -32, 0, 1, 0, -87, -118, -57, 7, 91, -51, 21, 24, 0, 7, 0, 0, 0, 1, 2, 3, 4, 0, 7, 0, 0, 0, 1, 10, 11, 12)
@@ -70,12 +69,11 @@ class H264PacketTest {
     val info = MediaFrame.Info(0, fakeH264.size, timestamp, true)
     val fakeSps = byteArrayOf(0x00, 0x00, 0x00, 0x01, 0x02, 0x03, 0x04)
     val fakePps = byteArrayOf(0x00, 0x00, 0x00, 0x01, 0x0A, 0x0B, 0x0C)
+    val mediaFrame = MediaFrame(ByteBuffer.wrap(fakeH264), info, MediaFrame.Type.VIDEO)
     val h264Packet = H264Packet().apply { sendVideoInfo(ByteBuffer.wrap(fakeSps), ByteBuffer.wrap(fakePps)) }
     h264Packet.setSSRC(123456789)
     val frames = mutableListOf<RtpFrame>()
-    h264Packet.createAndSendPacket(ByteBuffer.wrap(fakeH264), info) {
-      frames.addAll(it)
-    }
+    h264Packet.createAndSendPacket(mediaFrame) { frames.addAll(it) }
 
     val packet1Size = RtpConstants.MTU - 28 - RtpConstants.RTP_HEADER_LENGTH - 2
     val chunk1 = fakeH264.copyOfRange(header.size, header.size + packet1Size)

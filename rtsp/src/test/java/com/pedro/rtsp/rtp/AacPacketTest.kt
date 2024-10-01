@@ -36,12 +36,11 @@ class AacPacketTest {
     val fakeAac = ByteArray(300) { 0x00 }
 
     val info = MediaFrame.Info(0, fakeAac.size, timestamp, false)
+    val mediaFrame = MediaFrame(ByteBuffer.wrap(fakeAac), info, MediaFrame.Type.AUDIO)
     val aacPacket = AacPacket().apply { setAudioInfo(44100) }
     aacPacket.setSSRC(123456789)
     val frames = mutableListOf<RtpFrame>()
-    aacPacket.createAndSendPacket(ByteBuffer.wrap(fakeAac), info) {
-      frames.addAll(it)
-    }
+    aacPacket.createAndSendPacket(mediaFrame) { frames.addAll(it) }
 
     val expectedRtp = byteArrayOf(-128, -31, 0, 1, 0, 83, 19, 92, 7, 91, -51, 21, 0, 16, 9, 96).plus(fakeAac)
     val expectedTimeStamp = 5444444L

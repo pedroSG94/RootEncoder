@@ -21,7 +21,6 @@ import com.pedro.common.removeInfo
 import com.pedro.rtsp.rtsp.RtpFrame
 import com.pedro.rtsp.utils.RtpConstants
 import com.pedro.rtsp.utils.getVideoStartCodeSize
-import java.nio.ByteBuffer
 import kotlin.experimental.and
 
 /**
@@ -39,17 +38,16 @@ class H265Packet: BasePacket(
   }
 
   override suspend fun createAndSendPacket(
-    byteBuffer: ByteBuffer,
-    bufferInfo: MediaFrame.Info,
+    mediaFrame: MediaFrame,
     callback: suspend (List<RtpFrame>) -> Unit
   ) {
-    val fixedBuffer = byteBuffer.removeInfo(bufferInfo)
+    val fixedBuffer = mediaFrame.data.removeInfo(mediaFrame.info)
     // We read a NAL units from ByteBuffer and we send them
     // NAL units are preceded with 0x00000001
     val header = ByteArray(fixedBuffer.getVideoStartCodeSize() + 2)
     if (header.size == 2) return //invalid buffer or waiting for sps/pps/vps
     fixedBuffer.get(header, 0, header.size)
-    val ts = bufferInfo.timestamp * 1000L
+    val ts = mediaFrame.info.timestamp * 1000L
     val naluLength = fixedBuffer.remaining()
     val type: Int = header[header.size - 2].toInt().shr(1 and 0x3f)
     val frames = mutableListOf<RtpFrame>()

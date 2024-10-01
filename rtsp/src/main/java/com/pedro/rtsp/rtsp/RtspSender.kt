@@ -150,16 +150,8 @@ class RtspSender(
   private suspend fun getRtpPackets(mediaFrame: MediaFrame?, callback: suspend (List<RtpFrame>) -> Unit) {
     if (mediaFrame == null) return
     when (mediaFrame.type) {
-      MediaFrame.Type.VIDEO -> {
-        videoPacket.createAndSendPacket(mediaFrame.data, mediaFrame.info) { packets ->
-          callback(packets)
-        }
-      }
-      MediaFrame.Type.AUDIO -> {
-        audioPacket.createAndSendPacket(mediaFrame.data, mediaFrame.info) { packets ->
-          callback(packets)
-        }
-      }
+      MediaFrame.Type.VIDEO -> videoPacket.createAndSendPacket(mediaFrame) { callback(it) }
+      MediaFrame.Type.AUDIO -> audioPacket.createAndSendPacket(mediaFrame) { callback(it) }
     }
   }
 }

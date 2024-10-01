@@ -20,7 +20,6 @@ import com.pedro.common.frame.MediaFrame
 import com.pedro.common.removeInfo
 import com.pedro.rtsp.rtsp.RtpFrame
 import com.pedro.rtsp.utils.RtpConstants
-import java.nio.ByteBuffer
 import kotlin.experimental.and
 import kotlin.experimental.or
 
@@ -43,14 +42,13 @@ class AacPacket: BasePacket(
   }
 
   override suspend fun createAndSendPacket(
-    byteBuffer: ByteBuffer,
-    bufferInfo: MediaFrame.Info,
+    mediaFrame: MediaFrame,
     callback: suspend (List<RtpFrame>) -> Unit
   ) {
-    val fixedBuffer = byteBuffer.removeInfo(bufferInfo)
+    val fixedBuffer = mediaFrame.data.removeInfo(mediaFrame.info)
     val length = fixedBuffer.remaining()
     val maxPayload = maxPacketSize - (RtpConstants.RTP_HEADER_LENGTH + 4)
-    val ts = bufferInfo.timestamp * 1000
+    val ts = mediaFrame.info.timestamp * 1000
     var sum = 0
     val frames = mutableListOf<RtpFrame>()
     while (sum < length) {

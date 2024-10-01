@@ -36,12 +36,11 @@ class G711PacketTest {
     val fakeG711 = ByteArray(30) { 0x05 }
 
     val info = MediaFrame.Info(0, fakeG711.size, timestamp, false)
+    val mediaFrame = MediaFrame(ByteBuffer.wrap(fakeG711), info, MediaFrame.Type.AUDIO)
     val g711Packet = G711Packet().apply { setAudioInfo(8000) }
     g711Packet.setSSRC(123456789)
     val frames = mutableListOf<RtpFrame>()
-    g711Packet.createAndSendPacket(ByteBuffer.wrap(fakeG711), info) {
-      frames.addAll(it)
-    }
+    g711Packet.createAndSendPacket(mediaFrame) { frames.addAll(it) }
 
     val expectedRtp = byteArrayOf(-128, -120, 0, 1, 0, 15, 18, 6, 7, 91, -51, 21).plus(fakeG711)
     val expectedTimeStamp = 987654L

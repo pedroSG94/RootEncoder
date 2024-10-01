@@ -36,13 +36,11 @@ class Av1PacketTest {
     val av1data = byteArrayOf(0x0a, 0x0d, 0x00, 0x00, 0x00, 0x24, 0x4f, 0x7e, 0x7f, 0x00, 0x68, 0x83.toByte(), 0x00, 0x83.toByte(), 0x02)
 
     val info = MediaFrame.Info(0, av1data.size, timestamp, true)
-
+    val mediaFrame = MediaFrame(ByteBuffer.wrap(av1data), info, MediaFrame.Type.VIDEO)
     val frames = mutableListOf<RtpFrame>()
     val av1Packet = Av1Packet()
     av1Packet.setSSRC(123456789)
-    av1Packet.createAndSendPacket(ByteBuffer.wrap(av1data), info) { rtpFrames ->
-      frames.addAll(rtpFrames)
-    }
+    av1Packet.createAndSendPacket(mediaFrame) { frames.addAll(it) }
 
     val expectedRtp = byteArrayOf(-128, -32, 0, 1, 0, -87, -118, -57, 7, 91, -51, 21, 24).plus(av1data)
     val expectedTimeStamp = 11111111L
