@@ -57,7 +57,7 @@ class H26XPacket(
     val fixedBuffer = byteBuffer.removeInfo(info)
     val length = fixedBuffer.remaining()
     if (length < 0) return
-    val isKeyFrame = info.isKeyframe()
+    val isKeyFrame = info.isKeyFrame
 
     if (codec == Codec.HEVC) {
       val sps = this.sps

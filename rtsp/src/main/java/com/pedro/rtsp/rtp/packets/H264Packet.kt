@@ -65,7 +65,7 @@ class H264Packet: BasePacket(RtpConstants.clockVideoFrequency,
     val naluLength = fixedBuffer.remaining()
     val type: Int = (header[header.size - 1] and 0x1F).toInt()
     val frames = mutableListOf<RtpFrame>()
-    if (type == RtpConstants.IDR || bufferInfo.isKeyframe()) {
+    if (type == RtpConstants.IDR || bufferInfo.isKeyFrame) {
       stapA?.let {
         val buffer = getBuffer(it.size + RtpConstants.RTP_HEADER_LENGTH)
         val rtpTs = updateTimeStamp(buffer, ts)

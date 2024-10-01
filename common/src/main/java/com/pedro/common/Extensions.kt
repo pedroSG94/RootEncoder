@@ -43,7 +43,7 @@ import kotlin.coroutines.Continuation
  */
 
 @Suppress("DEPRECATION")
-fun MediaFrame.Info.isKeyframe(): Boolean {
+fun MediaCodec.BufferInfo.isKeyframe(): Boolean {
   return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
     this.flags == MediaCodec.BUFFER_FLAG_KEY_FRAME
   } else {
@@ -143,7 +143,7 @@ fun Throwable.validMessage(): String {
   return (message ?: "").ifEmpty { javaClass.simpleName }
 }
 
-fun MediaCodec.BufferInfo.toMediaFrameInfo() = MediaFrame.Info(offset, size, presentationTimeUs, flags)
+fun MediaCodec.BufferInfo.toMediaFrameInfo() = MediaFrame.Info(offset, size, presentationTimeUs, isKeyframe())
 
 fun ByteBuffer.clone(): ByteBuffer = ByteBuffer.wrap(toByteArray())
 

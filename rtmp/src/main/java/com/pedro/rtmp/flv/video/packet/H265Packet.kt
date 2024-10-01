@@ -117,7 +117,7 @@ class H265Packet: BasePacket() {
 
     val type: Int = validBuffer.get(0).toInt().shr(1 and 0x3f)
     var nalType = VideoDataType.INTER_FRAME.value
-    if (type == VideoNalType.IDR_N_LP.value || type == VideoNalType.IDR_W_DLP.value || info.isKeyframe()) {
+    if (type == VideoNalType.IDR_N_LP.value || type == VideoNalType.IDR_W_DLP.value || info.isKeyFrame) {
       nalType = VideoDataType.KEYFRAME.value
     } else if (type == VideoNalType.HEVC_VPS.value || type == VideoNalType.HEVC_SPS.value || type == VideoNalType.HEVC_PPS.value) {
       // we don't need send it because we already do it in video config

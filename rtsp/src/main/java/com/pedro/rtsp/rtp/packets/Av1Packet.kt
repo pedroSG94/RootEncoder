@@ -94,7 +94,7 @@ class Av1Packet: BasePacket(
         markPacket(buffer) //mark end frame
       }
       val oSize = if (isFirstPacket) obuList.size else 1
-      buffer[RtpConstants.RTP_HEADER_LENGTH] = generateAv1AggregationHeader(bufferInfo.isKeyframe(), isFirstPacket, isLastPacket, oSize)
+      buffer[RtpConstants.RTP_HEADER_LENGTH] = generateAv1AggregationHeader(bufferInfo.isKeyFrame, isFirstPacket, isLastPacket, oSize)
       updateSeq(buffer)
       val rtpFrame = RtpFrame(buffer, rtpTs, buffer.size, channelIdentifier)
       frames.add(rtpFrame)

@@ -109,7 +109,7 @@ class H264Packet: BasePacket() {
 
     val type: Int = (validBuffer.get(0) and 0x1F).toInt()
     var nalType = VideoDataType.INTER_FRAME.value
-    if (type == VideoNalType.IDR.value || info.isKeyframe()) {
+    if (type == VideoNalType.IDR.value || info.isKeyFrame) {
       nalType = VideoDataType.KEYFRAME.value
     } else if (type == VideoNalType.SPS.value || type == VideoNalType.PPS.value) {
       // we don't need send it because we already do it in video config

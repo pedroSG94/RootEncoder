@@ -96,7 +96,7 @@ class Av1Packet: BasePacket() {
     val size = fixedBuffer.remaining()
     buffer = ByteArray(header.size + size)
 
-    val nalType = if (info.isKeyframe()) VideoDataType.KEYFRAME.value else VideoDataType.INTER_FRAME.value
+    val nalType = if (info.isKeyFrame) VideoDataType.KEYFRAME.value else VideoDataType.INTER_FRAME.value
     header[0] = (0b10000000 or (nalType shl 4) or FourCCPacketType.CODED_FRAMES.value).toByte()
     fixedBuffer.get(buffer, header.size, size)
 
