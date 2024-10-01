@@ -19,6 +19,7 @@ package com.pedro.common
 import android.hardware.camera2.CameraCharacteristics
 import android.hardware.camera2.CaptureRequest
 import android.media.MediaCodec
+import android.media.MediaFormat
 import android.os.Build
 import android.os.Handler
 import android.os.Looper
@@ -145,3 +146,11 @@ fun Throwable.validMessage(): String {
 fun MediaCodec.BufferInfo.toMediaFrameInfo() = MediaFrame.Info(offset, size, presentationTimeUs, flags)
 
 fun ByteBuffer.clone(): ByteBuffer = ByteBuffer.wrap(toByteArray())
+
+fun MediaFormat.getIntegerSafe(name: String): Int? {
+  return try { getInteger(name) } catch (e: Exception) { null }
+}
+
+fun MediaFormat.getLongSafe(name: String): Long? {
+  return try { getLong(name) } catch (e: Exception) { null }
+}
