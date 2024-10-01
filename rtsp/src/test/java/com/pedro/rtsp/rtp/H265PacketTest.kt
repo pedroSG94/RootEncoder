@@ -38,7 +38,7 @@ class H265PacketTest {
     val header = byteArrayOf(0x00, 0x00, 0x00, 0x01, 0x05, 0x00)
     val fakeH265 = header.plus(ByteArray(300) { 0x00 })
 
-    val info = MediaFrame.Info(0, fakeH265.size, timestamp, 1)
+    val info = MediaFrame.Info(0, fakeH265.size, timestamp, true)
 
     val h265Packet = H265Packet()
     h265Packet.setSSRC(123456789)
@@ -63,7 +63,7 @@ class H265PacketTest {
     val header = byteArrayOf(0x00, 0x00, 0x00, 0x01, 0x05, 0x00)
     val fakeH265 = header.plus(ByteArray(2500) { 0x00 })
 
-    val info = MediaFrame.Info(0, fakeH265.size, timestamp, 1)
+    val info = MediaFrame.Info(0, fakeH265.size, timestamp, true)
     val h265Packet = H265Packet()
     h265Packet.setSSRC(123456789)
     val frames = mutableListOf<RtpFrame>()

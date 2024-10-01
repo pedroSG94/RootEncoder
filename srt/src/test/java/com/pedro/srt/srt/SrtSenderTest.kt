@@ -62,8 +62,8 @@ class SrtSenderTest {
         val videoData = ByteBuffer.wrap(header.plus(ByteArray(300) { 0x00 }))
         val audioData = ByteBuffer.wrap(ByteArray(256) { 0x00 })
 
-        val videoFrame = MediaFrame(videoData, MediaFrame.Info(0, videoData.remaining(), 0, 1), MediaFrame.Type.VIDEO)
-        val audioFrame = MediaFrame(audioData, MediaFrame.Info(0, audioData.remaining(), 0, 1), MediaFrame.Type.AUDIO)
+        val videoFrame = MediaFrame(videoData, MediaFrame.Info(0, videoData.remaining(), 0, true), MediaFrame.Type.VIDEO)
+        val audioFrame = MediaFrame(audioData, MediaFrame.Info(0, audioData.remaining(), 0, false), MediaFrame.Type.AUDIO)
         srtSender.sendMediaFrame(videoFrame)
         srtSender.sendMediaFrame(audioFrame)
         latch.await(1000, TimeUnit.MILLISECONDS)

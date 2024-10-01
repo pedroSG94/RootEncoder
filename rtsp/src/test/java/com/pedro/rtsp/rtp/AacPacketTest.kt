@@ -35,7 +35,7 @@ class AacPacketTest {
     val timestamp = 123456789L
     val fakeAac = ByteArray(300) { 0x00 }
 
-    val info = MediaFrame.Info(0, fakeAac.size, timestamp, 1)
+    val info = MediaFrame.Info(0, fakeAac.size, timestamp, false)
     val aacPacket = AacPacket().apply { setAudioInfo(44100) }
     aacPacket.setSSRC(123456789)
     val frames = mutableListOf<RtpFrame>()

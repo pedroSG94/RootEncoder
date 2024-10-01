@@ -38,7 +38,7 @@ class H264PacketTest {
     val header = byteArrayOf(0x00, 0x00, 0x00, 0x01, 0x05)
     val fakeH264 = header.plus(ByteArray(300) { 0x00 })
 
-    val info = MediaFrame.Info(0, fakeH264.size, timestamp, 1)
+    val info = MediaFrame.Info(0, fakeH264.size, timestamp, true)
     val fakeSps = byteArrayOf(0x00, 0x00, 0x00, 0x01, 0x02, 0x03, 0x04)
     val fakePps = byteArrayOf(0x00, 0x00, 0x00, 0x01, 0x0A, 0x0B, 0x0C)
     val h264Packet = H264Packet().apply { sendVideoInfo(ByteBuffer.wrap(fakeSps), ByteBuffer.wrap(fakePps)) }
@@ -67,7 +67,7 @@ class H264PacketTest {
     val header = byteArrayOf(0x00, 0x00, 0x00, 0x01, 0x05)
     val fakeH264 = header.plus(ByteArray(2500) { 0x00 })
 
-    val info = MediaFrame.Info(0, fakeH264.size, timestamp, 1)
+    val info = MediaFrame.Info(0, fakeH264.size, timestamp, true)
     val fakeSps = byteArrayOf(0x00, 0x00, 0x00, 0x01, 0x02, 0x03, 0x04)
     val fakePps = byteArrayOf(0x00, 0x00, 0x00, 0x01, 0x0A, 0x0B, 0x0C)
     val h264Packet = H264Packet().apply { sendVideoInfo(ByteBuffer.wrap(fakeSps), ByteBuffer.wrap(fakePps)) }

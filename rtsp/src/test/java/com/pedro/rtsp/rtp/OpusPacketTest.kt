@@ -35,7 +35,7 @@ class OpusPacketTest {
     val timestamp = 123456789L
     val fakeOpus = ByteArray(30) { 0x05 }
 
-    val info = MediaFrame.Info(0, fakeOpus.size, timestamp, 1)
+    val info = MediaFrame.Info(0, fakeOpus.size, timestamp, false)
     val opusPacket = OpusPacket().apply { setAudioInfo(8000) }
     opusPacket.setSSRC(123456789)
     val frames = mutableListOf<RtpFrame>()

@@ -31,7 +31,7 @@ class ExtensionTest {
     val buffer = ByteBuffer.wrap(ByteArray(256) { 0x00 }.mapIndexed { index, byte -> index.toByte()  }.toByteArray())
     val offset = 4
     val minusLimit = 2
-    val info = MediaFrame.Info(4, buffer.remaining() - minusLimit, 0, 0)
+    val info = MediaFrame.Info(4, buffer.remaining() - minusLimit, 0, false)
     val result = buffer.removeInfo(info)
     assertEquals(buffer.capacity() - offset - minusLimit, result.remaining())
     assertEquals(offset.toByte(), result.get(0))

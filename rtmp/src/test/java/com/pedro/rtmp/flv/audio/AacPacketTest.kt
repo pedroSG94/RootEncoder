@@ -33,7 +33,7 @@ class AacPacketTest {
   fun `GIVEN a aac buffer WHEN call create a aac packet 2 times THEN return config and expected buffer`() = runTest {
     val timestamp = 123456789L
     val buffer = ByteArray(256) { 0x00 }
-    val info = MediaFrame.Info(0, buffer.size, timestamp, 1)
+    val info = MediaFrame.Info(0, buffer.size, timestamp, false)
     val aacPacket = AacPacket()
     aacPacket.sendAudioInfo(32000, true)
     aacPacket.createFlvPacket(ByteBuffer.wrap(buffer), info) { flvPacket ->

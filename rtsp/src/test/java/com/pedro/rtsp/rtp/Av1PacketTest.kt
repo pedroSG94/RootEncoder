@@ -35,7 +35,7 @@ class Av1PacketTest {
     val timestamp = 123456789L
     val av1data = byteArrayOf(0x0a, 0x0d, 0x00, 0x00, 0x00, 0x24, 0x4f, 0x7e, 0x7f, 0x00, 0x68, 0x83.toByte(), 0x00, 0x83.toByte(), 0x02)
 
-    val info = MediaFrame.Info(0, av1data.size, timestamp, 1)
+    val info = MediaFrame.Info(0, av1data.size, timestamp, true)
 
     val frames = mutableListOf<RtpFrame>()
     val av1Packet = Av1Packet()

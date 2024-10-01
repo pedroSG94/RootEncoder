@@ -33,7 +33,7 @@ class G711PacketTest {
   fun `GIVEN a G711 buffer WHEN call create a G711 packet THEN expected buffer`() = runTest {
     val timestamp = 123456789L
     val buffer = ByteArray(256) { 0x00 }
-    val info = MediaFrame.Info(0, buffer.size, timestamp, 1)
+    val info = MediaFrame.Info(0, buffer.size, timestamp, false)
     val g711Packet = G711Packet()
     g711Packet.sendAudioInfo()
     g711Packet.createFlvPacket(ByteBuffer.wrap(buffer), info) { flvPacket ->
