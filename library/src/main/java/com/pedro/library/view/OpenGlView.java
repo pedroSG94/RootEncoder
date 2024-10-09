@@ -235,16 +235,19 @@ public class OpenGlView extends SurfaceView
   }
 
   private void draw(boolean forced) {
-    if (!isRunning() || fpsLimiter.limitFPS()) return;
+    if (!isRunning()) return;
+    boolean limitFps = fpsLimiter.limitFPS();
     if (!forced) forceRenderer.frameAvailable();
 
     if (surfaceManager.isReady() && mainRender.isReady()) {
       surfaceManager.makeCurrent();
       mainRender.updateFrame();
       mainRender.drawOffScreen();
-      mainRender.drawScreen(previewWidth, previewHeight, aspectRatioMode, 0,
-          isPreviewVerticalFlip, isPreviewHorizontalFlip);
-      surfaceManager.swapBuffer();
+      if (!limitFps) {
+        mainRender.drawScreen(previewWidth, previewHeight, aspectRatioMode, 0,
+            isPreviewVerticalFlip, isPreviewHorizontalFlip);
+        surfaceManager.swapBuffer();
+      }
     }
 
     if (!filterQueue.isEmpty() && mainRender.isReady()) {
@@ -256,7 +259,7 @@ public class OpenGlView extends SurfaceView
         return;
       }
     }
-    if (surfaceManagerEncoder.isReady() && mainRender.isReady()) {
+    if (surfaceManagerEncoder.isReady() && mainRender.isReady() && !limitFps) {
       int w = muteVideo ? 0 : encoderWidth;
       int h = muteVideo ? 0 : encoderHeight;
       surfaceManagerEncoder.makeCurrent();
