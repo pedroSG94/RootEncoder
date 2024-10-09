@@ -155,6 +155,10 @@ abstract class StreamBase(
     else requestKeyframe()
   }
 
+  /**
+   * Force VideoEncoder to produce a keyframe. Ignored if not recording or streaming.
+   * This could be ignored depend of the Codec implementation in each device.
+   */
   fun requestKeyframe() {
     if (videoEncoder.isRunning) {
       videoEncoder.requestKeyframe()
@@ -377,6 +381,10 @@ abstract class StreamBase(
    */
   fun getGlInterface(): GlStreamInterface = glInterface
 
+  /**
+   * Replace the current BaseRecordController.
+   * This method allow record in other format or even create your custom implementation and record in a new format.
+   */
   fun setRecordController(recordController: BaseRecordController) {
     if (!isRecording) this.recordController = recordController
   }
@@ -418,6 +426,10 @@ abstract class StreamBase(
     if (!isRecording) recordController.resetFormats()
   }
 
+  /**
+   * Stop stream, record and preview and then release all resources.
+   * You must call it after finish all the work.
+   */
   fun release() {
     if (isStreaming) stopStream()
     if (isRecording) stopRecord()
@@ -427,6 +439,11 @@ abstract class StreamBase(
     audioSource.release()
   }
 
+  /**
+   * Reset VideoEncoder. Only recommended if a VideoEncoder class error is received in the EncoderErrorCallback
+   *
+   * @return true if success, false if failed
+   */
   fun resetVideoEncoder(): Boolean {
     glInterface.removeMediaCodecSurface()
     val result = videoEncoder.reset()
@@ -435,6 +452,11 @@ abstract class StreamBase(
     return true
   }
 
+  /**
+   * Reset AudioEncoder. Only recommended if an AudioEncoder class error is received in the EncoderErrorCallback
+   *
+   * @return true if success, false if failed
+   */
   fun resetAudioEncoder(): Boolean = audioEncoder.reset()
 
   private fun prepareEncoders(): Boolean {
@@ -477,6 +499,10 @@ abstract class StreamBase(
 
   abstract fun getStreamClient(): StreamBaseClient
 
+  /**
+   * Change VideoCodec used.
+   * This could fail depend of the Codec supported in each Protocol. For example AV1 is not supported in SRT
+   */
   fun setVideoCodec(codec: VideoCodec) {
     setVideoCodecImp(codec)
     recordController.setVideoCodec(codec)
@@ -488,6 +514,10 @@ abstract class StreamBase(
     videoEncoder.type = type
   }
 
+  /**
+   * Change AudioCodec used.
+   * This could fail depend of the Codec supported in each Protocol. For example G711 is not supported in SRT
+   */
   fun setAudioCodec(codec: AudioCodec) {
     setAudioCodecImp(codec)
     recordController.setAudioCodec(codec)
