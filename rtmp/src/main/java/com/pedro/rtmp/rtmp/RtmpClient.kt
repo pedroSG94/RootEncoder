@@ -47,6 +47,7 @@ import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.withTimeoutOrNull
 import java.io.*
 import java.net.*
@@ -96,6 +97,7 @@ class RtmpClient(private val connectChecker: ConnectChecker) {
     get() = rtmpSender.getSentAudioFrames()
   val sentVideoFrames: Long
     get() = rtmpSender.getSentVideoFrames()
+  private var mutex = Mutex(locked = true)
 
   /**
    * Add certificates for TLS connection
@@ -177,12 +179,12 @@ class RtmpClient(private val connectChecker: ConnectChecker) {
 
   fun setAudioInfo(sampleRate: Int, isStereo: Boolean) {
     commandsManager.setAudioInfo(sampleRate, isStereo)
-    rtmpSender.setAudioInfo(sampleRate, isStereo)
   }
 
   fun setVideoInfo(sps: ByteBuffer, pps: ByteBuffer?, vps: ByteBuffer?) {
     Log.i(TAG, "send sps and pps")
-    rtmpSender.setVideoInfo(sps, pps, vps)
+    commandsManager.setVideoInfo(sps, pps, vps)
+    if (mutex.isLocked) runCatching { mutex.unlock() }
   }
 
   fun setVideoResolution(width: Int, height: Int) {
@@ -254,6 +256,22 @@ class RtmpClient(private val connectChecker: ConnectChecker) {
         if (user != null && password != null) setAuthorization(user, password)
 
         val error = runCatching {
+          if (!commandsManager.audioDisabled) {
+            rtmpSender.setAudioInfo(commandsManager.sampleRate, commandsManager.isStereo)
+          }
+          if (!commandsManager.videoDisabled) {
+            if (!commandsManager.videoInfoReady()) {
+              Log.i(TAG, "waiting for sps and pps")
+              withTimeoutOrNull(5000) { mutex.lock() }
+              if (!commandsManager.videoInfoReady()) {
+                onMainThread {
+                  connectChecker.onConnectionFailed("sps or pps is null")
+                }
+                return@launch
+              }
+            }
+            rtmpSender.setVideoInfo(commandsManager.sps!!, commandsManager.pps, commandsManager.vps)
+          }
           if (!establishConnection()) {
             onMainThread {
               connectChecker.onConnectionFailed("Handshake failed")
@@ -538,6 +556,7 @@ class RtmpClient(private val connectChecker: ConnectChecker) {
       jobRetry = null
       scopeRetry.cancel()
       scopeRetry = CoroutineScope(Dispatchers.IO)
+      mutex = Mutex(true)
     }
     job?.cancelAndJoin()
     job = null

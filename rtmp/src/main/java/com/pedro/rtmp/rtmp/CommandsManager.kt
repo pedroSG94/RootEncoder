@@ -32,6 +32,7 @@ import com.pedro.rtmp.utils.socket.RtmpSocket
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import java.io.*
+import java.nio.ByteBuffer
 
 /**
  * Created by pedro on 21/04/21.
@@ -64,12 +65,28 @@ abstract class CommandsManager {
   protected var width = 640
   protected var height = 480
   var fps = 30
-  protected var sampleRate = 44100
-  protected var isStereo = true
+  var sampleRate = 44100
+    protected set
+  var isStereo = true
+    protected set
   var videoCodec = VideoCodec.H264
   var audioCodec = AudioCodec.AAC
   //Avoid write a packet in middle of other.
   private val writeSync = Mutex(locked = false)
+  var sps: ByteBuffer? = null
+    private set
+  var pps: ByteBuffer? = null
+    private set
+  var vps: ByteBuffer? = null
+    private set
+
+  fun videoInfoReady(): Boolean {
+    return when (videoCodec) {
+      VideoCodec.H264 -> sps != null && pps != null
+      VideoCodec.H265 -> sps != null && pps != null && vps != null
+      VideoCodec.AV1 -> sps != null
+    }
+  }
 
   fun setVideoResolution(width: Int, height: Int) {
     this.width = width
@@ -79,6 +96,12 @@ abstract class CommandsManager {
   fun setAudioInfo(sampleRate: Int, isStereo: Boolean) {
     this.sampleRate = sampleRate
     this.isStereo = isStereo
+  }
+
+  fun setVideoInfo(sps: ByteBuffer, pps: ByteBuffer?, vps: ByteBuffer?) {
+    this.sps = sps
+    this.pps = pps
+    this.vps = vps
   }
 
   fun setAuth(user: String?, password: String?) {
