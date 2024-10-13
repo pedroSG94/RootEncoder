@@ -247,7 +247,7 @@ abstract class CommandsManager {
   abstract suspend fun sendPublishImp(socket: RtmpSocket)
   abstract suspend fun sendCloseImp(socket: RtmpSocket)
 
-  fun reset() {
+  fun reset(clear: Boolean) {
     startTs = 0
     timestamp = 0
     streamId = 0
@@ -256,5 +256,10 @@ abstract class CommandsManager {
     sessionHistory.reset()
     acknowledgementSequence = 0
     bytesRead = 0
+    if (clear) {
+      sps = null
+      pps = null
+      vps = null
+    }
   }
 }

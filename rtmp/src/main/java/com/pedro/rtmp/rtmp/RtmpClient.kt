@@ -517,7 +517,7 @@ class RtmpClient(private val connectChecker: ConnectChecker) {
 
   private suspend fun closeConnection() {
     socket?.close()
-    commandsManager.reset()
+    commandsManager.reset(false)
   }
 
   @JvmOverloads
@@ -563,7 +563,7 @@ class RtmpClient(private val connectChecker: ConnectChecker) {
     scope.cancel()
     scope = CoroutineScope(Dispatchers.IO)
     publishPermitted = false
-    commandsManager.reset()
+    commandsManager.reset(clear)
   }
 
   fun sendVideo(videoBuffer: ByteBuffer, info: MediaCodec.BufferInfo) {
