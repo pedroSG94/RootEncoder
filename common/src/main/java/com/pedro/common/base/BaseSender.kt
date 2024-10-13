@@ -64,7 +64,7 @@ abstract class BaseSender(
         bitrateManager.reset()
         queue.clear()
         running = true
-        scope.launch {
+        job = scope.launch {
             val bitrateTask = async {
                 while (scope.isActive && running) {
                     //bytes to bits
