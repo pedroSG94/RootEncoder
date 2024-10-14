@@ -43,7 +43,6 @@ import com.pedro.library.util.Filter;
 
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -307,8 +306,9 @@ public class OpenGlView extends SurfaceView
 
   @Override
   public void start() {
-    executor = ExtensionsKt.newSingleThreadExecutor(threadQueue);
-    ExecutorService executor = this.executor;
+    threadQueue.clear();
+    mainRender.release();
+    ExecutorService executor = ExtensionsKt.newSingleThreadExecutor(threadQueue);
     ExtensionsKt.secureSubmit(executor, () -> {
       surfaceManager.release();
       surfaceManager.eglSetup(getHolder().getSurface());
@@ -319,13 +319,12 @@ public class OpenGlView extends SurfaceView
       running.set(true);
       mainRender.getSurfaceTexture().setOnFrameAvailableListener(this);
       forceRenderer.start(() -> {
-        ExecutorService ex = this.executor;
-        if (ex == null) return null;
-        ex.execute(() -> draw(true));
+        executor.execute(() -> draw(true));
         return null;
       });
       return null;
     });
+    this.executor = executor;
   }
 
   @Override
@@ -339,7 +338,6 @@ public class OpenGlView extends SurfaceView
       surfaceManagerPhoto.release();
       surfaceManagerEncoder.release();
       surfaceManager.release();
-      mainRender.release();
       return null;
     });
     executor.shutdownNow();

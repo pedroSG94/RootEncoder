@@ -140,8 +140,10 @@ class GlStreamInterface(private val context: Context): OnFrameAvailableListener,
   }
 
   override fun start() {
-    executor = newSingleThreadExecutor(threadQueue)
-    executor?.secureSubmit {
+    threadQueue.clear()
+    mainRender.release()
+    val executor = newSingleThreadExecutor(threadQueue)
+    executor.secureSubmit {
       surfaceManager.release()
       surfaceManager.eglSetup()
       surfaceManager.makeCurrent()
@@ -150,9 +152,10 @@ class GlStreamInterface(private val context: Context): OnFrameAvailableListener,
       surfaceManagerPhoto.eglSetup(encoderWidth, encoderHeight, surfaceManager)
       running.set(true)
       mainRender.getSurfaceTexture().setOnFrameAvailableListener(this)
-      forceRender.start { executor?.execute { draw(true) } }
+      forceRender.start { executor.execute { draw(true) } }
       if (autoHandleOrientation) sensorRotationManager.start()
     }
+    this.executor = executor
   }
 
   override fun stop() {
@@ -164,7 +167,6 @@ class GlStreamInterface(private val context: Context): OnFrameAvailableListener,
       surfaceManagerPhoto.release()
       surfaceManagerEncoder.release()
       surfaceManager.release()
-      mainRender.release()
     }
     executor?.shutdownNow()
     executor = null

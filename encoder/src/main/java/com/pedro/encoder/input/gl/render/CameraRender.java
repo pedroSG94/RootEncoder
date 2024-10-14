@@ -50,8 +50,8 @@ public class CameraRender extends BaseRenderOffScreen {
   private int aPositionHandle = -1;
   private int aTextureCameraHandle = -1;
 
-  private SurfaceTexture surfaceTexture;
-  private Surface surface;
+  private volatile SurfaceTexture surfaceTexture;
+  private volatile Surface surface;
 
   public CameraRender() {
     Matrix.setIdentityM(MVPMatrix, 0);
@@ -126,8 +126,10 @@ public class CameraRender extends BaseRenderOffScreen {
   @Override
   public void release() {
     GLES20.glDeleteProgram(program);
-    surfaceTexture.release();
-    surface.release();
+    final SurfaceTexture surfaceTexture = this.surfaceTexture;
+    final Surface surface = this.surface;
+    if (surfaceTexture != null) surfaceTexture.release();
+    if (surface != null) surface.release();
   }
 
   public void updateTexImage() {

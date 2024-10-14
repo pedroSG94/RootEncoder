@@ -53,15 +53,13 @@ class TcpStreamSocket(
   private var output: ByteWriteChannel? = null
 
   override suspend fun buildSocketConfigAndConnect(selectorManager: SelectorManager): ReadWriteSocket {
-    val builder = aSocket(selectorManager).tcp()
+    val builder = aSocket(selectorManager).tcp().connect(remoteAddress = InetSocketAddress(host, port))
     val socket = if (secured) {
-      builder.connect(remoteAddress = InetSocketAddress(host, port)).tls(Dispatchers.Default) {
+      builder.tls(Dispatchers.Default) {
         trustManager = certificate
         random = SecureRandom()
       }
-    } else {
-      builder.connect(host, port)
-    }
+    } else builder
     input = socket.openReadChannel()
     output = socket.openWriteChannel(autoFlush = false)
     return socket
@@ -72,7 +70,7 @@ class TcpStreamSocket(
     output = null
   }
 
-  suspend fun flush() {
+  suspend fun flush() = withTimeout(timeout) {
     output?.flush()
   }
 
