@@ -141,7 +141,6 @@ class GlStreamInterface(private val context: Context): OnFrameAvailableListener,
 
   override fun start() {
     threadQueue.clear()
-    mainRender.release()
     val executor = newSingleThreadExecutor(threadQueue)
     executor.secureSubmit {
       surfaceManager.release()
@@ -167,6 +166,7 @@ class GlStreamInterface(private val context: Context): OnFrameAvailableListener,
       surfaceManagerPhoto.release()
       surfaceManagerEncoder.release()
       surfaceManager.release()
+      mainRender.release()
     }
     executor?.shutdownNow()
     executor = null

@@ -307,7 +307,6 @@ public class OpenGlView extends SurfaceView
   @Override
   public void start() {
     threadQueue.clear();
-    mainRender.release();
     ExecutorService executor = ExtensionsKt.newSingleThreadExecutor(threadQueue);
     ExtensionsKt.secureSubmit(executor, () -> {
       surfaceManager.release();
@@ -338,6 +337,7 @@ public class OpenGlView extends SurfaceView
       surfaceManagerPhoto.release();
       surfaceManagerEncoder.release();
       surfaceManager.release();
+      mainRender.release();
       return null;
     });
     executor.shutdownNow();

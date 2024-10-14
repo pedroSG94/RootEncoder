@@ -37,6 +37,7 @@ import java.util.concurrent.ExecutorService
 import java.util.concurrent.LinkedBlockingQueue
 import java.util.concurrent.ThreadPoolExecutor
 import java.util.concurrent.TimeUnit
+import java.util.concurrent.TimeoutException
 import kotlin.coroutines.Continuation
 
 /**
@@ -100,7 +101,10 @@ fun ExecutorService.secureSubmit(timeout: Long = 5000, code: () -> Unit) {
     if (isTerminated || isShutdown) return
     submit { code() }.get(timeout, TimeUnit.MILLISECONDS)
   } catch (e: Exception) {
-    Log.e("ExecutorService", "secureSubmit Error", e)
+    when (e) {
+      is InterruptedException, is TimeoutException -> {}
+      else -> throw e
+    }
   }
 }
 
