@@ -94,6 +94,15 @@ public class VideoEncoder extends BaseEncoder implements GetCameraData {
       int level) {
     if (prepared) stop();
 
+    if (width % 2 != 0) {
+      throw new IllegalArgumentException("Invalid width: " + width + ", must be an even value");
+    }
+    if (height % 2 != 0) {
+      throw new IllegalArgumentException("Invalid height: " + height + ", must be an even value");
+    }
+    if (fps <= 0) {
+      throw new IllegalArgumentException("Invalid fps: " + fps + ", must be higher than 0");
+    }
     this.width = width;
     this.height = height;
     this.fps = fps;
