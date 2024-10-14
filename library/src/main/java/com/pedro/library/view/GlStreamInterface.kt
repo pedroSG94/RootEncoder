@@ -147,7 +147,7 @@ class GlStreamInterface(private val context: Context): OnFrameAvailableListener,
       surfaceManager.release()
       surfaceManager.eglSetup()
       surfaceManager.makeCurrent()
-      mainRender.initGl(context, encoderWidth, encoderHeight, encoderWidth, encoderHeight)
+      mainRender.initGl(context.applicationContext, encoderWidth, encoderHeight, encoderWidth, encoderHeight)
       surfaceManagerPhoto.release()
       surfaceManagerPhoto.eglSetup(encoderWidth, encoderHeight, surfaceManager)
       running.set(true)

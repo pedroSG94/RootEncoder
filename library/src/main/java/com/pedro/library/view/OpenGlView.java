@@ -313,7 +313,7 @@ public class OpenGlView extends SurfaceView
       surfaceManager.release();
       surfaceManager.eglSetup(getHolder().getSurface());
       surfaceManager.makeCurrent();
-      mainRender.initGl(getContext(), encoderWidth, encoderHeight, encoderWidth, encoderHeight);
+      mainRender.initGl(getContext().getApplicationContext(), encoderWidth, encoderHeight, encoderWidth, encoderHeight);
       surfaceManagerPhoto.release();
       surfaceManagerPhoto.eglSetup(encoderWidth, encoderHeight, surfaceManager);
       running.set(true);
