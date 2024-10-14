@@ -54,7 +54,6 @@ dependencies {
   //Optional, allow use BitmapSource, CameraXSource and CameraUvcSource 
   implementation 'com.github.pedroSG94.RootEncoder:extra-sources:2.5.1'
 }
-
 ```
 
 </details>
