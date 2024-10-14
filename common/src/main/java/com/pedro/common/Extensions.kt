@@ -23,7 +23,6 @@ import android.media.MediaFormat
 import android.os.Build
 import android.os.Handler
 import android.os.Looper
-import android.util.Log
 import androidx.annotation.RequiresApi
 import com.pedro.common.frame.MediaFrame
 import kotlinx.coroutines.Dispatchers
