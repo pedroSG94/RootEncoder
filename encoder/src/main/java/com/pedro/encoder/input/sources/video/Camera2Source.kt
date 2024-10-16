@@ -27,6 +27,7 @@ import androidx.annotation.RequiresApi
 import com.pedro.encoder.input.video.Camera2ApiManager
 import com.pedro.encoder.input.video.CameraHelper
 import com.pedro.encoder.input.video.facedetector.FaceDetectorCallback
+import com.pedro.encoder.input.video.test.Camera2Manager
 
 /**
  * Created by pedro on 11/1/24.
@@ -34,7 +35,7 @@ import com.pedro.encoder.input.video.facedetector.FaceDetectorCallback
 @RequiresApi(Build.VERSION_CODES.LOLLIPOP)
 class Camera2Source(context: Context): VideoSource() {
 
-  private val camera = Camera2ApiManager(context)
+  private val camera = Camera2Manager(context)
   private var facing = CameraHelper.Facing.BACK
 
   override fun create(width: Int, height: Int, fps: Int, rotation: Int): Boolean {
@@ -109,93 +110,93 @@ class Camera2Source(context: Context): VideoSource() {
     return resolutions.toList()
   }
 
-  fun setExposure(level: Int) {
-    if (isRunning()) camera.exposure = level
-  }
-
-  fun getExposure(): Int {
-    return if (isRunning()) camera.exposure else 0
-  }
-
-  fun enableLantern() {
-    if (isRunning()) camera.enableLantern()
-  }
-
-  fun disableLantern() {
-    if (isRunning()) camera.disableLantern()
-  }
-
-  fun isLanternEnabled(): Boolean {
-    return if (isRunning()) camera.isLanternEnabled else false
-  }
-
-  fun enableAutoFocus(): Boolean {
-    if (isRunning()) return camera.enableAutoFocus()
-    return false
-  }
-
-  fun disableAutoFocus(): Boolean {
-    if (isRunning()) return camera.disableAutoFocus()
-    return false
-  }
-
-  fun isAutoFocusEnabled(): Boolean {
-    return if (isRunning()) camera.isAutoFocusEnabled else false
-  }
-
-  fun tapToFocus(event: MotionEvent): Boolean {
-    return camera.tapToFocus(event)
-  }
-
-  @JvmOverloads
-  fun setZoom(event: MotionEvent, delta: Float = 0.1f) {
-    if (isRunning()) camera.setZoom(event, delta)
-  }
-
-  fun setZoom(level: Float) {
-    if (isRunning()) camera.zoom = level
-  }
-
-  fun getZoomRange(): Range<Float> = camera.zoomRange
-
-  fun getZoom(): Float = camera.zoom
-
-  fun enableFaceDetection(callback: FaceDetectorCallback): Boolean {
-    return if (isRunning()) camera.enableFaceDetection(callback) else false
-  }
-
-  fun disableFaceDetection() {
-    if (isRunning()) camera.disableFaceDetection()
-  }
-
-  fun isFaceDetectionEnabled() = camera.isFaceDetectionEnabled()
-
-  fun camerasAvailable(): Array<String> = camera.camerasAvailable
-
-  fun getCurrentCameraId() = camera.getCurrentCameraId()
-
-  fun openCameraId(id: String) {
-    if (isRunning()) stop()
-    camera.openCameraId(id)
-  }
-
-  fun enableOpticalVideoStabilization(): Boolean {
-    return if (isRunning()) camera.enableOpticalVideoStabilization() else false
-  }
-
-  fun disableOpticalVideoStabilization() {
-    if (isRunning()) camera.disableOpticalVideoStabilization()
-  }
-
-  fun isOpticalVideoStabilizationEnabled() = camera.isOpticalStabilizationEnabled
-
-  fun enableVideoStabilization(): Boolean {
-    return if (isRunning()) camera.enableVideoStabilization() else false
-  }
-
-  fun disableVideoStabilization() {
-    if (isRunning()) camera.disableVideoStabilization()
-  }
+//  fun setExposure(level: Int) {
+//    if (isRunning()) camera.exposure = level
+//  }
+//
+//  fun getExposure(): Int {
+//    return if (isRunning()) camera.exposure else 0
+//  }
+//
+//  fun enableLantern() {
+//    if (isRunning()) camera.enableLantern()
+//  }
+//
+//  fun disableLantern() {
+//    if (isRunning()) camera.disableLantern()
+//  }
+//
+//  fun isLanternEnabled(): Boolean {
+//    return if (isRunning()) camera.isLanternEnabled else false
+//  }
+//
+//  fun enableAutoFocus(): Boolean {
+//    if (isRunning()) return camera.enableAutoFocus()
+//    return false
+//  }
+//
+//  fun disableAutoFocus(): Boolean {
+//    if (isRunning()) return camera.disableAutoFocus()
+//    return false
+//  }
+//
+//  fun isAutoFocusEnabled(): Boolean {
+//    return if (isRunning()) camera.isAutoFocusEnabled else false
+//  }
+//
+//  fun tapToFocus(event: MotionEvent): Boolean {
+//    return camera.tapToFocus(event)
+//  }
+//
+//  @JvmOverloads
+//  fun setZoom(event: MotionEvent, delta: Float = 0.1f) {
+//    if (isRunning()) camera.setZoom(event, delta)
+//  }
+//
+//  fun setZoom(level: Float) {
+//    if (isRunning()) camera.zoom = level
+//  }
+//
+//  fun getZoomRange(): Range<Float> = camera.zoomRange
+//
+//  fun getZoom(): Float = camera.zoom
+//
+//  fun enableFaceDetection(callback: FaceDetectorCallback): Boolean {
+//    return if (isRunning()) camera.enableFaceDetection(callback) else false
+//  }
+//
+//  fun disableFaceDetection() {
+//    if (isRunning()) camera.disableFaceDetection()
+//  }
+//
+//  fun isFaceDetectionEnabled() = camera.isFaceDetectionEnabled()
+//
+//  fun camerasAvailable(): Array<String> = camera.camerasAvailable
+//
+//  fun getCurrentCameraId() = camera.getCurrentCameraId()
+//
+//  fun openCameraId(id: String) {
+//    if (isRunning()) stop()
+//    camera.openCameraId(id)
+//  }
+//
+//  fun enableOpticalVideoStabilization(): Boolean {
+//    return if (isRunning()) camera.enableOpticalVideoStabilization() else false
+//  }
+//
+//  fun disableOpticalVideoStabilization() {
+//    if (isRunning()) camera.disableOpticalVideoStabilization()
+//  }
+//
+//  fun isOpticalVideoStabilizationEnabled() = camera.isOpticalStabilizationEnabled
+//
+//  fun enableVideoStabilization(): Boolean {
+//    return if (isRunning()) camera.enableVideoStabilization() else false
+//  }
+//
+//  fun disableVideoStabilization() {
+//    if (isRunning()) camera.disableVideoStabilization()
+//  }
 
   fun isVideoStabilizationEnabled() = camera.isVideoStabilizationEnabled
 }
