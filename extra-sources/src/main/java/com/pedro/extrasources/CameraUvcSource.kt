@@ -78,8 +78,6 @@ class CameraUvcSource: VideoSource() {
 
     override fun onCameraOpen(device: UsbDevice) {
       cameraHelper?.startPreview()
-      val resolution = getOptimalResolution()
-      if (resolution != null) cameraHelper?.previewSize = resolution
       surface?.let { cameraHelper?.addSurface(it, false) }
     }
 
@@ -92,13 +90,5 @@ class CameraUvcSource: VideoSource() {
     override fun onDetach(device: UsbDevice) {}
 
     override fun onCancel(device: UsbDevice) {}
-  }
-
-  private fun getOptimalResolution(): Size? {
-    val supportedSizes = cameraHelper?.supportedSizeList ?: return null
-    val supportedResolutions = supportedSizes.map { android.util.Size(it.width, it.height) }.toTypedArray()
-    val resolution = Camera2ResolutionCalculator.getOptimalResolution(android.util.Size(width, height), supportedResolutions)
-    val validSizes = supportedSizes.filter { it.width == resolution.width && it.height == resolution.height }
-    return validSizes.minByOrNull { abs(fps - it.fps) }
   }
 }
