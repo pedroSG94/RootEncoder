@@ -76,7 +76,7 @@ class Camera2ApiManager(context: Context) : CameraDevice.StateCallback() {
     private var cameraCaptureSession: CameraCaptureSession? = null
     var isPrepared: Boolean = false
         private set
-    private var cameraId: String = "0"
+    private var cameraId = "0"
     private var facing = Facing.BACK
     private var builderInputSurface: CaptureRequest.Builder? = null
     private var fingerSpacing = 0f
@@ -140,16 +140,17 @@ class Camera2ApiManager(context: Context) : CameraDevice.StateCallback() {
             val listSurfaces = mutableListOf<Surface>()
             surfaceEncoder?.let { listSurfaces.add(it) }
             imageReader?.let { listSurfaces.add(it.surface) }
-            val captureRequest = drawSurface(cameraDevice, listSurfaces)
             createCaptureSession(
                 cameraDevice,
                 listSurfaces,
                 onConfigured = {
                     cameraCaptureSession = it
                     try {
+                        val captureRequest = drawSurface(cameraDevice, listSurfaces)
                         it.setRepeatingRequest(
                             captureRequest,
-                            if (faceDetectionEnabled) cb else null, cameraHandler
+                            if (faceDetectionEnabled) cb else null,
+                            cameraHandler
                         )
                     } catch (e: IllegalStateException) {
                         reOpenCamera(cameraId)
@@ -177,10 +178,16 @@ class Camera2ApiManager(context: Context) : CameraDevice.StateCallback() {
     private fun drawSurface(cameraDevice: CameraDevice, surfaces: List<Surface>): CaptureRequest {
         val builderInputSurface = cameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_PREVIEW)
         for (surface in surfaces) builderInputSurface.addTarget(surface)
-        builderInputSurface.set(CaptureRequest.CONTROL_MODE, CameraMetadata.CONTROL_MODE_AUTO)
+        setModeAuto(builderInputSurface)
         adaptFpsRange(fps, builderInputSurface)
         this.builderInputSurface = builderInputSurface
         return builderInputSurface.build()
+    }
+
+    private fun setModeAuto(builderInputSurface: CaptureRequest.Builder) {
+        try {
+            builderInputSurface.set(CaptureRequest.CONTROL_MODE, CameraMetadata.CONTROL_MODE_AUTO)
+        } catch (ignored: Exception) {}
     }
 
     private fun adaptFpsRange(expectedFps: Int, builderInputSurface: CaptureRequest.Builder) {
@@ -733,16 +740,6 @@ class Camera2ApiManager(context: Context) : CameraDevice.StateCallback() {
             zoom -= delta
         }
         fingerSpacing = currentFingerSpacing
-    }
-
-    fun stopRepeatingEncoder() {
-        val cameraCaptureSession = this.cameraCaptureSession ?: return
-        try {
-            cameraCaptureSession.stopRepeating()
-            surfaceEncoder = null
-        } catch (e: Exception) {
-            Log.e(TAG, "Error", e)
-        }
     }
 
     @JvmOverloads
