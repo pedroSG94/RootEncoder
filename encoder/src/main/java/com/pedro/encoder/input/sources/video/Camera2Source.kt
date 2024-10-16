@@ -35,7 +35,7 @@ import com.pedro.encoder.input.video.test.Camera2Manager
 @RequiresApi(Build.VERSION_CODES.LOLLIPOP)
 class Camera2Source(context: Context): VideoSource() {
 
-  private val camera = Camera2Manager(context)
+  private val camera = com.pedro.encoder.input.video.test.Camera2ApiManager(context)
   private var facing = CameraHelper.Facing.BACK
 
   override fun create(width: Int, height: Int, fps: Int, rotation: Int): Boolean {
