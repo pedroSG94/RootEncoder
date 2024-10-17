@@ -51,6 +51,7 @@ import java.util.Arrays
 import java.util.Collections
 import java.util.concurrent.Semaphore
 import kotlin.math.abs
+import kotlin.math.max
 
 /**
  * Created by pedro on 4/03/17.
@@ -403,108 +404,53 @@ class Camera2ApiManager(context: Context) : CameraDevice.StateCallback() {
 
     fun enableVideoStabilization(): Boolean {
         val characteristics = cameraCharacteristics ?: return false
-        val modes =
-            characteristics.get(CameraCharacteristics.CONTROL_AVAILABLE_VIDEO_STABILIZATION_MODES)
-        val videoStabilizationList: MutableList<Int> = ArrayList()
-        for (vsMode in modes!!) {
-            videoStabilizationList.add(vsMode)
-        }
-        if (!videoStabilizationList.contains(CaptureRequest.CONTROL_VIDEO_STABILIZATION_MODE_ON)) {
-            Log.e(TAG, "video stabilization unsupported")
-            return false
-        }
-
-        if (builderInputSurface != null) {
-            builderInputSurface!!.set(
-                CaptureRequest.CONTROL_VIDEO_STABILIZATION_MODE,
-                CaptureRequest.CONTROL_VIDEO_STABILIZATION_MODE_ON
-            )
-            isVideoStabilizationEnabled = true
-        }
+        val builderInputSurface = this.builderInputSurface ?: return false
+        val modes = characteristics.secureGet(CameraCharacteristics.CONTROL_AVAILABLE_VIDEO_STABILIZATION_MODES) ?: return false
+        if (!modes.contains(CaptureRequest.CONTROL_VIDEO_STABILIZATION_MODE_ON)) return false
+        builderInputSurface.set(CaptureRequest.CONTROL_VIDEO_STABILIZATION_MODE, CaptureRequest.CONTROL_VIDEO_STABILIZATION_MODE_ON)
+        isVideoStabilizationEnabled = true
         return isVideoStabilizationEnabled
     }
 
     fun disableVideoStabilization() {
         val characteristics = cameraCharacteristics ?: return
-        val modes =
-            characteristics.get(CameraCharacteristics.CONTROL_AVAILABLE_VIDEO_STABILIZATION_MODES)
-        val videoStabilizationList: MutableList<Int> = ArrayList()
-        for (vsMode in modes!!) {
-            videoStabilizationList.add(vsMode)
-        }
-        if (!videoStabilizationList.contains(CaptureRequest.CONTROL_VIDEO_STABILIZATION_MODE_ON)) {
-            Log.e(TAG, "video stabilization unsupported")
-            return
-        }
-        if (builderInputSurface != null) {
-            builderInputSurface!!.set(
-                CaptureRequest.CONTROL_VIDEO_STABILIZATION_MODE,
-                CaptureRequest.CONTROL_VIDEO_STABILIZATION_MODE_OFF
-            )
-            isVideoStabilizationEnabled = false
-        }
+        val builderInputSurface = this.builderInputSurface ?: return
+        val modes = characteristics.secureGet(CameraCharacteristics.CONTROL_AVAILABLE_VIDEO_STABILIZATION_MODES) ?: return
+        if (!modes.contains(CaptureRequest.CONTROL_VIDEO_STABILIZATION_MODE_ON)) return
+        builderInputSurface.set(CaptureRequest.CONTROL_VIDEO_STABILIZATION_MODE, CaptureRequest.CONTROL_VIDEO_STABILIZATION_MODE_OFF)
+        isVideoStabilizationEnabled = false
     }
 
     fun enableOpticalVideoStabilization(): Boolean {
         val characteristics = cameraCharacteristics ?: return false
-
-        val opticalStabilizationModes =
-            characteristics.get(CameraCharacteristics.LENS_INFO_AVAILABLE_OPTICAL_STABILIZATION)
-        val opticalStabilizationList: MutableList<Int> = ArrayList()
-        for (vsMode in opticalStabilizationModes!!) {
-            opticalStabilizationList.add(vsMode)
-        }
-
-        if (!opticalStabilizationList.contains(CaptureRequest.LENS_OPTICAL_STABILIZATION_MODE_ON)) {
-            Log.e(TAG, "OIS video stabilization unsupported")
-            return false
-        }
-        if (builderInputSurface != null) {
-            builderInputSurface!!.set(
-                CaptureRequest.LENS_OPTICAL_STABILIZATION_MODE,
-                CaptureRequest.LENS_OPTICAL_STABILIZATION_MODE_ON
-            )
-            isOpticalStabilizationEnabled = true
-        }
+        val builderInputSurface = this.builderInputSurface ?: return false
+        val opticalStabilizationModes = characteristics.secureGet(CameraCharacteristics.LENS_INFO_AVAILABLE_OPTICAL_STABILIZATION) ?: return false
+        if (!opticalStabilizationModes.contains(CaptureRequest.LENS_OPTICAL_STABILIZATION_MODE_ON)) return false
+        builderInputSurface.set(CaptureRequest.LENS_OPTICAL_STABILIZATION_MODE, CaptureRequest.LENS_OPTICAL_STABILIZATION_MODE_ON)
+        isOpticalStabilizationEnabled = true
         return isOpticalStabilizationEnabled
     }
 
     fun disableOpticalVideoStabilization() {
         val characteristics = cameraCharacteristics ?: return
-        val modes =
-            characteristics.get(CameraCharacteristics.LENS_INFO_AVAILABLE_OPTICAL_STABILIZATION)
-        val videoStabilizationList: MutableList<Int> = ArrayList()
-        for (vsMode in modes!!) {
-            videoStabilizationList.add(vsMode)
-        }
-        if (!videoStabilizationList.contains(CaptureRequest.LENS_OPTICAL_STABILIZATION_MODE_ON)) {
-            Log.e(TAG, "OIS video stabilization unsupported")
-            return
-        }
-        if (builderInputSurface != null) {
-            builderInputSurface!!.set(
-                CaptureRequest.LENS_OPTICAL_STABILIZATION_MODE,
-                CaptureRequest.LENS_OPTICAL_STABILIZATION_MODE_OFF
-            )
-            isOpticalStabilizationEnabled = false
-        }
+        val builderInputSurface = this.builderInputSurface ?: return
+        val modes = characteristics.secureGet(CameraCharacteristics.LENS_INFO_AVAILABLE_OPTICAL_STABILIZATION) ?: return
+        if (!modes.contains(CaptureRequest.LENS_OPTICAL_STABILIZATION_MODE_ON)) return
+        builderInputSurface.set(CaptureRequest.LENS_OPTICAL_STABILIZATION_MODE, CaptureRequest.LENS_OPTICAL_STABILIZATION_MODE_OFF)
+        isOpticalStabilizationEnabled = false
     }
 
     fun setFocusDistance(distance: Float) {
-        var distance = distance
-        val characteristics = cameraCharacteristics ?: return
-        if (builderInputSurface != null) {
-            try {
-                if (distance < 0) distance = 0f //avoid invalid value
-
-                builderInputSurface!!.set(CaptureRequest.LENS_FOCUS_DISTANCE, distance)
-                cameraCaptureSession!!.setRepeatingRequest(
-                    builderInputSurface!!.build(),
-                    if (faceDetectionEnabled) cb else null, null
-                )
-            } catch (e: Exception) {
-                Log.e(TAG, "Error", e)
-            }
+        val builderInputSurface = this.builderInputSurface ?: return
+        val cameraCaptureSession = this.cameraCaptureSession ?: return
+        try {
+            builderInputSurface.set(CaptureRequest.LENS_FOCUS_DISTANCE, max(0f, distance))
+            cameraCaptureSession.setRepeatingRequest(
+                builderInputSurface.build(),
+                if (faceDetectionEnabled) cb else null, null
+            )
+        } catch (e: Exception) {
+            Log.e(TAG, "Error", e)
         }
     }
 
