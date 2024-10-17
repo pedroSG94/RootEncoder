@@ -802,32 +802,19 @@ class Camera2ApiManager(context: Context) : CameraDevice.StateCallback() {
     }
 
     fun enableFaceDetection(faceDetectorCallback: FaceDetectorCallback?): Boolean {
-        val characteristics = cameraCharacteristics
-        if (characteristics == null) {
-            Log.e(TAG, "face detection called with camera stopped")
-            return false
-        }
-        faceSensorScale = characteristics.get(CameraCharacteristics.SENSOR_INFO_ACTIVE_ARRAY_SIZE)
-        sensorOrientation = characteristics.get(CameraCharacteristics.SENSOR_ORIENTATION)!!
-        val fd =
-            characteristics.get(CameraCharacteristics.STATISTICS_INFO_AVAILABLE_FACE_DETECT_MODES)
-        if (fd == null || fd.size == 0) {
-            Log.e(TAG, "face detection unsupported")
-            return false
-        }
-        val maxFD = characteristics.get(CameraCharacteristics.STATISTICS_INFO_MAX_FACE_COUNT)
-        if (maxFD == null || maxFD <= 0) {
-            Log.e(TAG, "face detection unsupported")
-            return false
-        }
-        val fdList: MutableList<Int> = ArrayList()
-        for (FaceD in fd) {
-            fdList.add(FaceD)
-        }
+        val characteristics = cameraCharacteristics ?: return false
+        val builderInputSurface = this.builderInputSurface ?: return false
+        faceSensorScale = characteristics.secureGet(CameraCharacteristics.SENSOR_INFO_ACTIVE_ARRAY_SIZE)
+        sensorOrientation = characteristics.secureGet(CameraCharacteristics.SENSOR_ORIENTATION) ?: return false
+        val fd = characteristics.secureGet(CameraCharacteristics.STATISTICS_INFO_AVAILABLE_FACE_DETECT_MODES) ?: return false
+        val maxFD = characteristics.secureGet(CameraCharacteristics.STATISTICS_INFO_MAX_FACE_COUNT) ?: return false
+        if (fd.isEmpty() || maxFD <= 0) return false
         this.faceDetectorCallback = faceDetectorCallback
         faceDetectionEnabled = true
-        faceDetectionMode = Collections.max(fdList)
-        setFaceDetect(builderInputSurface, faceDetectionMode)
+        faceDetectionMode = fd.toList().max()
+        if (faceDetectionEnabled) {
+            builderInputSurface.set(CaptureRequest.STATISTICS_FACE_DETECT_MODE, faceDetectionMode)
+        }
         prepareFaceDetectionCallback()
         return true
     }
@@ -841,9 +828,7 @@ class Camera2ApiManager(context: Context) : CameraDevice.StateCallback() {
         }
     }
 
-    fun isFaceDetectionEnabled(): Boolean {
-        return faceDetectorCallback != null
-    }
+    fun isFaceDetectionEnabled() = faceDetectorCallback != null
 
     private fun setFaceDetect(requestBuilder: CaptureRequest.Builder?, faceDetectMode: Int) {
         if (faceDetectionEnabled) {
@@ -977,25 +962,17 @@ class Camera2ApiManager(context: Context) : CameraDevice.StateCallback() {
     var zoom: Float
         get() = zoomLevel
         set(level) {
-            var level = level
+            val characteristics = cameraCharacteristics ?: return
+            val builderInputSurface = this.builderInputSurface ?: return
+            val cameraCaptureSession = this.cameraCaptureSession ?: return
+            val l = level.coerceIn(zoomRange.lower, zoomRange.upper)
             try {
-                val zoomRange = zoomRange
-                //Avoid out range level
-                if (level <= zoomRange.lower) level = zoomRange.lower
-                else if (level > zoomRange.upper) level = zoomRange.upper
-
-                val characteristics = cameraCharacteristics ?: return
-
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R &&
-                    levelSupported != CameraMetadata.INFO_SUPPORTED_HARDWARE_LEVEL_LEGACY
-                ) {
-                    builderInputSurface!!.set(CaptureRequest.CONTROL_ZOOM_RATIO, level)
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R && levelSupported != CameraMetadata.INFO_SUPPORTED_HARDWARE_LEVEL_LEGACY) {
+                    builderInputSurface.set(CaptureRequest.CONTROL_ZOOM_RATIO, l)
                 } else {
-                    val rect =
-                        characteristics.get(CameraCharacteristics.SENSOR_INFO_ACTIVE_ARRAY_SIZE)
-                            ?: return
+                    val rect = characteristics.secureGet(CameraCharacteristics.SENSOR_INFO_ACTIVE_ARRAY_SIZE) ?: return
                     //This ratio is the ratio of cropped Rect to Camera's original(Maximum) Rect
-                    val ratio = 1f / level
+                    val ratio = 1f / l
                     //croppedWidth and croppedHeight are the pixels cropped away, not pixels after cropped
                     val croppedWidth = rect.width() - Math.round(rect.width().toFloat() * ratio)
                     val croppedHeight = rect.height() - Math.round(rect.height().toFloat() * ratio)
@@ -1004,56 +981,47 @@ class Camera2ApiManager(context: Context) : CameraDevice.StateCallback() {
                         croppedWidth / 2, croppedHeight / 2, rect.width() - croppedWidth / 2,
                         rect.height() - croppedHeight / 2
                     )
-                    builderInputSurface!!.set(CaptureRequest.SCALER_CROP_REGION, zoom)
+                    builderInputSurface.set(CaptureRequest.SCALER_CROP_REGION, zoom)
                 }
-                cameraCaptureSession!!.setRepeatingRequest(
-                    builderInputSurface!!.build(),
+                cameraCaptureSession.setRepeatingRequest(
+                    builderInputSurface.build(),
                     if (faceDetectionEnabled) cb else null, null
                 )
-                zoomLevel = level
-            } catch (e: CameraAccessException) {
-                Log.e(TAG, "Error", e)
-            }
-        }
-
-    val opticalZooms: FloatArray?
-        get() {
-            val characteristics = cameraCharacteristics ?: return null
-            return characteristics.get(CameraCharacteristics.LENS_INFO_AVAILABLE_FOCAL_LENGTHS)
-        }
-
-    fun setOpticalZoom(level: Float) {
-        val characteristics = cameraCharacteristics ?: return
-        if (builderInputSurface != null) {
-            try {
-                builderInputSurface!!.set(CaptureRequest.LENS_FOCAL_LENGTH, level)
-                cameraCaptureSession!!.setRepeatingRequest(
-                    builderInputSurface!!.build(),
-                    if (faceDetectionEnabled) cb else null, null
-                )
+                zoomLevel = l
             } catch (e: Exception) {
                 Log.e(TAG, "Error", e)
             }
+        }
+
+    fun getOpticalZooms(): Array<Float> {
+        val characteristics = cameraCharacteristics ?: return arrayOf()
+        return characteristics.secureGet(CameraCharacteristics.LENS_INFO_AVAILABLE_FOCAL_LENGTHS)?.toTypedArray() ?: arrayOf()
+    }
+
+    fun setOpticalZoom(level: Float) {
+        val builderInputSurface = this.builderInputSurface ?: return
+        val cameraCaptureSession = this.cameraCaptureSession ?: return
+        try {
+            builderInputSurface.set(CaptureRequest.LENS_FOCAL_LENGTH, level)
+            cameraCaptureSession.setRepeatingRequest(
+                builderInputSurface.build(),
+                if (faceDetectionEnabled) cb else null, null
+            )
+        } catch (e: Exception) {
+            Log.e(TAG, "Error", e)
         }
     }
 
     @JvmOverloads
     fun setZoom(event: MotionEvent, delta: Float = 0.1f) {
-        val currentFingerSpacing: Float
-        if (event.pointerCount > 1) {
-            currentFingerSpacing = CameraHelper.getFingerSpacing(event)
-            if (fingerSpacing != 0f) {
-                var newLevel = zoomLevel
-                if (currentFingerSpacing > fingerSpacing) {
-                    newLevel += delta
-                } else if (currentFingerSpacing < fingerSpacing) {
-                    newLevel -= delta
-                }
-                //This method avoid out of range
-                zoom = newLevel
-            }
-            fingerSpacing = currentFingerSpacing
+        if (event.pointerCount < 2 || event.action != MotionEvent.ACTION_MOVE) return
+        val currentFingerSpacing = CameraHelper.getFingerSpacing(event)
+        if (currentFingerSpacing > fingerSpacing) {
+            zoom += delta
+        } else if (currentFingerSpacing < fingerSpacing) {
+            zoom -= delta
         }
+        fingerSpacing = currentFingerSpacing
     }
 
     private fun resetCameraValues() {
