@@ -356,39 +356,17 @@ class Camera2ApiManager(context: Context) : CameraDevice.StateCallback() {
     val cameraResolutionsFront: Array<Size>
         get() = getCameraResolutions(Facing.FRONT)
 
-    fun getCameraResolutions(facing: Facing): Array<Size> {
+    fun getCameraResolutions(facing: Facing): Array<Size> = getCameraResolutions(getCameraIdForFacing(facing) ?: return arrayOf())
+
+    fun getCameraResolutions(cameraId: String): Array<Size> {
         try {
-            val characteristics = getCharacteristicsForFacing(cameraManager, facing) ?: return arrayOf()
-            val streamConfigurationMap = characteristics.get(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP) ?: return arrayOf()
+            val characteristics = cameraManager.getCameraCharacteristics(cameraId)
+            val streamConfigurationMap = characteristics.secureGet(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP) ?: return arrayOf()
             val outputSizes = streamConfigurationMap.getOutputSizes(SurfaceTexture::class.java)
             return outputSizes ?: arrayOf()
-        } catch (e: CameraAccessException) {
+        } catch (e: Exception) {
             Log.e(TAG, "Error", e)
             return arrayOf()
-        } catch (e: NullPointerException) {
-            Log.e(TAG, "Error", e)
-            return arrayOf()
-        }
-    }
-
-    fun getCameraResolutions(cameraId: String?): Array<Size?> {
-        try {
-            val characteristics = getCharacteristicsForId(cameraManager, cameraId)
-                ?: return arrayOfNulls(0)
-
-            val streamConfigurationMap =
-                characteristics.get(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP)
-                    ?: return arrayOfNulls(0)
-            val outputSizes = streamConfigurationMap.getOutputSizes(
-                SurfaceTexture::class.java
-            )
-            return outputSizes ?: arrayOfNulls(0)
-        } catch (e: CameraAccessException) {
-            Log.e(TAG, "Error", e)
-            return arrayOfNulls(0)
-        } catch (e: NullPointerException) {
-            Log.e(TAG, "Error", e)
-            return arrayOfNulls(0)
         }
     }
 
