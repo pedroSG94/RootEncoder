@@ -49,8 +49,6 @@ import com.pedro.encoder.input.video.Camera2ResolutionCalculator.getOptimalResol
 import com.pedro.encoder.input.video.CameraHelper.Facing
 import com.pedro.encoder.input.video.facedetector.FaceDetectorCallback
 import com.pedro.encoder.input.video.facedetector.mapCamera2Faces
-import java.util.Arrays
-import java.util.Collections
 import java.util.concurrent.Executors
 import java.util.concurrent.Semaphore
 import kotlin.math.abs
@@ -362,8 +360,8 @@ class Camera2ApiManager(context: Context) : CameraDevice.StateCallback() {
     val cameraCharacteristics: CameraCharacteristics?
         get() {
             try {
-                return if (cameraId != null) cameraManager.getCameraCharacteristics(cameraId!!) else null
-            } catch (e: CameraAccessException) {
+                return cameraManager.getCameraCharacteristics(cameraId)
+            } catch (e: Exception) {
                 Log.e(TAG, "Error", e)
                 return null
             }
