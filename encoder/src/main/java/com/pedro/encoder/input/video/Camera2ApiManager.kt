@@ -29,6 +29,8 @@ import android.hardware.camera2.CaptureRequest
 import android.hardware.camera2.CaptureResult
 import android.hardware.camera2.TotalCaptureResult
 import android.hardware.camera2.params.MeteringRectangle
+import android.hardware.camera2.params.OutputConfiguration
+import android.hardware.camera2.params.SessionConfiguration
 import android.media.Image
 import android.media.ImageReader
 import android.os.Build
@@ -49,6 +51,7 @@ import com.pedro.encoder.input.video.facedetector.FaceDetectorCallback
 import com.pedro.encoder.input.video.facedetector.mapCamera2Faces
 import java.util.Arrays
 import java.util.Collections
+import java.util.concurrent.Executors
 import java.util.concurrent.Semaphore
 import kotlin.math.abs
 import kotlin.math.max
@@ -155,60 +158,72 @@ class Camera2ApiManager(context: Context) : CameraDevice.StateCallback() {
         prepareCamera(surfaceTexture, width, height, fps)
     }
 
+    @Suppress("DEPRECATION")
+    @RequiresApi(Build.VERSION_CODES.LOLLIPOP)
+    private fun createCaptureSession(
+        cameraDevice: CameraDevice,
+        surfaces: List<Surface>,
+        onConfigured: (CameraCaptureSession) -> Unit,
+        onConfiguredFailed: (CameraCaptureSession) -> Unit,
+        handler: Handler?
+    ) {
+        val callback = object: CameraCaptureSession.StateCallback() {
+            override fun onConfigured(cameraCaptureSession: CameraCaptureSession) {
+                onConfigured(cameraCaptureSession)
+            }
+
+            override fun onConfigureFailed(cameraCaptureSession: CameraCaptureSession) {
+                onConfiguredFailed(cameraCaptureSession)
+            }
+        }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+            val config = SessionConfiguration(
+                SessionConfiguration.SESSION_REGULAR,
+                surfaces.map { OutputConfiguration(it) },
+                Executors.newSingleThreadExecutor(),
+                callback
+            )
+            cameraDevice.createCaptureSession(config)
+        } else {
+            cameraDevice.createCaptureSession(surfaces, callback, handler)
+        }
+    }
+
     private fun startPreview(cameraDevice: CameraDevice) {
         try {
-            val listSurfaces: MutableList<Surface> = ArrayList()
-            val preview = addPreviewSurface()
-            if (preview != null) listSurfaces.add(preview)
-            if (surfaceEncoder !== preview && surfaceEncoder != null) listSurfaces.add(
-                surfaceEncoder!!
-            )
-            if (imageReader != null) listSurfaces.add(imageReader!!.surface)
-            cameraDevice.createCaptureSession(
+            val listSurfaces = mutableListOf<Surface>()
+            surfaceEncoder?.let { listSurfaces.add(it) }
+            imageReader?.let { listSurfaces.add(it.surface) }
+            val captureRequest = drawSurface(cameraDevice, listSurfaces)
+            createCaptureSession(
+                cameraDevice,
                 listSurfaces,
-                object : CameraCaptureSession.StateCallback() {
-                    override fun onConfigured(cameraCaptureSession: CameraCaptureSession) {
-                        this@Camera2ApiManager.cameraCaptureSession = cameraCaptureSession
-                        try {
-                            val captureRequest = drawSurface(cameraDevice, listSurfaces)
-                            if (captureRequest != null) {
-                                cameraCaptureSession.setRepeatingRequest(
-                                    captureRequest,
-                                    if (faceDetectionEnabled) cb else null, cameraHandler
-                                )
-                                Log.i(TAG, "Camera configured")
-                            } else {
-                                Log.e(TAG, "Error, captureRequest is null")
-                            }
-                        } catch (e: CameraAccessException) {
-                            Log.e(TAG, "Error", e)
-                        } catch (e: NullPointerException) {
-                            Log.e(TAG, "Error", e)
-                        } catch (e: IllegalStateException) {
-                            reOpenCamera((if (cameraId != null) cameraId else "0")!!)
-                        }
+                onConfigured = {
+                    cameraCaptureSession = it
+                    try {
+                        it.setRepeatingRequest(
+                            captureRequest,
+                            if (faceDetectionEnabled) cb else null, cameraHandler
+                        )
+                    } catch (e: IllegalStateException) {
+                        reOpenCamera(cameraId)
+                    } catch (e: Exception) {
+                        cameraCallbacks?.onCameraError("Create capture session failed: " + e.message)
+                        Log.e(TAG, "Error", e)
                     }
-
-                    override fun onConfigureFailed(cameraCaptureSession: CameraCaptureSession) {
-                        cameraCaptureSession.close()
-                        if (cameraCallbacks != null) cameraCallbacks!!.onCameraError("Configuration failed")
-                        Log.e(TAG, "Configuration failed")
-                    }
+                },
+                onConfiguredFailed = {
+                    it.close()
+                    cameraCallbacks?.onCameraError("Configuration failed")
+                    Log.e(TAG, "Configuration failed")
                 },
                 cameraHandler
             )
-        } catch (e: CameraAccessException) {
-            if (cameraCallbacks != null) {
-                cameraCallbacks!!.onCameraError("Create capture session failed: " + e.message)
-            }
-            Log.e(TAG, "Error", e)
-        } catch (e: IllegalArgumentException) {
-            if (cameraCallbacks != null) {
-                cameraCallbacks!!.onCameraError("Create capture session failed: " + e.message)
-            }
-            Log.e(TAG, "Error", e)
         } catch (e: IllegalStateException) {
-            reOpenCamera((if (cameraId != null) cameraId else "0")!!)
+            reOpenCamera(cameraId)
+        } catch (e: Exception) {
+            cameraCallbacks?.onCameraError("Create capture session failed: " + e.message)
+            Log.e(TAG, "Error", e)
         }
     }
 
