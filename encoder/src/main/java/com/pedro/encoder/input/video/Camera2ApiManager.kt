@@ -567,8 +567,9 @@ class Camera2ApiManager(context: Context) : CameraDevice.StateCallback() {
         }
 
     fun tapToFocus(event: MotionEvent): Boolean {
+        val builderInputSurface = this.builderInputSurface ?: return false
+        val cameraCaptureSession = this.cameraCaptureSession ?: return false
         var result = false
-        val characteristics = cameraCharacteristics ?: return false
         val pointerId = event.getPointerId(0)
         val pointerIndex = event.findPointerIndex(pointerId)
         // Get the pointer's current position
@@ -581,43 +582,26 @@ class Camera2ApiManager(context: Context) : CameraDevice.StateCallback() {
             (x + 100).toInt(), (y + 100).toInt()
         )
         val focusArea = MeteringRectangle(touchRect, MeteringRectangle.METERING_WEIGHT_DONT_CARE)
-        if (builderInputSurface != null) {
-            try {
-                //cancel any existing AF trigger (repeated touches, etc.)
-                builderInputSurface!!.set(
-                    CaptureRequest.CONTROL_AF_TRIGGER,
-                    CameraMetadata.CONTROL_AF_TRIGGER_CANCEL
-                )
-                builderInputSurface!!.set(
-                    CaptureRequest.CONTROL_AF_MODE,
-                    CaptureRequest.CONTROL_AF_MODE_OFF
-                )
-                cameraCaptureSession!!.setRepeatingRequest(
-                    builderInputSurface!!.build(),
-                    if (faceDetectionEnabled) cb else null, null
-                )
-                builderInputSurface!!.set(CaptureRequest.CONTROL_AF_REGIONS, arrayOf(focusArea))
-                builderInputSurface!!.set(
-                    CaptureRequest.CONTROL_MODE,
-                    CameraMetadata.CONTROL_MODE_AUTO
-                )
-                builderInputSurface!!.set(
-                    CaptureRequest.CONTROL_AF_MODE,
-                    CaptureRequest.CONTROL_AF_MODE_AUTO
-                )
-                builderInputSurface!!.set(
-                    CaptureRequest.CONTROL_AF_TRIGGER,
-                    CameraMetadata.CONTROL_AF_TRIGGER_START
-                )
-                cameraCaptureSession!!.setRepeatingRequest(
-                    builderInputSurface!!.build(),
-                    if (faceDetectionEnabled) cb else null, null
-                )
-                isAutoFocusEnabled = true
-                result = true
-            } catch (e: Exception) {
-                Log.e(TAG, "Error", e)
-            }
+        try {
+            //cancel any existing AF trigger (repeated touches, etc.)
+            builderInputSurface.set(CaptureRequest.CONTROL_AF_TRIGGER, CameraMetadata.CONTROL_AF_TRIGGER_CANCEL)
+            builderInputSurface.set(CaptureRequest.CONTROL_AF_MODE, CaptureRequest.CONTROL_AF_MODE_OFF)
+            cameraCaptureSession.setRepeatingRequest(
+                builderInputSurface.build(),
+                if (faceDetectionEnabled) cb else null, null
+            )
+            builderInputSurface.set(CaptureRequest.CONTROL_AF_REGIONS, arrayOf(focusArea))
+            builderInputSurface.set(CaptureRequest.CONTROL_MODE, CameraMetadata.CONTROL_MODE_AUTO)
+            builderInputSurface.set(CaptureRequest.CONTROL_AF_MODE, CaptureRequest.CONTROL_AF_MODE_AUTO)
+            builderInputSurface.set(CaptureRequest.CONTROL_AF_TRIGGER, CameraMetadata.CONTROL_AF_TRIGGER_START)
+            cameraCaptureSession.setRepeatingRequest(
+                builderInputSurface.build(),
+                if (faceDetectionEnabled) cb else null, null
+            )
+            isAutoFocusEnabled = true
+            result = true
+        } catch (e: Exception) {
+            Log.e(TAG, "Error", e)
         }
         return result
     }
