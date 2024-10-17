@@ -248,7 +248,7 @@ class Camera2ApiManager(context: Context) : CameraDevice.StateCallback() {
 
     private fun adaptFpsRange(expectedFps: Int, builderInputSurface: CaptureRequest.Builder) {
         val fpsRanges = getSupportedFps(null, Facing.BACK)
-        if (fpsRanges != null && fpsRanges.size > 0) {
+        if (fpsRanges.isNotEmpty()) {
             var closestRange = fpsRanges[0]
             var measure = (abs((closestRange.lower - expectedFps).toDouble()) + abs(
                 (closestRange.upper - expectedFps).toDouble()
@@ -256,9 +256,7 @@ class Camera2ApiManager(context: Context) : CameraDevice.StateCallback() {
             for (range in fpsRanges) {
                 if (CameraHelper.discardCamera2Fps(range, facing)) continue
                 if (range.lower <= expectedFps && range.upper >= expectedFps) {
-                    val curMeasure =
-                        abs((((range.lower + range.upper) / 2) - expectedFps).toDouble())
-                            .toInt()
+                    val curMeasure = abs((((range.lower + range.upper) / 2) - expectedFps).toDouble()).toInt()
                     if (curMeasure < measure) {
                         closestRange = range
                         measure = curMeasure
