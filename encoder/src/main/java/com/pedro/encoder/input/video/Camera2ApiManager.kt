@@ -275,36 +275,16 @@ class Camera2ApiManager(context: Context) : CameraDevice.StateCallback() {
         }
     }
 
-    fun getSupportedFps(size: Size?, facing: Facing): List<Range<Int>>? {
+    fun getSupportedFps(size: Size?, facing: Facing): List<Range<Int>> {
         try {
-            var characteristics: CameraCharacteristics? = null
-            try {
-                characteristics = getCharacteristicsForFacing(cameraManager, facing)
-            } catch (ignored: CameraAccessException) {
-            }
-            if (characteristics == null) return null
-            val fpsSupported =
-                characteristics.get(CameraCharacteristics.CONTROL_AE_AVAILABLE_TARGET_FPS_RANGES)!!
-            if (size != null) {
-                val streamConfigurationMap =
-                    characteristics.get(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP)
-                val list: MutableList<Range<Int>> = ArrayList()
-                val fd = streamConfigurationMap!!.getOutputMinFrameDuration(
-                    SurfaceTexture::class.java, size
-                )
-                val maxFPS = (10f / "0.$fd".toFloat()).toInt()
-                for (r in fpsSupported) {
-                    if (r.upper <= maxFPS) {
-                        list.add(r)
-                    }
-                }
-                return list
-            } else {
-                return Arrays.asList(*fpsSupported)
-            }
-        } catch (e: IllegalStateException) {
-            Log.e(TAG, "Error", e)
-            return null
+            val characteristics = cameraManager.getCameraCharacteristics(getCameraIdForFacing(facing) ?: return listOf())
+            val fpsSupported = characteristics.secureGet(CameraCharacteristics.CONTROL_AE_AVAILABLE_TARGET_FPS_RANGES) ?: return emptyList()
+            val streamConfigurationMap = characteristics.secureGet(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP) ?: return emptyList()
+            val fd = streamConfigurationMap.getOutputMinFrameDuration(SurfaceTexture::class.java, size)
+            val maxFPS = (10f / "0.$fd".toFloat()).toInt()
+            return fpsSupported.filter { it.upper <= maxFPS }
+        } catch (e: Exception) {
+            return emptyList()
         }
     }
 
