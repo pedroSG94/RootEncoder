@@ -356,7 +356,9 @@ class Camera2ApiManager(context: Context) : CameraDevice.StateCallback() {
     val cameraResolutionsFront: Array<Size>
         get() = getCameraResolutions(Facing.FRONT)
 
-    fun getCameraResolutions(facing: Facing): Array<Size> = getCameraResolutions(getCameraIdForFacing(facing) ?: return arrayOf())
+    fun getCameraResolutions(facing: Facing): Array<Size> {
+        return getCameraResolutions(getCameraIdForFacing(facing) ?: return arrayOf())
+    }
 
     fun getCameraResolutions(cameraId: String): Array<Size> {
         try {
