@@ -170,7 +170,7 @@ class Camera2Source(context: Context): VideoSource() {
 
   fun isFaceDetectionEnabled() = camera.isFaceDetectionEnabled()
 
-  fun camerasAvailable(): Array<String> = camera.camerasAvailable
+  fun camerasAvailable(): Array<String> = camera.camerasAvailable ?: emptyArray()
 
   fun getCurrentCameraId() = camera.getCurrentCameraId()
 

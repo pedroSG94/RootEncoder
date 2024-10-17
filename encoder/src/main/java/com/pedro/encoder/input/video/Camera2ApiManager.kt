@@ -42,6 +42,7 @@ import android.view.Surface
 import android.view.SurfaceView
 import android.view.TextureView
 import androidx.annotation.RequiresApi
+import com.pedro.common.secureGet
 import com.pedro.encoder.input.video.Camera2ResolutionCalculator.getOptimalResolution
 import com.pedro.encoder.input.video.CameraHelper.Facing
 import com.pedro.encoder.input.video.facedetector.FaceDetectorCallback
@@ -308,15 +309,8 @@ class Camera2ApiManager(context: Context) : CameraDevice.StateCallback() {
 
     val levelSupported: Int
         get() {
-            try {
-                val characteristics = cameraCharacteristics ?: return -1
-                val level = characteristics.get(CameraCharacteristics.INFO_SUPPORTED_HARDWARE_LEVEL)
-                    ?: return -1
-                return level
-            } catch (e: IllegalStateException) {
-                Log.e(TAG, "Error", e)
-                return -1
-            }
+            val characteristics = cameraCharacteristics ?: return -1
+            return characteristics.secureGet(CameraCharacteristics.INFO_SUPPORTED_HARDWARE_LEVEL) ?: -1
         }
 
     fun openCamera() {
@@ -338,6 +332,8 @@ class Camera2ApiManager(context: Context) : CameraDevice.StateCallback() {
     fun setCameraId(cameraId: String) {
         this.cameraId = cameraId
     }
+
+    fun getCurrentCameraId()  = cameraId
 
     var cameraFacing: Facing
         get() = facing
@@ -1041,11 +1037,11 @@ class Camera2ApiManager(context: Context) : CameraDevice.StateCallback() {
         }
     }
 
-    fun setZoom(event: MotionEvent) {
+    @JvmOverloads
+    fun setZoom(event: MotionEvent, delta: Float = 0.1f) {
         val currentFingerSpacing: Float
         if (event.pointerCount > 1) {
             currentFingerSpacing = CameraHelper.getFingerSpacing(event)
-            val delta = 0.1f
             if (fingerSpacing != 0f) {
                 var newLevel = zoomLevel
                 if (currentFingerSpacing > fingerSpacing) {
