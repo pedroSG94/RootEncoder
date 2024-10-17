@@ -510,36 +510,23 @@ class Camera2ApiManager(context: Context) : CameraDevice.StateCallback() {
 
     var exposure: Int
         get() {
-            val characteristics = cameraCharacteristics ?: return 0
-            if (builderInputSurface != null) {
-                try {
-                    return builderInputSurface!!.get(CaptureRequest.CONTROL_AE_EXPOSURE_COMPENSATION)!!
-                } catch (e: Exception) {
-                    Log.e(TAG, "Error", e)
-                }
-            }
-            return 0
+            val builderInputSurface = this.builderInputSurface ?: return 0
+            return builderInputSurface.secureGet(CaptureRequest.CONTROL_AE_EXPOSURE_COMPENSATION) ?: 0
         }
         set(value) {
-            var value = value
             val characteristics = cameraCharacteristics ?: return
-            val supportedExposure =
-                characteristics.get(CameraCharacteristics.CONTROL_AE_COMPENSATION_RANGE)
-            if (supportedExposure != null && builderInputSurface != null) {
-                if (value > supportedExposure.upper) value = supportedExposure.upper
-                if (value < supportedExposure.lower) value = supportedExposure.lower
-                try {
-                    builderInputSurface!!.set(
-                        CaptureRequest.CONTROL_AE_EXPOSURE_COMPENSATION,
-                        value
-                    )
-                    cameraCaptureSession!!.setRepeatingRequest(
-                        builderInputSurface!!.build(),
-                        if (faceDetectionEnabled) cb else null, null
-                    )
-                } catch (e: Exception) {
-                    Log.e(TAG, "Error", e)
-                }
+            val builderInputSurface = this.builderInputSurface ?: return
+            val cameraCaptureSession = this.cameraCaptureSession ?: return
+            val supportedExposure = characteristics.secureGet(CameraCharacteristics.CONTROL_AE_COMPENSATION_RANGE) ?: return
+            val v = value.coerceIn(supportedExposure.lower, supportedExposure.upper)
+            try {
+                builderInputSurface.set(CaptureRequest.CONTROL_AE_EXPOSURE_COMPENSATION, v)
+                cameraCaptureSession.setRepeatingRequest(
+                    builderInputSurface.build(),
+                    if (faceDetectionEnabled) cb else null, null
+                )
+            } catch (e: Exception) {
+                Log.e(TAG, "Error", e)
             }
         }
 
@@ -547,23 +534,15 @@ class Camera2ApiManager(context: Context) : CameraDevice.StateCallback() {
     val maxExposure: Int
         get() {
             val characteristics = cameraCharacteristics ?: return 0
-            val supportedExposure =
-                characteristics.get(CameraCharacteristics.CONTROL_AE_COMPENSATION_RANGE)
-            if (supportedExposure != null) {
-                return supportedExposure.upper
-            }
-            return 0
+            val supportedExposure = characteristics.secureGet(CameraCharacteristics.CONTROL_AE_COMPENSATION_RANGE)?.upper ?: 0
+            return supportedExposure
         }
 
     val minExposure: Int
         get() {
             val characteristics = cameraCharacteristics ?: return 0
-            val supportedExposure =
-                characteristics.get(CameraCharacteristics.CONTROL_AE_COMPENSATION_RANGE)
-            if (supportedExposure != null) {
-                return supportedExposure.lower
-            }
-            return 0
+            val supportedExposure = characteristics.secureGet(CameraCharacteristics.CONTROL_AE_COMPENSATION_RANGE)?.lower ?: 0
+            return supportedExposure
         }
 
     fun tapToFocus(event: MotionEvent): Boolean {
