@@ -170,7 +170,7 @@ class Camera2ApiManager(context: Context) : CameraDevice.StateCallback() {
                     override fun onConfigured(cameraCaptureSession: CameraCaptureSession) {
                         this@Camera2ApiManager.cameraCaptureSession = cameraCaptureSession
                         try {
-                            val captureRequest = drawSurface(listSurfaces)
+                            val captureRequest = drawSurface(cameraDevice, listSurfaces)
                             if (captureRequest != null) {
                                 cameraCaptureSession.setRepeatingRequest(
                                     captureRequest,
@@ -223,20 +223,14 @@ class Camera2ApiManager(context: Context) : CameraDevice.StateCallback() {
         return surface
     }
 
-    private fun drawSurface(surfaces: List<Surface>): CaptureRequest? {
-        try {
-            builderInputSurface = cameraDevice!!.createCaptureRequest(CameraDevice.TEMPLATE_PREVIEW)
-            for (surface in surfaces) if (surface != null) builderInputSurface!!.addTarget(surface)
-            setModeAuto(builderInputSurface!!)
-            adaptFpsRange(fps, builderInputSurface!!)
-            return builderInputSurface!!.build()
-        } catch (e: CameraAccessException) {
-            Log.e(TAG, "Error", e)
-            return null
-        } catch (e: IllegalStateException) {
-            Log.e(TAG, "Error", e)
-            return null
-        }
+    @Throws(IllegalStateException::class, Exception::class)
+    private fun drawSurface(cameraDevice: CameraDevice, surfaces: List<Surface>): CaptureRequest {
+        val builderInputSurface = cameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_PREVIEW)
+        for (surface in surfaces) builderInputSurface.addTarget(surface)
+        builderInputSurface.set(CaptureRequest.CONTROL_MODE, CameraMetadata.CONTROL_MODE_AUTO)
+        adaptFpsRange(fps, builderInputSurface)
+        this.builderInputSurface = builderInputSurface
+        return builderInputSurface.build()
     }
 
     private fun setModeAuto(builderInputSurface: CaptureRequest.Builder) {
@@ -854,32 +848,6 @@ class Camera2ApiManager(context: Context) : CameraDevice.StateCallback() {
     private fun resetCameraValues() {
         isLanternEnabled = false
         zoomLevel = 1.0f
-    }
-
-    fun stopRepeatingEncoder() {
-        if (cameraCaptureSession != null) {
-            try {
-                cameraCaptureSession!!.stopRepeating()
-                surfaceEncoder = null
-                val preview = addPreviewSurface()
-                if (preview != null) {
-                    val captureRequest = drawSurface(listOf(preview))
-                    if (captureRequest != null) {
-                        cameraCaptureSession!!.setRepeatingRequest(
-                            captureRequest,
-                            null,
-                            cameraHandler
-                        )
-                    }
-                } else {
-                    Log.e(TAG, "preview surface is null")
-                }
-            } catch (e: CameraAccessException) {
-                Log.e(TAG, "Error", e)
-            } catch (e: IllegalStateException) {
-                Log.e(TAG, "Error", e)
-            }
-        }
     }
 
     @JvmOverloads
