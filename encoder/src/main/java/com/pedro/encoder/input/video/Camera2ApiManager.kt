@@ -648,8 +648,7 @@ class Camera2ApiManager(context: Context) : CameraDevice.StateCallback() {
     val isLanternSupported: Boolean
         get() {
             val characteristics = cameraCharacteristics ?: return false
-            val available = characteristics.get(CameraCharacteristics.FLASH_INFO_AVAILABLE)
-                ?: return false
+            val available = characteristics.secureGet(CameraCharacteristics.FLASH_INFO_AVAILABLE) ?: return false
             return available
         }
 
@@ -658,21 +657,18 @@ class Camera2ApiManager(context: Context) : CameraDevice.StateCallback() {
      */
     @Throws(Exception::class)
     fun enableLantern() {
+        val builderInputSurface = this.builderInputSurface ?: return
+        val cameraCaptureSession = this.cameraCaptureSession ?: return
         if (isLanternSupported) {
-            if (builderInputSurface != null) {
-                try {
-                    builderInputSurface!!.set(
-                        CaptureRequest.FLASH_MODE,
-                        CameraMetadata.FLASH_MODE_TORCH
-                    )
-                    cameraCaptureSession!!.setRepeatingRequest(
-                        builderInputSurface!!.build(),
-                        if (faceDetectionEnabled) cb else null, null
-                    )
-                    isLanternEnabled = true
-                } catch (e: Exception) {
-                    Log.e(TAG, "Error", e)
-                }
+            try {
+                builderInputSurface.set(CaptureRequest.FLASH_MODE, CameraMetadata.FLASH_MODE_TORCH)
+                cameraCaptureSession.setRepeatingRequest(
+                    builderInputSurface.build(),
+                    if (faceDetectionEnabled) cb else null, null
+                )
+                isLanternEnabled = true
+            } catch (e: Exception) {
+                Log.e(TAG, "Error", e)
             }
         } else {
             Log.e(TAG, "Lantern unsupported")
@@ -685,23 +681,19 @@ class Camera2ApiManager(context: Context) : CameraDevice.StateCallback() {
      */
     fun disableLantern() {
         val characteristics = cameraCharacteristics ?: return
-        val available = characteristics.get(CameraCharacteristics.FLASH_INFO_AVAILABLE)
-            ?: return
+        val builderInputSurface = this.builderInputSurface ?: return
+        val cameraCaptureSession = this.cameraCaptureSession ?: return
+        val available = characteristics.secureGet(CameraCharacteristics.FLASH_INFO_AVAILABLE) ?: return
         if (available) {
-            if (builderInputSurface != null) {
-                try {
-                    builderInputSurface!!.set(
-                        CaptureRequest.FLASH_MODE,
-                        CameraMetadata.FLASH_MODE_OFF
-                    )
-                    cameraCaptureSession!!.setRepeatingRequest(
-                        builderInputSurface!!.build(),
-                        if (faceDetectionEnabled) cb else null, null
-                    )
-                    isLanternEnabled = false
-                } catch (e: Exception) {
-                    Log.e(TAG, "Error", e)
-                }
+            try {
+                builderInputSurface.set(CaptureRequest.FLASH_MODE, CameraMetadata.FLASH_MODE_OFF)
+                cameraCaptureSession.setRepeatingRequest(
+                    builderInputSurface.build(),
+                    if (faceDetectionEnabled) cb else null, null
+                )
+                isLanternEnabled = false
+            } catch (e: Exception) {
+                Log.e(TAG, "Error", e)
             }
         }
     }
