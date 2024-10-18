@@ -179,7 +179,7 @@ public abstract class FromFileBase {
    */
   public boolean prepareVideo(Context context, Uri uri, int bitRate, int rotation, int profile,
       int level) throws IOException {
-    if (!videoDecoder.initExtractor(context, uri, null)) return false;
+    if (!videoDecoder.initExtractor(context, uri)) return false;
     return finishPrepareVideo(bitRate, rotation, profile, level);
   }
 
@@ -248,7 +248,7 @@ public abstract class FromFileBase {
    * @throws IOException Normally file not found.
    */
   public boolean prepareAudio(Context context, Uri uri, int bitRate) throws IOException {
-    if (!audioDecoder.initExtractor(context, uri, null)) return false;
+    if (!audioDecoder.initExtractor(context, uri)) return false;
     return finishPrepareAudio(bitRate);
   }
 
@@ -640,7 +640,7 @@ public abstract class FromFileBase {
 
   public void replaceAudioFile(Context context, Uri uri) throws IOException {
     resetAudioDecoder((BaseDecoder decoder) -> {
-      if (!decoder.initExtractor(context, uri, null)) throw new IOException("Extraction failed");
+      if (!decoder.initExtractor(context, uri)) throw new IOException("Extraction failed");
     });
   }
 
@@ -658,7 +658,7 @@ public abstract class FromFileBase {
 
   public void replaceVideoFile(Context context, Uri uri) throws IOException {
     resetVideoDecoder((BaseDecoder decoder) -> {
-      if (!decoder.initExtractor(context, uri, null)) throw new IOException("Extraction failed");
+      if (!decoder.initExtractor(context, uri)) throw new IOException("Extraction failed");
     });
   }
 

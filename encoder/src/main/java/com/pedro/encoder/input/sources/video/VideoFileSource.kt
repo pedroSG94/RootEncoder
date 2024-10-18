@@ -51,7 +51,7 @@ class VideoFileSource(
   }
 
   override fun create(width: Int, height: Int, fps: Int, rotation: Int): Boolean {
-    val result = videoDecoder.initExtractor(context, path, null)
+    val result = videoDecoder.initExtractor(context, path)
     if (!result) {
       throw IllegalArgumentException("Video file track not found")
     }
@@ -96,7 +96,7 @@ class VideoFileSource(
     val height = videoDecoder.height
     val wasRunning = videoDecoder.isRunning
     val videoDecoder = VideoDecoder(videoDecoderInterface, decoderInterface)
-    if (!videoDecoder.initExtractor(context, uri, null)) throw IOException("Extraction failed")
+    if (!videoDecoder.initExtractor(context, uri)) throw IOException("Extraction failed")
     if (width != videoDecoder.width || height != videoDecoder.height) throw IOException("Resolution must be the same that the previous file")
     this.videoDecoder.stop()
     this.videoDecoder = videoDecoder
