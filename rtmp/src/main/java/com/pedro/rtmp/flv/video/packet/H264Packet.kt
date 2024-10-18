@@ -16,9 +16,8 @@
 
 package com.pedro.rtmp.flv.video.packet
 
-import android.media.MediaCodec
 import android.util.Log
-import com.pedro.common.isKeyframe
+import com.pedro.common.frame.MediaFrame
 import com.pedro.common.removeInfo
 import com.pedro.rtmp.flv.BasePacket
 import com.pedro.rtmp.flv.FlvPacket
@@ -64,13 +63,12 @@ class H264Packet: BasePacket() {
     this.pps = ppsBytes
   }
 
-  override fun createFlvPacket(
-    byteBuffer: ByteBuffer,
-    info: MediaCodec.BufferInfo,
-    callback: (FlvPacket) -> Unit
+  override suspend fun createFlvPacket(
+    mediaFrame: MediaFrame,
+    callback: suspend (FlvPacket) -> Unit
   ) {
-    val fixedBuffer = byteBuffer.removeInfo(info)
-    val ts = info.presentationTimeUs / 1000
+    val fixedBuffer = mediaFrame.data.removeInfo(mediaFrame.info)
+    val ts = mediaFrame.info.timestamp / 1000
     //header is 5 bytes length:
     //4 bits FrameType, 4 bits CodecID
     //1 byte AVCPacketType
@@ -109,7 +107,7 @@ class H264Packet: BasePacket() {
 
     val type: Int = (validBuffer.get(0) and 0x1F).toInt()
     var nalType = VideoDataType.INTER_FRAME.value
-    if (type == VideoNalType.IDR.value || info.isKeyframe()) {
+    if (type == VideoNalType.IDR.value || mediaFrame.info.isKeyFrame) {
       nalType = VideoDataType.KEYFRAME.value
     } else if (type == VideoNalType.SPS.value || type == VideoNalType.PPS.value) {
       // we don't need send it because we already do it in video config

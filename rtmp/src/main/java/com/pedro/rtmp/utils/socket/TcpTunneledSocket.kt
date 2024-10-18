@@ -18,6 +18,17 @@ package com.pedro.rtmp.utils.socket
 
 import android.util.Log
 import com.pedro.common.TimeUtils
+import com.pedro.rtmp.utils.readUInt16
+import com.pedro.rtmp.utils.readUInt24
+import com.pedro.rtmp.utils.readUInt32
+import com.pedro.rtmp.utils.readUInt32LittleEndian
+import com.pedro.rtmp.utils.readUntil
+import com.pedro.rtmp.utils.writeUInt16
+import com.pedro.rtmp.utils.writeUInt24
+import com.pedro.rtmp.utils.writeUInt32
+import com.pedro.rtmp.utils.writeUInt32LittleEndian
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import java.io.*
 import java.net.HttpURLConnection
 import java.net.SocketTimeoutException
@@ -36,6 +47,7 @@ class TcpTunneledSocket(private val host: String, private val port: Int, private
     "Content-Type" to "application/x-fcs",
     "User-Agent" to "Shockwave Flash"
   )
+  private val timeout = 5000
   private var connectionId: String = ""
   private var connected = false
   private var index = AtomicLong(0)
@@ -46,9 +58,8 @@ class TcpTunneledSocket(private val host: String, private val port: Int, private
   //send video/audio packets in packs of 10 on each HTTP request.
   private val maxStoredPackets = 10
 
-  override fun getOutStream(): OutputStream = output
-
-  override fun getInputStream(): InputStream {
+  private fun getInputStream(requiredBytes: Int): InputStream {
+    if (input.available() >= requiredBytes) return input
     synchronized(sync) {
       val start = TimeUtils.getCurrentTimeMillis()
       while (input.available() <= 1 && connected) {
@@ -63,62 +74,6 @@ class TcpTunneledSocket(private val host: String, private val port: Int, private
     return input
   }
 
-  override fun flush(isPacket: Boolean) {
-    synchronized(sync) {
-      if (isPacket && storedPackets < maxStoredPackets) {
-        storedPackets++
-        return
-      }
-      if (!connected) return
-      val i = index.addAndGet(1)
-      val bytes = output.toByteArray()
-      output.reset()
-      requestWrite("send/$connectionId/$i", secured, bytes)
-      storedPackets = 0
-    }
-  }
-
-  override fun connect() {
-    synchronized(sync) {
-      try {
-        //optional in few servers
-        requestWrite("fcs/ident2", secured, byteArrayOf(0x00))
-      } catch (ignored: IOException) { }
-      try {
-        val openResult = requestRead("open/1", secured)
-        connectionId = String(openResult).trimIndent()
-        requestWrite("idle/$connectionId/${index.get()}", secured, byteArrayOf(0x00))
-        connected = true
-        Log.i(TAG, "Connection success")
-      } catch (e: IOException) {
-        Log.e(TAG, "Connection failed: ${e.message}")
-        connected = false
-      }
-    }
-  }
-
-  override fun close() {
-    Log.i(TAG, "closing tunneled socket...")
-    connected = false
-    synchronized(sync) {
-      Thread {
-        try {
-          requestWrite("close/$connectionId", secured, byteArrayOf(0x00))
-          Log.i(TAG, "Close success")
-        } catch (e: IOException) {
-          Log.e(TAG, "Close request failed: ${e.message}")
-        } finally {
-          index.set(0)
-          connectionId = ""
-        }
-      }.start()
-    }
-  }
-
-  override fun isConnected(): Boolean = connected
-
-  override fun isReachable(): Boolean = connected
-
   @Throws(IOException::class)
   private fun requestWrite(path: String, secured: Boolean, data: ByteArray) {
     val socket = configureSocket(path, secured)
@@ -128,7 +83,7 @@ class TcpTunneledSocket(private val host: String, private val port: Int, private
       val bytes = socket.inputStream.readBytes()
       if (bytes.size > 1) input = ByteArrayInputStream(bytes, 1, bytes.size)
       val success = socket.responseCode == HttpURLConnection.HTTP_OK
-      if (!success) throw IOException("send packet failed: ${socket.responseMessage}")
+      if (!success) throw IOException("send packet failed: ${socket.responseMessage}, broken pipe")
     } finally {
       socket.disconnect()
     }
@@ -141,7 +96,7 @@ class TcpTunneledSocket(private val host: String, private val port: Int, private
       socket.connect()
       val data = socket.inputStream.readBytes()
       val success = socket.responseCode == HttpURLConnection.HTTP_OK
-      if (!success) throw IOException("receive packet failed: ${socket.responseMessage}")
+      if (!success) throw IOException("receive packet failed: ${socket.responseMessage}, broken pipe")
       return data
     } finally {
       socket.disconnect()
@@ -165,5 +120,113 @@ class TcpTunneledSocket(private val host: String, private val port: Int, private
     socket.connectTimeout = timeout
     socket.readTimeout = timeout
     return socket
+  }
+
+  override suspend fun flush(isPacket: Boolean) {
+    synchronized(sync) {
+      if (isPacket && storedPackets < maxStoredPackets) {
+        storedPackets++
+        return
+      }
+      if (!connected) return
+      val i = index.addAndGet(1)
+      val bytes = output.toByteArray()
+      output.reset()
+      requestWrite("send/$connectionId/$i", secured, bytes)
+      storedPackets = 0
+    }
+  }
+
+  override suspend fun connect() {
+    synchronized(sync) {
+      try {
+        //optional in few servers
+        requestWrite("fcs/ident2", secured, byteArrayOf(0x00))
+      } catch (ignored: IOException) { }
+      try {
+        val openResult = requestRead("open/1", secured)
+        connectionId = String(openResult).trimIndent()
+        requestWrite("idle/$connectionId/${index.get()}", secured, byteArrayOf(0x00))
+        connected = true
+        Log.i(TAG, "Connection success")
+      } catch (e: IOException) {
+        Log.e(TAG, "Connection failed: ${e.message}")
+        connected = false
+      }
+    }
+  }
+
+  override suspend fun close() {
+    Log.i(TAG, "closing tunneled socket...")
+    connected = false
+    synchronized(sync) {
+      Thread {
+        try {
+          requestWrite("close/$connectionId", secured, byteArrayOf(0x00))
+          Log.i(TAG, "Close success")
+        } catch (e: IOException) {
+          Log.e(TAG, "Close request failed: ${e.message}")
+        } finally {
+          index.set(0)
+          connectionId = ""
+        }
+      }.start()
+    }
+  }
+
+  override fun isConnected(): Boolean = connected
+
+  override fun isReachable(): Boolean = connected
+
+  override suspend fun write(b: Int) = withContext(Dispatchers.IO) {
+    output.write(b)
+  }
+
+  override suspend fun write(b: ByteArray) = withContext(Dispatchers.IO) {
+    output.write(b)
+  }
+
+  override suspend fun write(b: ByteArray, offset: Int, size: Int) {
+    output.write(b, offset, size)
+  }
+
+  override suspend fun writeUInt16(b: Int) {
+    output.writeUInt16(b)
+  }
+
+  override suspend fun writeUInt24(b: Int) {
+    output.writeUInt24(b)
+  }
+
+  override suspend fun writeUInt32(b: Int) {
+    output.writeUInt32(b)
+  }
+
+  override suspend fun writeUInt32LittleEndian(b: Int) {
+    output.writeUInt32LittleEndian(b)
+  }
+
+  override suspend fun read(): Int = withContext(Dispatchers.IO) {
+    getInputStream(1).read()
+  }
+
+  override suspend fun readUInt16(): Int {
+    return getInputStream(1).readUInt16()
+  }
+
+  override suspend fun readUInt24(): Int {
+    return getInputStream(1).readUInt24()
+  }
+
+  override suspend fun readUInt32(): Int {
+    return getInputStream(1).readUInt32()
+  }
+
+  override suspend fun readUInt32LittleEndian(): Int {
+    return getInputStream(1).readUInt32LittleEndian()
+  }
+
+  override suspend fun readUntil(b: ByteArray) {
+    return getInputStream(b.size).readUntil(b)
   }
 }

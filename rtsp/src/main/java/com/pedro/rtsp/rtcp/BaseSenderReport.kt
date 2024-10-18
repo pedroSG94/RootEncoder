@@ -17,12 +17,13 @@
 package com.pedro.rtsp.rtcp
 
 import com.pedro.common.TimeUtils
+import com.pedro.common.socket.TcpStreamSocket
+import com.pedro.common.socket.UdpStreamSocket
 import com.pedro.rtsp.rtsp.Protocol
 import com.pedro.rtsp.rtsp.RtpFrame
 import com.pedro.rtsp.utils.RtpConstants
 import com.pedro.rtsp.utils.setLong
 import java.io.IOException
-import java.io.OutputStream
 
 /**
  * Created by pedro on 7/11/18.
@@ -30,8 +31,8 @@ import java.io.OutputStream
 abstract class BaseSenderReport internal constructor() {
 
   private val interval: Long = 3000
-  private val videoBuffer = ByteArray(RtpConstants.MTU)
-  private val audioBuffer = ByteArray(RtpConstants.MTU)
+  private val videoBuffer = ByteArray(RtpConstants.REPORT_PACKET_LENGTH)
+  private val audioBuffer = ByteArray(RtpConstants.REPORT_PACKET_LENGTH)
   private var videoTime: Long = 0
   private var audioTime: Long = 0
   private var videoPacketCount = 0L
@@ -41,11 +42,21 @@ abstract class BaseSenderReport internal constructor() {
 
   companion object {
     @JvmStatic
-    fun getInstance(protocol: Protocol, videoSourcePort: Int, audioSourcePort: Int): BaseSenderReport {
+    fun getInstance(
+      protocol: Protocol, host: String,
+      videoSourcePort: Int, audioSourcePort: Int,
+      videoServerPort: Int, audioServerPort: Int,
+    ): BaseSenderReport {
       return if (protocol === Protocol.TCP) {
         SenderReportTcp()
       } else {
-        SenderReportUdp(videoSourcePort, audioSourcePort)
+        val videoSocket = UdpStreamSocket(
+          host, videoServerPort, videoSourcePort, receiveSize = RtpConstants.REPORT_PACKET_LENGTH
+        )
+        val audioSocket = UdpStreamSocket(
+          host, audioServerPort, audioSourcePort, receiveSize = RtpConstants.REPORT_PACKET_LENGTH
+        )
+        SenderReportUdp(videoSocket, audioSocket)
       }
     }
   }
@@ -82,7 +93,7 @@ abstract class BaseSenderReport internal constructor() {
   }
 
   @Throws(IOException::class)
-  abstract fun setDataStream(outputStream: OutputStream, host: String)
+  abstract suspend fun setSocket(socket: TcpStreamSocket)
 
   @Throws(IOException::class)
   suspend fun update(rtpFrame: RtpFrame): Boolean {
@@ -139,7 +150,7 @@ abstract class BaseSenderReport internal constructor() {
     audioBuffer.setLong(audioOctetCount, 24, 28)
   }
 
-  abstract fun close()
+  abstract suspend fun close()
 
   private fun setData(buffer: ByteArray, ntpts: Long, rtpts: Long) {
     val hb = ntpts / 1000000000

@@ -16,22 +16,22 @@
 
 package com.pedro.rtsp.rtcp
 
+import com.pedro.common.socket.TcpStreamSocket
 import com.pedro.rtsp.rtsp.RtpFrame
 import com.pedro.rtsp.utils.RtpConstants
 import java.io.IOException
-import java.io.OutputStream
 
 /**
  * Created by pedro on 8/11/18.
  */
 class SenderReportTcp : BaseSenderReport() {
 
-  private var outputStream: OutputStream? = null
+  private var socket: TcpStreamSocket? = null
   private val tcpHeader: ByteArray = byteArrayOf('$'.code.toByte(), 0, 0, RtpConstants.REPORT_PACKET_LENGTH.toByte())
 
   @Throws(IOException::class)
-  override fun setDataStream(outputStream: OutputStream, host: String) {
-    this.outputStream = outputStream
+  override suspend fun setSocket(socket: TcpStreamSocket) {
+    this.socket = socket
   }
 
   @Throws(IOException::class)
@@ -39,15 +39,13 @@ class SenderReportTcp : BaseSenderReport() {
     sendReportTCP(buffer, rtpFrame.channelIdentifier)
   }
 
-  override fun close() {}
+  override suspend fun close() {}
 
   @Throws(IOException::class)
-  private fun sendReportTCP(buffer: ByteArray, channelIdentifier: Int) {
-    synchronized(RtpConstants.lock) {
-      tcpHeader[1] = (2 * channelIdentifier + 1).toByte()
-      outputStream?.write(tcpHeader)
-      outputStream?.write(buffer, 0, RtpConstants.REPORT_PACKET_LENGTH)
-      outputStream?.flush()
-    }
+  private suspend fun sendReportTCP(buffer: ByteArray, channelIdentifier: Int) {
+    tcpHeader[1] = (2 * channelIdentifier + 1).toByte()
+    socket?.write(tcpHeader)
+    socket?.write(buffer, 0, RtpConstants.REPORT_PACKET_LENGTH)
+    socket?.flush()
   }
 }

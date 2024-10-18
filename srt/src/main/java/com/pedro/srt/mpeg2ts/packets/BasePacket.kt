@@ -16,11 +16,10 @@
 
 package com.pedro.srt.mpeg2ts.packets
 
-import android.media.MediaCodec
+import com.pedro.common.frame.MediaFrame
 import com.pedro.srt.mpeg2ts.MpegTsPacket
 import com.pedro.srt.mpeg2ts.MpegTsPacketizer
 import com.pedro.srt.mpeg2ts.psi.PsiManager
-import java.nio.ByteBuffer
 
 /**
  * Created by pedro on 20/8/23.
@@ -50,10 +49,9 @@ abstract class BasePacket(
   protected val mpegTsPacketizer =  MpegTsPacketizer(psiManager)
   protected var chunkSize = limitSize / MpegTsPacketizer.packetSize //max number of ts packets per srtpacket
 
-  abstract fun createAndSendPacket(
-    byteBuffer: ByteBuffer,
-    info: MediaCodec.BufferInfo,
-    callback: (List<MpegTsPacket>) -> Unit
+  abstract suspend fun createAndSendPacket(
+    mediaFrame: MediaFrame,
+    callback: suspend (List<MpegTsPacket>) -> Unit
   )
 
   abstract fun resetPacket(resetInfo: Boolean)

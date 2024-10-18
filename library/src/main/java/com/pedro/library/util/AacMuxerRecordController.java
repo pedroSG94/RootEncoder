@@ -20,7 +20,6 @@ import android.media.MediaCodec;
 import android.media.MediaCodecInfo;
 import android.media.MediaFormat;
 import android.os.Build;
-import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -68,7 +67,7 @@ public class AacMuxerRecordController extends BaseRecordController {
     @Override
     @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
     public void startRecord(@NonNull String path, @Nullable Listener listener) throws IOException {
-        if (audioCodec == AudioCodec.G711) throw new IOException("Unsupported AudioCodec: " + audioCodec.name());
+        if (audioCodec != AudioCodec.AAC) throw new IOException("Unsupported AudioCodec: " + audioCodec.name());
         outputStream = new FileOutputStream(path);
         this.listener = listener;
         status = Status.STARTED;
@@ -84,7 +83,7 @@ public class AacMuxerRecordController extends BaseRecordController {
     @Override
     @RequiresApi(api = Build.VERSION_CODES.O)
     public void startRecord(@NonNull FileDescriptor fd, @Nullable Listener listener) throws IOException {
-        if (audioCodec == AudioCodec.G711) throw new IOException("Unsupported AudioCodec: " + audioCodec.name());
+        if (audioCodec != AudioCodec.AAC) throw new IOException("Unsupported AudioCodec: " + audioCodec.name());
         throw new IOException("FileDescriptor unsupported");
     }
 

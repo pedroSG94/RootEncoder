@@ -16,10 +16,11 @@
 
 package com.pedro.rtsp.rtp
 
-import android.media.MediaCodec
+import com.pedro.common.frame.MediaFrame
 import com.pedro.rtsp.rtp.packets.H265Packet
 import com.pedro.rtsp.rtsp.RtpFrame
 import com.pedro.rtsp.utils.RtpConstants
+import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotEquals
 import org.junit.Assert.assertTrue
@@ -32,29 +33,22 @@ import java.nio.ByteBuffer
 class H265PacketTest {
 
   @Test
-  fun `GIVEN a small ByteBuffer raw h265 WHEN create a packet THEN get a RTP h265 packet`() {
+  fun `GIVEN a small ByteBuffer raw h265 WHEN create a packet THEN get a RTP h265 packet`() = runTest {
     val timestamp = 123456789L
     val header = byteArrayOf(0x00, 0x00, 0x00, 0x01, 0x05, 0x00)
     val fakeH265 = header.plus(ByteArray(300) { 0x00 })
 
-    val info = MediaCodec.BufferInfo()
-    info.presentationTimeUs = timestamp
-    info.offset = 0
-    info.size = fakeH265.size
-    info.flags = 1
-
+    val info = MediaFrame.Info(0, fakeH265.size, timestamp, true)
+    val mediaFrame = MediaFrame(ByteBuffer.wrap(fakeH265), info, MediaFrame.Type.VIDEO)
     val h265Packet = H265Packet()
-    h265Packet.setPorts(1, 2)
     h265Packet.setSSRC(123456789)
     val frames = mutableListOf<RtpFrame>()
-    h265Packet.createAndSendPacket(ByteBuffer.wrap(fakeH265), info) {
-      frames.addAll(it)
-    }
+    h265Packet.createAndSendPacket(mediaFrame) { frames.addAll(it) }
 
     val expectedRtp = byteArrayOf(-128, -32, 0, 1, 0, -87, -118, -57, 7, 91, -51, 21, 5, 0).plus(fakeH265.copyOfRange(header.size, fakeH265.size))
     val expectedTimeStamp = 11111111L
     val expectedSize = RtpConstants.RTP_HEADER_LENGTH + 2 + info.size - header.size
-    val expectedPacketResult = RtpFrame(expectedRtp, expectedTimeStamp, expectedSize, 1, 2, RtpConstants.trackVideo)
+    val expectedPacketResult = RtpFrame(expectedRtp, expectedTimeStamp, expectedSize, RtpConstants.trackVideo)
 
     assertNotEquals(0, frames.size)
     assertTrue(frames.size == 1)
@@ -62,24 +56,17 @@ class H265PacketTest {
   }
 
   @Test
-  fun `GIVEN a big ByteBuffer raw h265 WHEN create a packet THEN get a RTP h265 packet`() {
+  fun `GIVEN a big ByteBuffer raw h265 WHEN create a packet THEN get a RTP h265 packet`() = runTest {
     val timestamp = 123456789L
     val header = byteArrayOf(0x00, 0x00, 0x00, 0x01, 0x05, 0x00)
     val fakeH265 = header.plus(ByteArray(2500) { 0x00 })
 
-    val info = MediaCodec.BufferInfo()
-    info.presentationTimeUs = timestamp
-    info.offset = 0
-    info.size = fakeH265.size
-    info.flags = 1
-
+    val info = MediaFrame.Info(0, fakeH265.size, timestamp, true)
+    val mediaFrame = MediaFrame(ByteBuffer.wrap(fakeH265), info, MediaFrame.Type.VIDEO)
     val h265Packet = H265Packet()
-    h265Packet.setPorts(1, 2)
     h265Packet.setSSRC(123456789)
     val frames = mutableListOf<RtpFrame>()
-    h265Packet.createAndSendPacket(ByteBuffer.wrap(fakeH265), info) {
-      frames.addAll(it)
-    }
+    h265Packet.createAndSendPacket(mediaFrame) { frames.addAll(it) }
 
     val packet1Size = RtpConstants.MTU - 28 - RtpConstants.RTP_HEADER_LENGTH - 3
     val chunk1 = fakeH265.copyOfRange(header.size, header.size + packet1Size)
@@ -91,8 +78,8 @@ class H265PacketTest {
     val expectedSize = chunk1.size + RtpConstants.RTP_HEADER_LENGTH + 3
     val expectedSize2 = chunk2.size + RtpConstants.RTP_HEADER_LENGTH + 3
 
-    val expectedPacketResult = RtpFrame(expectedRtp, expectedTimeStamp, expectedSize, 1, 2, RtpConstants.trackVideo)
-    val expectedPacketResult2 = RtpFrame(expectedRtp2, expectedTimeStamp, expectedSize2, 1, 2, RtpConstants.trackVideo)
+    val expectedPacketResult = RtpFrame(expectedRtp, expectedTimeStamp, expectedSize, RtpConstants.trackVideo)
+    val expectedPacketResult2 = RtpFrame(expectedRtp2, expectedTimeStamp, expectedSize2, RtpConstants.trackVideo)
 
     assertNotEquals(0, frames.size)
     assertTrue(frames.size == 2)

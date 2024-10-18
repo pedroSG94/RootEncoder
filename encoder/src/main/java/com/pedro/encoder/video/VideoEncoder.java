@@ -34,6 +34,7 @@ import com.pedro.common.av1.Obu;
 import com.pedro.common.av1.ObuType;
 import com.pedro.encoder.BaseEncoder;
 import com.pedro.encoder.Frame;
+import com.pedro.encoder.TimestampMode;
 import com.pedro.encoder.input.video.FpsLimiter;
 import com.pedro.encoder.input.video.GetCameraData;
 import com.pedro.encoder.utils.CodecUtil;
@@ -65,6 +66,7 @@ public class VideoEncoder extends BaseEncoder implements GetCameraData {
   private int bitRate = 1200 * 1024; //in kbps
   private int rotation = 90;
   private int iFrameInterval = 2;
+  private long firstTimestamp = 0;
   //for disable video
   private final FpsLimiter fpsLimiter = new FpsLimiter();
   private FormatVideoEncoder formatVideoEncoder = FormatVideoEncoder.YUV420Dynamical;
@@ -92,6 +94,15 @@ public class VideoEncoder extends BaseEncoder implements GetCameraData {
       int level) {
     if (prepared) stop();
 
+    if (width % 2 != 0) {
+      throw new IllegalArgumentException("Invalid width: " + width + ", must be an even value");
+    }
+    if (height % 2 != 0) {
+      throw new IllegalArgumentException("Invalid height: " + height + ", must be an even value");
+    }
+    if (fps <= 0) {
+      throw new IllegalArgumentException("Invalid fps: " + fps + ", must be higher than 0");
+    }
     this.width = width;
     this.height = height;
     this.fps = fps;
@@ -176,6 +187,7 @@ public class VideoEncoder extends BaseEncoder implements GetCameraData {
 
   @Override
   public void start(boolean resetTs) {
+    if (resetTs) firstTimestamp = 0;
     forceKey = false;
     shouldReset = resetTs;
     spsPpsSetted = false;
@@ -544,8 +556,13 @@ public class VideoEncoder extends BaseEncoder implements GetCameraData {
         Log.e(TAG, "manual av1 extraction failed");
       }
     }
-    if (formatVideoEncoder == FormatVideoEncoder.SURFACE) {
-      bufferInfo.presentationTimeUs = System.nanoTime() / 1000 - presentTimeUs;
+    if (timestampMode == TimestampMode.CLOCK) {
+      if (formatVideoEncoder == FormatVideoEncoder.SURFACE) {
+        bufferInfo.presentationTimeUs = System.nanoTime() / 1000 - presentTimeUs;
+      }
+    } else {
+      if (firstTimestamp == 0) firstTimestamp = bufferInfo.presentationTimeUs;
+      bufferInfo.presentationTimeUs -= firstTimestamp;
     }
   }
 

@@ -16,14 +16,15 @@
 
 package com.pedro.rtmp.rtmp.message
 
+import com.pedro.rtmp.FakeRtmpSocket
 import com.pedro.rtmp.utils.CommandSessionHistory
 import com.pedro.rtmp.utils.RtmpConfig
+import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
+import org.junit.Before
 import org.junit.Test
-import java.io.ByteArrayInputStream
-import java.io.ByteArrayOutputStream
 
 /**
  * Created by pedro on 10/9/23.
@@ -31,27 +32,33 @@ import java.io.ByteArrayOutputStream
 class AbortTest {
 
   private val commandSessionHistory = CommandSessionHistory()
+  private lateinit var socket: FakeRtmpSocket
+
+  @Before
+  fun setup() {
+    socket = FakeRtmpSocket()
+  }
 
   @Test
-  fun `GIVEN a buffer WHEN read rtmp message THEN get expected abort packet`() {
+  fun `GIVEN a buffer WHEN read rtmp message THEN get expected abort packet`() = runTest {
     val buffer = byteArrayOf(2, 0, 0, 0, 0, 0, 4, 2, 0, 0, 0, 0, 0, 0, 0, 0)
+    socket.setInputBytes(buffer)
     val abort = Abort()
 
-    val message = RtmpMessage.getRtmpMessage(ByteArrayInputStream(buffer), RtmpConfig.DEFAULT_CHUNK_SIZE, commandSessionHistory)
+    val message = RtmpMessage.getRtmpMessage(socket, RtmpConfig.DEFAULT_CHUNK_SIZE, commandSessionHistory)
 
     assertTrue(message is Abort)
     assertEquals(abort.toString(), (message as Abort).toString())
   }
 
   @Test
-  fun `GIVEN an abort packet WHEN write into a buffer THEN get expected buffer`() {
+  fun `GIVEN an abort packet WHEN write into a buffer THEN get expected buffer`() = runTest {
     val expectedBuffer = byteArrayOf(2, 0, 0, 0, 0, 0, 4, 2, 0, 0, 0, 0, 0, 0, 0, 0)
-    val output = ByteArrayOutputStream()
 
     val abort = Abort()
-    abort.writeHeader(output)
-    abort.writeBody(output)
+    abort.writeHeader(socket)
+    abort.writeBody(socket)
 
-    assertArrayEquals(expectedBuffer, output.toByteArray())
+    assertArrayEquals(expectedBuffer, socket.output.toByteArray())
   }
 }

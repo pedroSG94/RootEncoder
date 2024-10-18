@@ -210,6 +210,7 @@ public abstract class BaseDecoder {
   }
 
   public double getDuration() {
+    if (duration < 0) return duration; //fail to extract duration from file.
     return duration / 10E5;
   }
 

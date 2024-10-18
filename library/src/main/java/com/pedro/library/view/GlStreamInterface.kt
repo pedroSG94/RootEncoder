@@ -171,7 +171,8 @@ class GlStreamInterface(private val context: Context): OnFrameAvailableListener,
   }
 
   private fun draw(forced: Boolean) {
-    if (!isRunning || fpsLimiter.limitFPS()) return
+    if (!isRunning) return
+    val limitFps = fpsLimiter.limitFPS()
     if (!forced) forceRender.frameAvailable()
 
     if (surfaceManager.isReady && mainRender.isReady()) {
@@ -197,7 +198,7 @@ class GlStreamInterface(private val context: Context): OnFrameAvailableListener,
       OrientationForced.NONE -> isPortrait
     }
     // render VideoEncoder (stream and record)
-    if (surfaceManagerEncoder.isReady && mainRender.isReady()) {
+    if (surfaceManagerEncoder.isReady && mainRender.isReady() && !limitFps) {
       val w = if (muteVideo) 0 else encoderWidth
       val h = if (muteVideo) 0 else encoderHeight
       surfaceManagerEncoder.makeCurrent()
@@ -215,7 +216,7 @@ class GlStreamInterface(private val context: Context): OnFrameAvailableListener,
       surfaceManagerPhoto.swapBuffer()
     }
     // render preview
-    if (surfaceManagerPreview.isReady && mainRender.isReady()) {
+    if (surfaceManagerPreview.isReady && mainRender.isReady() && !limitFps) {
       val w =  if (previewWidth == 0) encoderWidth else previewWidth
       val h =  if (previewHeight == 0) encoderHeight else previewHeight
       surfaceManagerPreview.makeCurrent()

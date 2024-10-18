@@ -16,22 +16,21 @@
 
 package com.pedro.rtsp.rtp.sockets
 
+import com.pedro.common.socket.TcpStreamSocket
 import com.pedro.rtsp.rtsp.RtpFrame
-import com.pedro.rtsp.utils.RtpConstants
 import java.io.IOException
-import java.io.OutputStream
 
 /**
  * Created by pedro on 7/11/18.
  */
 class RtpSocketTcp : BaseRtpSocket() {
 
-  private var outputStream: OutputStream? = null
+  private var socket: TcpStreamSocket? = null
   private val tcpHeader: ByteArray = byteArrayOf('$'.code.toByte(), 0, 0, 0)
 
   @Throws(IOException::class)
-  override fun setDataStream(outputStream: OutputStream, host: String) {
-    this.outputStream = outputStream
+  override suspend fun setSocket(socket: TcpStreamSocket) {
+    this.socket = socket
   }
 
   @Throws(IOException::class)
@@ -39,18 +38,19 @@ class RtpSocketTcp : BaseRtpSocket() {
     sendFrameTCP(rtpFrame)
   }
 
-  override fun close() {}
+  override suspend fun flush() {
+    socket?.flush()
+  }
+
+  override suspend fun close() {}
 
   @Throws(IOException::class)
-  private fun sendFrameTCP(rtpFrame: RtpFrame) {
-    synchronized(RtpConstants.lock) {
-      val len = rtpFrame.length
-      tcpHeader[1] = (2 * rtpFrame.channelIdentifier).toByte()
-      tcpHeader[2] = (len shr 8).toByte()
-      tcpHeader[3] = (len and 0xFF).toByte()
-      outputStream?.write(tcpHeader)
-      outputStream?.write(rtpFrame.buffer, 0, len)
-      outputStream?.flush()
-    }
+  private suspend fun sendFrameTCP(rtpFrame: RtpFrame) {
+    val len = rtpFrame.length
+    tcpHeader[1] = (2 * rtpFrame.channelIdentifier).toByte()
+    tcpHeader[2] = (len shr 8).toByte()
+    tcpHeader[3] = (len and 0xFF).toByte()
+    socket?.write(tcpHeader)
+    socket?.write(rtpFrame.buffer, 0, len)
   }
 }

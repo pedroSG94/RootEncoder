@@ -16,12 +16,12 @@
 
 package com.pedro.rtsp.rtp
 
-import android.media.MediaCodec
+import com.pedro.common.frame.MediaFrame
 import com.pedro.rtsp.rtp.packets.G711Packet
 import com.pedro.rtsp.rtsp.RtpFrame
 import com.pedro.rtsp.utils.RtpConstants
-import junit.framework.TestCase
 import junit.framework.TestCase.assertEquals
+import kotlinx.coroutines.test.runTest
 import org.junit.Test
 import java.nio.ByteBuffer
 
@@ -31,27 +31,21 @@ import java.nio.ByteBuffer
 class G711PacketTest {
 
   @Test
-  fun `GIVEN g711 data WHEN create rtp packet THEN get expected packet`() {
+  fun `GIVEN g711 data WHEN create rtp packet THEN get expected packet`() = runTest {
     val timestamp = 123456789L
     val fakeG711 = ByteArray(30) { 0x05 }
 
-    val info = MediaCodec.BufferInfo()
-    info.presentationTimeUs = timestamp
-    info.offset = 0
-    info.size = fakeG711.size
-    info.flags = 1
-    val g711Packet = G711Packet(8000)
-    g711Packet.setPorts(1, 2)
+    val info = MediaFrame.Info(0, fakeG711.size, timestamp, false)
+    val mediaFrame = MediaFrame(ByteBuffer.wrap(fakeG711), info, MediaFrame.Type.AUDIO)
+    val g711Packet = G711Packet().apply { setAudioInfo(8000) }
     g711Packet.setSSRC(123456789)
     val frames = mutableListOf<RtpFrame>()
-    g711Packet.createAndSendPacket(ByteBuffer.wrap(fakeG711), info) {
-      frames.addAll(it)
-    }
+    g711Packet.createAndSendPacket(mediaFrame) { frames.addAll(it) }
 
     val expectedRtp = byteArrayOf(-128, -120, 0, 1, 0, 15, 18, 6, 7, 91, -51, 21).plus(fakeG711)
     val expectedTimeStamp = 987654L
     val expectedSize = RtpConstants.RTP_HEADER_LENGTH + info.size
-    val packetResult = RtpFrame(expectedRtp, expectedTimeStamp, expectedSize, 1, 2, RtpConstants.trackAudio)
+    val packetResult = RtpFrame(expectedRtp, expectedTimeStamp, expectedSize, RtpConstants.trackAudio)
     assertEquals(1, frames.size)
     assertEquals(packetResult, frames[0])
   }

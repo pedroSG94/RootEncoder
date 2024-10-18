@@ -16,12 +16,11 @@
 
 package com.pedro.rtsp.rtp.packets
 
-import android.media.MediaCodec
+import com.pedro.common.frame.MediaFrame
 import com.pedro.common.removeInfo
 import com.pedro.rtsp.rtsp.RtpFrame
 import com.pedro.rtsp.utils.RtpConstants
 import com.pedro.rtsp.utils.getVideoStartCodeSize
-import java.nio.ByteBuffer
 import kotlin.experimental.and
 
 /**
@@ -38,18 +37,17 @@ class H265Packet: BasePacket(
     channelIdentifier = RtpConstants.trackVideo
   }
 
-  override fun createAndSendPacket(
-    byteBuffer: ByteBuffer,
-    bufferInfo: MediaCodec.BufferInfo,
-    callback: (List<RtpFrame>) -> Unit
+  override suspend fun createAndSendPacket(
+    mediaFrame: MediaFrame,
+    callback: suspend (List<RtpFrame>) -> Unit
   ) {
-    val fixedBuffer = byteBuffer.removeInfo(bufferInfo)
+    val fixedBuffer = mediaFrame.data.removeInfo(mediaFrame.info)
     // We read a NAL units from ByteBuffer and we send them
     // NAL units are preceded with 0x00000001
     val header = ByteArray(fixedBuffer.getVideoStartCodeSize() + 2)
     if (header.size == 2) return //invalid buffer or waiting for sps/pps/vps
     fixedBuffer.get(header, 0, header.size)
-    val ts = bufferInfo.presentationTimeUs * 1000L
+    val ts = mediaFrame.info.timestamp * 1000L
     val naluLength = fixedBuffer.remaining()
     val type: Int = header[header.size - 2].toInt().shr(1 and 0x3f)
     val frames = mutableListOf<RtpFrame>()
@@ -63,7 +61,7 @@ class H265Packet: BasePacket(
       val rtpTs = updateTimeStamp(buffer, ts)
       markPacket(buffer) //mark end frame
       updateSeq(buffer)
-      val rtpFrame = RtpFrame(buffer, rtpTs, buffer.size, rtpPort, rtcpPort, channelIdentifier)
+      val rtpFrame = RtpFrame(buffer, rtpTs, buffer.size, channelIdentifier)
       frames.add(rtpFrame)
     } else {
       //Set PayloadHdr (16bit type=49)
@@ -98,13 +96,13 @@ class H265Packet: BasePacket(
           markPacket(buffer) //mark end frame
         }
         updateSeq(buffer)
-        val rtpFrame = RtpFrame(buffer, rtpTs, buffer.size, rtpPort, rtcpPort, channelIdentifier)
+        val rtpFrame = RtpFrame(buffer, rtpTs, buffer.size, channelIdentifier)
         frames.add(rtpFrame)
         // Switch start bit
         header[2] = header[2] and 0x7F
       }
     }
-    callback(frames)
+    if (frames.isNotEmpty()) callback(frames)
   }
 
   override fun reset() {

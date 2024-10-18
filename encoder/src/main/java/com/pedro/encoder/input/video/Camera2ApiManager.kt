@@ -213,12 +213,17 @@ class Camera2ApiManager(context: Context) : CameraDevice.StateCallback() {
     fun getSupportedFps(size: Size?, facing: Facing): List<Range<Int>> {
         try {
             val characteristics = cameraManager.getCameraCharacteristics(getCameraIdForFacing(facing))
-            val fpsSupported = characteristics.secureGet(CameraCharacteristics.CONTROL_AE_AVAILABLE_TARGET_FPS_RANGES) ?: return emptyList()
-            val streamConfigurationMap = characteristics.secureGet(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP) ?: return emptyList()
-            val fd = streamConfigurationMap.getOutputMinFrameDuration(SurfaceTexture::class.java, size)
-            val maxFPS = (10f / "0.$fd".toFloat()).toInt()
-            return fpsSupported.filter { it.upper <= maxFPS }
-        } catch (e: Exception) {
+            val fpsSupported = characteristics.get(CameraCharacteristics.CONTROL_AE_AVAILABLE_TARGET_FPS_RANGES) ?: return emptyList()
+            return if (size != null) {
+                val streamConfigurationMap = characteristics.get(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP)
+                val list = mutableListOf<Range<Int>>()
+                val fd = streamConfigurationMap?.getOutputMinFrameDuration(SurfaceTexture::class.java, size) ?: return emptyList()
+                val maxFPS = (10f / "0.$fd".toFloat()).toInt()
+                for (r in fpsSupported) { if (r.upper <= maxFPS) { list.add(r) } }
+                list
+            } else listOf(*fpsSupported)
+        } catch (e: IllegalStateException) {
+            Log.e(TAG, "Error", e)
             return emptyList()
         }
     }

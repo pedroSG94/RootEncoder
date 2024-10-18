@@ -50,6 +50,8 @@ afterEvaluate {
 }
 
 dependencies {
+    implementation(libs.ktor.network)
+    implementation(libs.ktor.network.tls)
     implementation(libs.androidx.annotation)
     implementation(libs.kotlinx.coroutines.android)
     testImplementation(libs.kotlinx.coroutines.test)

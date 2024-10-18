@@ -35,6 +35,7 @@ import com.pedro.library.generic.GenericStream
 import com.pedro.encoder.input.sources.video.Camera1Source
 import com.pedro.encoder.input.sources.video.Camera2Source
 import com.pedro.extrasources.CameraXSource
+import com.pedro.library.util.BitrateAdapter
 import com.pedro.streamer.R
 import com.pedro.streamer.utils.PathUtils
 import com.pedro.streamer.utils.toast
@@ -90,6 +91,12 @@ class CameraFragment: Fragment(), ConnectChecker {
   private val isStereo = true
   private val aBitrate = 128 * 1000
   private var recordPath = ""
+  //Bitrate adapter used to change the bitrate on fly depend of the bandwidth.
+  private val bitrateAdapter = BitrateAdapter {
+    genericStream.setVideoBitrateOnFly(it)
+  }.apply {
+    setMaxBitrate(vBitrate + aBitrate)
+  }
 
   @SuppressLint("ClickableViewAccessibility")
   override fun onCreateView(
@@ -208,6 +215,7 @@ class CameraFragment: Fragment(), ConnectChecker {
   }
 
   override fun onNewBitrate(bitrate: Long) {
+    bitrateAdapter.adaptBitrate(bitrate, genericStream.getStreamClient().hasCongestion())
     txtBitrate.text = String.format(Locale.getDefault(), "%.1f mb/s", bitrate / 1000_000f)
   }
 

@@ -26,7 +26,7 @@ import com.pedro.rtmp.rtmp.message.shared.SharedObjectAmf0
 import com.pedro.rtmp.rtmp.message.shared.SharedObjectAmf3
 import com.pedro.rtmp.utils.CommandSessionHistory
 import com.pedro.rtmp.utils.RtmpConfig
-import com.pedro.rtmp.utils.readUntil
+import com.pedro.rtmp.utils.socket.RtmpSocket
 import java.io.*
 
 /**
@@ -46,9 +46,9 @@ abstract class RtmpMessage(basicHeader: BasicHeader) {
     private const val TAG = "RtmpMessage"
 
     @Throws(IOException::class)
-    fun getRtmpMessage(input: InputStream, chunkSize: Int,
+    suspend fun getRtmpMessage(socket: RtmpSocket, chunkSize: Int,
       commandSessionHistory: CommandSessionHistory): RtmpMessage {
-      val header = RtmpHeader.readHeader(input, commandSessionHistory)
+      val header = RtmpHeader.readHeader(socket, commandSessionHistory)
       val rtmpMessage = when (header.messageType) {
         MessageType.SET_CHUNK_SIZE -> SetChunkSize()
         MessageType.ABORT -> Abort()
@@ -70,9 +70,11 @@ abstract class RtmpMessage(basicHeader: BasicHeader) {
       rtmpMessage.updateHeader(header)
       //we have multiple chunk wait until we have full body on stream and discard chunk header
       val bodyInput = if (header.messageLength > chunkSize) {
-        getInputWithoutChunks(input, header, chunkSize, commandSessionHistory)
+        getInputWithoutChunks(socket, header, chunkSize, commandSessionHistory)
       } else {
-        input
+        val bytes = ByteArray(header.messageLength)
+        socket.readUntil(bytes)
+        ByteArrayInputStream(bytes)
       }
       rtmpMessage.readBody(bodyInput)
       return rtmpMessage
@@ -82,7 +84,7 @@ abstract class RtmpMessage(basicHeader: BasicHeader) {
       return MessageType.values().find { it.mark.toInt() == type } ?: throw IOException("Unknown rtmp message type: $type")
     }
 
-    private fun getInputWithoutChunks(input: InputStream, header: RtmpHeader, chunkSize: Int,
+    private suspend fun getInputWithoutChunks(socket: RtmpSocket, header: RtmpHeader, chunkSize: Int,
       commandSessionHistory: CommandSessionHistory): InputStream {
       val packetStore = ByteArrayOutputStream()
       var bytesRead = 0
@@ -91,12 +93,12 @@ abstract class RtmpMessage(basicHeader: BasicHeader) {
         if (header.messageLength - bytesRead < chunkSize) {
           //last chunk
           chunk = ByteArray(header.messageLength - bytesRead)
-          input.readUntil(chunk)
+          socket.readUntil(chunk)
         } else {
           chunk = ByteArray(chunkSize)
-          input.readUntil(chunk)
+          socket.readUntil(chunk)
           //skip chunk header to discard it, set packet ts to indicate if you need read extended ts
-          RtmpHeader.readHeader(input, commandSessionHistory, header.timeStamp)
+          RtmpHeader.readHeader(socket, commandSessionHistory, header.timeStamp)
         }
         bytesRead += chunk.size
         packetStore.write(chunk)
@@ -113,13 +115,11 @@ abstract class RtmpMessage(basicHeader: BasicHeader) {
     header.timeStamp = rtmpHeader.timeStamp
   }
 
-  @Throws(IOException::class)
-  fun writeHeader(output: OutputStream) {
-    header.writeHeader(output)
+  suspend fun writeHeader(socket: RtmpSocket) {
+    header.writeHeader(socket)
   }
 
-  @Throws(IOException::class)
-  fun writeBody(output: OutputStream) {
+  suspend fun writeBody(socket: RtmpSocket) {
     val chunkSize = RtmpConfig.writeChunkSize
     val bytes = storeBody()
     var pos = 0
@@ -127,13 +127,13 @@ abstract class RtmpMessage(basicHeader: BasicHeader) {
 
     while (length > chunkSize) {
       // Write packet for chunk
-      output.write(bytes, pos, chunkSize)
+      socket.write(bytes, pos, chunkSize)
       length -= chunkSize
       pos += chunkSize
       // Write header for remain chunk
-      header.writeHeader(BasicHeader(ChunkType.TYPE_3, header.basicHeader.chunkStreamId), output)
+      header.writeHeader(BasicHeader(ChunkType.TYPE_3, header.basicHeader.chunkStreamId), socket)
     }
-    output.write(bytes, pos, length)
+    socket.write(bytes, pos, length)
   }
 
   abstract fun readBody(input: InputStream)

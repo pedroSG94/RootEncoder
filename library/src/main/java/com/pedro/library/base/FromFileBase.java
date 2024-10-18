@@ -32,6 +32,7 @@ import androidx.annotation.RequiresApi;
 import com.pedro.common.AudioCodec;
 import com.pedro.common.VideoCodec;
 import com.pedro.encoder.EncoderErrorCallback;
+import com.pedro.encoder.TimestampMode;
 import com.pedro.encoder.audio.AudioEncoder;
 import com.pedro.encoder.audio.GetAudioData;
 import com.pedro.encoder.input.audio.GetMicrophoneData;
@@ -119,6 +120,15 @@ public abstract class FromFileBase {
     videoDecoder = new VideoDecoder(videoDecoderInterface, decoderInterface);
     audioDecoder = new AudioDecoder(getMicrophoneData, audioDecoderInterface, decoderInterface);
     recordController = new AndroidMuxerRecordController();
+  }
+
+  /**
+   * Set the mode to calculate timestamp. By default CLOCK.
+   * Must be called before startRecord/startStream or it will be ignored.
+   */
+  public void setTimestampMode(TimestampMode timestampModeVideo, TimestampMode timestampModeAudio) {
+    videoEncoder.setTimestampMode(timestampModeVideo);
+    audioEncoder.setTimestampMode(timestampModeAudio);
   }
 
   /**
@@ -609,14 +619,14 @@ public abstract class FromFileBase {
   }
 
   /**
-   * @return return duration in seconds. 0 if no streaming
+   * @return return duration in seconds. 0 if no streaming, -1 if can't extract it from file
    */
   public double getVideoDuration() {
     return videoDecoder.getDuration();
   }
 
   /**
-   * @return return duration in seconds. 0 if no streaming
+   * @return return duration in seconds. 0 if no streaming, -1 if can't extract it from file
    */
   public double getAudioDuration() {
     return audioDecoder.getDuration();

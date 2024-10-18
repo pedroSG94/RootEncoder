@@ -30,9 +30,13 @@ import com.pedro.common.AudioCodec
 import com.pedro.common.VideoCodec
 import com.pedro.encoder.EncoderErrorCallback
 import com.pedro.encoder.Frame
+import com.pedro.encoder.TimestampMode
 import com.pedro.encoder.audio.AudioEncoder
 import com.pedro.encoder.audio.GetAudioData
 import com.pedro.encoder.input.audio.GetMicrophoneData
+import com.pedro.encoder.input.sources.audio.AudioSource
+import com.pedro.encoder.input.sources.video.NoVideoSource
+import com.pedro.encoder.input.sources.video.VideoSource
 import com.pedro.encoder.utils.CodecUtil
 import com.pedro.encoder.video.FormatVideoEncoder
 import com.pedro.encoder.video.GetVideoData
@@ -41,9 +45,6 @@ import com.pedro.library.base.recording.BaseRecordController
 import com.pedro.library.base.recording.RecordController
 import com.pedro.library.util.AndroidMuxerRecordController
 import com.pedro.library.util.FpsListener
-import com.pedro.encoder.input.sources.audio.AudioSource
-import com.pedro.encoder.input.sources.video.NoVideoSource
-import com.pedro.encoder.input.sources.video.VideoSource
 import com.pedro.library.util.streamclient.StreamBaseClient
 import com.pedro.library.view.GlStreamInterface
 import java.nio.ByteBuffer
@@ -154,6 +155,10 @@ abstract class StreamBase(
     else requestKeyframe()
   }
 
+  /**
+   * Force VideoEncoder to produce a keyframe. Ignored if not recording or streaming.
+   * This could be ignored depend of the Codec implementation in each device.
+   */
   fun requestKeyframe() {
     if (videoEncoder.isRunning) {
       videoEncoder.requestKeyframe()
@@ -336,6 +341,15 @@ abstract class StreamBase(
   }
 
   /**
+   * Set the mode to calculate timestamp. By default CLOCK.
+   * Must be called before startRecord/startStream or it will be ignored.
+   */
+  fun setTimestampMode(timestampModeVideo: TimestampMode, timestampModeAudio: TimestampMode) {
+    videoEncoder.setTimestampMode(timestampModeVideo)
+    audioEncoder.setTimestampMode(timestampModeAudio)
+  }
+
+  /**
    * Set a callback to know errors related with Video/Audio encoders
    * @param encoderErrorCallback callback to use, null to remove
    */
@@ -367,6 +381,10 @@ abstract class StreamBase(
    */
   fun getGlInterface(): GlStreamInterface = glInterface
 
+  /**
+   * Replace the current BaseRecordController.
+   * This method allow record in other format or even create your custom implementation and record in a new format.
+   */
   fun setRecordController(recordController: BaseRecordController) {
     if (!isRecording) this.recordController = recordController
   }
@@ -408,6 +426,10 @@ abstract class StreamBase(
     if (!isRecording) recordController.resetFormats()
   }
 
+  /**
+   * Stop stream, record and preview and then release all resources.
+   * You must call it after finish all the work.
+   */
   fun release() {
     if (isStreaming) stopStream()
     if (isRecording) stopRecord()
@@ -417,6 +439,11 @@ abstract class StreamBase(
     audioSource.release()
   }
 
+  /**
+   * Reset VideoEncoder. Only recommended if a VideoEncoder class error is received in the EncoderErrorCallback
+   *
+   * @return true if success, false if failed
+   */
   fun resetVideoEncoder(): Boolean {
     glInterface.removeMediaCodecSurface()
     val result = videoEncoder.reset()
@@ -425,6 +452,11 @@ abstract class StreamBase(
     return true
   }
 
+  /**
+   * Reset AudioEncoder. Only recommended if an AudioEncoder class error is received in the EncoderErrorCallback
+   *
+   * @return true if success, false if failed
+   */
   fun resetAudioEncoder(): Boolean = audioEncoder.reset()
 
   private fun prepareEncoders(): Boolean {
@@ -467,6 +499,10 @@ abstract class StreamBase(
 
   abstract fun getStreamClient(): StreamBaseClient
 
+  /**
+   * Change VideoCodec used.
+   * This could fail depend of the Codec supported in each Protocol. For example AV1 is not supported in SRT
+   */
   fun setVideoCodec(codec: VideoCodec) {
     setVideoCodecImp(codec)
     recordController.setVideoCodec(codec)
@@ -478,6 +514,10 @@ abstract class StreamBase(
     videoEncoder.type = type
   }
 
+  /**
+   * Change AudioCodec used.
+   * This could fail depend of the Codec supported in each Protocol. For example G711 is not supported in SRT
+   */
   fun setAudioCodec(codec: AudioCodec) {
     setAudioCodecImp(codec)
     recordController.setAudioCodec(codec)

@@ -28,9 +28,9 @@ import com.pedro.srt.srt.packets.control.KeepAlive
 import com.pedro.srt.srt.packets.control.Shutdown
 import com.pedro.srt.srt.packets.control.handshake.EncryptionType
 import com.pedro.srt.srt.packets.control.handshake.Handshake
-import com.pedro.srt.utils.EncryptInfo
 import com.pedro.srt.srt.packets.data.KeyBasedEncryption
 import com.pedro.srt.utils.Constants
+import com.pedro.srt.utils.EncryptInfo
 import com.pedro.srt.utils.EncryptionUtil
 import com.pedro.srt.utils.SrtSocket
 import kotlinx.coroutines.sync.Mutex
@@ -93,7 +93,7 @@ class CommandsManager {
   }
 
   @Throws(IOException::class)
-  fun readHandshake(socket: SrtSocket?): Handshake {
+  suspend fun readHandshake(socket: SrtSocket?): Handshake {
     val handshakeBuffer = socket?.readBuffer() ?: throw IOException("read buffer failed, socket disconnected")
     val handshake = SrtPacket.getSrtPacket(handshakeBuffer)
     if (handshake is Handshake) {
