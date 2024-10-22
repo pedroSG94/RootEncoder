@@ -18,46 +18,12 @@
 
 package com.pedro.common.socket
 
-import io.ktor.network.selector.SelectorManager
-import io.ktor.network.sockets.ReadWriteSocket
-import io.ktor.network.sockets.isClosed
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
-import java.net.InetAddress
-import java.net.InetSocketAddress
-
 /**
  * Created by pedro on 22/9/24.
  */
-abstract class StreamSocket(
-  private val host: String,
-  private val port: Int
-) {
-
-  private var selectorManager = SelectorManager(Dispatchers.IO)
-  protected var socket: ReadWriteSocket? = null
-  private var address: InetAddress? = null
-
-  abstract suspend fun buildSocketConfigAndConnect(selectorManager: SelectorManager): ReadWriteSocket
-  abstract suspend fun closeResources()
-
-  suspend fun connect() {
-    selectorManager = SelectorManager(Dispatchers.IO)
-    val socket = buildSocketConfigAndConnect(selectorManager)
-    address = InetSocketAddress(host, port).address
-    this.socket = socket
-  }
-
-  suspend fun close() = withContext(Dispatchers.IO) {
-    try {
-      address = null
-      closeResources()
-      socket?.close()
-      selectorManager.close()
-    } catch (ignored: Exception) {}
-  }
-
-  fun isConnected(): Boolean = socket?.isClosed != true
-
-  fun isReachable(): Boolean = address?.isReachable(5000) ?: false
+interface StreamSocket {
+  suspend fun connect()
+  suspend fun close()
+  fun isConnected(): Boolean
+  fun isReachable(): Boolean
 }
