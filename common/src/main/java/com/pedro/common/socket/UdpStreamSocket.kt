@@ -19,7 +19,6 @@
 package com.pedro.common.socket
 
 import io.ktor.network.selector.SelectorManager
-import io.ktor.network.sockets.BoundDatagramSocket
 import io.ktor.network.sockets.ConnectedDatagramSocket
 import io.ktor.network.sockets.Datagram
 import io.ktor.network.sockets.InetSocketAddress
@@ -46,14 +45,17 @@ class UdpStreamSocket(
 
   private val address = InetSocketAddress(host, port)
   private var selectorManager = SelectorManager(Dispatchers.IO)
-  private var socket: BoundDatagramSocket? = null
+  private var socket: ConnectedDatagramSocket? = null
   private var myAddress: InetAddress? = null
 
   override suspend fun connect() {
     selectorManager = SelectorManager(Dispatchers.IO)
     val builder = aSocket(selectorManager).udp()
     val localAddress = if (sourcePort == null) null else InetSocketAddress("0.0.0.0", sourcePort)
-    val socket = builder.bind(localAddress = localAddress) {
+    val socket = builder.connect(
+      remoteAddress = address,
+      localAddress = localAddress
+    ) {
       broadcast = broadcastMode
       receiveBufferSize = receiveSize ?: 0
     }
