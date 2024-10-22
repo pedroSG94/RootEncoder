@@ -219,13 +219,6 @@ class RtspClient(private val connectChecker: ConnectChecker) {
 
         val error = runCatching {
           commandsManager.setUrl(host, port, "/$path")
-          rtspSender.setSocketsInfo(commandsManager.protocol,
-            host,
-            commandsManager.videoClientPorts,
-            commandsManager.audioClientPorts,
-            commandsManager.videoServerPorts,
-            commandsManager.audioServerPorts
-            )
           if (!commandsManager.audioDisabled) {
             rtspSender.setAudioInfo(commandsManager.sampleRate, commandsManager.isStereo)
           }
@@ -333,6 +326,13 @@ class RtspClient(private val connectChecker: ConnectChecker) {
             }
             return@launch
           }
+          rtspSender.setSocketsInfo(commandsManager.protocol,
+            host,
+            commandsManager.videoClientPorts,
+            commandsManager.audioClientPorts,
+            commandsManager.videoServerPorts,
+            commandsManager.audioServerPorts
+          )
           rtspSender.setSocket(socket)
           rtspSender.start()
           reTries = numRetry
