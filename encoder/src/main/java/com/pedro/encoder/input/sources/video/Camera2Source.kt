@@ -175,8 +175,7 @@ class Camera2Source(context: Context): VideoSource() {
   fun getCurrentCameraId() = camera.getCurrentCameraId()
 
   fun openCameraId(id: String) {
-    if (isRunning()) stop()
-    camera.openCameraId(id)
+    if (isRunning()) camera.reOpenCamera(id)
   }
 
   fun enableOpticalVideoStabilization(): Boolean {
