@@ -40,6 +40,7 @@ import com.pedro.encoder.input.decoder.AudioDecoder;
 import com.pedro.encoder.input.decoder.AudioDecoderInterface;
 import com.pedro.encoder.input.decoder.BaseDecoder;
 import com.pedro.encoder.input.decoder.DecoderInterface;
+import com.pedro.encoder.input.decoder.Extractor;
 import com.pedro.encoder.input.decoder.VideoDecoder;
 import com.pedro.encoder.input.decoder.VideoDecoderInterface;
 import com.pedro.encoder.utils.CodecUtil;
@@ -673,6 +674,7 @@ public abstract class FromFileBase {
     int height = videoDecoder.getHeight();
     boolean wasRunning = videoDecoder.isRunning();
     VideoDecoder videoDecoder = new VideoDecoder(videoDecoderInterface, decoderInterface);
+    videoDecoder.setExtractor(this.videoDecoder.getExtractor());
     runnable.run(videoDecoder);
     if (width != videoDecoder.getWidth() || height != videoDecoder.getHeight()) throw new IOException("Resolution must be the same that the previous file");
     this.videoDecoder.stop();
@@ -686,6 +688,7 @@ public abstract class FromFileBase {
     boolean isStereo = audioDecoder.isStereo();
     boolean wasRunning = audioDecoder.isRunning();
     AudioDecoder audioDecoder = new AudioDecoder(getMicrophoneData, audioDecoderInterface, decoderInterface);
+    audioDecoder.setExtractor(this.audioDecoder.getExtractor());
     runnable.run(audioDecoder);
     if (sampleRate != audioDecoder.getSampleRate()) throw new IOException("SampleRate must be the same that the previous file");
     if (isStereo != audioDecoder.isStereo()) throw new IOException("Channels must be the same that the previous file");
@@ -703,6 +706,14 @@ public abstract class FromFileBase {
   public void moveTo(double time) {
     if (videoEnabled) videoDecoder.moveTo(time);
     if (audioEnabled) audioDecoder.moveTo(time);
+  }
+
+  public void setVideoExtractor(Extractor extractor) {
+    videoDecoder.setExtractor(extractor);
+  }
+
+  public void setAudioExtractor(Extractor extractor) {
+    audioDecoder.setExtractor(extractor);
   }
 
   protected abstract void onVideoInfoImp(ByteBuffer sps, ByteBuffer pps, ByteBuffer vps);

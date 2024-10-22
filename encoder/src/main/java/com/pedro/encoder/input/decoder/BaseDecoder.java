@@ -47,7 +47,7 @@ public abstract class BaseDecoder {
   protected AtomicBoolean pause = new AtomicBoolean(false);
   protected volatile boolean looped = false;
   private final DecoderInterface decoderInterface;
-  private final Extractor extractor = new AndroidExtractor();
+  private Extractor extractor = new AndroidExtractor();
 
   public BaseDecoder(DecoderInterface decoderInterface) {
     this.decoderInterface = decoderInterface;
@@ -263,5 +263,13 @@ public abstract class BaseDecoder {
       Thread.currentThread().interrupt();
       return false;
     }
+  }
+
+  public void setExtractor(Extractor extractor) {
+    this.extractor = extractor;
+  }
+
+  public Extractor getExtractor() {
+    return extractor;
   }
 }
