@@ -25,6 +25,7 @@ import android.net.Uri
 import com.pedro.common.frame.MediaFrame
 import com.pedro.common.getIntegerSafe
 import com.pedro.common.getLongSafe
+import com.pedro.common.validMessage
 import java.io.FileDescriptor
 import java.io.IOException
 import java.nio.ByteBuffer
@@ -49,18 +50,30 @@ class AndroidExtractor: Extractor {
   }
 
   override fun initialize(path: String) {
-    reset()
-    mediaExtractor.setDataSource(path)
+    try {
+      reset()
+      mediaExtractor.setDataSource(path)
+    } catch (e: Exception) {
+      throw IOException(e.validMessage())
+    }
   }
 
   override fun initialize(context: Context, uri: Uri) {
-    reset()
-    mediaExtractor.setDataSource(context, uri, null)
+    try {
+      reset()
+      mediaExtractor.setDataSource(context, uri, null)
+    } catch (e: Exception) {
+      throw IOException(e.validMessage())
+    }
   }
 
   override fun initialize(fileDescriptor: FileDescriptor) {
-    reset()
-    mediaExtractor.setDataSource(fileDescriptor)
+    try {
+      reset()
+      mediaExtractor.setDataSource(fileDescriptor)
+    } catch (e: Exception) {
+      throw IOException(e.validMessage())
+    }
   }
 
   override fun readFrame(buffer: ByteBuffer): Int {
