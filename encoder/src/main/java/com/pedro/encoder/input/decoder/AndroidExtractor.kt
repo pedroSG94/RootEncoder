@@ -35,7 +35,7 @@ import java.nio.ByteBuffer
  */
 class AndroidExtractor: Extractor {
 
-  private val mediaExtractor = MediaExtractor()
+  private var mediaExtractor = MediaExtractor()
   private var sleepTime: Long = 0
   private var accumulativeTs: Long = 0
   @Volatile
@@ -52,6 +52,7 @@ class AndroidExtractor: Extractor {
   override fun initialize(path: String) {
     try {
       reset()
+      mediaExtractor = MediaExtractor()
       mediaExtractor.setDataSource(path)
     } catch (e: Exception) {
       throw IOException(e.validMessage())
@@ -61,6 +62,7 @@ class AndroidExtractor: Extractor {
   override fun initialize(context: Context, uri: Uri) {
     try {
       reset()
+      mediaExtractor = MediaExtractor()
       mediaExtractor.setDataSource(context, uri, null)
     } catch (e: Exception) {
       throw IOException(e.validMessage())
@@ -70,6 +72,7 @@ class AndroidExtractor: Extractor {
   override fun initialize(fileDescriptor: FileDescriptor) {
     try {
       reset()
+      mediaExtractor = MediaExtractor()
       mediaExtractor.setDataSource(fileDescriptor)
     } catch (e: Exception) {
       throw IOException(e.validMessage())
