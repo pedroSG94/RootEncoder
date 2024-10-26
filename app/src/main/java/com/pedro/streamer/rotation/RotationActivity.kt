@@ -31,9 +31,9 @@ import com.pedro.encoder.input.sources.audio.MicrophoneSource
 import com.pedro.encoder.input.sources.video.Camera1Source
 import com.pedro.encoder.input.sources.video.Camera2Source
 import com.pedro.encoder.input.video.CameraHelper
-import com.pedro.extrasources.BitmapSource
-import com.pedro.extrasources.CameraUvcSource
-import com.pedro.extrasources.CameraXSource
+//import com.pedro.extrasources.BitmapSource
+//import com.pedro.extrasources.CameraUvcSource
+//import com.pedro.extrasources.CameraXSource
 import com.pedro.streamer.R
 import com.pedro.streamer.utils.FilterMenu
 import com.pedro.streamer.utils.toast
@@ -87,18 +87,18 @@ class RotationActivity : AppCompatActivity(), OnTouchListener {
         }
         R.id.video_source_camerax -> {
           currentVideoSource = item.updateMenuColor(this, currentVideoSource)
-          cameraFragment.genericStream.changeVideoSource(CameraXSource(applicationContext))
+//          cameraFragment.genericStream.changeVideoSource(CameraXSource(applicationContext))
           updateOrientation(false)
         }
         R.id.video_source_camera_uvc -> {
           currentVideoSource = item.updateMenuColor(this, currentVideoSource)
-          cameraFragment.genericStream.changeVideoSource(CameraUvcSource())
+//          cameraFragment.genericStream.changeVideoSource(CameraUvcSource())
           updateOrientation(true)
         }
         R.id.video_source_bitmap -> {
           currentVideoSource = item.updateMenuColor(this, currentVideoSource)
           val bitmap = BitmapFactory.decodeResource(resources, R.mipmap.ic_launcher)
-          cameraFragment.genericStream.changeVideoSource(BitmapSource(bitmap))
+//          cameraFragment.genericStream.changeVideoSource(BitmapSource(bitmap))
           updateOrientation(false)
         }
         R.id.audio_source_microphone -> {

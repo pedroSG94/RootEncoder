@@ -9,7 +9,7 @@ android {
 
   defaultConfig {
     applicationId = "com.pedro.streamer"
-    minSdk = 16
+    minSdk = 19
     targetSdk = 34
     versionCode = libs.versions.versionCode.get().toInt()
     versionName = libs.versions.versionName.get()
@@ -35,7 +35,13 @@ android {
 
 dependencies {
   implementation(project(":library"))
-  implementation(project(":extra-sources"))
+
+//  implementation(project(":extra-sources"))
+
+  implementation(libs.androidx.media3.extractor)
+  implementation(libs.androidx.media3.common)
+  implementation(libs.androidx.media3.datasource)
+
   implementation(libs.androidx.constraintlayout)
   implementation(libs.androidx.appcompat)
   implementation(libs.androidx.multidex)

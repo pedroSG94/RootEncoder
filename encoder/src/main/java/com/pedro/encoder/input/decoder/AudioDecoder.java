@@ -62,7 +62,7 @@ public class AudioDecoder extends BaseDecoder {
       this.channels = audioInfo.getChannels();
       isStereo = channels >= 2;
       this.sampleRate = audioInfo.getSampleRate();
-      this.duration = audioInfo.getSampleRate();
+      this.duration = audioInfo.getDuration();
       fixBuffer();
       return true;
     } catch (Exception e) {

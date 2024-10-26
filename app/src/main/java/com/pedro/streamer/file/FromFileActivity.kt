@@ -30,6 +30,7 @@ import android.widget.TextView
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
+import androidx.media3.common.util.UnstableApi
 import com.pedro.common.ConnectChecker
 import com.pedro.encoder.input.decoder.AudioDecoderInterface
 import com.pedro.encoder.input.decoder.VideoDecoderInterface
@@ -37,6 +38,7 @@ import com.pedro.library.base.recording.RecordController
 import com.pedro.library.generic.GenericFromFile
 import com.pedro.library.view.OpenGlView
 import com.pedro.streamer.R
+import com.pedro.streamer.rotation.Media3Extractor
 import com.pedro.streamer.utils.PathUtils
 import com.pedro.streamer.utils.ScreenOrientation
 import com.pedro.streamer.utils.setColorFilter
@@ -67,7 +69,7 @@ import kotlin.math.max
  * Support SRT with all SRT features
  * [com.pedro.library.srt.SrtFromFile]
  */
-@RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
+@UnstableApi @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
 class FromFileActivity : AppCompatActivity(), ConnectChecker,
   VideoDecoderInterface, AudioDecoderInterface, OnSeekBarChangeListener {
 
@@ -105,6 +107,8 @@ class FromFileActivity : AppCompatActivity(), ConnectChecker,
     openGlView = findViewById(R.id.surfaceView)
     genericFromFile = GenericFromFile(openGlView, this, this, this)
     genericFromFile.setLoopMode(true)
+    genericFromFile.setAudioExtractor(Media3Extractor(this))
+    genericFromFile.setVideoExtractor(Media3Extractor(this))
 
     bStream.setOnClickListener {
       if (genericFromFile.isStreaming) {
