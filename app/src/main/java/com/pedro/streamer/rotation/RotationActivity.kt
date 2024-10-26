@@ -78,28 +78,23 @@ class RotationActivity : AppCompatActivity(), OnTouchListener {
         R.id.video_source_camera1 -> {
           currentVideoSource = item.updateMenuColor(this, currentVideoSource)
           cameraFragment.genericStream.changeVideoSource(Camera1Source(applicationContext))
-          updateOrientation(false)
         }
         R.id.video_source_camera2 -> {
           currentVideoSource = item.updateMenuColor(this, currentVideoSource)
           cameraFragment.genericStream.changeVideoSource(Camera2Source(applicationContext))
-          updateOrientation(false)
         }
         R.id.video_source_camerax -> {
           currentVideoSource = item.updateMenuColor(this, currentVideoSource)
           cameraFragment.genericStream.changeVideoSource(CameraXSource(applicationContext))
-          updateOrientation(false)
         }
         R.id.video_source_camera_uvc -> {
           currentVideoSource = item.updateMenuColor(this, currentVideoSource)
           cameraFragment.genericStream.changeVideoSource(CameraUvcSource())
-          updateOrientation(true)
         }
         R.id.video_source_bitmap -> {
           currentVideoSource = item.updateMenuColor(this, currentVideoSource)
           val bitmap = BitmapFactory.decodeResource(resources, R.mipmap.ic_launcher)
           cameraFragment.genericStream.changeVideoSource(BitmapSource(bitmap))
-          updateOrientation(false)
         }
         R.id.audio_source_microphone -> {
           currentAudioSource = item.updateMenuColor(this, currentAudioSource)
@@ -133,18 +128,5 @@ class RotationActivity : AppCompatActivity(), OnTouchListener {
       return true
     }
     return false
-  }
-
-  private fun updateOrientation(isUvc: Boolean) {
-    //UVC cameras can't adapt orientation depend of the device orientation so we need force use always landscape orientations
-    if (isUvc) {
-      cameraFragment.genericStream.getGlInterface().autoHandleOrientation = false
-      cameraFragment.genericStream.getGlInterface().setCameraOrientation(0)
-    } else { //Reset orientation to the correct orientation depend of device orientation
-      cameraFragment.genericStream.getGlInterface().autoHandleOrientation = true
-      val orientation = CameraHelper.getCameraOrientation(this)
-      cameraFragment.genericStream.getGlInterface().setCameraOrientation(if (orientation == 0) 270 else orientation - 90)
-      cameraFragment.genericStream.getGlInterface().setIsPortrait(CameraHelper.isPortrait(this))
-    }
   }
 }

@@ -25,6 +25,7 @@ import com.pedro.encoder.Frame
 import com.pedro.encoder.input.audio.GetMicrophoneData
 import com.pedro.encoder.input.decoder.AudioDecoder
 import com.pedro.encoder.input.decoder.DecoderInterface
+import com.pedro.encoder.input.decoder.Extractor
 import java.io.IOException
 
 /**
@@ -62,7 +63,7 @@ class AudioFileSource(
 
   override fun create(sampleRate: Int, isStereo: Boolean, echoCanceler: Boolean, noiseSuppressor: Boolean): Boolean {
     //create extractor to confirm valid parameters
-    val result = audioDecoder.initExtractor(context, path, null)
+    val result = audioDecoder.initExtractor(context, path)
     if (!result) {
       throw IllegalArgumentException("Audio file track not found")
     }
@@ -125,7 +126,8 @@ class AudioFileSource(
     val isStereo = audioDecoder.isStereo
     val wasRunning = audioDecoder.isRunning
     val audioDecoder = AudioDecoder(getMicrophoneData, audioDecoderInterface, decoderInterface)
-    if (!audioDecoder.initExtractor(context, uri, null)) throw IOException("Extraction failed")
+    audioDecoder.extractor = this.audioDecoder.extractor
+    if (!audioDecoder.initExtractor(context, uri)) throw IOException("Extraction failed")
     if (sampleRate != audioDecoder.sampleRate) throw IOException("SampleRate must be the same that the previous file")
     if (isStereo != audioDecoder.isStereo) throw IOException("Channels must be the same that the previous file")
     this.audioDecoder.stop()
@@ -161,4 +163,8 @@ class AudioFileSource(
   }
 
   fun isAudioDeviceEnabled(): Boolean = audioTrackPlayer?.playState == AudioTrack.PLAYSTATE_PLAYING
+
+  fun setExtractor(extractor: Extractor) {
+    audioDecoder.extractor = extractor
+  }
 }

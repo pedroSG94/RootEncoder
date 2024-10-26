@@ -33,7 +33,7 @@ abstract class BaseSender(
         protected set
     var droppedVideoFrames: Long = 0
         protected set
-    protected val bitrateManager: BitrateManager = BitrateManager(connectChecker)
+    private val bitrateManager: BitrateManager = BitrateManager(connectChecker)
     protected var isEnableLogs = true
     private var job: Job? = null
     protected val scope = CoroutineScope(Dispatchers.IO)

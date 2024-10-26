@@ -16,14 +16,13 @@
  *
  */
 
-package com.pedro.common.socket
+package com.pedro.encoder.input.decoder
 
 /**
- * Created by pedro on 22/9/24.
+ * Created by pedro on 18/10/24.
  */
-interface StreamSocket {
-  suspend fun connect()
-  suspend fun close()
-  fun isConnected(): Boolean
-  fun isReachable(): Boolean
-}
+data class AudioInfo(
+  val sampleRate: Int,
+  val channels: Int,
+  val duration: Long
+)

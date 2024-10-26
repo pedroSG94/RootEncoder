@@ -26,7 +26,7 @@ import com.pedro.common.VideoCodec
 import com.pedro.common.clone
 import com.pedro.common.frame.MediaFrame
 import com.pedro.common.onMainThread
-import com.pedro.common.socket.TcpStreamSocket
+import com.pedro.common.socket.TcpStreamSocketImp
 import com.pedro.common.toMediaFrameInfo
 import com.pedro.common.validMessage
 import com.pedro.rtsp.rtsp.commands.CommandsManager
@@ -57,7 +57,7 @@ class RtspClient(private val connectChecker: ConnectChecker) {
   private val validSchemes = arrayOf("rtsp", "rtsps")
 
   //sockets objects
-  private var socket: TcpStreamSocket? = null
+  private var socket: TcpStreamSocketImp? = null
   private var scope = CoroutineScope(Dispatchers.IO)
   private var scopeRetry = CoroutineScope(Dispatchers.IO)
   private var job: Job? = null
@@ -219,13 +219,6 @@ class RtspClient(private val connectChecker: ConnectChecker) {
 
         val error = runCatching {
           commandsManager.setUrl(host, port, "/$path")
-          rtspSender.setSocketsInfo(commandsManager.protocol,
-            host,
-            commandsManager.videoClientPorts,
-            commandsManager.audioClientPorts,
-            commandsManager.videoServerPorts,
-            commandsManager.audioServerPorts
-            )
           if (!commandsManager.audioDisabled) {
             rtspSender.setAudioInfo(commandsManager.sampleRate, commandsManager.isStereo)
           }
@@ -244,7 +237,7 @@ class RtspClient(private val connectChecker: ConnectChecker) {
             }
             rtspSender.setVideoInfo(commandsManager.sps!!, commandsManager.pps, commandsManager.vps)
           }
-          val socket = TcpStreamSocket(host, port, tlsEnabled, certificates)
+          val socket = TcpStreamSocketImp(host, port, tlsEnabled, certificates)
           this@RtspClient.socket = socket
           socket.connect()
           socket.write(commandsManager.createOptions())
@@ -333,6 +326,13 @@ class RtspClient(private val connectChecker: ConnectChecker) {
             }
             return@launch
           }
+          rtspSender.setSocketsInfo(commandsManager.protocol,
+            host,
+            commandsManager.videoClientPorts,
+            commandsManager.audioClientPorts,
+            commandsManager.videoServerPorts,
+            commandsManager.audioServerPorts
+          )
           rtspSender.setSocket(socket)
           rtspSender.start()
           reTries = numRetry

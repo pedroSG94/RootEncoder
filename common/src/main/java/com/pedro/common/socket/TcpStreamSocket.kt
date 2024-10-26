@@ -19,14 +19,9 @@
 package com.pedro.common.socket
 
 import io.ktor.network.selector.SelectorManager
-import io.ktor.network.sockets.InetSocketAddress
-import io.ktor.network.sockets.ReadWriteSocket
-import io.ktor.network.sockets.aSocket
-import io.ktor.network.sockets.openReadChannel
-import io.ktor.network.sockets.openWriteChannel
-import io.ktor.network.tls.tls
 import io.ktor.utils.io.ByteReadChannel
 import io.ktor.utils.io.ByteWriteChannel
+import io.ktor.utils.io.readByte
 import io.ktor.utils.io.readFully
 import io.ktor.utils.io.readUTF8Line
 import io.ktor.utils.io.writeByte
@@ -35,49 +30,23 @@ import io.ktor.utils.io.writeStringUtf8
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withTimeout
 import java.net.ConnectException
-import java.security.SecureRandom
-import javax.net.ssl.TrustManager
 
 /**
  * Created by pedro on 22/9/24.
  */
-class TcpStreamSocket(
-  private val host: String,
-  private val port: Int,
-  private val secured: Boolean = false,
-  private val certificate: TrustManager? = null
-): StreamSocket(host, port) {
+abstract class TcpStreamSocket: StreamSocket {
 
   private val timeout = 5000L
-  private var input: ByteReadChannel? = null
-  private var output: ByteWriteChannel? = null
-
-  override suspend fun buildSocketConfigAndConnect(selectorManager: SelectorManager): ReadWriteSocket {
-    val builder = aSocket(selectorManager).tcp()
-    val socket = if (secured) {
-      builder.connect(remoteAddress = InetSocketAddress(host, port)).tls(Dispatchers.Default) {
-        trustManager = certificate
-        random = SecureRandom()
-      }
-    } else {
-      builder.connect(host, port)
-    }
-    input = socket.openReadChannel()
-    output = socket.openWriteChannel(autoFlush = false)
-    return socket
-  }
-
-  override suspend fun closeResources() {
-    input = null
-    output = null
-  }
+  protected var input: ByteReadChannel? = null
+  protected var output: ByteWriteChannel? = null
+  protected var selectorManager = SelectorManager(Dispatchers.IO)
 
   suspend fun flush() {
     output?.flush()
   }
 
   suspend fun write(b: Int) = withTimeout(timeout) {
-    output?.writeByte(b)
+    output?.writeByte(b.toByte())
   }
 
   suspend fun write(b: ByteArray) = withTimeout(timeout) {
@@ -85,7 +54,7 @@ class TcpStreamSocket(
   }
 
   suspend fun write(b: ByteArray, offset: Int, size: Int) = withTimeout(timeout) {
-    output?.writeFully(b, offset, size)
+    output?.writeFully(b, offset, offset + size)
   }
 
   suspend fun writeUInt16(b: Int) {

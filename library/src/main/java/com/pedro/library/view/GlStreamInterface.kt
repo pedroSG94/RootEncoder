@@ -31,6 +31,7 @@ import com.pedro.encoder.input.gl.render.MainRender
 import com.pedro.encoder.input.gl.render.filters.BaseFilterRender
 import com.pedro.encoder.input.gl.render.filters.NoFilterRender
 import com.pedro.encoder.input.sources.OrientationForced
+import com.pedro.encoder.input.video.CameraHelper
 import com.pedro.encoder.input.video.FpsLimiter
 import com.pedro.encoder.utils.gl.AspectRatioMode
 import com.pedro.encoder.utils.gl.GlUtil
@@ -75,8 +76,10 @@ class GlStreamInterface(private val context: Context): OnFrameAvailableListener,
   private val fpsLimiter = FpsLimiter()
   private val forceRender = ForceRenderer()
   var autoHandleOrientation = false
+  private var shouldHandleOrientation = true
+
   private val sensorRotationManager = SensorRotationManager(context, true, true) { orientation, isPortrait ->
-    if (autoHandleOrientation) {
+    if (autoHandleOrientation && shouldHandleOrientation) {
       setCameraOrientation(orientation)
       this.isPortrait = isPortrait
     }
@@ -151,7 +154,7 @@ class GlStreamInterface(private val context: Context): OnFrameAvailableListener,
       running.set(true)
       mainRender.getSurfaceTexture().setOnFrameAvailableListener(this)
       forceRender.start { executor?.execute { draw(true) } }
-      if (autoHandleOrientation) sensorRotationManager.start()
+      sensorRotationManager.start()
     }
   }
 
@@ -232,6 +235,21 @@ class GlStreamInterface(private val context: Context): OnFrameAvailableListener,
   }
 
   fun forceOrientation(forced: OrientationForced) {
+    when (forced) {
+      OrientationForced.PORTRAIT -> {
+        setCameraOrientation(90)
+        shouldHandleOrientation = false
+      }
+      OrientationForced.LANDSCAPE -> {
+        setCameraOrientation(0)
+        shouldHandleOrientation = false
+      }
+      OrientationForced.NONE -> {
+        val orientation = CameraHelper.getCameraOrientation(context)
+        setCameraOrientation(if (orientation == 0) 270 else orientation - 90)
+        shouldHandleOrientation = true
+      }
+    }
     this.orientationForced = forced
   }
 

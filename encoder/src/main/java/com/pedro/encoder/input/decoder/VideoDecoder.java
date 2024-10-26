@@ -22,6 +22,8 @@ import android.os.Build;
 import android.view.Surface;
 
 import com.pedro.common.ExtensionsKt;
+import com.pedro.common.frame.MediaFrame;
+
 import java.nio.ByteBuffer;
 
 /**
@@ -41,29 +43,17 @@ public class VideoDecoder extends BaseDecoder {
   }
 
   @Override
-  protected boolean extract(MediaExtractor videoExtractor) {
-    for (int i = 0; i < videoExtractor.getTrackCount() && !mime.startsWith("video/"); i++) {
-      mediaFormat = videoExtractor.getTrackFormat(i);
-      mime = mediaFormat.getString(MediaFormat.KEY_MIME);
-      if (mime.startsWith("video/")) {
-        videoExtractor.selectTrack(i);
-      } else {
-        mediaFormat = null;
-      }
-    }
-    if (mediaFormat != null) {
-      final Integer width = ExtensionsKt.getIntegerSafe(mediaFormat, MediaFormat.KEY_WIDTH);
-      final Integer height = ExtensionsKt.getIntegerSafe(mediaFormat, MediaFormat.KEY_HEIGHT);
-      final Long duration = ExtensionsKt.getLongSafe(mediaFormat, MediaFormat.KEY_DURATION);
-      final Integer fps = ExtensionsKt.getIntegerSafe(mediaFormat, MediaFormat.KEY_FRAME_RATE);
-      if (width == null || height == null) return false;
-      this.width = width;
-      this.height = height;
-      this.duration = duration != null ? duration : -1;
-      this.fps = fps != null ? fps : 30;
+  protected boolean extract(Extractor extractor) {
+    try {
+      mime = extractor.selectTrack(MediaFrame.Type.VIDEO);
+      VideoInfo info = extractor.getVideoInfo();
+      mediaFormat = extractor.getFormat();
+      this.width = info.getWidth();
+      this.height = info.getHeight();
+      this.duration = info.getDuration();
+      this.fps = info.getFps();
       return true;
-      //video decoder not supported
-    } else {
+    } catch (Exception e) {
       mime = "";
       return false;
     }

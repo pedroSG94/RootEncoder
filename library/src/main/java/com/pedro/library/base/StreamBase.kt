@@ -23,8 +23,10 @@ import android.media.MediaFormat
 import android.os.Build
 import android.util.Size
 import android.view.Surface
+import android.view.SurfaceHolder
 import android.view.SurfaceView
 import android.view.TextureView
+import android.view.TextureView.SurfaceTextureListener
 import androidx.annotation.RequiresApi
 import com.pedro.common.AudioCodec
 import com.pedro.common.VideoCodec
@@ -258,16 +260,55 @@ abstract class StreamBase(
    * Start preview in the selected TextureView.
    * Must be called after prepareVideo.
    */
-  fun startPreview(textureView: TextureView) {
-    startPreview(Surface(textureView.surfaceTexture), textureView.width, textureView.height)
+  @JvmOverloads
+  fun startPreview(textureView: TextureView, autoHandle: Boolean = false) {
+    if (autoHandle) {
+      textureView.surfaceTextureListener = object: SurfaceTextureListener {
+        override fun onSurfaceTextureAvailable(texture: SurfaceTexture, width: Int, height: Int) {
+          if (!isOnPreview) startPreview(textureView)
+        }
+
+        override fun onSurfaceTextureSizeChanged(texture: SurfaceTexture, width: Int, height: Int) {
+          getGlInterface().setPreviewResolution(width, height)
+        }
+
+        override fun onSurfaceTextureDestroyed(texture: SurfaceTexture): Boolean {
+          if (isOnPreview) stopPreview()
+          return true
+        }
+
+        override fun onSurfaceTextureUpdated(texture: SurfaceTexture) {}
+      }
+      if (textureView.isAvailable && !isOnPreview) startPreview(textureView)
+    } else {
+      startPreview(Surface(textureView.surfaceTexture), textureView.width, textureView.height)
+    }
   }
 
   /**
    * Start preview in the selected SurfaceView.
    * Must be called after prepareVideo.
    */
-  fun startPreview(surfaceView: SurfaceView) {
-    startPreview(surfaceView.holder.surface, surfaceView.width, surfaceView.height)
+  @JvmOverloads
+  fun startPreview(surfaceView: SurfaceView, autoHandle: Boolean = false) {
+    if (autoHandle) {
+      surfaceView.holder.addCallback(object: SurfaceHolder.Callback {
+        override fun surfaceCreated(holder: SurfaceHolder) {
+          if (!isOnPreview) startPreview(surfaceView)
+        }
+
+        override fun surfaceChanged(holder: SurfaceHolder, format: Int, width: Int, height: Int) {
+          getGlInterface().setPreviewResolution(width, height)
+        }
+
+        override fun surfaceDestroyed(holder: SurfaceHolder) {
+          if (isOnPreview) stopPreview()
+        }
+      })
+      if (surfaceView.holder.surface.isValid && !isOnPreview) startPreview(surfaceView)
+    } else {
+      startPreview(surfaceView.holder.surface, surfaceView.width, surfaceView.height)
+    }
   }
 
   /**
