@@ -17,7 +17,7 @@
 package com.pedro.rtsp.rtcp
 
 import com.pedro.common.TimeUtils
-import com.pedro.common.socket.TcpStreamSocket
+import com.pedro.common.socket.TcpStreamSocketImp
 import com.pedro.common.socket.UdpStreamSocket
 import com.pedro.rtsp.Utils
 import com.pedro.rtsp.rtsp.Protocol
@@ -46,7 +46,7 @@ class RtcpReportTest {
   @Mock
   private lateinit var udpSocket: UdpStreamSocket
   @Mock
-  private lateinit var tcpSocket: TcpStreamSocket
+  private lateinit var tcpSocket: TcpStreamSocketImp
 
   private val timeUtilsMocked = Mockito.mockStatic(TimeUtils::class.java)
   private var fakeTime = 7502849023L

@@ -16,7 +16,7 @@
 
 package com.pedro.rtmp.utils.socket
 
-import com.pedro.common.socket.TcpStreamSocket
+import com.pedro.common.socket.TcpStreamSocketImp
 import javax.net.ssl.TrustManager
 
 /**
@@ -26,7 +26,7 @@ class TcpSocket(
   host: String, port: Int, secured: Boolean, certificates: TrustManager?
 ): RtmpSocket() {
 
-  private val socket = TcpStreamSocket(host, port, secured, certificates)
+  private val socket = TcpStreamSocketImp(host, port, secured, certificates)
 
   override suspend fun flush(isPacket: Boolean) {
     socket.flush()

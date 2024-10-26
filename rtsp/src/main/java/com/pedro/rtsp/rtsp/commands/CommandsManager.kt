@@ -22,6 +22,7 @@ import com.pedro.common.TimeUtils
 import com.pedro.common.VideoCodec
 import com.pedro.common.getMd5Hash
 import com.pedro.common.socket.TcpStreamSocket
+import com.pedro.common.socket.TcpStreamSocketImp
 import com.pedro.rtsp.rtsp.Protocol
 import com.pedro.rtsp.rtsp.commands.SdpBody.createAV1Body
 import com.pedro.rtsp.rtsp.commands.SdpBody.createAacBody
@@ -53,6 +54,8 @@ open class CommandsManager {
     private set
   var pps: ByteBuffer? = null
     private set
+  var vps: ByteBuffer? = null
+    private set
   private var cSeq = 0
   private var sessionId: String? = null
   private val timeStamp: Long
@@ -70,9 +73,12 @@ open class CommandsManager {
   val audioServerPorts = intArrayOf(5004, 5005)
   val videoServerPorts = intArrayOf(5006, 5007)
 
-  //For H265
-  var vps: ByteBuffer? = null
-    private set
+  val spsString: String
+    get() = sps?.getData()?.encodeToString() ?: ""
+  val ppsString: String
+    get() = pps?.getData()?.encodeToString() ?: ""
+  val vpsString: String
+    get() = vps?.getData()?.encodeToString() ?: ""
 
   //For auth
   var user: String? = null
@@ -132,13 +138,6 @@ open class CommandsManager {
     cSeq = 0
     sessionId = null
   }
-
-  private val spsString: String
-    get() = sps?.getData()?.encodeToString() ?: ""
-  private val ppsString: String
-    get() = pps?.getData()?.encodeToString() ?: ""
-  private val vpsString: String
-    get() = vps?.getData()?.encodeToString() ?: ""
 
   private fun addHeaders(): String {
     return "CSeq: ${++cSeq}\r\n" +

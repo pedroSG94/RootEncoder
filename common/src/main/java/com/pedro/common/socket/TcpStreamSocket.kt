@@ -19,13 +19,6 @@
 package com.pedro.common.socket
 
 import io.ktor.network.selector.SelectorManager
-import io.ktor.network.sockets.InetSocketAddress
-import io.ktor.network.sockets.ReadWriteSocket
-import io.ktor.network.sockets.aSocket
-import io.ktor.network.sockets.isClosed
-import io.ktor.network.sockets.openReadChannel
-import io.ktor.network.sockets.openWriteChannel
-import io.ktor.network.tls.tls
 import io.ktor.utils.io.ByteReadChannel
 import io.ktor.utils.io.ByteWriteChannel
 import io.ktor.utils.io.readByte
@@ -35,58 +28,18 @@ import io.ktor.utils.io.writeByte
 import io.ktor.utils.io.writeFully
 import io.ktor.utils.io.writeStringUtf8
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeout
 import java.net.ConnectException
-import java.security.SecureRandom
-import javax.net.ssl.TrustManager
-import java.net.InetAddress
 
 /**
  * Created by pedro on 22/9/24.
  */
-class TcpStreamSocket(
-  private val host: String,
-  private val port: Int,
-  private val secured: Boolean = false,
-  private val certificate: TrustManager? = null
-): StreamSocket {
+abstract class TcpStreamSocket: StreamSocket {
 
   private val timeout = 5000L
-  private var input: ByteReadChannel? = null
-  private var output: ByteWriteChannel? = null
-  private var selectorManager = SelectorManager(Dispatchers.IO)
-  private var socket: ReadWriteSocket? = null
-  private var address: InetAddress? = null
-
-  override suspend fun connect() {
-    selectorManager = SelectorManager(Dispatchers.IO)
-    val builder = aSocket(selectorManager).tcp().connect(remoteAddress = InetSocketAddress(host, port))
-    val socket = if (secured) {
-      builder.tls(Dispatchers.Default) {
-        trustManager = certificate
-        random = SecureRandom()
-      }
-    } else builder
-    input = socket.openReadChannel()
-    output = socket.openWriteChannel(autoFlush = false)
-    address = java.net.InetSocketAddress(host, port).address
-    this.socket = socket
-  }
-
-  override suspend fun close() = withContext(Dispatchers.IO) {
-    try {
-      address = null
-      input = null
-      output = null
-      socket?.close()
-      selectorManager.close()
-    } catch (ignored: Exception) {}
-  }
-
-  override fun isConnected(): Boolean = socket?.isClosed != true
-
-  override fun isReachable(): Boolean = address?.isReachable(5000) ?: false
+  protected var input: ByteReadChannel? = null
+  protected var output: ByteWriteChannel? = null
+  protected var selectorManager = SelectorManager(Dispatchers.IO)
 
   suspend fun flush() {
     output?.flush()
