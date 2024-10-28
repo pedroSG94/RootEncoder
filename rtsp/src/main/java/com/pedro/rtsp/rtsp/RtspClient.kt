@@ -326,12 +326,25 @@ class RtspClient(private val connectChecker: ConnectChecker) {
             }
             return@launch
           }
+          val videoClientPorts = if (!commandsManager.videoDisabled) {
+            commandsManager.videoClientPorts
+          } else arrayOf<Int?>(null, null)
+          val videoServerPorts = if (!commandsManager.videoDisabled) {
+            commandsManager.videoServerPorts
+          } else arrayOf<Int?>(null, null)
+          val audioClientPorts = if (!commandsManager.audioDisabled) {
+            commandsManager.audioClientPorts
+          } else arrayOf<Int?>(null, null)
+          val audioServerPorts = if (!commandsManager.audioDisabled) {
+            commandsManager.audioServerPorts
+          } else arrayOf<Int?>(null, null)
+
           rtspSender.setSocketsInfo(commandsManager.protocol,
             host,
-            commandsManager.videoClientPorts,
-            commandsManager.audioClientPorts,
-            commandsManager.videoServerPorts,
-            commandsManager.audioServerPorts
+            videoClientPorts,
+            audioClientPorts,
+            videoServerPorts,
+            audioServerPorts
           )
           rtspSender.setSocket(socket)
           rtspSender.start()
