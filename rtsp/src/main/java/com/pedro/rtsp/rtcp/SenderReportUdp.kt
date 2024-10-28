@@ -25,14 +25,14 @@ import java.io.IOException
  * Created by pedro on 8/11/18.
  */
 class SenderReportUdp(
-  private val videoSocket: UdpStreamSocket,
-  private val audioSocket: UdpStreamSocket,
+  private val videoSocket: UdpStreamSocket?,
+  private val audioSocket: UdpStreamSocket?,
 ) : BaseSenderReport() {
 
   @Throws(IOException::class)
   override suspend fun setSocket(socket: TcpStreamSocket) {
-    videoSocket.connect()
-    audioSocket.connect()
+    videoSocket?.connect()
+    audioSocket?.connect()
   }
 
   @Throws(IOException::class)
@@ -41,16 +41,16 @@ class SenderReportUdp(
   }
 
   override suspend fun close() {
-    videoSocket.close()
-    audioSocket.close()
+    videoSocket?.close()
+    audioSocket?.close()
   }
 
   @Throws(IOException::class)
   private suspend fun sendReportUDP(buffer: ByteArray, isVideo: Boolean) {
     if (isVideo) {
-      videoSocket.writePacket(buffer)
+      videoSocket?.writePacket(buffer)
     } else {
-      audioSocket.writePacket(buffer)
+      audioSocket?.writePacket(buffer)
     }
   }
 }

@@ -44,18 +44,22 @@ abstract class BaseSenderReport internal constructor() {
     @JvmStatic
     fun getInstance(
       protocol: Protocol, host: String,
-      videoSourcePort: Int, audioSourcePort: Int,
-      videoServerPort: Int, audioServerPort: Int,
+      videoSourcePort: Int?, audioSourcePort: Int?,
+      videoServerPort: Int?, audioServerPort: Int?,
     ): BaseSenderReport {
       return if (protocol === Protocol.TCP) {
         SenderReportTcp()
       } else {
-        val videoSocket = UdpStreamSocket(
-          host, videoServerPort, videoSourcePort, receiveSize = RtpConstants.REPORT_PACKET_LENGTH
-        )
-        val audioSocket = UdpStreamSocket(
-          host, audioServerPort, audioSourcePort, receiveSize = RtpConstants.REPORT_PACKET_LENGTH
-        )
+        val videoSocket = if (videoServerPort != null) {
+          UdpStreamSocket(
+            host, videoServerPort, videoSourcePort, receiveSize = RtpConstants.REPORT_PACKET_LENGTH
+          )
+        } else null
+        val audioSocket = if (audioServerPort != null) {
+          UdpStreamSocket(
+            host, audioServerPort, audioSourcePort, receiveSize = RtpConstants.REPORT_PACKET_LENGTH
+          )
+        } else null
         SenderReportUdp(videoSocket, audioSocket)
       }
     }

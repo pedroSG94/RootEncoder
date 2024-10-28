@@ -32,13 +32,13 @@ class CommandParserTest {
 
   @Test
   fun `GIVEN a SETUP command with text from server WHEN parse using udp protocol THEN change server ports`() {
-    val audioClientPorts = intArrayOf(5000, 5001)
-    val videoClientPorts = intArrayOf(5002, 5003)
-    val audioServerPorts = intArrayOf(5004, 5005)
-    val videoServerPorts = intArrayOf(5006, 5007)
+    val audioClientPorts = arrayOf<Int?>(5000, 5001)
+    val videoClientPorts = arrayOf<Int?>(5002, 5003)
+    val audioServerPorts = arrayOf<Int?>(5004, 5005)
+    val videoServerPorts = arrayOf<Int?>(5006, 5007)
 
-    val expectedAudioServerPorts = intArrayOf(5014, 5015)
-    val expectedVideoServerPorts = intArrayOf(5016, 5017)
+    val expectedAudioServerPorts = arrayOf<Int?>(5014, 5015)
+    val expectedVideoServerPorts = arrayOf<Int?>(5016, 5017)
     val serverCommandAudio = "RTSP/1.0 200 OK\r\n" +
         "Date: Fri, 15 Apr 2022 16:16:30 UTC\r\n" +
         "Expires: Fri, 15 Apr 2022 16:16:30 UTC\r\n" +

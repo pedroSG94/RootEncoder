@@ -32,18 +32,22 @@ abstract class BaseRtpSocket {
     @JvmStatic
     fun getInstance(
       protocol: Protocol, host: String,
-      videoSourcePort: Int, audioSourcePort: Int,
-      videoServerPort: Int, audioServerPort: Int,
+      videoSourcePort: Int?, audioSourcePort: Int?,
+      videoServerPort: Int?, audioServerPort: Int?,
     ): BaseRtpSocket {
       return if (protocol === Protocol.TCP) {
         RtpSocketTcp()
       } else {
-        val videoSocket = UdpStreamSocket(
-          host, videoServerPort, videoSourcePort, receiveSize = RtpConstants.MTU
-        )
-        val audioSocket = UdpStreamSocket(
-          host, audioServerPort, audioSourcePort, receiveSize = RtpConstants.MTU
-        )
+        val videoSocket = if (videoServerPort != null) {
+          UdpStreamSocket(
+            host, videoServerPort, videoSourcePort, receiveSize = RtpConstants.REPORT_PACKET_LENGTH
+          )
+        } else null
+        val audioSocket = if (audioServerPort != null) {
+          UdpStreamSocket(
+            host, audioServerPort, audioSourcePort, receiveSize = RtpConstants.REPORT_PACKET_LENGTH
+          )
+        } else null
         RtpSocketUdp(videoSocket, audioSocket)
       }
     }

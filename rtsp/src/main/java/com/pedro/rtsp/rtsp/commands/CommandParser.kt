@@ -29,8 +29,8 @@ class CommandParser {
     private const val TAG = "CommandParser"
   }
 
-  fun loadServerPorts(command: Command, protocol: Protocol, audioClientPorts: IntArray,
-    videoClientPorts: IntArray, audioServerPorts: IntArray, videoServerPorts: IntArray): Boolean {
+  fun loadServerPorts(command: Command, protocol: Protocol, audioClientPorts: Array<Int?>,
+    videoClientPorts: Array<Int?>, audioServerPorts: Array<Int?>, videoServerPorts: Array<Int?>): Boolean {
     var isAudio = true
     if (command.method == Method.SETUP && protocol == Protocol.UDP) {
       val clientPattern = Pattern.compile("client_port=([0-9]+)-([0-9]+)")

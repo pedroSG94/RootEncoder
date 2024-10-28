@@ -68,10 +68,10 @@ open class CommandsManager {
   var videoCodec = VideoCodec.H264
   var audioCodec = AudioCodec.AAC
   //For udp
-  val audioClientPorts = intArrayOf(5000, 5001)
-  val videoClientPorts = intArrayOf(5002, 5003)
-  val audioServerPorts = intArrayOf(5004, 5005)
-  val videoServerPorts = intArrayOf(5006, 5007)
+  val audioClientPorts = arrayOf<Int?>(5000, 5001)
+  val videoClientPorts = arrayOf<Int?>(5002, 5003)
+  val audioServerPorts = arrayOf<Int?>(5004, 5005)
+  val videoServerPorts = arrayOf<Int?>(5006, 5007)
 
   val spsString: String
     get() = sps?.getData()?.encodeToString() ?: ""
