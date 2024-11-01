@@ -16,31 +16,45 @@
  *
  */
 
-package com.pedro.encoder.input.decoder
+package com.pedro.extrasources.extractor
 
+import android.annotation.SuppressLint
 import android.content.Context
-import android.media.MediaExtractor
 import android.media.MediaFormat
+import android.media.MediaMetadataRetriever
 import android.net.Uri
+import androidx.core.content.FileProvider
+import androidx.core.net.toUri
+import androidx.media3.exoplayer.MediaExtractorCompat
 import com.pedro.common.frame.MediaFrame
 import com.pedro.common.getIntegerSafe
-import com.pedro.common.getLongSafe
 import com.pedro.common.validMessage
+import com.pedro.encoder.input.decoder.AudioInfo
+import com.pedro.encoder.input.decoder.Extractor
+import com.pedro.encoder.input.decoder.VideoInfo
+import java.io.File
 import java.io.FileDescriptor
 import java.io.IOException
 import java.nio.ByteBuffer
 
 /**
- * Created by pedro on 18/10/24.
+ * Created by pedro on 30/10/24.
+ *
+ * Extractor implementation using media3 library.
+ *
+ * Note:
+ * Using this implementation the library can't extract the duration so we are using MediaMetadataRetriever to do it.
  */
-class AndroidExtractor: Extractor {
+@SuppressLint("UnsafeOptInUsageError")
+class Media3Extractor(private val context: Context): Extractor {
 
-  private var mediaExtractor = MediaExtractor()
+  private var mediaExtractor = MediaExtractorCompat(context)
   private var sleepTime: Long = 0
   private var accumulativeTs: Long = 0
   @Volatile
   private var lastExtractorTs: Long = 0
   private var format: MediaFormat? = null
+  private var duration = -1L
 
   override fun selectTrack(type: MediaFrame.Type): String {
     return when (type) {
@@ -50,20 +64,18 @@ class AndroidExtractor: Extractor {
   }
 
   override fun initialize(path: String) {
-    try {
-      reset()
-      mediaExtractor = MediaExtractor()
-      mediaExtractor.setDataSource(path)
-    } catch (e: Exception) {
-      throw IOException(e.validMessage())
-    }
+    initialize(context, path.toUri())
   }
 
   override fun initialize(context: Context, uri: Uri) {
     try {
       reset()
-      mediaExtractor = MediaExtractor()
-      mediaExtractor.setDataSource(context, uri, null)
+      val metadata = MediaMetadataRetriever()
+      metadata.setDataSource(context, uri)
+      val duration = metadata.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)
+      this.duration = duration?.toLongOrNull()?.times(1000) ?: 0
+      mediaExtractor = MediaExtractorCompat(context)
+      mediaExtractor.setDataSource(uri, 0)
     } catch (e: Exception) {
       throw IOException(e.validMessage())
     }
@@ -71,9 +83,9 @@ class AndroidExtractor: Extractor {
 
   override fun initialize(fileDescriptor: FileDescriptor) {
     try {
-      reset()
-      mediaExtractor = MediaExtractor()
-      mediaExtractor.setDataSource(fileDescriptor)
+      val file = File(fileDescriptor.toString())
+      val uri = FileProvider.getUriForFile(context, context.packageName + ".fileprovider", file)
+      initialize(context, uri)
     } catch (e: Exception) {
       throw IOException(e.validMessage())
     }
@@ -100,7 +112,7 @@ class AndroidExtractor: Extractor {
   }
 
   override fun seekTo(time: Long) {
-    mediaExtractor.seekTo(time, MediaExtractor.SEEK_TO_PREVIOUS_SYNC)
+    mediaExtractor.seekTo(time, MediaExtractorCompat.SEEK_TO_PREVIOUS_SYNC)
     lastExtractorTs = getTimeStamp()
   }
 
@@ -112,7 +124,6 @@ class AndroidExtractor: Extractor {
     val format = this.format ?: throw IOException("Extractor track not selected")
     val width = format.getIntegerSafe(MediaFormat.KEY_WIDTH) ?: throw IOException("Width info is required")
     val height = format.getIntegerSafe(MediaFormat.KEY_HEIGHT) ?: throw IOException("Height info is required")
-    val duration = format.getLongSafe(MediaFormat.KEY_DURATION) ?: 0
     val fps = format.getIntegerSafe(MediaFormat.KEY_FRAME_RATE) ?: 30
     return VideoInfo(width, height, fps, duration)
   }
@@ -121,7 +132,6 @@ class AndroidExtractor: Extractor {
     val format = this.format ?: throw IOException("Extractor track not selected")
     val sampleRate = format.getIntegerSafe(MediaFormat.KEY_SAMPLE_RATE) ?: throw IOException("Channels info is required")
     val channels = format.getIntegerSafe(MediaFormat.KEY_CHANNEL_COUNT) ?: throw IOException("SampleRate info is required")
-    val duration = format.getLongSafe(MediaFormat.KEY_DURATION) ?: 0
     return AudioInfo(sampleRate, channels, duration)
   }
 
@@ -143,6 +153,7 @@ class AndroidExtractor: Extractor {
   }
 
   private fun reset() {
+    duration = -1
     sleepTime = 0
     accumulativeTs = 0
     lastExtractorTs = 0

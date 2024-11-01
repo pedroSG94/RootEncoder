@@ -20,6 +20,7 @@ junit = "4.13.2"
 mockito = "5.4.0"
 ktor = "3.0.0"
 uvcandroid = "1.0.7"
+media3 = "1.4.1"
 
 [libraries]
 androidx-annotation = { module = "androidx.annotation:annotation", version.ref = "annotation" }
@@ -36,6 +37,7 @@ ktor-network = { module = "io.ktor:ktor-network", version.ref = "ktor" }
 ktor-network-tls = { module = "io.ktor:ktor-network-tls", version.ref = "ktor" }
 mockito-kotlin = { module = "org.mockito.kotlin:mockito-kotlin", version.ref = "mockito" }
 uvcandroid = { module = "com.herohan:UVCAndroid", version.ref = "uvcandroid" }
+androidx-media3-exoplayer = { module = "androidx.media3:media3-exoplayer", version.ref = "media3" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

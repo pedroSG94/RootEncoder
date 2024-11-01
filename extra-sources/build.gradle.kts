@@ -53,6 +53,7 @@ dependencies {
     implementation(libs.androidx.appcompat)
     implementation(libs.bundles.androidx.camera)
     implementation(libs.uvcandroid)
+    implementation(libs.androidx.media3.exoplayer)
     testImplementation(libs.junit)
     api(project(":encoder"))
 }
