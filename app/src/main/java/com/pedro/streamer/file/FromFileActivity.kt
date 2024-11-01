@@ -33,6 +33,7 @@ import androidx.appcompat.app.AppCompatActivity
 import com.pedro.common.ConnectChecker
 import com.pedro.encoder.input.decoder.AudioDecoderInterface
 import com.pedro.encoder.input.decoder.VideoDecoderInterface
+import com.pedro.extrasources.extractor.Media3Extractor
 import com.pedro.library.base.recording.RecordController
 import com.pedro.library.generic.GenericFromFile
 import com.pedro.library.view.OpenGlView
@@ -105,6 +106,8 @@ class FromFileActivity : AppCompatActivity(), ConnectChecker,
     openGlView = findViewById(R.id.surfaceView)
     genericFromFile = GenericFromFile(openGlView, this, this, this)
     genericFromFile.setLoopMode(true)
+    genericFromFile.setAudioExtractor(Media3Extractor(this))
+    genericFromFile.setVideoExtractor(Media3Extractor(this))
 
     bStream.setOnClickListener {
       if (genericFromFile.isStreaming) {

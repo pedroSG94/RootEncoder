@@ -21,14 +21,14 @@ import android.media.MediaCodec;
 import android.media.MediaFormat;
 import android.net.Uri;
 import android.os.Build;
-import android.os.Handler;
-import android.os.HandlerThread;
 import android.util.Log;
 import android.view.Surface;
 
 import java.io.FileDescriptor;
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public abstract class BaseDecoder {
@@ -38,7 +38,7 @@ public abstract class BaseDecoder {
   protected MediaCodec codec;
   protected volatile boolean running = false;
   protected MediaFormat mediaFormat;
-  private HandlerThread handlerThread;
+  private ExecutorService executor;
   protected String mime = "";
   protected boolean loopMode = false;
   private volatile long startTs = 0;
@@ -71,11 +71,9 @@ public abstract class BaseDecoder {
   public void start() {
     Log.i(TAG, "start decoder");
     running = true;
-    handlerThread = new HandlerThread(TAG);
-    handlerThread.start();
-    Handler handler = new Handler(handlerThread.getLooper());
     codec.start();
-    handler.post(() -> {
+    executor = Executors.newSingleThreadExecutor();
+    executor.execute(() -> {
       try {
         decode();
       } catch (IllegalStateException e) {
@@ -122,24 +120,14 @@ public abstract class BaseDecoder {
   protected void stopDecoder(boolean clearTs) {
     running = false;
     if (clearTs) startTs = 0;
-    if (handlerThread != null) {
-      if (handlerThread.getLooper() != null) {
-        if (handlerThread.getLooper().getThread() != null) {
-          handlerThread.getLooper().getThread().interrupt();
-        }
-        handlerThread.getLooper().quit();
-      }
-      handlerThread.quit();
+    if (executor != null) {
+      executor.shutdownNow();
+      executor = null;
       if (codec != null) {
         try {
           codec.flush();
         } catch (IllegalStateException ignored) { }
       }
-      //wait for thread to die for 500ms.
-      try {
-        handlerThread.getLooper().getThread().join(500);
-      } catch (Exception ignored) { }
-      handlerThread = null;
     }
     try {
       codec.stop();
