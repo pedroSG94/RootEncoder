@@ -24,7 +24,8 @@
   com.serenegiant.uvccamera,
   androidx.core.ktx,androidx.core,
   androidx.annotation.experimental,
-  androidx.media3.*" />
+  androidx.media3.*,
+  androidx.camera.*" />
 
   <application
       android:name=".App"
