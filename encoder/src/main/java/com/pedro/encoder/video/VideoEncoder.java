@@ -355,6 +355,9 @@ public class VideoEncoder extends BaseEncoder implements GetCameraData {
       mediaCodecInfoList = CodecUtil.getAllHardwareEncoders(mime, true);
     } else if (codecType == CodecUtil.CodecType.SOFTWARE) {
       mediaCodecInfoList = CodecUtil.getAllSoftwareEncoders(mime, true);
+    } else if (codecType == CodecUtil.CodecType.CBR_PRIORITY) {
+      //Priority: hardware CBR > software CBR > hardware > software
+      mediaCodecInfoList = CodecUtil.getAllEncodersCbrPriority(mime);
     } else {
       //Priority: hardware CBR > hardware > software CBR > software
       mediaCodecInfoList = CodecUtil.getAllEncoders(mime, true, true);

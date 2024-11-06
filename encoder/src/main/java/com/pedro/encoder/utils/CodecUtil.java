@@ -43,7 +43,7 @@ public class CodecUtil {
   public static final String OPUS_MIME = "audio/opus";
 
   public enum CodecType {
-    FIRST_COMPATIBLE_FOUND, SOFTWARE, HARDWARE
+    FIRST_COMPATIBLE_FOUND, SOFTWARE, HARDWARE, CBR_PRIORITY
   }
 
   public enum CodecTypeError {
@@ -209,7 +209,7 @@ public class CodecUtil {
     for (MediaCodecInfo mediaCodecInfo : mediaCodecInfoList) {
       if (isHardwareAccelerated(mediaCodecInfo)) {
         mediaCodecInfoHardware.add(mediaCodecInfo);
-        if (cbrPriority &&Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP
+        if (cbrPriority && Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP
             && isCBRModeSupported(mediaCodecInfo, mime)) {
           mediaCodecInfoHardwareCBR.add(mediaCodecInfo);
         }
@@ -301,11 +301,46 @@ public class CodecUtil {
     return mediaCodecInfoList;
   }
 
+  /**
+   * @return list of encoders -> hardware CBR > software CBR > hardware > software
+   */
+  public static List<MediaCodecInfo> getAllEncodersCbrPriority(String mime) {
+    List<MediaCodecInfo> mediaCodecInfoList = new ArrayList<>();
+    List<MediaCodecInfo> hardwareEncoders = getAllHardwareEncoders(mime);
+    List<MediaCodecInfo> softwareEncoders = getAllHardwareEncoders(mime);
+
+    List<MediaCodecInfo> hardwareEncodersCbr = new ArrayList<>();
+    List<MediaCodecInfo> hardwareEncodersNoCbr = new ArrayList<>();
+    List<MediaCodecInfo> softwareEncodersCbr = new ArrayList<>();
+    List<MediaCodecInfo> softwareEncodersNoCbr = new ArrayList<>();
+
+    for (MediaCodecInfo mediaCodecInfo: hardwareEncoders) {
+      if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP
+          && isCBRModeSupported(mediaCodecInfo, mime)) {
+        hardwareEncodersCbr.add(mediaCodecInfo);
+      } else {
+        hardwareEncodersNoCbr.add(mediaCodecInfo);
+      }
+    }
+
+    for (MediaCodecInfo mediaCodecInfo: softwareEncoders) {
+      if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP
+          && isCBRModeSupported(mediaCodecInfo, mime)) {
+        softwareEncodersCbr.add(mediaCodecInfo);
+      } else {
+        softwareEncodersNoCbr.add(mediaCodecInfo);
+      }
+    }
+    mediaCodecInfoList.addAll(hardwareEncodersCbr);
+    mediaCodecInfoList.addAll(softwareEncodersCbr);
+    mediaCodecInfoList.addAll(hardwareEncodersNoCbr);
+    mediaCodecInfoList.addAll(softwareEncodersNoCbr);
+    return mediaCodecInfoList;
+  }
+
   public static List<MediaCodecInfo> getAllEncoders(String mime, boolean hardwarePriority) {
     return getAllEncoders(mime, hardwarePriority, false);
   }
-
-
 
     /**
      * choose decoder by mime.
