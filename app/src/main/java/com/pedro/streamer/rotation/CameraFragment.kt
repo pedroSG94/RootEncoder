@@ -83,9 +83,12 @@ class CameraFragment: Fragment(), ConnectChecker {
   private lateinit var surfaceView: SurfaceView
   private lateinit var bStartStop: ImageView
   private lateinit var txtBitrate: TextView
-  private val width = 640
-  private val height = 480
-  private val vBitrate = 1200 * 1000
+  private val width = 1280
+  private val height = 720
+  private val vBitrate = 2000 * 1000
+  private val recordWidth = 1920
+  private val recordHeight = 1080
+  private val recordBitrate = 4000 * 1000
   private var rotation = 0
   private val sampleRate = 32000
   private val isStereo = true
@@ -181,8 +184,9 @@ class CameraFragment: Fragment(), ConnectChecker {
 
   private fun prepare() {
     val prepared = try {
-      genericStream.prepareVideo(width, height, vBitrate, rotation = rotation) &&
-          genericStream.prepareAudio(sampleRate, isStereo, aBitrate)
+      genericStream.prepareVideo(width, height, vBitrate, rotation = rotation,
+        recordWidth = recordWidth, recordHeight = recordHeight, recordBitrate = recordBitrate
+      ) && genericStream.prepareAudio(sampleRate, isStereo, aBitrate)
     } catch (e: IllegalArgumentException) {
       false
     }
