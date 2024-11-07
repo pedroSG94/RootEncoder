@@ -185,6 +185,8 @@ public class AudioEncoder extends BaseEncoder implements GetMicrophoneData {
       mediaCodecInfoList = CodecUtil.getAllHardwareEncoders(CodecUtil.AAC_MIME);
     } else if (codecType == CodecUtil.CodecType.SOFTWARE) {
       mediaCodecInfoList = CodecUtil.getAllSoftwareEncoders(CodecUtil.AAC_MIME);
+    } else if (codecType == CodecUtil.CodecType.CBR_PRIORITY) {
+      mediaCodecInfoList = CodecUtil.getAllEncodersCbrPriority(mime);
     } else {
       //Priority: hardware > software
       mediaCodecInfoList = CodecUtil.getAllEncoders(mime, true);
