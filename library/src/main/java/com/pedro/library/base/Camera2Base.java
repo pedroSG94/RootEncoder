@@ -42,6 +42,7 @@ import com.pedro.encoder.input.audio.CustomAudioEffect;
 import com.pedro.encoder.input.audio.GetMicrophoneData;
 import com.pedro.encoder.input.audio.MicrophoneManager;
 import com.pedro.encoder.input.video.Camera2ApiManager;
+import com.pedro.encoder.input.video.Camera2ApiManager2;
 import com.pedro.encoder.input.video.CameraCallbacks;
 import com.pedro.encoder.input.video.CameraHelper;
 import com.pedro.encoder.input.video.CameraOpenException;
@@ -81,7 +82,7 @@ public abstract class Camera2Base {
     private static final String TAG = "Camera2Base";
 
     private final Context context;
-    private Camera2ApiManager cameraManager;
+    private Camera2ApiManager2 cameraManager;
     protected VideoEncoder videoEncoder;
     private MicrophoneManager microphoneManager;
     private AudioEncoder audioEncoder;
@@ -108,7 +109,7 @@ public abstract class Camera2Base {
     }
 
     private void init(Context context) {
-        cameraManager = new Camera2ApiManager(context);
+        cameraManager = new Camera2ApiManager2(context);
         microphoneManager = new MicrophoneManager(getMicrophoneData);
         videoEncoder = new VideoEncoder(getVideoData);
         audioEncoder = new AudioEncoder(getAudioData);
@@ -154,7 +155,7 @@ public abstract class Camera2Base {
     /**
      * @return true if success, false if fail (not supported or called before start camera)
      */
-    public boolean enableFaceDetection(FaceDetectorCallback faceDetectorCallback) {
+    public boolean enableFaceDetection(Camera2ApiManager2.FaceDetectorCallback faceDetectorCallback) {
         return cameraManager.enableFaceDetection(faceDetectorCallback);
     }
 
@@ -229,11 +230,13 @@ public abstract class Camera2Base {
     }
 
     public boolean enableAutoFocus() {
-        return cameraManager.enableAutoFocus();
+        cameraManager.enableAutoFocus();
+        return true;
     }
 
     public boolean disableAutoFocus() {
-        return cameraManager.disableAutoFocus();
+        cameraManager.disableAutoFocus();
+        return true;
     }
 
     public boolean isAutoFocusEnabled() {
@@ -245,7 +248,7 @@ public abstract class Camera2Base {
     }
 
     public String getCurrentCameraId() {
-        return cameraManager.getCurrentCameraId();
+        return "0";
     }
 
     public boolean resetVideoEncoder() {
@@ -672,7 +675,7 @@ public abstract class Camera2Base {
      * @return list of resolutions supported by cameraId
      */
     public List<Size> getResolutions(String cameraId) {
-        return Arrays.asList(cameraManager.getCameraResolutions(cameraId));
+        return Arrays.asList(cameraManager.getCameraResolutions(CameraHelper.Facing.BACK));
     }
 
     public List<Range<Integer>> getSupportedFps() {
@@ -754,7 +757,7 @@ public abstract class Camera2Base {
     }
 
     public void setZoom(MotionEvent event, float delta) {
-        cameraManager.setZoom(event, delta);
+        cameraManager.setZoom(event);
     }
 
     /**
@@ -762,7 +765,12 @@ public abstract class Camera2Base {
      * @return optical zoom values available
      */
     public Float[] getOpticalZooms() {
-        return cameraManager.getOpticalZooms();
+        float[] zooms = cameraManager.getOpticalZooms();
+        Float[] floats = new Float[zooms.length];
+        for (int i = 0; i < zooms.length; i++) {
+            floats[i] = zooms[i];
+        }
+        return floats;
     }
 
     /**
@@ -839,7 +847,8 @@ public abstract class Camera2Base {
     }
 
     public boolean tapToFocus(MotionEvent event) {
-        return cameraManager.tapToFocus(event);
+        cameraManager.tapToFocus(event);
+        return true;
     }
 
     public GlInterface getGlInterface() {
@@ -898,11 +907,11 @@ public abstract class Camera2Base {
     }
 
     public void addImageListener(int width, int height, int format, int maxImages, Camera2ApiManager.ImageCallback listener) {
-        cameraManager.addImageListener(width, height, format, maxImages, true, listener);
+//        cameraManager.addImageListener(width, height, format, maxImages, true, listener);
     }
 
     public void addImageListener(int width, int height, int format, int maxImages, boolean autoClose, Camera2ApiManager.ImageCallback listener) {
-        cameraManager.addImageListener(width, height, format, maxImages, autoClose, listener);
+//        cameraManager.addImageListener(width, height, format, maxImages, autoClose, listener);
     }
 
     public void addImageListener(int format, int maxImages, Camera2ApiManager.ImageCallback listener) {
@@ -914,7 +923,7 @@ public abstract class Camera2Base {
     }
 
     public void removeImageListener() {
-        cameraManager.removeImageListener();
+//        cameraManager.removeImageListener();
     }
     /**
      * Get preview state.
