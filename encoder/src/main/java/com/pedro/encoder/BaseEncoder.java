@@ -33,6 +33,8 @@ import com.pedro.encoder.utils.CodecUtil;
 import java.nio.ByteBuffer;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 /**
  * Created by pedro on 18/09/19.
@@ -43,6 +45,7 @@ public abstract class BaseEncoder implements EncoderCallback {
   protected final G711Codec g711Codec = new G711Codec();
   private final MediaCodec.BufferInfo bufferInfo = new MediaCodec.BufferInfo();
   private HandlerThread handlerThread;
+  private ExecutorService executorService;
   protected BlockingQueue<Frame> queue = new ArrayBlockingQueue<>(80);
   protected MediaCodec codec;
   protected long presentTimeUs;
@@ -93,10 +96,10 @@ public abstract class BaseEncoder implements EncoderCallback {
   }
 
   protected void setCallback() {
-    handlerThread = new HandlerThread(TAG);
-    handlerThread.start();
-    handler = new Handler(handlerThread.getLooper());
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && !type.equals(CodecUtil.G711_MIME)) {
+      handlerThread = new HandlerThread(TAG);
+      handlerThread.start();
+      handler = new Handler(handlerThread.getLooper());
       createAsyncCallback();
       codec.setCallback(callback, handler);
     }
@@ -105,7 +108,8 @@ public abstract class BaseEncoder implements EncoderCallback {
   private void initCodec() {
     if (!type.equals(CodecUtil.G711_MIME)) codec.start();
     if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M || type.equals(CodecUtil.G711_MIME)) {
-      handler.post(() -> {
+      executorService = Executors.newSingleThreadExecutor();
+      executorService.submit(() -> {
         while (running) {
           try {
             getDataFromEncoder();
@@ -173,6 +177,7 @@ public abstract class BaseEncoder implements EncoderCallback {
         handlerThread.getLooper().getThread().join(500);
       } catch (Exception ignored) { }
     }
+    if (executorService != null) executorService.shutdownNow();
     queue.clear();
     queue = new ArrayBlockingQueue<>(80);
     try {
