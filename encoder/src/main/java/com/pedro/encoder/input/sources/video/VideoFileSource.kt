@@ -93,22 +93,19 @@ class VideoFileSource(
 
   @Throws(IOException::class)
   fun replaceFile(context: Context, uri: Uri) {
-    val width = videoDecoder.width
-    val height = videoDecoder.height
     val wasRunning = videoDecoder.isRunning
     val videoDecoder = VideoDecoder(videoDecoderInterface, decoderInterface)
     videoDecoder.extractor = this.videoDecoder.extractor
     if (!videoDecoder.initExtractor(context, uri)) throw IOException("Extraction failed")
-    if (width != videoDecoder.width || height != videoDecoder.height) throw IOException("Resolution must be the same that the previous file")
     this.videoDecoder.stop()
     this.videoDecoder = videoDecoder
     if (wasRunning) {
       videoDecoder.prepareVideo(Surface(surfaceTexture))
       videoDecoder.start()
     }
+  }
 
-    fun setExtractor(extractor: Extractor) {
-      videoDecoder.extractor = extractor
-    }
+  fun setExtractor(extractor: Extractor) {
+    videoDecoder.extractor = extractor
   }
 }
