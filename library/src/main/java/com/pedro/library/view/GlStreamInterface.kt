@@ -93,7 +93,7 @@ class GlStreamInterface(private val context: Context): OnFrameAvailableListener,
     encoderHeight = height
   }
 
-  fun setEncoderRecordSize(width: Int, height: Int) {
+  override fun setEncoderRecordSize(width: Int, height: Int) {
     encoderRecordWidth = width
     encoderRecordHeight = height
   }
@@ -146,7 +146,7 @@ class GlStreamInterface(private val context: Context): OnFrameAvailableListener,
     }
   }
 
-  fun addMediaCodecRecordSurface(surface: Surface) {
+  override fun addMediaCodecRecordSurface(surface: Surface) {
     executor?.secureSubmit {
       if (surfaceManager.isReady) {
         surfaceManagerEncoderRecord.release()
@@ -155,7 +155,7 @@ class GlStreamInterface(private val context: Context): OnFrameAvailableListener,
     }
   }
 
-  fun removeMediaCodecRecordSurface() {
+  override fun removeMediaCodecRecordSurface() {
     threadQueue.clear()
     executor?.secureSubmit {
       surfaceManagerEncoderRecord.release()

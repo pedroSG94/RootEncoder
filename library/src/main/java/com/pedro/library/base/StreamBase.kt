@@ -107,8 +107,11 @@ abstract class StreamBase(
    */
   @Throws(IllegalArgumentException::class)
   @JvmOverloads
-  fun prepareVideo(width: Int, height: Int, bitrate: Int, fps: Int = 30, iFrameInterval: Int = 2,
-    rotation: Int = 0, profile: Int = -1, level: Int = -1, recordWidth: Int = width, recordHeight: Int = height, recordBitrate: Int = bitrate): Boolean {
+  fun prepareVideo(
+    width: Int, height: Int, bitrate: Int, fps: Int = 30, iFrameInterval: Int = 2,
+    rotation: Int = 0, profile: Int = -1, level: Int = -1,
+    recordWidth: Int = width, recordHeight: Int = height, recordBitrate: Int = bitrate
+  ): Boolean {
     if (isStreaming || isRecording || isOnPreview) {
       throw IllegalStateException("Stream, record and preview must be stopped before prepareVideo")
     }
@@ -550,6 +553,10 @@ abstract class StreamBase(
   fun resetAudioEncoder(): Boolean = audioEncoder.reset()
 
   private fun prepareEncoders(): Boolean {
+    if (differentRecordResolution) {
+      val result = videoEncoderRecord.prepareVideoEncoder()
+      if (!result) return false
+    }
     return videoEncoder.prepareVideoEncoder() && audioEncoder.prepareAudioEncoder()
   }
 
