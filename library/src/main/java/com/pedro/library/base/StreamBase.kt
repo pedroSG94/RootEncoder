@@ -579,11 +579,11 @@ abstract class StreamBase(
     override fun getVideoData(videoBuffer: ByteBuffer, info: MediaCodec.BufferInfo) {
       fpsListener.calculateFps()
       getVideoDataImp(videoBuffer, info)
-      if (!videoEncoderRecord.isRunning) recordController.recordVideo(videoBuffer, info)
+      if (!differentRecordResolution) recordController.recordVideo(videoBuffer, info)
     }
 
     override fun onVideoFormat(mediaFormat: MediaFormat) {
-      if (!videoEncoderRecord.isRunning) recordController.setVideoFormat(mediaFormat)
+      if (!differentRecordResolution) recordController.setVideoFormat(mediaFormat)
     }
   }
 

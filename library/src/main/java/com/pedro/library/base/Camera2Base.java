@@ -83,10 +83,12 @@ public abstract class Camera2Base {
     private final Context context;
     private Camera2ApiManager cameraManager;
     protected VideoEncoder videoEncoder;
+    protected VideoEncoder videoEncoderRecord;
     private MicrophoneManager microphoneManager;
     private AudioEncoder audioEncoder;
     private boolean streaming = false;
     private GlInterface glInterface;
+    private boolean differentRecordResolution = false;
     protected boolean audioInitialized = false;
     private boolean onPreview = false;
     private boolean isBackground = false;
@@ -111,6 +113,7 @@ public abstract class Camera2Base {
         cameraManager = new Camera2ApiManager(context);
         microphoneManager = new MicrophoneManager(getMicrophoneData);
         videoEncoder = new VideoEncoder(getVideoData);
+        videoEncoderRecord = new VideoEncoder(getVideoDataRecord);
         audioEncoder = new AudioEncoder(getAudioData);
         recordController = new AndroidMuxerRecordController();
     }
@@ -125,6 +128,7 @@ public abstract class Camera2Base {
      */
     public void setTimestampMode(TimestampMode timestampModeVideo, TimestampMode timestampModeAudio) {
         videoEncoder.setTimestampMode(timestampModeVideo);
+        videoEncoderRecord.setTimestampMode(timestampModeVideo);
         audioEncoder.setTimestampMode(timestampModeAudio);
     }
 
@@ -134,6 +138,7 @@ public abstract class Camera2Base {
      */
     public void setEncoderErrorCallback(EncoderErrorCallback encoderErrorCallback) {
         videoEncoder.setEncoderErrorCallback(encoderErrorCallback);
+        videoEncoderRecord.setEncoderErrorCallback(encoderErrorCallback);
         audioEncoder.setEncoderErrorCallback(encoderErrorCallback);
     }
 
@@ -249,6 +254,12 @@ public abstract class Camera2Base {
     }
 
     public boolean resetVideoEncoder() {
+        if (differentRecordResolution) {
+            glInterface.removeMediaCodecRecordSurface();
+            boolean result = videoEncoderRecord.reset();
+            if (!result) return false;
+            glInterface.addMediaCodecRecordSurface(videoEncoderRecord.getInputSurface());
+        }
         glInterface.removeMediaCodecSurface();
         boolean result = videoEncoder.reset();
         if (!result) return false;
@@ -275,14 +286,37 @@ public abstract class Camera2Base {
      * @return true if success, false if you get a error (Normally because the encoder selected
      * doesn't support any configuration seated or your device hasn't a H264 encoder).
      */
-    public boolean prepareVideo(int width, int height, int fps, int bitrate, int iFrameInterval,
-                                int rotation, int profile, int level) {
+    public boolean prepareVideo(
+        int width, int height, int fps, int bitrate, int iFrameInterval,
+        int rotation, int profile, int level,
+        int recordWidth, int recordHeight, int recordBitrate
+    ) {
         if (onPreview && (width != previewWidth || height != previewHeight
                 || fps != videoEncoder.getFps() || rotation != videoEncoder.getRotation())) {
             stopPreview();
         }
+        differentRecordResolution = false;
+        if (recordWidth != width && recordHeight != height) {
+            if ((double) recordWidth / (double) recordHeight != (double) width / (double) height) {
+                Log.e(TAG, "The aspect ratio of record and stream resolution must be the same");
+                return false;
+            }
+            differentRecordResolution = true;
+        }
+        if (differentRecordResolution) {
+            boolean result = videoEncoderRecord.prepareVideoEncoder(recordWidth, recordHeight, fps, recordBitrate, rotation,
+                iFrameInterval, FormatVideoEncoder.SURFACE, profile, level);
+            if (!result) return false;
+        }
         return videoEncoder.prepareVideoEncoder(width, height, fps, bitrate, rotation,
                 iFrameInterval, FormatVideoEncoder.SURFACE, profile, level);
+    }
+
+    public boolean prepareVideo(
+        int width, int height, int fps, int bitrate, int iFrameInterval,
+        int rotation, int profile, int level
+    ) {
+        return prepareVideo(width, height, fps, bitrate, iFrameInterval, rotation, profile, level, width, height, bitrate);
     }
 
     public boolean prepareVideo(int width, int height, int fps, int bitrate, int iFrameInterval,
@@ -364,6 +398,7 @@ public abstract class Camera2Base {
      */
     public void forceCodecType(CodecUtil.CodecType codecTypeVideo, CodecUtil.CodecType codecTypeAudio) {
         videoEncoder.forceCodecType(codecTypeVideo);
+        videoEncoderRecord.forceCodecType(codecTypeVideo);
         audioEncoder.forceCodecType(codecTypeAudio);
     }
 
@@ -378,7 +413,7 @@ public abstract class Camera2Base {
         recordController.startRecord(path, listener);
         if (!streaming) {
             startEncoders();
-        } else if (videoEncoder.isRunning()) {
+        } else if (videoEncoder.isRunning() || videoEncoderRecord.isRunning()) {
             requestKeyFrame();
         }
     }
@@ -399,7 +434,7 @@ public abstract class Camera2Base {
         recordController.startRecord(fd, listener);
         if (!streaming) {
             startEncoders();
-        } else if (videoEncoder.isRunning()) {
+        } else if (videoEncoder.isRunning() || videoEncoderRecord.isRunning()) {
             requestKeyFrame();
         }
     }
@@ -434,18 +469,24 @@ public abstract class Camera2Base {
     private void replaceGlInterface(GlInterface glInterface) {
         if (isStreaming() || isRecording() || isOnPreview()) {
             Point size = this.glInterface.getEncoderSize();
+            Point sizeRecord = this.glInterface.getEncoderSize();
             cameraManager.closeCamera();
             this.glInterface.removeMediaCodecSurface();
+            this.glInterface.removeMediaCodecRecordSurface();
             this.glInterface.stop();
             this.glInterface = glInterface;
             int w = size.x;
             int h = size.y;
+            int recordW = sizeRecord.x;
+            int recordH = sizeRecord.y;
             int rotation = videoEncoder.getRotation();
             if (rotation == 90 || rotation == 270) {
                 h = size.x;
                 w = size.y;
+                recordH = sizeRecord.x;
+                recordW = sizeRecord.y;
             }
-            prepareGlView(w, h, rotation);
+            prepareGlView(w, h, recordW, recordH, rotation);
             cameraManager.openLastCamera();
         } else {
             this.glInterface = glInterface;
@@ -478,7 +519,9 @@ public abstract class Camera2Base {
             previewHeight = height;
             videoEncoder.setFps(fps);
             videoEncoder.setRotation(rotation);
-            prepareGlView(width, height, rotation);
+            videoEncoderRecord.setFps(fps);
+            videoEncoderRecord.setRotation(rotation);
+            prepareGlView(width, height, width, height, rotation);
             cameraManager.openCameraId(cameraId);
             onPreview = true;
         } else if (!isStreaming() && !onPreview && isBackground) {
@@ -588,8 +631,9 @@ public abstract class Camera2Base {
     private void startEncoders() {
         long startTs = System.nanoTime() / 1000;
         videoEncoder.start(startTs);
+        if (differentRecordResolution) videoEncoderRecord.start(startTs);
         if (audioInitialized) audioEncoder.start(startTs);
-        prepareGlView(videoEncoder.getWidth(), videoEncoder.getHeight(), videoEncoder.getRotation());
+        prepareGlView(videoEncoder.getWidth(), videoEncoder.getHeight(), videoEncoderRecord.getWidth(), videoEncoderRecord.getHeight(), videoEncoder.getRotation());
         if (audioInitialized) microphoneManager.start();
         if (!cameraManager.isRunning()) cameraManager.openLastCamera();
         onPreview = true;
@@ -599,18 +643,26 @@ public abstract class Camera2Base {
         if (videoEncoder.isRunning()) {
             videoEncoder.requestKeyframe();
         }
+        if (videoEncoderRecord.isRunning()) {
+            videoEncoderRecord.requestKeyframe();
+        }
     }
 
-    private void prepareGlView(int width, int height, int rotation) {
+    private void prepareGlView(int width, int height, int recordWidth, int recordHeight, int rotation) {
         int w = width;
         int h = height;
+        int recordW = recordWidth;
+        int recordH = recordHeight;
         boolean isPortrait = false;
         if (rotation == 90 || rotation == 270) {
             h = width;
             w = height;
+            recordH = recordWidth;
+            recordW = recordHeight;
             isPortrait = true;
         }
         glInterface.setEncoderSize(w, h);
+        if (differentRecordResolution) glInterface.setEncoderRecordSize(recordW, recordH);
         if (glInterface instanceof GlStreamInterface glStreamInterface) {
             glStreamInterface.setPreviewResolution(w, h);
             glStreamInterface.setIsPortrait(isPortrait);
@@ -620,8 +672,12 @@ public abstract class Camera2Base {
         if (videoEncoder.getInputSurface() != null && videoEncoder.isRunning()) {
             glInterface.addMediaCodecSurface(videoEncoder.getInputSurface());
         }
-        cameraManager.prepareCamera(glInterface.getSurfaceTexture(), videoEncoder.getWidth(),
-                videoEncoder.getHeight(), videoEncoder.getFps());
+        if (videoEncoderRecord.getInputSurface() != null && videoEncoderRecord.isRunning()) {
+            glInterface.addMediaCodecRecordSurface(videoEncoderRecord.getInputSurface());
+        }
+        int cameraWidth = Math.max(videoEncoder.getWidth(), videoEncoderRecord.getWidth());
+        int cameraHeight = Math.max(videoEncoder.getHeight(), videoEncoderRecord.getHeight());
+        cameraManager.prepareCamera(glInterface.getSurfaceTexture(), cameraWidth, cameraHeight, videoEncoder.getFps());
     }
 
     protected abstract void stopStreamImp();
@@ -638,11 +694,13 @@ public abstract class Camera2Base {
             onPreview = !isBackground;
             if (audioInitialized) microphoneManager.stop();
             glInterface.removeMediaCodecSurface();
+            glInterface.removeMediaCodecRecordSurface();
             if (glInterface instanceof GlStreamInterface) {
                 glInterface.stop();
                 cameraManager.closeCamera();
             }
             videoEncoder.stop();
+            if (differentRecordResolution) videoEncoderRecord.stop();
             if (audioInitialized) audioEncoder.stop();
             recordController.resetFormats();
         }
@@ -864,6 +922,7 @@ public abstract class Camera2Base {
     public void forceFpsLimit(boolean enabled) {
         int fps = enabled ? videoEncoder.getFps() : 0;
         videoEncoder.setForceFps(fps);
+        videoEncoderRecord.setForceFps(fps);
         glInterface.forceFpsLimit(fps);
     }
 
@@ -961,8 +1020,24 @@ public abstract class Camera2Base {
         @Override
         public void getVideoData(@NonNull ByteBuffer videoBuffer, @NonNull MediaCodec.BufferInfo info) {
             fpsListener.calculateFps();
-            recordController.recordVideo(videoBuffer, info);
+            if (!differentRecordResolution) recordController.recordVideo(videoBuffer, info);
             if (streaming) getVideoDataImp(videoBuffer, info);
+        }
+
+        @Override
+        public void onVideoFormat(@NonNull MediaFormat mediaFormat) {
+            if (!differentRecordResolution) recordController.setVideoFormat(mediaFormat, !audioInitialized);
+        }
+    };
+
+    private final GetVideoData getVideoDataRecord = new GetVideoData() {
+        @Override
+        public void onVideoInfo(@NonNull ByteBuffer sps, @Nullable ByteBuffer pps, @Nullable ByteBuffer vps) {
+        }
+
+        @Override
+        public void getVideoData(@NonNull ByteBuffer videoBuffer, @NonNull MediaCodec.BufferInfo info) {
+            recordController.recordVideo(videoBuffer, info);
         }
 
         @Override
