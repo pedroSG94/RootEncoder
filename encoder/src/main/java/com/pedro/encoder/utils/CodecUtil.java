@@ -307,7 +307,7 @@ public class CodecUtil {
   public static List<MediaCodecInfo> getAllEncodersCbrPriority(String mime) {
     List<MediaCodecInfo> mediaCodecInfoList = new ArrayList<>();
     List<MediaCodecInfo> hardwareEncoders = getAllHardwareEncoders(mime);
-    List<MediaCodecInfo> softwareEncoders = getAllHardwareEncoders(mime);
+    List<MediaCodecInfo> softwareEncoders = getAllSoftwareEncoders(mime);
 
     List<MediaCodecInfo> hardwareEncodersCbr = new ArrayList<>();
     List<MediaCodecInfo> hardwareEncodersNoCbr = new ArrayList<>();
