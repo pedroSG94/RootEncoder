@@ -197,4 +197,14 @@ class Camera2Source(context: Context): VideoSource() {
   }
 
   fun isVideoStabilizationEnabled() = camera.isVideoStabilizationEnabled
+
+  fun enableAutoExposure(): Boolean {
+    return if (isRunning()) camera.enableAutoExposure() else false
+  }
+
+  fun disableAutoExposure() {
+    if (isRunning()) camera.disableAutoExposure()
+  }
+
+  fun isAutoExposureEnabled() = camera.isAutoExposureEnabled
 }

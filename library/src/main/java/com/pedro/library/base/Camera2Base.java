@@ -166,6 +166,18 @@ public abstract class Camera2Base {
         return cameraManager.isFaceDetectionEnabled();
     }
 
+    public boolean enableAutoExposure() {
+        return cameraManager.enableAutoExposure();
+    }
+
+    public void disableAutoExposure() {
+        cameraManager.disableAutoExposure();
+    }
+
+    public boolean isAutoExposureEnabled() {
+        return cameraManager.isAutoExposureEnabled();
+    }
+
     /**
      * Enable EIS video stabilization
      * Warning: Turning both OIS and EIS modes on may produce undesirable interaction, so it is recommended not to enable both at the same time.

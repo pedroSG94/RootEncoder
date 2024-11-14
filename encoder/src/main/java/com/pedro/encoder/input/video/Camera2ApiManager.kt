@@ -89,6 +89,8 @@ class Camera2ApiManager(context: Context) : CameraDevice.StateCallback() {
         private set
     var isAutoFocusEnabled: Boolean = true
         private set
+    var isAutoExposureEnabled: Boolean = false
+        private set
     var isRunning: Boolean = false
         private set
     private var fps = 30
@@ -295,6 +297,25 @@ class Camera2ApiManager(context: Context) : CameraDevice.StateCallback() {
                 return null
             }
         }
+
+    fun enableAutoExposure(): Boolean {
+        val characteristics = cameraCharacteristics ?: return false
+        val builderInputSurface = this.builderInputSurface ?: return false
+        val modes = characteristics.secureGet(CameraCharacteristics.CONTROL_AVAILABLE_VIDEO_STABILIZATION_MODES) ?: return false
+        if (!modes.contains(CaptureRequest.CONTROL_AE_MODE_ON)) return false
+        builderInputSurface.set(CaptureRequest.CONTROL_AE_MODE, CaptureRequest.CONTROL_AE_MODE_ON)
+        isAutoExposureEnabled = true
+        return isAutoExposureEnabled
+    }
+
+    fun disableAutoExposure() {
+        val characteristics = cameraCharacteristics ?: return
+        val builderInputSurface = this.builderInputSurface ?: return
+        val modes = characteristics.secureGet(CameraCharacteristics.CONTROL_AVAILABLE_VIDEO_STABILIZATION_MODES) ?: return
+        if (!modes.contains(CaptureRequest.CONTROL_AE_MODE_ON)) return
+        builderInputSurface.set(CaptureRequest.CONTROL_AE_MODE, CaptureRequest.CONTROL_AE_MODE_OFF)
+        isAutoExposureEnabled = false
+    }
 
     fun enableVideoStabilization(): Boolean {
         val characteristics = cameraCharacteristics ?: return false
