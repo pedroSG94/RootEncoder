@@ -53,11 +53,14 @@ class GlStreamInterface(private val context: Context): OnFrameAvailableListener,
   private val running = AtomicBoolean(false)
   private val surfaceManager = SurfaceManager()
   private val surfaceManagerEncoder = SurfaceManager()
+  private val surfaceManagerEncoderRecord = SurfaceManager()
   private val surfaceManagerPhoto = SurfaceManager()
   private val surfaceManagerPreview = SurfaceManager()
   private val mainRender = MainRender()
   private var encoderWidth = 0
   private var encoderHeight = 0
+  private var encoderRecordWidth = 0
+  private var encoderRecordHeight = 0
   private var streamOrientation = 0
   private var previewWidth = 0
   private var previewHeight = 0
@@ -88,6 +91,11 @@ class GlStreamInterface(private val context: Context): OnFrameAvailableListener,
   override fun setEncoderSize(width: Int, height: Int) {
     encoderWidth = width
     encoderHeight = height
+  }
+
+  override fun setEncoderRecordSize(width: Int, height: Int) {
+    encoderRecordWidth = width
+    encoderRecordHeight = height
   }
 
   override fun getEncoderSize(): Point {
@@ -138,6 +146,22 @@ class GlStreamInterface(private val context: Context): OnFrameAvailableListener,
     }
   }
 
+  override fun addMediaCodecRecordSurface(surface: Surface) {
+    executor?.secureSubmit {
+      if (surfaceManager.isReady) {
+        surfaceManagerEncoderRecord.release()
+        surfaceManagerEncoderRecord.eglSetup(surface, surfaceManager)
+      }
+    }
+  }
+
+  override fun removeMediaCodecRecordSurface() {
+    threadQueue.clear()
+    executor?.secureSubmit {
+      surfaceManagerEncoderRecord.release()
+    }
+  }
+
   override fun takePhoto(takePhotoCallback: TakePhotoCallback?) {
     this.takePhotoCallback = takePhotoCallback
   }
@@ -166,6 +190,7 @@ class GlStreamInterface(private val context: Context): OnFrameAvailableListener,
       sensorRotationManager.stop()
       surfaceManagerPhoto.release()
       surfaceManagerEncoder.release()
+      surfaceManagerEncoderRecord.release()
       surfaceManager.release()
       mainRender.release()
     }
@@ -208,6 +233,15 @@ class GlStreamInterface(private val context: Context): OnFrameAvailableListener,
       mainRender.drawScreenEncoder(w, h, orientation, streamOrientation,
         isStreamVerticalFlip, isStreamHorizontalFlip)
       surfaceManagerEncoder.swapBuffer()
+    }
+    // render VideoEncoder (record if the resolution is different than stream)
+    if (surfaceManagerEncoderRecord.isReady && mainRender.isReady() && !limitFps) {
+      val w = if (muteVideo) 0 else encoderRecordWidth
+      val h = if (muteVideo) 0 else encoderRecordHeight
+      surfaceManagerEncoderRecord.makeCurrent()
+      mainRender.drawScreenEncoder(w, h, orientation, streamOrientation,
+        isStreamVerticalFlip, isStreamHorizontalFlip)
+      surfaceManagerEncoderRecord.swapBuffer()
     }
     //render surface photo if request photo
     if (takePhotoCallback != null && surfaceManagerPhoto.isReady && mainRender.isReady()) {

@@ -60,10 +60,12 @@ public class OpenGlView extends SurfaceView
   private final SurfaceManager surfaceManagerPhoto = new SurfaceManager();
   private final SurfaceManager surfaceManager = new SurfaceManager();
   private final SurfaceManager surfaceManagerEncoder = new SurfaceManager();
+  private final SurfaceManager surfaceManagerEncoderRecord = new SurfaceManager();
   private final BlockingQueue<Filter> filterQueue = new LinkedBlockingQueue<>();
   private final LinkedBlockingQueue<Runnable> threadQueue = new LinkedBlockingQueue<>();
   private int previewWidth, previewHeight;
   private int encoderWidth, encoderHeight;
+  private int encoderRecordWidth, encoderRecordHeight;
   private TakePhotoCallback takePhotoCallback;
   private int streamRotation;
   private boolean muteVideo = false;
@@ -225,6 +227,12 @@ public class OpenGlView extends SurfaceView
   }
 
   @Override
+  public void setEncoderRecordSize(int width, int height) {
+    this.encoderRecordWidth = width;
+    this.encoderRecordHeight = height;
+  }
+
+  @Override
   public Point getEncoderSize() {
     return new Point(encoderWidth, encoderHeight);
   }
@@ -267,6 +275,15 @@ public class OpenGlView extends SurfaceView
           streamRotation, isStreamVerticalFlip, isStreamHorizontalFlip);
       surfaceManagerEncoder.swapBuffer();
     }
+    // render VideoEncoder (record if the resolution is different than stream)
+    if (surfaceManagerEncoderRecord.isReady() && mainRender.isReady() && !limitFps) {
+      int w = muteVideo ? 0 : encoderRecordWidth;
+      int h = muteVideo ? 0 : encoderRecordHeight;
+      surfaceManagerEncoderRecord.makeCurrent();
+      mainRender.drawScreen(w, h, aspectRatioMode,
+          streamRotation, isStreamVerticalFlip, isStreamHorizontalFlip);
+      surfaceManagerEncoderRecord.swapBuffer();
+    }
     if (takePhotoCallback != null && surfaceManagerPhoto.isReady() && mainRender.isReady()) {
       surfaceManagerPhoto.makeCurrent();
       mainRender.drawScreen(encoderWidth, encoderHeight, aspectRatioMode,
@@ -283,10 +300,8 @@ public class OpenGlView extends SurfaceView
     if (executor == null) return;
     ExtensionsKt.secureSubmit(executor, () -> {
       if (surfaceManager.isReady()) {
-        surfaceManagerPhoto.release();
         surfaceManagerEncoder.release();
         surfaceManagerEncoder.eglSetup(surface, surfaceManager);
-        surfaceManagerPhoto.eglSetup(encoderWidth, encoderHeight, surfaceManagerEncoder);
       }
       return null;
     });
@@ -298,9 +313,31 @@ public class OpenGlView extends SurfaceView
     ExecutorService executor = this.executor;
     if (executor == null) return;
     ExtensionsKt.secureSubmit(executor, () -> {
-      surfaceManagerPhoto.release();
       surfaceManagerEncoder.release();
-      surfaceManagerPhoto.eglSetup(encoderWidth, encoderHeight, surfaceManager);
+      return null;
+    });
+  }
+
+  @Override
+  public void addMediaCodecRecordSurface(Surface surface) {
+    ExecutorService executor = this.executor;
+    if (executor == null) return;
+    ExtensionsKt.secureSubmit(executor, () -> {
+      if (surfaceManager.isReady()) {
+        surfaceManagerEncoderRecord.release();
+        surfaceManagerEncoderRecord.eglSetup(surface, surfaceManager);
+      }
+      return null;
+    });
+  }
+
+  @Override
+  public void removeMediaCodecRecordSurface() {
+    threadQueue.clear();
+    ExecutorService executor = this.executor;
+    if (executor == null) return;
+    ExtensionsKt.secureSubmit(executor, () -> {
+      surfaceManagerEncoderRecord.release();
       return null;
     });
   }
@@ -338,6 +375,7 @@ public class OpenGlView extends SurfaceView
       forceRenderer.stop();
       surfaceManagerPhoto.release();
       surfaceManagerEncoder.release();
+      surfaceManagerEncoderRecord.release();
       surfaceManager.release();
       mainRender.release();
       return null;
