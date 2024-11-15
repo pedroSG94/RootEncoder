@@ -48,8 +48,8 @@ import com.pedro.encoder.input.video.facedetector.FaceDetectorCallback
 import com.pedro.encoder.input.video.facedetector.mapCamera2Faces
 import java.util.concurrent.Executors
 import java.util.concurrent.Semaphore
-import kotlin.math.abs
 import kotlin.math.max
+import kotlin.math.min
 
 /**
  * Created by pedro on 4/03/17.
@@ -180,36 +180,10 @@ class Camera2ApiManager(context: Context) : CameraDevice.StateCallback() {
         val builderInputSurface = cameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_PREVIEW)
         for (surface in surfaces) builderInputSurface.addTarget(surface)
         builderInputSurface.set(CaptureRequest.CONTROL_MODE, CameraMetadata.CONTROL_MODE_AUTO)
-        adaptFpsRange(fps, builderInputSurface)
+        val validFps = min(60, fps)
+        builderInputSurface.set(CaptureRequest.CONTROL_AE_TARGET_FPS_RANGE, Range(validFps, validFps))
         this.builderInputSurface = builderInputSurface
         return builderInputSurface.build()
-    }
-
-    private fun adaptFpsRange(expectedFps: Int, builderInputSurface: CaptureRequest.Builder) {
-        val fpsRanges = getSupportedFps(null, Facing.BACK)
-        if (fpsRanges.isNotEmpty()) {
-            var closestRange = fpsRanges[0]
-            var measure = (abs((closestRange.lower - expectedFps).toDouble()) + abs(
-                (closestRange.upper - expectedFps).toDouble()
-            )).toInt()
-            for (range in fpsRanges) {
-                if (CameraHelper.discardCamera2Fps(range, facing)) continue
-                if (range.lower <= expectedFps && range.upper >= expectedFps) {
-                    val curMeasure = abs((((range.lower + range.upper) / 2) - expectedFps).toDouble()).toInt()
-                    if (curMeasure < measure) {
-                        closestRange = range
-                        measure = curMeasure
-                    } else if (curMeasure == measure) {
-                        if (abs((range.upper - expectedFps).toDouble()) < abs((closestRange.upper - expectedFps).toDouble())) {
-                            closestRange = range
-                            measure = curMeasure
-                        }
-                    }
-                }
-            }
-            Log.i(TAG, "fps: " + closestRange.lower + " - " + closestRange.upper)
-            builderInputSurface.set(CaptureRequest.CONTROL_AE_TARGET_FPS_RANGE, closestRange)
-        }
     }
 
     fun getSupportedFps(size: Size?, facing: Facing): List<Range<Int>> {
@@ -301,7 +275,7 @@ class Camera2ApiManager(context: Context) : CameraDevice.StateCallback() {
     fun enableAutoExposure(): Boolean {
         val characteristics = cameraCharacteristics ?: return false
         val builderInputSurface = this.builderInputSurface ?: return false
-        val modes = characteristics.secureGet(CameraCharacteristics.CONTROL_AVAILABLE_VIDEO_STABILIZATION_MODES) ?: return false
+        val modes = characteristics.secureGet(CameraCharacteristics.CONTROL_AE_AVAILABLE_MODES) ?: return false
         if (!modes.contains(CaptureRequest.CONTROL_AE_MODE_ON)) return false
         builderInputSurface.set(CaptureRequest.CONTROL_AE_MODE, CaptureRequest.CONTROL_AE_MODE_ON)
         isAutoExposureEnabled = true
@@ -311,7 +285,7 @@ class Camera2ApiManager(context: Context) : CameraDevice.StateCallback() {
     fun disableAutoExposure() {
         val characteristics = cameraCharacteristics ?: return
         val builderInputSurface = this.builderInputSurface ?: return
-        val modes = characteristics.secureGet(CameraCharacteristics.CONTROL_AVAILABLE_VIDEO_STABILIZATION_MODES) ?: return
+        val modes = characteristics.secureGet(CameraCharacteristics.CONTROL_AE_AVAILABLE_MODES) ?: return
         if (!modes.contains(CaptureRequest.CONTROL_AE_MODE_ON)) return
         builderInputSurface.set(CaptureRequest.CONTROL_AE_MODE, CaptureRequest.CONTROL_AE_MODE_OFF)
         isAutoExposureEnabled = false
