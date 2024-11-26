@@ -311,7 +311,7 @@ public class VideoEncoder extends BaseEncoder implements GetCameraData {
   }
 
   @Override
-  public void inputYUVData(Frame frame) {
+  public void inputYUVData(@NonNull Frame frame) {
     if (running && !queue.offer(frame)) {
       Log.i(TAG, "frame discarded");
     }
@@ -326,15 +326,17 @@ public class VideoEncoder extends BaseEncoder implements GetCameraData {
         getVideoData.onVideoInfo(bufferInfo, null, null);
         return true;
       }
-      return false;
       //H265
     } else if (type.equals(CodecUtil.H265_MIME)) {
-      List<ByteBuffer> byteBufferList = extractVpsSpsPpsFromH265(mediaFormat.getByteBuffer("csd-0"));
-      oldSps = byteBufferList.get(1);
-      oldPps = byteBufferList.get(2);
-      oldVps = byteBufferList.get(0);
-      getVideoData.onVideoInfo(oldSps, oldPps, oldVps);
-      return true;
+      ByteBuffer bufferInfo = mediaFormat.getByteBuffer("csd-0");
+      if (bufferInfo != null) {
+        List<ByteBuffer> byteBufferList = extractVpsSpsPpsFromH265(bufferInfo);
+        oldSps = byteBufferList.get(1);
+        oldPps = byteBufferList.get(2);
+        oldVps = byteBufferList.get(0);
+        getVideoData.onVideoInfo(oldSps, oldPps, oldVps);
+        return true;
+      }
       //H264
     } else {
       oldSps = mediaFormat.getByteBuffer("csd-0");
@@ -343,6 +345,7 @@ public class VideoEncoder extends BaseEncoder implements GetCameraData {
       getVideoData.onVideoInfo(oldSps, oldPps, oldVps);
       return true;
     }
+    return false;
   }
 
   /**
