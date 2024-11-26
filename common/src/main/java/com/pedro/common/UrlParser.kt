@@ -67,22 +67,16 @@ class UrlParser private constructor(
   }
 
   fun getAppName(): String {
-    val fullPath = getFullPath()
-    val indexes = fullPath.getIndexes('/')
+    val app = path.ifEmpty { query ?: "" }
+    val indexes = app.getIndexes('/')
     return when (indexes.size) {
-      0 -> fullPath
-      1 -> fullPath.substring(0, indexes[0])
-      else -> {
-        if (getAllQueries().isEmpty()) {
-          fullPath.substring(0, indexes[1])
-        } else {
-          fullPath.substring(0, indexes[0])
-        }
-      }
+      0 -> app
+      1 -> app.substring(0, indexes[0])
+      else -> app.substring(0, indexes[1])
     }
   }
 
-  fun getStreamName(): String = getFullPath().removePrefix(getAppName()).removePrefix("/")
+  fun getStreamName(): String = getFullPath().removePrefix(getAppName()).removePrefix("/").removePrefix("?")
 
   fun getTcUrl(): String {
     val port = if (port != null) ":$port" else ""
