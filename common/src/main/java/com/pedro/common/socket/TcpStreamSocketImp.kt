@@ -47,7 +47,12 @@ class TcpStreamSocketImp(
 
   override suspend fun connect() {
     selectorManager = SelectorManager(Dispatchers.IO)
-    val builder = aSocket(selectorManager).tcp().connect(remoteAddress = InetSocketAddress(host, port))
+    val builder = aSocket(selectorManager).tcp().connect(
+      remoteAddress = InetSocketAddress(host, port),
+      configure = {
+        if (!secured) socketTimeout = timeout
+      }
+    )
     val socket = if (secured) {
       builder.tls(Dispatchers.Default) {
         trustManager = certificate

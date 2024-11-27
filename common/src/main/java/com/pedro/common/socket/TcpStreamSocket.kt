@@ -21,14 +21,11 @@ package com.pedro.common.socket
 import io.ktor.network.selector.SelectorManager
 import io.ktor.utils.io.ByteReadChannel
 import io.ktor.utils.io.ByteWriteChannel
-import io.ktor.utils.io.readByte
 import io.ktor.utils.io.readFully
 import io.ktor.utils.io.readUTF8Line
-import io.ktor.utils.io.writeByte
 import io.ktor.utils.io.writeFully
 import io.ktor.utils.io.writeStringUtf8
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withTimeout
 import java.net.ConnectException
 
 /**
@@ -36,7 +33,7 @@ import java.net.ConnectException
  */
 abstract class TcpStreamSocket: StreamSocket {
 
-  private val timeout = 5000L
+  protected val timeout = 5000L
   protected var input: ByteReadChannel? = null
   protected var output: ByteWriteChannel? = null
   protected var selectorManager = SelectorManager(Dispatchers.IO)
@@ -45,16 +42,16 @@ abstract class TcpStreamSocket: StreamSocket {
     output?.flush()
   }
 
-  suspend fun write(b: Int) = withTimeout(timeout) {
+  suspend fun write(b: Int) {
     output?.writeByte(b.toByte())
   }
 
-  suspend fun write(b: ByteArray) = withTimeout(timeout) {
+  suspend fun write(b: ByteArray) {
     output?.writeFully(b)
   }
 
-  suspend fun write(b: ByteArray, offset: Int, size: Int) = withTimeout(timeout) {
-    output?.writeFully(b, offset, offset + size)
+  suspend fun write(b: ByteArray, offset: Int, size: Int) {
+    output?.writeFully(b, offset, size)
   }
 
   suspend fun writeUInt16(b: Int) {
@@ -73,13 +70,13 @@ abstract class TcpStreamSocket: StreamSocket {
     writeUInt32(Integer.reverseBytes(b))
   }
 
-  suspend fun write(string: String) = withTimeout(timeout) {
+  suspend fun write(string: String) {
     output?.writeStringUtf8(string)
   }
 
-  suspend fun read(): Int = withTimeout(timeout) {
+  suspend fun read(): Int {
     val input = input ?: throw ConnectException("Read with socket closed, broken pipe")
-    input.readByte().toInt()
+    return input.readByte().toInt()
   }
 
   suspend fun readUInt16(): Int {
@@ -104,13 +101,13 @@ abstract class TcpStreamSocket: StreamSocket {
     return Integer.reverseBytes(readUInt32())
   }
 
-  suspend fun readUntil(b: ByteArray) = withTimeout(timeout) {
+  suspend fun readUntil(b: ByteArray) {
     val input = input ?: throw ConnectException("Read with socket closed, broken pipe")
     input.readFully(b)
   }
 
-  suspend fun readLine(): String? = withTimeout(timeout) {
+  suspend fun readLine(): String? {
     val input = input ?: throw ConnectException("Read with socket closed, broken pipe")
-    input.readUTF8Line()
+    return input.readUTF8Line()
   }
 }
