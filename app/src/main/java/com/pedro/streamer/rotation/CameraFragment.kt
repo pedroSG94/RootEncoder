@@ -35,13 +35,17 @@ import com.pedro.library.generic.GenericStream
 import com.pedro.encoder.input.sources.video.Camera1Source
 import com.pedro.encoder.input.sources.video.Camera2Source
 import com.pedro.extrasources.CameraXSource
+import com.pedro.library.rtmp.RtmpStream
 import com.pedro.library.util.BitrateAdapter
 import com.pedro.streamer.R
 import com.pedro.streamer.utils.PathUtils
 import com.pedro.streamer.utils.toast
+import java.security.cert.X509Certificate
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import javax.net.ssl.TrustManager
+import javax.net.ssl.X509TrustManager
 
 /**
  * Example code to stream using StreamBase. This is the recommend way to use the library.
@@ -70,14 +74,21 @@ import java.util.Locale
 @RequiresApi(Build.VERSION_CODES.LOLLIPOP)
 class CameraFragment: Fragment(), ConnectChecker {
 
+  class AcceptAllCertificates: X509TrustManager {
+    override fun checkClientTrusted(chain: Array<out X509Certificate>?, authType: String?) {}
+    override fun checkServerTrusted(chain: Array<out X509Certificate>?, authType: String?) {}
+    override fun getAcceptedIssuers(): Array<X509Certificate>? = null
+  }
+
   companion object {
     fun getInstance(): CameraFragment = CameraFragment()
   }
 
-  val genericStream: GenericStream by lazy {
-    GenericStream(requireContext(), this).apply {
+  val genericStream: RtmpStream by lazy {
+    RtmpStream(requireContext(), this).apply {
       getGlInterface().autoHandleOrientation = true
       getStreamClient().setBitrateExponentialFactor(0.5f)
+      getStreamClient().addCertificates(AcceptAllCertificates())
     }
   }
   private lateinit var surfaceView: SurfaceView

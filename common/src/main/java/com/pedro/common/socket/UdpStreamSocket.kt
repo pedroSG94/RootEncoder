@@ -25,10 +25,9 @@ import io.ktor.network.sockets.InetSocketAddress
 import io.ktor.network.sockets.aSocket
 import io.ktor.network.sockets.isClosed
 import io.ktor.utils.io.core.ByteReadPacket
-import io.ktor.utils.io.core.remaining
+import io.ktor.utils.io.core.readBytes
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import kotlinx.io.readByteArray
 import java.net.ConnectException
 import java.net.InetAddress
 
@@ -78,7 +77,7 @@ class UdpStreamSocket(
     val socket = socket ?: throw ConnectException("Read with socket closed, broken pipe")
     val packet = socket.receive().packet
     val length = packet.remaining.toInt()
-    return packet.readByteArray().sliceArray(0 until length)
+    return packet.readBytes().sliceArray(0 until length)
   }
 
   suspend fun writePacket(bytes: ByteArray) {
