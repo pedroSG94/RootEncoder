@@ -179,7 +179,6 @@ class Camera2ApiManager(context: Context) : CameraDevice.StateCallback() {
     private fun drawSurface(cameraDevice: CameraDevice, surfaces: List<Surface>): CaptureRequest {
         val builderInputSurface = cameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_PREVIEW)
         for (surface in surfaces) builderInputSurface.addTarget(surface)
-        builderInputSurface.set(CaptureRequest.CONTROL_MODE, CameraMetadata.CONTROL_MODE_AUTO)
         val validFps = min(60, fps)
         builderInputSurface.set(CaptureRequest.CONTROL_AE_TARGET_FPS_RANGE, Range(validFps, validFps))
         this.builderInputSurface = builderInputSurface
