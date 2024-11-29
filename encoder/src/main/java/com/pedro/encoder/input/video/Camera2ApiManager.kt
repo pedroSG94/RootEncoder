@@ -131,7 +131,7 @@ class Camera2ApiManager(context: Context) : CameraDevice.StateCallback() {
         prepareCamera(surfaceTexture, width, height, fps)
     }
 
-    private fun prepareCamera(surface: Surface, fps: Int) {
+    fun prepareCamera(surface: Surface, fps: Int) {
         this.surfaceEncoder = surface
         this.fps = fps
         isPrepared = true
