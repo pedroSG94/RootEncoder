@@ -70,12 +70,11 @@ class Camera2ApiManager(context: Context) : CameraDevice.StateCallback() {
     private val TAG = "Camera2ApiManager"
 
     private var cameraDevice: CameraDevice? = null
-    private var surfaceEncoder: Surface? = null //input surfaceEncoder from videoEncoder
+    private var surfaceEncoder = Surface(SurfaceTexture(-1).apply { release() }) //input surfaceEncoder from videoEncoder
     private val cameraManager = context.getSystemService(Context.CAMERA_SERVICE) as CameraManager
     private var cameraHandler: Handler? = null
     private var cameraCaptureSession: CameraCaptureSession? = null
-    var isPrepared: Boolean = false
-        private set
+    private var isPrepared: Boolean = false
     private var cameraId: String = "0"
     private var facing = Facing.BACK
     private var builderInputSurface: CaptureRequest.Builder? = null
@@ -112,12 +111,6 @@ class Camera2ApiManager(context: Context) : CameraDevice.StateCallback() {
         cameraId = try { getCameraIdForFacing(Facing.BACK) } catch (e: Exception) { "0" }
     }
 
-    fun prepareCamera(surface: Surface?, fps: Int) {
-        this.surfaceEncoder = surface
-        this.fps = fps
-        isPrepared = true
-    }
-
     fun prepareCamera(surfaceTexture: SurfaceTexture, width: Int, height: Int, fps: Int) {
         val optimalResolution = getOptimalResolution(Size(width, height), getCameraResolutions(facing))
         Log.i(TAG, "optimal resolution set to: " + optimalResolution.width + "x" + optimalResolution.height)
@@ -133,14 +126,21 @@ class Camera2ApiManager(context: Context) : CameraDevice.StateCallback() {
     }
 
     fun prepareCamera(surfaceTexture: SurfaceTexture, width: Int, height: Int, fps: Int, cameraId: String) {
+        this.cameraId = cameraId
         this.facing = getFacingByCameraId(cameraManager, cameraId)
         prepareCamera(surfaceTexture, width, height, fps)
+    }
+
+    private fun prepareCamera(surface: Surface, fps: Int) {
+        this.surfaceEncoder = surface
+        this.fps = fps
+        isPrepared = true
     }
 
     private fun startPreview(cameraDevice: CameraDevice) {
         try {
             val listSurfaces = mutableListOf<Surface>()
-            surfaceEncoder?.let { listSurfaces.add(it) }
+            listSurfaces.add(surfaceEncoder)
             imageReader?.let { listSurfaces.add(it.surface) }
             val captureRequest = drawSurface(cameraDevice, listSurfaces)
             createCaptureSession(
@@ -209,10 +209,6 @@ class Camera2ApiManager(context: Context) : CameraDevice.StateCallback() {
             val characteristics = cameraCharacteristics ?: return -1
             return characteristics.secureGet(CameraCharacteristics.INFO_SUPPORTED_HARDWARE_LEVEL) ?: -1
         }
-
-    fun openCamera() {
-        openCameraBack()
-    }
 
     fun openCameraBack() {
         openCameraFacing(Facing.BACK)
@@ -628,7 +624,7 @@ class Camera2ApiManager(context: Context) : CameraDevice.StateCallback() {
                 Log.e(TAG, "Error", e)
             }
         } else {
-            Log.e(TAG, "Camera2ApiManager need be prepared, Camera2ApiManager not enabled")
+            throw IllegalStateException("You need prepare camera before open it")
         }
     }
 
@@ -735,16 +731,6 @@ class Camera2ApiManager(context: Context) : CameraDevice.StateCallback() {
         fingerSpacing = currentFingerSpacing
     }
 
-    fun stopRepeatingEncoder() {
-        val cameraCaptureSession = this.cameraCaptureSession ?: return
-        try {
-            cameraCaptureSession.stopRepeating()
-            surfaceEncoder = null
-        } catch (e: Exception) {
-            Log.e(TAG, "Error", e)
-        }
-    }
-
     @JvmOverloads
     fun closeCamera(resetSurface: Boolean = true) {
         isLanternEnabled = false
@@ -756,7 +742,7 @@ class Camera2ApiManager(context: Context) : CameraDevice.StateCallback() {
         cameraHandler?.looper?.quitSafely()
         cameraHandler = null
         if (resetSurface) {
-            surfaceEncoder = null
+            surfaceEncoder = Surface(SurfaceTexture(-1).apply { release() })
             builderInputSurface = null
         }
         isPrepared = false
