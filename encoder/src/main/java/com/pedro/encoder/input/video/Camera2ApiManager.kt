@@ -766,8 +766,7 @@ class Camera2ApiManager(context: Context) : CameraDevice.StateCallback() {
     fun addImageListener(width: Int, height: Int, format: Int, maxImages: Int, autoClose: Boolean, listener: ImageCallback) {
         val wasRunning = isRunning
         closeCamera(false)
-        if (wasRunning) closeCamera(false)
-        removeImageListener()
+        this.imageReader?.close()
         val imageThread = HandlerThread("$TAG imageThread")
         imageThread.start()
         val imageReader = ImageReader.newInstance(width, height, format, maxImages)
@@ -778,11 +777,11 @@ class Camera2ApiManager(context: Context) : CameraDevice.StateCallback() {
                 if (autoClose) image.close()
             }
         }, Handler(imageThread.looper))
+        this.imageReader = imageReader
         if (wasRunning) {
             prepareCamera(surfaceEncoder, fps)
             openLastCamera()
         }
-        this.imageReader = imageReader
     }
 
     fun removeImageListener() {
@@ -790,11 +789,11 @@ class Camera2ApiManager(context: Context) : CameraDevice.StateCallback() {
         val wasRunning = isRunning
         if (wasRunning) closeCamera(false)
         imageReader.close()
+        this.imageReader = null
         if (wasRunning) {
             prepareCamera(surfaceEncoder, fps)
             openLastCamera()
         }
-        this.imageReader = null
     }
 
     override fun onOpened(cameraDevice: CameraDevice) {
