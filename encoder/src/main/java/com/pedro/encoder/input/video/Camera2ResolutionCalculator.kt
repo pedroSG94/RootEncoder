@@ -24,15 +24,16 @@ import androidx.annotation.RequiresApi
 object Camera2ResolutionCalculator {
 
   fun getOptimalResolution(actualResolution: Size, resolutionsSupported: Array<Size>): Size {
-    return if (resolutionsSupported.find { it == actualResolution } != null) actualResolution
+    val resolution = if (actualResolution.width < actualResolution.height) Size(actualResolution.height, actualResolution.width) else actualResolution
+    return if (resolutionsSupported.find { it == resolution } != null) resolution
     else {
-      val actualAspectRatio = actualResolution.width.toFloat() / actualResolution.height.toFloat()
+      val actualAspectRatio = resolution.width.toFloat() / resolution.height.toFloat()
       val validResolutions = resolutionsSupported.filter { it.width.toFloat() / it.height.toFloat() == actualAspectRatio }
       if (validResolutions.isNotEmpty()) {
         val resolutions = validResolutions.toMutableList()
-        resolutions.add(actualResolution)
+        resolutions.add(resolution)
         val resolutionsSorted = resolutions.sortedByDescending { it.height }
-        val index = resolutionsSorted.indexOf(actualResolution)
+        val index = resolutionsSorted.indexOf(resolution)
         if (index > 0) {
           return resolutionsSorted[index - 1]
         } else return resolutionsSorted[index + 1]

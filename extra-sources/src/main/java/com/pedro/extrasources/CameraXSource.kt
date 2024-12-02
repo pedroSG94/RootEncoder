@@ -31,7 +31,10 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.LifecycleRegistry
+import com.pedro.encoder.input.sources.video.Camera2Source
 import com.pedro.encoder.input.sources.video.VideoSource
+import com.pedro.encoder.input.video.Camera2ResolutionCalculator.getOptimalResolution
+import com.pedro.encoder.input.video.CameraHelper
 import java.util.concurrent.ExecutionException
 import java.util.concurrent.Executors
 
@@ -51,14 +54,16 @@ class CameraXSource(
   private var surface: Surface? = null
 
   override fun create(width: Int, height: Int, fps: Int, rotation: Int): Boolean {
+    val facing = if (facing == CameraSelector.LENS_FACING_BACK) CameraHelper.Facing.BACK else CameraHelper.Facing.FRONT
+    val optimalResolution = getOptimalResolution(Size(width, height), getCameraResolutions(facing).toTypedArray())
     preview = Preview.Builder()
       .setTargetFrameRate(Range(fps, fps))
       .setResolutionSelector(
         ResolutionSelector.Builder()
           .setResolutionStrategy(
             ResolutionStrategy(
-              Size(width, height),
-              ResolutionStrategy.FALLBACK_RULE_NONE
+              optimalResolution,
+              ResolutionStrategy.FALLBACK_RULE_CLOSEST_HIGHER_THEN_LOWER
             )
           ).build()
       ).build()
@@ -67,12 +72,15 @@ class CameraXSource(
   }
 
   override fun start(surfaceTexture: SurfaceTexture) {
+    val facing = if (facing == CameraSelector.LENS_FACING_BACK) CameraHelper.Facing.BACK else CameraHelper.Facing.FRONT
+    val optimalResolution = getOptimalResolution(Size(width, height), getCameraResolutions(facing).toTypedArray())
+    surfaceTexture.setDefaultBufferSize(optimalResolution.width, optimalResolution.height)
     this.surfaceTexture = surfaceTexture
     lifecycleRegistry.handleLifecycleEvent(Lifecycle.Event.ON_START)
     cameraProviderFuture.addListener({
       try {
         val cameraSelector = CameraSelector.Builder()
-          .requireLensFacing(facing)
+          .requireLensFacing(this.facing)
           .build()
 
         preview.setSurfaceProvider {
@@ -113,6 +121,11 @@ class CameraXSource(
       facing = if (facing == CameraSelector.LENS_FACING_BACK) CameraSelector.LENS_FACING_FRONT else CameraSelector.LENS_FACING_BACK
       start(it)
     }
+  }
+
+  fun getCameraResolutions(facing: CameraHelper.Facing): List<Size> {
+    val camera2 = Camera2Source(context)
+    return camera2.getCameraResolutions(facing)
   }
 
   override val lifecycle: Lifecycle = lifecycleRegistry

@@ -20,7 +20,6 @@ package com.pedro.encoder.input.sources.video
 
 import android.content.Context
 import android.graphics.SurfaceTexture
-import android.hardware.Camera
 import android.os.Build
 import android.util.Range
 import android.util.Size
@@ -70,19 +69,14 @@ class Camera1Source(context: Context): VideoSource() {
     if (width % 2 != 0 || height % 2 != 0) {
       throw IllegalArgumentException("width and height values must be divisible by 2")
     }
-    val shouldRotate = width > height
+    val shouldRotate = width < height
     val w = if (shouldRotate) height else width
     val h = if (shouldRotate) width else height
     val size = Size(w, h)
     val resolutions = if (facing == CameraHelper.Facing.BACK) {
       camera.previewSizeBack
     } else camera.previewSizeFront
-    return mapCamera1Resolutions(resolutions, shouldRotate).find { it.width == size.width && it.height == size.height } != null
-  }
-
-  @Suppress("DEPRECATION")
-  private fun mapCamera1Resolutions(resolutions: List<Camera.Size>, shouldRotate: Boolean) = resolutions.map {
-    if (shouldRotate) Size(it.height, it.width) else Size(it.width, it.height)
+    return resolutions.map { Size(it.width, it.height) }.find { it.width == size.width && it.height == size.height } != null
   }
 
   fun switchCamera() {
@@ -107,7 +101,7 @@ class Camera1Source(context: Context): VideoSource() {
     } else {
       camera.previewSizeBack
     }
-    return mapCamera1Resolutions(resolutions, false)
+    return resolutions.map { Size(it.width, it.height) }
   }
 
   fun setExposure(level: Int) {
