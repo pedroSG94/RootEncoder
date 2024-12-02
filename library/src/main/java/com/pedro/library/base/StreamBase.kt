@@ -140,8 +140,10 @@ abstract class StreamBase(
           iFrameInterval, FormatVideoEncoder.SURFACE, profile, level)
         if (!result) return false
       }
-      return videoEncoder.prepareVideoEncoder(width, height, fps, bitrate, rotation,
+      val result = videoEncoder.prepareVideoEncoder(width, height, fps, bitrate, rotation,
         iFrameInterval, FormatVideoEncoder.SURFACE, profile, level)
+      forceFpsLimit(true)
+      return result
     }
     return false
   }
@@ -205,9 +207,9 @@ abstract class StreamBase(
 
   /**
    * Force stream to work with fps selected in prepareVideo method. Must be called before prepareVideo.
-   * This is not recommend because could produce fps problems.
+   * Must be called after prepareVideo
    *
-   * @param enabled true to enabled, false to disable, disabled by default.
+   * @param enabled true to enabled, false to disable, enabled by default.
    */
   fun forceFpsLimit(enabled: Boolean) {
     val fps = if (enabled) videoEncoder.fps else 0
