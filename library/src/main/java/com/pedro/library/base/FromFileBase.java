@@ -767,18 +767,10 @@ public abstract class FromFileBase {
 
   private final DecoderInterface decoderInterface = new DecoderInterface() {
 
-    private int trackFinished = 0;
-
     @Override
     public void onLoop() {
-      int maxTracks = 0;
-      if (audioEnabled) maxTracks++;
-      if (videoEnabled) maxTracks++;
-      trackFinished++;
-      if (trackFinished >= maxTracks) {
-        reSyncFile();
-        trackFinished = 0;
-      }
+      videoDecoder.reset(glInterface.getSurface());
+      audioDecoder.reset(null);
     }
   };
 

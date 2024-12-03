@@ -93,6 +93,16 @@ public abstract class BaseDecoder {
     extractor.release();
   }
 
+  public void reset(Surface surface) {
+    boolean wasRunning = running;
+    stopDecoder(!wasRunning);
+    moveTo(0);
+    prepare(surface);
+    if (wasRunning) {
+      start();
+    }
+  }
+
   protected boolean prepare(Surface surface) {
     try {
       codec = MediaCodec.createDecoderByType(mime);
@@ -185,14 +195,8 @@ public abstract class BaseDecoder {
       synchronized (sync) {
         if (pause.get()) continue;
         if (looped) {
-          double time = getTime();
-          if (time > 0) {
-            moveTo(0);
-            continue;
-          } else {
-            decoderInterface.onLoop();
-            looped = false;
-          }
+          decoderInterface.onLoop();
+          looped = false;
         }
         int inIndex = codec.dequeueInputBuffer(10000);
         int sampleSize;
@@ -231,7 +235,6 @@ public abstract class BaseDecoder {
           codec.releaseOutputBuffer(outIndex, render && bufferInfo.size != 0);
           if (finished) {
             if (loopMode) {
-              moveTo(0);
               looped = true;
             } else {
               Log.i(TAG, "end of file");
