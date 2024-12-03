@@ -50,9 +50,9 @@ allprojects {
   }
 }
 dependencies {
-  implementation 'com.github.pedroSG94.RootEncoder:library:2.5.4'
+  implementation 'com.github.pedroSG94.RootEncoder:library:2.5.5'
   //Optional, allow use BitmapSource, CameraXSource and CameraUvcSource 
-  implementation 'com.github.pedroSG94.RootEncoder:extra-sources:2.5.4'
+  implementation 'com.github.pedroSG94.RootEncoder:extra-sources:2.5.5'
 }
 
 ```
