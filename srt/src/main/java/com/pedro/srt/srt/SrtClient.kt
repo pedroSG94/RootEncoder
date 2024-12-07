@@ -196,6 +196,7 @@ class SrtClient(private val connectChecker: ConnectChecker) {
         val host = urlParser.host
         val port = urlParser.port ?: 8888
         val path = urlParser.getQuery("streamid") ?: urlParser.getFullPath()
+        val latency = urlParser.getQuery("latency")?.toIntOrNull() ?: 120_000 //latency in micro
         if (path.isEmpty()) {
           isStreaming = false
           onMainThread {
@@ -221,6 +222,8 @@ class SrtClient(private val connectChecker: ConnectChecker) {
               flags = ExtensionContentFlag.TSBPDSND.value or ExtensionContentFlag.TSBPDRCV.value or
                   ExtensionContentFlag.CRYPT.value or ExtensionContentFlag.TLPKTDROP.value or
                   ExtensionContentFlag.PERIODICNAK.value or ExtensionContentFlag.REXMITFLG.value,
+              receiverDelay = latency / 1000,
+              senderDelay = latency / 1000,
               path = path,
               encryptInfo = commandsManager.getEncryptInfo()
             )))
