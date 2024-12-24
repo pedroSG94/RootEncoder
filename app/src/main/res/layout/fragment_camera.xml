@@ -21,8 +21,9 @@
       android:gravity="center"
       android:layout_margin="20dp"
       android:id="@+id/et_rtp_url"
+      android:text="@string/stream_url_huya"
       app:layout_constraintTop_toTopOf="parent"
-      />
+      android:imeOptions="actionGo"/>
 
   <TextView
       android:id="@+id/txt_bitrate"

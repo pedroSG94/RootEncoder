@@ -29,12 +29,16 @@ import com.pedro.encoder.input.video.Camera2ApiManager
 import com.pedro.encoder.input.video.Camera2ApiManager.ImageCallback
 import com.pedro.encoder.input.video.CameraHelper
 import com.pedro.encoder.input.video.facedetector.FaceDetectorCallback
+import com.pedro.encoder.utils.Logger
 
 /**
  * Created by pedro on 11/1/24.
  */
 @RequiresApi(Build.VERSION_CODES.LOLLIPOP)
 class Camera2Source(context: Context): VideoSource() {
+  companion object {
+      private const val TAG = "Camera2Source"
+  }
 
   private val camera = Camera2ApiManager(context)
   private var facing = CameraHelper.Facing.BACK
@@ -50,6 +54,7 @@ class Camera2Source(context: Context): VideoSource() {
   override fun start(surfaceTexture: SurfaceTexture) {
     this.surfaceTexture = surfaceTexture
     if (!isRunning()) {
+      Logger.d(TAG, "start: width = $width, height = $height, fps = $fps, facing = $facing")
       surfaceTexture.setDefaultBufferSize(width, height)
       camera.prepareCamera(surfaceTexture, width, height, fps, facing)
       camera.openCameraFacing(facing)
@@ -72,6 +77,8 @@ class Camera2Source(context: Context): VideoSource() {
     val resolutions = if (facing == CameraHelper.Facing.BACK) {
       camera.cameraResolutionsBack
     } else camera.cameraResolutionsFront
+    Logger.d(TAG, "checkResolutionSupported: size = $size, resolutions = ${resolutions.contentToString()}")
+    Logger.d(TAG, "checkResolutionSupported: camera.levelSupported = ${camera.levelSupported}")
     return if (camera.levelSupported == CameraCharacteristics.INFO_SUPPORTED_HARDWARE_LEVEL_LEGACY) {
       //this is a wrapper of camera1 api. Only listed resolutions are supported
       resolutions.contains(size)

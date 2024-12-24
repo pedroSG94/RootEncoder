@@ -37,6 +37,7 @@ import com.pedro.library.base.recording.RecordController
 import com.pedro.library.generic.GenericStream
 import com.pedro.library.util.BitrateAdapter
 import com.pedro.streamer.R
+import com.pedro.streamer.utils.Logger
 import com.pedro.streamer.utils.PathUtils
 import com.pedro.streamer.utils.toast
 import java.text.SimpleDateFormat
@@ -72,6 +73,7 @@ class CameraFragment: Fragment(), ConnectChecker {
 
   companion object {
     fun getInstance(): CameraFragment = CameraFragment()
+    private const val TAG = "CameraFragment"
   }
 
   val genericStream: GenericStream by lazy {
@@ -83,8 +85,11 @@ class CameraFragment: Fragment(), ConnectChecker {
   private lateinit var surfaceView: SurfaceView
   private lateinit var bStartStop: ImageView
   private lateinit var txtBitrate: TextView
-  private val width = 640
-  private val height = 480
+  lateinit var streamUrl: EditText
+//  private val width = 640
+//  private val height = 480
+  private val width = 1440
+  private val height = 1080
   private val vBitrate = 1200 * 1000
   private var rotation = 0
   private val sampleRate = 32000
@@ -106,7 +111,7 @@ class CameraFragment: Fragment(), ConnectChecker {
     bStartStop = view.findViewById(R.id.b_start_stop)
     val bRecord = view.findViewById<ImageView>(R.id.b_record)
     val bSwitchCamera = view.findViewById<ImageView>(R.id.switch_camera)
-    val etUrl = view.findViewById<EditText>(R.id.et_rtp_url)
+    streamUrl = view.findViewById<EditText>(R.id.et_rtp_url)
 
     txtBitrate = view.findViewById(R.id.txt_bitrate)
     surfaceView = view.findViewById(R.id.surfaceView)
@@ -115,11 +120,14 @@ class CameraFragment: Fragment(), ConnectChecker {
     }
     surfaceView.holder.addCallback(object: SurfaceHolder.Callback {
       override fun surfaceCreated(holder: SurfaceHolder) {
+        holder.setKeepScreenOn(true)
         if (!genericStream.isOnPreview) genericStream.startPreview(surfaceView)
       }
 
       override fun surfaceChanged(holder: SurfaceHolder, format: Int, width: Int, height: Int) {
+        Logger.d(TAG, "surfaceChanged: width = $width; height = $height")
         genericStream.getGlInterface().setPreviewResolution(width, height)
+//        genericStream.getGlInterface().setPreviewResolution(height, width)
       }
 
       override fun surfaceDestroyed(holder: SurfaceHolder) {
@@ -130,7 +138,7 @@ class CameraFragment: Fragment(), ConnectChecker {
 
     bStartStop.setOnClickListener {
       if (!genericStream.isStreaming) {
-        genericStream.startStream(etUrl.text.toString())
+        genericStream.startStream(streamUrl.text.toString())
         bStartStop.setImageResource(R.drawable.stream_stop_icon)
       } else {
         genericStream.stopStream()
@@ -167,6 +175,7 @@ class CameraFragment: Fragment(), ConnectChecker {
 
   fun setOrientationMode(isVertical: Boolean) {
     val wasOnPreview = genericStream.isOnPreview
+    Logger.d(TAG, "setOrientationMode: isVertical = $isVertical, wasOnPreview = $wasOnPreview")
     genericStream.release()
     rotation = if (isVertical) 90 else 0
     prepare()

@@ -100,7 +100,7 @@ class MainActivity : AppCompatActivity() {
     activities.add(
       ActivityLink(
         Intent(this, RotationActivity::class.java),
-        getString(R.string.rotation_rtmp), VERSION_CODES.LOLLIPOP
+        getString(R.string.camera_live), VERSION_CODES.LOLLIPOP
       )
     )
   }

@@ -24,6 +24,7 @@ import android.os.Build;
 import androidx.annotation.RequiresApi;
 
 import com.pedro.encoder.R;
+import com.pedro.encoder.utils.Logger;
 import com.pedro.encoder.utils.ViewPort;
 import com.pedro.encoder.utils.gl.AspectRatioMode;
 import com.pedro.encoder.utils.gl.GlUtil;
@@ -41,6 +42,7 @@ import kotlin.Pair;
 
 @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
 public class ScreenRender {
+  public static final String TAG = "ScreenRender";
 
   //rotation matrix
   private final float[] squareVertexData = {
@@ -116,21 +118,24 @@ public class ScreenRender {
   public void drawPreview(int width, int height, boolean isPortrait,
       AspectRatioMode mode, int rotation, boolean flipStreamVertical, boolean flipStreamHorizontal) {
     GlUtil.checkGlError("drawScreen start");
-
+    Logger.d(TAG, "drawPreview: width = " + width + "; height = " + height + "; isPortrait = " + isPortrait + "; mode = " + mode + "; rotation = " + rotation + "; flipStreamVertical = " + flipStreamVertical + "; flipStreamHorizontal = " + flipStreamHorizontal);
     updateMatrix(rotation, SizeCalculator.calculateFlip(flipStreamHorizontal, flipStreamVertical), MVPMatrix);
     float factor = (float) streamWidth / (float) streamHeight;
     int w;
     int h;
+    Logger.d(TAG, "drawPreview: streamWidth = " + streamWidth + "; streamHeight = " + streamHeight + "; factor = " + factor + ";");
     if (factor >= 1f) {
+      Logger.d(TAG, "drawPreview: go here");
       w = isPortrait ? streamHeight : streamWidth;
       h = isPortrait ? streamWidth : streamHeight;
     } else {
       w = isPortrait ? streamWidth : streamHeight;
       h = isPortrait ? streamHeight : streamWidth;
     }
-    ViewPort viewport = SizeCalculator.calculateViewPort(mode, width, height, w, h);
+//    ViewPort viewport = SizeCalculator.calculateViewPort(mode, width, height, w, h);
+    ViewPort viewport = SizeCalculator.calculateViewPort(mode, width, height, streamWidth, streamHeight);
     GLES20.glViewport(viewport.getX(), viewport.getY(), viewport.getWidth(), viewport.getHeight());
-
+    Logger.d(TAG, "drawPreview: x = " + viewport.getX() + "; y = " + viewport.getY() + "; w = " + viewport.getWidth() + "; h = " + viewport.getHeight() + ";");
     draw();
   }
 

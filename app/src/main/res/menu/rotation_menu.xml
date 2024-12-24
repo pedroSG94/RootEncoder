@@ -44,9 +44,7 @@
                 />
         </menu>
     </item>
-    <item
-        android:title="@string/filters"
-        >
+    <item android:title="@string/filters">
         <menu>
             <item
                 android:id="@+id/no_filter"
@@ -228,6 +226,19 @@
                 android:id="@+id/zebra"
                 android:title="@string/zebra"
                 />
+        </menu>
+    </item>
+    <item android:title="@string/platform">
+        <menu>
+            <item
+                android:title="@string/huya"
+                android:id="@+id/platform_huya" />
+            <item
+                android:title="@string/tiktok"
+                android:id="@+id/platform_tiktok" />
+            <item
+                android:title="@string/youtube"
+                android:id="@+id/platform_youtube" />
         </menu>
     </item>
 </menu>

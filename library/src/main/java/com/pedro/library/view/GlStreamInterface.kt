@@ -33,6 +33,7 @@ import com.pedro.encoder.input.gl.render.filters.NoFilterRender
 import com.pedro.encoder.input.sources.OrientationForced
 import com.pedro.encoder.input.video.CameraHelper
 import com.pedro.encoder.input.video.FpsLimiter
+import com.pedro.encoder.utils.Logger
 import com.pedro.encoder.utils.gl.AspectRatioMode
 import com.pedro.encoder.utils.gl.GlUtil
 import com.pedro.library.util.Filter
@@ -48,6 +49,9 @@ import java.util.concurrent.atomic.AtomicBoolean
  */
 @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
 class GlStreamInterface(private val context: Context): OnFrameAvailableListener, GlInterface {
+  companion object {
+      private const val TAG = "GlStreamInterface"
+  }
 
   private var takePhotoCallback: TakePhotoCallback? = null
   private val running = AtomicBoolean(false)
@@ -199,6 +203,7 @@ class GlStreamInterface(private val context: Context): OnFrameAvailableListener,
   }
 
   private fun draw(forced: Boolean) {
+    Logger.d(TAG, "draw: forced = $forced")
     if (!isRunning) return
     val limitFps = fpsLimiter.limitFPS()
     if (!forced) forceRender.frameAvailable()
@@ -227,6 +232,7 @@ class GlStreamInterface(private val context: Context): OnFrameAvailableListener,
     }
     // render VideoEncoder (stream and record)
     if (surfaceManagerEncoder.isReady && mainRender.isReady() && !limitFps) {
+      Logger.d(TAG, "draw: 1 surfaceManagerEncoder.isReady = ${surfaceManagerEncoder.isReady}, mainRender.isReady() = ${mainRender.isReady()}, limitFps = ${limitFps}")
       val w = if (muteVideo) 0 else encoderWidth
       val h = if (muteVideo) 0 else encoderHeight
       surfaceManagerEncoder.makeCurrent()
@@ -236,6 +242,7 @@ class GlStreamInterface(private val context: Context): OnFrameAvailableListener,
     }
     // render VideoEncoder (record if the resolution is different than stream)
     if (surfaceManagerEncoderRecord.isReady && mainRender.isReady() && !limitFps) {
+      Logger.d(TAG, "draw: 2 surfaceManagerEncoderRecord.isReady = ${surfaceManagerEncoderRecord.isReady}, mainRender.isReady() = ${mainRender.isReady()}, limitFps = ${limitFps}")
       val w = if (muteVideo) 0 else encoderRecordWidth
       val h = if (muteVideo) 0 else encoderRecordHeight
       surfaceManagerEncoderRecord.makeCurrent()
@@ -245,6 +252,7 @@ class GlStreamInterface(private val context: Context): OnFrameAvailableListener,
     }
     //render surface photo if request photo
     if (takePhotoCallback != null && surfaceManagerPhoto.isReady && mainRender.isReady()) {
+      Logger.d(TAG, "draw: 3 takePhotoCallback = ${takePhotoCallback}, surfaceManagerPhoto.isReady = ${surfaceManagerPhoto.isReady}, mainRender.isReady() = ${mainRender.isReady()}")
       surfaceManagerPhoto.makeCurrent()
       mainRender.drawScreen(encoderWidth, encoderHeight, AspectRatioMode.NONE,
         streamOrientation, isStreamVerticalFlip, isStreamHorizontalFlip)
@@ -254,6 +262,7 @@ class GlStreamInterface(private val context: Context): OnFrameAvailableListener,
     }
     // render preview
     if (surfaceManagerPreview.isReady && mainRender.isReady() && !limitFps) {
+      Logger.d(TAG, "draw: 4 surfaceManagerPreview.isReady = ${surfaceManagerPreview.isReady}, mainRender.isReady() = ${mainRender.isReady()}, limitFps = ${limitFps}")
       val w =  if (previewWidth == 0) encoderWidth else previewWidth
       val h =  if (previewHeight == 0) encoderHeight else previewHeight
       surfaceManagerPreview.makeCurrent()
@@ -264,6 +273,7 @@ class GlStreamInterface(private val context: Context): OnFrameAvailableListener,
   }
 
   override fun onFrameAvailable(surfaceTexture: SurfaceTexture?) {
+    Logger.d(TAG, "onFrameAvailable: isRunning = $isRunning")
     if (!isRunning) return
     executor?.execute { draw(false) }
   }

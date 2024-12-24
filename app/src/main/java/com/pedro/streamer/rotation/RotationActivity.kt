@@ -52,6 +52,7 @@ class RotationActivity : AppCompatActivity(), OnTouchListener {
   private var currentAudioSource: MenuItem? = null
   private var currentOrientation: MenuItem? = null
   private var currentFilter: MenuItem? = null
+  private var currentPlatform: MenuItem? = null
 
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
@@ -65,10 +66,12 @@ class RotationActivity : AppCompatActivity(), OnTouchListener {
     val defaultAudioSource = menu.findItem(R.id.audio_source_microphone)
     val defaultOrientation = menu.findItem(R.id.orientation_horizontal)
     val defaultFilter = menu.findItem(R.id.no_filter)
+    val defaultPlatform = menu.findItem(R.id.platform_huya)
     currentVideoSource = defaultVideoSource.updateMenuColor(this, currentVideoSource)
     currentAudioSource = defaultAudioSource.updateMenuColor(this, currentAudioSource)
     currentOrientation = defaultOrientation.updateMenuColor(this, currentOrientation)
     currentFilter = defaultFilter.updateMenuColor(this, currentFilter)
+    currentPlatform = defaultPlatform.updateMenuColor(this, currentPlatform)
     return true
   }
 
@@ -107,6 +110,18 @@ class RotationActivity : AppCompatActivity(), OnTouchListener {
         R.id.orientation_vertical -> {
           currentOrientation = item.updateMenuColor(this, currentOrientation)
           cameraFragment.setOrientationMode(true)
+        }
+        R.id.platform_huya -> {
+          currentPlatform = item.updateMenuColor(this, currentPlatform)
+          cameraFragment.streamUrl.setText(R.string.stream_url_huya)
+        }
+        R.id.platform_tiktok -> {
+          currentPlatform = item.updateMenuColor(this, currentPlatform)
+          cameraFragment.streamUrl.setText(R.string.stream_url_tiktok)
+        }
+        R.id.platform_youtube -> {
+          currentPlatform = item.updateMenuColor(this, currentPlatform)
+          cameraFragment.streamUrl.setText(R.string.stream_url_youtube)
         }
         else -> {
           val result = filterMenu.onOptionsItemSelected(item, cameraFragment.genericStream.getGlInterface())
