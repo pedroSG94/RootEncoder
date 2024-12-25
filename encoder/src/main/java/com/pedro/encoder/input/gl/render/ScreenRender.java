@@ -110,6 +110,7 @@ public class ScreenRender {
 
     updateMatrix(rotation, SizeCalculator.calculateFlip(flipStreamHorizontal, flipStreamVertical), MVPMatrix);
     ViewPort viewport = SizeCalculator.calculateViewPortEncoder(width, height, isPortrait);
+    Logger.d(TAG, "drawEncoder: viewport = " + viewport);
     GLES20.glViewport(viewport.getX(), viewport.getY(), viewport.getWidth(), viewport.getHeight());
 
     draw();

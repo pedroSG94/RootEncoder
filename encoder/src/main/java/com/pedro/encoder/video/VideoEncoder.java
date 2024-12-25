@@ -38,6 +38,7 @@ import com.pedro.encoder.TimestampMode;
 import com.pedro.encoder.input.video.FpsLimiter;
 import com.pedro.encoder.input.video.GetCameraData;
 import com.pedro.encoder.utils.CodecUtil;
+import com.pedro.encoder.utils.Logger;
 import com.pedro.encoder.utils.yuv.YUVUtil;
 
 import java.nio.ByteBuffer;
@@ -140,7 +141,8 @@ public class VideoEncoder extends BaseEncoder implements GetCameraData {
         resolution = width + "x" + height;
         videoFormat = MediaFormat.createVideoFormat(type, width, height);
       }
-      Log.i(TAG, "Prepare video info: " + this.formatVideoEncoder.name() + ", " + resolution);
+      Logger.i(TAG, "prepareVideoEncoder: rotation = " + rotation + "; videoFormat = " + videoFormat);
+      Logger.i(TAG, "Prepare video info: " + this.formatVideoEncoder.name() + ", " + resolution);
       videoFormat.setInteger(MediaFormat.KEY_COLOR_FORMAT,
           this.formatVideoEncoder.getFormatCodec());
       videoFormat.setInteger(MediaFormat.KEY_MAX_INPUT_SIZE, 0);

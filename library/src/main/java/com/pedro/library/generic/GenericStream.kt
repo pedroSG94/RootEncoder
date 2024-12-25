@@ -115,8 +115,8 @@ class GenericStream(
       val resolution = super.getVideoResolution()
       val fps = super.getVideoFps()
       Logger.d(TAG, "startStreamImp: resolution = $resolution, fps = $fps")
-//      rtmpClient.setVideoResolution(resolution.width, resolution.height)
-      rtmpClient.setVideoResolution(resolution.height, resolution.width)
+      rtmpClient.setVideoResolution(resolution.width, resolution.height)
+//      rtmpClient.setVideoResolution(1080, 1920)
       rtmpClient.setFps(fps)
       rtmpClient.connect(endPoint)
     } else if (endPoint.startsWith("rtsp", ignoreCase = true)) {

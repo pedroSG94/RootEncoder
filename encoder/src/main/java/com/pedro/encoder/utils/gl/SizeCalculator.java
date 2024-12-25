@@ -90,6 +90,7 @@ public class SizeCalculator {
 
   public static ViewPort calculateViewPortEncoder(int streamWidth, int streamHeight, boolean isPortrait) {
     float factor = (float) streamWidth / (float) streamHeight;
+    Logger.i(TAG, "calculateViewPortEncoder: factor = " + factor + "; isPortrait = " + isPortrait);
     if (factor >= 1f) {
       if (isPortrait) {
         int width = (int) (streamHeight / factor);

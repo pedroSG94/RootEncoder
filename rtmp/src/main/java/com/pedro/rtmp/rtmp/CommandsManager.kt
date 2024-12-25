@@ -37,8 +37,10 @@ import java.io.*
  * Created by pedro on 21/04/21.
  */
 abstract class CommandsManager {
-
-  protected val TAG = "CommandsManager"
+  companion object {
+    private const val TAG = "CommandsManager"
+  }
+//  protected val TAG = "CommandsManager"
 
   val sessionHistory = CommandSessionHistory()
   var timestamp = 0

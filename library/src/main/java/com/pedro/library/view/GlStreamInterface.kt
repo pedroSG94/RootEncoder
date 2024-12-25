@@ -225,11 +225,13 @@ class GlStreamInterface(private val context: Context): OnFrameAvailableListener,
       }
     }
 
-    val orientation = when (orientationForced) {
-      OrientationForced.PORTRAIT -> true
-      OrientationForced.LANDSCAPE -> false
-      OrientationForced.NONE -> isPortrait
-    }
+//    val orientation = when (orientationForced) {
+//      OrientationForced.PORTRAIT -> true
+//      OrientationForced.LANDSCAPE -> false
+//      OrientationForced.NONE -> isPortrait
+//    }
+    val orientation = false
+    Logger.d(TAG, "draw: orientation = $orientation")
     // render VideoEncoder (stream and record)
     if (surfaceManagerEncoder.isReady && mainRender.isReady() && !limitFps) {
       Logger.d(TAG, "draw: 1 surfaceManagerEncoder.isReady = ${surfaceManagerEncoder.isReady}, mainRender.isReady() = ${mainRender.isReady()}, limitFps = ${limitFps}")
@@ -279,6 +281,7 @@ class GlStreamInterface(private val context: Context): OnFrameAvailableListener,
   }
 
   fun forceOrientation(forced: OrientationForced) {
+    Logger.d(TAG, "forceOrientation: forced = $forced")
     when (forced) {
       OrientationForced.PORTRAIT -> {
         setCameraOrientation(90)
@@ -290,6 +293,7 @@ class GlStreamInterface(private val context: Context): OnFrameAvailableListener,
       }
       OrientationForced.NONE -> {
         val orientation = CameraHelper.getCameraOrientation(context)
+        Logger.d(TAG, "forceOrientation: orientation = $orientation")
         setCameraOrientation(if (orientation == 0) 270 else orientation - 90)
         shouldHandleOrientation = true
       }
@@ -330,6 +334,7 @@ class GlStreamInterface(private val context: Context): OnFrameAvailableListener,
   }
 
   fun setCameraOrientation(orientation: Int) {
+    Logger.d(TAG, "setCameraOrientation: orientation = $orientation")
     mainRender.setCameraRotation(orientation)
   }
 
