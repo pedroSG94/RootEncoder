@@ -46,12 +46,27 @@ public class SizeCalculator {
       //640x480是宽x高，在屏幕显示的时候640是竖直方向，480是水平方向
       float wr = (float) streamHeight / previewWidth;//水平方向的占比
       float hr = (float) streamWidth / previewHeight;//竖直方向的占比
-      if(wr > hr) {
-        xo = 0;
-        yo = (int) ((previewHeight - streamWidth / wr) / 2);
-        xf = previewWidth;
-        yf = (int) (streamWidth / wr);
+      if(wr <= 1.0 && hr <= 1.0){
+        Logger.d(TAG, "calculateViewPort: 1 wr = " + wr + "; hr = " + hr);
+        if(wr > hr) {//以水平方向去适配
+          xo = 0;
+          yo = (int) ((previewHeight - streamWidth / wr) / 2);
+          xf = previewWidth;
+          yf = (int) (streamWidth / wr);
+        }
+      }else{
+        Logger.d(TAG, "calculateViewPort: 2 wr = " + wr + "; hr = " + hr);
+        wr = (float) previewWidth / streamWidth;//水平方向的占比
+        hr = (float) previewHeight / streamHeight;//竖直方向的占比
+        Logger.d(TAG, "calculateViewPort: 3 wr = " + wr + "; hr = " + hr);
+        if(wr < hr) {//将画面倒转过来，以水平方向去适配
+          xo = 0;
+          yo = (int) ((previewHeight - streamHeight * wr) / 2);
+          xf = previewWidth;
+          yf = (int) (streamHeight * wr);
+        }
       }
+
 
 //      if (streamAspectRatio > previewAspectRatio) {
 //        yf = streamHeight * previewWidth / streamWidth;

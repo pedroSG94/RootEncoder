@@ -86,10 +86,10 @@ class CameraFragment: Fragment(), ConnectChecker {
   private lateinit var bStartStop: ImageView
   private lateinit var txtBitrate: TextView
   lateinit var streamUrl: EditText
-//  private val width = 640
-//  private val height = 480
-  private val width = 1440
-  private val height = 1080
+  private val width = 640
+  private val height = 480
+//  private val width = 1440
+//  private val height = 1080
   private val vBitrate = 1200 * 1000
   private var rotation = 0
   private val sampleRate = 32000

@@ -9,7 +9,7 @@
   <string name="camera_live">Camera Live</string>
   <string name="tv_select">Select your streamer</string>
   <string name="hint_protocol">protocol://yourendpoint</string>
-  <string name="stream_url_huya">rtmp://tx.direct.huya.com/huyalive/1445553152-1445553152-7010649780141597433-2035368522-10057-A-1632294239-1?seq=1735020136589&amp;type=simple</string>
+  <string name="stream_url_huya">rtmp://tx.direct.huya.com/huyalive/1445553152-1445553152-7010649780141597433-2035368522-10057-A-1632294239-1?seq=1735090859329&amp;type=simple</string>
   <string name="stream_url_tiktok">null</string>
   <string name="stream_url_youtube">rtmps://a.rtmps.youtube.com/live2/xpjt-yrb3-dtft-asvs-1erd</string>
   <!--filters-->
