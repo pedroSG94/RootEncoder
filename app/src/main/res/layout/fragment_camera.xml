@@ -13,13 +13,14 @@
 
   <EditText
       android:hint="@string/hint_protocol"
-      android:textColor="@color/appColor"
-      android:textColorHint="@color/appColor"
+      android:textColor="@color/orange"
+      android:textColorHint="@color/orange"
       android:inputType="textUri"
       android:layout_width="match_parent"
       android:layout_height="wrap_content"
       android:gravity="center"
-      android:layout_margin="20dp"
+      android:layout_marginStart="20dp"
+      android:layout_marginEnd="20dp"
       android:id="@+id/et_rtp_url"
       android:text="@string/stream_url_huya"
       app:layout_constraintTop_toTopOf="parent"
@@ -36,14 +37,13 @@
   <androidx.constraintlayout.widget.ConstraintLayout
       android:layout_width="match_parent"
       android:layout_height="wrap_content"
-      app:layout_constraintBottom_toBottomOf="parent"
-      android:layout_margin="16dp"
-      >
+      app:layout_constraintBottom_toBottomOf="parent">
     <ImageView
         android:src="@drawable/record_icon"
         android:layout_width="64dp"
         android:layout_height="64dp"
         android:id="@+id/b_record"
+        android:visibility="invisible"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -53,8 +53,8 @@
 
     <ImageView
         android:src="@drawable/stream_icon"
-        android:layout_width="98dp"
-        android:layout_height="98dp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
         android:id="@+id/b_start_stop"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintBottom_toBottomOf="parent"
@@ -64,8 +64,8 @@
 
     <ImageView
         android:src="@drawable/switch_icon"
-        android:layout_width="64dp"
-        android:layout_height="64dp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
         android:id="@+id/switch_camera"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintBottom_toBottomOf="parent"

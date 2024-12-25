@@ -25,6 +25,7 @@ import com.pedro.common.VideoCodec
 import com.pedro.common.onMainThreadHandler
 import com.pedro.encoder.input.decoder.AudioDecoderInterface
 import com.pedro.encoder.input.decoder.VideoDecoderInterface
+import com.pedro.encoder.utils.Logger
 import com.pedro.library.base.FromFileBase
 import com.pedro.library.util.streamclient.GenericStreamClient
 import com.pedro.library.util.streamclient.RtmpStreamClient
@@ -41,6 +42,9 @@ import java.nio.ByteBuffer
 
 @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
 class GenericFromFile: FromFileBase {
+  companion object {
+      private const val TAG = "GenericFromFile"
+  }
 
   private val streamClientListener = object: StreamClientListener {
     override fun onRequestKeyframe() {
@@ -123,6 +127,7 @@ class GenericFromFile: FromFileBase {
     streamClient.connecting(url)
     if (url.startsWith("rtmp", ignoreCase = true)) {
       connectedType = ClientType.RTMP
+      Logger.d(TAG, "startStreamImp: videoEncoder.rotation = ${videoEncoder.rotation}, videoEncoder.width = ${videoEncoder.width}, videoEncoder.height = ${videoEncoder.height}")
       if (videoEncoder.rotation == 90 || videoEncoder.rotation == 270) {
         rtmpClient.setVideoResolution(videoEncoder.height, videoEncoder.width)
       } else {

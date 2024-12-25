@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 <!--  <color name="appColor">#e74c3c</color>-->
-  <color name="appColor">#F48442</color>
+  <color name="orange">#F48442</color>
   <color name="black">#000000</color>
+  <color name="appColor">@color/black</color>
   <color name="white">#ffffff</color>
 </resources>
