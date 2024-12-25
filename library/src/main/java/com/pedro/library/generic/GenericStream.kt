@@ -29,6 +29,7 @@ import com.pedro.encoder.input.sources.audio.AudioSource
 import com.pedro.encoder.input.sources.audio.MicrophoneSource
 import com.pedro.encoder.input.sources.video.Camera2Source
 import com.pedro.encoder.input.sources.video.VideoSource
+import com.pedro.encoder.utils.Logger
 import com.pedro.library.util.streamclient.GenericStreamClient
 import com.pedro.library.util.streamclient.RtmpStreamClient
 import com.pedro.library.util.streamclient.RtspStreamClient
@@ -54,6 +55,9 @@ class GenericStream(
     videoSource: VideoSource,
     audioSource: AudioSource
 ): StreamBase(context, videoSource, audioSource) {
+  companion object {
+      private const val TAG = "GenericStream"
+  }
 
   private val streamClientListener = object: StreamClientListener {
     override fun onRequestKeyframe() {
@@ -109,8 +113,11 @@ class GenericStream(
     if (endPoint.startsWith("rtmp", ignoreCase = true)) {
       connectedType = ClientType.RTMP
       val resolution = super.getVideoResolution()
-      rtmpClient.setVideoResolution(resolution.width, resolution.height)
-      rtmpClient.setFps(super.getVideoFps())
+      val fps = super.getVideoFps()
+      Logger.d(TAG, "startStreamImp: resolution = $resolution, fps = $fps")
+//      rtmpClient.setVideoResolution(resolution.width, resolution.height)
+      rtmpClient.setVideoResolution(resolution.height, resolution.width)
+      rtmpClient.setFps(fps)
       rtmpClient.connect(endPoint)
     } else if (endPoint.startsWith("rtsp", ignoreCase = true)) {
       connectedType = ClientType.RTSP

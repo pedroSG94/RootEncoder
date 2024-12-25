@@ -44,7 +44,7 @@ public class SizeCalculator {
     if (mode == AspectRatioMode.Adjust) {
       Logger.d(TAG, "calculateViewPort: streamAspectRatio = " + streamAspectRatio + "; previewAspectRatio = " + previewAspectRatio + ";");
       //640x480是宽x高，在屏幕显示的时候640是竖直方向，480是水平方向
-      float wr = (float) streamHeight / previewWidth;//水平方向的占比
+      float wr = (float) streamHeight / previewWidth;//水平方向的占比, 一般后者比前者大，比值是小于1的
       float hr = (float) streamWidth / previewHeight;//竖直方向的占比
       if(wr <= 1.0 && hr <= 1.0){
         Logger.d(TAG, "calculateViewPort: 1 wr = " + wr + "; hr = " + hr);
