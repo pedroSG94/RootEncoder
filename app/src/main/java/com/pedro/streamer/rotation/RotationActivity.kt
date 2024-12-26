@@ -20,11 +20,14 @@ import android.annotation.SuppressLint
 import android.graphics.BitmapFactory
 import android.os.Build
 import android.os.Bundle
+import android.view.KeyEvent
 import android.view.Menu
 import android.view.MenuItem
 import android.view.MotionEvent
 import android.view.View
 import android.view.View.OnTouchListener
+import android.window.OnBackInvokedDispatcher
+import androidx.activity.OnBackPressedCallback
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import com.pedro.encoder.input.sources.audio.MicrophoneSource
@@ -35,9 +38,12 @@ import com.pedro.extrasources.BitmapSource
 import com.pedro.extrasources.CameraUvcSource
 import com.pedro.extrasources.CameraXSource
 import com.pedro.streamer.R
+import com.pedro.streamer.rotation.eventbus.BroadcastBackPressedEvent
 import com.pedro.streamer.utils.FilterMenu
+import com.pedro.streamer.utils.Logger
 import com.pedro.streamer.utils.toast
 import com.pedro.streamer.utils.updateMenuColor
+import org.greenrobot.eventbus.EventBus
 
 
 /**
@@ -45,6 +51,10 @@ import com.pedro.streamer.utils.updateMenuColor
  */
 @RequiresApi(Build.VERSION_CODES.LOLLIPOP)
 class RotationActivity : AppCompatActivity(), OnTouchListener {
+  companion object {
+    private const val TAG = "RotationActivity"
+    private const val EXIT_TIME_INTERVAL = 2000
+  }
 
   private val cameraFragment = CameraFragment.getInstance()
   private val filterMenu: FilterMenu by lazy { FilterMenu(this) }
@@ -53,11 +63,30 @@ class RotationActivity : AppCompatActivity(), OnTouchListener {
   private var currentOrientation: MenuItem? = null
   private var currentFilter: MenuItem? = null
   private var currentPlatform: MenuItem? = null
+  private var mClickTime: Long = 0
 
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
     setContentView(R.layout.rotation_activity)
     supportFragmentManager.beginTransaction().add(R.id.container, cameraFragment).commit()
+
+    initBackEventListener()
+  }
+
+  private fun initBackEventListener(){
+    onBackPressedListener(true){
+      EventBus.getDefault().post(BroadcastBackPressedEvent())
+    }
+  }
+
+  fun handleBackEvent(){
+    Logger.d(TAG, "handleBackEvent: ")
+    if((System.currentTimeMillis() - mClickTime) > EXIT_TIME_INTERVAL){
+      toast("Press again to exit app")
+      mClickTime = System.currentTimeMillis()
+    }else{
+      finish()
+    }
   }
 
   override fun onCreateOptionsMenu(menu: Menu): Boolean {
@@ -74,6 +103,19 @@ class RotationActivity : AppCompatActivity(), OnTouchListener {
     currentPlatform = defaultPlatform.updateMenuColor(this, currentPlatform)
     return true
   }
+
+//  override fun onBackPressed() {
+//    super.onBackPressed()
+//    Logger.d(TAG, "onBackPressed: ")
+//  }
+
+//  override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
+//    if(keyCode == KeyEvent.KEYCODE_BACK){
+//      Logger.d(TAG, "onKeyDown: ")
+//
+//    }
+//    return super.onKeyDown(keyCode, event)
+//  }
 
   override fun onOptionsItemSelected(item: MenuItem): Boolean {
     try {
@@ -144,4 +186,12 @@ class RotationActivity : AppCompatActivity(), OnTouchListener {
     }
     return false
   }
+}
+
+fun AppCompatActivity.onBackPressedListener(isEnabled: Boolean, callback: () -> Unit){
+  onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(isEnabled){
+    override fun handleOnBackPressed() {
+      callback()
+    }
+  })
 }

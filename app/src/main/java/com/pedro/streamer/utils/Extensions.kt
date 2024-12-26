@@ -72,6 +72,6 @@ fun Drawable.setColorFilter(@ColorInt color: Int) {
 
 fun MenuItem.updateMenuColor(context: Context, currentItem: MenuItem?): MenuItem {
   currentItem?.setColor(context, R.color.black)
-  setColor(context, R.color.appColor)
+  setColor(context, R.color.orange)
   return this
 }

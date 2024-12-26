@@ -37,9 +37,13 @@ import com.pedro.library.base.recording.RecordController
 import com.pedro.library.generic.GenericStream
 import com.pedro.library.util.BitrateAdapter
 import com.pedro.streamer.R
+import com.pedro.streamer.rotation.eventbus.BroadcastBackPressedEvent
 import com.pedro.streamer.utils.Logger
 import com.pedro.streamer.utils.PathUtils
 import com.pedro.streamer.utils.toast
+import org.greenrobot.eventbus.EventBus
+import org.greenrobot.eventbus.Subscribe
+import org.greenrobot.eventbus.ThreadMode
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -145,6 +149,7 @@ class CameraFragment: Fragment(), ConnectChecker {
         bStartStop.setImageResource(R.drawable.stream_icon)
       }
     }
+
     bRecord.setOnClickListener {
       if (!genericStream.isRecording) {
         val folder = PathUtils.getRecordPath()
@@ -173,6 +178,16 @@ class CameraFragment: Fragment(), ConnectChecker {
     return view
   }
 
+  @Subscribe(threadMode = ThreadMode.MAIN)
+  fun handleMessageEvent(event: BroadcastBackPressedEvent){
+    if(genericStream.isStreaming){
+      genericStream.stopStream()
+      bStartStop.setImageResource(R.drawable.stream_icon)
+    }else{
+      (requireActivity() as RotationActivity).handleBackEvent()
+    }
+  }
+
   fun setOrientationMode(isVertical: Boolean) {
     val wasOnPreview = genericStream.isOnPreview
     Logger.d(TAG, "setOrientationMode: isVertical = $isVertical, wasOnPreview = $wasOnPreview")
@@ -184,6 +199,9 @@ class CameraFragment: Fragment(), ConnectChecker {
 
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
+      if (EventBus.getDefault().isRegistered(this).not()) {
+          EventBus.getDefault().register(this)
+      }
     prepare()
     genericStream.getStreamClient().setReTries(10)
   }
@@ -204,6 +222,9 @@ class CameraFragment: Fragment(), ConnectChecker {
   override fun onDestroy() {
     super.onDestroy()
     genericStream.release()
+    if(EventBus.getDefault().isRegistered(this)){
+      EventBus.getDefault().unregister(this)
+    }
   }
 
   override fun onConnectionStarted(url: String) {
