@@ -13,8 +13,8 @@
 
   <EditText
       android:hint="@string/hint_protocol"
-      android:textColor="@color/orange"
-      android:textColorHint="@color/orange"
+      android:textColor="@color/gray"
+      android:textColorHint="@color/gray"
       android:inputType="textUri"
       android:layout_width="match_parent"
       android:layout_height="wrap_content"
@@ -39,11 +39,10 @@
       android:layout_height="wrap_content"
       app:layout_constraintBottom_toBottomOf="parent">
     <ImageView
-        android:src="@drawable/record_icon"
-        android:layout_width="64dp"
-        android:layout_height="64dp"
+        android:src="@drawable/live_setting"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
         android:id="@+id/b_record"
-        android:visibility="invisible"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -52,7 +51,7 @@
         />
 
     <ImageView
-        android:src="@drawable/stream_icon"
+        android:src="@drawable/live_start"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:id="@+id/b_start_stop"
@@ -63,7 +62,7 @@
         />
 
     <ImageView
-        android:src="@drawable/switch_icon"
+        android:src="@drawable/camera_switch"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:id="@+id/switch_camera"

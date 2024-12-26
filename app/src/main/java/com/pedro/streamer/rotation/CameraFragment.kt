@@ -143,31 +143,33 @@ class CameraFragment: Fragment(), ConnectChecker {
     bStartStop.setOnClickListener {
       if (!genericStream.isStreaming) {
         genericStream.startStream(streamUrl.text.toString())
-        bStartStop.setImageResource(R.drawable.stream_stop_icon)
+        bStartStop.setImageResource(R.drawable.live_stop)
       } else {
         genericStream.stopStream()
-        bStartStop.setImageResource(R.drawable.stream_icon)
+        bStartStop.setImageResource(R.drawable.live_start)
       }
     }
 
     bRecord.setOnClickListener {
-      if (!genericStream.isRecording) {
-        val folder = PathUtils.getRecordPath()
-        if (!folder.exists()) folder.mkdir()
-        val sdf = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault())
-        recordPath = "${folder.absolutePath}/${sdf.format(Date())}.mp4"
-        genericStream.startRecord(recordPath) { status ->
-          if (status == RecordController.Status.RECORDING) {
-            bRecord.setImageResource(R.drawable.stop_icon)
-          }
-        }
-        bRecord.setImageResource(R.drawable.pause_icon)
-      } else {
-        genericStream.stopRecord()
-        bRecord.setImageResource(R.drawable.record_icon)
-        PathUtils.updateGallery(requireContext(), recordPath)
-      }
+      toast("Feature not available yet!")
+//      if (!genericStream.isRecording) {
+//        val folder = PathUtils.getRecordPath()
+//        if (!folder.exists()) folder.mkdir()
+//        val sdf = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault())
+//        recordPath = "${folder.absolutePath}/${sdf.format(Date())}.mp4"
+//        genericStream.startRecord(recordPath) { status ->
+//          if (status == RecordController.Status.RECORDING) {
+//            bRecord.setImageResource(R.drawable.stop_icon)
+//          }
+//        }
+//        bRecord.setImageResource(R.drawable.pause_icon)
+//      } else {
+//        genericStream.stopRecord()
+//        bRecord.setImageResource(R.drawable.record_icon)
+//        PathUtils.updateGallery(requireContext(), recordPath)
+//      }
     }
+
     bSwitchCamera.setOnClickListener {
       when (val source = genericStream.videoSource) {
         is Camera1Source -> source.switchCamera()
@@ -182,7 +184,7 @@ class CameraFragment: Fragment(), ConnectChecker {
   fun handleMessageEvent(event: BroadcastBackPressedEvent){
     if(genericStream.isStreaming){
       genericStream.stopStream()
-      bStartStop.setImageResource(R.drawable.stream_icon)
+      bStartStop.setImageResource(R.drawable.live_start)
     }else{
       (requireActivity() as RotationActivity).handleBackEvent()
     }
@@ -239,7 +241,7 @@ class CameraFragment: Fragment(), ConnectChecker {
       toast("Retry")
     } else {
       genericStream.stopStream()
-      bStartStop.setImageResource(R.drawable.stream_icon)
+      bStartStop.setImageResource(R.drawable.live_start)
       toast("Failed: $reason")
     }
   }
@@ -256,7 +258,7 @@ class CameraFragment: Fragment(), ConnectChecker {
 
   override fun onAuthError() {
     genericStream.stopStream()
-    bStartStop.setImageResource(R.drawable.stream_icon)
+    bStartStop.setImageResource(R.drawable.live_start)
     toast("Auth error")
   }
 

@@ -2,6 +2,7 @@
 <resources>
 <!--  <color name="appColor">#e74c3c</color>-->
   <color name="orange">#F48442</color>
+  <color name="gray">#A69D97</color>
   <color name="black">#000000</color>
   <color name="appColor">@color/black</color>
   <color name="white">#ffffff</color>
