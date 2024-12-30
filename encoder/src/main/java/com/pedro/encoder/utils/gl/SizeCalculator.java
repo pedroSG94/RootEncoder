@@ -61,7 +61,7 @@ public class SizeCalculator {
         Logger.d(TAG, "calculateViewPort: 3 wr = " + wr + "; hr = " + hr);
         if(wr < hr) {//将画面倒转过来，以水平方向去适配
           xo = 0;
-          yo = (int) ((previewHeight - streamHeight * wr) / 2) + 25;
+          yo = (int) ((previewHeight - streamHeight * wr) / 2) + 20;
           xf = previewWidth;
           yf = (int) (streamHeight * wr);
         }
