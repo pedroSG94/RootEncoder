@@ -107,6 +107,15 @@ class Camera2Source(context: Context): VideoSource() {
     }
   }
 
+  fun changeResolution() {
+    if (isRunning()) {
+      stop()
+      surfaceTexture?.let {
+        start(it)
+      }
+    }
+  }
+
   fun getCameraFacing(): CameraHelper.Facing = facing
 
   fun getCameraResolutions(facing: CameraHelper.Facing): List<Size> {

@@ -287,8 +287,16 @@ public class VideoEncoder extends BaseEncoder implements GetCameraData {
     return width;
   }
 
+  public void setWidth(int width) {
+    this.width = width;
+  }
+
   public int getHeight() {
     return height;
+  }
+
+  public void setHeight(int height) {
+    this.height = height;
   }
 
   public int getRotation() {
@@ -309,6 +317,10 @@ public class VideoEncoder extends BaseEncoder implements GetCameraData {
 
   public int getBitRate() {
     return bitRate;
+  }
+
+  public void setBitRate(int bitRate) {
+    this.bitRate = bitRate;
   }
 
   public void setForceFps(int fps) {

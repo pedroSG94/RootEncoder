@@ -107,7 +107,7 @@ public class ScreenRender {
   public void drawEncoder(int width, int height, boolean isPortrait, int rotation,
       boolean flipStreamVertical, boolean flipStreamHorizontal) {
     GlUtil.checkGlError("drawScreen start");
-
+    Logger.d(TAG, "drawEncoder: width = " + width + "; height = " + height + "; isPortrait = " + isPortrait + "; rotation = " + rotation + "; flipStreamVertical = " + flipStreamVertical + "; flipStreamHorizontal = " + flipStreamHorizontal);
     updateMatrix(rotation, SizeCalculator.calculateFlip(flipStreamHorizontal, flipStreamVertical), MVPMatrix);
     ViewPort viewport = SizeCalculator.calculateViewPortEncoder(width, height, isPortrait);
     Logger.d(TAG, "drawEncoder: viewport = " + viewport);

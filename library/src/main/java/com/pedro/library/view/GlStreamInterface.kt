@@ -230,7 +230,9 @@ class GlStreamInterface(private val context: Context): OnFrameAvailableListener,
 //      OrientationForced.LANDSCAPE -> false
 //      OrientationForced.NONE -> isPortrait
 //    }
-    val orientation = false
+    //todo 临时修改：设置给记录仪的是横屏模式；
+//    val orientation = false
+    val orientation = true
     Logger.d(TAG, "draw: orientation = $orientation")
     // render VideoEncoder (stream and record)
     if (surfaceManagerEncoder.isReady && mainRender.isReady() && !limitFps) {

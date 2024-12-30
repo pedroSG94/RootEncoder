@@ -95,7 +95,7 @@ class RotationActivity : AppCompatActivity(), OnTouchListener {
     val defaultAudioSource = menu.findItem(R.id.audio_source_microphone)
     val defaultOrientation = menu.findItem(R.id.orientation_horizontal)
     val defaultFilter = menu.findItem(R.id.no_filter)
-    val defaultPlatform = menu.findItem(R.id.platform_huya)
+    val defaultPlatform = menu.findItem(R.id.platform_youtube)
     currentVideoSource = defaultVideoSource.updateMenuColor(this, currentVideoSource)
     currentAudioSource = defaultAudioSource.updateMenuColor(this, currentAudioSource)
     currentOrientation = defaultOrientation.updateMenuColor(this, currentOrientation)

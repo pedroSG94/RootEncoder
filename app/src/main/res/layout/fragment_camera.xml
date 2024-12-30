@@ -22,7 +22,7 @@
       android:layout_marginStart="20dp"
       android:layout_marginEnd="20dp"
       android:id="@+id/et_rtp_url"
-      android:text="@string/stream_url_huya"
+      android:text="@string/stream_url_youtube"
       app:layout_constraintTop_toTopOf="parent"
       android:imeOptions="actionGo"/>
 
@@ -39,7 +39,7 @@
       android:layout_height="wrap_content"
       app:layout_constraintBottom_toBottomOf="parent">
     <ImageView
-        android:src="@drawable/live_setting"
+        android:src="@drawable/resolution_1080"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:id="@+id/b_record"

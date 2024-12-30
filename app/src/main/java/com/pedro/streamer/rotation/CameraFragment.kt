@@ -80,6 +80,10 @@ class CameraFragment: Fragment(), ConnectChecker {
     private const val TAG = "CameraFragment"
   }
 
+  enum class Resolution {
+    _1080P, _720P
+  }
+
   val genericStream: GenericStream by lazy {
     GenericStream(requireContext(), this).apply {
       getGlInterface().autoHandleOrientation = true
@@ -92,15 +96,17 @@ class CameraFragment: Fragment(), ConnectChecker {
   lateinit var streamUrl: EditText
 //  private val width = 640
 //  private val height = 480
-  private val width = 1440
-  private val height = 1080
+  private var width = 1440
+  private var height = 1080
 //  private val vBitrate = 1200 * 1000
-  private val vBitrate = 2500 * 1000
+  private var vBitrate = 2500 * 1000
   private var rotation = 0
   private val sampleRate = 32000
   private val isStereo = true
   private val aBitrate = 128 * 1000
   private var recordPath = ""
+  private var mCurResolution = Resolution._1080P
+
   //Bitrate adapter used to change the bitrate on fly depend of the bandwidth.
   private val bitrateAdapter = BitrateAdapter {
     genericStream.setVideoBitrateOnFly(it)
@@ -153,6 +159,36 @@ class CameraFragment: Fragment(), ConnectChecker {
 
     bRecord.setOnClickListener {
       toast("Feature not available yet!")
+
+      if(mCurResolution == Resolution._1080P){
+        mCurResolution = Resolution._720P
+        width = 960
+        height = 720
+        vBitrate = 2000 * 1000
+        bRecord.setImageResource(R.drawable.resolution_720)
+        genericStream.setVideoResolution(width, height)
+        genericStream.setVideoBitRate(vBitrate)
+        if(genericStream.isStreaming){
+          genericStream.stopStream()
+          bStartStop.setImageResource(R.drawable.live_start)
+        }
+      }else{
+        mCurResolution = Resolution._1080P
+        width = 1440
+        height = 1080
+        vBitrate = 2500 * 1000
+        bRecord.setImageResource(R.drawable.resolution_1080)
+        genericStream.setVideoResolution(width, height)
+        genericStream.setVideoBitRate(vBitrate)
+        if(genericStream.isStreaming){
+          genericStream.stopStream()
+          bStartStop.setImageResource(R.drawable.live_start)
+        }
+      }
+      when (val source = genericStream.videoSource) {
+        is Camera2Source -> source.changeResolution()
+      }
+
 //      if (!genericStream.isRecording) {
 //        val folder = PathUtils.getRecordPath()
 //        if (!folder.exists()) folder.mkdir()

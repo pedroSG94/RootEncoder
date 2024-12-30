@@ -493,6 +493,16 @@ abstract class StreamBase(
 
   protected fun getVideoResolution() = Size(videoEncoder.width, videoEncoder.height)
 
+  fun setVideoResolution(width: Int, height: Int) {
+    videoEncoder.width = width
+    videoEncoder.height = height
+    glInterface.setEncoderSize(width, height)
+  }
+
+  fun setVideoBitRate(bitRate: Int) {
+    videoEncoder.bitRate = bitRate
+  }
+
   protected fun getVideoFps() = videoEncoder.fps
 
   private fun startSources() {
