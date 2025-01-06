@@ -172,7 +172,7 @@ class RotationActivity : AppCompatActivity(), OnTouchListener {
         }
       }
     } catch (e: IllegalArgumentException) {
-      toast("Change source error: ${e.message}")
+//      toast("Change source error: ${e.message}")
     }
     return super.onOptionsItemSelected(item)
   }

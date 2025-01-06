@@ -158,7 +158,7 @@ class CameraFragment: Fragment(), ConnectChecker {
     }
 
     bRecord.setOnClickListener {
-      toast("Feature not available yet!")
+//      toast("Resolution changed!")
 
       if(mCurResolution == Resolution._1080P){
         mCurResolution = Resolution._720P
@@ -253,7 +253,8 @@ class CameraFragment: Fragment(), ConnectChecker {
       false
     }
     if (!prepared) {
-      toast("Audio or Video configuration failed")
+//      toast("Audio or Video configuration failed")
+      Logger.d(TAG, "prepare: Audio or Video configuration failed")
       activity?.finish()
     }
   }
@@ -275,11 +276,11 @@ class CameraFragment: Fragment(), ConnectChecker {
 
   override fun onConnectionFailed(reason: String) {
     if (genericStream.getStreamClient().reTry(5000, reason, null)) {
-      toast("Retry")
+//      toast("Retry")
     } else {
       genericStream.stopStream()
       bStartStop.setImageResource(R.drawable.live_start)
-      toast("Failed: $reason")
+//      toast("Failed: $reason")
     }
   }
 
@@ -296,10 +297,10 @@ class CameraFragment: Fragment(), ConnectChecker {
   override fun onAuthError() {
     genericStream.stopStream()
     bStartStop.setImageResource(R.drawable.live_start)
-    toast("Auth error")
+//    toast("Auth error")
   }
 
   override fun onAuthSuccess() {
-    toast("Auth success")
+//    toast("Auth success")
   }
 }
