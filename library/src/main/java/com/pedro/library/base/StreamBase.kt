@@ -110,13 +110,13 @@ abstract class StreamBase(
   fun prepareVideo(
     width: Int, height: Int, bitrate: Int, fps: Int = 30, iFrameInterval: Int = 2,
     rotation: Int = 0, profile: Int = -1, level: Int = -1,
-    recordWidth: Int = width, recordHeight: Int = height, recordBitrate: Int = bitrate
+    recordWidth: Int = 0, recordHeight: Int = 0, recordBitrate: Int = bitrate
   ): Boolean {
     if (isStreaming || isRecording || isOnPreview) {
       throw IllegalStateException("Stream, record and preview must be stopped before prepareVideo")
     }
     differentRecordResolution = false
-    if (recordWidth != width && recordHeight != height) {
+    if (recordWidth > 0 && recordHeight > 0) {
       if (recordWidth.toDouble() / recordHeight.toDouble() != width.toDouble() / height.toDouble()) {
         throw IllegalArgumentException("The aspect ratio of record and stream resolution must be the same")
       }
