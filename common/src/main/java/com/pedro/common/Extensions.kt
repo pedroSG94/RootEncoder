@@ -94,11 +94,11 @@ fun ByteArray.bytesToHex(): String {
 }
 
 @JvmOverloads
-fun ExecutorService.secureSubmit(timeout: Long = 1000, code: () -> Unit) {
+fun ExecutorService.secureSubmit(timeout: Long = 5000, code: () -> Unit) {
   try {
     if (isTerminated || isShutdown) return
     submit { code() }.get(timeout, TimeUnit.MILLISECONDS)
-  } catch (ignored: Exception) {}
+  } catch (ignored: InterruptedException) {}
 }
 
 fun String.getMd5Hash(): String {

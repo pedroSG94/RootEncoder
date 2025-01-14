@@ -344,6 +344,7 @@ public class OpenGlView extends SurfaceView
 
   @Override
   public void start() {
+    threadQueue.clear();
     executor = ExtensionsKt.newSingleThreadExecutor(threadQueue);
     ExecutorService executor = this.executor;
     ExtensionsKt.secureSubmit(executor, () -> {
