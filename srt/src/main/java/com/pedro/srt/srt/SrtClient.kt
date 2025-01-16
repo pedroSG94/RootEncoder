@@ -96,6 +96,7 @@ class SrtClient(private val connectChecker: ConnectChecker) {
     get() = srtSender.getSentAudioFrames()
   val sentVideoFrames: Long
     get() = srtSender.getSentVideoFrames()
+  private var latency = 120_000 //in micro
 
   fun setVideoCodec(videoCodec: VideoCodec) {
     if (!isStreaming) {
@@ -113,6 +114,10 @@ class SrtClient(private val connectChecker: ConnectChecker) {
         else -> audioCodec
       }
     }
+  }
+
+  fun setLatency(latency: Int) {
+    this.latency = latency
   }
 
   fun setAuthorization(user: String?, password: String?) {
@@ -196,7 +201,7 @@ class SrtClient(private val connectChecker: ConnectChecker) {
         val host = urlParser.host
         val port = urlParser.port ?: 8888
         val path = urlParser.getQuery("streamid") ?: urlParser.getFullPath()
-        val latency = urlParser.getQuery("latency")?.toIntOrNull() ?: 120_000 //latency in micro
+        latency = urlParser.getQuery("latency")?.toIntOrNull() ?: latency
         if (path.isEmpty()) {
           isStreaming = false
           onMainThread {

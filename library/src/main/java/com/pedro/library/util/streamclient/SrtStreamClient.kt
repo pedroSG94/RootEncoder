@@ -28,6 +28,13 @@ class SrtStreamClient(
 ): StreamBaseClient() {
 
   /**
+   * Set latency in micro. By default 120_000.
+   */
+  fun setLatency(latency: Int) {
+    srtClient.setLatency(latency)
+  }
+
+  /**
    * Set passphrase for encrypt. Use empty value to disable it.
    */
   fun setPassphrase(passphrase: String, type: EncryptionType) {
