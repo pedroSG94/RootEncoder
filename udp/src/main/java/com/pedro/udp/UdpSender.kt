@@ -131,6 +131,8 @@ class UdpSender(
       size += commandManager.writeData(mpegTsPacket, socket)
       bytesSend += size
     }
+    if (type == MpegType.VIDEO) videoFramesSent++
+    else if (type == MpegType.AUDIO) audioFramesSent++
     if (isEnableLogs) {
       Log.i(TAG, "wrote ${type.name} packet, size $bytesSend")
     }
