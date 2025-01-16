@@ -190,4 +190,12 @@ abstract public class BaseObjectFilterRender extends BaseFilterRender {
         streamObject.getHeight() * 100 / streamHeight);
     squareVertexObject.put(sprite.getTransformedVertices()).position(0);
   }
+
+  public PointF getOriginalScale() {
+    if (streamObject != null) {
+      return new PointF(streamObject.getWidth(), streamObject.getHeight());
+    } else {
+      return new PointF(0, 0);
+    }
+  }
 }
