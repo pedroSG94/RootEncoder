@@ -20,7 +20,7 @@ coroutines = "1.10.1"
 junit = "4.13.2"
 mockito = "5.4.0"
 ktor = "2.3.13"
-uvcandroid = "1.0.7"
+uvcandroid = "1.0.8"
 media3 = "1.5.1"
 
 [libraries]
