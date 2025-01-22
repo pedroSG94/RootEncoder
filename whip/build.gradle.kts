@@ -53,5 +53,6 @@ dependencies {
   testImplementation(libs.kotlinx.coroutines.test)
   testImplementation(libs.junit)
   testImplementation(libs.mockito.kotlin)
+  implementation(project(":rtsp"))
   api(project(":common"))
 }
