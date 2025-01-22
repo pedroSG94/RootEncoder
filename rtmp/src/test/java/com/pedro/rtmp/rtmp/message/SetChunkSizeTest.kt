@@ -16,14 +16,15 @@
 
 package com.pedro.rtmp.rtmp.message
 
+import com.pedro.rtmp.FakeRtmpSocket
 import com.pedro.rtmp.utils.CommandSessionHistory
 import com.pedro.rtmp.utils.RtmpConfig
+import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
+import org.junit.Before
 import org.junit.Test
-import java.io.ByteArrayInputStream
-import java.io.ByteArrayOutputStream
 
 /**
  * Created by pedro on 10/9/23.
@@ -31,27 +32,33 @@ import java.io.ByteArrayOutputStream
 class SetChunkSizeTest {
 
   private val commandSessionHistory = CommandSessionHistory()
+  private lateinit var socket: FakeRtmpSocket
+
+  @Before
+  fun setup() {
+    socket = FakeRtmpSocket()
+  }
 
   @Test
-  fun `GIVEN a buffer WHEN read rtmp message THEN get expected set chunk size packet`() {
+  fun `GIVEN a buffer WHEN read rtmp message THEN get expected set chunk size packet`() = runTest {
     val buffer = byteArrayOf(2, 0, 0, 0, 0, 0, 4, 1, 0, 0, 0, 0, 0, 0, 1, 0)
+    socket.setInputBytes(buffer)
     val setChunkSize = SetChunkSize(256)
 
-    val message = RtmpMessage.getRtmpMessage(ByteArrayInputStream(buffer), RtmpConfig.DEFAULT_CHUNK_SIZE, commandSessionHistory)
+    val message = RtmpMessage.getRtmpMessage(socket, RtmpConfig.DEFAULT_CHUNK_SIZE, commandSessionHistory)
 
     assertTrue(message is SetChunkSize)
     assertEquals(setChunkSize.toString(), (message as SetChunkSize).toString())
   }
 
   @Test
-  fun `GIVEN a set chunk size packet WHEN write into a buffer THEN get expected buffer`() {
+  fun `GIVEN a set chunk size packet WHEN write into a buffer THEN get expected buffer`() = runTest {
     val expectedBuffer = byteArrayOf(2, 0, 0, 0, 0, 0, 4, 1, 0, 0, 0, 0, 0, 0, 1, 0)
-    val output = ByteArrayOutputStream()
 
     val setChunkSize = SetChunkSize(256)
-    setChunkSize.writeHeader(output)
-    setChunkSize.writeBody(output)
+    setChunkSize.writeHeader(socket)
+    setChunkSize.writeBody(socket)
 
-    assertArrayEquals(expectedBuffer, output.toByteArray())
+    assertArrayEquals(expectedBuffer, socket.output.toByteArray())
   }
 }

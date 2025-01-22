@@ -31,10 +31,10 @@ import com.pedro.rtmp.rtmp.chunk.ChunkType
 import com.pedro.rtmp.rtmp.message.BasicHeader
 import com.pedro.rtmp.rtmp.message.command.CommandAmf3
 import com.pedro.rtmp.rtmp.message.data.DataAmf3
-import java.io.OutputStream
+import com.pedro.rtmp.utils.socket.RtmpSocket
 
 class CommandsManagerAmf3: CommandsManager() {
-  override fun sendConnect(auth: String, output: OutputStream) {
+  override suspend fun sendConnectImp(auth: String, socket: RtmpSocket) {
     val connect = CommandAmf3("connect", ++commandId, getCurrentTimestamp(), streamId,
         BasicHeader(ChunkType.TYPE_0, ChunkStreamId.OVER_CONNECTION.mark))
     val connectInfo = Amf3Object()
@@ -57,20 +57,20 @@ class CommandsManagerAmf3: CommandsManager() {
     connectInfo.setProperty("objectEncoding", 3.0)
     connect.addData(connectInfo)
 
-    connect.writeHeader(output)
-    connect.writeBody(output)
+    connect.writeHeader(socket)
+    connect.writeBody(socket)
     sessionHistory.setPacket(commandId, "connect")
     Log.i(TAG, "send $connect")
   }
 
-  override fun createStream(output: OutputStream) {
+  override suspend fun createStreamImp(socket: RtmpSocket) {
     val releaseStream = CommandAmf3("releaseStream", ++commandId, getCurrentTimestamp(), streamId,
         BasicHeader(ChunkType.TYPE_0, ChunkStreamId.OVER_STREAM.mark))
     releaseStream.addData(Amf3Null())
     releaseStream.addData(Amf3String(streamName))
 
-    releaseStream.writeHeader(output)
-    releaseStream.writeBody(output)
+    releaseStream.writeHeader(socket)
+    releaseStream.writeBody(socket)
     sessionHistory.setPacket(commandId, "releaseStream")
     Log.i(TAG, "send $releaseStream")
 
@@ -79,8 +79,8 @@ class CommandsManagerAmf3: CommandsManager() {
     fcPublish.addData(Amf3Null())
     fcPublish.addData(Amf3String(streamName))
 
-    fcPublish.writeHeader(output)
-    fcPublish.writeBody(output)
+    fcPublish.writeHeader(socket)
+    fcPublish.writeBody(socket)
     sessionHistory.setPacket(commandId, "FCPublish")
     Log.i(TAG, "send $fcPublish")
 
@@ -88,13 +88,13 @@ class CommandsManagerAmf3: CommandsManager() {
         BasicHeader(ChunkType.TYPE_0, ChunkStreamId.OVER_CONNECTION.mark))
     createStream.addData(Amf3Null())
 
-    createStream.writeHeader(output)
-    createStream.writeBody(output)
+    createStream.writeHeader(socket)
+    createStream.writeBody(socket)
     sessionHistory.setPacket(commandId, "createStream")
     Log.i(TAG, "send $createStream")
   }
 
-  override fun sendMetadata(output: OutputStream) {
+  override suspend fun sendMetadataImp(socket: RtmpSocket) {
     val name = "@setDataFrame"
     val metadata = DataAmf3(name, getCurrentTimestamp(), streamId)
     metadata.addData(Amf3String("onMetaData"))
@@ -120,12 +120,12 @@ class CommandsManagerAmf3: CommandsManager() {
     amfEcmaArray.setProperty("filesize", 0.0)
     metadata.addData(amfEcmaArray)
 
-    metadata.writeHeader(output)
-    metadata.writeBody(output)
+    metadata.writeHeader(socket)
+    metadata.writeBody(socket)
     Log.i(TAG, "send $metadata")
   }
 
-  override fun sendPublish(output: OutputStream) {
+  override suspend fun sendPublishImp(socket: RtmpSocket) {
     val name = "publish"
     val publish = CommandAmf3(name, ++commandId, getCurrentTimestamp(), streamId,
         BasicHeader(ChunkType.TYPE_0, ChunkStreamId.OVER_STREAM.mark))
@@ -133,19 +133,19 @@ class CommandsManagerAmf3: CommandsManager() {
     publish.addData(Amf3String(streamName))
     publish.addData(Amf3String("live"))
 
-    publish.writeHeader(output)
-    publish.writeBody(output)
+    publish.writeHeader(socket)
+    publish.writeBody(socket)
     sessionHistory.setPacket(commandId, name)
     Log.i(TAG, "send $publish")
   }
 
-  override fun sendClose(output: OutputStream) {
+  override suspend fun sendCloseImp(socket: RtmpSocket) {
     val name = "closeStream"
     val closeStream = CommandAmf3(name, ++commandId, getCurrentTimestamp(), streamId, BasicHeader(ChunkType.TYPE_0, ChunkStreamId.OVER_STREAM.mark))
     closeStream.addData(Amf3Null())
 
-    closeStream.writeHeader(output)
-    closeStream.writeBody(output)
+    closeStream.writeHeader(socket)
+    closeStream.writeBody(socket)
     sessionHistory.setPacket(commandId, name)
     Log.i(TAG, "send $closeStream")
   }

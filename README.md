@@ -20,7 +20,7 @@ RootEncoder (rtmp-rtsp-stream-client-java) is a stream encoder to push video/aud
 Note: The library was renamed from rtmp-rtsp-stream-client-java to RootEncoder after add SRT protocol because the name has no sense anymore
 
 
-## iOS version (under develop):
+## iOS version:
 
 https://github.com/pedroSG94/RootEncoder-iOS
 
@@ -50,7 +50,9 @@ allprojects {
   }
 }
 dependencies {
-  implementation 'com.github.pedroSG94.RootEncoder:library:2.4.5'
+  implementation 'com.github.pedroSG94.RootEncoder:library:2.5.5'
+  //Optional, allow use BitmapSource, CameraXSource and CameraUvcSource 
+  implementation 'com.github.pedroSG94.RootEncoder:extra-sources:2.5.5'
 }
 
 ```
@@ -76,6 +78,7 @@ dependencies {
 ## Features:
 
 - [x] Android min API 16.
+- [x] Extra video sources minAPI 21+ (BitmapSource, CameraXSource and CameraUvcSource) 
 
 ### Encoder:
 

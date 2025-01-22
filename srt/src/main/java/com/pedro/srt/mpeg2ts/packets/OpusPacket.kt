@@ -16,7 +16,7 @@
 
 package com.pedro.srt.mpeg2ts.packets
 
-import android.media.MediaCodec
+import com.pedro.common.frame.MediaFrame
 import com.pedro.common.removeInfo
 import com.pedro.srt.mpeg2ts.MpegTsPacket
 import com.pedro.srt.mpeg2ts.MpegType
@@ -35,12 +35,11 @@ class OpusPacket(
   psiManager: PsiManager,
 ): BasePacket(psiManager, limitSize) {
 
-  override fun createAndSendPacket(
-    byteBuffer: ByteBuffer,
-    info: MediaCodec.BufferInfo,
-    callback: (List<MpegTsPacket>) -> Unit
+  override suspend fun createAndSendPacket(
+    mediaFrame: MediaFrame,
+    callback: suspend (List<MpegTsPacket>) -> Unit
   ) {
-    val fixedBuffer = byteBuffer.removeInfo(info)
+    val fixedBuffer = mediaFrame.data.removeInfo(mediaFrame.info)
     val length = fixedBuffer.remaining()
     if (length < 0) return
 
@@ -49,7 +48,7 @@ class OpusPacket(
     fixedBuffer.get(payload, header.size, length)
     System.arraycopy(header, 0, payload, 0, header.size)
 
-    val pes = Pes(psiManager.getAudioPid().toInt(), true, PesType.PRIVATE_STREAM_1, info.presentationTimeUs, ByteBuffer.wrap(payload))
+    val pes = Pes(psiManager.getAudioPid().toInt(), true, PesType.PRIVATE_STREAM_1, mediaFrame.info.timestamp, ByteBuffer.wrap(payload))
     val mpeg2tsPackets = mpegTsPacketizer.write(listOf(pes))
     val chunked = mpeg2tsPackets.chunked(chunkSize)
     val packets = mutableListOf<MpegTsPacket>()
@@ -62,7 +61,7 @@ class OpusPacket(
       val packetPosition = PacketPosition.SINGLE
       packets.add(MpegTsPacket(buffer.array(), MpegType.AUDIO, packetPosition, true))
     }
-    callback(packets)
+    if (packets.isNotEmpty()) callback(packets)
   }
 
   override fun resetPacket(resetInfo: Boolean) { }

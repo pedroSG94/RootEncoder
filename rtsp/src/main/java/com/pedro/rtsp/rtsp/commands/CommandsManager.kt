@@ -21,6 +21,8 @@ import com.pedro.common.AudioCodec
 import com.pedro.common.TimeUtils
 import com.pedro.common.VideoCodec
 import com.pedro.common.getMd5Hash
+import com.pedro.common.socket.TcpStreamSocket
+import com.pedro.common.socket.TcpStreamSocketImp
 import com.pedro.rtsp.rtsp.Protocol
 import com.pedro.rtsp.rtsp.commands.SdpBody.createAV1Body
 import com.pedro.rtsp.rtsp.commands.SdpBody.createAacBody
@@ -31,7 +33,6 @@ import com.pedro.rtsp.rtsp.commands.SdpBody.createOpusBody
 import com.pedro.rtsp.utils.RtpConstants
 import com.pedro.rtsp.utils.encodeToString
 import com.pedro.rtsp.utils.getData
-import java.io.BufferedReader
 import java.io.IOException
 import java.nio.ByteBuffer
 import java.util.regex.Pattern
@@ -49,9 +50,11 @@ open class CommandsManager {
     private set
   var path: String? = null
     private set
-  var sps: ByteArray? = null
+  var sps: ByteBuffer? = null
     private set
-  var pps: ByteArray? = null
+  var pps: ByteBuffer? = null
+    private set
+  var vps: ByteBuffer? = null
     private set
   private var cSeq = 0
   private var sessionId: String? = null
@@ -65,14 +68,17 @@ open class CommandsManager {
   var videoCodec = VideoCodec.H264
   var audioCodec = AudioCodec.AAC
   //For udp
-  val audioClientPorts = intArrayOf(5000, 5001)
-  val videoClientPorts = intArrayOf(5002, 5003)
-  val audioServerPorts = intArrayOf(5004, 5005)
-  val videoServerPorts = intArrayOf(5006, 5007)
+  val audioClientPorts = arrayOf<Int?>(5000, 5001)
+  val videoClientPorts = arrayOf<Int?>(5002, 5003)
+  val audioServerPorts = arrayOf<Int?>(5004, 5005)
+  val videoServerPorts = arrayOf<Int?>(5006, 5007)
 
-  //For H265
-  var vps: ByteArray? = null
-    private set
+  val spsString: String
+    get() = sps?.getData()?.encodeToString() ?: ""
+  val ppsString: String
+    get() = pps?.getData()?.encodeToString() ?: ""
+  val vpsString: String
+    get() = vps?.getData()?.encodeToString() ?: ""
 
   //For auth
   var user: String? = null
@@ -100,9 +106,9 @@ open class CommandsManager {
   }
 
   fun setVideoInfo(sps: ByteBuffer, pps: ByteBuffer?, vps: ByteBuffer?) {
-    this.sps = sps.getData()
-    this.pps = pps?.getData()
-    this.vps = vps?.getData()
+    this.sps = sps
+    this.pps = pps
+    this.vps = vps
   }
 
   fun setAudioInfo(sampleRate: Int, isStereo: Boolean) {
@@ -132,13 +138,6 @@ open class CommandsManager {
     cSeq = 0
     sessionId = null
   }
-
-  private val spsString: String
-    get() = sps?.encodeToString() ?: ""
-  private val ppsString: String
-    get() = pps?.encodeToString() ?: ""
-  private val vpsString: String
-    get() = vps?.encodeToString() ?: ""
 
   private fun addHeaders(): String {
     return "CSeq: ${++cSeq}\r\n" +
@@ -252,10 +251,10 @@ open class CommandsManager {
   }
 
   @Throws(IOException::class)
-  fun getResponse(reader: BufferedReader, method: Method = Method.UNKNOWN): Command {
+  suspend fun getResponse(socket: TcpStreamSocket, method: Method = Method.UNKNOWN): Command {
     var response = ""
     var line: String?
-    while (reader.readLine().also { line = it } != null) {
+    while (socket.readLine().also { line = it } != null) {
       response += "${line ?: ""}\n"
       //end of response
       if ((line?.length ?: 0) < 3) break

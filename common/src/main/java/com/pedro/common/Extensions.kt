@@ -16,10 +16,15 @@
 
 package com.pedro.common
 
+import android.hardware.camera2.CameraCharacteristics
+import android.hardware.camera2.CaptureRequest
 import android.media.MediaCodec
+import android.media.MediaFormat
 import android.os.Build
 import android.os.Handler
 import android.os.Looper
+import androidx.annotation.RequiresApi
+import com.pedro.common.frame.MediaFrame
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.UnsupportedEncodingException
@@ -28,6 +33,9 @@ import java.security.MessageDigest
 import java.security.NoSuchAlgorithmException
 import java.util.concurrent.BlockingQueue
 import java.util.concurrent.ExecutorService
+import java.util.concurrent.LinkedBlockingQueue
+import java.util.concurrent.ThreadPoolExecutor
+import java.util.concurrent.TimeUnit
 import kotlin.coroutines.Continuation
 
 /**
@@ -54,7 +62,7 @@ fun ByteBuffer.toByteArray(): ByteArray {
   }
 }
 
-fun ByteBuffer.removeInfo(info: MediaCodec.BufferInfo): ByteBuffer {
+fun ByteBuffer.removeInfo(info: MediaFrame.Info): ByteBuffer {
   try {
     position(info.offset)
     limit(info.size)
@@ -85,8 +93,12 @@ fun ByteArray.bytesToHex(): String {
   return joinToString("") { "%02x".format(it) }
 }
 
-fun ExecutorService.secureSubmit(code: () -> Unit) {
-  try { submit { code() }.get() } catch (ignored: Exception) {}
+@JvmOverloads
+fun ExecutorService.secureSubmit(timeout: Long = 5000, code: () -> Unit) {
+  try {
+    if (isTerminated || isShutdown) return
+    submit { code() }.get(timeout, TimeUnit.MILLISECONDS)
+  } catch (ignored: InterruptedException) {}
 }
 
 fun String.getMd5Hash(): String {
@@ -100,9 +112,45 @@ fun String.getMd5Hash(): String {
   return ""
 }
 
+fun newSingleThreadExecutor(queue: LinkedBlockingQueue<Runnable>): ExecutorService {
+  return ThreadPoolExecutor(1, 1, 0L, TimeUnit.MILLISECONDS, queue)
+}
+
 fun getSuspendContext(): Continuation<Unit> {
   return object : Continuation<Unit> {
     override val context = Dispatchers.IO
     override fun resumeWith(result: Result<Unit>) {}
   }
+}
+
+@RequiresApi(Build.VERSION_CODES.LOLLIPOP)
+fun <T> CameraCharacteristics.secureGet(key: CameraCharacteristics.Key<T>): T? {
+  return try { get(key) } catch (e: IllegalArgumentException) { null }
+}
+
+@RequiresApi(Build.VERSION_CODES.LOLLIPOP)
+fun <T> CaptureRequest.Builder.secureGet(key: CaptureRequest.Key<T>): T? {
+  return try { get(key) } catch (e: IllegalArgumentException) { null }
+}
+
+fun String.getIndexes(char: Char): Array<Int> {
+  val indexes = mutableListOf<Int>()
+  forEachIndexed { index, c -> if (c == char) indexes.add(index) }
+  return indexes.toTypedArray()
+}
+
+fun Throwable.validMessage(): String {
+  return (message ?: "").ifEmpty { javaClass.simpleName }
+}
+
+fun MediaCodec.BufferInfo.toMediaFrameInfo() = MediaFrame.Info(offset, size, presentationTimeUs, isKeyframe())
+
+fun ByteBuffer.clone(): ByteBuffer = ByteBuffer.wrap(toByteArray())
+
+fun MediaFormat.getIntegerSafe(name: String): Int? {
+  return try { getInteger(name) } catch (e: Exception) { null }
+}
+
+fun MediaFormat.getLongSafe(name: String): Long? {
+  return try { getLong(name) } catch (e: Exception) { null }
 }

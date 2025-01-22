@@ -21,6 +21,9 @@ import android.media.MediaFormat;
 import android.os.Build;
 import android.view.Surface;
 
+import com.pedro.common.ExtensionsKt;
+import com.pedro.common.frame.MediaFrame;
+
 import java.nio.ByteBuffer;
 
 /**
@@ -40,24 +43,17 @@ public class VideoDecoder extends BaseDecoder {
   }
 
   @Override
-  protected boolean extract(MediaExtractor videoExtractor) {
-    for (int i = 0; i < videoExtractor.getTrackCount() && !mime.startsWith("video/"); i++) {
-      mediaFormat = videoExtractor.getTrackFormat(i);
-      mime = mediaFormat.getString(MediaFormat.KEY_MIME);
-      if (mime.startsWith("video/")) {
-        videoExtractor.selectTrack(i);
-      } else {
-        mediaFormat = null;
-      }
-    }
-    if (mediaFormat != null) {
-      width = mediaFormat.getInteger(MediaFormat.KEY_WIDTH);
-      height = mediaFormat.getInteger(MediaFormat.KEY_HEIGHT);
-      duration = mediaFormat.getLong(MediaFormat.KEY_DURATION);
-      fps = mediaFormat.getInteger(MediaFormat.KEY_FRAME_RATE);
+  protected boolean extract(Extractor extractor) {
+    try {
+      mime = extractor.selectTrack(MediaFrame.Type.VIDEO);
+      VideoInfo info = extractor.getVideoInfo();
+      mediaFormat = extractor.getFormat();
+      this.width = info.getWidth();
+      this.height = info.getHeight();
+      this.duration = info.getDuration();
+      this.fps = info.getFps();
       return true;
-      //video decoder not supported
-    } else {
+    } catch (Exception e) {
       mime = "";
       return false;
     }

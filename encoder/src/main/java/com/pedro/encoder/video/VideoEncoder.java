@@ -34,6 +34,7 @@ import com.pedro.common.av1.Obu;
 import com.pedro.common.av1.ObuType;
 import com.pedro.encoder.BaseEncoder;
 import com.pedro.encoder.Frame;
+import com.pedro.encoder.TimestampMode;
 import com.pedro.encoder.input.video.FpsLimiter;
 import com.pedro.encoder.input.video.GetCameraData;
 import com.pedro.encoder.utils.CodecUtil;
@@ -65,6 +66,7 @@ public class VideoEncoder extends BaseEncoder implements GetCameraData {
   private int bitRate = 1200 * 1024; //in kbps
   private int rotation = 90;
   private int iFrameInterval = 2;
+  private long firstTimestamp = 0;
   //for disable video
   private final FpsLimiter fpsLimiter = new FpsLimiter();
   private FormatVideoEncoder formatVideoEncoder = FormatVideoEncoder.YUV420Dynamical;
@@ -73,6 +75,7 @@ public class VideoEncoder extends BaseEncoder implements GetCameraData {
 
   public VideoEncoder(GetVideoData getVideoData) {
     this.getVideoData = getVideoData;
+    typeError = CodecUtil.CodecTypeError.VIDEO_CODEC;
     type = CodecUtil.H264_MIME;
     TAG = "VideoEncoder";
   }
@@ -91,6 +94,15 @@ public class VideoEncoder extends BaseEncoder implements GetCameraData {
       int level) {
     if (prepared) stop();
 
+    if (width % 2 != 0) {
+      throw new IllegalArgumentException("Invalid width: " + width + ", must be an even value");
+    }
+    if (height % 2 != 0) {
+      throw new IllegalArgumentException("Invalid height: " + height + ", must be an even value");
+    }
+    if (fps <= 0) {
+      throw new IllegalArgumentException("Invalid fps: " + fps + ", must be higher than 0");
+    }
     this.width = width;
     this.height = height;
     this.fps = fps;
@@ -175,6 +187,7 @@ public class VideoEncoder extends BaseEncoder implements GetCameraData {
 
   @Override
   public void start(boolean resetTs) {
+    if (resetTs) firstTimestamp = 0;
     forceKey = false;
     shouldReset = resetTs;
     spsPpsSetted = false;
@@ -196,11 +209,13 @@ public class VideoEncoder extends BaseEncoder implements GetCameraData {
   }
 
   @Override
-  public void reset() {
+  public boolean reset() {
     stop(false);
-    prepareVideoEncoder(width, height, fps, bitRate, rotation, iFrameInterval, formatVideoEncoder,
+    boolean result = prepareVideoEncoder(width, height, fps, bitRate, rotation, iFrameInterval, formatVideoEncoder,
         profile, level);
+    if (!result) return false;
     restart();
+    return true;
   }
 
   private FormatVideoEncoder chooseColorDynamically(MediaCodecInfo mediaCodecInfo) {
@@ -244,7 +259,7 @@ public class VideoEncoder extends BaseEncoder implements GetCameraData {
         bundle.putInt(MediaCodec.PARAMETER_KEY_REQUEST_SYNC_FRAME, 0);
         try {
           codec.setParameters(bundle);
-          getVideoData.onSpsPpsVps(oldSps, oldPps, oldVps);
+          getVideoData.onVideoInfo(oldSps, oldPps, oldVps);
         } catch (IllegalStateException e) {
           Log.e(TAG, "encoder need be running", e);
         }
@@ -296,7 +311,7 @@ public class VideoEncoder extends BaseEncoder implements GetCameraData {
   }
 
   @Override
-  public void inputYUVData(Frame frame) {
+  public void inputYUVData(@NonNull Frame frame) {
     if (running && !queue.offer(frame)) {
       Log.i(TAG, "frame discarded");
     }
@@ -308,26 +323,29 @@ public class VideoEncoder extends BaseEncoder implements GetCameraData {
       ByteBuffer bufferInfo = mediaFormat.getByteBuffer("csd-0");
       //we need an av1ConfigurationRecord with sequenceObu to work
       if (bufferInfo != null && bufferInfo.remaining() > 4) {
-        getVideoData.onSpsPpsVps(bufferInfo, null, null);
+        getVideoData.onVideoInfo(bufferInfo, null, null);
         return true;
       }
-      return false;
       //H265
     } else if (type.equals(CodecUtil.H265_MIME)) {
-      List<ByteBuffer> byteBufferList = extractVpsSpsPpsFromH265(mediaFormat.getByteBuffer("csd-0"));
-      oldSps = byteBufferList.get(1);
-      oldPps = byteBufferList.get(2);
-      oldVps = byteBufferList.get(0);
-      getVideoData.onSpsPpsVps(oldSps, oldPps, oldVps);
-      return true;
+      ByteBuffer bufferInfo = mediaFormat.getByteBuffer("csd-0");
+      if (bufferInfo != null) {
+        List<ByteBuffer> byteBufferList = extractVpsSpsPpsFromH265(bufferInfo);
+        oldSps = byteBufferList.get(1);
+        oldPps = byteBufferList.get(2);
+        oldVps = byteBufferList.get(0);
+        getVideoData.onVideoInfo(oldSps, oldPps, oldVps);
+        return true;
+      }
       //H264
     } else {
       oldSps = mediaFormat.getByteBuffer("csd-0");
       oldPps = mediaFormat.getByteBuffer("csd-1");
       oldVps = null;
-      getVideoData.onSpsPpsVps(oldSps, oldPps, oldVps);
+      getVideoData.onVideoInfo(oldSps, oldPps, oldVps);
       return true;
     }
+    return false;
   }
 
   /**
@@ -340,6 +358,9 @@ public class VideoEncoder extends BaseEncoder implements GetCameraData {
       mediaCodecInfoList = CodecUtil.getAllHardwareEncoders(mime, true);
     } else if (codecType == CodecUtil.CodecType.SOFTWARE) {
       mediaCodecInfoList = CodecUtil.getAllSoftwareEncoders(mime, true);
+    } else if (codecType == CodecUtil.CodecType.CBR_PRIORITY) {
+      //Priority: hardware CBR > software CBR > hardware > software
+      mediaCodecInfoList = CodecUtil.getAllEncodersCbrPriority(mime);
     } else {
       //Priority: hardware CBR > hardware > software CBR > software
       mediaCodecInfoList = CodecUtil.getAllEncoders(mime, true, true);
@@ -513,7 +534,7 @@ public class VideoEncoder extends BaseEncoder implements GetCameraData {
         oldSps = buffers.first;
         oldPps = buffers.second;
         oldVps = null;
-        getVideoData.onSpsPpsVps(oldSps, oldPps, oldVps);
+        getVideoData.onVideoInfo(oldSps, oldPps, oldVps);
         spsPpsSetted = true;
       } else {
         Log.e(TAG, "manual sps/pps extraction failed");
@@ -526,7 +547,7 @@ public class VideoEncoder extends BaseEncoder implements GetCameraData {
         oldSps = byteBufferList.get(1);
         oldPps = byteBufferList.get(2);
         oldVps = byteBufferList.get(0);
-        getVideoData.onSpsPpsVps(oldSps, oldPps, oldVps);
+        getVideoData.onVideoInfo(oldSps, oldPps, oldVps);
         spsPpsSetted = true;
       } else {
         Log.e(TAG, "manual vps/sps/pps extraction failed");
@@ -535,14 +556,19 @@ public class VideoEncoder extends BaseEncoder implements GetCameraData {
       Log.i(TAG, "formatChanged not called, doing manual av1 extraction...");
       ByteBuffer obuSequence = extractObuSequence(byteBuffer.duplicate(), bufferInfo);
       if (obuSequence != null) {
-        getVideoData.onSpsPpsVps(obuSequence, null, null);
+        getVideoData.onVideoInfo(obuSequence, null, null);
         spsPpsSetted = true;
       } else {
         Log.e(TAG, "manual av1 extraction failed");
       }
     }
-    if (formatVideoEncoder == FormatVideoEncoder.SURFACE) {
-      bufferInfo.presentationTimeUs = System.nanoTime() / 1000 - presentTimeUs;
+    if (timestampMode == TimestampMode.CLOCK) {
+      if (formatVideoEncoder == FormatVideoEncoder.SURFACE) {
+        bufferInfo.presentationTimeUs = System.nanoTime() / 1000 - presentTimeUs;
+      }
+    } else {
+      if (firstTimestamp == 0) firstTimestamp = bufferInfo.presentationTimeUs;
+      bufferInfo.presentationTimeUs -= firstTimestamp;
     }
   }
 

@@ -16,9 +16,8 @@
 
 package com.pedro.rtmp.flv.video.packet
 
-import android.media.MediaCodec
 import android.util.Log
-import com.pedro.common.isKeyframe
+import com.pedro.common.frame.MediaFrame
 import com.pedro.common.removeInfo
 import com.pedro.rtmp.flv.BasePacket
 import com.pedro.rtmp.flv.FlvPacket
@@ -64,13 +63,12 @@ class H265Packet: BasePacket() {
     this.vps = vpsBytes
   }
 
-  override fun createFlvPacket(
-    byteBuffer: ByteBuffer,
-    info: MediaCodec.BufferInfo,
-    callback: (FlvPacket) -> Unit
+  override suspend fun createFlvPacket(
+    mediaFrame: MediaFrame,
+    callback: suspend (FlvPacket) -> Unit
   ) {
-    val fixedBuffer = byteBuffer.removeInfo(info)
-    val ts = info.presentationTimeUs / 1000
+    val fixedBuffer = mediaFrame.data.removeInfo(mediaFrame.info)
+    val ts = mediaFrame.info.timestamp / 1000
     //header is 8 bytes length:
     //mark first byte as extended header (0b10000000)
     //4 bits data type, 4 bits packet type
@@ -87,6 +85,7 @@ class H265Packet: BasePacket() {
     header[6] = (cts shr 8).toByte()
     header[7] = cts.toByte()
 
+    val packets = mutableListOf<FlvPacket>()
     var buffer: ByteArray
     if (!configSend) {
       //avoid send cts on sequence start
@@ -116,7 +115,7 @@ class H265Packet: BasePacket() {
 
     val type: Int = validBuffer.get(0).toInt().shr(1 and 0x3f)
     var nalType = VideoDataType.INTER_FRAME.value
-    if (type == VideoNalType.IDR_N_LP.value || type == VideoNalType.IDR_W_DLP.value || info.isKeyframe()) {
+    if (type == VideoNalType.IDR_N_LP.value || type == VideoNalType.IDR_W_DLP.value || mediaFrame.info.isKeyFrame) {
       nalType = VideoDataType.KEYFRAME.value
     } else if (type == VideoNalType.HEVC_VPS.value || type == VideoNalType.HEVC_SPS.value || type == VideoNalType.HEVC_PPS.value) {
       // we don't need send it because we already do it in video config

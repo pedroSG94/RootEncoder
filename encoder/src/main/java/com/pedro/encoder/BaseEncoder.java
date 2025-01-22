@@ -33,6 +33,8 @@ import com.pedro.encoder.utils.CodecUtil;
 import java.nio.ByteBuffer;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 /**
  * Created by pedro on 18/09/19.
@@ -43,9 +45,10 @@ public abstract class BaseEncoder implements EncoderCallback {
   protected final G711Codec g711Codec = new G711Codec();
   private final MediaCodec.BufferInfo bufferInfo = new MediaCodec.BufferInfo();
   private HandlerThread handlerThread;
+  private ExecutorService executorService;
   protected BlockingQueue<Frame> queue = new ArrayBlockingQueue<>(80);
   protected MediaCodec codec;
-  protected static long presentTimeUs;
+  protected long presentTimeUs;
   protected volatile boolean running = false;
   protected boolean isBufferMode = true;
   protected CodecUtil.CodecType codecType = CodecUtil.CodecType.FIRST_COMPATIBLE_FOUND;
@@ -56,6 +59,8 @@ public abstract class BaseEncoder implements EncoderCallback {
   private Handler handler;
   private EncoderErrorCallback encoderErrorCallback;
   protected String type;
+  protected CodecUtil.CodecTypeError typeError;
+  protected TimestampMode timestampMode = TimestampMode.CLOCK;
 
   public void setEncoderErrorCallback(EncoderErrorCallback encoderErrorCallback) {
     this.encoderErrorCallback = encoderErrorCallback;
@@ -69,25 +74,32 @@ public abstract class BaseEncoder implements EncoderCallback {
     this.type = type;
   }
 
+  public void setTimestampMode(TimestampMode timestampMode) {
+    if (isRunning()) return;
+    this.timestampMode = timestampMode;
+  }
+
   public void restart() {
     start(false);
     initCodec();
   }
 
-  public void start() {
+  public void start(long startTs) {
     if (!prepared) throw new IllegalStateException(TAG + " not prepared yet. You must call prepare method before start it");
-    if (presentTimeUs == 0) {
-      presentTimeUs = System.nanoTime() / 1000;
-    }
+    presentTimeUs = startTs;
     start(true);
     initCodec();
   }
 
+  public void start() {
+    start(System.nanoTime() / 1000);
+  }
+
   protected void setCallback() {
-    handlerThread = new HandlerThread(TAG);
-    handlerThread.start();
-    handler = new Handler(handlerThread.getLooper());
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && !type.equals(CodecUtil.G711_MIME)) {
+      handlerThread = new HandlerThread(TAG);
+      handlerThread.start();
+      handler = new Handler(handlerThread.getLooper());
       createAsyncCallback();
       codec.setCallback(callback, handler);
     }
@@ -96,7 +108,8 @@ public abstract class BaseEncoder implements EncoderCallback {
   private void initCodec() {
     if (!type.equals(CodecUtil.G711_MIME)) codec.start();
     if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M || type.equals(CodecUtil.G711_MIME)) {
-      handler.post(() -> {
+      executorService = Executors.newSingleThreadExecutor();
+      executorService.submit(() -> {
         while (running) {
           try {
             getDataFromEncoder();
@@ -110,7 +123,7 @@ public abstract class BaseEncoder implements EncoderCallback {
     running = true;
   }
 
-  public abstract void reset();
+  public abstract boolean reset();
 
   public abstract void start(boolean resetTs);
 
@@ -128,10 +141,10 @@ public abstract class BaseEncoder implements EncoderCallback {
     //Sometimes encoder crash, we will try recover it. Reset encoder a time if crash
     EncoderErrorCallback callback = encoderErrorCallback;
     if (callback != null) {
-      shouldReset = callback.onEncodeError(TAG, e);
+      shouldReset = callback.onEncodeError(typeError, e);
     }
     if (shouldReset) {
-      Log.e(TAG, "Encoder crashed, trying to recover it");
+      Log.e(typeError.name(), "Encoder crashed, trying to recover it");
       reset();
     }
   }
@@ -164,6 +177,7 @@ public abstract class BaseEncoder implements EncoderCallback {
         handlerThread.getLooper().getThread().join(500);
       } catch (Exception ignored) { }
     }
+    if (executorService != null) executorService.shutdownNow();
     queue.clear();
     queue = new ArrayBlockingQueue<>(80);
     try {
@@ -297,7 +311,7 @@ public abstract class BaseEncoder implements EncoderCallback {
       public void onError(@NonNull MediaCodec mediaCodec, @NonNull MediaCodec.CodecException e) {
         Log.e(TAG, "Error", e);
         EncoderErrorCallback callback = encoderErrorCallback;
-        if (callback != null) callback.onCodecError(TAG, e);
+        if (callback != null) callback.onCodecError(typeError, e);
       }
 
       @Override

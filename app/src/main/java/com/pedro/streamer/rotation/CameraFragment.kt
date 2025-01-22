@@ -26,13 +26,16 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.EditText
 import android.widget.ImageView
+import android.widget.TextView
 import androidx.annotation.RequiresApi
 import androidx.fragment.app.Fragment
 import com.pedro.common.ConnectChecker
+import com.pedro.encoder.input.sources.video.Camera1Source
+import com.pedro.encoder.input.sources.video.Camera2Source
+import com.pedro.extrasources.CameraXSource
 import com.pedro.library.base.recording.RecordController
 import com.pedro.library.generic.GenericStream
-import com.pedro.library.util.sources.video.Camera1Source
-import com.pedro.library.util.sources.video.Camera2Source
+import com.pedro.library.util.BitrateAdapter
 import com.pedro.streamer.R
 import com.pedro.streamer.utils.PathUtils
 import com.pedro.streamer.utils.toast
@@ -74,10 +77,12 @@ class CameraFragment: Fragment(), ConnectChecker {
   val genericStream: GenericStream by lazy {
     GenericStream(requireContext(), this).apply {
       getGlInterface().autoHandleOrientation = true
+      getStreamClient().setBitrateExponentialFactor(0.5f)
     }
   }
   private lateinit var surfaceView: SurfaceView
   private lateinit var bStartStop: ImageView
+  private lateinit var txtBitrate: TextView
   private val width = 640
   private val height = 480
   private val vBitrate = 1200 * 1000
@@ -86,6 +91,12 @@ class CameraFragment: Fragment(), ConnectChecker {
   private val isStereo = true
   private val aBitrate = 128 * 1000
   private var recordPath = ""
+  //Bitrate adapter used to change the bitrate on fly depend of the bandwidth.
+  private val bitrateAdapter = BitrateAdapter {
+    genericStream.setVideoBitrateOnFly(it)
+  }.apply {
+    setMaxBitrate(vBitrate + aBitrate)
+  }
 
   @SuppressLint("ClickableViewAccessibility")
   override fun onCreateView(
@@ -97,6 +108,7 @@ class CameraFragment: Fragment(), ConnectChecker {
     val bSwitchCamera = view.findViewById<ImageView>(R.id.switch_camera)
     val etUrl = view.findViewById<EditText>(R.id.et_rtp_url)
 
+    txtBitrate = view.findViewById(R.id.txt_bitrate)
     surfaceView = view.findViewById(R.id.surfaceView)
     (activity as? RotationActivity)?.let {
       surfaceView.setOnTouchListener(it)
@@ -169,8 +181,8 @@ class CameraFragment: Fragment(), ConnectChecker {
 
   private fun prepare() {
     val prepared = try {
-      genericStream.prepareVideo(width, height, vBitrate, rotation = rotation) &&
-          genericStream.prepareAudio(sampleRate, isStereo, aBitrate)
+      genericStream.prepareVideo(width, height, vBitrate, rotation = rotation)
+          && genericStream.prepareAudio(sampleRate, isStereo, aBitrate)
     } catch (e: IllegalArgumentException) {
       false
     }
@@ -202,9 +214,13 @@ class CameraFragment: Fragment(), ConnectChecker {
     }
   }
 
-  override fun onNewBitrate(bitrate: Long) {}
+  override fun onNewBitrate(bitrate: Long) {
+    bitrateAdapter.adaptBitrate(bitrate, genericStream.getStreamClient().hasCongestion())
+    txtBitrate.text = String.format(Locale.getDefault(), "%.1f mb/s", bitrate / 1000_000f)
+  }
 
   override fun onDisconnect() {
+    txtBitrate.text = String()
     toast("Disconnected")
   }
 

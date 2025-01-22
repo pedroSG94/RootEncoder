@@ -16,9 +16,9 @@
 
 package com.pedro.srt.mpeg2ts.psi
 
-import com.pedro.common.TimeUtils
 import com.pedro.srt.mpeg2ts.MpegTsPacket
 import com.pedro.srt.mpeg2ts.MpegTsPacketizer
+import com.pedro.srt.mpeg2ts.MpegTsPayload
 import com.pedro.srt.mpeg2ts.MpegType
 import com.pedro.srt.mpeg2ts.service.Mpeg2TsService
 import com.pedro.srt.srt.packets.data.PacketPosition
@@ -30,20 +30,23 @@ import kotlin.random.Random
 class PsiManager(
   private var service: Mpeg2TsService
 ) {
-  companion object {
-    const val INTERVAL = 100 //ms
-  }
 
   private val idExtension = Random.nextInt(Byte.MIN_VALUE.toInt(), Byte.MAX_VALUE.toInt()).toShort()
-  private var lastTime = 0L
+  private var sdtCount = 0
+  private var patCount = 0
 
-  val sdt = Sdt(
+  companion object {
+    const val sdtPeriod = 200
+    const val patPeriod = 40
+  }
+
+  private var sdt = Sdt(
     idExtension = idExtension,
     version = 0,
     service = service
   )
 
-  val pat = Pat(
+  private var pat = Pat(
     idExtension = idExtension,
     version = 0,
     service = service
@@ -51,15 +54,23 @@ class PsiManager(
 
   fun checkSendInfo(isKey: Boolean = false, mpegTsPacketizer: MpegTsPacketizer): List<MpegTsPacket> {
     val pmt = service.pmt ?: return arrayListOf()
-    val currentTime = TimeUtils.getCurrentTimeMillis()
-    if (isKey || TimeUtils.getCurrentTimeMillis() - lastTime >= INTERVAL) {
-      lastTime = currentTime
-      val psiPackets = mpegTsPacketizer.write(listOf(pat, pmt, sdt), increasePsiContinuity = true).map { b ->
-        MpegTsPacket(b, MpegType.PSI, PacketPosition.SINGLE, isKey = false)
-      }
-      return psiPackets
+    val psiPackets = mutableListOf<MpegTsPayload>()
+    if (sdtCount >= sdtPeriod && patCount >= patPeriod) {
+      psiPackets.addAll(listOf(pmt, sdt, pat))
+      sdtCount = 0
+      patCount = 0
+    } else if (patCount >= patPeriod || isKey) {
+      psiPackets.addAll(listOf(pat, pmt))
+      patCount = 0
+    } else if (sdtCount >= sdtPeriod) {
+      psiPackets.add(sdt)
+      sdtCount = 0
     }
-    return arrayListOf()
+    sdtCount++
+    patCount++
+    return mpegTsPacketizer.write(psiPackets, increasePsiContinuity = true).map { b ->
+      MpegTsPacket(b, MpegType.PSI, PacketPosition.SINGLE, isKey = false)
+    }
   }
 
   fun upgradeSdtVersion() {
@@ -78,8 +89,13 @@ class PsiManager(
     return service.tracks.find { !it.codec.isAudio() }?.pid ?: 0
   }
 
+  fun getSdt(): Sdt = sdt
+  fun getPat(): Pat = pat
+  fun getPmt(): Pmt? = service.pmt
+
   fun reset() {
-    lastTime = 0
+    sdtCount = 0
+    patCount = 0
   }
 
   fun updateService(service: Mpeg2TsService) {

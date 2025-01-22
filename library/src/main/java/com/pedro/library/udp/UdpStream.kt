@@ -24,10 +24,10 @@ import com.pedro.common.AudioCodec
 import com.pedro.common.ConnectChecker
 import com.pedro.common.VideoCodec
 import com.pedro.library.base.StreamBase
-import com.pedro.library.util.sources.audio.AudioSource
-import com.pedro.library.util.sources.audio.MicrophoneSource
-import com.pedro.library.util.sources.video.Camera2Source
-import com.pedro.library.util.sources.video.VideoSource
+import com.pedro.encoder.input.sources.audio.AudioSource
+import com.pedro.encoder.input.sources.audio.MicrophoneSource
+import com.pedro.encoder.input.sources.video.Camera2Source
+import com.pedro.encoder.input.sources.video.VideoSource
 import com.pedro.library.util.streamclient.StreamClientListener
 import com.pedro.library.util.streamclient.UdpStreamClient
 import com.pedro.udp.UdpClient
@@ -42,8 +42,8 @@ import java.nio.ByteBuffer
 
 @RequiresApi(Build.VERSION_CODES.LOLLIPOP)
 class UdpStream(
-  context: Context, connectChecker: ConnectChecker, videoSource: VideoSource,
-  audioSource: AudioSource
+    context: Context, connectChecker: ConnectChecker, videoSource: VideoSource,
+    audioSource: AudioSource
 ): StreamBase(context, videoSource, audioSource) {
 
   private val streamClientListener = object: StreamClientListener {
@@ -67,27 +67,27 @@ class UdpStream(
     udpClient.setAudioCodec(codec)
   }
 
-  override fun audioInfo(sampleRate: Int, isStereo: Boolean) {
+  override fun onAudioInfoImp(sampleRate: Int, isStereo: Boolean) {
     udpClient.setAudioInfo(sampleRate, isStereo)
   }
 
-  override fun rtpStartStream(endPoint: String) {
+  override fun startStreamImp(endPoint: String) {
     udpClient.connect(endPoint)
   }
 
-  override fun rtpStopStream() {
+  override fun stopStreamImp() {
     udpClient.disconnect()
   }
 
-  override fun onSpsPpsVpsRtp(sps: ByteBuffer, pps: ByteBuffer?, vps: ByteBuffer?) {
+  override fun onVideoInfoImp(sps: ByteBuffer, pps: ByteBuffer?, vps: ByteBuffer?) {
     udpClient.setVideoInfo(sps, pps, vps)
   }
 
-  override fun getH264DataRtp(h264Buffer: ByteBuffer, info: MediaCodec.BufferInfo) {
-    udpClient.sendVideo(h264Buffer, info)
+  override fun getVideoDataImp(videoBuffer: ByteBuffer, info: MediaCodec.BufferInfo) {
+    udpClient.sendVideo(videoBuffer, info)
   }
 
-  override fun getAacDataRtp(aacBuffer: ByteBuffer, info: MediaCodec.BufferInfo) {
-    udpClient.sendAudio(aacBuffer, info)
+  override fun getAudioDataImp(audioBuffer: ByteBuffer, info: MediaCodec.BufferInfo) {
+    udpClient.sendAudio(audioBuffer, info)
   }
 }

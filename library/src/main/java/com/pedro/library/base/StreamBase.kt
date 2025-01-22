@@ -23,16 +23,22 @@ import android.media.MediaFormat
 import android.os.Build
 import android.util.Size
 import android.view.Surface
+import android.view.SurfaceHolder
 import android.view.SurfaceView
 import android.view.TextureView
+import android.view.TextureView.SurfaceTextureListener
 import androidx.annotation.RequiresApi
 import com.pedro.common.AudioCodec
 import com.pedro.common.VideoCodec
 import com.pedro.encoder.EncoderErrorCallback
 import com.pedro.encoder.Frame
+import com.pedro.encoder.TimestampMode
 import com.pedro.encoder.audio.AudioEncoder
-import com.pedro.encoder.audio.GetAacData
+import com.pedro.encoder.audio.GetAudioData
 import com.pedro.encoder.input.audio.GetMicrophoneData
+import com.pedro.encoder.input.sources.audio.AudioSource
+import com.pedro.encoder.input.sources.video.NoVideoSource
+import com.pedro.encoder.input.sources.video.VideoSource
 import com.pedro.encoder.utils.CodecUtil
 import com.pedro.encoder.video.FormatVideoEncoder
 import com.pedro.encoder.video.GetVideoData
@@ -41,12 +47,10 @@ import com.pedro.library.base.recording.BaseRecordController
 import com.pedro.library.base.recording.RecordController
 import com.pedro.library.util.AndroidMuxerRecordController
 import com.pedro.library.util.FpsListener
-import com.pedro.library.util.sources.audio.AudioSource
-import com.pedro.library.util.sources.video.NoVideoSource
-import com.pedro.library.util.sources.video.VideoSource
 import com.pedro.library.util.streamclient.StreamBaseClient
 import com.pedro.library.view.GlStreamInterface
 import java.nio.ByteBuffer
+import kotlin.math.max
 
 
 /**
@@ -59,9 +63,9 @@ import java.nio.ByteBuffer
  */
 @RequiresApi(Build.VERSION_CODES.LOLLIPOP)
 abstract class StreamBase(
-  context: Context,
-  vSource: VideoSource,
-  aSource: AudioSource
+    context: Context,
+    vSource: VideoSource,
+    aSource: AudioSource
 ) {
 
   private val getMicrophoneData = object: GetMicrophoneData {
@@ -71,6 +75,7 @@ abstract class StreamBase(
   }
   //video and audio encoders
   private val videoEncoder by lazy { VideoEncoder(getVideoData) }
+  private val videoEncoderRecord by lazy { VideoEncoder(getVideoDataRecord) }
   private val audioEncoder by lazy { AudioEncoder(getAacData) }
   //video render
   private val glInterface = GlStreamInterface(context)
@@ -87,6 +92,7 @@ abstract class StreamBase(
     private set
   var audioSource: AudioSource = aSource
     private set
+  private var differentRecordResolution = false
 
   /**
    * Necessary only one time before start preview, stream or record.
@@ -96,24 +102,48 @@ abstract class StreamBase(
    * @param level codec value from MediaCodecInfo.CodecProfileLevel class
    *
    * @throws IllegalArgumentException if current video parameters are not supported by the VideoSource
+   * @throws IllegalArgumentException if you use differentRecordResolution but the aspect ratio is not the same than stream resolution
    * @return True if success, False if failed
    */
   @Throws(IllegalArgumentException::class)
   @JvmOverloads
-  fun prepareVideo(width: Int, height: Int, bitrate: Int, fps: Int = 30, iFrameInterval: Int = 2,
-    rotation: Int = 0, profile: Int = -1, level: Int = -1): Boolean {
+  fun prepareVideo(
+    width: Int, height: Int, bitrate: Int, fps: Int = 30, iFrameInterval: Int = 2,
+    rotation: Int = 0, profile: Int = -1, level: Int = -1,
+    recordWidth: Int = 0, recordHeight: Int = 0, recordBitrate: Int = bitrate
+  ): Boolean {
     if (isStreaming || isRecording || isOnPreview) {
       throw IllegalStateException("Stream, record and preview must be stopped before prepareVideo")
     }
-    val videoResult = videoSource.init(width, height, fps, rotation)
+    differentRecordResolution = false
+    if (recordWidth > 0 && recordHeight > 0) {
+      if (recordWidth.toDouble() / recordHeight.toDouble() != width.toDouble() / height.toDouble()) {
+        throw IllegalArgumentException("The aspect ratio of record and stream resolution must be the same")
+      }
+      differentRecordResolution = true
+    }
+    val videoResult = videoSource.init(max(width, recordWidth), max(height, recordHeight), fps, rotation)
     if (videoResult) {
+      if (differentRecordResolution) {
+        //using different record resolution
+        if (rotation == 90 || rotation == 270) glInterface.setEncoderRecordSize(recordHeight, recordWidth)
+        else glInterface.setEncoderRecordSize(recordWidth, recordHeight)
+      }
       if (rotation == 90 || rotation == 270) glInterface.setEncoderSize(height, width)
       else glInterface.setEncoderSize(width, height)
       val isPortrait = rotation == 90 || rotation == 270
       glInterface.setIsPortrait(isPortrait)
       glInterface.setCameraOrientation(if (rotation == 0) 270 else rotation - 90)
-      return videoEncoder.prepareVideoEncoder(width, height, fps, bitrate, rotation,
+      glInterface.forceOrientation(videoSource.getOrientationConfig())
+      if (differentRecordResolution) {
+        val result = videoEncoderRecord.prepareVideoEncoder(recordWidth, recordHeight, fps, recordBitrate, rotation,
+          iFrameInterval, FormatVideoEncoder.SURFACE, profile, level)
+        if (!result) return false
+      }
+      val result = videoEncoder.prepareVideoEncoder(width, height, fps, bitrate, rotation,
         iFrameInterval, FormatVideoEncoder.SURFACE, profile, level)
+      forceFpsLimit(true)
+      return result
     }
     return false
   }
@@ -134,8 +164,8 @@ abstract class StreamBase(
     }
     val audioResult = audioSource.init(sampleRate, isStereo, echoCanceler, noiseSuppressor)
     if (audioResult) {
-      audioInfo(sampleRate, isStereo)
-      return audioEncoder.prepareAudioEncoder(bitrate, sampleRate, isStereo, audioSource.getMaxInputSize())
+      onAudioInfoImp(sampleRate, isStereo)
+      return audioEncoder.prepareAudioEncoder(bitrate, sampleRate, isStereo)
     }
     return false
   }
@@ -148,14 +178,21 @@ abstract class StreamBase(
   fun startStream(endPoint: String) {
     if (isStreaming) throw IllegalStateException("Stream already started, stopStream before startStream again")
     isStreaming = true
-    rtpStartStream(endPoint)
+    startStreamImp(endPoint)
     if (!isRecording) startSources()
     else requestKeyframe()
   }
 
+  /**
+   * Force VideoEncoder to produce a keyframe. Ignored if not recording or streaming.
+   * This could be ignored depend of the Codec implementation in each device.
+   */
   fun requestKeyframe() {
     if (videoEncoder.isRunning) {
       videoEncoder.requestKeyframe()
+    }
+    if (videoEncoderRecord.isRunning) {
+      videoEncoderRecord.requestKeyframe()
     }
   }
 
@@ -170,13 +207,14 @@ abstract class StreamBase(
 
   /**
    * Force stream to work with fps selected in prepareVideo method. Must be called before prepareVideo.
-   * This is not recommend because could produce fps problems.
+   * Must be called after prepareVideo
    *
-   * @param enabled true to enabled, false to disable, disabled by default.
+   * @param enabled true to enabled, false to disable, enabled by default.
    */
   fun forceFpsLimit(enabled: Boolean) {
     val fps = if (enabled) videoEncoder.fps else 0
     videoEncoder.setForceFps(fps)
+    videoEncoderRecord.setForceFps(fps)
     glInterface.forceFpsLimit(fps)
   }
 
@@ -186,6 +224,7 @@ abstract class StreamBase(
    */
   fun forceCodecType(codecTypeVideo: CodecUtil.CodecType, codecTypeAudio: CodecUtil.CodecType) {
     videoEncoder.forceCodecType(codecTypeVideo)
+    videoEncoderRecord.forceCodecType(codecTypeVideo)
     audioEncoder.forceCodecType(codecTypeAudio)
   }
 
@@ -199,7 +238,7 @@ abstract class StreamBase(
    */
   fun stopStream(): Boolean {
     isStreaming = false
-    rtpStopStream()
+    stopStreamImp()
     if (!isRecording) {
       stopSources()
       return prepareEncoders()
@@ -216,7 +255,10 @@ abstract class StreamBase(
     if (isRecording) throw IllegalStateException("Record already started, stopRecord before startRecord again")
     recordController.startRecord(path, listener)
     if (!isStreaming) startSources()
-    else videoEncoder.requestKeyframe()
+    else {
+      videoEncoder.requestKeyframe()
+      videoEncoderRecord.requestKeyframe()
+    }
   }
 
   /**
@@ -252,16 +294,55 @@ abstract class StreamBase(
    * Start preview in the selected TextureView.
    * Must be called after prepareVideo.
    */
-  fun startPreview(textureView: TextureView) {
-    startPreview(Surface(textureView.surfaceTexture), textureView.width, textureView.height)
+  @JvmOverloads
+  fun startPreview(textureView: TextureView, autoHandle: Boolean = false) {
+    if (autoHandle) {
+      textureView.surfaceTextureListener = object: SurfaceTextureListener {
+        override fun onSurfaceTextureAvailable(texture: SurfaceTexture, width: Int, height: Int) {
+          if (!isOnPreview) startPreview(textureView)
+        }
+
+        override fun onSurfaceTextureSizeChanged(texture: SurfaceTexture, width: Int, height: Int) {
+          getGlInterface().setPreviewResolution(width, height)
+        }
+
+        override fun onSurfaceTextureDestroyed(texture: SurfaceTexture): Boolean {
+          if (isOnPreview) stopPreview()
+          return true
+        }
+
+        override fun onSurfaceTextureUpdated(texture: SurfaceTexture) {}
+      }
+      if (textureView.isAvailable && !isOnPreview) startPreview(textureView)
+    } else {
+      startPreview(Surface(textureView.surfaceTexture), textureView.width, textureView.height)
+    }
   }
 
   /**
    * Start preview in the selected SurfaceView.
    * Must be called after prepareVideo.
    */
-  fun startPreview(surfaceView: SurfaceView) {
-    startPreview(surfaceView.holder.surface, surfaceView.width, surfaceView.height)
+  @JvmOverloads
+  fun startPreview(surfaceView: SurfaceView, autoHandle: Boolean = false) {
+    if (autoHandle) {
+      surfaceView.holder.addCallback(object: SurfaceHolder.Callback {
+        override fun surfaceCreated(holder: SurfaceHolder) {
+          if (!isOnPreview) startPreview(surfaceView)
+        }
+
+        override fun surfaceChanged(holder: SurfaceHolder, format: Int, width: Int, height: Int) {
+          getGlInterface().setPreviewResolution(width, height)
+        }
+
+        override fun surfaceDestroyed(holder: SurfaceHolder) {
+          if (isOnPreview) stopPreview()
+        }
+      })
+      if (surfaceView.holder.surface.isValid && !isOnPreview) startPreview(surfaceView)
+    } else {
+      startPreview(surfaceView.holder.surface, surfaceView.width, surfaceView.height)
+    }
   }
 
   /**
@@ -309,10 +390,19 @@ abstract class StreamBase(
   fun changeVideoSource(source: VideoSource) {
     val wasRunning = videoSource.isRunning()
     val wasCreated = videoSource.created
-    if (wasCreated) source.init(videoEncoder.width, videoEncoder.height, videoEncoder.fps, videoEncoder.rotation)
+    if (wasCreated) {
+      var width = videoEncoder.width
+      var height = videoEncoder.height
+      if (differentRecordResolution) {
+        width = max(width, videoEncoderRecord.width)
+        height = max(height, videoEncoderRecord.height)
+      }
+      source.init(width, height, videoEncoder.fps, videoEncoder.rotation)
+    }
     videoSource.stop()
     videoSource.release()
     if (wasRunning) source.start(glInterface.surfaceTexture)
+    glInterface.forceOrientation(source.getOrientationConfig())
     videoSource = source
   }
 
@@ -334,11 +424,22 @@ abstract class StreamBase(
   }
 
   /**
+   * Set the mode to calculate timestamp. By default CLOCK.
+   * Must be called before startRecord/startStream or it will be ignored.
+   */
+  fun setTimestampMode(timestampModeVideo: TimestampMode, timestampModeAudio: TimestampMode) {
+    videoEncoder.setTimestampMode(timestampModeVideo)
+    videoEncoderRecord.setTimestampMode(timestampModeVideo)
+    audioEncoder.setTimestampMode(timestampModeAudio)
+  }
+
+  /**
    * Set a callback to know errors related with Video/Audio encoders
    * @param encoderErrorCallback callback to use, null to remove
    */
   fun setEncoderErrorCallback(encoderErrorCallback: EncoderErrorCallback?) {
     videoEncoder.setEncoderErrorCallback(encoderErrorCallback)
+    videoEncoderRecord.setEncoderErrorCallback(encoderErrorCallback)
     audioEncoder.setEncoderErrorCallback(encoderErrorCallback)
   }
 
@@ -365,6 +466,10 @@ abstract class StreamBase(
    */
   fun getGlInterface(): GlStreamInterface = glInterface
 
+  /**
+   * Replace the current BaseRecordController.
+   * This method allow record in other format or even create your custom implementation and record in a new format.
+   */
   fun setRecordController(recordController: BaseRecordController) {
     if (!isRecording) this.recordController = recordController
   }
@@ -390,37 +495,77 @@ abstract class StreamBase(
       videoSource.start(glInterface.surfaceTexture)
     }
     audioSource.start(getMicrophoneData)
-    videoEncoder.start()
-    audioEncoder.start()
+    val startTs = System.nanoTime() / 1000
+    videoEncoder.start(startTs)
+    if (differentRecordResolution) videoEncoderRecord.start(startTs)
+    audioEncoder.start(startTs)
     glInterface.addMediaCodecSurface(videoEncoder.inputSurface)
+    if (differentRecordResolution) glInterface.addMediaCodecRecordSurface(videoEncoderRecord.inputSurface)
   }
 
   private fun stopSources() {
     if (!isOnPreview) videoSource.stop()
     audioSource.stop()
     glInterface.removeMediaCodecSurface()
+    glInterface.removeMediaCodecRecordSurface()
     if (!isOnPreview) glInterface.stop()
     videoEncoder.stop()
+    videoEncoderRecord.stop()
     audioEncoder.stop()
     if (!isRecording) recordController.resetFormats()
   }
 
+  /**
+   * Stop stream, record and preview and then release all resources.
+   * You must call it after finish all the work.
+   */
   fun release() {
     if (isStreaming) stopStream()
     if (isRecording) stopRecord()
     if (isOnPreview) stopPreview()
     stopSources()
     videoSource.release()
+    audioSource.release()
   }
 
+  /**
+   * Reset VideoEncoder. Only recommended if a VideoEncoder class error is received in the EncoderErrorCallback
+   *
+   * @return true if success, false if failed
+   */
+  fun resetVideoEncoder(): Boolean {
+    if (differentRecordResolution) {
+      glInterface.removeMediaCodecRecordSurface()
+      val result = videoEncoderRecord.reset()
+      if (!result) return false
+      glInterface.addMediaCodecRecordSurface(videoEncoderRecord.inputSurface)
+    }
+    glInterface.removeMediaCodecSurface()
+    val result = videoEncoder.reset()
+    if (!result) return false
+    glInterface.addMediaCodecSurface(videoEncoder.inputSurface)
+    return true
+  }
+
+  /**
+   * Reset AudioEncoder. Only recommended if an AudioEncoder class error is received in the EncoderErrorCallback
+   *
+   * @return true if success, false if failed
+   */
+  fun resetAudioEncoder(): Boolean = audioEncoder.reset()
+
   private fun prepareEncoders(): Boolean {
+    if (differentRecordResolution) {
+      val result = videoEncoderRecord.prepareVideoEncoder()
+      if (!result) return false
+    }
     return videoEncoder.prepareVideoEncoder() && audioEncoder.prepareAudioEncoder()
   }
 
-  private val getAacData: GetAacData = object : GetAacData {
-    override fun getAacData(aacBuffer: ByteBuffer, info: MediaCodec.BufferInfo) {
-      getAacDataRtp(aacBuffer, info)
-      recordController.recordAudio(aacBuffer, info)
+  private val getAacData: GetAudioData = object : GetAudioData {
+    override fun getAudioData(audioBuffer: ByteBuffer, info: MediaCodec.BufferInfo) {
+      getAudioDataImp(audioBuffer, info)
+      recordController.recordAudio(audioBuffer, info)
     }
 
     override fun onAudioFormat(mediaFormat: MediaFormat) {
@@ -429,14 +574,27 @@ abstract class StreamBase(
   }
 
   private val getVideoData: GetVideoData = object : GetVideoData {
-    override fun onSpsPpsVps(sps: ByteBuffer, pps: ByteBuffer?, vps: ByteBuffer?) {
-      onSpsPpsVpsRtp(sps.duplicate(), pps?.duplicate(), vps?.duplicate())
+    override fun onVideoInfo(sps: ByteBuffer, pps: ByteBuffer?, vps: ByteBuffer?) {
+      onVideoInfoImp(sps.duplicate(), pps?.duplicate(), vps?.duplicate())
     }
 
-    override fun getVideoData(h264Buffer: ByteBuffer, info: MediaCodec.BufferInfo) {
+    override fun getVideoData(videoBuffer: ByteBuffer, info: MediaCodec.BufferInfo) {
       fpsListener.calculateFps()
-      getH264DataRtp(h264Buffer, info)
-      recordController.recordVideo(h264Buffer, info)
+      getVideoDataImp(videoBuffer, info)
+      if (!differentRecordResolution) recordController.recordVideo(videoBuffer, info)
+    }
+
+    override fun onVideoFormat(mediaFormat: MediaFormat) {
+      if (!differentRecordResolution) recordController.setVideoFormat(mediaFormat)
+    }
+  }
+
+  private val getVideoDataRecord: GetVideoData = object : GetVideoData {
+    override fun onVideoInfo(sps: ByteBuffer, pps: ByteBuffer?, vps: ByteBuffer?) {
+    }
+
+    override fun getVideoData(videoBuffer: ByteBuffer, info: MediaCodec.BufferInfo) {
+      recordController.recordVideo(videoBuffer, info)
     }
 
     override fun onVideoFormat(mediaFormat: MediaFormat) {
@@ -444,15 +602,19 @@ abstract class StreamBase(
     }
   }
 
-  protected abstract fun audioInfo(sampleRate: Int, isStereo: Boolean)
-  protected abstract fun rtpStartStream(endPoint: String)
-  protected abstract fun rtpStopStream()
-  protected abstract fun onSpsPpsVpsRtp(sps: ByteBuffer, pps: ByteBuffer?, vps: ByteBuffer?)
-  protected abstract fun getH264DataRtp(h264Buffer: ByteBuffer, info: MediaCodec.BufferInfo)
-  protected abstract fun getAacDataRtp(aacBuffer: ByteBuffer, info: MediaCodec.BufferInfo)
+  protected abstract fun onAudioInfoImp(sampleRate: Int, isStereo: Boolean)
+  protected abstract fun startStreamImp(endPoint: String)
+  protected abstract fun stopStreamImp()
+  protected abstract fun onVideoInfoImp(sps: ByteBuffer, pps: ByteBuffer?, vps: ByteBuffer?)
+  protected abstract fun getVideoDataImp(videoBuffer: ByteBuffer, info: MediaCodec.BufferInfo)
+  protected abstract fun getAudioDataImp(audioBuffer: ByteBuffer, info: MediaCodec.BufferInfo)
 
   abstract fun getStreamClient(): StreamBaseClient
 
+  /**
+   * Change VideoCodec used.
+   * This could fail depend of the Codec supported in each Protocol. For example AV1 is not supported in SRT
+   */
   fun setVideoCodec(codec: VideoCodec) {
     setVideoCodecImp(codec)
     recordController.setVideoCodec(codec)
@@ -462,8 +624,13 @@ abstract class StreamBase(
       VideoCodec.AV1 -> CodecUtil.AV1_MIME
     }
     videoEncoder.type = type
+    videoEncoderRecord.type = type
   }
 
+  /**
+   * Change AudioCodec used.
+   * This could fail depend of the Codec supported in each Protocol. For example G711 is not supported in SRT
+   */
   fun setAudioCodec(codec: AudioCodec) {
     setAudioCodecImp(codec)
     recordController.setAudioCodec(codec)

@@ -24,6 +24,25 @@
       app:layout_constraintTop_toTopOf="parent"
       />
 
+  <androidx.constraintlayout.widget.ConstraintLayout
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content"
+      app:layout_constraintBottom_toBottomOf="parent"
+      android:layout_margin="16dp"
+      >
+
+    <ImageView
+        android:src="@drawable/record_icon"
+        android:layout_width="64dp"
+        android:layout_height="64dp"
+        android:id="@+id/b_record"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toStartOf="@id/b_start_stop"
+        app:layout_constraintHorizontal_chainStyle="spread"
+        />
+
   <ImageView
       android:src="@drawable/stream_icon"
       android:layout_width="98dp"
@@ -32,6 +51,6 @@
       app:layout_constraintBottom_toBottomOf="parent"
       app:layout_constraintEnd_toEndOf="parent"
       app:layout_constraintStart_toStartOf="parent"
-      android:layout_marginBottom="20dp"
       />
+  </androidx.constraintlayout.widget.ConstraintLayout>
 </androidx.constraintlayout.widget.ConstraintLayout>

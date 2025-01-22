@@ -18,6 +18,15 @@
   <uses-permission android:name="android.permission.FOREGROUND_SERVICE_CAMERA"/>
   <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PROJECTION"/>
 
+  <!--  This is only to allow compile extra-sources modules in app with min version 16. Never do it-->
+  <uses-sdk tools:overrideLibrary="
+  com.pedro.extrasources,
+  com.serenegiant.uvccamera,
+  androidx.core.ktx,androidx.core,
+  androidx.annotation.experimental,
+  androidx.media3.*,
+  androidx.camera.*" />
+
   <application
       android:name=".App"
       android:requestLegacyExternalStorage="true"
@@ -61,7 +70,7 @@
         tools:ignore="DiscouragedApi" />
 
     <service android:name="com.pedro.streamer.screen.ScreenService"
-        android:foregroundServiceType="mediaProjection"
+        android:foregroundServiceType="mediaProjection|microphone|camera"
         />
   </application>
 

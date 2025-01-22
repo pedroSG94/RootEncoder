@@ -16,14 +16,13 @@
 
 package com.pedro.rtmp.flv
 
-import android.media.MediaCodec
-import java.nio.ByteBuffer
+import com.pedro.common.frame.MediaFrame
 
 /**
  * Created by pedro on 21/12/23.
  */
 abstract class BasePacket {
 
-  abstract fun createFlvPacket(byteBuffer: ByteBuffer, info: MediaCodec.BufferInfo, callback: (FlvPacket) -> Unit)
+  abstract suspend fun createFlvPacket(mediaFrame: MediaFrame, callback: suspend (FlvPacket) -> Unit)
   abstract fun reset(resetInfo: Boolean = true)
 }

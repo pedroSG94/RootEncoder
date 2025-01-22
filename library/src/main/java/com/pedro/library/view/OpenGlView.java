@@ -55,14 +55,17 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public class OpenGlView extends SurfaceView
     implements GlInterface, SurfaceTexture.OnFrameAvailableListener, SurfaceHolder.Callback {
 
-  private AtomicBoolean running = new AtomicBoolean(false);
+  private final AtomicBoolean running = new AtomicBoolean(false);
   private final MainRender mainRender = new MainRender();
   private final SurfaceManager surfaceManagerPhoto = new SurfaceManager();
   private final SurfaceManager surfaceManager = new SurfaceManager();
   private final SurfaceManager surfaceManagerEncoder = new SurfaceManager();
+  private final SurfaceManager surfaceManagerEncoderRecord = new SurfaceManager();
   private final BlockingQueue<Filter> filterQueue = new LinkedBlockingQueue<>();
+  private final LinkedBlockingQueue<Runnable> threadQueue = new LinkedBlockingQueue<>();
   private int previewWidth, previewHeight;
   private int encoderWidth, encoderHeight;
+  private int encoderRecordWidth, encoderRecordHeight;
   private TakePhotoCallback takePhotoCallback;
   private int streamRotation;
   private boolean muteVideo = false;
@@ -224,6 +227,12 @@ public class OpenGlView extends SurfaceView
   }
 
   @Override
+  public void setEncoderRecordSize(int width, int height) {
+    this.encoderRecordWidth = width;
+    this.encoderRecordHeight = height;
+  }
+
+  @Override
   public Point getEncoderSize() {
     return new Point(encoderWidth, encoderHeight);
   }
@@ -234,16 +243,19 @@ public class OpenGlView extends SurfaceView
   }
 
   private void draw(boolean forced) {
-    if (!isRunning() || fpsLimiter.limitFPS()) return;
+    if (!isRunning()) return;
+    boolean limitFps = fpsLimiter.limitFPS();
     if (!forced) forceRenderer.frameAvailable();
 
     if (surfaceManager.isReady() && mainRender.isReady()) {
       surfaceManager.makeCurrent();
       mainRender.updateFrame();
       mainRender.drawOffScreen();
-      mainRender.drawScreen(previewWidth, previewHeight, aspectRatioMode, 0,
-          isPreviewVerticalFlip, isPreviewHorizontalFlip);
-      surfaceManager.swapBuffer();
+      if (!limitFps) {
+        mainRender.drawScreen(previewWidth, previewHeight, aspectRatioMode, 0,
+            isPreviewVerticalFlip, isPreviewHorizontalFlip);
+        surfaceManager.swapBuffer();
+      }
     }
 
     if (!filterQueue.isEmpty() && mainRender.isReady()) {
@@ -255,13 +267,22 @@ public class OpenGlView extends SurfaceView
         return;
       }
     }
-    if (surfaceManagerEncoder.isReady() && mainRender.isReady()) {
+    if (surfaceManagerEncoder.isReady() && mainRender.isReady() && !limitFps) {
       int w = muteVideo ? 0 : encoderWidth;
       int h = muteVideo ? 0 : encoderHeight;
       surfaceManagerEncoder.makeCurrent();
       mainRender.drawScreen(w, h, aspectRatioMode,
           streamRotation, isStreamVerticalFlip, isStreamHorizontalFlip);
       surfaceManagerEncoder.swapBuffer();
+    }
+    // render VideoEncoder (record if the resolution is different than stream)
+    if (surfaceManagerEncoderRecord.isReady() && mainRender.isReady() && !limitFps) {
+      int w = muteVideo ? 0 : encoderRecordWidth;
+      int h = muteVideo ? 0 : encoderRecordHeight;
+      surfaceManagerEncoderRecord.makeCurrent();
+      mainRender.drawScreen(w, h, aspectRatioMode,
+          streamRotation, isStreamVerticalFlip, isStreamHorizontalFlip);
+      surfaceManagerEncoderRecord.swapBuffer();
     }
     if (takePhotoCallback != null && surfaceManagerPhoto.isReady() && mainRender.isReady()) {
       surfaceManagerPhoto.makeCurrent();
@@ -279,10 +300,8 @@ public class OpenGlView extends SurfaceView
     if (executor == null) return;
     ExtensionsKt.secureSubmit(executor, () -> {
       if (surfaceManager.isReady()) {
-        surfaceManagerPhoto.release();
         surfaceManagerEncoder.release();
         surfaceManagerEncoder.eglSetup(surface, surfaceManager);
-        surfaceManagerPhoto.eglSetup(encoderWidth, encoderHeight, surfaceManagerEncoder);
       }
       return null;
     });
@@ -290,21 +309,44 @@ public class OpenGlView extends SurfaceView
 
   @Override
   public void removeMediaCodecSurface() {
+    threadQueue.clear();
     ExecutorService executor = this.executor;
     if (executor == null) return;
     ExtensionsKt.secureSubmit(executor, () -> {
-      surfaceManagerPhoto.release();
       surfaceManagerEncoder.release();
-      surfaceManagerPhoto.eglSetup(encoderWidth, encoderHeight, surfaceManager);
+      return null;
+    });
+  }
+
+  @Override
+  public void addMediaCodecRecordSurface(Surface surface) {
+    ExecutorService executor = this.executor;
+    if (executor == null) return;
+    ExtensionsKt.secureSubmit(executor, () -> {
+      if (surfaceManager.isReady()) {
+        surfaceManagerEncoderRecord.release();
+        surfaceManagerEncoderRecord.eglSetup(surface, surfaceManager);
+      }
+      return null;
+    });
+  }
+
+  @Override
+  public void removeMediaCodecRecordSurface() {
+    threadQueue.clear();
+    ExecutorService executor = this.executor;
+    if (executor == null) return;
+    ExtensionsKt.secureSubmit(executor, () -> {
+      surfaceManagerEncoderRecord.release();
       return null;
     });
   }
 
   @Override
   public void start() {
-    executor = Executors.newSingleThreadExecutor();
+    threadQueue.clear();
+    executor = ExtensionsKt.newSingleThreadExecutor(threadQueue);
     ExecutorService executor = this.executor;
-    if (executor == null) return;
     ExtensionsKt.secureSubmit(executor, () -> {
       surfaceManager.release();
       surfaceManager.eglSetup(getHolder().getSurface());
@@ -327,18 +369,20 @@ public class OpenGlView extends SurfaceView
   @Override
   public void stop() {
     running.set(false);
+    threadQueue.clear();
     ExecutorService executor = this.executor;
     if (executor == null) return;
     ExtensionsKt.secureSubmit(executor, () -> {
       forceRenderer.stop();
       surfaceManagerPhoto.release();
       surfaceManagerEncoder.release();
+      surfaceManagerEncoderRecord.release();
       surfaceManager.release();
       mainRender.release();
-      executor.shutdownNow();
-      this.executor = null;
       return null;
     });
+    executor.shutdownNow();
+    this.executor = null;
   }
 
   @Override

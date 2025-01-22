@@ -45,7 +45,7 @@ class GenericStreamClient(
   /**
    * Add certificates for TLS connection
    */
-  fun addCertificates(certificates: Array<TrustManager>?) {
+  fun addCertificates(certificates: TrustManager?) {
     rtmpClient.addCertificates(certificates)
     rtspClient.addCertificates(certificates)
   }
@@ -203,4 +203,20 @@ class GenericStreamClient(
         udpClient
       } else null
   }
+
+  /**
+   * @param factor values from 0.1f to 1f
+   * Set an exponential factor to the bitrate calculation to avoid bitrate spikes
+   */
+  override fun setBitrateExponentialFactor(factor: Float) {
+    rtmpClient.setBitrateExponentialFactor(factor)
+    rtspClient.setBitrateExponentialFactor(factor)
+    srtClient.setBitrateExponentialFactor(factor)
+    udpClient.setBitrateExponentialFactor(factor)
+  }
+
+  /**
+   * Get the exponential factor used to calculate the bitrate. Default 1f
+   */
+  override fun getBitrateExponentialFactor() = connectedStreamClient?.getBitrateExponentialFactor() ?: 1f
 }

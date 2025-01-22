@@ -16,64 +16,37 @@
 
 package com.pedro.udp.utils
 
+import com.pedro.common.socket.UdpStreamSocket
 import com.pedro.srt.mpeg2ts.MpegTsPacket
 import com.pedro.srt.mpeg2ts.MpegTsPacketizer
-import java.net.DatagramPacket
-import java.net.DatagramSocket
-import java.net.InetAddress
-import java.net.MulticastSocket
 
 /**
  * Created by pedro on 6/3/24.
  */
-class UdpSocket(private val host: String, private val type: UdpType, private val port: Int) {
+class UdpSocket(host: String, type: UdpType, port: Int) {
 
-  private var socket: DatagramSocket? = null
-  private var packetSize = MpegTsPacketizer.packetSize
-  private val timeout = 5000
+  private val socket = UdpStreamSocket(
+    host, port, receiveSize = MpegTsPacketizer.packetSize,
+    broadcastMode = type == UdpType.BROADCAST
+  )
 
-  fun connect() {
-    val address = InetAddress.getByName(host)
-    socket = when (type) {
-      UdpType.UNICAST -> DatagramSocket()
-      UdpType.MULTICAST -> MulticastSocket()
-      UdpType.BROADCAST -> DatagramSocket().apply { broadcast = true }
-    }
-    socket?.connect(address, port)
-    socket?.soTimeout = timeout
+  suspend fun connect() {
+    socket.connect()
   }
 
-  fun close() {
-    if (socket?.isClosed == false) {
-      socket?.disconnect()
-      socket?.close()
-      socket = null
-    }
+  suspend fun close() {
+    socket.close()
   }
 
-  fun isConnected(): Boolean {
-    return socket?.isConnected ?: false
-  }
+  suspend fun isConnected() = socket.isConnected()
 
-  fun isReachable(): Boolean {
-    return socket?.inetAddress?.isReachable(5000) ?: false
-  }
+  fun isReachable() = socket.isReachable()
 
-  fun setPacketSize(size: Int) {
-    packetSize = size
-  }
-
-  fun write(mpegTsPacket: MpegTsPacket): Int {
+  suspend fun write(mpegTsPacket: MpegTsPacket): Int {
     val buffer = mpegTsPacket.buffer
-    val udpPacket = DatagramPacket(buffer, buffer.size)
-    socket?.send(udpPacket)
+    socket.writePacket(buffer)
     return buffer.size
   }
 
-  fun readBuffer(): ByteArray {
-    val buffer = ByteArray(packetSize)
-    val udpPacket = DatagramPacket(buffer, buffer.size)
-    socket?.receive(udpPacket)
-    return udpPacket.data.sliceArray(0 until udpPacket.length)
-  }
+  suspend fun readBuffer() = socket.readPacket()
 }

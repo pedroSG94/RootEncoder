@@ -20,8 +20,14 @@ import android.media.MediaCodec
 import android.util.Log
 import com.pedro.common.AudioCodec
 import com.pedro.common.ConnectChecker
+import com.pedro.common.ConnectionFailed
+import com.pedro.common.UrlParser
 import com.pedro.common.VideoCodec
+import com.pedro.common.clone
+import com.pedro.common.frame.MediaFrame
 import com.pedro.common.onMainThread
+import com.pedro.common.toMediaFrameInfo
+import com.pedro.common.validMessage
 import com.pedro.srt.srt.packets.ControlPacket
 import com.pedro.srt.srt.packets.DataPacket
 import com.pedro.srt.srt.packets.SrtPacket
@@ -48,10 +54,10 @@ import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withTimeoutOrNull
 import java.io.IOException
-import java.net.SocketTimeoutException
+import java.net.URISyntaxException
 import java.nio.ByteBuffer
-import java.util.regex.Pattern
 
 /**
  * Created by pedro on 20/8/23.
@@ -60,7 +66,7 @@ class SrtClient(private val connectChecker: ConnectChecker) {
 
   private val TAG = "SrtClient"
 
-  private val urlPattern: Pattern = Pattern.compile("^srt://([^/:]+)(?::(\\d+))*/([^/]+)/?([^*]*)$")
+  private val validSchemes = arrayOf("srt")
 
   private val commandsManager = CommandsManager()
   private val srtSender = SrtSender(connectChecker, commandsManager)
@@ -90,6 +96,7 @@ class SrtClient(private val connectChecker: ConnectChecker) {
     get() = srtSender.getSentAudioFrames()
   val sentVideoFrames: Long
     get() = srtSender.getSentVideoFrames()
+  private var latency = 120_000 //in micro
 
   fun setVideoCodec(videoCodec: VideoCodec) {
     if (!isStreaming) {
@@ -107,6 +114,10 @@ class SrtClient(private val connectChecker: ConnectChecker) {
         else -> audioCodec
       }
     }
+  }
+
+  fun setLatency(latency: Int) {
+    this.latency = latency
   }
 
   fun setAuthorization(user: String?, password: String?) {
@@ -176,19 +187,28 @@ class SrtClient(private val connectChecker: ConnectChecker) {
         onMainThread {
           connectChecker.onConnectionStarted(url)
         }
-        val srtMatcher = urlPattern.matcher(url)
-        if (!srtMatcher.matches()) {
+
+        val urlParser = try {
+          UrlParser.parse(url, validSchemes)
+        } catch (e: URISyntaxException) {
           isStreaming = false
           onMainThread {
             connectChecker.onConnectionFailed("Endpoint malformed, should be: srt://ip:port/streamid")
           }
           return@launch
         }
-        val host = srtMatcher.group(1) ?: ""
-        val port: Int = srtMatcher.group(2)?.toInt() ?: 8888
-        val streamName =
-          if (srtMatcher.group(4).isNullOrEmpty()) "" else "/" + srtMatcher.group(4)
-        val path = "${srtMatcher.group(3)}$streamName".trim()
+
+        val host = urlParser.host
+        val port = urlParser.port ?: 8888
+        val path = urlParser.getQuery("streamid") ?: urlParser.getFullPath()
+        latency = urlParser.getQuery("latency")?.toIntOrNull() ?: latency
+        if (path.isEmpty()) {
+          isStreaming = false
+          onMainThread {
+            connectChecker.onConnectionFailed("Endpoint malformed, should be: srt://ip:port/streamid")
+          }
+          return@launch
+        }
         commandsManager.host = host
 
         val error = runCatching {
@@ -207,6 +227,8 @@ class SrtClient(private val connectChecker: ConnectChecker) {
               flags = ExtensionContentFlag.TSBPDSND.value or ExtensionContentFlag.TSBPDRCV.value or
                   ExtensionContentFlag.CRYPT.value or ExtensionContentFlag.TLPKTDROP.value or
                   ExtensionContentFlag.PERIODICNAK.value or ExtensionContentFlag.REXMITFLG.value,
+              receiverDelay = latency / 1000,
+              senderDelay = latency / 1000,
               path = path,
               encryptInfo = commandsManager.getEncryptInfo()
             )))
@@ -231,7 +253,7 @@ class SrtClient(private val connectChecker: ConnectChecker) {
         if (error != null) {
           Log.e(TAG, "connection error", error)
           onMainThread {
-            connectChecker.onConnectionFailed("Error configure stream, ${error.message}")
+            connectChecker.onConnectionFailed("Error configure stream, ${error.validMessage()}")
           }
           return@launch
         }
@@ -248,7 +270,9 @@ class SrtClient(private val connectChecker: ConnectChecker) {
   private suspend fun disconnect(clear: Boolean) {
     if (isStreaming) srtSender.stop(clear)
     runCatching {
-      commandsManager.writeShutdown(socket)
+      withTimeoutOrNull(100) {
+        commandsManager.writeShutdown(socket)
+      }
     }
     socket?.close()
     if (clear) {
@@ -289,6 +313,7 @@ class SrtClient(private val connectChecker: ConnectChecker) {
     while (scope.isActive && isStreaming) {
       val error = runCatching {
         if (isAlive()) {
+          delay(2000)
           //ignore packet after connect if tunneled to avoid spam idle
           handleMessages()
         } else {
@@ -298,7 +323,7 @@ class SrtClient(private val connectChecker: ConnectChecker) {
           scope.cancel()
         }
       }.exceptionOrNull()
-      if (error != null && error !is SocketTimeoutException) {
+      if (error != null && ConnectionFailed.parse(error.validMessage()) != ConnectionFailed.TIMEOUT) {
         scope.cancel()
       }
     }
@@ -377,15 +402,15 @@ class SrtClient(private val connectChecker: ConnectChecker) {
     srtSender.setVideoInfo(sps, pps, vps)
   }
 
-  fun sendVideo(h264Buffer: ByteBuffer, info: MediaCodec.BufferInfo) {
+  fun sendVideo(videoBuffer: ByteBuffer, info: MediaCodec.BufferInfo) {
     if (!commandsManager.videoDisabled) {
-      srtSender.sendVideoFrame(h264Buffer, info)
+      srtSender.sendMediaFrame(MediaFrame(videoBuffer.clone(), info.toMediaFrameInfo(), MediaFrame.Type.VIDEO))
     }
   }
 
-  fun sendAudio(aacBuffer: ByteBuffer, info: MediaCodec.BufferInfo) {
+  fun sendAudio(audioBuffer: ByteBuffer, info: MediaCodec.BufferInfo) {
     if (!commandsManager.audioDisabled) {
-      srtSender.sendAudioFrame(aacBuffer, info)
+      srtSender.sendMediaFrame(MediaFrame(audioBuffer.clone(), info.toMediaFrameInfo(), MediaFrame.Type.AUDIO))
     }
   }
 
@@ -429,4 +454,17 @@ class SrtClient(private val connectChecker: ConnectChecker) {
   }
 
   fun getItemsInCache(): Int = srtSender.getItemsInCache()
+
+  /**
+   * @param factor values from 0.1f to 1f
+   * Set an exponential factor to the bitrate calculation to avoid bitrate spikes
+   */
+  fun setBitrateExponentialFactor(factor: Float) {
+    srtSender.setBitrateExponentialFactor(factor)
+  }
+
+  /**
+   * Get the exponential factor used to calculate the bitrate. Default 1f
+   */
+  fun getBitrateExponentialFactor() = srtSender.getBitrateExponentialFactor()
 }

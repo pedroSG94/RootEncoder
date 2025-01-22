@@ -16,11 +16,12 @@
 
 package com.pedro.rtsp.rtp
 
-import android.media.MediaCodec
+import com.pedro.common.frame.MediaFrame
 import com.pedro.rtsp.rtp.packets.AacPacket
 import com.pedro.rtsp.rtsp.RtpFrame
 import com.pedro.rtsp.utils.RtpConstants
 import junit.framework.TestCase.assertEquals
+import kotlinx.coroutines.test.runTest
 import org.junit.Test
 import java.nio.ByteBuffer
 
@@ -30,27 +31,21 @@ import java.nio.ByteBuffer
 class AacPacketTest {
 
   @Test
-  fun `GIVEN a ByteBuffer raw aac WHEN create a packet THEN get a RTP aac packet`() {
+  fun `GIVEN a ByteBuffer raw aac WHEN create a packet THEN get a RTP aac packet`() = runTest {
     val timestamp = 123456789L
     val fakeAac = ByteArray(300) { 0x00 }
 
-    val info = MediaCodec.BufferInfo()
-    info.presentationTimeUs = timestamp
-    info.offset = 0
-    info.size = fakeAac.size
-    info.flags = 1
-    val aacPacket = AacPacket(44100)
-    aacPacket.setPorts(1, 2)
+    val info = MediaFrame.Info(0, fakeAac.size, timestamp, false)
+    val mediaFrame = MediaFrame(ByteBuffer.wrap(fakeAac), info, MediaFrame.Type.AUDIO)
+    val aacPacket = AacPacket().apply { setAudioInfo(44100) }
     aacPacket.setSSRC(123456789)
     val frames = mutableListOf<RtpFrame>()
-    aacPacket.createAndSendPacket(ByteBuffer.wrap(fakeAac), info) {
-      frames.add(it)
-    }
+    aacPacket.createAndSendPacket(mediaFrame) { frames.addAll(it) }
 
     val expectedRtp = byteArrayOf(-128, -31, 0, 1, 0, 83, 19, 92, 7, 91, -51, 21, 0, 16, 9, 96).plus(fakeAac)
     val expectedTimeStamp = 5444444L
     val expectedSize = RtpConstants.RTP_HEADER_LENGTH + info.size + 4
-    val packetResult = RtpFrame(expectedRtp, expectedTimeStamp, expectedSize, 1, 2, RtpConstants.trackAudio)
+    val packetResult = RtpFrame(expectedRtp, expectedTimeStamp, expectedSize, RtpConstants.trackAudio)
     assertEquals(1, frames.size)
     assertEquals(packetResult, frames[0])
   }

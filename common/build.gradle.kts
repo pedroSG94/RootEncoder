@@ -7,11 +7,11 @@ plugins {
 
 android {
     namespace = "com.pedro.common"
-    compileSdk = 34
+    compileSdk = 35
 
     defaultConfig {
         minSdk = 16
-        lint.targetSdk = 34
+        lint.targetSdk = 35
     }
 
     buildTypes {
@@ -50,6 +50,9 @@ afterEvaluate {
 }
 
 dependencies {
+    implementation(libs.ktor.network)
+    implementation(libs.ktor.network.tls)
+    implementation(libs.androidx.annotation)
     implementation(libs.kotlinx.coroutines.android)
     testImplementation(libs.kotlinx.coroutines.test)
     testImplementation(libs.junit)

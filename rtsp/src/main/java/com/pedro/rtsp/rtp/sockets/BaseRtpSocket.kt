@@ -16,34 +16,50 @@
 
 package com.pedro.rtsp.rtp.sockets
 
+import com.pedro.common.socket.TcpStreamSocket
+import com.pedro.common.socket.UdpStreamSocket
 import com.pedro.rtsp.rtsp.Protocol
 import com.pedro.rtsp.rtsp.RtpFrame
+import com.pedro.rtsp.utils.RtpConstants
 import java.io.IOException
-import java.io.OutputStream
 
 /**
  * Created by pedro on 7/11/18.
  */
 abstract class BaseRtpSocket {
 
-  protected val TAG = "BaseRtpSocket"
-
   companion object {
     @JvmStatic
-    fun getInstance(protocol: Protocol, videoSourcePort: Int, audioSourcePort: Int): BaseRtpSocket {
+    fun getInstance(
+      protocol: Protocol, host: String,
+      videoSourcePort: Int?, audioSourcePort: Int?,
+      videoServerPort: Int?, audioServerPort: Int?,
+    ): BaseRtpSocket {
       return if (protocol === Protocol.TCP) {
         RtpSocketTcp()
       } else {
-        RtpSocketUdp(videoSourcePort, audioSourcePort)
+        val videoSocket = if (videoServerPort != null) {
+          UdpStreamSocket(
+            host, videoServerPort, videoSourcePort, receiveSize = RtpConstants.REPORT_PACKET_LENGTH
+          )
+        } else null
+        val audioSocket = if (audioServerPort != null) {
+          UdpStreamSocket(
+            host, audioServerPort, audioSourcePort, receiveSize = RtpConstants.REPORT_PACKET_LENGTH
+          )
+        } else null
+        RtpSocketUdp(videoSocket, audioSocket)
       }
     }
   }
 
   @Throws(IOException::class)
-  abstract fun setDataStream(outputStream: OutputStream, host: String)
+  abstract suspend fun setSocket(socket: TcpStreamSocket)
 
   @Throws(IOException::class)
-  abstract suspend fun sendFrame(rtpFrame: RtpFrame, isEnableLogs: Boolean)
+  abstract suspend fun sendFrame(rtpFrame: RtpFrame)
 
-  abstract fun close()
+  abstract suspend fun flush()
+
+  abstract suspend fun close()
 }

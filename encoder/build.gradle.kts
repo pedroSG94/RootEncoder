@@ -7,11 +7,11 @@ plugins {
 
 android {
   namespace = "com.pedro.encoder"
-  compileSdk = 34
+  compileSdk = 35
 
   defaultConfig {
     minSdk = 16
-    lint.targetSdk = 34
+    lint.targetSdk = 35
   }
   buildTypes {
     release {
@@ -49,6 +49,7 @@ afterEvaluate {
 }
 
 dependencies {
+  implementation(libs.kotlinx.coroutines.android)
   testImplementation(libs.junit)
   api(libs.androidx.annotation)
   api(project(":common"))

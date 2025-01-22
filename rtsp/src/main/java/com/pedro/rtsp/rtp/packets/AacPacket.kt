@@ -16,11 +16,10 @@
 
 package com.pedro.rtsp.rtp.packets
 
-import android.media.MediaCodec
+import com.pedro.common.frame.MediaFrame
 import com.pedro.common.removeInfo
 import com.pedro.rtsp.rtsp.RtpFrame
 import com.pedro.rtsp.utils.RtpConstants
-import java.nio.ByteBuffer
 import kotlin.experimental.and
 import kotlin.experimental.or
 
@@ -29,10 +28,8 @@ import kotlin.experimental.or
  *
  * RFC 3640.
  */
-class AacPacket(
-  sampleRate: Int
-): BasePacket(
-  sampleRate.toLong(),
+class AacPacket: BasePacket(
+  0,
   RtpConstants.payloadType + RtpConstants.trackAudio
 ) {
 
@@ -40,16 +37,20 @@ class AacPacket(
     channelIdentifier = RtpConstants.trackAudio
   }
 
-  override fun createAndSendPacket(
-    byteBuffer: ByteBuffer,
-    bufferInfo: MediaCodec.BufferInfo,
-    callback: (RtpFrame) -> Unit
+  fun setAudioInfo(sampleRate: Int) {
+    setClock(sampleRate.toLong())
+  }
+
+  override suspend fun createAndSendPacket(
+    mediaFrame: MediaFrame,
+    callback: suspend (List<RtpFrame>) -> Unit
   ) {
-    val fixedBuffer = byteBuffer.removeInfo(bufferInfo)
+    val fixedBuffer = mediaFrame.data.removeInfo(mediaFrame.info)
     val length = fixedBuffer.remaining()
     val maxPayload = maxPacketSize - (RtpConstants.RTP_HEADER_LENGTH + 4)
-    val ts = bufferInfo.presentationTimeUs * 1000
+    val ts = mediaFrame.info.timestamp * 1000
     var sum = 0
+    val frames = mutableListOf<RtpFrame>()
     while (sum < length) {
       val size = if (length - sum < maxPayload) length - sum else maxPayload
       val buffer = getBuffer(size + RtpConstants.RTP_HEADER_LENGTH + 4)
@@ -71,9 +72,10 @@ class AacPacket(
       buffer[RtpConstants.RTP_HEADER_LENGTH + 3] = buffer[RtpConstants.RTP_HEADER_LENGTH + 3] and 0xF8.toByte()
       buffer[RtpConstants.RTP_HEADER_LENGTH + 3] = buffer[RtpConstants.RTP_HEADER_LENGTH + 3] or 0x00
       updateSeq(buffer)
-      val rtpFrame = RtpFrame(buffer, rtpTs, RtpConstants.RTP_HEADER_LENGTH + size + 4, rtpPort, rtcpPort, channelIdentifier)
+      val rtpFrame = RtpFrame(buffer, rtpTs, RtpConstants.RTP_HEADER_LENGTH + size + 4, channelIdentifier)
       sum += size
-      callback(rtpFrame)
+      frames.add(rtpFrame)
     }
+    if (frames.isNotEmpty()) callback(frames)
   }
 }

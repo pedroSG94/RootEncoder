@@ -62,7 +62,7 @@ class GenericCamera2: Camera2Base {
     init(connectChecker)
   }
 
-  constructor(context: Context, useOpenGl: Boolean, connectChecker: ConnectChecker) : super(context, useOpenGl) {
+  constructor(context: Context, connectChecker: ConnectChecker) : super(context) {
     init(connectChecker)
   }
 
@@ -104,14 +104,14 @@ class GenericCamera2: Camera2Base {
     udpClient.setAudioCodec(codec)
   }
 
-  override fun prepareAudioRtp(isStereo: Boolean, sampleRate: Int) {
+  override fun onAudioInfoImp(isStereo: Boolean, sampleRate: Int) {
     rtmpClient.setAudioInfo(sampleRate, isStereo)
     rtspClient.setAudioInfo(sampleRate, isStereo)
     srtClient.setAudioInfo(sampleRate, isStereo)
     udpClient.setAudioInfo(sampleRate, isStereo)
   }
 
-  override fun startStreamRtp(url: String) {
+  override fun startStreamImp(url: String) {
     streamClient.connecting(url)
     if (url.lowercase(Locale.getDefault()).startsWith("rtmp")) {
       connectedType = ClientType.RTMP
@@ -138,7 +138,7 @@ class GenericCamera2: Camera2Base {
     }
   }
 
-  override fun stopStreamRtp() {
+  override fun stopStreamImp() {
     when (connectedType) {
       ClientType.RTMP -> rtmpClient.disconnect()
       ClientType.RTSP -> rtspClient.disconnect()
@@ -149,29 +149,29 @@ class GenericCamera2: Camera2Base {
     connectedType = ClientType.NONE
   }
 
-  override fun getAacDataRtp(aacBuffer: ByteBuffer, info: MediaCodec.BufferInfo) {
+  override fun getAudioDataImp(audioBuffer: ByteBuffer, info: MediaCodec.BufferInfo) {
     when (connectedType) {
-      ClientType.RTMP -> rtmpClient.sendAudio(aacBuffer, info)
-      ClientType.RTSP -> rtspClient.sendAudio(aacBuffer, info)
-      ClientType.SRT -> srtClient.sendAudio(aacBuffer, info)
-      ClientType.UDP -> udpClient.sendAudio(aacBuffer, info)
+      ClientType.RTMP -> rtmpClient.sendAudio(audioBuffer, info)
+      ClientType.RTSP -> rtspClient.sendAudio(audioBuffer, info)
+      ClientType.SRT -> srtClient.sendAudio(audioBuffer, info)
+      ClientType.UDP -> udpClient.sendAudio(audioBuffer, info)
       else -> {}
     }
   }
 
-  override fun onSpsPpsVpsRtp(sps: ByteBuffer, pps: ByteBuffer?, vps: ByteBuffer?) {
+  override fun onVideoInfoImp(sps: ByteBuffer, pps: ByteBuffer?, vps: ByteBuffer?) {
     rtmpClient.setVideoInfo(sps, pps, vps)
     rtspClient.setVideoInfo(sps, pps, vps)
     srtClient.setVideoInfo(sps, pps, vps)
     udpClient.setVideoInfo(sps, pps, vps)
   }
 
-  override fun getH264DataRtp(h264Buffer: ByteBuffer, info: MediaCodec.BufferInfo) {
+  override fun getVideoDataImp(videoBuffer: ByteBuffer, info: MediaCodec.BufferInfo) {
     when (connectedType) {
-      ClientType.RTMP -> rtmpClient.sendVideo(h264Buffer, info)
-      ClientType.RTSP -> rtspClient.sendVideo(h264Buffer, info)
-      ClientType.SRT -> srtClient.sendVideo(h264Buffer, info)
-      ClientType.UDP -> udpClient.sendVideo(h264Buffer, info)
+      ClientType.RTMP -> rtmpClient.sendVideo(videoBuffer, info)
+      ClientType.RTSP -> rtspClient.sendVideo(videoBuffer, info)
+      ClientType.SRT -> srtClient.sendVideo(videoBuffer, info)
+      ClientType.UDP -> udpClient.sendVideo(videoBuffer, info)
       else -> {}
     }
   }

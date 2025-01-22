@@ -17,8 +17,8 @@
 package com.pedro.rtmp.rtmp.message
 
 import com.pedro.rtmp.rtmp.chunk.ChunkType
+import com.pedro.rtmp.utils.socket.RtmpSocket
 import java.io.IOException
-import java.io.InputStream
 import kotlin.experimental.and
 
 /**
@@ -59,17 +59,17 @@ import kotlin.experimental.and
 class BasicHeader(val chunkType: ChunkType, val chunkStreamId: Int) {
 
   companion object {
-    fun parseBasicHeader(input: InputStream): BasicHeader {
-      val byte = input.read().toByte()
+    suspend fun parseBasicHeader(socket: RtmpSocket): BasicHeader {
+      val byte = socket.read().toByte()
       val chunkTypeValue = 0xff and byte.toInt() ushr 6
       val chunkType = ChunkType.entries.find { it.mark.toInt() == chunkTypeValue } ?: throw IOException("Unknown chunk type value: $chunkTypeValue")
       var chunkStreamIdValue = (byte and 0x3F).toInt()
       if (chunkStreamIdValue > 63) throw IOException("Unknown chunk stream id value: $chunkStreamIdValue")
       if (chunkStreamIdValue == 0) { //Basic header 2 bytes
-        chunkStreamIdValue = input.read() - 64
+        chunkStreamIdValue = socket.read() - 64
       } else if (chunkStreamIdValue == 1) { //Basic header 3 bytes
-        val a = input.read()
-        val b = input.read()
+        val a = socket.read()
+        val b = socket.read()
         val value = b and 0xff shl 8 and a
         chunkStreamIdValue = value - 64
       }

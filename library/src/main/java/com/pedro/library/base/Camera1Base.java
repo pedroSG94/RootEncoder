@@ -36,13 +36,12 @@ import androidx.annotation.RequiresApi;
 import com.pedro.common.AudioCodec;
 import com.pedro.common.VideoCodec;
 import com.pedro.encoder.EncoderErrorCallback;
+import com.pedro.encoder.TimestampMode;
 import com.pedro.encoder.audio.AudioEncoder;
-import com.pedro.encoder.audio.GetAacData;
+import com.pedro.encoder.audio.GetAudioData;
 import com.pedro.encoder.input.audio.CustomAudioEffect;
 import com.pedro.encoder.input.audio.GetMicrophoneData;
 import com.pedro.encoder.input.audio.MicrophoneManager;
-import com.pedro.encoder.input.audio.MicrophoneManagerManual;
-import com.pedro.encoder.input.audio.MicrophoneMode;
 import com.pedro.encoder.input.video.Camera1ApiManager;
 import com.pedro.encoder.input.video.CameraCallbacks;
 import com.pedro.encoder.input.video.CameraHelper;
@@ -126,41 +125,25 @@ public abstract class Camera1Base {
   }
 
   private void init() {
+    microphoneManager = new MicrophoneManager(getMicrophoneData);
     videoEncoder = new VideoEncoder(getVideoData);
-    setMicrophoneMode(MicrophoneMode.ASYNC);
-    recordController = new AndroidMuxerRecordController();
-  }
-
-  /**
-   * Must be called before prepareAudio.
-   *
-   * @param microphoneMode mode to work accord to audioEncoder. By default ASYNC:
-   * SYNC using same thread. This mode could solve choppy audio or audio frame discarded.
-   * ASYNC using other thread.
-   */
-  public void setMicrophoneMode(MicrophoneMode microphoneMode) {
-    switch (microphoneMode) {
-      case SYNC:
-        microphoneManager = new MicrophoneManagerManual();
-        audioEncoder = new AudioEncoder(getAacData);
-        audioEncoder.setGetFrame(((MicrophoneManagerManual) microphoneManager).getGetFrame());
-        audioEncoder.setTsModeBuffer(false);
-        break;
-      case ASYNC:
-        microphoneManager = new MicrophoneManager(getMicrophoneData);
-        audioEncoder = new AudioEncoder(getAacData);
-        audioEncoder.setTsModeBuffer(false);
-        break;
-      case BUFFER:
-        microphoneManager = new MicrophoneManager(getMicrophoneData);
-        audioEncoder = new AudioEncoder(getAacData);
-        audioEncoder.setTsModeBuffer(true);
-        break;
+    audioEncoder = new AudioEncoder(getAudioData);
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
+      recordController = new AndroidMuxerRecordController();
     }
   }
 
   public void setCameraCallbacks(CameraCallbacks callbacks) {
     cameraManager.setCameraCallbacks(callbacks);
+  }
+
+  /**
+   * Set the mode to calculate timestamp. By default CLOCK.
+   * Must be called before startRecord/startStream or it will be ignored.
+   */
+  public void setTimestampMode(TimestampMode timestampModeVideo, TimestampMode timestampModeAudio) {
+    videoEncoder.setTimestampMode(timestampModeVideo);
+    audioEncoder.setTimestampMode(timestampModeAudio);
   }
 
   /**
@@ -240,16 +223,32 @@ public abstract class Camera1Base {
     return cameraManager.isLanternEnabled();
   }
 
-  public void enableAutoFocus() {
-    cameraManager.enableAutoFocus();
+  public boolean enableAutoFocus() {
+    return cameraManager.enableAutoFocus();
   }
 
-  public void disableAutoFocus() {
-    cameraManager.disableAutoFocus();
+  public boolean disableAutoFocus() {
+    return cameraManager.disableAutoFocus();
   }
 
   public boolean isAutoFocusEnabled() {
     return cameraManager.isAutoFocusEnabled();
+  }
+
+  public boolean resetVideoEncoder() {
+    if (glInterface != null) {
+      glInterface.removeMediaCodecSurface();
+      boolean result = videoEncoder.reset();
+      if (!result) return false;
+      glInterface.addMediaCodecSurface(videoEncoder.getInputSurface());
+      return true;
+    } else {
+      return videoEncoder.reset();
+    }
+  }
+
+  public boolean resetAudioEncoder() {
+    return audioEncoder.reset();
   }
 
   /**
@@ -297,7 +296,7 @@ public abstract class Camera1Base {
     return prepareVideo(width, height, 30, bitrate, 2, rotation);
   }
 
-  protected abstract void prepareAudioRtp(boolean isStereo, int sampleRate);
+  protected abstract void onAudioInfoImp(boolean isStereo, int sampleRate);
 
   /**
    * Call this method before use @startStream. If not you will do a stream without audio.
@@ -316,9 +315,8 @@ public abstract class Camera1Base {
      if (!microphoneManager.createMicrophone(audioSource, sampleRate, isStereo, echoCanceler, noiseSuppressor)) {
        return false;
      }
-    prepareAudioRtp(isStereo, sampleRate);
-    audioInitialized = audioEncoder.prepareAudioEncoder(bitrate, sampleRate, isStereo,
-        microphoneManager.getMaxInputSize());
+    onAudioInfoImp(isStereo, sampleRate);
+    audioInitialized = audioEncoder.prepareAudioEncoder(bitrate, sampleRate, isStereo);
     return audioInitialized;
   }
 
@@ -418,9 +416,7 @@ public abstract class Camera1Base {
 
   @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
   public void replaceView(Context context) {
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
-      replaceGlInterface(new GlStreamInterface(context));
-    }
+    replaceGlInterface(new GlStreamInterface(context));
   }
 
   @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
@@ -606,6 +602,10 @@ public abstract class Camera1Base {
     cameraManager.setZoom(event);
   }
 
+  public void setZoom(MotionEvent event, int delta) {
+    cameraManager.setZoom(event, delta);
+  }
+
   /**
    * Set zoomIn or zoomOut to camera.
    * Use this method if you use a zoom slider.
@@ -655,7 +655,7 @@ public abstract class Camera1Base {
     startStreamAndRecord(url, path, null);
   }
 
-  protected abstract void startStreamRtp(String url);
+  protected abstract void startStreamImp(String url);
 
   /**
    * Need be called after @prepareVideo or/and @prepareAudio. This method override resolution of
@@ -674,13 +674,14 @@ public abstract class Camera1Base {
     } else {
       requestKeyFrame();
     }
-    startStreamRtp(url);
+    startStreamImp(url);
     onPreview = true;
   }
 
   private void startEncoders() {
-    videoEncoder.start();
-    if (audioInitialized) audioEncoder.start();
+    long startTs = System.nanoTime() / 1000;
+    videoEncoder.start(startTs);
+    if (audioInitialized) audioEncoder.start(startTs);
     prepareGlView(videoEncoder.getWidth(), videoEncoder.getHeight(), videoEncoder.getRotation());
     if (audioInitialized) microphoneManager.start();
     cameraManager.setRotation(videoEncoder.getRotation());
@@ -730,7 +731,7 @@ public abstract class Camera1Base {
     }
   }
 
-  protected abstract void stopStreamRtp();
+  protected abstract void stopStreamImp();
 
   /**
    * Stop stream started with @startStream.
@@ -738,7 +739,7 @@ public abstract class Camera1Base {
   public void stopStream() {
     if (streaming) {
       streaming = false;
-      stopStreamRtp();
+      stopStreamImp();
     }
     if (!recordController.isRecording()) {
       if (audioInitialized) microphoneManager.stop();
@@ -776,17 +777,6 @@ public abstract class Camera1Base {
 
   public List<int[]> getSupportedFps() {
     return cameraManager.getSupportedFps();
-  }
-
-  /**
-   * Set a custom size of audio buffer input.
-   * If you set 0 or less you can disable it to use library default value.
-   * Must be called before of prepareAudio method.
-   *
-   * @param size in bytes. Recommended multiple of 1024 (2048, 4096, 8196, etc)
-   */
-  public void setAudioMaxInputSize(int size) {
-    microphoneManager.setMaxInputSize(size);
   }
 
   /**
@@ -865,8 +855,8 @@ public abstract class Camera1Base {
     return cameraManager.getMinExposure();
   }
 
-  public void tapToFocus(View view, MotionEvent event) {
-    cameraManager.tapToFocus(view, event);
+  public boolean tapToFocus(View view, MotionEvent event) {
+    return cameraManager.tapToFocus(view, event);
   }
 
   public GlInterface getGlInterface() {
@@ -938,11 +928,11 @@ public abstract class Camera1Base {
     return recordController.getStatus();
   }
 
-  protected abstract void getAacDataRtp(ByteBuffer aacBuffer, MediaCodec.BufferInfo info);
+  protected abstract void getAudioDataImp(ByteBuffer audioBuffer, MediaCodec.BufferInfo info);
 
-  protected abstract void onSpsPpsVpsRtp(ByteBuffer sps, ByteBuffer pps, ByteBuffer vps);
+  protected abstract void onVideoInfoImp(ByteBuffer sps, ByteBuffer pps, ByteBuffer vps);
 
-  protected abstract void getH264DataRtp(ByteBuffer h264Buffer, MediaCodec.BufferInfo info);
+  protected abstract void getVideoDataImp(ByteBuffer videoBuffer, MediaCodec.BufferInfo info);
 
   public void setRecordController(BaseRecordController recordController) {
     if (!isRecording()) this.recordController = recordController;
@@ -956,13 +946,13 @@ public abstract class Camera1Base {
     audioEncoder.inputPCMData(frame);
   };
 
-  private final GetAacData getAacData = new GetAacData() {
+  private final GetAudioData getAudioData = new GetAudioData() {
     @Override
-    public void getAacData(@NonNull ByteBuffer aacBuffer, @NonNull MediaCodec.BufferInfo info) {
+    public void getAudioData(@NonNull ByteBuffer audioBuffer, @NonNull MediaCodec.BufferInfo info) {
       if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
-        recordController.recordAudio(aacBuffer, info);
+        recordController.recordAudio(audioBuffer, info);
       }
-      if (streaming) getAacDataRtp(aacBuffer, info);
+      if (streaming) getAudioDataImp(audioBuffer, info);
     }
 
     @Override
@@ -973,17 +963,17 @@ public abstract class Camera1Base {
 
   private final GetVideoData getVideoData = new GetVideoData() {
     @Override
-    public void onSpsPpsVps(@NonNull ByteBuffer sps, @Nullable ByteBuffer pps, @Nullable ByteBuffer vps) {
-      onSpsPpsVpsRtp(sps.duplicate(), pps != null ? pps.duplicate(): null, vps != null ? vps.duplicate() : null);
+    public void onVideoInfo(@NonNull ByteBuffer sps, @Nullable ByteBuffer pps, @Nullable ByteBuffer vps) {
+      onVideoInfoImp(sps.duplicate(), pps != null ? pps.duplicate(): null, vps != null ? vps.duplicate() : null);
     }
 
     @Override
-    public void getVideoData(@NonNull ByteBuffer h264Buffer, @NonNull MediaCodec.BufferInfo info) {
+    public void getVideoData(@NonNull ByteBuffer videoBuffer, @NonNull MediaCodec.BufferInfo info) {
       fpsListener.calculateFps();
       if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
-        recordController.recordVideo(h264Buffer, info);
+        recordController.recordVideo(videoBuffer, info);
       }
-      if (streaming) getH264DataRtp(h264Buffer, info);
+      if (streaming) getVideoDataImp(videoBuffer, info);
     }
 
     @Override

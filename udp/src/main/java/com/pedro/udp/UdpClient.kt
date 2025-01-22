@@ -20,8 +20,13 @@ import android.media.MediaCodec
 import android.util.Log
 import com.pedro.common.AudioCodec
 import com.pedro.common.ConnectChecker
+import com.pedro.common.UrlParser
 import com.pedro.common.VideoCodec
+import com.pedro.common.clone
+import com.pedro.common.frame.MediaFrame
 import com.pedro.common.onMainThread
+import com.pedro.common.toMediaFrameInfo
+import com.pedro.common.validMessage
 import com.pedro.udp.utils.UdpSocket
 import com.pedro.udp.utils.UdpType
 import kotlinx.coroutines.CoroutineScope
@@ -31,8 +36,8 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import java.net.URISyntaxException
 import java.nio.ByteBuffer
-import java.util.regex.Pattern
 
 /**
  * Created by pedro on 6/3/24.
@@ -41,7 +46,7 @@ class UdpClient(private val connectChecker: ConnectChecker) {
 
   private val TAG = "UdpClient"
 
-  private val urlPattern: Pattern = Pattern.compile("^udp://([^/:]+)(?::(\\d+))*/?")
+  private val validSchemes = arrayOf("udp")
 
   private val commandManager = CommandManager()
   private val udpSender = UdpSender(connectChecker, commandManager)
@@ -133,16 +138,19 @@ class UdpClient(private val connectChecker: ConnectChecker) {
         onMainThread {
           connectChecker.onConnectionStarted(url)
         }
-        val srtMatcher = urlPattern.matcher(url)
-        if (!srtMatcher.matches()) {
+
+        val urlParser = try {
+          UrlParser.parse(url, validSchemes)
+        } catch (e: URISyntaxException) {
           isStreaming = false
           onMainThread {
             connectChecker.onConnectionFailed("Endpoint malformed, should be: udp://ip:port")
           }
           return@launch
         }
-        val host = srtMatcher.group(1) ?: ""
-        val port: Int? = srtMatcher.group(2)?.toInt()
+
+        val host = urlParser.host
+        val port = urlParser.port
         if (port == null) {
           onMainThread {
             connectChecker.onConnectionFailed("Endpoint malformed, port is required")
@@ -165,7 +173,7 @@ class UdpClient(private val connectChecker: ConnectChecker) {
         if (error != null) {
           Log.e(TAG, "connection error", error)
           onMainThread {
-            connectChecker.onConnectionFailed("Error configure stream, ${error.message}")
+            connectChecker.onConnectionFailed("Error configure stream, ${error.validMessage()}")
           }
           return@launch
         }
@@ -224,15 +232,15 @@ class UdpClient(private val connectChecker: ConnectChecker) {
     udpSender.setVideoInfo(sps, pps, vps)
   }
 
-  fun sendVideo(h264Buffer: ByteBuffer, info: MediaCodec.BufferInfo) {
+  fun sendVideo(videoBuffer: ByteBuffer, info: MediaCodec.BufferInfo) {
     if (!commandManager.videoDisabled) {
-      udpSender.sendVideoFrame(h264Buffer, info)
+      udpSender.sendMediaFrame(MediaFrame(videoBuffer.clone(), info.toMediaFrameInfo(), MediaFrame.Type.VIDEO))
     }
   }
 
-  fun sendAudio(aacBuffer: ByteBuffer, info: MediaCodec.BufferInfo) {
+  fun sendAudio(audioBuffer: ByteBuffer, info: MediaCodec.BufferInfo) {
     if (!commandManager.audioDisabled) {
-      udpSender.sendAudioFrame(aacBuffer, info)
+      udpSender.sendMediaFrame(MediaFrame(audioBuffer.clone(), info.toMediaFrameInfo(), MediaFrame.Type.AUDIO))
     }
   }
 
@@ -276,4 +284,17 @@ class UdpClient(private val connectChecker: ConnectChecker) {
   }
 
   fun getItemsInCache(): Int = udpSender.getItemsInCache()
+
+  /**
+   * @param factor values from 0.1f to 1f
+   * Set an exponential factor to the bitrate calculation to avoid bitrate spikes
+   */
+  fun setBitrateExponentialFactor(factor: Float) {
+    udpSender.setBitrateExponentialFactor(factor)
+  }
+
+  /**
+   * Get the exponential factor used to calculate the bitrate. Default 1f
+   */
+  fun getBitrateExponentialFactor() = udpSender.getBitrateExponentialFactor()
 }

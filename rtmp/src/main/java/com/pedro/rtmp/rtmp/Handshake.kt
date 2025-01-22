@@ -18,11 +18,8 @@ package com.pedro.rtmp.rtmp
 
 import android.util.Log
 import com.pedro.common.TimeUtils
-import com.pedro.rtmp.utils.readUntil
 import com.pedro.rtmp.utils.socket.RtmpSocket
 import java.io.IOException
-import java.io.InputStream
-import java.io.OutputStream
 import kotlin.random.Random
 
 /**
@@ -75,31 +72,27 @@ class Handshake {
   private var timestampC1 = 0
 
   @Throws(IOException::class)
-  fun sendHandshake(socket: RtmpSocket): Boolean {
-    var output = socket.getOutStream()
-    writeC0(output)
-    val c1 = writeC1(output)
+  suspend fun sendHandshake(socket: RtmpSocket): Boolean {
+    writeC0(socket)
+    val c1 = writeC1(socket)
     socket.flush()
-    var input = socket.getInputStream()
-    readS0(input)
-    val s1 = readS1(input)
-    output = socket.getOutStream()
-    writeC2(output, s1)
+    readS0(socket)
+    val s1 = readS1(socket)
+    writeC2(socket, s1)
     socket.flush()
-    input = socket.getInputStream()
-    readS2(input, c1)
+    readS2(socket, c1)
     return true
   }
 
   @Throws(IOException::class)
-  private fun writeC0(output: OutputStream) {
+  private suspend fun writeC0(socket: RtmpSocket) {
     Log.i(TAG, "writing C0")
-    output.write(protocolVersion)
+    socket.write(protocolVersion)
     Log.i(TAG, "C0 write successful")
   }
 
   @Throws(IOException::class)
-  private fun writeC1(output: OutputStream): ByteArray {
+  private suspend fun writeC1(socket: RtmpSocket): ByteArray {
     Log.i(TAG, "writing C1")
     val c1 = ByteArray(handshakeSize)
 
@@ -125,22 +118,22 @@ class Handshake {
       randomData[i] = uInt8
     }
     System.arraycopy(randomData, 0, c1, 8, randomData.size)
-    output.write(c1)
+    socket.write(c1)
     Log.i(TAG, "C1 write successful")
     return c1
   }
 
   @Throws(IOException::class)
-  private fun writeC2(output: OutputStream, s1: ByteArray) {
+  private suspend fun writeC2(socket: RtmpSocket, s1: ByteArray) {
     Log.i(TAG, "writing C2")
-    output.write(s1)
+    socket.write(s1)
     Log.i(TAG, "C2 write successful")
   }
 
   @Throws(IOException::class)
-  private fun readS0(input: InputStream): ByteArray {
+  private suspend fun readS0(socket: RtmpSocket): ByteArray {
     Log.i(TAG, "reading S0")
-    val response = input.read()
+    val response = socket.read()
     if (response == protocolVersion || response == 72) {
       Log.i(TAG, "read S0 successful")
       return byteArrayOf(response.toByte())
@@ -150,19 +143,19 @@ class Handshake {
   }
 
   @Throws(IOException::class)
-  private fun readS1(input: InputStream): ByteArray {
+  private suspend fun readS1(socket: RtmpSocket): ByteArray {
     Log.i(TAG, "reading S1")
     val s1 = ByteArray(handshakeSize)
-    input.readUntil(s1)
+    socket.readUntil(s1)
     Log.i(TAG, "read S1 successful")
     return s1
   }
 
   @Throws(IOException::class)
-  private fun readS2(input: InputStream, c1: ByteArray): ByteArray {
+  private suspend fun readS2(socket: RtmpSocket, c1: ByteArray): ByteArray {
     Log.i(TAG, "reading S2")
     val s2 = ByteArray(handshakeSize)
-    input.readUntil(s2)
+    socket.readUntil(s2)
     //S2 should be equals to C1 but we can skip this
     if (!s2.contentEquals(c1)) {
       Log.e(TAG, "S2 content is different that C1")

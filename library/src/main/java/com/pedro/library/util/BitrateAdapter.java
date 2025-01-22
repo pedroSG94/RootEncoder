@@ -29,7 +29,7 @@ public class BitrateAdapter {
   private int oldBitrate;
   private int averageBitrate;
   private int cont;
-  private Listener listener;
+  private final Listener listener;
   private float decreaseRange = 0.8f; //20%
   private float increaseRange = 1.2f; //20%
 

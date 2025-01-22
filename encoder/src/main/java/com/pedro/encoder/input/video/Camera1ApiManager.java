@@ -73,11 +73,11 @@ public class Camera1ApiManager implements Camera.PreviewCallback, Camera.FaceDet
   private int height = 480;
   private int fps = 30;
   private int rotation = 0;
-  private int imageFormat = ImageFormat.NV21;
+  private final int imageFormat = ImageFormat.NV21;
   private byte[] yuvBuffer;
   private List<Camera.Size> previewSizeBack;
   private List<Camera.Size> previewSizeFront;
-  private float distance;
+  private float fingerSpacing;
   private CameraCallbacks cameraCallbacks;
   private final int focusAreaSize = 100;
 
@@ -140,8 +140,13 @@ public class Camera1ApiManager implements Camera.PreviewCallback, Camera.FaceDet
   public void start(CameraHelper.Facing cameraFacing, int width, int height, int fps) {
     int facing = cameraFacing == CameraHelper.Facing.BACK ? Camera.CameraInfo.CAMERA_FACING_BACK
         : Camera.CameraInfo.CAMERA_FACING_FRONT;
-    this.width = width;
-    this.height = height;
+    if (width < height) {
+      this.width = height;
+      this.height = width;
+    } else {
+      this.width = width;
+      this.height = height;
+    }
     this.fps = fps;
     cameraSelect =
         facing == Camera.CameraInfo.CAMERA_FACING_BACK ? selectCameraBack() : selectCameraFront();
@@ -149,8 +154,13 @@ public class Camera1ApiManager implements Camera.PreviewCallback, Camera.FaceDet
   }
 
   public void start(int facing, int width, int height, int fps) {
-    this.width = width;
-    this.height = height;
+    if (width < height) {
+      this.width = height;
+      this.height = width;
+    } else {
+      this.width = width;
+      this.height = height;
+    }
     this.fps = fps;
     cameraSelect = facing;
     selectCamera(facing);
@@ -234,8 +244,7 @@ public class Camera1ApiManager implements Camera.PreviewCallback, Camera.FaceDet
           .isZoomSupported()) {
         android.hardware.Camera.Parameters params = camera.getParameters();
         int maxZoom = params.getMaxZoom();
-        if (level > maxZoom) level = maxZoom;
-        else if (level < getMinZoom()) level = getMinZoom();
+        level = Math.max(Math.min(maxZoom, level), getMinZoom());
         params.setZoom(level);
         camera.setParameters(params);
       }
@@ -277,31 +286,18 @@ public class Camera1ApiManager implements Camera.PreviewCallback, Camera.FaceDet
   public int getMinZoom() { return 0; }
 
   public void setZoom(MotionEvent event) {
-    try {
-      if (camera != null && running && camera.getParameters() != null && camera.getParameters()
-          .isZoomSupported()) {
-        android.hardware.Camera.Parameters params = camera.getParameters();
-        int maxZoom = params.getMaxZoom();
-        int zoom = params.getZoom();
-        float newDist = CameraHelper.getFingerSpacing(event);
+    setZoom(event, 1);
+  }
 
-        if (newDist > distance) {
-          if (zoom < maxZoom) {
-            zoom++;
-          }
-        } else if (newDist < distance) {
-          if (zoom > 0) {
-            zoom--;
-          }
-        }
-
-        distance = newDist;
-        params.setZoom(zoom);
-        camera.setParameters(params);
-      }
-    } catch (Exception e) {
-      Log.e(TAG, "Error", e);
+  public void setZoom(MotionEvent event, int delta) {
+    if (event.getPointerCount() < 2 || event.getAction() != MotionEvent.ACTION_MOVE) return;
+    float currentFingerSpacing = CameraHelper.getFingerSpacing(event);
+    if (currentFingerSpacing > fingerSpacing) {
+      setZoom(getZoom() + delta);
+    } else if (currentFingerSpacing < fingerSpacing) {
+      setZoom(getZoom() - delta);
     }
+    fingerSpacing = currentFingerSpacing;
   }
 
   public void setExposure(int value) {
@@ -585,18 +581,16 @@ public class Camera1ApiManager implements Camera.PreviewCallback, Camera.FaceDet
     }
   }
   
-  private Camera.AutoFocusCallback autoFocusTakePictureCallback = new Camera.AutoFocusCallback() {
-    @Override
-    public void onAutoFocus(boolean success, Camera camera) {
-      if (success) {
-        Log.i(TAG, "tapToFocus success");
-      } else {
-        Log.e(TAG, "tapToFocus failed");
-      }
+  private final Camera.AutoFocusCallback autoFocusTakePictureCallback = (success, camera) -> {
+    if (success) {
+      Log.i(TAG, "tapToFocus success");
+    } else {
+      Log.e(TAG, "tapToFocus failed");
     }
   };
 
-  public void tapToFocus(View view, MotionEvent event) {
+  public boolean tapToFocus(View view, MotionEvent event) {
+    boolean result = false;
     if (camera != null && camera.getParameters() != null) {
       Camera.Parameters parameters = camera.getParameters();
       if (parameters.getMaxNumMeteringAreas() > 0) {
@@ -607,15 +601,19 @@ public class Camera1ApiManager implements Camera.PreviewCallback, Camera.FaceDet
         parameters.setFocusAreas(meteringAreas);
         try {
           camera.setParameters(parameters);
+          autoFocusEnabled = true;
+          result = true;
         }catch (Exception e) {
           Log.i(TAG, "tapToFocus error: " + e.getMessage());
         }
       }
       camera.autoFocus(autoFocusTakePictureCallback);
     }
+    return result;
   }
 
-  public void enableAutoFocus() {
+  public boolean enableAutoFocus() {
+    boolean result = false;
     if (camera != null) {
       Camera.Parameters parameters = camera.getParameters();
       List<String> supportedFocusModes = parameters.getSupportedFocusModes();
@@ -632,10 +630,13 @@ public class Camera1ApiManager implements Camera.PreviewCallback, Camera.FaceDet
         }
       }
       camera.setParameters(parameters);
+      result = autoFocusEnabled;
     }
+    return result;
   }
 
-  public void disableAutoFocus() {
+  public boolean disableAutoFocus() {
+    boolean result = false;
     if (camera != null) {
       Camera.Parameters parameters = camera.getParameters();
       List<String> supportedFocusModes = parameters.getSupportedFocusModes();
@@ -648,7 +649,9 @@ public class Camera1ApiManager implements Camera.PreviewCallback, Camera.FaceDet
       }
       autoFocusEnabled = false;
       camera.setParameters(parameters);
+      result = true;
     }
+    return result;
   }
 
   public boolean isAutoFocusEnabled() {

@@ -17,15 +17,16 @@
 package com.pedro.encoder
 
 import android.media.MediaCodec
+import com.pedro.encoder.utils.CodecUtil.CodecTypeError
 
 /**
  * Created by pedro on 18/9/23.
  */
 interface EncoderErrorCallback {
-  fun onCodecError(type: String, e: MediaCodec.CodecException)
+  fun onCodecError(type: CodecTypeError, e: MediaCodec.CodecException)
 
   /**
    * @return indicate if should try reset encoder
    */
-  fun onEncodeError(type: String, e: IllegalStateException): Boolean = true
+  fun onEncodeError(type: CodecTypeError, e: IllegalStateException): Boolean = true
 }

@@ -20,6 +20,8 @@ import android.media.MediaExtractor;
 import android.media.MediaFormat;
 import android.util.Log;
 
+import com.pedro.common.ExtensionsKt;
+import com.pedro.common.frame.MediaFrame;
 import com.pedro.encoder.Frame;
 import com.pedro.encoder.input.audio.GetMicrophoneData;
 import com.pedro.encoder.utils.CodecUtil;
@@ -51,35 +53,26 @@ public class AudioDecoder extends BaseDecoder {
   }
 
   @Override
-  protected boolean extract(MediaExtractor audioExtractor) {
-    size = 2048;
-    for (int i = 0; i < audioExtractor.getTrackCount() && !mime.startsWith("audio/"); i++) {
-      mediaFormat = audioExtractor.getTrackFormat(i);
-      mime = mediaFormat.getString(MediaFormat.KEY_MIME);
-      if (mime.startsWith("audio/")) {
-        audioExtractor.selectTrack(i);
-      } else {
-        mediaFormat = null;
-      }
-    }
-    if (mediaFormat != null) {
-      channels = mediaFormat.getInteger(MediaFormat.KEY_CHANNEL_COUNT);
+  protected boolean extract(Extractor extractor) {
+    try {
+      size = 2048;
+      mime = extractor.selectTrack(MediaFrame.Type.AUDIO);
+      AudioInfo audioInfo = extractor.getAudioInfo();
+      mediaFormat = extractor.getFormat();
+      this.channels = audioInfo.getChannels();
       isStereo = channels >= 2;
-      sampleRate = mediaFormat.getInteger(MediaFormat.KEY_SAMPLE_RATE);
-      duration = mediaFormat.getLong(MediaFormat.KEY_DURATION);
+      this.sampleRate = audioInfo.getSampleRate();
+      this.duration = audioInfo.getDuration();
       fixBuffer();
       return true;
-      //audio decoder not supported
-    } else {
+    } catch (Exception e) {
       mime = "";
       return false;
     }
   }
 
   private void fixBuffer() {
-    if (channels >= 2) {
-      size *= channels;
-    }
+    if (channels >= 2) size *= channels;
     pcmBuffer = new byte[size];
   }
 
@@ -114,35 +107,6 @@ public class AudioDecoder extends BaseDecoder {
   @Override
   protected void finished() {
     audioDecoderInterface.onAudioDecoderFinished();
-  }
-
-  /**
-   * This method should be called after prepare.
-   * Get max output size to set max input size in encoder.
-   */
-  public int getOutsize() {
-    if (!(mime.equals(CodecUtil.AAC_MIME) || mime.equals(CodecUtil.OPUS_MIME)
-        || mime.equals(CodecUtil.VORBIS_MIME) || mime.equals(CodecUtil.G711_MIME))) {
-      Log.i(TAG, "fixing input size");
-      try {
-        if (running) {
-          return codec.getOutputBuffers()[0].remaining();
-        } else {
-          if (codec != null) {
-            codec.start();
-            int outSize = codec.getOutputBuffers()[0].remaining();
-            stopDecoder();
-            if (prepare(null)) return outSize;
-          }
-          return 0;
-        }
-      } catch (Exception e) {
-        return 0;
-      }
-    } else {
-      Log.i(TAG, "default input size");
-      return 0;
-    }
   }
 
   public void mute() {

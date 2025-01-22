@@ -20,7 +20,6 @@ import android.media.MediaCodec;
 import android.media.MediaFormat;
 import android.media.MediaMuxer;
 import android.os.Build;
-import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -37,21 +36,21 @@ import java.nio.ByteBuffer;
 
 /**
  * Created by pedro on 08/03/19.
- *
  * Class to control video recording with MediaMuxer.
  */
+@RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
 public class AndroidMuxerRecordController extends BaseRecordController {
 
   private MediaMuxer mediaMuxer;
   private MediaFormat videoFormat, audioFormat;
+  private final int outputFormat = MediaMuxer.OutputFormat.MUXER_OUTPUT_MPEG_4;
 
   @Override
-  @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
   public void startRecord(@NonNull String path, @Nullable Listener listener) throws IOException {
-    if (audioCodec == AudioCodec.G711 || audioCodec == AudioCodec.OPUS) {
+    if (audioCodec != AudioCodec.AAC) {
       throw new IOException("Unsupported AudioCodec: " + audioCodec.name());
     }
-    mediaMuxer = new MediaMuxer(path, MediaMuxer.OutputFormat.MUXER_OUTPUT_MPEG_4);
+    mediaMuxer = new MediaMuxer(path, outputFormat);
     this.listener = listener;
     status = Status.STARTED;
     if (listener != null) {
@@ -66,10 +65,10 @@ public class AndroidMuxerRecordController extends BaseRecordController {
   @Override
   @RequiresApi(api = Build.VERSION_CODES.O)
   public void startRecord(@NonNull FileDescriptor fd, @Nullable Listener listener) throws IOException {
-    if (audioCodec == AudioCodec.G711 || audioCodec == AudioCodec.OPUS) {
+    if (audioCodec != AudioCodec.AAC) {
       throw new IOException("Unsupported AudioCodec: " + audioCodec.name());
     }
-    mediaMuxer = new MediaMuxer(fd, MediaMuxer.OutputFormat.MUXER_OUTPUT_MPEG_4);
+    mediaMuxer = new MediaMuxer(fd, outputFormat);
     this.listener = listener;
     status = Status.STARTED;
     if (listener != null) {
@@ -82,7 +81,6 @@ public class AndroidMuxerRecordController extends BaseRecordController {
   }
 
   @Override
-  @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
   public void stopRecord() {
     videoTrack = -1;
     audioTrack = -1;
@@ -97,11 +95,11 @@ public class AndroidMuxerRecordController extends BaseRecordController {
     mediaMuxer = null;
     pauseMoment = 0;
     pauseTime = 0;
+    startTs = 0;
     if (listener != null) listener.onStatusChange(status);
   }
 
   @Override
-  @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
   public void recordVideo(ByteBuffer videoBuffer, MediaCodec.BufferInfo videoInfo) {
     if (status == Status.STARTED && videoFormat != null && (audioFormat != null || isOnlyVideo)) {
       if (videoInfo.flags == MediaCodec.BUFFER_FLAG_KEY_FRAME || isKeyFrame(videoBuffer)) {
@@ -120,7 +118,6 @@ public class AndroidMuxerRecordController extends BaseRecordController {
   }
 
   @Override
-  @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
   public void recordAudio(ByteBuffer audioBuffer, MediaCodec.BufferInfo audioInfo) {
     if (status == Status.RECORDING) {
       updateFormat(this.audioInfo, audioInfo);
@@ -150,7 +147,6 @@ public class AndroidMuxerRecordController extends BaseRecordController {
     audioFormat = null;
   }
 
-  @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
   private void init() {
     if (!isOnlyVideo) audioTrack = mediaMuxer.addTrack(audioFormat);
     mediaMuxer.start();
@@ -158,7 +154,6 @@ public class AndroidMuxerRecordController extends BaseRecordController {
     if (listener != null) listener.onStatusChange(status);
   }
 
-  @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
   private void write(int track, ByteBuffer byteBuffer, MediaCodec.BufferInfo info) {
     try {
       mediaMuxer.writeSampleData(track, byteBuffer, info);
