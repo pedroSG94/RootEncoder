@@ -130,7 +130,10 @@ class WhipClient(private val connectChecker: ConnectChecker) {
 
     fun setAudioCodec(audioCodec: AudioCodec) {
         if (!isStreaming) {
-            commandsManager.audioCodec = audioCodec
+            commandsManager.audioCodec = when (audioCodec) {
+                AudioCodec.AAC -> throw IllegalArgumentException("Unsupported codec: ${audioCodec.name}")
+                else -> audioCodec
+            }
         }
     }
 
@@ -199,6 +202,7 @@ class WhipClient(private val connectChecker: ConnectChecker) {
                         whipSender.setVideoInfo(commandsManager.sps!!, commandsManager.pps, commandsManager.vps)
                     }
 
+                    commandsManager.openConnection(host, port, path, tlsEnabled)
                     //TODO start connection
                 }.exceptionOrNull()
                 if (error != null) {

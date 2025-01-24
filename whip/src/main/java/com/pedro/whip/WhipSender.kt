@@ -11,18 +11,18 @@ class WhipSender(
 ): BaseSender(connectChecker, "WhipSender") {
 
     override fun setVideoInfo(sps: ByteBuffer, pps: ByteBuffer?, vps: ByteBuffer?) {
-        TODO("Not yet implemented")
+
     }
 
     override fun setAudioInfo(sampleRate: Int, isStereo: Boolean) {
-        TODO("Not yet implemented")
+
     }
 
     override suspend fun onRun() {
-        TODO("Not yet implemented")
+
     }
 
     override suspend fun stopImp(clear: Boolean) {
-        TODO("Not yet implemented")
+
     }
 }

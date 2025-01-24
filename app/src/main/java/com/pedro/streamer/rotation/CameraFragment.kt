@@ -29,6 +29,7 @@ import android.widget.ImageView
 import android.widget.TextView
 import androidx.annotation.RequiresApi
 import androidx.fragment.app.Fragment
+import com.pedro.common.AudioCodec
 import com.pedro.common.ConnectChecker
 import com.pedro.encoder.input.sources.video.Camera1Source
 import com.pedro.encoder.input.sources.video.Camera2Source
@@ -36,6 +37,7 @@ import com.pedro.extrasources.CameraXSource
 import com.pedro.library.base.recording.RecordController
 import com.pedro.library.generic.GenericStream
 import com.pedro.library.util.BitrateAdapter
+import com.pedro.library.whip.WhipStream
 import com.pedro.streamer.R
 import com.pedro.streamer.utils.PathUtils
 import com.pedro.streamer.utils.toast
@@ -74,10 +76,11 @@ class CameraFragment: Fragment(), ConnectChecker {
     fun getInstance(): CameraFragment = CameraFragment()
   }
 
-  val genericStream: GenericStream by lazy {
-    GenericStream(requireContext(), this).apply {
+  val genericStream: WhipStream by lazy {
+    WhipStream(requireContext(), this).apply {
       getGlInterface().autoHandleOrientation = true
       getStreamClient().setBitrateExponentialFactor(0.5f)
+      setAudioCodec(AudioCodec.OPUS)
     }
   }
   private lateinit var surfaceView: SurfaceView
