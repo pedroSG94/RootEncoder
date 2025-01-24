@@ -37,6 +37,7 @@ import com.pedro.encoder.audio.AudioEncoder
 import com.pedro.encoder.audio.GetAudioData
 import com.pedro.encoder.input.audio.GetMicrophoneData
 import com.pedro.encoder.input.sources.audio.AudioSource
+import com.pedro.encoder.input.sources.audio.NoAudioSource
 import com.pedro.encoder.input.sources.video.NoVideoSource
 import com.pedro.encoder.input.sources.video.VideoSource
 import com.pedro.encoder.utils.CodecUtil
@@ -569,7 +570,8 @@ abstract class StreamBase(
     }
 
     override fun onAudioFormat(mediaFormat: MediaFormat) {
-      recordController.setAudioFormat(mediaFormat)
+      val isOnlyAudio = videoSource is NoVideoSource
+      recordController.setAudioFormat(mediaFormat, isOnlyAudio)
     }
   }
 
@@ -585,7 +587,10 @@ abstract class StreamBase(
     }
 
     override fun onVideoFormat(mediaFormat: MediaFormat) {
-      if (!differentRecordResolution) recordController.setVideoFormat(mediaFormat)
+      if (!differentRecordResolution) {
+        val isOnlyVideo = audioSource is NoAudioSource
+        recordController.setVideoFormat(mediaFormat, isOnlyVideo)
+      }
     }
   }
 
@@ -598,7 +603,8 @@ abstract class StreamBase(
     }
 
     override fun onVideoFormat(mediaFormat: MediaFormat) {
-      recordController.setVideoFormat(mediaFormat)
+      val isOnlyVideo = audioSource is NoAudioSource
+      recordController.setVideoFormat(mediaFormat, isOnlyVideo)
     }
   }
 

@@ -136,6 +136,7 @@ public class AndroidMuxerWebmRecordController extends BaseRecordController {
   }
 
   private void write(int track, ByteBuffer byteBuffer, MediaCodec.BufferInfo info) {
+    if (track == -1) return;
     try {
       mediaMuxer.writeSampleData(track, byteBuffer, info);
       if (bitrateManager != null) bitrateManager.calculateBitrate(info.size * 8L, ExtensionsKt.getSuspendContext());
