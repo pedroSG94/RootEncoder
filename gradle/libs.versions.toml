@@ -5,7 +5,7 @@ versionName = "2.5.5"
 
 #plugins versions
 agp = "8.6.1"
-kotlin = "2.1.0"
+kotlin = "2.1.10"
 dokka = "2.0.0"
 
 #dependencies versions
