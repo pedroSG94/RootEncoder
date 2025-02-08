@@ -154,3 +154,11 @@ fun MediaFormat.getIntegerSafe(name: String): Int? {
 fun MediaFormat.getLongSafe(name: String): Long? {
   return try { getLong(name) } catch (e: Exception) { null }
 }
+
+fun ByteArray.toUInt16(): Int {
+  return this[0].toInt() and 0xff shl 8 or (this[1].toInt() and 0xff)
+}
+
+fun ByteArray.toUInt32(): Int {
+  return this[0].toInt() and 0xff shl 24 or (this[1].toInt() and 0xff shl 16) or (this[2].toInt() and 0xff shl 8) or (this[3].toInt() and 0xff)
+}

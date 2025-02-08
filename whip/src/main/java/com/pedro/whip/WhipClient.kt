@@ -9,11 +9,17 @@ import com.pedro.common.VideoCodec
 import com.pedro.common.clone
 import com.pedro.common.frame.MediaFrame
 import com.pedro.common.onMainThread
-import com.pedro.common.socket.TcpStreamSocketImp
+import com.pedro.common.socket.UdpStreamSocket
 import com.pedro.common.toMediaFrameInfo
 import com.pedro.common.validMessage
 import com.pedro.rtsp.utils.RtpConstants
+import com.pedro.whip.utils.Constants
 import com.pedro.whip.webrtc.CommandsManager
+import com.pedro.whip.webrtc.stun.Attribute
+import com.pedro.whip.webrtc.stun.AttributeType
+import com.pedro.whip.webrtc.stun.StunCommand
+import com.pedro.whip.webrtc.stun.StunHeader
+import com.pedro.whip.webrtc.stun.Type
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -23,9 +29,11 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.withTimeoutOrNull
+import java.math.BigInteger
 import java.net.URISyntaxException
 import java.nio.ByteBuffer
 import javax.net.ssl.TrustManager
+import kotlin.random.Random
 
 class WhipClient(private val connectChecker: ConnectChecker) {
 
@@ -202,7 +210,22 @@ class WhipClient(private val connectChecker: ConnectChecker) {
                         whipSender.setVideoInfo(commandsManager.sps!!, commandsManager.pps, commandsManager.vps)
                     }
 
-                    commandsManager.openConnection(host, port, path, tlsEnabled)
+                    val stunPort = 49223
+                    val response = commandsManager.openConnection(host, port, stunPort, path, tlsEnabled)
+                    val udpSocket = UdpStreamSocket(host, stunPort, receiveSize = Constants.MTU)
+                    udpSocket.connect()
+                    val header = StunHeader(Type.REQUEST, BigInteger(Random.Default.nextBytes(12)))
+                    val attributes = mutableListOf(
+                        Attribute(AttributeType.USERNAME, "".toByteArray()),
+                        Attribute(AttributeType.PRIORITY, "".toByteArray()),
+                        Attribute(AttributeType.SOFTWARE, "".toByteArray()),
+                        Attribute(AttributeType.MESSAGE_INTEGRITY, "".toByteArray()),
+                        Attribute(AttributeType.FINGERPRINT, "".toByteArray()),
+                        Attribute(AttributeType.ICE_CONTROLLED, "".toByteArray()),
+                        Attribute(AttributeType.ICE_CONTROLLING, "".toByteArray()),
+                    )
+                    val command = StunCommand(header, attributes)
+                    commandsManager.writeStun(command, udpSocket)
                     //TODO start connection
                 }.exceptionOrNull()
                 if (error != null) {

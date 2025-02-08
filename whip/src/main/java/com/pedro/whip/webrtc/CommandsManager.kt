@@ -4,6 +4,7 @@ import android.util.Log
 import com.pedro.common.AudioCodec
 import com.pedro.common.TimeUtils
 import com.pedro.common.VideoCodec
+import com.pedro.common.socket.UdpStreamSocket
 import com.pedro.rtsp.utils.RtpConstants
 import com.pedro.rtsp.utils.encodeToString
 import com.pedro.rtsp.utils.getData
@@ -12,6 +13,8 @@ import com.pedro.whip.webrtc.SdpBody.createG711Body
 import com.pedro.whip.webrtc.SdpBody.createH264Body
 import com.pedro.whip.webrtc.SdpBody.createH265Body
 import com.pedro.whip.webrtc.SdpBody.createOpusBody
+import com.pedro.whip.webrtc.stun.StunCommand
+import com.pedro.whip.webrtc.stun.StunCommandReader
 import java.io.IOException
 import java.net.HttpURLConnection
 import java.net.URL
@@ -88,20 +91,27 @@ class CommandsManager {
         vps = null
     }
 
-    fun openConnection(host: String, port: Int, path: String, secured: Boolean) {
+    suspend fun writeStun(stunCommand: StunCommand, socket: UdpStreamSocket) {
+        socket.writePacket(stunCommand.toByteArray())
+    }
+
+    suspend fun readStun(socket: UdpStreamSocket): StunCommand {
+        val data = socket.readPacket()
+        return StunCommandReader.readPacket(data)
+    }
+
+    @Throws(IOException::class)
+    fun openConnection(host: String, port: Int, stunPort: Int, path: String, secured: Boolean): String {
         val socket = configureSocket(host, port, path, secured)
         try {
             socket.connect()
-            val body = createBody()
-            socket.outputStream.write(createBody().toByteArray())
+            val body = createBody(stunPort)
+            socket.outputStream.write(body.toByteArray())
             Log.i(TAG, body)
             val bytes = socket.inputStream.readBytes()
-            if (bytes.size > 1) {
-                val response = String(bytes)
-                Log.i(TAG, response)
-            }
             val success = socket.responseCode == HttpURLConnection.HTTP_CREATED
-            if (!success) throw IOException("send packet failed: ${socket.responseMessage}, broken pipe")
+            if (!success || bytes.isEmpty()) throw IOException("send packet failed: ${socket.responseMessage}, broken pipe")
+            else return String(bytes)
         } finally {
             socket.disconnect()
         }
@@ -126,26 +136,26 @@ class CommandsManager {
         return socket
     }
 
-    private fun createBody(): String {
+    private fun createBody(port: Int): String {
         var videoBody = ""
         if (!videoDisabled) {
             videoBody = when (videoCodec) {
                 VideoCodec.H264 -> {
-                    createH264Body(RtpConstants.trackVideo, spsString, ppsString)
+                    createH264Body(RtpConstants.trackVideo, spsString, ppsString, port)
                 }
                 VideoCodec.H265 -> {
-                    createH265Body(RtpConstants.trackVideo, spsString, ppsString, vpsString)
+                    createH265Body(RtpConstants.trackVideo, spsString, ppsString, vpsString, port)
                 }
                 VideoCodec.AV1 -> {
-                    createAV1Body(RtpConstants.trackVideo)
+                    createAV1Body(RtpConstants.trackVideo, port)
                 }
             }
         }
         var audioBody = ""
         if (!audioDisabled) {
             audioBody = when (audioCodec) {
-                AudioCodec.G711 -> createG711Body(RtpConstants.trackAudio, sampleRate, isStereo)
-                AudioCodec.OPUS -> createOpusBody(RtpConstants.trackAudio)
+                AudioCodec.G711 -> createG711Body(RtpConstants.trackAudio, sampleRate, isStereo, port)
+                AudioCodec.OPUS -> createOpusBody(RtpConstants.trackAudio, port)
                 else  -> throw IllegalArgumentException("Unsupported codec: ${audioCodec.name}")
             }
         }
