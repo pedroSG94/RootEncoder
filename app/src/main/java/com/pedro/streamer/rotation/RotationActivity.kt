@@ -139,7 +139,7 @@ class RotationActivity : AppCompatActivity(), OnTouchListener {
     return super.onOptionsItemSelected(item)
   }
 
-  fun bitmapToRgba(bitmap: Bitmap): IntArray {
+  private fun bitmapToRgba(bitmap: Bitmap): IntArray {
     require(bitmap.config == Bitmap.Config.ARGB_8888) { "Bitmap must be in ARGB_8888 format" }
     val pixels = IntArray(bitmap.width * bitmap.height)
     bitmap.getPixels(pixels, 0, bitmap.width, 0, 0, bitmap.width, bitmap.height)

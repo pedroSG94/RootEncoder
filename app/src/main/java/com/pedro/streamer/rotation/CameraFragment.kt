@@ -17,7 +17,6 @@
 package com.pedro.streamer.rotation
 
 import android.annotation.SuppressLint
-import android.graphics.Point
 import android.os.Build
 import android.os.Bundle
 import android.view.LayoutInflater
