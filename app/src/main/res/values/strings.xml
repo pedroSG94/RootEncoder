@@ -69,5 +69,6 @@
   <string name="camerax">CameraX</string>
   <string name="camera_uvc">CameraUVC</string>
   <string name="bitmap">Bitmap</string>
+  <string name="buffer">Buffer</string>
 
 </resources>

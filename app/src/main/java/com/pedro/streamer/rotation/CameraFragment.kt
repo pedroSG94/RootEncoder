@@ -17,6 +17,7 @@
 package com.pedro.streamer.rotation
 
 import android.annotation.SuppressLint
+import android.graphics.Point
 import android.os.Build
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -83,9 +84,9 @@ class CameraFragment: Fragment(), ConnectChecker {
   private lateinit var surfaceView: SurfaceView
   private lateinit var bStartStop: ImageView
   private lateinit var txtBitrate: TextView
-  private val width = 640
-  private val height = 480
-  private val vBitrate = 1200 * 1000
+  val width = 640
+  val height = 480
+  val vBitrate = 1200 * 1000
   private var rotation = 0
   private val sampleRate = 32000
   private val isStereo = true
