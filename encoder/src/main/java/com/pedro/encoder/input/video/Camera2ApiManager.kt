@@ -746,8 +746,8 @@ class Camera2ApiManager(context: Context) : CameraDevice.StateCallback() {
         if (resetSurface) {
             surfaceEncoder = Surface(SurfaceTexture(-1).apply { release() })
             builderInputSurface = null
+            outputConfigurations.clear()
         }
-        outputConfigurations.clear()
         isPrepared = false
         isRunning = false
     }
