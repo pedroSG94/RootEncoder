@@ -20,7 +20,9 @@ import android.content.Context
 import android.graphics.ImageFormat
 import android.graphics.SurfaceTexture
 import android.hardware.camera2.CameraCharacteristics
+import android.hardware.camera2.params.OutputConfiguration
 import android.os.Build
+import android.util.Log
 import android.util.Range
 import android.util.Size
 import android.view.MotionEvent
@@ -219,5 +221,14 @@ class Camera2Source(context: Context): VideoSource() {
 
   fun removeImageListener() {
     camera.removeImageListener()
+  }
+
+  public fun getOutputConfigurations(): MutableList<OutputConfiguration> {
+    return camera.getOutputConfigurations()
+  }
+
+  @RequiresApi(Build.VERSION_CODES.P)
+  public fun setPhysicalCameraId(physicalId: String) {
+    camera.setPhysicalCameraId(physicalId)
   }
 }
