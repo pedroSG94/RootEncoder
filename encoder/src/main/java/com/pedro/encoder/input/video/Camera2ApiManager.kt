@@ -76,6 +76,7 @@ class Camera2ApiManager(context: Context) : CameraDevice.StateCallback() {
     private var cameraCaptureSession: CameraCaptureSession? = null
     private var isPrepared: Boolean = false
     private var cameraId: String = "0"
+    private var physicalCameraId: String? = null
     private var facing = Facing.BACK
     private var builderInputSurface: CaptureRequest.Builder? = null
     private var fingerSpacing = 0f
@@ -106,8 +107,6 @@ class Camera2ApiManager(context: Context) : CameraDevice.StateCallback() {
     private var faceDetectionEnabled = false
     private var faceDetectionMode = 0
     private var imageReader: ImageReader? = null
-
-    private var outputConfigurations: MutableList<OutputConfiguration> = mutableListOf()
 
     init {
         cameraId = try { getCameraIdForFacing(Facing.BACK) } catch (e: Exception) { "0" }
@@ -269,6 +268,21 @@ class Camera2ApiManager(context: Context) : CameraDevice.StateCallback() {
                 return null
             }
         }
+
+    @RequiresApi(Build.VERSION_CODES.P)
+    val physicalCamerasAvailable = cameraCharacteristics?.physicalCameraIds?.toList() ?: emptyList()
+
+    @RequiresApi(Build.VERSION_CODES.P)
+    fun setPhysicalCamera(id: String?) {
+        physicalCameraId = id
+    }
+
+    @RequiresApi(Build.VERSION_CODES.P)
+    fun openPhysicalCamera(id: String?) {
+        setPhysicalCamera(id)
+        if (isRunning) reOpenCamera(cameraId)
+        else openCameraId(cameraId)
+    }
 
     fun enableAutoExposure(): Boolean {
         val characteristics = cameraCharacteristics ?: return false
@@ -746,7 +760,6 @@ class Camera2ApiManager(context: Context) : CameraDevice.StateCallback() {
         if (resetSurface) {
             surfaceEncoder = Surface(SurfaceTexture(-1).apply { release() })
             builderInputSurface = null
-            outputConfigurations.clear()
         }
         isPrepared = false
         isRunning = false
@@ -855,30 +868,17 @@ class Camera2ApiManager(context: Context) : CameraDevice.StateCallback() {
             }
         }
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-            if (outputConfigurations.isEmpty())
-                outputConfigurations = surfaces.map { OutputConfiguration(it) }.toMutableList()
+            val configurations = surfaces.map { OutputConfiguration(it) }
+            configurations.forEach { it.setPhysicalCameraId(physicalCameraId) }
             val config = SessionConfiguration(
                 SessionConfiguration.SESSION_REGULAR,
-                outputConfigurations,
+                configurations,
                 Executors.newSingleThreadExecutor(),
                 callback
             )
             cameraDevice.createCaptureSession(config)
         } else {
             cameraDevice.createCaptureSession(surfaces, callback, handler)
-        }
-    }
-
-    public fun getOutputConfigurations(): MutableList<OutputConfiguration> {
-        return outputConfigurations
-    }
-
-    public fun setPhysicalCameraId(physicalCameraId: String) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-            outputConfigurations.forEach {
-                it.setPhysicalCameraId(physicalCameraId)
-            }
-            reOpenCamera(cameraId)
         }
     }
 }
