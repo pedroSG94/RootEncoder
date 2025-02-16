@@ -76,6 +76,7 @@ class Camera2ApiManager(context: Context) : CameraDevice.StateCallback() {
     private var cameraCaptureSession: CameraCaptureSession? = null
     private var isPrepared: Boolean = false
     private var cameraId: String = "0"
+    private var physicalCameraId: String? = null
     private var facing = Facing.BACK
     private var builderInputSurface: CaptureRequest.Builder? = null
     private var fingerSpacing = 0f
@@ -267,6 +268,21 @@ class Camera2ApiManager(context: Context) : CameraDevice.StateCallback() {
                 return null
             }
         }
+
+    @RequiresApi(Build.VERSION_CODES.P)
+    val physicalCamerasAvailable = cameraCharacteristics?.physicalCameraIds?.toList() ?: emptyList()
+
+    @RequiresApi(Build.VERSION_CODES.P)
+    fun setPhysicalCamera(id: String?) {
+        physicalCameraId = id
+    }
+
+    @RequiresApi(Build.VERSION_CODES.P)
+    fun openPhysicalCamera(id: String?) {
+        setPhysicalCamera(id)
+        if (isRunning) reOpenCamera(cameraId)
+        else openCameraId(cameraId)
+    }
 
     fun enableAutoExposure(): Boolean {
         val characteristics = cameraCharacteristics ?: return false
@@ -852,9 +868,11 @@ class Camera2ApiManager(context: Context) : CameraDevice.StateCallback() {
             }
         }
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+            val configurations = surfaces.map { OutputConfiguration(it) }
+            configurations.forEach { it.setPhysicalCameraId(physicalCameraId) }
             val config = SessionConfiguration(
                 SessionConfiguration.SESSION_REGULAR,
-                surfaces.map { OutputConfiguration(it) },
+                configurations,
                 Executors.newSingleThreadExecutor(),
                 callback
             )

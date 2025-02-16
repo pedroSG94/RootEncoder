@@ -859,6 +859,16 @@ public abstract class Camera2Base {
         return videoEncoder.getHeight();
     }
 
+    @RequiresApi(Build.VERSION_CODES.P)
+    public List<String> physicalCamerasAvailable() {
+        return cameraManager.getPhysicalCamerasAvailable();
+    }
+
+    @RequiresApi(Build.VERSION_CODES.P)
+    public void openPhysicalCamera(String id) {
+        cameraManager.openPhysicalCamera(id);
+    }
+
     /**
      * @return IDs of cameras available that can be used on startPreview of switchCamera. null If no cameras available
      */

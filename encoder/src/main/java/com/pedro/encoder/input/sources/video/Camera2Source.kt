@@ -220,4 +220,12 @@ class Camera2Source(context: Context): VideoSource() {
   fun removeImageListener() {
     camera.removeImageListener()
   }
+
+  @RequiresApi(Build.VERSION_CODES.P)
+  fun physicalCamerasAvailable() = camera.physicalCamerasAvailable
+
+  @RequiresApi(Build.VERSION_CODES.P)
+  fun openPhysicalCamera(id: String?) {
+    camera.openPhysicalCamera(id)
+  }
 }
