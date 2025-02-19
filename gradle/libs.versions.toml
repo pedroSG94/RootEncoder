@@ -1,7 +1,7 @@
 [versions]
 libraryGroup = "com.github.pedroSG94"
-versionCode = "255"
-versionName = "2.5.5"
+versionCode = "256"
+versionName = "2.5.6"
 
 #plugins versions
 agp = "8.6.1"
@@ -20,7 +20,7 @@ coroutines = "1.10.1"
 junit = "4.13.2"
 mockito = "5.4.0"
 ktor = "2.3.13"
-uvcandroid = "1.0.8"
+uvcandroid = "1.0.9"
 media3 = "1.5.1"
 
 [libraries]
