@@ -28,6 +28,7 @@ com.pedro.encoder.utils.yuv
 com.pedro.encoder.video
 module:extra-sources
 com.pedro.extrasources
+com.pedro.extrasources.extractor
 module:library
 com.pedro.library.base
 com.pedro.library.base.recording
