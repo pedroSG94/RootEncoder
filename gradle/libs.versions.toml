@@ -19,7 +19,7 @@ annotation = "1.9.1"
 coroutines = "1.10.1"
 junit = "4.13.2"
 mockito = "5.4.0"
-ktor = "2.3.13"
+ktor = "3.1.1"
 uvcandroid = "1.0.9"
 media3 = "1.5.1"
 
