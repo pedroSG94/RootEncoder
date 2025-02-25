@@ -90,9 +90,13 @@ class NoiseFilterRender : BaseFilterRender() {
     val time = (System.currentTimeMillis() - startTime).toFloat() / 1000f
     GLES20.glUniform1f(uTimeHandle, time)
     GLES20.glUniform1f(uStrengthHandle, strength)
-    GLES20.glUniform1i(uSamplerHandle, 4)
-    GLES20.glActiveTexture(GLES20.GL_TEXTURE4)
+    GLES20.glUniform1i(uSamplerHandle, 0)
+    GLES20.glActiveTexture(GLES20.GL_TEXTURE0)
     GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, previousTexId)
+  }
+
+  override fun disableResources() {
+    GlUtil.disableResources(aTextureHandle, aPositionHandle)
   }
 
   override fun release() {

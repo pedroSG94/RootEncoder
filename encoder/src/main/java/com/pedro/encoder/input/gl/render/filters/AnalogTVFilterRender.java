@@ -100,9 +100,14 @@ public class AnalogTVFilterRender extends BaseFilterRender {
     if (time >= 10) START_TIME += 10000;
     GLES20.glUniform1f(uTimeHandle, time);
     GLES20.glUniform2f(uResolutionHandle, getWidth(), getHeight());
-    GLES20.glUniform1i(uSamplerHandle, 4);
-    GLES20.glActiveTexture(GLES20.GL_TEXTURE4);
+    GLES20.glUniform1i(uSamplerHandle, 0);
+    GLES20.glActiveTexture(GLES20.GL_TEXTURE0);
     GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, previousTexId);
+  }
+
+  @Override
+  protected void disableResources() {
+    GlUtil.disableResources(aTextureHandle, aPositionHandle);
   }
 
   @Override
