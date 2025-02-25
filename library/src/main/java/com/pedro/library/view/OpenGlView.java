@@ -77,6 +77,7 @@ public class OpenGlView extends SurfaceView
   private ExecutorService executor = null;
   private final FpsLimiter fpsLimiter = new FpsLimiter();
   private final ForceRenderer forceRenderer = new ForceRenderer();
+  private RenderErrorCallback renderErrorCallback = null;
 
   public OpenGlView(Context context) {
     super(context);
@@ -221,6 +222,11 @@ public class OpenGlView extends SurfaceView
   }
 
   @Override
+  public void setRenderErrorCallback(RenderErrorCallback callback) {
+    this.renderErrorCallback = callback;
+  }
+
+  @Override
   public void setEncoderSize(int width, int height) {
     this.encoderWidth = width;
     this.encoderHeight = height;
@@ -359,7 +365,15 @@ public class OpenGlView extends SurfaceView
       forceRenderer.start(() -> {
         ExecutorService ex = this.executor;
         if (ex == null) return null;
-        ex.execute(() -> draw(true));
+        ex.execute(() -> {
+          try {
+            draw(true);
+          } catch (RuntimeException e) {
+            RenderErrorCallback callback = renderErrorCallback;
+            if (callback != null) callback.onRenderError(e);
+            else throw e;
+          }
+        });
         return null;
       });
       return null;
@@ -390,7 +404,15 @@ public class OpenGlView extends SurfaceView
     if (!isRunning()) return;
     ExecutorService ex = this.executor;
     if (ex == null) return;
-    ex.execute(() -> draw(false));
+    ex.execute(() -> {
+      try {
+        draw(false);
+      } catch (RuntimeException e) {
+        RenderErrorCallback callback = renderErrorCallback;
+        if (callback != null) callback.onRenderError(e);
+        else throw e;
+      }
+    });
   }
 
   @Override

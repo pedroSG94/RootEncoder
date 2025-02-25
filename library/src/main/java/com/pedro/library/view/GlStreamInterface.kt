@@ -80,6 +80,7 @@ class GlStreamInterface(private val context: Context): OnFrameAvailableListener,
   private val forceRender = ForceRenderer()
   var autoHandleOrientation = false
   private var shouldHandleOrientation = true
+  private var renderErrorCallback: RenderErrorCallback? = null
 
   private val sensorRotationManager = SensorRotationManager(context, true, true) { orientation, isPortrait ->
     if (autoHandleOrientation && shouldHandleOrientation) {
@@ -121,6 +122,10 @@ class GlStreamInterface(private val context: Context): OnFrameAvailableListener,
   }
 
   override fun isRunning(): Boolean = running.get()
+
+  override fun setRenderErrorCallback(callback: RenderErrorCallback?) {
+    this.renderErrorCallback = callback
+  }
 
   override fun getSurfaceTexture(): SurfaceTexture {
     return mainRender.getSurfaceTexture()
@@ -178,7 +183,15 @@ class GlStreamInterface(private val context: Context): OnFrameAvailableListener,
       surfaceManagerPhoto.eglSetup(encoderWidth, encoderHeight, surfaceManager)
       running.set(true)
       mainRender.getSurfaceTexture().setOnFrameAvailableListener(this)
-      forceRender.start { executor?.execute { draw(true) } }
+      forceRender.start {
+        executor?.execute {
+          try {
+            draw(true)
+          } catch (e: RuntimeException) {
+            renderErrorCallback?.onRenderError(e) ?: throw e
+          }
+        }
+      }
       sensorRotationManager.start()
     }
   }
@@ -266,7 +279,13 @@ class GlStreamInterface(private val context: Context): OnFrameAvailableListener,
 
   override fun onFrameAvailable(surfaceTexture: SurfaceTexture?) {
     if (!isRunning) return
-    executor?.execute { draw(false) }
+    executor?.execute {
+      try {
+        draw(false)
+      } catch (e: RuntimeException) {
+        renderErrorCallback?.onRenderError(e) ?: throw e
+      }
+    }
   }
 
   fun forceOrientation(forced: OrientationForced) {
