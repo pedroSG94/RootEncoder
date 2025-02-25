@@ -130,12 +130,17 @@ abstract public class BaseObjectFilterRender extends BaseFilterRender {
     GLES20.glUniformMatrix4fv(uMVPMatrixHandle, 1, false, MVPMatrix, 0);
     GLES20.glUniformMatrix4fv(uSTMatrixHandle, 1, false, STMatrix, 0);
     //Sampler
-    GLES20.glUniform1i(uSamplerHandle, 4);
-    GLES20.glActiveTexture(GLES20.GL_TEXTURE4);
+    GLES20.glUniform1i(uSamplerHandle, 0);
+    GLES20.glActiveTexture(GLES20.GL_TEXTURE0);
     GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, previousTexId);
     //Object
-    GLES20.glUniform1i(uObjectHandle, 0);
-    GLES20.glActiveTexture(GLES20.GL_TEXTURE0);
+    GLES20.glUniform1i(uObjectHandle, 1);
+    GLES20.glActiveTexture(GLES20.GL_TEXTURE1);
+  }
+
+  @Override
+  protected void disableResources() {
+    GlUtil.disableResources(aTextureHandle, aTextureObjectHandle, aPositionHandle);
   }
 
   @Override

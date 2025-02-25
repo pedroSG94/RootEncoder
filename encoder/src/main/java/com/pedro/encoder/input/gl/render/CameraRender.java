@@ -119,6 +119,7 @@ public class CameraRender extends BaseRenderOffScreen {
     //draw
     GLES20.glDrawArrays(GLES20.GL_TRIANGLE_STRIP, 0, 4);
 
+    GlUtil.disableResources(aTextureCameraHandle, aPositionHandle);
     GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, 0);
     GlUtil.checkGlError("drawCamera end");
   }

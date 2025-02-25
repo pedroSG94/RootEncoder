@@ -69,11 +69,14 @@ public abstract class BaseFilterRender extends BaseRenderOffScreen {
     GLES20.glViewport(0, 0, width, height);
     drawFilter();
     GLES20.glDrawArrays(GLES20.GL_TRIANGLE_STRIP, 0, 4);
+    disableResources();
     GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, 0);
     GlUtil.checkGlError("drawFilter end");
   }
 
   protected abstract void drawFilter();
+
+  protected abstract void disableResources();
 
   public void setPreviousTexId(int texId) {
     this.previousTexId = texId;
