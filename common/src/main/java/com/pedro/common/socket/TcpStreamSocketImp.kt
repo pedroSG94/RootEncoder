@@ -49,9 +49,7 @@ class TcpStreamSocketImp(
     selectorManager = SelectorManager(Dispatchers.IO)
     val builder = aSocket(selectorManager).tcp().connect(
       remoteAddress = InetSocketAddress(host, port),
-      configure = {
-        if (!secured) socketTimeout = timeout
-      }
+      configure = { socketTimeout = timeout }
     )
     val socket = if (secured) {
       builder.tls(Dispatchers.Default) {
@@ -68,6 +66,7 @@ class TcpStreamSocketImp(
   override suspend fun close() = withContext(Dispatchers.IO) {
     try {
       address = null
+      output?.flushAndClose()
       input = null
       output = null
       socket?.close()
