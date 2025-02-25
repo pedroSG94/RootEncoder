@@ -38,6 +38,7 @@ import com.pedro.extrasources.CameraUvcSource
 import com.pedro.extrasources.CameraXSource
 import com.pedro.streamer.R
 import com.pedro.streamer.utils.FilterMenu
+import com.pedro.streamer.utils.fitAppPadding
 import com.pedro.streamer.utils.toast
 import com.pedro.streamer.utils.updateMenuColor
 import kotlinx.coroutines.CoroutineScope
@@ -62,6 +63,7 @@ class RotationActivity : AppCompatActivity(), OnTouchListener {
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
     setContentView(R.layout.rotation_activity)
+    fitAppPadding()
     supportFragmentManager.beginTransaction().add(R.id.container, cameraFragment).commit()
   }
 
