@@ -154,12 +154,12 @@ public class AndroidViewFilterRender extends BaseFilterRender {
     GLES20.glUniformMatrix4fv(uMVPMatrixHandle, 1, false, MVPMatrix, 0);
     GLES20.glUniformMatrix4fv(uSTMatrixHandle, 1, false, STMatrix, 0);
 
-    GLES20.glUniform1i(uSamplerHandle, 4);
-    GLES20.glActiveTexture(GLES20.GL_TEXTURE4);
+    GLES20.glUniform1i(uSamplerHandle, 0);
+    GLES20.glActiveTexture(GLES20.GL_TEXTURE0);
     GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, previousTexId);
     //android view
-    GLES20.glUniform1i(uSamplerViewHandle, 5);
-    GLES20.glActiveTexture(GLES20.GL_TEXTURE5);
+    GLES20.glUniform1i(uSamplerViewHandle, 1);
+    GLES20.glActiveTexture(GLES20.GL_TEXTURE1);
 
     switch (status) {
       case DONE2:
@@ -172,6 +172,11 @@ public class AndroidViewFilterRender extends BaseFilterRender {
         GLES20.glBindTexture(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, viewId[0]);
         break;
     }
+  }
+
+  @Override
+  protected void disableResources() {
+    GlUtil.disableResources(aTextureHandle, aPositionHandle);
   }
 
   @Override
