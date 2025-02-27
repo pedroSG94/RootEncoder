@@ -161,4 +161,11 @@ public class GlUtil {
     matrix.postScale(1f, -1f, cx, cy);
     return Bitmap.createBitmap(bitmap, 0, 0, width, height, matrix, true);
   }
+
+  public static void disableResources(int... vertex) {
+    for (int v: vertex) GLES20.glDisableVertexAttribArray(v);
+    GLES20.glBindTexture(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, 0);
+    GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, 0);
+    GLES20.glUseProgram(0);
+  }
 }
