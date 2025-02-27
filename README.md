@@ -7,7 +7,7 @@
 <p align="center">
 <strong>Sponsored with 💖 &nbsp by</strong><br />
 <a href="https://getstream.io/?utm_source=github.com/pedroSG94/rtmp-rtsp-stream-client-java&utm_medium=github&utm_campaign=oss_sponsorship" target="_blank">
-<img src="https://stream-blog-v2.imgix.net/blog/wp-content/uploads/f7401112f41742c4e173c30d4f318cb8/stream_logo_white.png?w=350" alt="Stream Chat" style="margin: 8px" />
+<img src="assets/images/stream_logo.png" alt="Stream Chat" style="margin: 8px; width: 350px" />
 </a>
 <br />
 Enterprise Grade APIs for Feeds & Chat. <a href="https://getstream.io/tutorials/android-chat/?utm_source=https://github.com/pedroSG94/rtmp-rtsp-stream-client-java&utm_medium=github&utm_content=developer&utm_term=java" target="_blank">Try the Android Chat tutorial</a> 💬
