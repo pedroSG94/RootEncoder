@@ -31,6 +31,11 @@ android {
   buildFeatures {
     buildConfig = true
   }
+  packaging {
+    resources {
+      excludes.add("META-INF/*")
+    }
+  }
 }
 
 dependencies {

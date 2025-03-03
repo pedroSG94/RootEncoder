@@ -18,42 +18,67 @@
 
 package com.pedro.common.socket
 
-import io.ktor.network.selector.SelectorManager
-import io.ktor.utils.io.ByteReadChannel
-import io.ktor.utils.io.ByteWriteChannel
-import io.ktor.utils.io.readByte
-import io.ktor.utils.io.readFully
-import io.ktor.utils.io.readUTF8Line
-import io.ktor.utils.io.writeByte
-import io.ktor.utils.io.writeFully
-import io.ktor.utils.io.writeStringUtf8
-import kotlinx.coroutines.Dispatchers
+import android.util.Log
+import io.netty.buffer.Unpooled
+import io.netty.channel.ChannelFuture
+import io.netty.channel.ChannelFutureListener
+import io.netty.channel.ChannelHandlerContext
+import io.netty.channel.nio.NioEventLoopGroup
+import kotlinx.coroutines.suspendCancellableCoroutine
+import java.io.ByteArrayInputStream
+import java.io.ByteArrayOutputStream
+import java.io.IOException
 import java.net.ConnectException
+import java.nio.charset.Charset
+import java.util.concurrent.Semaphore
 
 /**
  * Created by pedro on 22/9/24.
  */
 abstract class TcpStreamSocket: StreamSocket {
 
-  protected val timeout = 5000L
-  protected var input: ByteReadChannel? = null
-  protected var output: ByteWriteChannel? = null
-  protected var selectorManager = SelectorManager(Dispatchers.IO)
+  protected var group: NioEventLoopGroup? = null
+  protected var channel: ChannelFuture? = null
+  protected var context: ChannelHandlerContext? = null
+  protected var buffer = ByteArrayOutputStream()
+  protected val lock = Any()
+  protected val semaphore = Semaphore(0)
 
   suspend fun flush() {
-    output?.flush()
+    context?.flush()
   }
 
   suspend fun write(b: Int) {
-    output?.writeByte(b.toByte())
+    suspendCancellableCoroutine {
+      context?.writeAndFlush(Unpooled.wrappedBuffer(byteArrayOf(b.toByte())))?.addListener(object:
+        ChannelFutureListener {
+        override fun operationComplete(future: ChannelFuture?) {
+          it.resumeWith(Result.success(Any()))
+        }
+      })
+    }
   }
 
   suspend fun write(b: ByteArray) {
-    output?.writeFully(b)
+    suspendCancellableCoroutine {
+      context?.writeAndFlush(Unpooled.wrappedBuffer(b))?.addListener(object:
+        ChannelFutureListener {
+        override fun operationComplete(future: ChannelFuture?) {
+          it.resumeWith(Result.success(Any()))
+        }
+      })
+    }
   }
 
   suspend fun write(b: ByteArray, offset: Int, size: Int) {
-    output?.writeFully(b, offset, offset + size)
+    suspendCancellableCoroutine {
+      context?.writeAndFlush(Unpooled.wrappedBuffer(b, offset, size))?.addListener(object:
+        ChannelFutureListener {
+        override fun operationComplete(future: ChannelFuture?) {
+          it.resumeWith(Result.success(Any()))
+        }
+      })
+    }
   }
 
   suspend fun writeUInt16(b: Int) {
@@ -73,12 +98,21 @@ abstract class TcpStreamSocket: StreamSocket {
   }
 
   suspend fun write(string: String) {
-    output?.writeStringUtf8(string)
+    context?.write(string)
   }
 
   suspend fun read(): Int {
-    val input = input ?: throw ConnectException("Read with socket closed, broken pipe")
-    return input.readByte().toInt()
+    val input = buffer
+    while (input.size() < 1) semaphore.acquireUninterruptibly()
+    synchronized(lock) {
+      val i = ByteArrayInputStream(input.toByteArray())
+      val r = i.read()
+      buffer.close()
+      buffer = ByteArrayOutputStream()
+      buffer.write(i.readBytes())
+      i.close()
+      return r
+    }
   }
 
   suspend fun readUInt16(): Int {
@@ -104,12 +138,22 @@ abstract class TcpStreamSocket: StreamSocket {
   }
 
   suspend fun readUntil(b: ByteArray) {
-    val input = input ?: throw ConnectException("Read with socket closed, broken pipe")
-    input.readFully(b)
+    val input = buffer
+    while (input.size() < 1) semaphore.acquireUninterruptibly()
+    synchronized(lock) {
+      val i = ByteArrayInputStream(input.toByteArray())
+      i.read(b)
+      buffer.close()
+      buffer = ByteArrayOutputStream()
+      buffer.write(i.readBytes())
+      i.close()
+    }
   }
 
-  suspend fun readLine(): String? {
-    val input = input ?: throw ConnectException("Read with socket closed, broken pipe")
-    return input.readUTF8Line()
+  suspend fun readLine(): String {
+    synchronized(lock) {
+      val input = buffer ?: throw ConnectException("Read with socket closed, broken pipe")
+      return ""
+    }
   }
 }

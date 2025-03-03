@@ -18,18 +18,19 @@
 
 package com.pedro.common.socket
 
-import io.ktor.network.selector.SelectorManager
-import io.ktor.network.sockets.InetSocketAddress
-import io.ktor.network.sockets.ReadWriteSocket
-import io.ktor.network.sockets.aSocket
-import io.ktor.network.sockets.isClosed
-import io.ktor.network.sockets.openReadChannel
-import io.ktor.network.sockets.openWriteChannel
-import io.ktor.network.tls.tls
+import io.netty.bootstrap.Bootstrap
+import io.netty.buffer.ByteBuf
+import io.netty.channel.Channel
+import io.netty.channel.ChannelHandlerContext
+import io.netty.channel.ChannelInitializer
+import io.netty.channel.SimpleChannelInboundHandler
+import io.netty.channel.nio.NioEventLoopGroup
+import io.netty.channel.socket.nio.NioSocketChannel
+import io.netty.handler.ssl.SslContext
+import io.netty.handler.ssl.SslContextBuilder
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import java.net.InetAddress
-import java.security.SecureRandom
+import java.io.ByteArrayOutputStream
 import javax.net.ssl.TrustManager
 
 /**
@@ -42,39 +43,53 @@ class TcpStreamSocketImp(
   private val certificate: TrustManager? = null
 ): TcpStreamSocket() {
 
-  private var socket: ReadWriteSocket? = null
-  private var address: InetAddress? = null
+  override suspend fun connect() = withContext(Dispatchers.IO) {
+    buffer.close()
+    buffer = ByteArrayOutputStream()
+    group = NioEventLoopGroup()
+    val sslContext: SslContext = SslContextBuilder
+      .forClient()
+      .build()
 
-  override suspend fun connect() {
-    selectorManager = SelectorManager(Dispatchers.IO)
-    val builder = aSocket(selectorManager).tcp().connect(
-      remoteAddress = InetSocketAddress(host, port),
-      configure = { socketTimeout = timeout }
-    )
-    val socket = if (secured) {
-      builder.tls(Dispatchers.Default) {
-        trustManager = certificate
-        random = SecureRandom()
-      }
-    } else builder
-    input = socket.openReadChannel()
-    output = socket.openWriteChannel(autoFlush = false)
-    address = java.net.InetSocketAddress(host, port).address
-    this.socket = socket
+    val bootstrap = Bootstrap().group(group).channel(NioSocketChannel::class.java)
+      .handler(object: ChannelInitializer<Channel>() {
+        override fun initChannel(ch: Channel?) {
+          val pipeline = ch?.pipeline()
+          if (secured) {
+            pipeline?.addLast(sslContext.newHandler(ch.alloc(), host, port))
+          }
+          pipeline?.addLast(object : SimpleChannelInboundHandler<ByteBuf>() {
+            override fun channelActive(ctx: ChannelHandlerContext) {
+              context = ctx
+            }
+
+            override fun channelRead0(ctx: ChannelHandlerContext, msg: ByteBuf) {
+              synchronized(lock) {
+                val bytes = ByteArray(msg.readableBytes())
+                msg.readBytes(bytes)
+                buffer.write(bytes)
+              }
+              semaphore.release()
+            }
+          })
+        }
+      })
+    channel = bootstrap.connect(host, port).sync()
+    return@withContext
   }
 
   override suspend fun close() = withContext(Dispatchers.IO) {
     try {
-      address = null
-      output?.flushAndClose()
-      input = null
-      output = null
-      socket?.close()
-      selectorManager.close()
-    } catch (ignored: Exception) {}
+      channel?.channel()?.closeFuture()?.sync()
+      channel = null
+    } finally {
+      group?.shutdownGracefully()
+      group = null
+    }
+    return@withContext
   }
 
-  override fun isConnected(): Boolean = socket?.isClosed != true
+  override fun isConnected(): Boolean = channel?.channel()?.isActive ?: false
 
-  override fun isReachable(): Boolean = address?.isReachable(5000) ?: false
+  override fun isReachable(): Boolean = channel?.channel()?.isActive ?: false
 }

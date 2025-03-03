@@ -26,7 +26,6 @@ android {
     kotlinOptions {
         jvmTarget = "17"
     }
-
     publishing {
         singleVariant("release")
     }
@@ -50,8 +49,9 @@ afterEvaluate {
 }
 
 dependencies {
-    implementation(libs.ktor.network)
-    implementation(libs.ktor.network.tls)
+    implementation("io.netty:netty-all:4.1.119.Final")
+//    implementation(libs.ktor.network)
+//    implementation(libs.ktor.network.tls)
     implementation(libs.androidx.annotation)
     implementation(libs.kotlinx.coroutines.android)
     testImplementation(libs.kotlinx.coroutines.test)
