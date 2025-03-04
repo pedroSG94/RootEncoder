@@ -16,55 +16,11 @@
 
 package com.pedro.rtmp.utils
 
-import com.pedro.common.toUInt16
-import com.pedro.common.toUInt24
-import com.pedro.common.toUInt32
-import com.pedro.common.toUInt32LittleEndian
-import java.io.InputStream
-import java.io.OutputStream
 import java.nio.ByteBuffer
 
 /**
  * Created by pedro on 20/04/21.
  */
-
-fun InputStream.readUInt32(): Int {
-  val data = ByteArray(4)
-  read(data)
-  return data.toUInt32()
-}
-
-fun InputStream.readUInt24(): Int {
-  val data = ByteArray(3)
-  read(data)
-  return data.toUInt24()
-}
-
-fun InputStream.readUInt16(): Int {
-  val data = ByteArray(3)
-  read(data)
-  return data.toUInt24()
-}
-
-fun InputStream.readUInt32LittleEndian(): Int {
-  return Integer.reverseBytes(readUInt32())
-}
-
-fun OutputStream.writeUInt32(value: Int) {
-  write(value.toUInt32())
-}
-
-fun OutputStream.writeUInt24(value: Int) {
-  write(value.toUInt24())
-}
-
-fun OutputStream.writeUInt16(value: Int) {
-  write(value.toUInt16())
-}
-
-fun OutputStream.writeUInt32LittleEndian(value: Int) {
-  write(value.toUInt32LittleEndian())
-}
 
 fun Long.toByteArray(): ByteArray {
   val buffer = ByteBuffer.allocate(Long.SIZE_BYTES)
