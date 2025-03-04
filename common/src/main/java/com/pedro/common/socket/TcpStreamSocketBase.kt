@@ -1,10 +1,10 @@
 package com.pedro.common.socket
 
 import com.pedro.common.readUntil
+import java.io.BufferedReader
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import java.io.InputStreamReader
-import java.io.OutputStreamWriter
 import java.net.Socket
 import java.net.SocketTimeoutException
 import java.util.concurrent.Executors
@@ -18,7 +18,6 @@ abstract class TcpStreamSocketBase: StreamSocket() {
     private var input = ByteArrayInputStream(byteArrayOf()).buffered()
     private var output = ByteArrayOutputStream().buffered()
     private var reader = InputStreamReader(input).buffered()
-    private var writer = OutputStreamWriter(output).buffered()
     private val semaphore = Semaphore(0)
     private val semaphoreTimeout = Semaphore(0)
     @Volatile
@@ -28,11 +27,9 @@ abstract class TcpStreamSocketBase: StreamSocket() {
 
     override fun connect() {
         socket = onConnectSocket(timeout)
+        reader = BufferedReader(InputStreamReader(socket.getInputStream()))
         output = socket.getOutputStream().buffered()
         input = socket.getInputStream().buffered()
-        reader = InputStreamReader(input).buffered()
-        writer = OutputStreamWriter(output).buffered()
-        socket.soTimeout = timeout.toInt()
         //parallel thread to do output flush allowing have a flush timeout and avoid stuck on it
         executorWrite = Executors.newSingleThreadExecutor()
         executorWrite.execute {
@@ -77,7 +74,7 @@ abstract class TcpStreamSocketBase: StreamSocket() {
     }
 
     fun write(string: String) {
-        writer.write(string)
+        write(string.toByteArray())
     }
 
     fun flush() {

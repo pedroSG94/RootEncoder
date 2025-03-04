@@ -31,6 +31,7 @@ class TcpStreamSocket(
         } else Socket()
         val socketAddress: SocketAddress = InetSocketAddress(host, port)
         socket.connect(socketAddress, timeout.toInt())
+        socket.soTimeout = timeout.toInt()
         return socket
     }
 }
