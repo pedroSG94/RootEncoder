@@ -18,16 +18,16 @@
 
 package com.pedro.rtmp
 
-import com.pedro.rtmp.utils.readUInt16
-import com.pedro.rtmp.utils.readUInt24
-import com.pedro.rtmp.utils.readUInt32
-import com.pedro.rtmp.utils.readUInt32LittleEndian
-import com.pedro.rtmp.utils.readUntil
+import com.pedro.common.readUInt16
+import com.pedro.common.readUInt24
+import com.pedro.common.readUInt32
+import com.pedro.common.readUInt32LittleEndian
+import com.pedro.common.readUntil
+import com.pedro.common.writeUInt16
+import com.pedro.common.writeUInt24
+import com.pedro.common.writeUInt32
+import com.pedro.common.writeUInt32LittleEndian
 import com.pedro.rtmp.utils.socket.RtmpSocket
-import com.pedro.rtmp.utils.writeUInt16
-import com.pedro.rtmp.utils.writeUInt24
-import com.pedro.rtmp.utils.writeUInt32
-import com.pedro.rtmp.utils.writeUInt32LittleEndian
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 

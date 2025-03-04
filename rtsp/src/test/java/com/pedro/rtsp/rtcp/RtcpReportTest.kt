@@ -17,6 +17,8 @@
 package com.pedro.rtsp.rtcp
 
 import com.pedro.common.TimeUtils
+import com.pedro.common.socket.TcpStreamSocket
+import com.pedro.common.socket.UdpStreamSocket
 import com.pedro.rtsp.Utils
 import com.pedro.rtsp.rtsp.Protocol
 import com.pedro.rtsp.rtsp.RtpFrame
@@ -44,7 +46,7 @@ class RtcpReportTest {
   @Mock
   private lateinit var udpSocket: UdpStreamSocket
   @Mock
-  private lateinit var tcpSocket: TcpStreamSocketImp
+  private lateinit var tcpSocket: TcpStreamSocket
 
   private val timeUtilsMocked = Mockito.mockStatic(TimeUtils::class.java)
   private var fakeTime = 7502849023L
@@ -101,7 +103,7 @@ class RtcpReportTest {
       }
       val resultValue = argumentCaptor<ByteArray>()
       withContext(Dispatchers.IO) {
-        verify(udpSocket, times((2))).writePacket(resultValue.capture())
+        verify(udpSocket, times((2))).write(resultValue.capture())
       }
       fakeTime += 3_000 //wait until next interval
       (0..10).forEach { value ->
@@ -109,7 +111,7 @@ class RtcpReportTest {
         senderReportUdp.update(frame)
       }
       withContext(Dispatchers.IO) {
-        verify(udpSocket, times((4))).writePacket(resultValue.capture())
+        verify(udpSocket, times((4))).write(resultValue.capture())
       }
     }
   }
