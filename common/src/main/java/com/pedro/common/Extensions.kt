@@ -206,9 +206,9 @@ fun InputStream.readUInt24(): Int {
 }
 
 fun InputStream.readUInt16(): Int {
-  val data = ByteArray(3)
+  val data = ByteArray(2)
   read(data)
-  return data.toUInt24()
+  return data.toUInt16()
 }
 
 fun InputStream.readUInt32LittleEndian(): Int {
