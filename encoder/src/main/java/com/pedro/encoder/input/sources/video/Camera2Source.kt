@@ -17,7 +17,6 @@
 package com.pedro.encoder.input.sources.video
 
 import android.content.Context
-import android.graphics.ImageFormat
 import android.graphics.SurfaceTexture
 import android.hardware.camera2.CameraCharacteristics
 import android.os.Build
@@ -27,6 +26,7 @@ import android.view.MotionEvent
 import androidx.annotation.RequiresApi
 import com.pedro.encoder.input.video.Camera2ApiManager
 import com.pedro.encoder.input.video.Camera2ApiManager.ImageCallback
+import com.pedro.encoder.input.video.CameraCallbacks
 import com.pedro.encoder.input.video.CameraHelper
 import com.pedro.encoder.input.video.facedetector.FaceDetectorCallback
 
@@ -227,5 +227,9 @@ class Camera2Source(context: Context): VideoSource() {
   @RequiresApi(Build.VERSION_CODES.P)
   fun openPhysicalCamera(id: String?) {
     camera.openPhysicalCamera(id)
+  }
+
+  fun setCameraCallback(callbacks: CameraCallbacks?) {
+    camera.setCameraCallbacks(callbacks)
   }
 }
