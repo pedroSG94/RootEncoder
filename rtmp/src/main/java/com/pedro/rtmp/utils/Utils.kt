@@ -24,14 +24,6 @@ import java.nio.ByteBuffer
  * Created by pedro on 20/04/21.
  */
 
-fun InputStream.readUntil(byteArray: ByteArray) {
-  var bytesRead = 0
-  while (bytesRead < byteArray.size) {
-    val result = read(byteArray, bytesRead, byteArray.size - bytesRead)
-    if (result != -1) bytesRead += result
-  }
-}
-
 fun InputStream.readUInt32(): Int {
   return read() and 0xff shl 24 or (read() and 0xff shl 16) or (read() and 0xff shl 8) or (read() and 0xff)
 }

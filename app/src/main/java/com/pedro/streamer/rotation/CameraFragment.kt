@@ -130,8 +130,7 @@ class CameraFragment: Fragment(), ConnectChecker {
 
     bStartStop.setOnClickListener {
       if (!genericStream.isStreaming) {
-        genericStream.startStream("rtmps://apptest-2gtr30ad.rtmp.livekit.cloud/x/UBueHRmwUbNn")
-//        genericStream.startStream("rtmps://192.168.0.160:1936/live/pedro")
+        genericStream.startStream(etUrl.text.toString())
         bStartStop.setImageResource(R.drawable.stream_stop_icon)
       } else {
         genericStream.stopStream()

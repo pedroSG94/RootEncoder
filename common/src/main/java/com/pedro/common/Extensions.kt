@@ -27,6 +27,7 @@ import androidx.annotation.RequiresApi
 import com.pedro.common.frame.MediaFrame
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import java.io.InputStream
 import java.io.UnsupportedEncodingException
 import java.nio.ByteBuffer
 import java.security.MessageDigest
@@ -181,4 +182,12 @@ fun ByteArray.toUInt32(): Int {
 
 fun ByteArray.toUInt32LittleEndian(): Int {
   return Integer.reverseBytes(toUInt32())
+}
+
+fun InputStream.readUntil(byteArray: ByteArray) {
+  var bytesRead = 0
+  while (bytesRead < byteArray.size) {
+    val result = read(byteArray, bytesRead, byteArray.size - bytesRead)
+    if (result != -1) bytesRead += result
+  }
 }

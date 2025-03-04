@@ -18,11 +18,11 @@ package com.pedro.rtmp.utils.socket
 
 import android.util.Log
 import com.pedro.common.TimeUtils
+import com.pedro.common.readUntil
 import com.pedro.rtmp.utils.readUInt16
 import com.pedro.rtmp.utils.readUInt24
 import com.pedro.rtmp.utils.readUInt32
 import com.pedro.rtmp.utils.readUInt32LittleEndian
-import com.pedro.rtmp.utils.readUntil
 import com.pedro.rtmp.utils.writeUInt16
 import com.pedro.rtmp.utils.writeUInt24
 import com.pedro.rtmp.utils.writeUInt32
