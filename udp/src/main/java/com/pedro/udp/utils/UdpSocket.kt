@@ -17,6 +17,7 @@
 package com.pedro.udp.utils
 
 import com.pedro.common.socket.UdpStreamSocket
+import com.pedro.common.socket.UdpType
 import com.pedro.srt.mpeg2ts.MpegTsPacket
 import com.pedro.srt.mpeg2ts.MpegTsPacketizer
 
@@ -25,10 +26,7 @@ import com.pedro.srt.mpeg2ts.MpegTsPacketizer
  */
 class UdpSocket(host: String, type: UdpType, port: Int) {
 
-  private val socket = UdpStreamSocket(
-    host, port, receiveSize = MpegTsPacketizer.packetSize,
-    broadcastMode = type == UdpType.BROADCAST
-  )
+  private val socket = UdpStreamSocket(host, port, type = type)
 
   suspend fun connect() {
     socket.connect()
@@ -44,9 +42,9 @@ class UdpSocket(host: String, type: UdpType, port: Int) {
 
   suspend fun write(mpegTsPacket: MpegTsPacket): Int {
     val buffer = mpegTsPacket.buffer
-    socket.writePacket(buffer)
+    socket.write(buffer)
     return buffer.size
   }
 
-  suspend fun readBuffer() = socket.readPacket()
+  suspend fun readBuffer() = socket.read(MpegTsPacketizer.packetSize)
 }

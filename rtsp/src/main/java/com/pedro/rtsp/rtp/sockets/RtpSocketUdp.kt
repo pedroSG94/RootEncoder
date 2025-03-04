@@ -50,9 +50,9 @@ class RtpSocketUdp(
   @Throws(IOException::class)
   private suspend fun sendFrameUDP(rtpFrame: RtpFrame) {
     if (rtpFrame.isVideoFrame()) {
-      videoSocket?.writePacket(rtpFrame.buffer)
+      videoSocket?.write(rtpFrame.buffer)
     } else {
-      audioSocket?.writePacket(rtpFrame.buffer)
+      audioSocket?.write(rtpFrame.buffer)
     }
   }
 }
