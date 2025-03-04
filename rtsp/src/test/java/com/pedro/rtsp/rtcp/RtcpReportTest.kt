@@ -17,8 +17,6 @@
 package com.pedro.rtsp.rtcp
 
 import com.pedro.common.TimeUtils
-import com.pedro.common.socket.TcpStreamSocketImp
-import com.pedro.common.socket.UdpStreamSocket
 import com.pedro.rtsp.Utils
 import com.pedro.rtsp.rtsp.Protocol
 import com.pedro.rtsp.rtsp.RtpFrame

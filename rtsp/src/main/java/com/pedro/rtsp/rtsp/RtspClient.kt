@@ -26,7 +26,7 @@ import com.pedro.common.VideoCodec
 import com.pedro.common.clone
 import com.pedro.common.frame.MediaFrame
 import com.pedro.common.onMainThread
-import com.pedro.common.socket.TcpStreamSocketImp
+import com.pedro.common.socket.TcpStreamSocket
 import com.pedro.common.toMediaFrameInfo
 import com.pedro.common.validMessage
 import com.pedro.rtsp.rtsp.commands.CommandsManager
@@ -57,7 +57,7 @@ class RtspClient(private val connectChecker: ConnectChecker) {
   private val validSchemes = arrayOf("rtsp", "rtsps")
 
   //sockets objects
-  private var socket: TcpStreamSocketImp? = null
+  private var socket: TcpStreamSocket? = null
   private var scope = CoroutineScope(Dispatchers.IO)
   private var scopeRetry = CoroutineScope(Dispatchers.IO)
   private var job: Job? = null
@@ -237,7 +237,7 @@ class RtspClient(private val connectChecker: ConnectChecker) {
             }
             rtspSender.setVideoInfo(commandsManager.sps!!, commandsManager.pps, commandsManager.vps)
           }
-          val socket = TcpStreamSocketImp(host, port, tlsEnabled, certificates)
+          val socket = TcpStreamSocket(host, port, tlsEnabled, certificates)
           this@RtspClient.socket = socket
           socket.connect()
           socket.write(commandsManager.createOptions())

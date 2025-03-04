@@ -28,7 +28,7 @@ import com.pedro.common.onMainThread
 import com.pedro.common.toMediaFrameInfo
 import com.pedro.common.validMessage
 import com.pedro.udp.utils.UdpSocket
-import com.pedro.udp.utils.UdpType
+import com.pedro.common.socket.UdpType
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job

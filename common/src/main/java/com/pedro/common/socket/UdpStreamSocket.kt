@@ -1,88 +1,62 @@
-/*
- *
- *  * Copyright (C) 2024 pedroSG94.
- *  *
- *  * Licensed under the Apache License, Version 2.0 (the "License");
- *  * you may not use this file except in compliance with the License.
- *  * You may obtain a copy of the License at
- *  *
- *  * http://www.apache.org/licenses/LICENSE-2.0
- *  *
- *  * Unless required by applicable law or agreed to in writing, software
- *  * distributed under the License is distributed on an "AS IS" BASIS,
- *  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  * See the License for the specific language governing permissions and
- *  * limitations under the License.
- *
- */
-
 package com.pedro.common.socket
 
-import io.ktor.network.selector.SelectorManager
-import io.ktor.network.sockets.ConnectedDatagramSocket
-import io.ktor.network.sockets.Datagram
-import io.ktor.network.sockets.InetSocketAddress
-import io.ktor.network.sockets.aSocket
-import io.ktor.network.sockets.isClosed
-import io.ktor.utils.io.core.remaining
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import kotlinx.io.Buffer
-import kotlinx.io.readByteArray
-import java.net.ConnectException
+import java.net.DatagramPacket
+import java.net.DatagramSocket
 import java.net.InetAddress
+import java.net.MulticastSocket
+import java.net.SocketOptions
 
-/**
- * Created by pedro on 22/9/24.
- */
 class UdpStreamSocket(
-  private val host: String,
-  private val port: Int,
-  private val sourcePort: Int? = null,
-  private val receiveSize: Int? = null,
-  private val broadcastMode: Boolean = false
-): StreamSocket {
+    private val host: String,
+    private val port: Int,
+    private val sourcePort: Int? = null,
+    private val type: UdpType = UdpType.UNICAST
+): StreamSocket() {
 
-  private val address = InetSocketAddress(host, port)
-  private var selectorManager = SelectorManager(Dispatchers.IO)
-  private var socket: ConnectedDatagramSocket? = null
-  private var myAddress: InetAddress? = null
+    private var socket: DatagramSocket? = null
 
-  override suspend fun connect() {
-    selectorManager = SelectorManager(Dispatchers.IO)
-    val builder = aSocket(selectorManager).udp()
-    val localAddress = if (sourcePort == null) null else InetSocketAddress("0.0.0.0", sourcePort)
-    val socket = builder.connect(
-      remoteAddress = address,
-      localAddress = localAddress
-    ) {
-      broadcast = broadcastMode
-      receiveBufferSize = receiveSize ?: 0
+    override suspend fun connect() = withContext(Dispatchers.IO) {
+        val socket = when (type) {
+            UdpType.UNICAST -> {
+                sourcePort?.let { DatagramSocket(sourcePort) } ?: DatagramSocket()
+            }
+            UdpType.MULTICAST -> {
+                sourcePort?.let { MulticastSocket(sourcePort) } ?: MulticastSocket()
+            }
+            UdpType.BROADCAST -> {
+                val socket = sourcePort?.let { DatagramSocket(sourcePort) } ?: DatagramSocket()
+                socket.apply { broadcast = true }
+            }
+        }
+        val address = InetAddress.getByName(host)
+        socket.connect(address, port)
+        socket.soTimeout = timeout.toInt()
+        this@UdpStreamSocket.socket = socket
     }
-    myAddress = java.net.InetSocketAddress(host, port).address
-    this.socket = socket
-  }
 
-  override suspend fun close() = withContext(Dispatchers.IO) {
-    try {
-      socket?.close()
-      selectorManager.close()
-    } catch (ignored: Exception) {}
-  }
+    override suspend fun close() = withContext(Dispatchers.IO) {
+        if (socket?.isClosed == false) {
+            socket?.disconnect()
+            socket?.close()
+            socket = null
+        }
+    }
 
-  override fun isConnected(): Boolean = socket?.isClosed != true
+    suspend fun write(bytes: ByteArray) = withContext(Dispatchers.IO) {
+        val udpPacket = DatagramPacket(bytes, bytes.size)
+        socket?.send(udpPacket)
+    }
 
-  override fun isReachable(): Boolean = myAddress?.isReachable(5000) ?: false
+    suspend fun read(size: Int = SocketOptions.SO_RCVBUF): ByteArray = withContext(Dispatchers.IO) {
+        val buffer = ByteArray(size)
+        val udpPacket = DatagramPacket(buffer, buffer.size)
+        socket?.receive(udpPacket)
+        udpPacket.data.sliceArray(0 until udpPacket.length)
+    }
 
-  suspend fun readPacket(): ByteArray {
-    val socket = socket ?: throw ConnectException("Read with socket closed, broken pipe")
-    val packet = socket.receive().packet
-    val length = packet.remaining.toInt()
-    return packet.readByteArray().sliceArray(0 until length)
-  }
+    override fun isConnected(): Boolean = socket?.isConnected ?: false
 
-  suspend fun writePacket(bytes: ByteArray) {
-    val datagram = Datagram(Buffer().apply { write(bytes) }, address)
-    socket?.send(datagram)
-  }
+    override fun isReachable(): Boolean = socket?.inetAddress?.isReachable(timeout.toInt()) ?: false
 }

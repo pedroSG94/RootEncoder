@@ -1,115 +1,128 @@
-/*
- *
- *  * Copyright (C) 2024 pedroSG94.
- *  *
- *  * Licensed under the Apache License, Version 2.0 (the "License");
- *  * you may not use this file except in compliance with the License.
- *  * You may obtain a copy of the License at
- *  *
- *  * http://www.apache.org/licenses/LICENSE-2.0
- *  *
- *  * Unless required by applicable law or agreed to in writing, software
- *  * distributed under the License is distributed on an "AS IS" BASIS,
- *  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  * See the License for the specific language governing permissions and
- *  * limitations under the License.
- *
- */
-
 package com.pedro.common.socket
 
-import io.ktor.network.selector.SelectorManager
-import io.ktor.utils.io.ByteReadChannel
-import io.ktor.utils.io.ByteWriteChannel
-import io.ktor.utils.io.readByte
-import io.ktor.utils.io.readFully
-import io.ktor.utils.io.readUTF8Line
-import io.ktor.utils.io.writeByte
-import io.ktor.utils.io.writeFully
-import io.ktor.utils.io.writeStringUtf8
+import com.pedro.common.TLSSocketFactory
 import kotlinx.coroutines.Dispatchers
-import java.net.ConnectException
+import kotlinx.coroutines.withContext
+import java.io.ByteArrayInputStream
+import java.io.ByteArrayOutputStream
+import java.io.IOException
+import java.io.InputStreamReader
+import java.io.OutputStreamWriter
+import java.net.InetSocketAddress
+import java.net.Socket
+import java.net.SocketAddress
+import java.net.SocketTimeoutException
+import java.security.GeneralSecurityException
+import java.util.concurrent.Executors
+import java.util.concurrent.Semaphore
+import java.util.concurrent.TimeUnit
+import javax.net.ssl.TrustManager
 
-/**
- * Created by pedro on 22/9/24.
- */
-abstract class TcpStreamSocket: StreamSocket {
+class TcpStreamSocket(
+    private val host: String,
+    private val port: Int,
+    private val secured: Boolean,
+    private val certificates: TrustManager? = null
+): StreamSocket() {
 
-  protected val timeout = 5000L
-  protected var input: ByteReadChannel? = null
-  protected var output: ByteWriteChannel? = null
-  protected var selectorManager = SelectorManager(Dispatchers.IO)
+    private var socket = Socket()
+    private var executorWrite = Executors.newSingleThreadExecutor()
+    private var input = ByteArrayInputStream(byteArrayOf()).buffered()
+    private var output = ByteArrayOutputStream().buffered()
+    private var reader = InputStreamReader(input).buffered()
+    private var writer = OutputStreamWriter(output).buffered()
+    private val semaphore = Semaphore(0)
+    private val semaphoreTimeout = Semaphore(0)
+    @Volatile
+    private var crash: Exception? = null
 
-  suspend fun flush() {
-    output?.flush()
-  }
+    override suspend fun connect() = withContext(Dispatchers.IO) {
+        if (secured) {
+            try {
+                val socketFactory = TLSSocketFactory(certificates?.let { arrayOf(it) })
+                socket = socketFactory.createSocket(host, port)
+            } catch (e: GeneralSecurityException) {
+                throw IOException("Create SSL socket failed: ${e.message}")
+            }
+        } else {
+            socket = Socket()
+            val socketAddress: SocketAddress = InetSocketAddress(host, port)
+            socket.connect(socketAddress, timeout.toInt())
+        }
+        output = socket.getOutputStream().buffered()
+        input = socket.getInputStream().buffered()
+        reader = InputStreamReader(input).buffered()
+        writer = OutputStreamWriter(output).buffered()
+        socket.soTimeout = timeout.toInt()
+        //parallel thread to do output flush allowing have a flush timeout and avoid stuck on it
+        executorWrite = Executors.newSingleThreadExecutor()
+        executorWrite.execute {
+            try {
+                doFlush()
+            } catch (e: Exception) {
+                crash = e
+                semaphoreTimeout.release()
+            }
+        }
+    }
 
-  suspend fun write(b: Int) {
-    output?.writeByte(b.toByte())
-  }
+    private fun doFlush() {
+        while (socket.isConnected) {
+            semaphore.acquire()
+            output.flush()
+            semaphoreTimeout.release()
+        }
+    }
 
-  suspend fun write(b: ByteArray) {
-    output?.writeFully(b)
-  }
+    override suspend fun close() = withContext(Dispatchers.IO) {
+        semaphore.release()
+        executorWrite.shutdownNow()
+        crash = null
+        if (socket.isConnected) {
+            runCatching { socket.shutdownOutput() }
+            runCatching { socket.shutdownInput() }
+            runCatching { socket.close() }
+        }
+    }
 
-  suspend fun write(b: ByteArray, offset: Int, size: Int) {
-    output?.writeFully(b, offset, offset + size)
-  }
+    suspend fun write(bytes: ByteArray) = withContext(Dispatchers.IO) {
+        output.write(bytes)
+    }
 
-  suspend fun writeUInt16(b: Int) {
-    write(byteArrayOf((b ushr 8).toByte(), b.toByte()))
-  }
+    suspend fun write(bytes: ByteArray, offset: Int, size: Int) = withContext(Dispatchers.IO) {
+        output.write(bytes, offset, size)
+    }
 
-  suspend fun writeUInt24(b: Int) {
-    write(byteArrayOf((b ushr 16).toByte(), (b ushr 8).toByte(), b.toByte()))
-  }
+    suspend fun write(b: Int) = withContext(Dispatchers.IO) {
+        output.write(b)
+    }
 
-  suspend fun writeUInt32(b: Int) {
-    write(byteArrayOf((b ushr 24).toByte(), (b ushr 16).toByte(), (b ushr 8).toByte(), b.toByte()))
-  }
+    suspend fun write(string: String) = withContext(Dispatchers.IO) {
+        writer.write(string)
+    }
 
-  suspend fun writeUInt32LittleEndian(b: Int) {
-    writeUInt32(Integer.reverseBytes(b))
-  }
+    suspend fun flush() = withContext(Dispatchers.IO) {
+        semaphore.release()
+        val success = semaphoreTimeout.tryAcquire(timeout, TimeUnit.MILLISECONDS)
+        if (!success) throw SocketTimeoutException("Flush timeout")
+        crash?.let { throw it }
+    }
 
-  suspend fun write(string: String) {
-    output?.writeStringUtf8(string)
-  }
+    suspend fun read(bytes: ByteArray) = withContext(Dispatchers.IO) {
+        input.read(bytes)
+    }
 
-  suspend fun read(): Int {
-    val input = input ?: throw ConnectException("Read with socket closed, broken pipe")
-    return input.readByte().toInt()
-  }
+    suspend fun read(size: Int): ByteArray = withContext(Dispatchers.IO) {
+        val data = ByteArray(size)
+        input.read(data)
+        data
+    }
 
-  suspend fun readUInt16(): Int {
-    val b = ByteArray(2)
-    readUntil(b)
-    return b[0].toInt() and 0xff shl 8 or (b[1].toInt() and 0xff)
-  }
+    suspend fun readLine(): String? = withContext(Dispatchers.IO) {
+        reader.readLine()
+    }
 
-  suspend fun readUInt24(): Int {
-    val b = ByteArray(3)
-    readUntil(b)
-    return b[0].toInt() and 0xff shl 16 or (b[1].toInt() and 0xff shl 8) or (b[2].toInt() and 0xff)
-  }
+    override fun isConnected(): Boolean = socket.isConnected
 
-  suspend fun readUInt32(): Int {
-    val b = ByteArray(4)
-    readUntil(b)
-    return b[0].toInt() and 0xff shl 24 or (b[1].toInt() and 0xff shl 16) or (b[2].toInt() and 0xff shl 8) or (b[3].toInt() and 0xff)
-  }
-
-  suspend fun readUInt32LittleEndian(): Int {
-    return Integer.reverseBytes(readUInt32())
-  }
-
-  suspend fun readUntil(b: ByteArray) {
-    val input = input ?: throw ConnectException("Read with socket closed, broken pipe")
-    input.readFully(b)
-  }
-
-  suspend fun readLine(): String? {
-    val input = input ?: throw ConnectException("Read with socket closed, broken pipe")
-    return input.readUTF8Line()
-  }
+    override fun isReachable(): Boolean = socket.inetAddress?.isReachable(timeout.toInt()) ?: false
 }

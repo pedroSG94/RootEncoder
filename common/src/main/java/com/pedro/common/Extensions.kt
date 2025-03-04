@@ -154,3 +154,31 @@ fun MediaFormat.getIntegerSafe(name: String): Int? {
 fun MediaFormat.getLongSafe(name: String): Long? {
   return try { getLong(name) } catch (e: Exception) { null }
 }
+
+fun Int.toUInt16(): ByteArray = byteArrayOf((this ushr 8).toByte(), this.toByte())
+
+fun Int.toUInt24(): ByteArray {
+  return byteArrayOf((this ushr 16).toByte(), (this ushr 8).toByte(), this.toByte())
+}
+
+fun Int.toUInt32(): ByteArray {
+  return byteArrayOf((this ushr 24).toByte(), (this ushr 16).toByte(), (this ushr 8).toByte(), this.toByte())
+}
+
+fun Int.toUInt32LittleEndian(): ByteArray = Integer.reverseBytes(this).toUInt32()
+
+fun ByteArray.toUInt16(): Int {
+  return this[0].toInt() and 0xff shl 8 or (this[1].toInt() and 0xff)
+}
+
+fun ByteArray.toUInt24(): Int {
+  return this[0].toInt() and 0xff shl 16 or (this[1].toInt() and 0xff shl 8) or (this[2].toInt() and 0xff)
+}
+
+fun ByteArray.toUInt32(): Int {
+  return this[0].toInt() and 0xff shl 24 or (this[1].toInt() and 0xff shl 16) or (this[2].toInt() and 0xff shl 8) or (this[3].toInt() and 0xff)
+}
+
+fun ByteArray.toUInt32LittleEndian(): Int {
+  return Integer.reverseBytes(toUInt32())
+}

@@ -37,8 +37,7 @@ open class TLSSocketFactory(
 
   init {
     val context = SSLContext.getInstance("TLS")
-    val secureRandom = if (trustManagers != null) SecureRandom() else null
-    context.init(null, trustManagers, secureRandom)
+    context.init(null, trustManagers, SecureRandom())
     internalSSLSocketFactory = context.socketFactory
   }
 

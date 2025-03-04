@@ -21,9 +21,12 @@ package com.pedro.common.socket
 /**
  * Created by pedro on 22/9/24.
  */
-interface StreamSocket {
-  suspend fun connect()
-  suspend fun close()
-  fun isConnected(): Boolean
-  fun isReachable(): Boolean
+abstract class StreamSocket {
+
+  protected val timeout = 5000L
+
+  abstract suspend fun connect()
+  abstract suspend fun close()
+  abstract fun isConnected(): Boolean
+  abstract fun isReachable(): Boolean
 }

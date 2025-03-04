@@ -51,14 +51,10 @@ abstract class BaseSenderReport internal constructor() {
         SenderReportTcp()
       } else {
         val videoSocket = if (videoServerPort != null) {
-          UdpStreamSocket(
-            host, videoServerPort, videoSourcePort, receiveSize = RtpConstants.REPORT_PACKET_LENGTH
-          )
+          UdpStreamSocket(host, videoServerPort, videoSourcePort)
         } else null
         val audioSocket = if (audioServerPort != null) {
-          UdpStreamSocket(
-            host, audioServerPort, audioSourcePort, receiveSize = RtpConstants.REPORT_PACKET_LENGTH
-          )
+          UdpStreamSocket(host, audioServerPort, audioSourcePort)
         } else null
         SenderReportUdp(videoSocket, audioSocket)
       }

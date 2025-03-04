@@ -16,8 +16,6 @@
 
 package com.pedro.rtsp.rtp
 
-import com.pedro.common.socket.TcpStreamSocketImp
-import com.pedro.common.socket.UdpStreamSocket
 import com.pedro.rtsp.rtp.sockets.BaseRtpSocket
 import com.pedro.rtsp.rtp.sockets.RtpSocketUdp
 import com.pedro.rtsp.rtsp.Protocol
