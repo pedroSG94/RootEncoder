@@ -1,8 +1,6 @@
 package com.pedro.common.socket
 
 import com.pedro.common.readUntil
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import java.io.InputStreamReader
@@ -26,9 +24,9 @@ abstract class TcpStreamSocketBase: StreamSocket() {
     @Volatile
     private var crash: Exception? = null
 
-    abstract suspend fun onConnectSocket(timeout: Long): Socket
+    abstract fun onConnectSocket(timeout: Long): Socket
 
-    override suspend fun connect() = withContext(Dispatchers.IO) {
+    override fun connect() {
         socket = onConnectSocket(timeout)
         output = socket.getOutputStream().buffered()
         input = socket.getInputStream().buffered()
@@ -55,7 +53,7 @@ abstract class TcpStreamSocketBase: StreamSocket() {
         }
     }
 
-    override suspend fun close() = withContext(Dispatchers.IO) {
+    override fun close() {
         semaphore.release()
         executorWrite.shutdownNow()
         crash = null
@@ -66,42 +64,40 @@ abstract class TcpStreamSocketBase: StreamSocket() {
         }
     }
 
-    suspend fun write(bytes: ByteArray) = withContext(Dispatchers.IO) {
+    fun write(bytes: ByteArray) {
         output.write(bytes)
     }
 
-    suspend fun write(bytes: ByteArray, offset: Int, size: Int) = withContext(Dispatchers.IO) {
+    fun write(bytes: ByteArray, offset: Int, size: Int) {
         output.write(bytes, offset, size)
     }
 
-    suspend fun write(b: Int) = withContext(Dispatchers.IO) {
+    fun write(b: Int) {
         output.write(b)
     }
 
-    suspend fun write(string: String) = withContext(Dispatchers.IO) {
+    fun write(string: String) {
         writer.write(string)
     }
 
-    suspend fun flush() = withContext(Dispatchers.IO) {
+    fun flush() {
         semaphore.release()
         val success = semaphoreTimeout.tryAcquire(timeout, TimeUnit.MILLISECONDS)
         if (!success) throw SocketTimeoutException("Flush timeout")
         crash?.let { throw it }
     }
 
-    suspend fun read(bytes: ByteArray) = withContext(Dispatchers.IO) {
+    fun read(bytes: ByteArray) {
         input.readUntil(bytes)
     }
 
-    suspend fun read(size: Int): ByteArray = withContext(Dispatchers.IO) {
+    fun read(size: Int): ByteArray {
         val data = ByteArray(size)
         read(data)
-        data
+        return data
     }
 
-    suspend fun readLine(): String? = withContext(Dispatchers.IO) {
-        reader.readLine()
-    }
+    fun readLine(): String? = reader.readLine()
 
     override fun isConnected(): Boolean = socket.isConnected
 

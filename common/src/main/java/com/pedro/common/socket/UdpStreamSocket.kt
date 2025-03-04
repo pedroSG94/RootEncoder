@@ -1,7 +1,5 @@
 package com.pedro.common.socket
 
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
 import java.net.DatagramPacket
 import java.net.DatagramSocket
 import java.net.InetAddress
@@ -17,7 +15,7 @@ class UdpStreamSocket(
 
     private var socket: DatagramSocket? = null
 
-    override suspend fun connect() = withContext(Dispatchers.IO) {
+    override fun connect() {
         val socket = when (type) {
             UdpType.UNICAST -> {
                 sourcePort?.let { DatagramSocket(sourcePort) } ?: DatagramSocket()
@@ -36,7 +34,7 @@ class UdpStreamSocket(
         this@UdpStreamSocket.socket = socket
     }
 
-    override suspend fun close() = withContext(Dispatchers.IO) {
+    override fun close() {
         if (socket?.isClosed == false) {
             socket?.disconnect()
             socket?.close()
@@ -44,16 +42,16 @@ class UdpStreamSocket(
         }
     }
 
-    suspend fun write(bytes: ByteArray) = withContext(Dispatchers.IO) {
+    fun write(bytes: ByteArray) {
         val udpPacket = DatagramPacket(bytes, bytes.size)
         socket?.send(udpPacket)
     }
 
-    suspend fun read(size: Int = SocketOptions.SO_RCVBUF): ByteArray = withContext(Dispatchers.IO) {
+    fun read(size: Int = SocketOptions.SO_RCVBUF): ByteArray {
         val buffer = ByteArray(size)
         val udpPacket = DatagramPacket(buffer, buffer.size)
         socket?.receive(udpPacket)
-        udpPacket.data.sliceArray(0 until udpPacket.length)
+        return udpPacket.data.sliceArray(0 until udpPacket.length)
     }
 
     override fun isConnected(): Boolean = socket?.isConnected ?: false

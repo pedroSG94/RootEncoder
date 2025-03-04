@@ -25,8 +25,8 @@ abstract class StreamSocket {
 
   protected val timeout = 5000L
 
-  abstract suspend fun connect()
-  abstract suspend fun close()
+  abstract fun connect()
+  abstract fun close()
   abstract fun isConnected(): Boolean
   abstract fun isReachable(): Boolean
 }

@@ -1,7 +1,5 @@
 package com.pedro.common.socket
 
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
 import java.io.IOException
 import java.net.InetSocketAddress
 import java.net.Socket
@@ -19,7 +17,7 @@ class TcpStreamSocket(
     private val certificates: TrustManager? = null
 ): TcpStreamSocketBase() {
 
-    override suspend fun onConnectSocket(timeout: Long): Socket = withContext(Dispatchers.IO) {
+    override fun onConnectSocket(timeout: Long): Socket {
         val socket = if (secured) {
             try {
                 val context = SSLContext.getInstance("TLS")
@@ -33,6 +31,6 @@ class TcpStreamSocket(
         } else Socket()
         val socketAddress: SocketAddress = InetSocketAddress(host, port)
         socket.connect(socketAddress, timeout.toInt())
-        socket
+        return socket
     }
 }
