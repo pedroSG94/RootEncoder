@@ -26,6 +26,8 @@ public class SensorRotationManager {
 
   private final OrientationEventListener listener;
   private int currentOrientation = -1;
+  private final Context context;
+  private final RotationChangedListener rotationListener;
 
   public interface RotationChangedListener {
     void onRotationChanged(int rotation, boolean isPortrait);
@@ -37,7 +39,9 @@ public class SensorRotationManager {
       boolean followUI,
       final RotationChangedListener rotationListener
   ) {
-    this.listener = new OrientationEventListener(context, SensorManager.SENSOR_DELAY_NORMAL) {
+    this.context = context;
+    this.rotationListener = rotationListener;
+    listener = new OrientationEventListener(context, SensorManager.SENSOR_DELAY_NORMAL) {
       @Override
       public void onOrientationChanged(int sensorOrientation) {
         final int rotation = ((sensorOrientation + 45) / 90) % 4;
@@ -59,6 +63,9 @@ public class SensorRotationManager {
   public void start() {
     if (listener.canDetectOrientation()) {
       currentOrientation = -1;
+      int currentOrientation = getUiOrientation(context);
+      boolean isPortrait = currentOrientation == 0 || currentOrientation == 180;
+      rotationListener.onRotationChanged(currentOrientation, isPortrait);
       listener.enable();
     }
   }
