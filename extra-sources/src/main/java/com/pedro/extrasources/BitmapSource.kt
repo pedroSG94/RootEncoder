@@ -24,9 +24,12 @@ import androidx.core.graphics.scale
 import com.pedro.encoder.input.sources.video.VideoSource
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 
 /**
  * Created by pedro on 19/3/24.
@@ -35,7 +38,7 @@ class BitmapSource(private val bitmap: Bitmap): VideoSource() {
 
   @Volatile
   private var running = false
-  private val scope = CoroutineScope(Dispatchers.IO)
+  private var job: Job? = null
   private var surface: Surface? = null
   private val paint = Paint()
 
@@ -48,22 +51,22 @@ class BitmapSource(private val bitmap: Bitmap): VideoSource() {
     surfaceTexture.setDefaultBufferSize(width, height)
     surface = Surface(surfaceTexture)
     running = true
-    scope.launch {
+    job = CoroutineScope(Dispatchers.IO).launch {
       while (running) {
         try {
           val canvas = surface?.lockCanvas(null)
           canvas?.drawBitmap(scaledBitmap, 0f, 0f, paint)
           surface?.unlockCanvasAndPost(canvas)
-          //sleep to emulate fps
-          delay(1000 / fps.toLong())
         } catch (ignored: Exception) { }
+        //sleep to emulate fps
+        delay(1000 / fps.toLong())
       }
     }
   }
 
   override fun stop() {
     running = false
-    scope.cancel()
+    runBlocking { job?.cancelAndJoin() }
     surface?.release()
     surface = null
   }
