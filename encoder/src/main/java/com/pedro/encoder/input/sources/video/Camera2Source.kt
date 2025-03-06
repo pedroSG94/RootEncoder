@@ -222,7 +222,7 @@ class Camera2Source(context: Context): VideoSource() {
   }
 
   @RequiresApi(Build.VERSION_CODES.P)
-  fun physicalCamerasAvailable() = camera.physicalCamerasAvailable
+  fun physicalCamerasAvailable() = camera.getPhysicalCamerasAvailable()
 
   @RequiresApi(Build.VERSION_CODES.P)
   fun openPhysicalCamera(id: String?) {

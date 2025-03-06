@@ -270,7 +270,9 @@ class Camera2ApiManager(context: Context) : CameraDevice.StateCallback() {
         }
 
     @RequiresApi(Build.VERSION_CODES.P)
-    val physicalCamerasAvailable = cameraCharacteristics?.physicalCameraIds?.toList() ?: emptyList()
+    fun getPhysicalCamerasAvailable(): List<String> {
+        return cameraCharacteristics?.physicalCameraIds?.toList() ?: emptyList()
+    }
 
     @RequiresApi(Build.VERSION_CODES.P)
     fun setPhysicalCamera(id: String?) {
