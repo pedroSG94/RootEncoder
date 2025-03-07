@@ -47,7 +47,7 @@ public class AudioEncoder extends BaseEncoder implements GetMicrophoneData {
   public static final int inputSize = 8192;
   private boolean isStereo = true;
   private GetFrame getFrame;
-  private float tsBuffer = 0;
+  private long tsBuffer = 0;
 
   public AudioEncoder(GetAudioData getAudioData) {
     this.getAudioData = getAudioData;
@@ -144,12 +144,14 @@ public class AudioEncoder extends BaseEncoder implements GetMicrophoneData {
   @Override
   protected long calculatePts(Frame frame, long presentTimeUs) {
     long pts;
+    long clockPts = Math.max(0, frame.getTimeStamp() - presentTimeUs);
     if (timestampMode == TimestampMode.CLOCK) {
-      pts = Math.max(0, frame.getTimeStamp() - presentTimeUs);
+      pts = clockPts;
     } else {
       int channels = isStereo ? 2 : 1;
-      tsBuffer += (long) ((frame.getSize() / (channels * 2f) / sampleRate) * 1_000_000f);
-      pts = (long) tsBuffer;
+      tsBuffer += (long) ((frame.getSize() / (channels * 2f) / sampleRate) * 1_000_000);
+      if (clockPts - tsBuffer > 100_000) tsBuffer = clockPts;
+      pts = tsBuffer;
     }
     return pts;
   }
