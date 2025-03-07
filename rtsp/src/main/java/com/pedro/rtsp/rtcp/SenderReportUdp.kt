@@ -48,9 +48,9 @@ class SenderReportUdp(
   @Throws(IOException::class)
   private suspend fun sendReportUDP(buffer: ByteArray, isVideo: Boolean) {
     if (isVideo) {
-      videoSocket?.writePacket(buffer)
+      videoSocket?.write(buffer)
     } else {
-      audioSocket?.writePacket(buffer)
+      audioSocket?.write(buffer)
     }
   }
 }
