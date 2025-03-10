@@ -66,6 +66,7 @@ class GlStreamInterface(private val context: Context): OnFrameAvailableListener,
   private var previewHeight = 0
   private var previewOrientation = 0
   private var isPortrait = false
+  private var isPortraitPreview = false
   private var orientationForced = OrientationForced.NONE
   private val filterQueue: BlockingQueue<Filter> = LinkedBlockingQueue()
   private val threadQueue = LinkedBlockingQueue<Runnable>()
@@ -85,7 +86,7 @@ class GlStreamInterface(private val context: Context): OnFrameAvailableListener,
   private val sensorRotationManager = SensorRotationManager(context, true, true) { orientation, isPortrait ->
     if (autoHandleOrientation && shouldHandleOrientation) {
       setCameraOrientation(orientation)
-      this.isPortrait = isPortrait
+      setIsPortrait(isPortrait)
     }
   }
 
@@ -239,6 +240,11 @@ class GlStreamInterface(private val context: Context): OnFrameAvailableListener,
       OrientationForced.LANDSCAPE -> false
       OrientationForced.NONE -> isPortrait
     }
+    val orientationPreview = when (orientationForced) {
+      OrientationForced.PORTRAIT -> true
+      OrientationForced.LANDSCAPE -> false
+      OrientationForced.NONE -> isPortraitPreview
+    }
     // render VideoEncoder (stream and record)
     if (surfaceManagerEncoder.isReady && mainRender.isReady() && !limitFps) {
       val w = if (muteVideo) 0 else encoderWidth
@@ -271,7 +277,7 @@ class GlStreamInterface(private val context: Context): OnFrameAvailableListener,
       val w =  if (previewWidth == 0) encoderWidth else previewWidth
       val h =  if (previewHeight == 0) encoderHeight else previewHeight
       surfaceManagerPreview.makeCurrent()
-      mainRender.drawScreenPreview(w, h, orientation, aspectRatioMode, previewOrientation,
+      mainRender.drawScreenPreview(w, h, orientationPreview, aspectRatioMode, previewOrientation,
         isPreviewVerticalFlip, isPreviewHorizontalFlip)
       surfaceManagerPreview.swapBuffer()
     }
@@ -332,6 +338,15 @@ class GlStreamInterface(private val context: Context): OnFrameAvailableListener,
   }
 
   fun setIsPortrait(isPortrait: Boolean) {
+    setPreviewIsPortrait(isPortrait)
+    setStreamIsPortrait(isPortrait)
+  }
+
+  fun setPreviewIsPortrait(isPortrait: Boolean) {
+    this.isPortraitPreview = isPortrait
+  }
+
+  fun setStreamIsPortrait(isPortrait: Boolean) {
     this.isPortrait = isPortrait
   }
 
