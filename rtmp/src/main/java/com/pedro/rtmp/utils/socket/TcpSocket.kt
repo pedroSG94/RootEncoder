@@ -16,7 +16,8 @@
 
 package com.pedro.rtmp.utils.socket
 
-import com.pedro.common.socket.TcpStreamSocket
+import com.pedro.common.socket.base.SocketType
+import com.pedro.common.socket.base.StreamSocket
 import com.pedro.common.toUInt16
 import com.pedro.common.toUInt24
 import com.pedro.common.toUInt32
@@ -34,10 +35,11 @@ class AcceptAllCertificates: X509TrustManager {
  * Created by pedro on 5/4/22.
  */
 class TcpSocket(
+  type: SocketType,
   host: String, port: Int, secured: Boolean, certificates: TrustManager?
 ): RtmpSocket() {
 
-  private val socket = TcpStreamSocket(host, port, secured, certificates)
+  private val socket = StreamSocket.createTcpSocket(type, host, port, secured, certificates)
 
   override suspend fun flush(isPacket: Boolean) {
     socket.flush()

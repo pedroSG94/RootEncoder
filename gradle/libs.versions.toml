@@ -19,6 +19,7 @@ annotation = "1.9.1"
 coroutines = "1.10.1"
 junit = "4.13.2"
 mockito = "5.4.0"
+ktor = "3.1.1"
 uvcandroid = "1.0.9"
 media3 = "1.5.1"
 
@@ -33,6 +34,8 @@ androidx-multidex = { module = "androidx.multidex:multidex", version.ref = "mult
 junit = { module = "junit:junit", version.ref = "junit" }
 kotlinx-coroutines-android = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-android", version.ref = "coroutines" }
 kotlinx-coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test", version.ref = "coroutines" }
+ktor-network = { module = "io.ktor:ktor-network", version.ref = "ktor" }
+ktor-network-tls = { module = "io.ktor:ktor-network-tls", version.ref = "ktor" }
 mockito-kotlin = { module = "org.mockito.kotlin:mockito-kotlin", version.ref = "mockito" }
 uvcandroid = { module = "com.herohan:UVCAndroid", version.ref = "uvcandroid" }
 androidx-media3-exoplayer = { module = "androidx.media3:media3-exoplayer", version.ref = "media3" }

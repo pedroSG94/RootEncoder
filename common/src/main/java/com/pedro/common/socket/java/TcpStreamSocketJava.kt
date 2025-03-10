@@ -1,4 +1,4 @@
-package com.pedro.common.socket
+package com.pedro.common.socket.java
 
 import java.io.IOException
 import java.net.InetSocketAddress
@@ -10,12 +10,12 @@ import javax.net.ssl.SSLContext
 import javax.net.ssl.SSLSocket
 import javax.net.ssl.TrustManager
 
-class TcpStreamSocket(
+class TcpStreamSocketJava(
     private val host: String,
     private val port: Int,
     private val secured: Boolean,
     private val certificates: TrustManager? = null
-): TcpStreamSocketBase() {
+): TcpStreamSocketJavaBase() {
 
     override fun onConnectSocket(timeout: Long): Socket {
         val socket = if (secured) {

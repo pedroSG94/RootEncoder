@@ -26,7 +26,9 @@ import com.pedro.common.VideoCodec
 import com.pedro.common.clone
 import com.pedro.common.frame.MediaFrame
 import com.pedro.common.onMainThread
-import com.pedro.common.socket.TcpStreamSocket
+import com.pedro.common.socket.base.SocketType
+import com.pedro.common.socket.base.StreamSocket
+import com.pedro.common.socket.base.TcpStreamSocket
 import com.pedro.common.toMediaFrameInfo
 import com.pedro.common.validMessage
 import com.pedro.rtsp.rtsp.commands.CommandsManager
@@ -90,6 +92,7 @@ class RtspClient(private val connectChecker: ConnectChecker) {
     get() = rtspSender.getSentAudioFrames()
   val sentVideoFrames: Long
     get() = rtspSender.getSentVideoFrames()
+  var socketType = SocketType.KTOR
 
   /**
    * Add certificates for TLS connection
@@ -237,7 +240,7 @@ class RtspClient(private val connectChecker: ConnectChecker) {
             }
             rtspSender.setVideoInfo(commandsManager.sps!!, commandsManager.pps, commandsManager.vps)
           }
-          val socket = TcpStreamSocket(host, port, tlsEnabled, certificates)
+          val socket = StreamSocket.createTcpSocket(socketType, host, port, tlsEnabled, certificates)
           this@RtspClient.socket = socket
           socket.connect()
           socket.write(commandsManager.createOptions())
@@ -339,7 +342,9 @@ class RtspClient(private val connectChecker: ConnectChecker) {
             commandsManager.audioServerPorts
           } else arrayOf<Int?>(null, null)
 
-          rtspSender.setSocketsInfo(commandsManager.protocol,
+          rtspSender.setSocketsInfo(
+            socketType,
+            commandsManager.protocol,
             host,
             videoClientPorts,
             audioClientPorts,

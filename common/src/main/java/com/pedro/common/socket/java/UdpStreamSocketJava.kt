@@ -1,21 +1,25 @@
-package com.pedro.common.socket
+package com.pedro.common.socket.java
 
+import com.pedro.common.socket.base.UdpStreamSocket
+import com.pedro.common.socket.base.UdpType
 import java.net.DatagramPacket
 import java.net.DatagramSocket
 import java.net.InetAddress
 import java.net.MulticastSocket
 import java.net.SocketOptions
 
-class UdpStreamSocket(
+class UdpStreamSocketJava(
     private val host: String,
     private val port: Int,
     private val sourcePort: Int? = null,
+    private val receiveSize: Int? = null,
     private val type: UdpType = UdpType.UNICAST
-): StreamSocket() {
+): UdpStreamSocket() {
 
     private var socket: DatagramSocket? = null
+    private val packetSize = receiveSize ?: SocketOptions.SO_RCVBUF
 
-    override fun connect() {
+    override suspend fun connect() {
         val socket = when (type) {
             UdpType.UNICAST -> {
                 sourcePort?.let { DatagramSocket(sourcePort) } ?: DatagramSocket()
@@ -31,10 +35,10 @@ class UdpStreamSocket(
         val address = InetAddress.getByName(host)
         socket.connect(address, port)
         socket.soTimeout = timeout.toInt()
-        this@UdpStreamSocket.socket = socket
+        this.socket = socket
     }
 
-    override fun close() {
+    override suspend fun close() {
         if (socket?.isClosed == false) {
             socket?.disconnect()
             socket?.close()
@@ -42,13 +46,13 @@ class UdpStreamSocket(
         }
     }
 
-    fun write(bytes: ByteArray) {
+    override suspend fun write(bytes: ByteArray) {
         val udpPacket = DatagramPacket(bytes, bytes.size)
         socket?.send(udpPacket)
     }
 
-    fun read(size: Int = SocketOptions.SO_RCVBUF): ByteArray {
-        val buffer = ByteArray(size)
+    override suspend fun read(): ByteArray {
+        val buffer = ByteArray(packetSize)
         val udpPacket = DatagramPacket(buffer, buffer.size)
         socket?.receive(udpPacket)
         return udpPacket.data.sliceArray(0 until udpPacket.length)
