@@ -16,17 +16,30 @@
 
 package com.pedro.rtmp.utils.socket
 
-import com.pedro.common.socket.TcpStreamSocketImp
+import com.pedro.common.socket.base.SocketType
+import com.pedro.common.socket.base.StreamSocket
+import com.pedro.common.toUInt16
+import com.pedro.common.toUInt24
+import com.pedro.common.toUInt32
+import com.pedro.common.toUInt32LittleEndian
+import java.security.cert.X509Certificate
 import javax.net.ssl.TrustManager
+import javax.net.ssl.X509TrustManager
 
+class AcceptAllCertificates: X509TrustManager {
+  override fun checkClientTrusted(chain: Array<out X509Certificate>?, authType: String?) {}
+  override fun checkServerTrusted(chain: Array<out X509Certificate>?, authType: String?) {}
+  override fun getAcceptedIssuers(): Array<X509Certificate>? = null
+}
 /**
  * Created by pedro on 5/4/22.
  */
 class TcpSocket(
+  type: SocketType,
   host: String, port: Int, secured: Boolean, certificates: TrustManager?
 ): RtmpSocket() {
 
-  private val socket = TcpStreamSocketImp(host, port, secured, certificates)
+  private val socket = StreamSocket.createTcpSocket(type, host, port, secured, certificates)
 
   override suspend fun flush(isPacket: Boolean) {
     socket.flush()
@@ -57,32 +70,32 @@ class TcpSocket(
   }
 
   override suspend fun writeUInt16(b: Int) {
-    socket.writeUInt16(b)
+    socket.write(b.toUInt16())
   }
 
   override suspend fun writeUInt24(b: Int) {
-    socket.writeUInt24(b)
+    socket.write(b.toUInt24())
   }
 
   override suspend fun writeUInt32(b: Int) {
-    socket.writeUInt32(b)
+    socket.write(b.toUInt32())
   }
 
   override suspend fun writeUInt32LittleEndian(b: Int) {
-    socket.writeUInt32LittleEndian(b)
+    socket.write(b.toUInt32LittleEndian())
   }
 
-  override suspend fun read(): Int = socket.read()
+  override suspend fun read(): Int = socket.read(1)[0].toInt()
 
-  override suspend fun readUInt16(): Int = socket.readUInt16()
+  override suspend fun readUInt16(): Int = socket.read(2).toUInt16()
 
-  override suspend fun readUInt24(): Int = socket.readUInt24()
+  override suspend fun readUInt24(): Int = socket.read(3).toUInt24()
 
-  override suspend fun readUInt32(): Int = socket.readUInt32()
+  override suspend fun readUInt32(): Int = socket.read(4).toUInt32()
 
-  override suspend fun readUInt32LittleEndian(): Int = socket.readUInt32LittleEndian()
+  override suspend fun readUInt32LittleEndian(): Int = socket.read(4).toUInt32LittleEndian()
 
   override suspend fun readUntil(b: ByteArray) {
-    socket.readUntil(b)
+    socket.read(b)
   }
 }

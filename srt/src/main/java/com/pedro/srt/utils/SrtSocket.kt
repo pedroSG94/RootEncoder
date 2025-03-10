@@ -16,15 +16,16 @@
 
 package com.pedro.srt.utils
 
-import com.pedro.common.socket.UdpStreamSocket
+import com.pedro.common.socket.base.SocketType
+import com.pedro.common.socket.base.StreamSocket
 import com.pedro.srt.srt.packets.SrtPacket
 
 /**
  * Created by pedro on 22/8/23.
  */
-class SrtSocket(host: String, port: Int) {
+class SrtSocket(type: SocketType, host: String, port: Int) {
 
-  private val socket = UdpStreamSocket(host, port, receiveSize = Constants.MTU)
+  private val socket = StreamSocket.createUdpSocket(type, host, port, receiveSize = Constants.MTU)
 
   suspend fun connect() {
     socket.connect()
@@ -40,8 +41,8 @@ class SrtSocket(host: String, port: Int) {
 
   suspend fun write(srtPacket: SrtPacket) {
     val buffer = srtPacket.getData()
-    socket.writePacket(buffer)
+    socket.write(buffer)
   }
 
-  suspend fun readBuffer() = socket.readPacket()
+  suspend fun readBuffer() = socket.read()
 }

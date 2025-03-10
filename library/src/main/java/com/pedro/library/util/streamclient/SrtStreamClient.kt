@@ -16,6 +16,7 @@
 
 package com.pedro.library.util.streamclient
 
+import com.pedro.common.socket.base.SocketType
 import com.pedro.srt.srt.SrtClient
 import com.pedro.srt.srt.packets.control.handshake.EncryptionType
 
@@ -124,4 +125,11 @@ class SrtStreamClient(
    * Get the exponential factor used to calculate the bitrate. Default 1f
    */
   override fun getBitrateExponentialFactor() = srtClient.getBitrateExponentialFactor()
+
+  /**
+   * Set if you want use java.io or ktor socket
+   */
+  override fun setSocketType(type: SocketType) {
+    srtClient.socketType = type
+  }
 }

@@ -16,6 +16,7 @@
 
 package com.pedro.library.util.streamclient
 
+import com.pedro.common.socket.base.SocketType
 import com.pedro.rtmp.rtmp.RtmpClient
 import javax.net.ssl.TrustManager
 
@@ -152,4 +153,11 @@ class RtmpStreamClient(
    * Get the exponential factor used to calculate the bitrate. Default 1f
    */
   override fun getBitrateExponentialFactor() = rtmpClient.getBitrateExponentialFactor()
+
+  /**
+   * Set if you want use java.io or ktor socket
+   */
+  override fun setSocketType(type: SocketType) {
+    rtmpClient.socketType = type
+  }
 }

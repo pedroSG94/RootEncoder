@@ -16,15 +16,15 @@
 
 package com.pedro.rtmp.rtmp.message.control
 
+import com.pedro.common.readUInt16
+import com.pedro.common.readUInt32
+import com.pedro.common.writeUInt16
+import com.pedro.common.writeUInt32
 import com.pedro.rtmp.rtmp.chunk.ChunkStreamId
 import com.pedro.rtmp.rtmp.chunk.ChunkType
 import com.pedro.rtmp.rtmp.message.BasicHeader
 import com.pedro.rtmp.rtmp.message.MessageType
 import com.pedro.rtmp.rtmp.message.RtmpMessage
-import com.pedro.rtmp.utils.readUInt16
-import com.pedro.rtmp.utils.readUInt32
-import com.pedro.rtmp.utils.writeUInt16
-import com.pedro.rtmp.utils.writeUInt32
 import java.io.ByteArrayOutputStream
 import java.io.IOException
 import java.io.InputStream

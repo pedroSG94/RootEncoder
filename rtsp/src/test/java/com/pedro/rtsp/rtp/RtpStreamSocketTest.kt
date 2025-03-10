@@ -16,8 +16,9 @@
 
 package com.pedro.rtsp.rtp
 
-import com.pedro.common.socket.TcpStreamSocketImp
-import com.pedro.common.socket.UdpStreamSocket
+import com.pedro.common.socket.base.SocketType
+import com.pedro.common.socket.base.TcpStreamSocket
+import com.pedro.common.socket.base.UdpStreamSocket
 import com.pedro.rtsp.rtp.sockets.BaseRtpSocket
 import com.pedro.rtsp.rtp.sockets.RtpSocketUdp
 import com.pedro.rtsp.rtsp.Protocol
@@ -43,11 +44,11 @@ class RtpStreamSocketTest {
   @Mock
   private lateinit var udpSocket: UdpStreamSocket
   @Mock
-  private lateinit var tcpSocket: TcpStreamSocketImp
+  private lateinit var tcpSocket: TcpStreamSocket
 
   @Test
   fun `GIVEN multiple video or audio rtp frames WHEN update rtcp tcp send THEN send only 1 of video and 1 of audio each 3 seconds`() = runTest {
-    val senderReportTcp = BaseRtpSocket.getInstance(Protocol.TCP, "127.0.0.1", 0, 1, 2, 3)
+    val senderReportTcp = BaseRtpSocket.getInstance(SocketType.JAVA, Protocol.TCP, "127.0.0.1", 0, 1, 2, 3)
     senderReportTcp.setSocket(tcpSocket)
     val fakeFrameVideo = RtpFrame(byteArrayOf(0x00, 0x00, 0x00), 0, 3, RtpConstants.trackVideo)
     val fakeFrameAudio = RtpFrame(byteArrayOf(0x00, 0x00, 0x00), 0, 3, RtpConstants.trackAudio)
@@ -73,7 +74,7 @@ class RtpStreamSocketTest {
     }
     val resultValue = argumentCaptor<ByteArray>()
     withContext(Dispatchers.IO) {
-      verify(udpSocket, times((10))).writePacket(resultValue.capture())
+      verify(udpSocket, times((10))).write(resultValue.capture())
     }
   }
 }

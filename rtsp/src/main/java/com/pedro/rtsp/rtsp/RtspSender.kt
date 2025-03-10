@@ -23,7 +23,8 @@ import com.pedro.common.VideoCodec
 import com.pedro.common.base.BaseSender
 import com.pedro.common.frame.MediaFrame
 import com.pedro.common.onMainThread
-import com.pedro.common.socket.TcpStreamSocket
+import com.pedro.common.socket.base.SocketType
+import com.pedro.common.socket.base.TcpStreamSocket
 import com.pedro.common.validMessage
 import com.pedro.rtsp.rtcp.BaseSenderReport
 import com.pedro.rtsp.rtp.packets.*
@@ -53,12 +54,13 @@ class RtspSender(
 
   @Throws(IOException::class)
   fun setSocketsInfo(
+    socketType: SocketType,
     protocol: Protocol, host: String,
     videoSourcePorts: Array<Int?>, audioSourcePorts: Array<Int?>,
     videoServerPorts: Array<Int?>, audioServerPorts: Array<Int?>,
   ) {
-    rtpSocket = BaseRtpSocket.getInstance(protocol, host, videoSourcePorts[0], audioSourcePorts[0], videoServerPorts[0], audioServerPorts[0])
-    baseSenderReport = BaseSenderReport.getInstance(protocol, host, videoSourcePorts[1], audioSourcePorts[1], videoServerPorts[1], audioServerPorts[1])
+    rtpSocket = BaseRtpSocket.getInstance(socketType, protocol, host, videoSourcePorts[0], audioSourcePorts[0], videoServerPorts[0], audioServerPorts[0])
+    baseSenderReport = BaseSenderReport.getInstance(socketType, protocol, host, videoSourcePorts[1], audioSourcePorts[1], videoServerPorts[1], audioServerPorts[1])
   }
 
   @Throws(IOException::class)

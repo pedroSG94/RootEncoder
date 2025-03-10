@@ -16,6 +16,7 @@
 
 package com.pedro.library.util.streamclient
 
+import com.pedro.common.socket.base.SocketType
 import com.pedro.udp.UdpClient
 
 /**
@@ -110,4 +111,11 @@ class UdpStreamClient(
    * Get the exponential factor used to calculate the bitrate. Default 1f
    */
   override fun getBitrateExponentialFactor() = udpClient.getBitrateExponentialFactor()
+
+  /**
+   * Set if you want use java.io or ktor socket
+   */
+  override fun setSocketType(type: SocketType) {
+    udpClient.socketType = type
+  }
 }

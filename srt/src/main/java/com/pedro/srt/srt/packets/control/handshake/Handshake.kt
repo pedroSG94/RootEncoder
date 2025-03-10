@@ -16,14 +16,14 @@
 
 package com.pedro.srt.srt.packets.control.handshake
 
+import com.pedro.common.readUInt16
+import com.pedro.common.readUInt32
+import com.pedro.common.writeUInt16
+import com.pedro.common.writeUInt32
 import com.pedro.srt.srt.packets.ControlPacket
 import com.pedro.srt.srt.packets.control.ControlType
 import com.pedro.srt.srt.packets.control.handshake.extension.HandshakeExtension
 import com.pedro.srt.utils.Constants
-import com.pedro.srt.utils.readUInt16
-import com.pedro.srt.utils.readUInt32
-import com.pedro.srt.utils.writeUInt16
-import com.pedro.srt.utils.writeUInt32
 import java.io.InputStream
 import java.net.InetAddress
 

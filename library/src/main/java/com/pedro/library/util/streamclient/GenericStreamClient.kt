@@ -16,6 +16,7 @@
 
 package com.pedro.library.util.streamclient
 
+import com.pedro.common.socket.base.SocketType
 import com.pedro.rtsp.rtsp.Protocol
 import com.pedro.srt.srt.packets.control.handshake.EncryptionType
 import javax.net.ssl.TrustManager
@@ -31,6 +32,16 @@ class GenericStreamClient(
 ): StreamBaseClient() {
 
   private var connectedStreamClient : StreamBaseClient? = null
+
+  /**
+   * Set if you want use java.io or ktor socket
+   */
+  override fun setSocketType(type: SocketType) {
+    rtmpClient.setSocketType(type)
+    rtspClient.setSocketType(type)
+    srtClient.setSocketType(type)
+    udpClient.setSocketType(type)
+  }
 
   /**
    * Must be called before start stream or will be ignored.

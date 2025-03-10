@@ -21,8 +21,7 @@ import com.pedro.common.AudioCodec
 import com.pedro.common.TimeUtils
 import com.pedro.common.VideoCodec
 import com.pedro.common.getMd5Hash
-import com.pedro.common.socket.TcpStreamSocket
-import com.pedro.common.socket.TcpStreamSocketImp
+import com.pedro.common.socket.base.TcpStreamSocket
 import com.pedro.rtsp.rtsp.Protocol
 import com.pedro.rtsp.rtsp.commands.SdpBody.createAV1Body
 import com.pedro.rtsp.rtsp.commands.SdpBody.createAacBody
