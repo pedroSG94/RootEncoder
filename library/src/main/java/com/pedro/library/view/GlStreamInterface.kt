@@ -64,8 +64,10 @@ class GlStreamInterface(private val context: Context): OnFrameAvailableListener,
   private var streamOrientation = 0
   private var previewWidth = 0
   private var previewHeight = 0
-  private var previewOrientation = 0
+  private var cameraPreviewOrientation = 0
+  private var cameraStreamOrientation = 0
   private var isPortrait = false
+  private var isPortraitPreview = false
   private var orientationForced = OrientationForced.NONE
   private val filterQueue: BlockingQueue<Filter> = LinkedBlockingQueue()
   private val threadQueue = LinkedBlockingQueue<Runnable>()
@@ -85,7 +87,7 @@ class GlStreamInterface(private val context: Context): OnFrameAvailableListener,
   private val sensorRotationManager = SensorRotationManager(context, true, true) { orientation, isPortrait ->
     if (autoHandleOrientation && shouldHandleOrientation) {
       setCameraOrientation(orientation)
-      this.isPortrait = isPortrait
+      setIsPortrait(isPortrait)
     }
   }
 
@@ -219,6 +221,7 @@ class GlStreamInterface(private val context: Context): OnFrameAvailableListener,
 
     if (surfaceManager.isReady && mainRender.isReady()) {
       surfaceManager.makeCurrent()
+      mainRender.setCameraRotation(cameraStreamOrientation)
       mainRender.updateFrame()
       mainRender.drawOffScreen()
       surfaceManager.swapBuffer()
@@ -238,6 +241,11 @@ class GlStreamInterface(private val context: Context): OnFrameAvailableListener,
       OrientationForced.PORTRAIT -> true
       OrientationForced.LANDSCAPE -> false
       OrientationForced.NONE -> isPortrait
+    }
+    val orientationPreview = when (orientationForced) {
+      OrientationForced.PORTRAIT -> true
+      OrientationForced.LANDSCAPE -> false
+      OrientationForced.NONE -> isPortraitPreview
     }
     // render VideoEncoder (stream and record)
     if (surfaceManagerEncoder.isReady && mainRender.isReady() && !limitFps) {
@@ -270,8 +278,14 @@ class GlStreamInterface(private val context: Context): OnFrameAvailableListener,
     if (surfaceManagerPreview.isReady && mainRender.isReady() && !limitFps) {
       val w =  if (previewWidth == 0) encoderWidth else previewWidth
       val h =  if (previewHeight == 0) encoderHeight else previewHeight
+      if (surfaceManager.isReady && mainRender.isReady()) {
+        surfaceManager.makeCurrent()
+        mainRender.setCameraRotation(cameraPreviewOrientation)
+        mainRender.drawOffScreen()
+        surfaceManager.swapBuffer()
+      }
       surfaceManagerPreview.makeCurrent()
-      mainRender.drawScreenPreview(w, h, orientation, aspectRatioMode, previewOrientation,
+      mainRender.drawScreenPreview(w, h, orientationPreview, aspectRatioMode, 0,
         isPreviewVerticalFlip, isPreviewHorizontalFlip)
       surfaceManagerPreview.swapBuffer()
     }
@@ -332,15 +346,29 @@ class GlStreamInterface(private val context: Context): OnFrameAvailableListener,
   }
 
   fun setIsPortrait(isPortrait: Boolean) {
+    setPreviewIsPortrait(isPortrait)
+    setStreamIsPortrait(isPortrait)
+  }
+
+  fun setPreviewIsPortrait(isPortrait: Boolean) {
+    this.isPortraitPreview = isPortrait
+  }
+
+  fun setStreamIsPortrait(isPortrait: Boolean) {
     this.isPortrait = isPortrait
   }
 
-  fun setPreviewRotation(orientation: Int) {
-    this.previewOrientation = orientation
+  fun setCameraOrientation(orientation: Int) {
+    setCameraPreviewOrientation(orientation)
+    setCameraStreamOrientation(orientation)
   }
 
-  fun setCameraOrientation(orientation: Int) {
-    mainRender.setCameraRotation(orientation)
+  fun setCameraPreviewOrientation(orientation: Int) {
+    this.cameraPreviewOrientation = orientation
+  }
+
+  fun setCameraStreamOrientation(orientation: Int) {
+    this.cameraStreamOrientation = orientation
   }
 
   override fun setFilter(filterPosition: Int, baseFilterRender: BaseFilterRender) {
@@ -372,7 +400,7 @@ class GlStreamInterface(private val context: Context): OnFrameAvailableListener,
   }
 
   override fun setRotation(rotation: Int) {
-    mainRender.setCameraRotation(rotation)
+    setCameraOrientation(rotation)
   }
 
   override fun forceFpsLimit(fps: Int) {
