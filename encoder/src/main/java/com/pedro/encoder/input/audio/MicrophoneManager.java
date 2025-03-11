@@ -30,6 +30,7 @@ import android.util.Log;
 
 import androidx.annotation.RequiresApi;
 
+import com.pedro.common.TimeUtils;
 import com.pedro.encoder.Frame;
 import com.pedro.encoder.audio.AudioEncoder;
 
@@ -211,7 +212,7 @@ public class MicrophoneManager {
    * @return Object with size and PCM buffer data
    */
   protected Frame read() {
-    long timeStamp = System.nanoTime() / 1000;
+    long timeStamp = TimeUtils.getCurrentTimeMicro();
     int size = audioRecord.read(pcmBuffer, 0, pcmBuffer.length);
     if (size < 0) {
       Log.e(TAG, "read error: " + size);

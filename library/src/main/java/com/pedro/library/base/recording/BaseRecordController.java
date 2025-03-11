@@ -21,6 +21,7 @@ import android.media.MediaFormat;
 
 import com.pedro.common.AudioCodec;
 import com.pedro.common.BitrateManager;
+import com.pedro.common.TimeUtils;
 import com.pedro.common.VideoCodec;
 import com.pedro.rtsp.utils.RtpConstants;
 
@@ -70,7 +71,7 @@ public abstract class BaseRecordController implements RecordController {
 
     public void pauseRecord() {
         if (status == Status.RECORDING) {
-            pauseMoment = System.nanoTime() / 1000;
+            pauseMoment = TimeUtils.getCurrentTimeMicro();
             status = Status.PAUSED;
             if (listener != null) listener.onStatusChange(status);
         }
@@ -78,7 +79,7 @@ public abstract class BaseRecordController implements RecordController {
 
     public void resumeRecord() {
         if (status == Status.PAUSED) {
-            pauseTime += System.nanoTime() / 1000 - pauseMoment;
+            pauseTime += TimeUtils.getCurrentTimeMicro() - pauseMoment;
             status = Status.RESUMED;
             if (listener != null) listener.onStatusChange(status);
         }

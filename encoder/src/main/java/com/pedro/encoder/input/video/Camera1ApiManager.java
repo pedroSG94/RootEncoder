@@ -29,6 +29,7 @@ import android.view.SurfaceView;
 import android.view.TextureView;
 import android.view.View;
 
+import com.pedro.common.TimeUtils;
 import com.pedro.encoder.Frame;
 import com.pedro.encoder.input.video.facedetector.FaceDetectorCallback;
 import com.pedro.encoder.input.video.facedetector.UtilsKt;
@@ -390,7 +391,7 @@ public class Camera1ApiManager implements Camera.PreviewCallback, Camera.FaceDet
 
   @Override
   public void onPreviewFrame(byte[] data, Camera camera) {
-    long timeStamp = System.nanoTime() / 1000;
+    long timeStamp = TimeUtils.getCurrentTimeMicro();
     getCameraData.inputYUVData(new Frame(data, rotation, facing == CameraHelper.Facing.FRONT && isPortrait, imageFormat, timeStamp));
     camera.addCallbackBuffer(yuvBuffer);
   }

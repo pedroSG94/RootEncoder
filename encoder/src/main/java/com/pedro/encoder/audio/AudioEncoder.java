@@ -148,8 +148,9 @@ public class AudioEncoder extends BaseEncoder implements GetMicrophoneData {
     if (timestampMode == TimestampMode.CLOCK) {
       pts = clockPts;
     } else {
+      if (tsBuffer == 0) tsBuffer = clockPts;
       int channels = isStereo ? 2 : 1;
-      tsBuffer += (long) ((frame.getSize() / (channels * 2f) / sampleRate) * 1_000_000);
+      tsBuffer += (long)((double)frame.getSize() / (sampleRate * channels * 2L)) * 1_000_000L;
       if (clockPts - tsBuffer > 100_000) tsBuffer = clockPts;
       pts = tsBuffer;
     }
