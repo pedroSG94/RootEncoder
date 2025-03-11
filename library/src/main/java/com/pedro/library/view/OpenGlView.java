@@ -316,12 +316,7 @@ public class OpenGlView extends SurfaceView
   @Override
   public void removeMediaCodecSurface() {
     threadQueue.clear();
-    ExecutorService executor = this.executor;
-    if (executor == null) return;
-    ExtensionsKt.secureSubmit(executor, () -> {
-      surfaceManagerEncoder.release();
-      return null;
-    });
+    surfaceManagerEncoder.release();
   }
 
   @Override
@@ -385,18 +380,15 @@ public class OpenGlView extends SurfaceView
     running.set(false);
     threadQueue.clear();
     ExecutorService executor = this.executor;
-    if (executor == null) return;
-    ExtensionsKt.secureSubmit(executor, () -> {
-      forceRenderer.stop();
-      surfaceManagerPhoto.release();
-      surfaceManagerEncoder.release();
-      surfaceManagerEncoderRecord.release();
-      surfaceManager.release();
-      mainRender.release();
-      return null;
-    });
-    executor.shutdownNow();
+    if (executor != null) executor.shutdownNow();
     this.executor = null;
+    forceRenderer.stop();
+    surfaceManagerPhoto.release();
+    surfaceManagerEncoder.release();
+    surfaceManagerEncoderRecord.release();
+    surfaceManager.release();
+    mainRender.release();
+
   }
 
   @Override
