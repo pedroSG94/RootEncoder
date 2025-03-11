@@ -64,8 +64,6 @@ class GlStreamInterface(private val context: Context): OnFrameAvailableListener,
   private var streamOrientation = 0
   private var previewWidth = 0
   private var previewHeight = 0
-  private var cameraPreviewOrientation = 0
-  private var cameraStreamOrientation = 0
   private var isPortrait = false
   private var isPortraitPreview = false
   private var orientationForced = OrientationForced.NONE
@@ -221,9 +219,8 @@ class GlStreamInterface(private val context: Context): OnFrameAvailableListener,
 
     if (surfaceManager.isReady && mainRender.isReady()) {
       surfaceManager.makeCurrent()
-      mainRender.setCameraRotation(cameraStreamOrientation)
       mainRender.updateFrame()
-      mainRender.drawOffScreen()
+      mainRender.drawOffScreen(false)
       surfaceManager.swapBuffer()
     }
 
@@ -280,8 +277,7 @@ class GlStreamInterface(private val context: Context): OnFrameAvailableListener,
       val h =  if (previewHeight == 0) encoderHeight else previewHeight
       if (surfaceManager.isReady && mainRender.isReady()) {
         surfaceManager.makeCurrent()
-        mainRender.setCameraRotation(cameraPreviewOrientation)
-        mainRender.drawOffScreen()
+        mainRender.drawOffScreen(true)
         surfaceManager.swapBuffer()
       }
       surfaceManagerPreview.makeCurrent()
@@ -359,16 +355,15 @@ class GlStreamInterface(private val context: Context): OnFrameAvailableListener,
   }
 
   fun setCameraOrientation(orientation: Int) {
-    setCameraPreviewOrientation(orientation)
-    setCameraStreamOrientation(orientation)
+    mainRender.setCameraRotation(orientation)
   }
 
   fun setCameraPreviewOrientation(orientation: Int) {
-    this.cameraPreviewOrientation = orientation
+    mainRender.setCameraRotationPreview(orientation)
   }
 
   fun setCameraStreamOrientation(orientation: Int) {
-    this.cameraStreamOrientation = orientation
+    mainRender.setCameraRotationStream(orientation)
   }
 
   override fun setFilter(filterPosition: Int, baseFilterRender: BaseFilterRender) {

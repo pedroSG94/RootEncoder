@@ -256,7 +256,7 @@ public class OpenGlView extends SurfaceView
     if (surfaceManager.isReady() && mainRender.isReady()) {
       surfaceManager.makeCurrent();
       mainRender.updateFrame();
-      mainRender.drawOffScreen();
+      mainRender.drawOffScreen(false);
       if (!limitFps) {
         mainRender.drawScreen(previewWidth, previewHeight, aspectRatioMode, 0,
             isPreviewVerticalFlip, isPreviewHorizontalFlip);
