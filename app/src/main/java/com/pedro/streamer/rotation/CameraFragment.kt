@@ -36,7 +36,6 @@ import com.pedro.extrasources.CameraXSource
 import com.pedro.library.base.recording.RecordController
 import com.pedro.library.generic.GenericStream
 import com.pedro.library.util.BitrateAdapter
-import com.pedro.library.util.SensorRotationManager
 import com.pedro.streamer.R
 import com.pedro.streamer.utils.PathUtils
 import com.pedro.streamer.utils.toast
@@ -77,11 +76,10 @@ class CameraFragment: Fragment(), ConnectChecker {
 
   val genericStream: GenericStream by lazy {
     GenericStream(requireContext(), this).apply {
-      getGlInterface().autoHandleOrientation = false //manage the orientation manually
+      getGlInterface().autoHandleOrientation = true
       getStreamClient().setBitrateExponentialFactor(0.5f)
     }
   }
-  private var sensorRotationManager: SensorRotationManager? = null
   private lateinit var surfaceView: SurfaceView
   private lateinit var bStartStop: ImageView
   private lateinit var txtBitrate: TextView
@@ -104,16 +102,6 @@ class CameraFragment: Fragment(), ConnectChecker {
   override fun onCreateView(
     inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
   ): View? {
-    //custom orientation manage, followUI to false because the UI is locked.
-    sensorRotationManager = SensorRotationManager(context,true, false) { orientation, isPortrait ->
-      //rotate only stream/record/photo result
-      genericStream.getGlInterface().setCameraStreamOrientation(orientation)
-      genericStream.getGlInterface().setStreamIsPortrait(isPortrait)
-      genericStream.getGlInterface().setPreviewIsPortrait(true)
-      //This method affect to filters too, can be used instead of setCameraStreamOrientation
-//      genericStream.getGlInterface().setStreamRotation(orientation)
-    }
-    sensorRotationManager?.start()
     val view = inflater.inflate(R.layout.fragment_camera, container, false)
     bStartStop = view.findViewById(R.id.b_start_stop)
     val bRecord = view.findViewById<ImageView>(R.id.b_record)
