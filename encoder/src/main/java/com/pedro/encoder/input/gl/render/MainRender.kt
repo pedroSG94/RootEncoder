@@ -56,7 +56,8 @@ class MainRender {
 
   fun isReady(): Boolean = running.get()
 
-  fun drawOffScreen() {
+  fun drawOffScreen(isPreview: Boolean) {
+    cameraRender.setMode(isPreview)
     cameraRender.draw()
     for (baseFilterRender in filterRenders) baseFilterRender.draw()
   }
@@ -182,6 +183,14 @@ class MainRender {
 
   fun setCameraRotation(rotation: Int) {
     cameraRender.setRotation(rotation)
+  }
+
+  fun setCameraRotationStream(rotation: Int) {
+    cameraRender.setRotationStream(rotation)
+  }
+
+  fun setCameraRotationPreview(rotation: Int) {
+    cameraRender.setRotationPreview(rotation)
   }
 
   fun setCameraFlip(isFlipHorizontal: Boolean, isFlipVertical: Boolean) {

@@ -42,6 +42,8 @@ public class CameraRender extends BaseRenderOffScreen {
 
   private int[] textureID = new int[1];
   private float[] rotationMatrix = new float[16];
+  private float[] MVPMatrixPreview = new float[16];
+  private float[] rotationPreviewMatrix = new float[16];
   private float[] scaleMatrix = new float[16];
 
   private int program = -1;
@@ -52,9 +54,11 @@ public class CameraRender extends BaseRenderOffScreen {
 
   private SurfaceTexture surfaceTexture;
   private Surface surface;
+  private boolean previewMode = false;
 
   public CameraRender() {
     Matrix.setIdentityM(MVPMatrix, 0);
+    Matrix.setIdentityM(MVPMatrixPreview, 0);
     Matrix.setIdentityM(STMatrix, 0);
     float[] vertex = CameraHelper.getVerticesData();
     squareVertex = ByteBuffer.allocateDirect(vertex.length * FLOAT_SIZE_BYTES)
@@ -111,7 +115,7 @@ public class CameraRender extends BaseRenderOffScreen {
         SQUARE_VERTEX_DATA_STRIDE_BYTES, squareVertex);
     GLES20.glEnableVertexAttribArray(aTextureCameraHandle);
 
-    GLES20.glUniformMatrix4fv(uMVPMatrixHandle, 1, false, MVPMatrix, 0);
+    GLES20.glUniformMatrix4fv(uMVPMatrixHandle, 1, false, previewMode ? MVPMatrixPreview : MVPMatrix, 0);
     GLES20.glUniformMatrix4fv(uSTMatrixHandle, 1, false, STMatrix, 0);
     //camera
     GLES20.glActiveTexture(GLES20.GL_TEXTURE0);
@@ -144,8 +148,19 @@ public class CameraRender extends BaseRenderOffScreen {
   }
 
   public void setRotation(int rotation) {
+    setRotationStream(rotation);
+    setRotationPreview(rotation);
+  }
+
+  public void setRotationStream(int rotation) {
     Matrix.setIdentityM(rotationMatrix, 0);
     Matrix.rotateM(rotationMatrix, 0, rotation, 0f, 0f, -1f);
+    update();
+  }
+
+  public void setRotationPreview(int rotation) {
+    Matrix.setIdentityM(rotationPreviewMatrix, 0);
+    Matrix.rotateM(rotationPreviewMatrix, 0, rotation, 0f, 0f, -1f);
     update();
   }
 
@@ -159,5 +174,13 @@ public class CameraRender extends BaseRenderOffScreen {
     Matrix.setIdentityM(MVPMatrix, 0);
     Matrix.multiplyMM(MVPMatrix, 0, scaleMatrix, 0, MVPMatrix, 0);
     Matrix.multiplyMM(MVPMatrix, 0, rotationMatrix, 0, MVPMatrix, 0);
+
+    Matrix.setIdentityM(MVPMatrixPreview, 0);
+    Matrix.multiplyMM(MVPMatrixPreview, 0, scaleMatrix, 0, MVPMatrixPreview, 0);
+    Matrix.multiplyMM(MVPMatrixPreview, 0, rotationPreviewMatrix, 0, MVPMatrixPreview, 0);
+  }
+
+  public void setMode(boolean previewMode) {
+    this.previewMode = previewMode;
   }
 }
