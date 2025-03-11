@@ -39,9 +39,6 @@ import com.pedro.library.util.BitrateAdapter
 import com.pedro.streamer.R
 import com.pedro.streamer.utils.PathUtils
 import com.pedro.streamer.utils.toast
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -159,12 +156,10 @@ class CameraFragment: Fragment(), ConnectChecker {
       }
     }
     bSwitchCamera.setOnClickListener {
-      CoroutineScope(Dispatchers.IO).launch {
-        genericStream.stopPreview()
-        // Prepare video and audio with new settings.
-        genericStream.prepareVideo(1920, 1080, 5000 * 1000, 30)
-        genericStream.prepareAudio(32000, true, 128 * 1000)
-        genericStream.startPreview(surfaceView)
+      when (val source = genericStream.videoSource) {
+        is Camera1Source -> source.switchCamera()
+        is Camera2Source -> source.switchCamera()
+        is CameraXSource -> source.switchCamera()
       }
     }
     return view

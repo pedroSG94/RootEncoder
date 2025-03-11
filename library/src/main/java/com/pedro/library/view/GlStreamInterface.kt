@@ -298,18 +298,14 @@ class GlStreamInterface(private val context: Context): OnFrameAvailableListener,
   }
 
   fun attachPreview(surface: Surface) {
-    executor?.secureSubmit {
-      if (surfaceManager.isReady) {
-        surfaceManagerPreview.release()
-        surfaceManagerPreview.eglSetup(surface, surfaceManager)
-      }
+    if (surfaceManager.isReady) {
+      surfaceManagerPreview.release()
+      surfaceManagerPreview.eglSetup(surface, surfaceManager)
     }
   }
 
   fun deAttachPreview() {
-    executor?.secureSubmit {
-      surfaceManagerPreview.release()
-    }
+    surfaceManagerPreview.release()
   }
 
   override fun setStreamRotation(orientation: Int) {

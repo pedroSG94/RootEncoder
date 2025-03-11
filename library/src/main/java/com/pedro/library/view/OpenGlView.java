@@ -302,15 +302,10 @@ public class OpenGlView extends SurfaceView
 
   @Override
   public void addMediaCodecSurface(Surface surface) {
-    ExecutorService executor = this.executor;
-    if (executor == null) return;
-    ExtensionsKt.secureSubmit(executor, () -> {
-      if (surfaceManager.isReady()) {
-        surfaceManagerEncoder.release();
-        surfaceManagerEncoder.eglSetup(surface, surfaceManager);
-      }
-      return null;
-    });
+    if (surfaceManager.isReady()) {
+      surfaceManagerEncoder.release();
+      surfaceManagerEncoder.eglSetup(surface, surfaceManager);
+    }
   }
 
   @Override
@@ -321,41 +316,31 @@ public class OpenGlView extends SurfaceView
 
   @Override
   public void addMediaCodecRecordSurface(Surface surface) {
-    ExecutorService executor = this.executor;
-    if (executor == null) return;
-    ExtensionsKt.secureSubmit(executor, () -> {
-      if (surfaceManager.isReady()) {
-        surfaceManagerEncoderRecord.release();
-        surfaceManagerEncoderRecord.eglSetup(surface, surfaceManager);
-      }
-      return null;
-    });
+    if (surfaceManager.isReady()) {
+      surfaceManagerEncoderRecord.release();
+      surfaceManagerEncoderRecord.eglSetup(surface, surfaceManager);
+    }
   }
 
   @Override
   public void removeMediaCodecRecordSurface() {
     threadQueue.clear();
-    ExecutorService executor = this.executor;
-    if (executor == null) return;
-    ExtensionsKt.secureSubmit(executor, () -> {
-      surfaceManagerEncoderRecord.release();
-      return null;
-    });
+    surfaceManagerEncoderRecord.release();
   }
 
   @Override
   public void start() {
     threadQueue.clear();
     executor = ExtensionsKt.newSingleThreadExecutor(threadQueue);
+    surfaceManager.release();
+    surfaceManager.eglSetup(getHolder().getSurface());
+    surfaceManagerPhoto.release();
+    surfaceManagerPhoto.eglSetup(encoderWidth, encoderHeight, surfaceManager);
+    running.set(true);
     ExecutorService executor = this.executor;
     ExtensionsKt.secureSubmit(executor, () -> {
-      surfaceManager.release();
-      surfaceManager.eglSetup(getHolder().getSurface());
       surfaceManager.makeCurrent();
       mainRender.initGl(getContext(), encoderWidth, encoderHeight, encoderWidth, encoderHeight);
-      surfaceManagerPhoto.release();
-      surfaceManagerPhoto.eglSetup(encoderWidth, encoderHeight, surfaceManager);
-      running.set(true);
       mainRender.getSurfaceTexture().setOnFrameAvailableListener(this);
       forceRenderer.start(() -> {
         ExecutorService ex = this.executor;
@@ -388,7 +373,6 @@ public class OpenGlView extends SurfaceView
     surfaceManagerEncoderRecord.release();
     surfaceManager.release();
     mainRender.release();
-
   }
 
   @Override
