@@ -12,7 +12,7 @@ class UdpStreamSocketJava(
     private val host: String,
     private val port: Int,
     private val sourcePort: Int? = null,
-    private val receiveSize: Int? = null,
+    receiveSize: Int? = null,
     private val type: UdpType = UdpType.UNICAST
 ): UdpStreamSocket() {
 
@@ -34,6 +34,7 @@ class UdpStreamSocketJava(
         }
         val address = InetAddress.getByName(host)
         socket.connect(address, port)
+        socket.receiveBufferSize = packetSize
         socket.soTimeout = timeout.toInt()
         this.socket = socket
     }
