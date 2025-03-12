@@ -81,14 +81,12 @@ class H26XPacket(
     val mpeg2tsPackets = mpegTsPacketizer.write(listOf(pes))
     val chunked = mpeg2tsPackets.chunked(chunkSize)
     val packets = mutableListOf<MpegTsPacket>()
-    chunked.forEachIndexed { index, chunks ->
+    chunked.forEach { chunks ->
       val size = chunks.sumOf { it.size }
       val buffer = ByteBuffer.allocate(size)
-      chunks.forEach {
-        buffer.put(it)
-      }
+      chunks.forEach { buffer.put(it) }
       val packetPosition = PacketPosition.SINGLE
-      packets.add(MpegTsPacket(buffer.array(), MpegType.VIDEO, packetPosition, isKeyFrame))
+      packets.add(MpegTsPacket(buffer.toByteArray(), MpegType.VIDEO, packetPosition, isKeyFrame))
     }
     if (packets.isNotEmpty()) callback(packets)
   }
