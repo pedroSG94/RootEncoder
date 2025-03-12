@@ -43,8 +43,11 @@ public class MicrophoneManager {
 
   private final String TAG = "MicrophoneManager";
   protected AudioRecord audioRecord;
+  protected AudioRecord audioRecordDevice;
   private final GetMicrophoneData getMicrophoneData;
   protected byte[] pcmBuffer = new byte[AudioEncoder.inputSize];
+  protected byte[] pcmBufferDevice = new byte[AudioEncoder.inputSize];
+  protected byte[] pcmBufferMix = new byte[AudioEncoder.inputSize];
   protected byte[] pcmBufferMuted = new byte[AudioEncoder.inputSize];
   protected boolean running = false;
   private boolean created = false;
@@ -56,6 +59,11 @@ public class MicrophoneManager {
   private AudioPostProcessEffect audioPostProcessEffect;
   protected HandlerThread handlerThread;
   protected CustomAudioEffect customAudioEffect = new NoAudioEffect();
+  private Mode mode = Mode.MICROPHONE;
+
+  enum Mode {
+    MICROPHONE, INTERNAL, MIX
+  }
 
   public MicrophoneManager(GetMicrophoneData getMicrophoneData) {
     this.getMicrophoneData = getMicrophoneData;
@@ -103,6 +111,7 @@ public class MicrophoneManager {
         throw new IllegalArgumentException("Some parameters specified are not valid");
       }
       Log.i(TAG, "Microphone created, " + sampleRate + "hz, " + chl);
+      mode = Mode.MICROPHONE;
       created = true;
     } catch (IllegalArgumentException e) {
       Log.e(TAG, "create microphone error", e);
@@ -129,21 +138,23 @@ public class MicrophoneManager {
         this.sampleRate = sampleRate;
         channel = isStereo ? AudioFormat.CHANNEL_IN_STEREO : AudioFormat.CHANNEL_IN_MONO;
         getPcmBufferSize(sampleRate, channel);
-        audioRecord = new AudioRecord.Builder().setAudioPlaybackCaptureConfig(config)
-            .setAudioFormat(new AudioFormat.Builder().setEncoding(audioFormat)
-                .setSampleRate(sampleRate)
-                .setChannelMask(channel)
-                .build())
-            .setBufferSizeInBytes(AudioEncoder.inputSize * 5)
-            .build();
-        audioPostProcessEffect = new AudioPostProcessEffect(audioRecord.getAudioSessionId());
+        audioRecordDevice = new AudioRecord.Builder()
+                .setAudioPlaybackCaptureConfig(config)
+                .setAudioFormat(new AudioFormat.Builder().setEncoding(audioFormat)
+                  .setSampleRate(sampleRate)
+                  .setChannelMask(channel)
+                  .build())
+                .setBufferSizeInBytes(AudioEncoder.inputSize * 5)
+                .build();
+        audioPostProcessEffect = new AudioPostProcessEffect(audioRecordDevice.getAudioSessionId());
         if (echoCanceler) audioPostProcessEffect.enableEchoCanceler();
         if (noiseSuppressor) audioPostProcessEffect.enableNoiseSuppressor();
         String chl = (isStereo) ? "Stereo" : "Mono";
-        if (audioRecord.getState() != AudioRecord.STATE_INITIALIZED) {
+        if (audioRecordDevice.getState() != AudioRecord.STATE_INITIALIZED) {
           throw new IllegalArgumentException("Some parameters specified are not valid");
         }
         Log.i(TAG, "Internal microphone created, " + sampleRate + "hz, " + chl);
+        mode = Mode.INTERNAL;
         created = true;
       } else {
         return createMicrophone(sampleRate, isStereo, echoCanceler, noiseSuppressor);
@@ -152,6 +163,17 @@ public class MicrophoneManager {
       Log.e(TAG, "create microphone error", e);
     }
     return created;
+  }
+
+  public boolean createMixMicrophone(
+          int audioSource, AudioPlaybackCaptureConfiguration config, int sampleRate,
+          boolean isStereo, boolean echoCanceler, boolean noiseSuppressor
+  ) {
+    boolean micResult = createMicrophone(audioSource, sampleRate, isStereo, echoCanceler, noiseSuppressor);
+    if (!micResult) return false;
+    boolean internalResult = createInternalMicrophone(config, sampleRate, isStereo, echoCanceler, noiseSuppressor);
+    mode = Mode.MIX;
+    return internalResult;
   }
 
   public boolean createInternalMicrophone(AudioPlaybackCaptureConfiguration config, int sampleRate,
@@ -178,13 +200,31 @@ public class MicrophoneManager {
   }
 
   private void init() {
-    if (audioRecord != null) {
-      audioRecord.startRecording();
-      running = true;
-      Log.i(TAG, "Microphone started");
-    } else {
-      throw new IllegalStateException("Error starting, microphone was stopped or not created, use createMicrophone() before start()");
+    switch (mode) {
+        case MICROPHONE -> {
+          if (audioRecord != null) {
+            audioRecord.startRecording();
+          } else {
+            throw new IllegalStateException("Error starting, microphone was stopped or not created, use createMicrophone() before start()");
+          }
+        }
+        case INTERNAL -> {
+          if (audioRecordDevice != null) {
+            audioRecordDevice.startRecording();
+          } else {
+            throw new IllegalStateException("Error starting, microphone was stopped or not created, use createMicrophone() before start()");
+          }
+        }
+        case MIX -> {
+          if (audioRecord != null && audioRecordDevice != null) {
+            audioRecord.startRecording();
+            audioRecordDevice.startRecording();
+          } else {
+            throw new IllegalStateException("Error starting, microphone was stopped or not created, use createMicrophone() before start()");
+          }
+        }
     }
+    running = true;
   }
 
   @RequiresApi(api = Build.VERSION_CODES.M)
@@ -213,12 +253,41 @@ public class MicrophoneManager {
    */
   protected Frame read() {
     long timeStamp = TimeUtils.getCurrentTimeMicro();
-    int size = audioRecord.read(pcmBuffer, 0, pcmBuffer.length);
-    if (size < 0) {
-      Log.e(TAG, "read error: " + size);
-      return null;
+    switch (mode) {
+        case MICROPHONE -> {
+          int size = audioRecord.read(pcmBuffer, 0, pcmBuffer.length);
+          if (size < 0) {
+            Log.e(TAG, "read error: " + size);
+            return null;
+          }
+          return new Frame(muted ? pcmBufferMuted : customAudioEffect.process(pcmBuffer), 0, size, timeStamp);
+        }
+        case INTERNAL -> {
+          int size = audioRecordDevice.read(pcmBufferDevice, 0, pcmBufferDevice.length);
+          if (size < 0) {
+            Log.e(TAG, "read error: " + size);
+            return null;
+          }
+          return new Frame(muted ? pcmBufferMuted : customAudioEffect.process(pcmBufferDevice), 0, size, timeStamp);
+        }
+        case MIX -> {
+          int size = audioRecord.read(pcmBuffer, 0, pcmBuffer.length);
+          if (size < 0) {
+            Log.e(TAG, "read error: " + size);
+            return null;
+          }
+          int sizeInternal = audioRecordDevice.read(pcmBufferDevice, 0, pcmBufferDevice.length);
+          if (sizeInternal < 0) {
+            Log.e(TAG, "read error: " + sizeInternal);
+            return null;
+          }
+          for (int i = 0; i < pcmBufferMix.length; i++) {
+            pcmBufferMix[i] = (byte)(pcmBuffer[i] + pcmBufferDevice[i]);
+          }
+          return new Frame(muted ? pcmBufferMuted : customAudioEffect.process(pcmBufferMix), 0, size, timeStamp);
+        }
+        default -> { return null; }
     }
-    return new Frame(muted ? pcmBufferMuted : customAudioEffect.process(pcmBuffer), 0, size, timeStamp);
   }
 
   /**
@@ -240,6 +309,12 @@ public class MicrophoneManager {
       audioRecord.release();
       audioRecord = null;
     }
+    if (audioRecordDevice != null) {
+      audioRecordDevice.setRecordPositionUpdateListener(null);
+      audioRecordDevice.stop();
+      audioRecordDevice.release();
+      audioRecordDevice = null;
+    }
     if (audioPostProcessEffect != null) {
       audioPostProcessEffect.release();
     }
@@ -253,6 +328,8 @@ public class MicrophoneManager {
     int minSize = AudioRecord.getMinBufferSize(sampleRate, channel, audioFormat);
     int bufferSize = Math.max(minSize, AudioEncoder.inputSize);
     pcmBuffer = new byte[bufferSize];
+    pcmBufferDevice = new byte[bufferSize];
+    pcmBufferMix = new byte[bufferSize];
     pcmBufferMuted = new byte[bufferSize];
   }
 

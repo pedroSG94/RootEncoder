@@ -151,7 +151,7 @@ public class AudioEncoder extends BaseEncoder implements GetMicrophoneData {
       if (tsBuffer == 0) tsBuffer = clockPts;
       int channels = isStereo ? 2 : 1;
       tsBuffer += (long)((double)frame.getSize() / (sampleRate * channels * 2L)) * 1_000_000L;
-      if (clockPts - tsBuffer > 100_000) tsBuffer = clockPts;
+      if (clockPts - tsBuffer > 500_000) tsBuffer = clockPts;
       pts = tsBuffer;
     }
     return pts;
@@ -175,7 +175,7 @@ public class AudioEncoder extends BaseEncoder implements GetMicrophoneData {
    * Used too with microphone.
    */
   @Override
-  public void inputPCMData(Frame frame) {
+  public void inputPCMData(@NonNull Frame frame) {
     if (running && !queue.offer(frame)) {
       Log.i(TAG, "frame discarded");
     }
