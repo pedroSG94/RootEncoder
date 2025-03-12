@@ -39,34 +39,6 @@ fun Int.toBoolean(): Boolean {
   return this == 1
 }
 
-fun InputStream.readUInt16(): Int {
-  return read() and 0xff shl 8 or (read() and 0xff)
-}
-
-fun InputStream.readUInt32(): Int {
-  return read() and 0xff shl 24 or (read() and 0xff shl 16) or (read() and 0xff shl 8) or (read() and 0xff)
-}
-
-fun OutputStream.writeUInt32(value: Int) {
-  write(value ushr 24)
-  write(value ushr 16)
-  write(value ushr 8)
-  write(value)
-}
-
-fun OutputStream.writeUInt16(value: Int) {
-  write(value ushr 8)
-  write(value)
-}
-
-fun InputStream.readUntil(byteArray: ByteArray) {
-  var bytesRead = 0
-  while (bytesRead < byteArray.size) {
-    val result = read(byteArray, bytesRead, byteArray.size - bytesRead)
-    if (result != -1) bytesRead += result
-  }
-}
-
 fun Int.toByteArray(): ByteArray {
   val bytes = mutableListOf<Byte>()
   var remainingValue = this

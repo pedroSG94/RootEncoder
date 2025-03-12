@@ -17,8 +17,9 @@
 package com.pedro.rtsp.rtcp
 
 import com.pedro.common.TimeUtils
-import com.pedro.common.socket.TcpStreamSocket
-import com.pedro.common.socket.UdpStreamSocket
+import com.pedro.common.socket.base.SocketType
+import com.pedro.common.socket.base.StreamSocket
+import com.pedro.common.socket.base.TcpStreamSocket
 import com.pedro.rtsp.rtsp.Protocol
 import com.pedro.rtsp.rtsp.RtpFrame
 import com.pedro.rtsp.utils.RtpConstants
@@ -43,6 +44,7 @@ abstract class BaseSenderReport internal constructor() {
   companion object {
     @JvmStatic
     fun getInstance(
+      socketType: SocketType,
       protocol: Protocol, host: String,
       videoSourcePort: Int?, audioSourcePort: Int?,
       videoServerPort: Int?, audioServerPort: Int?,
@@ -51,14 +53,10 @@ abstract class BaseSenderReport internal constructor() {
         SenderReportTcp()
       } else {
         val videoSocket = if (videoServerPort != null) {
-          UdpStreamSocket(
-            host, videoServerPort, videoSourcePort, receiveSize = RtpConstants.REPORT_PACKET_LENGTH
-          )
+          StreamSocket.createUdpSocket(socketType, host, videoServerPort, videoSourcePort)
         } else null
         val audioSocket = if (audioServerPort != null) {
-          UdpStreamSocket(
-            host, audioServerPort, audioSourcePort, receiveSize = RtpConstants.REPORT_PACKET_LENGTH
-          )
+          StreamSocket.createUdpSocket(socketType, host, audioServerPort, audioSourcePort)
         } else null
         SenderReportUdp(videoSocket, audioSocket)
       }

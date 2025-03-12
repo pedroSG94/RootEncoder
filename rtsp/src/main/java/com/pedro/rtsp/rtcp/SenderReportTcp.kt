@@ -16,7 +16,7 @@
 
 package com.pedro.rtsp.rtcp
 
-import com.pedro.common.socket.TcpStreamSocket
+import com.pedro.common.socket.base.TcpStreamSocket
 import com.pedro.rtsp.rtsp.RtpFrame
 import com.pedro.rtsp.utils.RtpConstants
 import java.io.IOException
