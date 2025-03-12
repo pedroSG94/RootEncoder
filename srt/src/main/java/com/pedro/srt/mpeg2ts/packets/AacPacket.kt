@@ -55,17 +55,10 @@ class AacPacket(
     fixedBuffer.get(payload, headerSize, length)
 
     val pes = Pes(psiManager.getAudioPid().toInt(), false, PesType.AUDIO, mediaFrame.info.timestamp, ByteBuffer.wrap(payload))
-    val mpeg2tsPackets = mpegTsPacketizer.write(listOf(pes))
-    val chunked = mpeg2tsPackets.chunked(chunkSize)
-    val packets = mutableListOf<MpegTsPacket>()
-    chunked.forEach { chunks ->
-      val size = chunks.sumOf { it.size }
-      val buffer = ByteBuffer.allocate(size)
-      chunks.forEach { buffer.put(it) }
-      val packetPosition = PacketPosition.SINGLE
-      packets.add(MpegTsPacket(buffer.toByteArray(), MpegType.AUDIO, packetPosition, false))
+    val mpeg2tsPackets = mpegTsPacketizer.write(listOf(pes)).map { buffer ->
+        MpegTsPacket(buffer, MpegType.AUDIO, PacketPosition.SINGLE, isKey = false)
     }
-    if (packets.isNotEmpty()) callback(packets)
+    if (mpeg2tsPackets.isNotEmpty()) callback(mpeg2tsPackets)
   }
 
   override fun resetPacket(resetInfo: Boolean) { }
