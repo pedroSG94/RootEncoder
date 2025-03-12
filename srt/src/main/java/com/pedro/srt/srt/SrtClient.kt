@@ -26,6 +26,7 @@ import com.pedro.common.VideoCodec
 import com.pedro.common.clone
 import com.pedro.common.frame.MediaFrame
 import com.pedro.common.onMainThread
+import com.pedro.common.socket.base.SocketType
 import com.pedro.common.toMediaFrameInfo
 import com.pedro.common.validMessage
 import com.pedro.srt.srt.packets.ControlPacket
@@ -97,6 +98,7 @@ class SrtClient(private val connectChecker: ConnectChecker) {
   val sentVideoFrames: Long
     get() = srtSender.getSentVideoFrames()
   private var latency = 120_000 //in micro
+  var socketType = SocketType.KTOR
 
   fun setVideoCodec(videoCodec: VideoCodec) {
     if (!isStreaming) {
@@ -212,7 +214,7 @@ class SrtClient(private val connectChecker: ConnectChecker) {
         commandsManager.host = host
 
         val error = runCatching {
-          socket = SrtSocket(host, port)
+          socket = SrtSocket(socketType, host, port)
           socket?.connect()
           commandsManager.loadStartTs()
 

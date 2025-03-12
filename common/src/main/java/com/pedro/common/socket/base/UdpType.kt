@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.pedro.udp.utils
+package com.pedro.common.socket.base
 
 /**
  * Created by pedro on 6/3/24.

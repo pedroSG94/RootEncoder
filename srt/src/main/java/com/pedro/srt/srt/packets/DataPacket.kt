@@ -16,13 +16,13 @@
 
 package com.pedro.srt.srt.packets
 
+import com.pedro.common.readUInt32
+import com.pedro.common.readUntil
+import com.pedro.common.writeUInt32
 import com.pedro.srt.srt.packets.data.KeyBasedEncryption
 import com.pedro.srt.srt.packets.data.PacketPosition
-import com.pedro.srt.utils.readUInt32
-import com.pedro.srt.utils.readUntil
 import com.pedro.srt.utils.toBoolean
 import com.pedro.srt.utils.toInt
-import com.pedro.srt.utils.writeUInt32
 import java.io.IOException
 import java.io.InputStream
 

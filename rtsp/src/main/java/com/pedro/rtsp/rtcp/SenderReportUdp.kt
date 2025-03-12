@@ -16,8 +16,8 @@
 
 package com.pedro.rtsp.rtcp
 
-import com.pedro.common.socket.TcpStreamSocket
-import com.pedro.common.socket.UdpStreamSocket
+import com.pedro.common.socket.base.TcpStreamSocket
+import com.pedro.common.socket.base.UdpStreamSocket
 import com.pedro.rtsp.rtsp.RtpFrame
 import java.io.IOException
 
@@ -48,9 +48,9 @@ class SenderReportUdp(
   @Throws(IOException::class)
   private suspend fun sendReportUDP(buffer: ByteArray, isVideo: Boolean) {
     if (isVideo) {
-      videoSocket?.writePacket(buffer)
+      videoSocket?.write(buffer)
     } else {
-      audioSocket?.writePacket(buffer)
+      audioSocket?.write(buffer)
     }
   }
 }
