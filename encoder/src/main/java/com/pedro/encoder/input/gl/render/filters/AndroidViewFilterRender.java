@@ -184,8 +184,8 @@ public class AndroidViewFilterRender extends BaseFilterRender {
     stopRender();
     GLES20.glDeleteProgram(program);
     viewId = new int[] { -1, -1 };
-    surfaceTexture.release();
-    surfaceTexture2.release();
+    if (surfaceTexture != null) surfaceTexture.release();
+    if (surfaceTexture2 != null) surfaceTexture2.release();
   }
 
   public View getView() {
