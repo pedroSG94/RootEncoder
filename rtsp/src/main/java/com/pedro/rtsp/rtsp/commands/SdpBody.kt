@@ -16,31 +16,13 @@
 
 package com.pedro.rtsp.rtsp.commands
 
+import com.pedro.common.AudioUtils
 import com.pedro.rtsp.utils.RtpConstants
 
 /**
  * Created by pedro on 21/02/17.
  */
 object SdpBody {
-
-  /** supported sampleRates.  */
-  private val AUDIO_SAMPLING_RATES = intArrayOf(
-      96000,  // 0
-      88200,  // 1
-      64000,  // 2
-      48000,  // 3
-      44100,  // 4
-      32000,  // 5
-      24000,  // 6
-      22050,  // 7
-      16000,  // 8
-      12000,  // 9
-      11025,  // 10
-      8000,  // 11
-      7350,  // 12
-      -1,  // 13
-      -1,  // 14
-      -1)
 
   /**
    * Opus only support sample rate 48khz and stereo channel but Android encoder accept others values.
@@ -62,9 +44,9 @@ object SdpBody {
   }
 
   fun createAacBody(trackAudio: Int, sampleRate: Int, isStereo: Boolean): String {
-    val sampleRateNum = AUDIO_SAMPLING_RATES.toList().indexOf(sampleRate)
+    val frequency = AudioUtils.getFrequency(sampleRate)
     val channel = if (isStereo) 2 else 1
-    val config = 2 and 0x1F shl 11 or (sampleRateNum and 0x0F shl 7) or (channel and 0x0F shl 3)
+    val config = 2 and 0x1F shl 11 or (frequency and 0x0F shl 7) or (channel and 0x0F shl 3)
     val payload = RtpConstants.payloadType + trackAudio
     return "m=audio 0 RTP/AVP ${payload}\r\n" +
         "a=rtpmap:$payload MPEG4-GENERIC/$sampleRate/$channel\r\n" +

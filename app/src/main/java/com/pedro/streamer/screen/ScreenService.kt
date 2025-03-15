@@ -195,10 +195,7 @@ class ScreenService: Service(), ConnectChecker {
         selectedAudioSource = R.id.audio_source_mix
         if (genericStream.audioSource is MixAudioSource) return
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-          mediaProjection?.let { genericStream.changeAudioSource(MixAudioSource(it).apply {
-            //Using audio mix the internal audio volume is higher than microphone. Increase microphone fix it.
-            microphoneVolume = 2f
-          }) }
+          mediaProjection?.let { genericStream.changeAudioSource(MixAudioSource(it)) }
         } else {
           throw IllegalArgumentException("You need min API 29+")
         }

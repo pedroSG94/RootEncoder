@@ -4,6 +4,7 @@ import android.graphics.SurfaceTexture
 import android.media.MediaCodec
 import android.media.MediaFormat
 import android.view.Surface
+import com.pedro.common.TimeUtils
 import com.pedro.common.toByteArray
 import com.pedro.encoder.Frame
 import com.pedro.encoder.input.sources.video.VideoSource
@@ -55,7 +56,7 @@ class BufferVideoSource(
                 throw IllegalStateException("Use setBuffer IntArray instead")
             }
             Format.NV21, Format.NV12 -> {
-                queue.offer(Frame(data, 0, data.size, System.nanoTime() / 1000))
+                queue.offer(Frame(data, 0, data.size, TimeUtils.getCurrentTimeMicro()))
             }
             else -> { scope.launch { decoder.decode(data) } }
         }
@@ -66,7 +67,7 @@ class BufferVideoSource(
         when (format) {
             Format.RGB, Format.ARGB -> {
                 val yuv = YUVUtil.ARGBtoYUV420SemiPlanar(data, width, height)
-                queue.offer(Frame(yuv, 0, yuv.size, System.nanoTime() / 1000))
+                queue.offer(Frame(yuv, 0, yuv.size, TimeUtils.getCurrentTimeMicro()))
             }
             else -> {
                 throw IllegalStateException("Method only supported with format RGB and ARGB")

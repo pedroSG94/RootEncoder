@@ -29,6 +29,7 @@ import android.view.TextureView
 import android.view.TextureView.SurfaceTextureListener
 import androidx.annotation.RequiresApi
 import com.pedro.common.AudioCodec
+import com.pedro.common.TimeUtils
 import com.pedro.common.VideoCodec
 import com.pedro.encoder.EncoderErrorCallback
 import com.pedro.encoder.Frame
@@ -496,7 +497,7 @@ abstract class StreamBase(
       videoSource.start(glInterface.surfaceTexture)
     }
     audioSource.start(getMicrophoneData)
-    val startTs = System.nanoTime() / 1000
+    val startTs = TimeUtils.getCurrentTimeMicro()
     videoEncoder.start(startTs)
     if (differentRecordResolution) videoEncoderRecord.start(startTs)
     audioEncoder.start(startTs)

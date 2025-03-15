@@ -4,6 +4,7 @@ import android.media.MediaCodec
 import android.media.MediaCodec.BufferInfo
 import android.media.MediaFormat
 import android.view.Surface
+import com.pedro.common.TimeUtils
 import com.pedro.encoder.utils.CodecUtil
 
 class BufferDecoder {
@@ -29,7 +30,7 @@ class BufferDecoder {
 
     fun start(surface: Surface) {
         mediaFormat?.let {
-            startTs = System.nanoTime() / 1000
+            startTs = TimeUtils.getCurrentTimeMicro()
             codec = MediaCodec.createDecoderByType(CodecUtil.H264_MIME)
             codec?.configure(mediaFormat, surface, null, 0)
             codec?.start()
@@ -54,7 +55,7 @@ class BufferDecoder {
             if (inIndex >= 0) {
                 val input = it.getInputBuffer(inIndex)
                 input?.put(data)
-                it.queueInputBuffer(inIndex, 0, data.size, System.nanoTime() / 1000 - startTs, 0)
+                it.queueInputBuffer(inIndex, 0, data.size, TimeUtils.getCurrentTimeMicro() - startTs, 0)
             }
             val outIndex = it.dequeueOutputBuffer(bufferInfo, 10000)
             if (outIndex >= 0) {

@@ -27,6 +27,7 @@ import android.util.Log;
 import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
 
+import com.pedro.common.TimeUtils;
 import com.pedro.encoder.audio.G711Codec;
 import com.pedro.encoder.utils.CodecUtil;
 
@@ -92,7 +93,7 @@ public abstract class BaseEncoder implements EncoderCallback {
   }
 
   public void start() {
-    start(System.nanoTime() / 1000);
+    start(TimeUtils.getCurrentTimeMicro());
   }
 
   protected void setCallback() {

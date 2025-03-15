@@ -16,13 +16,15 @@
 
 package com.pedro.encoder.input.video;
 
+import com.pedro.common.TimeUtils;
+
 /**
  * Created by pedro on 11/10/18.
  */
 
 public class FpsLimiter {
 
-  private long startTS = System.currentTimeMillis();
+  private long startTS = TimeUtils.getCurrentTimeMillis();
   private long ratioF = 1000 / 30;
   private long ratio = 1000 / 30;
   private long frameStartTS = 0;
@@ -35,14 +37,14 @@ public class FpsLimiter {
     } else {
       configured = true;
     }
-    startTS = System.currentTimeMillis();
+    startTS = TimeUtils.getCurrentTimeMillis();
     ratioF = 1000 / fps;
     ratio = 1000 / fps;
   }
 
   public boolean limitFPS() {
     if (!configured) return false;
-    long lastFrameTimestamp = System.currentTimeMillis() - startTS;
+    long lastFrameTimestamp = TimeUtils.getCurrentTimeMillis() - startTS;
     if (ratio < lastFrameTimestamp) {
       ratio += ratioF;
       return false;
@@ -51,10 +53,10 @@ public class FpsLimiter {
   }
 
   public void setFrameStartTs() {
-    frameStartTS = System.currentTimeMillis();
+    frameStartTS = TimeUtils.getCurrentTimeMillis();
   }
 
   public long getSleepTime() {
-    return Math.max(0, ratioF - (System.currentTimeMillis() - frameStartTS));
+    return Math.max(0, ratioF - (TimeUtils.getCurrentTimeMillis() - frameStartTS));
   }
 }

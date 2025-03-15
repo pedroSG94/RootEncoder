@@ -19,6 +19,7 @@ package com.pedro.encoder.utils.gl;
 import android.graphics.Bitmap;
 import android.util.Log;
 
+import com.pedro.common.TimeUtils;
 import com.pedro.encoder.utils.gl.gif.GifDecoder;
 
 import java.io.IOException;
@@ -99,9 +100,9 @@ public class GifStreamObject extends StreamObjectBase {
   @Override
   public int updateFrame() {
     if (startDelayFrame == 0) {
-      startDelayFrame = System.currentTimeMillis();
+      startDelayFrame = TimeUtils.getCurrentTimeMillis();
     }
-    if (System.currentTimeMillis() - startDelayFrame >= gifDelayFrames[currentGifFrame]) {
+    if (TimeUtils.getCurrentTimeMillis() - startDelayFrame >= gifDelayFrames[currentGifFrame]) {
       if (currentGifFrame >= numFrames - 1) {
         currentGifFrame = 0;
       } else {

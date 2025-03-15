@@ -90,8 +90,8 @@ class SrtSender(
     //send config
     val psiList = mutableListOf(psiManager.getSdt(), psiManager.getPat())
     psiManager.getPmt()?.let { psiList.add(0, it) }
-    val psiPacketsConfig = mpegTsPacketizer.write(psiList).map { b ->
-      MpegTsPacket(b, MpegType.PSI, PacketPosition.SINGLE, isKey = false)
+    val psiPacketsConfig = mpegTsPacketizer.write(psiList).map { buffer ->
+      MpegTsPacket(buffer, MpegType.PSI, PacketPosition.SINGLE, isKey = false)
     }
     sendPackets(psiPacketsConfig, MpegType.PSI)
     while (scope.isActive && running) {

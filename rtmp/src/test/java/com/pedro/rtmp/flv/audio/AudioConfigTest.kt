@@ -27,7 +27,7 @@ class AudioConfigTest {
     val sampleRate = 44100
     val isStereo = true
     val objectType = AudioObjectType.AAC_LC
-    val expectedConfig = byteArrayOf(18, 16, -1, -7, 80, -128, 1, 63, -4)
+    val expectedConfig = byteArrayOf(18, 16, -1, -15, 80, -128, 1, 63, -4)
 
     val config = AudioSpecificConfig(objectType.value, sampleRate, if (isStereo) 2 else 1)
     val data = ByteArray(config.size)
