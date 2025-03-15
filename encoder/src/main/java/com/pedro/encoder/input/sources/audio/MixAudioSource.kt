@@ -31,7 +31,6 @@ import com.pedro.encoder.Frame
 import com.pedro.encoder.input.audio.CustomAudioEffect
 import com.pedro.encoder.input.audio.GetMicrophoneData
 import com.pedro.encoder.input.audio.MicrophoneManager
-import com.pedro.encoder.input.audio.VolumeEffect
 import com.pedro.encoder.input.sources.MediaProjectionHandler
 
 /**
@@ -59,8 +58,7 @@ class MixAudioSource(
 
     private val TAG = "MixAudioSource"
     private var handlerThread = HandlerThread(TAG)
-    private val mixVolumeEffect = VolumeEffect()
-    private val microphone = MicrophoneManager(this).apply { setCustomAudioEffect(mixVolumeEffect) }
+    private val microphone = MicrophoneManager(this)
     private var preferredDevice: AudioDeviceInfo? = null
     private val mediaProjectionCallback = mediaProjectionCallback ?: object : MediaProjection.Callback() {}
 
@@ -134,6 +132,14 @@ class MixAudioSource(
     }
 
     var mixVolume: Float
-        set(value) { mixVolumeEffect.volume = value }
-        get() = mixVolumeEffect.volume
+        set(value) { microphone.setVolume(value) }
+        get() = (microphone.microphoneVolume + microphone.internalVolume) / 2f
+
+    var microphoneVolume: Float
+        set(value) { microphone.microphoneVolume = value }
+        get() = microphone.microphoneVolume
+
+    var internalVolume: Float
+        set(value) { microphone.internalVolume = value }
+        get() = microphone.internalVolume
 }

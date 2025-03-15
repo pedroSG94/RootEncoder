@@ -47,7 +47,6 @@ public class MicrophoneManager {
   private final GetMicrophoneData getMicrophoneData;
   protected byte[] pcmBuffer = new byte[AudioEncoder.inputSize];
   protected byte[] pcmBufferDevice = new byte[AudioEncoder.inputSize];
-  protected byte[] pcmBufferMix = new byte[AudioEncoder.inputSize];
   protected byte[] pcmBufferMuted = new byte[AudioEncoder.inputSize];
   protected boolean running = false;
   private boolean created = false;
@@ -60,6 +59,9 @@ public class MicrophoneManager {
   protected HandlerThread handlerThread;
   protected CustomAudioEffect customAudioEffect = new NoAudioEffect();
   private Mode mode = Mode.MICROPHONE;
+  private float microphoneVolume = 1f;
+  private float internalVolume = 1f;
+  private final AudioUtils audioUtils = new AudioUtils();
 
   enum Mode {
     MICROPHONE, INTERNAL, MIX
@@ -260,6 +262,7 @@ public class MicrophoneManager {
             Log.e(TAG, "read error: " + size);
             return null;
           }
+          audioUtils.applyVolume(pcmBuffer, microphoneVolume);
           return new Frame(muted ? pcmBufferMuted : customAudioEffect.process(pcmBuffer), 0, size, timeStamp);
         }
         case INTERNAL -> {
@@ -268,6 +271,7 @@ public class MicrophoneManager {
             Log.e(TAG, "read error: " + size);
             return null;
           }
+          audioUtils.applyVolume(pcmBufferDevice, internalVolume);
           return new Frame(muted ? pcmBufferMuted : customAudioEffect.process(pcmBufferDevice), 0, size, timeStamp);
         }
         case MIX -> {
@@ -281,10 +285,8 @@ public class MicrophoneManager {
             Log.e(TAG, "read error: " + sizeInternal);
             return null;
           }
-          for (int i = 0; i < pcmBufferMix.length; i++) {
-            pcmBufferMix[i] = (byte)(pcmBuffer[i] + pcmBufferDevice[i]);
-          }
-          return new Frame(muted ? pcmBufferMuted : customAudioEffect.process(pcmBufferMix), 0, size, timeStamp);
+          audioUtils.applyVolumeAndMix(pcmBuffer, microphoneVolume, pcmBufferDevice, internalVolume);
+          return new Frame(muted ? pcmBufferMuted : customAudioEffect.process(pcmBuffer), 0, size, timeStamp);
         }
         default -> { return null; }
     }
@@ -329,7 +331,6 @@ public class MicrophoneManager {
     int bufferSize = Math.max(minSize, AudioEncoder.inputSize);
     pcmBuffer = new byte[bufferSize];
     pcmBufferDevice = new byte[bufferSize];
-    pcmBufferMix = new byte[bufferSize];
     pcmBufferMuted = new byte[bufferSize];
   }
 
@@ -355,5 +356,26 @@ public class MicrophoneManager {
 
   public boolean isCreated() {
     return created;
+  }
+
+  public void setVolume(float audioUtils) {
+    setMicrophoneVolume(audioUtils);
+    setInternalVolume(audioUtils);
+  }
+
+  public void setMicrophoneVolume(float microphoneVolume) {
+    this.microphoneVolume = microphoneVolume;
+  }
+
+  public void setInternalVolume(float internalVolume) {
+    this.internalVolume = internalVolume;
+  }
+
+  public float getMicrophoneVolume() {
+    return microphoneVolume;
+  }
+
+  public float getInternalVolume() {
+    return internalVolume;
   }
 }
