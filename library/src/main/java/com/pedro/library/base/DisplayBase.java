@@ -36,6 +36,7 @@ import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 
 import com.pedro.common.AudioCodec;
+import com.pedro.common.TimeUtils;
 import com.pedro.common.VideoCodec;
 import com.pedro.encoder.EncoderErrorCallback;
 import com.pedro.encoder.TimestampMode;
@@ -390,7 +391,7 @@ public abstract class DisplayBase {
     if (data == null) {
       throw new RuntimeException("You need send intent data before startRecord or startStream");
     }
-    long startTs = System.nanoTime() / 1000;
+    long startTs = TimeUtils.getCurrentTimeMicro();
     videoEncoder.start(startTs);
     if (audioInitialized) audioEncoder.start(startTs);
     if (glInterface != null) {

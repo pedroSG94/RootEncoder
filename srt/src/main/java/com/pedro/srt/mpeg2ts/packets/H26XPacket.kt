@@ -78,19 +78,10 @@ class H26XPacket(
     validBuffer.get(payload, 0, validBuffer.remaining())
 
     val pes = Pes(psiManager.getVideoPid().toInt(), isKeyFrame, PesType.VIDEO, mediaFrame.info.timestamp, ByteBuffer.wrap(payload))
-    val mpeg2tsPackets = mpegTsPacketizer.write(listOf(pes))
-    val chunked = mpeg2tsPackets.chunked(chunkSize)
-    val packets = mutableListOf<MpegTsPacket>()
-    chunked.forEachIndexed { index, chunks ->
-      val size = chunks.sumOf { it.size }
-      val buffer = ByteBuffer.allocate(size)
-      chunks.forEach {
-        buffer.put(it)
-      }
-      val packetPosition = PacketPosition.SINGLE
-      packets.add(MpegTsPacket(buffer.array(), MpegType.VIDEO, packetPosition, isKeyFrame))
+    val mpeg2tsPackets = mpegTsPacketizer.write(listOf(pes)).map { buffer ->
+      MpegTsPacket(buffer, MpegType.VIDEO, PacketPosition.SINGLE, isKeyFrame)
     }
-    if (packets.isNotEmpty()) callback(packets)
+    if (mpeg2tsPackets.isNotEmpty()) callback(mpeg2tsPackets)
   }
 
   override fun resetPacket(resetInfo: Boolean) {
