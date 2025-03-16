@@ -1,4 +1,4 @@
-package com.pedro.extrasources
+package com.pedro.encoder.input.sources.video
 
 import android.graphics.SurfaceTexture
 import android.media.MediaCodec
@@ -8,7 +8,7 @@ import com.pedro.common.TimeUtils
 import com.pedro.common.VideoCodec
 import com.pedro.common.toByteArray
 import com.pedro.encoder.Frame
-import com.pedro.encoder.input.sources.video.VideoSource
+import com.pedro.encoder.input.decoder.BufferDecoder
 import com.pedro.encoder.utils.yuv.NV21Utils
 import com.pedro.encoder.utils.yuv.YUVUtil
 import com.pedro.encoder.video.FormatVideoEncoder

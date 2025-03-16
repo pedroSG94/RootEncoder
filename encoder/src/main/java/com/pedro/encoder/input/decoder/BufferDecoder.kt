@@ -1,4 +1,4 @@
-package com.pedro.extrasources
+package com.pedro.encoder.input.decoder
 
 import android.media.MediaCodec
 import android.media.MediaCodec.BufferInfo

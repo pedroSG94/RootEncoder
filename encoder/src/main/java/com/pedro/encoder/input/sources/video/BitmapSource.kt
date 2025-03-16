@@ -14,18 +14,15 @@
  * limitations under the License.
  */
 
-package com.pedro.extrasources
+package com.pedro.encoder.input.sources.video
 
 import android.graphics.Bitmap
 import android.graphics.Paint
 import android.graphics.SurfaceTexture
 import android.view.Surface
-import androidx.core.graphics.scale
-import com.pedro.encoder.input.sources.video.VideoSource
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.cancel
 import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -47,7 +44,7 @@ class BitmapSource(private val bitmap: Bitmap): VideoSource() {
   }
 
   override fun start(surfaceTexture: SurfaceTexture) {
-    val scaledBitmap = bitmap.scale(width, height)
+    val scaledBitmap = Bitmap.createScaledBitmap(bitmap, width, height, true)
     surfaceTexture.setDefaultBufferSize(width, height)
     surface = Surface(surfaceTexture)
     running = true
