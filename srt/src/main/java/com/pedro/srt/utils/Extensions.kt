@@ -68,13 +68,9 @@ fun AudioCodec.toCodec(): Codec {
 }
 
 fun List<ByteArray>.chunkPackets(size: Int): List<ByteArray> {
-  val chunked = this.chunked(size)
-  val packets = mutableListOf<ByteArray>()
-  chunked.forEach { chunks ->
-    val chunkSize = chunks.sumOf { it.size }
-    val buffer = ByteBuffer.allocate(chunkSize)
+  return this.chunked(size).map { chunks ->
+    val buffer = ByteBuffer.allocate(chunks.sumOf { it.size })
     chunks.forEach { buffer.put(it) }
-    packets.add(buffer.toByteArray())
+    buffer.toByteArray()
   }
-  return packets
 }

@@ -20,6 +20,9 @@ import com.pedro.common.TimeUtils
 import com.pedro.srt.Utils
 import com.pedro.srt.mpeg2ts.psi.PsiManager
 import com.pedro.srt.mpeg2ts.service.Mpeg2TsService
+import com.pedro.srt.srt.packets.SrtPacket
+import com.pedro.srt.utils.Constants
+import com.pedro.srt.utils.chunkPackets
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertArrayEquals
 import org.junit.Before
@@ -35,6 +38,7 @@ class PesTest {
 
   private val service = Mpeg2TsService()
   private val timeUtilsMock = Mockito.mockStatic(TimeUtils::class.java)
+  private val chunkSize = (Constants.MTU - SrtPacket.headerSize) / MpegTsPacketizer.packetSize
 
   @Before
   fun setup() {
@@ -53,14 +57,8 @@ class PesTest {
       val psiManager = PsiManager(service)
       val mpegTsPacketizer = MpegTsPacketizer(psiManager)
       val pes = Pes(256, true, PesType.AUDIO, 1400000, data)
-      val mpeg2tsPackets = mpegTsPacketizer.write(listOf(pes))
-      val chunked = mpeg2tsPackets
-      val size = chunked.sumOf { it.size }
-      val buffer = ByteBuffer.allocate(size)
-      chunked.forEach {
-        buffer.put(it)
-      }
-      assertArrayEquals(expected.array(), buffer.array())
+      val buffer = mpegTsPacketizer.write(listOf(pes)).chunkPackets(chunkSize)[0]
+      assertArrayEquals(expected.array(), buffer)
     }
   }
 
@@ -76,14 +74,8 @@ class PesTest {
       val psiManager = PsiManager(service)
       val mpegTsPacketizer = MpegTsPacketizer(psiManager)
       val pes = Pes(256, true, PesType.AUDIO, 1400000, data)
-      val mpeg2tsPackets = mpegTsPacketizer.write(listOf(pes))
-      val chunked = mpeg2tsPackets
-      val size = chunked.sumOf { it.size }
-      val buffer = ByteBuffer.allocate(size)
-      chunked.forEach {
-        buffer.put(it)
-      }
-      assertArrayEquals(expected.array(), buffer.array())
+      val buffer = mpegTsPacketizer.write(listOf(pes)).chunkPackets(chunkSize)[0]
+      assertArrayEquals(expected.array(), buffer)
     }
   }
 }
