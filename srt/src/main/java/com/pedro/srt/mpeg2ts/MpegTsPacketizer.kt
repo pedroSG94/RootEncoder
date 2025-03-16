@@ -85,6 +85,12 @@ class MpegTsPacketizer(private val psiManager: PsiManager) {
           mpegTsPayload.writeHeader(buffer)
 
           val data = mpegTsPayload.bufferData
+          if (data.remaining() < buffer.remaining()) { //small packet
+            buffer.put(data)
+            val stuffingSize = buffer.remaining()
+            writeStuffingBytes(buffer, stuffingSize, false)
+            return@forEachIndexed
+          }
           while (data.hasRemaining()) {
             if (isFirstPacket) {
               isFirstPacket = false
