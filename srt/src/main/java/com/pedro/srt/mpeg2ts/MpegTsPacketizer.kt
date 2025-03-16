@@ -31,6 +31,7 @@ class MpegTsPacketizer(private val psiManager: PsiManager) {
 
   companion object {
     const val packetSize = 188
+    const val headerSize = 4
   }
 
   private var pesContinuity = 0
@@ -72,8 +73,8 @@ class MpegTsPacketizer(private val psiManager: PsiManager) {
           packets.add(buffer.toByteArray())
         }
         is Pes -> {
-          var adaptationFieldControl = AdaptationFieldControl.ADAPTATION_PAYLOAD
-          writeHeader(buffer, true, mpegTsPayload.pid, adaptationFieldControl, pesContinuity)
+          val data = mpegTsPayload.bufferData
+
           val isAudio = psiManager.getAudioPid().toInt() == mpegTsPayload.pid
           val pcr = if (isAudio && !mpegTsPayload.isKeyFrame) null else TimeUtils.getCurrentTimeMicro()
           val adaptationField = AdaptationField(
@@ -81,14 +82,19 @@ class MpegTsPacketizer(private val psiManager: PsiManager) {
             randomAccessIndicator = mpegTsPayload.isKeyFrame, //only video can be true
             pcr = pcr
           )
-          buffer.put(adaptationField.getData())
+          val adaptationData = adaptationField.getData()
+          val isSmall = data.remaining() < buffer.remaining() - headerSize - adaptationData.size - mpegTsPayload.headerLength
+          var adaptationFieldControl = if (isSmall) AdaptationFieldControl.PAYLOAD else AdaptationFieldControl.ADAPTATION_PAYLOAD
+          writeHeader(buffer, true, mpegTsPayload.pid, adaptationFieldControl, pesContinuity)
+          buffer.put(adaptationData)
           mpegTsPayload.writeHeader(buffer)
 
-          val data = mpegTsPayload.bufferData
-          if (data.remaining() < buffer.remaining()) { //small packet
+          if (isSmall) {
             buffer.put(data)
             val stuffingSize = buffer.remaining()
-            writeStuffingBytes(buffer, stuffingSize, false)
+            writeStuffingBytes(buffer, stuffingSize, true)
+            packets.add(buffer.toByteArray())
+            pesContinuity = (pesContinuity + 1) and 0xF
             return@forEachIndexed
           }
           while (data.hasRemaining()) {
