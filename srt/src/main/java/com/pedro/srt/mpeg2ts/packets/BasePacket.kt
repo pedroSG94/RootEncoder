@@ -17,9 +17,11 @@
 package com.pedro.srt.mpeg2ts.packets
 
 import com.pedro.common.frame.MediaFrame
+import com.pedro.common.toByteArray
 import com.pedro.srt.mpeg2ts.MpegTsPacket
 import com.pedro.srt.mpeg2ts.MpegTsPacketizer
 import com.pedro.srt.mpeg2ts.psi.PsiManager
+import java.nio.ByteBuffer
 
 /**
  * Created by pedro on 20/8/23.
@@ -47,7 +49,7 @@ abstract class BasePacket(
 ) {
 
   protected val mpegTsPacketizer =  MpegTsPacketizer(psiManager)
-  protected var chunkSize = limitSize / MpegTsPacketizer.packetSize //max number of ts packets per srtpacket
+  private var chunkSize = limitSize / MpegTsPacketizer.packetSize //max number of ts packets per srtpacket
 
   abstract suspend fun createAndSendPacket(
     mediaFrame: MediaFrame,
@@ -64,5 +66,17 @@ abstract class BasePacket(
   fun setLimitSize(limitSize: Int) {
     this.limitSize = limitSize
     chunkSize = limitSize / MpegTsPacketizer.packetSize
+  }
+
+  protected fun chunkPackets(mpeg2tsPackets: List<ByteArray>): List<ByteArray> {
+    val chunked = mpeg2tsPackets.chunked(chunkSize)
+    val packets = mutableListOf<ByteArray>()
+    chunked.forEach { chunks ->
+      val size = chunks.sumOf { it.size }
+      val buffer = ByteBuffer.allocate(size)
+      chunks.forEach { buffer.put(it) }
+      packets.add(buffer.toByteArray())
+    }
+    return packets
   }
 }

@@ -19,7 +19,6 @@ package com.pedro.srt.mpeg2ts.packets
 import com.pedro.common.AudioUtils
 import com.pedro.common.frame.MediaFrame
 import com.pedro.common.removeInfo
-import com.pedro.common.toByteArray
 import com.pedro.srt.mpeg2ts.MpegTsPacket
 import com.pedro.srt.mpeg2ts.MpegType
 import com.pedro.srt.mpeg2ts.Pes
@@ -55,7 +54,7 @@ class AacPacket(
     fixedBuffer.get(payload, headerSize, length)
 
     val pes = Pes(psiManager.getAudioPid().toInt(), false, PesType.AUDIO, mediaFrame.info.timestamp, ByteBuffer.wrap(payload))
-    val mpeg2tsPackets = mpegTsPacketizer.write(listOf(pes)).map { buffer ->
+    val mpeg2tsPackets = chunkPackets(mpegTsPacketizer.write(listOf(pes))).map { buffer ->
         MpegTsPacket(buffer, MpegType.AUDIO, PacketPosition.SINGLE, isKey = false)
     }
     if (mpeg2tsPackets.isNotEmpty()) callback(mpeg2tsPackets)

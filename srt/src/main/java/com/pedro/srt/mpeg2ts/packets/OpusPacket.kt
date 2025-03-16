@@ -18,7 +18,6 @@ package com.pedro.srt.mpeg2ts.packets
 
 import com.pedro.common.frame.MediaFrame
 import com.pedro.common.removeInfo
-import com.pedro.common.toByteArray
 import com.pedro.srt.mpeg2ts.MpegTsPacket
 import com.pedro.srt.mpeg2ts.MpegType
 import com.pedro.srt.mpeg2ts.Pes
@@ -50,7 +49,7 @@ class OpusPacket(
     System.arraycopy(header, 0, payload, 0, header.size)
 
     val pes = Pes(psiManager.getAudioPid().toInt(), true, PesType.PRIVATE_STREAM_1, mediaFrame.info.timestamp, ByteBuffer.wrap(payload))
-    val mpeg2tsPackets = mpegTsPacketizer.write(listOf(pes)).map { buffer ->
+    val mpeg2tsPackets = chunkPackets(mpegTsPacketizer.write(listOf(pes))).map { buffer ->
       MpegTsPacket(buffer, MpegType.AUDIO, PacketPosition.SINGLE, true)
     }
     if (mpeg2tsPackets.isNotEmpty()) callback(mpeg2tsPackets)

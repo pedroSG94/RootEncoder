@@ -78,7 +78,7 @@ class H26XPacket(
     validBuffer.get(payload, 0, validBuffer.remaining())
 
     val pes = Pes(psiManager.getVideoPid().toInt(), isKeyFrame, PesType.VIDEO, mediaFrame.info.timestamp, ByteBuffer.wrap(payload))
-    val mpeg2tsPackets = mpegTsPacketizer.write(listOf(pes)).map { buffer ->
+    val mpeg2tsPackets = chunkPackets(mpegTsPacketizer.write(listOf(pes))).map { buffer ->
       MpegTsPacket(buffer, MpegType.VIDEO, PacketPosition.SINGLE, isKeyFrame)
     }
     if (mpeg2tsPackets.isNotEmpty()) callback(mpeg2tsPackets)
