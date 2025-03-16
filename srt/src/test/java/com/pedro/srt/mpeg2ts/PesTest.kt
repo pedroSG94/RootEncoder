@@ -63,4 +63,27 @@ class PesTest {
       assertArrayEquals(expected.array(), buffer.array())
     }
   }
+
+  @Test
+  fun `GIVEN a fake aac buffer small WHEN create a mpegts packet with pes packet THEN get the expected buffer`() = runTest {
+    Utils.useStatics(listOf(timeUtilsMock)) {
+      val data = ByteBuffer.wrap(
+        ByteArray(10) { 0xAA.toByte() }
+      )
+      val expected = ByteBuffer.wrap(
+        byteArrayOf(71, 65, 0, 16, 7, 80, 0, 0, 123, 12, 126, 0, 0, 0, 1, -64, 0, 18, -127, -128, 5, 33, 0, 7, -40, 97, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -105, 0, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1)
+      )
+      val psiManager = PsiManager(service)
+      val mpegTsPacketizer = MpegTsPacketizer(psiManager)
+      val pes = Pes(256, true, PesType.AUDIO, 1400000, data)
+      val mpeg2tsPackets = mpegTsPacketizer.write(listOf(pes))
+      val chunked = mpeg2tsPackets
+      val size = chunked.sumOf { it.size }
+      val buffer = ByteBuffer.allocate(size)
+      chunked.forEach {
+        buffer.put(it)
+      }
+      assertArrayEquals(expected.array(), buffer.array())
+    }
+  }
 }
