@@ -22,6 +22,7 @@ import com.pedro.srt.mpeg2ts.MpegTsPayload
 import com.pedro.srt.mpeg2ts.MpegType
 import com.pedro.srt.mpeg2ts.service.Mpeg2TsService
 import com.pedro.srt.srt.packets.data.PacketPosition
+import com.pedro.srt.utils.chunkPackets
 import kotlin.random.Random
 
 /**
@@ -52,23 +53,20 @@ class PsiManager(
     service = service
   )
 
-  fun checkSendInfo(isKey: Boolean = false, mpegTsPacketizer: MpegTsPacketizer): List<MpegTsPacket> {
+  fun checkSendInfo(isKey: Boolean = false, mpegTsPacketizer: MpegTsPacketizer, chunkSize: Int): List<MpegTsPacket> {
     val pmt = service.pmt ?: return arrayListOf()
     val psiPackets = mutableListOf<MpegTsPayload>()
-    if (sdtCount >= sdtPeriod && patCount >= patPeriod) {
-      psiPackets.addAll(listOf(pmt, sdt, pat))
-      sdtCount = 0
-      patCount = 0
-    } else if (patCount >= patPeriod || isKey) {
+    if (patCount >= patPeriod || isKey) {
       psiPackets.addAll(listOf(pat, pmt))
       patCount = 0
-    } else if (sdtCount >= sdtPeriod) {
+    }
+    if (sdtCount >= sdtPeriod) {
       psiPackets.add(sdt)
       sdtCount = 0
     }
     sdtCount++
     patCount++
-    return mpegTsPacketizer.write(psiPackets, increasePsiContinuity = true).map { b ->
+    return mpegTsPacketizer.write(psiPackets, increasePsiContinuity = true).chunkPackets(chunkSize).map { b ->
       MpegTsPacket(b, MpegType.PSI, PacketPosition.SINGLE, isKey = false)
     }
   }

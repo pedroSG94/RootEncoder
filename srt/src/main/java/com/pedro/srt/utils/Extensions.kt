@@ -18,6 +18,7 @@ package com.pedro.srt.utils
 
 import com.pedro.common.AudioCodec
 import com.pedro.common.VideoCodec
+import com.pedro.common.toByteArray
 import com.pedro.srt.mpeg2ts.Codec
 import java.io.InputStream
 import java.io.OutputStream
@@ -64,4 +65,16 @@ fun AudioCodec.toCodec(): Codec {
     AudioCodec.OPUS -> Codec.OPUS
     else -> throw IllegalArgumentException("Unsupported codec: $name")
   }
+}
+
+fun List<ByteArray>.chunkPackets(size: Int): List<ByteArray> {
+  val chunked = this.chunked(size)
+  val packets = mutableListOf<ByteArray>()
+  chunked.forEach { chunks ->
+    val chunkSize = chunks.sumOf { it.size }
+    val buffer = ByteBuffer.allocate(chunkSize)
+    chunks.forEach { buffer.put(it) }
+    packets.add(buffer.toByteArray())
+  }
+  return packets
 }
