@@ -6,7 +6,9 @@ com.pedro.common
 com.pedro.common.av1
 com.pedro.common.base
 com.pedro.common.frame
-com.pedro.common.socket
+com.pedro.common.socket.base
+com.pedro.common.socket.java
+com.pedro.common.socket.ktor
 module:encoder
 com.pedro.encoder
 com.pedro.encoder.audio
