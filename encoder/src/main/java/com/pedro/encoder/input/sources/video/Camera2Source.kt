@@ -251,5 +251,5 @@ class Camera2Source(context: Context): VideoSource() {
 
   fun getAutoWhiteBalanceModesAvailable() = camera.getAutoWhiteBalanceModesAvailable()
 
-  fun setColorCorrectionGains(r: Float, g: Float, g2: Float, b: Float) = camera.setColorCorrectionGains(r, g, g2, b)
+  fun setColorCorrectionGains(red: Float, greenEven: Float, greenOdd: Float, blue: Float) = camera.setColorCorrectionGains(red, greenEven, greenOdd, blue)
 }

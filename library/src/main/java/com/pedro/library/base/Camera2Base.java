@@ -942,8 +942,8 @@ public abstract class Camera2Base {
         return cameraManager.getAutoWhiteBalanceModesAvailable();
     }
 
-    public boolean setColorCorrectionGains(float r, float g, float g2, float b) {
-        return cameraManager.setColorCorrectionGains(r, g, g2, b);
+    public boolean setColorCorrectionGains(float red, float greenEven, float greenOdd, float blue) {
+        return cameraManager.setColorCorrectionGains(red, greenEven, greenOdd, blue);
     }
 
     public boolean tapToFocus(MotionEvent event) {
