@@ -44,7 +44,6 @@ class FlvMuxerRecordController: BaseRecordController() {
     private var outputStream: OutputStream? = null
     private var videoPacket = H264Packet()
     private var audioPacket: BasePacket = AacPacket()
-    private val lock = Any()
     private val queue = LinkedBlockingQueue<MediaFrame>(200)
     private var job: Job? = null
     //metadata config
@@ -225,13 +224,11 @@ class FlvMuxerRecordController: BaseRecordController() {
         val flvHeaderTag = createHeaderTag(type, flvPacket.length, flvPacket.timeStamp)
         val flvTagSize = (flvHeaderTag.size + flvPacket.length).toUInt32()
 
-        synchronized(lock) {
-            try {
-                outputStream.write(flvHeaderTag)
-                outputStream.write(flvPacket.buffer)
-                outputStream.write(flvTagSize)
-            } catch (ignored: Exception) {}
-        }
+        try {
+            outputStream.write(flvHeaderTag)
+            outputStream.write(flvPacket.buffer)
+            outputStream.write(flvTagSize)
+        } catch (ignored: Exception) {}
     }
 
     private fun createHeaderTag(type: Byte, length: Int, timeStamp: Long): ByteArray {
