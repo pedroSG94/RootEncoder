@@ -236,6 +236,21 @@ public abstract class Camera1Base {
     return cameraManager.isAutoFocusEnabled();
   }
 
+  /**
+   * @param mode values from Camera.Parameters.WHITE_BALANCE_*
+   */
+  public boolean enableAutoWhiteBalance(String mode) {
+    return cameraManager.enableAutoWhiteBalance(mode);
+  }
+
+  public List<String> getAutoWhiteBalanceModesAvailable() {
+    return cameraManager.getAutoWhiteBalanceModesAvailable();
+  }
+
+  public String getWhiteBalance() {
+    return cameraManager.getWhiteBalance();
+  }
+
   public boolean resetVideoEncoder() {
     if (glInterface != null) {
       glInterface.removeMediaCodecSurface();

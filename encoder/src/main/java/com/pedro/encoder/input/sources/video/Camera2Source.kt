@@ -19,11 +19,14 @@ package com.pedro.encoder.input.sources.video
 import android.content.Context
 import android.graphics.SurfaceTexture
 import android.hardware.camera2.CameraCharacteristics
+import android.hardware.camera2.CaptureRequest
+import android.hardware.camera2.params.RggbChannelVector
 import android.os.Build
 import android.util.Range
 import android.util.Size
 import android.view.MotionEvent
 import androidx.annotation.RequiresApi
+import com.pedro.common.secureGet
 import com.pedro.encoder.input.video.Camera2ApiManager
 import com.pedro.encoder.input.video.Camera2ApiManager.ImageCallback
 import com.pedro.encoder.input.video.CameraCallbacks
@@ -232,4 +235,21 @@ class Camera2Source(context: Context): VideoSource() {
   fun setCameraCallback(callbacks: CameraCallbacks?) {
     camera.setCameraCallbacks(callbacks)
   }
+
+  /**
+   * @param mode value from CameraCharacteristics.AWB_MODE_*
+   */
+  fun enableAutoWhiteBalance(mode: Int) = camera.enableAutoWhiteBalance(mode)
+
+  fun disableAutoWhiteBalance() {
+    camera.disableAutoWhiteBalance()
+  }
+
+  fun isAutoWhiteBalanceEnabled() = camera.isAutoWhiteBalanceEnabled
+
+  fun getWhiteBalance() = camera.getWhiteBalance()
+
+  fun getAutoWhiteBalanceModesAvailable() = camera.getAutoWhiteBalanceModesAvailable()
+
+  fun setColorCorrectionGains(r: Float, g: Float, g2: Float, b: Float) = camera.setColorCorrectionGains(r, g, g2, b)
 }

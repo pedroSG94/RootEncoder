@@ -183,4 +183,13 @@ class Camera1Source(context: Context): VideoSource() {
   fun setCameraCallback(callbacks: CameraCallbacks?) {
     camera.setCameraCallbacks(callbacks)
   }
+
+  /**
+   * @param mode values from Camera.Parameters.WHITE_BALANCE_*
+   */
+  fun enableAutoWhiteBalance(mode: String) = camera.enableAutoWhiteBalance(mode)
+
+  fun getAutoWhiteBalanceModesAvailable() = camera.autoWhiteBalanceModesAvailable
+
+  fun getWhiteBalance() = camera.whiteBalance
 }

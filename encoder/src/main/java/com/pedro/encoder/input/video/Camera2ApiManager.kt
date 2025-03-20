@@ -29,6 +29,7 @@ import android.hardware.camera2.CaptureResult
 import android.hardware.camera2.TotalCaptureResult
 import android.hardware.camera2.params.MeteringRectangle
 import android.hardware.camera2.params.OutputConfiguration
+import android.hardware.camera2.params.RggbChannelVector
 import android.hardware.camera2.params.SessionConfiguration
 import android.media.Image
 import android.media.ImageReader
@@ -90,6 +91,8 @@ class Camera2ApiManager(context: Context) : CameraDevice.StateCallback() {
     var isAutoFocusEnabled: Boolean = true
         private set
     var isAutoExposureEnabled: Boolean = false
+        private set
+    var isAutoWhiteBalanceEnabled: Boolean = true
         private set
     var isRunning: Boolean = false
         private set
@@ -284,6 +287,50 @@ class Camera2ApiManager(context: Context) : CameraDevice.StateCallback() {
         setPhysicalCamera(id)
         if (isRunning) reOpenCamera(cameraId)
         else openCameraId(cameraId)
+    }
+
+    /**
+     * @param mode value from CameraCharacteristics.CONTROL_AWB_MODE_*
+     */
+    fun enableAutoWhiteBalance(mode: Int): Boolean {
+        val characteristics = cameraCharacteristics ?: return false
+        val builderInputSurface = this.builderInputSurface ?: return false
+        val modes = characteristics.secureGet(CameraCharacteristics.CONTROL_AWB_AVAILABLE_MODES) ?: return false
+        if (!modes.contains(mode)) return false
+        builderInputSurface.set(CaptureRequest.CONTROL_AWB_MODE, mode)
+        isAutoWhiteBalanceEnabled = true
+        return isAutoWhiteBalanceEnabled
+    }
+
+    fun disableAutoWhiteBalance() {
+        val characteristics = cameraCharacteristics ?: return
+        val builderInputSurface = this.builderInputSurface ?: return
+        val modes = characteristics.secureGet(CameraCharacteristics.CONTROL_AWB_AVAILABLE_MODES) ?: return
+        if (!modes.contains(CaptureRequest.CONTROL_AWB_MODE_OFF)) return
+        builderInputSurface.set(CaptureRequest.CONTROL_AWB_MODE, CaptureRequest.CONTROL_AWB_MODE_OFF)
+        isAutoExposureEnabled = false
+    }
+
+    fun getAutoWhiteBalanceModesAvailable(): List<Int> {
+        val characteristics = cameraCharacteristics ?: return listOf()
+        return characteristics.secureGet(CameraCharacteristics.CONTROL_AWB_AVAILABLE_MODES)?.toList() ?: listOf()
+    }
+
+    fun getWhiteBalance(): Int {
+        val default = CameraCharacteristics.CONTROL_AWB_MODE_AUTO
+        val builderInputSurface = this.builderInputSurface ?: return default
+        return builderInputSurface.secureGet(CaptureRequest.CONTROL_AWB_MODE) ?: default
+    }
+
+    fun setColorCorrectionGains(r: Float, g: Float, g2: Float, b: Float): Boolean {
+        val characteristics = cameraCharacteristics ?: return false
+        val builderInputSurface = this.builderInputSurface ?: return false
+        val modes = characteristics.secureGet(CameraCharacteristics.COLOR_CORRECTION_AVAILABLE_ABERRATION_MODES) ?: return false
+        if (!modes.contains(CaptureRequest.COLOR_CORRECTION_MODE_TRANSFORM_MATRIX)) return false
+        disableAutoWhiteBalance()
+        builderInputSurface.set(CaptureRequest.COLOR_CORRECTION_MODE, CaptureRequest.COLOR_CORRECTION_MODE_TRANSFORM_MATRIX)
+        builderInputSurface.set(CaptureRequest.COLOR_CORRECTION_GAINS, RggbChannelVector(r, g, g2, b))
+        return true
     }
 
     fun enableAutoExposure(): Boolean {

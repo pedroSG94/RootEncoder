@@ -659,6 +659,38 @@ public class Camera1ApiManager implements Camera.PreviewCallback, Camera.FaceDet
     return autoFocusEnabled;
   }
 
+  /**
+   * @param mode values from Camera.Parameters.WHITE_BALANCE_*
+   */
+  public boolean enableAutoWhiteBalance(String mode) {
+    boolean result = false;
+    if (camera != null) {
+      Camera.Parameters parameters = camera.getParameters();
+      List<String> supportedWhiteBalanceModes = parameters.getSupportedWhiteBalance();
+      if (supportedWhiteBalanceModes != null && !supportedWhiteBalanceModes.isEmpty()) {
+        if (supportedWhiteBalanceModes.contains(mode)) {
+          parameters.setWhiteBalance(mode);
+          result = true;
+        }
+      }
+    }
+    return result;
+  }
+
+  public List<String> getAutoWhiteBalanceModesAvailable() {
+    if (camera != null) {
+      Camera.Parameters parameters = camera.getParameters();
+      return parameters.getSupportedWhiteBalance();
+    } else return new ArrayList<>();
+  }
+
+  public String getWhiteBalance() {
+    if (camera != null) {
+      Camera.Parameters parameters = camera.getParameters();
+      return parameters.getWhiteBalance();
+    } else return Camera.Parameters.WHITE_BALANCE_AUTO;
+  }
+
   public void enableRecordingHint() {
     if (camera != null) {
       Camera.Parameters parameters = camera.getParameters();
