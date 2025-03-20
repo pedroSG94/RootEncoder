@@ -35,4 +35,18 @@ class AudioUtils {
             buffer[i + 1] = (adjustedSample shr 8).toByte()
         }
     }
+
+    /**
+     * assume always pcm 16bit
+     * @return value from 0f to 100f
+     */
+    fun calculateAmplitude(buffer: ByteArray): Float {
+        if (buffer.size % 2 != 0) return 0f //invalid buffer
+        var amplitude = 0
+        for (i in buffer.indices step 2) {
+            val sample = ((buffer[i + 1].toInt() shl 8) or (buffer[i].toInt() and 0xFF))
+            if (sample > amplitude) amplitude = sample
+        }
+        return (amplitude / Short.MAX_VALUE.toFloat()) * 100
+    }
 }
