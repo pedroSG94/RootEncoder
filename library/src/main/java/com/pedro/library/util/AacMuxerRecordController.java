@@ -17,7 +17,6 @@
 package com.pedro.library.util;
 
 import android.media.MediaCodec;
-import android.media.MediaCodecInfo;
 import android.media.MediaFormat;
 import android.os.Build;
 
@@ -26,6 +25,7 @@ import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 
 import com.pedro.common.AudioCodec;
+import com.pedro.common.AudioUtils;
 import com.pedro.common.BitrateManager;
 import com.pedro.common.ExtensionsKt;
 import com.pedro.library.base.recording.BaseRecordController;
@@ -35,7 +35,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
-import java.util.Arrays;
 
 /**
  * Muxer to record AAC files (used in only audio by default).
@@ -43,32 +42,26 @@ import java.util.Arrays;
 public class AacMuxerRecordController extends BaseRecordController {
 
     private OutputStream outputStream;
-    private final Integer[] AudioSampleRates = new Integer[] {
-            96000,  // 0
-            88200,  // 1
-            64000,  // 2
-            48000,  // 3
-            44100,  // 4
-            32000,  // 5
-            24000,  // 6
-            22050,  // 7
-            16000,  // 8
-            12000,  // 9
-            11025,  // 10
-            8000,  // 11
-            7350,  // 12
-            -1,  // 13
-            -1,  // 14
-            -1
-    };
     private int sampleRate = -1;
     private int channels = -1;
 
     @Override
     @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
     public void startRecord(@NonNull String path, @Nullable Listener listener) throws IOException {
-        if (audioCodec != AudioCodec.AAC) throw new IOException("Unsupported AudioCodec: " + audioCodec.name());
         outputStream = new FileOutputStream(path);
+        start(listener);
+    }
+
+    @Override
+    @RequiresApi(api = Build.VERSION_CODES.O)
+    public void startRecord(@NonNull FileDescriptor fd, @Nullable Listener listener) throws IOException {
+        outputStream = new FileOutputStream(fd);
+        start(listener);
+    }
+
+    @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
+    private void start(@Nullable Listener listener) throws IOException {
+        if (audioCodec != AudioCodec.AAC) throw new IOException("Unsupported AudioCodec: " + audioCodec.name());
         this.listener = listener;
         status = Status.STARTED;
         if (listener != null) {
@@ -81,13 +74,6 @@ public class AacMuxerRecordController extends BaseRecordController {
     }
 
     @Override
-    @RequiresApi(api = Build.VERSION_CODES.O)
-    public void startRecord(@NonNull FileDescriptor fd, @Nullable Listener listener) throws IOException {
-        if (audioCodec != AudioCodec.AAC) throw new IOException("Unsupported AudioCodec: " + audioCodec.name());
-        throw new IOException("FileDescriptor unsupported");
-    }
-
-    @Override
     @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
     public void stopRecord() {
         status = Status.STOPPED;
@@ -96,6 +82,11 @@ public class AacMuxerRecordController extends BaseRecordController {
         sampleRate = -1;
         channels = -1;
         startTs = 0;
+        try {
+            if (outputStream != null) outputStream.close();
+        } catch (Exception ignored) { } finally {
+            outputStream = null;
+        }
         if (listener != null) listener.onStatusChange(status);
     }
 
@@ -142,7 +133,7 @@ public class AacMuxerRecordController extends BaseRecordController {
     private void write(ByteBuffer byteBuffer, MediaCodec.BufferInfo info) {
         try {
             if ((info.flags & MediaCodec.BUFFER_FLAG_CODEC_CONFIG) != MediaCodec.BUFFER_FLAG_CODEC_CONFIG) {
-                byte[] header = createAdtsHeader(info.size - info.offset);
+                byte[] header = AudioUtils.INSTANCE.createAdtsHeader(2, info.size - info.offset, sampleRate, channels).array();
                 outputStream.write(header);
                 byte[] data = new byte[byteBuffer.remaining()];
                 byteBuffer.get(data);
@@ -152,22 +143,5 @@ public class AacMuxerRecordController extends BaseRecordController {
         } catch (Exception e) {
             if (listener != null) listener.onError(e);
         }
-    }
-
-    private byte[] createAdtsHeader(int length) {
-        int frameLength = length + 7;
-        byte[] adtsHeader = new byte[7];
-        int sampleRateIndex = Arrays.asList(AudioSampleRates).indexOf(sampleRate);
-
-        adtsHeader[0] = (byte) 0xFF; // Sync Word
-        adtsHeader[1] = (byte) 0xF1; // MPEG-4, Layer (0), No CRC
-        adtsHeader[2] = (byte) ((MediaCodecInfo.CodecProfileLevel.AACObjectLC - 1) << 6);
-        adtsHeader[2] |= (((byte) sampleRateIndex) << 2);
-        adtsHeader[2] |= (((byte) channels) >> 2);
-        adtsHeader[3] = (byte) (((channels & 3) << 6) | ((frameLength >> 11) & 0x03));
-        adtsHeader[4] = (byte) ((frameLength >> 3) & 0xFF);
-        adtsHeader[5] = (byte) (((frameLength & 0x07) << 5) | 0x1f);
-        adtsHeader[6] = (byte) 0xFC;
-        return adtsHeader;
     }
 }
