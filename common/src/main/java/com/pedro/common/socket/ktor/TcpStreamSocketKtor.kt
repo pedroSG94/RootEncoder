@@ -20,10 +20,10 @@ class TcpStreamSocketKtor(
         selectorManager = SelectorManager(Dispatchers.IO)
         val builder = aSocket(selectorManager).tcp().connect(
             remoteAddress = InetSocketAddress(host, port),
-            configure = { socketTimeout = timeout }
+            configure = { if (!secured) socketTimeout = timeout }
         )
         return if (secured) {
-            builder.tls(Dispatchers.Default) {
+            builder.tls(Dispatchers.IO) {
                 trustManager = certificate
                 random = SecureRandom()
             }
