@@ -551,13 +551,19 @@ class RtmpClient(private val connectChecker: ConnectChecker) {
 
   fun sendVideo(videoBuffer: ByteBuffer, info: MediaCodec.BufferInfo) {
     if (!commandsManager.videoDisabled) {
-      rtmpSender.sendMediaFrame(MediaFrame(videoBuffer.clone(), info.toMediaFrameInfo(), MediaFrame.Type.VIDEO))
+      val i = if (commandsManager.incrementalTs) {
+        info.toMediaFrameInfo().copy(timestamp = commandsManager.getIncrementalTs())
+      } else info.toMediaFrameInfo()
+      rtmpSender.sendMediaFrame(MediaFrame(videoBuffer.clone(), i, MediaFrame.Type.VIDEO))
     }
   }
 
   fun sendAudio(audioBuffer: ByteBuffer, info: MediaCodec.BufferInfo) {
     if (!commandsManager.audioDisabled) {
-      rtmpSender.sendMediaFrame(MediaFrame(audioBuffer.clone(), info.toMediaFrameInfo(), MediaFrame.Type.AUDIO))
+      val i = if (commandsManager.incrementalTs) {
+        info.toMediaFrameInfo().copy(timestamp = commandsManager.getIncrementalTs())
+      } else info.toMediaFrameInfo()
+      rtmpSender.sendMediaFrame(MediaFrame(audioBuffer.clone(), i, MediaFrame.Type.AUDIO))
     }
   }
 

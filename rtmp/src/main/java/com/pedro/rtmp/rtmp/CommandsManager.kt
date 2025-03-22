@@ -70,6 +70,7 @@ abstract class CommandsManager {
   var audioCodec = AudioCodec.AAC
   //Avoid write a packet in middle of other.
   private val writeSync = Mutex(locked = false)
+  private val sync = Any()
 
   fun setVideoResolution(width: Int, height: Int) {
     this.width = width
@@ -193,9 +194,6 @@ abstract class CommandsManager {
   @Throws(IOException::class)
   suspend fun sendVideoPacket(flvPacket: FlvPacket, socket: RtmpSocket): Int {
     writeSync.withLock {
-      if (incrementalTs) {
-        flvPacket.timeStamp = ((TimeUtils.getCurrentTimeNano() / 1000 - startTs) / 1000)
-      }
       val video = Video(flvPacket, streamId)
       video.writeHeader(socket)
       video.writeBody(socket)
@@ -207,14 +205,17 @@ abstract class CommandsManager {
   @Throws(IOException::class)
   suspend fun sendAudioPacket(flvPacket: FlvPacket, socket: RtmpSocket): Int {
     writeSync.withLock {
-      if (incrementalTs) {
-        flvPacket.timeStamp = ((TimeUtils.getCurrentTimeNano() / 1000 - startTs) / 1000)
-      }
       val audio = Audio(flvPacket, streamId)
       audio.writeHeader(socket)
       audio.writeBody(socket)
       socket.flush(true)
       return audio.header.getPacketLength() //get packet size with header included to calculate bps
+    }
+  }
+
+  fun getIncrementalTs(): Long {
+    synchronized(sync) {
+      return ((TimeUtils.getCurrentTimeMicro() - startTs) / 1000)
     }
   }
 
