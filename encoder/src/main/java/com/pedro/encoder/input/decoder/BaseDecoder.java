@@ -38,7 +38,7 @@ public abstract class BaseDecoder {
   protected String TAG = "BaseDecoder";
   protected MediaCodec.BufferInfo bufferInfo = new MediaCodec.BufferInfo();
   protected MediaCodec codec;
-  protected volatile boolean running = false;
+  protected AtomicBoolean running = new AtomicBoolean(false);
   protected MediaFormat mediaFormat;
   private ExecutorService executor;
   protected String mime = "";
@@ -72,7 +72,7 @@ public abstract class BaseDecoder {
 
   public void start() {
     Log.i(TAG, "start decoder");
-    running = true;
+    running.set(true);
     codec.start();
     executor = Executors.newSingleThreadExecutor();
     executor.execute(() -> {
@@ -89,14 +89,14 @@ public abstract class BaseDecoder {
 
   public void stop() {
     Log.i(TAG, "stop decoder");
-    running = false;
+    running.set(false);
     stopDecoder();
     startTs = 0;
     extractor.release();
   }
 
   public void reset(Surface surface) {
-    boolean wasRunning = running;
+    boolean wasRunning = running.get();
     stopDecoder(!wasRunning);
     moveTo(0);
     prepare(surface);
@@ -117,7 +117,7 @@ public abstract class BaseDecoder {
   }
 
   protected void resetCodec(Surface surface) {
-    boolean wasRunning = running;
+    boolean wasRunning = running.get();
     stopDecoder(!wasRunning);
     prepare(surface);
     if (wasRunning) {
@@ -130,7 +130,7 @@ public abstract class BaseDecoder {
   }
 
   protected void stopDecoder(boolean clearTs) {
-    running = false;
+    running.set(false);
     if (clearTs) startTs = 0;
     if (executor != null) {
       executor.shutdownNow();
@@ -170,7 +170,7 @@ public abstract class BaseDecoder {
   }
 
   public double getTime() {
-    if (running) {
+    if (running.get()) {
       return extractor.getTimeStamp() / 10E5;
     } else {
       return 0;
@@ -178,7 +178,7 @@ public abstract class BaseDecoder {
   }
 
   public boolean isRunning() {
-    return running;
+    return running.get();
   }
 
   protected abstract boolean extract(Extractor extractor) throws IOException;
@@ -192,14 +192,19 @@ public abstract class BaseDecoder {
       moveTo(0); //make sure that we are on the start
       startTs = TimeUtils.getCurrentTimeMicro();
     }
+    boolean shouldFinish = false;
     long sleepTime = 0;
-    while (running) {
-      synchronized (sync) {
+    while (running.get()) {
         if (pause.get()) continue;
+        if (shouldFinish) {
+          finished();
+          break;
+        }
         if (looped) {
           decoderInterface.onLoop();
           looped = false;
         }
+      synchronized (sync) {
         int inIndex = codec.dequeueInputBuffer(10000);
         int sampleSize;
         long timeStamp = TimeUtils.getCurrentTimeMicro();
@@ -240,7 +245,7 @@ public abstract class BaseDecoder {
               looped = true;
             } else {
               Log.i(TAG, "end of file");
-              finished();
+              shouldFinish = true;
             }
           }
         }
