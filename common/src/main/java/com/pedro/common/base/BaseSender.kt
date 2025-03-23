@@ -16,6 +16,7 @@ import kotlinx.coroutines.launch
 import java.nio.ByteBuffer
 import java.util.concurrent.BlockingQueue
 import java.util.concurrent.LinkedBlockingQueue
+import java.util.concurrent.PriorityBlockingQueue
 
 abstract class BaseSender(
     protected val connectChecker: ConnectChecker,
@@ -24,9 +25,16 @@ abstract class BaseSender(
 
     @Volatile
     protected var running = false
-    private var cacheSize = 200
+    private var cacheSize = 400
     @Volatile
-    protected var queue: BlockingQueue<MediaFrame> = LinkedBlockingQueue(cacheSize)
+    protected var queue: BlockingQueue<MediaFrame> = PriorityBlockingQueue(cacheSize) { p0, p1 ->
+        val t1 = p0.info.timestamp
+        val t2 = p1.info.timestamp
+        val r = if (t1 < t2) -1
+        else if (t1 > t2) 1
+        else 0
+        r
+    }
     protected var audioFramesSent: Long = 0
     protected var videoFramesSent: Long = 0
     var droppedAudioFrames: Long = 0

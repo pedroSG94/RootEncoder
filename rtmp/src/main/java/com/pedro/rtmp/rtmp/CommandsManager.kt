@@ -70,7 +70,6 @@ abstract class CommandsManager {
   var audioCodec = AudioCodec.AAC
   //Avoid write a packet in middle of other.
   private val writeSync = Mutex(locked = false)
-  private val sync = Any()
 
   fun setVideoResolution(width: Int, height: Int) {
     this.width = width
@@ -210,12 +209,6 @@ abstract class CommandsManager {
       audio.writeBody(socket)
       socket.flush(true)
       return audio.header.getPacketLength() //get packet size with header included to calculate bps
-    }
-  }
-
-  fun getIncrementalTs(): Long {
-    synchronized(sync) {
-      return ((TimeUtils.getCurrentTimeMicro() - startTs) / 1000)
     }
   }
 
