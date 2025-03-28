@@ -33,11 +33,9 @@ import com.pedro.rtmp.flv.video.packet.Av1Packet
 import com.pedro.rtmp.flv.video.packet.H264Packet
 import com.pedro.rtmp.flv.video.packet.H265Packet
 import com.pedro.rtmp.utils.socket.RtmpSocket
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.runInterruptible
 import java.nio.ByteBuffer
-import java.util.concurrent.TimeUnit
 
 /**
  * Created by pedro on 8/04/21.
@@ -78,14 +76,9 @@ class RtmpSender(
   }
 
   override suspend fun onRun() {
-    var lastTs = 0L
-    var fails = 0
     while (scope.isActive && running) {
       val error = runCatching {
-        val mediaFrame = runInterruptible { queue.poll(1, TimeUnit.SECONDS) }
-        if (lastTs > mediaFrame.info.timestamp) fails++
-        lastTs = mediaFrame.info.timestamp
-        Log.e("Pedro", "fails: $fails")
+        val mediaFrame = runInterruptible { queue.take() }
         getFlvPacket(mediaFrame) { flvPacket ->
           var size = 0
           if (flvPacket.type == FlvType.VIDEO) {

@@ -2,7 +2,6 @@ package com.pedro.common
 
 import com.pedro.common.frame.MediaFrame
 import java.util.concurrent.PriorityBlockingQueue
-import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicBoolean
 
 class StreamBlockingQueue(size: Int) {
@@ -34,8 +33,8 @@ class StreamBlockingQueue(size: Int) {
         }
     }
 
-    fun poll(timeout: Long, unit: TimeUnit): MediaFrame {
-        return queue.poll(timeout, unit)
+    fun take(): MediaFrame {
+        return queue.take()
     }
 
     fun remainingCapacity(): Int = queue.remainingCapacity()

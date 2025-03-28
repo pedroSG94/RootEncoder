@@ -100,7 +100,7 @@ class RtspSender(
     val isTcp = rtpSocket is RtpSocketTcp
     while (scope.isActive && running) {
       val error = runCatching {
-        val mediaFrame = runInterruptible { queue.poll(1, TimeUnit.SECONDS) }
+        val mediaFrame = runInterruptible { queue.take() }
         getRtpPackets(mediaFrame) { rtpFrames ->
           var size = 0
           var isVideo = false

@@ -173,6 +173,10 @@ class RtspClient(private val connectChecker: ConnectChecker) {
     }
   }
 
+  fun setDelay(millis: Long) {
+    rtspSender.setDelay(millis)
+  }
+
   fun connect(url: String?) {
     connect(url, false)
   }
