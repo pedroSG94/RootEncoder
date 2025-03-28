@@ -14,7 +14,7 @@ appcompat = "1.6.1"
 #noinspection GradleDependency, version 2.2.0 need min sdk 21
 constraintlayout = "2.1.4"
 #noinspection GradleDependency, version 3.x.x is really bugged using TLS
-ktor = "2.3.13"
+ktor = "3.1.2"
 camerax = "1.4.2"
 multidex = "2.0.1"
 annotation = "1.9.1"
