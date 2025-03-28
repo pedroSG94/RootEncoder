@@ -54,18 +54,27 @@ import com.pedro.streamer.utils.updateMenuColor
 @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
 class ScreenActivity : AppCompatActivity(), ConnectChecker {
 
+  enum class Action {
+    STREAM, RECORD, NONE
+  }
+
   private lateinit var button: ImageView
+  private lateinit var bRecord: ImageView
   private lateinit var etUrl: EditText
   private var currentAudioSource: MenuItem? = null
+  private var action = Action.NONE
 
   private val activityResultContract = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
     val data = result.data
     if (data != null && result.resultCode == RESULT_OK) {
       val screenService = ScreenService.INSTANCE
       if (screenService != null) {
-        val endpoint = etUrl.text.toString()
         if (screenService.prepareStream(result.resultCode, data)) {
-          screenService.startStream(endpoint)
+          when (action) {
+            Action.STREAM -> startStream()
+            Action.RECORD -> toggleRecord()
+            else -> {}
+          }
         } else {
           toast("Prepare stream failed")
         }
@@ -83,7 +92,7 @@ class ScreenActivity : AppCompatActivity(), ConnectChecker {
     fitAppPadding()
     button = findViewById(R.id.b_start_stop)
     etUrl = findViewById(R.id.et_rtp_url)
-    val bRecord = findViewById<ImageView>(R.id.b_record)
+    bRecord = findViewById(R.id.b_record)
     val screenService = ScreenService.INSTANCE
     //No streaming/recording start service
     if (screenService == null) {
@@ -103,28 +112,52 @@ class ScreenActivity : AppCompatActivity(), ConnectChecker {
       val service = ScreenService.INSTANCE
       if (service != null) {
         service.setCallback(this)
-        if (!service.isStreaming()) {
-          button.setImageResource(R.drawable.stream_stop_icon)
+        if (!service.isStreaming() && !service.isRecording()) {
+          action = Action.STREAM
           activityResultContract.launch(service.sendIntent())
+        } else if (!service.isStreaming()) {
+          startStream()
         } else {
           stopStream()
         }
       }
     }
     bRecord.setOnClickListener {
-      ScreenService.INSTANCE?.toggleRecord { state ->
-        when (state) {
-          RecordController.Status.STARTED -> {
-            bRecord.setImageResource(R.drawable.pause_icon)
-          }
-          RecordController.Status.STOPPED -> {
-            bRecord.setImageResource(R.drawable.record_icon)
-          }
-          RecordController.Status.RECORDING -> {
-            bRecord.setImageResource(R.drawable.stop_icon)
-          }
-          else -> {}
+      val service = ScreenService.INSTANCE
+      if (service != null) {
+        service.setCallback(this)
+        if (!service.isStreaming() && !service.isRecording()) {
+          action = Action.RECORD
+          activityResultContract.launch(service.sendIntent())
+        } else toggleRecord()
+      }
+    }
+  }
+
+  private fun startStream() {
+    button.setImageResource(R.drawable.stream_stop_icon)
+    val endpoint = etUrl.text.toString()
+    ScreenService.INSTANCE?.startStream(endpoint)
+  }
+
+  private fun stopStream() {
+    button.setImageResource(R.drawable.stream_icon)
+    ScreenService.INSTANCE?.stopStream()
+  }
+
+  private fun toggleRecord() {
+    ScreenService.INSTANCE?.toggleRecord { state ->
+      when (state) {
+        RecordController.Status.STARTED -> {
+          bRecord.setImageResource(R.drawable.pause_icon)
         }
+        RecordController.Status.STOPPED -> {
+          bRecord.setImageResource(R.drawable.record_icon)
+        }
+        RecordController.Status.RECORDING -> {
+          bRecord.setImageResource(R.drawable.stop_icon)
+        }
+        else -> {}
       }
     }
   }
@@ -167,12 +200,6 @@ class ScreenActivity : AppCompatActivity(), ConnectChecker {
       //stop service only if no streaming or recording
       stopService(Intent(this, ScreenService::class.java))
     }
-  }
-
-  private fun stopStream() {
-    val screenService = ScreenService.INSTANCE
-    screenService?.stopStream()
-    button.setImageResource(R.drawable.stream_icon)
   }
 
   override fun onConnectionStarted(url: String) {}

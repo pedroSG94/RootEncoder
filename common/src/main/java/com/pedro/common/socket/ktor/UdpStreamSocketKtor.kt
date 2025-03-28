@@ -8,10 +8,9 @@ import io.ktor.network.sockets.Datagram
 import io.ktor.network.sockets.InetSocketAddress
 import io.ktor.network.sockets.aSocket
 import io.ktor.network.sockets.isClosed
-import io.ktor.utils.io.core.remaining
+import io.ktor.utils.io.core.ByteReadPacket
+import io.ktor.utils.io.core.readBytes
 import kotlinx.coroutines.Dispatchers
-import kotlinx.io.Buffer
-import kotlinx.io.readByteArray
 import java.net.ConnectException
 import java.net.InetAddress
 
@@ -44,14 +43,14 @@ class UdpStreamSocketKtor(
     }
 
     override suspend fun close() {
-        try {
+        runCatching {
             socket?.close()
             selectorManager.close()
-        } catch (ignored: Exception) {}
+        }
     }
 
     override suspend fun write(bytes: ByteArray) {
-        val datagram = Datagram(Buffer().apply { write(bytes) }, address)
+        val datagram = Datagram(ByteReadPacket(bytes), address)
         socket?.send(datagram)
     }
 
@@ -59,7 +58,7 @@ class UdpStreamSocketKtor(
         val socket = socket ?: throw ConnectException("Read with socket closed, broken pipe")
         val packet = socket.receive().packet
         val length = packet.remaining.toInt()
-        return packet.readByteArray().sliceArray(0 until length)
+        return packet.readBytes().sliceArray(0 until length)
     }
 
     override fun isConnected(): Boolean = socket?.isClosed != true
