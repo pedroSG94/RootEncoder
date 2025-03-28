@@ -53,7 +53,6 @@ abstract class CommandsManager {
   var user: String? = null
   var password: String? = null
   var onAuth = false
-  var incrementalTs = false
   var startTs = 0L
   var readChunkSize = RtmpConfig.DEFAULT_CHUNK_SIZE
   var audioDisabled = false

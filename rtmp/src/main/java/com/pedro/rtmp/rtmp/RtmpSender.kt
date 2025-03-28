@@ -78,15 +78,10 @@ class RtmpSender(
   }
 
   override suspend fun onRun() {
-    if (commandsManager.incrementalTs) delay(2000)
-    val cacheSize = getItemsInCache()
     var lastTs = 0L
     var fails = 0
     while (scope.isActive && running) {
       val error = runCatching {
-        if (commandsManager.incrementalTs) {
-          while (getItemsInCache() < cacheSize) delay(10)
-        }
         val mediaFrame = runInterruptible { queue.poll(1, TimeUnit.SECONDS) }
         if (lastTs > mediaFrame.info.timestamp) fails++
         lastTs = mediaFrame.info.timestamp

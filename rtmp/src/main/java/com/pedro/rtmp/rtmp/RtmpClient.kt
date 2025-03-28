@@ -154,7 +154,7 @@ class RtmpClient(private val connectChecker: ConnectChecker) {
   }
 
   fun forceIncrementalTs(enabled: Boolean) {
-    commandsManager.incrementalTs = enabled
+    if (enabled) rtmpSender.setDelay(200)
   }
 
   fun setWriteChunkSize(chunkSize: Int) {
