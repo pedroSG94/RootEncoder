@@ -52,10 +52,12 @@ public class SurfaceManager {
     return isReady.get();
   }
 
-  public void makeCurrent() {
+  public boolean makeCurrent() {
     if (!EGL14.eglMakeCurrent(eglDisplay, eglSurface, eglSurface, eglContext)) {
       Log.e(TAG, "eglMakeCurrent failed");
+      return false;
     }
+    return true;
   }
 
   public void swapBuffer() {

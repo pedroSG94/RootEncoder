@@ -57,8 +57,7 @@ class MainRender {
   fun isReady(): Boolean = running.get()
 
   fun drawOffScreen(isPreview: Boolean) {
-    cameraRender.setMode(isPreview)
-    cameraRender.draw()
+    if (isPreview) cameraRender.drawPreview() else cameraRender.draw()
     for (baseFilterRender in filterRenders) baseFilterRender.draw()
   }
 

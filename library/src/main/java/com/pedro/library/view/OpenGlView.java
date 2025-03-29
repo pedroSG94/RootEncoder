@@ -78,6 +78,7 @@ public class OpenGlView extends SurfaceView
   private final FpsLimiter fpsLimiter = new FpsLimiter();
   private final ForceRenderer forceRenderer = new ForceRenderer();
   private RenderErrorCallback renderErrorCallback = null;
+  private final Object lock = new Object();
 
   public OpenGlView(Context context) {
     super(context);
@@ -302,77 +303,89 @@ public class OpenGlView extends SurfaceView
 
   @Override
   public void addMediaCodecSurface(Surface surface) {
-    if (surfaceManager.isReady()) {
-      surfaceManagerEncoder.release();
-      surfaceManagerEncoder.eglSetup(surface, surfaceManager);
+    synchronized (lock) {
+      if (surfaceManager.isReady()) {
+        surfaceManagerEncoder.release();
+        surfaceManagerEncoder.eglSetup(surface, surfaceManager);
+      }
     }
   }
 
   @Override
   public void removeMediaCodecSurface() {
-    threadQueue.clear();
-    surfaceManagerEncoder.release();
+    synchronized (lock) {
+      threadQueue.clear();
+      surfaceManagerEncoder.release();
+    }
   }
 
   @Override
   public void addMediaCodecRecordSurface(Surface surface) {
-    if (surfaceManager.isReady()) {
-      surfaceManagerEncoderRecord.release();
-      surfaceManagerEncoderRecord.eglSetup(surface, surfaceManager);
+    synchronized (lock) {
+      if (surfaceManager.isReady()) {
+        surfaceManagerEncoderRecord.release();
+        surfaceManagerEncoderRecord.eglSetup(surface, surfaceManager);
+      }
     }
   }
 
   @Override
   public void removeMediaCodecRecordSurface() {
-    threadQueue.clear();
-    surfaceManagerEncoderRecord.release();
+    synchronized (lock) {
+      threadQueue.clear();
+      surfaceManagerEncoderRecord.release();
+    }
   }
 
   @Override
   public void start() {
-    threadQueue.clear();
-    executor = ExtensionsKt.newSingleThreadExecutor(threadQueue);
-    surfaceManager.release();
-    surfaceManager.eglSetup(getHolder().getSurface());
-    surfaceManagerPhoto.release();
-    surfaceManagerPhoto.eglSetup(encoderWidth, encoderHeight, surfaceManager);
-    running.set(true);
-    ExecutorService executor = this.executor;
-    ExtensionsKt.secureSubmit(executor, () -> {
-      surfaceManager.makeCurrent();
-      mainRender.initGl(getContext(), encoderWidth, encoderHeight, encoderWidth, encoderHeight);
-      mainRender.getSurfaceTexture().setOnFrameAvailableListener(this);
-      forceRenderer.start(() -> {
-        ExecutorService ex = this.executor;
-        if (ex == null) return null;
-        ex.execute(() -> {
-          try {
-            draw(true);
-          } catch (RuntimeException e) {
-            RenderErrorCallback callback = renderErrorCallback;
-            if (callback != null) callback.onRenderError(e);
-            else throw e;
-          }
+    synchronized (lock) {
+      threadQueue.clear();
+      executor = ExtensionsKt.newSingleThreadExecutor(threadQueue);
+      surfaceManager.release();
+      surfaceManager.eglSetup(getHolder().getSurface());
+      surfaceManagerPhoto.release();
+      surfaceManagerPhoto.eglSetup(encoderWidth, encoderHeight, surfaceManager);
+      running.set(true);
+      ExecutorService executor = this.executor;
+      ExtensionsKt.secureSubmit(executor, () -> {
+        surfaceManager.makeCurrent();
+        mainRender.initGl(getContext(), encoderWidth, encoderHeight, encoderWidth, encoderHeight);
+        mainRender.getSurfaceTexture().setOnFrameAvailableListener(this);
+        forceRenderer.start(() -> {
+          ExecutorService ex = this.executor;
+          if (ex == null) return null;
+          ex.execute(() -> {
+            try {
+              synchronized (lock) { draw(true); }
+            } catch (RuntimeException e) {
+              RenderErrorCallback callback = renderErrorCallback;
+              if (callback != null) callback.onRenderError(e);
+              else throw e;
+            }
+          });
+          return null;
         });
         return null;
       });
-      return null;
-    });
+    }
   }
 
   @Override
   public void stop() {
-    running.set(false);
-    threadQueue.clear();
-    ExecutorService executor = this.executor;
-    if (executor != null) executor.shutdownNow();
-    this.executor = null;
-    forceRenderer.stop();
-    surfaceManagerPhoto.release();
-    surfaceManagerEncoder.release();
-    surfaceManagerEncoderRecord.release();
-    surfaceManager.release();
-    mainRender.release();
+    synchronized (lock) {
+      running.set(false);
+      threadQueue.clear();
+      ExecutorService executor = this.executor;
+      if (executor != null) executor.shutdownNow();
+      this.executor = null;
+      forceRenderer.stop();
+      surfaceManagerPhoto.release();
+      surfaceManagerEncoder.release();
+      surfaceManagerEncoderRecord.release();
+      surfaceManager.release();
+      mainRender.release();
+    }
   }
 
   @Override
@@ -382,7 +395,7 @@ public class OpenGlView extends SurfaceView
     if (ex == null) return;
     ex.execute(() -> {
       try {
-        draw(false);
+        synchronized (lock) { draw(false); }
       } catch (RuntimeException e) {
         RenderErrorCallback callback = renderErrorCallback;
         if (callback != null) callback.onRenderError(e);
