@@ -230,3 +230,7 @@ fun OutputStream.writeUInt16(value: Int) {
 fun OutputStream.writeUInt32LittleEndian(value: Int) {
   write(value.toUInt32LittleEndian())
 }
+
+fun Long.compare(l: Long): Int {
+  return if (this < l) -1 else if (this > l) 1 else 0
+}

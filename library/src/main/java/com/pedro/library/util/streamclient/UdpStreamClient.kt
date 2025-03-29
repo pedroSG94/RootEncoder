@@ -32,6 +32,14 @@ class UdpStreamClient(
 
   }
 
+  /**
+   * Set stream delay in millis.
+   * This will create a cache and wait the delay to start send packets in real time
+   */
+  override fun setDelay(millis: Long) {
+    udpClient.setDelay(millis)
+  }
+
   override fun setReTries(reTries: Int) {
     udpClient.setReTries(reTries)
   }

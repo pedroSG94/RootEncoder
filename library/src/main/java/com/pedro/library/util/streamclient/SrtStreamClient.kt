@@ -36,6 +36,14 @@ class SrtStreamClient(
   }
 
   /**
+   * Set stream delay in millis.
+   * This will create a cache and wait the delay to start send packets in real time
+   */
+  override fun setDelay(millis: Long) {
+    srtClient.setDelay(millis)
+  }
+
+  /**
    * Set passphrase for encrypt. Use empty value to disable it.
    */
   fun setPassphrase(passphrase: String, type: EncryptionType) {

@@ -37,6 +37,14 @@ class RtspStreamClient(
   }
 
   /**
+   * Set stream delay in millis.
+   * This will create a cache and wait the delay to start send packets in real time
+   */
+  override fun setDelay(millis: Long) {
+    rtspClient.setDelay(millis)
+  }
+
+  /**
    * Internet protocol used.
    *
    * @param protocol Could be Protocol.TCP or Protocol.UDP.
