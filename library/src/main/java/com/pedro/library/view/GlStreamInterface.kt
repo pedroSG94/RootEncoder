@@ -221,10 +221,11 @@ class GlStreamInterface(private val context: Context): OnFrameAvailableListener,
     if (!forced) forceRender.frameAvailable()
 
     if (surfaceManager.isReady && mainRender.isReady()) {
-      surfaceManager.makeCurrent()
-      mainRender.updateFrame()
-      mainRender.drawOffScreen(false)
-      surfaceManager.swapBuffer()
+      if (surfaceManager.makeCurrent()) {
+        mainRender.updateFrame()
+        mainRender.drawOffScreen(false)
+        surfaceManager.swapBuffer()
+      }
     }
 
     if (!filterQueue.isEmpty() && mainRender.isReady()) {
@@ -251,42 +252,48 @@ class GlStreamInterface(private val context: Context): OnFrameAvailableListener,
     if (surfaceManagerEncoder.isReady && mainRender.isReady() && !limitFps) {
       val w = if (muteVideo) 0 else encoderWidth
       val h = if (muteVideo) 0 else encoderHeight
-      surfaceManagerEncoder.makeCurrent()
-      mainRender.drawScreenEncoder(w, h, orientation, streamOrientation,
-        isStreamVerticalFlip, isStreamHorizontalFlip)
-      surfaceManagerEncoder.swapBuffer()
+      if (surfaceManagerEncoder.makeCurrent()) {
+        mainRender.drawScreenEncoder(w, h, orientation, streamOrientation,
+          isStreamVerticalFlip, isStreamHorizontalFlip)
+        surfaceManagerEncoder.swapBuffer()
+      }
     }
     // render VideoEncoder (record if the resolution is different than stream)
     if (surfaceManagerEncoderRecord.isReady && mainRender.isReady() && !limitFps) {
       val w = if (muteVideo) 0 else encoderRecordWidth
       val h = if (muteVideo) 0 else encoderRecordHeight
-      surfaceManagerEncoderRecord.makeCurrent()
-      mainRender.drawScreenEncoder(w, h, orientation, streamOrientation,
-        isStreamVerticalFlip, isStreamHorizontalFlip)
-      surfaceManagerEncoderRecord.swapBuffer()
+      if (surfaceManagerEncoderRecord.makeCurrent()) {
+        mainRender.drawScreenEncoder(w, h, orientation, streamOrientation,
+          isStreamVerticalFlip, isStreamHorizontalFlip)
+        surfaceManagerEncoderRecord.swapBuffer()
+      }
     }
     //render surface photo if request photo
     if (takePhotoCallback != null && surfaceManagerPhoto.isReady && mainRender.isReady()) {
-      surfaceManagerPhoto.makeCurrent()
-      mainRender.drawScreen(encoderWidth, encoderHeight, AspectRatioMode.NONE,
-        streamOrientation, isStreamVerticalFlip, isStreamHorizontalFlip)
-      takePhotoCallback?.onTakePhoto(GlUtil.getBitmap(encoderWidth, encoderHeight))
-      takePhotoCallback = null
-      surfaceManagerPhoto.swapBuffer()
+      if (surfaceManagerPhoto.makeCurrent()) {
+        mainRender.drawScreen(encoderWidth, encoderHeight, AspectRatioMode.NONE,
+          streamOrientation, isStreamVerticalFlip, isStreamHorizontalFlip)
+        takePhotoCallback?.onTakePhoto(GlUtil.getBitmap(encoderWidth, encoderHeight))
+        takePhotoCallback = null
+        surfaceManagerPhoto.swapBuffer()
+      }
     }
     // render preview
     if (surfaceManagerPreview.isReady && mainRender.isReady() && !limitFps) {
       val w =  if (previewWidth == 0) encoderWidth else previewWidth
       val h =  if (previewHeight == 0) encoderHeight else previewHeight
       if (surfaceManager.isReady && mainRender.isReady()) {
-        surfaceManager.makeCurrent()
-        mainRender.drawOffScreen(true)
-        surfaceManager.swapBuffer()
+        if (surfaceManager.makeCurrent()) {
+          mainRender.updateFrame()
+          mainRender.drawOffScreen(true)
+          surfaceManager.swapBuffer()
+        }
       }
-      surfaceManagerPreview.makeCurrent()
-      mainRender.drawScreenPreview(w, h, orientationPreview, aspectRatioMode, 0,
-        isPreviewVerticalFlip, isPreviewHorizontalFlip)
-      surfaceManagerPreview.swapBuffer()
+      if (surfaceManagerPreview.makeCurrent()) {
+        mainRender.drawScreenPreview(w, h, orientationPreview, aspectRatioMode, 0,
+          isPreviewVerticalFlip, isPreviewHorizontalFlip)
+        surfaceManagerPreview.swapBuffer()
+      }
     }
   }
 
