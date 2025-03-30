@@ -42,8 +42,6 @@ public class CameraRender extends BaseRenderOffScreen {
 
   private final int[] textureID = new int[1];
   private final float[] rotationMatrix = new float[16];
-  private final float[] MVPMatrixPreview = new float[16];
-  private final float[] rotationPreviewMatrix = new float[16];
   private final float[] scaleMatrix = new float[16];
 
   private int program = -1;
@@ -57,7 +55,6 @@ public class CameraRender extends BaseRenderOffScreen {
 
   public CameraRender() {
     Matrix.setIdentityM(MVPMatrix, 0);
-    Matrix.setIdentityM(MVPMatrixPreview, 0);
     Matrix.setIdentityM(STMatrix, 0);
     float[] vertex = CameraHelper.getVerticesData();
     squareVertex = ByteBuffer.allocateDirect(vertex.length * FLOAT_SIZE_BYTES)
@@ -95,14 +92,6 @@ public class CameraRender extends BaseRenderOffScreen {
 
   @Override
   public void draw() {
-    handleDraw(MVPMatrix);
-  }
-
-  public void drawPreview() {
-    handleDraw(MVPMatrixPreview);
-  }
-
-  private void handleDraw(float[] mvpMatrix) {
     GlUtil.checkGlError("drawCamera start");
     GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, renderHandler.getFboId()[0]);
 
@@ -122,7 +111,7 @@ public class CameraRender extends BaseRenderOffScreen {
             SQUARE_VERTEX_DATA_STRIDE_BYTES, squareVertex);
     GLES20.glEnableVertexAttribArray(aTextureCameraHandle);
 
-    GLES20.glUniformMatrix4fv(uMVPMatrixHandle, 1, false, mvpMatrix, 0);
+    GLES20.glUniformMatrix4fv(uMVPMatrixHandle, 1, false, MVPMatrix, 0);
     GLES20.glUniformMatrix4fv(uSTMatrixHandle, 1, false, STMatrix, 0);
     //camera
     GLES20.glActiveTexture(GLES20.GL_TEXTURE0);
@@ -155,19 +144,8 @@ public class CameraRender extends BaseRenderOffScreen {
   }
 
   public void setRotation(int rotation) {
-    setRotationStream(rotation);
-    setRotationPreview(rotation);
-  }
-
-  public void setRotationStream(int rotation) {
     Matrix.setIdentityM(rotationMatrix, 0);
     Matrix.rotateM(rotationMatrix, 0, rotation, 0f, 0f, -1f);
-    update();
-  }
-
-  public void setRotationPreview(int rotation) {
-    Matrix.setIdentityM(rotationPreviewMatrix, 0);
-    Matrix.rotateM(rotationPreviewMatrix, 0, rotation, 0f, 0f, -1f);
     update();
   }
 
@@ -181,9 +159,5 @@ public class CameraRender extends BaseRenderOffScreen {
     Matrix.setIdentityM(MVPMatrix, 0);
     Matrix.multiplyMM(MVPMatrix, 0, scaleMatrix, 0, MVPMatrix, 0);
     Matrix.multiplyMM(MVPMatrix, 0, rotationMatrix, 0, MVPMatrix, 0);
-
-    Matrix.setIdentityM(MVPMatrixPreview, 0);
-    Matrix.multiplyMM(MVPMatrixPreview, 0, scaleMatrix, 0, MVPMatrixPreview, 0);
-    Matrix.multiplyMM(MVPMatrixPreview, 0, rotationPreviewMatrix, 0, MVPMatrixPreview, 0);
   }
 }

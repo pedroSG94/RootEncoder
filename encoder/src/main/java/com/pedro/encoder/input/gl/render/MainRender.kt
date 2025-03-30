@@ -182,14 +182,6 @@ class MainRender {
     cameraRender.setRotation(rotation)
   }
 
-  fun setCameraRotationStream(rotation: Int) {
-    cameraRender.setRotationStream(rotation)
-  }
-
-  fun setCameraRotationPreview(rotation: Int) {
-    cameraRender.setRotationPreview(rotation)
-  }
-
   fun setCameraFlip(isFlipHorizontal: Boolean, isFlipVertical: Boolean) {
     cameraRender.setFlip(isFlipHorizontal, isFlipVertical)
   }
