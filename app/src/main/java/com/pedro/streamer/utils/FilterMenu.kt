@@ -27,6 +27,7 @@ import android.view.Surface
 import android.view.View
 import androidx.annotation.RequiresApi
 import com.pedro.encoder.input.gl.SpriteGestureController
+import com.pedro.encoder.input.gl.render.RenderMode
 import com.pedro.encoder.input.gl.render.filters.AnalogTVFilterRender
 import com.pedro.encoder.input.gl.render.filters.AndroidViewFilterRender
 import com.pedro.encoder.input.gl.render.filters.BasicDeformationFilterRender
@@ -111,7 +112,7 @@ class FilterMenu(private val context: Context) {
         return true
       }
       R.id.basic_deformation -> {
-        glInterface.setFilter(BasicDeformationFilterRender())
+        glInterface.addFilter(BasicDeformationFilterRender())
         return true
       }
       R.id.beauty -> {
@@ -191,9 +192,9 @@ class FilterMenu(private val context: Context) {
       }
       R.id.gif -> {
         try {
-          val gifObjectFilterRender = GifObjectFilterRender()
+          val gifObjectFilterRender = GifObjectFilterRender().apply { renderMode = RenderMode.OUTPUT }
           gifObjectFilterRender.setGif(context.resources.openRawResource(R.raw.banana))
-          glInterface.setFilter(gifObjectFilterRender)
+          glInterface.addFilter(gifObjectFilterRender)
           gifObjectFilterRender.setScale(50f, 50f)
           gifObjectFilterRender.setPosition(TranslateTo.BOTTOM)
           spriteGestureController.setBaseObjectFilterRender(gifObjectFilterRender) //Optional
@@ -209,8 +210,8 @@ class FilterMenu(private val context: Context) {
         return true
       }
       R.id.image -> {
-        val imageObjectFilterRender = ImageObjectFilterRender()
-        glInterface.setFilter(imageObjectFilterRender)
+        val imageObjectFilterRender = ImageObjectFilterRender().apply { renderMode = RenderMode.PREVIEW }
+        glInterface.addFilter(imageObjectFilterRender)
         imageObjectFilterRender.setImage(
           BitmapFactory.decodeResource(context.resources, R.mipmap.ic_launcher)
         )

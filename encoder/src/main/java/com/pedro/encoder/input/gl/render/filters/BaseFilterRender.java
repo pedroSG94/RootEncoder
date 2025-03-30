@@ -24,6 +24,7 @@ import androidx.annotation.RequiresApi;
 
 import com.pedro.encoder.input.gl.render.BaseRenderOffScreen;
 import com.pedro.encoder.input.gl.render.RenderHandler;
+import com.pedro.encoder.input.gl.render.RenderMode;
 import com.pedro.encoder.utils.gl.GlUtil;
 
 /**
@@ -40,6 +41,7 @@ public abstract class BaseFilterRender extends BaseRenderOffScreen {
 
   protected int previousTexId;
   private RenderHandler renderHandler = new RenderHandler();
+  private RenderMode renderMode = RenderMode.ALL;
 
   public void initGl(int width, int height, Context context, int previewWidth, int previewHeight) {
     this.width = width;
@@ -113,5 +115,17 @@ public abstract class BaseFilterRender extends BaseRenderOffScreen {
 
   public void setRenderHandler(RenderHandler renderHandler) {
     this.renderHandler = renderHandler;
+  }
+
+  public void setWidth(int width) {
+    this.width = width;
+  }
+
+  public RenderMode getRenderMode() {
+    return renderMode;
+  }
+
+  public void setRenderMode(RenderMode renderMode) {
+    this.renderMode = renderMode;
   }
 }

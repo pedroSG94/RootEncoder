@@ -216,8 +216,9 @@ class OpenGlView : SurfaceView, GlInterface, OnFrameAvailableListener, SurfaceHo
         if (surfaceManager.isReady && mainRender.isReady()) {
             surfaceManager.makeCurrent()
             mainRender.updateFrame()
-            mainRender.drawOffScreen(false)
+            mainRender.drawSource()
             if (!limitFps) {
+                mainRender.drawFilters(true)
                 mainRender.drawScreen(
                     previewWidth, previewHeight, aspectRatioMode, 0,
                     isPreviewVerticalFlip, isPreviewHorizontalFlip
@@ -225,7 +226,6 @@ class OpenGlView : SurfaceView, GlInterface, OnFrameAvailableListener, SurfaceHo
                 surfaceManager.swapBuffer()
             }
         }
-
         if (!filterQueue.isEmpty() && mainRender.isReady()) {
             try {
                 val filter = filterQueue.take()
@@ -234,6 +234,9 @@ class OpenGlView : SurfaceView, GlInterface, OnFrameAvailableListener, SurfaceHo
                 Thread.currentThread().interrupt()
                 return
             }
+        }
+        if (surfaceManagerEncoder.isReady || surfaceManagerEncoderRecord.isReady || surfaceManagerPhoto.isReady) {
+            mainRender.drawFilters(false)
         }
         if (surfaceManagerEncoder.isReady && mainRender.isReady() && !limitFps) {
             val w = if (muteVideo) 0 else encoderWidth

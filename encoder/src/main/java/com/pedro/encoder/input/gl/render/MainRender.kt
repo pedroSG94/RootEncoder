@@ -38,7 +38,7 @@ class MainRender {
   private var previewWidth = 0
   private var previewHeight = 0
   private var context: Context? = null
-  private var filterRenders: MutableList<BaseFilterRender> = ArrayList()
+  private var filterRenders = mutableListOf<BaseFilterRender>()
   private val running = AtomicBoolean(false)
 
   fun initGl(context: Context, encoderWidth: Int, encoderHeight: Int, previewWidth: Int, previewHeight: Int) {
@@ -56,9 +56,16 @@ class MainRender {
 
   fun isReady(): Boolean = running.get()
 
-  fun drawOffScreen(isPreview: Boolean) {
-    if (isPreview) cameraRender.drawPreview() else cameraRender.draw()
-    for (baseFilterRender in filterRenders) baseFilterRender.draw()
+  fun drawSource() {
+    cameraRender.draw()
+  }
+
+  fun drawFilters(isPreview: Boolean) {
+    val validFilters = filterRenders.filter {
+      if (isPreview) it.renderMode != RenderMode.OUTPUT else it.renderMode != RenderMode.PREVIEW
+    }
+    reOrderFilters(validFilters)
+    validFilters.forEach { it.draw() }
   }
 
   fun drawScreen(width: Int, height: Int, mode: AspectRatioMode, rotation: Int,
@@ -100,14 +107,12 @@ class MainRender {
     filterRenders.add(baseFilterRender)
     baseFilterRender.initGl(width, height, context, previewWidth, previewHeight)
     baseFilterRender.initFBOLink()
-    reOrderFilters()
   }
 
   private fun addFilter(position: Int, baseFilterRender: BaseFilterRender) {
     filterRenders.add(position, baseFilterRender)
     baseFilterRender.initGl(width, height, context, previewWidth, previewHeight)
     baseFilterRender.initFBOLink()
-    reOrderFilters()
   }
 
   private fun clearFilters() {
@@ -115,30 +120,23 @@ class MainRender {
       baseFilterRender.release()
     }
     filterRenders.clear()
-    reOrderFilters()
   }
 
   private fun removeFilter(position: Int) {
     filterRenders.removeAt(position).release()
-    reOrderFilters()
   }
 
   private fun removeFilter(baseFilterRender: BaseFilterRender) {
     baseFilterRender.release()
     filterRenders.remove(baseFilterRender)
-    reOrderFilters()
   }
 
-  private fun reOrderFilters() {
-    for (i in filterRenders.indices) {
-      val texId = if (i == 0) cameraRender.texId else filterRenders[i - 1].texId
-      filterRenders[i].previousTexId = texId
+  private fun reOrderFilters(filters: List<BaseFilterRender>) {
+    for (i in filters.indices) {
+      val texId = if (i == 0) cameraRender.texId else filters[i - 1].texId
+      filters[i].previousTexId = texId
     }
-    val texId = if (filterRenders.isEmpty()) {
-      cameraRender.texId
-    } else {
-      filterRenders[filterRenders.size - 1].texId
-    }
+    val texId = if (filters.isEmpty()) cameraRender.texId else filters[filters.size - 1].texId
     screenRender.setTexId(texId)
   }
 

@@ -212,7 +212,7 @@ class GlStreamInterface(private val context: Context): OnFrameAvailableListener,
     if (surfaceManager.isReady && mainRender.isReady()) {
       if (surfaceManager.makeCurrent()) {
         mainRender.updateFrame()
-        mainRender.drawOffScreen(false)
+        mainRender.drawSource()
         surfaceManager.swapBuffer()
       }
     }
@@ -226,7 +226,6 @@ class GlStreamInterface(private val context: Context): OnFrameAvailableListener,
         return
       }
     }
-
     val orientation = when (orientationForced) {
       OrientationForced.PORTRAIT -> true
       OrientationForced.LANDSCAPE -> false
@@ -236,6 +235,9 @@ class GlStreamInterface(private val context: Context): OnFrameAvailableListener,
       OrientationForced.PORTRAIT -> true
       OrientationForced.LANDSCAPE -> false
       OrientationForced.NONE -> isPortraitPreview
+    }
+    if (surfaceManagerEncoder.isReady || surfaceManagerEncoderRecord.isReady || surfaceManagerPhoto.isReady) {
+      mainRender.drawFilters(false)
     }
     // render VideoEncoder (stream and record)
     if (surfaceManagerEncoder.isReady && mainRender.isReady() && !limitFps) {
@@ -271,6 +273,10 @@ class GlStreamInterface(private val context: Context): OnFrameAvailableListener,
     if (surfaceManagerPreview.isReady && mainRender.isReady() && !limitFps) {
       val w =  if (previewWidth == 0) encoderWidth else previewWidth
       val h =  if (previewHeight == 0) encoderHeight else previewHeight
+      if (surfaceManager.makeCurrent()) {
+        mainRender.drawFilters(true)
+        surfaceManager.swapBuffer()
+      }
       if (surfaceManagerPreview.makeCurrent()) {
         mainRender.drawScreenPreview(w, h, orientationPreview, aspectRatioMode, 0,
           isPreviewVerticalFlip, isPreviewHorizontalFlip)
