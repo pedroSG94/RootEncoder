@@ -172,26 +172,26 @@ class GlStreamInterface(private val context: Context): OnFrameAvailableListener,
   }
 
   override fun start() {
+    threadQueue.clear()
+    executor?.shutdownNow()
+    executor = null
+    executor = newSingleThreadExecutor(threadQueue)
     executor?.secureSubmit {
-      threadQueue.clear()
-      executor = newSingleThreadExecutor(threadQueue)
       surfaceManager.release()
       surfaceManager.eglSetup()
       surfaceManagerPhoto.release()
       surfaceManagerPhoto.eglSetup(encoderWidth, encoderHeight, surfaceManager)
       sensorRotationManager.start()
+      surfaceManager.makeCurrent()
+      mainRender.initGl(context, encoderWidth, encoderHeight, encoderWidth, encoderHeight)
       running.set(true)
-      executor?.secureSubmit {
-        surfaceManager.makeCurrent()
-        mainRender.initGl(context, encoderWidth, encoderHeight, encoderWidth, encoderHeight)
-        mainRender.getSurfaceTexture().setOnFrameAvailableListener(this)
-        forceRender.start {
-          executor?.execute {
-            try {
-              draw(true)
-            } catch (e: RuntimeException) {
-              renderErrorCallback?.onRenderError(e) ?: throw e
-            }
+      mainRender.getSurfaceTexture().setOnFrameAvailableListener(this)
+      forceRender.start {
+        executor?.execute {
+          try {
+            draw(true)
+          } catch (e: RuntimeException) {
+            renderErrorCallback?.onRenderError(e) ?: throw e
           }
         }
       }
@@ -200,8 +200,8 @@ class GlStreamInterface(private val context: Context): OnFrameAvailableListener,
 
   override fun stop() {
     running.set(false)
+    threadQueue.clear()
     executor?.secureSubmit {
-      threadQueue.clear()
       forceRender.stop()
       sensorRotationManager.stop()
       surfaceManagerPhoto.release()
