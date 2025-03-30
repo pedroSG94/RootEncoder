@@ -136,35 +136,27 @@ class GlStreamInterface(private val context: Context): OnFrameAvailableListener,
   }
 
   override fun addMediaCodecSurface(surface: Surface) {
-    executor?.secureSubmit {
-      if (surfaceManager.isReady) {
-        surfaceManagerEncoder.release()
-        surfaceManagerEncoder.eglSetup(surface, surfaceManager)
-      }
+    if (surfaceManager.isReady) {
+      surfaceManagerEncoder.release()
+      surfaceManagerEncoder.eglSetup(surface, surfaceManager)
     }
   }
 
   override fun removeMediaCodecSurface() {
-    executor?.secureSubmit {
-      threadQueue.clear()
-      surfaceManagerEncoder.release()
-    }
+    threadQueue.clear()
+    surfaceManagerEncoder.release()
   }
 
   override fun addMediaCodecRecordSurface(surface: Surface) {
-    executor?.secureSubmit {
-      if (surfaceManager.isReady) {
-        surfaceManagerEncoderRecord.release()
-        surfaceManagerEncoderRecord.eglSetup(surface, surfaceManager)
-      }
+    if (surfaceManager.isReady) {
+      surfaceManagerEncoderRecord.release()
+      surfaceManagerEncoderRecord.eglSetup(surface, surfaceManager)
     }
   }
 
   override fun removeMediaCodecRecordSurface() {
-    executor?.secureSubmit {
-      threadQueue.clear()
-      surfaceManagerEncoderRecord.release()
-    }
+    threadQueue.clear()
+    surfaceManagerEncoderRecord.release()
   }
 
   override fun takePhoto(takePhotoCallback: TakePhotoCallback?) {
@@ -176,12 +168,12 @@ class GlStreamInterface(private val context: Context): OnFrameAvailableListener,
     executor?.shutdownNow()
     executor = null
     executor = newSingleThreadExecutor(threadQueue)
+    surfaceManager.release()
+    surfaceManager.eglSetup()
+    surfaceManagerPhoto.release()
+    surfaceManagerPhoto.eglSetup(encoderWidth, encoderHeight, surfaceManager)
+    sensorRotationManager.start()
     executor?.secureSubmit {
-      surfaceManager.release()
-      surfaceManager.eglSetup()
-      surfaceManagerPhoto.release()
-      surfaceManagerPhoto.eglSetup(encoderWidth, encoderHeight, surfaceManager)
-      sensorRotationManager.start()
       surfaceManager.makeCurrent()
       mainRender.initGl(context, encoderWidth, encoderHeight, encoderWidth, encoderHeight)
       running.set(true)
@@ -201,17 +193,15 @@ class GlStreamInterface(private val context: Context): OnFrameAvailableListener,
   override fun stop() {
     running.set(false)
     threadQueue.clear()
-    executor?.secureSubmit {
-      forceRender.stop()
-      sensorRotationManager.stop()
-      surfaceManagerPhoto.release()
-      surfaceManagerEncoder.release()
-      surfaceManagerEncoderRecord.release()
-      surfaceManager.release()
-      mainRender.release()
-    }
     executor?.shutdownNow()
     executor = null
+    forceRender.stop()
+    sensorRotationManager.stop()
+    surfaceManagerPhoto.release()
+    surfaceManagerEncoder.release()
+    surfaceManagerEncoderRecord.release()
+    surfaceManager.release()
+    mainRender.release()
   }
 
   private fun draw(forced: Boolean) {
@@ -222,7 +212,6 @@ class GlStreamInterface(private val context: Context): OnFrameAvailableListener,
     if (surfaceManager.isReady && mainRender.isReady()) {
       if (surfaceManager.makeCurrent()) {
         mainRender.updateFrame()
-        mainRender.drawOffScreen(false)
         surfaceManager.swapBuffer()
       }
     }
@@ -246,6 +235,9 @@ class GlStreamInterface(private val context: Context): OnFrameAvailableListener,
       OrientationForced.PORTRAIT -> true
       OrientationForced.LANDSCAPE -> false
       OrientationForced.NONE -> isPortraitPreview
+    }
+    if (surfaceManagerEncoder.isReady || surfaceManagerEncoderRecord.isReady || surfaceManagerPhoto.isReady) {
+      drawOffScreen(false)
     }
     // render VideoEncoder (stream and record)
     if (surfaceManagerEncoder.isReady && mainRender.isReady() && !limitFps) {
@@ -281,17 +273,20 @@ class GlStreamInterface(private val context: Context): OnFrameAvailableListener,
     if (surfaceManagerPreview.isReady && mainRender.isReady() && !limitFps) {
       val w =  if (previewWidth == 0) encoderWidth else previewWidth
       val h =  if (previewHeight == 0) encoderHeight else previewHeight
-      if (surfaceManager.isReady && mainRender.isReady()) {
-        if (surfaceManager.makeCurrent()) {
-          mainRender.updateFrame()
-          mainRender.drawOffScreen(true)
-          surfaceManager.swapBuffer()
-        }
-      }
+      drawOffScreen(true)
       if (surfaceManagerPreview.makeCurrent()) {
         mainRender.drawScreenPreview(w, h, orientationPreview, aspectRatioMode, 0,
           isPreviewVerticalFlip, isPreviewHorizontalFlip)
         surfaceManagerPreview.swapBuffer()
+      }
+    }
+  }
+
+  private fun drawOffScreen(isPreview: Boolean) {
+    if (surfaceManager.isReady && mainRender.isReady()) {
+      if (surfaceManager.makeCurrent()) {
+        mainRender.drawOffScreen(isPreview)
+        surfaceManager.swapBuffer()
       }
     }
   }
