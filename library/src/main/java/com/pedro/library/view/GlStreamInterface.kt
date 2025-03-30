@@ -212,6 +212,7 @@ class GlStreamInterface(private val context: Context): OnFrameAvailableListener,
     if (surfaceManager.isReady && mainRender.isReady()) {
       if (surfaceManager.makeCurrent()) {
         mainRender.updateFrame()
+        mainRender.drawOffScreen(false)
         surfaceManager.swapBuffer()
       }
     }
@@ -273,20 +274,10 @@ class GlStreamInterface(private val context: Context): OnFrameAvailableListener,
     if (surfaceManagerPreview.isReady && mainRender.isReady() && !limitFps) {
       val w =  if (previewWidth == 0) encoderWidth else previewWidth
       val h =  if (previewHeight == 0) encoderHeight else previewHeight
-      drawOffScreen(true)
       if (surfaceManagerPreview.makeCurrent()) {
         mainRender.drawScreenPreview(w, h, orientationPreview, aspectRatioMode, 0,
           isPreviewVerticalFlip, isPreviewHorizontalFlip)
         surfaceManagerPreview.swapBuffer()
-      }
-    }
-  }
-
-  private fun drawOffScreen(isPreview: Boolean) {
-    if (surfaceManager.isReady && mainRender.isReady()) {
-      if (surfaceManager.makeCurrent()) {
-        mainRender.drawOffScreen(isPreview)
-        surfaceManager.swapBuffer()
       }
     }
   }
