@@ -81,7 +81,6 @@ class GlStreamInterface(private val context: Context): OnFrameAvailableListener,
   var autoHandleOrientation = false
   private var shouldHandleOrientation = true
   private var renderErrorCallback: RenderErrorCallback? = null
-  private val lock = Any()
 
   private val sensorRotationManager = SensorRotationManager(context, true, true) { orientation, isPortrait ->
     if (autoHandleOrientation && shouldHandleOrientation) {
@@ -137,7 +136,7 @@ class GlStreamInterface(private val context: Context): OnFrameAvailableListener,
   }
 
   override fun addMediaCodecSurface(surface: Surface) {
-    synchronized(lock) {
+    executor?.secureSubmit {
       if (surfaceManager.isReady) {
         surfaceManagerEncoder.release()
         surfaceManagerEncoder.eglSetup(surface, surfaceManager)
@@ -146,14 +145,14 @@ class GlStreamInterface(private val context: Context): OnFrameAvailableListener,
   }
 
   override fun removeMediaCodecSurface() {
-    synchronized(lock) {
+    executor?.secureSubmit {
       threadQueue.clear()
       surfaceManagerEncoder.release()
     }
   }
 
   override fun addMediaCodecRecordSurface(surface: Surface) {
-    synchronized(lock) {
+    executor?.secureSubmit {
       if (surfaceManager.isReady) {
         surfaceManagerEncoderRecord.release()
         surfaceManagerEncoderRecord.eglSetup(surface, surfaceManager)
@@ -162,7 +161,7 @@ class GlStreamInterface(private val context: Context): OnFrameAvailableListener,
   }
 
   override fun removeMediaCodecRecordSurface() {
-    synchronized(lock) {
+    executor?.secureSubmit {
       threadQueue.clear()
       surfaceManagerEncoderRecord.release()
     }
@@ -173,7 +172,7 @@ class GlStreamInterface(private val context: Context): OnFrameAvailableListener,
   }
 
   override fun start() {
-    synchronized(lock) {
+    executor?.secureSubmit {
       threadQueue.clear()
       executor = newSingleThreadExecutor(threadQueue)
       surfaceManager.release()
@@ -189,7 +188,7 @@ class GlStreamInterface(private val context: Context): OnFrameAvailableListener,
         forceRender.start {
           executor?.execute {
             try {
-              synchronized(lock) { draw(true) }
+              draw(true)
             } catch (e: RuntimeException) {
               renderErrorCallback?.onRenderError(e) ?: throw e
             }
@@ -200,11 +199,9 @@ class GlStreamInterface(private val context: Context): OnFrameAvailableListener,
   }
 
   override fun stop() {
-    synchronized(lock) {
-      running.set(false)
+    running.set(false)
+    executor?.secureSubmit {
       threadQueue.clear()
-      executor?.shutdownNow()
-      executor = null
       forceRender.stop()
       sensorRotationManager.stop()
       surfaceManagerPhoto.release()
@@ -213,6 +210,8 @@ class GlStreamInterface(private val context: Context): OnFrameAvailableListener,
       surfaceManager.release()
       mainRender.release()
     }
+    executor?.shutdownNow()
+    executor = null
   }
 
   private fun draw(forced: Boolean) {
@@ -301,7 +300,7 @@ class GlStreamInterface(private val context: Context): OnFrameAvailableListener,
     if (!isRunning) return
     executor?.execute {
       try {
-        synchronized(lock) { draw(false) }
+        draw(false)
       } catch (e: RuntimeException) {
         renderErrorCallback?.onRenderError(e) ?: throw e
       }
@@ -328,7 +327,7 @@ class GlStreamInterface(private val context: Context): OnFrameAvailableListener,
   }
 
   fun attachPreview(surface: Surface) {
-    synchronized(lock) {
+    executor?.secureSubmit {
       if (surfaceManager.isReady) {
         surfaceManagerPreview.release()
         surfaceManagerPreview.eglSetup(surface, surfaceManager)
@@ -337,7 +336,7 @@ class GlStreamInterface(private val context: Context): OnFrameAvailableListener,
   }
 
   fun deAttachPreview() {
-    synchronized(lock) {
+    executor?.secureSubmit {
       surfaceManagerPreview.release()
     }
   }
