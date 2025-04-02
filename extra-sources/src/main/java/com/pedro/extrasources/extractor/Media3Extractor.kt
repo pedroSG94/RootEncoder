@@ -36,6 +36,7 @@ import java.io.File
 import java.io.FileDescriptor
 import java.io.IOException
 import java.nio.ByteBuffer
+import kotlin.math.max
 
 /**
  * Created by pedro on 30/10/24.
@@ -91,22 +92,17 @@ class Media3Extractor(private val context: Context): Extractor {
     }
   }
 
-  override fun readFrame(buffer: ByteBuffer): Int {
-    return mediaExtractor.readSampleData(buffer, 0)
-  }
+  override fun readFrame(buffer: ByteBuffer) = mediaExtractor.readSampleData(buffer, 0)
 
-  override fun advance(): Boolean {
-    return mediaExtractor.advance()
-  }
+  override fun advance() = mediaExtractor.advance()
 
-  override fun getTimeStamp(): Long {
-    return mediaExtractor.sampleTime
-  }
+  override fun getTimeStamp() = try { mediaExtractor.sampleTime } catch (e: Exception) { 0 }
 
   override fun getSleepTime(ts: Long): Long {
-    val extractorTs = getTimeStamp()
+    val extractorTs = max(0, getTimeStamp())
+    if (extractorTs == 0L) lastExtractorTs = 0
     accumulativeTs += extractorTs - lastExtractorTs
-    lastExtractorTs = getTimeStamp()
+    lastExtractorTs = extractorTs
     sleepTime = if (accumulativeTs > ts) (accumulativeTs - ts) / 1000 else 0
     return sleepTime
   }
