@@ -231,7 +231,10 @@ class GlStreamInterface(private val context: Context): OnFrameAvailableListener,
       OrientationForced.NONE -> isPortrait
     }
     if (surfaceManagerEncoder.isReady || surfaceManagerEncoderRecord.isReady || surfaceManagerPhoto.isReady) {
-      mainRender.drawFilters(false)
+      if (surfaceManager.makeCurrent()) {
+        mainRender.drawFilters(false)
+        surfaceManager.swapBuffer()
+      }
     }
     // render VideoEncoder (stream and record)
     if (surfaceManagerEncoder.isReady && mainRender.isReady() && !limitFps) {
