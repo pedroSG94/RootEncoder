@@ -44,6 +44,17 @@ class GenericStreamClient(
   }
 
   /**
+   * Set stream delay in millis.
+   * This will create a cache and wait the delay to start send packets in real time
+   */
+  override fun setDelay(millis: Long) {
+    rtmpClient.setDelay(millis)
+    rtspClient.setDelay(millis)
+    srtClient.setDelay(millis)
+    udpClient.setDelay(millis)
+  }
+
+  /**
    * Must be called before start stream or will be ignored.
    *
    * Set flash version used in connect command.

@@ -122,6 +122,10 @@ class SrtClient(private val connectChecker: ConnectChecker) {
     this.latency = latency
   }
 
+  fun setDelay(millis: Long) {
+    srtSender.setDelay(millis)
+  }
+
   fun setAuthorization(user: String?, password: String?) {
     TODO("unimplemented")
   }

@@ -77,4 +77,9 @@ abstract class StreamBaseClient {
    * Set if you want use java.io or ktor socket
    */
   abstract fun setSocketType(type: SocketType)
+  /**
+   * Set stream delay in millis.
+   * This will create a cache and wait the delay to start send packets in real time
+   */
+  abstract fun setDelay(millis: Long)
 }
