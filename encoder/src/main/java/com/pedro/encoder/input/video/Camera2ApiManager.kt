@@ -41,6 +41,7 @@ import android.util.Range
 import android.util.Size
 import android.view.MotionEvent
 import android.view.Surface
+import android.view.View
 import androidx.annotation.RequiresApi
 import com.pedro.common.secureGet
 import com.pedro.encoder.input.video.Camera2ResolutionCalculator.getOptimalResolution
@@ -448,36 +449,56 @@ class Camera2ApiManager(context: Context) : CameraDevice.StateCallback() {
             return supportedExposure
         }
 
-    fun tapToFocus(event: MotionEvent): Boolean {
+    fun tapToFocus(view: View, event: MotionEvent): Boolean {
         val builderInputSurface = this.builderInputSurface ?: return false
-        var result = false
-        val pointerId = event.getPointerId(0)
-        val pointerIndex = event.findPointerIndex(pointerId)
-        // Get the pointer's current position
-        val x = event.getX(pointerIndex)
-        val y = event.getY(pointerIndex)
-        if (x < 100 || y < 100) return false
-
-        val touchRect = Rect(
-            (x - 100).toInt(), (y - 100).toInt(),
-            (x + 100).toInt(), (y + 100).toInt()
+        val characteristics = cameraCharacteristics ?: return false
+        val session = cameraCaptureSession ?: return false
+        if (characteristics.get(CameraCharacteristics.CONTROL_MAX_REGIONS_AF) == 0) return false
+        val focusTag = "focus"
+        val sensorArraySize = characteristics.get(CameraCharacteristics.SENSOR_INFO_ACTIVE_ARRAY_SIZE) ?: return false
+        val x = event.x
+        val y = event.y
+        val focusX = (x / view.width.toFloat()) * sensorArraySize.width()
+        val focusY = (y / view.height.toFloat()) * sensorArraySize.height()
+        val focusRect = MeteringRectangle(
+            (focusX - 100).toInt().coerceIn(0, sensorArraySize.width()),
+            (focusY - 100).toInt().coerceIn(0, sensorArraySize.height()),
+            (100 * 2).coerceIn(0, sensorArraySize.width()),
+            (100 * 2).coerceIn(0, sensorArraySize.height()),
+            MeteringRectangle.METERING_WEIGHT_MAX
         )
-        val focusArea = MeteringRectangle(touchRect, MeteringRectangle.METERING_WEIGHT_DONT_CARE)
+
+        val captureCallbackHandler: CameraCaptureSession.CaptureCallback =
+            object : CameraCaptureSession.CaptureCallback() {
+                override fun onCaptureCompleted(session: CameraCaptureSession, request: CaptureRequest, result: TotalCaptureResult) {
+                    super.onCaptureCompleted(session, request, result)
+                    if (request.tag == focusTag) {
+                        session.stopRepeating()
+                        val area = request.get(CaptureRequest.CONTROL_AF_REGIONS)
+                        builderInputSurface.setTag("")
+                        builderInputSurface.set(CaptureRequest.CONTROL_AF_MODE, CameraMetadata.CONTROL_AF_MODE_AUTO)
+                        builderInputSurface.set(CaptureRequest.CONTROL_AF_TRIGGER, CameraMetadata.CONTROL_AF_TRIGGER_IDLE)
+                        builderInputSurface.set(CaptureRequest.CONTROL_AF_REGIONS, area)
+                        applyRequest(builderInputSurface)
+                    }
+                }
+            }
         try {
-            //cancel any existing AF trigger (repeated touches, etc.)
+            session.stopRepeating()
             builderInputSurface.set(CaptureRequest.CONTROL_AF_TRIGGER, CameraMetadata.CONTROL_AF_TRIGGER_CANCEL)
-            builderInputSurface.set(CaptureRequest.CONTROL_AF_MODE, CaptureRequest.CONTROL_AF_MODE_OFF)
-            applyRequest(builderInputSurface)
-            builderInputSurface.set(CaptureRequest.CONTROL_AF_REGIONS, arrayOf(focusArea))
-            builderInputSurface.set(CaptureRequest.CONTROL_MODE, CameraMetadata.CONTROL_MODE_AUTO)
-            builderInputSurface.set(CaptureRequest.CONTROL_AF_MODE, CaptureRequest.CONTROL_AF_MODE_AUTO)
+            builderInputSurface.set(CaptureRequest.CONTROL_AF_MODE, CameraMetadata.CONTROL_AF_MODE_OFF)
+            session.capture(builderInputSurface.build(), captureCallbackHandler, null)
+
+            builderInputSurface.set(CaptureRequest.CONTROL_AF_REGIONS, arrayOf(focusRect))
+            builderInputSurface.set(CaptureRequest.CONTROL_AF_MODE, CameraMetadata.CONTROL_AF_MODE_AUTO)
             builderInputSurface.set(CaptureRequest.CONTROL_AF_TRIGGER, CameraMetadata.CONTROL_AF_TRIGGER_START)
-            isAutoFocusEnabled = applyRequest(builderInputSurface)
-            result = true
+            builderInputSurface.setTag(focusTag)
+            session.capture(builderInputSurface.build(), captureCallbackHandler, null)
+            isAutoFocusEnabled = true
+            return true
         } catch (e: Exception) {
-            Log.e(TAG, "Error", e)
+            return false
         }
-        return result
     }
 
     /**

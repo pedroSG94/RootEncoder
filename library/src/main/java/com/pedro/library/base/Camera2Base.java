@@ -27,6 +27,7 @@ import android.util.Log;
 import android.util.Range;
 import android.util.Size;
 import android.view.MotionEvent;
+import android.view.View;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -946,8 +947,8 @@ public abstract class Camera2Base {
         return cameraManager.setColorCorrectionGains(red, greenEven, greenOdd, blue);
     }
 
-    public boolean tapToFocus(MotionEvent event) {
-        return cameraManager.tapToFocus(event);
+    public boolean tapToFocus(View view, MotionEvent event) {
+        return cameraManager.tapToFocus(view, event);
     }
 
     public GlInterface getGlInterface() {

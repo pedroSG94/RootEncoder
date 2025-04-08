@@ -25,6 +25,7 @@ import android.os.Build
 import android.util.Range
 import android.util.Size
 import android.view.MotionEvent
+import android.view.View
 import androidx.annotation.RequiresApi
 import com.pedro.common.secureGet
 import com.pedro.encoder.input.video.Camera2ApiManager
@@ -103,7 +104,7 @@ class Camera2Source(context: Context): VideoSource() {
     }
   }
 
-  fun getCameraFacing(): CameraHelper.Facing = facing
+  fun getCameraFacing() = facing
 
   fun getCameraResolutions(facing: CameraHelper.Facing): List<Size> {
     val resolutions = if (facing == CameraHelper.Facing.FRONT) {
@@ -148,8 +149,8 @@ class Camera2Source(context: Context): VideoSource() {
     return if (isRunning()) camera.isAutoFocusEnabled else false
   }
 
-  fun tapToFocus(event: MotionEvent): Boolean {
-    return camera.tapToFocus(event)
+  fun tapToFocus(view: View, event: MotionEvent): Boolean {
+    return camera.tapToFocus(view, event)
   }
 
   @JvmOverloads

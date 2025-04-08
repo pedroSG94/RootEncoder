@@ -127,9 +127,7 @@ class CameraXSource(
     lifecycleRegistry.handleLifecycleEvent(Lifecycle.Event.ON_DESTROY)
   }
 
-  override fun isRunning(): Boolean {
-    return camera != null
-  }
+  override fun isRunning() = camera != null
 
   fun switchCamera() {
     surfaceTexture?.let {
@@ -138,6 +136,8 @@ class CameraXSource(
       start(it)
     }
   }
+
+  fun getCameraFacing() = facing
 
   fun getCameraResolutions(facing: CameraHelper.Facing): List<Size> {
     val camera2 = Camera2Source(context)
