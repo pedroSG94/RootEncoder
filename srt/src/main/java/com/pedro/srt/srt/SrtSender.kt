@@ -108,7 +108,7 @@ class SrtSender(
     sendPackets(psiPacketsConfig, MpegType.PSI)
     while (scope.isActive && running) {
       val error = runCatching {
-        val mediaFrame = runInterruptible { queue.poll(1, TimeUnit.SECONDS) }
+        val mediaFrame = runInterruptible { queue.take() }
         getMpegTsPackets(mediaFrame) { mpegTsPackets ->
           val isKey = mpegTsPackets[0].isKey
           val psiPackets = psiManager.checkSendInfo(isKey, mpegTsPacketizer, chunkSize)

@@ -53,7 +53,6 @@ abstract class CommandsManager {
   var user: String? = null
   var password: String? = null
   var onAuth = false
-  var incrementalTs = false
   var startTs = 0L
   var readChunkSize = RtmpConfig.DEFAULT_CHUNK_SIZE
   var audioDisabled = false
@@ -193,9 +192,6 @@ abstract class CommandsManager {
   @Throws(IOException::class)
   suspend fun sendVideoPacket(flvPacket: FlvPacket, socket: RtmpSocket): Int {
     writeSync.withLock {
-      if (incrementalTs) {
-        flvPacket.timeStamp = ((TimeUtils.getCurrentTimeNano() / 1000 - startTs) / 1000)
-      }
       val video = Video(flvPacket, streamId)
       video.writeHeader(socket)
       video.writeBody(socket)
@@ -207,9 +203,6 @@ abstract class CommandsManager {
   @Throws(IOException::class)
   suspend fun sendAudioPacket(flvPacket: FlvPacket, socket: RtmpSocket): Int {
     writeSync.withLock {
-      if (incrementalTs) {
-        flvPacket.timeStamp = ((TimeUtils.getCurrentTimeNano() / 1000 - startTs) / 1000)
-      }
       val audio = Audio(flvPacket, streamId)
       audio.writeHeader(socket)
       audio.writeBody(socket)
