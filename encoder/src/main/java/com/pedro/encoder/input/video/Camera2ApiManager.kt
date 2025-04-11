@@ -203,7 +203,7 @@ class Camera2ApiManager(context: Context) : CameraDevice.StateCallback() {
                 for (r in fpsSupported) { if (r.upper <= maxFPS) { list.add(r) } }
                 list
             } else listOf(*fpsSupported)
-        } catch (e: IllegalStateException) {
+        } catch (e: Exception) {
             Log.e(TAG, "Error", e)
             return emptyList()
         }

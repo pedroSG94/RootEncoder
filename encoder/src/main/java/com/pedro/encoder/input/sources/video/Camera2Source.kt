@@ -69,11 +69,11 @@ class Camera2Source(context: Context): VideoSource() {
     if (width % 2 != 0 || height % 2 != 0) {
       throw IllegalArgumentException("width and height values must be divisible by 2")
     }
-    val maxFps = camera.getSupportedFps(null, facing).maxOf { it.upper }
+    val size = Size(width, height)
+    val maxFps = getMaxSupportedFps(size)
     if (maxFps < fps) {
       throw IllegalArgumentException("unsupported fps: $fps, max fps supported is: $maxFps")
     }
-    val size = Size(width, height)
     val resolutions = if (facing == CameraHelper.Facing.BACK) {
       camera.cameraResolutionsBack
     } else camera.cameraResolutionsFront
@@ -255,5 +255,8 @@ class Camera2Source(context: Context): VideoSource() {
 
   fun setColorCorrectionGains(red: Float, greenEven: Float, greenOdd: Float, blue: Float) = camera.setColorCorrectionGains(red, greenEven, greenOdd, blue)
 
-  fun getSupportedFps(size: Size?, facing: CameraHelper.Facing) = camera.getSupportedFps(size, facing)
+  @JvmOverloads
+  fun getMaxSupportedFps(size: Size?, facing: CameraHelper.Facing = getCameraFacing()): Int {
+    return camera.getSupportedFps(size, facing).maxOfOrNull { it.upper } ?: 30
+  }
 }
