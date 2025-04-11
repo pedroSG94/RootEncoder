@@ -19,15 +19,12 @@ package com.pedro.encoder.input.sources.video
 import android.content.Context
 import android.graphics.SurfaceTexture
 import android.hardware.camera2.CameraCharacteristics
-import android.hardware.camera2.CaptureRequest
-import android.hardware.camera2.params.RggbChannelVector
 import android.os.Build
 import android.util.Range
 import android.util.Size
 import android.view.MotionEvent
 import android.view.View
 import androidx.annotation.RequiresApi
-import com.pedro.common.secureGet
 import com.pedro.encoder.input.video.Camera2ApiManager
 import com.pedro.encoder.input.video.Camera2ApiManager.ImageCallback
 import com.pedro.encoder.input.video.CameraCallbacks
@@ -44,9 +41,9 @@ class Camera2Source(context: Context): VideoSource() {
   private var facing = CameraHelper.Facing.BACK
 
   override fun create(width: Int, height: Int, fps: Int, rotation: Int): Boolean {
-    val result = checkResolutionSupported(width, height)
+    val result = checkResolutionSupported(width, height, fps)
     if (!result) {
-      throw IllegalArgumentException("Unsupported resolution: ${width}x$height")
+      throw IllegalArgumentException("Unsupported resolution: ${width}x$height, fps: $fps")
     }
     return true
   }
@@ -68,9 +65,13 @@ class Camera2Source(context: Context): VideoSource() {
 
   override fun isRunning(): Boolean = camera.isRunning
 
-  private fun checkResolutionSupported(width: Int, height: Int): Boolean {
+  private fun checkResolutionSupported(width: Int, height: Int, fps: Int): Boolean {
     if (width % 2 != 0 || height % 2 != 0) {
       throw IllegalArgumentException("width and height values must be divisible by 2")
+    }
+    val maxFps = camera.getSupportedFps(null, facing).maxOf { it.upper }
+    if (maxFps < fps) {
+      throw IllegalArgumentException("unsupported fps: $fps, max fps supported is: $maxFps")
     }
     val size = Size(width, height)
     val resolutions = if (facing == CameraHelper.Facing.BACK) {
@@ -253,4 +254,6 @@ class Camera2Source(context: Context): VideoSource() {
   fun getAutoWhiteBalanceModesAvailable() = camera.getAutoWhiteBalanceModesAvailable()
 
   fun setColorCorrectionGains(red: Float, greenEven: Float, greenOdd: Float, blue: Float) = camera.setColorCorrectionGains(red, greenEven, greenOdd, blue)
+
+  fun getSupportedFps(size: Size?, facing: CameraHelper.Facing) = camera.getSupportedFps(size, facing)
 }
