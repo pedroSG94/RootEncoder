@@ -52,7 +52,7 @@ class SrtSender(
   private val commandsManager: CommandsManager
 ): BaseSender(connectChecker, "SrtSender") {
 
-  private val service = Mpeg2TsService()
+  private var service = Mpeg2TsService()
   private val psiManager = PsiManager(service).apply {
     upgradePatVersion()
     upgradeSdtVersion()
@@ -88,6 +88,20 @@ class SrtSender(
       AudioCodec.G711 -> {
         throw IllegalArgumentException("Unsupported codec: ${commandsManager.audioCodec.name}")
       }
+    }
+  }
+
+  /**
+   * Set a custom Mpeg2TsService to use for the stream
+   * 
+   * @param customService the custom Mpeg2TsService to use
+   */
+  fun setMpeg2TsService(customService: Mpeg2TsService) {
+    if (!running) {
+      service = customService
+      psiManager.updateService(service)
+      psiManager.upgradePatVersion()
+      psiManager.upgradeSdtVersion()
     }
   }
 
@@ -129,7 +143,7 @@ class SrtSender(
 
   override suspend fun stopImp(clear: Boolean) {
     psiManager.reset()
-    service.clear()
+    if (clear) service = Mpeg2TsService()
     mpegTsPacketizer.reset()
     audioPacket.reset(clear)
     videoPacket.reset(clear)

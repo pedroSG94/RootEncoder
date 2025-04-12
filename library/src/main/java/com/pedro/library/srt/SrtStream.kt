@@ -31,6 +31,7 @@ import com.pedro.encoder.input.sources.video.VideoSource
 import com.pedro.library.util.streamclient.SrtStreamClient
 import com.pedro.library.util.streamclient.StreamClientListener
 import com.pedro.srt.srt.SrtClient
+import com.pedro.srt.mpeg2ts.service.Mpeg2TsService
 import java.nio.ByteBuffer
 
 /**
@@ -87,5 +88,15 @@ class SrtStream(
 
   override fun getAudioDataImp(audioBuffer: ByteBuffer, info: MediaCodec.BufferInfo) {
     srtClient.sendAudio(audioBuffer, info)
+  }
+
+  /**
+   * Set a custom Mpeg2TsService with specified parameters
+   * Must be called before connecting to the server
+   *
+   * @param customService the custom Mpeg2TsService with desired parameters
+   */
+  fun setMpeg2TsService(customService: Mpeg2TsService) {
+    srtClient.setMpeg2TsService(customService)
   }
 }
