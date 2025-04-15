@@ -65,6 +65,7 @@ class GlStreamInterface(private val context: Context): OnFrameAvailableListener,
   private var previewWidth = 0
   private var previewHeight = 0
   private var isPortrait = false
+  private var isPortraitPreview = false
   private var orientationForced = OrientationForced.NONE
   private val filterQueue: BlockingQueue<Filter> = LinkedBlockingQueue()
   private val threadQueue = LinkedBlockingQueue<Runnable>()
@@ -230,6 +231,11 @@ class GlStreamInterface(private val context: Context): OnFrameAvailableListener,
       OrientationForced.LANDSCAPE -> false
       OrientationForced.NONE -> isPortrait
     }
+    val orientationPreview = when (orientationForced) {
+      OrientationForced.PORTRAIT -> true
+      OrientationForced.LANDSCAPE -> false
+      OrientationForced.NONE -> isPortraitPreview
+    }
     if (surfaceManagerEncoder.isReady || surfaceManagerEncoderRecord.isReady || surfaceManagerPhoto.isReady) {
       mainRender.drawFilters(false)
     }
@@ -272,7 +278,7 @@ class GlStreamInterface(private val context: Context): OnFrameAvailableListener,
         surfaceManager.swapBuffer()
       }
       if (surfaceManagerPreview.makeCurrent()) {
-        mainRender.drawScreenPreview(w, h, orientation, aspectRatioMode, 0,
+        mainRender.drawScreenPreview(w, h, orientationPreview, aspectRatioMode, 0,
           isPreviewVerticalFlip, isPreviewHorizontalFlip)
         surfaceManagerPreview.swapBuffer()
       }
@@ -334,6 +340,15 @@ class GlStreamInterface(private val context: Context): OnFrameAvailableListener,
   }
 
   fun setIsPortrait(isPortrait: Boolean) {
+    setPreviewIsPortrait(isPortrait)
+    setStreamIsPortrait(isPortrait)
+  }
+
+  fun setPreviewIsPortrait(isPortrait: Boolean) {
+    this.isPortraitPreview = isPortrait
+  }
+
+  fun setStreamIsPortrait(isPortrait: Boolean) {
     this.isPortrait = isPortrait
   }
 
