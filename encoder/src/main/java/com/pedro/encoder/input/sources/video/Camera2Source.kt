@@ -41,9 +41,9 @@ class Camera2Source(context: Context): VideoSource() {
   private var facing = CameraHelper.Facing.BACK
 
   override fun create(width: Int, height: Int, fps: Int, rotation: Int): Boolean {
-    val result = checkResolutionSupported(width, height, fps)
+    val result = checkResolutionSupported(width, height)
     if (!result) {
-      throw IllegalArgumentException("Unsupported resolution: ${width}x$height, fps: $fps")
+      throw IllegalArgumentException("Unsupported resolution: ${width}x$height")
     }
     return true
   }
@@ -65,15 +65,11 @@ class Camera2Source(context: Context): VideoSource() {
 
   override fun isRunning(): Boolean = camera.isRunning
 
-  private fun checkResolutionSupported(width: Int, height: Int, fps: Int): Boolean {
+  private fun checkResolutionSupported(width: Int, height: Int): Boolean {
     if (width % 2 != 0 || height % 2 != 0) {
       throw IllegalArgumentException("width and height values must be divisible by 2")
     }
     val size = Size(width, height)
-    val maxFps = getMaxSupportedFps(size)
-    if (maxFps < fps) {
-      throw IllegalArgumentException("unsupported fps: $fps, max fps supported is: $maxFps")
-    }
     val resolutions = if (facing == CameraHelper.Facing.BACK) {
       camera.cameraResolutionsBack
     } else camera.cameraResolutionsFront
