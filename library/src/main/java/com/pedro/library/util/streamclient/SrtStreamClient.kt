@@ -19,6 +19,7 @@ package com.pedro.library.util.streamclient
 import com.pedro.common.socket.base.SocketType
 import com.pedro.srt.srt.SrtClient
 import com.pedro.srt.srt.packets.control.handshake.EncryptionType
+import com.pedro.srt.mpeg2ts.service.Mpeg2TsService
 
 /**
  * Created by pedro on 12/10/23.
@@ -139,5 +140,15 @@ class SrtStreamClient(
    */
   override fun setSocketType(type: SocketType) {
     srtClient.socketType = type
+  }
+
+  /**
+   * Set a custom Mpeg2TsService with specified parameters
+   * Must be called before connecting to the server
+   *
+   * @param customService the custom Mpeg2TsService with desired parameters
+   */
+  fun setMpeg2TsService(customService: Mpeg2TsService) {
+    srtClient.setMpeg2TsService(customService)
   }
 }
