@@ -266,35 +266,27 @@ class OpenGlView : SurfaceView, GlInterface, OnFrameAvailableListener, SurfaceHo
     }
 
     override fun addMediaCodecSurface(surface: Surface) {
-        executor?.secureSubmit {
-            if (surfaceManager.isReady) {
-                surfaceManagerEncoder.release()
-                surfaceManagerEncoder.eglSetup(surface, surfaceManager)
-            }
+        if (surfaceManager.isReady) {
+            surfaceManagerEncoder.release()
+            surfaceManagerEncoder.eglSetup(surface, surfaceManager)
         }
     }
 
     override fun removeMediaCodecSurface() {
-        executor?.secureSubmit {
-            threadQueue.clear()
-            surfaceManagerEncoder.release()
-        }
+        threadQueue.clear()
+        surfaceManagerEncoder.release()
     }
 
     override fun addMediaCodecRecordSurface(surface: Surface) {
-        executor?.secureSubmit {
-            if (surfaceManager.isReady) {
-                surfaceManagerEncoderRecord.release()
-                surfaceManagerEncoderRecord.eglSetup(surface, surfaceManager)
-            }
+        if (surfaceManager.isReady) {
+            surfaceManagerEncoderRecord.release()
+            surfaceManagerEncoderRecord.eglSetup(surface, surfaceManager)
         }
     }
 
     override fun removeMediaCodecRecordSurface() {
-        executor?.secureSubmit {
-            threadQueue.clear()
-            surfaceManagerEncoderRecord.release()
-        }
+        threadQueue.clear()
+        surfaceManagerEncoderRecord.release()
     }
 
     override fun start() {
@@ -326,16 +318,14 @@ class OpenGlView : SurfaceView, GlInterface, OnFrameAvailableListener, SurfaceHo
     override fun stop() {
         running.set(false)
         threadQueue.clear()
-        executor?.secureSubmit {
-            forceRenderer.stop()
-            surfaceManagerPhoto.release()
-            surfaceManagerEncoder.release()
-            surfaceManagerEncoderRecord.release()
-            surfaceManager.release()
-            mainRender.release()
-        }
         executor?.shutdownNow()
         executor = null
+        forceRenderer.stop()
+        surfaceManagerPhoto.release()
+        surfaceManagerEncoder.release()
+        surfaceManagerEncoderRecord.release()
+        surfaceManager.release()
+        mainRender.release()
     }
 
     override fun onFrameAvailable(surfaceTexture: SurfaceTexture) {
