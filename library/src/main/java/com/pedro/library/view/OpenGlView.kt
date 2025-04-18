@@ -221,7 +221,7 @@ open class OpenGlView : SurfaceView, GlInterface, OnFrameAvailableListener, Surf
                 mainRender.drawFilters(true)
                 mainRender.drawScreen(
                     previewWidth, previewHeight, aspectRatioMode, 0,
-                    isPreviewVerticalFlip, isPreviewHorizontalFlip
+                    isPreviewVerticalFlip, isPreviewHorizontalFlip, null
                 )
                 surfaceManager.swapBuffer()
             }
@@ -244,7 +244,7 @@ open class OpenGlView : SurfaceView, GlInterface, OnFrameAvailableListener, Surf
             surfaceManagerEncoder.makeCurrent()
             mainRender.drawScreen(
                 w, h, aspectRatioMode,
-                streamRotation, isStreamVerticalFlip, isStreamHorizontalFlip
+                streamRotation, isStreamVerticalFlip, isStreamHorizontalFlip, null
             )
             surfaceManagerEncoder.swapBuffer()
         }
@@ -253,12 +253,12 @@ open class OpenGlView : SurfaceView, GlInterface, OnFrameAvailableListener, Surf
             val w = if (muteVideo) 0 else encoderRecordWidth
             val h = if (muteVideo) 0 else encoderRecordHeight
             surfaceManagerEncoderRecord.makeCurrent()
-            mainRender.drawScreen(w, h, aspectRatioMode, streamRotation, isStreamVerticalFlip, isStreamHorizontalFlip)
+            mainRender.drawScreen(w, h, aspectRatioMode, streamRotation, isStreamVerticalFlip, isStreamHorizontalFlip, null)
             surfaceManagerEncoderRecord.swapBuffer()
         }
         if (takePhotoCallback != null && surfaceManagerPhoto.isReady && mainRender.isReady()) {
             surfaceManagerPhoto.makeCurrent()
-            mainRender.drawScreen(encoderWidth, encoderHeight, aspectRatioMode, streamRotation, isStreamVerticalFlip, isStreamHorizontalFlip)
+            mainRender.drawScreen(encoderWidth, encoderHeight, aspectRatioMode, streamRotation, isStreamVerticalFlip, isStreamHorizontalFlip, null)
             takePhotoCallback?.onTakePhoto(GlUtil.getBitmap(encoderWidth, encoderHeight))
             takePhotoCallback = null
             surfaceManagerPhoto.swapBuffer()

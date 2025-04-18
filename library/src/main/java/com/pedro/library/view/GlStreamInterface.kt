@@ -33,6 +33,7 @@ import com.pedro.encoder.input.gl.render.filters.NoFilterRender
 import com.pedro.encoder.input.sources.OrientationForced
 import com.pedro.encoder.input.video.CameraHelper
 import com.pedro.encoder.input.video.FpsLimiter
+import com.pedro.encoder.utils.ViewPort
 import com.pedro.encoder.utils.gl.AspectRatioMode
 import com.pedro.encoder.utils.gl.GlUtil
 import com.pedro.library.util.Filter
@@ -81,6 +82,8 @@ class GlStreamInterface(private val context: Context): OnFrameAvailableListener,
   var autoHandleOrientation = false
   private var shouldHandleOrientation = true
   private var renderErrorCallback: RenderErrorCallback? = null
+  private var previewViewPort: ViewPort? = null
+  private var streamViewPort: ViewPort? = null
 
   private val sensorRotationManager = SensorRotationManager(context, true, true) { orientation, isPortrait ->
     if (autoHandleOrientation && shouldHandleOrientation) {
@@ -245,7 +248,7 @@ class GlStreamInterface(private val context: Context): OnFrameAvailableListener,
       val h = if (muteVideo) 0 else encoderHeight
       if (surfaceManagerEncoder.makeCurrent()) {
         mainRender.drawScreenEncoder(w, h, orientation, streamOrientation,
-          isStreamVerticalFlip, isStreamHorizontalFlip)
+          isStreamVerticalFlip, isStreamHorizontalFlip, streamViewPort)
         surfaceManagerEncoder.swapBuffer()
       }
     }
@@ -255,7 +258,7 @@ class GlStreamInterface(private val context: Context): OnFrameAvailableListener,
       val h = if (muteVideo) 0 else encoderRecordHeight
       if (surfaceManagerEncoderRecord.makeCurrent()) {
         mainRender.drawScreenEncoder(w, h, orientation, streamOrientation,
-          isStreamVerticalFlip, isStreamHorizontalFlip)
+          isStreamVerticalFlip, isStreamHorizontalFlip, streamViewPort)
         surfaceManagerEncoderRecord.swapBuffer()
       }
     }
@@ -263,7 +266,7 @@ class GlStreamInterface(private val context: Context): OnFrameAvailableListener,
     if (takePhotoCallback != null && surfaceManagerPhoto.isReady && mainRender.isReady()) {
       if (surfaceManagerPhoto.makeCurrent()) {
         mainRender.drawScreen(encoderWidth, encoderHeight, AspectRatioMode.NONE,
-          streamOrientation, isStreamVerticalFlip, isStreamHorizontalFlip)
+          streamOrientation, isStreamVerticalFlip, isStreamHorizontalFlip, streamViewPort)
         takePhotoCallback?.onTakePhoto(GlUtil.getBitmap(encoderWidth, encoderHeight))
         takePhotoCallback = null
         surfaceManagerPhoto.swapBuffer()
@@ -279,7 +282,7 @@ class GlStreamInterface(private val context: Context): OnFrameAvailableListener,
       }
       if (surfaceManagerPreview.makeCurrent()) {
         mainRender.drawScreenPreview(w, h, orientationPreview, aspectRatioMode, 0,
-          isPreviewVerticalFlip, isPreviewHorizontalFlip)
+          isPreviewVerticalFlip, isPreviewHorizontalFlip, previewViewPort)
         surfaceManagerPreview.swapBuffer()
       }
     }
@@ -410,5 +413,13 @@ class GlStreamInterface(private val context: Context): OnFrameAvailableListener,
 
   fun setAspectRatioMode(aspectRatioMode: AspectRatioMode) {
     this.aspectRatioMode = aspectRatioMode
+  }
+
+  fun setPreviewViewPort(viewPort: ViewPort?) {
+    previewViewPort = viewPort
+  }
+
+  fun setStreamViewPort(viewPort: ViewPort?) {
+    streamViewPort = viewPort
   }
 }

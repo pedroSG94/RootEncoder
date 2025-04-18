@@ -92,29 +92,32 @@ public class ScreenRender {
   }
 
   public void draw(int width, int height, AspectRatioMode mode, int rotation,
-      boolean flipStreamVertical, boolean flipStreamHorizontal) {
+      boolean flipStreamVertical, boolean flipStreamHorizontal, ViewPort viewPort) {
     GlUtil.checkGlError("drawScreen start");
 
     updateMatrix(rotation, SizeCalculator.calculateFlip(flipStreamHorizontal, flipStreamVertical), MVPMatrix);
-    ViewPort viewport = SizeCalculator.calculateViewPort(mode, width, height, streamWidth, streamHeight);
+    ViewPort viewport = viewPort != null ? viewPort : SizeCalculator.calculateViewPort(mode, width, height, streamWidth, streamHeight);
     GLES20.glViewport(viewport.getX(), viewport.getY(), viewport.getWidth(), viewport.getHeight());
 
     draw();
   }
 
   public void drawEncoder(int width, int height, boolean isPortrait, int rotation,
-      boolean flipStreamVertical, boolean flipStreamHorizontal) {
+      boolean flipStreamVertical, boolean flipStreamHorizontal, ViewPort viewPort) {
     GlUtil.checkGlError("drawScreen start");
 
     updateMatrix(rotation, SizeCalculator.calculateFlip(flipStreamHorizontal, flipStreamVertical), MVPMatrix);
-    ViewPort viewport = SizeCalculator.calculateViewPortEncoder(width, height, isPortrait);
+    ViewPort viewport = viewPort != null ? viewPort : SizeCalculator.calculateViewPortEncoder(width, height, isPortrait);
     GLES20.glViewport(viewport.getX(), viewport.getY(), viewport.getWidth(), viewport.getHeight());
 
     draw();
   }
 
-  public void drawPreview(int width, int height, boolean isPortrait,
-      AspectRatioMode mode, int rotation, boolean flipStreamVertical, boolean flipStreamHorizontal) {
+  public void drawPreview(
+      int width, int height, boolean isPortrait,
+      AspectRatioMode mode, int rotation, boolean flipStreamVertical, boolean flipStreamHorizontal,
+      ViewPort viewPort
+  ) {
     GlUtil.checkGlError("drawScreen start");
 
     updateMatrix(rotation, SizeCalculator.calculateFlip(flipStreamHorizontal, flipStreamVertical), MVPMatrix);
@@ -128,7 +131,7 @@ public class ScreenRender {
       w = isPortrait ? streamWidth : streamHeight;
       h = isPortrait ? streamHeight : streamWidth;
     }
-    ViewPort viewport = SizeCalculator.calculateViewPort(mode, width, height, w, h);
+    ViewPort viewport = viewPort != null ? viewPort: SizeCalculator.calculateViewPort(mode, width, height, w, h);
     GLES20.glViewport(viewport.getX(), viewport.getY(), viewport.getWidth(), viewport.getHeight());
 
     draw();

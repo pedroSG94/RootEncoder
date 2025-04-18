@@ -23,6 +23,7 @@ import android.view.Surface
 import androidx.annotation.RequiresApi
 import com.pedro.encoder.input.gl.FilterAction
 import com.pedro.encoder.input.gl.render.filters.BaseFilterRender
+import com.pedro.encoder.utils.ViewPort
 import com.pedro.encoder.utils.gl.AspectRatioMode
 import java.util.concurrent.atomic.AtomicBoolean
 
@@ -68,21 +69,28 @@ class MainRender {
     validFilters.forEach { it.draw() }
   }
 
-  fun drawScreen(width: Int, height: Int, mode: AspectRatioMode, rotation: Int,
-    flipStreamVertical: Boolean, flipStreamHorizontal: Boolean) {
+  fun drawScreen(
+    width: Int, height: Int, mode: AspectRatioMode, rotation: Int,
+    flipStreamVertical: Boolean, flipStreamHorizontal: Boolean, viewPort: ViewPort?
+  ) {
     screenRender.draw(width, height, mode, rotation, flipStreamVertical,
-      flipStreamHorizontal)
+      flipStreamHorizontal, viewPort)
   }
 
-  fun drawScreenEncoder(width: Int, height: Int, isPortrait: Boolean, rotation: Int,
-    flipStreamVertical: Boolean, flipStreamHorizontal: Boolean) {
+  fun drawScreenEncoder(
+    width: Int, height: Int, isPortrait: Boolean, rotation: Int,
+    flipStreamVertical: Boolean, flipStreamHorizontal: Boolean, viewPort: ViewPort?
+  ) {
     screenRender.drawEncoder(width, height, isPortrait, rotation, flipStreamVertical,
-      flipStreamHorizontal)
+      flipStreamHorizontal, viewPort)
   }
 
-  fun drawScreenPreview(width: Int, height: Int, isPortrait: Boolean,
-    mode: AspectRatioMode, rotation: Int, flipStreamVertical: Boolean, flipStreamHorizontal: Boolean) {
-    screenRender.drawPreview(width, height, isPortrait, mode, rotation, flipStreamVertical, flipStreamHorizontal)
+  fun drawScreenPreview(
+    width: Int, height: Int, isPortrait: Boolean,
+    mode: AspectRatioMode, rotation: Int, flipStreamVertical: Boolean, flipStreamHorizontal: Boolean,
+    viewPort: ViewPort?
+  ) {
+    screenRender.drawPreview(width, height, isPortrait, mode, rotation, flipStreamVertical, flipStreamHorizontal, viewPort)
   }
 
   fun release() {
