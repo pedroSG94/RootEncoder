@@ -22,7 +22,7 @@ import com.pedro.encoder.utils.CodecUtil.CodecTypeError
 /**
  * Created by pedro on 18/9/23.
  */
-interface EncoderErrorCallback {
+interface CodecErrorCallback {
   fun onCodecError(type: CodecTypeError, e: MediaCodec.CodecException)
 
   /**

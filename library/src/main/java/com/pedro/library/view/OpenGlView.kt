@@ -47,7 +47,7 @@ import java.util.concurrent.atomic.AtomicBoolean
  * Created by pedro on 10/03/18.
  */
 @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
-class OpenGlView : SurfaceView, GlInterface, OnFrameAvailableListener, SurfaceHolder.Callback {
+open class OpenGlView : SurfaceView, GlInterface, OnFrameAvailableListener, SurfaceHolder.Callback {
     private val running = AtomicBoolean(false)
     private val mainRender = MainRender()
     private val surfaceManagerPhoto = SurfaceManager()

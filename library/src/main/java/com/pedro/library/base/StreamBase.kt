@@ -29,7 +29,7 @@ import androidx.annotation.RequiresApi
 import com.pedro.common.AudioCodec
 import com.pedro.common.TimeUtils
 import com.pedro.common.VideoCodec
-import com.pedro.encoder.EncoderErrorCallback
+import com.pedro.encoder.CodecErrorCallback
 import com.pedro.encoder.Frame
 import com.pedro.encoder.TimestampMode
 import com.pedro.encoder.audio.AudioEncoder
@@ -418,7 +418,7 @@ abstract class StreamBase(
    * Set a callback to know errors related with Video/Audio encoders
    * @param encoderErrorCallback callback to use, null to remove
    */
-  fun setEncoderErrorCallback(encoderErrorCallback: EncoderErrorCallback?) {
+  fun setEncoderErrorCallback(encoderErrorCallback: CodecErrorCallback?) {
     videoEncoder.setEncoderErrorCallback(encoderErrorCallback)
     videoEncoderRecord.setEncoderErrorCallback(encoderErrorCallback)
     audioEncoder.setEncoderErrorCallback(encoderErrorCallback)

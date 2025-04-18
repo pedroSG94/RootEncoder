@@ -38,7 +38,7 @@ import androidx.annotation.RequiresApi;
 import com.pedro.common.AudioCodec;
 import com.pedro.common.TimeUtils;
 import com.pedro.common.VideoCodec;
-import com.pedro.encoder.EncoderErrorCallback;
+import com.pedro.encoder.CodecErrorCallback;
 import com.pedro.encoder.TimestampMode;
 import com.pedro.encoder.audio.AudioEncoder;
 import com.pedro.encoder.audio.GetAudioData;
@@ -115,7 +115,7 @@ public abstract class DisplayBase {
    * Set a callback to know errors related with Video/Audio encoders
    * @param encoderErrorCallback callback to use, null to remove
    */
-  public void setEncoderErrorCallback(EncoderErrorCallback encoderErrorCallback) {
+  public void setEncoderErrorCallback(CodecErrorCallback encoderErrorCallback) {
     videoEncoder.setEncoderErrorCallback(encoderErrorCallback);
     audioEncoder.setEncoderErrorCallback(encoderErrorCallback);
   }
