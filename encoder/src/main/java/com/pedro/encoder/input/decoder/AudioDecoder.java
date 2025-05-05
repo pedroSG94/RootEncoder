@@ -130,7 +130,7 @@ public class AudioDecoder extends BaseDecoder {
   }
 
   public void setGetMicrophoneData(GetMicrophoneData getMicrophoneData) {
-    if (running.get()) return;
+    if (running) return;
     this.getMicrophoneData = getMicrophoneData;
   }
 }
