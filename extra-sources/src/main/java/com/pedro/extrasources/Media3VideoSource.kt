@@ -10,7 +10,9 @@ import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlayer
 import com.pedro.common.frame.MediaFrame
+import com.pedro.encoder.input.sources.OrientationForced
 import com.pedro.encoder.input.sources.video.VideoSource
+import com.pedro.extrasources.extractor.Media3Extractor
 
 @OptIn(UnstableApi::class)
 class Media3VideoSource(
@@ -22,6 +24,14 @@ class Media3VideoSource(
     private var surface: Surface? = null
 
     override fun create(width: Int, height: Int, fps: Int, rotation: Int): Boolean {
+        val mediaExtractor = Media3Extractor(context)
+        try {
+            mediaExtractor.initialize(context, path)
+            mediaExtractor.selectTrack(MediaFrame.Type.VIDEO)
+        } catch (e: Exception) {
+            throw IllegalArgumentException("Video file track not found")
+        }
+        mediaExtractor.release()
         player = ExoPlayer.Builder(context, TracksRenderersFactory(context, MediaFrame.Type.VIDEO)).build().also { exoPlayer ->
             exoPlayer.setVideoSurface(surface)
             val mediaItem = MediaItem.fromUri(path)
@@ -50,7 +60,7 @@ class Media3VideoSource(
 
     override fun isRunning(): Boolean = player?.isPlaying == true
 
-    fun moveTo(position: Long) {
-        player?.seekTo(position)
-    }
+    override fun getOrientationConfig(): OrientationForced = OrientationForced.LANDSCAPE
+
+    fun getPlayer() = player
 }
