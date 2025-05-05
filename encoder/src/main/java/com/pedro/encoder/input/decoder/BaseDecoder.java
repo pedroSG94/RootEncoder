@@ -25,6 +25,8 @@ import android.util.Log;
 import android.view.Surface;
 
 import com.pedro.common.TimeUtils;
+import com.pedro.encoder.CodecErrorCallback;
+import com.pedro.encoder.utils.CodecUtil;
 
 import java.io.FileDescriptor;
 import java.io.IOException;
@@ -38,7 +40,7 @@ public abstract class BaseDecoder {
   protected String TAG = "BaseDecoder";
   protected MediaCodec.BufferInfo bufferInfo = new MediaCodec.BufferInfo();
   protected MediaCodec codec;
-  protected AtomicBoolean running = new AtomicBoolean(false);
+  protected volatile boolean running = false;
   protected MediaFormat mediaFormat;
   private ExecutorService executor;
   protected String mime = "";
@@ -50,6 +52,8 @@ public abstract class BaseDecoder {
   protected volatile boolean looped = false;
   private final DecoderInterface decoderInterface;
   private Extractor extractor = new AndroidExtractor();
+  private CodecErrorCallback codecErrorCallback;
+  protected CodecUtil.CodecTypeError typeError;
 
   public BaseDecoder(DecoderInterface decoderInterface) {
     this.decoderInterface = decoderInterface;
@@ -70,16 +74,36 @@ public abstract class BaseDecoder {
     return extract(extractor);
   }
 
+  public void setCodecErrorCallback(CodecErrorCallback codecErrorCallback) {
+    this.codecErrorCallback = codecErrorCallback;
+  }
+
   public void start() {
     Log.i(TAG, "start decoder");
-    running.set(true);
-    codec.start();
+    running = true;
+    try {
+      codec.start();
+    } catch (IllegalStateException e) {
+      Log.e(TAG, "start decoder failed", e);
+      if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+        if (e instanceof MediaCodec.CodecException) {
+          CodecErrorCallback callback = codecErrorCallback;
+          if (callback != null) callback.onCodecError(typeError, (MediaCodec.CodecException) e);
+        }
+      }
+    }
     executor = Executors.newSingleThreadExecutor();
     executor.execute(() -> {
       try {
         decode();
       } catch (IllegalStateException e) {
         Log.i(TAG, "Decoding error", e);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+          if (e instanceof MediaCodec.CodecException) {
+            CodecErrorCallback callback = codecErrorCallback;
+            if (callback != null) callback.onCodecError(typeError, (MediaCodec.CodecException) e);
+          }
+        }
       } catch (NullPointerException e) {
         Log.i(TAG, "Decoder maybe was stopped");
         Log.i(TAG, "Decoding error", e);
@@ -89,20 +113,18 @@ public abstract class BaseDecoder {
 
   public void stop() {
     Log.i(TAG, "stop decoder");
-    running.set(false);
+    running = false;
     stopDecoder();
     startTs = 0;
     extractor.release();
   }
 
   public void reset(Surface surface) {
-    boolean wasRunning = running.get();
+    boolean wasRunning = running;
     stopDecoder(!wasRunning);
     moveTo(0);
     prepare(surface);
-    if (wasRunning) {
-      start();
-    }
+    if (wasRunning) start();
   }
 
   protected boolean prepare(Surface surface) {
@@ -117,7 +139,7 @@ public abstract class BaseDecoder {
   }
 
   protected void resetCodec(Surface surface) {
-    boolean wasRunning = running.get();
+    boolean wasRunning = running;
     stopDecoder(!wasRunning);
     prepare(surface);
     if (wasRunning) {
@@ -130,7 +152,7 @@ public abstract class BaseDecoder {
   }
 
   protected void stopDecoder(boolean clearTs) {
-    running.set(false);
+    running = false;
     if (clearTs) startTs = 0;
     if (executor != null) {
       executor.shutdownNow();
@@ -170,7 +192,7 @@ public abstract class BaseDecoder {
   }
 
   public double getTime() {
-    if (running.get()) {
+    if (running) {
       return extractor.getTimeStamp() / 10E5;
     } else {
       return 0;
@@ -178,7 +200,7 @@ public abstract class BaseDecoder {
   }
 
   public boolean isRunning() {
-    return running.get();
+    return running;
   }
 
   protected abstract boolean extract(Extractor extractor) throws IOException;
@@ -194,7 +216,7 @@ public abstract class BaseDecoder {
     }
     boolean shouldFinish = false;
     long sleepTime = 0;
-    while (running.get()) {
+    while (running) {
         if (pause.get()) continue;
         if (shouldFinish) {
           finished();

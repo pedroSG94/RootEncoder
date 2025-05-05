@@ -52,7 +52,7 @@ class SrtSender(
   private val commandsManager: CommandsManager
 ): BaseSender(connectChecker, "SrtSender") {
 
-  private val service = Mpeg2TsService()
+  private var service = Mpeg2TsService()
   private val psiManager = PsiManager(service).apply {
     upgradePatVersion()
     upgradeSdtVersion()
@@ -91,6 +91,20 @@ class SrtSender(
     }
   }
 
+  /**
+   * Set a custom Mpeg2TsService to use for the stream
+   * 
+   * @param customService the custom Mpeg2TsService to use
+   */
+  fun setMpeg2TsService(customService: Mpeg2TsService) {
+    if (!running) {
+      service = customService
+      psiManager.updateService(service)
+      psiManager.upgradePatVersion()
+      psiManager.upgradeSdtVersion()
+    }
+  }
+
   override suspend fun onRun() {
     val limitSize = this.limitSize
     val chunkSize = limitSize / MpegTsPacketizer.packetSize
@@ -108,7 +122,7 @@ class SrtSender(
     sendPackets(psiPacketsConfig, MpegType.PSI)
     while (scope.isActive && running) {
       val error = runCatching {
-        val mediaFrame = runInterruptible { queue.poll(1, TimeUnit.SECONDS) }
+        val mediaFrame = runInterruptible { queue.take() }
         getMpegTsPackets(mediaFrame) { mpegTsPackets ->
           val isKey = mpegTsPackets[0].isKey
           val psiPackets = psiManager.checkSendInfo(isKey, mpegTsPacketizer, chunkSize)
@@ -129,7 +143,7 @@ class SrtSender(
 
   override suspend fun stopImp(clear: Boolean) {
     psiManager.reset()
-    service.clear()
+    if (clear) service = Mpeg2TsService()
     mpegTsPacketizer.reset()
     audioPacket.reset(clear)
     videoPacket.reset(clear)

@@ -23,15 +23,13 @@ import android.media.MediaFormat
 import android.os.Build
 import android.util.Size
 import android.view.Surface
-import android.view.SurfaceHolder
 import android.view.SurfaceView
 import android.view.TextureView
-import android.view.TextureView.SurfaceTextureListener
 import androidx.annotation.RequiresApi
 import com.pedro.common.AudioCodec
 import com.pedro.common.TimeUtils
 import com.pedro.common.VideoCodec
-import com.pedro.encoder.EncoderErrorCallback
+import com.pedro.encoder.CodecErrorCallback
 import com.pedro.encoder.Frame
 import com.pedro.encoder.TimestampMode
 import com.pedro.encoder.audio.AudioEncoder
@@ -49,6 +47,7 @@ import com.pedro.library.base.recording.BaseRecordController
 import com.pedro.library.base.recording.RecordController
 import com.pedro.library.util.AndroidMuxerRecordController
 import com.pedro.library.util.FpsListener
+import com.pedro.library.util.PreviewCallback
 import com.pedro.library.util.streamclient.StreamBaseClient
 import com.pedro.library.view.GlStreamInterface
 import java.nio.ByteBuffer
@@ -95,6 +94,11 @@ abstract class StreamBase(
   var audioSource: AudioSource = aSource
     private set
   private var differentRecordResolution = false
+  private val previewCallback = PreviewCallback(
+    onCreated = { surface, width, height -> if (!isOnPreview) startPreview(surface, width, height) },
+    onChanged = { width, height -> getGlInterface().setPreviewResolution(width, height) },
+    onDestroyed = { if (isOnPreview) stopPreview(true) }
+  )
 
   /**
    * Necessary only one time before start preview, stream or record.
@@ -299,22 +303,7 @@ abstract class StreamBase(
   @JvmOverloads
   fun startPreview(textureView: TextureView, autoHandle: Boolean = false) {
     if (autoHandle) {
-      textureView.surfaceTextureListener = object: SurfaceTextureListener {
-        override fun onSurfaceTextureAvailable(texture: SurfaceTexture, width: Int, height: Int) {
-          if (!isOnPreview) startPreview(textureView)
-        }
-
-        override fun onSurfaceTextureSizeChanged(texture: SurfaceTexture, width: Int, height: Int) {
-          getGlInterface().setPreviewResolution(width, height)
-        }
-
-        override fun onSurfaceTextureDestroyed(texture: SurfaceTexture): Boolean {
-          if (isOnPreview) stopPreview()
-          return true
-        }
-
-        override fun onSurfaceTextureUpdated(texture: SurfaceTexture) {}
-      }
+      previewCallback.setTextureView(textureView)
       if (textureView.isAvailable && !isOnPreview) startPreview(textureView)
     } else {
       startPreview(Surface(textureView.surfaceTexture), textureView.width, textureView.height)
@@ -328,19 +317,7 @@ abstract class StreamBase(
   @JvmOverloads
   fun startPreview(surfaceView: SurfaceView, autoHandle: Boolean = false) {
     if (autoHandle) {
-      surfaceView.holder.addCallback(object: SurfaceHolder.Callback {
-        override fun surfaceCreated(holder: SurfaceHolder) {
-          if (!isOnPreview) startPreview(surfaceView)
-        }
-
-        override fun surfaceChanged(holder: SurfaceHolder, format: Int, width: Int, height: Int) {
-          getGlInterface().setPreviewResolution(width, height)
-        }
-
-        override fun surfaceDestroyed(holder: SurfaceHolder) {
-          if (isOnPreview) stopPreview()
-        }
-      })
+      previewCallback.setSurfaceView(surfaceView)
       if (surfaceView.holder.surface.isValid && !isOnPreview) startPreview(surfaceView)
     } else {
       startPreview(surfaceView.holder.surface, surfaceView.width, surfaceView.height)
@@ -375,11 +352,13 @@ abstract class StreamBase(
    * Stop preview.
    * Must be called after prepareVideo.
    */
-  fun stopPreview() {
+  @JvmOverloads
+  fun stopPreview(removeCallbacks: Boolean = false) {
     isOnPreview = false
     if (!isStreaming && !isRecording) videoSource.stop()
     glInterface.deAttachPreview()
     if (!isStreaming && !isRecording) glInterface.stop()
+    if (removeCallbacks) previewCallback.removeCallbacks()
   }
 
   /**
@@ -439,7 +418,7 @@ abstract class StreamBase(
    * Set a callback to know errors related with Video/Audio encoders
    * @param encoderErrorCallback callback to use, null to remove
    */
-  fun setEncoderErrorCallback(encoderErrorCallback: EncoderErrorCallback?) {
+  fun setEncoderErrorCallback(encoderErrorCallback: CodecErrorCallback?) {
     videoEncoder.setEncoderErrorCallback(encoderErrorCallback)
     videoEncoderRecord.setEncoderErrorCallback(encoderErrorCallback)
     audioEncoder.setEncoderErrorCallback(encoderErrorCallback)

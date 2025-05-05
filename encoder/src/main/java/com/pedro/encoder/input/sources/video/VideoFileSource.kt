@@ -20,6 +20,7 @@ import android.content.Context
 import android.graphics.SurfaceTexture
 import android.net.Uri
 import android.view.Surface
+import com.pedro.encoder.CodecErrorCallback
 import com.pedro.encoder.input.decoder.DecoderInterface
 import com.pedro.encoder.input.decoder.Extractor
 import com.pedro.encoder.input.decoder.VideoDecoder
@@ -107,5 +108,9 @@ class VideoFileSource(
 
   fun setExtractor(extractor: Extractor) {
     videoDecoder.extractor = extractor
+  }
+
+  fun setCodecErrorCallback(codecErrorCallback: CodecErrorCallback?) {
+    videoDecoder.setCodecErrorCallback(codecErrorCallback)
   }
 }

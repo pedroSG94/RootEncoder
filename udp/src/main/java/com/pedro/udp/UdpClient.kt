@@ -96,6 +96,10 @@ class UdpClient(private val connectChecker: ConnectChecker) {
     }
   }
 
+  fun setDelay(millis: Long) {
+    udpSender.setDelay(millis)
+  }
+
   /**
    * Must be called before connect
    */

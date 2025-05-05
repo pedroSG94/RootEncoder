@@ -59,6 +59,7 @@ import kotlinx.coroutines.withTimeoutOrNull
 import java.io.IOException
 import java.net.URISyntaxException
 import java.nio.ByteBuffer
+import com.pedro.srt.mpeg2ts.service.Mpeg2TsService
 
 /**
  * Created by pedro on 20/8/23.
@@ -120,6 +121,10 @@ class SrtClient(private val connectChecker: ConnectChecker) {
 
   fun setLatency(latency: Int) {
     this.latency = latency
+  }
+
+  fun setDelay(millis: Long) {
+    srtSender.setDelay(millis)
   }
 
   fun setAuthorization(user: String?, password: String?) {
@@ -469,4 +474,18 @@ class SrtClient(private val connectChecker: ConnectChecker) {
    * Get the exponential factor used to calculate the bitrate. Default 1f
    */
   fun getBitrateExponentialFactor() = srtSender.getBitrateExponentialFactor()
+
+  /**
+   * Set a custom Mpeg2TsService with specified parameters
+   * Must be called before connect
+   *
+   * @param customService the custom Mpeg2TsService with desired parameters
+   */
+  fun setMpeg2TsService(customService: Mpeg2TsService) {
+    if (!isStreaming) {
+      srtSender.setMpeg2TsService(customService)
+    } else {
+      Log.w(TAG, "Can't set custom Mpeg2TsService while streaming")
+    }
+  }
 }

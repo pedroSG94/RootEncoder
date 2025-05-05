@@ -50,6 +50,7 @@ public class AudioDecoder extends BaseDecoder {
     TAG = "AudioDecoder";
     this.getMicrophoneData = getMicrophoneData;
     this.audioDecoderInterface = audioDecoderInterface;
+    typeError = CodecUtil.CodecTypeError.AUDIO_CODEC;
   }
 
   @Override
