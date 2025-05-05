@@ -35,7 +35,6 @@ import com.pedro.encoder.input.sources.video.Camera2Source
 import com.pedro.extrasources.CameraXSource
 import com.pedro.library.base.recording.RecordController
 import com.pedro.library.generic.GenericStream
-import com.pedro.library.rtmp.RtmpStream
 import com.pedro.library.util.BitrateAdapter
 import com.pedro.streamer.R
 import com.pedro.streamer.utils.PathUtils
@@ -75,11 +74,10 @@ class CameraFragment: Fragment(), ConnectChecker {
     fun getInstance(): CameraFragment = CameraFragment()
   }
 
-  val genericStream: RtmpStream by lazy {
-    RtmpStream(requireContext(), this).apply {
+  val genericStream: GenericStream by lazy {
+    GenericStream(requireContext(), this).apply {
       getGlInterface().autoHandleOrientation = true
       getStreamClient().setBitrateExponentialFactor(0.5f)
-      getStreamClient().forceIncrementalTs(true)
     }
   }
   private lateinit var surfaceView: SurfaceView

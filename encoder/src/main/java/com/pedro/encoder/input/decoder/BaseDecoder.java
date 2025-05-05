@@ -214,14 +214,19 @@ public abstract class BaseDecoder {
       moveTo(0); //make sure that we are on the start
       startTs = TimeUtils.getCurrentTimeMicro();
     }
+    boolean shouldFinish = false;
     long sleepTime = 0;
     while (running) {
-      synchronized (sync) {
         if (pause.get()) continue;
+        if (shouldFinish) {
+          finished();
+          break;
+        }
         if (looped) {
           decoderInterface.onLoop();
           looped = false;
         }
+      synchronized (sync) {
         int inIndex = codec.dequeueInputBuffer(10000);
         int sampleSize;
         long timeStamp = TimeUtils.getCurrentTimeMicro();
@@ -262,7 +267,7 @@ public abstract class BaseDecoder {
               looped = true;
             } else {
               Log.i(TAG, "end of file");
-              finished();
+              shouldFinish = true;
             }
           }
         }
