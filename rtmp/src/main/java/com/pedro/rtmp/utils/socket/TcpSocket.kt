@@ -22,15 +22,8 @@ import com.pedro.common.toUInt16
 import com.pedro.common.toUInt24
 import com.pedro.common.toUInt32
 import com.pedro.common.toUInt32LittleEndian
-import java.security.cert.X509Certificate
 import javax.net.ssl.TrustManager
-import javax.net.ssl.X509TrustManager
 
-class AcceptAllCertificates: X509TrustManager {
-  override fun checkClientTrusted(chain: Array<out X509Certificate>?, authType: String?) {}
-  override fun checkServerTrusted(chain: Array<out X509Certificate>?, authType: String?) {}
-  override fun getAcceptedIssuers(): Array<X509Certificate>? = null
-}
 /**
  * Created by pedro on 5/4/22.
  */
