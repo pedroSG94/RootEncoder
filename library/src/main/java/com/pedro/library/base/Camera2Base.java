@@ -47,6 +47,7 @@ import com.pedro.encoder.input.video.Camera2ApiManager;
 import com.pedro.encoder.input.video.CameraCallbacks;
 import com.pedro.encoder.input.video.CameraHelper;
 import com.pedro.encoder.input.video.CameraOpenException;
+import com.pedro.encoder.input.video.FrameCapturedCallback;
 import com.pedro.encoder.input.video.facedetector.FaceDetectorCallback;
 import com.pedro.encoder.utils.CodecUtil;
 import com.pedro.encoder.video.FormatVideoEncoder;
@@ -163,6 +164,10 @@ public abstract class Camera2Base {
      */
     public boolean enableFaceDetection(FaceDetectorCallback faceDetectorCallback) {
         return cameraManager.enableFaceDetection(faceDetectorCallback);
+    }
+
+    public void enableFrameCaptureCallback(FrameCapturedCallback frameCapturedCallback) {
+        cameraManager.enableFrameCaptureCallback(frameCapturedCallback);
     }
 
     public void disableFaceDetection() {
