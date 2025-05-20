@@ -636,7 +636,7 @@ class Camera2ApiManager(context: Context) : CameraDevice.StateCallback() {
     }
 
 
-    fun enableFrameCaptureCallback(frameCapturedCallback: FrameCapturedCallback) {
+    fun enableFrameCaptureCallback(frameCapturedCallback: FrameCapturedCallback?) {
         this.frameCapturedCallback = frameCapturedCallback
     }
 

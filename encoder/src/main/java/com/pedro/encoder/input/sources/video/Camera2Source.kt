@@ -168,7 +168,7 @@ class Camera2Source(context: Context): VideoSource() {
     return if (isRunning()) camera.enableFaceDetection(callback) else false
   }
 
-  fun enableFrameCaptureCallback(frameCapturedCallback: FrameCapturedCallback) {
+  fun enableFrameCaptureCallback(frameCapturedCallback: FrameCapturedCallback?) {
     camera.enableFrameCaptureCallback(frameCapturedCallback)
   }
 
