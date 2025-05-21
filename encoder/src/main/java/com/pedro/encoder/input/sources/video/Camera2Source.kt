@@ -29,6 +29,7 @@ import com.pedro.encoder.input.video.Camera2ApiManager
 import com.pedro.encoder.input.video.Camera2ApiManager.ImageCallback
 import com.pedro.encoder.input.video.CameraCallbacks
 import com.pedro.encoder.input.video.CameraHelper
+import com.pedro.encoder.input.video.FrameCapturedCallback
 import com.pedro.encoder.input.video.facedetector.FaceDetectorCallback
 
 /**
@@ -165,6 +166,10 @@ class Camera2Source(context: Context): VideoSource() {
 
   fun enableFaceDetection(callback: FaceDetectorCallback): Boolean {
     return if (isRunning()) camera.enableFaceDetection(callback) else false
+  }
+
+  fun enableFrameCaptureCallback(frameCapturedCallback: FrameCapturedCallback?) {
+    camera.enableFrameCaptureCallback(frameCapturedCallback)
   }
 
   fun disableFaceDetection() {

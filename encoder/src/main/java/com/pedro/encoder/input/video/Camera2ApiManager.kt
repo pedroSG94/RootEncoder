@@ -108,6 +108,7 @@ class Camera2ApiManager(context: Context) : CameraDevice.StateCallback() {
     private var sensorOrientation = 0
     private var faceSensorScale: Rect? = null
     private var faceDetectorCallback: FaceDetectorCallback? = null
+    private var frameCapturedCallback: FrameCapturedCallback? = null
     private var faceDetectionEnabled = false
     private var faceDetectionMode = 0
     private var imageReader: ImageReader? = null
@@ -156,7 +157,11 @@ class Camera2ApiManager(context: Context) : CameraDevice.StateCallback() {
                     try {
                         it.setRepeatingRequest(
                             captureRequest,
-                            if (faceDetectionEnabled) cb else null, cameraHandler
+                            if (faceDetectionEnabled || frameCapturedCallback != null){
+                                cb
+                            } else{
+                                null
+                            }, cameraHandler
                         )
                     } catch (e: IllegalStateException) {
                         reOpenCamera(cameraId)
@@ -296,7 +301,7 @@ class Camera2ApiManager(context: Context) : CameraDevice.StateCallback() {
         try {
             cameraCaptureSession.setRepeatingRequest(
                 builder.build(),
-                if (faceDetectionEnabled) cb else null, null
+                if (faceDetectionEnabled || frameCapturedCallback != null) cb else null, null
             )
             return true
         } catch (e: Exception) {
@@ -630,6 +635,11 @@ class Camera2ApiManager(context: Context) : CameraDevice.StateCallback() {
         return true
     }
 
+
+    fun enableFrameCaptureCallback(frameCapturedCallback: FrameCapturedCallback?) {
+        this.frameCapturedCallback = frameCapturedCallback
+    }
+
     fun disableFaceDetection() {
         if (faceDetectionEnabled) {
             faceDetectorCallback = null
@@ -646,9 +656,29 @@ class Camera2ApiManager(context: Context) : CameraDevice.StateCallback() {
     }
 
     private val cb: CameraCaptureSession.CaptureCallback = object : CameraCaptureSession.CaptureCallback() {
-        override fun onCaptureCompleted(session: CameraCaptureSession, request: CaptureRequest, result: TotalCaptureResult) {
+        override fun onCaptureCompleted(
+            session: CameraCaptureSession,
+            request: CaptureRequest,
+            result: TotalCaptureResult
+        ) {
             val faces = result.get(CaptureResult.STATISTICS_FACES) ?: return
-            faceDetectorCallback?.onGetFaces(mapCamera2Faces(faces), faceSensorScale, sensorOrientation)
+            faceDetectorCallback?.onGetFaces(
+                faces = mapCamera2Faces(faces = faces),
+                scaleSensor = faceSensorScale,
+                sensorOrientation = sensorOrientation
+            )
+        }
+
+        override fun onCaptureStarted(
+            session: CameraCaptureSession,
+            request: CaptureRequest,
+            timestamp: Long,
+            frameNumber: Long
+        ) {
+            frameCapturedCallback?.onFrameCaptured(
+                frameNumber = frameNumber,
+                timestamp = timestamp
+            )
         }
     }
 
