@@ -42,6 +42,7 @@ import java.util.concurrent.BlockingQueue
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.LinkedBlockingQueue
 import java.util.concurrent.atomic.AtomicBoolean
+import kotlin.math.max
 
 
 /**
@@ -171,14 +172,16 @@ class GlStreamInterface(private val context: Context): OnFrameAvailableListener,
     executor?.shutdownNow()
     executor = null
     executor = newSingleThreadExecutor(threadQueue)
+    val width = max(encoderWidth, encoderRecordWidth)
+    val height = max(encoderHeight, encoderRecordHeight)
     surfaceManager.release()
     surfaceManager.eglSetup()
     surfaceManagerPhoto.release()
-    surfaceManagerPhoto.eglSetup(encoderWidth, encoderHeight, surfaceManager)
+    surfaceManagerPhoto.eglSetup(width, height, surfaceManager)
     sensorRotationManager.start()
     executor?.secureSubmit {
       surfaceManager.makeCurrent()
-      mainRender.initGl(context, encoderWidth, encoderHeight, encoderWidth, encoderHeight)
+      mainRender.initGl(context, width, height, width, height)
       running.set(true)
       mainRender.getSurfaceTexture().setOnFrameAvailableListener(this)
       forceRender.start {
