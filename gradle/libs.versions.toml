@@ -10,7 +10,7 @@ dokka = "2.0.0"
 
 #dependencies versions
 #noinspection GradleDependency, version 1.7.0 need min sdk 21
-appcompat = "1.6.1"
+appcompat = "1.7.1"
 #noinspection GradleDependency, version 2.2.0 need min sdk 21
 constraintlayout = "2.1.4"
 #noinspection GradleDependency, version 3.x.x is really bugged using TLS
