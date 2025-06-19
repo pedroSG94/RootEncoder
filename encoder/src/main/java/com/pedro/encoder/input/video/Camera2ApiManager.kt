@@ -82,7 +82,7 @@ class Camera2ApiManager(context: Context) : CameraDevice.StateCallback() {
     private var facing = Facing.BACK
     private var builderInputSurface: CaptureRequest.Builder? = null
     private var fingerSpacing = 0f
-    private var zoomLevel = 0f
+    private var zoomLevel = 1f
     var isLanternEnabled: Boolean = false
         private set
     var isVideoStabilizationEnabled: Boolean = false
@@ -148,20 +148,17 @@ class Camera2ApiManager(context: Context) : CameraDevice.StateCallback() {
             val listSurfaces = mutableListOf<Surface>()
             listSurfaces.add(surfaceEncoder)
             imageReader?.let { listSurfaces.add(it.surface) }
-            val captureRequest = drawSurface(cameraDevice, listSurfaces)
             createCaptureSession(
                 cameraDevice,
                 listSurfaces,
                 onConfigured = {
                     cameraCaptureSession = it
                     try {
+                        val captureRequest = drawSurface(cameraDevice, listSurfaces)
                         it.setRepeatingRequest(
                             captureRequest,
-                            if (faceDetectionEnabled || frameCapturedCallback != null){
-                                cb
-                            } else{
-                                null
-                            }, cameraHandler
+                            if (faceDetectionEnabled || frameCapturedCallback != null) cb else null,
+                            cameraHandler
                         )
                     } catch (e: IllegalStateException) {
                         reOpenCamera(cameraId)
