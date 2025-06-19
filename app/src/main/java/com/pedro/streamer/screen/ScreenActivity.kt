@@ -198,7 +198,7 @@ class ScreenActivity : AppCompatActivity(), ConnectChecker {
       screenService.setCallback(null)
       activityResultContract.unregister()
       //stop service only if no streaming or recording
-      stopService(Intent(this, ScreenService::class.java))
+      if (isFinishing) stopService(Intent(this, ScreenService::class.java))
     }
   }
 

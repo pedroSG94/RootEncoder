@@ -161,11 +161,14 @@ class ScreenService: Service(), ConnectChecker {
     this.mediaProjection = mediaProjection
     val screenSource = ScreenSource(applicationContext, mediaProjection)
     return try {
+      genericStream.changeVideoSource(screenSource)
       //ScreenSource need use always setCameraOrientation(0) because the MediaProjection handle orientation.
       //You also need remove autoHandleOrientation if you are using it.
       //You need to call it after prepareVideo to override the default value.
+      //Remember call is after changeVideoSource because that method call to setCameraOrientation and produce problems
+      val isPortrait = rotation == 90 || rotation == 270
+      genericStream.getGlInterface().setIsPortrait(isPortrait)
       genericStream.getGlInterface().setCameraOrientation(0)
-      genericStream.changeVideoSource(screenSource)
       toggleAudioSource(selectedAudioSource)
       true
     } catch (ignored: IllegalArgumentException) {
