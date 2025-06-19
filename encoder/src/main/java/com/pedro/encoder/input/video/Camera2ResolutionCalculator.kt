@@ -24,22 +24,29 @@ import androidx.annotation.RequiresApi
 object Camera2ResolutionCalculator {
 
   fun getOptimalResolution(actualResolution: Size, resolutionsSupported: Array<Size>): Size {
+    val resolutionsSupportedFiltered = resolutionsSupported.filter { isValidResolution(it) }
     val resolution = if (actualResolution.width < actualResolution.height) Size(actualResolution.height, actualResolution.width) else actualResolution
-    return if (resolutionsSupported.find { it == resolution } != null) resolution
+    return if (resolutionsSupportedFiltered.find { it == resolution } != null) resolution
     else {
       val actualAspectRatio = resolution.width.toFloat() / resolution.height.toFloat()
-      val validResolutions = resolutionsSupported.filter { it.width.toFloat() / it.height.toFloat() == actualAspectRatio }
+      val validResolutions = resolutionsSupportedFiltered.filter { it.width.toFloat() / it.height.toFloat() == actualAspectRatio }
       if (validResolutions.isNotEmpty()) {
         val resolutions = validResolutions.toMutableList()
         resolutions.add(resolution)
         val resolutionsSorted = resolutions.sortedByDescending { it.height }
         val index = resolutionsSorted.indexOf(resolution)
-        if (index > 0) {
-          return resolutionsSorted[index - 1]
-        } else return resolutionsSorted[index + 1]
+        return resolutionsSorted[if (index > 0) index - 1 else 0]
       } else {
         actualResolution
       }
     }
+  }
+
+  private fun isValidResolution(size: Size): Boolean {
+    if (Build.MODEL == "Pixel 8a" && Build.MANUFACTURER == "Google") {
+      //This resolution produce bad quality and should be removed. The closest resolution will be use
+      if (size.width == 1280 && size.height == 720) return false
+    }
+    return true
   }
 }
