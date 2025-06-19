@@ -27,6 +27,8 @@ import android.os.HandlerThread
 import android.view.Surface
 import androidx.annotation.RequiresApi
 import com.pedro.encoder.input.sources.MediaProjectionHandler
+import com.pedro.encoder.input.sources.OrientationConfig
+import com.pedro.encoder.input.sources.OrientationForced
 
 /**
  * Created by pedro on 11/1/24.
@@ -91,6 +93,15 @@ class ScreenSource @JvmOverloads constructor(
   }
 
   override fun isRunning(): Boolean = virtualDisplay != null
+
+  override fun getOrientationConfig(): OrientationConfig {
+    val isPortrait = rotation == 90 || rotation == 270
+    return OrientationConfig(
+      cameraOrientation = 0,
+      isPortrait = isPortrait,
+      forced = OrientationForced.NONE
+    )
+  }
 
   private fun checkResolutionSupported(width: Int, height: Int): Boolean {
     if (width % 2 != 0 || height % 2 != 0) {

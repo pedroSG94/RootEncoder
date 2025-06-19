@@ -10,6 +10,7 @@ import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlayer
 import com.pedro.common.frame.MediaFrame
+import com.pedro.encoder.input.sources.OrientationConfig
 import com.pedro.encoder.input.sources.OrientationForced
 import com.pedro.encoder.input.sources.video.VideoSource
 import com.pedro.extrasources.extractor.Media3Extractor
@@ -60,7 +61,7 @@ class Media3VideoSource(
 
     override fun isRunning(): Boolean = player?.isPlaying == true
 
-    override fun getOrientationConfig(): OrientationForced = OrientationForced.LANDSCAPE
+    override fun getOrientationConfig() = OrientationConfig(forced = OrientationForced.LANDSCAPE)
 
     fun getPlayer() = player
 }

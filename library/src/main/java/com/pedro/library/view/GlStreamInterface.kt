@@ -30,6 +30,7 @@ import com.pedro.encoder.input.gl.SurfaceManager
 import com.pedro.encoder.input.gl.render.MainRender
 import com.pedro.encoder.input.gl.render.filters.BaseFilterRender
 import com.pedro.encoder.input.gl.render.filters.NoFilterRender
+import com.pedro.encoder.input.sources.OrientationConfig
 import com.pedro.encoder.input.sources.OrientationForced
 import com.pedro.encoder.input.video.CameraHelper
 import com.pedro.encoder.input.video.FpsLimiter
@@ -298,6 +299,24 @@ class GlStreamInterface(private val context: Context): OnFrameAvailableListener,
         draw(false)
       } catch (e: RuntimeException) {
         renderErrorCallback?.onRenderError(e) ?: throw e
+      }
+    }
+  }
+
+  fun setOrientationConfig(orientationConfig: OrientationConfig) {
+    when (orientationConfig.forced) {
+      OrientationForced.PORTRAIT, OrientationForced.LANDSCAPE -> {
+        forceOrientation(orientationConfig.forced)
+      }
+      OrientationForced.NONE -> {
+        if (orientationConfig.isPortrait == null && orientationConfig.cameraOrientation == null) {
+          forceOrientation(orientationConfig.forced)
+        } else {
+          orientationConfig.isPortrait?.let { setIsPortrait(it) }
+          orientationConfig.cameraOrientation?.let { setCameraOrientation(it) }
+          shouldHandleOrientation = false
+          this.orientationForced = orientationConfig.forced
+        }
       }
     }
   }

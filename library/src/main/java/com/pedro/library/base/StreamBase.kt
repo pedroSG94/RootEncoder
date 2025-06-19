@@ -140,7 +140,7 @@ abstract class StreamBase(
       val isPortrait = rotation == 90 || rotation == 270
       glInterface.setIsPortrait(isPortrait)
       glInterface.setCameraOrientation(if (rotation == 0) 270 else rotation - 90)
-      glInterface.forceOrientation(videoSource.getOrientationConfig())
+      glInterface.setOrientationConfig(videoSource.getOrientationConfig())
       if (differentRecordResolution) {
         val result = videoEncoderRecord.prepareVideoEncoder(recordWidth, recordHeight, fps, recordBitrate, rotation,
           iFrameInterval, FormatVideoEncoder.SURFACE, profile, level)
@@ -383,7 +383,7 @@ abstract class StreamBase(
     videoSource.stop()
     videoSource.release()
     if (wasRunning) source.start(glInterface.surfaceTexture)
-    glInterface.forceOrientation(source.getOrientationConfig())
+    glInterface.setOrientationConfig(source.getOrientationConfig())
     videoSource = source
   }
 
