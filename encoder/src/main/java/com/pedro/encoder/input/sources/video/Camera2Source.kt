@@ -260,4 +260,13 @@ class Camera2Source(context: Context): VideoSource() {
   fun getMaxSupportedFps(size: Size?, facing: CameraHelper.Facing = getCameraFacing()): Int {
     return camera.getSupportedFps(size, facing).maxOfOrNull { it.upper } ?: 30
   }
+
+  /**
+   * Set the required resolution for the camera.
+   * Must be called before prepareVideo or changeVideoSource. Otherwise it will be ignored.
+   */
+  fun setRequiredResolution(size: Size?) {
+    size?.let { checkResolutionSupported(it.width, it.height) }
+    camera.setRequiredResolution(size)
+  }
 }

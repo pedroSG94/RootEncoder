@@ -163,7 +163,9 @@ public class GlUtil {
   }
 
   public static void disableResources(int... vertex) {
-    for (int v: vertex) GLES20.glDisableVertexAttribArray(v);
+    for (int v: vertex) {
+      if (v >= 0 && v < GLES20.GL_MAX_VERTEX_ATTRIBS) GLES20.glDisableVertexAttribArray(v);
+    }
     GLES20.glBindTexture(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, 0);
     GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, 0);
     GLES20.glUseProgram(0);

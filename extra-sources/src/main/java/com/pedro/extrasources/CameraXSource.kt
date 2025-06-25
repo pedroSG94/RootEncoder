@@ -65,12 +65,13 @@ class CameraXSource(
   private var autoExposureEnabled = false
   private var autoWhiteBalanceEnabled = false
   private var fingerSpacing = 0f
+  private var requiredSize: Size? = null
 
   override val lifecycle: Lifecycle = lifecycleRegistry
 
   override fun create(width: Int, height: Int, fps: Int, rotation: Int): Boolean {
     val facing = if (facing == CameraSelector.LENS_FACING_BACK) CameraHelper.Facing.BACK else CameraHelper.Facing.FRONT
-    val optimalResolution = getOptimalResolution(Size(width, height), getCameraResolutions(facing).toTypedArray())
+    val optimalResolution = requiredSize ?: getOptimalResolution(Size(width, height), getCameraResolutions(facing).toTypedArray())
     preview = Preview.Builder()
       .setTargetFrameRate(Range(fps, fps))
       .setResolutionSelector(
@@ -89,7 +90,7 @@ class CameraXSource(
 
   override fun start(surfaceTexture: SurfaceTexture) {
     val facing = if (facing == CameraSelector.LENS_FACING_BACK) CameraHelper.Facing.BACK else CameraHelper.Facing.FRONT
-    val optimalResolution = getOptimalResolution(Size(width, height), getCameraResolutions(facing).toTypedArray())
+    val optimalResolution = requiredSize ?: getOptimalResolution(Size(width, height), getCameraResolutions(facing).toTypedArray())
     surfaceTexture.setDefaultBufferSize(optimalResolution.width, optimalResolution.height)
     this.surfaceTexture = surfaceTexture
     lifecycleRegistry.handleLifecycleEvent(Lifecycle.Event.ON_START)
@@ -342,5 +343,13 @@ class CameraXSource(
     if (autoExposureEnabled) flags = flags or FocusMeteringAction.FLAG_AE
     if (autoWhiteBalanceEnabled) flags = flags or FocusMeteringAction.FLAG_AWB
     return flags
+  }
+
+  /**
+   * Set the required resolution for the camera.
+   * Must be called before prepareVideo or changeVideoSource. Otherwise it will be ignored.
+   */
+  fun setRequiredResolution(size: Size?) {
+    requiredSize = size
   }
 }

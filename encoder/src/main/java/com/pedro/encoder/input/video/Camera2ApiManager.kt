@@ -100,6 +100,7 @@ class Camera2ApiManager(context: Context) : CameraDevice.StateCallback() {
     private var fps = 30
     private val semaphore = Semaphore(0)
     private var cameraCallbacks: CameraCallbacks? = null
+    private var requiredSize: Size? = null
 
     interface ImageCallback {
         fun onImageAvailable(image: Image)
@@ -118,7 +119,7 @@ class Camera2ApiManager(context: Context) : CameraDevice.StateCallback() {
     }
 
     fun prepareCamera(surfaceTexture: SurfaceTexture, width: Int, height: Int, fps: Int) {
-        val optimalResolution = getOptimalResolution(Size(width, height), getCameraResolutions(facing))
+        val optimalResolution = requiredSize ?: getOptimalResolution(Size(width, height), getCameraResolutions(facing))
         Log.i(TAG, "optimal resolution set to: " + optimalResolution.width + "x" + optimalResolution.height)
         surfaceTexture.setDefaultBufferSize(optimalResolution.width, optimalResolution.height)
         this.surfaceEncoder = Surface(surfaceTexture)
@@ -219,6 +220,10 @@ class Camera2ApiManager(context: Context) : CameraDevice.StateCallback() {
             val characteristics = cameraCharacteristics ?: return -1
             return characteristics.secureGet(CameraCharacteristics.INFO_SUPPORTED_HARDWARE_LEVEL) ?: -1
         }
+
+    fun setRequiredResolution(size: Size?) {
+        requiredSize = size
+    }
 
     fun openCameraBack() {
         openCameraFacing(Facing.BACK)
