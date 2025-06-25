@@ -64,9 +64,7 @@ class ScreenSource @JvmOverloads constructor(
       val shouldRotate = rotation == 90 || rotation == 270
       val displayWidth = if (shouldRotate) height else width
       val displayHeight = if (shouldRotate) width else height
-      if (shouldRotate) {
-        surfaceTexture.setDefaultBufferSize(height, width)
-      }
+      if (shouldRotate) surfaceTexture.setDefaultBufferSize(height, width)
       handlerThread = HandlerThread(TAG)
       handlerThread.start()
       MediaProjectionHandler.mediaProjection?.registerCallback(mediaProjectionCallback, Handler(handlerThread.looper))
@@ -95,7 +93,7 @@ class ScreenSource @JvmOverloads constructor(
   override fun isRunning(): Boolean = virtualDisplay != null
 
   override fun getOrientationConfig(): OrientationConfig {
-    val isPortrait = rotation == 90 || rotation == 270
+    val isPortrait = (rotation == 90 || rotation == 270) != (height > width)
     return OrientationConfig(
       cameraOrientation = 0,
       isPortrait = isPortrait,
