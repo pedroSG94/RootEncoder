@@ -25,6 +25,9 @@ android {
   kotlinOptions {
     jvmTarget = "17"
   }
+  buildFeatures {
+    buildConfig = true
+  }
 
   publishing {
     singleVariant("release")
