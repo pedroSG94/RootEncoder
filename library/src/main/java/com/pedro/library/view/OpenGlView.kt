@@ -213,8 +213,18 @@ open class OpenGlView : SurfaceView, GlInterface, OnFrameAvailableListener, Surf
         val limitFps = fpsLimiter.limitFPS()
         if (!forced) forceRenderer.frameAvailable()
 
+        if (!filterQueue.isEmpty() && mainRender.isReady()) {
+            try {
+                val filter = filterQueue.take()
+                mainRender.setFilterAction(filter.filterAction, filter.position, filter.baseFilterRender)
+            } catch (_: InterruptedException) {
+                Thread.currentThread().interrupt()
+                return
+            }
+        }
+
         if (surfaceManager.isReady && mainRender.isReady()) {
-            surfaceManager.makeCurrent()
+            if (!surfaceManager.makeCurrent()) return
             mainRender.updateFrame()
             mainRender.drawSource()
             if (!limitFps) {
@@ -223,18 +233,10 @@ open class OpenGlView : SurfaceView, GlInterface, OnFrameAvailableListener, Surf
                     previewWidth, previewHeight, aspectRatioMode, 0,
                     isPreviewVerticalFlip, isPreviewHorizontalFlip, null
                 )
-                surfaceManager.swapBuffer()
             }
+            surfaceManager.swapBuffer()
         }
-        if (!filterQueue.isEmpty() && mainRender.isReady()) {
-            try {
-                val filter = filterQueue.take()
-                mainRender.setFilterAction(filter.filterAction, filter.position, filter.baseFilterRender)
-            } catch (e: InterruptedException) {
-                Thread.currentThread().interrupt()
-                return
-            }
-        }
+
         if (surfaceManagerEncoder.isReady || surfaceManagerEncoderRecord.isReady || surfaceManagerPhoto.isReady) {
             mainRender.drawFilters(false)
         }

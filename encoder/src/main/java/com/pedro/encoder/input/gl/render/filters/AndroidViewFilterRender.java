@@ -140,36 +140,40 @@ public class AndroidViewFilterRender extends BaseFilterRender {
     }
 
     GLES20.glUseProgram(program);
-
+    GlUtil.checkGlError("use program");
     squareVertex.position(SQUARE_VERTEX_DATA_POS_OFFSET);
     GLES20.glVertexAttribPointer(aPositionHandle, 3, GLES20.GL_FLOAT, false,
         SQUARE_VERTEX_DATA_STRIDE_BYTES, squareVertex);
     GLES20.glEnableVertexAttribArray(aPositionHandle);
-
+    GlUtil.checkGlError("aPositionHandle");
     squareVertex.position(SQUARE_VERTEX_DATA_UV_OFFSET);
     GLES20.glVertexAttribPointer(aTextureHandle, 2, GLES20.GL_FLOAT, false,
         SQUARE_VERTEX_DATA_STRIDE_BYTES, squareVertex);
     GLES20.glEnableVertexAttribArray(aTextureHandle);
-
+    GlUtil.checkGlError("aTextureHandle");
     GLES20.glUniformMatrix4fv(uMVPMatrixHandle, 1, false, MVPMatrix, 0);
     GLES20.glUniformMatrix4fv(uSTMatrixHandle, 1, false, STMatrix, 0);
-
+    GlUtil.checkGlError("uniformMatrix");
     GLES20.glUniform1i(uSamplerHandle, 0);
     GLES20.glActiveTexture(GLES20.GL_TEXTURE0);
     GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, previousTexId);
+    GlUtil.checkGlError("uSamplerHandle");
     //android view
     GLES20.glUniform1i(uSamplerViewHandle, 1);
     GLES20.glActiveTexture(GLES20.GL_TEXTURE1);
+    GlUtil.checkGlError("uSamplerViewHandle");
 
     switch (status) {
       case DONE2:
       case RENDER1:
         GLES20.glBindTexture(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, viewId[1]);
+        GlUtil.checkGlError("glBindTexture 1");
         break;
       case RENDER2:
       case DONE1:
       default:
         GLES20.glBindTexture(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, viewId[0]);
+        GlUtil.checkGlError("glBindTexture 0");
         break;
     }
   }
