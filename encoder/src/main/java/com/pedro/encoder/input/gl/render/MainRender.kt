@@ -150,7 +150,7 @@ class MainRender {
 
   fun setFilterAction(filterAction: FilterAction, position: Int, baseFilterRender: BaseFilterRender) {
     when (filterAction) {
-      FilterAction.SET -> if (filterRenders.size > 0) {
+      FilterAction.SET -> if (filterRenders.isNotEmpty()) {
         setFilter(position, baseFilterRender)
       } else {
         addFilter(baseFilterRender)
