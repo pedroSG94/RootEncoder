@@ -25,6 +25,9 @@ android {
   kotlin {
     jvmToolchain(17)
   }
+  buildFeatures {
+    buildConfig = true
+  }
   publishing {
     singleVariant("release")
   }
