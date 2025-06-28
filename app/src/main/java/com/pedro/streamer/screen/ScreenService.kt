@@ -157,7 +157,7 @@ class ScreenService: Service(), ConnectChecker {
     keepAliveTrick()
     stopStream()
     mediaProjection?.stop()
-    val mediaProjection = mediaProjectionManager.getMediaProjection(resultCode, data)
+    val mediaProjection = mediaProjectionManager.getMediaProjection(resultCode, data) ?: throw IllegalStateException("get MediaProjection failed")
     this.mediaProjection = mediaProjection
     val screenSource = ScreenSource(applicationContext, mediaProjection)
     return try {
