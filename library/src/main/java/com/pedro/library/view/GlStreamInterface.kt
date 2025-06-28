@@ -216,23 +216,23 @@ class GlStreamInterface(private val context: Context): OnFrameAvailableListener,
     val limitFps = fpsLimiter.limitFPS()
     if (!forced) forceRender.frameAvailable()
 
-    if (surfaceManager.isReady && mainRender.isReady()) {
-      if (surfaceManager.makeCurrent()) {
-        mainRender.updateFrame()
-        mainRender.drawSource()
-        surfaceManager.swapBuffer()
-      }
-    }
-
     if (!filterQueue.isEmpty() && mainRender.isReady()) {
       try {
         val filter = filterQueue.take()
         mainRender.setFilterAction(filter.filterAction, filter.position, filter.baseFilterRender)
-      } catch (e: InterruptedException) {
+      } catch (_: InterruptedException) {
         Thread.currentThread().interrupt()
         return
       }
     }
+
+    if (surfaceManager.isReady && mainRender.isReady()) {
+      if (!surfaceManager.makeCurrent()) return
+      mainRender.updateFrame()
+      mainRender.drawSource()
+      surfaceManager.swapBuffer()
+    }
+
     val orientation = when (orientationForced) {
       OrientationForced.PORTRAIT -> true
       OrientationForced.LANDSCAPE -> false

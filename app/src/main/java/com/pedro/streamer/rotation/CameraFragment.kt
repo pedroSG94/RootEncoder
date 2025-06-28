@@ -183,7 +183,7 @@ class CameraFragment: Fragment(), ConnectChecker {
     val prepared = try {
       genericStream.prepareVideo(width, height, vBitrate, rotation = rotation)
           && genericStream.prepareAudio(sampleRate, isStereo, aBitrate)
-    } catch (e: IllegalArgumentException) {
+    } catch (_: IllegalArgumentException) {
       false
     }
     if (!prepared) {

@@ -213,8 +213,18 @@ open class OpenGlView : SurfaceView, GlInterface, OnFrameAvailableListener, Surf
         val limitFps = fpsLimiter.limitFPS()
         if (!forced) forceRenderer.frameAvailable()
 
+        if (!filterQueue.isEmpty() && mainRender.isReady()) {
+            try {
+                val filter = filterQueue.take()
+                mainRender.setFilterAction(filter.filterAction, filter.position, filter.baseFilterRender)
+            } catch (_: InterruptedException) {
+                Thread.currentThread().interrupt()
+                return
+            }
+        }
+
         if (surfaceManager.isReady && mainRender.isReady()) {
-            surfaceManager.makeCurrent()
+            if (!surfaceManager.makeCurrent()) return
             mainRender.updateFrame()
             mainRender.drawSource()
             if (!limitFps) {
@@ -223,45 +233,40 @@ open class OpenGlView : SurfaceView, GlInterface, OnFrameAvailableListener, Surf
                     previewWidth, previewHeight, aspectRatioMode, 0,
                     isPreviewVerticalFlip, isPreviewHorizontalFlip, null
                 )
-                surfaceManager.swapBuffer()
             }
+            surfaceManager.swapBuffer()
         }
-        if (!filterQueue.isEmpty() && mainRender.isReady()) {
-            try {
-                val filter = filterQueue.take()
-                mainRender.setFilterAction(filter.filterAction, filter.position, filter.baseFilterRender)
-            } catch (e: InterruptedException) {
-                Thread.currentThread().interrupt()
-                return
-            }
-        }
+
         if (surfaceManagerEncoder.isReady || surfaceManagerEncoderRecord.isReady || surfaceManagerPhoto.isReady) {
             mainRender.drawFilters(false)
         }
         if (surfaceManagerEncoder.isReady && mainRender.isReady() && !limitFps) {
             val w = if (muteVideo) 0 else encoderWidth
             val h = if (muteVideo) 0 else encoderHeight
-            surfaceManagerEncoder.makeCurrent()
-            mainRender.drawScreen(
-                w, h, aspectRatioMode,
-                streamRotation, isStreamVerticalFlip, isStreamHorizontalFlip, null
-            )
-            surfaceManagerEncoder.swapBuffer()
+            if (surfaceManagerEncoder.makeCurrent()) {
+                mainRender.drawScreen(
+                    w, h, aspectRatioMode,
+                    streamRotation, isStreamVerticalFlip, isStreamHorizontalFlip, null
+                )
+                surfaceManagerEncoder.swapBuffer()
+            }
         }
         // render VideoEncoder (record if the resolution is different than stream)
         if (surfaceManagerEncoderRecord.isReady && mainRender.isReady() && !limitFps) {
             val w = if (muteVideo) 0 else encoderRecordWidth
             val h = if (muteVideo) 0 else encoderRecordHeight
-            surfaceManagerEncoderRecord.makeCurrent()
-            mainRender.drawScreen(w, h, aspectRatioMode, streamRotation, isStreamVerticalFlip, isStreamHorizontalFlip, null)
-            surfaceManagerEncoderRecord.swapBuffer()
+            if (surfaceManagerEncoderRecord.makeCurrent()) {
+                mainRender.drawScreen(w, h, aspectRatioMode, streamRotation, isStreamVerticalFlip, isStreamHorizontalFlip, null)
+                surfaceManagerEncoderRecord.swapBuffer()
+            }
         }
         if (takePhotoCallback != null && surfaceManagerPhoto.isReady && mainRender.isReady()) {
-            surfaceManagerPhoto.makeCurrent()
-            mainRender.drawScreen(encoderWidth, encoderHeight, aspectRatioMode, streamRotation, isStreamVerticalFlip, isStreamHorizontalFlip, null)
-            takePhotoCallback?.onTakePhoto(GlUtil.getBitmap(encoderWidth, encoderHeight))
-            takePhotoCallback = null
-            surfaceManagerPhoto.swapBuffer()
+            if (surfaceManagerPhoto.makeCurrent()) {
+                mainRender.drawScreen(encoderWidth, encoderHeight, aspectRatioMode, streamRotation, isStreamVerticalFlip, isStreamHorizontalFlip, null)
+                takePhotoCallback?.onTakePhoto(GlUtil.getBitmap(encoderWidth, encoderHeight))
+                takePhotoCallback = null
+                surfaceManagerPhoto.swapBuffer()
+            }
         }
     }
 
