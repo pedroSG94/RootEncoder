@@ -54,7 +54,7 @@ import java.nio.ByteBuffer
  * new ConnectChecker[]{ stream3 });
  *
  * You can set an empty array or null if you don't want use a protocol
- * new MultiStream(openGlView, new ConnectChecker[]{ stream1, stream2 }, null); //RTSP protocol is not used
+ * new MultiStream(context, new ConnectChecker[]{ stream1, stream2 }, null, null, null); //RTSP, SRT and UDP protocol is not used
  *
  * In order to use start, stop and other calls you must send type of stream and index to execute it.
  * Example (using previous example interfaces):
