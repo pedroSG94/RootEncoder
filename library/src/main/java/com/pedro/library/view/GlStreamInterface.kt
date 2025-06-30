@@ -218,8 +218,10 @@ class GlStreamInterface(private val context: Context): OnFrameAvailableListener,
 
     if (!filterQueue.isEmpty() && mainRender.isReady()) {
       try {
-        val filter = filterQueue.take()
-        mainRender.setFilterAction(filter.filterAction, filter.position, filter.baseFilterRender)
+        if (surfaceManager.makeCurrent()) {
+          val filter = filterQueue.take()
+          mainRender.setFilterAction(filter.filterAction, filter.position, filter.baseFilterRender)
+        }
       } catch (_: InterruptedException) {
         Thread.currentThread().interrupt()
         return
