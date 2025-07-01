@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/main"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+    <include
+        android:id="@+id/newBakingscoreboardLayout"
+        layout="@layout/new_baking_layout"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content" />
+    <include layout="@layout/mute_icon_with_text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignTop="@+id/newBakingscoreboardLayout"/>
+    <com.pedro.library.view.OpenGlView
+        android:id="@+id/open_gl_view"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+
+    <Button
+        android:id="@+id/button_stream"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Start"
+        android:layout_alignParentBottom="true"
+        android:layout_centerHorizontal="true"
+        android:layout_marginBottom="30dp" />
+
+    <!-- Toggle AndroidView Filter Button -->
+    <Button
+        android:id="@+id/button_toggle_android_view_filter"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Toggle View Filter"
+        android:layout_above="@id/button_stream"
+        android:layout_centerHorizontal="true"
+        android:layout_marginBottom="20dp" />
+
+    <!-- Toggle Audio Filter Button -->
+    <Button
+        android:id="@+id/button_toggle_audio_filter"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Toggle Audio Filter"
+        android:layout_above="@id/button_toggle_android_view_filter"
+        android:layout_centerHorizontal="true"
+        android:layout_marginBottom="20dp" />
+</RelativeLayout>

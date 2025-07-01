@@ -37,7 +37,7 @@
       android:theme="@style/AppTheme"
       >
     <activity
-        android:name="com.pedro.streamer.MainActivity"
+        android:name="com.pedro.streamer.SampleActivity"
         android:label="@string/app_name"
         android:exported="true">
       <intent-filter>
