@@ -16,6 +16,9 @@
 
 package com.pedro.common
 
+import android.graphics.Color
+import android.graphics.PorterDuff
+import android.graphics.SurfaceTexture
 import android.hardware.camera2.CameraCharacteristics
 import android.hardware.camera2.CaptureRequest
 import android.media.MediaCodec
@@ -23,6 +26,7 @@ import android.media.MediaFormat
 import android.os.Build
 import android.os.Handler
 import android.os.Looper
+import android.view.Surface
 import androidx.annotation.RequiresApi
 import com.pedro.common.frame.MediaFrame
 import kotlinx.coroutines.Dispatchers
@@ -233,4 +237,15 @@ fun OutputStream.writeUInt32LittleEndian(value: Int) {
 
 fun Long.compare(l: Long): Int {
   return if (this < l) -1 else if (this > l) 1 else 0
+}
+
+fun SurfaceTexture.tryClear() {
+  val surface = Surface(this)
+  try {
+    val canvas = surface.lockCanvas(null)
+    canvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR)
+    surface.unlockCanvasAndPost(canvas)
+  } catch (_: Exception) {} finally {
+    surface.release()
+  }
 }

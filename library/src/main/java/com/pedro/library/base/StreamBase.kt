@@ -29,6 +29,7 @@ import androidx.annotation.RequiresApi
 import com.pedro.common.AudioCodec
 import com.pedro.common.TimeUtils
 import com.pedro.common.VideoCodec
+import com.pedro.common.tryClear
 import com.pedro.encoder.CodecErrorCallback
 import com.pedro.encoder.Frame
 import com.pedro.encoder.TimestampMode
@@ -382,6 +383,7 @@ abstract class StreamBase(
     }
     videoSource.stop()
     videoSource.release()
+    glInterface.surfaceTexture.tryClear()
     if (wasRunning) source.start(glInterface.surfaceTexture)
     glInterface.setOrientationConfig(source.getOrientationConfig())
     videoSource = source
@@ -507,6 +509,7 @@ abstract class StreamBase(
     stopSources()
     videoSource.release()
     audioSource.release()
+    glInterface.surfaceTexture.tryClear()
   }
 
   /**
