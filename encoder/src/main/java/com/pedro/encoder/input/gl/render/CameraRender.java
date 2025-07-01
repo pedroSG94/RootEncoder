@@ -100,6 +100,7 @@ public class CameraRender extends BaseRenderOffScreen {
     GLES20.glUseProgram(program);
     GLES20.glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
     GLES20.glClear(GLES20.GL_DEPTH_BUFFER_BIT | GLES20.GL_COLOR_BUFFER_BIT);
+    GlUtil.checkGlError("drawCamera program");
 
     squareVertex.position(SQUARE_VERTEX_DATA_POS_OFFSET);
     GLES20.glVertexAttribPointer(aPositionHandle, 3, GLES20.GL_FLOAT, false,
@@ -110,15 +111,17 @@ public class CameraRender extends BaseRenderOffScreen {
     GLES20.glVertexAttribPointer(aTextureCameraHandle, 2, GLES20.GL_FLOAT, false,
             SQUARE_VERTEX_DATA_STRIDE_BYTES, squareVertex);
     GLES20.glEnableVertexAttribArray(aTextureCameraHandle);
+    GlUtil.checkGlError("drawCamera vertex");
 
     GLES20.glUniformMatrix4fv(uMVPMatrixHandle, 1, false, MVPMatrix, 0);
     GLES20.glUniformMatrix4fv(uSTMatrixHandle, 1, false, STMatrix, 0);
+    GlUtil.checkGlError("drawCamera matrix");
     //camera
     GLES20.glActiveTexture(GLES20.GL_TEXTURE0);
     GLES20.glBindTexture(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, textureID[0]);
     //draw
     GLES20.glDrawArrays(GLES20.GL_TRIANGLE_STRIP, 0, 4);
-
+    GlUtil.checkGlError("drawCamera textures");
     GlUtil.disableResources(aTextureCameraHandle, aPositionHandle);
     GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, 0);
     GlUtil.checkGlError("drawCamera end");

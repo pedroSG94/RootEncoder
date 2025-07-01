@@ -66,8 +66,9 @@ public abstract class BaseFilterRender extends BaseRenderOffScreen {
   protected abstract void initGlFilter(Context context);
 
   public void draw() {
-    GlUtil.checkGlError("viewport start");
+    GlUtil.checkGlError("bindframe start");
     GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, renderHandler.getFboId()[0]);
+    GlUtil.checkGlError("viewport start");
     GLES20.glViewport(0, 0, width, height);
     GlUtil.checkGlError("viewport end");
     GlUtil.checkGlError("drawFilter start");

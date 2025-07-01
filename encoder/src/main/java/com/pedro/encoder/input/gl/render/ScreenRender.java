@@ -97,9 +97,12 @@ public class ScreenRender {
 
     updateMatrix(rotation, SizeCalculator.calculateFlip(flipStreamHorizontal, flipStreamVertical), MVPMatrix);
     ViewPort viewport = viewPort != null ? viewPort : SizeCalculator.calculateViewPort(mode, width, height, streamWidth, streamHeight);
+    GlUtil.checkGlError("drawScreen viewport start");
     GLES20.glViewport(viewport.getX(), viewport.getY(), viewport.getWidth(), viewport.getHeight());
+    GlUtil.checkGlError("drawScreen viewport end");
 
     draw();
+    GlUtil.checkGlError("drawScreen end");
   }
 
   public void drawEncoder(int width, int height, boolean isPortrait, int rotation,
@@ -108,7 +111,9 @@ public class ScreenRender {
 
     updateMatrix(rotation, SizeCalculator.calculateFlip(flipStreamHorizontal, flipStreamVertical), MVPMatrix);
     ViewPort viewport = viewPort != null ? viewPort : SizeCalculator.calculateViewPortEncoder(width, height, isPortrait);
+    GlUtil.checkGlError("drawScreen viewport start");
     GLES20.glViewport(viewport.getX(), viewport.getY(), viewport.getWidth(), viewport.getHeight());
+    GlUtil.checkGlError("drawScreen viewport end");
 
     draw();
   }
@@ -132,7 +137,9 @@ public class ScreenRender {
       h = isPortrait ? streamHeight : streamWidth;
     }
     ViewPort viewport = viewPort != null ? viewPort: SizeCalculator.calculateViewPort(mode, width, height, w, h);
+    GlUtil.checkGlError("drawScreen viewport start");
     GLES20.glViewport(viewport.getX(), viewport.getY(), viewport.getWidth(), viewport.getHeight());
+    GlUtil.checkGlError("drawScreen viewport end");
 
     draw();
   }
@@ -140,8 +147,8 @@ public class ScreenRender {
   private void draw() {
     GLES20.glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
     GLES20.glClear(GLES20.GL_DEPTH_BUFFER_BIT | GLES20.GL_COLOR_BUFFER_BIT);
-
     GLES20.glUseProgram(program);
+    GlUtil.checkGlError("drawScreen program");
 
     squareVertex.position(BaseRenderOffScreen.SQUARE_VERTEX_DATA_POS_OFFSET);
     GLES20.glVertexAttribPointer(aPositionHandle, 3, GLES20.GL_FLOAT, false,
@@ -152,19 +159,22 @@ public class ScreenRender {
     GLES20.glVertexAttribPointer(aTextureHandle, 2, GLES20.GL_FLOAT, false,
         BaseRenderOffScreen.SQUARE_VERTEX_DATA_STRIDE_BYTES, squareVertex);
     GLES20.glEnableVertexAttribArray(aTextureHandle);
+    GlUtil.checkGlError("drawScreen vertex");
 
     GLES20.glUniformMatrix4fv(uMVPMatrixHandle, 1, false, MVPMatrix, 0);
     GLES20.glUniformMatrix4fv(uSTMatrixHandle, 1, false, STMatrix, 0);
-
+    GlUtil.checkGlError("drawScreen matrix");
     GLES20.glUniform1i(uSamplerHandle, 0);
     GLES20.glActiveTexture(GLES20.GL_TEXTURE0);
     GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, texId);
+    GlUtil.checkGlError("drawScreen textures");
     //draw
     GLES20.glDrawArrays(GLES20.GL_TRIANGLE_STRIP, 0, 4);
 
     GlUtil.checkGlError("drawScreen end");
 
     GlUtil.disableResources(aTextureHandle, aPositionHandle);
+    GlUtil.checkGlError("drawScreen disable");
   }
 
   public void release() {
