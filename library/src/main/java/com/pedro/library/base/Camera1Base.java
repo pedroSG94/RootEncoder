@@ -386,7 +386,9 @@ public abstract class Camera1Base {
   @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
   public void startRecord(@NonNull final String path, @Nullable RecordController.Listener listener)
       throws IOException {
-    recordController.startRecord(path, listener);
+    RecordController.RecordTracks tracks = audioInitialized ?
+            RecordController.RecordTracks.ALL : RecordController.RecordTracks.VIDEO;
+    recordController.startRecord(path, listener, tracks);
     if (!streaming) {
       startEncoders();
     } else if (videoEncoder.isRunning()) {
@@ -408,7 +410,9 @@ public abstract class Camera1Base {
   @RequiresApi(api = Build.VERSION_CODES.O)
   public void startRecord(@NonNull final FileDescriptor fd,
       @Nullable RecordController.Listener listener) throws IOException {
-    recordController.startRecord(fd, listener);
+    RecordController.RecordTracks tracks = audioInitialized ?
+            RecordController.RecordTracks.ALL : RecordController.RecordTracks.VIDEO;
+    recordController.startRecord(fd, listener, tracks);
     if (!streaming) {
       startEncoders();
     } else if (videoEncoder.isRunning()) {
@@ -663,7 +667,9 @@ public abstract class Camera1Base {
   @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
   public void startStreamAndRecord(String url, String path, RecordController.Listener listener) throws IOException {
     startStream(url);
-    recordController.startRecord(path, listener);
+    RecordController.RecordTracks tracks = audioInitialized ?
+            RecordController.RecordTracks.ALL : RecordController.RecordTracks.VIDEO;
+    recordController.startRecord(path, listener, tracks);
   }
 
   @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
@@ -994,7 +1000,7 @@ public abstract class Camera1Base {
 
     @Override
     public void onVideoFormat(@NonNull MediaFormat mediaFormat) {
-      recordController.setVideoFormat(mediaFormat, !audioInitialized);
+      recordController.setVideoFormat(mediaFormat);
     }
   };
 

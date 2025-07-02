@@ -299,7 +299,9 @@ public abstract class DisplayBase {
    */
   public void startRecord(@NonNull String path, @Nullable RecordController.Listener listener)
       throws IOException {
-    recordController.startRecord(path, listener);
+    RecordController.RecordTracks tracks = audioInitialized ?
+            RecordController.RecordTracks.ALL : RecordController.RecordTracks.VIDEO;
+    recordController.startRecord(path, listener, tracks);
     if (!streaming) {
       startEncoders(resultCode, data, mediaProjectionCallback);
     } else if (videoEncoder.isRunning()) {
@@ -320,7 +322,9 @@ public abstract class DisplayBase {
   @RequiresApi(api = Build.VERSION_CODES.O)
   public void startRecord(@NonNull final FileDescriptor fd,
       @Nullable RecordController.Listener listener) throws IOException {
-    recordController.startRecord(fd, listener);
+    RecordController.RecordTracks tracks = audioInitialized ?
+            RecordController.RecordTracks.ALL : RecordController.RecordTracks.VIDEO;
+    recordController.startRecord(fd, listener, tracks);
     if (!streaming) {
       startEncoders(resultCode, data, mediaProjectionCallback);
     } else if (videoEncoder.isRunning()) {
@@ -610,7 +614,7 @@ public abstract class DisplayBase {
 
     @Override
     public void onVideoFormat(@NonNull MediaFormat mediaFormat) {
-      recordController.setVideoFormat(mediaFormat, !audioInitialized);
+      recordController.setVideoFormat(mediaFormat);
     }
   };
 

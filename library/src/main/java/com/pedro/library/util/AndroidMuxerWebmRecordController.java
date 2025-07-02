@@ -46,7 +46,11 @@ public class AndroidMuxerWebmRecordController extends BaseRecordController {
   private final int outputFormat = MediaMuxer.OutputFormat.MUXER_OUTPUT_WEBM;
 
   @Override
-  public void startRecord(@NonNull String path, @Nullable Listener listener) throws IOException {
+  public void startRecord(@NonNull String path, @Nullable Listener listener, RecordTracks tracks) throws IOException {
+    this.tracks = RecordTracks.AUDIO;
+    if (tracks != RecordTracks.AUDIO) {
+      throw new IllegalArgumentException("This record controller only support record audio");
+    }
     if (audioCodec != AudioCodec.OPUS) {
       throw new IOException("Unsupported AudioCodec: " + audioCodec.name());
     }
@@ -64,7 +68,11 @@ public class AndroidMuxerWebmRecordController extends BaseRecordController {
 
   @Override
   @RequiresApi(api = Build.VERSION_CODES.O)
-  public void startRecord(@NonNull FileDescriptor fd, @Nullable Listener listener) throws IOException {
+  public void startRecord(@NonNull FileDescriptor fd, @Nullable Listener listener, RecordTracks tracks) throws IOException {
+    this.tracks = RecordTracks.AUDIO;
+    if (tracks != RecordTracks.AUDIO) {
+      throw new IllegalArgumentException("This record controller only support record audio");
+    }
     if (audioCodec != AudioCodec.OPUS) {
       throw new IOException("Unsupported AudioCodec: " + audioCodec.name());
     }
@@ -112,13 +120,13 @@ public class AndroidMuxerWebmRecordController extends BaseRecordController {
   }
 
   @Override
-  public void setVideoFormat(MediaFormat videoFormat, boolean isOnlyVideo) {
+  public void setVideoFormat(MediaFormat videoFormat) {
   }
 
   @Override
-  public void setAudioFormat(MediaFormat audioFormat, boolean isOnlyAudio) {
+  public void setAudioFormat(MediaFormat audioFormat) {
     this.audioFormat = audioFormat;
-    if (status == Status.STARTED && Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
+    if (status == Status.STARTED) {
       init();
     }
   }

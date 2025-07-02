@@ -17,7 +17,6 @@
 package com.pedro.library.base.recording;
 
 import android.media.MediaCodec;
-import android.media.MediaFormat;
 
 import com.pedro.common.AudioCodec;
 import com.pedro.common.BitrateManager;
@@ -41,10 +40,9 @@ public abstract class BaseRecordController implements RecordController {
     protected int audioTrack = -1;
     protected final MediaCodec.BufferInfo videoInfo = new MediaCodec.BufferInfo();
     protected final MediaCodec.BufferInfo audioInfo = new MediaCodec.BufferInfo();
-    protected boolean isOnlyAudio = false;
-    protected boolean isOnlyVideo = false;
     protected BitrateManager bitrateManager;
     protected long startTs = 0;
+    protected RecordTracks tracks = RecordTracks.ALL;
 
     public void setVideoCodec(VideoCodec videoCodec) {
         this.videoCodec = videoCodec;
@@ -108,13 +106,5 @@ public abstract class BaseRecordController implements RecordController {
         newInfo.offset = oldInfo.offset;
         newInfo.size = oldInfo.size;
         newInfo.presentationTimeUs = Math.max(0, oldInfo.presentationTimeUs - startTs - pauseTime);
-    }
-
-    public void setVideoFormat(MediaFormat videoFormat) {
-        setVideoFormat(videoFormat, false);
-    }
-
-    public void setAudioFormat(MediaFormat audioFormat) {
-        setAudioFormat(audioFormat, false);
     }
 }

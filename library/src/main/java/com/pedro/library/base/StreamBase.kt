@@ -258,9 +258,13 @@ abstract class StreamBase(
    *
    * Must be called after prepareVideo and prepareAudio.
    */
-  fun startRecord(path: String, listener: RecordController.Listener) {
+  @JvmOverloads
+  fun startRecord(path: String, tracks: RecordController.RecordTracks? = null, listener: RecordController.Listener) {
     if (isRecording) throw IllegalStateException("Record already started, stopRecord before startRecord again")
-    recordController.startRecord(path, listener)
+    val usedTracks = tracks ?: if (videoSource is NoVideoSource) RecordController.RecordTracks.AUDIO
+        else if (audioSource is NoAudioSource) RecordController.RecordTracks.VIDEO
+        else RecordController.RecordTracks.ALL
+    recordController.startRecord(path, listener, usedTracks)
     if (!isStreaming) startSources()
     else {
       videoEncoder.requestKeyframe()
@@ -553,8 +557,7 @@ abstract class StreamBase(
     }
 
     override fun onAudioFormat(mediaFormat: MediaFormat) {
-      val isOnlyAudio = videoSource is NoVideoSource
-      recordController.setAudioFormat(mediaFormat, isOnlyAudio)
+      recordController.setAudioFormat(mediaFormat)
     }
   }
 
@@ -571,8 +574,7 @@ abstract class StreamBase(
 
     override fun onVideoFormat(mediaFormat: MediaFormat) {
       if (!differentRecordResolution) {
-        val isOnlyVideo = audioSource is NoAudioSource
-        recordController.setVideoFormat(mediaFormat, isOnlyVideo)
+        recordController.setVideoFormat(mediaFormat)
       }
     }
   }
@@ -587,7 +589,7 @@ abstract class StreamBase(
 
     override fun onVideoFormat(mediaFormat: MediaFormat) {
       val isOnlyVideo = audioSource is NoAudioSource
-      recordController.setVideoFormat(mediaFormat, isOnlyVideo)
+      recordController.setVideoFormat(mediaFormat)
     }
   }
 

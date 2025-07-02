@@ -13,6 +13,7 @@ import com.pedro.common.toUInt32
 import com.pedro.common.trySend
 import com.pedro.library.base.recording.BaseRecordController
 import com.pedro.library.base.recording.RecordController
+import com.pedro.library.base.recording.RecordController.RecordTracks
 import com.pedro.rtmp.amf.v0.AmfEcmaArray
 import com.pedro.rtmp.amf.v0.AmfString
 import com.pedro.rtmp.flv.BasePacket
@@ -53,12 +54,14 @@ class FlvMuxerRecordController: BaseRecordController() {
     private var sampleRate = 0
     private var isStereo = true
 
-    override fun startRecord(path: String, listener: RecordController.Listener?) {
+    override fun startRecord(path: String, listener: RecordController.Listener?, tracks: RecordTracks) {
+        this.tracks = tracks
         outputStream = FileOutputStream(path)
         start(listener)
     }
 
-    override fun startRecord(fd: FileDescriptor, listener: RecordController.Listener?) {
+    override fun startRecord(fd: FileDescriptor, listener: RecordController.Listener?, tracks: RecordTracks) {
+        this.tracks = tracks
         outputStream = FileOutputStream(fd)
         start(listener)
     }
@@ -86,7 +89,7 @@ class FlvMuxerRecordController: BaseRecordController() {
             try {
                 it.write(createFlvFileHeader())
                 writeFlvFileMetadata(it)
-            } catch (ignored: Exception) {}
+            } catch (_: Exception) {}
         }
         status = RecordController.Status.RECORDING
         listener?.onStatusChange(status)
@@ -120,28 +123,27 @@ class FlvMuxerRecordController: BaseRecordController() {
         audioPacket.reset(false)
         try {
             outputStream?.close()
-        } catch (ignored: Exception) { } finally {
+        } catch (_: Exception) { } finally {
             outputStream = null
         }
         if (listener != null) listener.onStatusChange(status)
     }
 
     override fun recordVideo(videoBuffer: ByteBuffer, videoInfo: MediaCodec.BufferInfo) {
-        if (status == RecordController.Status.RECORDING) {
+        if (status == RecordController.Status.RECORDING && tracks != RecordTracks.AUDIO) {
             val frame = MediaFrame(videoBuffer.clone(), videoInfo.toMediaFrameInfo(), MediaFrame.Type.VIDEO)
             queue.trySend(frame)
         }
     }
 
     override fun recordAudio(audioBuffer: ByteBuffer, audioInfo: MediaCodec.BufferInfo) {
-        if (status == RecordController.Status.RECORDING) {
+        if (status == RecordController.Status.RECORDING && tracks != RecordTracks.VIDEO) {
             val frame = MediaFrame(audioBuffer.clone(), audioInfo.toMediaFrameInfo(), MediaFrame.Type.AUDIO)
             queue.trySend(frame)
         }
     }
 
-    override fun setVideoFormat(videoFormat: MediaFormat, isOnlyVideo: Boolean) {
-        this.isOnlyVideo = isOnlyVideo
+    override fun setVideoFormat(videoFormat: MediaFormat) {
         val width = videoFormat.getInteger(MediaFormat.KEY_WIDTH)
         val height = videoFormat.getInteger(MediaFormat.KEY_HEIGHT)
         val fps = videoFormat.getInteger(MediaFormat.KEY_FRAME_RATE)
@@ -153,8 +155,7 @@ class FlvMuxerRecordController: BaseRecordController() {
         if (sps != null && pps != null) videoPacket.sendVideoInfo(sps, pps)
     }
 
-    override fun setAudioFormat(audioFormat: MediaFormat, isOnlyAudio: Boolean) {
-        this.isOnlyAudio = isOnlyAudio
+    override fun setAudioFormat(audioFormat: MediaFormat) {
         val sampleRate = audioFormat.getInteger(MediaFormat.KEY_SAMPLE_RATE)
         val channels = audioFormat.getInteger(MediaFormat.KEY_CHANNEL_COUNT)
         this.sampleRate = sampleRate
@@ -166,7 +167,7 @@ class FlvMuxerRecordController: BaseRecordController() {
     }
 
     private fun createFlvFileHeader(): ByteArray {
-        val flag: Byte = if (isOnlyAudio) 0x04 else if (isOnlyVideo) 0x01 else 0x05
+        val flag: Byte = if (tracks == RecordTracks.AUDIO) 0x04 else if (tracks == RecordTracks.VIDEO) 0x01 else 0x05
         return byteArrayOf(
             0x46, 0x4C, 0x56, // "FLV"
             0x01, // Versión 1
@@ -213,7 +214,7 @@ class FlvMuxerRecordController: BaseRecordController() {
             outputStream.write(flvHeaderTag)
             outputStream.write(data)
             outputStream.write(flvTagSize)
-        } catch (ignored: Exception) {}
+        } catch (_: Exception) {}
     }
 
     private fun writeFlvPacket(outputStream: OutputStream, flvPacket: FlvPacket) {
@@ -228,7 +229,7 @@ class FlvMuxerRecordController: BaseRecordController() {
             outputStream.write(flvHeaderTag)
             outputStream.write(flvPacket.buffer)
             outputStream.write(flvTagSize)
-        } catch (ignored: Exception) {}
+        } catch (_: Exception) {}
     }
 
     private fun createHeaderTag(type: Byte, length: Int, timeStamp: Long): ByteArray {

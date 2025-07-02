@@ -46,7 +46,8 @@ public class AndroidMuxerRecordController extends BaseRecordController {
   private final int outputFormat = MediaMuxer.OutputFormat.MUXER_OUTPUT_MPEG_4;
 
   @Override
-  public void startRecord(@NonNull String path, @Nullable Listener listener) throws IOException {
+  public void startRecord(@NonNull String path, @Nullable Listener listener, RecordTracks tracks) throws IOException {
+    this.tracks = tracks;
     if (audioCodec != AudioCodec.AAC) {
       throw new IOException("Unsupported AudioCodec: " + audioCodec.name());
     }
@@ -59,12 +60,13 @@ public class AndroidMuxerRecordController extends BaseRecordController {
     } else {
       bitrateManager = null;
     }
-    if (isOnlyAudio && audioFormat != null) init();
+    if (tracks == RecordTracks.AUDIO && audioFormat != null) init();
   }
 
   @Override
   @RequiresApi(api = Build.VERSION_CODES.O)
-  public void startRecord(@NonNull FileDescriptor fd, @Nullable Listener listener) throws IOException {
+  public void startRecord(@NonNull FileDescriptor fd, @Nullable Listener listener, RecordTracks tracks) throws IOException {
+    this.tracks = tracks;
     if (audioCodec != AudioCodec.AAC) {
       throw new IOException("Unsupported AudioCodec: " + audioCodec.name());
     }
@@ -77,7 +79,7 @@ public class AndroidMuxerRecordController extends BaseRecordController {
     } else {
       bitrateManager = null;
     }
-    if(isOnlyAudio && audioFormat != null) init();
+    if(tracks == RecordTracks.AUDIO && audioFormat != null) init();
   }
 
   @Override
@@ -101,7 +103,7 @@ public class AndroidMuxerRecordController extends BaseRecordController {
 
   @Override
   public void recordVideo(ByteBuffer videoBuffer, MediaCodec.BufferInfo videoInfo) {
-    if (status == Status.STARTED && videoFormat != null && (audioFormat != null || isOnlyVideo)) {
+    if (status == Status.STARTED && videoFormat != null && (audioFormat != null || tracks == RecordTracks.VIDEO)) {
       if (videoInfo.flags == MediaCodec.BUFFER_FLAG_KEY_FRAME || isKeyFrame(videoBuffer)) {
         videoTrack = mediaMuxer.addTrack(videoFormat);
         init();
@@ -111,7 +113,7 @@ public class AndroidMuxerRecordController extends BaseRecordController {
       status = Status.RECORDING;
       if (listener != null) listener.onStatusChange(status);
     }
-    if (status == Status.RECORDING) {
+    if (status == Status.RECORDING && tracks != RecordTracks.AUDIO) {
       updateFormat(this.videoInfo, videoInfo);
       write(videoTrack, videoBuffer, this.videoInfo);
     }
@@ -119,24 +121,21 @@ public class AndroidMuxerRecordController extends BaseRecordController {
 
   @Override
   public void recordAudio(ByteBuffer audioBuffer, MediaCodec.BufferInfo audioInfo) {
-    if (status == Status.RECORDING) {
+    if (status == Status.RECORDING && tracks != RecordTracks.VIDEO) {
       updateFormat(this.audioInfo, audioInfo);
       write(audioTrack, audioBuffer, this.audioInfo);
     }
   }
 
   @Override
-  public void setVideoFormat(MediaFormat videoFormat, boolean isOnlyVideo) {
+  public void setVideoFormat(MediaFormat videoFormat) {
     this.videoFormat = videoFormat;
-    this.isOnlyVideo = isOnlyVideo;
   }
 
   @Override
-  public void setAudioFormat(MediaFormat audioFormat, boolean isOnlyAudio) {
+  public void setAudioFormat(MediaFormat audioFormat) {
     this.audioFormat = audioFormat;
-    this.isOnlyAudio = isOnlyAudio;
-    if (isOnlyAudio && status == Status.STARTED
-            && Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
+    if (tracks == RecordTracks.AUDIO && status == Status.STARTED) {
       init();
     }
   }
@@ -148,7 +147,7 @@ public class AndroidMuxerRecordController extends BaseRecordController {
   }
 
   private void init() {
-    if (!isOnlyVideo) audioTrack = mediaMuxer.addTrack(audioFormat);
+    if (tracks != RecordTracks.VIDEO) audioTrack = mediaMuxer.addTrack(audioFormat);
     mediaMuxer.start();
     status = Status.RECORDING;
     if (listener != null) listener.onStatusChange(status);

@@ -47,14 +47,22 @@ public class AacMuxerRecordController extends BaseRecordController {
 
     @Override
     @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
-    public void startRecord(@NonNull String path, @Nullable Listener listener) throws IOException {
+    public void startRecord(@NonNull String path, @Nullable Listener listener, RecordTracks tracks) throws IOException {
+        this.tracks = RecordTracks.AUDIO;
+        if (tracks != RecordTracks.AUDIO) {
+            throw new IllegalArgumentException("This record controller only support record audio");
+        }
         outputStream = new FileOutputStream(path);
         start(listener);
     }
 
     @Override
     @RequiresApi(api = Build.VERSION_CODES.O)
-    public void startRecord(@NonNull FileDescriptor fd, @Nullable Listener listener) throws IOException {
+    public void startRecord(@NonNull FileDescriptor fd, @Nullable Listener listener, RecordTracks tracks) throws IOException {
+        this.tracks = RecordTracks.AUDIO;
+        if (tracks != RecordTracks.AUDIO) {
+            throw new IllegalArgumentException("This record controller only support record audio");
+        }
         outputStream = new FileOutputStream(fd);
         start(listener);
     }
@@ -107,11 +115,11 @@ public class AacMuxerRecordController extends BaseRecordController {
     }
 
     @Override
-    public void setVideoFormat(MediaFormat videoFormat, boolean isOnlyVideo) {
+    public void setVideoFormat(MediaFormat videoFormat) {
     }
 
     @Override
-    public void setAudioFormat(MediaFormat audioFormat, boolean isOnlyAudio) {
+    public void setAudioFormat(MediaFormat audioFormat) {
         sampleRate = audioFormat.getInteger(MediaFormat.KEY_SAMPLE_RATE);
         channels = audioFormat.getInteger(MediaFormat.KEY_CHANNEL_COUNT);
         if (status == Status.STARTED && Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {

@@ -326,7 +326,10 @@ public abstract class FromFileBase {
    * @throws IOException If initialized before a stream.
    */
   public void startRecord(@NonNull String path, @Nullable RecordController.Listener listener) throws IOException {
-    recordController.startRecord(path, listener);
+    RecordController.RecordTracks tracks = RecordController.RecordTracks.ALL;
+    if (!videoEnabled) tracks = RecordController.RecordTracks.AUDIO;
+    else if (!audioEnabled) tracks = RecordController.RecordTracks.VIDEO;
+    recordController.startRecord(path, listener, tracks);
     if (!streaming) {
       startEncoders();
     } else if (videoEncoder.isRunning()) {
@@ -346,7 +349,10 @@ public abstract class FromFileBase {
    */
   @RequiresApi(api = Build.VERSION_CODES.O)
   public void startRecord(@NonNull final FileDescriptor fd, @Nullable RecordController.Listener listener) throws IOException {
-    recordController.startRecord(fd, listener);
+    RecordController.RecordTracks tracks = RecordController.RecordTracks.ALL;
+    if (!videoEnabled) tracks = RecordController.RecordTracks.AUDIO;
+    else if (!audioEnabled) tracks = RecordController.RecordTracks.VIDEO;
+    recordController.startRecord(fd, listener, tracks);
     if (!streaming) {
       startEncoders();
     } else if (videoEncoder.isRunning()) {
@@ -748,7 +754,7 @@ public abstract class FromFileBase {
 
     @Override
     public void onAudioFormat(@NonNull MediaFormat mediaFormat) {
-      recordController.setAudioFormat(mediaFormat, !videoEnabled);
+      recordController.setAudioFormat(mediaFormat);
     }
   };
 
@@ -767,7 +773,7 @@ public abstract class FromFileBase {
 
     @Override
     public void onVideoFormat(@NonNull MediaFormat mediaFormat) {
-      recordController.setVideoFormat(mediaFormat, !audioEnabled);
+      recordController.setVideoFormat(mediaFormat);
     }
   };
 

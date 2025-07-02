@@ -144,7 +144,7 @@ public abstract class OnlyAudioBase {
    */
   @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
   public void startRecord(String path, RecordController.Listener listener) throws IOException {
-    recordController.startRecord(path, listener);
+    recordController.startRecord(path, listener, RecordController.RecordTracks.AUDIO);
     if (!streaming) {
       startEncoders();
     }
@@ -164,7 +164,7 @@ public abstract class OnlyAudioBase {
   @RequiresApi(api = Build.VERSION_CODES.O)
   public void startRecord(@NonNull final FileDescriptor fd,
       @Nullable RecordController.Listener listener) throws IOException {
-    recordController.startRecord(fd, listener);
+    recordController.startRecord(fd, listener, RecordController.RecordTracks.AUDIO);
     if (!streaming) {
       startEncoders();
     }
@@ -306,7 +306,7 @@ public abstract class OnlyAudioBase {
 
     @Override
     public void onAudioFormat(@NonNull MediaFormat mediaFormat) {
-      recordController.setAudioFormat(mediaFormat, true);
+      recordController.setAudioFormat(mediaFormat);
     }
   };
 

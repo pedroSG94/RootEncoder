@@ -429,7 +429,9 @@ public abstract class Camera2Base {
      */
     public void startRecord(@NonNull String path, @Nullable RecordController.Listener listener)
             throws IOException {
-        recordController.startRecord(path, listener);
+        RecordController.RecordTracks tracks = audioInitialized ?
+                RecordController.RecordTracks.ALL : RecordController.RecordTracks.VIDEO;
+        recordController.startRecord(path, listener, tracks);
         if (!streaming) {
             startEncoders();
         } else if (videoEncoder.isRunning() || videoEncoderRecord.isRunning()) {
@@ -450,7 +452,9 @@ public abstract class Camera2Base {
     @RequiresApi(api = Build.VERSION_CODES.O)
     public void startRecord(@NonNull final FileDescriptor fd,
                             @Nullable RecordController.Listener listener) throws IOException {
-        recordController.startRecord(fd, listener);
+        RecordController.RecordTracks tracks = audioInitialized ?
+                RecordController.RecordTracks.ALL : RecordController.RecordTracks.VIDEO;
+        recordController.startRecord(fd, listener, tracks);
         if (!streaming) {
             startEncoders();
         } else if (videoEncoder.isRunning() || videoEncoderRecord.isRunning()) {
@@ -617,7 +621,9 @@ public abstract class Camera2Base {
 
     public void startStreamAndRecord(String url, String path, RecordController.Listener listener) throws IOException {
         startStream(url);
-        recordController.startRecord(path, listener);
+        RecordController.RecordTracks tracks = audioInitialized ?
+                RecordController.RecordTracks.ALL : RecordController.RecordTracks.VIDEO;
+        recordController.startRecord(path, listener, tracks);
     }
 
     public void startStreamAndRecord(String url, String path) throws IOException {
@@ -1082,7 +1088,7 @@ public abstract class Camera2Base {
 
         @Override
         public void onVideoFormat(@NonNull MediaFormat mediaFormat) {
-            if (!differentRecordResolution) recordController.setVideoFormat(mediaFormat, !audioInitialized);
+            if (!differentRecordResolution) recordController.setVideoFormat(mediaFormat);
         }
     };
 
@@ -1098,7 +1104,7 @@ public abstract class Camera2Base {
 
         @Override
         public void onVideoFormat(@NonNull MediaFormat mediaFormat) {
-            recordController.setVideoFormat(mediaFormat, !audioInitialized);
+            recordController.setVideoFormat(mediaFormat);
         }
     };
 
