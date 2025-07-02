@@ -29,6 +29,7 @@ import android.view.SurfaceView;
 import android.view.TextureView;
 import android.view.View;
 
+import com.pedro.common.FpsUtils;
 import com.pedro.common.TimeUtils;
 import com.pedro.encoder.Frame;
 import com.pedro.encoder.input.video.facedetector.FaceDetectorCallback;
@@ -187,7 +188,7 @@ public class Camera1ApiManager implements Camera.PreviewCallback, Camera.FaceDet
       Camera.Parameters parameters = camera.getParameters();
       parameters.setPreviewSize(width, height);
       parameters.setPreviewFormat(imageFormat);
-      int[] range = adaptFpsRange(fps, parameters.getSupportedPreviewFpsRange());
+      int[] range = FpsUtils.INSTANCE.adaptFpsRange(fps, parameters.getSupportedPreviewFpsRange());
       Log.i(TAG, "fps: " + range[0] + " - " + range[1]);
       parameters.setPreviewFpsRange(range[0], range[1]);
 
@@ -366,27 +367,6 @@ public class Camera1ApiManager implements Camera.PreviewCallback, Camera.FaceDet
 
   public boolean isRunning() {
     return running;
-  }
-
-  private int[] adaptFpsRange(int expectedFps, List<int[]> fpsRanges) {
-    expectedFps *= 1000;
-    int[] closestRange = fpsRanges.get(0);
-    int measure = Math.abs(closestRange[0] - expectedFps) + Math.abs(closestRange[1] - expectedFps);
-    for (int[] range : fpsRanges) {
-      if (range[0] <= expectedFps && range[1] >= expectedFps) {
-        int curMeasure = Math.abs(((range[0] + range[1]) / 2) - expectedFps);
-        if (curMeasure < measure) {
-          closestRange = range;
-          measure = curMeasure;
-        } else if (curMeasure == measure) {
-          if (Math.abs(range[0] - expectedFps) < Math.abs(closestRange[1] - expectedFps)) {
-            closestRange = range;
-            measure = curMeasure;
-          }
-        }
-      }
-    }
-    return closestRange;
   }
 
   @Override
