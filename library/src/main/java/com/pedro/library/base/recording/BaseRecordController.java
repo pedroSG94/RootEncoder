@@ -107,7 +107,7 @@ public abstract class BaseRecordController implements RecordController {
         newInfo.flags = oldInfo.flags;
         newInfo.offset = oldInfo.offset;
         newInfo.size = oldInfo.size;
-        newInfo.presentationTimeUs = oldInfo.presentationTimeUs - startTs - pauseTime;
+        newInfo.presentationTimeUs = Math.max(0, oldInfo.presentationTimeUs - startTs - pauseTime);
     }
 
     public void setVideoFormat(MediaFormat videoFormat) {
