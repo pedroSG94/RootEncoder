@@ -29,6 +29,8 @@ import android.view.SurfaceView;
 import android.view.TextureView;
 import android.view.View;
 
+import com.pedro.common.FpsUtils;
+import com.pedro.common.TimeUtils;
 import com.pedro.encoder.Frame;
 import com.pedro.encoder.input.video.facedetector.FaceDetectorCallback;
 import com.pedro.encoder.input.video.facedetector.UtilsKt;
@@ -186,7 +188,7 @@ public class Camera1ApiManager implements Camera.PreviewCallback, Camera.FaceDet
       Camera.Parameters parameters = camera.getParameters();
       parameters.setPreviewSize(width, height);
       parameters.setPreviewFormat(imageFormat);
-      int[] range = adaptFpsRange(fps, parameters.getSupportedPreviewFpsRange());
+      int[] range = FpsUtils.INSTANCE.adaptFpsRange(fps, parameters.getSupportedPreviewFpsRange());
       Log.i(TAG, "fps: " + range[0] + " - " + range[1]);
       parameters.setPreviewFpsRange(range[0], range[1]);
 
@@ -367,30 +369,9 @@ public class Camera1ApiManager implements Camera.PreviewCallback, Camera.FaceDet
     return running;
   }
 
-  private int[] adaptFpsRange(int expectedFps, List<int[]> fpsRanges) {
-    expectedFps *= 1000;
-    int[] closestRange = fpsRanges.get(0);
-    int measure = Math.abs(closestRange[0] - expectedFps) + Math.abs(closestRange[1] - expectedFps);
-    for (int[] range : fpsRanges) {
-      if (range[0] <= expectedFps && range[1] >= expectedFps) {
-        int curMeasure = Math.abs(((range[0] + range[1]) / 2) - expectedFps);
-        if (curMeasure < measure) {
-          closestRange = range;
-          measure = curMeasure;
-        } else if (curMeasure == measure) {
-          if (Math.abs(range[0] - expectedFps) < Math.abs(closestRange[1] - expectedFps)) {
-            closestRange = range;
-            measure = curMeasure;
-          }
-        }
-      }
-    }
-    return closestRange;
-  }
-
   @Override
   public void onPreviewFrame(byte[] data, Camera camera) {
-    long timeStamp = System.nanoTime() / 1000;
+    long timeStamp = TimeUtils.getCurrentTimeMicro();
     getCameraData.inputYUVData(new Frame(data, rotation, facing == CameraHelper.Facing.FRONT && isPortrait, imageFormat, timeStamp));
     camera.addCallbackBuffer(yuvBuffer);
   }
@@ -656,6 +637,38 @@ public class Camera1ApiManager implements Camera.PreviewCallback, Camera.FaceDet
 
   public boolean isAutoFocusEnabled() {
     return autoFocusEnabled;
+  }
+
+  /**
+   * @param mode values from Camera.Parameters.WHITE_BALANCE_*
+   */
+  public boolean enableAutoWhiteBalance(String mode) {
+    boolean result = false;
+    if (camera != null) {
+      Camera.Parameters parameters = camera.getParameters();
+      List<String> supportedWhiteBalanceModes = parameters.getSupportedWhiteBalance();
+      if (supportedWhiteBalanceModes != null && !supportedWhiteBalanceModes.isEmpty()) {
+        if (supportedWhiteBalanceModes.contains(mode)) {
+          parameters.setWhiteBalance(mode);
+          result = true;
+        }
+      }
+    }
+    return result;
+  }
+
+  public List<String> getAutoWhiteBalanceModesAvailable() {
+    if (camera != null) {
+      Camera.Parameters parameters = camera.getParameters();
+      return parameters.getSupportedWhiteBalance();
+    } else return new ArrayList<>();
+  }
+
+  public String getWhiteBalance() {
+    if (camera != null) {
+      Camera.Parameters parameters = camera.getParameters();
+      return parameters.getWhiteBalance();
+    } else return Camera.Parameters.WHITE_BALANCE_AUTO;
   }
 
   public void enableRecordingHint() {

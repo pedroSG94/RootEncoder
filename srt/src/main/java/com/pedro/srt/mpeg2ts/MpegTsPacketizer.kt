@@ -31,6 +31,7 @@ class MpegTsPacketizer(private val psiManager: PsiManager) {
 
   companion object {
     const val packetSize = 188
+    const val headerSize = 4
   }
 
   private var pesContinuity = 0
@@ -43,11 +44,11 @@ class MpegTsPacketizer(private val psiManager: PsiManager) {
     val transportScramblingControl = 0
 
     buffer.put(0x47) //sync byte
-    val combined: Short = ((transportErrorIndicator.toInt() shl 15)
+    val combined = ((transportErrorIndicator.toInt() shl 15)
         or (startIndicator.toInt() shl 14)
         or (transportPriority.toInt() shl 13) or pid).toShort()
     buffer.putShort(combined)
-    val combined2: Byte = ((transportScramblingControl and 0x3 shl 6)
+    val combined2 = ((transportScramblingControl and 0x3 shl 6)
         or (adaptationFieldControl.value.toInt() and 0x3 shl 4) or (continuity and 0xF)).toByte()
     buffer.put(combined2)
   }
@@ -59,9 +60,8 @@ class MpegTsPacketizer(private val psiManager: PsiManager) {
     val packets = mutableListOf<ByteArray>()
     if (increasePsiContinuity) psiContinuity = (psiContinuity + 1) and 0xF
 
-    payload.forEachIndexed { index, mpegTsPayload ->
+    payload.forEach { mpegTsPayload ->
       var buffer = ByteBuffer.allocate(packetSize)
-      var isFirstPacket = index == 0
 
       when (mpegTsPayload) {
         is Psi -> {
@@ -72,8 +72,8 @@ class MpegTsPacketizer(private val psiManager: PsiManager) {
           packets.add(buffer.toByteArray())
         }
         is Pes -> {
-          var adaptationFieldControl = AdaptationFieldControl.ADAPTATION_PAYLOAD
-          writeHeader(buffer, true, mpegTsPayload.pid, adaptationFieldControl, pesContinuity)
+          val data = mpegTsPayload.bufferData
+
           val isAudio = psiManager.getAudioPid().toInt() == mpegTsPayload.pid
           val pcr = if (isAudio && !mpegTsPayload.isKeyFrame) null else TimeUtils.getCurrentTimeMicro()
           val adaptationField = AdaptationField(
@@ -81,31 +81,40 @@ class MpegTsPacketizer(private val psiManager: PsiManager) {
             randomAccessIndicator = mpegTsPayload.isKeyFrame, //only video can be true
             pcr = pcr
           )
-          buffer.put(adaptationField.getData())
+          val adaptationData = adaptationField.getData()
+          val isSmall = data.remaining() < buffer.remaining() - headerSize - adaptationData.size - mpegTsPayload.headerLength
+          var adaptationFieldControl = if (isSmall) AdaptationFieldControl.PAYLOAD else AdaptationFieldControl.ADAPTATION_PAYLOAD
+          writeHeader(buffer, true, mpegTsPayload.pid, adaptationFieldControl, pesContinuity)
+          buffer.put(adaptationData)
           mpegTsPayload.writeHeader(buffer)
 
-          val data = mpegTsPayload.bufferData
+          if (isSmall) {
+            buffer.put(data)
+            val stuffingSize = buffer.remaining()
+            writeStuffingBytes(buffer, stuffingSize, true)
+            packets.add(buffer.toByteArray())
+            pesContinuity = (pesContinuity + 1) and 0xF
+            return@forEach
+          }
+          var isFirstPacket = true
+          adaptationFieldControl = AdaptationFieldControl.PAYLOAD
           while (data.hasRemaining()) {
-            if (isFirstPacket) {
-              isFirstPacket = false
-              adaptationFieldControl = AdaptationFieldControl.PAYLOAD
-            } else {
+            val lastPacket = data.remaining() < buffer.remaining() - headerSize
+            if (!isFirstPacket) {
+              if (lastPacket) adaptationFieldControl = AdaptationFieldControl.ADAPTATION_PAYLOAD
               writeHeader(buffer, false, mpegTsPayload.pid, adaptationFieldControl, pesContinuity)
             }
-            val size = minOf(data.remaining(), buffer.remaining())
-            if (size < buffer.remaining()) { //last packet
+            if (lastPacket) {
               val stuffingSize = buffer.remaining() - data.remaining()
-              //override AdaptationFieldControl.PAYLOAD to AdaptationFieldControl.ADAPTATION_PAYLOAD
-              val byte = buffer.get(buffer.position() - 1)
-              buffer.position(buffer.position() - 1)
-              buffer.put((byte.toInt() or (1 shl 5)).toByte())
               writeStuffingBytes(buffer, stuffingSize, true)
             }
+            val size = minOf(data.remaining(), buffer.remaining())
             buffer.put(data.array(), data.position(), size)
             data.position(data.position() + size)
             packets.add(buffer.toByteArray())
             pesContinuity = (pesContinuity + 1) and 0xF
             buffer = ByteBuffer.allocate(packetSize)
+            isFirstPacket = false
           }
         }
       }

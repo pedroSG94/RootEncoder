@@ -53,7 +53,6 @@ public class RotationFilterRender extends BaseFilterRender {
   private int uSamplerHandle = -1;
 
   private int rotation = 0;
-  private float[] rotationMatrix = new float[16];
 
   public RotationFilterRender() {
     squareVertex = ByteBuffer.allocateDirect(squareVertexDataFilter.length * FLOAT_SIZE_BYTES)
@@ -62,7 +61,6 @@ public class RotationFilterRender extends BaseFilterRender {
     squareVertex.put(squareVertexDataFilter).position(0);
     Matrix.setIdentityM(MVPMatrix, 0);
     Matrix.setIdentityM(STMatrix, 0);
-    Matrix.setIdentityM(rotationMatrix, 0);
   }
 
   @Override
@@ -98,9 +96,14 @@ public class RotationFilterRender extends BaseFilterRender {
     GLES20.glUniformMatrix4fv(uMVPMatrixHandle, 1, false, MVPMatrix, 0);
     GLES20.glUniformMatrix4fv(uSTMatrixHandle, 1, false, STMatrix, 0);
 
-    GLES20.glUniform1i(uSamplerHandle, 4);
-    GLES20.glActiveTexture(GLES20.GL_TEXTURE4);
+    GLES20.glUniform1i(uSamplerHandle, 0);
+    GLES20.glActiveTexture(GLES20.GL_TEXTURE0);
     GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, previousTexId);
+  }
+
+  @Override
+  protected void disableResources() {
+    GlUtil.disableResources(aTextureHandle, aPositionHandle);
   }
 
   @Override
@@ -115,12 +118,9 @@ public class RotationFilterRender extends BaseFilterRender {
   public void setRotation(int rotation) {
     this.rotation = rotation;
     //Set rotation
-    Matrix.setRotateM(rotationMatrix, 0, rotation, 0, 0, 1.0f);
-    Matrix.scaleM(rotationMatrix, 0, 1f, 1f, 0f);
-    //Translation
-    //Matrix.translateM(rotationMatrix, 0, 0f, 0f, 0f);
-    // Combine the rotation matrix with the projection and camera view
-    Matrix.multiplyMM(MVPMatrix, 0, rotationMatrix, 0, MVPMatrix, 0);
+    Matrix.setIdentityM(MVPMatrix, 0);
+    Matrix.scaleM(MVPMatrix, 0, 1f, 1f, 1f);
+    Matrix.rotateM(MVPMatrix, 0, rotation, 0f, 0f, -1f);
   }
 
   /**
@@ -132,18 +132,16 @@ public class RotationFilterRender extends BaseFilterRender {
   public void setRotationFixed(int rotation, int width, int height, boolean isPortrait) {
     this.rotation = rotation;
     //Set rotation
-    Matrix.setRotateM(rotationMatrix, 0, rotation, 0, 0, 1.0f);
+    Matrix.setRotateM(MVPMatrix, 0, rotation, 0, 0, 1.0f);
     if (rotation == 90 || rotation == 270) {
       float value = (float) height / (float) width;
       if (isPortrait) {
-        Matrix.scaleM(rotationMatrix, 0, value, 1f, 0f);
+        Matrix.scaleM(MVPMatrix, 0, value, 1f, 0f);
       } else {
-        Matrix.scaleM(rotationMatrix, 0, 1f, value, 0f);
+        Matrix.scaleM(MVPMatrix, 0, 1f, value, 0f);
       }
     } else {
-      Matrix.scaleM(rotationMatrix, 0, 1f, 1f, 0f);
+      Matrix.scaleM(MVPMatrix, 0, 1f, 1f, 0f);
     }
-    // Combine the rotation matrix with the projection and camera view
-    Matrix.multiplyMM(MVPMatrix, 0, rotationMatrix, 0, MVPMatrix, 0);
   }
 }

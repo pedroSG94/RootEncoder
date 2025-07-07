@@ -33,7 +33,7 @@ class Pes(
   val bufferData: ByteBuffer
 ): MpegTsPayload(pid, isKeyFrame) {
 
-  private val headerLength = 14
+  val headerLength = 14
 
   private val length = headerLength + bufferData.remaining()
   private val markerBits = 2

@@ -27,6 +27,7 @@ import com.pedro.common.VideoCodec
 import com.pedro.common.clone
 import com.pedro.common.frame.MediaFrame
 import com.pedro.common.onMainThread
+import com.pedro.common.socket.base.SocketType
 import com.pedro.common.toMediaFrameInfo
 import com.pedro.common.validMessage
 import com.pedro.rtmp.amf.AmfVersion
@@ -96,6 +97,7 @@ class RtmpClient(private val connectChecker: ConnectChecker) {
     get() = rtmpSender.getSentAudioFrames()
   val sentVideoFrames: Long
     get() = rtmpSender.getSentVideoFrames()
+  var socketType = SocketType.KTOR
 
   /**
    * Add certificates for TLS connection
@@ -152,7 +154,11 @@ class RtmpClient(private val connectChecker: ConnectChecker) {
   }
 
   fun forceIncrementalTs(enabled: Boolean) {
-    commandsManager.incrementalTs = enabled
+    if (enabled) setDelay(300)
+  }
+
+  fun setDelay(millis: Long) {
+    rtmpSender.setDelay(millis)
   }
 
   fun setWriteChunkSize(chunkSize: Int) {
@@ -318,7 +324,7 @@ class RtmpClient(private val connectChecker: ConnectChecker) {
     val socket = if (tunneled) {
       TcpTunneledSocket(commandsManager.host, commandsManager.port, tlsEnabled)
     } else {
-      TcpSocket(commandsManager.host, commandsManager.port, tlsEnabled, certificates)
+      TcpSocket(socketType, commandsManager.host, commandsManager.port, tlsEnabled, certificates)
     }
     this.socket = socket
     socket.connect()

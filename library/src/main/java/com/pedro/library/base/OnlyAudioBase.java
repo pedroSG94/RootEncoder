@@ -26,7 +26,8 @@ import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 
 import com.pedro.common.AudioCodec;
-import com.pedro.encoder.EncoderErrorCallback;
+import com.pedro.common.TimeUtils;
+import com.pedro.encoder.CodecErrorCallback;
 import com.pedro.encoder.TimestampMode;
 import com.pedro.encoder.audio.AudioEncoder;
 import com.pedro.encoder.audio.GetAudioData;
@@ -73,7 +74,7 @@ public abstract class OnlyAudioBase {
    * Set a callback to know errors related with Video/Audio encoders
    * @param encoderErrorCallback callback to use, null to remove
    */
-  public void setEncoderErrorCallback(EncoderErrorCallback encoderErrorCallback) {
+  public void setEncoderErrorCallback(CodecErrorCallback encoderErrorCallback) {
     audioEncoder.setEncoderErrorCallback(encoderErrorCallback);
   }
 
@@ -143,7 +144,7 @@ public abstract class OnlyAudioBase {
    */
   @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
   public void startRecord(String path, RecordController.Listener listener) throws IOException {
-    recordController.startRecord(path, listener);
+    recordController.startRecord(path, listener, RecordController.RecordTracks.AUDIO);
     if (!streaming) {
       startEncoders();
     }
@@ -163,7 +164,7 @@ public abstract class OnlyAudioBase {
   @RequiresApi(api = Build.VERSION_CODES.O)
   public void startRecord(@NonNull final FileDescriptor fd,
       @Nullable RecordController.Listener listener) throws IOException {
-    recordController.startRecord(fd, listener);
+    recordController.startRecord(fd, listener, RecordController.RecordTracks.AUDIO);
     if (!streaming) {
       startEncoders();
     }
@@ -220,7 +221,7 @@ public abstract class OnlyAudioBase {
   }
 
   private void startEncoders() {
-    long startTs = System.nanoTime() / 1000;
+    long startTs = TimeUtils.getCurrentTimeMicro();
     audioEncoder.start(startTs);
     microphoneManager.start();
   }
@@ -305,7 +306,7 @@ public abstract class OnlyAudioBase {
 
     @Override
     public void onAudioFormat(@NonNull MediaFormat mediaFormat) {
-      recordController.setAudioFormat(mediaFormat, true);
+      recordController.setAudioFormat(mediaFormat);
     }
   };
 

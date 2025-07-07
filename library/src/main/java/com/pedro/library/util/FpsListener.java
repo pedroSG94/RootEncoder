@@ -16,13 +16,15 @@
 
 package com.pedro.library.util;
 
+import com.pedro.common.TimeUtils;
+
 /**
  * Created by pedro on 09/07/19.
  */
 public class FpsListener {
 
   private int fpsCont = 0;
-  private long ts = System.currentTimeMillis();
+  private long ts = TimeUtils.getCurrentTimeMillis();
   private Callback callback;
 
   public interface Callback {
@@ -35,10 +37,10 @@ public class FpsListener {
 
   public void calculateFps() {
     fpsCont++;
-    if (System.currentTimeMillis() - ts >= 1000) {
+    if (TimeUtils.getCurrentTimeMillis() - ts >= 1000) {
       if (callback != null) callback.onFps(fpsCont);
       fpsCont = 0;
-      ts = System.currentTimeMillis();
+      ts = TimeUtils.getCurrentTimeMillis();
     }
   }
 }

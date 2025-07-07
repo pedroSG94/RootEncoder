@@ -21,6 +21,7 @@ import android.media.AudioFormat
 import android.media.AudioManager
 import android.media.AudioTrack
 import android.net.Uri
+import com.pedro.encoder.CodecErrorCallback
 import com.pedro.encoder.Frame
 import com.pedro.encoder.input.audio.GetMicrophoneData
 import com.pedro.encoder.input.decoder.AudioDecoder
@@ -166,5 +167,9 @@ class AudioFileSource(
 
   fun setExtractor(extractor: Extractor) {
     audioDecoder.extractor = extractor
+  }
+
+  fun setCodecErrorCallback(codecErrorCallback: CodecErrorCallback?) {
+    audioDecoder.setCodecErrorCallback(codecErrorCallback)
   }
 }

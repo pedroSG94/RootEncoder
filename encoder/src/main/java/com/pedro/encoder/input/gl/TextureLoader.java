@@ -36,12 +36,12 @@ public class TextureLoader {
     int[] textureId = new int[bitmaps.length];
     GlUtil.createTextures(bitmaps.length, textureId, 0);
     for (int i = 0; i < bitmaps.length; i++) {
-      if (bitmaps[i] != null) {
+      if (bitmaps[i] != null && !bitmaps[i].isRecycled()) {
         GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, textureId[i]);
         GLUtils.texImage2D(GLES20.GL_TEXTURE_2D, 0, bitmaps[i], 0);
-        if (!bitmaps[i].isRecycled()) bitmaps[i].recycle();
-        bitmaps[i] = null;
+        bitmaps[i].recycle();
       }
+      bitmaps[i] = null;
     }
     return textureId;
   }

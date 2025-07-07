@@ -17,17 +17,19 @@
 package com.pedro.encoder.input.sources.video
 
 import android.content.Context
-import android.graphics.ImageFormat
 import android.graphics.SurfaceTexture
 import android.hardware.camera2.CameraCharacteristics
 import android.os.Build
 import android.util.Range
 import android.util.Size
 import android.view.MotionEvent
+import android.view.View
 import androidx.annotation.RequiresApi
 import com.pedro.encoder.input.video.Camera2ApiManager
 import com.pedro.encoder.input.video.Camera2ApiManager.ImageCallback
+import com.pedro.encoder.input.video.CameraCallbacks
 import com.pedro.encoder.input.video.CameraHelper
+import com.pedro.encoder.input.video.FrameCapturedCallback
 import com.pedro.encoder.input.video.facedetector.FaceDetectorCallback
 
 /**
@@ -100,7 +102,7 @@ class Camera2Source(context: Context): VideoSource() {
     }
   }
 
-  fun getCameraFacing(): CameraHelper.Facing = facing
+  fun getCameraFacing() = facing
 
   fun getCameraResolutions(facing: CameraHelper.Facing): List<Size> {
     val resolutions = if (facing == CameraHelper.Facing.FRONT) {
@@ -145,8 +147,8 @@ class Camera2Source(context: Context): VideoSource() {
     return if (isRunning()) camera.isAutoFocusEnabled else false
   }
 
-  fun tapToFocus(event: MotionEvent): Boolean {
-    return camera.tapToFocus(event)
+  fun tapToFocus(view: View, event: MotionEvent): Boolean {
+    return camera.tapToFocus(view, event)
   }
 
   @JvmOverloads
@@ -164,6 +166,10 @@ class Camera2Source(context: Context): VideoSource() {
 
   fun enableFaceDetection(callback: FaceDetectorCallback): Boolean {
     return if (isRunning()) camera.enableFaceDetection(callback) else false
+  }
+
+  fun enableFrameCaptureCallback(frameCapturedCallback: FrameCapturedCallback?) {
+    camera.enableFrameCaptureCallback(frameCapturedCallback)
   }
 
   fun disableFaceDetection() {
@@ -219,5 +225,48 @@ class Camera2Source(context: Context): VideoSource() {
 
   fun removeImageListener() {
     camera.removeImageListener()
+  }
+
+  @RequiresApi(Build.VERSION_CODES.P)
+  fun physicalCamerasAvailable() = camera.getPhysicalCamerasAvailable()
+
+  @RequiresApi(Build.VERSION_CODES.P)
+  fun openPhysicalCamera(id: String?) {
+    camera.openPhysicalCamera(id)
+  }
+
+  fun setCameraCallback(callbacks: CameraCallbacks?) {
+    camera.setCameraCallbacks(callbacks)
+  }
+
+  /**
+   * @param mode value from CameraCharacteristics.AWB_MODE_*
+   */
+  fun enableAutoWhiteBalance(mode: Int) = camera.enableAutoWhiteBalance(mode)
+
+  fun disableAutoWhiteBalance() {
+    camera.disableAutoWhiteBalance()
+  }
+
+  fun isAutoWhiteBalanceEnabled() = camera.isAutoWhiteBalanceEnabled
+
+  fun getWhiteBalance() = camera.getWhiteBalance()
+
+  fun getAutoWhiteBalanceModesAvailable() = camera.getAutoWhiteBalanceModesAvailable()
+
+  fun setColorCorrectionGains(red: Float, greenEven: Float, greenOdd: Float, blue: Float) = camera.setColorCorrectionGains(red, greenEven, greenOdd, blue)
+
+  @JvmOverloads
+  fun getMaxSupportedFps(size: Size?, facing: CameraHelper.Facing = getCameraFacing()): Int {
+    return camera.getSupportedFps(size, facing).maxOfOrNull { it.upper } ?: 30
+  }
+
+  /**
+   * Set the required resolution for the camera.
+   * Must be called before prepareVideo or changeVideoSource. Otherwise it will be ignored.
+   */
+  fun setRequiredResolution(size: Size?) {
+    size?.let { checkResolutionSupported(it.width, it.height) }
+    camera.setRequiredResolution(size)
   }
 }

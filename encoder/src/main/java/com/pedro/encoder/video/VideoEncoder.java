@@ -29,6 +29,7 @@ import android.view.Surface;
 import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
 
+import com.pedro.common.TimeUtils;
 import com.pedro.common.av1.Av1Parser;
 import com.pedro.common.av1.Obu;
 import com.pedro.common.av1.ObuType;
@@ -564,7 +565,7 @@ public class VideoEncoder extends BaseEncoder implements GetCameraData {
     }
     if (timestampMode == TimestampMode.CLOCK) {
       if (formatVideoEncoder == FormatVideoEncoder.SURFACE) {
-        bufferInfo.presentationTimeUs = System.nanoTime() / 1000 - presentTimeUs;
+        bufferInfo.presentationTimeUs = TimeUtils.getCurrentTimeMicro() - presentTimeUs;
       }
     } else {
       if (firstTimestamp == 0) firstTimestamp = bufferInfo.presentationTimeUs;

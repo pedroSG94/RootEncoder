@@ -1,11 +1,11 @@
 [versions]
 libraryGroup = "com.github.pedroSG94"
-versionCode = "255"
-versionName = "2.5.5"
+versionCode = "262"
+versionName = "2.6.2"
 
 #plugins versions
-agp = "8.6.1"
-kotlin = "2.1.0"
+agp = "8.11.0"
+kotlin = "2.2.0"
 dokka = "2.0.0"
 
 #dependencies versions
@@ -13,15 +13,16 @@ dokka = "2.0.0"
 appcompat = "1.6.1"
 #noinspection GradleDependency, version 2.2.0 need min sdk 21
 constraintlayout = "2.1.4"
-camerax = "1.4.1"
+#noinspection GradleDependency, version 3.x.x is really bugged using TLS
+ktor = "3.2.1"
+camerax = "1.4.2"
 multidex = "2.0.1"
 annotation = "1.9.1"
-coroutines = "1.10.1"
+coroutines = "1.10.2"
 junit = "4.13.2"
 mockito = "5.4.0"
-ktor = "2.3.13"
-uvcandroid = "1.0.8"
-media3 = "1.5.1"
+uvcandroid = "1.0.9"
+media3 = "1.7.1"
 
 [libraries]
 androidx-annotation = { module = "androidx.annotation:annotation", version.ref = "annotation" }

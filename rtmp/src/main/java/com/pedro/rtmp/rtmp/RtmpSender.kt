@@ -36,7 +36,6 @@ import com.pedro.rtmp.utils.socket.RtmpSocket
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.runInterruptible
 import java.nio.ByteBuffer
-import java.util.concurrent.TimeUnit
 
 /**
  * Created by pedro on 8/04/21.
@@ -79,7 +78,7 @@ class RtmpSender(
   override suspend fun onRun() {
     while (scope.isActive && running) {
       val error = runCatching {
-        val mediaFrame = runInterruptible { queue.poll(1, TimeUnit.SECONDS) }
+        val mediaFrame = runInterruptible { queue.take() }
         getFlvPacket(mediaFrame) { flvPacket ->
           var size = 0
           if (flvPacket.type == FlvType.VIDEO) {

@@ -24,6 +24,10 @@ import android.os.Build;
 import android.util.Log;
 import android.view.Surface;
 
+import com.pedro.common.TimeUtils;
+import com.pedro.encoder.CodecErrorCallback;
+import com.pedro.encoder.utils.CodecUtil;
+
 import java.io.FileDescriptor;
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -48,6 +52,8 @@ public abstract class BaseDecoder {
   protected volatile boolean looped = false;
   private final DecoderInterface decoderInterface;
   private Extractor extractor = new AndroidExtractor();
+  private CodecErrorCallback codecErrorCallback;
+  protected CodecUtil.CodecTypeError typeError;
 
   public BaseDecoder(DecoderInterface decoderInterface) {
     this.decoderInterface = decoderInterface;
@@ -68,16 +74,36 @@ public abstract class BaseDecoder {
     return extract(extractor);
   }
 
+  public void setCodecErrorCallback(CodecErrorCallback codecErrorCallback) {
+    this.codecErrorCallback = codecErrorCallback;
+  }
+
   public void start() {
     Log.i(TAG, "start decoder");
     running = true;
-    codec.start();
+    try {
+      codec.start();
+    } catch (IllegalStateException e) {
+      Log.e(TAG, "start decoder failed", e);
+      if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+        if (e instanceof MediaCodec.CodecException) {
+          CodecErrorCallback callback = codecErrorCallback;
+          if (callback != null) callback.onCodecError(typeError, (MediaCodec.CodecException) e);
+        }
+      }
+    }
     executor = Executors.newSingleThreadExecutor();
     executor.execute(() -> {
       try {
         decode();
       } catch (IllegalStateException e) {
         Log.i(TAG, "Decoding error", e);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+          if (e instanceof MediaCodec.CodecException) {
+            CodecErrorCallback callback = codecErrorCallback;
+            if (callback != null) callback.onCodecError(typeError, (MediaCodec.CodecException) e);
+          }
+        }
       } catch (NullPointerException e) {
         Log.i(TAG, "Decoder maybe was stopped");
         Log.i(TAG, "Decoding error", e);
@@ -98,9 +124,7 @@ public abstract class BaseDecoder {
     stopDecoder(!wasRunning);
     moveTo(0);
     prepare(surface);
-    if (wasRunning) {
-      start();
-    }
+    if (wasRunning) start();
   }
 
   protected boolean prepare(Surface surface) {
@@ -188,19 +212,24 @@ public abstract class BaseDecoder {
   private void decode() {
     if (startTs == 0) {
       moveTo(0); //make sure that we are on the start
-      startTs = System.nanoTime() / 1000;
+      startTs = TimeUtils.getCurrentTimeMicro();
     }
+    boolean shouldFinish = false;
     long sleepTime = 0;
     while (running) {
-      synchronized (sync) {
         if (pause.get()) continue;
+        if (shouldFinish) {
+          finished();
+          break;
+        }
         if (looped) {
           decoderInterface.onLoop();
           looped = false;
         }
+      synchronized (sync) {
         int inIndex = codec.dequeueInputBuffer(10000);
         int sampleSize;
-        long timeStamp = System.nanoTime() / 1000;
+        long timeStamp = TimeUtils.getCurrentTimeMicro();
         boolean finished = false;
         if (inIndex >= 0) {
           ByteBuffer input;
@@ -211,7 +240,7 @@ public abstract class BaseDecoder {
           }
           if (input == null) continue;
           sampleSize = extractor.readFrame(input);
-          long ts = System.nanoTime() / 1000 - startTs;
+          long ts = TimeUtils.getCurrentTimeMicro() - startTs;
           sleepTime = extractor.getSleepTime(ts);
           finished = !extractor.advance();
           if (finished) {
@@ -238,7 +267,7 @@ public abstract class BaseDecoder {
               looped = true;
             } else {
               Log.i(TAG, "end of file");
-              finished();
+              shouldFinish = true;
             }
           }
         }

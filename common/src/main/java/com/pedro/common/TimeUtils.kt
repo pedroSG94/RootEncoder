@@ -16,17 +16,24 @@
 
 package com.pedro.common
 
+import android.os.Build
+import android.os.SystemClock
+
 /**
  * Created by pedro on 30/8/23.
  */
 object TimeUtils {
 
   @JvmStatic
-  fun getCurrentTimeMicro(): Long = System.nanoTime() / 1000
+  fun getCurrentTimeMicro(): Long = getCurrentTimeNano() / 1000
 
   @JvmStatic
-  fun getCurrentTimeMillis(): Long = System.currentTimeMillis()
+  fun getCurrentTimeMillis(): Long = SystemClock.elapsedRealtime()
 
   @JvmStatic
-  fun getCurrentTimeNano(): Long = System.nanoTime()
+  fun getCurrentTimeNano(): Long {
+    return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
+      SystemClock.elapsedRealtimeNanos()
+    } else SystemClock.elapsedRealtime() * 1_000_000
+  }
 }

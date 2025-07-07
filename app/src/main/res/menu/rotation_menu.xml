@@ -22,6 +22,10 @@
                 android:title="@string/bitmap"
                 android:id="@+id/video_source_bitmap"
                 />
+            <item
+                android:title="@string/buffer"
+                android:id="@+id/video_source_buffer"
+                />
         </menu>
     </item>
     <item android:title="@string/audio_source">

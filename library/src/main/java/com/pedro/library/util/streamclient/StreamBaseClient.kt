@@ -16,6 +16,8 @@
 
 package com.pedro.library.util.streamclient
 
+import com.pedro.common.socket.base.SocketType
+
 /**
  * Created by pedro on 12/10/23.
  *
@@ -70,4 +72,14 @@ abstract class StreamBaseClient {
    * Get the exponential factor used to calculate the bitrate. Default 1f
    */
   abstract fun getBitrateExponentialFactor(): Float
+
+  /**
+   * Set if you want use java.io or ktor socket
+   */
+  abstract fun setSocketType(type: SocketType)
+  /**
+   * Set stream delay in millis.
+   * This will create a cache and wait the delay to start send packets in real time
+   */
+  abstract fun setDelay(millis: Long)
 }

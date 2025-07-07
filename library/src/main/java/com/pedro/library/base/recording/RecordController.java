@@ -33,13 +33,13 @@ import java.nio.ByteBuffer;
 
 public interface RecordController {
 
-    void startRecord(@NonNull String path, @Nullable Listener listener) throws IOException;
-    void startRecord(@NonNull FileDescriptor fd, @Nullable Listener listener) throws IOException;
+    void startRecord(@NonNull String path, @Nullable Listener listener, RecordTracks tracks) throws IOException;
+    void startRecord(@NonNull FileDescriptor fd, @Nullable Listener listener, RecordTracks tracks) throws IOException;
     void stopRecord();
     void recordVideo(ByteBuffer videoBuffer, MediaCodec.BufferInfo videoInfo);
     void recordAudio(ByteBuffer audioBuffer, MediaCodec.BufferInfo audioInfo);
-    void setVideoFormat(MediaFormat videoFormat, boolean isOnlyVideo);
-    void setAudioFormat(MediaFormat audioFormat, boolean isOnlyAudio);
+    void setVideoFormat(MediaFormat videoFormat);
+    void setAudioFormat(MediaFormat audioFormat);
     void resetFormats();
 
     interface Listener extends BitrateChecker {
@@ -51,5 +51,9 @@ public interface RecordController {
 
     enum Status {
         STARTED, STOPPED, RECORDING, PAUSED, RESUMED
+    }
+
+    enum RecordTracks {
+        ALL, VIDEO, AUDIO
     }
 }

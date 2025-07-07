@@ -27,6 +27,7 @@ import android.util.Log;
 import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
 
+import com.pedro.common.TimeUtils;
 import com.pedro.encoder.audio.G711Codec;
 import com.pedro.encoder.utils.CodecUtil;
 
@@ -57,12 +58,12 @@ public abstract class BaseEncoder implements EncoderCallback {
   protected boolean shouldReset = true;
   protected boolean prepared = false;
   private Handler handler;
-  private EncoderErrorCallback encoderErrorCallback;
+  private CodecErrorCallback encoderErrorCallback;
   protected String type;
   protected CodecUtil.CodecTypeError typeError;
   protected TimestampMode timestampMode = TimestampMode.CLOCK;
 
-  public void setEncoderErrorCallback(EncoderErrorCallback encoderErrorCallback) {
+  public void setEncoderErrorCallback(CodecErrorCallback encoderErrorCallback) {
     this.encoderErrorCallback = encoderErrorCallback;
   }
 
@@ -92,7 +93,7 @@ public abstract class BaseEncoder implements EncoderCallback {
   }
 
   public void start() {
-    start(System.nanoTime() / 1000);
+    start(TimeUtils.getCurrentTimeMicro());
   }
 
   protected void setCallback() {
@@ -138,8 +139,19 @@ public abstract class BaseEncoder implements EncoderCallback {
   }
 
   private void reloadCodec(IllegalStateException e) {
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+      if (e instanceof MediaCodec.CodecException) {
+        if (((MediaCodec.CodecException) e).isTransient()) {
+          return;
+        }
+        if (((MediaCodec.CodecException) e).isRecoverable()) {
+          reset();
+          return;
+        }
+      }
+    }
     //Sometimes encoder crash, we will try recover it. Reset encoder a time if crash
-    EncoderErrorCallback callback = encoderErrorCallback;
+    CodecErrorCallback callback = encoderErrorCallback;
     if (callback != null) {
       shouldReset = callback.onEncodeError(typeError, e);
     }
@@ -310,7 +322,7 @@ public abstract class BaseEncoder implements EncoderCallback {
       @Override
       public void onError(@NonNull MediaCodec mediaCodec, @NonNull MediaCodec.CodecException e) {
         Log.e(TAG, "Error", e);
-        EncoderErrorCallback callback = encoderErrorCallback;
+        CodecErrorCallback callback = encoderErrorCallback;
         if (callback != null) callback.onCodecError(typeError, e);
       }
 

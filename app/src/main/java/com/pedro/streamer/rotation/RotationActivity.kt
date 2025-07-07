@@ -17,6 +17,7 @@
 package com.pedro.streamer.rotation
 
 import android.annotation.SuppressLint
+import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.os.Build
 import android.os.Bundle
@@ -27,17 +28,23 @@ import android.view.View
 import android.view.View.OnTouchListener
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.graphics.scale
 import com.pedro.encoder.input.sources.audio.MicrophoneSource
+import com.pedro.encoder.input.sources.video.BufferVideoSource
 import com.pedro.encoder.input.sources.video.Camera1Source
 import com.pedro.encoder.input.sources.video.Camera2Source
-import com.pedro.encoder.input.video.CameraHelper
-import com.pedro.extrasources.BitmapSource
+import com.pedro.encoder.input.sources.video.BitmapSource
 import com.pedro.extrasources.CameraUvcSource
 import com.pedro.extrasources.CameraXSource
 import com.pedro.streamer.R
 import com.pedro.streamer.utils.FilterMenu
+import com.pedro.streamer.utils.fitAppPadding
 import com.pedro.streamer.utils.toast
 import com.pedro.streamer.utils.updateMenuColor
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 
 /**
@@ -56,6 +63,7 @@ class RotationActivity : AppCompatActivity(), OnTouchListener {
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
     setContentView(R.layout.rotation_activity)
+    fitAppPadding()
     supportFragmentManager.beginTransaction().add(R.id.container, cameraFragment).commit()
   }
 
@@ -96,6 +104,19 @@ class RotationActivity : AppCompatActivity(), OnTouchListener {
           val bitmap = BitmapFactory.decodeResource(resources, R.mipmap.ic_launcher)
           cameraFragment.genericStream.changeVideoSource(BitmapSource(bitmap))
         }
+        R.id.video_source_buffer -> {
+          currentVideoSource = item.updateMenuColor(this, currentVideoSource)
+          val bitmap = BitmapFactory.decodeResource(resources, R.mipmap.ic_launcher)
+          val data = bitmapToRgba(bitmap.scale(cameraFragment.width, cameraFragment.height))
+          val source = BufferVideoSource(BufferVideoSource.Format.ARGB, cameraFragment.vBitrate)
+          cameraFragment.genericStream.changeVideoSource(source)
+          CoroutineScope(Dispatchers.IO).launch {
+            while (source.isRunning()) {
+              source.setBuffer(data.clone())
+              delay(1000 / 30)
+            }
+          }
+        }
         R.id.audio_source_microphone -> {
           currentAudioSource = item.updateMenuColor(this, currentAudioSource)
           cameraFragment.genericStream.changeAudioSource(MicrophoneSource())
@@ -118,6 +139,13 @@ class RotationActivity : AppCompatActivity(), OnTouchListener {
       toast("Change source error: ${e.message}")
     }
     return super.onOptionsItemSelected(item)
+  }
+
+  private fun bitmapToRgba(bitmap: Bitmap): IntArray {
+    require(bitmap.config == Bitmap.Config.ARGB_8888) { "Bitmap must be in ARGB_8888 format" }
+    val pixels = IntArray(bitmap.width * bitmap.height)
+    bitmap.getPixels(pixels, 0, bitmap.width, 0, 0, bitmap.width, bitmap.height)
+    return pixels
   }
 
   @SuppressLint("ClickableViewAccessibility")

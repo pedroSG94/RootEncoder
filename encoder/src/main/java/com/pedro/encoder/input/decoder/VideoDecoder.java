@@ -16,13 +16,11 @@
 
 package com.pedro.encoder.input.decoder;
 
-import android.media.MediaExtractor;
-import android.media.MediaFormat;
 import android.os.Build;
 import android.view.Surface;
 
-import com.pedro.common.ExtensionsKt;
 import com.pedro.common.frame.MediaFrame;
+import com.pedro.encoder.utils.CodecUtil;
 
 import java.nio.ByteBuffer;
 
@@ -40,6 +38,7 @@ public class VideoDecoder extends BaseDecoder {
     super(decoderInterface);
     TAG = "VideoDecoder";
     this.videoDecoderInterface = videoDecoderInterface;
+    typeError = CodecUtil.CodecTypeError.VIDEO_CODEC;
   }
 
   @Override

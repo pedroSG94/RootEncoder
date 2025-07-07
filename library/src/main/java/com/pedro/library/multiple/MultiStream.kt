@@ -46,21 +46,19 @@ import java.nio.ByteBuffer
  *
  * Support multiple streams in rtmp and rtsp at same time.
  * You must set the same number of ConnectChecker that you want use.
+ * You can set an empty array or null if you don't want use a protocol
  *
  * For example. 2 RTMP and 1 RTSP:
  * stream1, stream2, stream3 (stream1 and stream2 are ConnectChecker for RTMP. stream3 is ConnectChecker for RTSP)
  *
- * MultiStream multiStream = new MultiStream(openGlView, new ConnectChecker[]{ stream1, stream2 },
- * new ConnectChecker[]{ stream3 });
+ * val multiStream = MultiStream(context, arrayOf(stream1, stream2), arrayOf(stream3), null, null) //SRT and UDP not used
  *
- * You can set an empty array or null if you don't want use a protocol
- * new MultiStream(openGlView, new ConnectChecker[]{ stream1, stream2 }, null); //RTSP protocol is not used
  *
  * In order to use start, stop and other calls you must send type of stream and index to execute it.
  * Example (using previous example interfaces):
  *
- * multiStream.startStream(MultiType.RTMP, 1, endpoint); //stream2 is started
- * multiStream.stopStream(MultiType.RTSP, 0); //stream3 is stopped
+ * multiStream.startStream(MultiType.RTMP, 1, endpoint) //stream2 is started
+ * multiStream.stopStream(MultiType.RTSP, 0) //stream3 is stopped
  * multiStream.getStreamClient(MultiType.RTMP, 0).retry(delay, reason, backupUrl) //retry stream1
  *
  * NOTE:
