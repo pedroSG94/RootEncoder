@@ -19,7 +19,6 @@ package com.pedro.streamer.screen
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.Service
-import android.content.Context
 import android.content.Intent
 import android.media.projection.MediaProjection
 import android.media.projection.MediaProjectionManager
@@ -79,7 +78,7 @@ class ScreenService: Service(), ConnectChecker {
   override fun onCreate() {
     super.onCreate()
     Log.i(TAG, "RTP Display service create")
-    notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+    notificationManager = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
       val channel = NotificationChannel(CHANNEL_ID, CHANNEL_ID, NotificationManager.IMPORTANCE_HIGH)
       notificationManager?.createNotificationChannel(channel)
@@ -94,7 +93,7 @@ class ScreenService: Service(), ConnectChecker {
             echoCanceler = true,
             noiseSuppressor = true
           )
-    } catch (e: IllegalArgumentException) {
+    } catch (_: IllegalArgumentException) {
       false
     }
     if (prepared) INSTANCE = this
@@ -164,7 +163,7 @@ class ScreenService: Service(), ConnectChecker {
       genericStream.changeVideoSource(screenSource)
       toggleAudioSource(selectedAudioSource)
       true
-    } catch (ignored: IllegalArgumentException) {
+    } catch (_: IllegalArgumentException) {
       false
     }
   }

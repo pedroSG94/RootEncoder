@@ -197,7 +197,7 @@ class FilterMenu(private val context: Context) {
           gifObjectFilterRender.setScale(50f, 50f)
           gifObjectFilterRender.setPosition(TranslateTo.BOTTOM)
           spriteGestureController.setBaseObjectFilterRender(gifObjectFilterRender) //Optional
-        } catch (ignored: IOException) { }
+        } catch (_: IOException) { }
         return true
       }
       R.id.grey_scale -> {
