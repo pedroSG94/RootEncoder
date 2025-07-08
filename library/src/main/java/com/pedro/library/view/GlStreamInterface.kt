@@ -141,27 +141,33 @@ class GlStreamInterface(private val context: Context): OnFrameAvailableListener,
   }
 
   override fun addMediaCodecSurface(surface: Surface) {
-    if (surfaceManager.isReady) {
-      surfaceManagerEncoder.release()
-      surfaceManagerEncoder.eglSetup(surface, surfaceManager)
+    executor?.secureSubmit {
+      if (surfaceManager.isReady) {
+        surfaceManagerEncoder.release()
+        surfaceManagerEncoder.eglSetup(surface, surfaceManager)
+      }
     }
   }
 
   override fun removeMediaCodecSurface() {
-    threadQueue.clear()
-    surfaceManagerEncoder.release()
+    executor?.secureSubmit {
+      surfaceManagerEncoder.release()
+    }
   }
 
   override fun addMediaCodecRecordSurface(surface: Surface) {
-    if (surfaceManager.isReady) {
-      surfaceManagerEncoderRecord.release()
-      surfaceManagerEncoderRecord.eglSetup(surface, surfaceManager)
+    executor?.secureSubmit {
+      if (surfaceManager.isReady) {
+        surfaceManagerEncoderRecord.release()
+        surfaceManagerEncoderRecord.eglSetup(surface, surfaceManager)
+      }
     }
   }
 
   override fun removeMediaCodecRecordSurface() {
-    threadQueue.clear()
-    surfaceManagerEncoderRecord.release()
+    executor?.secureSubmit {
+      surfaceManagerEncoderRecord.release()
+    }
   }
 
   override fun takePhoto(takePhotoCallback: TakePhotoCallback?) {
@@ -343,14 +349,18 @@ class GlStreamInterface(private val context: Context): OnFrameAvailableListener,
   }
 
   fun attachPreview(surface: Surface) {
-    if (surfaceManager.isReady) {
-      surfaceManagerPreview.release()
-      surfaceManagerPreview.eglSetup(surface, surfaceManager)
+    executor?.secureSubmit {
+      if (surfaceManager.isReady) {
+        surfaceManagerPreview.release()
+        surfaceManagerPreview.eglSetup(surface, surfaceManager)
+      }
     }
   }
 
   fun deAttachPreview() {
-    surfaceManagerPreview.release()
+    executor?.secureSubmit {
+      surfaceManagerPreview.release()
+    }
   }
 
   override fun setStreamRotation(orientation: Int) {
