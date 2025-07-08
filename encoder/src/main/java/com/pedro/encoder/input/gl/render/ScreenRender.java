@@ -161,7 +161,7 @@ public class ScreenRender {
 
     GlUtil.checkGlError("drawScreen end");
 
-    GlUtil.disableResources(aTextureHandle, aPositionHandle);
+//    GlUtil.disableResources(aTextureHandle, aPositionHandle);
   }
 
   public void release() {
