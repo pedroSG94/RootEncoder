@@ -179,14 +179,14 @@ class GlStreamInterface(private val context: Context): OnFrameAvailableListener,
     executor?.shutdownNow()
     executor = null
     executor = newSingleThreadExecutor(threadQueue)
-    val width = max(encoderWidth, encoderRecordWidth)
-    val height = max(encoderHeight, encoderRecordHeight)
-    surfaceManager.release()
-    surfaceManager.eglSetup()
-    surfaceManagerPhoto.release()
-    surfaceManagerPhoto.eglSetup(width, height, surfaceManager)
-    sensorRotationManager.start()
     executor?.secureSubmit {
+      val width = max(encoderWidth, encoderRecordWidth)
+      val height = max(encoderHeight, encoderRecordHeight)
+      surfaceManager.release()
+      surfaceManager.eglSetup()
+      surfaceManagerPhoto.release()
+      surfaceManagerPhoto.eglSetup(width, height, surfaceManager)
+      sensorRotationManager.start()
       surfaceManager.makeCurrent()
       mainRender.initGl(context, width, height, width, height)
       running.set(true)
@@ -206,15 +206,17 @@ class GlStreamInterface(private val context: Context): OnFrameAvailableListener,
   override fun stop() {
     running.set(false)
     threadQueue.clear()
+    executor?.secureSubmit {
+      forceRender.stop()
+      sensorRotationManager.stop()
+      surfaceManagerPhoto.release()
+      surfaceManagerEncoder.release()
+      surfaceManagerEncoderRecord.release()
+      surfaceManager.release()
+      mainRender.release()
+    }
     executor?.shutdownNow()
     executor = null
-    forceRender.stop()
-    sensorRotationManager.stop()
-    surfaceManagerPhoto.release()
-    surfaceManagerEncoder.release()
-    surfaceManagerEncoderRecord.release()
-    surfaceManager.release()
-    mainRender.release()
   }
 
   private fun draw(forced: Boolean) {
