@@ -21,6 +21,7 @@ import android.graphics.Point
 import android.graphics.SurfaceTexture
 import android.graphics.SurfaceTexture.OnFrameAvailableListener
 import android.os.Build
+import android.util.Log
 import android.view.Surface
 import androidx.annotation.RequiresApi
 import com.pedro.common.newSingleThreadExecutor
@@ -89,6 +90,7 @@ class GlStreamInterface(private val context: Context): OnFrameAvailableListener,
 
   private val sensorRotationManager = SensorRotationManager(context, true, true) { orientation, isPortrait ->
     if (autoHandleOrientation && shouldHandleOrientation) {
+      Log.e("Pedro", "sensor O: $orientation, P: $isPortrait")
       setCameraOrientation(orientation)
       setIsPortrait(isPortrait)
     }
@@ -366,6 +368,7 @@ class GlStreamInterface(private val context: Context): OnFrameAvailableListener,
   }
 
   override fun setStreamRotation(orientation: Int) {
+    Log.e("Pedro", "set stream O: $orientation")
     this.streamOrientation = orientation
   }
 
@@ -375,19 +378,23 @@ class GlStreamInterface(private val context: Context): OnFrameAvailableListener,
   }
 
   fun setIsPortrait(isPortrait: Boolean) {
+    Log.e("Pedro", "P: $isPortrait")
     setPreviewIsPortrait(isPortrait)
     setStreamIsPortrait(isPortrait)
   }
 
   fun setPreviewIsPortrait(isPortrait: Boolean) {
+    Log.e("Pedro", "preview P: $isPortrait")
     this.isPortraitPreview = isPortrait
   }
 
   fun setStreamIsPortrait(isPortrait: Boolean) {
+    Log.e("Pedro", "stream P: $isPortrait")
     this.isPortrait = isPortrait
   }
 
   fun setCameraOrientation(orientation: Int) {
+    Log.e("Pedro", "set camera O: $orientation")
     mainRender.setCameraRotation(orientation)
   }
 

@@ -21,6 +21,7 @@ import android.graphics.PointF;
 import android.opengl.GLES20;
 import android.opengl.Matrix;
 import android.os.Build;
+import android.util.Log;
 
 import androidx.annotation.RequiresApi;
 
@@ -160,11 +161,13 @@ abstract public class BaseObjectFilterRender extends BaseFilterRender {
   }
 
   public void setScale(float scaleX, float scaleY) {
+    Log.e("Pedro", "scale: " + scaleX + "x" + scaleY);
     sprite.scale(scaleX, scaleY);
     squareVertexObject.put(sprite.getTransformedVertices()).position(0);
   }
 
   public void setPosition(float x, float y) {
+    Log.e("Pedro", "position: " + x + "x" + y);
     sprite.translate(x, y);
     squareVertexObject.put(sprite.getTransformedVertices()).position(0);
   }
@@ -191,8 +194,8 @@ abstract public class BaseObjectFilterRender extends BaseFilterRender {
   }
 
   public void setDefaultScale(int streamWidth, int streamHeight) {
-    sprite.scale(streamObject.getWidth() * 100 / streamWidth,
-        streamObject.getHeight() * 100 / streamHeight);
+    sprite.scale(streamObject.getWidth() * 100f / streamWidth,
+        streamObject.getHeight() * 100f / streamHeight);
     squareVertexObject.put(sprite.getTransformedVertices()).position(0);
   }
 
