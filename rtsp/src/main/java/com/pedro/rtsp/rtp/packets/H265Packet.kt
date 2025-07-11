@@ -52,8 +52,8 @@ class H265Packet: BasePacket(
     val type: Int = header[header.size - 2].toInt().shr(1 and 0x3f)
     val frames = mutableListOf<RtpFrame>()
     // Small NAL unit => Single NAL unit
-    if (naluLength <= maxPacketSize - RtpConstants.RTP_HEADER_LENGTH - 2) {
-      val buffer = getBuffer(naluLength + RtpConstants.RTP_HEADER_LENGTH + 2)
+    if (naluLength <= maxPacketSize - RtpConstants.RTP_HEADER_LENGTH - 2 - encryptSize()) {
+      val buffer = getBuffer(naluLength + RtpConstants.RTP_HEADER_LENGTH + 2 + encryptSize())
       //Set PayloadHdr (exact copy of nal unit header)
       buffer[RtpConstants.RTP_HEADER_LENGTH] = header[header.size - 2]
       buffer[RtpConstants.RTP_HEADER_LENGTH + 1] = header[header.size - 1]
@@ -61,6 +61,7 @@ class H265Packet: BasePacket(
       val rtpTs = updateTimeStamp(buffer, ts)
       markPacket(buffer) //mark end frame
       updateSeq(buffer)
+      encryptPacket(buffer, RtpConstants.RTP_HEADER_LENGTH + 2)
       val rtpFrame = RtpFrame(buffer, rtpTs, buffer.size, channelIdentifier)
       frames.add(rtpFrame)
     } else {
@@ -77,12 +78,12 @@ class H265Packet: BasePacket(
       header[2] = header[2].plus(0x80).toByte() // Start bit
       var sum = 0
       while (sum < naluLength) {
-        val length = if (naluLength - sum > maxPacketSize - RtpConstants.RTP_HEADER_LENGTH - 3) {
-          maxPacketSize - RtpConstants.RTP_HEADER_LENGTH - 3
+        val length = if (naluLength - sum > maxPacketSize - RtpConstants.RTP_HEADER_LENGTH - 3 - encryptSize()) {
+          maxPacketSize - RtpConstants.RTP_HEADER_LENGTH - 3 - encryptSize()
         } else {
           fixedBuffer.remaining()
         }
-        val buffer = getBuffer(length + RtpConstants.RTP_HEADER_LENGTH + 3)
+        val buffer = getBuffer(length + RtpConstants.RTP_HEADER_LENGTH + 3 + encryptSize())
         buffer[RtpConstants.RTP_HEADER_LENGTH] = header[0]
         buffer[RtpConstants.RTP_HEADER_LENGTH + 1] = header[1]
         buffer[RtpConstants.RTP_HEADER_LENGTH + 2] = header[2]
@@ -96,6 +97,7 @@ class H265Packet: BasePacket(
           markPacket(buffer) //mark end frame
         }
         updateSeq(buffer)
+        encryptPacket(buffer, RtpConstants.RTP_HEADER_LENGTH + 3)
         val rtpFrame = RtpFrame(buffer, rtpTs, buffer.size, channelIdentifier)
         frames.add(rtpFrame)
         // Switch start bit

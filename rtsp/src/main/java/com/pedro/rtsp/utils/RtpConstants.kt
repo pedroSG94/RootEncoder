@@ -21,10 +21,10 @@ package com.pedro.rtsp.utils
  */
 object RtpConstants {
 
-  @JvmField
-  val lock = Any()
   var trackAudio = 1
   var trackVideo = 0
+  const val MAX_SEQ_NUMBER = 65535
+  const val HMAC_SIZE = 10
   const val clockVideoFrequency = 90000L
   const val RTP_HEADER_LENGTH = 12
   const val MTU = 1500

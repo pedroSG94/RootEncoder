@@ -65,11 +65,12 @@ class H264Packet: BasePacket(RtpConstants.clockVideoFrequency,
     val frames = mutableListOf<RtpFrame>()
     if (type == RtpConstants.IDR || mediaFrame.info.isKeyFrame) {
       stapA?.let {
-        val buffer = getBuffer(it.size + RtpConstants.RTP_HEADER_LENGTH)
+        val buffer = getBuffer(it.size + RtpConstants.RTP_HEADER_LENGTH + encryptSize())
         val rtpTs = updateTimeStamp(buffer, ts)
         markPacket(buffer) //mark end frame
         System.arraycopy(it, 0, buffer, RtpConstants.RTP_HEADER_LENGTH, it.size)
         updateSeq(buffer)
+        encryptPacket(buffer, RtpConstants.RTP_HEADER_LENGTH)
         val rtpFrame = RtpFrame(buffer, rtpTs, it.size + RtpConstants.RTP_HEADER_LENGTH, channelIdentifier)
         frames.add(rtpFrame)
         sendKeyFrame = true
@@ -79,13 +80,14 @@ class H264Packet: BasePacket(RtpConstants.clockVideoFrequency,
     }
     if (sendKeyFrame) {
       // Small NAL unit => Single NAL unit
-      if (naluLength <= maxPacketSize - RtpConstants.RTP_HEADER_LENGTH - 1) {
-        val buffer = getBuffer(naluLength + RtpConstants.RTP_HEADER_LENGTH + 1)
+      if (naluLength <= maxPacketSize - RtpConstants.RTP_HEADER_LENGTH - 1 - encryptSize()) {
+        val buffer = getBuffer(naluLength + RtpConstants.RTP_HEADER_LENGTH + 1 + encryptSize())
         buffer[RtpConstants.RTP_HEADER_LENGTH] = header[header.size - 1]
         fixedBuffer.get(buffer, RtpConstants.RTP_HEADER_LENGTH + 1, naluLength)
         val rtpTs = updateTimeStamp(buffer, ts)
         markPacket(buffer) //mark end frame
         updateSeq(buffer)
+        encryptPacket(buffer, RtpConstants.RTP_HEADER_LENGTH + 1)
         val rtpFrame = RtpFrame(buffer, rtpTs, buffer.size, channelIdentifier)
         frames.add(rtpFrame)
       } else {
@@ -97,12 +99,12 @@ class H264Packet: BasePacket(RtpConstants.clockVideoFrequency,
         header[0] = header[0].plus(28).toByte()
         var sum = 0
         while (sum < naluLength) {
-          val length = if (naluLength - sum > maxPacketSize - RtpConstants.RTP_HEADER_LENGTH - 2) {
-            maxPacketSize - RtpConstants.RTP_HEADER_LENGTH - 2
+          val length = if (naluLength - sum > maxPacketSize - RtpConstants.RTP_HEADER_LENGTH - 2 - encryptSize()) {
+            maxPacketSize - RtpConstants.RTP_HEADER_LENGTH - 2 - encryptSize()
           } else {
             fixedBuffer.remaining()
           }
-          val buffer = getBuffer(length + RtpConstants.RTP_HEADER_LENGTH + 2)
+          val buffer = getBuffer(length + RtpConstants.RTP_HEADER_LENGTH + 2 + encryptSize())
           buffer[RtpConstants.RTP_HEADER_LENGTH] = header[0]
           buffer[RtpConstants.RTP_HEADER_LENGTH + 1] = header[1]
           val rtpTs = updateTimeStamp(buffer, ts)
@@ -115,6 +117,7 @@ class H264Packet: BasePacket(RtpConstants.clockVideoFrequency,
             markPacket(buffer) //mark end frame
           }
           updateSeq(buffer)
+          encryptPacket(buffer, RtpConstants.RTP_HEADER_LENGTH + 2)
           val rtpFrame = RtpFrame(buffer, rtpTs, buffer.size, channelIdentifier)
           frames.add(rtpFrame)
           // Switch start bit

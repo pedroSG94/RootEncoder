@@ -18,6 +18,8 @@ package com.pedro.rtsp.rtp.packets
 
 import com.pedro.common.frame.MediaFrame
 import com.pedro.rtsp.rtsp.RtpFrame
+import com.pedro.rtsp.utils.CryptoProperties
+import com.pedro.rtsp.utils.CryptoUtils
 import com.pedro.rtsp.utils.RtpConstants
 import com.pedro.rtsp.utils.setLong
 import kotlin.experimental.and
@@ -32,7 +34,13 @@ abstract class BasePacket(private var clock: Long, private val payloadType: Int)
   private var seq = 0L
   private var ssrc = 0L
   protected val maxPacketSize = RtpConstants.MTU - 28
+  protected var cryptoUtils: CryptoUtils? = null
+  private var roc = 0
   protected val TAG = "BasePacket"
+
+  fun setCryptoProperties(cryptoProperties: CryptoProperties) {
+    cryptoUtils = CryptoUtils(cryptoProperties)
+  }
 
   abstract suspend fun createAndSendPacket(
     mediaFrame: MediaFrame,
@@ -68,11 +76,25 @@ abstract class BasePacket(private var clock: Long, private val payloadType: Int)
   }
 
   protected fun updateSeq(buffer: ByteArray) {
-    buffer.setLong(++seq, 2, 4)
+    val currentSeq = ++seq
+    if (currentSeq - RtpConstants.MAX_SEQ_NUMBER * roc > RtpConstants.MAX_SEQ_NUMBER) roc++
+    buffer.setLong(currentSeq, 2, 4)
   }
 
   protected fun markPacket(buffer: ByteArray) {
     buffer[1] = buffer[1] or 0x80.toByte()
+  }
+
+  protected fun encryptSize() = if (cryptoUtils != null) RtpConstants.HMAC_SIZE else 0
+
+  protected fun encryptPacket(buffer: ByteArray, payloadStartOffset: Int) {
+    cryptoUtils?.let {
+      val payloadEndOffset = buffer.size - encryptSize()
+      val payload = buffer.copyOfRange(payloadStartOffset, payloadEndOffset)
+      it.encrypt(payload, ssrc, seq, roc).copyInto(buffer, payloadStartOffset, payloadEndOffset)
+      val hmac = it.calculateHmac(buffer.copyOfRange(0, payloadEndOffset), roc)
+      hmac.copyInto(buffer, payloadEndOffset)
+    }
   }
 
   private fun setLongSSRC(buffer: ByteArray, ssrc: Long) {

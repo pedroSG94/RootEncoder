@@ -43,17 +43,18 @@ class G711Packet: BasePacket(
     callback: suspend (List<RtpFrame>) -> Unit
   ) {
     val length = mediaFrame.info.size - mediaFrame.data.position()
-    val maxPayload = maxPacketSize - RtpConstants.RTP_HEADER_LENGTH
+    val maxPayload = maxPacketSize - RtpConstants.RTP_HEADER_LENGTH - encryptSize()
     val ts = mediaFrame.info.timestamp * 1000
     var sum = 0
     val frames = mutableListOf<RtpFrame>()
     while (sum < length) {
       val size = if (length - sum < maxPayload) length - sum else maxPayload
-      val buffer = getBuffer(size + RtpConstants.RTP_HEADER_LENGTH)
+      val buffer = getBuffer(size + RtpConstants.RTP_HEADER_LENGTH + encryptSize())
       mediaFrame.data.get(buffer, RtpConstants.RTP_HEADER_LENGTH, size)
       markPacket(buffer)
       val rtpTs = updateTimeStamp(buffer, ts)
       updateSeq(buffer)
+      encryptPacket(buffer, RtpConstants.RTP_HEADER_LENGTH)
       val rtpFrame = RtpFrame(buffer, rtpTs, RtpConstants.RTP_HEADER_LENGTH + size , channelIdentifier)
       sum += size
       frames.add(rtpFrame)

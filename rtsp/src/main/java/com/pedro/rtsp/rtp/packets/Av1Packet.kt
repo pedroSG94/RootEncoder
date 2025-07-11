@@ -77,12 +77,12 @@ class Av1Packet: BasePacket(
     while (sum < size) {
       val isFirstPacket = sum == 0
       var isLastPacket = false
-      val length = if (size - sum > maxPacketSize - RtpConstants.RTP_HEADER_LENGTH - 1) {
-        maxPacketSize - RtpConstants.RTP_HEADER_LENGTH - 1
+      val length = if (size - sum > maxPacketSize - RtpConstants.RTP_HEADER_LENGTH - 1 - encryptSize()) {
+        maxPacketSize - RtpConstants.RTP_HEADER_LENGTH - 1 - encryptSize()
       } else {
         fixedBuffer.remaining()
       }
-      val buffer = getBuffer(length + RtpConstants.RTP_HEADER_LENGTH + 1)
+      val buffer = getBuffer(length + RtpConstants.RTP_HEADER_LENGTH + 1 + encryptSize())
       val rtpTs = updateTimeStamp(buffer, ts)
       fixedBuffer.get(buffer, RtpConstants.RTP_HEADER_LENGTH + 1, length)
       sum += length
@@ -94,6 +94,7 @@ class Av1Packet: BasePacket(
       val oSize = if (isFirstPacket) obuList.size else 1
       buffer[RtpConstants.RTP_HEADER_LENGTH] = generateAv1AggregationHeader(mediaFrame.info.isKeyFrame, isFirstPacket, isLastPacket, oSize)
       updateSeq(buffer)
+      encryptPacket(buffer, RtpConstants.RTP_HEADER_LENGTH + 1)
       val rtpFrame = RtpFrame(buffer, rtpTs, buffer.size, channelIdentifier)
       frames.add(rtpFrame)
     }
