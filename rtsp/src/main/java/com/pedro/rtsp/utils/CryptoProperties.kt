@@ -23,5 +23,6 @@ package com.pedro.rtsp.utils
  */
 class CryptoProperties(
   val authKey: ByteArray,
-  val sessionKey: ByteArray
+  val sessionKey: ByteArray,
+  val salt: ByteArray,
 )

@@ -24,9 +24,13 @@ import javax.crypto.Cipher
 import javax.crypto.Mac
 import javax.crypto.spec.IvParameterSpec
 import javax.crypto.spec.SecretKeySpec
+import kotlin.experimental.xor
 
 /**
  * Created by pedro on 11/7/25.
+ *
+ * Crypto class used to encrypt in SRTP implementation
+ * RFC 3711
  */
 class CryptoUtils(
   private val cryptoProperties: CryptoProperties
@@ -39,12 +43,7 @@ class CryptoUtils(
   private val cipher = Cipher.getInstance("AES/CTR/NoPadding")
   private val aesKey = SecretKeySpec(cryptoProperties.sessionKey, "AES")
 
-  fun encrypt(buffer: ByteArray, ssrc: Long, seq: Long, roc: Int): ByteArray {
-    val ivData = ByteArray(16)
-    ivData.setLong(ssrc, 4, 8)
-    ivData.setLong(roc.toLong(), 8, 12)
-    ivData.setLong(seq, 12, 14)
-
+  fun encrypt(buffer: ByteArray, ivData: ByteArray): ByteArray {
     cipher.init(Cipher.ENCRYPT_MODE, aesKey, IvParameterSpec(ivData))
     cipher.update(buffer)
     return cipher.doFinal()
@@ -55,5 +54,20 @@ class CryptoUtils(
     mac.update(buffer)
     mac.update(roc.toUInt32())
     return mac.doFinal().copyOf(RtpConstants.HMAC_SIZE)
+  }
+
+  fun generateIv(
+    ssrc: Long,
+    index: Long
+  ): ByteArray {
+    val ivBase = ByteArray(16)
+    ByteBuffer.wrap(ivBase, 4, 4).putInt(ssrc.toInt())
+    val indexBytes = ByteBuffer.allocate(8).putLong(index).array()
+    System.arraycopy(indexBytes, 2, ivBase, 8, 6)
+
+    val paddedSalt = ByteArray(16).apply { cryptoProperties.salt.copyInto(this) }
+    return ByteArray(16).apply {
+      for (i in this.indices) this[i] = ivBase[i] xor paddedSalt[i]
+    }
   }
 }
