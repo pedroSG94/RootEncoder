@@ -4,7 +4,7 @@ import android.util.Log
 import com.pedro.common.AudioCodec
 import com.pedro.common.TimeUtils
 import com.pedro.common.VideoCodec
-import com.pedro.common.socket.UdpStreamSocket
+import com.pedro.common.socket.base.UdpStreamSocket
 import com.pedro.rtsp.utils.RtpConstants
 import com.pedro.rtsp.utils.encodeToString
 import com.pedro.rtsp.utils.getData
@@ -92,11 +92,11 @@ class CommandsManager {
     }
 
     suspend fun writeStun(stunCommand: StunCommand, socket: UdpStreamSocket) {
-        socket.writePacket(stunCommand.toByteArray())
+        socket.write(stunCommand.toByteArray())
     }
 
     suspend fun readStun(socket: UdpStreamSocket): StunCommand {
-        val data = socket.readPacket()
+        val data = socket.read()
         return StunCommandReader.readPacket(data)
     }
 

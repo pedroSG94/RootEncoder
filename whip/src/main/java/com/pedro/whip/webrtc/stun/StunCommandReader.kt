@@ -20,7 +20,7 @@ object StunCommandReader {
         val cookie = byteArray.copyOfRange(4, 8).toUInt32()
         val id = BigInteger(byteArray.copyOfRange(8, byteArray.size))
         val type = Type.entries.find { it.value == typeValue } ?: Type.ERROR
-        return StunHeader(type, length, cookie, id)
+        return StunHeader(type, id)
     }
 
     private fun readBody(byteArray: ByteArray): List<Attribute> {

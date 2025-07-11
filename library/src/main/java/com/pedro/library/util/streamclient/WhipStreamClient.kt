@@ -16,6 +16,7 @@
 
 package com.pedro.library.util.streamclient
 
+import com.pedro.common.socket.base.SocketType
 import com.pedro.whip.WhipClient
 
 /**
@@ -110,4 +111,12 @@ class WhipStreamClient(
    * Get the exponential factor used to calculate the bitrate. Default 1f
    */
   override fun getBitrateExponentialFactor() = whipClient.getBitrateExponentialFactor()
+
+  override fun setSocketType(type: SocketType) {
+    whipClient.socketType = type
+  }
+
+  override fun setDelay(millis: Long) {
+    whipClient.setDelay(millis)
+  }
 }

@@ -9,7 +9,9 @@ import com.pedro.common.VideoCodec
 import com.pedro.common.clone
 import com.pedro.common.frame.MediaFrame
 import com.pedro.common.onMainThread
-import com.pedro.common.socket.UdpStreamSocket
+import com.pedro.common.socket.base.SocketType
+import com.pedro.common.socket.java.UdpStreamSocketJava
+import com.pedro.common.socket.ktor.UdpStreamSocketKtor
 import com.pedro.common.toMediaFrameInfo
 import com.pedro.common.validMessage
 import com.pedro.rtsp.utils.RtpConstants
@@ -61,6 +63,7 @@ class WhipClient(private val connectChecker: ConnectChecker) {
     private var numRetry = 0
     private var reTries = 0
     private var checkServerAlive = false
+    var socketType = SocketType.KTOR
 
     val droppedAudioFrames: Long
         get() = whipSender.droppedAudioFrames
@@ -73,6 +76,10 @@ class WhipClient(private val connectChecker: ConnectChecker) {
         get() = whipSender.getSentAudioFrames()
     val sentVideoFrames: Long
         get() = whipSender.getSentVideoFrames()
+
+    fun setDelay(millis: Long) {
+        whipSender.setDelay(millis)
+    }
 
     fun setAuthorization(user: String?, password: String?) {
         TODO("unimplemented")
@@ -212,7 +219,11 @@ class WhipClient(private val connectChecker: ConnectChecker) {
 
                     val stunPort = 49223
                     val response = commandsManager.openConnection(host, port, stunPort, path, tlsEnabled)
-                    val udpSocket = UdpStreamSocket(host, stunPort, receiveSize = Constants.MTU)
+                    val udpSocket = if (socketType == SocketType.KTOR) {
+                        UdpStreamSocketKtor(host, stunPort, receiveSize = Constants.MTU)
+                    } else {
+                        UdpStreamSocketJava(host, stunPort, receiveSize = Constants.MTU)
+                    }
                     udpSocket.connect()
                     val header = StunHeader(Type.REQUEST, BigInteger(Random.Default.nextBytes(12)))
                     val attributes = mutableListOf(
