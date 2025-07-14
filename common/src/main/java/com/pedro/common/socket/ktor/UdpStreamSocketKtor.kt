@@ -18,6 +18,7 @@ import java.net.InetAddress
 class UdpStreamSocketKtor(
     private val host: String,
     private val port: Int,
+    private val sourceHost: String? = null,
     private val sourcePort: Int? = null,
     private val receiveSize: Int? = null,
     private val type: UdpType = UdpType.UNICAST
@@ -31,7 +32,7 @@ class UdpStreamSocketKtor(
     override suspend fun connect() {
         selectorManager = SelectorManager(Dispatchers.IO)
         val builder = aSocket(selectorManager).udp()
-        val localAddress = if (sourcePort == null) null else InetSocketAddress("0.0.0.0", sourcePort)
+        val localAddress = if (sourcePort == null) null else InetSocketAddress(sourceHost ?: "0.0.0.0", sourcePort)
         val socket = builder.connect(
             remoteAddress = address,
             localAddress = localAddress

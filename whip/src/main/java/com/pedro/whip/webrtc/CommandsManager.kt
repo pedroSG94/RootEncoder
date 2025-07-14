@@ -1,25 +1,30 @@
 package com.pedro.whip.webrtc
 
-import android.util.Log
 import com.pedro.common.AudioCodec
 import com.pedro.common.TimeUtils
 import com.pedro.common.VideoCodec
+import com.pedro.common.socket.base.SocketType
+import com.pedro.common.socket.base.StreamSocket
 import com.pedro.common.socket.base.UdpStreamSocket
 import com.pedro.rtsp.utils.RtpConstants
 import com.pedro.rtsp.utils.encodeToString
 import com.pedro.rtsp.utils.getData
+import com.pedro.whip.utils.Network
+import com.pedro.whip.utils.Requests
 import com.pedro.whip.webrtc.SdpBody.createAV1Body
 import com.pedro.whip.webrtc.SdpBody.createG711Body
 import com.pedro.whip.webrtc.SdpBody.createH264Body
 import com.pedro.whip.webrtc.SdpBody.createH265Body
 import com.pedro.whip.webrtc.SdpBody.createOpusBody
+import com.pedro.whip.webrtc.stun.Attribute
+import com.pedro.whip.webrtc.stun.AttributeType
+import com.pedro.whip.webrtc.stun.GatheringMode
 import com.pedro.whip.webrtc.stun.StunCommand
 import com.pedro.whip.webrtc.stun.StunCommandReader
-import java.io.IOException
-import java.net.HttpURLConnection
-import java.net.URL
+import com.pedro.whip.webrtc.stun.StunHeader
+import com.pedro.whip.webrtc.stun.Type
+import java.net.InetAddress
 import java.nio.ByteBuffer
-import javax.net.ssl.HttpsURLConnection
 
 class CommandsManager {
 
@@ -27,7 +32,9 @@ class CommandsManager {
         private set
     var port = 0
         private set
-    var path: String? = null
+    var app: String? = null
+        private set
+    var streamName: String? = null
         private set
     var sps: ByteBuffer? = null
         private set
@@ -41,6 +48,7 @@ class CommandsManager {
     var isStereo = true
     var videoCodec = VideoCodec.H264
     var audioCodec = AudioCodec.OPUS
+    private var stunSeq = 0
     private val timeout = 5000
     private val timeStamp: Long
     val spsString: String
@@ -79,16 +87,73 @@ class CommandsManager {
         this.sampleRate = sampleRate
     }
 
-    fun setUrl(host: String?, port: Int, path: String?) {
+    fun setUrl(host: String, port: Int, app: String, streamName: String?) {
         this.host = host
         this.port = port
-        this.path = path
+        this.app = app
+        this.streamName = streamName
     }
 
     fun clear() {
         sps = null
         pps = null
         vps = null
+    }
+
+    fun writeOptions() {
+        val uri = "$host:$port/$app"
+        val path: String? = streamName
+        val headers = mutableMapOf<String, String>().apply {
+            put("Content-Type", "application/sdp")
+            if (path != null) put("Authorization", "Bearer $path")
+        }
+        Requests.makeRequest(
+            uri, "OPTIONS", headers, null, timeout, false
+        )
+    }
+
+    suspend fun gatheringCandidates(socketType: SocketType, gatheringMode: GatheringMode): List<InetAddress> {
+        val addresses = Network.getNetworks()
+        return when (gatheringMode) {
+          GatheringMode.LOCAL -> addresses
+          GatheringMode.ALL -> filterNetworksWithStun(socketType, addresses)
+        }
+    }
+
+    private suspend fun filterNetworksWithStun(
+        socketType: SocketType,
+        networks: List<InetAddress>
+    ): List<InetAddress> {
+        val candidates = mutableListOf<InetAddress>()
+        val googleStunHost = "stun:stun4.l.google.com"
+        val googleStunPort = 19302
+        var port = 5000
+        networks.forEach {
+            val candidate = StreamSocket.createUdpSocket(
+                type = socketType,
+                host = googleStunHost,
+                port = googleStunPort,
+                receiveSize = RtpConstants.MTU,
+                sourceHost = it.hostAddress,
+                sourcePort = port++
+            )
+            candidate.connect()
+            val candidateStunCommand = StunCommand(
+                header = StunHeader(Type.REQUEST, stunSeq++.toBigInteger()),
+                attributes = listOf(
+                    Attribute(AttributeType.USERNAME, byteArrayOf()),
+                    Attribute(AttributeType.ICE_CONTROLLED, byteArrayOf()),
+                    Attribute(AttributeType.MESSAGE_INTEGRITY, byteArrayOf()),
+                    Attribute(AttributeType.FINGERPRINT, byteArrayOf()),
+                )
+            )
+            writeStun(candidateStunCommand, candidate)
+            val result = readStun(candidate)
+            val isSuccess = false
+            if (isSuccess) candidates.add(it)
+            candidate.close()
+        }
+        return candidates
     }
 
     suspend fun writeStun(stunCommand: StunCommand, socket: UdpStreamSocket) {
@@ -98,42 +163,6 @@ class CommandsManager {
     suspend fun readStun(socket: UdpStreamSocket): StunCommand {
         val data = socket.read()
         return StunCommandReader.readPacket(data)
-    }
-
-    @Throws(IOException::class)
-    fun openConnection(host: String, port: Int, stunPort: Int, path: String, secured: Boolean): String {
-        val socket = configureSocket(host, port, path, secured)
-        try {
-            socket.connect()
-            val body = createBody(stunPort)
-            socket.outputStream.write(body.toByteArray())
-            Log.i(TAG, body)
-            val bytes = socket.inputStream.readBytes()
-            val success = socket.responseCode == HttpURLConnection.HTTP_CREATED
-            if (!success || bytes.isEmpty()) throw IOException("send packet failed: ${socket.responseMessage}, broken pipe")
-            else return String(bytes)
-        } finally {
-            socket.disconnect()
-        }
-    }
-
-    private fun configureSocket(host: String, port: Int, path: String, secured: Boolean): HttpURLConnection {
-        val schema = if (secured) "https" else "http"
-        val url = URL("$schema://$host:$port/$path")
-        val socket = if (secured) {
-            url.openConnection() as HttpsURLConnection
-        } else {
-            url.openConnection() as HttpURLConnection
-        }
-        socket.requestMethod = "POST"
-        val headers = mapOf(
-            "Content-Type" to "application/sdp"
-        )
-        headers.forEach { (key, value) -> socket.addRequestProperty(key, value) }
-        socket.doOutput = true
-        socket.connectTimeout = timeout
-        socket.readTimeout = timeout
-        return socket
     }
 
     private fun createBody(port: Int): String {

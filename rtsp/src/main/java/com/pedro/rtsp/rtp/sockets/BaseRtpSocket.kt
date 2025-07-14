@@ -40,10 +40,10 @@ abstract class BaseRtpSocket {
         RtpSocketTcp()
       } else {
         val videoSocket = if (videoServerPort != null) {
-          StreamSocket.createUdpSocket(socketType, host, videoServerPort, videoSourcePort)
+          StreamSocket.createUdpSocket(socketType, host, videoServerPort, sourcePort = videoSourcePort)
         } else null
         val audioSocket = if (audioServerPort != null) {
-          StreamSocket.createUdpSocket(socketType, host, audioServerPort, audioSourcePort)
+          StreamSocket.createUdpSocket(socketType, host, audioServerPort, sourcePort = audioSourcePort)
         } else null
         RtpSocketUdp(videoSocket, audioSocket)
       }

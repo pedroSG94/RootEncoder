@@ -11,6 +11,7 @@ import java.net.SocketOptions
 class UdpStreamSocketJava(
     private val host: String,
     private val port: Int,
+    private val sourceHost: String? = null,
     private val sourcePort: Int? = null,
     receiveSize: Int? = null,
     private val type: UdpType = UdpType.UNICAST
@@ -22,13 +23,19 @@ class UdpStreamSocketJava(
     override suspend fun connect() {
         val socket = when (type) {
             UdpType.UNICAST -> {
-                sourcePort?.let { DatagramSocket(sourcePort) } ?: DatagramSocket()
+                sourcePort?.let {
+                    val address = if (sourceHost != null) InetAddress.getByName(sourceHost) else null
+                    if (address != null) DatagramSocket(sourcePort, address) else DatagramSocket(sourcePort)
+                } ?: DatagramSocket()
             }
             UdpType.MULTICAST -> {
                 sourcePort?.let { MulticastSocket(sourcePort) } ?: MulticastSocket()
             }
             UdpType.BROADCAST -> {
-                val socket = sourcePort?.let { DatagramSocket(sourcePort) } ?: DatagramSocket()
+                val socket = sourcePort?.let {
+                    val address = if (sourceHost != null) InetAddress.getByName(sourceHost) else null
+                    if (address != null) DatagramSocket(sourcePort, address) else DatagramSocket(sourcePort)
+                } ?: DatagramSocket()
                 socket.apply { broadcast = true }
             }
         }

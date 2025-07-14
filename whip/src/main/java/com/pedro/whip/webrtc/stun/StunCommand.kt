@@ -2,7 +2,7 @@ package com.pedro.whip.webrtc.stun
 
 class StunCommand(
     val header: StunHeader,
-    val attributes: List<Attribute>
+    val attributes: List<Attribute>,
 ) {
     fun toByteArray(): ByteArray {
         val bodyBytes = attributes.map { it.toByteArray() }

@@ -19,6 +19,7 @@ import com.pedro.whip.utils.Constants
 import com.pedro.whip.webrtc.CommandsManager
 import com.pedro.whip.webrtc.stun.Attribute
 import com.pedro.whip.webrtc.stun.AttributeType
+import com.pedro.whip.webrtc.stun.GatheringMode
 import com.pedro.whip.webrtc.stun.StunCommand
 import com.pedro.whip.webrtc.stun.StunHeader
 import com.pedro.whip.webrtc.stun.Type
@@ -170,13 +171,11 @@ class WhipClient(private val connectChecker: ConnectChecker) {
                     return@launch
                 }
                 this@WhipClient.url = url
-                onMainThread {
-                    connectChecker.onConnectionStarted(url)
-                }
+                onMainThread { connectChecker.onConnectionStarted(url) }
 
                 val urlParser = try {
                     UrlParser.parse(url, validSchemes)
-                } catch (e: URISyntaxException) {
+                } catch (_: URISyntaxException) {
                     isStreaming = false
                     onMainThread {
                         connectChecker.onConnectionFailed("Endpoint malformed, should be: http://ip:port/appname/streamname")
@@ -187,8 +186,9 @@ class WhipClient(private val connectChecker: ConnectChecker) {
                 tlsEnabled = urlParser.scheme.endsWith("s")
                 val host = urlParser.host
                 val port = urlParser.port ?: if (tlsEnabled) 443 else 8889
-                val path = urlParser.getFullPath()
-                if (path.isEmpty()) {
+                val app = urlParser.getAppName()
+                val streamName = urlParser.getStreamName()
+                if (app.isEmpty()) {
                     isStreaming = false
                     onMainThread {
                         connectChecker.onConnectionFailed("Endpoint malformed, should be: http://ip:port/appname/streamname")
@@ -197,7 +197,7 @@ class WhipClient(private val connectChecker: ConnectChecker) {
                 }
 
                 val error = runCatching {
-                    commandsManager.setUrl(host, port, "/$path")
+                    commandsManager.setUrl(host, port, app, streamName)
                     if (!commandsManager.audioDisabled) {
                         whipSender.setAudioInfo(commandsManager.sampleRate, commandsManager.isStereo)
                     }
@@ -217,14 +217,8 @@ class WhipClient(private val connectChecker: ConnectChecker) {
                         whipSender.setVideoInfo(commandsManager.sps!!, commandsManager.pps, commandsManager.vps)
                     }
 
-                    val stunPort = 49223
-                    val response = commandsManager.openConnection(host, port, stunPort, path, tlsEnabled)
-                    val udpSocket = if (socketType == SocketType.KTOR) {
-                        UdpStreamSocketKtor(host, stunPort, receiveSize = Constants.MTU)
-                    } else {
-                        UdpStreamSocketJava(host, stunPort, receiveSize = Constants.MTU)
-                    }
-                    udpSocket.connect()
+                    commandsManager.writeOptions()
+                    commandsManager.gatheringCandidates(socketType, GatheringMode.LOCAL)
                     val header = StunHeader(Type.REQUEST, BigInteger(Random.Default.nextBytes(12)))
                     val attributes = mutableListOf(
                         Attribute(AttributeType.USERNAME, "".toByteArray()),
@@ -236,7 +230,6 @@ class WhipClient(private val connectChecker: ConnectChecker) {
                         Attribute(AttributeType.ICE_CONTROLLING, "".toByteArray()),
                     )
                     val command = StunCommand(header, attributes)
-                    commandsManager.writeStun(command, udpSocket)
                     //TODO start connection
                 }.exceptionOrNull()
                 if (error != null) {
