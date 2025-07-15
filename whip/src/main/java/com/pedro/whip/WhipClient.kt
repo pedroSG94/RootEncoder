@@ -10,6 +10,8 @@ import com.pedro.common.clone
 import com.pedro.common.frame.MediaFrame
 import com.pedro.common.onMainThread
 import com.pedro.common.socket.base.SocketType
+import com.pedro.common.socket.base.StreamSocket
+import com.pedro.common.socket.base.UdpStreamSocket
 import com.pedro.common.socket.java.UdpStreamSocketJava
 import com.pedro.common.socket.ktor.UdpStreamSocketKtor
 import com.pedro.common.toMediaFrameInfo
@@ -26,6 +28,7 @@ import com.pedro.whip.webrtc.stun.Type
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.async
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.delay
@@ -218,19 +221,27 @@ class WhipClient(private val connectChecker: ConnectChecker) {
                     }
 
                     commandsManager.writeOptions()
-                    commandsManager.gatheringCandidates(socketType, GatheringMode.LOCAL)
-                    val header = StunHeader(Type.REQUEST, BigInteger(Random.Default.nextBytes(12)))
-                    val attributes = mutableListOf(
-                        Attribute(AttributeType.USERNAME, "".toByteArray()),
-                        Attribute(AttributeType.PRIORITY, "".toByteArray()),
-                        Attribute(AttributeType.SOFTWARE, "".toByteArray()),
-                        Attribute(AttributeType.MESSAGE_INTEGRITY, "".toByteArray()),
-                        Attribute(AttributeType.FINGERPRINT, "".toByteArray()),
-                        Attribute(AttributeType.ICE_CONTROLLED, "".toByteArray()),
-                        Attribute(AttributeType.ICE_CONTROLLING, "".toByteArray()),
-                    )
-                    val command = StunCommand(header, attributes)
-                    //TODO start connection
+                    val candidates = commandsManager.gatheringCandidates(socketType, GatheringMode.LOCAL)
+                    Log.i(TAG, "found candidates")
+                    val sockets = mutableListOf<UdpStreamSocket>()
+                    candidates.forEach {
+                        Log.i(TAG, "candidate: $it")
+                        sockets.add(StreamSocket.createUdpSocket(socketType, it.localAddress, it.localPort, receiveSize = RtpConstants.MTU).apply {
+                            bind()
+                        })
+                    }
+                    val offerResponse = commandsManager.writeOffer(candidates)
+                    Log.i(TAG, offerResponse.body)
+                    sockets.forEach { s ->
+                        async {
+                            val packet = s.readPacket()
+                            Log.i(TAG, "packet received: ${packet.host}:${packet.port}, size: ${packet.size}")
+                            val data = packet.data.sliceArray(0 until packet.size)
+                            val stunCommand = commandsManager.readStun(data)
+                            Log.i(TAG, "stun: ${stunCommand.toString()}")
+                            s.close()
+                        }
+                    }
                 }.exceptionOrNull()
                 if (error != null) {
                     Log.e(TAG, "connection error", error)

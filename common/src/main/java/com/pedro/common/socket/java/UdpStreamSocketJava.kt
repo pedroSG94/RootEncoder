@@ -1,5 +1,6 @@
 package com.pedro.common.socket.java
 
+import com.pedro.common.socket.base.UdpPacket
 import com.pedro.common.socket.base.UdpStreamSocket
 import com.pedro.common.socket.base.UdpType
 import java.net.DatagramPacket
@@ -54,16 +55,44 @@ class UdpStreamSocketJava(
         }
     }
 
+    override suspend fun bind() {
+        val socket = when (type) {
+            UdpType.UNICAST -> {
+                DatagramSocket(port, InetAddress.getByName(host))
+            }
+            UdpType.MULTICAST -> {
+                MulticastSocket(port)
+            }
+            UdpType.BROADCAST -> {
+                val socket = DatagramSocket(port, InetAddress.getByName(host))
+                socket.apply { broadcast = true }
+            }
+        }
+        socket.receiveBufferSize = packetSize
+        socket.soTimeout = timeout.toInt()
+        this.socket = socket
+    }
+
     override suspend fun write(bytes: ByteArray) {
         val udpPacket = DatagramPacket(bytes, bytes.size)
         socket?.send(udpPacket)
     }
 
+    override suspend fun write(bytes: ByteArray, host: String, port: Int) {
+        val udpPacket = DatagramPacket(bytes, bytes.size, InetAddress.getByName(host), port)
+        socket?.send(udpPacket)
+    }
+
     override suspend fun read(): ByteArray {
+        val packet = readPacket()
+        return packet.data.sliceArray(0 until packet.size)
+    }
+
+    override suspend fun readPacket(): UdpPacket {
         val buffer = ByteArray(packetSize)
         val udpPacket = DatagramPacket(buffer, buffer.size)
         socket?.receive(udpPacket)
-        return udpPacket.data.sliceArray(0 until udpPacket.length)
+        return UdpPacket(udpPacket.data, udpPacket.length, udpPacket.address.hostName, udpPacket.port)
     }
 
     override fun isConnected(): Boolean = socket?.isConnected ?: false

@@ -3,7 +3,7 @@ package com.pedro.whip.webrtc.stun
 import com.pedro.common.toByteArray
 import java.nio.ByteBuffer
 
-data class Attribute(
+class Attribute(
     val type: AttributeType,
     val value: ByteArray
 ) {
@@ -14,5 +14,9 @@ data class Attribute(
         buffer.putShort(value.size.toShort())
         buffer.put(value)
         return buffer.toByteArray()
+    }
+
+    override fun toString(): String {
+        return "Attribute(type=$type, value=${value.contentToString()})"
     }
 }

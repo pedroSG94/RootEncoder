@@ -1,6 +1,5 @@
 package com.pedro.whip.webrtc
 
-import android.util.Log
 import com.pedro.common.AudioCodec
 import com.pedro.common.TimeUtils
 import com.pedro.common.VideoCodec
@@ -28,7 +27,6 @@ import java.math.BigInteger
 import java.net.InetAddress
 import java.nio.ByteBuffer
 import java.security.SecureRandom
-import java.util.Optional
 import kotlin.random.Random
 
 class CommandsManager {
@@ -106,7 +104,7 @@ class CommandsManager {
     }
 
     fun writeOptions() {
-        val uri = "$host:$port/$app"
+        val uri = "http://$host:$port/$app"
         val path: String? = streamName
         val headers = mutableMapOf<String, String>().apply {
             put("Content-Type", "application/sdp")
@@ -120,6 +118,7 @@ class CommandsManager {
 
     suspend fun gatheringCandidates(socketType: SocketType, gatheringMode: GatheringMode): List<Candidate> {
         val addresses = Network.getNetworks()
+        var localPort = 5000
         return when (gatheringMode) {
           GatheringMode.LOCAL -> addresses.map {
               val type = CandidateType.LOCAL
@@ -128,7 +127,7 @@ class CommandsManager {
                   type = type,
                   priority = priority,
                   localAddress = it.hostAddress ?: "",
-                  localPort = 5000,
+                  localPort = localPort++,
                   publicAddress = null,
                   publicPort = null
               )
@@ -147,7 +146,7 @@ class CommandsManager {
         val body = createBody(
             videoSsrc, audioSsrc, candidates, uFrag, uPass, certificate.fingerprint
         )
-        val uri = "$host:$port/$app"
+        val uri = "http://$host:$port/$app"
         val path: String? = streamName
         val headers = mutableMapOf<String, String>().apply {
             put("Content-Type", "application/sdp")
@@ -201,6 +200,10 @@ class CommandsManager {
 
     suspend fun readStun(socket: UdpStreamSocket): StunCommand {
         val data = socket.read()
+        return readStun(data)
+    }
+
+    suspend fun readStun(data: ByteArray): StunCommand {
         return StunCommandReader.readPacket(data)
     }
 
@@ -245,7 +248,6 @@ class CommandsManager {
                 "a=ssrc:" + videoSsrc + " cname: $cName\r\n" +
                 audioBody +
                 "a=ssrc:" + audioSsrc + " cname: $cName\r\n" +
-                "a=fingerprint:sha-256 $fingerprint\r\n" +
                 addCandidates(candidates)
     }
 
@@ -260,6 +262,7 @@ class CommandsManager {
                 } else ""
             }\r\n"
         }
+        sdpCandidates += "a=end-of-candidates\r\n"
         return sdpCandidates
     }
 }

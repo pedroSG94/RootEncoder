@@ -17,4 +17,8 @@ class StunCommand(
         }
         return bytes
     }
+
+    override fun toString(): String {
+        return "StunCommand(header=$header, attributes=$attributes)"
+    }
 }
