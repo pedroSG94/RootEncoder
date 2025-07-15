@@ -53,6 +53,9 @@ dependencies {
   testImplementation(libs.kotlinx.coroutines.test)
   testImplementation(libs.junit)
   testImplementation(libs.mockito.kotlin)
+  implementation(libs.bouncycastle.bcprov)
+  implementation(libs.bouncycastle.bctls)
+  implementation(libs.bouncycastle.bcpkix)
   implementation(project(":rtsp"))
   api(project(":common"))
 }
