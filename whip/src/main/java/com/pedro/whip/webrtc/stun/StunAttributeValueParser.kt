@@ -18,7 +18,6 @@
 
 package com.pedro.whip.webrtc.stun
 
-import com.pedro.common.CRC32
 import com.pedro.common.toByteArray
 import com.pedro.common.toUInt16
 import com.pedro.common.toUInt32
@@ -28,8 +27,7 @@ import com.pedro.whip.utils.Constants
 import java.io.ByteArrayOutputStream
 import java.math.BigInteger
 import java.net.InetAddress
-import javax.crypto.Mac
-import javax.crypto.spec.SecretKeySpec
+import java.util.zip.CRC32
 
 /**
  * Created by pedro on 15/7/25.
@@ -62,6 +60,8 @@ object StunAttributeValueParser {
   }
 
   fun createFingerprint(bytes: ByteArray): ByteArray {
-    return CRC32.getCRC32(bytes).toUInt32().xorBytes(Constants.STUN_HEX.toUInt32())
+    val crc32 = CRC32()
+    crc32.update(bytes)
+    return (crc32.value xor Constants.STUN_HEX).toInt().toUInt32()
   }
 }

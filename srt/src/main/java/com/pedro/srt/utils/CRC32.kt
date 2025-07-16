@@ -16,10 +16,12 @@
  *
  */
 
-package com.pedro.common
+package com.pedro.srt.utils
 
 /**
  * Created by pedro on 28/8/23.
+ *
+ * CRC32 ISO/IEC 13818-1
  */
 object CRC32 {
     private val crcTable = intArrayOf(

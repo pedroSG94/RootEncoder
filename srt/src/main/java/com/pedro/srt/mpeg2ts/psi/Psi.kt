@@ -17,7 +17,7 @@
 package com.pedro.srt.mpeg2ts.psi
 
 import com.pedro.srt.mpeg2ts.MpegTsPayload
-import com.pedro.common.CRC32
+import com.pedro.srt.utils.CRC32
 import com.pedro.srt.utils.toInt
 import java.nio.ByteBuffer
 
