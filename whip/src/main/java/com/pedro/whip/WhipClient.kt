@@ -12,18 +12,14 @@ import com.pedro.common.onMainThread
 import com.pedro.common.socket.base.SocketType
 import com.pedro.common.socket.base.StreamSocket
 import com.pedro.common.socket.base.UdpStreamSocket
-import com.pedro.common.socket.java.UdpStreamSocketJava
-import com.pedro.common.socket.ktor.UdpStreamSocketKtor
 import com.pedro.common.toMediaFrameInfo
 import com.pedro.common.validMessage
 import com.pedro.rtsp.utils.RtpConstants
-import com.pedro.whip.utils.Constants
 import com.pedro.whip.webrtc.CommandsManager
-import com.pedro.whip.webrtc.stun.Attribute
+import com.pedro.whip.webrtc.stun.StunAttribute
 import com.pedro.whip.webrtc.stun.AttributeType
 import com.pedro.whip.webrtc.stun.GatheringMode
-import com.pedro.whip.webrtc.stun.StunCommand
-import com.pedro.whip.webrtc.stun.StunHeader
+import com.pedro.whip.webrtc.stun.StunAttributeValueParser
 import com.pedro.whip.webrtc.stun.Type
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -35,11 +31,9 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.withTimeoutOrNull
-import java.math.BigInteger
 import java.net.URISyntaxException
 import java.nio.ByteBuffer
 import javax.net.ssl.TrustManager
-import kotlin.random.Random
 
 class WhipClient(private val connectChecker: ConnectChecker) {
 
@@ -232,14 +226,27 @@ class WhipClient(private val connectChecker: ConnectChecker) {
                     }
                     val offerResponse = commandsManager.writeOffer(candidates)
                     Log.i(TAG, offerResponse.body)
-                    sockets.forEach { s ->
+                    sockets.forEachIndexed { index, socket ->
                         async {
-                            val packet = s.readPacket()
-                            Log.i(TAG, "packet received: ${packet.host}:${packet.port}, size: ${packet.size}")
-                            val data = packet.data.sliceArray(0 until packet.size)
-                            val stunCommand = commandsManager.readStun(data)
-                            Log.i(TAG, "stun: ${stunCommand.toString()}")
-                            s.close()
+                            val stunCommand = commandsManager.readStun(socket)
+                            Log.i(TAG, "stun: $stunCommand")
+//                            val userName = stunCommand.attributes.find { it.type == AttributeType.USERNAME }?.value ?: throw IllegalArgumentException(
+//                                "Stun received must contain USERNAME"
+//                            )
+//                            val candidate = candidates[index]
+//                            val xorMappedAddress = StunAttributeValueParser.createXorMappedAddress(stunCommand.header.id, candidate.localAddress, candidate.localPort, true)
+//                            val attributes = listOf(
+//                                StunAttribute(AttributeType.USERNAME, userName),
+//                                StunAttribute(AttributeType.XOR_MAPPED_ADDRESS, xorMappedAddress)
+//                            )
+//                            commandsManager.writeStun(Type.SUCCESS, stunCommand.header.id, attributes, socket)
+                            val stunCommand2 = commandsManager.readStun(socket)
+                            val stunCommand3 = commandsManager.readStun(socket)
+                            val stunCommand4 = commandsManager.readStun(socket)
+                            Log.i(TAG, "stun2: $stunCommand2")
+                            Log.i(TAG, "stun2: $stunCommand3")
+                            Log.i(TAG, "stun2: $stunCommand4")
+                            socket.close()
                         }
                     }
                 }.exceptionOrNull()

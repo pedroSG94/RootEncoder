@@ -34,6 +34,7 @@ import kotlinx.coroutines.withContext
 import java.io.InputStream
 import java.io.OutputStream
 import java.io.UnsupportedEncodingException
+import java.math.BigInteger
 import java.nio.ByteBuffer
 import java.security.MessageDigest
 import java.security.NoSuchAlgorithmException
@@ -187,6 +188,21 @@ fun ByteArray.toUInt32(): Int {
 
 fun ByteArray.toUInt32LittleEndian(): Int {
   return Integer.reverseBytes(toUInt32())
+}
+
+fun ByteArray.xorBytes(bytes: ByteArray): ByteArray {
+  val xorBytes = ByteArray(this.size)
+  for (i in this.indices) xorBytes[i] = (this[i].toInt() xor bytes[i].toInt()).toByte()
+  return xorBytes
+}
+
+fun BigInteger.toByteArray(length: Int): ByteArray {
+  val raw = this.toByteArray()
+  return when {
+    raw.size == length -> raw
+    raw.size > length -> raw.copyOfRange(raw.size - length, raw.size)
+    else -> ByteArray(length - raw.size) + raw
+  }
 }
 
 fun InputStream.readUntil(byteArray: ByteArray) {

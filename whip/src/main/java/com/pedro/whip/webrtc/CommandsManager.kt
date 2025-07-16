@@ -11,10 +11,11 @@ import com.pedro.rtsp.utils.RtpConstants
 import com.pedro.rtsp.utils.encodeToString
 import com.pedro.rtsp.utils.getData
 import com.pedro.whip.dtls.CryptoUtils
+import com.pedro.whip.utils.Constants
 import com.pedro.whip.utils.Network
 import com.pedro.whip.utils.RequestResponse
 import com.pedro.whip.utils.Requests
-import com.pedro.whip.webrtc.stun.Attribute
+import com.pedro.whip.webrtc.stun.StunAttribute
 import com.pedro.whip.webrtc.stun.AttributeType
 import com.pedro.whip.webrtc.stun.Candidate
 import com.pedro.whip.webrtc.stun.CandidateType
@@ -54,6 +55,7 @@ class CommandsManager {
     private var stunSeq = 0
     private val timeout = 5000
     private val timeStamp: Long
+    private var remotePass = ""
     val spsString: String
         get() = sps?.getData()?.encodeToString() ?: ""
     val ppsString: String
@@ -101,6 +103,7 @@ class CommandsManager {
         sps = null
         pps = null
         vps = null
+        remotePass = ""
     }
 
     fun writeOptions() {
@@ -155,7 +158,13 @@ class CommandsManager {
         val answer = Requests.makeRequest(
             uri, "POST", headers, body, timeout, false
         )
+        remotePass = extractIcePwd(answer.body)
         return answer
+    }
+
+    fun extractIcePwd(sdp: String): String {
+        return sdp.lines()
+          .map { it.trim() }.last { it.startsWith("a=ice-pwd:") }.removePrefix("a=ice-pwd:")
     }
 
     private suspend fun filterNetworksWithStun(
@@ -177,12 +186,12 @@ class CommandsManager {
             )
             candidate.connect()
             val candidateStunCommand = StunCommand(
-                header = StunHeader(Type.REQUEST, stunSeq++.toBigInteger()),
+                header = StunHeader(Type.REQUEST, 0, 0, stunSeq++.toBigInteger()),
                 attributes = listOf(
-                    Attribute(AttributeType.USERNAME, byteArrayOf()),
-                    Attribute(AttributeType.ICE_CONTROLLED, byteArrayOf()),
-                    Attribute(AttributeType.MESSAGE_INTEGRITY, byteArrayOf()),
-                    Attribute(AttributeType.FINGERPRINT, byteArrayOf()),
+                    StunAttribute(AttributeType.USERNAME, byteArrayOf()),
+                    StunAttribute(AttributeType.ICE_CONTROLLED, byteArrayOf()),
+                    StunAttribute(AttributeType.MESSAGE_INTEGRITY, byteArrayOf()),
+                    StunAttribute(AttributeType.FINGERPRINT, byteArrayOf()),
                 )
             )
             writeStun(candidateStunCommand, candidate)
@@ -195,7 +204,13 @@ class CommandsManager {
     }
 
     suspend fun writeStun(stunCommand: StunCommand, socket: UdpStreamSocket) {
-        socket.write(stunCommand.toByteArray())
+        socket.write(stunCommand.toByteArray(remotePass))
+    }
+
+    suspend fun writeStun(type: Type, id: BigInteger, attributes: List<StunAttribute>, socket: UdpStreamSocket) {
+        socket.write(StunCommand(
+            StunHeader(type, 0, Constants.MAGIC_COOKIE, id), attributes
+        ).toByteArray(remotePass))
     }
 
     suspend fun readStun(socket: UdpStreamSocket): StunCommand {

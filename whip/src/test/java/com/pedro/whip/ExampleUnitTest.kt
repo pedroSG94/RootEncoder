@@ -3,6 +3,7 @@ package com.pedro.whip
 import org.junit.Test
 
 import org.junit.Assert.*
+import java.io.ByteArrayOutputStream
 
 /**
  * Example local unit test, which will execute on the development machine (host).
@@ -12,6 +13,10 @@ import org.junit.Assert.*
 class ExampleUnitTest {
   @Test
   fun addition_isCorrect() {
-    assertEquals(4, 2 + 2)
+    val output = ByteArrayOutputStream()
+    output.write(0x01)
+    output.toByteArray()
+    output.write(0x02)
+    assertArrayEquals(output.toByteArray(), byteArrayOf(0x01, 0x02))
   }
 }

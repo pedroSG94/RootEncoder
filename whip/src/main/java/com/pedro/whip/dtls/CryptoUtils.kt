@@ -41,11 +41,20 @@ import java.security.cert.CertificateException
 import java.security.cert.CertificateFactory
 import java.security.cert.X509Certificate
 import java.util.Date
+import javax.crypto.Mac
+import javax.crypto.spec.SecretKeySpec
 
 /**
  * Created by pedro on 15/7/25.
  */
 object CryptoUtils {
+
+  fun calculateHmacSha1(bytes: ByteArray, key: String): ByteArray {
+    val keySpec = SecretKeySpec(key.toByteArray(Charsets.UTF_8), "HmacSHA1")
+    val mac = Mac.getInstance("HmacSHA1")
+    mac.init(keySpec)
+    return mac.doFinal(bytes)
+  }
 
   fun generateCert(
     cn: String, secureRandom: SecureRandom
