@@ -40,4 +40,5 @@ enum class AttributeType(val value: Int) {
     FINGERPRINT(0x8028),
     ICE_CONTROLLED(0x8029),
     ICE_CONTROLLING(0x802a),
+    USE_CANDIDATE(0x0025)
 }

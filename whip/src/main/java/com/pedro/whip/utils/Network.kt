@@ -27,7 +27,7 @@ import java.net.NetworkInterface
  * Created by pedro on 13/7/25.
  */
 object Network {
-  fun getNetworks(): List<InetAddress> {
+  fun getNetworks(onlyV4: Boolean): List<InetAddress> {
     val networks = mutableListOf<InetAddress>()
     val networkInterfaces = NetworkInterface.getNetworkInterfaces()
     while (networkInterfaces.hasMoreElements()) {
@@ -38,7 +38,7 @@ object Network {
           val address = addresses.nextElement()
           if (!address.isLoopbackAddress) {
             if (address is Inet4Address) networks.add(address)
-            if (address is Inet6Address && !address.isLinkLocalAddress) networks.add(address)
+            if (!onlyV4 && address is Inet6Address && !address.isLinkLocalAddress) networks.add(address)
           }
         }
       }

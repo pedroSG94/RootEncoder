@@ -16,9 +16,9 @@ import com.pedro.whip.utils.Constants
 import com.pedro.whip.utils.Network
 import com.pedro.whip.utils.RequestResponse
 import com.pedro.whip.utils.Requests
-import com.pedro.whip.webrtc.stun.StunAttribute
 import com.pedro.whip.webrtc.stun.AttributeType
 import com.pedro.whip.webrtc.stun.GatheringMode
+import com.pedro.whip.webrtc.stun.StunAttribute
 import com.pedro.whip.webrtc.stun.StunCommand
 import com.pedro.whip.webrtc.stun.StunCommandReader
 import com.pedro.whip.webrtc.stun.StunHeader
@@ -54,7 +54,8 @@ class CommandsManager {
     private var stunSeq = 0
     private val timeout = 5000
     private val timeStamp: Long
-    private var remoteSdpInfo: SdpInfo? = null
+    var remoteSdpInfo: SdpInfo? = null
+        private set
     val spsString: String
         get() = sps?.getData()?.encodeToString() ?: ""
     val ppsString: String
@@ -119,7 +120,7 @@ class CommandsManager {
     }
 
     suspend fun gatheringCandidates(socketType: SocketType, gatheringMode: GatheringMode): List<Candidate> {
-        val addresses = Network.getNetworks()
+        val addresses = Network.getNetworks(onlyV4 = true)
         var localPort = 5000
         return when (gatheringMode) {
           GatheringMode.LOCAL -> addresses.map {
@@ -279,5 +280,9 @@ class CommandsManager {
         }
         sdpCandidates += "a=end-of-candidates\r\n"
         return sdpCandidates
+    }
+
+    fun generateTransactionId(): BigInteger {
+        return BigInteger(ByteArray(12).apply { SecureRandom().nextBytes(this) })
     }
 }

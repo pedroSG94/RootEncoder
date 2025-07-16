@@ -11,20 +11,18 @@ import com.pedro.common.frame.MediaFrame
 import com.pedro.common.onMainThread
 import com.pedro.common.socket.base.SocketType
 import com.pedro.common.socket.base.StreamSocket
-import com.pedro.common.socket.base.UdpStreamSocket
 import com.pedro.common.toMediaFrameInfo
 import com.pedro.common.validMessage
 import com.pedro.rtsp.utils.RtpConstants
+import com.pedro.whip.webrtc.Candidate
 import com.pedro.whip.webrtc.CommandsManager
-import com.pedro.whip.webrtc.stun.StunAttribute
-import com.pedro.whip.webrtc.stun.AttributeType
 import com.pedro.whip.webrtc.stun.GatheringMode
-import com.pedro.whip.webrtc.stun.StunAttributeValueParser
+import com.pedro.whip.webrtc.stun.StunAttribute
+import com.pedro.whip.webrtc.stun.StunCommandReader
 import com.pedro.whip.webrtc.stun.Type
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.async
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.delay
@@ -33,7 +31,6 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.withTimeoutOrNull
 import java.net.URISyntaxException
 import java.nio.ByteBuffer
-import javax.net.ssl.TrustManager
 
 class WhipClient(private val connectChecker: ConnectChecker) {
 
@@ -53,7 +50,6 @@ class WhipClient(private val connectChecker: ConnectChecker) {
 
     //for secure transport
     private var tlsEnabled = false
-    private var certificates: TrustManager? = null
     private val commandsManager: CommandsManager = CommandsManager()
     private val whipSender: WhipSender = WhipSender(connectChecker, commandsManager)
     private var url: String? = null
@@ -217,38 +213,66 @@ class WhipClient(private val connectChecker: ConnectChecker) {
                     commandsManager.writeOptions()
                     val candidates = commandsManager.gatheringCandidates(socketType, GatheringMode.LOCAL)
                     Log.i(TAG, "found candidates")
-                    val sockets = mutableListOf<UdpStreamSocket>()
-                    candidates.forEach {
-                        Log.i(TAG, "candidate: $it")
-                        sockets.add(StreamSocket.createUdpSocket(socketType, it.localAddress, it.localPort, receiveSize = RtpConstants.MTU).apply {
-                            bind()
-                        })
-                    }
                     val offerResponse = commandsManager.writeOffer(candidates)
                     Log.i(TAG, offerResponse.body)
-                    sockets.forEachIndexed { index, socket ->
-                        async {
-                            val stunCommand = commandsManager.readStun(socket)
-                            Log.i(TAG, "stun: $stunCommand")
-//                            val userName = stunCommand.attributes.find { it.type == AttributeType.USERNAME }?.value ?: throw IllegalArgumentException(
-//                                "Stun received must contain USERNAME"
-//                            )
-//                            val candidate = candidates[index]
-//                            val xorMappedAddress = StunAttributeValueParser.createXorMappedAddress(stunCommand.header.id, candidate.localAddress, candidate.localPort, true)
-//                            val attributes = listOf(
-//                                StunAttribute(AttributeType.USERNAME, userName),
-//                                StunAttribute(AttributeType.XOR_MAPPED_ADDRESS, xorMappedAddress)
-//                            )
-//                            commandsManager.writeStun(Type.SUCCESS, stunCommand.header.id, attributes, socket)
-                            val stunCommand2 = commandsManager.readStun(socket)
-                            val stunCommand3 = commandsManager.readStun(socket)
-                            val stunCommand4 = commandsManager.readStun(socket)
-                            Log.i(TAG, "stun2: $stunCommand2")
-                            Log.i(TAG, "stun2: $stunCommand3")
-                            Log.i(TAG, "stun2: $stunCommand4")
-                            socket.close()
+                    val remoteCandidates = commandsManager.remoteSdpInfo?.candidates ?: listOf()
+                    val socket = StreamSocket.createUdpSocket(socketType, candidates[0].localAddress, candidates[0].localPort, receiveSize = RtpConstants.MTU).apply {
+                        bind()
+                    }
+
+                    var validRemoteCandidate: Candidate? = null
+                    while (validRemoteCandidate == null) {
+                        val packet = socket.readPacket()
+                        validRemoteCandidate = remoteCandidates.find {
+                            (it.localAddress == packet.host && it.localPort == packet.port) ||
+                                (it.publicAddress == packet.host && it.publicPort == packet.port)
+                        }
+                        if (validRemoteCandidate != null) {
+                            val stun = StunCommandReader.readPacket(packet.data)
+                            val attributes = listOf<StunAttribute>(
+                                //TODO
+                            )
+                            //TODO write to a candidate
+                            commandsManager.writeStun(Type.SUCCESS, stun.header.id, attributes, socket)
                         }
                     }
+                    //TODO send binding request to valid candidate
+                    val bindingRequestId = commandsManager.generateTransactionId()
+                    val bindingRequestAttributes = listOf<StunAttribute>(
+                        //TODO
+                    )
+                    //TODO write to a candidate
+                    commandsManager.writeStun(Type.SUCCESS, bindingRequestId, bindingRequestAttributes, socket)
+
+                    //receive binding request success from server
+                    var successReceived = false
+                    while (!successReceived) {
+                        val stunSuccess = commandsManager.readStun(socket)
+                        if (stunSuccess.header.type == Type.SUCCESS && stunSuccess.header.id == bindingRequestId) {
+                            successReceived = true
+                        }
+                    }
+
+                    //TODO send binding request nominate candidate
+                    val nominateBindingRequestId = commandsManager.generateTransactionId()
+                    val nominateBindingRequestAttributes = listOf<StunAttribute>(
+                        //TODO
+                    )
+                    //TODO write to a candidate
+                    commandsManager.writeStun(Type.SUCCESS, bindingRequestId, nominateBindingRequestAttributes, socket)
+
+                    //receive binding request nominate candidate success
+                    var nominateSuccessReceived = false
+                    while (!nominateSuccessReceived) {
+                        val stunSuccess = commandsManager.readStun(socket)
+                        if (stunSuccess.header.type == Type.SUCCESS && stunSuccess.header.id == nominateBindingRequestId) {
+                            nominateSuccessReceived = true
+                        }
+                    }
+                    //TODO DTLS handshake
+
+                    //TODO connection success ready to send SRTP/SRTCP
+
                 }.exceptionOrNull()
                 if (error != null) {
                     Log.e(TAG, "connection error", error)
