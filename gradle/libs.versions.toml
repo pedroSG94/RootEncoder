@@ -20,7 +20,7 @@ multidex = "2.0.1"
 annotation = "1.9.1"
 coroutines = "1.10.2"
 junit = "4.13.2"
-mockito = "5.4.0"
+mockito = "6.0.0"
 uvcandroid = "1.0.9"
 media3 = "1.7.1"
 
