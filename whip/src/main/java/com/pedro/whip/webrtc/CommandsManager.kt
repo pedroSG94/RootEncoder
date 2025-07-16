@@ -1,5 +1,6 @@
 package com.pedro.whip.webrtc
 
+import android.util.Log
 import com.pedro.common.AudioCodec
 import com.pedro.common.TimeUtils
 import com.pedro.common.VideoCodec
@@ -17,8 +18,6 @@ import com.pedro.whip.utils.RequestResponse
 import com.pedro.whip.utils.Requests
 import com.pedro.whip.webrtc.stun.StunAttribute
 import com.pedro.whip.webrtc.stun.AttributeType
-import com.pedro.whip.webrtc.stun.Candidate
-import com.pedro.whip.webrtc.stun.CandidateType
 import com.pedro.whip.webrtc.stun.GatheringMode
 import com.pedro.whip.webrtc.stun.StunCommand
 import com.pedro.whip.webrtc.stun.StunCommandReader
@@ -55,7 +54,7 @@ class CommandsManager {
     private var stunSeq = 0
     private val timeout = 5000
     private val timeStamp: Long
-    private var remotePass = ""
+    private var remoteSdpInfo: SdpInfo? = null
     val spsString: String
         get() = sps?.getData()?.encodeToString() ?: ""
     val ppsString: String
@@ -103,7 +102,7 @@ class CommandsManager {
         sps = null
         pps = null
         vps = null
-        remotePass = ""
+        remoteSdpInfo = null
     }
 
     fun writeOptions() {
@@ -128,6 +127,7 @@ class CommandsManager {
               val priority: Long = (type.preference shl 24) or (65535L shl 8) or (256 - 1)
               Candidate(
                   type = type,
+                  protocol = 1,
                   priority = priority,
                   localAddress = it.hostAddress ?: "",
                   localPort = localPort++,
@@ -158,13 +158,9 @@ class CommandsManager {
         val answer = Requests.makeRequest(
             uri, "POST", headers, body, timeout, false
         )
-        remotePass = extractIcePwd(answer.body)
+        remoteSdpInfo = SdpParser.parseBodyAnswer(answer.body)
+        Log.i(TAG, "remote info: $remoteSdpInfo")
         return answer
-    }
-
-    fun extractIcePwd(sdp: String): String {
-        return sdp.lines()
-          .map { it.trim() }.last { it.startsWith("a=ice-pwd:") }.removePrefix("a=ice-pwd:")
     }
 
     private suspend fun filterNetworksWithStun(
@@ -204,10 +200,12 @@ class CommandsManager {
     }
 
     suspend fun writeStun(stunCommand: StunCommand, socket: UdpStreamSocket) {
+        val remotePass = remoteSdpInfo?.uPass ?: throw IllegalStateException("remote sdp info no received yet")
         socket.write(stunCommand.toByteArray(remotePass))
     }
 
     suspend fun writeStun(type: Type, id: BigInteger, attributes: List<StunAttribute>, socket: UdpStreamSocket) {
+        val remotePass = remoteSdpInfo?.uPass ?: throw IllegalStateException("remote sdp info no received yet")
         socket.write(StunCommand(
             StunHeader(type, 0, Constants.MAGIC_COOKIE, id), attributes
         ).toByteArray(remotePass))
@@ -260,8 +258,10 @@ class CommandsManager {
                 "a=ice-pwd:$uPass\r\n" +
                 "a=fingerprint:sha-256 $fingerprint\r\n" +
                 videoBody +
+                "a=rtcp-mux\r\n" + //Using same socket for all (SRTP, SRTCP and both tracks)
                 "a=ssrc:" + videoSsrc + " cname: $cName\r\n" +
                 audioBody +
+                "a=rtcp-mux\r\n" + //Using same socket for all (SRTP, SRTCP and both tracks)
                 "a=ssrc:" + audioSsrc + " cname: $cName\r\n" +
                 addCandidates(candidates)
     }
@@ -271,7 +271,7 @@ class CommandsManager {
         candidates.forEachIndexed { index, candidate ->
             val address = candidate.publicAddress ?: candidate.localAddress
             val port = candidate.publicPort ?: candidate.localPort
-            sdpCandidates += "a=candidate:$index 1 UDP ${candidate.priority} $address $port typ ${candidate.type.value} ${
+            sdpCandidates += "a=candidate:$index ${candidate.protocol} UDP ${candidate.priority} $address $port typ ${candidate.type.value} ${
                 if (candidate.type == CandidateType.SRFLX) {
                     "raddr ${candidate.localAddress} rport ${candidate.localPort}"
                 } else ""

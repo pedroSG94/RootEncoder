@@ -16,14 +16,17 @@
  *
  */
 
-package com.pedro.whip.webrtc.stun
+package com.pedro.whip.webrtc
 
 /**
  * Created by pedro on 15/7/25.
  */
-enum class CandidateType(
-  val value: String,
-  val preference: Long
-) {
-  LOCAL("host", 126), SRFLX("srflx", 100), RELAY("relay", 99)
-}
+data class Candidate(
+  val type: CandidateType,
+  val protocol: Int, //1 SRTP, 2 SRTCP
+  val priority: Long,
+  val localAddress: String,
+  val localPort: Int,
+  val publicAddress: String?,
+  val publicPort: Int?
+)

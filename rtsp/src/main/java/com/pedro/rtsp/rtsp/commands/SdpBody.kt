@@ -46,7 +46,7 @@ object SdpBody {
     val type = if (secured) "UDP/TLS/RTP/SAVPF" else "RTP/AVP"
     val identifier = if (secured) {
       "a=sendonly\r\n" +
-          "a=mid:$trackAudio\r\n"
+      "a=mid:$trackAudio\r\n"
     } else "a=control:streamid=$trackAudio\r\n"
     return "m=audio 0 $type ${payload}\r\n" +
         "a=rtpmap:$payload PCMA/$sampleRate/$channel\r\n" +
@@ -61,7 +61,7 @@ object SdpBody {
     val type = if (secured) "UDP/TLS/RTP/SAVPF" else "RTP/AVP"
     val identifier = if (secured) {
       "a=sendonly\r\n" +
-          "a=mid:$trackAudio\r\n"
+      "a=mid:$trackAudio\r\n"
     } else "a=control:streamid=$trackAudio\r\n"
     return "m=audio 0 $type ${payload}\r\n" +
         "a=rtpmap:$payload MPEG4-GENERIC/$sampleRate/$channel\r\n" +
@@ -74,7 +74,7 @@ object SdpBody {
     val type = if (secured) "UDP/TLS/RTP/SAVPF" else "RTP/AVP"
     val identifier = if (secured) {
       "a=sendonly\r\n" +
-          "a=mid:$trackVideo\r\n"
+      "a=mid:$trackVideo\r\n"
     } else "a=control:streamid=$trackVideo\r\n"
     return "m=video 0 $type $payload\r\n" +
         "a=rtpmap:$payload AV1/${RtpConstants.clockVideoFrequency}\r\n" +
