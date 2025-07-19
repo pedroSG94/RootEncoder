@@ -11,26 +11,35 @@ import com.pedro.common.frame.MediaFrame
 import com.pedro.common.onMainThread
 import com.pedro.common.socket.base.SocketType
 import com.pedro.common.socket.base.StreamSocket
+import com.pedro.common.socket.base.UdpStreamSocket
 import com.pedro.common.toMediaFrameInfo
+import com.pedro.common.toUInt32
+import com.pedro.common.toUInt64
 import com.pedro.common.validMessage
 import com.pedro.rtsp.utils.RtpConstants
 import com.pedro.whip.webrtc.Candidate
 import com.pedro.whip.webrtc.CommandsManager
+import com.pedro.whip.webrtc.stun.AttributeType
 import com.pedro.whip.webrtc.stun.GatheringMode
 import com.pedro.whip.webrtc.stun.StunAttribute
+import com.pedro.whip.webrtc.stun.StunAttributeValueParser
 import com.pedro.whip.webrtc.stun.StunCommandReader
 import com.pedro.whip.webrtc.stun.Type
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.async
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.withTimeoutOrNull
+import java.math.BigInteger
 import java.net.URISyntaxException
 import java.nio.ByteBuffer
+import kotlin.random.Random
 
 class WhipClient(private val connectChecker: ConnectChecker) {
 
@@ -56,6 +65,7 @@ class WhipClient(private val connectChecker: ConnectChecker) {
     private var doingRetry = false
     private var numRetry = 0
     private var reTries = 0
+    private var publishPermitted = false
     private var checkServerAlive = false
     var socketType = SocketType.KTOR
 
@@ -210,63 +220,29 @@ class WhipClient(private val connectChecker: ConnectChecker) {
                         whipSender.setVideoInfo(commandsManager.sps!!, commandsManager.pps, commandsManager.vps)
                     }
 
+
                     commandsManager.writeOptions()
                     val candidates = commandsManager.gatheringCandidates(socketType, GatheringMode.LOCAL)
-                    Log.i(TAG, "found candidates")
-                    val offerResponse = commandsManager.writeOffer(candidates)
-                    Log.i(TAG, offerResponse.body)
-                    val remoteCandidates = commandsManager.remoteSdpInfo?.candidates ?: listOf()
                     val socket = StreamSocket.createUdpSocket(socketType, candidates[0].localAddress, candidates[0].localPort, receiveSize = RtpConstants.MTU).apply {
                         bind()
                     }
-
-                    var validRemoteCandidate: Candidate? = null
-                    while (validRemoteCandidate == null) {
-                        val packet = socket.readPacket()
-                        validRemoteCandidate = remoteCandidates.find {
-                            (it.localAddress == packet.host && it.localPort == packet.port) ||
-                                (it.publicAddress == packet.host && it.publicPort == packet.port)
-                        }
-                        if (validRemoteCandidate != null) {
-                            val stun = StunCommandReader.readPacket(packet.data)
-                            val attributes = listOf<StunAttribute>(
-                                //TODO
-                            )
-                            //TODO write to a candidate
-                            commandsManager.writeStun(Type.SUCCESS, stun.header.id, attributes, socket)
+                    async(Dispatchers.IO) {
+                        while (!publishPermitted) {
+                            //Handle all command received and send response for it.
+                            handleMessages(socket)
                         }
                     }
-                    //TODO send binding request to valid candidate
-                    val bindingRequestId = commandsManager.generateTransactionId()
-                    val bindingRequestAttributes = listOf<StunAttribute>(
-                        //TODO
-                    )
-                    //TODO write to a candidate
-                    commandsManager.writeStun(Type.SUCCESS, bindingRequestId, bindingRequestAttributes, socket)
+                    Log.i(TAG, "found candidates")
+                    val offerResponse = commandsManager.writeOffer(candidates)
+                    Log.i(TAG, offerResponse.body)
 
-                    //receive binding request success from server
-                    var successReceived = false
-                    while (!successReceived) {
-                        val stunSuccess = commandsManager.readStun(socket)
-                        if (stunSuccess.header.type == Type.SUCCESS && stunSuccess.header.id == bindingRequestId) {
-                            successReceived = true
-                        }
-                    }
-
-                    //TODO send binding request nominate candidate
-                    val nominateBindingRequestId = commandsManager.generateTransactionId()
-                    val nominateBindingRequestAttributes = listOf<StunAttribute>(
-                        //TODO
-                    )
-                    //TODO write to a candidate
-                    commandsManager.writeStun(Type.SUCCESS, bindingRequestId, nominateBindingRequestAttributes, socket)
-
-                    //receive binding request nominate candidate success
-                    var nominateSuccessReceived = false
-                    while (!nominateSuccessReceived) {
-                        val stunSuccess = commandsManager.readStun(socket)
-                        if (stunSuccess.header.type == Type.SUCCESS && stunSuccess.header.id == nominateBindingRequestId) {
-                            nominateSuccessReceived = true
+                    val tieBreak = Random.nextLong().toUInt64()
+                    commandsManager.remoteSdpInfo?.candidates?.filter {
+                        it.protocol == 1 //only rtp
+                    }?.forEach { candidate ->
+                        async(Dispatchers.IO) {
+                            Log.e(TAG, "candidate: $candidate")
+                            sendBindingRequestToCandidate(candidate, tieBreak, socket)
                         }
                     }
                     //TODO DTLS handshake
@@ -283,6 +259,57 @@ class WhipClient(private val connectChecker: ConnectChecker) {
                 }
             }
         }
+    }
+
+    suspend fun handleMessages(socket: UdpStreamSocket) {
+        val packet = socket.readPacket()
+        val host = packet.host ?: return
+        val port = packet.port ?: return
+        val command = StunCommandReader.readPacket(packet.data)
+        when (command.header.type) {
+          Type.REQUEST -> {
+              sendSuccess(command.header.id, host, port, socket)
+              Log.e(TAG, "send response")
+          }
+          Type.INDICATION -> throw IllegalArgumentException("unsupported for now")
+          Type.SUCCESS -> {
+            throw IllegalArgumentException("success received?????")
+          }
+          Type.ERROR -> throw IllegalArgumentException("unsupported for now")
+        }
+    }
+
+    suspend fun sendBindingRequestToCandidate(candidate: Candidate, tieBreak: ByteArray, socket: UdpStreamSocket) {
+        val host = candidate.publicAddress ?: candidate.localAddress
+        val port = candidate.publicPort ?: candidate.localPort
+        val type = candidate.type
+        var tryNumber = 1
+        while (tryNumber <= 8) {
+            val id = commandsManager.generateTransactionId()
+            val priority = commandsManager.calculatePriority(type, 65535L, 1).toInt().toUInt32()
+            val userName = StunAttributeValueParser.createUserName(commandsManager.localSdpInfo?.uFrag!!, commandsManager.remoteSdpInfo?.uFrag!!)
+            val attributes = listOf(
+                StunAttribute(AttributeType.PRIORITY, priority),
+                StunAttribute(AttributeType.USERNAME, userName),
+                StunAttribute(AttributeType.ICE_CONTROLLING, tieBreak),
+            )
+            commandsManager.writeStun(Type.REQUEST, id, attributes, socket, host, port)
+            Log.i(TAG, "try: $tryNumber, candidate: $candidate")
+            delay(100L)
+            tryNumber++
+        }
+    }
+
+    suspend fun sendSuccess(id: BigInteger, host: String, port: Int, socket: UdpStreamSocket) {
+        val userNameValue = StunAttributeValueParser.createUserName(
+            commandsManager.remoteSdpInfo?.uFrag!!, commandsManager.localSdpInfo?.uFrag!!
+        )
+        val xorAddress = StunAttributeValueParser.createXorMappedAddress(id, host, port, true)
+        val attributes = listOf(
+            StunAttribute(AttributeType.USERNAME, userNameValue),
+            StunAttribute(AttributeType.XOR_MAPPED_ADDRESS, xorAddress)
+        )
+        commandsManager.writeStun(Type.SUCCESS, id, attributes, socket, host, port)
     }
 
     fun disconnect() {
@@ -320,6 +347,7 @@ class WhipClient(private val connectChecker: ConnectChecker) {
         job = null
         scope.cancel()
         scope = CoroutineScope(Dispatchers.IO)
+        publishPermitted = false
     }
 
     fun sendVideo(videoBuffer: ByteBuffer, info: MediaCodec.BufferInfo) {

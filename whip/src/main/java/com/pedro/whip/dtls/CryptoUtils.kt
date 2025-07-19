@@ -49,8 +49,8 @@ import javax.crypto.spec.SecretKeySpec
  */
 object CryptoUtils {
 
-  fun calculateHmacSha1(bytes: ByteArray, key: String): ByteArray {
-    val keySpec = SecretKeySpec(key.toByteArray(Charsets.UTF_8), "HmacSHA1")
+  fun calculateHmacSha1(bytes: ByteArray, key: ByteArray): ByteArray {
+    val keySpec = SecretKeySpec(key, "HmacSHA1")
     val mac = Mac.getInstance("HmacSHA1")
     mac.init(keySpec)
     return mac.doFinal(bytes)

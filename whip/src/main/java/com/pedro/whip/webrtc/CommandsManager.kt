@@ -7,6 +7,7 @@ import com.pedro.common.VideoCodec
 import com.pedro.common.socket.base.SocketType
 import com.pedro.common.socket.base.StreamSocket
 import com.pedro.common.socket.base.UdpStreamSocket
+import com.pedro.common.toUInt32
 import com.pedro.rtsp.rtsp.commands.SdpBody
 import com.pedro.rtsp.utils.RtpConstants
 import com.pedro.rtsp.utils.encodeToString
@@ -27,6 +28,7 @@ import java.math.BigInteger
 import java.net.InetAddress
 import java.nio.ByteBuffer
 import java.security.SecureRandom
+import java.util.zip.CRC32
 import kotlin.random.Random
 
 class CommandsManager {
@@ -55,6 +57,8 @@ class CommandsManager {
     private val timeout = 5000
     private val timeStamp: Long
     var remoteSdpInfo: SdpInfo? = null
+        private set
+    var localSdpInfo: SdpInfo? = null
         private set
     val spsString: String
         get() = sps?.getData()?.encodeToString() ?: ""
@@ -125,7 +129,7 @@ class CommandsManager {
         return when (gatheringMode) {
           GatheringMode.LOCAL -> addresses.map {
               val type = CandidateType.LOCAL
-              val priority: Long = (type.preference shl 24) or (65535L shl 8) or (256 - 1)
+              val priority = calculatePriority(type, 65535L, 1)
               Candidate(
                   type = type,
                   protocol = 1,
@@ -139,6 +143,10 @@ class CommandsManager {
           GatheringMode.ALL -> filterNetworksWithStun(socketType, addresses)
         }
     }
+
+    fun calculatePriority(type: CandidateType, localPreference: Long, componentId: Long): Long {
+        return (type.preference shl 24) or (localPreference shl 8) or (256 - componentId)
+    }
     
     fun writeOffer(candidates: List<Candidate>): RequestResponse {
         val secureRandom = SecureRandom()
@@ -150,6 +158,7 @@ class CommandsManager {
         val body = createBody(
             videoSsrc, audioSsrc, candidates, uFrag, uPass, certificate.fingerprint
         )
+        localSdpInfo = SdpInfo(uFrag, uPass, certificate.fingerprint, candidates)
         val uri = "http://$host:$port/$app"
         val path: String? = streamName
         val headers = mutableMapOf<String, String>().apply {
@@ -191,7 +200,7 @@ class CommandsManager {
                     StunAttribute(AttributeType.FINGERPRINT, byteArrayOf()),
                 )
             )
-            writeStun(candidateStunCommand, candidate)
+            writeStun(candidateStunCommand, candidate, googleStunHost, googleStunPort)
             val result = readStun(candidate)
             val isSuccess = false
             if (isSuccess) //candidates.add(it)
@@ -200,16 +209,19 @@ class CommandsManager {
         return candidates
     }
 
-    suspend fun writeStun(stunCommand: StunCommand, socket: UdpStreamSocket) {
+    suspend fun writeStun(stunCommand: StunCommand, socket: UdpStreamSocket, host: String, port: Int) {
         val remotePass = remoteSdpInfo?.uPass ?: throw IllegalStateException("remote sdp info no received yet")
-        socket.write(stunCommand.toByteArray(remotePass))
+        Log.i(TAG, stunCommand.toString())
+        socket.write(stunCommand.toByteArray(remotePass), host, port)
     }
 
-    suspend fun writeStun(type: Type, id: BigInteger, attributes: List<StunAttribute>, socket: UdpStreamSocket) {
+    suspend fun writeStun(type: Type, id: BigInteger, attributes: List<StunAttribute>, socket: UdpStreamSocket, host: String, port: Int) {
         val remotePass = remoteSdpInfo?.uPass ?: throw IllegalStateException("remote sdp info no received yet")
-        socket.write(StunCommand(
+        val command = StunCommand(
             StunHeader(type, 0, Constants.MAGIC_COOKIE, id), attributes
-        ).toByteArray(remotePass))
+        )
+        Log.i(TAG, command.toString())
+        socket.write(command.toByteArray(remotePass), host, port)
     }
 
     suspend fun readStun(socket: UdpStreamSocket): StunCommand {
@@ -269,17 +281,22 @@ class CommandsManager {
 
     private fun addCandidates(candidates: List<Candidate>): String {
         var sdpCandidates = ""
-        candidates.forEachIndexed { index, candidate ->
+        candidates.forEach { candidate ->
             val address = candidate.publicAddress ?: candidate.localAddress
             val port = candidate.publicPort ?: candidate.localPort
-            sdpCandidates += "a=candidate:$index ${candidate.protocol} UDP ${candidate.priority} $address $port typ ${candidate.type.value} ${
+            sdpCandidates += "a=candidate:${generateFoundation(candidate.type, address, port)} ${candidate.protocol} UDP ${candidate.priority} $address $port typ ${candidate.type.value} ${
                 if (candidate.type == CandidateType.SRFLX) {
                     "raddr ${candidate.localAddress} rport ${candidate.localPort}"
                 } else ""
             }\r\n"
         }
-        sdpCandidates += "a=end-of-candidates\r\n"
         return sdpCandidates
+    }
+
+    private fun generateFoundation(type: CandidateType, host: String, port: Int): Long {
+        val crc32 = CRC32()
+        crc32.update("${type.value}$host${port}UDP".toByteArray(Charsets.UTF_8))
+        return crc32.value
     }
 
     fun generateTransactionId(): BigInteger {

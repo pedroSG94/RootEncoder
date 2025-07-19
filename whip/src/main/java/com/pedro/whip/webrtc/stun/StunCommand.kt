@@ -7,24 +7,29 @@ class StunCommand(
     val attributes: List<StunAttribute>,
 ) {
     fun toByteArray(remotePass: String): ByteArray {
+        val integritySize = 24
+        val fingerprintSize = 8
         val output = ByteArrayOutputStream()
-
         val bodyBytes = attributes.map { it.toByteArray() }
-        val bodyLength = bodyBytes.sumOf { it.size }.plus(24 + 8) //integrity + fingerprint
-        val headerBytes = header.toByteArray(bodyLength)
-        output.write(headerBytes)
+        val bodyLength = bodyBytes.sumOf { it.size }
+
+        output.write(header.toByteArray(bodyLength + integritySize))
         bodyBytes.forEach { output.write(it) }
 
         //all command contain message integrity and fingerprint
         val hmac = StunAttributeValueParser.createMessageIntegrity(output.toByteArray(), remotePass)
         val messageIntegrity = StunAttribute(AttributeType.MESSAGE_INTEGRITY, hmac)
-        output.write(messageIntegrity.toByteArray())
 
-        val crc32 = StunAttributeValueParser.createFingerprint(output.toByteArray())
+        val finalOutput = ByteArrayOutputStream()
+        finalOutput.write(header.toByteArray(bodyLength + integritySize + fingerprintSize))
+        bodyBytes.forEach { finalOutput.write(it) }
+        finalOutput.write(messageIntegrity.toByteArray())
+
+        val crc32 = StunAttributeValueParser.createFingerprint(finalOutput.toByteArray())
         val fingerprint = StunAttribute(AttributeType.FINGERPRINT, crc32)
-        output.write(fingerprint.toByteArray())
+        finalOutput.write(fingerprint.toByteArray())
 
-        return output.toByteArray()
+        return finalOutput.toByteArray()
     }
 
     override fun toString(): String {

@@ -35,7 +35,15 @@ import java.util.zip.CRC32
 object StunAttributeValueParser {
 
   fun createUserName(localUfrag: String, remoteUfrag: String): ByteArray {
-    return "$remoteUfrag:$localUfrag".toByteArray(Charsets.UTF_8)
+    val bytes = "$remoteUfrag:$localUfrag".toByteArray(Charsets.UTF_8)
+    val padding = (4 - (bytes.size % 4)) % 4
+    return bytes.plus(ByteArray(padding))
+  }
+
+  fun createSoftware(): ByteArray {
+    val bytes = "RootEncoder".toByteArray(Charsets.UTF_8)
+    val padding = (4 - (bytes.size % 4)) % 4
+    return bytes.plus(ByteArray(padding))
   }
 
   fun createXorMappedAddress(
@@ -56,7 +64,8 @@ object StunAttributeValueParser {
   }
 
   fun createMessageIntegrity(bytes: ByteArray, password: String): ByteArray {
-    return CryptoUtils.calculateHmacSha1(bytes, password)
+    return CryptoUtils.calculateHmacSha1(bytes, password.toByteArray(Charsets.UTF_8))
+//    return test.calculateMessageIntegrity(password.toByteArray(Charsets.UTF_8), ByteBuffer.wrap(bytes), true)
   }
 
   fun createFingerprint(bytes: ByteArray): ByteArray {

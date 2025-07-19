@@ -18,4 +18,8 @@ data class StunHeader(
         buffer.put(id.toByteArray())
         return buffer.toByteArray()
     }
+
+    override fun toString(): String {
+        return "StunHeader(type=$type, length=$length, cookie=$cookie, id=$id)"
+    }
 }
