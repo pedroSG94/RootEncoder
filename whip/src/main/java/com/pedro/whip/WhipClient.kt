@@ -13,16 +13,12 @@ import com.pedro.common.socket.base.SocketType
 import com.pedro.common.socket.base.StreamSocket
 import com.pedro.common.socket.base.UdpStreamSocket
 import com.pedro.common.toMediaFrameInfo
-import com.pedro.common.toUInt32
-import com.pedro.common.toUInt64
 import com.pedro.common.validMessage
 import com.pedro.rtsp.utils.RtpConstants
-import com.pedro.whip.webrtc.Candidate
 import com.pedro.whip.webrtc.CommandsManager
-import com.pedro.whip.webrtc.stun.AttributeType
+import com.pedro.whip.webrtc.StunRequest
+import com.pedro.whip.webrtc.stun.CandidatePair
 import com.pedro.whip.webrtc.stun.GatheringMode
-import com.pedro.whip.webrtc.stun.StunAttribute
-import com.pedro.whip.webrtc.stun.StunAttributeValueParser
 import com.pedro.whip.webrtc.stun.StunCommandReader
 import com.pedro.whip.webrtc.stun.HeaderType
 import kotlinx.coroutines.CoroutineScope
@@ -38,7 +34,6 @@ import kotlinx.coroutines.withTimeoutOrNull
 import java.net.SocketTimeoutException
 import java.net.URISyntaxException
 import java.nio.ByteBuffer
-import java.security.SecureRandom
 
 class WhipClient(private val connectChecker: ConnectChecker) {
 
@@ -234,7 +229,16 @@ class WhipClient(private val connectChecker: ConnectChecker) {
                         jobs.add(async(Dispatchers.IO) {
                             while (!stunConnected) {
                                 //Handle all command received and send response for it.
-                                handleMessages(it)
+                                handleMessages(it) { request ->
+                                    jobs.add(async(Dispatchers.IO) {
+                                        if (!request.nominated) {
+                                            commandsManager.sendNominateBindingRequestToCandidate(request.candidatePair, it)
+                                        } else {
+                                            stunConnected = true
+                                            if (mutexSuccessConnection.isLocked) mutexSuccessConnection.unlock()
+                                        }
+                                    })
+                                }
                             }
                         })
                     }
@@ -242,13 +246,12 @@ class WhipClient(private val connectChecker: ConnectChecker) {
                     val offerResponse = commandsManager.writeOffer(candidates)
                     Log.i(TAG, offerResponse.body)
 
-                    val tieBreak = commandsManager.generateTieBreak()
                     sockets.forEachIndexed { index, socket ->
                         commandsManager.remoteSdpInfo?.candidates?.filter { candidate ->
                             candidate.protocol == 1 //only rtp
                         }?.forEach { candidate ->
                             jobs.add(async(Dispatchers.IO) {
-                                commandsManager.sendBindingRequestToCandidate(candidates[index], candidate, tieBreak, socket)
+                                commandsManager.sendBindingRequestToCandidate(CandidatePair(candidates[index], candidate), socket)
                             })
                         }
                     }
@@ -278,7 +281,7 @@ class WhipClient(private val connectChecker: ConnectChecker) {
         }
     }
 
-    suspend fun handleMessages(socket: UdpStreamSocket) {
+    suspend fun handleMessages(socket: UdpStreamSocket, onSuccessReceived: suspend (StunRequest) -> Unit) {
         try {
             val packet = socket.readPacket()
             val host = packet.host ?: return
@@ -288,11 +291,17 @@ class WhipClient(private val connectChecker: ConnectChecker) {
                 HeaderType.REQUEST -> {
                     commandsManager.sendSuccess(command.header.id, host, port, socket)
                 }
-                HeaderType.INDICATION -> throw IllegalArgumentException("unsupported for now")
-                HeaderType.SUCCESS -> {
-                    throw IllegalArgumentException("success received?????")
+                HeaderType.INDICATION -> {
+                    throw IllegalArgumentException("unsupported handle indication for now")
                 }
-                HeaderType.ERROR -> throw IllegalArgumentException("unsupported for now")
+                HeaderType.SUCCESS -> {
+                    commandsManager.pairsToResponse.find {
+                        it.id.contentEquals(command.header.id)
+                    }?.let {
+                        onSuccessReceived(it)
+                    }
+                }
+                HeaderType.ERROR -> throw IllegalArgumentException("unsupported handle error for now")
             }
         } catch (_: SocketTimeoutException) {}
     }

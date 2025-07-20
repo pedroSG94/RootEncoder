@@ -19,6 +19,7 @@ import com.pedro.whip.utils.Network
 import com.pedro.whip.utils.RequestResponse
 import com.pedro.whip.utils.Requests
 import com.pedro.whip.webrtc.stun.AttributeType
+import com.pedro.whip.webrtc.stun.CandidatePair
 import com.pedro.whip.webrtc.stun.GatheringMode
 import com.pedro.whip.webrtc.stun.StunAttribute
 import com.pedro.whip.webrtc.stun.StunAttributeValueParser
@@ -62,6 +63,8 @@ class CommandsManager {
     var remoteSdpInfo: SdpInfo? = null
         private set
     var localSdpInfo: SdpInfo? = null
+        private set
+    var tieBreak = ByteArray(8)
         private set
     val spsString: String
         get() = sps?.getData()?.encodeToString() ?: ""
@@ -162,10 +165,6 @@ class CommandsManager {
         return ((type.preference shl 24) or (localPreference shl 8) or (256 - componentId)).toInt()
     }
 
-    fun generateTieBreak(): ByteArray {
-        return secureRandom.nextBytes(8)
-    }
-    
     fun writeOffer(candidates: List<Candidate>): RequestResponse {
         val uFrag = secureRandom.nextLong().toString(36).replace("-", "")
         val uPass = (BigInteger(130, secureRandom).toString(32)).replace("-", "")
@@ -186,6 +185,8 @@ class CommandsManager {
             uri, "POST", headers, body, timeout, false
         )
         remoteSdpInfo = SdpParser.parseBodyAnswer(answer.body)
+        tieBreak = secureRandom.nextBytes(8)
+        tieBreak = secureRandom.nextBytes(8)
         Log.i(TAG, "remote info: $remoteSdpInfo")
         return answer
     }
@@ -326,27 +327,28 @@ class CommandsManager {
         return secureRandom.nextBytes(12)
     }
 
+    val pairsToResponse = mutableListOf<StunRequest>()
+
     suspend fun sendBindingRequestToCandidate(
-        localCandidate: Candidate,
-        remoteCandidate: Candidate,
-        tieBreak: ByteArray,
+        candidatePair: CandidatePair,
         socket: UdpStreamSocket
     ) {
         val localFrag = localSdpInfo?.uFrag ?: return
         val remoteFrag = remoteSdpInfo?.uFrag ?: return
-        val host = remoteCandidate.publicAddress ?: remoteCandidate.localAddress
-        val port = remoteCandidate.publicPort ?: remoteCandidate.localPort
+        val host = candidatePair.remote.publicAddress ?: candidatePair.remote.localAddress
+        val port = candidatePair.remote.publicPort ?: candidatePair.remote.localPort
         val timeout = arrayOf(100L, 200L, 400L, 800L, 1500L, 2000)
         for (i in 0..timeout.size) {
             val id = generateTransactionId()
             val userName = StunAttributeValueParser.createUserName(localFrag, remoteFrag)
             val attributes = listOf(
-                StunAttribute(AttributeType.PRIORITY, localCandidate.priority.toUInt32()),
+                StunAttribute(AttributeType.PRIORITY, candidatePair.local.priority.toUInt32()),
                 StunAttribute(AttributeType.USERNAME, userName),
                 StunAttribute(AttributeType.ICE_CONTROLLING, tieBreak),
             )
             writeStun(HeaderType.REQUEST, id, attributes, socket, host, port)
-            Log.i(TAG, "candidate request attempt: $i\nlocalCandidate: $localCandidate\nremoteCandidate: $remoteCandidate")
+            pairsToResponse.add(StunRequest(id, candidatePair, false))
+            Log.i(TAG, "candidate request attempt: $i\ncandidate pair: $candidatePair")
             delay(timeout[i])
         }
     }
@@ -361,5 +363,30 @@ class CommandsManager {
             StunAttribute(AttributeType.XOR_MAPPED_ADDRESS, xorAddress)
         )
         writeStun(HeaderType.SUCCESS, id, attributes, socket, host, port)
+    }
+
+    suspend fun sendNominateBindingRequestToCandidate(
+        candidatePair: CandidatePair,
+        socket: UdpStreamSocket
+    ) {
+        val localFrag = localSdpInfo?.uFrag ?: return
+        val remoteFrag = remoteSdpInfo?.uFrag ?: return
+        val host = candidatePair.remote.publicAddress ?: candidatePair.remote.localAddress
+        val port = candidatePair.remote.publicPort ?: candidatePair.remote.localPort
+        val timeout = arrayOf(100L, 200L, 400L, 800L, 1500L, 2000)
+        for (i in 0..timeout.size) {
+            val id = generateTransactionId()
+            val userName = StunAttributeValueParser.createUserName(localFrag, remoteFrag)
+            val attributes = listOf(
+                StunAttribute(AttributeType.PRIORITY, candidatePair.local.priority.toUInt32()),
+                StunAttribute(AttributeType.USERNAME, userName),
+                StunAttribute(AttributeType.ICE_CONTROLLING, tieBreak),
+                StunAttribute(AttributeType.USE_CANDIDATE, byteArrayOf()),
+            )
+            writeStun(HeaderType.REQUEST, id, attributes, socket, host, port)
+            pairsToResponse.add(StunRequest(id, candidatePair, true))
+            Log.i(TAG, "nominate candidate request attempt: $i\ncandidate pair: $candidatePair")
+            delay(timeout[i])
+        }
     }
 }

@@ -43,11 +43,6 @@ object StunAttributeValueParser {
     return bytes
   }
 
-  fun createSoftware(): ByteArray {
-    val bytes = "RootEncoder".toByteArray(Charsets.UTF_8)
-    return bytes
-  }
-
   fun createXorMappedAddress(
     id: ByteArray, host: String, port: Int, isIpv4: Boolean
   ): ByteArray {
