@@ -38,6 +38,7 @@ import java.math.BigInteger
 import java.nio.ByteBuffer
 import java.security.MessageDigest
 import java.security.NoSuchAlgorithmException
+import java.security.SecureRandom
 import java.util.concurrent.BlockingQueue
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.LinkedBlockingQueue
@@ -279,4 +280,8 @@ fun List<ByteArray>.combine(): ByteArray {
     offset += arr.size
   }
   return combined
+}
+
+fun SecureRandom.nextBytes(size: Int): ByteArray {
+  return ByteArray(size).apply { nextBytes(this) }
 }

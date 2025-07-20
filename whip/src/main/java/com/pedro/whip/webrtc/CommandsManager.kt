@@ -4,9 +4,11 @@ import android.util.Log
 import com.pedro.common.AudioCodec
 import com.pedro.common.TimeUtils
 import com.pedro.common.VideoCodec
+import com.pedro.common.nextBytes
 import com.pedro.common.socket.base.SocketType
 import com.pedro.common.socket.base.StreamSocket
 import com.pedro.common.socket.base.UdpStreamSocket
+import com.pedro.common.toUInt32
 import com.pedro.rtsp.rtsp.commands.SdpBody
 import com.pedro.rtsp.utils.RtpConstants
 import com.pedro.rtsp.utils.encodeToString
@@ -24,6 +26,7 @@ import com.pedro.whip.webrtc.stun.StunCommand
 import com.pedro.whip.webrtc.stun.StunCommandReader
 import com.pedro.whip.webrtc.stun.StunHeader
 import com.pedro.whip.webrtc.stun.HeaderType
+import kotlinx.coroutines.delay
 import java.math.BigInteger
 import java.nio.ByteBuffer
 import java.security.SecureRandom
@@ -157,6 +160,10 @@ class CommandsManager {
 
     fun calculatePriority(type: CandidateType, localPreference: Long, componentId: Long): Int {
         return ((type.preference shl 24) or (localPreference shl 8) or (256 - componentId)).toInt()
+    }
+
+    fun generateTieBreak(): ByteArray {
+        return secureRandom.nextBytes(8)
     }
     
     fun writeOffer(candidates: List<Candidate>): RequestResponse {
@@ -316,8 +323,43 @@ class CommandsManager {
     }
 
     fun generateTransactionId(): ByteArray {
-        val bytes = ByteArray(12)
-        secureRandom.nextBytes(bytes)
-        return bytes
+        return secureRandom.nextBytes(12)
+    }
+
+    suspend fun sendBindingRequestToCandidate(
+        localCandidate: Candidate,
+        remoteCandidate: Candidate,
+        tieBreak: ByteArray,
+        socket: UdpStreamSocket
+    ) {
+        val localFrag = localSdpInfo?.uFrag ?: return
+        val remoteFrag = remoteSdpInfo?.uFrag ?: return
+        val host = remoteCandidate.publicAddress ?: remoteCandidate.localAddress
+        val port = remoteCandidate.publicPort ?: remoteCandidate.localPort
+        val timeout = arrayOf(100L, 200L, 400L, 800L, 1500L, 2000)
+        for (i in 0..timeout.size) {
+            val id = generateTransactionId()
+            val userName = StunAttributeValueParser.createUserName(localFrag, remoteFrag)
+            val attributes = listOf(
+                StunAttribute(AttributeType.PRIORITY, localCandidate.priority.toUInt32()),
+                StunAttribute(AttributeType.USERNAME, userName),
+                StunAttribute(AttributeType.ICE_CONTROLLING, tieBreak),
+            )
+            writeStun(HeaderType.REQUEST, id, attributes, socket, host, port)
+            Log.i(TAG, "candidate request attempt: $i\nlocalCandidate: $localCandidate\nremoteCandidate: $remoteCandidate")
+            delay(timeout[i])
+        }
+    }
+
+    suspend fun sendSuccess(id: ByteArray, host: String, port: Int, socket: UdpStreamSocket) {
+        val localFrag = localSdpInfo?.uFrag ?: return
+        val remoteFrag = remoteSdpInfo?.uFrag ?: return
+        val userNameValue = StunAttributeValueParser.createUserName(remoteFrag, localFrag)
+        val xorAddress = StunAttributeValueParser.createXorMappedAddress(id, host, port, true)
+        val attributes = listOf(
+            StunAttribute(AttributeType.USERNAME, userNameValue),
+            StunAttribute(AttributeType.XOR_MAPPED_ADDRESS, xorAddress)
+        )
+        writeStun(HeaderType.SUCCESS, id, attributes, socket, host, port)
     }
 }

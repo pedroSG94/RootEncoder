@@ -40,15 +40,12 @@ object StunAttributeValueParser {
 
   fun createUserName(localUfrag: String, remoteUfrag: String): ByteArray {
     val bytes = "$remoteUfrag:$localUfrag".toByteArray(Charsets.UTF_8)
-    val padding = (4 - (bytes.size % 4)) % 4
-    return bytes.plus(ByteArray(padding))
+    return bytes
   }
 
   fun createSoftware(): ByteArray {
-//    val bytes = "RootEncoder".toByteArray(Charsets.UTF_8)
-    val bytes = "|pipe| webRTC agent for IoT https://pi.pe".toByteArray(Charsets.UTF_8)
-    val padding = (4 - (bytes.size % 4)) % 4
-    return bytes.plus(ByteArray(padding))
+    val bytes = "RootEncoder".toByteArray(Charsets.UTF_8)
+    return bytes
   }
 
   fun createXorMappedAddress(

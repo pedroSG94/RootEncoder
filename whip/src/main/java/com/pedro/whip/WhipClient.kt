@@ -35,6 +35,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.withTimeoutOrNull
+import java.net.SocketTimeoutException
 import java.net.URISyntaxException
 import java.nio.ByteBuffer
 import java.security.SecureRandom
@@ -50,6 +51,7 @@ class WhipClient(private val connectChecker: ConnectChecker) {
     private var job: Job? = null
     private var jobRetry: Job? = null
     private var mutex = Mutex(locked = true)
+    private var mutexSuccessConnection = Mutex(locked = true)
 
     @Volatile
     var isStreaming = false
@@ -63,7 +65,7 @@ class WhipClient(private val connectChecker: ConnectChecker) {
     private var doingRetry = false
     private var numRetry = 0
     private var reTries = 0
-    private var publishPermitted = false
+    private var stunConnected = false
     private var checkServerAlive = false
     var socketType = SocketType.KTOR
 
@@ -221,34 +223,44 @@ class WhipClient(private val connectChecker: ConnectChecker) {
                     commandsManager.writeOptions()
                     val candidates = commandsManager.gatheringCandidates(socketType, GatheringMode.ALL)
                     Log.i(TAG, "found ${candidates.size} candidates")
-                    candidates.forEach { Log.i(TAG, "candidate: $it") }
                     val sockets = candidates.map {
+                        Log.i(TAG, "create socket to candidate: $it")
                         StreamSocket.createUdpSocket(socketType, it.localAddress, it.localPort, receiveSize = RtpConstants.MTU).apply {
                             bind()
                         }
                     }
+                    val jobs = mutableListOf<Job>()
                     sockets.forEach {
-                        async(Dispatchers.IO) {
-                            while (!publishPermitted) {
+                        jobs.add(async(Dispatchers.IO) {
+                            while (!stunConnected) {
                                 //Handle all command received and send response for it.
                                 handleMessages(it)
                             }
-                        }
+                        })
                     }
 
                     val offerResponse = commandsManager.writeOffer(candidates)
                     Log.i(TAG, offerResponse.body)
 
-                    val tieBreak = SecureRandom().nextLong().toUInt64()
+                    val tieBreak = commandsManager.generateTieBreak()
                     sockets.forEachIndexed { index, socket ->
                         commandsManager.remoteSdpInfo?.candidates?.filter { candidate ->
                             candidate.protocol == 1 //only rtp
                         }?.forEach { candidate ->
-                            async(Dispatchers.IO) {
-                                Log.e(TAG, "candidate: $candidate")
-                                sendBindingRequestToCandidate(candidates[index], candidate, tieBreak, socket)
-                            }
+                            jobs.add(async(Dispatchers.IO) {
+                                commandsManager.sendBindingRequestToCandidate(candidates[index], candidate, tieBreak, socket)
+                            })
                         }
+                    }
+                    withTimeoutOrNull(5000) {
+                        mutexSuccessConnection.lock()
+                    }
+                    jobs.forEach { it.cancel() }
+                    if (!stunConnected) {
+                        onMainThread {
+                            connectChecker.onConnectionFailed("Failed to receive stun connection, timeout")
+                        }
+                        return@launch
                     }
                     //TODO DTLS handshake
 
@@ -267,58 +279,22 @@ class WhipClient(private val connectChecker: ConnectChecker) {
     }
 
     suspend fun handleMessages(socket: UdpStreamSocket) {
-        val packet = socket.readPacket()
-        val host = packet.host ?: return
-        val port = packet.port ?: return
-        val command = StunCommandReader.readPacket(packet.data)
-        when (command.header.type) {
-          HeaderType.REQUEST -> {
-              sendSuccess(command.header.id, host, port, socket)
-              Log.e(TAG, "send response")
-          }
-          HeaderType.INDICATION -> throw IllegalArgumentException("unsupported for now")
-          HeaderType.SUCCESS -> {
-            throw IllegalArgumentException("success received?????")
-          }
-          HeaderType.ERROR -> throw IllegalArgumentException("unsupported for now")
-        }
-    }
-
-    suspend fun sendBindingRequestToCandidate(
-        localCandidate: Candidate,
-        remoteCandidate: Candidate,
-        tieBreak: ByteArray,
-        socket: UdpStreamSocket
-    ) {
-        val localFrag = commandsManager.localSdpInfo?.uFrag ?: return
-        val remoteFrag = commandsManager.remoteSdpInfo?.uFrag ?: return
-        val host = remoteCandidate.publicAddress ?: remoteCandidate.localAddress
-        val port = remoteCandidate.publicPort ?: remoteCandidate.localPort
-        val timeout = arrayOf(100L, 200L, 400L, 800L, 1500L, 2000)
-        for (i in 0..timeout.size) {
-            val id = commandsManager.generateTransactionId()
-            val userName = StunAttributeValueParser.createUserName(localFrag, remoteFrag)
-            val attributes = listOf(
-                StunAttribute(AttributeType.PRIORITY, localCandidate.priority.toUInt32()),
-                StunAttribute(AttributeType.USERNAME, userName),
-                StunAttribute(AttributeType.ICE_CONTROLLING, tieBreak),
-            )
-            commandsManager.writeStun(HeaderType.REQUEST, id, attributes, socket, host, port)
-            Log.i(TAG, "candidate request attempt: $i\nlocalCandidate: $localCandidate\nremoteCandidate: $remoteCandidate")
-            delay(timeout[i])
-        }
-    }
-
-    suspend fun sendSuccess(id: ByteArray, host: String, port: Int, socket: UdpStreamSocket) {
-        val localFrag = commandsManager.localSdpInfo?.uFrag ?: return
-        val remoteFrag = commandsManager.remoteSdpInfo?.uFrag ?: return
-        val userNameValue = StunAttributeValueParser.createUserName(remoteFrag, localFrag)
-        val xorAddress = StunAttributeValueParser.createXorMappedAddress(id, host, port, true)
-        val attributes = listOf(
-            StunAttribute(AttributeType.USERNAME, userNameValue),
-            StunAttribute(AttributeType.XOR_MAPPED_ADDRESS, xorAddress)
-        )
-        commandsManager.writeStun(HeaderType.SUCCESS, id, attributes, socket, host, port)
+        try {
+            val packet = socket.readPacket()
+            val host = packet.host ?: return
+            val port = packet.port ?: return
+            val command = StunCommandReader.readPacket(packet.data)
+            when (command.header.type) {
+                HeaderType.REQUEST -> {
+                    commandsManager.sendSuccess(command.header.id, host, port, socket)
+                }
+                HeaderType.INDICATION -> throw IllegalArgumentException("unsupported for now")
+                HeaderType.SUCCESS -> {
+                    throw IllegalArgumentException("success received?????")
+                }
+                HeaderType.ERROR -> throw IllegalArgumentException("unsupported for now")
+            }
+        } catch (_: SocketTimeoutException) {}
     }
 
     fun disconnect() {
@@ -356,7 +332,7 @@ class WhipClient(private val connectChecker: ConnectChecker) {
         job = null
         scope.cancel()
         scope = CoroutineScope(Dispatchers.IO)
-        publishPermitted = false
+        stunConnected = false
     }
 
     fun sendVideo(videoBuffer: ByteBuffer, info: MediaCodec.BufferInfo) {

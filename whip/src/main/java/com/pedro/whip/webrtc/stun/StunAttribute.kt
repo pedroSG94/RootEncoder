@@ -31,8 +31,8 @@ class StunAttribute(
         val buffer = ByteBuffer.allocate(4 + value.size + padding)
         buffer.putShort(type.value.toShort())
         buffer.putShort(value.size.toShort())
-        if (padding > 0) buffer.put(ByteArray(padding))
         buffer.put(value)
+        if (padding > 0) buffer.put(ByteArray(padding))
         return buffer.toByteArray()
     }
 
