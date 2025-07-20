@@ -45,7 +45,7 @@ object SdpParser {
         val values = candidateText.split(" ")
         if (values.size >= 8) {
           val protocol = values[1].toInt() // 1 SRTP, 2 SRTCP
-          val priority = values[3].toLong()
+          val priority = values[3].toInt()
           val address = values[4]
           val port = values[5].toInt()
           val candidateTypeText = values[7]

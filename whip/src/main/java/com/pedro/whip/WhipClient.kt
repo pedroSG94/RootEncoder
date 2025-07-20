@@ -24,7 +24,7 @@ import com.pedro.whip.webrtc.stun.GatheringMode
 import com.pedro.whip.webrtc.stun.StunAttribute
 import com.pedro.whip.webrtc.stun.StunAttributeValueParser
 import com.pedro.whip.webrtc.stun.StunCommandReader
-import com.pedro.whip.webrtc.stun.Type
+import com.pedro.whip.webrtc.stun.HeaderType
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -32,18 +32,16 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.withTimeoutOrNull
-import java.math.BigInteger
 import java.net.URISyntaxException
 import java.nio.ByteBuffer
-import kotlin.random.Random
+import java.security.SecureRandom
 
 class WhipClient(private val connectChecker: ConnectChecker) {
 
-    private val TAG = "RtspClient"
+    private val TAG = "WhipClient"
 
     private val validSchemes = arrayOf("http")
 
@@ -220,29 +218,36 @@ class WhipClient(private val connectChecker: ConnectChecker) {
                         whipSender.setVideoInfo(commandsManager.sps!!, commandsManager.pps, commandsManager.vps)
                     }
 
-
                     commandsManager.writeOptions()
-                    val candidates = commandsManager.gatheringCandidates(socketType, GatheringMode.LOCAL)
-                    val socket = StreamSocket.createUdpSocket(socketType, candidates[0].localAddress, candidates[0].localPort, receiveSize = RtpConstants.MTU).apply {
-                        bind()
-                    }
-                    async(Dispatchers.IO) {
-                        while (!publishPermitted) {
-                            //Handle all command received and send response for it.
-                            handleMessages(socket)
+                    val candidates = commandsManager.gatheringCandidates(socketType, GatheringMode.ALL)
+                    Log.i(TAG, "found ${candidates.size} candidates")
+                    candidates.forEach { Log.i(TAG, "candidate: $it") }
+                    val sockets = candidates.map {
+                        StreamSocket.createUdpSocket(socketType, it.localAddress, it.localPort, receiveSize = RtpConstants.MTU).apply {
+                            bind()
                         }
                     }
-                    Log.i(TAG, "found candidates")
+                    sockets.forEach {
+                        async(Dispatchers.IO) {
+                            while (!publishPermitted) {
+                                //Handle all command received and send response for it.
+                                handleMessages(it)
+                            }
+                        }
+                    }
+
                     val offerResponse = commandsManager.writeOffer(candidates)
                     Log.i(TAG, offerResponse.body)
 
-                    val tieBreak = Random.nextLong().toUInt64()
-                    commandsManager.remoteSdpInfo?.candidates?.filter {
-                        it.protocol == 1 //only rtp
-                    }?.forEach { candidate ->
-                        async(Dispatchers.IO) {
-                            Log.e(TAG, "candidate: $candidate")
-                            sendBindingRequestToCandidate(candidate, tieBreak, socket)
+                    val tieBreak = SecureRandom().nextLong().toUInt64()
+                    sockets.forEachIndexed { index, socket ->
+                        commandsManager.remoteSdpInfo?.candidates?.filter { candidate ->
+                            candidate.protocol == 1 //only rtp
+                        }?.forEach { candidate ->
+                            async(Dispatchers.IO) {
+                                Log.e(TAG, "candidate: $candidate")
+                                sendBindingRequestToCandidate(candidates[index], candidate, tieBreak, socket)
+                            }
                         }
                     }
                     //TODO DTLS handshake
@@ -267,49 +272,53 @@ class WhipClient(private val connectChecker: ConnectChecker) {
         val port = packet.port ?: return
         val command = StunCommandReader.readPacket(packet.data)
         when (command.header.type) {
-          Type.REQUEST -> {
+          HeaderType.REQUEST -> {
               sendSuccess(command.header.id, host, port, socket)
               Log.e(TAG, "send response")
           }
-          Type.INDICATION -> throw IllegalArgumentException("unsupported for now")
-          Type.SUCCESS -> {
+          HeaderType.INDICATION -> throw IllegalArgumentException("unsupported for now")
+          HeaderType.SUCCESS -> {
             throw IllegalArgumentException("success received?????")
           }
-          Type.ERROR -> throw IllegalArgumentException("unsupported for now")
+          HeaderType.ERROR -> throw IllegalArgumentException("unsupported for now")
         }
     }
 
-    suspend fun sendBindingRequestToCandidate(candidate: Candidate, tieBreak: ByteArray, socket: UdpStreamSocket) {
-        val host = candidate.publicAddress ?: candidate.localAddress
-        val port = candidate.publicPort ?: candidate.localPort
-        val type = candidate.type
-        var tryNumber = 1
-        while (tryNumber <= 8) {
+    suspend fun sendBindingRequestToCandidate(
+        localCandidate: Candidate,
+        remoteCandidate: Candidate,
+        tieBreak: ByteArray,
+        socket: UdpStreamSocket
+    ) {
+        val localFrag = commandsManager.localSdpInfo?.uFrag ?: return
+        val remoteFrag = commandsManager.remoteSdpInfo?.uFrag ?: return
+        val host = remoteCandidate.publicAddress ?: remoteCandidate.localAddress
+        val port = remoteCandidate.publicPort ?: remoteCandidate.localPort
+        val timeout = arrayOf(100L, 200L, 400L, 800L, 1500L, 2000)
+        for (i in 0..timeout.size) {
             val id = commandsManager.generateTransactionId()
-            val priority = commandsManager.calculatePriority(type, 65535L, 1).toInt().toUInt32()
-            val userName = StunAttributeValueParser.createUserName(commandsManager.localSdpInfo?.uFrag!!, commandsManager.remoteSdpInfo?.uFrag!!)
+            val userName = StunAttributeValueParser.createUserName(localFrag, remoteFrag)
             val attributes = listOf(
-                StunAttribute(AttributeType.PRIORITY, priority),
+                StunAttribute(AttributeType.PRIORITY, localCandidate.priority.toUInt32()),
                 StunAttribute(AttributeType.USERNAME, userName),
                 StunAttribute(AttributeType.ICE_CONTROLLING, tieBreak),
             )
-            commandsManager.writeStun(Type.REQUEST, id, attributes, socket, host, port)
-            Log.i(TAG, "try: $tryNumber, candidate: $candidate")
-            delay(100L)
-            tryNumber++
+            commandsManager.writeStun(HeaderType.REQUEST, id, attributes, socket, host, port)
+            Log.i(TAG, "candidate request attempt: $i\nlocalCandidate: $localCandidate\nremoteCandidate: $remoteCandidate")
+            delay(timeout[i])
         }
     }
 
-    suspend fun sendSuccess(id: BigInteger, host: String, port: Int, socket: UdpStreamSocket) {
-        val userNameValue = StunAttributeValueParser.createUserName(
-            commandsManager.remoteSdpInfo?.uFrag!!, commandsManager.localSdpInfo?.uFrag!!
-        )
+    suspend fun sendSuccess(id: ByteArray, host: String, port: Int, socket: UdpStreamSocket) {
+        val localFrag = commandsManager.localSdpInfo?.uFrag ?: return
+        val remoteFrag = commandsManager.remoteSdpInfo?.uFrag ?: return
+        val userNameValue = StunAttributeValueParser.createUserName(remoteFrag, localFrag)
         val xorAddress = StunAttributeValueParser.createXorMappedAddress(id, host, port, true)
         val attributes = listOf(
             StunAttribute(AttributeType.USERNAME, userNameValue),
             StunAttribute(AttributeType.XOR_MAPPED_ADDRESS, xorAddress)
         )
-        commandsManager.writeStun(Type.SUCCESS, id, attributes, socket, host, port)
+        commandsManager.writeStun(HeaderType.SUCCESS, id, attributes, socket, host, port)
     }
 
     fun disconnect() {

@@ -7,7 +7,6 @@ import com.pedro.common.VideoCodec
 import com.pedro.common.socket.base.SocketType
 import com.pedro.common.socket.base.StreamSocket
 import com.pedro.common.socket.base.UdpStreamSocket
-import com.pedro.common.toUInt32
 import com.pedro.rtsp.rtsp.commands.SdpBody
 import com.pedro.rtsp.utils.RtpConstants
 import com.pedro.rtsp.utils.encodeToString
@@ -20,12 +19,12 @@ import com.pedro.whip.utils.Requests
 import com.pedro.whip.webrtc.stun.AttributeType
 import com.pedro.whip.webrtc.stun.GatheringMode
 import com.pedro.whip.webrtc.stun.StunAttribute
+import com.pedro.whip.webrtc.stun.StunAttributeValueParser
 import com.pedro.whip.webrtc.stun.StunCommand
 import com.pedro.whip.webrtc.stun.StunCommandReader
 import com.pedro.whip.webrtc.stun.StunHeader
-import com.pedro.whip.webrtc.stun.Type
+import com.pedro.whip.webrtc.stun.HeaderType
 import java.math.BigInteger
-import java.net.InetAddress
 import java.nio.ByteBuffer
 import java.security.SecureRandom
 import java.util.zip.CRC32
@@ -56,6 +55,7 @@ class CommandsManager {
     private var stunSeq = 0
     private val timeout = 5000
     private val timeStamp: Long
+    private val secureRandom = SecureRandom()
     var remoteSdpInfo: SdpInfo? = null
         private set
     var localSdpInfo: SdpInfo? = null
@@ -124,32 +124,42 @@ class CommandsManager {
     }
 
     suspend fun gatheringCandidates(socketType: SocketType, gatheringMode: GatheringMode): List<Candidate> {
-        val addresses = Network.getNetworks(onlyV4 = true)
-        var localPort = 5000
+        val googleStunHost = "stun.l.google.com"
+        val googleStunPort = 19302
+        val startPort = 5000
+        val hosts = Network.getNetworks(onlyV4 = true).mapNotNull { it.hostAddress }
         return when (gatheringMode) {
-          GatheringMode.LOCAL -> addresses.map {
-              val type = CandidateType.LOCAL
-              val priority = calculatePriority(type, 65535L, 1)
-              Candidate(
-                  type = type,
-                  protocol = 1,
-                  priority = priority,
-                  localAddress = it.hostAddress ?: "",
-                  localPort = localPort++,
-                  publicAddress = null,
-                  publicPort = null
-              )
+          GatheringMode.LOCAL -> getLocalCandidates(hosts, startPort)
+          GatheringMode.ALL -> {
+              val localCandidates = getLocalCandidates(hosts, startPort)
+              val publicCandidates = getStunCandidates(socketType, googleStunHost, googleStunPort, hosts, startPort + localCandidates.size)
+              return localCandidates + publicCandidates
           }
-          GatheringMode.ALL -> filterNetworksWithStun(socketType, addresses)
         }
     }
 
-    fun calculatePriority(type: CandidateType, localPreference: Long, componentId: Long): Long {
-        return (type.preference shl 24) or (localPreference shl 8) or (256 - componentId)
+    private fun getLocalCandidates(hosts: List<String>, startPort: Int): List<Candidate> {
+        var port = startPort
+        return hosts.map {
+            val type = CandidateType.LOCAL
+            val priority = calculatePriority(type, 65535L, 1)
+            Candidate(
+                type = type,
+                protocol = 1,
+                priority = priority,
+                localAddress = it,
+                localPort = port++,
+                publicAddress = null,
+                publicPort = null
+            )
+        }
+    }
+
+    fun calculatePriority(type: CandidateType, localPreference: Long, componentId: Long): Int {
+        return ((type.preference shl 24) or (localPreference shl 8) or (256 - componentId)).toInt()
     }
     
     fun writeOffer(candidates: List<Candidate>): RequestResponse {
-        val secureRandom = SecureRandom()
         val uFrag = secureRandom.nextLong().toString(36).replace("-", "")
         val uPass = (BigInteger(130, secureRandom).toString(32)).replace("-", "")
         val certificate = CryptoUtils.generateCert("RootEncoder", secureRandom)
@@ -173,49 +183,55 @@ class CommandsManager {
         return answer
     }
 
-    private suspend fun filterNetworksWithStun(
+    private suspend fun getStunCandidates(
         socketType: SocketType,
-        networks: List<InetAddress>
+        stunHost: String,
+        stunPort: Int,
+        hosts: List<String>,
+        startPort: Int
     ): List<Candidate> {
         val candidates = mutableListOf<Candidate>()
-        val googleStunHost = "stun:stun4.l.google.com"
-        val googleStunPort = 19302
-        var port = 5000
-        networks.forEach {
-            val candidate = StreamSocket.createUdpSocket(
+        var port = startPort
+        hosts.forEach { host ->
+            val candidateSocket = StreamSocket.createUdpSocket(
                 type = socketType,
-                host = googleStunHost,
-                port = googleStunPort,
+                host = host,
+                port = port++,
                 receiveSize = RtpConstants.MTU,
-                sourceHost = it.hostAddress,
-                sourcePort = port++
             )
-            candidate.connect()
-            val candidateStunCommand = StunCommand(
-                header = StunHeader(Type.REQUEST, 0, 0, stunSeq++.toBigInteger()),
-                attributes = listOf(
-                    StunAttribute(AttributeType.USERNAME, byteArrayOf()),
-                    StunAttribute(AttributeType.ICE_CONTROLLED, byteArrayOf()),
-                    StunAttribute(AttributeType.MESSAGE_INTEGRITY, byteArrayOf()),
-                    StunAttribute(AttributeType.FINGERPRINT, byteArrayOf()),
-                )
+            candidateSocket.bind()
+            val command = StunCommand(
+                header = StunHeader(HeaderType.REQUEST, 0, Constants.MAGIC_COOKIE, generateTransactionId()),
+                attributes = listOf(),
+                useIntegrity = false,
+                useFingerprint = false
             )
-            writeStun(candidateStunCommand, candidate, googleStunHost, googleStunPort)
-            val result = readStun(candidate)
-            val isSuccess = false
-            if (isSuccess) //candidates.add(it)
-            candidate.close()
+            writeStun(command, candidateSocket, stunHost, stunPort)
+            val result = readStun(candidateSocket)
+            val isSuccess = result.header.type == HeaderType.SUCCESS
+            if (isSuccess) {
+                val xorMappedAddress = result.attributes.find { it.type == AttributeType.XOR_MAPPED_ADDRESS }?.value!!
+                val value = StunAttributeValueParser.readXorMappedAddress(xorMappedAddress, result.header.id)
+                val publicHost = value.split(":")[0]
+                val publicPort = value.split(":")[1].toInt()
+                val type = CandidateType.SRFLX
+                val priority = calculatePriority(type, 65535L, 1)
+                candidates.add(Candidate(
+                    type, 1, priority, host, port, publicHost, publicPort
+                ))
+            }
+            candidateSocket.close()
         }
         return candidates
     }
 
     suspend fun writeStun(stunCommand: StunCommand, socket: UdpStreamSocket, host: String, port: Int) {
-        val remotePass = remoteSdpInfo?.uPass ?: throw IllegalStateException("remote sdp info no received yet")
+        val remotePass = if (!stunCommand.useIntegrity) "" else remoteSdpInfo?.uPass ?: throw IllegalStateException("remote sdp info no received yet")
         Log.i(TAG, stunCommand.toString())
         socket.write(stunCommand.toByteArray(remotePass), host, port)
     }
 
-    suspend fun writeStun(type: Type, id: BigInteger, attributes: List<StunAttribute>, socket: UdpStreamSocket, host: String, port: Int) {
+    suspend fun writeStun(type: HeaderType, id: ByteArray, attributes: List<StunAttribute>, socket: UdpStreamSocket, host: String, port: Int) {
         val remotePass = remoteSdpInfo?.uPass ?: throw IllegalStateException("remote sdp info no received yet")
         val command = StunCommand(
             StunHeader(type, 0, Constants.MAGIC_COOKIE, id), attributes
@@ -299,7 +315,9 @@ class CommandsManager {
         return crc32.value
     }
 
-    fun generateTransactionId(): BigInteger {
-        return BigInteger(ByteArray(12).apply { SecureRandom().nextBytes(this) })
+    fun generateTransactionId(): ByteArray {
+        val bytes = ByteArray(12)
+        secureRandom.nextBytes(bytes)
+        return bytes
     }
 }

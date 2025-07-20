@@ -18,12 +18,16 @@
 
 package com.pedro.whip.webrtc.stun
 
+import com.pedro.common.readUInt16
+import com.pedro.common.readUInt32
+import com.pedro.common.readUntil
 import com.pedro.common.toByteArray
 import com.pedro.common.toUInt16
 import com.pedro.common.toUInt32
 import com.pedro.common.xorBytes
 import com.pedro.whip.dtls.CryptoUtils
 import com.pedro.whip.utils.Constants
+import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import java.math.BigInteger
 import java.net.InetAddress
@@ -41,13 +45,14 @@ object StunAttributeValueParser {
   }
 
   fun createSoftware(): ByteArray {
-    val bytes = "RootEncoder".toByteArray(Charsets.UTF_8)
+//    val bytes = "RootEncoder".toByteArray(Charsets.UTF_8)
+    val bytes = "|pipe| webRTC agent for IoT https://pi.pe".toByteArray(Charsets.UTF_8)
     val padding = (4 - (bytes.size % 4)) % 4
     return bytes.plus(ByteArray(padding))
   }
 
   fun createXorMappedAddress(
-    id: BigInteger, host: String, port: Int, isIpv4: Boolean
+    id: ByteArray, host: String, port: Int, isIpv4: Boolean
   ): ByteArray {
     val output = ByteArrayOutputStream()
     output.write(0)
@@ -57,15 +62,27 @@ object StunAttributeValueParser {
     if (isIpv4) {
       output.write(address.address.xorBytes(Constants.MAGIC_COOKIE.toUInt32()))
     } else {
-      val xor = Constants.MAGIC_COOKIE.toUInt32() + id.toByteArray(12)
+      val xor = Constants.MAGIC_COOKIE.toUInt32() + id
       output.write(address.address.xorBytes(xor))
     }
     return output.toByteArray()
   }
 
+  fun readXorMappedAddress(bytes: ByteArray, id: ByteArray): String {
+    val input = ByteArrayInputStream(bytes)
+    input.read()
+    val isIpv4 = input.read() == 0x01
+    val port = input.readUInt16().toUInt16().xorBytes(Constants.MAGIC_COOKIE.toUInt32()).toUInt16()
+    val xor = if (isIpv4) Constants.MAGIC_COOKIE.toUInt32() else Constants.MAGIC_COOKIE.toUInt32() + id
+    val hostXor = ByteArray(if (isIpv4) 4 else 16)
+    input.readUntil(hostXor)
+    val host = hostXor.xorBytes(xor)
+    val address = InetAddress.getByAddress(host)
+    return "${address.hostAddress}:$port"
+  }
+
   fun createMessageIntegrity(bytes: ByteArray, password: String): ByteArray {
     return CryptoUtils.calculateHmacSha1(bytes, password.toByteArray(Charsets.UTF_8))
-//    return test.calculateMessageIntegrity(password.toByteArray(Charsets.UTF_8), ByteBuffer.wrap(bytes), true)
   }
 
   fun createFingerprint(bytes: ByteArray): ByteArray {

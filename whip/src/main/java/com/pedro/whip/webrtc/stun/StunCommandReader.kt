@@ -5,7 +5,6 @@ import com.pedro.common.readUInt32
 import com.pedro.common.readUntil
 import java.io.ByteArrayInputStream
 import java.io.InputStream
-import java.math.BigInteger
 
 object StunCommandReader {
 
@@ -22,9 +21,8 @@ object StunCommandReader {
         val cookie = input.readUInt32()
         val idBytes = ByteArray(12)
         input.readUntil(idBytes)
-        val id = BigInteger(idBytes)
-        val type = Type.entries.find { it.value == typeValue } ?: Type.ERROR
-        return StunHeader(type, length, cookie, id)
+        val type = HeaderType.entries.find { it.value == typeValue } ?: HeaderType.ERROR
+        return StunHeader(type, length, cookie, idBytes)
     }
 
     private fun readBody(input: InputStream, length: Int): List<StunAttribute> {

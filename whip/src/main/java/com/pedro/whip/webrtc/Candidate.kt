@@ -24,7 +24,7 @@ package com.pedro.whip.webrtc
 data class Candidate(
   val type: CandidateType,
   val protocol: Int, //1 SRTP, 2 SRTCP
-  val priority: Long,
+  val priority: Int,
   val localAddress: String,
   val localPort: Int,
   val publicAddress: String?,

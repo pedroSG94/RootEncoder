@@ -269,3 +269,14 @@ fun SurfaceTexture.tryClear() {
     surface.release()
   }
 }
+
+fun List<ByteArray>.combine(): ByteArray {
+  val totalSize = this.sumOf { it.size }
+  val combined = ByteArray(totalSize)
+  var offset = 0
+  for (arr in this) {
+    arr.copyInto(combined, offset)
+    offset += arr.size
+  }
+  return combined
+}
