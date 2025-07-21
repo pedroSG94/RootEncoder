@@ -28,6 +28,7 @@ import com.pedro.whip.webrtc.stun.StunCommandReader
 import com.pedro.whip.webrtc.stun.StunHeader
 import com.pedro.whip.webrtc.stun.HeaderType
 import kotlinx.coroutines.delay
+import org.bouncycastle.tls.crypto.impl.bc.BcTlsCrypto
 import java.math.BigInteger
 import java.nio.ByteBuffer
 import java.security.SecureRandom
@@ -60,18 +61,21 @@ class CommandsManager {
     private val timeout = 5000
     private val timeStamp: Long
     private val secureRandom = SecureRandom()
+    val crypto = BcTlsCrypto(secureRandom)
     var remoteSdpInfo: SdpInfo? = null
         private set
     var localSdpInfo: SdpInfo? = null
         private set
     var tieBreak = ByteArray(8)
         private set
+    val pairsToResponse = mutableListOf<StunRequest>()
     val spsString: String
         get() = sps?.getData()?.encodeToString() ?: ""
     val ppsString: String
         get() = pps?.getData()?.encodeToString() ?: ""
     val vpsString: String
         get() = vps?.getData()?.encodeToString() ?: ""
+    private val lock = Any()
 
     companion object {
         private const val TAG = "CommandsManager"
@@ -168,7 +172,7 @@ class CommandsManager {
     fun writeOffer(candidates: List<Candidate>): RequestResponse {
         val uFrag = secureRandom.nextLong().toString(36).replace("-", "")
         val uPass = (BigInteger(130, secureRandom).toString(32)).replace("-", "")
-        val certificate = CryptoUtils.generateCert("RootEncoder", secureRandom)
+        val certificate = CryptoUtils.generateCert("RootEncoder", crypto)
         val videoSsrc = Random.nextLong()
         val audioSsrc = Random.nextLong()
         val body = createBody(
@@ -327,8 +331,6 @@ class CommandsManager {
         return secureRandom.nextBytes(12)
     }
 
-    val pairsToResponse = mutableListOf<StunRequest>()
-
     suspend fun sendBindingRequestToCandidate(
         candidatePair: CandidatePair,
         socket: UdpStreamSocket
@@ -347,7 +349,9 @@ class CommandsManager {
                 StunAttribute(AttributeType.ICE_CONTROLLING, tieBreak),
             )
             writeStun(HeaderType.REQUEST, id, attributes, socket, host, port)
-            pairsToResponse.add(StunRequest(id, candidatePair, false))
+            synchronized(lock) {
+                pairsToResponse.add(StunRequest(id, candidatePair, false))
+            }
             Log.i(TAG, "candidate request attempt: $i\ncandidate pair: $candidatePair")
             delay(timeout[i])
         }
@@ -384,9 +388,15 @@ class CommandsManager {
                 StunAttribute(AttributeType.USE_CANDIDATE, byteArrayOf()),
             )
             writeStun(HeaderType.REQUEST, id, attributes, socket, host, port)
-            pairsToResponse.add(StunRequest(id, candidatePair, true))
+            synchronized(lock) {
+                pairsToResponse.add(StunRequest(id, candidatePair, true))
+            }
             Log.i(TAG, "nominate candidate request attempt: $i\ncandidate pair: $candidatePair")
             delay(timeout[i])
         }
+    }
+
+    fun clearWaitingPairs() {
+        synchronized(lock) { pairsToResponse.clear() }
     }
 }

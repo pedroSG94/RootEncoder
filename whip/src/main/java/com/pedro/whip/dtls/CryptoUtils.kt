@@ -57,9 +57,8 @@ object CryptoUtils {
   }
 
   fun generateCert(
-    cn: String, secureRandom: SecureRandom
+    cn: String, crypto: BcTlsCrypto
   ): DtlsCertificate {
-    val crypto = BcTlsCrypto(secureRandom)
     val generator = KeyPairGenerator.getInstance("RSA")
     generator.initialize(2048)
 

@@ -95,6 +95,18 @@ class UdpStreamSocketJava(
         return UdpPacket(udpPacket.data, udpPacket.length, udpPacket.address.hostName, udpPacket.port)
     }
 
+    override suspend fun setRemoteAddress(host: String, port: Int) {
+
+    }
+
+    override suspend fun getLocalHost(): String {
+        return "0.0.0.0"
+    }
+
+    override suspend fun getLocalPort(): Int {
+        return 0
+    }
+
     override fun isConnected(): Boolean = socket?.isConnected ?: false
 
     override fun isReachable(): Boolean = socket?.inetAddress?.isReachable(timeout.toInt()) ?: false

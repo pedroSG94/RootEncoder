@@ -10,7 +10,6 @@ import io.ktor.network.sockets.ConnectedDatagramSocket
 import io.ktor.network.sockets.Datagram
 import io.ktor.network.sockets.DatagramReadWriteChannel
 import io.ktor.network.sockets.InetSocketAddress
-import io.ktor.network.sockets.SocketAddress
 import io.ktor.network.sockets.aSocket
 import io.ktor.network.sockets.isClosed
 import io.ktor.utils.io.core.remaining
@@ -29,7 +28,8 @@ class UdpStreamSocketKtor(
     private val type: UdpType = UdpType.UNICAST
 ): UdpStreamSocket() {
 
-    private val address = InetSocketAddress(host, port)
+    private var address = InetSocketAddress(host, port)
+    private var localAddress: InetSocketAddress? = null
     private var selectorManager = SelectorManager(Dispatchers.IO)
     private var socket: DatagramReadWriteChannel? = null
     private var myAddress: InetAddress? = null
@@ -37,7 +37,11 @@ class UdpStreamSocketKtor(
     override suspend fun connect() {
         selectorManager = SelectorManager(Dispatchers.IO)
         val builder = aSocket(selectorManager).udp()
-        val localAddress = if (sourcePort == null) null else InetSocketAddress(sourceHost ?: "0.0.0.0", sourcePort)
+        val localAddress = if (sourcePort == null) null else {
+            val localAddress = InetSocketAddress(sourceHost ?: "0.0.0.0", sourcePort)
+            this.localAddress = localAddress
+            localAddress
+        }
         val socket = builder.connect(
             remoteAddress = address,
             localAddress = localAddress
@@ -60,8 +64,10 @@ class UdpStreamSocketKtor(
     override suspend fun bind() {
         selectorManager = SelectorManager(Dispatchers.IO)
         val builder = aSocket(selectorManager).udp()
+        val localAddress = InetSocketAddress(host, port)
+        this.localAddress = localAddress
         val socket = builder.bind(
-            localAddress = InetSocketAddress(host, port)
+            localAddress = localAddress
         ) {
             broadcast = type == UdpType.BROADCAST
             receiveBufferSize = receiveSize ?: 0
@@ -92,6 +98,18 @@ class UdpStreamSocketKtor(
         val data = datagram.packet.readByteArray()
         val address = datagram.address as? InetSocketAddress
         return UdpPacket(data, length, address?.hostname, address?.port)
+    }
+
+    override suspend fun setRemoteAddress(host: String, port: Int) {
+        address = InetSocketAddress(host, port)
+    }
+
+    override suspend fun getLocalHost(): String {
+        return localAddress?.hostname ?: "0.0.0.0"
+    }
+
+    override suspend fun getLocalPort(): Int {
+        return localAddress?.port ?: 0
     }
 
     override fun isConnected(): Boolean = (socket as? ASocket)?.isClosed != true
