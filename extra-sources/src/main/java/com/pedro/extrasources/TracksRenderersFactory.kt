@@ -13,7 +13,6 @@ import androidx.media3.exoplayer.audio.DefaultAudioSink
 import androidx.media3.exoplayer.mediacodec.MediaCodecSelector
 import androidx.media3.exoplayer.video.VideoRendererEventListener
 import com.pedro.common.frame.MediaFrame
-import java.util.ArrayList
 
 @OptIn(UnstableApi::class)
 class TracksRenderersFactory(

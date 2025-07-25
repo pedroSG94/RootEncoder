@@ -54,7 +54,7 @@ class BitmapSource(private val bitmap: Bitmap): VideoSource() {
           val canvas = surface?.lockCanvas(null)
           canvas?.drawBitmap(scaledBitmap, 0f, 0f, paint)
           surface?.unlockCanvasAndPost(canvas)
-        } catch (ignored: Exception) { }
+        } catch (_: Exception) { }
         //sleep to emulate fps
         delay(1000 / fps.toLong())
       }

@@ -52,6 +52,7 @@ import java.util.concurrent.Executors
 import java.util.concurrent.Semaphore
 import kotlin.math.max
 import kotlin.math.min
+import kotlin.math.roundToInt
 
 /**
  * Created by pedro on 4/03/17.
@@ -115,7 +116,7 @@ class Camera2ApiManager(context: Context) : CameraDevice.StateCallback() {
     private var imageReader: ImageReader? = null
 
     init {
-        cameraId = try { getCameraIdForFacing(Facing.BACK) } catch (e: Exception) { "0" }
+        cameraId = try { getCameraIdForFacing(Facing.BACK) } catch (_: Exception) { "0" }
     }
 
     fun prepareCamera(surfaceTexture: SurfaceTexture, width: Int, height: Int, fps: Int) {
@@ -158,13 +159,10 @@ class Camera2ApiManager(context: Context) : CameraDevice.StateCallback() {
                     try {
                         it.setRepeatingRequest(
                             captureRequest,
-                            if (faceDetectionEnabled || frameCapturedCallback != null){
-                                cb
-                            } else{
-                                null
-                            }, cameraHandler
+                            if (faceDetectionEnabled || frameCapturedCallback != null) cb else null,
+                            cameraHandler
                         )
-                    } catch (e: IllegalStateException) {
+                    } catch (_: IllegalStateException) {
                         reOpenCamera(cameraId)
                     } catch (e: Exception) {
                         cameraCallbacks?.onCameraError("Create capture session failed: " + e.message)
@@ -178,7 +176,7 @@ class Camera2ApiManager(context: Context) : CameraDevice.StateCallback() {
                 },
                 cameraHandler
             )
-        } catch (e: IllegalStateException) {
+        } catch (_: IllegalStateException) {
             reOpenCamera(cameraId)
         } catch (e: Exception) {
             cameraCallbacks?.onCameraError("Create capture session failed: " + e.message)
@@ -506,7 +504,7 @@ class Camera2ApiManager(context: Context) : CameraDevice.StateCallback() {
             session.capture(builderInputSurface.build(), captureCallbackHandler, null)
             isAutoFocusEnabled = true
             return true
-        } catch (e: Exception) {
+        } catch (_: Exception) {
             return false
         }
     }
@@ -763,8 +761,8 @@ class Camera2ApiManager(context: Context) : CameraDevice.StateCallback() {
                     //This ratio is the ratio of cropped Rect to Camera's original(Maximum) Rect
                     val ratio = 1f / l
                     //croppedWidth and croppedHeight are the pixels cropped away, not pixels after cropped
-                    val croppedWidth = rect.width() - Math.round(rect.width().toFloat() * ratio)
-                    val croppedHeight = rect.height() - Math.round(rect.height().toFloat() * ratio)
+                    val croppedWidth = rect.width() - (rect.width().toFloat() * ratio).roundToInt()
+                    val croppedHeight = rect.height() - (rect.height().toFloat() * ratio).roundToInt()
                     //Finally, zoom represents the zoomed visible area
                     val zoom = Rect(
                         croppedWidth / 2, croppedHeight / 2, rect.width() - croppedWidth / 2,
@@ -903,7 +901,7 @@ class Camera2ApiManager(context: Context) : CameraDevice.StateCallback() {
                 }
             }
             return Facing.BACK
-        } catch (e: Exception) {
+        } catch (_: Exception) {
             return Facing.BACK
         }
     }

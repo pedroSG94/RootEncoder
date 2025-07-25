@@ -29,6 +29,7 @@ import com.pedro.common.onMainThread
 import com.pedro.common.socket.base.SocketType
 import com.pedro.common.toMediaFrameInfo
 import com.pedro.common.validMessage
+import com.pedro.srt.mpeg2ts.service.Mpeg2TsService
 import com.pedro.srt.srt.packets.ControlPacket
 import com.pedro.srt.srt.packets.DataPacket
 import com.pedro.srt.srt.packets.SrtPacket
@@ -59,7 +60,6 @@ import kotlinx.coroutines.withTimeoutOrNull
 import java.io.IOException
 import java.net.URISyntaxException
 import java.nio.ByteBuffer
-import com.pedro.srt.mpeg2ts.service.Mpeg2TsService
 
 /**
  * Created by pedro on 20/8/23.
@@ -197,7 +197,7 @@ class SrtClient(private val connectChecker: ConnectChecker) {
 
         val urlParser = try {
           UrlParser.parse(url, validSchemes)
-        } catch (e: URISyntaxException) {
+        } catch (_: URISyntaxException) {
           isStreaming = false
           onMainThread {
             connectChecker.onConnectionFailed("Endpoint malformed, should be: srt://ip:port/streamid")

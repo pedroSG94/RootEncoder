@@ -51,6 +51,7 @@ import java.util.List;
  * <p>
  * If you want use all resolutions. You can use libYuv for resize images in OnPreviewFrame:
  * https://chromium.googlesource.com/libyuv/libyuv/
+ * @noinspection deprecation
  */
 
 public class Camera1ApiManager implements Camera.PreviewCallback, Camera.FaceDetectionListener {
@@ -68,7 +69,7 @@ public class Camera1ApiManager implements Camera.PreviewCallback, Camera.FaceDet
   private int cameraSelect;
   private CameraHelper.Facing facing = CameraHelper.Facing.BACK;
   private boolean isPortrait = false;
-  private Context context;
+  private final Context context;
 
   //default parameters for camera
   private int width = 640;
@@ -389,7 +390,7 @@ public class Camera1ApiManager implements Camera.PreviewCallback, Camera.FaceDet
   }
 
   /**
-   * See: https://developer.android.com/reference/android/graphics/ImageFormat.html to know name of
+   * See: <a href="https://developer.android.com/reference/android/graphics/ImageFormat.html">ImageFormat</a> to know name of
    * constant values
    * Example: 842094169 -> YV12, 17 -> NV21
    */
@@ -490,7 +491,6 @@ public class Camera1ApiManager implements Camera.PreviewCallback, Camera.FaceDet
       }
       stop();
       start();
-      return;
     }
   }
 
@@ -551,7 +551,7 @@ public class Camera1ApiManager implements Camera.PreviewCallback, Camera.FaceDet
   }
 
   /**
-   * @required: <uses-permission android:name="android.permission.FLASHLIGHT"/>
+   * &#064;required:  <uses-permission android:name="android.permission.FLASHLIGHT"/>
    */
   public void disableLantern() {
     if (camera != null) {
@@ -756,16 +756,16 @@ public class Camera1ApiManager implements Camera.PreviewCallback, Camera.FaceDet
     return new Rect(left, top, left + focusAreaSize, top + focusAreaSize);
   }
 
-  private int clamp(int touchCoordinateInCameraReper, int focusAreaSize) {
+  private int clamp(int touchCoordinate, int focusAreaSize) {
     int result;
-    if (Math.abs(touchCoordinateInCameraReper) + focusAreaSize / 2 > 1000){
-      if (touchCoordinateInCameraReper > 0){
+    if (Math.abs(touchCoordinate) + focusAreaSize / 2 > 1000) {
+      if (touchCoordinate > 0) {
         result = 1000 - focusAreaSize / 2;
       } else {
         result = -1000 + focusAreaSize / 2;
       }
-    } else{
-      result = touchCoordinateInCameraReper - focusAreaSize / 2;
+    } else {
+      result = touchCoordinate - focusAreaSize / 2;
     }
     return result;
   }

@@ -4,9 +4,7 @@ import android.util.Log
 import com.pedro.common.BitrateManager
 import com.pedro.common.ConnectChecker
 import com.pedro.common.StreamBlockingQueue
-import com.pedro.common.compare
 import com.pedro.common.frame.MediaFrame
-import com.pedro.common.trySend
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -16,9 +14,6 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import java.nio.ByteBuffer
-import java.util.concurrent.BlockingQueue
-import java.util.concurrent.LinkedBlockingQueue
-import java.util.concurrent.PriorityBlockingQueue
 
 abstract class BaseSender(
     protected val connectChecker: ConnectChecker,

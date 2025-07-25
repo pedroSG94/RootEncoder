@@ -1,6 +1,5 @@
 package com.pedro.encoder.input.audio
 
-import java.util.concurrent.BlockingQueue
 import java.util.concurrent.Executors
 import java.util.concurrent.LinkedBlockingQueue
 

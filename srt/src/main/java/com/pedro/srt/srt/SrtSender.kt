@@ -42,7 +42,6 @@ import com.pedro.srt.utils.toCodec
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.runInterruptible
 import java.nio.ByteBuffer
-import java.util.concurrent.TimeUnit
 
 /**
  * Created by pedro on 20/8/23.
