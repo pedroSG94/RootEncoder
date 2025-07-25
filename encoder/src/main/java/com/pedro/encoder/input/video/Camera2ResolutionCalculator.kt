@@ -34,9 +34,9 @@ object Camera2ResolutionCalculator {
         resolutions.add(resolution)
         val resolutionsSorted = resolutions.sortedByDescending { it.height }
         val index = resolutionsSorted.indexOf(resolution)
-        if (index > 0) {
-          return resolutionsSorted[index - 1]
-        } else return resolutionsSorted[index + 1]
+        return if (index > 0) {
+          resolutionsSorted[index - 1]
+        } else resolutionsSorted[index + 1]
       } else {
         actualResolution
       }

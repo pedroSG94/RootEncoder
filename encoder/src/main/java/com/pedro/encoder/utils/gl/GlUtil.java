@@ -28,6 +28,7 @@ import android.os.Build;
 import androidx.annotation.RequiresApi;
 
 import com.pedro.encoder.BuildConfig;
+
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;

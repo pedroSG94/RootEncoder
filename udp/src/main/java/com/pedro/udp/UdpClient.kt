@@ -26,10 +26,10 @@ import com.pedro.common.clone
 import com.pedro.common.frame.MediaFrame
 import com.pedro.common.onMainThread
 import com.pedro.common.socket.base.SocketType
+import com.pedro.common.socket.base.UdpType
 import com.pedro.common.toMediaFrameInfo
 import com.pedro.common.validMessage
 import com.pedro.udp.utils.UdpSocket
-import com.pedro.common.socket.base.UdpType
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -147,7 +147,7 @@ class UdpClient(private val connectChecker: ConnectChecker) {
 
         val urlParser = try {
           UrlParser.parse(url, validSchemes)
-        } catch (e: URISyntaxException) {
+        } catch (_: URISyntaxException) {
           isStreaming = false
           onMainThread {
             connectChecker.onConnectionFailed("Endpoint malformed, should be: udp://ip:port")

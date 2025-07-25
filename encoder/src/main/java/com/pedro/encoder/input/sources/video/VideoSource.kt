@@ -18,7 +18,6 @@ package com.pedro.encoder.input.sources.video
 
 import android.graphics.SurfaceTexture
 import com.pedro.encoder.input.sources.OrientationConfig
-import com.pedro.encoder.input.sources.OrientationForced
 
 /**
  * Created by pedro on 11/1/24.

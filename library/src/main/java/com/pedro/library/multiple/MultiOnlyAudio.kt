@@ -18,7 +18,6 @@ package com.pedro.library.multiple
 import android.media.MediaCodec
 import com.pedro.common.AudioCodec
 import com.pedro.common.ConnectChecker
-import com.pedro.common.VideoCodec
 import com.pedro.library.base.OnlyAudioBase
 import com.pedro.library.util.streamclient.RtmpStreamClient
 import com.pedro.library.util.streamclient.RtspStreamClient

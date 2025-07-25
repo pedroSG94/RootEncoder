@@ -26,9 +26,6 @@ import com.herohan.uvcapp.ICameraHelper
 import com.pedro.encoder.input.sources.OrientationConfig
 import com.pedro.encoder.input.sources.OrientationForced
 import com.pedro.encoder.input.sources.video.VideoSource
-import com.pedro.encoder.input.video.Camera2ResolutionCalculator
-import com.serenegiant.usb.Size
-import kotlin.math.abs
 
 
 /**
