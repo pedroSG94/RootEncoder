@@ -335,7 +335,7 @@ class Camera2ApiManager(context: Context) : CameraDevice.StateCallback() {
         if (!modes.contains(CaptureRequest.CONTROL_AWB_MODE_OFF)) return
         builderInputSurface.set(CaptureRequest.CONTROL_AWB_MODE, CaptureRequest.CONTROL_AWB_MODE_OFF)
         applyRequest(builderInputSurface)
-        isAutoExposureEnabled = false
+        isAutoWhiteBalanceEnabled = false
     }
 
     fun getAutoWhiteBalanceModesAvailable(): List<Int> {
