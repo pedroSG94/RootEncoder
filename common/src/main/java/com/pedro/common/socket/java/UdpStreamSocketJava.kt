@@ -20,6 +20,8 @@ class UdpStreamSocketJava(
 
     private var socket: DatagramSocket? = null
     private val packetSize = receiveSize ?: SocketOptions.SO_RCVBUF
+    private var remoteHost: String? = null
+    private var remotePort: Int? = null
 
     override suspend fun connect() {
         val socket = when (type) {
@@ -74,7 +76,11 @@ class UdpStreamSocketJava(
     }
 
     override suspend fun write(bytes: ByteArray) {
-        val udpPacket = DatagramPacket(bytes, bytes.size)
+        val udpPacket = if (remoteHost != null && remotePort != null) {
+            DatagramPacket(bytes, bytes.size, InetAddress.getByName(remoteHost!!), remotePort!!)
+        } else {
+            DatagramPacket(bytes, bytes.size)
+        }
         socket?.send(udpPacket)
     }
 
@@ -96,15 +102,16 @@ class UdpStreamSocketJava(
     }
 
     override suspend fun setRemoteAddress(host: String, port: Int) {
-
+        this.remoteHost = host
+        this.remotePort = port
     }
 
     override suspend fun getLocalHost(): String {
-        return "0.0.0.0"
+        return sourceHost ?: "0.0.0.0"
     }
 
     override suspend fun getLocalPort(): Int {
-        return 0
+        return sourcePort ?: 0
     }
 
     override fun isConnected(): Boolean = socket?.isConnected ?: false

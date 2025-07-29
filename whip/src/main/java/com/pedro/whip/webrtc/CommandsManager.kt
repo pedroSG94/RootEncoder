@@ -14,6 +14,7 @@ import com.pedro.rtsp.utils.RtpConstants
 import com.pedro.rtsp.utils.encodeToString
 import com.pedro.rtsp.utils.getData
 import com.pedro.whip.dtls.CryptoUtils
+import com.pedro.whip.dtls.DtlsCertificate
 import com.pedro.whip.utils.Constants
 import com.pedro.whip.utils.Network
 import com.pedro.whip.utils.RequestResponse
@@ -57,7 +58,6 @@ class CommandsManager {
     var isStereo = true
     var videoCodec = VideoCodec.H264
     var audioCodec = AudioCodec.OPUS
-    private var stunSeq = 0
     private val timeout = 5000
     private val timeStamp: Long
     private val secureRandom = SecureRandom()
@@ -65,6 +65,8 @@ class CommandsManager {
     var remoteSdpInfo: SdpInfo? = null
         private set
     var localSdpInfo: SdpInfo? = null
+        private set
+    var certificate: DtlsCertificate? = null
         private set
     var tieBreak = ByteArray(8)
         private set
@@ -75,7 +77,7 @@ class CommandsManager {
         get() = pps?.getData()?.encodeToString() ?: ""
     val vpsString: String
         get() = vps?.getData()?.encodeToString() ?: ""
-    private val lock = Any()
+    val lock = Any()
 
     companion object {
         private const val TAG = "CommandsManager"
@@ -178,6 +180,7 @@ class CommandsManager {
         val body = createBody(
             videoSsrc, audioSsrc, candidates, uFrag, uPass, certificate.fingerprint
         )
+        this.certificate = certificate
         localSdpInfo = SdpInfo(uFrag, uPass, certificate.fingerprint, candidates)
         val uri = "http://$host:$port/$app"
         val path: String? = streamName
@@ -248,8 +251,8 @@ class CommandsManager {
         val command = StunCommand(
             StunHeader(type, 0, Constants.MAGIC_COOKIE, id), attributes
         )
-        Log.i(TAG, command.toString())
         socket.write(command.toByteArray(remotePass), host, port)
+        Log.i(TAG, command.toString())
     }
 
     suspend fun readStun(socket: UdpStreamSocket): StunCommand {

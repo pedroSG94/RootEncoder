@@ -16,6 +16,8 @@ import com.pedro.common.toMediaFrameInfo
 import com.pedro.common.validMessage
 import com.pedro.rtsp.utils.RtpConstants
 import com.pedro.whip.dtls.DtlsConnection
+import com.pedro.whip.dtls.DtlsTransport
+import com.pedro.whip.dtls.test.DTLS
 import com.pedro.whip.webrtc.CommandsManager
 import com.pedro.whip.webrtc.StunRequest
 import com.pedro.whip.webrtc.stun.CandidatePair
@@ -216,7 +218,7 @@ class WhipClient(private val connectChecker: ConnectChecker) {
                     }
 
                     commandsManager.writeOptions()
-                    val candidates = commandsManager.gatheringCandidates(socketType, GatheringMode.ALL)
+                    val candidates = commandsManager.gatheringCandidates(socketType, GatheringMode.LOCAL)
                     Log.i(TAG, "found ${candidates.size} candidates")
                     val sockets = candidates.map {
                         Log.i(TAG, "create socket to candidate: $it")
@@ -232,11 +234,13 @@ class WhipClient(private val connectChecker: ConnectChecker) {
                                 //Handle all command received and send response for it.
                                 handleMessages(it, onStunConnectedReceived = { request ->
                                     jobs.add(async(Dispatchers.IO) {
-                                        if (!request.nominated) {
-                                            commandsManager.sendNominateBindingRequestToCandidate(request.candidatePair, it)
-                                        } else {
-                                            selectedPair = request.candidatePair
-                                            if (mutexSuccessConnection.isLocked) mutexSuccessConnection.unlock()
+                                        runCatching {
+                                            if (!request.nominated) {
+                                                commandsManager.sendNominateBindingRequestToCandidate(request.candidatePair, it)
+                                            } else {
+                                                selectedPair = request.candidatePair
+                                                if (mutexSuccessConnection.isLocked) mutexSuccessConnection.unlock()
+                                            }
                                         }
                                     })
                                 })
@@ -259,9 +263,9 @@ class WhipClient(private val connectChecker: ConnectChecker) {
                     withTimeoutOrNull(5000) {
                         mutexSuccessConnection.lock()
                     }
-                    sockets.forEachIndexed { index, socket ->
-                        if (selectedPair?.local != candidates[index]) socket.close()
-                    }
+//                    sockets.forEachIndexed { index, socket ->
+//                        if (selectedPair?.local != candidates[index]) socket.close()
+//                    }
                     jobs.forEach { it.cancel() }
                     if (selectedPair == null) {
                         onMainThread {
@@ -280,12 +284,14 @@ class WhipClient(private val connectChecker: ConnectChecker) {
                     selectedSocket.setRemoteAddress(host, port)
                     //TODO DTLS handshake
                     val dtlsConnection = DtlsConnection(commandsManager.crypto)
+                    val transport = DtlsTransport(selectedSocket).apply { open() }
                     async(Dispatchers.IO) {
                         while (isStreaming) {
                             handleMessages(
                                 selectedSocket,
                                 onDtlsDataReceived = {
-                                    dtlsConnection.enqueue(it)
+                                    Log.i(TAG, "enqueue dtls...")
+                                    transport.enqueue(it)
                                 },
                                 onRtcpDataReceived = {
                                     //TODO ignored???
@@ -293,9 +299,11 @@ class WhipClient(private val connectChecker: ConnectChecker) {
                             )
                         }
                     }
+                    val certificate = commandsManager.certificate ?: throw IllegalStateException("certificate no created yet")
+
                     Log.i(TAG, "connecting dtls...")
                     dtlsConnection.connect(selectedSocket)
-                    val properties = dtlsConnection.getCryptoProperties()
+//                    val properties = dtlsConnection.getCryptoProperties()
 
                     //TODO connection success ready to send SRTP/SRTCP
 
@@ -322,6 +330,7 @@ class WhipClient(private val connectChecker: ConnectChecker) {
             val host = packet.host ?: return
             val port = packet.port ?: return
             val type = packet.data[0]
+            Log.e(TAG, "type: $type")
             when (type) {
                 in 20..63 -> {
                     onDtlsDataReceived(packet.data)
@@ -342,11 +351,12 @@ class WhipClient(private val connectChecker: ConnectChecker) {
                     throw IllegalArgumentException("unsupported handle indication for now")
                 }
                 HeaderType.SUCCESS -> {
-                    commandsManager.pairsToResponse.find {
-                        it.id.contentEquals(command.header.id)
-                    }?.let {
-                        onStunConnectedReceived(it)
+                    val found = synchronized(commandsManager.lock) {
+                        commandsManager.pairsToResponse.find {
+                            it.id.contentEquals(command.header.id)
+                        }
                     }
+                    found?.let { onStunConnectedReceived(it) }
                 }
                 HeaderType.ERROR -> throw IllegalArgumentException("unsupported handle error for now")
             }

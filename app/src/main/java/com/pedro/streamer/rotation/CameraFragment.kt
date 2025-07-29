@@ -31,6 +31,7 @@ import androidx.annotation.RequiresApi
 import androidx.fragment.app.Fragment
 import com.pedro.common.AudioCodec
 import com.pedro.common.ConnectChecker
+import com.pedro.common.socket.base.SocketType
 import com.pedro.encoder.input.sources.video.Camera1Source
 import com.pedro.encoder.input.sources.video.Camera2Source
 import com.pedro.extrasources.CameraXSource
@@ -81,6 +82,7 @@ class CameraFragment: Fragment(), ConnectChecker {
       getGlInterface().autoHandleOrientation = true
       getStreamClient().setBitrateExponentialFactor(0.5f)
       setAudioCodec(AudioCodec.OPUS)
+      getStreamClient().setSocketType(SocketType.KTOR)
     }
   }
   private lateinit var surfaceView: SurfaceView
@@ -133,7 +135,7 @@ class CameraFragment: Fragment(), ConnectChecker {
 
     bStartStop.setOnClickListener {
       if (!genericStream.isStreaming) {
-        genericStream.startStream("http://192.168.1.14:8889/mystream/whip/whip")
+        genericStream.startStream("http://192.168.1.15:8889/mystream/whip/whip")
         bStartStop.setImageResource(R.drawable.stream_stop_icon)
       } else {
         genericStream.stopStream()

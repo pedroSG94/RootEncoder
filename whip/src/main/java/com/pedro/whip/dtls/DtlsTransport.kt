@@ -18,6 +18,7 @@
 
 package com.pedro.whip.dtls
 
+import android.util.Log
 import com.pedro.common.socket.base.UdpStreamSocket
 import com.pedro.common.trySend
 import com.pedro.rtsp.utils.RtpConstants
@@ -53,6 +54,7 @@ class DtlsTransport(
   override fun receive(buffer: ByteArray?, offset: Int, length: Int, waitMillis: Int): Int {
     if (!canTransport || buffer == null) return 0
     try {
+      Log.i("Pedro", "reading dtls???")
       val bytes = queue.poll(waitMillis.toLong(), TimeUnit.MILLISECONDS)
       if (bytes != null) {
         val readSize = min(length, bytes.size)
