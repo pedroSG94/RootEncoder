@@ -104,6 +104,8 @@ public class AndroidMuxerWebmRecordController extends BaseRecordController {
     pauseMoment = 0;
     pauseTime = 0;
     startTs = 0;
+    audioInfo = new MediaCodec.BufferInfo();
+    videoInfo = new MediaCodec.BufferInfo();
     if (listener != null) listener.onStatusChange(status);
   }
 
