@@ -269,4 +269,8 @@ class Camera2Source(context: Context): VideoSource() {
     size?.let { checkResolutionSupported(it.width, it.height) }
     camera.setRequiredResolution(size)
   }
+
+  fun lockExposure(enabled: Boolean) = camera.lockExposure(enabled)
+
+  fun isLockExposureEnabled() = camera.isLockExposureEnabled()
 }
