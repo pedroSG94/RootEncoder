@@ -114,6 +114,7 @@ class RtspSender(
             //4 is tcp header length
             val packetSize = if (isTcp) rtpFrame.length + 4 else rtpFrame.length
             bytesSend += packetSize
+            bytesSendPerSecond += packetSize
             size += packetSize
             isVideo = rtpFrame.isVideoFrame()
             if (isVideo) {
@@ -125,6 +126,7 @@ class RtspSender(
               //4 is tcp header length
               val reportSize = if (isTcp) RtpConstants.REPORT_PACKET_LENGTH + 4 else RtpConstants.REPORT_PACKET_LENGTH
               bytesSend += reportSize
+              bytesSendPerSecond += reportSize
               if (isEnableLogs) Log.i(TAG, "wrote report")
             }
           }
