@@ -76,6 +76,8 @@ class UdpClient(private val connectChecker: ConnectChecker) {
     get() = udpSender.getSentAudioFrames()
   val sentVideoFrames: Long
     get() = udpSender.getSentVideoFrames()
+  val bytesSend: Long
+    get() = udpSender.bytesSend
   var socketType = SocketType.KTOR
 
   fun setVideoCodec(videoCodec: VideoCodec) {
@@ -274,6 +276,10 @@ class UdpClient(private val connectChecker: ConnectChecker) {
 
   fun resetDroppedVideoFrames() {
     udpSender.resetDroppedVideoFrames()
+  }
+
+  fun resetBytesSend() {
+    udpSender.resetBytesSend()
   }
 
   @Throws(RuntimeException::class)

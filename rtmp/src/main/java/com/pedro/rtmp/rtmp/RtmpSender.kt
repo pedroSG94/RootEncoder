@@ -99,6 +99,7 @@ class RtmpSender(
             }
           }
           bytesSend += size
+          bytesSendPerSecond += size
         }
       }.exceptionOrNull()
       if (error != null) {

@@ -103,6 +103,8 @@ class RtmpClient(private val connectChecker: ConnectChecker) {
     get() = rtmpSender.getSentAudioFrames()
   val sentVideoFrames: Long
     get() = rtmpSender.getSentVideoFrames()
+  val bytesSend: Long
+    get() = rtmpSender.bytesSend
   var socketType = SocketType.KTOR
 
   /**
@@ -591,6 +593,10 @@ class RtmpClient(private val connectChecker: ConnectChecker) {
 
   fun resetDroppedVideoFrames() {
     rtmpSender.resetDroppedVideoFrames()
+  }
+
+  fun resetBytesSend() {
+    rtmpSender.resetBytesSend()
   }
 
   @Throws(RuntimeException::class)

@@ -167,6 +167,8 @@ class GenericStreamClient(
 
   override fun getSentVideoFrames(): Long = connectedStreamClient?.getSentVideoFrames() ?: 0
 
+  override fun getBytesSend(): Long = connectedStreamClient?.getBytesSend() ?: 0
+
   override fun getDroppedAudioFrames(): Long = connectedStreamClient?.getDroppedAudioFrames() ?: 0
 
   override fun getDroppedVideoFrames(): Long = connectedStreamClient?.getDroppedVideoFrames() ?: 0
@@ -197,6 +199,13 @@ class GenericStreamClient(
     rtspClient.resetDroppedVideoFrames()
     srtClient.resetDroppedVideoFrames()
     udpClient.resetDroppedVideoFrames()
+  }
+
+  override fun resetBytesSend() {
+    rtmpClient.resetBytesSend()
+    rtspClient.resetBytesSend()
+    srtClient.resetBytesSend()
+    udpClient.resetBytesSend()
   }
 
   override fun setOnlyAudio(onlyAudio: Boolean) {

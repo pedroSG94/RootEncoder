@@ -79,6 +79,8 @@ class UdpStreamClient(
 
   override fun getSentVideoFrames(): Long = udpClient.sentVideoFrames
 
+  override fun getBytesSend(): Long = udpClient.bytesSend
+
   override fun getDroppedAudioFrames(): Long = udpClient.droppedAudioFrames
 
   override fun getDroppedVideoFrames(): Long = udpClient.droppedVideoFrames
@@ -97,6 +99,10 @@ class UdpStreamClient(
 
   override fun resetDroppedVideoFrames() {
     udpClient.resetDroppedVideoFrames()
+  }
+
+  override fun resetBytesSend() {
+    udpClient.resetBytesSend()
   }
 
   override fun setOnlyAudio(onlyAudio: Boolean) {

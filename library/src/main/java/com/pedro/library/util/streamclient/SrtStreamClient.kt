@@ -94,6 +94,8 @@ class SrtStreamClient(
 
   override fun getSentVideoFrames(): Long = srtClient.sentVideoFrames
 
+  override fun getBytesSend(): Long = srtClient.bytesSend
+
   override fun getDroppedAudioFrames(): Long = srtClient.droppedAudioFrames
 
   override fun getDroppedVideoFrames(): Long = srtClient.droppedVideoFrames
@@ -112,6 +114,10 @@ class SrtStreamClient(
 
   override fun resetDroppedVideoFrames() {
     srtClient.resetDroppedVideoFrames()
+  }
+
+  override fun resetBytesSend() {
+    srtClient.resetBytesSend()
   }
 
   override fun setOnlyAudio(onlyAudio: Boolean) {
@@ -151,4 +157,14 @@ class SrtStreamClient(
   fun setMpeg2TsService(customService: Mpeg2TsService) {
     srtClient.setMpeg2TsService(customService)
   }
+
+  /**
+   * RTT in micro seconds reported by ACK command
+   */
+  fun getRtt() = srtClient.rtt
+
+  /**
+   * Packets lost reported by NAK command. Increment each time a NAK is received.
+   */
+  fun getPacketsLost() = srtClient.packetsLost
 }

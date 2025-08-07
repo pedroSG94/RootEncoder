@@ -121,6 +121,8 @@ class RtmpStreamClient(
 
   override fun getSentVideoFrames(): Long = rtmpClient.sentVideoFrames
 
+  override fun getBytesSend(): Long = rtmpClient.bytesSend
+
   override fun getDroppedAudioFrames(): Long = rtmpClient.droppedAudioFrames
 
   override fun getDroppedVideoFrames(): Long = rtmpClient.droppedVideoFrames
@@ -139,6 +141,10 @@ class RtmpStreamClient(
 
   override fun resetDroppedVideoFrames() {
     rtmpClient.resetDroppedVideoFrames()
+  }
+
+  override fun resetBytesSend() {
+    rtmpClient.resetBytesSend()
   }
 
   override fun setOnlyAudio(onlyAudio: Boolean) {

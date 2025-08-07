@@ -53,12 +53,14 @@ abstract class StreamBaseClient {
   abstract fun getItemsInCache(): Int
   abstract fun getSentAudioFrames(): Long
   abstract fun getSentVideoFrames(): Long
+  abstract fun getBytesSend(): Long
   abstract fun getDroppedAudioFrames(): Long
   abstract fun getDroppedVideoFrames(): Long
   abstract fun resetSentAudioFrames()
   abstract fun resetSentVideoFrames()
   abstract fun resetDroppedAudioFrames()
   abstract fun resetDroppedVideoFrames()
+  abstract fun resetBytesSend()
   abstract fun setOnlyAudio(onlyAudio: Boolean)
   abstract fun setOnlyVideo(onlyVideo: Boolean)
 

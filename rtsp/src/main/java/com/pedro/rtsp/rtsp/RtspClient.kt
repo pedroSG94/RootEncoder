@@ -91,6 +91,8 @@ class RtspClient(private val connectChecker: ConnectChecker) {
     get() = rtspSender.getSentAudioFrames()
   val sentVideoFrames: Long
     get() = rtspSender.getSentVideoFrames()
+  val bytesSend: Long
+    get() = rtspSender.bytesSend
   var socketType = SocketType.KTOR
 
   /**
@@ -494,6 +496,10 @@ class RtspClient(private val connectChecker: ConnectChecker) {
 
   fun resetDroppedVideoFrames() {
     rtspSender.resetDroppedVideoFrames()
+  }
+
+  fun resetBytesSend() {
+    rtspSender.resetBytesSend()
   }
 
   @Throws(RuntimeException::class)
