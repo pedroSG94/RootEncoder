@@ -1,4 +1,7 @@
-// Top-level build file where you can add configuration options common to all sub-projects/modules.
+allprojects {
+  group = "com.github.pedroSG94"
+  version = "2.6.2"
+}
 
 plugins {
   alias(libs.plugins.android.application) apply false

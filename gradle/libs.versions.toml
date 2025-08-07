@@ -1,10 +1,6 @@
 [versions]
-libraryGroup = "com.github.pedroSG94"
-versionCode = "262"
-versionName = "2.6.2"
-
 #plugins versions
-agp = "8.11.1"
+agp = "8.12.0"
 kotlin = "2.2.0"
 dokka = "2.0.0"
 
@@ -43,7 +39,6 @@ androidx-media3-exoplayer = { module = "androidx.media3:media3-exoplayer", versi
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
 android-library = { id = "com.android.library", version.ref = "agp" }
-maven-publish = { id = "maven-publish", version.ref = "agp" }
 jetbrains-kotlin = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 jetbrains-dokka = { id = "org.jetbrains.dokka", version.ref = "dokka" }
 
