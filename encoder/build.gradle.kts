@@ -1,8 +1,8 @@
 plugins {
   alias(libs.plugins.android.library)
   alias(libs.plugins.jetbrains.kotlin)
-  id(libs.plugins.maven.publish.get().pluginId)
   alias(libs.plugins.jetbrains.dokka)
+  `maven-publish`
 }
 
 android {
@@ -42,9 +42,9 @@ afterEvaluate {
         from(components["release"])
 
         // You can then customize attributes of the publication as shown below.
-        groupId = libs.versions.libraryGroup.get()
-        artifactId = "encoder"
-        version = libs.versions.versionName.get()
+        groupId = project.group.toString()
+        artifactId = project.name
+        version = project.version.toString()
       }
     }
   }

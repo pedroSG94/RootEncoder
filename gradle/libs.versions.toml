@@ -1,10 +1,6 @@
 [versions]
-libraryGroup = "com.github.pedroSG94"
-versionCode = "262"
-versionName = "2.6.2"
-
 #plugins versions
-agp = "8.11.0"
+agp = "8.12.0"
 kotlin = "2.2.0"
 dokka = "2.0.0"
 
@@ -13,16 +9,15 @@ dokka = "2.0.0"
 appcompat = "1.6.1"
 #noinspection GradleDependency, version 2.2.0 need min sdk 21
 constraintlayout = "2.1.4"
-#noinspection GradleDependency, version 3.x.x is really bugged using TLS
-ktor = "3.2.1"
+ktor = "3.2.3"
 camerax = "1.4.2"
 multidex = "2.0.1"
 annotation = "1.9.1"
 coroutines = "1.10.2"
 junit = "4.13.2"
-mockito = "5.4.0"
+mockito = "6.0.0"
 uvcandroid = "1.0.9"
-media3 = "1.7.1"
+media3 = "1.8.0"
 bouncycastle = "1.81"
 
 [libraries]
@@ -48,7 +43,6 @@ bouncycastle-bcpkix = { module = "org.bouncycastle:bcpkix-jdk15to18", version.re
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
 android-library = { id = "com.android.library", version.ref = "agp" }
-maven-publish = { id = "maven-publish", version.ref = "agp" }
 jetbrains-kotlin = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 jetbrains-dokka = { id = "org.jetbrains.dokka", version.ref = "dokka" }
 
