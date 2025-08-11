@@ -1,5 +1,6 @@
 package com.pedro.whip.webrtc.stun
 
+import com.pedro.common.bytesToHex
 import com.pedro.common.toByteArray
 import java.nio.ByteBuffer
 
@@ -19,6 +20,6 @@ class StunHeader(
     }
 
     override fun toString(): String {
-        return "StunHeader(type=$type, length=$length, cookie=$cookie, id=${id.contentToString()})"
+        return "StunHeader(type=$type, length=$length, cookie=$cookie, id=${id.bytesToHex()})"
     }
 }

@@ -26,6 +26,7 @@ import kotlinx.coroutines.runBlocking
 import org.bouncycastle.tls.DatagramTransport
 import java.net.SocketTimeoutException
 import java.util.concurrent.ArrayBlockingQueue
+import java.util.concurrent.LinkedBlockingQueue
 import java.util.concurrent.TimeUnit
 import kotlin.math.min
 
@@ -37,7 +38,7 @@ class DtlsTransport(
 ): DatagramTransport {
 
   private var canTransport = false
-  var queue = ArrayBlockingQueue<ByteArray>(100)
+  private val queue = LinkedBlockingQueue<ByteArray>()
 
   fun open() {
     canTransport = true
@@ -51,32 +52,25 @@ class DtlsTransport(
     queue.trySend(bytes)
   }
 
-  override fun receive(buffer: ByteArray?, offset: Int, length: Int, waitMillis: Int): Int {
-    if (!canTransport || buffer == null) return 0
-    try {
-      Log.i("Pedro", "reading dtls???")
-      val bytes = queue.poll(waitMillis.toLong(), TimeUnit.MILLISECONDS)
-      if (bytes != null) {
-        val readSize = min(length, bytes.size)
+  override fun receive(buffer: ByteArray, offset: Int, length: Int, waitMillis: Int): Int {
+    var readSize = 0
+    runBlocking {
+      val bytes = socket.read()
+      if (bytes[0] in 20..63) {
+        readSize = min(length, bytes.size)
         System.arraycopy(bytes, 0, buffer, offset, readSize)
-        return readSize
       }
-      return 0
-    } catch (e: InterruptedException) {
-      throw SocketTimeoutException(e.message)
     }
+    return readSize
   }
 
   override fun getSendLimit(): Int {
     return RtpConstants.MTU
   }
 
-  override fun send(buffer: ByteArray?, offset: Int, length: Int) {
-    if (!canTransport) return
-    buffer?.let {
-      runBlocking {
-        socket.write(it.sliceArray(offset..length))
-      }
+  override fun send(buffer: ByteArray, offset: Int, length: Int) {
+    runBlocking {
+      socket.write(buffer.sliceArray(offset until length))
     }
   }
 

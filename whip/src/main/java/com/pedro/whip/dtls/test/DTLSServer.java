@@ -21,8 +21,6 @@
 package com.pedro.whip.dtls.test;
 
 
-import android.os.Build;
-
 import org.bouncycastle.crypto.params.AsymmetricKeyParameter;
 import org.bouncycastle.tls.Certificate;
 import org.bouncycastle.tls.CertificateRequest;

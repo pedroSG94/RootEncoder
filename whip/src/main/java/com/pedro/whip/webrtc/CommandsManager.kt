@@ -70,7 +70,6 @@ class CommandsManager {
         private set
     var tieBreak = ByteArray(8)
         private set
-    val pairsToResponse = mutableListOf<StunRequest>()
     val spsString: String
         get() = sps?.getData()?.encodeToString() ?: ""
     val ppsString: String
@@ -171,17 +170,17 @@ class CommandsManager {
         return ((type.preference shl 24) or (localPreference shl 8) or (256 - componentId)).toInt()
     }
 
-    fun writeOffer(candidates: List<Candidate>): RequestResponse {
+    fun writeOffer(): RequestResponse {
         val uFrag = secureRandom.nextLong().toString(36).replace("-", "")
         val uPass = (BigInteger(130, secureRandom).toString(32)).replace("-", "")
         val certificate = CryptoUtils.generateCert("RootEncoder", crypto)
         val videoSsrc = Random.nextLong()
         val audioSsrc = Random.nextLong()
         val body = createBody(
-            videoSsrc, audioSsrc, candidates, uFrag, uPass, certificate.fingerprint
+            videoSsrc, audioSsrc, uFrag, uPass, certificate.fingerprint
         )
         this.certificate = certificate
-        localSdpInfo = SdpInfo(uFrag, uPass, certificate.fingerprint, candidates)
+        localSdpInfo = SdpInfo(uFrag, uPass, certificate.fingerprint, listOf())
         val uri = "http://$host:$port/$app"
         val path: String? = streamName
         val headers = mutableMapOf<String, String>().apply {
@@ -192,7 +191,6 @@ class CommandsManager {
             uri, "POST", headers, body, timeout, false
         )
         remoteSdpInfo = SdpParser.parseBodyAnswer(answer.body)
-        tieBreak = secureRandom.nextBytes(8)
         tieBreak = secureRandom.nextBytes(8)
         Log.i(TAG, "remote info: $remoteSdpInfo")
         return answer
@@ -221,7 +219,7 @@ class CommandsManager {
                 useIntegrity = false,
                 useFingerprint = false
             )
-            writeStun(command, candidateSocket, stunHost, stunPort)
+            writeStun(command, candidateSocket)
             val result = readStun(candidateSocket)
             val isSuccess = result.header.type == HeaderType.SUCCESS
             if (isSuccess) {
@@ -240,19 +238,34 @@ class CommandsManager {
         return candidates
     }
 
-    suspend fun writeStun(stunCommand: StunCommand, socket: UdpStreamSocket, host: String, port: Int) {
+    suspend fun writeStun(stunCommand: StunCommand, socket: UdpStreamSocket) {
         val remotePass = if (!stunCommand.useIntegrity) "" else remoteSdpInfo?.uPass ?: throw IllegalStateException("remote sdp info no received yet")
         Log.i(TAG, stunCommand.toString())
-        socket.write(stunCommand.toByteArray(remotePass), host, port)
+        socket.write(stunCommand.toByteArray(remotePass))
     }
 
-    suspend fun writeStun(type: HeaderType, id: ByteArray, attributes: List<StunAttribute>, socket: UdpStreamSocket, host: String, port: Int) {
-        val remotePass = remoteSdpInfo?.uPass ?: throw IllegalStateException("remote sdp info no received yet")
+    suspend fun writeStun(type: HeaderType, id: ByteArray, attributes: List<StunAttribute>, socket: UdpStreamSocket) {
+        val remotePass = if (type == HeaderType.SUCCESS) {
+            localSdpInfo?.uPass ?: throw IllegalStateException("remote sdp info no received yet")
+        } else {
+            remoteSdpInfo?.uPass ?: throw IllegalStateException("remote sdp info no received yet")
+        }
+
         val command = StunCommand(
             StunHeader(type, 0, Constants.MAGIC_COOKIE, id), attributes
         )
-        socket.write(command.toByteArray(remotePass), host, port)
         Log.i(TAG, command.toString())
+        socket.write(command.toByteArray(remotePass))
+    }
+
+    suspend fun writeIndication(socket: UdpStreamSocket) {
+        val remotePass = remoteSdpInfo?.uPass ?: throw IllegalStateException("remote sdp info no received yet")
+        val id = generateTransactionId()
+        val command = StunCommand(
+            StunHeader(HeaderType.INDICATION, 0, Constants.MAGIC_COOKIE, id), listOf(),
+            useIntegrity = false
+        )
+        socket.write(command.toByteArray(remotePass))
     }
 
     suspend fun readStun(socket: UdpStreamSocket): StunCommand {
@@ -265,7 +278,7 @@ class CommandsManager {
     }
 
     private fun createBody(
-        videoSsrc: Long, audioSsrc: Long, candidates: List<Candidate>,
+        videoSsrc: Long, audioSsrc: Long,
         uFrag: String, uPass: String, fingerprint: String
     ): String {
         val cName = "RootEncoder"
@@ -292,114 +305,35 @@ class CommandsManager {
             }
         }
         return "v=0\r\n" +
-                "o=- $timeStamp $timeStamp IN IP4 127.0.0.1\r\n" +
-                "s=Unnamed\r\n" +
-                "i=N/A\r\n" +
-                "c=IN IP4 $host\r\n" +
+                "o=rtc $timeStamp $timeStamp IN IP4 127.0.0.1\r\n" +
+                "s=-\r\n" +
                 "t=0 0\r\n" +
-                "a=group:BUNDLE 0 1\r\n" +
+                "a=msid-semantic:WMS *\r\n" +
+                "a=setup:actpass\r\n" +
                 "a=ice-ufrag:$uFrag\r\n" +
                 "a=ice-pwd:$uPass\r\n" +
+                "a=ice-options:trickle\r\n" +
                 "a=fingerprint:sha-256 $fingerprint\r\n" +
-                videoBody +
+
+                "m=audio 9 UDP/TLS/RTP/SAVPF 111\r\n" +
+                "c=IN IP4 0.0.0.0\r\n" +
+                "a=mid:0\r\n" +
+                "a=sendonly\r\n" +
+                "a=ssrc:$audioSsrc cname:$cName\r\n" +
+                "a=ssrc:$audioSsrc msid:1$cName 1$cName-audio\r\n" +
+                "a=msid:1$cName 1$cName-audio\r\n" +
+                "a=rtcp-mux\r\n" +
+                "a=rtpmap:111 opus/48000/2\r\n"
+            /*videoBody +
                 "a=rtcp-mux\r\n" + //Using same socket for all (SRTP, SRTCP and both tracks)
-                "a=ssrc:" + videoSsrc + " cname: $cName\r\n" +
+                "a=ssrc:$videoSsrc cname: $cName\r\n" +
                 audioBody +
                 "a=rtcp-mux\r\n" + //Using same socket for all (SRTP, SRTCP and both tracks)
-                "a=ssrc:" + audioSsrc + " cname: $cName\r\n" +
-                addCandidates(candidates)
-    }
-
-    private fun addCandidates(candidates: List<Candidate>): String {
-        var sdpCandidates = ""
-        candidates.forEach { candidate ->
-            val address = candidate.publicAddress ?: candidate.localAddress
-            val port = candidate.publicPort ?: candidate.localPort
-            sdpCandidates += "a=candidate:${generateFoundation(candidate.type, address, port)} ${candidate.protocol} UDP ${candidate.priority} $address $port typ ${candidate.type.value} ${
-                if (candidate.type == CandidateType.SRFLX) {
-                    "raddr ${candidate.localAddress} rport ${candidate.localPort}"
-                } else ""
-            }\r\n"
-        }
-        return sdpCandidates
-    }
-
-    private fun generateFoundation(type: CandidateType, host: String, port: Int): Long {
-        val crc32 = CRC32()
-        crc32.update("${type.value}$host${port}UDP".toByteArray(Charsets.UTF_8))
-        return crc32.value
+                "a=ssrc:$audioSsrc cname: $cName\r\n"
+*/
     }
 
     fun generateTransactionId(): ByteArray {
         return secureRandom.nextBytes(12)
-    }
-
-    suspend fun sendBindingRequestToCandidate(
-        candidatePair: CandidatePair,
-        socket: UdpStreamSocket
-    ) {
-        val localFrag = localSdpInfo?.uFrag ?: return
-        val remoteFrag = remoteSdpInfo?.uFrag ?: return
-        val host = candidatePair.remote.publicAddress ?: candidatePair.remote.localAddress
-        val port = candidatePair.remote.publicPort ?: candidatePair.remote.localPort
-        val timeout = arrayOf(100L, 200L, 400L, 800L, 1500L, 2000)
-        for (i in 0..timeout.size) {
-            val id = generateTransactionId()
-            val userName = StunAttributeValueParser.createUserName(localFrag, remoteFrag)
-            val attributes = listOf(
-                StunAttribute(AttributeType.PRIORITY, candidatePair.local.priority.toUInt32()),
-                StunAttribute(AttributeType.USERNAME, userName),
-                StunAttribute(AttributeType.ICE_CONTROLLING, tieBreak),
-            )
-            writeStun(HeaderType.REQUEST, id, attributes, socket, host, port)
-            synchronized(lock) {
-                pairsToResponse.add(StunRequest(id, candidatePair, false))
-            }
-            Log.i(TAG, "candidate request attempt: $i\ncandidate pair: $candidatePair")
-            delay(timeout[i])
-        }
-    }
-
-    suspend fun sendSuccess(id: ByteArray, host: String, port: Int, socket: UdpStreamSocket) {
-        val localFrag = localSdpInfo?.uFrag ?: return
-        val remoteFrag = remoteSdpInfo?.uFrag ?: return
-        val userNameValue = StunAttributeValueParser.createUserName(remoteFrag, localFrag)
-        val xorAddress = StunAttributeValueParser.createXorMappedAddress(id, host, port, true)
-        val attributes = listOf(
-            StunAttribute(AttributeType.USERNAME, userNameValue),
-            StunAttribute(AttributeType.XOR_MAPPED_ADDRESS, xorAddress)
-        )
-        writeStun(HeaderType.SUCCESS, id, attributes, socket, host, port)
-    }
-
-    suspend fun sendNominateBindingRequestToCandidate(
-        candidatePair: CandidatePair,
-        socket: UdpStreamSocket
-    ) {
-        val localFrag = localSdpInfo?.uFrag ?: return
-        val remoteFrag = remoteSdpInfo?.uFrag ?: return
-        val host = candidatePair.remote.publicAddress ?: candidatePair.remote.localAddress
-        val port = candidatePair.remote.publicPort ?: candidatePair.remote.localPort
-        val timeout = arrayOf(100L, 200L, 400L, 800L, 1500L, 2000)
-        for (i in 0..timeout.size) {
-            val id = generateTransactionId()
-            val userName = StunAttributeValueParser.createUserName(localFrag, remoteFrag)
-            val attributes = listOf(
-                StunAttribute(AttributeType.PRIORITY, candidatePair.local.priority.toUInt32()),
-                StunAttribute(AttributeType.USERNAME, userName),
-                StunAttribute(AttributeType.ICE_CONTROLLING, tieBreak),
-                StunAttribute(AttributeType.USE_CANDIDATE, byteArrayOf()),
-            )
-            writeStun(HeaderType.REQUEST, id, attributes, socket, host, port)
-            synchronized(lock) {
-                pairsToResponse.add(StunRequest(id, candidatePair, true))
-            }
-            Log.i(TAG, "nominate candidate request attempt: $i\ncandidate pair: $candidatePair")
-            delay(timeout[i])
-        }
-    }
-
-    fun clearWaitingPairs() {
-        synchronized(lock) { pairsToResponse.clear() }
     }
 }

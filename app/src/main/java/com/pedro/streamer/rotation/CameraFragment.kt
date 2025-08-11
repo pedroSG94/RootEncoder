@@ -82,7 +82,6 @@ class CameraFragment: Fragment(), ConnectChecker {
       getGlInterface().autoHandleOrientation = true
       getStreamClient().setBitrateExponentialFactor(0.5f)
       setAudioCodec(AudioCodec.OPUS)
-      getStreamClient().setSocketType(SocketType.KTOR)
     }
   }
   private lateinit var surfaceView: SurfaceView

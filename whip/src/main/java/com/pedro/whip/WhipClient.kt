@@ -13,17 +13,23 @@ import com.pedro.common.socket.base.SocketType
 import com.pedro.common.socket.base.StreamSocket
 import com.pedro.common.socket.base.UdpStreamSocket
 import com.pedro.common.toMediaFrameInfo
+import com.pedro.common.toUInt32
 import com.pedro.common.validMessage
 import com.pedro.rtsp.utils.RtpConstants
 import com.pedro.whip.dtls.DtlsConnection
 import com.pedro.whip.dtls.DtlsTransport
 import com.pedro.whip.dtls.test.DTLS
+import com.pedro.whip.webrtc.Candidate
+import com.pedro.whip.webrtc.CandidateType
 import com.pedro.whip.webrtc.CommandsManager
-import com.pedro.whip.webrtc.StunRequest
+import com.pedro.whip.webrtc.stun.AttributeType
 import com.pedro.whip.webrtc.stun.CandidatePair
+import com.pedro.whip.webrtc.stun.CandidatePairConnection
 import com.pedro.whip.webrtc.stun.GatheringMode
-import com.pedro.whip.webrtc.stun.StunCommandReader
 import com.pedro.whip.webrtc.stun.HeaderType
+import com.pedro.whip.webrtc.stun.StunAttribute
+import com.pedro.whip.webrtc.stun.StunAttributeValueParser
+import com.pedro.whip.webrtc.stun.StunCommandReader
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -31,6 +37,7 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.withTimeoutOrNull
@@ -217,96 +224,86 @@ class WhipClient(private val connectChecker: ConnectChecker) {
                         whipSender.setVideoInfo(commandsManager.sps!!, commandsManager.pps, commandsManager.vps)
                     }
 
-                    commandsManager.writeOptions()
-                    val candidates = commandsManager.gatheringCandidates(socketType, GatheringMode.LOCAL)
-                    Log.i(TAG, "found ${candidates.size} candidates")
-                    val sockets = candidates.map {
-                        Log.i(TAG, "create socket to candidate: $it")
-                        StreamSocket.createUdpSocket(socketType, it.localAddress, it.localPort, receiveSize = RtpConstants.MTU).apply {
-                            bind()
-                        }
-                    }
-                    val jobs = mutableListOf<Job>()
-                    var selectedPair: CandidatePair? = null
-                    sockets.forEach {
-                        jobs.add(async(Dispatchers.IO) {
-                            while (selectedPair == null) {
-                                //Handle all command received and send response for it.
-                                handleMessages(it, onStunConnectedReceived = { request ->
-                                    jobs.add(async(Dispatchers.IO) {
-                                        runCatching {
-                                            if (!request.nominated) {
-                                                commandsManager.sendNominateBindingRequestToCandidate(request.candidatePair, it)
-                                            } else {
-                                                selectedPair = request.candidatePair
-                                                if (mutexSuccessConnection.isLocked) mutexSuccessConnection.unlock()
-                                            }
-                                        }
-                                    })
-                                })
-                            }
-                        })
-                    }
-
-                    val offerResponse = commandsManager.writeOffer(candidates)
+                    val localCandidates = commandsManager.gatheringCandidates(socketType, GatheringMode.LOCAL)
+                    Log.i(TAG, "found ${localCandidates.size} candidates")
+                    val offerResponse = commandsManager.writeOffer()
                     Log.i(TAG, offerResponse.body)
 
-                    sockets.forEachIndexed { index, socket ->
-                        commandsManager.remoteSdpInfo?.candidates?.filter { candidate ->
-                            candidate.protocol == 1 //only rtp
-                        }?.forEach { candidate ->
-                            jobs.add(async(Dispatchers.IO) {
-                                commandsManager.sendBindingRequestToCandidate(CandidatePair(candidates[index], candidate), socket)
-                            })
-                        }
-                    }
-                    withTimeoutOrNull(5000) {
-                        mutexSuccessConnection.lock()
-                    }
-//                    sockets.forEachIndexed { index, socket ->
-//                        if (selectedPair?.local != candidates[index]) socket.close()
-//                    }
-                    jobs.forEach { it.cancel() }
-                    if (selectedPair == null) {
-                        onMainThread {
-                            connectChecker.onConnectionFailed("Failed to receive stun connection, timeout")
-                        }
-                        return@launch
-                    }
-                    Log.i(TAG, "stun connected!!")
-                    commandsManager.clearWaitingPairs()
-                    val host = selectedPair.remote.publicAddress ?: selectedPair.remote.localAddress
-                    val port = selectedPair.remote.publicPort ?: selectedPair.remote.localPort
-                    val selectedSocket = sockets.find {
-                        it.getLocalHost() == selectedPair.local.localAddress &&
-                        it.getLocalPort() == selectedPair.local.localPort
-                    } ?: throw IllegalArgumentException("socket selected not found")
-                    selectedSocket.setRemoteAddress(host, port)
-                    //TODO DTLS handshake
-                    val dtlsConnection = DtlsConnection(commandsManager.crypto)
-                    val transport = DtlsTransport(selectedSocket).apply { open() }
-                    async(Dispatchers.IO) {
-                        while (isStreaming) {
-                            handleMessages(
-                                selectedSocket,
-                                onDtlsDataReceived = {
-                                    Log.i(TAG, "enqueue dtls...")
-                                    transport.enqueue(it)
-                                },
-                                onRtcpDataReceived = {
-                                    //TODO ignored???
-                                }
+
+                    val localFrag = commandsManager.localSdpInfo?.uFrag ?: return@launch
+                    val remoteFrag = commandsManager.remoteSdpInfo?.uFrag ?: return@launch
+                    val priority = commandsManager.calculatePriority(CandidateType.LOCAL, 65535L, 1)
+
+                    val remoteCandidates = commandsManager.remoteSdpInfo?.candidates?: return@launch
+                    val host = remoteCandidates[0].getRealHost()
+                    val port = remoteCandidates[0].getRealPort()
+                    val socket = StreamSocket.createUdpSocket(socketType, host, port, receiveSize = RtpConstants.MTU)
+                    socket.connect()
+
+                    val requestId = commandsManager.generateTransactionId()
+                    val userName = StunAttributeValueParser.createUserName(localFrag, remoteFrag)
+                    val attributes = listOf(
+                        StunAttribute(AttributeType.USERNAME, userName),
+                        StunAttribute(AttributeType.ICE_CONTROLLING, commandsManager.tieBreak),
+                        StunAttribute(AttributeType.PRIORITY, priority.toUInt32()),
+                    )
+                    commandsManager.writeStun(HeaderType.REQUEST, requestId, attributes, socket)
+
+                    var candidateResponses = 0
+                    var requestSuccessReceived = false
+                    while (candidateResponses < 1 || !requestSuccessReceived) {
+                        val command = commandsManager.readStun(socket)
+                        Log.e(TAG, command.toString())
+                        if (command.header.id.contentEquals(requestId) && command.header.type == HeaderType.SUCCESS) {
+                            requestSuccessReceived = true
+                        } else if (command.header.type == HeaderType.REQUEST) {
+                            candidateResponses++
+                            val xorAddress = StunAttributeValueParser.createXorMappedAddress(command.header.id, host, port, true)
+                            val attributes = listOf(
+                                StunAttribute(AttributeType.XOR_MAPPED_ADDRESS, xorAddress)
                             )
+                            commandsManager.writeStun(HeaderType.SUCCESS, command.header.id, attributes, socket)
                         }
                     }
-                    val certificate = commandsManager.certificate ?: throw IllegalStateException("certificate no created yet")
 
+                    val nominateId = commandsManager.generateTransactionId()
+                    val nominateAttributes = listOf(
+                        StunAttribute(AttributeType.PRIORITY, priority.toUInt32()),
+                        StunAttribute(AttributeType.USERNAME, userName),
+                        StunAttribute(AttributeType.ICE_CONTROLLING, commandsManager.tieBreak),
+                        StunAttribute(AttributeType.USE_CANDIDATE, byteArrayOf()),
+                    )
+                    commandsManager.writeStun(HeaderType.REQUEST, nominateId, nominateAttributes, socket)
+
+                    var nominateSuccessReceived = false
+                    while (!nominateSuccessReceived) {
+                        val command = commandsManager.readStun(socket)
+                        Log.e(TAG, command.toString())
+                        if (command.header.id.contentEquals(nominateId) && command.header.type == HeaderType.SUCCESS) {
+                            nominateSuccessReceived = true
+                        } else if (command.header.type == HeaderType.REQUEST) {
+                            candidateResponses++
+                            val xorAddress = StunAttributeValueParser.createXorMappedAddress(command.header.id, host, port, true)
+                            val attributes = listOf(
+                                StunAttribute(AttributeType.XOR_MAPPED_ADDRESS, xorAddress)
+                            )
+                            commandsManager.writeStun(HeaderType.SUCCESS, command.header.id, attributes, socket)
+                        }
+                    }
+
+                    Log.i(TAG, "stun connected!!")
+
+                    //TODO DTLS handshake
+                    val certificate = commandsManager.certificate ?: return@launch
+
+                    val dtlsConnection = DtlsConnection(certificate)
+
+//                    val dtls = DTLS()
                     Log.i(TAG, "connecting dtls...")
-                    dtlsConnection.connect(selectedSocket)
-//                    val properties = dtlsConnection.getCryptoProperties()
-
+//                    dtls.start(dtlsTransport, cerf.fingerprint, cerf.crypto, cerf.key, cerf.certificate)
+//                    mutexSuccessConnection.lock()
+                    dtlsConnection.connect(socket)
                     //TODO connection success ready to send SRTP/SRTCP
-
                 }.exceptionOrNull()
                 if (error != null) {
                     Log.e(TAG, "connection error", error)
@@ -320,17 +317,16 @@ class WhipClient(private val connectChecker: ConnectChecker) {
     }
 
     suspend fun handleMessages(
-        socket: UdpStreamSocket,
-        onStunConnectedReceived: suspend (StunRequest) -> Unit = {},
-        onDtlsDataReceived: suspend (ByteArray) -> Unit = {},
-        onRtcpDataReceived: suspend (ByteArray) -> Unit = {}
+      socket: UdpStreamSocket,
+      onStunConnectedReceived: suspend (ByteArray, String, Int) -> Unit = { b, s, i -> },
+      onDtlsDataReceived: suspend (ByteArray) -> Unit = {},
+      onRtcpDataReceived: suspend (ByteArray) -> Unit = {}
     ) {
         try {
             val packet = socket.readPacket()
             val host = packet.host ?: return
             val port = packet.port ?: return
             val type = packet.data[0]
-            Log.e(TAG, "type: $type")
             when (type) {
                 in 20..63 -> {
                     onDtlsDataReceived(packet.data)
@@ -341,25 +337,7 @@ class WhipClient(private val connectChecker: ConnectChecker) {
                     return
                 }
             }
-            val command = StunCommandReader.readPacket(packet.data)
-            Log.i(TAG, "read: $command")
-            when (command.header.type) {
-                HeaderType.REQUEST -> {
-                    commandsManager.sendSuccess(command.header.id, host, port, socket)
-                }
-                HeaderType.INDICATION -> {
-                    throw IllegalArgumentException("unsupported handle indication for now")
-                }
-                HeaderType.SUCCESS -> {
-                    val found = synchronized(commandsManager.lock) {
-                        commandsManager.pairsToResponse.find {
-                            it.id.contentEquals(command.header.id)
-                        }
-                    }
-                    found?.let { onStunConnectedReceived(it) }
-                }
-                HeaderType.ERROR -> throw IllegalArgumentException("unsupported handle error for now")
-            }
+            onStunConnectedReceived(packet.data, host, port)
         } catch (_: SocketTimeoutException) {}
     }
 

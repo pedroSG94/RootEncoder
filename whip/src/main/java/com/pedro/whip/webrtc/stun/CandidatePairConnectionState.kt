@@ -16,20 +16,11 @@
  *
  */
 
-package com.pedro.whip.webrtc
+package com.pedro.whip.webrtc.stun
 
 /**
- * Created by pedro on 15/7/25.
+ * Created by pedro on 7/8/25.
  */
-data class Candidate(
-  val type: CandidateType,
-  val protocol: Int, //1 SRTP, 2 SRTCP
-  val priority: Int,
-  val localAddress: String,
-  val localPort: Int,
-  val publicAddress: String?,
-  val publicPort: Int?
-) {
-  fun getRealHost() = publicAddress ?: localAddress
-  fun getRealPort() = publicPort ?: localPort
+enum class CandidatePairConnectionState {
+  STOPPED, BINDING, NOMINATING, CONFIRMING, DONE, FAILED
 }
