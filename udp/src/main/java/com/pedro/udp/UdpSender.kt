@@ -107,8 +107,10 @@ class UdpSender(
         getMpegTsPackets(mediaFrame) { mpegTsPackets ->
           val isKey = mpegTsPackets[0].isKey
           val psiPackets = psiManager.checkSendInfo(isKey, mpegTsPacketizer, chunkSize)
-          bytesSend += sendPackets(psiPackets, MpegType.PSI)
-          bytesSend += sendPackets(mpegTsPackets, mpegTsPackets[0].type)
+          val bytesPsi = sendPackets(psiPackets, MpegType.PSI)
+          val bytes = sendPackets(mpegTsPackets, mpegTsPackets[0].type)
+          bytesSend += bytesPsi + bytes
+          bytesSendPerSecond += bytesPsi + bytes
         }
       }.exceptionOrNull()
       if (error != null) {
