@@ -8,20 +8,21 @@ class AudioUtils {
         dst: ByteArray
     ) {
         if (buffer.size != buffer2.size) return
-        if (volume == 1f && volume2 == 1f) {
-            for (i in buffer.indices) {
-                dst[i] = (buffer[i] + buffer2[i]).toByte()
-            }
-            return
-        }
         for (i in buffer.indices step 2) {
-            val sample = ((buffer[i + 1].toInt() shl 8) or (buffer[i].toInt() and 0xFF))
-            val adjustedSample = (sample * volume).toInt()
+            val sample1 = ((buffer[i + 1].toInt() shl 8) or (buffer[i].toInt() and 0xFF))
             val sample2 = ((buffer2[i + 1].toInt() shl 8) or (buffer2[i].toInt() and 0xFF))
-            val adjustedSample2 = (sample2 * volume2).toInt()
 
-            dst[i] = (adjustedSample.toByte() + adjustedSample2.toByte()).toByte()
-            dst[i + 1] = ((adjustedSample shr 8).toByte() + (adjustedSample2 shr 8).toByte()).toByte()
+            val signedSample1 = if (sample1 > 32767) sample1 - 65536 else sample1
+            val signedSample2 = if (sample2 > 32767) sample2 - 65536 else sample2
+
+            val adjustedSample1 = (signedSample1 * volume).toInt()
+            val adjustedSample2 = (signedSample2 * volume2).toInt()
+            var mixedSample = adjustedSample1 + adjustedSample2
+
+            mixedSample = mixedSample.coerceIn(-32768, 32767)
+            val unsignedSample = if (mixedSample < 0) mixedSample + 65536 else mixedSample
+            dst[i] = (unsignedSample and 0xFF).toByte()
+            dst[i + 1] = ((unsignedSample shr 8) and 0xFF).toByte()
         }
     }
 
