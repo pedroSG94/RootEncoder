@@ -240,7 +240,7 @@ class CommandsManager {
 
     suspend fun writeStun(stunCommand: StunCommand, socket: UdpStreamSocket) {
         val remotePass = if (!stunCommand.useIntegrity) "" else remoteSdpInfo?.uPass ?: throw IllegalStateException("remote sdp info no received yet")
-        Log.i(TAG, stunCommand.toString())
+        Log.i(TAG, "Write: $stunCommand")
         socket.write(stunCommand.toByteArray(remotePass))
     }
 
@@ -254,7 +254,7 @@ class CommandsManager {
         val command = StunCommand(
             StunHeader(type, 0, Constants.MAGIC_COOKIE, id), attributes
         )
-        Log.i(TAG, command.toString())
+        Log.i(TAG, "Write: $command")
         socket.write(command.toByteArray(remotePass))
     }
 
@@ -270,7 +270,9 @@ class CommandsManager {
 
     suspend fun readStun(socket: UdpStreamSocket): StunCommand {
         val data = socket.read()
-        return readStun(data)
+        val command = readStun(data)
+        Log.i(TAG, "Read: $command")
+        return command
     }
 
     suspend fun readStun(data: ByteArray): StunCommand {
@@ -304,6 +306,8 @@ class CommandsManager {
                 else  -> throw IllegalArgumentException("Unsupported codec: ${audioCodec.name}")
             }
         }
+        val sdpSha256 = fingerprint.chunked(2)
+            .joinToString(":") { it.uppercase() }
         return "v=0\r\n" +
                 "o=rtc $timeStamp $timeStamp IN IP4 127.0.0.1\r\n" +
                 "s=-\r\n" +
@@ -313,7 +317,7 @@ class CommandsManager {
                 "a=ice-ufrag:$uFrag\r\n" +
                 "a=ice-pwd:$uPass\r\n" +
                 "a=ice-options:trickle\r\n" +
-                "a=fingerprint:sha-256 $fingerprint\r\n" +
+                "a=fingerprint:sha-256 $sdpSha256\r\n" +
 
                 "m=audio 9 UDP/TLS/RTP/SAVPF 111\r\n" +
                 "c=IN IP4 0.0.0.0\r\n" +

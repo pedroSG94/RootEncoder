@@ -253,7 +253,6 @@ class WhipClient(private val connectChecker: ConnectChecker) {
                     var requestSuccessReceived = false
                     while (candidateResponses < 1 || !requestSuccessReceived) {
                         val command = commandsManager.readStun(socket)
-                        Log.e(TAG, command.toString())
                         if (command.header.id.contentEquals(requestId) && command.header.type == HeaderType.SUCCESS) {
                             requestSuccessReceived = true
                         } else if (command.header.type == HeaderType.REQUEST) {
@@ -278,7 +277,6 @@ class WhipClient(private val connectChecker: ConnectChecker) {
                     var nominateSuccessReceived = false
                     while (!nominateSuccessReceived) {
                         val command = commandsManager.readStun(socket)
-                        Log.e(TAG, command.toString())
                         if (command.header.id.contentEquals(nominateId) && command.header.type == HeaderType.SUCCESS) {
                             nominateSuccessReceived = true
                         } else if (command.header.type == HeaderType.REQUEST) {
@@ -295,14 +293,15 @@ class WhipClient(private val connectChecker: ConnectChecker) {
 
                     //TODO DTLS handshake
                     val certificate = commandsManager.certificate ?: return@launch
+                    val fingerprint = commandsManager.remoteSdpInfo?.fingerprint ?: return@launch
+//                    val dtlsConnection = DtlsConnection(certificate)
+//                    dtlsConnection.connect(socket)
 
-                    val dtlsConnection = DtlsConnection(certificate)
-
-//                    val dtls = DTLS()
+                    val dtls = DTLS()
                     Log.i(TAG, "connecting dtls...")
-//                    dtls.start(dtlsTransport, cerf.fingerprint, cerf.crypto, cerf.key, cerf.certificate)
-//                    mutexSuccessConnection.lock()
-                    dtlsConnection.connect(socket)
+                    val dtlsTransport = DtlsTransport(socket)
+                    dtls.start(dtlsTransport, fingerprint, certificate.crypto, certificate.key, certificate.certificate)
+                    mutexSuccessConnection.lock()
                     //TODO connection success ready to send SRTP/SRTCP
                 }.exceptionOrNull()
                 if (error != null) {
