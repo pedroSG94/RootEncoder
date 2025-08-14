@@ -1,7 +1,7 @@
 [versions]
 #plugins versions
 agp = "8.12.0"
-kotlin = "2.2.0"
+kotlin = "2.2.10"
 dokka = "2.0.0"
 
 #dependencies versions
