@@ -1,5 +1,7 @@
 package com.pedro.encoder.input.audio
 
+import kotlin.math.abs
+
 class AudioUtils {
 
     fun applyVolumeAndMix(
@@ -32,15 +34,16 @@ class AudioUtils {
     }
 
     /**
-     * assume always pcm 16bit
+     * Calculate amplitude peaks. Assume always pcm 16bit
      * @return value from 0f to 100f
      */
     fun calculateAmplitude(buffer: ByteArray): Float {
         if (buffer.size % 2 != 0) return 0f //invalid buffer
         var amplitude = 0
         for (i in buffer.indices step 2) {
-            val sample = ((buffer[i + 1].toInt() shl 8) or (buffer[i].toInt() and 0xFF))
-            if (sample > amplitude) amplitude = sample
+            val sample = ((buffer[i + 1].toInt() shl 8) or (buffer[i].toInt() and 0xFF)).toShort().toInt()
+            val sampleAmplitude = abs(sample)
+            if (sampleAmplitude > amplitude) amplitude = sampleAmplitude
         }
         return (amplitude / Short.MAX_VALUE.toFloat()) * 100
     }
