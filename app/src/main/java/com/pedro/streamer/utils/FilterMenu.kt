@@ -111,7 +111,7 @@ class FilterMenu(private val context: Context) {
         return true
       }
       R.id.basic_deformation -> {
-        glInterface.addFilter(BasicDeformationFilterRender())
+        glInterface.setFilter(BasicDeformationFilterRender())
         return true
       }
       R.id.beauty -> {
@@ -193,7 +193,7 @@ class FilterMenu(private val context: Context) {
         try {
           val gifObjectFilterRender = GifObjectFilterRender()
           gifObjectFilterRender.setGif(context.resources.openRawResource(R.raw.banana))
-          glInterface.addFilter(gifObjectFilterRender)
+          glInterface.setFilter(gifObjectFilterRender)
           gifObjectFilterRender.setScale(50f, 50f)
           gifObjectFilterRender.setPosition(TranslateTo.BOTTOM)
           spriteGestureController.setBaseObjectFilterRender(gifObjectFilterRender) //Optional
@@ -210,7 +210,7 @@ class FilterMenu(private val context: Context) {
       }
       R.id.image -> {
         val imageObjectFilterRender = ImageObjectFilterRender()
-        glInterface.addFilter(imageObjectFilterRender)
+        glInterface.setFilter(imageObjectFilterRender)
         imageObjectFilterRender.setImage(
           BitmapFactory.decodeResource(context.resources, R.mipmap.ic_launcher)
         )
