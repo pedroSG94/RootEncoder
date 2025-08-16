@@ -96,6 +96,8 @@ class Camera2ApiManager(context: Context) : CameraDevice.StateCallback() {
         private set
     var isAutoWhiteBalanceEnabled: Boolean = true
         private set
+    var lockExposureEnabled: Boolean = false
+        private set
     var isRunning: Boolean = false
         private set
     private var fps = 30
@@ -312,6 +314,17 @@ class Camera2ApiManager(context: Context) : CameraDevice.StateCallback() {
             return false
         }
     }
+
+    fun lockExposure(enabled: Boolean): Boolean {
+        val builderInputSurface = this.builderInputSurface ?: return false
+        builderInputSurface.set(CaptureRequest.CONTROL_AE_LOCK, enabled)
+        if (applyRequest(builderInputSurface)) {
+            lockExposureEnabled = enabled
+            return true
+        } else return false
+    }
+
+    fun isLockExposureEnabled() = lockExposureEnabled
 
     /**
      * @param mode value from CameraCharacteristics.CONTROL_AWB_MODE_*
