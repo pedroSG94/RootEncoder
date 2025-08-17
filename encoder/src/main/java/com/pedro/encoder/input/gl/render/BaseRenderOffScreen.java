@@ -77,7 +77,7 @@ public abstract class BaseRenderOffScreen {
     GLES20.glFramebufferRenderbuffer(GLES20.GL_FRAMEBUFFER, GLES20.GL_DEPTH_ATTACHMENT,
         GLES20.GL_RENDERBUFFER, rboId[0]);
 
-    GlUtil.createTextures(1, texId, 0, GLES20.GL_NEAREST, false);
+    GlUtil.createTextures(1, texId, 0);
     GLES20.glTexImage2D(GLES20.GL_TEXTURE_2D, 0, GLES20.GL_RGBA, width, height, 0, GLES20.GL_RGBA,
         GLES20.GL_UNSIGNED_BYTE, null);
     GLES20.glFramebufferTexture2D(GLES20.GL_FRAMEBUFFER, GLES20.GL_COLOR_ATTACHMENT0,
