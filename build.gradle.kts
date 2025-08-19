@@ -1,6 +1,6 @@
 allprojects {
   group = "com.github.pedroSG94"
-  version = "2.6.3"
+  version = "2.6.4"
 }
 
 plugins {
