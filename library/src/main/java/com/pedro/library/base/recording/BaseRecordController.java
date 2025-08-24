@@ -38,8 +38,8 @@ public abstract class BaseRecordController implements RecordController {
     protected Listener listener;
     protected int videoTrack = -1;
     protected int audioTrack = -1;
-    protected final MediaCodec.BufferInfo videoInfo = new MediaCodec.BufferInfo();
-    protected final MediaCodec.BufferInfo audioInfo = new MediaCodec.BufferInfo();
+    protected MediaCodec.BufferInfo videoInfo = new MediaCodec.BufferInfo();
+    protected MediaCodec.BufferInfo audioInfo = new MediaCodec.BufferInfo();
     protected BitrateManager bitrateManager;
     protected long startTs = 0;
     protected RecordTracks tracks = RecordTracks.ALL;
@@ -105,6 +105,7 @@ public abstract class BaseRecordController implements RecordController {
         newInfo.flags = oldInfo.flags;
         newInfo.offset = oldInfo.offset;
         newInfo.size = oldInfo.size;
-        newInfo.presentationTimeUs = Math.max(0, oldInfo.presentationTimeUs - startTs - pauseTime);
+        long ts = Math.max(0, oldInfo.presentationTimeUs - startTs - pauseTime);
+        newInfo.presentationTimeUs = Math.max(newInfo.presentationTimeUs, ts);
     }
 }
