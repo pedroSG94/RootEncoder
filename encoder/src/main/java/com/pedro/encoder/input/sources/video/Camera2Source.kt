@@ -19,6 +19,7 @@ package com.pedro.encoder.input.sources.video
 import android.content.Context
 import android.graphics.SurfaceTexture
 import android.hardware.camera2.CameraCharacteristics
+import android.hardware.camera2.CameraManager
 import android.os.Build
 import android.util.Range
 import android.util.Size
@@ -268,5 +269,23 @@ class Camera2Source(context: Context): VideoSource() {
   fun setRequiredResolution(size: Size?) {
     size?.let { checkResolutionSupported(it.width, it.height) }
     camera.setRequiredResolution(size)
+  }
+
+  /**
+   * Add a callback to detect the camera availability.
+   * Set null value to remove the callback
+   */
+  fun setAvailabilityCallback(callback: CameraManager.AvailabilityCallback?) {
+    camera.setAvailabilityCallback(callback)
+  }
+
+  /**
+   * Re start camera if possible, return true or false depend if can do it or not.
+   */
+  fun restart(): Boolean {
+    if (isRunning()) camera.reOpenCamera(camera.getCurrentCameraId())
+    else if (camera.isPrepared) camera.openCameraId(camera.getCurrentCameraId())
+    else return false
+    return true
   }
 }
