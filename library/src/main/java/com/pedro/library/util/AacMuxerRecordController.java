@@ -95,6 +95,7 @@ public class AacMuxerRecordController extends BaseRecordController {
         } catch (Exception ignored) { } finally {
             outputStream = null;
         }
+        audioInfo = new MediaCodec.BufferInfo();
         if (listener != null) listener.onStatusChange(status);
     }
 
