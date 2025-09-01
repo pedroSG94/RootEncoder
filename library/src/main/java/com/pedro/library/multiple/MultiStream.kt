@@ -182,7 +182,7 @@ class MultiStream(
                 break
             }
         }
-        if (shouldStarEncoder) super.startStream("")
+        if (shouldStarEncoder) super.startStream("", emptyMap())
         when (type) {
             MultiType.RTMP -> {
                 val resolution = super.getVideoResolution()

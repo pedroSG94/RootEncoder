@@ -175,6 +175,10 @@ class RtmpClient(private val connectChecker: ConnectChecker) {
     }
   }
 
+  fun setCustomAmfObject(amfObject: Map<String, Any>) {
+    commandsManager.customAmfObject = amfObject
+  }
+
   fun setAuthorization(user: String?, password: String?) {
     commandsManager.setAuth(user, password)
   }
@@ -253,7 +257,8 @@ class RtmpClient(private val connectChecker: ConnectChecker) {
         commandsManager.port = urlParser.port ?: defaultPort
         commandsManager.appName = urlParser.getAppName()
         commandsManager.streamName = urlParser.getStreamName()
-        commandsManager.tcUrl = urlParser.getTcUrl()
+        val customTcUrl = commandsManager.customAmfObject["tcUrl"] as? String
+        commandsManager.tcUrl = customTcUrl ?: urlParser.getTcUrl()
         if (commandsManager.appName.isEmpty()) {
           isStreaming = false
           onMainThread {

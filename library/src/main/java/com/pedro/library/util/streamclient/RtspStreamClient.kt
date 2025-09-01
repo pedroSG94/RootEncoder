@@ -149,4 +149,8 @@ class RtspStreamClient(
   override fun setSocketType(type: SocketType) {
     rtspClient.socketType = type
   }
+
+  override fun setCustomAmfObject(amfObject: Map<String, Any>) {
+    //ignored
+  }
 }

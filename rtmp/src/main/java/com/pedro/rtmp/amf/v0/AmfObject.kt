@@ -88,6 +88,31 @@ open class AmfObject(private val properties: LinkedHashMap<AmfString, AmfData> =
     bodySize += data.getSize() + 1
   }
 
+  open fun setProperty(name: String, data: Any) {
+    val newValue: AmfData = when (data) {
+      is String   -> AmfString(data)
+      is Int      -> AmfNumber(data.toDouble())
+      is Double   -> AmfNumber(data)
+      is Float    -> AmfNumber(data.toDouble())
+      is Boolean  -> AmfBoolean(data)
+      is AmfData  -> data
+      else        -> throw IllegalArgumentException(
+        "Unsupported value type: ${data::class.java.name}"
+      )
+    }
+
+    val existingEntry = properties.entries.find { it.key.value == name }
+
+    if (existingEntry != null) {
+      properties[existingEntry.key] = newValue
+      bodySize += newValue.getSize() - existingEntry.value.getSize()
+    } else {
+      val key = AmfString(name)
+      properties[key] = newValue
+      bodySize += key.getSize() + newValue.getSize() + 1
+    }
+  }
+
   fun getProperties() = properties
 
   @Throws(IOException::class)
