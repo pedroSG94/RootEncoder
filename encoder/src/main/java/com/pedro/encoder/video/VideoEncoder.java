@@ -53,7 +53,7 @@ import java.util.List;
 public class VideoEncoder extends BaseEncoder implements GetCameraData {
 
   private final GetVideoData getVideoData;
-  private boolean spsPpsSetted = false;
+  private volatile boolean spsPpsSetted = false;
   private boolean forceKey = false;
   //video data necessary to send after requestKeyframe.
   private ByteBuffer oldSps, oldPps, oldVps;
@@ -255,7 +255,7 @@ public class VideoEncoder extends BaseEncoder implements GetCameraData {
   @RequiresApi(api = Build.VERSION_CODES.KITKAT)
   public void requestKeyframe() {
     if (isRunning()) {
-      if (spsPpsSetted) {
+      if (spsPpsSetted && oldSps != null) {
         Bundle bundle = new Bundle();
         bundle.putInt(MediaCodec.PARAMETER_KEY_REQUEST_SYNC_FRAME, 0);
         try {
@@ -266,6 +266,7 @@ public class VideoEncoder extends BaseEncoder implements GetCameraData {
         }
       } else {
         //You need wait until encoder generate first frame.
+        spsPpsSetted = false;
         forceKey = true;
       }
     }
@@ -324,6 +325,7 @@ public class VideoEncoder extends BaseEncoder implements GetCameraData {
       ByteBuffer bufferInfo = mediaFormat.getByteBuffer("csd-0");
       //we need an av1ConfigurationRecord with sequenceObu to work
       if (bufferInfo != null && bufferInfo.remaining() > 4) {
+        oldSps = bufferInfo;
         getVideoData.onVideoInfo(bufferInfo, null, null);
         return true;
       }
@@ -340,11 +342,15 @@ public class VideoEncoder extends BaseEncoder implements GetCameraData {
       }
       //H264
     } else {
-      oldSps = mediaFormat.getByteBuffer("csd-0");
-      oldPps = mediaFormat.getByteBuffer("csd-1");
-      oldVps = null;
-      getVideoData.onVideoInfo(oldSps, oldPps, oldVps);
-      return true;
+      ByteBuffer sps = mediaFormat.getByteBuffer("csd-0");
+      ByteBuffer pps = mediaFormat.getByteBuffer("csd-1");
+      if (sps != null && pps != null) {
+        oldSps = sps;
+        oldPps = pps;
+        oldVps = null;
+        getVideoData.onVideoInfo(oldSps, oldPps, oldVps);
+        return true;
+      }
     }
     return false;
   }
@@ -520,8 +526,7 @@ public class VideoEncoder extends BaseEncoder implements GetCameraData {
   }
 
   @Override
-  protected void checkBuffer(@NonNull ByteBuffer byteBuffer,
-      @NonNull MediaCodec.BufferInfo bufferInfo) {
+  protected void checkBuffer(@NonNull ByteBuffer byteBuffer, @NonNull MediaCodec.BufferInfo bufferInfo) {
     if (forceKey && Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
       forceKey = false;
       requestKeyframe();
@@ -557,6 +562,7 @@ public class VideoEncoder extends BaseEncoder implements GetCameraData {
       Log.i(TAG, "formatChanged not called, doing manual av1 extraction...");
       ByteBuffer obuSequence = extractObuSequence(byteBuffer.duplicate(), bufferInfo);
       if (obuSequence != null) {
+        oldSps = obuSequence;
         getVideoData.onVideoInfo(obuSequence, null, null);
         spsPpsSetted = true;
       } else {
