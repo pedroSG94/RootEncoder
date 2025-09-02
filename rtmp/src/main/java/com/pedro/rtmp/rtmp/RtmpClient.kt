@@ -257,8 +257,7 @@ class RtmpClient(private val connectChecker: ConnectChecker) {
         commandsManager.port = urlParser.port ?: defaultPort
         commandsManager.appName = urlParser.getAppName()
         commandsManager.streamName = urlParser.getStreamName()
-        val customTcUrl = commandsManager.customAmfObject["tcUrl"] as? String
-        commandsManager.tcUrl = customTcUrl ?: urlParser.getTcUrl()
+        commandsManager.tcUrl = urlParser.getTcUrl()
         if (commandsManager.appName.isEmpty()) {
           isStreaming = false
           onMainThread {

@@ -182,11 +182,9 @@ abstract class StreamBase(
    *
    * Must be called after prepareVideo and prepareAudio
    */
-  @JvmOverloads
-  fun startStream(endPoint: String, customAmfObject: Map<String, Any> = emptyMap()) {
+  fun startStream(endPoint: String) {
     if (isStreaming) throw IllegalStateException("Stream already started, stopStream before startStream again")
     isStreaming = true
-    getStreamClient().setCustomAmfObject(customAmfObject)
     startStreamImp(endPoint)
     if (!isRecording) startSources()
     else requestKeyframe()

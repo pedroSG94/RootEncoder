@@ -250,8 +250,4 @@ class GenericStreamClient(
    * Get the exponential factor used to calculate the bitrate. Default 1f
    */
   override fun getBitrateExponentialFactor() = connectedStreamClient?.getBitrateExponentialFactor() ?: 1f
-
-  override fun setCustomAmfObject(amfObject: Map<String, Any>) {
-    rtmpClient.setCustomAmfObject(amfObject)
-  }
 }

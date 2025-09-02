@@ -167,8 +167,4 @@ class SrtStreamClient(
    * Packets lost reported by NAK command. Increment each time a NAK is received.
    */
   fun getPacketsLost() = srtClient.packetsLost
-
-  override fun setCustomAmfObject(amfObject: Map<String, Any>) {
-    //ignored
-  }
 }

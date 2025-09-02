@@ -175,7 +175,7 @@ class RtmpStreamClient(
     rtmpClient.socketType = type
   }
 
-  override fun setCustomAmfObject(amfObject: Map<String, Any>) {
+  fun setCustomAmfObject(amfObject: Map<String, Any>) {
     rtmpClient.setCustomAmfObject(amfObject)
   }
 

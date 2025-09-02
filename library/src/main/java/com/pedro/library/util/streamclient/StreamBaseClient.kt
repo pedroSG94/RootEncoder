@@ -84,10 +84,4 @@ abstract class StreamBaseClient {
    * This will create a cache and wait the delay to start send packets in real time
    */
   abstract fun setDelay(millis: Long)
-
-  /**
-   * Set a custom AMF object to be used in the stream.
-   * @param amfObject The AMF object represented as a Map.
-   */
-  abstract fun setCustomAmfObject(amfObject: Map<String, Any>)
 }
