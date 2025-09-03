@@ -40,7 +40,6 @@ class UdpStreamClient(
     udpClient.setDelay(millis)
   }
 
-
   override fun setReTries(reTries: Int) {
     udpClient.setReTries(reTries)
   }

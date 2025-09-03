@@ -92,6 +92,7 @@ open class AmfObject(private val properties: LinkedHashMap<AmfString, AmfData> =
     val newValue: AmfData = when (data) {
       is String   -> AmfString(data)
       is Int      -> AmfNumber(data.toDouble())
+      is Long     -> AmfNumber(data.toDouble())
       is Double   -> AmfNumber(data)
       is Float    -> AmfNumber(data.toDouble())
       is Boolean  -> AmfBoolean(data)

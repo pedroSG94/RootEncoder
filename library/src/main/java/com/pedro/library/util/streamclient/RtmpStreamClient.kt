@@ -178,5 +178,4 @@ class RtmpStreamClient(
   fun setCustomAmfObject(amfObject: Map<String, Any>) {
     rtmpClient.setCustomAmfObject(amfObject)
   }
-
 }
