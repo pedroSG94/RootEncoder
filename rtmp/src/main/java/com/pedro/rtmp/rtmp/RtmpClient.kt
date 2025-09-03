@@ -252,28 +252,12 @@ class RtmpClient(private val connectChecker: ConnectChecker) {
 
         tunneled = urlParser.scheme.startsWith("rtmpt")
         tlsEnabled = urlParser.scheme.endsWith("s")
+        commandsManager.host = urlParser.host
         val defaultPort = if (tlsEnabled) 443 else if (tunneled) 80 else 1935
-
-        // Prefer values from customAmfObject; fallback to URL parsed values
-        val co = commandsManager.customAmfObject
-        commandsManager.host = (co["host"] as? String) ?: urlParser.host
-        commandsManager.port = (co["port"]  as? Int) ?: (urlParser.port ?: defaultPort)
-        commandsManager.appName = (co["app"] as? String) ?: urlParser.getAppName()
-        commandsManager.streamName = (co["streamName"] as? String) ?: urlParser.getStreamName()
-        commandsManager.tcUrl = (co["tcUrl"] as? String) ?: urlParser.getTcUrl()
-
-        // Print connection summary for visibility
-        runCatching {
-          val used = mapOf(
-            "host" to (co["host"] != null),
-            "port" to (co["port"] != null),
-            "app" to (co["app"] != null),
-            "streamName" to (co["streamName"] != null),
-            "tcUrl" to (co["tcUrl"] != null)
-          )
-          Log.i(TAG, "connect config => host=${commandsManager.host}, port=${commandsManager.port}, app=${commandsManager.appName}, stream=${commandsManager.streamName}, tcUrl=${commandsManager.tcUrl}, tls=$tlsEnabled, tunneled=$tunneled, fromCustom=$used")
-        }
-
+        commandsManager.port = urlParser.port ?: defaultPort
+        commandsManager.appName = urlParser.getAppName()
+        commandsManager.streamName = urlParser.getStreamName()
+        commandsManager.tcUrl = urlParser.getTcUrl()
         if (commandsManager.appName.isEmpty()) {
           isStreaming = false
           onMainThread {

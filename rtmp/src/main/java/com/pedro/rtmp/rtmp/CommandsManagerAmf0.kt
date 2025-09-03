@@ -39,17 +39,9 @@ class CommandsManagerAmf0: CommandsManager() {
     val connect = CommandAmf0("connect", ++commandId, getCurrentTimestamp(), streamId,
         BasicHeader(ChunkType.TYPE_0, ChunkStreamId.OVER_CONNECTION.mark))
     val connectInfo = AmfObject()
-
-    // Prefer custom app/tcUrl if provided, and always append auth to keep auth flow working
-    val customApp = customAmfObject["app"]?.toString()
-    val customTcUrl = customAmfObject["tcUrl"]?.toString()
-    val finalApp = (customApp ?: appName) + auth
-    val finalTcUrl = (customTcUrl ?: tcUrl) + auth
-
-    connectInfo.setProperty("app", finalApp)
+    connectInfo.setProperty("app", appName + auth)
     connectInfo.setProperty("flashVer", flashVersion)
-    connectInfo.setProperty("tcUrl", finalTcUrl)
-
+    connectInfo.setProperty("tcUrl", tcUrl + auth)
     if (!videoDisabled) {
       if (videoCodec == VideoCodec.H265) {
         val list = mutableListOf<AmfData>()
@@ -65,13 +57,9 @@ class CommandsManagerAmf0: CommandsManager() {
     }
     connectInfo.setProperty("objectEncoding", 0.0)
 
-    // Inject other custom AMF fields as-is; skip app/tcUrl since we've handled them with auth
+    // Inject other custom AMF fields as-is
     customAmfObject.forEach { (key, value) ->
-      when (key) {
-        "app" -> connectInfo.setProperty("app", finalApp)
-        "tcUrl" -> connectInfo.setProperty("tcUrl", finalTcUrl)
-        else -> connectInfo.setProperty(key, value)
-      }
+      connectInfo.setProperty(key, value)
     }
     connect.addData(connectInfo)
 
