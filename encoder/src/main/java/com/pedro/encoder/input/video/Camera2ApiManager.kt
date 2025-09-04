@@ -77,7 +77,8 @@ class Camera2ApiManager(context: Context) : CameraDevice.StateCallback() {
     private val cameraManager = context.getSystemService(Context.CAMERA_SERVICE) as CameraManager
     private var cameraHandler: Handler? = null
     private var cameraCaptureSession: CameraCaptureSession? = null
-    private var isPrepared: Boolean = false
+    var isPrepared: Boolean = false
+        private set
     private var cameraId: String = "0"
     private var physicalCameraId: String? = null
     private var facing = Facing.BACK
@@ -114,6 +115,7 @@ class Camera2ApiManager(context: Context) : CameraDevice.StateCallback() {
     private var faceDetectionEnabled = false
     private var faceDetectionMode = 0
     private var imageReader: ImageReader? = null
+    private var availabilityCallback: CameraManager.AvailabilityCallback? = null
 
     init {
         cameraId = try { getCameraIdForFacing(Facing.BACK) } catch (_: Exception) { "0" }
@@ -237,6 +239,15 @@ class Camera2ApiManager(context: Context) : CameraDevice.StateCallback() {
 
     fun setCameraId(cameraId: String) {
         this.cameraId = cameraId
+    }
+
+    fun setAvailabilityCallback(callback: CameraManager.AvailabilityCallback?) {
+        if (callback == null) {
+            availabilityCallback?.let { cameraManager.unregisterAvailabilityCallback(it) }
+        } else {
+            cameraManager.registerAvailabilityCallback(callback, null)
+            availabilityCallback = callback
+        }
     }
 
     var cameraFacing: Facing
