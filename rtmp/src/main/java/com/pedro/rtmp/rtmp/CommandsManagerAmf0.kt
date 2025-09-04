@@ -56,6 +56,11 @@ class CommandsManagerAmf0: CommandsManager() {
       }
     }
     connectInfo.setProperty("objectEncoding", 0.0)
+
+    // Inject other custom AMF fields as-is
+    customAmfObject.forEach { (key, value) ->
+      connectInfo.setProperty(key, value)
+    }
     connect.addData(connectInfo)
 
     connect.writeHeader(socket)
