@@ -20,6 +20,7 @@ import android.media.MediaCodec;
 import android.media.MediaFormat;
 import android.media.MediaMuxer;
 import android.os.Build;
+import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -157,10 +158,13 @@ public class AndroidMuxerRecordController extends BaseRecordController {
 
   private void write(int track, ByteBuffer byteBuffer, MediaCodec.BufferInfo info) {
     if (track == -1) return;
+    String trackString = track == audioTrack ? "Audio" : "Video";
     try {
       mediaMuxer.writeSampleData(track, byteBuffer, info);
+      Log.i(TAG, trackString + ", ts: " + info.presentationTimeUs + ", flag: " + info.flags);
       if (bitrateManager != null) bitrateManager.calculateBitrate(info.size * 8L, ExtensionsKt.getSuspendContext());
     } catch (Exception e) {
+      Log.e(TAG, trackString + ", ts: " + info.presentationTimeUs + ", flag: " + info.flags, e);
       if (listener != null) listener.onError(e);
     }
   }
