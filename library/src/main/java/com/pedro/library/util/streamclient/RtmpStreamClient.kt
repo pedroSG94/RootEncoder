@@ -24,7 +24,7 @@ import javax.net.ssl.TrustManager
  * Created by pedro on 12/10/23.
  */
 class RtmpStreamClient(
-  private val rtmpClient: RtmpClient, 
+  private val rtmpClient: RtmpClient,
   private val streamClientListener: StreamClientListener?
 ): StreamBaseClient() {
 
@@ -121,6 +121,8 @@ class RtmpStreamClient(
 
   override fun getSentVideoFrames(): Long = rtmpClient.sentVideoFrames
 
+  override fun getBytesSend(): Long = rtmpClient.bytesSend
+
   override fun getDroppedAudioFrames(): Long = rtmpClient.droppedAudioFrames
 
   override fun getDroppedVideoFrames(): Long = rtmpClient.droppedVideoFrames
@@ -139,6 +141,10 @@ class RtmpStreamClient(
 
   override fun resetDroppedVideoFrames() {
     rtmpClient.resetDroppedVideoFrames()
+  }
+
+  override fun resetBytesSend() {
+    rtmpClient.resetBytesSend()
   }
 
   override fun setOnlyAudio(onlyAudio: Boolean) {
@@ -167,5 +173,9 @@ class RtmpStreamClient(
    */
   override fun setSocketType(type: SocketType) {
     rtmpClient.socketType = type
+  }
+
+  fun setCustomAmfObject(amfObject: Map<String, Any>) {
+    rtmpClient.setCustomAmfObject(amfObject)
   }
 }

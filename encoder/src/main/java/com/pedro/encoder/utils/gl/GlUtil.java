@@ -78,34 +78,25 @@ public class GlUtil {
     return program;
   }
 
-  public static void createTextures(int quantity, int[] texturesId, int offset) {
+  public static void createTextures(int quantity, int[] texturesId, int offset, int filter, boolean isExternal) {
     GLES20.glGenTextures(quantity, texturesId, offset);
+    final int type = isExternal ? GLES11Ext.GL_TEXTURE_EXTERNAL_OES : GLES20.GL_TEXTURE_2D;
     for (int i = offset; i < quantity; i++) {
       GLES20.glActiveTexture(GLES20.GL_TEXTURE0 + i);
-      GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, texturesId[i]);
-      GLES20.glTexParameterf(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MIN_FILTER, GLES20.GL_LINEAR);
-      GLES20.glTexParameterf(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MAG_FILTER, GLES20.GL_LINEAR);
-      GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_WRAP_S,
-          GLES20.GL_CLAMP_TO_EDGE);
-      GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_WRAP_T,
-          GLES20.GL_CLAMP_TO_EDGE);
+      GLES20.glBindTexture(type, texturesId[i]);
+      GLES20.glTexParameterf(type, GLES20.GL_TEXTURE_MIN_FILTER, filter);
+      GLES20.glTexParameterf(type, GLES20.GL_TEXTURE_MAG_FILTER, filter);
+      GLES20.glTexParameteri(type, GLES20.GL_TEXTURE_WRAP_S, GLES20.GL_CLAMP_TO_EDGE);
+      GLES20.glTexParameteri(type, GLES20.GL_TEXTURE_WRAP_T, GLES20.GL_CLAMP_TO_EDGE);
     }
   }
 
+  public static void createTextures(int quantity, int[] texturesId, int offset) {
+    createTextures(quantity, texturesId, offset, GLES20.GL_LINEAR, false);
+  }
+
   public static void createExternalTextures(int quantity, int[] texturesId, int offset) {
-    GLES20.glGenTextures(quantity, texturesId, offset);
-    for (int i = offset; i < quantity; i++) {
-      GLES20.glActiveTexture(GLES20.GL_TEXTURE0 + i);
-      GLES20.glBindTexture(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, texturesId[i]);
-      GLES20.glTexParameterf(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, GLES20.GL_TEXTURE_MIN_FILTER,
-          GLES20.GL_LINEAR);
-      GLES20.glTexParameterf(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, GLES20.GL_TEXTURE_MAG_FILTER,
-          GLES20.GL_LINEAR);
-      GLES20.glTexParameteri(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, GLES20.GL_TEXTURE_WRAP_S,
-          GLES20.GL_CLAMP_TO_EDGE);
-      GLES20.glTexParameteri(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, GLES20.GL_TEXTURE_WRAP_T,
-          GLES20.GL_CLAMP_TO_EDGE);
-    }
+    createTextures(quantity, texturesId, offset, GLES20.GL_LINEAR, true);
   }
 
   public static String getStringFromRaw(Context context, int id) {

@@ -96,6 +96,8 @@ class RtspStreamClient(
 
   override fun getSentVideoFrames(): Long = rtspClient.sentVideoFrames
 
+  override fun getBytesSend(): Long = rtspClient.bytesSend
+
   override fun getDroppedAudioFrames(): Long = rtspClient.droppedAudioFrames
 
   override fun getDroppedVideoFrames(): Long = rtspClient.droppedVideoFrames
@@ -114,6 +116,10 @@ class RtspStreamClient(
 
   override fun resetDroppedVideoFrames() {
     rtspClient.resetDroppedVideoFrames()
+  }
+
+  override fun resetBytesSend() {
+    rtspClient.resetBytesSend()
   }
 
   override fun setOnlyAudio(onlyAudio: Boolean) {

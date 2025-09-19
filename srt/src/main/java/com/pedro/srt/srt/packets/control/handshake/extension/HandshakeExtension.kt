@@ -78,7 +78,7 @@ data class HandshakeExtension(
     return if (mod == 0) {
       reverseBlocks(data.asList())
     } else {
-      val bytesToAdd = ByteArray(4 - mod) { 0x00 }.asList()
+      val bytesToAdd = ByteArray(4 - mod).asList()
       val list = data.asList().toMutableList()
       list.addAll(bytesToAdd)
       reverseBlocks(list)

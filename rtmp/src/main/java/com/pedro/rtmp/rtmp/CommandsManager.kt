@@ -61,6 +61,7 @@ abstract class CommandsManager {
   var readChunkSize = RtmpConfig.DEFAULT_CHUNK_SIZE
   var audioDisabled = false
   var videoDisabled = false
+  var customAmfObject: Map<String, Any> = emptyMap()
   private var bytesRead = 0
   private var acknowledgementSequence = 0
 

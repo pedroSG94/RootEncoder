@@ -36,7 +36,10 @@ abstract class BaseSender(
     private var job: Job? = null
     protected val scope = CoroutineScope(Dispatchers.IO)
     @Volatile
-    protected var bytesSend = 0L
+    var bytesSend = 0L
+        protected set
+    @Volatile
+    protected var bytesSendPerSecond = 0L
 
     abstract fun setVideoInfo(sps: ByteBuffer, pps: ByteBuffer?, vps: ByteBuffer?)
     abstract fun setAudioInfo(sampleRate: Int, isStereo: Boolean)
@@ -66,8 +69,8 @@ abstract class BaseSender(
             val bitrateTask = async {
                 while (scope.isActive && running) {
                     //bytes to bits
-                    bitrateManager.calculateBitrate(bytesSend * 8)
-                    bytesSend = 0
+                    bitrateManager.calculateBitrate(bytesSendPerSecond * 8)
+                    bytesSendPerSecond = 0
                     delay(timeMillis = 1000)
                 }
             }
@@ -82,6 +85,7 @@ abstract class BaseSender(
         resetSentVideoFrames()
         resetDroppedAudioFrames()
         resetDroppedVideoFrames()
+        resetBytesSend()
         job?.cancelAndJoin()
         job = null
         queue.clear()
@@ -145,5 +149,9 @@ abstract class BaseSender(
 
     fun setDelay(delay: Long) {
         queue.setCacheTime(delay)
+    }
+
+    fun resetBytesSend() {
+        bytesSend = 0
     }
 }
