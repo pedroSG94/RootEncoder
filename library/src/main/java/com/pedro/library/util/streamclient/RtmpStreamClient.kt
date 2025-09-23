@@ -175,6 +175,13 @@ class RtmpStreamClient(
     rtmpClient.socketType = type
   }
 
+  /**
+   * Set timeout ms for connection, write and read in sockets by default 5000ms
+   */
+  override fun setSocketTimeout(timeout: Long) {
+    rtmpClient.socketTimeout = timeout
+  }
+
   fun setCustomAmfObject(amfObject: Map<String, Any>) {
     rtmpClient.setCustomAmfObject(amfObject)
   }

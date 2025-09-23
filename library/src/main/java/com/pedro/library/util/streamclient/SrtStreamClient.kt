@@ -149,6 +149,13 @@ class SrtStreamClient(
   }
 
   /**
+   * Set timeout ms for connection, write and read in sockets by default 5000ms
+   */
+  override fun setSocketTimeout(timeout: Long) {
+    srtClient.socketTimeout = timeout
+  }
+
+  /**
    * Set a custom Mpeg2TsService with specified parameters
    * Must be called before connecting to the server
    *

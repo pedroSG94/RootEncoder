@@ -132,4 +132,11 @@ class UdpStreamClient(
   override fun setSocketType(type: SocketType) {
     udpClient.socketType = type
   }
+
+  /**
+   * Set timeout ms for connection, write and read in sockets by default 5000ms
+   */
+  override fun setSocketTimeout(timeout: Long) {
+    udpClient.socketTimeout = timeout
+  }
 }

@@ -44,6 +44,16 @@ class GenericStreamClient(
   }
 
   /**
+   * Set timeout ms for connection, write and read in sockets by default 5000ms
+   */
+  override fun setSocketTimeout(timeout: Long) {
+    rtmpClient.setSocketTimeout(timeout)
+    rtspClient.setSocketTimeout(timeout)
+    srtClient.setSocketTimeout(timeout)
+    udpClient.setSocketTimeout(timeout)
+  }
+
+  /**
    * Set stream delay in millis.
    * This will create a cache and wait the delay to start send packets in real time
    */

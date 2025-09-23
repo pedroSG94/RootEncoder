@@ -27,6 +27,7 @@ import com.pedro.common.clone
 import com.pedro.common.frame.MediaFrame
 import com.pedro.common.onMainThread
 import com.pedro.common.socket.base.SocketType
+import com.pedro.common.socket.base.StreamSocket
 import com.pedro.common.toMediaFrameInfo
 import com.pedro.common.validMessage
 import com.pedro.srt.mpeg2ts.service.Mpeg2TsService
@@ -106,6 +107,7 @@ class SrtClient(private val connectChecker: ConnectChecker) {
     private set
   private var latency = 120_000 //in micro
   var socketType = SocketType.KTOR
+  var socketTimeout = StreamSocket.DEFAULT_TIMEOUT
 
   fun setVideoCodec(videoCodec: VideoCodec) {
     if (!isStreaming) {
@@ -225,7 +227,7 @@ class SrtClient(private val connectChecker: ConnectChecker) {
         commandsManager.host = host
 
         val error = runCatching {
-          socket = SrtSocket(socketType, host, port)
+          socket = SrtSocket(socketType, host, port, socketTimeout)
           socket?.connect()
           commandsManager.loadStartTs()
 

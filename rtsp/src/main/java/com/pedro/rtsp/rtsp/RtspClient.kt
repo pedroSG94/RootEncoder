@@ -94,6 +94,7 @@ class RtspClient(private val connectChecker: ConnectChecker) {
   val bytesSend: Long
     get() = rtspSender.bytesSend
   var socketType = SocketType.KTOR
+  var socketTimeout = StreamSocket.DEFAULT_TIMEOUT
 
   /**
    * Add certificates for TLS connection
@@ -245,7 +246,7 @@ class RtspClient(private val connectChecker: ConnectChecker) {
             }
             rtspSender.setVideoInfo(commandsManager.sps!!, commandsManager.pps, commandsManager.vps)
           }
-          val socket = StreamSocket.createTcpSocket(socketType, host, port, tlsEnabled, certificates)
+          val socket = StreamSocket.createTcpSocket(socketType, host, port, tlsEnabled, socketTimeout, certificates)
           this@RtspClient.socket = socket
           socket.connect()
           socket.write(commandsManager.createOptions())
@@ -350,7 +351,7 @@ class RtspClient(private val connectChecker: ConnectChecker) {
           rtspSender.setSocketsInfo(
             socketType,
             commandsManager.protocol,
-            host,
+            host, socketTimeout,
             videoClientPorts,
             audioClientPorts,
             videoServerPorts,

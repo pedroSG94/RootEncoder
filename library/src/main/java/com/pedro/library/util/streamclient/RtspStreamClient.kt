@@ -149,4 +149,11 @@ class RtspStreamClient(
   override fun setSocketType(type: SocketType) {
     rtspClient.socketType = type
   }
+
+  /**
+   * Set timeout ms for connection, write and read in sockets by default 5000ms
+   */
+  override fun setSocketTimeout(timeout: Long) {
+    rtspClient.socketTimeout = timeout
+  }
 }

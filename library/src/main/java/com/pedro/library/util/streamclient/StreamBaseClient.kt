@@ -80,6 +80,10 @@ abstract class StreamBaseClient {
    */
   abstract fun setSocketType(type: SocketType)
   /**
+   * Set timeout ms for connection, write and read in sockets by default 5000ms
+   */
+  abstract fun setSocketTimeout(timeout: Long)
+  /**
    * Set stream delay in millis.
    * This will create a cache and wait the delay to start send packets in real time
    */

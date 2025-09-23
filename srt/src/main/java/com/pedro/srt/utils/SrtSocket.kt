@@ -23,9 +23,9 @@ import com.pedro.srt.srt.packets.SrtPacket
 /**
  * Created by pedro on 22/8/23.
  */
-class SrtSocket(type: SocketType, host: String, port: Int) {
+class SrtSocket(type: SocketType, host: String, port: Int, timeout: Long) {
 
-  private val socket = StreamSocket.createUdpSocket(type, host, port, receiveSize = Constants.MTU)
+  private val socket = StreamSocket.createUdpSocket(type, host, port, timeout, receiveSize = Constants.MTU)
 
   suspend fun connect() {
     socket.connect()

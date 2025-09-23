@@ -18,6 +18,7 @@ package com.pedro.rtsp.rtcp
 
 import com.pedro.common.TimeUtils
 import com.pedro.common.socket.base.SocketType
+import com.pedro.common.socket.base.StreamSocket
 import com.pedro.common.socket.base.TcpStreamSocket
 import com.pedro.common.socket.base.UdpStreamSocket
 import com.pedro.rtsp.Utils
@@ -65,7 +66,8 @@ class RtcpReportTest {
   @Test
   fun `GIVEN multiple video or audio rtp frames WHEN update rtcp tcp send THEN send only 1 of video and 1 of audio each 3 seconds`() = runTest {
     Utils.useStatics(listOf(timeUtilsMocked)) {
-      val senderReportTcp = BaseSenderReport.getInstance(SocketType.JAVA, Protocol.TCP, "127.0.0.1", 0, 1, 2, 3)
+      val senderReportTcp = BaseSenderReport.getInstance(SocketType.JAVA, Protocol.TCP, "127.0.0.1",
+        StreamSocket.DEFAULT_TIMEOUT, 0, 1, 2, 3)
       senderReportTcp.setSocket(tcpSocket)
       senderReportTcp.setSSRC(0, 1)
       val fakeFrameVideo = RtpFrame(byteArrayOf(0x00, 0x00, 0x00), 0, 3, RtpConstants.trackVideo)

@@ -26,6 +26,7 @@ import com.pedro.common.clone
 import com.pedro.common.frame.MediaFrame
 import com.pedro.common.onMainThread
 import com.pedro.common.socket.base.SocketType
+import com.pedro.common.socket.base.StreamSocket
 import com.pedro.common.socket.base.UdpType
 import com.pedro.common.toMediaFrameInfo
 import com.pedro.common.validMessage
@@ -79,6 +80,7 @@ class UdpClient(private val connectChecker: ConnectChecker) {
   val bytesSend: Long
     get() = udpSender.bytesSend
   var socketType = SocketType.KTOR
+  var socketTimeout = StreamSocket.DEFAULT_TIMEOUT
 
   fun setVideoCodec(videoCodec: VideoCodec) {
     if (!isStreaming) {
@@ -169,7 +171,7 @@ class UdpClient(private val connectChecker: ConnectChecker) {
 
         val error = runCatching {
           val type = UdpType.getTypeByHost(host)
-          socket = UdpSocket(socketType, host, type, port)
+          socket = UdpSocket(socketType, host, type, port, socketTimeout)
           socket?.connect()
 
           udpSender.socket = socket

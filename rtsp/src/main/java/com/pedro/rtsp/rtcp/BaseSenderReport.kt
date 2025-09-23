@@ -46,6 +46,7 @@ abstract class BaseSenderReport internal constructor() {
     fun getInstance(
       socketType: SocketType,
       protocol: Protocol, host: String,
+      timeout: Long,
       videoSourcePort: Int?, audioSourcePort: Int?,
       videoServerPort: Int?, audioServerPort: Int?,
     ): BaseSenderReport {
@@ -53,10 +54,10 @@ abstract class BaseSenderReport internal constructor() {
         SenderReportTcp()
       } else {
         val videoSocket = if (videoServerPort != null) {
-          StreamSocket.createUdpSocket(socketType, host, videoServerPort, videoSourcePort)
+          StreamSocket.createUdpSocket(socketType, host, videoServerPort, timeout, videoSourcePort)
         } else null
         val audioSocket = if (audioServerPort != null) {
-          StreamSocket.createUdpSocket(socketType, host, audioServerPort, audioSourcePort)
+          StreamSocket.createUdpSocket(socketType, host, audioServerPort, timeout, audioSourcePort)
         } else null
         SenderReportUdp(videoSocket, audioSocket)
       }

@@ -28,6 +28,7 @@ import com.pedro.common.clone
 import com.pedro.common.frame.MediaFrame
 import com.pedro.common.onMainThread
 import com.pedro.common.socket.base.SocketType
+import com.pedro.common.socket.base.StreamSocket
 import com.pedro.common.toMediaFrameInfo
 import com.pedro.common.validMessage
 import com.pedro.rtmp.amf.AmfVersion
@@ -106,6 +107,7 @@ class RtmpClient(private val connectChecker: ConnectChecker) {
   val bytesSend: Long
     get() = rtmpSender.bytesSend
   var socketType = SocketType.KTOR
+  var socketTimeout = StreamSocket.DEFAULT_TIMEOUT
 
   /**
    * Add certificates for TLS connection
@@ -336,7 +338,7 @@ class RtmpClient(private val connectChecker: ConnectChecker) {
     val socket = if (tunneled) {
       TcpTunneledSocket(commandsManager.host, commandsManager.port, tlsEnabled)
     } else {
-      TcpSocket(socketType, commandsManager.host, commandsManager.port, tlsEnabled, certificates)
+      TcpSocket(socketType, commandsManager.host, commandsManager.port, tlsEnabled, socketTimeout, certificates)
     }
     this.socket = socket
     socket.connect()

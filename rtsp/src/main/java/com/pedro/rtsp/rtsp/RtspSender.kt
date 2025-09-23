@@ -60,12 +60,12 @@ class RtspSender(
   @Throws(IOException::class)
   fun setSocketsInfo(
     socketType: SocketType,
-    protocol: Protocol, host: String,
+    protocol: Protocol, host: String, timeout: Long,
     videoSourcePorts: Array<Int?>, audioSourcePorts: Array<Int?>,
     videoServerPorts: Array<Int?>, audioServerPorts: Array<Int?>,
   ) {
-    rtpSocket = BaseRtpSocket.getInstance(socketType, protocol, host, videoSourcePorts[0], audioSourcePorts[0], videoServerPorts[0], audioServerPorts[0])
-    baseSenderReport = BaseSenderReport.getInstance(socketType, protocol, host, videoSourcePorts[1], audioSourcePorts[1], videoServerPorts[1], audioServerPorts[1])
+    rtpSocket = BaseRtpSocket.getInstance(socketType, protocol, host, timeout, videoSourcePorts[0], audioSourcePorts[0], videoServerPorts[0], audioServerPorts[0])
+    baseSenderReport = BaseSenderReport.getInstance(socketType, protocol, host, timeout, videoSourcePorts[1], audioSourcePorts[1], videoServerPorts[1], audioServerPorts[1])
   }
 
   @Throws(IOException::class)
