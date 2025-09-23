@@ -314,7 +314,8 @@ class RtmpClient(private val connectChecker: ConnectChecker) {
         }
       }.exceptionOrNull()
       if (error != null && ConnectionFailed.parse(error.validMessage()) != ConnectionFailed.TIMEOUT) {
-        //scope.cancel()
+        scope.cancel()
+        connectChecker.onConnectionFailed(error.validMessage())
       }
     }
   }
