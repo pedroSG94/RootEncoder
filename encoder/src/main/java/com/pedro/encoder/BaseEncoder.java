@@ -27,6 +27,7 @@ import android.util.Log;
 import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
 
+import com.pedro.common.ExtensionsKt;
 import com.pedro.common.TimeUtils;
 import com.pedro.encoder.audio.G711Codec;
 import com.pedro.encoder.utils.CodecUtil;
@@ -36,6 +37,7 @@ import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.PriorityBlockingQueue;
 
 /**
  * Created by pedro on 18/09/19.
@@ -47,7 +49,9 @@ public abstract class BaseEncoder implements EncoderCallback {
   private final MediaCodec.BufferInfo bufferInfo = new MediaCodec.BufferInfo();
   private HandlerThread handlerThread;
   private ExecutorService executorService;
-  protected BlockingQueue<Frame> queue = new ArrayBlockingQueue<>(80);
+  protected BlockingQueue<Frame> queue = new PriorityBlockingQueue<>(80, (frame, frame2) -> {
+    return ExtensionsKt.compare(frame.getTimeStamp(), frame2.getTimeStamp());
+  });
   protected MediaCodec codec;
   protected long presentTimeUs;
   protected volatile boolean running = false;

@@ -33,15 +33,15 @@ public abstract class BaseRecordController implements RecordController {
     protected Status status = Status.STOPPED;
     protected VideoCodec videoCodec = VideoCodec.H264;
     protected AudioCodec audioCodec = AudioCodec.AAC;
-    protected long pauseMoment = 0;
-    protected long pauseTime = 0;
+    protected volatile long pauseMoment = 0;
+    protected volatile long pauseTime = 0;
     protected Listener listener;
     protected int videoTrack = -1;
     protected int audioTrack = -1;
-    protected MediaCodec.BufferInfo videoInfo = new MediaCodec.BufferInfo();
-    protected MediaCodec.BufferInfo audioInfo = new MediaCodec.BufferInfo();
+    protected volatile MediaCodec.BufferInfo videoInfo = new MediaCodec.BufferInfo();
+    protected volatile MediaCodec.BufferInfo audioInfo = new MediaCodec.BufferInfo();
     protected BitrateManager bitrateManager;
-    protected long startTs = 0;
+    protected volatile long startTs = 0;
     protected RecordTracks tracks = RecordTracks.ALL;
 
     public void setVideoCodec(VideoCodec videoCodec) {
@@ -100,12 +100,17 @@ public abstract class BaseRecordController implements RecordController {
     }
 
     //We can't reuse info because could produce stream issues
-    protected void updateFormat(MediaCodec.BufferInfo newInfo, MediaCodec.BufferInfo oldInfo) {
+    protected boolean updateFormat(MediaCodec.BufferInfo newInfo, MediaCodec.BufferInfo oldInfo) {
         if (startTs <= 0) startTs = oldInfo.presentationTimeUs;
         newInfo.flags = oldInfo.flags;
         newInfo.offset = oldInfo.offset;
         newInfo.size = oldInfo.size;
         long ts = Math.max(0, oldInfo.presentationTimeUs - startTs - pauseTime);
-        newInfo.presentationTimeUs = Math.max(newInfo.presentationTimeUs, ts);
+        if (newInfo.presentationTimeUs >= ts) {
+            return false; //should discard frame
+        } else {
+            newInfo.presentationTimeUs = ts;
+            return true;
+        }
     }
 }

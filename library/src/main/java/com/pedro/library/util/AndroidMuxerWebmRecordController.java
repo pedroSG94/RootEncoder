@@ -116,8 +116,7 @@ public class AndroidMuxerWebmRecordController extends BaseRecordController {
   @Override
   public void recordAudio(ByteBuffer audioBuffer, MediaCodec.BufferInfo audioInfo) {
     if (status == Status.RECORDING) {
-      updateFormat(this.audioInfo, audioInfo);
-      write(audioTrack, audioBuffer, this.audioInfo);
+      if (updateFormat(this.audioInfo, audioInfo)) write(audioTrack, audioBuffer, this.audioInfo);
     }
   }
 

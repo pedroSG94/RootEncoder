@@ -109,9 +109,8 @@ public class AacMuxerRecordController extends BaseRecordController {
     @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
     public void recordAudio(ByteBuffer audioBuffer, MediaCodec.BufferInfo audioInfo) {
         if (status == Status.RECORDING) {
-            updateFormat(this.audioInfo, audioInfo);
             //we need duplicate buffer to avoid problems with the buffer
-            write(audioBuffer.duplicate(), this.audioInfo);
+            if (updateFormat(this.audioInfo, audioInfo)) write(audioBuffer.duplicate(), this.audioInfo);
         }
     }
 

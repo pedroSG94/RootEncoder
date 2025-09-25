@@ -117,16 +117,14 @@ public class AndroidMuxerRecordController extends BaseRecordController {
       if (listener != null) listener.onStatusChange(status);
     }
     if (status == Status.RECORDING && tracks != RecordTracks.AUDIO) {
-      updateFormat(this.videoInfo, videoInfo);
-      write(videoTrack, videoBuffer, this.videoInfo);
+      if (updateFormat(this.videoInfo, videoInfo)) write(videoTrack, videoBuffer, this.videoInfo);
     }
   }
 
   @Override
   public void recordAudio(ByteBuffer audioBuffer, MediaCodec.BufferInfo audioInfo) {
     if (status == Status.RECORDING && tracks != RecordTracks.VIDEO) {
-      updateFormat(this.audioInfo, audioInfo);
-      write(audioTrack, audioBuffer, this.audioInfo);
+      if (updateFormat(this.audioInfo, audioInfo)) write(audioTrack, audioBuffer, this.audioInfo);
     }
   }
 
