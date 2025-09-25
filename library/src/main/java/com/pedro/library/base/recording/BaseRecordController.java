@@ -17,6 +17,7 @@
 package com.pedro.library.base.recording;
 
 import android.media.MediaCodec;
+import android.util.Log;
 
 import com.pedro.common.AudioCodec;
 import com.pedro.common.BitrateManager;
@@ -107,6 +108,7 @@ public abstract class BaseRecordController implements RecordController {
         newInfo.size = oldInfo.size;
         long ts = Math.max(0, oldInfo.presentationTimeUs - startTs - pauseTime);
         if (newInfo.presentationTimeUs >= ts) {
+            Log.e(TAG, "out of order frame discarded");
             return false; //should discard frame
         } else {
             newInfo.presentationTimeUs = ts;
