@@ -20,7 +20,9 @@ import com.pedro.extrasources.extractor.Media3Extractor
 class Media3VideoSource(
     private val context: Context,
     private val path: Uri,
-    private val speed: Float = 1f
+    private val speed: Float = 1f,
+    private val loopMode: Boolean = true,
+    private val onFinish: (isLoop: Boolean) -> Unit = {}
 ): VideoSource() {
 
     private var player: ExoPlayer? = null
@@ -41,8 +43,13 @@ class Media3VideoSource(
             exoPlayer.setMediaItem(mediaItem)
             exoPlayer.playbackParameters = PlaybackParameters(speed)
             exoPlayer.prepare()
-            exoPlayer.repeatMode = Player.REPEAT_MODE_ALL
+            if (loopMode) exoPlayer.repeatMode = Player.REPEAT_MODE_ALL
         }
+        player?.addListener(object : Player.Listener {
+            override fun onPlaybackStateChanged(state: Int) {
+                if (state == Player.STATE_ENDED) onFinish(loopMode)
+            }
+        })
         return true
     }
 
