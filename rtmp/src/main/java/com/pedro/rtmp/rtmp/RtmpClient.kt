@@ -306,7 +306,6 @@ class RtmpClient(private val connectChecker: ConnectChecker) {
     while (scope.isActive && isStreaming) {
       val error = runCatching {
         if (isAlive()) {
-          delay(2000)
           //ignore packet after connect if tunneled to avoid spam idle
           if (!tunneled) handleMessages()
         } else {
@@ -318,6 +317,7 @@ class RtmpClient(private val connectChecker: ConnectChecker) {
       }.exceptionOrNull()
       if (error != null && ConnectionFailed.parse(error.validMessage()) != ConnectionFailed.TIMEOUT) {
         scope.cancel()
+        connectChecker.onConnectionFailed(error.validMessage())
       }
     }
   }
@@ -492,7 +492,7 @@ class RtmpClient(private val connectChecker: ConnectChecker) {
                   rtmpSender.start()
                   publishPermitted = true
                 }
-                "NetConnection.Connect.Rejected", "NetStream.Publish.BadName" -> {
+                "NetConnection.Connect.Rejected", "NetStream.Publish.BadName", "NetConnection.Connect.Closed" -> {
                   onMainThread {
                     connectChecker.onConnectionFailed("onStatus: $code")
                   }
