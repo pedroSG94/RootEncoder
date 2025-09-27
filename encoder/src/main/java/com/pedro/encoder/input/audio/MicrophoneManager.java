@@ -63,6 +63,7 @@ public class MicrophoneManager {
   private float microphoneVolume = 1f;
   private float internalVolume = 1f;
   private final AudioUtils audioUtils = new AudioUtils();
+  private volatile long lastTimestamp = 0;
 
   enum Mode {
     MICROPHONE, INTERNAL, MIX
@@ -195,7 +196,8 @@ public class MicrophoneManager {
     handler.post(() -> {
       while (running) {
         Frame frame = read();
-        if (frame != null) {
+        if (frame != null && lastTimestamp >= frame.getTimeStamp()) {
+          lastTimestamp = frame.getTimeStamp();
           getMicrophoneData.inputPCMData(frame);
         }
       }
@@ -322,6 +324,7 @@ public class MicrophoneManager {
       audioPostProcessEffect.release();
     }
     Log.i(TAG, "Microphone stopped");
+    lastTimestamp = 0;
   }
 
   /**

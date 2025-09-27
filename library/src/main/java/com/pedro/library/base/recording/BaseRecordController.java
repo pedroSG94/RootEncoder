@@ -107,7 +107,7 @@ public abstract class BaseRecordController implements RecordController {
         newInfo.offset = oldInfo.offset;
         newInfo.size = oldInfo.size;
         long ts = Math.max(0, oldInfo.presentationTimeUs - startTs - pauseTime);
-        if (newInfo.presentationTimeUs >= ts) {
+        if (newInfo.presentationTimeUs >= oldInfo.presentationTimeUs) {
             Log.e(TAG, "out of order frame discarded");
             return false; //should discard frame
         } else {
