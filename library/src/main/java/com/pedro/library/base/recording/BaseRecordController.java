@@ -17,7 +17,6 @@
 package com.pedro.library.base.recording;
 
 import android.media.MediaCodec;
-import android.util.Log;
 
 import com.pedro.common.AudioCodec;
 import com.pedro.common.BitrateManager;
@@ -34,13 +33,11 @@ public abstract class BaseRecordController implements RecordController {
     protected Status status = Status.STOPPED;
     protected VideoCodec videoCodec = VideoCodec.H264;
     protected AudioCodec audioCodec = AudioCodec.AAC;
-    protected volatile long pauseMoment = 0;
-    protected volatile long pauseTime = 0;
+    protected long pauseMoment = 0;
+    protected long pauseTime = 0;
     protected Listener listener;
     protected int videoTrack = -1;
     protected int audioTrack = -1;
-    protected volatile MediaCodec.BufferInfo videoInfo = new MediaCodec.BufferInfo();
-    protected volatile MediaCodec.BufferInfo audioInfo = new MediaCodec.BufferInfo();
     protected BitrateManager bitrateManager;
     protected volatile long startTs = 0;
     protected RecordTracks tracks = RecordTracks.ALL;
@@ -101,18 +98,11 @@ public abstract class BaseRecordController implements RecordController {
     }
 
     //We can't reuse info because could produce stream issues
-    protected boolean updateFormat(MediaCodec.BufferInfo newInfo, MediaCodec.BufferInfo oldInfo) {
+    protected MediaCodec.BufferInfo updateFormat(MediaCodec.BufferInfo oldInfo) {
+        MediaCodec.BufferInfo info = new MediaCodec.BufferInfo();
         if (startTs <= 0) startTs = oldInfo.presentationTimeUs;
-        newInfo.flags = oldInfo.flags;
-        newInfo.offset = oldInfo.offset;
-        newInfo.size = oldInfo.size;
         long ts = Math.max(0, oldInfo.presentationTimeUs - startTs - pauseTime);
-        if (newInfo.presentationTimeUs >= oldInfo.presentationTimeUs) {
-            Log.e(TAG, "out of order frame discarded");
-            return false; //should discard frame
-        } else {
-            newInfo.presentationTimeUs = ts;
-            return true;
-        }
+        info.set(oldInfo.offset, oldInfo.size, ts, oldInfo.flags);
+        return info;
     }
 }

@@ -126,8 +126,6 @@ class FlvMuxerRecordController: BaseRecordController() {
         } catch (_: Exception) { } finally {
             outputStream = null
         }
-        audioInfo = MediaCodec.BufferInfo()
-        videoInfo = MediaCodec.BufferInfo()
         if (listener != null) listener.onStatusChange(status)
     }
 

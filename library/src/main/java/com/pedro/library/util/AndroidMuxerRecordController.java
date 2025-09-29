@@ -99,8 +99,6 @@ public class AndroidMuxerRecordController extends BaseRecordController {
     pauseMoment = 0;
     pauseTime = 0;
     startTs = 0;
-    audioInfo = new MediaCodec.BufferInfo();
-    videoInfo = new MediaCodec.BufferInfo();
     if (listener != null) listener.onStatusChange(status);
   }
 
@@ -117,14 +115,14 @@ public class AndroidMuxerRecordController extends BaseRecordController {
       if (listener != null) listener.onStatusChange(status);
     }
     if (status == Status.RECORDING && tracks != RecordTracks.AUDIO) {
-      if (updateFormat(this.videoInfo, videoInfo)) write(videoTrack, videoBuffer, this.videoInfo);
+      write(videoTrack, videoBuffer, videoInfo);
     }
   }
 
   @Override
   public void recordAudio(ByteBuffer audioBuffer, MediaCodec.BufferInfo audioInfo) {
     if (status == Status.RECORDING && tracks != RecordTracks.VIDEO) {
-      if (updateFormat(this.audioInfo, audioInfo)) write(audioTrack, audioBuffer, this.audioInfo);
+      write(audioTrack, audioBuffer, audioInfo);
     }
   }
 
@@ -158,11 +156,11 @@ public class AndroidMuxerRecordController extends BaseRecordController {
     if (track == -1) return;
     String trackString = track == audioTrack ? "Audio" : "Video";
     try {
-      mediaMuxer.writeSampleData(track, byteBuffer, info);
-      Log.i(TAG, trackString + ", ts: " + info.presentationTimeUs + ", flag: " + info.flags);
-      if (bitrateManager != null) bitrateManager.calculateBitrate(info.size * 8L, ExtensionsKt.getSuspendContext());
+      MediaCodec.BufferInfo i =  updateFormat(info);
+      Log.i(TAG, trackString + ", ts: " + i.presentationTimeUs + ", flag: " + i.flags);
+      mediaMuxer.writeSampleData(track, byteBuffer, i);
+      if (bitrateManager != null) bitrateManager.calculateBitrate(i.size * 8L, ExtensionsKt.getSuspendContext());
     } catch (Exception e) {
-      Log.e(TAG, trackString + ", ts: " + info.presentationTimeUs + ", flag: " + info.flags, e);
       if (listener != null) listener.onError(e);
     }
   }

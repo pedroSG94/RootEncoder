@@ -95,7 +95,6 @@ public class AacMuxerRecordController extends BaseRecordController {
         } catch (Exception ignored) { } finally {
             outputStream = null;
         }
-        audioInfo = new MediaCodec.BufferInfo();
         if (listener != null) listener.onStatusChange(status);
     }
 
@@ -110,7 +109,7 @@ public class AacMuxerRecordController extends BaseRecordController {
     public void recordAudio(ByteBuffer audioBuffer, MediaCodec.BufferInfo audioInfo) {
         if (status == Status.RECORDING) {
             //we need duplicate buffer to avoid problems with the buffer
-            if (updateFormat(this.audioInfo, audioInfo)) write(audioBuffer.duplicate(), this.audioInfo);
+            write(audioBuffer.duplicate(), updateFormat(audioInfo));
         }
     }
 

@@ -49,9 +49,7 @@ public abstract class BaseEncoder implements EncoderCallback {
   private final MediaCodec.BufferInfo bufferInfo = new MediaCodec.BufferInfo();
   private HandlerThread handlerThread;
   private ExecutorService executorService;
-  protected BlockingQueue<Frame> queue = new PriorityBlockingQueue<>(80, (frame, frame2) -> {
-    return ExtensionsKt.compare(frame.getTimeStamp(), frame2.getTimeStamp());
-  });
+  protected BlockingQueue<Frame> queue = new ArrayBlockingQueue<>(80);
   protected MediaCodec codec;
   protected long presentTimeUs;
   protected volatile boolean running = false;
