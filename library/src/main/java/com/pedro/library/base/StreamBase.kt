@@ -349,8 +349,133 @@ abstract class StreamBase(
     if (!videoSource.isRunning()) {
       videoSource.start(glInterface.surfaceTexture)
     }
-    glInterface.attachPreview(surface)
     glInterface.setPreviewResolution(width, height)
+    glInterface.attachPreview(surface)
+  }
+
+  /**
+   * @param surface the preview surface
+   * @param width surface width. 0 to use preview or encoder resolution
+   * @param height surface height. 0 to use preview or encoder resolution
+   * @param horizontalFlip true to flip horizontally, false by default
+   * @param verticalFlip true to flip vertically, false by default
+   * @param aspectRatioMode aspect ratio mode. Adjust by default
+   */
+  data class SurfaceInfo(
+    val surface: Surface,
+    val width: Int = 0,
+    val height: Int = 0,
+    val horizontalFlip: Boolean = false,
+    val verticalFlip: Boolean = false,
+    val aspectRatioMode: com.pedro.encoder.utils.gl.AspectRatioMode = com.pedro.encoder.utils.gl.AspectRatioMode.Adjust
+  ) {
+    companion object {
+      /**
+       * Create SurfaceInfo with surface only. Use default width, height and settings.
+       */
+      @JvmStatic
+      fun create(surface: Surface): SurfaceInfo {
+        return SurfaceInfo(surface)
+      }
+
+      /**
+       * Create SurfaceInfo with surface and dimensions. Use default settings.
+       */
+      @JvmStatic
+      fun create(surface: Surface, width: Int, height: Int): SurfaceInfo {
+        return SurfaceInfo(surface, width, height)
+      }
+
+      /**
+       * Create SurfaceInfo with all parameters.
+       */
+      @JvmStatic
+      fun create(
+        surface: Surface,
+        width: Int,
+        height: Int,
+        horizontalFlip: Boolean,
+        verticalFlip: Boolean,
+        aspectRatioMode: com.pedro.encoder.utils.gl.AspectRatioMode
+      ): SurfaceInfo {
+        return SurfaceInfo(surface, width, height, horizontalFlip, verticalFlip, aspectRatioMode)
+      }
+    }
+  }
+
+  /**
+   * Start preview with multiple surfaces simultaneously.
+   * Each surface can have different dimensions and independent configuration.
+   * Must be called after prepareVideo.
+   *
+   * @param surfaceInfos list of surface info containing surface and its configuration
+   */
+  fun startPreview(surfaceInfos: List<SurfaceInfo>) {
+    if (surfaceInfos.isEmpty()) throw IllegalArgumentException("surfaceInfos list cannot be empty")
+    if (isOnPreview) throw IllegalStateException("Preview already started, stopPreview before startPreview again")
+
+    for (info in surfaceInfos) {
+      if (!info.surface.isValid) {
+        throw IllegalArgumentException("All surfaces must be valid")
+      }
+    }
+
+    isOnPreview = true
+    if (!glInterface.isRunning) glInterface.start()
+    if (!videoSource.isRunning()) {
+      videoSource.start(glInterface.surfaceTexture)
+    }
+
+    glInterface.removeAllMultiPreviewSurfaces()
+
+    for (info in surfaceInfos) {
+      glInterface.addMultiPreviewSurface(
+        info.surface, info.width, info.height,
+        info.horizontalFlip, info.verticalFlip, info.aspectRatioMode
+      )
+    }
+  }
+
+  /**
+   * Start preview with multiple surfaces simultaneously.
+   * Each surface can have different dimensions and independent configuration.
+   * Must be called after prepareVideo.
+   *
+   * @param surfaceInfos variable number of surface info containing surface and its configuration
+   */
+  fun startPreview(vararg surfaceInfos: SurfaceInfo) {
+    startPreview(surfaceInfos.toList())
+  }
+
+  /**
+   * Add a preview surface dynamically during preview.
+   * Must be called after startPreview.
+   *
+   * @param surfaceInfo surface info containing surface and its configuration
+   */
+  fun addPreviewSurface(surfaceInfo: SurfaceInfo) {
+    if (!surfaceInfo.surface.isValid) throw IllegalArgumentException("Surface must be valid")
+    if (!isOnPreview) throw IllegalStateException("Preview must be started before adding surfaces")
+    glInterface.addMultiPreviewSurface(
+      surfaceInfo.surface, surfaceInfo.width, surfaceInfo.height,
+      surfaceInfo.horizontalFlip, surfaceInfo.verticalFlip, surfaceInfo.aspectRatioMode
+    )
+  }
+
+  /**
+   * Remove a preview surface dynamically during preview.
+   *
+   * @param surface the surface to remove from preview rendering
+   */
+  fun removePreviewSurface(surface: Surface) {
+    glInterface.removeMultiPreviewSurface(surface)
+  }
+
+  /**
+   * @return number of active preview surfaces
+   */
+  fun getPreviewSurfaceCount(): Int {
+    return glInterface.getMultiPreviewSurfaceCount()
   }
 
   /**
