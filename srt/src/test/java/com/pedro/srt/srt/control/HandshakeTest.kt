@@ -22,6 +22,7 @@ import com.pedro.srt.srt.packets.control.handshake.Handshake
 import com.pedro.srt.srt.packets.control.handshake.HandshakeType
 import com.pedro.srt.srt.packets.control.handshake.extension.ExtensionContentFlag
 import com.pedro.srt.srt.packets.control.handshake.extension.HandshakeExtension
+import junit.framework.TestCase.assertEquals
 import org.junit.Assert.assertArrayEquals
 import org.junit.Test
 import java.io.ByteArrayInputStream
@@ -30,6 +31,12 @@ import java.io.ByteArrayInputStream
  * Created by pedro on 1/9/23.
  */
 class HandshakeTest {
+
+  @Test
+  fun `test extension field calculation`() {
+    assertEquals(131079, ExtensionField.calculateValue(150039))
+    assertEquals(5, ExtensionField.calculateValue(18967))
+  }
 
   @Test
   fun `GIVEN a handshake packet WHEN write packet in a buffer THEN get expected buffer`() {
