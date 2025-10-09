@@ -65,9 +65,9 @@ import kotlin.math.max
  */
 @RequiresApi(Build.VERSION_CODES.LOLLIPOP)
 abstract class StreamBase(
-  context: Context,
-  vSource: VideoSource,
-  aSource: AudioSource
+    context: Context,
+    vSource: VideoSource,
+    aSource: AudioSource
 ) {
 
   private val getMicrophoneData = object: GetMicrophoneData {
@@ -129,7 +129,9 @@ abstract class StreamBase(
       }
       differentRecordResolution = true
     }
-    val videoResult = videoSource.init(max(width, recordWidth), max(height, recordHeight), fps, rotation)
+    val videoResult = videoSource.init(
+        max(width, recordWidth),
+        max(height, recordHeight), fps, rotation)
     if (videoResult) {
       if (differentRecordResolution) {
         //using different record resolution
@@ -165,7 +167,7 @@ abstract class StreamBase(
   @Throws(IllegalArgumentException::class)
   @JvmOverloads
   fun prepareAudio(sampleRate: Int, isStereo: Boolean, bitrate: Int, echoCanceler: Boolean = false,
-                   noiseSuppressor: Boolean = false): Boolean {
+    noiseSuppressor: Boolean = false): Boolean {
     if (isStreaming || isRecording) {
       throw IllegalStateException("Stream and record must be stopped before prepareAudio")
     }
@@ -262,8 +264,8 @@ abstract class StreamBase(
   fun startRecord(path: String, tracks: RecordController.RecordTracks? = null, listener: RecordController.Listener) {
     if (isRecording) throw IllegalStateException("Record already started, stopRecord before startRecord again")
     val usedTracks = tracks ?: if (videoSource is NoVideoSource) RecordController.RecordTracks.AUDIO
-    else if (audioSource is NoAudioSource) RecordController.RecordTracks.VIDEO
-    else RecordController.RecordTracks.ALL
+        else if (audioSource is NoAudioSource) RecordController.RecordTracks.VIDEO
+        else RecordController.RecordTracks.ALL
     recordController.startRecord(path, listener, usedTracks)
     if (!isStreaming) startSources()
     else {
