@@ -129,9 +129,7 @@ abstract class StreamBase(
       }
       differentRecordResolution = true
     }
-    val videoResult = videoSource.init(
-        max(width, recordWidth),
-        max(height, recordHeight), fps, rotation)
+    val videoResult = videoSource.init(max(width, recordWidth), max(height, recordHeight), fps, rotation)
     if (videoResult) {
       if (differentRecordResolution) {
         //using different record resolution
