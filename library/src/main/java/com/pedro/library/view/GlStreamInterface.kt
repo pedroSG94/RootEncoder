@@ -40,6 +40,7 @@ import com.pedro.encoder.utils.gl.GlUtil
 import com.pedro.library.util.Filter
 import com.pedro.library.util.SensorRotationManager
 import java.util.concurrent.BlockingQueue
+import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.LinkedBlockingQueue
 import java.util.concurrent.atomic.AtomicBoolean
@@ -59,7 +60,35 @@ class GlStreamInterface(private val context: Context): OnFrameAvailableListener,
   private val surfaceManagerEncoderRecord = SurfaceManager()
   private val surfaceManagerPhoto = SurfaceManager()
   private val surfaceManagerPreview = SurfaceManager()
+  private val multiPreviewSurfaceManagers = ConcurrentHashMap<Surface, PreviewSurfaceInfo>()
   private val mainRender = MainRender()
+
+  /**
+   * User-facing configuration for a multi-preview surface.
+   * All configuration fields are mutable to support dynamic updates.
+   *
+   * @param width the width of the preview. 0 to use preview or encoder resolution
+   * @param height the height of the preview. 0 to use preview or encoder resolution
+   * @param horizontalFlip true to flip horizontally
+   * @param verticalFlip true to flip vertically
+   * @param aspectRatioMode aspect ratio mode for this surface
+   * @param isPortrait true for portrait orientation, false for landscape
+   * @param viewPort viewport for this surface. null for full screen
+   */
+  data class MultiPreviewConfig(
+    var width: Int = 0,
+    var height: Int = 0,
+    var horizontalFlip: Boolean = false,
+    var verticalFlip: Boolean = false,
+    var aspectRatioMode: AspectRatioMode = AspectRatioMode.Adjust,
+    var isPortrait: Boolean = false,
+    var viewPort: ViewPort? = null
+  )
+
+  data class PreviewSurfaceInfo(
+    val surfaceManager: SurfaceManager,
+    val config: MultiPreviewConfig
+  )
   private var encoderWidth = 0
   private var encoderHeight = 0
   private var encoderRecordWidth = 0
@@ -207,6 +236,10 @@ class GlStreamInterface(private val context: Context): OnFrameAvailableListener,
     surfaceManagerPhoto.release()
     surfaceManagerEncoder.release()
     surfaceManagerEncoderRecord.release()
+    multiPreviewSurfaceManagers.values.forEach { info ->
+      info.surfaceManager.release()
+    }
+    multiPreviewSurfaceManagers.clear()
     surfaceManager.release()
     mainRender.release()
   }
@@ -292,6 +325,27 @@ class GlStreamInterface(private val context: Context): OnFrameAvailableListener,
         surfaceManagerPreview.swapBuffer()
       }
     }
+    // render extra multi-preview surfaces (using independent configuration from PreviewSurfaceInfo)
+    if (multiPreviewSurfaceManagers.isNotEmpty() && mainRender.isReady() && !limitFps) {
+      // Only draw filters if default preview is not active (to avoid double drawing)
+      if (!surfaceManagerPreview.isReady) {
+        if (surfaceManager.makeCurrent()) {
+          mainRender.drawFilters(true)
+          surfaceManager.swapBuffer()
+        }
+      }
+      val previewSnapshot = multiPreviewSurfaceManagers.values.toList()
+      previewSnapshot.forEach { info ->
+        if (info.surfaceManager.isReady) {
+          if (info.surfaceManager.makeCurrent()) {
+            // Each preview uses its own isPortrait and viewPort configuration
+            mainRender.drawScreenPreview(info.config.width, info.config.height, info.config.isPortrait, info.config.aspectRatioMode, 0,
+              info.config.verticalFlip, info.config.horizontalFlip, info.config.viewPort)
+            info.surfaceManager.swapBuffer()
+          }
+        }
+      }
+    }
   }
 
   override fun onFrameAvailable(surfaceTexture: SurfaceTexture?) {
@@ -352,6 +406,56 @@ class GlStreamInterface(private val context: Context): OnFrameAvailableListener,
   fun deAttachPreview() {
     surfaceManagerPreview.release()
   }
+
+  /**
+   * Add a multi-preview surface
+   * @param surface the surface to add
+   * @param config configuration for the preview surface
+   */
+  fun addMultiPreviewSurface(surface: Surface, config: MultiPreviewConfig) {
+    if (surfaceManager.isReady) {
+      multiPreviewSurfaceManagers.remove(surface)?.surfaceManager?.release()
+
+      val w = if (config.width > 0) config.width else if (previewWidth == 0) encoderWidth else previewWidth
+      val h = if (config.height > 0) config.height else if (previewHeight == 0) encoderHeight else previewHeight
+
+      val surfaceMgr = SurfaceManager()
+      surfaceMgr.eglSetup(surface, surfaceManager)
+      val finalConfig = MultiPreviewConfig(w, h, config.horizontalFlip, config.verticalFlip, config.aspectRatioMode, config.isPortrait, config.viewPort)
+      multiPreviewSurfaceManagers[surface] = PreviewSurfaceInfo(surfaceMgr, finalConfig)
+    }
+  }
+
+  fun removeMultiPreviewSurface(surface: Surface) {
+    multiPreviewSurfaceManagers.remove(surface)?.surfaceManager?.release()
+  }
+
+  fun removeAllMultiPreviewSurfaces() {
+    multiPreviewSurfaceManagers.values.forEach { info ->
+      info.surfaceManager.release()
+    }
+    multiPreviewSurfaceManagers.clear()
+  }
+
+  fun updateMultiPreviewConfig(surface: Surface, config: MultiPreviewConfig): Boolean {
+    val info = multiPreviewSurfaceManagers[surface] ?: return false
+
+    info.config.width = if (config.width > 0) config.width else if (previewWidth == 0) encoderWidth else previewWidth
+    info.config.height = if (config.height > 0) config.height else if (previewHeight == 0) encoderHeight else previewHeight
+    info.config.horizontalFlip = config.horizontalFlip
+    info.config.verticalFlip = config.verticalFlip
+    info.config.aspectRatioMode = config.aspectRatioMode
+    info.config.isPortrait = config.isPortrait
+    info.config.viewPort = config.viewPort
+
+    return true
+  }
+
+  fun hasMultiPreviewSurface(surface: Surface): Boolean {
+    return multiPreviewSurfaceManagers.containsKey(surface)
+  }
+
+  fun getMultiPreviewSurfaceCount(): Int = multiPreviewSurfaceManagers.size
 
   override fun setStreamRotation(orientation: Int) {
     this.streamOrientation = orientation

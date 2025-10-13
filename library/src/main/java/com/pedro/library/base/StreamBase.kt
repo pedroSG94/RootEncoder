@@ -366,6 +366,15 @@ abstract class StreamBase(
     if (removeCallbacks) previewCallback.removeCallbacks()
   }
 
+  fun addPreviewSurface(
+    surface: Surface,
+    config: GlStreamInterface.MultiPreviewConfig
+  ) {
+    if (!surface.isValid) throw IllegalArgumentException("Make sure the Surface is valid")
+    if (!isOnPreview) throw IllegalStateException("Preview must be started before adding surfaces")
+    glInterface.addMultiPreviewSurface(surface, config)
+  }
+
   /**
    * Change video source to Camera1 or Camera2.
    * Must be called after prepareVideo.
