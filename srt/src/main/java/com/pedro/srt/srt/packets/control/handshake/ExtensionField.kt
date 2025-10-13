@@ -22,9 +22,15 @@ import java.io.IOException
  * Created by pedro on 22/8/23.
  */
 enum class ExtensionField(val value: Int) {
-  HS_REQ(1), KM_REQ(2), CONFIG(4), HS_V5_MAGIC(18967);
+  HS_V5_FLAG(131072), HS_REQ(1), KM_REQ(2), CONFIG(4), HS_V5_MAGIC(18967);
 
   companion object {
     infix fun from(value: Int): ExtensionField = entries.firstOrNull { it.value == value } ?: throw IOException("unknown extension field: $value")
+
+    fun calculateValue(value: Int): Int {
+      val hsV5enabled = value and HS_V5_FLAG.value != 0
+      val extensionField = HS_REQ.value or CONFIG.value
+      return if (hsV5enabled) HS_V5_FLAG.value or KM_REQ.value or extensionField else extensionField
+    }
   }
 }
