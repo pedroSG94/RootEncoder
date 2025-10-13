@@ -51,6 +51,7 @@ import com.pedro.library.util.FpsListener
 import com.pedro.library.util.PreviewCallback
 import com.pedro.library.util.streamclient.StreamBaseClient
 import com.pedro.library.view.GlStreamInterface
+import com.pedro.library.view.preview.MultiPreviewConfig
 import java.nio.ByteBuffer
 import kotlin.math.max
 
@@ -366,14 +367,29 @@ abstract class StreamBase(
     if (removeCallbacks) previewCallback.removeCallbacks()
   }
 
-  fun addPreviewSurface(
-    surface: Surface,
-    config: GlStreamInterface.MultiPreviewConfig
-  ) {
+  fun addPreviewSurface(surface: Surface, config: MultiPreviewConfig) {
     if (!surface.isValid) throw IllegalArgumentException("Make sure the Surface is valid")
     if (!isOnPreview) throw IllegalStateException("Preview must be started before adding surfaces")
     glInterface.addMultiPreviewSurface(surface, config)
   }
+
+  fun removeMultiPreviewSurface(surface: Surface) {
+    glInterface.removeMultiPreviewSurface(surface)
+  }
+
+  fun removeAllMultiPreviewSurfaces() {
+    glInterface.removeAllMultiPreviewSurfaces()
+  }
+
+  fun updateMultiPreviewConfig(surface: Surface, config: MultiPreviewConfig): Boolean {
+    return glInterface.updateMultiPreviewConfig(surface, config)
+  }
+
+  fun hasMultiPreviewSurface(surface: Surface): Boolean {
+    return glInterface.hasMultiPreviewSurface(surface)
+  }
+
+  fun getMultiPreviewSurfaceCount(): Int = glInterface.getMultiPreviewSurfaceCount()
 
   /**
    * Change video source to Camera1 or Camera2.

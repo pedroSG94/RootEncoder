@@ -39,6 +39,8 @@ import com.pedro.encoder.utils.gl.AspectRatioMode
 import com.pedro.encoder.utils.gl.GlUtil
 import com.pedro.library.util.Filter
 import com.pedro.library.util.SensorRotationManager
+import com.pedro.library.view.preview.MultiPreviewConfig
+import com.pedro.library.view.preview.PreviewSurfaceInfo
 import java.util.concurrent.BlockingQueue
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ExecutorService
@@ -63,32 +65,6 @@ class GlStreamInterface(private val context: Context): OnFrameAvailableListener,
   private val multiPreviewSurfaceManagers = ConcurrentHashMap<Surface, PreviewSurfaceInfo>()
   private val mainRender = MainRender()
 
-  /**
-   * User-facing configuration for a multi-preview surface.
-   * All configuration fields are mutable to support dynamic updates.
-   *
-   * @param width the width of the preview. 0 to use preview or encoder resolution
-   * @param height the height of the preview. 0 to use preview or encoder resolution
-   * @param horizontalFlip true to flip horizontally
-   * @param verticalFlip true to flip vertically
-   * @param aspectRatioMode aspect ratio mode for this surface
-   * @param isPortrait true for portrait orientation, false for landscape
-   * @param viewPort viewport for this surface. null for full screen
-   */
-  data class MultiPreviewConfig(
-    var width: Int = 0,
-    var height: Int = 0,
-    var horizontalFlip: Boolean = false,
-    var verticalFlip: Boolean = false,
-    var aspectRatioMode: AspectRatioMode = AspectRatioMode.Adjust,
-    var isPortrait: Boolean = false,
-    var viewPort: ViewPort? = null
-  )
-
-  data class PreviewSurfaceInfo(
-    val surfaceManager: SurfaceManager,
-    val config: MultiPreviewConfig
-  )
   private var encoderWidth = 0
   private var encoderHeight = 0
   private var encoderRecordWidth = 0
@@ -419,10 +395,18 @@ class GlStreamInterface(private val context: Context): OnFrameAvailableListener,
       val w = if (config.width > 0) config.width else if (previewWidth == 0) encoderWidth else previewWidth
       val h = if (config.height > 0) config.height else if (previewHeight == 0) encoderHeight else previewHeight
 
-      val surfaceMgr = SurfaceManager()
-      surfaceMgr.eglSetup(surface, surfaceManager)
-      val finalConfig = MultiPreviewConfig(w, h, config.horizontalFlip, config.verticalFlip, config.aspectRatioMode, config.isPortrait, config.viewPort)
-      multiPreviewSurfaceManagers[surface] = PreviewSurfaceInfo(surfaceMgr, finalConfig)
+      val surfaceManager = SurfaceManager()
+      surfaceManager.eglSetup(surface, this@GlStreamInterface.surfaceManager)
+      val finalConfig = MultiPreviewConfig(
+        w,
+        h,
+        config.horizontalFlip,
+        config.verticalFlip,
+        config.aspectRatioMode,
+        config.isPortrait,
+        config.viewPort
+      )
+      multiPreviewSurfaceManagers[surface] = PreviewSurfaceInfo(surfaceManager, finalConfig)
     }
   }
 
