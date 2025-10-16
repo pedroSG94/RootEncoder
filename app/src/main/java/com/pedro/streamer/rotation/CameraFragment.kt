@@ -73,121 +73,128 @@ import java.util.Locale
  * [com.pedro.library.srt.SrtStream]
  */
 @RequiresApi(Build.VERSION_CODES.LOLLIPOP)
-class CameraFragment: Fragment(), ConnectChecker {
+class CameraFragment : Fragment(), ConnectChecker {
 
-  companion object {
-    fun getInstance(): CameraFragment = CameraFragment()
-    private const val TAG = "CameraFragment"
-  }
-
-  enum class Resolution {
-    _1080P, _720P
-  }
-
-  val genericStream: GenericStream by lazy {
-    GenericStream(requireContext(), this).apply {
-      getGlInterface().autoHandleOrientation = true
-      getStreamClient().setBitrateExponentialFactor(0.5f)
+    companion object {
+        fun getInstance(): CameraFragment = CameraFragment()
+        private const val TAG = "CameraFragment"
     }
-  }
-  private lateinit var surfaceView: SurfaceView
-  private lateinit var bStartStop: ImageView
-  private lateinit var txtBitrate: TextView
-  lateinit var streamUrl: EditText
-//  private val width = 640
+
+    enum class Resolution {
+        _1080P, _720P
+    }
+
+    val genericStream: GenericStream by lazy {
+        GenericStream(requireContext(), this).apply {
+            getGlInterface().autoHandleOrientation = true
+            getStreamClient().setBitrateExponentialFactor(0.5f)
+        }
+    }
+    private lateinit var surfaceView: SurfaceView
+    private lateinit var bStartStop: ImageView
+    private lateinit var txtBitrate: TextView
+    lateinit var streamUrl: EditText
+
+    //  private val width = 640
 //  private val height = 480
-  private var width = 1440
-  private var height = 1080
-//  private val vBitrate = 1200 * 1000
-  private var vBitrate = 2500 * 1000
-  private var rotation = 0
-  private val sampleRate = 32000
-  private val isStereo = true
-  private val aBitrate = 128 * 1000
-  private var recordPath = ""
-  private var mCurResolution = Resolution._1080P
+    private var width = 1440
+    private var height = 1080
 
-  //Bitrate adapter used to change the bitrate on fly depend of the bandwidth.
-  private val bitrateAdapter = BitrateAdapter {
-    genericStream.setVideoBitrateOnFly(it)
-  }.apply {
-    setMaxBitrate(vBitrate + aBitrate)
-  }
+    //  private val vBitrate = 1200 * 1000
+    private var vBitrate = 2500 * 1000
+    private var rotation = 0
+    private val sampleRate = 32000
+    private val isStereo = true
+    private val aBitrate = 128 * 1000
+    private var recordPath = ""
+    private var mCurResolution = Resolution._1080P
 
-  @SuppressLint("ClickableViewAccessibility")
-  override fun onCreateView(
-    inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
-  ): View? {
-    val view = inflater.inflate(R.layout.fragment_camera, container, false)
-    bStartStop = view.findViewById(R.id.b_start_stop)
-    val bRecord = view.findViewById<ImageView>(R.id.b_record)
-    val bSwitchCamera = view.findViewById<ImageView>(R.id.switch_camera)
-    streamUrl = view.findViewById<EditText>(R.id.et_rtp_url)
-
-    txtBitrate = view.findViewById(R.id.txt_bitrate)
-    surfaceView = view.findViewById(R.id.surfaceView)
-    (activity as? RotationActivity)?.let {
-      surfaceView.setOnTouchListener(it)
+    //Bitrate adapter used to change the bitrate on fly depend of the bandwidth.
+    private val bitrateAdapter = BitrateAdapter {
+        genericStream.setVideoBitrateOnFly(it)
+    }.apply {
+        setMaxBitrate(vBitrate + aBitrate)
     }
-    surfaceView.holder.addCallback(object: SurfaceHolder.Callback {
-      override fun surfaceCreated(holder: SurfaceHolder) {
-        holder.setKeepScreenOn(true)
-        if (!genericStream.isOnPreview) genericStream.startPreview(surfaceView)
-      }
 
-      override fun surfaceChanged(holder: SurfaceHolder, format: Int, width: Int, height: Int) {
-        Logger.d(TAG, "surfaceChanged: width = $width; height = $height")
-        genericStream.getGlInterface().setPreviewResolution(width, height)
+    @SuppressLint("ClickableViewAccessibility")
+    override fun onCreateView(
+        inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
+    ): View? {
+        val view = inflater.inflate(R.layout.fragment_camera, container, false)
+        bStartStop = view.findViewById(R.id.b_start_stop)
+        val bRecord = view.findViewById<ImageView>(R.id.b_record)
+        val bSwitchCamera = view.findViewById<ImageView>(R.id.switch_camera)
+        streamUrl = view.findViewById<EditText>(R.id.et_rtp_url)
+
+        txtBitrate = view.findViewById(R.id.txt_bitrate)
+        surfaceView = view.findViewById(R.id.surfaceView)
+        (activity as? RotationActivity)?.let {
+            surfaceView.setOnTouchListener(it)
+        }
+        surfaceView.holder.addCallback(object : SurfaceHolder.Callback {
+            override fun surfaceCreated(holder: SurfaceHolder) {
+                holder.setKeepScreenOn(true)
+                if (!genericStream.isOnPreview) genericStream.startPreview(surfaceView)
+            }
+
+            override fun surfaceChanged(
+                holder: SurfaceHolder,
+                format: Int,
+                width: Int,
+                height: Int
+            ) {
+                Logger.d(TAG, "surfaceChanged: width = $width; height = $height")
+                genericStream.getGlInterface().setPreviewResolution(width, height)
 //        genericStream.getGlInterface().setPreviewResolution(height, width)
-      }
+            }
 
-      override fun surfaceDestroyed(holder: SurfaceHolder) {
-        if (genericStream.isOnPreview) genericStream.stopPreview()
-      }
+            override fun surfaceDestroyed(holder: SurfaceHolder) {
+                if (genericStream.isOnPreview) genericStream.stopPreview()
+            }
 
-    })
+        })
 
-    bStartStop.setOnClickListener {
-      if (!genericStream.isStreaming) {
-        genericStream.startStream(streamUrl.text.toString())
-        bStartStop.setImageResource(R.drawable.live_stop)
-      } else {
-        genericStream.stopStream()
-        bStartStop.setImageResource(R.drawable.live_start)
-      }
-    }
+        bStartStop.setOnClickListener {
+            if (!genericStream.isStreaming) {
+                genericStream.startStream(streamUrl.text.toString())
+                bStartStop.setImageResource(R.drawable.live_stop)
+            } else {
+                genericStream.stopStream()
+                bStartStop.setImageResource(R.drawable.live_start)
+            }
+        }
 
-    bRecord.setOnClickListener {
+        bRecord.setOnClickListener {
 //      toast("Resolution changed!")
 
-      if(mCurResolution == Resolution._1080P){
-        mCurResolution = Resolution._720P
-        width = 960
-        height = 720
-        vBitrate = 2000 * 1000
-        bRecord.setImageResource(R.drawable.resolution_720)
-        genericStream.setVideoResolution(width, height)
-        genericStream.setVideoBitRate(vBitrate)
-        if(genericStream.isStreaming){
-          genericStream.stopStream()
-          bStartStop.setImageResource(R.drawable.live_start)
-        }
-      }else{
-        mCurResolution = Resolution._1080P
-        width = 1440
-        height = 1080
-        vBitrate = 2500 * 1000
-        bRecord.setImageResource(R.drawable.resolution_1080)
-        genericStream.setVideoResolution(width, height)
-        genericStream.setVideoBitRate(vBitrate)
-        if(genericStream.isStreaming){
-          genericStream.stopStream()
-          bStartStop.setImageResource(R.drawable.live_start)
-        }
-      }
-      when (val source = genericStream.videoSource) {
-        is Camera2Source -> source.changeResolution()
-      }
+            if (mCurResolution == Resolution._1080P) {
+                mCurResolution = Resolution._720P
+                width = 960
+                height = 720
+                vBitrate = 2000 * 1000
+                bRecord.setImageResource(R.drawable.resolution_720)
+                genericStream.setVideoResolution(width, height)
+                genericStream.setVideoBitRate(vBitrate)
+                if (genericStream.isStreaming) {
+                    genericStream.stopStream()
+                    bStartStop.setImageResource(R.drawable.live_start)
+                }
+            } else {
+                mCurResolution = Resolution._1080P
+                width = 1440
+                height = 1080
+                vBitrate = 2500 * 1000
+                bRecord.setImageResource(R.drawable.resolution_1080)
+                genericStream.setVideoResolution(width, height)
+                genericStream.setVideoBitRate(vBitrate)
+                if (genericStream.isStreaming) {
+                    genericStream.stopStream()
+                    bStartStop.setImageResource(R.drawable.live_start)
+                }
+            }
+            when (val source = genericStream.videoSource) {
+                is Camera2Source -> source.changeResolution()
+            }
 
 //      if (!genericStream.isRecording) {
 //        val folder = PathUtils.getRecordPath()
@@ -205,102 +212,103 @@ class CameraFragment: Fragment(), ConnectChecker {
 //        bRecord.setImageResource(R.drawable.record_icon)
 //        PathUtils.updateGallery(requireContext(), recordPath)
 //      }
+        }
+
+        bSwitchCamera.setOnClickListener {
+            when (val source = genericStream.videoSource) {
+                is Camera1Source -> source.switchCamera()
+                is Camera2Source -> source.switchCamera()
+                is CameraXSource -> source.switchCamera()
+            }
+        }
+        return view
     }
 
-    bSwitchCamera.setOnClickListener {
-      when (val source = genericStream.videoSource) {
-        is Camera1Source -> source.switchCamera()
-        is Camera2Source -> source.switchCamera()
-        is CameraXSource -> source.switchCamera()
-      }
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    fun handleMessageEvent(event: BroadcastBackPressedEvent) {
+        if (genericStream.isStreaming) {
+            genericStream.stopStream()
+            bStartStop.setImageResource(R.drawable.live_start)
+        } else {
+            (requireActivity() as RotationActivity).handleBackEvent()
+        }
     }
-    return view
-  }
 
-  @Subscribe(threadMode = ThreadMode.MAIN)
-  fun handleMessageEvent(event: BroadcastBackPressedEvent){
-    if(genericStream.isStreaming){
-      genericStream.stopStream()
-      bStartStop.setImageResource(R.drawable.live_start)
-    }else{
-      (requireActivity() as RotationActivity).handleBackEvent()
+    fun setOrientationMode(isVertical: Boolean) {
+        val wasOnPreview = genericStream.isOnPreview
+        Logger.d(TAG, "setOrientationMode: isVertical = $isVertical, wasOnPreview = $wasOnPreview")
+        genericStream.release()
+        rotation = if (isVertical) 90 else 0
+        prepare()
+        if (wasOnPreview) genericStream.startPreview(surfaceView)
     }
-  }
 
-  fun setOrientationMode(isVertical: Boolean) {
-    val wasOnPreview = genericStream.isOnPreview
-    Logger.d(TAG, "setOrientationMode: isVertical = $isVertical, wasOnPreview = $wasOnPreview")
-    genericStream.release()
-    rotation = if (isVertical) 90 else 0
-    prepare()
-    if (wasOnPreview) genericStream.startPreview(surfaceView)
-  }
-
-  override fun onCreate(savedInstanceState: Bundle?) {
-    super.onCreate(savedInstanceState)
-      if (EventBus.getDefault().isRegistered(this).not()) {
-          EventBus.getDefault().register(this)
-      }
-    prepare()
-    genericStream.getStreamClient().setReTries(10)
-  }
-
-  private fun prepare() {
-    val prepared = try {
-      genericStream.prepareVideo(width, height, vBitrate, rotation = rotation)
-          && genericStream.prepareAudio(sampleRate, isStereo, aBitrate)
-    } catch (e: IllegalArgumentException) {
-      false
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        Logger.d(TAG, "onCreate: ")
+        if (EventBus.getDefault().isRegistered(this).not()) {
+            EventBus.getDefault().register(this)
+        }
+        prepare()
+        genericStream.getStreamClient().setReTries(10)
     }
-    if (!prepared) {
+
+    private fun prepare() {
+        val prepared = try {
+            genericStream.prepareVideo(width, height, vBitrate, rotation = rotation)
+                    && genericStream.prepareAudio(sampleRate, isStereo, aBitrate)
+        } catch (e: IllegalArgumentException) {
+            false
+        }
+        if (!prepared) {
 //      toast("Audio or Video configuration failed")
-      Logger.d(TAG, "prepare: Audio or Video configuration failed")
-      activity?.finish()
+            Logger.d(TAG, "prepare: Audio or Video configuration failed")
+            activity?.finish()
+        }
     }
-  }
 
-  override fun onDestroy() {
-    super.onDestroy()
-    genericStream.release()
-    if(EventBus.getDefault().isRegistered(this)){
-      EventBus.getDefault().unregister(this)
+    override fun onDestroy() {
+        super.onDestroy()
+        genericStream.release()
+        if (EventBus.getDefault().isRegistered(this)) {
+            EventBus.getDefault().unregister(this)
+        }
     }
-  }
 
-  override fun onConnectionStarted(url: String) {
-  }
+    override fun onConnectionStarted(url: String) {
+    }
 
-  override fun onConnectionSuccess() {
-    toast("Connected")
-  }
+    override fun onConnectionSuccess() {
+        toast("Connected")
+    }
 
-  override fun onConnectionFailed(reason: String) {
-    if (genericStream.getStreamClient().reTry(5000, reason, null)) {
+    override fun onConnectionFailed(reason: String) {
+        if (genericStream.getStreamClient().reTry(5000, reason, null)) {
 //      toast("Retry")
-    } else {
-      genericStream.stopStream()
-      bStartStop.setImageResource(R.drawable.live_start)
+        } else {
+            genericStream.stopStream()
+            bStartStop.setImageResource(R.drawable.live_start)
 //      toast("Failed: $reason")
+        }
     }
-  }
 
-  override fun onNewBitrate(bitrate: Long) {
-    bitrateAdapter.adaptBitrate(bitrate, genericStream.getStreamClient().hasCongestion())
-    txtBitrate.text = String.format(Locale.getDefault(), "%.1f mb/s", bitrate / 1000_000f)
-  }
+    override fun onNewBitrate(bitrate: Long) {
+        bitrateAdapter.adaptBitrate(bitrate, genericStream.getStreamClient().hasCongestion())
+        txtBitrate.text = String.format(Locale.getDefault(), "%.1f mb/s", bitrate / 1000_000f)
+    }
 
-  override fun onDisconnect() {
-    txtBitrate.text = String()
-    toast("Disconnected")
-  }
+    override fun onDisconnect() {
+        txtBitrate.text = String()
+        toast("Disconnected")
+    }
 
-  override fun onAuthError() {
-    genericStream.stopStream()
-    bStartStop.setImageResource(R.drawable.live_start)
+    override fun onAuthError() {
+        genericStream.stopStream()
+        bStartStop.setImageResource(R.drawable.live_start)
 //    toast("Auth error")
-  }
+    }
 
-  override fun onAuthSuccess() {
+    override fun onAuthSuccess() {
 //    toast("Auth success")
-  }
+    }
 }
