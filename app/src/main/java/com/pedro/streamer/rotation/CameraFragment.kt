@@ -124,7 +124,7 @@ class CameraFragment : Fragment(), ConnectChecker {
         bStartStop = view.findViewById(R.id.b_start_stop)
         val bRecord = view.findViewById<ImageView>(R.id.b_record)
         val bSwitchCamera = view.findViewById<ImageView>(R.id.switch_camera)
-        streamUrl = view.findViewById<EditText>(R.id.et_rtp_url)
+        streamUrl = view.findViewById(R.id.et_rtp_url)
 
         txtBitrate = view.findViewById(R.id.txt_bitrate)
         surfaceView = view.findViewById(R.id.surfaceView)
