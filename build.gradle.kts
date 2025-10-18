@@ -1,6 +1,6 @@
 allprojects {
   group = "com.github.pedroSG94"
-  version = "2.6.4"
+  version = "2.6.5"
 
   plugins.withType<PublishingPlugin> {
     configure<PublishingExtension> {
@@ -27,10 +27,6 @@ plugins {
   alias(libs.plugins.android.library) apply false
   alias(libs.plugins.jetbrains.kotlin) apply false
   alias(libs.plugins.jetbrains.dokka) apply true
-}
-
-tasks.register("clean") {
-  delete(layout.buildDirectory)
 }
 
 tasks.dokkaHtmlMultiModule.configure {
