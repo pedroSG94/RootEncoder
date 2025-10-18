@@ -2,7 +2,7 @@
 #plugins versions
 agp = "8.13.0"
 kotlin = "2.2.20"
-dokka = "2.0.0"
+dokka = "2.1.0"
 
 #dependencies versions
 #noinspection GradleDependency, version 1.7.0 need min sdk 21
@@ -15,7 +15,7 @@ multidex = "2.0.1"
 annotation = "1.9.1"
 coroutines = "1.10.2"
 junit = "4.13.2"
-mockito = "6.0.0"
+mockito = "6.1.0"
 uvcandroid = "1.0.10"
 media3 = "1.8.0"
 
