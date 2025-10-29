@@ -27,6 +27,7 @@ import android.util.Log;
 import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
 
+import com.pedro.common.ExtensionsKt;
 import com.pedro.common.TimeUtils;
 import com.pedro.encoder.audio.G711Codec;
 import com.pedro.encoder.utils.CodecUtil;
@@ -36,6 +37,7 @@ import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.PriorityBlockingQueue;
 
 /**
  * Created by pedro on 18/09/19.
@@ -49,12 +51,12 @@ public abstract class BaseEncoder implements EncoderCallback {
   private ExecutorService executorService;
   protected BlockingQueue<Frame> queue = new ArrayBlockingQueue<>(80);
   protected MediaCodec codec;
-  protected long presentTimeUs;
+  protected volatile long presentTimeUs;
   protected volatile boolean running = false;
   protected boolean isBufferMode = true;
   protected CodecUtil.CodecType codecType = CodecUtil.CodecType.FIRST_COMPATIBLE_FOUND;
   private MediaCodec.Callback callback;
-  private long oldTimeStamp = 0L;
+  private volatile long oldTimeStamp = 0L;
   protected boolean shouldReset = true;
   protected boolean prepared = false;
   private Handler handler;
@@ -132,10 +134,10 @@ public abstract class BaseEncoder implements EncoderCallback {
 
   protected void fixTimeStamp(MediaCodec.BufferInfo info) {
     if (oldTimeStamp > info.presentationTimeUs) {
-      info.presentationTimeUs = oldTimeStamp;
-    } else {
-      oldTimeStamp = info.presentationTimeUs;
+      final long currentTs = TimeUtils.getCurrentTimeMicro() - presentTimeUs;
+      info.presentationTimeUs = Math.max(currentTs, oldTimeStamp + 1);
     }
+    oldTimeStamp = info.presentationTimeUs;
   }
 
   private void reloadCodec(IllegalStateException e) {
