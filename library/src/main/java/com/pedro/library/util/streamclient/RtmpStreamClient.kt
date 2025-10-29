@@ -185,4 +185,11 @@ class RtmpStreamClient(
   fun setCustomAmfObject(amfObject: Map<String, Any>) {
     rtmpClient.setCustomAmfObject(amfObject)
   }
+
+  /**
+   * Should notify onConnectionFailed if read packet from the server failed
+   */
+  fun shouldFailOnRead(enabled: Boolean) {
+    rtmpClient.shouldFailOnRead = enabled
+  }
 }

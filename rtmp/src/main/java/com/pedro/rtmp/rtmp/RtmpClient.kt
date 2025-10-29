@@ -108,6 +108,7 @@ class RtmpClient(private val connectChecker: ConnectChecker) {
     get() = rtmpSender.bytesSend
   var socketType = SocketType.KTOR
   var socketTimeout = StreamSocket.DEFAULT_TIMEOUT
+  var shouldFailOnRead = false
 
   /**
    * Add certificates for TLS connection
@@ -317,7 +318,7 @@ class RtmpClient(private val connectChecker: ConnectChecker) {
       }.exceptionOrNull()
       if (error != null && ConnectionFailed.parse(error.validMessage()) != ConnectionFailed.TIMEOUT) {
         scope.cancel()
-        connectChecker.onConnectionFailed(error.validMessage())
+        if (shouldFailOnRead) connectChecker.onConnectionFailed(error.validMessage())
       }
     }
   }
