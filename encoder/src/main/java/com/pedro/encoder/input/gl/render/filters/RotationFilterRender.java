@@ -53,6 +53,8 @@ public class RotationFilterRender extends BaseFilterRender {
   private int uSamplerHandle = -1;
 
   private int rotation = 0;
+  private boolean horizontalFlip = false;
+  private boolean verticalFlip = false;
 
   public RotationFilterRender() {
     squareVertex = ByteBuffer.allocateDirect(squareVertexDataFilter.length * FLOAT_SIZE_BYTES)
@@ -117,10 +119,7 @@ public class RotationFilterRender extends BaseFilterRender {
 
   public void setRotation(int rotation) {
     this.rotation = rotation;
-    //Set rotation
-    Matrix.setIdentityM(MVPMatrix, 0);
-    Matrix.scaleM(MVPMatrix, 0, 1f, 1f, 1f);
-    Matrix.rotateM(MVPMatrix, 0, rotation, 0f, 0f, -1f);
+    updateMatrix();
   }
 
   /**
@@ -143,5 +142,17 @@ public class RotationFilterRender extends BaseFilterRender {
     } else {
       Matrix.scaleM(MVPMatrix, 0, 1f, 1f, 0f);
     }
+  }
+
+  public void flip(boolean horizontalFlip, boolean verticalFlip) {
+    this.horizontalFlip = horizontalFlip;
+    this.verticalFlip = verticalFlip;
+    updateMatrix();
+  }
+
+  private void updateMatrix() {
+    Matrix.setIdentityM(MVPMatrix, 0);
+    Matrix.scaleM(MVPMatrix, 0, horizontalFlip ? -1f : 1f, verticalFlip ? -1f : 1f, 1f);
+    Matrix.rotateM(MVPMatrix, 0, rotation, 0f, 0f, -1f);
   }
 }
