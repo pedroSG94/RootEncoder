@@ -16,7 +16,7 @@ annotation = "1.9.1"
 coroutines = "1.10.2"
 junit = "4.13.2"
 mockito = "6.1.0"
-uvcandroid = "1.0.10"
+uvcandroid = "1.0.11"
 media3 = "1.8.0"
 
 [libraries]
