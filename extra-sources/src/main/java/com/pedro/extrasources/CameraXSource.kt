@@ -24,7 +24,9 @@ import android.view.MotionEvent
 import android.view.Surface
 import android.view.View
 import androidx.annotation.OptIn
+import androidx.camera.camera2.interop.ExperimentalCamera2Interop
 import androidx.camera.core.Camera
+import androidx.camera.core.CameraInfo
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.ExperimentalGetImage
 import androidx.camera.core.FocusMeteringAction
@@ -60,6 +62,7 @@ class CameraXSource(
   private var camera: Camera? = null
   private var preview = Preview.Builder().build()
   private var facing = CameraSelector.LENS_FACING_BACK
+  private var cameraSelectorBuilder: CameraSelector.Builder = CameraSelector.Builder()
   private var surface: Surface? = null
   private var autoFocusEnabled = false
   private var autoExposureEnabled = false
@@ -94,24 +97,17 @@ class CameraXSource(
     surfaceTexture.setDefaultBufferSize(optimalResolution.width, optimalResolution.height)
     this.surfaceTexture = surfaceTexture
     lifecycleRegistry.handleLifecycleEvent(Lifecycle.Event.ON_START)
-    cameraProviderFuture.addListener({
-      try {
-        val cameraSelector = CameraSelector.Builder()
-          .requireLensFacing(this.facing)
-          .build()
+    val cameraSelector = cameraSelectorBuilder
+      .requireLensFacing(this.facing)
+      .build()
 
-        preview.setSurfaceProvider {
-          val surface = Surface(surfaceTexture)
-          it.provideSurface(surface, Executors.newSingleThreadExecutor()) {
-          }
-          this.surface = surface
-        }
-        camera = cameraProvider.bindToLifecycle(this, cameraSelector, preview)
-      } catch (e: ExecutionException) {
-        // No errors need to be handled for this Future.
-        // This should never be reached.
-      } catch (ignored: InterruptedException) { }
-    }, ContextCompat.getMainExecutor(context))
+    preview.setSurfaceProvider {
+      val surface = Surface(surfaceTexture)
+      it.provideSurface(surface, Executors.newSingleThreadExecutor()) {
+      }
+      this.surface = surface
+    }
+    camera = cameraProvider.bindToLifecycle(this, cameraSelector, preview)
   }
 
   override fun stop() {
@@ -134,7 +130,22 @@ class CameraXSource(
     surfaceTexture?.let {
       stop()
       facing = if (facing == CameraSelector.LENS_FACING_BACK) CameraSelector.LENS_FACING_FRONT else CameraSelector.LENS_FACING_BACK
+      cameraSelectorBuilder = CameraSelector.Builder()
       start(it)
+    }
+  }
+
+    @OptIn(ExperimentalCamera2Interop::class)
+    fun openCamera(info: CameraInfo) {
+    surfaceTexture?.let { surface ->
+      stop()
+      facing = info.lensFacing
+      cameraSelectorBuilder = CameraSelector.Builder().apply {
+        addCameraFilter { cameras ->
+          cameras.filter { it == info }
+        }
+      }
+      start(surface)
     }
   }
 
@@ -287,7 +298,7 @@ class CameraXSource(
       .setBackpressureStrategy(ImageAnalysis.STRATEGY_BLOCK_PRODUCER)
       .setOutputImageFormat(format)
       .build()
-    val cameraSelector = CameraSelector.Builder()
+    val cameraSelector = cameraSelectorBuilder
       .requireLensFacing(this.facing)
       .build()
     cameraProvider.unbindAll()
@@ -302,7 +313,7 @@ class CameraXSource(
 
   fun removeImageListener() {
     cameraProvider.unbindAll()
-    val cameraSelector = CameraSelector.Builder()
+    val cameraSelector = cameraSelectorBuilder
       .requireLensFacing(this.facing)
       .build()
     camera = cameraProvider.bindToLifecycle(this, cameraSelector, preview)
