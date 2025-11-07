@@ -135,10 +135,6 @@ class SrtClient(private val connectChecker: ConnectChecker) {
     srtSender.setDelay(millis)
   }
 
-  fun setAuthorization(user: String?, password: String?) {
-    TODO("unimplemented")
-  }
-
   /**
    * Set passphrase for encrypt. Use empty value to disable it.
    */

@@ -52,7 +52,6 @@ class SrtStreamClient(
   }
 
   override fun setAuthorization(user: String?, password: String?) {
-    srtClient.setAuthorization(user, password)
   }
 
   override fun setReTries(reTries: Int) {
