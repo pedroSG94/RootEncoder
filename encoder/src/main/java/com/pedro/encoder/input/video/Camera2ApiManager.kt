@@ -197,6 +197,12 @@ class Camera2ApiManager(context: Context) : CameraDevice.StateCallback() {
         return builderInputSurface.build()
     }
 
+    fun setCustomRequest(request: (CaptureRequest.Builder) -> Unit): Boolean {
+        val builderInputSurface = this.builderInputSurface ?: return false
+        request(builderInputSurface)
+        return applyRequest(builderInputSurface)
+    }
+
     fun getSupportedFps(size: Size?, facing: Facing): List<Range<Int>> {
         try {
             val characteristics = cameraManager.getCameraCharacteristics(getCameraIdForFacing(facing))
