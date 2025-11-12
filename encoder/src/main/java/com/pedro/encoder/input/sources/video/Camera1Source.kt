@@ -27,6 +27,7 @@ import android.view.MotionEvent
 import android.view.View
 import androidx.annotation.RequiresApi
 import com.pedro.encoder.input.video.Camera1ApiManager
+import com.pedro.encoder.input.video.CameraCallbacks
 import com.pedro.encoder.input.video.CameraHelper
 import com.pedro.encoder.input.video.facedetector.FaceDetectorCallback
 
@@ -178,4 +179,17 @@ class Camera1Source(context: Context): VideoSource() {
   }
 
   fun isVideoStabilizationEnabled() = camera.isVideoStabilizationEnabled
+
+  fun setCameraCallback(callbacks: CameraCallbacks?) {
+    camera.setCameraCallbacks(callbacks)
+  }
+
+  /**
+   * @param mode values from Camera.Parameters.WHITE_BALANCE_*
+   */
+  fun enableAutoWhiteBalance(mode: String) = camera.enableAutoWhiteBalance(mode)
+
+  fun getAutoWhiteBalanceModesAvailable() = camera.autoWhiteBalanceModesAvailable
+
+  fun getWhiteBalance() = camera.whiteBalance
 }

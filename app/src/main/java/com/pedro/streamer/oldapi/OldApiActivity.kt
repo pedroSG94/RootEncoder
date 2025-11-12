@@ -33,6 +33,7 @@ import com.pedro.library.view.AutoFitTextureView
 import com.pedro.streamer.R
 import com.pedro.streamer.utils.PathUtils
 import com.pedro.streamer.utils.ScreenOrientation
+import com.pedro.streamer.utils.fitAppPadding
 import com.pedro.streamer.utils.toast
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -66,6 +67,7 @@ class OldApiActivity : AppCompatActivity(), ConnectChecker, TextureView.SurfaceT
     super.onCreate(savedInstanceState)
     window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
     setContentView(R.layout.activity_old_api)
+    fitAppPadding()
     bStream = findViewById(R.id.b_start_stop)
     bRecord = findViewById(R.id.b_record)
     etUrl = findViewById(R.id.et_rtp_url)

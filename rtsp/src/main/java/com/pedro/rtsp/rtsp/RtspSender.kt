@@ -23,10 +23,17 @@ import com.pedro.common.VideoCodec
 import com.pedro.common.base.BaseSender
 import com.pedro.common.frame.MediaFrame
 import com.pedro.common.onMainThread
-import com.pedro.common.socket.TcpStreamSocket
+import com.pedro.common.socket.base.SocketType
+import com.pedro.common.socket.base.TcpStreamSocket
 import com.pedro.common.validMessage
 import com.pedro.rtsp.rtcp.BaseSenderReport
-import com.pedro.rtsp.rtp.packets.*
+import com.pedro.rtsp.rtp.packets.AacPacket
+import com.pedro.rtsp.rtp.packets.Av1Packet
+import com.pedro.rtsp.rtp.packets.BasePacket
+import com.pedro.rtsp.rtp.packets.G711Packet
+import com.pedro.rtsp.rtp.packets.H264Packet
+import com.pedro.rtsp.rtp.packets.H265Packet
+import com.pedro.rtsp.rtp.packets.OpusPacket
 import com.pedro.rtsp.rtp.sockets.BaseRtpSocket
 import com.pedro.rtsp.rtp.sockets.RtpSocketTcp
 import com.pedro.rtsp.rtsp.commands.CommandsManager
@@ -35,8 +42,7 @@ import kotlinx.coroutines.isActive
 import kotlinx.coroutines.runInterruptible
 import java.io.IOException
 import java.nio.ByteBuffer
-import java.util.*
-import java.util.concurrent.*
+import java.util.Random
 
 /**
  * Created by pedro on 7/11/18.
@@ -53,12 +59,13 @@ class RtspSender(
 
   @Throws(IOException::class)
   fun setSocketsInfo(
-    protocol: Protocol, host: String,
+    socketType: SocketType,
+    protocol: Protocol, host: String, timeout: Long,
     videoSourcePorts: Array<Int?>, audioSourcePorts: Array<Int?>,
     videoServerPorts: Array<Int?>, audioServerPorts: Array<Int?>,
   ) {
-    rtpSocket = BaseRtpSocket.getInstance(protocol, host, videoSourcePorts[0], audioSourcePorts[0], videoServerPorts[0], audioServerPorts[0])
-    baseSenderReport = BaseSenderReport.getInstance(protocol, host, videoSourcePorts[1], audioSourcePorts[1], videoServerPorts[1], audioServerPorts[1])
+    rtpSocket = BaseRtpSocket.getInstance(socketType, protocol, host, timeout, videoSourcePorts[0], audioSourcePorts[0], videoServerPorts[0], audioServerPorts[0])
+    baseSenderReport = BaseSenderReport.getInstance(socketType, protocol, host, timeout, videoSourcePorts[1], audioSourcePorts[1], videoServerPorts[1], audioServerPorts[1])
   }
 
   @Throws(IOException::class)
@@ -98,7 +105,7 @@ class RtspSender(
     val isTcp = rtpSocket is RtpSocketTcp
     while (scope.isActive && running) {
       val error = runCatching {
-        val mediaFrame = runInterruptible { queue.poll(1, TimeUnit.SECONDS) }
+        val mediaFrame = runInterruptible { queue.take() }
         getRtpPackets(mediaFrame) { rtpFrames ->
           var size = 0
           var isVideo = false
@@ -107,6 +114,7 @@ class RtspSender(
             //4 is tcp header length
             val packetSize = if (isTcp) rtpFrame.length + 4 else rtpFrame.length
             bytesSend += packetSize
+            bytesSendPerSecond += packetSize
             size += packetSize
             isVideo = rtpFrame.isVideoFrame()
             if (isVideo) {
@@ -118,6 +126,7 @@ class RtspSender(
               //4 is tcp header length
               val reportSize = if (isTcp) RtpConstants.REPORT_PACKET_LENGTH + 4 else RtpConstants.REPORT_PACKET_LENGTH
               bytesSend += reportSize
+              bytesSendPerSecond += reportSize
               if (isEnableLogs) Log.i(TAG, "wrote report")
             }
           }

@@ -1,22 +1,19 @@
 [versions]
-libraryGroup = "com.github.pedroSG94"
-versionCode = "255"
-versionName = "2.5.5"
-
 #plugins versions
-agp = "8.6.1"
-kotlin = "2.1.0"
-dokka = "1.9.20"
+agp = "8.13.1"
+kotlin = "2.2.21"
+dokka = "2.0.0"
 
 #dependencies versions
 #noinspection GradleDependency, version 1.7.0 need min sdk 21
 appcompat = "1.6.1"
 #noinspection GradleDependency, version 2.2.0 need min sdk 21
 constraintlayout = "2.1.4"
-camerax = "1.4.0"
+ktor = "3.3.2"
+camerax = "1.5.1"
 multidex = "2.0.1"
 annotation = "1.9.1"
-coroutines = "1.9.0"
+coroutines = "1.10.2"
 junit = "4.13.2"
 mockito = "5.4.0"
 ktor = "2.3.13"
@@ -49,7 +46,6 @@ recyclerview = { module = "androidx.recyclerview:recyclerview", version.ref = "r
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
 android-library = { id = "com.android.library", version.ref = "agp" }
-maven-publish = { id = "maven-publish", version.ref = "agp" }
 jetbrains-kotlin = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 jetbrains-dokka = { id = "org.jetbrains.dokka", version.ref = "dokka" }
 

@@ -23,6 +23,7 @@ import android.os.Build;
 
 import androidx.annotation.RequiresApi;
 
+import com.pedro.common.TimeUtils;
 import com.pedro.encoder.R;
 import com.pedro.encoder.utils.gl.GlUtil;
 
@@ -56,7 +57,7 @@ public class SwirlFilterRender extends BaseFilterRender {
   private int uRadiusHandle = -1;
   private int uCenterHandle = -1;
 
-  private long START_TIME = System.currentTimeMillis();
+  private long START_TIME = TimeUtils.getCurrentTimeMillis();
   private boolean isIncrement = true;
   private float time = 0f;
   private float radius = 0.2f;
@@ -108,14 +109,19 @@ public class SwirlFilterRender extends BaseFilterRender {
     GLES20.glUniform2f(uResolutionHandle, getWidth(), getHeight());
     GLES20.glUniform2f(uCenterHandle, centerX, centerY);
     GLES20.glUniform1f(uRadiusHandle, radius);
-    GLES20.glUniform1i(uSamplerHandle, 4);
-    GLES20.glActiveTexture(GLES20.GL_TEXTURE4);
+    GLES20.glUniform1i(uSamplerHandle, 0);
+    GLES20.glActiveTexture(GLES20.GL_TEXTURE0);
     GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, previousTexId);
   }
 
+  @Override
+  protected void disableResources() {
+    GlUtil.disableResources(aTextureHandle, aPositionHandle);
+  }
+
   private float getTime() {
-    float interval = ((float) (System.currentTimeMillis() - START_TIME)) / 1000f;
-    START_TIME = System.currentTimeMillis();
+    float interval = ((float) (TimeUtils.getCurrentTimeMillis() - START_TIME)) / 1000f;
+    START_TIME = TimeUtils.getCurrentTimeMillis();
     if (isIncrement) {
       time += interval;
     } else {

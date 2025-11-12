@@ -36,10 +36,12 @@ import com.pedro.encoder.input.gl.render.filters.BlurFilterRender
 import com.pedro.encoder.input.gl.render.filters.BrightnessFilterRender
 import com.pedro.encoder.input.gl.render.filters.CartoonFilterRender
 import com.pedro.encoder.input.gl.render.filters.ChromaFilterRender
+import com.pedro.encoder.input.gl.render.filters.ChromaticAberrationFilterRender
 import com.pedro.encoder.input.gl.render.filters.CircleFilterRender
 import com.pedro.encoder.input.gl.render.filters.ColorFilterRender
 import com.pedro.encoder.input.gl.render.filters.ContrastFilterRender
 import com.pedro.encoder.input.gl.render.filters.CropFilterRender
+import com.pedro.encoder.input.gl.render.filters.DistortedTvFilterRender
 import com.pedro.encoder.input.gl.render.filters.DuotoneFilterRender
 import com.pedro.encoder.input.gl.render.filters.EarlyBirdFilterRender
 import com.pedro.encoder.input.gl.render.filters.EdgeDetectionFilterRender
@@ -142,6 +144,10 @@ class FilterMenu(private val context: Context) {
         )
         return true
       }
+      R.id.chromatic_aberration -> {
+        glInterface.setFilter(ChromaticAberrationFilterRender())
+        return true
+      }
       R.id.circle -> {
         glInterface.setFilter(CircleFilterRender())
         return true
@@ -159,6 +165,10 @@ class FilterMenu(private val context: Context) {
           //crop center of the image with 40% of width and 40% of height
           setCropArea(30f, 30f, 40f, 40f)
         })
+        return true
+      }
+      R.id.distorted_tv -> {
+        glInterface.setFilter(DistortedTvFilterRender())
         return true
       }
       R.id.duotone -> {
@@ -197,7 +207,7 @@ class FilterMenu(private val context: Context) {
           gifObjectFilterRender.setScale(50f, 50f)
           gifObjectFilterRender.setPosition(TranslateTo.BOTTOM)
           spriteGestureController.setBaseObjectFilterRender(gifObjectFilterRender) //Optional
-        } catch (ignored: IOException) { }
+        } catch (_: IOException) { }
         return true
       }
       R.id.grey_scale -> {

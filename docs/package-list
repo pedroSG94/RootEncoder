@@ -6,7 +6,9 @@ com.pedro.common
 com.pedro.common.av1
 com.pedro.common.base
 com.pedro.common.frame
-com.pedro.common.socket
+com.pedro.common.socket.base
+com.pedro.common.socket.java
+com.pedro.common.socket.ktor
 module:encoder
 com.pedro.encoder
 com.pedro.encoder.audio
@@ -28,6 +30,7 @@ com.pedro.encoder.utils.yuv
 com.pedro.encoder.video
 module:extra-sources
 com.pedro.extrasources
+com.pedro.extrasources.extractor
 module:library
 com.pedro.library.base
 com.pedro.library.base.recording
@@ -40,6 +43,7 @@ com.pedro.library.udp
 com.pedro.library.util
 com.pedro.library.util.streamclient
 com.pedro.library.view
+com.pedro.library.view.preview
 module:rtmp
 com.pedro.rtmp.amf
 com.pedro.rtmp.amf.v0

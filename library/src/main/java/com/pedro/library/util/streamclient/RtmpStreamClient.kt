@@ -16,6 +16,7 @@
 
 package com.pedro.library.util.streamclient
 
+import com.pedro.common.socket.base.SocketType
 import com.pedro.rtmp.rtmp.RtmpClient
 import javax.net.ssl.TrustManager
 
@@ -23,7 +24,7 @@ import javax.net.ssl.TrustManager
  * Created by pedro on 12/10/23.
  */
 class RtmpStreamClient(
-  private val rtmpClient: RtmpClient, 
+  private val rtmpClient: RtmpClient,
   private val streamClientListener: StreamClientListener?
 ): StreamBaseClient() {
 
@@ -53,6 +54,14 @@ class RtmpStreamClient(
    */
   fun forceIncrementalTs(enabled: Boolean) {
     rtmpClient.forceIncrementalTs(enabled)
+  }
+
+  /**
+   * Set stream delay in millis.
+   * This will create a cache and wait the delay to start send packets in real time
+   */
+  override fun setDelay(millis: Long) {
+    rtmpClient.setDelay(millis)
   }
 
   /**
@@ -112,6 +121,8 @@ class RtmpStreamClient(
 
   override fun getSentVideoFrames(): Long = rtmpClient.sentVideoFrames
 
+  override fun getBytesSend(): Long = rtmpClient.bytesSend
+
   override fun getDroppedAudioFrames(): Long = rtmpClient.droppedAudioFrames
 
   override fun getDroppedVideoFrames(): Long = rtmpClient.droppedVideoFrames
@@ -130,6 +141,10 @@ class RtmpStreamClient(
 
   override fun resetDroppedVideoFrames() {
     rtmpClient.resetDroppedVideoFrames()
+  }
+
+  override fun resetBytesSend() {
+    rtmpClient.resetBytesSend()
   }
 
   override fun setOnlyAudio(onlyAudio: Boolean) {
@@ -152,4 +167,29 @@ class RtmpStreamClient(
    * Get the exponential factor used to calculate the bitrate. Default 1f
    */
   override fun getBitrateExponentialFactor() = rtmpClient.getBitrateExponentialFactor()
+
+  /**
+   * Set if you want use java.io or ktor socket
+   */
+  override fun setSocketType(type: SocketType) {
+    rtmpClient.socketType = type
+  }
+
+  /**
+   * Set timeout ms for connection, write and read in sockets by default 5000ms
+   */
+  override fun setSocketTimeout(timeout: Long) {
+    rtmpClient.socketTimeout = timeout
+  }
+
+  fun setCustomAmfObject(amfObject: Map<String, Any>) {
+    rtmpClient.setCustomAmfObject(amfObject)
+  }
+
+  /**
+   * Should notify onConnectionFailed if read packet from the server failed
+   */
+  fun shouldFailOnRead(enabled: Boolean) {
+    rtmpClient.shouldFailOnRead = enabled
+  }
 }

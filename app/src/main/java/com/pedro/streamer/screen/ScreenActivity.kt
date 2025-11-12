@@ -27,11 +27,12 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import com.pedro.common.ConnectChecker
-import com.pedro.library.base.recording.RecordController
-import com.pedro.encoder.input.sources.audio.MixAudioSource
 import com.pedro.encoder.input.sources.audio.InternalAudioSource
 import com.pedro.encoder.input.sources.audio.MicrophoneSource
+import com.pedro.encoder.input.sources.audio.MixAudioSource
+import com.pedro.library.base.recording.RecordController
 import com.pedro.streamer.R
+import com.pedro.streamer.utils.fitAppPadding
 import com.pedro.streamer.utils.toast
 import com.pedro.streamer.utils.updateMenuColor
 
@@ -53,18 +54,27 @@ import com.pedro.streamer.utils.updateMenuColor
 @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
 class ScreenActivity : AppCompatActivity(), ConnectChecker {
 
+  enum class Action {
+    STREAM, RECORD, NONE
+  }
+
   private lateinit var button: ImageView
+  private lateinit var bRecord: ImageView
   private lateinit var etUrl: EditText
   private var currentAudioSource: MenuItem? = null
+  private var action = Action.NONE
 
   private val activityResultContract = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
     val data = result.data
     if (data != null && result.resultCode == RESULT_OK) {
       val screenService = ScreenService.INSTANCE
       if (screenService != null) {
-        val endpoint = etUrl.text.toString()
         if (screenService.prepareStream(result.resultCode, data)) {
-          screenService.startStream(endpoint)
+          when (action) {
+            Action.STREAM -> startStream()
+            Action.RECORD -> toggleRecord()
+            else -> {}
+          }
         } else {
           toast("Prepare stream failed")
         }
@@ -79,9 +89,10 @@ class ScreenActivity : AppCompatActivity(), ConnectChecker {
     super.onCreate(savedInstanceState)
     window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
     setContentView(R.layout.activity_display)
+    fitAppPadding()
     button = findViewById(R.id.b_start_stop)
     etUrl = findViewById(R.id.et_rtp_url)
-    val bRecord = findViewById<ImageView>(R.id.b_record)
+    bRecord = findViewById(R.id.b_record)
     val screenService = ScreenService.INSTANCE
     //No streaming/recording start service
     if (screenService == null) {
@@ -101,9 +112,11 @@ class ScreenActivity : AppCompatActivity(), ConnectChecker {
       val service = ScreenService.INSTANCE
       if (service != null) {
         service.setCallback(this)
-        if (!service.isStreaming()) {
-          button.setImageResource(R.drawable.stream_stop_icon)
+        if (!service.isStreaming() && !service.isRecording()) {
+          action = Action.STREAM
           activityResultContract.launch(service.sendIntent())
+        } else if (!service.isStreaming()) {
+          startStream()
         } else {
           stopStream()
         }
@@ -123,6 +136,13 @@ class ScreenActivity : AppCompatActivity(), ConnectChecker {
           }
           else -> {}
         }
+        RecordController.Status.STOPPED -> {
+          bRecord.setImageResource(R.drawable.record_icon)
+        }
+        RecordController.Status.RECORDING -> {
+          bRecord.setImageResource(R.drawable.stop_icon)
+        }
+        else -> {}
       }
     }
   }
@@ -163,14 +183,8 @@ class ScreenActivity : AppCompatActivity(), ConnectChecker {
       screenService.setCallback(null)
       activityResultContract.unregister()
       //stop service only if no streaming or recording
-      stopService(Intent(this, ScreenService::class.java))
+      if (isFinishing) stopService(Intent(this, ScreenService::class.java))
     }
-  }
-
-  private fun stopStream() {
-    val screenService = ScreenService.INSTANCE
-    screenService?.stopStream()
-    button.setImageResource(R.drawable.stream_icon)
   }
 
   override fun onConnectionStarted(url: String) {}

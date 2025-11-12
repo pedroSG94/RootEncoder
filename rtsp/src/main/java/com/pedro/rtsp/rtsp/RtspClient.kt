@@ -26,7 +26,9 @@ import com.pedro.common.VideoCodec
 import com.pedro.common.clone
 import com.pedro.common.frame.MediaFrame
 import com.pedro.common.onMainThread
-import com.pedro.common.socket.TcpStreamSocketImp
+import com.pedro.common.socket.base.SocketType
+import com.pedro.common.socket.base.StreamSocket
+import com.pedro.common.socket.base.TcpStreamSocket
 import com.pedro.common.toMediaFrameInfo
 import com.pedro.common.validMessage
 import com.pedro.rtsp.rtsp.commands.CommandsManager
@@ -42,7 +44,6 @@ import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.withTimeoutOrNull
-import java.io.*
 import java.net.URISyntaxException
 import java.nio.ByteBuffer
 import javax.net.ssl.TrustManager
@@ -57,7 +58,7 @@ class RtspClient(private val connectChecker: ConnectChecker) {
   private val validSchemes = arrayOf("rtsp", "rtsps")
 
   //sockets objects
-  private var socket: TcpStreamSocketImp? = null
+  private var socket: TcpStreamSocket? = null
   private var scope = CoroutineScope(Dispatchers.IO)
   private var scopeRetry = CoroutineScope(Dispatchers.IO)
   private var job: Job? = null
@@ -90,6 +91,10 @@ class RtspClient(private val connectChecker: ConnectChecker) {
     get() = rtspSender.getSentAudioFrames()
   val sentVideoFrames: Long
     get() = rtspSender.getSentVideoFrames()
+  val bytesSend: Long
+    get() = rtspSender.bytesSend
+  var socketType = SocketType.KTOR
+  var socketTimeout = StreamSocket.DEFAULT_TIMEOUT
 
   /**
    * Add certificates for TLS connection
@@ -170,6 +175,10 @@ class RtspClient(private val connectChecker: ConnectChecker) {
     }
   }
 
+  fun setDelay(millis: Long) {
+    rtspSender.setDelay(millis)
+  }
+
   fun connect(url: String?) {
     connect(url, false)
   }
@@ -194,7 +203,7 @@ class RtspClient(private val connectChecker: ConnectChecker) {
 
         val urlParser = try {
           UrlParser.parse(url, validSchemes)
-        } catch (e: URISyntaxException) {
+        } catch (_: URISyntaxException) {
           isStreaming = false
           onMainThread {
             connectChecker.onConnectionFailed("Endpoint malformed, should be: rtsp://ip:port/appname/streamname")
@@ -237,7 +246,7 @@ class RtspClient(private val connectChecker: ConnectChecker) {
             }
             rtspSender.setVideoInfo(commandsManager.sps!!, commandsManager.pps, commandsManager.vps)
           }
-          val socket = TcpStreamSocketImp(host, port, tlsEnabled, certificates)
+          val socket = StreamSocket.createTcpSocket(socketType, host, port, tlsEnabled, socketTimeout, certificates)
           this@RtspClient.socket = socket
           socket.connect()
           socket.write(commandsManager.createOptions())
@@ -339,8 +348,10 @@ class RtspClient(private val connectChecker: ConnectChecker) {
             commandsManager.audioServerPorts
           } else arrayOf<Int?>(null, null)
 
-          rtspSender.setSocketsInfo(commandsManager.protocol,
-            host,
+          rtspSender.setSocketsInfo(
+            socketType,
+            commandsManager.protocol,
+            host, socketTimeout,
             videoClientPorts,
             audioClientPorts,
             videoServerPorts,
@@ -486,6 +497,10 @@ class RtspClient(private val connectChecker: ConnectChecker) {
 
   fun resetDroppedVideoFrames() {
     rtspSender.resetDroppedVideoFrames()
+  }
+
+  fun resetBytesSend() {
+    rtspSender.resetBytesSend()
   }
 
   @Throws(RuntimeException::class)

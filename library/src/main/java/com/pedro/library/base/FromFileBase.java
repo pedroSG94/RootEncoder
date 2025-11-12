@@ -30,8 +30,9 @@ import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 
 import com.pedro.common.AudioCodec;
+import com.pedro.common.TimeUtils;
 import com.pedro.common.VideoCodec;
-import com.pedro.encoder.EncoderErrorCallback;
+import com.pedro.encoder.CodecErrorCallback;
 import com.pedro.encoder.TimestampMode;
 import com.pedro.encoder.audio.AudioEncoder;
 import com.pedro.encoder.audio.GetAudioData;
@@ -118,8 +119,8 @@ public abstract class FromFileBase {
     this.audioDecoderInterface = audioDecoderInterface;
     videoEncoder = new VideoEncoder(getVideoData);
     audioEncoder = new AudioEncoder(getAudioData);
-    videoDecoder = new VideoDecoder(videoDecoderInterface, decoderInterface);
-    audioDecoder = new AudioDecoder(getMicrophoneData, audioDecoderInterface, decoderInterface);
+    videoDecoder = new VideoDecoder(videoDecoderInterface, decoderInterfaceVideo);
+    audioDecoder = new AudioDecoder(getMicrophoneData, audioDecoderInterface, decoderInterfaceAudio);
     recordController = new AndroidMuxerRecordController();
   }
 
@@ -271,7 +272,7 @@ public abstract class FromFileBase {
    * Set a callback to know errors related with Video/Audio encoders
    * @param encoderErrorCallback callback to use, null to remove
    */
-  public void setEncoderErrorCallback(EncoderErrorCallback encoderErrorCallback) {
+  public void setEncoderErrorCallback(CodecErrorCallback encoderErrorCallback) {
     videoEncoder.setEncoderErrorCallback(encoderErrorCallback);
     audioEncoder.setEncoderErrorCallback(encoderErrorCallback);
   }
@@ -325,7 +326,10 @@ public abstract class FromFileBase {
    * @throws IOException If initialized before a stream.
    */
   public void startRecord(@NonNull String path, @Nullable RecordController.Listener listener) throws IOException {
-    recordController.startRecord(path, listener);
+    RecordController.RecordTracks tracks = RecordController.RecordTracks.ALL;
+    if (!videoEnabled) tracks = RecordController.RecordTracks.AUDIO;
+    else if (!audioEnabled) tracks = RecordController.RecordTracks.VIDEO;
+    recordController.startRecord(path, listener, tracks);
     if (!streaming) {
       startEncoders();
     } else if (videoEncoder.isRunning()) {
@@ -345,7 +349,10 @@ public abstract class FromFileBase {
    */
   @RequiresApi(api = Build.VERSION_CODES.O)
   public void startRecord(@NonNull final FileDescriptor fd, @Nullable RecordController.Listener listener) throws IOException {
-    recordController.startRecord(fd, listener);
+    RecordController.RecordTracks tracks = RecordController.RecordTracks.ALL;
+    if (!videoEnabled) tracks = RecordController.RecordTracks.AUDIO;
+    else if (!audioEnabled) tracks = RecordController.RecordTracks.VIDEO;
+    recordController.startRecord(fd, listener, tracks);
     if (!streaming) {
       startEncoders();
     } else if (videoEncoder.isRunning()) {
@@ -390,13 +397,18 @@ public abstract class FromFileBase {
   }
 
   private void startEncoders() {
-    long startTs = System.nanoTime() / 1000;
+    long startTs = TimeUtils.getCurrentTimeMicro();
     if (videoEnabled) videoEncoder.start(startTs);
     if (audioTrackPlayer != null) audioTrackPlayer.play();
     if (audioEnabled) audioEncoder.start(startTs);
     if (videoEnabled) prepareGlView();
     if (videoEnabled) videoDecoder.start();
     if (audioEnabled) audioDecoder.start();
+  }
+
+  public void setDecoderErrorCallback(CodecErrorCallback codecErrorCallback) {
+    audioDecoder.setCodecErrorCallback(codecErrorCallback);
+    videoDecoder.setCodecErrorCallback(codecErrorCallback);
   }
 
   public void replaceView(Context context) {
@@ -673,7 +685,7 @@ public abstract class FromFileBase {
     int width = videoDecoder.getWidth();
     int height = videoDecoder.getHeight();
     boolean wasRunning = videoDecoder.isRunning();
-    VideoDecoder videoDecoder = new VideoDecoder(videoDecoderInterface, decoderInterface);
+    VideoDecoder videoDecoder = new VideoDecoder(videoDecoderInterface, decoderInterfaceVideo);
     videoDecoder.setExtractor(this.videoDecoder.getExtractor());
     runnable.run(videoDecoder);
     if (width != videoDecoder.getWidth() || height != videoDecoder.getHeight()) throw new IOException("Resolution must be the same that the previous file");
@@ -687,7 +699,7 @@ public abstract class FromFileBase {
     int sampleRate = audioDecoder.getSampleRate();
     boolean isStereo = audioDecoder.isStereo();
     boolean wasRunning = audioDecoder.isRunning();
-    AudioDecoder audioDecoder = new AudioDecoder(getMicrophoneData, audioDecoderInterface, decoderInterface);
+    AudioDecoder audioDecoder = new AudioDecoder(getMicrophoneData, audioDecoderInterface, decoderInterfaceAudio);
     audioDecoder.setExtractor(this.audioDecoder.getExtractor());
     runnable.run(audioDecoder);
     if (sampleRate != audioDecoder.getSampleRate()) throw new IOException("SampleRate must be the same that the previous file");
@@ -742,7 +754,7 @@ public abstract class FromFileBase {
 
     @Override
     public void onAudioFormat(@NonNull MediaFormat mediaFormat) {
-      recordController.setAudioFormat(mediaFormat, !videoEnabled);
+      recordController.setAudioFormat(mediaFormat);
     }
   };
 
@@ -761,16 +773,23 @@ public abstract class FromFileBase {
 
     @Override
     public void onVideoFormat(@NonNull MediaFormat mediaFormat) {
-      recordController.setVideoFormat(mediaFormat, !audioEnabled);
+      recordController.setVideoFormat(mediaFormat);
     }
   };
 
-  private final DecoderInterface decoderInterface = new DecoderInterface() {
+  private final DecoderInterface decoderInterfaceVideo = new DecoderInterface() {
 
     @Override
     public void onLoop() {
-      videoDecoder.reset(glInterface.getSurface());
-      audioDecoder.reset(null);
+      if (videoDecoder.isRunning()) videoDecoder.reset(glInterface.getSurface());
+    }
+  };
+
+  private final DecoderInterface decoderInterfaceAudio = new DecoderInterface() {
+
+    @Override
+    public void onLoop() {
+      if (audioDecoder.isRunning()) audioDecoder.reset(null);
     }
   };
 

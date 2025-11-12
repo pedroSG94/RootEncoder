@@ -24,9 +24,10 @@ import android.opengl.EGL14;
 import android.opengl.GLES11Ext;
 import android.opengl.GLES20;
 import android.os.Build;
-import android.util.Log;
 
 import androidx.annotation.RequiresApi;
+
+import com.pedro.encoder.BuildConfig;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -77,34 +78,25 @@ public class GlUtil {
     return program;
   }
 
-  public static void createTextures(int quantity, int[] texturesId, int offset) {
+  public static void createTextures(int quantity, int[] texturesId, int offset, int filter, boolean isExternal) {
     GLES20.glGenTextures(quantity, texturesId, offset);
+    final int type = isExternal ? GLES11Ext.GL_TEXTURE_EXTERNAL_OES : GLES20.GL_TEXTURE_2D;
     for (int i = offset; i < quantity; i++) {
       GLES20.glActiveTexture(GLES20.GL_TEXTURE0 + i);
-      GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, texturesId[i]);
-      GLES20.glTexParameterf(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MIN_FILTER, GLES20.GL_LINEAR);
-      GLES20.glTexParameterf(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MAG_FILTER, GLES20.GL_LINEAR);
-      GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_WRAP_S,
-          GLES20.GL_CLAMP_TO_EDGE);
-      GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_WRAP_T,
-          GLES20.GL_CLAMP_TO_EDGE);
+      GLES20.glBindTexture(type, texturesId[i]);
+      GLES20.glTexParameterf(type, GLES20.GL_TEXTURE_MIN_FILTER, filter);
+      GLES20.glTexParameterf(type, GLES20.GL_TEXTURE_MAG_FILTER, filter);
+      GLES20.glTexParameteri(type, GLES20.GL_TEXTURE_WRAP_S, GLES20.GL_CLAMP_TO_EDGE);
+      GLES20.glTexParameteri(type, GLES20.GL_TEXTURE_WRAP_T, GLES20.GL_CLAMP_TO_EDGE);
     }
   }
 
+  public static void createTextures(int quantity, int[] texturesId, int offset) {
+    createTextures(quantity, texturesId, offset, GLES20.GL_LINEAR, false);
+  }
+
   public static void createExternalTextures(int quantity, int[] texturesId, int offset) {
-    GLES20.glGenTextures(quantity, texturesId, offset);
-    for (int i = offset; i < quantity; i++) {
-      GLES20.glActiveTexture(GLES20.GL_TEXTURE0 + i);
-      GLES20.glBindTexture(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, texturesId[i]);
-      GLES20.glTexParameterf(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, GLES20.GL_TEXTURE_MIN_FILTER,
-          GLES20.GL_LINEAR);
-      GLES20.glTexParameterf(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, GLES20.GL_TEXTURE_MAG_FILTER,
-          GLES20.GL_LINEAR);
-      GLES20.glTexParameteri(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, GLES20.GL_TEXTURE_WRAP_S,
-          GLES20.GL_CLAMP_TO_EDGE);
-      GLES20.glTexParameteri(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, GLES20.GL_TEXTURE_WRAP_T,
-          GLES20.GL_CLAMP_TO_EDGE);
-    }
+    createTextures(quantity, texturesId, offset, GLES20.GL_LINEAR, true);
   }
 
   public static String getStringFromRaw(Context context, int id) {
@@ -127,6 +119,7 @@ public class GlUtil {
   }
 
   public static void checkGlError(String op) {
+    if (!BuildConfig.DEBUG) return;
     int error = GLES20.glGetError();
     if (error != GLES20.GL_NO_ERROR) {
       throw new RuntimeException(op + ". GL error: " + error);
@@ -134,6 +127,7 @@ public class GlUtil {
   }
 
   public static void checkEglError(String msg) {
+    if (!BuildConfig.DEBUG) return;
     int error = EGL14.eglGetError();
     if (error != EGL14.EGL_SUCCESS) {
       throw new RuntimeException(msg + ". EGL error: " + error);
@@ -160,5 +154,14 @@ public class GlUtil {
     Matrix matrix = new Matrix();
     matrix.postScale(1f, -1f, cx, cy);
     return Bitmap.createBitmap(bitmap, 0, 0, width, height, matrix, true);
+  }
+
+  public static void disableResources(int... vertex) {
+    for (int v: vertex) {
+      if (v >= 0 && v < GLES20.GL_MAX_VERTEX_ATTRIBS) GLES20.glDisableVertexAttribArray(v);
+    }
+    GLES20.glBindTexture(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, 0);
+    GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, 0);
+    GLES20.glUseProgram(0);
   }
 }

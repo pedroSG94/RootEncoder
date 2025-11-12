@@ -202,4 +202,6 @@ public interface GlInterface {
   void setForceRender(boolean enabled);
 
   boolean isRunning();
+
+  void setRenderErrorCallback(RenderErrorCallback callback);
 }

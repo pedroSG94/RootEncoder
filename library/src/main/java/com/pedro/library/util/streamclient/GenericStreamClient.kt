@@ -16,6 +16,7 @@
 
 package com.pedro.library.util.streamclient
 
+import com.pedro.common.socket.base.SocketType
 import com.pedro.rtsp.rtsp.Protocol
 import com.pedro.srt.srt.packets.control.handshake.EncryptionType
 import javax.net.ssl.TrustManager
@@ -31,6 +32,37 @@ class GenericStreamClient(
 ): StreamBaseClient() {
 
   private var connectedStreamClient : StreamBaseClient? = null
+
+  /**
+   * Set if you want use java.io or ktor socket
+   */
+  override fun setSocketType(type: SocketType) {
+    rtmpClient.setSocketType(type)
+    rtspClient.setSocketType(type)
+    srtClient.setSocketType(type)
+    udpClient.setSocketType(type)
+  }
+
+  /**
+   * Set timeout ms for connection, write and read in sockets by default 5000ms
+   */
+  override fun setSocketTimeout(timeout: Long) {
+    rtmpClient.setSocketTimeout(timeout)
+    rtspClient.setSocketTimeout(timeout)
+    srtClient.setSocketTimeout(timeout)
+    udpClient.setSocketTimeout(timeout)
+  }
+
+  /**
+   * Set stream delay in millis.
+   * This will create a cache and wait the delay to start send packets in real time
+   */
+  override fun setDelay(millis: Long) {
+    rtmpClient.setDelay(millis)
+    rtspClient.setDelay(millis)
+    srtClient.setDelay(millis)
+    udpClient.setDelay(millis)
+  }
 
   /**
    * Must be called before start stream or will be ignored.
@@ -145,6 +177,8 @@ class GenericStreamClient(
 
   override fun getSentVideoFrames(): Long = connectedStreamClient?.getSentVideoFrames() ?: 0
 
+  override fun getBytesSend(): Long = connectedStreamClient?.getBytesSend() ?: 0
+
   override fun getDroppedAudioFrames(): Long = connectedStreamClient?.getDroppedAudioFrames() ?: 0
 
   override fun getDroppedVideoFrames(): Long = connectedStreamClient?.getDroppedVideoFrames() ?: 0
@@ -175,6 +209,13 @@ class GenericStreamClient(
     rtspClient.resetDroppedVideoFrames()
     srtClient.resetDroppedVideoFrames()
     udpClient.resetDroppedVideoFrames()
+  }
+
+  override fun resetBytesSend() {
+    rtmpClient.resetBytesSend()
+    rtspClient.resetBytesSend()
+    srtClient.resetBytesSend()
+    udpClient.resetBytesSend()
   }
 
   override fun setOnlyAudio(onlyAudio: Boolean) {

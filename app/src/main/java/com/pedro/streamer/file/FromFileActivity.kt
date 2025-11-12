@@ -39,6 +39,7 @@ import com.pedro.library.view.OpenGlView
 import com.pedro.streamer.R
 import com.pedro.streamer.utils.PathUtils
 import com.pedro.streamer.utils.ScreenOrientation
+import com.pedro.streamer.utils.fitAppPadding
 import com.pedro.streamer.utils.setColorFilter
 import com.pedro.streamer.utils.toast
 import kotlinx.coroutines.CoroutineScope
@@ -94,7 +95,7 @@ class FromFileActivity : AppCompatActivity(), ConnectChecker,
     super.onCreate(savedInstanceState)
     window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
     setContentView(R.layout.activity_from_file)
-
+    fitAppPadding()
     bStream = findViewById(R.id.b_start_stop)
     bSelectFile = findViewById(R.id.select_file)
     bReSync = findViewById(R.id.b_re_sync)

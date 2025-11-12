@@ -31,16 +31,17 @@ import com.pedro.srt.mpeg2ts.packets.AacPacket
 import com.pedro.srt.mpeg2ts.packets.BasePacket
 import com.pedro.srt.mpeg2ts.packets.H26XPacket
 import com.pedro.srt.mpeg2ts.packets.OpusPacket
+import com.pedro.srt.mpeg2ts.psi.Psi
 import com.pedro.srt.mpeg2ts.psi.PsiManager
 import com.pedro.srt.mpeg2ts.service.Mpeg2TsService
 import com.pedro.srt.srt.packets.data.PacketPosition
 import com.pedro.srt.utils.Constants
+import com.pedro.srt.utils.chunkPackets
 import com.pedro.srt.utils.toCodec
 import com.pedro.udp.utils.UdpSocket
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.runInterruptible
 import java.nio.ByteBuffer
-import java.util.concurrent.TimeUnit
 
 /**
  * Created by pedro on 6/3/24.
@@ -86,22 +87,30 @@ class UdpSender(
   }
 
   override suspend fun onRun() {
+    val limitSize = this.limitSize
+    val chunkSize = limitSize / MpegTsPacketizer.packetSize
+    audioPacket.setLimitSize(limitSize)
+    videoPacket.setLimitSize(limitSize)
+
     setTrackConfig(!commandManager.videoDisabled, !commandManager.audioDisabled)
     //send config
-    val psiList = mutableListOf(psiManager.getSdt(), psiManager.getPat())
+    val psiList = mutableListOf<Psi>(psiManager.getPat())
     psiManager.getPmt()?.let { psiList.add(0, it) }
-    val psiPacketsConfig = mpegTsPacketizer.write(psiList).map { b ->
+    psiList.add(psiManager.getSdt())
+    val psiPacketsConfig = mpegTsPacketizer.write(psiList).chunkPackets(chunkSize).map { b ->
       MpegTsPacket(b, MpegType.PSI, PacketPosition.SINGLE, isKey = false)
     }
     sendPackets(psiPacketsConfig, MpegType.PSI)
     while (scope.isActive && running) {
       val error = runCatching {
-        val mediaFrame = runInterruptible { queue.poll(1, TimeUnit.SECONDS) }
+        val mediaFrame = runInterruptible { queue.take() }
         getMpegTsPackets(mediaFrame) { mpegTsPackets ->
           val isKey = mpegTsPackets[0].isKey
-          val psiPackets = psiManager.checkSendInfo(isKey, mpegTsPacketizer)
-          bytesSend += sendPackets(psiPackets, MpegType.PSI)
-          bytesSend += sendPackets(mpegTsPackets, mpegTsPackets[0].type)
+          val psiPackets = psiManager.checkSendInfo(isKey, mpegTsPacketizer, chunkSize)
+          val bytesPsi = sendPackets(psiPackets, MpegType.PSI)
+          val bytes = sendPackets(mpegTsPackets, mpegTsPackets[0].type)
+          bytesSend += bytesPsi + bytes
+          bytesSendPerSecond += bytesPsi + bytes
         }
       }.exceptionOrNull()
       if (error != null) {
@@ -131,6 +140,8 @@ class UdpSender(
       size += commandManager.writeData(mpegTsPacket, socket)
       bytesSend += size
     }
+    if (type == MpegType.VIDEO) videoFramesSent++
+    else if (type == MpegType.AUDIO) audioFramesSent++
     if (isEnableLogs) {
       Log.i(TAG, "wrote ${type.name} packet, size $bytesSend")
     }

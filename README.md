@@ -7,13 +7,21 @@
 <p align="center">
 <strong>Sponsored with 💖 &nbsp by</strong><br />
 <a href="https://getstream.io/?utm_source=github.com/pedroSG94/rtmp-rtsp-stream-client-java&utm_medium=github&utm_campaign=oss_sponsorship" target="_blank">
-<img src="https://stream-blog-v2.imgix.net/blog/wp-content/uploads/f7401112f41742c4e173c30d4f318cb8/stream_logo_white.png?w=350" alt="Stream Chat" style="margin: 8px" />
+<img src="assets/images/stream-logo.png" alt="Stream Chat" style="margin: 8px; width: 350px" />
 </a>
 <br />
 Enterprise Grade APIs for Feeds & Chat. <a href="https://getstream.io/tutorials/android-chat/?utm_source=https://github.com/pedroSG94/rtmp-rtsp-stream-client-java&utm_medium=github&utm_content=developer&utm_term=java" target="_blank">Try the Android Chat tutorial</a> 💬
 </p>
 
 </br>
+
+
+
+## Recall.ai - Mobile Recording SDK
+
+If you’re looking for a hosted mobile recording API, consider checking out [Recall.ai](https://www.recall.ai/product/mobile-recording-sdk?utm_source=github&utm_medium=sponsorship&utm_campaign=pedrosg94-rootencoder), an API that records phone calls and in-person meetings.
+
+---
 
 RootEncoder (rtmp-rtsp-stream-client-java) is a stream encoder to push video/audio to media servers using protocols RTMP, RTSP and SRT with all code written in Java/Kotlin
 
@@ -50,9 +58,9 @@ allprojects {
   }
 }
 dependencies {
-  implementation 'com.github.pedroSG94.RootEncoder:library:2.5.5'
-  //Optional, allow use BitmapSource, CameraXSource and CameraUvcSource 
-  implementation 'com.github.pedroSG94.RootEncoder:extra-sources:2.5.5'
+  implementation "com.github.pedroSG94.RootEncoder:library:2.6.6"
+  //Optional, allow use CameraXSource and CameraUvcSource 
+  implementation "com.github.pedroSG94.RootEncoder:extra-sources:2.6.6"
 }
 
 ```

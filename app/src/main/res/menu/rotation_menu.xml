@@ -23,6 +23,10 @@
                 android:title="@string/bitmap"
                 android:id="@+id/video_source_bitmap"
                 />
+            <item
+                android:title="@string/buffer"
+                android:id="@+id/video_source_buffer"
+                />
         </menu>
     </item>
     <item android:title="@string/audio_source"
@@ -91,6 +95,10 @@
                 android:title="@string/chroma"
                 />
             <item
+                android:id="@+id/chromatic_aberration"
+                android:title="@string/chromatic_aberration"
+                />
+            <item
                 android:id="@+id/circle"
                 android:title="@string/circle"
                 />
@@ -105,6 +113,10 @@
             <item
                 android:id="@+id/crop"
                 android:title="@string/crop"
+                />
+            <item
+                android:id="@+id/distorted_tv"
+                android:title="@string/distorted_tv"
                 />
             <item
                 android:id="@+id/duotone"

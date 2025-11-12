@@ -26,8 +26,11 @@ import com.pedro.common.VideoCodec
 import com.pedro.common.clone
 import com.pedro.common.frame.MediaFrame
 import com.pedro.common.onMainThread
+import com.pedro.common.socket.base.SocketType
+import com.pedro.common.socket.base.StreamSocket
 import com.pedro.common.toMediaFrameInfo
 import com.pedro.common.validMessage
+import com.pedro.srt.mpeg2ts.service.Mpeg2TsService
 import com.pedro.srt.srt.packets.ControlPacket
 import com.pedro.srt.srt.packets.DataPacket
 import com.pedro.srt.srt.packets.SrtPacket
@@ -96,6 +99,15 @@ class SrtClient(private val connectChecker: ConnectChecker) {
     get() = srtSender.getSentAudioFrames()
   val sentVideoFrames: Long
     get() = srtSender.getSentVideoFrames()
+  val bytesSend: Long
+    get() = srtSender.bytesSend
+  var rtt = 0 //in micro
+    private set
+  var packetsLost = 0
+    private set
+  private var latency = 120_000 //in micro
+  var socketType = SocketType.KTOR
+  var socketTimeout = StreamSocket.DEFAULT_TIMEOUT
 
   fun setVideoCodec(videoCodec: VideoCodec) {
     if (!isStreaming) {
@@ -115,8 +127,12 @@ class SrtClient(private val connectChecker: ConnectChecker) {
     }
   }
 
-  fun setAuthorization(user: String?, password: String?) {
-    TODO("unimplemented")
+  fun setLatency(latency: Int) {
+    this.latency = latency
+  }
+
+  fun setDelay(millis: Long) {
+    srtSender.setDelay(millis)
   }
 
   /**
@@ -185,7 +201,7 @@ class SrtClient(private val connectChecker: ConnectChecker) {
 
         val urlParser = try {
           UrlParser.parse(url, validSchemes)
-        } catch (e: URISyntaxException) {
+        } catch (_: URISyntaxException) {
           isStreaming = false
           onMainThread {
             connectChecker.onConnectionFailed("Endpoint malformed, should be: srt://ip:port/streamid")
@@ -196,6 +212,7 @@ class SrtClient(private val connectChecker: ConnectChecker) {
         val host = urlParser.host
         val port = urlParser.port ?: 8888
         val path = urlParser.getQuery("streamid") ?: urlParser.getFullPath()
+        latency = urlParser.getQuery("latency")?.toIntOrNull() ?: latency
         if (path.isEmpty()) {
           isStreaming = false
           onMainThread {
@@ -206,7 +223,7 @@ class SrtClient(private val connectChecker: ConnectChecker) {
         commandsManager.host = host
 
         val error = runCatching {
-          socket = SrtSocket(host, port)
+          socket = SrtSocket(socketType, host, port, socketTimeout)
           socket?.connect()
           commandsManager.loadStartTs()
 
@@ -215,12 +232,14 @@ class SrtClient(private val connectChecker: ConnectChecker) {
 
           commandsManager.writeHandshake(socket, response.copy(
             encryption = commandsManager.getEncryptType(),
-            extensionField = ExtensionField.HS_REQ.value or ExtensionField.CONFIG.value,
+            extensionField = ExtensionField.calculateValue(response.extensionField),
             handshakeType = HandshakeType.CONCLUSION,
             handshakeExtension = HandshakeExtension(
               flags = ExtensionContentFlag.TSBPDSND.value or ExtensionContentFlag.TSBPDRCV.value or
                   ExtensionContentFlag.CRYPT.value or ExtensionContentFlag.TLPKTDROP.value or
                   ExtensionContentFlag.PERIODICNAK.value or ExtensionContentFlag.REXMITFLG.value,
+              receiverDelay = latency / 1000,
+              senderDelay = latency / 1000,
               path = path,
               encryptInfo = commandsManager.getEncryptInfo()
             )))
@@ -280,6 +299,8 @@ class SrtClient(private val connectChecker: ConnectChecker) {
       scopeRetry = CoroutineScope(Dispatchers.IO)
     }
     commandsManager.reset()
+    rtt = 0
+    packetsLost = 0
     job?.cancelAndJoin()
     job = null
     scope.cancel()
@@ -305,7 +326,6 @@ class SrtClient(private val connectChecker: ConnectChecker) {
     while (scope.isActive && isStreaming) {
       val error = runCatching {
         if (isAlive()) {
-          delay(2000)
           //ignore packet after connect if tunneled to avoid spam idle
           handleMessages()
         } else {
@@ -350,6 +370,7 @@ class SrtClient(private val connectChecker: ConnectChecker) {
             commandsManager.writeKeepAlive(socket)
           }
           is Ack -> {
+            rtt = srtPacket.rtt
             val ackSequence = srtPacket.typeSpecificInformation
             val lastPacketSequence = srtPacket.lastAcknowledgedPacketSequenceNumber
             commandsManager.updateHandlingQueue(lastPacketSequence)
@@ -358,6 +379,7 @@ class SrtClient(private val connectChecker: ConnectChecker) {
           is Nak -> {
             //packet lost reported, we should resend it
             val packetsLost = srtPacket.getNakPacketsLostList()
+            this.packetsLost += packetsLost.size
             commandsManager.reSendPackets(packetsLost, socket)
           }
           is CongestionWarning -> {
@@ -432,6 +454,10 @@ class SrtClient(private val connectChecker: ConnectChecker) {
     srtSender.resetDroppedVideoFrames()
   }
 
+  fun resetBytesSend() {
+    srtSender.resetBytesSend()
+  }
+
   @Throws(RuntimeException::class)
   fun resizeCache(newSize: Int) {
     srtSender.resizeCache(newSize)
@@ -459,4 +485,18 @@ class SrtClient(private val connectChecker: ConnectChecker) {
    * Get the exponential factor used to calculate the bitrate. Default 1f
    */
   fun getBitrateExponentialFactor() = srtSender.getBitrateExponentialFactor()
+
+  /**
+   * Set a custom Mpeg2TsService with specified parameters
+   * Must be called before connect
+   *
+   * @param customService the custom Mpeg2TsService with desired parameters
+   */
+  fun setMpeg2TsService(customService: Mpeg2TsService) {
+    if (!isStreaming) {
+      srtSender.setMpeg2TsService(customService)
+    } else {
+      Log.w(TAG, "Can't set custom Mpeg2TsService while streaming")
+    }
+  }
 }

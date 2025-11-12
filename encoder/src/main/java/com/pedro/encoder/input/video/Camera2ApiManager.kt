@@ -29,6 +29,7 @@ import android.hardware.camera2.CaptureResult
 import android.hardware.camera2.TotalCaptureResult
 import android.hardware.camera2.params.MeteringRectangle
 import android.hardware.camera2.params.OutputConfiguration
+import android.hardware.camera2.params.RggbChannelVector
 import android.hardware.camera2.params.SessionConfiguration
 import android.media.Image
 import android.media.ImageReader
@@ -40,6 +41,7 @@ import android.util.Range
 import android.util.Size
 import android.view.MotionEvent
 import android.view.Surface
+import android.view.View
 import androidx.annotation.RequiresApi
 import com.pedro.common.secureGet
 import com.pedro.encoder.input.video.Camera2ResolutionCalculator.getOptimalResolution
@@ -50,6 +52,7 @@ import java.util.concurrent.Executors
 import java.util.concurrent.Semaphore
 import kotlin.math.max
 import kotlin.math.min
+import kotlin.math.roundToInt
 
 /**
  * Created by pedro on 4/03/17.
@@ -74,8 +77,10 @@ class Camera2ApiManager(context: Context) : CameraDevice.StateCallback() {
     private val cameraManager = context.getSystemService(Context.CAMERA_SERVICE) as CameraManager
     private var cameraHandler: Handler? = null
     private var cameraCaptureSession: CameraCaptureSession? = null
-    private var isPrepared: Boolean = false
+    var isPrepared: Boolean = false
+        private set
     private var cameraId: String = "0"
+    private var physicalCameraId: String? = null
     private var facing = Facing.BACK
     private var builderInputSurface: CaptureRequest.Builder? = null
     private var fingerSpacing = 0f
@@ -90,11 +95,14 @@ class Camera2ApiManager(context: Context) : CameraDevice.StateCallback() {
         private set
     var isAutoExposureEnabled: Boolean = false
         private set
+    var isAutoWhiteBalanceEnabled: Boolean = true
+        private set
     var isRunning: Boolean = false
         private set
     private var fps = 30
     private val semaphore = Semaphore(0)
     private var cameraCallbacks: CameraCallbacks? = null
+    private var requiredSize: Size? = null
 
     interface ImageCallback {
         fun onImageAvailable(image: Image)
@@ -103,16 +111,18 @@ class Camera2ApiManager(context: Context) : CameraDevice.StateCallback() {
     private var sensorOrientation = 0
     private var faceSensorScale: Rect? = null
     private var faceDetectorCallback: FaceDetectorCallback? = null
+    private var frameCapturedCallback: FrameCapturedCallback? = null
     private var faceDetectionEnabled = false
     private var faceDetectionMode = 0
     private var imageReader: ImageReader? = null
+    private var availabilityCallback: CameraManager.AvailabilityCallback? = null
 
     init {
-        cameraId = try { getCameraIdForFacing(Facing.BACK) } catch (e: Exception) { "0" }
+        cameraId = try { getCameraIdForFacing(Facing.BACK) } catch (_: Exception) { "0" }
     }
 
     fun prepareCamera(surfaceTexture: SurfaceTexture, width: Int, height: Int, fps: Int) {
-        val optimalResolution = getOptimalResolution(Size(width, height), getCameraResolutions(facing))
+        val optimalResolution = requiredSize ?: getOptimalResolution(Size(width, height), getCameraResolutions(facing))
         Log.i(TAG, "optimal resolution set to: " + optimalResolution.width + "x" + optimalResolution.height)
         surfaceTexture.setDefaultBufferSize(optimalResolution.width, optimalResolution.height)
         this.surfaceEncoder = Surface(surfaceTexture)
@@ -151,9 +161,10 @@ class Camera2ApiManager(context: Context) : CameraDevice.StateCallback() {
                     try {
                         it.setRepeatingRequest(
                             captureRequest,
-                            if (faceDetectionEnabled) cb else null, cameraHandler
+                            if (faceDetectionEnabled || frameCapturedCallback != null) cb else null,
+                            cameraHandler
                         )
-                    } catch (e: IllegalStateException) {
+                    } catch (_: IllegalStateException) {
                         reOpenCamera(cameraId)
                     } catch (e: Exception) {
                         cameraCallbacks?.onCameraError("Create capture session failed: " + e.message)
@@ -167,7 +178,7 @@ class Camera2ApiManager(context: Context) : CameraDevice.StateCallback() {
                 },
                 cameraHandler
             )
-        } catch (e: IllegalStateException) {
+        } catch (_: IllegalStateException) {
             reOpenCamera(cameraId)
         } catch (e: Exception) {
             cameraCallbacks?.onCameraError("Create capture session failed: " + e.message)
@@ -186,6 +197,12 @@ class Camera2ApiManager(context: Context) : CameraDevice.StateCallback() {
         return builderInputSurface.build()
     }
 
+    fun setCustomRequest(request: (CaptureRequest.Builder) -> Unit): Boolean {
+        val builderInputSurface = this.builderInputSurface ?: return false
+        request(builderInputSurface)
+        return applyRequest(builderInputSurface)
+    }
+
     fun getSupportedFps(size: Size?, facing: Facing): List<Range<Int>> {
         try {
             val characteristics = cameraManager.getCameraCharacteristics(getCameraIdForFacing(facing))
@@ -198,7 +215,7 @@ class Camera2ApiManager(context: Context) : CameraDevice.StateCallback() {
                 for (r in fpsSupported) { if (r.upper <= maxFPS) { list.add(r) } }
                 list
             } else listOf(*fpsSupported)
-        } catch (e: IllegalStateException) {
+        } catch (e: Exception) {
             Log.e(TAG, "Error", e)
             return emptyList()
         }
@@ -209,6 +226,10 @@ class Camera2ApiManager(context: Context) : CameraDevice.StateCallback() {
             val characteristics = cameraCharacteristics ?: return -1
             return characteristics.secureGet(CameraCharacteristics.INFO_SUPPORTED_HARDWARE_LEVEL) ?: -1
         }
+
+    fun setRequiredResolution(size: Size?) {
+        requiredSize = size
+    }
 
     fun openCameraBack() {
         openCameraFacing(Facing.BACK)
@@ -224,6 +245,15 @@ class Camera2ApiManager(context: Context) : CameraDevice.StateCallback() {
 
     fun setCameraId(cameraId: String) {
         this.cameraId = cameraId
+    }
+
+    fun setAvailabilityCallback(callback: CameraManager.AvailabilityCallback?) {
+        if (callback == null) {
+            availabilityCallback?.let { cameraManager.unregisterAvailabilityCallback(it) }
+        } else {
+            cameraManager.registerAvailabilityCallback(callback, null)
+            availabilityCallback = callback
+        }
     }
 
     var cameraFacing: Facing
@@ -268,13 +298,92 @@ class Camera2ApiManager(context: Context) : CameraDevice.StateCallback() {
             }
         }
 
+    @RequiresApi(Build.VERSION_CODES.P)
+    fun getPhysicalCamerasAvailable(): List<String> {
+        return cameraCharacteristics?.physicalCameraIds?.toList() ?: emptyList()
+    }
+
+    @RequiresApi(Build.VERSION_CODES.P)
+    fun setPhysicalCamera(id: String?) {
+        physicalCameraId = id
+    }
+
+    @RequiresApi(Build.VERSION_CODES.P)
+    fun openPhysicalCamera(id: String?) {
+        setPhysicalCamera(id)
+        if (isRunning) reOpenCamera(cameraId)
+        else openCameraId(cameraId)
+    }
+
+    private fun applyRequest(builder: CaptureRequest.Builder): Boolean {
+        this.builderInputSurface = builder
+        val cameraCaptureSession = this.cameraCaptureSession ?: return false
+        try {
+            cameraCaptureSession.setRepeatingRequest(
+                builder.build(),
+                if (faceDetectionEnabled || frameCapturedCallback != null) cb else null, null
+            )
+            return true
+        } catch (e: Exception) {
+            Log.e(TAG, "Error", e)
+            return false
+        }
+    }
+
+    /**
+     * @param mode value from CameraCharacteristics.CONTROL_AWB_MODE_*
+     */
+    fun enableAutoWhiteBalance(mode: Int): Boolean {
+        val characteristics = cameraCharacteristics ?: return false
+        val builderInputSurface = this.builderInputSurface ?: return false
+        val modes = characteristics.secureGet(CameraCharacteristics.CONTROL_AWB_AVAILABLE_MODES) ?: return false
+        if (!modes.contains(mode)) return false
+        builderInputSurface.set(CaptureRequest.CONTROL_AWB_MODE, mode)
+        isAutoWhiteBalanceEnabled = applyRequest(builderInputSurface)
+        return isAutoWhiteBalanceEnabled
+    }
+
+    fun disableAutoWhiteBalance() {
+        val characteristics = cameraCharacteristics ?: return
+        val builderInputSurface = this.builderInputSurface ?: return
+        val modes = characteristics.secureGet(CameraCharacteristics.CONTROL_AWB_AVAILABLE_MODES) ?: return
+        if (!modes.contains(CaptureRequest.CONTROL_AWB_MODE_OFF)) return
+        builderInputSurface.set(CaptureRequest.CONTROL_AWB_MODE, CaptureRequest.CONTROL_AWB_MODE_OFF)
+        applyRequest(builderInputSurface)
+        isAutoWhiteBalanceEnabled = false
+    }
+
+    fun getAutoWhiteBalanceModesAvailable(): List<Int> {
+        val characteristics = cameraCharacteristics ?: return listOf()
+        return characteristics.secureGet(CameraCharacteristics.CONTROL_AWB_AVAILABLE_MODES)?.toList() ?: listOf()
+    }
+
+    fun getWhiteBalance(): Int {
+        val default = CameraCharacteristics.CONTROL_AWB_MODE_AUTO
+        val builderInputSurface = this.builderInputSurface ?: return default
+        return builderInputSurface.secureGet(CaptureRequest.CONTROL_AWB_MODE) ?: default
+    }
+
+    fun setColorCorrectionGains(red: Float, greenEven: Float, greenOdd: Float, blue: Float): Boolean {
+        val characteristics = cameraCharacteristics ?: return false
+        val builderInputSurface = this.builderInputSurface ?: return false
+        val modes = characteristics.secureGet(CameraCharacteristics.COLOR_CORRECTION_AVAILABLE_ABERRATION_MODES) ?: return false
+        if (!modes.contains(CaptureRequest.COLOR_CORRECTION_MODE_TRANSFORM_MATRIX)) return false
+        builderInputSurface.set(CaptureRequest.CONTROL_AWB_MODE, CaptureRequest.CONTROL_AWB_MODE_OFF)
+        builderInputSurface.set(CaptureRequest.COLOR_CORRECTION_MODE, CaptureRequest.COLOR_CORRECTION_MODE_TRANSFORM_MATRIX)
+        builderInputSurface.set(CaptureRequest.COLOR_CORRECTION_TRANSFORM, characteristics.get(CameraCharacteristics.SENSOR_CALIBRATION_TRANSFORM1))
+        val vector = RggbChannelVector(red, greenEven, greenOdd, blue)
+        builderInputSurface.set(CaptureRequest.COLOR_CORRECTION_GAINS, vector)
+        return applyRequest(builderInputSurface)
+    }
+
     fun enableAutoExposure(): Boolean {
         val characteristics = cameraCharacteristics ?: return false
         val builderInputSurface = this.builderInputSurface ?: return false
         val modes = characteristics.secureGet(CameraCharacteristics.CONTROL_AE_AVAILABLE_MODES) ?: return false
         if (!modes.contains(CaptureRequest.CONTROL_AE_MODE_ON)) return false
         builderInputSurface.set(CaptureRequest.CONTROL_AE_MODE, CaptureRequest.CONTROL_AE_MODE_ON)
-        isAutoExposureEnabled = true
+        isAutoExposureEnabled = applyRequest(builderInputSurface)
         return isAutoExposureEnabled
     }
 
@@ -284,6 +393,7 @@ class Camera2ApiManager(context: Context) : CameraDevice.StateCallback() {
         val modes = characteristics.secureGet(CameraCharacteristics.CONTROL_AE_AVAILABLE_MODES) ?: return
         if (!modes.contains(CaptureRequest.CONTROL_AE_MODE_ON)) return
         builderInputSurface.set(CaptureRequest.CONTROL_AE_MODE, CaptureRequest.CONTROL_AE_MODE_OFF)
+        applyRequest(builderInputSurface)
         isAutoExposureEnabled = false
     }
 
@@ -293,7 +403,7 @@ class Camera2ApiManager(context: Context) : CameraDevice.StateCallback() {
         val modes = characteristics.secureGet(CameraCharacteristics.CONTROL_AVAILABLE_VIDEO_STABILIZATION_MODES) ?: return false
         if (!modes.contains(CaptureRequest.CONTROL_VIDEO_STABILIZATION_MODE_ON)) return false
         builderInputSurface.set(CaptureRequest.CONTROL_VIDEO_STABILIZATION_MODE, CaptureRequest.CONTROL_VIDEO_STABILIZATION_MODE_ON)
-        isVideoStabilizationEnabled = true
+        isVideoStabilizationEnabled = applyRequest(builderInputSurface)
         return isVideoStabilizationEnabled
     }
 
@@ -303,6 +413,7 @@ class Camera2ApiManager(context: Context) : CameraDevice.StateCallback() {
         val modes = characteristics.secureGet(CameraCharacteristics.CONTROL_AVAILABLE_VIDEO_STABILIZATION_MODES) ?: return
         if (!modes.contains(CaptureRequest.CONTROL_VIDEO_STABILIZATION_MODE_ON)) return
         builderInputSurface.set(CaptureRequest.CONTROL_VIDEO_STABILIZATION_MODE, CaptureRequest.CONTROL_VIDEO_STABILIZATION_MODE_OFF)
+        applyRequest(builderInputSurface)
         isVideoStabilizationEnabled = false
     }
 
@@ -312,7 +423,7 @@ class Camera2ApiManager(context: Context) : CameraDevice.StateCallback() {
         val opticalStabilizationModes = characteristics.secureGet(CameraCharacteristics.LENS_INFO_AVAILABLE_OPTICAL_STABILIZATION) ?: return false
         if (!opticalStabilizationModes.contains(CaptureRequest.LENS_OPTICAL_STABILIZATION_MODE_ON)) return false
         builderInputSurface.set(CaptureRequest.LENS_OPTICAL_STABILIZATION_MODE, CaptureRequest.LENS_OPTICAL_STABILIZATION_MODE_ON)
-        isOpticalStabilizationEnabled = true
+        isOpticalStabilizationEnabled = applyRequest(builderInputSurface)
         return isOpticalStabilizationEnabled
     }
 
@@ -322,21 +433,14 @@ class Camera2ApiManager(context: Context) : CameraDevice.StateCallback() {
         val modes = characteristics.secureGet(CameraCharacteristics.LENS_INFO_AVAILABLE_OPTICAL_STABILIZATION) ?: return
         if (!modes.contains(CaptureRequest.LENS_OPTICAL_STABILIZATION_MODE_ON)) return
         builderInputSurface.set(CaptureRequest.LENS_OPTICAL_STABILIZATION_MODE, CaptureRequest.LENS_OPTICAL_STABILIZATION_MODE_OFF)
+        applyRequest(builderInputSurface)
         isOpticalStabilizationEnabled = false
     }
 
     fun setFocusDistance(distance: Float) {
         val builderInputSurface = this.builderInputSurface ?: return
-        val cameraCaptureSession = this.cameraCaptureSession ?: return
-        try {
-            builderInputSurface.set(CaptureRequest.LENS_FOCUS_DISTANCE, max(0f, distance))
-            cameraCaptureSession.setRepeatingRequest(
-                builderInputSurface.build(),
-                if (faceDetectionEnabled) cb else null, null
-            )
-        } catch (e: Exception) {
-            Log.e(TAG, "Error", e)
-        }
+        builderInputSurface.set(CaptureRequest.LENS_FOCUS_DISTANCE, max(0f, distance))
+        applyRequest(builderInputSurface)
     }
 
     fun getCurrentCameraId()  = cameraId
@@ -349,18 +453,10 @@ class Camera2ApiManager(context: Context) : CameraDevice.StateCallback() {
         set(value) {
             val characteristics = cameraCharacteristics ?: return
             val builderInputSurface = this.builderInputSurface ?: return
-            val cameraCaptureSession = this.cameraCaptureSession ?: return
             val supportedExposure = characteristics.secureGet(CameraCharacteristics.CONTROL_AE_COMPENSATION_RANGE) ?: return
             val v = value.coerceIn(supportedExposure.lower, supportedExposure.upper)
-            try {
-                builderInputSurface.set(CaptureRequest.CONTROL_AE_EXPOSURE_COMPENSATION, v)
-                cameraCaptureSession.setRepeatingRequest(
-                    builderInputSurface.build(),
-                    if (faceDetectionEnabled) cb else null, null
-                )
-            } catch (e: Exception) {
-                Log.e(TAG, "Error", e)
-            }
+            builderInputSurface.set(CaptureRequest.CONTROL_AE_EXPOSURE_COMPENSATION, v)
+            applyRequest(builderInputSurface)
         }
 
 
@@ -378,44 +474,56 @@ class Camera2ApiManager(context: Context) : CameraDevice.StateCallback() {
             return supportedExposure
         }
 
-    fun tapToFocus(event: MotionEvent): Boolean {
+    fun tapToFocus(view: View, event: MotionEvent): Boolean {
         val builderInputSurface = this.builderInputSurface ?: return false
-        val cameraCaptureSession = this.cameraCaptureSession ?: return false
-        var result = false
-        val pointerId = event.getPointerId(0)
-        val pointerIndex = event.findPointerIndex(pointerId)
-        // Get the pointer's current position
-        val x = event.getX(pointerIndex)
-        val y = event.getY(pointerIndex)
-        if (x < 100 || y < 100) return false
-
-        val touchRect = Rect(
-            (x - 100).toInt(), (y - 100).toInt(),
-            (x + 100).toInt(), (y + 100).toInt()
+        val characteristics = cameraCharacteristics ?: return false
+        val session = cameraCaptureSession ?: return false
+        if (characteristics.get(CameraCharacteristics.CONTROL_MAX_REGIONS_AF) == 0) return false
+        val focusTag = "focus"
+        val sensorArraySize = characteristics.get(CameraCharacteristics.SENSOR_INFO_ACTIVE_ARRAY_SIZE) ?: return false
+        val x = event.x
+        val y = event.y
+        val focusX = (x / view.width.toFloat()) * sensorArraySize.width()
+        val focusY = (y / view.height.toFloat()) * sensorArraySize.height()
+        val focusRect = MeteringRectangle(
+            (focusX - 100).toInt().coerceIn(0, sensorArraySize.width()),
+            (focusY - 100).toInt().coerceIn(0, sensorArraySize.height()),
+            (100 * 2).coerceIn(0, sensorArraySize.width()),
+            (100 * 2).coerceIn(0, sensorArraySize.height()),
+            MeteringRectangle.METERING_WEIGHT_MAX
         )
-        val focusArea = MeteringRectangle(touchRect, MeteringRectangle.METERING_WEIGHT_DONT_CARE)
+
+        val captureCallbackHandler: CameraCaptureSession.CaptureCallback =
+            object : CameraCaptureSession.CaptureCallback() {
+                override fun onCaptureCompleted(session: CameraCaptureSession, request: CaptureRequest, result: TotalCaptureResult) {
+                    super.onCaptureCompleted(session, request, result)
+                    if (request.tag == focusTag) {
+                        session.stopRepeating()
+                        val area = request.get(CaptureRequest.CONTROL_AF_REGIONS)
+                        builderInputSurface.setTag("")
+                        builderInputSurface.set(CaptureRequest.CONTROL_AF_MODE, CameraMetadata.CONTROL_AF_MODE_AUTO)
+                        builderInputSurface.set(CaptureRequest.CONTROL_AF_TRIGGER, CameraMetadata.CONTROL_AF_TRIGGER_IDLE)
+                        builderInputSurface.set(CaptureRequest.CONTROL_AF_REGIONS, area)
+                        applyRequest(builderInputSurface)
+                    }
+                }
+            }
         try {
-            //cancel any existing AF trigger (repeated touches, etc.)
+            session.stopRepeating()
             builderInputSurface.set(CaptureRequest.CONTROL_AF_TRIGGER, CameraMetadata.CONTROL_AF_TRIGGER_CANCEL)
-            builderInputSurface.set(CaptureRequest.CONTROL_AF_MODE, CaptureRequest.CONTROL_AF_MODE_OFF)
-            cameraCaptureSession.setRepeatingRequest(
-                builderInputSurface.build(),
-                if (faceDetectionEnabled) cb else null, null
-            )
-            builderInputSurface.set(CaptureRequest.CONTROL_AF_REGIONS, arrayOf(focusArea))
-            builderInputSurface.set(CaptureRequest.CONTROL_MODE, CameraMetadata.CONTROL_MODE_AUTO)
-            builderInputSurface.set(CaptureRequest.CONTROL_AF_MODE, CaptureRequest.CONTROL_AF_MODE_AUTO)
+            builderInputSurface.set(CaptureRequest.CONTROL_AF_MODE, CameraMetadata.CONTROL_AF_MODE_OFF)
+            session.capture(builderInputSurface.build(), captureCallbackHandler, null)
+
+            builderInputSurface.set(CaptureRequest.CONTROL_AF_REGIONS, arrayOf(focusRect))
+            builderInputSurface.set(CaptureRequest.CONTROL_AF_MODE, CameraMetadata.CONTROL_AF_MODE_AUTO)
             builderInputSurface.set(CaptureRequest.CONTROL_AF_TRIGGER, CameraMetadata.CONTROL_AF_TRIGGER_START)
-            cameraCaptureSession.setRepeatingRequest(
-                builderInputSurface.build(),
-                if (faceDetectionEnabled) cb else null, null
-            )
+            builderInputSurface.setTag(focusTag)
+            session.capture(builderInputSurface.build(), captureCallbackHandler, null)
             isAutoFocusEnabled = true
-            result = true
-        } catch (e: Exception) {
-            Log.e(TAG, "Error", e)
+            return true
+        } catch (_: Exception) {
+            return false
         }
-        return result
     }
 
     /**
@@ -447,15 +555,10 @@ class Camera2ApiManager(context: Context) : CameraDevice.StateCallback() {
     @Throws(Exception::class)
     fun enableLantern() {
         val builderInputSurface = this.builderInputSurface ?: return
-        val cameraCaptureSession = this.cameraCaptureSession ?: return
         if (isLanternSupported) {
             try {
                 builderInputSurface.set(CaptureRequest.FLASH_MODE, CameraMetadata.FLASH_MODE_TORCH)
-                cameraCaptureSession.setRepeatingRequest(
-                    builderInputSurface.build(),
-                    if (faceDetectionEnabled) cb else null, null
-                )
-                isLanternEnabled = true
+                isLanternEnabled = applyRequest(builderInputSurface)
             } catch (e: Exception) {
                 Log.e(TAG, "Error", e)
             }
@@ -471,15 +574,11 @@ class Camera2ApiManager(context: Context) : CameraDevice.StateCallback() {
     fun disableLantern() {
         val characteristics = cameraCharacteristics ?: return
         val builderInputSurface = this.builderInputSurface ?: return
-        val cameraCaptureSession = this.cameraCaptureSession ?: return
         val available = characteristics.secureGet(CameraCharacteristics.FLASH_INFO_AVAILABLE) ?: return
         if (available) {
             try {
                 builderInputSurface.set(CaptureRequest.FLASH_MODE, CameraMetadata.FLASH_MODE_OFF)
-                cameraCaptureSession.setRepeatingRequest(
-                    builderInputSurface.build(),
-                    if (faceDetectionEnabled) cb else null, null
-                )
+                applyRequest(builderInputSurface)
                 isLanternEnabled = false
             } catch (e: Exception) {
                 Log.e(TAG, "Error", e)
@@ -492,17 +591,12 @@ class Camera2ApiManager(context: Context) : CameraDevice.StateCallback() {
         val characteristics = cameraCharacteristics ?: return false
         val supportedFocusModes = characteristics.secureGet(CameraCharacteristics.CONTROL_AF_AVAILABLE_MODES) ?: return false
         val builderInputSurface = this.builderInputSurface ?: return false
-        val cameraCaptureSession = this.cameraCaptureSession ?: return false
-
         try {
             if (supportedFocusModes.isNotEmpty()) {
                 //cancel any existing AF trigger
                 builderInputSurface.set(CaptureRequest.CONTROL_AF_TRIGGER, CameraMetadata.CONTROL_AF_TRIGGER_CANCEL)
                 builderInputSurface.set(CaptureRequest.CONTROL_AF_MODE, CaptureRequest.CONTROL_AF_MODE_OFF)
-                cameraCaptureSession.setRepeatingRequest(
-                    builderInputSurface.build(),
-                    if (faceDetectionEnabled) cb else null, null
-                )
+                applyRequest(builderInputSurface)
                 if (supportedFocusModes.contains(CaptureRequest.CONTROL_AF_MODE_CONTINUOUS_PICTURE)) {
                     builderInputSurface.set(CaptureRequest.CONTROL_AF_MODE, CaptureRequest.CONTROL_AF_MODE_CONTINUOUS_PICTURE)
                     isAutoFocusEnabled = true
@@ -513,10 +607,7 @@ class Camera2ApiManager(context: Context) : CameraDevice.StateCallback() {
                     builderInputSurface.set(CaptureRequest.CONTROL_AF_MODE, supportedFocusModes[0])
                     isAutoFocusEnabled = false
                 }
-                cameraCaptureSession.setRepeatingRequest(
-                    builderInputSurface.build(),
-                    if (faceDetectionEnabled) cb else null, null
-                )
+                applyRequest(builderInputSurface)
             }
             result = isAutoFocusEnabled
         } catch (e: Exception) {
@@ -530,16 +621,12 @@ class Camera2ApiManager(context: Context) : CameraDevice.StateCallback() {
         val result = false
         val characteristics = cameraCharacteristics ?: return false
         val builderInputSurface = this.builderInputSurface ?: return false
-        val cameraCaptureSession = this.cameraCaptureSession ?: return false
         val supportedFocusModes = characteristics.secureGet(CameraCharacteristics.CONTROL_AF_AVAILABLE_MODES) ?: return false
         for (mode in supportedFocusModes) {
             try {
                 if (mode == CaptureRequest.CONTROL_AF_MODE_OFF) {
                     builderInputSurface.set(CaptureRequest.CONTROL_AF_MODE, CaptureRequest.CONTROL_AF_MODE_OFF)
-                    cameraCaptureSession.setRepeatingRequest(
-                        builderInputSurface.build(),
-                        if (faceDetectionEnabled) cb else null, null
-                    )
+                    applyRequest(builderInputSurface)
                     isAutoFocusEnabled = false
                     return true
                 }
@@ -564,8 +651,13 @@ class Camera2ApiManager(context: Context) : CameraDevice.StateCallback() {
         if (faceDetectionEnabled) {
             builderInputSurface.set(CaptureRequest.STATISTICS_FACE_DETECT_MODE, faceDetectionMode)
         }
-        prepareFaceDetectionCallback()
+        applyRequest(builderInputSurface)
         return true
+    }
+
+
+    fun enableFrameCaptureCallback(frameCapturedCallback: FrameCapturedCallback?) {
+        this.frameCapturedCallback = frameCapturedCallback
     }
 
     fun disableFaceDetection() {
@@ -573,7 +665,7 @@ class Camera2ApiManager(context: Context) : CameraDevice.StateCallback() {
             faceDetectorCallback = null
             faceDetectionEnabled = false
             faceDetectionMode = 0
-            prepareFaceDetectionCallback()
+            builderInputSurface?.let { applyRequest(it) }
         }
     }
 
@@ -583,24 +675,30 @@ class Camera2ApiManager(context: Context) : CameraDevice.StateCallback() {
         this.cameraCallbacks = cameraCallbacks
     }
 
-    private fun prepareFaceDetectionCallback() {
-        val builderInputSurface = this.builderInputSurface ?: return
-        val cameraCaptureSession = this.cameraCaptureSession ?: return
-        try {
-            cameraCaptureSession.stopRepeating()
-            cameraCaptureSession.setRepeatingRequest(
-                builderInputSurface.build(),
-                if (faceDetectionEnabled) cb else null, null
-            )
-        } catch (e: Exception) {
-            Log.e(TAG, "Error", e)
-        }
-    }
-
     private val cb: CameraCaptureSession.CaptureCallback = object : CameraCaptureSession.CaptureCallback() {
-        override fun onCaptureCompleted(session: CameraCaptureSession, request: CaptureRequest, result: TotalCaptureResult) {
+        override fun onCaptureCompleted(
+            session: CameraCaptureSession,
+            request: CaptureRequest,
+            result: TotalCaptureResult
+        ) {
             val faces = result.get(CaptureResult.STATISTICS_FACES) ?: return
-            faceDetectorCallback?.onGetFaces(mapCamera2Faces(faces), faceSensorScale, sensorOrientation)
+            faceDetectorCallback?.onGetFaces(
+                faces = mapCamera2Faces(faces = faces),
+                scaleSensor = faceSensorScale,
+                sensorOrientation = sensorOrientation
+            )
+        }
+
+        override fun onCaptureStarted(
+            session: CameraCaptureSession,
+            request: CaptureRequest,
+            timestamp: Long,
+            frameNumber: Long
+        ) {
+            frameCapturedCallback?.onFrameCaptured(
+                frameNumber = frameNumber,
+                timestamp = timestamp
+            )
         }
     }
 
@@ -671,7 +769,6 @@ class Camera2ApiManager(context: Context) : CameraDevice.StateCallback() {
         set(level) {
             val characteristics = cameraCharacteristics ?: return
             val builderInputSurface = this.builderInputSurface ?: return
-            val cameraCaptureSession = this.cameraCaptureSession ?: return
             val l = level.coerceIn(zoomRange.lower, zoomRange.upper)
             try {
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R && levelSupported != CameraMetadata.INFO_SUPPORTED_HARDWARE_LEVEL_LEGACY) {
@@ -681,8 +778,8 @@ class Camera2ApiManager(context: Context) : CameraDevice.StateCallback() {
                     //This ratio is the ratio of cropped Rect to Camera's original(Maximum) Rect
                     val ratio = 1f / l
                     //croppedWidth and croppedHeight are the pixels cropped away, not pixels after cropped
-                    val croppedWidth = rect.width() - Math.round(rect.width().toFloat() * ratio)
-                    val croppedHeight = rect.height() - Math.round(rect.height().toFloat() * ratio)
+                    val croppedWidth = rect.width() - (rect.width().toFloat() * ratio).roundToInt()
+                    val croppedHeight = rect.height() - (rect.height().toFloat() * ratio).roundToInt()
                     //Finally, zoom represents the zoomed visible area
                     val zoom = Rect(
                         croppedWidth / 2, croppedHeight / 2, rect.width() - croppedWidth / 2,
@@ -690,10 +787,7 @@ class Camera2ApiManager(context: Context) : CameraDevice.StateCallback() {
                     )
                     builderInputSurface.set(CaptureRequest.SCALER_CROP_REGION, zoom)
                 }
-                cameraCaptureSession.setRepeatingRequest(
-                    builderInputSurface.build(),
-                    if (faceDetectionEnabled) cb else null, null
-                )
+                applyRequest(builderInputSurface)
                 zoomLevel = l
             } catch (e: Exception) {
                 Log.e(TAG, "Error", e)
@@ -707,13 +801,9 @@ class Camera2ApiManager(context: Context) : CameraDevice.StateCallback() {
 
     fun setOpticalZoom(level: Float) {
         val builderInputSurface = this.builderInputSurface ?: return
-        val cameraCaptureSession = this.cameraCaptureSession ?: return
         try {
             builderInputSurface.set(CaptureRequest.LENS_FOCAL_LENGTH, level)
-            cameraCaptureSession.setRepeatingRequest(
-                builderInputSurface.build(),
-                if (faceDetectionEnabled) cb else null, null
-            )
+            applyRequest(builderInputSurface)
         } catch (e: Exception) {
             Log.e(TAG, "Error", e)
         }
@@ -828,7 +918,7 @@ class Camera2ApiManager(context: Context) : CameraDevice.StateCallback() {
                 }
             }
             return Facing.BACK
-        } catch (e: Exception) {
+        } catch (_: Exception) {
             return Facing.BACK
         }
     }
@@ -852,9 +942,11 @@ class Camera2ApiManager(context: Context) : CameraDevice.StateCallback() {
             }
         }
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+            val configurations = surfaces.map { OutputConfiguration(it) }
+            configurations.forEach { it.setPhysicalCameraId(physicalCameraId) }
             val config = SessionConfiguration(
                 SessionConfiguration.SESSION_REGULAR,
-                surfaces.map { OutputConfiguration(it) },
+                configurations,
                 Executors.newSingleThreadExecutor(),
                 callback
             )

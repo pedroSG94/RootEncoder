@@ -1,17 +1,17 @@
 plugins {
     alias(libs.plugins.android.library)
     alias(libs.plugins.jetbrains.kotlin)
-    id(libs.plugins.maven.publish.get().pluginId)
     alias(libs.plugins.jetbrains.dokka)
+    `maven-publish`
 }
 
 android {
     namespace = "com.pedro.common"
-    compileSdk = 35
+    compileSdk = 36
 
     defaultConfig {
         minSdk = 16
-        lint.targetSdk = 35
+        lint.targetSdk = 36
     }
 
     buildTypes {
@@ -23,10 +23,9 @@ android {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
     }
-    kotlinOptions {
-        jvmTarget = "17"
+    kotlin {
+        jvmToolchain(17)
     }
-
     publishing {
         singleVariant("release")
     }
@@ -41,9 +40,9 @@ afterEvaluate {
                 from(components["release"])
 
                 // You can then customize attributes of the publication as shown below.
-                groupId = libs.versions.libraryGroup.get()
-                artifactId = "common"
-                version = libs.versions.versionName.get()
+                groupId = project.group.toString()
+                artifactId = project.name
+                version = project.version.toString()
             }
         }
     }

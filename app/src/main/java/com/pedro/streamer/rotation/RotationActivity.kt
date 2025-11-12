@@ -41,10 +41,10 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import com.pedro.encoder.input.sources.audio.MicrophoneSource
+import com.pedro.encoder.input.sources.video.BitmapSource
+import com.pedro.encoder.input.sources.video.BufferVideoSource
 import com.pedro.encoder.input.sources.video.Camera1Source
 import com.pedro.encoder.input.sources.video.Camera2Source
-import com.pedro.encoder.input.video.CameraHelper
-import com.pedro.extrasources.BitmapSource
 import com.pedro.extrasources.CameraUvcSource
 import com.pedro.extrasources.CameraXSource
 import com.pedro.streamer.R

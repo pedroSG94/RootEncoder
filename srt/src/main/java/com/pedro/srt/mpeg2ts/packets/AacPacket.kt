@@ -16,6 +16,7 @@
 
 package com.pedro.srt.mpeg2ts.packets
 
+import com.pedro.common.AudioUtils
 import com.pedro.common.frame.MediaFrame
 import com.pedro.common.removeInfo
 import com.pedro.srt.mpeg2ts.MpegTsPacket
@@ -24,6 +25,7 @@ import com.pedro.srt.mpeg2ts.Pes
 import com.pedro.srt.mpeg2ts.PesType
 import com.pedro.srt.mpeg2ts.psi.PsiManager
 import com.pedro.srt.srt.packets.data.PacketPosition
+import com.pedro.srt.utils.chunkPackets
 import java.nio.ByteBuffer
 
 /**
@@ -34,9 +36,10 @@ class AacPacket(
   psiManager: PsiManager,
 ): BasePacket(psiManager, limitSize) {
 
-  private val header = ByteArray(7) //ADTS header
   private var sampleRate = 44100
-  private var isStereo = true
+  private var channels = 2
+  private val type = 2 //AAC-LC
+  private val headerSize = AudioUtils.ADTS_SIZE
 
   override suspend fun createAndSendPacket(
     mediaFrame: MediaFrame,
@@ -46,68 +49,22 @@ class AacPacket(
     val length = fixedBuffer.remaining()
     if (length < 0) return
 
-    val payload = ByteArray(length + header.size)
-    writeAdts(payload, payload.size, 0)
-    fixedBuffer.get(payload, header.size, length)
+    val payload = ByteArray(length + headerSize)
+    val adts = AudioUtils.createAdtsHeader(type, payload.size, sampleRate, channels)
+    adts.get(payload, 0, headerSize)
+    fixedBuffer.get(payload, headerSize, length)
 
     val pes = Pes(psiManager.getAudioPid().toInt(), false, PesType.AUDIO, mediaFrame.info.timestamp, ByteBuffer.wrap(payload))
-    val mpeg2tsPackets = mpegTsPacketizer.write(listOf(pes))
-    val chunked = mpeg2tsPackets.chunked(chunkSize)
-    val packets = mutableListOf<MpegTsPacket>()
-    chunked.forEachIndexed { index, chunks ->
-      val size = chunks.sumOf { it.size }
-      val buffer = ByteBuffer.allocate(size)
-      chunks.forEach {
-        buffer.put(it)
-      }
-      val packetPosition = PacketPosition.SINGLE
-      packets.add(MpegTsPacket(buffer.array(), MpegType.AUDIO, packetPosition, false))
+    val mpeg2tsPackets = mpegTsPacketizer.write(listOf(pes)).chunkPackets(chunkSize).map { buffer ->
+        MpegTsPacket(buffer, MpegType.AUDIO, PacketPosition.SINGLE, isKey = false)
     }
-    if (packets.isNotEmpty()) callback(packets)
+    if (mpeg2tsPackets.isNotEmpty()) callback(mpeg2tsPackets)
   }
 
   override fun resetPacket(resetInfo: Boolean) { }
 
   fun sendAudioInfo(sampleRate: Int, stereo: Boolean) {
     this.sampleRate = sampleRate
-    this.isStereo = stereo
+    channels = if (stereo) 2 else 1
   }
-
-  private fun writeAdts(buffer: ByteArray, length: Int, offset: Int) {
-    val type = 2 //AAC-LC
-    val channels = if (isStereo) 2 else 1
-    val frequency = getFrequency()
-    buffer[offset] = 0xFF.toByte()
-    buffer[offset + 1] = 0xF9.toByte()
-    buffer[offset + 2] = (((type - 1) shl 6) or (frequency shl 2) or (channels shr 2)).toByte()
-    buffer[offset + 3] = (((channels and 3) shl 6) or (length shr 11)).toByte()
-    buffer[offset + 4] = ((length and 0x7FF) shr 3).toByte()
-    buffer[offset + 5] = (((length and 7) shl 5).toByte()).plus(0x1F).toByte()
-    buffer[offset + 6] = 0xFC.toByte()
-  }
-
-  private fun getFrequency(): Int {
-    var frequency = AUDIO_SAMPLING_RATES.indexOf(sampleRate)
-    //sane check, if samplerate not found using default 44100
-    if (frequency == -1) frequency = 4
-    return frequency
-  }
-
-  private val AUDIO_SAMPLING_RATES = intArrayOf(
-    96000,  // 0
-    88200,  // 1
-    64000,  // 2
-    48000,  // 3
-    44100,  // 4
-    32000,  // 5
-    24000,  // 6
-    22050,  // 7
-    16000,  // 8
-    12000,  // 9
-    11025,  // 10
-    8000,  // 11
-    7350,  // 12
-    -1,  // 13
-    -1,  // 14
-    -1)
 }

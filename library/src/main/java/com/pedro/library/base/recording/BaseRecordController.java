@@ -17,10 +17,10 @@
 package com.pedro.library.base.recording;
 
 import android.media.MediaCodec;
-import android.media.MediaFormat;
 
 import com.pedro.common.AudioCodec;
 import com.pedro.common.BitrateManager;
+import com.pedro.common.TimeUtils;
 import com.pedro.common.VideoCodec;
 import com.pedro.rtsp.utils.RtpConstants;
 
@@ -38,12 +38,9 @@ public abstract class BaseRecordController implements RecordController {
     protected Listener listener;
     protected int videoTrack = -1;
     protected int audioTrack = -1;
-    protected final MediaCodec.BufferInfo videoInfo = new MediaCodec.BufferInfo();
-    protected final MediaCodec.BufferInfo audioInfo = new MediaCodec.BufferInfo();
-    protected boolean isOnlyAudio = false;
-    protected boolean isOnlyVideo = false;
     protected BitrateManager bitrateManager;
-    protected long startTs = 0;
+    protected volatile long startTs = 0;
+    protected RecordTracks tracks = RecordTracks.ALL;
 
     public void setVideoCodec(VideoCodec videoCodec) {
         this.videoCodec = videoCodec;
@@ -70,7 +67,7 @@ public abstract class BaseRecordController implements RecordController {
 
     public void pauseRecord() {
         if (status == Status.RECORDING) {
-            pauseMoment = System.nanoTime() / 1000;
+            pauseMoment = TimeUtils.getCurrentTimeMicro();
             status = Status.PAUSED;
             if (listener != null) listener.onStatusChange(status);
         }
@@ -78,7 +75,7 @@ public abstract class BaseRecordController implements RecordController {
 
     public void resumeRecord() {
         if (status == Status.PAUSED) {
-            pauseTime += System.nanoTime() / 1000 - pauseMoment;
+            pauseTime += TimeUtils.getCurrentTimeMicro() - pauseMoment;
             status = Status.RESUMED;
             if (listener != null) listener.onStatusChange(status);
         }
@@ -101,19 +98,11 @@ public abstract class BaseRecordController implements RecordController {
     }
 
     //We can't reuse info because could produce stream issues
-    protected void updateFormat(MediaCodec.BufferInfo newInfo, MediaCodec.BufferInfo oldInfo) {
+    protected MediaCodec.BufferInfo updateFormat(MediaCodec.BufferInfo oldInfo) {
+        MediaCodec.BufferInfo info = new MediaCodec.BufferInfo();
         if (startTs <= 0) startTs = oldInfo.presentationTimeUs;
-        newInfo.flags = oldInfo.flags;
-        newInfo.offset = oldInfo.offset;
-        newInfo.size = oldInfo.size;
-        newInfo.presentationTimeUs = oldInfo.presentationTimeUs - startTs - pauseTime;
-    }
-
-    public void setVideoFormat(MediaFormat videoFormat) {
-        setVideoFormat(videoFormat, false);
-    }
-
-    public void setAudioFormat(MediaFormat audioFormat) {
-        setAudioFormat(audioFormat, false);
+        long ts = Math.max(0, oldInfo.presentationTimeUs - startTs - pauseTime);
+        info.set(oldInfo.offset, oldInfo.size, ts, oldInfo.flags);
+        return info;
     }
 }

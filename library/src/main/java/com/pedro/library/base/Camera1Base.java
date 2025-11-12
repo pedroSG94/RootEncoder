@@ -34,8 +34,9 @@ import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 
 import com.pedro.common.AudioCodec;
+import com.pedro.common.TimeUtils;
 import com.pedro.common.VideoCodec;
-import com.pedro.encoder.EncoderErrorCallback;
+import com.pedro.encoder.CodecErrorCallback;
 import com.pedro.encoder.TimestampMode;
 import com.pedro.encoder.audio.AudioEncoder;
 import com.pedro.encoder.audio.GetAudioData;
@@ -150,7 +151,7 @@ public abstract class Camera1Base {
    * Set a callback to know errors related with Video/Audio encoders
    * @param encoderErrorCallback callback to use, null to remove
    */
-  public void setEncoderErrorCallback(EncoderErrorCallback encoderErrorCallback) {
+  public void setEncoderErrorCallback(CodecErrorCallback encoderErrorCallback) {
     videoEncoder.setEncoderErrorCallback(encoderErrorCallback);
     audioEncoder.setEncoderErrorCallback(encoderErrorCallback);
   }
@@ -233,6 +234,21 @@ public abstract class Camera1Base {
 
   public boolean isAutoFocusEnabled() {
     return cameraManager.isAutoFocusEnabled();
+  }
+
+  /**
+   * @param mode values from Camera.Parameters.WHITE_BALANCE_*
+   */
+  public boolean enableAutoWhiteBalance(String mode) {
+    return cameraManager.enableAutoWhiteBalance(mode);
+  }
+
+  public List<String> getAutoWhiteBalanceModesAvailable() {
+    return cameraManager.getAutoWhiteBalanceModesAvailable();
+  }
+
+  public String getWhiteBalance() {
+    return cameraManager.getWhiteBalance();
   }
 
   public boolean resetVideoEncoder() {
@@ -370,7 +386,9 @@ public abstract class Camera1Base {
   @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
   public void startRecord(@NonNull final String path, @Nullable RecordController.Listener listener)
       throws IOException {
-    recordController.startRecord(path, listener);
+    RecordController.RecordTracks tracks = audioInitialized ?
+            RecordController.RecordTracks.ALL : RecordController.RecordTracks.VIDEO;
+    recordController.startRecord(path, listener, tracks);
     if (!streaming) {
       startEncoders();
     } else if (videoEncoder.isRunning()) {
@@ -392,7 +410,9 @@ public abstract class Camera1Base {
   @RequiresApi(api = Build.VERSION_CODES.O)
   public void startRecord(@NonNull final FileDescriptor fd,
       @Nullable RecordController.Listener listener) throws IOException {
-    recordController.startRecord(fd, listener);
+    RecordController.RecordTracks tracks = audioInitialized ?
+            RecordController.RecordTracks.ALL : RecordController.RecordTracks.VIDEO;
+    recordController.startRecord(fd, listener, tracks);
     if (!streaming) {
       startEncoders();
     } else if (videoEncoder.isRunning()) {
@@ -647,7 +667,9 @@ public abstract class Camera1Base {
   @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
   public void startStreamAndRecord(String url, String path, RecordController.Listener listener) throws IOException {
     startStream(url);
-    recordController.startRecord(path, listener);
+    RecordController.RecordTracks tracks = audioInitialized ?
+            RecordController.RecordTracks.ALL : RecordController.RecordTracks.VIDEO;
+    recordController.startRecord(path, listener, tracks);
   }
 
   @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
@@ -679,7 +701,7 @@ public abstract class Camera1Base {
   }
 
   private void startEncoders() {
-    long startTs = System.nanoTime() / 1000;
+    long startTs = TimeUtils.getCurrentTimeMicro();
     videoEncoder.start(startTs);
     if (audioInitialized) audioEncoder.start(startTs);
     prepareGlView(videoEncoder.getWidth(), videoEncoder.getHeight(), videoEncoder.getRotation());
@@ -978,7 +1000,7 @@ public abstract class Camera1Base {
 
     @Override
     public void onVideoFormat(@NonNull MediaFormat mediaFormat) {
-      recordController.setVideoFormat(mediaFormat, !audioInitialized);
+      recordController.setVideoFormat(mediaFormat);
     }
   };
 

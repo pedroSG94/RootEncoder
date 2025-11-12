@@ -28,12 +28,13 @@ import android.widget.GridView
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
-import com.pedro.streamer.oldapi.OldApiActivity
 import com.pedro.streamer.file.FromFileActivity
+import com.pedro.streamer.oldapi.OldApiActivity
 import com.pedro.streamer.rotation.RotationActivity
 import com.pedro.streamer.screen.ScreenActivity
 import com.pedro.streamer.utils.ActivityLink
 import com.pedro.streamer.utils.ImageAdapter
+import com.pedro.streamer.utils.fitAppPadding
 import com.pedro.streamer.utils.toast
 
 class MainActivity : AppCompatActivity() {
@@ -52,6 +53,7 @@ class MainActivity : AppCompatActivity() {
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
     setContentView(R.layout.activity_main)
+    fitAppPadding()
     transitionAnim(true)
     val tvVersion = findViewById<TextView>(R.id.tv_version)
     tvVersion.text = getString(R.string.version, BuildConfig.VERSION_NAME)

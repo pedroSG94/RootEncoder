@@ -16,6 +16,7 @@
 
 package com.pedro.library.util.streamclient
 
+import com.pedro.common.socket.base.SocketType
 import com.pedro.rtsp.rtsp.Protocol
 import com.pedro.rtsp.rtsp.RtspClient
 import javax.net.ssl.TrustManager
@@ -33,6 +34,14 @@ class RtspStreamClient(
    */
   fun addCertificates(certificates: TrustManager?) {
     rtspClient.addCertificates(certificates)
+  }
+
+  /**
+   * Set stream delay in millis.
+   * This will create a cache and wait the delay to start send packets in real time
+   */
+  override fun setDelay(millis: Long) {
+    rtspClient.setDelay(millis)
   }
 
   /**
@@ -87,6 +96,8 @@ class RtspStreamClient(
 
   override fun getSentVideoFrames(): Long = rtspClient.sentVideoFrames
 
+  override fun getBytesSend(): Long = rtspClient.bytesSend
+
   override fun getDroppedAudioFrames(): Long = rtspClient.droppedAudioFrames
 
   override fun getDroppedVideoFrames(): Long = rtspClient.droppedVideoFrames
@@ -105,6 +116,10 @@ class RtspStreamClient(
 
   override fun resetDroppedVideoFrames() {
     rtspClient.resetDroppedVideoFrames()
+  }
+
+  override fun resetBytesSend() {
+    rtspClient.resetBytesSend()
   }
 
   override fun setOnlyAudio(onlyAudio: Boolean) {
@@ -127,4 +142,18 @@ class RtspStreamClient(
    * Get the exponential factor used to calculate the bitrate. Default 1f
    */
   override fun getBitrateExponentialFactor() = rtspClient.getBitrateExponentialFactor()
+
+  /**
+   * Set if you want use java.io or ktor socket
+   */
+  override fun setSocketType(type: SocketType) {
+    rtspClient.socketType = type
+  }
+
+  /**
+   * Set timeout ms for connection, write and read in sockets by default 5000ms
+   */
+  override fun setSocketTimeout(timeout: Long) {
+    rtspClient.socketTimeout = timeout
+  }
 }

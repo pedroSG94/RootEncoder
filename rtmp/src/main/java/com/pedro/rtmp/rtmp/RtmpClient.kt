@@ -27,10 +27,18 @@ import com.pedro.common.VideoCodec
 import com.pedro.common.clone
 import com.pedro.common.frame.MediaFrame
 import com.pedro.common.onMainThread
+import com.pedro.common.socket.base.SocketType
+import com.pedro.common.socket.base.StreamSocket
 import com.pedro.common.toMediaFrameInfo
 import com.pedro.common.validMessage
 import com.pedro.rtmp.amf.AmfVersion
-import com.pedro.rtmp.rtmp.message.*
+import com.pedro.rtmp.rtmp.message.Abort
+import com.pedro.rtmp.rtmp.message.Acknowledgement
+import com.pedro.rtmp.rtmp.message.Aggregate
+import com.pedro.rtmp.rtmp.message.MessageType
+import com.pedro.rtmp.rtmp.message.SetChunkSize
+import com.pedro.rtmp.rtmp.message.SetPeerBandwidth
+import com.pedro.rtmp.rtmp.message.WindowAcknowledgementSize
 import com.pedro.rtmp.rtmp.message.command.Command
 import com.pedro.rtmp.rtmp.message.control.Type
 import com.pedro.rtmp.rtmp.message.control.UserControl
@@ -48,8 +56,8 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeoutOrNull
-import java.io.*
-import java.net.*
+import java.io.IOException
+import java.net.URISyntaxException
 import java.nio.ByteBuffer
 import javax.net.ssl.TrustManager
 
@@ -96,6 +104,11 @@ class RtmpClient(private val connectChecker: ConnectChecker) {
     get() = rtmpSender.getSentAudioFrames()
   val sentVideoFrames: Long
     get() = rtmpSender.getSentVideoFrames()
+  val bytesSend: Long
+    get() = rtmpSender.bytesSend
+  var socketType = SocketType.KTOR
+  var socketTimeout = StreamSocket.DEFAULT_TIMEOUT
+  var shouldFailOnRead = false
 
   /**
    * Add certificates for TLS connection
@@ -152,13 +165,21 @@ class RtmpClient(private val connectChecker: ConnectChecker) {
   }
 
   fun forceIncrementalTs(enabled: Boolean) {
-    commandsManager.incrementalTs = enabled
+    if (enabled) setDelay(300)
+  }
+
+  fun setDelay(millis: Long) {
+    rtmpSender.setDelay(millis)
   }
 
   fun setWriteChunkSize(chunkSize: Int) {
     if (!isStreaming) {
       RtmpConfig.writeChunkSize = chunkSize
     }
+  }
+
+  fun setCustomAmfObject(amfObject: Map<String, Any>) {
+    commandsManager.customAmfObject = amfObject
   }
 
   fun setAuthorization(user: String?, password: String?) {
@@ -223,7 +244,7 @@ class RtmpClient(private val connectChecker: ConnectChecker) {
 
         val urlParser = try {
           UrlParser.parse(url, validSchemes)
-        } catch (e: URISyntaxException) {
+        } catch (_: URISyntaxException) {
           isStreaming = false
           onMainThread {
             connectChecker.onConnectionFailed(
@@ -286,7 +307,6 @@ class RtmpClient(private val connectChecker: ConnectChecker) {
     while (scope.isActive && isStreaming) {
       val error = runCatching {
         if (isAlive()) {
-          delay(2000)
           //ignore packet after connect if tunneled to avoid spam idle
           if (!tunneled) handleMessages()
         } else {
@@ -298,6 +318,7 @@ class RtmpClient(private val connectChecker: ConnectChecker) {
       }.exceptionOrNull()
       if (error != null && ConnectionFailed.parse(error.validMessage()) != ConnectionFailed.TIMEOUT) {
         scope.cancel()
+        if (shouldFailOnRead) connectChecker.onConnectionFailed(error.validMessage())
       }
     }
   }
@@ -318,7 +339,7 @@ class RtmpClient(private val connectChecker: ConnectChecker) {
     val socket = if (tunneled) {
       TcpTunneledSocket(commandsManager.host, commandsManager.port, tlsEnabled)
     } else {
-      TcpSocket(commandsManager.host, commandsManager.port, tlsEnabled, certificates)
+      TcpSocket(socketType, commandsManager.host, commandsManager.port, tlsEnabled, socketTimeout, certificates)
     }
     this.socket = socket
     socket.connect()
@@ -472,7 +493,7 @@ class RtmpClient(private val connectChecker: ConnectChecker) {
                   rtmpSender.start()
                   publishPermitted = true
                 }
-                "NetConnection.Connect.Rejected", "NetStream.Publish.BadName" -> {
+                "NetConnection.Connect.Rejected", "NetStream.Publish.BadName", "NetConnection.Connect.Closed" -> {
                   onMainThread {
                     connectChecker.onConnectionFailed("onStatus: $code")
                   }
@@ -579,6 +600,10 @@ class RtmpClient(private val connectChecker: ConnectChecker) {
 
   fun resetDroppedVideoFrames() {
     rtmpSender.resetDroppedVideoFrames()
+  }
+
+  fun resetBytesSend() {
+    rtmpSender.resetBytesSend()
   }
 
   @Throws(RuntimeException::class)

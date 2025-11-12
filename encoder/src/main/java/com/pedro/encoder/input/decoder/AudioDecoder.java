@@ -16,11 +16,6 @@
 
 package com.pedro.encoder.input.decoder;
 
-import android.media.MediaExtractor;
-import android.media.MediaFormat;
-import android.util.Log;
-
-import com.pedro.common.ExtensionsKt;
 import com.pedro.common.frame.MediaFrame;
 import com.pedro.encoder.Frame;
 import com.pedro.encoder.input.audio.GetMicrophoneData;
@@ -50,6 +45,7 @@ public class AudioDecoder extends BaseDecoder {
     TAG = "AudioDecoder";
     this.getMicrophoneData = getMicrophoneData;
     this.audioDecoderInterface = audioDecoderInterface;
+    typeError = CodecUtil.CodecTypeError.AUDIO_CODEC;
   }
 
   @Override
