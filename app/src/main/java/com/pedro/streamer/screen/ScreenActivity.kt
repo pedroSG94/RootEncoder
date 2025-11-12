@@ -93,9 +93,9 @@ class ScreenActivity : AppCompatActivity(), ConnectChecker {
       button.setImageResource(R.drawable.stream_icon)
     }
     if (screenService != null && screenService.isRecording()) {
-      bRecord.setImageResource(R.drawable.stop_icon)
+      bRecord.setImageResource(R.drawable.ic_record_stop)
     } else {
-      bRecord.setImageResource(R.drawable.record_icon)
+      bRecord.setImageResource(R.drawable.ic_record_start)
     }
     button.setOnClickListener {
       val service = ScreenService.INSTANCE
@@ -113,13 +113,13 @@ class ScreenActivity : AppCompatActivity(), ConnectChecker {
       ScreenService.INSTANCE?.toggleRecord { state ->
         when (state) {
           RecordController.Status.STARTED -> {
-            bRecord.setImageResource(R.drawable.pause_icon)
+            bRecord.setImageResource(R.drawable.ic_record_pause)
           }
           RecordController.Status.STOPPED -> {
-            bRecord.setImageResource(R.drawable.record_icon)
+            bRecord.setImageResource(R.drawable.ic_record_start)
           }
           RecordController.Status.RECORDING -> {
-            bRecord.setImageResource(R.drawable.stop_icon)
+            bRecord.setImageResource(R.drawable.ic_record_stop)
           }
           else -> {}
         }

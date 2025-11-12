@@ -16,23 +16,20 @@
 
 package com.pedro.streamer.rotation
 
+import android.Manifest
 import android.annotation.SuppressLint
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.BitmapFactory
-import android.media.audiofx.Virtualizer
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
-import android.view.KeyEvent
 import android.view.Menu
 import android.view.MenuItem
 import android.view.MotionEvent
 import android.view.View
 import android.view.View.OnTouchListener
-import android.window.OnBackInvokedDispatcher
-import androidx.activity.OnBackPressedCallback
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
@@ -43,7 +40,6 @@ import androidx.core.content.ContextCompat
 import com.pedro.encoder.input.sources.audio.MicrophoneSource
 import com.pedro.encoder.input.sources.video.Camera1Source
 import com.pedro.encoder.input.sources.video.Camera2Source
-import com.pedro.encoder.input.video.CameraHelper
 import com.pedro.extrasources.BitmapSource
 import com.pedro.extrasources.CameraUvcSource
 import com.pedro.extrasources.CameraXSource
@@ -60,13 +56,13 @@ import org.greenrobot.eventbus.EventBus
  * Created by pedro on 22/3/22.
  */
 @RequiresApi(Build.VERSION_CODES.LOLLIPOP)
-class RotationActivity : AppCompatActivity(), OnTouchListener {
+class CameraActivity : AppCompatActivity(), OnTouchListener {
     companion object {
-        private const val TAG = "RotationActivity"
+        private const val TAG = "CameraActivity"
         private const val EXIT_TIME_INTERVAL = 2000
     }
 
-    private val cameraFragment = CameraFragment.getInstance()
+    private val liveFragment = LiveFragment.getInstance()
     private val filterMenu: FilterMenu by lazy { FilterMenu(this) }
     private var currentVideoSource: MenuItem? = null
     private var currentAudioSource: MenuItem? = null
@@ -89,15 +85,15 @@ class RotationActivity : AppCompatActivity(), OnTouchListener {
 
     private fun buildRequiredPermissions(): Array<String> {
         val perms = mutableListOf<String>()
-        perms.add(android.Manifest.permission.CAMERA)
-        perms.add(android.Manifest.permission.RECORD_AUDIO)
+        perms.add(Manifest.permission.CAMERA)
+        perms.add(Manifest.permission.RECORD_AUDIO)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            perms.add(android.Manifest.permission.READ_MEDIA_VISUAL_USER_SELECTED)
-            perms.add(android.Manifest.permission.READ_MEDIA_IMAGES)
-            perms.add(android.Manifest.permission.READ_MEDIA_VIDEO)
+            perms.add(Manifest.permission.READ_MEDIA_VISUAL_USER_SELECTED)
+            perms.add(Manifest.permission.READ_MEDIA_IMAGES)
+            perms.add(Manifest.permission.READ_MEDIA_VIDEO)
         } else {
-            perms.add(android.Manifest.permission.READ_EXTERNAL_STORAGE)
-            perms.add(android.Manifest.permission.WRITE_EXTERNAL_STORAGE)
+            perms.add(Manifest.permission.READ_EXTERNAL_STORAGE)
+            perms.add(Manifest.permission.WRITE_EXTERNAL_STORAGE)
         }
         return perms.toTypedArray()
     }
@@ -116,7 +112,8 @@ class RotationActivity : AppCompatActivity(), OnTouchListener {
     }
 
     private fun handlePermissionResults(results: Map<String, Boolean>) {
-        val denied = results.filter { !it.value }.keys
+        Logger.d(TAG, "handlePermissionResults: results = $results")
+        val denied: Set<String> = results.filter { !it.value }.keys
         if(denied.isEmpty()){
             onAllPermissionGranted()
             return
@@ -146,7 +143,7 @@ class RotationActivity : AppCompatActivity(), OnTouchListener {
 
     private fun onAllPermissionGranted(){
         Logger.d(TAG, "onAllPermissionGranted: ")
-        supportFragmentManager.beginTransaction().add(R.id.container, cameraFragment).commit()
+        supportFragmentManager.beginTransaction().add(R.id.container, liveFragment).commit()
     }
 
     private fun showPermissionRationaleDialog(deniedPermissions: Set<String>) {
@@ -194,13 +191,13 @@ class RotationActivity : AppCompatActivity(), OnTouchListener {
     private fun buildRationaleMessage(deniedPermissions: Set<String>): String {
         val human = deniedPermissions.map { perm ->
             when (perm) {
-                android.Manifest.permission.CAMERA -> "相机（拍摄/扫码）"
-                android.Manifest.permission.RECORD_AUDIO -> "麦克风（语音/录音）"
-                android.Manifest.permission.READ_MEDIA_IMAGES,
-                android.Manifest.permission.READ_MEDIA_VIDEO,
-                android.Manifest.permission.READ_MEDIA_VISUAL_USER_SELECTED,
-                android.Manifest.permission.READ_EXTERNAL_STORAGE,
-                android.Manifest.permission.WRITE_EXTERNAL_STORAGE -> "相册/媒体（读取照片）"
+                Manifest.permission.CAMERA -> "相机（拍摄/扫码）"
+                Manifest.permission.RECORD_AUDIO -> "麦克风（语音/录音）"
+                Manifest.permission.READ_MEDIA_IMAGES,
+                Manifest.permission.READ_MEDIA_VIDEO,
+                Manifest.permission.READ_MEDIA_VISUAL_USER_SELECTED,
+                Manifest.permission.READ_EXTERNAL_STORAGE,
+                Manifest.permission.WRITE_EXTERNAL_STORAGE -> "相册/媒体（读取照片）"
                 else -> perm
             }
         }
@@ -250,7 +247,7 @@ class RotationActivity : AppCompatActivity(), OnTouchListener {
         }
     }
 
-    override fun onCreateOptionsMenu(menu: Menu): Boolean {
+    /*override fun onCreateOptionsMenu(menu: Menu): Boolean {
         menuInflater.inflate(R.menu.rotation_menu, menu)
         val defaultVideoSource = menu.findItem(R.id.video_source_camera2)
         val defaultAudioSource = menu.findItem(R.id.audio_source_microphone)
@@ -263,7 +260,7 @@ class RotationActivity : AppCompatActivity(), OnTouchListener {
         currentFilter = defaultFilter.updateMenuColor(this, currentFilter)
         currentPlatform = defaultPlatform.updateMenuColor(this, currentPlatform)
         return true
-    }
+    }*/
 
 //  override fun onBackPressed() {
 //    super.onBackPressed()
@@ -278,69 +275,69 @@ class RotationActivity : AppCompatActivity(), OnTouchListener {
 //    return super.onKeyDown(keyCode, event)
 //  }
 
-    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+    /*override fun onOptionsItemSelected(item: MenuItem): Boolean {
         try {
             when (item.itemId) {
                 R.id.video_source_camera1 -> {
                     currentVideoSource = item.updateMenuColor(this, currentVideoSource)
-                    cameraFragment.genericStream.changeVideoSource(Camera1Source(applicationContext))
+                    liveFragment.genericStream.changeVideoSource(Camera1Source(applicationContext))
                 }
 
                 R.id.video_source_camera2 -> {
                     currentVideoSource = item.updateMenuColor(this, currentVideoSource)
-                    cameraFragment.genericStream.changeVideoSource(Camera2Source(applicationContext))
+                    liveFragment.genericStream.changeVideoSource(Camera2Source(applicationContext))
                 }
 
                 R.id.video_source_camerax -> {
                     currentVideoSource = item.updateMenuColor(this, currentVideoSource)
-                    cameraFragment.genericStream.changeVideoSource(CameraXSource(applicationContext))
+                    liveFragment.genericStream.changeVideoSource(CameraXSource(applicationContext))
                 }
 
                 R.id.video_source_camera_uvc -> {
                     currentVideoSource = item.updateMenuColor(this, currentVideoSource)
-                    cameraFragment.genericStream.changeVideoSource(CameraUvcSource())
+                    liveFragment.genericStream.changeVideoSource(CameraUvcSource())
                 }
 
                 R.id.video_source_bitmap -> {
                     currentVideoSource = item.updateMenuColor(this, currentVideoSource)
                     val bitmap = BitmapFactory.decodeResource(resources, R.mipmap.ic_launcher)
-                    cameraFragment.genericStream.changeVideoSource(BitmapSource(bitmap))
+                    liveFragment.genericStream.changeVideoSource(BitmapSource(bitmap))
                 }
 
                 R.id.audio_source_microphone -> {
                     currentAudioSource = item.updateMenuColor(this, currentAudioSource)
-                    cameraFragment.genericStream.changeAudioSource(MicrophoneSource())
+                    liveFragment.genericStream.changeAudioSource(MicrophoneSource())
                 }
 
                 R.id.orientation_horizontal -> {
                     currentOrientation = item.updateMenuColor(this, currentOrientation)
-                    cameraFragment.setOrientationMode(false)
+                    liveFragment.setOrientationMode(false)
                 }
 
                 R.id.orientation_vertical -> {
                     currentOrientation = item.updateMenuColor(this, currentOrientation)
-                    cameraFragment.setOrientationMode(true)
+                    liveFragment.setOrientationMode(true)
                 }
 
                 R.id.platform_huya -> {
                     currentPlatform = item.updateMenuColor(this, currentPlatform)
-                    cameraFragment.streamUrl.setText(R.string.stream_url_huya)
+                    liveFragment.streamUrl.setText(R.string.stream_url_huya)
                 }
 
                 R.id.platform_tiktok -> {
                     currentPlatform = item.updateMenuColor(this, currentPlatform)
-                    cameraFragment.streamUrl.setText(R.string.stream_url_tiktok)
+                    liveFragment.streamUrl.setText(R.string.stream_url_tiktok)
                 }
 
                 R.id.platform_youtube -> {
                     currentPlatform = item.updateMenuColor(this, currentPlatform)
-                    cameraFragment.streamUrl.setText(R.string.stream_url_youtube)
+                    liveFragment.streamUrl.setText(R.string.stream_url_youtube)
                 }
 
                 else -> {
                     val result = filterMenu.onOptionsItemSelected(
                         item,
-                        cameraFragment.genericStream.getGlInterface()
+                        liveFragment.genericStream.getGlInterface()
                     )
                     if (result) currentFilter = item.updateMenuColor(this, currentFilter)
                     return result
@@ -350,7 +347,7 @@ class RotationActivity : AppCompatActivity(), OnTouchListener {
 //      toast("Change source error: ${e.message}")
         }
         return super.onOptionsItemSelected(item)
-    }
+    }*/
 
     @SuppressLint("ClickableViewAccessibility")
     override fun onTouch(view: View, motionEvent: MotionEvent): Boolean {
@@ -362,3 +359,4 @@ class RotationActivity : AppCompatActivity(), OnTouchListener {
         return false
     }
 }
+

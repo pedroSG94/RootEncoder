@@ -72,8 +72,23 @@
             android:name="com.pedro.streamer.screen.ScreenActivity"
             android:label="@string/display" />
 
-        <activity
+<!--        <activity
             android:name="com.pedro.streamer.rotation.RotationActivity"
+            android:configChanges="orientation|screenSize|screenLayout|smallestScreenSize"
+            android:exported="true"
+            android:label="@string/hohem_live"
+            android:screenOrientation="portrait"
+            tools:ignore="DiscouragedApi">
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>-->
+
+        <activity
+            android:name="com.pedro.streamer.rotation.CameraActivity"
             android:configChanges="orientation|screenSize|screenLayout|smallestScreenSize"
             android:exported="true"
             android:label="@string/camera_live"

@@ -6,7 +6,8 @@
   <string name="from_file">From file</string>
   <string name="display">Screen</string>
 <!--  <string name="rotation_rtmp">Rotation\n(include filters)</string>-->
-  <string name="camera_live">Hohem Live</string>
+  <string name="hohem_live">Hohem Live</string>
+  <string name="camera_live">Camera Live</string>
   <string name="tv_select">Select your streamer</string>
   <string name="hint_protocol">protocol://yourendpoint</string>
   <string name="stream_url_huya">rtmp://tx.direct.huya.com/huyalive/1199649870524-1199649870524-0-2399299864504-10057-A-1760610117-1?seq=1760666707697&amp;type=simple</string>
