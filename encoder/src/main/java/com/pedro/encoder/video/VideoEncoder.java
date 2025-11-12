@@ -39,6 +39,7 @@ import com.pedro.encoder.TimestampMode;
 import com.pedro.encoder.input.video.FpsLimiter;
 import com.pedro.encoder.input.video.GetCameraData;
 import com.pedro.encoder.utils.CodecUtil;
+import com.pedro.encoder.utils.Logger;
 import com.pedro.encoder.utils.yuv.YUVUtil;
 
 import java.nio.ByteBuffer;
@@ -61,10 +62,13 @@ public class VideoEncoder extends BaseEncoder implements GetCameraData {
   //surface to buffer encoder
   private Surface inputSurface;
 
-  private int width = 640;
-  private int height = 480;
+//  private int width = 640;
+//  private int height = 480;
+  private int width = 1440;
+  private int height = 1080;
   private int fps = 30;
-  private int bitRate = 1200 * 1024; //in kbps
+//  private int bitRate = 1200 * 1024; //in kbps
+  private int bitRate = 2500 * 1024; //in kbps
   private int rotation = 90;
   private int iFrameInterval = 2;
   private long firstTimestamp = 0;
@@ -141,7 +145,8 @@ public class VideoEncoder extends BaseEncoder implements GetCameraData {
         resolution = width + "x" + height;
         videoFormat = MediaFormat.createVideoFormat(type, width, height);
       }
-      Log.i(TAG, "Prepare video info: " + this.formatVideoEncoder.name() + ", " + resolution);
+      Logger.i(TAG, "prepareVideoEncoder: rotation = " + rotation + "; videoFormat = " + videoFormat);
+      Logger.i(TAG, "Prepare video info: " + this.formatVideoEncoder.name() + ", " + resolution);
       videoFormat.setInteger(MediaFormat.KEY_COLOR_FORMAT,
           this.formatVideoEncoder.getFormatCodec());
       videoFormat.setInteger(MediaFormat.KEY_MAX_INPUT_SIZE, 0);
@@ -284,8 +289,16 @@ public class VideoEncoder extends BaseEncoder implements GetCameraData {
     return width;
   }
 
+  public void setWidth(int width) {
+    this.width = width;
+  }
+
   public int getHeight() {
     return height;
+  }
+
+  public void setHeight(int height) {
+    this.height = height;
   }
 
   public int getRotation() {
@@ -306,6 +319,10 @@ public class VideoEncoder extends BaseEncoder implements GetCameraData {
 
   public int getBitRate() {
     return bitRate;
+  }
+
+  public void setBitRate(int bitRate) {
+    this.bitRate = bitRate;
   }
 
   public void setForceFps(int fps) {

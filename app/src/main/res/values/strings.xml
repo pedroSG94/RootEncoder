@@ -1,13 +1,18 @@
 <resources>
-  <string name="app_name">RootEncoder streamer</string>
+  <string name="app_name">Hohem Live</string>
   <string name="version">Version: %1$s</string>
   <!--Activities-->
   <string name="old_api">Old API (16 – 20)</string>
   <string name="from_file">From file</string>
   <string name="display">Screen</string>
-  <string name="rotation_rtmp">Rotation\n(include filters)</string>
+<!--  <string name="rotation_rtmp">Rotation\n(include filters)</string>-->
+  <string name="hohem_live">Hohem Live</string>
+  <string name="camera_live">Camera Live</string>
   <string name="tv_select">Select your streamer</string>
   <string name="hint_protocol">protocol://yourendpoint</string>
+  <string name="stream_url_huya">rtmp://tx.direct.huya.com/huyalive/1199649870524-1199649870524-0-2399299864504-10057-A-1760610117-1?seq=1760666707697&amp;type=simple</string>
+  <string name="stream_url_tiktok">null</string>
+  <string name="stream_url_youtube">rtmps://a.rtmps.youtube.com/live2/xpjt-yrb3-dtft-asvs-1erd</string>
   <!--filters-->
   <string name="grey_scale">Grey scale</string>
   <string name="negative">Negative</string>
@@ -71,6 +76,9 @@
   <string name="camerax">CameraX</string>
   <string name="camera_uvc">CameraUVC</string>
   <string name="bitmap">Bitmap</string>
-  <string name="buffer">Buffer</string>
+  <string name="platform">Platform</string>
+  <string name="huya">Huya</string>
+  <string name="tiktok">Tiktok</string>
+  <string name="youtube">YouTube</string>
 
 </resources>

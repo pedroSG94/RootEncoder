@@ -31,9 +31,14 @@ import com.pedro.rtmp.rtmp.chunk.ChunkType
 import com.pedro.rtmp.rtmp.message.BasicHeader
 import com.pedro.rtmp.rtmp.message.command.CommandAmf3
 import com.pedro.rtmp.rtmp.message.data.DataAmf3
+import com.pedro.rtmp.utils.Logger
 import com.pedro.rtmp.utils.socket.RtmpSocket
 
 class CommandsManagerAmf3: CommandsManager() {
+  companion object {
+    private const val TAG = "CommandsManagerAmf3"
+  }
+
   override suspend fun sendConnectImp(auth: String, socket: RtmpSocket) {
     val connect = CommandAmf3("connect", ++commandId, getCurrentTimestamp(), streamId,
         BasicHeader(ChunkType.TYPE_0, ChunkStreamId.OVER_CONNECTION.mark))
@@ -101,6 +106,7 @@ class CommandsManagerAmf3: CommandsManager() {
     val amfEcmaArray = Amf3Dictionary()
     amfEcmaArray.setProperty("duration", 0.0)
     if (!videoDisabled) {
+      Logger.d(TAG, "sendMetadataImp: width = $width, height = $height")
       amfEcmaArray.setProperty("width", width.toDouble())
       amfEcmaArray.setProperty("height", height.toDouble())
       //few servers don't support it even if it is in the standard rtmp enhanced

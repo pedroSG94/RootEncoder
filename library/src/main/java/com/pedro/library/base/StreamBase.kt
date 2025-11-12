@@ -41,6 +41,7 @@ import com.pedro.encoder.input.sources.audio.NoAudioSource
 import com.pedro.encoder.input.sources.video.NoVideoSource
 import com.pedro.encoder.input.sources.video.VideoSource
 import com.pedro.encoder.utils.CodecUtil
+import com.pedro.encoder.utils.Logger
 import com.pedro.encoder.video.FormatVideoEncoder
 import com.pedro.encoder.video.GetVideoData
 import com.pedro.encoder.video.VideoEncoder
@@ -70,6 +71,9 @@ abstract class StreamBase(
     vSource: VideoSource,
     aSource: AudioSource
 ) {
+  companion object {
+      private const val TAG = "StreamBase"
+  }
 
   private val getMicrophoneData = object: GetMicrophoneData {
     override fun inputPCMData(frame: Frame) {
@@ -130,6 +134,7 @@ abstract class StreamBase(
       }
       differentRecordResolution = true
     }
+    Logger.d(TAG, "prepareVideo: differentRecordResolution: $differentRecordResolution, width = $width, height = $height, bitrate = $bitrate, fps = $fps, iFrameInterval = $iFrameInterval, recordWidth = $recordWidth, recordHeight = $recordHeight, recordBitrate = $recordBitrate")
     val videoResult = videoSource.init(max(width, recordWidth), max(height, recordHeight), fps, rotation)
     if (videoResult) {
       if (differentRecordResolution) {
@@ -140,6 +145,7 @@ abstract class StreamBase(
       if (rotation == 90 || rotation == 270) glInterface.setEncoderSize(height, width)
       else glInterface.setEncoderSize(width, height)
       val isPortrait = rotation == 90 || rotation == 270
+      Logger.d(TAG, "prepareVideo: isPortrait = $isPortrait, rotation = $rotation, width = $width, height = $height, recordWidth = $recordWidth, recordHeight = $recordHeight")
       glInterface.setIsPortrait(isPortrait)
       glInterface.setCameraOrientation(if (rotation == 0) 270 else rotation - 90)
       glInterface.setOrientationConfig(videoSource.getOrientationConfig())
@@ -498,6 +504,16 @@ abstract class StreamBase(
   }
 
   protected fun getVideoResolution() = Size(videoEncoder.width, videoEncoder.height)
+
+  fun setVideoResolution(width: Int, height: Int) {
+    videoEncoder.width = width
+    videoEncoder.height = height
+    glInterface.setEncoderSize(width, height)
+  }
+
+  fun setVideoBitRate(bitRate: Int) {
+    videoEncoder.bitRate = bitRate
+  }
 
   protected fun getVideoFps() = videoEncoder.fps
 

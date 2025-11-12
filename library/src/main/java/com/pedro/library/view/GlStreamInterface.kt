@@ -34,7 +34,7 @@ import com.pedro.encoder.input.sources.OrientationConfig
 import com.pedro.encoder.input.sources.OrientationForced
 import com.pedro.encoder.input.video.CameraHelper
 import com.pedro.encoder.input.video.FpsLimiter
-import com.pedro.encoder.utils.ViewPort
+import com.pedro.encoder.utils.Logger
 import com.pedro.encoder.utils.gl.AspectRatioMode
 import com.pedro.encoder.utils.gl.GlUtil
 import com.pedro.library.util.Filter
@@ -54,6 +54,9 @@ import kotlin.math.max
  */
 @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
 class GlStreamInterface(private val context: Context): OnFrameAvailableListener, GlInterface {
+  companion object {
+      private const val TAG = "GlStreamInterface"
+  }
 
   private var takePhotoCallback: TakePhotoCallback? = null
   private val running = AtomicBoolean(false)
@@ -221,6 +224,7 @@ class GlStreamInterface(private val context: Context): OnFrameAvailableListener,
   }
 
   private fun draw(forced: Boolean) {
+    Logger.d(TAG, "draw: forced = $forced")
     if (!isRunning) return
     val limitFps = fpsLimiter.limitFPS()
     if (!forced) forceRender.frameAvailable()
@@ -237,28 +241,18 @@ class GlStreamInterface(private val context: Context): OnFrameAvailableListener,
       }
     }
 
-    if (surfaceManager.isReady && mainRender.isReady()) {
-      if (!surfaceManager.makeCurrent()) return
-      mainRender.updateFrame()
-      mainRender.drawSource()
-      surfaceManager.swapBuffer()
-    }
-
-    val orientation = when (orientationForced) {
-      OrientationForced.PORTRAIT -> true
-      OrientationForced.LANDSCAPE -> false
-      OrientationForced.NONE -> isPortrait
-    }
-    val orientationPreview = when (orientationForced) {
-      OrientationForced.PORTRAIT -> true
-      OrientationForced.LANDSCAPE -> false
-      OrientationForced.NONE -> isPortraitPreview
-    }
-    if (surfaceManagerEncoder.isReady || surfaceManagerEncoderRecord.isReady || surfaceManagerPhoto.isReady) {
-      mainRender.drawFilters(false)
-    }
+//    val orientation = when (orientationForced) {
+//      OrientationForced.PORTRAIT -> true
+//      OrientationForced.LANDSCAPE -> false
+//      OrientationForced.NONE -> isPortrait
+//    }
+    //todo 临时修改：设置给记录仪的是横屏模式；
+    val orientation = false
+//    val orientation = true
+    Logger.d(TAG, "draw: orientation = $orientation")
     // render VideoEncoder (stream and record)
     if (surfaceManagerEncoder.isReady && mainRender.isReady() && !limitFps) {
+      Logger.d(TAG, "draw: 1 surfaceManagerEncoder.isReady = ${surfaceManagerEncoder.isReady}, mainRender.isReady() = ${mainRender.isReady()}, limitFps = ${limitFps}")
       val w = if (muteVideo) 0 else encoderWidth
       val h = if (muteVideo) 0 else encoderHeight
       if (surfaceManagerEncoder.makeCurrent()) {
@@ -269,6 +263,7 @@ class GlStreamInterface(private val context: Context): OnFrameAvailableListener,
     }
     // render VideoEncoder (record if the resolution is different than stream)
     if (surfaceManagerEncoderRecord.isReady && mainRender.isReady() && !limitFps) {
+      Logger.d(TAG, "draw: 2 surfaceManagerEncoderRecord.isReady = ${surfaceManagerEncoderRecord.isReady}, mainRender.isReady() = ${mainRender.isReady()}, limitFps = ${limitFps}")
       val w = if (muteVideo) 0 else encoderRecordWidth
       val h = if (muteVideo) 0 else encoderRecordHeight
       if (surfaceManagerEncoderRecord.makeCurrent()) {
@@ -279,16 +274,17 @@ class GlStreamInterface(private val context: Context): OnFrameAvailableListener,
     }
     //render surface photo if request photo
     if (takePhotoCallback != null && surfaceManagerPhoto.isReady && mainRender.isReady()) {
-      if (surfaceManagerPhoto.makeCurrent()) {
-        mainRender.drawScreen(encoderWidth, encoderHeight, AspectRatioMode.NONE,
-          streamOrientation, isStreamVerticalFlip, isStreamHorizontalFlip, streamViewPort)
-        takePhotoCallback?.onTakePhoto(GlUtil.getBitmap(encoderWidth, encoderHeight))
-        takePhotoCallback = null
-        surfaceManagerPhoto.swapBuffer()
-      }
+      Logger.d(TAG, "draw: 3 takePhotoCallback = ${takePhotoCallback}, surfaceManagerPhoto.isReady = ${surfaceManagerPhoto.isReady}, mainRender.isReady() = ${mainRender.isReady()}")
+      surfaceManagerPhoto.makeCurrent()
+      mainRender.drawScreen(encoderWidth, encoderHeight, AspectRatioMode.NONE,
+        streamOrientation, isStreamVerticalFlip, isStreamHorizontalFlip)
+      takePhotoCallback?.onTakePhoto(GlUtil.getBitmap(encoderWidth, encoderHeight))
+      takePhotoCallback = null
+      surfaceManagerPhoto.swapBuffer()
     }
     // render preview
     if (surfaceManagerPreview.isReady && mainRender.isReady() && !limitFps) {
+      Logger.d(TAG, "draw: 4 surfaceManagerPreview.isReady = ${surfaceManagerPreview.isReady}, mainRender.isReady() = ${mainRender.isReady()}, limitFps = ${limitFps}")
       val w =  if (previewWidth == 0) encoderWidth else previewWidth
       val h =  if (previewHeight == 0) encoderHeight else previewHeight
       if (surfaceManager.makeCurrent()) {
@@ -325,6 +321,7 @@ class GlStreamInterface(private val context: Context): OnFrameAvailableListener,
   }
 
   override fun onFrameAvailable(surfaceTexture: SurfaceTexture?) {
+    Logger.d(TAG, "onFrameAvailable: isRunning = $isRunning")
     if (!isRunning) return
     executor?.execute {
       try {
@@ -354,6 +351,7 @@ class GlStreamInterface(private val context: Context): OnFrameAvailableListener,
   }
 
   fun forceOrientation(forced: OrientationForced) {
+    Logger.d(TAG, "forceOrientation: forced = $forced")
     when (forced) {
       OrientationForced.PORTRAIT -> {
         setCameraOrientation(90)
@@ -365,6 +363,7 @@ class GlStreamInterface(private val context: Context): OnFrameAvailableListener,
       }
       OrientationForced.NONE -> {
         val orientation = CameraHelper.getCameraOrientation(context)
+        Logger.d(TAG, "forceOrientation: orientation = $orientation")
         setCameraOrientation(if (orientation == 0) 270 else orientation - 90)
         shouldHandleOrientation = true
       }
@@ -464,6 +463,7 @@ class GlStreamInterface(private val context: Context): OnFrameAvailableListener,
   }
 
   fun setCameraOrientation(orientation: Int) {
+    Logger.d(TAG, "setCameraOrientation: orientation = $orientation")
     mainRender.setCameraRotation(orientation)
   }
 

@@ -32,9 +32,14 @@ import com.pedro.rtmp.rtmp.chunk.ChunkType
 import com.pedro.rtmp.rtmp.message.BasicHeader
 import com.pedro.rtmp.rtmp.message.command.CommandAmf0
 import com.pedro.rtmp.rtmp.message.data.DataAmf0
+import com.pedro.rtmp.utils.Logger
 import com.pedro.rtmp.utils.socket.RtmpSocket
 
 class CommandsManagerAmf0: CommandsManager() {
+  companion object {
+    private const val TAG = "CommandsManagerAmf0"
+  }
+
   override suspend fun sendConnectImp(auth: String, socket: RtmpSocket) {
     val connect = CommandAmf0("connect", ++commandId, getCurrentTimestamp(), streamId,
         BasicHeader(ChunkType.TYPE_0, ChunkStreamId.OVER_CONNECTION.mark))
@@ -109,6 +114,10 @@ class CommandsManagerAmf0: CommandsManager() {
     if (!videoDisabled) {
       amfEcmaArray.setProperty("width", width.toDouble())
       amfEcmaArray.setProperty("height", height.toDouble())
+//      amfEcmaArray.setProperty("width", height.toDouble())
+//      amfEcmaArray.setProperty("height", width.toDouble())
+      Logger.d(TAG, "sendMetadataImp: width = $width, height = $height")
+
       //few servers don't support it even if it is in the standard rtmp enhanced
       val codecValue = when (videoCodec) {
         VideoCodec.H264 -> VideoFormat.AVC.value

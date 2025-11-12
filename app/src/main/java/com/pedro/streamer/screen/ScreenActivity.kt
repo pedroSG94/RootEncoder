@@ -104,9 +104,9 @@ class ScreenActivity : AppCompatActivity(), ConnectChecker {
       button.setImageResource(R.drawable.stream_icon)
     }
     if (screenService != null && screenService.isRecording()) {
-      bRecord.setImageResource(R.drawable.stop_icon)
+      bRecord.setImageResource(R.drawable.ic_record_stop)
     } else {
-      bRecord.setImageResource(R.drawable.record_icon)
+      bRecord.setImageResource(R.drawable.ic_record_start)
     }
     button.setOnClickListener {
       val service = ScreenService.INSTANCE
@@ -123,33 +123,18 @@ class ScreenActivity : AppCompatActivity(), ConnectChecker {
       }
     }
     bRecord.setOnClickListener {
-      val service = ScreenService.INSTANCE
-      if (service != null) {
-        service.setCallback(this)
-        if (!service.isStreaming() && !service.isRecording()) {
-          action = Action.RECORD
-          activityResultContract.launch(service.sendIntent())
-        } else toggleRecord()
-      }
-    }
-  }
-
-  private fun startStream() {
-    button.setImageResource(R.drawable.stream_stop_icon)
-    val endpoint = etUrl.text.toString()
-    ScreenService.INSTANCE?.startStream(endpoint)
-  }
-
-  private fun stopStream() {
-    button.setImageResource(R.drawable.stream_icon)
-    ScreenService.INSTANCE?.stopStream()
-  }
-
-  private fun toggleRecord() {
-    ScreenService.INSTANCE?.toggleRecord { state ->
-      when (state) {
-        RecordController.Status.STARTED -> {
-          bRecord.setImageResource(R.drawable.pause_icon)
+      ScreenService.INSTANCE?.toggleRecord { state ->
+        when (state) {
+          RecordController.Status.STARTED -> {
+            bRecord.setImageResource(R.drawable.ic_record_pause)
+          }
+          RecordController.Status.STOPPED -> {
+            bRecord.setImageResource(R.drawable.ic_record_start)
+          }
+          RecordController.Status.RECORDING -> {
+            bRecord.setImageResource(R.drawable.ic_record_stop)
+          }
+          else -> {}
         }
         RecordController.Status.STOPPED -> {
           bRecord.setImageResource(R.drawable.record_icon)

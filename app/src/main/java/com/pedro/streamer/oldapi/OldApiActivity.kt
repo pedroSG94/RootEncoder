@@ -91,7 +91,7 @@ class OldApiActivity : AppCompatActivity(), ConnectChecker, TextureView.SurfaceT
       if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
         if (genericCamera1.isRecording) {
           genericCamera1.stopRecord()
-          bRecord.setImageResource(R.drawable.record_icon)
+          bRecord.setImageResource(R.drawable.ic_record_start)
           PathUtils.updateGallery(this, recordPath)
           if (!genericCamera1.isStreaming) ScreenOrientation.unlockScreen(this)
         } else if (genericCamera1.isStreaming || prepare()) {
@@ -99,10 +99,10 @@ class OldApiActivity : AppCompatActivity(), ConnectChecker, TextureView.SurfaceT
           if (!folder.exists()) folder.mkdir()
           val sdf = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault())
           recordPath = "${folder.absolutePath}/${sdf.format(Date())}.mp4"
-          bRecord.setImageResource(R.drawable.pause_icon)
+          bRecord.setImageResource(R.drawable.ic_record_pause)
           genericCamera1.startRecord(recordPath) { status ->
             if (status == RecordController.Status.RECORDING) {
-              bRecord.setImageResource(R.drawable.stop_icon)
+              bRecord.setImageResource(R.drawable.ic_record_stop)
             }
           }
           ScreenOrientation.lockScreen(this)
@@ -180,7 +180,7 @@ class OldApiActivity : AppCompatActivity(), ConnectChecker, TextureView.SurfaceT
   override fun onSurfaceTextureDestroyed(surface: SurfaceTexture): Boolean {
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2 && genericCamera1.isRecording) {
       genericCamera1.stopRecord()
-      bRecord.setBackgroundResource(R.drawable.record_icon)
+      bRecord.setBackgroundResource(R.drawable.ic_record_start)
       PathUtils.updateGallery(this, recordPath)
     }
     if (genericCamera1.isStreaming) {

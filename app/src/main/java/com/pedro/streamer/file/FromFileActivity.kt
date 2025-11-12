@@ -126,7 +126,7 @@ class FromFileActivity : AppCompatActivity(), ConnectChecker,
     bRecord.setOnClickListener {
       if (genericFromFile.isRecording) {
         genericFromFile.stopRecord()
-        bRecord.setImageResource(R.drawable.record_icon)
+        bRecord.setImageResource(R.drawable.ic_record_start)
         PathUtils.updateGallery(this, recordPath)
         if (!genericFromFile.isStreaming) ScreenOrientation.unlockScreen(this)
       } else if (genericFromFile.isStreaming || prepare()) {
@@ -135,10 +135,10 @@ class FromFileActivity : AppCompatActivity(), ConnectChecker,
         if (!folder.exists()) folder.mkdir()
         val sdf = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault())
         recordPath = "${folder.absolutePath}/${sdf.format(Date())}.mp4"
-        bRecord.setImageResource(R.drawable.pause_icon)
+        bRecord.setImageResource(R.drawable.ic_record_pause)
         genericFromFile.startRecord(recordPath) { status ->
           if (status == RecordController.Status.RECORDING) {
-            bRecord.setImageResource(R.drawable.stop_icon)
+            bRecord.setImageResource(R.drawable.ic_record_stop)
           }
         }
         ScreenOrientation.lockScreen(this)
@@ -165,7 +165,7 @@ class FromFileActivity : AppCompatActivity(), ConnectChecker,
     genericFromFile.stopAudioDevice()
     if (genericFromFile.isRecording) {
       genericFromFile.stopRecord()
-      bRecord.setImageResource(R.drawable.record_icon)
+      bRecord.setImageResource(R.drawable.ic_record_start)
     }
     if (genericFromFile.isStreaming) {
       genericFromFile.stopStream()

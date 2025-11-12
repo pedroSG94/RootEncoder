@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
-    <item android:title="@string/video_source">
+    <item android:title="@string/video_source"
+        android:visible="false">
         <menu>
             <item
                 android:title="@string/camera1"
@@ -28,7 +29,8 @@
                 />
         </menu>
     </item>
-    <item android:title="@string/audio_source">
+    <item android:title="@string/audio_source"
+        android:visible="false">
         <menu>
             <item
                 android:title="@string/microphone"
@@ -36,7 +38,8 @@
                 />
         </menu>
     </item>
-    <item android:title="@string/orientation">
+    <item android:title="@string/orientation"
+        android:visible="false">
         <menu>
             <item
                 android:title="@string/horizontal"
@@ -48,9 +51,8 @@
                 />
         </menu>
     </item>
-    <item
-        android:title="@string/filters"
-        >
+    <item android:title="@string/filters"
+        android:visible="false">
         <menu>
             <item
                 android:id="@+id/no_filter"
@@ -240,6 +242,19 @@
                 android:id="@+id/zebra"
                 android:title="@string/zebra"
                 />
+        </menu>
+    </item>
+    <item android:title="@string/platform">
+        <menu>
+            <item
+                android:title="@string/huya"
+                android:id="@+id/platform_huya" />
+            <item
+                android:title="@string/tiktok"
+                android:id="@+id/platform_tiktok" />
+            <item
+                android:title="@string/youtube"
+                android:id="@+id/platform_youtube" />
         </menu>
     </item>
 </menu>

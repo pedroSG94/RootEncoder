@@ -27,7 +27,7 @@ import com.pedro.encoder.input.sources.audio.AudioSource
 import com.pedro.encoder.input.sources.audio.MicrophoneSource
 import com.pedro.encoder.input.sources.video.Camera2Source
 import com.pedro.encoder.input.sources.video.VideoSource
-import com.pedro.library.base.StreamBase
+import com.pedro.encoder.utils.Logger
 import com.pedro.library.util.streamclient.RtmpStreamClient
 import com.pedro.library.util.streamclient.StreamClientListener
 import com.pedro.rtmp.rtmp.RtmpClient
@@ -45,6 +45,9 @@ class RtmpStream(
     context: Context, connectChecker: ConnectChecker, videoSource: VideoSource,
     audioSource: AudioSource
 ): StreamBase(context, videoSource, audioSource) {
+  companion object {
+      private const val TAG = "RtmpStream"
+  }
 
   private val rtmpClient = RtmpClient(connectChecker)
   private val streamClientListener = object: StreamClientListener {
@@ -70,6 +73,8 @@ class RtmpStream(
   }
 
   override fun startStreamImp(endPoint: String) {
+    Logger.d(TAG, "startStreamImp: endPoint = $endPoint")
+    Logger.throwRuntimeException()
     val resolution = super.getVideoResolution()
     rtmpClient.setVideoResolution(resolution.width, resolution.height)
     rtmpClient.setFps(super.getVideoFps())

@@ -32,7 +32,7 @@
       >
 
     <ImageView
-        android:src="@drawable/record_icon"
+        android:src="@drawable/ic_record_start"
         android:layout_width="64dp"
         android:layout_height="64dp"
         android:id="@+id/b_record"
