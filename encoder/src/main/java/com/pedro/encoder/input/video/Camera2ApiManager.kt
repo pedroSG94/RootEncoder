@@ -117,6 +117,8 @@ class Camera2ApiManager(context: Context) : CameraDevice.StateCallback() {
     private var imageReader: ImageReader? = null
     private var availabilityCallback: CameraManager.AvailabilityCallback? = null
 
+    private var customCaptureCompletedCallback: ((session: CameraCaptureSession, request: CaptureRequest, result: TotalCaptureResult) -> Unit)? = null
+
     init {
         cameraId = try { getCameraIdForFacing(Facing.BACK) } catch (_: Exception) { "0" }
     }
@@ -161,7 +163,7 @@ class Camera2ApiManager(context: Context) : CameraDevice.StateCallback() {
                     try {
                         it.setRepeatingRequest(
                             captureRequest,
-                            if (faceDetectionEnabled || frameCapturedCallback != null) cb else null,
+                            if (faceDetectionEnabled || frameCapturedCallback != null || customCaptureCompletedCallback != null) cb else null,
                             cameraHandler
                         )
                     } catch (_: IllegalStateException) {
@@ -201,6 +203,12 @@ class Camera2ApiManager(context: Context) : CameraDevice.StateCallback() {
         val builderInputSurface = this.builderInputSurface ?: return false
         request(builderInputSurface)
         return applyRequest(builderInputSurface)
+    }
+
+    fun setCustomOnCaptureCompletedCallback(
+        callback: ((CameraCaptureSession, CaptureRequest, TotalCaptureResult) -> Unit)?
+    ) {
+        this.customCaptureCompletedCallback = callback
     }
 
     fun getSupportedFps(size: Size?, facing: Facing): List<Range<Int>> {
@@ -321,7 +329,7 @@ class Camera2ApiManager(context: Context) : CameraDevice.StateCallback() {
         try {
             cameraCaptureSession.setRepeatingRequest(
                 builder.build(),
-                if (faceDetectionEnabled || frameCapturedCallback != null) cb else null, null
+                if (faceDetectionEnabled || frameCapturedCallback != null || customCaptureCompletedCallback != null) cb else null, null
             )
             return true
         } catch (e: Exception) {
@@ -681,6 +689,8 @@ class Camera2ApiManager(context: Context) : CameraDevice.StateCallback() {
             request: CaptureRequest,
             result: TotalCaptureResult
         ) {
+            customCaptureCompletedCallback?.invoke(session, request, result)
+
             val faces = result.get(CaptureResult.STATISTICS_FACES) ?: return
             faceDetectorCallback?.onGetFaces(
                 faces = mapCamera2Faces(faces = faces),

@@ -18,9 +18,11 @@ package com.pedro.encoder.input.sources.video
 
 import android.content.Context
 import android.graphics.SurfaceTexture
+import android.hardware.camera2.CameraCaptureSession
 import android.hardware.camera2.CameraCharacteristics
 import android.hardware.camera2.CameraManager
 import android.hardware.camera2.CaptureRequest
+import android.hardware.camera2.TotalCaptureResult
 import android.os.Build
 import android.util.Range
 import android.util.Size
@@ -311,5 +313,11 @@ class Camera2Source(context: Context): VideoSource() {
    */
   fun setCustomRequest(request: (CaptureRequest.Builder) -> Unit): Boolean {
     return camera.setCustomRequest(request)
+  }
+
+  fun setCustomOnCaptureCompletedCallback(
+    callback: ((CameraCaptureSession, CaptureRequest, TotalCaptureResult) -> Unit)?
+  ) {
+    camera.setCustomOnCaptureCompletedCallback(callback)
   }
 }
