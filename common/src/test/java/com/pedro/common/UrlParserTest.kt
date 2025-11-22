@@ -10,6 +10,16 @@ import java.net.URISyntaxException
 class UrlParserTest {
 
   @Test
+  fun testNoAppName() {
+    val url = "rtmp://localhost:1935/"
+    val urlParser = UrlParser.parse(url, arrayOf("rtmp"))
+    assertEquals("rtmp", urlParser.scheme)
+    assertEquals("localhost", urlParser.host)
+    assertEquals(1935, urlParser.port)
+    assertEquals("", urlParser.getAppName())
+  }
+
+  @Test
   fun testRtmpUrls() {
     try {
       val url = "rtmp://localhost:1935/live?test/fake"
