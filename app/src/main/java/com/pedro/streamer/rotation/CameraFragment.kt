@@ -77,7 +77,6 @@ class CameraFragment: Fragment(), ConnectChecker {
   val genericStream: GenericStream by lazy {
     GenericStream(requireContext(), this).apply {
       getGlInterface().autoHandleOrientation = true
-      getStreamClient().setBitrateExponentialFactor(0.5f)
     }
   }
   private lateinit var surfaceView: SurfaceView

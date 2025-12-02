@@ -80,7 +80,7 @@ inline infix fun <reified T: Any> BlockingQueue<T>.trySend(item: T): Boolean {
   return try {
     this.add(item)
     true
-  } catch (e: IllegalStateException) {
+  } catch (_: IllegalStateException) {
     false
   }
 }
