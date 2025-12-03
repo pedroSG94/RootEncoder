@@ -49,6 +49,10 @@ public interface RecordController {
         }
     }
 
+    interface RequestKeyFrame {
+        void onRequestKeyFrame();
+    }
+
     enum Status {
         STARTED, STOPPED, RECORDING, PAUSED, RESUMED
     }

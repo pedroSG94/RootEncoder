@@ -145,9 +145,7 @@ public abstract class OnlyAudioBase {
   @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
   public void startRecord(String path, RecordController.Listener listener) throws IOException {
     recordController.startRecord(path, listener, RecordController.RecordTracks.AUDIO);
-    if (!streaming) {
-      startEncoders();
-    }
+    if (!streaming) startEncoders();
   }
 
   @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
@@ -165,9 +163,7 @@ public abstract class OnlyAudioBase {
   public void startRecord(@NonNull final FileDescriptor fd,
       @Nullable RecordController.Listener listener) throws IOException {
     recordController.startRecord(fd, listener, RecordController.RecordTracks.AUDIO);
-    if (!streaming) {
-      startEncoders();
-    }
+    if (!streaming) startEncoders();
   }
 
   @RequiresApi(api = Build.VERSION_CODES.O)

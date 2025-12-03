@@ -431,12 +431,9 @@ public abstract class Camera2Base {
             throws IOException {
         RecordController.RecordTracks tracks = audioInitialized ?
                 RecordController.RecordTracks.ALL : RecordController.RecordTracks.VIDEO;
+        recordController.setRequestKeyFrame(this::requestKeyFrame);
         recordController.startRecord(path, listener, tracks);
-        if (!streaming) {
-            startEncoders();
-        } else if (videoEncoder.isRunning() || videoEncoderRecord.isRunning()) {
-            requestKeyFrame();
-        }
+        if (!streaming) startEncoders();
     }
 
     public void startRecord(@NonNull final String path) throws IOException {
@@ -454,12 +451,9 @@ public abstract class Camera2Base {
                             @Nullable RecordController.Listener listener) throws IOException {
         RecordController.RecordTracks tracks = audioInitialized ?
                 RecordController.RecordTracks.ALL : RecordController.RecordTracks.VIDEO;
+        recordController.setRequestKeyFrame(this::requestKeyFrame);
         recordController.startRecord(fd, listener, tracks);
-        if (!streaming) {
-            startEncoders();
-        } else if (videoEncoder.isRunning() || videoEncoderRecord.isRunning()) {
-            requestKeyFrame();
-        }
+        if (!streaming) startEncoders();
     }
 
     @RequiresApi(api = Build.VERSION_CODES.O)
@@ -623,6 +617,7 @@ public abstract class Camera2Base {
         startStream(url);
         RecordController.RecordTracks tracks = audioInitialized ?
                 RecordController.RecordTracks.ALL : RecordController.RecordTracks.VIDEO;
+        recordController.setRequestKeyFrame(this::requestKeyFrame);
         recordController.startRecord(path, listener, tracks);
     }
 

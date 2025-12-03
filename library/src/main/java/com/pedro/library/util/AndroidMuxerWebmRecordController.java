@@ -104,6 +104,7 @@ public class AndroidMuxerWebmRecordController extends BaseRecordController {
     pauseMoment = 0;
     pauseTime = 0;
     startTs = 0;
+    requestKeyFrame = null;
     if (listener != null) listener.onStatusChange(status);
   }
 

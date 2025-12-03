@@ -126,6 +126,7 @@ class FlvMuxerRecordController: BaseRecordController() {
         } catch (_: Exception) { } finally {
             outputStream = null
         }
+        requestKeyFrame = null
         if (listener != null) listener.onStatusChange(status)
     }
 

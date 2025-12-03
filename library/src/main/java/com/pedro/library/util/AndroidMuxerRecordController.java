@@ -99,6 +99,7 @@ public class AndroidMuxerRecordController extends BaseRecordController {
     pauseMoment = 0;
     pauseTime = 0;
     startTs = 0;
+    requestKeyFrame = null;
     if (listener != null) listener.onStatusChange(status);
   }
 
@@ -106,8 +107,12 @@ public class AndroidMuxerRecordController extends BaseRecordController {
   public void recordVideo(ByteBuffer videoBuffer, MediaCodec.BufferInfo videoInfo) {
     if (status == Status.STARTED && videoFormat != null && (audioFormat != null || tracks == RecordTracks.VIDEO)) {
       if (videoInfo.flags == MediaCodec.BUFFER_FLAG_KEY_FRAME || isKeyFrame(videoBuffer)) {
+        requestKeyFrame = null;
         videoTrack = mediaMuxer.addTrack(videoFormat);
         init();
+      } else if (requestKeyFrame != null) {
+        requestKeyFrame.onRequestKeyFrame();
+        requestKeyFrame = null;
       }
     } else if (status == Status.RESUMED && (videoInfo.flags == MediaCodec.BUFFER_FLAG_KEY_FRAME
             || isKeyFrame(videoBuffer))) {

@@ -265,12 +265,12 @@ abstract class StreamBase(
     val usedTracks = tracks ?: if (videoSource is NoVideoSource) RecordController.RecordTracks.AUDIO
         else if (audioSource is NoAudioSource) RecordController.RecordTracks.VIDEO
         else RecordController.RecordTracks.ALL
-    recordController.startRecord(path, listener, usedTracks)
-    if (!isStreaming) startSources()
-    else {
+    recordController.setRequestKeyFrame {
       videoEncoder.requestKeyframe()
       videoEncoderRecord.requestKeyframe()
     }
+    recordController.startRecord(path, listener, usedTracks)
+    if (!isStreaming) startSources()
   }
 
   /**
