@@ -988,7 +988,7 @@ public abstract class Camera1Base {
     public void getVideoData(@NonNull ByteBuffer videoBuffer, @NonNull MediaCodec.BufferInfo info) {
       fpsListener.calculateFps();
       if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
-        recordController.recordVideo(videoBuffer, info);
+        recordController.recordVideo(videoBuffer.duplicate(), info);
       }
       if (streaming) getVideoDataImp(videoBuffer, info);
     }

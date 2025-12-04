@@ -602,7 +602,7 @@ public abstract class DisplayBase {
     @Override
     public void getVideoData(@NonNull ByteBuffer videoBuffer, @NonNull MediaCodec.BufferInfo info) {
       fpsListener.calculateFps();
-      recordController.recordVideo(videoBuffer, info);
+      recordController.recordVideo(videoBuffer.duplicate(), info);
       if (streaming) getVideoDataImp(videoBuffer, info);
     }
 

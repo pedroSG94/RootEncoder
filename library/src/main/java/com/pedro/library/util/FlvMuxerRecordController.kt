@@ -2,6 +2,7 @@ package com.pedro.library.util
 
 import android.media.MediaCodec
 import android.media.MediaFormat
+import android.util.Log
 import com.pedro.common.AudioCodec
 import com.pedro.common.BitrateManager
 import com.pedro.common.VideoCodec
@@ -11,6 +12,7 @@ import com.pedro.common.toMediaFrameInfo
 import com.pedro.common.toUInt24
 import com.pedro.common.toUInt32
 import com.pedro.common.trySend
+import com.pedro.encoder.video.VideoEncoderHelper
 import com.pedro.library.base.recording.BaseRecordController
 import com.pedro.library.base.recording.RecordController
 import com.pedro.library.base.recording.RecordController.RecordTracks
@@ -23,7 +25,9 @@ import com.pedro.rtmp.flv.audio.AudioFormat
 import com.pedro.rtmp.flv.audio.packet.AacPacket
 import com.pedro.rtmp.flv.audio.packet.G711Packet
 import com.pedro.rtmp.flv.video.VideoFormat
+import com.pedro.rtmp.flv.video.packet.Av1Packet
 import com.pedro.rtmp.flv.video.packet.H264Packet
+import com.pedro.rtmp.flv.video.packet.H265Packet
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -43,7 +47,7 @@ import java.util.concurrent.LinkedBlockingQueue
 class FlvMuxerRecordController: BaseRecordController() {
 
     private var outputStream: OutputStream? = null
-    private var videoPacket = H264Packet()
+    private var videoPacket: BasePacket = H264Packet()
     private var audioPacket: BasePacket = AacPacket()
     private val queue = LinkedBlockingQueue<MediaFrame>(200)
     private var job: Job? = null
@@ -68,13 +72,17 @@ class FlvMuxerRecordController: BaseRecordController() {
 
     private fun start(listener: RecordController.Listener?) {
         if (audioCodec == AudioCodec.OPUS) throw IOException("Unsupported AudioCodec: " + audioCodec.name)
-        if (videoCodec != VideoCodec.H264) throw IOException("Unsupported VideoCodec: " + videoCodec.name)
         when (audioCodec) {
             AudioCodec.G711 -> audioPacket = G711Packet()
             AudioCodec.AAC -> audioPacket = AacPacket().apply {
                 sendAudioInfo(sampleRate, isStereo)
             }
             else -> {}
+        }
+        videoPacket = when (videoCodec) {
+            VideoCodec.H264 -> H264Packet()
+            VideoCodec.H265 -> H265Packet()
+            VideoCodec.AV1 -> Av1Packet()
         }
         this.listener = listener
         status = RecordController.Status.STARTED
@@ -91,7 +99,7 @@ class FlvMuxerRecordController: BaseRecordController() {
                 writeFlvFileMetadata(it)
             } catch (_: Exception) {}
         }
-        status = RecordController.Status.RECORDING
+        if (tracks == RecordTracks.AUDIO) status = RecordController.Status.RECORDING
         listener?.onStatusChange(status)
         job = CoroutineScope(Dispatchers.IO).launch {
             while (isActive) {
@@ -131,6 +139,7 @@ class FlvMuxerRecordController: BaseRecordController() {
     }
 
     override fun recordVideo(videoBuffer: ByteBuffer, videoInfo: MediaCodec.BufferInfo) {
+        getVideoInfo(videoBuffer, videoInfo)
         if (status == RecordController.Status.RECORDING && tracks != RecordTracks.AUDIO) {
             val frame = MediaFrame(videoBuffer.clone(), videoInfo.toMediaFrameInfo(), MediaFrame.Type.VIDEO)
             queue.trySend(frame)
@@ -144,6 +153,57 @@ class FlvMuxerRecordController: BaseRecordController() {
         }
     }
 
+    private var sendInfo = false
+
+    private fun getVideoInfo(buffer: ByteBuffer, info: MediaCodec.BufferInfo) {
+        if (info.flags == MediaCodec.BUFFER_FLAG_KEY_FRAME || isKeyFrame(buffer)) {
+            if (!sendInfo && videoCodec == VideoCodec.H264) {
+                Log.i(TAG, "formatChanged not called, doing manual sps/pps extraction...")
+                val buffers =
+                    VideoEncoderHelper.decodeSpsPpsFromBuffer(buffer.duplicate(), info.size)
+                if (buffers != null) {
+                    Log.i(TAG, "manual sps/pps extraction success")
+                    val oldSps = buffers.first
+                    val oldPps = buffers.second
+                    (videoPacket as H264Packet).sendVideoInfo(oldSps, oldPps)
+                    sendInfo = true
+                } else {
+                    Log.e(TAG, "manual sps/pps extraction failed")
+                }
+            } else if (!sendInfo && videoCodec == VideoCodec.H265) {
+                Log.i(TAG, "formatChanged not called, doing manual vps/sps/pps extraction...")
+                val byteBufferList = VideoEncoderHelper.extractVpsSpsPpsFromH265(buffer.duplicate())
+                if (byteBufferList.size == 3) {
+                    Log.i(TAG, "manual vps/sps/pps extraction success")
+                    val oldSps = byteBufferList[1]
+                    val oldPps = byteBufferList[2]
+                    val oldVps = byteBufferList[0]
+                    (videoPacket as H265Packet).sendVideoInfo(oldSps, oldPps, oldVps)
+                    sendInfo = true
+                } else {
+                    Log.e(TAG, "manual vps/sps/pps extraction failed")
+                }
+            } else if (!sendInfo && videoCodec == VideoCodec.AV1) {
+                Log.i(TAG, "formatChanged not called, doing manual av1 extraction...")
+                val obuSequence = VideoEncoderHelper.extractObuSequence(buffer.duplicate(), info)
+                if (obuSequence != null) {
+                    (videoPacket as Av1Packet).sendVideoInfo(obuSequence)
+                    sendInfo = true
+                } else {
+                    Log.e(TAG, "manual av1 extraction failed")
+                }
+            }
+            if (sendInfo && status == RecordController.Status.STARTED) {
+                requestKeyFrame = null
+                status = RecordController.Status.RECORDING
+                listener?.onStatusChange(status)
+            }
+        } else if (requestKeyFrame != null) {
+            requestKeyFrame.onRequestKeyFrame()
+            requestKeyFrame = null
+        }
+    }
+
     override fun setVideoFormat(videoFormat: MediaFormat) {
         val width = videoFormat.getInteger(MediaFormat.KEY_WIDTH)
         val height = videoFormat.getInteger(MediaFormat.KEY_HEIGHT)
@@ -151,9 +211,41 @@ class FlvMuxerRecordController: BaseRecordController() {
         this.width = width
         this.height = height
         this.fps = fps
-        val sps = videoFormat.getByteBuffer("csd-0")
-        val pps = videoFormat.getByteBuffer("csd-1")
-        if (sps != null && pps != null) videoPacket.sendVideoInfo(sps, pps)
+        when (videoCodec) {
+            VideoCodec.H264 -> {
+                val sps = videoFormat.getByteBuffer("csd-0")
+                val pps = videoFormat.getByteBuffer("csd-1")
+                if (sps != null && pps != null) {
+                    (videoPacket as H264Packet).sendVideoInfo(sps, pps)
+                    sendInfo = true
+                }
+            }
+            VideoCodec.H265 -> {
+               val bufferInfo = videoFormat.getByteBuffer("csd-0")
+               if (bufferInfo != null) {
+                   val byteBufferList = VideoEncoderHelper.extractVpsSpsPpsFromH265(bufferInfo)
+                   if (byteBufferList.size == 3) {
+                       val sps = byteBufferList[1]
+                       val pps = byteBufferList[2]
+                       val vps = byteBufferList[0]
+                       (videoPacket as H265Packet).sendVideoInfo(sps, pps, vps)
+                       sendInfo = true
+                   }
+               }
+           }
+            VideoCodec.AV1 -> {
+                val bufferInfo = videoFormat.getByteBuffer("csd-0")
+                if (bufferInfo != null && bufferInfo.remaining() > 4) {
+                    (videoPacket as Av1Packet).sendVideoInfo(bufferInfo)
+                    sendInfo = true
+                }
+            }
+        }
+        if (sendInfo && status == RecordController.Status.STARTED) {
+            requestKeyFrame = null
+            status = RecordController.Status.RECORDING
+            listener?.onStatusChange(status)
+        }
     }
 
     override fun setAudioFormat(audioFormat: MediaFormat) {

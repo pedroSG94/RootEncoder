@@ -1077,7 +1077,7 @@ public abstract class Camera2Base {
         @Override
         public void getVideoData(@NonNull ByteBuffer videoBuffer, @NonNull MediaCodec.BufferInfo info) {
             fpsListener.calculateFps();
-            if (!differentRecordResolution) recordController.recordVideo(videoBuffer, info);
+            if (!differentRecordResolution) recordController.recordVideo(videoBuffer.duplicate(), info);
             if (streaming) getVideoDataImp(videoBuffer, info);
         }
 
