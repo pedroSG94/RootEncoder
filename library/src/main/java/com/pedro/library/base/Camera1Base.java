@@ -952,7 +952,10 @@ public abstract class Camera1Base {
   protected abstract void getVideoDataImp(ByteBuffer videoBuffer, MediaCodec.BufferInfo info);
 
   public void setRecordController(BaseRecordController recordController) {
-    if (!isRecording()) this.recordController = recordController;
+    if (!isRecording()) {
+      recordController.updateInfo(this.recordController);
+      this.recordController = recordController;
+    }
   }
 
   private final GetCameraData getCameraData = frame -> {
@@ -988,7 +991,7 @@ public abstract class Camera1Base {
     public void getVideoData(@NonNull ByteBuffer videoBuffer, @NonNull MediaCodec.BufferInfo info) {
       fpsListener.calculateFps();
       if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
-        recordController.recordVideo(videoBuffer.duplicate(), info);
+        recordController.recordVideo(videoBuffer, info);
       }
       if (streaming) getVideoDataImp(videoBuffer, info);
     }

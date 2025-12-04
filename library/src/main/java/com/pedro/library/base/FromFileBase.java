@@ -729,7 +729,10 @@ public abstract class FromFileBase {
   protected abstract void getAudioDataImp(ByteBuffer audioBuffer, MediaCodec.BufferInfo info);
 
   public void setRecordController(BaseRecordController recordController) {
-    if (!isRecording()) this.recordController = recordController;
+    if (!isRecording()) {
+      recordController.updateInfo(this.recordController);
+      this.recordController = recordController;
+    }
   }
 
   private final GetMicrophoneData getMicrophoneData = frame -> {
@@ -761,7 +764,7 @@ public abstract class FromFileBase {
     @Override
     public void getVideoData(@NonNull ByteBuffer videoBuffer, @NonNull MediaCodec.BufferInfo info) {
       fpsListener.calculateFps();
-      recordController.recordVideo(videoBuffer.duplicate(), info);
+      recordController.recordVideo(videoBuffer, info);
       if (streaming) getVideoDataImp(videoBuffer, info);
     }
 

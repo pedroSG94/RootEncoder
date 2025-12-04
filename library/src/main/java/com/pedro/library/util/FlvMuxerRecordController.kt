@@ -47,8 +47,8 @@ import java.util.concurrent.LinkedBlockingQueue
 class FlvMuxerRecordController: BaseRecordController() {
 
     private var outputStream: OutputStream? = null
-    private var videoPacket: BasePacket = H264Packet()
-    private var audioPacket: BasePacket = AacPacket()
+    private var videoPacket: BasePacket? = null
+    private var audioPacket: BasePacket? = null
     private val queue = LinkedBlockingQueue<MediaFrame>(200)
     private var job: Job? = null
     //metadata config
@@ -57,6 +57,7 @@ class FlvMuxerRecordController: BaseRecordController() {
     private var fps = 0
     private var sampleRate = 0
     private var isStereo = true
+    private var sendInfo = false
 
     override fun startRecord(path: String, listener: RecordController.Listener?, tracks: RecordTracks) {
         this.tracks = tracks
@@ -106,12 +107,12 @@ class FlvMuxerRecordController: BaseRecordController() {
                 val mediaFrame = runInterruptible { queue.take() }
                 when (mediaFrame.type) {
                     MediaFrame.Type.VIDEO -> {
-                        videoPacket.createFlvPacket(mediaFrame) { packet ->
+                        videoPacket?.createFlvPacket(mediaFrame) { packet ->
                             outputStream?.let { writeFlvPacket(it, packet) }
                         }
                     }
                     MediaFrame.Type.AUDIO -> {
-                        audioPacket.createFlvPacket(mediaFrame) { packet ->
+                        audioPacket?.createFlvPacket(mediaFrame) { packet ->
                             outputStream?.let { writeFlvPacket(it, packet) }
                         }
                     }
@@ -127,8 +128,8 @@ class FlvMuxerRecordController: BaseRecordController() {
         pauseTime = 0
         startTs = 0
         queue.clear()
-        videoPacket.reset(false)
-        audioPacket.reset(false)
+        videoPacket?.reset(false)
+        audioPacket?.reset(false)
         try {
             outputStream?.close()
         } catch (_: Exception) { } finally {
@@ -139,10 +140,13 @@ class FlvMuxerRecordController: BaseRecordController() {
     }
 
     override fun recordVideo(videoBuffer: ByteBuffer, videoInfo: MediaCodec.BufferInfo) {
-        getVideoInfo(videoBuffer, videoInfo)
-        if (status == RecordController.Status.RECORDING && tracks != RecordTracks.AUDIO) {
-            val frame = MediaFrame(videoBuffer.clone(), videoInfo.toMediaFrameInfo(), MediaFrame.Type.VIDEO)
-            queue.trySend(frame)
+        if (tracks != RecordTracks.AUDIO) {
+            if (status == RecordController.Status.STARTED) {
+                getVideoInfo(videoBuffer, videoInfo)
+            } else if (status == RecordController.Status.RECORDING) {
+                val frame = MediaFrame(videoBuffer.clone(), videoInfo.toMediaFrameInfo(), MediaFrame.Type.VIDEO)
+                queue.trySend(frame)
+            }
         }
     }
 
@@ -153,44 +157,48 @@ class FlvMuxerRecordController: BaseRecordController() {
         }
     }
 
-    private var sendInfo = false
-
     private fun getVideoInfo(buffer: ByteBuffer, info: MediaCodec.BufferInfo) {
         if (info.flags == MediaCodec.BUFFER_FLAG_KEY_FRAME || isKeyFrame(buffer)) {
-            if (!sendInfo && videoCodec == VideoCodec.H264) {
-                Log.i(TAG, "formatChanged not called, doing manual sps/pps extraction...")
-                val buffers =
-                    VideoEncoderHelper.decodeSpsPpsFromBuffer(buffer.duplicate(), info.size)
-                if (buffers != null) {
-                    Log.i(TAG, "manual sps/pps extraction success")
-                    val oldSps = buffers.first
-                    val oldPps = buffers.second
-                    (videoPacket as H264Packet).sendVideoInfo(oldSps, oldPps)
-                    sendInfo = true
-                } else {
-                    Log.e(TAG, "manual sps/pps extraction failed")
-                }
-            } else if (!sendInfo && videoCodec == VideoCodec.H265) {
-                Log.i(TAG, "formatChanged not called, doing manual vps/sps/pps extraction...")
-                val byteBufferList = VideoEncoderHelper.extractVpsSpsPpsFromH265(buffer.duplicate())
-                if (byteBufferList.size == 3) {
-                    Log.i(TAG, "manual vps/sps/pps extraction success")
-                    val oldSps = byteBufferList[1]
-                    val oldPps = byteBufferList[2]
-                    val oldVps = byteBufferList[0]
-                    (videoPacket as H265Packet).sendVideoInfo(oldSps, oldPps, oldVps)
-                    sendInfo = true
-                } else {
-                    Log.e(TAG, "manual vps/sps/pps extraction failed")
-                }
-            } else if (!sendInfo && videoCodec == VideoCodec.AV1) {
-                Log.i(TAG, "formatChanged not called, doing manual av1 extraction...")
-                val obuSequence = VideoEncoderHelper.extractObuSequence(buffer.duplicate(), info)
-                if (obuSequence != null) {
-                    (videoPacket as Av1Packet).sendVideoInfo(obuSequence)
-                    sendInfo = true
-                } else {
-                    Log.e(TAG, "manual av1 extraction failed")
+            if (!sendInfo) {
+                when (videoPacket) {
+                    is H264Packet -> {
+                        val buffers =
+                            VideoEncoderHelper.decodeSpsPpsFromBuffer(buffer.duplicate(), info.size)
+                        if (buffers != null) {
+                            Log.i(TAG, "manual sps/pps extraction success")
+                            val oldSps = buffers.first
+                            val oldPps = buffers.second
+                            (videoPacket as H264Packet).sendVideoInfo(oldSps, oldPps)
+                            sendInfo = true
+                        } else {
+                            Log.e(TAG, "manual sps/pps extraction failed")
+                        }
+                    }
+                    is H265Packet -> {
+                        val byteBufferList = VideoEncoderHelper.extractVpsSpsPpsFromH265(buffer.duplicate())
+                        if (byteBufferList.size == 3) {
+                            Log.i(TAG, "manual vps/sps/pps extraction success")
+                            val oldSps = byteBufferList[1]
+                            val oldPps = byteBufferList[2]
+                            val oldVps = byteBufferList[0]
+                            (videoPacket as H265Packet).sendVideoInfo(oldSps, oldPps, oldVps)
+                            sendInfo = true
+                        } else {
+                            Log.e(TAG, "manual vps/sps/pps extraction failed")
+                        }
+                    }
+                    is Av1Packet -> {
+                        val obuSequence = VideoEncoderHelper.extractObuSequence(buffer.duplicate(), info)
+                        if (obuSequence != null) {
+                            (videoPacket as Av1Packet).sendVideoInfo(obuSequence)
+                            sendInfo = true
+                        } else {
+                            Log.e(TAG, "manual av1 extraction failed")
+                        }
+                    }
+                    else -> {
+                        Log.e(TAG, "Unsupported codec: ${videoPacket?.javaClass?.name ?: "null"}")
+                    }
                 }
             }
             if (sendInfo && status == RecordController.Status.STARTED) {
@@ -211,8 +219,8 @@ class FlvMuxerRecordController: BaseRecordController() {
         this.width = width
         this.height = height
         this.fps = fps
-        when (videoCodec) {
-            VideoCodec.H264 -> {
+        when (videoPacket) {
+            is H264Packet -> {
                 val sps = videoFormat.getByteBuffer("csd-0")
                 val pps = videoFormat.getByteBuffer("csd-1")
                 if (sps != null && pps != null) {
@@ -220,7 +228,7 @@ class FlvMuxerRecordController: BaseRecordController() {
                     sendInfo = true
                 }
             }
-            VideoCodec.H265 -> {
+            is H265Packet -> {
                val bufferInfo = videoFormat.getByteBuffer("csd-0")
                if (bufferInfo != null) {
                    val byteBufferList = VideoEncoderHelper.extractVpsSpsPpsFromH265(bufferInfo)
@@ -233,7 +241,7 @@ class FlvMuxerRecordController: BaseRecordController() {
                    }
                }
            }
-            VideoCodec.AV1 -> {
+            is Av1Packet -> {
                 val bufferInfo = videoFormat.getByteBuffer("csd-0")
                 if (bufferInfo != null && bufferInfo.remaining() > 4) {
                     (videoPacket as Av1Packet).sendVideoInfo(bufferInfo)

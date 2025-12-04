@@ -483,7 +483,10 @@ abstract class StreamBase(
    * This method allow record in other format or even create your custom implementation and record in a new format.
    */
   fun setRecordController(recordController: BaseRecordController) {
-    if (!isRecording) this.recordController = recordController
+    if (!isRecording) {
+      recordController.updateInfo(this.recordController)
+      this.recordController = recordController
+    }
   }
 
   /**
@@ -593,7 +596,7 @@ abstract class StreamBase(
 
     override fun getVideoData(videoBuffer: ByteBuffer, info: MediaCodec.BufferInfo) {
       fpsListener.calculateFps()
-      if (!differentRecordResolution) recordController.recordVideo(videoBuffer.duplicate(), info)
+      if (!differentRecordResolution) recordController.recordVideo(videoBuffer, info)
       getVideoDataImp(videoBuffer, info)
     }
 
@@ -613,7 +616,6 @@ abstract class StreamBase(
     }
 
     override fun onVideoFormat(mediaFormat: MediaFormat) {
-      val isOnlyVideo = audioSource is NoAudioSource
       recordController.setVideoFormat(mediaFormat)
     }
   }

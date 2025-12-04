@@ -30,15 +30,12 @@ import android.widget.TextView
 import androidx.annotation.RequiresApi
 import androidx.fragment.app.Fragment
 import com.pedro.common.ConnectChecker
-import com.pedro.common.VideoCodec
 import com.pedro.encoder.input.sources.video.Camera1Source
 import com.pedro.encoder.input.sources.video.Camera2Source
 import com.pedro.extrasources.CameraXSource
 import com.pedro.library.base.recording.RecordController
 import com.pedro.library.generic.GenericStream
-import com.pedro.library.rtmp.RtmpStream
 import com.pedro.library.util.BitrateAdapter
-import com.pedro.library.util.FlvMuxerRecordController
 import com.pedro.streamer.R
 import com.pedro.streamer.utils.PathUtils
 import com.pedro.streamer.utils.toast
@@ -77,11 +74,9 @@ class CameraFragment: Fragment(), ConnectChecker {
     fun getInstance(): CameraFragment = CameraFragment()
   }
 
-  val genericStream: RtmpStream by lazy {
-    RtmpStream(requireContext(), this).apply {
+  val genericStream: GenericStream by lazy {
+    GenericStream(requireContext(), this).apply {
       getGlInterface().autoHandleOrientation = true
-      setRecordController(FlvMuxerRecordController())
-      setVideoCodec(VideoCodec.AV1)
     }
   }
   private lateinit var surfaceView: SurfaceView
@@ -146,7 +141,7 @@ class CameraFragment: Fragment(), ConnectChecker {
         val folder = PathUtils.getRecordPath()
         if (!folder.exists()) folder.mkdir()
         val sdf = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault())
-        recordPath = "${folder.absolutePath}/${sdf.format(Date())}.flv"
+        recordPath = "${folder.absolutePath}/${sdf.format(Date())}.mp4"
         bRecord.setImageResource(R.drawable.pause_icon)
         genericStream.startRecord(recordPath) { status ->
           if (status == RecordController.Status.RECORDING) {
