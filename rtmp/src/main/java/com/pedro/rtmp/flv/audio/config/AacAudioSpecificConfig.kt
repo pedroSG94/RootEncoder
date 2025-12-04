@@ -23,7 +23,7 @@ import com.pedro.common.AudioUtils
  *
  * ISO 14496-3
  */
-class AudioSpecificConfig(private val type: Int, private val sampleRate: Int, private val channels: Int) {
+class AacAudioSpecificConfig(private val type: Int, private val sampleRate: Int, private val channels: Int) {
 
   val size = 9
 

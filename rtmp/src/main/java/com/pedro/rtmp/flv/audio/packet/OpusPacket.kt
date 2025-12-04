@@ -22,37 +22,24 @@ import com.pedro.rtmp.flv.BasePacket
 import com.pedro.rtmp.flv.FlvPacket
 import com.pedro.rtmp.flv.FlvType
 import com.pedro.rtmp.flv.audio.AudioFormat
-import com.pedro.rtmp.flv.audio.AudioObjectType
-import com.pedro.rtmp.flv.audio.AudioSize
-import com.pedro.rtmp.flv.audio.AudioSoundRate
-import com.pedro.rtmp.flv.audio.AudioSoundType
-import com.pedro.rtmp.flv.audio.config.AacAudioSpecificConfig
-import kotlin.experimental.or
+import com.pedro.rtmp.flv.audio.AudioFourCCPacketType
+import com.pedro.rtmp.flv.audio.config.OpusAudioSpecificConfig
 
 /**
  * Created by pedro on 8/04/21.
  */
-class AacPacket: BasePacket() {
+class OpusPacket: BasePacket() {
 
-  private val header = ByteArray(2)
+  private val header = ByteArray(5)
   //first time we need send audio config
   private var configSend = false
 
-  private var sampleRate = 44100
+  private var sampleRate = 48000
   private var isStereo = true
-  //In microphone we are using always 16bits pcm encoding. Change me if needed
-  private var audioSize = AudioSize.SND_16_BIT
-  //In encoder we are using always AAC LC. Change me if needed
-  private val objectType = AudioObjectType.AAC_LC
 
-  enum class Type(val mark: Byte) {
-    SEQUENCE(0x00), RAW(0x01)
-  }
-
-  fun sendAudioInfo(sampleRate: Int, isStereo: Boolean, audioSize: AudioSize = AudioSize.SND_16_BIT) {
+  fun sendAudioInfo(sampleRate: Int, isStereo: Boolean) {
     this.sampleRate = sampleRate
     this.isStereo = isStereo
-    this.audioSize = audioSize
   }
 
   override suspend fun createFlvPacket(
@@ -60,32 +47,30 @@ class AacPacket: BasePacket() {
     callback: suspend (FlvPacket) -> Unit
   ) {
     val fixedBuffer = mediaFrame.data.removeInfo(mediaFrame.info)
-    //header is 2 bytes length
-    //4 bits sound format, 2 bits sound rate, 1 bit sound size, 1 bit sound type
-    //8 bits sound data (always 10 because we are using aac)
-    val type = if (isStereo) AudioSoundType.STEREO.value else AudioSoundType.MONO.value
-    val soundRate = when (sampleRate) {
-      44100 -> AudioSoundRate.SR_44_1K
-      22050 -> AudioSoundRate.SR_22K
-      11025 -> AudioSoundRate.SR_11K
-      5500 -> AudioSoundRate.SR_5_5K
-      else -> AudioSoundRate.SR_44_1K
-    }
-    header[0] = type or (audioSize.value shl 1).toByte() or (soundRate.value shl 2).toByte() or (AudioFormat.AAC.value shl 4).toByte()
+    val ts = mediaFrame.info.timestamp / 1000
+
+    //header is 5 bytes length:
+    //mark first byte as extended header
+    //4 bytes codec type
+    val codec = AudioFormat.OPUS.value // { "O", "p", "u", "s" }
+    header[1] = (codec shr 24).toByte()
+    header[2] = (codec shr 16).toByte()
+    header[3] = (codec shr 8).toByte()
+    header[4] = codec.toByte()
+
     val buffer: ByteArray
     if (!configSend) {
-      val config = AacAudioSpecificConfig(objectType.value, sampleRate, if (isStereo) 2 else 1)
+      header[0] = ((AudioFormat.EX_HEADER.value shl 4) or (AudioFourCCPacketType.SEQUENCE_START.value and 0x0F)).toByte()
+      val config = OpusAudioSpecificConfig(sampleRate, if (isStereo) 2 else 1)
       buffer = ByteArray(config.size + header.size)
-      header[1] = Type.SEQUENCE.mark
       config.write(buffer, header.size)
       configSend = true
     } else {
-      header[1] = Type.RAW.mark
+      header[0] = ((AudioFormat.EX_HEADER.value shl 4) or (AudioFourCCPacketType.CODED_FRAMES.value and 0x0F)).toByte()
       buffer = ByteArray(fixedBuffer.remaining() + header.size)
       fixedBuffer.get(buffer, header.size, fixedBuffer.remaining())
     }
     System.arraycopy(header, 0, buffer, 0, header.size)
-    val ts = mediaFrame.info.timestamp / 1000
     callback(FlvPacket(buffer, ts, buffer.size, FlvType.AUDIO))
   }
 

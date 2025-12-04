@@ -22,6 +22,13 @@ package com.pedro.rtmp.flv.audio
  */
 enum class AudioFormat(val value: Int) {
   PCM(0), ADPCM(1), MP3(2), PCM_LE(3), NELLYMOSER_16K(4),
-  NELLYMOSER_8K(5), NELLYMOSER(6), G711_A(7), G711_MU(8), RESERVED(9),
-  AAC(10), SPEEX(11), MP3_8K(14), DEVICE_SPECIFIC(15)
+  NELLYMOSER_8K(5), NELLYMOSER(6), G711_A(7), G711_MU(8), EX_HEADER(9),
+  AAC(10), SPEEX(11), MP3_8K(14), DEVICE_SPECIFIC(15),
+  //fourCC extension
+  AC3(1633889587), // { "a", "c", "-", "3" }
+  EAC3(1700998451), // { "e", "c", "-", "3" }
+  OPUS(1332770163), // { "O", "p", "u", "s" }
+  MP3_CC(778924083), // { ".", "m", "p", "3" }
+  FLAC(1716281667), // { "f", "L", "a", "C" }
+  AAC_CC(1836069985), // { "m", "p", "4", "a" }
 }

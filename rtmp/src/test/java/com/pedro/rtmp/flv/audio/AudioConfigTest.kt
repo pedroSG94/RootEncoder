@@ -16,7 +16,7 @@
 
 package com.pedro.rtmp.flv.audio
 
-import com.pedro.rtmp.flv.audio.config.AudioSpecificConfig
+import com.pedro.rtmp.flv.audio.config.AacAudioSpecificConfig
 import org.junit.Assert.assertArrayEquals
 import org.junit.Test
 
@@ -29,7 +29,7 @@ class AudioConfigTest {
     val objectType = AudioObjectType.AAC_LC
     val expectedConfig = byteArrayOf(18, 16, -1, -15, 80, -128, 1, 63, -4)
 
-    val config = AudioSpecificConfig(objectType.value, sampleRate, if (isStereo) 2 else 1)
+    val config = AacAudioSpecificConfig(objectType.value, sampleRate, if (isStereo) 2 else 1)
     val data = ByteArray(config.size)
     config.write(data, 0)
     assertArrayEquals(expectedConfig, data)
