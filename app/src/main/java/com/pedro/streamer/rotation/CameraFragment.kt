@@ -86,7 +86,7 @@ class CameraFragment: Fragment(), ConnectChecker {
   val height = 480
   val vBitrate = 1200 * 1000
   private var rotation = 0
-  private val sampleRate = 48000
+  private val sampleRate = 32000
   private val isStereo = true
   private val aBitrate = 128 * 1000
   private var recordPath = ""
@@ -205,7 +205,7 @@ class CameraFragment: Fragment(), ConnectChecker {
 
   override fun onConnectionFailed(reason: String) {
     if (genericStream.getStreamClient().reTry(5000, reason, null)) {
-      toast("Retry, $reason")
+      toast("Retry")
     } else {
       genericStream.stopStream()
       bStartStop.setImageResource(R.drawable.stream_icon)
