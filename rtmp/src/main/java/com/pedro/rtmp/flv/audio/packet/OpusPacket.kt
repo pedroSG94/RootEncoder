@@ -50,7 +50,7 @@ class OpusPacket: BasePacket() {
     val ts = mediaFrame.info.timestamp / 1000
 
     //header is 5 bytes length:
-    //mark first byte as extended header
+    //mark first byte as extended header and packet type
     //4 bytes codec type
     val codec = AudioFormat.OPUS.value // { "O", "p", "u", "s" }
     header[1] = (codec shr 24).toByte()

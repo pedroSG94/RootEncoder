@@ -26,14 +26,14 @@ class OpusAudioSpecificConfig(private val sampleRate: Int, private val channels:
   val size = 19
 
   fun write(buffer: ByteArray, offset: Int) {
-    buffer[offset] = "O".toByte()
-    buffer[offset + 1] = "p".toByte()
-    buffer[offset + 2] = "u".toByte()
-    buffer[offset + 3] = "s".toByte()
-    buffer[offset + 4] = "H".toByte()
-    buffer[offset + 5] = "e".toByte()
-    buffer[offset + 6] = "a".toByte()
-    buffer[offset + 7] = "d".toByte()
+    buffer[offset] = 'O'.code.toByte()
+    buffer[offset + 1] = 'p'.code.toByte()
+    buffer[offset + 2] = 'u'.code.toByte()
+    buffer[offset + 3] = 's'.code.toByte()
+    buffer[offset + 4] = 'H'.code.toByte()
+    buffer[offset + 5] = 'e'.code.toByte()
+    buffer[offset + 6] = 'a'.code.toByte()
+    buffer[offset + 7] = 'd'.code.toByte()
     buffer[offset + 8] = 0x01 //version 1
     buffer[offset + 9] = channels.toByte()
     val preSkip = 3840 //this is the recommended value by the RFC

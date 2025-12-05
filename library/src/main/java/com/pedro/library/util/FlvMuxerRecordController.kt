@@ -24,6 +24,7 @@ import com.pedro.rtmp.flv.FlvType
 import com.pedro.rtmp.flv.audio.AudioFormat
 import com.pedro.rtmp.flv.audio.packet.AacPacket
 import com.pedro.rtmp.flv.audio.packet.G711Packet
+import com.pedro.rtmp.flv.audio.packet.OpusPacket
 import com.pedro.rtmp.flv.video.VideoFormat
 import com.pedro.rtmp.flv.video.packet.Av1Packet
 import com.pedro.rtmp.flv.video.packet.H264Packet
@@ -39,7 +40,6 @@ import kotlinx.coroutines.runInterruptible
 import java.io.ByteArrayOutputStream
 import java.io.FileDescriptor
 import java.io.FileOutputStream
-import java.io.IOException
 import java.io.OutputStream
 import java.nio.ByteBuffer
 import java.util.concurrent.LinkedBlockingQueue
@@ -72,13 +72,10 @@ class FlvMuxerRecordController: BaseRecordController() {
     }
 
     private fun start(listener: RecordController.Listener?) {
-        if (audioCodec == AudioCodec.OPUS) throw IOException("Unsupported AudioCodec: " + audioCodec.name)
-        when (audioCodec) {
-            AudioCodec.G711 -> audioPacket = G711Packet()
-            AudioCodec.AAC -> audioPacket = AacPacket().apply {
-                sendAudioInfo(sampleRate, isStereo)
-            }
-            else -> {}
+        audioPacket = when (audioCodec) {
+            AudioCodec.G711 -> G711Packet()
+            AudioCodec.AAC -> AacPacket().apply { sendAudioInfo(sampleRate, isStereo) }
+            AudioCodec.OPUS -> OpusPacket().apply { sendAudioInfo(sampleRate, isStereo) }
         }
         videoPacket = when (videoCodec) {
             VideoCodec.H264 -> H264Packet()
@@ -295,7 +292,7 @@ class FlvMuxerRecordController: BaseRecordController() {
         val audioCodecValue = when (audioCodec) {
             AudioCodec.AAC -> AudioFormat.AAC.value
             AudioCodec.G711 -> AudioFormat.G711_A.value
-            else -> throw IllegalArgumentException("unsupported null codec")
+            AudioCodec.OPUS -> AudioFormat.OPUS.value
         }
         info.setProperty("audiocodecid", audioCodecValue.toDouble())
         info.setProperty("audiosamplerate", sampleRate.toDouble())
