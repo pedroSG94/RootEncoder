@@ -43,6 +43,11 @@ public abstract class BaseRecordController implements RecordController {
     protected RecordTracks tracks = RecordTracks.ALL;
     protected RequestKeyFrame requestKeyFrame = null;
 
+    public void updateInfo(BaseRecordController recordController) {
+        videoCodec = recordController.videoCodec;
+        audioCodec = recordController.audioCodec;
+    }
+
     public void setRequestKeyFrame(RequestKeyFrame requestKeyFrame) {
         this.requestKeyFrame = requestKeyFrame;
     }

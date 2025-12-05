@@ -125,10 +125,7 @@ class RtmpClient(private val connectChecker: ConnectChecker) {
 
   fun setAudioCodec(audioCodec: AudioCodec) {
     if (!isStreaming) {
-      commandsManager.audioCodec = when (audioCodec) {
-        AudioCodec.OPUS -> throw IllegalArgumentException("Unsupported codec: ${audioCodec.name}")
-        else -> audioCodec
-      }
+      commandsManager.audioCodec = audioCodec
     }
   }
 

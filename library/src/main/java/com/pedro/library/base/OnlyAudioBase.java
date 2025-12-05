@@ -284,7 +284,10 @@ public abstract class OnlyAudioBase {
   protected abstract void getAudioDataImp(ByteBuffer audioBuffer, MediaCodec.BufferInfo info);
 
   public void setRecordController(BaseRecordController recordController) {
-    if (!isRecording()) this.recordController = recordController;
+    if (!isRecording()) {
+      recordController.updateInfo(this.recordController);
+      this.recordController = recordController;
+    }
   }
 
   private final GetMicrophoneData getMicrophoneData = frame -> {
