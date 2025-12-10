@@ -325,15 +325,15 @@ public class VideoEncoder extends BaseEncoder implements GetCameraData {
       ByteBuffer bufferInfo = mediaFormat.getByteBuffer("csd-0");
       //we need an av1ConfigurationRecord with sequenceObu to work
       if (bufferInfo != null && bufferInfo.remaining() > 4) {
-        oldSps = bufferInfo;
-        getVideoData.onVideoInfo(bufferInfo, null, null);
+        oldSps = bufferInfo.duplicate();
+        getVideoData.onVideoInfo(oldSps, null, null);
         return true;
       }
       //H265
     } else if (type.equals(CodecUtil.H265_MIME)) {
       ByteBuffer bufferInfo = mediaFormat.getByteBuffer("csd-0");
       if (bufferInfo != null) {
-        List<ByteBuffer> byteBufferList = extractVpsSpsPpsFromH265(bufferInfo);
+        List<ByteBuffer> byteBufferList = VideoEncoderHelper.extractVpsSpsPpsFromH265(bufferInfo.duplicate());
         oldSps = byteBufferList.get(1);
         oldPps = byteBufferList.get(2);
         oldVps = byteBufferList.get(0);
@@ -345,8 +345,8 @@ public class VideoEncoder extends BaseEncoder implements GetCameraData {
       ByteBuffer sps = mediaFormat.getByteBuffer("csd-0");
       ByteBuffer pps = mediaFormat.getByteBuffer("csd-1");
       if (sps != null && pps != null) {
-        oldSps = sps;
-        oldPps = pps;
+        oldSps = sps.duplicate();
+        oldPps = pps.duplicate();
         oldVps = null;
         getVideoData.onVideoInfo(oldSps, oldPps, oldVps);
         return true;
@@ -393,108 +393,6 @@ public class VideoEncoder extends BaseEncoder implements GetCameraData {
     return null;
   }
 
-  /**
-   * decode sps and pps if the encoder never call to MediaCodec.INFO_OUTPUT_FORMAT_CHANGED
-   */
-  private Pair<ByteBuffer, ByteBuffer> decodeSpsPpsFromBuffer(ByteBuffer outputBuffer, int length) {
-    byte[] csd = new byte[length];
-    outputBuffer.get(csd, 0, length);
-    outputBuffer.rewind();
-    int i = 0;
-    int spsIndex = -1;
-    int ppsIndex = -1;
-    while (i < length - 4) {
-      if (csd[i] == 0 && csd[i + 1] == 0 && csd[i + 2] == 0 && csd[i + 3] == 1) {
-        if (spsIndex == -1) {
-          spsIndex = i;
-        } else {
-          ppsIndex = i;
-          break;
-        }
-      }
-      i++;
-    }
-    if (spsIndex != -1 && ppsIndex != -1) {
-      byte[] sps = new byte[ppsIndex];
-      System.arraycopy(csd, spsIndex, sps, 0, ppsIndex);
-      byte[] pps = new byte[length - ppsIndex];
-      System.arraycopy(csd, ppsIndex, pps, 0, length - ppsIndex);
-      return new Pair<>(ByteBuffer.wrap(sps), ByteBuffer.wrap(pps));
-    }
-    return null;
-  }
-
-  /**
-   * You need find 0 0 0 1 byte sequence that is the initiation of vps, sps and pps
-   * buffers.
-   *
-   * @param csd0byteBuffer get in mediacodec case MediaCodec.INFO_OUTPUT_FORMAT_CHANGED
-   * @return list with vps, sps and pps
-   */
-  private List<ByteBuffer> extractVpsSpsPpsFromH265(ByteBuffer csd0byteBuffer) {
-    List<ByteBuffer> byteBufferList = new ArrayList<>();
-    int vpsPosition = -1;
-    int spsPosition = -1;
-    int ppsPosition = -1;
-    int contBufferInitiation = 0;
-    int length = csd0byteBuffer.remaining();
-    byte[] csdArray = new byte[length];
-    csd0byteBuffer.get(csdArray, 0, length);
-    csd0byteBuffer.rewind();
-    for (int i = 0; i < csdArray.length; i++) {
-      if (contBufferInitiation == 3 && csdArray[i] == 1) {
-        if (vpsPosition == -1) {
-          vpsPosition = i - 3;
-        } else if (spsPosition == -1) {
-          spsPosition = i - 3;
-        } else {
-          ppsPosition = i - 3;
-        }
-      }
-      if (csdArray[i] == 0) {
-        contBufferInitiation++;
-      } else {
-        contBufferInitiation = 0;
-      }
-    }
-    byte[] vps = new byte[spsPosition];
-    byte[] sps = new byte[ppsPosition - spsPosition];
-    byte[] pps = new byte[csdArray.length - ppsPosition];
-    for (int i = 0; i < csdArray.length; i++) {
-      if (i < spsPosition) {
-        vps[i] = csdArray[i];
-      } else if (i < ppsPosition) {
-        sps[i - spsPosition] = csdArray[i];
-      } else {
-        pps[i - ppsPosition] = csdArray[i];
-      }
-    }
-    byteBufferList.add(ByteBuffer.wrap(vps));
-    byteBufferList.add(ByteBuffer.wrap(sps));
-    byteBufferList.add(ByteBuffer.wrap(pps));
-    return byteBufferList;
-  }
-
-  /**
-   *
-   * @param buffer key frame
-   * @return av1 ObuSequence
-   */
-  private ByteBuffer extractObuSequence(ByteBuffer buffer, MediaCodec.BufferInfo bufferInfo) {
-    //we can only extract info from keyframes
-    if (bufferInfo.flags != MediaCodec.BUFFER_FLAG_KEY_FRAME) return null;
-    byte[] av1Data = new byte[buffer.remaining()];
-    buffer.get(av1Data);
-    Av1Parser av1Parser = new Av1Parser();
-    List<Obu> obuList = av1Parser.getObus(av1Data);
-    for (Obu obu: obuList) {
-      if (av1Parser.getObuType(obu.getHeader()[0]) == ObuType.SEQUENCE_HEADER) {
-        return ByteBuffer.wrap(obu.getFullData());
-      }
-    }
-    return null;
-  }
-
   @Override
   protected Frame getInputFrame() throws InterruptedException {
     Frame frame = queue.take();
@@ -534,7 +432,7 @@ public class VideoEncoder extends BaseEncoder implements GetCameraData {
     fixTimeStamp(bufferInfo);
     if (!spsPpsSetted && type.equals(CodecUtil.H264_MIME)) {
       Log.i(TAG, "formatChanged not called, doing manual sps/pps extraction...");
-      Pair<ByteBuffer, ByteBuffer> buffers = decodeSpsPpsFromBuffer(byteBuffer.duplicate(), bufferInfo.size);
+      Pair<ByteBuffer, ByteBuffer> buffers = VideoEncoderHelper.decodeSpsPpsFromBuffer(byteBuffer.duplicate(), bufferInfo.size);
       if (buffers != null) {
         Log.i(TAG, "manual sps/pps extraction success");
         oldSps = buffers.first;
@@ -547,7 +445,7 @@ public class VideoEncoder extends BaseEncoder implements GetCameraData {
       }
     } else if (!spsPpsSetted && type.equals(CodecUtil.H265_MIME)) {
       Log.i(TAG, "formatChanged not called, doing manual vps/sps/pps extraction...");
-      List<ByteBuffer> byteBufferList = extractVpsSpsPpsFromH265(byteBuffer.duplicate());
+      List<ByteBuffer> byteBufferList = VideoEncoderHelper.extractVpsSpsPpsFromH265(byteBuffer.duplicate());
       if (byteBufferList.size() == 3) {
         Log.i(TAG, "manual vps/sps/pps extraction success");
         oldSps = byteBufferList.get(1);
@@ -560,7 +458,7 @@ public class VideoEncoder extends BaseEncoder implements GetCameraData {
       }
     } else if (!spsPpsSetted && type.equals(CodecUtil.AV1_MIME)) {
       Log.i(TAG, "formatChanged not called, doing manual av1 extraction...");
-      ByteBuffer obuSequence = extractObuSequence(byteBuffer.duplicate(), bufferInfo);
+      ByteBuffer obuSequence = VideoEncoderHelper.extractObuSequence(byteBuffer.duplicate(), bufferInfo);
       if (obuSequence != null) {
         oldSps = obuSequence;
         getVideoData.onVideoInfo(obuSequence, null, null);

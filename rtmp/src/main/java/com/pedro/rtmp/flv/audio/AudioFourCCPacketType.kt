@@ -14,18 +14,19 @@
  * limitations under the License.
  */
 
-package com.pedro.rtmp.flv.video
+package com.pedro.rtmp.flv.audio
 
 /**
- * Created by pedro on 29/04/21.
+ * Created by pedro on 14/08/23.
+ *
  */
-enum class VideoFormat(val value: Int) {
-  SORENSON_H263(2), SCREEN_1(3), VP6(4), VP6_ALPHA(5),
-  SCREEN_2(6), AVC(7), UNKNOWN(255),
-  //fourCC extension
-  HEVC(1752589105), // { "h", "v", "c", "1" }
-  AV1(1635135537), // { "a", "v", "0", "1" }
-  VP9(1987063865), // { "v", "p", "0", "9" }
-  VP8(1987063864), // { "v", "p", "0", "8" }
-  AVC_CC(1635148593), // { "a", "v", "c", "1" }
+enum class AudioFourCCPacketType(val value: Int) {
+  SEQUENCE_START(0),
+  CODED_FRAMES(1),
+  SEQUENCE_END(2),
+  CODED_FRAMES_X(3),
+  METADATA(4),
+  MULTITRACK(5),
+  RESERVED(6),
+  MOD_EX(7)
 }

@@ -22,7 +22,7 @@ import com.pedro.common.removeInfo
 import com.pedro.rtmp.flv.BasePacket
 import com.pedro.rtmp.flv.FlvPacket
 import com.pedro.rtmp.flv.FlvType
-import com.pedro.rtmp.flv.video.FourCCPacketType
+import com.pedro.rtmp.flv.video.VideoFourCCPacketType
 import com.pedro.rtmp.flv.video.VideoDataType
 import com.pedro.rtmp.flv.video.VideoFormat
 import com.pedro.rtmp.flv.video.VideoNalType
@@ -85,11 +85,10 @@ class H265Packet: BasePacket() {
     header[6] = (cts shr 8).toByte()
     header[7] = cts.toByte()
 
-    val packets = mutableListOf<FlvPacket>()
     var buffer: ByteArray
     if (!configSend) {
       //avoid send cts on sequence start
-      header[0] = (0b10000000 or (VideoDataType.KEYFRAME.value shl 4) or FourCCPacketType.SEQUENCE_START.value).toByte()
+      header[0] = (0b10000000 or (VideoDataType.KEYFRAME.value shl 4) or VideoFourCCPacketType.SEQUENCE_START.value).toByte()
       val sps = this.sps
       val pps = this.pps
       val vps = this.vps
@@ -121,7 +120,7 @@ class H265Packet: BasePacket() {
       // we don't need send it because we already do it in video config
       return
     }
-    header[0] = (0b10000000 or (nalType shl 4) or FourCCPacketType.CODED_FRAMES.value).toByte()
+    header[0] = (0b10000000 or (nalType shl 4) or VideoFourCCPacketType.CODED_FRAMES.value).toByte()
     writeNaluSize(buffer, header.size, size)
     validBuffer.get(buffer, header.size + naluSize, size)
 
