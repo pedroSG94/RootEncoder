@@ -222,14 +222,14 @@ class FlvMuxerRecordController: BaseRecordController() {
                 val sps = videoFormat.getByteBuffer("csd-0")
                 val pps = videoFormat.getByteBuffer("csd-1")
                 if (sps != null && pps != null) {
-                    (videoPacket as H264Packet).sendVideoInfo(sps, pps)
+                    (videoPacket as H264Packet).sendVideoInfo(sps.duplicate(), pps.duplicate())
                     sendInfo = true
                 }
             }
             is H265Packet -> {
                val bufferInfo = videoFormat.getByteBuffer("csd-0")
                if (bufferInfo != null) {
-                   val byteBufferList = VideoEncoderHelper.extractVpsSpsPpsFromH265(bufferInfo)
+                   val byteBufferList = VideoEncoderHelper.extractVpsSpsPpsFromH265(bufferInfo.duplicate())
                    if (byteBufferList.size == 3) {
                        val sps = byteBufferList[1]
                        val pps = byteBufferList[2]
@@ -242,7 +242,7 @@ class FlvMuxerRecordController: BaseRecordController() {
             is Av1Packet -> {
                 val bufferInfo = videoFormat.getByteBuffer("csd-0")
                 if (bufferInfo != null && bufferInfo.remaining() > 4) {
-                    (videoPacket as Av1Packet).sendVideoInfo(bufferInfo)
+                    (videoPacket as Av1Packet).sendVideoInfo(bufferInfo.duplicate())
                     sendInfo = true
                 }
             }

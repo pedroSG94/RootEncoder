@@ -97,6 +97,7 @@ public class VideoEncoderHelper {
         contBufferInitiation = 0;
       }
     }
+    if (vpsPosition == -1 || spsPosition == -1 || ppsPosition == -1) return byteBufferList;
     byte[] vps = new byte[spsPosition];
     byte[] sps = new byte[ppsPosition - spsPosition];
     byte[] pps = new byte[csdArray.length - ppsPosition];

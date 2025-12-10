@@ -325,15 +325,15 @@ public class VideoEncoder extends BaseEncoder implements GetCameraData {
       ByteBuffer bufferInfo = mediaFormat.getByteBuffer("csd-0");
       //we need an av1ConfigurationRecord with sequenceObu to work
       if (bufferInfo != null && bufferInfo.remaining() > 4) {
-        oldSps = bufferInfo;
-        getVideoData.onVideoInfo(bufferInfo, null, null);
+        oldSps = bufferInfo.duplicate();
+        getVideoData.onVideoInfo(oldSps, null, null);
         return true;
       }
       //H265
     } else if (type.equals(CodecUtil.H265_MIME)) {
       ByteBuffer bufferInfo = mediaFormat.getByteBuffer("csd-0");
       if (bufferInfo != null) {
-        List<ByteBuffer> byteBufferList = VideoEncoderHelper.extractVpsSpsPpsFromH265(bufferInfo);
+        List<ByteBuffer> byteBufferList = VideoEncoderHelper.extractVpsSpsPpsFromH265(bufferInfo.duplicate());
         oldSps = byteBufferList.get(1);
         oldPps = byteBufferList.get(2);
         oldVps = byteBufferList.get(0);
@@ -345,8 +345,8 @@ public class VideoEncoder extends BaseEncoder implements GetCameraData {
       ByteBuffer sps = mediaFormat.getByteBuffer("csd-0");
       ByteBuffer pps = mediaFormat.getByteBuffer("csd-1");
       if (sps != null && pps != null) {
-        oldSps = sps;
-        oldPps = pps;
+        oldSps = sps.duplicate();
+        oldPps = pps.duplicate();
         oldVps = null;
         getVideoData.onVideoInfo(oldSps, oldPps, oldVps);
         return true;
