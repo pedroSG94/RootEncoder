@@ -1,6 +1,6 @@
 allprojects {
-  group = "com.github.pedroSG94"
-  version = "2.6.6"
+  group = "com.github.rubik-crypto"
+  version = "2.6.7"
 
   plugins.withType<PublishingPlugin> {
     configure<PublishingExtension> {
@@ -8,7 +8,7 @@ allprojects {
         pom {
           name = "RootEncoder"
           description = "A stream encoder to push video/audio to media servers"
-          url = "https://github.com/pedroSG94/RootEncoder"
+          url = "https://github.com/rubik-crypto/RootEncoder"
           licenses {
             license {
               name = "Apache-2.0"
