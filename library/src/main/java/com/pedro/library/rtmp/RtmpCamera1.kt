@@ -72,6 +72,9 @@ class RtmpCamera1 : Camera1Base {
 
   override fun getStreamClient(): RtmpStreamClient = streamClient
 
+  // 获取是否正在推流
+  override fun isStreaming(): Boolean = rtmpClient.isStreaming
+
   override fun setVideoCodecImp(codec: VideoCodec) {
     rtmpClient.setVideoCodec(codec)
   }
