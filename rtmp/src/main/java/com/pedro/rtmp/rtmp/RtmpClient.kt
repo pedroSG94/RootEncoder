@@ -276,6 +276,7 @@ class RtmpClient(private val connectChecker: ConnectChecker) {
 
         val error = runCatching {
           if (!establishConnection()) {
+            isStreaming = false
             onMainThread {
               connectChecker.onConnectionFailed("Handshake failed")
             }
@@ -294,6 +295,7 @@ class RtmpClient(private val connectChecker: ConnectChecker) {
         }.exceptionOrNull()
         if (error != null) {
           Log.e(TAG, "connection error", error)
+          isStreaming = false
           onMainThread {
             connectChecker.onConnectionFailed("Error configure stream, ${error.validMessage()}")
           }
