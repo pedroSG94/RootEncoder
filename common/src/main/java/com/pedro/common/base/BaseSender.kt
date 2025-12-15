@@ -5,6 +5,7 @@ import com.pedro.common.BitrateManager
 import com.pedro.common.ConnectChecker
 import com.pedro.common.StreamBlockingQueue
 import com.pedro.common.frame.MediaFrame
+import com.pedro.common.trySend
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -14,6 +15,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import java.nio.ByteBuffer
+import java.util.concurrent.LinkedBlockingQueue
 
 abstract class BaseSender(
     protected val connectChecker: ConnectChecker,
@@ -24,7 +26,7 @@ abstract class BaseSender(
     protected var running = false
     private var cacheSize = 400
     @Volatile
-    protected var queue = StreamBlockingQueue(cacheSize)
+    protected var queue = LinkedBlockingQueue<MediaFrame>(cacheSize)
     protected var audioFramesSent: Long = 0
     protected var videoFramesSent: Long = 0
     var droppedAudioFrames: Long = 0
@@ -94,24 +96,24 @@ abstract class BaseSender(
     @Throws(IllegalArgumentException::class)
     fun hasCongestion(percentUsed: Float = 20f): Boolean {
         if (percentUsed < 0 || percentUsed > 100) throw IllegalArgumentException("the value must be in range 0 to 100")
-        val size = queue.getSize().toFloat()
+        val size = queue.size.toFloat()
         val remaining = queue.remainingCapacity().toFloat()
         val capacity = size + remaining
         return size >= capacity * (percentUsed / 100f)
     }
 
     fun resizeCache(newSize: Int) {
-        if (newSize < queue.getSize() - queue.remainingCapacity()) {
+        if (newSize < queue.size - queue.remainingCapacity()) {
             throw RuntimeException("Can't fit current cache inside new cache size")
         }
-        val tempQueue = StreamBlockingQueue(newSize)
+        val tempQueue = LinkedBlockingQueue<MediaFrame>(newSize)
         queue.drainTo(tempQueue)
         queue = tempQueue
     }
 
     fun getCacheSize(): Int = cacheSize
 
-    fun getItemsInCache(): Int = queue.getSize()
+    fun getItemsInCache(): Int = queue.size
 
     fun clearCache() {
         queue.clear()
@@ -148,7 +150,7 @@ abstract class BaseSender(
     fun getBitrateExponentialFactor() = bitrateManager.exponentialFactor
 
     fun setDelay(delay: Long) {
-        queue.setCacheTime(delay)
+//        queue.setCacheTime(delay)
     }
 
     fun resetBytesSend() {
