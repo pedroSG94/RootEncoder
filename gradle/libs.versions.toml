@@ -10,7 +10,7 @@ appcompat = "1.6.1"
 #noinspection GradleDependency, version 2.2.0 need min sdk 21
 constraintlayout = "2.1.4"
 ktor = "3.3.3"
-camerax = "1.5.1"
+camerax = "1.5.2"
 multidex = "2.0.1"
 annotation = "1.9.1"
 coroutines = "1.10.2"
