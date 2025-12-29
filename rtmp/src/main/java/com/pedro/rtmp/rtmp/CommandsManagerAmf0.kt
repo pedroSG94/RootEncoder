@@ -42,18 +42,17 @@ class CommandsManagerAmf0: CommandsManager() {
     connectInfo.setProperty("app", appName + auth)
     connectInfo.setProperty("flashVer", flashVersion)
     connectInfo.setProperty("tcUrl", tcUrl + auth)
+    val list = mutableListOf<AmfData>()
     if (!videoDisabled) {
-      if (videoCodec == VideoCodec.H265) {
-        val list = mutableListOf<AmfData>()
-        list.add(AmfString("hvc1"))
-        val array = AmfStrictArray(list)
-        connectInfo.setProperty("fourCcList", array)
-      } else if (videoCodec == VideoCodec.AV1) {
-        val list = mutableListOf<AmfData>()
-        list.add(AmfString("av01"))
-        val array = AmfStrictArray(list)
-        connectInfo.setProperty("fourCcList", array)
-      }
+      if (videoCodec == VideoCodec.H265) list.add(AmfString("hvc1"))
+      else if (videoCodec == VideoCodec.AV1) list.add(AmfString("av01"))
+    }
+    if (!audioDisabled) {
+      if (audioCodec == AudioCodec.OPUS) list.add(AmfString("Opus"))
+    }
+    if (list.isNotEmpty()) {
+      val array = AmfStrictArray(list)
+      connectInfo.setProperty("fourCcList", array)
     }
     connectInfo.setProperty("objectEncoding", 0.0)
 
@@ -123,7 +122,7 @@ class CommandsManagerAmf0: CommandsManager() {
       val codecValue = when (audioCodec) {
         AudioCodec.G711 -> AudioFormat.G711_A.value
         AudioCodec.AAC -> AudioFormat.AAC.value
-        AudioCodec.OPUS -> throw IllegalArgumentException("Unsupported codec: ${audioCodec.name}")
+        AudioCodec.OPUS -> AudioFormat.OPUS.value
       }
       amfEcmaArray.setProperty("audiocodecid", codecValue.toDouble())
       amfEcmaArray.setProperty("audiosamplerate", sampleRate.toDouble())

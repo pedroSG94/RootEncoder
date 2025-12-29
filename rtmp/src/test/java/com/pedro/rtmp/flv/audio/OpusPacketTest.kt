@@ -18,7 +18,7 @@ package com.pedro.rtmp.flv.audio
 
 import com.pedro.common.frame.MediaFrame
 import com.pedro.rtmp.flv.FlvType
-import com.pedro.rtmp.flv.audio.packet.AacPacket
+import com.pedro.rtmp.flv.audio.packet.OpusPacket
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Test
@@ -27,26 +27,25 @@ import java.nio.ByteBuffer
 /**
  * Created by pedro on 9/9/23.
  */
-class AacPacketTest {
+class OpusPacketTest {
 
   @Test
-  fun `GIVEN an AAC buffer WHEN call create an AAC packet 2 times THEN return config and expected buffer`() = runTest {
+  fun `GIVEN an Opus buffer WHEN call create an Opus packet 2 times THEN return config and expected buffer`() = runTest {
     val timestamp = 123456789L
     val buffer = ByteArray(256) { 0x00 }
     val info = MediaFrame.Info(0, buffer.size, timestamp, false)
     val mediaFrame = MediaFrame(ByteBuffer.wrap(buffer), info, MediaFrame.Type.AUDIO)
-    val aacPacket = AacPacket()
-    aacPacket.sendAudioInfo(32000, true)
-    aacPacket.createFlvPacket(mediaFrame) { flvPacket ->
+    val opusPacket = OpusPacket()
+    opusPacket.sendAudioInfo(48000, true)
+    opusPacket.createFlvPacket(mediaFrame) { flvPacket ->
       assertEquals(FlvType.AUDIO, flvPacket.type)
-      assertEquals((-81).toByte(), flvPacket.buffer[0])
-      assertEquals(AacPacket.Type.SEQUENCE.mark, flvPacket.buffer[1])
+      assertEquals(((AudioFormat.EX_HEADER.value shl 4) or (AudioFourCCPacketType.SEQUENCE_START.value and 0x0F)).toByte(), flvPacket.buffer[0])
+      assertEquals(5 + 19, flvPacket.length)
     }
-    aacPacket.createFlvPacket(mediaFrame) { flvPacket ->
+    opusPacket.createFlvPacket(mediaFrame) { flvPacket ->
       assertEquals(FlvType.AUDIO, flvPacket.type)
-      assertEquals((-81).toByte(), flvPacket.buffer[0])
-      assertEquals(AacPacket.Type.RAW.mark, flvPacket.buffer[1])
-      assertEquals(buffer.size + 2, flvPacket.length)
+      assertEquals(((AudioFormat.EX_HEADER.value shl 4) or (AudioFourCCPacketType.CODED_FRAMES.value and 0x0F)).toByte(), flvPacket.buffer[0])
+      assertEquals(5 + buffer.size, flvPacket.length)
     }
   }
 }
