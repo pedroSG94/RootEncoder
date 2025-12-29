@@ -6,7 +6,7 @@ dokka = "2.1.0"
 
 #dependencies versions
 #noinspection GradleDependency, version 1.7.0 need min sdk 21
-appcompat = "1.6.1"
+appcompat = "1.7.1"
 #noinspection GradleDependency, version 2.2.0 need min sdk 21
 constraintlayout = "2.1.4"
 ktor = "3.3.3"
