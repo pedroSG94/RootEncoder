@@ -70,6 +70,7 @@ class GlStreamInterface(private val context: Context): OnFrameAvailableListener,
   private var encoderRecordWidth = 0
   private var encoderRecordHeight = 0
   private var streamOrientation = 0
+  private var previewOrientation = 0
   private var previewWidth = 0
   private var previewHeight = 0
   private var isPortrait = false
@@ -296,7 +297,7 @@ class GlStreamInterface(private val context: Context): OnFrameAvailableListener,
         surfaceManager.swapBuffer()
       }
       if (surfaceManagerPreview.makeCurrent()) {
-        mainRender.drawScreenPreview(w, h, orientationPreview, aspectRatioMode, 0,
+        mainRender.drawScreenPreview(w, h, orientationPreview, aspectRatioMode, previewOrientation,
           isPreviewVerticalFlip, isPreviewHorizontalFlip, previewViewPort)
         surfaceManagerPreview.swapBuffer()
       }
@@ -444,6 +445,11 @@ class GlStreamInterface(private val context: Context): OnFrameAvailableListener,
   override fun setStreamRotation(orientation: Int) {
     this.streamOrientation = orientation
   }
+
+  fun setPreviewRotation(orientation: Int) {
+    this.previewOrientation = orientation
+  }
+
 
   fun setPreviewResolution(width: Int, height: Int) {
     this.previewWidth = width
