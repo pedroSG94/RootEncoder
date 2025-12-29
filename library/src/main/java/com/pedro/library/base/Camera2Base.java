@@ -1048,7 +1048,10 @@ public abstract class Camera2Base {
     protected abstract void getVideoDataImp(ByteBuffer videoBuffer, MediaCodec.BufferInfo info);
 
     public void setRecordController(BaseRecordController recordController) {
-        if (!isRecording()) this.recordController = recordController;
+        if (!isRecording()) {
+            recordController.updateInfo(this.recordController);
+            this.recordController = recordController;
+        }
     }
 
     private final GetMicrophoneData getMicrophoneData = frame -> {

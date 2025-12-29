@@ -72,7 +72,7 @@ fun ByteBuffer.removeInfo(info: MediaFrame.Info): ByteBuffer {
   try {
     position(info.offset)
     limit(info.size)
-  } catch (ignored: Exception) { }
+  } catch (_: Exception) { }
   return slice()
 }
 
