@@ -1,22 +1,22 @@
 <!doctype html>
-<html class="no-js">
+<html class="no-js" lang="en">
 <head>
     <meta name="viewport" content="width=device-width, initial-scale=1" charset="UTF-8">
     <title>com.pedro.encoder.input.gl.render.filters</title>
-<link href="../../images/logo-icon.svg" rel="icon" type="image/svg">    <script>var pathToRoot = "../../";</script>
-    <script>document.documentElement.classList.replace("no-js","js");</script>
+<link href="../../images/logo-icon.svg" rel="icon" type="image/svg"><script>var pathToRoot = "../../";</script>
+    <script>document.documentElement.classList.replace("no-js", "js");</script>
     <script>const storage = localStorage.getItem("dokka-dark-mode")
-    if (storage == null) {
+      if (storage == null) {
         const osDarkSchemePreferred = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
         if (osDarkSchemePreferred === true) {
-            document.getElementsByTagName("html")[0].classList.add("theme-dark")
+          document.getElementsByTagName("html")[0].classList.add("theme-dark")
         }
-    } else {
+      } else {
         const savedDarkMode = JSON.parse(storage)
-        if(savedDarkMode === true) {
-            document.getElementsByTagName("html")[0].classList.add("theme-dark")
+        if (savedDarkMode === true) {
+          document.getElementsByTagName("html")[0].classList.add("theme-dark")
         }
-    }
+      }
     </script>
 <script type="text/javascript" src="https://unpkg.com/kotlin-playground@1/dist/playground.min.js" async></script>
 <script type="text/javascript" src="../../scripts/sourceset_dependencies.js" async></script>
@@ -24,39 +24,37 @@
 <link href="../../styles/main.css" rel="Stylesheet">
 <link href="../../styles/prism.css" rel="Stylesheet">
 <link href="../../styles/logo-styles.css" rel="Stylesheet">
-<link href="../../styles/font-jb-sans-auto.css" rel="Stylesheet">
 <link href="../../ui-kit/ui-kit.min.css" rel="Stylesheet">
-<script type="text/javascript" src="../../scripts/clipboard.js" async></script>
+<script type="text/javascript" src="../../scripts/safe-local-storage_blocking.js"></script>
 <script type="text/javascript" src="../../scripts/navigation-loader.js" async></script>
 <script type="text/javascript" src="../../scripts/platform-content-handler.js" async></script>
 <script type="text/javascript" src="../../scripts/main.js" defer></script>
 <script type="text/javascript" src="../../scripts/prism.js" async></script>
-<script type="text/javascript" src="../../ui-kit/ui-kit.min.js" defer></script>
-<script type="text/javascript" src="../../scripts/symbol-parameters-wrapper_deferred.js" defer></script></head>
+<script type="text/javascript" src="../../ui-kit/ui-kit.min.js" defer></script></head>
 <body>
-    <div class="root">
-    <nav class="navigation theme-dark" id="navigation-wrapper">
-<a class="library-name--link" href="../../index.html">
+<div class="root">
+    <header class="navigation theme-dark" id="navigation-wrapper" role="banner">
+<a class="library-name--link" href="../../index.html" tabindex="1">
                     RootEncoder
             </a>        <button class="navigation-controls--btn navigation-controls--btn_toc ui-kit_mobile-only" id="toc-toggle" type="button">Toggle table of contents
         </button>
         <div class="navigation-controls--break ui-kit_mobile-only"></div>
-        <div class="library-version" id="library-version">2.6.5
+        <div class="library-version" id="library-version">2.6.7
         </div>
         <div class="navigation-controls">
-        <div class="filter-section filter-section_loading" id="filter-section">
-                <button class="platform-tag platform-selector jvm-like" data-active="" data-filter=":encoder:dokkaHtmlPartial/release">androidJvm</button>
+        <ul class="filter-section filter-section_loading" id="filter-section" aria-label="Target filter">
+                <button class="platform-tag platform-selector jvm-like" data-active="" aria-pressed="true" data-filter=":encoder/main">androidJvm</button>
             <div class="dropdown filter-section--dropdown" data-role="dropdown" id="filter-section-dropdown">
                 <button class="button button_dropdown filter-section--dropdown-toggle" role="combobox" data-role="dropdown-toggle" aria-controls="platform-tags-listbox" aria-haspopup="listbox" aria-expanded="false" aria-label="Toggle source sets"></button>
-                <ul role="listbox" id="platform-tags-listbox" class="dropdown--list" data-role="dropdown-listbox">
-                    <div class="dropdown--header"><span>Platform filter</span>
-                        <button class="button" data-role="dropdown-toggle" aria-label="Close platform filter">
+                <ul role="listbox" id="platform-tags-listbox" class="dropdown--list" data-role="dropdown-listbox" aria-label="Target filter">
+                    <div class="dropdown--header"><span>Target filter</span>
+                        <button class="button" data-role="dropdown-toggle" aria-label="Close target filter">
                             <i class="ui-kit-icon ui-kit-icon_cross"></i>
                         </button>
                     </div>
                         <li role="option" class="dropdown--option platform-selector-option jvm-like" tabindex="0">
                             <label class="checkbox">
-                                <input type="checkbox" class="checkbox--input" id=":encoder:dokkaHtmlPartial/release" data-filter=":encoder:dokkaHtmlPartial/release">
+                                <input type="checkbox" class="checkbox--input" id=":encoder/main" data-filter=":encoder/main">
                                 <span class="checkbox--icon"></span>
                                 androidJvm
                             </label>
@@ -64,33 +62,35 @@
                 </ul>
                 <div class="dropdown--overlay"></div>
             </div>
-        </div>
+        </ul>
             <button class="navigation-controls--btn navigation-controls--btn_theme" id="theme-toggle-button" type="button">Switch theme
             </button>
             <div class="navigation-controls--btn navigation-controls--btn_search" id="searchBar" role="button">Search in
                 API
             </div>
         </div>
-    </nav>
-        <div id="container">
-            <div class="sidebar" id="leftColumn">
-                <div class="dropdown theme-dark_mobile" data-role="dropdown" id="toc-dropdown">
-                    <ul role="listbox" id="toc-listbox" class="dropdown--list dropdown--list_toc-list" data-role="dropdown-listbox">
-                        <div class="dropdown--header">
+    </header>
+    <div id="container">
+        <nav id="leftColumn" class="sidebar" data-item-type="SECTION" data-item-config="{&quot;defaultSize&quot;: 280, &quot;minSize&quot;: 200, &quot;maxSize&quot;: 400}">
+            <a class="toc--skip-link" href="#main">Skip to content</a>
+            <div class="dropdown theme-dark_mobile" data-role="dropdown" id="toc-dropdown">
+                <ul role="listbox" id="toc-listbox" class="dropdown--list dropdown--list_toc-list" data-role="dropdown-listbox" aria-label="Table of contents">
+                    <div class="dropdown--header">
                             <span>
                                     RootEncoder
                             </span>
-                            <button class="button" data-role="dropdown-toggle" aria-label="Close table of contents">
-                                <i class="ui-kit-icon ui-kit-icon_cross"></i>
-                            </button>
-                        </div>
-                        <div class="sidebar--inner" id="sideMenu"></div>
-                    </ul>
-                    <div class="dropdown--overlay"></div>
-                </div>
+                        <button class="button" data-role="dropdown-toggle" aria-label="Close table of contents">
+                            <i class="ui-kit-icon ui-kit-icon_cross"></i>
+                        </button>
+                    </div>
+                    <div class="sidebar--inner" id="sideMenu"></div>
+                </ul>
+                <div class="dropdown--overlay"></div>
             </div>
-            <div id="main">
-<div class="main-content" data-page-type="package" id="content" pageids="encoder::com.pedro.encoder.input.gl.render.filters////PointingToDeclaration//-1960655415">
+        </nav>
+        <div id="resizer" class="resizer" data-item-type="BAR"></div>
+        <div id="main" data-item-type="SECTION" role="main">
+<div class="main-content" data-page-type="package" id="content" pageids="encoder::com.pedro.encoder.input.gl.render.filters////PointingToDeclaration//514085151">
   <div class="breadcrumbs"><a href="../index.html">encoder</a><span class="delimiter">/</span><span class="current">com.pedro.encoder.input.gl.render.filters</span></div>
   <div class="cover ">
     <h1 class="cover"><span><span>Package-level</span></span> <span><span>declarations</span></span></h1>
@@ -99,663 +99,663 @@
     <div class="tabs-section" tabs-section="tabs-section"><button class="section-tab" data-active="" data-togglable="TYPE">Types</button></div>
     <div class="tabs-section-body">
       <div data-togglable="TYPE">
-        <h2 class="">Types</h2>
-        <div class="table"><a data-name="-1694022391%2FClasslikes%2F-1960655415" anchor-label="AnalogTVFilterRender" id="-1694022391%2FClasslikes%2F-1960655415" data-filterable-set=":encoder:dokkaHtmlPartial/release"></a>
-          <div class="table-row" data-filterable-current=":encoder:dokkaHtmlPartial/release" data-filterable-set=":encoder:dokkaHtmlPartial/release">
+        <h2 class="tableheader">Types</h2>
+        <div class="table"><a data-name="-1694022391%2FClasslikes%2F514085151" anchor-label="AnalogTVFilterRender" id="-1694022391%2FClasslikes%2F514085151" data-filterable-set=":encoder/main"></a>
+          <div class="table-row table-row_content" data-filterable-current=":encoder/main" data-filterable-set=":encoder/main">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="-analog-t-v-filter-render/index.html"><span>Analog</span><wbr><span>TVFilter</span><wbr><span><span>Render</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1694022391%2FClasslikes%2F-1960655415"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1694022391%2FClasslikes%2F514085151"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":encoder:dokkaHtmlPartial/release"><div class="symbol monospace"><div class="block"><div class="block"><span class="token annotation builtin">@</span><a href="https://developer.android.com/reference/kotlin/androidx/annotation/RequiresApi.html"><span class="token annotation builtin">RequiresApi</span></a><span class="token punctuation">(</span><span>api<span class="token operator"> = </span><a href="https://developer.android.com/reference/kotlin/android/os/Build.VERSION_CODES.html">Build.VERSION_CODES.JELLY_BEAN_MR2</a></span><wbr><span class="token punctuation">)</span></div></div><span class="token keyword">open </span><span class="token keyword">class </span><a href="-analog-t-v-filter-render/index.html">AnalogTVFilterRender</a> : <a href="-base-filter-render/index.html">BaseFilterRender</a></div><div class="brief ">Created by pedro on 09/09/19.</div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":encoder/main"><div class="symbol monospace"><div class="block"><div class="block"><span class="token annotation builtin">@</span><a href="https://developer.android.com/reference/kotlin/androidx/annotation/RequiresApi.html"><span class="token annotation builtin">RequiresApi</span></a><span class="token punctuation">(</span><span>api<span class="token operator"> = </span><a href="https://developer.android.com/reference/kotlin/android/os/Build.VERSION_CODES.html">Build.VERSION_CODES.JELLY_BEAN_MR2</a></span><wbr><span class="token punctuation">)</span></div></div><span class="token keyword">open </span><span class="token keyword">class </span><a href="-analog-t-v-filter-render/index.html">AnalogTVFilterRender</a> : <a href="-base-filter-render/index.html">BaseFilterRender</a></div><div class="brief ">Created by pedro on 09/09/19.</div></div></div>
                 </div>
               </div>
             </div>
           </div>
-<a data-name="-754428969%2FClasslikes%2F-1960655415" anchor-label="AndroidViewFilterRender" id="-754428969%2FClasslikes%2F-1960655415" data-filterable-set=":encoder:dokkaHtmlPartial/release"></a>
-          <div class="table-row" data-filterable-current=":encoder:dokkaHtmlPartial/release" data-filterable-set=":encoder:dokkaHtmlPartial/release">
+<a data-name="-754428969%2FClasslikes%2F514085151" anchor-label="AndroidViewFilterRender" id="-754428969%2FClasslikes%2F514085151" data-filterable-set=":encoder/main"></a>
+          <div class="table-row table-row_content" data-filterable-current=":encoder/main" data-filterable-set=":encoder/main">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="-android-view-filter-render/index.html"><span>Android</span><wbr><span>View</span><wbr><span>Filter</span><wbr><span><span>Render</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-754428969%2FClasslikes%2F-1960655415"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-754428969%2FClasslikes%2F514085151"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":encoder:dokkaHtmlPartial/release"><div class="symbol monospace"><div class="block"><div class="block"><span class="token annotation builtin">@</span><a href="https://developer.android.com/reference/kotlin/androidx/annotation/RequiresApi.html"><span class="token annotation builtin">RequiresApi</span></a><span class="token punctuation">(</span><span>api<span class="token operator"> = </span><a href="https://developer.android.com/reference/kotlin/android/os/Build.VERSION_CODES.html">Build.VERSION_CODES.JELLY_BEAN_MR2</a></span><wbr><span class="token punctuation">)</span></div></div><span class="token keyword">open </span><span class="token keyword">class </span><a href="-android-view-filter-render/index.html">AndroidViewFilterRender</a> : <a href="-base-filter-render/index.html">BaseFilterRender</a></div><div class="brief ">Created by pedro on 4/02/18.</div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":encoder/main"><div class="symbol monospace"><div class="block"><div class="block"><span class="token annotation builtin">@</span><a href="https://developer.android.com/reference/kotlin/androidx/annotation/RequiresApi.html"><span class="token annotation builtin">RequiresApi</span></a><span class="token punctuation">(</span><span>api<span class="token operator"> = </span><a href="https://developer.android.com/reference/kotlin/android/os/Build.VERSION_CODES.html">Build.VERSION_CODES.JELLY_BEAN_MR2</a></span><wbr><span class="token punctuation">)</span></div></div><span class="token keyword">open </span><span class="token keyword">class </span><a href="-android-view-filter-render/index.html">AndroidViewFilterRender</a> : <a href="-base-filter-render/index.html">BaseFilterRender</a></div><div class="brief ">Created by pedro on 4/02/18.</div></div></div>
                 </div>
               </div>
             </div>
           </div>
-<a data-name="961888522%2FClasslikes%2F-1960655415" anchor-label="BaseFilterRender" id="961888522%2FClasslikes%2F-1960655415" data-filterable-set=":encoder:dokkaHtmlPartial/release"></a>
-          <div class="table-row" data-filterable-current=":encoder:dokkaHtmlPartial/release" data-filterable-set=":encoder:dokkaHtmlPartial/release">
+<a data-name="961888522%2FClasslikes%2F514085151" anchor-label="BaseFilterRender" id="961888522%2FClasslikes%2F514085151" data-filterable-set=":encoder/main"></a>
+          <div class="table-row table-row_content" data-filterable-current=":encoder/main" data-filterable-set=":encoder/main">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="-base-filter-render/index.html"><span>Base</span><wbr><span>Filter</span><wbr><span><span>Render</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="961888522%2FClasslikes%2F-1960655415"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="961888522%2FClasslikes%2F514085151"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":encoder:dokkaHtmlPartial/release"><div class="symbol monospace"><div class="block"><div class="block"><span class="token annotation builtin">@</span><a href="https://developer.android.com/reference/kotlin/androidx/annotation/RequiresApi.html"><span class="token annotation builtin">RequiresApi</span></a><span class="token punctuation">(</span><span>api<span class="token operator"> = </span><a href="https://developer.android.com/reference/kotlin/android/os/Build.VERSION_CODES.html">Build.VERSION_CODES.JELLY_BEAN_MR2</a></span><wbr><span class="token punctuation">)</span></div></div><span class="token keyword">abstract </span><span class="token keyword">class </span><a href="-base-filter-render/index.html">BaseFilterRender</a> : <a href="../com.pedro.encoder.input.gl.render/-base-render-off-screen/index.html">BaseRenderOffScreen</a></div><div class="brief ">Created by pedro on 29/01/18.</div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":encoder/main"><div class="symbol monospace"><div class="block"><div class="block"><span class="token annotation builtin">@</span><a href="https://developer.android.com/reference/kotlin/androidx/annotation/RequiresApi.html"><span class="token annotation builtin">RequiresApi</span></a><span class="token punctuation">(</span><span>api<span class="token operator"> = </span><a href="https://developer.android.com/reference/kotlin/android/os/Build.VERSION_CODES.html">Build.VERSION_CODES.JELLY_BEAN_MR2</a></span><wbr><span class="token punctuation">)</span></div></div><span class="token keyword">abstract </span><span class="token keyword">class </span><a href="-base-filter-render/index.html">BaseFilterRender</a> : <a href="../com.pedro.encoder.input.gl.render/-base-render-off-screen/index.html">BaseRenderOffScreen</a></div><div class="brief ">Created by pedro on 29/01/18.</div></div></div>
                 </div>
               </div>
             </div>
           </div>
-<a data-name="1976032825%2FClasslikes%2F-1960655415" anchor-label="BasicDeformationFilterRender" id="1976032825%2FClasslikes%2F-1960655415" data-filterable-set=":encoder:dokkaHtmlPartial/release"></a>
-          <div class="table-row" data-filterable-current=":encoder:dokkaHtmlPartial/release" data-filterable-set=":encoder:dokkaHtmlPartial/release">
+<a data-name="1976032825%2FClasslikes%2F514085151" anchor-label="BasicDeformationFilterRender" id="1976032825%2FClasslikes%2F514085151" data-filterable-set=":encoder/main"></a>
+          <div class="table-row table-row_content" data-filterable-current=":encoder/main" data-filterable-set=":encoder/main">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="-basic-deformation-filter-render/index.html"><span>Basic</span><wbr><span>Deformation</span><wbr><span>Filter</span><wbr><span><span>Render</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1976032825%2FClasslikes%2F-1960655415"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1976032825%2FClasslikes%2F514085151"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":encoder:dokkaHtmlPartial/release"><div class="symbol monospace"><div class="block"><div class="block"><span class="token annotation builtin">@</span><a href="https://developer.android.com/reference/kotlin/androidx/annotation/RequiresApi.html"><span class="token annotation builtin">RequiresApi</span></a><span class="token punctuation">(</span><span>api<span class="token operator"> = </span><a href="https://developer.android.com/reference/kotlin/android/os/Build.VERSION_CODES.html">Build.VERSION_CODES.JELLY_BEAN_MR2</a></span><wbr><span class="token punctuation">)</span></div></div><span class="token keyword">open </span><span class="token keyword">class </span><a href="-basic-deformation-filter-render/index.html">BasicDeformationFilterRender</a> : <a href="-base-filter-render/index.html">BaseFilterRender</a></div><div class="brief ">Created by pedro on 4/02/18.</div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":encoder/main"><div class="symbol monospace"><div class="block"><div class="block"><span class="token annotation builtin">@</span><a href="https://developer.android.com/reference/kotlin/androidx/annotation/RequiresApi.html"><span class="token annotation builtin">RequiresApi</span></a><span class="token punctuation">(</span><span>api<span class="token operator"> = </span><a href="https://developer.android.com/reference/kotlin/android/os/Build.VERSION_CODES.html">Build.VERSION_CODES.JELLY_BEAN_MR2</a></span><wbr><span class="token punctuation">)</span></div></div><span class="token keyword">open </span><span class="token keyword">class </span><a href="-basic-deformation-filter-render/index.html">BasicDeformationFilterRender</a> : <a href="-base-filter-render/index.html">BaseFilterRender</a></div><div class="brief ">Created by pedro on 4/02/18.</div></div></div>
                 </div>
               </div>
             </div>
           </div>
-<a data-name="-81186753%2FClasslikes%2F-1960655415" anchor-label="BeautyFilterRender" id="-81186753%2FClasslikes%2F-1960655415" data-filterable-set=":encoder:dokkaHtmlPartial/release"></a>
-          <div class="table-row" data-filterable-current=":encoder:dokkaHtmlPartial/release" data-filterable-set=":encoder:dokkaHtmlPartial/release">
+<a data-name="-81186753%2FClasslikes%2F514085151" anchor-label="BeautyFilterRender" id="-81186753%2FClasslikes%2F514085151" data-filterable-set=":encoder/main"></a>
+          <div class="table-row table-row_content" data-filterable-current=":encoder/main" data-filterable-set=":encoder/main">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="-beauty-filter-render/index.html"><span>Beauty</span><wbr><span>Filter</span><wbr><span><span>Render</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-81186753%2FClasslikes%2F-1960655415"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-81186753%2FClasslikes%2F514085151"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":encoder:dokkaHtmlPartial/release"><div class="symbol monospace"><div class="block"><div class="block"><span class="token annotation builtin">@</span><a href="https://developer.android.com/reference/kotlin/androidx/annotation/RequiresApi.html"><span class="token annotation builtin">RequiresApi</span></a><span class="token punctuation">(</span><span>api<span class="token operator"> = </span><a href="https://developer.android.com/reference/kotlin/android/os/Build.VERSION_CODES.html">Build.VERSION_CODES.JELLY_BEAN_MR2</a></span><wbr><span class="token punctuation">)</span></div></div><span class="token keyword">open </span><span class="token keyword">class </span><a href="-beauty-filter-render/index.html">BeautyFilterRender</a> : <a href="-base-filter-render/index.html">BaseFilterRender</a></div><div class="brief ">Created by pedro on 7/02/18.</div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":encoder/main"><div class="symbol monospace"><div class="block"><div class="block"><span class="token annotation builtin">@</span><a href="https://developer.android.com/reference/kotlin/androidx/annotation/RequiresApi.html"><span class="token annotation builtin">RequiresApi</span></a><span class="token punctuation">(</span><span>api<span class="token operator"> = </span><a href="https://developer.android.com/reference/kotlin/android/os/Build.VERSION_CODES.html">Build.VERSION_CODES.JELLY_BEAN_MR2</a></span><wbr><span class="token punctuation">)</span></div></div><span class="token keyword">open </span><span class="token keyword">class </span><a href="-beauty-filter-render/index.html">BeautyFilterRender</a> : <a href="-base-filter-render/index.html">BaseFilterRender</a></div><div class="brief ">Created by pedro on 7/02/18.</div></div></div>
                 </div>
               </div>
             </div>
           </div>
-<a data-name="2007689836%2FClasslikes%2F-1960655415" anchor-label="BlackFilterRender" id="2007689836%2FClasslikes%2F-1960655415" data-filterable-set=":encoder:dokkaHtmlPartial/release"></a>
-          <div class="table-row" data-filterable-current=":encoder:dokkaHtmlPartial/release" data-filterable-set=":encoder:dokkaHtmlPartial/release">
+<a data-name="2007689836%2FClasslikes%2F514085151" anchor-label="BlackFilterRender" id="2007689836%2FClasslikes%2F514085151" data-filterable-set=":encoder/main"></a>
+          <div class="table-row table-row_content" data-filterable-current=":encoder/main" data-filterable-set=":encoder/main">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="-black-filter-render/index.html"><span>Black</span><wbr><span>Filter</span><wbr><span><span>Render</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="2007689836%2FClasslikes%2F-1960655415"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="2007689836%2FClasslikes%2F514085151"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":encoder:dokkaHtmlPartial/release"><div class="symbol monospace"><div class="block"><div class="block"><span class="token annotation builtin">@</span><a href="https://developer.android.com/reference/kotlin/androidx/annotation/RequiresApi.html"><span class="token annotation builtin">RequiresApi</span></a><span class="token punctuation">(</span><span>api<span class="token operator"> = </span><a href="https://developer.android.com/reference/kotlin/android/os/Build.VERSION_CODES.html">Build.VERSION_CODES.JELLY_BEAN_MR2</a></span><wbr><span class="token punctuation">)</span></div></div><span class="token keyword">open </span><span class="token keyword">class </span><a href="-black-filter-render/index.html">BlackFilterRender</a> : <a href="-base-filter-render/index.html">BaseFilterRender</a></div><div class="brief ">Created by pedro on 29/01/18.</div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":encoder/main"><div class="symbol monospace"><div class="block"><div class="block"><span class="token annotation builtin">@</span><a href="https://developer.android.com/reference/kotlin/androidx/annotation/RequiresApi.html"><span class="token annotation builtin">RequiresApi</span></a><span class="token punctuation">(</span><span>api<span class="token operator"> = </span><a href="https://developer.android.com/reference/kotlin/android/os/Build.VERSION_CODES.html">Build.VERSION_CODES.JELLY_BEAN_MR2</a></span><wbr><span class="token punctuation">)</span></div></div><span class="token keyword">open </span><span class="token keyword">class </span><a href="-black-filter-render/index.html">BlackFilterRender</a> : <a href="-base-filter-render/index.html">BaseFilterRender</a></div><div class="brief ">Created by pedro on 29/01/18.</div></div></div>
                 </div>
               </div>
             </div>
           </div>
-<a data-name="2060614964%2FClasslikes%2F-1960655415" anchor-label="BlurFilterRender" id="2060614964%2FClasslikes%2F-1960655415" data-filterable-set=":encoder:dokkaHtmlPartial/release"></a>
-          <div class="table-row" data-filterable-current=":encoder:dokkaHtmlPartial/release" data-filterable-set=":encoder:dokkaHtmlPartial/release">
+<a data-name="2060614964%2FClasslikes%2F514085151" anchor-label="BlurFilterRender" id="2060614964%2FClasslikes%2F514085151" data-filterable-set=":encoder/main"></a>
+          <div class="table-row table-row_content" data-filterable-current=":encoder/main" data-filterable-set=":encoder/main">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="-blur-filter-render/index.html"><span>Blur</span><wbr><span>Filter</span><wbr><span><span>Render</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="2060614964%2FClasslikes%2F-1960655415"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="2060614964%2FClasslikes%2F514085151"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":encoder:dokkaHtmlPartial/release"><div class="symbol monospace"><div class="block"><div class="block"><span class="token annotation builtin">@</span><a href="https://developer.android.com/reference/kotlin/androidx/annotation/RequiresApi.html"><span class="token annotation builtin">RequiresApi</span></a><span class="token punctuation">(</span><span>api<span class="token operator"> = </span><a href="https://developer.android.com/reference/kotlin/android/os/Build.VERSION_CODES.html">Build.VERSION_CODES.JELLY_BEAN_MR2</a></span><wbr><span class="token punctuation">)</span></div></div><span class="token keyword">open </span><span class="token keyword">class </span><a href="-blur-filter-render/index.html">BlurFilterRender</a> : <a href="-base-filter-render/index.html">BaseFilterRender</a></div><div class="brief ">Created by pedro on 4/02/18.</div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":encoder/main"><div class="symbol monospace"><div class="block"><div class="block"><span class="token annotation builtin">@</span><a href="https://developer.android.com/reference/kotlin/androidx/annotation/RequiresApi.html"><span class="token annotation builtin">RequiresApi</span></a><span class="token punctuation">(</span><span>api<span class="token operator"> = </span><a href="https://developer.android.com/reference/kotlin/android/os/Build.VERSION_CODES.html">Build.VERSION_CODES.JELLY_BEAN_MR2</a></span><wbr><span class="token punctuation">)</span></div></div><span class="token keyword">open </span><span class="token keyword">class </span><a href="-blur-filter-render/index.html">BlurFilterRender</a> : <a href="-base-filter-render/index.html">BaseFilterRender</a></div><div class="brief ">Created by pedro on 4/02/18.</div></div></div>
                 </div>
               </div>
             </div>
           </div>
-<a data-name="-613926518%2FClasslikes%2F-1960655415" anchor-label="BrightnessFilterRender" id="-613926518%2FClasslikes%2F-1960655415" data-filterable-set=":encoder:dokkaHtmlPartial/release"></a>
-          <div class="table-row" data-filterable-current=":encoder:dokkaHtmlPartial/release" data-filterable-set=":encoder:dokkaHtmlPartial/release">
+<a data-name="-613926518%2FClasslikes%2F514085151" anchor-label="BrightnessFilterRender" id="-613926518%2FClasslikes%2F514085151" data-filterable-set=":encoder/main"></a>
+          <div class="table-row table-row_content" data-filterable-current=":encoder/main" data-filterable-set=":encoder/main">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="-brightness-filter-render/index.html"><span>Brightness</span><wbr><span>Filter</span><wbr><span><span>Render</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-613926518%2FClasslikes%2F-1960655415"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-613926518%2FClasslikes%2F514085151"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":encoder:dokkaHtmlPartial/release"><div class="symbol monospace"><div class="block"><div class="block"><span class="token annotation builtin">@</span><a href="https://developer.android.com/reference/kotlin/androidx/annotation/RequiresApi.html"><span class="token annotation builtin">RequiresApi</span></a><span class="token punctuation">(</span><span>api<span class="token operator"> = </span><a href="https://developer.android.com/reference/kotlin/android/os/Build.VERSION_CODES.html">Build.VERSION_CODES.JELLY_BEAN_MR2</a></span><wbr><span class="token punctuation">)</span></div></div><span class="token keyword">open </span><span class="token keyword">class </span><a href="-brightness-filter-render/index.html">BrightnessFilterRender</a> : <a href="-base-filter-render/index.html">BaseFilterRender</a></div><div class="brief ">Created by pedro on 31/01/18.</div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":encoder/main"><div class="symbol monospace"><div class="block"><div class="block"><span class="token annotation builtin">@</span><a href="https://developer.android.com/reference/kotlin/androidx/annotation/RequiresApi.html"><span class="token annotation builtin">RequiresApi</span></a><span class="token punctuation">(</span><span>api<span class="token operator"> = </span><a href="https://developer.android.com/reference/kotlin/android/os/Build.VERSION_CODES.html">Build.VERSION_CODES.JELLY_BEAN_MR2</a></span><wbr><span class="token punctuation">)</span></div></div><span class="token keyword">open </span><span class="token keyword">class </span><a href="-brightness-filter-render/index.html">BrightnessFilterRender</a> : <a href="-base-filter-render/index.html">BaseFilterRender</a></div><div class="brief ">Created by pedro on 31/01/18.</div></div></div>
                 </div>
               </div>
             </div>
           </div>
-<a data-name="1290234461%2FClasslikes%2F-1960655415" anchor-label="CartoonFilterRender" id="1290234461%2FClasslikes%2F-1960655415" data-filterable-set=":encoder:dokkaHtmlPartial/release"></a>
-          <div class="table-row" data-filterable-current=":encoder:dokkaHtmlPartial/release" data-filterable-set=":encoder:dokkaHtmlPartial/release">
+<a data-name="1290234461%2FClasslikes%2F514085151" anchor-label="CartoonFilterRender" id="1290234461%2FClasslikes%2F514085151" data-filterable-set=":encoder/main"></a>
+          <div class="table-row table-row_content" data-filterable-current=":encoder/main" data-filterable-set=":encoder/main">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="-cartoon-filter-render/index.html"><span>Cartoon</span><wbr><span>Filter</span><wbr><span><span>Render</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1290234461%2FClasslikes%2F-1960655415"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1290234461%2FClasslikes%2F514085151"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":encoder:dokkaHtmlPartial/release"><div class="symbol monospace"><div class="block"><div class="block"><span class="token annotation builtin">@</span><a href="https://developer.android.com/reference/kotlin/androidx/annotation/RequiresApi.html"><span class="token annotation builtin">RequiresApi</span></a><span class="token punctuation">(</span><span>api<span class="token operator"> = </span><a href="https://developer.android.com/reference/kotlin/android/os/Build.VERSION_CODES.html">Build.VERSION_CODES.JELLY_BEAN_MR2</a></span><wbr><span class="token punctuation">)</span></div></div><span class="token keyword">open </span><span class="token keyword">class </span><a href="-cartoon-filter-render/index.html">CartoonFilterRender</a> : <a href="-base-filter-render/index.html">BaseFilterRender</a></div><div class="brief ">Created by pedro on 4/02/18.</div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":encoder/main"><div class="symbol monospace"><div class="block"><div class="block"><span class="token annotation builtin">@</span><a href="https://developer.android.com/reference/kotlin/androidx/annotation/RequiresApi.html"><span class="token annotation builtin">RequiresApi</span></a><span class="token punctuation">(</span><span>api<span class="token operator"> = </span><a href="https://developer.android.com/reference/kotlin/android/os/Build.VERSION_CODES.html">Build.VERSION_CODES.JELLY_BEAN_MR2</a></span><wbr><span class="token punctuation">)</span></div></div><span class="token keyword">open </span><span class="token keyword">class </span><a href="-cartoon-filter-render/index.html">CartoonFilterRender</a> : <a href="-base-filter-render/index.html">BaseFilterRender</a></div><div class="brief ">Created by pedro on 4/02/18.</div></div></div>
                 </div>
               </div>
             </div>
           </div>
-<a data-name="-1547435387%2FClasslikes%2F-1960655415" anchor-label="ChromaFilterRender" id="-1547435387%2FClasslikes%2F-1960655415" data-filterable-set=":encoder:dokkaHtmlPartial/release"></a>
-          <div class="table-row" data-filterable-current=":encoder:dokkaHtmlPartial/release" data-filterable-set=":encoder:dokkaHtmlPartial/release">
+<a data-name="-1547435387%2FClasslikes%2F514085151" anchor-label="ChromaFilterRender" id="-1547435387%2FClasslikes%2F514085151" data-filterable-set=":encoder/main"></a>
+          <div class="table-row table-row_content" data-filterable-current=":encoder/main" data-filterable-set=":encoder/main">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="-chroma-filter-render/index.html"><span>Chroma</span><wbr><span>Filter</span><wbr><span><span>Render</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1547435387%2FClasslikes%2F-1960655415"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1547435387%2FClasslikes%2F514085151"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":encoder:dokkaHtmlPartial/release"><div class="symbol monospace"><div class="block"><div class="block"><span class="token annotation builtin">@</span><a href="https://developer.android.com/reference/kotlin/androidx/annotation/RequiresApi.html"><span class="token annotation builtin">RequiresApi</span></a><span class="token punctuation">(</span><span>api<span class="token operator"> = </span><a href="https://developer.android.com/reference/kotlin/android/os/Build.VERSION_CODES.html">Build.VERSION_CODES.JELLY_BEAN_MR2</a></span><wbr><span class="token punctuation">)</span></div></div><span class="token keyword">open </span><span class="token keyword">class </span><a href="-chroma-filter-render/index.html">ChromaFilterRender</a> : <a href="-base-filter-render/index.html">BaseFilterRender</a></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":encoder/main"><div class="symbol monospace"><div class="block"><div class="block"><span class="token annotation builtin">@</span><a href="https://developer.android.com/reference/kotlin/androidx/annotation/RequiresApi.html"><span class="token annotation builtin">RequiresApi</span></a><span class="token punctuation">(</span><span>api<span class="token operator"> = </span><a href="https://developer.android.com/reference/kotlin/android/os/Build.VERSION_CODES.html">Build.VERSION_CODES.JELLY_BEAN_MR2</a></span><wbr><span class="token punctuation">)</span></div></div><span class="token keyword">open </span><span class="token keyword">class </span><a href="-chroma-filter-render/index.html">ChromaFilterRender</a> : <a href="-base-filter-render/index.html">BaseFilterRender</a></div></div></div>
                 </div>
               </div>
             </div>
           </div>
-<a data-name="1170613858%2FClasslikes%2F-1960655415" anchor-label="ChromaticAberrationFilterRender" id="1170613858%2FClasslikes%2F-1960655415" data-filterable-set=":encoder:dokkaHtmlPartial/release"></a>
-          <div class="table-row" data-filterable-current=":encoder:dokkaHtmlPartial/release" data-filterable-set=":encoder:dokkaHtmlPartial/release">
+<a data-name="1170613858%2FClasslikes%2F514085151" anchor-label="ChromaticAberrationFilterRender" id="1170613858%2FClasslikes%2F514085151" data-filterable-set=":encoder/main"></a>
+          <div class="table-row table-row_content" data-filterable-current=":encoder/main" data-filterable-set=":encoder/main">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="-chromatic-aberration-filter-render/index.html"><span>Chromatic</span><wbr><span>Aberration</span><wbr><span>Filter</span><wbr><span><span>Render</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1170613858%2FClasslikes%2F-1960655415"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1170613858%2FClasslikes%2F514085151"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":encoder:dokkaHtmlPartial/release"><div class="symbol monospace"><div class="block"><div class="block"><span class="token annotation builtin">@</span><a href="https://developer.android.com/reference/kotlin/androidx/annotation/RequiresApi.html"><span class="token annotation builtin">RequiresApi</span></a><span class="token punctuation">(</span><span>api<span class="token operator"> = </span><span class="breakable-word"><span class="token constant">18</span></span></span><wbr><span class="token punctuation">)</span></div></div><span class="token keyword">class </span><a href="-chromatic-aberration-filter-render/index.html">ChromaticAberrationFilterRender</a> : <a href="-base-filter-render/index.html">BaseFilterRender</a></div><div class="brief "><p class="paragraph">Created by pedro on 4/02/18.</p></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":encoder/main"><div class="symbol monospace"><div class="block"><div class="block"><span class="token annotation builtin">@</span><a href="https://developer.android.com/reference/kotlin/androidx/annotation/RequiresApi.html"><span class="token annotation builtin">RequiresApi</span></a><span class="token punctuation">(</span><span>api<span class="token operator"> = </span><span class="breakable-word"><span class="token constant">18</span></span></span><wbr><span class="token punctuation">)</span></div></div><span class="token keyword">class </span><a href="-chromatic-aberration-filter-render/index.html">ChromaticAberrationFilterRender</a> : <a href="-base-filter-render/index.html">BaseFilterRender</a></div><div class="brief "><p class="paragraph">Created by pedro on 4/02/18.</p></div></div></div>
                 </div>
               </div>
             </div>
           </div>
-<a data-name="1376479339%2FClasslikes%2F-1960655415" anchor-label="CircleFilterRender" id="1376479339%2FClasslikes%2F-1960655415" data-filterable-set=":encoder:dokkaHtmlPartial/release"></a>
-          <div class="table-row" data-filterable-current=":encoder:dokkaHtmlPartial/release" data-filterable-set=":encoder:dokkaHtmlPartial/release">
+<a data-name="1376479339%2FClasslikes%2F514085151" anchor-label="CircleFilterRender" id="1376479339%2FClasslikes%2F514085151" data-filterable-set=":encoder/main"></a>
+          <div class="table-row table-row_content" data-filterable-current=":encoder/main" data-filterable-set=":encoder/main">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="-circle-filter-render/index.html"><span>Circle</span><wbr><span>Filter</span><wbr><span><span>Render</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1376479339%2FClasslikes%2F-1960655415"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1376479339%2FClasslikes%2F514085151"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":encoder:dokkaHtmlPartial/release"><div class="symbol monospace"><div class="block"><div class="block"><span class="token annotation builtin">@</span><a href="https://developer.android.com/reference/kotlin/androidx/annotation/RequiresApi.html"><span class="token annotation builtin">RequiresApi</span></a><span class="token punctuation">(</span><span>api<span class="token operator"> = </span><a href="https://developer.android.com/reference/kotlin/android/os/Build.VERSION_CODES.html">Build.VERSION_CODES.JELLY_BEAN_MR2</a></span><wbr><span class="token punctuation">)</span></div></div><span class="token keyword">open </span><span class="token keyword">class </span><a href="-circle-filter-render/index.html">CircleFilterRender</a> : <a href="-base-filter-render/index.html">BaseFilterRender</a></div><div class="brief ">Created by pedro on 01/02/19.</div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":encoder/main"><div class="symbol monospace"><div class="block"><div class="block"><span class="token annotation builtin">@</span><a href="https://developer.android.com/reference/kotlin/androidx/annotation/RequiresApi.html"><span class="token annotation builtin">RequiresApi</span></a><span class="token punctuation">(</span><span>api<span class="token operator"> = </span><a href="https://developer.android.com/reference/kotlin/android/os/Build.VERSION_CODES.html">Build.VERSION_CODES.JELLY_BEAN_MR2</a></span><wbr><span class="token punctuation">)</span></div></div><span class="token keyword">open </span><span class="token keyword">class </span><a href="-circle-filter-render/index.html">CircleFilterRender</a> : <a href="-base-filter-render/index.html">BaseFilterRender</a></div><div class="brief ">Created by pedro on 01/02/19.</div></div></div>
                 </div>
               </div>
             </div>
           </div>
-<a data-name="-125314680%2FClasslikes%2F-1960655415" anchor-label="ColorFilterRender" id="-125314680%2FClasslikes%2F-1960655415" data-filterable-set=":encoder:dokkaHtmlPartial/release"></a>
-          <div class="table-row" data-filterable-current=":encoder:dokkaHtmlPartial/release" data-filterable-set=":encoder:dokkaHtmlPartial/release">
+<a data-name="-125314680%2FClasslikes%2F514085151" anchor-label="ColorFilterRender" id="-125314680%2FClasslikes%2F514085151" data-filterable-set=":encoder/main"></a>
+          <div class="table-row table-row_content" data-filterable-current=":encoder/main" data-filterable-set=":encoder/main">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="-color-filter-render/index.html"><span>Color</span><wbr><span>Filter</span><wbr><span><span>Render</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-125314680%2FClasslikes%2F-1960655415"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-125314680%2FClasslikes%2F514085151"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":encoder:dokkaHtmlPartial/release"><div class="symbol monospace"><div class="block"><div class="block"><span class="token annotation builtin">@</span><a href="https://developer.android.com/reference/kotlin/androidx/annotation/RequiresApi.html"><span class="token annotation builtin">RequiresApi</span></a><span class="token punctuation">(</span><span>api<span class="token operator"> = </span><a href="https://developer.android.com/reference/kotlin/android/os/Build.VERSION_CODES.html">Build.VERSION_CODES.JELLY_BEAN_MR2</a></span><wbr><span class="token punctuation">)</span></div></div><span class="token keyword">open </span><span class="token keyword">class </span><a href="-color-filter-render/index.html">ColorFilterRender</a> : <a href="-base-filter-render/index.html">BaseFilterRender</a></div><div class="brief ">Created by pedro on 30/01/18.</div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":encoder/main"><div class="symbol monospace"><div class="block"><div class="block"><span class="token annotation builtin">@</span><a href="https://developer.android.com/reference/kotlin/androidx/annotation/RequiresApi.html"><span class="token annotation builtin">RequiresApi</span></a><span class="token punctuation">(</span><span>api<span class="token operator"> = </span><a href="https://developer.android.com/reference/kotlin/android/os/Build.VERSION_CODES.html">Build.VERSION_CODES.JELLY_BEAN_MR2</a></span><wbr><span class="token punctuation">)</span></div></div><span class="token keyword">open </span><span class="token keyword">class </span><a href="-color-filter-render/index.html">ColorFilterRender</a> : <a href="-base-filter-render/index.html">BaseFilterRender</a></div><div class="brief ">Created by pedro on 30/01/18.</div></div></div>
                 </div>
               </div>
             </div>
           </div>
-<a data-name="-861232263%2FClasslikes%2F-1960655415" anchor-label="ContrastFilterRender" id="-861232263%2FClasslikes%2F-1960655415" data-filterable-set=":encoder:dokkaHtmlPartial/release"></a>
-          <div class="table-row" data-filterable-current=":encoder:dokkaHtmlPartial/release" data-filterable-set=":encoder:dokkaHtmlPartial/release">
+<a data-name="-861232263%2FClasslikes%2F514085151" anchor-label="ContrastFilterRender" id="-861232263%2FClasslikes%2F514085151" data-filterable-set=":encoder/main"></a>
+          <div class="table-row table-row_content" data-filterable-current=":encoder/main" data-filterable-set=":encoder/main">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="-contrast-filter-render/index.html"><span>Contrast</span><wbr><span>Filter</span><wbr><span><span>Render</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-861232263%2FClasslikes%2F-1960655415"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-861232263%2FClasslikes%2F514085151"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":encoder:dokkaHtmlPartial/release"><div class="symbol monospace"><div class="block"><div class="block"><span class="token annotation builtin">@</span><a href="https://developer.android.com/reference/kotlin/androidx/annotation/RequiresApi.html"><span class="token annotation builtin">RequiresApi</span></a><span class="token punctuation">(</span><span>api<span class="token operator"> = </span><a href="https://developer.android.com/reference/kotlin/android/os/Build.VERSION_CODES.html">Build.VERSION_CODES.JELLY_BEAN_MR2</a></span><wbr><span class="token punctuation">)</span></div></div><span class="token keyword">open </span><span class="token keyword">class </span><a href="-contrast-filter-render/index.html">ContrastFilterRender</a> : <a href="-base-filter-render/index.html">BaseFilterRender</a></div><div class="brief ">Created by pedro on 31/01/18.</div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":encoder/main"><div class="symbol monospace"><div class="block"><div class="block"><span class="token annotation builtin">@</span><a href="https://developer.android.com/reference/kotlin/androidx/annotation/RequiresApi.html"><span class="token annotation builtin">RequiresApi</span></a><span class="token punctuation">(</span><span>api<span class="token operator"> = </span><a href="https://developer.android.com/reference/kotlin/android/os/Build.VERSION_CODES.html">Build.VERSION_CODES.JELLY_BEAN_MR2</a></span><wbr><span class="token punctuation">)</span></div></div><span class="token keyword">open </span><span class="token keyword">class </span><a href="-contrast-filter-render/index.html">ContrastFilterRender</a> : <a href="-base-filter-render/index.html">BaseFilterRender</a></div><div class="brief ">Created by pedro on 31/01/18.</div></div></div>
                 </div>
               </div>
             </div>
           </div>
-<a data-name="-1719973717%2FClasslikes%2F-1960655415" anchor-label="CropFilterRender" id="-1719973717%2FClasslikes%2F-1960655415" data-filterable-set=":encoder:dokkaHtmlPartial/release"></a>
-          <div class="table-row" data-filterable-current=":encoder:dokkaHtmlPartial/release" data-filterable-set=":encoder:dokkaHtmlPartial/release">
+<a data-name="-1719973717%2FClasslikes%2F514085151" anchor-label="CropFilterRender" id="-1719973717%2FClasslikes%2F514085151" data-filterable-set=":encoder/main"></a>
+          <div class="table-row table-row_content" data-filterable-current=":encoder/main" data-filterable-set=":encoder/main">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="-crop-filter-render/index.html"><span>Crop</span><wbr><span>Filter</span><wbr><span><span>Render</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1719973717%2FClasslikes%2F-1960655415"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1719973717%2FClasslikes%2F514085151"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":encoder:dokkaHtmlPartial/release"><div class="symbol monospace"><div class="block"><div class="block"><span class="token annotation builtin">@</span><a href="https://developer.android.com/reference/kotlin/androidx/annotation/RequiresApi.html"><span class="token annotation builtin">RequiresApi</span></a><span class="token punctuation">(</span><span>value<span class="token operator"> = </span><span class="breakable-word"><span class="token constant">18</span></span></span><wbr><span class="token punctuation">)</span></div></div><span class="token keyword">class </span><a href="-crop-filter-render/index.html">CropFilterRender</a> : <a href="-base-filter-render/index.html">BaseFilterRender</a></div><div class="brief "><p class="paragraph">Created by pedro on 6/3/24.</p></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":encoder/main"><div class="symbol monospace"><div class="block"><div class="block"><span class="token annotation builtin">@</span><a href="https://developer.android.com/reference/kotlin/androidx/annotation/RequiresApi.html"><span class="token annotation builtin">RequiresApi</span></a><span class="token punctuation">(</span><span>value<span class="token operator"> = </span><span class="breakable-word"><span class="token constant">18</span></span></span><wbr><span class="token punctuation">)</span></div></div><span class="token keyword">class </span><a href="-crop-filter-render/index.html">CropFilterRender</a> : <a href="-base-filter-render/index.html">BaseFilterRender</a></div><div class="brief "><p class="paragraph">Created by pedro on 6/3/24.</p></div></div></div>
                 </div>
               </div>
             </div>
           </div>
-<a data-name="-1655551233%2FClasslikes%2F-1960655415" anchor-label="DistortedTvFilterRender" id="-1655551233%2FClasslikes%2F-1960655415" data-filterable-set=":encoder:dokkaHtmlPartial/release"></a>
-          <div class="table-row" data-filterable-current=":encoder:dokkaHtmlPartial/release" data-filterable-set=":encoder:dokkaHtmlPartial/release">
+<a data-name="-1655551233%2FClasslikes%2F514085151" anchor-label="DistortedTvFilterRender" id="-1655551233%2FClasslikes%2F514085151" data-filterable-set=":encoder/main"></a>
+          <div class="table-row table-row_content" data-filterable-current=":encoder/main" data-filterable-set=":encoder/main">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="-distorted-tv-filter-render/index.html"><span>Distorted</span><wbr><span>Tv</span><wbr><span>Filter</span><wbr><span><span>Render</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1655551233%2FClasslikes%2F-1960655415"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1655551233%2FClasslikes%2F514085151"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":encoder:dokkaHtmlPartial/release"><div class="symbol monospace"><div class="block"><div class="block"><span class="token annotation builtin">@</span><a href="https://developer.android.com/reference/kotlin/androidx/annotation/RequiresApi.html"><span class="token annotation builtin">RequiresApi</span></a><span class="token punctuation">(</span><span>api<span class="token operator"> = </span><span class="breakable-word"><span class="token constant">18</span></span></span><wbr><span class="token punctuation">)</span></div></div><span class="token keyword">class </span><a href="-distorted-tv-filter-render/index.html">DistortedTvFilterRender</a> : <a href="-base-filter-render/index.html">BaseFilterRender</a></div><div class="brief "><p class="paragraph">Created by pedro on 4/02/18.</p></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":encoder/main"><div class="symbol monospace"><div class="block"><div class="block"><span class="token annotation builtin">@</span><a href="https://developer.android.com/reference/kotlin/androidx/annotation/RequiresApi.html"><span class="token annotation builtin">RequiresApi</span></a><span class="token punctuation">(</span><span>api<span class="token operator"> = </span><span class="breakable-word"><span class="token constant">18</span></span></span><wbr><span class="token punctuation">)</span></div></div><span class="token keyword">class </span><a href="-distorted-tv-filter-render/index.html">DistortedTvFilterRender</a> : <a href="-base-filter-render/index.html">BaseFilterRender</a></div><div class="brief "><p class="paragraph">Created by pedro on 4/02/18.</p></div></div></div>
                 </div>
               </div>
             </div>
           </div>
-<a data-name="-1378327909%2FClasslikes%2F-1960655415" anchor-label="DuotoneFilterRender" id="-1378327909%2FClasslikes%2F-1960655415" data-filterable-set=":encoder:dokkaHtmlPartial/release"></a>
-          <div class="table-row" data-filterable-current=":encoder:dokkaHtmlPartial/release" data-filterable-set=":encoder:dokkaHtmlPartial/release">
+<a data-name="-1378327909%2FClasslikes%2F514085151" anchor-label="DuotoneFilterRender" id="-1378327909%2FClasslikes%2F514085151" data-filterable-set=":encoder/main"></a>
+          <div class="table-row table-row_content" data-filterable-current=":encoder/main" data-filterable-set=":encoder/main">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="-duotone-filter-render/index.html"><span>Duotone</span><wbr><span>Filter</span><wbr><span><span>Render</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1378327909%2FClasslikes%2F-1960655415"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1378327909%2FClasslikes%2F514085151"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":encoder:dokkaHtmlPartial/release"><div class="symbol monospace"><div class="block"><div class="block"><span class="token annotation builtin">@</span><a href="https://developer.android.com/reference/kotlin/androidx/annotation/RequiresApi.html"><span class="token annotation builtin">RequiresApi</span></a><span class="token punctuation">(</span><span>api<span class="token operator"> = </span><a href="https://developer.android.com/reference/kotlin/android/os/Build.VERSION_CODES.html">Build.VERSION_CODES.JELLY_BEAN_MR2</a></span><wbr><span class="token punctuation">)</span></div></div><span class="token keyword">open </span><span class="token keyword">class </span><a href="-duotone-filter-render/index.html">DuotoneFilterRender</a> : <a href="-base-filter-render/index.html">BaseFilterRender</a></div><div class="brief ">Created by pedro on 1/02/18.</div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":encoder/main"><div class="symbol monospace"><div class="block"><div class="block"><span class="token annotation builtin">@</span><a href="https://developer.android.com/reference/kotlin/androidx/annotation/RequiresApi.html"><span class="token annotation builtin">RequiresApi</span></a><span class="token punctuation">(</span><span>api<span class="token operator"> = </span><a href="https://developer.android.com/reference/kotlin/android/os/Build.VERSION_CODES.html">Build.VERSION_CODES.JELLY_BEAN_MR2</a></span><wbr><span class="token punctuation">)</span></div></div><span class="token keyword">open </span><span class="token keyword">class </span><a href="-duotone-filter-render/index.html">DuotoneFilterRender</a> : <a href="-base-filter-render/index.html">BaseFilterRender</a></div><div class="brief ">Created by pedro on 1/02/18.</div></div></div>
                 </div>
               </div>
             </div>
           </div>
-<a data-name="1610031567%2FClasslikes%2F-1960655415" anchor-label="EarlyBirdFilterRender" id="1610031567%2FClasslikes%2F-1960655415" data-filterable-set=":encoder:dokkaHtmlPartial/release"></a>
-          <div class="table-row" data-filterable-current=":encoder:dokkaHtmlPartial/release" data-filterable-set=":encoder:dokkaHtmlPartial/release">
+<a data-name="1610031567%2FClasslikes%2F514085151" anchor-label="EarlyBirdFilterRender" id="1610031567%2FClasslikes%2F514085151" data-filterable-set=":encoder/main"></a>
+          <div class="table-row table-row_content" data-filterable-current=":encoder/main" data-filterable-set=":encoder/main">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="-early-bird-filter-render/index.html"><span>Early</span><wbr><span>Bird</span><wbr><span>Filter</span><wbr><span><span>Render</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1610031567%2FClasslikes%2F-1960655415"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1610031567%2FClasslikes%2F514085151"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":encoder:dokkaHtmlPartial/release"><div class="symbol monospace"><div class="block"><div class="block"><span class="token annotation builtin">@</span><a href="https://developer.android.com/reference/kotlin/androidx/annotation/RequiresApi.html"><span class="token annotation builtin">RequiresApi</span></a><span class="token punctuation">(</span><span>api<span class="token operator"> = </span><a href="https://developer.android.com/reference/kotlin/android/os/Build.VERSION_CODES.html">Build.VERSION_CODES.JELLY_BEAN_MR2</a></span><wbr><span class="token punctuation">)</span></div></div><span class="token keyword">open </span><span class="token keyword">class </span><a href="-early-bird-filter-render/index.html">EarlyBirdFilterRender</a> : <a href="-base-filter-render/index.html">BaseFilterRender</a></div><div class="brief ">Created by pedro on 4/02/18.</div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":encoder/main"><div class="symbol monospace"><div class="block"><div class="block"><span class="token annotation builtin">@</span><a href="https://developer.android.com/reference/kotlin/androidx/annotation/RequiresApi.html"><span class="token annotation builtin">RequiresApi</span></a><span class="token punctuation">(</span><span>api<span class="token operator"> = </span><a href="https://developer.android.com/reference/kotlin/android/os/Build.VERSION_CODES.html">Build.VERSION_CODES.JELLY_BEAN_MR2</a></span><wbr><span class="token punctuation">)</span></div></div><span class="token keyword">open </span><span class="token keyword">class </span><a href="-early-bird-filter-render/index.html">EarlyBirdFilterRender</a> : <a href="-base-filter-render/index.html">BaseFilterRender</a></div><div class="brief ">Created by pedro on 4/02/18.</div></div></div>
                 </div>
               </div>
             </div>
           </div>
-<a data-name="125254339%2FClasslikes%2F-1960655415" anchor-label="EdgeDetectionFilterRender" id="125254339%2FClasslikes%2F-1960655415" data-filterable-set=":encoder:dokkaHtmlPartial/release"></a>
-          <div class="table-row" data-filterable-current=":encoder:dokkaHtmlPartial/release" data-filterable-set=":encoder:dokkaHtmlPartial/release">
+<a data-name="125254339%2FClasslikes%2F514085151" anchor-label="EdgeDetectionFilterRender" id="125254339%2FClasslikes%2F514085151" data-filterable-set=":encoder/main"></a>
+          <div class="table-row table-row_content" data-filterable-current=":encoder/main" data-filterable-set=":encoder/main">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="-edge-detection-filter-render/index.html"><span>Edge</span><wbr><span>Detection</span><wbr><span>Filter</span><wbr><span><span>Render</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="125254339%2FClasslikes%2F-1960655415"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="125254339%2FClasslikes%2F514085151"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":encoder:dokkaHtmlPartial/release"><div class="symbol monospace"><div class="block"><div class="block"><span class="token annotation builtin">@</span><a href="https://developer.android.com/reference/kotlin/androidx/annotation/RequiresApi.html"><span class="token annotation builtin">RequiresApi</span></a><span class="token punctuation">(</span><span>api<span class="token operator"> = </span><a href="https://developer.android.com/reference/kotlin/android/os/Build.VERSION_CODES.html">Build.VERSION_CODES.JELLY_BEAN_MR2</a></span><wbr><span class="token punctuation">)</span></div></div><span class="token keyword">open </span><span class="token keyword">class </span><a href="-edge-detection-filter-render/index.html">EdgeDetectionFilterRender</a> : <a href="-base-filter-render/index.html">BaseFilterRender</a></div><div class="brief ">Created by pedro on 4/02/18.</div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":encoder/main"><div class="symbol monospace"><div class="block"><div class="block"><span class="token annotation builtin">@</span><a href="https://developer.android.com/reference/kotlin/androidx/annotation/RequiresApi.html"><span class="token annotation builtin">RequiresApi</span></a><span class="token punctuation">(</span><span>api<span class="token operator"> = </span><a href="https://developer.android.com/reference/kotlin/android/os/Build.VERSION_CODES.html">Build.VERSION_CODES.JELLY_BEAN_MR2</a></span><wbr><span class="token punctuation">)</span></div></div><span class="token keyword">open </span><span class="token keyword">class </span><a href="-edge-detection-filter-render/index.html">EdgeDetectionFilterRender</a> : <a href="-base-filter-render/index.html">BaseFilterRender</a></div><div class="brief ">Created by pedro on 4/02/18.</div></div></div>
                 </div>
               </div>
             </div>
           </div>
-<a data-name="1608747156%2FClasslikes%2F-1960655415" anchor-label="ExposureFilterRender" id="1608747156%2FClasslikes%2F-1960655415" data-filterable-set=":encoder:dokkaHtmlPartial/release"></a>
-          <div class="table-row" data-filterable-current=":encoder:dokkaHtmlPartial/release" data-filterable-set=":encoder:dokkaHtmlPartial/release">
+<a data-name="1608747156%2FClasslikes%2F514085151" anchor-label="ExposureFilterRender" id="1608747156%2FClasslikes%2F514085151" data-filterable-set=":encoder/main"></a>
+          <div class="table-row table-row_content" data-filterable-current=":encoder/main" data-filterable-set=":encoder/main">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="-exposure-filter-render/index.html"><span>Exposure</span><wbr><span>Filter</span><wbr><span><span>Render</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1608747156%2FClasslikes%2F-1960655415"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1608747156%2FClasslikes%2F514085151"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":encoder:dokkaHtmlPartial/release"><div class="symbol monospace"><div class="block"><div class="block"><span class="token annotation builtin">@</span><a href="https://developer.android.com/reference/kotlin/androidx/annotation/RequiresApi.html"><span class="token annotation builtin">RequiresApi</span></a><span class="token punctuation">(</span><span>api<span class="token operator"> = </span><a href="https://developer.android.com/reference/kotlin/android/os/Build.VERSION_CODES.html">Build.VERSION_CODES.JELLY_BEAN_MR2</a></span><wbr><span class="token punctuation">)</span></div></div><span class="token keyword">open </span><span class="token keyword">class </span><a href="-exposure-filter-render/index.html">ExposureFilterRender</a> : <a href="-base-filter-render/index.html">BaseFilterRender</a></div><div class="brief ">Created by pedro on 31/01/18.</div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":encoder/main"><div class="symbol monospace"><div class="block"><div class="block"><span class="token annotation builtin">@</span><a href="https://developer.android.com/reference/kotlin/androidx/annotation/RequiresApi.html"><span class="token annotation builtin">RequiresApi</span></a><span class="token punctuation">(</span><span>api<span class="token operator"> = </span><a href="https://developer.android.com/reference/kotlin/android/os/Build.VERSION_CODES.html">Build.VERSION_CODES.JELLY_BEAN_MR2</a></span><wbr><span class="token punctuation">)</span></div></div><span class="token keyword">open </span><span class="token keyword">class </span><a href="-exposure-filter-render/index.html">ExposureFilterRender</a> : <a href="-base-filter-render/index.html">BaseFilterRender</a></div><div class="brief ">Created by pedro on 31/01/18.</div></div></div>
                 </div>
               </div>
             </div>
           </div>
-<a data-name="1539603653%2FClasslikes%2F-1960655415" anchor-label="FireFilterRender" id="1539603653%2FClasslikes%2F-1960655415" data-filterable-set=":encoder:dokkaHtmlPartial/release"></a>
-          <div class="table-row" data-filterable-current=":encoder:dokkaHtmlPartial/release" data-filterable-set=":encoder:dokkaHtmlPartial/release">
+<a data-name="1539603653%2FClasslikes%2F514085151" anchor-label="FireFilterRender" id="1539603653%2FClasslikes%2F514085151" data-filterable-set=":encoder/main"></a>
+          <div class="table-row table-row_content" data-filterable-current=":encoder/main" data-filterable-set=":encoder/main">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="-fire-filter-render/index.html"><span>Fire</span><wbr><span>Filter</span><wbr><span><span>Render</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1539603653%2FClasslikes%2F-1960655415"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1539603653%2FClasslikes%2F514085151"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":encoder:dokkaHtmlPartial/release"><div class="symbol monospace"><div class="block"><div class="block"><span class="token annotation builtin">@</span><a href="https://developer.android.com/reference/kotlin/androidx/annotation/RequiresApi.html"><span class="token annotation builtin">RequiresApi</span></a><span class="token punctuation">(</span><span>api<span class="token operator"> = </span><a href="https://developer.android.com/reference/kotlin/android/os/Build.VERSION_CODES.html">Build.VERSION_CODES.JELLY_BEAN_MR2</a></span><wbr><span class="token punctuation">)</span></div></div><span class="token keyword">open </span><span class="token keyword">class </span><a href="-fire-filter-render/index.html">FireFilterRender</a> : <a href="-base-filter-render/index.html">BaseFilterRender</a></div><div class="brief ">Created by pedro on 4/02/18.</div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":encoder/main"><div class="symbol monospace"><div class="block"><div class="block"><span class="token annotation builtin">@</span><a href="https://developer.android.com/reference/kotlin/androidx/annotation/RequiresApi.html"><span class="token annotation builtin">RequiresApi</span></a><span class="token punctuation">(</span><span>api<span class="token operator"> = </span><a href="https://developer.android.com/reference/kotlin/android/os/Build.VERSION_CODES.html">Build.VERSION_CODES.JELLY_BEAN_MR2</a></span><wbr><span class="token punctuation">)</span></div></div><span class="token keyword">open </span><span class="token keyword">class </span><a href="-fire-filter-render/index.html">FireFilterRender</a> : <a href="-base-filter-render/index.html">BaseFilterRender</a></div><div class="brief ">Created by pedro on 4/02/18.</div></div></div>
                 </div>
               </div>
             </div>
           </div>
-<a data-name="-1275465788%2FClasslikes%2F-1960655415" anchor-label="GammaFilterRender" id="-1275465788%2FClasslikes%2F-1960655415" data-filterable-set=":encoder:dokkaHtmlPartial/release"></a>
-          <div class="table-row" data-filterable-current=":encoder:dokkaHtmlPartial/release" data-filterable-set=":encoder:dokkaHtmlPartial/release">
+<a data-name="-1275465788%2FClasslikes%2F514085151" anchor-label="GammaFilterRender" id="-1275465788%2FClasslikes%2F514085151" data-filterable-set=":encoder/main"></a>
+          <div class="table-row table-row_content" data-filterable-current=":encoder/main" data-filterable-set=":encoder/main">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="-gamma-filter-render/index.html"><span>Gamma</span><wbr><span>Filter</span><wbr><span><span>Render</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1275465788%2FClasslikes%2F-1960655415"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1275465788%2FClasslikes%2F514085151"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":encoder:dokkaHtmlPartial/release"><div class="symbol monospace"><div class="block"><div class="block"><span class="token annotation builtin">@</span><a href="https://developer.android.com/reference/kotlin/androidx/annotation/RequiresApi.html"><span class="token annotation builtin">RequiresApi</span></a><span class="token punctuation">(</span><span>api<span class="token operator"> = </span><a href="https://developer.android.com/reference/kotlin/android/os/Build.VERSION_CODES.html">Build.VERSION_CODES.JELLY_BEAN_MR2</a></span><wbr><span class="token punctuation">)</span></div></div><span class="token keyword">open </span><span class="token keyword">class </span><a href="-gamma-filter-render/index.html">GammaFilterRender</a> : <a href="-base-filter-render/index.html">BaseFilterRender</a></div><div class="brief ">Created by pedro on 2/02/18.</div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":encoder/main"><div class="symbol monospace"><div class="block"><div class="block"><span class="token annotation builtin">@</span><a href="https://developer.android.com/reference/kotlin/androidx/annotation/RequiresApi.html"><span class="token annotation builtin">RequiresApi</span></a><span class="token punctuation">(</span><span>api<span class="token operator"> = </span><a href="https://developer.android.com/reference/kotlin/android/os/Build.VERSION_CODES.html">Build.VERSION_CODES.JELLY_BEAN_MR2</a></span><wbr><span class="token punctuation">)</span></div></div><span class="token keyword">open </span><span class="token keyword">class </span><a href="-gamma-filter-render/index.html">GammaFilterRender</a> : <a href="-base-filter-render/index.html">BaseFilterRender</a></div><div class="brief ">Created by pedro on 2/02/18.</div></div></div>
                 </div>
               </div>
             </div>
           </div>
-<a data-name="-410295514%2FClasslikes%2F-1960655415" anchor-label="GlitchFilterRender" id="-410295514%2FClasslikes%2F-1960655415" data-filterable-set=":encoder:dokkaHtmlPartial/release"></a>
-          <div class="table-row" data-filterable-current=":encoder:dokkaHtmlPartial/release" data-filterable-set=":encoder:dokkaHtmlPartial/release">
+<a data-name="-410295514%2FClasslikes%2F514085151" anchor-label="GlitchFilterRender" id="-410295514%2FClasslikes%2F514085151" data-filterable-set=":encoder/main"></a>
+          <div class="table-row table-row_content" data-filterable-current=":encoder/main" data-filterable-set=":encoder/main">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="-glitch-filter-render/index.html"><span>Glitch</span><wbr><span>Filter</span><wbr><span><span>Render</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-410295514%2FClasslikes%2F-1960655415"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-410295514%2FClasslikes%2F514085151"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":encoder:dokkaHtmlPartial/release"><div class="symbol monospace"><div class="block"><div class="block"><span class="token annotation builtin">@</span><a href="https://developer.android.com/reference/kotlin/androidx/annotation/RequiresApi.html"><span class="token annotation builtin">RequiresApi</span></a><span class="token punctuation">(</span><span>api<span class="token operator"> = </span><a href="https://developer.android.com/reference/kotlin/android/os/Build.VERSION_CODES.html">Build.VERSION_CODES.JELLY_BEAN_MR2</a></span><wbr><span class="token punctuation">)</span></div></div><span class="token keyword">open </span><span class="token keyword">class </span><a href="-glitch-filter-render/index.html">GlitchFilterRender</a> : <a href="-base-filter-render/index.html">BaseFilterRender</a></div><div class="brief ">Created by pedro on 19/12/18.</div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":encoder/main"><div class="symbol monospace"><div class="block"><div class="block"><span class="token annotation builtin">@</span><a href="https://developer.android.com/reference/kotlin/androidx/annotation/RequiresApi.html"><span class="token annotation builtin">RequiresApi</span></a><span class="token punctuation">(</span><span>api<span class="token operator"> = </span><a href="https://developer.android.com/reference/kotlin/android/os/Build.VERSION_CODES.html">Build.VERSION_CODES.JELLY_BEAN_MR2</a></span><wbr><span class="token punctuation">)</span></div></div><span class="token keyword">open </span><span class="token keyword">class </span><a href="-glitch-filter-render/index.html">GlitchFilterRender</a> : <a href="-base-filter-render/index.html">BaseFilterRender</a></div><div class="brief ">Created by pedro on 19/12/18.</div></div></div>
                 </div>
               </div>
             </div>
           </div>
-<a data-name="-807313344%2FClasslikes%2F-1960655415" anchor-label="GreyScaleFilterRender" id="-807313344%2FClasslikes%2F-1960655415" data-filterable-set=":encoder:dokkaHtmlPartial/release"></a>
-          <div class="table-row" data-filterable-current=":encoder:dokkaHtmlPartial/release" data-filterable-set=":encoder:dokkaHtmlPartial/release">
+<a data-name="-807313344%2FClasslikes%2F514085151" anchor-label="GreyScaleFilterRender" id="-807313344%2FClasslikes%2F514085151" data-filterable-set=":encoder/main"></a>
+          <div class="table-row table-row_content" data-filterable-current=":encoder/main" data-filterable-set=":encoder/main">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="-grey-scale-filter-render/index.html"><span>Grey</span><wbr><span>Scale</span><wbr><span>Filter</span><wbr><span><span>Render</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-807313344%2FClasslikes%2F-1960655415"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-807313344%2FClasslikes%2F514085151"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":encoder:dokkaHtmlPartial/release"><div class="symbol monospace"><div class="block"><div class="block"><span class="token annotation builtin">@</span><a href="https://developer.android.com/reference/kotlin/androidx/annotation/RequiresApi.html"><span class="token annotation builtin">RequiresApi</span></a><span class="token punctuation">(</span><span>api<span class="token operator"> = </span><a href="https://developer.android.com/reference/kotlin/android/os/Build.VERSION_CODES.html">Build.VERSION_CODES.JELLY_BEAN_MR2</a></span><wbr><span class="token punctuation">)</span></div></div><span class="token keyword">open </span><span class="token keyword">class </span><a href="-grey-scale-filter-render/index.html">GreyScaleFilterRender</a> : <a href="-base-filter-render/index.html">BaseFilterRender</a></div><div class="brief ">Created by pedro on 29/01/18.</div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":encoder/main"><div class="symbol monospace"><div class="block"><div class="block"><span class="token annotation builtin">@</span><a href="https://developer.android.com/reference/kotlin/androidx/annotation/RequiresApi.html"><span class="token annotation builtin">RequiresApi</span></a><span class="token punctuation">(</span><span>api<span class="token operator"> = </span><a href="https://developer.android.com/reference/kotlin/android/os/Build.VERSION_CODES.html">Build.VERSION_CODES.JELLY_BEAN_MR2</a></span><wbr><span class="token punctuation">)</span></div></div><span class="token keyword">open </span><span class="token keyword">class </span><a href="-grey-scale-filter-render/index.html">GreyScaleFilterRender</a> : <a href="-base-filter-render/index.html">BaseFilterRender</a></div><div class="brief ">Created by pedro on 29/01/18.</div></div></div>
                 </div>
               </div>
             </div>
           </div>
-<a data-name="-1096951439%2FClasslikes%2F-1960655415" anchor-label="HalftoneLinesFilterRender" id="-1096951439%2FClasslikes%2F-1960655415" data-filterable-set=":encoder:dokkaHtmlPartial/release"></a>
-          <div class="table-row" data-filterable-current=":encoder:dokkaHtmlPartial/release" data-filterable-set=":encoder:dokkaHtmlPartial/release">
+<a data-name="-1096951439%2FClasslikes%2F514085151" anchor-label="HalftoneLinesFilterRender" id="-1096951439%2FClasslikes%2F514085151" data-filterable-set=":encoder/main"></a>
+          <div class="table-row table-row_content" data-filterable-current=":encoder/main" data-filterable-set=":encoder/main">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="-halftone-lines-filter-render/index.html"><span>Halftone</span><wbr><span>Lines</span><wbr><span>Filter</span><wbr><span><span>Render</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1096951439%2FClasslikes%2F-1960655415"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1096951439%2FClasslikes%2F514085151"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":encoder:dokkaHtmlPartial/release"><div class="symbol monospace"><div class="block"><div class="block"><span class="token annotation builtin">@</span><a href="https://developer.android.com/reference/kotlin/androidx/annotation/RequiresApi.html"><span class="token annotation builtin">RequiresApi</span></a><span class="token punctuation">(</span><span>api<span class="token operator"> = </span><a href="https://developer.android.com/reference/kotlin/android/os/Build.VERSION_CODES.html">Build.VERSION_CODES.JELLY_BEAN_MR2</a></span><wbr><span class="token punctuation">)</span></div></div><span class="token keyword">open </span><span class="token keyword">class </span><a href="-halftone-lines-filter-render/index.html">HalftoneLinesFilterRender</a> : <a href="-base-filter-render/index.html">BaseFilterRender</a></div><div class="brief ">Created by pedro on 4/02/18.</div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":encoder/main"><div class="symbol monospace"><div class="block"><div class="block"><span class="token annotation builtin">@</span><a href="https://developer.android.com/reference/kotlin/androidx/annotation/RequiresApi.html"><span class="token annotation builtin">RequiresApi</span></a><span class="token punctuation">(</span><span>api<span class="token operator"> = </span><a href="https://developer.android.com/reference/kotlin/android/os/Build.VERSION_CODES.html">Build.VERSION_CODES.JELLY_BEAN_MR2</a></span><wbr><span class="token punctuation">)</span></div></div><span class="token keyword">open </span><span class="token keyword">class </span><a href="-halftone-lines-filter-render/index.html">HalftoneLinesFilterRender</a> : <a href="-base-filter-render/index.html">BaseFilterRender</a></div><div class="brief ">Created by pedro on 4/02/18.</div></div></div>
                 </div>
               </div>
             </div>
           </div>
-<a data-name="1988167452%2FClasslikes%2F-1960655415" anchor-label="Image70sFilterRender" id="1988167452%2FClasslikes%2F-1960655415" data-filterable-set=":encoder:dokkaHtmlPartial/release"></a>
-          <div class="table-row" data-filterable-current=":encoder:dokkaHtmlPartial/release" data-filterable-set=":encoder:dokkaHtmlPartial/release">
+<a data-name="1988167452%2FClasslikes%2F514085151" anchor-label="Image70sFilterRender" id="1988167452%2FClasslikes%2F514085151" data-filterable-set=":encoder/main"></a>
+          <div class="table-row table-row_content" data-filterable-current=":encoder/main" data-filterable-set=":encoder/main">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="-image70s-filter-render/index.html"><span>Image70s</span><wbr><span>Filter</span><wbr><span><span>Render</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1988167452%2FClasslikes%2F-1960655415"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1988167452%2FClasslikes%2F514085151"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":encoder:dokkaHtmlPartial/release"><div class="symbol monospace"><div class="block"><div class="block"><span class="token annotation builtin">@</span><a href="https://developer.android.com/reference/kotlin/androidx/annotation/RequiresApi.html"><span class="token annotation builtin">RequiresApi</span></a><span class="token punctuation">(</span><span>api<span class="token operator"> = </span><a href="https://developer.android.com/reference/kotlin/android/os/Build.VERSION_CODES.html">Build.VERSION_CODES.JELLY_BEAN_MR2</a></span><wbr><span class="token punctuation">)</span></div></div><span class="token keyword">open </span><span class="token keyword">class </span><a href="-image70s-filter-render/index.html">Image70sFilterRender</a> : <a href="-base-filter-render/index.html">BaseFilterRender</a></div><div class="brief ">Created by pedro on 4/02/18.</div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":encoder/main"><div class="symbol monospace"><div class="block"><div class="block"><span class="token annotation builtin">@</span><a href="https://developer.android.com/reference/kotlin/androidx/annotation/RequiresApi.html"><span class="token annotation builtin">RequiresApi</span></a><span class="token punctuation">(</span><span>api<span class="token operator"> = </span><a href="https://developer.android.com/reference/kotlin/android/os/Build.VERSION_CODES.html">Build.VERSION_CODES.JELLY_BEAN_MR2</a></span><wbr><span class="token punctuation">)</span></div></div><span class="token keyword">open </span><span class="token keyword">class </span><a href="-image70s-filter-render/index.html">Image70sFilterRender</a> : <a href="-base-filter-render/index.html">BaseFilterRender</a></div><div class="brief ">Created by pedro on 4/02/18.</div></div></div>
                 </div>
               </div>
             </div>
           </div>
-<a data-name="343722532%2FClasslikes%2F-1960655415" anchor-label="LamoishFilterRender" id="343722532%2FClasslikes%2F-1960655415" data-filterable-set=":encoder:dokkaHtmlPartial/release"></a>
-          <div class="table-row" data-filterable-current=":encoder:dokkaHtmlPartial/release" data-filterable-set=":encoder:dokkaHtmlPartial/release">
+<a data-name="343722532%2FClasslikes%2F514085151" anchor-label="LamoishFilterRender" id="343722532%2FClasslikes%2F514085151" data-filterable-set=":encoder/main"></a>
+          <div class="table-row table-row_content" data-filterable-current=":encoder/main" data-filterable-set=":encoder/main">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="-lamoish-filter-render/index.html"><span>Lamoish</span><wbr><span>Filter</span><wbr><span><span>Render</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="343722532%2FClasslikes%2F-1960655415"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="343722532%2FClasslikes%2F514085151"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":encoder:dokkaHtmlPartial/release"><div class="symbol monospace"><div class="block"><div class="block"><span class="token annotation builtin">@</span><a href="https://developer.android.com/reference/kotlin/androidx/annotation/RequiresApi.html"><span class="token annotation builtin">RequiresApi</span></a><span class="token punctuation">(</span><span>api<span class="token operator"> = </span><a href="https://developer.android.com/reference/kotlin/android/os/Build.VERSION_CODES.html">Build.VERSION_CODES.JELLY_BEAN_MR2</a></span><wbr><span class="token punctuation">)</span></div></div><span class="token keyword">open </span><span class="token keyword">class </span><a href="-lamoish-filter-render/index.html">LamoishFilterRender</a> : <a href="-base-filter-render/index.html">BaseFilterRender</a></div><div class="brief ">Created by pedro on 3/02/18.</div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":encoder/main"><div class="symbol monospace"><div class="block"><div class="block"><span class="token annotation builtin">@</span><a href="https://developer.android.com/reference/kotlin/androidx/annotation/RequiresApi.html"><span class="token annotation builtin">RequiresApi</span></a><span class="token punctuation">(</span><span>api<span class="token operator"> = </span><a href="https://developer.android.com/reference/kotlin/android/os/Build.VERSION_CODES.html">Build.VERSION_CODES.JELLY_BEAN_MR2</a></span><wbr><span class="token punctuation">)</span></div></div><span class="token keyword">open </span><span class="token keyword">class </span><a href="-lamoish-filter-render/index.html">LamoishFilterRender</a> : <a href="-base-filter-render/index.html">BaseFilterRender</a></div><div class="brief ">Created by pedro on 3/02/18.</div></div></div>
                 </div>
               </div>
             </div>
           </div>
-<a data-name="-1074762165%2FClasslikes%2F-1960655415" anchor-label="MoneyFilterRender" id="-1074762165%2FClasslikes%2F-1960655415" data-filterable-set=":encoder:dokkaHtmlPartial/release"></a>
-          <div class="table-row" data-filterable-current=":encoder:dokkaHtmlPartial/release" data-filterable-set=":encoder:dokkaHtmlPartial/release">
+<a data-name="-1074762165%2FClasslikes%2F514085151" anchor-label="MoneyFilterRender" id="-1074762165%2FClasslikes%2F514085151" data-filterable-set=":encoder/main"></a>
+          <div class="table-row table-row_content" data-filterable-current=":encoder/main" data-filterable-set=":encoder/main">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="-money-filter-render/index.html"><span>Money</span><wbr><span>Filter</span><wbr><span><span>Render</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1074762165%2FClasslikes%2F-1960655415"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1074762165%2FClasslikes%2F514085151"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":encoder:dokkaHtmlPartial/release"><div class="symbol monospace"><div class="block"><div class="block"><span class="token annotation builtin">@</span><a href="https://developer.android.com/reference/kotlin/androidx/annotation/RequiresApi.html"><span class="token annotation builtin">RequiresApi</span></a><span class="token punctuation">(</span><span>api<span class="token operator"> = </span><a href="https://developer.android.com/reference/kotlin/android/os/Build.VERSION_CODES.html">Build.VERSION_CODES.JELLY_BEAN_MR2</a></span><wbr><span class="token punctuation">)</span></div></div><span class="token keyword">open </span><span class="token keyword">class </span><a href="-money-filter-render/index.html">MoneyFilterRender</a> : <a href="-base-filter-render/index.html">BaseFilterRender</a></div><div class="brief ">Created by pedro on 4/02/18.</div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":encoder/main"><div class="symbol monospace"><div class="block"><div class="block"><span class="token annotation builtin">@</span><a href="https://developer.android.com/reference/kotlin/androidx/annotation/RequiresApi.html"><span class="token annotation builtin">RequiresApi</span></a><span class="token punctuation">(</span><span>api<span class="token operator"> = </span><a href="https://developer.android.com/reference/kotlin/android/os/Build.VERSION_CODES.html">Build.VERSION_CODES.JELLY_BEAN_MR2</a></span><wbr><span class="token punctuation">)</span></div></div><span class="token keyword">open </span><span class="token keyword">class </span><a href="-money-filter-render/index.html">MoneyFilterRender</a> : <a href="-base-filter-render/index.html">BaseFilterRender</a></div><div class="brief ">Created by pedro on 4/02/18.</div></div></div>
                 </div>
               </div>
             </div>
           </div>
-<a data-name="2087026214%2FClasslikes%2F-1960655415" anchor-label="NegativeFilterRender" id="2087026214%2FClasslikes%2F-1960655415" data-filterable-set=":encoder:dokkaHtmlPartial/release"></a>
-          <div class="table-row" data-filterable-current=":encoder:dokkaHtmlPartial/release" data-filterable-set=":encoder:dokkaHtmlPartial/release">
+<a data-name="2087026214%2FClasslikes%2F514085151" anchor-label="NegativeFilterRender" id="2087026214%2FClasslikes%2F514085151" data-filterable-set=":encoder/main"></a>
+          <div class="table-row table-row_content" data-filterable-current=":encoder/main" data-filterable-set=":encoder/main">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="-negative-filter-render/index.html"><span>Negative</span><wbr><span>Filter</span><wbr><span><span>Render</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="2087026214%2FClasslikes%2F-1960655415"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="2087026214%2FClasslikes%2F514085151"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":encoder:dokkaHtmlPartial/release"><div class="symbol monospace"><div class="block"><div class="block"><span class="token annotation builtin">@</span><a href="https://developer.android.com/reference/kotlin/androidx/annotation/RequiresApi.html"><span class="token annotation builtin">RequiresApi</span></a><span class="token punctuation">(</span><span>api<span class="token operator"> = </span><a href="https://developer.android.com/reference/kotlin/android/os/Build.VERSION_CODES.html">Build.VERSION_CODES.JELLY_BEAN_MR2</a></span><wbr><span class="token punctuation">)</span></div></div><span class="token keyword">open </span><span class="token keyword">class </span><a href="-negative-filter-render/index.html">NegativeFilterRender</a> : <a href="-base-filter-render/index.html">BaseFilterRender</a></div><div class="brief ">Created by pedro on 29/01/18.</div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":encoder/main"><div class="symbol monospace"><div class="block"><div class="block"><span class="token annotation builtin">@</span><a href="https://developer.android.com/reference/kotlin/androidx/annotation/RequiresApi.html"><span class="token annotation builtin">RequiresApi</span></a><span class="token punctuation">(</span><span>api<span class="token operator"> = </span><a href="https://developer.android.com/reference/kotlin/android/os/Build.VERSION_CODES.html">Build.VERSION_CODES.JELLY_BEAN_MR2</a></span><wbr><span class="token punctuation">)</span></div></div><span class="token keyword">open </span><span class="token keyword">class </span><a href="-negative-filter-render/index.html">NegativeFilterRender</a> : <a href="-base-filter-render/index.html">BaseFilterRender</a></div><div class="brief ">Created by pedro on 29/01/18.</div></div></div>
                 </div>
               </div>
             </div>
           </div>
-<a data-name="1863161370%2FClasslikes%2F-1960655415" anchor-label="NoFilterRender" id="1863161370%2FClasslikes%2F-1960655415" data-filterable-set=":encoder:dokkaHtmlPartial/release"></a>
-          <div class="table-row" data-filterable-current=":encoder:dokkaHtmlPartial/release" data-filterable-set=":encoder:dokkaHtmlPartial/release">
+<a data-name="1863161370%2FClasslikes%2F514085151" anchor-label="NoFilterRender" id="1863161370%2FClasslikes%2F514085151" data-filterable-set=":encoder/main"></a>
+          <div class="table-row table-row_content" data-filterable-current=":encoder/main" data-filterable-set=":encoder/main">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="-no-filter-render/index.html"><span>No</span><wbr><span>Filter</span><wbr><span><span>Render</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1863161370%2FClasslikes%2F-1960655415"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1863161370%2FClasslikes%2F514085151"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":encoder:dokkaHtmlPartial/release"><div class="symbol monospace"><div class="block"><div class="block"><span class="token annotation builtin">@</span><a href="https://developer.android.com/reference/kotlin/androidx/annotation/RequiresApi.html"><span class="token annotation builtin">RequiresApi</span></a><span class="token punctuation">(</span><span>api<span class="token operator"> = </span><a href="https://developer.android.com/reference/kotlin/android/os/Build.VERSION_CODES.html">Build.VERSION_CODES.JELLY_BEAN_MR2</a></span><wbr><span class="token punctuation">)</span></div></div><span class="token keyword">open </span><span class="token keyword">class </span><a href="-no-filter-render/index.html">NoFilterRender</a> : <a href="-base-filter-render/index.html">BaseFilterRender</a></div><div class="brief ">Created by pedro on 29/01/18.</div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":encoder/main"><div class="symbol monospace"><div class="block"><div class="block"><span class="token annotation builtin">@</span><a href="https://developer.android.com/reference/kotlin/androidx/annotation/RequiresApi.html"><span class="token annotation builtin">RequiresApi</span></a><span class="token punctuation">(</span><span>api<span class="token operator"> = </span><a href="https://developer.android.com/reference/kotlin/android/os/Build.VERSION_CODES.html">Build.VERSION_CODES.JELLY_BEAN_MR2</a></span><wbr><span class="token punctuation">)</span></div></div><span class="token keyword">open </span><span class="token keyword">class </span><a href="-no-filter-render/index.html">NoFilterRender</a> : <a href="-base-filter-render/index.html">BaseFilterRender</a></div><div class="brief ">Created by pedro on 29/01/18.</div></div></div>
                 </div>
               </div>
             </div>
           </div>
-<a data-name="2002335793%2FClasslikes%2F-1960655415" anchor-label="NoiseFilterRender" id="2002335793%2FClasslikes%2F-1960655415" data-filterable-set=":encoder:dokkaHtmlPartial/release"></a>
-          <div class="table-row" data-filterable-current=":encoder:dokkaHtmlPartial/release" data-filterable-set=":encoder:dokkaHtmlPartial/release">
+<a data-name="2002335793%2FClasslikes%2F514085151" anchor-label="NoiseFilterRender" id="2002335793%2FClasslikes%2F514085151" data-filterable-set=":encoder/main"></a>
+          <div class="table-row table-row_content" data-filterable-current=":encoder/main" data-filterable-set=":encoder/main">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="-noise-filter-render/index.html"><span>Noise</span><wbr><span>Filter</span><wbr><span><span>Render</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="2002335793%2FClasslikes%2F-1960655415"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="2002335793%2FClasslikes%2F514085151"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":encoder:dokkaHtmlPartial/release"><div class="symbol monospace"><div class="block"><div class="block"><span class="token annotation builtin">@</span><a href="https://developer.android.com/reference/kotlin/androidx/annotation/RequiresApi.html"><span class="token annotation builtin">RequiresApi</span></a><span class="token punctuation">(</span><span>api<span class="token operator"> = </span><span class="breakable-word"><span class="token constant">18</span></span></span><wbr><span class="token punctuation">)</span></div></div><span class="token keyword">class </span><a href="-noise-filter-render/index.html">NoiseFilterRender</a> : <a href="-base-filter-render/index.html">BaseFilterRender</a></div><div class="brief "><p class="paragraph">Created by pedro on 4/02/18.</p></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":encoder/main"><div class="symbol monospace"><div class="block"><div class="block"><span class="token annotation builtin">@</span><a href="https://developer.android.com/reference/kotlin/androidx/annotation/RequiresApi.html"><span class="token annotation builtin">RequiresApi</span></a><span class="token punctuation">(</span><span>api<span class="token operator"> = </span><span class="breakable-word"><span class="token constant">18</span></span></span><wbr><span class="token punctuation">)</span></div></div><span class="token keyword">class </span><a href="-noise-filter-render/index.html">NoiseFilterRender</a> : <a href="-base-filter-render/index.html">BaseFilterRender</a></div><div class="brief "><p class="paragraph">Created by pedro on 4/02/18.</p></div></div></div>
                 </div>
               </div>
             </div>
           </div>
-<a data-name="-1436611981%2FClasslikes%2F-1960655415" anchor-label="PixelatedFilterRender" id="-1436611981%2FClasslikes%2F-1960655415" data-filterable-set=":encoder:dokkaHtmlPartial/release"></a>
-          <div class="table-row" data-filterable-current=":encoder:dokkaHtmlPartial/release" data-filterable-set=":encoder:dokkaHtmlPartial/release">
+<a data-name="-1436611981%2FClasslikes%2F514085151" anchor-label="PixelatedFilterRender" id="-1436611981%2FClasslikes%2F514085151" data-filterable-set=":encoder/main"></a>
+          <div class="table-row table-row_content" data-filterable-current=":encoder/main" data-filterable-set=":encoder/main">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="-pixelated-filter-render/index.html"><span>Pixelated</span><wbr><span>Filter</span><wbr><span><span>Render</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1436611981%2FClasslikes%2F-1960655415"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1436611981%2FClasslikes%2F514085151"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":encoder:dokkaHtmlPartial/release"><div class="symbol monospace"><div class="block"><div class="block"><span class="token annotation builtin">@</span><a href="https://developer.android.com/reference/kotlin/androidx/annotation/RequiresApi.html"><span class="token annotation builtin">RequiresApi</span></a><span class="token punctuation">(</span><span>api<span class="token operator"> = </span><a href="https://developer.android.com/reference/kotlin/android/os/Build.VERSION_CODES.html">Build.VERSION_CODES.JELLY_BEAN_MR2</a></span><wbr><span class="token punctuation">)</span></div></div><span class="token keyword">open </span><span class="token keyword">class </span><a href="-pixelated-filter-render/index.html">PixelatedFilterRender</a> : <a href="-base-filter-render/index.html">BaseFilterRender</a></div><div class="brief ">Created by pedro on 31/01/18.</div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":encoder/main"><div class="symbol monospace"><div class="block"><div class="block"><span class="token annotation builtin">@</span><a href="https://developer.android.com/reference/kotlin/androidx/annotation/RequiresApi.html"><span class="token annotation builtin">RequiresApi</span></a><span class="token punctuation">(</span><span>api<span class="token operator"> = </span><a href="https://developer.android.com/reference/kotlin/android/os/Build.VERSION_CODES.html">Build.VERSION_CODES.JELLY_BEAN_MR2</a></span><wbr><span class="token punctuation">)</span></div></div><span class="token keyword">open </span><span class="token keyword">class </span><a href="-pixelated-filter-render/index.html">PixelatedFilterRender</a> : <a href="-base-filter-render/index.html">BaseFilterRender</a></div><div class="brief ">Created by pedro on 31/01/18.</div></div></div>
                 </div>
               </div>
             </div>
           </div>
-<a data-name="-1818420335%2FClasslikes%2F-1960655415" anchor-label="PolygonizationFilterRender" id="-1818420335%2FClasslikes%2F-1960655415" data-filterable-set=":encoder:dokkaHtmlPartial/release"></a>
-          <div class="table-row" data-filterable-current=":encoder:dokkaHtmlPartial/release" data-filterable-set=":encoder:dokkaHtmlPartial/release">
+<a data-name="-1818420335%2FClasslikes%2F514085151" anchor-label="PolygonizationFilterRender" id="-1818420335%2FClasslikes%2F514085151" data-filterable-set=":encoder/main"></a>
+          <div class="table-row table-row_content" data-filterable-current=":encoder/main" data-filterable-set=":encoder/main">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="-polygonization-filter-render/index.html"><span>Polygonization</span><wbr><span>Filter</span><wbr><span><span>Render</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1818420335%2FClasslikes%2F-1960655415"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1818420335%2FClasslikes%2F514085151"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":encoder:dokkaHtmlPartial/release"><div class="symbol monospace"><div class="block"><div class="block"><span class="token annotation builtin">@</span><a href="https://developer.android.com/reference/kotlin/androidx/annotation/RequiresApi.html"><span class="token annotation builtin">RequiresApi</span></a><span class="token punctuation">(</span><span>api<span class="token operator"> = </span><a href="https://developer.android.com/reference/kotlin/android/os/Build.VERSION_CODES.html">Build.VERSION_CODES.JELLY_BEAN_MR2</a></span><wbr><span class="token punctuation">)</span></div></div><span class="token keyword">open </span><span class="token keyword">class </span><a href="-polygonization-filter-render/index.html">PolygonizationFilterRender</a> : <a href="-base-filter-render/index.html">BaseFilterRender</a></div><div class="brief ">Created by pedro on 4/02/18.</div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":encoder/main"><div class="symbol monospace"><div class="block"><div class="block"><span class="token annotation builtin">@</span><a href="https://developer.android.com/reference/kotlin/androidx/annotation/RequiresApi.html"><span class="token annotation builtin">RequiresApi</span></a><span class="token punctuation">(</span><span>api<span class="token operator"> = </span><a href="https://developer.android.com/reference/kotlin/android/os/Build.VERSION_CODES.html">Build.VERSION_CODES.JELLY_BEAN_MR2</a></span><wbr><span class="token punctuation">)</span></div></div><span class="token keyword">open </span><span class="token keyword">class </span><a href="-polygonization-filter-render/index.html">PolygonizationFilterRender</a> : <a href="-base-filter-render/index.html">BaseFilterRender</a></div><div class="brief ">Created by pedro on 4/02/18.</div></div></div>
                 </div>
               </div>
             </div>
           </div>
-<a data-name="701758741%2FClasslikes%2F-1960655415" anchor-label="RainbowFilterRender" id="701758741%2FClasslikes%2F-1960655415" data-filterable-set=":encoder:dokkaHtmlPartial/release"></a>
-          <div class="table-row" data-filterable-current=":encoder:dokkaHtmlPartial/release" data-filterable-set=":encoder:dokkaHtmlPartial/release">
+<a data-name="701758741%2FClasslikes%2F514085151" anchor-label="RainbowFilterRender" id="701758741%2FClasslikes%2F514085151" data-filterable-set=":encoder/main"></a>
+          <div class="table-row table-row_content" data-filterable-current=":encoder/main" data-filterable-set=":encoder/main">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="-rainbow-filter-render/index.html"><span>Rainbow</span><wbr><span>Filter</span><wbr><span><span>Render</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="701758741%2FClasslikes%2F-1960655415"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="701758741%2FClasslikes%2F514085151"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":encoder:dokkaHtmlPartial/release"><div class="symbol monospace"><div class="block"><div class="block"><span class="token annotation builtin">@</span><a href="https://developer.android.com/reference/kotlin/androidx/annotation/RequiresApi.html"><span class="token annotation builtin">RequiresApi</span></a><span class="token punctuation">(</span><span>api<span class="token operator"> = </span><a href="https://developer.android.com/reference/kotlin/android/os/Build.VERSION_CODES.html">Build.VERSION_CODES.JELLY_BEAN_MR2</a></span><wbr><span class="token punctuation">)</span></div></div><span class="token keyword">open </span><span class="token keyword">class </span><a href="-rainbow-filter-render/index.html">RainbowFilterRender</a> : <a href="-base-filter-render/index.html">BaseFilterRender</a></div><div class="brief ">Created by pedro on 4/02/18.</div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":encoder/main"><div class="symbol monospace"><div class="block"><div class="block"><span class="token annotation builtin">@</span><a href="https://developer.android.com/reference/kotlin/androidx/annotation/RequiresApi.html"><span class="token annotation builtin">RequiresApi</span></a><span class="token punctuation">(</span><span>api<span class="token operator"> = </span><a href="https://developer.android.com/reference/kotlin/android/os/Build.VERSION_CODES.html">Build.VERSION_CODES.JELLY_BEAN_MR2</a></span><wbr><span class="token punctuation">)</span></div></div><span class="token keyword">open </span><span class="token keyword">class </span><a href="-rainbow-filter-render/index.html">RainbowFilterRender</a> : <a href="-base-filter-render/index.html">BaseFilterRender</a></div><div class="brief ">Created by pedro on 4/02/18.</div></div></div>
                 </div>
               </div>
             </div>
           </div>
-<a data-name="671691244%2FClasslikes%2F-1960655415" anchor-label="RGBSaturationFilterRender" id="671691244%2FClasslikes%2F-1960655415" data-filterable-set=":encoder:dokkaHtmlPartial/release"></a>
-          <div class="table-row" data-filterable-current=":encoder:dokkaHtmlPartial/release" data-filterable-set=":encoder:dokkaHtmlPartial/release">
+<a data-name="671691244%2FClasslikes%2F514085151" anchor-label="RGBSaturationFilterRender" id="671691244%2FClasslikes%2F514085151" data-filterable-set=":encoder/main"></a>
+          <div class="table-row table-row_content" data-filterable-current=":encoder/main" data-filterable-set=":encoder/main">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="-r-g-b-saturation-filter-render/index.html"><span>RGBSaturation</span><wbr><span>Filter</span><wbr><span><span>Render</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="671691244%2FClasslikes%2F-1960655415"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="671691244%2FClasslikes%2F514085151"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":encoder:dokkaHtmlPartial/release"><div class="symbol monospace"><div class="block"><div class="block"><span class="token annotation builtin">@</span><a href="https://developer.android.com/reference/kotlin/androidx/annotation/RequiresApi.html"><span class="token annotation builtin">RequiresApi</span></a><span class="token punctuation">(</span><span>api<span class="token operator"> = </span><a href="https://developer.android.com/reference/kotlin/android/os/Build.VERSION_CODES.html">Build.VERSION_CODES.JELLY_BEAN_MR2</a></span><wbr><span class="token punctuation">)</span></div></div><span class="token keyword">open </span><span class="token keyword">class </span><a href="-r-g-b-saturation-filter-render/index.html">RGBSaturationFilterRender</a> : <a href="-base-filter-render/index.html">BaseFilterRender</a></div><div class="brief ">Created by pedro on 18/07/18.</div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":encoder/main"><div class="symbol monospace"><div class="block"><div class="block"><span class="token annotation builtin">@</span><a href="https://developer.android.com/reference/kotlin/androidx/annotation/RequiresApi.html"><span class="token annotation builtin">RequiresApi</span></a><span class="token punctuation">(</span><span>api<span class="token operator"> = </span><a href="https://developer.android.com/reference/kotlin/android/os/Build.VERSION_CODES.html">Build.VERSION_CODES.JELLY_BEAN_MR2</a></span><wbr><span class="token punctuation">)</span></div></div><span class="token keyword">open </span><span class="token keyword">class </span><a href="-r-g-b-saturation-filter-render/index.html">RGBSaturationFilterRender</a> : <a href="-base-filter-render/index.html">BaseFilterRender</a></div><div class="brief ">Created by pedro on 18/07/18.</div></div></div>
                 </div>
               </div>
             </div>
           </div>
-<a data-name="338021131%2FClasslikes%2F-1960655415" anchor-label="RippleFilterRender" id="338021131%2FClasslikes%2F-1960655415" data-filterable-set=":encoder:dokkaHtmlPartial/release"></a>
-          <div class="table-row" data-filterable-current=":encoder:dokkaHtmlPartial/release" data-filterable-set=":encoder:dokkaHtmlPartial/release">
+<a data-name="338021131%2FClasslikes%2F514085151" anchor-label="RippleFilterRender" id="338021131%2FClasslikes%2F514085151" data-filterable-set=":encoder/main"></a>
+          <div class="table-row table-row_content" data-filterable-current=":encoder/main" data-filterable-set=":encoder/main">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="-ripple-filter-render/index.html"><span>Ripple</span><wbr><span>Filter</span><wbr><span><span>Render</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="338021131%2FClasslikes%2F-1960655415"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="338021131%2FClasslikes%2F514085151"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":encoder:dokkaHtmlPartial/release"><div class="symbol monospace"><div class="block"><div class="block"><span class="token annotation builtin">@</span><a href="https://developer.android.com/reference/kotlin/androidx/annotation/RequiresApi.html"><span class="token annotation builtin">RequiresApi</span></a><span class="token punctuation">(</span><span>api<span class="token operator"> = </span><a href="https://developer.android.com/reference/kotlin/android/os/Build.VERSION_CODES.html">Build.VERSION_CODES.JELLY_BEAN_MR2</a></span><wbr><span class="token punctuation">)</span></div></div><span class="token keyword">open </span><span class="token keyword">class </span><a href="-ripple-filter-render/index.html">RippleFilterRender</a> : <a href="-base-filter-render/index.html">BaseFilterRender</a></div><div class="brief ">Created by pedro on 2/02/18.</div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":encoder/main"><div class="symbol monospace"><div class="block"><div class="block"><span class="token annotation builtin">@</span><a href="https://developer.android.com/reference/kotlin/androidx/annotation/RequiresApi.html"><span class="token annotation builtin">RequiresApi</span></a><span class="token punctuation">(</span><span>api<span class="token operator"> = </span><a href="https://developer.android.com/reference/kotlin/android/os/Build.VERSION_CODES.html">Build.VERSION_CODES.JELLY_BEAN_MR2</a></span><wbr><span class="token punctuation">)</span></div></div><span class="token keyword">open </span><span class="token keyword">class </span><a href="-ripple-filter-render/index.html">RippleFilterRender</a> : <a href="-base-filter-render/index.html">BaseFilterRender</a></div><div class="brief ">Created by pedro on 2/02/18.</div></div></div>
                 </div>
               </div>
             </div>
           </div>
-<a data-name="358089853%2FClasslikes%2F-1960655415" anchor-label="RotationFilterRender" id="358089853%2FClasslikes%2F-1960655415" data-filterable-set=":encoder:dokkaHtmlPartial/release"></a>
-          <div class="table-row" data-filterable-current=":encoder:dokkaHtmlPartial/release" data-filterable-set=":encoder:dokkaHtmlPartial/release">
+<a data-name="358089853%2FClasslikes%2F514085151" anchor-label="RotationFilterRender" id="358089853%2FClasslikes%2F514085151" data-filterable-set=":encoder/main"></a>
+          <div class="table-row table-row_content" data-filterable-current=":encoder/main" data-filterable-set=":encoder/main">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="-rotation-filter-render/index.html"><span>Rotation</span><wbr><span>Filter</span><wbr><span><span>Render</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="358089853%2FClasslikes%2F-1960655415"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="358089853%2FClasslikes%2F514085151"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":encoder:dokkaHtmlPartial/release"><div class="symbol monospace"><div class="block"><div class="block"><span class="token annotation builtin">@</span><a href="https://developer.android.com/reference/kotlin/androidx/annotation/RequiresApi.html"><span class="token annotation builtin">RequiresApi</span></a><span class="token punctuation">(</span><span>api<span class="token operator"> = </span><a href="https://developer.android.com/reference/kotlin/android/os/Build.VERSION_CODES.html">Build.VERSION_CODES.JELLY_BEAN_MR2</a></span><wbr><span class="token punctuation">)</span></div></div><span class="token keyword">open </span><span class="token keyword">class </span><a href="-rotation-filter-render/index.html">RotationFilterRender</a> : <a href="-base-filter-render/index.html">BaseFilterRender</a></div><div class="brief ">Created by pedro on 9/07/18.</div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":encoder/main"><div class="symbol monospace"><div class="block"><div class="block"><span class="token annotation builtin">@</span><a href="https://developer.android.com/reference/kotlin/androidx/annotation/RequiresApi.html"><span class="token annotation builtin">RequiresApi</span></a><span class="token punctuation">(</span><span>api<span class="token operator"> = </span><a href="https://developer.android.com/reference/kotlin/android/os/Build.VERSION_CODES.html">Build.VERSION_CODES.JELLY_BEAN_MR2</a></span><wbr><span class="token punctuation">)</span></div></div><span class="token keyword">open </span><span class="token keyword">class </span><a href="-rotation-filter-render/index.html">RotationFilterRender</a> : <a href="-base-filter-render/index.html">BaseFilterRender</a></div><div class="brief ">Created by pedro on 9/07/18.</div></div></div>
                 </div>
               </div>
             </div>
           </div>
-<a data-name="-1425164631%2FClasslikes%2F-1960655415" anchor-label="SaturationFilterRender" id="-1425164631%2FClasslikes%2F-1960655415" data-filterable-set=":encoder:dokkaHtmlPartial/release"></a>
-          <div class="table-row" data-filterable-current=":encoder:dokkaHtmlPartial/release" data-filterable-set=":encoder:dokkaHtmlPartial/release">
+<a data-name="-1425164631%2FClasslikes%2F514085151" anchor-label="SaturationFilterRender" id="-1425164631%2FClasslikes%2F514085151" data-filterable-set=":encoder/main"></a>
+          <div class="table-row table-row_content" data-filterable-current=":encoder/main" data-filterable-set=":encoder/main">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="-saturation-filter-render/index.html"><span>Saturation</span><wbr><span>Filter</span><wbr><span><span>Render</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1425164631%2FClasslikes%2F-1960655415"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1425164631%2FClasslikes%2F514085151"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":encoder:dokkaHtmlPartial/release"><div class="symbol monospace"><div class="block"><div class="block"><span class="token annotation builtin">@</span><a href="https://developer.android.com/reference/kotlin/androidx/annotation/RequiresApi.html"><span class="token annotation builtin">RequiresApi</span></a><span class="token punctuation">(</span><span>api<span class="token operator"> = </span><a href="https://developer.android.com/reference/kotlin/android/os/Build.VERSION_CODES.html">Build.VERSION_CODES.JELLY_BEAN_MR2</a></span><wbr><span class="token punctuation">)</span></div></div><span class="token keyword">open </span><span class="token keyword">class </span><a href="-saturation-filter-render/index.html">SaturationFilterRender</a> : <a href="-base-filter-render/index.html">BaseFilterRender</a></div><div class="brief ">Created by pedro on 1/02/18.</div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":encoder/main"><div class="symbol monospace"><div class="block"><div class="block"><span class="token annotation builtin">@</span><a href="https://developer.android.com/reference/kotlin/androidx/annotation/RequiresApi.html"><span class="token annotation builtin">RequiresApi</span></a><span class="token punctuation">(</span><span>api<span class="token operator"> = </span><a href="https://developer.android.com/reference/kotlin/android/os/Build.VERSION_CODES.html">Build.VERSION_CODES.JELLY_BEAN_MR2</a></span><wbr><span class="token punctuation">)</span></div></div><span class="token keyword">open </span><span class="token keyword">class </span><a href="-saturation-filter-render/index.html">SaturationFilterRender</a> : <a href="-base-filter-render/index.html">BaseFilterRender</a></div><div class="brief ">Created by pedro on 1/02/18.</div></div></div>
                 </div>
               </div>
             </div>
           </div>
-<a data-name="546246357%2FClasslikes%2F-1960655415" anchor-label="SepiaFilterRender" id="546246357%2FClasslikes%2F-1960655415" data-filterable-set=":encoder:dokkaHtmlPartial/release"></a>
-          <div class="table-row" data-filterable-current=":encoder:dokkaHtmlPartial/release" data-filterable-set=":encoder:dokkaHtmlPartial/release">
+<a data-name="546246357%2FClasslikes%2F514085151" anchor-label="SepiaFilterRender" id="546246357%2FClasslikes%2F514085151" data-filterable-set=":encoder/main"></a>
+          <div class="table-row table-row_content" data-filterable-current=":encoder/main" data-filterable-set=":encoder/main">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="-sepia-filter-render/index.html"><span>Sepia</span><wbr><span>Filter</span><wbr><span><span>Render</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="546246357%2FClasslikes%2F-1960655415"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="546246357%2FClasslikes%2F514085151"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":encoder:dokkaHtmlPartial/release"><div class="symbol monospace"><div class="block"><div class="block"><span class="token annotation builtin">@</span><a href="https://developer.android.com/reference/kotlin/androidx/annotation/RequiresApi.html"><span class="token annotation builtin">RequiresApi</span></a><span class="token punctuation">(</span><span>api<span class="token operator"> = </span><a href="https://developer.android.com/reference/kotlin/android/os/Build.VERSION_CODES.html">Build.VERSION_CODES.JELLY_BEAN_MR2</a></span><wbr><span class="token punctuation">)</span></div></div><span class="token keyword">open </span><span class="token keyword">class </span><a href="-sepia-filter-render/index.html">SepiaFilterRender</a> : <a href="-base-filter-render/index.html">BaseFilterRender</a></div><div class="brief ">Created by pedro on 29/01/18.</div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":encoder/main"><div class="symbol monospace"><div class="block"><div class="block"><span class="token annotation builtin">@</span><a href="https://developer.android.com/reference/kotlin/androidx/annotation/RequiresApi.html"><span class="token annotation builtin">RequiresApi</span></a><span class="token punctuation">(</span><span>api<span class="token operator"> = </span><a href="https://developer.android.com/reference/kotlin/android/os/Build.VERSION_CODES.html">Build.VERSION_CODES.JELLY_BEAN_MR2</a></span><wbr><span class="token punctuation">)</span></div></div><span class="token keyword">open </span><span class="token keyword">class </span><a href="-sepia-filter-render/index.html">SepiaFilterRender</a> : <a href="-base-filter-render/index.html">BaseFilterRender</a></div><div class="brief ">Created by pedro on 29/01/18.</div></div></div>
                 </div>
               </div>
             </div>
           </div>
-<a data-name="907326058%2FClasslikes%2F-1960655415" anchor-label="SharpnessFilterRender" id="907326058%2FClasslikes%2F-1960655415" data-filterable-set=":encoder:dokkaHtmlPartial/release"></a>
-          <div class="table-row" data-filterable-current=":encoder:dokkaHtmlPartial/release" data-filterable-set=":encoder:dokkaHtmlPartial/release">
+<a data-name="907326058%2FClasslikes%2F514085151" anchor-label="SharpnessFilterRender" id="907326058%2FClasslikes%2F514085151" data-filterable-set=":encoder/main"></a>
+          <div class="table-row table-row_content" data-filterable-current=":encoder/main" data-filterable-set=":encoder/main">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="-sharpness-filter-render/index.html"><span>Sharpness</span><wbr><span>Filter</span><wbr><span><span>Render</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="907326058%2FClasslikes%2F-1960655415"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="907326058%2FClasslikes%2F514085151"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":encoder:dokkaHtmlPartial/release"><div class="symbol monospace"><div class="block"><div class="block"><span class="token annotation builtin">@</span><a href="https://developer.android.com/reference/kotlin/androidx/annotation/RequiresApi.html"><span class="token annotation builtin">RequiresApi</span></a><span class="token punctuation">(</span><span>api<span class="token operator"> = </span><a href="https://developer.android.com/reference/kotlin/android/os/Build.VERSION_CODES.html">Build.VERSION_CODES.JELLY_BEAN_MR2</a></span><wbr><span class="token punctuation">)</span></div></div><span class="token keyword">open </span><span class="token keyword">class </span><a href="-sharpness-filter-render/index.html">SharpnessFilterRender</a> : <a href="-base-filter-render/index.html">BaseFilterRender</a></div><div class="brief ">Created by pedro on 3/02/18.</div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":encoder/main"><div class="symbol monospace"><div class="block"><div class="block"><span class="token annotation builtin">@</span><a href="https://developer.android.com/reference/kotlin/androidx/annotation/RequiresApi.html"><span class="token annotation builtin">RequiresApi</span></a><span class="token punctuation">(</span><span>api<span class="token operator"> = </span><a href="https://developer.android.com/reference/kotlin/android/os/Build.VERSION_CODES.html">Build.VERSION_CODES.JELLY_BEAN_MR2</a></span><wbr><span class="token punctuation">)</span></div></div><span class="token keyword">open </span><span class="token keyword">class </span><a href="-sharpness-filter-render/index.html">SharpnessFilterRender</a> : <a href="-base-filter-render/index.html">BaseFilterRender</a></div><div class="brief ">Created by pedro on 3/02/18.</div></div></div>
                 </div>
               </div>
             </div>
           </div>
-<a data-name="-1337426536%2FClasslikes%2F-1960655415" anchor-label="SnowFilterRender" id="-1337426536%2FClasslikes%2F-1960655415" data-filterable-set=":encoder:dokkaHtmlPartial/release"></a>
-          <div class="table-row" data-filterable-current=":encoder:dokkaHtmlPartial/release" data-filterable-set=":encoder:dokkaHtmlPartial/release">
+<a data-name="-1337426536%2FClasslikes%2F514085151" anchor-label="SnowFilterRender" id="-1337426536%2FClasslikes%2F514085151" data-filterable-set=":encoder/main"></a>
+          <div class="table-row table-row_content" data-filterable-current=":encoder/main" data-filterable-set=":encoder/main">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="-snow-filter-render/index.html"><span>Snow</span><wbr><span>Filter</span><wbr><span><span>Render</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1337426536%2FClasslikes%2F-1960655415"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1337426536%2FClasslikes%2F514085151"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":encoder:dokkaHtmlPartial/release"><div class="symbol monospace"><div class="block"><div class="block"><span class="token annotation builtin">@</span><a href="https://developer.android.com/reference/kotlin/androidx/annotation/RequiresApi.html"><span class="token annotation builtin">RequiresApi</span></a><span class="token punctuation">(</span><span>api<span class="token operator"> = </span><a href="https://developer.android.com/reference/kotlin/android/os/Build.VERSION_CODES.html">Build.VERSION_CODES.JELLY_BEAN_MR2</a></span><wbr><span class="token punctuation">)</span></div></div><span class="token keyword">open </span><span class="token keyword">class </span><a href="-snow-filter-render/index.html">SnowFilterRender</a> : <a href="-base-filter-render/index.html">BaseFilterRender</a></div><div class="brief ">Created by pedro on 19/12/18.</div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":encoder/main"><div class="symbol monospace"><div class="block"><div class="block"><span class="token annotation builtin">@</span><a href="https://developer.android.com/reference/kotlin/androidx/annotation/RequiresApi.html"><span class="token annotation builtin">RequiresApi</span></a><span class="token punctuation">(</span><span>api<span class="token operator"> = </span><a href="https://developer.android.com/reference/kotlin/android/os/Build.VERSION_CODES.html">Build.VERSION_CODES.JELLY_BEAN_MR2</a></span><wbr><span class="token punctuation">)</span></div></div><span class="token keyword">open </span><span class="token keyword">class </span><a href="-snow-filter-render/index.html">SnowFilterRender</a> : <a href="-base-filter-render/index.html">BaseFilterRender</a></div><div class="brief ">Created by pedro on 19/12/18.</div></div></div>
                 </div>
               </div>
             </div>
           </div>
-<a data-name="-510268692%2FClasslikes%2F-1960655415" anchor-label="SwirlFilterRender" id="-510268692%2FClasslikes%2F-1960655415" data-filterable-set=":encoder:dokkaHtmlPartial/release"></a>
-          <div class="table-row" data-filterable-current=":encoder:dokkaHtmlPartial/release" data-filterable-set=":encoder:dokkaHtmlPartial/release">
+<a data-name="-510268692%2FClasslikes%2F514085151" anchor-label="SwirlFilterRender" id="-510268692%2FClasslikes%2F514085151" data-filterable-set=":encoder/main"></a>
+          <div class="table-row table-row_content" data-filterable-current=":encoder/main" data-filterable-set=":encoder/main">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="-swirl-filter-render/index.html"><span>Swirl</span><wbr><span>Filter</span><wbr><span><span>Render</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-510268692%2FClasslikes%2F-1960655415"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-510268692%2FClasslikes%2F514085151"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":encoder:dokkaHtmlPartial/release"><div class="symbol monospace"><div class="block"><div class="block"><span class="token annotation builtin">@</span><a href="https://developer.android.com/reference/kotlin/androidx/annotation/RequiresApi.html"><span class="token annotation builtin">RequiresApi</span></a><span class="token punctuation">(</span><span>api<span class="token operator"> = </span><a href="https://developer.android.com/reference/kotlin/android/os/Build.VERSION_CODES.html">Build.VERSION_CODES.JELLY_BEAN_MR2</a></span><wbr><span class="token punctuation">)</span></div></div><span class="token keyword">open </span><span class="token keyword">class </span><a href="-swirl-filter-render/index.html">SwirlFilterRender</a> : <a href="-base-filter-render/index.html">BaseFilterRender</a></div><div class="brief ">Created by pedro on 29/01/18.</div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":encoder/main"><div class="symbol monospace"><div class="block"><div class="block"><span class="token annotation builtin">@</span><a href="https://developer.android.com/reference/kotlin/androidx/annotation/RequiresApi.html"><span class="token annotation builtin">RequiresApi</span></a><span class="token punctuation">(</span><span>api<span class="token operator"> = </span><a href="https://developer.android.com/reference/kotlin/android/os/Build.VERSION_CODES.html">Build.VERSION_CODES.JELLY_BEAN_MR2</a></span><wbr><span class="token punctuation">)</span></div></div><span class="token keyword">open </span><span class="token keyword">class </span><a href="-swirl-filter-render/index.html">SwirlFilterRender</a> : <a href="-base-filter-render/index.html">BaseFilterRender</a></div><div class="brief ">Created by pedro on 29/01/18.</div></div></div>
                 </div>
               </div>
             </div>
           </div>
-<a data-name="-1794868201%2FClasslikes%2F-1960655415" anchor-label="TemperatureFilterRender" id="-1794868201%2FClasslikes%2F-1960655415" data-filterable-set=":encoder:dokkaHtmlPartial/release"></a>
-          <div class="table-row" data-filterable-current=":encoder:dokkaHtmlPartial/release" data-filterable-set=":encoder:dokkaHtmlPartial/release">
+<a data-name="-1794868201%2FClasslikes%2F514085151" anchor-label="TemperatureFilterRender" id="-1794868201%2FClasslikes%2F514085151" data-filterable-set=":encoder/main"></a>
+          <div class="table-row table-row_content" data-filterable-current=":encoder/main" data-filterable-set=":encoder/main">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="-temperature-filter-render/index.html"><span>Temperature</span><wbr><span>Filter</span><wbr><span><span>Render</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1794868201%2FClasslikes%2F-1960655415"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1794868201%2FClasslikes%2F514085151"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":encoder:dokkaHtmlPartial/release"><div class="symbol monospace"><div class="block"><div class="block"><span class="token annotation builtin">@</span><a href="https://developer.android.com/reference/kotlin/androidx/annotation/RequiresApi.html"><span class="token annotation builtin">RequiresApi</span></a><span class="token punctuation">(</span><span>api<span class="token operator"> = </span><a href="https://developer.android.com/reference/kotlin/android/os/Build.VERSION_CODES.html">Build.VERSION_CODES.JELLY_BEAN_MR2</a></span><wbr><span class="token punctuation">)</span></div></div><span class="token keyword">open </span><span class="token keyword">class </span><a href="-temperature-filter-render/index.html">TemperatureFilterRender</a> : <a href="-base-filter-render/index.html">BaseFilterRender</a></div><div class="brief ">Created by pedro on 1/02/18.</div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":encoder/main"><div class="symbol monospace"><div class="block"><div class="block"><span class="token annotation builtin">@</span><a href="https://developer.android.com/reference/kotlin/androidx/annotation/RequiresApi.html"><span class="token annotation builtin">RequiresApi</span></a><span class="token punctuation">(</span><span>api<span class="token operator"> = </span><a href="https://developer.android.com/reference/kotlin/android/os/Build.VERSION_CODES.html">Build.VERSION_CODES.JELLY_BEAN_MR2</a></span><wbr><span class="token punctuation">)</span></div></div><span class="token keyword">open </span><span class="token keyword">class </span><a href="-temperature-filter-render/index.html">TemperatureFilterRender</a> : <a href="-base-filter-render/index.html">BaseFilterRender</a></div><div class="brief ">Created by pedro on 1/02/18.</div></div></div>
                 </div>
               </div>
             </div>
           </div>
-<a data-name="-1581709371%2FClasslikes%2F-1960655415" anchor-label="ZebraFilterRender" id="-1581709371%2FClasslikes%2F-1960655415" data-filterable-set=":encoder:dokkaHtmlPartial/release"></a>
-          <div class="table-row" data-filterable-current=":encoder:dokkaHtmlPartial/release" data-filterable-set=":encoder:dokkaHtmlPartial/release">
+<a data-name="-1581709371%2FClasslikes%2F514085151" anchor-label="ZebraFilterRender" id="-1581709371%2FClasslikes%2F514085151" data-filterable-set=":encoder/main"></a>
+          <div class="table-row table-row_content" data-filterable-current=":encoder/main" data-filterable-set=":encoder/main">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="-zebra-filter-render/index.html"><span>Zebra</span><wbr><span>Filter</span><wbr><span><span>Render</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1581709371%2FClasslikes%2F-1960655415"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1581709371%2FClasslikes%2F514085151"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":encoder:dokkaHtmlPartial/release"><div class="symbol monospace"><div class="block"><div class="block"><span class="token annotation builtin">@</span><a href="https://developer.android.com/reference/kotlin/androidx/annotation/RequiresApi.html"><span class="token annotation builtin">RequiresApi</span></a><span class="token punctuation">(</span><span>api<span class="token operator"> = </span><a href="https://developer.android.com/reference/kotlin/android/os/Build.VERSION_CODES.html">Build.VERSION_CODES.JELLY_BEAN_MR2</a></span><wbr><span class="token punctuation">)</span></div></div><span class="token keyword">open </span><span class="token keyword">class </span><a href="-zebra-filter-render/index.html">ZebraFilterRender</a> : <a href="-base-filter-render/index.html">BaseFilterRender</a></div><div class="brief ">Created by pedro on 4/02/18.</div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":encoder/main"><div class="symbol monospace"><div class="block"><div class="block"><span class="token annotation builtin">@</span><a href="https://developer.android.com/reference/kotlin/androidx/annotation/RequiresApi.html"><span class="token annotation builtin">RequiresApi</span></a><span class="token punctuation">(</span><span>api<span class="token operator"> = </span><a href="https://developer.android.com/reference/kotlin/android/os/Build.VERSION_CODES.html">Build.VERSION_CODES.JELLY_BEAN_MR2</a></span><wbr><span class="token punctuation">)</span></div></div><span class="token keyword">open </span><span class="token keyword">class </span><a href="-zebra-filter-render/index.html">ZebraFilterRender</a> : <a href="-base-filter-render/index.html">BaseFilterRender</a></div><div class="brief ">Created by pedro on 4/02/18.</div></div></div>
                 </div>
               </div>
             </div>
@@ -766,17 +766,21 @@
   </div>
 </div>
     <div class="footer">
-        <a href="#content" id="go-to-top-link" class="footer--button footer--button_go-to-top"></a>
-        <span>© 2025 Copyright</span>
-        <span class="pull-right">
-            <span>Generated by </span>
-            <a class="footer--link footer--link_external" href="https://github.com/Kotlin/dokka">
-                <span>dokka</span>
-            </a>
-        </span>
-    </div>
+        <div class="footer--container">
+            <a href="#content" id="go-to-top-link" class="footer--button footer--button_go-to-top"></a>
+            <div class="footer--content">
+                <div>
+                    <span>Generated by </span>
+                    <a class="footer--link footer--link_external" href="https://github.com/Kotlin/dokka">
+                        Dokka
+                    </a>
+                    <div>© 2025 Copyright</div>
+                </div>
             </div>
         </div>
     </div>
+        </div>
+    </div>
+</div>
 </body>
 </html>

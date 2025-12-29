@@ -1,22 +1,22 @@
 <!doctype html>
-<html class="no-js">
+<html class="no-js" lang="en">
 <head>
     <meta name="viewport" content="width=device-width, initial-scale=1" charset="UTF-8">
     <title>SrtClient</title>
-<link href="../../../images/logo-icon.svg" rel="icon" type="image/svg">    <script>var pathToRoot = "../../../";</script>
-    <script>document.documentElement.classList.replace("no-js","js");</script>
+<link href="../../../images/logo-icon.svg" rel="icon" type="image/svg"><script>var pathToRoot = "../../../";</script>
+    <script>document.documentElement.classList.replace("no-js", "js");</script>
     <script>const storage = localStorage.getItem("dokka-dark-mode")
-    if (storage == null) {
+      if (storage == null) {
         const osDarkSchemePreferred = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
         if (osDarkSchemePreferred === true) {
-            document.getElementsByTagName("html")[0].classList.add("theme-dark")
+          document.getElementsByTagName("html")[0].classList.add("theme-dark")
         }
-    } else {
+      } else {
         const savedDarkMode = JSON.parse(storage)
-        if(savedDarkMode === true) {
-            document.getElementsByTagName("html")[0].classList.add("theme-dark")
+        if (savedDarkMode === true) {
+          document.getElementsByTagName("html")[0].classList.add("theme-dark")
         }
-    }
+      }
     </script>
 <script type="text/javascript" src="https://unpkg.com/kotlin-playground@1/dist/playground.min.js" async></script>
 <script type="text/javascript" src="../../../scripts/sourceset_dependencies.js" async></script>
@@ -24,39 +24,37 @@
 <link href="../../../styles/main.css" rel="Stylesheet">
 <link href="../../../styles/prism.css" rel="Stylesheet">
 <link href="../../../styles/logo-styles.css" rel="Stylesheet">
-<link href="../../../styles/font-jb-sans-auto.css" rel="Stylesheet">
 <link href="../../../ui-kit/ui-kit.min.css" rel="Stylesheet">
-<script type="text/javascript" src="../../../scripts/clipboard.js" async></script>
+<script type="text/javascript" src="../../../scripts/safe-local-storage_blocking.js"></script>
 <script type="text/javascript" src="../../../scripts/navigation-loader.js" async></script>
 <script type="text/javascript" src="../../../scripts/platform-content-handler.js" async></script>
 <script type="text/javascript" src="../../../scripts/main.js" defer></script>
 <script type="text/javascript" src="../../../scripts/prism.js" async></script>
-<script type="text/javascript" src="../../../ui-kit/ui-kit.min.js" defer></script>
-<script type="text/javascript" src="../../../scripts/symbol-parameters-wrapper_deferred.js" defer></script></head>
+<script type="text/javascript" src="../../../ui-kit/ui-kit.min.js" defer></script></head>
 <body>
-    <div class="root">
-    <nav class="navigation theme-dark" id="navigation-wrapper">
-<a class="library-name--link" href="../../../index.html">
+<div class="root">
+    <header class="navigation theme-dark" id="navigation-wrapper" role="banner">
+<a class="library-name--link" href="../../../index.html" tabindex="1">
                     RootEncoder
             </a>        <button class="navigation-controls--btn navigation-controls--btn_toc ui-kit_mobile-only" id="toc-toggle" type="button">Toggle table of contents
         </button>
         <div class="navigation-controls--break ui-kit_mobile-only"></div>
-        <div class="library-version" id="library-version">2.6.5
+        <div class="library-version" id="library-version">2.6.7
         </div>
         <div class="navigation-controls">
-        <div class="filter-section filter-section_loading" id="filter-section">
-                <button class="platform-tag platform-selector jvm-like" data-active="" data-filter=":srt:dokkaHtmlPartial/release">androidJvm</button>
+        <ul class="filter-section filter-section_loading" id="filter-section" aria-label="Target filter">
+                <button class="platform-tag platform-selector jvm-like" data-active="" aria-pressed="true" data-filter=":srt/main">androidJvm</button>
             <div class="dropdown filter-section--dropdown" data-role="dropdown" id="filter-section-dropdown">
                 <button class="button button_dropdown filter-section--dropdown-toggle" role="combobox" data-role="dropdown-toggle" aria-controls="platform-tags-listbox" aria-haspopup="listbox" aria-expanded="false" aria-label="Toggle source sets"></button>
-                <ul role="listbox" id="platform-tags-listbox" class="dropdown--list" data-role="dropdown-listbox">
-                    <div class="dropdown--header"><span>Platform filter</span>
-                        <button class="button" data-role="dropdown-toggle" aria-label="Close platform filter">
+                <ul role="listbox" id="platform-tags-listbox" class="dropdown--list" data-role="dropdown-listbox" aria-label="Target filter">
+                    <div class="dropdown--header"><span>Target filter</span>
+                        <button class="button" data-role="dropdown-toggle" aria-label="Close target filter">
                             <i class="ui-kit-icon ui-kit-icon_cross"></i>
                         </button>
                     </div>
                         <li role="option" class="dropdown--option platform-selector-option jvm-like" tabindex="0">
                             <label class="checkbox">
-                                <input type="checkbox" class="checkbox--input" id=":srt:dokkaHtmlPartial/release" data-filter=":srt:dokkaHtmlPartial/release">
+                                <input type="checkbox" class="checkbox--input" id=":srt/main" data-filter=":srt/main">
                                 <span class="checkbox--icon"></span>
                                 androidJvm
                             </label>
@@ -64,54 +62,56 @@
                 </ul>
                 <div class="dropdown--overlay"></div>
             </div>
-        </div>
+        </ul>
             <button class="navigation-controls--btn navigation-controls--btn_theme" id="theme-toggle-button" type="button">Switch theme
             </button>
             <div class="navigation-controls--btn navigation-controls--btn_search" id="searchBar" role="button">Search in
                 API
             </div>
         </div>
-    </nav>
-        <div id="container">
-            <div class="sidebar" id="leftColumn">
-                <div class="dropdown theme-dark_mobile" data-role="dropdown" id="toc-dropdown">
-                    <ul role="listbox" id="toc-listbox" class="dropdown--list dropdown--list_toc-list" data-role="dropdown-listbox">
-                        <div class="dropdown--header">
+    </header>
+    <div id="container">
+        <nav id="leftColumn" class="sidebar" data-item-type="SECTION" data-item-config="{&quot;defaultSize&quot;: 280, &quot;minSize&quot;: 200, &quot;maxSize&quot;: 400}">
+            <a class="toc--skip-link" href="#main">Skip to content</a>
+            <div class="dropdown theme-dark_mobile" data-role="dropdown" id="toc-dropdown">
+                <ul role="listbox" id="toc-listbox" class="dropdown--list dropdown--list_toc-list" data-role="dropdown-listbox" aria-label="Table of contents">
+                    <div class="dropdown--header">
                             <span>
                                     RootEncoder
                             </span>
-                            <button class="button" data-role="dropdown-toggle" aria-label="Close table of contents">
-                                <i class="ui-kit-icon ui-kit-icon_cross"></i>
-                            </button>
-                        </div>
-                        <div class="sidebar--inner" id="sideMenu"></div>
-                    </ul>
-                    <div class="dropdown--overlay"></div>
-                </div>
+                        <button class="button" data-role="dropdown-toggle" aria-label="Close table of contents">
+                            <i class="ui-kit-icon ui-kit-icon_cross"></i>
+                        </button>
+                    </div>
+                    <div class="sidebar--inner" id="sideMenu"></div>
+                </ul>
+                <div class="dropdown--overlay"></div>
             </div>
-            <div id="main">
-<div class="main-content" data-page-type="classlike" id="content" pageids="srt::com.pedro.srt.srt/SrtClient///PointingToDeclaration//1600112080">
+        </nav>
+        <div id="resizer" class="resizer" data-item-type="BAR"></div>
+        <div id="main" data-item-type="SECTION" role="main">
+<div class="main-content" data-page-type="classlike" id="content" pageids="srt::com.pedro.srt.srt/SrtClient///PointingToDeclaration//1519803046">
   <div class="breadcrumbs"><a href="../../index.html">srt</a><span class="delimiter">/</span><a href="../index.html">com.pedro.srt.srt</a><span class="delimiter">/</span><span class="current">SrtClient</span></div>
   <div class="cover ">
     <h1 class="cover"><span>Srt</span><wbr><span><span>Client</span></span></h1>
-    <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":srt:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword">class </span><a href="index.html">SrtClient</a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">connectChecker<span class="token operator">: </span><a href="../../../common/com.pedro.common/-connect-checker/index.html">ConnectChecker</a></span></span><span class="token punctuation">)</span></div><p class="paragraph">Created by pedro on 20/8/23.</p></div></div>
+    <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":srt/main"><div class="symbol monospace"><span class="token keyword">class </span><a href="index.html">SrtClient</a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">connectChecker<span class="token operator">: </span><a href="../../../common/com.pedro.common/-connect-checker/index.html">ConnectChecker</a></span></span><span class="token punctuation">)</span></div><p class="paragraph">Created by pedro on 20/8/23.</p></div></div>
   </div>
   <div class="tabbedcontent">
     <div class="tabs-section" tabs-section="tabs-section"><button class="section-tab" data-active="" data-togglable="CONSTRUCTOR,TYPE,PROPERTY,FUNCTION">Members</button></div>
     <div class="tabs-section-body">
       <div data-togglable="CONSTRUCTOR">
-        <h2 class="">Constructors</h2>
-        <div class="table"><a data-name="359913717%2FConstructors%2F1600112080" anchor-label="SrtClient" id="359913717%2FConstructors%2F1600112080" data-filterable-set=":srt:dokkaHtmlPartial/release"></a>
-          <div class="table-row" data-togglable="CONSTRUCTOR" data-filterable-current=":srt:dokkaHtmlPartial/release" data-filterable-set=":srt:dokkaHtmlPartial/release">
+        <h2 class="tableheader">Constructors</h2>
+        <div class="table"><a data-name="359913717%2FConstructors%2F1519803046" anchor-label="SrtClient" id="359913717%2FConstructors%2F1519803046" data-filterable-set=":srt/main"></a>
+          <div class="table-row table-row_content" data-togglable="CONSTRUCTOR" data-filterable-current=":srt/main" data-filterable-set=":srt/main">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="-srt-client.html"><span>Srt</span><wbr><span><span>Client</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="359913717%2FConstructors%2F1600112080"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="359913717%2FConstructors%2F1519803046"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":srt:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword">constructor</span><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">connectChecker<span class="token operator">: </span><a href="../../../common/com.pedro.common/-connect-checker/index.html">ConnectChecker</a></span></span><span class="token punctuation">)</span></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":srt/main"><div class="symbol monospace"><span class="token keyword">constructor</span><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">connectChecker<span class="token operator">: </span><a href="../../../common/com.pedro.common/-connect-checker/index.html">ConnectChecker</a></span></span><span class="token punctuation">)</span></div></div></div>
                 </div>
               </div>
             </div>
@@ -119,168 +119,168 @@
         </div>
       </div>
       <div data-togglable="PROPERTY">
-        <h2 class="">Properties</h2>
-        <div class="table"><a data-name="-388585125%2FProperties%2F1600112080" anchor-label="bytesSend" id="-388585125%2FProperties%2F1600112080" data-filterable-set=":srt:dokkaHtmlPartial/release"></a>
-          <div class="table-row" data-filterable-current=":srt:dokkaHtmlPartial/release" data-filterable-set=":srt:dokkaHtmlPartial/release">
+        <h2 class="tableheader">Properties</h2>
+        <div class="table"><a data-name="-388585125%2FProperties%2F1519803046" anchor-label="bytesSend" id="-388585125%2FProperties%2F1519803046" data-filterable-set=":srt/main"></a>
+          <div class="table-row table-row_content" data-filterable-current=":srt/main" data-filterable-set=":srt/main">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="bytes-send.html"><span>bytes</span><wbr><span><span>Send</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-388585125%2FProperties%2F1600112080"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-388585125%2FProperties%2F1519803046"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":srt:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword">val </span><a href="bytes-send.html">bytesSend</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-long/index.html">Long</a></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":srt/main"><div class="symbol monospace"><span class="token keyword">val </span><a href="bytes-send.html">bytesSend</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-long/index.html">Long</a></div></div></div>
                 </div>
               </div>
             </div>
           </div>
-<a data-name="-121913525%2FProperties%2F1600112080" anchor-label="cacheSize" id="-121913525%2FProperties%2F1600112080" data-filterable-set=":srt:dokkaHtmlPartial/release"></a>
-          <div class="table-row" data-filterable-current=":srt:dokkaHtmlPartial/release" data-filterable-set=":srt:dokkaHtmlPartial/release">
+<a data-name="-121913525%2FProperties%2F1519803046" anchor-label="cacheSize" id="-121913525%2FProperties%2F1519803046" data-filterable-set=":srt/main"></a>
+          <div class="table-row table-row_content" data-filterable-current=":srt/main" data-filterable-set=":srt/main">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="cache-size.html"><span>cache</span><wbr><span><span>Size</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-121913525%2FProperties%2F1600112080"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-121913525%2FProperties%2F1519803046"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":srt:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword">val </span><a href="cache-size.html">cacheSize</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":srt/main"><div class="symbol monospace"><span class="token keyword">val </span><a href="cache-size.html">cacheSize</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a></div></div></div>
                 </div>
               </div>
             </div>
           </div>
-<a data-name="332553552%2FProperties%2F1600112080" anchor-label="droppedAudioFrames" id="332553552%2FProperties%2F1600112080" data-filterable-set=":srt:dokkaHtmlPartial/release"></a>
-          <div class="table-row" data-filterable-current=":srt:dokkaHtmlPartial/release" data-filterable-set=":srt:dokkaHtmlPartial/release">
+<a data-name="332553552%2FProperties%2F1519803046" anchor-label="droppedAudioFrames" id="332553552%2FProperties%2F1519803046" data-filterable-set=":srt/main"></a>
+          <div class="table-row table-row_content" data-filterable-current=":srt/main" data-filterable-set=":srt/main">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="dropped-audio-frames.html"><span>dropped</span><wbr><span>Audio</span><wbr><span><span>Frames</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="332553552%2FProperties%2F1600112080"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="332553552%2FProperties%2F1519803046"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":srt:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword">val </span><a href="dropped-audio-frames.html">droppedAudioFrames</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-long/index.html">Long</a></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":srt/main"><div class="symbol monospace"><span class="token keyword">val </span><a href="dropped-audio-frames.html">droppedAudioFrames</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-long/index.html">Long</a></div></div></div>
                 </div>
               </div>
             </div>
           </div>
-<a data-name="-746975221%2FProperties%2F1600112080" anchor-label="droppedVideoFrames" id="-746975221%2FProperties%2F1600112080" data-filterable-set=":srt:dokkaHtmlPartial/release"></a>
-          <div class="table-row" data-filterable-current=":srt:dokkaHtmlPartial/release" data-filterable-set=":srt:dokkaHtmlPartial/release">
+<a data-name="-746975221%2FProperties%2F1519803046" anchor-label="droppedVideoFrames" id="-746975221%2FProperties%2F1519803046" data-filterable-set=":srt/main"></a>
+          <div class="table-row table-row_content" data-filterable-current=":srt/main" data-filterable-set=":srt/main">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="dropped-video-frames.html"><span>dropped</span><wbr><span>Video</span><wbr><span><span>Frames</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-746975221%2FProperties%2F1600112080"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-746975221%2FProperties%2F1519803046"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":srt:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword">val </span><a href="dropped-video-frames.html">droppedVideoFrames</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-long/index.html">Long</a></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":srt/main"><div class="symbol monospace"><span class="token keyword">val </span><a href="dropped-video-frames.html">droppedVideoFrames</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-long/index.html">Long</a></div></div></div>
                 </div>
               </div>
             </div>
           </div>
-<a data-name="1071877366%2FProperties%2F1600112080" anchor-label="isStreaming" id="1071877366%2FProperties%2F1600112080" data-filterable-set=":srt:dokkaHtmlPartial/release"></a>
-          <div class="table-row" data-filterable-current=":srt:dokkaHtmlPartial/release" data-filterable-set=":srt:dokkaHtmlPartial/release">
+<a data-name="1071877366%2FProperties%2F1519803046" anchor-label="isStreaming" id="1071877366%2FProperties%2F1519803046" data-filterable-set=":srt/main"></a>
+          <div class="table-row table-row_content" data-filterable-current=":srt/main" data-filterable-set=":srt/main">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="is-streaming.html"><span>is</span><wbr><span><span>Streaming</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1071877366%2FProperties%2F1600112080"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1071877366%2FProperties%2F1519803046"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":srt:dokkaHtmlPartial/release"><div class="symbol monospace"><div class="block"><div class="block"><span class="token annotation builtin">@</span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin.jvm/-volatile/index.html"><span class="token annotation builtin">Volatile</span></a></div></div><span class="token keyword">var </span><a href="is-streaming.html">isStreaming</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-boolean/index.html">Boolean</a></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":srt/main"><div class="symbol monospace"><div class="block"><div class="block"><span class="token annotation builtin">@</span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin.jvm/-volatile/index.html"><span class="token annotation builtin">Volatile</span></a></div></div><span class="token keyword">var </span><a href="is-streaming.html">isStreaming</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-boolean/index.html">Boolean</a></div></div></div>
                 </div>
               </div>
             </div>
           </div>
-<a data-name="2069107839%2FProperties%2F1600112080" anchor-label="packetsLost" id="2069107839%2FProperties%2F1600112080" data-filterable-set=":srt:dokkaHtmlPartial/release"></a>
-          <div class="table-row" data-filterable-current=":srt:dokkaHtmlPartial/release" data-filterable-set=":srt:dokkaHtmlPartial/release">
+<a data-name="2069107839%2FProperties%2F1519803046" anchor-label="packetsLost" id="2069107839%2FProperties%2F1519803046" data-filterable-set=":srt/main"></a>
+          <div class="table-row table-row_content" data-filterable-current=":srt/main" data-filterable-set=":srt/main">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="packets-lost.html"><span>packets</span><wbr><span><span>Lost</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="2069107839%2FProperties%2F1600112080"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="2069107839%2FProperties%2F1519803046"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":srt:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword">var </span><a href="packets-lost.html">packetsLost</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":srt/main"><div class="symbol monospace"><span class="token keyword">var </span><a href="packets-lost.html">packetsLost</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a></div></div></div>
                 </div>
               </div>
             </div>
           </div>
-<a data-name="1282129692%2FProperties%2F1600112080" anchor-label="rtt" id="1282129692%2FProperties%2F1600112080" data-filterable-set=":srt:dokkaHtmlPartial/release"></a>
-          <div class="table-row" data-filterable-current=":srt:dokkaHtmlPartial/release" data-filterable-set=":srt:dokkaHtmlPartial/release">
+<a data-name="1282129692%2FProperties%2F1519803046" anchor-label="rtt" id="1282129692%2FProperties%2F1519803046" data-filterable-set=":srt/main"></a>
+          <div class="table-row table-row_content" data-filterable-current=":srt/main" data-filterable-set=":srt/main">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="rtt.html"><span><span>rtt</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1282129692%2FProperties%2F1600112080"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1282129692%2FProperties%2F1519803046"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":srt:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword">var </span><a href="rtt.html">rtt</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":srt/main"><div class="symbol monospace"><span class="token keyword">var </span><a href="rtt.html">rtt</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a></div></div></div>
                 </div>
               </div>
             </div>
           </div>
-<a data-name="1228963562%2FProperties%2F1600112080" anchor-label="sentAudioFrames" id="1228963562%2FProperties%2F1600112080" data-filterable-set=":srt:dokkaHtmlPartial/release"></a>
-          <div class="table-row" data-filterable-current=":srt:dokkaHtmlPartial/release" data-filterable-set=":srt:dokkaHtmlPartial/release">
+<a data-name="1228963562%2FProperties%2F1519803046" anchor-label="sentAudioFrames" id="1228963562%2FProperties%2F1519803046" data-filterable-set=":srt/main"></a>
+          <div class="table-row table-row_content" data-filterable-current=":srt/main" data-filterable-set=":srt/main">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="sent-audio-frames.html"><span>sent</span><wbr><span>Audio</span><wbr><span><span>Frames</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1228963562%2FProperties%2F1600112080"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1228963562%2FProperties%2F1519803046"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":srt:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword">val </span><a href="sent-audio-frames.html">sentAudioFrames</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-long/index.html">Long</a></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":srt/main"><div class="symbol monospace"><span class="token keyword">val </span><a href="sent-audio-frames.html">sentAudioFrames</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-long/index.html">Long</a></div></div></div>
                 </div>
               </div>
             </div>
           </div>
-<a data-name="149434789%2FProperties%2F1600112080" anchor-label="sentVideoFrames" id="149434789%2FProperties%2F1600112080" data-filterable-set=":srt:dokkaHtmlPartial/release"></a>
-          <div class="table-row" data-filterable-current=":srt:dokkaHtmlPartial/release" data-filterable-set=":srt:dokkaHtmlPartial/release">
+<a data-name="149434789%2FProperties%2F1519803046" anchor-label="sentVideoFrames" id="149434789%2FProperties%2F1519803046" data-filterable-set=":srt/main"></a>
+          <div class="table-row table-row_content" data-filterable-current=":srt/main" data-filterable-set=":srt/main">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="sent-video-frames.html"><span>sent</span><wbr><span>Video</span><wbr><span><span>Frames</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="149434789%2FProperties%2F1600112080"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="149434789%2FProperties%2F1519803046"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":srt:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword">val </span><a href="sent-video-frames.html">sentVideoFrames</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-long/index.html">Long</a></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":srt/main"><div class="symbol monospace"><span class="token keyword">val </span><a href="sent-video-frames.html">sentVideoFrames</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-long/index.html">Long</a></div></div></div>
                 </div>
               </div>
             </div>
           </div>
-<a data-name="912301408%2FProperties%2F1600112080" anchor-label="socketTimeout" id="912301408%2FProperties%2F1600112080" data-filterable-set=":srt:dokkaHtmlPartial/release"></a>
-          <div class="table-row" data-filterable-current=":srt:dokkaHtmlPartial/release" data-filterable-set=":srt:dokkaHtmlPartial/release">
+<a data-name="912301408%2FProperties%2F1519803046" anchor-label="socketTimeout" id="912301408%2FProperties%2F1519803046" data-filterable-set=":srt/main"></a>
+          <div class="table-row table-row_content" data-filterable-current=":srt/main" data-filterable-set=":srt/main">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="socket-timeout.html"><span>socket</span><wbr><span><span>Timeout</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="912301408%2FProperties%2F1600112080"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="912301408%2FProperties%2F1519803046"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":srt:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword">var </span><a href="socket-timeout.html">socketTimeout</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-long/index.html">Long</a></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":srt/main"><div class="symbol monospace"><span class="token keyword">var </span><a href="socket-timeout.html">socketTimeout</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-long/index.html">Long</a></div></div></div>
                 </div>
               </div>
             </div>
           </div>
-<a data-name="-127054753%2FProperties%2F1600112080" anchor-label="socketType" id="-127054753%2FProperties%2F1600112080" data-filterable-set=":srt:dokkaHtmlPartial/release"></a>
-          <div class="table-row" data-filterable-current=":srt:dokkaHtmlPartial/release" data-filterable-set=":srt:dokkaHtmlPartial/release">
+<a data-name="-127054753%2FProperties%2F1519803046" anchor-label="socketType" id="-127054753%2FProperties%2F1519803046" data-filterable-set=":srt/main"></a>
+          <div class="table-row table-row_content" data-filterable-current=":srt/main" data-filterable-set=":srt/main">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="socket-type.html"><span>socket</span><wbr><span><span>Type</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-127054753%2FProperties%2F1600112080"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-127054753%2FProperties%2F1519803046"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":srt:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword">var </span><a href="socket-type.html">socketType</a><span class="token operator">: </span><a href="../../../common/com.pedro.common.socket.base/-socket-type/index.html">SocketType</a></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":srt/main"><div class="symbol monospace"><span class="token keyword">var </span><a href="socket-type.html">socketType</a><span class="token operator">: </span><a href="../../../common/com.pedro.common.socket.base/-socket-type/index.html">SocketType</a></div></div></div>
                 </div>
               </div>
             </div>
@@ -288,468 +288,453 @@
         </div>
       </div>
       <div data-togglable="FUNCTION">
-        <h2 class="">Functions</h2>
-        <div class="table"><a data-name="144949623%2FFunctions%2F1600112080" anchor-label="clearCache" id="144949623%2FFunctions%2F1600112080" data-filterable-set=":srt:dokkaHtmlPartial/release"></a>
-          <div class="table-row" data-filterable-current=":srt:dokkaHtmlPartial/release" data-filterable-set=":srt:dokkaHtmlPartial/release">
+        <h2 class="tableheader">Functions</h2>
+        <div class="table"><a data-name="144949623%2FFunctions%2F1519803046" anchor-label="clearCache" id="144949623%2FFunctions%2F1519803046" data-filterable-set=":srt/main"></a>
+          <div class="table-row table-row_content" data-filterable-current=":srt/main" data-filterable-set=":srt/main">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="clear-cache.html"><span>clear</span><wbr><span><span>Cache</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="144949623%2FFunctions%2F1600112080"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="144949623%2FFunctions%2F1519803046"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":srt:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword">fun </span><a href="clear-cache.html"><span class="token function">clearCache</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":srt/main"><div class="symbol monospace"><span class="token keyword">fun </span><a href="clear-cache.html"><span class="token function">clearCache</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span></div></div></div>
                 </div>
               </div>
             </div>
           </div>
-<a data-name="1855127201%2FFunctions%2F1600112080" anchor-label="connect" id="1855127201%2FFunctions%2F1600112080" data-filterable-set=":srt:dokkaHtmlPartial/release"></a>
-          <div class="table-row" data-filterable-current=":srt:dokkaHtmlPartial/release" data-filterable-set=":srt:dokkaHtmlPartial/release">
+<a data-name="1855127201%2FFunctions%2F1519803046" anchor-label="connect" id="1855127201%2FFunctions%2F1519803046" data-filterable-set=":srt/main"></a>
+          <div class="table-row table-row_content" data-filterable-current=":srt/main" data-filterable-set=":srt/main">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="connect.html"><span><span>connect</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1855127201%2FFunctions%2F1600112080"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1855127201%2FFunctions%2F1519803046"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":srt:dokkaHtmlPartial/release"><div class="symbol monospace"><div class="block"><div class="block"><span class="token annotation builtin">@</span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin.jvm/-jvm-overloads/index.html"><span class="token annotation builtin">JvmOverloads</span></a></div></div><span class="token keyword">fun </span><a href="connect.html"><span class="token function">connect</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">url<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token operator">?</span><span class="token punctuation">, </span></span><span class="parameter ">isRetry<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-boolean/index.html">Boolean</a><span class="token operator"> = </span><span class="token boolean">false</span></span></span><span class="token punctuation">)</span></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":srt/main"><div class="symbol monospace"><div class="block"><div class="block"><span class="token annotation builtin">@</span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin.jvm/-jvm-overloads/index.html"><span class="token annotation builtin">JvmOverloads</span></a></div></div><span class="token keyword">fun </span><a href="connect.html"><span class="token function">connect</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">url<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token operator">?</span><span class="token punctuation">, </span></span><span class="parameter ">isRetry<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-boolean/index.html">Boolean</a><span class="token operator"> = </span><span class="token boolean">false</span></span></span><span class="token punctuation">)</span></div></div></div>
                 </div>
               </div>
             </div>
           </div>
-<a data-name="-2140689424%2FFunctions%2F1600112080" anchor-label="disconnect" id="-2140689424%2FFunctions%2F1600112080" data-filterable-set=":srt:dokkaHtmlPartial/release"></a>
-          <div class="table-row" data-filterable-current=":srt:dokkaHtmlPartial/release" data-filterable-set=":srt:dokkaHtmlPartial/release">
+<a data-name="-2140689424%2FFunctions%2F1519803046" anchor-label="disconnect" id="-2140689424%2FFunctions%2F1519803046" data-filterable-set=":srt/main"></a>
+          <div class="table-row table-row_content" data-filterable-current=":srt/main" data-filterable-set=":srt/main">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="disconnect.html"><span><span>disconnect</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-2140689424%2FFunctions%2F1600112080"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-2140689424%2FFunctions%2F1519803046"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":srt:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword">fun </span><a href="disconnect.html"><span class="token function">disconnect</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":srt/main"><div class="symbol monospace"><span class="token keyword">fun </span><a href="disconnect.html"><span class="token function">disconnect</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span></div></div></div>
                 </div>
               </div>
             </div>
           </div>
-<a data-name="264103025%2FFunctions%2F1600112080" anchor-label="getBitrateExponentialFactor" id="264103025%2FFunctions%2F1600112080" data-filterable-set=":srt:dokkaHtmlPartial/release"></a>
-          <div class="table-row" data-filterable-current=":srt:dokkaHtmlPartial/release" data-filterable-set=":srt:dokkaHtmlPartial/release">
+<a data-name="264103025%2FFunctions%2F1519803046" anchor-label="getBitrateExponentialFactor" id="264103025%2FFunctions%2F1519803046" data-filterable-set=":srt/main"></a>
+          <div class="table-row table-row_content" data-filterable-current=":srt/main" data-filterable-set=":srt/main">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="get-bitrate-exponential-factor.html"><span>get</span><wbr><span>Bitrate</span><wbr><span>Exponential</span><wbr><span><span>Factor</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="264103025%2FFunctions%2F1600112080"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="264103025%2FFunctions%2F1519803046"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":srt:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword">fun </span><a href="get-bitrate-exponential-factor.html"><span class="token function">getBitrateExponentialFactor</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-float/index.html">Float</a></div><div class="brief "><p class="paragraph">Get the exponential factor used to calculate the bitrate. Default 1f</p></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":srt/main"><div class="symbol monospace"><span class="token keyword">fun </span><a href="get-bitrate-exponential-factor.html"><span class="token function">getBitrateExponentialFactor</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-float/index.html">Float</a></div><div class="brief "><p class="paragraph">Get the exponential factor used to calculate the bitrate. Default 1f</p></div></div></div>
                 </div>
               </div>
             </div>
           </div>
-<a data-name="295206715%2FFunctions%2F1600112080" anchor-label="getItemsInCache" id="295206715%2FFunctions%2F1600112080" data-filterable-set=":srt:dokkaHtmlPartial/release"></a>
-          <div class="table-row" data-filterable-current=":srt:dokkaHtmlPartial/release" data-filterable-set=":srt:dokkaHtmlPartial/release">
+<a data-name="295206715%2FFunctions%2F1519803046" anchor-label="getItemsInCache" id="295206715%2FFunctions%2F1519803046" data-filterable-set=":srt/main"></a>
+          <div class="table-row table-row_content" data-filterable-current=":srt/main" data-filterable-set=":srt/main">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="get-items-in-cache.html"><span>get</span><wbr><span>Items</span><wbr><span>In</span><wbr><span><span>Cache</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="295206715%2FFunctions%2F1600112080"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="295206715%2FFunctions%2F1519803046"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":srt:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword">fun </span><a href="get-items-in-cache.html"><span class="token function">getItemsInCache</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":srt/main"><div class="symbol monospace"><span class="token keyword">fun </span><a href="get-items-in-cache.html"><span class="token function">getItemsInCache</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a></div></div></div>
                 </div>
               </div>
             </div>
           </div>
-<a data-name="-3603425%2FFunctions%2F1600112080" anchor-label="hasCongestion" id="-3603425%2FFunctions%2F1600112080" data-filterable-set=":srt:dokkaHtmlPartial/release"></a>
-          <div class="table-row" data-filterable-current=":srt:dokkaHtmlPartial/release" data-filterable-set=":srt:dokkaHtmlPartial/release">
+<a data-name="-3603425%2FFunctions%2F1519803046" anchor-label="hasCongestion" id="-3603425%2FFunctions%2F1519803046" data-filterable-set=":srt/main"></a>
+          <div class="table-row table-row_content" data-filterable-current=":srt/main" data-filterable-set=":srt/main">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="has-congestion.html"><span>has</span><wbr><span><span>Congestion</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-3603425%2FFunctions%2F1600112080"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-3603425%2FFunctions%2F1519803046"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":srt:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword">fun </span><a href="has-congestion.html"><span class="token function">hasCongestion</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-boolean/index.html">Boolean</a></div><div class="symbol monospace"><span class="token keyword">fun </span><a href="has-congestion.html"><span class="token function">hasCongestion</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">percentUsed<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-float/index.html">Float</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-boolean/index.html">Boolean</a></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":srt/main"><div class="symbol monospace"><span class="token keyword">fun </span><a href="has-congestion.html"><span class="token function">hasCongestion</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-boolean/index.html">Boolean</a></div><div class="symbol monospace"><span class="token keyword">fun </span><a href="has-congestion.html"><span class="token function">hasCongestion</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">percentUsed<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-float/index.html">Float</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-boolean/index.html">Boolean</a></div></div></div>
                 </div>
               </div>
             </div>
           </div>
-<a data-name="-1074716558%2FFunctions%2F1600112080" anchor-label="reConnect" id="-1074716558%2FFunctions%2F1600112080" data-filterable-set=":srt:dokkaHtmlPartial/release"></a>
-          <div class="table-row" data-filterable-current=":srt:dokkaHtmlPartial/release" data-filterable-set=":srt:dokkaHtmlPartial/release">
+<a data-name="-1074716558%2FFunctions%2F1519803046" anchor-label="reConnect" id="-1074716558%2FFunctions%2F1519803046" data-filterable-set=":srt/main"></a>
+          <div class="table-row table-row_content" data-filterable-current=":srt/main" data-filterable-set=":srt/main">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="re-connect.html"><span>re</span><wbr><span><span>Connect</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1074716558%2FFunctions%2F1600112080"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1074716558%2FFunctions%2F1519803046"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":srt:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword">fun </span><a href="re-connect.html"><span class="token function">reConnect</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">delay<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-long/index.html">Long</a></span></span><span class="token punctuation">)</span></div><div class="symbol monospace"><span class="token keyword">fun </span><a href="re-connect.html"><span class="token function">reConnect</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">delay<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-long/index.html">Long</a><span class="token punctuation">, </span></span><span class="parameter ">backupUrl<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token operator">?</span></span></span><span class="token punctuation">)</span></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":srt/main"><div class="symbol monospace"><span class="token keyword">fun </span><a href="re-connect.html"><span class="token function">reConnect</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">delay<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-long/index.html">Long</a></span></span><span class="token punctuation">)</span></div><div class="symbol monospace"><span class="token keyword">fun </span><a href="re-connect.html"><span class="token function">reConnect</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">delay<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-long/index.html">Long</a><span class="token punctuation">, </span></span><span class="parameter ">backupUrl<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token operator">?</span></span></span><span class="token punctuation">)</span></div></div></div>
                 </div>
               </div>
             </div>
           </div>
-<a data-name="1531987976%2FFunctions%2F1600112080" anchor-label="resetBytesSend" id="1531987976%2FFunctions%2F1600112080" data-filterable-set=":srt:dokkaHtmlPartial/release"></a>
-          <div class="table-row" data-filterable-current=":srt:dokkaHtmlPartial/release" data-filterable-set=":srt:dokkaHtmlPartial/release">
+<a data-name="1531987976%2FFunctions%2F1519803046" anchor-label="resetBytesSend" id="1531987976%2FFunctions%2F1519803046" data-filterable-set=":srt/main"></a>
+          <div class="table-row table-row_content" data-filterable-current=":srt/main" data-filterable-set=":srt/main">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="reset-bytes-send.html"><span>reset</span><wbr><span>Bytes</span><wbr><span><span>Send</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1531987976%2FFunctions%2F1600112080"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1531987976%2FFunctions%2F1519803046"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":srt:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword">fun </span><a href="reset-bytes-send.html"><span class="token function">resetBytesSend</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":srt/main"><div class="symbol monospace"><span class="token keyword">fun </span><a href="reset-bytes-send.html"><span class="token function">resetBytesSend</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span></div></div></div>
                 </div>
               </div>
             </div>
           </div>
-<a data-name="-1024724669%2FFunctions%2F1600112080" anchor-label="resetDroppedAudioFrames" id="-1024724669%2FFunctions%2F1600112080" data-filterable-set=":srt:dokkaHtmlPartial/release"></a>
-          <div class="table-row" data-filterable-current=":srt:dokkaHtmlPartial/release" data-filterable-set=":srt:dokkaHtmlPartial/release">
+<a data-name="-1024724669%2FFunctions%2F1519803046" anchor-label="resetDroppedAudioFrames" id="-1024724669%2FFunctions%2F1519803046" data-filterable-set=":srt/main"></a>
+          <div class="table-row table-row_content" data-filterable-current=":srt/main" data-filterable-set=":srt/main">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="reset-dropped-audio-frames.html"><span>reset</span><wbr><span>Dropped</span><wbr><span>Audio</span><wbr><span><span>Frames</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1024724669%2FFunctions%2F1600112080"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1024724669%2FFunctions%2F1519803046"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":srt:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword">fun </span><a href="reset-dropped-audio-frames.html"><span class="token function">resetDroppedAudioFrames</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":srt/main"><div class="symbol monospace"><span class="token keyword">fun </span><a href="reset-dropped-audio-frames.html"><span class="token function">resetDroppedAudioFrames</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span></div></div></div>
                 </div>
               </div>
             </div>
           </div>
-<a data-name="-2104253442%2FFunctions%2F1600112080" anchor-label="resetDroppedVideoFrames" id="-2104253442%2FFunctions%2F1600112080" data-filterable-set=":srt:dokkaHtmlPartial/release"></a>
-          <div class="table-row" data-filterable-current=":srt:dokkaHtmlPartial/release" data-filterable-set=":srt:dokkaHtmlPartial/release">
+<a data-name="-2104253442%2FFunctions%2F1519803046" anchor-label="resetDroppedVideoFrames" id="-2104253442%2FFunctions%2F1519803046" data-filterable-set=":srt/main"></a>
+          <div class="table-row table-row_content" data-filterable-current=":srt/main" data-filterable-set=":srt/main">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="reset-dropped-video-frames.html"><span>reset</span><wbr><span>Dropped</span><wbr><span>Video</span><wbr><span><span>Frames</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-2104253442%2FFunctions%2F1600112080"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-2104253442%2FFunctions%2F1519803046"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":srt:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword">fun </span><a href="reset-dropped-video-frames.html"><span class="token function">resetDroppedVideoFrames</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":srt/main"><div class="symbol monospace"><span class="token keyword">fun </span><a href="reset-dropped-video-frames.html"><span class="token function">resetDroppedVideoFrames</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span></div></div></div>
                 </div>
               </div>
             </div>
           </div>
-<a data-name="354527191%2FFunctions%2F1600112080" anchor-label="resetSentAudioFrames" id="354527191%2FFunctions%2F1600112080" data-filterable-set=":srt:dokkaHtmlPartial/release"></a>
-          <div class="table-row" data-filterable-current=":srt:dokkaHtmlPartial/release" data-filterable-set=":srt:dokkaHtmlPartial/release">
+<a data-name="354527191%2FFunctions%2F1519803046" anchor-label="resetSentAudioFrames" id="354527191%2FFunctions%2F1519803046" data-filterable-set=":srt/main"></a>
+          <div class="table-row table-row_content" data-filterable-current=":srt/main" data-filterable-set=":srt/main">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="reset-sent-audio-frames.html"><span>reset</span><wbr><span>Sent</span><wbr><span>Audio</span><wbr><span><span>Frames</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="354527191%2FFunctions%2F1600112080"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="354527191%2FFunctions%2F1519803046"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":srt:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword">fun </span><a href="reset-sent-audio-frames.html"><span class="token function">resetSentAudioFrames</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":srt/main"><div class="symbol monospace"><span class="token keyword">fun </span><a href="reset-sent-audio-frames.html"><span class="token function">resetSentAudioFrames</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span></div></div></div>
                 </div>
               </div>
             </div>
           </div>
-<a data-name="-725001582%2FFunctions%2F1600112080" anchor-label="resetSentVideoFrames" id="-725001582%2FFunctions%2F1600112080" data-filterable-set=":srt:dokkaHtmlPartial/release"></a>
-          <div class="table-row" data-filterable-current=":srt:dokkaHtmlPartial/release" data-filterable-set=":srt:dokkaHtmlPartial/release">
+<a data-name="-725001582%2FFunctions%2F1519803046" anchor-label="resetSentVideoFrames" id="-725001582%2FFunctions%2F1519803046" data-filterable-set=":srt/main"></a>
+          <div class="table-row table-row_content" data-filterable-current=":srt/main" data-filterable-set=":srt/main">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="reset-sent-video-frames.html"><span>reset</span><wbr><span>Sent</span><wbr><span>Video</span><wbr><span><span>Frames</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-725001582%2FFunctions%2F1600112080"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-725001582%2FFunctions%2F1519803046"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":srt:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword">fun </span><a href="reset-sent-video-frames.html"><span class="token function">resetSentVideoFrames</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":srt/main"><div class="symbol monospace"><span class="token keyword">fun </span><a href="reset-sent-video-frames.html"><span class="token function">resetSentVideoFrames</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span></div></div></div>
                 </div>
               </div>
             </div>
           </div>
-<a data-name="1815335550%2FFunctions%2F1600112080" anchor-label="resizeCache" id="1815335550%2FFunctions%2F1600112080" data-filterable-set=":srt:dokkaHtmlPartial/release"></a>
-          <div class="table-row" data-filterable-current=":srt:dokkaHtmlPartial/release" data-filterable-set=":srt:dokkaHtmlPartial/release">
+<a data-name="1815335550%2FFunctions%2F1519803046" anchor-label="resizeCache" id="1815335550%2FFunctions%2F1519803046" data-filterable-set=":srt/main"></a>
+          <div class="table-row table-row_content" data-filterable-current=":srt/main" data-filterable-set=":srt/main">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="resize-cache.html"><span>resize</span><wbr><span><span>Cache</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1815335550%2FFunctions%2F1600112080"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1815335550%2FFunctions%2F1519803046"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":srt:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword">fun </span><a href="resize-cache.html"><span class="token function">resizeCache</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">newSize<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a></span></span><span class="token punctuation">)</span></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":srt/main"><div class="symbol monospace"><span class="token keyword">fun </span><a href="resize-cache.html"><span class="token function">resizeCache</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">newSize<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a></span></span><span class="token punctuation">)</span></div></div></div>
                 </div>
               </div>
             </div>
           </div>
-<a data-name="964313942%2FFunctions%2F1600112080" anchor-label="sendAudio" id="964313942%2FFunctions%2F1600112080" data-filterable-set=":srt:dokkaHtmlPartial/release"></a>
-          <div class="table-row" data-filterable-current=":srt:dokkaHtmlPartial/release" data-filterable-set=":srt:dokkaHtmlPartial/release">
+<a data-name="964313942%2FFunctions%2F1519803046" anchor-label="sendAudio" id="964313942%2FFunctions%2F1519803046" data-filterable-set=":srt/main"></a>
+          <div class="table-row table-row_content" data-filterable-current=":srt/main" data-filterable-set=":srt/main">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="send-audio.html"><span>send</span><wbr><span><span>Audio</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="964313942%2FFunctions%2F1600112080"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="964313942%2FFunctions%2F1519803046"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":srt:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword">fun </span><a href="send-audio.html"><span class="token function">sendAudio</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">audioBuffer<span class="token operator">: </span><a href="https://developer.android.com/reference/kotlin/java/nio/ByteBuffer.html">ByteBuffer</a><span class="token punctuation">, </span></span><span class="parameter ">info<span class="token operator">: </span><a href="https://developer.android.com/reference/kotlin/android/media/MediaCodec.BufferInfo.html">MediaCodec.BufferInfo</a></span></span><span class="token punctuation">)</span></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":srt/main"><div class="symbol monospace"><span class="token keyword">fun </span><a href="send-audio.html"><span class="token function">sendAudio</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">audioBuffer<span class="token operator">: </span><a href="https://developer.android.com/reference/kotlin/java/nio/ByteBuffer.html">ByteBuffer</a><span class="token punctuation">, </span></span><span class="parameter ">info<span class="token operator">: </span><a href="https://developer.android.com/reference/kotlin/android/media/MediaCodec.BufferInfo.html">MediaCodec.BufferInfo</a></span></span><span class="token punctuation">)</span></div></div></div>
                 </div>
               </div>
             </div>
           </div>
-<a data-name="891365883%2FFunctions%2F1600112080" anchor-label="sendVideo" id="891365883%2FFunctions%2F1600112080" data-filterable-set=":srt:dokkaHtmlPartial/release"></a>
-          <div class="table-row" data-filterable-current=":srt:dokkaHtmlPartial/release" data-filterable-set=":srt:dokkaHtmlPartial/release">
+<a data-name="891365883%2FFunctions%2F1519803046" anchor-label="sendVideo" id="891365883%2FFunctions%2F1519803046" data-filterable-set=":srt/main"></a>
+          <div class="table-row table-row_content" data-filterable-current=":srt/main" data-filterable-set=":srt/main">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="send-video.html"><span>send</span><wbr><span><span>Video</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="891365883%2FFunctions%2F1600112080"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="891365883%2FFunctions%2F1519803046"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":srt:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword">fun </span><a href="send-video.html"><span class="token function">sendVideo</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">videoBuffer<span class="token operator">: </span><a href="https://developer.android.com/reference/kotlin/java/nio/ByteBuffer.html">ByteBuffer</a><span class="token punctuation">, </span></span><span class="parameter ">info<span class="token operator">: </span><a href="https://developer.android.com/reference/kotlin/android/media/MediaCodec.BufferInfo.html">MediaCodec.BufferInfo</a></span></span><span class="token punctuation">)</span></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":srt/main"><div class="symbol monospace"><span class="token keyword">fun </span><a href="send-video.html"><span class="token function">sendVideo</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">videoBuffer<span class="token operator">: </span><a href="https://developer.android.com/reference/kotlin/java/nio/ByteBuffer.html">ByteBuffer</a><span class="token punctuation">, </span></span><span class="parameter ">info<span class="token operator">: </span><a href="https://developer.android.com/reference/kotlin/android/media/MediaCodec.BufferInfo.html">MediaCodec.BufferInfo</a></span></span><span class="token punctuation">)</span></div></div></div>
                 </div>
               </div>
             </div>
           </div>
-<a data-name="1389866946%2FFunctions%2F1600112080" anchor-label="setAudioCodec" id="1389866946%2FFunctions%2F1600112080" data-filterable-set=":srt:dokkaHtmlPartial/release"></a>
-          <div class="table-row" data-filterable-current=":srt:dokkaHtmlPartial/release" data-filterable-set=":srt:dokkaHtmlPartial/release">
+<a data-name="1389866946%2FFunctions%2F1519803046" anchor-label="setAudioCodec" id="1389866946%2FFunctions%2F1519803046" data-filterable-set=":srt/main"></a>
+          <div class="table-row table-row_content" data-filterable-current=":srt/main" data-filterable-set=":srt/main">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="set-audio-codec.html"><span>set</span><wbr><span>Audio</span><wbr><span><span>Codec</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1389866946%2FFunctions%2F1600112080"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1389866946%2FFunctions%2F1519803046"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":srt:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword">fun </span><a href="set-audio-codec.html"><span class="token function">setAudioCodec</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">audioCodec<span class="token operator">: </span><a href="../../../common/com.pedro.common/-audio-codec/index.html">AudioCodec</a></span></span><span class="token punctuation">)</span></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":srt/main"><div class="symbol monospace"><span class="token keyword">fun </span><a href="set-audio-codec.html"><span class="token function">setAudioCodec</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">audioCodec<span class="token operator">: </span><a href="../../../common/com.pedro.common/-audio-codec/index.html">AudioCodec</a></span></span><span class="token punctuation">)</span></div></div></div>
                 </div>
               </div>
             </div>
           </div>
-<a data-name="424337724%2FFunctions%2F1600112080" anchor-label="setAudioInfo" id="424337724%2FFunctions%2F1600112080" data-filterable-set=":srt:dokkaHtmlPartial/release"></a>
-          <div class="table-row" data-filterable-current=":srt:dokkaHtmlPartial/release" data-filterable-set=":srt:dokkaHtmlPartial/release">
+<a data-name="424337724%2FFunctions%2F1519803046" anchor-label="setAudioInfo" id="424337724%2FFunctions%2F1519803046" data-filterable-set=":srt/main"></a>
+          <div class="table-row table-row_content" data-filterable-current=":srt/main" data-filterable-set=":srt/main">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="set-audio-info.html"><span>set</span><wbr><span>Audio</span><wbr><span><span>Info</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="424337724%2FFunctions%2F1600112080"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="424337724%2FFunctions%2F1519803046"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":srt:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword">fun </span><a href="set-audio-info.html"><span class="token function">setAudioInfo</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">sampleRate<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a><span class="token punctuation">, </span></span><span class="parameter ">isStereo<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-boolean/index.html">Boolean</a></span></span><span class="token punctuation">)</span></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":srt/main"><div class="symbol monospace"><span class="token keyword">fun </span><a href="set-audio-info.html"><span class="token function">setAudioInfo</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">sampleRate<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a><span class="token punctuation">, </span></span><span class="parameter ">isStereo<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-boolean/index.html">Boolean</a></span></span><span class="token punctuation">)</span></div></div></div>
                 </div>
               </div>
             </div>
           </div>
-<a data-name="-1333963766%2FFunctions%2F1600112080" anchor-label="setAuthorization" id="-1333963766%2FFunctions%2F1600112080" data-filterable-set=":srt:dokkaHtmlPartial/release"></a>
-          <div class="table-row" data-filterable-current=":srt:dokkaHtmlPartial/release" data-filterable-set=":srt:dokkaHtmlPartial/release">
-            <div class="main-subrow keyValue ">
-              <div class=""><span class="inline-flex">
-                  <div><a href="set-authorization.html"><span>set</span><wbr><span><span>Authorization</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1333963766%2FFunctions%2F1600112080"></span>
-                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
-                  </span></span></div>
-              <div>
-                <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":srt:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword">fun </span><a href="set-authorization.html"><span class="token function">setAuthorization</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">user<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token operator">?</span><span class="token punctuation">, </span></span><span class="parameter ">password<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token operator">?</span></span></span><span class="token punctuation">)</span></div></div></div>
-                </div>
-              </div>
-            </div>
-          </div>
-<a data-name="-310128906%2FFunctions%2F1600112080" anchor-label="setBitrateExponentialFactor" id="-310128906%2FFunctions%2F1600112080" data-filterable-set=":srt:dokkaHtmlPartial/release"></a>
-          <div class="table-row" data-filterable-current=":srt:dokkaHtmlPartial/release" data-filterable-set=":srt:dokkaHtmlPartial/release">
+<a data-name="-310128906%2FFunctions%2F1519803046" anchor-label="setBitrateExponentialFactor" id="-310128906%2FFunctions%2F1519803046" data-filterable-set=":srt/main"></a>
+          <div class="table-row table-row_content" data-filterable-current=":srt/main" data-filterable-set=":srt/main">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="set-bitrate-exponential-factor.html"><span>set</span><wbr><span>Bitrate</span><wbr><span>Exponential</span><wbr><span><span>Factor</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-310128906%2FFunctions%2F1600112080"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-310128906%2FFunctions%2F1519803046"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":srt:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword">fun </span><a href="set-bitrate-exponential-factor.html"><span class="token function">setBitrateExponentialFactor</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">factor<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-float/index.html">Float</a></span></span><span class="token punctuation">)</span></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":srt/main"><div class="symbol monospace"><span class="token keyword">fun </span><a href="set-bitrate-exponential-factor.html"><span class="token function">setBitrateExponentialFactor</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">factor<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-float/index.html">Float</a></span></span><span class="token punctuation">)</span></div></div></div>
                 </div>
               </div>
             </div>
           </div>
-<a data-name="69882863%2FFunctions%2F1600112080" anchor-label="setCheckServerAlive" id="69882863%2FFunctions%2F1600112080" data-filterable-set=":srt:dokkaHtmlPartial/release"></a>
-          <div class="table-row" data-filterable-current=":srt:dokkaHtmlPartial/release" data-filterable-set=":srt:dokkaHtmlPartial/release">
+<a data-name="69882863%2FFunctions%2F1519803046" anchor-label="setCheckServerAlive" id="69882863%2FFunctions%2F1519803046" data-filterable-set=":srt/main"></a>
+          <div class="table-row table-row_content" data-filterable-current=":srt/main" data-filterable-set=":srt/main">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="set-check-server-alive.html"><span>set</span><wbr><span>Check</span><wbr><span>Server</span><wbr><span><span>Alive</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="69882863%2FFunctions%2F1600112080"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="69882863%2FFunctions%2F1519803046"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":srt:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword">fun </span><a href="set-check-server-alive.html"><span class="token function">setCheckServerAlive</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">enabled<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-boolean/index.html">Boolean</a></span></span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Check periodically if server is alive using Echo protocol.</p></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":srt/main"><div class="symbol monospace"><span class="token keyword">fun </span><a href="set-check-server-alive.html"><span class="token function">setCheckServerAlive</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">enabled<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-boolean/index.html">Boolean</a></span></span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Check periodically if server is alive using Echo protocol.</p></div></div></div>
                 </div>
               </div>
             </div>
           </div>
-<a data-name="617180334%2FFunctions%2F1600112080" anchor-label="setDelay" id="617180334%2FFunctions%2F1600112080" data-filterable-set=":srt:dokkaHtmlPartial/release"></a>
-          <div class="table-row" data-filterable-current=":srt:dokkaHtmlPartial/release" data-filterable-set=":srt:dokkaHtmlPartial/release">
+<a data-name="617180334%2FFunctions%2F1519803046" anchor-label="setDelay" id="617180334%2FFunctions%2F1519803046" data-filterable-set=":srt/main"></a>
+          <div class="table-row table-row_content" data-filterable-current=":srt/main" data-filterable-set=":srt/main">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="set-delay.html"><span>set</span><wbr><span><span>Delay</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="617180334%2FFunctions%2F1600112080"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="617180334%2FFunctions%2F1519803046"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":srt:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword">fun </span><a href="set-delay.html"><span class="token function">setDelay</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">millis<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-long/index.html">Long</a></span></span><span class="token punctuation">)</span></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":srt/main"><div class="symbol monospace"><span class="token keyword">fun </span><a href="set-delay.html"><span class="token function">setDelay</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">millis<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-long/index.html">Long</a></span></span><span class="token punctuation">)</span></div></div></div>
                 </div>
               </div>
             </div>
           </div>
-<a data-name="-1114957842%2FFunctions%2F1600112080" anchor-label="setLatency" id="-1114957842%2FFunctions%2F1600112080" data-filterable-set=":srt:dokkaHtmlPartial/release"></a>
-          <div class="table-row" data-filterable-current=":srt:dokkaHtmlPartial/release" data-filterable-set=":srt:dokkaHtmlPartial/release">
+<a data-name="-1114957842%2FFunctions%2F1519803046" anchor-label="setLatency" id="-1114957842%2FFunctions%2F1519803046" data-filterable-set=":srt/main"></a>
+          <div class="table-row table-row_content" data-filterable-current=":srt/main" data-filterable-set=":srt/main">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="set-latency.html"><span>set</span><wbr><span><span>Latency</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1114957842%2FFunctions%2F1600112080"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1114957842%2FFunctions%2F1519803046"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":srt:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword">fun </span><a href="set-latency.html"><span class="token function">setLatency</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">latency<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a></span></span><span class="token punctuation">)</span></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":srt/main"><div class="symbol monospace"><span class="token keyword">fun </span><a href="set-latency.html"><span class="token function">setLatency</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">latency<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a></span></span><span class="token punctuation">)</span></div></div></div>
                 </div>
               </div>
             </div>
           </div>
-<a data-name="1787097410%2FFunctions%2F1600112080" anchor-label="setLogs" id="1787097410%2FFunctions%2F1600112080" data-filterable-set=":srt:dokkaHtmlPartial/release"></a>
-          <div class="table-row" data-filterable-current=":srt:dokkaHtmlPartial/release" data-filterable-set=":srt:dokkaHtmlPartial/release">
+<a data-name="1787097410%2FFunctions%2F1519803046" anchor-label="setLogs" id="1787097410%2FFunctions%2F1519803046" data-filterable-set=":srt/main"></a>
+          <div class="table-row table-row_content" data-filterable-current=":srt/main" data-filterable-set=":srt/main">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="set-logs.html"><span>set</span><wbr><span><span>Logs</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1787097410%2FFunctions%2F1600112080"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1787097410%2FFunctions%2F1519803046"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":srt:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword">fun </span><a href="set-logs.html"><span class="token function">setLogs</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">enable<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-boolean/index.html">Boolean</a></span></span><span class="token punctuation">)</span></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":srt/main"><div class="symbol monospace"><span class="token keyword">fun </span><a href="set-logs.html"><span class="token function">setLogs</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">enable<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-boolean/index.html">Boolean</a></span></span><span class="token punctuation">)</span></div></div></div>
                 </div>
               </div>
             </div>
           </div>
-<a data-name="-521413897%2FFunctions%2F1600112080" anchor-label="setMpeg2TsService" id="-521413897%2FFunctions%2F1600112080" data-filterable-set=":srt:dokkaHtmlPartial/release"></a>
-          <div class="table-row" data-filterable-current=":srt:dokkaHtmlPartial/release" data-filterable-set=":srt:dokkaHtmlPartial/release">
+<a data-name="-521413897%2FFunctions%2F1519803046" anchor-label="setMpeg2TsService" id="-521413897%2FFunctions%2F1519803046" data-filterable-set=":srt/main"></a>
+          <div class="table-row table-row_content" data-filterable-current=":srt/main" data-filterable-set=":srt/main">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="set-mpeg2-ts-service.html"><span>set</span><wbr><span>Mpeg2Ts</span><wbr><span><span>Service</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-521413897%2FFunctions%2F1600112080"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-521413897%2FFunctions%2F1519803046"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":srt:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword">fun </span><a href="set-mpeg2-ts-service.html"><span class="token function">setMpeg2TsService</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">customService<span class="token operator">: </span><a href="../../com.pedro.srt.mpeg2ts.service/-mpeg2-ts-service/index.html">Mpeg2TsService</a></span></span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Set a custom Mpeg2TsService with specified parameters Must be called before connect</p></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":srt/main"><div class="symbol monospace"><span class="token keyword">fun </span><a href="set-mpeg2-ts-service.html"><span class="token function">setMpeg2TsService</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">customService<span class="token operator">: </span><a href="../../com.pedro.srt.mpeg2ts.service/-mpeg2-ts-service/index.html">Mpeg2TsService</a></span></span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Set a custom Mpeg2TsService with specified parameters Must be called before connect</p></div></div></div>
                 </div>
               </div>
             </div>
           </div>
-<a data-name="99085641%2FFunctions%2F1600112080" anchor-label="setOnlyAudio" id="99085641%2FFunctions%2F1600112080" data-filterable-set=":srt:dokkaHtmlPartial/release"></a>
-          <div class="table-row" data-filterable-current=":srt:dokkaHtmlPartial/release" data-filterable-set=":srt:dokkaHtmlPartial/release">
+<a data-name="99085641%2FFunctions%2F1519803046" anchor-label="setOnlyAudio" id="99085641%2FFunctions%2F1519803046" data-filterable-set=":srt/main"></a>
+          <div class="table-row table-row_content" data-filterable-current=":srt/main" data-filterable-set=":srt/main">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="set-only-audio.html"><span>set</span><wbr><span>Only</span><wbr><span><span>Audio</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="99085641%2FFunctions%2F1600112080"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="99085641%2FFunctions%2F1519803046"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":srt:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword">fun </span><a href="set-only-audio.html"><span class="token function">setOnlyAudio</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">onlyAudio<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-boolean/index.html">Boolean</a></span></span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Must be called before connect</p></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":srt/main"><div class="symbol monospace"><span class="token keyword">fun </span><a href="set-only-audio.html"><span class="token function">setOnlyAudio</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">onlyAudio<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-boolean/index.html">Boolean</a></span></span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Must be called before connect</p></div></div></div>
                 </div>
               </div>
             </div>
           </div>
-<a data-name="297448708%2FFunctions%2F1600112080" anchor-label="setOnlyVideo" id="297448708%2FFunctions%2F1600112080" data-filterable-set=":srt:dokkaHtmlPartial/release"></a>
-          <div class="table-row" data-filterable-current=":srt:dokkaHtmlPartial/release" data-filterable-set=":srt:dokkaHtmlPartial/release">
+<a data-name="297448708%2FFunctions%2F1519803046" anchor-label="setOnlyVideo" id="297448708%2FFunctions%2F1519803046" data-filterable-set=":srt/main"></a>
+          <div class="table-row table-row_content" data-filterable-current=":srt/main" data-filterable-set=":srt/main">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="set-only-video.html"><span>set</span><wbr><span>Only</span><wbr><span><span>Video</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="297448708%2FFunctions%2F1600112080"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="297448708%2FFunctions%2F1519803046"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":srt:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword">fun </span><a href="set-only-video.html"><span class="token function">setOnlyVideo</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">onlyVideo<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-boolean/index.html">Boolean</a></span></span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Must be called before connect</p></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":srt/main"><div class="symbol monospace"><span class="token keyword">fun </span><a href="set-only-video.html"><span class="token function">setOnlyVideo</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">onlyVideo<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-boolean/index.html">Boolean</a></span></span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Must be called before connect</p></div></div></div>
                 </div>
               </div>
             </div>
           </div>
-<a data-name="-840986092%2FFunctions%2F1600112080" anchor-label="setPassphrase" id="-840986092%2FFunctions%2F1600112080" data-filterable-set=":srt:dokkaHtmlPartial/release"></a>
-          <div class="table-row" data-filterable-current=":srt:dokkaHtmlPartial/release" data-filterable-set=":srt:dokkaHtmlPartial/release">
+<a data-name="-840986092%2FFunctions%2F1519803046" anchor-label="setPassphrase" id="-840986092%2FFunctions%2F1519803046" data-filterable-set=":srt/main"></a>
+          <div class="table-row table-row_content" data-filterable-current=":srt/main" data-filterable-set=":srt/main">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="set-passphrase.html"><span>set</span><wbr><span><span>Passphrase</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-840986092%2FFunctions%2F1600112080"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-840986092%2FFunctions%2F1519803046"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":srt:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword">fun </span><a href="set-passphrase.html"><span class="token function">setPassphrase</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">passphrase<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token punctuation">, </span></span><span class="parameter ">type<span class="token operator">: </span><a href="../../com.pedro.srt.srt.packets.control.handshake/-encryption-type/index.html">EncryptionType</a></span></span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Set passphrase for encrypt. Use empty value to disable it.</p></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":srt/main"><div class="symbol monospace"><span class="token keyword">fun </span><a href="set-passphrase.html"><span class="token function">setPassphrase</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">passphrase<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token punctuation">, </span></span><span class="parameter ">type<span class="token operator">: </span><a href="../../com.pedro.srt.srt.packets.control.handshake/-encryption-type/index.html">EncryptionType</a></span></span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Set passphrase for encrypt. Use empty value to disable it.</p></div></div></div>
                 </div>
               </div>
             </div>
           </div>
-<a data-name="-185550138%2FFunctions%2F1600112080" anchor-label="setReTries" id="-185550138%2FFunctions%2F1600112080" data-filterable-set=":srt:dokkaHtmlPartial/release"></a>
-          <div class="table-row" data-filterable-current=":srt:dokkaHtmlPartial/release" data-filterable-set=":srt:dokkaHtmlPartial/release">
+<a data-name="-185550138%2FFunctions%2F1519803046" anchor-label="setReTries" id="-185550138%2FFunctions%2F1519803046" data-filterable-set=":srt/main"></a>
+          <div class="table-row table-row_content" data-filterable-current=":srt/main" data-filterable-set=":srt/main">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="set-re-tries.html"><span>set</span><wbr><span>Re</span><wbr><span><span>Tries</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-185550138%2FFunctions%2F1600112080"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-185550138%2FFunctions%2F1519803046"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":srt:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword">fun </span><a href="set-re-tries.html"><span class="token function">setReTries</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">reTries<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a></span></span><span class="token punctuation">)</span></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":srt/main"><div class="symbol monospace"><span class="token keyword">fun </span><a href="set-re-tries.html"><span class="token function">setReTries</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">reTries<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a></span></span><span class="token punctuation">)</span></div></div></div>
                 </div>
               </div>
             </div>
           </div>
-<a data-name="1767431650%2FFunctions%2F1600112080" anchor-label="setVideoCodec" id="1767431650%2FFunctions%2F1600112080" data-filterable-set=":srt:dokkaHtmlPartial/release"></a>
-          <div class="table-row" data-filterable-current=":srt:dokkaHtmlPartial/release" data-filterable-set=":srt:dokkaHtmlPartial/release">
+<a data-name="1767431650%2FFunctions%2F1519803046" anchor-label="setVideoCodec" id="1767431650%2FFunctions%2F1519803046" data-filterable-set=":srt/main"></a>
+          <div class="table-row table-row_content" data-filterable-current=":srt/main" data-filterable-set=":srt/main">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="set-video-codec.html"><span>set</span><wbr><span>Video</span><wbr><span><span>Codec</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1767431650%2FFunctions%2F1600112080"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1767431650%2FFunctions%2F1519803046"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":srt:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword">fun </span><a href="set-video-codec.html"><span class="token function">setVideoCodec</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">videoCodec<span class="token operator">: </span><a href="../../../common/com.pedro.common/-video-codec/index.html">VideoCodec</a></span></span><span class="token punctuation">)</span></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":srt/main"><div class="symbol monospace"><span class="token keyword">fun </span><a href="set-video-codec.html"><span class="token function">setVideoCodec</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">videoCodec<span class="token operator">: </span><a href="../../../common/com.pedro.common/-video-codec/index.html">VideoCodec</a></span></span><span class="token punctuation">)</span></div></div></div>
                 </div>
               </div>
             </div>
           </div>
-<a data-name="-801419441%2FFunctions%2F1600112080" anchor-label="setVideoInfo" id="-801419441%2FFunctions%2F1600112080" data-filterable-set=":srt:dokkaHtmlPartial/release"></a>
-          <div class="table-row" data-filterable-current=":srt:dokkaHtmlPartial/release" data-filterable-set=":srt:dokkaHtmlPartial/release">
+<a data-name="-801419441%2FFunctions%2F1519803046" anchor-label="setVideoInfo" id="-801419441%2FFunctions%2F1519803046" data-filterable-set=":srt/main"></a>
+          <div class="table-row table-row_content" data-filterable-current=":srt/main" data-filterable-set=":srt/main">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="set-video-info.html"><span>set</span><wbr><span>Video</span><wbr><span><span>Info</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-801419441%2FFunctions%2F1600112080"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-801419441%2FFunctions%2F1519803046"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":srt:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword">fun </span><a href="set-video-info.html"><span class="token function">setVideoInfo</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">sps<span class="token operator">: </span><a href="https://developer.android.com/reference/kotlin/java/nio/ByteBuffer.html">ByteBuffer</a><span class="token punctuation">, </span></span><span class="parameter ">pps<span class="token operator">: </span><a href="https://developer.android.com/reference/kotlin/java/nio/ByteBuffer.html">ByteBuffer</a><span class="token operator">?</span><span class="token punctuation">, </span></span><span class="parameter ">vps<span class="token operator">: </span><a href="https://developer.android.com/reference/kotlin/java/nio/ByteBuffer.html">ByteBuffer</a><span class="token operator">?</span></span></span><span class="token punctuation">)</span></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":srt/main"><div class="symbol monospace"><span class="token keyword">fun </span><a href="set-video-info.html"><span class="token function">setVideoInfo</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">sps<span class="token operator">: </span><a href="https://developer.android.com/reference/kotlin/java/nio/ByteBuffer.html">ByteBuffer</a><span class="token punctuation">, </span></span><span class="parameter ">pps<span class="token operator">: </span><a href="https://developer.android.com/reference/kotlin/java/nio/ByteBuffer.html">ByteBuffer</a><span class="token operator">?</span><span class="token punctuation">, </span></span><span class="parameter ">vps<span class="token operator">: </span><a href="https://developer.android.com/reference/kotlin/java/nio/ByteBuffer.html">ByteBuffer</a><span class="token operator">?</span></span></span><span class="token punctuation">)</span></div></div></div>
                 </div>
               </div>
             </div>
           </div>
-<a data-name="1689612395%2FFunctions%2F1600112080" anchor-label="shouldRetry" id="1689612395%2FFunctions%2F1600112080" data-filterable-set=":srt:dokkaHtmlPartial/release"></a>
-          <div class="table-row" data-filterable-current=":srt:dokkaHtmlPartial/release" data-filterable-set=":srt:dokkaHtmlPartial/release">
+<a data-name="1689612395%2FFunctions%2F1519803046" anchor-label="shouldRetry" id="1689612395%2FFunctions%2F1519803046" data-filterable-set=":srt/main"></a>
+          <div class="table-row table-row_content" data-filterable-current=":srt/main" data-filterable-set=":srt/main">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="should-retry.html"><span>should</span><wbr><span><span>Retry</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1689612395%2FFunctions%2F1600112080"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1689612395%2FFunctions%2F1519803046"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":srt:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword">fun </span><a href="should-retry.html"><span class="token function">shouldRetry</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">reason<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-boolean/index.html">Boolean</a></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":srt/main"><div class="symbol monospace"><span class="token keyword">fun </span><a href="should-retry.html"><span class="token function">shouldRetry</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">reason<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-boolean/index.html">Boolean</a></div></div></div>
                 </div>
               </div>
             </div>
@@ -760,17 +745,21 @@
   </div>
 </div>
     <div class="footer">
-        <a href="#content" id="go-to-top-link" class="footer--button footer--button_go-to-top"></a>
-        <span>© 2025 Copyright</span>
-        <span class="pull-right">
-            <span>Generated by </span>
-            <a class="footer--link footer--link_external" href="https://github.com/Kotlin/dokka">
-                <span>dokka</span>
-            </a>
-        </span>
-    </div>
+        <div class="footer--container">
+            <a href="#content" id="go-to-top-link" class="footer--button footer--button_go-to-top"></a>
+            <div class="footer--content">
+                <div>
+                    <span>Generated by </span>
+                    <a class="footer--link footer--link_external" href="https://github.com/Kotlin/dokka">
+                        Dokka
+                    </a>
+                    <div>© 2025 Copyright</div>
+                </div>
             </div>
         </div>
     </div>
+        </div>
+    </div>
+</div>
 </body>
 </html>

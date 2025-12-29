@@ -1,6 +1,6 @@
 allprojects {
   group = "com.github.pedroSG94"
-  version = "2.6.6"
+  version = "2.6.7"
 
   plugins.withType<PublishingPlugin> {
     configure<PublishingExtension> {
@@ -29,6 +29,17 @@ plugins {
   alias(libs.plugins.jetbrains.dokka) apply true
 }
 
-tasks.dokkaHtmlMultiModule.configure {
-  outputDirectory.set(File("docs"))
+dependencies {
+  dokka(project(":common"))
+  dokka(project(":encoder"))
+  dokka(project(":extra-sources"))
+  dokka(project(":library"))
+  dokka(project(":rtmp"))
+  dokka(project(":rtsp"))
+  dokka(project(":srt"))
+  dokka(project(":udp"))
+}
+
+tasks.named<org.jetbrains.dokka.gradle.tasks.DokkaGeneratePublicationTask>("dokkaGeneratePublicationHtml") {
+  outputDirectory.set(layout.projectDirectory.dir("docs"))
 }

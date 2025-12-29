@@ -1,22 +1,22 @@
 <!doctype html>
-<html class="no-js">
+<html class="no-js" lang="en">
 <head>
     <meta name="viewport" content="width=device-width, initial-scale=1" charset="UTF-8">
     <title>CommandsManagerAmf0</title>
-<link href="../../../images/logo-icon.svg" rel="icon" type="image/svg">    <script>var pathToRoot = "../../../";</script>
-    <script>document.documentElement.classList.replace("no-js","js");</script>
+<link href="../../../images/logo-icon.svg" rel="icon" type="image/svg"><script>var pathToRoot = "../../../";</script>
+    <script>document.documentElement.classList.replace("no-js", "js");</script>
     <script>const storage = localStorage.getItem("dokka-dark-mode")
-    if (storage == null) {
+      if (storage == null) {
         const osDarkSchemePreferred = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
         if (osDarkSchemePreferred === true) {
-            document.getElementsByTagName("html")[0].classList.add("theme-dark")
+          document.getElementsByTagName("html")[0].classList.add("theme-dark")
         }
-    } else {
+      } else {
         const savedDarkMode = JSON.parse(storage)
-        if(savedDarkMode === true) {
-            document.getElementsByTagName("html")[0].classList.add("theme-dark")
+        if (savedDarkMode === true) {
+          document.getElementsByTagName("html")[0].classList.add("theme-dark")
         }
-    }
+      }
     </script>
 <script type="text/javascript" src="https://unpkg.com/kotlin-playground@1/dist/playground.min.js" async></script>
 <script type="text/javascript" src="../../../scripts/sourceset_dependencies.js" async></script>
@@ -24,39 +24,37 @@
 <link href="../../../styles/main.css" rel="Stylesheet">
 <link href="../../../styles/prism.css" rel="Stylesheet">
 <link href="../../../styles/logo-styles.css" rel="Stylesheet">
-<link href="../../../styles/font-jb-sans-auto.css" rel="Stylesheet">
 <link href="../../../ui-kit/ui-kit.min.css" rel="Stylesheet">
-<script type="text/javascript" src="../../../scripts/clipboard.js" async></script>
+<script type="text/javascript" src="../../../scripts/safe-local-storage_blocking.js"></script>
 <script type="text/javascript" src="../../../scripts/navigation-loader.js" async></script>
 <script type="text/javascript" src="../../../scripts/platform-content-handler.js" async></script>
 <script type="text/javascript" src="../../../scripts/main.js" defer></script>
 <script type="text/javascript" src="../../../scripts/prism.js" async></script>
-<script type="text/javascript" src="../../../ui-kit/ui-kit.min.js" defer></script>
-<script type="text/javascript" src="../../../scripts/symbol-parameters-wrapper_deferred.js" defer></script></head>
+<script type="text/javascript" src="../../../ui-kit/ui-kit.min.js" defer></script></head>
 <body>
-    <div class="root">
-    <nav class="navigation theme-dark" id="navigation-wrapper">
-<a class="library-name--link" href="../../../index.html">
+<div class="root">
+    <header class="navigation theme-dark" id="navigation-wrapper" role="banner">
+<a class="library-name--link" href="../../../index.html" tabindex="1">
                     RootEncoder
             </a>        <button class="navigation-controls--btn navigation-controls--btn_toc ui-kit_mobile-only" id="toc-toggle" type="button">Toggle table of contents
         </button>
         <div class="navigation-controls--break ui-kit_mobile-only"></div>
-        <div class="library-version" id="library-version">2.6.5
+        <div class="library-version" id="library-version">2.6.7
         </div>
         <div class="navigation-controls">
-        <div class="filter-section filter-section_loading" id="filter-section">
-                <button class="platform-tag platform-selector jvm-like" data-active="" data-filter=":rtmp:dokkaHtmlPartial/release">androidJvm</button>
+        <ul class="filter-section filter-section_loading" id="filter-section" aria-label="Target filter">
+                <button class="platform-tag platform-selector jvm-like" data-active="" aria-pressed="true" data-filter=":rtmp/main">androidJvm</button>
             <div class="dropdown filter-section--dropdown" data-role="dropdown" id="filter-section-dropdown">
                 <button class="button button_dropdown filter-section--dropdown-toggle" role="combobox" data-role="dropdown-toggle" aria-controls="platform-tags-listbox" aria-haspopup="listbox" aria-expanded="false" aria-label="Toggle source sets"></button>
-                <ul role="listbox" id="platform-tags-listbox" class="dropdown--list" data-role="dropdown-listbox">
-                    <div class="dropdown--header"><span>Platform filter</span>
-                        <button class="button" data-role="dropdown-toggle" aria-label="Close platform filter">
+                <ul role="listbox" id="platform-tags-listbox" class="dropdown--list" data-role="dropdown-listbox" aria-label="Target filter">
+                    <div class="dropdown--header"><span>Target filter</span>
+                        <button class="button" data-role="dropdown-toggle" aria-label="Close target filter">
                             <i class="ui-kit-icon ui-kit-icon_cross"></i>
                         </button>
                     </div>
                         <li role="option" class="dropdown--option platform-selector-option jvm-like" tabindex="0">
                             <label class="checkbox">
-                                <input type="checkbox" class="checkbox--input" id=":rtmp:dokkaHtmlPartial/release" data-filter=":rtmp:dokkaHtmlPartial/release">
+                                <input type="checkbox" class="checkbox--input" id=":rtmp/main" data-filter=":rtmp/main">
                                 <span class="checkbox--icon"></span>
                                 androidJvm
                             </label>
@@ -64,54 +62,56 @@
                 </ul>
                 <div class="dropdown--overlay"></div>
             </div>
-        </div>
+        </ul>
             <button class="navigation-controls--btn navigation-controls--btn_theme" id="theme-toggle-button" type="button">Switch theme
             </button>
             <div class="navigation-controls--btn navigation-controls--btn_search" id="searchBar" role="button">Search in
                 API
             </div>
         </div>
-    </nav>
-        <div id="container">
-            <div class="sidebar" id="leftColumn">
-                <div class="dropdown theme-dark_mobile" data-role="dropdown" id="toc-dropdown">
-                    <ul role="listbox" id="toc-listbox" class="dropdown--list dropdown--list_toc-list" data-role="dropdown-listbox">
-                        <div class="dropdown--header">
+    </header>
+    <div id="container">
+        <nav id="leftColumn" class="sidebar" data-item-type="SECTION" data-item-config="{&quot;defaultSize&quot;: 280, &quot;minSize&quot;: 200, &quot;maxSize&quot;: 400}">
+            <a class="toc--skip-link" href="#main">Skip to content</a>
+            <div class="dropdown theme-dark_mobile" data-role="dropdown" id="toc-dropdown">
+                <ul role="listbox" id="toc-listbox" class="dropdown--list dropdown--list_toc-list" data-role="dropdown-listbox" aria-label="Table of contents">
+                    <div class="dropdown--header">
                             <span>
                                     RootEncoder
                             </span>
-                            <button class="button" data-role="dropdown-toggle" aria-label="Close table of contents">
-                                <i class="ui-kit-icon ui-kit-icon_cross"></i>
-                            </button>
-                        </div>
-                        <div class="sidebar--inner" id="sideMenu"></div>
-                    </ul>
-                    <div class="dropdown--overlay"></div>
-                </div>
+                        <button class="button" data-role="dropdown-toggle" aria-label="Close table of contents">
+                            <i class="ui-kit-icon ui-kit-icon_cross"></i>
+                        </button>
+                    </div>
+                    <div class="sidebar--inner" id="sideMenu"></div>
+                </ul>
+                <div class="dropdown--overlay"></div>
             </div>
-            <div id="main">
-<div class="main-content" data-page-type="classlike" id="content" pageids="rtmp::com.pedro.rtmp.rtmp/CommandsManagerAmf0///PointingToDeclaration//-958441266">
+        </nav>
+        <div id="resizer" class="resizer" data-item-type="BAR"></div>
+        <div id="main" data-item-type="SECTION" role="main">
+<div class="main-content" data-page-type="classlike" id="content" pageids="rtmp::com.pedro.rtmp.rtmp/CommandsManagerAmf0///PointingToDeclaration//410179748">
   <div class="breadcrumbs"><a href="../../index.html">rtmp</a><span class="delimiter">/</span><a href="../index.html">com.pedro.rtmp.rtmp</a><span class="delimiter">/</span><span class="current">CommandsManagerAmf0</span></div>
   <div class="cover ">
     <h1 class="cover"><span>Commands</span><wbr><span>Manager</span><wbr><span><span>Amf0</span></span></h1>
-    <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":rtmp:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword">class </span><a href="index.html">CommandsManagerAmf0</a> : <a href="../-commands-manager/index.html">CommandsManager</a></div></div></div>
+    <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":rtmp/main"><div class="symbol monospace"><span class="token keyword">class </span><a href="index.html">CommandsManagerAmf0</a> : <a href="../-commands-manager/index.html">CommandsManager</a></div></div></div>
   </div>
   <div class="tabbedcontent">
     <div class="tabs-section" tabs-section="tabs-section"><button class="section-tab" data-active="" data-togglable="CONSTRUCTOR,TYPE,PROPERTY,FUNCTION">Members</button></div>
     <div class="tabs-section-body">
       <div data-togglable="CONSTRUCTOR">
-        <h2 class="">Constructors</h2>
-        <div class="table"><a data-name="1546388806%2FConstructors%2F-958441266" anchor-label="CommandsManagerAmf0" id="1546388806%2FConstructors%2F-958441266" data-filterable-set=":rtmp:dokkaHtmlPartial/release"></a>
-          <div class="table-row" data-togglable="CONSTRUCTOR" data-filterable-current=":rtmp:dokkaHtmlPartial/release" data-filterable-set=":rtmp:dokkaHtmlPartial/release">
+        <h2 class="tableheader">Constructors</h2>
+        <div class="table"><a data-name="1546388806%2FConstructors%2F410179748" anchor-label="CommandsManagerAmf0" id="1546388806%2FConstructors%2F410179748" data-filterable-set=":rtmp/main"></a>
+          <div class="table-row table-row_content" data-togglable="CONSTRUCTOR" data-filterable-current=":rtmp/main" data-filterable-set=":rtmp/main">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="-commands-manager-amf0.html"><span>Commands</span><wbr><span>Manager</span><wbr><span><span>Amf0</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1546388806%2FConstructors%2F-958441266"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1546388806%2FConstructors%2F410179748"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":rtmp:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword">constructor</span><span class="token punctuation">(</span><span class="token punctuation">)</span></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":rtmp/main"><div class="symbol monospace"><span class="token keyword">constructor</span><span class="token punctuation">(</span><span class="token punctuation">)</span></div></div></div>
                 </div>
               </div>
             </div>
@@ -119,303 +119,303 @@
         </div>
       </div>
       <div data-togglable="PROPERTY">
-        <h2 class="">Properties</h2>
-        <div class="table"><a data-name="114839531%2FProperties%2F-958441266" anchor-label="appName" id="114839531%2FProperties%2F-958441266" data-filterable-set=":rtmp:dokkaHtmlPartial/release"></a>
-          <div class="table-row" data-filterable-current=":rtmp:dokkaHtmlPartial/release" data-filterable-set=":rtmp:dokkaHtmlPartial/release">
+        <h2 class="tableheader">Properties</h2>
+        <div class="table"><a data-name="114839531%2FProperties%2F410179748" anchor-label="appName" id="114839531%2FProperties%2F410179748" data-filterable-set=":rtmp/main"></a>
+          <div class="table-row table-row_content" data-filterable-current=":rtmp/main" data-filterable-set=":rtmp/main">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="../-commands-manager/app-name.html"><span>app</span><wbr><span><span>Name</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="114839531%2FProperties%2F-958441266"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="114839531%2FProperties%2F410179748"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":rtmp:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword">var </span><a href="../-commands-manager/app-name.html">appName</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":rtmp/main"><div class="symbol monospace"><span class="token keyword">var </span><a href="../-commands-manager/app-name.html">appName</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a></div></div></div>
                 </div>
               </div>
             </div>
           </div>
-<a data-name="-1628930909%2FProperties%2F-958441266" anchor-label="audioCodec" id="-1628930909%2FProperties%2F-958441266" data-filterable-set=":rtmp:dokkaHtmlPartial/release"></a>
-          <div class="table-row" data-filterable-current=":rtmp:dokkaHtmlPartial/release" data-filterable-set=":rtmp:dokkaHtmlPartial/release">
+<a data-name="-1628930909%2FProperties%2F410179748" anchor-label="audioCodec" id="-1628930909%2FProperties%2F410179748" data-filterable-set=":rtmp/main"></a>
+          <div class="table-row table-row_content" data-filterable-current=":rtmp/main" data-filterable-set=":rtmp/main">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="../-commands-manager/audio-codec.html"><span>audio</span><wbr><span><span>Codec</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1628930909%2FProperties%2F-958441266"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1628930909%2FProperties%2F410179748"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":rtmp:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword">var </span><a href="../-commands-manager/audio-codec.html">audioCodec</a><span class="token operator">: </span><a href="../../../common/com.pedro.common/-audio-codec/index.html">AudioCodec</a></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":rtmp/main"><div class="symbol monospace"><span class="token keyword">var </span><a href="../-commands-manager/audio-codec.html">audioCodec</a><span class="token operator">: </span><a href="../../../common/com.pedro.common/-audio-codec/index.html">AudioCodec</a></div></div></div>
                 </div>
               </div>
             </div>
           </div>
-<a data-name="-171512059%2FProperties%2F-958441266" anchor-label="audioDisabled" id="-171512059%2FProperties%2F-958441266" data-filterable-set=":rtmp:dokkaHtmlPartial/release"></a>
-          <div class="table-row" data-filterable-current=":rtmp:dokkaHtmlPartial/release" data-filterable-set=":rtmp:dokkaHtmlPartial/release">
+<a data-name="-171512059%2FProperties%2F410179748" anchor-label="audioDisabled" id="-171512059%2FProperties%2F410179748" data-filterable-set=":rtmp/main"></a>
+          <div class="table-row table-row_content" data-filterable-current=":rtmp/main" data-filterable-set=":rtmp/main">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="../-commands-manager/audio-disabled.html"><span>audio</span><wbr><span><span>Disabled</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-171512059%2FProperties%2F-958441266"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-171512059%2FProperties%2F410179748"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":rtmp:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword">var </span><a href="../-commands-manager/audio-disabled.html">audioDisabled</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-boolean/index.html">Boolean</a></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":rtmp/main"><div class="symbol monospace"><span class="token keyword">var </span><a href="../-commands-manager/audio-disabled.html">audioDisabled</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-boolean/index.html">Boolean</a></div></div></div>
                 </div>
               </div>
             </div>
           </div>
-<a data-name="-1086628721%2FProperties%2F-958441266" anchor-label="customAmfObject" id="-1086628721%2FProperties%2F-958441266" data-filterable-set=":rtmp:dokkaHtmlPartial/release"></a>
-          <div class="table-row" data-filterable-current=":rtmp:dokkaHtmlPartial/release" data-filterable-set=":rtmp:dokkaHtmlPartial/release">
+<a data-name="-1086628721%2FProperties%2F410179748" anchor-label="customAmfObject" id="-1086628721%2FProperties%2F410179748" data-filterable-set=":rtmp/main"></a>
+          <div class="table-row table-row_content" data-filterable-current=":rtmp/main" data-filterable-set=":rtmp/main">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="../-commands-manager/custom-amf-object.html"><span>custom</span><wbr><span>Amf</span><wbr><span><span>Object</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1086628721%2FProperties%2F-958441266"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1086628721%2FProperties%2F410179748"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":rtmp:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword">var </span><a href="../-commands-manager/custom-amf-object.html">customAmfObject</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin.collections/-map/index.html">Map</a><span class="token operator">&lt;</span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token punctuation">, </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-any/index.html">Any</a><span class="token operator">&gt;</span></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":rtmp/main"><div class="symbol monospace"><span class="token keyword">var </span><a href="../-commands-manager/custom-amf-object.html">customAmfObject</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin.collections/-map/index.html">Map</a><span class="token operator">&lt;</span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token punctuation">, </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-any/index.html">Any</a><span class="token operator">&gt;</span></div></div></div>
                 </div>
               </div>
             </div>
           </div>
-<a data-name="-2001978565%2FProperties%2F-958441266" anchor-label="flashVersion" id="-2001978565%2FProperties%2F-958441266" data-filterable-set=":rtmp:dokkaHtmlPartial/release"></a>
-          <div class="table-row" data-filterable-current=":rtmp:dokkaHtmlPartial/release" data-filterable-set=":rtmp:dokkaHtmlPartial/release">
+<a data-name="-2001978565%2FProperties%2F410179748" anchor-label="flashVersion" id="-2001978565%2FProperties%2F410179748" data-filterable-set=":rtmp/main"></a>
+          <div class="table-row table-row_content" data-filterable-current=":rtmp/main" data-filterable-set=":rtmp/main">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="../-commands-manager/flash-version.html"><span>flash</span><wbr><span><span>Version</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-2001978565%2FProperties%2F-958441266"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-2001978565%2FProperties%2F410179748"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":rtmp:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword">var </span><a href="../-commands-manager/flash-version.html">flashVersion</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":rtmp/main"><div class="symbol monospace"><span class="token keyword">var </span><a href="../-commands-manager/flash-version.html">flashVersion</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a></div></div></div>
                 </div>
               </div>
             </div>
           </div>
-<a data-name="1827879662%2FProperties%2F-958441266" anchor-label="fps" id="1827879662%2FProperties%2F-958441266" data-filterable-set=":rtmp:dokkaHtmlPartial/release"></a>
-          <div class="table-row" data-filterable-current=":rtmp:dokkaHtmlPartial/release" data-filterable-set=":rtmp:dokkaHtmlPartial/release">
+<a data-name="1827879662%2FProperties%2F410179748" anchor-label="fps" id="1827879662%2FProperties%2F410179748" data-filterable-set=":rtmp/main"></a>
+          <div class="table-row table-row_content" data-filterable-current=":rtmp/main" data-filterable-set=":rtmp/main">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="../-commands-manager/fps.html"><span><span>fps</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1827879662%2FProperties%2F-958441266"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1827879662%2FProperties%2F410179748"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":rtmp:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword">var </span><a href="../-commands-manager/fps.html">fps</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":rtmp/main"><div class="symbol monospace"><span class="token keyword">var </span><a href="../-commands-manager/fps.html">fps</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a></div></div></div>
                 </div>
               </div>
             </div>
           </div>
-<a data-name="-227058085%2FProperties%2F-958441266" anchor-label="host" id="-227058085%2FProperties%2F-958441266" data-filterable-set=":rtmp:dokkaHtmlPartial/release"></a>
-          <div class="table-row" data-filterable-current=":rtmp:dokkaHtmlPartial/release" data-filterable-set=":rtmp:dokkaHtmlPartial/release">
+<a data-name="-227058085%2FProperties%2F410179748" anchor-label="host" id="-227058085%2FProperties%2F410179748" data-filterable-set=":rtmp/main"></a>
+          <div class="table-row table-row_content" data-filterable-current=":rtmp/main" data-filterable-set=":rtmp/main">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="../-commands-manager/host.html"><span><span>host</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-227058085%2FProperties%2F-958441266"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-227058085%2FProperties%2F410179748"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":rtmp:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword">var </span><a href="../-commands-manager/host.html">host</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":rtmp/main"><div class="symbol monospace"><span class="token keyword">var </span><a href="../-commands-manager/host.html">host</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a></div></div></div>
                 </div>
               </div>
             </div>
           </div>
-<a data-name="1935654716%2FProperties%2F-958441266" anchor-label="onAuth" id="1935654716%2FProperties%2F-958441266" data-filterable-set=":rtmp:dokkaHtmlPartial/release"></a>
-          <div class="table-row" data-filterable-current=":rtmp:dokkaHtmlPartial/release" data-filterable-set=":rtmp:dokkaHtmlPartial/release">
+<a data-name="1935654716%2FProperties%2F410179748" anchor-label="onAuth" id="1935654716%2FProperties%2F410179748" data-filterable-set=":rtmp/main"></a>
+          <div class="table-row table-row_content" data-filterable-current=":rtmp/main" data-filterable-set=":rtmp/main">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="../-commands-manager/on-auth.html"><span>on</span><wbr><span><span>Auth</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1935654716%2FProperties%2F-958441266"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1935654716%2FProperties%2F410179748"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":rtmp:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword">var </span><a href="../-commands-manager/on-auth.html">onAuth</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-boolean/index.html">Boolean</a></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":rtmp/main"><div class="symbol monospace"><span class="token keyword">var </span><a href="../-commands-manager/on-auth.html">onAuth</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-boolean/index.html">Boolean</a></div></div></div>
                 </div>
               </div>
             </div>
           </div>
-<a data-name="703458760%2FProperties%2F-958441266" anchor-label="password" id="703458760%2FProperties%2F-958441266" data-filterable-set=":rtmp:dokkaHtmlPartial/release"></a>
-          <div class="table-row" data-filterable-current=":rtmp:dokkaHtmlPartial/release" data-filterable-set=":rtmp:dokkaHtmlPartial/release">
+<a data-name="703458760%2FProperties%2F410179748" anchor-label="password" id="703458760%2FProperties%2F410179748" data-filterable-set=":rtmp/main"></a>
+          <div class="table-row table-row_content" data-filterable-current=":rtmp/main" data-filterable-set=":rtmp/main">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="../-commands-manager/password.html"><span><span>password</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="703458760%2FProperties%2F-958441266"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="703458760%2FProperties%2F410179748"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":rtmp:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword">var </span><a href="../-commands-manager/password.html">password</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token operator">?</span></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":rtmp/main"><div class="symbol monospace"><span class="token keyword">var </span><a href="../-commands-manager/password.html">password</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token operator">?</span></div></div></div>
                 </div>
               </div>
             </div>
           </div>
-<a data-name="61174178%2FProperties%2F-958441266" anchor-label="port" id="61174178%2FProperties%2F-958441266" data-filterable-set=":rtmp:dokkaHtmlPartial/release"></a>
-          <div class="table-row" data-filterable-current=":rtmp:dokkaHtmlPartial/release" data-filterable-set=":rtmp:dokkaHtmlPartial/release">
+<a data-name="61174178%2FProperties%2F410179748" anchor-label="port" id="61174178%2FProperties%2F410179748" data-filterable-set=":rtmp/main"></a>
+          <div class="table-row table-row_content" data-filterable-current=":rtmp/main" data-filterable-set=":rtmp/main">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="../-commands-manager/port.html"><span><span>port</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="61174178%2FProperties%2F-958441266"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="61174178%2FProperties%2F410179748"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":rtmp:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword">var </span><a href="../-commands-manager/port.html">port</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":rtmp/main"><div class="symbol monospace"><span class="token keyword">var </span><a href="../-commands-manager/port.html">port</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a></div></div></div>
                 </div>
               </div>
             </div>
           </div>
-<a data-name="2072081183%2FProperties%2F-958441266" anchor-label="readChunkSize" id="2072081183%2FProperties%2F-958441266" data-filterable-set=":rtmp:dokkaHtmlPartial/release"></a>
-          <div class="table-row" data-filterable-current=":rtmp:dokkaHtmlPartial/release" data-filterable-set=":rtmp:dokkaHtmlPartial/release">
+<a data-name="2072081183%2FProperties%2F410179748" anchor-label="readChunkSize" id="2072081183%2FProperties%2F410179748" data-filterable-set=":rtmp/main"></a>
+          <div class="table-row table-row_content" data-filterable-current=":rtmp/main" data-filterable-set=":rtmp/main">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="../-commands-manager/read-chunk-size.html"><span>read</span><wbr><span>Chunk</span><wbr><span><span>Size</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="2072081183%2FProperties%2F-958441266"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="2072081183%2FProperties%2F410179748"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":rtmp:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword">var </span><a href="../-commands-manager/read-chunk-size.html">readChunkSize</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":rtmp/main"><div class="symbol monospace"><span class="token keyword">var </span><a href="../-commands-manager/read-chunk-size.html">readChunkSize</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a></div></div></div>
                 </div>
               </div>
             </div>
           </div>
-<a data-name="-504192987%2FProperties%2F-958441266" anchor-label="sessionHistory" id="-504192987%2FProperties%2F-958441266" data-filterable-set=":rtmp:dokkaHtmlPartial/release"></a>
-          <div class="table-row" data-filterable-current=":rtmp:dokkaHtmlPartial/release" data-filterable-set=":rtmp:dokkaHtmlPartial/release">
+<a data-name="-504192987%2FProperties%2F410179748" anchor-label="sessionHistory" id="-504192987%2FProperties%2F410179748" data-filterable-set=":rtmp/main"></a>
+          <div class="table-row table-row_content" data-filterable-current=":rtmp/main" data-filterable-set=":rtmp/main">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="../-commands-manager/session-history.html"><span>session</span><wbr><span><span>History</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-504192987%2FProperties%2F-958441266"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-504192987%2FProperties%2F410179748"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":rtmp:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword">val </span><a href="../-commands-manager/session-history.html">sessionHistory</a><span class="token operator">: </span><a href="../../com.pedro.rtmp.utils/-command-session-history/index.html">CommandSessionHistory</a></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":rtmp/main"><div class="symbol monospace"><span class="token keyword">val </span><a href="../-commands-manager/session-history.html">sessionHistory</a><span class="token operator">: </span><a href="../../com.pedro.rtmp.utils/-command-session-history/index.html">CommandSessionHistory</a></div></div></div>
                 </div>
               </div>
             </div>
           </div>
-<a data-name="326727510%2FProperties%2F-958441266" anchor-label="startTs" id="326727510%2FProperties%2F-958441266" data-filterable-set=":rtmp:dokkaHtmlPartial/release"></a>
-          <div class="table-row" data-filterable-current=":rtmp:dokkaHtmlPartial/release" data-filterable-set=":rtmp:dokkaHtmlPartial/release">
+<a data-name="326727510%2FProperties%2F410179748" anchor-label="startTs" id="326727510%2FProperties%2F410179748" data-filterable-set=":rtmp/main"></a>
+          <div class="table-row table-row_content" data-filterable-current=":rtmp/main" data-filterable-set=":rtmp/main">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="../-commands-manager/start-ts.html"><span>start</span><wbr><span><span>Ts</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="326727510%2FProperties%2F-958441266"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="326727510%2FProperties%2F410179748"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":rtmp:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword">var </span><a href="../-commands-manager/start-ts.html">startTs</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-long/index.html">Long</a></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":rtmp/main"><div class="symbol monospace"><span class="token keyword">var </span><a href="../-commands-manager/start-ts.html">startTs</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-long/index.html">Long</a></div></div></div>
                 </div>
               </div>
             </div>
           </div>
-<a data-name="70538152%2FProperties%2F-958441266" anchor-label="streamId" id="70538152%2FProperties%2F-958441266" data-filterable-set=":rtmp:dokkaHtmlPartial/release"></a>
-          <div class="table-row" data-filterable-current=":rtmp:dokkaHtmlPartial/release" data-filterable-set=":rtmp:dokkaHtmlPartial/release">
+<a data-name="70538152%2FProperties%2F410179748" anchor-label="streamId" id="70538152%2FProperties%2F410179748" data-filterable-set=":rtmp/main"></a>
+          <div class="table-row table-row_content" data-filterable-current=":rtmp/main" data-filterable-set=":rtmp/main">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="../-commands-manager/stream-id.html"><span>stream</span><wbr><span><span>Id</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="70538152%2FProperties%2F-958441266"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="70538152%2FProperties%2F410179748"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":rtmp:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword">var </span><a href="../-commands-manager/stream-id.html">streamId</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":rtmp/main"><div class="symbol monospace"><span class="token keyword">var </span><a href="../-commands-manager/stream-id.html">streamId</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a></div></div></div>
                 </div>
               </div>
             </div>
           </div>
-<a data-name="-31042888%2FProperties%2F-958441266" anchor-label="streamName" id="-31042888%2FProperties%2F-958441266" data-filterable-set=":rtmp:dokkaHtmlPartial/release"></a>
-          <div class="table-row" data-filterable-current=":rtmp:dokkaHtmlPartial/release" data-filterable-set=":rtmp:dokkaHtmlPartial/release">
+<a data-name="-31042888%2FProperties%2F410179748" anchor-label="streamName" id="-31042888%2FProperties%2F410179748" data-filterable-set=":rtmp/main"></a>
+          <div class="table-row table-row_content" data-filterable-current=":rtmp/main" data-filterable-set=":rtmp/main">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="../-commands-manager/stream-name.html"><span>stream</span><wbr><span><span>Name</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-31042888%2FProperties%2F-958441266"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-31042888%2FProperties%2F410179748"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":rtmp:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword">var </span><a href="../-commands-manager/stream-name.html">streamName</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":rtmp/main"><div class="symbol monospace"><span class="token keyword">var </span><a href="../-commands-manager/stream-name.html">streamName</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a></div></div></div>
                 </div>
               </div>
             </div>
           </div>
-<a data-name="437691575%2FProperties%2F-958441266" anchor-label="tcUrl" id="437691575%2FProperties%2F-958441266" data-filterable-set=":rtmp:dokkaHtmlPartial/release"></a>
-          <div class="table-row" data-filterable-current=":rtmp:dokkaHtmlPartial/release" data-filterable-set=":rtmp:dokkaHtmlPartial/release">
+<a data-name="437691575%2FProperties%2F410179748" anchor-label="tcUrl" id="437691575%2FProperties%2F410179748" data-filterable-set=":rtmp/main"></a>
+          <div class="table-row table-row_content" data-filterable-current=":rtmp/main" data-filterable-set=":rtmp/main">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="../-commands-manager/tc-url.html"><span>tc</span><wbr><span><span>Url</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="437691575%2FProperties%2F-958441266"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="437691575%2FProperties%2F410179748"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":rtmp:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword">var </span><a href="../-commands-manager/tc-url.html">tcUrl</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":rtmp/main"><div class="symbol monospace"><span class="token keyword">var </span><a href="../-commands-manager/tc-url.html">tcUrl</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a></div></div></div>
                 </div>
               </div>
             </div>
           </div>
-<a data-name="-892053535%2FProperties%2F-958441266" anchor-label="timestamp" id="-892053535%2FProperties%2F-958441266" data-filterable-set=":rtmp:dokkaHtmlPartial/release"></a>
-          <div class="table-row" data-filterable-current=":rtmp:dokkaHtmlPartial/release" data-filterable-set=":rtmp:dokkaHtmlPartial/release">
+<a data-name="-892053535%2FProperties%2F410179748" anchor-label="timestamp" id="-892053535%2FProperties%2F410179748" data-filterable-set=":rtmp/main"></a>
+          <div class="table-row table-row_content" data-filterable-current=":rtmp/main" data-filterable-set=":rtmp/main">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="../-commands-manager/timestamp.html"><span><span>timestamp</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-892053535%2FProperties%2F-958441266"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-892053535%2FProperties%2F410179748"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":rtmp:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword">var </span><a href="../-commands-manager/timestamp.html">timestamp</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":rtmp/main"><div class="symbol monospace"><span class="token keyword">var </span><a href="../-commands-manager/timestamp.html">timestamp</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a></div></div></div>
                 </div>
               </div>
             </div>
           </div>
-<a data-name="-1465350760%2FProperties%2F-958441266" anchor-label="user" id="-1465350760%2FProperties%2F-958441266" data-filterable-set=":rtmp:dokkaHtmlPartial/release"></a>
-          <div class="table-row" data-filterable-current=":rtmp:dokkaHtmlPartial/release" data-filterable-set=":rtmp:dokkaHtmlPartial/release">
+<a data-name="-1465350760%2FProperties%2F410179748" anchor-label="user" id="-1465350760%2FProperties%2F410179748" data-filterable-set=":rtmp/main"></a>
+          <div class="table-row table-row_content" data-filterable-current=":rtmp/main" data-filterable-set=":rtmp/main">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="../-commands-manager/user.html"><span><span>user</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1465350760%2FProperties%2F-958441266"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1465350760%2FProperties%2F410179748"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":rtmp:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword">var </span><a href="../-commands-manager/user.html">user</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token operator">?</span></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":rtmp/main"><div class="symbol monospace"><span class="token keyword">var </span><a href="../-commands-manager/user.html">user</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token operator">?</span></div></div></div>
                 </div>
               </div>
             </div>
           </div>
-<a data-name="275908232%2FProperties%2F-958441266" anchor-label="videoCodec" id="275908232%2FProperties%2F-958441266" data-filterable-set=":rtmp:dokkaHtmlPartial/release"></a>
-          <div class="table-row" data-filterable-current=":rtmp:dokkaHtmlPartial/release" data-filterable-set=":rtmp:dokkaHtmlPartial/release">
+<a data-name="275908232%2FProperties%2F410179748" anchor-label="videoCodec" id="275908232%2FProperties%2F410179748" data-filterable-set=":rtmp/main"></a>
+          <div class="table-row table-row_content" data-filterable-current=":rtmp/main" data-filterable-set=":rtmp/main">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="../-commands-manager/video-codec.html"><span>video</span><wbr><span><span>Codec</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="275908232%2FProperties%2F-958441266"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="275908232%2FProperties%2F410179748"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":rtmp:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword">var </span><a href="../-commands-manager/video-codec.html">videoCodec</a><span class="token operator">: </span><a href="../../../common/com.pedro.common/-video-codec/index.html">VideoCodec</a></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":rtmp/main"><div class="symbol monospace"><span class="token keyword">var </span><a href="../-commands-manager/video-codec.html">videoCodec</a><span class="token operator">: </span><a href="../../../common/com.pedro.common/-video-codec/index.html">VideoCodec</a></div></div></div>
                 </div>
               </div>
             </div>
           </div>
-<a data-name="1783422720%2FProperties%2F-958441266" anchor-label="videoDisabled" id="1783422720%2FProperties%2F-958441266" data-filterable-set=":rtmp:dokkaHtmlPartial/release"></a>
-          <div class="table-row" data-filterable-current=":rtmp:dokkaHtmlPartial/release" data-filterable-set=":rtmp:dokkaHtmlPartial/release">
+<a data-name="1783422720%2FProperties%2F410179748" anchor-label="videoDisabled" id="1783422720%2FProperties%2F410179748" data-filterable-set=":rtmp/main"></a>
+          <div class="table-row table-row_content" data-filterable-current=":rtmp/main" data-filterable-set=":rtmp/main">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="../-commands-manager/video-disabled.html"><span>video</span><wbr><span><span>Disabled</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1783422720%2FProperties%2F-958441266"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1783422720%2FProperties%2F410179748"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":rtmp:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword">var </span><a href="../-commands-manager/video-disabled.html">videoDisabled</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-boolean/index.html">Boolean</a></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":rtmp/main"><div class="symbol monospace"><span class="token keyword">var </span><a href="../-commands-manager/video-disabled.html">videoDisabled</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-boolean/index.html">Boolean</a></div></div></div>
                 </div>
               </div>
             </div>
@@ -423,318 +423,318 @@
         </div>
       </div>
       <div data-togglable="FUNCTION">
-        <h2 class="">Functions</h2>
-        <div class="table"><a data-name="1828811864%2FFunctions%2F-958441266" anchor-label="checkAndSendAcknowledgement" id="1828811864%2FFunctions%2F-958441266" data-filterable-set=":rtmp:dokkaHtmlPartial/release"></a>
-          <div class="table-row" data-filterable-current=":rtmp:dokkaHtmlPartial/release" data-filterable-set=":rtmp:dokkaHtmlPartial/release">
+        <h2 class="tableheader">Functions</h2>
+        <div class="table"><a data-name="1828811864%2FFunctions%2F410179748" anchor-label="checkAndSendAcknowledgement" id="1828811864%2FFunctions%2F410179748" data-filterable-set=":rtmp/main"></a>
+          <div class="table-row table-row_content" data-filterable-current=":rtmp/main" data-filterable-set=":rtmp/main">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="../-commands-manager/check-and-send-acknowledgement.html"><span>check</span><wbr><span>And</span><wbr><span>Send</span><wbr><span><span>Acknowledgement</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1828811864%2FFunctions%2F-958441266"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1828811864%2FFunctions%2F410179748"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":rtmp:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword">suspend </span><span class="token keyword">fun </span><a href="../-commands-manager/check-and-send-acknowledgement.html"><span class="token function">checkAndSendAcknowledgement</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">socket<span class="token operator">: </span><a href="../../com.pedro.rtmp.utils.socket/-rtmp-socket/index.html">RtmpSocket</a></span></span><span class="token punctuation">)</span></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":rtmp/main"><div class="symbol monospace"><span class="token keyword">suspend </span><span class="token keyword">fun </span><a href="../-commands-manager/check-and-send-acknowledgement.html"><span class="token function">checkAndSendAcknowledgement</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">socket<span class="token operator">: </span><a href="../../com.pedro.rtmp.utils.socket/-rtmp-socket/index.html">RtmpSocket</a></span></span><span class="token punctuation">)</span></div></div></div>
                 </div>
               </div>
             </div>
           </div>
-<a data-name="-1871629045%2FFunctions%2F-958441266" anchor-label="createStream" id="-1871629045%2FFunctions%2F-958441266" data-filterable-set=":rtmp:dokkaHtmlPartial/release"></a>
-          <div class="table-row" data-filterable-current=":rtmp:dokkaHtmlPartial/release" data-filterable-set=":rtmp:dokkaHtmlPartial/release">
+<a data-name="-1871629045%2FFunctions%2F410179748" anchor-label="createStream" id="-1871629045%2FFunctions%2F410179748" data-filterable-set=":rtmp/main"></a>
+          <div class="table-row table-row_content" data-filterable-current=":rtmp/main" data-filterable-set=":rtmp/main">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="../-commands-manager/create-stream.html"><span>create</span><wbr><span><span>Stream</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1871629045%2FFunctions%2F-958441266"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1871629045%2FFunctions%2F410179748"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":rtmp:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword">suspend </span><span class="token keyword">fun </span><a href="../-commands-manager/create-stream.html"><span class="token function">createStream</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">socket<span class="token operator">: </span><a href="../../com.pedro.rtmp.utils.socket/-rtmp-socket/index.html">RtmpSocket</a></span></span><span class="token punctuation">)</span></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":rtmp/main"><div class="symbol monospace"><span class="token keyword">suspend </span><span class="token keyword">fun </span><a href="../-commands-manager/create-stream.html"><span class="token function">createStream</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">socket<span class="token operator">: </span><a href="../../com.pedro.rtmp.utils.socket/-rtmp-socket/index.html">RtmpSocket</a></span></span><span class="token punctuation">)</span></div></div></div>
                 </div>
               </div>
             </div>
           </div>
-<a data-name="417400373%2FFunctions%2F-958441266" anchor-label="createStreamImp" id="417400373%2FFunctions%2F-958441266" data-filterable-set=":rtmp:dokkaHtmlPartial/release"></a>
-          <div class="table-row" data-filterable-current=":rtmp:dokkaHtmlPartial/release" data-filterable-set=":rtmp:dokkaHtmlPartial/release">
+<a data-name="417400373%2FFunctions%2F410179748" anchor-label="createStreamImp" id="417400373%2FFunctions%2F410179748" data-filterable-set=":rtmp/main"></a>
+          <div class="table-row table-row_content" data-filterable-current=":rtmp/main" data-filterable-set=":rtmp/main">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="create-stream-imp.html"><span>create</span><wbr><span>Stream</span><wbr><span><span>Imp</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="417400373%2FFunctions%2F-958441266"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="417400373%2FFunctions%2F410179748"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":rtmp:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">suspend override </span><span class="token keyword">fun </span><a href="create-stream-imp.html"><span class="token function">createStreamImp</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">socket<span class="token operator">: </span><a href="../../com.pedro.rtmp.utils.socket/-rtmp-socket/index.html">RtmpSocket</a></span></span><span class="token punctuation">)</span></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":rtmp/main"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">suspend override </span><span class="token keyword">fun </span><a href="create-stream-imp.html"><span class="token function">createStreamImp</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">socket<span class="token operator">: </span><a href="../../com.pedro.rtmp.utils.socket/-rtmp-socket/index.html">RtmpSocket</a></span></span><span class="token punctuation">)</span></div></div></div>
                 </div>
               </div>
             </div>
           </div>
-<a data-name="-461433687%2FFunctions%2F-958441266" anchor-label="readMessageResponse" id="-461433687%2FFunctions%2F-958441266" data-filterable-set=":rtmp:dokkaHtmlPartial/release"></a>
-          <div class="table-row" data-filterable-current=":rtmp:dokkaHtmlPartial/release" data-filterable-set=":rtmp:dokkaHtmlPartial/release">
+<a data-name="-461433687%2FFunctions%2F410179748" anchor-label="readMessageResponse" id="-461433687%2FFunctions%2F410179748" data-filterable-set=":rtmp/main"></a>
+          <div class="table-row table-row_content" data-filterable-current=":rtmp/main" data-filterable-set=":rtmp/main">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="../-commands-manager/read-message-response.html"><span>read</span><wbr><span>Message</span><wbr><span><span>Response</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-461433687%2FFunctions%2F-958441266"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-461433687%2FFunctions%2F410179748"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":rtmp:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword">suspend </span><span class="token keyword">fun </span><a href="../-commands-manager/read-message-response.html"><span class="token function">readMessageResponse</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">socket<span class="token operator">: </span><a href="../../com.pedro.rtmp.utils.socket/-rtmp-socket/index.html">RtmpSocket</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="../../com.pedro.rtmp.rtmp.message/-rtmp-message/index.html">RtmpMessage</a></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":rtmp/main"><div class="symbol monospace"><span class="token keyword">suspend </span><span class="token keyword">fun </span><a href="../-commands-manager/read-message-response.html"><span class="token function">readMessageResponse</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">socket<span class="token operator">: </span><a href="../../com.pedro.rtmp.utils.socket/-rtmp-socket/index.html">RtmpSocket</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="../../com.pedro.rtmp.rtmp.message/-rtmp-message/index.html">RtmpMessage</a></div></div></div>
                 </div>
               </div>
             </div>
           </div>
-<a data-name="-913788216%2FFunctions%2F-958441266" anchor-label="reset" id="-913788216%2FFunctions%2F-958441266" data-filterable-set=":rtmp:dokkaHtmlPartial/release"></a>
-          <div class="table-row" data-filterable-current=":rtmp:dokkaHtmlPartial/release" data-filterable-set=":rtmp:dokkaHtmlPartial/release">
+<a data-name="-913788216%2FFunctions%2F410179748" anchor-label="reset" id="-913788216%2FFunctions%2F410179748" data-filterable-set=":rtmp/main"></a>
+          <div class="table-row table-row_content" data-filterable-current=":rtmp/main" data-filterable-set=":rtmp/main">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="../-commands-manager/reset.html"><span><span>reset</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-913788216%2FFunctions%2F-958441266"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-913788216%2FFunctions%2F410179748"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":rtmp:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword">fun </span><a href="../-commands-manager/reset.html"><span class="token function">reset</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":rtmp/main"><div class="symbol monospace"><span class="token keyword">fun </span><a href="../-commands-manager/reset.html"><span class="token function">reset</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span></div></div></div>
                 </div>
               </div>
             </div>
           </div>
-<a data-name="1502012162%2FFunctions%2F-958441266" anchor-label="sendAudioPacket" id="1502012162%2FFunctions%2F-958441266" data-filterable-set=":rtmp:dokkaHtmlPartial/release"></a>
-          <div class="table-row" data-filterable-current=":rtmp:dokkaHtmlPartial/release" data-filterable-set=":rtmp:dokkaHtmlPartial/release">
+<a data-name="1502012162%2FFunctions%2F410179748" anchor-label="sendAudioPacket" id="1502012162%2FFunctions%2F410179748" data-filterable-set=":rtmp/main"></a>
+          <div class="table-row table-row_content" data-filterable-current=":rtmp/main" data-filterable-set=":rtmp/main">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="../-commands-manager/send-audio-packet.html"><span>send</span><wbr><span>Audio</span><wbr><span><span>Packet</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1502012162%2FFunctions%2F-958441266"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1502012162%2FFunctions%2F410179748"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":rtmp:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword">suspend </span><span class="token keyword">fun </span><a href="../-commands-manager/send-audio-packet.html"><span class="token function">sendAudioPacket</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">flvPacket<span class="token operator">: </span><a href="../../com.pedro.rtmp.flv/-flv-packet/index.html">FlvPacket</a><span class="token punctuation">, </span></span><span class="parameter ">socket<span class="token operator">: </span><a href="../../com.pedro.rtmp.utils.socket/-rtmp-socket/index.html">RtmpSocket</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":rtmp/main"><div class="symbol monospace"><span class="token keyword">suspend </span><span class="token keyword">fun </span><a href="../-commands-manager/send-audio-packet.html"><span class="token function">sendAudioPacket</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">flvPacket<span class="token operator">: </span><a href="../../com.pedro.rtmp.flv/-flv-packet/index.html">FlvPacket</a><span class="token punctuation">, </span></span><span class="parameter ">socket<span class="token operator">: </span><a href="../../com.pedro.rtmp.utils.socket/-rtmp-socket/index.html">RtmpSocket</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a></div></div></div>
                 </div>
               </div>
             </div>
           </div>
-<a data-name="-1613612747%2FFunctions%2F-958441266" anchor-label="sendChunkSize" id="-1613612747%2FFunctions%2F-958441266" data-filterable-set=":rtmp:dokkaHtmlPartial/release"></a>
-          <div class="table-row" data-filterable-current=":rtmp:dokkaHtmlPartial/release" data-filterable-set=":rtmp:dokkaHtmlPartial/release">
+<a data-name="-1613612747%2FFunctions%2F410179748" anchor-label="sendChunkSize" id="-1613612747%2FFunctions%2F410179748" data-filterable-set=":rtmp/main"></a>
+          <div class="table-row table-row_content" data-filterable-current=":rtmp/main" data-filterable-set=":rtmp/main">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="../-commands-manager/send-chunk-size.html"><span>send</span><wbr><span>Chunk</span><wbr><span><span>Size</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1613612747%2FFunctions%2F-958441266"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1613612747%2FFunctions%2F410179748"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":rtmp:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword">suspend </span><span class="token keyword">fun </span><a href="../-commands-manager/send-chunk-size.html"><span class="token function">sendChunkSize</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">socket<span class="token operator">: </span><a href="../../com.pedro.rtmp.utils.socket/-rtmp-socket/index.html">RtmpSocket</a></span></span><span class="token punctuation">)</span></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":rtmp/main"><div class="symbol monospace"><span class="token keyword">suspend </span><span class="token keyword">fun </span><a href="../-commands-manager/send-chunk-size.html"><span class="token function">sendChunkSize</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">socket<span class="token operator">: </span><a href="../../com.pedro.rtmp.utils.socket/-rtmp-socket/index.html">RtmpSocket</a></span></span><span class="token punctuation">)</span></div></div></div>
                 </div>
               </div>
             </div>
           </div>
-<a data-name="-1349066997%2FFunctions%2F-958441266" anchor-label="sendClose" id="-1349066997%2FFunctions%2F-958441266" data-filterable-set=":rtmp:dokkaHtmlPartial/release"></a>
-          <div class="table-row" data-filterable-current=":rtmp:dokkaHtmlPartial/release" data-filterable-set=":rtmp:dokkaHtmlPartial/release">
+<a data-name="-1349066997%2FFunctions%2F410179748" anchor-label="sendClose" id="-1349066997%2FFunctions%2F410179748" data-filterable-set=":rtmp/main"></a>
+          <div class="table-row table-row_content" data-filterable-current=":rtmp/main" data-filterable-set=":rtmp/main">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="../-commands-manager/send-close.html"><span>send</span><wbr><span><span>Close</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1349066997%2FFunctions%2F-958441266"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1349066997%2FFunctions%2F410179748"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":rtmp:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword">suspend </span><span class="token keyword">fun </span><a href="../-commands-manager/send-close.html"><span class="token function">sendClose</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">socket<span class="token operator">: </span><a href="../../com.pedro.rtmp.utils.socket/-rtmp-socket/index.html">RtmpSocket</a></span></span><span class="token punctuation">)</span></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":rtmp/main"><div class="symbol monospace"><span class="token keyword">suspend </span><span class="token keyword">fun </span><a href="../-commands-manager/send-close.html"><span class="token function">sendClose</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">socket<span class="token operator">: </span><a href="../../com.pedro.rtmp.utils.socket/-rtmp-socket/index.html">RtmpSocket</a></span></span><span class="token punctuation">)</span></div></div></div>
                 </div>
               </div>
             </div>
           </div>
-<a data-name="730546337%2FFunctions%2F-958441266" anchor-label="sendCloseImp" id="730546337%2FFunctions%2F-958441266" data-filterable-set=":rtmp:dokkaHtmlPartial/release"></a>
-          <div class="table-row" data-filterable-current=":rtmp:dokkaHtmlPartial/release" data-filterable-set=":rtmp:dokkaHtmlPartial/release">
+<a data-name="730546337%2FFunctions%2F410179748" anchor-label="sendCloseImp" id="730546337%2FFunctions%2F410179748" data-filterable-set=":rtmp/main"></a>
+          <div class="table-row table-row_content" data-filterable-current=":rtmp/main" data-filterable-set=":rtmp/main">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="send-close-imp.html"><span>send</span><wbr><span>Close</span><wbr><span><span>Imp</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="730546337%2FFunctions%2F-958441266"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="730546337%2FFunctions%2F410179748"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":rtmp:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">suspend override </span><span class="token keyword">fun </span><a href="send-close-imp.html"><span class="token function">sendCloseImp</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">socket<span class="token operator">: </span><a href="../../com.pedro.rtmp.utils.socket/-rtmp-socket/index.html">RtmpSocket</a></span></span><span class="token punctuation">)</span></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":rtmp/main"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">suspend override </span><span class="token keyword">fun </span><a href="send-close-imp.html"><span class="token function">sendCloseImp</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">socket<span class="token operator">: </span><a href="../../com.pedro.rtmp.utils.socket/-rtmp-socket/index.html">RtmpSocket</a></span></span><span class="token punctuation">)</span></div></div></div>
                 </div>
               </div>
             </div>
           </div>
-<a data-name="332508756%2FFunctions%2F-958441266" anchor-label="sendConnect" id="332508756%2FFunctions%2F-958441266" data-filterable-set=":rtmp:dokkaHtmlPartial/release"></a>
-          <div class="table-row" data-filterable-current=":rtmp:dokkaHtmlPartial/release" data-filterable-set=":rtmp:dokkaHtmlPartial/release">
+<a data-name="332508756%2FFunctions%2F410179748" anchor-label="sendConnect" id="332508756%2FFunctions%2F410179748" data-filterable-set=":rtmp/main"></a>
+          <div class="table-row table-row_content" data-filterable-current=":rtmp/main" data-filterable-set=":rtmp/main">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="../-commands-manager/send-connect.html"><span>send</span><wbr><span><span>Connect</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="332508756%2FFunctions%2F-958441266"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="332508756%2FFunctions%2F410179748"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":rtmp:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword">suspend </span><span class="token keyword">fun </span><a href="../-commands-manager/send-connect.html"><span class="token function">sendConnect</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">auth<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token punctuation">, </span></span><span class="parameter ">socket<span class="token operator">: </span><a href="../../com.pedro.rtmp.utils.socket/-rtmp-socket/index.html">RtmpSocket</a></span></span><span class="token punctuation">)</span></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":rtmp/main"><div class="symbol monospace"><span class="token keyword">suspend </span><span class="token keyword">fun </span><a href="../-commands-manager/send-connect.html"><span class="token function">sendConnect</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">auth<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token punctuation">, </span></span><span class="parameter ">socket<span class="token operator">: </span><a href="../../com.pedro.rtmp.utils.socket/-rtmp-socket/index.html">RtmpSocket</a></span></span><span class="token punctuation">)</span></div></div></div>
                 </div>
               </div>
             </div>
           </div>
-<a data-name="148397454%2FFunctions%2F-958441266" anchor-label="sendConnectImp" id="148397454%2FFunctions%2F-958441266" data-filterable-set=":rtmp:dokkaHtmlPartial/release"></a>
-          <div class="table-row" data-filterable-current=":rtmp:dokkaHtmlPartial/release" data-filterable-set=":rtmp:dokkaHtmlPartial/release">
+<a data-name="148397454%2FFunctions%2F410179748" anchor-label="sendConnectImp" id="148397454%2FFunctions%2F410179748" data-filterable-set=":rtmp/main"></a>
+          <div class="table-row table-row_content" data-filterable-current=":rtmp/main" data-filterable-set=":rtmp/main">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="send-connect-imp.html"><span>send</span><wbr><span>Connect</span><wbr><span><span>Imp</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="148397454%2FFunctions%2F-958441266"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="148397454%2FFunctions%2F410179748"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":rtmp:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">suspend override </span><span class="token keyword">fun </span><a href="send-connect-imp.html"><span class="token function">sendConnectImp</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">auth<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token punctuation">, </span></span><span class="parameter ">socket<span class="token operator">: </span><a href="../../com.pedro.rtmp.utils.socket/-rtmp-socket/index.html">RtmpSocket</a></span></span><span class="token punctuation">)</span></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":rtmp/main"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">suspend override </span><span class="token keyword">fun </span><a href="send-connect-imp.html"><span class="token function">sendConnectImp</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">auth<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token punctuation">, </span></span><span class="parameter ">socket<span class="token operator">: </span><a href="../../com.pedro.rtmp.utils.socket/-rtmp-socket/index.html">RtmpSocket</a></span></span><span class="token punctuation">)</span></div></div></div>
                 </div>
               </div>
             </div>
           </div>
-<a data-name="149602928%2FFunctions%2F-958441266" anchor-label="sendMetadata" id="149602928%2FFunctions%2F-958441266" data-filterable-set=":rtmp:dokkaHtmlPartial/release"></a>
-          <div class="table-row" data-filterable-current=":rtmp:dokkaHtmlPartial/release" data-filterable-set=":rtmp:dokkaHtmlPartial/release">
+<a data-name="149602928%2FFunctions%2F410179748" anchor-label="sendMetadata" id="149602928%2FFunctions%2F410179748" data-filterable-set=":rtmp/main"></a>
+          <div class="table-row table-row_content" data-filterable-current=":rtmp/main" data-filterable-set=":rtmp/main">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="../-commands-manager/send-metadata.html"><span>send</span><wbr><span><span>Metadata</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="149602928%2FFunctions%2F-958441266"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="149602928%2FFunctions%2F410179748"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":rtmp:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword">suspend </span><span class="token keyword">fun </span><a href="../-commands-manager/send-metadata.html"><span class="token function">sendMetadata</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">socket<span class="token operator">: </span><a href="../../com.pedro.rtmp.utils.socket/-rtmp-socket/index.html">RtmpSocket</a></span></span><span class="token punctuation">)</span></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":rtmp/main"><div class="symbol monospace"><span class="token keyword">suspend </span><span class="token keyword">fun </span><a href="../-commands-manager/send-metadata.html"><span class="token function">sendMetadata</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">socket<span class="token operator">: </span><a href="../../com.pedro.rtmp.utils.socket/-rtmp-socket/index.html">RtmpSocket</a></span></span><span class="token punctuation">)</span></div></div></div>
                 </div>
               </div>
             </div>
           </div>
-<a data-name="-502381904%2FFunctions%2F-958441266" anchor-label="sendMetadataImp" id="-502381904%2FFunctions%2F-958441266" data-filterable-set=":rtmp:dokkaHtmlPartial/release"></a>
-          <div class="table-row" data-filterable-current=":rtmp:dokkaHtmlPartial/release" data-filterable-set=":rtmp:dokkaHtmlPartial/release">
+<a data-name="-502381904%2FFunctions%2F410179748" anchor-label="sendMetadataImp" id="-502381904%2FFunctions%2F410179748" data-filterable-set=":rtmp/main"></a>
+          <div class="table-row table-row_content" data-filterable-current=":rtmp/main" data-filterable-set=":rtmp/main">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="send-metadata-imp.html"><span>send</span><wbr><span>Metadata</span><wbr><span><span>Imp</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-502381904%2FFunctions%2F-958441266"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-502381904%2FFunctions%2F410179748"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":rtmp:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">suspend override </span><span class="token keyword">fun </span><a href="send-metadata-imp.html"><span class="token function">sendMetadataImp</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">socket<span class="token operator">: </span><a href="../../com.pedro.rtmp.utils.socket/-rtmp-socket/index.html">RtmpSocket</a></span></span><span class="token punctuation">)</span></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":rtmp/main"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">suspend override </span><span class="token keyword">fun </span><a href="send-metadata-imp.html"><span class="token function">sendMetadataImp</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">socket<span class="token operator">: </span><a href="../../com.pedro.rtmp.utils.socket/-rtmp-socket/index.html">RtmpSocket</a></span></span><span class="token punctuation">)</span></div></div></div>
                 </div>
               </div>
             </div>
           </div>
-<a data-name="930476759%2FFunctions%2F-958441266" anchor-label="sendPong" id="930476759%2FFunctions%2F-958441266" data-filterable-set=":rtmp:dokkaHtmlPartial/release"></a>
-          <div class="table-row" data-filterable-current=":rtmp:dokkaHtmlPartial/release" data-filterable-set=":rtmp:dokkaHtmlPartial/release">
+<a data-name="930476759%2FFunctions%2F410179748" anchor-label="sendPong" id="930476759%2FFunctions%2F410179748" data-filterable-set=":rtmp/main"></a>
+          <div class="table-row table-row_content" data-filterable-current=":rtmp/main" data-filterable-set=":rtmp/main">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="../-commands-manager/send-pong.html"><span>send</span><wbr><span><span>Pong</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="930476759%2FFunctions%2F-958441266"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="930476759%2FFunctions%2F410179748"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":rtmp:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword">suspend </span><span class="token keyword">fun </span><a href="../-commands-manager/send-pong.html"><span class="token function">sendPong</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">event<span class="token operator">: </span><a href="../../com.pedro.rtmp.rtmp.message.control/-event/index.html">Event</a><span class="token punctuation">, </span></span><span class="parameter ">socket<span class="token operator">: </span><a href="../../com.pedro.rtmp.utils.socket/-rtmp-socket/index.html">RtmpSocket</a></span></span><span class="token punctuation">)</span></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":rtmp/main"><div class="symbol monospace"><span class="token keyword">suspend </span><span class="token keyword">fun </span><a href="../-commands-manager/send-pong.html"><span class="token function">sendPong</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">event<span class="token operator">: </span><a href="../../com.pedro.rtmp.rtmp.message.control/-event/index.html">Event</a><span class="token punctuation">, </span></span><span class="parameter ">socket<span class="token operator">: </span><a href="../../com.pedro.rtmp.utils.socket/-rtmp-socket/index.html">RtmpSocket</a></span></span><span class="token punctuation">)</span></div></div></div>
                 </div>
               </div>
             </div>
           </div>
-<a data-name="-1955137388%2FFunctions%2F-958441266" anchor-label="sendPublish" id="-1955137388%2FFunctions%2F-958441266" data-filterable-set=":rtmp:dokkaHtmlPartial/release"></a>
-          <div class="table-row" data-filterable-current=":rtmp:dokkaHtmlPartial/release" data-filterable-set=":rtmp:dokkaHtmlPartial/release">
+<a data-name="-1955137388%2FFunctions%2F410179748" anchor-label="sendPublish" id="-1955137388%2FFunctions%2F410179748" data-filterable-set=":rtmp/main"></a>
+          <div class="table-row table-row_content" data-filterable-current=":rtmp/main" data-filterable-set=":rtmp/main">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="../-commands-manager/send-publish.html"><span>send</span><wbr><span><span>Publish</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1955137388%2FFunctions%2F-958441266"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1955137388%2FFunctions%2F410179748"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":rtmp:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword">suspend </span><span class="token keyword">fun </span><a href="../-commands-manager/send-publish.html"><span class="token function">sendPublish</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">socket<span class="token operator">: </span><a href="../../com.pedro.rtmp.utils.socket/-rtmp-socket/index.html">RtmpSocket</a></span></span><span class="token punctuation">)</span></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":rtmp/main"><div class="symbol monospace"><span class="token keyword">suspend </span><span class="token keyword">fun </span><a href="../-commands-manager/send-publish.html"><span class="token function">sendPublish</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">socket<span class="token operator">: </span><a href="../../com.pedro.rtmp.utils.socket/-rtmp-socket/index.html">RtmpSocket</a></span></span><span class="token punctuation">)</span></div></div></div>
                 </div>
               </div>
             </div>
           </div>
-<a data-name="2020643064%2FFunctions%2F-958441266" anchor-label="sendPublishImp" id="2020643064%2FFunctions%2F-958441266" data-filterable-set=":rtmp:dokkaHtmlPartial/release"></a>
-          <div class="table-row" data-filterable-current=":rtmp:dokkaHtmlPartial/release" data-filterable-set=":rtmp:dokkaHtmlPartial/release">
+<a data-name="2020643064%2FFunctions%2F410179748" anchor-label="sendPublishImp" id="2020643064%2FFunctions%2F410179748" data-filterable-set=":rtmp/main"></a>
+          <div class="table-row table-row_content" data-filterable-current=":rtmp/main" data-filterable-set=":rtmp/main">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="send-publish-imp.html"><span>send</span><wbr><span>Publish</span><wbr><span><span>Imp</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="2020643064%2FFunctions%2F-958441266"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="2020643064%2FFunctions%2F410179748"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":rtmp:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">suspend override </span><span class="token keyword">fun </span><a href="send-publish-imp.html"><span class="token function">sendPublishImp</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">socket<span class="token operator">: </span><a href="../../com.pedro.rtmp.utils.socket/-rtmp-socket/index.html">RtmpSocket</a></span></span><span class="token punctuation">)</span></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":rtmp/main"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">suspend override </span><span class="token keyword">fun </span><a href="send-publish-imp.html"><span class="token function">sendPublishImp</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">socket<span class="token operator">: </span><a href="../../com.pedro.rtmp.utils.socket/-rtmp-socket/index.html">RtmpSocket</a></span></span><span class="token punctuation">)</span></div></div></div>
                 </div>
               </div>
             </div>
           </div>
-<a data-name="-1705948569%2FFunctions%2F-958441266" anchor-label="sendVideoPacket" id="-1705948569%2FFunctions%2F-958441266" data-filterable-set=":rtmp:dokkaHtmlPartial/release"></a>
-          <div class="table-row" data-filterable-current=":rtmp:dokkaHtmlPartial/release" data-filterable-set=":rtmp:dokkaHtmlPartial/release">
+<a data-name="-1705948569%2FFunctions%2F410179748" anchor-label="sendVideoPacket" id="-1705948569%2FFunctions%2F410179748" data-filterable-set=":rtmp/main"></a>
+          <div class="table-row table-row_content" data-filterable-current=":rtmp/main" data-filterable-set=":rtmp/main">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="../-commands-manager/send-video-packet.html"><span>send</span><wbr><span>Video</span><wbr><span><span>Packet</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1705948569%2FFunctions%2F-958441266"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1705948569%2FFunctions%2F410179748"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":rtmp:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword">suspend </span><span class="token keyword">fun </span><a href="../-commands-manager/send-video-packet.html"><span class="token function">sendVideoPacket</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">flvPacket<span class="token operator">: </span><a href="../../com.pedro.rtmp.flv/-flv-packet/index.html">FlvPacket</a><span class="token punctuation">, </span></span><span class="parameter ">socket<span class="token operator">: </span><a href="../../com.pedro.rtmp.utils.socket/-rtmp-socket/index.html">RtmpSocket</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":rtmp/main"><div class="symbol monospace"><span class="token keyword">suspend </span><span class="token keyword">fun </span><a href="../-commands-manager/send-video-packet.html"><span class="token function">sendVideoPacket</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">flvPacket<span class="token operator">: </span><a href="../../com.pedro.rtmp.flv/-flv-packet/index.html">FlvPacket</a><span class="token punctuation">, </span></span><span class="parameter ">socket<span class="token operator">: </span><a href="../../com.pedro.rtmp.utils.socket/-rtmp-socket/index.html">RtmpSocket</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a></div></div></div>
                 </div>
               </div>
             </div>
           </div>
-<a data-name="2056202904%2FFunctions%2F-958441266" anchor-label="sendWindowAcknowledgementSize" id="2056202904%2FFunctions%2F-958441266" data-filterable-set=":rtmp:dokkaHtmlPartial/release"></a>
-          <div class="table-row" data-filterable-current=":rtmp:dokkaHtmlPartial/release" data-filterable-set=":rtmp:dokkaHtmlPartial/release">
+<a data-name="2056202904%2FFunctions%2F410179748" anchor-label="sendWindowAcknowledgementSize" id="2056202904%2FFunctions%2F410179748" data-filterable-set=":rtmp/main"></a>
+          <div class="table-row table-row_content" data-filterable-current=":rtmp/main" data-filterable-set=":rtmp/main">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="../-commands-manager/send-window-acknowledgement-size.html"><span>send</span><wbr><span>Window</span><wbr><span>Acknowledgement</span><wbr><span><span>Size</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="2056202904%2FFunctions%2F-958441266"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="2056202904%2FFunctions%2F410179748"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":rtmp:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword">suspend </span><span class="token keyword">fun </span><a href="../-commands-manager/send-window-acknowledgement-size.html"><span class="token function">sendWindowAcknowledgementSize</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">socket<span class="token operator">: </span><a href="../../com.pedro.rtmp.utils.socket/-rtmp-socket/index.html">RtmpSocket</a></span></span><span class="token punctuation">)</span></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":rtmp/main"><div class="symbol monospace"><span class="token keyword">suspend </span><span class="token keyword">fun </span><a href="../-commands-manager/send-window-acknowledgement-size.html"><span class="token function">sendWindowAcknowledgementSize</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">socket<span class="token operator">: </span><a href="../../com.pedro.rtmp.utils.socket/-rtmp-socket/index.html">RtmpSocket</a></span></span><span class="token punctuation">)</span></div></div></div>
                 </div>
               </div>
             </div>
           </div>
-<a data-name="-1127714459%2FFunctions%2F-958441266" anchor-label="setAudioInfo" id="-1127714459%2FFunctions%2F-958441266" data-filterable-set=":rtmp:dokkaHtmlPartial/release"></a>
-          <div class="table-row" data-filterable-current=":rtmp:dokkaHtmlPartial/release" data-filterable-set=":rtmp:dokkaHtmlPartial/release">
+<a data-name="-1127714459%2FFunctions%2F410179748" anchor-label="setAudioInfo" id="-1127714459%2FFunctions%2F410179748" data-filterable-set=":rtmp/main"></a>
+          <div class="table-row table-row_content" data-filterable-current=":rtmp/main" data-filterable-set=":rtmp/main">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="../-commands-manager/set-audio-info.html"><span>set</span><wbr><span>Audio</span><wbr><span><span>Info</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1127714459%2FFunctions%2F-958441266"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1127714459%2FFunctions%2F410179748"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":rtmp:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword">fun </span><a href="../-commands-manager/set-audio-info.html"><span class="token function">setAudioInfo</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">sampleRate<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a><span class="token punctuation">, </span></span><span class="parameter ">isStereo<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-boolean/index.html">Boolean</a></span></span><span class="token punctuation">)</span></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":rtmp/main"><div class="symbol monospace"><span class="token keyword">fun </span><a href="../-commands-manager/set-audio-info.html"><span class="token function">setAudioInfo</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">sampleRate<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a><span class="token punctuation">, </span></span><span class="parameter ">isStereo<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-boolean/index.html">Boolean</a></span></span><span class="token punctuation">)</span></div></div></div>
                 </div>
               </div>
             </div>
           </div>
-<a data-name="1983080626%2FFunctions%2F-958441266" anchor-label="setAuth" id="1983080626%2FFunctions%2F-958441266" data-filterable-set=":rtmp:dokkaHtmlPartial/release"></a>
-          <div class="table-row" data-filterable-current=":rtmp:dokkaHtmlPartial/release" data-filterable-set=":rtmp:dokkaHtmlPartial/release">
+<a data-name="1983080626%2FFunctions%2F410179748" anchor-label="setAuth" id="1983080626%2FFunctions%2F410179748" data-filterable-set=":rtmp/main"></a>
+          <div class="table-row table-row_content" data-filterable-current=":rtmp/main" data-filterable-set=":rtmp/main">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="../-commands-manager/set-auth.html"><span>set</span><wbr><span><span>Auth</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1983080626%2FFunctions%2F-958441266"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1983080626%2FFunctions%2F410179748"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":rtmp:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword">fun </span><a href="../-commands-manager/set-auth.html"><span class="token function">setAuth</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">user<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token operator">?</span><span class="token punctuation">, </span></span><span class="parameter ">password<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token operator">?</span></span></span><span class="token punctuation">)</span></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":rtmp/main"><div class="symbol monospace"><span class="token keyword">fun </span><a href="../-commands-manager/set-auth.html"><span class="token function">setAuth</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">user<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token operator">?</span><span class="token punctuation">, </span></span><span class="parameter ">password<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token operator">?</span></span></span><span class="token punctuation">)</span></div></div></div>
                 </div>
               </div>
             </div>
           </div>
-<a data-name="-2016426399%2FFunctions%2F-958441266" anchor-label="setVideoResolution" id="-2016426399%2FFunctions%2F-958441266" data-filterable-set=":rtmp:dokkaHtmlPartial/release"></a>
-          <div class="table-row" data-filterable-current=":rtmp:dokkaHtmlPartial/release" data-filterable-set=":rtmp:dokkaHtmlPartial/release">
+<a data-name="-2016426399%2FFunctions%2F410179748" anchor-label="setVideoResolution" id="-2016426399%2FFunctions%2F410179748" data-filterable-set=":rtmp/main"></a>
+          <div class="table-row table-row_content" data-filterable-current=":rtmp/main" data-filterable-set=":rtmp/main">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="../-commands-manager/set-video-resolution.html"><span>set</span><wbr><span>Video</span><wbr><span><span>Resolution</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-2016426399%2FFunctions%2F-958441266"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-2016426399%2FFunctions%2F410179748"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":rtmp:dokkaHtmlPartial/release"><div class="symbol monospace"><span class="token keyword">fun </span><a href="../-commands-manager/set-video-resolution.html"><span class="token function">setVideoResolution</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">width<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a><span class="token punctuation">, </span></span><span class="parameter ">height<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a></span></span><span class="token punctuation">)</span></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":rtmp/main"><div class="symbol monospace"><span class="token keyword">fun </span><a href="../-commands-manager/set-video-resolution.html"><span class="token function">setVideoResolution</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">width<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a><span class="token punctuation">, </span></span><span class="parameter ">height<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a></span></span><span class="token punctuation">)</span></div></div></div>
                 </div>
               </div>
             </div>
@@ -745,17 +745,21 @@
   </div>
 </div>
     <div class="footer">
-        <a href="#content" id="go-to-top-link" class="footer--button footer--button_go-to-top"></a>
-        <span>© 2025 Copyright</span>
-        <span class="pull-right">
-            <span>Generated by </span>
-            <a class="footer--link footer--link_external" href="https://github.com/Kotlin/dokka">
-                <span>dokka</span>
-            </a>
-        </span>
-    </div>
+        <div class="footer--container">
+            <a href="#content" id="go-to-top-link" class="footer--button footer--button_go-to-top"></a>
+            <div class="footer--content">
+                <div>
+                    <span>Generated by </span>
+                    <a class="footer--link footer--link_external" href="https://github.com/Kotlin/dokka">
+                        Dokka
+                    </a>
+                    <div>© 2025 Copyright</div>
+                </div>
             </div>
         </div>
     </div>
+        </div>
+    </div>
+</div>
 </body>
 </html>
