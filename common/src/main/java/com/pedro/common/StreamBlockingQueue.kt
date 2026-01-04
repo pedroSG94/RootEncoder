@@ -5,9 +5,9 @@ import java.util.concurrent.PriorityBlockingQueue
 import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.math.max
 
-class StreamBlockingQueue(var size: Int) {
+class StreamBlockingQueue(var capacity: Int) {
 
-    private val queue = PriorityBlockingQueue<MediaFrame>(size) { p0, p1 ->
+    private val queue = PriorityBlockingQueue<MediaFrame>(capacity) { p0, p1 ->
         p0.info.timestamp.compare(p1.info.timestamp)
     }
     private var cacheQueue = PriorityBlockingQueue<MediaFrame>(200) { p0, p1 ->
@@ -18,7 +18,7 @@ class StreamBlockingQueue(var size: Int) {
     private var startTs = 0L
 
     fun trySend(item: MediaFrame): Boolean {
-        if (queue.size >= size) return false
+        if (queue.size >= capacity) return false
         if (cacheTime > 0 && !cacheTimeFilled.get()) {
             if (startTs == 0L) startTs = TimeUtils.getCurrentTimeMillis()
             val t = TimeUtils.getCurrentTimeMillis() - startTs
@@ -39,7 +39,7 @@ class StreamBlockingQueue(var size: Int) {
         return queue.take()
     }
 
-    fun remainingCapacity(): Int = max(0, size - queue.size)
+    fun remainingCapacity(): Int = max(0, capacity - queue.size)
 
     fun drainTo(destiny: StreamBlockingQueue) {
         queue.drainTo(destiny.queue)

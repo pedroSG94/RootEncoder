@@ -103,7 +103,7 @@ abstract class BaseSender(
         if (newSize < queue.getSize() - queue.remainingCapacity()) {
             throw RuntimeException("Can't fit current cache inside new cache size")
         }
-        queue.size = newSize
+        queue.capacity = newSize
     }
 
     fun getCacheSize(): Int = cacheSize
