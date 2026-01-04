@@ -5,7 +5,7 @@ import java.util.concurrent.PriorityBlockingQueue
 import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.math.max
 
-class StreamBlockingQueue(private val size: Int) {
+class StreamBlockingQueue(var size: Int) {
 
     private val queue = PriorityBlockingQueue<MediaFrame>(size) { p0, p1 ->
         p0.info.timestamp.compare(p1.info.timestamp)

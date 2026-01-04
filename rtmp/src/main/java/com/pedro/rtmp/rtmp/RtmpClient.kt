@@ -94,9 +94,9 @@ class RtmpClient(private val connectChecker: ConnectChecker) {
   private var publishPermitted = false
 
   val droppedAudioFrames: Long
-    get() = rtmpSender.droppedAudioFrames
+    get() = rtmpSender.getDroppedAudioFrames()
   val droppedVideoFrames: Long
-    get() = rtmpSender.droppedVideoFrames
+    get() = rtmpSender.getDroppedVideoFrames()
 
   val cacheSize: Int
     get() = rtmpSender.getCacheSize()
@@ -105,7 +105,7 @@ class RtmpClient(private val connectChecker: ConnectChecker) {
   val sentVideoFrames: Long
     get() = rtmpSender.getSentVideoFrames()
   val bytesSend: Long
-    get() = rtmpSender.bytesSend
+    get() = rtmpSender.getBytesSend()
   var socketType = SocketType.KTOR
   var socketTimeout = StreamSocket.DEFAULT_TIMEOUT
   var shouldFailOnRead = false

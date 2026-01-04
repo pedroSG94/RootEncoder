@@ -107,26 +107,23 @@ class RtspSender(
       val error = runCatching {
         val mediaFrame = runInterruptible { queue.take() }
         getRtpPackets(mediaFrame) { rtpFrames ->
-          var size = 0
+          var size = 0L
           var isVideo = false
           rtpFrames.forEach { rtpFrame ->
             rtpSocket?.sendFrame(rtpFrame)
             //4 is tcp header length
-            val packetSize = if (isTcp) rtpFrame.length + 4 else rtpFrame.length
-            bytesSend += packetSize
-            bytesSendPerSecond += packetSize
+            val packetSize = (if (isTcp) rtpFrame.length + 4 else rtpFrame.length).toLong()
+            bytesSend.addAndGet(packetSize)
+            bytesSendPerSecond.addAndGet(packetSize)
             size += packetSize
             isVideo = rtpFrame.isVideoFrame()
-            if (isVideo) {
-              videoFramesSent++
-            } else {
-              audioFramesSent++
-            }
+            if (isVideo) videoFramesSent.incrementAndGet()
+            else audioFramesSent.incrementAndGet()
             if (baseSenderReport?.update(rtpFrame) == true) {
               //4 is tcp header length
-              val reportSize = if (isTcp) RtpConstants.REPORT_PACKET_LENGTH + 4 else RtpConstants.REPORT_PACKET_LENGTH
-              bytesSend += reportSize
-              bytesSendPerSecond += reportSize
+              val reportSize = (if (isTcp) RtpConstants.REPORT_PACKET_LENGTH + 4 else RtpConstants.REPORT_PACKET_LENGTH).toLong()
+              bytesSend.addAndGet(reportSize)
+              bytesSendPerSecond.addAndGet(reportSize)
               if (isEnableLogs) Log.i(TAG, "wrote report")
             }
           }

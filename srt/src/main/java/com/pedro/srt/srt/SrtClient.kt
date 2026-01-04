@@ -89,9 +89,9 @@ class SrtClient(private val connectChecker: ConnectChecker) {
   private var reTries = 0
 
   val droppedAudioFrames: Long
-    get() = srtSender.droppedAudioFrames
+    get() = srtSender.getDroppedAudioFrames()
   val droppedVideoFrames: Long
-    get() = srtSender.droppedVideoFrames
+    get() = srtSender.getDroppedVideoFrames()
 
   val cacheSize: Int
     get() = srtSender.getCacheSize()
@@ -100,7 +100,7 @@ class SrtClient(private val connectChecker: ConnectChecker) {
   val sentVideoFrames: Long
     get() = srtSender.getSentVideoFrames()
   val bytesSend: Long
-    get() = srtSender.bytesSend
+    get() = srtSender.getBytesSend()
   var rtt = 0 //in micro
     private set
   var packetsLost = 0

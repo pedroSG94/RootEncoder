@@ -14,6 +14,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import java.nio.ByteBuffer
+import java.util.concurrent.atomic.AtomicLong
 
 abstract class BaseSender(
     protected val connectChecker: ConnectChecker,
@@ -23,23 +24,21 @@ abstract class BaseSender(
     @Volatile
     protected var running = false
     private var cacheSize = 400
-    @Volatile
-    protected var queue = StreamBlockingQueue(cacheSize)
-    protected var audioFramesSent: Long = 0
-    protected var videoFramesSent: Long = 0
-    var droppedAudioFrames: Long = 0
-        protected set
-    var droppedVideoFrames: Long = 0
-        protected set
+
+    protected val queue = StreamBlockingQueue(cacheSize)
+
+    protected val audioFramesSent = AtomicLong(0)
+    protected val videoFramesSent = AtomicLong(0)
+    private val droppedAudioFrames = AtomicLong(0)
+    private val droppedVideoFrames = AtomicLong(0)
+
     private val bitrateManager: BitrateManager = BitrateManager(connectChecker)
     protected var isEnableLogs = true
     private var job: Job? = null
     protected val scope = CoroutineScope(Dispatchers.IO)
-    @Volatile
-    var bytesSend = 0L
-        protected set
-    @Volatile
-    protected var bytesSendPerSecond = 0L
+
+    protected val bytesSend = AtomicLong(0)
+    protected val bytesSendPerSecond = AtomicLong(0)
 
     abstract fun setVideoInfo(sps: ByteBuffer, pps: ByteBuffer?, vps: ByteBuffer?)
     abstract fun setAudioInfo(sampleRate: Int, isStereo: Boolean)
@@ -51,11 +50,11 @@ abstract class BaseSender(
             when (mediaFrame.type) {
                 MediaFrame.Type.VIDEO -> {
                     Log.i(TAG, "Video frame discarded")
-                    droppedVideoFrames++
+                    droppedVideoFrames.incrementAndGet()
                 }
                 MediaFrame.Type.AUDIO -> {
                     Log.i(TAG, "Audio frame discarded")
-                    droppedAudioFrames++
+                    droppedAudioFrames.incrementAndGet()
                 }
             }
         }
@@ -69,8 +68,8 @@ abstract class BaseSender(
             val bitrateTask = async {
                 while (scope.isActive && running) {
                     //bytes to bits
-                    bitrateManager.calculateBitrate(bytesSendPerSecond * 8)
-                    bytesSendPerSecond = 0
+                    bitrateManager.calculateBitrate(bytesSendPerSecond.get() * 8)
+                    bytesSendPerSecond.set(0)
                     delay(timeMillis = 1000)
                 }
             }
@@ -104,9 +103,7 @@ abstract class BaseSender(
         if (newSize < queue.getSize() - queue.remainingCapacity()) {
             throw RuntimeException("Can't fit current cache inside new cache size")
         }
-        val tempQueue = StreamBlockingQueue(newSize)
-        queue.drainTo(tempQueue)
-        queue = tempQueue
+        queue.size = newSize
     }
 
     fun getCacheSize(): Int = cacheSize
@@ -117,24 +114,30 @@ abstract class BaseSender(
         queue.clear()
     }
 
-    fun getSentAudioFrames(): Long = audioFramesSent
+    fun getSentAudioFrames(): Long = audioFramesSent.get()
 
-    fun getSentVideoFrames(): Long = videoFramesSent
+    fun getSentVideoFrames(): Long = videoFramesSent.get()
+
+    fun getDroppedAudioFrames(): Long = droppedAudioFrames.get()
+
+    fun getDroppedVideoFrames(): Long = droppedVideoFrames.get()
+
+    fun getBytesSend(): Long = bytesSend.get()
 
     fun resetSentAudioFrames() {
-        audioFramesSent = 0
+        audioFramesSent.set(0)
     }
 
     fun resetSentVideoFrames() {
-        videoFramesSent = 0
+        videoFramesSent.set(0)
     }
 
     fun resetDroppedAudioFrames() {
-        droppedAudioFrames = 0
+        droppedAudioFrames.set(0)
     }
 
     fun resetDroppedVideoFrames() {
-        droppedVideoFrames = 0
+        droppedVideoFrames.set(0)
     }
 
     fun setLogs(enable: Boolean) {
@@ -152,6 +155,6 @@ abstract class BaseSender(
     }
 
     fun resetBytesSend() {
-        bytesSend = 0
+        bytesSend.set(0)
     }
 }

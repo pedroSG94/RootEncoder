@@ -79,26 +79,26 @@ class RtmpSender(
       val error = runCatching {
         val mediaFrame = runInterruptible { queue.take() }
         getFlvPacket(mediaFrame) { flvPacket ->
-          var size = 0
+          var size = 0L
           if (flvPacket.type == FlvType.VIDEO) {
-            videoFramesSent++
+            videoFramesSent.incrementAndGet()
             socket?.let { socket ->
-              size = commandsManager.sendVideoPacket(flvPacket, socket)
+              size = commandsManager.sendVideoPacket(flvPacket, socket).toLong()
               if (isEnableLogs) {
                 Log.i(TAG, "wrote Video packet, size $size")
               }
             }
           } else {
-            audioFramesSent++
+            audioFramesSent.incrementAndGet()
             socket?.let { socket ->
-              size = commandsManager.sendAudioPacket(flvPacket, socket)
+              size = commandsManager.sendAudioPacket(flvPacket, socket).toLong()
               if (isEnableLogs) {
                 Log.i(TAG, "wrote Audio packet, size $size")
               }
             }
           }
-          bytesSend += size
-          bytesSendPerSecond += size
+          bytesSend.addAndGet(size)
+          bytesSendPerSecond.addAndGet(size)
         }
       }.exceptionOrNull()
       if (error != null) {

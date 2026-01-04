@@ -67,9 +67,9 @@ class UdpClient(private val connectChecker: ConnectChecker) {
   private var reTries = 0
 
   val droppedAudioFrames: Long
-    get() = udpSender.droppedAudioFrames
+    get() = udpSender.getDroppedAudioFrames()
   val droppedVideoFrames: Long
-    get() = udpSender.droppedVideoFrames
+    get() = udpSender.getDroppedVideoFrames()
 
   val cacheSize: Int
     get() = udpSender.getCacheSize()
@@ -78,7 +78,7 @@ class UdpClient(private val connectChecker: ConnectChecker) {
   val sentVideoFrames: Long
     get() = udpSender.getSentVideoFrames()
   val bytesSend: Long
-    get() = udpSender.bytesSend
+    get() = udpSender.getBytesSend()
   var socketType = SocketType.KTOR
   var socketTimeout = StreamSocket.DEFAULT_TIMEOUT
 

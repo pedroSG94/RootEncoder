@@ -81,9 +81,9 @@ class RtspClient(private val connectChecker: ConnectChecker) {
   private var checkServerAlive = false
 
   val droppedAudioFrames: Long
-    get() = rtspSender.droppedAudioFrames
+    get() = rtspSender.getDroppedAudioFrames()
   val droppedVideoFrames: Long
-    get() = rtspSender.droppedVideoFrames
+    get() = rtspSender.getDroppedVideoFrames()
 
   val cacheSize: Int
     get() = rtspSender.getCacheSize()
@@ -92,7 +92,7 @@ class RtspClient(private val connectChecker: ConnectChecker) {
   val sentVideoFrames: Long
     get() = rtspSender.getSentVideoFrames()
   val bytesSend: Long
-    get() = rtspSender.bytesSend
+    get() = rtspSender.getBytesSend()
   var socketType = SocketType.KTOR
   var socketTimeout = StreamSocket.DEFAULT_TIMEOUT
 
