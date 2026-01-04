@@ -54,7 +54,7 @@ public class EdgeDetectionFilterRender extends BaseFilterRender {
   private int uMVPMatrixHandle = -1;
   private int uSTMatrixHandle = -1;
   private int uSamplerHandle = -1;
-  private int uPixelSizeHandle = -1;
+  private int uEdgeSizeHandle = -1;
   private int uEdgeColorHandle = -1;
   private int uBackgroundColorHandle = -1;
 
@@ -70,18 +70,17 @@ public class EdgeDetectionFilterRender extends BaseFilterRender {
   private final boolean performanceMode;
 
   public EdgeDetectionFilterRender(boolean performanceMode) {
-    super();
-    this.performanceMode = performanceMode;
-  }
-
-  public EdgeDetectionFilterRender() {
     squareVertex = ByteBuffer.allocateDirect(squareVertexDataFilter.length * FLOAT_SIZE_BYTES)
         .order(ByteOrder.nativeOrder())
         .asFloatBuffer();
     squareVertex.put(squareVertexDataFilter).position(0);
     Matrix.setIdentityM(MVPMatrix, 0);
     Matrix.setIdentityM(STMatrix, 0);
-    performanceMode = true;
+    this.performanceMode = performanceMode;
+  }
+
+  public EdgeDetectionFilterRender() {
+    this(true);
   }
 
   @Override
@@ -96,7 +95,7 @@ public class EdgeDetectionFilterRender extends BaseFilterRender {
     uSTMatrixHandle = GLES20.glGetUniformLocation(program, "uSTMatrix");
     uSamplerHandle = GLES20.glGetUniformLocation(program, "uSampler");
     if (!performanceMode) {
-      uPixelSizeHandle = GLES20.glGetUniformLocation(program, "uPixelSize");
+      uEdgeSizeHandle = GLES20.glGetUniformLocation(program, "uEdgeSize");
       uEdgeColorHandle = GLES20.glGetUniformLocation(program, "uEdgeColor");
       uBackgroundColorHandle = GLES20.glGetUniformLocation(program, "uBackgroundColor");
     }
@@ -122,7 +121,7 @@ public class EdgeDetectionFilterRender extends BaseFilterRender {
     if (!performanceMode) {
       GLES20.glUniform3f(uEdgeColorHandle, edgeRed, edgeGreen, edgeBlue);
       GLES20.glUniform3f(uBackgroundColorHandle, backgroundRed, backgroundGreen, backgroundBlue);
-      GLES20.glUniform1f(uPixelSizeHandle, edgeSize);
+      GLES20.glUniform1f(uEdgeSizeHandle, edgeSize);
     }
     GLES20.glUniform1i(uSamplerHandle, 0);
     GLES20.glActiveTexture(GLES20.GL_TEXTURE0);

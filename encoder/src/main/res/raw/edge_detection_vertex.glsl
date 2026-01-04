@@ -11,14 +11,14 @@ varying vec2 vRightCoord;
 varying vec2 vTopCoord;
 varying vec2 vBottomCoord;
 
-uniform float uPixelSize;
+uniform float uEdgeSize;
 
 void main() {
   gl_Position = uMVPMatrix * aPosition;
   vTextureCoord = (uSTMatrix * aTextureCoord).xy;
 
-  vLeftCoord = vTextureCoord + vec2(-uPixelSize, 0.0);
-  vRightCoord = vTextureCoord + vec2(uPixelSize, 0.0);
-  vTopCoord = vTextureCoord + vec2(0.0, -uPixelSize);
-  vBottomCoord = vTextureCoord + vec2(0.0, uPixelSize);
+  vLeftCoord = vTextureCoord + vec2(-uEdgeSize, 0.0);
+  vRightCoord = vTextureCoord + vec2(uEdgeSize, 0.0);
+  vTopCoord = vTextureCoord + vec2(0.0, -uEdgeSize);
+  vBottomCoord = vTextureCoord + vec2(0.0, uEdgeSize);
 }

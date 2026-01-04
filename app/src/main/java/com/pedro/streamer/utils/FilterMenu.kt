@@ -180,7 +180,7 @@ class FilterMenu(private val context: Context) {
         return true
       }
       R.id.edge_detection -> {
-        glInterface.setFilter(EdgeDetectionFilterRender())
+        glInterface.setFilter(EdgeDetectionFilterRender(false))
         return true
       }
       R.id.exposure -> {
