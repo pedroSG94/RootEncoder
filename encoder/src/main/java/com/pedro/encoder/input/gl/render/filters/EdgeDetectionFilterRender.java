@@ -17,6 +17,7 @@
 package com.pedro.encoder.input.gl.render.filters;
 
 import android.content.Context;
+import android.content.res.Resources;
 import android.opengl.GLES20;
 import android.opengl.Matrix;
 import android.os.Build;
@@ -28,6 +29,8 @@ import com.pedro.encoder.utils.gl.GlUtil;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Created by pedro on 4/02/18.
@@ -51,6 +54,25 @@ public class EdgeDetectionFilterRender extends BaseFilterRender {
   private int uMVPMatrixHandle = -1;
   private int uSTMatrixHandle = -1;
   private int uSamplerHandle = -1;
+  private int uPixelSizeHandle = -1;
+  private int uEdgeColorHandle = -1;
+  private int uBackgroundColorHandle = -1;
+
+  private static final String HEX_PATTERN = "^#([A-Fa-f0-9]{6})$";
+
+  private float edgeSize = 0.001f;
+  private float edgeRed = 1f;
+  private float edgeGreen = 1f;
+  private float edgeBlue = 1f;
+  private float backgroundRed = 0f;
+  private float backgroundGreen = 0f;
+  private float backgroundBlue = 0f;
+  private final boolean performanceMode;
+
+  public EdgeDetectionFilterRender(boolean performanceMode) {
+    super();
+    this.performanceMode = performanceMode;
+  }
 
   public EdgeDetectionFilterRender() {
     squareVertex = ByteBuffer.allocateDirect(squareVertexDataFilter.length * FLOAT_SIZE_BYTES)
@@ -59,12 +81,13 @@ public class EdgeDetectionFilterRender extends BaseFilterRender {
     squareVertex.put(squareVertexDataFilter).position(0);
     Matrix.setIdentityM(MVPMatrix, 0);
     Matrix.setIdentityM(STMatrix, 0);
+    performanceMode = true;
   }
 
   @Override
   protected void initGlFilter(Context context) {
-    String vertexShader = GlUtil.getStringFromRaw(context, R.raw.simple_vertex);
-    String fragmentShader = GlUtil.getStringFromRaw(context, R.raw.edge_detection_fragment);
+    String vertexShader = GlUtil.getStringFromRaw(context, performanceMode ? R.raw.simple_vertex : R.raw.edge_detection_vertex);
+    String fragmentShader = GlUtil.getStringFromRaw(context, performanceMode ? R.raw.edge_detection_fragment : R.raw.edge_detection_sobel_fragment);
 
     program = GlUtil.createProgram(vertexShader, fragmentShader);
     aPositionHandle = GLES20.glGetAttribLocation(program, "aPosition");
@@ -72,6 +95,11 @@ public class EdgeDetectionFilterRender extends BaseFilterRender {
     uMVPMatrixHandle = GLES20.glGetUniformLocation(program, "uMVPMatrix");
     uSTMatrixHandle = GLES20.glGetUniformLocation(program, "uSTMatrix");
     uSamplerHandle = GLES20.glGetUniformLocation(program, "uSampler");
+    if (!performanceMode) {
+      uPixelSizeHandle = GLES20.glGetUniformLocation(program, "uPixelSize");
+      uEdgeColorHandle = GLES20.glGetUniformLocation(program, "uEdgeColor");
+      uBackgroundColorHandle = GLES20.glGetUniformLocation(program, "uBackgroundColor");
+    }
   }
 
   @Override
@@ -91,6 +119,11 @@ public class EdgeDetectionFilterRender extends BaseFilterRender {
     GLES20.glUniformMatrix4fv(uMVPMatrixHandle, 1, false, MVPMatrix, 0);
     GLES20.glUniformMatrix4fv(uSTMatrixHandle, 1, false, STMatrix, 0);
 
+    if (!performanceMode) {
+      GLES20.glUniform3f(uEdgeColorHandle, edgeRed, edgeGreen, edgeBlue);
+      GLES20.glUniform3f(uBackgroundColorHandle, backgroundRed, backgroundGreen, backgroundBlue);
+      GLES20.glUniform1f(uPixelSizeHandle, edgeSize);
+    }
     GLES20.glUniform1i(uSamplerHandle, 0);
     GLES20.glActiveTexture(GLES20.GL_TEXTURE0);
     GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, previousTexId);
@@ -104,5 +137,82 @@ public class EdgeDetectionFilterRender extends BaseFilterRender {
   @Override
   public void release() {
     GLES20.glDeleteProgram(program);
+  }
+
+  /**
+   * @param rgbHexColor color represented with 7 characters (1 to start with #, 2 for red, 2 for
+   * green and 2 for blue)
+   */
+  public void setEdgeRGBColor(String rgbHexColor) {
+    Pattern pattern = Pattern.compile(HEX_PATTERN);
+    Matcher matcher = pattern.matcher(rgbHexColor);
+    if (!matcher.matches()) {
+      throw new IllegalArgumentException(
+          "Invalid hexColor pattern (Should be: " + HEX_PATTERN + ")");
+    }
+    int r = Integer.valueOf(rgbHexColor.substring(1, 3), 16);
+    int g = Integer.valueOf(rgbHexColor.substring(3, 5), 16);
+    int b = Integer.valueOf(rgbHexColor.substring(5, 7), 16);
+    setEdgeRGBColor(r, g, b);
+  }
+
+  /**
+   * Values range 0 to 255
+   */
+  public void setEdgeRGBColor(int r, int g, int b) {
+    if (performanceMode) throw new IllegalStateException("Performance mode no support set values");
+    edgeRed = (float) r / 255.0f;
+    edgeGreen = (float) g / 255.0f;
+    edgeBlue = (float) b / 255.0f;
+  }
+
+  /**
+   * Get string color from color file resource and strip alpha values (alpha values is always auto
+   * completed)
+   */
+  public void setEdgeColor(Resources resources, int colorResource) {
+    String color = resources.getString(colorResource);
+    setEdgeRGBColor("#" + color.substring(3));
+  }
+
+  /**
+   * @param rgbHexColor color represented with 7 characters (1 to start with #, 2 for red, 2 for
+   * green and 2 for blue)
+   */
+  public void setBackgroundRGBColor(String rgbHexColor) {
+    Pattern pattern = Pattern.compile(HEX_PATTERN);
+    Matcher matcher = pattern.matcher(rgbHexColor);
+    if (!matcher.matches()) {
+      throw new IllegalArgumentException(
+          "Invalid hexColor pattern (Should be: " + HEX_PATTERN + ")");
+    }
+    int r = Integer.valueOf(rgbHexColor.substring(1, 3), 16);
+    int g = Integer.valueOf(rgbHexColor.substring(3, 5), 16);
+    int b = Integer.valueOf(rgbHexColor.substring(5, 7), 16);
+    setBackgroundRGBColor(r, g, b);
+  }
+
+  /**
+   * Values range 0 to 255
+   */
+  public void setBackgroundRGBColor(int r, int g, int b) {
+    if (performanceMode) throw new IllegalStateException("Performance mode no support set values");
+    backgroundRed = (float) r / 255.0f;
+    backgroundGreen = (float) g / 255.0f;
+    backgroundBlue = (float) b / 255.0f;
+  }
+
+  /**
+   * Get string color from color file resource and strip alpha values (alpha values is always auto
+   * completed)
+   */
+  public void setBackgroundColor(Resources resources, int colorResource) {
+    String color = resources.getString(colorResource);
+    setBackgroundRGBColor("#" + color.substring(3));
+  }
+
+  public void setEdgeSize(float edgeSize) {
+    if (performanceMode) throw new IllegalStateException("Performance mode no support set values");
+    this.edgeSize = edgeSize;
   }
 }
