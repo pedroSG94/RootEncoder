@@ -1,6 +1,25 @@
 allprojects {
-    group = "com.github.pedroSG94"
+    group = "com.github.paul-kowlman"
     version = "2.6.7"
+}
+
+plugins.withType<PublishingPlugin> {
+    configure<PublishingExtension> {
+        publications.withType<MavenPublication>().all {
+            pom {
+                name = "RootEncoder"
+                description = "A stream encoder to push video/audio to media servers"
+                url = "https://github.com/paul-kowlman/RootEncoder"
+                licenses {
+                    license {
+                        name = "Apache-2.0"
+                        url = "https://www.apache.org/licenses/LICENSE-2.0.txt"
+                        distribution = "manual"
+                    }
+                }
+            }
+        }
+    }
 }
 
 plugins {
