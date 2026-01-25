@@ -93,6 +93,10 @@ class GlStreamInterface(private val context: Context): OnFrameAvailableListener,
   private var previewViewPort: ViewPort? = null
   private var streamViewPort: ViewPort? = null
 
+    private var isCameraFacing = true
+    private var lastFrameTimestamp = 0L
+    private var averageFrameInterval = 0L
+
   private val sensorRotationManager = SensorRotationManager(context, true, true) { orientation, isPortrait ->
     if (autoHandleOrientation && shouldHandleOrientation) {
       setCameraOrientation(orientation)
@@ -243,6 +247,15 @@ class GlStreamInterface(private val context: Context): OnFrameAvailableListener,
       mainRender.updateFrame()
       mainRender.drawSource()
       surfaceManager.swapBuffer()
+
+        // Apply current stream horizontal flip state
+        val frameTimestamp = mainRender.getSurfaceTexture().timestamp
+        val timestampDelta = frameTimestamp - lastFrameTimestamp
+        if (timestampDelta > (averageFrameInterval * 2)) {
+            isStreamHorizontalFlip = isCameraFacing
+        }
+        averageFrameInterval = timestampDelta
+        lastFrameTimestamp = frameTimestamp
     }
 
     val orientation = when (orientationForced) {
@@ -540,4 +553,8 @@ class GlStreamInterface(private val context: Context): OnFrameAvailableListener,
   fun setStreamViewPort(viewPort: ViewPort?) {
     streamViewPort = viewPort
   }
+
+    fun setCameraFacing(isFacing: Boolean) {
+        isCameraFacing = isFacing
+    }
 }
