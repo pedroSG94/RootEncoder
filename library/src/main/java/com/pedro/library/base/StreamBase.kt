@@ -664,13 +664,16 @@ abstract class StreamBase(
     audioEncoder.type = type
   }
 
-    fun switchCamera() {
+    fun switchCamera(): Boolean {
         isCameraFacing = !isCameraFacing
+
         getGlInterface().setCameraFacing(isCameraFacing)
         when (val source = videoSource) {
             is Camera1Source -> source.switchCamera()
             is Camera2Source -> source.switchCamera()
         }
+
+        return isCameraFacing
     }
 
   protected abstract fun setVideoCodecImp(codec: VideoCodec)
