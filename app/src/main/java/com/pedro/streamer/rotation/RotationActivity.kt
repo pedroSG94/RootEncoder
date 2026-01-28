@@ -26,9 +26,12 @@ import android.view.MenuItem
 import android.view.MotionEvent
 import android.view.View
 import android.view.View.OnTouchListener
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.graphics.scale
+import com.pedro.encoder.input.audio.CustomAudioEffect
+import com.pedro.encoder.input.decoder.AndroidExtractor
 import com.pedro.encoder.input.sources.audio.MicrophoneSource
 import com.pedro.encoder.input.sources.video.BitmapSource
 import com.pedro.encoder.input.sources.video.BufferVideoSource
@@ -59,6 +62,16 @@ class RotationActivity : AppCompatActivity(), OnTouchListener {
   private var currentAudioSource: MenuItem? = null
   private var currentOrientation: MenuItem? = null
   private var currentFilter: MenuItem? = null
+
+  private val activityResult = registerForActivityResult(ActivityResultContracts.GetContent()) { uri ->
+    uri?.let {
+      cameraFragment.genericStream.changeAudioSource(MicrophoneSource().apply {
+        setAudioEffect(AudioFilterMixer(AndroidExtractor()).apply {
+          start(this@RotationActivity, uri)
+        })
+      })
+    }
+  }
 
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
@@ -119,7 +132,7 @@ class RotationActivity : AppCompatActivity(), OnTouchListener {
         }
         R.id.audio_source_microphone -> {
           currentAudioSource = item.updateMenuColor(this, currentAudioSource)
-          cameraFragment.genericStream.changeAudioSource(MicrophoneSource())
+          activityResult.launch("*/*")
         }
         R.id.orientation_horizontal -> {
           currentOrientation = item.updateMenuColor(this, currentOrientation)
@@ -156,5 +169,10 @@ class RotationActivity : AppCompatActivity(), OnTouchListener {
       return true
     }
     return false
+  }
+
+  override fun onDestroy() {
+    super.onDestroy()
+    activityResult.unregister()
   }
 }
