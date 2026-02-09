@@ -44,15 +44,16 @@ abstract class SrtPacket {
     @Throws(IOException::class)
     fun getSrtPacket(buffer: ByteArray): SrtPacket {
       val packetType = PacketType.from((buffer[0].toInt() ushr 7) and 0x01)
+      val input = ByteArrayInputStream(buffer)
       when (packetType) {
         PacketType.DATA -> {
-          return DataPacket()
+          val dataPacket = DataPacket()
+          dataPacket.read(input)
+          return dataPacket
         }
         PacketType.CONTROL -> {
           val headerData = buffer.sliceArray(0 until 4)
-          val type = ControlPacket.getType(ByteArrayInputStream(headerData))
-          val input = ByteArrayInputStream(buffer)
-          when (type) {
+          when (val type = ControlPacket.getType(ByteArrayInputStream(headerData))) {
             ControlType.HANDSHAKE -> {
               val handshake = Handshake()
               handshake.read(input)

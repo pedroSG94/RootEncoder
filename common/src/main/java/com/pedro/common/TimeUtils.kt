@@ -31,6 +31,9 @@ object TimeUtils {
   fun getCurrentTimeMillis(): Long = SystemClock.elapsedRealtime()
 
   @JvmStatic
+  fun getCurrentTimeSeconds(): Int = (getCurrentTimeMillis() / 1000).toInt()
+
+  @JvmStatic
   fun getCurrentTimeNano(): Long {
     return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
       SystemClock.elapsedRealtimeNanos()

@@ -172,6 +172,16 @@ abstract class CommandsManager {
     }
   }
 
+  suspend fun sendPing(socket: RtmpSocket) {
+    writeSync.withLock {
+      val ping = UserControl(Type.PING_REQUEST, Event(TimeUtils.getCurrentTimeSeconds()))
+      ping.writeHeader(socket)
+      ping.writeBody(socket)
+      socket.flush()
+      Log.i(TAG, "send ping")
+    }
+  }
+
   @Throws(IOException::class)
   suspend fun sendClose(socket: RtmpSocket) {
     writeSync.withLock {

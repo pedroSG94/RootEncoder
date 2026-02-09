@@ -59,6 +59,7 @@ import kotlinx.coroutines.withTimeoutOrNull
 import java.io.IOException
 import java.net.URISyntaxException
 import java.nio.ByteBuffer
+import java.util.concurrent.atomic.AtomicLong
 import javax.net.ssl.TrustManager
 
 /**
@@ -73,6 +74,7 @@ class RtmpClient(private val connectChecker: ConnectChecker) {
   private var socket: RtmpSocket? = null
   private var scope = CoroutineScope(Dispatchers.IO)
   private var scopeRetry = CoroutineScope(Dispatchers.IO)
+  private var scopePing = CoroutineScope(Dispatchers.IO)
   private var job: Job? = null
   private var jobRetry: Job? = null
   private var commandsManager: CommandsManager = CommandsManagerAmf0()
@@ -109,6 +111,10 @@ class RtmpClient(private val connectChecker: ConnectChecker) {
   var socketType = SocketType.KTOR
   var socketTimeout = StreamSocket.DEFAULT_TIMEOUT
   var shouldFailOnRead = false
+  var shouldSendPings = false
+  var rtt = 0 //in micro
+    private set
+  private val pingTs = AtomicLong(0)
 
   /**
    * Add certificates for TLS connection
@@ -143,6 +149,10 @@ class RtmpClient(private val connectChecker: ConnectChecker) {
    */
   fun setCheckServerAlive(enabled: Boolean) {
     checkServerAlive = enabled
+  }
+
+  fun shouldSendPings(enabled: Boolean) {
+    shouldSendPings = enabled
   }
 
   /**
@@ -286,6 +296,7 @@ class RtmpClient(private val connectChecker: ConnectChecker) {
             //Handle all command received and send response for it.
             handleMessages()
           }
+          if (shouldSendPings) commandsManager.sendPing(socket)
           //read packet because maybe server want send you something while streaming
           handleServerPackets()
         }.exceptionOrNull()
@@ -386,6 +397,19 @@ class RtmpClient(private val connectChecker: ConnectChecker) {
         when (val type = userControl.type) {
           Type.PING_REQUEST -> {
             commandsManager.sendPong(userControl.event, socket)
+          }
+          Type.PONG_REPLY -> {
+            Log.i(TAG, "pong received: ${userControl.event.data}")
+            if (shouldSendPings) {
+              rtt = (TimeUtils.getCurrentTimeMicro() - pingTs.get()).toInt()
+              scopePing.launch {
+                delay(1000)
+                if (isStreaming) {
+                  pingTs.set(TimeUtils.getCurrentTimeMicro())
+                  commandsManager.sendPing(socket)
+                }
+              }
+            }
           }
           else -> {
             Log.i(TAG, "user control command $type ignored")
@@ -490,7 +514,7 @@ class RtmpClient(private val connectChecker: ConnectChecker) {
                   rtmpSender.start()
                   publishPermitted = true
                 }
-                "NetConnection.Connect.Rejected", "NetStream.Publish.BadName", "NetConnection.Connect.Closed" -> {
+                "NetConnection.Connect.Rejected", "NetStream.Publish.BadName", "NetConnection.Connect.Closed", "NetStream.Publish.Failed" -> {
                   onMainThread {
                     connectChecker.onConnectionFailed("onStatus: $code")
                   }
@@ -556,6 +580,8 @@ class RtmpClient(private val connectChecker: ConnectChecker) {
       jobRetry = null
       scopeRetry.cancel()
       scopeRetry = CoroutineScope(Dispatchers.IO)
+      scopePing.cancel()
+      scopePing = CoroutineScope(Dispatchers.IO)
     }
     job?.cancelAndJoin()
     job = null
@@ -563,6 +589,7 @@ class RtmpClient(private val connectChecker: ConnectChecker) {
     scope = CoroutineScope(Dispatchers.IO)
     publishPermitted = false
     commandsManager.reset()
+    rtt = 0
   }
 
   fun sendVideo(videoBuffer: ByteBuffer, info: MediaCodec.BufferInfo) {

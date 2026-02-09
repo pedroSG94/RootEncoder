@@ -78,6 +78,22 @@ class RtmpStreamClient(
     rtmpClient.setWriteChunkSize(chunkSize)
   }
 
+  /**
+   * RTT in micro seconds reported by ping-pong commands.
+   * shouldSendPings must be enabled to work properly.
+   */
+  fun getRtt() = rtmpClient.rtt
+
+  /**
+   * Send ping commands each second to server.
+   * This allow get a RTT and keep alive the read channel in servers that close it due to inactivity.
+   *
+   * Could be useful in combination with shouldFailOnRead to detect connection closed in few servers.
+   */
+  fun shouldSendPings(enabled: Boolean) {
+    rtmpClient.shouldSendPings(enabled)
+  }
+
   override fun reTry(delay: Long, reason: String, backupUrl: String?): Boolean {
     val result = rtmpClient.shouldRetry(reason)
     if (result) {
