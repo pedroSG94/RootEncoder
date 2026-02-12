@@ -38,8 +38,6 @@ import com.pedro.encoder.audio.GetAudioData
 import com.pedro.encoder.input.audio.GetMicrophoneData
 import com.pedro.encoder.input.sources.audio.AudioSource
 import com.pedro.encoder.input.sources.audio.NoAudioSource
-import com.pedro.encoder.input.sources.video.Camera1Source
-import com.pedro.encoder.input.sources.video.Camera2Source
 import com.pedro.encoder.input.sources.video.NoVideoSource
 import com.pedro.encoder.input.sources.video.VideoSource
 import com.pedro.encoder.utils.CodecUtil
@@ -103,8 +101,6 @@ abstract class StreamBase(
     onChanged = { width, height -> getGlInterface().setPreviewResolution(width, height) },
     onDestroyed = { if (isOnPreview) stopPreview(true) }
   )
-
-    private var isCameraFacing = true
 
   /**
    * Necessary only one time before start preview, stream or record.
@@ -663,18 +659,6 @@ abstract class StreamBase(
     }
     audioEncoder.type = type
   }
-
-    fun switchCamera(): Boolean {
-        isCameraFacing = !isCameraFacing
-
-        getGlInterface().setCameraFacing(isCameraFacing)
-        when (val source = videoSource) {
-            is Camera1Source -> source.switchCamera()
-            is Camera2Source -> source.switchCamera()
-        }
-
-        return isCameraFacing
-    }
 
   protected abstract fun setVideoCodecImp(codec: VideoCodec)
   protected abstract fun setAudioCodecImp(codec: AudioCodec)

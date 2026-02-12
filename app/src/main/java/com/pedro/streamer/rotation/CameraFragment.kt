@@ -30,6 +30,9 @@ import android.widget.TextView
 import androidx.annotation.RequiresApi
 import androidx.fragment.app.Fragment
 import com.pedro.common.ConnectChecker
+import com.pedro.encoder.input.sources.video.Camera1Source
+import com.pedro.encoder.input.sources.video.Camera2Source
+import com.pedro.extrasources.CameraXSource
 import com.pedro.library.base.recording.RecordController
 import com.pedro.library.generic.GenericStream
 import com.pedro.library.util.BitrateAdapter
@@ -152,7 +155,11 @@ class CameraFragment: Fragment(), ConnectChecker {
       }
     }
     bSwitchCamera.setOnClickListener {
-      genericStream.switchCamera()
+      when (val source = genericStream.videoSource) {
+        is Camera1Source -> source.switchCamera()
+        is Camera2Source -> source.switchCamera()
+        is CameraXSource -> source.switchCamera()
+      }
     }
     return view
   }
