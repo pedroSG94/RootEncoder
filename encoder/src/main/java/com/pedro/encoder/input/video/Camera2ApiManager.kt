@@ -839,8 +839,6 @@ class Camera2ApiManager(context: Context) : CameraDevice.StateCallback() {
         cameraCaptureSession = null
         cameraDevice?.close()
         cameraDevice = null
-        cameraHandler?.looper?.quitSafely()
-        cameraHandler = null
         if (resetSurface) {
             surfaceEncoder = Surface(SurfaceTexture(-1).apply { release() })
             builderInputSurface = null
@@ -902,6 +900,12 @@ class Camera2ApiManager(context: Context) : CameraDevice.StateCallback() {
         semaphore.release()
         cameraCallbacks?.onCameraError("Open camera failed: $i")
         Log.e(TAG, "Open failed: $i")
+    }
+
+    override fun onClosed(camera: CameraDevice) {
+        super.onClosed(camera)
+        cameraHandler?.looper?.quitSafely()
+        cameraHandler = null
     }
 
     @JvmOverloads
