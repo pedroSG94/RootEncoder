@@ -514,7 +514,7 @@ class RtmpClient(private val connectChecker: ConnectChecker) {
                   rtmpSender.start()
                   publishPermitted = true
                 }
-                "NetConnection.Connect.Rejected", "NetStream.Publish.BadName", "NetConnection.Connect.Closed", "NetStream.Publish.Failed" -> {
+                "NetConnection.Connect.Rejected", "NetStream.Publish.BadName", "NetConnection.Connect.Closed" -> {
                   onMainThread {
                     connectChecker.onConnectionFailed("onStatus: $code")
                   }
