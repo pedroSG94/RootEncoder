@@ -256,8 +256,7 @@ public abstract class BaseEncoder implements EncoderCallback {
 
   private void processOutput(@NonNull ByteBuffer byteBuffer, @NonNull MediaCodec mediaCodec,
       int outBufferIndex, @NonNull MediaCodec.BufferInfo bufferInfo) throws IllegalStateException {
-    checkBuffer(byteBuffer, bufferInfo);
-    sendBuffer(byteBuffer, bufferInfo);
+    if (checkBuffer(byteBuffer, bufferInfo)) sendBuffer(byteBuffer, bufferInfo);
     mediaCodec.releaseOutputBuffer(outBufferIndex, false);
   }
 
