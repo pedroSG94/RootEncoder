@@ -21,6 +21,8 @@ import android.graphics.Point
 import android.graphics.SurfaceTexture
 import android.graphics.SurfaceTexture.OnFrameAvailableListener
 import android.os.Build
+import android.os.Handler
+import android.os.HandlerThread
 import android.view.Surface
 import androidx.annotation.RequiresApi
 import com.pedro.common.newSingleThreadExecutor
@@ -64,6 +66,8 @@ class GlStreamInterface(private val context: Context): OnFrameAvailableListener,
   private val surfaceManagerPreview = SurfaceManager()
   private val multiPreviewSurfaceManagers = ConcurrentHashMap<Surface, PreviewSurfaceInfo>()
   private val mainRender = MainRender()
+  private var prevSensorTs = 0L // for PTS interval logging
+  private var prevWallTs = 0L   // wall-clock comparison (what PTS would be WITHOUT the fix)
 
   private var encoderWidth = 0
   private var encoderHeight = 0
@@ -92,6 +96,7 @@ class GlStreamInterface(private val context: Context): OnFrameAvailableListener,
   private var renderErrorCallback: RenderErrorCallback? = null
   private var previewViewPort: ViewPort? = null
   private var streamViewPort: ViewPort? = null
+  private var surfaceHandlerThread: HandlerThread? = null
 
   private val sensorRotationManager = SensorRotationManager(context, true, true) { orientation, isPortrait ->
     if (autoHandleOrientation && shouldHandleOrientation) {
@@ -147,27 +152,33 @@ class GlStreamInterface(private val context: Context): OnFrameAvailableListener,
   }
 
   override fun addMediaCodecSurface(surface: Surface) {
-    if (surfaceManager.isReady) {
-      surfaceManagerEncoder.release()
-      surfaceManagerEncoder.eglSetup(surface, surfaceManager)
+    executor?.execute {
+      if (surfaceManager.isReady) {
+        surfaceManagerEncoder.release()
+        surfaceManagerEncoder.eglSetup(surface, surfaceManager)
+      }
     }
   }
 
   override fun removeMediaCodecSurface() {
-    threadQueue.clear()
-    surfaceManagerEncoder.release()
+    executor?.execute {
+      surfaceManagerEncoder.release()
+    }
   }
 
   override fun addMediaCodecRecordSurface(surface: Surface) {
-    if (surfaceManager.isReady) {
-      surfaceManagerEncoderRecord.release()
-      surfaceManagerEncoderRecord.eglSetup(surface, surfaceManager)
+    executor?.execute {
+      if (surfaceManager.isReady) {
+        surfaceManagerEncoderRecord.release()
+        surfaceManagerEncoderRecord.eglSetup(surface, surfaceManager)
+      }
     }
   }
 
   override fun removeMediaCodecRecordSurface() {
-    threadQueue.clear()
-    surfaceManagerEncoderRecord.release()
+    executor?.execute {
+      surfaceManagerEncoderRecord.release()
+    }
   }
 
   override fun takePhoto(takePhotoCallback: TakePhotoCallback?) {
@@ -179,6 +190,10 @@ class GlStreamInterface(private val context: Context): OnFrameAvailableListener,
     executor?.shutdownNow()
     executor = null
     executor = newSingleThreadExecutor(threadQueue)
+    surfaceHandlerThread?.quitSafely()
+    surfaceHandlerThread = HandlerThread("GlStreamHandler")
+    surfaceHandlerThread?.start()
+    val surfaceHandler = Handler(surfaceHandlerThread!!.looper)
     val width = max(encoderWidth, encoderRecordWidth)
     val height = max(encoderHeight, encoderRecordHeight)
     surfaceManager.release()
@@ -190,7 +205,7 @@ class GlStreamInterface(private val context: Context): OnFrameAvailableListener,
       surfaceManager.makeCurrent()
       mainRender.initGl(context, width, height, width, height)
       running.set(true)
-      mainRender.getSurfaceTexture().setOnFrameAvailableListener(this)
+      mainRender.getSurfaceTexture().setOnFrameAvailableListener(this, surfaceHandler)
       forceRender.start {
         executor?.execute {
           try {
@@ -205,6 +220,8 @@ class GlStreamInterface(private val context: Context): OnFrameAvailableListener,
 
   override fun stop() {
     running.set(false)
+    surfaceHandlerThread?.quitSafely()
+    surfaceHandlerThread = null
     threadQueue.clear()
     executor?.shutdownNow()
     executor = null
@@ -221,9 +238,16 @@ class GlStreamInterface(private val context: Context): OnFrameAvailableListener,
     mainRender.release()
   }
 
+  private var prevLimitFps = false
+
   private fun draw(forced: Boolean) {
     if (!isRunning) return
+    val drawTotalStart = System.nanoTime()
     val limitFps = fpsLimiter.limitFPS()
+    if (limitFps != prevLimitFps) {
+      android.util.Log.d("FPS_LIMIT", "limitFps → $limitFps  (was $prevLimitFps)")
+      prevLimitFps = limitFps
+    }
     if (!forced) forceRender.frameAvailable()
 
     if (!filterQueue.isEmpty() && mainRender.isReady()) {
@@ -265,6 +289,9 @@ class GlStreamInterface(private val context: Context): OnFrameAvailableListener,
       if (surfaceManagerEncoder.makeCurrent()) {
         mainRender.drawScreenEncoder(w, h, orientation, streamOrientation,
           isStreamVerticalFlip, isStreamHorizontalFlip, streamViewPort)
+        val sensorTs = mainRender.getSurfaceTexture().timestamp
+        val wallTs = System.nanoTime()
+        surfaceManagerEncoder.setPresentationTime(sensorTs)
         surfaceManagerEncoder.swapBuffer()
       }
     }
@@ -275,6 +302,8 @@ class GlStreamInterface(private val context: Context): OnFrameAvailableListener,
       if (surfaceManagerEncoderRecord.makeCurrent()) {
         mainRender.drawScreenEncoder(w, h, orientation, streamOrientation,
           isStreamVerticalFlip, isStreamHorizontalFlip, streamViewPort)
+        // Fix: same timestamp fix for the dedicated record surface
+        surfaceManagerEncoderRecord.setPresentationTime(mainRender.getSurfaceTexture().timestamp)
         surfaceManagerEncoderRecord.swapBuffer()
       }
     }

@@ -39,6 +39,7 @@ import com.pedro.encoder.TimestampMode;
 import com.pedro.encoder.input.video.FpsLimiter;
 import com.pedro.encoder.input.video.GetCameraData;
 import com.pedro.encoder.utils.CodecUtil;
+import com.pedro.encoder.utils.SpsColorPatcher;
 import com.pedro.encoder.utils.yuv.YUVUtil;
 
 import java.nio.ByteBuffer;
@@ -167,6 +168,14 @@ public class VideoEncoder extends BaseEncoder implements GetCameraData {
       if (this.level > 0) {
         // MediaFormat.KEY_LEVEL, API > 23
         videoFormat.setInteger("level", this.level);
+      }
+      // Set BT.709 color metadata so the encoder embeds correct VUI in the SPS NAL unit.
+      // Without this, devices default to smpte170m/bt470bg which ffprobe/players read incorrectly.
+      // KEY_COLOR_STANDARD / KEY_COLOR_TRANSFER / KEY_COLOR_RANGE added in API 24.
+      if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+        videoFormat.setInteger(MediaFormat.KEY_COLOR_STANDARD, MediaFormat.COLOR_STANDARD_BT709);  // primaries + matrix = BT.709
+        videoFormat.setInteger(MediaFormat.KEY_COLOR_TRANSFER, MediaFormat.COLOR_TRANSFER_SDR_VIDEO); // transfer = BT.709 (gamma)
+        videoFormat.setInteger(MediaFormat.KEY_COLOR_RANGE, MediaFormat.COLOR_RANGE_LIMITED);        // TV range (16-235)
       }
       setCallback();
       codec.configure(videoFormat, null, null, MediaCodec.CONFIGURE_FLAG_ENCODE);
@@ -334,7 +343,7 @@ public class VideoEncoder extends BaseEncoder implements GetCameraData {
       ByteBuffer bufferInfo = mediaFormat.getByteBuffer("csd-0");
       if (bufferInfo != null) {
         List<ByteBuffer> byteBufferList = VideoEncoderHelper.extractVpsSpsPpsFromH265(bufferInfo.duplicate());
-        oldSps = byteBufferList.get(1);
+        oldSps = SpsColorPatcher.patchSpsNalColorToBt709(byteBufferList.get(1), true);
         oldPps = byteBufferList.get(2);
         oldVps = byteBufferList.get(0);
         getVideoData.onVideoInfo(oldSps, oldPps, oldVps);
@@ -345,7 +354,7 @@ public class VideoEncoder extends BaseEncoder implements GetCameraData {
       ByteBuffer sps = mediaFormat.getByteBuffer("csd-0");
       ByteBuffer pps = mediaFormat.getByteBuffer("csd-1");
       if (sps != null && pps != null) {
-        oldSps = sps.duplicate();
+        oldSps = SpsColorPatcher.patchSpsNalColorToBt709(sps.duplicate(), false);
         oldPps = pps.duplicate();
         oldVps = null;
         getVideoData.onVideoInfo(oldSps, oldPps, oldVps);
@@ -468,8 +477,15 @@ public class VideoEncoder extends BaseEncoder implements GetCameraData {
       }
     }
     if (timestampMode == TimestampMode.CLOCK) {
-      if (formatVideoEncoder == FormatVideoEncoder.SURFACE) {
+      if (formatVideoEncoder != FormatVideoEncoder.SURFACE) {
+        // Buffer mode: synthesize PTS from wall clock.
         bufferInfo.presentationTimeUs = TimeUtils.getCurrentTimeMicro() - presentTimeUs;
+      } else {
+        // Surface mode: EGL timestamp is camera sensor time (nanoseconds from boot ÷ 1000).
+        // It has clean, jitter-free intervals — but it's a huge absolute value that breaks RTMP.
+        // Rebase to relative by subtracting the first frame's PTS → clean intervals, starts at 0.
+        if (firstTimestamp == 0) firstTimestamp = bufferInfo.presentationTimeUs;
+        bufferInfo.presentationTimeUs -= firstTimestamp;
       }
     } else {
       if (firstTimestamp == 0) firstTimestamp = bufferInfo.presentationTimeUs;
