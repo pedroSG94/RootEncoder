@@ -149,7 +149,16 @@ fun Throwable.validMessage(): String {
   return (message ?: "").ifEmpty { javaClass.simpleName }
 }
 
-fun MediaCodec.BufferInfo.toMediaFrameInfo() = MediaFrame.Info(offset, size, presentationTimeUs, isKeyframe())
+fun MediaCodec.BufferInfo.toMediaFrameInfo() = MediaFrame.Info(offset, size, presentationTimeUs, isKeyframe(), flags)
+
+fun MediaFrame.Info.toMediaCodecBufferInfo() = MediaCodec.BufferInfo().apply {
+  set(
+    this@toMediaCodecBufferInfo.offset,
+    this@toMediaCodecBufferInfo.size,
+    this@toMediaCodecBufferInfo.timestamp,
+    this@toMediaCodecBufferInfo.flags
+  )
+}
 
 fun ByteBuffer.clone(): ByteBuffer = ByteBuffer.wrap(toByteArray())
 

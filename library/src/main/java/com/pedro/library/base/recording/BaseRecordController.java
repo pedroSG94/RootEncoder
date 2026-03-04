@@ -30,7 +30,7 @@ public abstract class BaseRecordController implements RecordController {
 
     protected static final String TAG = "RecordController";
 
-    protected Status status = Status.STOPPED;
+    protected volatile Status status = Status.STOPPED;
     protected VideoCodec videoCodec = VideoCodec.H264;
     protected AudioCodec audioCodec = AudioCodec.AAC;
     protected long pauseMoment = 0;
