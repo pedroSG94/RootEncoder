@@ -12,7 +12,7 @@ data class MediaFrame(
         val size: Int,
         val timestamp: Long,
         val isKeyFrame: Boolean,
-        val flags: Int
+        val flags: Int = 0
     )
 
     enum class Type {
