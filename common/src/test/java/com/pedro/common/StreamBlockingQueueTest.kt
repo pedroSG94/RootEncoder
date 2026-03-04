@@ -31,7 +31,7 @@ class StreamBlockingQueueTest {
   @Test
   fun checkItemLimit() {
     val queue = StreamBlockingQueue(50)
-    val frame = MediaFrame(ByteBuffer.wrap(byteArrayOf()), MediaFrame.Info(0, 0, 0L, false), MediaFrame.Type.VIDEO)
+    val frame = MediaFrame(ByteBuffer.wrap(byteArrayOf()), MediaFrame.Info(0, 0, 0L, false, 0), MediaFrame.Type.VIDEO)
     (0..60).forEach { i ->
       queue.trySend(frame)
     }

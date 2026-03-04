@@ -34,6 +34,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import java.io.FileDescriptor
@@ -159,9 +160,20 @@ class AndroidMuxerRecordController : BaseRecordController() {
   }
 
   override fun recordVideo(videoBuffer: ByteBuffer, videoInfo: MediaCodec.BufferInfo) {
+
     val info = videoInfo.toMediaFrameInfo()
     val i = updateFormat(info)
     muxerChannel?.trySend(MediaFrame(videoBuffer.clone(), i, MediaFrame.Type.VIDEO))
+  }
+
+  var job: Job? = null
+
+  fun start() {
+    job = scope.launch {
+      while (isActive) {
+
+      }
+    }
   }
 
   override fun recordAudio(audioBuffer: ByteBuffer, audioInfo: MediaCodec.BufferInfo) {
