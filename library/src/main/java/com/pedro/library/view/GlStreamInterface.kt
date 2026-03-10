@@ -66,8 +66,6 @@ class GlStreamInterface(private val context: Context): OnFrameAvailableListener,
   private val surfaceManagerPreview = SurfaceManager()
   private val multiPreviewSurfaceManagers = ConcurrentHashMap<Surface, PreviewSurfaceInfo>()
   private val mainRender = MainRender()
-  private var prevSensorTs = 0L // for PTS interval logging
-  private var prevWallTs = 0L   // wall-clock comparison (what PTS would be WITHOUT the fix)
 
   private var encoderWidth = 0
   private var encoderHeight = 0
@@ -152,33 +150,25 @@ class GlStreamInterface(private val context: Context): OnFrameAvailableListener,
   }
 
   override fun addMediaCodecSurface(surface: Surface) {
-    executor?.execute {
-      if (surfaceManager.isReady) {
-        surfaceManagerEncoder.release()
-        surfaceManagerEncoder.eglSetup(surface, surfaceManager)
-      }
+    if (surfaceManager.isReady) {
+      surfaceManagerEncoder.release()
+      surfaceManagerEncoder.eglSetup(surface, surfaceManager)
     }
   }
 
   override fun removeMediaCodecSurface() {
-    executor?.execute {
-      surfaceManagerEncoder.release()
-    }
+    surfaceManagerEncoder.release()
   }
 
   override fun addMediaCodecRecordSurface(surface: Surface) {
-    executor?.execute {
-      if (surfaceManager.isReady) {
-        surfaceManagerEncoderRecord.release()
-        surfaceManagerEncoderRecord.eglSetup(surface, surfaceManager)
-      }
+    if (surfaceManager.isReady) {
+      surfaceManagerEncoderRecord.release()
+      surfaceManagerEncoderRecord.eglSetup(surface, surfaceManager)
     }
   }
 
   override fun removeMediaCodecRecordSurface() {
-    executor?.execute {
-      surfaceManagerEncoderRecord.release()
-    }
+    surfaceManagerEncoderRecord.release()
   }
 
   override fun takePhoto(takePhotoCallback: TakePhotoCallback?) {
@@ -193,7 +183,6 @@ class GlStreamInterface(private val context: Context): OnFrameAvailableListener,
     surfaceHandlerThread?.quitSafely()
     surfaceHandlerThread = HandlerThread("GlStreamHandler")
     surfaceHandlerThread?.start()
-    val surfaceHandler = Handler(surfaceHandlerThread!!.looper)
     val width = max(encoderWidth, encoderRecordWidth)
     val height = max(encoderHeight, encoderRecordHeight)
     surfaceManager.release()
@@ -205,7 +194,12 @@ class GlStreamInterface(private val context: Context): OnFrameAvailableListener,
       surfaceManager.makeCurrent()
       mainRender.initGl(context, width, height, width, height)
       running.set(true)
-      mainRender.getSurfaceTexture().setOnFrameAvailableListener(this, surfaceHandler)
+      if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+        val surfaceHandler = surfaceHandlerThread?.looper?.let { Handler(it) }
+        mainRender.getSurfaceTexture().setOnFrameAvailableListener(this, surfaceHandler)
+      } else {
+        mainRender.getSurfaceTexture().setOnFrameAvailableListener(this)
+      }
       forceRender.start {
         executor?.execute {
           try {
@@ -238,16 +232,9 @@ class GlStreamInterface(private val context: Context): OnFrameAvailableListener,
     mainRender.release()
   }
 
-  private var prevLimitFps = false
-
   private fun draw(forced: Boolean) {
     if (!isRunning) return
-    val drawTotalStart = System.nanoTime()
     val limitFps = fpsLimiter.limitFPS()
-    if (limitFps != prevLimitFps) {
-      android.util.Log.d("FPS_LIMIT", "limitFps → $limitFps  (was $prevLimitFps)")
-      prevLimitFps = limitFps
-    }
     if (!forced) forceRender.frameAvailable()
 
     if (!filterQueue.isEmpty() && mainRender.isReady()) {
@@ -289,9 +276,7 @@ class GlStreamInterface(private val context: Context): OnFrameAvailableListener,
       if (surfaceManagerEncoder.makeCurrent()) {
         mainRender.drawScreenEncoder(w, h, orientation, streamOrientation,
           isStreamVerticalFlip, isStreamHorizontalFlip, streamViewPort)
-        val sensorTs = mainRender.getSurfaceTexture().timestamp
-        val wallTs = System.nanoTime()
-        surfaceManagerEncoder.setPresentationTime(sensorTs)
+        surfaceManagerEncoder.setPresentationTime(mainRender.getSurfaceTexture().timestamp)
         surfaceManagerEncoder.swapBuffer()
       }
     }

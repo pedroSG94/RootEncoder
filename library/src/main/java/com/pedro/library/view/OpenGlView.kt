@@ -276,33 +276,25 @@ open class OpenGlView : SurfaceView, GlInterface, OnFrameAvailableListener, Surf
     }
 
     override fun addMediaCodecSurface(surface: Surface) {
-        executor?.secureSubmit {
-            if (surfaceManager.isReady) {
-                surfaceManagerEncoder.release()
-                surfaceManagerEncoder.eglSetup(surface, surfaceManager)
-            }
-        }
+      if (surfaceManager.isReady) {
+        surfaceManagerEncoder.release()
+        surfaceManagerEncoder.eglSetup(surface, surfaceManager)
+      }
     }
 
     override fun removeMediaCodecSurface() {
-        executor?.secureSubmit {
-            surfaceManagerEncoder.release()
-        }
+      surfaceManagerEncoder.release()
     }
 
     override fun addMediaCodecRecordSurface(surface: Surface) {
-        executor?.secureSubmit {
-            if (surfaceManager.isReady) {
-                surfaceManagerEncoderRecord.release()
-                surfaceManagerEncoderRecord.eglSetup(surface, surfaceManager)
-            }
-        }
+      if (surfaceManager.isReady) {
+        surfaceManagerEncoderRecord.release()
+        surfaceManagerEncoderRecord.eglSetup(surface, surfaceManager)
+      }
     }
 
     override fun removeMediaCodecRecordSurface() {
-        executor?.secureSubmit {
-            surfaceManagerEncoderRecord.release()
-        }
+      surfaceManagerEncoderRecord.release()
     }
 
     override fun start() {
@@ -313,7 +305,6 @@ open class OpenGlView : SurfaceView, GlInterface, OnFrameAvailableListener, Surf
         surfaceHandlerThread?.quitSafely()
         surfaceHandlerThread = HandlerThread("OpenGlViewHandler")
         surfaceHandlerThread?.start()
-        val surfaceHandler = Handler(surfaceHandlerThread!!.looper)
         executor?.secureSubmit {
             surfaceManager.release()
             surfaceManager.eglSetup(holder.surface)
@@ -322,7 +313,12 @@ open class OpenGlView : SurfaceView, GlInterface, OnFrameAvailableListener, Surf
             surfaceManager.makeCurrent()
             mainRender.initGl(context, encoderWidth, encoderHeight, encoderWidth, encoderHeight)
             running.set(true)
-            mainRender.getSurfaceTexture().setOnFrameAvailableListener(this, surfaceHandler)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+              val surfaceHandler = surfaceHandlerThread?.looper?.let { Handler(it) }
+              mainRender.getSurfaceTexture().setOnFrameAvailableListener(this, surfaceHandler)
+            } else {
+              mainRender.getSurfaceTexture().setOnFrameAvailableListener(this)
+            }
             forceRenderer.start {
                 executor?.execute {
                     try {
