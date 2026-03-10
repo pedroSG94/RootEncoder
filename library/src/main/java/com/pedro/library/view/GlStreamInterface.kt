@@ -157,6 +157,7 @@ class GlStreamInterface(private val context: Context): OnFrameAvailableListener,
   }
 
   override fun removeMediaCodecSurface() {
+    threadQueue.clear()
     surfaceManagerEncoder.release()
   }
 
@@ -168,6 +169,7 @@ class GlStreamInterface(private val context: Context): OnFrameAvailableListener,
   }
 
   override fun removeMediaCodecRecordSurface() {
+    threadQueue.clear()
     surfaceManagerEncoderRecord.release()
   }
 

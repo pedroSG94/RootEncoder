@@ -283,6 +283,7 @@ open class OpenGlView : SurfaceView, GlInterface, OnFrameAvailableListener, Surf
     }
 
     override fun removeMediaCodecSurface() {
+      threadQueue.clear()
       surfaceManagerEncoder.release()
     }
 
@@ -294,6 +295,7 @@ open class OpenGlView : SurfaceView, GlInterface, OnFrameAvailableListener, Surf
     }
 
     override fun removeMediaCodecRecordSurface() {
+      threadQueue.clear()
       surfaceManagerEncoderRecord.release()
     }
 

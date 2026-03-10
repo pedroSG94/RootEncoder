@@ -14,13 +14,21 @@ import androidx.annotation.RequiresApi
 
 @RequiresApi(Build.VERSION_CODES.JELLY_BEAN_MR1)
 class ViewPresentation(
-  private val view: View, context: Context, display: Display
+  context: Context, display: Display
 ): Presentation(context, display) {
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
     window?.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
     window?.setFormat(PixelFormat.TRANSLUCENT)
+  }
+
+  override fun setContentView(view: View) {
     (view.parent as? ViewGroup)?.removeView(view)
-    setContentView(view)
+    super.setContentView(view)
+  }
+
+  override fun setContentView(view: View, params: ViewGroup.LayoutParams?) {
+    (view.parent as? ViewGroup)?.removeView(view)
+    super.setContentView(view, params)
   }
 }
