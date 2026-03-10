@@ -506,6 +506,10 @@ public abstract class DisplayBase {
     videoEncoder.setVideoBitrateOnFly(bitrate);
   }
 
+  public void forceBt709Color(boolean enabled) {
+    videoEncoder.forceBt709Color(enabled);
+  }
+
   /**
    * Force stream to work with fps selected in prepareVideo method. Must be called before prepareVideo.
    * This is not recommend because could produce fps problems.

@@ -926,6 +926,10 @@ public abstract class Camera2Base {
         return cameraManager.getMinExposure();
     }
 
+    public void forceBt709Color(boolean enabled) {
+      videoEncoder.forceBt709Color(enabled);
+    }
+
     /**
      * @param mode value from CameraCharacteristics.AWB_MODE_*
      */

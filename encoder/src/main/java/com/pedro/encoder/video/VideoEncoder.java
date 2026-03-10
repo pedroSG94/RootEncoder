@@ -74,6 +74,8 @@ public class VideoEncoder extends BaseEncoder implements GetCameraData {
   private FormatVideoEncoder formatVideoEncoder = FormatVideoEncoder.YUV420Dynamical;
   private int profile = -1;
   private int level = -1;
+  private final SpsColorPatcher spsColorPatcher = new SpsColorPatcher();
+  private boolean forceBt709Color = false;
 
   public VideoEncoder(GetVideoData getVideoData) {
     this.getVideoData = getVideoData;
@@ -172,7 +174,7 @@ public class VideoEncoder extends BaseEncoder implements GetCameraData {
       // Set BT.709 color metadata so the encoder embeds correct VUI in the SPS NAL unit.
       // Without this, devices default to smpte170m/bt470bg which ffprobe/players read incorrectly.
       // KEY_COLOR_STANDARD / KEY_COLOR_TRANSFER / KEY_COLOR_RANGE added in API 24.
-      if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+      if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N && forceBt709Color) {
         videoFormat.setInteger(MediaFormat.KEY_COLOR_STANDARD, MediaFormat.COLOR_STANDARD_BT709);  // primaries + matrix = BT.709
         videoFormat.setInteger(MediaFormat.KEY_COLOR_TRANSFER, MediaFormat.COLOR_TRANSFER_SDR_VIDEO); // transfer = BT.709 (gamma)
         videoFormat.setInteger(MediaFormat.KEY_COLOR_RANGE, MediaFormat.COLOR_RANGE_LIMITED);        // TV range (16-235)
@@ -321,6 +323,11 @@ public class VideoEncoder extends BaseEncoder implements GetCameraData {
     fpsLimiter.setFPS(fps);
   }
 
+  public void forceBt709Color(boolean enabled) {
+    if (prepared) throw new IllegalStateException("Encoder already prepared, this must be called before prepareVideo");
+    this.forceBt709Color = enabled;
+  }
+
   @Override
   public void inputYUVData(@NonNull Frame frame) {
     if (running && !queue.offer(frame)) {
@@ -343,7 +350,7 @@ public class VideoEncoder extends BaseEncoder implements GetCameraData {
       ByteBuffer bufferInfo = mediaFormat.getByteBuffer("csd-0");
       if (bufferInfo != null) {
         List<ByteBuffer> byteBufferList = VideoEncoderHelper.extractVpsSpsPpsFromH265(bufferInfo.duplicate());
-        oldSps = SpsColorPatcher.patchSpsNalColorToBt709(byteBufferList.get(1), true);
+        oldSps = forceBt709Color ? spsColorPatcher.patchSpsNalColorToBt709(byteBufferList.get(1), true) : byteBufferList.get(1);
         oldPps = byteBufferList.get(2);
         oldVps = byteBufferList.get(0);
         getVideoData.onVideoInfo(oldSps, oldPps, oldVps);
@@ -354,7 +361,7 @@ public class VideoEncoder extends BaseEncoder implements GetCameraData {
       ByteBuffer sps = mediaFormat.getByteBuffer("csd-0");
       ByteBuffer pps = mediaFormat.getByteBuffer("csd-1");
       if (sps != null && pps != null) {
-        oldSps = SpsColorPatcher.patchSpsNalColorToBt709(sps.duplicate(), false);
+        oldSps = forceBt709Color ? spsColorPatcher.patchSpsNalColorToBt709(sps.duplicate(), false) : sps.duplicate();
         oldPps = pps.duplicate();
         oldVps = null;
         getVideoData.onVideoInfo(oldSps, oldPps, oldVps);

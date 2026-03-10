@@ -37,14 +37,14 @@ public final class SpsColorPatcher {
 
     private static final String TAG = "COLOR_PATCH";
 
-    private SpsColorPatcher() {
+    public SpsColorPatcher() {
     }
 
     /**
      * Patches csd-0 in a MediaFormat in-place before mediaMuxer.addTrack().
      * Auto-detects H.264 vs H.265 from the MIME type.
      */
-    public static void patchMediaFormatColorToBt709(MediaFormat format) {
+    public void patchMediaFormatColorToBt709(MediaFormat format) {
         if (format == null || !format.containsKey("csd-0"))
             return;
         ByteBuffer csd0 = format.getByteBuffer("csd-0");
@@ -77,7 +77,7 @@ public final class SpsColorPatcher {
      * @return Patched ByteBuffer (new allocation), or original if patching
      *         failed/not needed
      */
-    public static ByteBuffer patchSpsNalColorToBt709(ByteBuffer spsData, boolean isHevc) {
+    public ByteBuffer patchSpsNalColorToBt709(ByteBuffer spsData, boolean isHevc) {
         if (spsData == null || spsData.remaining() < 4)
             return spsData;
         byte[] data = new byte[spsData.remaining()];
@@ -94,7 +94,7 @@ public final class SpsColorPatcher {
     // H.264 SPS patcher
     // -------------------------------------------------------------------------
 
-    private static ByteBuffer patchH264(byte[] data) {
+    private ByteBuffer patchH264(byte[] data) {
         // Find SPS NAL unit (NAL type 7)
         int spsStart = -1;
         for (int i = 0; i < data.length; i++) {
@@ -194,7 +194,7 @@ public final class SpsColorPatcher {
     // H.265 SPS patcher
     // -------------------------------------------------------------------------
 
-    private static ByteBuffer patchH265(byte[] data) {
+    private ByteBuffer patchH265(byte[] data) {
         // Find H.265 SPS NAL unit (nal_unit_type = 33, 2-byte HEVC NAL header)
         int spsStart = -1;
         for (int i = 0; i < data.length - 1; i++) {
@@ -309,7 +309,7 @@ public final class SpsColorPatcher {
         return ByteBuffer.wrap(data);
     }
 
-    private static int skipH265StRefPicSet(BitReader br, int idx, int[] deltaPocs) {
+    private int skipH265StRefPicSet(BitReader br, int idx, int[] deltaPocs) {
         if (idx != 0 && br.readBits(1) != 0) {
             if (idx == deltaPocs.length)
                 br.readUVLC();
@@ -333,7 +333,7 @@ public final class SpsColorPatcher {
         return neg + pos;
     }
 
-    private static void skipH265ScalingListData(BitReader br) {
+    private void skipH265ScalingListData(BitReader br) {
         for (int s = 0; s < 4; s++) {
             int nm = (s == 3) ? 2 : 6;
             for (int m = 0; m < nm; m++) {
@@ -354,7 +354,7 @@ public final class SpsColorPatcher {
     // Minimal bit-level reader/writer (Exp-Golomb aware)
     // -------------------------------------------------------------------------
 
-    static final class BitReader {
+    final class BitReader {
         private final byte[] buf;
         private int bitPos;
 
