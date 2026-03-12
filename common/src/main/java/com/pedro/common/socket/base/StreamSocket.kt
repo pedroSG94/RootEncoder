@@ -45,6 +45,7 @@ abstract class StreamSocket {
       return when (type) {
         SocketType.KTOR -> TcpStreamSocketKtor(host, port, secured, certificates)
         SocketType.JAVA -> TcpStreamSocketJava(host, port, secured, certificates)
+        SocketType.NATIVE -> TcpStreamSocketJava(host, port, secured, certificates)
       }.apply {
         this.timeout = timeout
       }
@@ -59,6 +60,7 @@ abstract class StreamSocket {
       return when (type) {
         SocketType.KTOR -> UdpStreamSocketKtor(host, port, sourcePort, receiveSize, udpType)
         SocketType.JAVA -> UdpStreamSocketJava(host, port, sourcePort, receiveSize, udpType)
+        SocketType.NATIVE -> UdpStreamSocketJava(host, port, sourcePort, receiveSize, udpType)
       }.apply {
         this.timeout = timeout
       }

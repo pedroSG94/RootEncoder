@@ -67,445 +67,470 @@ import java.nio.ByteBuffer
  */
 class SrtClient(private val connectChecker: ConnectChecker) {
 
-  private val TAG = "SrtClient"
+    private val TAG = "SrtClient"
 
-  private val validSchemes = arrayOf("srt")
+    private val validSchemes = arrayOf("srt")
 
-  private val commandsManager = CommandsManager()
-  private val srtSender = SrtSender(connectChecker, commandsManager)
-  private var socket: SrtSocket? = null
-  private var scope = CoroutineScope(Dispatchers.IO)
-  private var job: Job? = null
-  private var scopeRetry = CoroutineScope(Dispatchers.IO)
-  private var jobRetry: Job? = null
+    private val commandsManager = CommandsManager()
+    private val srtSender = SrtSender(connectChecker, commandsManager)
+    private var socket: SrtSocket? = null
+    private var scope = CoroutineScope(Dispatchers.IO)
+    private var job: Job? = null
+    private var scopeRetry = CoroutineScope(Dispatchers.IO)
+    private var jobRetry: Job? = null
 
-  private var checkServerAlive = false
-  @Volatile
-  var isStreaming = false
-    private set
-  private var url: String? = null
-  private var doingRetry = false
-  private var numRetry = 0
-  private var reTries = 0
+    private var checkServerAlive = false
 
-  val droppedAudioFrames: Long
-    get() = srtSender.getDroppedAudioFrames()
-  val droppedVideoFrames: Long
-    get() = srtSender.getDroppedVideoFrames()
+    @Volatile
+    var isStreaming = false
+        private set
+    private var url: String? = null
+    private var doingRetry = false
+    private var numRetry = 0
+    private var reTries = 0
 
-  val cacheSize: Int
-    get() = srtSender.getCacheSize()
-  val sentAudioFrames: Long
-    get() = srtSender.getSentAudioFrames()
-  val sentVideoFrames: Long
-    get() = srtSender.getSentVideoFrames()
-  val bytesSend: Long
-    get() = srtSender.getBytesSend()
-  var rtt = 0 //in micro
-    private set
-  var packetsLost = 0
-    private set
-  private var latency = 120_000 //in micro
-  var socketType = SocketType.KTOR
-  var socketTimeout = StreamSocket.DEFAULT_TIMEOUT
+    val droppedAudioFrames: Long
+        get() = srtSender.getDroppedAudioFrames()
+    val droppedVideoFrames: Long
+        get() = srtSender.getDroppedVideoFrames()
 
-  fun setVideoCodec(videoCodec: VideoCodec) {
-    if (!isStreaming) {
-      commandsManager.videoCodec = when (videoCodec) {
-        VideoCodec.AV1 -> throw IllegalArgumentException("Unsupported codec: ${videoCodec.name}")
-        else -> videoCodec
-      }
-    }
-  }
+    val cacheSize: Int
+        get() = srtSender.getCacheSize()
+    val sentAudioFrames: Long
+        get() = srtSender.getSentAudioFrames()
+    val sentVideoFrames: Long
+        get() = srtSender.getSentVideoFrames()
+    val bytesSend: Long
+        get() = srtSender.getBytesSend()
+    var rtt = 0 //in micro
+        private set
+    var packetsLost = 0
+        private set
+    private var latency = 120_000 //in micro
+    var socketType = SocketType.NATIVE
+    var socketTimeout = StreamSocket.DEFAULT_TIMEOUT
 
-  fun setAudioCodec(audioCodec: AudioCodec) {
-    if (!isStreaming) {
-      commandsManager.audioCodec = when (audioCodec) {
-        AudioCodec.G711 -> throw IllegalArgumentException("Unsupported codec: ${audioCodec.name}")
-        else -> audioCodec
-      }
-    }
-  }
-
-  fun setLatency(latency: Int) {
-    this.latency = latency
-  }
-
-  fun setDelay(millis: Long) {
-    srtSender.setDelay(millis)
-  }
-
-  /**
-   * Set passphrase for encrypt. Use empty value to disable it.
-   */
-  fun setPassphrase(passphrase: String, type: EncryptionType) {
-    if (!isStreaming) {
-      if (passphrase.length !in 10..79) {
-        throw IllegalArgumentException("passphrase must between 10 and 79 length")
-      }
-      commandsManager.setPassphrase(passphrase, type)
-    }
-  }
-
-  /**
-   * Must be called before connect
-   */
-  fun setOnlyAudio(onlyAudio: Boolean) {
-    commandsManager.audioDisabled = false
-    commandsManager.videoDisabled = onlyAudio
-  }
-
-  /**
-   * Must be called before connect
-   */
-  fun setOnlyVideo(onlyVideo: Boolean) {
-    commandsManager.videoDisabled = false
-    commandsManager.audioDisabled = onlyVideo
-  }
-
-  /**
-   * Check periodically if server is alive using Echo protocol.
-   */
-  fun setCheckServerAlive(enabled: Boolean) {
-    checkServerAlive = enabled
-  }
-
-  fun setReTries(reTries: Int) {
-    numRetry = reTries
-    this.reTries = reTries
-  }
-
-  fun shouldRetry(reason: String): Boolean {
-    val validReason = doingRetry && !reason.contains("Endpoint malformed")
-    return validReason && reTries > 0
-  }
-
-  @JvmOverloads
-  fun connect(url: String?, isRetry: Boolean = false) {
-    if (!isRetry) doingRetry = true
-    if (!isStreaming || isRetry) {
-      isStreaming = true
-
-      job = scope.launch {
-        if (url == null) {
-          isStreaming = false
-          onMainThread {
-            connectChecker.onConnectionFailed("Endpoint malformed, should be: srt://ip:port/streamid")
-          }
-          return@launch
-        }
-        this@SrtClient.url = url
-        onMainThread {
-          connectChecker.onConnectionStarted(url)
-        }
-
-        val urlParser = try {
-          UrlParser.parse(url, validSchemes)
-        } catch (_: URISyntaxException) {
-          isStreaming = false
-          onMainThread {
-            connectChecker.onConnectionFailed("Endpoint malformed, should be: srt://ip:port/streamid")
-          }
-          return@launch
-        }
-
-        val host = urlParser.host
-        val port = urlParser.port ?: 8888
-        val path = urlParser.getQuery("streamid") ?: urlParser.getFullPath()
-        latency = urlParser.getQuery("latency")?.toIntOrNull() ?: latency
-        val passphrase = urlParser.getQuery("passphrase") ?: ""
-        if (passphrase.isNotEmpty() && passphrase.length in 10..79) {
-          val encryptionType = when (urlParser.getQuery("pbkeylen")?.toIntOrNull()) {
-            192 -> EncryptionType.AES192
-            256 -> EncryptionType.AES256
-            else -> EncryptionType.AES128
-          }
-          commandsManager.setPassphrase(passphrase, encryptionType)
-        }
-        if (path.isEmpty()) {
-          isStreaming = false
-          onMainThread {
-            connectChecker.onConnectionFailed("Endpoint malformed, should be: srt://ip:port/streamid")
-          }
-          return@launch
-        }
-        commandsManager.host = host
-
-        val error = runCatching {
-          socket = SrtSocket(socketType, host, port, socketTimeout)
-          socket?.connect()
-          commandsManager.loadStartTs()
-
-          commandsManager.writeHandshake(socket)
-          val response = commandsManager.readHandshake(socket)
-
-          commandsManager.writeHandshake(socket, response.copy(
-            encryption = commandsManager.getEncryptType(),
-            extensionField = ExtensionField.calculateValue(response.extensionField, commandsManager.encryptionEnabled()),
-            handshakeType = HandshakeType.CONCLUSION,
-            handshakeExtension = HandshakeExtension(
-              flags = ExtensionContentFlag.TSBPDSND.value or ExtensionContentFlag.TSBPDRCV.value or
-                  ExtensionContentFlag.CRYPT.value or ExtensionContentFlag.TLPKTDROP.value or
-                  ExtensionContentFlag.PERIODICNAK.value or ExtensionContentFlag.REXMITFLG.value,
-              receiverDelay = latency / 1000,
-              senderDelay = latency / 1000,
-              path = path,
-              encryptInfo = commandsManager.getEncryptInfo()
-            )))
-          val responseConclusion = commandsManager.readHandshake(socket)
-          if (responseConclusion.isErrorType()) {
-            onMainThread {
-              connectChecker.onConnectionFailed("Error configure stream, ${responseConclusion.handshakeType.name}")
+    fun setVideoCodec(videoCodec: VideoCodec) {
+        if (!isStreaming) {
+            commandsManager.videoCodec = when (videoCodec) {
+                VideoCodec.AV1 -> throw IllegalArgumentException("Unsupported codec: ${videoCodec.name}")
+                else -> videoCodec
             }
-            return@launch
-          } else {
-            commandsManager.socketId = responseConclusion.srtSocketId
-            commandsManager.MTU = responseConclusion.MTU
-            commandsManager.sequenceNumber = responseConclusion.initialPacketSequence
-            onMainThread {
-              connectChecker.onConnectionSuccess()
+        }
+    }
+
+    fun setAudioCodec(audioCodec: AudioCodec) {
+        if (!isStreaming) {
+            commandsManager.audioCodec = when (audioCodec) {
+                AudioCodec.G711 -> throw IllegalArgumentException("Unsupported codec: ${audioCodec.name}")
+                else -> audioCodec
             }
-            srtSender.socket = socket
-            srtSender.start()
-            handleServerPackets()
-          }
-        }.exceptionOrNull()
-        if (error != null) {
-          Log.e(TAG, "connection error", error)
-          onMainThread {
-            connectChecker.onConnectionFailed("Error configure stream, ${error.validMessage()}")
-          }
-          return@launch
         }
-      }
     }
-  }
 
-  fun disconnect() {
-    CoroutineScope(Dispatchers.IO).launch {
-      disconnect(true)
+    fun setLatency(latency: Int) {
+        this.latency = latency
     }
-  }
 
-  private suspend fun disconnect(clear: Boolean) {
-    if (isStreaming) srtSender.stop(clear)
-    runCatching {
-      withTimeoutOrNull(100) {
-        commandsManager.writeShutdown(socket)
-      }
+    fun setDelay(millis: Long) {
+        srtSender.setDelay(millis)
     }
-    socket?.close()
-    if (clear) {
-      reTries = numRetry
-      doingRetry = false
-      isStreaming = false
-      onMainThread {
-        connectChecker.onDisconnect()
-      }
-      jobRetry?.cancelAndJoin()
-      jobRetry = null
-      scopeRetry.cancel()
-      scopeRetry = CoroutineScope(Dispatchers.IO)
-    }
-    commandsManager.reset()
-    rtt = 0
-    packetsLost = 0
-    job?.cancelAndJoin()
-    job = null
-    scope.cancel()
-    scope = CoroutineScope(Dispatchers.IO)
-  }
 
-  fun reConnect(delay: Long) {
-    reConnect(delay, null)
-  }
-
-  fun reConnect(delay: Long, backupUrl: String?) {
-    jobRetry = scopeRetry.launch {
-      reTries--
-      disconnect(false)
-      delay(delay)
-      val reconnectUrl = backupUrl ?: url
-      connect(reconnectUrl, true)
-    }
-  }
-
-  @Throws(IOException::class)
-  private suspend fun handleServerPackets() {
-    while (scope.isActive && isStreaming) {
-      val error = runCatching {
-        if (isAlive()) {
-          //ignore packet after connect if tunneled to avoid spam idle
-          handleMessages()
-        } else {
-          onMainThread {
-            connectChecker.onConnectionFailed("No response from server")
-          }
-          scope.cancel()
+    /**
+     * Set passphrase for encrypt. Use empty value to disable it.
+     */
+    fun setPassphrase(passphrase: String, type: EncryptionType) {
+        if (!isStreaming) {
+            if (passphrase.length !in 10..79) {
+                throw IllegalArgumentException("passphrase must between 10 and 79 length")
+            }
+            commandsManager.setPassphrase(passphrase, type)
         }
-      }.exceptionOrNull()
-      if (error != null && ConnectionFailed.parse(error.validMessage()) != ConnectionFailed.TIMEOUT) {
+    }
+
+    /**
+     * Must be called before connect
+     */
+    fun setOnlyAudio(onlyAudio: Boolean) {
+        commandsManager.audioDisabled = false
+        commandsManager.videoDisabled = onlyAudio
+    }
+
+    /**
+     * Must be called before connect
+     */
+    fun setOnlyVideo(onlyVideo: Boolean) {
+        commandsManager.videoDisabled = false
+        commandsManager.audioDisabled = onlyVideo
+    }
+
+    /**
+     * Check periodically if server is alive using Echo protocol.
+     */
+    fun setCheckServerAlive(enabled: Boolean) {
+        checkServerAlive = enabled
+    }
+
+    fun setReTries(reTries: Int) {
+        numRetry = reTries
+        this.reTries = reTries
+    }
+
+    fun shouldRetry(reason: String): Boolean {
+        val validReason = doingRetry && !reason.contains("Endpoint malformed")
+        return validReason && reTries > 0
+    }
+
+    @JvmOverloads
+    fun connect(url: String?, isRetry: Boolean = false) {
+        if (!isRetry) doingRetry = true
+        if (!isStreaming || isRetry) {
+            isStreaming = true
+
+            job = scope.launch {
+                if (url == null) {
+                    isStreaming = false
+                    onMainThread {
+                        connectChecker.onConnectionFailed("Endpoint malformed, should be: srt://ip:port/streamid")
+                    }
+                    return@launch
+                }
+                this@SrtClient.url = url
+                onMainThread {
+                    connectChecker.onConnectionStarted(url)
+                }
+
+                val urlParser = try {
+                    UrlParser.parse(url, validSchemes)
+                } catch (_: URISyntaxException) {
+                    isStreaming = false
+                    onMainThread {
+                        connectChecker.onConnectionFailed("Endpoint malformed, should be: srt://ip:port/streamid")
+                    }
+                    return@launch
+                }
+
+                val host = urlParser.host
+                val port = urlParser.port ?: 8888
+                val path = urlParser.getQuery("streamid") ?: urlParser.getFullPath()
+                latency = urlParser.getQuery("latency")?.toIntOrNull() ?: latency
+                if (path.isEmpty()) {
+                    isStreaming = false
+                    onMainThread {
+                        connectChecker.onConnectionFailed("Endpoint malformed, should be: srt://ip:port/streamid")
+                    }
+                    return@launch
+                }
+                commandsManager.host = host
+
+                val error = runCatching {
+                    socket = SrtSocket(socketType, host, port, socketTimeout)
+                    socket?.connect("listener")
+                    if (socketType == SocketType.NATIVE) {
+                        onMainThread {
+                            connectChecker.onConnectionSuccess()
+                        }
+                        srtSender.socket = socket
+                        srtSender.start()
+                        return@runCatching
+                    }
+                    commandsManager.loadStartTs()
+
+                    commandsManager.writeHandshake(socket)
+                    val response = commandsManager.readHandshake(socket)
+
+                    commandsManager.writeHandshake(
+                        socket, response.copy(
+                            encryption = commandsManager.getEncryptType(),
+                            extensionField = ExtensionField.calculateValue(response.extensionField, commandsManager.encryptionEnabled()),
+                            handshakeType = HandshakeType.CONCLUSION,
+                            handshakeExtension = HandshakeExtension(
+                                flags = ExtensionContentFlag.TSBPDSND.value or ExtensionContentFlag.TSBPDRCV.value or
+                                        ExtensionContentFlag.CRYPT.value or ExtensionContentFlag.TLPKTDROP.value or
+                                        ExtensionContentFlag.PERIODICNAK.value or ExtensionContentFlag.REXMITFLG.value,
+                                receiverDelay = latency / 1000,
+                                senderDelay = latency / 1000,
+                                path = path,
+                                encryptInfo = commandsManager.getEncryptInfo()
+                            )
+                        )
+                    )
+                    val responseConclusion = commandsManager.readHandshake(socket)
+                    if (responseConclusion.isErrorType()) {
+                        onMainThread {
+                            connectChecker.onConnectionFailed("Error configure stream, ${responseConclusion.handshakeType.name}")
+                        }
+                        return@launch
+                    } else {
+                        commandsManager.socketId = responseConclusion.srtSocketId
+                        commandsManager.MTU = responseConclusion.MTU
+                        commandsManager.sequenceNumber = responseConclusion.initialPacketSequence
+                        onMainThread {
+                            connectChecker.onConnectionSuccess()
+                        }
+                        srtSender.socket = socket
+                        srtSender.start()
+                        handleServerPackets()
+                    }
+                }.exceptionOrNull()
+                if (error != null) {
+                    Log.e(TAG, "connection error", error)
+                    onMainThread {
+                        connectChecker.onConnectionFailed("Error configure stream, ${error.validMessage()}")
+                    }
+                    return@launch
+                }
+            }
+        }
+    }
+
+    fun disconnect() {
+        CoroutineScope(Dispatchers.IO).launch {
+            disconnect(true)
+        }
+    }
+
+    private suspend fun disconnect(clear: Boolean) {
+        if (isStreaming) srtSender.stop(clear)
+        runCatching {
+            withTimeoutOrNull(100) {
+                commandsManager.writeShutdown(socket)
+            }
+        }
+        socket?.close()
+        if (clear) {
+            reTries = numRetry
+            doingRetry = false
+            isStreaming = false
+            onMainThread {
+                connectChecker.onDisconnect()
+            }
+            jobRetry?.cancelAndJoin()
+            jobRetry = null
+            scopeRetry.cancel()
+            scopeRetry = CoroutineScope(Dispatchers.IO)
+        }
+        commandsManager.reset()
+        rtt = 0
+        packetsLost = 0
+        job?.cancelAndJoin()
+        job = null
         scope.cancel()
-      }
+        scope = CoroutineScope(Dispatchers.IO)
     }
-  }
 
-  /*
-  Send a heartbeat to know if server is alive using Echo Protocol.
-  Your firewall could block it.
- */
-  private fun isAlive(): Boolean {
-    val connected = socket?.isConnected() ?: false
-    if (!checkServerAlive) {
-      return connected
+    fun reConnect(delay: Long) {
+        reConnect(delay, null)
     }
-    val reachable = socket?.isReachable() ?: false
-    return if (connected && !reachable) false else connected
-  }
 
-  @Throws(IOException::class)
-  private suspend fun handleMessages() {
-    val responseBufferConclusion = socket?.readBuffer() ?: throw IOException("read buffer failed, socket disconnected")
-    when(val srtPacket = SrtPacket.getSrtPacket(responseBufferConclusion)) {
-      is DataPacket -> {
-        //ignore
-      }
-      is ControlPacket -> {
-        when (srtPacket) {
-          is Handshake -> {
-            //never should happens, handshake is already done
-          }
-          is KeepAlive -> {
-            commandsManager.writeKeepAlive(socket)
-          }
-          is Ack -> {
-            rtt = srtPacket.rtt
-            val ackSequence = srtPacket.typeSpecificInformation
-            val lastPacketSequence = srtPacket.lastAcknowledgedPacketSequenceNumber
-            commandsManager.updateHandlingQueue(lastPacketSequence)
-            commandsManager.writeAck2(ackSequence, socket)
-          }
-          is Nak -> {
-            //packet lost reported, we should resend it
-            val packetsLost = srtPacket.getNakPacketsLostList()
-            this.packetsLost += packetsLost.size
-            commandsManager.reSendPackets(packetsLost, socket)
-          }
-          is CongestionWarning -> {
-
-          }
-          is Shutdown -> {
-            onMainThread {
-              connectChecker.onConnectionFailed("Shutdown received from server")
-            }
-          }
-          is Ack2 -> {
-            //never should happens
-          }
-          is DropReq -> {
-
-          }
-          is PeerError -> {
-            val reason = srtPacket.errorCode
-            onMainThread {
-              connectChecker.onConnectionFailed("PeerError: $reason")
-            }
-          }
+    fun reConnect(delay: Long, backupUrl: String?) {
+        jobRetry = scopeRetry.launch {
+            reTries--
+            disconnect(false)
+            delay(delay)
+            val reconnectUrl = backupUrl ?: url
+            connect(reconnectUrl, true)
         }
-      }
     }
-  }
 
-  fun setAudioInfo(sampleRate: Int, isStereo: Boolean) {
-    srtSender.setAudioInfo(sampleRate, isStereo)
-  }
-
-  fun setVideoInfo(sps: ByteBuffer, pps: ByteBuffer?, vps: ByteBuffer?) {
-    Log.i(TAG, "send sps and pps")
-    srtSender.setVideoInfo(sps, pps, vps)
-  }
-
-  fun sendVideo(videoBuffer: ByteBuffer, info: MediaCodec.BufferInfo) {
-    if (!commandsManager.videoDisabled) {
-      srtSender.sendMediaFrame(MediaFrame(videoBuffer.clone(), info.toMediaFrameInfo(), MediaFrame.Type.VIDEO))
+    @Throws(IOException::class)
+    private suspend fun handleServerPackets() {
+        while (scope.isActive && isStreaming) {
+            val error = runCatching {
+                if (isAlive()) {
+                    //ignore packet after connect if tunneled to avoid spam idle
+                    handleMessages()
+                } else {
+                    onMainThread {
+                        connectChecker.onConnectionFailed("No response from server")
+                    }
+                    scope.cancel()
+                }
+            }.exceptionOrNull()
+            if (error != null && ConnectionFailed.parse(error.validMessage()) != ConnectionFailed.TIMEOUT) {
+                scope.cancel()
+            }
+        }
     }
-  }
 
-  fun sendAudio(audioBuffer: ByteBuffer, info: MediaCodec.BufferInfo) {
-    if (!commandsManager.audioDisabled) {
-      srtSender.sendMediaFrame(MediaFrame(audioBuffer.clone(), info.toMediaFrameInfo(), MediaFrame.Type.AUDIO))
-    }
-  }
-
-  @Throws(IllegalArgumentException::class)
-  fun hasCongestion(): Boolean {
-    return hasCongestion(20f)
-  }
-
-  @Throws(IllegalArgumentException::class)
-  fun hasCongestion(percentUsed: Float): Boolean {
-    return srtSender.hasCongestion(percentUsed)
-  }
-
-  fun resetSentAudioFrames() {
-    srtSender.resetSentAudioFrames()
-  }
-
-  fun resetSentVideoFrames() {
-    srtSender.resetSentVideoFrames()
-  }
-
-  fun resetDroppedAudioFrames() {
-    srtSender.resetDroppedAudioFrames()
-  }
-
-  fun resetDroppedVideoFrames() {
-    srtSender.resetDroppedVideoFrames()
-  }
-
-  fun resetBytesSend() {
-    srtSender.resetBytesSend()
-  }
-
-  @Throws(RuntimeException::class)
-  fun resizeCache(newSize: Int) {
-    srtSender.resizeCache(newSize)
-  }
-
-  fun setLogs(enable: Boolean) {
-    srtSender.setLogs(enable)
-  }
-
-  fun clearCache() {
-    srtSender.clearCache()
-  }
-
-  fun getItemsInCache(): Int = srtSender.getItemsInCache()
-
-  /**
-   * @param factor values from 0.1f to 1f
-   * Set an exponential factor to the bitrate calculation to avoid bitrate spikes
+    /*
+    Send a heartbeat to know if server is alive using Echo Protocol.
+    Your firewall could block it.
    */
-  fun setBitrateExponentialFactor(factor: Float) {
-    srtSender.setBitrateExponentialFactor(factor)
-  }
-
-  /**
-   * Get the exponential factor used to calculate the bitrate. Default 1f
-   */
-  fun getBitrateExponentialFactor() = srtSender.getBitrateExponentialFactor()
-
-  /**
-   * Set a custom Mpeg2TsService with specified parameters
-   * Must be called before connect
-   *
-   * @param customService the custom Mpeg2TsService with desired parameters
-   */
-  fun setMpeg2TsService(customService: Mpeg2TsService) {
-    if (!isStreaming) {
-      srtSender.setMpeg2TsService(customService)
-    } else {
-      Log.w(TAG, "Can't set custom Mpeg2TsService while streaming")
+    private fun isAlive(): Boolean {
+        val connected = socket?.isConnected() ?: false
+        if (!checkServerAlive) {
+            return connected
+        }
+        val reachable = socket?.isReachable() ?: false
+        return if (connected && !reachable) false else connected
     }
-  }
+
+    @Throws(IOException::class)
+    private suspend fun handleMessages() {
+        val responseBufferConclusion =
+            socket?.readBuffer() ?: throw IOException("read buffer failed, socket disconnected")
+        when (val srtPacket = SrtPacket.getSrtPacket(responseBufferConclusion)) {
+            is DataPacket -> {
+                //ignore
+            }
+
+            is ControlPacket -> {
+                when (srtPacket) {
+                    is Handshake -> {
+                        //never should happens, handshake is already done
+                    }
+
+                    is KeepAlive -> {
+                        commandsManager.writeKeepAlive(socket)
+                    }
+
+                    is Ack -> {
+                        rtt = srtPacket.rtt
+                        val ackSequence = srtPacket.typeSpecificInformation
+                        val lastPacketSequence = srtPacket.lastAcknowledgedPacketSequenceNumber
+                        commandsManager.updateHandlingQueue(lastPacketSequence)
+                        commandsManager.writeAck2(ackSequence, socket)
+                    }
+
+                    is Nak -> {
+                        //packet lost reported, we should resend it
+                        val packetsLost = srtPacket.getNakPacketsLostList()
+                        this.packetsLost += packetsLost.size
+                        commandsManager.reSendPackets(packetsLost, socket)
+                    }
+
+                    is CongestionWarning -> {
+
+                    }
+
+                    is Shutdown -> {
+                        onMainThread {
+                            connectChecker.onConnectionFailed("Shutdown received from server")
+                        }
+                    }
+
+                    is Ack2 -> {
+                        //never should happens
+                    }
+
+                    is DropReq -> {
+
+                    }
+
+                    is PeerError -> {
+                        val reason = srtPacket.errorCode
+                        onMainThread {
+                            connectChecker.onConnectionFailed("PeerError: $reason")
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    fun setAudioInfo(sampleRate: Int, isStereo: Boolean) {
+        srtSender.setAudioInfo(sampleRate, isStereo)
+    }
+
+    fun setVideoInfo(sps: ByteBuffer, pps: ByteBuffer?, vps: ByteBuffer?) {
+        Log.i(TAG, "send sps and pps")
+        srtSender.setVideoInfo(sps, pps, vps)
+    }
+
+    fun sendVideo(videoBuffer: ByteBuffer, info: MediaCodec.BufferInfo) {
+        if (!commandsManager.videoDisabled) {
+            srtSender.sendMediaFrame(
+                MediaFrame(
+                    videoBuffer.clone(),
+                    info.toMediaFrameInfo(),
+                    MediaFrame.Type.VIDEO
+                )
+            )
+        }
+    }
+
+    fun sendAudio(audioBuffer: ByteBuffer, info: MediaCodec.BufferInfo) {
+        if (!commandsManager.audioDisabled) {
+            srtSender.sendMediaFrame(
+                MediaFrame(
+                    audioBuffer.clone(),
+                    info.toMediaFrameInfo(),
+                    MediaFrame.Type.AUDIO
+                )
+            )
+        }
+    }
+
+    @Throws(IllegalArgumentException::class)
+    fun hasCongestion(): Boolean {
+        return hasCongestion(20f)
+    }
+
+    @Throws(IllegalArgumentException::class)
+    fun hasCongestion(percentUsed: Float): Boolean {
+        return srtSender.hasCongestion(percentUsed)
+    }
+
+    fun resetSentAudioFrames() {
+        srtSender.resetSentAudioFrames()
+    }
+
+    fun resetSentVideoFrames() {
+        srtSender.resetSentVideoFrames()
+    }
+
+    fun resetDroppedAudioFrames() {
+        srtSender.resetDroppedAudioFrames()
+    }
+
+    fun resetDroppedVideoFrames() {
+        srtSender.resetDroppedVideoFrames()
+    }
+
+    fun resetBytesSend() {
+        srtSender.resetBytesSend()
+    }
+
+    @Throws(RuntimeException::class)
+    fun resizeCache(newSize: Int) {
+        srtSender.resizeCache(newSize)
+    }
+
+    fun setLogs(enable: Boolean) {
+        srtSender.setLogs(enable)
+    }
+
+    fun clearCache() {
+        srtSender.clearCache()
+    }
+
+    fun getItemsInCache(): Int = srtSender.getItemsInCache()
+
+    /**
+     * @param factor values from 0.1f to 1f
+     * Set an exponential factor to the bitrate calculation to avoid bitrate spikes
+     */
+    fun setBitrateExponentialFactor(factor: Float) {
+        srtSender.setBitrateExponentialFactor(factor)
+    }
+
+    /**
+     * Get the exponential factor used to calculate the bitrate. Default 1f
+     */
+    fun getBitrateExponentialFactor() = srtSender.getBitrateExponentialFactor()
+
+    /**
+     * Set a custom Mpeg2TsService with specified parameters
+     * Must be called before connect
+     *
+     * @param customService the custom Mpeg2TsService with desired parameters
+     */
+    fun setMpeg2TsService(customService: Mpeg2TsService) {
+        if (!isStreaming) {
+            srtSender.setMpeg2TsService(customService)
+        } else {
+            Log.w(TAG, "Can't set custom Mpeg2TsService while streaming")
+        }
+    }
 }

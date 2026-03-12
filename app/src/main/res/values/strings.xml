@@ -6,6 +6,7 @@
   <string name="from_file">From file</string>
   <string name="display">Screen</string>
   <string name="rotation_rtmp">Rotation\n(include filters)</string>
+  <string name="srt_receiver">SRT Receiver</string>
   <string name="tv_select">Select your streamer</string>
   <string name="hint_protocol">protocol://yourendpoint</string>
   <!--filters-->

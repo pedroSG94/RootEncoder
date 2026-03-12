@@ -44,49 +44,61 @@ import com.pedro.streamer.R
  */
 
 fun Activity.toast(message: String, duration: Int = Toast.LENGTH_SHORT) {
-  Toast.makeText(this, message, duration).show()
+    Toast.makeText(this, message, duration).show()
 }
 
 fun Fragment.toast(message: String, duration: Int = Toast.LENGTH_SHORT) {
-  Toast.makeText(requireContext(), message, duration).show()
+    context?.let {
+        Toast.makeText(it, message, duration).show()
+    }
 }
 
 fun Service.toast(message: String, duration: Int = Toast.LENGTH_SHORT) {
-  Toast.makeText(this, message, duration).show()
+    Toast.makeText(this, message, duration).show()
 }
 
 fun Context.toast(message: String, duration: Int = Toast.LENGTH_SHORT) {
-  Toast.makeText(this, message, duration).show()
+    Toast.makeText(this, message, duration).show()
 }
 
 fun MenuItem.setColor(context: Context, @ColorRes color: Int) {
-  val spannableString = SpannableString(title.toString())
-  spannableString.setSpan(ForegroundColorSpan(ContextCompat.getColor(context, color)), 0, spannableString.length, 0)
-  title = spannableString
+    val spannableString = SpannableString(title.toString())
+    spannableString.setSpan(
+        ForegroundColorSpan(ContextCompat.getColor(context, color)),
+        0,
+        spannableString.length,
+        0
+    )
+    title = spannableString
 }
 
 @Suppress("DEPRECATION")
 fun Drawable.setColorFilter(@ColorInt color: Int) {
-  if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-    colorFilter = BlendModeColorFilter(color, BlendMode.SRC_IN)
-  } else {
-    setColorFilter(color, PorterDuff.Mode.SRC_IN)
-  }
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+        colorFilter = BlendModeColorFilter(color, BlendMode.SRC_IN)
+    } else {
+        setColorFilter(color, PorterDuff.Mode.SRC_IN)
+    }
 }
 
 fun MenuItem.updateMenuColor(context: Context, currentItem: MenuItem?): MenuItem {
-  currentItem?.setColor(context, R.color.black)
-  setColor(context, R.color.appColor)
-  return this
+    currentItem?.setColor(context, R.color.black)
+    setColor(context, R.color.appColor)
+    return this
 }
 
 fun AppCompatActivity.fitAppPadding() {
-  ViewCompat.setOnApplyWindowInsetsListener(window.decorView.rootView) { view, insets ->
-    val bars = insets.getInsets(
-      WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.displayCutout()
-    )
-    view.updatePadding(left = bars.left, top = bars.top, right = bars.right, bottom = bars.bottom)
-    view.setBackgroundColor(ContextCompat.getColor(this, R.color.appColor))
-    WindowInsetsCompat.CONSUMED
-  }
+    ViewCompat.setOnApplyWindowInsetsListener(window.decorView.rootView) { view, insets ->
+        val bars = insets.getInsets(
+            WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.displayCutout()
+        )
+        view.updatePadding(
+            left = bars.left,
+            top = bars.top,
+            right = bars.right,
+            bottom = bars.bottom
+        )
+        view.setBackgroundColor(ContextCompat.getColor(this, R.color.appColor))
+        WindowInsetsCompat.CONSUMED
+    }
 }

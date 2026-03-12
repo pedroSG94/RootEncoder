@@ -12,6 +12,17 @@ android {
     defaultConfig {
         minSdk = 16
         lint.targetSdk = 36
+        
+        externalNativeBuild {
+            cmake {
+                cppFlags += "-std=c++11"
+                arguments += listOf("-DANDROID_STL=c++_shared")
+            }
+        }
+        
+        ndk {
+            abiFilters += listOf("armeabi-v7a", "arm64-v8a", "x86", "x86_64")
+        }
     }
     buildTypes {
         release {
@@ -27,6 +38,13 @@ android {
     }
     publishing {
         singleVariant("release")
+    }
+    
+    externalNativeBuild {
+        cmake {
+            path = file("src/main/cpp/CMakeLists.txt")
+            version = "3.18.1"
+        }
     }
 }
 

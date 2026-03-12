@@ -105,6 +105,12 @@ class MainActivity : AppCompatActivity() {
         getString(R.string.rotation_rtmp), VERSION_CODES.LOLLIPOP
       )
     )
+    activities.add(
+      ActivityLink(
+        Intent(this, com.pedro.streamer.srtreceiver.SrtReceiverActivity::class.java),
+        getString(R.string.srt_receiver), VERSION_CODES.N
+      )
+    )
   }
 
   private fun setListAdapter(activities: List<ActivityLink>) {
