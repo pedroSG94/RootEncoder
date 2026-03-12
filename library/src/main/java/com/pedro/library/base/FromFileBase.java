@@ -639,6 +639,10 @@ public abstract class FromFileBase {
     return audioDecoder.getDuration();
   }
 
+  public void forceBt709Color(boolean enabled) {
+    videoEncoder.forceBt709Color(enabled);
+  }
+
   public void replaceAudioFile(String filePath) throws IOException {
     resetAudioDecoder((BaseDecoder decoder) -> {
       if (!decoder.initExtractor(filePath)) throw new IOException("Extraction failed");

@@ -21,6 +21,8 @@ import android.graphics.Point
 import android.graphics.SurfaceTexture
 import android.graphics.SurfaceTexture.OnFrameAvailableListener
 import android.os.Build
+import android.os.Handler
+import android.os.HandlerThread
 import android.view.Surface
 import androidx.annotation.RequiresApi
 import com.pedro.common.newSingleThreadExecutor
@@ -92,6 +94,7 @@ class GlStreamInterface(private val context: Context): OnFrameAvailableListener,
   private var renderErrorCallback: RenderErrorCallback? = null
   private var previewViewPort: ViewPort? = null
   private var streamViewPort: ViewPort? = null
+  private var surfaceHandlerThread: HandlerThread? = null
 
   private val sensorRotationManager = SensorRotationManager(context, true, true) { orientation, isPortrait ->
     if (autoHandleOrientation && shouldHandleOrientation) {
@@ -179,6 +182,9 @@ class GlStreamInterface(private val context: Context): OnFrameAvailableListener,
     executor?.shutdownNow()
     executor = null
     executor = newSingleThreadExecutor(threadQueue)
+    surfaceHandlerThread?.quitSafely()
+    surfaceHandlerThread = HandlerThread("GlStreamHandler")
+    surfaceHandlerThread?.start()
     val width = max(encoderWidth, encoderRecordWidth)
     val height = max(encoderHeight, encoderRecordHeight)
     surfaceManager.release()
@@ -190,7 +196,12 @@ class GlStreamInterface(private val context: Context): OnFrameAvailableListener,
       surfaceManager.makeCurrent()
       mainRender.initGl(context, width, height, width, height)
       running.set(true)
-      mainRender.getSurfaceTexture().setOnFrameAvailableListener(this)
+      if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+        val surfaceHandler = surfaceHandlerThread?.looper?.let { Handler(it) }
+        mainRender.getSurfaceTexture().setOnFrameAvailableListener(this, surfaceHandler)
+      } else {
+        mainRender.getSurfaceTexture().setOnFrameAvailableListener(this)
+      }
       forceRender.start {
         executor?.execute {
           try {
@@ -205,6 +216,8 @@ class GlStreamInterface(private val context: Context): OnFrameAvailableListener,
 
   override fun stop() {
     running.set(false)
+    surfaceHandlerThread?.quitSafely()
+    surfaceHandlerThread = null
     threadQueue.clear()
     executor?.shutdownNow()
     executor = null
@@ -265,6 +278,7 @@ class GlStreamInterface(private val context: Context): OnFrameAvailableListener,
       if (surfaceManagerEncoder.makeCurrent()) {
         mainRender.drawScreenEncoder(w, h, orientation, streamOrientation,
           isStreamVerticalFlip, isStreamHorizontalFlip, streamViewPort)
+        surfaceManagerEncoder.setPresentationTime(mainRender.getSurfaceTexture().timestamp)
         surfaceManagerEncoder.swapBuffer()
       }
     }
@@ -275,6 +289,8 @@ class GlStreamInterface(private val context: Context): OnFrameAvailableListener,
       if (surfaceManagerEncoderRecord.makeCurrent()) {
         mainRender.drawScreenEncoder(w, h, orientation, streamOrientation,
           isStreamVerticalFlip, isStreamHorizontalFlip, streamViewPort)
+        // Fix: same timestamp fix for the dedicated record surface
+        surfaceManagerEncoderRecord.setPresentationTime(mainRender.getSurfaceTexture().timestamp)
         surfaceManagerEncoderRecord.swapBuffer()
       }
     }

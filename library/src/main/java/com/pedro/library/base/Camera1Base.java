@@ -658,6 +658,10 @@ public abstract class Camera1Base {
     return cameraManager.getMinZoom();
   }
 
+  public void forceBt709Color(boolean enabled) {
+    videoEncoder.forceBt709Color(enabled);
+  }
+
   @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
   public void startStreamAndRecord(String url, String path, RecordController.Listener listener) throws IOException {
     startStream(url);

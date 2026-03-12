@@ -455,6 +455,10 @@ abstract class StreamBase(
     audioEncoder.setEncoderErrorCallback(encoderErrorCallback)
   }
 
+  fun forceBt709Color(enabled: Boolean) {
+    videoEncoder.forceBt709Color(enabled)
+  }
+
   /**
    * @param callback get fps while record or stream
    */
