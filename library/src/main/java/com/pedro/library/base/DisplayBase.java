@@ -49,7 +49,6 @@ import com.pedro.encoder.utils.CodecUtil;
 import com.pedro.encoder.video.FormatVideoEncoder;
 import com.pedro.encoder.video.GetVideoData;
 import com.pedro.encoder.video.VideoEncoder;
-import com.pedro.library.base.recording.BaseRecordController;
 import com.pedro.library.base.recording.RecordController;
 import com.pedro.library.util.AndroidMuxerRecordController;
 import com.pedro.library.util.FpsListener;
@@ -85,7 +84,7 @@ public abstract class DisplayBase {
   private int resultCode = -1;
   private Intent data;
   private MediaProjection.Callback mediaProjectionCallback = new MediaProjection.Callback() { };
-  protected BaseRecordController recordController;
+  protected RecordController recordController;
   private final FpsListener fpsListener = new FpsListener();
   private boolean videoInitialized = false;
   private boolean audioInitialized = false;
@@ -572,9 +571,9 @@ public abstract class DisplayBase {
 
   protected abstract void getVideoDataImp(ByteBuffer videoBuffer, MediaCodec.BufferInfo info);
 
-  public void setRecordController(BaseRecordController recordController) {
+  public void setRecordController(RecordController recordController) {
     if (!isRecording()) {
-      recordController.updateInfo(this.recordController);
+      recordController.updateInfo(this.recordController.getVideoCodec(), this.recordController.getAudioCodec());
       this.recordController = recordController;
     }
   }

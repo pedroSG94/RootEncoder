@@ -20,10 +20,9 @@ import android.media.MediaMuxer
 import android.os.Build
 import androidx.annotation.RequiresApi
 import com.pedro.common.AudioCodec
-import com.pedro.common.BitrateManager
 import com.pedro.common.frame.MediaFrame
 import com.pedro.common.toMediaCodecBufferInfo
-import com.pedro.library.base.recording.BaseRecordController
+import com.pedro.library.base.recording.AsyncBaseRecordController
 import com.pedro.library.base.recording.RecordController
 import com.pedro.library.base.recording.RecordController.RecordTracks
 import java.io.FileDescriptor
@@ -34,10 +33,12 @@ import java.io.IOException
  * Class to control audio recording with MediaMuxer.
  */
 @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
-class AndroidMuxerWebmRecordController : BaseRecordController() {
+class AndroidMuxerWebmRecordController : AsyncBaseRecordController() {
   private var mediaMuxer: MediaMuxer? = null
   private var audioFormat: MediaFormat? = null
   private val outputFormat = MediaMuxer.OutputFormat.MUXER_OUTPUT_WEBM
+  private var videoTrack: Int = -1
+  private var audioTrack: Int = -1
 
   @Throws(IOException::class)
   override fun startRecordImp(
@@ -45,20 +46,11 @@ class AndroidMuxerWebmRecordController : BaseRecordController() {
     listener: RecordController.Listener?,
     tracks: RecordTracks
   ) {
-    this.tracks = RecordTracks.AUDIO
     require(tracks == RecordTracks.AUDIO) { "This record controller only support record audio" }
-    if (audioCodec != AudioCodec.OPUS) {
-      throw IOException("Unsupported AudioCodec: " + audioCodec.name)
+    if (getAudioCodec() != AudioCodec.OPUS) {
+      throw IOException("Unsupported AudioCodec: " + getAudioCodec().name)
     }
     mediaMuxer = MediaMuxer(path, outputFormat)
-    this.listener = listener
-    status = RecordController.Status.STARTED
-    if (listener != null) {
-      bitrateManager = BitrateManager(listener)
-      listener.onStatusChange(status)
-    } else {
-      bitrateManager = null
-    }
     if (audioFormat != null) init()
   }
 
@@ -69,37 +61,22 @@ class AndroidMuxerWebmRecordController : BaseRecordController() {
     listener: RecordController.Listener?,
     tracks: RecordTracks
   ) {
-    this.tracks = RecordTracks.AUDIO
     require(tracks == RecordTracks.AUDIO) { "This record controller only support record audio" }
-    if (audioCodec != AudioCodec.OPUS) {
-      throw IOException("Unsupported AudioCodec: " + audioCodec.name)
+    if (getAudioCodec() != AudioCodec.OPUS) {
+      throw IOException("Unsupported AudioCodec: " + getAudioCodec().name)
     }
     mediaMuxer = MediaMuxer(fd, outputFormat)
-    this.listener = listener
-    status = RecordController.Status.STARTED
-    if (listener != null) {
-      bitrateManager = BitrateManager(listener)
-      listener.onStatusChange(status)
-    } else {
-      bitrateManager = null
-    }
     if (audioFormat != null) init()
   }
 
   override fun stopRecordImp() {
     videoTrack = -1
     audioTrack = -1
-    status = RecordController.Status.STOPPED
     try {
       mediaMuxer?.stop()
       mediaMuxer?.release()
     } catch (_: Exception) { }
     mediaMuxer = null
-    pauseMoment = 0
-    pauseTime = 0
-    startTs = 0
-    myRequestKeyFrame = null
-    listener?.onStatusChange(status)
   }
 
   override fun setVideoFormat(videoFormat: MediaFormat) {
@@ -107,7 +84,7 @@ class AndroidMuxerWebmRecordController : BaseRecordController() {
 
   override fun setAudioFormat(audioFormat: MediaFormat) {
     this.audioFormat = audioFormat
-    if (status == RecordController.Status.STARTED) {
+    if (recordStatus == RecordController.Status.STARTED) {
       init()
     }
   }
@@ -119,8 +96,8 @@ class AndroidMuxerWebmRecordController : BaseRecordController() {
   private fun init() {
     audioTrack = mediaMuxer?.addTrack(audioFormat!!) ?: -1
     mediaMuxer?.start()
-    status = RecordController.Status.RECORDING
-    listener?.onStatusChange(status)
+    recordStatus = RecordController.Status.RECORDING
+    listener?.onStatusChange(recordStatus)
   }
 
   private suspend fun write(track: Int, frame: MediaFrame) {
@@ -137,7 +114,7 @@ class AndroidMuxerWebmRecordController : BaseRecordController() {
     when (frame.type) {
       MediaFrame.Type.VIDEO -> {}
       MediaFrame.Type.AUDIO -> {
-        if (status == RecordController.Status.RECORDING) {
+        if (recordStatus == RecordController.Status.RECORDING) {
           write(audioTrack, frame)
         }
       }

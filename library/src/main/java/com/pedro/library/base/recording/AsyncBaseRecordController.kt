@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2024 pedroSG94.
+ * Copyright (C) 2026 pedroSG94.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,79 +37,68 @@ import java.nio.ByteBuffer
 import kotlin.concurrent.Volatile
 import kotlin.math.max
 
-abstract class BaseRecordController : RecordController {
+/**
+ * Record async to avoid block the thread used to send frames to protocol module.
+ */
+abstract class AsyncBaseRecordController : RecordController {
 
   companion object {
-    const val TAG: String = "RecordController"
+    const val TAG: String = "AsyncRecordController"
+    private const val CAPACITY = 500
   }
 
-  @JvmField
   @Volatile
-  protected var status: RecordController.Status = RecordController.Status.STOPPED
-  @JvmField
-  protected var videoCodec: VideoCodec = VideoCodec.H264
-  @JvmField
-  protected var audioCodec: AudioCodec = AudioCodec.AAC
-  @JvmField
-  protected var pauseMoment: Long = 0
-  @JvmField
-  protected var pauseTime: Long = 0
-  @JvmField
+  protected var recordStatus: RecordController.Status = RecordController.Status.STOPPED
   protected var listener: RecordController.Listener? = null
-  @JvmField
-  protected var videoTrack: Int = -1
-  @JvmField
-  protected var audioTrack: Int = -1
-  @JvmField
   protected var bitrateManager: BitrateManager? = null
-  @JvmField
-  @Volatile
-  protected var startTs: Long = 0
-  @JvmField
   protected var tracks: RecordTracks = RecordTracks.ALL
   protected var myRequestKeyFrame: RequestKeyFrame? = null
+  private var videoCodec: VideoCodec = VideoCodec.H264
+  private var audioCodec: AudioCodec = AudioCodec.AAC
+  private var pauseMoment: Long = 0
+  private var pauseTime: Long = 0
+  @Volatile
+  private var startTs: Long = 0
   private val scope = CoroutineScope(Dispatchers.IO)
   private var muxerChannel: Channel<MediaFrame>? = null
   private var muxerJob: Job? = null
 
-  fun getStatus() = status
-
-  fun setRequestKeyFrame(requestKeyFrame: RequestKeyFrame?) {
+  override fun setRequestKeyFrame(requestKeyFrame: RequestKeyFrame?) {
     this.myRequestKeyFrame = requestKeyFrame
   }
 
-  fun updateInfo(recordController: BaseRecordController) {
-    videoCodec = recordController.videoCodec
-    audioCodec = recordController.audioCodec
-  }
-
-  fun setVideoCodec(videoCodec: VideoCodec) {
+  override fun updateInfo(videoCodec: VideoCodec, audioCodec: AudioCodec) {
     this.videoCodec = videoCodec
-  }
-
-  fun setAudioCodec(audioCodec: AudioCodec) {
     this.audioCodec = audioCodec
   }
 
-  val isRunning: Boolean
-    get() = status == RecordController.Status.STARTED || status == RecordController.Status.RECORDING || status == RecordController.Status.RESUMED || status == RecordController.Status.PAUSED
+  override fun setVideoCodec(videoCodec: VideoCodec) {
+    this.videoCodec = videoCodec
+  }
 
-  val isRecording: Boolean
-    get() = status == RecordController.Status.RECORDING
-  
-  fun pauseRecord() {
-    if (status == RecordController.Status.RECORDING) {
+  override fun setAudioCodec(audioCodec: AudioCodec) {
+    this.audioCodec = audioCodec
+  }
+
+  override fun getVideoCodec(): VideoCodec = videoCodec
+  override fun getAudioCodec(): AudioCodec = audioCodec
+  override fun isRunning(): Boolean = recordStatus == RecordController.Status.STARTED || recordStatus == RecordController.Status.RECORDING || recordStatus == RecordController.Status.RESUMED || recordStatus == RecordController.Status.PAUSED
+  override fun isRecording(): Boolean = recordStatus == RecordController.Status.RECORDING
+  override fun getStatus(): RecordController.Status = recordStatus
+
+  override fun pauseRecord() {
+    if (recordStatus == RecordController.Status.RECORDING) {
       pauseMoment = getCurrentTimeMicro()
-      status = RecordController.Status.PAUSED
-      listener?.onStatusChange(status)
+      recordStatus = RecordController.Status.PAUSED
+      listener?.onStatusChange(recordStatus)
     }
   }
 
-  fun resumeRecord() {
-    if (status == RecordController.Status.PAUSED) {
+  override fun resumeRecord() {
+    if (recordStatus == RecordController.Status.PAUSED) {
       pauseTime += getCurrentTimeMicro() - pauseMoment
-      status = RecordController.Status.RESUMED
-      listener?.onStatusChange(status)
+      recordStatus = RecordController.Status.RESUMED
+      listener?.onStatusChange(recordStatus)
     }
   }
 
@@ -156,14 +145,13 @@ abstract class BaseRecordController : RecordController {
     listener: RecordController.Listener?,
     tracks: RecordTracks
   ) {
-    muxerChannel = Channel(Channel.UNLIMITED)
-    muxerJob = scope.launch {
-      val channel = muxerChannel ?: return@launch
-      for (frame in channel) {
-        onWriteFrame(frame)
-      }
+    start(listener, tracks)
+    try {
+      startRecordImp(fd, listener, tracks)
+    } catch (e: Exception) {
+      stopRecord()
+      throw e
     }
-    startRecordImp(fd, listener, tracks)
   }
 
   override fun startRecord(
@@ -171,12 +159,33 @@ abstract class BaseRecordController : RecordController {
     listener: RecordController.Listener?,
     tracks: RecordTracks
   ) {
-    muxerChannel = Channel(Channel.UNLIMITED)
+    start(listener, tracks)
+    try {
+      startRecordImp(path, listener, tracks)
+    } catch (e: Exception) {
+      stopRecord()
+      throw e
+    }
+  }
+
+  private fun start(
+    listener: RecordController.Listener?,
+    tracks: RecordTracks
+  ) {
+    muxerChannel = Channel(CAPACITY)
     muxerJob = scope.launch {
       val channel = muxerChannel ?: return@launch
       for (frame in channel) onWriteFrame(frame)
     }
-    startRecordImp(path, listener, tracks)
+    this.tracks = tracks
+    this.listener = listener
+    recordStatus = RecordController.Status.STARTED
+    if (listener != null) {
+      bitrateManager = BitrateManager(listener)
+      listener.onStatusChange(recordStatus)
+    } else {
+      bitrateManager = null
+    }
   }
 
   override fun stopRecord() {
@@ -184,6 +193,12 @@ abstract class BaseRecordController : RecordController {
     muxerChannel = null
     muxerJob?.cancel()
     runBlocking { muxerJob?.join() }
+    recordStatus = RecordController.Status.STOPPED
+    pauseMoment = 0
+    pauseTime = 0
+    startTs = 0
+    myRequestKeyFrame = null
+    listener?.onStatusChange(recordStatus)
     stopRecordImp()
   }
 

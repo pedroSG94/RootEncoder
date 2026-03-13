@@ -35,7 +35,6 @@ import com.pedro.encoder.input.audio.CustomAudioEffect;
 import com.pedro.encoder.input.audio.GetMicrophoneData;
 import com.pedro.encoder.input.audio.MicrophoneManager;
 import com.pedro.encoder.utils.CodecUtil;
-import com.pedro.library.base.recording.BaseRecordController;
 import com.pedro.library.base.recording.RecordController;
 import com.pedro.library.util.AacMuxerRecordController;
 import com.pedro.library.util.streamclient.StreamBaseClient;
@@ -51,7 +50,7 @@ import java.nio.ByteBuffer;
  */
 public abstract class OnlyAudioBase {
 
-  protected BaseRecordController recordController;
+  protected RecordController recordController;
   private final MicrophoneManager microphoneManager;
   private AudioEncoder audioEncoder;
   private boolean streaming = false;
@@ -283,9 +282,9 @@ public abstract class OnlyAudioBase {
 
   protected abstract void getAudioDataImp(ByteBuffer audioBuffer, MediaCodec.BufferInfo info);
 
-  public void setRecordController(BaseRecordController recordController) {
+  public void setRecordController(RecordController recordController) {
     if (!isRecording()) {
-      recordController.updateInfo(this.recordController);
+      recordController.updateInfo(this.recordController.getVideoCodec(), this.recordController.getAudioCodec());
       this.recordController = recordController;
     }
   }

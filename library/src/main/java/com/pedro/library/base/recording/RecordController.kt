@@ -18,7 +18,9 @@ package com.pedro.library.base.recording
 import android.media.MediaCodec
 import android.media.MediaFormat
 import android.util.Log
+import com.pedro.common.AudioCodec
 import com.pedro.common.BitrateChecker
+import com.pedro.common.VideoCodec
 import java.io.FileDescriptor
 import java.io.IOException
 import java.nio.ByteBuffer
@@ -26,7 +28,6 @@ import java.nio.ByteBuffer
 interface RecordController {
   @Throws(IOException::class)
   fun startRecord(path: String, listener: Listener?, tracks: RecordTracks)
-
   @Throws(IOException::class)
   fun startRecord(fd: FileDescriptor, listener: Listener?, tracks: RecordTracks)
   fun stopRecord()
@@ -35,11 +36,22 @@ interface RecordController {
   fun setVideoFormat(videoFormat: MediaFormat)
   fun setAudioFormat(audioFormat: MediaFormat)
   fun resetFormats()
+  fun isRunning(): Boolean
+  fun isRecording(): Boolean
+  fun setVideoCodec(videoCodec: VideoCodec)
+  fun setAudioCodec(audioCodec: AudioCodec)
+  fun pauseRecord()
+  fun resumeRecord()
+  fun updateInfo(videoCodec: VideoCodec, audioCodec: AudioCodec)
+  fun getVideoCodec(): VideoCodec
+  fun getAudioCodec(): AudioCodec
+  fun setRequestKeyFrame(requestKeyFrame: RequestKeyFrame?)
+  fun getStatus(): Status
 
   fun interface Listener : BitrateChecker {
     fun onStatusChange(status: Status)
     fun onError(e: Exception?) {
-      Log.i(BaseRecordController.TAG, "Write error", e)
+      Log.i(AsyncBaseRecordController.TAG, "Write error", e)
     }
   }
 

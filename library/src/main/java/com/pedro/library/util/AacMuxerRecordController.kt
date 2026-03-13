@@ -21,10 +21,9 @@ import android.os.Build
 import androidx.annotation.RequiresApi
 import com.pedro.common.AudioCodec
 import com.pedro.common.AudioUtils.createAdtsHeader
-import com.pedro.common.BitrateManager
 import com.pedro.common.frame.MediaFrame
 import com.pedro.common.toMediaCodecBufferInfo
-import com.pedro.library.base.recording.BaseRecordController
+import com.pedro.library.base.recording.AsyncBaseRecordController
 import com.pedro.library.base.recording.RecordController
 import com.pedro.library.base.recording.RecordController.RecordTracks
 import java.io.FileDescriptor
@@ -36,7 +35,7 @@ import java.nio.ByteBuffer
 /**
  * Muxer to record AAC files (used in only audio by default).
  */
-class AacMuxerRecordController : BaseRecordController() {
+class AacMuxerRecordController : AsyncBaseRecordController() {
   private var outputStream: OutputStream? = null
   private var sampleRate = -1
   private var channels = -1
@@ -48,10 +47,9 @@ class AacMuxerRecordController : BaseRecordController() {
     listener: RecordController.Listener?,
     tracks: RecordTracks
   ) {
-    this.tracks = RecordTracks.AUDIO
     require(tracks == RecordTracks.AUDIO) { "This record controller only support record audio" }
     outputStream = FileOutputStream(path)
-    start(listener)
+    start()
   }
 
   @RequiresApi(api = Build.VERSION_CODES.O)
@@ -61,50 +59,35 @@ class AacMuxerRecordController : BaseRecordController() {
     listener: RecordController.Listener?,
     tracks: RecordTracks
   ) {
-    this.tracks = RecordTracks.AUDIO
     require(tracks == RecordTracks.AUDIO) { "This record controller only support record audio" }
     outputStream = FileOutputStream(fd)
-    start(listener)
+    start()
   }
 
   @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
   @Throws(IOException::class)
-  private fun start(listener: RecordController.Listener?) {
-    if (audioCodec != AudioCodec.AAC) throw IOException("Unsupported AudioCodec: " + audioCodec.name)
-    this.listener = listener
-    status = RecordController.Status.STARTED
-    if (listener != null) {
-      bitrateManager = BitrateManager(listener)
-      listener.onStatusChange(status)
-    } else {
-      bitrateManager = null
-    }
+  private fun start() {
+    if (getAudioCodec() != AudioCodec.AAC) throw IOException("Unsupported AudioCodec: " + getAudioCodec().name)
     if (sampleRate != -1 && channels != -1) init()
   }
 
   @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
   override fun stopRecordImp() {
-    status = RecordController.Status.STOPPED
-    pauseMoment = 0
-    pauseTime = 0
     sampleRate = -1
     channels = -1
-    startTs = 0
     try {
       outputStream?.close()
     } catch (_: Exception) {
     } finally {
       outputStream = null
     }
-    myRequestKeyFrame = null
-    listener?.onStatusChange(status)
   }
 
   override suspend fun onWriteFrame(frame: MediaFrame) {
     when (frame.type) {
       MediaFrame.Type.VIDEO -> {}
       MediaFrame.Type.AUDIO -> {
-        if (status == RecordController.Status.RECORDING) {
+        if (recordStatus == RecordController.Status.RECORDING) {
           //we need duplicate buffer to avoid problems with the buffer
           write(frame.data, frame.info.toMediaCodecBufferInfo())
         }
@@ -118,7 +101,7 @@ class AacMuxerRecordController : BaseRecordController() {
   override fun setAudioFormat(audioFormat: MediaFormat) {
     sampleRate = audioFormat.getInteger(MediaFormat.KEY_SAMPLE_RATE)
     channels = audioFormat.getInteger(MediaFormat.KEY_CHANNEL_COUNT)
-    if (status == RecordController.Status.STARTED && Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
+    if (recordStatus == RecordController.Status.STARTED && Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
       init()
     }
   }
@@ -128,8 +111,8 @@ class AacMuxerRecordController : BaseRecordController() {
 
   @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
   private fun init() {
-    status = RecordController.Status.RECORDING
-    listener?.onStatusChange(status)
+    recordStatus = RecordController.Status.RECORDING
+    listener?.onStatusChange(recordStatus)
   }
 
   private suspend fun write(byteBuffer: ByteBuffer, info: MediaCodec.BufferInfo) {
