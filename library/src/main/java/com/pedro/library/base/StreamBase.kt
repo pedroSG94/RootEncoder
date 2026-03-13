@@ -44,7 +44,6 @@ import com.pedro.encoder.utils.CodecUtil
 import com.pedro.encoder.video.FormatVideoEncoder
 import com.pedro.encoder.video.GetVideoData
 import com.pedro.encoder.video.VideoEncoder
-import com.pedro.library.base.recording.BaseRecordController
 import com.pedro.library.base.recording.RecordController
 import com.pedro.library.util.AndroidMuxerRecordController
 import com.pedro.library.util.FpsListener
@@ -83,14 +82,14 @@ abstract class StreamBase(
   //video render
   private val glInterface = GlStreamInterface(context)
   //video/audio record
-  private var recordController: BaseRecordController = AndroidMuxerRecordController()
+  private var recordController: RecordController = AndroidMuxerRecordController()
   private val fpsListener = FpsListener()
   var isStreaming = false
     private set
   var isOnPreview = false
     private set
   val isRecording: Boolean
-    get() = recordController.isRunning
+    get() = recordController.isRunning()
   var videoSource: VideoSource = vSource
     private set
   var audioSource: AudioSource = aSource
@@ -486,9 +485,9 @@ abstract class StreamBase(
    * Replace the current BaseRecordController.
    * This method allow record in other format or even create your custom implementation and record in a new format.
    */
-  fun setRecordController(recordController: BaseRecordController) {
+  fun setRecordController(recordController: RecordController) {
     if (!isRecording) {
-      recordController.updateInfo(this.recordController)
+      recordController.updateInfo(this.recordController.getVideoCodec(), this.recordController.getAudioCodec())
       this.recordController = recordController
     }
   }
