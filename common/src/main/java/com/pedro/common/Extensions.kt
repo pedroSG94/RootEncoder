@@ -68,6 +68,20 @@ fun ByteBuffer.toByteArray(): ByteArray {
   }
 }
 
+fun ByteBuffer.getStartCodeSize(): Int {
+  var startCodeSize = 0
+  if (this.get(0).toInt() == 0x00 && this.get(1).toInt() == 0x00
+    && this.get(2).toInt() == 0x00 && this.get(3).toInt() == 0x01) {
+    //match 00 00 00 01
+    startCodeSize = 4
+  } else if (this.get(0).toInt() == 0x00 && this.get(1).toInt() == 0x00
+    && this.get(2).toInt() == 0x01) {
+    //match 00 00 01
+    startCodeSize = 3
+  }
+  return startCodeSize
+}
+
 fun ByteBuffer.removeInfo(info: MediaFrame.Info): ByteBuffer {
   try {
     position(info.offset)

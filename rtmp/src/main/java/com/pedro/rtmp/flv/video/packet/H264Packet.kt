@@ -18,6 +18,7 @@ package com.pedro.rtmp.flv.video.packet
 
 import android.util.Log
 import com.pedro.common.frame.MediaFrame
+import com.pedro.common.getStartCodeSize
 import com.pedro.common.removeInfo
 import com.pedro.rtmp.flv.BasePacket
 import com.pedro.rtmp.flv.FlvPacket
@@ -131,7 +132,7 @@ class H264Packet: BasePacket() {
   }
 
   private fun removeHeader(byteBuffer: ByteBuffer, size: Int = -1): ByteBuffer {
-    val position = if (size == -1) getStartCodeSize(byteBuffer) else size
+    val position = if (size == -1) byteBuffer.getStartCodeSize() else size
     byteBuffer.position(position)
     return byteBuffer.slice()
   }
@@ -142,9 +143,9 @@ class H264Packet: BasePacket() {
     val sps = this.sps
     val pps = this.pps
     if (sps != null && pps != null) {
-      val startCodeSize = getStartCodeSize(byteBuffer)
+      val startCodeSize = byteBuffer.getStartCodeSize()
       if (startCodeSize == 0) return 0
-      val startCode = ByteArray(startCodeSize) { 0x00 }
+      val startCode = ByteArray(startCodeSize)
       startCode[startCodeSize - 1] = 0x01
       val avcHeader = startCode.plus(sps).plus(startCode).plus(pps).plus(startCode)
       if (byteBuffer.remaining() < avcHeader.size) return startCodeSize
@@ -158,20 +159,6 @@ class H264Packet: BasePacket() {
       }
     }
     return 0
-  }
-
-  private fun getStartCodeSize(byteBuffer: ByteBuffer): Int {
-    var startCodeSize = 0
-    if (byteBuffer.get(0).toInt() == 0x00 && byteBuffer.get(1).toInt() == 0x00
-      && byteBuffer.get(2).toInt() == 0x00 && byteBuffer.get(3).toInt() == 0x01) {
-      //match 00 00 00 01
-      startCodeSize = 4
-    } else if (byteBuffer.get(0).toInt() == 0x00 && byteBuffer.get(1).toInt() == 0x00
-      && byteBuffer.get(2).toInt() == 0x01) {
-      //match 00 00 01
-      startCodeSize = 3
-    }
-    return startCodeSize
   }
 
   override fun reset(resetInfo: Boolean) {
