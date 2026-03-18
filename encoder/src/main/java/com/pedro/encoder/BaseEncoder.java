@@ -27,7 +27,6 @@ import android.util.Log;
 import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
 
-import com.pedro.common.ExtensionsKt;
 import com.pedro.common.TimeUtils;
 import com.pedro.encoder.audio.G711Codec;
 import com.pedro.encoder.utils.CodecUtil;
@@ -37,7 +36,6 @@ import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.PriorityBlockingQueue;
 
 /**
  * Created by pedro on 18/09/19.
@@ -132,12 +130,10 @@ public abstract class BaseEncoder implements EncoderCallback {
 
   protected abstract void stopImp();
 
-  protected void fixTimeStamp(MediaCodec.BufferInfo info) {
-    if (oldTimeStamp > info.presentationTimeUs) {
-      final long currentTs = TimeUtils.getCurrentTimeMicro() - presentTimeUs;
-      info.presentationTimeUs = Math.max(currentTs, oldTimeStamp + 1);
-    }
+  protected boolean checkValidTimeStamp(MediaCodec.BufferInfo info) {
+    boolean valid = oldTimeStamp <= info.presentationTimeUs;
     oldTimeStamp = info.presentationTimeUs;
+    return valid;
   }
 
   private void reloadCodec(IllegalStateException e) {
@@ -252,7 +248,7 @@ public abstract class BaseEncoder implements EncoderCallback {
     }
   }
 
-  protected abstract void checkBuffer(@NonNull ByteBuffer byteBuffer,
+  protected abstract boolean checkBuffer(@NonNull ByteBuffer byteBuffer,
       @NonNull MediaCodec.BufferInfo bufferInfo);
 
   protected abstract void sendBuffer(@NonNull ByteBuffer byteBuffer,
@@ -260,8 +256,7 @@ public abstract class BaseEncoder implements EncoderCallback {
 
   private void processOutput(@NonNull ByteBuffer byteBuffer, @NonNull MediaCodec mediaCodec,
       int outBufferIndex, @NonNull MediaCodec.BufferInfo bufferInfo) throws IllegalStateException {
-    checkBuffer(byteBuffer, bufferInfo);
-    sendBuffer(byteBuffer, bufferInfo);
+    if (checkBuffer(byteBuffer, bufferInfo)) sendBuffer(byteBuffer, bufferInfo);
     mediaCodec.releaseOutputBuffer(outBufferIndex, false);
   }
 

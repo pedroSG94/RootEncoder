@@ -30,9 +30,6 @@ import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
 
 import com.pedro.common.TimeUtils;
-import com.pedro.common.av1.Av1Parser;
-import com.pedro.common.av1.Obu;
-import com.pedro.common.av1.ObuType;
 import com.pedro.encoder.BaseEncoder;
 import com.pedro.encoder.Frame;
 import com.pedro.encoder.TimestampMode;
@@ -43,7 +40,6 @@ import com.pedro.encoder.utils.SpsColorPatcher;
 import com.pedro.encoder.utils.yuv.YUVUtil;
 
 import java.nio.ByteBuffer;
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -440,12 +436,11 @@ public class VideoEncoder extends BaseEncoder implements GetCameraData {
   }
 
   @Override
-  protected void checkBuffer(@NonNull ByteBuffer byteBuffer, @NonNull MediaCodec.BufferInfo bufferInfo) {
+  protected boolean checkBuffer(@NonNull ByteBuffer byteBuffer, @NonNull MediaCodec.BufferInfo bufferInfo) {
     if (forceKey && Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
       forceKey = false;
       requestKeyframe();
     }
-    fixTimeStamp(bufferInfo);
     if (!spsPpsSetted && type.equals(CodecUtil.H264_MIME)) {
       Log.i(TAG, "formatChanged not called, doing manual sps/pps extraction...");
       Pair<ByteBuffer, ByteBuffer> buffers = VideoEncoderHelper.decodeSpsPpsFromBuffer(byteBuffer.duplicate(), bufferInfo.size);
@@ -498,6 +493,7 @@ public class VideoEncoder extends BaseEncoder implements GetCameraData {
       if (firstTimestamp == 0) firstTimestamp = bufferInfo.presentationTimeUs;
       bufferInfo.presentationTimeUs -= firstTimestamp;
     }
+    return checkValidTimeStamp(bufferInfo);
   }
 
   @Override
