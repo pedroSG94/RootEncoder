@@ -253,6 +253,7 @@ open class OpenGlView : SurfaceView, GlInterface, OnFrameAvailableListener, Surf
                     w, h, aspectRatioMode,
                     streamRotation, isStreamVerticalFlip, isStreamHorizontalFlip, null
                 )
+                surfaceManagerEncoder.setPresentationTime(mainRender.getSurfaceTexture().timestamp)
                 surfaceManagerEncoder.swapBuffer()
             }
         }
@@ -262,6 +263,7 @@ open class OpenGlView : SurfaceView, GlInterface, OnFrameAvailableListener, Surf
             val h = if (muteVideo) 0 else encoderRecordHeight
             if (surfaceManagerEncoderRecord.makeCurrent()) {
                 mainRender.drawScreen(w, h, aspectRatioMode, streamRotation, isStreamVerticalFlip, isStreamHorizontalFlip, null)
+                surfaceManagerEncoderRecord.setPresentationTime(mainRender.getSurfaceTexture().timestamp)
                 surfaceManagerEncoderRecord.swapBuffer()
             }
         }
