@@ -1,7 +1,7 @@
 [versions]
 #plugins versions
 agp = "8.13.2"
-kotlin = "2.3.10"
+kotlin = "2.3.20"
 dokka = "2.1.0"
 
 #dependencies versions
@@ -15,9 +15,9 @@ multidex = "2.0.1"
 annotation = "1.9.1"
 coroutines = "1.10.2"
 junit = "4.13.2"
-mockito = "6.2.3"
+mockito = "6.3.0"
 uvcandroid = "1.0.11"
-media3 = "1.9.2"
+media3 = "1.9.3"
 
 [libraries]
 androidx-annotation = { module = "androidx.annotation:annotation", version.ref = "annotation" }
