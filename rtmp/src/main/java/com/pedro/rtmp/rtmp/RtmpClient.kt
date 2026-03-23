@@ -28,6 +28,7 @@ import com.pedro.common.clone
 import com.pedro.common.frame.MediaFrame
 import com.pedro.common.onMainThread
 import com.pedro.common.socket.base.SocketType
+import com.pedro.common.socket.base.StreamSocket
 import com.pedro.common.toMediaFrameInfo
 import com.pedro.common.validMessage
 import com.pedro.rtmp.amf.AmfVersion
@@ -58,6 +59,7 @@ import kotlinx.coroutines.withTimeoutOrNull
 import java.io.IOException
 import java.net.URISyntaxException
 import java.nio.ByteBuffer
+import java.util.concurrent.atomic.AtomicLong
 import javax.net.ssl.TrustManager
 
 /**
@@ -72,6 +74,7 @@ class RtmpClient(private val connectChecker: ConnectChecker) {
   private var socket: RtmpSocket? = null
   private var scope = CoroutineScope(Dispatchers.IO)
   private var scopeRetry = CoroutineScope(Dispatchers.IO)
+  private var scopePing = CoroutineScope(Dispatchers.IO)
   private var job: Job? = null
   private var jobRetry: Job? = null
   private var commandsManager: CommandsManager = CommandsManagerAmf0()
@@ -91,11 +94,12 @@ class RtmpClient(private val connectChecker: ConnectChecker) {
   private var reTries = 0
   private var checkServerAlive = false
   private var publishPermitted = false
+  private var ignoredCommandReceived: ((String) -> Unit)? = null
 
   val droppedAudioFrames: Long
-    get() = rtmpSender.droppedAudioFrames
+    get() = rtmpSender.getDroppedAudioFrames()
   val droppedVideoFrames: Long
-    get() = rtmpSender.droppedVideoFrames
+    get() = rtmpSender.getDroppedVideoFrames()
 
   val cacheSize: Int
     get() = rtmpSender.getCacheSize()
@@ -103,7 +107,15 @@ class RtmpClient(private val connectChecker: ConnectChecker) {
     get() = rtmpSender.getSentAudioFrames()
   val sentVideoFrames: Long
     get() = rtmpSender.getSentVideoFrames()
+  val bytesSend: Long
+    get() = rtmpSender.getBytesSend()
   var socketType = SocketType.KTOR
+  var socketTimeout = StreamSocket.DEFAULT_TIMEOUT
+  var shouldFailOnRead = false
+  var shouldSendPings = false
+  var rtt = 0 //in micro
+    private set
+  private val pingTs = AtomicLong(0)
 
   /**
    * Add certificates for TLS connection
@@ -120,10 +132,7 @@ class RtmpClient(private val connectChecker: ConnectChecker) {
 
   fun setAudioCodec(audioCodec: AudioCodec) {
     if (!isStreaming) {
-      commandsManager.audioCodec = when (audioCodec) {
-        AudioCodec.OPUS -> throw IllegalArgumentException("Unsupported codec: ${audioCodec.name}")
-        else -> audioCodec
-      }
+      commandsManager.audioCodec = audioCodec
     }
   }
 
@@ -136,11 +145,19 @@ class RtmpClient(private val connectChecker: ConnectChecker) {
     }
   }
 
+  fun setIgnoredCommandCallback(callback: ((String) -> Unit)?) {
+    ignoredCommandReceived = callback
+  }
+
   /**
    * Check periodically if server is alive using Echo protocol.
    */
   fun setCheckServerAlive(enabled: Boolean) {
     checkServerAlive = enabled
+  }
+
+  fun shouldSendPings(enabled: Boolean) {
+    shouldSendPings = enabled
   }
 
   /**
@@ -171,6 +188,10 @@ class RtmpClient(private val connectChecker: ConnectChecker) {
     if (!isStreaming) {
       RtmpConfig.writeChunkSize = chunkSize
     }
+  }
+
+  fun setCustomAmfObject(amfObject: Map<String, Any>) {
+    commandsManager.customAmfObject = amfObject
   }
 
   fun setAuthorization(user: String?, password: String?) {
@@ -280,6 +301,7 @@ class RtmpClient(private val connectChecker: ConnectChecker) {
             //Handle all command received and send response for it.
             handleMessages()
           }
+          if (shouldSendPings) commandsManager.sendPing(socket)
           //read packet because maybe server want send you something while streaming
           handleServerPackets()
         }.exceptionOrNull()
@@ -298,7 +320,6 @@ class RtmpClient(private val connectChecker: ConnectChecker) {
     while (scope.isActive && isStreaming) {
       val error = runCatching {
         if (isAlive()) {
-          delay(2000)
           //ignore packet after connect if tunneled to avoid spam idle
           if (!tunneled) handleMessages()
         } else {
@@ -310,6 +331,7 @@ class RtmpClient(private val connectChecker: ConnectChecker) {
       }.exceptionOrNull()
       if (error != null && ConnectionFailed.parse(error.validMessage()) != ConnectionFailed.TIMEOUT) {
         scope.cancel()
+        if (shouldFailOnRead) connectChecker.onConnectionFailed(error.validMessage())
       }
     }
   }
@@ -330,7 +352,7 @@ class RtmpClient(private val connectChecker: ConnectChecker) {
     val socket = if (tunneled) {
       TcpTunneledSocket(commandsManager.host, commandsManager.port, tlsEnabled)
     } else {
-      TcpSocket(socketType, commandsManager.host, commandsManager.port, tlsEnabled, certificates)
+      TcpSocket(socketType, commandsManager.host, commandsManager.port, tlsEnabled, socketTimeout, certificates)
     }
     this.socket = socket
     socket.connect()
@@ -381,6 +403,19 @@ class RtmpClient(private val connectChecker: ConnectChecker) {
           Type.PING_REQUEST -> {
             commandsManager.sendPong(userControl.event, socket)
           }
+          Type.PONG_REPLY -> {
+            Log.i(TAG, "pong received: ${userControl.event.data}")
+            if (shouldSendPings) {
+              rtt = (TimeUtils.getCurrentTimeMicro() - pingTs.get()).toInt()
+              scopePing.launch {
+                delay(1000)
+                if (isStreaming) {
+                  pingTs.set(TimeUtils.getCurrentTimeMicro())
+                  commandsManager.sendPing(socket)
+                }
+              }
+            }
+          }
           else -> {
             Log.i(TAG, "user control command $type ignored")
           }
@@ -394,9 +429,7 @@ class RtmpClient(private val connectChecker: ConnectChecker) {
             when (commandName) {
               "connect" -> {
                 if (commandsManager.onAuth) {
-                  onMainThread {
-                    connectChecker.onAuthSuccess()
-                  }
+                  onMainThread { connectChecker.onAuthSuccess() }
                   commandsManager.onAuth = false
                 }
                 commandsManager.createStream(socket)
@@ -484,13 +517,15 @@ class RtmpClient(private val connectChecker: ConnectChecker) {
                   rtmpSender.start()
                   publishPermitted = true
                 }
-                "NetConnection.Connect.Rejected", "NetStream.Publish.BadName" -> {
+                "NetConnection.Connect.Rejected", "NetStream.Publish.BadName", "NetConnection.Connect.Closed", "NetStream.Publish.Failed" -> {
                   onMainThread {
                     connectChecker.onConnectionFailed("onStatus: $code")
                   }
                 }
                 else -> {
-                  Log.i(TAG, "onStatus $code response received from ${commandName ?: "unknown command"}")
+                  val message = "onStatus $code response received from ${commandName ?: "unknown command"}"
+                  Log.i(TAG, message)
+                  ignoredCommandReceived?.let { onMainThread { it.invoke(message) } }
                 }
               }
             } catch (e: ClassCastException) {
@@ -498,7 +533,9 @@ class RtmpClient(private val connectChecker: ConnectChecker) {
             }
           }
           else -> {
-            Log.i(TAG, "unknown ${command.name} response received from ${commandName ?: "unknown command"}")
+            val message = "unknown ${command.name} response received from ${commandName ?: "unknown command"}"
+            Log.i(TAG, message)
+            ignoredCommandReceived?.let { onMainThread { it.invoke(message) } }
           }
         }
       }
@@ -550,6 +587,8 @@ class RtmpClient(private val connectChecker: ConnectChecker) {
       jobRetry = null
       scopeRetry.cancel()
       scopeRetry = CoroutineScope(Dispatchers.IO)
+      scopePing.cancel()
+      scopePing = CoroutineScope(Dispatchers.IO)
     }
     job?.cancelAndJoin()
     job = null
@@ -557,6 +596,7 @@ class RtmpClient(private val connectChecker: ConnectChecker) {
     scope = CoroutineScope(Dispatchers.IO)
     publishPermitted = false
     commandsManager.reset()
+    rtt = 0
   }
 
   fun sendVideo(videoBuffer: ByteBuffer, info: MediaCodec.BufferInfo) {
@@ -591,6 +631,10 @@ class RtmpClient(private val connectChecker: ConnectChecker) {
 
   fun resetDroppedVideoFrames() {
     rtmpSender.resetDroppedVideoFrames()
+  }
+
+  fun resetBytesSend() {
+    rtmpSender.resetBytesSend()
   }
 
   @Throws(RuntimeException::class)

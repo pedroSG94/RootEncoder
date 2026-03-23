@@ -29,6 +29,7 @@ import com.pedro.rtmp.flv.FlvPacket
 import com.pedro.rtmp.flv.FlvType
 import com.pedro.rtmp.flv.audio.packet.AacPacket
 import com.pedro.rtmp.flv.audio.packet.G711Packet
+import com.pedro.rtmp.flv.audio.packet.OpusPacket
 import com.pedro.rtmp.flv.video.packet.Av1Packet
 import com.pedro.rtmp.flv.video.packet.H264Packet
 import com.pedro.rtmp.flv.video.packet.H265Packet
@@ -69,9 +70,7 @@ class RtmpSender(
     audioPacket = when (commandsManager.audioCodec) {
       AudioCodec.G711 -> G711Packet().apply { sendAudioInfo() }
       AudioCodec.AAC -> AacPacket().apply { sendAudioInfo(sampleRate, isStereo) }
-      AudioCodec.OPUS -> {
-        throw IllegalArgumentException("Unsupported codec: ${commandsManager.audioCodec.name}")
-      }
+      AudioCodec.OPUS -> OpusPacket().apply { sendAudioInfo(sampleRate, isStereo) }
     }
   }
 
@@ -80,25 +79,26 @@ class RtmpSender(
       val error = runCatching {
         val mediaFrame = runInterruptible { queue.take() }
         getFlvPacket(mediaFrame) { flvPacket ->
-          var size = 0
+          var size = 0L
           if (flvPacket.type == FlvType.VIDEO) {
-            videoFramesSent++
+            videoFramesSent.incrementAndGet()
             socket?.let { socket ->
-              size = commandsManager.sendVideoPacket(flvPacket, socket)
+              size = commandsManager.sendVideoPacket(flvPacket, socket).toLong()
               if (isEnableLogs) {
                 Log.i(TAG, "wrote Video packet, size $size")
               }
             }
           } else {
-            audioFramesSent++
+            audioFramesSent.incrementAndGet()
             socket?.let { socket ->
-              size = commandsManager.sendAudioPacket(flvPacket, socket)
+              size = commandsManager.sendAudioPacket(flvPacket, socket).toLong()
               if (isEnableLogs) {
                 Log.i(TAG, "wrote Audio packet, size $size")
               }
             }
           }
-          bytesSend += size
+          bytesSend.addAndGet(size)
+          bytesSendPerSecond.addAndGet(size)
         }
       }.exceptionOrNull()
       if (error != null) {

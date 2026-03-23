@@ -10,6 +10,16 @@ import java.net.URISyntaxException
 class UrlParserTest {
 
   @Test
+  fun testNoAppName() {
+    val url = "rtmp://localhost:1935/"
+    val urlParser = UrlParser.parse(url, arrayOf("rtmp"))
+    assertEquals("rtmp", urlParser.scheme)
+    assertEquals("localhost", urlParser.host)
+    assertEquals(1935, urlParser.port)
+    assertEquals("", urlParser.getAppName())
+  }
+
+  @Test
   fun testRtmpUrls() {
     try {
       val url = "rtmp://localhost:1935/live?test/fake"
@@ -17,9 +27,9 @@ class UrlParserTest {
       assertEquals("rtmp", urlParser.scheme)
       assertEquals("localhost", urlParser.host)
       assertEquals(1935, urlParser.port)
-      assertEquals("live", urlParser.getAppName())
-      assertEquals("test/fake", urlParser.getStreamName())
-      assertEquals("rtmp://localhost:1935/live", urlParser.getTcUrl())
+      assertEquals("live?test", urlParser.getAppName())
+      assertEquals("fake", urlParser.getStreamName())
+      assertEquals("rtmp://localhost:1935/live?test", urlParser.getTcUrl())
 
       val url0 = "rtmp://192.168.238.182:1935/live/100044?userId=100044&roomTitle=123123&roomCover=http://192.168.238.182/xxxx.png"
       val urlParser0 = UrlParser.parse(url0, arrayOf("rtmp"))
@@ -35,9 +45,9 @@ class UrlParserTest {
       assertEquals("rtmp", urlParser1.scheme)
       assertEquals("localhost", urlParser1.host)
       assertEquals(1935, urlParser1.port)
-      assertEquals("live", urlParser1.getAppName())
-      assertEquals("test/fake", urlParser1.getStreamName())
-      assertEquals("rtmp://localhost:1935/live", urlParser1.getTcUrl())
+      assertEquals("live?test", urlParser1.getAppName())
+      assertEquals("fake", urlParser1.getStreamName())
+      assertEquals("rtmp://localhost:1935/live?test", urlParser1.getTcUrl())
       assertEquals("user", urlParser1.getAuthUser())
       assertEquals("pass", urlParser1.getAuthPassword())
 
@@ -103,7 +113,25 @@ class UrlParserTest {
       assertEquals("v2/pub", urlParser8.getAppName())
       assertEquals("streamName?token", urlParser8.getStreamName())
       assertEquals("rtmp://192.168.0.1:1935/v2/pub", urlParser8.getTcUrl())
-    } catch (e: URISyntaxException) {
+
+      val url9 = "rtmp://192.168.0.1:1935/live/test?asd/asd/streamName"
+      val urlParser9 = UrlParser.parse(url9, arrayOf("rtmp"))
+      assertEquals("rtmp", urlParser9.scheme)
+      assertEquals("192.168.0.1", urlParser9.host)
+      assertEquals(1935, urlParser9.port)
+      assertEquals("live/test?asd", urlParser9.getAppName())
+      assertEquals("asd/streamName", urlParser9.getStreamName())
+      assertEquals("rtmp://192.168.0.1:1935/live/test?asd", urlParser9.getTcUrl())
+
+      val url10 = "rtmps://192.168.0.1:1935/live/streamName?queryParam1=value1&queryParam2=YudWE%3d"
+      val urlParser10 = UrlParser.parse(url10, arrayOf("rtmps"))
+      assertEquals("rtmps", urlParser10.scheme)
+      assertEquals("192.168.0.1", urlParser10.host)
+      assertEquals(1935, urlParser10.port)
+      assertEquals("live", urlParser10.getAppName())
+      assertEquals("streamName?queryParam1=value1&queryParam2=YudWE%3d", urlParser10.getStreamName())
+      assertEquals("rtmps://192.168.0.1:1935/live", urlParser10.getTcUrl())
+    } catch (_: URISyntaxException) {
       assert(false)
     }
   }

@@ -52,7 +52,6 @@ class SrtStreamClient(
   }
 
   override fun setAuthorization(user: String?, password: String?) {
-    srtClient.setAuthorization(user, password)
   }
 
   override fun setReTries(reTries: Int) {
@@ -94,6 +93,8 @@ class SrtStreamClient(
 
   override fun getSentVideoFrames(): Long = srtClient.sentVideoFrames
 
+  override fun getBytesSend(): Long = srtClient.bytesSend
+
   override fun getDroppedAudioFrames(): Long = srtClient.droppedAudioFrames
 
   override fun getDroppedVideoFrames(): Long = srtClient.droppedVideoFrames
@@ -112,6 +113,10 @@ class SrtStreamClient(
 
   override fun resetDroppedVideoFrames() {
     srtClient.resetDroppedVideoFrames()
+  }
+
+  override fun resetBytesSend() {
+    srtClient.resetBytesSend()
   }
 
   override fun setOnlyAudio(onlyAudio: Boolean) {
@@ -143,6 +148,13 @@ class SrtStreamClient(
   }
 
   /**
+   * Set timeout ms for connection, write and read in sockets by default 5000ms
+   */
+  override fun setSocketTimeout(timeout: Long) {
+    srtClient.socketTimeout = timeout
+  }
+
+  /**
    * Set a custom Mpeg2TsService with specified parameters
    * Must be called before connecting to the server
    *
@@ -151,4 +163,14 @@ class SrtStreamClient(
   fun setMpeg2TsService(customService: Mpeg2TsService) {
     srtClient.setMpeg2TsService(customService)
   }
+
+  /**
+   * RTT in micro seconds reported by ACK command
+   */
+  fun getRtt() = srtClient.rtt
+
+  /**
+   * Packets lost reported by NAK command. Increment each time a NAK is received.
+   */
+  fun getPacketsLost() = srtClient.packetsLost
 }

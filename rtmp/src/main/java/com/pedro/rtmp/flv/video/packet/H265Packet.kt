@@ -18,11 +18,12 @@ package com.pedro.rtmp.flv.video.packet
 
 import android.util.Log
 import com.pedro.common.frame.MediaFrame
+import com.pedro.common.getStartCodeSize
 import com.pedro.common.removeInfo
 import com.pedro.rtmp.flv.BasePacket
 import com.pedro.rtmp.flv.FlvPacket
 import com.pedro.rtmp.flv.FlvType
-import com.pedro.rtmp.flv.video.FourCCPacketType
+import com.pedro.rtmp.flv.video.VideoFourCCPacketType
 import com.pedro.rtmp.flv.video.VideoDataType
 import com.pedro.rtmp.flv.video.VideoFormat
 import com.pedro.rtmp.flv.video.VideoNalType
@@ -85,11 +86,10 @@ class H265Packet: BasePacket() {
     header[6] = (cts shr 8).toByte()
     header[7] = cts.toByte()
 
-    val packets = mutableListOf<FlvPacket>()
     var buffer: ByteArray
     if (!configSend) {
       //avoid send cts on sequence start
-      header[0] = (0b10000000 or (VideoDataType.KEYFRAME.value shl 4) or FourCCPacketType.SEQUENCE_START.value).toByte()
+      header[0] = (0b10000000 or (VideoDataType.KEYFRAME.value shl 4) or VideoFourCCPacketType.SEQUENCE_START.value).toByte()
       val sps = this.sps
       val pps = this.pps
       val vps = this.vps
@@ -121,7 +121,7 @@ class H265Packet: BasePacket() {
       // we don't need send it because we already do it in video config
       return
     }
-    header[0] = (0b10000000 or (nalType shl 4) or FourCCPacketType.CODED_FRAMES.value).toByte()
+    header[0] = (0b10000000 or (nalType shl 4) or VideoFourCCPacketType.CODED_FRAMES.value).toByte()
     writeNaluSize(buffer, header.size, size)
     validBuffer.get(buffer, header.size + naluSize, size)
 
@@ -138,7 +138,7 @@ class H265Packet: BasePacket() {
   }
 
   private fun removeHeader(byteBuffer: ByteBuffer, size: Int = -1): ByteBuffer {
-    val position = if (size == -1) getStartCodeSize(byteBuffer) else size
+    val position = if (size == -1) byteBuffer.getStartCodeSize() else size
     byteBuffer.position(position)
     return byteBuffer.slice()
   }
@@ -150,9 +150,9 @@ class H265Packet: BasePacket() {
     val pps = this.pps
     val vps = this.vps
     if (sps != null && pps != null && vps != null) {
-      val startCodeSize = getStartCodeSize(byteBuffer)
+      val startCodeSize = byteBuffer.getStartCodeSize()
       if (startCodeSize == 0) return 0
-      val startCode = ByteArray(startCodeSize) { 0x00 }
+      val startCode = ByteArray(startCodeSize)
       startCode[startCodeSize - 1] = 0x01
       val avcHeader = startCode.plus(vps).plus(startCode).plus(sps).plus(startCode).plus(pps).plus(startCode)
       if (byteBuffer.remaining() < avcHeader.size) return startCodeSize
@@ -166,20 +166,6 @@ class H265Packet: BasePacket() {
       }
     }
     return 0
-  }
-
-  private fun getStartCodeSize(byteBuffer: ByteBuffer): Int {
-    var startCodeSize = 0
-    if (byteBuffer.get(0).toInt() == 0x00 && byteBuffer.get(1).toInt() == 0x00
-      && byteBuffer.get(2).toInt() == 0x00 && byteBuffer.get(3).toInt() == 0x01) {
-      //match 00 00 00 01
-      startCodeSize = 4
-    } else if (byteBuffer.get(0).toInt() == 0x00 && byteBuffer.get(1).toInt() == 0x00
-      && byteBuffer.get(2).toInt() == 0x01) {
-      //match 00 00 01
-      startCodeSize = 3
-    }
-    return startCodeSize
   }
 
   override fun reset(resetInfo: Boolean) {

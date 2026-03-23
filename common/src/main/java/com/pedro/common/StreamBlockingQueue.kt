@@ -3,10 +3,11 @@ package com.pedro.common
 import com.pedro.common.frame.MediaFrame
 import java.util.concurrent.PriorityBlockingQueue
 import java.util.concurrent.atomic.AtomicBoolean
+import kotlin.math.max
 
-class StreamBlockingQueue(size: Int) {
+class StreamBlockingQueue(var capacity: Int) {
 
-    private val queue = PriorityBlockingQueue<MediaFrame>(size) { p0, p1 ->
+    private val queue = PriorityBlockingQueue<MediaFrame>(capacity) { p0, p1 ->
         p0.info.timestamp.compare(p1.info.timestamp)
     }
     private var cacheQueue = PriorityBlockingQueue<MediaFrame>(200) { p0, p1 ->
@@ -17,6 +18,7 @@ class StreamBlockingQueue(size: Int) {
     private var startTs = 0L
 
     fun trySend(item: MediaFrame): Boolean {
+        if (queue.size >= capacity) return false
         if (cacheTime > 0 && !cacheTimeFilled.get()) {
             if (startTs == 0L) startTs = TimeUtils.getCurrentTimeMillis()
             val t = TimeUtils.getCurrentTimeMillis() - startTs
@@ -28,7 +30,7 @@ class StreamBlockingQueue(size: Int) {
                 if (cacheTimeFilled.get()) queue.add(cacheQueue.take())
             } else queue.add(item)
             return true
-        } catch (e: IllegalStateException) {
+        } catch (_: IllegalStateException) {
             false
         }
     }
@@ -37,7 +39,7 @@ class StreamBlockingQueue(size: Int) {
         return queue.take()
     }
 
-    fun remainingCapacity(): Int = queue.remainingCapacity()
+    fun remainingCapacity(): Int = max(0, capacity - queue.size)
 
     fun drainTo(destiny: StreamBlockingQueue) {
         queue.drainTo(destiny.queue)

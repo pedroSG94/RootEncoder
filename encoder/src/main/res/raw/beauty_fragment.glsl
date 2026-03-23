@@ -1,4 +1,4 @@
-precision highp float;
+precision mediump float;
 
 uniform sampler2D uSampler;
 uniform vec2 uResolution;

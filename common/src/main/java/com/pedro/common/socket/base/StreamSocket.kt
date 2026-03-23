@@ -28,26 +28,32 @@ import javax.net.ssl.TrustManager
  * Created by pedro on 22/9/24.
  */
 abstract class StreamSocket {
-  protected val timeout = 5000L
+  protected var timeout = DEFAULT_TIMEOUT
   abstract suspend fun connect()
   abstract suspend fun close()
   abstract fun isConnected(): Boolean
   abstract fun isReachable(): Boolean
 
   companion object {
+    const val DEFAULT_TIMEOUT = 5000L
     fun createTcpSocket(
       type: SocketType,
-      host: String, port: Int, secured: Boolean, certificates: TrustManager? = null
+      host: String, port: Int, secured: Boolean,
+      timeout: Long,
+      certificates: TrustManager? = null
     ): TcpStreamSocket {
       return when (type) {
         SocketType.KTOR -> TcpStreamSocketKtor(host, port, secured, certificates)
         SocketType.JAVA -> TcpStreamSocketJava(host, port, secured, certificates)
+      }.apply {
+        this.timeout = timeout
       }
     }
 
     fun createUdpSocket(
       type: SocketType,
       host: String, port: Int,
+      timeout: Long,
       sourceHost: String? = null,
       sourcePort: Int? = null,
       receiveSize: Int? = null,
@@ -56,6 +62,8 @@ abstract class StreamSocket {
       return when (type) {
         SocketType.KTOR -> UdpStreamSocketKtor(host, port, sourceHost, sourcePort, receiveSize, udpType)
         SocketType.JAVA -> UdpStreamSocketJava(host, port, sourceHost, sourcePort, receiveSize, udpType)
+      }.apply {
+        this.timeout = timeout
       }
     }
   }

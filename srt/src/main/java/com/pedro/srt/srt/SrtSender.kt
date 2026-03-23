@@ -125,8 +125,10 @@ class SrtSender(
         getMpegTsPackets(mediaFrame) { mpegTsPackets ->
           val isKey = mpegTsPackets[0].isKey
           val psiPackets = psiManager.checkSendInfo(isKey, mpegTsPacketizer, chunkSize)
-          bytesSend += sendPackets(psiPackets, MpegType.PSI)
-          bytesSend += sendPackets(mpegTsPackets, mpegTsPackets[0].type)
+          val bytesPsi = sendPackets(psiPackets, MpegType.PSI)
+          val bytes = sendPackets(mpegTsPackets, mpegTsPackets[0].type)
+          bytesSend.addAndGet(bytesPsi + bytes)
+          bytesSendPerSecond.addAndGet(bytesPsi + bytes)
         }
       }.exceptionOrNull()
       if (error != null) {
@@ -156,8 +158,8 @@ class SrtSender(
       size += commandsManager.writeData(mpegTsPacket, socket)
       bytesSend += size
     }
-    if (type == MpegType.VIDEO) videoFramesSent++
-    else if (type == MpegType.AUDIO) audioFramesSent++
+    if (type == MpegType.VIDEO) videoFramesSent.incrementAndGet()
+    else if (type == MpegType.AUDIO) audioFramesSent.incrementAndGet()
     if (isEnableLogs) {
       Log.i(TAG, "wrote ${type.name} packet, size $bytesSend")
     }

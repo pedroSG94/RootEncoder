@@ -43,6 +43,7 @@ com.pedro.library.udp
 com.pedro.library.util
 com.pedro.library.util.streamclient
 com.pedro.library.view
+com.pedro.library.view.preview
 module:rtmp
 com.pedro.rtmp.amf
 com.pedro.rtmp.amf.v0

@@ -48,6 +48,7 @@ class BufferVideoSource(
     })
     private var scope = CoroutineScope(Dispatchers.IO)
     private val queue: BlockingQueue<Frame> = ArrayBlockingQueue(80)
+    private var surface: Surface? = null
 
     fun setBuffer(data: ByteBuffer) {
         setBuffer(data.toByteArray())
@@ -90,8 +91,11 @@ class BufferVideoSource(
         scope = CoroutineScope(Dispatchers.IO)
         queue.clear()
         running = true
+        videoEncoder.prepareVideoEncoder(width, height, fps, bitrate, rotation, 2, FormatVideoEncoder.YUV420Dynamical)
+        decoder.prepare(width, height, fps, rotation)
         videoEncoder.start()
-        decoder.start(Surface(surfaceTexture))
+        surface = Surface(surfaceTexture)
+        decoder.start(surface)
         when (format) {
             Format.RGB, Format.ARGB, Format.NV21, Format.NV12 -> {
                 scope.launch {
@@ -111,6 +115,7 @@ class BufferVideoSource(
         videoEncoder.stop()
         decoder.stop()
         queue.clear()
+        surface?.release()
     }
 
     override fun release() { }

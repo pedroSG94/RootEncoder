@@ -61,6 +61,7 @@ abstract class CommandsManager {
   var readChunkSize = RtmpConfig.DEFAULT_CHUNK_SIZE
   var audioDisabled = false
   var videoDisabled = false
+  var customAmfObject: Map<String, Any> = emptyMap()
   private var bytesRead = 0
   private var acknowledgementSequence = 0
 
@@ -168,6 +169,16 @@ abstract class CommandsManager {
       pong.writeBody(socket)
       socket.flush()
       Log.i(TAG, "send pong")
+    }
+  }
+
+  suspend fun sendPing(socket: RtmpSocket) {
+    writeSync.withLock {
+      val ping = UserControl(Type.PING_REQUEST, Event(TimeUtils.getCurrentTimeSeconds()))
+      ping.writeHeader(socket)
+      ping.writeBody(socket)
+      socket.flush()
+      Log.i(TAG, "send ping")
     }
   }
 

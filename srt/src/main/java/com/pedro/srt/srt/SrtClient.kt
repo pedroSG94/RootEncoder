@@ -27,6 +27,7 @@ import com.pedro.common.clone
 import com.pedro.common.frame.MediaFrame
 import com.pedro.common.onMainThread
 import com.pedro.common.socket.base.SocketType
+import com.pedro.common.socket.base.StreamSocket
 import com.pedro.common.toMediaFrameInfo
 import com.pedro.common.validMessage
 import com.pedro.srt.mpeg2ts.service.Mpeg2TsService
@@ -88,9 +89,9 @@ class SrtClient(private val connectChecker: ConnectChecker) {
   private var reTries = 0
 
   val droppedAudioFrames: Long
-    get() = srtSender.droppedAudioFrames
+    get() = srtSender.getDroppedAudioFrames()
   val droppedVideoFrames: Long
-    get() = srtSender.droppedVideoFrames
+    get() = srtSender.getDroppedVideoFrames()
 
   val cacheSize: Int
     get() = srtSender.getCacheSize()
@@ -98,8 +99,15 @@ class SrtClient(private val connectChecker: ConnectChecker) {
     get() = srtSender.getSentAudioFrames()
   val sentVideoFrames: Long
     get() = srtSender.getSentVideoFrames()
+  val bytesSend: Long
+    get() = srtSender.getBytesSend()
+  var rtt = 0 //in micro
+    private set
+  var packetsLost = 0
+    private set
   private var latency = 120_000 //in micro
   var socketType = SocketType.KTOR
+  var socketTimeout = StreamSocket.DEFAULT_TIMEOUT
 
   fun setVideoCodec(videoCodec: VideoCodec) {
     if (!isStreaming) {
@@ -127,16 +135,12 @@ class SrtClient(private val connectChecker: ConnectChecker) {
     srtSender.setDelay(millis)
   }
 
-  fun setAuthorization(user: String?, password: String?) {
-    TODO("unimplemented")
-  }
-
   /**
    * Set passphrase for encrypt. Use empty value to disable it.
    */
   fun setPassphrase(passphrase: String, type: EncryptionType) {
     if (!isStreaming) {
-      if (passphrase.length < 10 || passphrase.length > 79) {
+      if (passphrase.length !in 10..79) {
         throw IllegalArgumentException("passphrase must between 10 and 79 length")
       }
       commandsManager.setPassphrase(passphrase, type)
@@ -209,6 +213,15 @@ class SrtClient(private val connectChecker: ConnectChecker) {
         val port = urlParser.port ?: 8888
         val path = urlParser.getQuery("streamid") ?: urlParser.getFullPath()
         latency = urlParser.getQuery("latency")?.toIntOrNull() ?: latency
+        val passphrase = urlParser.getQuery("passphrase") ?: ""
+        if (passphrase.isNotEmpty() && passphrase.length in 10..79) {
+          val encryptionType = when (urlParser.getQuery("pbkeylen")?.toIntOrNull()) {
+            192 -> EncryptionType.AES192
+            256 -> EncryptionType.AES256
+            else -> EncryptionType.AES128
+          }
+          commandsManager.setPassphrase(passphrase, encryptionType)
+        }
         if (path.isEmpty()) {
           isStreaming = false
           onMainThread {
@@ -219,7 +232,7 @@ class SrtClient(private val connectChecker: ConnectChecker) {
         commandsManager.host = host
 
         val error = runCatching {
-          socket = SrtSocket(socketType, host, port)
+          socket = SrtSocket(socketType, host, port, socketTimeout)
           socket?.connect()
           commandsManager.loadStartTs()
 
@@ -228,6 +241,7 @@ class SrtClient(private val connectChecker: ConnectChecker) {
 
           commandsManager.writeHandshake(socket, response.copy(
             encryption = commandsManager.getEncryptType(),
+            extensionField = ExtensionField.calculateValue(response.extensionField, commandsManager.encryptionEnabled()),
             handshakeType = HandshakeType.CONCLUSION,
             handshakeExtension = HandshakeExtension(
               flags = ExtensionContentFlag.TSBPDSND.value or ExtensionContentFlag.TSBPDRCV.value or
@@ -294,6 +308,8 @@ class SrtClient(private val connectChecker: ConnectChecker) {
       scopeRetry = CoroutineScope(Dispatchers.IO)
     }
     commandsManager.reset()
+    rtt = 0
+    packetsLost = 0
     job?.cancelAndJoin()
     job = null
     scope.cancel()
@@ -319,7 +335,6 @@ class SrtClient(private val connectChecker: ConnectChecker) {
     while (scope.isActive && isStreaming) {
       val error = runCatching {
         if (isAlive()) {
-          delay(2000)
           //ignore packet after connect if tunneled to avoid spam idle
           handleMessages()
         } else {
@@ -364,6 +379,7 @@ class SrtClient(private val connectChecker: ConnectChecker) {
             commandsManager.writeKeepAlive(socket)
           }
           is Ack -> {
+            rtt = srtPacket.rtt
             val ackSequence = srtPacket.typeSpecificInformation
             val lastPacketSequence = srtPacket.lastAcknowledgedPacketSequenceNumber
             commandsManager.updateHandlingQueue(lastPacketSequence)
@@ -372,6 +388,7 @@ class SrtClient(private val connectChecker: ConnectChecker) {
           is Nak -> {
             //packet lost reported, we should resend it
             val packetsLost = srtPacket.getNakPacketsLostList()
+            this.packetsLost += packetsLost.size
             commandsManager.reSendPackets(packetsLost, socket)
           }
           is CongestionWarning -> {
@@ -444,6 +461,10 @@ class SrtClient(private val connectChecker: ConnectChecker) {
 
   fun resetDroppedVideoFrames() {
     srtSender.resetDroppedVideoFrames()
+  }
+
+  fun resetBytesSend() {
+    srtSender.resetBytesSend()
   }
 
   @Throws(RuntimeException::class)

@@ -30,7 +30,7 @@ import java.nio.ByteBuffer
 class AacPacketTest {
 
   @Test
-  fun `GIVEN a aac buffer WHEN call create a aac packet 2 times THEN return config and expected buffer`() = runTest {
+  fun `GIVEN an AAC buffer WHEN call create an AAC packet 2 times THEN return config and expected buffer`() = runTest {
     val timestamp = 123456789L
     val buffer = ByteArray(256) { 0x00 }
     val info = MediaFrame.Info(0, buffer.size, timestamp, false)

@@ -73,6 +73,8 @@ class CommandsManager {
     return encryptor?.type ?: EncryptionType.NONE
   }
 
+  fun encryptionEnabled() = encryptor != null
+
   fun loadStartTs() {
     startTS = TimeUtils.getCurrentTimeMicro()
   }

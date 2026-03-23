@@ -22,9 +22,7 @@ class TcpStreamSocketJava(
             try {
                 val context = SSLContext.getInstance("TLS")
                 context.init(null, certificates?.let { arrayOf(it) }, SecureRandom())
-                val socket = context.socketFactory.createSocket()
-                if (socket is SSLSocket) socket.enabledProtocols = arrayOf("TLSv1.1", "TLSv1.2")
-                socket
+                context.socketFactory.createSocket()
             } catch (e: GeneralSecurityException) {
                 throw IOException("Create SSL socket failed: ${e.message}")
             }

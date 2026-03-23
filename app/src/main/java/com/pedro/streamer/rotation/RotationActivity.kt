@@ -111,7 +111,7 @@ class RotationActivity : AppCompatActivity(), OnTouchListener {
           val source = BufferVideoSource(BufferVideoSource.Format.ARGB, cameraFragment.vBitrate)
           cameraFragment.genericStream.changeVideoSource(source)
           CoroutineScope(Dispatchers.IO).launch {
-            while (source.isRunning()) {
+            while (cameraFragment.genericStream.videoSource is BufferVideoSource) {
               source.setBuffer(data.clone())
               delay(1000 / 30)
             }

@@ -134,7 +134,7 @@ class CommandsManager {
         )
     }
 
-    suspend fun gatheringCandidates(socketType: SocketType, gatheringMode: GatheringMode): List<Candidate> {
+    suspend fun gatheringCandidates(socketType: SocketType, timeout: Long, gatheringMode: GatheringMode): List<Candidate> {
         val googleStunHost = "stun.l.google.com"
         val googleStunPort = 19302
         val startPort = 5000
@@ -143,7 +143,7 @@ class CommandsManager {
           GatheringMode.LOCAL -> getLocalCandidates(hosts, startPort)
           GatheringMode.ALL -> {
               val localCandidates = getLocalCandidates(hosts, startPort)
-              val publicCandidates = getStunCandidates(socketType, googleStunHost, googleStunPort, hosts, startPort + localCandidates.size)
+              val publicCandidates = getStunCandidates(socketType, googleStunHost, googleStunPort, timeout, hosts, startPort + localCandidates.size)
               return localCandidates + publicCandidates
           }
         }
@@ -200,6 +200,7 @@ class CommandsManager {
         socketType: SocketType,
         stunHost: String,
         stunPort: Int,
+        timeout: Long,
         hosts: List<String>,
         startPort: Int
     ): List<Candidate> {
@@ -210,6 +211,7 @@ class CommandsManager {
                 type = socketType,
                 host = host,
                 port = port++,
+                timeout = timeout,
                 receiveSize = RtpConstants.MTU,
             )
             candidateSocket.bind()

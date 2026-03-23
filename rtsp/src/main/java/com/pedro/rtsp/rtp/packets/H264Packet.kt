@@ -160,7 +160,7 @@ class H264Packet: BasePacket(RtpConstants.clockVideoFrequency,
     if (sps != null && pps != null) {
       val startCodeSize = byteBuffer.getVideoStartCodeSize()
       if (startCodeSize == 0) return 0
-      val startCode = ByteArray(startCodeSize) { 0x00 }
+      val startCode = ByteArray(startCodeSize)
       startCode[startCodeSize - 1] = 0x01
       val avcHeader = startCode.plus(sps).plus(startCode).plus(pps).plus(startCode)
       if (byteBuffer.remaining() < avcHeader.size) return startCodeSize

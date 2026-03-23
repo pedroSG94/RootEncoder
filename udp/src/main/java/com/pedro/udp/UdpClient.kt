@@ -26,6 +26,7 @@ import com.pedro.common.clone
 import com.pedro.common.frame.MediaFrame
 import com.pedro.common.onMainThread
 import com.pedro.common.socket.base.SocketType
+import com.pedro.common.socket.base.StreamSocket
 import com.pedro.common.socket.base.UdpType
 import com.pedro.common.toMediaFrameInfo
 import com.pedro.common.validMessage
@@ -66,9 +67,9 @@ class UdpClient(private val connectChecker: ConnectChecker) {
   private var reTries = 0
 
   val droppedAudioFrames: Long
-    get() = udpSender.droppedAudioFrames
+    get() = udpSender.getDroppedAudioFrames()
   val droppedVideoFrames: Long
-    get() = udpSender.droppedVideoFrames
+    get() = udpSender.getDroppedVideoFrames()
 
   val cacheSize: Int
     get() = udpSender.getCacheSize()
@@ -76,7 +77,10 @@ class UdpClient(private val connectChecker: ConnectChecker) {
     get() = udpSender.getSentAudioFrames()
   val sentVideoFrames: Long
     get() = udpSender.getSentVideoFrames()
+  val bytesSend: Long
+    get() = udpSender.getBytesSend()
   var socketType = SocketType.KTOR
+  var socketTimeout = StreamSocket.DEFAULT_TIMEOUT
 
   fun setVideoCodec(videoCodec: VideoCodec) {
     if (!isStreaming) {
@@ -167,7 +171,7 @@ class UdpClient(private val connectChecker: ConnectChecker) {
 
         val error = runCatching {
           val type = UdpType.getTypeByHost(host)
-          socket = UdpSocket(socketType, host, type, port)
+          socket = UdpSocket(socketType, host, type, port, socketTimeout)
           socket?.connect()
 
           udpSender.socket = socket
@@ -274,6 +278,10 @@ class UdpClient(private val connectChecker: ConnectChecker) {
 
   fun resetDroppedVideoFrames() {
     udpSender.resetDroppedVideoFrames()
+  }
+
+  fun resetBytesSend() {
+    udpSender.resetBytesSend()
   }
 
   @Throws(RuntimeException::class)

@@ -31,12 +31,10 @@ import androidx.annotation.RequiresApi
 import androidx.fragment.app.Fragment
 import com.pedro.common.AudioCodec
 import com.pedro.common.ConnectChecker
-import com.pedro.common.socket.base.SocketType
 import com.pedro.encoder.input.sources.video.Camera1Source
 import com.pedro.encoder.input.sources.video.Camera2Source
 import com.pedro.extrasources.CameraXSource
 import com.pedro.library.base.recording.RecordController
-import com.pedro.library.generic.GenericStream
 import com.pedro.library.util.BitrateAdapter
 import com.pedro.library.whip.WhipStream
 import com.pedro.streamer.R
@@ -147,12 +145,12 @@ class CameraFragment: Fragment(), ConnectChecker {
         if (!folder.exists()) folder.mkdir()
         val sdf = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault())
         recordPath = "${folder.absolutePath}/${sdf.format(Date())}.mp4"
+        bRecord.setImageResource(R.drawable.pause_icon)
         genericStream.startRecord(recordPath) { status ->
           if (status == RecordController.Status.RECORDING) {
             bRecord.setImageResource(R.drawable.stop_icon)
           }
         }
-        bRecord.setImageResource(R.drawable.pause_icon)
       } else {
         genericStream.stopRecord()
         bRecord.setImageResource(R.drawable.record_icon)

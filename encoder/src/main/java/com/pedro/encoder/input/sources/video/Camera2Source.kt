@@ -18,7 +18,11 @@ package com.pedro.encoder.input.sources.video
 
 import android.content.Context
 import android.graphics.SurfaceTexture
+import android.hardware.camera2.CameraCaptureSession
 import android.hardware.camera2.CameraCharacteristics
+import android.hardware.camera2.CameraManager
+import android.hardware.camera2.CaptureRequest
+import android.hardware.camera2.TotalCaptureResult
 import android.os.Build
 import android.util.Range
 import android.util.Size
@@ -217,7 +221,12 @@ class Camera2Source(context: Context): VideoSource() {
   fun isAutoExposureEnabled() = camera.isAutoExposureEnabled
 
   @JvmOverloads
-  fun addImageListener(format: Int, maxImages: Int, autoClose: Boolean = true, listener: ImageCallback) {
+  fun addImageListener(
+    format: Int,
+    maxImages: Int,
+    autoClose: Boolean = true,
+    listener: ImageCallback
+  ) {
     val w = if (rotation == 90 || rotation == 270) height else width
     val h = if (rotation == 90 || rotation == 270) width else height
     camera.addImageListener(w, h, format, maxImages, autoClose, listener)
@@ -254,7 +263,8 @@ class Camera2Source(context: Context): VideoSource() {
 
   fun getAutoWhiteBalanceModesAvailable() = camera.getAutoWhiteBalanceModesAvailable()
 
-  fun setColorCorrectionGains(red: Float, greenEven: Float, greenOdd: Float, blue: Float) = camera.setColorCorrectionGains(red, greenEven, greenOdd, blue)
+  fun setColorCorrectionGains(red: Float, greenEven: Float, greenOdd: Float, blue: Float) =
+    camera.setColorCorrectionGains(red, greenEven, greenOdd, blue)
 
   @JvmOverloads
   fun getMaxSupportedFps(size: Size?, facing: CameraHelper.Facing = getCameraFacing()): Int {
@@ -268,5 +278,46 @@ class Camera2Source(context: Context): VideoSource() {
   fun setRequiredResolution(size: Size?) {
     size?.let { checkResolutionSupported(it.width, it.height) }
     camera.setRequiredResolution(size)
+  }
+
+  /**
+   * Add a callback to detect the camera availability.
+   * Set null value to remove the callback
+   */
+  fun setAvailabilityCallback(callback: CameraManager.AvailabilityCallback?) {
+    camera.setAvailabilityCallback(callback)
+  }
+
+  /**
+   * Re start camera if possible, return true or false depend if can do it or not.
+   */
+  fun restart(): Boolean {
+    if (isRunning()) camera.reOpenCamera(camera.getCurrentCameraId())
+    else if (camera.isPrepared) camera.openCameraId(camera.getCurrentCameraId())
+    else return false
+    return true
+  }
+
+  /**
+   * @return true of false depend if success or fail to do it.
+   *
+   * Set custom values to the camera.
+   * Need to be called after start or it will return false.
+   * Build and apply are done by the library automatically.
+   *
+   * For example, if you want disable autoExposure:
+   *
+   * camera.setCustomRequest { builder ->
+   *   builder.set(CaptureRequest.CONTROL_AE_MODE, CaptureRequest.CONTROL_AE_MODE_OFF)
+   * }
+   */
+  fun setCustomRequest(request: (CaptureRequest.Builder) -> Unit): Boolean {
+    return camera.setCustomRequest(request)
+  }
+
+  fun setCustomOnCaptureCompletedCallback(
+    callback: ((CameraCaptureSession, CaptureRequest, TotalCaptureResult) -> Unit)?
+  ) {
+    camera.setCustomOnCaptureCompletedCallback(callback)
   }
 }

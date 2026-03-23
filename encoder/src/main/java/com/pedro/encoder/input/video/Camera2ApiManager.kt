@@ -77,7 +77,8 @@ class Camera2ApiManager(context: Context) : CameraDevice.StateCallback() {
     private val cameraManager = context.getSystemService(Context.CAMERA_SERVICE) as CameraManager
     private var cameraHandler: Handler? = null
     private var cameraCaptureSession: CameraCaptureSession? = null
-    private var isPrepared: Boolean = false
+    var isPrepared: Boolean = false
+        private set
     private var cameraId: String = "0"
     private var physicalCameraId: String? = null
     private var facing = Facing.BACK
@@ -114,6 +115,9 @@ class Camera2ApiManager(context: Context) : CameraDevice.StateCallback() {
     private var faceDetectionEnabled = false
     private var faceDetectionMode = 0
     private var imageReader: ImageReader? = null
+    private var availabilityCallback: CameraManager.AvailabilityCallback? = null
+
+    private var customCaptureCompletedCallback: ((session: CameraCaptureSession, request: CaptureRequest, result: TotalCaptureResult) -> Unit)? = null
 
     init {
         cameraId = try { getCameraIdForFacing(Facing.BACK) } catch (_: Exception) { "0" }
@@ -159,7 +163,7 @@ class Camera2ApiManager(context: Context) : CameraDevice.StateCallback() {
                     try {
                         it.setRepeatingRequest(
                             captureRequest,
-                            if (faceDetectionEnabled || frameCapturedCallback != null) cb else null,
+                            if (faceDetectionEnabled || frameCapturedCallback != null || customCaptureCompletedCallback != null) cb else null,
                             cameraHandler
                         )
                     } catch (_: IllegalStateException) {
@@ -186,13 +190,48 @@ class Camera2ApiManager(context: Context) : CameraDevice.StateCallback() {
 
     @Throws(IllegalStateException::class, Exception::class)
     private fun drawSurface(cameraDevice: CameraDevice, surfaces: List<Surface>): CaptureRequest {
-        val builderInputSurface = cameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_PREVIEW)
+        val builderInputSurface = cameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_RECORD)
         for (surface in surfaces) builderInputSurface.addTarget(surface)
         builderInputSurface.set(CaptureRequest.CONTROL_MODE, CameraMetadata.CONTROL_MODE_AUTO)
         val validFps = min(60, fps)
-        builderInputSurface.set(CaptureRequest.CONTROL_AE_TARGET_FPS_RANGE, Range(validFps, validFps))
+        // Find best FPS range instead of forcing strict [30, 30] which causes HAL duplication stutter
+        var bestRange = Range(validFps, validFps)
+        try {
+            val facing = if (cameraId == "1") Facing.FRONT else Facing.BACK
+            val supportedRanges = getSupportedFps(null, facing)
+            
+            // Look for a range that maxes out at our target FPS, but allows dipping to save light (e.g. [24, 30] or [15, 30])
+            for (range in supportedRanges) {
+                if (range.upper == validFps && range.lower < validFps) {
+                    // Try to avoid dropping too low (e.g. [15, 30] can be too choppy, prefer [24, 30])
+                    if (range.lower >= 24) {
+                        bestRange = range
+                        break
+                    } else if (bestRange.lower == validFps || range.lower > bestRange.lower) {
+                        bestRange = range
+                    }
+                }
+            }
+            Log.i(TAG, "Selected dynamic FPS range: $bestRange for target $validFps")
+        } catch (e: Exception) {
+            Log.e(TAG, "Error finding dynamic FPS range", e)
+        }
+        
+        builderInputSurface.set(CaptureRequest.CONTROL_AE_TARGET_FPS_RANGE, bestRange)
         this.builderInputSurface = builderInputSurface
         return builderInputSurface.build()
+    }
+
+    fun setCustomRequest(request: (CaptureRequest.Builder) -> Unit): Boolean {
+        val builderInputSurface = this.builderInputSurface ?: return false
+        request(builderInputSurface)
+        return applyRequest(builderInputSurface)
+    }
+
+    fun setCustomOnCaptureCompletedCallback(
+        callback: ((CameraCaptureSession, CaptureRequest, TotalCaptureResult) -> Unit)?
+    ) {
+        this.customCaptureCompletedCallback = callback
     }
 
     fun getSupportedFps(size: Size?, facing: Facing): List<Range<Int>> {
@@ -237,6 +276,15 @@ class Camera2ApiManager(context: Context) : CameraDevice.StateCallback() {
 
     fun setCameraId(cameraId: String) {
         this.cameraId = cameraId
+    }
+
+    fun setAvailabilityCallback(callback: CameraManager.AvailabilityCallback?) {
+        if (callback == null) {
+            availabilityCallback?.let { cameraManager.unregisterAvailabilityCallback(it) }
+        } else {
+            cameraManager.registerAvailabilityCallback(callback, null)
+            availabilityCallback = callback
+        }
     }
 
     var cameraFacing: Facing
@@ -304,7 +352,7 @@ class Camera2ApiManager(context: Context) : CameraDevice.StateCallback() {
         try {
             cameraCaptureSession.setRepeatingRequest(
                 builder.build(),
-                if (faceDetectionEnabled || frameCapturedCallback != null) cb else null, null
+                if (faceDetectionEnabled || frameCapturedCallback != null || customCaptureCompletedCallback != null) cb else null, null
             )
             return true
         } catch (e: Exception) {
@@ -580,7 +628,12 @@ class Camera2ApiManager(context: Context) : CameraDevice.StateCallback() {
                 builderInputSurface.set(CaptureRequest.CONTROL_AF_TRIGGER, CameraMetadata.CONTROL_AF_TRIGGER_CANCEL)
                 builderInputSurface.set(CaptureRequest.CONTROL_AF_MODE, CaptureRequest.CONTROL_AF_MODE_OFF)
                 applyRequest(builderInputSurface)
-                if (supportedFocusModes.contains(CaptureRequest.CONTROL_AF_MODE_CONTINUOUS_PICTURE)) {
+                // Prefer CONTINUOUS_VIDEO: same smooth AF as CONTINUOUS_PICTURE but defers
+                // fine adjustments to not interrupt frame delivery (no dropped frames on focus hunt).
+                if (supportedFocusModes.contains(CaptureRequest.CONTROL_AF_MODE_CONTINUOUS_VIDEO)) {
+                    builderInputSurface.set(CaptureRequest.CONTROL_AF_MODE, CaptureRequest.CONTROL_AF_MODE_CONTINUOUS_VIDEO)
+                    isAutoFocusEnabled = true
+                } else if (supportedFocusModes.contains(CaptureRequest.CONTROL_AF_MODE_CONTINUOUS_PICTURE)) {
                     builderInputSurface.set(CaptureRequest.CONTROL_AF_MODE, CaptureRequest.CONTROL_AF_MODE_CONTINUOUS_PICTURE)
                     isAutoFocusEnabled = true
                 } else if (supportedFocusModes.contains(CaptureRequest.CONTROL_AF_MODE_AUTO)) {
@@ -664,6 +717,8 @@ class Camera2ApiManager(context: Context) : CameraDevice.StateCallback() {
             request: CaptureRequest,
             result: TotalCaptureResult
         ) {
+            customCaptureCompletedCallback?.invoke(session, request, result)
+
             val faces = result.get(CaptureResult.STATISTICS_FACES) ?: return
             faceDetectorCallback?.onGetFaces(
                 faces = mapCamera2Faces(faces = faces),

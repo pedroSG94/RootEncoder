@@ -48,8 +48,8 @@ class UrlParser private constructor(
     port = if (uri.port < 0) null else uri.port
     path = uri.path.removePrefix("/")
     if (uri.query != null) {
-      val i = url.indexOf(uri.query)
-      query = url.substring(if (i < 0) 0 else i)
+      val i = url.indexOf("?")
+      query = url.substring(i + 1)
     }
     auth = uri.userInfo
   }
@@ -67,12 +67,13 @@ class UrlParser private constructor(
   }
 
   fun getAppName(): String {
-    val app = path.ifEmpty { query ?: "" }
-    val indexes = app.getIndexes('/')
-    return when (indexes.size) {
-      0 -> app
-      1 -> app.substring(0, indexes[0])
-      else -> app.substring(0, indexes[1])
+    val queries = getAllQueries().map { (key, value) -> "$key=$value" }.joinToString("&")
+    val path = getFullPath().ifEmpty { query ?: "" }.replace(queries, "")
+    val segments = path.split('/').filter { it.isNotEmpty() }
+    return when(segments.size) {
+      0 -> ""
+      1, 2 -> segments[0]
+      else -> segments.subList(0, 2).joinToString("/")
     }
   }
 
@@ -95,7 +96,7 @@ class UrlParser private constructor(
 
   private fun getAllQueries(): Map<String, String> {
     val queries = query?.split("&") ?: emptyList()
-    val map = HashMap<String, String>()
+    val map = LinkedHashMap<String, String>()
     queries.forEach { entry ->
       val data = entry.split(Pattern.compile("="), 2)
       if (data.size == 2) map[data[0]] = data[1]

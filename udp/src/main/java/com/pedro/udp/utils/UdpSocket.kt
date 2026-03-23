@@ -25,9 +25,9 @@ import com.pedro.srt.mpeg2ts.MpegTsPacketizer
 /**
  * Created by pedro on 6/3/24.
  */
-class UdpSocket(type: SocketType, host: String, udpType: UdpType, port: Int) {
+class UdpSocket(type: SocketType, host: String, udpType: UdpType, port: Int, timeout: Long) {
 
-  private val socket = StreamSocket.createUdpSocket(type, host, port, receiveSize = MpegTsPacketizer.packetSize, udpType = udpType)
+  private val socket = StreamSocket.createUdpSocket(type, host, port, timeout, receiveSize = MpegTsPacketizer.packetSize, udpType = udpType)
 
   suspend fun connect() {
     socket.connect()

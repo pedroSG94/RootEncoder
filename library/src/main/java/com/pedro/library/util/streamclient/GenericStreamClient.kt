@@ -45,6 +45,16 @@ class GenericStreamClient(
   }
 
   /**
+   * Set timeout ms for connection, write and read in sockets by default 5000ms
+   */
+  override fun setSocketTimeout(timeout: Long) {
+    rtmpClient.setSocketTimeout(timeout)
+    rtspClient.setSocketTimeout(timeout)
+    srtClient.setSocketTimeout(timeout)
+    udpClient.setSocketTimeout(timeout)
+  }
+
+  /**
    * Set stream delay in millis.
    * This will create a cache and wait the delay to start send packets in real time
    */
@@ -172,6 +182,8 @@ class GenericStreamClient(
 
   override fun getSentVideoFrames(): Long = connectedStreamClient?.getSentVideoFrames() ?: 0
 
+  override fun getBytesSend(): Long = connectedStreamClient?.getBytesSend() ?: 0
+
   override fun getDroppedAudioFrames(): Long = connectedStreamClient?.getDroppedAudioFrames() ?: 0
 
   override fun getDroppedVideoFrames(): Long = connectedStreamClient?.getDroppedVideoFrames() ?: 0
@@ -206,6 +218,13 @@ class GenericStreamClient(
     srtClient.resetDroppedVideoFrames()
     udpClient.resetDroppedVideoFrames()
     whipClient.resetDroppedVideoFrames()
+  }
+
+  override fun resetBytesSend() {
+    rtmpClient.resetBytesSend()
+    rtspClient.resetBytesSend()
+    srtClient.resetBytesSend()
+    udpClient.resetBytesSend()
   }
 
   override fun setOnlyAudio(onlyAudio: Boolean) {

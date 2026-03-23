@@ -81,9 +81,9 @@ class RtspClient(private val connectChecker: ConnectChecker) {
   private var checkServerAlive = false
 
   val droppedAudioFrames: Long
-    get() = rtspSender.droppedAudioFrames
+    get() = rtspSender.getDroppedAudioFrames()
   val droppedVideoFrames: Long
-    get() = rtspSender.droppedVideoFrames
+    get() = rtspSender.getDroppedVideoFrames()
 
   val cacheSize: Int
     get() = rtspSender.getCacheSize()
@@ -91,7 +91,10 @@ class RtspClient(private val connectChecker: ConnectChecker) {
     get() = rtspSender.getSentAudioFrames()
   val sentVideoFrames: Long
     get() = rtspSender.getSentVideoFrames()
+  val bytesSend: Long
+    get() = rtspSender.getBytesSend()
   var socketType = SocketType.KTOR
+  var socketTimeout = StreamSocket.DEFAULT_TIMEOUT
 
   /**
    * Add certificates for TLS connection
@@ -243,7 +246,7 @@ class RtspClient(private val connectChecker: ConnectChecker) {
             }
             rtspSender.setVideoInfo(commandsManager.sps!!, commandsManager.pps, commandsManager.vps)
           }
-          val socket = StreamSocket.createTcpSocket(socketType, host, port, tlsEnabled, certificates)
+          val socket = StreamSocket.createTcpSocket(socketType, host, port, tlsEnabled, socketTimeout, certificates)
           this@RtspClient.socket = socket
           socket.connect()
           socket.write(commandsManager.createOptions())
@@ -348,7 +351,7 @@ class RtspClient(private val connectChecker: ConnectChecker) {
           rtspSender.setSocketsInfo(
             socketType,
             commandsManager.protocol,
-            host,
+            host, socketTimeout,
             videoClientPorts,
             audioClientPorts,
             videoServerPorts,
@@ -494,6 +497,10 @@ class RtspClient(private val connectChecker: ConnectChecker) {
 
   fun resetDroppedVideoFrames() {
     rtspSender.resetDroppedVideoFrames()
+  }
+
+  fun resetBytesSend() {
+    rtspSender.resetBytesSend()
   }
 
   @Throws(RuntimeException::class)

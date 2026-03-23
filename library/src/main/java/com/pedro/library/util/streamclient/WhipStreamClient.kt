@@ -71,6 +71,8 @@ class WhipStreamClient(
 
   override fun getSentVideoFrames(): Long = whipClient.sentVideoFrames
 
+  override fun getBytesSend(): Long = whipClient.bytesSend
+
   override fun getDroppedAudioFrames(): Long = whipClient.droppedAudioFrames
 
   override fun getDroppedVideoFrames(): Long = whipClient.droppedVideoFrames
@@ -89,6 +91,10 @@ class WhipStreamClient(
 
   override fun resetDroppedVideoFrames() {
     whipClient.resetDroppedVideoFrames()
+  }
+
+  override fun resetBytesSend() {
+    whipClient.resetBytesSend()
   }
 
   override fun setOnlyAudio(onlyAudio: Boolean) {
@@ -114,6 +120,10 @@ class WhipStreamClient(
 
   override fun setSocketType(type: SocketType) {
     whipClient.socketType = type
+  }
+
+  override fun setSocketTimeout(timeout: Long) {
+    TODO("Not yet implemented")
   }
 
   override fun setDelay(millis: Long) {

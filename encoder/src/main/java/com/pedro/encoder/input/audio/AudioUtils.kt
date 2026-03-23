@@ -1,5 +1,7 @@
 package com.pedro.encoder.input.audio
 
+import kotlin.math.abs
+
 class AudioUtils {
 
     fun applyVolumeAndMix(
@@ -8,20 +10,15 @@ class AudioUtils {
         dst: ByteArray
     ) {
         if (buffer.size != buffer2.size) return
-        if (volume == 1f && volume2 == 1f) {
-            for (i in buffer.indices) {
-                dst[i] = (buffer[i] + buffer2[i]).toByte()
-            }
-            return
-        }
         for (i in buffer.indices step 2) {
-            val sample = ((buffer[i + 1].toInt() shl 8) or (buffer[i].toInt() and 0xFF))
-            val adjustedSample = (sample * volume).toInt()
-            val sample2 = ((buffer2[i + 1].toInt() shl 8) or (buffer2[i].toInt() and 0xFF))
-            val adjustedSample2 = (sample2 * volume2).toInt()
+            val sample1 = ((buffer[i + 1].toInt() shl 8) or (buffer[i].toInt() and 0xFF)).toShort().toInt()
+            val sample2 = ((buffer2[i + 1].toInt() shl 8) or (buffer2[i].toInt() and 0xFF)).toShort().toInt()
 
-            dst[i] = (adjustedSample.toByte() + adjustedSample2.toByte()).toByte()
-            dst[i + 1] = ((adjustedSample shr 8).toByte() + (adjustedSample2 shr 8).toByte()).toByte()
+            val adjustedSample1 = (sample1 * volume).toInt()
+            val adjustedSample2 = (sample2 * volume2).toInt()
+            val mixedSample = (adjustedSample1 + adjustedSample2).coerceIn(Short.MIN_VALUE.toInt(), Short.MAX_VALUE.toInt()) and 0xFFFF
+            dst[i] = (mixedSample and 0xFF).toByte()
+            dst[i + 1] = ((mixedSample shr 8) and 0xFF).toByte()
         }
     }
 
@@ -29,23 +26,24 @@ class AudioUtils {
         if (volume == 1f) return
 
         for (i in buffer.indices step 2) {
-            val sample = ((buffer[i + 1].toInt() shl 8) or (buffer[i].toInt() and 0xFF))
-            val adjustedSample = (sample * volume).toInt()
-            buffer[i] = adjustedSample.toByte()
-            buffer[i + 1] = (adjustedSample shr 8).toByte()
+            val sample = ((buffer[i + 1].toInt() shl 8) or (buffer[i].toInt() and 0xFF)).toShort().toInt()
+            val adjustedSample = (sample * volume).toInt().coerceIn(Short.MIN_VALUE.toInt(), Short.MAX_VALUE.toInt()) and 0xFFFF
+            buffer[i] = (adjustedSample and 0xFF).toByte()
+            buffer[i + 1] = ((adjustedSample shr 8) and 0xFF).toByte()
         }
     }
 
     /**
-     * assume always pcm 16bit
+     * Calculate amplitude peaks. Assume always pcm 16bit
      * @return value from 0f to 100f
      */
     fun calculateAmplitude(buffer: ByteArray): Float {
         if (buffer.size % 2 != 0) return 0f //invalid buffer
         var amplitude = 0
         for (i in buffer.indices step 2) {
-            val sample = ((buffer[i + 1].toInt() shl 8) or (buffer[i].toInt() and 0xFF))
-            if (sample > amplitude) amplitude = sample
+            val sample = ((buffer[i + 1].toInt() shl 8) or (buffer[i].toInt() and 0xFF)).toShort().toInt()
+            val sampleAmplitude = abs(sample)
+            if (sampleAmplitude > amplitude) amplitude = sampleAmplitude
         }
         return (amplitude / Short.MAX_VALUE.toFloat()) * 100
     }

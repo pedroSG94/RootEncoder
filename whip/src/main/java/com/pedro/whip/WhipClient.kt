@@ -74,9 +74,9 @@ class WhipClient(private val connectChecker: ConnectChecker) {
     var socketType = SocketType.KTOR
 
     val droppedAudioFrames: Long
-        get() = whipSender.droppedAudioFrames
+        get() = whipSender.getDroppedAudioFrames()
     val droppedVideoFrames: Long
-        get() = whipSender.droppedVideoFrames
+        get() = whipSender.getDroppedVideoFrames()
 
     val cacheSize: Int
         get() = whipSender.getCacheSize()
@@ -84,6 +84,9 @@ class WhipClient(private val connectChecker: ConnectChecker) {
         get() = whipSender.getSentAudioFrames()
     val sentVideoFrames: Long
         get() = whipSender.getSentVideoFrames()
+    val bytesSend: Long
+        get() = whipSender.getBytesSend()
+    var socketTimeout = StreamSocket.DEFAULT_TIMEOUT
 
     fun setDelay(millis: Long) {
         whipSender.setDelay(millis)
@@ -224,7 +227,7 @@ class WhipClient(private val connectChecker: ConnectChecker) {
                         whipSender.setVideoInfo(commandsManager.sps!!, commandsManager.pps, commandsManager.vps)
                     }
 
-                    val localCandidates = commandsManager.gatheringCandidates(socketType, GatheringMode.LOCAL)
+                    val localCandidates = commandsManager.gatheringCandidates(socketType, socketTimeout, GatheringMode.LOCAL)
                     Log.i(TAG, "found ${localCandidates.size} candidates")
                     val offerResponse = commandsManager.writeOffer()
                     Log.i(TAG, offerResponse.body)
@@ -237,7 +240,7 @@ class WhipClient(private val connectChecker: ConnectChecker) {
                     val remoteCandidates = commandsManager.remoteSdpInfo?.candidates?: return@launch
                     val host = remoteCandidates[0].getRealHost()
                     val port = remoteCandidates[0].getRealPort()
-                    val socket = StreamSocket.createUdpSocket(socketType, host, port, receiveSize = RtpConstants.MTU)
+                    val socket = StreamSocket.createUdpSocket(socketType, host, port, socketTimeout, receiveSize = RtpConstants.MTU)
                     socket.connect()
 
                     val requestId = commandsManager.generateTransactionId()
@@ -449,4 +452,10 @@ class WhipClient(private val connectChecker: ConnectChecker) {
      * Get the exponential factor used to calculate the bitrate. Default 1f
      */
     fun getBitrateExponentialFactor() = whipSender.getBitrateExponentialFactor()
+
+    fun resetBytesSend() {
+        whipSender.resetBytesSend()
+    }
+
+
 }
