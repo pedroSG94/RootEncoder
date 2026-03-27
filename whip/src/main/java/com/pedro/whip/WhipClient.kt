@@ -237,7 +237,10 @@ class WhipClient(private val connectChecker: ConnectChecker) {
                     val remoteFrag = commandsManager.remoteSdpInfo?.uFrag ?: return@launch
                     val priority = commandsManager.calculatePriority(CandidateType.LOCAL, 65535L, 1)
 
-                    val remoteCandidates = commandsManager.remoteSdpInfo?.candidates?: return@launch
+                    val remoteCandidates = commandsManager.remoteSdpInfo?.candidates?.filter {
+                        it.getRealHost() != "127.0.0.1"
+                    } ?: return@launch
+
                     val host = remoteCandidates[0].getRealHost()
                     val port = remoteCandidates[0].getRealPort()
                     val socket = StreamSocket.createUdpSocket(socketType, host, port, socketTimeout, receiveSize = RtpConstants.MTU)

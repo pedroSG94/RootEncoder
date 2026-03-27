@@ -132,7 +132,7 @@ class CameraFragment: Fragment(), ConnectChecker {
 
     bStartStop.setOnClickListener {
       if (!genericStream.isStreaming) {
-        genericStream.startStream("http://192.168.1.15:8889/mystream/whip/whip")
+        genericStream.startStream("http://192.168.68.61:8889/mystream/whip/whip")
         bStartStop.setImageResource(R.drawable.stream_stop_icon)
       } else {
         genericStream.stopStream()

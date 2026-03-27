@@ -51,7 +51,7 @@ object SdpParser {
           val candidateTypeText = values[7]
           val type = CandidateType.entries.find { it.value == candidateTypeText }
             ?: throw IllegalArgumentException("Unknown candidate type: $candidateTypeText")
-          if (values.size >= 10) {
+          if (values.size >= 11) {
             val localAddress = values[9]
             val localPort = values[11].toInt()
             Candidate(type, protocol, priority, localAddress, localPort, address, port)
