@@ -285,8 +285,9 @@ open class OpenGlView : SurfaceView, GlInterface, OnFrameAvailableListener, Surf
     }
 
     override fun removeMediaCodecSurface() {
-      threadQueue.clear()
-      surfaceManagerEncoder.release()
+      executor?.submit {
+        surfaceManagerEncoder.release()
+      }
     }
 
     override fun addMediaCodecRecordSurface(surface: Surface) {
@@ -297,8 +298,9 @@ open class OpenGlView : SurfaceView, GlInterface, OnFrameAvailableListener, Surf
     }
 
     override fun removeMediaCodecRecordSurface() {
-      threadQueue.clear()
-      surfaceManagerEncoderRecord.release()
+      executor?.submit {
+        surfaceManagerEncoderRecord.release()
+      }
     }
 
     override fun start() {
