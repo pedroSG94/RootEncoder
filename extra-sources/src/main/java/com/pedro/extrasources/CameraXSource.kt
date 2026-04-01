@@ -70,7 +70,7 @@ class CameraXSource(
   private var fingerSpacing = 0f
   private var requiredSize: Size? = null
 
-  override val lifecycle: Lifecycle = lifecycleRegistry
+  override fun getLifecycle(): Lifecycle = lifecycleRegistry
 
   override fun create(width: Int, height: Int, fps: Int, rotation: Int): Boolean {
     val facing = if (facing == CameraSelector.LENS_FACING_BACK) CameraHelper.Facing.BACK else CameraHelper.Facing.FRONT
