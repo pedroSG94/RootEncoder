@@ -17,6 +17,10 @@ android {
       isMinifyEnabled = false
     }
   }
+  compileOptions {
+    sourceCompatibility = JavaVersion.VERSION_17
+    targetCompatibility = JavaVersion.VERSION_17
+  }
   publishing {
     singleVariant("release")
   }
