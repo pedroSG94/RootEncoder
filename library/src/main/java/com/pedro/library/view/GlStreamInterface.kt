@@ -150,27 +150,33 @@ class GlStreamInterface(private val context: Context): OnFrameAvailableListener,
   }
 
   override fun addMediaCodecSurface(surface: Surface) {
-    if (surfaceManager.isReady) {
-      surfaceManagerEncoder.release()
-      surfaceManagerEncoder.eglSetup(surface, surfaceManager)
+    executor?.submit {
+      if (surfaceManager.isReady) {
+        surfaceManagerEncoder.release()
+        surfaceManagerEncoder.eglSetup(surface, surfaceManager)
+      }
     }
   }
 
   override fun removeMediaCodecSurface() {
-    threadQueue.clear()
-    surfaceManagerEncoder.release()
+    executor?.submit {
+      surfaceManagerEncoder.release()
+    }
   }
 
   override fun addMediaCodecRecordSurface(surface: Surface) {
-    if (surfaceManager.isReady) {
-      surfaceManagerEncoderRecord.release()
-      surfaceManagerEncoderRecord.eglSetup(surface, surfaceManager)
+    executor?.submit {
+      if (surfaceManager.isReady) {
+        surfaceManagerEncoderRecord.release()
+        surfaceManagerEncoderRecord.eglSetup(surface, surfaceManager)
+      }
     }
   }
 
   override fun removeMediaCodecRecordSurface() {
-    threadQueue.clear()
-    surfaceManagerEncoderRecord.release()
+    executor?.submit {
+      surfaceManagerEncoderRecord.release()
+    }
   }
 
   override fun takePhoto(takePhotoCallback: TakePhotoCallback?) {
