@@ -189,7 +189,7 @@ public class CodecUtil {
   public static List<MediaCodecInfo> getAllCodecs(boolean filterBroken) {
     List<MediaCodecInfo> mediaCodecInfoList = new ArrayList<>();
     if (Build.VERSION.SDK_INT >= 21) {
-      MediaCodecList mediaCodecList = new MediaCodecList(MediaCodecList.ALL_CODECS);
+      MediaCodecList mediaCodecList = new MediaCodecList(MediaCodecList.REGULAR_CODECS);
       MediaCodecInfo[] mediaCodecInfos = mediaCodecList.getCodecInfos();
       mediaCodecInfoList.addAll(Arrays.asList(mediaCodecInfos));
     } else {
@@ -459,6 +459,8 @@ public class CodecUtil {
   private static boolean isValid(String name) {
     //This encoder is invalid and produce errors (Only found in AVD API 16)
     if (name.equalsIgnoreCase("aacencoder")) return false;
+    //Discard secure encoders. It is only used for DRM
+    else if (name.toLowerCase().contains(".secure")) return false;
     return true;
   }
 
@@ -475,8 +477,6 @@ public class CodecUtil {
     //maybe only broke on samsung with Android 12+ using YouTube and AWS MediaLive
     // but set as ultra low priority in all cases.
     if (name.equalsIgnoreCase("c2.sec.aac.encoder")) return CodecPriority.ULTRA_LOW;
-    //not working in few devices but maybe usable in others.
-    else if (name.toLowerCase().contains(".secure")) return CodecPriority.ULTRA_LOW;
     //broke on few devices using YouTube and AWS MediaLive
     else if (name.equalsIgnoreCase("omx.google.aac.encoder")) return CodecPriority.LOW;
     else return CodecPriority.NORMAL;
