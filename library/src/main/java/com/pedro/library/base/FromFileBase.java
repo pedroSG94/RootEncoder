@@ -48,7 +48,6 @@ import com.pedro.encoder.utils.CodecUtil;
 import com.pedro.encoder.video.FormatVideoEncoder;
 import com.pedro.encoder.video.GetVideoData;
 import com.pedro.encoder.video.VideoEncoder;
-import com.pedro.library.base.recording.BaseRecordController;
 import com.pedro.library.base.recording.RecordController;
 import com.pedro.library.util.AndroidMuxerRecordController;
 import com.pedro.library.util.FpsListener;
@@ -81,7 +80,7 @@ public abstract class FromFileBase {
   private AudioEncoder audioEncoder;
   private GlInterface glInterface;
   private boolean streaming = false;
-  protected BaseRecordController recordController;
+  protected RecordController recordController;
   private final FpsListener fpsListener = new FpsListener();
 
   private VideoDecoder videoDecoder;
@@ -639,6 +638,10 @@ public abstract class FromFileBase {
     return audioDecoder.getDuration();
   }
 
+  public void forceBt709Color(boolean enabled) {
+    videoEncoder.forceBt709Color(enabled);
+  }
+
   public void replaceAudioFile(String filePath) throws IOException {
     resetAudioDecoder((BaseDecoder decoder) -> {
       if (!decoder.initExtractor(filePath)) throw new IOException("Extraction failed");
@@ -728,9 +731,9 @@ public abstract class FromFileBase {
 
   protected abstract void getAudioDataImp(ByteBuffer audioBuffer, MediaCodec.BufferInfo info);
 
-  public void setRecordController(BaseRecordController recordController) {
+  public void setRecordController(RecordController recordController) {
     if (!isRecording()) {
-      recordController.updateInfo(this.recordController);
+      recordController.updateInfo(this.recordController.getVideoCodec(), this.recordController.getAudioCodec());
       this.recordController = recordController;
     }
   }

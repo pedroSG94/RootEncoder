@@ -94,6 +94,7 @@ class RtmpClient(private val connectChecker: ConnectChecker) {
   private var reTries = 0
   private var checkServerAlive = false
   private var publishPermitted = false
+  private var ignoredCommandReceived: ((String) -> Unit)? = null
 
   val droppedAudioFrames: Long
     get() = rtmpSender.getDroppedAudioFrames()
@@ -142,6 +143,10 @@ class RtmpClient(private val connectChecker: ConnectChecker) {
         AmfVersion.VERSION_3 -> CommandsManagerAmf3()
       }
     }
+  }
+
+  fun setIgnoredCommandCallback(callback: ((String) -> Unit)?) {
+    ignoredCommandReceived = callback
   }
 
   /**
@@ -424,9 +429,7 @@ class RtmpClient(private val connectChecker: ConnectChecker) {
             when (commandName) {
               "connect" -> {
                 if (commandsManager.onAuth) {
-                  onMainThread {
-                    connectChecker.onAuthSuccess()
-                  }
+                  onMainThread { connectChecker.onAuthSuccess() }
                   commandsManager.onAuth = false
                 }
                 commandsManager.createStream(socket)
@@ -520,7 +523,9 @@ class RtmpClient(private val connectChecker: ConnectChecker) {
                   }
                 }
                 else -> {
-                  Log.i(TAG, "onStatus $code response received from ${commandName ?: "unknown command"}")
+                  val message = "onStatus $code response received from ${commandName ?: "unknown command"}"
+                  Log.i(TAG, message)
+                  ignoredCommandReceived?.let { onMainThread { it.invoke(message) } }
                 }
               }
             } catch (e: ClassCastException) {
@@ -528,7 +533,9 @@ class RtmpClient(private val connectChecker: ConnectChecker) {
             }
           }
           else -> {
-            Log.i(TAG, "unknown ${command.name} response received from ${commandName ?: "unknown command"}")
+            val message = "unknown ${command.name} response received from ${commandName ?: "unknown command"}"
+            Log.i(TAG, message)
+            ignoredCommandReceived?.let { onMainThread { it.invoke(message) } }
           }
         }
       }

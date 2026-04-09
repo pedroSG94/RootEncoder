@@ -28,6 +28,10 @@ class RtmpStreamClient(
   private val streamClientListener: StreamClientListener?
 ): StreamBaseClient() {
 
+  fun setIgnoredCommandCallback(callback: ((String) -> Unit)?) {
+    rtmpClient.setIgnoredCommandCallback(callback)
+  }
+
   /**
    * Must be called before start stream or will be ignored.
    *

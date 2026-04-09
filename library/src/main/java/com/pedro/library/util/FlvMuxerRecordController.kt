@@ -4,16 +4,13 @@ import android.media.MediaCodec
 import android.media.MediaFormat
 import android.util.Log
 import com.pedro.common.AudioCodec
-import com.pedro.common.BitrateManager
 import com.pedro.common.VideoCodec
-import com.pedro.common.clone
 import com.pedro.common.frame.MediaFrame
-import com.pedro.common.toMediaFrameInfo
+import com.pedro.common.toMediaCodecBufferInfo
 import com.pedro.common.toUInt24
 import com.pedro.common.toUInt32
-import com.pedro.common.trySend
 import com.pedro.encoder.video.VideoEncoderHelper
-import com.pedro.library.base.recording.BaseRecordController
+import com.pedro.library.base.recording.AsyncBaseRecordController
 import com.pedro.library.base.recording.RecordController
 import com.pedro.library.base.recording.RecordController.RecordTracks
 import com.pedro.rtmp.amf.v0.AmfEcmaArray
@@ -29,28 +26,17 @@ import com.pedro.rtmp.flv.video.VideoFormat
 import com.pedro.rtmp.flv.video.packet.Av1Packet
 import com.pedro.rtmp.flv.video.packet.H264Packet
 import com.pedro.rtmp.flv.video.packet.H265Packet
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.cancelAndJoin
-import kotlinx.coroutines.isActive
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.runInterruptible
 import java.io.ByteArrayOutputStream
 import java.io.FileDescriptor
 import java.io.FileOutputStream
 import java.io.OutputStream
 import java.nio.ByteBuffer
-import java.util.concurrent.LinkedBlockingQueue
 
-class FlvMuxerRecordController: BaseRecordController() {
+class FlvMuxerRecordController: AsyncBaseRecordController() {
 
     private var outputStream: OutputStream? = null
     private var videoPacket: BasePacket? = null
     private var audioPacket: BasePacket? = null
-    private val queue = LinkedBlockingQueue<MediaFrame>(200)
-    private var job: Job? = null
     //metadata config
     private var width = 0
     private var height = 0
@@ -59,72 +45,38 @@ class FlvMuxerRecordController: BaseRecordController() {
     private var isStereo = true
     private var sendInfo = false
 
-    override fun startRecord(path: String, listener: RecordController.Listener?, tracks: RecordTracks) {
-        this.tracks = tracks
+    override fun startRecordImp(path: String, listener: RecordController.Listener?, tracks: RecordTracks) {
         outputStream = FileOutputStream(path)
         start(listener)
     }
 
-    override fun startRecord(fd: FileDescriptor, listener: RecordController.Listener?, tracks: RecordTracks) {
-        this.tracks = tracks
+    override fun startRecordImp(fd: FileDescriptor, listener: RecordController.Listener?, tracks: RecordTracks) {
         outputStream = FileOutputStream(fd)
         start(listener)
     }
 
     private fun start(listener: RecordController.Listener?) {
-        audioPacket = when (audioCodec) {
+        audioPacket = when (getAudioCodec()) {
             AudioCodec.G711 -> G711Packet()
             AudioCodec.AAC -> AacPacket().apply { sendAudioInfo(sampleRate, isStereo) }
             AudioCodec.OPUS -> OpusPacket().apply { sendAudioInfo(sampleRate, isStereo) }
         }
-        videoPacket = when (videoCodec) {
+        videoPacket = when (getVideoCodec()) {
             VideoCodec.H264 -> H264Packet()
             VideoCodec.H265 -> H265Packet()
             VideoCodec.AV1 -> Av1Packet()
         }
-        this.listener = listener
-        status = RecordController.Status.STARTED
-        if (listener != null) {
-            bitrateManager = BitrateManager(listener)
-            listener.onStatusChange(status)
-        } else {
-            bitrateManager = null
-        }
-        queue.clear()
         outputStream?.let {
             try {
                 it.write(createFlvFileHeader())
                 writeFlvFileMetadata(it)
             } catch (_: Exception) {}
         }
-        if (tracks == RecordTracks.AUDIO) status = RecordController.Status.RECORDING
-        listener?.onStatusChange(status)
-        job = CoroutineScope(Dispatchers.IO).launch {
-            while (isActive) {
-                val mediaFrame = runInterruptible { queue.take() }
-                when (mediaFrame.type) {
-                    MediaFrame.Type.VIDEO -> {
-                        videoPacket?.createFlvPacket(mediaFrame) { packet ->
-                            outputStream?.let { writeFlvPacket(it, packet) }
-                        }
-                    }
-                    MediaFrame.Type.AUDIO -> {
-                        audioPacket?.createFlvPacket(mediaFrame) { packet ->
-                            outputStream?.let { writeFlvPacket(it, packet) }
-                        }
-                    }
-                }
-            }
-        }
+        if (tracks == RecordTracks.AUDIO) recordStatus = RecordController.Status.RECORDING
+        listener?.onStatusChange(recordStatus)
     }
 
-    override fun stopRecord() {
-        status = RecordController.Status.STOPPED
-        runBlocking { job?.cancelAndJoin() }
-        pauseMoment = 0
-        pauseTime = 0
-        startTs = 0
-        queue.clear()
+    override fun stopRecordImp() {
         videoPacket?.reset(false)
         audioPacket?.reset(false)
         try {
@@ -132,28 +84,31 @@ class FlvMuxerRecordController: BaseRecordController() {
         } catch (_: Exception) { } finally {
             outputStream = null
         }
-        requestKeyFrame = null
         sendInfo = false
-        if (listener != null) listener.onStatusChange(status)
     }
 
-    override fun recordVideo(videoBuffer: ByteBuffer, videoInfo: MediaCodec.BufferInfo) {
+  override suspend fun onWriteFrame(frame: MediaFrame) {
+    when (frame.type) {
+      MediaFrame.Type.VIDEO -> {
         if (tracks != RecordTracks.AUDIO) {
-            if (status == RecordController.Status.STARTED) {
-                getVideoInfo(videoBuffer, videoInfo)
-            } else if (status == RecordController.Status.RECORDING) {
-                val frame = MediaFrame(videoBuffer.clone(), videoInfo.toMediaFrameInfo(), MediaFrame.Type.VIDEO)
-                queue.trySend(frame)
+          if (recordStatus == RecordController.Status.STARTED) {
+            getVideoInfo(frame.data, frame.info.toMediaCodecBufferInfo())
+          } else if (recordStatus == RecordController.Status.RECORDING) {
+            videoPacket?.createFlvPacket(frame) { packet ->
+              outputStream?.let { writeFlvPacket(it, packet) }
             }
+          }
         }
-    }
-
-    override fun recordAudio(audioBuffer: ByteBuffer, audioInfo: MediaCodec.BufferInfo) {
-        if (status == RecordController.Status.RECORDING && tracks != RecordTracks.VIDEO) {
-            val frame = MediaFrame(audioBuffer.clone(), audioInfo.toMediaFrameInfo(), MediaFrame.Type.AUDIO)
-            queue.trySend(frame)
+      }
+      MediaFrame.Type.AUDIO -> {
+        if (recordStatus == RecordController.Status.RECORDING && tracks != RecordTracks.VIDEO) {
+          audioPacket?.createFlvPacket(frame) { packet ->
+            outputStream?.let { writeFlvPacket(it, packet) }
+          }
         }
+      }
     }
+  }
 
     private fun getVideoInfo(buffer: ByteBuffer, info: MediaCodec.BufferInfo) {
         if (info.flags == MediaCodec.BUFFER_FLAG_KEY_FRAME || isKeyFrame(buffer)) {
@@ -199,14 +154,14 @@ class FlvMuxerRecordController: BaseRecordController() {
                     }
                 }
             }
-            if (sendInfo && status == RecordController.Status.STARTED) {
-                requestKeyFrame = null
-                status = RecordController.Status.RECORDING
-                listener?.onStatusChange(status)
+            if (sendInfo && recordStatus == RecordController.Status.STARTED) {
+                myRequestKeyFrame = null
+                recordStatus = RecordController.Status.RECORDING
+                listener?.onStatusChange(recordStatus)
             }
-        } else if (requestKeyFrame != null) {
-            requestKeyFrame.onRequestKeyFrame()
-            requestKeyFrame = null
+        } else if (myRequestKeyFrame != null) {
+            myRequestKeyFrame?.onRequestKeyFrame()
+            myRequestKeyFrame = null
         }
     }
 
@@ -247,10 +202,10 @@ class FlvMuxerRecordController: BaseRecordController() {
                 }
             }
         }
-        if (sendInfo && status == RecordController.Status.STARTED) {
-            requestKeyFrame = null
-            status = RecordController.Status.RECORDING
-            listener?.onStatusChange(status)
+        if (sendInfo && recordStatus == RecordController.Status.STARTED) {
+            myRequestKeyFrame = null
+            recordStatus = RecordController.Status.RECORDING
+            listener?.onStatusChange(recordStatus)
         }
     }
 
@@ -281,15 +236,14 @@ class FlvMuxerRecordController: BaseRecordController() {
         val info = AmfEcmaArray()
         info.setProperty("width", width.toDouble())
         info.setProperty("height", height.toDouble())
-        val videoCodecValue = when (videoCodec) {
+        val videoCodecValue = when (getVideoCodec()) {
             VideoCodec.H264 -> VideoFormat.AVC.value
             VideoCodec.H265 -> VideoFormat.HEVC.value
             VideoCodec.AV1 -> VideoFormat.AV1.value
-            else -> throw IllegalArgumentException("unsupported null codec")
         }
         info.setProperty("videocodecid", videoCodecValue.toDouble())
         info.setProperty("framerate", fps.toDouble())
-        val audioCodecValue = when (audioCodec) {
+        val audioCodecValue = when (getAudioCodec()) {
             AudioCodec.AAC -> AudioFormat.AAC.value
             AudioCodec.G711 -> AudioFormat.G711_A.value
             AudioCodec.OPUS -> AudioFormat.OPUS.value

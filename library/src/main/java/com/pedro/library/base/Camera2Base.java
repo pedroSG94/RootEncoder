@@ -53,7 +53,6 @@ import com.pedro.encoder.utils.CodecUtil;
 import com.pedro.encoder.video.FormatVideoEncoder;
 import com.pedro.encoder.video.GetVideoData;
 import com.pedro.encoder.video.VideoEncoder;
-import com.pedro.library.base.recording.BaseRecordController;
 import com.pedro.library.base.recording.RecordController;
 import com.pedro.library.util.AndroidMuxerRecordController;
 import com.pedro.library.util.FpsListener;
@@ -95,7 +94,7 @@ public abstract class Camera2Base {
     protected boolean audioInitialized = false;
     private boolean onPreview = false;
     private boolean isBackground = false;
-    protected BaseRecordController recordController;
+    protected RecordController recordController;
     private int previewWidth, previewHeight;
     private final FpsListener fpsListener = new FpsListener();
 
@@ -926,6 +925,10 @@ public abstract class Camera2Base {
         return cameraManager.getMinExposure();
     }
 
+    public void forceBt709Color(boolean enabled) {
+      videoEncoder.forceBt709Color(enabled);
+    }
+
     /**
      * @param mode value from CameraCharacteristics.AWB_MODE_*
      */
@@ -1047,9 +1050,9 @@ public abstract class Camera2Base {
 
     protected abstract void getVideoDataImp(ByteBuffer videoBuffer, MediaCodec.BufferInfo info);
 
-    public void setRecordController(BaseRecordController recordController) {
+    public void setRecordController(RecordController recordController) {
         if (!isRecording()) {
-            recordController.updateInfo(this.recordController);
+            recordController.updateInfo(this.recordController.getVideoCodec(), this.recordController.getAudioCodec());
             this.recordController = recordController;
         }
     }

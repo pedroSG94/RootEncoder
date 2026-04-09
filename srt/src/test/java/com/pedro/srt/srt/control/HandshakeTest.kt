@@ -34,8 +34,9 @@ class HandshakeTest {
 
   @Test
   fun `test extension field calculation`() {
-    assertEquals(131079, ExtensionField.calculateValue(150039))
-    assertEquals(5, ExtensionField.calculateValue(18967))
+    assertEquals(131079, ExtensionField.calculateValue(150039, false))
+    assertEquals(5, ExtensionField.calculateValue(18967, false))
+    assertEquals(7, ExtensionField.calculateValue(18967, true))
   }
 
   @Test

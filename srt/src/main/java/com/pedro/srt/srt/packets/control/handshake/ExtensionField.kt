@@ -27,9 +27,9 @@ enum class ExtensionField(val value: Int) {
   companion object {
     infix fun from(value: Int): ExtensionField = entries.firstOrNull { it.value == value } ?: throw IOException("unknown extension field: $value")
 
-    fun calculateValue(value: Int): Int {
+    fun calculateValue(value: Int, encrypted: Boolean): Int {
       val hsV5enabled = value and HS_V5_FLAG.value != 0
-      val extensionField = HS_REQ.value or CONFIG.value
+      val extensionField = if (encrypted) HS_REQ.value or KM_REQ.value or CONFIG.value else HS_REQ.value or CONFIG.value
       return if (hsV5enabled) HS_V5_FLAG.value or KM_REQ.value or extensionField else extensionField
     }
   }

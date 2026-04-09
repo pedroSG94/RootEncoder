@@ -140,7 +140,7 @@ class SrtClient(private val connectChecker: ConnectChecker) {
    */
   fun setPassphrase(passphrase: String, type: EncryptionType) {
     if (!isStreaming) {
-      if (passphrase.length < 10 || passphrase.length > 79) {
+      if (passphrase.length !in 10..79) {
         throw IllegalArgumentException("passphrase must between 10 and 79 length")
       }
       commandsManager.setPassphrase(passphrase, type)
@@ -213,6 +213,15 @@ class SrtClient(private val connectChecker: ConnectChecker) {
         val port = urlParser.port ?: 8888
         val path = urlParser.getQuery("streamid") ?: urlParser.getFullPath()
         latency = urlParser.getQuery("latency")?.toIntOrNull() ?: latency
+        val passphrase = urlParser.getQuery("passphrase") ?: ""
+        if (passphrase.isNotEmpty() && passphrase.length in 10..79) {
+          val encryptionType = when (urlParser.getQuery("pbkeylen")?.toIntOrNull()) {
+            192 -> EncryptionType.AES192
+            256 -> EncryptionType.AES256
+            else -> EncryptionType.AES128
+          }
+          commandsManager.setPassphrase(passphrase, encryptionType)
+        }
         if (path.isEmpty()) {
           isStreaming = false
           onMainThread {
@@ -232,7 +241,7 @@ class SrtClient(private val connectChecker: ConnectChecker) {
 
           commandsManager.writeHandshake(socket, response.copy(
             encryption = commandsManager.getEncryptType(),
-            extensionField = ExtensionField.calculateValue(response.extensionField),
+            extensionField = ExtensionField.calculateValue(response.extensionField, commandsManager.encryptionEnabled()),
             handshakeType = HandshakeType.CONCLUSION,
             handshakeExtension = HandshakeExtension(
               flags = ExtensionContentFlag.TSBPDSND.value or ExtensionContentFlag.TSBPDRCV.value or

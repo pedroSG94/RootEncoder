@@ -1,23 +1,23 @@
 [versions]
 #plugins versions
-agp = "8.13.2"
-kotlin = "2.2.21"
-dokka = "2.1.0"
+agp = "9.1.0"
+kotlin = "2.3.20"
+dokka = "2.2.0"
 
 #dependencies versions
 #noinspection GradleDependency, version 1.7.0 need min sdk 21
 appcompat = "1.6.1"
 #noinspection GradleDependency, version 2.2.0 need min sdk 21
 constraintlayout = "2.1.4"
-ktor = "3.3.3"
-camerax = "1.5.2"
+ktor = "3.4.2"
+camerax = "1.5.3"
 multidex = "2.0.1"
 annotation = "1.9.1"
 coroutines = "1.10.2"
 junit = "4.13.2"
-mockito = "6.1.0"
+mockito = "6.3.0"
 uvcandroid = "1.0.11"
-media3 = "1.9.0"
+media3 = "1.10.0"
 
 [libraries]
 androidx-annotation = { module = "androidx.annotation:annotation", version.ref = "annotation" }

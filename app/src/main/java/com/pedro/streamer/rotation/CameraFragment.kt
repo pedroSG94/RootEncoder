@@ -30,6 +30,7 @@ import android.widget.TextView
 import androidx.annotation.RequiresApi
 import androidx.fragment.app.Fragment
 import com.pedro.common.ConnectChecker
+import com.pedro.common.onMainThreadHandler
 import com.pedro.encoder.input.sources.video.Camera1Source
 import com.pedro.encoder.input.sources.video.Camera2Source
 import com.pedro.extrasources.CameraXSource
@@ -145,7 +146,9 @@ class CameraFragment: Fragment(), ConnectChecker {
         bRecord.setImageResource(R.drawable.pause_icon)
         genericStream.startRecord(recordPath) { status ->
           if (status == RecordController.Status.RECORDING) {
-            bRecord.setImageResource(R.drawable.stop_icon)
+            onMainThreadHandler {
+              bRecord.setImageResource(R.drawable.stop_icon)
+            }
           }
         }
       } else {
@@ -208,24 +211,32 @@ class CameraFragment: Fragment(), ConnectChecker {
       toast("Retry")
     } else {
       genericStream.stopStream()
-      bStartStop.setImageResource(R.drawable.stream_icon)
+      onMainThreadHandler {
+        bStartStop.setImageResource(R.drawable.stream_icon)
+      }
       toast("Failed: $reason")
     }
   }
 
   override fun onNewBitrate(bitrate: Long) {
-    bitrateAdapter.adaptBitrate(bitrate, genericStream.getStreamClient().hasCongestion())
-    txtBitrate.text = String.format(Locale.getDefault(), "%.1f mb/s", bitrate / 1000_000f)
+    onMainThreadHandler {
+      bitrateAdapter.adaptBitrate(bitrate, genericStream.getStreamClient().hasCongestion())
+      txtBitrate.text = String.format(Locale.getDefault(), "%.1f mb/s", bitrate / 1000_000f)
+    }
   }
 
   override fun onDisconnect() {
-    txtBitrate.text = String()
-    toast("Disconnected")
+    onMainThreadHandler {
+      txtBitrate.text = String()
+      toast("Disconnected")
+    }
   }
 
   override fun onAuthError() {
     genericStream.stopStream()
-    bStartStop.setImageResource(R.drawable.stream_icon)
+    onMainThreadHandler {
+      bStartStop.setImageResource(R.drawable.stream_icon)
+    }
     toast("Auth error")
   }
 
