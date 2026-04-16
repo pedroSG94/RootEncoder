@@ -3,8 +3,12 @@ package com.pedro.common.base
 import android.util.Log
 import com.pedro.common.BitrateManager
 import com.pedro.common.ConnectChecker
+import com.pedro.common.FrameLifecycleListener
+import com.pedro.common.QueueSnapshot
 import com.pedro.common.StreamBlockingQueue
+import com.pedro.common.TransportEvent
 import com.pedro.common.frame.MediaFrame
+import com.pedro.common.onMainThread
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -22,6 +26,8 @@ abstract class BaseSender(
 
     @Volatile
     protected var running = false
+    // Tracks actual queue capacity; updated when resizeCache() replaces the queue.
+    // getCacheSize() reads this field — it must stay in sync with the live queue object.
     private var cacheSize = 400
     @Volatile
     protected var queue = StreamBlockingQueue(cacheSize)
@@ -41,6 +47,19 @@ abstract class BaseSender(
     @Volatile
     protected var bytesSendPerSecond = 0L
 
+    /**
+     * Lifecycle callback invoked after the sender's dispatch thread has fully consumed a
+     * [MediaFrame]. Register a [FrameLifecycleListener] to receive notifications when the
+     * frame's [MediaFrame.data] buffer may safely be returned to a pool.
+     *
+     * Called from the sender's IO coroutine; implementations must not block.
+     */
+    var frameLifecycleListener: FrameLifecycleListener? = null
+
+    // Rate-limit for queue-overflow signals: at most one per OVERFLOW_SIGNAL_COOLDOWN_MS.
+    private var lastOverflowSignalMs = 0L
+    private val OVERFLOW_SIGNAL_COOLDOWN_MS = 1_500L
+
     abstract fun setVideoInfo(sps: ByteBuffer, pps: ByteBuffer?, vps: ByteBuffer?)
     abstract fun setAudioInfo(sampleRate: Int, isStereo: Boolean)
     protected abstract suspend fun onRun()
@@ -50,20 +69,43 @@ abstract class BaseSender(
         if (running && !queue.trySend(mediaFrame)) {
             when (mediaFrame.type) {
                 MediaFrame.Type.VIDEO -> {
-                    Log.i(TAG, "Video frame discarded")
+                    Log.i(TAG, "Video frame discarded (queue full)")
                     droppedVideoFrames++
                 }
                 MediaFrame.Type.AUDIO -> {
-                    Log.i(TAG, "Audio frame discarded")
+                    Log.i(TAG, "Audio frame discarded (queue full)")
                     droppedAudioFrames++
                 }
             }
+            // Emit typed queue-overflow event with rate limiting to avoid flooding callers.
+            val now = System.currentTimeMillis()
+            if (now - lastOverflowSignalMs >= OVERFLOW_SIGNAL_COOLDOWN_MS) {
+                lastOverflowSignalMs = now
+                val snapshot = QueueSnapshot(capacity = cacheSize, items = queue.getSize())
+                val event = TransportEvent.QueueOverflow(
+                    frameType = mediaFrame.type,
+                    droppedTotal = if (mediaFrame.type == MediaFrame.Type.VIDEO) droppedVideoFrames else droppedAudioFrames,
+                    queueCapacity = snapshot.capacity,
+                    queueSize = snapshot.items,
+                )
+                scope.launch { onMainThread { connectChecker.onTransportEvent(event) } }
+            }
         }
+    }
+
+    /**
+     * Called by subclass [onRun] implementations after a [MediaFrame] has been fully
+     * dispatched to the network socket. Notifies [frameLifecycleListener] so callers can
+     * recycle the frame's buffer.
+     */
+    protected fun notifyFrameConsumed(frame: MediaFrame) {
+        frameLifecycleListener?.onFrameConsumed(frame)
     }
 
     fun start() {
         bitrateManager.reset()
         queue.clear()
+        lastOverflowSignalMs = 0L
         running = true
         job = scope.launch {
             val bitrateTask = async {
@@ -107,11 +149,25 @@ abstract class BaseSender(
         val tempQueue = StreamBlockingQueue(newSize)
         queue.drainTo(tempQueue)
         queue = tempQueue
+        cacheSize = newSize  // keep getCacheSize() in sync with the new queue capacity
     }
 
+    /**
+     * Returns the current maximum capacity of the sender frame queue.
+     * Reflects the value passed to the most recent [resizeCache] call.
+     */
     fun getCacheSize(): Int = cacheSize
 
     fun getItemsInCache(): Int = queue.getSize()
+
+    /**
+     * Returns a point-in-time snapshot of the sender queue state.
+     * Thread-safe; values are read atomically from the backing [StreamBlockingQueue].
+     */
+    fun getQueueSnapshot(): QueueSnapshot = QueueSnapshot(
+        capacity = cacheSize,
+        items = queue.getSize(),
+    )
 
     fun clearCache() {
         queue.clear()

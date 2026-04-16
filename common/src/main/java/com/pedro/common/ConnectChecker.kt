@@ -26,4 +26,20 @@ interface ConnectChecker: BitrateChecker {
   fun onDisconnect()
   fun onAuthError()
   fun onAuthSuccess()
+
+  /**
+   * Typed transport event from the sender layer.
+   *
+   * Provides machine-readable signal types so callers can differentiate between
+   * queue-pressure events ([TransportEvent.QueueOverflow]) and network errors
+   * ([TransportEvent.NetworkSendError]).
+   *
+   * Default implementation is a no-op so existing [ConnectChecker] implementors
+   * are not required to override this method. A [TransportEvent.NetworkSendError] is
+   * always accompanied by a corresponding [onConnectionFailed] call for backward
+   * compatibility.
+   *
+   * @param event  Typed transport event; use exhaustive `when` for dispatch.
+   */
+  fun onTransportEvent(event: TransportEvent) {}
 }
