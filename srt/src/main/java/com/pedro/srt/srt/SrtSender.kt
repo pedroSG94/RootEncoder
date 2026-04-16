@@ -130,10 +130,18 @@ class SrtSender(
           bytesSend += bytesPsi + bytes
           bytesSendPerSecond += bytesPsi + bytes
         }
+        // Notify lifecycle listener: frame fully consumed, buffer may be recycled.
+        notifyFrameConsumed(mediaFrame)
       }.exceptionOrNull()
       if (error != null) {
         onMainThread {
           connectChecker.onConnectionFailed("Error send packet, ${error.validMessage()}")
+          connectChecker.onTransportEvent(
+            com.pedro.common.TransportEvent.NetworkSendError(
+              message = "Error send packet, ${error.validMessage()}",
+              cause = error,
+            )
+          )
         }
         Log.e(TAG, "send error: ", error)
         running = false
