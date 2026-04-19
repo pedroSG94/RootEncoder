@@ -16,8 +16,6 @@
 
 package com.pedro.common
 
-import com.pedro.common.frame.MediaFrame
-
 /**
  * Typed transport events emitted by [com.pedro.common.base.BaseSender].
  *
@@ -36,14 +34,14 @@ sealed class TransportEvent {
      * cannot consume frames fast enough. Callers should reduce frame rate or bitrate,
      * request a keyframe, or clear the queue — but NOT reconnect.
      *
-     * @param frameType  Type of the dropped frame (VIDEO or AUDIO).
-     * @param droppedTotal  Total dropped frames of this type since sender start.
+     * @param droppedVideo Total dropped video frames of this type since sender start.
+     * @param droppedAudio Total dropped audio frames of this type since sender start.
      * @param queueCapacity  Maximum number of frames the queue can hold.
      * @param queueSize  Number of frames currently in the queue.
      */
     data class QueueOverflow(
-        val frameType: MediaFrame.Type,
-        val droppedTotal: Long,
+        val droppedVideo: Long,
+        val droppedAudio: Long,
         val queueCapacity: Int,
         val queueSize: Int,
     ) : TransportEvent()

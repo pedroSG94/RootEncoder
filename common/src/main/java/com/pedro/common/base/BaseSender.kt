@@ -56,10 +56,6 @@ abstract class BaseSender(
      */
     var frameLifecycleListener: FrameLifecycleListener? = null
 
-    // Rate-limit for queue-overflow signals: at most one per OVERFLOW_SIGNAL_COOLDOWN_MS.
-    private var lastOverflowSignalMs = 0L
-    private val OVERFLOW_SIGNAL_COOLDOWN_MS = 1_500L
-
     abstract fun setVideoInfo(sps: ByteBuffer, pps: ByteBuffer?, vps: ByteBuffer?)
     abstract fun setAudioInfo(sampleRate: Int, isStereo: Boolean)
     protected abstract suspend fun onRun()
@@ -77,19 +73,6 @@ abstract class BaseSender(
                     droppedAudioFrames++
                 }
             }
-            // Emit typed queue-overflow event with rate limiting to avoid flooding callers.
-            val now = System.currentTimeMillis()
-            if (now - lastOverflowSignalMs >= OVERFLOW_SIGNAL_COOLDOWN_MS) {
-                lastOverflowSignalMs = now
-                val snapshot = QueueSnapshot(capacity = cacheSize, items = queue.getSize())
-                val event = TransportEvent.QueueOverflow(
-                    frameType = mediaFrame.type,
-                    droppedTotal = if (mediaFrame.type == MediaFrame.Type.VIDEO) droppedVideoFrames else droppedAudioFrames,
-                    queueCapacity = snapshot.capacity,
-                    queueSize = snapshot.items,
-                )
-                scope.launch { onMainThread { connectChecker.onTransportEvent(event) } }
-            }
         }
     }
 
@@ -105,7 +88,6 @@ abstract class BaseSender(
     fun start() {
         bitrateManager.reset()
         queue.clear()
-        lastOverflowSignalMs = 0L
         running = true
         job = scope.launch {
             val bitrateTask = async {
@@ -114,6 +96,18 @@ abstract class BaseSender(
                     bitrateManager.calculateBitrate(bytesSendPerSecond * 8)
                     bytesSendPerSecond = 0
                     delay(timeMillis = 1000)
+                }
+            }
+            val frameEventTask = async {
+                while (scope.isActive && running) {
+                    val event = TransportEvent.QueueOverflow(
+                        droppedVideo = droppedVideoFrames,
+                        droppedAudio = droppedAudioFrames,
+                        queueCapacity = cacheSize,
+                        queueSize = queue.getSize(),
+                    )
+                    onMainThread { connectChecker.onTransportEvent(event) }
+                    delay(timeMillis = 1500)
                 }
             }
             onRun()
@@ -135,7 +129,7 @@ abstract class BaseSender(
 
     @Throws(IllegalArgumentException::class)
     fun hasCongestion(percentUsed: Float = 20f): Boolean {
-        if (percentUsed < 0 || percentUsed > 100) throw IllegalArgumentException("the value must be in range 0 to 100")
+        if (percentUsed !in 0.0..100.0) throw IllegalArgumentException("the value must be in range 0 to 100")
         val size = queue.getSize().toFloat()
         val remaining = queue.remainingCapacity().toFloat()
         val capacity = size + remaining
