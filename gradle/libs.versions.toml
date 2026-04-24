@@ -1,6 +1,6 @@
 [versions]
 #plugins versions
-agp = "9.1.1"
+agp = "9.2.0"
 kotlin = "2.3.21"
 dokka = "2.2.0"
 
