@@ -9,7 +9,7 @@ import io.ktor.network.sockets.openWriteChannel
 import io.ktor.utils.io.ByteReadChannel
 import io.ktor.utils.io.ByteWriteChannel
 import io.ktor.utils.io.readFully
-import io.ktor.utils.io.readUTF8Line
+import io.ktor.utils.io.readLine
 import io.ktor.utils.io.writeByte
 import io.ktor.utils.io.writeFully
 import kotlinx.coroutines.Dispatchers
@@ -77,7 +77,7 @@ abstract class TcpStreamSocketKtorBase(
         return data
     }
 
-    override suspend fun readLine(): String? = input?.readUTF8Line()
+    override suspend fun readLine(): String? = input?.readLine()
 
     override fun isConnected(): Boolean = socket?.isClosed != true
 

@@ -31,6 +31,7 @@ import android.widget.TextView
 import androidx.annotation.RequiresApi
 import androidx.fragment.app.Fragment
 import com.pedro.common.ConnectChecker
+import com.pedro.common.onMainThreadHandler
 import com.pedro.encoder.input.sources.video.Camera1Source
 import com.pedro.encoder.input.sources.video.Camera2Source
 import com.pedro.extrasources.CameraXSource
@@ -234,24 +235,55 @@ class CameraFragment : Fragment(), ConnectChecker {
             toast("Connection : Failed")
         }
     }
+  }
 
-    override fun onNewBitrate(bitrate: Long) {
-        bitrateAdapter.adaptBitrate(bitrate, genericStream.getStreamClient().hasCongestion())
-        txtBitrate.text = String.format(Locale.getDefault(), "%.1f mb/s", bitrate / 1000_000f)
-    }
+  override fun onDestroy() {
+    super.onDestroy()
+    genericStream.release()
+  }
 
-    override fun onDisconnect() {
-        txtBitrate.text = String()
-        toast("Disconnected")
-    }
+  override fun onConnectionStarted(url: String) {
+  }
 
-    override fun onAuthError() {
-        genericStream.stopStream()
+  override fun onConnectionSuccess() {
+    toast("Connected")
+  }
+
+  override fun onConnectionFailed(reason: String) {
+    if (genericStream.getStreamClient().reTry(5000, reason, null)) {
+      toast("Retry")
+    } else {
+      genericStream.stopStream()
+      onMainThreadHandler {
         bStartStop.setImageResource(R.drawable.stream_icon)
-        toast("Auth error")
+      }
+      toast("Failed: $reason")
     }
+  }
 
-    override fun onAuthSuccess() {
-        toast("Auth success")
+  override fun onNewBitrate(bitrate: Long) {
+    onMainThreadHandler {
+      bitrateAdapter.adaptBitrate(bitrate, genericStream.getStreamClient().hasCongestion())
+      txtBitrate.text = String.format(Locale.getDefault(), "%.1f mb/s", bitrate / 1000_000f)
     }
+  }
+
+  override fun onDisconnect() {
+    onMainThreadHandler {
+      txtBitrate.text = String()
+      toast("Disconnected")
+    }
+  }
+
+  override fun onAuthError() {
+    genericStream.stopStream()
+    onMainThreadHandler {
+      bStartStop.setImageResource(R.drawable.stream_icon)
+    }
+    toast("Auth error")
+  }
+
+  override fun onAuthSuccess() {
+    toast("Auth success")
+  }
 }

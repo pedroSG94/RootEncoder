@@ -42,7 +42,7 @@ class SilenceAudioSource: AudioSource(), GetMicrophoneData {
 
   override fun create(sampleRate: Int, isStereo: Boolean, echoCanceler: Boolean, noiseSuppressor: Boolean): Boolean {
     val channels = if (isStereo) 2 else 1
-    sleepTime = ((buffer.size.toDouble() / (sampleRate * channels * 2L)) * 1000000L).toLong()
+    sleepTime = ((buffer.size.toDouble() / (sampleRate * channels * 2L)) * 1000L).toLong()
     return true
   }
 

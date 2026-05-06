@@ -57,15 +57,18 @@ fun MediaCodec.BufferInfo.isKeyframe(): Boolean {
   }
 }
 
-fun ByteBuffer.toByteArray(): ByteArray {
-  return if (this.hasArray() && !isDirect) {
-    this.array()
-  } else {
-    this.rewind()
-    val byteArray = ByteArray(this.remaining())
-    this.get(byteArray)
-    byteArray
-  }
+fun ByteBuffer.toByteArray(
+  position: Int = 0,
+  size: Int = limit()
+): ByteArray {
+  val duplicate = duplicate()
+  duplicate.position(position)
+  duplicate.limit(position + size)
+
+  val byteArray = ByteArray(duplicate.remaining())
+  duplicate.get(byteArray)
+
+  return byteArray
 }
 
 fun ByteBuffer.getStartCodeSize(): Int {
@@ -85,7 +88,7 @@ fun ByteBuffer.getStartCodeSize(): Int {
 fun ByteBuffer.removeInfo(info: MediaFrame.Info): ByteBuffer {
   try {
     position(info.offset)
-    limit(info.size)
+    limit(info.offset + info.size)
   } catch (_: Exception) { }
   return slice()
 }
