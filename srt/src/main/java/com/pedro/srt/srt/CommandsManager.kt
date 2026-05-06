@@ -37,6 +37,7 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import java.io.IOException
 import kotlin.random.Random
+import com.pedro.common.socket.base.SocketType
 
 /**
  * Created by pedro on 23/8/23.
@@ -120,7 +121,9 @@ class CommandsManager {
         socketId = socketId
       )
       sequenceNumber++
-      packetHandlingQueue.add(dataPacket)
+      if (socket?.type != SocketType.NATIVE) {
+        packetHandlingQueue.add(dataPacket)
+      }
       dataPacket.write()
       socket?.write(dataPacket)
       return dataPacket.getSize()

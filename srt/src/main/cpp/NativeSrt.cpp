@@ -12,10 +12,8 @@ extern "C" JNIEXPORT jint JNICALL
 Java_com_pedro_srtreceiver_SrtServerSocket_nativeInit(JNIEnv *env, jobject thiz) {
     int result = srt_startup();
     if (result < 0) {
-        LOGE("srt_startup failed: %s", srt_getlasterror_str());
         return -1;
     }
-    LOGI("SRT initialized successfully");
     return 0;
 }
 
@@ -23,7 +21,6 @@ extern "C" JNIEXPORT jint JNICALL
 Java_com_pedro_srtreceiver_SrtServerSocket_nativeStartServer(JNIEnv *env, jobject thiz, jint port) {
     SRTSOCKET server_fd = srt_create_socket();
     if (server_fd == SRT_INVALID_SOCK) {
-        LOGE("srt_create_socket failed: %s", srt_getlasterror_str());
         return -1;
     }
 
@@ -41,18 +38,15 @@ Java_com_pedro_srtreceiver_SrtServerSocket_nativeStartServer(JNIEnv *env, jobjec
     sa.sin_addr.s_addr = INADDR_ANY;
 
     if (srt_bind(server_fd, (struct sockaddr *) &sa, sizeof(sa)) == SRT_ERROR) {
-        LOGE("srt_bind failed on port %d: %s", port, srt_getlasterror_str());
         srt_close(server_fd);
         return -1;
     }
 
     if (srt_listen(server_fd, 1) == SRT_ERROR) {
-        LOGE("srt_listen failed: %s", srt_getlasterror_str());
         srt_close(server_fd);
         return -1;
     }
 
-    LOGI("SRT server started on port %d, fd=%d", port, server_fd);
     return server_fd;
 }
 
@@ -63,10 +57,8 @@ Java_com_pedro_srtreceiver_SrtServerSocket_nativeAccept(JNIEnv *env, jobject thi
 
     SRTSOCKET client_fd = srt_accept(serverFd, (struct sockaddr *) &client_addr, &addr_len);
     if (client_fd == SRT_INVALID_SOCK) {
-        LOGE("srt_accept failed: %s", srt_getlasterror_str());
         return -1;
     }
-    LOGI("Client accepted, fd=%d", client_fd);
     return client_fd;
 }
 
@@ -79,8 +71,8 @@ Java_com_pedro_srtreceiver_SrtServerSocket_nativeRecv(JNIEnv *env, jobject thiz,
     env->ReleaseByteArrayElements(buffer, bufferPtr, 0);
 
     if (received == SRT_ERROR) {
-        int error = srt_getlasterror(nullptr);
-        if (error != SRT_EASYNCRCV) LOGE("srt_recvmsg failed: %s", srt_getlasterror_str());
+//        int error = srt_getlasterror(nullptr);
+//        if (error != SRT_EASYNCRCV)
         return -1;
     }
     return received;
@@ -90,13 +82,12 @@ extern "C" JNIEXPORT void JNICALL
 Java_com_pedro_srtreceiver_SrtServerSocket_nativeClose(JNIEnv *env, jobject thiz, jint socketFd) {
     if (socketFd >= 0) {
         srt_close(socketFd);
-        LOGI("Server socket %d closed", socketFd);
     }
 }
 
 void srtLogHandler(void *opaque, int level, const char *file, int line, const char *area,
                    const char *message) {
-    LOGI(" Detail Data : [%s] %s %s", file, message, area);
+//    LOGI(" Detail Data : [%s] %s %s", file, message, area);
 }
 
 extern "C" JNIEXPORT jint JNICALL
@@ -128,7 +119,6 @@ Java_com_pedro_srt_utils_SrtSocket_nativeOpen(JNIEnv *env, jobject thiz) {
     int sndtimeo = 1000; //  giây
     srt_setsockopt(sock, 0, SRTO_SNDTIMEO, &sndtimeo, sizeof(sndtimeo));
 
-    LOGI("Native SRT socket opened and optimized for LIVE: %d", sock);
     return (jint) sock;
 }
 
@@ -143,14 +133,11 @@ Java_com_pedro_srt_utils_SrtSocket_nativeBindAndListen(JNIEnv *env, jobject thiz
     sa.sin_addr.s_addr = INADDR_ANY; // Nghe trên mọi IP của điện thoại
 
     if (srt_bind((SRTSOCKET) sock, (struct sockaddr *) &sa, sizeof(sa)) == SRT_ERROR) {
-        LOGE("SRT Bind failed: %s", srt_getlasterror_str());
         return -1;
     }
     if (srt_listen((SRTSOCKET) sock, 1) == SRT_ERROR) {
-        LOGE("SRT Listen failed: %s", srt_getlasterror_str());
         return -1;
     }
-    LOGI("SRT Server listening on port %d", port);
     return 0;
 }
 
@@ -160,15 +147,13 @@ Java_com_pedro_srt_utils_SrtSocket_nativeAccept(JNIEnv *env, jobject thiz, jint 
     struct sockaddr_storage client_addr;
     int addr_len = sizeof(client_addr);
 
-    LOGI("SRT waiting for APP to connect...");
     SRTSOCKET clientSock = srt_accept((SRTSOCKET) serverSock, (struct sockaddr *) &client_addr,
                                       &addr_len);
 
     if (clientSock == SRT_INVALID_SOCK) {
-        LOGE("SRT Accept failed: %s", srt_getlasterror_str());
         return -1;
     }
-    LOGI("APP connected! Client FD: %d", clientSock);
+
     return (jint) clientSock;
 }
 
@@ -193,11 +178,11 @@ Java_com_pedro_srt_utils_SrtSocket_nativeConnect(JNIEnv *env, jobject thiz, jint
     srt_setloghandler(nullptr, srtLogHandler);
     srt_setloglevel(srt_logging::LogLevel::debug);
 
-    if (result == SRT_ERROR) {
-        LOGE("SRT Connect failed: %s", srt_getlasterror_str());
-    } else {
-        LOGI("SRT Connect success!");
-    }
+//    if (result == SRT_ERROR) {
+//        LOGE("SRT Connect failed: %s", srt_getlasterror_str());
+//    } else {
+//        LOGI("SRT Connect success!");
+//    }
 
     env->ReleaseStringUTFChars(host, nativeHost);
     env->ReleaseStringUTFChars(streamId, nativeStreamId);
@@ -212,9 +197,9 @@ Java_com_pedro_srt_utils_SrtSocket_nativeWrite(JNIEnv *env, jobject thiz, jint s
 
     int result = srt_sendmsg((SRTSOCKET) sock, (const char *) buffer, len, -1, 0);
 
-    if (result == SRT_ERROR) {
-        LOGE("srt_sendmsg failed: %s", srt_getlasterror_str());
-    }
+//    if (result == SRT_ERROR) {
+//        LOGE("srt_sendmsg failed: %s", srt_getlasterror_str());
+//    }
     env->ReleaseByteArrayElements(data, buffer, 0);
 
     return result;
@@ -234,6 +219,5 @@ extern "C" JNIEXPORT void JNICALL
 Java_com_pedro_srt_utils_SrtSocket_nativeClose(JNIEnv *env, jobject thiz, jint sock) {
     if (sock >= 0) {
         srt_close((SRTSOCKET) sock);
-        LOGI("Native socket %d closed", sock);
     }
 }
