@@ -73,5 +73,10 @@
   <string name="camera_uvc">CameraUVC</string>
   <string name="bitmap">Bitmap</string>
   <string name="buffer">Buffer</string>
+  <string name="stream_with_video_and_audio">Stream with video and audio</string>
+  <string name="no_audio_selected">No Audio Selected</string>
+  <string name="mp3">MP3</string>
+  <string name="audio">Audio</string>
+  <string name="mic">Mic</string>
 
 </resources>

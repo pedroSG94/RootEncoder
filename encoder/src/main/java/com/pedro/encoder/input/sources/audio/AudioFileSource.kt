@@ -172,4 +172,7 @@ class AudioFileSource(
   fun setCodecErrorCallback(codecErrorCallback: CodecErrorCallback?) {
     audioDecoder.setCodecErrorCallback(codecErrorCallback)
   }
+
+  fun getAudioTrack(): AudioTrack? = audioTrackPlayer
+
 }

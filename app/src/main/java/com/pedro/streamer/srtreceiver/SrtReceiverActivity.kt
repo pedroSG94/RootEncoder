@@ -15,14 +15,12 @@
  */
 package com.pedro.streamer.srtreceiver
 
-import android.os.Build
 import android.os.Bundle
 import android.view.SurfaceView
 import android.view.WindowManager
 import android.widget.Button
 import android.widget.EditText
 import android.widget.TextView
-import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.pedro.srtreceiver.SrtReceiver
 import com.pedro.streamer.R

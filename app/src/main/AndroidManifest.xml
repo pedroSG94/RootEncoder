@@ -1,25 +1,29 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:tools="http://schemas.android.com/tools"
-    xmlns:android="http://schemas.android.com/apk/res/android">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
 
-  <uses-permission android:name="android.permission.FLASHLIGHT"/>
-  <uses-permission android:name="android.permission.INTERNET"/>
-  <uses-permission android:name="android.permission.RECORD_AUDIO"/>
-  <uses-permission android:name="android.permission.CAMERA"/>
+    <uses-permission android:name="android.permission.FLASHLIGHT" />
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
+    <uses-permission android:name="android.permission.CAMERA" />
 
-  <!--needed by background Rtp service to keep service alive-->
-  <uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>
-  <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
-  <!--Optional for play store-->
-  <uses-feature android:name="android.hardware.camera" android:required="false" />
-  <uses-feature android:name="android.hardware.camera.autofocus" android:required="false" />
-  <!--  Android 14 background compatibility-->
-  <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MICROPHONE"/>
-  <uses-permission android:name="android.permission.FOREGROUND_SERVICE_CAMERA"/>
-  <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PROJECTION"/>
+    <!--needed by background Rtp service to keep service alive-->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <!--Optional for play store-->
+    <uses-feature
+        android:name="android.hardware.camera"
+        android:required="false" />
+    <uses-feature
+        android:name="android.hardware.camera.autofocus"
+        android:required="false" />
+    <!--  Android 14 background compatibility-->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MICROPHONE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_CAMERA" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PROJECTION" />
 
-  <!--  This is only to allow compile extra-sources modules in app with min version 16. Never do it-->
-  <uses-sdk tools:overrideLibrary="
+    <!--  This is only to allow compile extra-sources modules in app with min version 16. Never do it-->
+    <uses-sdk tools:overrideLibrary="
   com.pedro.extrasources,
   com.serenegiant.uvccamera,
   androidx.core.ktx,androidx.core,
@@ -29,57 +33,61 @@
   androidx.exifinterface"
       />
 
-  <application
-      android:name=".App"
-      android:requestLegacyExternalStorage="true"
-      android:usesCleartextTraffic="true"
-      android:allowBackup="true"
-      android:icon="@mipmap/ic_launcher"
-      android:supportsRtl="true"
-      android:theme="@style/AppTheme"
-      >
-    <activity
-        android:name="com.pedro.streamer.MainActivity"
-        android:label="@string/app_name"
-        android:exported="true">
-      <intent-filter>
-        <action android:name="android.intent.action.VIEW"/>
-        <action android:name="android.intent.action.MAIN"/>
+    <application
+        android:name=".App"
+        android:allowBackup="true"
+        android:icon="@mipmap/ic_launcher"
+        android:requestLegacyExternalStorage="true"
+        android:supportsRtl="true"
+        android:theme="@style/AppTheme"
+        android:usesCleartextTraffic="true">
+        <activity
+            android:name="com.pedro.streamer.MainActivity"
+            android:exported="true"
+            android:label="@string/app_name">
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <action android:name="android.intent.action.MAIN" />
 
-        <category android:name="android.intent.category.LAUNCHER"/>
-      </intent-filter>
-    </activity>
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
 
-    <activity
-        android:name="com.pedro.streamer.oldapi.OldApiActivity"
-        android:label="@string/old_api"
-        />
+        <activity
+            android:name="com.pedro.streamer.oldapi.OldApiActivity"
+            android:label="@string/old_api" />
 
-    <activity
-        android:name="com.pedro.streamer.file.FromFileActivity"
-        android:label="@string/from_file"
-        tools:targetApi="18" />
+        <activity
+            android:name="com.pedro.streamer.file.FromFileActivity"
+            android:label="@string/from_file"
+            tools:targetApi="18" />
 
-    <activity
-        android:name="com.pedro.streamer.screen.ScreenActivity"
-        android:label="@string/display"
-        tools:targetApi="21" />
+        <activity
+            android:name="com.pedro.streamer.screen.ScreenActivity"
+            android:label="@string/display"
+            tools:targetApi="21" />
 
-    <activity android:name="com.pedro.streamer.rotation.RotationActivity"
-        android:label="@string/rotation_rtmp"
-        android:screenOrientation="fullSensor"
-        android:configChanges="orientation|screenSize|screenLayout|smallestScreenSize"
-        tools:ignore="DiscouragedApi"
-        tools:targetApi="21" />
+        <activity
+            android:name="com.pedro.streamer.rotation.RotationActivity"
+            android:configChanges="orientation|screenSize|screenLayout|smallestScreenSize"
+            android:label="@string/rotation_rtmp"
+            android:screenOrientation="fullSensor"
+            tools:ignore="DiscouragedApi"
+            tools:targetApi="21" />
 
-    <activity
-        android:name="com.pedro.streamer.srtreceiver.SrtReceiverActivity"
-        android:label="@string/srt_receiver"
-        />
+        <activity
+            android:name="com.pedro.streamer.srtreceiver.SrtReceiverActivity"
+            android:label="@string/srt_receiver" />
 
-    <service android:name="com.pedro.streamer.screen.ScreenService"
-        android:foregroundServiceType="mediaProjection|microphone|camera"
-        tools:targetApi="21" />
-  </application>
+        <activity
+            android:name=".streamvideoaudio.StreamVideoAudioActivity"
+            android:label="@string/stream_with_video_and_audio"
+            tools:targetApi="21" />
+
+        <service
+            android:name="com.pedro.streamer.screen.ScreenService"
+            android:foregroundServiceType="mediaProjection|microphone|camera"
+            tools:targetApi="21" />
+    </application>
 
 </manifest>

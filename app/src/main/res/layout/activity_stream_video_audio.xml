@@ -1,0 +1,151 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/black"
+    tools:context=".streamvideoaudio.StreamVideoAudioActivity">
+
+    <SurfaceView
+        android:id="@+id/surfaceView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+
+    <EditText
+        android:id="@+id/edt_url"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="16dp"
+        android:background="#80FFFFFF"
+        android:hint="@string/hint_protocol"
+        android:inputType="textUri"
+        android:padding="12dp"
+        android:textColor="@color/white"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <TextView
+        android:id="@+id/txt_audio_title"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginEnd="16dp"
+        android:layout_marginBottom="16dp"
+        android:ellipsize="end"
+        android:gravity="center"
+        android:maxLines="2"
+        android:text="@string/no_audio_selected"
+        android:textColor="@color/white"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        app:layout_constraintBottom_toTopOf="@+id/sb_volume_audio"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
+
+    <TextView
+        android:id="@+id/txt_audio"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="24dp"
+        android:text="@string/audio"
+        android:textColor="@color/WHITE"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        app:layout_constraintBottom_toBottomOf="@id/sb_volume_audio"
+        app:layout_constraintEnd_toStartOf="@id/sb_volume_audio"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="@id/sb_volume_audio" />
+
+    <SeekBar
+        android:id="@+id/sb_volume_audio"
+        android:layout_width="240dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="24dp"
+        android:layout_marginBottom="16dp"
+        android:max="100"
+        android:progress="100"
+        app:layout_constraintBottom_toTopOf="@+id/txt_microphone"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@id/sb_volume_audio"
+        app:layout_constraintStart_toStartOf="parent" />
+
+    <TextView
+        android:id="@+id/txt_microphone"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="16dp"
+        android:text="@string/mic"
+        android:textColor="@color/WHITE"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        app:layout_constraintBottom_toTopOf="@+id/ll_controls"
+        app:layout_constraintEnd_toStartOf="@id/txt_microphone"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="@id/txt_audio" />
+
+    <SeekBar
+        android:id="@+id/sb_volume_mic"
+        android:layout_width="240dp"
+        android:layout_height="wrap_content"
+        android:max="100"
+        android:progress="100"
+        app:layout_constraintBottom_toBottomOf="@id/txt_microphone"
+        app:layout_constraintStart_toStartOf="@id/sb_volume_audio"
+        app:layout_constraintTop_toTopOf="@+id/txt_microphone" />
+
+    <LinearLayout
+        android:id="@+id/ll_controls"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="24dp"
+        android:gravity="center"
+        android:orientation="horizontal"
+        app:layout_constraintBottom_toBottomOf="parent">
+
+        <ImageView
+            android:id="@+id/btn_select_audio"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_marginEnd="24dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="@string/app_name"
+            android:padding="4dp"
+            android:src="@drawable/baseline_audio_file_48"
+            app:tint="@color/white" />
+
+        <ImageView
+            android:id="@+id/btn_play_pause"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_marginEnd="24dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="@string/app_name"
+            android:enabled="false"
+            android:padding="2dp"
+            android:src="@drawable/play_video_48"
+            app:tint="@color/white" />
+
+        <ImageView
+            android:id="@+id/btn_start_stop"
+            android:layout_width="52dp"
+            android:layout_height="52dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="@string/app_name"
+            android:padding="2dp"
+            android:src="@drawable/stream_icon" />
+
+        <ImageView
+            android:id="@+id/btn_microphone"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_marginStart="24dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="@string/app_name"
+            android:padding="4dp"
+            android:src="@drawable/microphone_icon"
+            app:tint="@color/white" />
+
+    </LinearLayout>
+
+</androidx.constraintlayout.widget.ConstraintLayout>
+
