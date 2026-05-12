@@ -223,12 +223,12 @@ class GlStreamInterface(private val context: Context): OnFrameAvailableListener,
 
   override fun stop() {
     running.set(false)
+    forceRender.stop()
     surfaceHandlerThread?.quitSafely()
     surfaceHandlerThread = null
     threadQueue.clear()
     executor?.shutdownNow()
     executor = null
-    forceRender.stop()
     sensorRotationManager.stop()
     surfaceManagerPhoto.release()
     surfaceManagerEncoder.release()

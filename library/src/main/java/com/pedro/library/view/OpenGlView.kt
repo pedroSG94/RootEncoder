@@ -345,12 +345,12 @@ open class OpenGlView : SurfaceView, GlInterface, OnFrameAvailableListener, Surf
 
     override fun stop() {
         running.set(false)
+        forceRenderer.stop()
         surfaceHandlerThread?.quitSafely()
         surfaceHandlerThread = null
         threadQueue.clear()
         executor?.shutdownNow()
         executor = null
-        forceRenderer.stop()
         surfaceManagerPhoto.release()
         surfaceManagerEncoder.release()
         surfaceManagerEncoderRecord.release()
