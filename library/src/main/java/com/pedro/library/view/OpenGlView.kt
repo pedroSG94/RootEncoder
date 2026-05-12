@@ -27,6 +27,7 @@ import android.view.Surface
 import android.view.SurfaceHolder
 import android.view.SurfaceView
 import androidx.annotation.RequiresApi
+import com.pedro.common.TimeUtils
 import com.pedro.common.newSingleThreadExecutor
 import com.pedro.common.secureSubmit
 import com.pedro.encoder.input.gl.FilterAction
@@ -241,6 +242,7 @@ open class OpenGlView : SurfaceView, GlInterface, OnFrameAvailableListener, Surf
             }
             surfaceManager.swapBuffer()
         }
+        val timestamp = TimeUtils.getCurrentTimeNano()
 
         if (surfaceManagerEncoder.isReady || surfaceManagerEncoderRecord.isReady || surfaceManagerPhoto.isReady) {
             mainRender.drawFilters(false)
@@ -253,7 +255,7 @@ open class OpenGlView : SurfaceView, GlInterface, OnFrameAvailableListener, Surf
                     w, h, aspectRatioMode,
                     streamRotation, isStreamVerticalFlip, isStreamHorizontalFlip, null
                 )
-                surfaceManagerEncoder.setPresentationTime(mainRender.getSurfaceTexture().timestamp)
+                surfaceManagerEncoder.setPresentationTime(timestamp)
                 surfaceManagerEncoder.swapBuffer()
             }
         }
@@ -263,7 +265,7 @@ open class OpenGlView : SurfaceView, GlInterface, OnFrameAvailableListener, Surf
             val h = if (muteVideo) 0 else encoderRecordHeight
             if (surfaceManagerEncoderRecord.makeCurrent()) {
                 mainRender.drawScreen(w, h, aspectRatioMode, streamRotation, isStreamVerticalFlip, isStreamHorizontalFlip, null)
-                surfaceManagerEncoderRecord.setPresentationTime(mainRender.getSurfaceTexture().timestamp)
+                surfaceManagerEncoderRecord.setPresentationTime(timestamp)
                 surfaceManagerEncoderRecord.swapBuffer()
             }
         }
