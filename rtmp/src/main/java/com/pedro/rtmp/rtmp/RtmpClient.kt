@@ -109,7 +109,7 @@ class RtmpClient(private val connectChecker: ConnectChecker) {
     get() = rtmpSender.getSentVideoFrames()
   val bytesSend: Long
     get() = rtmpSender.getBytesSend()
-  var socketType = SocketType.KTOR
+  var socketType = SocketType.JAVA
   var socketTimeout = StreamSocket.DEFAULT_TIMEOUT
   var shouldFailOnRead = false
   var shouldSendPings = false
