@@ -30,6 +30,12 @@ class TcpStreamSocketJava(
         val socketAddress: SocketAddress = InetSocketAddress(host, port)
         socket.connect(socketAddress, timeout.toInt())
         socket.soTimeout = timeout.toInt()
+        if (socket is SSLSocket) {
+            socket.sslParameters = socket.sslParameters.apply {
+                endpointIdentificationAlgorithm = "HTTPS"
+            }
+            socket.startHandshake()
+        }
         return socket
     }
 }
