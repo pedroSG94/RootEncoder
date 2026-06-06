@@ -79,7 +79,7 @@ class UdpClient(private val connectChecker: ConnectChecker) {
     get() = udpSender.getSentVideoFrames()
   val bytesSend: Long
     get() = udpSender.getBytesSend()
-  var socketType = SocketType.KTOR
+  var socketType = SocketType.JAVA
   var socketTimeout = StreamSocket.DEFAULT_TIMEOUT
 
   fun setVideoCodec(videoCodec: VideoCodec) {
