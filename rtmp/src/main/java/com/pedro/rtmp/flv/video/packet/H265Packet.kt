@@ -19,13 +19,14 @@ package com.pedro.rtmp.flv.video.packet
 import android.util.Log
 import com.pedro.common.frame.MediaFrame
 import com.pedro.common.getStartCodeSize
+import com.pedro.common.nal.NalReader
 import com.pedro.common.removeInfo
 import com.pedro.rtmp.flv.BasePacket
 import com.pedro.rtmp.flv.FlvPacket
 import com.pedro.rtmp.flv.FlvType
-import com.pedro.rtmp.flv.video.VideoFourCCPacketType
 import com.pedro.rtmp.flv.video.VideoDataType
 import com.pedro.rtmp.flv.video.VideoFormat
+import com.pedro.rtmp.flv.video.VideoFourCCPacketType
 import com.pedro.rtmp.flv.video.VideoNalType
 import com.pedro.rtmp.flv.video.config.VideoSpecificConfigHEVC
 import java.nio.ByteBuffer
@@ -109,11 +110,11 @@ class H265Packet: BasePacket() {
     val headerSize = getHeaderSize(fixedBuffer)
     if (headerSize == 0) return //invalid buffer or waiting for sps/pps
     fixedBuffer.rewind()
-    val validBuffer = removeHeader(fixedBuffer, headerSize)
-    val size = validBuffer.remaining()
-    buffer = ByteArray(header.size + size + naluSize)
+    val nals = NalReader.extractNals(fixedBuffer)
+    val size = nals.sumOf { it.capacity() }
+    buffer = ByteArray(header.size + size + naluSize * nals.size)
 
-    val type: Int = validBuffer.get(0).toInt().shr(1 and 0x3f)
+    val type: Int = nals[0].get(0).toInt().shr(1 and 0x3f)
     var nalType = VideoDataType.INTER_FRAME.value
     if (type == VideoNalType.IDR_N_LP.value || type == VideoNalType.IDR_W_DLP.value || mediaFrame.info.isKeyFrame) {
       nalType = VideoDataType.KEYFRAME.value
@@ -122,9 +123,13 @@ class H265Packet: BasePacket() {
       return
     }
     header[0] = (0b10000000 or (nalType shl 4) or VideoFourCCPacketType.CODED_FRAMES.value).toByte()
-    writeNaluSize(buffer, header.size, size)
-    validBuffer.get(buffer, header.size + naluSize, size)
-
+    var offset = header.size
+    nals.forEach {
+      val nalSize = it.capacity()
+      writeNaluSize(buffer, offset, nalSize)
+      it.get(buffer, offset + naluSize, nalSize)
+      offset += naluSize + nalSize
+    }
     System.arraycopy(header, 0, buffer, 0, header.size)
     callback(FlvPacket(buffer, ts, buffer.size, FlvType.VIDEO))
   }

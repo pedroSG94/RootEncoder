@@ -70,7 +70,6 @@ class AmfObjectTest {
     amfObject.writeHeader(output)
     amfObject.writeBody(output)
 
-println(output.toByteArray().contentToString())
     assertArrayEquals(expectedBuffer, output.toByteArray())
   }
 }
