@@ -26,6 +26,7 @@ class TcpStreamSocketKtor(
             builder.tls(Dispatchers.IO) {
                 trustManager = certificate
                 random = SecureRandom()
+                if (hostVerification) serverName = host
             }
         } else builder
     }
