@@ -38,8 +38,7 @@ class H264Packet: BasePacket(RtpConstants.clockVideoFrequency,
 
   private var stapA: ByteArray? = null
   private var sendKeyFrame = false
-  private var sps: ByteArray? = null
-  private var pps: ByteArray? = null
+  private var videoInfo: Set<ByteBuffer>? = null
   private val header = ByteArray(2)
 
   init {
@@ -47,6 +46,7 @@ class H264Packet: BasePacket(RtpConstants.clockVideoFrequency,
   }
 
   fun sendVideoInfo(sps: ByteBuffer, pps: ByteBuffer) {
+    videoInfo = setOf(sps, pps)
     setSpsPps(sps.toByteArray(), pps.toByteArray())
   }
 
@@ -54,12 +54,18 @@ class H264Packet: BasePacket(RtpConstants.clockVideoFrequency,
     mediaFrame: MediaFrame,
     callback: suspend (List<RtpFrame>) -> Unit
   ) {
+    val videoInfo = this.videoInfo
+    if (videoInfo == null) {
+      Log.e(TAG, "waiting for a valid sps and pps")
+      return
+    }
     val fixedBuffer = mediaFrame.data.removeInfo(mediaFrame.info)
     // We read a NAL units from ByteBuffer and we send them
     // NAL units are preceded with 0x00000001
-    if (getHeaderSize(fixedBuffer) == 0) return //invalid buffer or waiting for sps/pps
     fixedBuffer.rewind()
     val nals = NalReader.extractNals(fixedBuffer)
+    nals.removeAll(videoInfo)
+
     val ts = mediaFrame.info.timestamp * 1000L
     val nalType = nals[0].get()
     val naluLength = nals.sumOf { it.remaining() }
@@ -132,8 +138,6 @@ class H264Packet: BasePacket(RtpConstants.clockVideoFrequency,
   }
 
   private fun setSpsPps(sps: ByteArray, pps: ByteArray) {
-    this.sps = sps
-    this.pps = pps
     stapA = ByteArray(sps.size + pps.size + 5)
     stapA?.let {
       // STAP-A NAL header is 24
@@ -151,30 +155,6 @@ class H264Packet: BasePacket(RtpConstants.clockVideoFrequency,
       System.arraycopy(sps, 0, it, 3, sps.size)
       System.arraycopy(pps, 0, it, 5 + sps.size, pps.size)
     }
-  }
-
-  private fun getHeaderSize(byteBuffer: ByteBuffer): Int {
-    if (byteBuffer.remaining() < 4) return 0
-
-    val sps = this.sps
-    val pps = this.pps
-    if (sps != null && pps != null) {
-      val startCodeSize = byteBuffer.getVideoStartCodeSize()
-      if (startCodeSize == 0) return 0
-      val startCode = ByteArray(startCodeSize)
-      startCode[startCodeSize - 1] = 0x01
-      val avcHeader = startCode.plus(sps).plus(startCode).plus(pps).plus(startCode)
-      if (byteBuffer.remaining() < avcHeader.size) return startCodeSize
-
-      val possibleAvcHeader = ByteArray(avcHeader.size)
-      byteBuffer.get(possibleAvcHeader, 0, possibleAvcHeader.size)
-      return if (avcHeader.contentEquals(possibleAvcHeader)) {
-        avcHeader.size
-      } else {
-        startCodeSize
-      }
-    }
-    return 0
   }
 
   override fun reset() {

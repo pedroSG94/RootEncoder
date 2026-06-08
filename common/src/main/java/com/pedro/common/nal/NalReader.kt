@@ -6,7 +6,7 @@ object NalReader {
   private const val ZERO: Byte = 0x00
   private const val ONE: Byte = 0x01
 
-  fun extractNals(buffer: ByteBuffer): List<ByteBuffer> {
+  fun extractNals(buffer: ByteBuffer): ArrayList<ByteBuffer> {
     val units = ArrayList<ByteBuffer>()
 
     val array = buffer.array()

@@ -16,12 +16,14 @@
 
 package com.pedro.rtsp.rtp.packets
 
+import android.util.Log
 import com.pedro.common.frame.MediaFrame
 import com.pedro.common.nal.NalReader
 import com.pedro.common.removeInfo
 import com.pedro.rtsp.rtsp.RtpFrame
 import com.pedro.rtsp.utils.RtpConstants
 import com.pedro.rtsp.utils.getVideoStartCodeSize
+import java.nio.ByteBuffer
 import kotlin.experimental.and
 
 /**
@@ -34,21 +36,32 @@ class H265Packet: BasePacket(
   RtpConstants.payloadType + RtpConstants.trackVideo
 ) {
 
+  private var videoInfo: Set<ByteBuffer>? = null
   private val header = ByteArray(3)
 
   init {
     channelIdentifier = RtpConstants.trackVideo
   }
 
+  fun sendVideoInfo(sps: ByteBuffer, pps: ByteBuffer, vps: ByteBuffer) {
+    videoInfo = setOf(sps, pps, vps)
+  }
+
   override suspend fun createAndSendPacket(
     mediaFrame: MediaFrame,
     callback: suspend (List<RtpFrame>) -> Unit
   ) {
+    val videoInfo = this.videoInfo
+    if (videoInfo == null) {
+      Log.e(TAG, "waiting for a valid sps, pps and vps")
+      return
+    }
     val fixedBuffer = mediaFrame.data.removeInfo(mediaFrame.info)
     // We read a NAL units from ByteBuffer and we send them
     // NAL units are preceded with 0x00000001
-    if (fixedBuffer.getVideoStartCodeSize() == 0) return //invalid buffer or waiting for sps/pps/vps
     val nals = NalReader.extractNals(fixedBuffer)
+    nals.removeAll(videoInfo)
+
     val ts = mediaFrame.info.timestamp * 1000L
     val nalType = nals[0].get()
     val nalType2 = nals[0].get()

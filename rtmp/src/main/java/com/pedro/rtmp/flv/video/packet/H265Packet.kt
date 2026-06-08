@@ -21,6 +21,7 @@ import com.pedro.common.frame.MediaFrame
 import com.pedro.common.getStartCodeSize
 import com.pedro.common.nal.NalReader
 import com.pedro.common.removeInfo
+import com.pedro.common.toByteArray
 import com.pedro.rtmp.flv.BasePacket
 import com.pedro.rtmp.flv.FlvPacket
 import com.pedro.rtmp.flv.FlvType
@@ -44,31 +45,21 @@ class H265Packet: BasePacket() {
   //first time we need send video config
   private var configSend = false
 
-  private var sps: ByteArray? = null
-  private var pps: ByteArray? = null
-  private var vps: ByteArray? = null
+  private var videoInfo: List<ByteBuffer>? = null
 
   fun sendVideoInfo(sps: ByteBuffer, pps: ByteBuffer, vps: ByteBuffer) {
-    val mSps = removeHeader(sps)
-    val mPps = removeHeader(pps)
-    val mVps = removeHeader(vps)
-
-    val spsBytes = ByteArray(mSps.remaining())
-    val ppsBytes = ByteArray(mPps.remaining())
-    val vpsBytes = ByteArray(mVps.remaining())
-    mSps.get(spsBytes, 0, spsBytes.size)
-    mPps.get(ppsBytes, 0, ppsBytes.size)
-    mVps.get(vpsBytes, 0, vpsBytes.size)
-
-    this.sps = spsBytes
-    this.pps = ppsBytes
-    this.vps = vpsBytes
+    this.videoInfo = listOf(removeHeader(sps), removeHeader(pps), removeHeader(vps))
   }
 
   override suspend fun createFlvPacket(
     mediaFrame: MediaFrame,
     callback: suspend (FlvPacket) -> Unit
   ) {
+    val videoInfo = this.videoInfo
+    if (videoInfo == null) {
+      Log.e(TAG, "waiting for a valid sps, pps and vps")
+      return
+    }
     val fixedBuffer = mediaFrame.data.removeInfo(mediaFrame.info)
     val ts = mediaFrame.info.timestamp / 1000
     //header is 8 bytes length:
@@ -91,26 +82,19 @@ class H265Packet: BasePacket() {
     if (!configSend) {
       //avoid send cts on sequence start
       header[0] = (0b10000000 or (VideoDataType.KEYFRAME.value shl 4) or VideoFourCCPacketType.SEQUENCE_START.value).toByte()
-      val sps = this.sps
-      val pps = this.pps
-      val vps = this.vps
-      if (sps != null && pps != null && vps != null) {
-        val config = VideoSpecificConfigHEVC(sps, pps, vps)
-        buffer = ByteArray(config.size + header.size - ctsLength)
-        config.write(buffer, header.size - ctsLength)
-      } else {
-        Log.e(TAG, "waiting for a valid sps and pps")
-        return
-      }
 
+      val config = VideoSpecificConfigHEVC(videoInfo[0].toByteArray(), videoInfo[1].toByteArray(), videoInfo[2].toByteArray())
+      buffer = ByteArray(config.size + header.size - ctsLength)
+      config.write(buffer, header.size - ctsLength)
       System.arraycopy(header, 0, buffer, 0, header.size - ctsLength)
       callback(FlvPacket(buffer, ts, buffer.size, FlvType.VIDEO))
       configSend = true
     }
-    val headerSize = getHeaderSize(fixedBuffer)
-    if (headerSize == 0) return //invalid buffer or waiting for sps/pps
+
     fixedBuffer.rewind()
     val nals = NalReader.extractNals(fixedBuffer)
+    nals.removeAll(videoInfo)
+
     val size = nals.sumOf { it.capacity() }
     buffer = ByteArray(header.size + size + naluSize * nals.size)
 
@@ -148,37 +132,8 @@ class H265Packet: BasePacket() {
     return byteBuffer.slice()
   }
 
-  private fun getHeaderSize(byteBuffer: ByteBuffer): Int {
-    if (byteBuffer.remaining() < 4) return 0
-
-    val sps = this.sps
-    val pps = this.pps
-    val vps = this.vps
-    if (sps != null && pps != null && vps != null) {
-      val startCodeSize = byteBuffer.getStartCodeSize()
-      if (startCodeSize == 0) return 0
-      val startCode = ByteArray(startCodeSize)
-      startCode[startCodeSize - 1] = 0x01
-      val avcHeader = startCode.plus(vps).plus(startCode).plus(sps).plus(startCode).plus(pps).plus(startCode)
-      if (byteBuffer.remaining() < avcHeader.size) return startCodeSize
-
-      val possibleAvcHeader = ByteArray(avcHeader.size)
-      byteBuffer.get(possibleAvcHeader, 0, possibleAvcHeader.size)
-      return if (avcHeader.contentEquals(possibleAvcHeader)) {
-        avcHeader.size
-      } else {
-        startCodeSize
-      }
-    }
-    return 0
-  }
-
   override fun reset(resetInfo: Boolean) {
-    if (resetInfo) {
-      sps = null
-      pps = null
-      vps = null
-    }
+    if (resetInfo) videoInfo = null
     configSend = false
   }
 }
