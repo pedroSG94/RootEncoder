@@ -94,6 +94,7 @@ class H265Packet: BasePacket() {
     fixedBuffer.rewind()
     val nals = NalReader.extractNals(fixedBuffer)
     nals.removeAll(videoInfo)
+    if (nals.isEmpty()) return
 
     val size = nals.sumOf { it.capacity() }
     buffer = ByteArray(header.size + size + naluSize * nals.size)

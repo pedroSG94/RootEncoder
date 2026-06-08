@@ -65,6 +65,7 @@ class H264Packet: BasePacket(RtpConstants.clockVideoFrequency,
     fixedBuffer.rewind()
     val nals = NalReader.extractNals(fixedBuffer)
     nals.removeAll(videoInfo)
+    if (nals.isEmpty()) return
 
     val ts = mediaFrame.info.timestamp * 1000L
     val nalType = nals[0].get()
