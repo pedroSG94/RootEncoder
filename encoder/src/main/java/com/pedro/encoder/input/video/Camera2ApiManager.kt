@@ -50,6 +50,7 @@ import com.pedro.encoder.input.video.facedetector.FaceDetectorCallback
 import com.pedro.encoder.input.video.facedetector.mapCamera2Faces
 import java.util.concurrent.Executors
 import java.util.concurrent.Semaphore
+import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.roundToInt
@@ -188,18 +189,53 @@ class Camera2ApiManager(context: Context) : CameraDevice.StateCallback() {
         }
     }
 
+
+
     @Throws(IllegalStateException::class, Exception::class)
     private fun drawSurface(cameraDevice: CameraDevice, surfaces: List<Surface>): CaptureRequest {
         val builderInputSurface = cameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_RECORD)
         for (surface in surfaces) builderInputSurface.addTarget(surface)
         builderInputSurface.set(CaptureRequest.CONTROL_MODE, CameraMetadata.CONTROL_MODE_AUTO)
+        adaptFpsRange(fps, builderInputSurface)
+        this.builderInputSurface = builderInputSurface
+        return builderInputSurface.build()
+    }
+
+    private fun adaptFpsRange(expectedFps: Int, builderInputSurface: CaptureRequest.Builder) {
+        val fpsRanges = getSupportedFps(null, facing)
+        if (fpsRanges.isNotEmpty()) {
+            var closestRange = fpsRanges[0]
+            var measure = (abs((closestRange.lower - expectedFps).toDouble()) + abs(
+                (closestRange.upper - expectedFps).toDouble()
+            )).toInt()
+            for (range in fpsRanges) {
+                if (CameraHelper.discardCamera2Fps(range, facing)) continue
+                if (range.lower <= expectedFps && range.upper >= expectedFps) {
+                    val curMeasure = abs((((range.lower + range.upper) / 2) - expectedFps).toDouble()).toInt()
+                    if (curMeasure < measure) {
+                        closestRange = range
+                        measure = curMeasure
+                    } else if (curMeasure == measure) {
+                        if (abs((range.upper - expectedFps).toDouble()) < abs((closestRange.upper - expectedFps).toDouble())) {
+                            closestRange = range
+                            measure = curMeasure
+                        }
+                    }
+                }
+            }
+            Log.i(TAG, "fps: " + closestRange.lower + " - " + closestRange.upper)
+            builderInputSurface.set(CaptureRequest.CONTROL_AE_TARGET_FPS_RANGE, closestRange)
+        }
+    }
+
+    private fun adaptFpsRangeDynamic(fps: Int, builderInputSurface: CaptureRequest.Builder) {
         val validFps = min(60, fps)
         // Find best FPS range instead of forcing strict [30, 30] which causes HAL duplication stutter
         var bestRange = Range(validFps, validFps)
         try {
             val facing = if (cameraId == "1") Facing.FRONT else Facing.BACK
             val supportedRanges = getSupportedFps(null, facing)
-            
+
             // Look for a range that maxes out at our target FPS, but allows dipping to save light (e.g. [24, 30] or [15, 30])
             for (range in supportedRanges) {
                 if (range.upper == validFps && range.lower < validFps) {
@@ -216,10 +252,7 @@ class Camera2ApiManager(context: Context) : CameraDevice.StateCallback() {
         } catch (e: Exception) {
             Log.e(TAG, "Error finding dynamic FPS range", e)
         }
-        
         builderInputSurface.set(CaptureRequest.CONTROL_AE_TARGET_FPS_RANGE, bestRange)
-        this.builderInputSurface = builderInputSurface
-        return builderInputSurface.build()
     }
 
     fun setCustomRequest(request: (CaptureRequest.Builder) -> Unit): Boolean {
