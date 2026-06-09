@@ -17,6 +17,7 @@
 package com.pedro.rtmp.flv.video.packet
 
 import android.util.Log
+import com.pedro.common.VideoCodec
 import com.pedro.common.frame.MediaFrame
 import com.pedro.common.getStartCodeSize
 import com.pedro.common.nal.NalReader
@@ -92,8 +93,7 @@ class H265Packet: BasePacket() {
     }
 
     fixedBuffer.rewind()
-    val nals = NalReader.extractNals(fixedBuffer)
-    nals.removeAll(videoInfo)
+    val nals = NalReader.extractNals(fixedBuffer, VideoCodec.H265, true)
     if (nals.isEmpty()) return
 
     val size = nals.sumOf { it.capacity() }

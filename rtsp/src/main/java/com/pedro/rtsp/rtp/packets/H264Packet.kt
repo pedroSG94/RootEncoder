@@ -17,6 +17,7 @@
 package com.pedro.rtsp.rtp.packets
 
 import android.util.Log
+import com.pedro.common.VideoCodec
 import com.pedro.common.frame.MediaFrame
 import com.pedro.common.nal.NalReader
 import com.pedro.common.removeInfo
@@ -63,8 +64,7 @@ class H264Packet: BasePacket(RtpConstants.clockVideoFrequency,
     // We read a NAL units from ByteBuffer and we send them
     // NAL units are preceded with 0x00000001
     fixedBuffer.rewind()
-    val nals = NalReader.extractNals(fixedBuffer)
-    nals.removeAll(videoInfo)
+    val nals = NalReader.extractNals(fixedBuffer, VideoCodec.H264, true)
     if (nals.isEmpty()) return
 
     val ts = mediaFrame.info.timestamp * 1000L
