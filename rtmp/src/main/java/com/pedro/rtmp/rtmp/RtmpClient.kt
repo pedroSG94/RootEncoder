@@ -109,7 +109,8 @@ class RtmpClient(private val connectChecker: ConnectChecker) {
     get() = rtmpSender.getSentVideoFrames()
   val bytesSend: Long
     get() = rtmpSender.getBytesSend()
-  var socketType = SocketType.KTOR
+  var socketType = SocketType.JAVA
+  var tlsHostVerification = false
   var socketTimeout = StreamSocket.DEFAULT_TIMEOUT
   var shouldFailOnRead = false
   var shouldSendPings = false
@@ -352,7 +353,7 @@ class RtmpClient(private val connectChecker: ConnectChecker) {
     val socket = if (tunneled) {
       TcpTunneledSocket(commandsManager.host, commandsManager.port, tlsEnabled)
     } else {
-      TcpSocket(socketType, commandsManager.host, commandsManager.port, tlsEnabled, socketTimeout, certificates)
+      TcpSocket(socketType, commandsManager.host, commandsManager.port, tlsEnabled, socketTimeout, tlsHostVerification, certificates)
     }
     this.socket = socket
     socket.connect()

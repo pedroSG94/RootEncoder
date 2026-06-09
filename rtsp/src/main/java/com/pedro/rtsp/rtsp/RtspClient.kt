@@ -93,7 +93,8 @@ class RtspClient(private val connectChecker: ConnectChecker) {
     get() = rtspSender.getSentVideoFrames()
   val bytesSend: Long
     get() = rtspSender.getBytesSend()
-  var socketType = SocketType.KTOR
+  var socketType = SocketType.JAVA
+  var tlsHostVerification = false
   var socketTimeout = StreamSocket.DEFAULT_TIMEOUT
 
   /**
@@ -246,7 +247,7 @@ class RtspClient(private val connectChecker: ConnectChecker) {
             }
             rtspSender.setVideoInfo(commandsManager.sps!!, commandsManager.pps, commandsManager.vps)
           }
-          val socket = StreamSocket.createTcpSocket(socketType, host, port, tlsEnabled, socketTimeout, certificates)
+          val socket = StreamSocket.createTcpSocket(socketType, host, port, tlsEnabled, socketTimeout, tlsHostVerification, certificates)
           this@RtspClient.socket = socket
           socket.connect()
           socket.write(commandsManager.createOptions())

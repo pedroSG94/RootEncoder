@@ -17,7 +17,9 @@
 package com.pedro.rtsp.rtp.packets
 
 import android.util.Log
+import com.pedro.common.VideoCodec
 import com.pedro.common.frame.MediaFrame
+import com.pedro.common.nal.NalReader
 import com.pedro.common.removeInfo
 import com.pedro.common.toByteArray
 import com.pedro.rtsp.rtsp.RtpFrame
@@ -37,14 +39,15 @@ class H264Packet: BasePacket(RtpConstants.clockVideoFrequency,
 
   private var stapA: ByteArray? = null
   private var sendKeyFrame = false
-  private var sps: ByteArray? = null
-  private var pps: ByteArray? = null
+  private var videoInfo: Set<ByteBuffer>? = null
+  private val header = ByteArray(2)
 
   init {
     channelIdentifier = RtpConstants.trackVideo
   }
 
   fun sendVideoInfo(sps: ByteBuffer, pps: ByteBuffer) {
+    videoInfo = setOf(sps, pps)
     setSpsPps(sps.toByteArray(), pps.toByteArray())
   }
 
@@ -52,16 +55,22 @@ class H264Packet: BasePacket(RtpConstants.clockVideoFrequency,
     mediaFrame: MediaFrame,
     callback: suspend (List<RtpFrame>) -> Unit
   ) {
+    val videoInfo = this.videoInfo
+    if (videoInfo == null) {
+      Log.e(TAG, "waiting for a valid sps and pps")
+      return
+    }
     val fixedBuffer = mediaFrame.data.removeInfo(mediaFrame.info)
     // We read a NAL units from ByteBuffer and we send them
     // NAL units are preceded with 0x00000001
-    val header = ByteArray(getHeaderSize(fixedBuffer) + 1)
-    if (header.size == 1) return //invalid buffer or waiting for sps/pps
     fixedBuffer.rewind()
-    fixedBuffer.get(header, 0, header.size)
+    val nals = NalReader.extractNals(fixedBuffer, VideoCodec.H264, true)
+    if (nals.isEmpty()) return
+
     val ts = mediaFrame.info.timestamp * 1000L
-    val naluLength = fixedBuffer.remaining()
-    val type: Int = (header[header.size - 1] and 0x1F).toInt()
+    val nalType = nals[0].get()
+    val naluLength = nals.sumOf { it.remaining() }
+    val type: Int = (nalType and 0x1F).toInt()
     val frames = mutableListOf<RtpFrame>()
     if (type == RtpConstants.IDR || mediaFrame.info.isKeyFrame) {
       stapA?.let {
@@ -79,10 +88,10 @@ class H264Packet: BasePacket(RtpConstants.clockVideoFrequency,
     }
     if (sendKeyFrame) {
       // Small NAL unit => Single NAL unit
-      if (naluLength <= maxPacketSize - RtpConstants.RTP_HEADER_LENGTH - 1) {
+      if (nals.size == 1 && naluLength <= maxPacketSize - RtpConstants.RTP_HEADER_LENGTH - 1) {
         val buffer = getBuffer(naluLength + RtpConstants.RTP_HEADER_LENGTH + 1)
-        buffer[RtpConstants.RTP_HEADER_LENGTH] = header[header.size - 1]
-        fixedBuffer.get(buffer, RtpConstants.RTP_HEADER_LENGTH + 1, naluLength)
+        buffer[RtpConstants.RTP_HEADER_LENGTH] = nalType
+        nals[0].get(buffer, RtpConstants.RTP_HEADER_LENGTH + 1, naluLength)
         val rtpTs = updateTimeStamp(buffer, ts)
         markPacket(buffer) //mark end frame
         updateSeq(buffer)
@@ -90,35 +99,37 @@ class H264Packet: BasePacket(RtpConstants.clockVideoFrequency,
         frames.add(rtpFrame)
       } else {
         // Set FU-A header
-        header[1] = header[header.size - 1] and 0x1F // FU header type
+        header[1] = nalType and 0x1F // FU header type
         header[1] = header[1].plus(0x80).toByte()  // set start bit to 1
         // Set FU-A indicator
-        header[0] = header[header.size - 1] and 0x60 and 0xFF.toByte() // FU indicator NRI
+        header[0] = nalType and 0x60 and 0xFF.toByte() // FU indicator NRI
         header[0] = header[0].plus(28).toByte()
-        var sum = 0
-        while (sum < naluLength) {
-          val length = if (naluLength - sum > maxPacketSize - RtpConstants.RTP_HEADER_LENGTH - 2) {
-            maxPacketSize - RtpConstants.RTP_HEADER_LENGTH - 2
-          } else {
-            fixedBuffer.remaining()
+        nals.forEachIndexed { index, data ->
+          var sum = 0
+          val nalSize = data.remaining()
+          while (sum < nalSize) {
+            val length = if (nalSize - sum > maxPacketSize - RtpConstants.RTP_HEADER_LENGTH - 2) {
+              maxPacketSize - RtpConstants.RTP_HEADER_LENGTH - 2
+            } else {
+              data.remaining()
+            }
+            val buffer = getBuffer(length + RtpConstants.RTP_HEADER_LENGTH + 2)
+            buffer[RtpConstants.RTP_HEADER_LENGTH] = header[0]
+            // Switch start bit
+            buffer[RtpConstants.RTP_HEADER_LENGTH + 1] = if (sum > 0) header[1] and 0x7F else header[1]
+            val rtpTs = updateTimeStamp(buffer, ts)
+            data.get(buffer, RtpConstants.RTP_HEADER_LENGTH + 2, length)
+            sum += length
+            // Last packet before next NAL
+            if (sum >= nalSize) {
+              // End bit on
+              buffer[RtpConstants.RTP_HEADER_LENGTH + 1] = buffer[RtpConstants.RTP_HEADER_LENGTH + 1].plus(0x40).toByte()
+              if (index == nals.size - 1) markPacket(buffer) //mark end frame
+            }
+            updateSeq(buffer)
+            val rtpFrame = RtpFrame(buffer, rtpTs, buffer.size, channelIdentifier)
+            frames.add(rtpFrame)
           }
-          val buffer = getBuffer(length + RtpConstants.RTP_HEADER_LENGTH + 2)
-          buffer[RtpConstants.RTP_HEADER_LENGTH] = header[0]
-          buffer[RtpConstants.RTP_HEADER_LENGTH + 1] = header[1]
-          val rtpTs = updateTimeStamp(buffer, ts)
-          fixedBuffer.get(buffer, RtpConstants.RTP_HEADER_LENGTH + 2, length)
-          sum += length
-          // Last packet before next NAL
-          if (sum >= naluLength) {
-            // End bit on
-            buffer[RtpConstants.RTP_HEADER_LENGTH + 1] = buffer[RtpConstants.RTP_HEADER_LENGTH + 1].plus(0x40).toByte()
-            markPacket(buffer) //mark end frame
-          }
-          updateSeq(buffer)
-          val rtpFrame = RtpFrame(buffer, rtpTs, buffer.size, channelIdentifier)
-          frames.add(rtpFrame)
-          // Switch start bit
-          header[1] = header[1] and 0x7F
         }
       }
     } else {
@@ -128,8 +139,6 @@ class H264Packet: BasePacket(RtpConstants.clockVideoFrequency,
   }
 
   private fun setSpsPps(sps: ByteArray, pps: ByteArray) {
-    this.sps = sps
-    this.pps = pps
     stapA = ByteArray(sps.size + pps.size + 5)
     stapA?.let {
       // STAP-A NAL header is 24
@@ -147,30 +156,6 @@ class H264Packet: BasePacket(RtpConstants.clockVideoFrequency,
       System.arraycopy(sps, 0, it, 3, sps.size)
       System.arraycopy(pps, 0, it, 5 + sps.size, pps.size)
     }
-  }
-
-  private fun getHeaderSize(byteBuffer: ByteBuffer): Int {
-    if (byteBuffer.remaining() < 4) return 0
-
-    val sps = this.sps
-    val pps = this.pps
-    if (sps != null && pps != null) {
-      val startCodeSize = byteBuffer.getVideoStartCodeSize()
-      if (startCodeSize == 0) return 0
-      val startCode = ByteArray(startCodeSize)
-      startCode[startCodeSize - 1] = 0x01
-      val avcHeader = startCode.plus(sps).plus(startCode).plus(pps).plus(startCode)
-      if (byteBuffer.remaining() < avcHeader.size) return startCodeSize
-
-      val possibleAvcHeader = ByteArray(avcHeader.size)
-      byteBuffer.get(possibleAvcHeader, 0, possibleAvcHeader.size)
-      return if (avcHeader.contentEquals(possibleAvcHeader)) {
-        avcHeader.size
-      } else {
-        startCodeSize
-      }
-    }
-    return 0
   }
 
   override fun reset() {

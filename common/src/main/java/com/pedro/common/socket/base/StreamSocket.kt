@@ -29,6 +29,7 @@ import javax.net.ssl.TrustManager
  */
 abstract class StreamSocket {
   protected var timeout = DEFAULT_TIMEOUT
+  protected var hostVerification = false
   abstract suspend fun connect()
   abstract suspend fun close()
   abstract fun isConnected(): Boolean
@@ -39,7 +40,7 @@ abstract class StreamSocket {
     fun createTcpSocket(
       type: SocketType,
       host: String, port: Int, secured: Boolean,
-      timeout: Long,
+      timeout: Long, hostVerification: Boolean,
       certificates: TrustManager? = null
     ): TcpStreamSocket {
       return when (type) {
@@ -48,6 +49,7 @@ abstract class StreamSocket {
         SocketType.NATIVE -> TcpStreamSocketJava(host, port, secured, certificates)
       }.apply {
         this.timeout = timeout
+        this.hostVerification = hostVerification
       }
     }
 

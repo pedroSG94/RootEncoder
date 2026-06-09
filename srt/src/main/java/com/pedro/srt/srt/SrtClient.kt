@@ -66,7 +66,6 @@ import java.nio.ByteBuffer
  * Created by pedro on 20/8/23.
  */
 class SrtClient(private val connectChecker: ConnectChecker) {
-
     private val TAG = "SrtClient"
 
     private val validSchemes = arrayOf("srt")
@@ -107,7 +106,7 @@ class SrtClient(private val connectChecker: ConnectChecker) {
     var packetsLost = 0
         private set
     private var latency = 120_000 //in micro
-    var socketType = SocketType.NATIVE
+    var socketType = SocketType.JAVA
     var socketTimeout = StreamSocket.DEFAULT_TIMEOUT
 
     fun setVideoCodec(videoCodec: VideoCodec) {
