@@ -189,6 +189,10 @@ public abstract class Camera2Base {
         return cameraManager.isAutoExposureEnabled();
     }
 
+    public void setDynamicFps(boolean enabled) {
+        cameraManager.setDynamicFps(enabled);
+    }
+
     /**
      * Enable EIS video stabilization
      * Warning: Turning both OIS and EIS modes on may produce undesirable interaction, so it is recommended not to enable both at the same time.

@@ -104,6 +104,7 @@ class Camera2ApiManager(context: Context) : CameraDevice.StateCallback() {
     private val semaphore = Semaphore(0)
     private var cameraCallbacks: CameraCallbacks? = null
     private var requiredSize: Size? = null
+    var dynamicFps = false
 
     interface ImageCallback {
         fun onImageAvailable(image: Image)
@@ -196,7 +197,7 @@ class Camera2ApiManager(context: Context) : CameraDevice.StateCallback() {
         val builderInputSurface = cameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_RECORD)
         for (surface in surfaces) builderInputSurface.addTarget(surface)
         builderInputSurface.set(CaptureRequest.CONTROL_MODE, CameraMetadata.CONTROL_MODE_AUTO)
-        adaptFpsRange(fps, builderInputSurface)
+        if (dynamicFps) adaptFpsRangeDynamic(fps, builderInputSurface) else adaptFpsRange(fps, builderInputSurface)
         this.builderInputSurface = builderInputSurface
         return builderInputSurface.build()
     }

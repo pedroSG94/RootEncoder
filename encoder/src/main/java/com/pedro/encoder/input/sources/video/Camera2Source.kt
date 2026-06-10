@@ -320,4 +320,8 @@ class Camera2Source(context: Context): VideoSource() {
   ) {
     camera.setCustomOnCaptureCompletedCallback(callback)
   }
+
+  fun setDynamicFps(enabled: Boolean) {
+    camera.dynamicFps = enabled
+  }
 }
