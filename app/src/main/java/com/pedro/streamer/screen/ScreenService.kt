@@ -32,6 +32,7 @@ import com.pedro.encoder.input.sources.audio.AudioSource
 import com.pedro.encoder.input.sources.audio.InternalAudioSource
 import com.pedro.encoder.input.sources.audio.MicrophoneSource
 import com.pedro.encoder.input.sources.audio.MixAudioSource
+import com.pedro.encoder.input.sources.video.Camera2Source
 import com.pedro.encoder.input.sources.video.NoVideoSource
 import com.pedro.encoder.input.sources.video.ScreenSource
 import com.pedro.library.base.recording.RecordController
@@ -73,7 +74,7 @@ class ScreenService: Service(), ConnectChecker {
   private val aBitrate = 128 * 1000
   private var prepared = false
   private var recordPath = ""
-  private var selectedAudioSource: Int = R.id.audio_source_microphone
+  private var selectedAudioSource: Int = R.id.audio_source_internal
 
   override fun onCreate() {
     super.onCreate()
@@ -159,9 +160,8 @@ class ScreenService: Service(), ConnectChecker {
     val mediaProjection = mediaProjectionManager.getMediaProjection(resultCode, data) ?: throw IllegalStateException("get MediaProjection failed")
     this.mediaProjection = mediaProjection
     val screenSource = ScreenSource(applicationContext, mediaProjection)
+    genericStream.changeVideoSource(screenSource)
     return try {
-      genericStream.changeVideoSource(screenSource)
-      toggleAudioSource(selectedAudioSource)
       true
     } catch (_: IllegalArgumentException) {
       false
@@ -170,30 +170,24 @@ class ScreenService: Service(), ConnectChecker {
 
   fun getCurrentAudioSource(): AudioSource = genericStream.audioSource
 
+  fun screenS(resultCode: Int, data: Intent) {
+    selectedAudioSource = R.id.audio_source_internal
+    val mediaProjection = mediaProjectionManager.getMediaProjection(resultCode, data) ?: throw IllegalStateException("get MediaProjection failed")
+    val screenSource = ScreenSource(applicationContext, mediaProjection)
+    genericStream.changeVideoSource(screenSource)
+  }
+
   fun toggleAudioSource(itemId: Int) {
     when (itemId) {
       R.id.audio_source_microphone -> {
         selectedAudioSource = R.id.audio_source_microphone
-        if (genericStream.audioSource is MicrophoneSource) return
-        genericStream.changeAudioSource(MicrophoneSource())
+        genericStream.changeVideoSource(Camera2Source(applicationContext))
       }
       R.id.audio_source_internal -> {
-        selectedAudioSource = R.id.audio_source_internal
-        if (genericStream.audioSource is InternalAudioSource) return
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-          mediaProjection?.let { genericStream.changeAudioSource(InternalAudioSource(it)) }
-        } else {
-          throw IllegalArgumentException("You need min API 29+")
-        }
+
       }
       R.id.audio_source_mix -> {
-        selectedAudioSource = R.id.audio_source_mix
-        if (genericStream.audioSource is MixAudioSource) return
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-          mediaProjection?.let { genericStream.changeAudioSource(MixAudioSource(it)) }
-        } else {
-          throw IllegalArgumentException("You need min API 29+")
-        }
+       
       }
     }
   }

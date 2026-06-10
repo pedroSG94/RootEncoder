@@ -55,7 +55,7 @@ import com.pedro.streamer.utils.updateMenuColor
 class ScreenActivity : AppCompatActivity(), ConnectChecker {
 
   enum class Action {
-    STREAM, RECORD, NONE
+    STREAM, RECORD, NONE, CHANGE
   }
 
   private lateinit var button: ImageView
@@ -69,7 +69,9 @@ class ScreenActivity : AppCompatActivity(), ConnectChecker {
     if (data != null && result.resultCode == RESULT_OK) {
       val screenService = ScreenService.INSTANCE
       if (screenService != null) {
-        if (screenService.prepareStream(result.resultCode, data)) {
+        if (action == Action.CHANGE) {
+          screenService.screenS(result.resultCode, data)
+        }else if (screenService.prepareStream(result.resultCode, data)) {
           when (action) {
             Action.STREAM -> startStream()
             Action.RECORD -> toggleRecord()
@@ -180,7 +182,12 @@ class ScreenActivity : AppCompatActivity(), ConnectChecker {
         R.id.audio_source_microphone, R.id.audio_source_internal, R.id.audio_source_mix -> {
           val service = ScreenService.INSTANCE
           if (service != null) {
-            service.toggleAudioSource(item.itemId)
+            if (item.itemId == R.id.audio_source_internal) {
+              action = Action.CHANGE
+              activityResultContract.launch(service.sendIntent())
+            } else {
+              service.toggleAudioSource(item.itemId)
+            }
             currentAudioSource = item.updateMenuColor(this, currentAudioSource)
           }
         }
