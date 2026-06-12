@@ -10,13 +10,14 @@ appcompat = "1.6.1"
 #noinspection GradleDependency, version 2.2.0 need min sdk 21
 constraintlayout = "2.1.4"
 ktor = "3.5.0"
+#noinspection GradleDependency, version 1.6.0 need min sdk 23
 camerax = "1.5.3"
 multidex = "2.0.1"
 annotation = "1.10.0"
 coroutines = "1.11.0"
 junit = "4.13.2"
 mockito = "6.3.0"
-uvcandroid = "1.0.11"
+uvcandroid = "1.0.13"
 media3 = "1.10.1"
 
 [libraries]
