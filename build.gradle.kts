@@ -1,6 +1,6 @@
 allprojects {
   group = "com.github.pedroSG94"
-  version = "2.7.3"
+  version = "2.7.4"
 
   plugins.withType<PublishingPlugin> {
     configure<PublishingExtension> {
