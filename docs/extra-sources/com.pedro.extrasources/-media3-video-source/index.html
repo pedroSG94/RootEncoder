@@ -18,7 +18,6 @@
         }
       }
     </script>
-<script type="text/javascript" src="https://unpkg.com/kotlin-playground@1/dist/playground.min.js" async></script>
 <script type="text/javascript" src="../../../scripts/sourceset_dependencies.js" async></script>
 <link href="../../../styles/style.css" rel="Stylesheet">
 <link href="../../../styles/main.css" rel="Stylesheet">
@@ -39,11 +38,11 @@
             </a>        <button class="navigation-controls--btn navigation-controls--btn_toc ui-kit_mobile-only" id="toc-toggle" type="button">Toggle table of contents
         </button>
         <div class="navigation-controls--break ui-kit_mobile-only"></div>
-        <div class="library-version" id="library-version">2.7.1
+        <div class="library-version" id="library-version">2.7.4
         </div>
         <div class="navigation-controls">
         <ul class="filter-section filter-section_loading" id="filter-section" aria-label="Target filter">
-                <button class="platform-tag platform-selector jvm-like" data-active="" aria-pressed="true" data-filter=":extra-sources/main">androidJvm</button>
+                <button class="platform-tag platform-selector jvm-like" data-active="" aria-pressed="true" data-filter=":extra-sources/release">release</button>
             <div class="dropdown filter-section--dropdown" data-role="dropdown" id="filter-section-dropdown">
                 <button class="button button_dropdown filter-section--dropdown-toggle" role="combobox" data-role="dropdown-toggle" aria-controls="platform-tags-listbox" aria-haspopup="listbox" aria-expanded="false" aria-label="Toggle source sets"></button>
                 <ul role="listbox" id="platform-tags-listbox" class="dropdown--list" data-role="dropdown-listbox" aria-label="Target filter">
@@ -54,9 +53,9 @@
                     </div>
                         <li role="option" class="dropdown--option platform-selector-option jvm-like" tabindex="0">
                             <label class="checkbox">
-                                <input type="checkbox" class="checkbox--input" id=":extra-sources/main" data-filter=":extra-sources/main">
+                                <input type="checkbox" class="checkbox--input" id=":extra-sources/release" data-filter=":extra-sources/release">
                                 <span class="checkbox--icon"></span>
-                                androidJvm
+                                release
                             </label>
                         </li>
                 </ul>
@@ -90,28 +89,28 @@
         </nav>
         <div id="resizer" class="resizer" data-item-type="BAR"></div>
         <div id="main" data-item-type="SECTION" role="main">
-<div class="main-content" data-page-type="classlike" id="content" pageids="extra-sources::com.pedro.extrasources/Media3VideoSource///PointingToDeclaration//1725079456">
+<div class="main-content" data-page-type="classlike" id="content" pageids="extra-sources::com.pedro.extrasources/Media3VideoSource///PointingToDeclaration//-746515729">
   <div class="breadcrumbs"><a href="../../index.html">extra-sources</a><span class="delimiter">/</span><a href="../index.html">com.pedro.extrasources</a><span class="delimiter">/</span><span class="current">Media3VideoSource</span></div>
   <div class="cover ">
     <h1 class="cover"><span>Media3Video</span><wbr><span><span>Source</span></span></h1>
-    <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":extra-sources/main"><div class="symbol monospace"><span class="token keyword">class </span><a href="index.html">Media3VideoSource</a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">context<span class="token operator">: </span><a href="https://developer.android.com/reference/kotlin/android/content/Context.html">Context</a><span class="token punctuation">, </span></span><span class="parameter ">path<span class="token operator">: </span><a href="https://developer.android.com/reference/kotlin/android/net/Uri.html">Uri</a><span class="token punctuation">, </span></span><span class="parameter ">speed<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-float/index.html">Float</a><span class="token operator"> = </span><span class="token constant">1.0f</span><span class="token punctuation">, </span></span><span class="parameter ">loopMode<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-boolean/index.html">Boolean</a><span class="token operator"> = </span><span class="token boolean">true</span><span class="token punctuation">, </span></span><span class="parameter ">onFinish<span class="token operator">: </span><span class="token punctuation">(</span>isLoop<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-boolean/index.html">Boolean</a><span class="token punctuation">)</span><span class="token operator"> -&gt; </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-unit/index.html">Unit</a><span class="token operator"> = </span>{}</span></span><span class="token punctuation">)</span> : <a href="../../../encoder/com.pedro.encoder.input.sources.video/-video-source/index.html">VideoSource</a></div></div></div>
+    <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":extra-sources/release"><div class="symbol monospace"><span class="token keyword">class </span><a href="index.html">Media3VideoSource</a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">context<span class="token operator">: </span><a href="https://developer.android.com/reference/kotlin/android/content/Context.html">Context</a><span class="token punctuation">, </span></span><span class="parameter ">path<span class="token operator">: </span><a href="https://developer.android.com/reference/kotlin/android/net/Uri.html">Uri</a><span class="token punctuation">, </span></span><span class="parameter ">speed<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-float/index.html">Float</a><span class="token operator"> = </span><span class="token constant">1.0f</span><span class="token punctuation">, </span></span><span class="parameter ">loopMode<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-boolean/index.html">Boolean</a><span class="token operator"> = </span><span class="token boolean">true</span><span class="token punctuation">, </span></span><span class="parameter ">onFinish<span class="token operator">: </span><span class="token punctuation">(</span>isLoop<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-boolean/index.html">Boolean</a><span class="token punctuation">)</span><span class="token operator"> -&gt; </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-unit/index.html">Unit</a><span class="token operator"> = </span>{}</span></span><span class="token punctuation">)</span> : <a href="../../../encoder/com.pedro.encoder.input.sources.video/-video-source/index.html">VideoSource</a></div></div></div>
   </div>
   <div class="tabbedcontent">
     <div class="tabs-section" tabs-section="tabs-section"><button class="section-tab" data-active="" data-togglable="CONSTRUCTOR,TYPE,PROPERTY,FUNCTION">Members</button></div>
     <div class="tabs-section-body">
       <div data-togglable="CONSTRUCTOR">
         <h2 class="tableheader">Constructors</h2>
-        <div class="table"><a data-name="1827578725%2FConstructors%2F1725079456" anchor-label="Media3VideoSource" id="1827578725%2FConstructors%2F1725079456" data-filterable-set=":extra-sources/main"></a>
-          <div class="table-row table-row_content" data-togglable="CONSTRUCTOR" data-filterable-current=":extra-sources/main" data-filterable-set=":extra-sources/main">
+        <div class="table"><a data-name="1827578725%2FConstructors%2F-746515729" anchor-label="Media3VideoSource" id="1827578725%2FConstructors%2F-746515729" data-filterable-set=":extra-sources/release"></a>
+          <div class="table-row table-row_content" data-togglable="CONSTRUCTOR" data-filterable-current=":extra-sources/release" data-filterable-set=":extra-sources/release">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="-media3-video-source.html"><span>Media3Video</span><wbr><span><span>Source</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1827578725%2FConstructors%2F1725079456"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1827578725%2FConstructors%2F-746515729"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":extra-sources/main"><div class="symbol monospace"><span class="token keyword">constructor</span><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">context<span class="token operator">: </span><a href="https://developer.android.com/reference/kotlin/android/content/Context.html">Context</a><span class="token punctuation">, </span></span><span class="parameter ">path<span class="token operator">: </span><a href="https://developer.android.com/reference/kotlin/android/net/Uri.html">Uri</a><span class="token punctuation">, </span></span><span class="parameter ">speed<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-float/index.html">Float</a><span class="token operator"> = </span><span class="token constant">1.0f</span><span class="token punctuation">, </span></span><span class="parameter ">loopMode<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-boolean/index.html">Boolean</a><span class="token operator"> = </span><span class="token boolean">true</span><span class="token punctuation">, </span></span><span class="parameter ">onFinish<span class="token operator">: </span><span class="token punctuation">(</span>isLoop<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-boolean/index.html">Boolean</a><span class="token punctuation">)</span><span class="token operator"> -&gt; </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-unit/index.html">Unit</a><span class="token operator"> = </span>{}</span></span><span class="token punctuation">)</span></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":extra-sources/release"><div class="symbol monospace"><span class="token keyword">constructor</span><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">context<span class="token operator">: </span><a href="https://developer.android.com/reference/kotlin/android/content/Context.html">Context</a><span class="token punctuation">, </span></span><span class="parameter ">path<span class="token operator">: </span><a href="https://developer.android.com/reference/kotlin/android/net/Uri.html">Uri</a><span class="token punctuation">, </span></span><span class="parameter ">speed<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-float/index.html">Float</a><span class="token operator"> = </span><span class="token constant">1.0f</span><span class="token punctuation">, </span></span><span class="parameter ">loopMode<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-boolean/index.html">Boolean</a><span class="token operator"> = </span><span class="token boolean">true</span><span class="token punctuation">, </span></span><span class="parameter ">onFinish<span class="token operator">: </span><span class="token punctuation">(</span>isLoop<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-boolean/index.html">Boolean</a><span class="token punctuation">)</span><span class="token operator"> -&gt; </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-unit/index.html">Unit</a><span class="token operator"> = </span>{}</span></span><span class="token punctuation">)</span></div></div></div>
                 </div>
               </div>
             </div>
@@ -120,92 +119,92 @@
       </div>
       <div data-togglable="PROPERTY">
         <h2 class="tableheader">Properties</h2>
-        <div class="table"><a data-name="146241245%2FProperties%2F1725079456" anchor-label="created" id="146241245%2FProperties%2F1725079456" data-filterable-set=":extra-sources/main"></a>
-          <div class="table-row table-row_content" data-filterable-current=":extra-sources/main" data-filterable-set=":extra-sources/main">
+        <div class="table"><a data-name="146241245%2FProperties%2F-746515729" anchor-label="created" id="146241245%2FProperties%2F-746515729" data-filterable-set=":extra-sources/release"></a>
+          <div class="table-row table-row_content" data-filterable-current=":extra-sources/release" data-filterable-set=":extra-sources/release">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
-                  <div><a href="index.html#146241245%2FProperties%2F1725079456"><span><span>created</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="146241245%2FProperties%2F1725079456"></span>
+                  <div><a href="index.html#146241245%2FProperties%2F-746515729"><span><span>created</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="146241245%2FProperties%2F-746515729"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":extra-sources/main"><div class="symbol monospace"><span class="token keyword">var </span><a href="index.html#146241245%2FProperties%2F1725079456">created</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-boolean/index.html">Boolean</a></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":extra-sources/release"><div class="symbol monospace"><span class="token keyword">var </span><a href="index.html#146241245%2FProperties%2F-746515729">created</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-boolean/index.html">Boolean</a></div></div></div>
                 </div>
               </div>
             </div>
           </div>
-<a data-name="-406765572%2FProperties%2F1725079456" anchor-label="fps" id="-406765572%2FProperties%2F1725079456" data-filterable-set=":extra-sources/main"></a>
-          <div class="table-row table-row_content" data-filterable-current=":extra-sources/main" data-filterable-set=":extra-sources/main">
+<a data-name="-406765572%2FProperties%2F-746515729" anchor-label="fps" id="-406765572%2FProperties%2F-746515729" data-filterable-set=":extra-sources/release"></a>
+          <div class="table-row table-row_content" data-filterable-current=":extra-sources/release" data-filterable-set=":extra-sources/release">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
-                  <div><a href="index.html#-406765572%2FProperties%2F1725079456"><span><span>fps</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-406765572%2FProperties%2F1725079456"></span>
+                  <div><a href="index.html#-406765572%2FProperties%2F-746515729"><span><span>fps</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-406765572%2FProperties%2F-746515729"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":extra-sources/main"><div class="symbol monospace"><span class="token keyword">var </span><a href="index.html#-406765572%2FProperties%2F1725079456">fps</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":extra-sources/release"><div class="symbol monospace"><span class="token keyword">var </span><a href="index.html#-406765572%2FProperties%2F-746515729">fps</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a></div></div></div>
                 </div>
               </div>
             </div>
           </div>
-<a data-name="1998511726%2FProperties%2F1725079456" anchor-label="height" id="1998511726%2FProperties%2F1725079456" data-filterable-set=":extra-sources/main"></a>
-          <div class="table-row table-row_content" data-filterable-current=":extra-sources/main" data-filterable-set=":extra-sources/main">
+<a data-name="1998511726%2FProperties%2F-746515729" anchor-label="height" id="1998511726%2FProperties%2F-746515729" data-filterable-set=":extra-sources/release"></a>
+          <div class="table-row table-row_content" data-filterable-current=":extra-sources/release" data-filterable-set=":extra-sources/release">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
-                  <div><a href="index.html#1998511726%2FProperties%2F1725079456"><span><span>height</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1998511726%2FProperties%2F1725079456"></span>
+                  <div><a href="index.html#1998511726%2FProperties%2F-746515729"><span><span>height</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1998511726%2FProperties%2F-746515729"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":extra-sources/main"><div class="symbol monospace"><span class="token keyword">var </span><a href="index.html#1998511726%2FProperties%2F1725079456">height</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":extra-sources/release"><div class="symbol monospace"><span class="token keyword">var </span><a href="index.html#1998511726%2FProperties%2F-746515729">height</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a></div></div></div>
                 </div>
               </div>
             </div>
           </div>
-<a data-name="-1664433673%2FProperties%2F1725079456" anchor-label="rotation" id="-1664433673%2FProperties%2F1725079456" data-filterable-set=":extra-sources/main"></a>
-          <div class="table-row table-row_content" data-filterable-current=":extra-sources/main" data-filterable-set=":extra-sources/main">
+<a data-name="-1664433673%2FProperties%2F-746515729" anchor-label="rotation" id="-1664433673%2FProperties%2F-746515729" data-filterable-set=":extra-sources/release"></a>
+          <div class="table-row table-row_content" data-filterable-current=":extra-sources/release" data-filterable-set=":extra-sources/release">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
-                  <div><a href="index.html#-1664433673%2FProperties%2F1725079456"><span><span>rotation</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1664433673%2FProperties%2F1725079456"></span>
+                  <div><a href="index.html#-1664433673%2FProperties%2F-746515729"><span><span>rotation</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1664433673%2FProperties%2F-746515729"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":extra-sources/main"><div class="symbol monospace"><span class="token keyword">var </span><a href="index.html#-1664433673%2FProperties%2F1725079456">rotation</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":extra-sources/release"><div class="symbol monospace"><span class="token keyword">var </span><a href="index.html#-1664433673%2FProperties%2F-746515729">rotation</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a></div></div></div>
                 </div>
               </div>
             </div>
           </div>
-<a data-name="1236580807%2FProperties%2F1725079456" anchor-label="surfaceTexture" id="1236580807%2FProperties%2F1725079456" data-filterable-set=":extra-sources/main"></a>
-          <div class="table-row table-row_content" data-filterable-current=":extra-sources/main" data-filterable-set=":extra-sources/main">
+<a data-name="1236580807%2FProperties%2F-746515729" anchor-label="surfaceTexture" id="1236580807%2FProperties%2F-746515729" data-filterable-set=":extra-sources/release"></a>
+          <div class="table-row table-row_content" data-filterable-current=":extra-sources/release" data-filterable-set=":extra-sources/release">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
-                  <div><a href="index.html#1236580807%2FProperties%2F1725079456"><span>surface</span><wbr><span><span>Texture</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1236580807%2FProperties%2F1725079456"></span>
+                  <div><a href="index.html#1236580807%2FProperties%2F-746515729"><span>surface</span><wbr><span><span>Texture</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1236580807%2FProperties%2F-746515729"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":extra-sources/main"><div class="symbol monospace"><span class="token keyword">var </span><a href="index.html#1236580807%2FProperties%2F1725079456">surfaceTexture</a><span class="token operator">: </span><a href="https://developer.android.com/reference/kotlin/android/graphics/SurfaceTexture.html">SurfaceTexture</a><span class="token operator">?</span></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":extra-sources/release"><div class="symbol monospace"><span class="token keyword">var </span><a href="index.html#1236580807%2FProperties%2F-746515729">surfaceTexture</a><span class="token operator">: </span><a href="https://developer.android.com/reference/kotlin/android/graphics/SurfaceTexture.html">SurfaceTexture</a><span class="token operator">?</span></div></div></div>
                 </div>
               </div>
             </div>
           </div>
-<a data-name="-1697038401%2FProperties%2F1725079456" anchor-label="width" id="-1697038401%2FProperties%2F1725079456" data-filterable-set=":extra-sources/main"></a>
-          <div class="table-row table-row_content" data-filterable-current=":extra-sources/main" data-filterable-set=":extra-sources/main">
+<a data-name="-1697038401%2FProperties%2F-746515729" anchor-label="width" id="-1697038401%2FProperties%2F-746515729" data-filterable-set=":extra-sources/release"></a>
+          <div class="table-row table-row_content" data-filterable-current=":extra-sources/release" data-filterable-set=":extra-sources/release">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
-                  <div><a href="index.html#-1697038401%2FProperties%2F1725079456"><span><span>width</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1697038401%2FProperties%2F1725079456"></span>
+                  <div><a href="index.html#-1697038401%2FProperties%2F-746515729"><span><span>width</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1697038401%2FProperties%2F-746515729"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":extra-sources/main"><div class="symbol monospace"><span class="token keyword">var </span><a href="index.html#-1697038401%2FProperties%2F1725079456">width</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":extra-sources/release"><div class="symbol monospace"><span class="token keyword">var </span><a href="index.html#-1697038401%2FProperties%2F-746515729">width</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a></div></div></div>
                 </div>
               </div>
             </div>
@@ -214,107 +213,107 @@
       </div>
       <div data-togglable="FUNCTION">
         <h2 class="tableheader">Functions</h2>
-        <div class="table"><a data-name="885356289%2FFunctions%2F1725079456" anchor-label="getOrientationConfig" id="885356289%2FFunctions%2F1725079456" data-filterable-set=":extra-sources/main"></a>
-          <div class="table-row table-row_content" data-filterable-current=":extra-sources/main" data-filterable-set=":extra-sources/main">
+        <div class="table"><a data-name="885356289%2FFunctions%2F-746515729" anchor-label="getOrientationConfig" id="885356289%2FFunctions%2F-746515729" data-filterable-set=":extra-sources/release"></a>
+          <div class="table-row table-row_content" data-filterable-current=":extra-sources/release" data-filterable-set=":extra-sources/release">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="get-orientation-config.html"><span>get</span><wbr><span>Orientation</span><wbr><span><span>Config</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="885356289%2FFunctions%2F1725079456"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="885356289%2FFunctions%2F-746515729"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":extra-sources/main"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">fun </span><a href="get-orientation-config.html"><span class="token function">getOrientationConfig</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">: </span><a href="../../../encoder/com.pedro.encoder.input.sources/-orientation-config/index.html">OrientationConfig</a></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":extra-sources/release"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">fun </span><a href="get-orientation-config.html"><span class="token function">getOrientationConfig</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">: </span><a href="../../../encoder/com.pedro.encoder.input.sources/-orientation-config/index.html">OrientationConfig</a></div></div></div>
                 </div>
               </div>
             </div>
           </div>
-<a data-name="-1506861690%2FFunctions%2F1725079456" anchor-label="getPlayer" id="-1506861690%2FFunctions%2F1725079456" data-filterable-set=":extra-sources/main"></a>
-          <div class="table-row table-row_content" data-filterable-current=":extra-sources/main" data-filterable-set=":extra-sources/main">
+<a data-name="-1506861690%2FFunctions%2F-746515729" anchor-label="getPlayer" id="-1506861690%2FFunctions%2F-746515729" data-filterable-set=":extra-sources/release"></a>
+          <div class="table-row table-row_content" data-filterable-current=":extra-sources/release" data-filterable-set=":extra-sources/release">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="get-player.html"><span>get</span><wbr><span><span>Player</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1506861690%2FFunctions%2F1725079456"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1506861690%2FFunctions%2F-746515729"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":extra-sources/main"><div class="symbol monospace"><span class="token keyword">fun </span><a href="get-player.html"><span class="token function">getPlayer</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://developer.android.com/reference/kotlin/androidx/media3/exoplayer/ExoPlayer.html">ExoPlayer</a><span class="token operator">?</span></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":extra-sources/release"><div class="symbol monospace"><span class="token keyword">fun </span><a href="get-player.html"><span class="token function">getPlayer</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://developer.android.com/reference/kotlin/androidx/media3/exoplayer/ExoPlayer.html">ExoPlayer</a><span class="token operator">?</span></div></div></div>
                 </div>
               </div>
             </div>
           </div>
-<a data-name="-770807334%2FFunctions%2F1725079456" anchor-label="init" id="-770807334%2FFunctions%2F1725079456" data-filterable-set=":extra-sources/main"></a>
-          <div class="table-row table-row_content" data-filterable-current=":extra-sources/main" data-filterable-set=":extra-sources/main">
+<a data-name="-770807334%2FFunctions%2F-746515729" anchor-label="init" id="-770807334%2FFunctions%2F-746515729" data-filterable-set=":extra-sources/release"></a>
+          <div class="table-row table-row_content" data-filterable-current=":extra-sources/release" data-filterable-set=":extra-sources/release">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
-                  <div><a href="index.html#-770807334%2FFunctions%2F1725079456"><span><span>init</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-770807334%2FFunctions%2F1725079456"></span>
+                  <div><a href="index.html#-770807334%2FFunctions%2F-746515729"><span><span>init</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-770807334%2FFunctions%2F-746515729"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":extra-sources/main"><div class="symbol monospace"><span class="token keyword">fun </span><a href="index.html#-770807334%2FFunctions%2F1725079456"><span class="token function">init</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">width<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a><span class="token punctuation">, </span></span><span class="parameter ">height<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a><span class="token punctuation">, </span></span><span class="parameter ">fps<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a><span class="token punctuation">, </span></span><span class="parameter ">rotation<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-boolean/index.html">Boolean</a></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":extra-sources/release"><div class="symbol monospace"><span class="token keyword">fun </span><a href="index.html#-770807334%2FFunctions%2F-746515729"><span class="token function">init</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">width<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a><span class="token punctuation">, </span></span><span class="parameter ">height<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a><span class="token punctuation">, </span></span><span class="parameter ">fps<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a><span class="token punctuation">, </span></span><span class="parameter ">rotation<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-boolean/index.html">Boolean</a></div></div></div>
                 </div>
               </div>
             </div>
           </div>
-<a data-name="-296623128%2FFunctions%2F1725079456" anchor-label="isRunning" id="-296623128%2FFunctions%2F1725079456" data-filterable-set=":extra-sources/main"></a>
-          <div class="table-row table-row_content" data-filterable-current=":extra-sources/main" data-filterable-set=":extra-sources/main">
+<a data-name="-296623128%2FFunctions%2F-746515729" anchor-label="isRunning" id="-296623128%2FFunctions%2F-746515729" data-filterable-set=":extra-sources/release"></a>
+          <div class="table-row table-row_content" data-filterable-current=":extra-sources/release" data-filterable-set=":extra-sources/release">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="is-running.html"><span>is</span><wbr><span><span>Running</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-296623128%2FFunctions%2F1725079456"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-296623128%2FFunctions%2F-746515729"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":extra-sources/main"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">fun </span><a href="is-running.html"><span class="token function">isRunning</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-boolean/index.html">Boolean</a></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":extra-sources/release"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">fun </span><a href="is-running.html"><span class="token function">isRunning</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-boolean/index.html">Boolean</a></div></div></div>
                 </div>
               </div>
             </div>
           </div>
-<a data-name="1717401942%2FFunctions%2F1725079456" anchor-label="release" id="1717401942%2FFunctions%2F1725079456" data-filterable-set=":extra-sources/main"></a>
-          <div class="table-row table-row_content" data-filterable-current=":extra-sources/main" data-filterable-set=":extra-sources/main">
+<a data-name="1717401942%2FFunctions%2F-746515729" anchor-label="release" id="1717401942%2FFunctions%2F-746515729" data-filterable-set=":extra-sources/release"></a>
+          <div class="table-row table-row_content" data-filterable-current=":extra-sources/release" data-filterable-set=":extra-sources/release">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="release.html"><span><span>release</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1717401942%2FFunctions%2F1725079456"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1717401942%2FFunctions%2F-746515729"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":extra-sources/main"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">fun </span><a href="release.html"><span class="token function">release</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":extra-sources/release"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">fun </span><a href="release.html"><span class="token function">release</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span></div></div></div>
                 </div>
               </div>
             </div>
           </div>
-<a data-name="436342325%2FFunctions%2F1725079456" anchor-label="start" id="436342325%2FFunctions%2F1725079456" data-filterable-set=":extra-sources/main"></a>
-          <div class="table-row table-row_content" data-filterable-current=":extra-sources/main" data-filterable-set=":extra-sources/main">
+<a data-name="436342325%2FFunctions%2F-746515729" anchor-label="start" id="436342325%2FFunctions%2F-746515729" data-filterable-set=":extra-sources/release"></a>
+          <div class="table-row table-row_content" data-filterable-current=":extra-sources/release" data-filterable-set=":extra-sources/release">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="start.html"><span><span>start</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="436342325%2FFunctions%2F1725079456"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="436342325%2FFunctions%2F-746515729"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":extra-sources/main"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">fun </span><a href="start.html"><span class="token function">start</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">surfaceTexture<span class="token operator">: </span><a href="https://developer.android.com/reference/kotlin/android/graphics/SurfaceTexture.html">SurfaceTexture</a></span></span><span class="token punctuation">)</span></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":extra-sources/release"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">fun </span><a href="start.html"><span class="token function">start</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">surfaceTexture<span class="token operator">: </span><a href="https://developer.android.com/reference/kotlin/android/graphics/SurfaceTexture.html">SurfaceTexture</a></span></span><span class="token punctuation">)</span></div></div></div>
                 </div>
               </div>
             </div>
           </div>
-<a data-name="250978875%2FFunctions%2F1725079456" anchor-label="stop" id="250978875%2FFunctions%2F1725079456" data-filterable-set=":extra-sources/main"></a>
-          <div class="table-row table-row_content" data-filterable-current=":extra-sources/main" data-filterable-set=":extra-sources/main">
+<a data-name="250978875%2FFunctions%2F-746515729" anchor-label="stop" id="250978875%2FFunctions%2F-746515729" data-filterable-set=":extra-sources/release"></a>
+          <div class="table-row table-row_content" data-filterable-current=":extra-sources/release" data-filterable-set=":extra-sources/release">
             <div class="main-subrow keyValue ">
               <div class=""><span class="inline-flex">
                   <div><a href="stop.html"><span><span>stop</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="250978875%2FFunctions%2F1725079456"></span>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="250978875%2FFunctions%2F-746515729"></span>
                     <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                   </span></span></div>
               <div>
                 <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":extra-sources/main"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">fun </span><a href="stop.html"><span class="token function">stop</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span></div></div></div>
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":extra-sources/release"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">fun </span><a href="stop.html"><span class="token function">stop</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span></div></div></div>
                 </div>
               </div>
             </div>
