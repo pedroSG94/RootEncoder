@@ -23,7 +23,6 @@ import com.pedro.common.nal.NalReader
 import com.pedro.common.removeInfo
 import com.pedro.rtsp.rtsp.RtpFrame
 import com.pedro.rtsp.utils.RtpConstants
-import com.pedro.rtsp.utils.getVideoStartCodeSize
 import java.nio.ByteBuffer
 import kotlin.experimental.and
 
@@ -32,7 +31,7 @@ import kotlin.experimental.and
  *
  * RFC 7798.
  */
-class H265Packet: BasePacket(
+class H265Packet : BasePacket(
   RtpConstants.clockVideoFrequency,
   RtpConstants.payloadType + RtpConstants.trackVideo
 ) {
@@ -64,38 +63,39 @@ class H265Packet: BasePacket(
     if (nals.isEmpty()) return
 
     val ts = mediaFrame.info.timestamp * 1000L
-    val nalType = nals[0].get()
-    val nalType2 = nals[0].get()
-    val naluLength = nals.sumOf { it.remaining() }
-    val type: Int = nalType.toInt().shr(1 and 0x3f)
     val frames = mutableListOf<RtpFrame>()
-    // Small NAL unit => Single NAL unit
-    if (nals.size == 1 && naluLength <= maxPacketSize - RtpConstants.RTP_HEADER_LENGTH - 2) {
-      val buffer = getBuffer(naluLength + RtpConstants.RTP_HEADER_LENGTH + 2)
-      //Set PayloadHdr (exact copy of nal unit header)
-      buffer[RtpConstants.RTP_HEADER_LENGTH] = nalType
-      buffer[RtpConstants.RTP_HEADER_LENGTH + 1] = nalType2
-      nals[0].get(buffer, RtpConstants.RTP_HEADER_LENGTH + 2, naluLength)
-      val rtpTs = updateTimeStamp(buffer, ts)
-      markPacket(buffer) //mark end frame
-      updateSeq(buffer)
-      val rtpFrame = RtpFrame(buffer, rtpTs, buffer.size, channelIdentifier)
-      frames.add(rtpFrame)
-    } else {
-      //Set PayloadHdr (16bit type=49)
-      header[0] = (49 shl 1).toByte()
-      header[1] = 1
-      // Set FU header
-      //   +---------------+
-      //   |0|1|2|3|4|5|6|7|
-      //   +-+-+-+-+-+-+-+-+
-      //   |S|E|  FuType   |
-      //   +---------------+
-      header[2] = type.toByte() // FU header type
-      header[2] = header[2].plus(0x80).toByte() // Start bit
-      nals.forEachIndexed { index, data ->
+
+    nals.forEachIndexed { index, data ->
+      val nalType = data.get()
+      val nalType2 = data.get()
+      val nalSize = data.remaining()
+      // Small NAL unit => Single NAL unit
+      if (nalSize <= maxPacketSize - RtpConstants.RTP_HEADER_LENGTH - 2) {
+        val buffer = getBuffer(nalSize + RtpConstants.RTP_HEADER_LENGTH + 2)
+        //Set PayloadHdr (exact copy of nal unit header)
+        buffer[RtpConstants.RTP_HEADER_LENGTH] = nalType
+        buffer[RtpConstants.RTP_HEADER_LENGTH + 1] = nalType2
+        data.get(buffer, RtpConstants.RTP_HEADER_LENGTH + 2, nalSize)
+        val rtpTs = updateTimeStamp(buffer, ts)
+        if (index == nals.size - 1) markPacket(buffer) //mark end frame
+        updateSeq(buffer)
+        val rtpFrame = RtpFrame(buffer, rtpTs, buffer.size, channelIdentifier)
+        frames.add(rtpFrame)
+      } else {
+        val type: Int = nalType.toInt().shr(1 and 0x3f)
+        //Set PayloadHdr (16bit type=49)
+        header[0] = (49 shl 1).toByte()
+        header[1] = 1
+        // Set FU header
+        //   +---------------+
+        //   |0|1|2|3|4|5|6|7|
+        //   +-+-+-+-+-+-+-+-+
+        //   |S|E|  FuType   |
+        //   +---------------+
+        header[2] = type.toByte() // FU header type
+        header[2] = header[2].plus(0x80).toByte() // Start bit
+
         var sum = 0
-        val nalSize = data.remaining()
         while (sum < nalSize) {
           val length = if (nalSize - sum > maxPacketSize - RtpConstants.RTP_HEADER_LENGTH - 3) {
             maxPacketSize - RtpConstants.RTP_HEADER_LENGTH - 3
