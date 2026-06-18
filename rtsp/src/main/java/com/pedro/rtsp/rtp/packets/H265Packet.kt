@@ -59,7 +59,7 @@ class H265Packet : BasePacket(
     val fixedBuffer = mediaFrame.data.removeInfo(mediaFrame.info)
     // We read a NAL units from ByteBuffer and we send them
     // NAL units are preceded with 0x00000001
-    val nals = NalReader.extractNals(fixedBuffer, VideoCodec.H265, true)
+    val nals = NalReader.extractNals(fixedBuffer, VideoCodec.H265, false)
     if (nals.isEmpty()) return
 
     val ts = mediaFrame.info.timestamp * 1000L
@@ -82,7 +82,7 @@ class H265Packet : BasePacket(
         val rtpFrame = RtpFrame(buffer, rtpTs, buffer.size, channelIdentifier)
         frames.add(rtpFrame)
       } else {
-        val type: Int = nalType.toInt().shr(1 and 0x3f)
+        val type: Int = (nalType.toInt() shr 1) and 0x3f
         //Set PayloadHdr (16bit type=49)
         header[0] = (49 shl 1).toByte()
         header[1] = 1
