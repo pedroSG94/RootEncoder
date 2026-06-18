@@ -37,13 +37,10 @@ class H265PacketTest {
     val timestamp = 123456789L
     val header = byteArrayOf(0x00, 0x00, 0x00, 0x01, 0x05, 0x00)
     val fakeH265 = header.plus(ByteArray(300) { 0x00 })
-    val fakeSps = ByteBuffer.wrap(byteArrayOf(0x00, 0x00, 0x00, 0x01, 0x02, 0x03, 0x04))
-    val fakePps = ByteBuffer.wrap(byteArrayOf(0x00, 0x00, 0x00, 0x01, 0x0A, 0x0B, 0x0C))
-    val fakeVps = ByteBuffer.wrap(byteArrayOf(0x00, 0x00, 0x00, 0x01, 0x0D, 0x0E, 0x0F))
 
     val info = MediaFrame.Info(0, fakeH265.size, timestamp, true)
     val mediaFrame = MediaFrame(ByteBuffer.wrap(fakeH265), info, MediaFrame.Type.VIDEO)
-    val h265Packet = H265Packet().apply { sendVideoInfo(fakeSps, fakePps, fakeVps) }
+    val h265Packet = H265Packet()
     h265Packet.setSSRC(123456789)
     val frames = mutableListOf<RtpFrame>()
     h265Packet.createAndSendPacket(mediaFrame) { frames.addAll(it) }
@@ -63,13 +60,10 @@ class H265PacketTest {
     val timestamp = 123456789L
     val header = byteArrayOf(0x00, 0x00, 0x00, 0x01, 0x05, 0x00)
     val fakeH265 = header.plus(ByteArray(2500) { 0x00 })
-    val fakeSps = ByteBuffer.wrap(byteArrayOf(0x00, 0x00, 0x00, 0x01, 0x02, 0x03, 0x04))
-    val fakePps = ByteBuffer.wrap(byteArrayOf(0x00, 0x00, 0x00, 0x01, 0x0A, 0x0B, 0x0C))
-    val fakeVps = ByteBuffer.wrap(byteArrayOf(0x00, 0x00, 0x00, 0x01, 0x0D, 0x0E, 0x0F))
 
     val info = MediaFrame.Info(0, fakeH265.size, timestamp, true)
     val mediaFrame = MediaFrame(ByteBuffer.wrap(fakeH265), info, MediaFrame.Type.VIDEO)
-    val h265Packet = H265Packet().apply { sendVideoInfo(fakeSps, fakePps, fakeVps) }
+    val h265Packet = H265Packet()
     h265Packet.setSSRC(123456789)
     val frames = mutableListOf<RtpFrame>()
     h265Packet.createAndSendPacket(mediaFrame) { frames.addAll(it) }

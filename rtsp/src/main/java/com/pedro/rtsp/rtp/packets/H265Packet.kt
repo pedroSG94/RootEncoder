@@ -16,14 +16,12 @@
 
 package com.pedro.rtsp.rtp.packets
 
-import android.util.Log
 import com.pedro.common.VideoCodec
 import com.pedro.common.frame.MediaFrame
 import com.pedro.common.nal.NalReader
 import com.pedro.common.removeInfo
 import com.pedro.rtsp.rtsp.RtpFrame
 import com.pedro.rtsp.utils.RtpConstants
-import java.nio.ByteBuffer
 import kotlin.experimental.and
 
 /**
@@ -36,26 +34,20 @@ class H265Packet : BasePacket(
   RtpConstants.payloadType + RtpConstants.trackVideo
 ) {
 
-  private var videoInfo: Set<ByteBuffer>? = null
-  private val header = ByteArray(3)
+  private val header = ByteArray(3).apply {
+    //Set PayloadHdr (16bit type=49)
+    this[0] = (49 shl 1).toByte()
+    this[1] = 1
+  }
 
   init {
     channelIdentifier = RtpConstants.trackVideo
-  }
-
-  fun sendVideoInfo(sps: ByteBuffer, pps: ByteBuffer, vps: ByteBuffer) {
-    videoInfo = setOf(sps, pps, vps)
   }
 
   override suspend fun createAndSendPacket(
     mediaFrame: MediaFrame,
     callback: suspend (List<RtpFrame>) -> Unit
   ) {
-    val videoInfo = this.videoInfo
-    if (videoInfo == null) {
-      Log.e(TAG, "waiting for a valid sps, pps and vps")
-      return
-    }
     val fixedBuffer = mediaFrame.data.removeInfo(mediaFrame.info)
     // We read a NAL units from ByteBuffer and we send them
     // NAL units are preceded with 0x00000001
@@ -83,9 +75,6 @@ class H265Packet : BasePacket(
         frames.add(rtpFrame)
       } else {
         val type: Int = (nalType.toInt() shr 1) and 0x3f
-        //Set PayloadHdr (16bit type=49)
-        header[0] = (49 shl 1).toByte()
-        header[1] = 1
         // Set FU header
         //   +---------------+
         //   |0|1|2|3|4|5|6|7|
