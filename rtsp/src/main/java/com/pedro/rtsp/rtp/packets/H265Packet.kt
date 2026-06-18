@@ -20,8 +20,10 @@ import com.pedro.common.VideoCodec
 import com.pedro.common.frame.MediaFrame
 import com.pedro.common.nal.NalReader
 import com.pedro.common.removeInfo
+import com.pedro.common.toByteArray
 import com.pedro.rtsp.rtsp.RtpFrame
 import com.pedro.rtsp.utils.RtpConstants
+import java.nio.ByteBuffer
 import kotlin.experimental.or
 
 /**
@@ -46,6 +48,12 @@ class H265Packet : BasePacket(
     // We read a NAL units from ByteBuffer and we send them
     // NAL units are preceded with 0x00000001
     val nals = NalReader.extractNals(fixedBuffer, VideoCodec.H265, false)
+    if (mediaFrame.info.isKeyFrame) {
+      val l = nals.last()
+      nals.remove(l)
+      val l2 = nals.last()
+      nals.add(ByteBuffer.wrap(l2.toByteArray().plus(byteArrayOf(0x00, 0x00, 0x00, 0x01)).plus(l.toByteArray())))
+    }
     if (nals.isEmpty()) return
 
     val ts = mediaFrame.info.timestamp * 1000L
