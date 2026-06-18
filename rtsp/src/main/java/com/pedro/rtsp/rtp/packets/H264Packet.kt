@@ -95,7 +95,7 @@ class H264Packet: BasePacket(RtpConstants.clockVideoFrequency,
             buffer[RtpConstants.RTP_HEADER_LENGTH] = nalType
             data.get(buffer, RtpConstants.RTP_HEADER_LENGTH + 1, nalSize)
             val rtpTs = updateTimeStamp(buffer, ts)
-            markPacket(buffer) //mark end frame
+            if (index == nals.size - 1) markPacket(buffer) //mark end frame
             updateSeq(buffer)
             val rtpFrame = RtpFrame(buffer, rtpTs, buffer.size, channelIdentifier)
             frames.add(rtpFrame)
