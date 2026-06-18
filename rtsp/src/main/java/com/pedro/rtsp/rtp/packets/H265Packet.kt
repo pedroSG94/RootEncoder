@@ -52,6 +52,7 @@ class H265Packet : BasePacket(
       val l = nals.last()
       nals.remove(l)
       val l2 = nals.last()
+      nals.remove(l2)
       nals.add(ByteBuffer.wrap(l2.toByteArray().plus(byteArrayOf(0x00, 0x00, 0x00, 0x01)).plus(l.toByteArray())))
     }
     if (nals.isEmpty()) return
