@@ -30,6 +30,7 @@ import android.widget.TextView
 import androidx.annotation.RequiresApi
 import androidx.fragment.app.Fragment
 import com.pedro.common.ConnectChecker
+import com.pedro.common.VideoCodec
 import com.pedro.common.onMainThreadHandler
 import com.pedro.encoder.input.sources.video.Camera1Source
 import com.pedro.encoder.input.sources.video.Camera2Source
@@ -78,6 +79,7 @@ class CameraFragment: Fragment(), ConnectChecker {
   val genericStream: GenericStream by lazy {
     GenericStream(requireContext(), this).apply {
       getGlInterface().autoHandleOrientation = true
+      setVideoCodec(VideoCodec.H265)
     }
   }
   private lateinit var surfaceView: SurfaceView

@@ -68,10 +68,9 @@ class H264Packet: BasePacket(RtpConstants.clockVideoFrequency,
     if (nals.isEmpty()) return
 
     val ts = mediaFrame.info.timestamp * 1000L
-    val nalType = nals[0].get()
-    val naluLength = nals.sumOf { it.remaining() }
-    val type: Int = (nalType and 0x1F).toInt()
     val frames = mutableListOf<RtpFrame>()
+    val nalType = nals[0].get(0)
+    val type: Int = (nalType and 0x1F).toInt()
     if (type == RtpConstants.IDR || mediaFrame.info.isKeyFrame) {
       stapA?.let {
         val buffer = getBuffer(it.size + RtpConstants.RTP_HEADER_LENGTH)
@@ -87,50 +86,52 @@ class H264Packet: BasePacket(RtpConstants.clockVideoFrequency,
       }
     }
     if (sendKeyFrame) {
-      // Small NAL unit => Single NAL unit
-      if (nals.size == 1 && naluLength <= maxPacketSize - RtpConstants.RTP_HEADER_LENGTH - 1) {
-        val buffer = getBuffer(naluLength + RtpConstants.RTP_HEADER_LENGTH + 1)
-        buffer[RtpConstants.RTP_HEADER_LENGTH] = nalType
-        nals[0].get(buffer, RtpConstants.RTP_HEADER_LENGTH + 1, naluLength)
-        val rtpTs = updateTimeStamp(buffer, ts)
-        markPacket(buffer) //mark end frame
-        updateSeq(buffer)
-        val rtpFrame = RtpFrame(buffer, rtpTs, buffer.size, channelIdentifier)
-        frames.add(rtpFrame)
-      } else {
-        // Set FU-A header
-        header[1] = nalType and 0x1F // FU header type
-        header[1] = header[1].plus(0x80).toByte()  // set start bit to 1
-        // Set FU-A indicator
-        header[0] = nalType and 0x60 and 0xFF.toByte() // FU indicator NRI
-        header[0] = header[0].plus(28).toByte()
         nals.forEachIndexed { index, data ->
-          var sum = 0
+          val nalType = data.get()
           val nalSize = data.remaining()
-          while (sum < nalSize) {
-            val length = if (nalSize - sum > maxPacketSize - RtpConstants.RTP_HEADER_LENGTH - 2) {
-              maxPacketSize - RtpConstants.RTP_HEADER_LENGTH - 2
-            } else {
-              data.remaining()
-            }
-            val buffer = getBuffer(length + RtpConstants.RTP_HEADER_LENGTH + 2)
-            buffer[RtpConstants.RTP_HEADER_LENGTH] = header[0]
-            // Switch start bit
-            buffer[RtpConstants.RTP_HEADER_LENGTH + 1] = if (sum > 0) header[1] and 0x7F else header[1]
+          // Small NAL unit => Single NAL unit
+          if (nalSize <= maxPacketSize - RtpConstants.RTP_HEADER_LENGTH - 1) {
+            val buffer = getBuffer(nalSize + RtpConstants.RTP_HEADER_LENGTH + 1)
+            buffer[RtpConstants.RTP_HEADER_LENGTH] = nalType
+            data.get(buffer, RtpConstants.RTP_HEADER_LENGTH + 1, nalSize)
             val rtpTs = updateTimeStamp(buffer, ts)
-            data.get(buffer, RtpConstants.RTP_HEADER_LENGTH + 2, length)
-            sum += length
-            // Last packet before next NAL
-            if (sum >= nalSize) {
-              // End bit on
-              buffer[RtpConstants.RTP_HEADER_LENGTH + 1] = buffer[RtpConstants.RTP_HEADER_LENGTH + 1].plus(0x40).toByte()
-              if (index == nals.size - 1) markPacket(buffer) //mark end frame
-            }
+            markPacket(buffer) //mark end frame
             updateSeq(buffer)
             val rtpFrame = RtpFrame(buffer, rtpTs, buffer.size, channelIdentifier)
             frames.add(rtpFrame)
+          } else {
+            // Set FU-A header
+            header[1] = nalType and 0x1F // FU header type
+            header[1] = header[1].plus(0x80).toByte()  // set start bit to 1
+            // Set FU-A indicator
+            header[0] = nalType and 0x60 and 0xFF.toByte() // FU indicator NRI
+            header[0] = header[0].plus(28).toByte()
+
+            var sum = 0
+            while (sum < nalSize) {
+              val length = if (nalSize - sum > maxPacketSize - RtpConstants.RTP_HEADER_LENGTH - 2) {
+                maxPacketSize - RtpConstants.RTP_HEADER_LENGTH - 2
+              } else {
+                data.remaining()
+              }
+              val buffer = getBuffer(length + RtpConstants.RTP_HEADER_LENGTH + 2)
+              buffer[RtpConstants.RTP_HEADER_LENGTH] = header[0]
+              // Switch start bit
+              buffer[RtpConstants.RTP_HEADER_LENGTH + 1] = if (sum > 0) header[1] and 0x7F else header[1]
+              val rtpTs = updateTimeStamp(buffer, ts)
+              data.get(buffer, RtpConstants.RTP_HEADER_LENGTH + 2, length)
+              sum += length
+              // Last packet before next NAL
+              if (sum >= nalSize) {
+                // End bit on
+                buffer[RtpConstants.RTP_HEADER_LENGTH + 1] = buffer[RtpConstants.RTP_HEADER_LENGTH + 1].plus(0x40).toByte()
+                if (index == nals.size - 1) markPacket(buffer) //mark end frame
+              }
+              updateSeq(buffer)
+              val rtpFrame = RtpFrame(buffer, rtpTs, buffer.size, channelIdentifier)
+              frames.add(rtpFrame)
+            }
           }
-        }
       }
     } else {
       Log.i(TAG, "waiting for keyframe")
