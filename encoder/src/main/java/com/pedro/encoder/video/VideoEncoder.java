@@ -147,6 +147,9 @@ public class VideoEncoder extends BaseEncoder implements GetCameraData {
       videoFormat.setInteger(MediaFormat.KEY_BIT_RATE, bitRate);
       videoFormat.setInteger(MediaFormat.KEY_FRAME_RATE, fps);
       videoFormat.setInteger(MediaFormat.KEY_I_FRAME_INTERVAL, iFrameInterval);
+      if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+        videoFormat.setInteger(MediaFormat.KEY_MAX_B_FRAMES, 2); // Probar con 1 o 2
+      }
       //Set CBR mode if supported by encoder.
       if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP && CodecUtil.isCBRModeSupported(encoder, type)) {
         Log.i(TAG, "set bitrate mode CBR");
