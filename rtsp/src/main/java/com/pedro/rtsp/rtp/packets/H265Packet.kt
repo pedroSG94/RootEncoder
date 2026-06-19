@@ -16,15 +16,13 @@
 
 package com.pedro.rtsp.rtp.packets
 
-import android.util.Log
 import com.pedro.common.VideoCodec
 import com.pedro.common.frame.MediaFrame
 import com.pedro.common.nal.NalReader
 import com.pedro.common.removeInfo
 import com.pedro.rtsp.rtsp.RtpFrame
 import com.pedro.rtsp.utils.RtpConstants
-import java.nio.ByteBuffer
-import kotlin.experimental.and
+import kotlin.experimental.or
 
 /**
  * Created by pedro on 28/11/18.
@@ -36,30 +34,18 @@ class H265Packet : BasePacket(
   RtpConstants.payloadType + RtpConstants.trackVideo
 ) {
 
-  private var videoInfo: Set<ByteBuffer>? = null
-  private val header = ByteArray(3)
-
   init {
     channelIdentifier = RtpConstants.trackVideo
-  }
-
-  fun sendVideoInfo(sps: ByteBuffer, pps: ByteBuffer, vps: ByteBuffer) {
-    videoInfo = setOf(sps, pps, vps)
   }
 
   override suspend fun createAndSendPacket(
     mediaFrame: MediaFrame,
     callback: suspend (List<RtpFrame>) -> Unit
   ) {
-    val videoInfo = this.videoInfo
-    if (videoInfo == null) {
-      Log.e(TAG, "waiting for a valid sps, pps and vps")
-      return
-    }
     val fixedBuffer = mediaFrame.data.removeInfo(mediaFrame.info)
     // We read a NAL units from ByteBuffer and we send them
     // NAL units are preceded with 0x00000001
-    val nals = NalReader.extractNals(fixedBuffer, VideoCodec.H265, true)
+    val nals = NalReader.extractNals(fixedBuffer, VideoCodec.H265, false)
     if (nals.isEmpty()) return
 
     val ts = mediaFrame.info.timestamp * 1000L
@@ -82,18 +68,14 @@ class H265Packet : BasePacket(
         val rtpFrame = RtpFrame(buffer, rtpTs, buffer.size, channelIdentifier)
         frames.add(rtpFrame)
       } else {
-        val type: Int = nalType.toInt().shr(1 and 0x3f)
-        //Set PayloadHdr (16bit type=49)
-        header[0] = (49 shl 1).toByte()
-        header[1] = 1
         // Set FU header
         //   +---------------+
         //   |0|1|2|3|4|5|6|7|
         //   +-+-+-+-+-+-+-+-+
         //   |S|E|  FuType   |
         //   +---------------+
-        header[2] = type.toByte() // FU header type
-        header[2] = header[2].plus(0x80).toByte() // Start bit
+        val type: Int = nalType.toInt().shr(1) and 0x3F
+        val fuHeader = type.toByte() // FU header type
 
         var sum = 0
         while (sum < nalSize) {
@@ -103,10 +85,11 @@ class H265Packet : BasePacket(
             data.remaining()
           }
           val buffer = getBuffer(length + RtpConstants.RTP_HEADER_LENGTH + 3)
-          buffer[RtpConstants.RTP_HEADER_LENGTH] = header[0]
-          buffer[RtpConstants.RTP_HEADER_LENGTH + 1] = header[1]
+          //Set PayloadHdr (16bit type=49)
+          buffer[RtpConstants.RTP_HEADER_LENGTH] = (49 shl 1).toByte()
+          buffer[RtpConstants.RTP_HEADER_LENGTH + 1] = 1
           // Switch start bit
-          buffer[RtpConstants.RTP_HEADER_LENGTH + 2] = if (sum > 0) header[2] and 0x7F else header[2]
+          buffer[RtpConstants.RTP_HEADER_LENGTH + 2] = if (sum > 0) fuHeader else (fuHeader or 0x80.toByte())
           val rtpTs = updateTimeStamp(buffer, ts)
           data.get(buffer, RtpConstants.RTP_HEADER_LENGTH + 3, length)
           sum += length

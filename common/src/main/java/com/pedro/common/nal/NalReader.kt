@@ -52,7 +52,8 @@ object NalReader {
       val duplicate = buffer.duplicate()
       duplicate.position(payloadStart - offset)
       duplicate.limit(limit - offset)
-      units.add(duplicate.slice())
+      val nal = duplicate.slice()
+      if (shouldKeepNal(nal, codec, shouldDiscardVideoInfo)) units.add(nal)
     }
     if (units.isEmpty()) units.add(buffer)
     return units

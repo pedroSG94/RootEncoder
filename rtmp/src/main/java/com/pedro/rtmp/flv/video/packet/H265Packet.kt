@@ -99,7 +99,7 @@ class H265Packet: BasePacket() {
     val size = nals.sumOf { it.capacity() }
     buffer = ByteArray(header.size + size + naluSize * nals.size)
 
-    val type: Int = nals[0].get(0).toInt().shr(1 and 0x3f)
+    val type: Int = nals[0].get(0).toInt().shr(1) and 0x3F
     var nalType = VideoDataType.INTER_FRAME.value
     if (type == VideoNalType.IDR_N_LP.value || type == VideoNalType.IDR_W_DLP.value || mediaFrame.info.isKeyFrame) {
       nalType = VideoDataType.KEYFRAME.value

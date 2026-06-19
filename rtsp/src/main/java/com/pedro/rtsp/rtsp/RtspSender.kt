@@ -78,11 +78,11 @@ class RtspSender(
     videoPacket = when (commandsManager.videoCodec) {
       VideoCodec.H264 -> {
         if (pps == null) throw IllegalArgumentException("pps can't be null with h264")
-        H264Packet().apply { sendVideoInfo(sps, pps) }
+        H264Packet()
       }
       VideoCodec.H265 -> {
         if (vps == null || pps == null) throw IllegalArgumentException("pps or vps can't be null with h265")
-        H265Packet().apply { sendVideoInfo(sps, pps, vps) }
+        H265Packet()
       }
       VideoCodec.AV1 -> Av1Packet()
     }
