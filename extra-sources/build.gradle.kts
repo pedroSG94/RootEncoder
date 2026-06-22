@@ -6,11 +6,11 @@ plugins {
 
 android {
     namespace = "com.pedro.extrasources"
-    compileSdk = 36
+    compileSdk = 37
 
     defaultConfig {
         minSdk = 21
-        lint.targetSdk = 36
+        lint.targetSdk = 37
     }
     buildTypes {
         release {
