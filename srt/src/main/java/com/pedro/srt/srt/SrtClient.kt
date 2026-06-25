@@ -106,7 +106,7 @@ class SrtClient(private val connectChecker: ConnectChecker) {
   var packetsLost = 0
     private set
   private var latency = 120_000 //in micro
-  var socketType = SocketType.KTOR
+  var socketType = SocketType.JAVA
   var socketTimeout = StreamSocket.DEFAULT_TIMEOUT
 
   fun setVideoCodec(videoCodec: VideoCodec) {

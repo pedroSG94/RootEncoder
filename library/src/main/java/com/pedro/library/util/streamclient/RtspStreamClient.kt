@@ -151,6 +151,13 @@ class RtspStreamClient(
   }
 
   /**
+   * If using TLS socket force to check host certificate
+   */
+  fun setTlsHostVerification(enabled: Boolean) {
+    rtspClient.tlsHostVerification = enabled
+  }
+
+  /**
    * Set timeout ms for connection, write and read in sockets by default 5000ms
    */
   override fun setSocketTimeout(timeout: Long) {

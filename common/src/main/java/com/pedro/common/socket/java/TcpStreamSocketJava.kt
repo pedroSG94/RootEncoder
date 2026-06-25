@@ -1,5 +1,6 @@
 package com.pedro.common.socket.java
 
+import android.os.Build
 import java.io.IOException
 import java.net.InetSocketAddress
 import java.net.Socket
@@ -30,6 +31,12 @@ class TcpStreamSocketJava(
         val socketAddress: SocketAddress = InetSocketAddress(host, port)
         socket.connect(socketAddress, timeout.toInt())
         socket.soTimeout = timeout.toInt()
+        if (hostVerification && socket is SSLSocket && Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            socket.sslParameters = socket.sslParameters.apply {
+                endpointIdentificationAlgorithm = "HTTPS"
+            }
+            socket.startHandshake()
+        }
         return socket
     }
 }

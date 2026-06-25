@@ -129,15 +129,18 @@ abstract class AsyncBaseRecordController : RecordController {
   }
 
   override fun recordVideo(videoBuffer: ByteBuffer, videoInfo: MediaCodec.BufferInfo) {
-    val info = videoInfo.toMediaFrameInfo()
-    val i = updateFormat(info)
-    muxerChannel?.trySend(MediaFrame(videoBuffer.clone(), i, MediaFrame.Type.VIDEO))
+    sendFrame(videoBuffer, videoInfo, MediaFrame.Type.VIDEO)
   }
 
   override fun recordAudio(audioBuffer: ByteBuffer, audioInfo: MediaCodec.BufferInfo) {
-    val info = audioInfo.toMediaFrameInfo()
-    val i = updateFormat(info)
-    muxerChannel?.trySend(MediaFrame(audioBuffer.clone(), i, MediaFrame.Type.AUDIO))
+    sendFrame(audioBuffer, audioInfo, MediaFrame.Type.AUDIO)
+  }
+
+  private fun sendFrame(buffer: ByteBuffer, info: MediaCodec.BufferInfo, type: MediaFrame.Type) {
+    if (recordStatus == RecordController.Status.STOPPED) return
+    val frameInfo = info.toMediaFrameInfo()
+    val i = updateFormat(frameInfo)
+    muxerChannel?.trySend(MediaFrame(buffer.clone(), i, type))
   }
 
   override fun startRecord(
@@ -172,6 +175,7 @@ abstract class AsyncBaseRecordController : RecordController {
     listener: RecordController.Listener?,
     tracks: RecordTracks
   ) {
+    clearTimestamp()
     muxerChannel = Channel(CAPACITY)
     muxerJob = scope.launch {
       val channel = muxerChannel ?: return@launch
@@ -194,12 +198,16 @@ abstract class AsyncBaseRecordController : RecordController {
     muxerJob?.cancel()
     runBlocking { muxerJob?.join() }
     recordStatus = RecordController.Status.STOPPED
-    pauseMoment = 0
-    pauseTime = 0
-    startTs = 0
+    clearTimestamp()
     myRequestKeyFrame = null
     listener?.onStatusChange(recordStatus)
     stopRecordImp()
+  }
+
+  private fun clearTimestamp() {
+    pauseMoment = 0
+    pauseTime = 0
+    startTs = 0
   }
 
   abstract fun startRecordImp(fd: FileDescriptor, listener: RecordController.Listener?, tracks: RecordTracks)

@@ -189,7 +189,7 @@ public class CodecUtil {
   public static List<MediaCodecInfo> getAllCodecs(boolean filterBroken) {
     List<MediaCodecInfo> mediaCodecInfoList = new ArrayList<>();
     if (Build.VERSION.SDK_INT >= 21) {
-      MediaCodecList mediaCodecList = new MediaCodecList(MediaCodecList.ALL_CODECS);
+      MediaCodecList mediaCodecList = new MediaCodecList(MediaCodecList.REGULAR_CODECS);
       MediaCodecInfo[] mediaCodecInfos = mediaCodecList.getCodecInfos();
       mediaCodecInfoList.addAll(Arrays.asList(mediaCodecInfos));
     } else {
@@ -459,6 +459,8 @@ public class CodecUtil {
   private static boolean isValid(String name) {
     //This encoder is invalid and produce errors (Only found in AVD API 16)
     if (name.equalsIgnoreCase("aacencoder")) return false;
+    //Discard secure encoders. It is only used for DRM
+    else if (name.toLowerCase().contains(".secure")) return false;
     return true;
   }
 

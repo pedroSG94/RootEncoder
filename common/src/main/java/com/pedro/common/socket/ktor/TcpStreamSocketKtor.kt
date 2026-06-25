@@ -5,6 +5,7 @@ import io.ktor.network.sockets.InetSocketAddress
 import io.ktor.network.sockets.ReadWriteSocket
 import io.ktor.network.sockets.aSocket
 import io.ktor.network.tls.tls
+import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.Dispatchers
 import java.security.SecureRandom
 import javax.net.ssl.TrustManager
@@ -16,16 +17,20 @@ class TcpStreamSocketKtor(
     private val certificate: TrustManager? = null
 ): TcpStreamSocketKtorBase(host, port) {
 
-    override suspend fun onConnectSocket(timeout: Long): ReadWriteSocket {
+    override suspend fun onConnectSocket(timeout: Long, error: (Throwable) -> Unit): ReadWriteSocket {
         selectorManager = SelectorManager(Dispatchers.IO)
         val builder = aSocket(selectorManager).tcp().connect(
             remoteAddress = InetSocketAddress(host, port),
             configure = { if (!secured) socketTimeout = timeout }
         )
         return if (secured) {
-            builder.tls(Dispatchers.IO) {
+            val tlsContext = CoroutineExceptionHandler { _, throwable ->
+                error(throwable)
+            }
+            builder.tls(tlsContext + Dispatchers.IO) {
                 trustManager = certificate
                 random = SecureRandom()
+                if (hostVerification) serverName = host
             }
         } else builder
     }
