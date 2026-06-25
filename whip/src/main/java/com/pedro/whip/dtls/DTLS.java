@@ -16,10 +16,8 @@
     with this program; if not, write to the Free Software Foundation, Inc.,
     51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
-package com.pedro.whip.dtls.test;
+package com.pedro.whip.dtls;
 
-
-import android.util.Log;
 
 import com.pedro.rtsp.utils.ExtensionsKt;
 
@@ -41,6 +39,11 @@ import java.util.Properties;
  * @author thp
  */
 public class DTLS {
+
+    public interface DtlsCallback {
+        void onHandshakeComplete();
+        void onHandshakeFailed(String reason);
+    }
 
     DTLSServer bcdtls;
     Properties[] cprops;
@@ -83,9 +86,6 @@ public class DTLS {
         p[1].put("required", "1");
         p[1].put("crypto-suite", "AES_CM_128_HMAC_SHA1_80");
         p[1].put("key-params", "inline:" + server);
-
-        /* required='1' crypto-suite='AES_CM_128_HMAC_SHA1_80' key-params='inline:WVNfX19zZW1jdGwgKCkgewkyMjA7fQp9CnVubGVz' session-params='KDR=1 UNENCRYPTED_SRTCP' tag='1'
-         */
         return p;
     }
 
@@ -94,23 +94,26 @@ public class DTLS {
     }
 
 
-    public void start(DatagramTransport dt, String ffp, BcTlsCrypto crypto, AsymmetricKeyParameter key, TlsCertificate cert) {
+    public void start(DatagramTransport dt, String ffp, BcTlsCrypto crypto, AsymmetricKeyParameter key, TlsCertificate cert, DtlsCallback callback) {
         try {
             bcdtls = new DTLSServer(key,cert,crypto,dt,ffp) {
                 @Override
                 public void notifyHandshakeComplete() {
-                    Log.e("Pedro", "complete!!!!");
                     cprops = extractCryptoProps(this);
+                    if (callback != null) callback.onHandshakeComplete();
                 }
 
                 @Override
-                public void onVerified() {
-                    Log.e("Pedro", "ready!!!!");
+                public void onVerified() {}
+
+                @Override
+                public void onError(Exception e) {
+                    if (callback != null) callback.onHandshakeFailed(e.getMessage());
                 }
             };
 
         } catch (Exception x) {
-            Log.e("Pedro", "error dtls", x);
+            if (callback != null) callback.onHandshakeFailed(x.getMessage());
         }
 
     }
@@ -139,13 +142,10 @@ public class DTLS {
     }
     public static boolean validate(TlsCertificate fpc) throws IOException, CertificateException {
         boolean ret = false;
-
         ByteArrayInputStream bis = new ByteArrayInputStream(fpc.getEncoded());
-
         CertificateFactory cf = CertificateFactory.getInstance("X.509");
         while (bis.available() > 0) {
             X509Certificate fiveohnine = (X509Certificate) cf.generateCertificate(bis);
-            long now = System.currentTimeMillis();
             fiveohnine.checkValidity();
             ret = true;
         }

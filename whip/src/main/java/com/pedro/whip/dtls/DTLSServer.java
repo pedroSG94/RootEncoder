@@ -18,7 +18,7 @@
  */
 
 /* used with permission from pi.pe gmbh */
-package com.pedro.whip.dtls.test;
+package com.pedro.whip.dtls;
 
 
 import org.bouncycastle.crypto.params.AsymmetricKeyParameter;
@@ -121,7 +121,8 @@ public abstract class DTLSServer extends DefaultTlsServer implements Runnable{
     }
 
     public abstract void onVerified();
-    
+    public abstract void onError(Exception e);
+
     public void run() {
         _dtlsStatusOk = true;
         DTLSTransport dtlsServer = null;
@@ -133,6 +134,7 @@ public abstract class DTLSServer extends DefaultTlsServer implements Runnable{
             }
         } catch (Exception e) {
             _dtlsStatusOk = false;
+            onError(e);
         }
         synchronized (nap) {
             while (_dtlsStatusOk == true) {

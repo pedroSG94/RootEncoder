@@ -18,14 +18,10 @@
 
 package com.pedro.whip.dtls
 
-import android.util.Log
 import com.pedro.common.socket.base.UdpStreamSocket
-import com.pedro.common.trySend
 import com.pedro.rtsp.utils.RtpConstants
 import kotlinx.coroutines.runBlocking
 import org.bouncycastle.tls.DatagramTransport
-import java.net.SocketTimeoutException
-import java.util.concurrent.ArrayBlockingQueue
 import java.util.concurrent.LinkedBlockingQueue
 import java.util.concurrent.TimeUnit
 import kotlin.math.min
@@ -37,31 +33,26 @@ class DtlsTransport(
   private val socket: UdpStreamSocket
 ): DatagramTransport {
 
-  private var canTransport = false
   private val queue = LinkedBlockingQueue<ByteArray>()
-
-  fun open() {
-    canTransport = true
-  }
 
   override fun getReceiveLimit(): Int {
     return RtpConstants.MTU
   }
 
   fun enqueue(bytes: ByteArray) {
-    queue.trySend(bytes)
+    queue.offer(bytes)
   }
 
   override fun receive(buffer: ByteArray, offset: Int, length: Int, waitMillis: Int): Int {
-    var readSize = 0
-    runBlocking {
-      val bytes = socket.read()
-      if (bytes[0] in 20..63) {
-        readSize = min(length, bytes.size)
-        System.arraycopy(bytes, 0, buffer, offset, readSize)
-      }
+    if (waitMillis <= 0) return -1
+    return try {
+      val bytes = queue.poll(waitMillis.toLong(), TimeUnit.MILLISECONDS) ?: return -1
+      val result = min(length, bytes.size)
+      System.arraycopy(bytes, 0, buffer, offset, result)
+      result
+    } catch (_: InterruptedException) {
+      -1
     }
-    return readSize
   }
 
   override fun getSendLimit(): Int {
@@ -75,6 +66,6 @@ class DtlsTransport(
   }
 
   override fun close() {
-    canTransport = false
+    queue.clear()
   }
 }

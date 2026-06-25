@@ -16,24 +16,19 @@ import com.pedro.common.toMediaFrameInfo
 import com.pedro.common.toUInt32
 import com.pedro.common.validMessage
 import com.pedro.rtsp.utils.RtpConstants
-import com.pedro.whip.dtls.DtlsConnection
 import com.pedro.whip.dtls.DtlsTransport
-import com.pedro.whip.dtls.test.DTLS
-import com.pedro.whip.webrtc.Candidate
+import com.pedro.whip.dtls.DTLS
 import com.pedro.whip.webrtc.CandidateType
 import com.pedro.whip.webrtc.CommandsManager
 import com.pedro.whip.webrtc.stun.AttributeType
-import com.pedro.whip.webrtc.stun.CandidatePair
-import com.pedro.whip.webrtc.stun.CandidatePairConnection
 import com.pedro.whip.webrtc.stun.GatheringMode
 import com.pedro.whip.webrtc.stun.HeaderType
 import com.pedro.whip.webrtc.stun.StunAttribute
 import com.pedro.whip.webrtc.stun.StunAttributeValueParser
-import com.pedro.whip.webrtc.stun.StunCommandReader
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.async
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.delay
@@ -56,7 +51,6 @@ class WhipClient(private val connectChecker: ConnectChecker) {
     private var job: Job? = null
     private var jobRetry: Job? = null
     private var mutex = Mutex(locked = true)
-    private var mutexSuccessConnection = Mutex(locked = true)
 
     @Volatile
     var isStreaming = false
@@ -297,18 +291,64 @@ class WhipClient(private val connectChecker: ConnectChecker) {
 
                     Log.i(TAG, "stun connected!!")
 
-                    //TODO DTLS handshake
                     val certificate = commandsManager.certificate ?: return@launch
                     val fingerprint = commandsManager.remoteSdpInfo?.fingerprint ?: return@launch
-//                    val dtlsConnection = DtlsConnection(certificate)
-//                    dtlsConnection.connect(socket)
 
-                    val dtls = DTLS()
                     Log.i(TAG, "connecting dtls...")
+                    val dtlsResult = CompletableDeferred<Result<Unit>>()
+                    val dtls = DTLS()
                     val dtlsTransport = DtlsTransport(socket)
-                    dtls.start(dtlsTransport, fingerprint, certificate.crypto, certificate.key, certificate.certificate)
-                    mutexSuccessConnection.lock()
-                    //TODO connection success ready to send SRTP/SRTCP
+
+                    // Dispatcher coroutine: reads all packets and routes them.
+                    // STUN binding requests (keep-alives) get a SUCCESS response.
+                    // DTLS records are enqueued for BouncyCastle.
+                    val dispatchJob = launch {
+                        while (isActive) {
+                            try {
+                                val bytes = socket.read()
+                                if (bytes.isEmpty()) continue
+                                when {
+                                    bytes[0] in 20..63 -> dtlsTransport.enqueue(bytes)
+                                    bytes[0].toInt() and 0xFF in 128..191 -> { /* RTCP/RTP – ignore */ }
+                                    else -> {
+                                        val command = commandsManager.readStun(bytes)
+                                        if (command.header.type == HeaderType.REQUEST) {
+                                            val xorAddress = StunAttributeValueParser.createXorMappedAddress(
+                                                command.header.id, host, port, true
+                                            )
+                                            commandsManager.writeStun(
+                                                HeaderType.SUCCESS, command.header.id,
+                                                listOf(StunAttribute(AttributeType.XOR_MAPPED_ADDRESS, xorAddress)),
+                                                socket
+                                            )
+                                        }
+                                    }
+                                }
+                            } catch (_: Exception) { break }
+                        }
+                    }
+
+                    dtls.start(dtlsTransport, fingerprint, certificate.crypto, certificate.key, certificate.certificate, object : DTLS.DtlsCallback {
+                        override fun onHandshakeComplete() {
+                            dtlsResult.complete(Result.success(Unit))
+                        }
+                        override fun onHandshakeFailed(reason: String?) {
+                            dtlsResult.complete(Result.failure(Exception(reason ?: "DTLS handshake failed")))
+                        }
+                    })
+
+                    val result = withTimeoutOrNull(60_000) { dtlsResult.await() }
+                        ?: Result.failure(Exception("timeout"))
+                    dispatchJob.cancel()
+                    if (result.isFailure) {
+                        onMainThread {
+                            connectChecker.onConnectionFailed("DTLS handshake failed: ${result.exceptionOrNull()?.message}")
+                        }
+                        return@launch
+                    }
+                    Log.i(TAG, "dtls connected!!")
+                    onMainThread { connectChecker.onConnectionSuccess() }
+                    //TODO setup SRTP/SRTCP and start sending
                 }.exceptionOrNull()
                 if (error != null) {
                     Log.e(TAG, "connection error", error)

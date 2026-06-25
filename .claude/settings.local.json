@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(xargs cat)",
+      "Bash(./gradlew :whip:testDebugUnitTest --tests \"com.pedro.whip.WhipClientTest\" --rerun)",
+      "Bash(./gradlew :whip:testDebugUnitTest --tests \"com.pedro.whip.WhipClientTest\" --rerun --info)",
+      "Bash(./gradlew :whip:compileDebugKotlin)"
+    ]
+  }
+}
