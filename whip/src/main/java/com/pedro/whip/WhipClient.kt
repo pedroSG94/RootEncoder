@@ -16,8 +16,8 @@ import com.pedro.common.toMediaFrameInfo
 import com.pedro.common.toUInt32
 import com.pedro.common.validMessage
 import com.pedro.rtsp.utils.RtpConstants
+import com.pedro.whip.dtls.DtlsConnection
 import com.pedro.whip.dtls.DtlsTransport
-import com.pedro.whip.dtls.DTLS
 import com.pedro.whip.webrtc.CandidateType
 import com.pedro.whip.webrtc.CommandsManager
 import com.pedro.whip.webrtc.stun.AttributeType
@@ -39,6 +39,7 @@ import kotlinx.coroutines.withTimeoutOrNull
 import java.net.SocketTimeoutException
 import java.net.URISyntaxException
 import java.nio.ByteBuffer
+import kotlin.time.Duration.Companion.milliseconds
 
 class WhipClient(private val connectChecker: ConnectChecker) {
 
@@ -208,9 +209,7 @@ class WhipClient(private val connectChecker: ConnectChecker) {
                     if (!commandsManager.videoDisabled) {
                         if (!commandsManager.videoInfoReady()) {
                             Log.i(TAG, "waiting for sps and pps")
-                            withTimeoutOrNull(5000) {
-                                mutex.lock()
-                            }
+                            withTimeoutOrNull(5_000.milliseconds) { mutex.lock() }
                             if (!commandsManager.videoInfoReady()) {
                                 onMainThread {
                                     connectChecker.onConnectionFailed("sps or pps is null")
@@ -296,12 +295,9 @@ class WhipClient(private val connectChecker: ConnectChecker) {
 
                     Log.i(TAG, "connecting dtls...")
                     val dtlsResult = CompletableDeferred<Result<Unit>>()
-                    val dtls = DTLS()
                     val dtlsTransport = DtlsTransport(socket)
+                    val dtlsConnection = DtlsConnection(certificate, fingerprint)
 
-                    // Dispatcher coroutine: reads all packets and routes them.
-                    // STUN binding requests (keep-alives) get a SUCCESS response.
-                    // DTLS records are enqueued for BouncyCastle.
                     val dispatchJob = launch {
                         while (isActive) {
                             try {
@@ -328,7 +324,7 @@ class WhipClient(private val connectChecker: ConnectChecker) {
                         }
                     }
 
-                    dtls.start(dtlsTransport, fingerprint, certificate.crypto, certificate.key, certificate.certificate, object : DTLS.DtlsCallback {
+                    dtlsConnection.start(dtlsTransport, object : DtlsConnection.Callback {
                         override fun onHandshakeComplete() {
                             dtlsResult.complete(Result.success(Unit))
                         }
@@ -337,9 +333,10 @@ class WhipClient(private val connectChecker: ConnectChecker) {
                         }
                     })
 
-                    val result = withTimeoutOrNull(60_000) { dtlsResult.await() }
+                    val result = withTimeoutOrNull(5_000.milliseconds) { dtlsResult.await() }
                         ?: Result.failure(Exception("timeout"))
                     dispatchJob.cancel()
+                    dtlsConnection.close()
                     if (result.isFailure) {
                         onMainThread {
                             connectChecker.onConnectionFailed("DTLS handshake failed: ${result.exceptionOrNull()?.message}")
