@@ -22,6 +22,7 @@ import com.pedro.rtsp.rtp.sockets.BaseRtpSocket
 import com.pedro.rtsp.rtp.sockets.RtpSocketTcp
 import com.pedro.rtsp.rtsp.Protocol
 import com.pedro.rtsp.rtsp.RtpFrame
+import com.pedro.rtsp.utils.CryptoProperties
 import com.pedro.rtsp.utils.RtpConstants
 import com.pedro.whip.webrtc.CommandsManager
 import kotlinx.coroutines.isActive
@@ -46,6 +47,11 @@ class WhipSender(
     ) {
         rtpSocket = BaseRtpSocket.getInstance(socket)
         baseSenderReport = BaseSenderReport.getInstance(socket)
+    }
+
+    fun setCrypto(properties: CryptoProperties) {
+        videoPacket.setCryptoProperties(properties)
+        audioPacket.setCryptoProperties(properties)
     }
 
     override fun setVideoInfo(sps: ByteBuffer, pps: ByteBuffer?, vps: ByteBuffer?) {

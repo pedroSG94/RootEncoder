@@ -18,6 +18,8 @@
 
 package com.pedro.whip.dtls
 
+import com.pedro.rtsp.utils.CryptoProperties
+import com.pedro.rtsp.utils.encodeToString
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -48,6 +50,7 @@ import java.security.cert.CertificateException
 import java.security.cert.CertificateFactory
 import java.security.cert.X509Certificate
 import java.util.Hashtable
+import java.util.Properties
 import java.util.Vector
 
 /**
@@ -59,7 +62,7 @@ class DtlsConnection(
 ) : DefaultTlsServer(certificate.crypto) {
 
   interface Callback {
-    fun onHandshakeComplete()
+    fun onHandshakeComplete(properties: List<CryptoProperties>)
     fun onHandshakeFailed(reason: String?)
   }
 
@@ -70,7 +73,7 @@ class DtlsConnection(
     CoroutineScope(Dispatchers.IO).launch {
       try {
         dtlsTransport = DTLSServerProtocol().accept(this@DtlsConnection, transport)
-        callback.onHandshakeComplete()
+        callback.onHandshakeComplete(extractCryptoProperties())
       } catch (e: Exception) {
         callback.onHandshakeFailed(e.message)
       }
@@ -165,5 +168,31 @@ class DtlsConnection(
   private fun computeFingerprint(cert: TlsCertificate): String {
     val digest = MessageDigest.getInstance("SHA-256").digest(cert.encoded)
     return digest.joinToString(":") { "%02X".format(it) }
+  }
+
+  fun extractCryptoProperties(): List<CryptoProperties> {
+    // assume SRTP_AES128_CM_HMAC_SHA1_80
+    val keyLength = 16
+    val saltLength = 14
+    val ts = 2 * (keyLength + saltLength)
+    val keys: ByteArray = context.exportKeyingMaterial("EXTRACTOR-dtls_srtp", null, ts)
+    val clientKey = ByteArray(keyLength)
+    val serverKey = ByteArray(keyLength)
+    val serverSalt = ByteArray(saltLength)
+    val clientSalt = ByteArray(saltLength)
+    var offs = 0
+    System.arraycopy(keys, offs, clientKey, 0, keyLength)
+    offs += keyLength
+    System.arraycopy(keys, offs, serverKey, 0, keyLength)
+    offs += keyLength
+    System.arraycopy(keys, offs, clientSalt, keyLength, saltLength)
+    offs += saltLength
+    System.arraycopy(keys, offs, serverSalt, keyLength, saltLength)
+    offs += saltLength
+
+    val suite = "AES_CM_128_HMAC_SHA1_80"
+    val clientCrypto = CryptoProperties(clientKey, clientKey, clientSalt)
+    val serverCrypto = CryptoProperties(serverKey, serverKey, serverSalt)
+    return listOf(clientCrypto, serverCrypto)
   }
 }

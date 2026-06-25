@@ -15,6 +15,7 @@ import com.pedro.common.socket.base.UdpStreamSocket
 import com.pedro.common.toMediaFrameInfo
 import com.pedro.common.toUInt32
 import com.pedro.common.validMessage
+import com.pedro.rtsp.utils.CryptoProperties
 import com.pedro.rtsp.utils.RtpConstants
 import com.pedro.whip.dtls.DtlsConnection
 import com.pedro.whip.dtls.DtlsTransport
@@ -294,7 +295,7 @@ class WhipClient(private val connectChecker: ConnectChecker) {
                     val fingerprint = commandsManager.remoteSdpInfo?.fingerprint ?: return@launch
 
                     Log.i(TAG, "connecting dtls...")
-                    val dtlsResult = CompletableDeferred<Result<Unit>>()
+                    val dtlsResult = CompletableDeferred<Result<List<CryptoProperties>>>()
                     val dtlsTransport = DtlsTransport(socket)
                     val dtlsConnection = DtlsConnection(certificate, fingerprint)
 
@@ -325,8 +326,8 @@ class WhipClient(private val connectChecker: ConnectChecker) {
                     }
 
                     dtlsConnection.start(dtlsTransport, object : DtlsConnection.Callback {
-                        override fun onHandshakeComplete() {
-                            dtlsResult.complete(Result.success(Unit))
+                        override fun onHandshakeComplete(cryptoProperties: List<CryptoProperties>) {
+                            dtlsResult.complete(Result.success(cryptoProperties))
                         }
                         override fun onHandshakeFailed(reason: String?) {
                             dtlsResult.complete(Result.failure(Exception(reason ?: "DTLS handshake failed")))
@@ -337,7 +338,8 @@ class WhipClient(private val connectChecker: ConnectChecker) {
                         ?: Result.failure(Exception("timeout"))
                     dispatchJob.cancel()
                     dtlsConnection.close()
-                    if (result.isFailure) {
+                    val cryptoProperties = result.getOrNull()
+                    if (cryptoProperties == null) {
                         onMainThread {
                             connectChecker.onConnectionFailed("DTLS handshake failed: ${result.exceptionOrNull()?.message}")
                         }
@@ -345,6 +347,7 @@ class WhipClient(private val connectChecker: ConnectChecker) {
                     }
                     Log.i(TAG, "dtls connected!!")
                     onMainThread { connectChecker.onConnectionSuccess() }
+                    whipSender.setCrypto(cryptoProperties[1])
                     whipSender.setSocketsInfo(socket)
                     whipSender.start()
                 }.exceptionOrNull()
